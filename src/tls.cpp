@@ -239,18 +239,15 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   return nullptr;
 }
 
-SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord*>
-> __tls_map;
-
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>&
 SK_TLS_Map (void)
 {
-  static auto& tls_map =
-    __tls_map.get ();
+  static
+    concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord*>
+                                __tls_map;
 
   return
-    tls_map;
+    __tls_map;
 }
 
 SK_TlsRecord*
@@ -371,18 +368,21 @@ SK_TLS_Bottom (void)
        (pTLSRecord->pTLS    != nullptr) &&
      (! pTLSRecord->pTLS->debug.mapped) )
   {
-    static auto& tls_map =
-      SK_TLS_Map ();
-
-    try
+    if (ReadAcquire (&_SK_IgnoreTLSMap) == 0)
     {
-      tls_map [pTLS->debug.tid] =
-        &pTLS->context_record;
+      try
+      {
+        static auto& tls_map =
+          SK_TLS_Map ();
 
-      pTLS->debug.mapped = true;
+        tls_map [pTLS->debug.tid] =
+          &pTLS->context_record;
+
+        pTLS->debug.mapped = true;
+      }
+
+      catch (...) {}
     }
-
-    catch (...) {}
   }
 
   InterlockedDecrement (&_SK_IgnoreTLSAlloc);
@@ -400,18 +400,17 @@ _On_failure_ (_Ret_maybenull_)
 SK_TLS*
 SK_TLS_BottomEx (DWORD dwTid)
 {
-  static auto& tls_map =
-    SK_TLS_Map ();
-
-  auto tls_slot =
-    tls_map [dwTid];
-
   SK_TLS* pTLS = nullptr;
-
 
   auto orig_se =
   SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
+    static auto& tls_map =
+      SK_TLS_Map ();
+
+    auto tls_slot =
+      tls_map [dwTid];
+
     // If out-of-indexes, then the thread was probably destroyed
     if ( tls_slot                                !=     nullptr &&
          tls_slot->pTLS                          !=     nullptr &&
@@ -424,7 +423,7 @@ SK_TLS_BottomEx (DWORD dwTid)
 
   catch (const SK_SEH_IgnoredException&)
   {
-    SK_ReleaseAssert (! (L"Bad TLS"))
+    OutputDebugStringW (L"Bad TLS");
   }
   SK_SEH_RemoveTranslator (orig_se);
 
@@ -560,6 +559,8 @@ SK_TLS_DynamicContext::Cleanup (SK_TLS_CleanupReason_e reason)
   return 0;
 }
 
+#include <wingdi.h>
+
 size_t
 SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
@@ -576,6 +577,12 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += osd.wszFileSize.reclaim      ();
   freed += osd .szTemperature.reclaim   ();
   freed += osd.wszTemperature.reclaim   ();
+
+  static_assert (sizeof (DISPLAYCONFIG_PATH_INFO) == sizeof (SK_MINGDI_DISPLAYCONFIG_PATH_INFO));
+  static_assert (sizeof (DISPLAYCONFIG_MODE_INFO) == sizeof (SK_MINGDI_DISPLAYCONFIG_MODE_INFO));
+
+  freed += ccd.display_paths.reclaim    ();
+  freed += ccd.display_modes.reclaim    ();
 
   for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
   {

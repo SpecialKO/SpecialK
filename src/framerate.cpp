@@ -344,10 +344,13 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 
   if (tracks_window)
   {
-    SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
-    if ((intptr_t)hWaitHandle.m_h > 0)
+    if (config.render.framerate.swapchain_wait > 0)
     {
-      WaitForSingleObjectEx (hWaitHandle, 50UL, FALSE);
+      SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
+      if ((intptr_t)hWaitHandle.m_h > 0)
+      {
+        SK_WaitForSingleObject (hWaitHandle, 20UL);
+      }
     }
   }
 
@@ -1120,8 +1123,8 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         (worker_context_s *)lpUser;
 
       while ( WAIT_OBJECT_0 ==
-                WaitForSingleObject ( pWorker->hSignalProduce,
-                                        INFINITE ) )
+                SK_WaitForSingleObject ( pWorker->hSignalProduce,
+                                           INFINITE ) )
       {
         LONG work_idx =
           ReadAcquire (&pWorker->work_idx);
@@ -1154,7 +1157,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
   if (true)//kReadBuffer.first/*worker.ulLastFrame*/ != SK_GetFramesDrawn ())
   {
     if ( WAIT_OBJECT_0 ==
-           WaitForSingleObject (worker.hSignalConsume, 0) )
+           SK_WaitForSingleObject (worker.hSignalConsume, 0) )
     {
       LONG idx =
         ReadAcquire (&worker.work_idx);

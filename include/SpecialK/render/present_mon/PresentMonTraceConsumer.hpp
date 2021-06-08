@@ -119,7 +119,7 @@ struct PresentEvent {
     uint64_t Win32KBindId;              // Combine with CompositionSurfaceLuid and Win32KPresentCount as key into mWin32KPresentHistoryTokens
     uint64_t LegacyBlitTokenData;       // Key for mPresentsByLegacyBlitToken
     std::deque<std::shared_ptr<PresentEvent>> DependentPresents;
-    
+
     // We need a signal to prevent us from looking fruitlessly through the WaitingForDwm list
     bool PresentInDwmWaitingStruct;
 
@@ -219,7 +219,7 @@ struct PMTraceConsumer
     //
     // mPresentByThreadId stores the in-progress present that was last operated
     // on by each thread for event sequences that are known to execute on the
-    // same thread. Its members' lifetime should track the lifetime of the 
+    // same thread. Its members' lifetime should track the lifetime of the
     // runtime present API as much as possible. Only one present will be going
     // through this sequence on any particular thread at a time.
     //
@@ -381,13 +381,6 @@ struct PMTraceConsumer
     void HandleWin32kEvent(EVENT_RECORD* pEventRecord);
     void HandleDWMEvent(EVENT_RECORD* pEventRecord);
     void HandleMetadataEvent(EVENT_RECORD* pEventRecord);
-
-    void HandleWin7DxgkBlt(EVENT_RECORD* pEventRecord);
-    void HandleWin7DxgkFlip(EVENT_RECORD* pEventRecord);
-    void HandleWin7DxgkPresentHistory(EVENT_RECORD* pEventRecord);
-    void HandleWin7DxgkQueuePacket(EVENT_RECORD* pEventRecord);
-    void HandleWin7DxgkVSyncDPC(EVENT_RECORD* pEventRecord);
-    void HandleWin7DxgkMMIOFlip(EVENT_RECORD* pEventRecord);
 
     void AddTrackedProcessForFiltering(uint32_t processID);
     void RemoveTrackedProcessForFiltering(uint32_t processID);

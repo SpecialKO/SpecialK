@@ -28,6 +28,11 @@
 
 #include <imgui/backends/imgui_d3d11.h>
 
+bool SK_WantBackgroundRender (void)
+{
+  return
+    config.window.background_render;
+}
 
 bool
 SK_InputUtil_IsHWCursorVisible (void)
@@ -1318,14 +1323,17 @@ SK_ImGui_WantKeyboardCapture (void)
   static const auto& io =
     ImGui::GetIO ();
 
-  if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
-    imgui_capture = true;
+  if (SK_IsGameWindowActive () || SK_WantBackgroundRender ())
+  {
+    if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
+      imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game)
-    imgui_capture = true;
+    if (config.input.keyboard.disabled_to_game)
+      imgui_capture = true;
 
-  if (SK_IsConsoleVisible ())
-    imgui_capture = true;
+    if (SK_IsConsoleVisible ())
+      imgui_capture = true;
+  }
 
   return
     imgui_capture;
@@ -1342,11 +1350,14 @@ SK_ImGui_WantTextCapture (void)
   static const auto& io =
     ImGui::GetIO ();
 
-  if (io.WantTextInput && SK_IsGameWindowActive ())
-    imgui_capture = true;
+  if (SK_IsGameWindowActive () || SK_WantBackgroundRender ())
+  {
+    if (io.WantTextInput)
+      imgui_capture = true;
 
-  if (config.input.keyboard.disabled_to_game)
-    imgui_capture = true;
+    if (config.input.keyboard.disabled_to_game)
+      imgui_capture = true;
+  }
 
   return
     imgui_capture;
@@ -1395,7 +1406,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant ())
+  if (SK_ImGui_IsMouseRelevant () && (game_window.active || SK_WantBackgroundRender ()))
   {
     static const auto& io =
       ImGui::GetIO ();
@@ -1447,91 +1458,12 @@ HCURSOR GetGameCursor (void)
 HWND SK_Win32_CreateDummyWindow  (HWND hWndParent);
 void SK_Win32_CleanupDummyWindow (HWND hwnd);
 
-struct capture_ctx_s {
-  HWND    hDummy  =  0;
-  HWND    hWnd    =  0;
-  RECT    rClip   = { };
-  HCURSOR hCursor =  0;
-
-  void capture (void)
-  {
-    hCursor = GetCursor (  );
-
-    //HWND hWndOrig =
-    //  GetCapture ();
-    //
-    //if (hWndOrig != 0)
-    {
-      if (          hDummy == 0)
-      {             hDummy = SK_Win32_CreateDummyWindow (SK_GetGameWindow ());
-        ShowWindow (hDummy,  SW_SHOWNOACTIVATE);
-        ShowWindow (hDummy,  SW_MAXIMIZE);
-      }
-
-      //HWND hWndCaptureGame =
-      //  SK_GetGameWindow ();
-      //
-      //// Undo any existing capture
-      //hWnd =
-      //  SetCapture (hDummy);
-
-      // We're going to use the game window
-      //   as the capture / rect.
-      //if (hWndCaptureGame != 0)
-      //{
-      //  RECT rcClient = { };
-      //
-      //  GetWindowRect (hWndCaptureGame, &rcClient);
-      //  { ClipCursor  (                 &rcClient);
-      //  }
-      //}
-    }
-  }
-
-  void release (void)
-  {
-    //if (hWnd != 0)
-    //{
-    //  SetCapture (hWnd);
-    //              hWnd = 0;
-    //}
-    //else
-    //  ReleaseCapture ();
-
-    if (hDummy != 0)
-    {
-      SK_Win32_CleanupDummyWindow (hDummy);
-                                   hDummy = 0;
-    }
-
-    //if (         hCursor != 0)
-    //{ SetCursor (hCursor);
-    //             hCursor  = 0;
-    //}
-  }
-} static _capture_ctx;
-
 bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  static DWORD dwGamePid =
-    GetCurrentProcessId ();
-
-  // DWORD dwProcId;
-
-  if (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))
-    return true;
-
-  if ( game_window.active //||
-      //( GetWindowThreadProcessId  (
-      //   SK_GetForegroundWindow ( ),
-      //                 &dwProcId ) &&
-      //  ( dwGamePid ==  dwProcId ) )
-     )
-    return true;
-
-  return false;
+  return
+    game_window.active;
 }
 
 void
@@ -1542,13 +1474,14 @@ ImGui_ToggleCursor (void)
 
   if (! SK_ImGui_Cursor.visible)
   {
-    //_capture_ctx.capture ();
-
     SK_ImGui_CenterCursorOnWindow ();
 
+    POINT                           pos = { };
+    SK_GetCursorPos               (&pos);
+    SK_ImGui_Cursor.ScreenToLocal (&pos);
+
     // Save original cursor position
-    SK_GetCursorPos               (&SK_ImGui_Cursor.pos);
-    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+    SK_ImGui_Cursor.pos =           pos;
   }
 
   else
@@ -1561,15 +1494,13 @@ ImGui_ToggleCursor (void)
       if ( 0 !=
             memcmp (&last_pos, &SK_ImGui_Cursor.orig_pos, sizeof (POINT)) )
       {
-       POINT screen =
+       POINT                            screen =
         SK_ImGui_Cursor.orig_pos;
         SK_ImGui_Cursor.LocalToScreen (&screen);
-        SK_SetCursorPos ( screen.x,
-                          screen.y );
+        SK_SetCursorPos               ( screen.x,
+                                        screen.y );
       }
     }
-
-    //_capture_ctx.release ();
   }
 
   SK_ImGui_Cursor.visible = (! SK_ImGui_Cursor.visible);
@@ -1809,12 +1740,6 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
 float SK_SO4_MouseScale = 2.467f;
 
-bool SK_WantBackgroundRender (void)
-{
-  return
-    config.window.background_render /*|| (_capture_ctx.hDummy != 0 && IsWindow (_capture_ctx.hDummy))*/;
-}
-
 BOOL
 WINAPI
 GetCursorPos_Detour (LPPOINT lpPoint)
@@ -1874,11 +1799,12 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   {
     SK_Win32_Backend->markRead (sk_win32_func::GetCursorPos);
 
-    SK_ImGui_Cursor.orig_pos = *lpPoint;
-    SK_ImGui_Cursor.pos      = *lpPoint;
+    auto pos = *lpPoint;
 
-    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.orig_pos);
-    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+    SK_ImGui_Cursor.ScreenToLocal (&pos);
+
+    SK_ImGui_Cursor.orig_pos = pos;
+    SK_ImGui_Cursor.pos      = pos;
   }
 
 
@@ -1935,8 +1861,8 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
+  //auto& rb =
+  //  SK_GetCurrentRenderBackend ();
 
   // Game WANTED to change its position, so remember that.
   SK_ImGui_Cursor.orig_pos.x = x;
@@ -1946,8 +1872,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
-  if ((! rb.fullscreen_exclusive) &&
-      SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     return TRUE;
   }
@@ -2233,11 +2158,12 @@ SK_Window_ActivateCursor (bool changed = false)
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
         while ( ShowCursor (TRUE) < 0 ) ;
 
+      // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
+      //   activate the window using the game's cursor or our override
       SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)last_mouse.class_cursor);
       SetCursor                                                  (last_mouse.class_cursor);
 
-      last_mouse.class_cursor = 0;
-      last_mouse.cursor       = true;
+      last_mouse.cursor = true;
     }
   }
 
@@ -2293,45 +2219,59 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
 bool
 SK_Input_DetermineMouseIdleState (MSG* lpMsg)
 {
-  if (FALSE == std::exchange (last_mouse.init, TRUE))
+  static DWORD dwLastSampled = DWORD_MAX;
+
+  static HWND hWndTimer  = 0;
+  if (        hWndTimer != game_window.hWnd )
   {
+    if (IsWindow (hWndTimer))
+      KillTimer ( hWndTimer, gsl::narrow_cast <UINT_PTR> (last_mouse.timer_id) );
+
     UINT _timeout =            config.input.cursor.timeout != 0 ?
       gsl::narrow_cast <UINT> (config.input.cursor.timeout) / 2 :
                                                            250UL;
 
     // This was being installed on the wrong HWND, consider a dedicated timer
     //   in the future.
-    SetTimer ( game_window.hWnd,//lpMsg->hwnd,
+    SetTimer ( game_window.hWnd,
                  gsl::narrow_cast <UINT_PTR> (last_mouse.timer_id),
                    _timeout, nullptr );
+
+    hWndTimer = game_window.hWnd;
   }
 
+
   bool activation_event =
-    ( lpMsg->message == WM_MOUSEMOVE || lpMsg->message == WM_SETCURSOR ) && (! SK_IsSteamOverlayActive ());
+    ( lpMsg->message == WM_MOUSEMOVE /*|| lpMsg->message == WM_SETCURSOR*/ ) && (! SK_IsSteamOverlayActive ());
+
+  bool bCapturingMouse =
+    SK_ImGui_WantMouseCaptureEx (0xFFFFFFFF & ~REASON_DISABLED);
 
   // Don't blindly accept that WM_MOUSEMOVE actually means the mouse moved...
-  if (activation_event)
+  if (! bCapturingMouse)
   {
-    static constexpr const short threshold = 3;
+    if (activation_event)
+    {
+      static constexpr const short threshold = 3;
 
-    // Filter out small movements
-    if ( abs (last_mouse.pos.x - GET_X_LPARAM (lpMsg->lParam)) < threshold &&
-         abs (last_mouse.pos.y - GET_Y_LPARAM (lpMsg->lParam)) < threshold )
-      activation_event = false;
+      // Filter out small movements
+      if ( abs (last_mouse.pos.x - SK_ImGui_Cursor.pos.x) < threshold &&
+           abs (last_mouse.pos.y - SK_ImGui_Cursor.pos.y) < threshold )
+      {
+        activation_event = false;
+      }
+    }
   }
 
   if (config.input.cursor.keys_activate)
     activation_event |= ( lpMsg->message >= WM_KEYFIRST &&
                           lpMsg->message <= WM_KEYLAST );
 
-  bool bCapturingMouse =
-    SK_ImGui_WantMouseCaptureEx (0xFFFFFFFF & ~REASON_DISABLED);
-
   // If timeout is 0, just hide the thing indefinitely
   if (activation_event)
   {
-    if ((config.input.cursor.manage && config.input.cursor.timeout != 0) ||
-        bCapturingMouse)
+    if ( (config.input.cursor.manage && config.input.cursor.timeout != 0) ||
+            bCapturingMouse )
     {
       SK_Window_ActivateCursor (true);
     }
@@ -2341,19 +2281,38 @@ SK_Input_DetermineMouseIdleState (MSG* lpMsg)
             lpMsg->wParam  == last_mouse.timer_id &&
             (! SK_IsSteamOverlayActive ()) )
   {
-    LPARAM        lPos =
-      GetMessagePos ();
-
-    // Record the cursor pos (at time of timer fire)
-    last_mouse.pos =
-      MAKEPOINTS (lPos);
-
-    if (config.input.cursor.manage)
+    // If for some reason we get the event multiple times in a frame,
+    //   use the results of the first test only
+    //if (std::exchange (dwLastSampled, SK::ControlPanel::current_time) !=
+    //                                  SK::ControlPanel::current_time)
     {
       if (! bCapturingMouse)
       {
-        SK_Window_DeactivateCursor ();
+        if (config.input.cursor.manage)
+        {
+          static constexpr const short threshold = 3;
+
+          if (config.input.cursor.timeout == 0)
+          {
+            SK_Window_DeactivateCursor ();
+          }
+
+          // Filter out small movements
+          else if (abs (last_mouse.pos.x - SK_ImGui_Cursor.pos.x) < threshold &&
+                   abs (last_mouse.pos.y - SK_ImGui_Cursor.pos.y) < threshold)
+          {
+            SK_Window_DeactivateCursor ();
+          }
+        }
       }
+
+      else
+        SK_Window_ActivateCursor (true);
+
+      // Record the cursor pos (at time of timer fire)
+      last_mouse.pos =
+      { (SHORT)SK_ImGui_Cursor.pos.x,
+        (SHORT)SK_ImGui_Cursor.pos.y };
     }
 
     return true;
@@ -2502,7 +2461,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_SETCURSOR:
       {
-        //if (SK_IsGameWindowActive ())
+        if (SK_IsGameWindowActive ())
         {
           if (LOWORD (lpMsg->lParam) == HTCLIENT)
           {
@@ -2572,7 +2531,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         }
       } break;
 
-          // Pre-Dispose These Messages (fixes The Witness)
+      // Pre-Dispose These Messages (fixes The Witness)
       case WM_LBUTTONDOWN:
       case WM_LBUTTONUP:
       case WM_LBUTTONDBLCLK:
@@ -2587,27 +2546,19 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_CAPTURECHANGED:
       case WM_MOUSEMOVE:
-      case WM_NCMOUSEMOVE:
       case WM_MOUSEWHEEL:
       case WM_MOUSEHWHEEL:
       {
         handled =
           (0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                      lpMsg->wParam, lpMsg->lParam))
-          && SK_ImGui_WantMouseCapture ();
+                                      lpMsg->wParam, lpMsg->lParam)) &&
+             SK_ImGui_WantMouseCapture ();
       } break;
 
       case WM_WINDOWPOSCHANGING:
         SK_Window_RepositionIfNeeded ();
         break;
 
-      case WM_DISPLAYCHANGE:
-      case WM_WINDOWPOSCHANGED:
-      {
-        extern void
-        SK_Display_UpdateOutputTopology (void);
-        SK_Display_UpdateOutputTopology (    );
-      } break;
     }
 
     if (! SK_IsGameWindowActive ())
@@ -2616,13 +2567,20 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       {
         case WM_MOUSEMOVE:
         {
-          POINT pt;
-          pt.x = GET_X_LPARAM (lpMsg->lParam);
-          pt.y = GET_Y_LPARAM (lpMsg->lParam);
+          POINT pt = {
+            GET_X_LPARAM (lpMsg->lParam),
+            GET_Y_LPARAM (lpMsg->lParam)
+          };
 
-          ClientToScreen (lpMsg->hwnd, &pt);
+          HWND hWndFromPt =
+            WindowFromPoint (pt);
 
-          game_window.cursor_pos = pt;
+          if (hWndFromPt == game_window.hWnd || IsChild (game_window.hWnd, hWndFromPt))
+          {
+            ClientToScreen (lpMsg->hwnd, &pt);
+
+            game_window.cursor_pos = pt;
+          }
         } break;
       }
     }
@@ -2659,16 +2617,16 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
               lpMsg->hwnd, HWND_TOP,
                 suggested_rect->left,                         suggested_rect->top,
                 suggested_rect->right - suggested_rect->left, suggested_rect->bottom - suggested_rect->top,
-                  SWP_NOZORDER | SWP_NOACTIVATE
+                  SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS
             );
 
             SK_Window_RepositionIfNeeded ();
           }
         }
 
-        extern void
-        SK_Display_UpdateOutputTopology (void);
-        SK_Display_UpdateOutputTopology (    );
+        ////extern void
+        ////SK_Display_UpdateOutputTopology (void);
+        ////SK_Display_UpdateOutputTopology (    );
       } break;
 
       default:

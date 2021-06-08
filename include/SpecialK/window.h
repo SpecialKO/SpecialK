@@ -593,6 +593,12 @@ HWND
 WINAPI
 SK_SetActiveWindow (HWND hWnd);
 
+bool
+SK_Window_IsTopMost  (HWND hWnd);
+
+void
+SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd);
+
 extern void SK_Window_RepositionIfNeeded (void);
 void SKX_Window_EstablishRoot     (void);
 

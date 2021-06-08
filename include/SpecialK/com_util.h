@@ -1485,5 +1485,9 @@ ThrowIfFailed (HRESULT hr)
     SK_ComException (hr);
 }
 
+HRESULT
+SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk);
+
+
 //#endif /* __SK_COM_UTIL_H__ */
 SK_INCLUDE_END_CPP (COM_UTIL)

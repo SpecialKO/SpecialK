@@ -1,4 +1,83 @@
-﻿21.05.27
+﻿21.06.08
+========
+ + Changed the 'Borderless Evo' mode to 'Multi-tasking On-Top' and removed
+     requirements that it only be used in borderless fullscreen mode
+ + Fixed issues with DWM compositor reporting fluctuating refresh rates and
+     causing default framerate limit to be +/- several FPS of VSYNC
+ + Added refresh rate info to the control panel's UI even in windowed mode,
+     and handle real-time changes to the refresh rate if the window moves to
+       a different monitor
+ + Added per-monitor HDR toggle to control the desktop's HDR setting
+ + Configuring and moving game windows between monitors now supported in D3D9;
+     Display menu shares functions with D3D11/12 though HDR is meaningless.
+ + Fixed framerate limit not being saved in config file
+ + Correctly switch from hardware cursor to software if a game turns the
+     cursor off while SK's UI was still using the mouse
+ + Added better support for RGB10A2 screenshots stored in PNG (using 48bpp);
+     - Alpha channel is discarded, RGB promoted to 16bpc. Artifacts gone! :)
+
+     * For non-HDR users playing games that use 10-bpc, this is probably the
+         first and only time you have been able to capture a screenshot with
+           precision preserved.
+
+    ReShade unfortunately just quantizes the original image to 8-bpc and then
+      stores in a 24bpp format, same with the Steam overlay.
+
+21.05.31
+========
+ + Support multiple instances of PresentMon
+ + Fixed debug user privilege requirements for PresentMon integration
+ + Re-enabled option for per-thread memory allocation analysis in thread widget
+
+21.05.30.1
+==========
+ + Fixed potential Unity deadlock in WindowStyle Get/Set due to ... Unity.
+ + Fixed XInput disabling itself when 'Render in Background' is disabled
+ + ImGui's virtual mouse cursor (kbd / gamepad input) no longer moves the
+     cursor if the Windows cursor is outside of the game's window
+ + Improved handling of games that destroy and re-create the render window
+
+21.05.30
+========
+ + Improved 'Borderless Evo' mode to suppress popups already covering the
+     game window just by turning the Window Layering mode -ON-
+
+ + Added foreground window spoofing to 'Borderless Evo' mode to prevent
+     DXGI / Driver from disabling G-Sync / VRR when activating another
+       application's window
+
+(?) Test: 'Borderless + Fullscreen + Continue Rendering + Borderless Evo'
+
+ + Fixed game window activation when clicking on part of SK's overlay UI
+ + Added watchdog thread to monitor hung Always-on-Top game windows
+
+    >> A frozen fullscreen app will become alt-tabbable after ~5 seconds,
+         saving a trip to the Windows Logon screen to use taskmgr
+
+21.05.29
+========
+ + Experimental Window Always-On-Top Mode (Borderless Evo), improves
+     Borderless Window behavior on multi-monitor systems w/ KB/M going
+       to one application and gamepad to another.
+
+ + Fixed bug that prevented PresentInterval=0 overrides from disabling
+     VSYNC in D3D11/12, and that would default an override value of
+       (-1) to VSYNC OFF in some engines.
+
+ + Added VSYNC option to DXGI-based (D3D11/12) games in the Display Menu
+
+   >> VSYNC overrides were available already, but required clumsy tweaks
+        to D3D11/12 SwapChain settings.
+
+       -( Clumsily tweaking D3D12 SwapChains is HIGHLY discouraged )-
+
+21.05.28
+========
+ + Optimized per-thread memory allocation for text OSD
+ + Fixed rare SteamAPI initialization race
+ + Reduced thread scheduling hook overhead
+
+21.05.27
 ========
 
  + Adds Windows Process / GPU Priority Boost features for scenarios where you

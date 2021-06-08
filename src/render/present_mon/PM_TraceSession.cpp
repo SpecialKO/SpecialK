@@ -134,6 +134,16 @@ void StopTraceSession()
     delete gPMConsumer;
     gMRConsumer = nullptr;
     gPMConsumer = nullptr;
+
+    extern bool SK_Etw_UnregisterSession (const char* szPrefix);
+    bool bRet = SK_Etw_UnregisterSession ("SK_PresentMon");
+
+#ifdef _DEBUG
+    assert (bRet);
+#else
+    UNREFERENCED_PARAMETER (bRet);
+#endif
+
 }
 
 void CheckLostReports(ULONG* eventsLost, ULONG* buffersLost)

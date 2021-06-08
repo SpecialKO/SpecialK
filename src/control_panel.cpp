@@ -173,6 +173,8 @@ struct show_eula_s {
 
 
 
+bool SK_ImGui_WantExit = false;
+
 #pragma warning (push)
 #pragma warning (disable: 4706)
 // Special K Extensions to ImGui
@@ -369,9 +371,11 @@ void
 SK_ImGui_ProcessWarnings (void)
 {
   extern bool
-  SK_ImGui_IsEULAVisible (void);
-
+      SK_ImGui_IsEULAVisible (void);
   if (SK_ImGui_IsEULAVisible ())
+    return;
+
+  if (SK_ImGui_WantExit)
     return;
 
   static SK_Warning warning =
@@ -419,6 +423,7 @@ SK_ImGui_ProcessWarnings (void)
     if (ImGui::Button ("Okay"))
     {
       SK_ReShade_Visible = false;
+
       warning.message.clear ();
 
       ImGui::CloseCurrentPopup ();
@@ -426,8 +431,6 @@ SK_ImGui_ProcessWarnings (void)
     ImGui::EndPopup       ();
   }
 }
-
-bool SK_ImGui_WantExit = false;
 
 void
 SK_ImGui_ConfirmExit (void)
@@ -779,17 +782,19 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     _maxRefresh = 0;  _maxAvailablePixels  = 0,
                       _maxAvailableRefresh = 0;
 
-    POINT
-     ptCenter = {
-       game_window.actual.window.left   +
-     ( game_window.actual.window.right  - game_window.actual.window.left ) / 2,
-       game_window.actual.window.top    +
-     ( game_window.actual.window.bottom - game_window.actual.window.top  ) / 2
-                };
+    //POINT
+    // ptCenter = {
+    //   game_window.actual.window.left   +
+    // ( game_window.actual.window.right  - game_window.actual.window.left ) / 2,
+    //   game_window.actual.window.top    +
+    // ( game_window.actual.window.bottom - game_window.actual.window.top  ) / 2
+    //            };
+  //HMONITOR      hMonCurrent =
+  //  MonitorFromPoint (ptCenter, MONITOR_DEFAULTTONULL);
+    HMONITOR      hMonCurrent =
+      MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONULL);
 
     MONITORINFOEX minfo       = { };
-    HMONITOR      hMonCurrent =
-      MonitorFromPoint (ptCenter, MONITOR_DEFAULTTONULL);
 
     if (hMonCurrent != nullptr)
     {
@@ -995,7 +1000,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   }
 
   // Give it another go, the monitor was no-show...
-  if (! found) dirty = true;
+  if (! found) if (! outputs.empty ()) dirty = true;
 
   (*pszDispList++) = '\0';
 
@@ -1003,24 +1008,26 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   //ImGui::SameLine              ( 0.0f, 30.0f);
   ImGui::TreePush ();
 
-  if (ImGui::Combo ("Active Monitor", &active_idx, display_list))
+  // If list is empty, don't show the menu, stupid :)
+  if (*display_list != '\0' && ImGui::Combo ("Active Monitor", &active_idx, display_list))
   {
     //auto* cp =
     //  SK_GetCommandProcessor ();
 
     config.window.res.override.x = 0,
     config.window.res.override.y = 0;
-    config.window.fullscreen     = false;
-    config.window.borderless     = false;
-    config.window.center         = false;
+  //config.window.fullscreen     = false;
+  //config.window.borderless     = false;
+  //config.window.center         = false;
 
-    config.display.monitor_handle = rb.displays [active_idx].monitor;
-    config.display.monitor_idx    = rb.displays [active_idx].idx;
+    config.display.monitor_handle  = rb.displays [active_idx].monitor;
+    config.display.monitor_idx     = rb.displays [active_idx].idx;
+    config.display.monitor_default = MONITOR_DEFAULTTONEAREST;
 
-    config.window.res.override.x = (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left),
-    config.window.res.override.y = (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top);
+  //config.window.res.override.x = (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left),
+  //config.window.res.override.y = (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top);
 
-    SK_Window_RepositionIfNeeded ();
+  //SK_Window_RepositionIfNeeded ();
 
     //cp->ProcessCommandFormatted ("Window.OverrideRes %ux%u",
 
@@ -1030,14 +1037,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     SK_Window_RepositionIfNeeded ();
 
-    config.window.res.override.x = 0;
-    config.window.res.override.y = 0;
+  //config.window.res.override.x = 0;
+  //config.window.res.override.y = 0;
 
-    SK_SetCursorPos
-    ( rb.displays [active_idx].rect.left   +
-     (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left) / 2,
-      rb.displays [active_idx].rect.top    +
-     (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top)  / 2 );
+  //SK_SetCursorPos
+  //( rb.displays [active_idx].rect.left   +
+  // (rb.displays [active_idx].rect.right  - rb.displays [active_idx].rect.left) / 2,
+  //  rb.displays [active_idx].rect.top    +
+  // (rb.displays [active_idx].rect.bottom - rb.displays [active_idx].rect.top)  / 2 );
 
     dirty = true;
   }
@@ -1102,6 +1109,152 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (ImGui::IsItemHovered () && (_maxAvailableRefresh < _maxRefresh))
       ImGui::SetTooltip ("Higher Refresh Rates are Available at a Different Resolution");
+
+  if (SK_API_IsDXGIBased (rb.api))
+  {
+    extern float __target_fps;
+
+    static constexpr int VSYNC_NoOverride      = 0;
+    static constexpr int VSYNC_ForceOn         = 1;
+    static constexpr int VSYNC_ForceOn_Half    = 2;
+    static constexpr int VSYNC_ForceOn_Third   = 3;
+    static constexpr int VSYNC_ForceOn_Quarter = 4;
+    static constexpr int VSYNC_ForceOff        = 5;
+
+    int idx = 0;
+
+    if (      config.render.framerate.present_interval == -1)
+        idx = VSYNC_NoOverride;
+    else if ( config.render.framerate.present_interval ==  0)
+        idx = VSYNC_ForceOff;
+    else
+    {
+      switch (config.render.framerate.present_interval)
+      {
+        case 4:  idx = VSYNC_ForceOn_Quarter; break;
+        case 3:  idx = VSYNC_ForceOn_Third;   break;
+        case 2:  idx = VSYNC_ForceOn_Half;    break;
+        case 1:
+        default: idx = VSYNC_ForceOn;         break;
+      }
+    }
+
+    static const char
+     *szVSYNC_Limited = "  No Override\0  Forced ON\0"
+                                       "< Forced 1/2 >: FPS Limiter => 1.0\0"
+                                       "< Forced 1/3 >: FPS Limiter => 1.0\0"
+                                       "< Forced 1/4 >: FPS Limiter => 1.0\0"
+                                       "  Forced OFF\0\0",
+     *szVSYNC         = "  No Override\0  Forced ON\0"
+                                       "  Forced 1/2\0"
+                                       "  Forced 1/3\0"
+                                       "  Forced 1/4\0"
+                                       "  Forced OFF\0\0";
+
+    if (ImGui::Combo ("VSYNC", &idx,
+                          (__target_fps > 0.0f) ?
+                                szVSYNC_Limited :
+                                szVSYNC)
+       )
+    {
+      switch (idx)
+      {
+        case VSYNC_ForceOn:
+          config.render.framerate.present_interval =  1;
+          break;
+        case VSYNC_ForceOn_Half:
+          config.render.framerate.present_interval =  2;
+          break;
+        case VSYNC_ForceOn_Third:
+          config.render.framerate.present_interval =  3;
+          break;
+        case VSYNC_ForceOn_Quarter:
+          config.render.framerate.present_interval =  4;
+          break;
+        case VSYNC_ForceOff:
+          config.render.framerate.present_interval =  0;
+          config.render.dxgi.allow_tearing         =  true;
+          break;
+        case VSYNC_NoOverride:
+        default:
+          config.render.framerate.present_interval = -1;
+          break;
+      }
+
+      static bool bWarnOnce = false;
+             bool bNeedWarn = ( __target_fps                             > 0.0f &&
+                                config.render.framerate.present_interval > 1 );
+
+      if ( bNeedWarn && std::exchange (bWarnOnce, true) == false )
+      {
+        SK_ImGui_Warning (
+          L"Fractional VSYNC Rates Require Disabling Special K's Framerate Limiter"
+        );
+      }
+    }
+
+    if (ImGui::IsItemHovered () && idx != VSYNC_NoOverride)
+    {
+      ImGui::SetTooltip ( "NOTE: Some games perform additional limiting based"
+                          " on their VSYNC setting; consider turning in-game"
+                          " VSYNC -OFF-" );
+    }
+  }
+
+  if (rb.displays [active_idx].hdr.supported)
+  {
+    bool hdr_enable =
+      rb.displays [active_idx].hdr.enabled;
+
+    if (ImGui::Checkbox ("Enable HDR", &hdr_enable))
+    {
+      DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
+        setHdrState                     = { };
+        setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
+        setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
+        setHdrState.header.adapterId    = rb.displays [active_idx].vidpn.targetInfo.adapterId;
+        setHdrState.header.id           = rb.displays [active_idx].vidpn.targetInfo.id;
+
+        setHdrState.enableAdvancedColor = hdr_enable;
+
+      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      {
+        rb.displays [active_idx].hdr.enabled = hdr_enable;
+      }
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      if (rb.displays [active_idx].hdr.enabled)
+      {
+        ImGui::SetTooltip ( "SDR Whitepoint: %4.1f nits",
+                              rb.displays [active_idx].hdr.white_level );
+      }
+    }
+
+    ImGui::SameLine ();
+    ImGui::TextUnformatted ("\t@ ");
+    ImGui::SameLine ();
+
+    switch (rb.displays [active_idx].hdr.encoding)
+    {
+      case DISPLAYCONFIG_COLOR_ENCODING_RGB:
+        ImGui::Text ("RGB (%lu-bpc)",         rb.displays [active_idx].bpc);
+        break;
+      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR444:
+        ImGui::Text ("YCbCr 4:4:4 (%lu-bpc)", rb.displays [active_idx].bpc);
+        break;
+      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR422:
+        ImGui::Text ("YCbCr 4:2:2 (%lu-bpc)", rb.displays [active_idx].bpc);
+        break;
+      case DISPLAYCONFIG_COLOR_ENCODING_YCBCR420:
+        ImGui::Text ("YCbCr 4:2:0 (%lu-bpc)", rb.displays [active_idx].bpc);
+        break;
+      case DISPLAYCONFIG_COLOR_ENCODING_INTENSITY:
+        ImGui::Text ("ICtCp (%lu-bpc)",       rb.displays [active_idx].bpc);
+        break;
+    }
+  }
 
   ImGui::TreePop ();
 }
@@ -3000,6 +3153,18 @@ SK_ImGui_ControlPanel (void)
       strcat (szResolution, szScale);
     }
 
+
+    float refresh_rate =
+      rb.getActiveRefreshRate ();
+
+    if (refresh_rate != 0.0f)
+    {
+      strcat ( szResolution,
+                 SK_FormatString (" @ %6.02f Hz", refresh_rate).c_str ()
+             );
+    }
+
+
     if (windowed)
     {
       if (ImGui::MenuItem (" Window Resolution     ", szResolution))
@@ -3016,16 +3181,6 @@ SK_ImGui_ControlPanel (void)
 
     else
     {
-      float refresh_rate =
-        rb.getActiveRefreshRate ();
-
-      if (refresh_rate != 0.0f)
-      {
-        strcat ( szResolution,
-                   SK_FormatString (" @ %6.02f Hz", refresh_rate).c_str ()
-               );
-      }
-
       if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
       {
         config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
@@ -3238,30 +3393,11 @@ SK_ImGui_ControlPanel (void)
 
           if (__target_fps == 0.0f)
           {
-            DWM_TIMING_INFO dwmTiming        = {                      };
-                            dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
-
-            if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
-            {
-              SK_FPU_ControlWord fpu_cw_orig =
-                SK_FPU_SetPrecision (_PC_64);
-
-              __target_fps =
-                static_cast <float> (
-                  static_cast <double> (dwmTiming.rateRefresh.uiNumerator) /
-                  static_cast <double> (dwmTiming.rateRefresh.uiDenominator)
-                );
-                //        static_cast <float> (
-                //1.0 / ( static_cast <double> (dwmTiming.qpcRefreshPeriod) /
-                //        static_cast <double> (SK_GetPerfFreq ().QuadPart) )
-                //                            );
-
-              SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
-            }
-
-            else
-              __target_fps = 60.0f;
+            __target_fps =
+              SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh;
           }
+
+          config.render.framerate.target_fps = __target_fps;
         }
 
         bool bg_limit =
@@ -3296,6 +3432,8 @@ SK_ImGui_ControlPanel (void)
             {
               if (bg_limit) __target_fps_bg = __target_fps;
               else          __target_fps_bg =         0.0f;
+
+              config.render.framerate.target_fps_bg = __target_fps_bg;
             }
 
             if (ImGui::IsItemHovered ())
@@ -3947,69 +4085,132 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0)
+  if (code < 0) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
-  if (SK_ImGui_Visible)
+  auto& io =
+    ImGui::GetIO ();
+
+  MOUSEHOOKSTRUCT* mhs =
+    (MOUSEHOOKSTRUCT*)lParam;
+
+  if ( mhs->hwnd == game_window.hWnd ||
+           IsChild (game_window.hWnd, mhs->hwnd) )
   {
-    auto& io =
-      ImGui::GetIO ();
-
-    MOUSEHOOKSTRUCT* mhs =
-      (MOUSEHOOKSTRUCT*)lParam;
-
-    if (mhs->hwnd == game_window.hWnd)
+    switch (wParam)
     {
-      switch (wParam)
-      {
-        case WM_MOUSEMOVE:
-          if (PtInRect (&game_window.actual.window, mhs->pt))
-          {
-            SK_ImGui_Cursor.pos = mhs->pt;
-            SK_ImGui_Cursor.ScreenToLocal (
-                                  &SK_ImGui_Cursor.pos);
-            io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-            io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-          }
-          break;
+      case WM_MOUSEMOVE:
+        SK_ImGui_Cursor.pos = mhs->pt;
+        SK_ImGui_Cursor.ScreenToLocal (
+                              &SK_ImGui_Cursor.pos);
+        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
-        // Does not work correctly
-        ///case WM_MOUSEWHEEL:
-        ///  io.MouseWheel +=
-        ///    static_cast <float> (GET_WHEEL_DELTA_WPARAM (mhs->dwExtraInfo)) /
-        ///    static_cast <float> (WHEEL_DELTA);
-        ///  break;
+        SK_ImGui_Cursor.last_move = current_time;
+        break;
 
-
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONDBLCLK:
-          io.MouseClicked [0] = true;
-          break;
-
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONDBLCLK:
-          io.MouseClicked [1] = true;
-          break;
-
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONDBLCLK:
-          io.MouseClicked [2] = true;
-          break;
-
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONDBLCLK:
+      case WM_LBUTTONDOWN:
+      case WM_LBUTTONDBLCLK:
+        if ( mhs->wHitTestCode == HTTRANSPARENT ||
+             mhs->wHitTestCode == HTCLIENT )
         {
-          ////WORD Flags =
-          ////  GET_XBUTTON_WPARAM (mhs->dwExtraInfo);
-          ////
-          ////io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
-          ////io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
-        } break;
-      }
+          SK_ImGui_Cursor.pos = mhs->pt;
+          SK_ImGui_Cursor.ScreenToLocal (
+                                &SK_ImGui_Cursor.pos);
+          io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+          io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
 
-      if (SK_ImGui_WantMouseCapture () && (wParam != WM_MOUSEWHEEL))
-        return 1;
+          io.KeyCtrl  |= ( (mhs->dwExtraInfo & MK_CONTROL) != 0);
+          io.KeyShift |= ( (mhs->dwExtraInfo & MK_SHIFT)   != 0);
+
+          io.MouseClicked [0] = true;
+        }
+        break;
+
+      case WM_RBUTTONDOWN:
+      case WM_RBUTTONDBLCLK:
+        if ( mhs->wHitTestCode == HTTRANSPARENT ||
+             mhs->wHitTestCode == HTCLIENT )
+        {
+          SK_ImGui_Cursor.pos = mhs->pt;
+          SK_ImGui_Cursor.ScreenToLocal (
+                                &SK_ImGui_Cursor.pos);
+          io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+          io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+
+          io.KeyCtrl  |= ( (mhs->dwExtraInfo & MK_CONTROL) != 0);
+          io.KeyShift |= ( (mhs->dwExtraInfo & MK_SHIFT)   != 0);
+
+          io.MouseClicked [1] = true;
+        }
+        break;
+
+      case WM_MBUTTONDOWN:
+      case WM_MBUTTONDBLCLK:
+        if ( mhs->wHitTestCode == HTTRANSPARENT ||
+             mhs->wHitTestCode == HTCLIENT )
+        {
+          SK_ImGui_Cursor.pos = mhs->pt;
+          SK_ImGui_Cursor.ScreenToLocal (
+                                &SK_ImGui_Cursor.pos);
+          io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+          io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+
+          io.KeyCtrl  |= ( (mhs->dwExtraInfo & MK_CONTROL) != 0);
+          io.KeyShift |= ( (mhs->dwExtraInfo & MK_SHIFT)   != 0);
+
+          io.MouseClicked [2] = true;
+        }
+        break;
+
+      case WM_XBUTTONDOWN:
+      case WM_XBUTTONDBLCLK:
+        {
+          MOUSEHOOKSTRUCTEX* mhsx =
+         (MOUSEHOOKSTRUCTEX*)lParam;
+
+          io.MouseDown [3] = (HIWORD (mhsx->mouseData)) == XBUTTON1;
+          io.MouseDown [4] = (HIWORD (mhsx->mouseData)) == XBUTTON2;
+        } break;
+
+      case WM_MOUSEWHEEL:
+      case WM_MOUSEHWHEEL:
+      {
+        MOUSEHOOKSTRUCTEX* mhsx =
+       (MOUSEHOOKSTRUCTEX*)lParam;
+
+        SK_ImGui_Cursor.pos = mhsx->pt;
+        SK_ImGui_Cursor.ScreenToLocal (
+                                &SK_ImGui_Cursor.pos);
+        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+
+        io.KeyCtrl  |= ( (mhsx->dwExtraInfo & MK_CONTROL) != 0);
+        io.KeyShift |= ( (mhsx->dwExtraInfo & MK_SHIFT)   != 0);
+
+        if (SK_ImGui_WantMouseCapture ())
+        {
+          if (wParam == WM_MOUSEWHEEL)
+          {
+            io.MouseWheel +=
+              (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
+                  (float)WHEEL_DELTA;
+          }
+          else {
+            io.MouseWheelH +=
+              (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
+                  (float)WHEEL_DELTA;
+          }
+        }
+      } break;
+
+      default:
+        return
+          CallNextHookEx (0, code, wParam, lParam);
     }
+
+    if (SK_ImGui_WantMouseCapture ())
+      return 1;
   }
 
   return
@@ -4018,24 +4219,25 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
 LRESULT
 CALLBACK
-SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam)
+SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
 {
   if (code < 0)
     return CallNextHookEx (0, code, wParam, lParam);
+
+  bool //wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
+          isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL;//,
+        //isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
+
+  SHORT vKey =
+      std::min (static_cast <SHORT> (wParam),
+                static_cast <SHORT> (  511));
 
   if (SK_ImGui_Visible)
   {
     auto& io =
       ImGui::GetIO ();
 
-  //bool wasPressed =
-  //    ( lParam & (1 << 30) ) != 0;
-    bool isPressed =
-        ( lParam & (1 << 31) ) == 0;
-  //bool isAltDown =
-  //    ( lParam & (1 << 29) ) != 0;
-
-    io.KeysDown [wParam] = isPressed;
+    io.KeysDown [vKey] = isPressed;
 
     if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
       return 1;
@@ -4068,8 +4270,7 @@ SK_ImGui_StageNextFrame (void)
   }
 
   if (last_frame != SK_GetFramesDrawn ())
-  {
-    last_frame  = SK_GetFramesDrawn ();
+  {   last_frame  = SK_GetFramesDrawn ();
 
     static auto& io =
       ImGui::GetIO ();
@@ -4219,28 +4420,6 @@ SK_ImGui_StageNextFrame (void)
 
   if (SK_ImGui_Visible)
   {
-    using  SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
-  //extern SetWindowsHookEx_pfn SetWindowsHookExA_Original;
-    extern SetWindowsHookEx_pfn SetWindowsHookExW_Original;
-
-  //SK_RunOnce (IsGUIThread (TRUE));
-
-    SK_RunOnce (
-      SetWindowsHookExW_Original (
-        WH_KEYBOARD, SK_ImGui_KeyboardProc,
-          skModuleRegistry::Self (),
-              GetCurrentThreadId ()
-                                 )
-    );
-
-    SK_RunOnce (
-      SetWindowsHookExW_Original (
-        WH_MOUSE,    SK_ImGui_MouseProc,
-          skModuleRegistry::Self (),
-              GetCurrentThreadId ()
-                                 )
-    );
-
     SK_ControlPanel_Activated = true;
     keep_open                 = SK_ImGui_ControlPanel ();
   }
@@ -4723,18 +4902,26 @@ SK_ImGui_StageNextFrame (void)
     }
   }
 
-  if (io.WantSetMousePos)
+  if (io.WantSetMousePos && game_window.active)
   {
-    SK_ImGui_Cursor.pos.x = static_cast <LONG> (io.MousePos.x);
-    SK_ImGui_Cursor.pos.y = static_cast <LONG> (io.MousePos.y);
+    POINT                 ptCursor;
+    if (SK_GetCursorPos (&ptCursor))
+    {
+      // Ignore this if the cursor is in a different application
+      if (PtInRect (&game_window.actual.window, ptCursor))
+      {
+        SK_ImGui_Cursor.pos.x = static_cast <LONG> (io.MousePos.x);
+        SK_ImGui_Cursor.pos.y = static_cast <LONG> (io.MousePos.y);
 
-    POINT screen_pos = SK_ImGui_Cursor.pos;
+        POINT screen_pos = SK_ImGui_Cursor.pos;
 
-    SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-    SK_SetCursorPos ( screen_pos.x,
-                      screen_pos.y );
+        SK_ImGui_Cursor.LocalToScreen (&screen_pos);
+        SK_SetCursorPos ( screen_pos.x,
+                          screen_pos.y );
 
-    SK_ImGui_UpdateCursor ();
+        SK_ImGui_UpdateCursor ();
+      }
+    }
   }
 
   imgui_staged = true;
@@ -4771,7 +4958,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_StageNextFrame ();
   }
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
@@ -5015,13 +5202,13 @@ SK_Display_UpdateOutputTopology (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( rb.swapchain != nullptr &&
-       rb.device    != nullptr )
-  {
+  //if ( rb.swapchain != nullptr &&
+  //     rb.device    != nullptr )
+  //{
     rb.updateOutputTopology ();
 
     return;
-  }
+  //}
 
   static
     CreateDXGIFactory1_pfn
@@ -5200,7 +5387,7 @@ SK_Display_UpdateOutputTopology (void)
               display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
               display.colorspace        = outDesc1.ColorSpace;
 
-              display.hdr               = outDesc1.ColorSpace ==
+              display.hdr.enabled       = outDesc1.ColorSpace ==
                 DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
             }
           }
@@ -5360,12 +5547,12 @@ SK_Display_UpdateOutputTopology (void)
                       rb.displays [i].rect.bottom - rb.displays [i].rect.top,
                       rb.displays [i].rect.left,    rb.displays [i].rect.top,
                       rb.displays [i].name,
-                      rb.displays [i].hdr ? L"HDR" : L"SDR" ),
+                      rb.displays [i].hdr.enabled ? L"HDR" : L"SDR" ),
                     L"   DXGI   " );
       }
-    }
 
-    SK_Display_ResolutionSelectUI (true);
+      SK_Display_ResolutionSelectUI (true);
+    }
   }
 }
 

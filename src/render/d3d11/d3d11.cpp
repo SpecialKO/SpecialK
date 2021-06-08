@@ -5314,7 +5314,7 @@ SK_D3D11_Init (void)
                MH_OK == MH_QueueEnableHook (pfnD3D11CreateDeviceAndSwapChain) ) )
         {
           InterlockedIncrementRelease (&SK_D3D11_initialized);
-          success = TRUE;//(MH_OK == SK_ApplyQueuedHooks ());
+          success = (MH_OK == SK_ApplyQueuedHooks ());
         }
       }
 

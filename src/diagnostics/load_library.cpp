@@ -462,6 +462,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
       SK_BootDXGI   ();
+    else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
+              ( StrStrI  (lpFileName, SK_TEXT("dxcore.dll")) || // Unity?! WTF are you doing?
+                StrStrIW (wszModName,        L"dxcore.dll") ))
+      SK_BootDXGI   ();
 #ifdef _M_AMD64
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||

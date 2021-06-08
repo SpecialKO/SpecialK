@@ -536,13 +536,16 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
   SK_ThreadBaseParams *pStartParams =
     static_cast <SK_ThreadBaseParams *> (lpUserPassThrough);
 
-  SK_TLS *pTLS =     //= ReadAcquire (&__SK_DLL_Attached) ?
-    SK_TLS_Bottom ();// : nullptr;
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
   {
     pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
     pTLS->debug.tid    = SK_Thread_GetCurrentId ();
+
+    wcsncpy_s ( pTLS->debug.name, MAX_THREAD_NAME_LEN,
+      pStartParams->lpThreadName,           _TRUNCATE );
 
 #ifdef _DEBUG
     SK_ReleaseAssert (
@@ -555,18 +558,24 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
 #endif
   }
 
-  if (pStartParams->lpThreadName != nullptr)
-    SetCurrentThreadDescription (pStartParams->lpThreadName);
+  // We have hooks in place, this is a thread of interest to us.
+  if (pTLS != nullptr)
+  {
+    if (*pStartParams->lpThreadName != L'\0')
+      SetCurrentThreadDescription (pStartParams->lpThreadName);
 
-  // Kick-off data collection on thread start
-  extern void SK_Widget_InvokeThreadProfiler (void);
-              SK_Widget_InvokeThreadProfiler (    );
+    // Kick-off data collection on thread start
+    extern void SK_Widget_InvokeThreadProfiler (void);
+                SK_Widget_InvokeThreadProfiler (    );
+  }
 
   DWORD dwRet =
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
 
-  if (LocalFree_Original != nullptr)
-      LocalFree_Original ((HLOCAL)pStartParams);
+  if (pTLS == nullptr) // We cannot rely on the caller to free this handle
+    CloseHandle (pStartParams->hHandleToStuffInternally);
+
+  SK_LocalFree ((HLOCAL)pStartParams);
 
   return dwRet;
 }
@@ -645,9 +654,8 @@ WINAPI
 SK_Thread_CloseSelf (void)
 {
   SK_TLS* pTLS      =
-        SK_TLS_Bottom ();
-    //ReadAcquire (&__SK_DLL_Attached) ?
-    //                SK_TLS_Bottom () : nullptr;
+    ReadAcquire (&__SK_DLL_Attached) ?
+                    SK_TLS_Bottom () : nullptr;
 
   if (pTLS != nullptr)
   {

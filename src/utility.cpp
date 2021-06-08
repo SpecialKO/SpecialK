@@ -106,10 +106,9 @@ SK_Shell32_GetKnownFolderPath ( _In_ REFKNOWNFOLDERID rfid,
   auto _FailFastAndDie =
   [&] (void)->HRESULT
   {
-    wchar_t wszCurrentDir[MAX_PATH + 2] = { };
-    GetCurrentDirectoryW (MAX_PATH, wszCurrentDir);
-
-    dir = wszCurrentDir;
+    wchar_t wszCurrentDir [MAX_PATH + 2] = { };
+    GetCurrentDirectoryW  (MAX_PATH, wszCurrentDir);
+    dir =                            wszCurrentDir;
 
     InterlockedIncrementRelease (_RunOnce);
 
@@ -1454,6 +1453,12 @@ SK_TestRenderImports ( HMODULE hMod,
   *d3d11 |= tests [7].used;
   *dxgi  |= tests [7].used;
   *glide  = tests [8].used;
+
+  if (!* dxgi)
+  {
+    if (SK_GetModuleHandleW (L"DXCore.dll"))
+      *dxgi = true;
+  }
 }
 
 int
@@ -1469,7 +1474,7 @@ SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2)
   // To make this a drop-in replacement for wcsicmp, subtract
   //   2 from non-zero return values
   return (ret != 0) ?
-    (ret - 2) : 0;
+         (ret -  2) : 0;
 }
 
 const wchar_t*
@@ -3480,7 +3485,7 @@ SK_FormatString (char const* const _Format, ...)
     pData;
 }
 
-int
+size_t
 __cdecl
 SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
 {
@@ -3492,22 +3497,25 @@ SK_FormatStringView (std::string_view& out, char const* const _Format, ...)
     len =
       vsnprintf (nullptr, 0, _Format, _ArgList);
   }
-  va_end (_ArgList);
+  va_end   (_ArgList);
 
   len =
-    std::max (0, std::min ((int)out.size () - 1, len));
+    std::min (
+      std::max (0, len + 1),
+         (int)out.size () );
 
   va_start (_ArgList, _Format);
   {
     len =
-      vsnprintf ((char *)&out [0], len, _Format, _ArgList);
+      vsnprintf ((char *)out.data (), len, _Format, _ArgList);
   }
   va_end (_ArgList);
 
-  ((char *)out.data ())[std::max (0, std::min ((int)out.size (), len))] = '\0';
+  if (len < 0)
+      len = (int)out.size () - 1;
 
-  return
-    len;
+  ((char *)out.data ())[(size_t)len] = '\0';
+  return                (size_t)len;
 }
 
 std::wstring
@@ -3550,7 +3558,7 @@ SK_FormatStringW (wchar_t const* const _Format, ...)
     pData;
 }
 
-int
+size_t
 __cdecl
 SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
 {
@@ -3565,7 +3573,9 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
   va_end (_ArgList);
 
   len =
-    std::max (0, std::min ((int)out.size () - 1, len));
+    std::min (
+      std::max (0, len + 1),
+         (int)out.size () );
 
   va_start (_ArgList, _Format);
   {
@@ -3574,10 +3584,11 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
   }
   va_end (_ArgList);
 
-  ((wchar_t *)out.data ())[std::max (0, std::min ((int)out.size (), len))] = L'\0';
+  if (len < 0)
+      len = (int)out.size () - 1;
 
-  return
-    len;
+  ((wchar_t *)out.data ())[(size_t)len] = L'\0';
+  return                   (size_t)len;
 }
 
 void
@@ -4129,6 +4140,7 @@ SK_DeferCommand (const char* szCommand)
 
 void
 SK_HostAppUtil::init (void)
+
 {
   SK_RunOnce (SKIF     = (StrStrIW ( SK_GetHostApp (), L"SKIF"     ) != nullptr));
   SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));

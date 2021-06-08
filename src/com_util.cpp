@@ -458,3 +458,19 @@ SK_AutoCOMInit::_assert_not_dllmain (void) noexcept
   // If we have no TLS, assume it's because we're in DLL main
   return false;//return true;
 }
+
+
+HRESULT
+SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk)
+{
+  __try
+  {
+    return
+      pObj->QueryInterface (riid, pUnk);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return E_POINTER;
+  }
+}

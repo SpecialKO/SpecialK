@@ -3517,10 +3517,10 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
             if (pparams->FullScreen_RefreshRateInHz == 0)
             {
               extern float
-              SK_Display_GetDefaultRefreshRate (void);
+              SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor);
 
               pparams->FullScreen_RefreshRateInHz =
-                static_cast <UINT> (SK_Display_GetDefaultRefreshRate ());
+                static_cast <UINT> (SK_Display_GetDefaultRefreshRate (hMonitor));
             }
           }
         }

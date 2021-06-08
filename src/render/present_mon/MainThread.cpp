@@ -33,17 +33,16 @@ SK_PresentMon_Main (int argc, char **argv)
   if (! ParseCommandLine (argc, argv))
     return 1;
 
-  EnableDebugPrivilege ();
+//EnableDebugPrivilege ();
 
   // Start the ETW trace session (including consumer and output threads).
-  if (! StartTraceSession ())
+  while (! StartTraceSession ())
   {
-    return 6;
+    if ( WAIT_OBJECT_0 == SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 1250UL) )
+      return 6;
   }
 
   SK_WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
-
-  StopTraceSession ();
 
   return 0;
 }

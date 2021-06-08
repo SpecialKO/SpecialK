@@ -67,7 +67,7 @@ EnableFilteredProvider (
 
   if (memory == nullptr)
     return ERROR_NOT_ENOUGH_MEMORY;
-  
+
   auto filterEventIds =
     (EVENT_FILTER_EVENT_ID *) memory;
 
@@ -77,13 +77,13 @@ EnableFilteredProvider (
 
   for ( auto id : eventIds )
     filterEventIds->Events [filterEventIds->Count++] = id;
-  
+
   EVENT_FILTER_DESCRIPTOR
     filterDesc      = {                        };
     filterDesc.Ptr  = (ULONGLONG) filterEventIds;
     filterDesc.Size = (ULONG)         memorySize;
     filterDesc.Type = EVENT_FILTER_TYPE_EVENT_ID;
-  
+
   ENABLE_TRACE_PARAMETERS
     params                  = {                                    };
     params.Version          =      ENABLE_TRACE_PARAMETERS_VERSION_2;
@@ -91,7 +91,7 @@ EnableFilteredProvider (
     params.SourceId         =                            sessionGuid;
     params.EnableFilterDesc =                            &filterDesc;
     params.FilterDescCount  =                                      1;
-  
+
   ULONG timeout = 0;
 
   auto status =
@@ -119,7 +119,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
 
   // Start backend providers first to reduce Presents being queued up before
   // we can track them.
-  
+
   // Microsoft_Windows_DxgKrnl
   anyKeywordMask =
       (uint64_t) Microsoft_Windows_DxgKrnl::Keyword::Microsoft_Windows_DxgKrnl_Performance |
@@ -153,14 +153,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                                  eventIds );
 
   if (status != ERROR_SUCCESS) return status;
-  
-  status =
-    EnableTraceEx2 ( sessionHandle, &Microsoft_Windows_DxgKrnl::Win7::GUID,
-                       EVENT_CONTROL_CODE_ENABLE_PROVIDER, TRACE_LEVEL_INFORMATION,
-                         anyKeywordMask, allKeywordMask, 0, nullptr );
 
-  if (status != ERROR_SUCCESS) return status;
-  
   if (pmConsumer->mTrackDisplay)
   {
     // Microsoft_Windows_Win32k
@@ -182,7 +175,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                                    eventIds );
 
     if (status != ERROR_SUCCESS) return status;
-  
+
     // Microsoft_Windows_Dwm_Core
     anyKeywordMask = 0;
     allKeywordMask = anyKeywordMask;
@@ -201,15 +194,8 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                                    eventIds );
 
     if (status != ERROR_SUCCESS) return status;
-  
-    status =
-      EnableTraceEx2 ( sessionHandle, &Microsoft_Windows_Dwm_Core::Win7::GUID,
-                         EVENT_CONTROL_CODE_ENABLE_PROVIDER, TRACE_LEVEL_VERBOSE,
-                           0, 0, 0, nullptr );
-
-    if (status != ERROR_SUCCESS) return status;
   }
-  
+
   // Microsoft_Windows_DXGI
   anyKeywordMask =
       (uint64_t) Microsoft_Windows_DXGI::Keyword::Microsoft_Windows_DXGI_Analytic |
@@ -228,7 +214,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                                  eventIds );
 
   if (status != ERROR_SUCCESS) return status;
-  
+
   // Microsoft_Windows_D3D9
   anyKeywordMask =
       (uint64_t) Microsoft_Windows_D3D9::Keyword::Microsoft_Windows_Direct3D9_Analytic |
@@ -245,7 +231,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                                  eventIds );
 
   if (status != ERROR_SUCCESS) return status;
-  
+
   if (mrConsumer != nullptr)
   {
     // DHD
@@ -254,7 +240,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
                          TRACE_LEVEL_VERBOSE, 0x1C00000, 0, 0, nullptr );
 
     if (status != ERROR_SUCCESS) return status;
-    
+
     if (! mrConsumer->mSimpleMode)
     {
       // SPECTRUMCONTINUOUS
@@ -265,7 +251,7 @@ EnableProviders ( TRACEHANDLE      sessionHandle,
       if (status != ERROR_SUCCESS) return status;
     }
   }
-  
+
   return
     ERROR_SUCCESS;
 }
@@ -280,10 +266,6 @@ DisableProviders (TRACEHANDLE sessionHandle)
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DxgKrnl::GUID,        EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Win32k::GUID,         EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Dwm_Core::GUID,       EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Dwm_Core::Win7::GUID, EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DxgKrnl::Win7::GUID,  EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &DHD_PROVIDER_GUID,                      EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
-  status = EnableTraceEx2 (sessionHandle, &SPECTRUMCONTINUOUS_PROVIDER_GUID,       EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
 }
 
 template<
@@ -302,25 +284,16 @@ EventRecordCallback (EVENT_RECORD *pEventRecord)
   if (SAVE_FIRST_TIMESTAMP && session->mStartQpc.QuadPart == 0) {
       session->mStartQpc = hdr.TimeStamp;
   }
-  
+
   // TODO: specialize realtime callback to exclude NT_Process?
-  
+
        if (                        hdr.ProviderId == Microsoft_Windows_DxgKrnl::GUID)                      session->mPMConsumer->HandleDXGKEvent               (pEventRecord);
   else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_Win32k::GUID)                       session->mPMConsumer->HandleWin32kEvent             (pEventRecord);
   else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_Dwm_Core::GUID)                     session->mPMConsumer->HandleDWMEvent                (pEventRecord);
   else if (                        hdr.ProviderId == Microsoft_Windows_DXGI::GUID)                         session->mPMConsumer->HandleDXGIEvent               (pEventRecord);
   else if (                        hdr.ProviderId == Microsoft_Windows_D3D9::GUID)                         session->mPMConsumer->HandleD3D9Event               (pEventRecord);
   else if (                        hdr.ProviderId == NT_Process::GUID)                                     session->mPMConsumer->HandleNTProcessEvent          (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_Dwm_Core::Win7::GUID)               session->mPMConsumer->HandleDWMEvent                (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::BLT_GUID)            session->mPMConsumer->HandleWin7DxgkBlt             (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::FLIP_GUID)           session->mPMConsumer->HandleWin7DxgkFlip            (pEventRecord);
-  else if (                        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::PRESENTHISTORY_GUID) session->mPMConsumer->HandleWin7DxgkPresentHistory  (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::QUEUEPACKET_GUID)    session->mPMConsumer->HandleWin7DxgkQueuePacket     (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::VSYNCDPC_GUID)       session->mPMConsumer->HandleWin7DxgkVSyncDPC        (pEventRecord);
-  else if (TRACK_DISPLAY &&        hdr.ProviderId == Microsoft_Windows_DxgKrnl::Win7::MMIOFLIP_GUID)       session->mPMConsumer->HandleWin7DxgkMMIOFlip        (pEventRecord);
   else if (                        hdr.ProviderId == Microsoft_Windows_EventMetadata::GUID)                session->mPMConsumer->HandleMetadataEvent           (pEventRecord);
-  else if (                 WMR && hdr.ProviderId == DHD_PROVIDER_GUID)                                    session->mMRConsumer->HandleDHDEvent                (pEventRecord);
-  else if (TRACK_DISPLAY && WMR && hdr.ProviderId == SPECTRUMCONTINUOUS_PROVIDER_GUID)                     session->mMRConsumer->HandleSpectrumContinuousEvent (pEventRecord);
 
 #pragma warning(pop)
 }
@@ -486,7 +459,7 @@ void
 TraceSession::Stop (void)
 {
   ULONG status = 0;
-  
+
   // If collecting realtime events, CloseTrace() will cause ProcessTrace() to
   // stop filling buffers and it will return after it finishes processing
   // events already in it's buffers.
@@ -495,15 +468,15 @@ TraceSession::Stop (void)
   // the entire file though, which is why we cancel the processing from the
   // BufferCallback in this case.
   mContinueProcessingBuffers = FALSE;
-  
+
   // Shutdown the trace and session.
   status = CloseTrace (mTraceHandle);
   mTraceHandle = INVALID_PROCESSTRACE_HANDLE;
-  
+
   if (mSessionHandle != 0)
   {
     DisableProviders (mSessionHandle);
-  
+
     TraceProperties
       sessionProps                  = {                              };
       sessionProps.Wnode.BufferSize = (ULONG) sizeof (TraceProperties);
@@ -511,7 +484,7 @@ TraceSession::Stop (void)
 
     status =
       ControlTraceW (mSessionHandle, nullptr, &sessionProps, EVENT_TRACE_CONTROL_STOP);
-  
+
     mSessionHandle = 0;
   }
 }
@@ -536,7 +509,7 @@ TraceSession::CheckLostReports (ULONG *eventsLost, ULONG *buffersLost) const
     sessionProps                  = {                             };
     sessionProps.Wnode.BufferSize = (ULONG) sizeof(TraceProperties);
     sessionProps.LoggerNameOffset = offsetof(TraceProperties, mSessionName);
-  
+
   auto status =
     ControlTraceW (mSessionHandle, nullptr, &sessionProps, EVENT_TRACE_CONTROL_QUERY);
 

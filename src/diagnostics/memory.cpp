@@ -37,6 +37,7 @@ HeapFree_pfn        HeapFree_Original        = nullptr;
 // If > 0, then skip memory tracking momentarily because we are going
 //   to allocate storage for TLS
 volatile LONG  _SK_IgnoreTLSAlloc = 0;
+volatile LONG  _SK_IgnoreTLSMap   = 0;
 
 HGLOBAL
 WINAPI
@@ -119,12 +120,18 @@ RtlAllocateHeap_Detour (
     if ( ReadAcquire (&__SK_DLL_Attached)  != 0 &&
          ReadAcquire (&_SK_IgnoreTLSAlloc) == 0    )
     {
+      // This would require allocating memory off the heap, which
+      //   we kind of cannot do right now :)
+      InterlockedIncrement (&_SK_IgnoreTLSMap);
+
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
 
       InterlockedExchangeAdd64 (
         &pTLS->memory->heap_bytes, dwBytes
       );
+
+      InterlockedDecrement (&_SK_IgnoreTLSMap);
     }
   }
 

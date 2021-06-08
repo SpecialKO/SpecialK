@@ -85,8 +85,9 @@ struct sk_hwnd_cache_s
   {
     struct
     {
-      int x, y, refresh;
-    } res { 0, 0, 0 };
+      int   x, y;
+      float refresh;
+    } res { 0, 0, 0.0f };
 
     DWORD last_checked     = 0UL;
   } devcaps;
@@ -167,20 +168,29 @@ public:
   SK_ColorSpace           working_gamut        = { 0.0F }; // Metadata range
 
   struct output_s {
-    UINT                  idx             = 0;
+    UINT                  idx             =  0;
     RECT                  rect            = { 0, 0, 0, 0 };
-    int                   bpc             = 8;
+    int                   bpc             =  8;
     SK_ColorSpace         gamut           = { };
     DXGI_COLOR_SPACE_TYPE colorspace      = DXGI_COLOR_SPACE_CUSTOM;
     bool                  primary         = false;
-    bool                  hdr             = false;
+    struct {
+      bool                enabled         = false;
+      bool                supported       = false;
+      float               white_level     = 80.0f;
+      DISPLAYCONFIG_COLOR_ENCODING
+                          encoding        = DISPLAYCONFIG_COLOR_ENCODING_RGB;
+    } hdr;
     bool                  attached        = false;
-    wchar_t               name      [128] = { };
-    wchar_t               dxgi_name [32]  = { };
+    wchar_t               name      [128] =  { };
+    wchar_t               dxgi_name [32]  =  { };
     HMONITOR              monitor         =   0;
+    DISPLAYCONFIG_PATH_INFO
+                          vidpn           =  { };
     struct native_res_s {
       uint32_t            width           =   0;
       uint32_t            height          =   0;
+      DXGI_RATIONAL       refresh         = { 0, 0 };
     } native;
     struct nvapi_ctx_s {
       //NvPhysicalGpuHandle gpu_handle;
@@ -419,6 +429,13 @@ public:
           ||   riid == IID_ID3D11Device
           ||   riid == IID_ID3D12Device      )
           {
+            //SK_ComPtr <Q> pRet = nullptr;
+            //
+            //if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+            //{
+            //  return pRet;
+            //}
+
             return
               SK_ComQIPtr <Q> (device);
           }
@@ -460,7 +477,7 @@ public:
   void requestFullscreenMode (bool override = false);
   void requestWindowedMode   (bool override = false);
 
-  float getActiveRefreshRate (void);
+  float getActiveRefreshRate (HMONITOR hMonitor = 0 /*Default to HWND's nearest*/);
 
   HANDLE getSwapWaitHandle   (void);
   void releaseOwnedResources (void);
@@ -764,6 +781,21 @@ typedef struct
       SK_MONITOR_CAPS_VCDB vcdb;
     } data;
   } SK_MONITOR_CAPABILITIES;
+
+
+// Compute the overlay area of two rectangles, A and B.
+// (ax1, ay1) = left-top coordinates of A; (ax2, ay2) = right-bottom coordinates of A
+// (bx1, by1) = left-top coordinates of B; (bx2, by2) = right-bottom coordinates of B
+inline int
+ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
+                          int bx1, int by1, int bx2, int by2 )
+{
+  return std::max (0, std::min (ax2, bx2) -
+                      std::max (ax1, bx1) ) *
+         std::max (0, std::min (ay2, by2) -
+                      std::max (ay1, by1) );
+}
+
 
 DPI_AWARENESS
 SK_GetThreadDpiAwareness (void);

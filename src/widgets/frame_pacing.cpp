@@ -467,46 +467,51 @@ extern bool __SK_Wine;
 
 extern int SK_PresentMon_Main (int argc, char **argv);
 
+HANDLE __SK_ETW_PresentMon_Thread = INVALID_HANDLE_VALUE;
+
 void
 SK_SpawnPresentMonWorker (void)
 {
-  static bool started = false;
-          if (started) return;
-
-  SK_RunOnce (started = true);
-
   // Wine doesn't support this...
   if (__SK_Wine)
     return;
 
-  static HANDLE hPresentMonThread = 0;
+  SK_RunOnce (
+    __SK_ETW_PresentMon_Thread =
+      SK_Thread_CreateEx ( [](LPVOID) -> DWORD
+      {
+        SK_PresentMon_Main  (0, nullptr);
+        SK_Thread_CloseSelf (          );
 
-  hPresentMonThread =
-  SK_Thread_CreateEx ( [](LPVOID lpUser) -> DWORD
-  {
-    std::string pid =
-      std::to_string (PtrToUlong (lpUser));
-
-    const char* argv_ [] =
-    { SK_RunLHIfBitness (
-        32, "SpecialK_PresentMon32",
-            "SpecialK_PresentMon64"
-      ), "-no_csv",
-         "-process_id",
-                  pid.c_str (),
-         "-stop_existing_session" };
-
-    SK_PresentMon_Main ( sizeof (argv_    )/
-                         sizeof (argv_ [0]),
-                        (char **)argv_ );
-
-    SK_Thread_CloseSelf ();
-
-    return 0;
-  }, L"[SK] PresentMonLite_ETW", (LPVOID)ULongToPtr (GetCurrentProcessId ()));
+        return 0;
+      }, L"[SK] PresentMon Lite",
+    (LPVOID)ULongToPtr (GetCurrentProcessId ())
+    )
+  );
 }
 
-std::string   SK_PresentDebugStr [2] = { "", "" };
+bool
+SK_ETW_EndTracing (void)
+{
+  if (__SK_ETW_PresentMon_Thread != INVALID_HANDLE_VALUE)
+  {
+    DWORD dwWaitState =
+      WaitForSingleObject (__SK_ETW_PresentMon_Thread, 100);
+
+    if (dwWaitState == WAIT_OBJECT_0)
+    {
+      extern void StopTraceSession (void);
+                  StopTraceSession (    );
+      return true;
+    }
+
+    return false;
+  }
+
+  return true;
+}
+
+char          SK_PresentDebugStr [2][128] = { "", "" };
 volatile LONG SK_PresentIdx;
 
 extern void SK_ImGui_DrawFramePercentiles (void);
@@ -554,17 +559,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (target == 0.0f && (! ffx))
   {
-    DWM_TIMING_INFO dwmTiming        = {                      };
-                    dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
 
-    if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
-    {
-      target_frametime =
-        static_cast <float> (
-        static_cast <double> (dwmTiming.qpcRefreshPeriod) /
-        static_cast <double> (SK_GetPerfFreq ().QuadPart)
-                            ) * 1000.0f;
-    }
+    target_frametime =
+      rb.windows.device.getDevCaps ().res.refresh;
   }
 
   float frames =
@@ -584,12 +583,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
   }
 
   SK_SpawnPresentMonWorker ();
-  if (! SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)].empty ())
+  if (*SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)] != '\0')
   {
     extra_present_mon_line = 1;
 
     ImGui::TextUnformatted (
-      SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)].c_str ()
+      SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)]
     );
   }
 

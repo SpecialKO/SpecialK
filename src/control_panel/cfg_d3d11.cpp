@@ -421,7 +421,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables Tearing (PresentInterval=0) in Windowed Mode (Windows 10+)");
+            ImGui::Text         ("Enables True VSYNC -OFF- (PresentInterval = 0) in Windowed Mode");
             ImGui::EndTooltip   ();
           }
         }

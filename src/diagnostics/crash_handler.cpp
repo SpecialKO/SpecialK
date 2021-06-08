@@ -248,11 +248,10 @@ CrashHandler::Init (void)
 
   if (FALSE == InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    SK_Thread_Create (
+    SK_Thread_CreateEx (
       [](LPVOID) ->
         DWORD
         {
-          SetCurrentThreadDescription (         L"[SK] Crash Handler Init");
           SetThreadPriority           (
                         SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
 
@@ -285,7 +284,8 @@ CrashHandler::Init (void)
           SK_Thread_CloseSelf ();
 
           return 0;
-        }
+        },
+      L"[SK] Crash Handler Init"
     );
   }
 }

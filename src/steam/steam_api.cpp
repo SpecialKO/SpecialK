@@ -698,8 +698,6 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
                            &pfnSteamInternal_CreateInterface );
     MH_QueueEnableHook (    pfnSteamInternal_CreateInterface );
 
-    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
-
     return TRUE;
   }
 
@@ -1003,6 +1001,51 @@ SK_IsSteamOverlayActive (void)
 
 
 
+#include <steamapi/isteamcontroller.h>
+#include <SpecialK/input/input.h>
+
+#define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
+#define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
+#define SK_STEAM_VIEW(type)  SK_Steam_Backend->markViewed (type);
+
+using SteamAPI_ISteamController_GetDigitalActionData_pfn = ControllerDigitalActionData_t (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerDigitalActionHandle_t);
+using SteamAPI_ISteamController_GetAnalogActionData_pfn  = ControllerAnalogActionData_t  (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerAnalogActionHandle_t);
+
+SteamAPI_ISteamController_GetDigitalActionData_pfn SteamAPI_ISteamController_GetDigitalActionData_Original = nullptr;
+SteamAPI_ISteamController_GetAnalogActionData_pfn  SteamAPI_ISteamController_GetAnalogActionData_Original  = nullptr;
+
+ControllerDigitalActionData_t
+SteamAPI_ISteamController_GetDigitalActionData_Detour (ISteamController *This, ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle)
+{
+  static ControllerDigitalActionData_t
+    neutralized = { false, false };
+
+  if (SK_ImGui_WantGamepadCapture ())
+    return neutralized;
+
+  SK_STEAM_READ (sk_input_dev_type::Gamepad);
+
+  return
+    SteamAPI_ISteamController_GetDigitalActionData_Original (This, controllerHandle, digitalActionHandle);
+}
+
+ControllerAnalogActionData_t
+SteamAPI_ISteamController_GetAnalogActionData_Detour (ISteamController *This, ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle)
+{
+  static ControllerAnalogActionData_t
+    neutralized = { k_EControllerSourceMode_None, 0.0f, 0.0f, false };
+
+  if (SK_ImGui_WantGamepadCapture ())
+    return neutralized;
+
+  SK_STEAM_READ (sk_input_dev_type::Gamepad);
+
+  return
+    SteamAPI_ISteamController_GetAnalogActionData_Original (This, controllerHandle, analogActionHandle);
+}
+
+
+
 ISteamUserStats* SK_SteamAPI_UserStats   (void);
 void             SK_SteamAPI_ContextInit (HMODULE hSteamAPI);
 
@@ -1097,18 +1140,6 @@ void
 S_CALLTYPE
 SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
 {
-  // Don't care about OUR OWN callbacks ;)
-  ////////if (SK_GetCallingDLL () == SK_GetDLL ())
-  ////////{
-  ////////  if ( (! __SK_Steam_IgnoreOverlayActivation) ||
-  ////////          iCallback != GameOverlayActivated_t::k_iCallback )
-  ////////  {
-  ////////    if (SK_IsAddressExecutable           (pCallback))
-  ////////      SteamAPI_RegisterCallback_Original (pCallback, iCallback);
-  ////////  }
-  ////////
-  ////////  return;
-  ////////}
   std::wstring caller =
     SK_GetCallerName ();
 
@@ -1254,13 +1285,6 @@ void
 S_CALLTYPE
 SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
 {
-  // Skip this if we're uninstalling our own callback
-  ////////if (SK_GetCallingDLL () == SK_GetDLL ())
-  ////////{
-  ////////  SteamAPI_UnregisterCallback_Original (pCallback);
-  ////////  return;
-  ////////}
-
   std::wstring caller =
     SK_GetCallerName ();
 
@@ -3462,17 +3486,17 @@ void TryRunCallbacksSEH (void)
 
 void TryRunCallbacks (void)
 {
-  //auto orig_se =
-  //SK_SEH_ApplyTranslator (
-  //  SK_BasicStructuredExceptionTranslator
-  //);
-  //try {
+  auto orig_se =
+  SK_SEH_ApplyTranslator (
+    SK_BasicStructuredExceptionTranslator
+  );
+  try {
     TryRunCallbacksSEH ();
-  //}
-  //catch (const SK_SEH_IgnoredException&)
-  //{
-  //}
-  //SK_SEH_RemoveTranslator (orig_se);
+  }
+  catch (const SK_SEH_IgnoredException&)
+  {
+  }
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 
@@ -4810,9 +4834,9 @@ SK_HookSteamAPI (void)
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_InitSafe",
-                       SteamAPI_InitSafe_Detour,
-                       static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
-                       static_cast_p2p <void> (&SteamAPI_InitSafe) );                    ++hooks;
+                        SteamAPI_InitSafe_Detour,
+                        static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+                        static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_Init",
@@ -4837,6 +4861,19 @@ SK_HookSteamAPI (void)
                         SteamAPI_RunCallbacks_Detour,
                         static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
                         static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
+
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_ISteamController_GetDigitalActionData",
+                        SteamAPI_ISteamController_GetDigitalActionData_Detour,
+                        static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
+                                                                                         ++hooks;
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_ISteamController_GetAnalogActionData",
+                        SteamAPI_ISteamController_GetAnalogActionData_Detour,
+                        static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
+                                                                                         ++hooks;
 
     //
     // Do not queue these up (by calling CreateDLLHook2),

@@ -2793,6 +2793,9 @@ void SK_Widget_InitThreadProfiler (void)
 
 void SK_Widget_InvokeThreadProfiler (void)
 {
+  if (SK_GetHostAppUtil ()->isInjectionTool ())
+    return;
+
   extern volatile LONG          lLastThreadCreate;
   InterlockedIncrementAcquire (&lLastThreadCreate);
 

@@ -330,7 +330,7 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
   {
     readback_ctx.pCmdQueue = pCmdQueue;
 
-    static SK_RenderBackend& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     SK_ComQIPtr <IDXGISwapChain4>
@@ -1311,7 +1311,7 @@ bool
 SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
                               SK_ScreenshotStage::EndOfFrame )
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( (int)rb.api & (int)SK_RenderAPI::D3D12 )
@@ -1362,7 +1362,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     bool               wait   = false,
                                     bool               purge  = false )
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   const int __MaxStage = 2;
@@ -1471,9 +1471,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
-
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
       do
       {
@@ -2144,9 +2141,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
-              auto& rb =
-                SK_GetCurrentRenderBackend ();
-
               concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*
                 images_to_write =
                   (concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*)pUser;
@@ -2520,7 +2514,7 @@ SK_D3D12_EndFrame (SK_TLS* /* pTLS = SK_TLS_Bottom ()*/)
     end_frame_fn ();
   }
 
-  static SK_RenderBackend& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   dwFrameTime = SK::ControlPanel::current_time;

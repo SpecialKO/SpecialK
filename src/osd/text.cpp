@@ -347,10 +347,10 @@ SK_File_SizeToString (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
     return L"";
 
   std::wstring_view               pwszString (
-    pTLS->scratch_memory->osd.wszFileSize.alloc (64, false), 63
+    pTLS->scratch_memory->osd.wszFileSize.alloc (66, false), 64
   );
 
-  int len = 0;
+  size_t len = 0;
 
   switch (unit)
   {
@@ -368,7 +368,7 @@ SK_File_SizeToString (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
       len = SK_FormatStringViewW (pwszString, L"%#3llu Bytes", size);
       break;
   }
-                      ((wchar_t *)pwszString.data ())[std::min (63, len)] = L'\0';
+                      ((wchar_t *)pwszString.data ())[std::min ((size_t)64, len)] = L'\0';
   return                          pwszString;
 }
 
@@ -389,10 +389,10 @@ SK_File_SizeToStringA (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
     return "";
 
   std::string_view               pszString (
-    pTLS->scratch_memory->osd.szFileSize.alloc (64, false), 63
+    pTLS->scratch_memory->osd.szFileSize.alloc (66, false), 64
   );
 
-  int len = 0;
+  size_t len = 0;
 
   switch (unit)
   {
@@ -411,7 +411,7 @@ SK_File_SizeToStringA (uint64_t size, SK_UNITS unit, SK_TLS* pTLS)
       break;
   }
 
-                        ((char *)pszString.data ())[std::min (63, len)] = '\0';
+                        ((char *)pszString.data ())[std::min ((size_t)64, len)] = '\0';
   return                         pszString;
 }
 
@@ -432,10 +432,10 @@ SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit, 
     return "";
 
   std::string_view       pszStr (
-    pTLS->scratch_memory->osd.szFileSize.alloc (32, false), 31
+    pTLS->scratch_memory->osd.szFileSize.alloc (66, false), 64
   );
 
-  int len = 0;
+  size_t len = 0;
 
   switch (unit)
   {
@@ -459,7 +459,7 @@ SK_File_SizeToStringAF (uint64_t size, int width, int precision, SK_UNITS unit, 
     SK_FormatStringView (pszStr, "%#*llu Bytes", width-1-precision, size);
     break;
   }
-                ((char *)pszStr.data ())[std::min (31, len)] = '\0';
+                ((char *)pszStr.data ())[std::min ((size_t)64, len)] = '\0';
   return                 pszStr;
 }
 
@@ -480,10 +480,10 @@ SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit, S
     return L"";
 
   std::wstring_view       pwszStr (
-    pTLS->scratch_memory->osd.wszFileSize.alloc (64, false), 63
+    pTLS->scratch_memory->osd.wszFileSize.alloc (66, false), 64
   );
 
-  int len = 0;
+  size_t len = 0;
 
   switch (unit)
   {
@@ -507,7 +507,7 @@ SK_File_SizeToStringF (uint64_t size, int width, int precision, SK_UNITS unit, S
     SK_FormatStringViewW (pwszStr, L"%#*llu Bytes", width-1-precision, size);
     break;
   }
-              ((wchar_t *)pwszStr.data ())[std::min (63, len)] = L'\0';
+              ((wchar_t *)pwszStr.data ())[std::min ((size_t)64, len)] = L'\0';
   return                  pwszStr;
 }
 
@@ -522,10 +522,10 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_T
     return L"";
 
   std::wstring_view         pwszStr (
-    pTLS->scratch_memory->osd.wszTemperature.alloc (16, false), 15
+    pTLS->scratch_memory->osd.wszTemperature.alloc (18, false), 16
   );
 
-  int len = 0;
+  size_t len = 0;
 
   if (in_unit == Celsius && out_unit == Fahrenheit)
   {
@@ -547,7 +547,7 @@ SK_FormatTemperature (int32_t in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_T
     len =
       SK_FormatStringViewW (pwszStr, L"%#2liC", in_temp);
   }
-                ((wchar_t *)pwszStr.data ())[std::min (15, len)] = L'\0';
+                ((wchar_t *)pwszStr.data ())[std::min ((size_t)16, len)] = L'\0';
   return                    pwszStr;
 }
 
@@ -562,10 +562,10 @@ SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TL
     return "";
 
   std::string_view         pszStr (
-    pTLS->scratch_memory->osd.szTemperature.alloc (16, false), 15
+    pTLS->scratch_memory->osd.szTemperature.alloc (18, false), 16
   );
 
-  int len = 0;
+  size_t len = 0;
 
   if (in_unit == Celsius && out_unit == Fahrenheit)
   {
@@ -587,7 +587,7 @@ SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TL
     len =
       SK_FormatStringView (pszStr, (const char *)u8"%#4.1f°C", in_temp);
   }
-                  ((char *)pszStr.data ())[std::min (15, len)] = '\0';
+                  ((char *)pszStr.data ())[std::min ((size_t)16, len)] = '\0';
   return                   pszStr;
 }
 

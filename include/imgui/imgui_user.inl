@@ -624,15 +624,17 @@ SK_ImGui_WantMouseWarpFiltering (void)
 }
 
 LONG
-SK_ImGui_DeltaTestMouse (       POINTS& last_pos,
-                                DWORD   lParam,
+SK_ImGui_DeltaTestMouse ( const POINTS& last_pos,
+                          const LPARAM& lParam,
                           const short   threshold = 1 )
 {
   bool filter_warps =
     SK_ImGui_WantMouseWarpFiltering ();
 
-  POINT local { GET_X_LPARAM (lParam),
-                GET_Y_LPARAM (lParam) };
+  POINT local {
+    GET_X_LPARAM (lParam),
+    GET_Y_LPARAM (lParam)
+  };
 
   if ( filter_warps && ( last_pos.x != local.x ||
                          last_pos.y != local.y ) )
@@ -773,8 +775,10 @@ MessageProc ( const HWND&   hWnd,
 
             dll_log->Log (L"WM_APPCOMMAND Mouse Event");
 
-            DWORD dwPos = GetMessagePos ();
-            LONG  lRet  = SK_ImGui_DeltaTestMouse (*(POINTS *)&last_pos, dwPos);
+            LPARAM dwPos = static_cast <LPARAM> (GetMessagePos ());
+            LONG   lRet  = SK_ImGui_DeltaTestMouse (
+                                    *(const POINTS *)&last_pos,
+                   dwPos                           );
 
             if (lRet >= 0)
             {
@@ -881,8 +885,8 @@ MessageProc ( const HWND&   hWnd,
       if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
       {
         io.MouseWheel +=
-          static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
-          static_cast <float> (WHEEL_DELTA);
+           static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
+           static_cast <float> (WHEEL_DELTA);
         return true;
       } break;
 
@@ -1018,8 +1022,7 @@ MessageProc ( const HWND&   hWnd,
       InterlockedIncrement (&__SK_KeyMessageCount);
 
       BYTE vkCode = LOWORD (wParam) & 0xFF;
-
-      if (vkCode & 0xF8) // Valid Keys:  8 - 255
+      if ( vkCode & 0xF8 ) // Valid Keys:  8 - 255
       {
         // Don't process Alt+Tab or Alt+Enter
         if ( msg == WM_SYSKEYUP &&
@@ -1037,41 +1040,41 @@ MessageProc ( const HWND&   hWnd,
     } break;
 
 
-    case WM_NCMOUSEMOVE:
     case WM_MOUSEMOVE:
     {
-      SHORT xPos = GET_X_LPARAM (lParam);
-      SHORT yPos = GET_Y_LPARAM (lParam);
-
-      LONG lDeltaRet =
-        SK_ImGui_DeltaTestMouse (last_pos, (DWORD)lParam);
-
-      last_pos.x = xPos;
-      last_pos.y = yPos;
+      POINTS     xyPos = MAKEPOINTS (lParam);
+      LONG   lDeltaRet =
+        SK_ImGui_DeltaTestMouse (
+             std::exchange (last_pos, xyPos),
+                                     lParam);
 
       // Return:
       //
       //   -1 if no filtering is desired
-      //    0 if the message should be passed onto app, but internal cursor pos unchanged
-      //    1 if the message should be completely eradicated
+      //    0 if message should propogate, but preserve internal cursor state
+      //    1 if message should be removed
       //
-      if (lDeltaRet >= 0)
-      {
+      if (     lDeltaRet >= 0 )
         return lDeltaRet;
-      }
 
-      SK_ImGui_Cursor.pos.x = last_pos.x;
-      SK_ImGui_Cursor.pos.y = last_pos.y;
+      POINT
+        cursor_pos = {
+          last_pos.x,
+          last_pos.y
+        };
 
-      SK_ImGui_Cursor.ClientToLocal (&SK_ImGui_Cursor.pos);
+      SK_ImGui_Cursor.ClientToLocal (&cursor_pos);
+      SK_ImGui_Cursor.pos =           cursor_pos;
 
-      io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-      io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+      io.MousePos = {
+        (float)cursor_pos.x,
+        (float)cursor_pos.y
+      };
 
       if (! SK_ImGui_WantMouseCapture ())
       {
         SK_ImGui_Cursor.orig_pos =
-        SK_ImGui_Cursor.pos;
+                      cursor_pos;
 
         return FALSE;
       }
@@ -1082,7 +1085,8 @@ MessageProc ( const HWND&   hWnd,
 
     case WM_CHAR:
     {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if ( hWnd == game_window.hWnd ||
+          IsChild (game_window.hWnd, hWnd) )
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -1202,36 +1206,118 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       msg_.lParam  = lParam;
       msg_.wParam  = wParam;
 
-    SK_Input_DetermineMouseIdleState (&msg_);
+    if (wParam == 0x68993)
+    {
+      return
+        SK_Input_DetermineMouseIdleState (&msg_);
+    }
   }
 
+#if 0
   if (msg == WM_SETCURSOR)
   {
-  //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
+    ////SK_ReleaseAssert (game_window.hWnd == hWnd || IsChild (game_window.hWnd, hWnd));
 
-    ////if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+    if (LOWORD (lParam) == HTCLIENT ||
+        LOWORD (lParam) == HTTRANSPARENT)
     {
+      extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+
+      MSG
+        msg_ = { };
+        msg_.message = msg;
+        msg_.lParam  = lParam;
+        msg_.wParam  = wParam;
+
+      if (SK_Input_DetermineMouseIdleState (&msg_))
+        return 1;/*
+      //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
       SK_ImGui_Cursor.update ();
 
       if ( SK_ImGui_WantMouseCapture () &&
               ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
       {
-        return TRUE;
+        if (! SK_Window_IsCursorActive ())
+              SK_ImGui_Cursor.activateWindow ();
+
+        return 1;
+      }
+
+      else
+      {
+        if (SK_Window_IsCursorActive ())
+        {
+          SK_ImGui_Cursor.activateWindow (false);
+
+          return 0;
+        }
       }
 
       if (config.input.cursor.manage)
       {
-        extern bool SK_Window_IsCursorActive (void);
+        MSG
+          msg_ = { };
+          msg_.message = msg;
+          msg_.lParam  = lParam;
+          msg_.wParam  = wParam;
 
-        if (! SK_Window_IsCursorActive ())
+        SK_Input_DetermineMouseIdleState (&msg_);
+      }
+
+      return 0;
+    }
+
+    else if (SK_Window_IsCursorActive ())
+    {
+      SK_ImGui_Cursor.activateWindow (false);
+    }*/
+    }
+  }
+#else
+  if (msg == WM_SETCURSOR)
+  {
+    extern bool SK_Window_IsCursorActive (void);
+
+  //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
+
+    if ( LOWORD (lParam) == HTCLIENT ||
+         LOWORD (lParam) == HTTRANSPARENT )
+    {
+      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      {
+        SK_ImGui_Cursor.update ();
+
+        if ( SK_ImGui_WantMouseCapture () &&
+                ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
         {
-          SK_SetCursor (0);
+          SK_ImGui_Cursor.activateWindow (true);
+
           return TRUE;
+        }
+
+        if (config.input.cursor.manage)
+        {
+          extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+
+          MSG
+            msg_ = { };
+            msg_.message = msg;
+            msg_.lParam  = lParam;
+            msg_.wParam  = wParam;
+
+          SK_Input_DetermineMouseIdleState (&msg_);
+
+          if (! SK_Window_IsCursorActive ())
+          {
+            SK_SetCursor (0);
+
+            return TRUE;
+          }
         }
       }
     }
   }
-
+#endif
 
   extern bool
   SK_ImGui_WantExit;
@@ -1360,7 +1446,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   UINT uMsg = msg;
 
-  if (/*SK_ImGui_Visible &&*/ handled)
+  if (/*SK_ImGui_Visible && */handled)
   {
     bool keyboard_capture =
       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
@@ -2436,24 +2522,34 @@ SK_ImGui_User_NewFrame (void)
              last_y = SK_ImGui_Cursor.pos.y;
 
 
-  POINT                           cursor_pos = { };
-  SK_GetCursorPos               (&cursor_pos);
-  SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
+  // Hacky solution for missed messages causing no change in cursor pos
+  //
+  POINT              cursor_pos = { };
+  SK_GetCursorPos  (&cursor_pos);
 
-  if ( cursor_pos.x != last_x ||
-       cursor_pos.y != last_y )
+  HWND hWndHovered =
+    WindowFromPoint (cursor_pos);
+
+  if ( hWndHovered == game_window.hWnd ||
+             IsChild (game_window.hWnd, hWndHovered) )
   {
-    if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
-         abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
+    SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
+
+    if ( cursor_pos.x != last_x ||
+         cursor_pos.y != last_y )
     {
+      if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
+           abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
+      {
 #define SK_LOG_ONCE_N(lvl,expr,src) { static bool _once = false; if ((! std::exchange (_once, true))) SK_LOG##lvl (expr,src); }
 #define SK_LOG_ONCE(expr,src) \
-        SK_LOG_ONCE_N(0,expr,src);
+          SK_LOG_ONCE_N(0,expr,src);
 
-      SK_LOG_ONCE ( ( L"Mouse input appears to be inconsistent..." ),
-                      L"Win32Input" );
+        SK_LOG_ONCE ( ( L"Mouse input appears to be inconsistent..." ),
+                        L"Win32Input" );
 
-      SK_ImGui_Cursor.pos = cursor_pos;
+        SK_ImGui_Cursor.pos = cursor_pos;
+      }
     }
   }
 
@@ -2489,7 +2585,8 @@ SK_ImGui_User_NewFrame (void)
   else
     SK_ImGui_Cursor.idle = false;
 
-  if (was_idle != SK_ImGui_Cursor.idle)
+                                        // Help w/ games that change their cursor constantly
+  if (was_idle != SK_ImGui_Cursor.idle  ||  SK_ImGui_IsMouseRelevant ())
   {
     SK_ImGui_Cursor.update ();
   }

@@ -33,6 +33,7 @@ extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
 SK::Framerate::Stats gamepad_stats;
+SK::Framerate::Stats gamepad_stats_filtered;
 
 void SK_ImGui_UpdateCursor (void)
 {
@@ -58,19 +59,27 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
   static auto& io =
     ImGui::GetIO ();
 
-  SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
-  SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
+  // Ignore this if the cursor is in a different application
+  POINT                 ptCursor;
+  if (SK_GetCursorPos (&ptCursor))
+  {
+    if (PtInRect (&game_window.actual.window, ptCursor))
+    {
+      SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
+      SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
 
-  io.MousePos.x = center.x;
-  io.MousePos.y = center.y;
+      io.MousePos.x = center.x;
+      io.MousePos.y = center.y;
 
-  POINT screen_pos = SK_ImGui_Cursor.pos;
+      POINT screen_pos = SK_ImGui_Cursor.pos;
 
-  SK_ImGui_Cursor.LocalToScreen (&screen_pos);
-  SK_SetCursorPos               ( screen_pos.x,
-                                  screen_pos.y );
+      SK_ImGui_Cursor.LocalToScreen (&screen_pos);
+      SK_SetCursorPos               ( screen_pos.x,
+                                      screen_pos.y );
 
-  SK_ImGui_UpdateCursor ();
+      SK_ImGui_UpdateCursor ();
+    }
+  }
 }
 
 void
@@ -396,7 +405,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
 
         if ( ImGui::SliderFloat ( "Seconds Before Hiding",
-                                    &seconds, 0.0f, 103.0f ) )
+                                    &seconds, 0.0f, 10.0f ) )
         {
           config.input.cursor.timeout =
             static_cast <LONG> ( seconds * 1000.0f );
@@ -816,11 +825,12 @@ extern float SK_ImGui_PulseNav_Strength;
 
         if (! init)
         {     init = true;
-          SK_Thread_Create ([](LPVOID) -> DWORD
+          SK_Thread_CreateEx ([](LPVOID) -> DWORD
           {
             XINPUT_STATE states [2] = { };
             ULONGLONG    times  [2] = { };
-            int                   i = 0;
+            ULONGLONG    times_ [2] = { };
+            int                  i  =  0;
 
             do
             {
@@ -834,9 +844,23 @@ extern float SK_ImGui_PulseNav_Strength;
                 if (old.dwPacketNumber != now.dwPacketNumber)
                 {
                   LARGE_INTEGER nowTime = SK_QueryPerf ();
-                  ULONGLONG     oldTime = times [0];
-                                          times [0] = times [1];
-                                          times [1] = nowTime.QuadPart;
+
+                  if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
+                  {
+                    ULONGLONG oldTime = times_ [0];
+                                        times_ [0] = times_ [1];
+                                        times_ [1] = nowTime.QuadPart;
+
+                    gamepad_stats_filtered.addSample ( 1000.0 *
+                      static_cast <double> (times_ [0] - oldTime) /
+                      static_cast <double> (SK_GetPerfFreq ().QuadPart / 1000),
+                        nowTime
+                    );
+                  }
+
+                  ULONGLONG oldTime = times [0];
+                                      times [0] = times [1];
+                                      times [1] = nowTime.QuadPart;
 
                   gamepad_stats.addSample ( 1000.0 *
                     static_cast <double> (times [0] - oldTime) /
@@ -850,7 +874,7 @@ extern float SK_ImGui_PulseNav_Strength;
             SK_Thread_CloseSelf ();
 
             return 0;
-          }, (LPVOID)hStartStop);
+          }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
         }
 
         static bool started = false;
@@ -866,21 +890,34 @@ extern float SK_ImGui_PulseNav_Strength;
                       high_max,
                       avg;
 
+        static double high_min_f = std::numeric_limits <double>::max (),
+                      high_max_f,
+                      avg_f;
+
         if (started)
         {
           ImGui::SameLine  ( );
-          ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+          ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
                                gamepad_stats.calcNumSamples (),
                                gamepad_stats.calcMin        (),
                                gamepad_stats.calcMax        (),
                                gamepad_stats.calcMean       () );
 
-          high_min = std::min (gamepad_stats.calcMin (), high_min);
+          ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                               gamepad_stats_filtered.calcNumSamples (),
+                               gamepad_stats_filtered.calcMin        (),
+                               gamepad_stats_filtered.calcMax        (),
+                               gamepad_stats_filtered.calcMean       () );
+
+          high_min_f = std::min (gamepad_stats_filtered.calcMin (), high_min_f);
+          high_min   = std::min (gamepad_stats.calcMin          (), high_min  );
         }
   //high_max = std::max (gamepad_stats.calcMax (), high_max);
 
-        if (high_min < 250.0)
+        if (high_min   < 250.0)
           ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+        if (high_min_f < 250.0)
+          ImGui::Text     ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
       }
       ImGui::TreePop         ( );
     }

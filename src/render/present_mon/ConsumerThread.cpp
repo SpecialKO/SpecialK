@@ -21,9 +21,10 @@ SOFTWARE.
 */
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/utility/lazy_global.h>
 #include <SpecialK/thread.h>
 
-static std::thread *pThread = nullptr;
+static std::thread gConsumerThread;
 
 void
 Consume (TRACEHANDLE traceHandle)
@@ -56,27 +57,22 @@ Consume (TRACEHANDLE traceHandle)
   // is no harm in calling ExitMainThread() if MainThread is already exiting
   // (and caused ProcessTrace() to exit via 2, 3, or 4 above) because the
   // message queue isn't beeing listened too anymore in that case.
+
+  ////extern void StopTraceSession (void);
+  ////            StopTraceSession (    );
 ////ExitMainThread();
 }
 
 void
 StartConsumerThread (TRACEHANDLE traceHandle)
 {
-  pThread =
-    new std::thread (
-      Consume, traceHandle)
-    ;
+  gConsumerThread =
+    std::thread (Consume, traceHandle);
 }
 
 void
 WaitForConsumerThreadToExit (void)
 {
-  if (pThread != nullptr)
-  {
-    if (pThread->joinable ())
-        pThread->join     ();
-
-    delete
-      std::exchange (pThread, nullptr);
-  }
+  if (gConsumerThread.joinable ())
+      gConsumerThread.join     ();
 }

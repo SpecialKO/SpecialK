@@ -252,6 +252,10 @@ public:
 };
 
 
+// CCD Forward Declarations, sort of (lol), to avoid GDI header pollution
+using  SK_MINGDI_DISPLAYCONFIG_PATH_INFO = uint8_t [72]; // sizeof (DISPLAYCONFIG_PATH_INFO);
+using  SK_MINGDI_DISPLAYCONFIG_MODE_INFO = uint8_t [64]; // sizeof (DISPLAYCONFIG_MODE_INFO);
+
 
 class SK_TLS_DynamicContext
 {
@@ -294,6 +298,11 @@ public:
     SK_TLS_HeapDataStore <wchar_t>    wszFileSize;
     SK_TLS_HeapDataStore <char>        szFileSize;
   } osd;
+
+  struct {
+    SK_TLS_HeapDataStore <SK_MINGDI_DISPLAYCONFIG_PATH_INFO> display_paths;
+    SK_TLS_HeapDataStore <SK_MINGDI_DISPLAYCONFIG_MODE_INFO> display_modes;
+  } ccd;
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
@@ -724,7 +733,10 @@ public:
 
   SK_LazyGlobal <SK_Sched_ThreadContext>    scheduler;
 
-  SK_LazyGlobal <SK_Memory_ThreadContext>   memory;
+                SK_Memory_ThreadContext    _memory = { };
+                SK_Memory_ThreadContext*    memory =
+                                          &_memory;
+
   SK_LazyGlobal <SK_Disk_ThreadContext>     disk;
   SK_LazyGlobal <SK_Net_ThreadContext>      net;
 
@@ -821,3 +833,4 @@ public:
 };
 
 extern volatile LONG _SK_IgnoreTLSAlloc;
+extern volatile LONG _SK_IgnoreTLSMap;

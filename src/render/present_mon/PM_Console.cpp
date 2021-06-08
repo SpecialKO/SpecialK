@@ -35,15 +35,9 @@ UpdateConsole ( uint32_t           processId,
 {
   UNREFERENCED_PARAMETER (processId);
 
-  ////if (processId != GetCurrentProcessId ())
-  ////  return;
-
-  ////auto const& args =
-  ////  GetCommandLineArgs ();
-
   // Don't display non-target or empty processes
   if ((! processInfo.mTargetProcess)      ||
-         processInfo.mModuleName.empty () ||
+       //processInfo.mModuleName.empty () ||
          processInfo.mSwapChain.empty  ())
   {
     return;

@@ -221,6 +221,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
       SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
                   L"ImGuiD3D12" );
 
+      _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
+
       return;
     }
   }
@@ -259,6 +261,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
     SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
                 L"ImGuiD3D12" );
+
+    _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
 
     return;
   }
@@ -1313,9 +1317,12 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 {
   // Execute and wait for any cmds on the current pending swap,
   //   everything else can be destroyed with no sync.
-  if ( this->pRoot == nullptr ||
-       this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx )
+  if (                       this->pRoot          == nullptr ||
+       ! SK_ValidatePointer (this->pRoot->_pSwapChain, true) ||
+                             this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx )
+  {
     bCmdListRecording = false;
+  }
 
   wait_for_gpu               ();
 
@@ -1387,6 +1394,10 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 
     ///// 1 frame delay for re-init
     ///frame_delay.fetch_add (1);
+
+    // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
+    if (! SK_ValidatePointer (_pSwapChain.p, true))
+                              _pSwapChain.p = nullptr;
 
     frames_.clear ();
 

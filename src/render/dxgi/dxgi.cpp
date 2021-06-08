@@ -2475,7 +2475,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       );
     };
 
-  auto& rb = __SK_RBkEnd.get ();
+  static auto& rb =
+    __SK_RBkEnd.get ();
 
   //
   // Early-out for games that use testing to minimize blocking
@@ -2773,31 +2774,23 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     //
     if (SK_DXGI_IsFlipModelSwapChain (desc))
     {
-      if (! desc.Windowed)
-          Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
-      else if (SyncInterval == 0)
-          Flags |=  DXGI_PRESENT_ALLOW_TEARING;
-
-      if (Flags & DXGI_PRESENT_ALLOW_TEARING)
+      if (! desc.Windowed)                        Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+      else
       {
-        // User wants no override, present flag implies interval = 0
-        if (interval == -1)
+        // Special K Overrides
+        if (interval == 0)
         {
-          SyncInterval = 0;
-          interval     = 0;
+          if (config.render.dxgi.allow_tearing)   Flags |=  DXGI_PRESENT_ALLOW_TEARING;
+          else                                    Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
         }
 
-        else if (interval != 0)
+        else if (interval == -1 && SyncInterval == 0)
         {
-          // Turn this off because the user wants an override
-          Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+          if (! config.render.dxgi.allow_tearing) Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
         }
       }
-    }
-
-    else
-      Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
-
+    }                                             // BitBlt needs no Tearing Flags!
+    else                                          Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
 
     int flags = Flags;
 
@@ -2826,13 +2819,16 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     rb.setLatencyMarkerNV (PRESENT_START);
 
-    SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-    if ((intptr_t)hWaitHandle.m_h > 0)
+    if (config.render.framerate.swapchain_wait > 0)
     {
-      if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
+      SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
+      if ((intptr_t)hWaitHandle.m_h > 0)
       {
-        interval   = 0;
-        flags     |= DXGI_PRESENT_RESTART;
+        if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
+        {
+          interval  = 0;
+          flags    |= DXGI_PRESENT_RESTART;
+        }
       }
     }
 
@@ -2849,6 +2845,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     {
       flags |= DXGI_PRESENT_DO_NOT_WAIT;
     }
+
+    if (interval != 0)
+           flags &= ~DXGI_PRESENT_ALLOW_TEARING;
 
     HRESULT hr =
       _Present ( interval, flags );
@@ -3970,11 +3969,12 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
+  extern bool SK_Window_HasBorder      (HWND hWnd);
   extern void SK_Window_RemoveBorders  (void);
   extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
 
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
-                         rb.fullscreen_exclusive = Fullscreen;
+  BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
   if (config.render.dxgi.skip_mode_changes)
   {
@@ -3994,11 +3994,10 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
         }
       }
     }
-
-    // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
-    if (Fullscreen) SK_Window_RemoveBorders  (        );
-    else            SK_Window_RestoreBorders (0x0, 0x0);
   }
+
+  // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
+  if (Fullscreen) SK_Window_RemoveBorders ();
 
   HRESULT    ret = E_UNEXPECTED;
   DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget))
@@ -4022,6 +4021,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
 
           if (sd.Windowed == Fullscreen && FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)))
           {
+            rb.fullscreen_exclusive = bOrigFullscreen;
             return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
           }
 
@@ -4034,17 +4034,21 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
-  // Mode change failed, and we removed borders prematurealy... add them back!
+  // Mode change failed, and we removed borders prematurely... add them back!
   else
   {
     rb.fullscreen_exclusive = bOrigFullscreen;
 
     if (config.render.dxgi.skip_mode_changes)
     {
-      if (Fullscreen) SK_Window_RestoreBorders (0x0, 0x0);
-      else            SK_Window_RemoveBorders  (        );
+      if (Fullscreen) if (bHadBorders) SK_Window_RestoreBorders (0x0, 0x0);
+      else                             SK_Window_RemoveBorders  (        );
     }
   }
+
+  BOOL                                      bFinalState = FALSE;
+  if (SUCCEEDED (This->GetFullscreenState (&bFinalState, nullptr)))
+                  rb.fullscreen_exclusive = bFinalState;
 
   return ret;
 }
@@ -5358,6 +5362,12 @@ SK_DXGI_CreateSwapChain_PostInit (
         SK_DXGI_HookSwapChain (*ppSwapChain);
     }
 
+    // This is necessary for VLC to work, it feels wrong, but makes life easier
+    //
+    extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+                SK_Inject_SetFocusWindow (pDesc->OutputWindow);
+                       game_window.hWnd = pDesc->OutputWindow;
+
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games
     //     this assumption holds.
@@ -5406,13 +5416,16 @@ SK_DXGI_CreateSwapChain_PostInit (
       if (rb.swapchain.p == nullptr)
           rb.swapchain    = pSwapChain2;
 
-      // Immediately following creation, wait on the SwapChain to get the semaphore initialized.
-      SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
-      if ((intptr_t)hWaitHandle.m_h > 0 )
-        {
-        SK_WaitForSingleObject (
-              hWaitHandle.m_h, 15
-        );
+      if (config.render.framerate.swapchain_wait > 0)
+      {
+        // Immediately following creation, wait on the SwapChain to get the semaphore initialized.
+        SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
+        if ((intptr_t)hWaitHandle.m_h > 0 )
+          {
+          SK_WaitForSingleObject (
+                hWaitHandle.m_h, 15
+          );
+        }
       }
     }
   }
@@ -5425,6 +5438,13 @@ SK_DXGI_CreateSwapChain_PostInit (
 
     if (pDesc != nullptr)
       rb.fullscreen_exclusive = (! pDesc->Windowed);
+  }
+
+  if (rb.fullscreen_exclusive)
+  {
+    extern void SK_Window_RemoveBorders (void);
+                SK_Window_RemoveBorders ();
+                // Fullscreen optimizations sometimes do not work (:shrug:)
   }
 }
 
@@ -8374,6 +8394,9 @@ HookDXGI (LPVOID user)
       SK_RunLHIfBitness ( 64, SK_LoadPlugIns64 (),
                               SK_LoadPlugIns32 () );
     }
+
+    if (! D3D11CreateDeviceAndSwapChain_Import)
+      return 0;
 
     HRESULT hr =
       D3D11CreateDeviceAndSwapChain_Import (

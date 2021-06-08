@@ -227,6 +227,8 @@ SK_StartPerfMonThreads (void)
   }
 }
 
+extern bool SK_ETW_EndTracing (void);
+
 
 void
 SK_LoadGPUVendorAPIs (void)
@@ -241,7 +243,7 @@ SK_LoadGPUVendorAPIs (void)
     return;
 
 
-  dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API          (NvAPI)...");
+  dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API       `   (NvAPI)...");
 
   nvapi_init =
     sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
@@ -1232,8 +1234,9 @@ void
 __stdcall
 SK_EstablishRootPath (void)
 {
-  wchar_t wszConfigPath [MAX_PATH + 2] = { };
-  GetCurrentDirectory   (MAX_PATH, wszConfigPath);
+  wchar_t   wszConfigPath [MAX_PATH + 2] = { };
+  GetCurrentDirectory     (MAX_PATH,
+            wszConfigPath);
   lstrcatW (wszConfigPath, LR"(\)");
 
   // File permissions don't permit us to store logs in the game's directory,
@@ -1680,7 +1683,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     L"---------------------\n");
 
 
-    if (! __SK_bypass)
+  if (! __SK_bypass)
   {
     // Setup unhooked function pointers
     SK_MinHook_Init                  (    );
@@ -2167,10 +2170,13 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SK_Console::getInstance ()->End ();
 
+  extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+  extern HWND SK_Inject_GetFocusWindow           (void);
+              SK_Inject_SetFocusWindow              (0);
+
   SK::DXGI::ShutdownBudgetThread ();
 
-  dll_log->LogEx    (true, L"[ GPU Stat ] Shutting down Prognostics "
-                           L"Thread...          ");
+  dll_log->LogEx    (true, L"[ GPU Stat ] Shutting down Performance Monitor Thread...  ");
 
   DWORD dwTime =
     SK_timeGetTime ();
@@ -2178,6 +2184,13 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log->LogEx    (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
+  dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
+
+  dwTime
+     =  SK_timeGetTime  ();
+  if (SK_ETW_EndTracing ())
+    dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime); else
+    dll_log->LogEx  (false, L"fail! (%4u ms -> Timeout)\n", SK_timeGetTime () - dwTime);
 
   SK_Steam_KillPump ();
 
@@ -2685,20 +2698,16 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       {
         if (StrStrIW (wszDescription, L"[GAME] Primary Render Thread") == nullptr)
         {
-          SK_RunOnce (
-            SetCurrentThreadDescription (
-              SK_FormatStringW ( L"[GAME] Primary Render < %s >",
-                wszDescription ).c_str ()
-                                        )
-          );
+          SetCurrentThreadDescription (
+            SK_FormatStringW ( L"[GAME] Primary Render < %s >",
+                       wszDescription ).c_str ()
+                                      );
         }
       }
 
       else
       {
-        SK_RunOnce (
-          SetCurrentThreadDescription (L"[GAME] Primary Render Thread")
-        );
+        SetCurrentThreadDescription (L"[GAME] Primary Render Thread");
       }
 
       SK_LocalFree (wszDescription);
@@ -2766,7 +2775,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //  (nb: Must be implemented asynchronously)
         //
         SK_RunOnce (SK_Window_RepositionIfNeeded ());
-        SK_RunOnce (game_window.active = true);
+        SK_RunOnce (game_window.active |= (SK_GetForegroundWindow () == game_window.hWnd));
       }
     } break;
   }
@@ -3017,11 +3026,14 @@ SK_Input_PollKeyboard (void)
 }
 
 
+extern bool
+  SK_Window_OnFocusChange ( HWND hWndNewTarget,
+                            HWND hWndOld );
 
 void
 SK_BackgroundRender_EndFrame (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static bool background_last_frame = false;
@@ -3066,7 +3078,31 @@ SK_BackgroundRender_EndFrame (void)
   }
 
   fullscreen_last_frame =
-    rb.fullscreen_exclusive;
+        rb.fullscreen_exclusive;
+  if (! rb.fullscreen_exclusive)
+  {
+    DWORD                           dwForegroundPid = 0x0;
+    DWORD                           dwForegroundTid =
+      GetWindowThreadProcessId (
+        SK_GetForegroundWindow (), &dwForegroundPid);
+
+//if ( dwForegroundTid != GetCurrentThreadId  () &&
+//     dwForegroundPid != GetCurrentProcessId () )
+  {
+      GUITHREADINFO gti        = {                    };
+                    gti.cbSize = sizeof (GUITHREADINFO);
+      if ( GetGUIThreadInfo (       dwForegroundTid,
+                                           &gti ) )
+      {
+        static HWND        hWndLastFocus  = 0;
+        if (               hWndLastFocus != gti.hwndFocus) {
+          SK_Window_OnFocusChange (         gti.hwndFocus,
+            std::exchange (hWndLastFocus,   gti.hwndFocus)
+          );
+        }
+      }
+    }
+  }
 }
 
 void
@@ -3292,6 +3328,51 @@ void
     }
   }
 };
+
+bool
+SK_API_IsDXGIBased (SK_RenderAPI api)
+{
+  switch (api)
+  {
+    case SK_RenderAPI::D3D10:
+    case SK_RenderAPI::D3D11:
+    case SK_RenderAPI::D3D12:
+    case SK_RenderAPI::D3D8On11:
+    case SK_RenderAPI::DDrawOn11:
+    case SK_RenderAPI::GlideOn11:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool
+SK_API_IsGDIBased (SK_RenderAPI api)
+{
+  switch (api)
+  {
+    case SK_RenderAPI::OpenGL:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool
+SK_API_IsPlugInBased (SK_RenderAPI api)
+{
+  switch (api)
+  {
+    case SK_RenderAPI::DDraw:
+    case SK_RenderAPI::DDrawOn11:
+    case SK_RenderAPI::D3D8:
+    case SK_RenderAPI::Glide:
+    case SK_RenderAPI::GlideOn11:
+      return true;
+    default:
+      return false;
+  }
+}
 
 SK_LazyGlobal <iSK_Logger> dll_log;
 SK_LazyGlobal <iSK_Logger> crash_log;

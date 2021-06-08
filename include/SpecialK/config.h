@@ -438,7 +438,7 @@ struct sk_config_t
   } render;
 
   struct display_s {
-    int       monitor_default      = MONITOR_DEFAULTTOPRIMARY;
+    int       monitor_default      = MONITOR_DEFAULTTONEAREST;
     int       monitor_idx          =    -1; // TODO
     HMONITOR  monitor_handle       =     0;
     float     refresh_rate         =  0.0F; // TODO
@@ -633,7 +633,7 @@ struct sk_config_t
                      x.percent  > -0.00001F && x.percent   < 0.00001F &&
                      y.percent  > -0.00001F && y.percent   < 0.00001F; }
     } offset;
-    int     always_on_top       = 0;
+    int     always_on_top       =    -1;
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;

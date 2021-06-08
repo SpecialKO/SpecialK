@@ -41,13 +41,15 @@ HMODULE hModHookInstance = nullptr;
 //
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { 0 };
 
+static auto constexpr x = sizeof (SK_InjectionRecord_s);
+
 #pragma data_seg (".SK_Hooks")
 extern "C"
 {
 //__declspec (dllexport) HANDLE hShutdownSignal= INVALID_HANDLE_VALUE;
-  DWORD        dwHookPID = 0x0;     // Process that owns the CBT hook
-  HHOOK        hHookCBT  = nullptr; // CBT hook
-  BOOL         bAdmin    = FALSE;   // Is SKIM64 able to inject into admin apps?
+  DWORD        dwHookPID  = 0x0;     // Process that owns the CBT hook
+  HHOOK        hHookCBT   = nullptr; // CBT hook
+  BOOL         bAdmin     = FALSE;   // Is SKIM64 able to inject into admin apps?
 
   LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                 =  {   0   };
 
@@ -73,7 +75,7 @@ extern "C"
   __declspec (dllexport)          int     blacklist_count                    =   0;
   __declspec (dllexport) volatile LONG    injected_procs                     =   0;
 
-  constexpr LONG MAX_HOOKED_PROCS = 4096;
+  constexpr LONG MAX_HOOKED_PROCS = 262144;
 
   // Recordkeeping on processes with CBT hooks; required to release the DLL
   //   in any process that has become suspended since hook install.
@@ -82,6 +84,11 @@ extern "C"
 };
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
+
+// Change in design, we will use mapped memory instead of DLL shared memory in
+// versions 21.6.x+ in order to communicate between 32-bit and 64-bit apps.
+volatile HANDLE hMapShared = INVALID_HANDLE_VALUE;
+
 
 extern void SK_Process_Snapshot    (void);
 extern bool SK_Process_IsSuspended (DWORD dwPid);
@@ -413,8 +420,7 @@ SK_Inject_AcquireProcess (void)
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
       GetModuleHandleEx (
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
             (LPCWSTR)&SK_Inject_AcquireProcess,
                              &hModHookInstance
                         );
@@ -442,9 +448,436 @@ SKX_GetCBTHook (void) noexcept
   return hHookCBT;
 }
 
+// Lazy-init
+HANDLE
+SK_Inject_GetSharedMemory (void)
+{
+  HANDLE hLocalMap =
+    ReadPointerAcquire (&hMapShared);
+
+  if (hLocalMap != INVALID_HANDLE_VALUE)
+    return hLocalMap;
+
+  HANDLE hExistingFile =
+    OpenFileMapping (FILE_MAP_ALL_ACCESS, FALSE, LR"(Local\SK_GlobalSharedMemory_v1)");
+
+  if (hExistingFile != 0)
+  {
+    if ( INVALID_HANDLE_VALUE ==
+           InterlockedCompareExchangePointer (&hMapShared, hExistingFile, INVALID_HANDLE_VALUE) )
+    {
+      WritePointerRelease (&hMapShared, hExistingFile);
+
+      return hExistingFile;
+    }
+
+    CloseHandle (hExistingFile);
+  }
+
+  HANDLE hNewFile  =
+    CreateFileMapping ( INVALID_HANDLE_VALUE, nullptr,
+                           PAGE_READWRITE, 0, 4096,
+                             LR"(Local\SK_GlobalSharedMemory_v1)" );
+
+  if (hNewFile != 0)
+  {
+    if ( INVALID_HANDLE_VALUE ==
+           InterlockedCompareExchangePointer (&hMapShared, hNewFile, INVALID_HANDLE_VALUE) )
+    {
+      return hNewFile;
+    }
+
+    CloseHandle (hNewFile);
+  }
+
+  return SK_INVALID_HANDLE;
+}
+
+static volatile LPVOID _pSharedMemoryView = nullptr;
+
+LPVOID
+SK_Inject_GetViewOfSharedMemory (void)
+{
+  LPVOID lpLocalView =
+    ReadPointerAcquire (&_pSharedMemoryView);
+
+  if (lpLocalView != nullptr)
+    return lpLocalView;
+
+  HANDLE hMap =
+    SK_Inject_GetSharedMemory ();
+
+  if (hMap != nullptr)
+  {
+    lpLocalView =
+      MapViewOfFile (hMap, FILE_MAP_ALL_ACCESS, 0, 0, 4096);
+
+    if (lpLocalView != nullptr)
+    {
+      if ( nullptr ==
+             InterlockedCompareExchangePointer (&_pSharedMemoryView, lpLocalView, nullptr) )
+      {
+        return lpLocalView;
+      }
+
+      UnmapViewOfFile (lpLocalView);
+    }
+
+    return
+      ReadPointerAcquire (&_pSharedMemoryView);
+  }
+
+  return nullptr;
+}
+
+void
+SK_Inject_CleanupSharedMemory (void)
+{
+  WritePointerRelease (&_pSharedMemoryView, nullptr);
+
+  HANDLE hLocalMap =
+    InterlockedCompareExchangePointer (&hMapShared, INVALID_HANDLE_VALUE, ReadPointerAcquire (&hMapShared));
+
+  if (hLocalMap != INVALID_HANDLE_VALUE)
+  {
+    UnmapViewOfFile (
+      SK_Inject_GetViewOfSharedMemory ()
+    );
+
+    CloseHandle (hLocalMap);
+  }
+}
+
+
+#pragma pack (push, 1)
+struct SK_SharedMemory_v1
+{
+  // Initialized = 0x1
+  // Standby     = 0x2
+  // Free        = 0x4
+  uint32_t MemoryState = 0x0;
+  uint32_t HighDWORD   = sizeof (SK_SharedMemory_v1) -
+                         sizeof (uint32_t);
+
+
+  struct WindowState_s {
+    DWORD hWndFocus      = 0x0;
+    DWORD hWndActive     = 0x0;
+    DWORD hWndForeground = 0x0;
+    DWORD dwPadding      = 0x0;
+    DWORD _Reserved [12] = { };
+  } SystemWide,
+    CurrentGame;
+
+
+  struct EtwSessionList_s
+  {
+    struct SessionCtl_s {
+      uint32_t SequenceId = 0;
+      DWORD    _Reserved [28];
+    } SessionControl;
+
+    struct EtwSession_s {
+      char  szName [24] =  "";
+      DWORD dwReserved  = 0x0;
+      DWORD dwPid       = 0x0;
+    } PresentMon   [ 3], // Max Concurrent = 3
+      Reserved     [ 5];
+
+    static auto constexpr
+      __MaxPresentMonSessions = 3;
+  } EtwSessions;
+};
+#pragma pack (pop)
+
+
+HWND
+SK_Inject_GetFocusWindow (void)
+{
+  SK_SharedMemory_v1* pSharedMem =
+    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+  if (pSharedMem != nullptr)
+  {
+    return
+      (HWND)ULongToHandle (pSharedMem->SystemWide.hWndFocus);
+  }
+
+  return 0;
+}
+
+void
+SK_Inject_SetFocusWindow (HWND hWndFocus)
+{
+  SK_SharedMemory_v1* pSharedMem =
+    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+  if (pSharedMem != nullptr)
+  {
+    pSharedMem->SystemWide.hWndFocus =
+      HandleToULong (hWndFocus);
+  }
+}
+
+
+std::string
+SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
+{
+  std::string session_name; // _NotAValidSession;
+
+  if (StrStrIA (szPrefix, "SK_PresentMon") != nullptr)
+  {
+    SK_SharedMemory_v1* pSharedMem =
+   (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+    if (pSharedMem)
+    {
+      HANDLE hMutex =
+        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
+
+      if (hMutex != 0)
+      {
+        if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
+        {
+          auto __MaxPresentMonSessions =
+            SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
+
+          auto first_free_idx   = __MaxPresentMonSessions,
+               first_uninit_idx = __MaxPresentMonSessions;
+
+          for ( int i = 0;   i < __MaxPresentMonSessions;
+                           ++i )
+          {
+            if ( ( first_free_idx == __MaxPresentMonSessions ) &&
+                     pSharedMem->EtwSessions.PresentMon [i].dwPid != 0x0 )
+            {
+              HANDLE hProcess =
+                OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
+                                pSharedMem->EtwSessions.PresentMon [i].dwPid );
+
+              DWORD dwExitCode = 0x0;
+
+              if (                      hProcess != 0          &&
+                   GetExitCodeProcess ( hProcess, &dwExitCode) &&
+                                                   dwExitCode  != STILL_ACTIVE )
+              {
+                first_free_idx = i;
+              }
+
+              if (         hProcess != 0)
+              CloseHandle (hProcess);
+            }
+
+            else if ( pSharedMem->EtwSessions.PresentMon [i].dwPid == 0x0 )
+            {
+              // Make sure memory is clean
+              *pSharedMem->EtwSessions.PresentMon [i].szName = '\0';
+
+              if (first_uninit_idx == __MaxPresentMonSessions)
+                  first_uninit_idx = i;
+            }
+          }
+
+          int idx =
+            std::min (        first_uninit_idx,
+                       bReuse ? first_free_idx :
+                     __MaxPresentMonSessions );
+          if (idx != __MaxPresentMonSessions)
+          {
+            auto *pEtwSession =
+              &(pSharedMem->EtwSessions.PresentMon [idx]);
+
+            bool isNewSession =
+                 (pEtwSession->dwPid == 0x0);
+                  pEtwSession->dwPid = GetCurrentProcessId ();
+
+            if (isNewSession)
+            {
+              session_name =
+                SK_FormatString ( "%hs [%lu]",
+                  szPrefix, pSharedMem->EtwSessions.SessionControl.SequenceId++
+                                );
+            }
+
+            else
+              session_name = pEtwSession->szName;
+          }
+        }
+
+        CloseHandle (hMutex);
+      }
+    }
+  }
+
+  return session_name;
+}
+
+bool
+SK_Etw_UnregisterSession (const char* szPrefix)
+{
+  int unregistered_count = 0;
+
+  if (StrStrIA (szPrefix, "SK_PresentMon") != nullptr)
+  {
+    SK_SharedMemory_v1* pSharedMem =
+   (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+    if (pSharedMem)
+    {
+      HANDLE hMutex =
+        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
+
+      if (hMutex != 0)
+      {
+        if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
+        {
+          for ( int i = 0;
+                    i < SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
+                  ++i )
+          {
+            auto* pEtwSession =
+                &(pSharedMem->EtwSessions.PresentMon [i]);
+
+            if (pEtwSession->dwPid == GetCurrentProcessId ())
+            {
+               *pEtwSession->szName = '\0',
+                pEtwSession->dwPid  = 0x00;
+
+              unregistered_count++;
+            }
+          }
+        }
+
+        CloseHandle (hMutex);
+      }
+    }
+  }
+
+  return
+    unregistered_count != 0;
+}
 
 
 
+
+
+
+#if 0
+#include <winternl.h>                   //PROCESS_BASIC_INFORMATION
+
+bool
+ReadMem ( void *addr,
+          void *buf,
+          int   size )
+{
+  return
+    ReadProcessMemory ( GetCurrentProcess (), addr,
+                                               buf, size,
+                                                 nullptr ) != FALSE;
+}
+
+using NtQueryInformationProcess_pfn =
+  NTSTATUS (NTAPI *)(HANDLE,PROCESSINFOCLASS,PVOID,ULONG,PULONG);
+
+int
+GetModuleReferenceCount (HMODULE hModToTest)
+{
+  LdrFindEntryForAddress_pfn
+  LdrFindEntryForAddress =
+ (LdrFindEntryForAddress_pfn)SK_GetProcAddress ( L"NtDll",
+ "LdrFindEntryForAddress"                      );
+
+  if (LdrFindEntryForAddress != nullptr)
+  {
+    PLDR_DATA_TABLE_ENTRY__SK
+      pLdrDataTable = nullptr;
+
+    if ( NT_SUCCESS (
+           LdrFindEntryForAddress ( hModToTest, &pLdrDataTable )
+       )            )                     return pLdrDataTable->ReferenceCount;
+  }
+
+  return 0;
+}
+
+int
+GetModuleLoadCount (HMODULE hModToTest)
+{
+  PROCESS_BASIC_INFORMATION pbi = { 0 };
+
+  NtQueryInformationProcess_pfn
+  NtQueryInformationProcess =
+ (NtQueryInformationProcess_pfn)SK_GetProcAddress ( L"NtDll",
+ "NtQueryInformationProcess"                      );
+
+  if (! NtQueryInformationProcess)
+    return 0;
+
+  if ( NT_SUCCESS (
+      NtQueryInformationProcess ( GetCurrentProcess (),
+                                    ProcessBasicInformation, &pbi,
+                                                      sizeof (pbi), nullptr )
+                   ) )
+  {
+    uint8_t *pLdrDataOffset =
+   (uint8_t *)(pbi.PebBaseAddress) + offsetof (PEB, Ldr);
+
+    uint8_t*     addr;
+    PEB_LDR_DATA LdrData;
+
+    if ((! ReadMem (pLdrDataOffset, &addr,    sizeof (void *))) ||
+        (! ReadMem (addr,           &LdrData, sizeof (LdrData))) )
+      return 0;
+
+    LIST_ENTRY *pHead = LdrData.InMemoryOrderModuleList.Flink;
+    LIST_ENTRY *pNext = pHead;
+
+    do
+    {
+      LDR_DATA_TABLE_ENTRY   LdrEntry = { };
+      LDR_DATA_TABLE_ENTRY *pLdrEntry =
+        CONTAINING_RECORD ( pHead,
+                             LDR_DATA_TABLE_ENTRY,
+                               InMemoryOrderLinks );
+
+      if (! ReadMem (pLdrEntry, &LdrEntry, sizeof (LdrEntry)))
+        return 0;
+
+      if (LdrEntry.DllBase == (LPVOID)hModToTest)
+      {
+        //
+        //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
+        //
+        int offDdagNode =
+          (0x14 - SK_RunLHIfBitness (64, 1, 0)) * sizeof (LPVOID); // See offset on LDR_DDAG_NODE *DdagNode;
+
+        ULONG    count        = 0;
+        uint8_t* addrDdagNode = ((uint8_t *)pLdrEntry) + offDdagNode;
+
+        //
+        //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_ddag_node.htm
+        //  See offset on ULONG LoadCount;
+        //
+        if ( (! ReadMem (addrDdagNode, &addr,      sizeof (LPVOID))) ||
+             (! ReadMem (               addr + 3 * sizeof (LPVOID),
+                                       &count,     sizeof (count))) )
+        {
+          return 0;
+        }
+
+        return
+          count;
+      }
+
+      pHead =
+        LdrEntry.InMemoryOrderLinks.Flink;
+    }
+    while (pHead != pNext);
+  }
+
+  return 0;
+}
+#else
 #include <winternl.h>                   //PROCESS_BASIC_INFORMATION
 
 // warning C4996: 'GetVersionExW': was declared deprecated
@@ -593,6 +1026,7 @@ GetModuleLoadCount (HMODULE hDll)
 
   return 0;
 } //GetModuleLoadCount
+#endif
 
          HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
          HANDLE   g_hHookTeardown   = SK_INVALID_HANDLE;
@@ -654,16 +1088,30 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement  (&injected_procs);
 
-          MsgWaitForMultipleObjectsEx (
-            2, signals, INFINITE, QS_ALLINPUT, 0x0
-          );
+          DWORD dwWaitState =
+            MsgWaitForMultipleObjectsEx (
+              2, signals, INFINITE, QS_ALLINPUT, 0x0
+            );
 
+          // Is Process Actively Using Special K (?)
+          if ( dwWaitState      == WAIT_OBJECT_0 &&
+               hModHookInstance != nullptr )
+          {
+            // Global Injection Shutting Down, SK is -ACTIVE- in this App.
+            //
+            //  ==> Must continue waiting for application exit ...
+            //
+            MsgWaitForMultipleObjectsEx (
+              1, &__SK_DLL_TeardownEvent, INFINITE,
+                             QS_ALLINPUT, 0x0 );
+          }
+
+          // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
         }
 
         if (! SK_GetHostAppUtil ()->isInjectionTool ())
         {
-          //if (GetModuleReferenceCount (SK_GetDLL ()) > 1)
           if (GetModuleLoadCount (SK_GetDLL ()) > 1)
                           FreeLibrary (SK_GetDLL ());
         }
@@ -696,10 +1144,56 @@ SK_Inject_SpawnUnloadListener (void)
       }
 
       else
-        CloseHandle (g_hPacifierThread);
+      {
+        TerminateThread            (g_hPacifierThread, 0x0);
+        CloseHandle                (g_hPacifierThread);
+      }
     }
   }
 }
+
+#define PreventAlwaysOnTop 0
+#define        AlwaysOnTop 1
+#define   SmartAlwaysOnTop 2
+
+bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
+auto _DoWindowsOverlap =
+[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 4) -> bool
+{
+  if (! IsWindow (hWndGame)) return false;
+  if (! IsWindow (hWndApp))  return false;
+
+  if (bSameMonitor != FALSE)
+  {
+    if (MonitorFromWindow (hWndGame, MONITOR_DEFAULTTONEAREST) !=
+        MonitorFromWindow (hWndApp,  MONITOR_DEFAULTTONEAREST))
+    {
+      return false;
+    }
+  }
+
+  RECT rectGame = { },
+       rectApp  = { };
+
+  if (! GetWindowRect (hWndGame, &rectGame)) return false;
+  if (! GetWindowRect (hWndApp,  &rectApp))  return false;
+
+  InflateRect (&rectGame, -iDeadzone, -iDeadzone);
+  InflateRect (&rectApp,  -iDeadzone, -iDeadzone);
+
+  RECT                rectIntersect = { };
+  IntersectRect     (&rectIntersect,
+                             &rectGame, &rectApp);
+
+  // Size of intersection is non-zero, we're done
+  if (! IsRectEmpty (&rectIntersect)) return true;
+
+  // Test for window entirely inside the other
+  UnionRect (&rectIntersect, &rectGame, &rectApp);
+
+  return
+    EqualRect (&rectGame, &rectIntersect);
+};
 
 LRESULT
 CALLBACK
@@ -707,11 +1201,75 @@ CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
 {
+  if (nCode < 0)
+  {
+    return
+      CallNextHookEx (
+        SKX_GetCBTHook (),
+          nCode, wParam, lParam
+      );
+  }
+
   SK_Inject_SpawnUnloadListener ();
+
+  extern bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
+
+  if (game_window.hWnd == 0)
+  {
+    if (nCode == HCBT_ACTIVATE)
+    {
+      HWND hWndGame =
+        SK_Inject_GetFocusWindow ();
+
+      if (hWndGame != 0x0 && IsWindow (hWndGame))
+      {
+        CBTACTIVATESTRUCT *pCBTActivate =
+       (CBTACTIVATESTRUCT *)lParam;
+
+        HWND hWndActive = (HWND)pCBTActivate->hWndActive,
+             hWndSet    = SK_GetForegroundWindow ();
+
+        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndActive, (LPARAM)hWndSet);
+      }
+    }
+
+    else if (nCode == HCBT_SETFOCUS)
+    {
+      HWND hWndGame =
+        SK_Inject_GetFocusWindow ();
+
+      HWND hWndSet   = (HWND)wParam,
+           hWndPrev  = (HWND)lParam;
+
+      if (hWndGame != 0x0 && IsWindow (hWndGame))
+        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndSet, (LPARAM)hWndPrev);
+    }
+
+    else if (nCode == HCBT_MOVESIZE)
+    {
+      HWND hWndGame =
+        SK_Inject_GetFocusWindow ();
+
+      if (hWndGame != 0x0 && IsWindow (hWndGame))
+      {
+        if (_DoWindowsOverlap (hWndGame, (HWND)wParam))
+          PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)wParam, (LPARAM)0);
+
+        else
+        {
+          if (MonitorFromWindow ((HWND)wParam,   MONITOR_DEFAULTTONEAREST) ==
+              MonitorFromWindow ((HWND)hWndGame, MONITOR_DEFAULTTONEAREST))
+          {
+            PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndGame, (LPARAM)wParam);
+          }
+        }
+      }
+    }
+  }
 
   return
     CallNextHookEx (
-      nullptr,
+      SKX_GetCBTHook (),
         nCode, wParam, lParam
     );
 }
@@ -835,13 +1393,6 @@ SKX_RemoveCBTHook (void)
     }
     while (ReadAcquire (&injected_procs) > 0);
 
-    ////// After waking all suspended pids while the hook teardown
-    //////   was active, they can go back to being suspended ;)
-    ////for ( auto pid : suspended_pids )
-    ////{
-    ////  SK_Process_Suspend (pid);
-    ////}
-
     hHookCBT = nullptr;
   }
 
@@ -849,9 +1400,6 @@ SKX_RemoveCBTHook (void)
     CloseHandle (                  hHookTeardown);
 
   dwHookPID = 0x0;
-
-  if (           hModSelf != 0)
-    FreeLibrary (hModSelf);
 }
 
 bool

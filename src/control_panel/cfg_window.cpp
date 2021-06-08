@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/control_panel/window.h>
+#include <imgui/font_awesome.h>
 
 bool
 SK::ControlPanel::Window::Draw (void)
@@ -346,7 +347,23 @@ SK::ControlPanel::Window::Draw (void)
 
       changed |= ImGui::RadioButton ("No Preference",         &config.window.always_on_top, -1); ImGui::SameLine ();
       changed |= ImGui::RadioButton ("Prevent Always-On-Top", &config.window.always_on_top,  0); ImGui::SameLine ();
-      changed |= ImGui::RadioButton ("Force Always-On-Top",   &config.window.always_on_top,  1);
+      changed |= ImGui::RadioButton ("Force Always-On-Top",   &config.window.always_on_top,  1); ImGui::SameLine ();
+      changed |= ImGui::RadioButton ("Multitasking-On-Top",   &config.window.always_on_top,  2);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Intelligently Raises and Lowers the Game Windows for Optimum Multitasking");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Improves framepacing when KB&M input is given to other applications");
+        ImGui::BulletText   ("Enables G-Sync / FreeSync / VRR in overlapping multi-monitor scenarios");
+        ImGui::BulletText   ("Prevents deadbeat taskbars from orphaning child windows on top of games");
+        ImGui::Separator    ();
+        if (! config.window.background_render)
+          ImGui::Text       (ICON_FA_INFO_CIRCLE " Enable 'Continue Rendering' mode for Ultra-tasking");
+        ImGui::Text         (ICON_FA_EXCLAMATION_TRIANGLE " Experimental feature: extra consistency checks offered by Global Injection");
+        ImGui::EndTooltip   ();
+      }
 
       if (changed)
       {
@@ -354,6 +371,8 @@ SK::ControlPanel::Window::Draw (void)
           SK_DeferCommand ("Window.TopMost true");
         else if (config.window.always_on_top == 0)
           SK_DeferCommand ("Window.TopMost false");
+        else if (config.window.always_on_top == 2/* && config.window.borderless && config.window.fullscreen*/)
+          SK_DeferCommand ("Window.TopMost true");
       }
 
       ImGui::TreePop ();

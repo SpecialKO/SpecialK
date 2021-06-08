@@ -122,9 +122,9 @@ std::string
 __cdecl        SK_FormatString              (char    const* const _Format, ...);
 std::wstring
 __cdecl        SK_FormatStringW             (wchar_t const* const _Format, ...);
-int
+size_t
 __cdecl        SK_FormatStringView          (std::string_view&  out,    char const* const _Format, ...);
-int
+size_t
 __cdecl        SK_FormatStringViewW         (std::wstring_view& out, wchar_t const* const _Format, ...);
 
 void           SK_StripTrailingSlashesW     (wchar_t *wszInOut);

@@ -30,424 +30,72 @@ SOFTWARE.
 #include <SpecialK/utility.h>
 #include <algorithm>
 
-enum {
-    DEFAULT_CONSOLE_WIDTH   = 80,
-    MAX_ARG_COLUMN_WIDTH    = 40,
-    MIN_DESC_COLUMN_WIDTH   = 20,
-    ARG_DESC_COLUMN_PADDING = 4,
-};
+static CommandLineArgs
+      gCommandLineArgs;
 
-struct KeyNameCode
+CommandLineArgs const& GetCommandLineArgs (void)
 {
-    char const* mName;
-    UINT mCode;
-};
-
-static KeyNameCode const HOTKEY_MODS[] = {
-    { "ALT",     MOD_ALT     },
-    { "CONTROL", MOD_CONTROL },
-    { "CTRL",    MOD_CONTROL },
-    { "SHIFT",   MOD_SHIFT   },
-    { "WINDOWS", MOD_WIN     },
-    { "WIN",     MOD_WIN     },
-};
-
-static KeyNameCode const HOTKEY_KEYS[] = {
-    { "BACKSPACE",   VK_BACK      },
-    { "TAB",         VK_TAB       },
-    { "CLEAR",       VK_CLEAR     },
-    { "ENTER",       VK_RETURN    },
-    { "PAUSE",       VK_PAUSE     },
-    { "CAPSLOCK",    VK_CAPITAL   },
-    { "ESC",         VK_ESCAPE    },
-    { "SPACE",       VK_SPACE     },
-    { "PAGEUP",      VK_PRIOR     },
-    { "PAGEDOWN",    VK_NEXT      },
-    { "END",         VK_END       },
-    { "HOME",        VK_HOME      },
-    { "LEFT",        VK_LEFT      },
-    { "UP",          VK_UP        },
-    { "RIGHT",       VK_RIGHT     },
-    { "DOWN",        VK_DOWN      },
-    { "PRINTSCREEN", VK_SNAPSHOT  },
-    { "INS",         VK_INSERT    },
-    { "DEL",         VK_DELETE    },
-    { "HELP",        VK_HELP      },
-    { "NUMLOCK",     VK_NUMLOCK   },
-    { "SCROLLLOCK",  VK_SCROLL    },
-    { "NUM0",        VK_NUMPAD0   },
-    { "NUM1",        VK_NUMPAD1   },
-    { "NUM2",        VK_NUMPAD2   },
-    { "NUM3",        VK_NUMPAD3   },
-    { "NUM4",        VK_NUMPAD4   },
-    { "NUM5",        VK_NUMPAD5   },
-    { "NUM6",        VK_NUMPAD6   },
-    { "NUM7",        VK_NUMPAD7   },
-    { "NUM8",        VK_NUMPAD8   },
-    { "NUM9",        VK_NUMPAD9   },
-    { "MULTIPLY",    VK_MULTIPLY  },
-    { "ADD",         VK_ADD       },
-    { "SEPARATOR",   VK_SEPARATOR },
-    { "SUBTRACT",    VK_SUBTRACT  },
-    { "DECIMAL",     VK_DECIMAL   },
-    { "DIVIDE",      VK_DIVIDE    },
-    { "0",           0x30         },
-    { "1",           0x31         },
-    { "2",           0x32         },
-    { "3",           0x33         },
-    { "4",           0x34         },
-    { "5",           0x35         },
-    { "6",           0x36         },
-    { "7",           0x37         },
-    { "8",           0x38         },
-    { "9",           0x39         },
-    { "A",           0x42         },
-    { "B",           0x43         },
-    { "C",           0x44         },
-    { "D",           0x45         },
-    { "E",           0x46         },
-    { "F",           0x47         },
-    { "G",           0x48         },
-    { "H",           0x49         },
-    { "I",           0x4A         },
-    { "J",           0x4B         },
-    { "K",           0x4C         },
-    { "L",           0x4D         },
-    { "M",           0x4E         },
-    { "N",           0x4F         },
-    { "O",           0x50         },
-    { "P",           0x51         },
-    { "Q",           0x52         },
-    { "R",           0x53         },
-    { "S",           0x54         },
-    { "T",           0x55         },
-    { "U",           0x56         },
-    { "V",           0x57         },
-    { "W",           0x58         },
-    { "X",           0x59         },
-    { "Y",           0x5A         },
-    { "F1",          VK_F1        },
-    { "F2",          VK_F2        },
-    { "F3",          VK_F3        },
-    { "F4",          VK_F4        },
-    { "F5",          VK_F5        },
-    { "F6",          VK_F6        },
-    { "F7",          VK_F7        },
-    { "F8",          VK_F8        },
-    { "F9",          VK_F9        },
-    { "F10",         VK_F10       },
-    { "F11",         VK_F11       },
-    { "F12",         VK_F12       },
-    { "F13",         VK_F13       },
-    { "F14",         VK_F14       },
-    { "F15",         VK_F15       },
-    { "F16",         VK_F16       },
-    { "F17",         VK_F17       },
-    { "F18",         VK_F18       },
-    { "F19",         VK_F19       },
-    { "F20",         VK_F20       },
-    { "F21",         VK_F21       },
-    { "F22",         VK_F22       },
-    { "F23",         VK_F23       },
-    { "F24",         VK_F24       },
-};
-
-static CommandLineArgs gCommandLineArgs;
-
-static void SetCaptureAll(CommandLineArgs* args)
-{
-    if (!args->mTargetProcessNames.empty()) {
-        fprintf(stderr, "warning: -captureall elides all previous -process_name arguments.\n");
-        args->mTargetProcessNames.clear();
-    }
-    if (args->mTargetPid != 0) {
-        fprintf(stderr, "warning: -captureall elides all previous -process_id arguments.\n");
-        args->mTargetPid = 0;
-    }
+  return gCommandLineArgs;
 }
 
-// Allow /ARG, -ARG, or --ARG
-static bool ParseArgPrefix(char** arg)
+
+
+bool        SK_Etw_UnregisterSession (const char* szPrefix);
+std::string SK_Etw_RegisterSession   (const char* szPrefix, bool bReuse = true);
+
+bool ParseCommandLine (int argc, char** argv)
 {
-    if (**arg == '/') {
-        *arg += 1;
-        return true;
-    }
+  UNREFERENCED_PARAMETER (argc);
+  UNREFERENCED_PARAMETER (argv);
 
-    if (**arg == '-') {
-        *arg += 1;
-        if (**arg == '-') {
-            *arg += 1;
-        }
-        return true;
-    }
+  static std::string session_name =
+    SK_Etw_RegisterSession ("SK_PresentMon");
 
+  if (session_name.empty ())
     return false;
-}
 
-static bool ParseArg(char* arg, char const* option)
-{
-    return
-        ParseArgPrefix(&arg) &&
-        _stricmp(arg, option) == 0;
-}
+  session_name += '\0';
 
-static bool ParseValue(char** argv, int argc, int* i)
-{
-    if (*i + 1 < argc) {
-        *i += 1;
-        return true;
-    }
-    fprintf(stderr, "error: %s expecting argument.\n", argv[*i]);
-    return false;
-}
+  auto args = &gCommandLineArgs;
 
-static bool ParseValue(char** argv, int argc, int* i, char const** value)
-{
-    if (!ParseValue(argv, argc, i)) return false;
-    *value = argv[*i];
-    return true;
-}
+  args->mEtlFileName            = nullptr;
 
-static bool ParseValue(char** argv, int argc, int* i, std::vector<char const*>* value)
-{
-    char const* v = nullptr;
-    if (!ParseValue(argv, argc, i, &v)) return false;
-    value->emplace_back(v);
-    return true;
-}
+  args->mSessionName            = session_name.data   ();
+  args->mTargetPid              = GetCurrentProcessId ();
 
-static bool ParseValue(char** argv, int argc, int* i, UINT* value)
-{
-    char const* v = nullptr;
-    if (!ParseValue(argv, argc, i, &v)) return false;
-    *value = strtoul(v, nullptr, 10);
-    return true;
-}
+  args->mTerminateExisting      = false;
+  args->mTerminateOnProcExit    = false;
+  args->mStopExistingSession    =  true;
 
-//static void PrintHelp()
-//{
-//////// NOTE: remember to update README.md when modifying usage
-//////char* s[] = {
-//////    "Capture target options", nullptr,
-//////    "-captureall",              "Record all processes (default).",
-//////    "-process_name name",       "Record only processes with the provided exe name."
-//////                                " This argument can be repeated to capture multiple processes.",
-//////    "-exclude name",            "Don't record processes with the provided exe name."
-//////                                " This argument can be repeated to exclude multiple processes.",
-//////    "-process_id id",           "Record only the process specified by ID.",
-//////    "-etl_file path",           "Consume events from an ETW log file instead of running processes.",
-//////
-//////    "Output options (see README for file naming defaults)", nullptr,
-//////    "-output_file path",        "Write CSV output to the provided path.",
-//////    "-output_stdout",           "Write CSV output to STDOUT.",
-//////    "-multi_csv",               "Create a separate CSV file for each captured process.",
-//////    "-no_csv",                  "Do not create any output file.",
-//////    "-no_top",                  "Don't display active swap chains in the console window.",
-//////    "-qpc_time",                "Output present time as a performance counter value.",
-//////    "-qpc_time_s",              "Output present time as a performance counter value converted to seconds.",
-//////
-//////    "Recording options", nullptr,
-//////    "-hotkey key",              "Use provided key to start and stop recording, writing to a"
-//////                                " unique CSV file each time. 'key' is of the form MODIFIER+KEY,"
-//////                                " e.g., alt+shift+f11. (See README for subsequent file naming).",
-//////    "-delay seconds",           "Wait for provided time before starting to record."
-//////                                " If using -hotkey, the delay occurs each time recording is started.",
-//////    "-timed seconds",           "Stop recording after the provided amount of time.",
-//////    "-exclude_dropped",         "Exclude dropped presents from the csv output.",
-//////    "-scroll_indicator",        "Enable scroll lock while recording.",
-//////    "-no_track_display",        "Disable tracking through GPU and display.",
-//////    "-track_debug",             "Adds additional data to output not relevant to normal usage.",
-//////
-//////    "Execution options", nullptr,
-//////    "-session_name name",       "Use the provided name to start a new realtime ETW session, instead"
-//////                                " of the default \"PresentMon\". This can be used to start multiple"
-//////                                " realtime captures at the same time (using distinct, case insensitive names)."
-//////                                " A realtime PresentMon capture cannot start if there are any"
-//////                                " existing sessions with the same name.",
-//////    "-stop_existing_session",   "If a trace session with the same name is already running, stop"
-//////                                " the existing session (to allow this one to proceed).",
-//////    "-terminate_existing",      "Terminate any existing PresentMon realtime trace sessions, then exit."
-//////                                " Use with -session_name to target particular sessions.",
-//////    "-restart_as_admin",        "If not running with elevated privilege, restart as administrator."
-//////                                " Elevated privilege isn't required to trace a process you started,"
-//////                                " but it is in order to query processes started on another account."
-//////                                " Without it, these processes cannot be targeted by name and will be"
-//////                                " listed as '<error>'.",
-//////    "-terminate_on_proc_exit",  "Terminate PresentMon when all the target processes have exited.",
-//////    "-terminate_after_timed",   "When using -timed, terminate PresentMon after the timed capture completes.",
-//////
-//////    "Beta options", nullptr,
-//////    "-track_mixed_reality",     "Capture Windows Mixed Reality data to a CSV file with \"_WMR\" suffix.",
-//////};
-//////
-//////fprintf(stderr, "PresentMon %s\n", "XXX");
-//////
-//////// Layout usage
-//////size_t argWidth = 0;
-//////for (size_t i = 0; i < _countof(s); i += 2) {
-//////    auto arg = s[i];
-//////    auto desc = s[i + 1];
-//////    if (desc != nullptr) {
-//////        argWidth = std::max(argWidth, strlen(arg));
-//////    }
-//////}
-//////
-//////argWidth = std::min<size_t>(argWidth, MAX_ARG_COLUMN_WIDTH);
-//////
-//////size_t descWidth = std::max<size_t>(MIN_DESC_COLUMN_WIDTH, GetConsoleWidth() - ARG_DESC_COLUMN_PADDING - argWidth);
-//////
-//////// Print usage
-//////for (size_t i = 0; i < _countof(s); i += 2) {
-//////    auto arg = s[i];
-//////    auto desc = s[i + 1];
-//////    if (desc == nullptr) {
-//////        fprintf(stderr, "\n%s:\n", arg);
-//////    } else {
-//////        fprintf(stderr, "  %-*s  ", (int) argWidth, arg);
-//////        for (auto len = strlen(desc); len > 0; ) {
-//////            if (len <= descWidth) {
-//////                fprintf(stderr, "%s\n", desc);
-//////                break;
-//////            }
-//////
-//////            auto w = descWidth;
-//////            while (desc[w] != ' ') {
-//////                --w;
-//////            }
-//////            fprintf(stderr, "%.*s\n%-*s", (int) w, desc, (int) (argWidth + 4), "");
-//////            desc += w + 1;
-//////            len -= w + 1;
-//////        }
-//////    }
-//////}
-//}
+  args->mTrackDisplay           =  true;
+  args->mTrackDebug             = false;
+  args->mConsoleOutputType      = ConsoleOutput::Full;
+  args->mTryToElevate           = false;
 
-CommandLineArgs const& GetCommandLineArgs()
-{
-    return gCommandLineArgs;
-}
+  args->mTrackWMR               = false;
 
-bool ParseCommandLine(int argc, char** argv)
-{
-    auto args = &gCommandLineArgs;
+  args->mOutputCsvFileName      = nullptr;
+  args->mOutputCsvToFile        = false;
+  args->mOutputCsvToStdout      = false;
+  args->mOutputQpcTime          = false;
+  args->mOutputQpcTimeInSeconds = false;
+  args->mScrollLockIndicator    = false;
+  args->mExcludeDropped         = false;
+  args->mStartTimer             = false;
+  args->mTerminateAfterTimer    = false;
+  args->mHotkeySupport          = false;
+  args->mMultiCsv               = false;
 
-    static std::string pid_session_str (
-      SK_FormatString ( "SK::PresentMon <pid %x>",
-                         GetCurrentProcessId () )
-                                + "\0" );
+  args->mDelay                  =     0;
+  args->mTimer                  =     0;
+  args->mHotkeyVirtualKeyCode   =     0;
 
-    args->mTargetProcessNames.clear  ();
-    args->mExcludeProcessNames.clear ();
-    args->mOutputCsvFileName      = nullptr;
-    args->mEtlFileName            = nullptr;
-    args->mSessionName            = pid_session_str.data ();
-    args->mTargetPid              = 0;
-    args->mDelay                  = 0;
-    args->mTimer                  = 0;
-    args->mHotkeyModifiers        = MOD_NOREPEAT;
-    args->mHotkeyVirtualKeyCode   = 0;
-    args->mTrackDisplay           = true;
-    args->mTrackDebug             = true/*false*/;
-    args->mTrackWMR               = false;
-    args->mOutputCsvToFile        = true;
-    args->mOutputCsvToStdout      = false;
-    args->mOutputQpcTime          = false;
-    args->mOutputQpcTimeInSeconds = false;
-    args->mScrollLockIndicator    = false;
-    args->mExcludeDropped         = false;
-    args->mConsoleOutputType      = ConsoleOutput::Full;
-    args->mTerminateExisting      = false;
-    args->mTerminateOnProcExit    = false;
-    args->mStartTimer             = false;
-    args->mTerminateAfterTimer    = false;
-    args->mHotkeySupport          = false;
-    args->mTryToElevate           = false;
-    args->mMultiCsv               = false;
-    args->mStopExistingSession    = false;
+  // Enable -qpc_time if only -qpc_time_s was provided, since we use that to
+  // add the column.
+  if (args->mOutputQpcTimeInSeconds) {
+      args->mOutputQpcTime = true;
+  }
 
-    bool DEPRECATED_dontRestart = false;
-    bool DEPRECATED_simple = false;
-    bool DEPRECATED_verbose = false;
-    bool DEPRECATED_wmr = false;
-
-    for (int i = 1; i < argc; ++i) {
-        // Capture target options:
-             if (ParseArg(argv[i], "captureall"))   { SetCaptureAll(args);                                         continue; }
-        else if (ParseArg(argv[i], "process_name")) { if (ParseValue(argv, argc, &i, &args->mTargetProcessNames))  continue; }
-        else if (ParseArg(argv[i], "exclude"))      { if (ParseValue(argv, argc, &i, &args->mExcludeProcessNames)) continue; }
-        else if (ParseArg(argv[i], "process_id"))   { if (ParseValue(argv, argc, &i, &args->mTargetPid))           continue; }
-        else if (ParseArg(argv[i], "etl_file"))     { if (ParseValue(argv, argc, &i, &args->mEtlFileName))         continue; }
-
-        // Output options:
-        else if (ParseArg(argv[i], "output_file"))   { if (ParseValue(argv, argc, &i, &args->mOutputCsvFileName)) continue; }
-        else if (ParseArg(argv[i], "output_stdout")) { args->mOutputCsvToStdout      = true;                  continue; }
-        else if (ParseArg(argv[i], "multi_csv"))     { args->mMultiCsv               = true;                  continue; }
-        else if (ParseArg(argv[i], "no_csv"))        { args->mOutputCsvToFile        = false;                 continue; }
-        else if (ParseArg(argv[i], "no_top"))        { args->mConsoleOutputType      = ConsoleOutput::Simple; continue; }
-        else if (ParseArg(argv[i], "qpc_time"))      { args->mOutputQpcTime          = true;                  continue; }
-        else if (ParseArg(argv[i], "qpc_time_s"))    { args->mOutputQpcTimeInSeconds = true;                  continue; }
-
-        // Recording options:
-        else if (ParseArg(argv[i], "delay"))            { if (ParseValue(argv, argc, &i, &args->mDelay)) continue; }
-        else if (ParseArg(argv[i], "timed"))            { if (ParseValue(argv, argc, &i, &args->mTimer)) { args->mStartTimer = true; continue; } }
-        else if (ParseArg(argv[i], "exclude_dropped"))  { args->mExcludeDropped      = true; continue; }
-        else if (ParseArg(argv[i], "scroll_indicator")) { args->mScrollLockIndicator = true; continue; }
-        else if (ParseArg(argv[i], "no_track_display")) { args->mTrackDisplay        = false; continue; }
-        else if (ParseArg(argv[i], "track_debug"))      { args->mTrackDebug          = true; continue; }
-        else if (ParseArg(argv[i], "simple"))           { DEPRECATED_simple          = true; continue; }
-        else if (ParseArg(argv[i], "verbose"))          { DEPRECATED_verbose         = true; continue; }
-
-        // Execution options:
-        else if (ParseArg(argv[i], "session_name"))           { if (ParseValue(argv, argc, &i, &args->mSessionName)) continue; }
-        else if (ParseArg(argv[i], "stop_existing_session"))  { args->mStopExistingSession = true; continue; }
-        else if (ParseArg(argv[i], "terminate_existing"))     { args->mTerminateExisting   = true; continue; }
-        else if (ParseArg(argv[i], "dont_restart_as_admin"))  { DEPRECATED_dontRestart     = true; continue; }
-        else if (ParseArg(argv[i], "restart_as_admin"))       { args->mTryToElevate        = true; continue; }
-        else if (ParseArg(argv[i], "terminate_on_proc_exit")) { args->mTerminateOnProcExit = true; continue; }
-        else if (ParseArg(argv[i], "terminate_after_timed"))  { args->mTerminateAfterTimer = true; continue; }
-
-        // Beta options:
-        else if (ParseArg(argv[i], "track_mixed_reality"))   { args->mTrackWMR = true; continue; }
-        else if (ParseArg(argv[i], "include_mixed_reality")) { DEPRECATED_wmr  = true; continue; }
-
-        // Provided argument wasn't recognized
-        else if (!(ParseArg(argv[i], "?") || ParseArg(argv[i], "h") || ParseArg(argv[i], "help"))) {
-            fprintf(stderr, "error: unrecognized argument '%s'.\n", argv[i]);
-        }
-
-        return false;
-    }
-
-    // Handle deprecated command line arguments
-    if (DEPRECATED_simple) {
-        fprintf(stderr, "warning: -simple command line argument has been deprecated; using -no_track_display instead.\n");
-        args->mTrackDisplay = false;
-    }
-    if (DEPRECATED_verbose) {
-        fprintf(stderr, "warning: -verbose command line argument has been deprecated; using -track_debug instead.\n");
-        args->mTrackDebug = true;
-    }
-    if (DEPRECATED_wmr) {
-        fprintf(stderr, "warning: -include_mixed_reality command line argument has been deprecated; using -track_mixed_reality instead.\n");
-        args->mTrackWMR = true;
-    }
-    if (DEPRECATED_dontRestart) {
-        fprintf(stderr, "warning: -dont_restart_as_admin command line argument has been deprecated; it is now the default behaviour.\n");
-    }
-
-    // Ignore -no_track_display if required for other requested tracking
-    if (args->mTrackDebug && !args->mTrackDisplay) {
-        fprintf(stderr, "warning: -track_debug requires display tracking; ignoring -no_track_display.\n");
-        args->mTrackDisplay = true;
-    }
-
-    // Enable -qpc_time if only -qpc_time_s was provided, since we use that to
-    // add the column.
-    if (args->mOutputQpcTimeInSeconds) {
-        args->mOutputQpcTime = true;
-    }
-
-    return true;
+  return true;
 }
 

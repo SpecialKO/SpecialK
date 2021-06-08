@@ -429,6 +429,52 @@ SteamAPI_IsSteamRunning_override (void)
   return false;
 }
 
+
+extern bool SK_ImGui_WantGamepadCapture (void);
+
+#include <steamapi/isteamcontroller.h>
+#include <SpecialK/input/input.h>
+
+#define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
+#define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
+#define SK_STEAM_VIEW(type)  SK_Steam_Backend->markViewed (type);
+
+using SteamAPI_ISteamInput_GetDigitalActionData_pfn = ControllerDigitalActionData_t (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerDigitalActionHandle_t);
+using SteamAPI_ISteamInput_GetAnalogActionData_pfn  = ControllerAnalogActionData_t  (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerAnalogActionHandle_t);
+
+SteamAPI_ISteamInput_GetDigitalActionData_pfn realGetDigitalActionData = nullptr;
+SteamAPI_ISteamInput_GetAnalogActionData_pfn  realGetAnalogActionData  = nullptr;
+
+ControllerDigitalActionData_t
+SteamAPI_ISteamInput_GetDigitalActionData_override (ISteamController *This, ControllerHandle_t controllerHandle, ControllerDigitalActionHandle_t digitalActionHandle)
+{
+  static ControllerDigitalActionData_t
+    neutralized = { false, false };
+
+  if (SK_ImGui_WantGamepadCapture ())
+    return neutralized;
+
+  SK_STEAM_READ (sk_input_dev_type::Gamepad);
+
+  return
+    realGetDigitalActionData (This, controllerHandle, digitalActionHandle);
+}
+
+ControllerAnalogActionData_t
+SteamAPI_ISteamInput_GetAnalogActionData_override (ISteamController *This, ControllerHandle_t controllerHandle, ControllerAnalogActionHandle_t analogActionHandle)
+{
+  static ControllerAnalogActionData_t
+    neutralized = { k_EControllerSourceMode_None, 0.0f, 0.0f, false };
+
+  if (SK_ImGui_WantGamepadCapture ())
+    return neutralized;
+
+  SK_STEAM_READ (sk_input_dev_type::Gamepad);
+
+  return
+    realGetAnalogActionData (This, controllerHandle, analogActionHandle);
+}
+
 FARPROC
 WINAPI
 GetProcAddress_Detour     (
@@ -476,28 +522,19 @@ GetProcAddress_Detour     (
   ///};
 
 
-  ////////static HMODULE hModSteamClient  = nullptr;
-  ////////static HMODULE hModSteamAPI     = nullptr;
-  ////////
-  ////////
-  ////////hModSteamClient  =
-  ////////hModSteamClient != nullptr ?
-  ////////hModSteamClient  :
-  ////////   SK_GetModuleHandle (
-  ////////     SK_RunLHIfBitness ( 64, L"steamclient64.dll",
-  ////////                             L"steamclient.dll" )
-  ////////                      );
-  ////////hModSteamAPI =
-  ////////hModSteamAPI != nullptr ?
-  ////////hModSteamAPI :
-  ////////  SK_GetModuleHandle (
-  ////////    SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-  ////////                            L"steam_api.dll" )
-  ////////                     );
-
-  ////if (hModSteamOverlay != nullptr &&
-  ////    hModSteamOverlay == SK_GetCallingDLL ())
-  ////  return nullptr;
+  //
+  // Sorry Steam, you have to die.
+  //
+  //   Ordinal 100 (XInputGetStateEx) is not for you (!!)
+  //
+///////if (lpProcName == (LPCSTR)100)
+///////{
+///////  if ( StrStrIW ( SK_GetModuleName (hModule).c_str (),
+///////                    L"XInput" ) )
+///////  {
+///////    return nullptr;
+///////  }
+///////}
 
 
   char proc_name [512] = { };
@@ -596,6 +633,47 @@ GetProcAddress_Detour     (
  ////         hModule, lpProcName
  ////       );
  ////   }
+
+
+    if ( *lpProcName == 'S' &&
+StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
+    {
+#ifdef __FULL_KILL
+      if (      *lpProcName == 'S' &&
+    (! lstrcmpA (lpProcName, "teamAPI_ISteamInput_Init")) )
+      {
+        return nullptr;
+      }
+#endif
+
+      if (! lstrcmpA (lpProcName, "SteamAPI_ISteamInput_GetAnalogActionData") )
+      {
+        if (realGetAnalogActionData == nullptr)
+        {
+          realGetAnalogActionData = (SteamAPI_ISteamInput_GetAnalogActionData_pfn)
+            GetProcAddress_Original (
+              hModule, lpProcName
+            );
+        }
+
+        return
+          (FARPROC)SteamAPI_ISteamInput_GetAnalogActionData_override;
+      }
+
+      else if (! lstrcmpA (lpProcName, "SteamAPI_ISteamInput_GetDigitalActionData") )
+      {
+        if (realGetDigitalActionData == nullptr)
+        {
+          realGetDigitalActionData = (SteamAPI_ISteamInput_GetDigitalActionData_pfn)
+            GetProcAddress_Original (
+              hModule, lpProcName
+            );
+        }
+
+        return
+          (FARPROC)SteamAPI_ISteamInput_GetDigitalActionData_override;
+      }
+    }
 
 #ifdef _PROC_ADDR_REHOOK_MESSAGE_PUMP
     if ( *lpProcName == 'P'      &&
@@ -3698,10 +3776,22 @@ SK_Proxy_MouseProc   (
   {
     if (SK_ImGui_WantMouseCapture ())
     {
-      return
-        CallNextHookEx (
-            nullptr, nCode,
-             wParam, lParam );
+      switch (wParam)
+      {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONDBLCLK:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONDBLCLK:
+          return
+            CallNextHookEx (
+                nullptr, nCode,
+                 wParam, lParam );
+      }
     }
 
     else
@@ -3748,19 +3838,16 @@ SK_Proxy_KeyboardProc (
     using KeyboardProc =
       LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
 
-    bool wasPressed =
-        ( lParam & (1 << 30) ) != 0;
-    bool isPressed =
-        ( lParam & (1 << 31) ) != 0;
-    bool isAltDown =
-        ( lParam & (1 << 29) ) != 0;
+    bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
+          isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
+          isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
+
+    SHORT vKey =
+      static_cast <SHORT> (wParam);
 
     if ( config.input.keyboard.override_alt_f4 &&
             config.input.keyboard.catch_alt_f4 )
     {
-      SHORT vKey =
-          static_cast <SHORT> (wParam);
-
       if (vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
         extern bool SK_ImGui_WantExit;
@@ -3790,16 +3877,6 @@ SK_Proxy_KeyboardProc (
         GetCurrentThreadId ();
 
       SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
-      if (config.window.background_render)
-      {
-        SHORT vKey =
-            static_cast <SHORT> (wParam);
-
-        if (vKey == VK_TAB && isAltDown && isPressed)
-        {
-          return 1;
-        }
-      }
 
       return
         ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) ?

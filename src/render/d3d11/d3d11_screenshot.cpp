@@ -1784,7 +1784,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                              wszAbsolutePathToLossless,
                                                hdr ?
                                                  &GUID_WICPixelFormat64bppRGBAHalf :
-                                                 nullptr ) : E_POINTER;
+                                                 pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                              &GUID_WICPixelFormat48bppRGB :
+                                                                              &GUID_WICPixelFormat24bppBGR)
+                                                                     : E_POINTER;
 
                       if (SUCCEEDED (hrSaveToWIC))
                       {

@@ -63,20 +63,25 @@ private:
 
 
 float
-SK_Display_GetDefaultRefreshRate (void)
+SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 {
-  static float fRefresh      = 0.0f;
-  static DWORD dwLastChecked = 0;
+  static float    fRefresh      = 0.0f;
+  static DWORD    dwLastChecked = 0;
+  static HMONITOR hLastMonitor  = 0;
 
-  if (dwLastChecked < SK_timeGetTime () - 500UL)
+  if (hLastMonitor != hMonitor || dwLastChecked < SK_timeGetTime () - 250UL)
   {
     auto& rb =
       SK_GetCurrentRenderBackend ();
+
+    // Refresh this bastard!
+    rb.windows.device.getDevCaps ().last_checked = 0;
 
     fRefresh =
       static_cast <float> (rb.windows.device.getDevCaps ().res.refresh);
 
     dwLastChecked = SK_timeGetTime ();
+    hLastMonitor  = hMonitor;
   }
 
   return fRefresh;
@@ -729,8 +734,18 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
 
 float
-SK_RenderBackend_V2::getActiveRefreshRate (void)
+SK_RenderBackend_V2::getActiveRefreshRate (HMONITOR hMonitor)
 {
+  // This isn't implemented for arbitrary monitors at the moment
+  SK_ReleaseAssert (hMonitor == 0);
+  //if (hMonitor == 0)
+  //{
+  //  hMonitor =
+  //    MonitorFromWindow ( windows.getDevice (),
+  //                          MONITOR_DEFAULTTONEAREST );
+  //}
+
+#if 0
   if ( static_cast <int> (api) &
        static_cast <int> (SK_RenderAPI::D3D9) )
   {
@@ -763,59 +778,37 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
                      pSwapChain (swapchain);
 
     constexpr
-      UINT64 MAX_CACHE_TTL = 500; // 500 Frames
+      UINT64 MAX_CACHE_TTL = 6; // 6 Frames, to prevent the assertion from triggering
 
     static
       UINT64 uiCachedFrame =
         SK_GetFramesDrawn ();
 
-    static float   fLastCache      = 0.0f;
-    static UINT64 uiLastCacheFrame = uiCachedFrame - MAX_CACHE_TTL;
-
-    if ( refresh_refresh ||
-         uiLastCacheFrame < (SK_GetFramesDrawn () - MAX_CACHE_TTL) )
+    if (pSwapChain.p != nullptr)
     {
-      if (pSwapChain.p != nullptr)
-      {
-        DXGI_MODE_DESC         idealModeDesc  = { };
-        DXGI_MODE_DESC         activeModeDesc = { };
-        DXGI_SWAP_CHAIN_DESC   swapDesc       = { };
-        pSwapChain->GetDesc  (&swapDesc);
+      static float    fLastCache      = 0.0f;
+      static UINT64  uiLastCacheFrame = 0;// uiCachedFrame - MAX_CACHE_TTL;
+      static HMONITOR hLastMonitor    = 0;
 
+      if (hLastMonitor != hMonitor)
+           refresh_refresh = true;
+
+      if ( refresh_refresh ||
+           uiLastCacheFrame < (SK_GetFramesDrawn () - MAX_CACHE_TTL) )
+      {
         SK_ComPtr <IDXGIDevice>           pSwapDevice = nullptr;
         SK_ComPtr <IDXGIOutput>           pSwapOutput = nullptr;
         pSwapChain->GetContainingOutput (&pSwapOutput);
 
-        if ( SUCCEEDED (
-             pSwapChain->GetDevice (__uuidof (IDXGIDevice), (void **)&pSwapDevice.p)
-                       )
-           )
+        if (pSwapOutput != nullptr)
         {
-          idealModeDesc.Format                  = swapDesc.BufferDesc.Format;
-          idealModeDesc.Height                  = swapDesc.BufferDesc.Height;
-          idealModeDesc.Width                   = swapDesc.BufferDesc.Width;
-          idealModeDesc.RefreshRate.Numerator   = swapDesc.BufferDesc.RefreshRate.Numerator;
-          idealModeDesc.RefreshRate.Denominator = swapDesc.BufferDesc.RefreshRate.Denominator;
-          idealModeDesc.Scaling                 = swapDesc.BufferDesc.Scaling;
-          idealModeDesc.ScanlineOrdering        = swapDesc.BufferDesc.ScanlineOrdering;
+          DXGI_OUTPUT_DESC           outDesc = { };
+          if (pSwapOutput != nullptr)
+              pSwapOutput->GetDesc (&outDesc);
 
-          if ( SUCCEEDED (
-                 SK_DXGI_FindClosestMode (
-                   pSwapChain, &idealModeDesc, &activeModeDesc,
-                   pSwapDevice    )
-                         )
-             )
-          {
-            uiLastCacheFrame = SK_GetFramesDrawn ();
-             fLastCache      =
-               ( static_cast <float> (activeModeDesc.RefreshRate.Numerator  ) /
-                 static_cast <float> (activeModeDesc.RefreshRate.Denominator) );
+          SK_ReleaseAssert (outDesc.Monitor == hMonitor);
 
-             refresh_refresh = false;
-
-             return
-               fLastCache;
-          }
+          hLastMonitor = outDesc.Monitor;
         }
 
         DXGI_SWAP_CHAIN_DESC  swap_desc = { };
@@ -827,20 +820,31 @@ SK_RenderBackend_V2::getActiveRefreshRate (void)
            fLastCache      =
              ( static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator  ) /
                static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator) );
-
-           refresh_refresh = false;
-
-           return
-             fLastCache;
         }
+
+        if (fLastCache == 0.0)
+            fLastCache = SK_Display_GetDefaultRefreshRate (hMonitor);
+
+        if (fLastCache != 0.0)
+        {
+          uiLastCacheFrame = SK_GetFramesDrawn ();
+          refresh_refresh  = false;
+        }
+      }
+
+      if (! refresh_refresh)
+      {
+        return
+          fLastCache;
       }
     }
   }
+#endif
 
   refresh_refresh = false;
 
   return
-    SK_Display_GetDefaultRefreshRate ();
+    SK_Display_GetDefaultRefreshRate (hMonitor);
 }
 
 
@@ -1051,6 +1055,10 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
                  L"GetActiveWindow () != this" : L""  ),
               L"  DEBUG!  ");
   }
+
+  ////if (game_window.hWnd == 0 || (! IsWindow (game_window.hWnd)))
+  ////{   game_window.hWnd = hWnd; }
+
   if (! IsWindow (device))
   {
     SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
@@ -1062,6 +1070,9 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 void
 SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
 {
+  ////if (game_window.hWnd == 0 || (! IsWindow (game_window.hWnd)))
+  ////{   game_window.hWnd = hWnd; }
+
   device = hWnd;
 
   SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
@@ -1113,15 +1124,102 @@ sk_hwnd_cache_s::getDevCaps (void)
 {
   const DWORD dwNow = SK_timeGetTime ();
 
-  if (devcaps.last_checked < dwNow - 333UL)
+  if (devcaps.last_checked < dwNow - 250UL)
   {
-    HDC hDC = GetWindowDC (hwnd);
+    UINT32 uiNumPaths =  128;
+    UINT32 uiNumModes = 1024;
 
-    devcaps.res.x       = GetDeviceCaps (hDC, HORZRES);
-    devcaps.res.y       = GetDeviceCaps (hDC, VERTRES);
-    devcaps.res.refresh = GetDeviceCaps (hDC, VREFRESH);
+    RECT                  rcWindow = { };
+    GetWindowRect (hwnd, &rcWindow);
 
-    ReleaseDC (hwnd, hDC);
+    if ( ERROR_SUCCESS ==
+           GetDisplayConfigBufferSizes ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths,         &uiNumModes )
+                                                              && uiNumPaths <= 32 &&  uiNumModes <= 32 )
+    {
+      SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+      auto *pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
+      auto *modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
+
+      if ( ERROR_SUCCESS == QueryDisplayConfig ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths, pathArray,
+                                                                        &uiNumModes, modeArray, nullptr ) )
+      {
+        float bestIntersectArea = -1.0f;
+
+        int ax1 = rcWindow.left,
+            ax2 = rcWindow.right;
+        int ay1 = rcWindow.top,
+            ay2 = rcWindow.bottom;
+
+        DISPLAYCONFIG_PATH_INFO *pOutput = nullptr;
+
+        for (auto idx = 0; idx < uiNumPaths; ++idx)
+        {
+          auto *path =
+            &pathArray [idx];
+
+          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          {
+            DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+              &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+
+            RECT rect;
+            rect.left   = pSourceMode->position.x;
+            rect.top    = pSourceMode->position.y;
+            rect.right  = pSourceMode->position.x + pSourceMode->width;
+            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+
+            if (! IsRectEmpty (&rect))
+            {
+              int bx1 = rect.left;
+              int by1 = rect.top;
+              int bx2 = rect.right;
+              int by2 = rect.bottom;
+
+              int intersectArea =
+                ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
+
+              if (intersectArea > bestIntersectArea)
+              {
+                pOutput           = path;
+                bestIntersectArea =
+                  static_cast <float> (intersectArea);
+              }
+            }
+          }
+        }
+
+        if (pOutput != nullptr)
+        {
+          devcaps.res.refresh = (float)(
+            (double)pOutput->targetInfo.refreshRate.Numerator /
+            (double)pOutput->targetInfo.refreshRate.Denominator);
+
+          devcaps.res.x = modeArray [pOutput->sourceInfo.modeInfoIdx].sourceMode.width;
+          devcaps.res.y = modeArray [pOutput->sourceInfo.modeInfoIdx].sourceMode.height;
+
+          devcaps.last_checked = dwNow;
+
+          return devcaps;
+        }
+      }
+    }
+
+    HDC hDC =
+      GetWindowDC (hwnd);
+
+    if (hDC != 0)
+    {
+      devcaps.res.x       =         GetDeviceCaps (hDC,  HORZRES);
+      devcaps.res.y       =         GetDeviceCaps (hDC,  VERTRES);
+      devcaps.res.refresh = (float) GetDeviceCaps (hDC, VREFRESH);
+
+      ReleaseDC (hwnd, hDC);
+    }
+
+    else
+      devcaps.res = { 0 };
 
     devcaps.last_checked = dwNow;
   }
@@ -1156,11 +1254,9 @@ SK_Render_GetAPIName (SK_RenderAPI api)
 void
 SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 {
-  if (update_outputs)
+  if (std::exchange (update_outputs, false))
   {
     updateOutputTopology ();
-
-    update_outputs = false;
   }
 
   static SK_RenderAPI LastKnownAPI =
@@ -2333,8 +2429,11 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           auto nativeRes =
             rb.parseEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
 
-          display.native.width  = nativeRes.x;
-          display.native.height = nativeRes.y;
+          if (                      nativeRes.x != 0 &&
+                                    nativeRes.y != 0 )
+          { display.native.width  = nativeRes.x;
+            display.native.height = nativeRes.y;
+          }
 
           if (! edid_name.empty ())
           {
@@ -2409,11 +2508,12 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
               auto nativeRes =
                 rb.parseEDIDForNativeRes ( EDID_Data, edid_size );
 
-              display.native.width  = nativeRes.x;
-              display.native.height = nativeRes.y;
+              if (                      nativeRes.x != 0 &&
+                                        nativeRes.y != 0 )
+              { display.native.width  = nativeRes.x;
+                display.native.height = nativeRes.y;
+              }
             }
-
-            //DISPLAY#MEIA296#5&2dafe0a1&3&UID41221#
           }
         }
       }
@@ -2453,20 +2553,38 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 {
   SK_Display_ResolutionSelectUI (true);
 
-  if (swapchain.p == nullptr)
-    return;
-
   SK_ComPtr <IDXGIAdapter> pAdapter;
 
   auto _GetAdapter = [&]( IUnknown*      swapchain,
                SK_ComPtr <IDXGIAdapter>& pAdapter ) ->
   bool
   {
-    SK_ComQIPtr <IDXGISwapChain>
-                     pSwapChain (swapchain);
+    SK_ComQIPtr
+     <IDXGISwapChain>
+          pSwapChain (swapchain);
 
-    if (! pSwapChain)
-      return false;
+    if (! pSwapChain.p)
+    {
+      if (factory.p == nullptr || (! factory->IsCurrent ()))
+      {
+        factory.Release ();
+
+        if (CreateDXGIFactory1_Import != nullptr)
+            CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+      }
+
+      SK_ComPtr <IDXGIAdapter>
+                 pTempAdapter;
+
+      if (SUCCEEDED (factory->EnumAdapters (0, &pTempAdapter.p)))
+      {
+        pAdapter = pTempAdapter;
+      }
+
+      return
+        ( pAdapter.p != nullptr );
+    }
+
 
     LUID                       luidAdapter = { };
     SK_ComPtr <IDXGIFactory1>  pFactory1;
@@ -2565,14 +2683,41 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       ( pAdapter.p != nullptr );
   };
 
+
   while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
     ;
+
 
   if (! _GetAdapter (swapchain.p, pAdapter))
   {
     InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
     return;
   }
+
+
+  UINT32 uiNumPaths =  128;
+  UINT32 uiNumModes = 1024;
+
+  DISPLAYCONFIG_PATH_INFO *pathArray = nullptr;
+  DISPLAYCONFIG_MODE_INFO *modeArray = nullptr;
+
+  if ( ERROR_SUCCESS ==
+         GetDisplayConfigBufferSizes ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths,          &uiNumModes )
+                                                            && uiNumPaths <= 128 &&  uiNumModes <= 1024 )
+  {
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
+    modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
+
+    if ( ERROR_SUCCESS != QueryDisplayConfig ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths, pathArray,
+                                                                      &uiNumModes, modeArray, nullptr ) )
+    {
+      SK_ReleaseAssert (! "QueryDisplayConfig (QDC_ONLY_ACTIVE_PATHS");
+    }
+  }
+
 
   static constexpr
     size_t display_size = sizeof (SK_RenderBackend_V2::output_s),
@@ -2642,7 +2787,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           }
         }
 
-
         wcsncpy_s ( display.dxgi_name,  32,
                     outDesc.DeviceName, _TRUNCATE );
 
@@ -2652,7 +2796,126 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           minfo        = {                  };
           minfo.cbSize = sizeof (MONITORINFO);
 
-        GetMonitorInfoA (display.monitor, &minfo);
+        GetMonitorInfo (display.monitor, &minfo);
+
+        float bestIntersectArea = -1.0f;
+
+        int ax1 = minfo.rcMonitor.left,
+            ax2 = minfo.rcMonitor.right;
+        int ay1 = minfo.rcMonitor.top,
+            ay2 = minfo.rcMonitor.bottom;
+
+        DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
+
+        for (auto idx = 0; idx < uiNumPaths; ++idx)
+        {
+          auto *path =
+            &pathArray [idx];
+
+          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          {
+            DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+              &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+
+            RECT rect;
+            rect.left   = pSourceMode->position.x;
+            rect.top    = pSourceMode->position.y;
+            rect.right  = pSourceMode->position.x + pSourceMode->width;
+            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+
+            if (! IsRectEmpty (&rect))
+            {
+              int bx1 = rect.left;
+              int by1 = rect.top;
+              int bx2 = rect.right;
+              int by2 = rect.bottom;
+
+              int intersectArea =
+                ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
+
+              if (intersectArea > bestIntersectArea)
+              {
+                pVidPn            = path;
+                bestIntersectArea =
+                  static_cast <float> (intersectArea);
+              }
+            }
+          }
+        }
+
+        if (pVidPn != nullptr)
+        {
+          display.vidpn = *pVidPn;
+
+          DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
+            getHdrInfo                  = { };
+            getHdrInfo.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
+            getHdrInfo.header.size      = sizeof     (DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO);
+            getHdrInfo.header.adapterId = display.vidpn.targetInfo.adapterId;
+            getHdrInfo.header.id        = display.vidpn.targetInfo.id;
+
+          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getHdrInfo ) )
+          {
+            display.hdr.supported = getHdrInfo.advancedColorSupported;
+            display.hdr.enabled   = getHdrInfo.advancedColorEnabled;
+            display.hdr.encoding  = getHdrInfo.colorEncoding;
+            display.bpc           = getHdrInfo.bitsPerColorChannel;
+          }
+
+          else
+          {
+            display.hdr.supported = false;
+            display.hdr.enabled   = false;
+          }
+
+          DISPLAYCONFIG_SDR_WHITE_LEVEL
+            getSdrWhiteLevel                  = { };
+            getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+            getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
+            getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
+            getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
+
+          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+          {
+            display.hdr.white_level =
+              (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+          }
+
+          else
+            display.hdr.white_level = 80.0f;
+
+          DISPLAYCONFIG_TARGET_PREFERRED_MODE
+            getPreferredMode                  = { };
+            getPreferredMode.header.type
+              = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
+            getPreferredMode.header.size      =         sizeof (DISPLAYCONFIG_TARGET_PREFERRED_MODE);
+            getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
+            getPreferredMode.header.id        = display.vidpn.targetInfo.id;
+
+          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
+          {
+            display.native.width   = getPreferredMode.width;
+            display.native.height  = getPreferredMode.height;
+
+            display.native.refresh = {
+              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
+              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
+            };
+          }
+
+          DISPLAYCONFIG_TARGET_DEVICE_NAME
+            getTargetName                     = { };
+            getTargetName.header.type         = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+            getTargetName.header.size         =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
+            getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
+            getTargetName.header.id           = display.vidpn.targetInfo.id;
+
+          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+          {
+            wcsncpy_s ( display.name,                                   64,
+                        getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
+          }
+        }
 
         display.primary =
           ( minfo.dwFlags & MONITORINFOF_PRIMARY );
@@ -2691,7 +2954,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
             display.colorspace        = outDesc1.ColorSpace;
 
-            display.hdr               = outDesc1.ColorSpace ==
+            display.hdr.enabled       = outDesc1.ColorSpace ==
               DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
           }
         }
@@ -2851,25 +3114,12 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                     displays [i].rect.bottom - displays [i].rect.top,
                     displays [i].rect.left,    displays [i].rect.top,
                     displays [i].name,
-                    displays [i].hdr ? L"HDR" : L"SDR" ),
+                    displays [i].hdr.enabled ? L"HDR" : L"SDR" ),
                   L"   DXGI   " );
     }
   }
 
   InterlockedDecrement (&lUpdatingOutputs);
-}
-
-// Compute the overlay area of two rectangles, A and B.
-// (ax1, ay1) = left-top coordinates of A; (ax2, ay2) = right-bottom coordinates of A
-// (bx1, by1) = left-top coordinates of B; (bx2, by2) = right-bottom coordinates of B
-inline int
-ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
-                          int bx1, int by1, int bx2, int by2 )
-{
-  return std::max (0, std::min (ax2, bx2) -
-                      std::max (ax1, bx1) ) *
-         std::max (0, std::min (ay2, by2) -
-                      std::max (ay1, by1) );
 }
 
 const SK_RenderBackend_V2::output_s*

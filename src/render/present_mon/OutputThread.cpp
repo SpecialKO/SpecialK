@@ -21,6 +21,7 @@ SOFTWARE.
 */
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/utility/lazy_global.h>
 #include <SpecialK/thread.h>
 
 extern HANDLE __SK_DLL_TeardownEvent;
@@ -29,8 +30,8 @@ extern HANDLE __SK_DLL_TeardownEvent;
 #include <shlwapi.h>
 #include <thread>
 
-static std::thread *pThread = nullptr;
-static bool         gQuit   =   false;
+static std::thread gOutputThread;
+static bool        gQuit   =   false;
 
 // When we collect realtime ETW events, we don't receive the events in real
 // time but rather sometime after they occur.  Since the user might be toggling
@@ -47,17 +48,17 @@ static bool         gQuit   =   false;
 // contention when capturing from ETL).
 
 static bool                  gIsRecording       = false;
-static CRITICAL_SECTION      gRecordingToggleCS = {   };
+static CRITICAL_SECTION      gRecordingToggleCS = {  };
 static std::vector<uint64_t> gRecordingToggleHistory;
 
 void
 SetOutputRecordingState (bool record)
 {
-  auto const& args =
-    GetCommandLineArgs ();
-
   if (gIsRecording == record)
     return;
+
+  auto const& args =
+    GetCommandLineArgs ();
 
   // When capturing from an ETL file, just use the current recording state.
   // It's not clear how best to map realtime to ETL QPC time, and there
@@ -131,54 +132,25 @@ static std::unordered_map<uint32_t, ProcessInfo> gProcesses;
 static uint32_t                                  gTargetProcessCount = 0;
 
 static bool
-IsTargetProcess ( uint32_t           processId,
-                  std::string const& processName )
+IsTargetProcess ( uint32_t           processId/*,
+                  std::string const& processName*/ )
 {
-  auto const& args =
-    GetCommandLineArgs ();
+  static auto _thisPid =
+    GetCurrentProcessId ();
 
-  // -exclude
-  for ( auto excludeProcessName : args.mExcludeProcessNames )
-  {
-    if (_stricmp (excludeProcessName, processName.c_str ()) == 0)
-      return false;
-  }
-
-  // -capture_all
-  if ( args.mTargetPid == 0           &&
-       args.mTargetProcessNames.empty () )
-  {
-    return true;
-  }
-
-  // -process_id
-  if ( args.mTargetPid != 0      &&
-       args.mTargetPid == processId )
-  {
-    return true;
-  }
-
-  // -process_name
-  for ( auto targetProcessName : args.mTargetProcessNames )
-  {
-    if (_stricmp (targetProcessName, processName.c_str ()) == 0)
-      return true;
-  }
-
-  return false;
+  return
+    ( processId == _thisPid );
 }
 
 static void
 InitProcessInfo ( ProcessInfo       *processInfo,
-                  uint32_t           processId,
+                  uint32_t           processId/*,
                   HANDLE             handle,
-                  std::string const &processName )
+                  std::string const &processName*/ )
 {
   auto target =
-    IsTargetProcess (processId, processName);
+    IsTargetProcess (processId/*, processName*/);
 
-  processInfo->mHandle             = handle;
-  processInfo->mModuleName         = processName;
   processInfo->mOutputCsv.mFile    = nullptr;
   processInfo->mOutputCsv.mWmrFile = nullptr;
   processInfo->mTargetProcess      = target;
@@ -197,45 +169,13 @@ GetProcessInfo (uint32_t processId)
   auto newProcess  =  result.second;
 
   if (newProcess)
-  {
-    // In ETL capture, we should have gotten an NTProcessEvent for this
-    // process updated via UpdateNTProcesses(), so this path should only
-    // happen in realtime capture.
-    //
-    // Try to open a limited handle into the process in order to query its
-    // name and also periodically check if it has terminated.  This will
-    // fail (with GetLastError() == ERROR_ACCESS_DENIED) if the process was
-    // run on another account, unless we're running with SeDebugPrivilege.
-    auto const& args =
-      GetCommandLineArgs ();
-
-    HANDLE      handle      =      NULL;
-    char const* processName = "<error>";
-
-    if (args.mEtlFileName == nullptr)
-    {
-      char  path [MAX_PATH] = {           };
-      DWORD numChars        = sizeof (path);
-
-      handle =
-        OpenProcess ( PROCESS_QUERY_LIMITED_INFORMATION,
-                        FALSE, processId );
-
-      if (QueryFullProcessImageNameA (handle, 0,
-                                        path, &numChars))
-      {
-        processName =
-          PathFindFileNameA (path);
-      }
-    }
-
-    InitProcessInfo (
-      processInfo, processId,
-           handle, processName
-    );
+  {   InitProcessInfo (
+          processInfo,
+          processId   );
   }
 
-  return processInfo;
+  return
+    processInfo;
 }
 
 // Check if any realtime processes terminated and add them to the terminated
@@ -279,9 +219,6 @@ CheckForTerminatedRealtimeProcesses (
 static void
 HandleTerminatedProcess (uint32_t processId)
 {
-  auto const& args =
-    GetCommandLineArgs ();
-
   auto iter =
     gProcesses.find (processId);
 
@@ -298,12 +235,6 @@ HandleTerminatedProcess (uint32_t processId)
 
     // Quit if this is the last process tracked for -terminate_on_proc_exit.
     gTargetProcessCount -= 1;
-
-    ////////if ( args.mTerminateOnProcExit     &&
-    ////////               gTargetProcessCount == 0 )
-    ////////{
-    ////////  ExitMainThread ();
-    ////////}
   }
 
   gProcesses.erase (iter);
@@ -335,8 +266,8 @@ UpdateProcesses (
       if (newProcess)
       {
          InitProcessInfo (
-             processInfo, processEvent.ProcessId, nullptr,
-                          processEvent.ImageFileName
+             processInfo, processEvent.ProcessId/*, nullptr,
+                          processEvent.ImageFileName*/
          );
        }
     }
@@ -478,7 +409,7 @@ AddPresents (                               LateStageReprojectionData          *
   *presentEventIndex = i;
 }
 
-// Limit the present history stored in SwapChainData to 2 seconds.
+// Limit the present history stored in SwapChainData to 1.0 seconds.
 static void
 PruneHistory (
   std::vector <                               ProcessEvent > const &processEvents,
@@ -495,7 +426,7 @@ PruneHistory (
              );
 
   auto minQpc =
-    latestQpc - SecondsDeltaToQpc (2.0);
+    latestQpc - SecondsDeltaToQpc (1.0);
 
   for ( auto& pair : gProcesses )
   {     auto            processInfo = &pair.second;
@@ -679,11 +610,6 @@ void Output (void)
 {
   SetCurrentThreadDescription (L"[SK] PresentMon <Output>");
 
-#if !DEBUG_VERBOSE
-  auto const& args =
-    GetCommandLineArgs ();
-#endif
-
   // Structures to track processes and statistics from recorded events.
                                 LateStageReprojectionData    lsrData;
   std::vector                  <ProcessEvent>                processEvents;
@@ -701,10 +627,8 @@ void Output (void)
 
   for (;;)
   {
-    // Read gQuit here, but then check it after processing queued events.
-    // This ensures that we call DequeueAnalyzedInfo() at least once after
-    // events have stopped being collected so that all events are included.
-    auto quit = gQuit;
+    bool quit =
+      ( WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0 ) || gQuit;
 
     // Copy and process all the collected events, and update the various
     // tracking and statistics data structures.
@@ -721,36 +645,23 @@ void Output (void)
     // gIsRecording is the real timeline recording state.  Because we're
     // just reading it without correlation to gRecordingToggleHistory, we
     // don't need the critical section.
-#if !DEBUG_VERBOSE
-  //auto realtimeRecording = gIsRecording;
-    switch (args.mConsoleOutputType)
-    {
-      case ConsoleOutput::None:
-          break;
-      case ConsoleOutput::Simple:
-#if _DEBUG
-      if (realtimeRecording) {
-          printf(".");
-      }
-#endif
-      break;
-    case ConsoleOutput::Full:
-      for ( auto const& pair : gProcesses )
-        UpdateConsole ( pair.first,
-                        pair.second );
+    for ( auto const& pair : gProcesses )
+      UpdateConsole ( pair.first,
+                      pair.second );
 
-      UpdateConsole (gProcesses, lsrData);
-      break;
-    }
-#endif
+    UpdateConsole (gProcesses, lsrData);
 
     // Everything is processed and output out at this point, so if we're
     // quiting we don't need to update the rest.
-    if (SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 33) == WAIT_OBJECT_0)
+    if (quit)
       break;
 
     // Update tracking information.
     CheckForTerminatedRealtimeProcesses (&terminatedProcesses);
+
+    SK_WaitForSingleObject (
+      __SK_DLL_TeardownEvent, 33
+                           );
   }
 
   // Output warning if events were lost.
@@ -790,24 +701,18 @@ StartOutputThread (void)
 {
   InitializeCriticalSection (&gRecordingToggleCS);
 
-  pThread =
-    new std::thread (Output);
+  gOutputThread =
+    std::thread (Output);
 }
 
 void
 StopOutputThread (void)
 {
-  if ( pThread != nullptr &&
-       pThread->joinable  () )
+  if (gOutputThread.joinable ())
   {
     gQuit = true;
-
-    pThread->join ( );
-
-    delete
-      std::exchange (pThread, nullptr);
+    gOutputThread.join ();
 
     DeleteCriticalSection (&gRecordingToggleCS);
   }
 }
-

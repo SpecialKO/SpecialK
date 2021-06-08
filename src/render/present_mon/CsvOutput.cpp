@@ -75,7 +75,7 @@ WriteCsvHeader (FILE* fp)
 {
   auto const& args =
     GetCommandLineArgs ();
-  
+
   fprintf ( fp, "Application"
                 ",ProcessID"
                 ",SwapChainAddress"
@@ -124,22 +124,22 @@ UpdateCsv ( ProcessInfo         *processInfo,
     p.FinalState == PresentResult::Presented;
 
   if (args.mExcludeDropped && (! presented)) return;
-  
+
   // Early return if not outputing to CSV.
   auto fp =
     GetOutputCsv (processInfo).mFile;
 
   if (fp == nullptr) return;
-  
+
   // Look up the last present event in the swapchain's history.  We need at
   // least two presents to compute frame statistics.
   if (chain.mPresentHistoryCount == 0) return;
-  
+
   auto lastPresented =
     chain.mPresentHistory [
       (chain.mNextPresentIndex - 1) % SwapChainData::PRESENT_HISTORY_MAX_COUNT
                           ].get ();
-  
+
   // Compute frame statistics.
   double timeInSeconds          =          QpcToSeconds      (p.QpcTime);
   double msBetweenPresents      = 1000.0 * QpcDeltaToSeconds (p.QpcTime - lastPresented->QpcTime);
@@ -147,19 +147,19 @@ UpdateCsv ( ProcessInfo         *processInfo,
   double msUntilRenderComplete  = 0.0;
   double msUntilDisplayed       = 0.0;
   double msBetweenDisplayChange = 0.0;
-  
+
   if (args.mTrackDisplay)
   {
     if (p.ReadyTime > 0) {
       msUntilRenderComplete =
         1000.0 * QpcDeltaToSeconds (p.ReadyTime - p.QpcTime);
     }
-    
+
     if (presented)
     {
       msUntilDisplayed =
         1000.0 * QpcDeltaToSeconds (p.ScreenTime - p.QpcTime);
-      
+
       if (chain.mLastDisplayedPresentIndex > 0)
       {
         auto lastDisplayed =
@@ -172,7 +172,7 @@ UpdateCsv ( ProcessInfo         *processInfo,
       }
     }
   }
-  
+
   // Output in CSV format
   fprintf (
     fp, "%s,%d,0x%016llX,%s,%d,%d,%s,%.*lf,%.*lf,%.*lf",
@@ -213,7 +213,7 @@ UpdateCsv ( ProcessInfo         *processInfo,
           DBL_DIG - 1, QpcDeltaToSeconds (p.QpcTime)
       );
     }
-    
+
     else
     {
       fprintf (
@@ -281,15 +281,15 @@ do                          \
     char drive [_MAX_DRIVE];
     char dir   [_MAX_DIR];
     char name  [_MAX_FNAME];
-    
+
     _splitpath_s (
       args.mOutputCsvFileName, drive, dir,
                                name,  ext
     );
-    
+
     ADD_TO_PATH ("%s%s%s", drive, dir, name);
   }
-  
+
   else
   {
     struct tm     tm;
@@ -298,7 +298,7 @@ do                          \
     localtime_s (&tm, &time_now);
 
     ADD_TO_PATH (
-      "PresentMon-%4d-%02d-%02dT%02d%02d%02d", 
+      "PresentMon-%4d-%02d-%02dT%02d%02d%02d",
                   tm.tm_year + 1900,
                   tm.tm_mon  +    1,
                   tm.tm_mday,
@@ -309,15 +309,15 @@ do                          \
 
     strcpy_s (ext, ".csv");
   }
-  
+
   // Append -PROCESSNAME if applicable.
   if (processName != nullptr)
     ADD_TO_PATH ("-%s", processName);
-  
+
   // Append -INDEX if applicable.
   if (args.mHotkeySupport)
     ADD_TO_PATH ("-%d", gRecordingCount);
-  
+
   // Append extension.
   ADD_TO_PATH ("%s", ext);
 }
@@ -327,7 +327,7 @@ static OutputCsv
 {
   auto const &args =
     GetCommandLineArgs ();
-  
+
   OutputCsv outputCsv = { };
 
   if (args.mOutputCsvToStdout)
@@ -335,19 +335,19 @@ static OutputCsv
     outputCsv.mFile    = stdout;
     outputCsv.mWmrFile = nullptr;       // WMR disallowed if -output_stdout
   }
-  
+
   else
   {
     char                           path [MAX_PATH];
     GenerateFilename (processName, path);
     fopen_s (&outputCsv.mFile,     path, "wb");
-    
+
     if (args.mTrackWMR)
               outputCsv.mWmrFile =
                 CreateLsrCsvFile  (path);
   }
 
-  if (              outputCsv.mFile != nullptr) 
+  if (              outputCsv.mFile != nullptr)
     WriteCsvHeader (outputCsv.mFile);
   return            outputCsv;
 }
@@ -357,23 +357,23 @@ GetOutputCsv (ProcessInfo *processInfo)
 {
   auto const &args =
     GetCommandLineArgs ();
-  
+
   // TODO: If fopen_s() fails to open mFile, we'll just keep trying here
   // every time PresentMon wants to output to the file. We should detect the
   // failure and generate an error instead.
-  
+
   if ( args.mOutputCsvToFile && processInfo->mOutputCsv.mFile == nullptr )
   {if (args.mMultiCsv) {        processInfo->mOutputCsv =
                CreateOutputCsv (processInfo->mModuleName.c_str ());
                        } else {
    if (gSingleOutputCsv.mFile ==          nullptr)
        gSingleOutputCsv = CreateOutputCsv(nullptr);
-    
+
    processInfo->mOutputCsv =
        gSingleOutputCsv;
                               }
   }
-  
+
   return
     processInfo->mOutputCsv;
 }
@@ -383,7 +383,7 @@ CloseOutputCsv (ProcessInfo *processInfo)
 {
   auto const &args =
     GetCommandLineArgs ();
-  
+
   // If processInfo is nullptr, it means we should operate on the global
   // single output CSV.
   //
@@ -393,7 +393,7 @@ CloseOutputCsv (ProcessInfo *processInfo)
 
   OutputCsv *csv = nullptr;
   bool closeFile = false;
-  
+
   if (processInfo == nullptr)
   {          csv =  &gSingleOutputCsv;
        closeFile = (! args.mOutputCsvToStdout);
@@ -401,7 +401,7 @@ CloseOutputCsv (ProcessInfo *processInfo)
                            mOutputCsv;
        closeFile = (! args.mOutputCsvToStdout) &&
                        args.mMultiCsv; }
-  
+
   if ( closeFile )
     if (       csv->mFile    != nullptr)
       fclose ( csv->mFile              );

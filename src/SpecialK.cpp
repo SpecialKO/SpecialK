@@ -79,6 +79,9 @@ extern volatile  DWORD __SK_TLS_INDEX;
           static bool  _HasLocalDll           = false;
 
 
+extern void SK_Widget_InvokeThreadProfiler (void);
+
+
 class SK_DLL_Bootstrapper
 {
   using BootstrapEntryPoint_pfn = bool (*)(void);
@@ -356,14 +359,21 @@ DllMain ( HMODULE hModule,
     {
       skModuleRegistry::Self (hModule);
 
-      auto EarlyOut   =
-        [&](BOOL bRet = TRUE)
+      auto CreateTeardownEvent =
+      [&](void)
+      { if (__SK_DLL_TeardownEvent == 0)
+            __SK_DLL_TeardownEvent =
+                    SK_CreateEvent ( nullptr, TRUE,
+                                             FALSE, nullptr );
+      };
+
+      auto EarlyOut =
+      [&](BOOL bRet = TRUE)
       {
         if (bRet)
         {
-          __SK_DLL_TeardownEvent =
-            SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
-
+          SK_DLL_SetAttached        ( false );
+          CreateTeardownEvent       (       );
           DisableThreadLibraryCalls (hModule);
         }
 
@@ -378,20 +388,25 @@ DllMain ( HMODULE hModule,
         // Minimal Initialization (reserve TLS & determine config paths)
         SK_TLS_Acquire       ();
         SK_EstablishRootPath ();
-        SK_DLL_SetAttached   (true);
 
-        return
-          EarlyOut (TRUE);
+        BOOL bRet = EarlyOut (TRUE);
+        if ( bRet )
+          SK_DLL_SetAttached (true);
+
+        return bRet;
       }
-
-      SK_TLS_Acquire ();
 
       // Social distancing like a boss!
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
-      if      (dll_isolation_lvl >= 3)             return EarlyOut (FALSE);
-      else if (dll_isolation_lvl >  0)             return EarlyOut (TRUE);
+      ////if (dll_isolation_lvl >= 3)                  return EarlyOut (FALSE);
+
+      SK_TLS_Acquire ();
+
+      if (dll_isolation_lvl >  0)                  return EarlyOut (TRUE);
+
+      // -> Nothing below this can return FALSE until TLS is tidied up (!!)
 
       // We reserve the right to deny attaching the DLL, this will
       //   generally happen if a game has opted-out of global injection.
@@ -402,8 +417,7 @@ DllMain ( HMODULE hModule,
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
 
-      __SK_DLL_TeardownEvent =
-        SK_CreateEvent ( nullptr, TRUE, FALSE, nullptr );
+      CreateTeardownEvent ();
 
       InterlockedIncrementRelease (
         &__SK_DLL_Refs
@@ -514,6 +528,9 @@ DllMain ( HMODULE hModule,
         );
       }
 #endif
+
+      extern void SK_Inject_CleanupSharedMemory (void);
+                  SK_Inject_CleanupSharedMemory ();
     } break;
 
 
@@ -540,15 +557,13 @@ DllMain ( HMODULE hModule,
       if (SK_DLL_IsAttached ())
       {
         SK_TLS *pTLS =
-          SK_TLS_Bottom ();
+              SK_TLS_Bottom ();
 
         if (pTLS != nullptr)
-        {
-          pTLS->debug.mapped = true;
+        {   pTLS->debug.mapped = true;
 
           // Kick-off data collection on external thread creation
-          extern void SK_Widget_InvokeThreadProfiler (void);
-                      SK_Widget_InvokeThreadProfiler (    );
+          SK_Widget_InvokeThreadProfiler ();
         }
       }
     }
@@ -566,8 +581,7 @@ DllMain ( HMODULE hModule,
 
       if (SK_DLL_IsAttached ())
       {
-        extern void SK_Widget_InvokeThreadProfiler (void);
-                    SK_Widget_InvokeThreadProfiler (    );
+        SK_Widget_InvokeThreadProfiler ();
 
         // Strip TLS and Mark Free able
         // ----------------------------
@@ -1088,6 +1102,7 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         d3d11  |= (SK_GetModuleHandle (L"d3d11.dll")     != nullptr);
         d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
+        d3d11  |= (SK_GetModuleHandle (L"dxcore.dll")    != nullptr); // Unity
 
         d3d12  |= (SK_GetModuleHandle (L"d3d12.dll")     != nullptr);
 
@@ -1342,10 +1357,10 @@ SK_Attach (DLL_ROLE role)
       }
     }
 
-    catch (const std::exception& e)
+    catch (const std::exception&)
     {
-      dll_log->Log ( L"[ SpecialK ] Caught an exception (%hs) during DLL Attach,"
-                     L" game may not be stable...", e.what () );
+      OutputDebugStringW ( L"[ SpecialK ] Caught an exception during DLL Attach,"
+                           L" game may not be stable..." );
     }
   }
 

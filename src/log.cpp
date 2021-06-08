@@ -167,10 +167,10 @@ SK_FlushLog (iSK_Logger* pLog)
      )
   {
     hFlushReq =
-      SK_CreateEvent ( nullptr, TRUE, TRUE,
-        SK_FormatStringW ( LR"(Local\SK_LogFlush_pid%x)",
-                      GetCurrentProcessId () ).c_str ()
-                  );
+      SK_CreateEvent ( nullptr, TRUE, TRUE, nullptr
+        //SK_FormatStringW ( LR"(Local\SK_LogFlush_pid%x)",
+        //              GetCurrentProcessId () ).c_str ()
+                     );
 
     InterlockedExchangePointer (
       const_cast         <         LPVOID *> (
@@ -205,16 +205,21 @@ std::wstring
 __stdcall
 SK_Log_GetPath (const wchar_t* wszFileName)
 {
-  std::wstring formatted_file =
-    SK_FormatStringW ( LR"(%slogs\%s)",
-                         SK_GetConfigPath (),
-                           wszFileName );
+  wchar_t wszFormattedFile [MAX_PATH] = { };
+  std::wstring_view
+             formatted_view
+         (wszFormattedFile, MAX_PATH);
+
+  SK_FormatStringViewW (
+             formatted_view, LR"(%slogs\%s)",
+               SK_GetConfigPath (), wszFileName );
 
   SK_CreateDirectories (
-    formatted_file.c_str ()
+    formatted_view.data ()
   );
 
-  return formatted_file;
+  return
+    formatted_view.data ();
 }
 
 

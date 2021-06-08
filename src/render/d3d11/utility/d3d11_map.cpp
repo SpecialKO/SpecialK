@@ -162,7 +162,7 @@ SK_D3D11_Map_Impl (
           }
 
           else if (pMappedResource != nullptr)
-          {    
+          {
             std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_mmio);
 
             auto& map_ctx = (*mapped_resources)[pDevCtx];
@@ -290,10 +290,10 @@ SK_D3D11_Unmap_Impl (
   if (pResource == nullptr || SK_D3D11_IsDevCtxDeferred (pDevCtx))
   {
     assert (pResource != nullptr);
-  
+
     if (pResource == nullptr)
       return;
-  
+
     return
       _Finish ();
   }
@@ -391,10 +391,10 @@ SK_D3D11_Unmap_Impl (
                   SK_ComPtr <ID3D11Texture2D> pOverrideTex;
                   SK_ComPtr <ID3D11Device>    pDevice;
                   pDevCtx->GetDevice        (&pDevice.p);
-                  
+
                     pTLS =
                   SK_TLS_Bottom ();
-                  
+
                   SK_ScopedBool decl_tex_scope (
                     SK_D3D11_DeclareTexInjectScope (pTLS)
                   );
@@ -406,7 +406,7 @@ SK_D3D11_Unmap_Impl (
                   {
                     D3D11_TEXTURE2D_DESC    new_desc = { };
                     pOverrideTex->GetDesc (&new_desc);
-                    
+
                     SK_ReleaseAssert (
                       size == SK_D3D11_ComputeTextureSize (&new_desc)
                     );
@@ -417,7 +417,7 @@ SK_D3D11_Unmap_Impl (
                     pDevCtx->CopyResource (
                                 pResource,
                              pOverrideTex );
-                    
+
                     const ULONGLONG load_end =
                       (ULONGLONG)SK_QueryPerf ().QuadPart;
 
