@@ -79,6 +79,8 @@ struct far_game_state_s
 
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
+      patchable = false;
+
       return true;
     }
   }
@@ -229,7 +231,7 @@ bool   __FAR_GlobalIllumCompatMode    =  true;
 struct {
   int  width   =    -1; // Set at startup from user prefs, never changed
   int  skip    =     0;
-  
+
   bool disable = false;
   bool active  = false;
 } far_bloom;
@@ -311,19 +313,19 @@ SK_FAR_CreateBuffer (
         {
           float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
                                   lights [i].world_pos [2], lights [i].world_pos [3] };
-        
+
           glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
                                       light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
                                       light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
                                                    1.0f );
-        
+
           glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
                                   lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
                                   lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
                                   lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
-        
+
           glm::vec4   test = world_mat * cam_pos_world;
-        
+
           if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
                  fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
                  fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
@@ -334,7 +336,7 @@ SK_FAR_CreateBuffer (
             new_lights [i].half_extents [0] = 0.0F;
             new_lights [i].half_extents [1] = 0.0F;
             new_lights [i].half_extents [2] = 0.0F;
-        
+
             // Project to infinity (but not beyond, because that makes no sense)
             new_lights [i].world_pos [0] = 0.0F; new_lights [i].world_pos [1] = 0.0F;
             new_lights [i].world_pos [2] = 0.0F; new_lights [i].world_pos [3] = 0.0F;
@@ -528,7 +530,7 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
 
       if (pmin_tstep != nullptr)   // Steam Version
         dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
-      else                         // Windows Store Version      
+      else                         // Windows Store Version
         pspinlock = psleep + 0x50;
 
       //{ 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x4C, 0x24, 0x24, 0xF3, 0x0F, 0x11, 0x54, 0x24, 0x28, 0xF3, 0x0F, 0x11, 0x5C, 0x24, 0x2C }    (-4) = HUD Opacity
@@ -1104,7 +1106,7 @@ SK_FAR_CreateTexture2D (
         // Skip the first two textures that match this pattern, they are
         //   not related to AO.
         static int num_r32_textures = 0;
-        
+
         if (pDesc->Format == DXGI_FORMAT_R32_FLOAT)
           num_r32_textures++;
 
@@ -2299,7 +2301,7 @@ SK_FAR_PlugInCfg (void)
         ImGui::TextColored (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
         ImGui::Separator   ();
         ImGui::TreePush    ("");
-        
+
         if (game_state.isSteam ())
         {
           ImGui::TextColored (ImVec4 (0.9f, 0.9f, 0.9f, 1.0f), "Two things to consider when enabling this");

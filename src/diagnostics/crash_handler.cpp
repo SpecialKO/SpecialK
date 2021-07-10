@@ -228,7 +228,7 @@ CrashHandler::Reinstall (void)
   }
 
 
-  SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS);
+  SetErrorMode (SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS | SEM_NOALIGNMENTFAULTEXCEPT);
 
 
   // Bypass the hook if we have a trampoline

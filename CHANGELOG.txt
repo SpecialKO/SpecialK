@@ -1,4 +1,73 @@
-﻿21.06.08
+﻿21.07.10
+========
+ + Various fixes for Monster Hunter Stories 2's DXGI performance and for
+     CAPCOM's annoying anti-tamper nonsense.
+
+ + Fixed framepacing graph's center line (ideal frametime) when no framerate
+     limit is active.
+
+ + Added mobile Zen APU and Xbox Series X CPU support to CPU sensor driver
+ + Added toggle for DPI Scaling (for the game only) to the Display menu
+
+ + Added new D3D11 BltSurfaceCopy shader to convert HDR / SDR surfaces when
+     engines readback an HDR retrofitted SwapChain's backbuffer (ugh!~)
+
+    >> This primarily occurs in menu screens and when a game saves thumbnails
+
+   There is additional overhead associated with this fix, but it will not
+     affect gameplay. Readbacks are @#$% slow to begin with.
+
+ + Command Console (Ctrl+Shift+Tab) no longer opens if Control Panel is open
+
+ --- Texture Mod Changes ---
+
+ + Re-enabled text metadata (i.e. format, resolution, mipmap count) files
+     (<texhash>_metadata.txt) when dumping D3D11 textures to disk.
+
+ + Dumped D3D11 textures no longer use the "Compressed_" or "Uncompressed_"
+     filename scheme.   ( Metadata includes compression info )
+
+
+21.07.07
+========
+ + Added Dithering options (to Display menu) for NVIDIA GPU users
+ + Added experimental window layering feature (Full-SKreen) to Display menu
+
+   (+) Requires Global Injection
+
+     >> Raises game window above all non-OS windows to duplicate the
+          behavior of Fullscreen Exclusive
+
+    * This mode does not relinquish in response to Alt-Tab at the moment,
+        it will eventually.
+
+    Macro commands to control it are possible:
+
+      Window.ZBand 1   // Default
+      Window.ZBand 8   // Windows Fullscreen Optimization's Z Band
+      Window.ZBand 2   // Top of Mt. Windows
+
+ + Fixed Ninja Gaiden Sigma's SteamAPI achievement callbacks
+ + Flip Model override is now enabled by default in D3D11 games
+ + DPI Scaling disabled (app declared DPI Aware) in all games so that
+     they have access to all resolutions
+ + Fixed missing monitors in SK's Display menu for displays that
+     Windows has no name for (i.e. Generic PnP).
+ + Fixed input issues in Frostbite Engine games
+ + Fixed Source Engine games crashing when WM_NULL is received
+
+ --- Windows 11 Stuff ---
+
+ + Added support for IDXGIFactory6 and IDXGIFactory7 to debug log
+ + Added support for DXGI Factory caching for ...6 and ...7
+ + Fixed overrides for SwapChains created using IDXGIFactory7
+
+
+21.06.09
+========
+ + Fixed issue in games that process WM_USER messages incorrectly (Brawlhalla)
+
+21.06.08
 ========
  + Changed the 'Borderless Evo' mode to 'Multi-tasking On-Top' and removed
      requirements that it only be used in borderless fullscreen mode

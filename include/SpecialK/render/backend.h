@@ -193,10 +193,10 @@ public:
       DXGI_RATIONAL       refresh         = { 0, 0 };
     } native;
     struct nvapi_ctx_s {
-      //NvPhysicalGpuHandle gpu_handle;
-      //NvDisplayHandle     display_handle;
+      NvPhysicalGpuHandle gpu_handle      =   0;
+      NvDisplayHandle     display_handle  =   0;
       NvU32               display_id      =   0;
-      //NvU32               output_id;
+      NvU32               output_id       =   0;
     } nvapi;
   } displays [16];
 

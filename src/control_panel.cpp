@@ -46,6 +46,8 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
+#include <imgui/font_awesome.h>
+
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
 BOOL imgui_staged          = FALSE;
@@ -1201,6 +1203,88 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
+  if (sk::NVAPI::nv_hardware && NvAPI_Disp_GetDitherControl != nullptr)
+  {
+    static NV_DITHER_STATE state = NV_DITHER_STATE_DEFAULT;
+    static NV_DITHER_BITS  bits  = rb.displays [active_idx].bpc ==  6 ? NV_DITHER_BITS_6  :
+                                   rb.displays [active_idx].bpc ==  8 ? NV_DITHER_BITS_8  :
+                                   rb.displays [active_idx].bpc == 10 ? NV_DITHER_BITS_10 :
+                                   rb.displays [active_idx].bpc == 12 ? NV_DITHER_BITS_10 :                  //NV_DITHER_BITS_12 :
+                                   rb.displays [active_idx].bpc == 16 ? NV_DITHER_BITS_10 : NV_DITHER_BITS_8;//NV_DITHER_BITS_16;
+    static NV_DITHER_MODE   mode = NV_DITHER_MODE_SPATIAL_DYNAMIC;
+
+    auto state_orig = state;
+
+    if ( ImGui::Combo ( "Dithering", (int *)&state,
+                                      "  No Change\0  Enable\0  Disable\0\0" ) )
+    {
+      if ( NVAPI_OK !=
+           NvAPI_Disp_SetDitherControl ( rb.displays [active_idx].nvapi.gpu_handle,
+                                         rb.displays [active_idx].nvapi.output_id, state, bits, mode ) )
+      {
+        state = state_orig;
+      }
+    }
+
+    if (state == NV_DITHER_STATE_ENABLED)
+    {
+      ImGui::TreePush ("");
+
+      auto bits_orig = bits;
+
+      if ( ImGui::Combo ( "Bits", (int *)&bits,
+                                  " 6\0 8\0 10\0\0" ) )
+      {
+        if ( NVAPI_OK !=
+             NvAPI_Disp_SetDitherControl ( rb.displays [active_idx].nvapi.gpu_handle,
+                                           rb.displays [active_idx].nvapi.output_id, state, bits, mode ) )
+        {
+          bits = bits_orig;
+        }
+      }
+
+      auto mode_orig = mode;
+
+      if ( ImGui::Combo ( "Mode", (int *)&mode,
+                                  " Spatial Dynamic\0 Spatial Static\0 Spatial Dynamic 2x2\0"
+                                  " Spatial Static 2x2\0 Temporal\0\0" ) )
+      {
+        if ( NVAPI_OK !=
+             NvAPI_Disp_SetDitherControl ( rb.displays [active_idx].nvapi.gpu_handle,
+                                           rb.displays [active_idx].nvapi.output_id, state, bits, mode ) )
+        {
+          mode = mode_orig;
+        }
+      }
+
+      ImGui::TreePop ();
+    }
+
+    NV_GPU_DITHER_CONTROL_V1
+      dither_ctl         = {                        };
+      dither_ctl.version = NV_GPU_DITHER_CONTROL_VER1;
+      dither_ctl.size    = sizeof (NV_GPU_DITHER_CONTROL_V1);
+
+    if ( NVAPI_OK ==
+         NvAPI_Disp_GetDitherControl ( //rb.displays [active_idx].nvapi.gpu_handle,
+                                       rb.displays [active_idx].nvapi.display_id,
+                                      &dither_ctl ) )
+    {
+      ImGui::Text ( "Dithering: %s, Bits: %s, Mode: %s",
+                      dither_ctl.state == NV_DITHER_STATE_DEFAULT            ?  "Default" :
+                      dither_ctl.state == NV_DITHER_STATE_ENABLED            ?  "Enabled" :
+                      dither_ctl.state == NV_DITHER_STATE_DISABLED           ? "Disabled" : "Unknown",
+                      dither_ctl.bits  == NV_DITHER_BITS_6                   ?        "6" :
+                      dither_ctl.bits  == NV_DITHER_BITS_8                   ?        "8" :
+                      dither_ctl.bits  == NV_DITHER_BITS_10                  ?       "10" : "Unknown",
+                      dither_ctl.mode  == NV_DITHER_MODE_SPATIAL_DYNAMIC     ? "Spatial Dynamic"     :
+                      dither_ctl.mode  == NV_DITHER_MODE_SPATIAL_STATIC      ? "Spatial Static"      :
+                      dither_ctl.mode  == NV_DITHER_MODE_SPATIAL_DYNAMIC_2x2 ? "Spatial Dynamic 2x2" :
+                      dither_ctl.mode  == NV_DITHER_MODE_SPATIAL_STATIC_2x2  ? "Spatial Static 2x2"  :
+                      dither_ctl.mode  == NV_DITHER_MODE_TEMPORAL            ? "Temporal"            : "Unknown" );
+    }
+  }
+
   if (rb.displays [active_idx].hdr.supported)
   {
     bool hdr_enable =
@@ -1253,6 +1337,79 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       case DISPLAYCONFIG_COLOR_ENCODING_INTENSITY:
         ImGui::Text ("ICtCp (%lu-bpc)",       rb.displays [active_idx].bpc);
         break;
+    }
+  }
+
+
+  static bool bDPIAware  =
+      IsProcessDPIAware (),
+              bImmutableDPI = false;
+
+  void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+  void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
+  void SK_Display_ClearDPIAwareness               (bool bOnlyIfWin10);
+
+  bool bDPIAwareBefore =
+       bDPIAware;
+
+  if (ImGui::Checkbox ("Ignore DPI Scaling",      &bDPIAware))
+  {
+    config.dpi.disable_scaling                  = (bDPIAware);
+    config.dpi.per_monitor.aware                = (bDPIAware);
+    config.dpi.per_monitor.aware_on_all_threads = (bDPIAware);
+       SK_Display_ForceDPIAwarenessUsingAppCompat (bDPIAware);
+
+    if (bDPIAware) SK_Display_SetMonitorDPIAwareness (false);
+    else           SK_Display_ClearDPIAwareness      (false);
+
+    bImmutableDPI =
+      ( IsProcessDPIAware () == bDPIAwareBefore );
+  }
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip    ();
+    ImGui::TextUnformatted ( "Fixes missing in-game resolution options and "
+                             "over-sized game windows");
+    ImGui::TextColored     ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                             "  " ICON_FA_EXCLAMATION_TRIANGLE );
+    ImGui::SameLine        (                                   );
+    ImGui::Text            ( " Restoring DPI scaling requires a game restart" );
+    ImGui::EndTooltip      ();
+  }
+
+  if (bImmutableDPI)
+  {
+    ImGui::SameLine       ();
+    ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+    ImGui::BulletText     ("Game Restart Required");
+    ImGui::PopStyleColor  ();
+  }
+
+
+  if (GetWindowBand != nullptr)
+  {
+    HWND hWndExplorer = SK_Inject_GetExplorerWindow ();
+    if ( hWndExplorer != 0 && IsWindow (hWndExplorer))
+    {
+      DWORD                             dwBand = 0;
+      GetWindowBand (game_window.hWnd, &dwBand);
+
+      bool fakeFSE =
+        ( dwBand == ZBID_DESKTOP && ImGui::Button ("Emulate Fullscreen Exclusive") );
+
+      if (fakeFSE)
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.ZBand 8"); // ZBID_IMMERSIVE_INACTIVEMOBODY
+      }
+
+      else if (dwBand != ZBID_DESKTOP && ImGui::Button ("Switch to Regular Windowed"))
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.ZBand 1");
+      }
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Turn Fullscreen Exclusive emulation off before Alt-Tab");
     }
   }
 
@@ -2003,7 +2160,7 @@ SK_ImGui_ControlPanel (void)
   auto SpecialK_Menu =
     [&](void)
     {
-      if (ImGui::BeginMenu ("File"))
+      if (ImGui::BeginMenu (ICON_FA_SAVE "  File"))
       {
         static HMODULE hModReShade      = SK_ReShade_GetDLL ();
         static bool    bIsReShadeCustom =
@@ -2173,7 +2330,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndMenu  ();
       }
 
-      if (ImGui::BeginMenu ("Display"))
+      if (ImGui::BeginMenu (ICON_FA_DESKTOP "  Display"))
       {
         DisplayMenu    ();
         ImGui::EndMenu ();
@@ -2345,7 +2502,7 @@ SK_ImGui_ControlPanel (void)
       if ( rb.isHDRCapable ()  &&
            rb.isHDRActive  () )
       {
-        if (ImGui::BeginMenu ("HDR"))
+        if (ImGui::BeginMenu (ICON_FA_SUN "  HDR"))
         {
           HDRMenu ();
           ImGui::EndMenu ();
@@ -2592,7 +2749,7 @@ SK_ImGui_ControlPanel (void)
 #endif
 
 
-      if (ImGui::BeginMenu ("Help"))
+      if (ImGui::BeginMenu (ICON_FA_QUESTION "  Help"))
       {
         bool selected = false;
 

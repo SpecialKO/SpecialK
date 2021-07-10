@@ -1315,6 +1315,11 @@ SK_DXGI_BeginHooking (void)
     _default_impl _Args;                                                  \
 }
 
+const GUID IID_IDXGIFactory6 =
+  { 0xc1b6694f, 0xff09, 0x44a9, { 0xb0, 0x3c, 0x77, 0x90, 0x0a, 0x0a, 0x1d, 0x17 } };
+const GUID IID_IDXGIFactory7 =
+  { 0xa4966eed, 0x76db, 0x44da, { 0x84, 0xc1, 0xee, 0x9a, 0x7a, 0xfb, 0x20, 0xa8 } };
+
 int
 SK_GetDXGIFactoryInterfaceVer (const IID& riid)
 {
@@ -1330,6 +1335,10 @@ SK_GetDXGIFactoryInterfaceVer (const IID& riid)
     return 4;
   if (riid == __uuidof (IDXGIFactory5))
     return 5;
+  if (riid ==       IID_IDXGIFactory6 )
+    return 6;
+  if (riid ==       IID_IDXGIFactory7 )
+    return 7;
 
   assert (false);
 
@@ -1342,17 +1351,21 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
   std::wstring interface_name;
 
   if (riid == __uuidof (IDXGIFactory))
-    interface_name = L"      IDXGIFactory";
+    interface_name =  L"      IDXGIFactory";
   else if (riid == __uuidof (IDXGIFactory1))
-    interface_name = L"     IDXGIFactory1";
+    interface_name =  L"     IDXGIFactory1";
   else if (riid == __uuidof (IDXGIFactory2))
-    interface_name = L"     IDXGIFactory2";
+    interface_name =  L"     IDXGIFactory2";
   else if (riid == __uuidof (IDXGIFactory3))
-    interface_name = L"     IDXGIFactory3";
+    interface_name =  L"     IDXGIFactory3";
   else if (riid == __uuidof (IDXGIFactory4))
-    interface_name = L"     IDXGIFactory4";
+    interface_name =  L"     IDXGIFactory4";
   else if (riid == __uuidof (IDXGIFactory5))
-    interface_name = L"     IDXGIFactory5";
+    interface_name =  L"     IDXGIFactory5";
+  else if (riid ==       IID_IDXGIFactory6)
+    interface_name =  L"     IDXGIFactory6";
+  else if (riid ==       IID_IDXGIFactory7)
+    interface_name =  L"     IDXGIFactory7";
   else
   {
     wchar_t *pwszIID = nullptr;
@@ -1371,6 +1384,50 @@ int
 SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
 {
   SK_ComPtr <IDXGIFactory5> pTemp;
+
+  if (SUCCEEDED (
+    pFactory->QueryInterface (IID_IDXGIFactory7, (void **)&pTemp)))
+  {
+    dxgi_caps.device.enqueue_event    = true;
+    dxgi_caps.device.latency_control  = true;
+    dxgi_caps.present.flip_sequential = true;
+    dxgi_caps.present.waitable        = true;
+    dxgi_caps.present.flip_discard    = true;
+
+    const HRESULT hr =
+      pTemp->CheckFeatureSupport (
+        DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+          &dxgi_caps.swapchain.allow_tearing,
+            sizeof (dxgi_caps.swapchain.allow_tearing)
+      );
+
+    dxgi_caps.swapchain.allow_tearing =
+      SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
+
+    return 7;
+  }
+
+  if (SUCCEEDED (
+    pFactory->QueryInterface (IID_IDXGIFactory6, (void **)&pTemp)))
+  {
+    dxgi_caps.device.enqueue_event    = true;
+    dxgi_caps.device.latency_control  = true;
+    dxgi_caps.present.flip_sequential = true;
+    dxgi_caps.present.waitable        = true;
+    dxgi_caps.present.flip_discard    = true;
+
+    const HRESULT hr =
+      pTemp->CheckFeatureSupport (
+        DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+          &dxgi_caps.swapchain.allow_tearing,
+            sizeof (dxgi_caps.swapchain.allow_tearing)
+      );
+
+    dxgi_caps.swapchain.allow_tearing =
+      SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
+
+    return 6;
+  }
 
   if (SUCCEEDED (
     pFactory->QueryInterface <IDXGIFactory5> ((IDXGIFactory5 **)(void **)&pTemp)))
@@ -1447,6 +1504,12 @@ SK_GetDXGIFactoryInterface (IUnknown *pFactory)
 {
   const int iver =
     SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+  if (iver == 7)
+    return SK_GetDXGIFactoryInterfaceEx (      IID_IDXGIFactory7);
+
+  if (iver == 6)
+    return SK_GetDXGIFactoryInterfaceEx (      IID_IDXGIFactory6);
 
   if (iver == 5)
     return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory5));
@@ -1556,6 +1619,9 @@ SK_GetDXGIAdapterInterface (IUnknown *pAdapter)
 {
   const int iver =
     SK_GetDXGIAdapterInterfaceVer (pAdapter);
+
+  if (iver == 4)
+    return SK_GetDXGIAdapterInterfaceEx (__uuidof (IDXGIAdapter4));
 
   if (iver == 3)
     return SK_GetDXGIAdapterInterfaceEx (__uuidof (IDXGIAdapter3));
@@ -2971,6 +3037,9 @@ struct {
     IDXGIFactory3* pFactory3   = nullptr;
     IDXGIFactory4* pFactory4   = nullptr;
     IDXGIFactory5* pFactory5   = nullptr;
+    // This is wrong, but don't want to update headers for stuff we do not use
+    IDXGIFactory5* pFactory6   = nullptr;
+    IDXGIFactory5* pFactory7   = nullptr;
 
     std::pair <IDXGIAdapter1*,
                IDXGIFactory1*>
@@ -2980,7 +3049,8 @@ struct {
     bool isCaching (void) {
       return pFactory  != nullptr || pFactory1 != nullptr ||
              pFactory2 != nullptr || pFactory3 != nullptr ||
-             pFactory4 != nullptr || pFactory5 != nullptr;
+             pFactory4 != nullptr || pFactory5 != nullptr ||
+             pFactory6 != nullptr || pFactory7 != nullptr;
     }
   } cache;
 
@@ -3014,6 +3084,8 @@ struct {
     if (riid == IID_IDXGIFactory3) return cache.pFactory3 != nullptr;
     if (riid == IID_IDXGIFactory4) return cache.pFactory4 != nullptr;
     if (riid == IID_IDXGIFactory5) return cache.pFactory5 != nullptr;
+    if (riid == IID_IDXGIFactory6) return cache.pFactory6 != nullptr;
+    if (riid == IID_IDXGIFactory7) return cache.pFactory7 != nullptr;
 
     return false;
   }
@@ -3037,6 +3109,10 @@ struct {
       else if (cache.pFactory4 != nullptr && (! cache.pFactory4->IsCurrent ()))
         current = false;
       else if (cache.pFactory5 != nullptr && (! cache.pFactory5->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory6 != nullptr && (! cache.pFactory6->IsCurrent ()))
+        current = false;
+      else if (cache.pFactory7 != nullptr && (! cache.pFactory7->IsCurrent ()))
         current = false;
       else if (cache.pFactory  != nullptr)
       {
@@ -3066,8 +3142,12 @@ struct {
                               pFactory =  cache.pFactory3;
     else if (riid == IID_IDXGIFactory4 && cache.pFactory4 != nullptr)
                               pFactory =  cache.pFactory4;
-    else if (riid == IID_IDXGIFactory4 && cache.pFactory5 != nullptr)
+    else if (riid == IID_IDXGIFactory5 && cache.pFactory5 != nullptr)
                               pFactory =  cache.pFactory5;
+    else if (riid == IID_IDXGIFactory6 && cache.pFactory6 != nullptr)
+                              pFactory =  cache.pFactory6;
+    else if (riid == IID_IDXGIFactory7 && cache.pFactory7 != nullptr)
+                              pFactory =  cache.pFactory7;
 
     if (pFactory != nullptr)
         pFactory->AddRef (), *ppFactory = pFactory;
@@ -3136,6 +3216,24 @@ struct {
       cache.pFactory5 = (IDXGIFactory5 *)*ppFactory;
       cache.pFactory5->AddRef ();
     }
+
+    else if (riid == IID_IDXGIFactory6)
+    {
+      if (cache.pFactory6 != nullptr)
+        std::exchange (cache.pFactory6, nullptr)->Release ();
+
+      cache.pFactory6 = (IDXGIFactory5 *)*ppFactory;
+      cache.pFactory6->AddRef ();
+    }
+
+    else if (riid == IID_IDXGIFactory7)
+    {
+      if (cache.pFactory7 != nullptr)
+        std::exchange (cache.pFactory7, nullptr)->Release ();
+
+      cache.pFactory7 = (IDXGIFactory5 *)*ppFactory;
+      cache.pFactory7->AddRef ();
+    }
   }
 
   IDXGIAdapter1* getAdapter0 (IDXGIFactory1* pFactory1)
@@ -3179,6 +3277,8 @@ struct {
     if (cache.pFactory3         != nullptr) { std::exchange (cache.pFactory3,         nullptr)->Release (); }
     if (cache.pFactory4         != nullptr) { std::exchange (cache.pFactory4,         nullptr)->Release (); }
     if (cache.pFactory5         != nullptr) { std::exchange (cache.pFactory5,         nullptr)->Release (); }
+    if (cache.pFactory6         != nullptr) { std::exchange (cache.pFactory6,         nullptr)->Release (); }
+    if (cache.pFactory7         != nullptr) { std::exchange (cache.pFactory7,         nullptr)->Release (); }
 
     if (cache.pAdapter1_0.first != nullptr) { std::exchange (cache.pAdapter1_0.first, nullptr)->Release (); }
 
@@ -3315,19 +3415,23 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      if ( pTLS != nullptr && ( pDescLocal =
-           pTLS->scratch_memory->dxgi.mode_list.alloc (*pNumModes) )
-         )
+      if (pTLS != nullptr)
       {
-        hr =
-          GetDisplayModeList_Original ( This,
-            EnumFormat,
-              Flags,
-                pNumModes,
-                  pDescLocal );
+        pDescLocal =
+          pTLS->scratch_memory->dxgi.mode_list.alloc (*pNumModes);
 
-        if (SUCCEEDED (hr))
-          pDesc = pDescLocal;
+        if (pDescLocal != nullptr)
+        {
+          hr =
+            GetDisplayModeList_Original ( This,
+              EnumFormat,
+                Flags,
+                  pNumModes,
+                    pDescLocal );
+
+          if (SUCCEEDED (hr))
+            pDesc = pDescLocal;
+        }
       }
     }
 
@@ -4351,7 +4455,7 @@ SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSAGE_SEVER
 };
 
 HRESULT
-SK_DXGI_ReportLiveObjects (IUnknown *pDev = nullptr)
+SK_DXGI_ReportLiveObjects (IUnknown *pDev)
 {
   try
   {
@@ -4366,7 +4470,7 @@ SK_DXGI_ReportLiveObjects (IUnknown *pDev = nullptr)
     SK_ComPtr <IDXGIDebug>                                   pDXGIDebug;
     ThrowIfFailed (SK_DXGI_GetDebugInterface (IID_PPV_ARGS (&pDXGIDebug.p)));
 
-      return
+    return
       pDXGIDebug->ReportLiveObjects  (DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
   }
 
@@ -5800,6 +5904,8 @@ DXGIFactory_CreateSwapChain_Override (
 
   if (iname == L"{Invalid-Factory-UUID}")
   {
+    SK_ReleaseAssert (! L"Factory Interface UUID Unknown");
+
     static bool run_once = false;
     if (! run_once)
     {
@@ -6857,8 +6963,11 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
     SK_GetCurrentGameID ();
 
   HRESULT ret;
-  bool silent =
-    (current_game == SK_GAME_ID::ResidentEvil8);
+
+  // More generically, anything using the RE engine needs this.
+  static bool silent =
+    (current_game == SK_GAME_ID::ResidentEvil8 ||
+     current_game == SK_GAME_ID::MonsterHunterStories2);
 
   if (! silent)
   {
@@ -7044,6 +7153,11 @@ HRESULT
 WINAPI CreateDXGIFactory (REFIID   riid,
                     _Out_ void   **ppFactory)
 {
+  // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
+  if (config.render.dxgi.debug_layer)
+    return CreateDXGIFactory2 (0x1, riid, ppFactory);
+
+
   if (config.render.dxgi.use_factory_cache)
   {
     bool current =
@@ -7101,6 +7215,11 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
+  // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
+  if (config.render.dxgi.debug_layer)
+    return CreateDXGIFactory2 (0x1, riid, ppFactory);
+
+
   if (config.render.dxgi.use_factory_cache)
   {
     bool current =
@@ -7186,6 +7305,9 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 {
   static auto current_game =
     SK_GetCurrentGameID ();
+
+  if (config.render.dxgi.debug_layer)
+    Flags |= 0x1;
 
   if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
   {
@@ -8472,8 +8594,8 @@ HookDXGI (LPVOID user)
 
       // NOTE: Calling err.ErrorMessage () above generates the storage for these string functions
       //         --> They may be NULL if allocation failed.
-      std::wstring err_desc (err.ErrorInfo () != nullptr ? err.Description () : L"Unknown");
-      std::wstring err_src  (err.ErrorInfo () != nullptr ? err.Source      () : L"Unknown");
+      std::wstring err_desc (err.ErrorInfo () != nullptr ? err.Description () : _bstr_t (L"Unknown"));
+      std::wstring err_src  (err.ErrorInfo () != nullptr ? err.Source      () : _bstr_t (L"Unknown"));
 
       dll_log->Log (L"[   DXGI   ]  >> %s, in %s",
                                err_desc.c_str (), err_src.c_str () );

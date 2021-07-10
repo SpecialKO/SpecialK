@@ -38,6 +38,7 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 #include <atlcomcli.h>
 #include <gsl/gsl_util>
 
+#include <stack>
 #include <unordered_map>
 
 #include <SpecialK/thread.h>
@@ -291,6 +292,10 @@ public:
   struct {
     SK_TLS_HeapDataStore <DXGI_MODE_DESC> mode_list;
   } dxgi;
+
+  struct {
+    std::stack <DPI_AWARENESS_CONTEXT> dpi_ctx_stack;
+  } dpi;
 
   struct {
     SK_TLS_HeapDataStore <wchar_t> wszTemperature;

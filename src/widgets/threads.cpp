@@ -1181,6 +1181,9 @@ public:
     if (__SK_Wine)
       return;
 
+    std::scoped_lock <std::mutex>
+                lock (run_lock);
+
     static
       std::once_flag init_once;
     std::call_once ( init_once, [&](void)
@@ -1566,6 +1569,9 @@ public:
 
   void draw (void) override
   {
+    std::scoped_lock <std::mutex>
+                lock (run_lock);
+
     if (ImGui::GetFont () == nullptr) return;
 
     DWORD dwNow =
@@ -2780,6 +2786,7 @@ protected:
   // Producer / Consumer for NtQuerySystemInformation
   //
   std::unique_ptr <SK_Thread_DataCollector> data_thread;
+  std::mutex                                run_lock;
 
 private:
 };

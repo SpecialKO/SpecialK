@@ -1868,16 +1868,47 @@ typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _Out_opt_       D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_       ID3D11DeviceContext **ppImmediateContext);
 
-typedef enum D3DX11_IMAGE_FILE_FORMAT
-             D3DX11_IMAGE_FILE_FORMAT,
-          *LPD3DX11_IMAGE_FILE_FORMAT;
+typedef enum D3DX11_IMAGE_FILE_FORMAT { 
+   D3DX11_IFF_BMP          = 0,
+   D3DX11_IFF_JPG          = 1,
+   D3DX11_IFF_PNG          = 3,
+   D3DX11_IFF_DDS          = 4,
+   D3DX11_IFF_TIFF         = 10,
+   D3DX11_IFF_GIF          = 11,
+   D3DX11_IFF_WMP          = 12,
+   D3DX11_IFF_FORCE_DWORD  = 0x7fffffff
+}  D3DX11_IMAGE_FILE_FORMAT,
+*LPD3DX11_IMAGE_FILE_FORMAT;
 
-typedef struct D3DX11_IMAGE_INFO
-               D3DX11_IMAGE_INFO,
-            *LPD3DX11_IMAGE_INFO;
-typedef struct D3DX11_IMAGE_LOAD_INFO
-               D3DX11_IMAGE_LOAD_INFO,
-            *LPD3DX11_IMAGE_LOAD_INFO;
+typedef struct D3DX11_IMAGE_INFO {
+   UINT                     Width;
+   UINT                     Height;
+   UINT                     Depth;
+   UINT                     ArraySize;
+   UINT                     MipLevels;
+   UINT                     MiscFlags;
+   DXGI_FORMAT              Format;
+   D3D11_RESOURCE_DIMENSION ResourceDimension;
+   D3DX11_IMAGE_FILE_FORMAT ImageFileFormat;
+}  D3DX11_IMAGE_INFO,
+*LPD3DX11_IMAGE_INFO;
+
+typedef struct D3DX11_IMAGE_LOAD_INFO {
+   UINT              Width;
+   UINT              Height;
+   UINT              Depth;
+   UINT              FirstMipLevel;
+   UINT              MipLevels;
+   D3D11_USAGE       Usage;
+   UINT              BindFlags;
+   UINT              CpuAccessFlags;
+   UINT              MiscFlags;
+   DXGI_FORMAT       Format;
+   UINT              Filter;
+   UINT              MipFilter;
+   D3DX11_IMAGE_INFO *pSrcInfo;
+}  D3DX11_IMAGE_LOAD_INFO,
+*LPD3DX11_IMAGE_LOAD_INFO;
 
 interface ID3DX11ThreadPump;
 

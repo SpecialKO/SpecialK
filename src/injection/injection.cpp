@@ -23,6 +23,9 @@
 
 #include <SpecialK/injection/injection.h>
 
+#include <SpecialK/diagnostics/debug_utils.h>
+#include <winternl.h>
+
 #include <regex>
 #include <sddl.h>
 
@@ -549,6 +552,7 @@ SK_Inject_CleanupSharedMemory (void)
 }
 
 
+
 #pragma pack (push, 1)
 struct SK_SharedMemory_v1
 {
@@ -565,7 +569,10 @@ struct SK_SharedMemory_v1
     DWORD hWndActive     = 0x0;
     DWORD hWndForeground = 0x0;
     DWORD dwPadding      = 0x0;
-    DWORD _Reserved [12] = { };
+    DWORD hWndExplorer   = 0x0;
+    DWORD uMsgExpRaise   = 0x0;
+    DWORD uMsgExpLower   = 0x0;
+    DWORD _Reserved [ 9] = { };
   } SystemWide,
     CurrentGame;
 
@@ -590,6 +597,49 @@ struct SK_SharedMemory_v1
 };
 #pragma pack (pop)
 
+
+
+HWND SK_Inject_GetExplorerWindow (void)
+{
+  SK_SharedMemory_v1 *pShared =
+    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+  if (pShared != nullptr)
+  {
+    return
+      (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
+  }
+
+  return 0;
+}
+
+UINT SK_Inject_GetExplorerRaiseMsg (void)
+{
+  SK_SharedMemory_v1 *pShared =
+    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+  if (pShared != nullptr)
+  {
+    return
+      (UINT)pShared->SystemWide.uMsgExpRaise;
+  }
+
+  return 0;
+}
+
+UINT SK_Inject_GetExplorerLowerMsg (void)
+{
+  SK_SharedMemory_v1 *pShared =
+    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+  if (pShared != nullptr)
+  {
+    return
+      (UINT)pShared->SystemWide.uMsgExpLower;
+  }
+
+  return 0;
+}
 
 HWND
 SK_Inject_GetFocusWindow (void)
@@ -757,10 +807,50 @@ SK_Etw_UnregisterSession (const char* szPrefix)
     unregistered_count != 0;
 }
 
+typedef VOID (NTAPI *RtlInitUnicodeString_pfn)
+      ( PUNICODE_STRING DestinationString,
+        PCWSTR          SourceString );
 
+void
+SK_Inject_RenameProcess (void)
+{
+  static RtlInitUnicodeString_pfn
+         SK_InitUnicodeString =
+        (RtlInitUnicodeString_pfn)SK_GetProcAddress (
+                           L"NtDll",
+                            "RtlInitUnicodeString"  );
 
+  auto pPeb =
+    (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
 
+  //RtlAcquirePebLock ();
+  //EnterCriticalSection (pPeb->FastPebLock);
 
+  if (SK_InitUnicodeString != nullptr)
+  {
+    //SK_InitUnicodeString (
+    //  (PUNICODE_STRING)&pPeb->ProcessParameters->ImagePathName,
+    //  L"Special K Backend Service Host"
+    //);
+
+    SK_InitUnicodeString (
+      (PUNICODE_STRING)&pPeb->ProcessParameters->CommandLine,
+      SK_RunLHIfBitness ( 32, L"32-bit Special K Backend Service Host",
+                              L"64-bit Special K Backend Service Host" )
+    );
+
+    pPeb->ProcessParameters->DllPath.Length       = pPeb->ProcessParameters->CommandLine.Length;
+    pPeb->ProcessParameters->ImagePathName.Length = pPeb->ProcessParameters->CommandLine.Length;
+    pPeb->ProcessParameters->WindowTitle.Length   = pPeb->ProcessParameters->CommandLine.Length;
+
+    pPeb->ProcessParameters->DllPath.Buffer       = pPeb->ProcessParameters->CommandLine.Buffer;
+    pPeb->ProcessParameters->ImagePathName.Buffer = pPeb->ProcessParameters->CommandLine.Buffer;
+    pPeb->ProcessParameters->WindowTitle.Buffer   = pPeb->ProcessParameters->CommandLine.Buffer;
+  }
+
+  //LeaveCriticalSection (pPeb->FastPebLock);
+  //RtlReleasePebLock ();
+}
 
 #if 0
 #include <winternl.h>                   //PROCESS_BASIC_INFORMATION
@@ -1033,6 +1123,81 @@ GetModuleLoadCount (HMODULE hDll)
 volatile HMODULE  g_hModule_CBT     = 0;
 volatile LONG     g_sOnce           = 0;
 
+HWND  hWndToSet   = (HWND)~0;
+DWORD dwBandToSet = ZBID_DESKTOP;
+
+LRESULT
+CALLBACK
+SK_WindowBand_AgentProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  static auto *pShared = (SK_SharedMemory_v1 *)
+          SK_Inject_GetViewOfSharedMemory ();
+
+  if (! pShared)
+  {
+    return
+      DefWindowProcW (hwnd, message, wParam, lParam);
+  }
+
+  if (message      == pShared->SystemWide.uMsgExpRaise)
+  {
+    hWndToSet   =  (HWND)wParam;
+    dwBandToSet = (DWORD)lParam;
+
+    return 0;
+  }
+
+  else if (message == pShared->SystemWide.uMsgExpLower)
+  {
+    hWndToSet   =  (HWND)wParam;
+    dwBandToSet = (DWORD)ZBID_DESKTOP;
+
+    return 0;
+  }
+
+  return
+    DefWindowProcW (hwnd, message, wParam, lParam);
+};
+
+static SetWindowBand_pfn
+       SetWindowBand_Original = nullptr;
+
+BOOL
+WINAPI
+SetWindowBand_Detour ( HWND  hWnd,
+                       HWND  hWndInsertAfter,
+                       DWORD dwBand )
+{
+  BOOL bRet =
+    SetWindowBand_Original (
+      hWnd, hWndInsertAfter, dwBand
+    );
+
+  if (hWndToSet != (HWND)~0)
+  {
+    BYTE scan_code_ESC =
+      (BYTE)MapVirtualKey (VK_ESCAPE, 0);
+
+    extern void WINAPI
+      SK_keybd_event (
+        _In_ BYTE       bVk,
+        _In_ BYTE       bScan,
+        _In_ DWORD     dwFlags,
+        _In_ ULONG_PTR dwExtraInfo );
+
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, 0,               0);
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, KEYEVENTF_KEYUP, 0);
+
+    if (SetWindowBand_Original (hWndToSet, 0, dwBandToSet))
+    {
+      hWndToSet = (HWND)~0;
+    }
+  }
+
+  return
+    bRet;
+}
+
 void
 SK_Inject_SpawnUnloadListener (void)
 {
@@ -1086,7 +1251,103 @@ SK_Inject_SpawnUnloadListener (void)
 
         if (hHookTeardown != SK_INVALID_HANDLE)
         {
+          WNDCLASSEXW
+          wnd_class               = {                       };
+          wnd_class.hInstance     = GetModuleHandle (nullptr);
+          wnd_class.lpszClassName = L"SK_WindowBand_Agent";
+          wnd_class.lpfnWndProc   = SK_WindowBand_AgentProc;
+          wnd_class.cbSize        = sizeof (WNDCLASSEXW);
+
           InterlockedIncrement  (&injected_procs);
+
+          if (GetModuleHandle (L"explorer.exe"))
+          {
+            ATOM eve =
+              RegisterClassExW (&wnd_class);
+
+            if (eve == 0)
+              UnregisterClassW (L"SK_WindowBand_Agent", GetModuleHandle (nullptr));
+
+            if (eve != 0 || RegisterClassExW (&wnd_class))
+            {
+              SK_SharedMemory_v1* pShared =
+                (SK_SharedMemory_v1*)SK_Inject_GetViewOfSharedMemory ();
+
+              if (pShared != nullptr)
+              {
+                static HANDLE
+                hExplorerDispatchThread =
+                CreateThread (nullptr, 0, [](LPVOID pUser) ->
+                DWORD
+                {
+                  auto hThreadSelf =
+                    *(HANDLE *)pUser;
+
+                  SK_SharedMemory_v1 *pShared =
+                    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+                  if (! pShared)
+                  {
+                    CloseHandle (hThreadSelf);
+                    return 0;
+                  }
+
+                  // Extra init needed for hooks
+                  InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0);
+
+                  SK_MinHook_Init ();
+
+                  SK_CreateDLLHook2 (       L"user32",
+                                      "SetWindowBand",
+                                       SetWindowBand_Detour,
+              static_cast_p2p <void> (&SetWindowBand_Original) );
+
+                  SK_ApplyQueuedHooks ();
+
+                  pShared->SystemWide.hWndExplorer =
+                    HandleToULong (
+                      CreateWindowExW ( 0, L"SK_WindowBand_Agent", NULL, 0,
+                                        0, 0, 0, 0, HWND_MESSAGE,  NULL, NULL, NULL )
+                                  );
+
+                  if (pShared->SystemWide.hWndExplorer != 0)
+                  {
+                    pShared->SystemWide.uMsgExpRaise = 0xf00d;//RegisterWindowMessageW (L"uMsgExpRaise");
+                    pShared->SystemWide.uMsgExpLower = 0xf00f;//RegisterWindowMessageW (L"uMsgExpLower");
+                  }
+
+                  HWND hWndExplorer =
+                    (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
+
+                  DWORD  dwWaitState  = WAIT_TIMEOUT;
+                  while (dwWaitState != WAIT_OBJECT_0)
+                  {
+                    dwWaitState =
+                      MsgWaitForMultipleObjects ( 1,   &__SK_DLL_TeardownEvent,
+                                                  FALSE, INFINITE, QS_ALLINPUT );
+
+                    if (dwWaitState == WAIT_OBJECT_0 + 1)
+                    {
+                      MSG                   msg = { };
+                      while (PeekMessageW (&msg, hWndExplorer, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+                      {
+                        TranslateMessage (&msg);
+                        DispatchMessageW (&msg);
+                      }
+                    }
+                  }
+
+                  CloseHandle (hThreadSelf);
+
+                  return 0;
+                }, &hExplorerDispatchThread, CREATE_SUSPENDED, nullptr);
+
+                if (hExplorerDispatchThread != 0)
+                  ResumeThread (hExplorerDispatchThread);
+              }
+            }
+            else wnd_class.cbSize = 0;
+          }
 
           DWORD dwWaitState =
             MsgWaitForMultipleObjectsEx (
@@ -1104,6 +1365,28 @@ SK_Inject_SpawnUnloadListener (void)
             MsgWaitForMultipleObjectsEx (
               1, &__SK_DLL_TeardownEvent, INFINITE,
                              QS_ALLINPUT, 0x0 );
+          }
+
+
+          if (GetModuleHandle (L"explorer.exe"))
+          {
+            SK_SharedMemory_v1 *pShared =
+              (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+            if (pShared != nullptr)
+            {
+              HWND hWndToKill =
+                (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
+
+              if (IsWindow        (hWndToKill))
+                if (DestroyWindow (hWndToKill))
+                  pShared->SystemWide.hWndExplorer = (DWORD)~0;
+
+              if ( std::exchange (wnd_class.cbSize, 0) )
+                UnregisterClassW (wnd_class.lpszClassName, wnd_class.hInstance);
+
+              SK_MinHook_UnInit ();
+            }
           }
 
           // All clear, one less process to worry about
@@ -1158,7 +1441,7 @@ SK_Inject_SpawnUnloadListener (void)
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
 auto _DoWindowsOverlap =
-[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 4) -> bool
+[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 5) -> bool
 {
   if (! IsWindow (hWndGame)) return false;
   if (! IsWindow (hWndApp))  return false;
@@ -1221,15 +1504,15 @@ CBTProc ( _In_ int    nCode,
       HWND hWndGame =
         SK_Inject_GetFocusWindow ();
 
-      if (hWndGame != 0x0 && IsWindow (hWndGame))
-      {
-        CBTACTIVATESTRUCT *pCBTActivate =
+      CBTACTIVATESTRUCT *pCBTActivate =
        (CBTACTIVATESTRUCT *)lParam;
 
+      if (hWndGame != 0x0 && IsWindow (hWndGame) && hWndGame != (HWND)pCBTActivate->hWndActive)
+      {
         HWND hWndActive = (HWND)pCBTActivate->hWndActive,
              hWndSet    = SK_GetForegroundWindow ();
 
-        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndActive, (LPARAM)hWndSet);
+        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndActive, (LPARAM)hWndSet);
       }
     }
 
@@ -1241,8 +1524,8 @@ CBTProc ( _In_ int    nCode,
       HWND hWndSet   = (HWND)wParam,
            hWndPrev  = (HWND)lParam;
 
-      if (hWndGame != 0x0 && IsWindow (hWndGame))
-        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndSet, (LPARAM)hWndPrev);
+      if (hWndGame != 0x0 && IsWindow (hWndGame) && hWndSet != hWndGame)
+        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndSet, (LPARAM)hWndPrev);
     }
 
     else if (nCode == HCBT_MOVESIZE)
@@ -1253,14 +1536,14 @@ CBTProc ( _In_ int    nCode,
       if (hWndGame != 0x0 && IsWindow (hWndGame))
       {
         if (_DoWindowsOverlap (hWndGame, (HWND)wParam))
-          PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)wParam, (LPARAM)0);
+          PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)wParam, (LPARAM)0);
 
         else
         {
           if (MonitorFromWindow ((HWND)wParam,   MONITOR_DEFAULTTONEAREST) ==
               MonitorFromWindow ((HWND)hWndGame, MONITOR_DEFAULTTONEAREST))
           {
-            PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0x407, (WPARAM)hWndGame, (LPARAM)wParam);
+            PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndGame, (LPARAM)wParam);
           }
         }
       }
@@ -1420,6 +1703,8 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 {
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);
+
+  SK_Inject_RenameProcess ();
 
   if (StrStrA (lpszCmdLine, "Install") && (! SKX_IsHookingCBT ()))
   {

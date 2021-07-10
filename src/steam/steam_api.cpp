@@ -1972,19 +1972,18 @@ public:
     auto user_id =
       user->GetSteamID ().ConvertToUint64 ();
 
+
+#if 1
     //if (has_global_data)
     {
       for (auto& it : *UserStatsReceived_callbacks)
       {
         if (it.second && SK_IsAddressExecutable (it.first, true))
         {
-          auto override_params =
-            *pParam;
-
-          if (override_params.m_eResult != k_EResultOK)
+          if (pParam->m_eResult != k_EResultOK)
           {
             if ( user_id ==
-                 override_params.m_steamIDUser.ConvertToUint64 () )
+                 pParam->m_steamIDUser.ConvertToUint64 () )
             {
               steam_log->Log (
                 L"Got UserStatsReceived Failure for Current Player, m_eResult=%x",
@@ -1993,14 +1992,20 @@ public:
             }
           }
 
-          if (/*pParam->m_eResult                        == k_EResultOK &&*/
+          if (pParam->m_eResult                        == k_EResultOK &&
               pParam->m_steamIDUser.ConvertToUint64 () == user_id)
           {
-            TryCallback ((class CCallbackBase*)it.first, &override_params);
+            static bool          once = false;
+            if (! std::exchange (once, true))
+            {
+              TryCallback ((class CCallbackBase*)it.first, pParam);
+            }
           }
         }
       }
     }
+#endif
+
 
     if (pParam->m_eResult == k_EResultOK)
     {
@@ -2090,9 +2095,12 @@ public:
   void TryCallback (CCallbackBase* pCallback, UserStatsReceived_t* pParam)
   {
     __try {
-      pCallback->Run (pParam);
+      if (SK_ValidatePointer (pParam, true))
+              pCallback->Run (pParam);
     }
-    __except (EXCEPTION_EXECUTE_HANDLER) {
+    __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                  EXCEPTION_EXECUTE_HANDLER  :
+                  EXCEPTION_CONTINUE_SEARCH ) {
     }
   }
 
@@ -2127,6 +2135,7 @@ public:
     auto user_id =
       user->GetSteamID ().ConvertToUint64 ();
 
+#if 1
     for (auto& it : *UserStatsReceived_callbacks)
     {
       if (it.second && SK_IsAddressExecutable (it.first, true))
@@ -2139,10 +2148,14 @@ public:
           if (                          user_id !=
                override_params.m_steamIDUser.ConvertToUint64 () )
           {
-            steam_log->Log (
-              L"Got UserStatsReceived Failure for Friend, m_eResult=%x",
-                pParam->m_eResult
-            );
+            // This is normal, so ignore in low log levels
+            if (config.system.log_level > 0)
+            {
+              steam_log->Log (
+                L"Got UserStatsReceived Failure for Friend, m_eResult=%x",
+                  pParam->m_eResult
+              );
+            }
           }
         }
 
@@ -2155,6 +2168,7 @@ public:
         }
       }
     }
+#endif
 
     // A user may return kEResultFail if they don't own this game, so
     //   do this anyway and continue enumerating remaining friends.
@@ -2318,9 +2332,18 @@ public:
     if ( ! ( friend_count > 0 &&
               next_friend < friend_count ) )
     {
+      // Reinstate stat receipt callback
+      for (auto& it : *UserStatsReceived_callbacks)
+      {
+        if (it.second && SK_IsAddressExecutable (it.first, true))
+          SteamAPI_RegisterCallback_Original ((CCallbackBase *)it.first, UserStatsReceived_t::k_iCallback);
+      }
+
+#if 0
       // Trigger the game's callback in case it's stupidly waiting synchronously for
       //   this to happen (i.e. Yakuza Kiwami 2).
       steam_ctx.UserStats ()->RequestCurrentStats ();
+#endif
 
       friends_done =
         ReadAcquire64 (&SK_SteamAPI_CallbackRunCount);

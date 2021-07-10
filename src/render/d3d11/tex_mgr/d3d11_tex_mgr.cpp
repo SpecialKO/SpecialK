@@ -918,6 +918,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       wchar_t wszOutName [MAX_PATH + 2] = { };
 
+      // Use filename to denote compression (not needed if metadata is spitout)
+#if 0
       if (compressed)
       {
         swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
@@ -929,6 +931,10 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
         swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
                      wszPath, crc32c );
       }
+#else
+      swprintf ( wszOutName, LR"(%s\%08X.dds)",
+                   wszPath, crc32c );
+#endif
 
       SK_CreateDirectories (wszPath);
 
@@ -941,6 +947,52 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
         SK_D3D11_Textures->dumped_texture_bytes += SK_File_GetSize (wszOutName);
 
         SK_D3D11_AddDumped (crc32c, crc32c);
+
+
+        wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
+
+        PathRemoveExtensionW (                         wszOutName);
+        swprintf (wszMetaFilename, L"%s_metadata.txt", wszOutName);
+
+        FILE* fMetaData =
+          _wfopen (wszMetaFilename, L"w+");
+
+        if (fMetaData != nullptr)
+        {
+          D3D11_TEXTURE2D_DESC desc = { };
+          pTex->GetDesc      (&desc);
+          auto    pDesc   =   &desc;
+
+          fprintf ( fMetaData,
+                  "Dumped Name:    %ws.dds\n"
+                  "Texture:        %08x\n"
+                  "Dimensions:     (%lux%lu)\n"
+                  "Format:         %03lu (%ws)\n"
+                  "MipLODs:        %02lu\n"
+                  "Compressed:     %s\n"
+                  "sRGB:           %s\n"
+                  "----------------\n"
+                  "BindFlags:      0x%04x\n"
+                  "Usage:          0x%04x\n"
+                  "CPUAccessFlags: 0x%02x\n"
+                  "Misc:           0x%02x\n"
+                  "ArraySize:      %02lu",
+                  wszOutName,
+                    crc32c,
+                      pDesc->Width, pDesc->Height,
+                      pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
+                        pDesc->MipLevels, compressed ?
+                                               "Yes" : "No",
+                        pDesc->Format ==
+     DirectX::MakeSRGB (pDesc->Format) ?       "Yes" : "No",
+                          pDesc->BindFlags,
+                            pDesc->Usage,
+                              pDesc->CPUAccessFlags,
+                                pDesc->MiscFlags,
+                                  pDesc->ArraySize );
+
+          fclose (fMetaData);
+        }
 
         return hr;
       }
@@ -1571,10 +1623,9 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                         top_crc32,
                           checksum), L"DX11TexDmp" );
 
-#if 0
       wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
 
-      swprintf (wszMetaFilename, L"%s.txt", wszOutName);
+      swprintf (wszMetaFilename, L"%s_metadata.txt", wszOutName);
 
       FILE* fMetaData = _wfopen (wszMetaFilename, L"w+");
 
@@ -1583,28 +1634,28 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                   "Dumped Name:    %ws\n"
                   "Texture:        %08x::%08x\n"
                   "Dimensions:     (%lux%lu)\n"
-                  "Format:         %03lu\n"
+                  "Format:         %03lu (%ws)\n"
+                  "MipLODs:        %02lu\n"
+                  "----------------\n"
                   "BindFlags:      0x%04x\n"
                   "Usage:          0x%04x\n"
                   "CPUAccessFlags: 0x%02x\n"
                   "Misc:           0x%02x\n"
-                  "MipLODs:        %02lu\n"
                   "ArraySize:      %02lu",
                   wszOutName,
                     top_crc32,
                       checksum,
                         pDesc->Width, pDesc->Height,
-                        pDesc->Format,
-                          pDesc->BindFlags,
-                            pDesc->Usage,
-                              pDesc->CPUAccessFlags,
-                                pDesc->MiscFlags,
-                                  pDesc->MipLevels,
+                        pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
+                          pDesc->MipLevels,
+                            pDesc->BindFlags,
+                              pDesc->Usage,
+                                pDesc->CPUAccessFlags,
+                                  pDesc->MiscFlags,
                                     pDesc->ArraySize );
 
         fclose (fMetaData);
       }
-#endif
 
       const HRESULT hr =
         SaveToDDSFile ( image.GetImages (), image.GetImageCount (),

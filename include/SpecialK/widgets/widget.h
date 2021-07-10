@@ -31,6 +31,7 @@ struct IUnknown;
 #include <SpecialK/parameter.h>
 #include <SpecialK/ini.h>
 
+#include <typeindex>
 #include <string>
 #include <map>
 
@@ -463,7 +464,7 @@ public:
 
   std::type_info getType (void) noexcept
   {
-    return std::typeindex (typeid (_T));
+    return std::type_index (typeid (_T));
   }
 
 

@@ -61,7 +61,7 @@ extern bool SK_WantBackgroundRender ();
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
 auto _DoWindowsOverlap =
-[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 4) -> bool
+[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 5) -> bool
 {
   if (! IsWindow (hWndGame)) return false;
   if (! IsWindow (hWndApp))  return false;
@@ -232,6 +232,38 @@ public:
 
   bool OnVarChange (SK_IVariable* var, void* val) override
   {
+    if (var == zband_)
+    {
+      if (val != nullptr)
+      {
+        DWORD                             orig = 0;
+        GetWindowBand (game_window.hWnd, &orig);
+
+        const int set  =
+          *static_cast <int *> (val);
+
+        if (static_cast <DWORD> (set) != orig)
+        {
+          SendMessageTimeout ( SK_Inject_GetExplorerWindow   (),
+                               SK_Inject_GetExplorerRaiseMsg (), (WPARAM)game_window.hWnd,
+                                                                 (LPARAM)             set,
+                               0x0,                        15UL,                nullptr );
+
+          TriggerStartMenu ();
+        }
+      }
+
+      DWORD                             dwWindowBand = 0x0;
+      GetWindowBand (game_window.hWnd, &dwWindowBand);
+
+      *static_cast <int *> (var->getValuePointer ()) =
+         static_cast <int> (dwWindowBand);
+
+      *(int *)val = dwWindowBand;
+
+      return true;
+    }
+
     if (var == top_most_)
     {
       if (val != nullptr)
@@ -244,10 +276,10 @@ public:
         {
           SK_Window_SetTopMost (set, set, game_window.hWnd);
         }
-
-        *static_cast <bool *> (var->getValuePointer ()) =
-          SK_Window_IsTopMost (game_window.hWnd);
       }
+
+      *static_cast <bool *> (var->getValuePointer ()) =
+        SK_Window_IsTopMost (game_window.hWnd);
 
       return true;
     }
@@ -633,6 +665,13 @@ public:
       return;
     }
 
+    zband_ =
+      SK_CreateVar (SK_IVariable::Int,&config.window.zband,this);
+
+    cmd->AddVariable (
+      "Window.ZBand",
+              zband_ );
+
     unconfine_cursor_ =
       SK_CreateVar (SK_IVariable::Boolean,&config.window.unconfine_cursor,this);
 
@@ -826,6 +865,7 @@ protected:
     };
   } state_;
 
+  SK_IVariable* zband_            = nullptr;
   SK_IVariable* borderless_       = nullptr;
   SK_IVariable* background_mute_  = nullptr;
   SK_IVariable* confine_cursor_   = nullptr;
@@ -3623,6 +3663,17 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
 {
   static constexpr DWORD dwMsgMax = 0xFFFFUL;
 
+  // Remove SK's global window focus notification before it can be
+  //   marshalled by the application
+  if (lpMsg != nullptr && lpMsg->message == 0xfa57/*WM_USER + WM_SETFOCUS*/)
+  {
+    SK_Window_OnFocusChange ((HWND)lpMsg->wParam, (HWND)lpMsg->lParam);
+    lpMsg->message = WM_NULL;
+
+    return true;
+  }
+
+
   if (                          lpMsg != nullptr &&
                     dwMsgMax >= lpMsg->message   &&
        SK_ImGui_HandlesMessage (lpMsg, remove, peek)                        )
@@ -4444,9 +4495,11 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
                  SK_LOG0 ( ( L" *** Removed TopMost Window Style from Hung App Window" ),
                              L"ToplessFix" );
 
+#ifdef _DEBUG
                  SK_ImGui_Warning (
                    L"Removed TopMost Status from Window because it was Unresponsive"
                  );
+#endif
               }
             }
           }
@@ -4477,6 +4530,8 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 }
 
 
+bool __ignore = false;
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -4487,12 +4542,18 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 {
   if (uMsg == WM_NULL)
   {
-    static HWND unicode_hwnd =
+#if 0
+    HWND unicode_hwnd =
       IsWindowUnicode (hWnd) ? hWnd : 0;
 
     return (unicode_hwnd == hWnd) ?
             DefWindowProcW (hWnd, uMsg, wParam, lParam) :
             DefWindowProcA (hWnd, uMsg, wParam, lParam);
+#else
+    // Valve's engine just stack overflows with infinite recursion if we
+    //   allow this to work the way it's supposed to... so @#$% it :)
+    return 1;
+#endif
   }
 
 
@@ -4611,7 +4672,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-
   switch (uMsg)
   {
     case WM_QUIT:
@@ -4721,9 +4781,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
       break;
 
-    case 0x0407://WM_USER + WM_SETFOCUS:
+    case 0xfa57://WM_USER + WM_SETFOCUS:
       //if (config.window.always_on_top == 3)
       SK_Window_OnFocusChange ((HWND)wParam, (HWND)lParam);
+      return 0; // Can't let the game see this, it will be confused
       break;
 
     case WM_SETFOCUS:
@@ -6365,7 +6426,14 @@ SK_HookWinAPI (void)
       (EnumDisplaySettingsW_pfn) SK_GetProcAddress
       ( hModUser32, "EnumDisplaySettingsW" );
 
-    SK_ApplyQueuedHooks ();
+
+     GetWindowBand =
+    (GetWindowBand_pfn)SK_GetProcAddress (L"user32.dll",
+    "GetWindowBand");
+
+     SetWindowBand =
+    (SetWindowBand_pfn)SK_GetProcAddress (L"user32.dll",
+    "SetWindowBand");
 
     InterlockedIncrement (&hooked);
   }
@@ -6801,3 +6869,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 
   return true;
 }
+
+
+GetWindowBand_pfn GetWindowBand = nullptr;
+SetWindowBand_pfn SetWindowBand = nullptr;

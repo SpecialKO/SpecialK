@@ -196,7 +196,7 @@ struct ShaderBase
     HRESULT hrCompile =
       DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
 
-    SK_ComQIPtr <ID3D12Device> pDev (SK_GetCurrentRenderBackend ().device);
+    SK_ComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
 
     if ( pDev != nullptr &&
          std::type_index ( typeid (    _ShaderType   ) ) ==

@@ -77,6 +77,55 @@ typedef NV_GPU_PCIE_INFO_V2 NV_GPU_PCIE_INFO;
 #define NV_GPU_PCIE_INFO_VER    NV_GPU_PCIE_INFO_VER_2
 #endif
 
+typedef enum _NV_DITHER_STATE
+{
+  NV_DITHER_STATE_DEFAULT  = 0,
+  NV_DITHER_STATE_ENABLED  = 1,
+  NV_DITHER_STATE_DISABLED = 2,
+  NV_DITHER_STATE_MAX      = 0xFF
+} NV_DITHER_STATE;
+
+typedef enum _NV_DITHER_BITS
+{
+  NV_DITHER_BITS_6   = 0,
+  NV_DITHER_BITS_8   = 1,
+  NV_DITHER_BITS_10  = 2,
+  NV_DITHER_BITS_MAX = 0xFF
+} NV_DITHER_BITS;
+
+typedef enum _NV_DITHER_MODE
+{
+  NV_DITHER_MODE_SPATIAL_DYNAMIC     = 0, // "Spatial Dynamic"
+  NV_DITHER_MODE_SPATIAL_STATIC      = 1, // "Spatial Static""
+  NV_DITHER_MODE_SPATIAL_DYNAMIC_2x2 = 2, // "Spatial Dynamic 2x2"
+  NV_DITHER_MODE_SPATIAL_STATIC_2x2  = 3, // "Spatial Static 2x2"
+  NV_DITHER_MODE_TEMPORAL            = 4, // "Temporal"
+  NV_DITHER_MODE_MAX                 = 0xFF
+} NV_DITHER_MODE;
+
+typedef struct _NV_GPU_DITHER_CONTROL_V1
+{
+  NvU32         version;
+  NvU16            size;
+  NV_DITHER_STATE state;
+  NV_DITHER_BITS   bits;
+  NV_DITHER_MODE   mode;
+} NV_GPU_DITHER_CONTROL_V1;
+
+#define NV_GPU_DITHER_CONTROL_VER1  MAKE_NVAPI_VERSION(NV_GPU_DITHER_CONTROL_V1, 1)
+
+using NvAPI_Disp_SetDitherControl_pfn =
+      NvAPI_Status (__cdecl *)( NvPhysicalGpuHandle hPhysicalGpu,
+                                NvU32               output_id,
+                                NV_DITHER_STATE     state,
+                                NV_DITHER_BITS      bits,
+                                NV_DITHER_MODE      mode );
+
+using NvAPI_Disp_GetDitherControl_pfn =
+      NvAPI_Status (__cdecl *)( //NvPhysicalGpuHandle       hPhysicalGpu,
+                                NvU32                     output_id,
+                                NV_GPU_DITHER_CONTROL_V1* ditherControl );
+
 #include <Unknwn.h>
 
 typedef NvAPI_Status (__cdecl *NvAPI_GPU_GetPCIEInfo_pfn)
@@ -101,6 +150,9 @@ typedef NvAPI_Status (__cdecl *NvAPI_D3D_GetObjectHandleForResource_pfn)
 #define __NvAPI_D3D_IsGSyncActive              0x0E942B0F
 #define __NvAPI_D3D_GetObjectHandleForResource 0xFCEAC864
 
+#define __NvAPI_Disp_SetDitherControl          0xDF0DFCDD
+#define __NvAPI_Disp_GetDitherControl          0x932AC8FB
+
 extern NvAPI_GPU_GetRamType_pfn                 NvAPI_GPU_GetRamType;
 extern NvAPI_GPU_GetFBWidthAndLocation_pfn      NvAPI_GPU_GetFBWidthAndLocation;
 extern NvAPI_GPU_GetPCIEInfo_pfn                NvAPI_GPU_GetPCIEInfo;
@@ -109,6 +161,8 @@ extern NvAPI_GetGPUIDFromPhysicalGPU_pfn        NvAPI_GetGPUIDFromPhysicalGPU;
 extern NvAPI_D3D_IsGSyncCapable_pfn             _NvAPI_D3D_IsGSyncCapable;
 extern NvAPI_D3D_IsGSyncActive_pfn              _NvAPI_D3D_IsGSyncActive;
 extern NvAPI_D3D_GetObjectHandleForResource_pfn _NvAPI_D3D_GetObjectHandleForResource;
+extern NvAPI_Disp_SetDitherControl_pfn          NvAPI_Disp_SetDitherControl;
+extern NvAPI_Disp_GetDitherControl_pfn          NvAPI_Disp_GetDitherControl;
 
 #ifdef __cplusplus
 }

@@ -138,6 +138,99 @@ struct ShaderBase
 #endif
   }
 
+  bool compileShaderString ( const char*    szShaderString,
+                             const wchar_t* wszShaderName,
+                             const char*    szEntryPoint,
+                             const char*    szShaderModel,
+                                   bool     recompile =
+                                              false,
+                               std::string& error_log =
+                                              _SpecialNowhere )
+  {
+    UNREFERENCED_PARAMETER (recompile);
+    UNREFERENCED_PARAMETER (error_log);
+
+    SK_ComPtr <ID3D10Blob>
+      compilerOutput;
+
+    HRESULT hr =
+      D3DCompile ( szShaderString,
+                     strlen (szShaderString),
+                       nullptr, nullptr, nullptr,
+                         szEntryPoint, szShaderModel,
+                           0, 0,
+                             &shaderBlob.p,
+                               &compilerOutput.p );
+
+    if (FAILED (hr))
+    {
+      if ( compilerOutput != nullptr     &&
+           compilerOutput->GetBufferSize () > 0 )
+      {
+        std::string
+          err;
+          err.reserve (
+            compilerOutput->GetBufferSize ()
+          );
+          err =
+        ( (char *)compilerOutput->GetBufferPointer () );
+
+        if (! err.empty ())
+        {
+          dll_log->LogEx ( true,
+                             L"SK D3D12 Shader (SM=%hs) [%ws]: %hs",
+                               szShaderModel, wszShaderName,
+                                 err.c_str ()
+                         );
+        }
+      }
+
+      return false;
+    }
+
+    HRESULT hrCompile =
+      DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+
+    SK_ComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
+
+    if ( pDev != nullptr &&
+         std::type_index ( typeid (    _ShaderType   ) ) ==
+         std::type_index ( typeid (ID3D11VertexShader) ) )
+    {
+      hrCompile =
+        pDev->CreateVertexShader (
+           static_cast <DWORD *> ( shaderBlob->GetBufferPointer () ),
+                                   shaderBlob->GetBufferSize    (),
+                                     nullptr,
+           reinterpret_cast <ID3D11VertexShader **>(&shader)
+                                 );
+    }
+
+    else if ( pDev != nullptr &&
+              std::type_index ( typeid (   _ShaderType   ) ) ==
+              std::type_index ( typeid (ID3D11PixelShader) ) )
+    {
+      hrCompile =
+        pDev->CreatePixelShader  (
+           static_cast <DWORD *> ( shaderBlob->GetBufferPointer () ),
+                                   shaderBlob->GetBufferSize    (),
+                                     nullptr,
+           reinterpret_cast <ID3D11PixelShader **>(&shader)
+                                 );
+    }
+
+    else
+    {
+#pragma warning (push)
+#pragma warning (disable: 4130) // No @#$% sherlock
+      SK_ReleaseAssert ("WTF?!" == nullptr)
+#pragma warning (pop)
+    }
+
+    return
+      SUCCEEDED (hrCompile);
+  }
+
   bool compileShaderFile ( const wchar_t* wszShaderFile,
                            const    char* szEntryPoint,
                            const    char* szShaderModel,

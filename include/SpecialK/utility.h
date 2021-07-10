@@ -85,6 +85,9 @@ enum SK_UNITS {
 //         passing std::wstring is permissible for convenience.
 //
 
+enum DLL_ROLE : unsigned;
+
+
 const wchar_t* __stdcall
                SK_GetRootPath               (void);
 const wchar_t* SK_GetHostApp                (void);
@@ -189,7 +192,7 @@ wchar_t*       SK_StripUserNameFromPathW    (wchar_t* wszInOut);
 #define SK_ConcealUserDir  SK_StripUserNameFromPathW
 #define SK_ConcealUserDirA SK_StripUserNameFromPathA
 
-FARPROC WINAPI SK_GetProcAddress            (      HMODULE  hMod,      const char* szFunc) noexcept;
+FARPROC WINAPI SK_GetProcAddress            (const HMODULE  hMod,      const char* szFunc) noexcept;
 FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const char* szFunc);
 
 

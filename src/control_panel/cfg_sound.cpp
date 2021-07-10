@@ -23,15 +23,15 @@
 
 
 #include <SpecialK/control_panel/sound.h>
+#include <imgui/font_awesome.h>
 
 class SK_MMDev_AudioEndpointVolumeCallback;
-std::unique_ptr <SK_MMDev_AudioEndpointVolumeCallback> volume_mgr = nullptr;
+SK_LazyGlobal <SK_MMDev_AudioEndpointVolumeCallback> volume_mgr;
 
 SK_WASAPI_SessionManager&
 SK_WASAPI_GetSessionManager (void)
 {
-  if (volume_mgr == nullptr)
-    volume_mgr = std::make_unique <SK_MMDev_AudioEndpointVolumeCallback> ();
+  (void)volume_mgr.getPtr ();
 
   static SK_WASAPI_SessionManager sessions;
   return                          sessions;
@@ -40,8 +40,7 @@ SK_WASAPI_GetSessionManager (void)
 SK_WASAPI_AudioSession*&
 SK_WASAPI_GetAudioSession (void)
 {
-  if (volume_mgr == nullptr)
-    volume_mgr = std::make_unique <SK_MMDev_AudioEndpointVolumeCallback> ();
+  (void)volume_mgr.getPtr ();
 
   static SK_WASAPI_AudioSession* audio_session;
   return                         audio_session;
@@ -320,7 +319,7 @@ SK_ImGui_VolumeManager (void)
   ImGui::BeginGroup ();
   {
     ImGui::PushItemWidth (-1);
-    if (ImGui::Button ("  <<  "))
+    if (ImGui::Button ("  " ICON_FA_BACKWARD "  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();
@@ -330,13 +329,20 @@ SK_ImGui_VolumeManager (void)
         if (pMusic->BIsPlaying ()) pMusic->PlayPrevious ();
       }
 
-      keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
-      keybd_event_Original (VK_MEDIA_PREV_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      BYTE bScancode =
+       (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+
+      DWORD dwFlags =
+        ( bScancode & 0xE0 ) != 0 ?
+            KEYEVENTF_EXTENDEDKEY : 0x0;
+
+      keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+      keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
 
     ImGui::SameLine ();
 
-    if (ImGui::Button ("  Play / Pause  "))
+    if (ImGui::Button ("  " ICON_FA_PLAY ICON_FA_PAUSE "  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();
@@ -347,14 +353,20 @@ SK_ImGui_VolumeManager (void)
         else                       pMusic->Play  ();
       }
 
+      BYTE bScancode =
+       (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
 
-      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY,                   0);
-      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      DWORD dwFlags =
+        ( bScancode & 0xE0 ) != 0 ?
+            KEYEVENTF_EXTENDEDKEY : 0x0;
+
+      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
 
     ImGui::SameLine ();
 
-    if (ImGui::Button ("  >>  "))
+    if (ImGui::Button ("  " ICON_FA_FORWARD "  "))
     {
       ISteamMusic* pMusic =
         SK_SteamAPI_Music ();
@@ -364,8 +376,15 @@ SK_ImGui_VolumeManager (void)
         if (pMusic->BIsPlaying ()) pMusic->PlayNext ();
       }
 
-      keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY,                   0);
-      keybd_event_Original (VK_MEDIA_NEXT_TRACK, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      BYTE bScancode =
+       (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+
+      DWORD dwFlags =
+        ( bScancode & 0xE0 ) != 0 ?
+            KEYEVENTF_EXTENDEDKEY : 0x0;
+
+      keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+      keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
     ImGui::PopItemWidth ();
   }

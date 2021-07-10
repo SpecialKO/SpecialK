@@ -38,11 +38,13 @@ NvAPI_Disp_ColorControl_pfn       NvAPI_Disp_ColorControl_Original       = nullp
 //
 // Undocumented Functions (unless you sign an NDA)
 //
-NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType;
-NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation;
-NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo;
-NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID;
-NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU;
+NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType            = nullptr;
+NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation = nullptr;
+NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo           = nullptr;
+NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID   = nullptr;
+NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU   = nullptr;
+NvAPI_Disp_SetDitherControl_pfn     NvAPI_Disp_SetDitherControl     = nullptr;
+NvAPI_Disp_GetDitherControl_pfn     NvAPI_Disp_GetDitherControl     = nullptr;
 
 using namespace sk;
 using namespace sk::NVAPI;
@@ -451,39 +453,6 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
               (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No",
                pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No");
 
-
-  if (ret == NVAPI_OK)
-  {
-    //auto& rb =
-    //  SK_GetCurrentRenderBackend ();
-
-    pHdrCapabilities->display_data.desired_content_min_luminance = 0;
-
-    ///rb.scanout.nvapi_hdr.color_support_hdr.supports_YUV422_12bit =
-    ///pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit;
-    ///
-    ///rb.scanout.nvapi_hdr.color_support_hdr.supports_10b_12b_444 =
-    ///pHdrCapabilities->dv_static_metadata.supports_10b_12b_444;
-
-  //pHDRCtl->devcaps.BitsPerColor          = 10;
-    //pHDRCtl->devcaps.RedPrimary   [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x0) / (float)0xC350;
-    //pHDRCtl->devcaps.RedPrimary   [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y0) / (float)0xC350;
-    //
-    //pHDRCtl->devcaps.GreenPrimary [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x1) / (float)0xC350;
-    //pHDRCtl->devcaps.GreenPrimary [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y1) / (float)0xC350;
-    //
-    //pHDRCtl->devcaps.BluePrimary  [0]      = ((float)pHdrCapabilities->display_data.displayPrimary_x2) / (float)0xC350;
-    //pHDRCtl->devcaps.BluePrimary  [1]      = ((float)pHdrCapabilities->display_data.displayPrimary_y2) / (float)0xC350;
-    //
-    //pHDRCtl->devcaps.WhitePoint   [0]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_x) / (float)0xC350;
-    //pHDRCtl->devcaps.WhitePoint   [1]      = ((float)pHdrCapabilities->display_data.displayWhitePoint_y) / (float)0xC350;
-    //
-  ////pHDRCtl->devcaps.ColorSpace            = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-    //pHDRCtl->devcaps.MinLuminance          = (float)pHdrCapabilities->display_data.desired_content_min_luminance;
-    //pHDRCtl->devcaps.MaxLuminance          = (float)pHdrCapabilities->display_data.desired_content_max_luminance;
-    //pHDRCtl->devcaps.MaxFullFrameLuminance = (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance;
-  }
-
   return ret;
 }
 
@@ -674,6 +643,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   NV_COLOR_DATA
   colorCheck                   = { };
   colorCheck.version           = NV_COLOR_DATA_VER;
+  colorCheck.size              = sizeof (NV_COLOR_DATA);
   colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
   colorCheck.data.colorimetry  = NV_COLOR_COLORIMETRY_AUTO;
   colorCheck.data.dynamicRange = NV_DYNAMIC_RANGE_AUTO;
@@ -931,8 +901,6 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     return ret;
   }
 
-  ////pHDRCtl->meta._AdjustmentCount++;
-
   NvAPI_Status ret =
     NvAPI_Disp_HdrColorControl_Original ( displayId, pHdrColorData );
 
@@ -1012,6 +980,7 @@ SK_RenderBackend_V2::scan_out_s::
       colorSet.data.bpc                  =       dataGetSet.hdrBpc;
       colorSet.data.dynamicRange         = NV_DYNAMIC_RANGE_AUTO;
       colorSet.data.colorimetry          = NV_COLOR_COLORIMETRY_AUTO;
+      colorSet.data.depth                = NV_DESKTOP_COLOR_DEPTH_16BPC_FLOAT_HDR;
 
       NvAPI_Disp_ColorControl_Original (display_id, &colorSet);
 
@@ -1026,6 +995,7 @@ SK_RenderBackend_V2::scan_out_s::
       NV_COLOR_DATA
         colorCheck                   = { };
         colorCheck.version           = NV_COLOR_DATA_VER;
+        colorCheck.size              = sizeof (NV_COLOR_DATA);
         colorCheck.cmd               = NV_COLOR_CMD_IS_SUPPORTED_COLOR;
         colorCheck.data.colorimetry  = NV_COLOR_COLORIMETRY_AUTO;
         colorCheck.data.dynamicRange = NV_DYNAMIC_RANGE_AUTO;
@@ -1086,6 +1056,7 @@ SK_RenderBackend_V2::scan_out_s::
   colorSet.data.bpc                  =       bpc_;
   colorSet.data.dynamicRange         = NV_DYNAMIC_RANGE_AUTO;
   colorSet.data.colorimetry          = NV_COLOR_COLORIMETRY_AUTO;
+  colorSet.data.depth                = NV_DESKTOP_COLOR_DEPTH_16BPC_FLOAT_HDR;
 
   if ( NVAPI_OK ==
          NvAPI_Disp_ColorControl_Original ( display_id, &colorSet ) )
@@ -1285,6 +1256,11 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       (NvAPI_GetPhysicalGPUFromGPUID_pfn)NvAPI_QueryInterface   (0x5380AD1Au);
     NvAPI_GetGPUIDFromPhysicalGPU =
       (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
+
+    NvAPI_Disp_SetDitherControl =
+      (NvAPI_Disp_SetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_SetDitherControl);
+    NvAPI_Disp_GetDitherControl =
+      (NvAPI_Disp_GetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_GetDitherControl);
 
     if (NvAPI_GPU_GetRamType == nullptr) {
       dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");

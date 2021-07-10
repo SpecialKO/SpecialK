@@ -1,4 +1,4 @@
-﻿3/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1663,30 +1663,49 @@ SK_D3D11_CopyResource_Impl (
   //
   if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    SK_ComQIPtr <ID3D11Texture2D> pTexDst (pDstResource);
-    SK_ComQIPtr <ID3D11Texture2D> pTexSrc (pSrcResource);
+    SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
+    SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
 
     D3D11_TEXTURE2D_DESC dst_desc = { };
     D3D11_TEXTURE2D_DESC src_desc = { };
 
-    pTexSrc->GetDesc (&src_desc);
-    pTexDst->GetDesc (&dst_desc);
+    pSrcTex->GetDesc (&src_desc);
+    pDstTex->GetDesc (&dst_desc);
 
     if (src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && src_desc.Format != dst_desc.Format)
     {
-      static bool warned_once = false;
-      if (! std::exchange (warned_once, true))
+      extern bool SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex);
+
+      if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
       {
-        SK_ImGui_Warning (
-          SK_FormatStringW (
-            L"HDR Format Mismatch During CopyResource: Src=%ws, Dst=%ws",
-              SK_DXGI_FormatToStr (src_desc.Format).c_str (),
-              SK_DXGI_FormatToStr (dst_desc.Format).c_str ()
-          ).c_str ()
-        );
+        if (config.system.log_level > 0)
+        {
+          static bool          warned_once = false;
+          if (! std::exchange (warned_once, true))
+          {
+            SK_ImGui_Warning (
+              SK_FormatStringW (
+                L"HDR Format Mismatch During CopyResource: Src=%ws, Dst=%ws",
+                  SK_DXGI_FormatToStr (src_desc.Format).c_str (),
+                  SK_DXGI_FormatToStr (dst_desc.Format).c_str ()
+              ).c_str ()
+            );
+          }
+        }
+
+        return;
       }
 
-      return;
+      else if (config.system.log_level > 0)
+      {
+        static bool          warned_once = false;
+        if (! std::exchange (warned_once, true))
+        {
+          SK_ImGui_Warning (
+            L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
+          );
+        }
+      }
     }
   }
 
@@ -2263,13 +2282,39 @@ const
     }
   }
 
-  if (   vertex.blacklist.find (current_vs) !=   vertex.blacklist.cend () ||
-          pixel.blacklist.find (current_ps) !=    pixel.blacklist.cend () ||
-       geometry.blacklist.find (current_gs) != geometry.blacklist.cend () ||
-           hull.blacklist.find (current_hs) !=     hull.blacklist.cend () ||
-         domain.blacklist.find (current_ds) !=   domain.blacklist.cend ()  )
+  SK_GetFramesDrawn ();
+
+
+  struct filter_cache_s {
+    ULONG64 ulLastFrame = 0;
+    size_t  count       = 0;
+  };
+
+  static filter_cache_s blacklist_cache;
+  static filter_cache_s on_top_cache;
+  static filter_cache_s wireframe_cache;
+
+  ULONG64 ulThisFrame =
+    SK_GetFramesDrawn ();
+
+  if (blacklist_cache.ulLastFrame != ulThisFrame)
+  {   blacklist_cache.ulLastFrame  = ulThisFrame;
+      blacklist_cache.count =
+    vertex.blacklist.size   () + pixel.blacklist.size () +
+    geometry.blacklist.size () + hull.blacklist.size  () +
+    domain.blacklist.size   ();
+  }
+
+  if ( blacklist_cache.count > 0 )
   {
-    return Skipped;
+    if (   vertex.blacklist.find (current_vs) !=   vertex.blacklist.cend () ||
+            pixel.blacklist.find (current_ps) !=    pixel.blacklist.cend () ||
+         geometry.blacklist.find (current_gs) != geometry.blacklist.cend () ||
+             hull.blacklist.find (current_hs) !=     hull.blacklist.cend () ||
+           domain.blacklist.find (current_ds) !=   domain.blacklist.cend ()  )
+    {
+      return Skipped;
+    }
   }
 
   static auto& Textures_2D =
@@ -2347,12 +2392,23 @@ const
 
   bool has_overrides = false;
 
-  if (!      on_top)                              on_top   = (
-      vertex.on_top.find (current_vs) !=   vertex.on_top.cend () ||
-       pixel.on_top.find (current_ps) !=    pixel.on_top.cend () ||
-    geometry.on_top.find (current_gs) != geometry.on_top.cend () ||
-        hull.on_top.find (current_hs) !=     hull.on_top.cend () ||
-      domain.on_top.find (current_ds) !=   domain.on_top.cend () );
+  if (on_top_cache.ulLastFrame != ulThisFrame)
+  {   on_top_cache.ulLastFrame  = ulThisFrame;
+      on_top_cache.count =
+    vertex.on_top.size   () + pixel.on_top.size () +
+    geometry.on_top.size () + hull.on_top.size  () +
+    domain.on_top.size   ();
+  }
+
+  if ( on_top_cache.count > 0 )
+  {
+    if (!      on_top)                              on_top   = (
+        vertex.on_top.find (current_vs) !=   vertex.on_top.cend () ||
+         pixel.on_top.find (current_ps) !=    pixel.on_top.cend () ||
+      geometry.on_top.find (current_gs) != geometry.on_top.cend () ||
+          hull.on_top.find (current_hs) !=     hull.on_top.cend () ||
+        domain.on_top.find (current_ds) !=   domain.on_top.cend () );
+  }
 
   if (on_top)
   {
@@ -2405,13 +2461,23 @@ const
     }
   }
 
+  if (wireframe_cache.ulLastFrame != ulThisFrame)
+  {   wireframe_cache.ulLastFrame  = ulThisFrame;
+      wireframe_cache.count =
+    vertex.wireframe.size   () + pixel.wireframe.size () +
+    geometry.wireframe.size () + hull.wireframe.size  () +
+    domain.wireframe.size   ();
+  }
 
-  if (!      wireframe)                              wireframe   = (
-      vertex.wireframe.find (current_vs) !=   vertex.wireframe.cend () ||
-       pixel.wireframe.find (current_ps) !=    pixel.wireframe.cend () ||
-    geometry.wireframe.find (current_gs) != geometry.wireframe.cend () ||
-        hull.wireframe.find (current_hs) !=     hull.wireframe.cend () ||
-      domain.wireframe.find (current_ds) !=   domain.wireframe.cend () );
+  if ( wireframe_cache.count > 0 )
+  {
+    if (!      wireframe)                              wireframe   = (
+        vertex.wireframe.find (current_vs) !=   vertex.wireframe.cend () ||
+         pixel.wireframe.find (current_ps) !=    pixel.wireframe.cend () ||
+      geometry.wireframe.find (current_gs) != geometry.wireframe.cend () ||
+          hull.wireframe.find (current_hs) !=     hull.wireframe.cend () ||
+        domain.wireframe.find (current_ds) !=   domain.wireframe.cend () );
+  }
 
   if (wireframe)
   {
@@ -3399,7 +3465,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 #endif
     // -------------------------------------------------------
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_TLS *pTLS  = nullptr;
@@ -3560,7 +3626,7 @@ SK_D3D11_DrawIndexed_Impl (
   }
   //------
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // Render-state tracking needs to be forced-on for the
@@ -4195,8 +4261,8 @@ D3D11Dev_CreateTexture2D_Impl (
                     LPVOID                   lpCallerAddr,
                     SK_TLS                  *pTLS )
 {
-  auto& rb =
-      SK_GetCurrentRenderBackend ();
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <ID3D11Device>        pDev    (This);
   SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
@@ -6831,6 +6897,19 @@ D3D11CreateDevice_Detour (
 
   auto& pTLS_d3d11 =
     pTLS->d3d11.get ();
+
+
+  // Optionally Enable Debug Layer
+  if (ReadAcquire (&__d3d11_ready) != 0)
+  {
+    if (config.render.dxgi.debug_layer && (! (Flags & D3D11_CREATE_DEVICE_DEBUG)))
+    {
+      SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
+                  __SK_SUBSYSTEM__ );
+      Flags |= D3D11_CREATE_DEVICE_DEBUG;
+    }
+  }
+
 
   if (pTLS_d3d11.skip_d3d11_create_device)
   {

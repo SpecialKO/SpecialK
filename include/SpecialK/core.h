@@ -61,7 +61,7 @@ enum class SK_RenderAPI
   GlideOn11 = 0x8040u,
 };
 
-enum DLL_ROLE
+typedef enum DLL_ROLE : unsigned
 {
   INVALID    = 0x000,
 
@@ -95,7 +95,7 @@ enum DLL_ROLE
   ThirdParty = 0x80000000,
 
   DWORDALIGN = MAXDWORD
-};
+} DLL_ROLE;
 
 bool SK_API_IsDXGIBased   (SK_RenderAPI api);
 bool SK_API_IsGDIBased    (SK_RenderAPI api);

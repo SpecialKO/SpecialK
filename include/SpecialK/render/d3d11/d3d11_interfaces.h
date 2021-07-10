@@ -113,6 +113,8 @@
 #include <d3d11_3.h>
 #include <d3d11_4.h>
 
+#define __D3DX11TEX_H__
+
 //#include <../depends/include/DXSDK/D3DX11.h>
 //#include <../depends/include/DXSDK/D3DX11tex.h>
 

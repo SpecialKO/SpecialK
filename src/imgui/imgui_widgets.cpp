@@ -4705,7 +4705,7 @@ bool ImGui::ColorButton (const char* desc_id, const ImVec4& col, ImGuiColorEditF
   else
   {
     // Because GetColorU32() multiplies by the global style Alpha and we don't want to display a checkerboard if the source code had no alpha
-    ImColor col_source = (flags & ImGuiColorEditFlags_AlphaPreview) ? col_rgb : col_rgb_without_alpha;
+    ImColor col_source = (flags & ImGuiColorEditFlags_AlphaPreview) ? col_rgb : col_rgb_without_alpha.Value;
     if (col_source.Value.w < 1.0f)
       RenderColorRectWithAlphaCheckerboard (bb_inner.Min, bb_inner.Max, col_source, grid_step, ImVec2 (off, off), rounding);
     else

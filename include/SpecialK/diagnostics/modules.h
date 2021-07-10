@@ -106,7 +106,6 @@ GetProcessMemoryInfo
 };
 #endif
 
-
 __inline
 SK_Thread_HybridSpinlock*
 SK_DLL_LoaderLockGuard (void) noexcept
@@ -251,7 +250,7 @@ public:
   {
     return
       reinterpret_cast <_T> (
-        SK_GetProcAddress (
+        /*SK_*/::GetProcAddress (
           hMod_, szFunc
         )
       );

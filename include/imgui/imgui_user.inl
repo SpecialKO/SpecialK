@@ -338,16 +338,17 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             USHORT VKey =
               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
+
+            // Only filter keydown message, not key releases
+            if (SK_ImGui_WantKeyboardCapture ())
+            {
+              if (VKey & 0xF8) // Valid Keys:  8 - 255
+                filter = true;
+            }
+
+
             if (SK_ImGui_IsMouseRelevant ())
             {
-              // Only filter keydown message, not key releases
-              if (SK_ImGui_WantKeyboardCapture ())
-              {
-                if (VKey & 0xF8) // Valid Keys:  8 - 255
-                  filter = true;
-              }
-
-
               if (SK_ImGui_WantMouseCapture ())
               {
                 // That's actually a mouse button...
@@ -399,14 +400,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
             {
               pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
             }
 
             switch (((RAWINPUT *) pData)->data.keyboard.Message)
             {
               case WM_KEYDOWN:
               case WM_SYSKEYDOWN:
-                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
                 break;
 

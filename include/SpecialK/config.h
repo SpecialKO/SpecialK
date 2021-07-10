@@ -31,6 +31,7 @@
 #include <intsafe.h>
 
 #include <SpecialK/render/backend.h>
+#include <SpecialK/window.h>
 
 struct SK_Keybind
 {
@@ -362,7 +363,7 @@ struct sk_config_t
       } rescan_;
       int     refresh_denom      =     1;
       int     pin_render_thread  =    -1;
-      bool    flip_discard       = false;
+      bool    flip_discard       =  true; // Enabled by default (7/6/21)
       bool    flip_sequential    = false;
       bool    disable_flip       = false;
       bool    drop_late_flips    =  true;
@@ -529,7 +530,7 @@ struct sk_config_t
     struct cursor_s {
       int     timeout             = 1500UL;
       bool    manage              =  false;
-      bool    keys_activate       =   true;
+      bool    keys_activate       =  false;
     } cursor;
 
     struct ui_s {
@@ -623,6 +624,7 @@ struct sk_config_t
     bool    borderless          = false;
     bool    border_override     = false;
     bool    center              = false;
+    int     zband               = ZBID_DESKTOP;
     struct offset_s {
       struct coordinate_s {
       int   absolute            = 0;
@@ -656,17 +658,18 @@ struct sk_config_t
 
   struct dpi_s {
     struct awareness_s{
-      bool   aware                = false;
-      bool   aware_on_all_threads = false;
+      bool   aware                = true;
+      bool   aware_on_all_threads = true;
     } per_monitor;
-    bool     disable_scaling      = false;
+    bool     disable_scaling      = true;
   } dpi;
 
   struct compatibility_s {
-    bool     rehook_loadlibrary    = false;
-    bool     disable_nv_bloat      = false;
-    bool     init_while_suspended  =  true;
-    bool     impersonate_debugger  = false; // Can disable games' crash handlers
+    bool     rehook_loadlibrary     = false;
+    bool     disable_nv_bloat       = false;
+    bool     init_while_suspended   =  true;
+    bool     impersonate_debugger   = false; // Can disable games' crash handlers
+    bool     disable_debug_features = false;
   } compatibility;
 
   struct apis_s {
@@ -985,6 +988,8 @@ enum class SK_GAME_ID
   Persona5Strikers,             // P5S/game.exe
   NieR_Sqrt_1_5,                // NieR Replicant ver.1.22474487139.exe
   ResidentEvil8,                // re8.exe
+  LegendOfMana,                 // Legend Of Mana.exe
+  MonsterHunterStories2,        // game.exe (fantastic)
   UNKNOWN_GAME               = 0xffff
 };
 

@@ -966,8 +966,12 @@ SK_CPU_IsZen (bool retest/* = false*/)
     // May still be a Ryzen chip, just with unknown offsets
     if (! is_zen)
     {
-      if ( InstructionSet::Model  () == 0x01 &&
-           InstructionSet::Family () == 0x0f )
+      if ( InstructionSet::Family () == 0x0f &&
+          (InstructionSet::Model  () == 0x00 || // Mainstream
+           InstructionSet::Model  () == 0x01 || // HEDT
+           InstructionSet::Model  () == 0x07 || // Xbox Series X
+           InstructionSet::Model  () == 0x08)   // Mobile APU
+         )
       {
         is_zen = 1;
       }

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#define _CRT_NON_CONFORMING_WCSTOK
+//#define _CRT_NON_CONFORMING_WCSTOK
 //#define WIN32_LEAN_AND_MEAN
 
 #include "targetver.h"

@@ -1031,8 +1031,33 @@ sk_imgui_cursor_s SK_ImGui_Cursor;
 
 HCURSOR GetGameCursor (void);
 
+#if 0
+bool
+SK_ImGui_IsMouseRelevantEx (void)
+{
+  // SK_ImGui_Visible is the full-blown config UI;
+  //   but we also have floating widgets that may capture mouse
+  //     input.
+  return config.input.mouse.disabled_to_game ||
+         ImGui::IsWindowHovered (
+                    ImGuiHoveredFlags_AnyWindow                      |
+                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem   |
+                    ImGuiHoveredFlags_AllowWhenBlockedByPopup
+                                )                                   ||
+         ImGui::IsAnyItemActive  () || ImGui::IsAnyItemFocused      ||
+         ImGui::IsAnyItemHovered ();
+      // ^^^ These are our floating widgets
+}
+
 bool
 SK_ImGui_IsMouseRelevant (void)
+{
+  return
+    ( SK_ImGui_IsMouseRelevantEx () || SK_ImGui_Active () || SK_ImGui_WantMouseCapture () );
+}
+#else
+bool
+SK_ImGui_IsMouseRelevantEx (void)
 {
   // SK_ImGui_Visible is the full-blown config UI;
   //   but we also have floating widgets that may capture mouse
@@ -1047,6 +1072,13 @@ SK_ImGui_IsMouseRelevant (void)
          ImGui::IsAnyItemHovered ();
       // ^^^ These are our floating widgets
 }
+
+bool
+SK_ImGui_IsMouseRelevant (void)
+{
+  return SK_ImGui_IsMouseRelevantEx ();
+}
+#endif
 
 void
 sk_imgui_cursor_s::update (void)
@@ -1406,7 +1438,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevant () && (game_window.active || SK_WantBackgroundRender ()))
+  if (SK_ImGui_IsMouseRelevantEx () && (game_window.active || SK_WantBackgroundRender ()))
   {
     static const auto& io =
       ImGui::GetIO ();
@@ -1916,15 +1948,35 @@ keybd_event_pfn keybd_event_Original = nullptr;
 void
 WINAPI
 keybd_event_Detour (
-    _In_ BYTE bVk,
-    _In_ BYTE bScan,
-    _In_ DWORD dwFlags,
-    _In_ ULONG_PTR dwExtraInfo
-)
+  _In_ BYTE       bVk,
+  _In_ BYTE       bScan,
+  _In_ DWORD     dwFlags,
+  _In_ ULONG_PTR dwExtraInfo )
 {
   SK_LOG_FIRST_CALL
 
-  keybd_event_Original (bVk, bScan, dwFlags, dwExtraInfo);
+  // TODO: Process this the right way...
+  if (SK_ImGui_WantKeyboardCapture ())
+  {
+    return;
+  }
+
+  keybd_event_Original (
+    bVk, bScan, dwFlags, dwExtraInfo
+  );
+}
+
+void
+WINAPI
+SK_keybd_event (
+  _In_ BYTE       bVk,
+  _In_ BYTE       bScan,
+  _In_ DWORD     dwFlags,
+  _In_ ULONG_PTR dwExtraInfo )
+{
+  ( keybd_event_Original != nullptr )                         ?
+    keybd_event_Original ( bVk, bScan, dwFlags, dwExtraInfo ) :
+    keybd_event          ( bVk, bScan, dwFlags, dwExtraInfo ) ;
 }
 
 VOID
@@ -1939,14 +1991,29 @@ mouse_event_Detour (
 {
   SK_LOG_FIRST_CALL
 
-// TODO: Process this the right way...
-
-  if (SK_ImGui_IsMouseRelevant ())
+  // TODO: Process this the right way...
+  if (SK_ImGui_WantMouseCapture ())
   {
     return;
   }
 
-  mouse_event_Original (dwFlags, dx, dy, dwData, dwExtraInfo);
+  mouse_event_Original (
+    dwFlags, dx, dy, dwData, dwExtraInfo
+  );
+}
+
+VOID
+WINAPI
+SK_mouse_event (
+  _In_ DWORD     dwFlags,
+  _In_ DWORD     dx,
+  _In_ DWORD     dy,
+  _In_ DWORD     dwData,
+  _In_ ULONG_PTR dwExtraInfo )
+{
+  ( mouse_event_Original != nullptr )                             ?
+    mouse_event_Original ( dwFlags, dx, dy, dwData, dwExtraInfo ) :
+    mouse_event          ( dwFlags, dx, dy, dwData, dwExtraInfo ) ;
 }
 
 

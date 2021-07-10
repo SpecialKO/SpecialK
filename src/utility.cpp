@@ -4159,7 +4159,7 @@ SK_GetHostAppUtil (void)
 
 const wchar_t*
 __stdcall
-SK_GetCanonicalDLLForRole (enum DLL_ROLE role)
+SK_GetCanonicalDLLForRole (DLL_ROLE role)
 {
   switch (role)
   {

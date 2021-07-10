@@ -5079,6 +5079,8 @@ HookD3D9 (LPVOID user)
     return 0;
   }
 
+  if (! Direct3DCreate9_Import)
+    return 0;
 
   static volatile LONG __hooked = FALSE;
 
@@ -5170,7 +5172,8 @@ HookD3D9 (LPVOID user)
         pTLS->d3d9->ctx_init_thread    = FALSE;
         pTLS->d3d9->ctx_init_thread_ex = TRUE;
 
-        hr = (config.apis.d3d9ex.hook) ?
+        hr = (config.apis.d3d9ex.hook &&
+          Direct3DCreate9Ex_Import != nullptr) ?
           Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
                            :
                       E_NOINTERFACE;

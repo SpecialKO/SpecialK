@@ -1464,11 +1464,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       game_debug->init (L"logs/game_output.log", L"w");
       game_debug->lockless = true;
 
-      SK_Thread_Create ([](LPVOID) -> DWORD
+      SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
-        SetCurrentThreadDescription (                         L"[SK] Init Cleanup"    );
-        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
-        SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                    );
+        SetThreadPriority      ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST );
+        SetThreadPriorityBoost ( SK_GetCurrentThread (), TRUE                    );
 
         WaitForInit           ();
 
@@ -1492,7 +1491,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_Thread_CloseSelf   ();
 
         return 0;
-      });
+      }, L"[SK] Init Cleanup");
     }
   }
 

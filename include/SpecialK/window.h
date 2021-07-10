@@ -31,6 +31,38 @@
 #undef CallWindowProc
 #undef DefWindowProc
 
+enum ZBID
+{
+	ZBID_DEFAULT                  = 0,  // (??)
+	ZBID_DESKTOP                  = 1,  // Lives in boring town with most other apps
+
+  ZBID_UIACCESS                 = 2,  // Above EVERYTHING (?!)
+
+	ZBID_IMMERSIVE_IHM            = 3,  // Above Xbox Game Bar
+	ZBID_IMMERSIVE_NOTIFICATION   = 4,  // Above Xbox Game Bar + Notifications
+
+	ZBID_IMMERSIVE_APPCHROME      = 5,  // Above ...?
+	ZBID_IMMERSIVE_MOGO           = 6,  // Above ...?
+
+	ZBID_IMMERSIVE_EDGY           = 7,  // Above Xbox Game Bar
+
+	ZBID_IMMERSIVE_INACTIVEMOBODY = 8,  // [ Windows Fullscreen Optimization Band ]
+
+	ZBID_IMMERSIVE_INACTIVEDOCK   = 9,  // Above ...?
+	ZBID_IMMERSIVE_ACTIVEMOBODY   = 10, // Above ...?
+	ZBID_IMMERSIVE_ACTIVEDOCK     = 11, // Above ...?
+	ZBID_IMMERSIVE_BACKGROUND     = 12, // Above ...?
+	ZBID_IMMERSIVE_SEARCH         = 13, // Above ...?
+
+	ZBID_SYSTEM_TOOLS             = 16, // Above XBox Game Bar
+	ZBID_LOCK                     = 17, // Above XBox Game Bar + Alt-Tab
+	ZBID_ABOVELOCK_UX             = 18, // Above XBox Game Bar + Alt-Tab
+
+  ZBID_GENUINE_WINDOWS          = 14, // Above Volume Overlay + Game Bar + Alt-Tab
+  ZBID_IMMERSIVE_RESTRICTED     = 15, // Above Volume Overlay + Game Bar + Alt-Tab
+};
+
+
 void SK_HookWinAPI        (void);
 void SK_InstallWindowHook (HWND hWnd);
 void SK_InitWindow        (HWND hWnd, bool fullscreen_exclusive = false);
@@ -601,5 +633,158 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd);
 
 extern void SK_Window_RepositionIfNeeded (void);
 void SKX_Window_EstablishRoot     (void);
+
+using  GetWindowBand_pfn = BOOL (WINAPI *)(HWND hWnd, PDWORD pdwBand);
+extern GetWindowBand_pfn
+       GetWindowBand;
+
+using SetWindowBand_pfn =
+  BOOL (WINAPI *)(HWND  hWnd,
+                  HWND  hwndInsertAfter,
+                  DWORD dwBand);
+extern SetWindowBand_pfn
+       SetWindowBand;
+
+extern HWND SK_Inject_GetExplorerWindow   (void);
+extern UINT SK_Inject_GetExplorerRaiseMsg (void);
+extern UINT SK_Inject_GetExplorerLowerMsg (void);
+
+static
+auto TriggerStartMenu = [](void)
+{
+  HWND hWndStartMenu =
+    FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
+  //
+  //HWND hWndFocus = SK_GetFocus ();
+
+  DefWindowProcW ( game_window.hWnd, WM_SYSCOMMAND,
+                        SC_TASKLIST,   0 );
+
+  //DWORD dwOrigStyle =
+  //  GetWindowLongW (hWndStartMenu, GWL_STYLE);
+  //SetWindowLongW (  hWndStartMenu, GWL_STYLE, (dwOrigStyle & ~WS_VISIBLE) );
+
+  int tries = 0;
+
+  while (SK_GetForegroundWindow () == game_window.hWnd && ++tries < 10)
+    SK_SleepEx (33UL, FALSE);
+
+  if (IsWindow (hWndStartMenu))
+  {
+    SetFocus   (hWndStartMenu);
+
+    BYTE scan_code_ESC =
+      (BYTE)MapVirtualKey (VK_ESCAPE, 0);
+
+    extern void WINAPI
+      SK_keybd_event (
+        _In_ BYTE       bVk,
+        _In_ BYTE       bScan,
+        _In_ DWORD     dwFlags,
+        _In_ ULONG_PTR dwExtraInfo );
+
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, 0,               0);
+    SK_SleepEx (50UL, FALSE);
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, KEYEVENTF_KEYUP, 0);
+  }
+
+  if (! GetConsoleWindow ())
+  {
+    AllocConsole ();
+    SetWindowPos (GetConsoleWindow (), 0, 0, 0, 0, 0, SWP_NOZORDER);
+    FreeConsole  ();
+  }
+
+  extern VOID WINAPI
+  SK_mouse_event (
+    _In_ DWORD     dwFlags,
+    _In_ DWORD     dx,
+    _In_ DWORD     dy,
+    _In_ DWORD     dwData,
+    _In_ ULONG_PTR dwExtraInfo );
+
+  POINT             orig = { };
+  SK_GetCursorPos (&orig);
+
+  POINT                              activation_pos = { 32, 32 };
+  ClientToScreen (game_window.hWnd, &activation_pos);
+
+  if (SK_SetCursorPos (activation_pos.x, activation_pos.y))
+  {
+    SK_mouse_event (MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+    SK_SleepEx     (50UL, FALSE);
+    SK_mouse_event (MOUSEEVENTF_MIDDLEUP,   0, 0, 0, 0);
+
+    SK_SetCursorPos (orig.x, orig.y);
+  }
+
+  SK_RealizeForegroundWindow (game_window.hWnd);
+
+  //SetWindowLongW (hWndStartMenu, GWL_STYLE, dwOrigStyle);
+};
+
+
+
+#if 0
+  HWND hWndStartMenu =
+    FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
+
+  DefWindowProcW ( game_window.hWnd, WM_SYSCOMMAND,
+                        SC_TASKLIST,   0 );
+
+  SK_SleepEx (15UL, FALSE);
+
+  if (IsWindow          (hWndStartMenu)) {
+    ShowWindow          (hWndStartMenu, SW_SHOW);
+    SetForegroundWindow (hWndStartMenu);
+    BringWindowToTop    (hWndStartMenu);
+    SetFocus            (hWndStartMenu);
+
+    BYTE scan_code_ESC =
+      (BYTE)MapVirtualKey (VK_ESCAPE, 0);
+
+    extern void WINAPI
+      SK_keybd_event (
+        _In_ BYTE       bVk,
+        _In_ BYTE       bScan,
+        _In_ DWORD     dwFlags,
+        _In_ ULONG_PTR dwExtraInfo );
+
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, 0,               0);
+    SK_SleepEx     (5UL, FALSE);
+    SK_keybd_event (VK_ESCAPE, scan_code_ESC, KEYEVENTF_KEYUP, 0);
+  }
+
+  extern VOID WINAPI
+  SK_mouse_event (
+    _In_ DWORD     dwFlags,
+    _In_ DWORD     dx,
+    _In_ DWORD     dy,
+    _In_ DWORD     dwData,
+    _In_ ULONG_PTR dwExtraInfo );
+
+  POINT             orig = { };
+  SK_GetCursorPos (&orig);
+
+  POINT                              activation_pos = { 32, 32 };
+  ClientToScreen (game_window.hWnd, &activation_pos);
+
+  if (SK_SetCursorPos (activation_pos.x, activation_pos.y))
+  {
+    SK_mouse_event (MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+    SK_SleepEx     (5UL, FALSE);
+    SK_mouse_event (MOUSEEVENTF_MIDDLEUP,   0, 0, 0, 0);
+
+    SK_SetCursorPos (orig.x, orig.y);
+  }
+
+  if (! GetConsoleWindow ())
+  {
+    AllocConsole ();
+    SetWindowPos (GetConsoleWindow (), 0, 0, 0, 0, 0, SWP_NOZORDER);
+    FreeConsole  ();
+  }
+  SetForegroundWindow (game_window.hWnd);
+#endif
 
 #endif /* __SK__WINDOW_H__ */

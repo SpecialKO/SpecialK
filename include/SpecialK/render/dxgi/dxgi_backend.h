@@ -30,6 +30,7 @@
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/d3d11/d3d11_interfaces.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <dxgidebug.h>
 
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
@@ -488,5 +489,11 @@ void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
 void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
 
 void SK_DXGI_UpdateSwapChain (IDXGISwapChain* This);
+
+
+HRESULT SK_DXGI_GetDebugInterface (REFIID riid, void** ppDebug);
+HRESULT SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSAGE_SEVERITY severity);
+HRESULT SK_DXGI_ReportLiveObjects (IUnknown* pDev = nullptr);
+
 
 #endif /* __SK__DXGI_BACKEND_H__ */

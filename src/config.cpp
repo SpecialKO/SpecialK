@@ -136,6 +136,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"HuniePop 2 - Double Date.exe"),           SK_GAME_ID::HuniePop2                    },
       { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                },
       { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
+      { hash_lower (L"Legend of Mana.exe"),                     SK_GAME_ID::LegendOfMana                 },
     };
 
     first_check = false;
@@ -189,6 +190,42 @@ SK_GetCurrentGameID (void)
           config.input.keyboard.override_alt_f4    = true;
           config.input.keyboard.catch_alt_f4       = true;
           config.window.background_render          = true;
+        }
+
+        else
+        {
+          // Monster Hunter Stories 2
+          if (app_id == 1277400 ||
+              app_id == 1412570)
+          {
+            current_game = SK_GAME_ID::MonsterHunterStories2;
+
+            config.apis.d3d9.hook                 = false;
+            config.apis.d3d9ex.hook               = false;
+
+            config.input.keyboard.catch_alt_f4    = true;
+            config.input.keyboard.override_alt_f4 = true;
+            config.window.borderless              = true;
+
+            // CAPCOM anti-tamper workarounds
+            config.window.dont_hook_wndproc   = true;
+          //config.steam.silent               = true;
+            config.steam.silent               =
+              !( PathFileExistsW ( L"steam_api64.dll" )
+              && CopyFile        ( L"steam_api64.dll",
+                                L"kaldaien_api64.dll", FALSE )
+               );
+
+            if (! config.steam.silent )
+            {     config.steam.auto_inject         =    true;
+                  config.steam.auto_pump_callbacks =    true;
+                  config.steam.force_load_steamapi =    true;
+                  config.steam.init_delay          =       1;
+                  config.steam.appid               =  app_id;
+                  config.steam.dll_path            =
+                                       L"kaldaien_api64.dll";
+            }else config.steam.dll_path            =     L"";
+          }
         }
       }
     }
@@ -2055,13 +2092,13 @@ auto DeclKeybind =
       {
         if (! IsProcessDPIAware ())
         {
-          void SK_Display_ForceDPIAwarenessUsingAppCompat (void);
-               SK_Display_ForceDPIAwarenessUsingAppCompat ();
+          void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+               SK_Display_ForceDPIAwarenessUsingAppCompat (true);
 
           void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
                SK_Display_SetMonitorDPIAwareness (false);
 
-          // Oly do this for Steam games, the Microsoft Store Yakuza games
+          // Only do this for Steam games, the Microsoft Store Yakuza games
           //   are chronically DPI unaware and broken
           if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
             SK_RestartGame ();
@@ -2113,8 +2150,8 @@ auto DeclKeybind =
       {
         if (! IsProcessDPIAware ())
         {
-          void SK_Display_ForceDPIAwarenessUsingAppCompat (void);
-               SK_Display_ForceDPIAwarenessUsingAppCompat ();
+          void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+               SK_Display_ForceDPIAwarenessUsingAppCompat (true);
 
           void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
                SK_Display_SetMonitorDPIAwareness (false);
@@ -2314,6 +2351,36 @@ auto DeclKeybind =
         config.apis.d3d9.hook                        = false;
         config.textures.cache.ignore_nonmipped       =  true;
       } break;
+
+      case SK_GAME_ID::LegendOfMana:
+      {
+        config.render.framerate.sleepless_window     =  true;
+        config.render.framerate.sleepless_render     =  true;
+
+        config.render.framerate.buffer_count         =     3;
+        config.render.framerate.swapchain_wait       =     1;
+        config.render.framerate.pre_render_limit     =     2;
+
+        config.render.framerate.flip_discard         =  true;
+        config.render.framerate.target_fps           =    60;
+
+        config.dpi.disable_scaling                   =  true;
+        config.dpi.per_monitor.aware                 =  true;
+        config.dpi.per_monitor.aware_on_all_threads  =  true;
+
+        SK_InjectMemory ( (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x29A230),
+                            "\x90\x90",
+                              2,
+                                PAGE_EXECUTE_READWRITE );
+
+        // Disable GPU power saving mode using Reflex, otherwise game stutters
+        //
+        config.nvidia.sleep.enable                   =  true;
+        config.nvidia.sleep.enforcement_site         =     2;
+        config.nvidia.sleep.low_latency              =  true;
+        config.nvidia.sleep.low_latency_boost        =  true;
+      } break;
+
 
       // You knowe it's a bad port when it requires all of these overrides (!!)
       case SK_GAME_ID::NieR_Sqrt_1_5:

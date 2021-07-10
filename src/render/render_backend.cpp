@@ -1154,7 +1154,7 @@ sk_hwnd_cache_s::getDevCaps (void)
 
         DISPLAYCONFIG_PATH_INFO *pOutput = nullptr;
 
-        for (auto idx = 0; idx < uiNumPaths; ++idx)
+        for (auto idx = 0U; idx < uiNumPaths; ++idx)
         {
           auto *path =
             &pathArray [idx];
@@ -1693,8 +1693,6 @@ typedef HRESULT               (WINAPI* GetDpiForMonitor_pfn)            (HMONITO
 // User32.lib + dll, Windows 10 v1607 (Creators Update)
 typedef DPI_AWARENESS_CONTEXT (WINAPI* SetThreadDpiAwarenessContext_pfn)(DPI_AWARENESS_CONTEXT);
 
-static thread_local std::stack <DPI_AWARENESS_CONTEXT> dpi_ctx_stack;
-
 using GetThreadDpiAwarenessContext_pfn  =
                          DPI_AWARENESS_CONTEXT (WINAPI *)(void);
 
@@ -1842,23 +1840,26 @@ SK_Display_PushDPIScaling (void)
   if (dpi_ctx == nullptr)
     return;
 
-  dpi_ctx_stack.push (dpi_ctx);
+  SK_TLS_Bottom ()->scratch_memory->dpi.dpi_ctx_stack.push (dpi_ctx);
 }
 
 void
 SK_Display_PopDPIScaling (void)
 {
-  if (! dpi_ctx_stack.empty ())
+  auto &dpi_stack =
+    SK_TLS_Bottom ()->scratch_memory->dpi.dpi_ctx_stack;
+
+  if (! dpi_stack.empty ())
   {
     SK_Display_SetThreadDpiAwarenessContext (
-      dpi_ctx_stack.top ()
+      dpi_stack.top ()
     );
 
-    dpi_ctx_stack.pop ();
+    dpi_stack.pop ();
   }
 }
 
-void SK_Display_ForceDPIAwarenessUsingAppCompat (void)
+void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
 {
   DWORD   dwProcessSize = MAX_PATH;
   wchar_t wszProcessName [MAX_PATH + 2] = { };
@@ -1888,11 +1889,51 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (void)
   if ( status == ERROR_SUCCESS &&
        hKey   != nullptr          )
   {
-    RegSetValueExW (
-      hKey, wszProcessName,
-        0, REG_SZ,
-          (BYTE *)L"HIGHDPIAWARE",
-             16 * sizeof (wchar_t) );
+    wchar_t             wszOrigKeyVal [2048] = { };
+    DWORD len = sizeof (wszOrigKeyVal) / 2;
+
+    RegGetValueW (
+      hKey, nullptr, wszProcessName, RRF_RT_REG_SZ,
+            nullptr,  wszOrigKeyVal, &len
+    );
+
+    wchar_t *pwszHIGHDPIAWARE =
+      StrStrIW (wszOrigKeyVal,     L"HIGHDPIAWARE");
+    wchar_t *pwszNextToken    =  pwszHIGHDPIAWARE + 13;
+
+    if ((! set) && pwszHIGHDPIAWARE != nullptr)
+    {
+      *pwszHIGHDPIAWARE  = L'\0';
+
+      std::wstring combined  = wszOrigKeyVal;
+                   combined += L" ";
+                   combined += pwszNextToken;
+
+      wcsncpy_s ( wszOrigKeyVal,           len,
+                  combined.c_str (), _TRUNCATE );
+
+      StrTrimW (wszOrigKeyVal, L" ");
+
+      RegSetValueExW (
+        hKey, wszProcessName,
+          0, REG_SZ,
+            (BYTE *)wszOrigKeyVal,
+               ( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t)
+      );
+    }
+
+    else if (set && pwszHIGHDPIAWARE == nullptr)
+    {
+      StrCatW  (wszOrigKeyVal, L" HIGHDPIAWARE");
+      StrTrimW (wszOrigKeyVal, L" ");
+
+      RegSetValueExW (
+        hKey, wszProcessName,
+          0, REG_SZ,
+            (BYTE *)wszOrigKeyVal,
+              ( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t)
+      );
+    }
 
     RegFlushKey (hKey);
     RegCloseKey (hKey);
@@ -1938,45 +1979,59 @@ SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10)
 }
 
 void
+SK_Display_ClearDPIAwareness (bool bOnlyIfWin10)
+{
+  if (SK_IsWindows10OrGreater ())
+  {
+    SK_Display_SetThreadDpiAwarenessContext (
+      DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+    );
+
+    return;
+  }
+
+  if (bOnlyIfWin10)
+    return;
+
+  if (SK_IsWindows8Point1OrGreater ())
+  {
+    if (shcore_dll == skWin32Module::Uninitialized)
+        shcore_dll  =
+          SK_Modules->LoadLibrary (L"shcore.dll");
+
+    static auto       SetProcessDpiAwarenessFn = shcore_dll.
+      GetProcAddress <SetProcessDpiAwareness_pfn>
+                    ("SetProcessDpiAwareness");
+
+    if (SetProcessDpiAwarenessFn != nullptr)
+    {
+      SetProcessDpiAwarenessFn (
+        PROCESS_DPI_UNAWARE
+      );
+
+      return;
+    }
+  }
+}
+
+void
 SK_Display_DisableDPIScaling (void)
 {
-  //DWORD   dwProcessSize = MAX_PATH;
-  //wchar_t wszProcessName [MAX_PATH + 2] = { };
-  //
-  //HANDLE hProc =
-  // SK_GetCurrentProcess ();
-  //
-  //QueryFullProcessImageName (
-  //  hProc, 0,
-  //    wszProcessName, &dwProcessSize
-  //);
-  //
-  //const wchar_t* wszKey        =
-  //  LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
-  //DWORD          dwDisposition = 0x00;
-  //HKEY           hKey          = nullptr;
-  //
-  //const LSTATUS status =
-  //  RegCreateKeyExW ( HKEY_CURRENT_USER,
-  //                      wszKey,      0,
-  //                        nullptr, 0x0,
-  //                        KEY_READ | KEY_WRITE,
-  //                           nullptr,
-  //                             &hKey,
-  //                               &dwDisposition );
-  //
-  //if ( status == ERROR_SUCCESS &&
-  //     hKey   != nullptr          )
-  //{
-  //  RegSetValueExW (
-  //    hKey, wszProcessName,
-  //      0, REG_SZ,
-  //        (BYTE *)L"~ DPIUNAWARE",
-  //           16 * sizeof (wchar_t) );
-  //
-  //  RegFlushKey (hKey);
-  //  RegCloseKey (hKey);
-  //}
+  // Persistently disable DPI scaling problems so that initialization order doesn't matter
+  void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+       SK_Display_ForceDPIAwarenessUsingAppCompat (true);
+
+  if (! IsProcessDPIAware ())
+  {
+    void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+         SK_Display_SetMonitorDPIAwareness (false);
+
+    // Only do this for Steam games, the Microsoft Store Yakuza games
+    //   are chronically DPI unaware and broken
+    if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
+      SK_RestartGame ();
+  }
+
 
   if (SK_IsWindows10OrGreater ())
   {
@@ -2551,6 +2606,8 @@ SK_RenderBackend_V2::queueUpdateOutputs (void)
 void
 SK_RenderBackend_V2::updateOutputTopology (void)
 {
+  gsync_state.update (true);
+
   SK_Display_ResolutionSelectUI (true);
 
   SK_ComPtr <IDXGIAdapter> pAdapter;
@@ -2780,10 +2837,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                  )
              )
           {
-          //display.nvapi.display_handle = nvDisplayHandle;
-          //display.nvapi.gpu_handle     = nvGpuHandles [0];
-          //display.nvapi.output_id      = nvOutputId;
+            display.nvapi.display_handle = nvDisplayHandle;
+            display.nvapi.gpu_handle     = nvGpuHandles [0];
             display.nvapi.display_id     = nvDisplayId;
+            display.nvapi.output_id      = nvOutputId;
           }
         }
 
@@ -2807,10 +2864,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
         DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
 
-        for (auto idx = 0; idx < uiNumPaths; ++idx)
+        for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
         {
           auto *path =
-            &pathArray [idx];
+            &pathArray [pathIdx];
 
           if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
           {
@@ -2914,6 +2971,34 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           {
             wcsncpy_s ( display.name,                                   64,
                         getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
+          }
+        }
+
+        // Didn't get a name using the Windows APIs, let's fallback to EDID
+        if (*display.name == L'\0')
+        {
+          if (sk::NVAPI::nv_hardware)
+          {
+            NV_EDID edid = {         };
+                    edid.version = NV_EDID_VER;
+
+            std::string edid_name;
+
+            if ( NVAPI_OK ==
+                   NvAPI_GPU_GetEDID (
+                     display.nvapi.gpu_handle,
+                     display.nvapi.display_id, &edid
+                   )
+               )
+            {
+              edid_name =
+                parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+            }
+
+            if (! edid_name.empty ())
+            {
+              wsprintf (display.name, L"%hs", edid_name.c_str ());
+            }
           }
         }
 

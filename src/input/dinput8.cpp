@@ -165,7 +165,8 @@ DirectInput8Create ( HINSTANCE hinst,
            )
          )
       {
-        if (! IDirectInput8W_CreateDevice_Original)
+        if ((! IDirectInput8A_CreateDevice_Original) &&
+            (! IDirectInput8W_CreateDevice_Original))
         {
           void** vftable = *(void***)*ppvOut;
 
@@ -178,7 +179,8 @@ DirectInput8Create ( HINSTANCE hinst,
           SK_EnableHook (vftable [3]);
         }
 
-        if (! IDirectInput8W_EnumDevices_Original)
+        if ((! IDirectInput8A_EnumDevices_Original) &&
+            (! IDirectInput8W_EnumDevices_Original))
         {
           void** vftable = *(void***)*ppvOut;
 
@@ -190,7 +192,7 @@ DirectInput8Create ( HINSTANCE hinst,
           //MH_QueueEnableHook (vftable [4]);
           SK_EnableHook (vftable [4]);
         }
-        
+
         //SK_RunOnce (SK_ApplyQueuedHooks ());
       }
     }
@@ -205,7 +207,8 @@ DirectInput8Create ( HINSTANCE hinst,
            )
          )
       {
-        if (! IDirectInput8A_CreateDevice_Original)
+        if ((! IDirectInput8W_CreateDevice_Original) &&
+            (! IDirectInput8A_CreateDevice_Original))
         {
           void** vftable = *(void***)*ppvOut;
 
@@ -218,7 +221,8 @@ DirectInput8Create ( HINSTANCE hinst,
           SK_EnableHook (vftable [3]);
         }
 
-        if (! IDirectInput8A_EnumDevices_Original)
+        if ((! IDirectInput8W_EnumDevices_Original) &&
+            (! IDirectInput8A_EnumDevices_Original))
         {
           void** vftable = *(void***)*ppvOut;
 
@@ -226,7 +230,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                      vftable [4],
                                      IDirectInput8A_EnumDevices_Detour,
             static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
-          
+
           //MH_QueueEnableHook (vftable [4]);
           SK_EnableHook (vftable [4]);
         }
@@ -565,7 +569,7 @@ CoCreateInstanceEx_DI8 (
             //MH_QueueEnableHook (vftable [4]);
             SK_EnableHook (vftable [4]);
           }
-          
+
           //SK_RunOnce (SK_ApplyQueuedHooks ());
         }
 
@@ -1156,7 +1160,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
       }
-      
+
       else
         SK_DI8_VIEW (sk_input_dev_type::Gamepad);
     }
@@ -1198,7 +1202,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
       }
-      
+
       else
         SK_DI8_VIEW (sk_input_dev_type::Gamepad);
     }

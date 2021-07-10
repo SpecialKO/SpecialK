@@ -89,6 +89,10 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
   }
 } __ProdigalFramerateSon;
 
+extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
+extern NtSetTimerResolution_pfn   NtSetTimerResolution;
+extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
+
 void
 SK::Framerate::Init (void)
 {
@@ -132,10 +136,6 @@ SK::Framerate::Init (void)
 
     //if (! config.render.framerate.enable_mmcss)
     {
-      extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
-      extern NtSetTimerResolution_pfn   NtSetTimerResolution;
-      extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
-
       if ( NtQueryTimerResolution != nullptr &&
            NtSetTimerResolution   != nullptr )
       {
@@ -452,6 +452,8 @@ SK::Framerate::Limiter::try_wait (void)
 }
 
 
+////#define _RESTORE_TIMER_RES
+
 void
 SK::Framerate::Limiter::wait (void)
 {
@@ -468,6 +470,33 @@ SK::Framerate::Limiter::wait (void)
   //   longer than it should.
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
+
+
+
+
+  ULONG origTimerRes = 0,
+         maxTimerRes = 0,
+         minTimerRes = 0;
+
+  if (NtQueryTimerResolution != nullptr)
+  {
+    NtQueryTimerResolution ( &minTimerRes,
+                             &maxTimerRes,
+                             &origTimerRes );
+
+    if (origTimerRes != maxTimerRes)
+    {
+      static int
+        adjustments = 0;
+
+      ULONG                                              now;
+      NtSetTimerResolution_Original (maxTimerRes, TRUE, &now);
+
+      SK_LOG1 ( ( L"Timer Resolution Adjustment #%lu", ++adjustments ),
+                  L"FrameLimit" );
+    }
+  }
+
 
 
   SK_FPU_ControlWord fpu_cw_orig =
@@ -498,8 +527,16 @@ SK::Framerate::Limiter::wait (void)
     }
   }
 
-  if (tracks_window && __target_fps <= 0.0f) {
+  if (tracks_window && __target_fps <= 0.0f)
+  {
+#ifdef _RESTORE_TIMER_RES
+    if (NtSetTimerResolution_Original != nullptr &&
+                                       maxTimerRes    !=   origTimerRes)
+        NtSetTimerResolution_Original (maxTimerRes, TRUE, &origTimerRes);
+#endif
+
     SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
+
     return;
   }
 
@@ -659,7 +696,7 @@ SK::Framerate::Limiter::wait (void)
       LARGE_INTEGER liDelay;
                     liDelay.QuadPart =
                       static_cast <LONGLONG> (
-                        to_next_in_secs * 1000.0 - timer_res_ms * 0.45
+                        to_next_in_secs * 1000.0 - timer_res_ms
                                              );
 
         liDelay.QuadPart =
@@ -676,7 +713,7 @@ SK::Framerate::Limiter::wait (void)
           to_next_in_secs =
             std::max (0.0, SK_RecalcTimeToNextFrame ());
 
-          if (to_next_in_secs * 1000.0 <= timer_res_ms * 1.55)
+          if (to_next_in_secs * 1000.0 <= timer_res_ms * 2.5)
           {
             break;
           }
@@ -768,6 +805,15 @@ SK::Framerate::Limiter::wait (void)
     lazy_init = true;
          init (fps, tracks_window);
   }
+
+#ifdef _RESTORE_TIMER_RES
+  if (origTimerRes != maxTimerRes)
+  {
+    ULONG                                                   dontCare;
+    if (NtSetTimerResolution_Original != nullptr)
+        NtSetTimerResolution_Original (origTimerRes, TRUE, &dontCare);
+  }
+#endif
 
   SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 }

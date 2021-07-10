@@ -89,6 +89,7 @@
     <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(SolutionDir)\depends\lib</LibraryPath>
     <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Special K\</OutDir>
     <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
+    <MultiProcFXC>true</MultiProcFXC>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -98,6 +99,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(UniversalCRT_IncludePath)</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib\CEGUI\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64</LibraryPath>
     <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
+    <MultiProcFXC>true</MultiProcFXC>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Special K\</OutDir>
@@ -163,12 +165,12 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <BrowseInformation>true</BrowseInformation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <ConformanceMode>false</ConformanceMode>
-      <ExpandAttributedSource>true</ExpandAttributedSource>
-      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
+      <ConformanceMode>true</ConformanceMode>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
       <ShowIncludes>false</ShowIncludes>
-      <AssemblerOutput>All</AssemblerOutput>
-      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
@@ -181,7 +183,7 @@
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <OutputFile>\\zilcho\Tales of Symphonia\d3d9.dll</OutputFile>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
@@ -196,14 +198,13 @@
       <ForceSymbolReferences>
       </ForceSymbolReferences>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <ShowProgress>LinkVerbose</ShowProgress>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <Profile>true</Profile>
-      <SetChecksum>false</SetChecksum>
+      <SetChecksum>true</SetChecksum>
     </Link>
     <ProjectReference />
     <Manifest>
@@ -220,6 +221,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+    <FxCompile>
+      <DisableOptimizations>false</DisableOptimizations>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -259,12 +263,12 @@
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <BrowseInformation>true</BrowseInformation>
-      <ConformanceMode>false</ConformanceMode>
-      <ExpandAttributedSource>true</ExpandAttributedSource>
-      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
+      <ConformanceMode>true</ConformanceMode>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
       <ShowIncludes>false</ShowIncludes>
-      <AssemblerOutput>All</AssemblerOutput>
-      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -277,7 +281,7 @@
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
       <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <DataExecutionPrevention>false</DataExecutionPrevention>
@@ -290,7 +294,6 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <ForceSymbolReferences>
       </ForceSymbolReferences>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
       <GenerateMapFile>true</GenerateMapFile>
       <MapExports>true</MapExports>
@@ -298,7 +301,7 @@
       <ShowProgress>LinkVerbose</ShowProgress>
       <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <Profile>true</Profile>
-      <SetChecksum>false</SetChecksum>
+      <SetChecksum>true</SetChecksum>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -318,6 +321,9 @@
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
     </ProjectReference>
+    <FxCompile>
+      <DisableOptimizations>false</DisableOptimizations>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -358,12 +364,13 @@
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <OmitFramePointers />
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -390,6 +397,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -419,6 +427,7 @@
     </ProjectReference>
     <FxCompile>
       <ShaderModel>5.1</ShaderModel>
+      <EnableDebuggingInformation>true</EnableDebuggingInformation>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -458,6 +467,10 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <SupportJustMyCode>false</SupportJustMyCode>
       <FloatingPointModel>Precise</FloatingPointModel>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <ConformanceMode>true</ConformanceMode>
+      <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -486,6 +499,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

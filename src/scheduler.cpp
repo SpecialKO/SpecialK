@@ -209,7 +209,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
           1, &__SK_DLL_TeardownEvent,
-            dwMaxWait, QS_ALLEVENTS,
+             dwMaxWait, QS_ALLEVENTS,
           bAlertable ? MWMO_ALERTABLE
                      : 0x0 );
 
@@ -1317,13 +1317,29 @@ NtSetTimerResolution_Detour
      (NtQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
      "NtQueryTimerResolution" );
 
+  static Concurrency::concurrent_unordered_map
+    < std::wstring, int > setters_;
+
+  int *pSetCount = nullptr;
+
+  if (SetResolution)
+  {
+    pSetCount =
+      &setters_ [SK_GetCallerName ()];
+
+    *pSetCount++;
+  }
+
   if (NtQueryTimerResolution != nullptr)
   {
     ULONG                    min,  max,  cur;
     NtQueryTimerResolution (&min, &max, &cur);
 
-    dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                     static_cast <float> (cur * 100)/1000000.0f );
+    if (pSetCount != nullptr && (*(pSetCount) % 100) == 1)
+    {
+      dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
+                       static_cast <float> (cur * 100)/1000000.0f );
+    }
 
     if (! SetResolution)
       ret = NtSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
@@ -1331,11 +1347,16 @@ NtSetTimerResolution_Detour
       ret = NtSetTimerResolution_Original (max, TRUE, CurrentResolution);
   }
 
-  SK_LOG0 ( ( L"NtSetTimerResolution (%f ms : %s) issued by %s",
-                (float)(DesiredResolution * 100) / 1000000.0,
-                            SetResolution ? L"Set" : L"Get",
-                                  SK_GetCallerName ().c_str () ),
-           L"Scheduler " );
+  if ((! pSetCount) || (*(pSetCount) % 100) == 1)
+  {
+    SK_LOG0 ( ( L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
+                  (float)(DesiredResolution * 100) / 1000000.0,
+                              SetResolution ? L"Set" : L"Get",
+                                    SK_GetCallerName ().c_str (),
+                                    pSetCount != nullptr ? *pSetCount
+                                                         :  0 ),
+             L"Scheduler " );
+  }
 
   return ret;
 }

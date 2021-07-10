@@ -496,7 +496,7 @@ SK_ETW_EndTracing (void)
   if (__SK_ETW_PresentMon_Thread != INVALID_HANDLE_VALUE)
   {
     DWORD dwWaitState =
-      WaitForSingleObject (__SK_ETW_PresentMon_Thread, 100);
+      WaitForSingleObject (__SK_ETW_PresentMon_Thread, 250);
 
     if (dwWaitState == WAIT_OBJECT_0)
     {
@@ -562,7 +562,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    target_frametime =
+    target_frametime = 1000.0f /
       rb.windows.device.getDevCaps ().res.refresh;
   }
 
@@ -991,13 +991,14 @@ SK_ImGui_DrawFramePercentiles (void)
 
     static char      p0_txt          [64] = { };
     std::string_view p0_view (p0_txt, 64);
-            int      p0_len      =
+         size_t      p0_len      =
       SK_FormatStringView ( p0_view,
                               "%3.1f%% Low FPS: %5.2f",
                                    percentile0.cutoff,
                                    percentile0.computed_fps );
 
-      p0_txt [std::max (0, std::min (64, p0_len))] = '\0';
+      p0_txt [ std::max ((size_t)0,
+               std::min ((size_t)64, p0_len)) ] = '\0';
 
     ImGui::SameLine       ( );
     ImGui::BeginGroup     ( );
@@ -1022,13 +1023,14 @@ SK_ImGui_DrawFramePercentiles (void)
 
         static char      p1_txt          [64] = { };
         std::string_view p1_view (p1_txt, 64);
-                int      p1_len      =
+             size_t      p1_len      =
         SK_FormatStringView ( p1_view,
                                 "%3.1f%% Low FPS: %5.2f",
                                   percentile1.cutoff,
                                   percentile1.computed_fps );
 
-      p1_txt [std::max (0, std::min (64, p1_len))] = '\0';
+      p1_txt [ std::max ((size_t)0,
+               std::min ((size_t)64, p1_len)) ] = '\0';
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram,
                               p1_color                 );

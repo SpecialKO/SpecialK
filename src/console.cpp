@@ -185,9 +185,6 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   if (! SK_GetFramesDrawn ())
     return TRUE;
 
-
-
-
   UNREFERENCED_PARAMETER (Alt);
 
   static const SHORT SK_ImGui_ToggleKeys [4] = {
@@ -204,6 +201,13 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     extern void SK_ImGui_Toggle (void);
 
     SK_ImGui_Toggle ();
+
+    if (IsWindow (game_window.hWnd))
+    {
+      ShowWindowAsync (game_window.hWnd, SW_SHOW);
+             SetFocus (game_window.hWnd);
+    }
+
     return FALSE;
   }
 
@@ -216,8 +220,8 @@ extern SHORT SK_ImGui_ToggleKeys [4];
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
-  if (! SK_IsGameWindowActive ())//game_window.active)
-    return true;
+  if (! vkCode) // No monkey business please
+    return false;
 
   static bool& visible = SK_Console::getInstance ()->visible;
   static BYTE* keys_   = SK_Console::getInstance ()->keys_;
@@ -235,17 +239,23 @@ SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
       // Then give any plug-ins a chance
       SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
 
-
-      // Finally, toggle the command console
-      if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
-           SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
-      {
-        visible = ! visible;
-
-        // This will pause/unpause the game
-        SK::SteamAPI::SetOverlayState (visible);
-
+      // Do not run the command console if the game window isn't active
+      if (! SK_IsGameWindowActive ())
         return true;
+
+      if (! SK_ImGui_Active ())
+      {
+        // Finally, toggle the command console
+        if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
+             SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
+        {
+          visible = ! visible;
+
+          // This will pause/unpause the game
+          SK::SteamAPI::SetOverlayState (visible);
+
+          return true;
+        }
       }
     }
 
@@ -272,6 +282,10 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
   //    state, allowing algorithms to use 0 to mean "don't care."
   keys_ [0] = TRUE;
 
+  // Disable the command console if the ImGui overlay is visible
+  if (SK_ImGui_Active ())
+    visible = false;
+
   if (! SK_IsSteamOverlayActive ())
   {
     // Proprietary HACKJOB:  lParam = MAXDWORD indicates a make/break event, not meant for text input
@@ -280,14 +294,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
       return (! SK_ImGui_ProcessKeyPress (vkCode));
     }
 
-
     BYTE scanCode = HIWORD (lParam) & 0x7F;
-
-
-    // Disable the command console if the ImGui overlay is visible
-    if (SK_ImGui_Active ())
-      visible = false;
-
 
     if (visible && vkCode == VK_BACK)
     {

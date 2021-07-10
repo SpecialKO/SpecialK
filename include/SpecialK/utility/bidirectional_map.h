@@ -23,6 +23,7 @@ struct IUnknown;
 #include <Unknwnbase.h>
 
 #include <SpecialK/SpecialK.h>
+#include <SpecialK/config.h>
 
 SK_INCLUDE_START_CPP (BIDIRECTIONAL_MAP)
 
@@ -149,7 +150,7 @@ public:
   inline typename std::unordered_map <_V, _K>::iterator
   begin_v (void)
   {
-    std::unordered_map <_V, _K>::iterator it;
+    typename std::unordered_map <_V, _K>::iterator it;
 
     if (! begin_ (&it))
     {
@@ -163,7 +164,7 @@ public:
   inline const typename std::unordered_map <_V, _K>::const_iterator
   cbegin_v (void) const
   {
-    std::unordered_map <_V, _K>::const_iterator it;
+    typename std::unordered_map <_V, _K>::const_iterator it;
 
     if (! cbegin_ (&it))
     {
@@ -177,7 +178,7 @@ public:
   inline typename std::unordered_map <_K, _V>::iterator
   begin_k (void)
   {
-    std::unordered_map <_K, _V>::iterator it;
+    typename std::unordered_map <_K, _V>::iterator it;
 
     if (! begin_ (&it))
     {
@@ -191,7 +192,7 @@ public:
   inline const typename std::unordered_map <_K, _V>::const_iterator
   cbegin_k (void) const
   {
-    std::unordered_map <_K, _V>::const_iterator it;
+    typename std::unordered_map <_K, _V>::const_iterator it;
 
     if (! cbegin_ (&it))
     {
@@ -256,7 +257,7 @@ public:
   inline typename std::unordered_map <_V, _K>::iterator
   end_v (void)
   {
-    std::unordered_map <_V, _K>::iterator it;
+    typename std::unordered_map <_V, _K>::iterator it;
 
     if (! end_ (&it))
     {
@@ -270,7 +271,7 @@ public:
   inline const typename std::unordered_map <_V, _K>::const_iterator
   cend_v (void) const
   {
-    std::unordered_map <_V, _K>::const_iterator it;
+    typename std::unordered_map <_V, _K>::const_iterator it;
 
     if (! cend_ (&it))
     {
@@ -285,7 +286,7 @@ public:
   inline typename std::unordered_map <_K, _V>::iterator
   end_k (void)
   {
-    std::unordered_map <_K, _V>::iterator it;
+    typename std::unordered_map <_K, _V>::iterator it;
 
     if (! end_ (&it))
     {
@@ -299,7 +300,7 @@ public:
   inline const typename std::unordered_map <_K, _V>::const_iterator
   cend_k (void) const
   {
-    std::unordered_map <_K, _V>::const_iterator it;
+    typename std::unordered_map <_K, _V>::const_iterator it;
 
     if (! cend_ (&it))
     {

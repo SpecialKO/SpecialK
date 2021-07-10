@@ -21,12 +21,13 @@
 
 #include <SpecialK/stdafx.h>
 
+#include <SpecialK/diagnostics/debug_utils.h>
+#include <winternl.h>
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
 #define __SK_SUBSYSTEM__ L"DebugUtils"
-
-#include <winternl.h>
 
 #pragma warning (push)
 #pragma warning (disable : 4714)
@@ -474,6 +475,9 @@ SteamAPI_ISteamInput_GetAnalogActionData_override (ISteamController *This, Contr
   return
     realGetAnalogActionData (This, controllerHandle, analogActionHandle);
 }
+
+// Steam overlay workaround
+//#define _PROC_ADDR_REHOOK_MESSAGE_PUMP 1
 
 FARPROC
 WINAPI
@@ -1686,266 +1690,6 @@ typedef void (NTAPI* RtlReleasePebLock_pfn)(void);
 static RtlAcquirePebLock_pfn RtlAcquirePebLock_Original = nullptr;
 static RtlReleasePebLock_pfn RtlReleasePebLock_Original = nullptr;
 
-typedef struct _API_SET_NAMESPACE
-{
-  ULONG Version;
-  ULONG Size;
-  ULONG Flags;
-  ULONG Count;
-  ULONG EntryOffset;
-  ULONG HashOffset;
-  ULONG HashFactor;
-} API_SET_NAMESPACE,
-*PAPI_SET_NAMESPACE;
-
-typedef struct _API_SET_HASH_ENTRY
-{
-  ULONG Hash;
-  ULONG Index;
-} API_SET_HASH_ENTRY,
-*PAPI_SET_HASH_ENTRY;
-
-typedef struct _API_SET_NAMESPACE_ENTRY
-{
-  ULONG Flags;
-  ULONG NameOffset;
-  ULONG NameLength;
-  ULONG HashedLength;
-  ULONG ValueOffset;
-  ULONG ValueCount;
-} API_SET_NAMESPACE_ENTRY,
-*PAPI_SET_NAMESPACE_ENTRY;
-
-typedef struct _API_SET_VALUE_ENTRY
-{
-  ULONG Flags;
-  ULONG NameOffset;
-  ULONG NameLength;
-  ULONG ValueOffset;
-  ULONG ValueLength;
-} API_SET_VALUE_ENTRY,
-*PAPI_SET_VALUE_ENTRY;
-
-#define GDI_HANDLE_BUFFER_SIZE32 34
-#define GDI_HANDLE_BUFFER_SIZE64 60
-#define GDI_HANDLE_BUFFER_SIZE   GDI_HANDLE_BUFFER_SIZE32
-
-typedef ULONG GDI_HANDLE_BUFFER   [GDI_HANDLE_BUFFER_SIZE  ];
-typedef ULONG GDI_HANDLE_BUFFER32 [GDI_HANDLE_BUFFER_SIZE32];
-typedef ULONG GDI_HANDLE_BUFFER64 [GDI_HANDLE_BUFFER_SIZE64];
-
-typedef struct _CURDIR
-{
-  UNICODE_STRING DosPath;
-  PVOID          Handle;
-} CURDIR,
-*PCURDIR;
-
-typedef struct _RTL_USER_PROCESS_PARAMETERS_SK
-{
-  ULONG          AllocationSize;
-  ULONG          Size;
-  ULONG          Flags;
-  ULONG          DebugFlags;
-  HANDLE         ConsoleHandle;
-  ULONG          ConsoleFlags;
-  HANDLE         hStdInput;
-  HANDLE         hStdOutput;
-  HANDLE         hStdError;
-  CURDIR         CurrentDirectory;
-  UNICODE_STRING DllPath;
-  UNICODE_STRING ImagePathName;
-  UNICODE_STRING CommandLine;
-  PWSTR          Environment;
-  ULONG          dwX;
-  ULONG          dwY;
-  ULONG          dwXSize;
-  ULONG          dwYSize;
-  ULONG          dwXCountChars;
-  ULONG          dwYCountChars;
-  ULONG          dwFillAttribute;
-  ULONG          dwFlags;
-  ULONG          wShowWindow;
-  UNICODE_STRING WindowTitle;
-  UNICODE_STRING Desktop;
-  UNICODE_STRING ShellInfo;
-  UNICODE_STRING RuntimeInfo;
-//RTL_DRIVE_LETTER_CURDIR DLCurrentDirectory[0x20]; // Don't care
-} SK_RTL_USER_PROCESS_PARAMETERS,
-*SK_PRTL_USER_PROCESS_PARAMETERS;
-
-volatile PVOID __SK_GameBaseAddr = nullptr;
-
-typedef struct _SK_PEB
-{
-  BOOLEAN                      InheritedAddressSpace;
-  BOOLEAN                      ReadImageFileExecOptions;
-  BOOLEAN                      BeingDebugged;
-  union
-  {
-    BOOLEAN                    BitField;
-    struct
-    {
-      BOOLEAN ImageUsesLargePages          : 1;
-      BOOLEAN IsProtectedProcess           : 1;
-      BOOLEAN IsImageDynamicallyRelocated  : 1;
-      BOOLEAN SkipPatchingUser32Forwarders : 1;
-      BOOLEAN IsPackagedProcess            : 1;
-      BOOLEAN IsAppContainer               : 1;
-      BOOLEAN IsProtectedProcessLight      : 1;
-      BOOLEAN IsLongPathAwareProcess       : 1;
-    };
-  };
-
-  HANDLE Mutant;
-
-  PVOID                        ImageBaseAddress;
-  PPEB_LDR_DATA                Ldr;
-SK_PRTL_USER_PROCESS_PARAMETERS
-                               ProcessParameters;
-  PVOID                        SubSystemData;
-  PVOID                        ProcessHeap;
-
-  PRTL_CRITICAL_SECTION        FastPebLock;
-
-  PVOID                        IFEOKey;
-  PSLIST_HEADER                AtlThunkSListPtr;
-  union
-  {
-    ULONG                      CrossProcessFlags;
-    struct
-    {
-      ULONG ProcessInJob               :  1;
-      ULONG ProcessInitializing        :  1;
-      ULONG ProcessUsingVEH            :  1;
-      ULONG ProcessUsingVCH            :  1;
-      ULONG ProcessUsingFTH            :  1;
-      ULONG ProcessPreviouslyThrottled :  1;
-      ULONG ProcessCurrentlyThrottled  :  1;
-      ULONG ProcessImagesHotPatched    :  1;
-      ULONG ReservedBits0              : 24;
-    };
-  };
-  union
-  {
-    PVOID               KernelCallbackTable;
-    PVOID               UserSharedInfoPtr;
-  };
-  ULONG                 SystemReserved;
-  ULONG                 AtlThunkSListPtr32;
-
-  PAPI_SET_NAMESPACE    ApiSetMap;
-
-  ULONG                 TlsExpansionCounter;
-  PVOID                 TlsBitmap;
-  ULONG                 TlsBitmapBits [2];
-
-  PVOID                 ReadOnlySharedMemoryBase;
-  PVOID                 SharedData;
-  PVOID                *ReadOnlyStaticServerData;
-
-  PVOID                 AnsiCodePageData;
-  PVOID                 OemCodePageData;
-  PVOID                 UnicodeCaseTableData;
-
-  ULONG                 NumberOfProcessors;
-  ULONG                 NtGlobalFlag;
-
-  ULARGE_INTEGER        CriticalSectionTimeout;
-  SIZE_T                HeapSegmentReserve;
-  SIZE_T                HeapSegmentCommit;
-  SIZE_T                HeapDeCommitTotalFreeThreshold;
-  SIZE_T                HeapDeCommitFreeBlockThreshold;
-
-  ULONG                 NumberOfHeaps;
-  ULONG                 MaximumNumberOfHeaps;
-  PVOID                *ProcessHeaps; // PHEAP
-
-  PVOID                 GdiSharedHandleTable;
-  PVOID                 ProcessStarterHelper;
-  ULONG                 GdiDCAttributeList;
-
-  PRTL_CRITICAL_SECTION LoaderLock;
-
-  ULONG                 OSMajorVersion;
-  ULONG                 OSMinorVersion;
-  USHORT                OSBuildNumber;
-  USHORT                OSCSDVersion;
-  ULONG                 OSPlatformId;
-  ULONG                 ImageSubsystem;
-  ULONG                 ImageSubsystemMajorVersion;
-  ULONG                 ImageSubsystemMinorVersion;
-  ULONG_PTR             ActiveProcessAffinityMask;
-  GDI_HANDLE_BUFFER     GdiHandleBuffer;
-  PVOID                 PostProcessInitRoutine;
-
-  PVOID                 TlsExpansionBitmap;
-  ULONG                 TlsExpansionBitmapBits [32];
-
-  ULONG                 SessionId;
-
-  ULARGE_INTEGER        AppCompatFlags;
-  ULARGE_INTEGER        AppCompatFlagsUser;
-  PVOID                 pShimData;
-  PVOID                 AppCompatInfo; // APPCOMPAT_EXE_DATA
-
-  UNICODE_STRING        CSDVersion;
-
-  PVOID                 ActivationContextData;              // ACTIVATION_CONTEXT_DATA
-  PVOID                 ProcessAssemblyStorageMap;          // ASSEMBLY_STORAGE_MAP
-  PVOID                 SystemDefaultActivationContextData; // ACTIVATION_CONTEXT_DATA
-  PVOID                 SystemAssemblyStorageMap;           // ASSEMBLY_STORAGE_MAP
-
-  SIZE_T                MinimumStackCommit;
-
-  PVOID                 SparePointers [4]; // 19H1 (previously FlsCallback to FlsHighIndex)
-  ULONG                 SpareUlongs   [5]; // 19H1
-  //PVOID* FlsCallback;
-  //LIST_ENTRY FlsListHead;
-  //PVOID FlsBitmap;
-  //ULONG FlsBitmapBits[FLS_MAXIMUM_AVAILABLE / (sizeof(ULONG) * 8)];
-  //ULONG FlsHighIndex;
-
-  PVOID                 WerRegistrationData;
-  PVOID                 WerShipAssertPtr;
-  PVOID                 pUnused; // pContextData
-  PVOID                 pImageHeaderHash;
-
-  union
-  {
-    ULONG               TracingFlags;
-    struct
-    {
-      ULONG             HeapTracingEnabled      :  1;
-      ULONG             CritSecTracingEnabled   :  1;
-      ULONG             LibLoaderTracingEnabled :  1;
-      ULONG             SpareTracingBits        : 29;
-    };
-  };
-  ULONGLONG             CsrServerReadOnlySharedMemoryBase;
-  PRTL_CRITICAL_SECTION TppWorkerpListLock;
-  LIST_ENTRY            TppWorkerpList;
-  PVOID                 WaitOnAddressHashTable [128];
-  PVOID                 TelemetryCoverageHeader;            // REDSTONE3
-  ULONG                 CloudFileFlags;
-  ULONG                 CloudFileDiagFlags;                 // REDSTONE4
-  CHAR                  PlaceholderCompatibilityMode;
-  CHAR                  PlaceholderCompatibilityModeReserved [7];
-
-  struct _LEAP_SECOND_DATA *LeapSecondData; // REDSTONE5
-  union
-  {
-    ULONG               LeapSecondFlags;
-    struct
-    {
-      ULONG SixtySecondEnabled :  1;
-      ULONG Reserved           : 31;
-    };
-  };
-  ULONG                 NtGlobalFlag2;
-} SK_PEB,
-*SK_PPEB;
-
 #define SK_ANTIDEBUG_PARANOIA_STAGE2
 #define SK_ANTIDEBUG_PARANOIA_STAGE3
 
@@ -2041,6 +1785,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
           pPeb->ProcessParameters->DebugFlags  =  0x00;
 
           SK_InitUnicodeString (
+            (PUNICODE_STRING)
             &pPeb->ProcessParameters->WindowTitle,
                                   wszFakeWinTitle );
 
@@ -2056,6 +1801,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
         pPeb->ProcessParameters->DebugFlags  =    DebugFlags;
 
         SK_InitUnicodeString (
+            (PUNICODE_STRING)
             &pPeb->ProcessParameters->WindowTitle,
                                       wszWindowTitle );
 
@@ -2903,9 +2649,9 @@ SK_Exception_HandleCxx (
       catch (_com_error& com_err)
       {
         _bstr_t bstrSource      ( com_err.ErrorInfo   () != nullptr ?
-                                  com_err.Source      ()            : L"Unknown" );
+                                  com_err.Source      ()            : _bstr_t (L"Unknown") );
         _bstr_t bstrDescription ( com_err.ErrorInfo   () != nullptr ?
-                                  com_err.Description ()            : L"Unknown" );
+                                  com_err.Description ()            : _bstr_t (L"Unknown") );
 
         SK_LOG0 ( ( L" >> Code: %08lx  <%s> - [Source: %s,  Desc: \"%s\"]",
                  com_err.Error        (),
@@ -3654,7 +3400,7 @@ RaiseException_Detour (
       __debugbreak ();
     }
 
-    ////////SK::Diagnostics::CrashHandler::Reinstall ();
+    SK::Diagnostics::CrashHandler::Reinstall ();
 
     if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
@@ -4130,6 +3876,9 @@ SetWindowsHookExA_Detour (
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
+  if (config.compatibility.disable_debug_features)
+    return false;
+
   if (SK_IsHostAppSKIM ())
   {
     return true;
@@ -5243,3 +4992,6 @@ SK_SEH_SetTranslatorEX ( _In_opt_ _se_translator_function _NewSETranslator,
 }
 
 #pragma warning (pop)
+
+
+volatile PVOID __SK_GameBaseAddr = nullptr;

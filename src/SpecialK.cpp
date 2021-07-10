@@ -556,6 +556,11 @@ DllMain ( HMODULE hModule,
 
       if (SK_DLL_IsAttached ())
       {
+        SetThreadErrorMode (
+          SEM_NOGPFAULTERRORBOX | SEM_FAILCRITICALERRORS,
+            nullptr
+        );
+
         SK_TLS *pTLS =
               SK_TLS_Bottom ();
 
