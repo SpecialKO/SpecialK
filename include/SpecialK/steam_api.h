@@ -581,8 +581,8 @@ class SK_Steam_KeyValues
 public:
   static
   std::vector <std::string>
-  getKeys ( const std::string&               input,
-                  std::vector <std::string>  sections,
+  getKeys ( const std::string                &input,
+            const std::deque  <std::string>  &sections,
                   std::vector <std::string>* values = nullptr )
   {
     std::vector <std::string> ret;
@@ -591,14 +591,14 @@ public:
       return ret;
 
     struct {
-      std::vector <std::string> path;
+      std::deque <std::string> path;
 
       struct {
         std::string actual;
         std::string test;
       } heap;
 
-      void heapify (std::vector <std::string> const* sections = nullptr)
+      void heapify (std::deque <std::string> const* sections = nullptr)
       {
         int i = 0;
 
@@ -684,9 +684,9 @@ public:
 
   static
   std::string
-  getValue ( const std::string&               input,
-             const std::vector <std::string>& sections,
-                   std::string                key )
+  getValue ( const std::string              &input,
+             const std::deque <std::string> &sections,
+             const std::string              &key )
   {
     std::vector <std::string> values;
     std::vector <std::string> keys (
@@ -703,6 +703,35 @@ public:
     }
 
     return "";
+  }
+
+  static
+  std::wstring
+  getValueAsUTF16 ( const std::string              &input,
+                    const std::deque <std::string> &sections,
+                    const std::string              &key )
+  {
+    std::vector <std::string> values;
+    std::vector <std::string> keys (
+      SK_Steam_KeyValues::getKeys (input, sections, &values)
+    );
+
+    int idx = 0;
+
+    for ( auto it : keys )
+    {
+      if (it._Equal (key))
+      {
+        return
+          SK_UTF8ToWideChar (
+            values [idx]
+          );
+      }
+
+      ++idx;
+    }
+
+    return L"";
   }
 };
 

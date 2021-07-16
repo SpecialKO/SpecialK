@@ -4130,12 +4130,12 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 
     if (wszSteamPath != nullptr)
     {
-      wchar_t           wszLibraryFolders [MAX_PATH + 2] = { };
-      SK_PathCombineW ( wszLibraryFolders, (std::wstring (wszSteamPath) +
-                                                     LR"(\steamapps\)").c_str (),
-                                                     LR"(libraryfolders.vdf)" );
+      wchar_t wszLibraryFolders [MAX_PATH + 2] = { };
 
-      SK_AutoHandle hLibFolders (
+      lstrcpyW (wszLibraryFolders, wszSteamPath);
+      lstrcatW (wszLibraryFolders, LR"(\steamapps\libraryfolders.vdf)");
+
+      CHandle hLibFolders (
         CreateFileW ( wszLibraryFolders,
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -4152,27 +4152,13 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
               dwSize     =
          GetFileSize (hLibFolders, &dwSizeHigh);
 
-        SK_TLS *pTLS =
-          SK_TLS_Bottom ();
-
         std::unique_ptr <char []>
           local_data;
         char*   data = nullptr;
 
-        // Heap Alloc (yuck)
-        if (! pTLS)
-        {
-          local_data =
-            std::make_unique <char []> (dwSize + 4);
-                data = local_data.get ();
-        }
-
-        // TLS Alloc (preferred)
-        else
-        {
-          data = (char *)
-            pTLS->steam->allocScratchText (dwSize + 4);
-        }
+        local_data =
+          std::make_unique <char []> (dwSize + 4u);
+              data = local_data.get ();
 
         if (data == nullptr)
           return steam_libs;
@@ -4183,18 +4169,28 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
         {
           data [dwSize] = '\0';
 
-          for (int i = 1; i < MAX_STEAM_LIBRARIES; i++)
+          for (int i = 1; i < MAX_STEAM_LIBRARIES - 1; i++)
           {
-            std::string lib_path =
-              SK_Steam_KeyValues::getValue (
+            // Old libraryfolders.vdf format
+            std::wstring lib_path =
+              SK_Steam_KeyValues::getValueAsUTF16 (
                 data, { "LibraryFolders" }, std::to_string (i)
               );
+
+            if (lib_path.empty ())
+            {
+              // New (July 2021) libraryfolders.vdf format
+              lib_path =
+                SK_Steam_KeyValues::getValueAsUTF16 (
+                  data, { "LibraryFolders", std::to_string (i) }, "path"
+                );
+            }
 
             if (! lib_path.empty ())
             {
               wcsncpy_s (
                 (wchar_t *)steam_lib_paths [steam_libs++], MAX_PATH,
-              SK_UTF8ToWideChar (lib_path).c_str (),       _TRUNCATE );
+                                 lib_path.c_str (),       _TRUNCATE );
             }
 
             else
@@ -4213,7 +4209,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
   }
 
   if (ppLibraries != nullptr)
-     *ppLibraries = steam_lib_paths;
+    *ppLibraries = steam_lib_paths;
 
   return steam_libs;
 }
