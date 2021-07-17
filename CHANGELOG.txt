@@ -1,4 +1,70 @@
-﻿21.07.10
+﻿21.07.18
+========
+ + Updated FAR to v 0.9.0 and added FastLoad mode to Steam 2021 version
+
+    >> Please delete FAR.ini for correct framerate behavior
+
+   Framerates above 60 FPS are still not supported, so ensure the
+     limiter is set to 60.0 in SK's control panel
+
+
+21.07.17
+========
+ + Updated FAR to v 0.8.6 (replace QLOC limiter with SK limiter)
+    >> Still must run at 60.0 FPS; SK has less latency / stutter
+ + Added support for parsing Steam's new (July 2021) libraryfolders.vdf
+ + Added support for "Sleepless Render Thread" in engines that use
+     more than one thread for SwapChain presentation
+
+
+21.07.16
+========
+ + Added new console variables to control the game's active monitor:
+
+    Window.PreferredMonitor (saved in INI)
+    Window.Monitor          (temporary)
+
+    Macros to move the game window between monitors (without saving):
+
+        [Macro.Monitor]
+        Ctrl+Alt+Shift+Left=Window.Monitor --
+        Ctrl+Alt+Shift+Right=Window.Monitor ++
+
++ Added option to assign game window to primary display
+
+    ( PreferredMonitor=-1 )
+
+ + Fixed mouse cursor containment when window moves to a monitor on the
+     left of primary
+ + Fixed command console input processing when game window is not active
+
+ + Added option to restrict resolution choices (in D3D11/12) to specific
+     refresh rates ( [Render.DXGI] MinRefresh=..., MaxRefresh=... )
+
+
+21.07.12
+========
+ + Fixed compat issues between REFramework, RTSS, SK and Steam Overlay
+     (D3D11On12 overlays mixed with native D3D12 overlays, ugh!)
+ + Removed the bits setting from NVIDIA dithering options, SK will pick the
+     correct value for you :)
+ + Added an option to restart the current game to SK's 'File' menu.
+ + Reverted texture changes temporarily because they cause problems with
+     deleting / dumping textures on load in D3D11.
+
+
+21.07.11
+========
+ + Monitor selections from the Display menu are now stored persistently and
+     re-applied every time the game starts
+
+       (see: "Window.PreferredMonitor"; 0 = No Preference)
+
+ + Changed DPI scaling override to only write AppCompat flags to the system
+     registry if the game was not natively DPI aware to begin with
+
+
+21.07.10
 ========
  + Various fixes for Monster Hunter Stories 2's DXGI performance and for
      CAPCOM's annoying anti-tamper nonsense.

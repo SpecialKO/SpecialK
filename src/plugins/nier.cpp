@@ -34,7 +34,7 @@
 
 
 
-#define FAR_VERSION_NUM L"0.8.5"
+#define FAR_VERSION_NUM L"0.9.0"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -51,8 +51,28 @@ volatile LONG   __FAR_init        = FALSE;
 #define WORKING_FPS_SLEEP_FIX
 
 
+#define mbegin(addr, len)   \
+  VirtualProtect (          \
+    addr,                   \
+    len,                    \
+    PAGE_EXECUTE_READWRITE, \
+    &old_protect_mask       \
+);
+
+#define mend(addr, len)  \
+  VirtualProtect (       \
+    addr,                \
+    len,                 \
+    old_protect_mask,    \
+    &old_protect_mask    \
+);
+
+
 struct far_game_state_s
 {
+  uintptr_t
+         uiBaseAddr   = 0x0;
+
   DWORD* pMenu        = nullptr;
   DWORD* pLoading     = nullptr;
   DWORD* pHacking     = nullptr;
@@ -66,6 +86,13 @@ struct far_game_state_s
   bool   enforce_cap  = true;  // User's current preference
   bool   patchable    = false; // True only if the memory addresses can be validated
   bool   bSteam       = false;
+  bool   bSteam2021   = false;
+
+  bool isInMenu   (void) { return (! (__FAR_FastLoads && isLoading ())) &&
+                                  ( pMenu      != nullptr && *pMenu      != 0 ); }
+  bool isLoading  (void) { return ( pLoading   != nullptr && *pLoading   != 0 ); }
+  bool isHacking  (void) { return ( pHacking   != nullptr && *pHacking   != 0 ); }
+  bool isShorting (void) { return ( pShortcuts != nullptr && *pShortcuts != 0 ); }
 
   bool needFPSCap (void) {
     if (! patchable)
@@ -73,8 +100,8 @@ struct far_game_state_s
 
     __try {
       return enforce_cap ||
-        (   *pMenu != 0) || ( (! __FAR_FastLoads) && (*pLoading   != 0) ) ||
-        (*pHacking != 0) ||                          (*pShortcuts != 0);
+        isInMenu  ()     || ( (! __FAR_FastLoads) && isLoading () ) ||
+        isHacking ()     ||                         isShorting ();
     }
 
     __except (EXCEPTION_EXECUTE_HANDLER)
@@ -91,6 +118,7 @@ struct far_game_state_s
   void initForSteam (void)
   {
     bSteam          = true;
+    bSteam2021      = false;
     __FAR_FastLoads = false;
 
     // Game state addresses courtesy of Francesco149
@@ -99,28 +127,66 @@ struct far_game_state_s
     pHacking     = reinterpret_cast <DWORD *> (0x1410FA090); //0x1410E0AB4;
     pShortcuts   = reinterpret_cast <DWORD *> (0x141415AC4); //0x1413FC35C;
 
-     pHUDOpacity = reinterpret_cast <float *> (0x1419861BC); //0x14196C63C;
+    pHUDOpacity  = reinterpret_cast <float *> (0x1419861BC); //0x14196C63C;
   }
 
   void initForMicrosoft (void)
   {
     bSteam          = false;
+    bSteam2021      = false;
     __FAR_FastLoads = true;
 
-    uintptr_t uiBaseAddr =
+    uiBaseAddr =
       reinterpret_cast <uintptr_t> (
         SK_Debug_GetImageBaseAddr ()
       );
 
     pMenu      = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C);
     pLoading   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x146AEC0);
-    pHacking   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C /* WRONG */);
-    pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
+
+    pHacking   = nullptr;
+    pShortcuts = nullptr;
+  //pHacking   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C /* WRONG */);
+  //pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
   }
 
-  bool isSteam   (void) const { return bSteam; }
-  bool isLoading (void) const { return pLoading != nullptr ?
-                                                 *pLoading : false; }
+  void initForSteam2021 (void)
+  {
+    bSteam          = false;
+    bSteam2021      = true;
+    __FAR_FastLoads = true;
+
+    uiBaseAddr =
+      reinterpret_cast <uintptr_t> (
+        SK_Debug_GetImageBaseAddr ()
+      );
+
+    // NieRAutomata.exe+278FE9   -    mov [NieRAutomata.exe+0F82E38],ebx      ; Menu Activation
+    pMenu      = reinterpret_cast <DWORD *> (uiBaseAddr + 0x0F82E38);
+
+    // NieRAutomata.exe+35CD68   -    mov [NieRAutomata.exe+100D410],00000001 ; Load Start
+    // NieRAutomata.exe+3F3056   -    mov [NieRAutomata.exe+100D410],ebx      ; Load End
+    pLoading   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x100D410);
+
+    pHacking   = nullptr;
+    pShortcuts = nullptr;
+  //pHacking   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C /* WRONG */);
+  //pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
+  }
+
+  bool isSteam     (void) const { return bSteam;     }
+  bool isSteam2021 (void) const { return bSteam2021; }
+  bool isMicrosoft (void) const { return
+   ! ( isSteam     ()
+    || isSteam2021 () );
+  }
+
+  struct {
+    struct {
+      uint8_t spinlock_bytes [2] = { 0x0, 0x0                     };
+      uint8_t sleep_bytes    [6] = { 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 };
+    } enable, disable;
+  } fps_limit;
 } static game_state;
 
 
@@ -149,17 +215,11 @@ sk::ParameterStringW* far_focus_lock                = nullptr;
 sk::ParameterStringW* far_free_look                 = nullptr;
 
 
-static D3D11Dev_CreateBuffer_pfn              _D3D11Dev_CreateBuffer_Original              = nullptr;
-static D3D11Dev_CreateShaderResourceView_pfn  _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
-static D3D11Dev_CreateTexture2D_pfn           _D3D11Dev_CreateTexture2D_Original           = nullptr;
-static D3D11_DrawIndexed_pfn                  _D3D11_DrawIndexed_Original                  = nullptr;
-static D3D11_Draw_pfn                         _D3D11_Draw_Original                         = nullptr;
-static D3D11_DrawIndexedInstanced_pfn         _D3D11_DrawIndexedInstanced_Original         = nullptr;
-static D3D11_DrawIndexedInstancedIndirect_pfn _D3D11_DrawIndexedInstancedIndirect_Original = nullptr;
-static D3D11_DrawInstanced_pfn                _D3D11_DrawInstanced_Original                = nullptr;
-static D3D11_DrawInstancedIndirect_pfn        _D3D11_DrawInstancedIndirect_Original        = nullptr;
-static D3D11_UpdateSubresource_pfn            _D3D11_UpdateSubresource_Original            = nullptr;
-static D3D11_PSSetConstantBuffers_pfn         _D3D11_PSSetConstantBuffers_Original         = nullptr;
+static D3D11Dev_CreateBuffer_pfn             _D3D11Dev_CreateBuffer_Original              = nullptr;
+static D3D11Dev_CreateShaderResourceView_pfn _D3D11Dev_CreateShaderResourceView_Original  = nullptr;
+static D3D11Dev_CreateTexture2D_pfn          _D3D11Dev_CreateTexture2D_Original           = nullptr;
+static D3D11_DrawIndexed_pfn                 _D3D11_DrawIndexed_Original                  = nullptr;
+static D3D11_Draw_pfn                        _D3D11_Draw_Original                         = nullptr;
 
 
 struct
@@ -399,73 +459,6 @@ SK_FAR_CreateShaderResourceView (
   return hr;
 }
 
-void
-STDMETHODCALLTYPE
-SK_FAR_PSSetConstantBuffers (
-  _In_     ID3D11DeviceContext  *This,
-  _In_     UINT                  StartSlot,
-  _In_     UINT                  NumBuffers,
-  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
-{
-  ////if (StartSlot == 0 && NumBuffers == 1 && ppConstantBuffers != nullptr && (*ppConstantBuffers) != nullptr)
-  ////{
-  ////  D3D11_BUFFER_DESC bufferDesc = { };
-  ////  (*ppConstantBuffers)->GetDesc (&bufferDesc);
-  ////
-  ////  if (bufferDesc.ByteWidth == 48)
-  ////  {
-  ////    struct exposure_s {
-  ////      float padding0; float exposure;
-  ////      float padding2; float padding3;
-  ////
-  ////      float brightness; float padding5;
-  ////      float padding6;   float padding7;
-  ////
-  ////      float vignette0; float vignette1;
-  ////      float padding10; float padding11;
-  ////    };// *pData = (exposure_s*)pInitialData->pSysMem;
-  ////
-  ////    //D3D11_MAP map_setup = { };
-  ////    //          map_setup.
-  ////
-  ////    SK_ComPtr <ID3D11Device> pDevice = nullptr;
-  ////    This->GetDevice (&pDevice);
-  ////
-  ////    bufferDesc.BindFlags      = D3D11_BIND_CONSTANT_BUFFER;
-  ////    bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-  ////    bufferDesc.Usage          = D3D11_USAGE_STAGING;
-  ////
-  ////    SK_ComPtr <ID3D11Buffer> pCopyBuffer;
-  ////    pDevice->CreateBuffer (&bufferDesc, nullptr, &pCopyBuffer);
-  ////
-  ////    This->CopySubresourceRegion (
-  ////      pCopyBuffer, 0, 0, 0, 0, (*ppConstantBuffers), 0, nullptr
-  ////    );
-  ////
-  ////    D3D11_MAPPED_SUBRESOURCE mappedSub = { };
-  ////                             mappedSub.RowPitch = 48;
-  ////    if ( SUCCEEDED (This->Map (pCopyBuffer, 0, D3D11_MAP_READ, 0x0, &mappedSub) ) )
-  ////    {
-  ////      exposure_s *pData =
-  ////        (exposure_s *)mappedSub.pData;
-  ////
-  ////      SK_LOG0 (
-  ////        ( L"Exposure: %f, Brightness: %f, V0: %f, V1: %f",
-  ////            pData->exposure,  pData->brightness,
-  ////            pData->vignette0, pData->vignette1
-  ////        ), L"Test" );
-  ////
-  ////      This->Unmap (pCopyBuffer, 0);
-  ////    }
-  ////    //0x49a3eacf
-  ////
-  ////    /////SK_LOG0 ((L"PSSetConstantBuffers"), L"Test");
-  ////  }
-  ////}
-
-  _D3D11_PSSetConstantBuffers_Original (This, StartSlot, NumBuffers, ppConstantBuffers );
-}
-
 
 enum class SK_FAR_WaitBehavior
 {
@@ -482,9 +475,15 @@ SK_FAR_SetFramerateCap (bool enable)
   {
     game_state.enforce_cap =  false;
     far_uncap_fps->set_value (true);
+
+    game_state.uncapFPS ();
+    game_state.capped = false;
   } else {
     far_uncap_fps->set_value (false);
     game_state.enforce_cap =  true;
+
+    game_state.capFPS ();
+    game_state.capped = true;
   }
 }
 
@@ -498,8 +497,10 @@ uint8_t* pmax_tstep = reinterpret_cast <uint8_t *> (0x140805E18); // +0x2c
 bool
 SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
 {
-  static uint8_t sleep_wait [] = { 0x7e, 0x08, 0x8b, 0xca, 0xff, 0x15 };
-  static uint8_t busy_wait  [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+                                          // Bytecode                         //  Offset
+  static uint8_t sleep_wait_steam     [] = { 0x7e, 0x08, 0x8b, 0xca, 0xff, 0x15, { 0x48 } };
+  static uint8_t sleep_wait_steam2021 [] = { 0x85, 0xc9, 0x7e, 0x06, 0xff, 0x15, { 0x4A } };
+  static uint8_t busy_wait            [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90        };
 
   static bool init = false;
 
@@ -510,28 +511,56 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
   {
     init = true;
 
-    if ( (psleep = static_cast <uint8_t *> (SK_ScanAligned ( sleep_wait, 6, nullptr, 1 ))) == nullptr )
+    uint8_t *pSleepPattern =
+      game_state.isSteam     () ? sleep_wait_steam     :
+      game_state.isSteam2021 () ? sleep_wait_steam2021 : nullptr;
+
+    psleep =
+      pSleepPattern == nullptr ?
+                       nullptr :
+      static_cast <uint8_t *> (SK_ScanAligned ( pSleepPattern, 6, nullptr, 1 ));
+
+    if ( psleep == nullptr )
     {
       dll_log->Log (L"[ FARLimit ]  Could not locate Framerate Limiter Sleep Addr.");
+
+      pspinlock  = nullptr;
+      pmin_tstep = nullptr;
+      pmax_tstep = nullptr;
     }
-    else {
+
+    else
+    {
+      ptrdiff_t spinlock_offset =
+          pSleepPattern [6];
+
       psleep += 4;
+
       dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter Sleep Addr.: 0x%p", psleep);
-      memcpy      (sleep_wait, psleep, 6);
 
-      pspinlock  = psleep + 0x48;
+      // Backup the original instructions
+      memcpy (pSleepPattern, psleep, 6);
 
+      // Relative adddress of spinlock
+      pspinlock = psleep + spinlock_offset;
 
-      uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
-      uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
+      if (game_state.isSteam ())
+      {
+        uint8_t tstep0      [] = { 0x73, 0x1C, 0xC7, 0x05, 0x00, 0x00 };
+        uint8_t tstep0_mask [] = { 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00 };
 
-      pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 1 ));
-      pmax_tstep = pmin_tstep + 0x2c;
+        pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 1 ));
+        pmax_tstep = pmin_tstep + 0x2c;
 
-      if (pmin_tstep != nullptr)   // Steam Version
-        dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
-      else                         // Windows Store Version
-        pspinlock = psleep + 0x50;
+        if (pmin_tstep != nullptr) // Steam Version
+          dll_log->Log (L"[ FARLimit ]  Scanned Framerate Limiter TStepMin Addr.: 0x%p", pmin_tstep);
+      }
+
+      else
+      {
+        pmin_tstep = nullptr;
+        pmax_tstep = nullptr;
+      }
 
       //{ 0xF3, 0x0F, 0x11, 0x44, 0x24, 0x20, 0xF3, 0x0F, 0x11, 0x4C, 0x24, 0x24, 0xF3, 0x0F, 0x11, 0x54, 0x24, 0x28, 0xF3, 0x0F, 0x11, 0x5C, 0x24, 0x2C }    (-4) = HUD Opacity
     }
@@ -542,23 +571,21 @@ SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior behavior)
 
   wait_behavior = behavior;
 
-  DWORD dwProtect;
-  VirtualProtect (psleep, 6, PAGE_EXECUTE_READWRITE, &dwProtect);
+  DWORD old_protect_mask;
 
   // Hard coded for now; safe to do this without pausing threads and flushing caches
   //   because the config UI runs from the only thread that the game framerate limits.
+  mbegin (psleep, 6);
   switch (behavior)
   {
     case SK_FAR_WaitBehavior::Busy:
-      memcpy (psleep, busy_wait, 6);
-      break;
-
+      if (game_state.isSteam () || game_state.isSteam2021 ())
+                                 memcpy (psleep, busy_wait,            6); break;
     case SK_FAR_WaitBehavior::Sleep:
-      memcpy (psleep, sleep_wait, 6);
-      break;
+      if (game_state.isSteam ()) memcpy (psleep, sleep_wait_steam,     6);
+      else                       memcpy (psleep, sleep_wait_steam2021, 6); break;
   }
-
-  VirtualProtect (psleep, 6, dwProtect, &dwProtect);
+  mend (psleep, 6);
 
   return true;
 }
@@ -583,7 +610,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
   {
     std::string validation = "";
 
-    if (game_state.needFPSCap () && frames_drawn >= 0)
+    if (frames_drawn >= 0 && game_state.needFPSCap ())
     {
       validation += "FRAME: ";
 
@@ -614,10 +641,10 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
 
       std::string reasons = "";
 
-      if (*game_state.pLoading)   reasons += " loading ";
-      if (*game_state.pMenu)      reasons += " menu ";
-      if (*game_state.pHacking)   reasons += " hacking ";
-      if (*game_state.pShortcuts) reasons += " shortcuts ";
+      if (game_state.isLoading  ())   reasons += " loading ";
+      if (game_state.isInMenu   ())      reasons += " menu ";
+      if (game_state.isHacking  ())   reasons += " hacking ";
+      if (game_state.isShorting ()) reasons += " shortcuts ";
 
       state += reasons;
       state += ">";
@@ -658,13 +685,16 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     }
 
 
-    if (__FAR_FastLoads && game_state.fast_loading != game_state.isLoading ())
+    bool loading =
+      game_state.isLoading ();
+
+    if (__FAR_FastLoads && game_state.fast_loading != loading)
     {
       auto pLimiter =
         SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p);
 
       game_state.fast_loading =
-         game_state.isLoading ();
+                      loading;
 
       if (game_state.fast_loading)
       {
@@ -672,6 +702,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
           config.render.framerate.present_interval;
           config.render.framerate.present_interval = 0;
 
+        dll_log->Log (L"Suspend");
         pLimiter->suspend ();
       }
 
@@ -680,6 +711,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
         config.render.framerate.present_interval =
                      game_state.present_rate;
 
+        dll_log->Log (L"Resume");
         pLimiter->resume  ();
       }
     }
@@ -885,30 +917,33 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 
     default:
     {
-      if (uiMaskedKeyCode == uiHudlessMask)
+      if (game_state.pHUDOpacity != nullptr)
       {
-        if (__FAR_HUDLESS.enqueue == false)
+        if (uiMaskedKeyCode == uiHudlessMask)
         {
-          __FAR_HUDLESS.clear     = 4;
-          __FAR_HUDLESS.enqueue   = true;
-          __FAR_HUDLESS.opacity   = (*game_state.pHUDOpacity);
-          *game_state.pHUDOpacity = 0.0f;
+          if (__FAR_HUDLESS.enqueue == false )
+          {
+            __FAR_HUDLESS.clear     = 4;
+            __FAR_HUDLESS.enqueue   = true;
+            __FAR_HUDLESS.opacity   = (*game_state.pHUDOpacity);
+            *game_state.pHUDOpacity = 0.0f;
+          }
         }
-      }
 
-      else if (uiMaskedKeyCode == uiLockCenterMask)
-      {
-        far_cam.toggleCenterLock ();
-      }
+        else if (uiMaskedKeyCode == uiLockCenterMask)
+        {
+          far_cam.toggleCenterLock ();
+        }
 
-      else if (uiMaskedKeyCode == uiLockFocusMask)
-      {
-        far_cam.toggleFocusLock ();
-      }
+        else if (uiMaskedKeyCode == uiLockFocusMask)
+        {
+          far_cam.toggleFocusLock ();
+        }
 
-      else if (uiMaskedKeyCode == uiToggleFreelookMask)
-      {
-        __FAR_Freelook = (! __FAR_Freelook);
+        else if (uiMaskedKeyCode == uiToggleFreelookMask)
+        {
+          __FAR_Freelook = (! __FAR_Freelook);
+        }
       }
     } break;
   }
@@ -936,6 +971,42 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     game_state.patchable =
       SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
                                           SK_FAR_WaitBehavior::Sleep );
+
+    ////////void* pSleep = (void *)(game_state.uiBaseAddr + 0x24A230);
+    ////////void* pSpin  = (void *)(game_state.uiBaseAddr + 0x24A27C);
+    ////////
+    ////////if (game_state.isSteam2021 () && SK_IsAddressExecutable (pSleep, false))
+    ////////{
+    ////////  if (! memcmp (pSleep, "\x7E\x06", 2))
+    ////////  {
+    ////////    DWORD old_protect_mask;
+    ////////
+    ////////    mbegin (pSleep,             2);
+    ////////    memcpy (pSleep, "\xEB\x06", 2);
+    ////////    mend   (pSleep,             2);
+    ////////
+    ////////    mbegin (pSpin,              2);
+    ////////    memcpy (pSpin,  "\xEB\x48", 2);
+    ////////    mend   (pSpin,              2);
+    ////////
+    ////////    game_state.enforce_cap =  true;
+    ////////    far_uncap_fps->set_value (false);
+    ////////
+    ////////    config.render.framerate.
+    ////////                   target_fps = 60.0f;
+    ////////    extern float __target_fps;
+    ////////                 __target_fps = 60.0f;
+    ////////
+    ////////    SK::Framerate::GetLimiter (
+    ////////      SK_GetCurrentRenderBackend ().swapchain.p
+    ////////    )->set_limit (__target_fps);
+    ////////
+    ////////    config.render.framerate.sleepless_render = true;
+    ////////    config.render.framerate.sleepless_window = true;
+    ////////
+    ////////    game_state.patchable = true;
+    ////////  }
+    ////////}
 
     //
     // Hook keyboard input, only necessary for the FPS cap toggle right now
@@ -1378,82 +1449,6 @@ SK_FAR_PreDraw (ID3D11DeviceContext* pDevCtx)
 
 __declspec (noinline)
 void
-STDMETHODCALLTYPE
-SK_FAR_UpdateSubresource (
-  _In_           ID3D11DeviceContext* This,
-  _In_           ID3D11Resource      *pDstResource,
-  _In_           UINT                 DstSubresource,
-  _In_opt_ const D3D11_BOX           *pDstBox,
-  _In_     const void                *pSrcData,
-  _In_           UINT                 SrcRowPitch,
-  _In_           UINT                 SrcDepthPitch)
-{
-  return _D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                               pDstBox, pSrcData, SrcRowPitch,
-                                                 SrcDepthPitch );
-}
-
-D3D11_VIEWPORT backup_vp;
-
-void
-SK_FAR_RestoreAspectRatio (ID3D11DeviceContext *pDevCtx)
-{
-  pDevCtx->RSSetViewports (1, &backup_vp);
-}
-
-bool
-SK_FAR_CorrectAspectRatio (ID3D11DeviceContext* /*pDevCtx*/)
-{
-#if 1
-  return false;
-#else
-  UINT numViewports = 0;
-
-  pDevCtx->RSGetViewports (&numViewports, nullptr);
-
-  if (numViewports <= 2 && (*game_state.pMenu || *game_state.pLoading))
-  {
-    D3D11_VIEWPORT vp;
-
-    pDevCtx->RSGetViewports (&numViewports, &vp);
-
-    backup_vp = vp;
-
-    extern HWND __stdcall SK_GetGameWindow (void);
-
-    RECT rect;
-    GetClientRect (SK_GetGameWindow (), &rect);
-
-    if ( (INT)vp.Width  == (INT)(rect.right  - rect.left) &&
-         (INT)vp.Height == (INT)(rect.bottom - rect.top)  &&
-         vp.TopLeftX == 0 && vp.TopLeftY == 0 )
-    {
-      if (vp.Width / vp.Height < (16.0f / 9.0f - 0.01f))
-      {
-        float orig  = vp.Height;
-        vp.Height   = (9.0f * vp.Width)  / 16.0f;
-        vp.TopLeftY = (orig - vp.Height) / 2.0f;
-      }
-
-      else if (vp.Width / vp.Height > (16.0f / 9.0f + 0.01f))
-      {
-        float orig  = vp.Width;
-        vp.Width    = (16.0f * vp.Height) / 9.0f;
-        vp.TopLeftX = (orig  - vp.Width)  / 2.0f;
-      }
-
-      pDevCtx->RSSetViewports (1, &vp);
-
-      return true;
-    }
-  }
-
-  return false;
-#endif
-}
-
-__declspec (noinline)
-void
 WINAPI
 SK_FAR_DrawIndexed (
   _In_ ID3D11DeviceContext *This,
@@ -1461,20 +1456,14 @@ SK_FAR_DrawIndexed (
   _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation )
 {
-  bool cull   = false;
-  bool aspect = false;
+  bool cull = false;
 
   if (IndexCount == 4 && StartIndexLocation == 0 && BaseVertexLocation == 0)
     cull = SK_FAR_PreDraw (This);
-  else
-    aspect = SK_FAR_CorrectAspectRatio (This);
 
   if (! cull)
     _D3D11_DrawIndexed_Original ( This, IndexCount,
                                     StartIndexLocation, BaseVertexLocation );
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
 }
 
 __declspec (noinline)
@@ -1485,90 +1474,14 @@ SK_FAR_Draw (
   _In_ UINT                 VertexCount,
   _In_ UINT                 StartVertexLocation )
 {
-  bool cull   = false;
-  bool aspect = false;
+  bool cull = false;
 
   if (VertexCount == 4 && StartVertexLocation == 0)
     cull = SK_FAR_PreDraw (This);
-  else
-    aspect = SK_FAR_CorrectAspectRatio (This);
 
   if (! cull)
     _D3D11_Draw_Original ( This, VertexCount,
                              StartVertexLocation );
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
-}
-
-
-__declspec (noinline)
-void
-WINAPI
-SK_FAR_DrawIndexedInstanced (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 IndexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartIndexLocation,
-  _In_ INT                  BaseVertexLocation,
-  _In_ UINT                 StartInstanceLocation )
-{
-  bool aspect = SK_FAR_CorrectAspectRatio (This);
-
-  _D3D11_DrawIndexedInstanced_Original (This, IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
-}
-
-__declspec (noinline)
-void
-WINAPI
-SK_FAR_DrawIndexedInstancedIndirect (
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs )
-{
-  bool aspect = SK_FAR_CorrectAspectRatio (This);
-
-  _D3D11_DrawIndexedInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
-}
-
-__declspec (noinline)
-void
-WINAPI
-SK_FAR_DrawInstanced (
-  _In_ ID3D11DeviceContext *This,
-  _In_ UINT                 VertexCountPerInstance,
-  _In_ UINT                 InstanceCount,
-  _In_ UINT                 StartVertexLocation,
-  _In_ UINT                 StartInstanceLocation )
-{
-  bool aspect = SK_FAR_CorrectAspectRatio (This);
-
-  _D3D11_DrawInstanced_Original (This, VertexCountPerInstance, InstanceCount, StartVertexLocation, StartInstanceLocation);
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
-}
-
-__declspec (noinline)
-void
-WINAPI
-SK_FAR_DrawInstancedIndirect (
-  _In_ ID3D11DeviceContext *This,
-  _In_ ID3D11Buffer        *pBufferForArgs,
-  _In_ UINT                 AlignedByteOffsetForArgs )
-{
-  bool aspect = SK_FAR_CorrectAspectRatio (This);
-
-  _D3D11_DrawInstancedIndirect_Original (This, pBufferForArgs, AlignedByteOffsetForArgs);
-
-  if (aspect)
-    SK_FAR_RestoreAspectRatio (This);
 }
 
 
@@ -1626,10 +1539,12 @@ SK_FAR_InitPlugin (void)
   pmin_tstep = static_cast <uint8_t *> (SK_ScanAligned ( tstep0, sizeof tstep0, tstep0_mask, 4 ));
   pmax_tstep = pmin_tstep + 0x2c;
 
-  if (pmin_tstep != nullptr) game_state.initForSteam     ();
-  else                       game_state.initForMicrosoft ();
+  if (pmin_tstep != nullptr)
+                                            game_state.initForSteam     ();
+  else if (SK_Steam_GetAppID_NoAPI () == 0) game_state.initForMicrosoft ();
+  else                                      game_state.initForSteam2021 ();
 
-  SK_SetPluginName (FAR_VERSION_STR);
+  SK_SetPluginName (L"Special K Plug-In :: (" FAR_VERSION_STR ")");
 
   plugin_mgr->first_frame_fns.emplace (SK_FAR_PresentFirstFrame);
   plugin_mgr->config_fns.emplace      (SK_FAR_PlugInCfg);
@@ -1672,43 +1587,6 @@ SK_FAR_InitPlugin (void)
                                 &dontcare     );
 
   MH_QueueEnableHook (SK_ImGui_DrawEULA_PlugIn);
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstanced",
-                               D3D11_DrawIndexedInstanced_Override,
-                              SK_FAR_DrawIndexedInstanced,
-     static_cast_p2p <void> (&_D3D11_DrawIndexedInstanced_Original) );
-  MH_QueueEnableHook (         D3D11_DrawIndexedInstanced_Override  );
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawIndexedInstancedIndirect",
-                               D3D11_DrawIndexedInstancedIndirect_Override,
-                              SK_FAR_DrawIndexedInstancedIndirect,
-     static_cast_p2p <void> (&_D3D11_DrawIndexedInstancedIndirect_Original) );
-  MH_QueueEnableHook (         D3D11_DrawIndexedInstancedIndirect_Override  );
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstanced",
-                               D3D11_DrawInstanced_Override,
-                              SK_FAR_DrawInstanced,
-     static_cast_p2p <void> (&_D3D11_DrawInstanced_Original) );
-  MH_QueueEnableHook (         D3D11_DrawInstanced_Override  );
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::DrawInstancedIndirect",
-                               D3D11_DrawInstancedIndirect_Override,
-                              SK_FAR_DrawInstancedIndirect,
-     static_cast_p2p <void> (&_D3D11_DrawInstancedIndirect_Original) );
-  MH_QueueEnableHook (         D3D11_DrawInstancedIndirect_Override  );
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::PSSetConstantBuffers",
-                               D3D11_PSSetConstantBuffers_Override,
-                              SK_FAR_PSSetConstantBuffers,
-     static_cast_p2p <void> (&_D3D11_PSSetConstantBuffers_Original) );
-  MH_QueueEnableHook (         D3D11_PSSetConstantBuffers_Override  );
-
-  SK_CreateFuncHook (       L"ID3D11DeviceContext::UpdateSubresource",
-                               D3D11_UpdateSubresource_Override,
-                              SK_FAR_UpdateSubresource,
-     static_cast_p2p <void> (&_D3D11_UpdateSubresource_Original) );
-  MH_QueueEnableHook (         D3D11_UpdateSubresource_Override  );
-
 
   if (far_prefs == nullptr)
   {
@@ -1767,8 +1645,13 @@ SK_FAR_InitPlugin (void)
       )->set_limit (__target_fps);
 
       // Guaranteed Windows 10
-      if (! game_state.isSteam ())
+      if (game_state.isMicrosoft ())
         config.render.framerate.swapchain_wait = 1;
+
+      config.render.framerate.max_delta_time = 2;
+
+      config.render.framerate.sleepless_render = true;
+      config.render.framerate.sleepless_window = true;
     }
 
     far_fastload =
@@ -1780,9 +1663,15 @@ SK_FAR_InitPlugin (void)
                                       L"FAR.FrameRate",
                                         L"FastLoad" );
 
-    if (! far_fastload->load (game_state.fast_loading))
+    if (! far_fastload->load (__FAR_FastLoads))
     {
-      far_fastload->store (game_state.fast_loading = true);
+      far_fastload->store (__FAR_FastLoads = true);
+    }
+
+    // Force VSYNC back on in case of a crash while fast loading
+    if (__FAR_FastLoads) {
+      far_uncap_fps->set_value (true);
+      config.render.framerate.present_interval = 1;
     }
 
 #ifndef WORKING_FPS_UNCAP
@@ -2050,9 +1939,12 @@ SK_FAR_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
     ImGui::TreePush       ("");
 
-    if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
+    if ((! game_state.isSteam2021 ()) && ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      changed |= ImGui::Checkbox ("Manual Override", &SK_FAR_CB_Override->Enable);
+      if (game_state.patchable)
+      {
+        changed |= ImGui::Checkbox ("Manual Override", &SK_FAR_CB_Override->Enable);
+      }
 
       if (SK_FAR_CB_Override->Enable)
       {
@@ -2279,7 +2171,7 @@ SK_FAR_PlugInCfg (void)
       ImGui::TreePop ();
     }
 
-    if (ImGui::CollapsingHeader ("Framerate"))
+    if (game_state.patchable && ImGui::CollapsingHeader ("Framerate"))
     {
       ImGui::TreePush ("");
 
@@ -2292,15 +2184,21 @@ SK_FAR_PlugInCfg (void)
 
         SK_FAR_SetFramerateCap (remove_cap);
         far_uncap_fps->store   (remove_cap);
+
+        if (! remove_cap)
+        {
+                               __FAR_FastLoads = false;
+          far_fastload->store (__FAR_FastLoads);
+        }
       }
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::Text        ("Can be toggled with "); ImGui::SameLine ();
-        ImGui::TextColored (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
-        ImGui::Separator   ();
-        ImGui::TreePush    ("");
+        ImGui::BeginTooltip  ();
+        ImGui::Text          ("Can be toggled with "); ImGui::SameLine ();
+        ImGui::TextColored   (ImVec4 (1.0f, 0.8f, 0.1f, 1.0f), "Ctrl + Shift + .");
+        ImGui::Separator     ();
+        ImGui::TreePush      ("");
 
         if (game_state.isSteam ())
         {
@@ -2313,15 +2211,17 @@ SK_FAR_PlugInCfg (void)
 
         else
         {
-          ImGui::BulletText ("This cannot be used for non-60 FPS gameplay in the Microsoft Store version");
-          ImGui::BulletText ("Enable this and then use SK's limiter @60 FPS instead for lower latency");
+          ImGui::BulletText  ("This cannot be used for non-60 FPS gameplay in the Microsoft Store / Steam 2021 version");
+          ImGui::BulletText  ("Enable this and then use SK's limiter @60 FPS instead for lower latency");
+          ImGui::Separator   ();
+          ImGui::BulletText  ("Disabling this in the Steam 2021 version requires restarting the game");
         }
 
-        ImGui::TreePop     ();
-        ImGui::EndTooltip  ();
+        ImGui::TreePop       ();
+        ImGui::EndTooltip    ();
       }
 
-      if (! game_state.isSteam ())
+      if (remove_cap && (! game_state.isSteam ()))
       {
         ImGui::SameLine ();
 
@@ -2330,6 +2230,12 @@ SK_FAR_PlugInCfg (void)
           changed = true;
 
           far_fastload->store (__FAR_FastLoads);
+
+          if (__FAR_FastLoads)
+          {
+            SK_FAR_SetFramerateCap (true);
+            far_uncap_fps->store   (true);
+          }
         }
 
         if (ImGui::IsItemHovered ())
@@ -2355,13 +2261,12 @@ SK_FAR_PlugInCfg (void)
             ImGui::OpenPopup (binding->bind_name);
           }
 
-          std::wstring original_binding = binding->human_readable;
-
+          std::wstring   original_binding =
+                                  binding->human_readable;
           SK_ImGui_KeybindDialog (binding);
 
           if (original_binding != binding->human_readable)
-          {
-            param->store (binding->human_readable);
+          {         param->store (binding->human_readable);
 
             return true;
           }
@@ -2478,25 +2383,6 @@ SK_FAR_IsPlugIn (void)
   return far_prefs != nullptr;
 }
 
-
-#define mbegin(addr, len)   \
-  VirtualProtect (          \
-    addr,                   \
-    len,                    \
-    PAGE_EXECUTE_READWRITE, \
-    &old_protect_mask       \
-);
-
-#define mend(addr, len)  \
-  VirtualProtect (       \
-    addr,                \
-    len,                 \
-    old_protect_mask,    \
-    &old_protect_mask    \
-);
-
-
-
 void
 far_game_state_s::uncapFPS (void)
 {
@@ -2507,12 +2393,23 @@ far_game_state_s::uncapFPS (void)
 
   SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
 
-  extern float __target_fps;
+  extern float                                           __target_fps;
   SK::Framerate::GetLimiter (rb.swapchain.p)->set_limit (__target_fps);
 
-  mbegin (pspinlock, 2)
-  memset (pspinlock, 0x90, 2);
-  mend   (pspinlock, 2)
+  if (! game_state.isSteam2021 ())
+  {
+    mbegin (pspinlock, 2)
+    memset (pspinlock, 0x90, 2);
+    mend   (pspinlock, 2)
+  }
+
+  else
+  {
+    mbegin (pspinlock, 2)
+    pspinlock [0] = 0xEB;
+    pspinlock [1] = 0x48;
+    mend   (pspinlock, 2)
+  }
 
   if (game_state.isSteam ())
   {
@@ -2540,6 +2437,8 @@ far_game_state_s::capFPS (void)
 
   DWORD  old_protect_mask;
 
+  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
+
   //if (! far_limiter_busy->get_value ())
   //  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
   //else {
@@ -2551,6 +2450,9 @@ far_game_state_s::capFPS (void)
        pLimiter->get_limit () > 60.0 )
        pLimiter->set_limit (    60.0 );
   //}
+
+  if (game_state.isSteam2021 ())
+    return;
 
   if (game_state.isSteam ())
   {
@@ -2571,10 +2473,21 @@ far_game_state_s::capFPS (void)
 
   else
   {
-    mbegin (pspinlock, 2)
-    pspinlock [0] = 0x77;
-    pspinlock [1] = 0x9D;
-    mend   (pspinlock, 2)
+    if (! game_state.isSteam2021 ())
+    {
+      mbegin (pspinlock, 2)
+      pspinlock [0] = 0x77;
+      pspinlock [1] = 0x9D;
+      mend   (pspinlock, 2)
+    }
+
+    else
+    {
+      mbegin (pspinlock, 2)
+      pspinlock [0] = 0x7E;
+      pspinlock [1] = 0x48;
+      mend   (pspinlock, 2)
+    }
   }
 }
 
