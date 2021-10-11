@@ -3,7 +3,8 @@
 //                      Niklas "DrDaxxy"  Kielblock,
 //                      Peter  "Durante"  Thoman
 //
-//        Francesco149, Idk31, Smithfield, and GitHub contributors.
+//        Francesco149, Idk31, Smithfield, emoose,
+//          Lilium and GitHub contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -34,7 +35,7 @@
 
 
 
-#define FAR_VERSION_NUM L"0.9.0"
+#define FAR_VERSION_NUM L"0.10.1"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -44,6 +45,8 @@ volatile LONG   __FAR_init        = FALSE;
          float  __FAR_MINIMUM_EXT = 0.0F;
          bool   __FAR_Freelook    = false;
          bool   __FAR_FastLoads   = false;
+
+extern float __target_fps;
 
 #define WORKING_FPS_UNCAP
 #define WORKING_CAMERA_CONTROLS
@@ -75,6 +78,7 @@ struct far_game_state_s
 
   DWORD* pMenu        = nullptr;
   DWORD* pLoading     = nullptr;
+  DWORD* pLoading2    = nullptr;
   DWORD* pHacking     = nullptr;
   DWORD* pShortcuts   = nullptr;
 
@@ -88,20 +92,51 @@ struct far_game_state_s
   bool   bSteam       = false;
   bool   bSteam2021   = false;
 
-  bool isInMenu   (void) { return (! (__FAR_FastLoads && isLoading ())) &&
-                                  ( pMenu      != nullptr && *pMenu      != 0 ); }
-  bool isLoading  (void) { return ( pLoading   != nullptr && *pLoading   != 0 ); }
-  bool isHacking  (void) { return ( pHacking   != nullptr && *pHacking   != 0 ); }
-  bool isShorting (void) { return ( pShortcuts != nullptr && *pShortcuts != 0 ); }
+  bool isInMenu   (void) { return ( pMenu      != nullptr && (*pMenu      & 0x1) != 0 ); }
+  bool isLoading  (void) { return ( pLoading   != nullptr && (*pLoading   & 0x1) != 0 ); }
+  bool isHacking  (void) { if   (! isSteam2021 ())
+                           return ( pHacking   != nullptr && (*pHacking   & 0x1) != 0 );
+                           return ( pHacking   != nullptr && (*pHacking   & 0x2) != 0 );
+    }
+  bool isShorting (void) { return ( pShortcuts != nullptr && (*pShortcuts & 0x1) != 0 ); }
 
   bool needFPSCap (void) {
     if (! patchable)
       return true;
 
+    if (enforce_cap)
+      return true;
+
     __try {
-      return enforce_cap ||
-        isInMenu  ()     || ( (! __FAR_FastLoads) && isLoading () ) ||
-        isHacking ()     ||                         isShorting ();
+      if (__FAR_FastLoads && isLoading ())
+      {
+        return false;
+      }
+
+      if (game_state.isSteam2021 ())
+      {
+        DWORD* pCursorVisible =
+          (DWORD *)(uiBaseAddr + 0x0F82E38);
+
+        void **ppHacking =
+          (void **)(uiBaseAddr + 0x0176D480);
+
+        pHacking =
+          (DWORD *)*ppHacking + 0x4B;
+
+        __try
+        {
+          if (*pCursorVisible || isHacking ())
+            return true;
+        }
+
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+        }
+      }
+
+      return
+        ( isInMenu () || isShorting () );
     }
 
     __except (EXCEPTION_EXECUTE_HANDLER)
@@ -150,29 +185,7 @@ struct far_game_state_s
   //pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
   }
 
-  void initForSteam2021 (void)
-  {
-    bSteam          = false;
-    bSteam2021      = true;
-    __FAR_FastLoads = true;
-
-    uiBaseAddr =
-      reinterpret_cast <uintptr_t> (
-        SK_Debug_GetImageBaseAddr ()
-      );
-
-    // NieRAutomata.exe+278FE9   -    mov [NieRAutomata.exe+0F82E38],ebx      ; Menu Activation
-    pMenu      = reinterpret_cast <DWORD *> (uiBaseAddr + 0x0F82E38);
-
-    // NieRAutomata.exe+35CD68   -    mov [NieRAutomata.exe+100D410],00000001 ; Load Start
-    // NieRAutomata.exe+3F3056   -    mov [NieRAutomata.exe+100D410],ebx      ; Load End
-    pLoading   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x100D410);
-
-    pHacking   = nullptr;
-    pShortcuts = nullptr;
-  //pHacking   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A46C /* WRONG */);
-  //pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x181A408);
-  }
+  void initForSteam2021 (void);
 
   bool isSteam     (void) const { return bSteam;     }
   bool isSteam2021 (void) const { return bSteam2021; }
@@ -188,6 +201,169 @@ struct far_game_state_s
     } enable, disable;
   } fps_limit;
 } static game_state;
+
+struct far_lod_patch_s {
+  typedef void*    (* sub_84CD60_Fn) (void* a1, void* a2, void* a3, void* a4,
+                                      void* a5, void* a6, void* a7, void* a8);
+  typedef uint32_t (* IsAOAllowed_Fn)(void* a1);
+
+  static constexpr uintptr_t HookAddr              = 0x084CD60;
+  static constexpr uintptr_t Hook2Addr             = 0x084D070;
+  static constexpr uintptr_t SettingAddr_AOEnabled = 0x1421F58;
+  static constexpr uintptr_t IsAOAllowedAddr       = 0x078BC20;
+
+  static sub_84CD60_Fn  sub_84CD60_Orig;
+  static sub_84CD60_Fn  sub_84D070_Orig;
+  static IsAOAllowed_Fn IsAOAllowed_Orig;
+
+#pragma pack(push, 1)
+  struct NA_Mesh
+  {
+    /* 0x000 */ uint8_t  Unk000 [0x390];
+    /* 0x390 */ void*    ShadowArray;             // some kind of array/vector related with shadows, "ShadowCast" flag affects something in the entries
+    /* 0x398 */ uint8_t  Unk398 [0x058];
+    /* 0x3F0 */ float*   DistRates;               // pointer to "DistRate0"-"DistRate3"
+    /* 0x3F8 */ uint32_t NumDistRates;
+    /* 0x3FC */ float    Unk3FC;
+    /* 0x400 */ uint32_t Unk400;                  // "UseLostLOD", gets set if using dist rates?
+    /* 0x404 */ uint32_t Unk404;                  // if set, Unk3FC = 0.05 ?
+    /* 0x408 */ uint8_t  Unk408 [0x118];
+    /* 0x520 */ uint32_t Unk520;                  // "UseCullAABB" sets/removes 0x10 flag
+    /* 0x524 */ float    Unk524;
+    /* 0x528 */ uint8_t  Unk528 [0x048];
+    /* 0x570 */ uint32_t Unk570;                  // "CamAlpha" sets to 1 or 0
+    /* 0x574 */ float    Unk574;
+    /* 0x578 */ float    Unk578;                  // "CamAlpha"
+    /* 0x57C */ float    Unk57C;
+    /* 0x580 */ uint32_t Unk580;
+    /* 0x584 */ uint32_t AmbientOcclusionAllowed; // "AO_OFF" sets to 0
+    /* 0x588 */ uint32_t Unk588;
+    /* 0x58C */ uint32_t Unk58C;
+    /* 0x590 */ uint8_t  Unk590 [0x058];
+    /* 0x5E8 */ float    BloomStrength;           // always 0 or 1 ?
+
+    void DisableLODs (void)
+    {
+      // Set all DistRates to 0
+      if (DistRates != nullptr)
+      {
+        DistRates [0] = 0.0f;
+        DistRates [1] = 0.0f;
+        DistRates [2] = 0.0f;
+        DistRates [3] = 0.0f;
+      }
+
+      // Set number of DistRates to 1 (0 causes weird issues)
+      NumDistRates = 1;
+
+      // Disable UseLostLOD
+      Unk400 = 0;
+      Unk404 = 0;
+
+      // Remove UseCullAABB flag
+      Unk520 &= 0xFFFFFFEF;
+    }
+  };
+  static_assert(sizeof(NA_Mesh) == 0x5EC); // not proper size lol
+#pragma pack(pop)
+
+  static volatile bool _ApplyPatch;
+
+  static void*
+  sub_84CD60 (NA_Mesh* a1, BYTE* a2, void* a3, void* a4,
+                 void* a5, void* a6, void* a7, void* a8)
+  {
+    // In case something in orig function depends on LOD details, disable first
+    if (_ApplyPatch) a1->DisableLODs ();
+
+    auto ret =
+      sub_84CD60_Orig (a1, a2, a3, a4, a5, a6, a7, a8);
+
+    // Make sure LOD data is disabled
+    if (_ApplyPatch) a1->DisableLODs ();
+
+    return ret;
+  }
+
+  static void*
+  sub_84D070 (NA_Mesh* a1, BYTE* a2, void* a3, void* a4,
+                 void* a5, void* a6, void* a7, void* a8)
+  {
+    // In case something in orig function depends on LOD details, disable first
+    if (_ApplyPatch) a1->DisableLODs ();
+
+    auto ret =
+      sub_84D070_Orig (a1, a2, a3, a4, a5, a6, a7, a8);
+
+    // Make sure LOD data is disabled
+    if (_ApplyPatch) a1->DisableLODs ();
+
+    return ret;
+  }
+
+  static uint32_t
+  IsAOAllowed (void* a1)
+  {
+    if (! IsAOAllowed_Orig (a1))
+      return 0;
+
+    else if (! _ApplyPatch)
+      return 1;
+
+    auto result =
+      *(uint32_t *)(game_state.uiBaseAddr + SettingAddr_AOEnabled) != 0;
+
+    return result;
+  }
+
+  static bool init (void)
+  {
+    if (! game_state.isSteam2021 ())
+      return false;
+
+    void *pHookTarget        = (void *)(game_state.uiBaseAddr +        HookAddr);
+    void *pHook2Target       = (void *)(game_state.uiBaseAddr +       Hook2Addr);
+    void *pIsAOAllowedTarget = (void *)(game_state.uiBaseAddr + IsAOAllowedAddr);
+
+    MH_STATUS status =
+      SK_CreateFuncHook  (                       L"sub_84CD60",
+                                                  pHookTarget,
+                                  far_lod_patch_s::sub_84CD60,
+         static_cast_p2p <void> (&far_lod_patch_s::sub_84CD60_Orig) );
+
+    if (status != MH_OK)
+      return false;
+
+    status =
+      SK_CreateFuncHook  (                       L"sub_84D070",
+                                                  pHook2Target,
+                                  far_lod_patch_s::sub_84D070,
+         static_cast_p2p <void> (&far_lod_patch_s::sub_84D070_Orig) );
+
+    if (status != MH_OK)
+      return false;
+
+    status =
+      SK_CreateFuncHook  (                       L"IsAOAllowed",
+                                                  pIsAOAllowedTarget,
+                                  far_lod_patch_s::IsAOAllowed,
+         static_cast_p2p <void> (&far_lod_patch_s::IsAOAllowed_Orig) );
+
+    if (status != MH_OK)
+      return false;
+
+    MH_QueueEnableHook (       pHookTarget);
+    MH_QueueEnableHook (      pHook2Target);
+    MH_QueueEnableHook (pIsAOAllowedTarget);
+
+    return true;
+  }
+};
+
+far_lod_patch_s::sub_84CD60_Fn  far_lod_patch_s::sub_84CD60_Orig  = nullptr;
+far_lod_patch_s::sub_84CD60_Fn  far_lod_patch_s::sub_84D070_Orig  = nullptr;
+far_lod_patch_s::IsAOAllowed_Fn far_lod_patch_s::IsAOAllowed_Orig = nullptr;
+volatile bool                   far_lod_patch_s::_ApplyPatch      = false;
 
 
 SK_LazyGlobal <sk::ParameterFactory>
@@ -213,6 +389,7 @@ sk::ParameterStringW* far_hudless_binding           = nullptr;
 sk::ParameterStringW* far_center_lock               = nullptr;
 sk::ParameterStringW* far_focus_lock                = nullptr;
 sk::ParameterStringW* far_free_look                 = nullptr;
+sk::ParameterBool*    far_lod_fix                   = nullptr;
 
 
 static D3D11Dev_CreateBuffer_pfn             _D3D11Dev_CreateBuffer_Original              = nullptr;
@@ -350,7 +527,8 @@ SK_FAR_CreateBuffer (
                            (pDesc->BindFlags           & D3D11_BIND_SHADER_RESOURCE) ==
                                                          D3D11_BIND_SHADER_RESOURCE )
   {
-    new_desc.ByteWidth = sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize;
+    new_desc.ByteWidth =
+      sizeof (far_light_volume_s) * std::max (1U, __FAR_GlobalIllumWorkGroupSize);
 
     // New Stuff for 0.6.0
     // -------------------
@@ -362,44 +540,49 @@ SK_FAR_CreateBuffer (
       auto* lights =
         static_const_cast <far_light_volume_s *, void *> (pInitialData->pSysMem);
 
-      CopyMemory ( new_lights,
-                       lights,
-           sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize );
+      ZeroMemory ( new_lights, pDesc->ByteWidth );
 
-      if (game_state.isSteam ())
+      if (__FAR_GlobalIllumWorkGroupSize != 0)
       {
-        // This code is bloody ugly, but it works ;)
-        for (UINT i = 0; i < std::min (__FAR_GlobalIllumWorkGroupSize, 128U); i++)
+        CopyMemory ( new_lights,
+                         lights,
+             sizeof (far_light_volume_s) * __FAR_GlobalIllumWorkGroupSize );
+
+        if (game_state.isSteam () || game_state.isSteam2021 ())
         {
-          float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
-                                  lights [i].world_pos [2], lights [i].world_pos [3] };
-
-          glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
-                                      light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
-                                      light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
-                                                   1.0f );
-
-          glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
-                                  lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
-                                  lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
-                                  lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
-
-          glm::vec4   test = world_mat * cam_pos_world;
-
-          if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
-                 fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
-                 fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
-                                                                                                    fabs (lights [i].half_extents [1]) > 0.0001f ||
-                                                                                                    fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
+          // This code is bloody ugly, but it works ;)
+          for (UINT i = 0; i < std::min (__FAR_GlobalIllumWorkGroupSize, 128U); i++)
           {
-            // Degenerate light volume
-            new_lights [i].half_extents [0] = 0.0F;
-            new_lights [i].half_extents [1] = 0.0F;
-            new_lights [i].half_extents [2] = 0.0F;
+            float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
+                                    lights [i].world_pos [2], lights [i].world_pos [3] };
 
-            // Project to infinity (but not beyond, because that makes no sense)
-            new_lights [i].world_pos [0] = 0.0F; new_lights [i].world_pos [1] = 0.0F;
-            new_lights [i].world_pos [2] = 0.0F; new_lights [i].world_pos [3] = 0.0F;
+            glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
+                                        light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
+                                        light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
+                                                     1.0f );
+
+            glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
+                                    lights [i].world_to_vol [ 4], lights [i].world_to_vol [ 5], lights [i].world_to_vol [ 6], lights [i].world_to_vol [ 7],
+                                    lights [i].world_to_vol [ 8], lights [i].world_to_vol [ 9], lights [i].world_to_vol [10], lights [i].world_to_vol [11],
+                                    lights [i].world_to_vol [12], lights [i].world_to_vol [13], lights [i].world_to_vol [14], lights [i].world_to_vol [15] );
+
+            glm::vec4   test = world_mat * cam_pos_world;
+
+            if ( ( fabs (lights [i].half_extents [0]) <= fabs (test.x) * __FAR_MINIMUM_EXT ||
+                   fabs (lights [i].half_extents [1]) <= fabs (test.y) * __FAR_MINIMUM_EXT ||
+                   fabs (lights [i].half_extents [2]) <= fabs (test.z) * __FAR_MINIMUM_EXT )  /* && ( fabs (lights [i].half_extents [0]) > 0.0001f ||
+                                                                                                      fabs (lights [i].half_extents [1]) > 0.0001f ||
+                                                                                                      fabs (lights [i].half_extents [2]) > 0.0001f ) */ )
+            {
+              // Degenerate light volume
+              new_lights [i].half_extents [0] = 0.0F;
+              new_lights [i].half_extents [1] = 0.0F;
+              new_lights [i].half_extents [2] = 0.0F;
+
+              // Project to infinity (but not beyond, because that makes no sense)
+              new_lights [i].world_pos [0] = 0.0F; new_lights [i].world_pos [1] = 0.0F;
+              new_lights [i].world_pos [2] = 0.0F; new_lights [i].world_pos [3] = 0.0F;
+            }
           }
         }
       }
@@ -446,8 +629,8 @@ SK_FAR_CreateShaderResourceView (
 
       pBuf->GetDesc (&buf_desc);
 
-      if (buf_desc.ByteWidth == 96 * __FAR_GlobalIllumWorkGroupSize)
-        new_desc.BufferEx.NumElements = __FAR_GlobalIllumWorkGroupSize;
+      if (buf_desc.ByteWidth    == 96 * std::max (1U, __FAR_GlobalIllumWorkGroupSize))
+        new_desc.BufferEx.NumElements = std::max (1U, __FAR_GlobalIllumWorkGroupSize);
 
       pDesc = &new_desc;
     }
@@ -475,15 +658,9 @@ SK_FAR_SetFramerateCap (bool enable)
   {
     game_state.enforce_cap =  false;
     far_uncap_fps->set_value (true);
-
-    game_state.uncapFPS ();
-    game_state.capped = false;
   } else {
     far_uncap_fps->set_value (false);
     game_state.enforce_cap =  true;
-
-    game_state.capFPS ();
-    game_state.capped = true;
   }
 }
 
@@ -685,34 +862,69 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     }
 
 
-    bool loading =
-      game_state.isLoading ();
+    if (game_state.isSteam2021 ())
+    {
+      static constexpr auto
+        NIER_INTERNAL_FPS = 60;
 
-    if (__FAR_FastLoads && game_state.fast_loading != loading)
+      static const
+        LONGLONG llClockFreq =
+                 (SK_QpcFreq / NIER_INTERNAL_FPS);
+
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      ULONG64 llDeltaTime =
+        rb.frame_delta.getDeltaTime ();
+
+      float scale =
+          game_state.isInMenu () ?
+                            1.0f : static_cast <float>
+                                     ( static_cast <double> (llDeltaTime) /
+                                       static_cast <double> (llClockFreq) );
+
+      // Game has sketchy < 30 FPS compensation, we need to not mess with it.
+      if (scale >= 1.075f)
+          scale  = 1.0f;
+
+      float *fTimeScale =
+        (float *)(game_state.uiBaseAddr + 0x1029F88);
+
+      *fTimeScale =
+            scale;
+    }
+
+
+    if (__FAR_FastLoads)
     {
       auto pLimiter =
         SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain.p);
 
-      game_state.fast_loading =
-                      loading;
-
-      if (game_state.fast_loading)
+      if (game_state.isLoading ())
       {
-        game_state.present_rate =
-          config.render.framerate.present_interval;
-          config.render.framerate.present_interval = 0;
+        if (! game_state.fast_loading)
+        {
+          pLimiter->suspend ();
 
-        dll_log->Log (L"Suspend");
-        pLimiter->suspend ();
+          game_state.present_rate =
+            config.render.framerate.present_interval;
+            config.render.framerate.present_interval = 0;
+
+          game_state.fast_loading = true;
+        }
       }
 
       else
       {
-        config.render.framerate.present_interval =
-                     game_state.present_rate;
+        if (game_state.fast_loading)
+        {
+          pLimiter->resume ();
 
-        dll_log->Log (L"Resume");
-        pLimiter->resume  ();
+          config.render.framerate.present_interval =
+                       game_state.present_rate;
+
+          game_state.fast_loading = false;
+        }
       }
     }
 
@@ -971,42 +1183,6 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
     game_state.patchable =
       SK_FAR_SetLimiterWait ( busy_wait ? SK_FAR_WaitBehavior::Busy :
                                           SK_FAR_WaitBehavior::Sleep );
-
-    ////////void* pSleep = (void *)(game_state.uiBaseAddr + 0x24A230);
-    ////////void* pSpin  = (void *)(game_state.uiBaseAddr + 0x24A27C);
-    ////////
-    ////////if (game_state.isSteam2021 () && SK_IsAddressExecutable (pSleep, false))
-    ////////{
-    ////////  if (! memcmp (pSleep, "\x7E\x06", 2))
-    ////////  {
-    ////////    DWORD old_protect_mask;
-    ////////
-    ////////    mbegin (pSleep,             2);
-    ////////    memcpy (pSleep, "\xEB\x06", 2);
-    ////////    mend   (pSleep,             2);
-    ////////
-    ////////    mbegin (pSpin,              2);
-    ////////    memcpy (pSpin,  "\xEB\x48", 2);
-    ////////    mend   (pSpin,              2);
-    ////////
-    ////////    game_state.enforce_cap =  true;
-    ////////    far_uncap_fps->set_value (false);
-    ////////
-    ////////    config.render.framerate.
-    ////////                   target_fps = 60.0f;
-    ////////    extern float __target_fps;
-    ////////                 __target_fps = 60.0f;
-    ////////
-    ////////    SK::Framerate::GetLimiter (
-    ////////      SK_GetCurrentRenderBackend ().swapchain.p
-    ////////    )->set_limit (__target_fps);
-    ////////
-    ////////    config.render.framerate.sleepless_render = true;
-    ////////    config.render.framerate.sleepless_window = true;
-    ////////
-    ////////    game_state.patchable = true;
-    ////////  }
-    ////////}
 
     //
     // Hook keyboard input, only necessary for the FPS cap toggle right now
@@ -1498,7 +1674,7 @@ SK_FAR_EULA_Insert (LPVOID reserved)
                          "                      Niklas \"DrDaxxy\" Kielblock,\n"
                          "                      Peter  \"Durante\" Thoman\n"
                          "\n"
-                         "        Francesco149, Idk31, Smithfield, and GitHub contributors.\n"
+                         "        Francesco149, Idk31, Smithfield, emoose, and GitHub contributors.\n"
                          "\n"
                          " Permission is hereby granted, free of charge, to any person obtaining a copy\n"
                          " of this software and associated documentation files (the \"Software\"), to\n"
@@ -1636,19 +1812,12 @@ SK_FAR_InitPlugin (void)
       far_uncap_fps->store (true);
 
       config.render.framerate.target_fps = 60.0;
+                            __target_fps = 60.0;
 
-      extern float __target_fps;
-                   __target_fps = 60.0;
-
-      SK::Framerate::GetLimiter (
-        SK_GetCurrentRenderBackend ().swapchain.p
-      )->set_limit (__target_fps);
-
-      // Guaranteed Windows 10
-      if (game_state.isMicrosoft ())
-        config.render.framerate.swapchain_wait = 1;
-
-      config.render.framerate.max_delta_time = 2;
+      config.render.framerate.buffer_count     = 4;
+      config.render.framerate.pre_render_limit = 5;
+      config.render.framerate.swapchain_wait   = 1;
+      config.render.framerate.max_delta_time   = 2;
 
       config.render.framerate.sleepless_render = true;
       config.render.framerate.sleepless_window = true;
@@ -1815,8 +1984,8 @@ SK_FAR_InitPlugin (void)
         (far_factory->create_parameter <int> (L"Width of AO Post-Process"));
 
     far_ao_width->register_to_ini ( far_prefs,
-                                         L"FAR.Lighting",
-                                           L"AOWidth" );
+                                      L"FAR.Lighting",
+                                        L"AOWidth" );
 
     if (! static_cast <sk::iParameter *> (far_ao_width)->load ())
     {
@@ -1850,6 +2019,24 @@ SK_FAR_InitPlugin (void)
     if (far_ao.height <= 0) {
       far_ao.height =                   -1;
       far_ao_height->store (far_ao.height);
+    }
+
+
+
+    if (far_lod_patch_s::init ())
+    {
+      far_lod_fix =
+        dynamic_cast <sk::ParameterBool *>
+          (far_factory->create_parameter <bool> (L"Disable LOD"));
+
+      far_lod_fix->register_to_ini ( far_prefs,
+                                       L"FAR.LOD",
+                                         L"ApplyPatch" );
+
+      bool               patch = false;
+      far_lod_fix->load (patch);
+
+      far_lod_patch_s::_ApplyPatch = patch;
     }
 
 
@@ -1898,11 +2085,14 @@ SK_FAR_InitPlugin (void)
     SK_GetCommandProcessor ()->AddVariable ("FAR.GIWorkgroups", SK_CreateVar (SK_IVariable::Int,     &__FAR_GlobalIllumWorkGroupSize));
     //SK_GetCommandProcessor ()->AddVariable ("FAR.BusyWait",     SK_CreateVar (SK_IVariable::Boolean, &__FAR_BusyWait));
 
-    __SK_D3D11_PixelShader_CBuffer_Overrides->push_back (
-      { 0x49a3eacf, 48, false, 1, 0, 48, { 0.0f, 1.0f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f } }
-    );
+    if (game_state.isMicrosoft () || game_state.isSteam ())
+    {
+      __SK_D3D11_PixelShader_CBuffer_Overrides->push_back (
+        { 0x49a3eacf, 48, false, 1, 0, 48, { 0.0f, 1.0f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f } }
+      );
 
-    SK_FAR_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
+      SK_FAR_CB_Override = &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
+    }
   }
 }
 
@@ -1941,6 +2131,7 @@ SK_FAR_PlugInCfg (void)
 
     if ((! game_state.isSteam2021 ()) && ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
+#if 0
       if (game_state.patchable)
       {
         changed |= ImGui::Checkbox ("Manual Override", &SK_FAR_CB_Override->Enable);
@@ -1957,6 +2148,7 @@ SK_FAR_PlugInCfg (void)
         ImGui::EndGroup    ();
         ImGui::TreePop     ();
       }
+#endif
 
       ImGui::TreePush ("");
 
@@ -2146,7 +2338,7 @@ SK_FAR_PlugInCfg (void)
         //ImGui::Checkbox ("Compatibility Mode", &__FAR_GlobalIllumCompatMode);
       }
 
-      if (game_state.isSteam ())
+      if (game_state.isSteam () || game_state.isSteam2021 ())
       {
         float extent = __FAR_MINIMUM_EXT * 100.0f;
 
@@ -2211,10 +2403,7 @@ SK_FAR_PlugInCfg (void)
 
         else
         {
-          ImGui::BulletText  ("This cannot be used for non-60 FPS gameplay in the Microsoft Store / Steam 2021 version");
-          ImGui::BulletText  ("Enable this and then use SK's limiter @60 FPS instead for lower latency");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("Disabling this in the Steam 2021 version requires restarting the game");
+          ImGui::BulletText  ("Menus must be capped to 60.0 FPS, but most gameplay supports arbitrary framerate");
         }
 
         ImGui::TreePop       ();
@@ -2248,7 +2437,29 @@ SK_FAR_PlugInCfg (void)
       ImGui::TreePop ();
     }
 
-    if (game_state.isSteam () && ImGui::CollapsingHeader ("Camera and HUD"))
+    if (game_state.isSteam2021 () && ImGui::CollapsingHeader ("Level of Detail"))
+    {
+      ImGui::TreePush ("");
+
+      if (far_lod_patch_s::IsAOAllowed_Orig != nullptr)
+      {
+        bool patch =
+          far_lod_patch_s::_ApplyPatch;
+
+        if (ImGui::Checkbox ("Enable LOD Patch", &patch))
+        {
+          changed = true;
+
+          far_lod_fix->store (patch);
+
+          far_lod_patch_s::_ApplyPatch = patch;
+        }
+      }
+
+      ImGui::TreePop ();
+    }
+
+    if ((game_state.isSteam () /*|| game_state.isSteam2021 ()*/) && ImGui::CollapsingHeader ("Camera and HUD"))
     {
       auto Keybinding = [](SK_Keybind* binding, sk::ParameterStringW* param) ->
         auto
@@ -2275,6 +2486,8 @@ SK_FAR_PlugInCfg (void)
         };
 
       ImGui::TreePush      ("");
+
+      if (                                 game_state.pHUDOpacity != nullptr)
       ImGui::SliderFloat   ("HUD Opacity", game_state.pHUDOpacity, 0.0f, 2.0f);
 
       ImGui::Text          ("HUD Free Screenshot Keybinding:  "); ImGui::SameLine ();
@@ -2309,9 +2522,9 @@ SK_FAR_PlugInCfg (void)
 
       ImGui::Separator ();
 
-        ImGui::Text ( "Origin: (%.3f, %.3f, %.3f) - Look: (%.3f,%.3f,%.3f",
-                        ((float *)far_cam.pCamera)[0], ((float *)far_cam.pCamera)[1], ((float *)far_cam.pCamera)[2],
-                        ((float *)far_cam.pLook)[0],   ((float *)far_cam.pLook)[1],   ((float *)far_cam.pLook)[2] );
+      ImGui::Text ( "Origin: (%.3f, %.3f, %.3f) - Look: (%.3f,%.3f,%.3f",
+                      ((float *)far_cam.pCamera)[0], ((float *)far_cam.pCamera)[1], ((float *)far_cam.pCamera)[2],
+                      ((float *)far_cam.pLook)[0],   ((float *)far_cam.pLook)[1],   ((float *)far_cam.pLook)[2] );
 
       ImGui::TreePop        ();
     }
@@ -2328,7 +2541,7 @@ SK_FAR_PlugInCfg (void)
            wszReShadePath [MAX_PATH + 2] = { };
       if (*wszReShadePath == L'\0')
       {
-        if (game_state.isSteam ())
+        if (game_state.isSteam () || game_state.isSteam2021 ())
              SK_PathCombineW (wszReShadePath, SK_GetHostPath   (), L"ReShade64.dll");
         else SK_PathCombineW (wszReShadePath, SK_GetConfigPath (), L"ReShade64.dll");
         // The Microsoft Store version runs from a read-only directory.
@@ -2383,18 +2596,17 @@ SK_FAR_IsPlugIn (void)
   return far_prefs != nullptr;
 }
 
+extern float __target_fps;
+
 void
 far_game_state_s::uncapFPS (void)
 {
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   DWORD old_protect_mask;
 
-  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
+  SK_RunOnce (SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy));
 
-  extern float                                           __target_fps;
-  SK::Framerate::GetLimiter (rb.swapchain.p)->set_limit (__target_fps);
+  __target_fps =
+    config.render.framerate.target_fps;
 
   if (! game_state.isSteam2021 ())
   {
@@ -2429,30 +2641,27 @@ far_game_state_s::uncapFPS (void)
 void
 far_game_state_s::capFPS (void)
 {
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  auto* pLimiter =
-    SK::Framerate::GetLimiter (rb.swapchain.p);
-
-  DWORD  old_protect_mask;
-
-  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy);
+  SK_RunOnce (SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Busy));
 
   //if (! far_limiter_busy->get_value ())
   //  SK_FAR_SetLimiterWait (SK_FAR_WaitBehavior::Sleep);
   //else {
-    // Save and later restore FPS
-    //
-    //   Avoid using Special K's command processor because that
-    //     would store this value persistently.
-  if ( pLimiter->get_limit () <= 0.0 ||
-       pLimiter->get_limit () > 60.0 )
-       pLimiter->set_limit (    60.0 );
-  //}
+  // Save and later restore FPS
+  //
+  //   Avoid using Special K's command processor because that
+  //     would store this value persistently.
+  if ( config.render.framerate.target_fps <= 0.0f ||
+       config.render.framerate.target_fps > 60.0f ||
+                             __target_fps > 60.0f ||
+                             __target_fps <= 0.0f )
+  {
+                             __target_fps = 60.0f;
+  }
 
   if (game_state.isSteam2021 ())
     return;
+
+  DWORD  old_protect_mask;
 
   if (game_state.isSteam ())
   {
@@ -2494,3 +2703,44 @@ far_game_state_s::capFPS (void)
 
 #undef mbegin
 #undef mend
+
+
+
+
+
+
+void far_game_state_s::initForSteam2021 (void)
+{
+  bSteam          = false;
+  bSteam2021      = true;
+  __FAR_FastLoads = true;
+
+  uiBaseAddr =
+    reinterpret_cast <uintptr_t> (
+      SK_Debug_GetImageBaseAddr ()
+    );
+
+  // NieRAutomata.exe+278FE9   -    mov [NieRAutomata.exe+0F82E38],ebx      ; Mouse Cursor Vis
+
+  // NieRAutomata.exe+8BEB8D - C7 83 E4010000 01000000 - mov [rbx+000001E4],00000001 { 1 }  ; Enter Menu
+  // NieRAutomata.exe+8CC7BA - 89 73 4C                - mov [rbx+4C],esi                   ; Leave Menu
+  pMenu      = reinterpret_cast <DWORD *> (uiBaseAddr + 0x0F68CD4);
+                                                      //  ^^^ Menu (whether gamepad or mouse)
+
+  // NieRAutomata.exe+35CD68   -    mov [NieRAutomata.exe+100D410],00000001 ; Load Start
+  // NieRAutomata.exe+3F3056   -    mov [NieRAutomata.exe+100D410],ebx      ; Load End
+  pLoading   = reinterpret_cast <DWORD *> (uiBaseAddr + 0x100D410);
+  pLoading2  = reinterpret_cast <DWORD *> (uiBaseAddr + 0x1251180);
+
+  // Cutscne
+  pHacking   = nullptr;
+
+  // Shortcut
+  //NieRAutomata.exe+7521E9 - E8 92570A00           - call NieRAutomata.exe+7F7980
+  //NieRAutomata.exe+7521EE - 89 05 6C758D00        - mov [NieRAutomata.exe+1029760],eax { (0) }
+  pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x1029760);
+
+  far_cam.pCamera = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020960);
+  far_cam.pLook   = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020970);
+  far_cam.pRoll   = reinterpret_cast <float  *> (uiBaseAddr + 0x10209A8);
+}

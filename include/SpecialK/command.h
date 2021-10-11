@@ -133,21 +133,27 @@ interface SK_IVarStub : public SK_IVariable
   SK_IVarStub ( T*                    var,
                 SK_IVariableListener* pListener = nullptr );
 
-  SK_IVariable::VariableType getType (void) const override
+  SK_IVariable::VariableType getType (void) const noexcept override
   {
     return type_;
   }
 
-  virtual ~SK_IVarStub (void)
+  virtual ~SK_IVarStub (void) noexcept
   {
   }
 
-  void          getValueString  ( _Out_opt_ char*     szOut,
-                                  _Inout_   uint32_t* dwLen ) const override {
-    if (szOut != nullptr      &&     *dwLen >= 7)
-      strncpy_s (szOut, 7, "(null)", *dwLen);
+  void getValueString ( _Out_opt_ char*     szOut,
+                          _Inout_ uint32_t* dwLen ) const override
+  {
+    SK_ReleaseAssert (dwLen != nullptr);
+    if (              dwLen == nullptr) return;
 
-    *dwLen = std::min (*dwLen, static_cast <uint32_t> (strlen ("(null)")));
+    if (         szOut != nullptr    && *dwLen >= 7)
+      strncpy_s (szOut, 7, "(null)",    *dwLen);
+
+    *dwLen = std::min (
+    *dwLen, static_cast <uint32_t> (strlen ("(null)"))
+                      );
   }
 
   const T& getValue (void) const { return *var_; }
@@ -160,11 +166,11 @@ interface SK_IVarStub : public SK_IVariable
 
   // Public interface, the other one is not visible outside this DLL.
   void* getValuePointer (void) const override {
-    return static_cast <void *> (getValuePtr ());
+    return getValuePtr ();
   }
 
   /// NOTE: Avoid doing this, as much as possible...
-  T* getValuePtr (void) const { return var_; }
+  T* getValuePtr (void) const noexcept { return var_; }
 
   using _Tp =  T;
 
@@ -246,7 +252,7 @@ private:
 
 SK_ICommandProcessor*
 __stdcall
-SK_GetCommandProcessor (void);
+SK_GetCommandProcessor (void) noexcept;
 
 SK_IVariable*
 __stdcall

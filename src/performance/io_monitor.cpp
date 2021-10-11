@@ -112,7 +112,7 @@ SK_CountIO (io_perf_t& ioc, const double update)
     write_iop_sec = write_ops.calcMean (2.0);
     other_iop_sec = other_ops.calcMean (2.0);
 
-    ioc.last_update.QuadPart = now.QuadPart;
+    ioc.last_update.QuadPart = (ULONGLONG)now.QuadPart;
 
     memcpy (&ioc.last_counter, &current_io, sizeof (IO_COUNTERS));
   }
@@ -551,7 +551,7 @@ SK_MonitorDisk (LPVOID user)
 
   //Win32_PerfFormattedData_PerfDisk_LogicalDisk
 
-  auto&         disk  = *SK_WMI_DiskStats;
+  static auto&  disk  = SK_WMI_DiskStats.get ();
   const double update = config.disk.interval;
 
   HRESULT hr;

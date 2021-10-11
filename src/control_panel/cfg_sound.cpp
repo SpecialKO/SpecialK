@@ -206,7 +206,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 class SK_MMDev_AudioEndpointVolumeCallback :
   public IAudioEndpointVolumeCallback
 {
-  volatile LONG _cRef = 0;
+  volatile ULONG _cRef = 0UL;
 
 public:
   SK_MMDev_AudioEndpointVolumeCallback (void) noexcept
@@ -333,8 +333,9 @@ SK_ImGui_VolumeManager (void)
        (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
 
       DWORD dwFlags =
-        ( bScancode & 0xE0 ) != 0 ?
-            KEYEVENTF_EXTENDEDKEY : 0x0;
+        ( bScancode & 0xE0 ) == 0   ?
+          static_cast <DWORD> (0x0) :
+          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
       keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
       keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
@@ -357,8 +358,9 @@ SK_ImGui_VolumeManager (void)
        (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
 
       DWORD dwFlags =
-        ( bScancode & 0xE0 ) != 0 ?
-            KEYEVENTF_EXTENDEDKEY : 0x0;
+        ( bScancode & 0xE0 ) == 0   ?
+          static_cast <DWORD> (0x0) :
+          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
       keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
       keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
@@ -380,8 +382,9 @@ SK_ImGui_VolumeManager (void)
        (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
 
       DWORD dwFlags =
-        ( bScancode & 0xE0 ) != 0 ?
-            KEYEVENTF_EXTENDEDKEY : 0x0;
+        ( bScancode & 0xE0 ) == 0   ?
+          static_cast <DWORD> (0x0) :
+          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
       keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
@@ -632,7 +635,7 @@ SK_ImGui_VolumeManager (void)
 
           const float ht = font_size * 6;
 
-          if (channel_volumes.count (i) == 0)
+          if (channel_volumes.count (static_cast <int> (i)) == 0)
           {
             session_changed = true;
 
@@ -642,7 +645,7 @@ SK_ImGui_VolumeManager (void)
 
           if (             pChannelVolume != nullptr   &&
                SUCCEEDED ( pChannelVolume->GetChannelVolume (
-                            i,  &channel_volumes [i].volume )
+                  static_cast <UINT32> (i),  &channel_volumes [i].volume )
                          )
              )
           {
@@ -674,10 +677,10 @@ SK_ImGui_VolumeManager (void)
                    val        = ch_vol.muted ? 0.1f : 0.5f;
             float *pSliderVal = ch_vol.muted ? &ch_vol.normalized : &ch_vol.volume;
 
-            ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.5f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.6f, val));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.7f, val));
-            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     (ImVec4&&)ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.9f, 0.9f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.5f,  val).Value);
+            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.6f,  val).Value);
+            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.7f,  val).Value);
+            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImColor::HSV ( ( i + 1 ) / static_cast <float> (channels), 0.9f, 0.9f).Value);
 
             changed =
               ImGui::VSliderFloat ( ch_vol.slider_label,

@@ -49,7 +49,6 @@ static auto constexpr x = sizeof (SK_InjectionRecord_s);
 #pragma data_seg (".SK_Hooks")
 extern "C"
 {
-//__declspec (dllexport) HANDLE hShutdownSignal= INVALID_HANDLE_VALUE;
   DWORD        dwHookPID  = 0x0;     // Process that owns the CBT hook
   HHOOK        hHookCBT   = nullptr; // CBT hook
   BOOL         bAdmin     = FALSE;   // Is SKIM64 able to inject into admin apps?
@@ -553,52 +552,6 @@ SK_Inject_CleanupSharedMemory (void)
 
 
 
-#pragma pack (push, 1)
-struct SK_SharedMemory_v1
-{
-  // Initialized = 0x1
-  // Standby     = 0x2
-  // Free        = 0x4
-  uint32_t MemoryState = 0x0;
-  uint32_t HighDWORD   = sizeof (SK_SharedMemory_v1) -
-                         sizeof (uint32_t);
-
-
-  struct WindowState_s {
-    DWORD hWndFocus      = 0x0;
-    DWORD hWndActive     = 0x0;
-    DWORD hWndForeground = 0x0;
-    DWORD dwPadding      = 0x0;
-    DWORD hWndExplorer   = 0x0;
-    DWORD uMsgExpRaise   = 0x0;
-    DWORD uMsgExpLower   = 0x0;
-    DWORD _Reserved [ 9] = { };
-  } SystemWide,
-    CurrentGame;
-
-
-  struct EtwSessionList_s
-  {
-    struct SessionCtl_s {
-      uint32_t SequenceId = 0;
-      DWORD    _Reserved [28];
-    } SessionControl;
-
-    struct EtwSession_s {
-      char  szName [24] =  "";
-      DWORD dwReserved  = 0x0;
-      DWORD dwPid       = 0x0;
-    } PresentMon   [ 3], // Max Concurrent = 3
-      Reserved     [ 5];
-
-    static auto constexpr
-      __MaxPresentMonSessions = 3;
-  } EtwSessions;
-};
-#pragma pack (pop)
-
-
-
 HWND SK_Inject_GetExplorerWindow (void)
 {
   SK_SharedMemory_v1 *pShared =
@@ -670,6 +623,8 @@ SK_Inject_SetFocusWindow (HWND hWndFocus)
 }
 
 
+#include <SpecialK/render/present_mon/TraceSession.hpp>
+
 std::string
 SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
 {
@@ -714,24 +669,32 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
                 first_free_idx = i;
               }
 
+              else if (hProcess == 0)
+              {
+                first_free_idx = i;
+              }
+
               if (         hProcess != 0)
               CloseHandle (hProcess);
             }
 
-            else if ( pSharedMem->EtwSessions.PresentMon [i].dwPid == 0x0 )
+            else if ( pSharedMem->EtwSessions.PresentMon [i].dwPid  == 0x0 )
             {
-              // Make sure memory is clean
-              *pSharedMem->EtwSessions.PresentMon [i].szName = '\0';
+              if (   *pSharedMem->EtwSessions.PresentMon [i].szName == '\0')
+              {
+                if (first_uninit_idx == __MaxPresentMonSessions)
+                    first_uninit_idx = i;
+              }
 
-              if (first_uninit_idx == __MaxPresentMonSessions)
-                  first_uninit_idx = i;
+              else if (first_free_idx == __MaxPresentMonSessions)
+                       first_free_idx = i;
             }
           }
 
           int idx =
             std::min (        first_uninit_idx,
                        bReuse ? first_free_idx :
-                     __MaxPresentMonSessions );
+                     __MaxPresentMonSessions - 1 );
           if (idx != __MaxPresentMonSessions)
           {
             auto *pEtwSession =
@@ -741,16 +704,22 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
                  (pEtwSession->dwPid == 0x0);
                   pEtwSession->dwPid = GetCurrentProcessId ();
 
-            if (isNewSession)
+            if (isNewSession && *pEtwSession->szName == '\0')
             {
+              pEtwSession->dwSequence =
+               pSharedMem->EtwSessions.SessionControl.SequenceId++;
+
               session_name =
                 SK_FormatString ( "%hs [%lu]",
-                  szPrefix, pSharedMem->EtwSessions.SessionControl.SequenceId++
-                                );
+                  szPrefix, idx );
             }
 
             else
+            {
+                             pEtwSession->dwSequence =
+                  pSharedMem->EtwSessions.SessionControl.SequenceId++;
               session_name = pEtwSession->szName;
+            }
           }
         }
 
@@ -790,8 +759,8 @@ SK_Etw_UnregisterSession (const char* szPrefix)
 
             if (pEtwSession->dwPid == GetCurrentProcessId ())
             {
-               *pEtwSession->szName = '\0',
-                pEtwSession->dwPid  = 0x00;
+              *pEtwSession->szName = '\0';
+               pEtwSession->dwPid  = 0x00;
 
               unregistered_count++;
             }
@@ -1168,31 +1137,42 @@ SetWindowBand_Detour ( HWND  hWnd,
                        HWND  hWndInsertAfter,
                        DWORD dwBand )
 {
+  static volatile LONG lLock = 0;
+
+  while (InterlockedCompareExchange (&lLock, 1, 0) != 0)
+    SleepEx (1, FALSE);
+
   BOOL bRet =
     SetWindowBand_Original (
       hWnd, hWndInsertAfter, dwBand
     );
 
-  if (hWndToSet != (HWND)~0)
+  HWND hWndReal = hWndToSet;
+
+  if (hWndReal != (HWND)~0)
   {
-    BYTE scan_code_ESC =
-      (BYTE)MapVirtualKey (VK_ESCAPE, 0);
-
-    extern void WINAPI
-      SK_keybd_event (
-        _In_ BYTE       bVk,
-        _In_ BYTE       bScan,
-        _In_ DWORD     dwFlags,
-        _In_ ULONG_PTR dwExtraInfo );
-
-    SK_keybd_event (VK_ESCAPE, scan_code_ESC, 0,               0);
-    SK_keybd_event (VK_ESCAPE, scan_code_ESC, KEYEVENTF_KEYUP, 0);
-
-    if (SetWindowBand_Original (hWndToSet, 0, dwBandToSet))
+    if (SetWindowBand_Original (hWndReal, HWND_TOP, dwBandToSet))
     {
-      hWndToSet = (HWND)~0;
+      extern void WINAPI
+        SK_keybd_event (
+          _In_ BYTE       bVk,
+          _In_ BYTE       bScan,
+          _In_ DWORD     dwFlags,
+          _In_ ULONG_PTR dwExtraInfo );
+
+      SK_keybd_event (VK_LWIN,   (BYTE)MapVirtualKey (VK_LWIN,   0), KEYEVENTF_EXTENDEDKEY,                   0);
+      SK_keybd_event (VK_LWIN,   (BYTE)MapVirtualKey (VK_LWIN,   0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+      SK_keybd_event (VK_ESCAPE, (BYTE)MapVirtualKey (VK_ESCAPE, 0), 0,                                       0);
+      SK_keybd_event (VK_ESCAPE, (BYTE)MapVirtualKey (VK_ESCAPE, 0),                         KEYEVENTF_KEYUP, 0);
+
+      SleepEx (150UL, FALSE);
+
+      PostMessage              (hWndReal, 0xf00f,   dwBandToSet, 0);
+                                hWndToSet = (HWND)~0;
     }
   }
+
+  InterlockedExchange (&lLock, 0);
 
   return
     bRet;
@@ -1260,6 +1240,7 @@ SK_Inject_SpawnUnloadListener (void)
 
           InterlockedIncrement  (&injected_procs);
 
+#if 0
           if (GetModuleHandle (L"explorer.exe"))
           {
             ATOM eve =
@@ -1348,7 +1329,7 @@ SK_Inject_SpawnUnloadListener (void)
             }
             else wnd_class.cbSize = 0;
           }
-
+#endif
           DWORD dwWaitState =
             MsgWaitForMultipleObjectsEx (
               2, signals, INFINITE, QS_ALLINPUT, 0x0
@@ -1367,7 +1348,7 @@ SK_Inject_SpawnUnloadListener (void)
                              QS_ALLINPUT, 0x0 );
           }
 
-
+#if 0
           if (GetModuleHandle (L"explorer.exe"))
           {
             SK_SharedMemory_v1 *pShared =
@@ -1388,6 +1369,7 @@ SK_Inject_SpawnUnloadListener (void)
               SK_MinHook_UnInit ();
             }
           }
+#endif
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
@@ -1441,7 +1423,7 @@ SK_Inject_SpawnUnloadListener (void)
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
 auto _DoWindowsOverlap =
-[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 5) -> bool
+[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 50) -> bool
 {
   if (! IsWindow (hWndGame)) return false;
   if (! IsWindow (hWndApp))  return false;
@@ -1499,36 +1481,13 @@ CBTProc ( _In_ int    nCode,
 
   if (game_window.hWnd == 0)
   {
-    if (nCode == HCBT_ACTIVATE)
-    {
-      HWND hWndGame =
-        SK_Inject_GetFocusWindow ();
+    if (hWndToSet != (HWND)~0) return
+      CallNextHookEx (
+        SKX_GetCBTHook (),
+          nCode, wParam, lParam
+      );
 
-      CBTACTIVATESTRUCT *pCBTActivate =
-       (CBTACTIVATESTRUCT *)lParam;
-
-      if (hWndGame != 0x0 && IsWindow (hWndGame) && hWndGame != (HWND)pCBTActivate->hWndActive)
-      {
-        HWND hWndActive = (HWND)pCBTActivate->hWndActive,
-             hWndSet    = SK_GetForegroundWindow ();
-
-        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndActive, (LPARAM)hWndSet);
-      }
-    }
-
-    else if (nCode == HCBT_SETFOCUS)
-    {
-      HWND hWndGame =
-        SK_Inject_GetFocusWindow ();
-
-      HWND hWndSet   = (HWND)wParam,
-           hWndPrev  = (HWND)lParam;
-
-      if (hWndGame != 0x0 && IsWindow (hWndGame) && hWndSet != hWndGame)
-        PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndSet, (LPARAM)hWndPrev);
-    }
-
-    else if (nCode == HCBT_MOVESIZE)
+    if (nCode == HCBT_MOVESIZE)
     {
       HWND hWndGame =
         SK_Inject_GetFocusWindow ();
@@ -2392,6 +2351,34 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
   return i;
 }
 
+BOOL
+SK_IsWindowsVersionOrGreater (DWORD dwMajorVersion, DWORD dwMinorVersion, DWORD dwBuildNumber)
+{
+  NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW);
+
+  OSVERSIONINFOEXW
+    osInfo                     = { };
+    osInfo.dwOSVersionInfoSize = sizeof (OSVERSIONINFOEXW);
+
+  *reinterpret_cast<FARPROC *>(&RtlGetVersion) =
+    SK_GetProcAddress (L"ntdll", "RtlGetVersion");
+
+  if (RtlGetVersion != nullptr)
+  {
+    if (NT_SUCCESS (RtlGetVersion (&osInfo)))
+    {
+      return
+        ( osInfo.dwMajorVersion   >  dwMajorVersion ||
+          ( osInfo.dwMajorVersion == dwMajorVersion &&
+            osInfo.dwMinorVersion >= dwMinorVersion &&
+            osInfo.dwBuildNumber  >= dwBuildNumber  )
+        );
+    }
+  }
+
+  return FALSE;
+}
+
 void
 SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path)
 {
@@ -2419,6 +2406,24 @@ SK_Inject_ParseWhiteAndBlacklists (const std::wstring& base_path)
 
     if (list_file.is_open ())
     {
+      // Requires Windows 10 1903+ (Build 18362)
+      if (SK_IsWindowsVersionOrGreater (10, 0, 18362))
+      {
+        list_file.imbue (
+            std::locale (".UTF-8")
+        );
+      }
+
+      else
+      {
+        // Win8.1 fallback relies on deprecated stuff, so surpress warning when compiling
+#pragma warning(suppress : 4996)
+        list_file.imbue (
+            std::locale (std::locale::empty (),
+                         new (std::nothrow) std::codecvt_utf8 <wchar_t, 0x10ffff> ())
+        );
+      }
+
       // Don't update the shared DLL data segment until we finish parsing
       int          count = 0;
       std::wstring line;
@@ -2547,7 +2552,12 @@ SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
 bool
 SK_Inject_TestBlacklists (const wchar_t* wszExecutable)
 {
-  if (StrStrNIW (wszExecutable, L"launcher", MAX_PATH) != nullptr)
+  wchar_t    wszExecutableCopy [MAX_PATH] = { };
+  wcsncpy_s (wszExecutableCopy, MAX_PATH,
+             wszExecutable,     _TRUNCATE );
+
+  PathStripPath (wszExecutableCopy);
+  if (StrStrNIW (wszExecutableCopy, L"launcher", MAX_PATH) != nullptr)
     return true;
 
   return
@@ -2559,4 +2569,17 @@ SK_Inject_IsAdminSupported (void) noexcept
 {
   return
     ( bAdmin != FALSE );
+}
+
+
+void SK_Inject_BroadcastAttachNotify (void)
+{
+  CHandle hInjectAck (
+    OpenEvent ( EVENT_ALL_ACCESS, FALSE, LR"(Local\SKIF_InjectAck)" )
+  );
+
+  if (hInjectAck.m_h > 0)
+  {
+    SetEvent (hInjectAck.m_h);
+  }
 }

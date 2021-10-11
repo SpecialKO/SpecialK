@@ -43,7 +43,7 @@
 HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
 
 // Additional Validation if Debugger is Attached
-BOOL WINAPI SK_IsDebuggerPresent (void);
+BOOL WINAPI SK_IsDebuggerPresent (void) noexcept;
 
 
 
@@ -106,28 +106,9 @@ GetProcessMemoryInfo
 };
 #endif
 
-__inline
+
 SK_Thread_HybridSpinlock*
-SK_DLL_LoaderLockGuard (void) noexcept
-{
-  static SK_Thread_HybridSpinlock  static_loader (15);
-  static SK_Thread_HybridSpinlock* loader_lock;
-
-  static volatile LONG                  __init  =  0;
-  if (0 == InterlockedCompareExchange (&__init, 1, 0))
-  {
-    if (loader_lock == nullptr)
-        loader_lock  = &static_loader;
-
-    InterlockedIncrement (&__init);
-  }
-
-  else
-    SK_Thread_SpinUntilAtomicMin (&__init, 2);
-
-  return
-    loader_lock;
-}
+SK_DLL_LoaderLockGuard (void) noexcept;
 
 
 class skWin32Module
@@ -292,7 +273,9 @@ public:
     _loaded_libraries.reserve   (96);
   }
 
-  static constexpr HMODULE INVALID_MODULE = nullptr;
+  static constexpr
+           HMODULE
+    INVALID_MODULE = nullptr;
 
   inline
   bool
@@ -623,13 +606,13 @@ skWin32Module::Release (void) noexcept
     auto& libs  ( registrar->_loaded_libraries   );
     auto& names ( registrar->_known_module_names );
     auto& addrs ( registrar->_known_module_bases );
-  
+
     const BOOL really_gone =
       FreeLibrary (hMod_);
-  
+
     const auto& it =
       libs.find (hMod_);
-  
+
     if (   it != libs.cend () )
     {
       // All of our references, plus all of the game's references are gone
@@ -639,10 +622,10 @@ skWin32Module::Release (void) noexcept
         names.erase (it->second);
         addrs.erase (it->second);
       }
-  
+
       libs.erase (hMod_);
     }
-  
+
     delete this;
   }
 

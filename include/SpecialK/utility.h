@@ -225,8 +225,8 @@ public:
   {
     // We cannot close these handles because technically they
     //   were never opened (by usermode code).
-    if (reinterpret_cast <intptr_t> (m_h) < reinterpret_cast <intptr_t> (nullptr))
-                                     m_h =                               nullptr;
+    if ((intptr_t)m_h < (intptr_t)nullptr)
+                  m_h =           nullptr;
 
     // Signed handles are often special cases
     //   such as -2 = Current Thread, -1 = Current Process
@@ -615,14 +615,14 @@ private:
   class InstructionSet_Internal
   {
   public:
-    InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
-                                     vendor_   (       ), brand_    (       ),
-                                     family_   { 0     }, model_    { 0     },
-                                     stepping_ { 0     },
-                                     isIntel_  { false }, isAMD_    { false },
-                                     f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
-                                     f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
-                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
+    InstructionSet_Internal (void) noexcept : nIds_     { 0     }, nExIds_   { 0     },
+                                              vendor_   (       ), brand_    (       ),
+                                              family_   { 0     }, model_    { 0     },
+                                              stepping_ { 0     },
+                                              isIntel_  { false }, isAMD_    { false },
+                                              f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
+                                              f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
+                                              f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
     {
       //int cpuInfo[4] = {-1};
       std::array <int, 4> cpui;
@@ -651,7 +651,7 @@ private:
       }
 
       vendor_ =
-        reinterpret_cast <char *> (vendor); //-V206
+        (char *)vendor;
 
            if  (vendor_ == "GenuineIntel")  isIntel_ = true;
       else if  (vendor_ == "AuthenticAMD")  isAMD_   = true;

@@ -26,6 +26,8 @@ extern iSK_INI* osd_ini;
 extern void SK_ImGui_DrawGraph_FramePacing (void);
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <imgui/font_awesome.h>
+
 
 namespace
 SK_ImGui
@@ -216,201 +218,6 @@ SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo)
     DwmGetCompositionTimingInfo ( 0, pTimingInfo );
 }
 
-
-
-#pragma pack (push,8)
-typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
-typedef UINT D3DKMT_HANDLE;
-
-typedef struct _D3DKMT_OPENADAPTERFROMHDC
-{
-  HDC                             hDc;            // in:  DC that maps to a single display
-  D3DKMT_HANDLE                   hAdapter;       // out: adapter handle
-  LUID                            AdapterLuid;    // out: adapter LUID
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID  VidPnSourceId;  // out: VidPN source ID for that particular display
-} D3DKMT_OPENADAPTERFROMHDC;
-
-typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_OPENADAPTERFROMHDC)(_Inout_ D3DKMT_OPENADAPTERFROMHDC*);
-
-// Represents performance data collected per engine from an adapter on an interval basis.
-typedef struct _D3DKMT_NODE_PERFDATA
-{
-  _In_  UINT32    NodeOrdinal;          // Node ordinal of the requested engine.
-  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
-  _Out_ ULONGLONG Frequency;            // Clock frequency of the requested engine, represented in hertz.
-  _Out_ ULONGLONG MaxFrequency;         // The max frequency the engine can normally reach in hertz while not overclocked.
-  _Out_ ULONGLONG MaxFrequencyOC;       // The max frequency the engine can reach with it�s current overclock in hertz.
-  _Out_ ULONG     Voltage;              // Voltage of the engine in milli volts mV
-  _Out_ ULONG     VoltageMax;           // The max voltage of the engine in milli volts while not overclocked.
-  _Out_ ULONG     VoltageMaxOC;         // The max voltage of the engine while overclocked in milli volts.
-  _Out_ ULONGLONG MaxTransitionLatency; // Max transition latency to change the frequency in 100 nanoseconds // REDSTONE5
-} D3DKMT_NODE_PERFDATA;
-
-// Represents performance data collected per adapter on an interval basis.
-typedef struct _D3DKMT_ADAPTER_PERFDATA
-{
-  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
-  _Out_ ULONGLONG MemoryFrequency;      // Clock frequency of the memory in hertz
-  _Out_ ULONGLONG MaxMemoryFrequency;   // Max clock frequency of the memory while not overclocked, represented in hertz.
-  _Out_ ULONGLONG MaxMemoryFrequencyOC; // Clock frequency of the memory while overclocked in hertz.
-  _Out_ ULONGLONG MemoryBandwidth;      // Amount of memory transferred in bytes
-  _Out_ ULONGLONG PCIEBandwidth;        // Amount of memory transferred over PCI-E in bytes
-  _Out_ ULONG     FanRPM;               // Fan rpm
-  _Out_ ULONG     Power;                // Power draw of the adapter in tenths of a percentage
-  _Out_ ULONG     Temperature;          // Temperature in deci-Celsius 1 = 0.1C
-  _Out_ UCHAR     PowerStateOverride;   // Overrides dxgkrnls power view of linked adapters.
-} D3DKMT_ADAPTER_PERFDATA;
-
-// Represents data capabilities that are static and queried once per GPU during initialization.
-typedef struct _D3DKMT_ADAPTER_PERFDATACAPS
-{
-  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
-  _Out_ ULONGLONG MaxMemoryBandwidth;   // Max memory bandwidth in bytes for 1 second
-  _Out_ ULONGLONG MaxPCIEBandwidth;     // Max pcie bandwidth in bytes for 1 second
-  _Out_ ULONG     MaxFanRPM;            // Max fan rpm
-  _Out_ ULONG     TemperatureMax;       // Max temperature before damage levels
-  _Out_ ULONG     TemperatureWarning;   // The temperature level where throttling begins.
-} D3DKMT_ADAPTER_PERFDATACAPS;
-
-typedef UINT32 D3DKMT_HANDLE;
-
-typedef enum _KMTQUERYADAPTERINFOTYPE
-{
-  KMTQAITYPE_UMDRIVERPRIVATE                          =  0,
-  KMTQAITYPE_UMDRIVERNAME                             =  1, // D3DKMT_UMDFILENAMEINFO
-  KMTQAITYPE_UMOPENGLINFO                             =  2, // D3DKMT_OPENGLINFO
-  KMTQAITYPE_GETSEGMENTSIZE                           =  3, // D3DKMT_SEGMENTSIZEINFO
-  KMTQAITYPE_ADAPTERGUID                              =  4, // GUID
-  KMTQAITYPE_FLIPQUEUEINFO                            =  5, // D3DKMT_FLIPQUEUEINFO
-  KMTQAITYPE_ADAPTERADDRESS                           =  6, // D3DKMT_ADAPTERADDRESS
-  KMTQAITYPE_SETWORKINGSETINFO                        =  7, // D3DKMT_WORKINGSETINFO
-  KMTQAITYPE_ADAPTERREGISTRYINFO                      =  8, // D3DKMT_ADAPTERREGISTRYINFO
-  KMTQAITYPE_CURRENTDISPLAYMODE                       =  9, // D3DKMT_CURRENTDISPLAYMODE
-  KMTQAITYPE_MODELIST                                 = 10, // D3DKMT_DISPLAYMODE (array)
-  KMTQAITYPE_CHECKDRIVERUPDATESTATUS                  = 11,
-  KMTQAITYPE_VIRTUALADDRESSINFO                       = 12, // D3DKMT_VIRTUALADDRESSINFO
-  KMTQAITYPE_DRIVERVERSION                            = 13, // D3DKMT_DRIVERVERSION
-  KMTQAITYPE_ADAPTERTYPE                              = 15, // D3DKMT_ADAPTERTYPE // since WIN8
-  KMTQAITYPE_OUTPUTDUPLCONTEXTSCOUNT                  = 16, // D3DKMT_OUTPUTDUPLCONTEXTSCOUNT
-  KMTQAITYPE_WDDM_1_2_CAPS                            = 17, // D3DKMT_WDDM_1_2_CAPS
-  KMTQAITYPE_UMD_DRIVER_VERSION                       = 18, // D3DKMT_UMD_DRIVER_VERSION
-  KMTQAITYPE_DIRECTFLIP_SUPPORT                       = 19, // D3DKMT_DIRECTFLIP_SUPPORT
-  KMTQAITYPE_MULTIPLANEOVERLAY_SUPPORT                = 20, // D3DKMT_MULTIPLANEOVERLAY_SUPPORT // since WDDM1_3
-  KMTQAITYPE_DLIST_DRIVER_NAME                        = 21, // D3DKMT_DLIST_DRIVER_NAME
-  KMTQAITYPE_WDDM_1_3_CAPS                            = 22, // D3DKMT_WDDM_1_3_CAPS
-  KMTQAITYPE_MULTIPLANEOVERLAY_HUD_SUPPORT            = 23, // D3DKMT_MULTIPLANEOVERLAY_HUD_SUPPORT
-  KMTQAITYPE_WDDM_2_0_CAPS                            = 24, // D3DKMT_WDDM_2_0_CAPS // since WDDM2_0
-  KMTQAITYPE_NODEMETADATA                             = 25, // D3DKMT_NODEMETADATA
-  KMTQAITYPE_CPDRIVERNAME                             = 26, // D3DKMT_CPDRIVERNAME
-  KMTQAITYPE_XBOX                                     = 27, // D3DKMT_XBOX
-  KMTQAITYPE_INDEPENDENTFLIP_SUPPORT                  = 28, // D3DKMT_INDEPENDENTFLIP_SUPPORT
-  KMTQAITYPE_MIRACASTCOMPANIONDRIVERNAME              = 29, // D3DKMT_MIRACASTCOMPANIONDRIVERNAME
-  KMTQAITYPE_PHYSICALADAPTERCOUNT                     = 30, // D3DKMT_PHYSICAL_ADAPTER_COUNT
-  KMTQAITYPE_PHYSICALADAPTERDEVICEIDS                 = 31, // D3DKMT_QUERY_DEVICE_IDS
-  KMTQAITYPE_DRIVERCAPS_EXT                           = 32, // D3DKMT_DRIVERCAPS_EXT
-  KMTQAITYPE_QUERY_MIRACAST_DRIVER_TYPE               = 33, // D3DKMT_QUERY_MIRACAST_DRIVER_TYPE
-  KMTQAITYPE_QUERY_GPUMMU_CAPS                        = 34, // D3DKMT_QUERY_GPUMMU_CAPS
-  KMTQAITYPE_QUERY_MULTIPLANEOVERLAY_DECODE_SUPPORT   = 35, // D3DKMT_MULTIPLANEOVERLAY_DECODE_SUPPORT
-  KMTQAITYPE_QUERY_HW_PROTECTION_TEARDOWN_COUNT       = 36, // UINT32
-  KMTQAITYPE_QUERY_ISBADDRIVERFORHWPROTECTIONDISABLED = 37, // D3DKMT_ISBADDRIVERFORHWPROTECTIONDISABLED
-  KMTQAITYPE_MULTIPLANEOVERLAY_SECONDARY_SUPPORT      = 38, // D3DKMT_MULTIPLANEOVERLAY_SECONDARY_SUPPORT
-  KMTQAITYPE_INDEPENDENTFLIP_SECONDARY_SUPPORT        = 39, // D3DKMT_INDEPENDENTFLIP_SECONDARY_SUPPORT
-  KMTQAITYPE_PANELFITTER_SUPPORT                      = 40, // D3DKMT_PANELFITTER_SUPPORT // since WDDM2_1
-  KMTQAITYPE_PHYSICALADAPTERPNPKEY                    = 41, // D3DKMT_QUERY_PHYSICAL_ADAPTER_PNP_KEY // since WDDM2_2
-  KMTQAITYPE_GETSEGMENTGROUPSIZE                      = 42, // D3DKMT_SEGMENTGROUPSIZEINFO
-  KMTQAITYPE_MPO3DDI_SUPPORT                          = 43, // D3DKMT_MPO3DDI_SUPPORT
-  KMTQAITYPE_HWDRM_SUPPORT                            = 44, // D3DKMT_HWDRM_SUPPORT
-  KMTQAITYPE_MPOKERNELCAPS_SUPPORT                    = 45, // D3DKMT_MPOKERNELCAPS_SUPPORT
-  KMTQAITYPE_MULTIPLANEOVERLAY_STRETCH_SUPPORT        = 46, // D3DKMT_MULTIPLANEOVERLAY_STRETCH_SUPPORT
-  KMTQAITYPE_GET_DEVICE_VIDPN_OWNERSHIP_INFO          = 47, // D3DKMT_GET_DEVICE_VIDPN_OWNERSHIP_INFO
-  KMTQAITYPE_QUERYREGISTRY                            = 48, // D3DDDI_QUERYREGISTRY_INFO // since WDDM2_4
-  KMTQAITYPE_KMD_DRIVER_VERSION                       = 49, // D3DKMT_KMD_DRIVER_VERSION
-  KMTQAITYPE_BLOCKLIST_KERNEL                         = 50, // D3DKMT_BLOCKLIST_INFO ??
-  KMTQAITYPE_BLOCKLIST_RUNTIME                        = 51, // D3DKMT_BLOCKLIST_INFO ??
-  KMTQAITYPE_ADAPTERGUID_RENDER                       = 52, // GUID
-  KMTQAITYPE_ADAPTERADDRESS_RENDER                    = 53, // D3DKMT_ADAPTERADDRESS
-  KMTQAITYPE_ADAPTERREGISTRYINFO_RENDER               = 54, // D3DKMT_ADAPTERREGISTRYINFO
-  KMTQAITYPE_CHECKDRIVERUPDATESTATUS_RENDER           = 55,
-  KMTQAITYPE_DRIVERVERSION_RENDER                     = 56, // D3DKMT_DRIVERVERSION
-  KMTQAITYPE_ADAPTERTYPE_RENDER                       = 57, // D3DKMT_ADAPTERTYPE
-  KMTQAITYPE_WDDM_1_2_CAPS_RENDER                     = 58, // D3DKMT_WDDM_1_2_CAPS
-  KMTQAITYPE_WDDM_1_3_CAPS_RENDER                     = 59, // D3DKMT_WDDM_1_3_CAPS
-  KMTQAITYPE_QUERY_ADAPTER_UNIQUE_GUID                = 60, // D3DKMT_QUERY_ADAPTER_UNIQUE_GUID
-  KMTQAITYPE_NODEPERFDATA                             = 61, // D3DKMT_NODE_PERFDATA
-  KMTQAITYPE_ADAPTERPERFDATA                          = 62, // D3DKMT_ADAPTER_PERFDATA
-  KMTQAITYPE_ADAPTERPERFDATA_CAPS                     = 63, // D3DKMT_ADAPTER_PERFDATACAPS
-  KMTQUITYPE_GPUVERSION                               = 64, // D3DKMT_GPUVERSION
-  KMTQAITYPE_DRIVER_DESCRIPTION                       = 65, // D3DKMT_DRIVER_DESCRIPTION // since WDDM2_6
-  KMTQAITYPE_DRIVER_DESCRIPTION_RENDER                = 66, // D3DKMT_DRIVER_DESCRIPTION
-  KMTQAITYPE_SCANOUT_CAPS                             = 67, // D3DKMT_QUERY_SCANOUT_CAPS
-} KMTQUERYADAPTERINFOTYPE;
-
-typedef struct _D3DKMT_QUERYADAPTERINFO
-{
-  _In_                                     D3DKMT_HANDLE           AdapterHandle;
-  _In_                                     KMTQUERYADAPTERINFOTYPE Type;
-  _Inout_bytecount_(PrivateDriverDataSize) PVOID                   PrivateDriverData;
-  _Out_      UINT32 PrivateDriverDataSize;
-} D3DKMT_QUERYADAPTERINFO;
-#pragma pack (pop)
-
-typedef NTSTATUS (NTAPI *PFND3DKMT_QUERYADAPTERINFO)(D3DKMT_QUERYADAPTERINFO *pData);
-
-HRESULT
-SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)
-{
-  if (! D3DKMTQueryAdapterInfo)
-        D3DKMTQueryAdapterInfo =
-        SK_GetProcAddress (
-          SK_LoadLibraryW ( L"gdi32.dll" ),
-            "D3DKMTQueryAdapterInfo"
-                          );
-
-  if (D3DKMTQueryAdapterInfo != nullptr)
-  {
-    return
-       reinterpret_cast <
-         PFND3DKMT_QUERYADAPTERINFO                    > (
-             D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
-  }
-
-  return E_FAIL;
-}
-
-HRESULT
-SK_D3DKMT_QueryAdapterPerfData ( HDC                      hDC,
-                                 D3DKMT_ADAPTER_PERFDATA *pAdapterPerfData )
-{
-  D3DKMT_OPENADAPTERFROMHDC oa     = { };
-                            oa.hDc = hDC;
-
-  if (! D3DKMTOpenAdapterFromHdc)
-  {     D3DKMTOpenAdapterFromHdc =
-        SK_GetProcAddress (
-          SK_LoadLibraryW ( L"gdi32.dll" ),
-            "D3DKMTOpenAdapterFromHdc"
-                          );
-  }
-
-  NTSTATUS result =
-        reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (D3DKMTOpenAdapterFromHdc)(&oa);
-
-  if (SUCCEEDED (result))
-  {
-    D3DKMT_QUERYADAPTERINFO
-      queryAdapterInfo                       = { };
-      queryAdapterInfo.AdapterHandle         = oa.hAdapter;
-      queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-      queryAdapterInfo.PrivateDriverData     =          pAdapterPerfData;
-      queryAdapterInfo.PrivateDriverDataSize = sizeof (*pAdapterPerfData);
-
-    result =
-      SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-  }
-
-  return result;
-}
-
 SK_RenderBackend::latency_monitor_s SK_RenderBackend::latency;
 
 void
@@ -445,8 +252,8 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 
       latency.delays .TotalMs     =
                   static_cast <float>  (
-         1000.0 * static_cast <double> (             time.QuadPart) /
-                  static_cast <double> (SK_GetPerfFreq ().QuadPart) ) -
+         1000.0 * static_cast <double> (time.QuadPart) /
+                  static_cast <double> (   SK_QpcFreq) ) -
            SK_ImGui_Frames->getLastValue ();
 
       latency.counters.frameStats0 = latency.counters.frameStats1;
@@ -462,10 +269,14 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 }
 
 
-       int    extra_present_mon_line = 0;
-extern bool __SK_Wine;
+extern void
+SK_ImGui_DrawGamepadStatusBar (void);
 
-extern int SK_PresentMon_Main (int argc, char **argv);
+
+       int    extra_present_mon_line = 0;
+
+extern int  SK_PresentMon_Main (int argc, char **argv);
+extern bool StopTraceSession   (void);
 
 HANDLE __SK_ETW_PresentMon_Thread = INVALID_HANDLE_VALUE;
 
@@ -473,15 +284,16 @@ void
 SK_SpawnPresentMonWorker (void)
 {
   // Wine doesn't support this...
-  if (__SK_Wine)
+  if (config.compatibility.using_wine)
     return;
 
   SK_RunOnce (
     __SK_ETW_PresentMon_Thread =
       SK_Thread_CreateEx ( [](LPVOID) -> DWORD
       {
-        SK_PresentMon_Main  (0, nullptr);
-        SK_Thread_CloseSelf (          );
+        SK_PresentMon_Main   (0, nullptr);
+	      if (StopTraceSession (          ))
+          __SK_ETW_PresentMon_Thread = 0;
 
         return 0;
       }, L"[SK] PresentMon Lite",
@@ -493,22 +305,29 @@ SK_SpawnPresentMonWorker (void)
 bool
 SK_ETW_EndTracing (void)
 {
-  if (__SK_ETW_PresentMon_Thread != INVALID_HANDLE_VALUE)
+  LONG PresentMon_ETW =
+    HandleToLong (__SK_ETW_PresentMon_Thread);
+
+  if (PresentMon_ETW > 0L)
   {
     DWORD dwWaitState =
-      WaitForSingleObject (__SK_ETW_PresentMon_Thread, 250);
+         SK_WaitForSingleObject (
+           LongToHandle (PresentMon_ETW), 500UL );
 
-    if (dwWaitState == WAIT_OBJECT_0)
+    if ( dwWaitState == WAIT_OBJECT_0 ||
+         dwWaitState == WAIT_TIMEOUT )
     {
-      extern void StopTraceSession (void);
-                  StopTraceSession (    );
-      return true;
+      return
+        StopTraceSession () || (__SK_ETW_PresentMon_Thread == 0);
     }
 
-    return false;
+    CloseHandle (
+       LongToHandle (PresentMon_ETW)
+         ); __SK_ETW_PresentMon_Thread = 0;
   }
 
-  return true;
+  return
+    (PresentMon_ETW <= 0L);
 }
 
 char          SK_PresentDebugStr [2][128] = { "", "" };
@@ -557,11 +376,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
                            ( 1000.0f   / (ffx ? 30.0f : 60.0f) ) :
                              ( 1000.0f / fabs (target) );
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (target == 0.0f && (! ffx))
   {
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
-
     target_frametime = 1000.0f /
       rb.windows.device.getDevCaps ().res.refresh;
   }
@@ -590,6 +409,231 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImGui::TextUnformatted (
       SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)]
     );
+
+
+    SK_ImGui_DrawGamepadStatusBar ();
+
+
+#if 0
+    if (rb.adapter.d3dkmt != 0)
+    {
+      static bool bMPO      = false;
+      static INT  iMPOCount =     0;
+
+      if (bMPO)
+      {
+        ImGui::SameLine ();
+        ImGui::Text     ("\tMultiplane Overlays: %i", iMPOCount);
+      }
+
+      #define STATUS_SUCCESS     0
+
+      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
+      {   rb.adapter.perf.sampled_frame = 0;
+
+        static D3DKMT_HANDLE hLastAdapter = 0;
+
+        if (hLastAdapter != rb.adapter.d3dkmt)
+        {
+          hLastAdapter = rb.adapter.d3dkmt;
+
+          static PFND3DKMT_CREATEDEVICE
+                     D3DKMTCreateDevice =
+                (PFND3DKMT_CREATEDEVICE)SK_GetProcAddress (L"gdi32.dll",
+                   "D3DKMTCreateDevice");
+
+          static PFND3DKMT_DESTROYDEVICE
+                     D3DKMTDestroyDevice =
+                (PFND3DKMT_DESTROYDEVICE)SK_GetProcAddress (L"gdi32.dll",
+                    "D3DKMTDestroyDevice");
+
+          //////if (rb.adapter.device.hDevice == 0)
+          //////{
+          //////  D3DKMT_CREATEDEVICE
+          //////         createDevice = { };
+          //////         createDevice.hAdapter = rb.adapter.d3dkmt;
+          //////
+          //////  if ( STATUS_SUCCESS ==
+          //////         D3DKMTCreateDevice (&createDevice) )
+          //////  {
+          //////    rb.adapter.device.hDevice = createDevice.hDevice;
+          //////  }
+          //////}
+          //////
+          //////if (rb.adapter.device.hDevice != 0)
+          //////{
+          //////  typedef struct D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO {
+          //////    union {
+          //////      struct {
+          //////        UINT FailingPlane : 4;
+          //////        UINT TryAgain : 1;
+          //////        UINT Reserved : 27;
+          //////      };
+          //////      UINT Value;
+          //////    };
+          //////  } D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO;
+          //////
+          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_BLEND {
+          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND_OPAQUE,
+          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND_ALPHABLEND
+          //////  };
+          //////
+          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT {
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_MONO,
+          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_HORIZONTAL,
+          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_VERTICAL,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_SEPARATE,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_MONO_OFFSET,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_ROW_INTERLEAVED,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_COLUMN_INTERLEAVED,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_CHECKERBOARD
+          //////  };
+          //////
+          //////  typedef enum _DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE {
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_NONE,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_FRAME0,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_FRAME1
+          //////  } DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE;
+          //////
+          //////  typedef enum _DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY {
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY_BILINEAR,
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY_HIGH
+          //////  } DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY;
+          //////
+          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT {
+          //////    D3DKMT_MULIIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_PROGRESSIVE,
+          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_INTERLACED_TOP_FIELD_FIRST,
+          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_INTERLACED_BOTTOM_FIELD_FIRST
+          //////  };
+          //////
+          //////  typedef struct D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES {
+          //////    UINT                                         Flags;
+          //////    RECT                                         SrcRect;
+          //////    RECT                                         DstRect;
+          //////    RECT                                         ClipRect;
+          //////    D3DDDI_ROTATION                              Rotation;
+          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND              Blend;
+          //////    UINT                                         DirtyRectCount;
+          //////    RECT                                         *pDirtyRects;
+          //////    UINT                                         NumFilters;
+          //////    void                                         *pFilters;
+          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT VideoFrameFormat;
+          //////    UINT                                         YCbCrFlags;
+          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT      StereoFormat;
+          //////    BOOL                                         StereoLeftViewFrame0;
+          //////    BOOL                                         StereoBaseViewFrame0;
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE   StereoFlipMode;
+          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY    StretchQuality;
+          //////  } D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES;
+          //////
+          //////  typedef struct D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE {
+          //////    D3DKMT_HANDLE                        hResource;
+          //////    LUID                                 CompSurfaceLuid;
+          //////    D3DDDI_VIDEO_PRESENT_SOURCE_ID       VidPnSourceId;
+          //////    D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES PlaneAttributes;
+          //////  } D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE;
+          //////
+          //////  typedef struct _D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT {
+          //////    D3DKMT_HANDLE                                       hDevice;
+          //////    UINT                                                PlaneCount;
+          //////    D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE               *pOverlayPlanes;
+          //////    BOOL                                                Supported;
+          //////    D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO ReturnInfo;
+          //////  } D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT;
+          //////
+          //////  using  D3DKMTCheckMultiPlaneOverlaySupport_pfn = NTSTATUS (NTAPI *)(D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT *unnamedParam1);
+          //////  static D3DKMTCheckMultiPlaneOverlaySupport_pfn
+          //////         D3DKMTCheckMultiPlaneOverlaySupport =
+          //////        (D3DKMTCheckMultiPlaneOverlaySupport_pfn)SK_GetProcAddress (L"gdi32.dll",
+          //////        "D3DKMTCheckMultiPlaneOverlaySupport");
+          //////
+          //////  if (D3DKMTCheckMultiPlaneOverlaySupport != nullptr)
+          //////  {
+          //////    D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT
+          //////           checkMultiPlaneOverlaySupport = { };
+          //////           checkMultiPlaneOverlaySupport.hDevice = rb.adapter.device.hDevice;
+          //////
+          //////    if ( STATUS_SUCCESS ==
+          //////           D3DKMTCheckMultiPlaneOverlaySupport (&checkMultiPlaneOverlaySupport) )
+          //////    {
+          //////      bMPO      =        checkMultiPlaneOverlaySupport.Supported;
+          //////      iMPOCount = bMPO ? checkMultiPlaneOverlaySupport.PlaneCount
+          //////                       : 0;
+          //////    }
+          //////
+          //////    rb.adapter.perf.sampled_frame =
+          //////      SK_GetFramesDrawn ();
+          //////
+          //////    D3DKMT_DESTROYDEVICE
+          //////        destroyDevice         = { };
+          //////        destroyDevice.hDevice = rb.adapter.device.hDevice;
+          //////
+          //////    if ( D3DKMTDestroyDevice != nullptr &&
+          //////              STATUS_SUCCESS == D3DKMTDestroyDevice (&destroyDevice) )
+          //////    {
+          //////      rb.adapter.device.hDevice = 0;
+          //////    }
+          //////
+          //////    SK_ReleaseAssert (rb.adapter.device.hDevice == 0);
+          //////  }
+          //////}
+        }
+      }
+    }
+#endif
+
+      //extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
+      //
+      //D3DKMT_QUERYADAPTERINFO
+      //       queryAdapterInfo                       = { };
+      //       queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+      //       queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+      //       queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
+      //       queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+      //
+      //if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+      //{
+      //  memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+      //                std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+      //                                     sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+      //
+      //  rb.adapter.perf.sampled_frame =
+      //                    SK_GetFramesDrawn ();
+      //}
+
+#if 0
+    if (rb.adapter.d3dkmt != 0)
+    {
+      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
+      {   rb.adapter.perf.sampled_frame = 0;
+
+        extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
+
+        D3DKMT_QUERYADAPTERINFO
+               queryAdapterInfo                       = { };
+               queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+               queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+               queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+
+        if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+        {
+          memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+                        std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                             sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+
+          rb.adapter.perf.sampled_frame =
+                            SK_GetFramesDrawn ();
+        }
+      }
+    }
+
+    if (rb.adapter.perf.sampled_frame != 0)
+    {
+      ImGui::SameLine ();
+      ImGui::Text ("\tPower Draw: %4.1f%%", static_cast <double> (rb.adapter.perf.data.Power) / 10.0);
+    }
+#endif
   }
 
   else
@@ -598,10 +642,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
-
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   if (! rb.latency.stale)
   {
@@ -767,47 +807,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
     ImGui::Text ( "ToNextVBlank:  %f ms", dMsToNextVBlank );
     ImGui::Text ( "VBlankLatency: %f us", __SK_VBlankLatency_QPCycles * uS );
-
-#if 1
-    static D3DKMT_ADAPTER_PERFDATA
-                  adapterPerfData = { };
-
-    static bool _thread = false;
-    if (      ! _thread )
-    {           _thread = true;
-      SK_Thread_CreateEx ([] (LPVOID) -> DWORD
-      {
-        auto hDC =
-           GetDC (NULL);
-
-        while (! ReadAcquire (&__SK_DLL_Ending))
-        {
-          static DWORD
-              dwLastUpdate = 0;
-          if (dwLastUpdate < (SK_timeGetTime () - 250))
-          {   dwLastUpdate =  SK_timeGetTime ();
-            SK_D3DKMT_QueryAdapterPerfData (hDC,
-                          &adapterPerfData );
-          }
-        }
-
-        ReleaseDC (NULL, hDC);
-
-        SK_Thread_CloseSelf ();
-
-        return 0;
-      }, L"[SK] D3DKMT HwInfo Thread" );
-    }
-
-    ImGui::Text ( "GPUTemp: %3.1fC (%u RPM)",
-                                   static_cast <double> (adapterPerfData.Temperature) / 10.0,
-                                                         adapterPerfData.FanRPM              );
-    ImGui::Text ( "VRAM:    %7.2f MHz",
-                                   static_cast <double> (adapterPerfData.MemoryFrequency) / 1000000.0
-                                                                                             );
-    ImGui::Text ( "Power:   %3.1f%%",
-                                   static_cast <double> (adapterPerfData.Power)       / 10.0 );
-#endif
   }
 #endif
   //
@@ -844,9 +843,11 @@ SK_ImGui_DrawFramePercentiles (void)
   auto& snapshots =
     pLimiter->frame_history_snapshots;
 
-  auto& percentile0 = SK_FramePercentiles->percentile0;
-  auto& percentile1 = SK_FramePercentiles->percentile1;
-  auto&        mean = SK_FramePercentiles->mean;
+  // FIXME: We may have more than one limiter, but percentiles are currently single
+  //
+  static auto& percentile0 = SK_FramePercentiles->percentile0;
+  static auto& percentile1 = SK_FramePercentiles->percentile1;
+  static auto&        mean = SK_FramePercentiles->mean;
 
   bool& show_immediate =
     SK_FramePercentiles->display_most_recent;
@@ -970,7 +971,7 @@ SK_ImGui_DrawFramePercentiles (void)
       ImGui::EndTooltip      ( );
     }
 
-    static auto& io =
+    auto& io =
       ImGui::GetIO ();
 
     if (ImGui::IsItemClicked ())
@@ -1144,8 +1145,8 @@ public:
 
     float extra_line_space = 0.0F;
 
-    auto& percentile0 = SK_FramePercentiles->percentile0;
-    auto& percentile1 = SK_FramePercentiles->percentile1;
+    static auto& percentile0 = SK_FramePercentiles->percentile0;
+    static auto& percentile1 = SK_FramePercentiles->percentile1;
 
     if (has_battery)            extra_line_space += 1.16F;
     if (SK_FramePercentiles->display)

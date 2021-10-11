@@ -175,8 +175,8 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8W_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-          //MH_QueueEnableHook (vftable [3]);
-          SK_EnableHook (vftable [3]);
+          MH_QueueEnableHook (vftable [3]);
+          //SK_EnableHook (vftable [3]);
         }
 
         if ((! IDirectInput8A_EnumDevices_Original) &&
@@ -189,11 +189,9 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8W_EnumDevices_Detour,
             static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-          //MH_QueueEnableHook (vftable [4]);
-          SK_EnableHook (vftable [4]);
+          MH_QueueEnableHook (vftable [4]);
+          //SK_EnableHook (vftable [4]);
         }
-
-        //SK_RunOnce (SK_ApplyQueuedHooks ());
       }
     }
 
@@ -217,8 +215,8 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8A_CreateDevice_Detour,
             static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-          //MH_QueueEnableHook (vftable [3]);
-          SK_EnableHook (vftable [3]);
+          MH_QueueEnableHook (vftable [3]);
+        //SK_EnableHook (vftable [3]);
         }
 
         if ((! IDirectInput8W_EnumDevices_Original) &&
@@ -231,11 +229,9 @@ DirectInput8Create ( HINSTANCE hinst,
                                      IDirectInput8A_EnumDevices_Detour,
             static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-          //MH_QueueEnableHook (vftable [4]);
-          SK_EnableHook (vftable [4]);
+          MH_QueueEnableHook (vftable [4]);
+          //SK_EnableHook (vftable [4]);
         }
-
-        //SK_RunOnce (SK_ApplyQueuedHooks ());
       }
     }
   }
@@ -440,8 +436,8 @@ CoCreateInstance_DI8 (
         // Hook queuing drags in other input APIs we're not ready to hook yet,
         //   do this immediately instead.
         //
-        //MH_QueueEnableHook (vftable [3]);
-        SK_EnableHook (vftable [3]);
+        MH_QueueEnableHook (vftable [3]);
+        //SK_EnableHook (vftable [3]);
       }
 
       if (! IDirectInput8A_EnumDevices_Original)
@@ -453,11 +449,9 @@ CoCreateInstance_DI8 (
                                    IDirectInput8A_EnumDevices_Detour,
           static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-        //MH_QueueEnableHook (vftable [4]);
-        SK_EnableHook (vftable [4]);
+        MH_QueueEnableHook (vftable [4]);
+        //SK_EnableHook (vftable [4]);
       }
-
-      //SK_RunOnce (SK_ApplyQueuedHooks ());
     }
   }
 
@@ -480,8 +474,8 @@ CoCreateInstance_DI8 (
                                    IDirectInput8W_CreateDevice_Detour,
           static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-        //MH_QueueEnableHook (vftable [3]);
-        SK_EnableHook (vftable [3]);
+        MH_QueueEnableHook (vftable [3]);
+      //SK_EnableHook (vftable [3]);
       }
 
       if (! IDirectInput8A_EnumDevices_Original)
@@ -493,11 +487,9 @@ CoCreateInstance_DI8 (
                                    IDirectInput8W_EnumDevices_Detour,
           static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-        //MH_QueueEnableHook (vftable [4]);
-        SK_EnableHook (vftable [4]);
+        MH_QueueEnableHook (vftable [4]);
+      //SK_EnableHook (vftable [4]);
       }
-
-      //SK_RunOnce (SK_ApplyQueuedHooks ());
     }
   }
 
@@ -553,8 +545,8 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8A_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8A_CreateDevice_Original) );
 
-            //MH_QueueEnableHook (vftable [3]);
-            SK_EnableHook (vftable [3]);
+            MH_QueueEnableHook (vftable [3]);
+            //SK_EnableHook (vftable [3]);
           }
 
           if (! IDirectInput8A_EnumDevices_Original)
@@ -566,11 +558,9 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8A_EnumDevices_Detour,
               static_cast_p2p <void> (&IDirectInput8A_EnumDevices_Original) );
 
-            //MH_QueueEnableHook (vftable [4]);
-            SK_EnableHook (vftable [4]);
+            MH_QueueEnableHook (vftable [4]);
+            //SK_EnableHook (vftable [4]);
           }
-
-          //SK_RunOnce (SK_ApplyQueuedHooks ());
         }
 
         else if (*pResults->pIID == IID_IDirectInput8W)
@@ -584,8 +574,8 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8W_CreateDevice_Detour,
               static_cast_p2p <void> (&IDirectInput8W_CreateDevice_Original) );
 
-            //MH_QueueEnableHook (vftable [3]);
-            SK_EnableHook (vftable [3]);
+            MH_QueueEnableHook (vftable [3]);
+            //SK_EnableHook (vftable [3]);
           }
 
           if (! IDirectInput8W_EnumDevices_Original)
@@ -597,11 +587,9 @@ CoCreateInstanceEx_DI8 (
                                        IDirectInput8W_EnumDevices_Detour,
               static_cast_p2p <void> (&IDirectInput8W_EnumDevices_Original) );
 
-            //MH_QueueEnableHook (vftable [4]);
-            SK_EnableHook (vftable [4]);
+            MH_QueueEnableHook (vftable [4]);
+            //SK_EnableHook (vftable [4]);
           }
-
-          //SK_RunOnce (SK_ApplyQueuedHooks ());
         }
       }
     }
@@ -1458,7 +1446,8 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  auto& _devices_w = devices8_w.get ();
+  static auto& _devices_w =
+               devices8_w.get ();
 
   if (hookable && _devices_w.count (guid_crc32c))
   {
@@ -1508,7 +1497,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_GetDeviceState_Original) );
 
-        if (MH_OK == MH_EnableHook (vftable [9]))
+        if (MH_OK == MH_QueueEnableHook (vftable [9]))
           ++hook_count;
       }
 
@@ -1519,7 +1508,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                    IDirectInputDevice8W_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8W_SetCooperativeLevel_Original) );
 
-        if (MH_OK == MH_EnableHook (vftable [13]))
+        if (MH_OK == MH_QueueEnableHook (vftable [13]))
           ++hook_count;
       }
 
@@ -1532,9 +1521,6 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
       devices8_w [guid_crc32c] = *lplpDirectInputDevice;
       devices8_w [guid_crc32c]->AddRef ();
-
-      //if (hook_count > 0)
-      //  SK_ApplyQueuedHooks ();
     }
   }
 
@@ -1575,7 +1561,8 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                   (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
                                                              L"Other Device";
 
-  auto& _devices_a = devices8_a.get ();
+  static auto& _devices_a =
+               devices8_a.get ();
 
   if (hookable && _devices_a.count (guid_crc32c))
   {
@@ -1624,7 +1611,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_GetDeviceState_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_GetDeviceState_Original) );
 
-        if (MH_OK == MH_EnableHook (vftable [9]))
+        if (MH_OK == MH_QueueEnableHook (vftable [9]))
           ++hook_count;
       }
 
@@ -1635,7 +1622,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                    IDirectInputDevice8A_SetCooperativeLevel_Detour,
           static_cast_p2p <void> (&IDirectInputDevice8A_SetCooperativeLevel_Original) );
 
-        if (MH_OK == MH_EnableHook (vftable [13]))
+        if (MH_OK == MH_QueueEnableHook (vftable [13]))
           ++hook_count;
       }
 
@@ -1648,9 +1635,6 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
 
       devices8_a [guid_crc32c] = *lplpDirectInputDevice;
       devices8_a [guid_crc32c]->AddRef ();
-
-      //if (hook_count > 0)
-      //  SK_ApplyQueuedHooks ();
     }
   }
 

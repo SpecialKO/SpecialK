@@ -88,6 +88,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"TOS.exe"),                                SK_GAME_ID::Tales_of_Symphonia           },
       { hash_lower (L"Tales of Zestiria.exe"),                  SK_GAME_ID::Tales_of_Zestiria            },
       { hash_lower (L"TOV_DE.exe"),                             SK_GAME_ID::Tales_of_Vesperia            },
+      { hash_lower (L"Tales of Arise.exe"),                     SK_GAME_ID::Tales_of_Arise               },
       { hash_lower (L"Life is Strange - Before the Storm.exe"), SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
       { hash_lower (L"EoCApp.exe"),                             SK_GAME_ID::DivinityOriginalSin          },
       { hash_lower (L"Hob.exe"),                                SK_GAME_ID::Hob                          },
@@ -137,6 +138,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                },
       { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
       { hash_lower (L"Legend of Mana.exe"),                     SK_GAME_ID::LegendOfMana                 },
+      { hash_lower (L"FarCry6.exe"),                            SK_GAME_ID::FarCry6                      },
     };
 
     first_check = false;
@@ -209,22 +211,7 @@ SK_GetCurrentGameID (void)
 
             // CAPCOM anti-tamper workarounds
             config.window.dont_hook_wndproc   = true;
-          //config.steam.silent               = true;
-            config.steam.silent               =
-              !( PathFileExistsW ( L"steam_api64.dll" )
-              && CopyFile        ( L"steam_api64.dll",
-                                L"kaldaien_api64.dll", FALSE )
-               );
-
-            if (! config.steam.silent )
-            {     config.steam.auto_inject         =    true;
-                  config.steam.auto_pump_callbacks =    true;
-                  config.steam.force_load_steamapi =    true;
-                  config.steam.init_delay          =       1;
-                  config.steam.appid               =  app_id;
-                  config.steam.dll_path            =
-                                       L"kaldaien_api64.dll";
-            }else config.steam.dll_path            =     L"";
+            config.steam.silent               = true;
           }
         }
       }
@@ -532,6 +519,7 @@ struct {
     sk::ParameterInt*     buffer_count;
     sk::ParameterInt*     max_delta_time;
     sk::ParameterBool*    flip_discard;
+    sk::ParameterBool*    flip_sequential;
     sk::ParameterBool*    disable_flip_model;
     sk::ParameterFloat*   refresh_rate;
     sk::ParameterStringW* rescan_ratio;
@@ -554,6 +542,8 @@ struct {
     sk::ParameterInt*     adapter_override;
     sk::ParameterStringW* max_res;
     sk::ParameterStringW* min_res;
+    sk::ParameterFloat*   min_refresh;
+    sk::ParameterFloat*   max_refresh;
     sk::ParameterInt*     swapchain_wait;
     sk::ParameterStringW* scaling_mode;
     sk::ParameterStringW* exception_mode;
@@ -571,6 +561,7 @@ struct {
     sk::ParameterBool*    hide_hdr_support;
     sk::ParameterBool*    enable_factory_cache;
     sk::ParameterBool*    skip_redundant_modes;
+    sk::ParameterBool*    temporary_dwm_hdr;
   } dxgi;
   struct {
     sk::ParameterBool*    force_d3d9ex;
@@ -587,6 +578,7 @@ struct {
   sk::ParameterBool*      force_fullscreen;
   sk::ParameterBool*      force_windowed;
   sk::ParameterBool*      confirm_mode_changes;
+  sk::ParameterBool*      save_monitor_prefs;
 } display;
 
 struct {
@@ -691,6 +683,8 @@ struct {
   sk::ParameterStringW*   override;
   sk::ParameterBool*      fix_mouse_coords;
   sk::ParameterInt*       always_on_top;
+  sk::ParameterInt*       preferred_monitor_id; // Used if exact match cannot be found
+  sk::ParameterStringW*   preferred_monitor_exact;
   sk::ParameterBool*      disable_screensaver;
   sk::ParameterBool*      dont_hook_wndproc;
 } window;
@@ -711,6 +705,7 @@ struct {
 struct {
   sk::ParameterBool*      rehook_loadlibrary;
   sk::ParameterBool*      disable_nv_bloat;
+  sk::ParameterBool*      using_wine;
 } compatibility;
 
 struct {
@@ -856,7 +851,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories ( full_name.c_str () );
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -998,6 +993,7 @@ auto DeclKeybind =
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
+    ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         osd_ini,         L"Display.Monitor",       L"RememberPreference"),
 
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
@@ -1042,6 +1038,11 @@ auto DeclKeybind =
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.
                                sk_osd_insertion_keybind, L"Take a screenshot and insert SK's OSD",                     osd_ini,         L"Screenshot.System"),
+
+    Keybind ( &config.monitors.monitor_primary_keybind,  L"Move Game to Primary Monitor",                              osd_ini,         L"Display.Monitor"),
+    Keybind ( &config.monitors.monitor_next_keybind,     L"Move Game to Next Monitor",                                 osd_ini,         L"Display.Monitor"),
+    Keybind ( &config.monitors.monitor_prev_keybind,     L"Move Game to Previous Monitor",                             osd_ini,         L"Display.Monitor"),
+    Keybind ( &config.monitors.monitor_toggle_hdr,       L"Toggle HDR on Selected Monitor",                            osd_ini,         L"Display.Monitor"),
 
 
     // Input
@@ -1110,6 +1111,8 @@ auto DeclKeybind =
     ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
     ConfigEntry (window.always_on_top,                   L"Prevent (0) or Force (1) a game's window Always-On-Top",    dll_ini,         L"Window.System",         L"AlwaysOnTop"),
     ConfigEntry (window.disable_screensaver,             L"Prevent the Windows Screensaver from activating",           dll_ini,         L"Window.System",         L"DisableScreensaver"),
+    ConfigEntry (window.preferred_monitor_id,            L"GDI Monitor ID of Preferred Monitor",                       dll_ini,         L"Window.System",         L"PreferredMonitor"),
+    ConfigEntry (window.preferred_monitor_exact,         L"CCD Display Path (invariant) of Preferred Monitor",         dll_ini,         L"Window.System",         L"PreferredMonitorExact"),
     ConfigEntry (window.dont_hook_wndproc,               L"Disable WndProc / ClassProc hooks (wrap instead of hook)",  dll_ini,         L"Window.System",         L"DontHookWndProc"),
 
     // Compatibility
@@ -1117,6 +1120,7 @@ auto DeclKeybind =
 
     ConfigEntry (compatibility.disable_nv_bloat,         L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini,         L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
     ConfigEntry (compatibility.rehook_loadlibrary,       L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini,         L"Compatibility.General", L"RehookLoadLibrary"),
+    ConfigEntry (compatibility.using_wine,               L"Disable Functionality Not Compatible With WINE",            dll_ini,         L"Compatibility.General", L"UsingWINE"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -1220,11 +1224,14 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.max_delta_time,        L"Maximum Frame Delta Time",                                  dll_ini,         L"Render.DXGI",           L"MaxDeltaTime"),
     ConfigEntry (render.framerate.flip_discard,          L"Use Flip Discard - Windows 10+",                            dll_ini,         L"Render.DXGI",           L"UseFlipDiscard"),
+    ConfigEntry (render.framerate.flip_sequential,       L"Force Sequential (requires UseFlipDiscard or native Flip)", dll_ini,         L"Render.DXGI",           L"ForceFlipSequential"),
     ConfigEntry (render.framerate.disable_flip_model,    L"Disable Flip Model - Fix AMD Drivers in Yakuza0",           dll_ini,         L"Render.DXGI",           L"DisableFlipModel"),
 
     ConfigEntry (render.dxgi.adapter_override,           L"Override DXGI Adapter",                                     dll_ini,         L"Render.DXGI",           L"AdapterOverride"),
     ConfigEntry (render.dxgi.max_res,                    L"Maximum Resolution To Report",                              dll_ini,         L"Render.DXGI",           L"MaxRes"),
     ConfigEntry (render.dxgi.min_res,                    L"Minimum Resolution To Report",                              dll_ini,         L"Render.DXGI",           L"MinRes"),
+    ConfigEntry (render.dxgi.max_refresh,                L"Maximum Refresh To Report",                                 dll_ini,         L"Render.DXGI",           L"MaxRefresh"),
+    ConfigEntry (render.dxgi.min_refresh,                L"Minimum Refresh To Report",                                 dll_ini,         L"Render.DXGI",           L"MinRefresh"),
 
     ConfigEntry (render.dxgi.swapchain_wait,             L"Time to wait in msec. for SwapChain",                       dll_ini,         L"Render.DXGI",           L"SwapChainWait"),
     ConfigEntry (render.dxgi.scaling_mode,               L"Scaling Preference (DontCare | Centered | Stretched"
@@ -1250,6 +1257,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.hide_hdr_support,           L"Prevent games from detecting monitor HDR support",          dll_ini,         L"Render.DXGI",           L"HideHDRSupport"),
     ConfigEntry (render.dxgi.enable_factory_cache,       L"Cache DXGI Factories to reduce display mode list overhead", dll_ini,         L"Render.DXGI",           L"UseFactoryCache"),
     ConfigEntry (render.dxgi.skip_redundant_modes,       L"Try to keep resolution setting changes to a minimum",       dll_ini,         L"Render.DXGI",           L"SkipRedundantModeChanges"),
+    ConfigEntry (render.dxgi.temporary_dwm_hdr,          L"Temporarily Enable DWM-based HDR while the game runs",      dll_ini,         L"Render.DXGI",           L"TemporaryDesktopHDRMode"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -2258,6 +2266,17 @@ auto DeclKeybind =
         config.textures.d3d11.cache_gen_mips    = true;
       } break;
 
+      case SK_GAME_ID::Tales_of_Arise:
+      {
+        // Fix for 4K TVs
+        config.render.dxgi.res.max.x = 3840;
+        config.render.dxgi.res.max.y = 2160;
+
+        config.window.borderless = true;
+        config.window.center     = true;
+        config.window.fullscreen = true;
+      } break;
+
       case SK_GAME_ID::MonsterHunterWorld:
       {
         config.window.dont_hook_wndproc = true;
@@ -2471,6 +2490,13 @@ auto DeclKeybind =
   //
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
+  compatibility.using_wine->load         (config.compatibility.using_wine);
+
+  // Automagicly flag as using WINE in certain scenarios (e.g. DxVk on Windows)
+  SK_RunOnce (
+    config.compatibility.using_wine |=
+      (SK_GetModuleHandleW (L"wined3d.dll") != nullptr)
+  );
 
 
   if (! apis.last_known->load ((int &)config.apis.last_known))
@@ -2577,6 +2603,7 @@ auto DeclKeybind =
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
+  display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
   render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
@@ -2679,6 +2706,8 @@ auto DeclKeybind =
     }
   }
 
+  render.framerate.flip_sequential->load (config.render.framerate.flip_sequential);
+
   render.framerate.drop_late_frames->load (config.render.framerate.drop_late_flips);
   render.framerate.auto_low_latency->load (config.render.framerate.auto_low_latency);
 
@@ -2710,6 +2739,9 @@ auto DeclKeybind =
                 &config.render.dxgi.res.min.x,
                   &config.render.dxgi.res.min.y );
   }
+
+  render.dxgi.max_refresh->load (config.render.dxgi.refresh.max);
+  render.dxgi.min_refresh->load (config.render.dxgi.refresh.min);
 
   //
   // MUST establish sanity
@@ -2837,6 +2869,7 @@ auto DeclKeybind =
   render.dxgi.srgb_behavior->load        (config.render.dxgi.srgb_behavior);
   render.dxgi.low_spec_mode->load        (config.render.dxgi.low_spec_mode);
   render.dxgi.hide_hdr_support->load     (config.render.dxgi.hide_hdr_support);
+  render.dxgi.temporary_dwm_hdr->load    (config.render.dxgi.temporary_dwm_hdr);
   render.dxgi.enable_factory_cache->load (config.render.dxgi.use_factory_cache);
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
 
@@ -3000,6 +3033,208 @@ auto DeclKeybind =
   window.always_on_top->load       (config.window.always_on_top);
   window.disable_screensaver->load (config.window.disable_screensaver);
   window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
+
+
+  // Oh boy, let the fun begin :)
+  //
+  //   Use CCD API to map precise VidPn path names to much easier to work with
+  //     GDI monitor names
+  //
+  window.preferred_monitor_exact->load (config.display.monitor_path_ccd);
+
+  bool found_exact = false;
+
+  if (! config.display.monitor_path_ccd.empty ())
+  {
+    static UINT32 uiNumPaths =  128;
+    static UINT32 uiNumModes = 1024;
+
+    static DISPLAYCONFIG_PATH_INFO *pathArray = nullptr;
+    static DISPLAYCONFIG_MODE_INFO *modeArray = nullptr;
+
+    static std::map <std::wstring, HMONITOR>
+                      _PathDeviceToHMONITOR;
+
+    if (_PathDeviceToHMONITOR.empty ())
+    {
+      if ( ERROR_SUCCESS ==
+             GetDisplayConfigBufferSizes ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths,          &uiNumModes )
+                                                                && uiNumPaths <= 128 &&  uiNumModes <= 1024 )
+      {
+        SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+
+        pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
+        modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
+
+        if ( ERROR_SUCCESS != QueryDisplayConfig ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths, pathArray,
+                                                                          &uiNumModes, modeArray, nullptr ) )
+        {
+          SK_ReleaseAssert (! "QueryDisplayConfig (QDC_ONLY_ACTIVE_PATHS");
+        }
+      }
+    }
+
+    static BOOL bEnumerated =
+    EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
+    {
+      (void)hDC;
+      (void)lpRect;
+      (void)lParam;
+
+      MONITORINFOEXW
+        mi        = {         };
+        mi.cbSize = sizeof (mi);
+
+      if (GetMonitorInfoW (hMonitor, &mi))
+      {
+        float bestIntersectArea = -1.0f;
+
+        int ax1 = mi.rcMonitor.left,
+            ax2 = mi.rcMonitor.right;
+        int ay1 = mi.rcMonitor.top,
+            ay2 = mi.rcMonitor.bottom;
+
+        DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
+
+        for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
+        {
+          auto *path =
+            &pathArray [pathIdx];
+
+          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          {
+            DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+              &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+
+            RECT rect;
+            rect.left   = pSourceMode->position.x;
+            rect.top    = pSourceMode->position.y;
+            rect.right  = pSourceMode->position.x + pSourceMode->width;
+            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+
+            if (! IsRectEmpty (&rect))
+            {
+              int bx1 = rect.left;
+              int by1 = rect.top;
+              int bx2 = rect.right;
+              int by2 = rect.bottom;
+
+              int intersectArea =
+                ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
+
+              if (intersectArea > bestIntersectArea)
+              {
+                pVidPn            = path;
+                bestIntersectArea =
+                  static_cast <float> (intersectArea);
+              }
+            }
+          }
+        }
+
+        if (pVidPn != nullptr)
+        {
+          DISPLAYCONFIG_TARGET_DEVICE_NAME
+            getTargetName                  = { };
+            getTargetName.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+            getTargetName.header.size      =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
+            getTargetName.header.adapterId = pVidPn->targetInfo.adapterId;
+            getTargetName.header.id        = pVidPn->targetInfo.id;
+
+          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+          {
+            _PathDeviceToHMONITOR [getTargetName.monitorDevicePath] = hMonitor;
+          }
+        }
+      }
+
+      return TRUE;
+    }, 0);
+
+    MONITORINFOEXW
+    mi        = {         };
+    mi.cbSize = sizeof (mi);
+
+    HMONITOR hMonitor =
+      _PathDeviceToHMONITOR [config.display.monitor_path_ccd];
+
+    if (GetMonitorInfoW (hMonitor, &mi))
+    {
+      int monitor_idx = 0;
+
+      if ( 1 == swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"),
+                                                LR"(\DISPLAY%i)", &monitor_idx) )
+      {
+        config.display.monitor_idx =        monitor_idx;
+        window.preferred_monitor_id->store (monitor_idx);
+
+        config.display.monitor_handle = hMonitor;
+        rb.next_monitor               = hMonitor;
+
+        SK_Window_RepositionIfNeeded ();
+
+        found_exact = true;
+      }
+    }
+  }
+
+  if (! found_exact)
+  {
+    window.preferred_monitor_id->load (config.display.monitor_idx);
+
+    if (config.display.monitor_idx != 0 && config.display.monitor_handle == 0)
+    {
+      extern void SK_Window_RepositionIfNeeded (void);
+
+      EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
+      {
+        (void)hDC;
+        (void)lpRect;
+        (void)lParam;
+
+        MONITORINFOEXW
+          mi        = {         };
+          mi.cbSize = sizeof (mi);
+
+        if (GetMonitorInfoW (hMonitor, &mi))
+        {
+          if (config.display.monitor_idx > 0)
+          {
+            if (StrStrIW (mi.szDevice, SK_FormatStringW (LR"(\DISPLAY%i)", config.display.monitor_idx).c_str ()) != nullptr)
+            {
+              config.display.monitor_handle = hMonitor;
+              rb.next_monitor               = hMonitor;
+
+              SK_Window_RepositionIfNeeded ();
+
+              return FALSE;
+            }
+          }
+
+          else if (config.display.monitor_idx == -1)
+          {
+            if (mi.dwFlags & MONITORINFOF_PRIMARY)
+            {
+              config.display.monitor_handle = hMonitor;
+              rb.next_monitor               = hMonitor;
+
+              SK_Window_RepositionIfNeeded ();
+
+              return FALSE;
+            }
+          }
+        }
+
+        return TRUE;
+      }, 0);
+    }
+
+    // No preference established, so handle should be null
+    else if (config.display.monitor_idx == 0)
+             config.display.monitor_handle = 0;
+  }
+
 
   if (((sk::iParameter *)window.override)->load ())
   {
@@ -3184,6 +3419,11 @@ auto DeclKeybind =
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
 
+  LoadKeybind (&config.monitors.monitor_primary_keybind);
+  LoadKeybind (&config.monitors.monitor_next_keybind);
+  LoadKeybind (&config.monitors.monitor_prev_keybind);
+  LoadKeybind (&config.monitors.monitor_toggle_hdr);
+
 
   if (config.steam.dll_path.empty ())
   {
@@ -3336,17 +3576,6 @@ auto DeclKeybind =
             return 0;
           });
         } break;
-
-
-        case SK_GAME_ID::Ys_Eight:
-        {
-          //void
-          //SK_ResHack_PatchGame3 (uint32_t w, uint32_t h);
-          //
-          //SK_ResHack_PatchGame3 (3200, 1800);
-          //SK_ResHack_PatchGame3 (1920, 1080);
-          //SK_ResHack_PatchGame3 (3840, 2160);
-        } break;
       }
     }
   }
@@ -3362,7 +3591,7 @@ auto DeclKeybind =
   {
     if (     ! SK_IsDebuggerPresent ())
     { while (! SK_IsDebuggerPresent ())
-               SK_SleepEx (500, TRUE);
+               SK_SleepEx (50, TRUE);
 
       __debugbreak ();
     }
@@ -3595,11 +3824,12 @@ SK_SaveConfig ( std::wstring name,
        osd_ini         == nullptr    )
     return;
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
+  compatibility.using_wine->store             (config.compatibility.using_wine);
 
   monitoring.memory.show->set_value           (config.mem.show);
 //mem_reserve->store                          (config.mem.reserve);
@@ -3732,7 +3962,7 @@ SK_SaveConfig ( std::wstring name,
   if (config.window.offset.x.absolute != 0)
   {
     wchar_t   wszAbsolute [16] = { };
-    swprintf (wszAbsolute, L"%li", config.window.offset.x.absolute);
+    swprintf (wszAbsolute, L"%i", config.window.offset.x.absolute);
 
     window.offset.x->store (wszAbsolute);
   }
@@ -3750,7 +3980,7 @@ SK_SaveConfig ( std::wstring name,
   if (config.window.offset.y.absolute != 0)
   {
     wchar_t   wszAbsolute [16] = { };
-    swprintf (wszAbsolute, L"%li", config.window.offset.y.absolute);
+    swprintf (wszAbsolute, L"%i", config.window.offset.y.absolute);
 
     window.offset.y->store (wszAbsolute);
   }
@@ -3774,6 +4004,46 @@ SK_SaveConfig ( std::wstring name,
   window.disable_screensaver->store           (config.window.disable_screensaver);
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
 
+#ifdef _VALIDATE_MONITOR_IDX
+  if (config.display.monitor_handle != 0)
+  {
+    if (config.display.monitor_idx > 0)
+    {
+      MONITORINFOEXW
+        mi        = {         };
+        mi.cbSize = sizeof (mi);
+
+      int current_idx = 0;
+
+      if (GetMonitorInfoW (config.display.monitor_handle, &mi))
+      {
+        wchar_t *wszDisplay =
+          StrStrIW (mi.szDevice, LR"(\DISPLAY)");
+
+        if (wszDisplay != nullptr)
+        {
+          int scount =
+            swscanf (wszDisplay, LR"(\DISPLAY%i)", &current_idx);
+
+          SK_ReleaseAssert (scount == 1);
+        }
+      }
+    }
+  }
+#endif
+
+  if (config.display.monitor_handle != 0)
+  {
+    window.preferred_monitor_exact->store (config.display.monitor_path_ccd);
+    window.preferred_monitor_id->store    (config.display.monitor_idx);
+  }
+
+  else
+  {
+    window.preferred_monitor_id->store    (0);
+  }
+
+
   wchar_t wszFormattedRes [64] = { };
 
   wsprintf ( wszFormattedRes, L"%lux%lu",
@@ -3785,6 +4055,7 @@ SK_SaveConfig ( std::wstring name,
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
+  display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
 
 //if (close_config)
   render.framerate.target_fps->store          (config.render.framerate.target_fps);//__target_fps);
@@ -3852,6 +4123,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.marker_optimization->store    (config.nvidia.sleep.marker_optimization);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
+      render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
@@ -3885,6 +4157,9 @@ SK_SaveConfig ( std::wstring name,
                      config.render.dxgi.res.min.y );
 
       render.dxgi.min_res->store (wszFormattedRes);
+
+      render.dxgi.max_refresh->store (config.render.dxgi.refresh.max);
+      render.dxgi.min_refresh->store (config.render.dxgi.refresh.min);
 
       render.dxgi.swapchain_wait->store (config.render.framerate.swapchain_wait);
 
@@ -3945,6 +4220,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
       render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
+      render.dxgi.temporary_dwm_hdr->store    (config.render.dxgi.temporary_dwm_hdr);
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
     }

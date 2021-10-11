@@ -66,10 +66,11 @@ struct gpu_sensors_t
 
     struct
     {
-      int32_t gpu = 0;
-      int32_t ram = 0;
-      int32_t psu = 0;
-      int32_t pcb = 0;
+      bool    supported = true; // Are _any_ supported?
+      float   gpu       = 0.0f;
+      int32_t ram       = 0;
+      int32_t psu       = 0;
+      int32_t pcb       = 0;
     } temps_c;
 
     struct
@@ -103,12 +104,14 @@ struct gpu_sensors_t
 
       double pcie_bandwidth_mb (void) noexcept
       {
+        // 8b/10b
         if (pcie_gen == 2 || pcie_gen == 1 || pcie_gen == 0)
         {
           return (static_cast <double> (pcie_transfer_rate) / 8.0) * (0.8) * static_cast <double> (pcie_lanes);
         }
 
-        else if (pcie_gen == 3 || pcie_gen == 4)
+        //128b/130b
+        else if (pcie_gen == 3 || pcie_gen == 4 || pcie_gen == 5)
         {
           return (static_cast <double> (pcie_transfer_rate) / 8.0) * (0.9846) * static_cast <double> (pcie_lanes);
         }
@@ -118,8 +121,17 @@ struct gpu_sensors_t
       }
     } hwinfo;
 
-    uint32_t nv_gpuid      = 0UL;
-    uint32_t nv_perf_state = 0UL;
+    uint32_t nv_gpuid           = 0UL;
+    uint32_t nv_perf_state      = 0UL;
+    int      nv_perf_state_iter = 0;
+
+    bool     has_nv_pstates     =  true;
+    bool     queried_nv_pstates = false;
+
+    struct {
+      int phase0 = 0;
+      int phase1 = 0;
+    } amortization;
   } gpus [MAX_GPUS];
 
   int_fast32_t   num_gpus    =    0;

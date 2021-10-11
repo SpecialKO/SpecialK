@@ -183,7 +183,7 @@ extern "C"
   _Name _Proto {                                                         \
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
-      static const char* szName = #_Name;                                \
+      static constexpr const char* szName = #_Name;                      \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
@@ -205,7 +205,7 @@ extern "C"
   _Name _Proto {                                                         \
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
-      static const char* szName = #_Name;                                \
+      static constexpr char* szName = #_Name;                            \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
@@ -1175,6 +1175,9 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
   glScissor  ( last_scissor_box [0], last_scissor_box [1], last_scissor_box [2], last_scissor_box [3]);
 
 
+static GLuint
+     ceGL_VAO = 0;
+
 void ResetCEGUI_GL (void)
 {
   if (! config.cegui.enable)
@@ -1243,8 +1246,7 @@ void ResetCEGUI_GL (void)
         glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
 
         // Do not touch the default VAO state (assuming the context even has one)
-        static GLuint ceGL_VAO = 0;
-                  if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
+        if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
         glBindVertexArray (ceGL_VAO);
 
@@ -1311,10 +1313,10 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
     wgl_make_current (hDC, hglrc);
 
 
-  pTLS->gl->current_hglrc = hglrc;
-  pTLS->gl->current_hdc   = hDC;
-  pTLS->gl->current_hwnd  = pTLS->gl->current_hdc != nullptr ?
-             WindowFromDC  (pTLS->gl->current_hdc)     : nullptr;
+  pTLS->render->gl->current_hglrc = hglrc;
+  pTLS->render->gl->current_hdc   = hDC;
+  pTLS->render->gl->current_hwnd  = pTLS->render->gl->current_hdc != nullptr ?
+                     WindowFromDC  (pTLS->render->gl->current_hdc)     : nullptr;
 
   return ret;
 }
@@ -1333,7 +1335,7 @@ wglDeleteContext (HGLRC hglrc)
   {
     dll_log->Log ( L"[%x (tid=%x)]  wglDeleteContext "
                    L"(hglrc=%x)",
-                     WindowFromDC             (pTLS->gl->current_hdc),
+                     WindowFromDC             (pTLS->render->gl->current_hdc),
                        SK_Thread_GetCurrentId (   ),
                                               hglrc );
   }
@@ -1623,6 +1625,8 @@ SK_GL_PopMostStates (void)
 
 
 
+static bool __reset_overlays = false;
+
 void
 SK_Overlay_DrawGL (void)
 {
@@ -1630,12 +1634,10 @@ SK_Overlay_DrawGL (void)
 
   SK_GL_GhettoStateBlock_Capture ();
 
-  static bool reset_overlays = false;
-
   static RECT rect     = { -1, -1, -1, -1 };
          RECT rect_now = {  0,  0,  0,  0 };
 
-  GetClientRect (SK_TLS_Bottom ()->gl->current_hwnd, &rect_now);
+  GetClientRect (SK_TLS_Bottom ()->render->gl->current_hwnd, &rect_now);
 
   static bool need_resize;
 
@@ -1651,17 +1653,16 @@ SK_Overlay_DrawGL (void)
     );
 
     need_resize    = false;
-    reset_overlays = true;
+  __reset_overlays = true;
   }
 
   rect = rect_now;
 
 
   //// Do not touch the default VAO state (assuming the context even has one)
-  static GLuint ceGL_VAO = 0;
-            if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
+  if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (last_srgb_framebuffer)
@@ -1693,10 +1694,10 @@ SK_Overlay_DrawGL (void)
     {
       cegGL->beginRendering ();
       {
-        if (reset_overlays)
+        if (__reset_overlays)
         {
           SK_TextOverlayManager::getInstance ( )->resetAllOverlays (/*cegGL*/);
-          reset_overlays = false;
+        __reset_overlays = false;
         }
 
         SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
@@ -1731,7 +1732,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     SK_TLS_Bottom ();
 
   auto& pTLS_gl =
-    pTLS->gl.get ();
+    pTLS->render->gl.get ();
 
   HGLRC& thread_hglrc =
     pTLS_gl.current_hglrc;
@@ -1854,6 +1855,21 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     SK_GL_UpdateRenderStats ();
     SK_Overlay_DrawGL       ();
 
+
+    if (config.render.framerate.enforcement_policy == 2) // Low Latency
+    {
+      if (config.render.framerate.present_interval == 0) // VSYNC Off
+      {
+        if (config.render.framerate.target_fps > 0.0f)   // Limit Configured
+        {
+          // Now we WaitForVBLANK
+          extern void SK_D3DKMT_WaitForVBlank (void);
+                      SK_D3DKMT_WaitForVBlank ();
+        }
+      }
+    }
+
+
     status =
       static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
 
@@ -1881,7 +1897,7 @@ extern HWND WINAPI SK_GetFocus (void);
 void
 SK_GL_TrackHDC (HDC hDC)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   HWND hWnd_DC =
@@ -2237,6 +2253,8 @@ GLPerf::Init (void)
 }
 
 
+static bool _init_render_stats = false;
+
 void
 __stdcall
 SK_GL_UpdateRenderStats (void)
@@ -2244,12 +2262,10 @@ SK_GL_UpdateRenderStats (void)
   if (! (config.render.show))
     return;
 
-  static bool init = false;
-
-  if (! init)
+  if (! _init_render_stats)
   {
     GLPerf::Init ();
-    init = true;
+    _init_render_stats = true;
   }
 
   //SK::DXGI::PipelineStatsD3D11& pipeline_stats =
@@ -2431,6 +2447,9 @@ SK::OpenGL::getPipelineStatsDesc (void)
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
 
+static volatile LONG
+ __SK_GL_initialized = FALSE;
+
 void
 WINAPI
 SK_HookGL (void)
@@ -2438,17 +2457,15 @@ SK_HookGL (void)
   if (! config.apis.OpenGL.hook)
     return;
 
-  static volatile LONG
-    SK_GL_initialized = FALSE;
-
   SK_TLS* pTLS =
    SK_TLS_Bottom ();
 
-  if (! InterlockedCompareExchangeAcquire (&SK_GL_initialized, TRUE, FALSE))
+  if (! InterlockedCompareExchangeAcquire (&__SK_GL_initialized, TRUE, FALSE))
   {
     const wchar_t* wszBackendDLL (L"OpenGL32.dll");
 
-    cs_gl_ctx = new SK_Thread_HybridSpinlock (64);
+    cs_gl_ctx =
+      new SK_Thread_HybridSpinlock (64);
 
     if ( StrStrIW ( SK_GetDLLName ().c_str (),
                       wszBackendDLL )
@@ -2468,7 +2485,7 @@ SK_HookGL (void)
       wgl_swap_multiple_buffers =
         (wglSwapMultipleBuffers_pfn)SK_GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
-      pTLS->gl->ctx_init_thread = true;
+      pTLS->render->gl->ctx_init_thread = true;
     }
 
     dll_log->Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
@@ -2516,7 +2533,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglGetCurrentContext);
     //SK_GL_HOOK(wglGetCurrentDC);
 
-      pTLS->gl->ctx_init_thread = true;
+      pTLS->render->gl->ctx_init_thread = true;
 
       if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
       {
@@ -2901,16 +2918,16 @@ SK_HookGL (void)
        static_cast_p2p <void> (&gdi_swap_buffers) );
 
 
-    pTLS->gl->ctx_init_thread = false;
+    pTLS->render->gl->ctx_init_thread = false;
 
     if (SK_GetFramesDrawn () > 1)
       SK_ApplyQueuedHooks ();
 
     WriteRelease                (&__gl_ready,  TRUE);
-    InterlockedIncrementRelease (&SK_GL_initialized);
+    InterlockedIncrementRelease (&__SK_GL_initialized);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&SK_GL_initialized, 2);
+  SK_Thread_SpinUntilAtomicMin (&__SK_GL_initialized, 2);
 }
 
 
@@ -2923,7 +2940,7 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 
   dll_log->Log ( L"[%x (tid=%x)]  wglShareLists "
                  L"(ctx0=%x, ctx1=%x)",
-                   SK_TLS_Bottom ()->gl->current_hwnd,
+                   SK_TLS_Bottom ()->render->gl->current_hwnd,
                    SK_Thread_GetCurrentId (   ),
                                           ctx0, ctx1 );
 
@@ -2933,9 +2950,10 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
   if (ret != FALSE)
   {
     if (__gl_primary_context == nullptr)
-      __gl_primary_context = ctx0;
+        __gl_primary_context = ctx0;
 
-    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_gl_ctx);
+    std::scoped_lock <SK_Thread_CriticalSection>
+           auto_lock (*cs_gl_ctx);
 
     // If sharing with a shared context, then follow the shared context
     //   back to its parent
@@ -2961,10 +2979,14 @@ SK_GL_GetCurrentContext (void)
   SK_TLS* pTLS = SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
-      pTLS->gl->current_hglrc = hglrc;
+      pTLS->render->gl->current_hglrc = hglrc;
 
   return hglrc;
 }
+
+ using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
+static wglGetCurrentDC_pfn
+__imp__wglGetCurrentDC     = nullptr;
 
 HDC
 WINAPI
@@ -2972,10 +2994,10 @@ SK_GL_GetCurrentDC (void)
 {
   HDC hdc = nullptr;
 
-  using wglGetCurrentDC_pfn = HDC (WINAPI *)(void);
-
-  static auto __imp__wglGetCurrentDC =
-    (wglGetCurrentDC_pfn)SK_GetProcAddress (local_gl, "wglGetCurrentDC");
+  if (__imp__wglGetCurrentDC == nullptr)
+      __imp__wglGetCurrentDC =
+            (wglGetCurrentDC_pfn)SK_GetProcAddress (local_gl,
+            "wglGetCurrentDC");
 
   if (    __imp__wglGetCurrentDC != nullptr)
     hdc = __imp__wglGetCurrentDC ();
@@ -2983,12 +3005,13 @@ SK_GL_GetCurrentDC (void)
   HWND hwnd =
     WindowFromDC (hdc);
 
-  SK_TLS* pTLS = SK_TLS_Bottom ();
+  SK_TLS* pTLS =
+        SK_TLS_Bottom ();
 
   if (pTLS != nullptr)
   {
-    pTLS->gl->current_hwnd = hwnd;
-    pTLS->gl->current_hdc  = hdc;
+    pTLS->render->gl->current_hwnd = hwnd;
+    pTLS->render->gl->current_hdc  = hdc;
   }
 
   return hdc;
@@ -3001,6 +3024,9 @@ SK_GL_GetCurrentDC (void)
 #include <d3d9.h>
 #include <atlbase.h>
 
+static IDirect3DDevice9Ex* __pGLD3D9InteropDevice =
+      (IDirect3DDevice9Ex *)-1;
+
 //
 // Primarily used to expose GL resources to D3D9 so that
 //   the can be used by certain parts of NvAPI that are not
@@ -3012,10 +3038,7 @@ SK_GL_GetD3D9ExInteropDevice (void)
   if (! config.render.framerate.wait_for_vblank)
     return nullptr;
 
-  static auto* pInteropDevice =
-    reinterpret_cast <IDirect3DDevice9Ex *> (-1);
-
-  if (pInteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
+  if (__pGLD3D9InteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
   {
     ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
 
@@ -3057,17 +3080,17 @@ SK_GL_GetD3D9ExInteropDevice (void)
                   )
           )
       {
-        pInteropDevice = nullptr;
+        __pGLD3D9InteropDevice = nullptr;
       } else {
         pDev9Ex->AddRef ();
-        pInteropDevice = pDev9Ex;
+        __pGLD3D9InteropDevice = pDev9Ex;
       }
     }
     else {
-      pInteropDevice = nullptr;
+      __pGLD3D9InteropDevice = nullptr;
     }
   }
 
-  return pInteropDevice;
+  return __pGLD3D9InteropDevice;
 }
 #endif

@@ -27,15 +27,6 @@
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
 
-__declspec (noinline)
-HRESULT
-WINAPI
-D3D11Dev_CreateTexture2D_Override (
-  _In_            ID3D11Device           *This,
-  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
-
 D3D11Dev_CreateRasterizerState_pfn                  D3D11Dev_CreateRasterizerState_Original                  = nullptr;
 D3D11Dev_CreateSamplerState_pfn                     D3D11Dev_CreateSamplerState_Original                     = nullptr;
 D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Original                           = nullptr;
@@ -1083,11 +1074,12 @@ D3D11_UpdateSubresource1_Override (
 
   if (SK_D3D11_IsStagingCacheable (rdim, pDstResource) && DstSubresource == 0)
   {
-    SK_ComQIPtr <ID3D11Texture2D> pTex (pDstResource);
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex (pDstResource);
 
     if (pTex != nullptr)
     {
-      static auto& textures =
+      auto& textures =
         SK_D3D11_Textures;
 
       D3D11_TEXTURE2D_DESC desc = { };
@@ -1095,23 +1087,29 @@ D3D11_UpdateSubresource1_Override (
 
       D3D11_SUBRESOURCE_DATA srd = { };
 
-      srd.pSysMem           = pSrcData;
-      srd.SysMemPitch       = SrcRowPitch;
-      srd.SysMemSlicePitch  = 0;
+      srd.pSysMem          = pSrcData;
+      srd.SysMemPitch      = SrcRowPitch;
+      srd.SysMemSlicePitch = 0;
 
-      size_t   size         = 0;
-      uint32_t top_crc32c   = 0x0;
+      size_t   size        = 0;
+      uint32_t top_crc32c  = 0x0;
 
-      uint32_t checksum     =
-        crc32_tex   (&desc, &srd, &size, &top_crc32c, false);
+      uint32_t checksum    =
+        crc32_tex ( &desc, &srd,
+                           &size, &top_crc32c,
+                           false );
 
-      const uint32_t cache_tag    =
-        safe_crc32c (top_crc32c, (uint8_t *)(&desc), sizeof (D3D11_TEXTURE2D_DESC));
+      const uint32_t cache_tag =
+        safe_crc32c ( top_crc32c, (uint8_t *)(&desc),
+                        sizeof (D3D11_TEXTURE2D_DESC) );
 
-      const auto start            = SK_QueryPerf ().QuadPart;
+      const auto start =
+        SK_QueryPerf ().QuadPart;
 
       SK_ComPtr <ID3D11Texture2D> pCachedTex =
-        textures->getTexture2D (cache_tag, &desc, nullptr, nullptr, pTLS);
+        textures->getTexture2D (   cache_tag, &desc,
+                                     nullptr, nullptr,
+                                                 pTLS );
 
       if (pCachedTex != nullptr)
       {
@@ -1227,7 +1225,7 @@ D3D11_UpdateSubresource_Override (
                                         pDstBox,
                                         pSrcData, SrcRowPitch,
                                                   SrcDepthPitch,
-                                        false );
+                                        FALSE );
   }
 
   else
@@ -1260,7 +1258,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
       SK_D3D11_Map_Impl ( This,
                             pResource, Subresource,
                               MapType, MapFlags,
-                                pMappedResource, false );
+                                pMappedResource, FALSE );
   }
 
   else
@@ -1285,7 +1283,7 @@ D3D11_Unmap_Override (
 {
   if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, This)))
   {
-    SK_D3D11_Unmap_Impl (This, pResource, Subresource, false);
+    SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
   }
 
   else
@@ -1311,7 +1309,7 @@ D3D11_CopyResource_Override (
     SK_D3D11_CopyResource_Impl ( This,
       pDstResource,
       pSrcResource,
-        false
+        FALSE
     );
   }
 
@@ -1535,7 +1533,7 @@ D3D11_CopySubresourceRegion_Override (
 
           if (checksum != 0x00 && dst_desc.Usage != D3D11_USAGE_STAGING)
           {
-            static auto& textures =
+            auto& textures =
               SK_D3D11_Textures;
 
             std::wstring filename = L"";
@@ -1663,7 +1661,7 @@ D3D11_CopySubresourceRegion_Override (
         This, pDstResource, DstSubresource,
           DstX, DstY, DstZ, pSrcResource,
             SrcSubresource, pSrcBox,
-              false
+              FALSE
       );
   }
 
@@ -1689,7 +1687,7 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_DrawAuto_Impl ( This, false );
+    SK_D3D11_DrawAuto_Impl ( This, FALSE );
   }
 
   else
@@ -1717,7 +1715,7 @@ D3D11_DrawIndexed_Override (
       SK_D3D11_DrawIndexed_Impl ( This,
                    IndexCount,
               StartIndexLocation,
-              BaseVertexLocation, false
+              BaseVertexLocation, FALSE
       );
   }
 
@@ -1776,7 +1774,7 @@ D3D11_DrawIndexedInstanced_Override (
                                 InstanceCount,
               StartIndexLocation,
               BaseVertexLocation,
-           StartInstanceLocation, false
+           StartInstanceLocation, FALSE
       );
   }
 
@@ -1803,7 +1801,7 @@ D3D11_DrawIndexedInstancedIndirect_Override (
   {
     SK_D3D11_DrawIndexedInstancedIndirect_Impl (
           This, pBufferForArgs,
-      AlignedByteOffsetForArgs, false
+      AlignedByteOffsetForArgs, FALSE
     );
   }
 
@@ -1836,7 +1834,7 @@ D3D11_DrawInstanced_Override (
                   VertexCountPerInstance,
                 InstanceCount,
              StartVertexLocation,
-           StartInstanceLocation, false
+           StartInstanceLocation, FALSE
       );
   }
 
@@ -1864,7 +1862,7 @@ D3D11_DrawInstancedIndirect_Override (
     return
       SK_D3D11_DrawInstancedIndirect_Impl ( This,
                          pBufferForArgs,
-               AlignedByteOffsetForArgs, false
+               AlignedByteOffsetForArgs, FALSE
       );
   }
 
@@ -1951,7 +1949,7 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
                              NumViews,
                   ppRenderTargetViews,
                    pDepthStencilView,
-        false
+        FALSE
       );
   }
 
@@ -1986,7 +1984,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
                                              NumUAVs,
                                      ppUnorderedAccessViews,
                                                pUAVInitialCounts,
-            false
+            FALSE
           );
   }
 
@@ -2238,9 +2236,9 @@ D3D11_PSSetSamplers_Override
           for ( UINT i = 0 ; i < NumSamplers ; i++ )
           {
             if (! ys8_wrap_ui)
-              pSamplerCopy [i] = pTLS->d3d11->uiSampler_clamp;
+              pSamplerCopy [i] = pTLS->render->d3d11->uiSampler_clamp;
             else
-              pSamplerCopy [i] = pTLS->d3d11->uiSampler_wrap;
+              pSamplerCopy [i] = pTLS->render->d3d11->uiSampler_wrap;
           }
         }
 
@@ -2316,7 +2314,7 @@ SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
     SK_TLS_Bottom ();
 
   if ( __SK_bypass     || ReadAcquire (&__dxgi_ready) ||
-       pTLS == nullptr || pTLS->d3d11->ctx_init_thread )
+       pTLS == nullptr || pTLS->render->d3d11->ctx_init_thread )
   {
     SK_Thread_CloseSelf ();
     return 0;
@@ -2327,7 +2325,7 @@ SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
   if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
-    pTLS->d3d11->ctx_init_thread = true;
+    pTLS->render->d3d11->ctx_init_thread = true;
 
     SK_AutoCOMInit auto_com;
 
@@ -2335,7 +2333,7 @@ SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
     if (D3D11CreateDeviceAndSwapChain_Import == nullptr)
     {
-      pTLS->d3d11->ctx_init_thread = false;
+      pTLS->render->d3d11->ctx_init_thread = false;
 
       SK_ApplyQueuedHooks ();
       return 0;

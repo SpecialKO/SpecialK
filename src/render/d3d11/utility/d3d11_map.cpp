@@ -117,7 +117,7 @@ SK_D3D11_Map_Impl (
 
       if (MapType == D3D11_MAP_WRITE_DISCARD)
       {
-        static auto& textures =
+        auto& textures =
           SK_D3D11_Textures;
 
         auto it  = textures->Textures_2D.find (pTex);
@@ -353,7 +353,7 @@ SK_D3D11_Unmap_Impl (
 
         if (checksum != 0x0)
         {
-          static auto& textures =
+          auto& textures =
             SK_D3D11_Textures;
 
           // Temp hack for 1-LOD Staging Texture Uploads

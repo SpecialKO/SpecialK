@@ -464,7 +464,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.swapchain)
@@ -620,12 +620,26 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
           (ImVec4)ImColor (color);
       }
     }
+  }
 
-    memcpy (idx_dst, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
-    memcpy (vtx_dst, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
+  for (int n = 0; n < draw_data->CmdListsCount; n++)
+  {
+    const ImDrawList* cmd_list =
+      draw_data->CmdLists [n];
 
-    vtx_dst += cmd_list->VtxBuffer.Size;
-    idx_dst += cmd_list->IdxBuffer.Size;
+    memcpy (idx_dst,   cmd_list->IdxBuffer.Data,
+                       cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
+            idx_dst += cmd_list->IdxBuffer.Size;
+  }
+
+  for (int n = 0; n < draw_data->CmdListsCount; n++)
+  {
+    const ImDrawList* cmd_list =
+      draw_data->CmdLists [n];
+
+    memcpy (vtx_dst,   cmd_list->VtxBuffer.Data,
+                       cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
+            vtx_dst += cmd_list->VtxBuffer.Size;
   }
 
   pDevCtx->Unmap (_P->pIB, 0);
@@ -869,8 +883,6 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
     // Only needs to be done once, the raw pixels are API agnostic
     if (! std::exchange (init, true))
     {
-      SK_ImGui_LoadFonts ();
-
       io.Fonts->GetTexDataAsRGBA32 ( &pixels,
                                      &width, &height );
     }
@@ -1514,7 +1526,7 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
   g_hWnd                 = swap_desc.OutputWindow;
   io.ImeWindowHandle     = g_hWnd;
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   ImGui_ImplDX11_CreateDeviceObjects (pSwapChain, pDevice, pDevCtx);
@@ -1538,7 +1550,7 @@ ImGui_ImplDX11_NewFrame (void)
   auto& io =
     ImGui::GetIO ();
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -1595,7 +1607,7 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (Height);
   UNREFERENCED_PARAMETER (This);
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.getDevice <ID3D11Device> ())
@@ -1834,7 +1846,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   if (! _pDeviceCtx.p)
     return;
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   D3DX11_STATE_BLOCK

@@ -261,8 +261,8 @@ public:
 
     std::scoped_lock <std::mutex> _scope_lock (lock);
 
-    std::type_index typ_idx =
-      std::type_index (typeid (T));
+    const std::type_index typ_idx =
+          std::type_index (typeid (T));
 
     if ( typ_idx ==
            std::type_index (typeid (int)) )

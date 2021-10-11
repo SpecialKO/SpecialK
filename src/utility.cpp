@@ -1022,15 +1022,27 @@ FindProcessByName (const wchar_t* wszName)
 iSK_INI*
 SK_GetDLLConfig (void)
 {
+  static iSK_INI  safety_void (L"");
   extern iSK_INI* dll_ini;
-  return dll_ini;
+
+  SK_ReleaseAssert (dll_ini != nullptr);
+
+  return
+    dll_ini != nullptr ?
+    dll_ini            : &safety_void;
 }
 
 iSK_INI*
 SK_GetOSDConfig (void)
 {
+  static iSK_INI  safety_void (L"");
   extern iSK_INI* osd_ini;
-  return osd_ini;
+
+  SK_ReleaseAssert (osd_ini != nullptr);
+
+  return
+    osd_ini != nullptr ?
+    osd_ini            : &safety_void;
 }
 
 
@@ -2760,18 +2772,12 @@ SK_RestartGame (const wchar_t* wszDLL)
   if (SK_FileHasSpaces (wszFullname))
     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
 
-
   if (SK_FileHasSpaces (wszShortPath))
   {
     if (wszDLL != nullptr)
     {
-      SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
-                      L"\r\n\r\n\t"
-                      L"This is a common problem for non-boot drives, please ensure that the drive your "
-                      L"game is installed to has 8.3 filename generation enabled and then re-install "
-                      L"the mod.",
-                        L"Cannot Automatically Restart Game Because of Bad File system Policy.",
-                          MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+      SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+      return;
     }
 
     else if (SK_HasGlobalInjector ())
@@ -2789,16 +2795,16 @@ SK_RestartGame (const wchar_t* wszDLL)
       GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
     }
 
-    InterlockedExchange (&__SK_DLL_Ending, 1);
-
     if (SK_FileHasSpaces (wszShortPath))
-      ExitProcess (0x00);
+    {
+      SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+      return;
+    }
   }
 
   if (! SK_IsSuperSpecialK ())
   {
-    wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
-
+    wchar_t      wszRunDLLCmd [MAX_PATH * 4] = { };
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                  L"RunDll32.exe %s,RunDLL_RestartGame %s",
                    wszShortPath,
@@ -2811,15 +2817,17 @@ SK_RestartGame (const wchar_t* wszDLL)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
-                    FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+    CreateProcess ( nullptr, wszRunDLLCmd,     nullptr, nullptr,
+                    FALSE,   CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
 
-    CloseHandle (pinfo.hThread);
-    CloseHandle (pinfo.hProcess);
-  }
+    // Save config prior to comitting suicide
+    SK_SelfDestruct ();
 
-  InterlockedExchange (&__SK_DLL_Ending, 1);
+    ResumeThread (pinfo.hThread);
+    CloseHandle  (pinfo.hThread);
+    CloseHandle  (pinfo.hProcess);
+  }
 
   SK_TerminateProcess (0x00);
 }
@@ -3413,14 +3421,14 @@ SK_ElevateToAdmin (void)
 
   if (SK_FileHasSpaces (wszShortPath))
   {
-    SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
-                    L"\r\n\r\n\t"
-                    L"This is a common problem for non-boot drives, please ensure that the drive your "
-                    L"game is installed to has 8.3 filename generation enabled and then re-install "
-                    L"the mod.",
-                      L"Cannot Elevate To Admin Because of Bad File system Policy.",
-                        MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
-    ExitProcess   (0x00);
+    /////SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
+    /////                L"\r\n\r\n\t"
+    /////                L"This is a common problem for non-boot drives, please ensure that the drive your "
+    /////                L"game is installed to has 8.3 filename generation enabled and then re-install "
+    /////                L"the mod.",
+    /////                  L"Cannot Elevate To Admin Because of Bad File system Policy.",
+    /////                    MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
+    return;//ExitProcess   (0x00);
   }
 
   swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
@@ -3442,6 +3450,8 @@ SK_ElevateToAdmin (void)
   CloseHandle (pinfo.hThread);
   CloseHandle (pinfo.hProcess);
 
+  // Save config prior to comitting suicide
+  SK_SelfDestruct     (    );
   SK_TerminateProcess (0x00);
 }
 
@@ -4652,6 +4662,37 @@ SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
   return pRet;
 }
 
+BOOL
+SK_IsWindows8Point1OrGreater (void)
+{
+  SK_RunOnce (SK_SetLastError (NO_ERROR));
+
+  static BOOL
+    bResult =
+      GetProcAddress (
+        GetModuleHandleW (L"kernel32.dll"),
+                           "GetSystemTimePreciseAsFileTime"
+                     ) != nullptr &&
+      GetLastError  () == NO_ERROR;
+
+  return bResult;
+}
+
+BOOL
+SK_IsWindows10OrGreater (void)
+{
+  SK_RunOnce (SK_SetLastError (NO_ERROR));
+
+  static BOOL
+    bResult =
+      GetProcAddress (
+        GetModuleHandleW (L"kernel32.dll"),
+                           "SetThreadDescription"
+                     ) != nullptr &&
+      GetLastError  () == NO_ERROR;
+
+  return bResult;
+}
 
 HINSTANCE
 WINAPI
@@ -4794,14 +4835,10 @@ DWORD
 WINAPI
 SK_timeGetTime (void)
 {
-  static
-    LONGLONG qpcFreqAsMS
-    ( SK_GetPerfFreq ().QuadPart / 1000ULL );
-
   LARGE_INTEGER                    qpcNow;
   if (SK_QueryPerformanceCounter (&qpcNow))
     return   static_cast <DWORD> ((qpcNow.QuadPart /
-                                   qpcFreqAsMS) & 0xFFFFFFFFLL);
+                  SK_QpcTicksPerMs) & 0xFFFFFFFFLL);
 
 
   static HMODULE hModWinMM =

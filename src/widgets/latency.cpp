@@ -87,9 +87,6 @@ SK_ImGui_DrawGraph_Latency ()
 
   if (rb.getLatencyReportNV (&latencyResults))
   {
-    static const auto freq =
-      SK_GetPerfFreq ().QuadPart;
-
     for ( auto idx  = 63 ;
                idx >= 0  ;
              --idx )
@@ -110,7 +107,7 @@ SK_ImGui_DrawGraph_Latency ()
                  (
              end - start
                  );
-          if (duration >= 0 && duration < static_cast <NvU64> (freq / 3))
+          if (duration >= 0 && duration < static_cast <NvU64> (SK_QpcFreq / 3))
           {
             stage->samples++;
 
@@ -246,14 +243,14 @@ SK_ImGui_DrawGraph_Latency ()
                               ImColor (0.9f, 0.9f, 0.9f),
           "%4.2f ms",
             10000.0 * ( pStage->avg /
-                          static_cast <double> (SK_GetPerfFreq ().QuadPart)
+                          static_cast <double> (SK_QpcFreq)
                       )
       );
     }
     ImGui::Separator   ();
 
     double frametime = 10000.0 *
-      total.avg / static_cast <double> (SK_GetPerfFreq ().QuadPart);
+      total.avg / static_cast <double> (SK_QpcFreq);
 
     fLegendY =
       ImGui::GetCursorScreenPos ().y;
@@ -273,7 +270,7 @@ SK_ImGui_DrawGraph_Latency ()
           input.avg != 0.0 ?
                 "%4.2f ms" : "--",
             10000.0 *
-              input.avg / static_cast <double> (SK_GetPerfFreq ().QuadPart)
+              input.avg / static_cast <double> (SK_QpcFreq)
                          );
 
       fLegendY +=

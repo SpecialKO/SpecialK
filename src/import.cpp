@@ -981,3 +981,29 @@ On upgrade:
 
 Move old DLL(s) to versions/{version}/
 */
+
+
+
+
+
+static SK_LazyGlobal <SK_Thread_HybridSpinlock> static_loader;
+static                SK_Thread_HybridSpinlock* loader_lock     = nullptr;
+static volatile LONG                            _LoaderLockInit = 0;
+
+SK_Thread_HybridSpinlock*
+SK_DLL_LoaderLockGuard (void) noexcept
+{
+  if (0 == InterlockedCompareExchange (&_LoaderLockInit, 1, 0))
+  {
+    if (loader_lock == nullptr)
+        loader_lock  = static_loader.getPtr ();
+
+    InterlockedIncrement (&_LoaderLockInit);
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&_LoaderLockInit, 2);
+
+  return
+    loader_lock;
+}

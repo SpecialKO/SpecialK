@@ -39,7 +39,7 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
   if (pSwapChain == nullptr)
     return;
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -56,7 +56,7 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
 
   if (ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async) != nullptr)
   {
-    if (ReadAcquire (&pipeline_stats.query.active))
+    if (ReadAcquire (&pipeline_stats.query.active) == TRUE)
     {
       pDevCtx->End ((ID3D11Asynchronous *)ReadPointerAcquire ((volatile PVOID *)&pipeline_stats.query.async));
       InterlockedExchange (&pipeline_stats.query.active, FALSE);

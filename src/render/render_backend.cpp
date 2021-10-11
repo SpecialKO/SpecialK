@@ -36,11 +36,12 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
-
 #include <SpecialK/nvapi.h>
 #include <SpecialK/resource.h> // Unpack shader compiler
 
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
+
+SK_WDDM_CAPS SK_WDDM_SupportedCaps;
 
 extern void
 SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
@@ -71,7 +72,7 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 
   if (hLastMonitor != hMonitor || dwLastChecked < SK_timeGetTime () - 250UL)
   {
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     // Refresh this bastard!
@@ -87,16 +88,12 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
   return fRefresh;
 }
 
-
-SK_LazyGlobal <
-  SK_RenderBackend
-> __SK_RBkEnd;
-
 SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void)
 {
-  return __SK_RBkEnd.get ();
+  static SK_RenderBackend __SK_RBkEnd;
+  return                  __SK_RBkEnd;
 }
 
 void
@@ -153,7 +150,7 @@ SK_BootD3D9 (void)
     SK_TLS_Bottom ();
 
   if ( pTLS != nullptr &&
-       pTLS->d3d9->ctx_init_thread )
+       pTLS->render->d3d9->ctx_init_thread )
   {
     return;
   }
@@ -178,7 +175,7 @@ SK_BootD3D9 (void)
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
     if (pTLS != nullptr)
-        pTLS->d3d9->ctx_init_thread = true;
+        pTLS->render->d3d9->ctx_init_thread = true;
 
     SK_D3D9_InitShaderModTools  ();
 
@@ -326,7 +323,7 @@ SK_BootDXGI (void)
     SK_TLS_Bottom ();
 
   if ( pTLS != nullptr &&
-       pTLS->d3d11->ctx_init_thread )
+       pTLS->render->d3d11->ctx_init_thread )
   {
     return;
   }
@@ -357,7 +354,7 @@ SK_BootDXGI (void)
     }
 
     if (pTLS)
-        pTLS->d3d11->ctx_init_thread = true;
+        pTLS->render->d3d11->ctx_init_thread = true;
 
     dll_log->Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
 
@@ -390,7 +387,7 @@ SK_BootOpenGL (void)
     SK_TLS_Bottom ();
 
   if ( pTLS != nullptr &&
-       pTLS->gl->ctx_init_thread )
+       pTLS->render->gl->ctx_init_thread )
   {
     return;
   }
@@ -408,7 +405,7 @@ SK_BootOpenGL (void)
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
     if (pTLS)
-        pTLS->gl->ctx_init_thread = true;
+        pTLS->render->gl->ctx_init_thread = true;
 
     dll_log->Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
 
@@ -451,11 +448,23 @@ SK_BootVulkan (void)
 //#endif
 }
 
+typedef struct _D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME {
+  WCHAR                          DeviceName [32];
+  D3DKMT_HANDLE                  hAdapter;
+  LUID                           AdapterLuid;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+} D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME;
+
+using  D3DKMTOpenAdapterFromGdiDisplayName_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1);
+static D3DKMTOpenAdapterFromGdiDisplayName_pfn
+       D3DKMTOpenAdapterFromGdiDisplayName = nullptr;
+
+extern HRESULT SK_D3DKMT_CloseAdapter (struct _D3DKMT_CLOSEADAPTER *pCloseAdapter);
 
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
@@ -486,10 +495,11 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
     bool success = false;
 
-    if ( rb.device       == nullptr ||
-         rb.swapchain    == nullptr ||
-        (rb.surface.d3d9 == nullptr &&
-         rb.surface.dxgi == nullptr) )
+    if ( rb.device        == nullptr  ||
+         rb.swapchain     == nullptr  ||
+        (rb.surface.d3d9  == nullptr  &&
+         rb.surface.dxgi  == nullptr) ||
+         rb.surface.nvapi == nullptr)
     {
       return
         _ClearTemporarySurfaces ();
@@ -522,11 +532,10 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   _ClearTemporarySurfaces ();
 }
 
-
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <IDXGISwapChain>
@@ -574,9 +583,6 @@ SK_RenderBackendUtil_IsFullscreen (void)
   return false;
 }
 
-// Refresh the cached refresh value?! :)
-bool refresh_refresh = false;
-
 void
 SK_RenderBackend_V2::requestFullscreenMode (bool override)
 {
@@ -602,8 +608,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
 
   //if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
   {
-    if    (! swapchain) refresh_refresh = true;
-    else if (swapchain != nullptr)
+    if (swapchain != nullptr)
     {
       if (pSwapChain != nullptr)
       {
@@ -745,104 +750,6 @@ SK_RenderBackend_V2::getActiveRefreshRate (HMONITOR hMonitor)
   //                          MONITOR_DEFAULTTONEAREST );
   //}
 
-#if 0
-  if ( static_cast <int> (api) &
-       static_cast <int> (SK_RenderAPI::D3D9) )
-  {
-    SK_ComQIPtr <IDirect3DDevice9> pDev9 (device);
-
-    if (pDev9 != nullptr)
-    {
-      SK_ComQIPtr <IDirect3DSwapChain9> pSwap9 (swapchain);
-
-      if (pSwap9 != nullptr)
-      {
-        D3DPRESENT_PARAMETERS pparams = { };
-
-        if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
-        {
-          if (pparams.FullScreen_RefreshRateInHz != 0)
-          {
-            return
-              static_cast <float> (pparams.FullScreen_RefreshRateInHz);
-          }
-        }
-      }
-    }
-  }
-
-  // Handle D3D11/12
-  else
-  {
-    SK_ComQIPtr <IDXGISwapChain>
-                     pSwapChain (swapchain);
-
-    constexpr
-      UINT64 MAX_CACHE_TTL = 6; // 6 Frames, to prevent the assertion from triggering
-
-    static
-      UINT64 uiCachedFrame =
-        SK_GetFramesDrawn ();
-
-    if (pSwapChain.p != nullptr)
-    {
-      static float    fLastCache      = 0.0f;
-      static UINT64  uiLastCacheFrame = 0;// uiCachedFrame - MAX_CACHE_TTL;
-      static HMONITOR hLastMonitor    = 0;
-
-      if (hLastMonitor != hMonitor)
-           refresh_refresh = true;
-
-      if ( refresh_refresh ||
-           uiLastCacheFrame < (SK_GetFramesDrawn () - MAX_CACHE_TTL) )
-      {
-        SK_ComPtr <IDXGIDevice>           pSwapDevice = nullptr;
-        SK_ComPtr <IDXGIOutput>           pSwapOutput = nullptr;
-        pSwapChain->GetContainingOutput (&pSwapOutput);
-
-        if (pSwapOutput != nullptr)
-        {
-          DXGI_OUTPUT_DESC           outDesc = { };
-          if (pSwapOutput != nullptr)
-              pSwapOutput->GetDesc (&outDesc);
-
-          SK_ReleaseAssert (outDesc.Monitor == hMonitor);
-
-          hLastMonitor = outDesc.Monitor;
-        }
-
-        DXGI_SWAP_CHAIN_DESC  swap_desc = { };
-        pSwapChain->GetDesc (&swap_desc);
-
-        if (swap_desc.BufferDesc.RefreshRate.Denominator != 0)
-        {
-          uiLastCacheFrame = SK_GetFramesDrawn ();
-           fLastCache      =
-             ( static_cast <float> (swap_desc.BufferDesc.RefreshRate.Numerator  ) /
-               static_cast <float> (swap_desc.BufferDesc.RefreshRate.Denominator) );
-        }
-
-        if (fLastCache == 0.0)
-            fLastCache = SK_Display_GetDefaultRefreshRate (hMonitor);
-
-        if (fLastCache != 0.0)
-        {
-          uiLastCacheFrame = SK_GetFramesDrawn ();
-          refresh_refresh  = false;
-        }
-      }
-
-      if (! refresh_refresh)
-      {
-        return
-          fLastCache;
-      }
-    }
-  }
-#endif
-
-  refresh_refresh = false;
-
   return
     SK_Display_GetDefaultRefreshRate (hMonitor);
 }
@@ -964,6 +871,17 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     d3d11.immediate_ctx = nullptr;
     d3d12.command_queue = nullptr;
 
+    if (adapter.d3dkmt != 0)
+    {
+      D3DKMT_CLOSEADAPTER
+             close          = {            };
+             close.hAdapter = adapter.d3dkmt;
+
+      SK_D3DKMT_CloseAdapter (&close);
+
+      adapter.d3dkmt = 0;
+    }
+
     SK_HDR_ReleaseResources       ();
     SK_DXGI_ReleaseSRGBLinearizer ();
   }
@@ -1081,7 +999,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
 SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
 SK_RenderBackend_V2::scan_out_s::getEOTF (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (nvapi_hdr.isHDR10 ())
@@ -1643,8 +1561,8 @@ SK_D3D_SetupShaderCompiler (void)
   static_cast_p2p <void> (&D3DStripShader_40_Original) } };
 #endif
 
-  if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
-  {
+//if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
+//{
 // Causes problems with CroEngine games, we don't need unstripped
 //   shaders anyway.
 #ifdef _USE_ANTISTRIP
@@ -1659,7 +1577,7 @@ SK_D3D_SetupShaderCompiler (void)
       }
     }
 #endif
-  }
+//}
 }
 
 #ifndef DPI_ENUMS_DECLARED
@@ -1679,10 +1597,12 @@ typedef
 
 #ifndef _DPI_AWARENESS_CONTEXTS_
 DECLARE_HANDLE (DPI_AWARENESS_CONTEXT);
-#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE    (DPI_AWARENESS_CONTEXT)-3
+#ifndef DPI_AWARENESS_CONTEXT_UNAWARE
+#define DPI_AWARENESS_CONTEXT_UNAWARE              ((DPI_AWARENESS_CONTEXT)-1)
 #endif
 #ifndef DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
-#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 (DPI_AWARENESS_CONTEXT)-4
+#define DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2 ((DPI_AWARENESS_CONTEXT)-4)
+#endif
 #endif
 
 // Shcore.lib+dll, Windows 8.1
@@ -1859,6 +1779,56 @@ SK_Display_PopDPIScaling (void)
   }
 }
 
+bool SK_Display_IsDPIAwarenessUsingAppCompat (void)
+{
+  bool    bDPIAppCompat = false;
+
+  DWORD   dwProcessSize = MAX_PATH;
+  wchar_t wszProcessName [MAX_PATH + 2] = { };
+
+  HANDLE hProc =
+   SK_GetCurrentProcess ();
+
+  QueryFullProcessImageName (
+    hProc, 0,
+      wszProcessName, &dwProcessSize
+  );
+
+  const wchar_t* wszKey        =
+    LR"(Software\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers)";
+  DWORD          dwDisposition = 0x00;
+  HKEY           hKey          = nullptr;
+
+  const LSTATUS status =
+    RegCreateKeyExW ( HKEY_CURRENT_USER,
+                        wszKey,      0,
+                          nullptr, 0x0,
+                          KEY_READ,
+                             nullptr,
+                               &hKey,
+                                 &dwDisposition );
+
+  if ( status == ERROR_SUCCESS &&
+       hKey   != nullptr          )
+  {
+    wchar_t             wszKeyVal [2048] = { };
+    DWORD len = sizeof (wszKeyVal) / 2;
+
+    RegGetValueW (
+      hKey, nullptr, wszProcessName, RRF_RT_REG_SZ,
+            nullptr,  wszKeyVal, &len
+    );
+
+    bDPIAppCompat =
+      ( StrStrIW (wszKeyVal, L"HIGHDPIAWARE") != nullptr );
+
+    RegCloseKey (hKey);
+  }
+
+  return
+    bDPIAppCompat;
+}
+
 void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
 {
   DWORD   dwProcessSize = MAX_PATH;
@@ -1914,12 +1884,21 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
 
       StrTrimW (wszOrigKeyVal, L" ");
 
-      RegSetValueExW (
-        hKey, wszProcessName,
-          0, REG_SZ,
-            (BYTE *)wszOrigKeyVal,
-               ( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t)
-      );
+      if (wcslen (wszOrigKeyVal) != 0)
+      {
+        RegSetValueExW (
+          hKey, wszProcessName,
+            0, REG_SZ,
+              (BYTE *)wszOrigKeyVal,
+                (DWORD)(( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t))
+        );
+      }
+      else
+      {
+        RegDeleteValueW (hKey, wszProcessName);
+        RegCloseKey     (hKey);
+        return;
+      }
     }
 
     else if (set && pwszHIGHDPIAWARE == nullptr)
@@ -1931,7 +1910,7 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
         hKey, wszProcessName,
           0, REG_SZ,
             (BYTE *)wszOrigKeyVal,
-              ( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t)
+              (DWORD)(( wcslen (wszOrigKeyVal) + 1 ) * sizeof (wchar_t))
       );
     }
 
@@ -1984,7 +1963,7 @@ SK_Display_ClearDPIAwareness (bool bOnlyIfWin10)
   if (SK_IsWindows10OrGreater ())
   {
     SK_Display_SetThreadDpiAwarenessContext (
-      DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
+      DPI_AWARENESS_CONTEXT_UNAWARE
     );
 
     return;
@@ -2017,29 +1996,34 @@ SK_Display_ClearDPIAwareness (bool bOnlyIfWin10)
 void
 SK_Display_DisableDPIScaling (void)
 {
-  // Persistently disable DPI scaling problems so that initialization order doesn't matter
-  void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-       SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-
   if (! IsProcessDPIAware ())
   {
+    bool SK_Display_IsDPIAwarenessUsingAppCompat (void);
+
+    bool bWasAppCompatAware =
+      SK_Display_IsDPIAwarenessUsingAppCompat ();
+
+    // Persistently disable DPI scaling problems so that initialization order doesn't matter
+    void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+         SK_Display_ForceDPIAwarenessUsingAppCompat (true);
+
     void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
          SK_Display_SetMonitorDPIAwareness (false);
 
-    // Only do this for Steam games, the Microsoft Store Yakuza games
-    //   are chronically DPI unaware and broken
-    if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
+    if ((! bWasAppCompatAware) && SK_Display_IsDPIAwarenessUsingAppCompat ())
+    {
       SK_RestartGame ();
+    }
   }
 
 
   if (SK_IsWindows10OrGreater ())
   {
     SK_Display_SetThreadDpiAwarenessContext (
-      DPI_AWARENESS_CONTEXT_UNAWARE
+      DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2
     );
 
-    return;
+    //return;
   }
 
   if (SK_IsWindows8Point1OrGreater ())
@@ -2055,7 +2039,7 @@ SK_Display_DisableDPIScaling (void)
     if (SetProcessDpiAwarenessFn != nullptr)
     {
       SetProcessDpiAwarenessFn (
-        PROCESS_DPI_UNAWARE
+        PROCESS_PER_MONITOR_DPI_AWARE
       );
     }
   }
@@ -2230,8 +2214,11 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
   // Bad checksum, fail EDID
   if (checksum != 0)
   {
-    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-    //return "";
+    if (config.system.log_level > 0)
+    {
+      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+      //return "";
+    }
   }
 
   if ( 0 != memcmp ( (const char*)edid          + EDID_HEADER,
@@ -2325,8 +2312,11 @@ SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
   // Bad checksum, fail EDID
   if (checksum != 0)
   {
-    SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
-    return { };
+    if (config.system.log_level > 0)
+    {
+      SK_RunOnce (dll_log->Log (L"SK_EDID_Parse (...): Checksum fail"));
+      //return { };
+    }
   }
 
   if (0 != memcmp ((const char*)edid + EDID_HEADER,
@@ -2421,7 +2411,7 @@ SK_GetKeyPathFromHKEY (HKEY& key)
     keyPath;
 }
 
-static volatile LONG lUpdatingOutputs = 0;
+//static volatile LONG lUpdatingOutputs = 0;
 
 void
 SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
@@ -2517,7 +2507,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                                       DIGCF_PRESENT,
                                         nullptr, nullptr, nullptr );
 
-        if ((! nvSuppliedEDID) && devInfo != nullptr)
+        if (devInfo != nullptr)
         {
           wchar_t   wszDevName [ 64] = { };
           wchar_t   wszDevInst [128] = { };
@@ -2575,11 +2565,14 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
       if (EnumDisplayDevices (outDesc.DeviceName, 0, &disp_desc, 0))
       {
-        if (SK_GetCurrentRenderBackend ().display_crc [display.idx] == 0)
+        if (config.system.log_level > 0)
         {
-          dll_log->Log ( L"[Output Dev] DeviceName: %ws, devIdx: %lu, DeviceID: %ws",
-                           disp_desc.DeviceName, devIdx,
-                             disp_desc.DeviceID );
+          if (SK_GetCurrentRenderBackend ().display_crc [display.idx] == 0)
+          {
+            dll_log->Log ( L"[Output Dev] DeviceName: %ws, devIdx: %lu, DeviceID: %ws",
+                             disp_desc.DeviceName, devIdx,
+                               disp_desc.DeviceID );
+          }
         }
 
         wsprintf ( display.name, edid_name.empty () ?
@@ -2603,9 +2596,387 @@ SK_RenderBackend_V2::queueUpdateOutputs (void)
   update_outputs = true;
 }
 
+bool
+SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
+{
+  RECT                              rectOutputWindow = { };
+  SK_GetWindowRect (hWndContainer, &rectOutputWindow);
+
+  auto pContainer =
+    getContainingOutput (rectOutputWindow);
+
+  output_s* pOutput = nullptr;
+
+  for ( auto& display : displays )
+  {
+    if ( pContainer          != nullptr &&
+         pContainer->monitor == display.monitor )
+    {
+      pOutput = &display;
+      break;
+    }
+  }
+
+  // Fallback to whatever has been assigned to rb.monitor
+  if (pOutput == nullptr)
+  {
+    for ( auto& display : displays )
+    {
+      if (display.monitor != 0 &&
+          display.monitor == monitor)
+      {
+        pOutput = &display;
+        break;
+      }
+    }
+  }
+
+  if (pOutput != nullptr)
+  {
+    auto& display = *pOutput;
+
+    if (D3DKMTOpenAdapterFromGdiDisplayName == nullptr)
+        D3DKMTOpenAdapterFromGdiDisplayName =
+       (D3DKMTOpenAdapterFromGdiDisplayName_pfn)SK_GetProcAddress (L"gdi32.dll",
+       "D3DKMTOpenAdapterFromGdiDisplayName");
+
+    if (D3DKMTOpenAdapterFromGdiDisplayName != nullptr)
+    {
+      if (adapter.d3dkmt != 0)
+      {
+        D3DKMT_CLOSEADAPTER
+          closeAdapter;
+          closeAdapter.hAdapter = adapter.d3dkmt;
+
+        if (SUCCEEDED (SK_D3DKMT_CloseAdapter (&closeAdapter)))
+        {
+          adapter.d3dkmt        = 0;
+          adapter.VidPnSourceId = 0;
+          adapter.luid.HighPart = 0;
+          adapter.luid.LowPart  = 0;
+        }
+      }
+
+      D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME
+        openAdapter = { };
+
+      wcsncpy_s ( openAdapter.DeviceName, 32,
+                      display.dxgi_name,  _TRUNCATE );
+
+      if ( STATUS_SUCCESS ==
+             D3DKMTOpenAdapterFromGdiDisplayName (&openAdapter) )
+      {
+        adapter.d3dkmt        = openAdapter.hAdapter;
+        adapter.VidPnSourceId = openAdapter.VidPnSourceId;
+        adapter.luid.HighPart = openAdapter.AdapterLuid.HighPart;
+        adapter.luid.LowPart  = openAdapter.AdapterLuid.LowPart;
+
+      //SK_ReleaseAssert (adapter.luid == openAdapter.AdapterLuid);
+      }
+
+      else
+      {
+        adapter.d3dkmt        = 0;
+        adapter.VidPnSourceId = 0;
+        adapter.luid.HighPart = 0;
+        adapter.luid.LowPart  = 0;
+      }
+    }
+
+    wcsncpy_s ( display_name,        128,
+                display.name, _TRUNCATE );
+
+    // Late init
+    if (monitor != display.monitor)
+        monitor  = display.monitor;
+
+    active_display = static_cast <int> (
+      ((intptr_t)&display -
+       (intptr_t)&displays [0]) /
+sizeof (output_s));
+
+    display_gamut.xr = display.gamut.xr;
+    display_gamut.yr = display.gamut.yr;
+    display_gamut.xg = display.gamut.xg;
+    display_gamut.yg = display.gamut.yg;
+    display_gamut.xb = display.gamut.xb;
+    display_gamut.yb = display.gamut.yb;
+    display_gamut.Xw = display.gamut.Xw;
+    display_gamut.Yw = display.gamut.Yw;
+    display_gamut.Zw = 1.0f - display.gamut.Xw - display.gamut.Yw;
+
+    display_gamut.minY        = display.gamut.minY;
+    display_gamut.maxY        = display.gamut.maxY;
+    display_gamut.maxLocalY   = display.gamut.maxY;
+    display_gamut.maxAverageY = display.gamut.maxAverageY;
+
+    if (display.attached)
+    {
+      scanout.dwm_colorspace =
+        display.colorspace;
+    }
+
+    SK_ComQIPtr <IDXGISwapChain3>
+           pSwap3 (swapchain.p);
+    if (   pSwap3)
+    {
+      // Windows tends to cache this stuff, we're going to build our own with
+      //   more up-to-date values instead.
+      DXGI_OUTPUT_DESC1 uncachedOutDesc;
+      uncachedOutDesc.BitsPerColor = pContainer->bpc;
+      uncachedOutDesc.ColorSpace   = pContainer->colorspace;
+
+      SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
+
+      if ((! isHDRCapable ()) && __SK_HDR_16BitSwap)
+      {
+        extern void SK_Display_EnableHDR (void);
+                    SK_Display_EnableHDR (    );
+
+        //assignOutputFromHWND (hWndContainer);
+
+        //if (! (display.hdr.supported && display.hdr.enabled))
+        //{
+        //  SK_RunOnce (
+        //    SK_ImGui_WarningWithTitle (
+        //      L"ERROR: Special K HDR Applied to a non-HDR Display\r\n\r\n"
+        //      L"\t\t>> Please Disable SK HDR or set the Windows Desktop to use HDR",
+        //                               L"HDR is Unsupported by the Active Display" )
+        //  );
+        //}
+        //
+        //else
+        //{
+        //  updateOutputTopology ();
+        //
+        //  return true;
+        //}
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+//HRESULT
+//SK_D3DKMT_OpenAdapterFromLuid (struct _D3DKMT_OPENADAPTERFROMLUID *adapterFromLuid)
+//{
+//  if (! D3DKMTOpenAdapterFromLuid)
+//        D3DKMTOpenAdapterFromLuid =
+//        SK_GetProcAddress (
+//          SK_LoadLibraryW ( L"gdi32.dll" ),
+//            "D3DKMTOpenAdapterFromLuid"
+//                          );
+//
+//  if (D3DKMTOpenAdapterFromLuid != nullptr)
+//  {
+//    return
+//       reinterpret_cast <
+//         PFND3DKMT_OPENADAPTERFROMLUID              > (
+//             D3DKMTOpenAdapterFromLuid) (adapterFromLuid);
+//  }
+//
+//  return
+//    E_NOINTERFACE;
+//}
+//
+//
+//typedef enum _D3DDDICAPS_TYPE {
+//  D3DDDICAPS_DDRAW,
+//  D3DDDICAPS_DDRAW_MODE_SPECIFIC,
+//  D3DDDICAPS_GETFORMATCOUNT,
+//  D3DDDICAPS_GETFORMATDATA,
+//  D3DDDICAPS_GETMULTISAMPLEQUALITYLEVELS,
+//  D3DDDICAPS_GETD3DQUERYCOUNT,
+//  D3DDDICAPS_GETD3DQUERYDATA,
+//  D3DDDICAPS_GETD3D3CAPS,
+//  D3DDDICAPS_GETD3D5CAPS,
+//  D3DDDICAPS_GETD3D6CAPS,
+//  D3DDDICAPS_GETD3D7CAPS,
+//  D3DDDICAPS_GETD3D8CAPS,
+//  D3DDDICAPS_GETD3D9CAPS,
+//  D3DDDICAPS_GETDECODEGUIDCOUNT,
+//  D3DDDICAPS_GETDECODEGUIDS,
+//  D3DDDICAPS_GETDECODERTFORMATCOUNT,
+//  D3DDDICAPS_GETDECODERTFORMATS,
+//  D3DDDICAPS_GETDECODECOMPRESSEDBUFFERINFOCOUNT,
+//  D3DDDICAPS_GETDECODECOMPRESSEDBUFFERINFO,
+//  D3DDDICAPS_GETDECODECONFIGURATIONCOUNT,
+//  D3DDDICAPS_GETDECODECONFIGURATIONS,
+//  D3DDDICAPS_GETVIDEOPROCESSORDEVICEGUIDCOUNT,
+//  D3DDDICAPS_GETVIDEOPROCESSORDEVICEGUIDS,
+//  D3DDDICAPS_GETVIDEOPROCESSORRTFORMATCOUNT,
+//  D3DDDICAPS_GETVIDEOPROCESSORRTFORMATS,
+//  D3DDDICAPS_GETVIDEOPROCESSORRTSUBSTREAMFORMATCOUNT,
+//  D3DDDICAPS_GETVIDEOPROCESSORRTSUBSTREAMFORMATS,
+//  D3DDDICAPS_GETVIDEOPROCESSORCAPS,
+//  D3DDDICAPS_GETPROCAMPRANGE,
+//  D3DDDICAPS_FILTERPROPERTYRANGE,
+//  D3DDDICAPS_GETEXTENSIONGUIDCOUNT,
+//  D3DDDICAPS_GETEXTENSIONGUIDS,
+//  D3DDDICAPS_GETEXTENSIONCAPS,
+//  D3DDDICAPS_GETGAMMARAMPCAPS,
+//  D3DDDICAPS_CHECKOVERLAYSUPPORT,
+//  D3DDDICAPS_DXVAHD_GETVPDEVCAPS,
+//  D3DDDICAPS_DXVAHD_GETVPOUTPUTFORMATS,
+//  D3DDDICAPS_DXVAHD_GETVPINPUTFORMATS,
+//  D3DDDICAPS_DXVAHD_GETVPCAPS,
+//  D3DDDICAPS_DXVAHD_GETVPCUSTOMRATES,
+//  D3DDDICAPS_DXVAHD_GETVPFILTERRANGE,
+//  D3DDDICAPS_GETCONTENTPROTECTIONCAPS,
+//  D3DDDICAPS_GETCERTIFICATESIZE,
+//  D3DDDICAPS_GETCERTIFICATE,
+//  D3DDDICAPS_GET_ARCHITECTURE_INFO,
+//  D3DDDICAPS_GET_SHADER_MIN_PRECISION_SUPPORT,
+//  D3DDDICAPS_GET_MULTIPLANE_OVERLAY_CAPS,
+//  D3DDDICAPS_GET_MULTIPLANE_OVERLAY_FILTER_RANGE,
+//  D3DDDICAPS_GET_MULTIPLANE_OVERLAY_GROUP_CAPS,
+//  D3DDDICAPS_GET_SIMPLE_INSTANCING_SUPPORT,
+//  D3DDDICAPS_GET_MARKER_CAPS
+//} D3DDDICAPS_TYPE;
+
+
+
+const char*
+SK_RenderBackend_V2::output_s::signal_info_s::timing_s::video_standard_s::toStr (void)
+{
+  typedef enum _D3DKMDT_VIDEO_SIGNAL_STANDARD
+  {
+    D3DKMDT_VSS_UNINITIALIZED,
+    D3DKMDT_VSS_VESA_DMT,
+    D3DKMDT_VSS_VESA_GTF,
+    D3DKMDT_VSS_VESA_CVT,
+    D3DKMDT_VSS_IBM,
+    D3DKMDT_VSS_APPLE,
+    D3DKMDT_VSS_NTSC_M,
+    D3DKMDT_VSS_NTSC_J,
+    D3DKMDT_VSS_NTSC_443,
+    D3DKMDT_VSS_PAL_B,
+    D3DKMDT_VSS_PAL_B1,
+    D3DKMDT_VSS_PAL_G,
+    D3DKMDT_VSS_PAL_H,
+    D3DKMDT_VSS_PAL_I,
+    D3DKMDT_VSS_PAL_D,
+    D3DKMDT_VSS_PAL_N,
+    D3DKMDT_VSS_PAL_NC,
+    D3DKMDT_VSS_SECAM_B,
+    D3DKMDT_VSS_SECAM_D,
+    D3DKMDT_VSS_SECAM_G,
+    D3DKMDT_VSS_SECAM_H,
+    D3DKMDT_VSS_SECAM_K,
+    D3DKMDT_VSS_SECAM_K1,
+    D3DKMDT_VSS_SECAM_L,
+    D3DKMDT_VSS_SECAM_L1,
+    D3DKMDT_VSS_EIA_861,
+    D3DKMDT_VSS_EIA_861A,
+    D3DKMDT_VSS_EIA_861B,
+    D3DKMDT_VSS_PAL_K,
+    D3DKMDT_VSS_PAL_K1,
+    D3DKMDT_VSS_PAL_L,
+    D3DKMDT_VSS_PAL_M,
+    D3DKMDT_VSS_OTHER
+  } D3DKMDT_VIDEO_SIGNAL_STANDARD;
+
+  static std::unordered_map
+    < D3DKMDT_VIDEO_SIGNAL_STANDARD, const char * >
+  standard_names =
+  {
+    { D3DKMDT_VSS_UNINITIALIZED, "D3DKMDT_VSS_UNINITIALIZED" },
+    { D3DKMDT_VSS_VESA_DMT,      "D3DKMDT_VSS_VESA_DMT"      },
+    { D3DKMDT_VSS_VESA_GTF,      "D3DKMDT_VSS_VESA_GTF"      },
+    { D3DKMDT_VSS_VESA_CVT,      "D3DKMDT_VSS_VESA_CVT"      },
+    { D3DKMDT_VSS_IBM,           "D3DKMDT_VSS_IBM"           },
+    { D3DKMDT_VSS_APPLE,         "D3DKMDT_VSS_APPLE"         },
+    { D3DKMDT_VSS_NTSC_M,        "D3DKMDT_VSS_NTSC_M"        },
+    { D3DKMDT_VSS_NTSC_J,        "D3DKMDT_VSS_NTSC_J"        },
+    { D3DKMDT_VSS_NTSC_443,      "D3DKMDT_VSS_NTSC_443"      },
+    { D3DKMDT_VSS_PAL_B,         "D3DKMDT_VSS_PAL_B"         },
+    { D3DKMDT_VSS_PAL_B1,        "D3DKMDT_VSS_PAL_B1"        },
+    { D3DKMDT_VSS_PAL_G,         "D3DKMDT_VSS_PAL_G"         },
+    { D3DKMDT_VSS_PAL_H,         "D3DKMDT_VSS_PAL_H"         },
+    { D3DKMDT_VSS_PAL_I,         "D3DKMDT_VSS_PAL_I"         },
+    { D3DKMDT_VSS_PAL_D,         "D3DKMDT_VSS_PAL_D"         },
+    { D3DKMDT_VSS_PAL_N,         "D3DKMDT_VSS_PAL_N"         },
+    { D3DKMDT_VSS_PAL_NC,        "D3DKMDT_VSS_PAL_NC"        },
+    { D3DKMDT_VSS_SECAM_B,       "D3DKMDT_VSS_SECAM_B"       },
+    { D3DKMDT_VSS_SECAM_D,       "D3DKMDT_VSS_SECAM_D"       },
+    { D3DKMDT_VSS_SECAM_G,       "D3DKMDT_VSS_SECAM_G"       },
+    { D3DKMDT_VSS_SECAM_H,       "D3DKMDT_VSS_SECAM_H"       },
+    { D3DKMDT_VSS_SECAM_K,       "D3DKMDT_VSS_SECAM_K"       },
+    { D3DKMDT_VSS_SECAM_K1,      "D3DKMDT_VSS_SECAM_K1"      },
+    { D3DKMDT_VSS_SECAM_L,       "D3DKMDT_VSS_SECAM_L"       },
+    { D3DKMDT_VSS_SECAM_L1,      "D3DKMDT_VSS_SECAM_L1"      },
+    { D3DKMDT_VSS_EIA_861,       "D3DKMDT_VSS_EIA_861"       },
+    { D3DKMDT_VSS_EIA_861A,      "D3DKMDT_VSS_EIA_861A"      },
+    { D3DKMDT_VSS_EIA_861B,      "D3DKMDT_VSS_EIA_861B"      },
+    { D3DKMDT_VSS_PAL_K,         "D3DKMDT_VSS_PAL_K"         },
+    { D3DKMDT_VSS_PAL_K1,        "D3DKMDT_VSS_PAL_K1"        },
+    { D3DKMDT_VSS_PAL_L,         "D3DKMDT_VSS_PAL_L"         },
+    { D3DKMDT_VSS_PAL_M,         "D3DKMDT_VSS_PAL_M"         },
+    { D3DKMDT_VSS_OTHER,         "D3DKMDT_VSS_OTHER"         }
+  };
+
+  return
+      standard_names [(D3DKMDT_VIDEO_SIGNAL_STANDARD)videoStandard];
+}
+
+void SK_Display_EnableHDR (void)
+{
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (    rb.displays [rb.active_display].hdr.supported)
+  { if (! rb.displays [rb.active_display].hdr.enabled)
+    {
+      DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
+        setHdrState                     = { };
+        setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
+        setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
+        setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
+        setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
+
+        setHdrState.enableAdvancedColor = true;
+
+      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      {
+        rb.displays [rb.active_display].hdr.enabled = setHdrState.enableAdvancedColor;
+      }
+    }
+  }
+}
+
+void SK_Display_DisableHDR (void)
+{
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (  rb.displays [rb.active_display].hdr.supported)
+  { if (rb.displays [rb.active_display].hdr.enabled)
+    {
+      DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
+        setHdrState                     = { };
+        setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
+        setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
+        setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
+        setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
+
+        setHdrState.enableAdvancedColor = false;
+
+      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      {
+        rb.displays [rb.active_display].hdr.enabled = setHdrState.enableAdvancedColor;
+      }
+    }
+  }
+}
+
 void
 SK_RenderBackend_V2::updateOutputTopology (void)
 {
+  update_outputs = false;
+
   gsync_state.update (true);
 
   SK_Display_ResolutionSelectUI (true);
@@ -2628,14 +2999,20 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
         if (CreateDXGIFactory1_Import != nullptr)
             CreateDXGIFactory1_Import (IID_IDXGIFactory1, (void **)&factory.p);
+        else
+          // Will happen if we need to do this during INI load
+          ((CreateDXGIFactory1_pfn)SK_GetProcAddress (L"dxgi.dll", "CreateDXGIFactory1"))(IID_IDXGIFactory1, (void **)&factory.p);
       }
 
       SK_ComPtr <IDXGIAdapter>
                  pTempAdapter;
 
-      if (SUCCEEDED (factory->EnumAdapters (0, &pTempAdapter.p)))
+      if (factory.p != nullptr)
       {
-        pAdapter = pTempAdapter;
+        if (SUCCEEDED (factory->EnumAdapters (0, &pTempAdapter.p)))
+        {
+          pAdapter = pTempAdapter;
+        }
       }
 
       return
@@ -2643,8 +3020,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     }
 
 
-    LUID                       luidAdapter = { };
-    SK_ComPtr <IDXGIFactory1>  pFactory1;
+    SK_ComPtr <IDXGIFactory1> pFactory1;
 
     if (SUCCEEDED (pSwapChain->GetParent (IID_PPV_ARGS (&pFactory1.p))))
     {
@@ -2683,7 +3059,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pDevice12.p))))
     {
       // Yep, now for the fun part
-      luidAdapter =
+      adapter.luid =
         pDevice12->GetAdapterLuid ();
     }
 
@@ -2698,9 +3074,50 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       DXGI_ADAPTER_DESC   adapterDesc = { };
       pAdapter->GetDesc (&adapterDesc);
 
-      luidAdapter =
+      adapter.luid =
         adapterDesc.AdapterLuid;
     }
+
+
+#if 0
+    if (adapter.d3dkmt == 0)
+    {
+      D3DKMT_OPENADAPTERFROMLUID
+                 adapterFromLuid             = {          };
+                 adapterFromLuid.AdapterLuid = adapter.luid;
+
+      if (SUCCEEDED (SK_D3DKMT_OpenAdapterFromLuid (&adapterFromLuid)))
+      {
+        adapter.d3dkmt = adapterFromLuid.hAdapter;
+      }
+    }
+#endif
+
+  //if (SUCCEEDED (D3DKMTGetDeviceState (&getDeviceState)))
+  //{
+  //  bQueueFull =
+  //    getDeviceState.PresentQueueState.bQueuedPresentLimitReached;
+  //
+  //  // Get Present Statistics (App's VidPn)
+  //  getDeviceState.StateType     = D3DKMT_DEVICEPRESENT_STATE;
+  //  getDeviceState.VidPnSourceId = 0; // ?
+  //
+  //  if (SUCCEEDED (D3DKMTGetDeviceState (&getDeviceState)))
+  //  {
+  //    D3DKMT_PRESENT_STATS
+  //           present_stats = getDeviceState.PresentState;
+  //
+  //
+  //    getDeviceState.StateType     = D3DKMT_DEVICESTATE_PRESENT_DWM;
+  //    getDeviceState.VidPnSourceId = 0; // ?
+  //
+  //    if (SUCCEEDED (D3DKMTGetDeviceState (&getDeviceState)))
+  //    {
+  //      D3DKMT_PRESENT_STATS_DWM
+  //         dwm_present_stats = getDeviceState.PresentStateDWM;
+  //    }
+  //  }
+  //}
 
     SK_ComQIPtr <IDXGIFactory4>
         pFactory4   (pFactory1);
@@ -2709,7 +3126,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       pAdapter.Release ();
 
       if ( FAILED (
-             pFactory4->EnumAdapterByLuid ( luidAdapter,
+             pFactory4->EnumAdapterByLuid ( adapter.luid,
                                        IID_IDXGIAdapter,
                                      (void **)&pAdapter.p )
                   )
@@ -2727,8 +3144,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         DXGI_ADAPTER_DESC      adapterDesc = { };
         pNewAdapter->GetDesc (&adapterDesc);
 
-        if (adapterDesc.AdapterLuid.HighPart == luidAdapter.HighPart &&
-            adapterDesc.AdapterLuid.LowPart  == luidAdapter.LowPart)
+        if (adapterDesc.AdapterLuid.HighPart == adapter.luid.HighPart &&
+            adapterDesc.AdapterLuid.LowPart  == adapter.luid.LowPart)
         {
           pAdapter = pNewAdapter;
           break;
@@ -2741,13 +3158,13 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   };
 
 
-  while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
-    ;
+//  while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
+//    ;
 
 
   if (! _GetAdapter (swapchain.p, pAdapter))
   {
-    InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
+  //InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
     return;
   }
 
@@ -2783,10 +3200,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   bool display_changed [num_displays] = { };
 
-  for ( auto idx = 0 ; idx < num_displays ; ++idx )
+  for ( auto& display : displays )
   {
     RtlSecureZeroMemory (
-      &displays [idx], display_size
+      &display, display_size
     );
   }
 
@@ -2796,21 +3213,26 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   while ( DXGI_ERROR_NOT_FOUND !=
             pAdapter->EnumOutputs (idx, &pOutput.p) )
   {
-    auto& display =
-      displays [idx];
-
     if (pOutput.p != nullptr)
     {
-      DXGI_OUTPUT_DESC1 outDesc1 = { };
-      DXGI_OUTPUT_DESC  outDesc  = { };
+      auto& display =
+        displays [idx++];
 
+      DXGI_OUTPUT_DESC                  outDesc  = { };
       if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
       {
-        display.idx      = idx;
-        display.monitor  = outDesc.Monitor;
-        display.rect     = outDesc.DesktopCoordinates;
-        display.attached = outDesc.AttachedToDesktop;
+        MONITORINFOEXW
+        mi        = {         };
+        mi.cbSize = sizeof (mi);
 
+        if (GetMonitorInfoW (outDesc.Monitor, &mi))
+        {
+          swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"), LR"(\DISPLAY%i)", &display.idx);
+        }
+
+        display.monitor     = outDesc.Monitor;
+        display.rect        = outDesc.DesktopCoordinates;
+        display.attached    = outDesc.AttachedToDesktop;
 
         if (sk::NVAPI::nv_hardware != false)
         {
@@ -2849,130 +3271,262 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
         SK_RBkEnd_UpdateMonitorName (display, outDesc);
 
-        MONITORINFO
-          minfo        = {                  };
-          minfo.cbSize = sizeof (MONITORINFO);
-
-        GetMonitorInfo (display.monitor, &minfo);
-
-        float bestIntersectArea = -1.0f;
-
-        int ax1 = minfo.rcMonitor.left,
-            ax2 = minfo.rcMonitor.right;
-        int ay1 = minfo.rcMonitor.top,
-            ay2 = minfo.rcMonitor.bottom;
-
-        DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
-
-        for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
+        SK_ComQIPtr <IDXGIOutput6>
+            pOutput6 (pOutput);
+        if (pOutput6.p != nullptr)
         {
-          auto *path =
-            &pathArray [pathIdx];
-
-          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          DXGI_OUTPUT_DESC1                   outDesc1  = { };
+          if (SUCCEEDED (pOutput6->GetDesc1 (&outDesc1)))
           {
-            DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
-              &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
-
-            RECT rect;
-            rect.left   = pSourceMode->position.x;
-            rect.top    = pSourceMode->position.y;
-            rect.right  = pSourceMode->position.x + pSourceMode->width;
-            rect.bottom = pSourceMode->position.y + pSourceMode->height;
-
-            if (! IsRectEmpty (&rect))
+            if (outDesc1.MinLuminance > outDesc1.MaxFullFrameLuminance)
             {
-              int bx1 = rect.left;
-              int by1 = rect.top;
-              int bx2 = rect.right;
-              int by2 = rect.bottom;
+              std::swap (outDesc1.MinLuminance, outDesc1.MaxFullFrameLuminance);
 
-              int intersectArea =
-                ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
+              static bool once = false;
 
-              if (intersectArea > bestIntersectArea)
+              if (! std::exchange (once, true))
               {
-                pVidPn            = path;
-                bestIntersectArea =
-                  static_cast <float> (intersectArea);
+                SK_LOG0 ( (L" --- Working around DXGI bug, swapping invalid min / avg luminance levels"),
+                           L"   DXGI   "
+                        );
               }
             }
+
+            display.bpc               = outDesc1.BitsPerColor;
+            display.gamut.minY        = outDesc1.MinLuminance;
+            display.gamut.maxY        = outDesc1.MaxLuminance;
+            display.gamut.maxLocalY   = outDesc1.MaxLuminance;
+            display.gamut.maxAverageY = outDesc1.MaxFullFrameLuminance;
+            display.gamut.xr          = outDesc1.RedPrimary   [0];
+            display.gamut.yr          = outDesc1.RedPrimary   [1];
+            display.gamut.xb          = outDesc1.BluePrimary  [0];
+            display.gamut.yb          = outDesc1.BluePrimary  [1];
+            display.gamut.xg          = outDesc1.GreenPrimary [0];
+            display.gamut.yg          = outDesc1.GreenPrimary [1];
+            display.gamut.Xw          = outDesc1.WhitePoint   [0];
+            display.gamut.Yw          = outDesc1.WhitePoint   [1];
+            display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
+            display.colorspace        = outDesc1.ColorSpace;
+
+            display.hdr.enabled       = outDesc1.ColorSpace ==
+              DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
           }
         }
+      }
 
-        if (pVidPn != nullptr)
+      pOutput.Release ();
+    }
+  }
+
+  UINT enum_count = idx;
+
+  for ( idx = 0 ; idx < enum_count ; ++idx )
+  {
+    auto& display =
+      displays [idx];
+
+    MONITORINFOEXW
+    minfo        = {            };
+    minfo.cbSize = sizeof (minfo);
+
+    if (! GetMonitorInfoW (display.monitor, &minfo))
+      continue;
+
+    float bestIntersectArea = -1.0f;
+
+    int ax1 = minfo.rcMonitor.left,
+        ax2 = minfo.rcMonitor.right;
+    int ay1 = minfo.rcMonitor.top,
+        ay2 = minfo.rcMonitor.bottom;
+
+    DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
+
+    for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
+    {
+      auto *path =
+        &pathArray [pathIdx];
+
+      if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+      {
+        DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+          &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+
+        RECT rect;
+        rect.left   = pSourceMode->position.x;
+        rect.top    = pSourceMode->position.y;
+        rect.right  = pSourceMode->position.x + pSourceMode->width;
+        rect.bottom = pSourceMode->position.y + pSourceMode->height;
+
+        if (! IsRectEmpty (&rect))
         {
-          display.vidpn = *pVidPn;
+          int bx1 = rect.left;
+          int by1 = rect.top;
+          int bx2 = rect.right;
+          int by2 = rect.bottom;
 
-          DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
-            getHdrInfo                  = { };
-            getHdrInfo.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
-            getHdrInfo.header.size      = sizeof     (DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO);
-            getHdrInfo.header.adapterId = display.vidpn.targetInfo.adapterId;
-            getHdrInfo.header.id        = display.vidpn.targetInfo.id;
+          int intersectArea =
+            ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
 
-          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getHdrInfo ) )
+          if (intersectArea > bestIntersectArea)
           {
-            display.hdr.supported = getHdrInfo.advancedColorSupported;
-            display.hdr.enabled   = getHdrInfo.advancedColorEnabled;
-            display.hdr.encoding  = getHdrInfo.colorEncoding;
-            display.bpc           = getHdrInfo.bitsPerColorChannel;
-          }
-
-          else
-          {
-            display.hdr.supported = false;
-            display.hdr.enabled   = false;
-          }
-
-          DISPLAYCONFIG_SDR_WHITE_LEVEL
-            getSdrWhiteLevel                  = { };
-            getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
-            getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
-            getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
-            getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
-
-          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
-          {
-            display.hdr.white_level =
-              (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
-          }
-
-          else
-            display.hdr.white_level = 80.0f;
-
-          DISPLAYCONFIG_TARGET_PREFERRED_MODE
-            getPreferredMode                  = { };
-            getPreferredMode.header.type
-              = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
-            getPreferredMode.header.size      =         sizeof (DISPLAYCONFIG_TARGET_PREFERRED_MODE);
-            getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
-            getPreferredMode.header.id        = display.vidpn.targetInfo.id;
-
-          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
-          {
-            display.native.width   = getPreferredMode.width;
-            display.native.height  = getPreferredMode.height;
-
-            display.native.refresh = {
-              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
-              getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
-            };
-          }
-
-          DISPLAYCONFIG_TARGET_DEVICE_NAME
-            getTargetName                     = { };
-            getTargetName.header.type         = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
-            getTargetName.header.size         =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
-            getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
-            getTargetName.header.id           = display.vidpn.targetInfo.id;
-
-          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
-          {
-            wcsncpy_s ( display.name,                                   64,
-                        getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
+            pVidPn            = path;
+            bestIntersectArea =
+              static_cast <float> (intersectArea);
           }
         }
+      }
+    }
+
+    if (pVidPn != nullptr)
+    {
+      display.vidpn = *pVidPn;
+
+      display.signal.timing.pixel_clock            =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.pixelRate;
+      display.signal.timing.hsync_freq.Numerator   =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.hSyncFreq.Numerator;
+      display.signal.timing.hsync_freq.Denominator =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.hSyncFreq.Denominator;
+      display.signal.timing.vsync_freq.Numerator   =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.vSyncFreq.Numerator;
+      display.signal.timing.vsync_freq.Denominator =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.vSyncFreq.Denominator;
+      display.signal.timing.active_size.cx         =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.activeSize.cx;
+      display.signal.timing.active_size.cy         =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.activeSize.cy;
+      display.signal.timing.total_size.cx          =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.totalSize.cx;
+      display.signal.timing.total_size.cy          =
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.totalSize.cy;
+      display.signal.timing.videoStandard.
+                                     videoStandard = (UINT32)
+        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.videoStandard;
+
+      dll_log->Log (
+          L"PixelRate=%llu, hSyncFreq=%f Hz, vSyncFreq=%f Hz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%s",
+          display.signal.timing.pixel_clock, static_cast <double> (display.signal.timing.hsync_freq.Numerator) /
+                                             static_cast <double> (display.signal.timing.hsync_freq.Denominator),
+                                             static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+                                             static_cast <double> (display.signal.timing.vsync_freq.Denominator),
+          display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
+          display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
+          display.signal.timing.videoStandard.toStr ()
+                   );
+
+      DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
+        getHdrInfo                  = { };
+        getHdrInfo.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO;
+        getHdrInfo.header.size      = sizeof     (DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO);
+        getHdrInfo.header.adapterId = display.vidpn.targetInfo.adapterId;
+        getHdrInfo.header.id        = display.vidpn.targetInfo.id;
+
+      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getHdrInfo ) )
+      {
+        display.hdr.supported = getHdrInfo.advancedColorSupported;
+        display.hdr.enabled   = getHdrInfo.advancedColorEnabled;
+        display.hdr.encoding  = getHdrInfo.colorEncoding;
+        display.bpc           = getHdrInfo.bitsPerColorChannel;
+      }
+
+      else
+      {
+        display.hdr.supported = false;
+        display.hdr.enabled   = false;
+      }
+
+      DISPLAYCONFIG_SDR_WHITE_LEVEL
+        getSdrWhiteLevel                  = { };
+        getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+        getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
+        getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
+        getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
+
+      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+      {
+        display.hdr.white_level =
+          (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+      }
+
+      else
+        display.hdr.white_level = 80.0f;
+
+      DISPLAYCONFIG_TARGET_PREFERRED_MODE
+        getPreferredMode                  = { };
+        getPreferredMode.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
+        getPreferredMode.header.size      =         sizeof (DISPLAYCONFIG_TARGET_PREFERRED_MODE);
+        getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
+        getPreferredMode.header.id        = display.vidpn.targetInfo.id;
+
+      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
+      {
+        display.native.width   = getPreferredMode.width;
+        display.native.height  = getPreferredMode.height;
+
+        display.native.refresh = {
+          getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
+          getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
+        };
+      }
+
+      DISPLAYCONFIG_TARGET_DEVICE_NAME
+        getTargetName                     = { };
+        getTargetName.header.type         = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+        getTargetName.header.size         =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
+        getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
+        getTargetName.header.id           = display.vidpn.targetInfo.id;
+
+      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+      {
+        switch (getTargetName.outputTechnology)
+        {
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_OTHER:
+            StrCpyA (display.signal.type, "Other");                 break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HD15:
+            StrCpyA (display.signal.type, "HD15 (VGA)");            break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SVIDEO:
+            StrCpyA (display.signal.type, "S-Video");               break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPOSITE_VIDEO:
+            StrCpyA (display.signal.type, "Composite Video");       break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPONENT_VIDEO:
+            StrCpyA (display.signal.type, "Component Video");       break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DVI:
+            StrCpyA (display.signal.type, "DVI");                   break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HDMI:
+            StrCpyA (display.signal.type, "HDMI");                  break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_LVDS:
+            StrCpyA (display.signal.type, "LVDS");                  break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_D_JPN:
+            StrCpyA (display.signal.type, "Japanese D");            break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDI:
+            StrCpyA (display.signal.type, "SDI");                   break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EXTERNAL:
+            StrCpyA (display.signal.type, "Display Port");          break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EMBEDDED:
+            StrCpyA (display.signal.type, "Embedded Display Port"); break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EXTERNAL:
+            StrCpyA (display.signal.type, "UDI");                   break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EMBEDDED:
+            StrCpyA (display.signal.type, "Embedded UDI");          break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDTVDONGLE:
+            StrCpyA (display.signal.type, "SDTV Dongle");           break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_MIRACAST:
+            StrCpyA (display.signal.type, "Miracast Wireless");     break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_WIRED:
+            StrCpyA (display.signal.type, "Indirect Wired");        break;
+          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_VIRTUAL:
+            StrCpyA (display.signal.type, "Indirect Virtual");      break;
+          default:
+            StrCpyA (display.signal.type, "UNKNOWN");               break;
+        };
+
+        display.signal.timing.pixel_clock =
+
+        display.signal.connector_idx =
+          getTargetName.connectorInstance;
+
+        wcsncpy_s ( display.name,                                   64,
+                    getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
 
         // Didn't get a name using the Windows APIs, let's fallback to EDID
         if (*display.name == L'\0')
@@ -3002,186 +3556,68 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           }
         }
 
-        display.primary =
-          ( minfo.dwFlags & MONITORINFOF_PRIMARY );
+        sprintf ( display.full_name,
+                    "%ws -<+>- %s %u", display.name,
+                                       display.signal.type,
+                                       display.signal.connector_idx );
 
-        SK_ComQIPtr <IDXGIOutput6>
-            pOutput6 (pOutput);
-        if (pOutput6.p != nullptr)
-        {
-          if (SUCCEEDED (pOutput6->GetDesc1 (&outDesc1)))
-          {
-            if (outDesc1.MinLuminance > outDesc1.MaxFullFrameLuminance)
-              std::swap (outDesc1.MinLuminance, outDesc1.MaxFullFrameLuminance);
-
-            static bool once = false;
-
-            if (! std::exchange (once, true))
-            {
-              SK_LOG0 ( (L" --- Working around DXGI bug, swapping invalid min / avg luminance levels"),
-                         L"   DXGI   "
-                      );
-            }
-
-            display.bpc               = outDesc1.BitsPerColor;
-            display.gamut.minY        = outDesc1.MinLuminance;
-            display.gamut.maxY        = outDesc1.MaxLuminance;
-            display.gamut.maxLocalY   = outDesc1.MaxLuminance;
-            display.gamut.maxAverageY = outDesc1.MaxFullFrameLuminance;
-            display.gamut.xr          = outDesc1.RedPrimary   [0];
-            display.gamut.yr          = outDesc1.RedPrimary   [1];
-            display.gamut.xb          = outDesc1.BluePrimary  [0];
-            display.gamut.yb          = outDesc1.BluePrimary  [1];
-            display.gamut.xg          = outDesc1.GreenPrimary [0];
-            display.gamut.yg          = outDesc1.GreenPrimary [1];
-            display.gamut.Xw          = outDesc1.WhitePoint   [0];
-            display.gamut.Yw          = outDesc1.WhitePoint   [1];
-            display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
-            display.colorspace        = outDesc1.ColorSpace;
-
-            display.hdr.enabled       = outDesc1.ColorSpace ==
-              DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
-          }
-        }
+        wcsncpy_s ( display.path_name,               128,
+                    getTargetName.monitorDevicePath, _TRUNCATE );
       }
     }
 
-    stale_display_info = false;
+    auto old_crc =
+     display_crc [idx];
 
-    pOutput.Release ();
+     display_crc [idx] =
+             crc32c ( 0,
+    &display,
+     display_size   );
 
-    idx++;
-  }
+    display_changed [idx] =
+      old_crc != display_crc [idx];
 
-  idx = 0;
-
-  while ( DXGI_ERROR_NOT_FOUND !=
-            pAdapter->EnumOutputs (idx, &pOutput.p) )
-  {
-    auto& display =
-      displays [idx];
-
-    if (pOutput.p != nullptr)
+    SK_ComQIPtr <IDXGISwapChain>
+        pChain (swapchain.p);
+    if (pChain.p != nullptr)
     {
-      auto old_crc =
-       display_crc [idx];
-
-       display_crc [idx] =
-               crc32c ( 0,
-      &display,
-       display_size   );
-
-      display_changed [idx] =
-        old_crc != display_crc [idx];
-
-      SK_ComQIPtr <IDXGISwapChain> pChain (swapchain.p);
-
-      DXGI_SWAP_CHAIN_DESC swapDesc         = { };
-      RECT                 rectOutputWindow = { };
-
-      if (pChain.p != nullptr)
-      {
-        pChain->GetDesc (&swapDesc);
-        GetWindowRect   ( swapDesc.OutputWindow, &rectOutputWindow);
-      }
-
-      auto pContainer =
-        getContainingOutput (rectOutputWindow);
-
-      if (pContainer != nullptr)
-      {
-        if (pContainer->monitor == display.monitor)
-        {
-          wcsncpy_s ( display_name,        128,
-                      display.name, _TRUNCATE );
-
-          // Late init
-          if (monitor != display.monitor)
-              monitor  = display.monitor;
-
-          display_gamut.xr = display.gamut.xr;
-          display_gamut.yr = display.gamut.yr;
-          display_gamut.xg = display.gamut.xg;
-          display_gamut.yg = display.gamut.yg;
-          display_gamut.xb = display.gamut.xb;
-          display_gamut.yb = display.gamut.yb;
-          display_gamut.Xw = display.gamut.Xw;
-          display_gamut.Yw = display.gamut.Yw;
-          display_gamut.Zw = 1.0f - display.gamut.Xw - display.gamut.Yw;
-
-          display_gamut.minY        = display.gamut.minY;
-          display_gamut.maxY        = display.gamut.maxY;
-          display_gamut.maxLocalY   = display.gamut.maxY;
-          display_gamut.maxAverageY = display.gamut.maxAverageY;
-
-          if (display.attached)
-          {
-            scanout.dwm_colorspace =
-              display.colorspace;
-          }
-
-          SK_ComQIPtr <IDXGISwapChain3>
-                 pSwap3 (swapchain.p);
-          if (   pSwap3)
-          {
-            // Windows tends to cache this stuff, we're going to build our own with
-            //   more up-to-date values instead.
-            DXGI_OUTPUT_DESC1 uncachedOutDesc;
-            uncachedOutDesc.BitsPerColor = pContainer->bpc;
-            uncachedOutDesc.ColorSpace   = pContainer->colorspace;
-
-            SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
-
-            if ((! isHDRCapable ()) && __SK_HDR_16BitSwap)
-            {
-              SK_RunOnce (
-                SK_ImGui_WarningWithTitle (
-                  L"ERROR: Special K HDR Applied to a non-HDR Display\r\n\r\n"
-                  L"\t\t>> Please Disable SK HDR or set the Windows Desktop to use HDR",
-                                           L"HDR is Unsupported by the Active Display" )
-              );
-            }
-          }
-        }
-      }
-
-      if (display_changed [idx])
-      {
-        dll_log->LogEx ( true,
-          L"[Output Dev]\n"
-          L"  +------------------+---------------------\n"
-          L"  | EDID Device Name |  %ws\n"
-          L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
-          L"  | Desktop Display. |  %ws%ws\n"
-          L"  | Bits Per Color.. |  %u\n"
-          L"  | Color Space..... |  %s\n"
-          L"  | Red Primary..... |  %f, %f\n"
-          L"  | Green Primary... |  %f, %f\n"
-          L"  | Blue Primary.... |  %f, %f\n"
-          L"  | White Point..... |  %f, %f\n"
-          L"  | Min Luminance... |  %f\n"
-          L"  | Max Luminance... |  %f\n"
-          L"  |  \"  FullFrame... |  %f\n"
-          L"  +------------------+---------------------\n",
-            display.name,
-            display.dxgi_name, display.monitor,
-            display.attached ? L"Yes"                : L"No",
-            display.primary  ? L" (Primary Display)" : L"",
-                        display.bpc,
-            DXGIColorSpaceToStr (display.colorspace),
-            display.gamut.xr,    display.gamut.yr,
-            display.gamut.xg,    display.gamut.yg,
-            display.gamut.xb,    display.gamut.yb,
-            display.gamut.Xw,    display.gamut.Yw,
-            display.gamut.minY,  display.gamut.maxY,
-            display.gamut.maxAverageY
-        );
-      }
-
-      pOutput.Release ();
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+      pChain->GetDesc     (&swapDesc);
+      assignOutputFromHWND (swapDesc.OutputWindow);
     }
 
-    idx++;
+    if (display_changed [idx])
+    {
+      dll_log->LogEx ( true,
+        L"[Output Dev]\n"
+        L"  +------------------+---------------------------------------------------------------------\n"
+        L"  | EDID Device Name |  %hs\n"
+        L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
+        L"  | Desktop Display. |  %ws%ws\n"
+        L"  | Bits Per Color.. |  %u\n"
+        L"  | Color Space..... |  %s\n"
+        L"  | Red Primary..... |  %f, %f\n"
+        L"  | Green Primary... |  %f, %f\n"
+        L"  | Blue Primary.... |  %f, %f\n"
+        L"  | White Point..... |  %f, %f\n"
+        L"  | Min Luminance... |  %f\n"
+        L"  | Max Luminance... |  %f\n"
+        L"  | Max FullFrame... |  %f\n"
+        L"  +------------------+---------------------------------------------------------------------\n",
+          display.full_name,
+          display.dxgi_name, display.monitor,
+          display.attached ? L"Yes"                : L"No",
+          display.primary  ? L" (Primary Display)" : L"",
+                      display.bpc,
+          DXGIColorSpaceToStr (display.colorspace),
+          display.gamut.xr,    display.gamut.yr,
+          display.gamut.xg,    display.gamut.yg,
+          display.gamut.xb,    display.gamut.yb,
+          display.gamut.Xw,    display.gamut.Yw,
+          display.gamut.minY,  display.gamut.maxY,
+          display.gamut.maxAverageY
+      );
+    }
   }
 
   bool any_changed =
@@ -3190,7 +3626,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   if (any_changed)
   {
-    for ( UINT i = 0 ; i < idx; ++i )
+    for ( UINT i = 0 ; i < enum_count; ++i )
     {
       SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] \"%ws\" :: %s",
                     displays [i].primary ? L"*" : L" ",
@@ -3202,9 +3638,21 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                     displays [i].hdr.enabled ? L"HDR" : L"SDR" ),
                   L"   DXGI   " );
     }
+
+    SK_Display_ResolutionSelectUI (true);
   }
 
-  InterlockedDecrement (&lUpdatingOutputs);
+  else
+  {
+    stale_display_info = false;
+  }
+
+  if (config.render.dxgi.temporary_dwm_hdr)
+  {
+    SK_Display_EnableHDR ();
+  }
+
+//InterlockedDecrement (&lUpdatingOutputs);
 }
 
 const SK_RenderBackend_V2::output_s*
@@ -3450,7 +3898,7 @@ SK_NV_AdaptiveSyncControl (void)
               double dFlipRate  =
                 static_cast <double> (SK_GetFramesDrawn () - lastFlipFrame) *
               ( static_cast <double> (deltaFlipTime) /
-                static_cast <double> (SK_GetPerfFreq ().QuadPart) );
+                static_cast <double> (SK_QpcFreq) );
 
                  dFlipPrint = dFlipRate;
               lastFlipFrame = SK_GetFramesDrawn ();
@@ -3548,3 +3996,124 @@ SK_NV_AdaptiveSyncControl (void)
     }
   }
 }
+
+
+
+
+
+///////#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_1)
+////////*++
+///////Routine Description:
+///////    ControlModeBehavior - requests high-level mode enumeration and setting behaviors
+///////Arguments:
+///////    hAdapter                        WDDM display miniport adapter handle.
+///////    pControlModeBehaviorArg
+///////       ->Request                    Input flags indicating the behaviors the OS is requesting.
+///////       ->Satisfied                  Output flags reporting which requests were satisfied.
+///////       ->NotSatisfied               Output flags reporting which requests were NOT satisfied.
+///////Return Value:
+///////    STATUS_SUCCESS
+///////      - Request has been completed successfully.
+///////    STATUS_NO_MEMORY
+///////      - There is insufficient memory to complete this request.
+///////    One of the invalid parameter STATUS_GRAPHICS_* codes that can be returned by the OS via
+///////    DXGDDI_VIDPN* interfaces. These codes should only occur during development since they
+///////    indicate a bug in the driver or OS.
+///////Environment:
+///////    Kernel mode. PASSIVE_LEVEL.
+///////--*/
+///////
+///////typedef union _DXGK_MODE_BEHAVIOR_FLAGS
+///////{
+///////    struct
+///////    {
+///////        UINT    PrioritizeHDR               : 1;    // 0x00000001
+///////        UINT    ColorimetricControl         : 1;    // 0x00000002
+///////        UINT    Reserved                    :30;    // 0xFFFFFFFC
+///////    };
+///////    UINT    Value;
+///////} DXGK_MODE_BEHAVIOR_FLAGS;
+///////
+///////
+///////typedef struct _DXGKARG_CONTROLMODEBEHAVIOR
+///////{
+///////
+///////    IN  DXGK_MODE_BEHAVIOR_FLAGS                Request;
+///////    OUT DXGK_MODE_BEHAVIOR_FLAGS                Satisfied;
+///////    OUT DXGK_MODE_BEHAVIOR_FLAGS                NotSatisfied;
+///////} DXGKARG_CONTROLMODEBEHAVIOR;
+///////
+///////
+///////typedef _Inout_ DXGKARG_CONTROLMODEBEHAVIOR* INOUT_PDXGKARG_CONTROLMODEBEHAVIOR;
+///////
+///////typedef
+///////    _Check_return_
+///////    _Function_class_DXGK_(DXGKDDI_CONTROLMODEBEHAVIOR)
+///////    _IRQL_requires_(PASSIVE_LEVEL)
+///////NTSTATUS
+///////APIENTRY
+///////DXGKDDI_CONTROLMODEBEHAVIOR(
+///////    IN_CONST_HANDLE                             hAdapter,
+///////    INOUT_PDXGKARG_CONTROLMODEBEHAVIOR          pControlModeBehaviorArg
+///////    );
+///////
+///////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////// Purpose: Exposes driver/hardware per monitor/target capabilities.
+/////////  Mode enumeration is typically required to discover if the capability is supported in a particular display
+/////////  configuration but if the capability is not supported then mode enumeration is unnecessary.
+/////////
+///////typedef struct _DXGK_MONITORLINKINFO
+///////{
+///////    DXGK_MONITORLINKINFO_USAGEHINTS     UsageHints;
+///////    DXGK_MONITORLINKINFO_CAPABILITIES   Capabilities;
+///////
+///////#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_4)
+///////    D3DKMDT_WIRE_FORMAT_AND_PREFERENCE  DitheringSupport;
+///////#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_4
+///////} DXGK_MONITORLINKINFO;
+///////
+///////
+////////*++
+///////Routine Description:
+///////    UpdateMonitorLinkInfo - Reports static per monitor capabilities
+///////Arguments:
+///////    hAdapter           - WDDM display miniport adapter handle.
+///////    pUpdateMonitorLinkInfoArg
+///////       ->VideoPresentTargetId - ID of the video present target to which the monitor in question is connected.
+///////       ->MonitorLinkInfo - Structure with overrides from the OS and space for the caps from the driver.
+///////Return Value:
+///////    STATUS_SUCCESS
+///////      - Request has been completed successfully.
+///////    STATUS_NO_MEMORY
+///////      - There is insufficient memory to complete this request.
+///////    One of the invalid parameter STATUS_GRAPHICS_* codes that can be returned by the OS via
+///////    DXGDDI_{VIDPN|MONITOR|* interfaces. These codes should only occur during development since they
+///////    indicate a bug in the driver or OS.
+///////Side-effects:
+///////    None
+///////Environment:
+///////    Kernel mode. PASSIVE_LEVEL.
+///////--*/
+///////typedef struct _DXGKARG_UPDATEMONITORLINKINFO
+///////{
+///////    IN D3DDDI_VIDEO_PRESENT_TARGET_ID               VideoPresentTargetId;
+///////    IN DXGK_MONITORLINKINFO                         MonitorLinkInfo;
+///////
+///////} DXGKARG_UPDATEMONITORLINKINFO;
+///////
+///////typedef _Inout_ DXGKARG_UPDATEMONITORLINKINFO*       INOUT_PDXGKARG_UPDATEMONITORLINKINFO;
+///////
+///////typedef
+///////    _Check_return_
+///////    _Function_class_DXGK_(DXGKDDI_UPDATEMONITORLINKINFO)
+///////    _IRQL_requires_(PASSIVE_LEVEL)
+///////NTSTATUS
+///////APIENTRY
+///////DXGKDDI_UPDATEMONITORLINKINFO(
+///////    IN_CONST_HANDLE                                 hAdapter,
+///////    INOUT_PDXGKARG_UPDATEMONITORLINKINFO            pUpdateMonitorLinkInfoArg
+///////    );
+///////
+///////#endif
+///////

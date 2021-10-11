@@ -43,8 +43,6 @@ volatile LONG               __d3d9_ready = FALSE;
 
 volatile LONG ImGui_Init = FALSE;
 
-extern bool __SK_bypass;
-
 SK_LazyGlobal <PipelineStatsD3D9> SK::D3D9::pipeline_stats_d3d9;
 
 using Direct3DCreate9_pfn   =
@@ -188,12 +186,12 @@ WaitForInit_D3D9 (void)
     SK_RunOnce (SK_BootD3D9 ());
   }
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
-  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread = FALSE;
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread == TRUE)
+  {   SK_TLS_Bottom ()->render->d3d9->ctx_init_thread = FALSE;
     return;
   }
 
-  if (! ReadAcquire (&__d3d9_ready))
+  if (ReadAcquire (&__d3d9_ready) == FALSE)
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
 }
 
@@ -206,12 +204,12 @@ WaitForInit_D3D9Ex (void)
     SK_RunOnce (SK_BootD3D9 ());
   }
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
-  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex = FALSE;
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex == TRUE)
+  {   SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex = FALSE;
     return;
   }
 
-  if (! ReadAcquire (&__d3d9_ready))
+  if (ReadAcquire (&__d3d9_ready) == FALSE)
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
 }
 
@@ -304,7 +302,7 @@ SK::D3D9::VertexBufferTracker::clear (void)
 void
 SK::D3D9::VertexBufferTracker::use (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
@@ -323,8 +321,8 @@ SK::D3D9::VertexBufferTracker::use (void)
     return;
   }
 
-  auto& _Shaders    = Shaders.get    ();
-  auto& _draw_state = draw_state.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _draw_state = draw_state.get ();
 
   const uint32_t vs_checksum = _Shaders.vertex.current.crc32c;
   const uint32_t ps_checksum = _Shaders.pixel.current.crc32c;
@@ -409,8 +407,8 @@ void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
 void
 SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 {
-  static volatile LONG             __first_frame = TRUE;
-  if (InterlockedCompareExchange (&__first_frame, false, true))
+  static volatile LONG             __first_frame =       TRUE;
+  if (InterlockedCompareExchange (&__first_frame, FALSE, TRUE) == TRUE)
   {
     for ( auto it : local_d3d9_records )
     {
@@ -513,7 +511,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     pStateBlock->Capture ();
 
-    bool new_sb = (! cegD3D9_SB);
+    bool new_sb = (cegD3D9_SB == nullptr);
 
     if (new_sb)
     {
@@ -599,7 +597,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     if (SUCCEEDED (pSwapChain->GetPresentParameters (&pp)) && pp.hDeviceWindow != nullptr)
     {
-      if (! IsWindow (SK_GetCurrentRenderBackend ().windows.device))//pp.hDeviceWindow != hWndRender)
+      if (IsWindow (SK_GetCurrentRenderBackend ().windows.device) == FALSE)//pp.hDeviceWindow != hWndRender)
         SK_GetCurrentRenderBackend ().windows.setDevice (pp.hDeviceWindow);
     }
 
@@ -742,7 +740,7 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
         _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
 
       char* szLocale =
-        setlocale (LC_ALL, NULL);
+        setlocale (LC_ALL, nullptr);
 
       std::string locale_orig (
         szLocale != nullptr ? szLocale : ""
@@ -838,7 +836,8 @@ SK_HookD3D9 (void)
 
 
     HMODULE hBackend =
-      (SK_GetDLLRole () & DLL_ROLE::D3D9) ? backend_dll :
+      ((SK_GetDLLRole () & DLL_ROLE::D3D9)
+                        == DLL_ROLE::D3D9) ? backend_dll :
                                   SK_GetModuleHandle (L"d3d9.dll");
 
     SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
@@ -1339,7 +1338,7 @@ __inline
 bool
 SK_D3D9_ShouldProcessPresentCall (SK_D3D9_PresentSource Source)
 {
-  const auto& rb =
+  static const auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::Reserved)
@@ -1398,6 +1397,20 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
   auto CallFunc = [&](void) ->
   HRESULT
   {
+    if (config.render.framerate.enforcement_policy == 2) // Low Latency
+    {
+      if (config.render.framerate.present_interval == 0) // VSYNC Off
+      {
+        if (config.render.framerate.target_fps > 0.0f)   // Limit Configured
+        {
+          // Now we WaitForVBLANK
+          extern void SK_D3DKMT_WaitForVBlank (void);
+                      SK_D3DKMT_WaitForVBlank ();
+        }
+      }
+    }
+
+
     switch (dispatch->Type)
     {
       // IDirect3DDevice9::Present (...)
@@ -1479,7 +1492,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
 
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -2230,7 +2243,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
  if (pPresentationParameters == nullptr)
    return D3DERR_INVALIDCALL;
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread)
   {
     return D3D9Device_Reset_Original ( This,
                                          pPresentationParameters );
@@ -2294,7 +2307,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
     return D3DERR_INVALIDCALL;
 
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex)
   {
     return D3D9ExDevice_ResetEx_Original ( This,
                                              pPresentationParameters,
@@ -2371,7 +2384,7 @@ D3D9DrawPrimitive_Override ( IDirect3DDevice9 *This,
                              UINT              StartVertex,
                              UINT              PrimitiveCount )
 {
-  auto& _draw_state = draw_state.get ();
+  static auto& _draw_state = draw_state.get ();
 
   ++_draw_state.draws;
   ++_draw_state.draw_count;
@@ -2404,7 +2417,7 @@ D3D9DrawIndexedPrimitive_Override ( IDirect3DDevice9 *This,
                                     UINT              startIndex,
                                     UINT              primCount )
 {
-  auto& _draw_state = draw_state.get ();
+  static auto& _draw_state = draw_state.get ();
 
   ++_draw_state.draws;
   ++_draw_state.draw_count;
@@ -2438,7 +2451,7 @@ D3D9DrawPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                const void             *pVertexStreamZeroData,
                                      UINT              VertexStreamZeroStride )
 {
-  auto& _draw_state = draw_state.get ();
+  static auto& _draw_state = draw_state.get ();
 
   ++_draw_state.draws;
   ++_draw_state.draw_count;
@@ -2474,7 +2487,7 @@ D3D9DrawIndexedPrimitiveUP_Override (       IDirect3DDevice9 *This,
                                       const void             *pVertexStreamZeroData,
                                             UINT              VertexStreamZeroStride )
 {
-  auto& _draw_state = draw_state.get ();
+  static auto& _draw_state = draw_state.get ();
 
   ++_draw_state.draws;
   ++_draw_state.draw_count;
@@ -2728,8 +2741,8 @@ D3D9VertexBuffer_Lock_Override ( IDirect3DVertexBuffer9 *This,
 
     if (ffxiii_dynamic->count (This))
     {
-      auto& _ffxiii_dynamic_updates =
-        ffxiii_dynamic_updates.get ();
+      static auto& _ffxiii_dynamic_updates =
+                    ffxiii_dynamic_updates.get ();
 
       ULONG64 current_frame = SK_GetFramesDrawn ();
       DWORD   dwFlags       = D3DLOCK_NOOVERWRITE;
@@ -2818,7 +2831,7 @@ D3D9CreateVertexBuffer_Override
 
   if (SUCCEEDED (hr))
   {
-    auto& _known_objs = known_objs.get ();
+    static auto& _known_objs = known_objs.get ();
 
     std::scoped_lock <SK_Thread_HybridSpinlock>
           scope_lock (*lock_vb);
@@ -2852,8 +2865,8 @@ D3D9SetStreamSource_Override
 
   if (pStreamData != nullptr)
   {
-    auto& _known_objs = known_objs.get ();
-    auto& _last_frame = last_frame.get ();
+    static auto& _known_objs = known_objs.get ();
+    static auto& _last_frame = last_frame.get ();
 
     if (SUCCEEDED (hr))
     {
@@ -3390,7 +3403,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
 ////return pparams;
 
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex || (! pDevice))
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex || (! pDevice))
   {
     return pparams;
   }
@@ -3552,7 +3565,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
 
           if (*ppFullscreenDisplayMode == nullptr)
-            *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->d3d9->allocTempFullscreenStorage ();
+            *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->render->d3d9->allocTempFullscreenStorage ();
 
           if (*ppFullscreenDisplayMode != nullptr)
           {
@@ -4448,7 +4461,27 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                               D3DDISPLAYMODEEX       *pFullscreenDisplayMode,
                               IDirect3DDevice9Ex    **ppReturnedDeviceInterface )
 {
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
+  // Many D3D11/12/GL games use D3D9 for HW video playback, we need to ignore these
+  //
+  bool skip_device =
+    StrStrIW (SK_GetCallerName ().c_str (), L"action_") || // Action! Video Capture  - TODO: Use Window Class Name
+     ( IsWindow (game_window.hWnd) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9   &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9Ex &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved ) ||
+    SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex;
+
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
+                                     L" %08" _L(PRIxPTR) L"h, 0x%04X,"
+                                     L" %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                                     L" %08" _L(PRIxPTR) L"h) - "
+               L"%s",
+               L"IDirect3D9Ex::CreateDeviceEx",
+                 (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                   hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                     (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
+                       SK_SummarizeCaller ().c_str () );
+
+  if (skip_device)
   {
     return
       D3D9Ex_CreateDeviceEx_Original ( This,
@@ -4460,18 +4493,6 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                                                    pFullscreenDisplayMode,
                                                      ppReturnedDeviceInterface );
   }
-
-
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
-                                     L" %08" _L(PRIxPTR) L"h, 0x%04X,"
-                                     L" %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
-                                     L" %08" _L(PRIxPTR) L"h) - "
-                 L"%s",
-                 L"IDirect3D9Ex::CreateDeviceEx",
-                   (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                       (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
-                         SK_SummarizeCaller ().c_str () );
 
   HRESULT ret = E_FAIL;
 
@@ -4575,7 +4596,30 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                             D3DPRESENT_PARAMETERS* pPresentationParameters,
                             IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  if (StrStrIW (SK_GetCallerName ().c_str (), L"action_"))
+  // Many D3D11/12/GL games use D3D9 for HW video playback, we need to ignore these
+  //
+  bool skip_device =
+    StrStrIW (SK_GetCallerName ().c_str (), L"action_") || // Action! Video Capture  - TODO: Use Window Class Name
+     ( IsWindow (game_window.hWnd) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9   &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9Ex &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved );
+
+  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread)
+  {   SK_TLS_Bottom ()->render->d3d9->ctx_init_thread = FALSE;
+      skip_device = true;
+  }
+
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08"
+                                           _L(PRIxPTR) L"h, 0x%04X, %08"
+                                           _L(PRIxPTR) L"h, %08"
+                                           _L(PRIxPTR) L"h) - "
+               L"%s",
+                 L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                   hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                     (uintptr_t)ppReturnedDeviceInterface,
+                       SK_SummarizeCaller ().c_str () );
+
+  if (skip_device)
   {
     return
       D3D9_CreateDevice_Original ( This, Adapter,
@@ -4585,31 +4629,6 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                                            pPresentationParameters,
                                              ppReturnedDeviceInterface );
   }
-
-
-  if (SK_TLS_Bottom ()->d3d9->ctx_init_thread)
-  {   SK_TLS_Bottom ()->d3d9->ctx_init_thread = FALSE;
-
-    return
-      D3D9_CreateDevice_Original ( This,
-                                     Adapter,
-                                       DeviceType,
-                                         hFocusWindow,
-                                           BehaviorFlags,
-                                             pPresentationParameters,
-                                               ppReturnedDeviceInterface );
-  }
-
-
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08"
-                                             _L(PRIxPTR) L"h, 0x%04X, %08"
-                                             _L(PRIxPTR) L"h, %08"
-                                             _L(PRIxPTR) L"h) - "
-                 L"%s",
-                   L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                       (uintptr_t)ppReturnedDeviceInterface,
-                         SK_SummarizeCaller ().c_str () );
 
 
   if ( pPresentationParameters != nullptr &&
@@ -4743,9 +4762,30 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
-  if (pTLS->d3d9->ctx_init_thread_ex || pPresentationParameters == nullptr)
-  {   pTLS->d3d9->ctx_init_thread_ex = FALSE;
+  // Many D3D11/12/GL games use D3D9 for HW video playback, we need to ignore these
+  //
+  bool skip_device =
+    StrStrIW (SK_GetCallerName ().c_str (), L"action_") || // Action! Video Capture  - TODO: Use Window Class Name
+     ( IsWindow (game_window.hWnd) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9   &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9Ex &&
+                                      SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved ) ||
+       pPresentationParameters == nullptr;
 
+  if (pTLS->render->d3d9->ctx_init_thread_ex)
+  {   pTLS->render->d3d9->ctx_init_thread_ex = FALSE;
+      skip_device = true;
+  }
+
+  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
+                           L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
+                 L"%s",
+                   L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                       (uintptr_t)ppReturnedDeviceInterface,
+                         SK_SummarizeCaller ().c_str () );
+
+  if (skip_device)
+  {
     return
       D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
                                          Adapter,
@@ -4757,16 +4797,6 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                                                      (IDirect3DDevice9Ex **)
                                                      ppReturnedDeviceInterface );
   }
-
-
-
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
-                           L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
-                 L"%s",
-                   L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                       (uintptr_t)ppReturnedDeviceInterface,
-                         SK_SummarizeCaller ().c_str () );
 
   DeviceType = D3DDEVTYPE_HAL;
 
@@ -4855,7 +4885,7 @@ Direct3DCreate9 (UINT SDKVersion)
 {
   WaitForInit_D3D9    ();
 
-  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread)
+  if (! SK_TLS_Bottom ()->render->d3d9->ctx_init_thread)
     WaitForInit       ();
 
 
@@ -4920,7 +4950,7 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
   WaitForInit_D3D9Ex  ();
 
-  if (! SK_TLS_Bottom ()->d3d9->ctx_init_thread_ex)
+  if (! SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex)
     WaitForInit       ();
 
 
@@ -5091,7 +5121,8 @@ HookD3D9 (LPVOID user)
 
     SK_AutoCOMInit auto_com;
     {
-      pTLS->d3d9->ctx_init_thread   = TRUE;
+      pTLS->render->
+            d3d9->ctx_init_thread   = TRUE;
 
       HWND                   hwnd   = nullptr;
       SK_ComPtr <IDirect3D9> pD3D9  =
@@ -5118,7 +5149,7 @@ HookD3D9 (LPVOID user)
 
         dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
 
-        pTLS->d3d9->ctx_init_thread = TRUE;
+        pTLS->render->d3d9->ctx_init_thread = TRUE;
 
         HRESULT hr =
           pD3D9->CreateDevice (
@@ -5169,8 +5200,8 @@ HookD3D9 (LPVOID user)
 
         SK_Win32_CleanupDummyWindow (hwnd);
 
-        pTLS->d3d9->ctx_init_thread    = FALSE;
-        pTLS->d3d9->ctx_init_thread_ex = TRUE;
+        pTLS->render->d3d9->ctx_init_thread    = FALSE;
+        pTLS->render->d3d9->ctx_init_thread_ex = TRUE;
 
         hr = (config.apis.d3d9ex.hook &&
           Direct3DCreate9Ex_Import != nullptr) ?
@@ -5188,17 +5219,18 @@ HookD3D9 (LPVOID user)
             SK_Win32_CreateDummyWindow ();
           pparams = { };
 
-          pparams.SwapEffect            = D3DSWAPEFFECT_FLIPEX;
-          pparams.BackBufferFormat      = D3DFMT_UNKNOWN;
-          pparams.Windowed              = TRUE;
-          pparams.BackBufferCount       = 2;
-          pparams.hDeviceWindow         = hwnd;
-          pparams.BackBufferHeight      = 2;
-          pparams.BackBufferWidth       = 2;
+          pparams.SwapEffect             = D3DSWAPEFFECT_FLIPEX;
+          pparams.BackBufferFormat       = D3DFMT_UNKNOWN;
+          pparams.Windowed               = TRUE;
+          pparams.BackBufferCount        = 2;
+          pparams.hDeviceWindow          = hwnd;
+          pparams.BackBufferHeight       = 2;
+          pparams.BackBufferWidth        = 2;
 
           SK_ComPtr <IDirect3DDevice9Ex>
                pD3D9DevEx                = nullptr;
-          pTLS->d3d9->ctx_init_thread_ex = TRUE;
+          pTLS->render->
+                d3d9->ctx_init_thread_ex = TRUE;
 
           hr = pD3D9Ex->CreateDeviceEx (
                 D3DADAPTER_DEFAULT,
@@ -5262,8 +5294,8 @@ HookD3D9 (LPVOID user)
       }
     }
 
-    pTLS->d3d9->ctx_init_thread    = FALSE;
-    pTLS->d3d9->ctx_init_thread_ex = FALSE;
+    pTLS->render->d3d9->ctx_init_thread    = FALSE;
+    pTLS->render->d3d9->ctx_init_thread_ex = FALSE;
 
     InterlockedIncrementRelease (&__hooked);
   }
@@ -5614,7 +5646,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImVec2                    last_max   = ImVec2 (0.0f, 0.0f);
   };
 
-  auto& _last_frame = last_frame.get ();
+  static auto& _last_frame = last_frame.get ();
 
   struct {
     shader_class_imp_s vs;
@@ -5900,7 +5932,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
           if (! tweakable)
           {
-            snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
+            snprintf ( szName, 127, "[%s] %-32s :(%c%-3u)",
                          shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
                                                                        "vs",
                            it2.Name,
@@ -5978,7 +6010,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
         if (! tweakable)
         {
-          snprintf ( szName, 127, "[%s] %-32s :(%c%-3lu)",
+          snprintf ( szName, 127, "[%s] %-32s :(%c%-3u)",
                        shader_type == SK::D3D9::ShaderClass::Pixel ? "ps" :
                                                                      "vs",
                          it.Name,
@@ -6052,7 +6084,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
   SK::D3D9::VertexBufferTracker*
     tracker = tracked_vb.getPtr ();
 
-  auto& _last_frame = last_frame.get ();
+  static auto& _last_frame = last_frame.get ();
 
   std::vector <IDirect3DVertexBuffer9 *> buffers;
 
@@ -6589,12 +6621,12 @@ SK_D3D9_TextureModDlg (void)
   };
 
 
-  auto& _last_frame = last_frame.get ();
-  auto& _known_objs = known_objs.get ();
-  auto& _tracked_vs = tracked_vs.get ();
-  auto& _tracked_ps = tracked_ps.get ();
-  auto& _tracked_vb = tracked_vb.get ();
-  auto& _tracked_rt = tracked_rt.get ();
+  static auto& _last_frame = last_frame.get ();
+  static auto& _known_objs = known_objs.get ();
+  static auto& _tracked_vs = tracked_vs.get ();
+  static auto& _tracked_ps = tracked_ps.get ();
+  static auto& _tracked_vb = tracked_vb.get ();
+  static auto& _tracked_rt = tracked_rt.get ();
 
 
 
@@ -7932,10 +7964,10 @@ void
 SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
                           IDirect3DVertexShader9 *pShader )
 {
-  auto& _Shaders    = Shaders.get    ();
-  auto& _last_frame = last_frame.get ();
-  auto& _tracked_rt = tracked_rt.get ();
-  auto& _tracked_vs = tracked_vs.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _last_frame = last_frame.get ();
+  static auto& _tracked_rt = tracked_rt.get ();
+  static auto& _tracked_vs = tracked_vs.get ();
 
   if (_Shaders.vertex.current.ptr != pShader)
   {
@@ -7952,7 +7984,8 @@ SK_D3D9_SetVertexShader ( IDirect3DDevice9*       /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
+          SK_TLS_Bottom ()->render->
+                      d3d9->allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -8010,10 +8043,10 @@ void
 SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
                          IDirect3DPixelShader9 *pShader )
 {
-  auto& _Shaders    = Shaders.get    ();
-  auto& _last_frame = last_frame.get ();
-  auto& _tracked_rt = tracked_rt.get ();
-  auto& _tracked_ps = tracked_ps.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _last_frame = last_frame.get ();
+  static auto& _tracked_rt = tracked_rt.get ();
+  static auto& _tracked_ps = tracked_ps.get ();
 
   if (_Shaders.pixel.current.ptr != pShader)
   {
@@ -8030,7 +8063,8 @@ SK_D3D9_SetPixelShader ( IDirect3DDevice9*     /*pDev*/,
         pShader->GetFunction (nullptr, &len);
 
         void* pbFunc =
-          SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
+          SK_TLS_Bottom ()->render->
+                      d3d9->allocStackScratchStorage (len);
 
         if (pbFunc != nullptr)
         {
@@ -8101,11 +8135,11 @@ SK_D3D9_EndScene (void)
 void
 SK_D3D9_EndFrame (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  auto& _Shaders    = Shaders.get    ();
-  auto& _draw_state = draw_state.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _draw_state = draw_state.get ();
 
   //draw_state.last_vs     = 0;
   _draw_state.scene_count = 0;
@@ -8170,7 +8204,7 @@ __declspec (noinline)
 bool
 SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/, bool& wireframe)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device == nullptr)
@@ -8180,11 +8214,11 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
   if ( pDevice.p == nullptr )
     return false;
 
-  auto& _Shaders    = Shaders.get    ();
-  auto& _tracked_vs = tracked_vs.get ();
-  auto& _tracked_ps = tracked_ps.get ();
-  auto& _tracked_vb = tracked_vb.get ();
-  auto& _draw_state = draw_state.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _tracked_vs = tracked_vs.get ();
+  static auto& _tracked_ps = tracked_ps.get ();
+  static auto& _tracked_vb = tracked_vb.get ();
+  static auto& _draw_state = draw_state.get ();
 
   const uint32_t vs_checksum = _Shaders.vertex.current.crc32c;
   const uint32_t ps_checksum = _Shaders.pixel.current.crc32c;
@@ -8332,9 +8366,9 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 void
 SK_D3D9_InitShaderModTools (void)
 {
-  auto& _last_frame = last_frame.get ();
-  auto& _known_objs = known_objs.get ();
-  auto& _Shaders    = Shaders.get    ();
+  static auto& _last_frame = last_frame.get ();
+  static auto& _known_objs = known_objs.get ();
+  static auto& _Shaders    = Shaders.get    ();
 
   _last_frame.vertex_shaders.reserve           (256);
   _last_frame.pixel_shaders.reserve            (256);
@@ -8430,7 +8464,8 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
     if (SUCCEEDED (((IDirect3DVertexShader9 *)pShader)->GetFunction (nullptr, &len)))
     {
       void* pbFunc =
-        SK_TLS_Bottom ()->d3d9->allocStackScratchStorage (len);
+        SK_TLS_Bottom ()->render->
+                    d3d9->allocStackScratchStorage (len);
 
       if (pbFunc != nullptr)
       {
@@ -8501,7 +8536,13 @@ SK_D3D9_QuickHook (void)
            state.hooks_loaded.from_game_ini     ) > 0 )
     {
 //#ifdef SK_AGGRESSIVE_HOOKS
+      bool bEnable =
+        SK_EnableApplyQueuedHooks ();
+
       SK_ApplyQueuedHooks ();
+
+      if (! bEnable)
+        SK_DisableApplyQueuedHooks ();
 //#endif
     }
 

@@ -42,33 +42,43 @@ constexpr T narrow_cast(U&& u)
 
 static constexpr auto
   _disreal =
-  [](double            double_val     ) ->bool
+  [](double            double_val     ) noexcept ->bool
   { return (  _dclass (double_val     ) == FP_NORMAL ); };
 
 static constexpr auto
   _ldisreal =
-  [](long double       long_double_val) ->bool
+  [](long double       long_double_val) noexcept ->bool
   { return ( _ldclass (long_double_val) == FP_NORMAL ); };
 
 static constexpr auto
   _fdisreal =
-  [](float             float_val      ) ->bool
+  [](float             float_val      ) noexcept ->bool
   { return ( _fdclass (float_val      ) == FP_NORMAL ); };
 
 float SK_Framerate_GetPercentileByIdx (int idx);
 
-using QueryPerformanceCounter_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+using QueryPerformanceCounter_pfn   = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
+using QueryPerformanceFrequency_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpFrequency);
 
 BOOL
 WINAPI
 SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
 
-LARGE_INTEGER SK_GetPerfFreq (void);
-LARGE_INTEGER SK_QueryPerf   (void);
+extern int64_t SK_QpcFreq;
+extern int64_t SK_QpcTicksPerMs;
 
 __forceinline
 LARGE_INTEGER
 SK_CurrentPerf (void)
+ {
+   LARGE_INTEGER                time;
+   SK_QueryPerformanceCounter (&time);
+   return                       time;
+ };
+
+__forceinline
+LARGE_INTEGER
+SK_QueryPerf (void)
  {
    LARGE_INTEGER                time;
    SK_QueryPerformanceCounter (&time);
@@ -96,8 +106,8 @@ static auto SK_DeltaPerfMS =
   double
    {
      return
-       1000.0 * (double)(SK_DeltaPerf   (delta, freq).QuadPart) /
-                (double)(SK_GetPerfFreq (           ).QuadPart);
+       1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
+                (double)(SK_QpcFreq);
    };
 
 
@@ -143,7 +153,7 @@ namespace SK
     public:
       Limiter (double target = 60.0, bool tracks_game_window = true);
 
-      ~Limiter (void)
+      ~Limiter (void) noexcept
       {
         if (           timer_wait != 0 )
           CloseHandle (timer_wait);
@@ -159,12 +169,12 @@ namespace SK
 
       double      effective_frametime (void);
 
-      void        set_undershoot      (float percent) { undershoot_percent = percent; };
-      float       get_undershoot      (void) {   return undershoot_percent;           };
+      void        set_undershoot      (float percent) noexcept { undershoot_percent = percent; };
+      float       get_undershoot      (void)          noexcept {    return undershoot_percent; };
 
       int32_t     suspend             (void) noexcept { return ++limit_behavior;     }
       int32_t     resume              (void) noexcept { return --limit_behavior;     }
-      bool        frozen              (void) noexcept { return   limit_behavior < 0; }
+      bool        frozen              (void) noexcept { return   limit_behavior > 0; }
 
       void        reset (bool full = false) noexcept {
         if (full) full_restart = true;
@@ -240,13 +250,13 @@ namespace SK
           } first, last;
 
           LONG64
-            count (void) const
+            count (void) const noexcept
             { return
                last.frame_idx -
               first.frame_idx;
             }
           LONG64
-            duration (void) const
+            duration (void) const noexcept
             { return
                  last.clock_val -
                 first.clock_val;
@@ -339,11 +349,11 @@ namespace SK
         } time;
 
 
-        void sleep (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);
-                                            InterlockedAdd       (&time.allowed,  narrow_cast <ULONG> (dwMilliseconds)); }
-        void wake  (DWORD dwMilliseconds) { InterlockedIncrement (&attempts);
+        void sleep (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
+                                            InterlockedAdd       (&time.allowed,  dwMilliseconds); }
+        void wake  (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
                                             InterlockedIncrement (&rejections);
-                                            InterlockedAdd       (&time.deprived, narrow_cast <ULONG> (dwMilliseconds)); }
+                                            InterlockedAdd       (&time.deprived, dwMilliseconds); }
       };
 
       SleepStats& getMessagePumpStats  (void) noexcept { return message_pump;  }
@@ -356,9 +366,8 @@ namespace SK
                  micro_sleep,  macro_sleep;
     };
 
-    extern SK_LazyGlobal <EventCounter> events;
-
-    static inline EventCounter* GetEvents  (void) noexcept { return events.getPtr (); }
+    extern        EventCounter                                       events;
+    static inline EventCounter* GetEvents  (void) noexcept { return &events; }
 
     // The identifying SwapChain is an opaque handle, we have no reason to hold a reference to this
     //   and you can cast any value you want to this pointer (e.g. an OpenGL HGLRC). Prototype uses
@@ -368,10 +377,12 @@ namespace SK
                                             bool      bCreateIfNoneExists = true   );
     class Stats {
     public:
-      static LARGE_INTEGER freq;
-
       Stats (void) noexcept {
-        QueryPerformanceFrequency (&freq);
+        LARGE_INTEGER               liQpcFreq = { };
+        QueryPerformanceFrequency (&liQpcFreq);
+
+        SK_QpcFreq       = liQpcFreq.QuadPart;
+        SK_QpcTicksPerMs = SK_QpcFreq / 1000LL;
       }
 
       std::vector <double>&
@@ -384,7 +395,7 @@ namespace SK
 
       struct worker_context_s
       {
-        ~worker_context_s (void)
+        ~worker_context_s (void) noexcept
         {
           if (hSignalProduce != nullptr)
             CloseHandle (hSignalProduce);
@@ -402,18 +413,31 @@ namespace SK
                       sorted_frame_history [2];
       } worker;
 
-      int64_t samples = 0;
+      uint64_t samples    = 0ULL;
+      double   last_delta = 0.0;
 
       bool addSample (double sample, LARGE_INTEGER time) noexcept
       {
         data [samples % MAX_SAMPLES].val  = sample;
         data [samples % MAX_SAMPLES].when = time;
 
+
+        if ((samples % MAX_SAMPLES) == 0)
+          last_delta = data [samples % MAX_SAMPLES].val - data [                MAX_SAMPLES - 1].val;
+        else
+          last_delta = data [samples % MAX_SAMPLES].val - data [(samples - 1) % MAX_SAMPLES    ].val;
+
+
         return
           ( ( ++samples % MAX_SAMPLES ) == 0 );
       }
 
-      double calcDataTimespan (void)
+      double getLastDelta (void) noexcept
+      {
+        return last_delta;
+      }
+
+      double calcDataTimespan (void) noexcept
       {
         uint64_t samples_present =
           samples < MAX_SAMPLES ?
@@ -423,7 +447,7 @@ namespace SK
                       min_time.QuadPart = std::numeric_limits <LONGLONG>::max ();
         LARGE_INTEGER max_time = {                   0ULL };
 
-        for ( auto sample_idx = 0               ;
+        for ( auto sample_idx = 0ULL            ;
                    sample_idx < samples_present ;
                  ++sample_idx )
         {
@@ -447,7 +471,7 @@ namespace SK
 
         return
           static_cast <double> (max_time.QuadPart - min_time.QuadPart) /
-          static_cast <double> ( SK::Framerate::Stats::freq.QuadPart );
+          static_cast <double> (SK_QpcFreq);
       }
 
          int calcNumSamples         (double seconds  = 1.0);
@@ -463,7 +487,7 @@ namespace SK
       double calcOnePercentLow      (double seconds  = 1.0);
       double calcPointOnePercentLow (double seconds  = 1.0);
 
-      double calcMean               (LARGE_INTEGER start) noexcept
+      double calcMean               (LARGE_INTEGER start)
       {
         double mean         = 0.0;
         int    samples_used =  0 ;
@@ -481,10 +505,10 @@ namespace SK
         }
 
         return
-          ( mean / static_cast <double> (samples_used) );
+          ( mean / static_cast <double> (std::max (1, samples_used)) );
       }
 
-      double calcPercentile (float percent, LARGE_INTEGER start) //noexcept
+      double calcPercentile (float percent, LARGE_INTEGER start)
       {
         UNREFERENCED_PARAMETER (start);
 
@@ -509,7 +533,7 @@ namespace SK
           avg_ms;
       }
 
-      double calcOnePercentLow (LARGE_INTEGER start) //noexcept
+      double calcOnePercentLow (LARGE_INTEGER start)
       {
         UNREFERENCED_PARAMETER (start);
 
@@ -530,7 +554,7 @@ namespace SK
           one_percent_avg_ms;
       }
 
-      double calcPointOnePercentLow (LARGE_INTEGER start) //noexcept
+      double calcPointOnePercentLow (LARGE_INTEGER start)
       {
         UNREFERENCED_PARAMETER (start);
 
@@ -551,7 +575,7 @@ namespace SK
           point_one_percent_avg_ms;
       }
 
-      double calcSqStdDev (double mean, LARGE_INTEGER start) noexcept
+      double calcSqStdDev (double mean, LARGE_INTEGER start)
       {
         double sd2          = 0.0;
         int    samples_used = 0;
@@ -569,10 +593,10 @@ namespace SK
           }
         }
 
-        return sd2 / static_cast <double> (samples_used);
+        return sd2 / static_cast <double> (std::max (1, samples_used));
       }
 
-      double calcMin (LARGE_INTEGER start) noexcept
+      double calcMin (LARGE_INTEGER start)
       {
         double min = INFINITY;
 
@@ -591,7 +615,7 @@ namespace SK
         return min;
       }
 
-      double calcMax (LARGE_INTEGER start) noexcept
+      double calcMax (LARGE_INTEGER start)
       {
         double max = -INFINITY;
 

@@ -58,8 +58,48 @@ GetLogicalProcessorInformation_Detour (
     std::vector <uintptr_t>& pairs =
       SK_CPU_GetLogicalCorePairs ();
 
-  return
+  BOOL bRet =
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
+
+  if ( bRet == TRUE )
+  {
+    struct {
+      int physical = 0;
+      int logical  = 0;
+    } cores;
+
+    if (config.render.framerate.override_num_cpus != -1)
+    {
+      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION ptr        = Buffer;
+      DWORD                                 byteOffset = 0;
+
+      while (byteOffset + sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION) <= *ReturnedLength)
+      {
+        switch (ptr->Relationship)
+        {
+          case RelationProcessorCore:
+          {
+            cores.physical++;
+            cores.logical += CountSetBits (ptr->ProcessorMask);
+
+            if (     cores.physical > config.render.framerate.override_num_cpus)
+              ptr->Relationship = RelationAll;
+            else if (cores.logical  > config.render.framerate.override_num_cpus)
+              ptr->ProcessorMask = 0x0;
+          } break;
+
+          default:
+            break;
+        }
+
+        byteOffset += sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+        ptr++;
+      }
+    }
+  }
+
+  return
+    bRet;
 }
 
 BOOL
@@ -79,7 +119,8 @@ GetLogicalProcessorInformationEx_Detour (
     config.render.framerate.override_num_cpus == -1 ? 0 :
     config.render.framerate.override_num_cpus - core_count;
 
-  ////dll_log->Log (L"Allocating %lu extra CPU cores", extra_cores);
+  if (config.render.framerate.override_num_cpus != -1)
+    dll_log->Log (L"Allocating %lu extra CPU cores", extra_cores);
 
   if (extra_cores > 0 && RelationshipType == RelationAll)
   {
@@ -161,7 +202,7 @@ GetLogicalProcessorInformationEx_Detour (
                     extraCores--;
                   }
 					      }
-					      
+
                 ptr += pi->Size;
 				      }
 
@@ -239,8 +280,14 @@ GetSystemInfo_Detour (
   if (config.render.framerate.override_num_cpus == -1)
     return;
 
-  lpSystemInfo->dwActiveProcessorMask = 0xff;
-  lpSystemInfo->dwNumberOfProcessors  = config.render.framerate.override_num_cpus;
+  lpSystemInfo->dwActiveProcessorMask = 0x0;
+
+  for ( int i = 0 ; i < config.render.framerate.override_num_cpus; ++i )
+  {
+    lpSystemInfo->dwActiveProcessorMask |= (1UL << i);
+  }
+
+  lpSystemInfo->dwNumberOfProcessors = config.render.framerate.override_num_cpus;
 }
 
 void
@@ -266,10 +313,10 @@ SK_CPU_InstallHooks (void)
                              GetLogicalProcessorInformation_Detour,
     static_cast_p2p <void> (&GetLogicalProcessorInformation_Original) );
 
-  ///////SK_CreateDLLHook2 (      L"Kernel32",
-  ///////                          "GetLogicalProcessorInformationEx",
-  ///////                           GetLogicalProcessorInformationEx_Detour,
-  ///////  static_cast_p2p <void> (&GetLogicalProcessorInformationEx_Original) );
+  SK_CreateDLLHook2 (      L"Kernel32",
+                            "GetLogicalProcessorInformationEx",
+                             GetLogicalProcessorInformationEx_Detour,
+    static_cast_p2p <void> (&GetLogicalProcessorInformationEx_Original) );
 
   SK_CreateDLLHook2 (     L"Kernel32",
                             "GetSystemInfo",

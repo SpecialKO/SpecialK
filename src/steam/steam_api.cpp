@@ -853,7 +853,7 @@ SK_Steam_ScreenshotManager::WaitOnScreenshot ( ScreenshotHandle handle,
 }
 
 void
-SK_Steam_ScreenshotManager::init (void)
+SK_Steam_ScreenshotManager::init (void) noexcept
 {
   __try {
     SK_GetCurrentRenderBackend ().screenshot_mgr.getRepoStats (true);
@@ -932,7 +932,7 @@ public:
 
     if (wasActive != active_)
     {
-      static auto& io =
+      auto& io =
         ImGui::GetIO ();
 
       static bool capture_keys  = io.WantCaptureKeyboard;
@@ -1509,6 +1509,8 @@ SK_SteamAPIContext::Shutdown (void)
 
   if (InterlockedCompareExchange (&_SimpleMutex, 1, 0) == 0)
   {
+    SK_Steam_KillPump  ();
+
     if (client_)
     {
       SK_SteamAPI_DestroyManagers  ();
@@ -3612,7 +3614,7 @@ SK_Steam_ShouldThrottleCallbacks (void)
 
     if ( limit == 0 ||
       ( SK_CurrentPerf ().QuadPart - liLastCallbacked.QuadPart  <
-        SK_GetPerfFreq ().QuadPart / limit ) )
+                        SK_QpcFreq / limit ) )
     {
       InterlockedDecrement64 ( &SK_SteamAPI_CallbackRunCount );
       return true;
@@ -3812,13 +3814,31 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  auto _Terminate = [&]
   {
     InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
 
     SK_Thread_CloseSelf ();
 
     return 0;
+  };
+
+  auto _TerminateOnSignal = [&](DWORD dwWaitState)
+  {
+    if (dwWaitState != WAIT_TIMEOUT)
+    {
+      _Terminate ();
+
+      return true;
+    }
+
+    return false;
+  };
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  {
+    return
+      _Terminate ();
   }
 
   SetCurrentThreadDescription (               L"[SK] SteamAPI Callback Pump" );
@@ -3843,7 +3863,14 @@ SteamAPI_PumpThread (LPVOID user)
   if (! start_immediately)
   {
     // Wait 5 seconds, then begin a timing investigation
-    SK_Sleep (5000);
+    DWORD dwWaitState =
+      WaitForMultipleObjects ( 2,
+           std::array <HANDLE, 2> { hSteamPumpKill,
+                            __SK_DLL_TeardownEvent }.data (),
+                              FALSE, 5000 );
+
+    if (_TerminateOnSignal (dwWaitState))
+      return 0;
 
     // First, begin a timing probe.
     //
@@ -3854,7 +3881,15 @@ SteamAPI_PumpThread (LPVOID user)
 
     LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 
-    SK_Sleep (TEST_PERIOD * 1000UL);
+    dwWaitState =
+      WaitForMultipleObjects ( 2,
+           std::array <HANDLE, 2> { hSteamPumpKill,
+                            __SK_DLL_TeardownEvent }.data (),
+                              FALSE,
+              TEST_PERIOD * 1000UL );
+
+    if (_TerminateOnSignal (dwWaitState))
+      return 0;
 
     LONGLONG callback_count1 = SK_SteamAPI_CallbackRunCount;
 
@@ -3907,12 +3942,8 @@ SteamAPI_PumpThread (LPVOID user)
     }
   }
 
-  InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
-
-  SK_Thread_CloseSelf ();
-
-  return 0;
-
+  return
+    _Terminate ();
 }
 
 void
@@ -3948,8 +3979,6 @@ SK_Steam_StartPump (bool force)
 void
 SK_Steam_KillPump (void)
 {
-  if (ReadAcquire (&__SK_DLL_Ending)) return;
-
   HANDLE hPumpThread =
     InterlockedExchangePointer (
       (void **)&hSteamPump, nullptr
@@ -4105,6 +4134,16 @@ SK_Steam_LoadOverlayEarly (void)
   SK_PathCombineW ( wszOverlayDLL, wszSteamPath,
     SK_RunLHIfBitness ( 64, LR"(\GameOverlayRenderer64.dll)",
                             LR"(\GameOverlayRenderer.dll)"    ) );
+
+
+  bool bEnableHooks =
+    SK_EnableApplyQueuedHooks ();
+
+  SK_ApplyQueuedHooks ();
+
+  if (! bEnableHooks)
+    SK_DisableApplyQueuedHooks ();
+
 
   hModOverlay =
     SK_Modules->LoadLibrary (wszOverlayDLL);
@@ -4546,23 +4585,24 @@ void
 S_CALLTYPE
 SteamAPI_Shutdown_Detour (void)
 {
-  steam_log->Log (L" *** Game called SteamAPI_Shutdown (...)");
+  bool locked =
+    ( steam_init_cs != nullptr   ?
+      steam_init_cs->try_lock () : false );
 
-  if (steam_init_cs != nullptr)
-      steam_init_cs->lock   ();
+  __try
+  {
+    steam_log->Log (
+      L" *** Game called SteamAPI_Shutdown (...)"
+    );
 
-  SK_Steam_KillPump ();
+    SK_GetDLLConfig    ()->write (
+      SK_GetDLLConfig  ()->get_filename ()
+                                 );
+    steam_ctx.Shutdown ();
+  } __except (EXCEPTION_EXECUTE_HANDLER) {}
 
-  SK_GetDLLConfig   ()->write (
-    SK_GetDLLConfig ()->get_filename ()
-                              );
-
-  SK_Sleep           (3UL);
-  steam_ctx.Shutdown (   );
-  SK_Sleep           (2UL);
-  if (steam_init_cs != nullptr)
-      steam_init_cs->unlock ();
-  SK_Sleep           (1UL);
+  if (locked)
+    steam_init_cs->unlock ();
 
   return;
 }
@@ -7275,9 +7315,6 @@ SK::SteamAPI::GetDataDir (void)
 uint32_t
 SK_Steam_GetAppID_NoAPI (void)
 {
-  if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") == nullptr)
-    return 0;
-
   static constexpr int MAX_APPID_LEN = 32;
 
   DWORD    dwSteamGameIdLen                  =  0 ;

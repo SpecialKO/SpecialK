@@ -61,10 +61,8 @@ Keybinding (SK_Keybind* binding, sk::ParameterStringW* param)
 
   label += binding->bind_name;
 
-  if (ImGui::Selectable (label.c_str (), false))
-  {
-    ImGui::OpenPopup (binding->bind_name);
-  }
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+    ImGui::OpenPopup (        binding->bind_name);
 
   std::wstring original_binding =
     binding->human_readable;
@@ -353,7 +351,7 @@ public:
     return false;
   }
 
-  void run (void) override
+  void run (void) noexcept override
   {
            bool first = false;
     SK_RunOnce (first = true);
@@ -442,7 +440,7 @@ public:
     }
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     if (! ImGui::GetFont ())
       return;
@@ -819,7 +817,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
             default:
             {
               static int  retry_wait_period = 150;
-              SK_SleepEx (retry_wait_period, TRUE);
+              SK_SleepEx (retry_wait_period, FALSE);
 
               error =
                 tobii_device_reconnect (__tobii_widget__->device);

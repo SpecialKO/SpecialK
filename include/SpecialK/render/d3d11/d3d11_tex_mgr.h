@@ -154,7 +154,11 @@ SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D*      pTex,
                                      ID3D11DeviceContext*  pDevCtx = (ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx,
                                      ID3D11Device*         pDev    = (ID3D11Device        *)SK_GetCurrentRenderBackend ().device.p );
 
-HRESULT __stdcall SK_D3D11_DumpTexture2D       (_In_ ID3D11Texture2D* pTex, uint32_t crc32c);
+HRESULT __stdcall SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c );
+HRESULT __stdcall SK_D3D11_DumpTexture2D ( _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
+                                           _In_ const D3D11_SUBRESOURCE_DATA *pInitialData,
+                                           _In_       uint32_t                top_crc32,
+                                           _In_       uint32_t                checksum );
 BOOL              SK_D3D11_DeleteDumpedTexture (uint32_t crc32c);
 
 bool
@@ -168,8 +172,6 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 class SK_D3D11_TexMgr {
 public:
   SK_D3D11_TexMgr (void) {
-    PerfFreq = SK_GetPerfFreq ();
-
     HashMap_2D.resize   (20);
     Blacklist_2D.resize (20);
 
@@ -204,7 +206,7 @@ public:
 
   bool             isTexture2D  (uint32_t crc32, const D3D11_TEXTURE2D_DESC *pDesc);
 
-  ID3D11Texture2D* getTexture2D ( uint32_t              crc32,
+  ID3D11Texture2D* getTexture2D ( uint32_t              tag,
                             const D3D11_TEXTURE2D_DESC *pDesc,
                                   size_t               *pMemSize   = nullptr,
                                   float                *pTimeSaved = nullptr,
@@ -318,8 +320,6 @@ public:
 
   std::atomic_int64_t                         LastModified_2D   = 0ULL;
   std::atomic_int64_t                         LastPurge_2D      = 0ULL;
-
-  LARGE_INTEGER                               PerfFreq;
 
   std::unordered_map <uint32_t, std::wstring> tex_hashes;
   std::unordered_map <uint32_t, std::wstring> tex_hashes_ex;

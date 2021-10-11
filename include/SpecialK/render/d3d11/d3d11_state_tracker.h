@@ -383,7 +383,7 @@ class SK_D3D11_IsShaderLoaded
 public:
   SK_D3D11_IsShaderLoaded (ID3D11Device* pDevice, uint32_t crc32c)
   {
-    static auto& shaders =
+    auto& shaders =
       SK_D3D11_Shaders;
 
     static
@@ -593,7 +593,7 @@ SK_D3D11_CreateShader_Impl (
     if (! ppShaderDomain)
       return;
 
-    static auto& shaders =
+    auto& shaders =
       SK_D3D11_Shaders;
 
     switch (type)

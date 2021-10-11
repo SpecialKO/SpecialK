@@ -291,7 +291,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
     SK_D3D11_DeclareTexInjectScope ()
   );
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   if (pDev != nullptr)
@@ -564,21 +564,21 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   {
                     raster_desc.FillMode        = D3D11_FILL_SOLID;
                     raster_desc.CullMode        = D3D11_CULL_NONE;
-                    raster_desc.ScissorEnable   = false;
-                    raster_desc.DepthClipEnable = true;
+                    raster_desc.ScissorEnable   = FALSE;
+                    raster_desc.DepthClipEnable = TRUE;
 
-                    depth_desc.DepthEnable      = false;
+                    depth_desc.DepthEnable      = FALSE;
                     depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
                     depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
-                    depth_desc.StencilEnable    = false;
+                    depth_desc.StencilEnable    = FALSE;
                     depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
                                                          depth_desc.FrontFace.StencilPassOp      =
                                                        D3D11_STENCIL_OP_KEEP;
                     depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
                     depth_desc.BackFace              = depth_desc.FrontFace;
 
-                    blend_desc.AlphaToCoverageEnable                  = false;
-                    blend_desc.RenderTarget [0].BlendEnable           = true;
+                    blend_desc.AlphaToCoverageEnable                  = FALSE;
+                    blend_desc.RenderTarget [0].BlendEnable           = TRUE;
                     blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
                     blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
                     blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
@@ -745,15 +745,16 @@ SK_D3D11_Screenshot::dispose (void) noexcept
 };
 
 bool
-SK_D3D11_Screenshot::getData ( UINT     *pWidth,
-                               UINT     *pHeight,
-                               uint8_t **ppData,
-                               bool      Wait ) noexcept
+SK_D3D11_Screenshot::getData ( UINT* const pWidth,
+                               UINT* const pHeight,
+                               uint8_t   **ppData,
+                               bool        Wait ) noexcept
 {
   auto& pooled =
     SK_ScreenshotQueue::pooled;
 
-  auto ReadBack = [&](void) -> bool
+  auto ReadBack =
+  [&]
   {
     const size_t BitsPerPel =
       DirectX::BitsPerPixel (framebuffer.NativeFormat);
@@ -1059,7 +1060,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( (int)rb.api & (int)SK_RenderAPI::D3D11 )
+  if ( ((int)rb.api & (int)SK_RenderAPI::D3D11)
+                   == (int)SK_RenderAPI::D3D11 )
   {
     static const
       std::map <SK_ScreenshotStage, int>
@@ -1105,7 +1107,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     bool               wait   = false,
                                     bool               purge  = false )
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   const int __MaxStage = 2;
@@ -1209,9 +1211,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
-
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
       do
@@ -1633,9 +1632,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
-              auto& rb =
-                SK_GetCurrentRenderBackend ();
-
               concurrency::concurrent_queue <SK_D3D11_Screenshot::framebuffer_s *>*
                 images_to_write =
                   (concurrency::concurrent_queue <SK_D3D11_Screenshot::framebuffer_s *>*)pUser;

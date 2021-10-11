@@ -36,7 +36,7 @@ public:
     setDockingPoint (DockAnchor::SouthWest).setClickThrough (false).setBorder (true);
   };
 
-  void run (void) override
+  void run (void) noexcept override
   {
     static bool first = true;
 
@@ -52,7 +52,7 @@ public:
     }
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     SK_ImGui_VolumeManager ();
   }

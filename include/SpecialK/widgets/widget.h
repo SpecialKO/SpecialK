@@ -101,8 +101,8 @@ public:
     SaveComplete,
   };
 
-  virtual void run  (void) { };
-  virtual void draw (void) { };
+  virtual void run  (void) noexcept { };
+  virtual void draw (void) noexcept { };
 
   virtual void run_base    (void);
   virtual void draw_base   (void);
@@ -180,7 +180,7 @@ protected:
   virtual void save (iSK_INI* config_file);
 
   // This will be private when I get the factory setup
-  SK_Widget (const char* szName) : name (szName)
+  SK_Widget (const char* szName) noexcept : name (szName)
   {
     version__ = 1;
     state__   = 0;
@@ -316,12 +316,15 @@ LoadWidgetBool ( bool    *pbVal,
                              sec_name,
                                key_name );
 
-    if (! ret->load (*pbVal))
+    if (pbVal != nullptr)
     {
-      ret->store    (*pbVal);
-    }
+      if (! ret->load (*pbVal))
+      {
+        ret->store    (*pbVal);
+      }
 
-    *pbVal = ret->get_value ();
+      *pbVal = ret->get_value ();
+    }
   }
 
   return ret;
@@ -344,12 +347,15 @@ LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
   {
     ret->register_to_ini ( ini_file, sec_name, key_name );
 
-    if (! ret->load (*reinterpret_cast <int *> (pdaVal)))
+    if (pdaVal != nullptr)
     {
-      ret->store    (*reinterpret_cast <int *> (pdaVal));
-    }
+      if (! ret->load (*(int *)pdaVal))
+      {
+        ret->store    (*(int *)pdaVal);
+      }
 
-    *reinterpret_cast <int *> (pdaVal) = ret->get_value ();
+      *(int *)pdaVal = ret->get_value ();
+    }
   }
 
   return ret;
@@ -372,12 +378,15 @@ LoadWidgetVec2 ( ImVec2  *piv2Val,
   {
     ret->register_to_ini ( ini_file, sec_name, key_name );
 
-    if (! ret->load (*piv2Val))
+    if (piv2Val != nullptr)
     {
-      ret->store    (*piv2Val);
-    }
+      if (! ret->load (*piv2Val))
+      {
+        ret->store    (*piv2Val);
+      }
 
-    *piv2Val = ret->get_value ();
+      *piv2Val = ret->get_value ();
+    }
   }
 
   return ret;
@@ -400,12 +409,15 @@ LoadWidgetFloat ( float  *pfVal,
   {
     ret->register_to_ini ( ini_file, sec_name, key_name );
 
-    if (! ret->load (*pfVal))
+    if (pfVal != nullptr)
     {
-      ret->store    (*pfVal);
-    }
+      if (! ret->load (*pfVal))
+      {
+        ret->store    (*pfVal);
+      }
 
-    *pfVal = ret->get_value ();
+      *pfVal = ret->get_value ();
+    }
   }
 
   return ret;

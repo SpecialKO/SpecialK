@@ -74,7 +74,7 @@ struct resample_dispatch_s
       SK_Thread_Create ( [](LPVOID pDispatchBase) ->
       DWORD
       {
-        resample_dispatch_s* pResampler =
+        auto pResampler =
           (resample_dispatch_s *)pDispatchBase;
 
         SetThreadPriority ( SK_GetCurrentThread (),
@@ -278,14 +278,9 @@ struct resample_dispatch_s
           static_cast <size_t> (ReadAcquire (&stats.textures_waiting) / 2) + 1;
     }
 
-
-    static const uint64_t _TicksPerMsec =
-      ( SK_GetPerfFreq ().QuadPart / 1000ULL );
-
-
           size_t   uploaded   = 0;
     const uint64_t start_tick = SK::ControlPanel::current_tick;//SK_QueryPerf ().QuadPart;
-    const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * _TicksPerMsec;
+    const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * SK_QpcTicksPerMs;
 
     SK_ScopedBool auto_bool_mem (&pTLS->imgui->drawing);
                                   pTLS->imgui->drawing = true;
@@ -295,7 +290,7 @@ struct resample_dispatch_s
 
     bool processed = false;
 
-    static auto& textures =
+    auto& textures =
       SK_D3D11_Textures;
 
     //
@@ -352,11 +347,11 @@ struct resample_dispatch_s
                            ReadAcquire (&stats.textures_finished), finished.crc32c,
                            finished.data->GetMetadata ().width,    finished.data->GetMetadata ().height,
                          ( (long double)SK_CurrentPerf ().QuadPart - (long double)finished.time.received +
-                           (long double)finished.time.preprocess ) / (long double)_TicksPerMsec,
-                           (long double)finished.time.preprocess   / (long double)_TicksPerMsec,
-                           (long double)wait_in_queue              / (long double)_TicksPerMsec,
-                           (long double)work_time                  / (long double)_TicksPerMsec,
-                           (long double)wait_finished              / (long double)_TicksPerMsec ),
+                           (long double)finished.time.preprocess ) / (long double)SK_QpcTicksPerMs,
+                           (long double)finished.time.preprocess   / (long double)SK_QpcTicksPerMs,
+                           (long double)wait_in_queue              / (long double)SK_QpcTicksPerMs,
+                           (long double)work_time                  / (long double)SK_QpcTicksPerMs,
+                           (long double)wait_finished              / (long double)SK_QpcTicksPerMs ),
                        L"DX11TexMgr"  );
             }
 

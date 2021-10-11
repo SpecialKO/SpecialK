@@ -489,6 +489,61 @@ TraceSession::Stop (void)
   }
 }
 
+#include <SpecialK/injection/injection.h>
+
+// TODO:  Add Start/Stop session storage in shared memory, not just session names.
+
+SK_SharedMemory_v1::EtwSessionList_s::EtwSessionBase_s*
+GetSessionForCurrentProcess (SK_SharedMemory_v1::EtwSessionList_s* pSessions)
+{
+  for ( int idx = 0;
+            idx < SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
+          ++idx )
+  {
+    if ( pSessions->PresentMon [idx].dwPid == GetCurrentProcessId ())
+    {
+      return
+        &pSessions->PresentMon [idx];
+    }
+  }
+
+  return nullptr;
+}
+
+
+void
+StopMultipleSessions (SK_SharedMemory_v1::EtwSessionList_s* sessions)
+{
+  ULONG status = 0;
+
+  for ( int idx = 0;
+            idx < SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
+          ++idx )
+  {
+    auto& session =
+      sessions->PresentMonEx [idx];
+
+    // Shutdown the trace and session.
+    status = CloseTrace (session.hTrace);
+                         session.hTrace = INVALID_PROCESSTRACE_HANDLE;
+
+    if (session.hSession != 0)
+    {
+      DisableProviders (session.hSession);
+
+      SK_SharedMemory_v1::EtwSessionList_s::EtwSessionEx_s::TraceProps_s
+        sessionProps                  = {                              };
+        sessionProps.Wnode.BufferSize = (ULONG) sizeof (SK_SharedMemory_v1::EtwSessionList_s::EtwSessionEx_s::TraceProps_s);
+        sessionProps.LoggerNameOffset = offsetof (      SK_SharedMemory_v1::EtwSessionList_s::EtwSessionEx_s::TraceProps_s, wszName);
+
+      status =
+        ControlTraceW (session.hSession, nullptr, &sessionProps, EVENT_TRACE_CONTROL_STOP);
+
+      session.hSession = 0;
+    }
+  }
+}
+
 ULONG
 TraceSession::StopNamedSession (char const *sessionName)
 {

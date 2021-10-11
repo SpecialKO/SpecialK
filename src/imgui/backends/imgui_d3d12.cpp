@@ -280,7 +280,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   //
   // HDR STUFF
   //
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -445,8 +445,6 @@ ImGui_ImplDX12_CreateFontsTexture (void)
   static bool          init = false;
   if (! std::exchange (init, true))
   {
-    SK_ImGui_LoadFonts ();
-
     io.Fonts->GetTexDataAsRGBA32 ( &pixels,
                                    &width, &height );
   }
@@ -917,7 +915,7 @@ ImGui_ImplDX12_NewFrame (void)
   if (! _imgui_d3d12.pPipelineState)
     ImGui_ImplDX12_CreateDeviceObjects ();
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
@@ -1114,7 +1112,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
   ////                               stagingFrame.pRoot->pSwapChain );
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   ///bool hdr_display =
@@ -1433,7 +1431,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       _pSwapChain =
        pSwapChain;
 
-      auto& rb =
+      static auto& rb =
         SK_GetCurrentRenderBackend ();
 
       if (rb.swapchain == nullptr)

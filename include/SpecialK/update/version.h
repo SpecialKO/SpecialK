@@ -45,7 +45,7 @@ struct SK_VersionInfo_V1
 {
   std::wstring branch;
   std::wstring package;
-  int          build;
+  long         build;
 };
 
 using SK_VersionInfo = SK_VersionInfo_V1;

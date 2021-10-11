@@ -270,7 +270,7 @@ extern SK_Thread_HybridSpinlock* budget_mutex;
 #else
 extern CRITICAL_SECTION budget_mutex;
 #endif
-       const int        MAX_GPU_NODES = 4;
+   constexpr int        MAX_GPU_NODES = 4;
 
 struct memory_stats_t {
   uint64_t min_reserve       = UINT64_MAX;
@@ -307,7 +307,7 @@ struct mem_info_t {
 
 // Increased to 64 for Crysis... they're really going out of their way to make
 // sure stuff _can't_ run Crysis.
-static const int SK_D3D11_MAX_DEV_CONTEXTS = 128;
+static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 128;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
@@ -325,6 +325,9 @@ void
 SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
                         const std::wstring&      kName )
 {
+  if (! pDevChild)
+    return;
+
   if (__SK_D3D11_DebugLayerActive == -1)
   {
     SK_ComPtr <ID3D11Device> pDev;
@@ -339,7 +342,7 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
   if (__SK_D3D11_DebugLayerActive == 0)
     return;
 
-  if (pDevChild != nullptr && kName.size () > 0)
+  if (kName.size () > 0)
   {
     D3D_SET_OBJECT_NAME_N_W ( pDevChild,
                    static_cast <UINT> ( kName.size () ),

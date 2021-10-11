@@ -1491,9 +1491,7 @@ public:
         SK_CPU_DeviceNotifyCallback, nullptr
       };
 
-      extern bool
-            __SK_Wine;
-      if (! __SK_Wine)
+      if (! config.compatibility.using_wine)
       {
         PowerSettingRegisterNotification ( &GUID_POWERSCHEME_PERSONALITY,
                                              DEVICE_NOTIFY_CALLBACK,
@@ -1521,15 +1519,11 @@ public:
     PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
   }
 
-  void run (void) override
+  void run (void) noexcept override
   {
-    extern bool __SK_Wine;
-    SK_RunOnce (__SK_Wine =
-      ( SK_GetModuleHandleW (L"wined3d.dll") != nullptr )
-               );
-
     // Wine / Proton / Whatever does not implement most of this; abandon ship!
-    if (__SK_Wine) return;
+    if (config.compatibility.using_wine)
+      return;
 
     /// -------- Line of No WINE --------)
 
@@ -1650,7 +1644,7 @@ public:
     }
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     if (ImGui::GetFont () == nullptr) return;
 
@@ -1665,7 +1659,8 @@ public:
 
     static int   last_parked_count = 0;
 
-    static auto& cpu_stats = *SK_WMI_CPUStats;
+    static auto& cpu_stats =
+      *SK_WMI_CPUStats;
 
     bool temporary_detailed = false;
 

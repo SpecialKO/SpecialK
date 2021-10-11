@@ -64,10 +64,8 @@ auto
   std::string label =
     SK_WideCharToUTF8 (binding->human_readable);
 
-  if (ImGui::Selectable (label.c_str (), false))
-  {
-    ImGui::OpenPopup (binding->bind_name);
-  }
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+    ImGui::OpenPopup (        binding->bind_name);
 
   std::wstring original_binding =
     binding->human_readable;
@@ -301,7 +299,8 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false).
                       setBorder (true);
 
-    SK_ICommandProcessor* pCommandProc =
+    gsl::not_null <SK_ICommandProcessor*>
+           pCommandProc =
       SK_GetCommandProcessor ();
 
     try {
@@ -327,11 +326,11 @@ public:
     }
   };
 
-  void run (void) override
+  void run (void) noexcept override
   {
     static bool first_widget_run = true;
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     // Check for situation where sRGB is stripped and user has not
@@ -446,12 +445,12 @@ public:
     hdr_presets [__SK_HDR_Preset].activate ();
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     if (ImGui::GetFont () == nullptr)
       return;
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
 
@@ -470,7 +469,8 @@ public:
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
       return;
 
-    static auto& io (ImGui::GetIO ());
+    auto& io =
+      ImGui::GetIO ();
 
     ImVec2 v2Min (
       io.DisplaySize.x / 6.0f,
@@ -1133,7 +1133,7 @@ public:
                     pUAV = nullptr;
               }
 
-              void init (void)
+              void init (void) noexcept
               {
                 D3D11_BUFFER_DESC bufferDesc = { };
               }
@@ -1311,41 +1311,61 @@ SK_ImGui_DrawGamut (void)
 
 #define D65 0.3127f, 0.329f
 
-  static const
-    glm::vec3 r (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
-              g (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
-              b (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f))),
-              w (                       rb.display_gamut.Xw,
-                                        rb.display_gamut.Yw,
-                                        rb.display_gamut.Zw );
+  static HMONITOR                       hMonLast = 0;
+  static glm::vec3                      r, g, b, w;
+  static std::vector <color_triangle_s> color_spaces;
+  static              color_triangle_s _NativeGamut (
+                                       "NativeGamut",
+                                   rb.display_gamut );
+  static std::string                   _CombinedName;
 
-  static const color_triangle_s
-    _NativeGamut ( "NativeGamut", rb.display_gamut );
+  bool new_monitor =
+    ( hMonLast != rb.monitor );
 
-  static
-    std::vector <color_triangle_s>
-      color_spaces =
-      {
-        color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68f, 0.32f,  0.2650f,  0.690f,   0.150f, 0.060f,
-                                                              D65, 1.00f - 0.3127f - 0.329f,
-                                                            0.00f, 0.00f,  0.0000f } ),
+  if (new_monitor)
+  {
+    hMonLast = rb.monitor;
 
-        color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64f, 0.33f, 0.3f, 0.6f,          0.150f, 0.060f,
-                                                              D65, 1.00f,
-                                                            0.00f, 0.00f, 0.0f } ),
+    r = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
+    g = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
+    b = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f))),
+    w = glm::vec3 (                       rb.display_gamut.Xw,
+                                          rb.display_gamut.Yw,
+                                          rb.display_gamut.Zw );
 
-        color_triangle_s ( "ITU-R BT.2020", SK_ColorSpace { 0.708f, 0.292f,  0.1700f,  0.797f, 0.131f, 0.046f,
-                                                              D65,  1.000f - 0.3127f - 0.329f,
-                                                              0.0f, 0.000f,  0.0000f } ),
+    _NativeGamut =
+      color_triangle_s ( "NativeGamut",   rb.display_gamut );
 
-        color_triangle_s ( "Adobe RGB",     SK_ColorSpace { 0.64f, 0.33f,  0.2100f,  0.710f,   0.150f, 0.060f,
-                                                              D65, 1.00f - 0.3127f - 0.329f,
-                                                            0.00f, 0.00f,  0.0000f } ),
+    color_spaces.clear ();
+    color_spaces =
+    {
+      color_triangle_s ( "DCI-P3",        SK_ColorSpace { 0.68f, 0.32f,  0.2650f,  0.690f,   0.150f, 0.060f,
+                                                            D65, 1.00f - 0.3127f - 0.329f,
+                                                          0.00f, 0.00f,  0.0000f } ),
 
-        color_triangle_s { "NTSC",          SK_ColorSpace { 0.67f, 0.330f, 0.21f,  0.71f,      0.140f, 0.080f,
-                                                            0.31f, 0.316f, 1.00f - 0.31f - 0.316f,
-                                                            0.00f, 0.000f, 0.00f } }
-      };
+      color_triangle_s ( "ITU-R BT.709",  SK_ColorSpace { 0.64f, 0.33f, 0.3f, 0.6f,          0.150f, 0.060f,
+                                                            D65, 1.00f,
+                                                          0.00f, 0.00f, 0.0f } ),
+
+      color_triangle_s ( "ITU-R BT.2020", SK_ColorSpace { 0.708f, 0.292f,  0.1700f,  0.797f, 0.131f, 0.046f,
+                                                            D65,  1.000f - 0.3127f - 0.329f,
+                                                            0.0f, 0.000f,  0.0000f } ),
+
+      color_triangle_s ( "Adobe RGB",     SK_ColorSpace { 0.64f, 0.33f,  0.2100f,  0.710f,   0.150f, 0.060f,
+                                                            D65, 1.00f - 0.3127f - 0.329f,
+                                                          0.00f, 0.00f,  0.0000f } ),
+
+      color_triangle_s { "NTSC",          SK_ColorSpace { 0.67f, 0.330f, 0.21f,  0.71f,      0.140f, 0.080f,
+                                                          0.31f, 0.316f, 1.00f - 0.31f - 0.316f,
+                                                          0.00f, 0.000f, 0.00f } }
+    };
+
+    _CombinedName =
+      SK_FormatString ( "%ws  (%s)",
+                        rb.display_name,
+                      _NativeGamut.name.c_str ()
+      );
+  }
 
   auto current_time =
     SK::ControlPanel::current_time;
@@ -1368,34 +1388,39 @@ SK_ImGui_DrawGamut (void)
   const ImU32 self_outline =
     self_outline_v4;
 
-  ImGui::TextColored     (self_outline_v4, "%ws", rb.display_name);
+  ImGui::TextColored     (self_outline_v4, "%s", rb.displays [rb.active_display].full_name);
   ImGui::Separator       ();
 
-  static float max_len    = 0.0f,
-               num_spaces = static_cast <float> (color_spaces.size ());
+  static float max_len,
+               num_spaces;
 
-  // Compute area and store text
-  SK_RunOnce ( std::for_each ( color_spaces.begin (),
-                               color_spaces.end   (),
-                [](color_triangle_s& space)
-                {
-                  static int idx = 0;
+  if (new_monitor)
+  {
+    max_len    = 0.0f;
+    num_spaces = static_cast <float> (color_spaces.size ());
 
-                  space.summary.fIdx     = static_cast <float> (idx++);
-                  space.summary.text_len =
-                    ImGui::CalcTextSize (
-                ( space.summary.text     =
-                    SK_FormatString ("%5.2f%%", _NativeGamut.coverage (space))
-                ).c_str ()
-                    ).x;
+    // Compute area and store text
+    std::for_each ( color_spaces.begin (),
+                    color_spaces.end   (),
+     [](color_triangle_s& space)
+     {
+       static int idx = 0;
 
-                  max_len =   std::max (
-                                   max_len,
-                    space.summary.text_len
-                  );
-                }
-               )
-  );
+       space.summary.fIdx     = static_cast <float> (idx++);
+       space.summary.text_len =
+         ImGui::CalcTextSize (
+     ( space.summary.text     =
+         SK_FormatString ("%5.2f%%", _NativeGamut.coverage (space))
+     ).c_str ()
+         ).x;
+
+       max_len =   std::max (
+                        max_len,
+         space.summary.text_len
+       );
+     }
+    );
+  }
 
   ImGui::BeginGroup      ();
   for ( auto& space : color_spaces )
@@ -1556,10 +1581,6 @@ SK_ImGui_DrawGamut (void)
 
     if (draw_labels != -1)
     {
-      static std::string _CombinedName =
-        SK_FormatString ( "%ws  (%s)",
-                            rb.display_name,
-                          _NativeGamut.name.c_str ()  );
       draw_list->AddText ( ImGui::GetFont (), _LabelFontSize * 1.15f,
                              display_pts [0], self_outline,
                                _CombinedName.c_str () );

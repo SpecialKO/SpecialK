@@ -27,7 +27,7 @@
 bool
 SK::ControlPanel::Window::Draw (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ImGui::CollapsingHeader ("Window Management") )
@@ -71,7 +71,7 @@ SK::ControlPanel::Window::Draw (void)
       {
         ImGui::SameLine ();
 
-        if ( ImGui::Checkbox ( "Fullscreen (Borderless Upscale)", &fullscreen ) )
+        if ( ImGui::Checkbox ( "Fullscreen Borderless", &fullscreen ) )
         {
           config.window.fullscreen = fullscreen;
           SK_ImGui_AdjustCursor ();
@@ -81,9 +81,9 @@ SK::ControlPanel::Window::Draw (void)
         {
           ImGui::BeginTooltip ();
           ImGui::Text         ("Stretch Borderless Window to Fill Monitor");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Framebuffer Resolution Unchanged (GPU-Side Upscaling)");
-          ImGui::BulletText   ("Upscaling to Match Desktop Resolution Adds AT LEAST 1 Frame of Input Latency!");
+          //ImGui::Separator    ();
+          //ImGui::BulletText   ("Framebuffer Resolution Unchanged (GPU-Side Upscaling)");
+          //ImGui::BulletText   ("Upscaling to Match Desktop Resolution Adds AT LEAST 1 Frame of Input Latency!");
           ImGui::EndTooltip   ();
         }
       }

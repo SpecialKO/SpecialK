@@ -327,7 +327,7 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       auto _ResetLimiter = [&](void) -> void
       {
-        auto& rb =
+        static auto& rb =
           SK_GetCurrentRenderBackend ();
 
         auto *pLimiter =
@@ -345,7 +345,11 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::TreePush ("");
 
       ImGui::BeginGroup ();
-      ImGui::Checkbox   ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+
+      if (! d3d12)
+        ImGui::Checkbox   ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+      else
+        ImGui::Checkbox   ("Force Flip Discard in D3D12", &config.render.framerate.flip_discard);
 
       if (ImGui::IsItemHovered ())
       {
@@ -360,52 +364,55 @@ SK::ControlPanel::D3D11::Draw (void)
       {
         bool waitable_ = config.render.framerate.swapchain_wait > 0;
 
-        if (ImGui::Checkbox ("Waitable SwapChain", &waitable_))
+        if (! d3d12)
         {
-          if (! waitable_) config.render.framerate.swapchain_wait = 0;
-          else             config.render.framerate.swapchain_wait = 15;
-
-          if (waitable_)
+          if (ImGui::Checkbox ("Waitable SwapChain", &waitable_))
           {
-            // Setup default values when first turned on
-            if (config.render.framerate.pre_render_limit == -1)
+            if (! waitable_) config.render.framerate.swapchain_wait = 0;
+            else             config.render.framerate.swapchain_wait = 15;
+
+            if (waitable_)
             {
-              config.render.framerate.pre_render_limit =
-                std::min (
-                  std::max ( config.render.framerate.buffer_count + 1, 3 ),
-                                                                       3 );
+              // Setup default values when first turned on
+              if (config.render.framerate.pre_render_limit == -1)
+              {
+                config.render.framerate.pre_render_limit =
+                  std::min (
+                    std::max ( config.render.framerate.buffer_count + 1, 3 ),
+                                                                         3 );
+              }
+
+              else
+                config.render.framerate.pre_render_limit = -1;
             }
 
-            else
-              config.render.framerate.pre_render_limit = -1;
+            _ResetLimiter ();
           }
 
-          _ResetLimiter ();
-        }
+          static bool magic_stuff  = false;
+                      magic_stuff |= ImGui::IsItemClicked (1);
 
-        static bool magic_stuff  = false;
-                    magic_stuff |= ImGui::IsItemClicked (1);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Reduces Input Latency in SK's Framerate Limiter");
-          if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+          if (ImGui::IsItemHovered ())
           {
-            ImGui::Separator  ();
-            ImGui::BulletText ("Fullscreen Exclusive will not work while enabled");
-            ImGui::BulletText ("Fullscreen Exclusive is obsolete");
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Reduces Input Latency in SK's Framerate Limiter");
+            if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+            {
+              ImGui::Separator  ();
+              ImGui::BulletText ("Fullscreen Exclusive will not work while enabled");
+              ImGui::BulletText ("Fullscreen Exclusive is obsolete");
+            }
+            ImGui::EndTooltip   ();
           }
-          ImGui::EndTooltip   ();
-        }
 
-        if (waitable_ && magic_stuff)
-        {
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
-          ImGui::InputFloat ("SwapWaitFract", &fSwapWaitFract);
-          ImGui::InputFloat ("SwapWaitRatio", &fSwapWaitRatio);
-          ImGui::EndGroup   ();
+          if (waitable_ && magic_stuff)
+          {
+            ImGui::SameLine   ();
+            ImGui::BeginGroup ();
+            ImGui::InputFloat ("SwapWaitFract", &fSwapWaitFract);
+            ImGui::InputFloat ("SwapWaitRatio", &fSwapWaitRatio);
+            ImGui::EndGroup   ();
+          }
         }
 
         if (SK_DXGI_SupportsTearing ())
@@ -452,23 +459,26 @@ SK::ControlPanel::D3D11::Draw (void)
       config.render.framerate.present_interval =
         std::max (-1, std::min (4, config.render.framerate.present_interval));
 
-      if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
+      if (! d3d12)
       {
-        static auto& io =
-          ImGui::GetIO ();
-
-        if (config.render.framerate.buffer_count > 0)
+        if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
-          if (config.render.framerate.flip_discard)
-              config.render.framerate.buffer_count = std::min (15, std::max (2, config.render.framerate.buffer_count));
-          else
-              config.render.framerate.buffer_count = std::min (15, std::max (1, config.render.framerate.buffer_count));
+          auto& io =
+            ImGui::GetIO ();
 
-          // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
-          PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
-                                                                                  (LONG)io.DisplaySize.y ) );
+          if (config.render.framerate.buffer_count > 0)
+          {
+            if (config.render.framerate.flip_discard)
+                config.render.framerate.buffer_count = std::min (15, std::max (2, config.render.framerate.buffer_count));
+            else
+                config.render.framerate.buffer_count = std::min (15, std::max (1, config.render.framerate.buffer_count));
 
-          _ResetLimiter ();
+            // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
+            PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
+                                                                                    (LONG)io.DisplaySize.y ) );
+
+            _ResetLimiter ();
+          }
         }
       }
 
@@ -476,24 +486,27 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = -1;
 
-      if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
+      if (! d3d12)
       {
-        if (config.render.framerate.pre_render_limit <  0)
-            config.render.framerate.pre_render_limit = -1;
-
-        else
+        if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {
-          if (config.render.framerate.buffer_count > 0)
-              config.render.framerate.pre_render_limit = std::min ( config.render.framerate.pre_render_limit,
-                                                                      config.render.framerate.buffer_count + 1 );
+          if (config.render.framerate.pre_render_limit <  0)
+              config.render.framerate.pre_render_limit = -1;
 
-          SK_ComQIPtr <IDXGISwapChain>
-              pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
-          if (pSwapChain != nullptr)
+          else
           {
-            SK_DXGI_UpdateLatencies (pSwapChain);
+            if (config.render.framerate.buffer_count > 0)
+                config.render.framerate.pre_render_limit = std::min ( config.render.framerate.pre_render_limit,
+                                                                        config.render.framerate.buffer_count + 1 );
 
-            _ResetLimiter ();
+            SK_ComQIPtr <IDXGISwapChain>
+                pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+            if (pSwapChain != nullptr)
+            {
+              SK_DXGI_UpdateLatencies (pSwapChain);
+
+              _ResetLimiter ();
+            }
           }
         }
       }

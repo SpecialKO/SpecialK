@@ -215,7 +215,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::PushStyleColor ( ImGuiCol_Text,          ImVec4 (1.f, 1.f, 1.f, 1.f)         );
           ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
 
-          for (int i = 0; i < (int)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
+          for (uint32_t i = 0; i < (uint32_t)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
           {
             size_t            len   = 0;
             const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
@@ -515,7 +515,8 @@ SK::ControlPanel::Steam::Draw (void)
         }
 
         ImGui::BeginChild ( "CloudStorageList",
-                              ImVec2 ( -1.0f, font.size_multiline * files.size () +
+                              ImVec2 ( -1.0f, font.size_multiline *
+                        static_cast <float> (files.size ())       +
                                        0.1f * font.size_multiline ),
                                 true,
                                   ImGuiWindowFlags_AlwaysAutoResize );
@@ -733,7 +734,7 @@ SK::ControlPanel::Steam::Draw (void)
 
       const NUMBERFMTA fmt = { 0, 0, 3, (char *)".", (char *)",", 0 };
 
-      snprintf (szNumber, 15, "%li", SK::SteamAPI::GetNumPlayers ());
+      snprintf (szNumber, 15, "%i", SK::SteamAPI::GetNumPlayers ());
 
       GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
                            0x00,
@@ -881,7 +882,9 @@ SK_AppCache_Manager::getInstalledManifest (DepotId_t steam_depot)
     return 0ULL;
 
   return
-    strtoll (SK_WideCharToUTF8 (sec.get_value (L"Installed")).c_str (), nullptr, 0);
+    static_cast <uint64_t> (
+      strtoll (SK_WideCharToUTF8 (sec.get_value (L"Installed")).c_str (), nullptr, 0)
+    );
 }
 
 int
@@ -1093,9 +1096,10 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
       DWORD dwLastError =
            GetLastError ();
 
+
       SK_LOG0 ( ( L"WinInet Failure (%x): %ws",
                     dwLastError,
-        _com_error (dwLastError).ErrorMessage ()
+        _com_error (dwLastError).ErrorMessage   ()
                 ), L" Steam DB " );
     }
 
@@ -1216,13 +1220,12 @@ SK_SteamDB_ManifestFetch (sk_depot_get_t* get)
     std::string name;
 
     if (szDepotName != nullptr)
-    {
-      szDepotName += 18;
+    {   szDepotName += 18;
 
       const char* szDepotEndTag =
         StrStrIA (szDepotName, "</td>");
 
-      name = szDepotName;
+      name                       = szDepotName;
       name.resize (szDepotEndTag - szDepotName);
     }
 

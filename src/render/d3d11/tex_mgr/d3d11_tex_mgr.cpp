@@ -86,7 +86,7 @@ SK_D3D11_InitTextures (void)
   if (FALSE == InterlockedCompareExchangeAcquire (&SK_D3D11_tex_init, TRUE, FALSE))
   {
     if (pTLS != nullptr)
-        pTLS->d3d11->ctx_init_thread = true;
+        pTLS->render->d3d11->ctx_init_thread = TRUE;
 
     static bool bFFX =
       (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyX_X2);
@@ -157,7 +157,7 @@ SK_D3D11_InitTextures (void)
     InterlockedIncrementRelease (&SK_D3D11_tex_init);
   }
 
-  else if (pTLS != nullptr && (! pTLS->d3d11->ctx_init_thread))
+  else if (pTLS != nullptr && (! pTLS->render->d3d11->ctx_init_thread))
     SK_Thread_SpinUntilAtomicMin (&SK_D3D11_tex_init, 2);
 }
 
@@ -919,7 +919,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
       wchar_t wszOutName [MAX_PATH + 2] = { };
 
       // Use filename to denote compression (not needed if metadata is spitout)
-#if 0
+#if 1
       if (compressed)
       {
         swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
@@ -949,10 +949,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
         SK_D3D11_AddDumped (crc32c, crc32c);
 
 
-        wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
-
-        PathRemoveExtensionW (                         wszOutName);
-        swprintf (wszMetaFilename, L"%s_metadata.txt", wszOutName);
+        wchar_t   wszMetaFilename [ MAX_PATH + 2 ] = { };
+        swprintf (wszMetaFilename, L"%s.txt", wszOutName);
 
         FILE* fMetaData =
           _wfopen (wszMetaFilename, L"w+");
@@ -966,9 +964,9 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
           fprintf ( fMetaData,
                   "Dumped Name:    %ws.dds\n"
                   "Texture:        %08x\n"
-                  "Dimensions:     (%lux%lu)\n"
-                  "Format:         %03lu (%ws)\n"
-                  "MipLODs:        %02lu\n"
+                  "Dimensions:     (%ux%u)\n"
+                  "Format:         %03u (%ws)\n"
+                  "MipLODs:        %02u\n"
                   "Compressed:     %s\n"
                   "sRGB:           %s\n"
                   "----------------\n"
@@ -976,7 +974,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
                   "Usage:          0x%04x\n"
                   "CPUAccessFlags: 0x%02x\n"
                   "Misc:           0x%02x\n"
-                  "ArraySize:      %02lu",
+                  "ArraySize:      %02u",
                   wszOutName,
                     crc32c,
                       pDesc->Width, pDesc->Height,
@@ -1251,7 +1249,7 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
       return E_OUTOFMEMORY;
     }
 
-    if (mipmaps && compressed )
+    if (mipmaps != nullptr && compressed )
     {
             DirectX::ScratchImage decompressed;
       const DirectX::Image*       orig_img =
@@ -1323,8 +1321,8 @@ SK_D3D11_MipmapMakeTexture2D ( ID3D11Device*        pDev,
 
     else
     {
-      if (! mipmaps)
-            mipmaps = new DirectX::ScratchImage;
+      if (mipmaps == nullptr)
+          mipmaps = new DirectX::ScratchImage;
 
       DirectX::TexMetadata meta =
         img.GetMetadata ();
@@ -1503,9 +1501,9 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   mdata.depth      =  1;
   mdata.arraySize  =  pDesc->ArraySize;
   mdata.mipLevels  =  pDesc->MipLevels;
-  mdata.miscFlags  = (pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) ?
-                                           DirectX::TEX_MISC_TEXTURECUBE  :
-                                                                      0;
+  mdata.miscFlags  =((pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+                                      == D3D11_RESOURCE_MISC_TEXTURECUBE) ?
+                                           DirectX::TEX_MISC_TEXTURECUBE  : 0x0;
   mdata.miscFlags2 = 0;
   mdata.format     = newFormat;
   mdata.dimension  = DirectX::TEX_DIMENSION_TEXTURE2D;
@@ -1529,7 +1527,8 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
       const DirectX::Image* img =
         image.GetImage (lod, slice, 0);
 
-      if (! (img && img->pixels))
+      if ( img         == nullptr ||
+           img->pixels == nullptr )
       {
         error = true;
         break;
@@ -1614,7 +1613,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                  wszOutPath, top_crc32 );
   }
 
-  if ((! error) && wcslen (wszOutName))
+  if ((! error) && wcslen (wszOutName) != 0)
   {
     if (GetFileAttributes (wszOutName) == INVALID_FILE_ATTRIBUTES)
     {
@@ -1623,9 +1622,8 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                         top_crc32,
                           checksum), L"DX11TexDmp" );
 
-      wchar_t wszMetaFilename [ MAX_PATH + 2 ] = { };
-
-      swprintf (wszMetaFilename, L"%s_metadata.txt", wszOutName);
+      wchar_t   wszMetaFilename [ MAX_PATH + 2 ] = { };
+      swprintf (wszMetaFilename, L"%s.txt", wszOutName);
 
       FILE* fMetaData = _wfopen (wszMetaFilename, L"w+");
 
@@ -1633,15 +1631,15 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
         fprintf ( fMetaData,
                   "Dumped Name:    %ws\n"
                   "Texture:        %08x::%08x\n"
-                  "Dimensions:     (%lux%lu)\n"
-                  "Format:         %03lu (%ws)\n"
-                  "MipLODs:        %02lu\n"
+                  "Dimensions:     (%ux%u)\n"
+                  "Format:         %03u (%ws)\n"
+                  "MipLODs:        %02u\n"
                   "----------------\n"
                   "BindFlags:      0x%04x\n"
                   "Usage:          0x%04x\n"
                   "CPUAccessFlags: 0x%02x\n"
                   "Misc:           0x%02x\n"
-                  "ArraySize:      %02lu",
+                  "ArraySize:      %02u",
                   wszOutName,
                     top_crc32,
                       checksum,
@@ -1697,9 +1695,9 @@ SK_D3D11_SummarizeTexCache (void)
   static auto& textures =
     SK_D3D11_Textures;
 
-  snprintf ( szOut, 511, "  Tex Cache: %#5llu MiB   Entries:   %#7lu\n"
-                         "  Hits:      %#5lu       Time Saved: %#7.01lf ms\n"
-                         "  Evictions: %#5lu",
+  snprintf ( szOut, 511, "  Tex Cache: %#5llu MiB   Entries:   %#7u\n"
+                         "  Hits:      %#5u       Time Saved: %#7.01lf ms\n"
+                         "  Evictions: %#5u",
                textures->AggregateSize_2D >> 20ULL,
                textures->Entries_2D.load        (),
                textures->RedundantLoads_2D.load (),
@@ -2034,7 +2032,7 @@ SK_D3D11_TexMgr::reset (void)
   SK_D3D11_need_tex_reset = false;
 
 
-  const LONGLONG time_now =
+  const int64_t time_now =
     SK_QueryPerf ().QuadPart;
 
   // Additional conditions that may trigger a purge
@@ -2042,7 +2040,7 @@ SK_D3D11_TexMgr::reset (void)
   {
     // Throttle to at most one potentially unnecessary purge attempt per-ten seconds
     if ( LastModified_2D <=  LastPurge_2D &&
-         time_now        < ( LastPurge_2D + ( PerfFreq.QuadPart * 10LL ) ) )
+         time_now        < ( LastPurge_2D + ( SK_QpcFreq * 10LL ) ) )
     {
       SK_D3D11_try_tex_reset = true;
       return;
@@ -2247,6 +2245,7 @@ SK_D3D11_TexMgr::recordCacheHit ( ID3D11Texture2D *pTex )
       SK_TLS_Bottom ();
 
     // Don't record cache hits caused by the shader mod interface
+    ////////if (pTLS == nullptr || pTLS->imgui->drawing == FALSE)
     if (! (pTLS && pTLS->imgui->drawing ) )
     {
       desc2d.last_used =
@@ -2261,11 +2260,11 @@ SK_D3D11_TexMgr::recordCacheHit ( ID3D11Texture2D *pTex )
 }
 
 ID3D11Texture2D*
-SK_D3D11_TexMgr::getTexture2D ( uint32_t              tag,
-                          const D3D11_TEXTURE2D_DESC* pDesc,
-                                size_t*               pMemSize,
-                                float*                pTimeSaved,
-                                SK_TLS*               pTLS )
+SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
+                          const D3D11_TEXTURE2D_DESC  *pDesc,
+                                size_t                *pMemSize,
+                                float                 *pTimeSaved,
+                                SK_TLS                *pTLS )
 {
   ID3D11Texture2D* pTex2D =
     nullptr;
@@ -2300,10 +2299,10 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              tag,
 
       const size_t  size = desc2d.mem_size;
       const float  fTime = static_cast <float> (desc2d.load_time ) * 1000.0f /
-                           static_cast <float> (PerfFreq.QuadPart);
+                           static_cast <float> (SK_QpcFreq);
 
-      if (pMemSize)   *pMemSize   = size;
-      if (pTimeSaved) *pTimeSaved = fTime;
+      if (pMemSize   != nullptr) *pMemSize   = size;
+      if (pTimeSaved != nullptr) *pTimeSaved = fTime;
 
       desc2d.last_used =
         SK_QueryPerf ().QuadPart;
@@ -2313,7 +2312,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t              tag,
 
       // Don't record cache hits caused by the shader mod interface
       //if (! SK_ImGui_IsDrawing_OnD3D11Ctx (UINT_MAX, nullptr))
-      if (! pTLS->imgui->drawing)
+      if (pTLS->imgui->drawing == FALSE)
       {
         InterlockedIncrement (&desc2d.hits);
 
@@ -2599,7 +2598,7 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
 
 
 
-  if (SK_D3D11_TestRefCountHooks (pTex, pTLS))
+  if (SK_D3D11_TestRefCountHooks (pTex, pTLS) != FALSE)
   {
     SK_LOG2 ( (L"Cached texture (%x)",
                   crc32c ),
@@ -3313,7 +3312,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
     E_UNEXPECTED;
 
   SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
-                            pTLS->imgui->drawing = true;
+                            pTLS->imgui->drawing = TRUE;
   {
     SK_D3D11_TexMgr::tex2D_descriptor_s& texDesc2D =
       textures->Textures_2D [pTex];
@@ -3445,7 +3444,7 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
         if (pTLS == nullptr)
             pTLS  = SK_TLS_Bottom ();
 
-        if ( (! ( pTLS->imgui->drawing ||
+        if ( (! ( pTLS->imgui->drawing == TRUE ||
                   SK_D3D11_IsTexInjectThread (pTLS) ) ) )
         {
           return true;

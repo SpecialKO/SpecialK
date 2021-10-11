@@ -83,10 +83,10 @@ public:
   SK_D3D12_Screenshot&          operator=(const SK_D3D12_Screenshot&          ) = delete;
 
   void dispose (void) noexcept;
-  bool getData ( UINT     *pWidth,
-                 UINT     *pHeight,
-                 uint8_t **ppData,
-                 bool      Wait = false ) noexcept;
+  bool getData ( UINT* const pWidth,
+                 UINT* const pHeight,
+                 uint8_t   **ppData,
+                 bool        Wait = false ) noexcept;
 
   __inline
   DXGI_FORMAT

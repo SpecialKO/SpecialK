@@ -38,6 +38,11 @@ CommandLineArgs const& GetCommandLineArgs (void)
   return gCommandLineArgs;
 }
 
+CommandLineArgs* GetCommandLineArgsPtr (void)
+{
+  return &gCommandLineArgs;
+}
+
 
 
 bool        SK_Etw_UnregisterSession (const char* szPrefix);

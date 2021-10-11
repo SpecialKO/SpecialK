@@ -21,8 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-extern LARGE_INTEGER SK_QueryPerf (void);
-
 #define D3D12_IGNORE_SDK_LAYERS
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
@@ -266,7 +264,7 @@ void
 __stdcall
 SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
 {
-  if (! (pSwapChain && config.render.show))
+  if (pSwapChain == nullptr || (! config.render.show))
     return;
 
   // Need more debug time with D3D12

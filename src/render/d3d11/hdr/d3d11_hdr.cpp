@@ -135,20 +135,23 @@ struct SK_HDR_FIXUP
                  debug_shader_dir +=
             LR"(SK_Res\Debug\shaders\)";
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     auto pDev =
       rb.getDevice <ID3D11Device> ();
 
     bool ret =
-      pDev->CreatePixelShader ( uber_hdr_shader_ps_bytecode,
-                        sizeof (uber_hdr_shader_ps_bytecode),
-             nullptr, &PixelShader_scRGB.shader ) == S_OK;
-    ret &=
-      pDev->CreateVertexShader ( colorutil_vs_bytecode,
-                         sizeof (colorutil_vs_bytecode),
-            nullptr, &VertexShaderHDR_Util.shader ) == S_OK;
+      SUCCEEDED (
+        pDev->CreatePixelShader ( uber_hdr_shader_ps_bytecode,
+                          sizeof (uber_hdr_shader_ps_bytecode),
+               nullptr, &PixelShader_scRGB.shader )
+                ) &&
+      SUCCEEDED (
+        pDev->CreateVertexShader ( colorutil_vs_bytecode,
+                           sizeof (colorutil_vs_bytecode),
+              nullptr, &VertexShaderHDR_Util.shader )
+                );
 
     return ret;
   }
@@ -177,7 +180,7 @@ struct SK_HDR_FIXUP
     if (pInputLayout     != nullptr)  { pInputLayout->Release     ();      pInputLayout = nullptr; }
 
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
     auto pDev =
@@ -296,7 +299,7 @@ SK_HDR_InitResources (void)
 void
 SK_HDR_SnapshotSwapchain (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -518,13 +521,11 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
       pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-      static const FLOAT                      fBlendFactor [4] =
-                                        { 0.0f, 0.0f, 0.0f, 0.0f };
-      pDevCtx->OMSetBlendState      (nullptr, fBlendFactor,           0xFFFFFFFF);
-      pDevCtx->VSSetConstantBuffers (0,            1, &hdr_base->mainSceneCBuffer);
+      pDevCtx->OMSetBlendState        (nullptr, nullptr, 0xFFFFFFFF);
+      pDevCtx->VSSetConstantBuffers   (0,            1, &hdr_base->mainSceneCBuffer);
 
-      pDevCtx->VSSetShader          (hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
-      pDevCtx->PSSetConstantBuffers (0,            1,     &hdr_base->colorSpaceCBuffer);
+      pDevCtx->VSSetShader            (hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
+      pDevCtx->PSSetConstantBuffers   (0,            1,     &hdr_base->colorSpaceCBuffer);
 
       if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
            ( rb.scanout.dxgi_colorspace     != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 &&
@@ -539,8 +540,8 @@ SK_HDR_SnapshotSwapchain (void)
         pDevCtx->PSSetShader        (hdr_base->PixelShader_scRGB.shader, nullptr, 0);
       }
 
-      pDevCtx->RSSetScissorRects        (0, nullptr);
       pDevCtx->RSSetState               (nullptr   );
+      pDevCtx->RSSetScissorRects        (0, nullptr);
       pDevCtx->OMSetDepthStencilState   (nullptr, 0);
 
       pDevCtx->OMSetRenderTargets  ( 1,

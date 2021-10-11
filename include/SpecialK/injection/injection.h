@@ -22,8 +22,11 @@
 #ifndef __SK__INJECTION_H__
 #define __SK__INJECTION_H__
 
+#include <cstdint>
+
 #include <Unknwnbase.h>
 #include <appmodel.h>
+#include <evntrace.h>
 
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
@@ -64,8 +67,9 @@ SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
 // Internal use only
 //
-void SK_Inject_ReleaseProcess (void);
-void SK_Inject_AcquireProcess (void);
+void SK_Inject_ReleaseProcess        (void);
+void SK_Inject_AcquireProcess        (void);
+void SK_Inject_BroadcastAttachNotify (void);
 
 
 #define MAX_INJECTED_PROCS        32
@@ -113,6 +117,61 @@ struct SK_InjectionRecord_s
   static __declspec (dllexport) volatile LONG rollovers;
 };
 };
+
+#pragma pack (push, 1)
+struct SK_SharedMemory_v1
+{
+  // Initialized = 0x1
+  // Standby     = 0x2
+  // Free        = 0x4
+  uint32_t MemoryState = 0x0;
+  uint32_t HighDWORD   = sizeof (SK_SharedMemory_v1) -
+                         sizeof (uint32_t);
+
+
+  struct WindowState_s {
+    DWORD hWndFocus      = 0x0;
+    DWORD hWndActive     = 0x0;
+    DWORD hWndForeground = 0x0;
+    DWORD dwPadding      = 0x0;
+    DWORD hWndExplorer   = 0x0;
+    DWORD uMsgExpRaise   = 0x0;
+    DWORD uMsgExpLower   = 0x0;
+    DWORD _Reserved [ 9] = { };
+  } SystemWide,
+    CurrentGame;
+
+
+  struct EtwSessionList_s
+  {
+    struct SessionCtl_s {
+      uint32_t SequenceId = 0;
+      DWORD    _Reserved [28];
+    } SessionControl;
+
+    struct EtwSessionBase_s {
+      DWORD       dwSequence  = 0x0;
+      DWORD       dwPid       = 0x0;
+      char        szName [24] =  "";
+    } PresentMon    [ 8];
+
+    struct EtwSessionEx_s {
+      TRACEHANDLE hSession    =   0;
+      TRACEHANDLE hTrace      =   0;
+
+      struct TraceProps_s :
+      EVENT_TRACE_PROPERTIES
+      {
+        wchar_t   wszName [MAX_PATH]
+                              = L"";
+      } props;
+    } PresentMonEx  [ 8]; // Max Concurrent = 5
+
+    static auto constexpr
+      __MaxPresentMonSessions = 5;
+  } EtwSessions;
+};
+#pragma pack (pop)
 
 SK_InjectionRecord_s*
 __stdcall

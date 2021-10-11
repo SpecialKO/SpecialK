@@ -1,4 +1,120 @@
-﻿21.07.18
+﻿21.10.11
+========
+ + Added XInput battery level indicator to control panel and framepacing widget
+ + Added XInput activity indicator to denote which gamepad(s) a game is polling
+ + Upgraded all XInput 9.1.0 and 1.3 software to 1.4 for more reliable hooking
+
+21.10.08
+========
+ + Fixed Far Cry 6 setting HDR metadata even in SDR, causing incorrect colors
+
+21.10.07
+========
+ + Fixed Global Injection for Ubisoft games installed to Ubisoft Game Launcher\
+  * Auto-blacklist rules for launchers now apply to executable names, not paths
+ + Removed various D3D12 SwapChain settings
+ + Fixed UTF-8 encoding issues in whitelist/blacklist files
+
+21.09.25
+========
+ + Added default settings for Tales of Arise to auto-fix resolution issues
+
+21.09.19
+========
+ + Changed Alt+F4 handler so that Bypass w/o Catch will terminate
+     immediately.
+
+21.07.23
+========
+ + Fixed a bug that might cause NvAPI to deadlock when checking G-Sync
+     in 32-bit D3D9 games when the Steam client crashes
+
+
+21.07.22.E
+==========
+ + Updated FAR to v 0.10.1
+
+   - Fixed FPS limit when using gamepad input in menus
+   - Added 60 FPS cap to cutscenes
+
+
+21.07.22.F
+==========
+ + Updated FAR to v 0.10.0
+
+  - Arbitrary framerate support added, just set SK's framerate limiter to
+      whatever you want.
+
+      A 60.0 limit will be applied in game menus, but gameplay works > 60
+
+    * If you set the limiter while in a game menu, you can exceed 60 FPS
+        in menus. Avoid doing that :)
+
+
+21.07.22
+========
+ + Added configurable keybinds for moving monitors and toggling HDR
+ + Added option to control whether monitor preferences are saved or not
+
+ + Unless forcing Borderless Fullscreen or Centered window mode, game
+     requested resolution changes will happen on whatever monitor they
+       ask for
+
+    >> Always force Borderless + Center/Fullscreen if you want a game to
+         remain on a specific monitor
+
+ + Fixed issue preventing users from moving bordered windows
+
+
+21.07.21
+========
+ + Updated FAR to v 0.9.2
+
+   - Fixed incorrect detection of Steam 2021 version for users who are not
+       using the default SteamApps\common\ install path
+   - Re-implemented Global Illumination minimum light volume coverage
+
+
+21.07.20
+========
+ + Games that use D3D9 for Video Playback (i.e. Persona 5 Strikers) will
+     no longer have their D3D9 render activity mistaken as the game's
+       primary render API
+ + Fixed issues with application switching not changing foreground window
+
+
+21.07.19
+========
+ + Updated FAR to v 0.9.1
+
+   - Fixed incorrectly ordered resolution list
+   - Integrated emoose's LOD patch for Steam 2021 builds
+
+ + Fixed PresentMon session management after abnormal game termination
+ + Fixed unclean DLL unload if games shut down SteamAPI before SK's
+     callback rate calibration loop finishes
+
+ + HDR widget's CIE chart updates in realtime when switching monitors
+ + Optimized display mode updates when moving a game between monitors
+ + G-SYNC capabilities (in D3D9/11) update when games switch monitors
+
+
+   -(  Multi-Monitor G-SYNC Survival Guide:  | Secondary Screens | )-
+
+   >> A SwapChain resize is necessary for Direct Flip optimization to
+        kick-in and grant "Hardware: Independent Flip" for VRR.
+
+      If G-SYNC refuses to engage, try triggering a game's resolution
+        change functions (e.g. gfx settings or Alt + Enter).
+
+     (*) 1:1 scaling between window and desktop resolution is needed.
+
+   - Failing all else, apply a 'PreferredMonitor=..' override in SK's
+       INI and restart the game to maximize secondary-monitor VRR
+         success on systems w/o MPO (Multiplane Overlay) support.
+
+
+21.07.18
 ========
  + Updated FAR to v 0.9.0 and added FastLoad mode to Steam 2021 version
 

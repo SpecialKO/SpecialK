@@ -1123,6 +1123,8 @@ void SK_ImGui_Init (void)
   io.BackendFlags |= ( ImGuiBackendFlags_HasGamepad |
                      /*ImGuiBackendFlags_HasMouseCursors |*/
                        ImGuiBackendFlags_HasSetMousePos );
+
+  SK_ImGui_LoadFonts ();
 }
 #endif
 #endif

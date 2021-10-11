@@ -119,31 +119,29 @@ bool StartTraceSession()
     return true;
 }
 
-void StopTraceSession()
+extern bool SK_Etw_UnregisterSession (const char* szPrefix);
+
+bool StopTraceSession (void)
 {
-    // Stop the trace session.
-    gSession.Stop();
+  // Stop the trace session.
+  gSession.Stop ();
 
-    // Wait for the consumer and output threads to end (which are using the
-    // consumers).
-    WaitForConsumerThreadToExit();
-    StopOutputThread();
+  // Wait for the consumer and output threads to end (which are using the
+  // consumers).
+  WaitForConsumerThreadToExit ();
+  StopOutputThread            ();
 
-    // Destruct the consumers
-    delete gMRConsumer;
-    delete gPMConsumer;
-    gMRConsumer = nullptr;
-    gPMConsumer = nullptr;
+  // Destruct the consumers
+  delete gMRConsumer;
+  delete gPMConsumer;
+         gMRConsumer = nullptr;
+         gPMConsumer = nullptr;
 
-    extern bool SK_Etw_UnregisterSession (const char* szPrefix);
-    bool bRet = SK_Etw_UnregisterSession ("SK_PresentMon");
+  bool bRet =
+    SK_Etw_UnregisterSession ("SK_PresentMon");
 
-#ifdef _DEBUG
-    assert (bRet);
-#else
-    UNREFERENCED_PARAMETER (bRet);
-#endif
-
+  return
+    bRet;
 }
 
 void CheckLostReports(ULONG* eventsLost, ULONG* buffersLost)

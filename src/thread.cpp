@@ -52,21 +52,20 @@ SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_
 bool
 SK_Thread_HasCustomName (DWORD dwTid)
 {
-  static auto&
-    SelfTitled =
-      *_SK_SelfTitledThreads;
+  auto& SelfTitled =
+    _SK_SelfTitledThreads.get ();
 
   return ( SelfTitled.find (dwTid) !=
            SelfTitled.cend (     ) );
 }
 
+static std::wstring _noname = L"";
+
 std::wstring&
 SK_Thread_GetName (DWORD dwTid)
 {
-  static std::wstring noname;
-
-  static auto& names =
-    *_SK_ThreadNames;
+  auto& names =
+    _SK_ThreadNames.get ();
 
   const auto it  =
     names.find (dwTid);
@@ -75,7 +74,7 @@ SK_Thread_GetName (DWORD dwTid)
     return (*it).second;
 
   return
-    noname;
+    _noname;
 }
 
 std::wstring&
@@ -92,9 +91,9 @@ GetThreadDescription_pfn SK_GetThreadDescription = &GetThreadDescription_NOP;
 void
 __make_self_titled (DWORD dwTid)
 {
-  static auto&
+  auto&
     SelfTitled =
-      *_SK_SelfTitledThreads;
+_SK_SelfTitledThreads.get ();
 
   SelfTitled.insert (dwTid);
 }
@@ -354,40 +353,43 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
   SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-  if (! pTLS->debug.naming)
+  if (*pTLS->debug.name == L'\0')
   {
-    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+    if (! pTLS->debug.naming)
+    {
+      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
 
-    THREADNAME_INFO info = {       };
-    info.dwType          =      4096;
-    info.szName          =    szDesc;
-    info.dwThreadID      = (DWORD)GetThreadId (hThread);
-    info.dwFlags         =       0x0;
+      THREADNAME_INFO info = {       };
+      info.dwType          =      4096;
+      info.szName          =    szDesc;
+      info.dwThreadID      = (DWORD)GetThreadId (hThread);
+      info.dwFlags         =       0x0;
 
-    const DWORD argc = sizeof (info) /
-                       sizeof (ULONG_PTR);
+      const DWORD argc = sizeof (info) /
+                         sizeof (ULONG_PTR);
 
-    pTLS->debug.naming = true;
+      pTLS->debug.naming = true;
 
-    RaiseException ( MAGIC_THREAD_EXCEPTION,
-                       SK_EXCEPTION_CONTINUABLE,
-                         argc,
-        (const ULONG_PTR *)&info );
+      RaiseException ( MAGIC_THREAD_EXCEPTION,
+                         SK_EXCEPTION_CONTINUABLE,
+                           argc,
+          (const ULONG_PTR *)&info );
 
-    pTLS->debug.naming = false;
+      pTLS->debug.naming = false;
+    }
   }
 
   return
     SetThreadDescription_Original (hThread, lpThreadDescription);
 }
 
+static volatile LONG _InitDebugExtrasOnce = FALSE;
+
 bool
 SK_Thread_InitDebugExtras (void)
 {
-  static volatile LONG run_once = FALSE;
-
-  if (! InterlockedCompareExchangeAcquire (&run_once, 1, 0))
+  if (! InterlockedCompareExchangeAcquire (&_InitDebugExtrasOnce, 1, 0))
   {
     // Hook QPC and Sleep
     SK_Scheduler_Init ();
@@ -414,19 +416,22 @@ SK_Thread_InitDebugExtras (void)
       if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
       {
         SK_CreateDLLHook2 (L"kernel32", "SetThreadDescription",
-                           SetThreadDescription_Detour,
-                           static_cast_p2p <void> (&SetThreadDescription_Original)
+                                         SetThreadDescription_Detour,
+                static_cast_p2p <void> (&SetThreadDescription_Original)
         );
       }
     }
 
-    InterlockedIncrementRelease (&run_once);
+    InterlockedIncrementRelease (&_InitDebugExtrasOnce);
 
-    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
+    if (ReadAcquire (&__SK_Init) > 0)
+    {
+      SK_ApplyQueuedHooks ();
+    }
   }
 
   else
-    SK_Thread_SpinUntilAtomicMin (&run_once, 2);
+    SK_Thread_SpinUntilAtomicMin (&_InitDebugExtrasOnce, 2);
 
   return
     (SK_GetThreadDescription != &GetThreadDescription_NOP);
@@ -457,15 +462,15 @@ SK_Thread_GetCurrentPriority (void)
 
 extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original = nullptr;
 
+static SYSTEM_INFO
+           sysinfo = {   };
+
 DWORD_PTR
 WINAPI
 SetThreadAffinityMask_Detour (
   _In_ HANDLE    hThread,
   _In_ DWORD_PTR dwThreadAffinityMask )
 {
-  static SYSTEM_INFO
-    sysinfo = {   };
-
   if (sysinfo.dwNumberOfProcessors == 0)
   {
     SK_GetSystemInfo (&sysinfo);
@@ -675,14 +680,61 @@ SK_Thread_CloseSelf (void)
   return false;
 }
 
+using AvSetMmMaxThreadCharacteristicsA_pfn =
+  HANDLE (WINAPI *)(LPCSTR, LPCSTR, LPDWORD);
+using AvSetMmThreadPriority_pfn =
+  BOOL   (WINAPI *)(HANDLE, AVRT_PRIORITY);
+using AvRevertMmThreadCharacteristics_pfn =
+  BOOL   (WINAPI *)(HANDLE);
+
+static AvSetMmMaxThreadCharacteristicsA_pfn
+      _AvSetMmMaxThreadCharacteristicsA = nullptr;
+static AvSetMmThreadPriority_pfn
+      _AvSetMmThreadPriority            = nullptr;
+static AvRevertMmThreadCharacteristics_pfn
+      _AvRevertMmThreadCharacteristics  = nullptr;
+
+static HMODULE hModAVRT  = nullptr;
+static bool    bAVRTInit = false;
 
 HMODULE
 SK_AVRT_LoadLibrary (void)
 {
-  static HMODULE hModAVRT =
+  if (!            hModAVRT)
+                   hModAVRT =
     SK_LoadLibraryW (L"AVRT.dll");
 
-  return hModAVRT;
+  return
+    hModAVRT;
+}
+
+void SK_AVRT_Init (void)
+{
+  if (bAVRTInit)
+    return;
+
+  if (! _AvSetMmMaxThreadCharacteristicsA)
+  {     _AvSetMmMaxThreadCharacteristicsA =
+        (AvSetMmMaxThreadCharacteristicsA_pfn)SK_GetProcAddress (
+                                              SK_AVRT_LoadLibrary (),
+        "AvSetMmMaxThreadCharacteristicsA" );
+  }
+
+  if (! _AvSetMmThreadPriority)
+  {     _AvSetMmThreadPriority =
+        (AvSetMmThreadPriority_pfn)SK_GetProcAddress (
+                                   SK_AVRT_LoadLibrary (),
+        "AvSetMmThreadPriority" );
+  }
+
+  if (! _AvRevertMmThreadCharacteristics)
+  {     _AvRevertMmThreadCharacteristics =
+        (AvRevertMmThreadCharacteristics_pfn)SK_GetProcAddress (
+                                             SK_AVRT_LoadLibrary (),
+        "AvRevertMmThreadCharacteristics" );
+  }
+
+  bAVRTInit = true;
 }
 
 _Success_(return != NULL)
@@ -693,14 +745,7 @@ SK_AvSetMmMaxThreadCharacteristicsA (
   _In_    LPCSTR  SecondTask,
   _Inout_ LPDWORD TaskIndex )
 {
-  using AvSetMmMaxThreadCharacteristicsA_pfn =
-    HANDLE (WINAPI *)(LPCSTR, LPCSTR, LPDWORD);
-
-  static auto
-    _AvSetMmMaxThreadCharacteristicsA =
-    (AvSetMmMaxThreadCharacteristicsA_pfn)SK_GetProcAddress (
-  SK_AVRT_LoadLibrary (),
-    "AvSetMmMaxThreadCharacteristicsA" );
+  SK_AVRT_Init ();
 
   return
     _AvSetMmMaxThreadCharacteristicsA (
@@ -715,14 +760,7 @@ SK_AvSetMmThreadPriority (
   _In_ HANDLE        AvrtHandle,
   _In_ AVRT_PRIORITY Priority )
 {
-  using AvSetMmThreadPriority_pfn =
-    BOOL (WINAPI *)(HANDLE, AVRT_PRIORITY);
-
-  static auto
-    _AvSetMmThreadPriority =
-    (AvSetMmThreadPriority_pfn)SK_GetProcAddress (
-  SK_AVRT_LoadLibrary (),
-    "AvSetMmThreadPriority" );
+  SK_AVRT_Init ();
 
   return
     _AvSetMmThreadPriority (AvrtHandle, Priority);
@@ -734,14 +772,10 @@ WINAPI
 SK_AvRevertMmThreadCharacteristics (
   _In_ HANDLE AvrtHandle )
 {
+  SK_AVRT_Init ();
+
   using AvRevertMmThreadCharacteristics_pfn =
     BOOL (WINAPI *)(HANDLE);
-
-  static auto
-    _AvRevertMmThreadCharacteristics =
-    (AvRevertMmThreadCharacteristics_pfn)SK_GetProcAddress (
-  SK_AVRT_LoadLibrary (),
-    "AvRevertMmThreadCharacteristics" );
 
   return
     _AvRevertMmThreadCharacteristics (AvrtHandle);
@@ -768,17 +802,14 @@ SK_MMCS_GetTaskMap (void)
 size_t
 SK_MMCS_GetTaskCount (void)
 {
-  static auto& map =
-    SK_MMCS_GetTaskMap ();
-
   return
-    map.size ();
+    _task_map->size ();
 }
 
 std::vector <SK_MMCS_TaskEntry *>
 SK_MMCS_GetTasks (void)
 {
-  static auto& task_map =
+  auto& task_map =
     SK_MMCS_GetTaskMap ();
 
   std::vector <SK_MMCS_TaskEntry *> tasks;
@@ -788,7 +819,9 @@ SK_MMCS_GetTasks (void)
                      std::back_inserter (tasks),
                      []( std::pair < DWORD,
                                      SK_MMCS_TaskEntry *> c) ->
-                             auto {                return c.second;
+                             auto {                if (c.second->dwTid != 0)
+                                                return c.second;
+                                           else return (SK_MMCS_TaskEntry *)nullptr;
                                   }
                  );
 
@@ -796,12 +829,28 @@ SK_MMCS_GetTasks (void)
     tasks;
 }
 
+bool
+SK_MMCS_RemoveTask (DWORD dwTid)
+{
+  auto& task_map =
+    SK_MMCS_GetTaskMap ();
+
+  if (task_map.count (dwTid) != 0)
+  {
+    task_map [dwTid]->dwTid = 0;
+
+    return true;
+  }
+
+  return false;
+}
+
 SK_MMCS_TaskEntry*
 SK_MMCS_GetTaskForThreadIDEx ( DWORD dwTid, const char* name,
                                             const char* task1,
                                             const char* task2 )
 {
-  static auto& task_map =
+  auto& task_map =
     SK_MMCS_GetTaskMap ();
 
   SK_MMCS_TaskEntry* task_me =
@@ -860,7 +909,7 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 DWORD
 SK_GetRenderThreadID (void)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   return

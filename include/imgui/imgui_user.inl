@@ -29,7 +29,8 @@ volatile LONG
 extern bool IMGUI_API SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
-extern HWND SK_GetParentWindow (HWND);
+extern HWND           SK_GetParentWindow    (HWND);
+extern bool __stdcall SK_IsGameWindowActive (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
 struct show_eula_s {
@@ -45,10 +46,11 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
     0x0020, 0x00FF, // Basic Latin + Latin Supplement
     0x0100, 0x03FF, // Latin, IPA, Greek
     0x2000, 0x206F, // General Punctuation
+    0x2070, 0x209F, // Superscripts and Subscripts
     0x2100, 0x21FF, // Letterlike Symbols
     0x2600, 0x26FF, // Misc. Characters
     0x2700, 0x27BF, // Dingbats
-    0x207f, 0x2090, // N/A (literally, the symbols for N/A :P)
+    0xc2b1, 0xc2b3, // ²
     0
   };
   return &ranges [0];
@@ -256,7 +258,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   auto pRawCtx =
     pTLS->raw_input.getPtr ();
 
-  extern bool __stdcall    SK_IsGameWindowActive (void);
   bool focus             = SK_IsGameWindowActive (    );
   bool already_processed =
     ( pRawCtx->last_input == hRawInput &&
@@ -798,7 +799,10 @@ MessageProc ( const HWND&   hWnd,
       ActivateWindow (((HWND)wParam == hWnd));
 
       if ((! window_active) && SK_WantBackgroundRender ())
-        return true;
+      {
+        if (GetFocus () == game_window.hWnd)
+          return true;
+      }
     } break;
 
 
@@ -835,7 +839,10 @@ MessageProc ( const HWND&   hWnd,
       }
 
       if ((! window_active) && SK_WantBackgroundRender ())
-        return true;
+      {
+        if (GetFocus () == game_window.hWnd)
+          return true;
+      }
     } break;
 
 
@@ -1384,13 +1391,35 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       }
       break;
 
+      case SC_TASKLIST:
+      {
+        if (config.window.disable_screensaver)
+          return 1;
+      } break;
+
       case SC_SCREENSAVE:
       case SC_MONITORPOWER:
         //SK_LOG0 ( ( L"ImGui ImGui Examined SysCmd (SC_SCREENSAVE) or (SC_MONITORPOWER)" ),
         //            L"Window Mgr" );
         if (config.window.disable_screensaver)
-          return 1;
-        break;
+        {
+          if (lParam != -1) // -1 == Monitor Power On, we do not want to block that!
+            return 1;
+        }
+
+        if (SK_IsGameWindowActive ())
+        {
+          if (LOWORD (wParam & 0xFFF0) == SC_MONITORPOWER)
+          {
+            if (lParam != -1) // No power saving when active window, that's silly
+              return 1;
+          }
+        }
+
+        if (lParam == -1) // Pass it through, always
+          DefWindowProcW (hWnd, msg, wParam, lParam);
+
+        return 0;
 
       default:
         return 0;
@@ -2419,8 +2448,8 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 #include <SpecialK/control_panel.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 
-static LARGE_INTEGER g_Time           = { };
-static LARGE_INTEGER g_TicksPerSecond = { };
+static int64_t g_Time           = { };
+static int64_t g_TicksPerSecond = { };
 
 void
 SK_ImGui_User_NewFrame (void)
@@ -2430,17 +2459,17 @@ SK_ImGui_User_NewFrame (void)
 
   // Setup time step
   auto current_time =
-    SK_QueryPerf ();
+    SK_QueryPerf ().QuadPart;
 
   double delta =
-    static_cast <double> (         current_time.QuadPart -
-                          std::exchange (g_Time.QuadPart, current_time.QuadPart)
-                          );
+    static_cast <double> (                       current_time -
+                          std::exchange (g_Time, current_time)
+                         );
 
   static bool        first = true;
   if (std::exchange (first, false))
   {
-    g_TicksPerSecond = SK_GetPerfFreq ();
+    g_TicksPerSecond = SK_QpcFreq;
     g_Time           = current_time;
 
     delta = 0.0;
@@ -2469,7 +2498,7 @@ SK_ImGui_User_NewFrame (void)
   }
 
   static auto ticks_per_sec =
-    static_cast <double> (g_TicksPerSecond.QuadPart);
+    static_cast <double> (g_TicksPerSecond);
 
   io.DeltaTime =
     (delta <= 0.0) ?
@@ -2519,20 +2548,16 @@ SK_ImGui_User_NewFrame (void)
   //          Remove the cursor after a brief timeout period (500 ms),
   //            it will come back if moved ;)
   //
-  static int last_x = SK_ImGui_Cursor.pos.x,
-             last_y = SK_ImGui_Cursor.pos.y;
+  static int last_x = SK_ImGui_Cursor.pos.x;
+  static int last_y = SK_ImGui_Cursor.pos.y;
 
 
   // Hacky solution for missed messages causing no change in cursor pos
   //
-  POINT              cursor_pos = { };
-  SK_GetCursorPos  (&cursor_pos);
+  POINT             cursor_pos = { };
+  SK_GetCursorPos (&cursor_pos);
 
-  HWND hWndHovered =
-    WindowFromPoint (cursor_pos);
-
-  if ( hWndHovered == game_window.hWnd ||
-             IsChild (game_window.hWnd, hWndHovered) )
+  if (WindowFromPoint (cursor_pos) == game_window.hWnd)
   {
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 

@@ -390,10 +390,8 @@ auto
 
   label += binding->bind_name;
 
-  if (ImGui::Selectable (label.c_str (), false))
-  {
-    ImGui::OpenPopup (binding->bind_name);
-  }
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+    ImGui::OpenPopup (        binding->bind_name);
 
   std::wstring original_binding =
     binding->human_readable;
@@ -418,7 +416,7 @@ SK_DQXI_PlugInCfg (void)
   ////iSK_INI* pINI =
   ////  SK_GetDLLConfig ();
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ImGui::CollapsingHeader (

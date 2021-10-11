@@ -413,7 +413,7 @@ SteamAPI_RunCallbacks_throttled (void)
 {
   static UINT64 ullLastCallback = 0;
 
-  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > (UINT64)((double)SK_GetPerfFreq ().QuadPart * 0.025))
+  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > (UINT64)((double)SK_QpcFreq * 0.025))
   {
     ullLastCallback =
       SK_QueryPerf ().QuadPart;
@@ -2125,8 +2125,8 @@ ZwCreateThreadEx_Detour (
     const DWORD tid =
       GetThreadId (*ThreadHandle);
 
-    static auto& ThreadNames =
-            *_SK_ThreadNames;
+    auto& ThreadNames =
+     *_SK_ThreadNames;
 
     if ( ThreadNames.find (tid) ==
          ThreadNames.cend (   ) )
@@ -2306,8 +2306,8 @@ NtCreateThreadEx_Detour (
     const DWORD tid =
       GetThreadId (*ThreadHandle);
 
-    static auto& ThreadNames =
-            *_SK_ThreadNames;
+    auto& ThreadNames =
+     *_SK_ThreadNames;
 
     if ( ThreadNames.find (tid) ==
          ThreadNames.cend (   ) )
@@ -2744,8 +2744,8 @@ SK_Exception_HandleThreadName (
 
     if (non_empty)
     {
-      static auto& ThreadNames = *_SK_ThreadNames;
-      static auto& SelfTitled  = *_SK_SelfTitledThreads;
+      static auto& ThreadNames = _SK_ThreadNames.get       ();
+      static auto& SelfTitled  = _SK_SelfTitledThreads.get ();
 
       DWORD dwTid  =  ( info->dwThreadID != -1 ?
                         info->dwThreadID :
@@ -4165,7 +4165,7 @@ SK::Diagnostics::Debugger::CloseConsole (void)
 
 BOOL
 WINAPI
-SK_IsDebuggerPresent (void)
+SK_IsDebuggerPresent (void) noexcept
 {
   if (IsDebuggerPresent_Original == nullptr)
   {

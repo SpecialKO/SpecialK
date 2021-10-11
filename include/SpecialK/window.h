@@ -281,6 +281,8 @@ using SetCursorPos_pfn      = BOOL (WINAPI *)(
   _In_ int Y
 );
 
+using GetMessagePos_pfn     = DWORD (WINAPI *)(void);
+
 using SendInput_pfn         = UINT (WINAPI *)(
   _In_ UINT    nInputs,
   _In_ LPINPUT pInputs,
@@ -312,6 +314,9 @@ extern AdjustWindowRectEx_pfn      AdjustWindowRectEx_Original;
 extern GetSystemMetrics_pfn        GetSystemMetrics_Original;
 extern GetCursorPos_pfn            GetCursorPos_Original;
 extern SetCursorPos_pfn            SetCursorPos_Original;
+extern GetCursorPos_pfn            GetPhysicalCursorPos_Original;
+extern SetCursorPos_pfn            SetPhysicalCursorPos_Original;
+extern GetMessagePos_pfn           GetMessagePos_Original;
 extern GetCursorInfo_pfn           GetCursorInfo_Original;
 extern NtUserGetCursorInfo_pfn     NtUserGetCursorInfo_Original;
 
@@ -652,75 +657,24 @@ extern UINT SK_Inject_GetExplorerLowerMsg (void);
 static
 auto TriggerStartMenu = [](void)
 {
-  HWND hWndStartMenu =
-    FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
-  //
-  //HWND hWndFocus = SK_GetFocus ();
-
-  DefWindowProcW ( game_window.hWnd, WM_SYSCOMMAND,
-                        SC_TASKLIST,   0 );
-
-  //DWORD dwOrigStyle =
-  //  GetWindowLongW (hWndStartMenu, GWL_STYLE);
-  //SetWindowLongW (  hWndStartMenu, GWL_STYLE, (dwOrigStyle & ~WS_VISIBLE) );
-
-  int tries = 0;
-
-  while (SK_GetForegroundWindow () == game_window.hWnd && ++tries < 10)
-    SK_SleepEx (33UL, FALSE);
-
-  if (IsWindow (hWndStartMenu))
-  {
-    SetFocus   (hWndStartMenu);
-
-    BYTE scan_code_ESC =
-      (BYTE)MapVirtualKey (VK_ESCAPE, 0);
-
-    extern void WINAPI
-      SK_keybd_event (
-        _In_ BYTE       bVk,
-        _In_ BYTE       bScan,
-        _In_ DWORD     dwFlags,
-        _In_ ULONG_PTR dwExtraInfo );
-
-    SK_keybd_event (VK_ESCAPE, scan_code_ESC, 0,               0);
-    SK_SleepEx (50UL, FALSE);
-    SK_keybd_event (VK_ESCAPE, scan_code_ESC, KEYEVENTF_KEYUP, 0);
-  }
-
-  if (! GetConsoleWindow ())
-  {
-    AllocConsole ();
-    SetWindowPos (GetConsoleWindow (), 0, 0, 0, 0, 0, SWP_NOZORDER);
-    FreeConsole  ();
-  }
-
-  extern VOID WINAPI
-  SK_mouse_event (
+  extern void
+  WINAPI
+  SK_keybd_event (
+    _In_ BYTE       bVk,
+    _In_ BYTE       bScan,
     _In_ DWORD     dwFlags,
-    _In_ DWORD     dx,
-    _In_ DWORD     dy,
-    _In_ DWORD     dwData,
     _In_ ULONG_PTR dwExtraInfo );
 
-  POINT             orig = { };
-  SK_GetCursorPos (&orig);
+  //HWND hWndStartMenu =
+  //  FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
 
-  POINT                              activation_pos = { 32, 32 };
-  ClientToScreen (game_window.hWnd, &activation_pos);
+  //PostMessage ( hWndStartMenu, WM_SYSCOMMAND,
+  //                             SC_TASKLIST,     0 );
 
-  if (SK_SetCursorPos (activation_pos.x, activation_pos.y))
-  {
-    SK_mouse_event (MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
-    SK_SleepEx     (50UL, FALSE);
-    SK_mouse_event (MOUSEEVENTF_MIDDLEUP,   0, 0, 0, 0);
-
-    SK_SetCursorPos (orig.x, orig.y);
-  }
-
-  SK_RealizeForegroundWindow (game_window.hWnd);
-
-  //SetWindowLongW (hWndStartMenu, GWL_STYLE, dwOrigStyle);
+  SK_keybd_event (VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+  SK_keybd_event (VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
+  SK_keybd_event (VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY,                   0);
+  SK_keybd_event (VK_LWIN, 0, KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
 };
 
 

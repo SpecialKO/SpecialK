@@ -23,6 +23,8 @@
 
 #include <SpecialK/control_panel/input.h>
 
+#include <imgui/font_awesome.h>
+
 bool cursor_vis = false;
 
 using namespace SK::ControlPanel;
@@ -32,12 +34,15 @@ SK_RawInput_GetMice      (bool* pDifferent = nullptr);
 extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
+extern void SK_ImGui_DrawGamepadStatusBar (void);
+
 SK::Framerate::Stats gamepad_stats;
 SK::Framerate::Stats gamepad_stats_filtered;
 
 void SK_ImGui_UpdateCursor (void)
 {
-  POINT orig_pos;
+  POINT             orig_pos;
+
   SK_GetCursorPos (&orig_pos);
   SK_SetCursorPos (0, 0);
 
@@ -56,13 +61,15 @@ extern ImVec2& __SK_ImGui_LastWindowCenter (void);
 void
 SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
 {
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   // Ignore this if the cursor is in a different application
   POINT                 ptCursor;
   if (SK_GetCursorPos (&ptCursor))
   {
+    GetWindowRect (game_window.hWnd,
+                  &game_window.actual.window);
     if (PtInRect (&game_window.actual.window, ptCursor))
     {
       SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
@@ -93,7 +100,7 @@ SK_ImGui_CenterCursorOnWindow (void)
 bool
 SK::ControlPanel::Input::Draw (void)
 {
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   const bool input_mgmt_open =
@@ -182,7 +189,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_steam > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_steam ) / 500.0f ), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( (float)current_time -
+                                                                            (float)  last_steam ) / 500.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine ( );
       ImGui::Text ("       Steam");
       ImGui::PopStyleColor ( );
@@ -197,7 +205,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_xinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_xinput) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float) last_xinput ) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
       ImGui::PopStyleColor  ();
@@ -216,7 +225,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_hid > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_hid) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float)    last_hid ) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       HID");
       ImGui::PopStyleColor  ();
@@ -238,7 +248,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di7 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di7) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float)    last_di7 ) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 7");
       ImGui::PopStyleColor  ();
@@ -263,7 +274,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_di8 > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_di8) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ( (float)current_time -
+                                                                           (float)    last_di8 ) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 8");
       ImGui::PopStyleColor  ();
@@ -288,7 +300,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_rawinput > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * (current_time - last_rawinput) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ( (float)current_time -
+                                                                           (float)last_rawinput ) / 500.0f), 1.0f, 0.8f).Value);
       ImGui::SameLine       ();
       ImGui::Text           ("       Raw Input");
       ImGui::PopStyleColor  ();
@@ -313,7 +326,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_winhook > current_time - 10000UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_winhook ) / 10000.0f ), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( (float)current_time -
+                                                                            (float)last_winhook ) / 10000.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine      ();
       ImGui::Text ("       Windows Hook");
       ImGui::PopStyleColor ();
@@ -331,7 +345,8 @@ SK::ControlPanel::Input::Draw (void)
 
     if (last_win32 > current_time - 10000UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( current_time - last_win32 ) / 10000.0f ), 1.0f, 0.8f).Value);
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( (float)current_time -
+                                                                            (float)  last_win32 ) / 10000.0f ), 1.0f, 0.8f).Value);
       ImGui::SameLine      ();
       ImGui::Text ("       Win32");
       ImGui::PopStyleColor ();
@@ -567,15 +582,15 @@ SK::ControlPanel::Input::Draw (void)
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::BeginTooltip  ();
-            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
-            ImGui::Separator   ();
-            ImGui::BulletText  ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
-            ImGui::BulletText  ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
-          ImGui::EndTooltip    ();
+          ImGui::BeginTooltip ();
+          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
+          ImGui::Separator ();
+          ImGui::BulletText ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
+          ImGui::BulletText ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
+          ImGui::EndTooltip ();
         }
 
-        ImGui::SameLine();
+        ImGui::SameLine ();
 
         auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
         {
@@ -586,18 +601,18 @@ SK::ControlPanel::Input::Draw (void)
 
           if (ImGui::IsItemHovered ())
           {
-            ImGui::BeginTooltip ( );
-             ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing" );
-             ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
-                                    journal.sequence.last, journal.sequence.current );
-             ImGui::Separator   ( );
-             ImGui::Columns     (2, nullptr, 0);
-             ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-             ImGui::Text        ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
-             ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-             ImGui::Text        ("%+07li", journal.packet_count.real);
-             ImGui::Columns     (1);
-            ImGui::EndTooltip   ( );
+            ImGui::BeginTooltip ();
+            ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
+            ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                journal.sequence.last, journal.sequence.current);
+            ImGui::Separator ();
+            ImGui::Columns (2, nullptr, 0);
+            ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+            ImGui::Text ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
+            ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+            ImGui::Text ("%+07li", journal.packet_count.real);
+            ImGui::Columns (1);
+            ImGui::EndTooltip ();
           }
         };
 
@@ -606,15 +621,18 @@ SK::ControlPanel::Input::Draw (void)
         XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
         XInputPlaceholderCheckbox ("Slot 3", 3);
 
-        ImGui::BeginGroup ();
-        ImGui::Text       (" Slot Redistribution ");
-        auto slots =
-          (int *)config.input.gamepad.xinput.assignment;
-        ImGui::SameLine   ();
-        ImGui::InputInt4  ("###Slot Remapping", slots);
-        ImGui::EndGroup   ();
-      }
+        ImGui::Spacing ();
 
+        SK_ImGui_DrawGamepadStatusBar ();
+
+        ////ImGui::BeginGroup ();
+        ////ImGui::Text       (" Slot Redistribution ");
+        ////auto slots =
+        ////  (int *)config.input.gamepad.xinput.assignment;
+        ////ImGui::SameLine   ();
+        ////ImGui::InputInt4  ("###Slot Remapping", slots);
+        ////ImGui::EndGroup   ();
+      }
 // TODO
 #if 0
       ImGui::Separator ();
@@ -836,7 +854,7 @@ extern float SK_ImGui_PulseNav_Strength;
             {
               SK_WaitForSingleObject (hStartStop, INFINITE);
 
-              if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
+              if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
               {
                 XINPUT_STATE& old = states [(i + 1) % 2];
                 XINPUT_STATE& now = states [ i++    % 2];
@@ -853,7 +871,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
                     gamepad_stats_filtered.addSample ( 1000.0 *
                       static_cast <double> (times_ [0] - oldTime) /
-                      static_cast <double> (SK_GetPerfFreq ().QuadPart / 1000),
+                      static_cast <double> (SK_QpcFreq),
                         nowTime
                     );
                   }
@@ -864,7 +882,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
                   gamepad_stats.addSample ( 1000.0 *
                     static_cast <double> (times [0] - oldTime) /
-                    static_cast <double> (SK_GetPerfFreq ().QuadPart),
+                    static_cast <double> (SK_QpcFreq),
                       nowTime
                   );
                 }
@@ -1327,6 +1345,23 @@ extern float SK_ImGui_PulseNav_Strength;
 }
 
 
+bool
+SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
+{
+  (void)keybind;
+
+  bool ret = false;
+
+  ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.667f, 0.667f, 0.667f, 1.0f));
+
+  ret =
+    ImGui::Selectable (szLabel, false);
+
+  ImGui::PopStyleColor ();
+
+  return ret;
+}
+
 __declspec (dllexport)
 void
 __stdcall
@@ -1335,7 +1370,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   if (! keybind)
     return;
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
@@ -1405,7 +1440,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
   if (! combo)
     return 0;
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;

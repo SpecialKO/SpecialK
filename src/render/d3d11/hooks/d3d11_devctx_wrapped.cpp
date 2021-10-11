@@ -169,8 +169,8 @@ public:
   ULONG STDMETHODCALLTYPE Release (void) override
   {
     ULONG xrefs =
-      InterlockedDecrement (&refs_),
-           refs = pReal.p->Release ();
+      InterlockedDecrement (&refs_);
+    ULONG  refs = pReal.p->Release ();
 
     if (refs == 0 && xrefs != 0)
     {
@@ -567,8 +567,8 @@ public:
   ULONG STDMETHODCALLTYPE Release (void) override
   {
     ULONG xrefs =
-      InterlockedDecrement (&refs_),
-           refs = pReal->Release ();
+      InterlockedDecrement (&refs_);
+    ULONG  refs = pReal->Release ();
 
     if (refs == 0 && xrefs != 0)
     {
@@ -643,7 +643,8 @@ public:
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Pixel,
-                       deferred_,
+                       deferred_ ?
+                            TRUE : FALSE,
                   nullptr, pReal,
              StartSlot, NumViews,
            ppShaderResourceViews, dev_ctx_handle_
@@ -712,7 +713,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawIndexed_Impl (pReal,
                                        IndexCount,
                                   StartIndexLocation,
-                                  BaseVertexLocation, true,
+                                  BaseVertexLocation, TRUE,
                                     dev_ctx_handle_
         );
     else
@@ -758,7 +759,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           Subresource,
                  MapType,
                  MapFlags,
-                pMappedResource, true
+                pMappedResource, TRUE
         );
     else
 #endif
@@ -779,7 +780,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_Unmap_Impl       (pReal,
             pResource,
-          Subresource, true
+          Subresource, TRUE
         );
     else
 #endif
@@ -842,7 +843,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawIndexedInstanced_Impl ( pReal,
                                              IndexCountPerInstance, InstanceCount,
                                              StartIndexLocation,  BaseVertexLocation,
-                                             StartInstanceLocation, true, dev_ctx_handle_ );
+                                             StartInstanceLocation, TRUE, dev_ctx_handle_ );
     else
 #endif
       pReal->DrawIndexedInstanced (IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
@@ -863,7 +864,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                                                       InstanceCount,
                                    StartVertexLocation,
                                                  StartInstanceLocation,
-                                     true, dev_ctx_handle_
+                                     TRUE, dev_ctx_handle_
         );
     else
 #endif
@@ -919,7 +920,8 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Vertex,
-                        deferred_,
+                        deferred_ ?
+                             TRUE : FALSE,
                         nullptr, pReal,
              StartSlot, NumViews,
            ppShaderResourceViews, dev_ctx_handle_
@@ -983,7 +985,8 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Geometry,
-                               deferred_,
+                               deferred_ ?
+                                    TRUE : FALSE,
                           nullptr, pReal,
              StartSlot, NumViews,
            ppShaderResourceViews, dev_ctx_handle_
@@ -1014,7 +1017,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_OMSetRenderTargets_Impl (pReal,
                                NumViews,
                     ppRenderTargetViews,
-                     pDepthStencilView, true,
+                     pDepthStencilView, TRUE,
                      dev_ctx_handle_
         );
     else
@@ -1038,7 +1041,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                     ppRenderTargetViews,
                      pDepthStencilView,  UAVStartSlot, NumUAVs,
                                ppUnorderedAccessViews,   pUAVInitialCounts,
-          true, dev_ctx_handle_
+          TRUE, dev_ctx_handle_
         );
     else
 #endif
@@ -1087,7 +1090,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_DrawAuto_Impl    (pReal, true, dev_ctx_handle_);
+        SK_D3D11_DrawAuto_Impl    (pReal, TRUE, dev_ctx_handle_);
     else
 #endif
       pReal->DrawAuto ();
@@ -1104,7 +1107,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawIndexedInstancedIndirect_Impl (pReal,
                            pBufferForArgs,
                  AlignedByteOffsetForArgs,
-                    true, dev_ctx_handle_
+                    TRUE, dev_ctx_handle_
         );
     else
 #endif
@@ -1124,7 +1127,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawInstancedIndirect_Impl (pReal,
                     pBufferForArgs,
-          AlignedByteOffsetForArgs, true, dev_ctx_handle_
+          AlignedByteOffsetForArgs, TRUE, dev_ctx_handle_
         );
     else
 #endif
@@ -1213,7 +1216,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopySubresourceRegion_Impl (pReal,
                  pDstResource, DstSubresource, DstX, DstY, DstZ,
-                 pSrcResource, SrcSubresource, pSrcBox, true
+                 pSrcResource, SrcSubresource, pSrcBox, TRUE
         );
     else
 #endif
@@ -1229,7 +1232,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopyResource_Impl (pReal,
                  pDstResource,
-                 pSrcResource, true
+                 pSrcResource, TRUE
         );
     else
 #endif
@@ -1252,7 +1255,7 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                       pDstBox,
                       pSrcData,
                        SrcRowPitch,
-                       SrcDepthPitch, true
+                       SrcDepthPitch, TRUE
         );
     else
 #endif
@@ -1419,7 +1422,8 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Hull,
-                           deferred_,
+                           deferred_ ?
+                                TRUE : FALSE,
                       nullptr, pReal,
              StartSlot, NumViews,
            ppShaderResourceViews, dev_ctx_handle_
@@ -1479,7 +1483,8 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Domain,
-                             deferred_,
+                             deferred_ ?
+                                  TRUE : FALSE,
                         nullptr, pReal,
              StartSlot, NumViews,
            ppShaderResourceViews, dev_ctx_handle_

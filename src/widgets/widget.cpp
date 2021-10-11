@@ -246,7 +246,7 @@ SK_Widget_ProcessDocking ( SK_Widget* pWidget,
                                bool n, bool s,
                                bool e, bool w )
 {
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   // Docking alignment visualization
@@ -367,7 +367,7 @@ SK_Widget::draw_base (void)
   if (SK_ImGui_Widgets->hide_all)
     return;
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   //extern volatile LONG __SK_ScreenShot_CapturingHUDless;
@@ -774,9 +774,9 @@ SK_Widget::config_base (void)
         SK_WideCharToUTF8 (binding->human_readable);
 
       ImGui::PushID (binding->bind_name);
-      
-      if (ImGui::Selectable (label.c_str (), false))
-        ImGui::OpenPopup (binding->bind_name);
+
+      if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+        ImGui::OpenPopup (        binding->bind_name);
 
       std::wstring original_binding =
                             binding->human_readable;
@@ -922,15 +922,17 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   }
 
 
-  //
-  // TEMP HACK: Screenshots
-  //
   static
-    std::array <SK_ConfigSerializedKeybind *, 3>
-        screenshot_keys = {
+    std::array <SK_ConfigSerializedKeybind *, 7>
+        special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
-          &config.screenshots.sk_osd_insertion_keybind
+          &config.screenshots.sk_osd_insertion_keybind,
+
+          &config.monitors.monitor_primary_keybind,
+          &config.monitors.monitor_next_keybind,
+          &config.monitors.monitor_prev_keybind,
+          &config.monitors.monitor_toggle_hdr
         };
 
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
@@ -943,7 +945,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   static const auto& game_id =
     SK_GetCurrentGameID ();
 
-  for ( auto keybind : screenshot_keys )
+  for ( auto keybind : special_keys )
   {
     // Exact key tests are undesirable here, allow extra keys to be pressed
     if ( vkCode == keybind->vKey && ((! keybind->ctrl)  || Control) &&
@@ -978,6 +980,60 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
         SK::SteamAPI::TakeScreenshot (
           SK_ScreenshotStage::EndOfFrame
         );
+      }
+
+      else if (  keybind == &config.monitors.monitor_primary_keybind )
+      {
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        for ( auto& display : rb.displays )
+        {
+          if (! display.attached)
+            continue;
+
+          if (display.primary)
+          {
+            SK_GetCommandProcessor ()->ProcessCommandFormatted ("Window.Monitor %lu", display.idx);
+            break;
+          }
+        }
+      }
+
+      else if (  keybind == &config.monitors.monitor_next_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Monitor ++");
+      }
+
+      else if (  keybind == &config.monitors.monitor_prev_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Monitor --");
+      }
+
+      else if (  keybind == &config.monitors.monitor_toggle_hdr )
+      {
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        if (rb.displays [rb.active_display].hdr.supported)
+        {
+          bool hdr_enable =
+            !rb.displays [rb.active_display].hdr.enabled;
+
+          DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
+            setHdrState                     = { };
+            setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
+            setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
+            setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
+            setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
+
+            setHdrState.enableAdvancedColor = hdr_enable;
+
+          if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+          {
+            rb.displays [rb.active_display].hdr.enabled = hdr_enable;
+          }
+        }
       }
 
       dispatched = TRUE;

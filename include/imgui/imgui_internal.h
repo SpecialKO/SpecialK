@@ -165,10 +165,10 @@ IMGUI_API ImU32         ImHashStr  (const char* data, size_t data_size, ImU32 se
 IMGUI_API void* ImFileLoadToMemory (const char* filename,       const char* file_open_mode,
                                         size_t* out_file_size = NULL, int   padding_bytes = 0);
 IMGUI_API FILE* ImFileOpen         (const char* filename,       const char* file_open_mode);
-static inline bool      ImCharIsBlankA    (        char c) { return c == ' ' || c == '\t';                }
-static inline bool      ImCharIsBlankW    (unsigned int c) { return c == ' ' || c == '\t' || c == 0x3000; }
-static inline bool      ImIsPowerOfTwo    (         int v) { return v != 0   && (v & (v - 1))  == 0;      }
-static inline int       ImUpperPowerOfTwo (         int v) { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
+static constexpr inline bool ImCharIsBlankA    (        char c) noexcept { return c == ' ' || c == '\t';                }
+static constexpr inline bool ImCharIsBlankW    (unsigned int c) noexcept { return c == ' ' || c == '\t' || c == 0x3000; }
+static constexpr inline bool ImIsPowerOfTwo    (         int v) noexcept { return v != 0   && (v & (v - 1))  == 0;      }
+static constexpr inline int  ImUpperPowerOfTwo (         int v) noexcept { v--; v |= v >> 1; v |= v >> 2; v |= v >> 4; v |= v >> 8; v |= v >> 16; v++; return v; }
                                                              //--v |= v >> 1; v |= v >> 2; v |= v >> 4;
                                                              //  v |= v >> 8; v |= v >> 16;     return ++v; }
 #define ImQsort         qsort
@@ -1371,7 +1371,13 @@ struct ImGuiTabItem
   float               Width;                  // Width currently displayed
   float               WidthContents;          // Width of actual contents, stored during BeginTabItem() call
 
-  ImGuiTabItem () { ID = Flags = 0; LastFrameVisible = LastFrameSelected = -1; NameOffset = -1; Offset = Width = WidthContents = 0.0f; }
+  ImGuiTabItem () { ID               = 0;
+                    Flags            = 0;
+                    LastFrameVisible = LastFrameSelected = -1;
+                    NameOffset       = -1;
+                        Offset       = Width =
+                                       WidthContents = 0.0f;
+  }
 };
 
 // Storage for a tab bar (sizeof() 92~96 bytes)

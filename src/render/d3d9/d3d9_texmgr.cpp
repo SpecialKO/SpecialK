@@ -372,10 +372,10 @@ D3D9SetTexture_Detour (
                    _In_ IDirect3DBaseTexture9 *pTexture
 )
 {
-  auto& _Shaders    = Shaders.get    ();
-  auto& _tracked_rt = tracked_rt.get ();
-  auto& _tracked_vs = tracked_vs.get ();
-  auto& _tracked_ps = tracked_ps.get ();
+  static auto& _Shaders    = Shaders.get    ();
+  static auto& _tracked_rt = tracked_rt.get ();
+  static auto& _tracked_vs = tracked_vs.get ();
+  static auto& _tracked_ps = tracked_ps.get ();
 
   if (pTexture == nullptr)
   {
@@ -1345,7 +1345,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
                          load->checksum,
                            (double)load->SrcDataSize / (1024.0f * 1024.0f),
                              1000.0f * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                       (double)SK_GetPerfFreq ().QuadPart );
+                                       (double)SK_QpcFreq );
     }
 
     Texture* pTex =
@@ -1354,7 +1354,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
     if (pTex != nullptr)
     {
       pTex->load_time = (float)(1000.0 * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                         (double)SK_GetPerfFreq ().QuadPart);
+                                         (double)SK_QpcFreq);
 
       auto* pSKTex =
         static_cast <ISKTextureD3D9 *> (load->pDest);
@@ -1421,36 +1421,42 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 #include <set>
 
 uint32_t
-safe_crc32c (uint32_t seed, const void* pData, size_t size)
+__cdecl
+safe_crc32c (uint32_t seed, _Notnull_ const void *buf, size_t size)
 {
   // Current limit == 2 GiB
-  if (size > (1024ULL * 1024ULL * 1024ULL * 2) || pData == nullptr)
+  if (size > (1024ULL * 1024ULL * 1024ULL * 2) || buf == nullptr)
     return seed;
 
   uint32_t ret = 0x0;
 
   auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+    SK_SEH_ApplyTranslator (
+      SK_FilteringStructuredExceptionTranslator (
+                            EXCEPTION_ACCESS_VIOLATION
+                           )                    );
   try
   {
-    //static bool TOS =
-    //  SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Symphonia;
-    //if (TOS)
-    //  return crc32 (seed, pData, size);
-
     ret =
-      crc32c (seed, pData, size);
+      crc32c (seed, buf, size);
   }
 
-  //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ) ?
-  //           EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH )
-  catch (const SK_SEH_IgnoredException&)
+  catch (const SK_SEH_IgnoredException &e)
   {
-    dll_log->Log (L"safe_crc32c SEH Exception - Read Invalid Address.");
+    SK_ImGui_Warning
+    ( SK_FormatStringW
+      ( L"Access Violation Exception During safe_crc32c: "
+        L"%hs", e.what () )
+                 .c_str()
+    );
   }
-  SK_SEH_RemoveTranslator (orig_se);
 
-  return ret;
+  SK_SEH_RemoveTranslator (
+    orig_se
+  );
+
+  return
+    ret;
 }
 
 SK_LazyGlobal <std::set <uint32_t>> resample_blacklist;
@@ -1826,7 +1832,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
       pTex->load_time = (float)( 1000.0 *
                           (double)(end.QuadPart - start.QuadPart) /
-                          (double)SK_GetPerfFreq ().QuadPart );
+                          (double)SK_QpcFreq );
 
       tex_mgr.addTexture (checksum, pTex, SrcDataSize);
     }
@@ -1969,7 +1975,7 @@ SK::D3D9::TextureManager::getTexture (uint32_t checksum)
   {
     std::vector <ISKTextureD3D9 *> unremove_textures;
 
-    auto& _remove_textures = remove_textures.get ();
+    static auto& _remove_textures = remove_textures.get ();
 
     auto  rem   = _remove_textures.cbegin ();
     while (rem != _remove_textures.cend   ())
@@ -2515,7 +2521,7 @@ SK::D3D9::TextureManager::purge (void)
   if (shutting_down)
     return;
 
-  auto& _remove_textures = remove_textures.get ();
+  static auto& _remove_textures = remove_textures.get ();
 
   int      released           = 0;
   int      released_injected  = 0;
@@ -2699,7 +2705,7 @@ SK::D3D9::TextureManager::reset (void)
 
   QueryPerformanceCounter_Original (&liLastReset);
 
-  auto& _remove_textures = remove_textures.get ();
+  static auto& _remove_textures = remove_textures.get ();
 
   if (! outstanding_screenshots.empty ())
   {
@@ -3984,7 +3990,7 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
       pCacheTex->load_time = (float)( 1000.0 *
                                (double)( end_map.QuadPart - begin_map.QuadPart ) /
-                               (double)(            SK_GetPerfFreq ().QuadPart ) );
+                               (double)(   SK_QpcFreq       ) );
 
       //if (desc.Pool == D3DPOOL_MANAGED)
       //{

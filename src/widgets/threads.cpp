@@ -523,12 +523,8 @@ SK_LazyGlobal <std::map <LONGLONG, SKWG_Thread_Entry*>> SKWG_Ordered_Threads;
 
 struct SK_ProcessTimeCounters
 {
-  FILETIME ftCreate, ftExit,
-           ftKernel, ftUser;
-
-  constexpr SK_ProcessTimeCounters (void) :
-                  ftCreate ({ 0LL, 0LL }), ftKernel ({ 0LL, 0LL }),
-                  ftUser   ({ 0LL, 0LL }), ftExit   ({ 0LL, 0LL }) { }
+  FILETIME ftCreate { 0UL, 0UL }, ftExit { 0UL, 0UL },
+           ftKernel { 0UL, 0UL }, ftUser { 0UL, 0UL };
 };
 
 SK_LazyGlobal <SK_ProcessTimeCounters> process_time;
@@ -1080,33 +1076,39 @@ public:
         SK_Thread_CreateEx ([](LPVOID user) ->
           DWORD
           {
-            auto& _process_time =
-                   process_time.get ();
+            auto&
+              _process_time =
+               process_time.get ();
 
             SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
             SK_TLS* pTLS =
-              SK_TLS_Bottom ();
+                  SK_TLS_Bottom ();
 
-            SK_Thread_DataCollector* pParams =
-              reinterpret_cast <SK_Thread_DataCollector*>(user);
+            auto pParams =
+              reinterpret_cast <SK_Thread_DataCollector *>(user);
 
             HANDLE hSignals [] = {
               pParams->hSignalProduce,
               pParams->hSignalShutdown
             };
 
-            DWORD dwWaitState = 0;
-            int   write_idx   = 0;
-            int   read_idx    = 1;
+            HANDLE hCurrentProcess = GetCurrentProcess ();
+            DWORD  dwWaitState     = 0;
+            int    write_idx       = 0;
+            int    read_idx        = 1;
 
             constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
             constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
 
+            static auto& rb =
+              SK_GetCurrentRenderBackend ();
+
             do
             {
               dwWaitState =
-                 WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
+                 WaitForMultipleObjects ( 2,
+                            hSignals, FALSE, INFINITE );
 
               if (dwWaitState == WAIT_PRODUCE_DATA)
               {
@@ -1114,36 +1116,55 @@ public:
                 ULONG64 ullFrameStart = SK_GetFramesDrawn ();
                 while ( ullFrameStart > SK_GetFramesDrawn () - 2 )
                 {
-                  if ( SK_WaitForSingleObject (pParams->hSignalShutdown, 33) != WAIT_TIMEOUT )
+                  DWORD dwMsToWait =
+                    std::min ( 100UL,
+                      static_cast <DWORD> (
+                              ( 2ULL * rb.frame_delta.getDeltaTime () ) /
+                                                   ( SK_QpcTicksPerMs )
+                             )            );
+
+                  if ( WAIT_TIMEOUT !=
+                         SK_WaitForSingleObject ( pParams->hSignalShutdown,
+                                                    dwMsToWait )
+                     )
                   {
-                    dwWaitState = WAIT_SHUTDOWN_THREAD;
+                    dwWaitState =
+                      WAIT_SHUTDOWN_THREAD;
+
                     break;
                   }
                 }
               }
 
-              SK_NtQuerySystemInformation* pWrite =
-                &pTLS->local_scratch->query [write_idx];
+              SK_NtQuerySystemInformation*  pWrite
+              = &pTLS->local_scratch->query [write_idx];
 
               if (dwWaitState == WAIT_PRODUCE_DATA)
               {
-                ProcessInformation (nullptr, &pWrite->NtStatus, pWrite);
+                ProcessInformation ( nullptr,
+                           &pWrite->NtStatus,
+                            pWrite );
 
-                if (pWrite->NtStatus == STATUS_SUCCESS)
+                if (STATUS_SUCCESS == pWrite->NtStatus)
                 {
                   // Cumulative times; sample them as close to the thread snapshot as possible or
                   //   the load %'s will not be accurate.
-                  GetProcessTimes ( GetCurrentProcess (), &_process_time.ftCreate, &_process_time.ftExit,
-                                                          &_process_time.ftKernel, &_process_time.ftUser );
+                  GetProcessTimes (   hCurrentProcess,
+                   &_process_time.ftCreate, &_process_time.ftExit,
+                   &_process_time.ftKernel, &_process_time.ftUser
+                                  );
 
-                  std::swap (write_idx, read_idx);
+                  std::swap ( write_idx,
+                               read_idx );
 
                   InterlockedExchangePointer (
-                       (void**)&pParams->pQuery,
+                      (void **)&pParams->pQuery,
                     &pTLS->local_scratch->query [read_idx]
                   );
 
-                  SetEvent (pParams->hSignalConsume);
+                  SetEvent (
+                    pParams->hSignalConsume
+                  );
                 }
               }
             } while (dwWaitState != WAIT_SHUTDOWN_THREAD);
@@ -1159,7 +1180,7 @@ public:
 
     ~SK_Thread_DataCollector (void)
     {
-      SignalObjectAndWait (hSignalShutdown, hProduceThread, 250, FALSE);
+      SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
       CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
       CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
     }
@@ -1174,11 +1195,11 @@ public:
                       setBorder       (true);
   };
 
-  void run (void) override
+  void run (void) noexcept override
   {
-    extern bool
-        __SK_Wine;
-    if (__SK_Wine)
+    // Thread profiling currently does not work in WINE
+    //
+    if (config.compatibility.using_wine)
       return;
 
     std::scoped_lock <std::mutex>
@@ -1567,7 +1588,7 @@ public:
   }
 
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     std::scoped_lock <std::mutex>
                 lock (run_lock);
@@ -1667,13 +1688,32 @@ public:
 
         LONG64 steam_calls = ReadAcquire64 (&pTLS->steam->callback_count);
 
+        ULONG64 present_calls =
+          ReadULong64Acquire (&pTLS->render->frames_presented);
+
+        if (present_calls > 0)
+        {
+          ImGui::Separator  ();
+
+          ImGui::BeginGroup ();
+          ImGui::TextUnformatted
+                            ("Frames Submitted:\t");
+          ImGui::EndGroup   ();
+
+          ImGui::SameLine   ();
+
+          ImGui::BeginGroup ();
+          ImGui::Text       ("%lli", present_calls);
+          ImGui::EndGroup   ();
+        }
+
         if ( steam_calls > 0 )
         {
           ImGui::Separator  ();
 
           ImGui::BeginGroup ();
           ImGui::TextUnformatted
-                            ("Steam Callbacks:\t");
+                            ("Steam Callbacks: \t");
           ImGui::EndGroup   ();
 
           ImGui::SameLine   ();
@@ -1798,8 +1838,26 @@ public:
 
       for ( auto& task : tasks )
       {
-        if (task == nullptr)
+        if (task == nullptr || task->dwTid == 0)
           continue;
+
+        if (task->dwTid != 0)
+        {
+          CHandle hThread (
+            OpenThread (THREAD_QUERY_INFORMATION, FALSE, task->dwTid)
+          );
+
+          DWORD dwTaskCode = 0;
+          if (                      hThread.m_h == 0           ||
+              (! GetExitCodeThread (hThread.m_h, &dwTaskCode)) ||
+                                                  dwTaskCode != STILL_ACTIVE)
+          {
+            extern bool
+                SK_MMCS_RemoveTask (DWORD dwTid);
+            if (SK_MMCS_RemoveTask (task->dwTid))
+              continue;
+          }
+        }
 
         fSpacingMax =
           std::fmaxf ( ImGui::CalcTextSize (task->name).x,
@@ -1809,7 +1867,7 @@ public:
       ImGui::Columns (2);//(4);
       for ( auto& task : tasks )
       {
-        if (task == nullptr)
+        if (task == nullptr || task->dwTid == 0)
           continue;
 
         ImGui::PushID  (task->dwTid);
@@ -2570,7 +2628,8 @@ public:
     static DWORD    dwLastSnap = 0;
     static FILETIME ftSnapKernel, ftSnapUser;
 
-    auto& _process_time = process_time.get ();
+    static auto& _process_time =
+                  process_time.get ();
 
     if ( (reset_stats && (dwLastSnap < dwNow - SNAP_FREQUENCY)) ||
           clear_counters )

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -40,8 +40,538 @@
 #include <atlbase.h>
 #include <cstdint>
 
+#include <dxmini.h>
+
+typedef UINT32          D3DKMT_HANDLE;
+typedef D3DKMT_HANDLE *PD3DKMT_HANDLE;
+
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
 #include <SpecialK/render/screenshot.h>
+#include <SpecialK/utility.h>
+
+#pragma pack (push,1)
+typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
+
+typedef UINT32          D3DKMT_HANDLE;
+typedef D3DKMT_HANDLE *PD3DKMT_HANDLE;
+
+typedef struct _D3DKMT_OPENADAPTERFROMHDC
+{
+  HDC                            hDc;            // in:  DC that maps to a single display
+  D3DKMT_HANDLE                  hAdapter;       // out: adapter handle
+  LUID                           AdapterLuid;    // out: adapter LUID
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;  // out: VidPN source ID for that particular display
+} D3DKMT_OPENADAPTERFROMHDC;
+
+typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_OPENADAPTERFROMHDC)(_Inout_ D3DKMT_OPENADAPTERFROMHDC*);
+
+// Represents performance data collected per engine from an adapter on an interval basis.
+typedef struct _D3DKMT_NODE_PERFDATA
+{
+  _In_  UINT32    NodeOrdinal;          // Node ordinal of the requested engine.
+  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
+  _Out_ ULONGLONG Frequency;            // Clock frequency of the requested engine, represented in hertz.
+  _Out_ ULONGLONG MaxFrequency;         // The max frequency the engine can normally reach in hertz while not overclocked.
+  _Out_ ULONGLONG MaxFrequencyOC;       // The max frequency the engine can reach with it�s current overclock in hertz.
+  _Out_ ULONG     Voltage;              // Voltage of the engine in milli volts mV
+  _Out_ ULONG     VoltageMax;           // The max voltage of the engine in milli volts while not overclocked.
+  _Out_ ULONG     VoltageMaxOC;         // The max voltage of the engine while overclocked in milli volts.
+  _Out_ ULONGLONG MaxTransitionLatency; // Max transition latency to change the frequency in 100 nanoseconds // REDSTONE5
+} D3DKMT_NODE_PERFDATA;
+
+// Represents performance data collected per adapter on an interval basis.
+typedef struct _D3DKMT_ADAPTER_PERFDATA
+{
+  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
+  _Out_ ULONGLONG MemoryFrequency;      // Clock frequency of the memory in hertz
+  _Out_ ULONGLONG MaxMemoryFrequency;   // Max clock frequency of the memory while not overclocked, represented in hertz.
+  _Out_ ULONGLONG MaxMemoryFrequencyOC; // Clock frequency of the memory while overclocked in hertz.
+  _Out_ ULONGLONG MemoryBandwidth;      // Amount of memory transferred in bytes
+  _Out_ ULONGLONG PCIEBandwidth;        // Amount of memory transferred over PCI-E in bytes
+  _Out_ ULONG     FanRPM;               // Fan rpm
+  _Out_ ULONG     Power;                // Power draw of the adapter in tenths of a percentage
+  _Out_ ULONG     Temperature;          // Temperature in deci-Celsius 1 = 0.1C
+  _Out_ UCHAR     PowerStateOverride;   // Overrides dxgkrnls power view of linked adapters.
+} D3DKMT_ADAPTER_PERFDATA;
+
+// Represents data capabilities that are static and queried once per GPU during initialization.
+typedef struct _D3DKMT_ADAPTER_PERFDATACAPS
+{
+  _In_  UINT32    PhysicalAdapterIndex; // The physical adapter index in a LDA chain.
+  _Out_ ULONGLONG MaxMemoryBandwidth;   // Max memory bandwidth in bytes for 1 second
+  _Out_ ULONGLONG MaxPCIEBandwidth;     // Max pcie bandwidth in bytes for 1 second
+  _Out_ ULONG     MaxFanRPM;            // Max fan rpm
+  _Out_ ULONG     TemperatureMax;       // Max temperature before damage levels
+  _Out_ ULONG     TemperatureWarning;   // The temperature level where throttling begins.
+} D3DKMT_ADAPTER_PERFDATACAPS;
+
+typedef struct _D3DKMT_CREATEDEVICEFLAGS
+{
+  UINT    LegacyMode               :  1;   // 0x00000001
+  UINT    RequestVSync             :  1;   // 0x00000002
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  UINT    DisableGpuTimeout        :  1;   // 0x00000004
+  UINT    Reserved                 : 29;   // 0xFFFFFFF8
+#else
+  UINT    Reserved                 : 30;   // 0xFFFFFFFC
+#endif
+} D3DKMT_CREATEDEVICEFLAGS;
+
+typedef VOID D3DDDI_ALLOCATIONLIST;
+typedef VOID D3DDDI_PATCHLOCATIONLIST;
+
+typedef struct _D3DKMT_CREATEDEVICE
+{
+  union
+  {
+    D3DKMT_HANDLE           hAdapter;           // in: identifies the adapter for user-mode creation
+    VOID*                   pAdapter;           // in: identifies the adapter for kernel-mode creation
+  };
+
+  D3DKMT_CREATEDEVICEFLAGS  Flags;
+
+  D3DKMT_HANDLE             hDevice;                // out: Identifies the device
+  VOID*                     pCommandBuffer;         // out: D3D10 compatibility.
+  UINT                      CommandBufferSize;      // out: D3D10 compatibility.
+  D3DDDI_ALLOCATIONLIST*    pAllocationList;        // out: D3D10 compatibility.
+  UINT                      AllocationListSize;     // out: D3D10 compatibility.
+  D3DDDI_PATCHLOCATIONLIST* pPatchLocationList;     // out: D3D10 compatibility.
+  UINT                      PatchLocationListSize;  // out: D3D10 compatibility.
+} D3DKMT_CREATEDEVICE;
+
+typedef struct _D3DKMT_DESTROYDEVICE
+{
+  D3DKMT_HANDLE             hDevice;                // in: Indentifies the device
+}D3DKMT_DESTROYDEVICE;
+
+typedef UINT32 D3DKMT_HANDLE;
+
+typedef enum _D3DKMDT_GRAPHICS_PREEMPTION_GRANULARITY
+{
+  D3DKMDT_GRAPHICS_PREEMPTION_NONE                = 0,
+  D3DKMDT_GRAPHICS_PREEMPTION_DMA_BUFFER_BOUNDARY = 100,
+  D3DKMDT_GRAPHICS_PREEMPTION_PRIMITIVE_BOUNDARY  = 200,
+  D3DKMDT_GRAPHICS_PREEMPTION_TRIANGLE_BOUNDARY   = 300,
+  D3DKMDT_GRAPHICS_PREEMPTION_PIXEL_BOUNDARY      = 400,
+  D3DKMDT_GRAPHICS_PREEMPTION_SHADER_BOUNDARY     = 500,
+} D3DKMDT_GRAPHICS_PREEMPTION_GRANULARITY;
+
+typedef enum _D3DKMDT_COMPUTE_PREEMPTION_GRANULARITY
+{
+  D3DKMDT_COMPUTE_PREEMPTION_NONE                  = 0,
+  D3DKMDT_COMPUTE_PREEMPTION_DMA_BUFFER_BOUNDARY   = 100,
+  D3DKMDT_COMPUTE_PREEMPTION_DISPATCH_BOUNDARY     = 200,
+  D3DKMDT_COMPUTE_PREEMPTION_THREAD_GROUP_BOUNDARY = 300,
+  D3DKMDT_COMPUTE_PREEMPTION_THREAD_BOUNDARY       = 400,
+  D3DKMDT_COMPUTE_PREEMPTION_SHADER_BOUNDARY       = 500,
+} D3DKMDT_COMPUTE_PREEMPTION_GRANULARITY;
+
+typedef struct _D3DKMDT_PREEMPTION_CAPS
+{
+  D3DKMDT_GRAPHICS_PREEMPTION_GRANULARITY GraphicsPreemptionGranularity;
+  D3DKMDT_COMPUTE_PREEMPTION_GRANULARITY  ComputePreemptionGranularity;
+} D3DKMDT_PREEMPTION_CAPS;
+
+typedef struct _D3DKMT_WDDM_1_2_CAPS
+{
+  D3DKMDT_PREEMPTION_CAPS PreemptionCaps;
+  union {
+    struct {
+      UINT SupportNonVGA                       :  1;
+      UINT SupportSmoothRotation               :  1;
+      UINT SupportPerEngineTDR                 :  1;
+      UINT SupportKernelModeCommandBuffer      :  1;
+      UINT SupportCCD                          :  1;
+      UINT SupportSoftwareDeviceBitmaps        :  1;
+      UINT SupportGammaRamp                    :  1;
+      UINT SupportHWCursor                     :  1;
+      UINT SupportHWVSync                      :  1;
+      UINT SupportSurpriseRemovalInHibernation :  1;
+      UINT Reserved                            : 22;
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_1_2_CAPS;
+
+typedef struct _D3DKMT_WDDM_1_3_CAPS
+{
+  union {
+    struct {
+      UINT SupportMiracast               :  1;
+      UINT IsHybridIntegratedGPU         :  1;
+      UINT IsHybridDiscreteGPU           :  1;
+      UINT SupportPowerManagementPStates :  1;
+      UINT SupportVirtualModes           :  1;
+      UINT SupportCrossAdapterResource   :  1;
+      UINT Reserved                      : 26;
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_1_3_CAPS;
+
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_0
+typedef struct _D3DKMT_WDDM_2_0_CAPS
+{
+  union {
+    struct {
+      UINT Support64BitAtomics       : 1;
+      UINT GpuMmuSupported           : 1;
+      UINT IoMmuSupported            : 1;
+
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_4
+      // Since WDDM2_4
+      //
+      UINT FlipOverwriteSupported    : 1;
+      UINT SupportContextlessPresent : 1;
+
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_5
+      // Since WDDM2_5
+      //
+      UINT SupportSurpriseRemoval    :  1;
+      UINT Reserved                  : 26;
+#else
+      UINT Reserved                  : 27;
+#endif // !defined (DXGKDDI_INTERFACE_VERSION_WDDM2_5)
+#else
+      UINT Reserved                  : 29;
+#endif // !defined (DXGKDDI_INTERFACE_VERSION_WDDM2_4)
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_2_0_CAPS;
+#endif // !defined (DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_7
+typedef struct _D3DKMT_WDDM_2_7_CAPS
+{
+  union {
+    struct {
+      UINT HwSchSupported               :  1;    // Specifies whether the GPU supports hardware scheduling
+      UINT HwSchEnabled                 :  1;    // Specifies whether the hardware scheduling is currently enabled for this GPU
+      UINT HwSchEnabledByDefault        :  1;    // Set to 1 if the OS default policy is to enable hardware scheduling for this GPU
+      UINT IndependentVidPnVSyncControl :  1;
+      UINT Reserved                     : 28;
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_2_7_CAPS;
+#endif
+
+// Accomodate older build environments that do not define 2_9 and 3_0
+//
+//   -> When redistributables mature, remove this :)
+//
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_9
+typedef struct _D3DKMT_WDDM_2_9_CAPS {
+  union {
+    struct {
+      UINT HwSchSupportState          :  2;
+      UINT HwSchEnabled               :  1;
+      UINT SelfRefreshMemorySupported :  1;
+      UINT Reserved                   : 28;
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_2_9_CAPS;
+
+typedef struct _D3DKMT_WDDM_3_0_CAPS {
+  union {
+    struct {
+      UINT HwFlipQueueSupportState :  2;
+      UINT HwFlipQueueEnabled      :  1;
+      UINT DisplayableSupported    :  1;
+      UINT Reserved                : 28;
+    };
+    UINT Value;
+  };
+} D3DKMT_WDDM_3_0_CAPS;
+#endif
+
+struct SK_WDDM_CAPS {
+  D3DKMT_WDDM_1_2_CAPS _1_2 = { };
+  D3DKMT_WDDM_1_3_CAPS _1_3 = { };
+  D3DKMT_WDDM_2_0_CAPS _2_0 = { };
+  D3DKMT_WDDM_2_7_CAPS _2_7 = { };
+  D3DKMT_WDDM_2_9_CAPS _2_9 = { };
+  D3DKMT_WDDM_3_0_CAPS _3_0 = { };
+
+  void init (void);
+} extern SK_WDDM_SupportedCaps;
+
+typedef enum _KMTQUERYADAPTERINFOTYPE
+{
+  KMTQAITYPE_UMDRIVERPRIVATE                          =  0,
+  KMTQAITYPE_UMDRIVERNAME                             =  1, // D3DKMT_UMDFILENAMEINFO
+  KMTQAITYPE_UMOPENGLINFO                             =  2, // D3DKMT_OPENGLINFO
+  KMTQAITYPE_GETSEGMENTSIZE                           =  3, // D3DKMT_SEGMENTSIZEINFO
+  KMTQAITYPE_ADAPTERGUID                              =  4, // GUID
+  KMTQAITYPE_FLIPQUEUEINFO                            =  5, // D3DKMT_FLIPQUEUEINFO
+  KMTQAITYPE_ADAPTERADDRESS                           =  6, // D3DKMT_ADAPTERADDRESS
+  KMTQAITYPE_SETWORKINGSETINFO                        =  7, // D3DKMT_WORKINGSETINFO
+  KMTQAITYPE_ADAPTERREGISTRYINFO                      =  8, // D3DKMT_ADAPTERREGISTRYINFO
+  KMTQAITYPE_CURRENTDISPLAYMODE                       =  9, // D3DKMT_CURRENTDISPLAYMODE
+  KMTQAITYPE_MODELIST                                 = 10, // D3DKMT_DISPLAYMODE (array)
+  KMTQAITYPE_CHECKDRIVERUPDATESTATUS                  = 11,
+  KMTQAITYPE_VIRTUALADDRESSINFO                       = 12, // D3DKMT_VIRTUALADDRESSINFO
+  KMTQAITYPE_DRIVERVERSION                            = 13, // D3DKMT_DRIVERVERSION
+  KMTQAITYPE_ADAPTERTYPE                              = 15, // D3DKMT_ADAPTERTYPE // since WIN8
+  KMTQAITYPE_OUTPUTDUPLCONTEXTSCOUNT                  = 16, // D3DKMT_OUTPUTDUPLCONTEXTSCOUNT
+  KMTQAITYPE_WDDM_1_2_CAPS                            = 17, // D3DKMT_WDDM_1_2_CAPS
+  KMTQAITYPE_UMD_DRIVER_VERSION                       = 18, // D3DKMT_UMD_DRIVER_VERSION
+  KMTQAITYPE_DIRECTFLIP_SUPPORT                       = 19, // D3DKMT_DIRECTFLIP_SUPPORT
+  KMTQAITYPE_MULTIPLANEOVERLAY_SUPPORT                = 20, // D3DKMT_MULTIPLANEOVERLAY_SUPPORT // since WDDM1_3
+  KMTQAITYPE_DLIST_DRIVER_NAME                        = 21, // D3DKMT_DLIST_DRIVER_NAME
+  KMTQAITYPE_WDDM_1_3_CAPS                            = 22, // D3DKMT_WDDM_1_3_CAPS
+  KMTQAITYPE_MULTIPLANEOVERLAY_HUD_SUPPORT            = 23, // D3DKMT_MULTIPLANEOVERLAY_HUD_SUPPORT
+  KMTQAITYPE_WDDM_2_0_CAPS                            = 24, // D3DKMT_WDDM_2_0_CAPS // since WDDM2_0
+  KMTQAITYPE_NODEMETADATA                             = 25, // D3DKMT_NODEMETADATA
+  KMTQAITYPE_CPDRIVERNAME                             = 26, // D3DKMT_CPDRIVERNAME
+  KMTQAITYPE_XBOX                                     = 27, // D3DKMT_XBOX
+  KMTQAITYPE_INDEPENDENTFLIP_SUPPORT                  = 28, // D3DKMT_INDEPENDENTFLIP_SUPPORT
+  KMTQAITYPE_MIRACASTCOMPANIONDRIVERNAME              = 29, // D3DKMT_MIRACASTCOMPANIONDRIVERNAME
+  KMTQAITYPE_PHYSICALADAPTERCOUNT                     = 30, // D3DKMT_PHYSICAL_ADAPTER_COUNT
+  KMTQAITYPE_PHYSICALADAPTERDEVICEIDS                 = 31, // D3DKMT_QUERY_DEVICE_IDS
+  KMTQAITYPE_DRIVERCAPS_EXT                           = 32, // D3DKMT_DRIVERCAPS_EXT
+  KMTQAITYPE_QUERY_MIRACAST_DRIVER_TYPE               = 33, // D3DKMT_QUERY_MIRACAST_DRIVER_TYPE
+  KMTQAITYPE_QUERY_GPUMMU_CAPS                        = 34, // D3DKMT_QUERY_GPUMMU_CAPS
+  KMTQAITYPE_QUERY_MULTIPLANEOVERLAY_DECODE_SUPPORT   = 35, // D3DKMT_MULTIPLANEOVERLAY_DECODE_SUPPORT
+  KMTQAITYPE_QUERY_HW_PROTECTION_TEARDOWN_COUNT       = 36, // UINT32
+  KMTQAITYPE_QUERY_ISBADDRIVERFORHWPROTECTIONDISABLED = 37, // D3DKMT_ISBADDRIVERFORHWPROTECTIONDISABLED
+  KMTQAITYPE_MULTIPLANEOVERLAY_SECONDARY_SUPPORT      = 38, // D3DKMT_MULTIPLANEOVERLAY_SECONDARY_SUPPORT
+  KMTQAITYPE_INDEPENDENTFLIP_SECONDARY_SUPPORT        = 39, // D3DKMT_INDEPENDENTFLIP_SECONDARY_SUPPORT
+  KMTQAITYPE_PANELFITTER_SUPPORT                      = 40, // D3DKMT_PANELFITTER_SUPPORT // since WDDM2_1
+  KMTQAITYPE_PHYSICALADAPTERPNPKEY                    = 41, // D3DKMT_QUERY_PHYSICAL_ADAPTER_PNP_KEY // since WDDM2_2
+  KMTQAITYPE_GETSEGMENTGROUPSIZE                      = 42, // D3DKMT_SEGMENTGROUPSIZEINFO
+  KMTQAITYPE_MPO3DDI_SUPPORT                          = 43, // D3DKMT_MPO3DDI_SUPPORT
+  KMTQAITYPE_HWDRM_SUPPORT                            = 44, // D3DKMT_HWDRM_SUPPORT
+  KMTQAITYPE_MPOKERNELCAPS_SUPPORT                    = 45, // D3DKMT_MPOKERNELCAPS_SUPPORT
+  KMTQAITYPE_MULTIPLANEOVERLAY_STRETCH_SUPPORT        = 46, // D3DKMT_MULTIPLANEOVERLAY_STRETCH_SUPPORT
+  KMTQAITYPE_GET_DEVICE_VIDPN_OWNERSHIP_INFO          = 47, // D3DKMT_GET_DEVICE_VIDPN_OWNERSHIP_INFO
+  KMTQAITYPE_QUERYREGISTRY                            = 48, // D3DDDI_QUERYREGISTRY_INFO // since WDDM2_4
+  KMTQAITYPE_KMD_DRIVER_VERSION                       = 49, // D3DKMT_KMD_DRIVER_VERSION
+  KMTQAITYPE_BLOCKLIST_KERNEL                         = 50, // D3DKMT_BLOCKLIST_INFO ??
+  KMTQAITYPE_BLOCKLIST_RUNTIME                        = 51, // D3DKMT_BLOCKLIST_INFO ??
+  KMTQAITYPE_ADAPTERGUID_RENDER                       = 52, // GUID
+  KMTQAITYPE_ADAPTERADDRESS_RENDER                    = 53, // D3DKMT_ADAPTERADDRESS
+  KMTQAITYPE_ADAPTERREGISTRYINFO_RENDER               = 54, // D3DKMT_ADAPTERREGISTRYINFO
+  KMTQAITYPE_CHECKDRIVERUPDATESTATUS_RENDER           = 55,
+  KMTQAITYPE_DRIVERVERSION_RENDER                     = 56, // D3DKMT_DRIVERVERSION
+  KMTQAITYPE_ADAPTERTYPE_RENDER                       = 57, // D3DKMT_ADAPTERTYPE
+  KMTQAITYPE_WDDM_1_2_CAPS_RENDER                     = 58, // D3DKMT_WDDM_1_2_CAPS
+  KMTQAITYPE_WDDM_1_3_CAPS_RENDER                     = 59, // D3DKMT_WDDM_1_3_CAPS
+  KMTQAITYPE_QUERY_ADAPTER_UNIQUE_GUID                = 60, // D3DKMT_QUERY_ADAPTER_UNIQUE_GUID
+  KMTQAITYPE_NODEPERFDATA                             = 61, // D3DKMT_NODE_PERFDATA
+  KMTQAITYPE_ADAPTERPERFDATA                          = 62, // D3DKMT_ADAPTER_PERFDATA
+  KMTQAITYPE_ADAPTERPERFDATA_CAPS                     = 63, // D3DKMT_ADAPTER_PERFDATACAPS
+  KMTQUITYPE_GPUVERSION                               = 64, // D3DKMT_GPUVERSION
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_6
+  // WDDM2_6
+  KMTQAITYPE_DRIVER_DESCRIPTION                       = 65, // D3DKMT_DRIVER_DESCRIPTION
+  KMTQAITYPE_DRIVER_DESCRIPTION_RENDER                = 66, // D3DKMT_DRIVER_DESCRIPTION
+  KMTQAITYPE_SCANOUT_CAPS                             = 67, // D3DKMT_QUERY_SCANOUT_CAPS
+  KMTQAITYPE_PARAVIRTUALIZATION_RENDER                = 68, // D3DKMT_PARAVIRTUALIZATION
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_7
+  // WDDM2_7
+  KMTQAITYPE_SERVICENAME                              = 69,
+  KMTQAITYPE_WDDM_2_7_CAPS                            = 70, // D3DKMT_WDDM_2_7_CAPS
+  KMTQAITYPE_DISPLAY_UMDRIVERNAME                     = 71, // Added in 19H2
+  KMTQAITYPE_TRACKEDWORKLOAD_SUPPORT                  = 72,
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_8
+  // WDDM2_8
+  KMTQAITYPE_HYBRID_DLIST_DLL_SUPPORT                 = 73,
+  KMTQAITYPE_DISPLAY_CAPS                             = 74,
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM2_9
+  // WDDM2_9
+  KMTQAITYPE_WDDM_2_9_CAPS                            = 75, // D3DKMT_WDDM_2_9_CAPS
+  KMTQAITYPE_CROSSADAPTERRESOURCE_SUPPORT             = 76,
+#ifndef DXGKDDI_INTERFACE_VERSION_WDDM3_0
+  // WDDM3_0
+  KMTQAITYPE_WDDM_3_0_CAPS                            = 77, // D3DKMT_WDDM_3_0_CAPS
+#endif // DXGKDDI_INTERFACE_VERSION_WDDM3_0
+#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_9
+#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_8
+#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_7
+#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_6
+  D3DKMT_FORCE_DWORD                                  = 0x7fffffff
+} KMTQUERYADAPTERINFOTYPE;
+
+typedef struct _D3DKMT_QUERYADAPTERINFO
+{
+  _In_                                     D3DKMT_HANDLE           AdapterHandle;
+  _In_                                     KMTQUERYADAPTERINFOTYPE Type;
+  _Inout_bytecount_(PrivateDriverDataSize) PVOID                   PrivateDriverData;
+  _Out_      UINT32 PrivateDriverDataSize;
+} D3DKMT_QUERYADAPTERINFO;
+
+typedef struct _D3DKMT_OPENADAPTERFROMLUID {
+  LUID          AdapterLuid;
+  D3DKMT_HANDLE hAdapter;
+} D3DKMT_OPENADAPTERFROMLUID;
+
+typedef struct _D3DKMT_CLOSEADAPTER {
+  D3DKMT_HANDLE hAdapter;
+} D3DKMT_CLOSEADAPTER;
+
+#define D3DKMT_MAX_PRESENT_HISTORY_RECTS       16
+#define D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS 12
+
+typedef enum _D3DKMT_PRESENT_MODEL {
+  D3DKMT_PM_UNINITIALIZED           = 0,
+  D3DKMT_PM_REDIRECTED_GDI          = 1,
+  D3DKMT_PM_REDIRECTED_FLIP         = 2,
+  D3DKMT_PM_REDIRECTED_BLT          = 3,
+  D3DKMT_PM_REDIRECTED_VISTABLT     = 4,
+  D3DKMT_PM_SCREENCAPTUREFENCE      = 5,
+  D3DKMT_PM_REDIRECTED_GDI_SYSMEM   = 6,
+  D3DKMT_PM_REDIRECTED_COMPOSITION  = 7
+} D3DKMT_PRESENT_MODEL;
+
+typedef enum D3DDDI_FLIPINTERVAL_TYPE {
+  D3DDDI_FLIPINTERVAL_IMMEDIATE,
+  D3DDDI_FLIPINTERVAL_ONE,
+  D3DDDI_FLIPINTERVAL_TWO,
+  D3DDDI_FLIPINTERVAL_THREE,
+  D3DDDI_FLIPINTERVAL_FOUR,
+  D3DDDI_FLIPINTERVAL_IMMEDIATE_ALLOW_TEARING
+} ;
+
+typedef struct _D3DKMT_FENCE_PRESENTHISTORYTOKEN {
+  UINT64 Key;
+} D3DKMT_FENCE_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN {
+  ULONG64 hlsurf;
+  DWORD   dwDirtyFlags;
+  UINT64  uiCookie;
+} D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_DIRTYREGIONS {
+  UINT NumRects;
+  RECT Rects [D3DKMT_MAX_PRESENT_HISTORY_RECTS];
+} D3DKMT_DIRTYREGIONS;
+
+typedef struct _D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN {
+  ULONG64             hLogicalSurface;
+  ULONG64             hPhysicalSurface;
+  RECT                ScrollRect;
+  POINT               ScrollOffset;
+  D3DKMT_DIRTYREGIONS DirtyRegions;
+} D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS {
+  union {
+    struct {
+      UINT Video                         :  1;
+      UINT RestrictedContent             :  1;
+      UINT ClipToView                    :  1;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+      UINT StereoPreferRight             :  1;
+      UINT TemporaryMono                 :  1;
+      UINT FlipRestart                   :  1;
+      UINT ScatterBlt                    :  1;
+      UINT AlphaMode                     :  2;
+      UINT SignalLimitOnTokenCompletion  :  1;
+      UINT Reserved                      : 22;
+#else
+      UINT Reserved  :29;
+#endif
+    };
+    UINT   Value;
+  };
+} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS;
+
+typedef struct _D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN {
+  ULONG64             hLogicalSurface;
+  ULONG64             hPhysicalSurface;
+  ULONG64             EventId;
+  D3DKMT_DIRTYREGIONS DirtyRegions;
+} D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN;
+
+typedef enum _D3DDDI_ROTATION {
+  D3DDDI_ROTATION_IDENTITY,
+  D3DDDI_ROTATION_90,
+  D3DDDI_ROTATION_180,
+  D3DDDI_ROTATION_270
+} D3DDDI_ROTATION;
+
+typedef struct _D3DKMT_SCATTERBLT
+{
+  ULONG64 hLogicalSurfaceDestination;
+  LONG64  hDestinationCompSurfDWM;
+  UINT64  DestinationCompositionBindingId;
+  RECT    SourceRect;
+  POINT   DestinationOffset;
+} D3DKMT_SCATTERBLT;
+
+typedef struct _D3DKMT_SCATTERBLTS {
+  UINT              NumBlts;
+  D3DKMT_SCATTERBLT Blts [D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS];
+} D3DKMT_SCATTERBLTS;
+
+typedef struct _D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN {
+  UINT64                                    FenceValue;
+  ULONG64                                   hLogicalSurface;
+  UINT                                      SwapChainIndex;
+  UINT64                                    PresentLimitSemaphoreId;
+  D3DDDI_FLIPINTERVAL_TYPE                  FlipInterval;
+  D3DKMT_FLIPMODEL_PRESENTHISTORYTOKENFLAGS Flags;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  LONG64                                    hCompSurf;
+  UINT64                                    CompositionSyncKey;
+  UINT                                      RemainingTokens;
+  RECT                                      ScrollRect;
+  POINT                                     ScrollOffset;
+  UINT                                      PresentCount;
+  FLOAT                                     RevealColor[4];
+  D3DDDI_ROTATION                           Rotation;
+  D3DKMT_SCATTERBLTS                        ScatterBlts;
+  D3DKMT_HANDLE                             hSyncObject;
+#endif
+  D3DKMT_DIRTYREGIONS                       DirtyRegions;
+} D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN {
+  ULONG64 hPrivateData;
+} D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN;
+
+typedef ULONGLONG  D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_PRESENTHISTORYTOKEN {
+  D3DKMT_PRESENT_MODEL Model;
+  UINT                 TokenSize;
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WIN8)
+  UINT64               CompositionBindingId;
+#endif
+  union {
+    D3DKMT_FLIPMODEL_PRESENTHISTORYTOKEN       Flip;
+    D3DKMT_BLTMODEL_PRESENTHISTORYTOKEN        Blt;
+    D3DKMT_VISTABLTMODEL_PRESENTHISTORYTOKEN   VistaBlt;
+    D3DKMT_GDIMODEL_PRESENTHISTORYTOKEN        Gdi;
+    D3DKMT_FENCE_PRESENTHISTORYTOKEN           Fence;
+    D3DKMT_GDIMODEL_SYSMEM_PRESENTHISTORYTOKEN GdiSysMem;
+    D3DKMT_COMPOSITION_PRESENTHISTORYTOKEN     Composition;
+  } Token;
+} D3DKMT_PRESENTHISTORYTOKEN;
+
+typedef struct _D3DKMT_GETPRESENTHISTORY {
+  D3DKMT_HANDLE              hAdapter;
+  UINT                       ProvidedSize;
+  UINT                       WrittenSize;
+  D3DKMT_PRESENTHISTORYTOKEN *pTokens;
+  UINT                       NumTokens;
+} D3DKMT_GETPRESENTHISTORY;
+
+typedef struct _D3DKMT_DEVICEPRESENT_QUEUE_STATE {
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+  BOOLEAN                        bQueuedPresentLimitReached;
+} D3DKMT_DEVICEPRESENT_QUEUE_STATE;
+#pragma pack (pop)
+
+typedef NTSTATUS (NTAPI *PFND3DKMT_QUERYADAPTERINFO)(    D3DKMT_QUERYADAPTERINFO    *pData);
+typedef NTSTATUS (NTAPI *PFND3DKMT_OPENADAPTERFROMLUID)( D3DKMT_OPENADAPTERFROMLUID *unnamedParam1);
+typedef NTSTATUS (NTAPI *PFND3DKMT_CLOSEADAPTER)(        D3DKMT_CLOSEADAPTER        *unnamedParam1);
+typedef NTSTATUS (NTAPI *PFND3DKMT_CREATEDEVICE)(        D3DKMT_CREATEDEVICE        *unnamedParam1);
+typedef NTSTATUS (NTAPI *PFND3DKMT_DESTROYDEVICE)(const  D3DKMT_DESTROYDEVICE       *unnamedParam1);
 
 class SK_RenderBackend_V1
 {
@@ -120,8 +650,7 @@ operator"" _Nits ( long double whitepoint_scalar ) noexcept
     static_cast <float> ( whitepoint_scalar / 80.0F );
 }
 
-#pragma pack(push)
-#pragma pack(8)
+#pragma pack(push,8)
 struct SK_ColorSpace {
   float xr, yr,
         xg, yg,
@@ -130,7 +659,6 @@ struct SK_ColorSpace {
 
   float minY, maxLocalY, maxAverageY, maxY;
 };
-
 
 const wchar_t*
 HDRModeToStr (NV_HDR_MODE mode);
@@ -141,11 +669,12 @@ public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
-  SK_ComPtr <IUnknown>   device                = nullptr;
-  SK_ComPtr <IUnknown>   swapchain             = nullptr;
+  SK_ComPtr <IUnknown>    device               = nullptr;
+  SK_ComPtr <IUnknown>    swapchain            = nullptr;
   SK_ComPtr <IDXGIFactory1>
-                         factory               = nullptr; // Used to enumerate display modes, the rb doesn't create any resources
-  HMONITOR               monitor               = nullptr;
+                          factory              = nullptr; // Used to enumerate display modes, the rb doesn't create any resources
+  HMONITOR                monitor              = nullptr;
+  HMONITOR                next_monitor         = nullptr; // monitor != next_monitor during relocation
 
   // Different views of the same resource (API interop)
   struct {
@@ -155,6 +684,27 @@ public:
                           dxgi                 = nullptr;
     NVDX_ObjectHandle     nvapi                = nullptr;
   } surface;
+
+  struct {
+    D3DKMT_HANDLE         d3dkmt               =      0;
+    D3DDDI_VIDEO_PRESENT_SOURCE_ID
+                          VidPnSourceId        =      0;
+    LUID                  luid                 = { 0, 0 };
+
+    HANDLE                hWait;
+
+    struct {
+      D3DKMT_ADAPTER_PERFDATA data             = { };
+      LONG64                  sampled_frame    =  0;
+    } perf;
+
+    struct {
+      D3DKMT_HANDLE       hDevice              = 0;
+    } device;
+  } adapter;
+
+  static auto constexpr
+    _MAX_DISPLAYS = 16;
 
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
@@ -174,6 +724,7 @@ public:
     SK_ColorSpace         gamut           = { };
     DXGI_COLOR_SPACE_TYPE colorspace      = DXGI_COLOR_SPACE_CUSTOM;
     bool                  primary         = false;
+
     struct {
       bool                enabled         = false;
       bool                supported       = false;
@@ -182,8 +733,10 @@ public:
                           encoding        = DISPLAYCONFIG_COLOR_ENCODING_RGB;
     } hdr;
     bool                  attached        = false;
-    wchar_t               name      [128] =  { };
+    wchar_t               name      [64]  =  { };
     wchar_t               dxgi_name [32]  =  { };
+    wchar_t               path_name [128] =  { };
+    char                  full_name [128] =  { };
     HMONITOR              monitor         =   0;
     DISPLAYCONFIG_PATH_INFO
                           vidpn           =  { };
@@ -192,23 +745,55 @@ public:
       uint32_t            height          =   0;
       DXGI_RATIONAL       refresh         = { 0, 0 };
     } native;
+
     struct nvapi_ctx_s {
       NvPhysicalGpuHandle gpu_handle      =   0;
       NvDisplayHandle     display_handle  =   0;
       NvU32               display_id      =   0;
       NvU32               output_id       =   0;
     } nvapi;
-  } displays [16];
 
-  uint32_t                display_crc [16] = { }; // Quick detect for changing displays
+    struct signal_info_s {
+      char                type [32]       = { };
+      UINT                connector_idx   =  0;
 
+      struct timing_s {
+        UINT64            pixel_clock     =   0ULL;
+        DXGI_RATIONAL     hsync_freq      = { 0, 0 };
+        DXGI_RATIONAL     vsync_freq      = { 0, 0 };
+        SIZEL             active_size     = { 0, 0 };
+        SIZEL             total_size      = { 0, 0 };
+
+        union video_standard_s {
+          struct additional_info_s {
+            UINT32        videoStandard    : 16;
+            UINT32        vSyncFreqDivider :  6;
+            UINT32        reserved         : 10;
+          } _AdditionalSignalInfo;
+
+          UINT32          videoStandard;
+
+          const char*     toStr (void);
+        }                 videoStandard;
+
+        struct custom_wait_s {
+          HANDLE          hVBlankFront         =  0;
+          HANDLE          hVBlankBack          =  0;
+        } events;
+      } timing;
+    } signal;
+  } displays [_MAX_DISPLAYS];
+
+  int                     active_display       =  0;
+  uint32_t                display_crc
+                           [_MAX_DISPLAYS]     = { };  // Quick detect for changing displays
   bool                    stale_display_info   = true; // Output topology is stale, update it during getContainingOutput (...)
 
   struct scan_out_s {
-    int                   bpc                  = 8;
-    DXGI_COLOR_SPACE_TYPE colorspace_override  = DXGI_COLOR_SPACE_CUSTOM;
-    DXGI_COLOR_SPACE_TYPE dxgi_colorspace      = DXGI_COLOR_SPACE_CUSTOM;
-    DXGI_COLOR_SPACE_TYPE dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
+    int                        bpc                  = 8;
+    DXGI_COLOR_SPACE_TYPE      colorspace_override  = DXGI_COLOR_SPACE_CUSTOM;
+    DXGI_COLOR_SPACE_TYPE      dxgi_colorspace      = DXGI_COLOR_SPACE_CUSTOM;
+    DXGI_COLOR_SPACE_TYPE      dwm_colorspace       = DXGI_COLOR_SPACE_CUSTOM;
 
     struct nvapi_desc_s {
       bool                     active               = false;
@@ -219,9 +804,9 @@ public:
       } color_support_hdr = { };
 
       struct {
-        NvU32                  display_id      = std::numeric_limits <NvU32>::max ();
-        NV_HDR_CAPABILITIES_V2 hdr_caps        = { };
-        NV_HDR_COLOR_DATA_V2   hdr_data        = { };
+        NvU32                  display_id           = std::numeric_limits <NvU32>::max ();
+        NV_HDR_CAPABILITIES_V2 hdr_caps             = { };
+        NV_HDR_COLOR_DATA_V2   hdr_data             = { };
 
         // TODO
         //std::vector  <
@@ -234,14 +819,14 @@ public:
         //                                         NV_DYNAMIC_RANGE_AUTO ); }
       } raw = { };
 
-      NV_HDR_MODE         mode                 = NV_HDR_MODE_OFF;
-      NV_COLOR_FORMAT     color_format         = NV_COLOR_FORMAT_DEFAULT;
-      NV_DYNAMIC_RANGE    dynamic_range        = NV_DYNAMIC_RANGE_AUTO;
-      NV_BPC              bpc                  = NV_BPC_DEFAULT;
+      NV_HDR_MODE              mode                 = NV_HDR_MODE_OFF;
+      NV_COLOR_FORMAT          color_format         = NV_COLOR_FORMAT_DEFAULT;
+      NV_DYNAMIC_RANGE         dynamic_range        = NV_DYNAMIC_RANGE_AUTO;
+      NV_BPC                   bpc                  = NV_BPC_DEFAULT;
 
-      bool                isHDR10 (void) const noexcept
-                                               { return ( mode == NV_HDR_MODE_UHDA ||
-                                                          mode == NV_HDR_MODE_UHDA_PASSTHROUGH ); }
+      bool isHDR10 (void) const noexcept
+                                { return ( mode == NV_HDR_MODE_UHDA ||
+                                           mode == NV_HDR_MODE_UHDA_PASSTHROUGH ); }
 
       bool setColorEncoding_HDR ( NV_COLOR_FORMAT fmt,
                                   NV_BPC          bpc,
@@ -370,6 +955,27 @@ public:
     bool stale = true;
   } static latency;
 
+  struct frame_delta_s {
+    ULONG64  lastFrame = 0ULL;
+    ULONG64  lastDelta = 0ULL;
+
+    ULONG64 getDeltaTime (void)
+    {
+      return
+        lastDelta;
+    }
+
+    void    markFrame    (void)
+    {
+      ULONG64 thisFrame =
+        SK_QueryPerf ().QuadPart;
+
+      lastDelta =
+        ( thisFrame - lastFrame );
+
+      lastFrame = thisFrame;
+    }
+  } frame_delta;
 
   static volatile ULONG64 frames_drawn;
   static volatile LONG    flip_skip; // DXGI flip queue glitch reduction
@@ -469,7 +1075,11 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  volatile DWORD           thread       =  0;
+  //concurrency::concurrent_unordered_map <DWORD, ULONG64>
+  //                         present_history;
+  volatile DWORD    /*primary_*/thread  =  0;
+  volatile DWORD           last_thread  =  0;
+  volatile ULONG64         most_frames  =  0;
   SK_Thread_HybridSpinlock res_lock;
 
   bool canEnterFullscreen    (void);
@@ -485,6 +1095,7 @@ public:
   void            queueUpdateOutputs   (void);
   void            updateOutputTopology (void);
   const output_s* getContainingOutput  (const RECT& rkRect);
+  bool            assignOutputFromHWND (HWND hWndContainer);
 
   bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);
   bool getLatencyReportNV (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams);

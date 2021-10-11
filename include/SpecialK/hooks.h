@@ -295,4 +295,8 @@ MH_STATUS __stdcall SK_RemoveHook     (void *pTarget);
 MH_STATUS __stdcall SK_MinHook_Init   (void);
 MH_STATUS __stdcall SK_MinHook_UnInit (void);
 
+
+extern bool SK_EnableApplyQueuedHooks  (void);
+extern bool SK_DisableApplyQueuedHooks (void);
+
 #endif /* __SK__HOOKS_H__ */

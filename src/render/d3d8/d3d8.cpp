@@ -51,7 +51,7 @@ WaitForInit_D3D8 (void)
     SK_RunOnce (SK_BootD3D8 ());
   }
 
-  if (SK_TLS_Bottom ()->d3d8->ctx_init_thread)
+  if (SK_TLS_Bottom ()->render->d3d8->ctx_init_thread)
     return;
 
   // This is a hybrid spin; it will spin for up to 250 iterations before sleeping

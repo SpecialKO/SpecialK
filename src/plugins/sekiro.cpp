@@ -425,7 +425,7 @@ SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags
   {
     ULONG64 ulFrame = SK_GetFramesDrawn ();
 
-    auto& rb =
+    static auto& rb =
       SK_GetCurrentRenderBackend ();
 
 
@@ -583,7 +583,7 @@ SK_Sekiro_PlugInCfg (void)
 
       if (no_frame_limit)
       {
-        auto& rb =
+        static auto& rb =
           SK_GetCurrentRenderBackend ();
 
         static UINT                num_modes   = 0;

@@ -50,8 +50,8 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
 
     if (moveFrom.readback_ctx.pFence.p != nullptr)
     {
-      auto &&rFrom = moveFrom.readback_ctx,
-           &&rTo   =          readback_ctx;
+      auto &&rFrom = moveFrom.readback_ctx;
+      auto &&rTo   =          readback_ctx;
 
       rTo.pBackbufferSurface       = rFrom.pBackbufferSurface;
       rTo.pStagingBackbufferCopy   = rFrom.pStagingBackbufferCopy;
@@ -321,17 +321,16 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
   //  SK_D3D12_DeclareTexInjectScope ()
   //);
 
-  static auto& io =
-    ImGui::GetIO ();
-
   if ( pDevice    != nullptr &&
        pSwapChain != nullptr &&
        pCmdQueue  != nullptr )
   {
     readback_ctx.pCmdQueue = pCmdQueue;
 
+#ifdef HDR_CONVERT
     static auto& rb =
       SK_GetCurrentRenderBackend ();
+#endif
 
     SK_ComQIPtr <IDXGISwapChain4>
         pSwap4 (pSwapChain);
@@ -912,12 +911,13 @@ SK_D3D12_CaptureScreenshot (
 }
 
 bool
-SK_D3D12_Screenshot::getData ( UINT     *pWidth,
-                               UINT     *pHeight,
-                               uint8_t **ppData,
-                               bool      Wait ) noexcept
+SK_D3D12_Screenshot::getData ( UINT* const pWidth,
+                               UINT* const pHeight,
+                               uint8_t   **ppData,
+                               bool        Wait ) noexcept
 {
-  auto ReadBack = [&](void) -> bool
+  auto ReadBack =
+  [&]
   {
     auto& pStaging =
       getReadbackContext ()->pStagingBackbufferCopy;
@@ -1172,7 +1172,7 @@ SK_D3D12_ToggleGameHUD (void)
   static volatile LONG last_state =
     (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
 
-  if (ReadAcquire (&last_state))
+  if (ReadAcquire (&last_state) != 0)
   {
     SK_D3D12_HideGameHUD ();
 
@@ -1210,7 +1210,7 @@ SK_D3D12_RegisterHUDShader (        uint32_t  bytecode_crc32c,
 #ifdef SK_D3D12_HUDLESS
   SK_D3D12_KnownShaders::ShaderRegistry <IUnknown>* record =
     (SK_D3D12_KnownShaders::ShaderRegistry <IUnknown>*)&SK_D3D12_Shaders->vertex;
-
+  K
   auto& hud    =
     record->hud;
 
@@ -1314,7 +1314,8 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( (int)rb.api & (int)SK_RenderAPI::D3D12 )
+  if ( ((int)rb.api & (int)SK_RenderAPI::D3D12)
+                   == (int)SK_RenderAPI::D3D12)
   {
     static const
       std::map <SK_ScreenshotStage, int>
@@ -2326,7 +2327,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             SetEvent (signal.hq_encode);
           }
         }
-      } while (! ReadAcquire (&__SK_DLL_Ending));
+      } while (ReadAcquire (&__SK_DLL_Ending) == FALSE);
 
       SK_Thread_CloseSelf ();
 
@@ -2472,7 +2473,7 @@ bool SK_Screenshot_D3D12_BeginFrame (void)
     //InterlockedDecrement (&SK_D3D12_DrawTrackingReqs); (Handled by ShowGameHUD)
     }
 
-    else if (! ReadAcquire (&__SK_D3D12_InitiateHudFreeShot))
+    else if (ReadAcquire (&__SK_D3D12_InitiateHudFreeShot) == FALSE)
     {
       InterlockedDecrement (&__SK_D3D12_QueuedShots);
       InterlockedExchange  (&__SK_D3D12_InitiateHudFreeShot, 1);
@@ -2513,9 +2514,6 @@ SK_D3D12_EndFrame (SK_TLS* /* pTLS = SK_TLS_Bottom ()*/)
   {
     end_frame_fn ();
   }
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   dwFrameTime = SK::ControlPanel::current_time;
 

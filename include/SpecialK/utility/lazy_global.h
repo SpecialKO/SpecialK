@@ -42,7 +42,7 @@ class SK_LazyGlobal
   };
 
 public:
-  __forceinline T* getPtr (void) noexcept
+  T* getPtr (void) noexcept
   {
     static_assert ( std::is_reference_v <T> != true,
                     "SK_LazyGlobal does not support reference types" );
@@ -52,8 +52,13 @@ public:
 
     if (lock_val == Uninitialized)
     {
-      pDeferredObject =
-        std::make_unique <T> ();
+      try {
+        pDeferredObject =
+          std::make_unique <T> ();
+      }
+
+      catch (...) {
+      }
 
       if (pDeferredObject.get () == nullptr)
       {

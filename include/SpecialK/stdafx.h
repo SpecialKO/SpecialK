@@ -154,7 +154,7 @@
 #include <crtdefs.h>
 #include <sys/stat.h>
 
-#include <SpecialK/../../depends/include/glm/glm.hpp>
+#include <../depends/include/glm/glm.hpp>
 #include <d3dcompiler.h>
 #include <d3d11shader.h>
 #include <DirectXMath.h>

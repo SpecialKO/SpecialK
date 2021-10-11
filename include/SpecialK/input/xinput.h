@@ -162,6 +162,11 @@ using XInputEnable_pfn = void (WINAPI *)(
 );
 
 
+DWORD
+WINAPI
+SK_XInput_GetBatteryInformation (_In_  DWORD                       dwUserIndex,
+                                 _In_  BYTE                        devType,
+                                 _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation);
 
 bool
 SK_XInput_Enable          ( BOOL bEnable = TRUE );

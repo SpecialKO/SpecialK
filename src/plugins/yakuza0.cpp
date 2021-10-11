@@ -1,4 +1,4 @@
-﻿z//
+﻿//
 // Copyright 2018 - 2019 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -310,7 +310,7 @@ struct SK_Yakuza_SaveFace {
 
   bool set (bool state)
   {
-    static auto& shaders =
+    auto& shaders =
       SK_D3D11_Shaders.get ();
 
     bool orig_state = face_saved;
@@ -369,7 +369,7 @@ SK_Yakuza0_PlugInInit (void)
   static bool yakuza_dragon =
     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders.get ();
 
   if (yakuza0)
@@ -704,7 +704,7 @@ SK_Yakuza0_PlugInCfg (void)
   static bool yakuza_cant_count =
     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow;
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders.get ();
 
   if ( (yakuza0           && ImGui::CollapsingHeader ("Yakuza 0",                  ImGuiTreeNodeFlags_DefaultOpen)) ||
@@ -1168,10 +1168,8 @@ SK_Yakuza0_PlugInCfg (void)
           std::string label  = SK_WideCharToUTF8 (binding->human_readable) + "##";
           label += binding->bind_name;
 
-          if (ImGui::Selectable (label.c_str (), false))
-          {
-            ImGui::OpenPopup (binding->bind_name);
-          }
+          if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+            ImGui::OpenPopup (        binding->bind_name);
 
           std::wstring original_binding = binding->human_readable;
 
@@ -1218,7 +1216,7 @@ SK_Yakuza0_PlugInCfg (void)
                               &config.screenshots.png_compress      );
         }
 
-        auto& rb =
+        static auto& rb =
           SK_GetCurrentRenderBackend ();
 
         if ( rb.screenshot_mgr.getRepoStats ().files > 0 )

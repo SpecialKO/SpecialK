@@ -24,25 +24,48 @@ SOFTWARE.
 #include <SpecialK/render/present_mon/TraceSession.hpp>
 #include <SpecialK/thread.h>
 
+extern CommandLineArgs* GetCommandLineArgsPtr  (void);
+extern std::string      SK_Etw_RegisterSession (const char* szPrefix, bool bReuse = true);
+extern HANDLE         __SK_DLL_TeardownEvent;
+
 int
 SK_PresentMon_Main (int argc, char **argv)
 {
-  extern HANDLE __SK_DLL_TeardownEvent;
-
   // Parse command line arguments.
   if (! ParseCommandLine (argc, argv))
     return 1;
 
+  auto args =
+      GetCommandLineArgsPtr ();
+
 //EnableDebugPrivilege ();
+
+  static
+    std::string
+        session_name;
 
   // Start the ETW trace session (including consumer and output threads).
   while (! StartTraceSession ())
   {
-    if ( WAIT_OBJECT_0 == SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 1250UL) )
+    if ( WAIT_OBJECT_0 ==
+           SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 2000UL) )
+    {
       return 6;
+    }
+
+        session_name = SK_Etw_RegisterSession ("SK_PresentMon",  true);
+    if (session_name.empty ())
+        session_name = SK_Etw_RegisterSession ("SK_PresentMon", false);
+    if (session_name.empty ()) continue; else
+        session_name += '\0';
+
+    args->mSessionName =
+        session_name.data ();
   }
 
-  SK_WaitForSingleObject (__SK_DLL_TeardownEvent, INFINITE);
+  SK_WaitForSingleObject (
+    __SK_DLL_TeardownEvent, INFINITE
+  );
 
   return 0;
 }

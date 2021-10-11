@@ -67,6 +67,7 @@ struct SK_ConfigSerializedKeybind : public SK_Keybind
                   cfg_name, _TRUNCATE );
   }
 
+  bool                  assigning       = false;
   wchar_t               short_name [32] = L"Uninitialized";
   sk::ParameterStringW* param           = nullptr;
 };
@@ -344,6 +345,40 @@ struct sk_config_t
     };
   } screenshots;
 
+  struct monitor_s {
+    SK_ConfigSerializedKeybind
+         monitor_primary_keybind = {
+      SK_Keybind {
+        "Move Game to Primary Monitor", L"<Not Bound>",
+         false, false, false, 0,
+      }, L"MoveToPrimaryMonitor"
+    };
+
+    SK_ConfigSerializedKeybind
+         monitor_next_keybind = {
+      SK_Keybind {
+        "Move Game to Next Monitor", L"<Not Bound>",
+         false, false, false, 0,
+      }, L"MoveToNextMonitor"
+    };
+
+    SK_ConfigSerializedKeybind
+         monitor_prev_keybind = {
+      SK_Keybind {
+        "Move Game to Previous Monitor", L"<Not Bound>",
+         false, false, false, 0,
+      }, L"MoveToPrevMonitor"
+    };
+
+    SK_ConfigSerializedKeybind
+         monitor_toggle_hdr = {
+      SK_Keybind {
+        "Toggle HDR on Active Monitor", L"<Not Bound>",
+         false, false, false, 0
+      }, L"ToggleHDR"
+    };
+  } monitors;
+
   struct render_s {
     struct framerate_s {
       float   target_fps         =  0.0F;
@@ -392,6 +427,10 @@ struct sk_config_t
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } max;
       } res;
+      struct refresh_s {
+        float min = 0.0f;
+        float max = 0.0f;
+      } refresh;
       int     exception_mode     =    -1; // -1 = Don't Care
       int     scaling_mode       =    -1; // -1 = Don't Care
       int     scanline_order     =    -1; // -1 = Don't Care
@@ -414,6 +453,7 @@ struct sk_config_t
       bool    hide_hdr_support   = false; // Games won't know HDR is supported
       bool    use_factory_cache  =  true; // Fix performance issues in Resident Evil 8
       bool    skip_mode_changes  = false; // Try to skip rendundant resolution changes
+      bool    temporary_dwm_hdr  = false; // Always turns HDR on and off for this game
     } dxgi;
 
     struct osd_s {
@@ -439,13 +479,16 @@ struct sk_config_t
   } render;
 
   struct display_s {
-    int       monitor_default      = MONITOR_DEFAULTTONEAREST;
-    int       monitor_idx          =    -1; // TODO
+    std::wstring
+              monitor_path_ccd     =   L"";
+    int       monitor_idx          =     0;
     HMONITOR  monitor_handle       =     0;
+    int       monitor_default      = MONITOR_DEFAULTTONEAREST;
     float     refresh_rate         =  0.0F; // TODO
     bool      force_fullscreen     = false;
     bool      force_windowed       = false;
     bool      confirm_mode_changes = true;
+    bool      save_monitor_prefs   = true;
   } display;
 
   struct textures_s {
@@ -670,6 +713,7 @@ struct sk_config_t
     bool     init_while_suspended   =  true;
     bool     impersonate_debugger   = false; // Can disable games' crash handlers
     bool     disable_debug_features = false;
+    bool     using_wine             = false;
   } compatibility;
 
   struct apis_s {
@@ -860,7 +904,7 @@ struct SK_AppCache_Manager
   { Unknown    = -1,
     DoesNotOwn =  0,
     OwnsGame   =  1,
-    _Alignment_=  DWORD_MAX };
+    _Alignment_=  LONG_MAX };
 
   bool          saveAppCache       (bool           close = false);
   bool          loadAppCacheForExe (const wchar_t* wszExe);
@@ -938,6 +982,7 @@ enum class SK_GAME_ID
   Tales_of_Symphonia,           // TOS.exe
   Tales_of_Zestiria,            // Tales of Zestiria.exe
   Tales_of_Vesperia,            // TOV_DE.exe
+  Tales_of_Arise,               // Tales of Arise.exe
   DivinityOriginalSin,          // EoCApp.exe
   Hob,                          // Hob.exe and HobLauncher.exe
   DukeNukemForever,             // DukeForever.exe
@@ -989,7 +1034,8 @@ enum class SK_GAME_ID
   NieR_Sqrt_1_5,                // NieR Replicant ver.1.22474487139.exe
   ResidentEvil8,                // re8.exe
   LegendOfMana,                 // Legend Of Mana.exe
-  MonsterHunterStories2,        // game.exe (fantastic)
+  MonsterHunterStories2,        // game.exe (fantastic),
+  FarCry6,                      // FarCry6.exe
   UNKNOWN_GAME               = 0xffff
 };
 
@@ -1016,6 +1062,9 @@ const wchar_t*
 __stdcall
 SK_GetVersionStr (void) noexcept;
 
+
+extern bool
+SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel);
 
 extern __declspec (dllexport) void
 __stdcall

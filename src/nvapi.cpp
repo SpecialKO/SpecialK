@@ -553,7 +553,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_LIBRARY_NOT_FOUND;
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_LOG_FIRST_CALL

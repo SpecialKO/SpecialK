@@ -103,7 +103,8 @@ NtReadFile_Detour (
       return ntStatus;
 
     UINT64 read_total =
-      InterlockedAdd64 (&pTLS->disk->bytes_read, Length);
+      InterlockedAdd64 ( &pTLS->disk->bytes_read,
+                   static_cast <LONG64> (Length) );
 
     if ( pTLS->scheduler->mmcs_task == nullptr  &&
            config.render.framerate.enable_mmcss &&

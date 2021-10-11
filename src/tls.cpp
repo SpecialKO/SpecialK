@@ -239,13 +239,13 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   return nullptr;
 }
 
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>
+> __tls_map;
+
 Concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord *>&
 SK_TLS_Map (void)
 {
-  static
-    concurrency::concurrent_unordered_map <DWORD, SK_TlsRecord*>
-                                __tls_map;
-
   return
     __tls_map;
 }
@@ -372,7 +372,7 @@ SK_TLS_Bottom (void)
     {
       try
       {
-        static auto& tls_map =
+        auto& tls_map =
           SK_TLS_Map ();
 
         tls_map [pTLS->debug.tid] =
@@ -405,7 +405,7 @@ SK_TLS_BottomEx (DWORD dwTid)
   auto orig_se =
   SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
   try {
-    static auto& tls_map =
+    auto& tls_map =
       SK_TLS_Map ();
 
     auto tls_slot =
@@ -1029,6 +1029,23 @@ SK_Sched_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   return 0;
 }
 
+size_t
+SK_Render_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
+{
+  size_t freed = 0UL;
+
+//freed += ddraw.isAllocated () ? ddraw->Cleanup (reason) : 0;
+//freed += d3d8.isAllocated  () ? d3d8 ->Cleanup (reason) : 0;
+  freed += d3d9.isAllocated  () ? d3d9 ->Cleanup (reason) : 0;
+  freed += d3d11.isAllocated () ? d3d11->Cleanup (reason) : 0;
+//freed += d3d12.isAllocated () ? d3d12->Cleanup (reason) : 0;
+//freed += gl.isAllocated    () ? gl   ->Cleanup (reason) : 0;
+
+  freed += sizeof (ULONG64);
+
+  return freed;
+}
+
 
 
 
@@ -1038,13 +1055,12 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
 {
   size_t freed = 0UL;
 
-  freed += d3d9.isAllocated           () ? d3d9          ->Cleanup (reason) : 0;
+  freed += render.isAllocated         () ? render        ->Cleanup (reason) : 0;
   freed += imgui.isAllocated          () ? imgui         ->Cleanup (reason) : 0;
   freed += raw_input.isAllocated      () ? raw_input     ->Cleanup (reason) : 0;
   freed += scratch_memory.isAllocated () ? scratch_memory->Cleanup (reason) : 0;
   freed += local_scratch.isAllocated  () ? local_scratch ->Cleanup (reason) : 0;
   freed += steam.isAllocated          () ? steam         ->Cleanup (reason) : 0;
-  freed += d3d11.isAllocated          () ? d3d11         ->Cleanup (reason) : 0;
   freed += scheduler.isAllocated      () ? scheduler     ->Cleanup (reason) : 0;
   freed +=                                 dxtex          .Cleanup (reason)    ;
 

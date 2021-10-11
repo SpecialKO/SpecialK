@@ -515,7 +515,7 @@ using LdrFindEntryForAddress_pfn    = NTSTATUS (NTAPI *)(HMODULE,PLDR_DATA_TABLE
 bool SK_PE32_IsLargeAddressAware (void);
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
-BOOL WINAPI SK_IsDebuggerPresent    (void);
+BOOL WINAPI SK_IsDebuggerPresent    (void) noexcept;
 
 BOOL __stdcall SK_TerminateProcess (UINT uExitCode);
 

@@ -90,7 +90,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 
 
   return
-    SK_ImGui_DrawState [dev_idx].drawing;
+    SK_ImGui_DrawState [dev_idx].drawing != FALSE;
 }
 
 std::pair <BOOL*, BOOL>
@@ -125,7 +125,7 @@ bool
 SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
                                          UINT                 dev_idx )
 {
-  if (! pDevCtx)
+  if (pDevCtx == nullptr)
     return false;
 
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
@@ -160,10 +160,8 @@ SK_D3D11_ShouldTrackMMIO ( ID3D11DeviceContext* pDevCtx,
 {
   UNREFERENCED_PARAMETER (pDevCtx); UNREFERENCED_PARAMETER (ppTLS);
 
-  if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
-    return false;
-
-  return true;
+  return
+    (! SK::ControlPanel::D3D11::show_shader_mod_dlg);
 }
 
 
@@ -183,7 +181,7 @@ bool
 SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
                                UINT                 dev_idx )
 {
-  if (! pDevCtx)
+  if (pDevCtx == nullptr)
     return false;
 
   static const SK_RenderBackend& rb =
@@ -214,7 +212,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   if (dev_idx != UINT_MAX)
   {
     return
-      (! SK_ImGui_DrawState [dev_idx].drawing);
+      (SK_ImGui_DrawState [dev_idx].drawing == FALSE);
   }
 
   return true;
@@ -298,7 +296,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
                                     UINT                        NumClassInstances,
                                     UINT                        dev_idx )
 {
-  if (! pDevContext) return;
+  if (pDevContext == nullptr) return;
 
   for ( UINT i = 0 ; i < NumClassInstances ; i++ )
   {
@@ -317,7 +315,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
   if (! is_active)
   {
-    static auto& shaders =
+    auto& shaders =
       SK_D3D11_Shaders;
 
     active.set (dev_idx, true);
@@ -383,7 +381,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     }
   }
 
-  if (ReadAcquire (&disjoint_query.active))
+  if (ReadAcquire (&disjoint_query.active) == TRUE)
   {
     // Start a new query
     D3D11_QUERY_DESC query_desc {
@@ -423,7 +421,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 
   if (is_active)
   {
-    static auto& shaders =
+    auto& shaders =
       SK_D3D11_Shaders;
 
     active.set (dev_idx, false);
@@ -546,7 +544,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     if (rb.api == SK_RenderAPI::D3D11)
     {
       WriteULong64Release (
-        &SK_Reflex_LastFrameMarked, 
+        &SK_Reflex_LastFrameMarked,
          SK_GetFramesDrawn ()
       );
 

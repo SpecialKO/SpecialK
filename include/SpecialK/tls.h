@@ -441,6 +441,10 @@ public:
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 
+class SK_D3D12_ThreadContext : public SK_TLS_RenderContext
+{
+};
+
 class SK_GL_ThreadContext : public SK_TLS_RenderContext
 {
 public:
@@ -449,6 +453,20 @@ public:
   HWND  current_hwnd  = nullptr;
 };
 
+class SK_Render_ThreadContext : SK_TLS_DynamicContext
+{
+public:
+  volatile ULONG64                       frames_presented = 0;
+
+  SK_LazyGlobal <SK_DDraw_ThreadContext> ddraw;
+  SK_LazyGlobal <SK_D3D8_ThreadContext>  d3d8;
+  SK_LazyGlobal <SK_D3D9_ThreadContext>  d3d9;
+  SK_LazyGlobal <SK_D3D11_ThreadContext> d3d11;
+  SK_LazyGlobal <SK_D3D12_ThreadContext> d3d12;
+  SK_LazyGlobal <SK_GL_ThreadContext>    gl;
+
+  size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
+};
 
 
 class SK_DXTex_ThreadContext : public SK_TLS_DynamicContext
@@ -674,7 +692,7 @@ public:
     Init (idx);
   }
 
-  virtual ~SK_TLS (void)
+  virtual ~SK_TLS (void) noexcept
   {
     if ( (intptr_t)debug.handle > 0)
       CloseHandle (debug.handle);
@@ -716,11 +734,7 @@ public:
   SK_LazyGlobal <SK_TLS_ScratchMemory>      scratch_memory;
   SK_LazyGlobal <SK_TLS_ScratchMemoryLocal> local_scratch; // Takes memory from LocalAlloc
 
-  SK_LazyGlobal <SK_DDraw_ThreadContext>    ddraw;
-  SK_LazyGlobal <SK_D3D8_ThreadContext>     d3d8;
-  SK_LazyGlobal <SK_D3D9_ThreadContext>     d3d9;
-  SK_LazyGlobal <SK_D3D11_ThreadContext>    d3d11;
-  SK_LazyGlobal <SK_GL_ThreadContext>       gl;
+  SK_LazyGlobal <SK_Render_ThreadContext>   render;
 
   // Scratch memory pool for DXTex to reduce its tendency to fragment the
   //   the address space up while batching multiple format conversion jobs.

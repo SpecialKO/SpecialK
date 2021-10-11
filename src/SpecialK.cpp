@@ -94,41 +94,52 @@ public:
   BootstrapTerminate_pfn  shutdown;
 };
 
+SK_LazyGlobal
+ < std::unordered_map <
+          DLL_ROLE,
+       SK_DLL_Bootstrapper
+ >  >   __dll_bootstraps;
+
 auto
 SK_DLL_GetBootstraps (void)
 {
-  using namespace SK;
+  if (! __dll_bootstraps.isAllocated ())
+  {
+    __dll_bootstraps.get () =
+    {
+      { DLL_ROLE::DXGI,       { { L"dxgi.dll",
+                                  L"d3d11.dll"    },   SK::DXGI::Startup,
+                                                       SK::DXGI::Shutdown } },
+      { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll",
+                                  L"d3d11.dll"    },   SK::DXGI::Startup,
+                                                       SK::DXGI::Shutdown } },
+      { DLL_ROLE::D3D9,       { { L"d3d9.dll"     },   SK::D3D9::Startup,
+                                                       SK::D3D9::Shutdown } },
+      { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll" }, SK::OpenGL::Startup,
+                                                     SK::OpenGL::Shutdown } },
+      { DLL_ROLE::DInput8,    { { L"dinput8.dll"  },    SK::DI8::Startup,
+                                                        SK::DI8::Shutdown } },
+      #ifndef _M_AMD64
+      { DLL_ROLE::D3D8,       { { L"d3d8.dll"     },   SK::D3D8::Startup,
+                                                       SK::D3D8::Shutdown } },
+      { DLL_ROLE::DDraw,      { { L"ddraw.dll"    },  SK::DDraw::Startup,
+                                                      SK::DDraw::Shutdown } },
+      #endif
+    };
+  }
 
-  static std::unordered_map <
-    DLL_ROLE,                SK_DLL_Bootstrapper>   __SK_DLL_Bootstraps = {
-  { DLL_ROLE::DXGI,       { { L"dxgi.dll",
-                              L"d3d11.dll"    },       DXGI::Startup,
-                                                       DXGI::Shutdown } },
-  { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll",
-                              L"d3d11.dll"    },       DXGI::Startup,
-                                                       DXGI::Shutdown } },
-  { DLL_ROLE::D3D9,       { { L"d3d9.dll"     },       D3D9::Startup,
-                                                       D3D9::Shutdown } },
-  { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll" },     OpenGL::Startup,
-                                                     OpenGL::Shutdown } },
-  { DLL_ROLE::DInput8,    { { L"dinput8.dll"  },        DI8::Startup,
-                                                        DI8::Shutdown } },
-  #ifndef _M_AMD64
-  { DLL_ROLE::D3D8,       { { L"d3d8.dll"     },       D3D8::Startup,
-                                                       D3D8::Shutdown } },
-  { DLL_ROLE::DDraw,      { { L"ddraw.dll"    },      DDraw::Startup,
-                                                      DDraw::Shutdown } },
-  #endif
-                                                                         };
   return
-    &__SK_DLL_Bootstraps;
+    __dll_bootstraps.get ();
 }
+
+static skWin32Module hModApp  =
+       skWin32Module::Uninitialized;
+static skWin32Module hModSelf =
+       skWin32Module::Uninitialized;
 
 skWin32Module&
 skModuleRegistry::HostApp (HMODULE hModToSet) noexcept
 {
-  static skWin32Module
-       hModApp    = skWin32Module::Uninitialized;
   if ( hModApp   == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
   {    hModApp    = hModToSet;                      }
@@ -137,8 +148,6 @@ return hModApp;   }
 skWin32Module&
 skModuleRegistry::Self (HMODULE hModToSet) noexcept
 {
-  static skWin32Module
-       hModSelf   = skWin32Module::Uninitialized;
   if ( hModSelf  == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
   {    hModSelf   = hModToSet;                      }
@@ -184,8 +193,8 @@ SK_KeepAway (void)
     return 0;
   }
 
-  HMODULE hModApp =
-      GetModuleHandle (nullptr);
+  HMODULE hMod =
+    skModuleRegistry::HostApp (GetModuleHandle (nullptr));
 
   wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
   wchar_t                         wszWindowsDir  [MAX_PATH + 2] = { };
@@ -196,7 +205,7 @@ SK_KeepAway (void)
   );
 
   wchar_t              wszAppFullName [MAX_PATH + 2] = { };
-  GetModuleFileName ( hModApp,
+  GetModuleFileName ( hMod,
                        wszAppFullName, MAX_PATH       );
   if ( StrStrIW (      wszAppFullName, L"rundll32"    )            ) return 0;
 
@@ -255,7 +264,7 @@ SK_KeepAway (void)
            glide = false;
 
       SK_TestRenderImports (
-        hModApp,
+        hMod,
           &gl, &vulkan,
             &d3d9, &dxgi, &d3d11, &d3d12,
               &d3d8, &ddraw, &glide
@@ -458,6 +467,8 @@ DllMain ( HMODULE hModule,
         {
           SKX_RemoveCBTHook ();
         }
+
+        SwitchToThread ();
       }
 
       bool bAttached =
@@ -678,75 +689,72 @@ SK_DontInject (void)
   return FALSE;
 }
 
-
 bool
 _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
 {
+  bool auto_boot_viable = false;
+
   using role_from_api_tbl =
-    std::map < SK_RenderAPI, std::tuple < DLL_ROLE, BOOL > >;
+    std::map < SK_RenderAPI, std::tuple < DLL_ROLE, bool > >;
 
-  static
   role_from_api_tbl
-    role_reversal  =
-    {
-      { SK_RenderAPI::D3D9,
-          { DLL_ROLE::D3D9,           config.apis.d3d9.hook } },
-      { SK_RenderAPI::D3D9Ex,
-          { DLL_ROLE::D3D9,         config.apis.d3d9ex.hook } },
+  role_reversal  =
+  {
+    { SK_RenderAPI::D3D9,
+        { DLL_ROLE::D3D9,           config.apis.d3d9.hook } },
+    { SK_RenderAPI::D3D9Ex,
+        { DLL_ROLE::D3D9,         config.apis.d3d9ex.hook } },
 
-      { SK_RenderAPI::D3D10,
-          { DLL_ROLE::DXGI, FALSE /* Stupid API--begone! */ } },
-      { SK_RenderAPI::D3D11,
-          { DLL_ROLE::DXGI,     config.apis.dxgi.d3d11.hook } },
-      { SK_RenderAPI::D3D12,
-          { DLL_ROLE::DXGI,                            TRUE } },
+    { SK_RenderAPI::D3D10,
+        { DLL_ROLE::DXGI,  false/* Stupid API--begone! */ } },
+    { SK_RenderAPI::D3D11,
+        { DLL_ROLE::DXGI,     config.apis.dxgi.d3d11.hook } },
+    { SK_RenderAPI::D3D12,
+        { DLL_ROLE::DXGI,                            true } },
 
-     { SK_RenderAPI::OpenGL,
-         { DLL_ROLE::OpenGL,        config.apis.OpenGL.hook } },
+   { SK_RenderAPI::OpenGL,
+       { DLL_ROLE::OpenGL,        config.apis.OpenGL.hook } },
 
 #ifdef _M_IX86
 
-      // Bitness:  32-Bit  (Add:  DDraw, D3D8 and Glide)
+    // Bitness:  32-Bit  (Add:  DDraw, D3D8 and Glide)
 
-      { SK_RenderAPI::D3D8,
-          { DLL_ROLE::DXGI,           config.apis.d3d8.hook } },
-      { SK_RenderAPI::D3D8On11,
-          { DLL_ROLE::DXGI,     config.apis.d3d8.hook   &&
-                                config.apis.dxgi.d3d11.hook } },
+    { SK_RenderAPI::D3D8,
+        { DLL_ROLE::DXGI,           config.apis.d3d8.hook } },
+    { SK_RenderAPI::D3D8On11,
+        { DLL_ROLE::DXGI,     config.apis.d3d8.hook   &&
+                              config.apis.dxgi.d3d11.hook } },
 
-      { SK_RenderAPI::Glide,
-          { DLL_ROLE::Glide,         config.apis.glide.hook } },
-      { SK_RenderAPI::GlideOn11,
-          { DLL_ROLE::Glide,    config.apis.glide.hook  &&
-                                config.apis.dxgi.d3d11.hook } },
+    { SK_RenderAPI::Glide,
+        { DLL_ROLE::Glide,         config.apis.glide.hook } },
+    { SK_RenderAPI::GlideOn11,
+        { DLL_ROLE::Glide,    config.apis.glide.hook  &&
+                              config.apis.dxgi.d3d11.hook } },
 
-      { SK_RenderAPI::DDraw,
-          { DLL_ROLE::DDraw,         config.apis.ddraw.hook } },
-      { SK_RenderAPI::DDrawOn11,
-          { DLL_ROLE::DDraw,    config.apis.ddraw.hook  &&
-                                config.apis.dxgi.d3d11.hook } },
+    { SK_RenderAPI::DDraw,
+        { DLL_ROLE::DDraw,         config.apis.ddraw.hook } },
+    { SK_RenderAPI::DDrawOn11,
+        { DLL_ROLE::DDraw,    config.apis.ddraw.hook  &&
+                              config.apis.dxgi.d3d11.hook } },
 
-      { SK_RenderAPI::Vulkan,    { DLL_ROLE::INVALID, FALSE } },
+    { SK_RenderAPI::Vulkan,    { DLL_ROLE::INVALID, false } },
 #else
 
-      // Bitness:  64-Bit  (Remove Legacy APIs  +  Add Vulkan)
+    // Bitness:  64-Bit  (Remove Legacy APIs  +  Add Vulkan)
 
-      { SK_RenderAPI::D3D8,      { DLL_ROLE::INVALID, FALSE } },
-      { SK_RenderAPI::D3D8On11,  { DLL_ROLE::INVALID, FALSE } },
+    { SK_RenderAPI::D3D8,      { DLL_ROLE::INVALID, false } },
+    { SK_RenderAPI::D3D8On11,  { DLL_ROLE::INVALID, false } },
 
-      { SK_RenderAPI::Glide,     { DLL_ROLE::INVALID, FALSE } },
-      { SK_RenderAPI::GlideOn11, { DLL_ROLE::INVALID, FALSE } },
+    { SK_RenderAPI::Glide,     { DLL_ROLE::INVALID, false } },
+    { SK_RenderAPI::GlideOn11, { DLL_ROLE::INVALID, false } },
 
-      { SK_RenderAPI::DDraw,     { DLL_ROLE::INVALID, FALSE } },
-      { SK_RenderAPI::DDrawOn11, { DLL_ROLE::INVALID, FALSE } },
+    { SK_RenderAPI::DDraw,     { DLL_ROLE::INVALID, false } },
+    { SK_RenderAPI::DDrawOn11, { DLL_ROLE::INVALID, false } },
 
-      { SK_RenderAPI::Vulkan,
-          { DLL_ROLE::Vulkan,       config.apis.Vulkan.hook } },
+    { SK_RenderAPI::Vulkan,
+        { DLL_ROLE::Vulkan,       config.apis.Vulkan.hook } },
 #endif
-  };
-
-
-  bool auto_boot_viable = false;
+};
 
   if (role_reversal.count (last_known) != 0)
   {
@@ -811,19 +819,21 @@ SK_dgVoodoo_CheckForInterop (void)
 
 BOOL
 __stdcall
-SK_EstablishDllRole (skWin32Module&& module)
+SK_EstablishDllRole (skWin32Module&& _sk_module)
 {
   SK_SetDLLRole (DLL_ROLE::INVALID);
 
-  static bool has_dgvoodoo =
+#ifndef _M_AMD64
+  bool has_dgvoodoo =
    ( GetFileAttributesW (
        SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" )
                          .c_str ()
                         ).c_str () ) != INVALID_FILE_ATTRIBUTES );
+#endif
 
   const wchar_t* wszSelfTitledDLL =
-    module;
+    _sk_module;
 
   const wchar_t* wszShort =
     CharNextW ( SK_Path_wcsrchr ( wszSelfTitledDLL, *LR"(\)" ) );
@@ -1004,7 +1014,7 @@ SK_EstablishDllRole (skWin32Module&& module)
     if (! explicit_inject)
     {
       // This order is not arbitrary, but not worth explaining
-      static std::vector <const wchar_t *> local_dlls =
+      std::vector <const wchar_t *> local_dlls =
         { L"dxgi.dll",   L"d3d9.dll",
           L"d3d11.dll",  L"OpenGL32.dll",
           L"ddraw.dll",  L"d3d8.dll",
@@ -1041,7 +1051,7 @@ SK_EstablishDllRole (skWin32Module&& module)
       //  It is trivial to use SteamAPI without linking to the DLL, so
       //    this is not the final test to determine Steam compatibility.
       //
-      static sk_import_test_s steam_tests[] =
+      sk_import_test_s steam_tests [] =
       {
         { SK_RunLHIfBitness (64, "steam_api64.dll",
                                  "steam_api.dll"),  false },
@@ -1115,6 +1125,8 @@ SK_EstablishDllRole (skWin32Module&& module)
 
         if (SK_dgVoodoo_CheckForInterop ())
         {
+          config.render.dxgi.skip_mode_changes = true;
+
           d3d9  = false;
           d3d11 = true;
         }
@@ -1268,8 +1280,8 @@ BOOL
 __stdcall
 SK_Attach (DLL_ROLE role)
 {
-  static const auto& bootstraps =
-    *SK_DLL_GetBootstraps ();
+  auto bootstraps =
+    SK_DLL_GetBootstraps ();
 
   auto _CleanupMutexes =
   [&](void)->
@@ -1405,8 +1417,8 @@ SK_Detach (DLL_ROLE role)
 
     SK_Inject_ReleaseProcess ();
 
-    auto& bootstraps =
-      *SK_DLL_GetBootstraps ();
+    auto bootstraps =
+      SK_DLL_GetBootstraps ();
 
     if (! bootstraps.count (role))
     {

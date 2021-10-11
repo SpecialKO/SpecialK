@@ -57,10 +57,8 @@ static inline
 const HANDLE
   SK_GetCurrentThread (void) noexcept
   {
-    static const HANDLE _caller (
-      reinterpret_cast <HANDLE> (-2)
-    );
-
+      static const   HANDLE
+           _caller ((HANDLE)-2);
     return _caller;
   };
 
@@ -68,10 +66,8 @@ static inline
 const HANDLE
   SK_GetCurrentProcess (void) noexcept
   {
-    static const HANDLE _host (
-      reinterpret_cast <HANDLE> (-1)
-    );
-
+    static const   HANDLE
+           _host ((HANDLE)-1);
     return _host;
   };
 
@@ -180,10 +176,9 @@ SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFl
     if (ReadAcquire (pFlag) == 1)
       break;
 
-    SK_SleepEx (0UL, TRUE);
+    SK_SleepEx (0UL, FALSE);
   }
 }
-
 
 __forceinline
 static void
@@ -199,7 +194,7 @@ SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *p
     if (ReadAcquire (pVar) >= count)
       break;
 
-    SK_SleepEx (0UL, TRUE);
+    SK_SleepEx (0UL, FALSE);
   }
 }
 

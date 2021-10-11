@@ -51,23 +51,20 @@ struct {
 };
 
 // One extra for overflow, XUSER_MAX_COUNT is never a valid index
-SK_LazyGlobal <std::array <SK_XInput_PacketJournal, XUSER_MAX_COUNT + 1>> xinput_packets;
+std::array <SK_XInput_PacketJournal, XUSER_MAX_COUNT + 1> xinput_packets;
 
 
 SK_XInput_PacketJournal
 SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 {
-  static auto& packets =
-    xinput_packets.get ();
-
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
-  if (dwUserIndex >= XUSER_MAX_COUNT)
-     return packets [XUSER_MAX_COUNT];
+  if (dwUserIndex     >=    XUSER_MAX_COUNT)
+     return xinput_packets [XUSER_MAX_COUNT];
 
   return
-    packets [dwUserIndex];
+    xinput_packets [dwUserIndex];
 }
 
 
@@ -115,13 +112,17 @@ void SK_HID_AddDeviceRemovalEvent (HANDLE hEvent)
   SK_HID_DeviceRemovalEvents.emplace (hEvent);
 }
 
+static HANDLE SK_XInputHot_NotifyEvent     = 0;
+static HANDLE SK_XInputHot_ReconnectThread = 0;
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
-  static HANDLE hNotifyEvent =
-    SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+  if (SK_XInputHot_NotifyEvent == 0)
+      SK_XInputHot_NotifyEvent =
+                SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
-  static HANDLE hReconnectThread =
+  if (SK_XInputHot_ReconnectThread == 0)
+      SK_XInputHot_ReconnectThread =
     SK_Thread_CreateEx ([](LPVOID user)->
       DWORD
       {
@@ -166,7 +167,7 @@ SK_XInput_NotifyDeviceArrival (void)
                     DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
                       (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
 
-                    static const GUID GUID_DEVINTERFACE_HID =
+                    static constexpr GUID GUID_DEVINTERFACE_HID =
                       { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
 
                     if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID))
@@ -181,7 +182,7 @@ SK_XInput_NotifyDeviceArrival (void)
                         for (  auto event : SK_HID_DeviceArrivalEvents  )
                           SetEvent (event);
 
-                        SetEvent (hNotifyEvent);
+                        SetEvent (SK_XInputHot_NotifyEvent);
                       }
 
                       else
@@ -212,11 +213,12 @@ SK_XInput_NotifyDeviceArrival (void)
             DefWindowProcW (hwnd, message, wParam, lParam);
         };
 
-        WNDCLASSEXW wnd_class   = { };
-        wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
-        wnd_class.lpszClassName = L"SK_HID_Listener";
-        wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
-        wnd_class.cbSize        = sizeof (WNDCLASSEXW);
+        WNDCLASSEXW
+          wnd_class               = {                          };
+          wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
+          wnd_class.lpszClassName = L"SK_HID_Listener";
+          wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
+          wnd_class.cbSize        = sizeof (WNDCLASSEXW);
 
         if (RegisterClassEx (&wnd_class))
         {
@@ -286,15 +288,17 @@ SK_XInput_NotifyDeviceArrival (void)
         else
           SK_ReleaseAssert (! L"Failed to register Window Class!");
 
-        CloseHandle (hNotify);
+        CloseHandle (SK_XInputHot_NotifyEvent);
+                     SK_XInputHot_NotifyEvent = 0;
 
         SK_Thread_CloseSelf ();
 
         return 0;
-      }, L"[SK] HID Hotplug Dispatch", (LPVOID)hNotifyEvent
+      }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
     );
 
-  SetEvent (hNotifyEvent);
+  if (        SK_XInputHot_NotifyEvent != 0)
+    SetEvent (SK_XInputHot_NotifyEvent);
 }
 
 
@@ -331,10 +335,8 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    static auto& packets =
-      xinput_packets.get ();
-           auto& journal =
-      packets [dwUserIndex];
+    auto& journal =
+      xinput_packets [dwUserIndex];
 
     if (! was_holding)
     {
@@ -342,7 +344,9 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
       journal.sequence.current++;
     }
 
-    SecureZeroMemory (&pState->Gamepad, sizeof XINPUT_GAMEPAD);
+    RtlSecureZeroMemory (
+      &pState->Gamepad, sizeof XINPUT_GAMEPAD
+    );
 
     if (! was_holding)
     {
@@ -398,7 +402,7 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    SecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+    RtlSecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
     pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
     pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
@@ -480,13 +484,13 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   return dwRet;
 }
 
+static DWORD SK_XInput_UI_LastSeenController = DWORD_MAX;
+static DWORD SK_XInput_UI_LastSeenTime       =         0;
+
 void
 SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 {
   static constexpr DWORD MIGRATION_PERIOD = 1500;
-
-  static DWORD lastSeenController = DWORD_MAX;
-  static DWORD lastSeenTime       =         0;
 
   if (success)
   {
@@ -495,15 +499,15 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 
     bool migrate = ( dwPacketCount > 1 )
          &&
-      ( lastSeenController == DWORD_MAX             ||
-        lastSeenTime       < dwTime - MIGRATION_PERIOD );
+      ( SK_XInput_UI_LastSeenController == DWORD_MAX             ||
+        SK_XInput_UI_LastSeenTime       < dwTime - MIGRATION_PERIOD );
 
-    if (lastSeenController == config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)])
-        lastSeenTime        = dwTime;
+    if (SK_XInput_UI_LastSeenController == config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)])
+        SK_XInput_UI_LastSeenTime        = dwTime;
 
     if (migrate)
-    {   lastSeenController                  = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
-        lastSeenTime                        = dwTime;
+    {   SK_XInput_UI_LastSeenController                  = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+        SK_XInput_UI_LastSeenTime                        = dwTime;
         config.input.gamepad.xinput.ui_slot = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
 
       if (! config.input.gamepad.disabled_to_game)
@@ -517,7 +521,7 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 
   else if (config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)] == config.input.gamepad.xinput.ui_slot)
   {
-    lastSeenController                  = DWORD_MAX;
+    SK_XInput_UI_LastSeenController                  = DWORD_MAX;
     config.input.gamepad.xinput.ui_slot = 0;
   }
 }
@@ -527,22 +531,21 @@ SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 void
 SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState)
 {
-  static auto& packets =
-    xinput_packets.get ();
-
   if (dwUserIndex >= XUSER_MAX_COUNT) return;
   if (pState      == nullptr)         return;
 
   if (dwRet == ERROR_SUCCESS)
   {
     auto& journal =
-      packets [dwUserIndex];
+      xinput_packets [dwUserIndex];
 
     if ( journal.sequence.last != pState->dwPacketNumber )
     {
       journal.sequence.last = pState->dwPacketNumber;
       journal.packet_count.real++;
       journal.sequence.current++;
+
+      SK_XInput_Backend->markViewed ((sk_input_dev_type)(1 << dwUserIndex));
 
       journal.sequence.current =
         std::max   ( journal.sequence.current,

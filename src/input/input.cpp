@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1198,8 +1198,8 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 HCURSOR
 ImGui_DesiredCursor (void)
 {
-  static       HCURSOR last_cursor = nullptr;
-  static       auto&   io          = ImGui::GetIO ();
+  static HCURSOR last_cursor = nullptr;
+  auto&          io          = ImGui::GetIO ();
 
   static const std::map <UINT, HCURSOR>
     __cursor_cache =
@@ -1218,7 +1218,7 @@ ImGui_DesiredCursor (void)
   if (io.MouseDownDuration [0] <= 0.0f || last_cursor == nullptr)
   {
     const auto&
-        it  = __cursor_cache.find (ImGui::GetMouseCursor ());
+        it  = __cursor_cache.find (static_cast <unsigned int> (ImGui::GetMouseCursor ()));
     if (it != __cursor_cache.cend ())
     {
       last_cursor =
@@ -1451,6 +1451,14 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
+
+  //if (imgui_capture)
+  //{
+  //  imgui_capture =
+  //    ChildWindowFromPointEx ( game_window.hWnd, game_window.cursor_pos,
+  //        CWP_SKIPTRANSPARENT | CWP_SKIPINVISIBLE
+  //                            | CWP_SKIPDISABLED ) == game_window.hWnd;
+  //}
   }
 
   return imgui_capture;
@@ -1495,7 +1503,7 @@ __stdcall
 SK_IsGameWindowActive (void)
 {
   return
-    game_window.active;
+    game_window.active || SK_GetForegroundWindow () == game_window.hWnd;
 }
 
 void
@@ -1855,8 +1863,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     new_pos.x = (LONG)(io.DisplayFramebufferScale.x * 0.5f);
     new_pos.y = (LONG)(io.DisplayFramebufferScale.y * 0.5f);
 
-    float ndc_x = 2.0f * (((float)(lpPoint->x - last_pos.x) + new_pos.x) / io.DisplayFramebufferScale.x) - 1.0f;
-    float ndc_y = 2.0f * (((float)(lpPoint->y - last_pos.y) + new_pos.y) / io.DisplayFramebufferScale.y) - 1.0f;
+    float ndc_x = 2.0f * (((float)(lpPoint->x - (float)last_pos.x) + (float)new_pos.x) / io.DisplayFramebufferScale.x) - 1.0f;
+    float ndc_y = 2.0f * (((float)(lpPoint->y - (float)last_pos.y) + (float)new_pos.y) / io.DisplayFramebufferScale.y) - 1.0f;
 
     bool new_frame = false;
 
@@ -1873,18 +1881,70 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     static int calls = 0;
 
     POINT get_pos; // 4 pixel cushion to avoid showing the cursor
-    if (new_frame && ( (calls++ % 8) == 0 || ( SK_GetCursorPos (&get_pos) && (get_pos.x <= 4 || get_pos.x >= (io.DisplayFramebufferScale.x - 4) ||
-                                                                              get_pos.y <= 4 || get_pos.y >= (io.DisplayFramebufferScale.y - 4)) ) ))
+    if (new_frame && ( (calls++ % 8) == 0 || ( SK_GetCursorPos (&get_pos) && (get_pos.x <= 4L || (float)get_pos.x >= (io.DisplayFramebufferScale.x - 4.0f) ||
+                                                                              get_pos.y <= 4L || (float)get_pos.y >= (io.DisplayFramebufferScale.y - 4.0f)) ) ))
     {
-      last_pos = new_pos;
+      last_pos =       new_pos;
       SK_SetCursorPos (new_pos.x, new_pos.y);
-      lpPoint->x = new_pos.x;
-      lpPoint->y = new_pos.y;
+      *lpPoint     = { new_pos.x, new_pos.y };
     }
   }
 
 
   return bRet;
+}
+
+BOOL
+WINAPI
+GetPhysicalCursorPos_Detour (LPPOINT lpPoint)
+{
+  SK_LOG_FIRST_CALL
+
+  POINT                     pt;
+  if (GetCursorPos_Detour (&pt))
+  {
+    if (LogicalToPhysicalPoint (0, &pt))
+    {
+      *lpPoint = pt;
+
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+DWORD
+WINAPI
+GetMessagePos_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  static DWORD dwLastPos =
+           GetMessagePos_Original ();
+
+  bool implicit_capture = false;
+
+  // Depending on warp prefs, we may not allow the game to know about mouse movement
+  //   (even if ImGui doesn't want mouse capture)
+  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant ()       ) ||
+       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+  {
+    implicit_capture = true;
+  }
+
+  // TODO: Use the message time to determine whether to fake this or not
+  if (SK_ImGui_WantMouseCapture () || implicit_capture)
+  {
+    return
+      dwLastPos;
+  }
+
+  dwLastPos =
+    GetMessagePos_Original ();
+
+  return
+    dwLastPos;
 }
 
 BOOL
@@ -1927,6 +1987,20 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   return
     TRUE;
+}
+
+BOOL
+WINAPI
+SetPhysicalCursorPos_Detour (_In_ int x, _In_ int y)
+{
+  SK_LOG_FIRST_CALL
+
+  POINT                             pt = { x, y };
+  if (! PhysicalToLogicalPoint (0, &pt))
+    return FALSE;
+
+  return
+    SetCursorPos_Detour (x, y);
 }
 
 UINT
@@ -2034,7 +2108,7 @@ SK_GetAsyncKeyState (int vKey)
 
 // Shared by GetAsyncKeyState and GetKeyState, just pass the correct
 //   function pointer and this code only has to be written once.
-USHORT
+SHORT
 WINAPI
 SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 {
@@ -2042,7 +2116,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
     SK_GetCurrentRenderBackend ();
 
   auto SK_ConsumeVKey = [&](int vKey) ->
-  USHORT
+  SHORT
   {
     pfnGetFunc (vKey);
 
@@ -2628,29 +2702,31 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
     }
 
-    if (! SK_IsGameWindowActive ())
-    {
-      switch (lpMsg->message)
-      {
-        case WM_MOUSEMOVE:
-        {
-          POINT pt = {
-            GET_X_LPARAM (lpMsg->lParam),
-            GET_Y_LPARAM (lpMsg->lParam)
-          };
-
-          HWND hWndFromPt =
-            WindowFromPoint (pt);
-
-          if (hWndFromPt == game_window.hWnd || IsChild (game_window.hWnd, hWndFromPt))
-          {
-            ClientToScreen (lpMsg->hwnd, &pt);
-
-            game_window.cursor_pos = pt;
-          }
-        } break;
-      }
-    }
+    ////////if (! SK_IsGameWindowActive ())
+    ////////{
+    ////////  switch (lpMsg->message)
+    ////////  {
+    ////////    case WM_MOUSEMOVE:
+    ////////    {
+    ////////      POINT pt = {
+    ////////        GET_X_LPARAM (lpMsg->lParam),
+    ////////        GET_Y_LPARAM (lpMsg->lParam)
+    ////////      };
+    ////////
+    ////////      // Broad test (FAST) for general coverage; if not NULL test occlusion
+    ////////      if (ChildWindowFromPoint (game_window.hWnd, pt))
+    ////////      {
+    ////////        if ( ChildWindowFromPointEx ( game_window.hWnd, pt,
+    ////////              CWP_SKIPTRANSPARENT | CWP_SKIPINVISIBLE
+    ////////                                  | CWP_SKIPDISABLED ) == game_window.hWnd )
+    ////////        {
+    ////////          ClientToScreen (game_window.hWnd,       &pt);
+    ////////                          game_window.cursor_pos = pt;
+    ////////        }
+    ////////      }
+    ////////    } break;
+    ////////  }
+    ////////}
 
 
     switch (lpMsg->message)
@@ -2755,8 +2831,8 @@ void SK_Input_PreInit (void)
 #endif
 
   //SK_CreateUser32Hook ("NtUserGetKeyboardState",
-  SK_CreateDLLHook2 (
-  L"user32",                 "GetKeyboardState",
+  SK_CreateDLLHook2 (       L"user32",
+                             "GetKeyboardState",
                        //"NtUserGetKeyboardState",
                         NtUserGetKeyboardState_Detour,
      static_cast_p2p <void> (&GetKeyboardState_Original) );
@@ -2766,6 +2842,22 @@ void SK_Input_PreInit (void)
                              "GetCursorPos",
                               GetCursorPos_Detour,
      static_cast_p2p <void> (&GetCursorPos_Original) );
+
+
+  // Win 8.1 and newer aliases these
+  if (SK_GetProcAddress (L"user32", "GetPhysicalCursorPos") !=
+      SK_GetProcAddress (L"user32", "GetCursorPos"))
+  {
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetPhysicalCursorPos",
+                                GetPhysicalCursorPos_Detour,
+       static_cast_p2p <void> (&GetPhysicalCursorPos_Original) );
+  }
+
+  SK_CreateDLLHook2 (       L"user32",
+                             "GetMessagePos",
+                              GetMessagePos_Detour,
+     static_cast_p2p <void> (&GetMessagePos_Original) );
 
 
   ////if (bHasWin32u)
@@ -2792,7 +2884,7 @@ void SK_Input_PreInit (void)
 
 
   SK_CreateDLLHook2 (       L"user32",
-                                   "SetCursor",
+                             "SetCursor",
 //SK_CreateUser32Hook (      "NtUserSetCursor",
                               NtUserSetCursor_Detour,
      static_cast_p2p <void> (&NtUserSetCursor_Original) );
@@ -2809,6 +2901,16 @@ void SK_Input_PreInit (void)
                              "SetCursorPos",
                               SetCursorPos_Detour,
      static_cast_p2p <void> (&SetCursorPos_Original) );
+
+  // Win 8.1 and newer aliases these
+  if (SK_GetProcAddress (L"user32", "SetPhysicalCursorPos") !=
+      SK_GetProcAddress (L"user32", "SetCursorPos"))
+  {
+    SK_CreateDLLHook2 (       L"user32",
+                               "SetPhysicalCursorPos",
+                                SetPhysicalCursorPos_Detour,
+       static_cast_p2p <void> (&SetPhysicalCursorPos_Original) );
+  }
 
 
   SK_CreateDLLHook2 (     L"user32",
@@ -2837,14 +2939,14 @@ void SK_Input_PreInit (void)
 #ifdef  __MANAGE_RAW_INPUT_REGISTRATION
   //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
   SK_CreateDLLHook2 (       L"user32",
-                                   "RegisterRawInputDevices",
-                              NtUserRegisterRawInputDevices_Detour,
+                             "RegisterRawInputDevices",
+                        NtUserRegisterRawInputDevices_Detour,
      static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
   //SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
   SK_CreateDLLHook2 (       L"user32",
-                                   "GetRegisteredRawInputDevices",
-                              NtUserGetRegisteredRawInputDevices_Detour,
+                             "GetRegisteredRawInputDevices",
+                        NtUserGetRegisteredRawInputDevices_Detour,
      static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 #endif
 
@@ -3027,7 +3129,7 @@ SK_Input_Init (void)
 
 
 void
-SK_Input_SetLatencyMarker (void)
+SK_Input_SetLatencyMarker (void) noexcept
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -3043,6 +3145,125 @@ SK_Input_SetLatencyMarker (void)
       rb.setLatencyMarkerNV (INPUT_SAMPLE);
 
     WriteULong64Release (&ulLastFrame, ulFramesDrawn);
+  }
+}
+
+#include <imgui/font_awesome.h>
+
+void
+SK_ImGui_DrawGamepadStatusBar (void)
+{
+  static const char* szBatteryLevels [] = {
+    ICON_FA_BATTERY_EMPTY,
+    ICON_FA_BATTERY_QUARTER,
+    ICON_FA_BATTERY_HALF,
+    ICON_FA_BATTERY_FULL
+  };
+
+  static constexpr
+    std::array <const char*, 4> szGamepadSymbols {
+      "\t" ICON_FA_GAMEPAD " 0",//\xe2\x82\x80" /*(0)*/,
+      "\t" ICON_FA_GAMEPAD " 1",//\xe2\x82\x81" /*(1)*/,
+      "\t" ICON_FA_GAMEPAD " 2",//\xe2\x82\x82" /*(2)*/,
+      "\t" ICON_FA_GAMEPAD " 3" //\xe2\x82\x83" /*(3)*/
+    };
+
+  static ImColor battery_colors [] = {
+    ImColor::HSV (0.0f, 1.0f, 1.0f), ImColor::HSV (0.1f, 1.0f, 1.0f),
+    ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.4f, 1.0f, 1.0f)
+  };
+
+  bool connected [4] = {
+    SK_XInput_PollController (0),
+    SK_XInput_PollController (1),
+    SK_XInput_PollController (2),
+    SK_XInput_PollController (3)
+  };
+
+  struct battery_cache_s {
+    DWORD                      dwLastPolled =   0  ;
+    DWORD                      dwLastPulse  =   0  ;
+    XINPUT_BATTERY_INFORMATION battery_info = {   };
+    bool                       draining     = false;
+    bool                       wired        = false;
+  } static battery [4];
+
+  static auto constexpr
+    _BatteryPollingIntervalMs = 5000UL;
+
+  for ( const auto i : { 0, 1, 2, 3 } )
+  {
+    if (battery [i].dwLastPolled < SK::ControlPanel::current_time - _BatteryPollingIntervalMs)
+    {   battery [i].draining = false;
+        battery [i].wired    = false;
+
+      if (connected [i])
+      {
+        if (ERROR_SUCCESS == SK_XInput_GetBatteryInformation (i, BATTERY_DEVTYPE_GAMEPAD, &battery [i].battery_info))
+        {
+          if (battery [i].battery_info.BatteryType == BATTERY_TYPE_ALKALINE ||
+              battery [i].battery_info.BatteryType == BATTERY_TYPE_NIMH     ||
+              battery [i].battery_info.BatteryType == BATTERY_TYPE_UNKNOWN)
+          {
+            battery [i].draining = true;
+          }
+
+          else if (battery [i].battery_info.BatteryType == BATTERY_TYPE_WIRED)
+          {
+            battery [i].wired    = true;
+          }
+        }
+
+        battery [i].dwLastPolled = SK::ControlPanel::current_time;
+      }
+    }
+
+    ImVec4 gamepad_color =
+      ImVec4 (0.5f, 0.5f, 0.5f, 1.0f);
+
+    float fInputAge =
+      SK_XInput_Backend->getInputAge ((sk_input_dev_type)(1 << i));
+
+    if (fInputAge < 2.0f)
+    {
+      gamepad_color =
+        ImVec4 ( 0.5f + 0.25f * (2.0f - fInputAge),
+                 0.5f + 0.25f * (2.0f - fInputAge),
+                 0.5f + 0.25f * (2.0f - fInputAge), 1.0f );
+    }
+
+    if (connected [i])
+    {
+      ImGui::SameLine    ();
+      ImGui::TextColored (gamepad_color, szGamepadSymbols [i]);
+      ImGui::SameLine    ();
+
+      if (battery [i].draining)
+      {
+        auto batteryLevel =
+          std::min (battery [i].battery_info.BatteryLevel, 3ui8);
+
+        auto batteryColor =
+          battery_colors [batteryLevel];
+
+        if (batteryLevel <= 1)
+        {
+          batteryColor.Value.w =
+            0.5 + 0.4 * std::cos (3.14159265359 *
+              ((double)(SK::ControlPanel::current_time % 2250) / 1125.0));
+        }
+
+        ImGui::TextColored ( batteryColor, "%hs",
+            szBatteryLevels [batteryLevel]
+        );
+      }
+
+      else
+      {
+        ImGui::TextColored (gamepad_color, battery [i].wired ? ICON_FA_USB
+                                                             : ICON_FA_QUESTION_CIRCLE);
+      }
+    }
   }
 }
 

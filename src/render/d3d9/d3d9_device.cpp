@@ -123,8 +123,8 @@ IWrapDirect3DDevice9::Release (void)
     return 0;
 
   ULONG xrefs =
-    InterlockedDecrement (&refs_),
-         refs = pReal->Release ();
+    InterlockedDecrement (&refs_);
+  ULONG  refs = pReal->Release ();
 
   if (refs == 0 && xrefs != 0)
   {

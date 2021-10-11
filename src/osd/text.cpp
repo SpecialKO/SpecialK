@@ -904,7 +904,7 @@ if (gpu_stats != nullptr)
 {
   for (int i = 0; i < gpu_stats->num_gpus; i++)
   {
-    OSD_G_PRINTF "  GPU%i   :            %#3lu%%",
+    OSD_G_PRINTF "  GPU%i   :            %#3u%%",
       i, gpu_stats->gpus [i].loads_percent.gpu
     OSD_END
 
@@ -914,7 +914,7 @@ if (gpu_stats != nullptr)
       //OSD_G_PRINTF ",  VID%i %#3lu%% ,",
 
       // Raster 3D
-      OSD_G_PRINTF ",  VID%i %#3lu%%  ,",
+      OSD_G_PRINTF ",  VID%i %#3u%%  ,",
         i, gpu_stats->gpus [i].loads_percent.vid
       OSD_END
     } else {
@@ -925,7 +925,7 @@ if (gpu_stats != nullptr)
       OSD_G_PRINTF ",              " OSD_END
     }
 
-    OSD_G_PRINTF " %#4lu MHz",
+    OSD_G_PRINTF " %#4u MHz",
           gpu_stats->gpus [i].clocks_kHz.gpu / 1000UL
     OSD_END
 
@@ -956,7 +956,7 @@ if (gpu_stats != nullptr)
 
     if (gpu_stats->gpus [i].fans_rpm.supported && gpu_stats->gpus [i].fans_rpm.gpu > 0)
     {
-      OSD_G_PRINTF ", %#4lu RPM",
+      OSD_G_PRINTF ", %#4u RPM",
         gpu_stats->gpus [i].fans_rpm.gpu
       OSD_END
     }
@@ -968,18 +968,21 @@ if (gpu_stats != nullptr)
       ///////OSD_END
     }
 
-    static std::wstring temp (L"", 16);
+    if (gpu_stats->gpus [i].temps_c.gpu > 0.0f)
+    {
+      static std::string temp ("", 16);
 
-    temp.assign (
-      SK_FormatTemperature (
-        gpu_stats->gpus [i].temps_c.gpu,
-          Celsius,
-            config.system.prefer_fahrenheit ? Fahrenheit :
-                                              Celsius,     pTLS ).data () );
+      temp.assign (
+        SK_FormatTemperature (
+          (double)gpu_stats->gpus [i].temps_c.gpu,
+            Celsius,
+              config.system.prefer_fahrenheit ? Fahrenheit :
+                                                Celsius,     pTLS ).data () );
 
-    OSD_G_PRINTF ", (%ws)",
-      temp.c_str ()
-    OSD_END
+      OSD_G_PRINTF ", (%hs)",
+        temp.c_str ()
+      OSD_END
+    }
 
     if (config.sli.show)
     {
@@ -1025,7 +1028,7 @@ if (gpu_stats != nullptr)
     {
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
+        OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)",
           i,
                                dxgi_mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
                                                gpu_stats->gpus [i].loads_percent.fb,
@@ -1053,17 +1056,17 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       // Add memory temperature if it exists
       if (i <= gpu_stats->num_gpus && gpu_stats->gpus [i].temps_c.ram != 0)
       {
-        static std::wstring temp (L"", 16);
+        static std::string temp ("", 16);
 
         temp.assign (
           SK_FormatTemperature (
-            gpu_stats->gpus [i].temps_c.gpu,
+            (double)gpu_stats->gpus [i].temps_c.ram,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
                                                   Celsius,     pTLS ).data ()
           );
 
-        OSD_G_PRINTF ", (%ws)",
+        OSD_G_PRINTF ", (%hs)",
           temp.data ()
         OSD_END
       }
@@ -1078,7 +1081,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n",
           i,
       dxgi_mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
                        gpu_stats->gpus [i].loads_percent.bus,
@@ -1122,7 +1125,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
     {
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3lu%%: %#5.01lf GiB/s)",
+        OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)",
           i,
      dxgi_mem_info [buffer].local     [i].CurrentUsage >> 20ULL,
                       gpu_stats->gpus [i].loads_percent.fb,
@@ -1142,7 +1145,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
       if (gpu_stats->gpus [i].clocks_kHz.ram >= 1000)
       {
-        OSD_G_PRINTF ", %#4lu MHz",
+        OSD_G_PRINTF ", %#4u MHz",
           gpu_stats->gpus [i].clocks_kHz.ram / 1000UL
         OSD_END
       }
@@ -1157,7 +1160,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
       if (nvapi_init)
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3lu%%: %#5.02lf GiB/s), PCIe %i.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n",
           i,
                        gpu_stats->gpus [i].memory_B.nonlocal          >> 20ULL,
                        gpu_stats->gpus [i].loads_percent.bus,
@@ -1171,7 +1174,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
       else if (gpu_stats->gpus [i].hwinfo.pcie_lanes > 0 && pcie_gen > 0)
       {
-        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
+        OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%u\n",
           i,
           gpu_stats->gpus [i].memory_B.nonlocal    >> 20ULL,
           pcie_gen,
@@ -1190,17 +1193,17 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       // Add memory temperature if it exists
       if (gpu_stats->gpus [i].temps_c.ram != 0)
       {
-        static std::wstring temp (L"", 16);
+        static std::string temp ("", 16);
 
         temp.assign (
           SK_FormatTemperature (
-            gpu_stats->gpus [i].temps_c.gpu,
+            (double)gpu_stats->gpus [i].temps_c.ram,
               Celsius,
                 config.system.prefer_fahrenheit ? Fahrenheit :
                                                   Celsius,     pTLS ).data ()
         );
 
-        OSD_G_PRINTF ", (%ws)",
+        OSD_G_PRINTF ", (%hs)",
           temp.data ()
         OSD_END
       }
@@ -1234,7 +1237,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
     }
   }
 
-  static auto& cpu_stats = *SK_WMI_CPUStats;
+  static auto& cpu_stats = SK_WMI_CPUStats.get ();
 
   if (cpu_stats.booting)
   {
@@ -1447,7 +1450,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
   extern int gpu_prio;
 
-  static auto& disk_stats = *SK_WMI_DiskStats;
+  static auto& disk_stats = SK_WMI_DiskStats.get ();
 
   if (disk_stats.booting)
   {
@@ -1521,7 +1524,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
   }
 #endif
 
-  static auto& pagefile_stats = *SK_WMI_PagefileStats;
+  auto& pagefile_stats = *SK_WMI_PagefileStats;
 
   if (pagefile_stats.booting)
   {
@@ -1789,6 +1792,11 @@ SK_OSD_GetDefaultColor (float& r, float& g, float& b) noexcept
 float
 SK_TextOverlay::update (const char* szText)
 {
+  //
+  // TODO: Add a queue of deferred updates so that this can be called
+  //         whether or not ImGui is rendering when the update is needed
+  //
+
   const size_t src_len =
     ( szText != nullptr ? strlen (szText) :
                                      0   );
@@ -1825,8 +1833,13 @@ SK_TextOverlay::update (const char* szText)
     return data_.extent;
   }
 
-  extern ImFont*   SK_ImGui_GetFont_Consolas (void);
-  ImGui::PushFont (SK_ImGui_GetFont_Consolas (   ));
+  extern ImFont*  SK_ImGui_GetFont_Consolas (void);
+  ImFont* pFont = SK_ImGui_GetFont_Consolas (    );
+
+  if (ImGui::GetCurrentWindowRead () == nullptr || pFont == nullptr)
+    return data_.extent;
+
+  ImGui::PushFont (pFont);
 
   auto pImGuiWindow = ImGui::GetCurrentWindow ();
        pImGuiWindow->FontWindowScale = font_.scale;

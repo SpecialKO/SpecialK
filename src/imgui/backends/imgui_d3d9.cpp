@@ -450,21 +450,23 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   pTLS->texture_management.injection_thread = TRUE;
 
   // Build texture atlas
-  auto& io =
-    ImGui::GetIO ();
+  ImGuiIO& io (
+    ImGui::GetIO ()
+  );
 
-  extern void
-  SK_ImGui_LoadFonts (void);
-  SK_ImGui_LoadFonts (    );
+  static bool           init            = false;
+  static unsigned char* pixels          = nullptr;
+  static int            width           = 0,
+                        height          = 0,
+                        bytes_per_pixel = 0;
 
-  unsigned char* pixels;
-  int            width,
-                 height,
-                 bytes_per_pixel;
-
-  io.Fonts->GetTexDataAsRGBA32 ( &pixels,
+  // Only needs to be done once, the raw pixels are API agnostic
+  if (! std::exchange (init, true))
+  {
+    io.Fonts->GetTexDataAsRGBA32 ( &pixels,
                                    &width, &height,
                                      &bytes_per_pixel );
+  }
 
   // Upload texture to graphics system
   g_FontTexture = nullptr;

@@ -886,6 +886,7 @@ void
 SK_TVFix_CreateTexture2D (
   D3D11_TEXTURE2D_DESC    *pDesc )
 {
+  // Init the plug-in on first texture upload
   static auto& plugin_ctx =
     tvfix_ctx.get ();
 
@@ -942,7 +943,7 @@ SK_TVFix_D3D11_RSSetViewports_Callback (
         UINT                 NumViewports,
   const D3D11_VIEWPORT      *pViewports )
 {
-  static auto& plugin_ctx =
+  auto& plugin_ctx =
     tvfix_ctx.get ();
 
   if (NumViewports == 1 && plugin_ctx.__SK_TVFix_AspectRatioCorrection)
@@ -987,7 +988,7 @@ SK_TVFix_D3D11_RSSetScissorRects_Callback (
         UINT                 NumRects,
   const D3D11_RECT          *pRects )
 {
-  static auto& plugin_ctx =
+  auto& plugin_ctx =
     tvfix_ctx.get ();
 
   if (NumRects == 1 && plugin_ctx.__SK_TVFix_AspectRatioCorrection)

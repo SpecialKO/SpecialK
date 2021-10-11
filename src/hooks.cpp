@@ -965,9 +965,13 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     pFuncAddr =
       SK_GetProcAddress (pwszModule, pszProcName);
 
-    SK_Module_IsProcAddrLocal (
-      hMod, pszProcName, (FARPROC)pFuncAddr
-    );
+    // Do not warn about kernel functions being in the wrong place
+    if (! StrStrIW (pwszModule, L"kernel"))
+    {
+      SK_Module_IsProcAddrLocal (
+        hMod, pszProcName, (FARPROC)pFuncAddr
+      );
+    }
 
     status =
       MH_CreateHook ( pFuncAddr,
@@ -1428,10 +1432,42 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
 #define SK_IsDebug() false
 #endif
 
+struct {
+  struct {
+    bool enabled = false;
+  } ApplyQueuedHooks;
+} SKinHookCtx;
+
+// For completeness; nothing uses this
+bool SK_DisableApplyQueuedHooks (void)
+{
+  bool bBefore =
+    SKinHookCtx.ApplyQueuedHooks.enabled;
+
+  SKinHookCtx.ApplyQueuedHooks.enabled = false;
+
+  return bBefore;
+}
+
+bool SK_EnableApplyQueuedHooks (void)
+{
+  bool bBefore =
+    SKinHookCtx.ApplyQueuedHooks.enabled;
+
+  SKinHookCtx.ApplyQueuedHooks.enabled = true;
+
+////SK_ApplyQueuedHooks ();
+
+  return bBefore;
+}
+
 MH_STATUS
 __stdcall
 SK_ApplyQueuedHooks (void)
 {
+  if (! SKinHookCtx.ApplyQueuedHooks.enabled)
+    return MH_OK;
+
   if (ReadAcquire (&__SK_DLL_Ending) || (! ReadAcquire (&__SK_DLL_Attached)))
     return MH_ERROR_DISABLED;
 

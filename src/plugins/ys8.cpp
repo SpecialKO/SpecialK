@@ -1730,7 +1730,7 @@ SK_YS8_InitPlugin (void)
              static_cast_p2p <void> (&CreateFileW_Original) );
 
 
-  static auto&
+  auto&
     ys8_cfg = ys8_config.get ();
 
   ys8_cfg.shadows.scale =

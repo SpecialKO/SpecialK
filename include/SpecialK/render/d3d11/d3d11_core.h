@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -1868,7 +1868,7 @@ typedef HRESULT (WINAPI *D3D11CreateDevice_pfn)(
   _Out_opt_       D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_       ID3D11DeviceContext **ppImmediateContext);
 
-typedef enum D3DX11_IMAGE_FILE_FORMAT { 
+typedef enum D3DX11_IMAGE_FILE_FORMAT {
    D3DX11_IFF_BMP          = 0,
    D3DX11_IFF_JPG          = 1,
    D3DX11_IFF_PNG          = 3,
@@ -2539,3 +2539,6 @@ SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
 
 void SK_D3D11_BeginFrame (void);
 void SK_D3D11_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
+
+void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);
+void ApplyStateblock  (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);

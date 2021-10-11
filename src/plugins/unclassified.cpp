@@ -18,6 +18,73 @@ bool SK_SO4_PlugInCfg   (void);
 bool SK_LSBTS_PlugInCfg (void);
 
 bool
+SK_FarCry6_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Far Cry 6", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    static void* pLimitSet = (void *)(uintptr_t)0x7FF9F3F51E02;
+
+    // FC_m64d3d12.dll.reloc+3A0E02 - 8B 89 BC000000        - mov ecx,[rcx+000000BC]
+
+    static bool patchable = false;
+    static bool init      = false;
+
+    if (! init)
+    {
+      patchable =
+        SK_IsAddressExecutable (pLimitSet);
+
+      init = true;
+
+      if (patchable)
+      {
+        DWORD                                                      dwOrigProt = 0;
+        if (VirtualProtect (pLimitSet, 6, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          patchable =
+            (! memcmp (pLimitSet, "\x8B\x89\xBC\x00\x00\x00",
+                                       6));
+            VirtualProtect (pLimitSet, 6, dwOrigProt,             &dwOrigProt);
+        }
+      }
+    }
+
+    if (patchable)
+    {
+      static bool patched = false;
+
+      if (ImGui::Checkbox ("Disable Framerate Limit", &patched))
+      {
+        DWORD                                                      dwOrigProt = 0;
+        if (VirtualProtect (pLimitSet, 6, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          if (patched)
+          {
+            memcpy (pLimitSet, "\xB9\x00\x00\x00\x00\x90", 6);
+          }
+
+          else
+          {
+            memcpy (pLimitSet, "\x8B\x89\xBC\x00\x00\x00", 6);
+          }
+          VirtualProtect (pLimitSet, 6, dwOrigProt, &dwOrigProt);
+        }
+
+        else
+          patched = (! patched);
+      }
+    }
+    ImGui::TreePop  (  );
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
 SK_GalGun_PlugInCfg (void)
 {
   if (ImGui::CollapsingHeader ("Gal*Gun: Double Peace", ImGuiTreeNodeFlags_DefaultOpen))
@@ -31,7 +98,7 @@ SK_GalGun_PlugInCfg (void)
       const uint32_t ps_primary = 0x9b826e8a;
       const uint32_t vs_outline = 0x2e1993cf;
 
-      auto& _Shaders = SK::D3D9::Shaders.get ();
+      static auto& _Shaders = SK::D3D9::Shaders.get ();
 
       if (emperor_has_no_clothes)
       {
@@ -857,10 +924,8 @@ SKX_Keybinding (SK_Keybind* binding, sk::ParameterStringW* param)
     SK_WideCharToUTF8 (binding->human_readable) + "###";
               label += binding->bind_name;
 
-  if (ImGui::Selectable (label.c_str (), false))
-  {
-    ImGui::OpenPopup (binding->bind_name);
-  }
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+    ImGui::OpenPopup (        binding->bind_name);
 
   std::wstring original_binding = binding->human_readable;
 

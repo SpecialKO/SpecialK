@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -24,6 +24,9 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
+// D3DKMT stuff
+#include <SpecialK/render/d3d11/d3d11_core.h>
+
 static constexpr int GPU_SENSOR_BUFFERS = 3;
 
 //
@@ -47,6 +50,86 @@ extern BOOL ADL_init;
 #define NVAPI_GPU_UTILIZATION_DOMAIN_VID 2
 #define NVAPI_GPU_UTILIZATION_DOMAIN_BUS 3
 
+#define D3DKMT_SENSORS 1
+
+HRESULT
+SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)
+{
+  if (! D3DKMTQueryAdapterInfo)
+        D3DKMTQueryAdapterInfo =
+        SK_GetProcAddress (
+          SK_LoadLibraryW ( L"gdi32.dll" ),
+            "D3DKMTQueryAdapterInfo"
+                          );
+
+  if (D3DKMTQueryAdapterInfo != nullptr)
+  {
+    return
+       reinterpret_cast <
+         PFND3DKMT_QUERYADAPTERINFO                    > (
+             D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
+  }
+
+  return E_FAIL;
+}
+
+HRESULT
+SK_D3DKMT_QueryAdapterPerfData ( HDC                      hDC,
+                                 D3DKMT_ADAPTER_PERFDATA *pAdapterPerfData )
+{
+  D3DKMT_OPENADAPTERFROMHDC oa     = { };
+                            oa.hDc = hDC;
+
+  if (! D3DKMTOpenAdapterFromHdc)
+  {     D3DKMTOpenAdapterFromHdc =
+        SK_GetProcAddress (
+          SK_LoadLibraryW ( L"gdi32.dll" ),
+            "D3DKMTOpenAdapterFromHdc"
+                          );
+  }
+
+  NTSTATUS result =
+        reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (D3DKMTOpenAdapterFromHdc)(&oa);
+
+  if (SUCCEEDED (result))
+  {
+    D3DKMT_QUERYADAPTERINFO
+      queryAdapterInfo                       = { };
+      queryAdapterInfo.AdapterHandle         = oa.hAdapter;
+      queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+      queryAdapterInfo.PrivateDriverData     =          pAdapterPerfData;
+      queryAdapterInfo.PrivateDriverDataSize = sizeof (*pAdapterPerfData);
+
+    result =
+      SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+  }
+
+  return result;
+}
+
+HRESULT
+SK_D3DKMT_CloseAdapter (D3DKMT_CLOSEADAPTER *pCloseAdapter)
+{
+  if (! D3DKMTCloseAdapter)
+        D3DKMTCloseAdapter =
+        SK_GetProcAddress (
+          SK_LoadLibraryW ( L"gdi32.dll" ),
+            "D3DKMTCloseAdapter"
+                          );
+
+  if (D3DKMTCloseAdapter != nullptr)
+  {
+    return
+       reinterpret_cast <
+         PFND3DKMT_CLOSEADAPTER> (
+             D3DKMTCloseAdapter) (pCloseAdapter);
+  }
+
+  return E_FAIL;
+}
+
+
+
 static HANDLE hPollEvent     = nullptr;
 static HANDLE hShutdownEvent = nullptr;
 static HANDLE hPollThread    = nullptr;
@@ -57,8 +140,10 @@ SK_GPU_InitSensorData (void)
   if (gpu_stats_buffers == nullptr)
       gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
 
-  // Num GPUs will be 0 unless either API is bootstrapped.
+  // Num GPUs will be 0 unless NVAPI, ADL or D3DKMT is supported.
+#ifndef D3DKMT_SENSORS
   if ( nvapi_init || ADL_init )
+#endif
   {
     for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
     { gpu_stats_buffers [i].num_gpus = 1; }
@@ -70,12 +155,19 @@ SK_GPU_InitSensorData (void)
   );
 }
 
+
+SK_LazyGlobal <
+  std::vector <
+    std::pair < NvU32, NvPhysicalGpuHandle >
+              >
+              > __nv_gpus;
+
 DWORD
 __stdcall
 SK_GPUPollingThread (LPVOID user)
 {
-  static std::vector <std::pair <NvU32, NvPhysicalGpuHandle>>
-    nv_gpus;
+  auto nv_gpus =
+     __nv_gpus.getPtr ();
 
   SK_GPU_InitSensorData ();
 
@@ -86,7 +178,7 @@ SK_GPUPollingThread (LPVOID user)
     hShutdownEvent
   };
 
-  SetCurrentThreadDescription  (     L"[SK] GPU Performance Monitor");
+  SetCurrentThreadDescription  (L"[SK] GPU Performance Monitor");
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
   SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
 
@@ -110,8 +202,10 @@ SK_GPUPollingThread (LPVOID user)
 
   if (nvapi_init)
   {
+#ifdef _DEBUG
     SK_RunOnce (assert (NvAPI_GetGPUIDFromPhysicalGPU != nullptr));
     SK_RunOnce (assert (NvAPI_GetPhysicalGPUFromGPUID != nullptr));
+#endif
 
     if (NVAPI_OK != NvAPI_EnumPhysicalGPUs (gpus, &gpu_count))
     {
@@ -125,25 +219,22 @@ SK_GPUPollingThread (LPVOID user)
     DWORD dwWait =
       WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
 
-    if (dwWait == WAIT_OBJECT_0 + 1)
-      break;
-
-    else if (dwWait != WAIT_OBJECT_0)
-      break;
+    if (     dwWait == WAIT_OBJECT_0 + 1) break;
+    else if (dwWait != WAIT_OBJECT_0    ) break;
 
     static LONG idx =
       ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
 
     // Previous data set, for stats that are not updated every cycle
     gpu_sensors_t& stats0 =
-      gpu_stats_buffers [idx];
+               gpu_stats_buffers [idx];
 
     idx =
       ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
 
     // The data set we will be working on.
     gpu_sensors_t& stats =
-      gpu_stats_buffers [idx];
+               gpu_stats_buffers [idx];
 
     // Don't do this every frame
     if ((ReadAcquire (&gpu_sensor_frame) % (GPU_SENSOR_BUFFERS * 2)) == 0)
@@ -157,12 +248,11 @@ SK_GPUPollingThread (LPVOID user)
       stats.num_gpus =
         std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
 
-      NV_GPU_DYNAMIC_PSTATES_INFO_EX psinfoex;
-      psinfoex.version = NV_GPU_DYNAMIC_PSTATES_INFO_EX_VER;
+      NV_GPU_DYNAMIC_PSTATES_INFO_EX
+        psinfoex         = {                                };
+        psinfoex.version = NV_GPU_DYNAMIC_PSTATES_INFO_EX_VER;
 
-      static bool init = false;
-
-      if (! init)
+      if (nv_gpus->empty ())
       {
         for (int i = 0; i < stats.num_gpus; i++)
         {
@@ -176,21 +266,19 @@ SK_GPUPollingThread (LPVOID user)
           if (NvAPI_GetPhysicalGPUFromGPUID != nullptr)
               NvAPI_GetPhysicalGPUFromGPUID ( gpu_id, &gpu );
 
-          nv_gpus.emplace_back (
+          nv_gpus->emplace_back (
             std::make_pair (gpu_id, gpu)
           );
         }
 
-        std::sort ( nv_gpus.begin (),
-                    nv_gpus.end (),
+        std::sort ( nv_gpus->begin (),
+                    nv_gpus->end   (),
           [&]( const std::pair <NvU32, NvPhysicalGpuHandle>& a,
                const std::pair <NvU32, NvPhysicalGpuHandle>& b )
           {
             return ( a.first < b.first );
           }
         );
-
-        init = true;
       }
 
       for (int i = 0; i < stats.num_gpus; i++)
@@ -201,10 +289,11 @@ SK_GPUPollingThread (LPVOID user)
         //NvAPI_GetPhysicalGPUFromGPUID (1 << (i + 8), &gpu);
         //stats.gpus [i].nv_gpuid = (1 << (i + 8));
 
-        NvPhysicalGpuHandle gpu = nv_gpus [i].second;
-        stats.gpus [i].nv_gpuid = nv_gpus [i].first;
+        NvPhysicalGpuHandle gpu = __nv_gpus [i].second;
+        stats.gpus [i].nv_gpuid = __nv_gpus [i].first;
 
-        NvAPI_Status        status =
+        NvAPI_Status
+              status =
           NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
 
         if (status == NVAPI_OK)
@@ -227,27 +316,24 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
         }
 
-
-        static bool has_thermal = true;
-
-
-        NV_GPU_THERMAL_SETTINGS thermal = { };
-        thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
+        NV_GPU_THERMAL_SETTINGS
+          thermal         = {                         };
+          thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
 
 
         // This is needed to fix some problems with Mirilis Action injecting itself
         //   and immediately breaking NvAPI.
-        if (has_thermal)
+        if (stats.gpus [i].temps_c.supported)
         {
           status =
             NvAPI_GPU_GetThermalSettings ( gpu,
                                              NVAPI_THERMAL_TARGET_ALL,
                                                &thermal );
 
-          if (status != NVAPI_OK) has_thermal = false;
-        }
-
-        if (! has_thermal) status = NVAPI_ERROR;
+          if (status != NVAPI_OK)
+                stats.gpus [i].temps_c.supported = false;
+        } if (! stats.gpus [i].temps_c.supported)
+              status  = NVAPI_ERROR;
 
 
         if (status == NVAPI_OK)
@@ -259,7 +345,8 @@ SK_GPUPollingThread (LPVOID user)
               stats.gpus [i].temps_c.gpu = (stats.gpus[i].temps_c.gpu + thermal.sensor [j].currentTemp) / 2;
 #else
             if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
-              stats.gpus [i].temps_c.gpu = thermal.sensor [j].currentTemp;
+              stats.gpus [i].temps_c.gpu =
+                      static_cast <float> (thermal.sensor [j].currentTemp);
             if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_MEMORY)
               stats.gpus [i].temps_c.ram = thermal.sensor [j].currentTemp;
             if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_POWER_SUPPLY)
@@ -270,18 +357,17 @@ SK_GPUPollingThread (LPVOID user)
           }
         }
 
-        else has_thermal = false;
+        else
+          stats.gpus [i].temps_c.supported = false;
 
 
-
-        NvU32 pcie_lanes = 0;
+        NvU32                                                          pcie_lanes = 0;
         if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
-        {
-          stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
-        }
+                                    stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
 
-        NV_PCIE_INFO pcieinfo         = {              };
-                     pcieinfo.version = NV_PCIE_INFO_VER;
+        NV_PCIE_INFO
+           pcieinfo         = {              };
+           pcieinfo.version = NV_PCIE_INFO_VER;
 
         if (            NvAPI_GPU_GetPCIEInfo != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
@@ -306,23 +392,22 @@ SK_GPUPollingThread (LPVOID user)
 
         if (            NvAPI_GPU_GetFBWidthAndLocation != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
-        {
-          stats.gpus [i].hwinfo.mem_bus_width = mem_width;
-        }
+                         stats.gpus [i].hwinfo.mem_bus_width = mem_width;
 
-        else stats.gpus [i].hwinfo.mem_bus_width = stats0.gpus [i].hwinfo.mem_bus_width;
+        else stats.gpus [i].hwinfo.mem_bus_width =
+            stats0.gpus [i].hwinfo.mem_bus_width;
 
 
         if (            NvAPI_GPU_GetRamType != nullptr &&
             NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
-        {
-          stats.gpus [i].hwinfo.mem_type = mem_type;
-        }
+                   stats.gpus [i].hwinfo.mem_type = mem_type;
 
-        else stats.gpus [i].hwinfo.mem_type = stats0.gpus [i].hwinfo.mem_type;
+        else stats.gpus [i].hwinfo.mem_type =
+            stats0.gpus [i].hwinfo.mem_type;
 
-        NV_DISPLAY_DRIVER_MEMORY_INFO meminfo = { };
-                                      meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
+        NV_DISPLAY_DRIVER_MEMORY_INFO
+          meminfo         = {                               };
+          meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
 
         if (NVAPI_OK == NvAPI_GPU_GetMemoryInfo (gpu, &meminfo))
         {
@@ -339,7 +424,7 @@ SK_GPUPollingThread (LPVOID user)
 
           // Compute Non-Local
           stats.gpus [i].memory_B.nonlocal =
-            stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local;
+           ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
         }
 
         else
@@ -351,16 +436,14 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
         }
 
-
       //SwitchToThreadMinPageFaults ();
 
-        static int amortization0 = 0;
-
-        if (amortization0++ % 3 == 0)
+        if (stats.gpus [i].amortization.phase0++ % 3 == 0)
         {
-          NV_GPU_CLOCK_FREQUENCIES freq           = {                          };
-                                   freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
-                                   freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
+          NV_GPU_CLOCK_FREQUENCIES
+            freq           = {                          };
+            freq.version   = NV_GPU_CLOCK_FREQUENCIES_VER;
+            freq.ClockType = NV_GPU_CLOCK_FREQUENCIES_CURRENT_FREQ;
 
           if (NVAPI_OK == NvAPI_GPU_GetAllClockFrequencies (gpu, &freq))
           {
@@ -385,9 +468,7 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].clocks_kHz.ram = stats0.gpus [i].clocks_kHz.ram;
         }
 
-        static int amortization1 = 0;
-
-        if (amortization1++ % 2 == 0)
+        if (stats.gpus [i].amortization.phase1++ % 2 == 0)
         {
           NvU32 tach = 0;
 
@@ -412,41 +493,36 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].fans_rpm.supported = stats0.gpus [i].fans_rpm.supported;
         }
 
-        static int iter = 0;
-
         // This is an expensive operation for very little gain,
         //   it rarely changes, but it eats CPU time.
-        if ((iter++ % 8) == 0 && config.gpu.print_slowdown)
+        if ((stats.gpus [i].nv_perf_state_iter++ % 8) == 0 && config.gpu.print_slowdown)
         {
-          NvU32 perf_decrease_info = 0;
-
-          NvAPI_GPU_GetPerfDecreaseInfo (gpu, &perf_decrease_info);
-
-          stats.gpus [i].nv_perf_state = perf_decrease_info;
+          NvU32                                                perf_decrease_info = 0;
+          if (NVAPI_OK == NvAPI_GPU_GetPerfDecreaseInfo (gpu, &perf_decrease_info))
+                          stats.gpus [i].nv_perf_state =       perf_decrease_info;
         }
 
-        else { stats.gpus [i].nv_perf_state = stats0.gpus [i].nv_perf_state; }
+        else stats.gpus [i].nv_perf_state =
+            stats0.gpus [i].nv_perf_state;
 
-        static NV_GPU_PERF_PSTATES20_INFO ps20info = {                            };
-               ps20info.version                    = NV_GPU_PERF_PSTATES20_INFO_VER;
+        NV_GPU_PERF_PSTATES20_INFO
+          ps20info         = {                            };
+          ps20info.version = NV_GPU_PERF_PSTATES20_INFO_VER;
 
-        stats.gpus [i].volts_mV.supported   = false;
+        stats.gpus [i].volts_mV.supported = false;
 
-        static bool has_pstates     = true;
-        static bool queried_pstates = false;
-
-        if ( queried_pstates ||
-             ( has_pstates &&
+        if ( stats.gpus   [i].queried_nv_pstates ||
+             ( stats.gpus [i].    has_nv_pstates &&
                NVAPI_OK == NvAPI_GPU_GetPstates20 (gpu, &ps20info) )
            )
         {
           // Rather than querying the list over and over, just get the current
           //   index into the list.
-          queried_pstates = true;
+          stats.gpus [i].queried_nv_pstates = true;
+          stats.gpus [i].has_nv_pstates     = (ps20info.numPstates != 0);
 
-          if (ps20info.numPstates == 0) has_pstates = false;
-
-          NV_GPU_PERF_PSTATE_ID current_pstate = { };
+          NV_GPU_PERF_PSTATE_ID
+              current_pstate = NVAPI_GPU_PERF_PSTATE_P0;
 
           if (NVAPI_OK == NvAPI_GPU_GetCurrentPstate (gpu, &current_pstate))
           {
@@ -539,7 +615,7 @@ SK_GPUPollingThread (LPVOID user)
           }
         }
 
-        else has_pstates = false;
+        else stats.gpus [i].has_nv_pstates = false;
 
       //SwitchToThreadMinPageFaults ();
       }
@@ -586,7 +662,7 @@ SK_GPUPollingThread (LPVOID user)
 
         ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
 
-        stats.gpus [i].temps_c.gpu = temp.iTemperature / 1000UL;
+        stats.gpus [i].temps_c.gpu = static_cast <float> (temp.iTemperature) / 1000.0f;
 
         ADLFanSpeedValue fanspeed            = {                           };
                          fanspeed.iSize      = sizeof (ADLFanSpeedValue);
@@ -600,14 +676,60 @@ SK_GPUPollingThread (LPVOID user)
     }
 
     else
-      break;
+    {
+      static D3DKMT_ADAPTER_PERFDATA
+                     adapterPerfData = { };
+
+      static DWORD
+        dwLastUpdate = 0;
+
+      if (dwLastUpdate < (SK_timeGetTime () - 250))
+      {   dwLastUpdate =  SK_timeGetTime ();
+        auto hDC =
+           GetDC (NULL);
+
+        // Really should be using the adapter LUID version, but to make this
+        //   work in GL ... avoid for now.
+        SK_D3DKMT_QueryAdapterPerfData (hDC,
+                      &adapterPerfData );
+
+        ReleaseDC (NULL, hDC);
+      }
+
+      stats.num_gpus = 1;
+
+      for (int i = 0; i < stats.num_gpus; i++)
+      {
+        stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
+            static_cast <float> (adapterPerfData.Temperature) / 10.0f;
+
+        stats.gpus [i].fans_rpm.supported = (adapterPerfData.FanRPM != 0);
+        stats.gpus [i].fans_rpm.gpu       =  adapterPerfData.FanRPM;
+
+        stats.gpus [i].clocks_kHz.ram     =
+          static_cast <uint32_t> (
+            adapterPerfData.MemoryFrequency / 1000
+          );
+      }
+
+#if 0
+      ImGui::Text ( "GPUTemp: %3.1fC (%u RPM)",
+                                     static_cast <double> (adapterPerfData.Temperature) / 10.0,
+                                                           adapterPerfData.FanRPM              );
+      ImGui::Text ( "VRAM:    %7.2f MHz",
+                                     static_cast <double> (adapterPerfData.MemoryFrequency) / 1000000.0
+                                                                                               );
+      ImGui::Text ( "Power:   %3.1f%%",
+                                     static_cast <double> (adapterPerfData.Power)       / 10.0 );
+#endif
+    }
 
     InterlockedExchangePointer (
       (void **)&gpu_stats,
                &gpu_stats_buffers [idx]
     );
 
-  //ResetEvent (hPollEvent);
+    ResetEvent (hPollEvent);
   }
 
   InterlockedExchangePointer (
@@ -629,7 +751,7 @@ SK_EndGPUPolling (void)
 {
   if (hShutdownEvent != nullptr && hPollThread != nullptr)
   {
-    if (SignalObjectAndWait (hShutdownEvent, hPollThread, 333UL, TRUE) != WAIT_OBJECT_0)
+    if (SignalObjectAndWait (hShutdownEvent, hPollThread, 125UL, FALSE) != WAIT_OBJECT_0)
     {
       SK_TerminateThread (hPollThread, 0x00);
       CloseHandle        (hPollThread); // Thread cleans itself up normally
@@ -659,6 +781,8 @@ SK_EndGPUPolling (void)
 void
 SK_PollGPU (void)
 {
+  // Limited support for D3DKMT sensor readings if no NVAPI or ADL
+#ifndef D3DKMT_SENSORS
   if (! nvapi_init)
   {
     if (! ADL_init)
@@ -672,25 +796,15 @@ SK_PollGPU (void)
       return;
     }
   }
+#endif
 
-  static volatile ULONG init = FALSE;
-
+  static volatile ULONG              init       (FALSE);
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    hShutdownEvent = SK_CreateEvent    (nullptr, FALSE, FALSE, nullptr);
-    hPollEvent     = SK_CreateEvent    (nullptr, FALSE, TRUE,  nullptr);
+    hShutdownEvent = SK_CreateEvent    (nullptr, TRUE, FALSE, nullptr);
+    hPollEvent     = SK_CreateEvent    (nullptr, TRUE,  TRUE, nullptr);
     hPollThread    = SK_Thread_CreateEx ( SK_GPUPollingThread );
   }
-
-  SYSTEMTIME     update_time;
-  FILETIME       update_ftime;
-  ULARGE_INTEGER update_ul;
-
-  GetSystemTime        (&update_time);
-  SystemTimeToFileTime (&update_time, &update_ftime);
-
-  update_ul.HighPart = update_ftime.dwHighDateTime;
-  update_ul.LowPart  = update_ftime.dwLowDateTime;
 
   gpu_sensors_t* pSensors =
     (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
@@ -698,28 +812,39 @@ SK_PollGPU (void)
   while (pSensors == nullptr)
   {
     static int spins = 0;
-
-    SK_SleepEx (2UL, FALSE);
-
-    if (++spins > 3) {
-          spins = 0; return;
-    }
+    if (     ++spins > 16)
+    {          spins = 0; return; }
 
     pSensors =
       (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
   }
 
+  ULARGE_INTEGER         update_ul   = { };
+  SYSTEMTIME             update_time = { };
+  GetSystemTime        (&update_time);
+  FILETIME                             update_ftime = { };
+  SystemTimeToFileTime (&update_time, &update_ftime);
+  update_ul.HighPart =                 update_ftime.dwHighDateTime;
+  update_ul.LowPart  =                 update_ftime.dwLowDateTime;
+
   const double dt =
     (update_ul.QuadPart - pSensors->last_update.QuadPart) * 1.0e-7;
 
-  if (dt > config.gpu.interval)
+  if ( dt > config.gpu.interval && hPollEvent != nullptr )
   {
-    if (SK_WaitForSingleObject (hPollEvent, 0) == WAIT_TIMEOUT)
+    if ( WAIT_TIMEOUT ==
+           SK_WaitForSingleObject (hPollEvent, 0)
+       )
     {
-      pSensors->last_update.QuadPart = update_ul.QuadPart;
+      if ( WAIT_OBJECT_0 !=
+             SK_WaitForSingleObject (hShutdownEvent, 0) )
+      {
+        pSensors->last_update.QuadPart =
+                    update_ul.QuadPart;
 
-      if (hPollEvent != nullptr)
-        SetEvent (hPollEvent);
+        if (        hPollEvent != nullptr)
+          SetEvent (hPollEvent);
+      }
     }
   }
 }
@@ -806,8 +931,8 @@ SK_GPU_GetTempInC           (int gpu)
   gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
-  return (gpu > -1 && gpu < pDataView->num_gpus)               ?
-       static_cast <float> (pDataView->gpus [gpu].temps_c.gpu) :
+  return (gpu > -1 && gpu < pDataView->num_gpus)              ?
+                            pDataView->gpus [gpu].temps_c.gpu :
                                     0.0f;
 }
 

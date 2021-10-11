@@ -92,6 +92,7 @@ extern "C" __declspec (dllexport) FARPROC D3DPerformance_BeginEvent             
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_EndEvent                = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_GetStatus               = nullptr;
 extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker               = nullptr;
+extern "C" __declspec (dllexport) FARPROC D3DKMTOpenAdapterFromLuid              = nullptr;
 
 
 bool
@@ -186,7 +187,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
         if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
         {
-          static auto& textures =
+          auto& textures =
             SK_D3D11_Textures;
 
           auto& cache_desc =
@@ -366,7 +367,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
         if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
         {
-          static auto& textures =
+          auto& textures =
             SK_D3D11_Textures;
 
           auto& cache_desc =
@@ -616,11 +617,12 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  if ((! pDesc) || ( pDesc->Width  < 4 &&
-                     pDesc->Height < 4    ))
+  if ((pDesc != nullptr) ||
+                 ( pDesc->Width  < 4 &&
+                   pDesc->Height < 4    ))
   {
     D3D11_TEXTURE2D_DESC descCopy =
-                   pDesc ?
+                   pDesc != nullptr ?
                   *pDesc :
                    D3D11_TEXTURE2D_DESC { };
 
@@ -749,7 +751,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
   _In_opt_        ID3D11ClassLinkage         *pClassLinkage,
   _Out_opt_       ID3D11GeometryShader      **ppGeometryShader )
 {
-  if (! pShaderBytecode)
+  if (pShaderBytecode == nullptr)
     return E_POINTER;
 
   const HRESULT hr =
@@ -762,7 +764,7 @@ D3D11Dev_CreateGeometryShaderWithStreamOutput_Override (
 
   if (SUCCEEDED (hr) && ppGeometryShader)
   {
-    static auto& geo_shaders =
+    auto& geo_shaders =
       SK_D3D11_Shaders->geometry;
 
     uint32_t checksum =
@@ -816,7 +818,7 @@ D3D11Dev_CreateHullShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11HullShader   **ppHullShader )
 {
-  if (! pShaderBytecode)
+  if (pShaderBytecode == nullptr)
     return E_POINTER;
 
   return
@@ -837,7 +839,7 @@ D3D11Dev_CreateDomainShader_Override (
   _In_opt_        ID3D11ClassLinkage  *pClassLinkage,
   _Out_opt_       ID3D11DomainShader **ppDomainShader )
 {
-  if (! pShaderBytecode)
+  if (pShaderBytecode == nullptr)
     return E_POINTER;
 
   return
@@ -858,7 +860,7 @@ D3D11Dev_CreateComputeShader_Override (
   _In_opt_        ID3D11ClassLinkage   *pClassLinkage,
   _Out_opt_       ID3D11ComputeShader **ppComputeShader )
 {
-  if (! pShaderBytecode)
+  if (pShaderBytecode == nullptr)
     return E_POINTER;
 
   return

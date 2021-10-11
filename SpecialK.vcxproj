@@ -120,13 +120,13 @@
     <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Special K\</OutDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\ucrt</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
-    <CodeAnalysisRuleSet>CppCoreCheckConcurrencyRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SpecialK-kitandkabootle.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
-    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>true</EnableClangTidyCodeAnalysis>
     <MultiProcFXC>true</MultiProcFXC>
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
   </PropertyGroup>
@@ -158,7 +158,7 @@
       <OpenMPSupport>false</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
+      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <SmallerTypeCheck>false</SmallerTypeCheck>
@@ -232,7 +232,7 @@
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>NTDDI_VERSION=NTDDI_WINTHRESHOLD;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
+      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -357,20 +357,21 @@
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ConformanceMode>true</ConformanceMode>
-      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
+      <ConformanceMode>false</ConformanceMode>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <OmitFramePointers />
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
+      <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -398,6 +399,7 @@
       <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalOptions>/GUARD:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -439,7 +441,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Full</Optimization>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -448,29 +450,33 @@
       <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <BrowseInformation>false</BrowseInformation>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf  %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
-      <OpenMPSupport>false</OpenMPSupport>
+      <OpenMPSupport>true</OpenMPSupport>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <EnablePREfast>false</EnablePREfast>
       <ShowIncludes>false</ShowIncludes>
-      <EnforceTypeConversionRules>false</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <SupportJustMyCode>false</SupportJustMyCode>
       <FloatingPointModel>Precise</FloatingPointModel>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
-      <ConformanceMode>true</ConformanceMode>
-      <EnableModules>false</EnableModules>
+      <EnableModules>true</EnableModules>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <ConformanceMode>false</ConformanceMode>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -500,6 +506,7 @@
       <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>false</DataExecutionPrevention>
+      <AdditionalOptions>/GUARD:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -2134,6 +2141,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>
+    <None Include="SpecialK.ruleset" />
     <None Include="src\imgui\LICENSE" />
     <None Include="Tobii\API-Reference.pdf" />
     <None Include="Tobii\SDK-License_en.pdf" />

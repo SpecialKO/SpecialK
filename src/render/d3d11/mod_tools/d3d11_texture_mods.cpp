@@ -20,7 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -43,10 +43,10 @@ static size_t tex_dbg_idx  = 0;
 void
 SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 {
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& textures =
@@ -703,8 +703,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           ( ImGui::GetWindowContentRegionMax ().x -
             ImGui::GetWindowContentRegionMin ().x ) / scale_factor;
 
-            float effective_width,
-                  effective_height;
+            float effective_width  = 0.0f;
+            float effective_height = 0.0f;
 
         const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
                                                       ImGui::GetStyle ().ItemInnerSpacing.y;
@@ -836,13 +836,6 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               SK_ScopedBool decl_tex_scope (
                 SK_D3D11_DeclareTexInjectScope (pTLS)
               );
-
-              HRESULT
-              __stdcall
-              SK_D3D11_MipmapCacheTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c, SK_TLS* pTLS,
-                                                   ID3D11DeviceContext*  pDevCtx = (ID3D11DeviceContext *)SK_GetCurrentRenderBackend ().d3d11.immediate_ctx,
-                                                   ID3D11Device*         pDev    = (ID3D11Device        *)SK_GetCurrentRenderBackend ().device.p );
-
 
               if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
               {

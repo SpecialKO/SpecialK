@@ -815,7 +815,8 @@ SK_Bypass_CRT (LPVOID)
       std::wstring fname =
         dll_ini->get_filename ();
 
-      delete dll_ini;
+      // Invalidate, so we don't write the INI we just deleted :)
+      dll_ini->rename (L"");
 
       SK_DeleteConfig (fname);
       SK_DeleteConfig (wszConfigName);
@@ -829,7 +830,7 @@ SK_Bypass_CRT (LPVOID)
     else if (nButtonPressed != BUTTON_OK)
     {
       SK_SaveConfig (wszConfigName);
-      delete dll_ini;
+      dll_ini->rename (L"");
     }
 
     if ( nButtonPressed         == BUTTON_INSTALL &&

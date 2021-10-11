@@ -46,7 +46,7 @@ namespace SK
   };
 };
 
-DWORD SK_GetCurrentMS (void);
+DWORD SK_GetCurrentMS (void) noexcept;
 
 void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,

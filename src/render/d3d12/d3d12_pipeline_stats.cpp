@@ -239,7 +239,7 @@ void
 __stdcall
 SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList *pList, IDXGISwapChain3 *pSwapChain)
 {
-  auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ReleaseAssert (rb.api == SK_RenderAPI::D3D12);
@@ -326,7 +326,7 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  void run (void) override
+  void run (void) noexcept override
   {
     if ( ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
            static_cast <int> (SK_RenderAPI::D3D12) ) !=
@@ -364,7 +364,7 @@ public:
     }
   }
 
-  void draw (void) override
+  void draw (void) noexcept override
   {
     if ( ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
            static_cast <int> (SK_RenderAPI::D3D12) ) !=

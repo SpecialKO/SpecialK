@@ -248,7 +248,7 @@ SK_MHW_PlugInCfg (void)
     {
       ImGui::TreePush  ("");
 
-      auto& rb =
+      static auto& rb =
         SK_GetCurrentRenderBackend ();
 
       if (rb.isHDRCapable ())

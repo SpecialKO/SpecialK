@@ -20,7 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <stdio.h>
+#include <cstdio>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -102,13 +102,13 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
   if (pTLS == nullptr)
       pTLS  = SK_TLS_Bottom ();
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   // Flag this thread so the IUnknown::AddRef (...) that comes as a result
   //   of GetResource (...) does not count as texture cache hits.
   SK_ScopedBool auto_draw (&pTLS->imgui->drawing);
-                            pTLS->imgui->drawing = true;
+                            pTLS->imgui->drawing = TRUE;
 
   SK_ScopedBool decl_tex_scope (
     SK_D3D11_DeclareTexInjectScope (pTLS)
@@ -178,7 +178,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
       const NUMBERFMTA fmt = { 0, 0, 3, dot, comma, 0 };
 
-      snprintf (szNumber, 15, "%li", num);
+      snprintf (szNumber, 15, "%i", num);
 
       GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
                            0x00,
@@ -192,9 +192,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       ImGui::TreePush ("");
 
-      static auto& shaders =
-        SK_D3D11_Shaders;
-
+      static auto& shaders = SK_D3D11_Shaders;
       static auto& vertex  = shaders->vertex;
 
       auto tracker =
@@ -782,7 +780,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                 )                  && uiDebugLen > sizeof (wchar_t)
                    )
                 {
-                  snprintf (szDesc, 127, "%ws###rtv_%lu", wszDebugDesc, rtv_idx);
+                  snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
                   named = true;
                 }
 
@@ -796,7 +794,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                  )                && uiDebugLen > sizeof (char)
                      )
                   {
-                    snprintf (szDesc, 127, "%s###rtv_%lu", szDebugDesc, rtv_idx);
+                    snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
                     named = true;
                   }
                 }
@@ -818,7 +816,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           if (! named)
           {
-            sprintf ( szDesc, "%07lu###rtv_%lu",
+            sprintf ( szDesc, "%07u###rtv_%u",
                        (discard_views.count (it) == 0) ? rtv_idx :
                              ReadAcquire (&idx_counter), rtv_idx );
           }
@@ -1198,7 +1196,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 ImGui::PopStyleColor     (    );
               }
 
-              if (bottom_list)
+              if (bottom_list > 0)
               {
                 ImGui::Separator  ( );
 

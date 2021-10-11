@@ -23,7 +23,7 @@
 
 SK_ICommandProcessor*
 __stdcall
-SK_GetCommandProcessor (void)
+SK_GetCommandProcessor (void) noexcept
 {
   static SK_LazyGlobal <SK_ICommandProcessor>
          command;
@@ -501,7 +501,7 @@ SK_ICommandProcessor::ProcessCommandFormatted (const char* szCommandFormat, ...)
     *(szFormattedCommandLine + len) = '\0';
 
     va_start  (ap, szCommandFormat);
-    vsnprintf (szFormattedCommandLine, len, szCommandFormat, ap);
+    vsnprintf (szFormattedCommandLine, len + 1, szCommandFormat, ap);
     va_end    (ap);
 
     SK_ICommandResult result =
@@ -590,9 +590,9 @@ SK_IVarStub <int>::getValueString ( _Out_opt_ char*     szOut,
                                     _Inout_   uint32_t* dwLen ) const
 {
   if (szOut != nullptr)
-    *dwLen = snprintf (szOut, *dwLen, "%li", getValue ());
+    *dwLen = snprintf (szOut, *dwLen, "%i", getValue ());
   else
-    *dwLen = std::min (*dwLen, static_cast <uint32_t> (_scprintf ("%li", getValue ())));
+    *dwLen = std::min (*dwLen, static_cast <uint32_t> (_scprintf ("%i", getValue ())));
 }
 
 

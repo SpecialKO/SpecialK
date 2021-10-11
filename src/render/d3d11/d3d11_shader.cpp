@@ -53,7 +53,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
   //SK_LOG0 ( (L"DevCtx=%p, ShaderClass=%lu, Shader=%p", pDevCtx, type, pShader ),
   //           L"D3D11 Shader" );
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   const auto _Finish =
@@ -590,7 +590,7 @@ SK_D3D11_SetShaderResources_Impl (
 
   UNREFERENCED_PARAMETER (Deferred);
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   bool
@@ -604,7 +604,7 @@ SK_D3D11_SetShaderResources_Impl (
                    nullptr );
   ID3D11DeviceContext*
     pDevContext =
-      ( hooked != false   ?
+      ( hooked ?
           This : Wrapper );
 
 
@@ -835,7 +835,7 @@ SK_D3D11_SetShaderResources_Impl (
 void
 SK_D3D11_ClearShaderState (void)
 {
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   for (int i = 0; i < 6; i++)
@@ -910,7 +910,7 @@ _SK_D3D11_LoadedShaderConfigs (void)
 void
 SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
 {
-  static auto& requested =
+  auto& requested =
     _SK_D3D11_LoadedShaderConfigs ();
 
   auto wszShaderConfigFile =
@@ -1021,7 +1021,7 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
     ++sec;
   }
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
 
@@ -1142,7 +1142,7 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
     InterlockedAdd (&SK_D3D11_DrawTrackingReqs, -to_dec);
   }
 
-  if (always_tracked_in_ini || (! sections.empty ()))
+  if (always_tracked_in_ini > 0 || (! sections.empty ()))
   {
     if ( (! requested.count (name)) ||
                   requested [name]  == false )
@@ -1272,7 +1272,7 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
     ++sec;
   }
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   size_t tracking_reqs_removed    = 0;
@@ -1341,7 +1341,7 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
   }
 
 
-  static auto& requested =
+  auto& requested =
     _SK_D3D11_LoadedShaderConfigs ();
 
   if (requested.count (name))
@@ -1532,7 +1532,7 @@ SK_D3D11_StoreShaderState (void)
     };
   };
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   for (int i = 0; i < 6; i++)
@@ -1664,7 +1664,8 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
     srv_desc.Texture2D.MostDetailedMip = 0;
 
   // Do we need a special copy in the first place?
-  if ((! (tex_desc.BindFlags & D3D11_BIND_SHADER_RESOURCE))                    ||
+  if (((tex_desc.BindFlags & D3D11_BIND_SHADER_RESOURCE)
+                          != D3D11_BIND_SHADER_RESOURCE)                       ||
                                        tex_desc.Usage   == D3D11_USAGE_DYNAMIC ||
               SK_DXGI_MakeTypedFormat (tex_desc.Format) != tex_desc.Format     ||
 
@@ -1826,9 +1827,9 @@ public:
                               *flag_result.first = flag_result.second;
 
       SK_ScopedBool auto_bool1 (&_tls->imgui->drawing);
-                                 _tls->imgui->drawing = true;
+                                 _tls->imgui->drawing = TRUE;
 
-      static auto& shaders =
+      auto& shaders =
         SK_D3D11_Shaders;
 
       const UINT dev_idx =
@@ -1889,7 +1890,7 @@ public:
 
                   SK_ScopedBool autobool0
                   (&pTLS->imgui->drawing);
-                    pTLS->imgui->drawing = true;
+                    pTLS->imgui->drawing = TRUE;
 
                   // Don't cache any texture resources ReShade creates.
                   SK_ScopedBool decl_tex_scope (
@@ -2176,7 +2177,7 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
 
   std::set <uint32_t> listed;
 
-  static auto& textures =
+  auto& textures =
     SK_D3D11_Textures;
 
   for (auto& it : used_resources)
@@ -2294,7 +2295,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
 
-  static auto& io =
+  auto& io =
     ImGui::GetIO ();
 
   static auto& shaders =
@@ -2309,7 +2310,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   {
     uint32_t    crc32c  =   0x0;
     bool        enabled = false;
-    std::string name    =    "";
+    std::string name;
   };
 
   struct shader_class_imp_s
@@ -2392,7 +2393,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Vertex:
           {
             static auto& vertex =
-              shaders->vertex;
+                shaders->vertex;
 
             auto& descs = vertex.descs [pDevice];
 
@@ -2416,7 +2417,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Pixel:
           {
             static auto& pixel =
-              shaders->pixel;
+                shaders->pixel;
 
             auto& descs = pixel.descs [pDevice];
 
@@ -2440,7 +2441,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Geometry:
           {
             static auto& geometry =
-              shaders->geometry;
+                shaders->geometry;
 
             auto& descs = geometry.descs [pDevice];
 
@@ -2459,7 +2460,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Hull:
           {
             static auto& hull =
-              shaders->hull;
+                shaders->hull;
 
             auto& descs = hull.descs [pDevice];
 
@@ -2478,7 +2479,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Domain:
           {
             static auto& domain =
-              shaders->domain;
+                shaders->domain;
 
             auto& descs = domain.descs [pDevice];
 
@@ -2497,7 +2498,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           case sk_shader_class::Compute:
           {
             static auto& compute =
-              shaders->compute;
+                shaders->compute;
 
             auto& descs = compute.descs [pDevice];
 
@@ -3056,7 +3057,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
-          if  (io.NavInputs [ImGuiNavInput_FocusPrev] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { dir = -1; }
+           if (io.NavInputs [ImGuiNavInput_FocusPrev] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { dir = -1; }
       else if (io.NavInputs [ImGuiNavInput_FocusNext] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { dir =  1; }
 
       else
@@ -3375,8 +3376,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   ImGui::EndChild      ();
 
-  if (ImGui::IsItemHovered ()) hovering = true; else hovering = false;
-  if (ImGui::IsItemFocused ()) focused  = true; else focused  = false;
+  hovering = ImGui::IsItemHovered ();
+  focused  = ImGui::IsItemFocused ();
 
   ImGui::PopStyleVar   ();
   ImGui::PopStyleColor ();
@@ -4068,7 +4069,7 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
 
   ImGui::TreePush ("");
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   auto ShaderClassMenu = [&](sk_shader_class shader_type) ->
@@ -4557,8 +4558,8 @@ struct SK_D3D11_CommandBase
         SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
         uint32_t                                          shader_hash     = 0x0;
 
-        bool new_state     = false,
-             new_condition = false;
+        bool new_state     = false;
+        bool new_condition = false;
 
         while (wszTok != nullptr)
         {
@@ -4638,8 +4639,8 @@ struct SK_D3D11_CommandBase
         SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
         uint32_t                                          shader_hash     = 0x0;
 
-        bool old_state     = false,
-             old_condition = false;
+        bool old_state     = false;
+        bool old_condition = false;
 
         while (wszTok != nullptr)
         {
@@ -4748,10 +4749,10 @@ struct SK_D3D11_CommandBase
         SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_registry = nullptr;
         uint32_t                                          shader_hash     = 0x0;
 
-        bool new_state     = false,
-             new_condition = false,
-             old_state     = false,
-             old_condition = false;
+        bool new_state     = false;
+        bool new_condition = false;
+        bool old_state     = false;
+        bool old_condition = false;
 
         while (wszTok != nullptr)
         {
@@ -4901,9 +4902,8 @@ SK_LazyGlobal <SK_D3D11_CommandBase> SK_D3D11_Commands;
 
 void* SK_D3D11_InitShaderMods (void)
 {
-  auto& cmds = SK_D3D11_Commands;
-
-  auto *p = cmds.getPtr ();
+  static auto *p =
+    SK_D3D11_Commands.getPtr ();
 
   return p; // We're interested in the side-effects of accessing SK_D3D11_Commands,
             //   not the actual object it returns.

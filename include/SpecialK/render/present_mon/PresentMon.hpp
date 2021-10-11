@@ -152,8 +152,8 @@ bool EnableDebugPrivilege();
 int RestartAsAdministrator(int argc, char** argv);
 
 // TraceSession.cpp:
-bool StartTraceSession();
-void StopTraceSession();
+bool StartTraceSession (void);
+bool StopTraceSession  (void);
 void CheckLostReports(ULONG* eventsLost, ULONG* buffersLost);
 void DequeueAnalyzedInfo(
     std::vector<ProcessEvent>* processEvents,

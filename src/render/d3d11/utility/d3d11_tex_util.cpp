@@ -94,7 +94,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
     return 0;
   }
 
-  if (pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+  if ((pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
+                       == D3D11_RESOURCE_MISC_TEXTURECUBE)
   {
     //SK_LOG0 ( ( L">>Neat! A cubemap!  [%lux%lu - Array: %lu :: pInitialData: %ph ]",
     //              pDesc->Width, pDesc->Height, pDesc->ArraySize, pInitialData ),
@@ -316,7 +317,7 @@ crc32_ffx (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
     return checksum;
 
   const bool compressed =
-    SK_DXGI_IsFormatCompressed (pDesc->Format);
+    SK_DXGI_IsFormatCompressed (pDesc->Format) == TRUE;
 
   const int block_size = pDesc->Format == DXGI_FORMAT_BC1_UNORM ? 8 : 16;
   const int height     = pDesc->Height;
@@ -356,7 +357,7 @@ SK_D3D11_ComputeTextureSize (const D3D11_TEXTURE2D_DESC* pDesc)
 {
   size_t       size       = 0;
   const bool   compressed =
-    SK_DXGI_IsFormatCompressed (pDesc->Format);
+    SK_DXGI_IsFormatCompressed (pDesc->Format) == TRUE;
 
   if (! compressed)
   {

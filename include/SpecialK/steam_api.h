@@ -219,7 +219,7 @@ public:
   ScreenshotStatus
   WaitOnScreenshot (ScreenshotHandle handle, DWORD dwTimeoutMs = 2500UL);
 
-  void init (void);
+  void init (void) noexcept;
 
 protected:
   concurrency::concurrent_unordered_map <ScreenshotHandle, EResult>

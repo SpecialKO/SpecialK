@@ -12,7 +12,6 @@ Texture2D PS_QUAD_Texture2D : register (t0);
 
 float3 RemoveSRGBCurve(float3 x)
 {
-  /* Approximately pow(x, 2.2)*/
   return x < 0.04045 ? x / 12.92 :
                   pow((x + 0.055) / 1.055, 2.4);
 }

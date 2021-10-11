@@ -64,6 +64,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   SK_ReleaseAssert (
           filename != nullptr)
   if (    filename == nullptr) return;
+  if (   *filename == L'\0'  ) return; // Empty String -> Dummy INI
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
@@ -72,8 +73,11 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   wszName =
     _wcsdup (filename);
 
-  if (wszName == nullptr)
+  if ( wszName == nullptr ||
+      *wszName == L'\0' )
+  {
     return;
+  }
 
   if (wcsstr (filename, L"Version") != nullptr)
     SK_CreateDirectories (filename);
@@ -434,6 +438,7 @@ Import_Section ( iSK_INISection  &section,
   return true;
 }
 
+__declspec(nothrow)
 void
 __stdcall
 iSK_INI::parse (void)
@@ -639,6 +644,7 @@ iSK_INI::parse (void)
   }
 }
 
+__declspec(nothrow)
 void
 __stdcall
 iSK_INI::import (const wchar_t* import_data)
@@ -808,6 +814,7 @@ iSK_INI::import (const wchar_t* import_data)
   free (wszImport);
 }
 
+__declspec(nothrow)
 std::wstring&
 __stdcall
 iSK_INISection::get_value (const wchar_t* key)
@@ -824,6 +831,7 @@ iSK_INISection::get_value (const wchar_t* key)
   return invalid;
 }
 
+__declspec(nothrow)
 void
 __stdcall
 iSK_INISection::set_name (const wchar_t* name_)
@@ -837,6 +845,7 @@ iSK_INISection::set_name (const wchar_t* name_)
   name = name_;
 }
 
+__declspec(nothrow)
 bool
 __stdcall
 iSK_INISection::contains_key (const wchar_t* key)
@@ -849,6 +858,7 @@ iSK_INISection::contains_key (const wchar_t* key)
      (! _kvp->second.empty () ));
 }
 
+__declspec(nothrow)
 void
 __stdcall
 iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
@@ -881,6 +891,7 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
   }
 }
 
+__declspec(nothrow)
 bool
 __stdcall
 iSK_INI::contains_section (const wchar_t* section)
@@ -890,30 +901,25 @@ iSK_INI::contains_section (const wchar_t* section)
       sections.cend (       ) );
 }
 
+__declspec(nothrow)
 iSK_INISection&
 __stdcall
 iSK_INI::get_section (const wchar_t* section)
 {
-  auto sec =
-    sections.find (section);
+  auto sec_pair =
+    sections.try_emplace (section,
+          iSK_INISection (section, this)
+    );
 
-  bool try_emplace =
-    ( sec == sections.cend () );
-
-  iSK_INISection& ret =
-    sections [section];
-
-  if (try_emplace)
-  {
-                     ret.parent  =  this;
-                     ret.set_name (section);
+  if (sec_pair.second)
     ordered_sections.emplace_back (section);
-  }
 
-  return ret;
+  return
+    sec_pair.first->second;
 }
 
 
+__declspec(nothrow)
 iSK_INISection&
 __cdecl
 iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
@@ -950,6 +956,7 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
   return ret;
 }
 
+__declspec(nothrow)
 void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
@@ -1038,6 +1045,7 @@ iSK_INI::write (const wchar_t* fname)
 }
 
 
+__declspec(nothrow)
 iSK_INI::_TSectionMap&
 __stdcall
 iSK_INI::get_sections (void)
@@ -1046,6 +1054,7 @@ iSK_INI::get_sections (void)
 }
 
 
+__declspec(nothrow)
 HRESULT
 __stdcall
 iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
@@ -1062,6 +1071,7 @@ iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
   return E_NOTIMPL;
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
 iSK_INI::AddRef (THIS)
@@ -1069,6 +1079,7 @@ iSK_INI::AddRef (THIS)
   return InterlockedIncrement (&refs_);
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
 iSK_INI::Release (THIS)
@@ -1076,6 +1087,7 @@ iSK_INI::Release (THIS)
   return InterlockedDecrement (&refs_);
 }
 
+__declspec(nothrow)
 bool
 __stdcall
 iSK_INI::remove_section (const wchar_t* wszSection)
@@ -1098,6 +1110,7 @@ iSK_INI::remove_section (const wchar_t* wszSection)
   return false;
 }
 
+__declspec(nothrow)
 bool
 __stdcall
 iSK_INISection::remove_key (const wchar_t* wszKey)
@@ -1124,6 +1137,7 @@ iSK_INISection::remove_key (const wchar_t* wszKey)
 }
 
 
+__declspec(nothrow)
 HRESULT
 __stdcall
 iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
@@ -1140,6 +1154,7 @@ iSK_INISection::QueryInterface (THIS_ REFIID riid, void** ppvObj)
   return E_NOTIMPL;
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
 iSK_INISection::AddRef (THIS)
@@ -1147,6 +1162,7 @@ iSK_INISection::AddRef (THIS)
   return InterlockedIncrement (&refs);
 }
 
+__declspec(nothrow)
 ULONG
 __stdcall
 iSK_INISection::Release (THIS)
@@ -1163,12 +1179,14 @@ iSK_INISection::Release (THIS)
 }
 
 
+__declspec(nothrow)
 const wchar_t*
 iSK_INI::get_filename (void) const
 {
   return wszName;
 }
 
+__declspec(nothrow)
 bool
 iSK_INI::import_file (const wchar_t* fname)
 {
@@ -1347,6 +1365,7 @@ iSK_INI::import_file (const wchar_t* fname)
   return false;
 }
 
+__declspec(nothrow)
 bool
 iSK_INI::rename (const wchar_t* fname)
 {

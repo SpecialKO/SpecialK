@@ -31,8 +31,8 @@
 
 #include <cstdint>
 
-extern LARGE_INTEGER SK_GetPerfFreq (void);
-extern LARGE_INTEGER SK_QueryPerf   (void);
+extern LARGE_INTEGER SK_QueryPerf (void);
+extern int64_t       SK_QpcFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
@@ -54,7 +54,7 @@ void SK_Input_PreHookXInput   (void);
 void SK_Input_PreInit (void);
 void SK_Input_Init    (void);
 
-void SK_Input_SetLatencyMarker (void);
+void SK_Input_SetLatencyMarker (void) noexcept;
 
 
 SHORT WINAPI SK_GetAsyncKeyState (int vKey);
@@ -155,7 +155,8 @@ struct sk_input_api_context_s
                                                 type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
   void markViewed (sk_input_dev_type type) noexcept
   {
-    auto qpcNow = SK_QueryPerf ().QuadPart;
+    const auto qpcNow =
+      gsl::narrow_cast <uint64_t> (SK_QueryPerf ().QuadPart);
 
     switch (type)
     {
@@ -265,8 +266,8 @@ struct sk_input_api_context_s
     }
 
     return static_cast <float> (
-      static_cast <double> (SK_QueryPerf   ().QuadPart - qpcSample) /
-      static_cast <double> (SK_GetPerfFreq ().QuadPart)
+      static_cast <double> (SK_QueryPerf ().QuadPart - qpcSample) /
+      static_cast <double> (SK_QpcFreq)
                                );
   }
 };
@@ -533,7 +534,7 @@ BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
 
 extern char SK_KeyMap_LeftHand_Arrow (char key);
 
-extern DWORD SK_GetCurrentMS (void);
+extern DWORD SK_GetCurrentMS (void) noexcept;
 
 UINT WINAPI SK_joyGetNumDevs  (void);
 UINT WINAPI SK_joyGetPosEx    (UINT,LPJOYINFOEX);
