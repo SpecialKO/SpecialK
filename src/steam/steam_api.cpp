@@ -5967,6 +5967,33 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   get_file_details.Cancel ();
 }
 
+void
+SK_Steam_ForceInputAppId (AppId_t appid)
+{
+  if (config.steam.appid != 0)
+  {
+    wchar_t    wszSteamCommand [32] = { };
+    swprintf ( wszSteamCommand,
+                 LR"(steam://forceinputappid/%d)",
+                                      (appid != 0) ?
+                                       appid       :
+                          config.steam.appid );
+
+    SHELLEXECUTEINFOW
+      sexi              = { };
+      sexi.cbSize       = sizeof (SHELLEXECUTEINFOW);
+      sexi.lpVerb       = L"OPEN";
+      sexi.lpFile       = wszSteamCommand;
+      sexi.lpParameters = nullptr;
+      sexi.lpDirectory  = nullptr;
+      sexi.nShow        = SW_HIDE;
+      sexi.fMask        = SEE_MASK_FLAG_NO_UI |
+                          SEE_MASK_ASYNCOK    |
+                          SEE_MASK_NOZONECHECKS;
+
+    ShellExecuteExW (&sexi);
+  }
+}
 
 // Fallback to Win32 API if the Steam overlay is not functioning.
 

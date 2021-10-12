@@ -274,6 +274,7 @@ int                   SK_HookSteamAPI                           (void);
 void                  SK_Steam_ClearPopups                      (void);
 int                   SK_Steam_DrawOSD                          (void);
 
+void                  SK_Steam_ForceInputAppId                  (AppId_t appid);
 bool                  SK_Steam_LoadOverlayEarly                 (void);
 
 void                  SK_Steam_InitCommandConsoleVariables      (void);
