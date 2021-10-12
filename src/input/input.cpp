@@ -3150,9 +3150,11 @@ SK_Input_SetLatencyMarker (void) noexcept
 
 #include <imgui/font_awesome.h>
 
-void
+int
 SK_ImGui_DrawGamepadStatusBar (void)
 {
+  int attached_pads = 0;
+
   static const char* szBatteryLevels [] = {
     ICON_FA_BATTERY_EMPTY,
     ICON_FA_BATTERY_QUARTER,
@@ -3173,48 +3175,80 @@ SK_ImGui_DrawGamepadStatusBar (void)
     ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.4f, 1.0f, 1.0f)
   };
 
-  bool connected [4] = {
-    SK_XInput_PollController (0),
-    SK_XInput_PollController (1),
-    SK_XInput_PollController (2),
-    SK_XInput_PollController (3)
-  };
+  struct gamepad_cache_s
+  {
+    DWORD slot;
+    BOOL  attached      = FALSE;
+    DWORD checked_frame = INFINITE;
 
-  struct battery_cache_s {
-    DWORD                      dwLastPolled =   0  ;
-    DWORD                      dwLastPulse  =   0  ;
-    XINPUT_BATTERY_INFORMATION battery_info = {   };
-    bool                       draining     = false;
-    bool                       wired        = false;
-  } static battery [4];
+    struct battery_s
+    {
+      DWORD                      last_checked =   0  ;
+      XINPUT_BATTERY_INFORMATION battery_info = {   };
+      bool                       draining     = false;
+      bool                       wired        = false;
+    } battery;
+  } static
+      gamepads [4] =
+        { { 0 }, { 1 },
+          { 2 }, { 3 } };
 
   static auto constexpr
-    _BatteryPollingIntervalMs = 5000UL;
+    _BatteryPollingIntervalMs = 10000UL;
 
-  for ( const auto i : { 0, 1, 2, 3 } )
+  auto BatteryStateTTL =
+    SK::ControlPanel::current_time - _BatteryPollingIntervalMs;
+
+  auto current_frame =
+    SK_GetFramesDrawn ();
+
+  for ( auto& gamepad : gamepads )
   {
-    if (battery [i].dwLastPolled < SK::ControlPanel::current_time - _BatteryPollingIntervalMs)
-    {   battery [i].draining = false;
-        battery [i].wired    = false;
+    if ( current_frame !=
+           std::exchange ( gamepad.checked_frame,
+                                   current_frame ) )
+    {
+      gamepad.attached =
+        SK_XInput_PollController (gamepad.slot);
+    }
 
-      if (connected [i])
+    auto& battery =
+      gamepad.battery;
+
+    if (battery.last_checked < BatteryStateTTL || (! gamepad.attached))
+    {   battery.draining = false;
+        battery.wired    = false;
+
+      if (gamepad.attached)
       {
-        if (ERROR_SUCCESS == SK_XInput_GetBatteryInformation (i, BATTERY_DEVTYPE_GAMEPAD, &battery [i].battery_info))
-        {
-          if (battery [i].battery_info.BatteryType == BATTERY_TYPE_ALKALINE ||
-              battery [i].battery_info.BatteryType == BATTERY_TYPE_NIMH     ||
-              battery [i].battery_info.BatteryType == BATTERY_TYPE_UNKNOWN)
+        if ( ERROR_SUCCESS ==
+               SK_XInput_GetBatteryInformation
+               (  gamepad.slot,
+                          BATTERY_DEVTYPE_GAMEPAD,
+                 &battery.battery_info ) )
+        { switch (battery.battery_info.BatteryType)
           {
-            battery [i].draining = true;
+            case BATTERY_TYPE_ALKALINE:
+            case BATTERY_TYPE_UNKNOWN: // Lithium Ion ?
+            case BATTERY_TYPE_NIMH:
+              battery.draining = true;
+              break;
+
+            case BATTERY_TYPE_WIRED:
+              battery.wired = true;
+              break;
+
+            case BATTERY_TYPE_DISCONNECTED:
+            default:
+              // WTF? Success on a disconnected controller?
+              break;
           }
 
-          else if (battery [i].battery_info.BatteryType == BATTERY_TYPE_WIRED)
-          {
-            battery [i].wired    = true;
-          }
+          if (battery.wired || battery.draining)
+              battery.last_checked  = SK::ControlPanel::current_time;
+          else
+              battery.last_checked += 1000; // Retry in 1 second
         }
-
-        battery [i].dwLastPolled = SK::ControlPanel::current_time;
       }
     }
 
@@ -3222,7 +3256,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
       ImVec4 (0.5f, 0.5f, 0.5f, 1.0f);
 
     float fInputAge =
-      SK_XInput_Backend->getInputAge ((sk_input_dev_type)(1 << i));
+      SK_XInput_Backend->getInputAge ((sk_input_dev_type)(1 << gamepad.slot));
 
     if (fInputAge < 2.0f)
     {
@@ -3232,16 +3266,16 @@ SK_ImGui_DrawGamepadStatusBar (void)
                  0.5f + 0.25f * (2.0f - fInputAge), 1.0f );
     }
 
-    if (connected [i])
+    if (gamepad.attached)
     {
       ImGui::SameLine    ();
-      ImGui::TextColored (gamepad_color, szGamepadSymbols [i]);
+      ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
       ImGui::SameLine    ();
 
-      if (battery [i].draining)
+      if (battery.draining)
       {
         auto batteryLevel =
-          std::min (battery [i].battery_info.BatteryLevel, 3ui8);
+          std::min (battery.battery_info.BatteryLevel, 3ui8);
 
         auto batteryColor =
           battery_colors [batteryLevel];
@@ -3260,11 +3294,18 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
       else
       {
-        ImGui::TextColored (gamepad_color, battery [i].wired ? ICON_FA_USB
-                                                             : ICON_FA_QUESTION_CIRCLE);
+        ImGui::TextColored ( gamepad_color,
+            battery.wired ? ICON_FA_USB
+                          : ICON_FA_QUESTION_CIRCLE
+        );
       }
+
+      ++attached_pads;
     }
   }
+
+  return
+    attached_pads;
 }
 
 

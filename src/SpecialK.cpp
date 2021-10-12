@@ -1125,6 +1125,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
         if (SK_dgVoodoo_CheckForInterop ())
         {
+          config.render.dxgi.use_factory_cache = false;
           config.render.dxgi.skip_mode_changes = true;
 
           d3d9  = false;
@@ -1142,6 +1143,9 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
             return SK_DontInject ();
           }
 
+          config.render.dxgi.use_factory_cache = false;
+          config.render.dxgi.skip_mode_changes = true;
+
           config.apis.dxgi.d3d11.hook = true;
 
           SK_SetDLLRole (DLL_ROLE::D3D8);
@@ -1153,6 +1157,9 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
           {
             return SK_DontInject ();
           }
+
+          config.render.dxgi.use_factory_cache = false;
+          config.render.dxgi.skip_mode_changes = true;
 
           config.apis.dxgi.d3d11.hook = true;
 

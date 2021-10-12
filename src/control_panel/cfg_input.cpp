@@ -34,7 +34,7 @@ SK_RawInput_GetMice      (bool* pDifferent = nullptr);
 extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
-extern void SK_ImGui_DrawGamepadStatusBar (void);
+extern int SK_ImGui_DrawGamepadStatusBar (void);
 
 SK::Framerate::Stats gamepad_stats;
 SK::Framerate::Stats gamepad_stats_filtered;
@@ -453,7 +453,12 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop ();
     }
 
-    if (ImGui::CollapsingHeader ("Gamepad"))
+    bool uncollapsed_gamepads =
+      ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowItemOverlap);
+
+  //SK_ImGui_DrawGamepadStatusBar ();
+
+    if (uncollapsed_gamepads)
     {
       ImGui::TreePush      ("");
 
@@ -500,11 +505,10 @@ SK::ControlPanel::Input::Draw (void)
 
       ImGui::Separator ();
 
-      bool connected [4];
-      connected [0] = SK_XInput_PollController (0);
-      connected [1] = SK_XInput_PollController (1);
-      connected [2] = SK_XInput_PollController (2);
-      connected [3] = SK_XInput_PollController (3);
+      bool connected [4] = {
+        SK_XInput_PollController (0), SK_XInput_PollController (1),
+        SK_XInput_PollController (2), SK_XInput_PollController (3)
+      };
 
       const int num_steam_controllers =
         0;/// steam_input.count;

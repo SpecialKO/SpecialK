@@ -269,11 +269,10 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 }
 
 
-extern void
+extern int
 SK_ImGui_DrawGamepadStatusBar (void);
 
-
-       int    extra_present_mon_line = 0;
+       int    extra_status_line = 0;
 
 extern int  SK_PresentMon_Main (int argc, char **argv);
 extern bool StopTraceSession   (void);
@@ -401,244 +400,73 @@ SK_ImGui_DrawGraph_FramePacing (void)
       target_frametime = 16.666667f;
   }
 
+  extra_status_line = 0;
+
   SK_SpawnPresentMonWorker ();
   if (*SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)] != '\0')
   {
-    extra_present_mon_line = 1;
+    extra_status_line = 1;
 
     ImGui::TextUnformatted (
       SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)]
     );
-
-
-    SK_ImGui_DrawGamepadStatusBar ();
-
-
-#if 0
-    if (rb.adapter.d3dkmt != 0)
-    {
-      static bool bMPO      = false;
-      static INT  iMPOCount =     0;
-
-      if (bMPO)
-      {
-        ImGui::SameLine ();
-        ImGui::Text     ("\tMultiplane Overlays: %i", iMPOCount);
-      }
-
-      #define STATUS_SUCCESS     0
-
-      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
-      {   rb.adapter.perf.sampled_frame = 0;
-
-        static D3DKMT_HANDLE hLastAdapter = 0;
-
-        if (hLastAdapter != rb.adapter.d3dkmt)
-        {
-          hLastAdapter = rb.adapter.d3dkmt;
-
-          static PFND3DKMT_CREATEDEVICE
-                     D3DKMTCreateDevice =
-                (PFND3DKMT_CREATEDEVICE)SK_GetProcAddress (L"gdi32.dll",
-                   "D3DKMTCreateDevice");
-
-          static PFND3DKMT_DESTROYDEVICE
-                     D3DKMTDestroyDevice =
-                (PFND3DKMT_DESTROYDEVICE)SK_GetProcAddress (L"gdi32.dll",
-                    "D3DKMTDestroyDevice");
-
-          //////if (rb.adapter.device.hDevice == 0)
-          //////{
-          //////  D3DKMT_CREATEDEVICE
-          //////         createDevice = { };
-          //////         createDevice.hAdapter = rb.adapter.d3dkmt;
-          //////
-          //////  if ( STATUS_SUCCESS ==
-          //////         D3DKMTCreateDevice (&createDevice) )
-          //////  {
-          //////    rb.adapter.device.hDevice = createDevice.hDevice;
-          //////  }
-          //////}
-          //////
-          //////if (rb.adapter.device.hDevice != 0)
-          //////{
-          //////  typedef struct D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO {
-          //////    union {
-          //////      struct {
-          //////        UINT FailingPlane : 4;
-          //////        UINT TryAgain : 1;
-          //////        UINT Reserved : 27;
-          //////      };
-          //////      UINT Value;
-          //////    };
-          //////  } D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO;
-          //////
-          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_BLEND {
-          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND_OPAQUE,
-          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND_ALPHABLEND
-          //////  };
-          //////
-          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT {
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_MONO,
-          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_HORIZONTAL,
-          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_VERTICAL,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_SEPARATE,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_MONO_OFFSET,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_ROW_INTERLEAVED,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_COLUMN_INTERLEAVED,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT_CHECKERBOARD
-          //////  };
-          //////
-          //////  typedef enum _DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE {
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_NONE,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_FRAME0,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_FRAME1
-          //////  } DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE;
-          //////
-          //////  typedef enum _DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY {
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY_BILINEAR,
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY_HIGH
-          //////  } DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY;
-          //////
-          //////  typedef enum D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT {
-          //////    D3DKMT_MULIIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_PROGRESSIVE,
-          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_INTERLACED_TOP_FIELD_FIRST,
-          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT_INTERLACED_BOTTOM_FIELD_FIRST
-          //////  };
-          //////
-          //////  typedef struct D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES {
-          //////    UINT                                         Flags;
-          //////    RECT                                         SrcRect;
-          //////    RECT                                         DstRect;
-          //////    RECT                                         ClipRect;
-          //////    D3DDDI_ROTATION                              Rotation;
-          //////    D3DKMT_MULTIPLANE_OVERLAY_BLEND              Blend;
-          //////    UINT                                         DirtyRectCount;
-          //////    RECT                                         *pDirtyRects;
-          //////    UINT                                         NumFilters;
-          //////    void                                         *pFilters;
-          //////    D3DKMT_MULTIPLANE_OVERLAY_VIDEO_FRAME_FORMAT VideoFrameFormat;
-          //////    UINT                                         YCbCrFlags;
-          //////    D3DKMT_MULTIPLANE_OVERLAY_STEREO_FORMAT      StereoFormat;
-          //////    BOOL                                         StereoLeftViewFrame0;
-          //////    BOOL                                         StereoBaseViewFrame0;
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STEREO_FLIP_MODE   StereoFlipMode;
-          //////    DXGKMT_MULTIPLANE_OVERLAY_STRETCH_QUALITY    StretchQuality;
-          //////  } D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES;
-          //////
-          //////  typedef struct D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE {
-          //////    D3DKMT_HANDLE                        hResource;
-          //////    LUID                                 CompSurfaceLuid;
-          //////    D3DDDI_VIDEO_PRESENT_SOURCE_ID       VidPnSourceId;
-          //////    D3DKMT_MULTIPLANE_OVERLAY_ATTRIBUTES PlaneAttributes;
-          //////  } D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE;
-          //////
-          //////  typedef struct _D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT {
-          //////    D3DKMT_HANDLE                                       hDevice;
-          //////    UINT                                                PlaneCount;
-          //////    D3DKMT_CHECK_MULTIPLANE_OVERLAY_PLANE               *pOverlayPlanes;
-          //////    BOOL                                                Supported;
-          //////    D3DKMT_CHECK_MULTIPLANE_OVERLAY_SUPPORT_RETURN_INFO ReturnInfo;
-          //////  } D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT;
-          //////
-          //////  using  D3DKMTCheckMultiPlaneOverlaySupport_pfn = NTSTATUS (NTAPI *)(D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT *unnamedParam1);
-          //////  static D3DKMTCheckMultiPlaneOverlaySupport_pfn
-          //////         D3DKMTCheckMultiPlaneOverlaySupport =
-          //////        (D3DKMTCheckMultiPlaneOverlaySupport_pfn)SK_GetProcAddress (L"gdi32.dll",
-          //////        "D3DKMTCheckMultiPlaneOverlaySupport");
-          //////
-          //////  if (D3DKMTCheckMultiPlaneOverlaySupport != nullptr)
-          //////  {
-          //////    D3DKMT_CHECKMULTIPLANEOVERLAYSUPPORT
-          //////           checkMultiPlaneOverlaySupport = { };
-          //////           checkMultiPlaneOverlaySupport.hDevice = rb.adapter.device.hDevice;
-          //////
-          //////    if ( STATUS_SUCCESS ==
-          //////           D3DKMTCheckMultiPlaneOverlaySupport (&checkMultiPlaneOverlaySupport) )
-          //////    {
-          //////      bMPO      =        checkMultiPlaneOverlaySupport.Supported;
-          //////      iMPOCount = bMPO ? checkMultiPlaneOverlaySupport.PlaneCount
-          //////                       : 0;
-          //////    }
-          //////
-          //////    rb.adapter.perf.sampled_frame =
-          //////      SK_GetFramesDrawn ();
-          //////
-          //////    D3DKMT_DESTROYDEVICE
-          //////        destroyDevice         = { };
-          //////        destroyDevice.hDevice = rb.adapter.device.hDevice;
-          //////
-          //////    if ( D3DKMTDestroyDevice != nullptr &&
-          //////              STATUS_SUCCESS == D3DKMTDestroyDevice (&destroyDevice) )
-          //////    {
-          //////      rb.adapter.device.hDevice = 0;
-          //////    }
-          //////
-          //////    SK_ReleaseAssert (rb.adapter.device.hDevice == 0);
-          //////  }
-          //////}
-        }
-      }
-    }
-#endif
-
-      //extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
-      //
-      //D3DKMT_QUERYADAPTERINFO
-      //       queryAdapterInfo                       = { };
-      //       queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-      //       queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-      //       queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
-      //       queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
-      //
-      //if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-      //{
-      //  memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-      //                std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-      //                                     sizeof (D3DKMT_ADAPTER_PERFDATA)) );
-      //
-      //  rb.adapter.perf.sampled_frame =
-      //                    SK_GetFramesDrawn ();
-      //}
-
-#if 0
-    if (rb.adapter.d3dkmt != 0)
-    {
-      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
-      {   rb.adapter.perf.sampled_frame = 0;
-
-        extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
-
-        D3DKMT_QUERYADAPTERINFO
-               queryAdapterInfo                       = { };
-               queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-               queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-               queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
-               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
-
-        if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-        {
-          memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-                        std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                             sizeof (D3DKMT_ADAPTER_PERFDATA)) );
-
-          rb.adapter.perf.sampled_frame =
-                            SK_GetFramesDrawn ();
-        }
-      }
-    }
-
-    if (rb.adapter.perf.sampled_frame != 0)
-    {
-      ImGui::SameLine ();
-      ImGui::Text ("\tPower Draw: %4.1f%%", static_cast <double> (rb.adapter.perf.data.Power) / 10.0);
-    }
-#endif
   }
 
-  else
-    extra_present_mon_line = 0;
+  if (SK_ImGui_DrawGamepadStatusBar () > 0)
+    extra_status_line = 1;
 
+  //extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
+  //
+  //D3DKMT_QUERYADAPTERINFO
+  //       queryAdapterInfo                       = { };
+  //       queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+  //       queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+  //       queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
+  //       queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+  //
+  //if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+  //{
+  //  memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+  //                std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+  //                                     sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+  //
+  //  rb.adapter.perf.sampled_frame =
+  //                    SK_GetFramesDrawn ();
+  //}
+
+#if 0
+  if (rb.adapter.d3dkmt != 0)
+  {
+    if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
+    {   rb.adapter.perf.sampled_frame = 0;
+
+      extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
+
+      D3DKMT_QUERYADAPTERINFO
+             queryAdapterInfo                       = { };
+             queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+             queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+             queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
+             queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+
+      if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+      {
+        memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+                      std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                           sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+
+        rb.adapter.perf.sampled_frame =
+                          SK_GetFramesDrawn ();
+      }
+    }
+  }
+
+  if (rb.adapter.perf.sampled_frame != 0)
+  {
+    ImGui::SameLine ();
+    ImGui::Text ("\tPower Draw: %4.1f%%", static_cast <double> (rb.adapter.perf.data.Power) / 10.0);
+  }
+#endif
 
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
@@ -1161,7 +989,7 @@ public:
     ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
              new_size.y += fExtraData;
 
-    if (extra_present_mon_line > 0)
+    if (extra_status_line > 0)
              new_size.y += ImGui::GetFont ()->FontSize + ImGui::GetStyle ().ItemSpacing.y;
 
     setSize (new_size);

@@ -114,6 +114,27 @@ void SK_HID_AddDeviceRemovalEvent (HANDLE hEvent)
 
 static HANDLE SK_XInputHot_NotifyEvent     = 0;
 static HANDLE SK_XInputHot_ReconnectThread = 0;
+
+extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
+extern void SK_XInput_Refresh            (UINT iJoyID);
+extern void SK_XInput_RefreshEx          (UINT iJoyID, DWORD dwOffset);
+
+void
+SK_XInput_RefreshControllers (void)
+{
+  SK_XInput_Refresh        (0);
+  SK_XInput_PollController (0);
+
+  SK_XInput_Refresh        (1);
+  SK_XInput_PollController (1);
+
+  SK_XInput_Refresh        (2);
+  SK_XInput_PollController (2);
+
+  SK_XInput_Refresh        (3);
+  SK_XInput_PollController (3);
+};
+
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
@@ -135,9 +156,6 @@ SK_XInput_NotifyDeviceArrival (void)
 
         static constexpr DWORD ArrivalEvent  = ( WAIT_OBJECT_0     );
         static constexpr DWORD ShutdownEvent = ( WAIT_OBJECT_0 + 1 );
-
-        extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
-        extern void SK_XInput_Refresh            (UINT iJoyID);
 
         auto SK_HID_DeviceNotifyProc =
       [] (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -177,28 +195,29 @@ SK_XInput_NotifyDeviceArrival (void)
                                                        pDev->dbcc_name ),
                                   __SK_SUBSYSTEM__ );
 
-                      if (arrival)
+                      static ULONGLONG ullLastFrame =
+                        std::numeric_limits <ULONGLONG>::max ();
+
+                      if (ullLastFrame != SK_GetFramesDrawn ())
                       {
-                        for (  auto event : SK_HID_DeviceArrivalEvents  )
-                          SetEvent (event);
+                        if (arrival)
+                        {
+                          for (  auto event : SK_HID_DeviceArrivalEvents  )
+                            SetEvent (event);
 
-                        SetEvent (SK_XInputHot_NotifyEvent);
-                      }
+                          SetEvent (SK_XInputHot_NotifyEvent);
+                        }
 
-                      else
-                      {
-                        for (  auto event : SK_HID_DeviceRemovalEvents  )
-                          SetEvent (event);
+                        else
+                        {
+                          for (  auto event : SK_HID_DeviceRemovalEvents  )
+                            SetEvent (event);
+                        }
 
+                        SK_XInput_RefreshControllers (                 );
                         SK_XInput_SetRefreshInterval (SK_timeGetTime ());
-                      }
 
-                      int idx = 0;
-
-                      for (auto& placeholder : placeholders)
-                      {
-                        if (idx++ != 0) WriteULongRelease (&placeholder.RecheckInterval, (333UL));
-                        else            WriteULongRelease (&placeholder.RecheckInterval, (100UL));
+                        ullLastFrame = SK_GetFramesDrawn ();
                       }
                     }
                   }
@@ -245,30 +264,12 @@ SK_XInput_NotifyDeviceArrival (void)
               }
             };
 
+            // Event is created in signaled state to queue a refresh in case of
+            //   late inject
             if (dwWaitStatus == ArrivalEvent)
             {
-              SK_XInput_Refresh (0);
-
-              int idx = 0;
-
-              for ( auto& placeholder : placeholders )
-              {
-                placeholder.updatePollTime (
-                  ( SK_timeGetTime () - placeholder.getRefreshTime () )
-                );
-
-                if (ReadAcquire (&placeholder.holding) && idx != 0)
-                  SK_XInput_Refresh (idx);
-
-                ++idx;
-
-                if (MsgWaitForMultipleObjects (0, nullptr, FALSE, 66, QS_ALLINPUT) == WAIT_OBJECT_0)
-                {
-                  MessagePump ();
-                }
-              }
-
-              SK_XInput_SetRefreshInterval (500UL);
+              SK_XInput_RefreshControllers (                 );
+              SK_XInput_SetRefreshInterval (SK_timeGetTime ());
             }
 
             dwWaitStatus =
@@ -285,7 +286,7 @@ SK_XInput_NotifyDeviceArrival (void)
           UnregisterClassW             (wnd_class.lpszClassName, wnd_class.hInstance);
         }
 
-        else
+        else if (config.system.log_level > 0)
           SK_ReleaseAssert (! L"Failed to register Window Class!");
 
         CloseHandle (SK_XInputHot_NotifyEvent);
@@ -301,6 +302,12 @@ SK_XInput_NotifyDeviceArrival (void)
     SetEvent (SK_XInputHot_NotifyEvent);
 }
 
+
+void
+SK_XInput_StopHolding (DWORD dwUserIndex)
+{
+  WriteRelease (&placeholders [dwUserIndex].holding, FALSE);
+}
 
 // Throttles polling while no actual device is connected, because
 //   XInput polling failures are performance nightmares.
@@ -490,7 +497,7 @@ static DWORD SK_XInput_UI_LastSeenTime       =         0;
 void
 SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
 {
-  static constexpr DWORD MIGRATION_PERIOD = 1500;
+  static constexpr DWORD MIGRATION_PERIOD = 750;
 
   if (success)
   {
