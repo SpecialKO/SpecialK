@@ -2151,7 +2151,8 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_Win32_CleanupDummyWindow ();
 
   // No more exit rumble, please :)
-  SK_XInput_Enable (FALSE);
+  SK_XInput_Enable         (FALSE);
+  SK_Steam_ForceInputAppId ((AppId_t)-1);
 
   if (config.window.background_mute)
     SK_SetGameMute (false);

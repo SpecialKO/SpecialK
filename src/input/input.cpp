@@ -1398,33 +1398,39 @@ SK_ImGui_WantTextCapture (void)
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
-  if (! SK_GImDefaultContext ())
-    return false;
-
-  bool imgui_capture = false;
-
-  if (SK_ImGui_Active ())
+  auto _Return = [](bool bCapture) ->
+  bool
   {
-    if (nav_usable)
+    static bool lastCapture = false;
+
+    if (std::exchange (lastCapture, bCapture) != bCapture)
+    {
+      SK_Steam_ForceInputAppId ( bCapture ?
+                                  1157970 : 0 );
+    }
+
+    return bCapture;
+  };
+
+  bool imgui_capture =
+    config.input.gamepad.disabled_to_game;
+
+  if (SK_GImDefaultContext ())
+  {
+    if (SK_ImGui_Active ())
+    {
+      if (nav_usable)
+        imgui_capture = true;
+    }
+
+    extern bool
+        SK_ImGui_GamepadComboDialogActive;
+    if (SK_ImGui_GamepadComboDialogActive)
       imgui_capture = true;
   }
 
-#ifdef _M_AMD64
-  // Stupid hack, breaking whatever abstraction this horrible mess passes for
-  extern bool __FAR_Freelook;
-          if (__FAR_Freelook)
-    imgui_capture = true;
-#endif
-
-  extern bool SK_ImGui_GamepadComboDialogActive;
-
-  if (SK_ImGui_GamepadComboDialogActive)
-    imgui_capture = true;
-
-  if (config.input.gamepad.disabled_to_game)
-    imgui_capture = true;
-
-  return imgui_capture;
+  return
+    _Return (imgui_capture);
 }
 
 
@@ -3150,6 +3156,9 @@ SK_Input_SetLatencyMarker (void) noexcept
 
 #include <imgui/font_awesome.h>
 
+extern bool
+_ShouldRecheckStatus (INT iJoyID);
+
 int
 SK_ImGui_DrawGamepadStatusBar (void)
 {
@@ -3204,6 +3213,9 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
   for ( auto& gamepad : gamepads )
   {
+    auto& battery =
+      gamepad.battery;
+
     if ( current_frame !=
            std::exchange ( gamepad.checked_frame,
                                    current_frame ) )
@@ -3211,9 +3223,6 @@ SK_ImGui_DrawGamepadStatusBar (void)
       gamepad.attached =
         SK_XInput_PollController (gamepad.slot);
     }
-
-    auto& battery =
-      gamepad.battery;
 
     if (battery.last_checked < BatteryStateTTL || (! gamepad.attached))
     {   battery.draining = false;
@@ -3245,9 +3254,9 @@ SK_ImGui_DrawGamepadStatusBar (void)
           }
 
           if (battery.wired || battery.draining)
-              battery.last_checked  = SK::ControlPanel::current_time;
+              battery.last_checked = SK::ControlPanel::current_time;
           else
-              battery.last_checked += 1000; // Retry in 1 second
+              battery.last_checked = BatteryStateTTL + 1000; // Retry in 1 second
         }
       }
     }

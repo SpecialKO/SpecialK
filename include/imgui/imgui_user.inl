@@ -1621,8 +1621,6 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
     haptic_events.PulseTitle.start = static_cast <float> (SK::ControlPanel::current_time);
     haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
                                        haptic_events.PulseTitle.duration;
-
-    SK_Steam_ForceInputAppId (1157970);
   }
 
   //ImGui::GetIO ().NavActive = nav_usable;
@@ -1630,8 +1628,6 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
   // Zero-out any residual haptic data
   else
   {
-    SK_Steam_ForceInputAppId (0);
-
     SK_XInput_ZeroHaptics (config.input.gamepad.steam.ui_slot);
     SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
   }
@@ -1709,6 +1705,9 @@ SK_joyGetNumDevs (void)
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 {
+  // Triggers SteamInput kill switch once per-frame
+  SK_ImGui_WantGamepadCapture ();
+
   static auto& io =
     ImGui::GetIO ();
 

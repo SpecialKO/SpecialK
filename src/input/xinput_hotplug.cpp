@@ -122,17 +122,11 @@ extern void SK_XInput_RefreshEx          (UINT iJoyID, DWORD dwOffset);
 void
 SK_XInput_RefreshControllers (void)
 {
-  SK_XInput_Refresh        (0);
-  SK_XInput_PollController (0);
-
-  SK_XInput_Refresh        (1);
-  SK_XInput_PollController (1);
-
-  SK_XInput_Refresh        (2);
-  SK_XInput_PollController (2);
-
-  SK_XInput_Refresh        (3);
-  SK_XInput_PollController (3);
+  for ( auto slot : { 0, 1, 2, 3 } )
+  {
+    SK_XInput_Refresh        (slot);
+    SK_XInput_PollController (slot);
+  }
 };
 
 void
@@ -195,30 +189,39 @@ SK_XInput_NotifyDeviceArrival (void)
                                                        pDev->dbcc_name ),
                                   __SK_SUBSYSTEM__ );
 
-                      static ULONGLONG ullLastFrame =
-                        std::numeric_limits <ULONGLONG>::max ();
+                      auto ullFrame =
+                        SK_GetFramesDrawn ();
 
-                      if (ullLastFrame != SK_GetFramesDrawn ())
+                      static ULONGLONG ullLastArrival =
+                          std::numeric_limits <ULONGLONG>::max (),
+                                       ullLastRemoval =
+                          std::numeric_limits <ULONGLONG>::max ();
+
+                      if (arrival)
                       {
-                        if (arrival)
+                        if (std::exchange (ullLastArrival, ullFrame) != ullFrame)
                         {
                           for (  auto event : SK_HID_DeviceArrivalEvents  )
                             SetEvent (event);
 
                           SetEvent (SK_XInputHot_NotifyEvent);
                         }
+                      }
 
-                        else
+                      else
+                      {
+                        if (std::exchange (ullLastRemoval, ullFrame) != ullFrame)
                         {
                           for (  auto event : SK_HID_DeviceRemovalEvents  )
                             SetEvent (event);
+
+                          SetEvent (SK_XInputHot_NotifyEvent);
                         }
-
-                        SK_XInput_RefreshControllers (                 );
-                        SK_XInput_SetRefreshInterval (SK_timeGetTime ());
-
-                        ullLastFrame = SK_GetFramesDrawn ();
                       }
+
+                      // One notification is enough to stop periodically testing
+                      //   slots and use event-based logic instead
+                      SK_XInput_SetRefreshInterval (SK_timeGetTime ());
                     }
                   }
                 } break;
@@ -268,8 +271,7 @@ SK_XInput_NotifyDeviceArrival (void)
             //   late inject
             if (dwWaitStatus == ArrivalEvent)
             {
-              SK_XInput_RefreshControllers (                 );
-              SK_XInput_SetRefreshInterval (SK_timeGetTime ());
+              SK_XInput_RefreshControllers ();
             }
 
             dwWaitStatus =
@@ -297,9 +299,6 @@ SK_XInput_NotifyDeviceArrival (void)
         return 0;
       }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
     );
-
-  if (        SK_XInputHot_NotifyEvent != 0)
-    SetEvent (SK_XInputHot_NotifyEvent);
 }
 
 

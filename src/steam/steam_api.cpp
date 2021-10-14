@@ -5972,24 +5972,31 @@ SK_Steam_ForceInputAppId (AppId_t appid)
 {
   if (config.steam.appid != 0)
   {
-    wchar_t    wszSteamCommand [32] = { };
-    swprintf ( wszSteamCommand,
-                 LR"(steam://forceinputappid/%d)",
-                                      (appid != 0) ?
-                                       appid       :
-                          config.steam.appid );
-
     SHELLEXECUTEINFOW
       sexi              = { };
       sexi.cbSize       = sizeof (SHELLEXECUTEINFOW);
       sexi.lpVerb       = L"OPEN";
-      sexi.lpFile       = wszSteamCommand;
+      sexi.lpFile       = LR"(steam://forceinputappid/0)";
       sexi.lpParameters = nullptr;
       sexi.lpDirectory  = nullptr;
       sexi.nShow        = SW_HIDE;
       sexi.fMask        = SEE_MASK_FLAG_NO_UI |
-                          SEE_MASK_ASYNCOK    |
+                          SEE_MASK_NOASYNC    |
                           SEE_MASK_NOZONECHECKS;
+
+    if ((int)appid != -1)
+    {
+      wchar_t    wszSteamCommand [32] = { };
+      swprintf ( wszSteamCommand,
+                   LR"(steam://forceinputappid/%d)",
+                                        (appid != 0) ?
+                                         appid       :
+                            config.steam.appid ); // Restore game AppId
+
+      sexi.fMask &= ~SEE_MASK_NOASYNC;
+      sexi.fMask +=  SEE_MASK_ASYNCOK;
+      sexi.lpFile = wszSteamCommand;
+    }
 
     ShellExecuteExW (&sexi);
   }
