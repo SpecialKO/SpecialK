@@ -1737,6 +1737,8 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
   else if (StrStrA (lpszCmdLine, "Remove"))
   {
+    SKX_RemoveCBTHook ();
+
     const char* szPIDFile =
       SK_RunLHIfBitness ( 32, "SpecialK32.pid",
                               "SpecialK64.pid" );
@@ -1756,8 +1758,6 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
         DeleteFileA (szPIDFile);
       }
     }
-
-    SKX_RemoveCBTHook ();
 
     if (nCmdShow != -128)
       SK_ExitProcess (0x00);
