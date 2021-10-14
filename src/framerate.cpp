@@ -332,11 +332,11 @@ SK_Framerate_WaitForVBlank (void)
 
     if (D3DKMTGetScanLine != nullptr)
     {
-      ////if ( STATUS_SUCCESS ==
-      ////          D3DKMTGetScanLine (&getScanLine) && getScanLine.InVerticalBlank )
-      ////{
-      ////  return true;
-      ////}
+      if ( STATUS_SUCCESS ==
+                D3DKMTGetScanLine (&getScanLine) && getScanLine.InVerticalBlank )
+      {
+        return true;
+      }
 
       UINT max_visible_scanline = 0u;
       UINT max_scanline         = 0u;
@@ -634,53 +634,53 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
           (D3DKMTGetScanLine_pfn)SK_GetProcAddress (L"gdi32.dll",
           "D3DKMTGetScanLine");
 
-    if (D3DKMTGetScanLine != nullptr)
-    {
-      D3DKMT_GETSCANLINE
-        getScanLine               = { };
-        getScanLine.hAdapter      = rb.adapter.d3dkmt;
-        getScanLine.VidPnSourceId = rb.adapter.VidPnSourceId;
-
-      __VBlank.tBegin = 0;
-      __VBlank.tEnd   = 0;
-
-      while ( STATUS_SUCCESS ==
-                D3DKMTGetScanLine (&getScanLine) )
-      {
-        if (getScanLine.ScanLine == 0)
-        {
-          __VBlank.t0 = SK_QueryPerf ().QuadPart;
-
-          break;
-        }
-      }
-
-      while ( STATUS_SUCCESS ==
-                D3DKMTGetScanLine (&getScanLine) )
-      {
-        if (getScanLine.InVerticalBlank)
-        {
-          if (__VBlank.tBegin == 0)
-          {
-            __VBlank.tBegin = SK_QueryPerf ().QuadPart -__VBlank.t0;
-          }
-        }
-
-        else
-        {
-          if (__VBlank.tEnd == 0 && __VBlank.tBegin != 0)
-          {
-            __VBlank.tEnd = SK_QueryPerf ().QuadPart -__VBlank.t0;
-          }
-        }
-
-        if (__VBlank.tEnd != 0 && __VBlank.tBegin != 0)
-          break;
-      }
-
-      dll_log->Log (L"Blanking: %f ms, Visible Time: %f ms", static_cast <double> (__VBlank.tEnd - __VBlank.tBegin) / SK_QpcTicksPerMs,
-                                                             static_cast <double> (                __VBlank.tBegin) / SK_QpcTicksPerMs);
-    }
+    ////if (D3DKMTGetScanLine != nullptr)
+    ////{
+    ////  D3DKMT_GETSCANLINE
+    ////    getScanLine               = { };
+    ////    getScanLine.hAdapter      = rb.adapter.d3dkmt;
+    ////    getScanLine.VidPnSourceId = rb.adapter.VidPnSourceId;
+    ////
+    ////  __VBlank.tBegin = 0;
+    ////  __VBlank.tEnd   = 0;
+    ////
+    ////  while ( STATUS_SUCCESS ==
+    ////            D3DKMTGetScanLine (&getScanLine) )
+    ////  {
+    ////    if (getScanLine.ScanLine == 0)
+    ////    {
+    ////      __VBlank.t0 = SK_QueryPerf ().QuadPart;
+    ////
+    ////      break;
+    ////    }
+    ////  }
+    ////
+    ////  while ( STATUS_SUCCESS ==
+    ////            D3DKMTGetScanLine (&getScanLine) )
+    ////  {
+    ////    if (getScanLine.InVerticalBlank)
+    ////    {
+    ////      if (__VBlank.tBegin == 0)
+    ////      {
+    ////        __VBlank.tBegin = SK_QueryPerf ().QuadPart -__VBlank.t0;
+    ////      }
+    ////    }
+    ////
+    ////    else
+    ////    {
+    ////      if (__VBlank.tEnd == 0 && __VBlank.tBegin != 0)
+    ////      {
+    ////        __VBlank.tEnd = SK_QueryPerf ().QuadPart -__VBlank.t0;
+    ////      }
+    ////    }
+    ////
+    ////    if (__VBlank.tEnd != 0 && __VBlank.tBegin != 0)
+    ////      break;
+    ////  }
+    ////
+    ////  dll_log->Log (L"Blanking: %f ms, Visible Time: %f ms", static_cast <double> (__VBlank.tEnd - __VBlank.tBegin) / SK_QpcTicksPerMs,
+    ////                                                         static_cast <double> (                __VBlank.tBegin) / SK_QpcTicksPerMs);
+    ////}
 
     //SK_D3DKMT_WaitForScanline0 ();
 
