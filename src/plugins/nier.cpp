@@ -35,7 +35,7 @@
 
 
 
-#define FAR_VERSION_NUM L"0.10.1"
+#define FAR_VERSION_NUM L"0.10.2"
 #define FAR_VERSION_STR L"FAR v " FAR_VERSION_NUM
 
 // Block until update finishes, otherwise the update dialog
@@ -864,34 +864,37 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
 
     if (game_state.isSteam2021 ())
     {
-      static constexpr auto
-        NIER_INTERNAL_FPS = 60;
+      if (far_uncap_fps->get_value ())
+      {
+        static constexpr auto
+          NIER_INTERNAL_FPS = 60;
 
-      static const
-        LONGLONG llClockFreq =
-                 (SK_QpcFreq / NIER_INTERNAL_FPS);
+        static const
+          LONGLONG llClockFreq =
+                   (SK_QpcFreq / NIER_INTERNAL_FPS);
 
-      static auto& rb =
-        SK_GetCurrentRenderBackend ();
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
 
-      ULONG64 llDeltaTime =
-        rb.frame_delta.getDeltaTime ();
+        ULONG64 llDeltaTime =
+          rb.frame_delta.getDeltaTime ();
 
-      float scale =
-          game_state.isInMenu () ?
-                            1.0f : static_cast <float>
-                                     ( static_cast <double> (llDeltaTime) /
-                                       static_cast <double> (llClockFreq) );
+        float scale =
+            game_state.isInMenu () ?
+                              1.0f : static_cast <float>
+                                       ( static_cast <double> (llDeltaTime) /
+                                         static_cast <double> (llClockFreq) );
 
-      // Game has sketchy < 30 FPS compensation, we need to not mess with it.
-      if (scale >= 1.075f)
-          scale  = 1.0f;
+        // Game has sketchy < 30 FPS compensation, we need to not mess with it.
+        if (scale >= 1.075f)
+            scale  = 1.0f;
 
-      float *fTimeScale =
-        (float *)(game_state.uiBaseAddr + 0x1029F88);
+        float *fTimeScale =
+          (float *)(game_state.uiBaseAddr + 0x1029F88);
 
-      *fTimeScale =
-            scale;
+        *fTimeScale =
+              scale;
+      }
     }
 
 

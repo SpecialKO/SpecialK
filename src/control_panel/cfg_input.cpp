@@ -824,6 +824,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       ImGui::Separator       ( );
 
+#if 0
       static DWORD dwLastCheck = current_time;
       static UINT  dwLastCount = SK_joyGetNumDevs ();
 
@@ -838,6 +839,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (  count > 0) { GamepadDebug (JOYSTICKID1);
         if (count > 1)   GamepadDebug (JOYSTICKID2); }
+#endif
 
       if (config.input.gamepad.hook_xinput)
       {

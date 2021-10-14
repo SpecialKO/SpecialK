@@ -17,6 +17,122 @@ bool SK_ACO_PlugInCfg   (void);
 bool SK_SO4_PlugInCfg   (void);
 bool SK_LSBTS_PlugInCfg (void);
 
+struct SK_MemScan_Params__v0
+{
+  enum Privilege
+  {
+    Allowed    = true,
+    Disallowed = false,
+    DontCare   = (DWORD_PTR)-1
+  };
+
+  struct
+  {
+    Privilege execute = DontCare;
+    Privilege read    = Allowed;
+    Privilege write   = DontCare;
+  } privileges;
+
+  enum MemType
+  {
+    ImageCode  = SEC_IMAGE,
+    FileData   = SEC_FILE,
+    HeapMemory = SEC_COMMIT
+  } mem_type;
+
+  bool testPrivs (const MEMORY_BASIC_INFORMATION& mi)
+  {
+    if (mi.AllocationProtect == 0)
+      return false;
+
+    bool valid = true;
+
+
+    if (privileges.execute != DontCare)
+    {
+      bool exec_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_EXECUTE:
+        case PAGE_EXECUTE_READ:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.execute != Allowed)
+            exec_matches = false;
+          break;
+
+        default:
+          if (privileges.execute == Disallowed)
+            exec_matches = false;
+          break;
+      }
+
+      valid &= exec_matches;
+    }
+
+
+    if (privileges.read != DontCare)
+    {
+      bool read_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_READONLY:
+        case PAGE_READWRITE:
+        case PAGE_EXECUTE_READ:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.read != Allowed)
+            read_matches = false;
+          break;
+
+        default:
+          if (privileges.read == Disallowed)
+            read_matches = false;
+          break;
+      }
+
+      valid &= read_matches;
+    }
+
+
+    if (privileges.write != DontCare)
+    {
+      bool write_matches = true;
+
+      switch (mi.Protect)
+      {
+        case PAGE_READWRITE:
+        case PAGE_WRITECOPY:
+        case PAGE_EXECUTE_READWRITE:
+        case PAGE_EXECUTE_WRITECOPY:
+          if (privileges.write != Allowed)
+            write_matches = false;
+          break;
+
+        default:
+          if (privileges.write == Disallowed)
+            write_matches = false;
+          break;
+      }
+
+      valid &= write_matches;
+    }
+
+    return valid;
+  }
+};
+
+
+void*
+__stdcall
+SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
+                          void* after,   int    align,    uint8_t* base_addr,
+
+                          SK_MemScan_Params__v0 params =
+                          SK_MemScan_Params__v0 ()       );
+
 bool
 SK_FarCry6_PlugInCfg (void)
 {
@@ -24,8 +140,11 @@ SK_FarCry6_PlugInCfg (void)
   {
     ImGui::TreePush ("");
 
-    static void* pLimitSet = (void *)(uintptr_t)0x7FF9F3F51E02;
-
+    static void* pLimitSet =
+      (void *)((uintptr_t)
+       ( SK_GetProcAddress ( L"FC_m64d3d12.dll",
+             "?Count@ReadBytesSkip@AK@@QEAAJXZ" )
+       ) + 0x2F342 );
     // FC_m64d3d12.dll.reloc+3A0E02 - 8B 89 BC000000        - mov ecx,[rcx+000000BC]
 
     static bool patchable = false;

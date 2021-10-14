@@ -1,8 +1,23 @@
-﻿21.10.11
+﻿21.10.13
+========
+ + Optimized wireless gamepad connect / disconnect
+ + Re-enabled XInput placeholders for hot-swapping
+ + Added gamepad battery meter to framepacing widget if PresentMon is inactive
+
+ + Added native SteamInput bypass to poll/block gamepad input using XInput 1.1
+ + Changed CBT hook removal / signal order during injection shutdown
+
+21.10.12
+========
+ + Updated FAR to v 0.10.2
+
+   - Fixed Camera Mod compatibility; only adjust timing for uncapped framerates
+
+21.10.11
 ========
  + Added XInput battery level indicator to control panel and framepacing widget
  + Added XInput activity indicator to denote which gamepad(s) a game is polling
- + Upgraded all XInput 9.1.0 and 1.3 software to 1.4 for more reliable hooking
+ + Detour all XInput 9.1.0 / 1.3 software through 1.4 for more reliable hooking
 
 21.10.08
 ========
