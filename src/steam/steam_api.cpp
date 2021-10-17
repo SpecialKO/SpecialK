@@ -4132,8 +4132,8 @@ SK_Steam_LoadOverlayEarly (void)
 
   wchar_t           wszOverlayDLL [MAX_PATH + 2] = { };
   SK_PathCombineW ( wszOverlayDLL, wszSteamPath,
-    SK_RunLHIfBitness ( 64, LR"(\GameOverlayRenderer64.dll)",
-                            LR"(\GameOverlayRenderer.dll)"    ) );
+    SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+                            L"GameOverlayRenderer.dll"    ) );
 
 
   bool bEnableHooks =
