@@ -3643,6 +3643,7 @@ SK_StripLeadingSlashesW (wchar_t *wszInOut)
        wszIn  = CharNextW (wszIn);
        wszOut = CharNextW (wszOut);
     }
+    wszInOut[new_len] = L'\0';
   }
 
   // Else:
