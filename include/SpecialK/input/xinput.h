@@ -51,6 +51,7 @@
 #define XINPUT_GAMEPAD_Y              0x8000
 
 #define XINPUT_GETSTATEEX_ORDINAL MAKEINTRESOURCEA (100)
+#define XINPUT_POWEROFF_ORDINAL   MAKEINTRESOURCEA (103)
 
 #define XINPUT_DEVTYPE_GAMEPAD        0x01
 #define XINPUT_DEVSUBTYPE_GAMEPAD     0x01
@@ -161,12 +162,20 @@ using XInputEnable_pfn = void (WINAPI *)(
   _In_ BOOL enable
 );
 
+using XInputPowerOff_pfn = DWORD (WINAPI *)(
+  _In_ DWORD dwUserIndex
+);
+
 
 DWORD
 WINAPI
 SK_XInput_GetBatteryInformation (_In_  DWORD                       dwUserIndex,
                                  _In_  BYTE                        devType,
                                  _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation);
+
+DWORD
+WINAPI
+SK_XInput_PowerOff              (_In_  DWORD                       dwUserIndex);
 
 bool
 SK_XInput_Enable          ( BOOL bEnable = TRUE );

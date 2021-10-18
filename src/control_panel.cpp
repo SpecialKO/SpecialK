@@ -1275,6 +1275,66 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 #endif
   }
 
+  if (! rb.displays [rb.active_display].primary)
+  {
+    if (ImGui::Button ("Make Primary Display"))
+    {
+      MONITORINFOEXW
+        mexicow        = {                     };
+        mexicow.cbSize = sizeof (MONITORINFOEXW);
+
+      MONITORINFOEXW
+        oldprimary        = {                     };
+        oldprimary.cbSize = sizeof (MONITORINFOEXW);
+
+      for (auto display : rb.displays)
+      {
+        if (display.primary)
+        {
+          wcsncpy_s ( oldprimary.szDevice, 32,
+                      display.dxgi_name,   _TRUNCATE );
+          break;
+        }
+      }
+
+      if (GetMonitorInfoW (rb.displays [rb.active_display].monitor, &mexicow))
+      {
+        if (oldprimary.szDevice != L'\0')
+        {
+          LONG      result;
+          DEVMODE dm1, dm2;
+
+          memset (&dm1, 0, sizeof (DEVMODE));
+          memset (&dm2, 0, sizeof (DEVMODE));
+
+          EnumDisplaySettings (mexicow.szDevice, ENUM_REGISTRY_SETTINGS, &dm2);
+
+          DWORD dwOrigX    = dm2.dmPosition.x;
+
+          dm2.dmFields     = DM_POSITION;
+          dm2.dmPosition.x = 0;
+          dm2.dmPosition.y = 0;
+
+          ChangeDisplaySettingsEx ( mexicow.szDevice, &dm2, NULL, CDS_SET_PRIMARY    |
+                                                                  CDS_UPDATEREGISTRY |
+                                                                  CDS_NORESET, NULL );
+
+          EnumDisplaySettings (oldprimary.szDevice, ENUM_REGISTRY_SETTINGS, &dm1);
+
+          dm1.dmFields     = DM_POSITION;
+          dm1.dmPosition.x = dwOrigX;
+          dm1.dmPosition.y = 0;
+
+          ChangeDisplaySettingsEx ( oldprimary.szDevice, &dm1, NULL, CDS_UPDATEREGISTRY |
+                                                                     CDS_NORESET, NULL );
+
+          ChangeDisplaySettings (NULL, 0);
+        }
+      }
+      //ChangeDisplaySettingsExW (mexicow.szDevice, nullptr, nullptr, CDS_UPDATEREGISTRY | CDS_SET_PRIMARY, nullptr);
+    }
+  }
+
   if (rb.displays [rb.active_display].hdr.supported)
   {
     bool hdr_enable =

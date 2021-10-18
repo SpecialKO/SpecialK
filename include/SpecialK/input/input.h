@@ -93,7 +93,7 @@ struct sk_imgui_cursor_s
   struct {
     struct {
       bool visible = true;
-      bool gamepad = false; // TODO - Disable warping ifgamepad is plugged in
+      bool gamepad = false; // TODO - Disable warping if gamepad is plugged in
       bool ui_open = true;
     } no_warp;
   } prefs;
@@ -148,7 +148,8 @@ struct sk_input_api_context_s
                                                  type == sk_win32_func::GetKeyState      ? 1 :
                                                  type == sk_win32_func::GetKeyboardState ? 2 : 3 ] ); }
   void markRead  (DWORD slot) noexcept
-  { InterlockedIncrement (&last_frame.reads    [ slot ]); }
+  { SK_Input_SetLatencyMarker ();
+    InterlockedIncrement (&last_frame.reads    [ slot ]); }
   void markWrite  (sk_input_dev_type type) noexcept
   { InterlockedIncrement (&last_frame.writes  [ type == sk_input_dev_type::Mouse    ? 0 :
                                                 type == sk_input_dev_type::Keyboard ? 1 :
@@ -196,8 +197,8 @@ struct sk_input_api_context_s
     InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
     InterlockedAdd  (&writes  [3], last_frame.writes [3]);
 
-      if (ReadAcquire (&last_frame.reads  [2]))  { active.keyboard = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [2]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [3]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [3]))  { active.keyboard = true; active_data = true; }
 
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
@@ -239,8 +240,8 @@ struct sk_input_api_context_s
     InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
     InterlockedAdd  (&writes  [3], last_frame.writes [3]);
 
-      if (ReadAcquire (&last_frame.reads  [2]))  { active.other    = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [2]))  { active.other    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [3]))  { active.other    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [3]))  { active.other    = true; active_data = true; }
 
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
@@ -263,6 +264,36 @@ struct sk_input_api_context_s
       case sk_input_dev_type::Keyboard: qpcSample = ReadULong64Acquire (&viewed.keyboard); break;
       case sk_input_dev_type::Gamepad:  qpcSample = ReadULong64Acquire (&viewed.gamepad);  break;
       case sk_input_dev_type::Other:    qpcSample = ReadULong64Acquire (&viewed.other);    break;
+    }
+
+    return static_cast <float> (
+      static_cast <double> (SK_QueryPerf ().QuadPart - qpcSample) /
+      static_cast <double> (SK_QpcFreq)
+                               );
+  }
+
+  // XInput only
+  float getInputAge (DWORD devSlot)
+  {
+    assert (devSlot <= 4UL);
+
+    uint64_t qpcSample = 0ULL;
+
+    switch (devSlot)
+    {
+      case 0: qpcSample = ReadULong64Acquire (&viewed.mouse);    break;
+      case 1: qpcSample = ReadULong64Acquire (&viewed.keyboard); break;
+      case 2: qpcSample = ReadULong64Acquire (&viewed.gamepad);  break;
+      case 3: qpcSample = ReadULong64Acquire (&viewed.other);    break;
+
+      // Returns the newest input on any slot
+      case 4:
+      {
+        return
+          std::min (     getInputAge (0),
+            std::min (   getInputAge (1),
+              std::min ( getInputAge (2), getInputAge (3) ) ) );
+      } break;
     }
 
     return static_cast <float> (
@@ -354,15 +385,15 @@ struct SK_Input_KeyBinding
 
 struct SK_Input_PadBinding
 {
-  SK_Input_BindFlags flags      = SK_Input_BindFlags::Default;
+  SK_Input_BindFlags flags       = SK_Input_BindFlags::Default;
 
   struct button_s
   {
-    SK_Input_Duration duration  = {};
-    uint8_t           button    = 00;
+    SK_Input_Duration duration   = {};
+    uint8_t           button     = 00;
   } buttons [1];
 
-  uint8_t            combo_size = 1;
+  uint8_t             combo_size = 1;
 };
 
 

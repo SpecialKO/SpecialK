@@ -58,7 +58,7 @@ SK_XInput_PacketJournal
 SK_XInput_GetPacketJournal (DWORD dwUserIndex)
 {
   dwUserIndex =
-    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_COUNT - 1UL)];
 
   if (dwUserIndex     >=    XUSER_MAX_COUNT)
      return xinput_packets [XUSER_MAX_COUNT];
@@ -117,7 +117,6 @@ static HANDLE SK_XInputHot_ReconnectThread = 0;
 
 extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
 extern void SK_XInput_Refresh            (UINT iJoyID);
-extern void SK_XInput_RefreshEx          (UINT iJoyID, DWORD dwOffset);
 
 void
 SK_XInput_RefreshControllers (void)
@@ -128,6 +127,12 @@ SK_XInput_RefreshControllers (void)
     SK_XInput_PollController (slot);
   }
 };
+
+DWORD
+WINAPI
+SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
+                           _In_  DWORD                dwFlags,
+                           _Out_ XINPUT_CAPABILITIES *pCapabilities);
 
 void
 SK_XInput_NotifyDeviceArrival (void)
@@ -189,39 +194,45 @@ SK_XInput_NotifyDeviceArrival (void)
                                                        pDev->dbcc_name ),
                                   __SK_SUBSYSTEM__ );
 
-                      auto ullFrame =
-                        SK_GetFramesDrawn ();
-
-                      static ULONGLONG ullLastArrival =
-                          std::numeric_limits <ULONGLONG>::max (),
-                                       ullLastRemoval =
-                          std::numeric_limits <ULONGLONG>::max ();
-
                       if (arrival)
                       {
-                        if (std::exchange (ullLastArrival, ullFrame) != ullFrame)
-                        {
-                          for (  auto event : SK_HID_DeviceArrivalEvents  )
-                            SetEvent (event);
+                        for (  auto event : SK_HID_DeviceArrivalEvents  )
+                          SetEvent (event);
 
-                          SetEvent (SK_XInputHot_NotifyEvent);
+                        // XInput devices contain IG_...
+                        if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
+                              wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+                              // Ignore XInputGetKeystroke
+                        {
+                          XINPUT_CAPABILITIES caps = { };
+
+                          for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
+                          {
+                            if (ERROR_SUCCESS == SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps))
+                            {
+                              SK_XInput_Refresh        (i);
+                              SK_XInput_PollController (i);
+                            }
+                          }
                         }
                       }
 
                       else
                       {
-                        if (std::exchange (ullLastRemoval, ullFrame) != ullFrame)
-                        {
-                          for (  auto event : SK_HID_DeviceRemovalEvents  )
-                            SetEvent (event);
+                        for (  auto event : SK_HID_DeviceRemovalEvents  )
+                          SetEvent (event);
 
+                        if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
+                              wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+                              // Ignore XInputGetKeystroke
+                        {
                           SetEvent (SK_XInputHot_NotifyEvent);
+
+                          // One notification is enough to stop periodically testing
+                          //   slots and use event-based logic instead
+                          SK_XInput_SetRefreshInterval (SK_timeGetTime ());
                         }
                       }
-
-                      // One notification is enough to stop periodically testing
-                      //   slots and use event-based logic instead
-                      SK_XInput_SetRefreshInterval (SK_timeGetTime ());
                     }
                   }
                 } break;
@@ -254,6 +265,9 @@ SK_XInput_NotifyDeviceArrival (void)
           HDEVNOTIFY hDevNotify =
             SK_RegisterDeviceNotification (hWndDeviceListener);
 
+          static const GUID GUID_DEVINTERFACE_HID =
+            { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+
           do
           {
             auto MessagePump = [&] (void) ->
@@ -267,15 +281,15 @@ SK_XInput_NotifyDeviceArrival (void)
               }
             };
 
+            dwWaitStatus =
+              MsgWaitForMultipleObjects (2, phWaitObjects, FALSE, INFINITE, QS_ALLINPUT);
+
             // Event is created in signaled state to queue a refresh in case of
             //   late inject
             if (dwWaitStatus == ArrivalEvent)
             {
               SK_XInput_RefreshControllers ();
             }
-
-            dwWaitStatus =
-              MsgWaitForMultipleObjects (2, phWaitObjects, FALSE, INFINITE, QS_ALLINPUT);
 
             if (dwWaitStatus == (WAIT_OBJECT_0 + 2))
             {
@@ -490,47 +504,6 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   return dwRet;
 }
 
-static DWORD SK_XInput_UI_LastSeenController = DWORD_MAX;
-static DWORD SK_XInput_UI_LastSeenTime       =         0;
-
-void
-SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
-{
-  static constexpr DWORD MIGRATION_PERIOD = 750;
-
-  if (success)
-  {
-    DWORD dwTime =
-     SK::ControlPanel::current_time;
-
-    bool migrate = ( dwPacketCount > 1 )
-         &&
-      ( SK_XInput_UI_LastSeenController == DWORD_MAX             ||
-        SK_XInput_UI_LastSeenTime       < dwTime - MIGRATION_PERIOD );
-
-    if (SK_XInput_UI_LastSeenController == config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)])
-        SK_XInput_UI_LastSeenTime        = dwTime;
-
-    if (migrate)
-    {   SK_XInput_UI_LastSeenController                  = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
-        SK_XInput_UI_LastSeenTime                        = dwTime;
-        config.input.gamepad.xinput.ui_slot = config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)];
-
-      if (! config.input.gamepad.disabled_to_game)
-      {
-        SK_QueryPerformanceCounter (
-          (LARGE_INTEGER *)&SK_XInput_Backend->viewed.gamepad
-        );
-      }
-    }
-  }
-
-  else if (config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)] == config.input.gamepad.xinput.ui_slot)
-  {
-    SK_XInput_UI_LastSeenController                  = DWORD_MAX;
-    config.input.gamepad.xinput.ui_slot = 0;
-  }
-}
 
 // Make sure that virtual and physical controllers
 //   always return monotonic results
@@ -560,17 +533,8 @@ SK_XInput_PacketJournalize (DWORD dwRet, DWORD dwUserIndex, XINPUT_STATE *pState
 
       pState->dwPacketNumber =
         journal.sequence.current;
-
-      SK_XInput_UpdateSlotForUI (
-        true, dwUserIndex,
-          journal.packet_count.real
-      );
     }
   }
-
-  else
-    SK_XInput_UpdateSlotForUI (
-      false, dwUserIndex, 0 );
 
   // Failure will be handled by placeholders if need be.
 }
@@ -624,9 +588,9 @@ RegisterDeviceNotificationW_Detour (
     }
   }
 
-  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-       config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-    return nullptr;
+  ////if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+  ////     config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+  ////  return nullptr;
 
   return
     RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
@@ -668,9 +632,9 @@ RegisterDeviceNotificationA_Detour (
     }
   }
 
-  if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
-       config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
-    return nullptr;
+  ////if ( config.input.gamepad.xinput.placehold [0] || config.input.gamepad.xinput.placehold [1] ||
+  ////     config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
+  ////  return nullptr;
 
   return
     RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
@@ -702,7 +666,7 @@ HDEVNOTIFY
 WINAPI
 SK_RegisterDeviceNotification (_In_ HANDLE hRecipient)
 {
-  GUID GUID_DEVINTERFACE_HID =
+  static const GUID GUID_DEVINTERFACE_HID =
     { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
 
   bool bUnicode =

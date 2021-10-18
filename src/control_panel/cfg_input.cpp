@@ -505,129 +505,94 @@ SK::ControlPanel::Input::Draw (void)
 
       ImGui::Separator ();
 
-      bool connected [4] = {
+      bool connected [XUSER_MAX_COUNT] = {
         SK_XInput_PollController (0), SK_XInput_PollController (1),
         SK_XInput_PollController (2), SK_XInput_PollController (3)
       };
 
-      const int num_steam_controllers =
-        0;/// steam_input.count;
-
-      if ( config.input.gamepad.hook_xinput &&
-           num_steam_controllers == 0 && ( connected [0] || connected [1] ||
-                                           connected [2] || connected [3] ) )
+      if (config.input.gamepad.hook_xinput)
       {
-        ImGui::Text("UI Controlled By:  "); ImGui::SameLine();
+        ImGui::Columns (2);
 
-        if (connected [0]) {
-          ImGui::RadioButton ("XInput Controller 0##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 0);
-          if (connected [1] || connected [2] || connected [3]) ImGui::SameLine ();
-        }
+        ImGui::Text ("UI Controlled By:    "); ImGui::SameLine ();
 
-        if (connected [1]) {
-          ImGui::RadioButton ("XInput Controller 1##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 1);
-          if (connected [2] || connected [3]) ImGui::SameLine ();
-        }
+        int *ui_slot =
+          (int *)&config.input.gamepad.xinput.ui_slot;
 
-        if (connected [2]) {
-          ImGui::RadioButton ("XInput Controller 2##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 2);
-          if (connected [3]) ImGui::SameLine ();
-        }
-
-        if (connected [3])
-          ImGui::RadioButton ("XInput Controller 3##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 3);
+        if (config.input.gamepad.xinput.ui_slot != 4)
+          ImGui::RadioButton (
+            SK_FormatString ("Auto (XInput " ICON_FA_GAMEPAD " %d)##XInputSlot",
+                              config.input.gamepad.xinput.ui_slot).c_str (), ui_slot, *ui_slot);
+        else
+          ImGui::RadioButton (R"(Auto##XInputSlot)",                         ui_slot, 0);
 
         ImGui::SameLine    ();
         ImGui::RadioButton ("Nothing##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 4);
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
-      }
+          ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input");
 
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-      if (num_steam_controllers > 0)
-      {
-        ImGui::Text ("UI Controlled By:  "); ImGui::SameLine ();
+        ImGui::NextColumn ( );
 
-        ControllerIndex_t idx =
-          steam_input.getFirstActive ();
-
-        if (idx != INVALID_CONTROLLER_INDEX)
-        {
-          for (int i = 0; i < num_steam_controllers; i++)
-          {
-            ImGui::RadioButton ( SK_FormatString ("Steam Controller %lu##SteamSlot", idx).c_str (),
-                                   (int *)&config.input.gamepad.steam.ui_slot,
-                                       idx );
-
-            idx =
-              steam_input [idx].getNextActive ();
-
-            if (idx == INVALID_CONTROLLER_INDEX)
-              break;
-
-            if (i != num_steam_controllers - 1)
-              ImGui::SameLine ();
-          }
-
-          ImGui::SameLine     ();
-        }
-
-        ImGui::RadioButton ("Nothing##SteamSlot", (int *)&config.input.gamepad.steam.ui_slot, INVALID_CONTROLLER_INDEX);
+        ImGui::Checkbox ("Dynamic XInput " ICON_FA_GAMEPAD " 0", &config.input.gamepad.xinput.auto_slot_assign);
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input.");
-      }
-#endif
+          ImGui::SetTooltip ("Automatically reassign slot 0 in response to gamepad input");
 
-      if (config.input.gamepad.hook_xinput)
-      {
-        ImGui::Text ("XInput Placeholders");
+        ImGui::NextColumn ( );
+        ImGui::Columns    (2);
+
+        ImGui::Text     ("XInput Placeholders");
+        ImGui::SameLine ();
 
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
-          ImGui::Separator ();
-          ImGui::BulletText ("Useful for games like God Eater 2 that do not support hot-plugging in a sane way.");
-          ImGui::BulletText ("Also reduces performance problems games cause themselves by trying to poll controllers that are not connected.");
-          ImGui::EndTooltip ();
+          ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Useful for games that do not normally support hot-plugging");
+          ImGui::BulletText   ("Improves performance in games that poll disconnected controllers");
+          ImGui::EndTooltip   ();
         }
-
-        ImGui::SameLine ();
 
         auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
         {
           ImGui::Checkbox (szName, &config.input.gamepad.xinput.placehold [dwIndex]);
 
-          const SK_XInput_PacketJournal journal =
-            SK_XInput_GetPacketJournal (dwIndex);
-
           if (ImGui::IsItemHovered ())
           {
-            ImGui::BeginTooltip ();
+            const SK_XInput_PacketJournal journal =
+              SK_XInput_GetPacketJournal (dwIndex);
+
+            ImGui::BeginTooltip( );
             ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
             ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
                                 journal.sequence.last, journal.sequence.current);
-            ImGui::Separator ();
-            ImGui::Columns (2, nullptr, 0);
+            ImGui::Separator   ( );
+            ImGui::Columns     (2, nullptr, 0);
             ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-            ImGui::Text ("%+07li", journal.packet_count.virt);        ImGui::NextColumn ();
+            ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
             ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-            ImGui::Text ("%+07li", journal.packet_count.real);
-            ImGui::Columns (1);
-            ImGui::EndTooltip ();
+            ImGui::Text        ("%+07li", journal.packet_count.real);
+            ImGui::Columns     (1);
+            ImGui::EndTooltip  ( );
           }
         };
 
-        XInputPlaceholderCheckbox ("Slot 0", 0); ImGui::SameLine ();
-        XInputPlaceholderCheckbox ("Slot 1", 1); ImGui::SameLine ();
-        XInputPlaceholderCheckbox ("Slot 2", 2); ImGui::SameLine ();
-        XInputPlaceholderCheckbox ("Slot 3", 3);
+        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 0", 0); ImGui::SameLine ();
+        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 1", 1); ImGui::SameLine ();
+        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 2", 2); ImGui::SameLine ();
+        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 3", 3);
 
-        ImGui::Spacing ();
+        ImGui::NextColumn ( );
+
+        ImGui::ItemSize ( ImVec2 (0.0f, 0.0f),
+          ImGui::GetStyle ( ).FramePadding.y );
 
         SK_ImGui_DrawGamepadStatusBar ();
+
+        ImGui::NextColumn ( );
+        ImGui::Columns    (1);
 
         ////ImGui::BeginGroup ();
         ////ImGui::Text       (" Slot Redistribution ");
@@ -748,7 +713,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
         ImGui::SameLine ();
 
-        ImGui::Checkbox    ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
+        ImGui::Checkbox     ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
         {
@@ -918,9 +883,12 @@ extern float SK_ImGui_PulseNav_Strength;
                       high_max_f,
                       avg_f;
 
+        ImGui::SameLine    ( );
+        ImGui::BeginGroup  ( );
+
         if (started)
         {
-          ImGui::SameLine  ( );
+          ImGui::BeginGroup( );
           ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
                                gamepad_stats.calcNumSamples (),
                                gamepad_stats.calcMin        (),
@@ -932,18 +900,21 @@ extern float SK_ImGui_PulseNav_Strength;
                                gamepad_stats_filtered.calcMin        (),
                                gamepad_stats_filtered.calcMax        (),
                                gamepad_stats_filtered.calcMean       () );
+          ImGui::EndGroup  ( );
 
           high_min_f = std::min (gamepad_stats_filtered.calcMin (), high_min_f);
           high_min   = std::min (gamepad_stats.calcMin          (), high_min  );
         }
-  //high_max = std::max (gamepad_stats.calcMax (), high_max);
 
+        ImGui::BeginGroup  ( );
         if (high_min   < 250.0)
-          ImGui::Text     ( "Minimum Latency: %4.2f ms", high_min );
+          ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
         if (high_min_f < 250.0)
-          ImGui::Text     ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
+          ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
+        ImGui::EndGroup    ( );
+        ImGui::EndGroup    ( );
       }
-      ImGui::TreePop         ( );
+      ImGui::TreePop       ( );
     }
 
     if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))

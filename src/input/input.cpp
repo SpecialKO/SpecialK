@@ -1398,10 +1398,10 @@ SK_ImGui_WantTextCapture (void)
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
-  auto _Return = [](bool bCapture) ->
+  auto _Return = [](BOOL bCapture) ->
   bool
   {
-    static bool lastCapture = false;
+    static BOOL lastCapture = -1;
 
     if (std::exchange (lastCapture, bCapture) != bCapture)
     {
@@ -2563,7 +2563,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       //  } break;
 
 
-      // Fix for Melody's Escape, which attempts to remove these messages!
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       {
@@ -3211,6 +3210,8 @@ SK_ImGui_DrawGamepadStatusBar (void)
   auto current_frame =
     SK_GetFramesDrawn ();
 
+  ImGui::BeginGroup ();
+
   for ( auto& gamepad : gamepads )
   {
     auto& battery =
@@ -3277,7 +3278,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
     if (gamepad.attached)
     {
-      ImGui::SameLine    ();
+      ImGui::BeginGroup  ();
       ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
       ImGui::SameLine    ();
 
@@ -3309,9 +3310,24 @@ SK_ImGui_DrawGamepadStatusBar (void)
         );
       }
 
+      ImGui::EndGroup ();
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Click to turn off");
+
+      if (ImGui::IsItemClicked ())
+      {
+        SK_XInput_PowerOff (gamepad.slot);
+      }
+
+      ImGui::SameLine ();
+
       ++attached_pads;
     }
   }
+
+  ImGui::Spacing  ();
+  ImGui::EndGroup ();
 
   return
     attached_pads;
