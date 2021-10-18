@@ -782,6 +782,7 @@ struct sk_config_t
     bool    central_repository  = false;
     bool    ignore_rtss_delay   = false;
     bool    wait_for_debugger   = false;
+    bool    return_to_skif      = false;
   } system;
 
   struct priority_scheduling_s {

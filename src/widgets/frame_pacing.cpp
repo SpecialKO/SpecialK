@@ -410,6 +410,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImGui::TextUnformatted (
       SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)]
     );
+
+    ImGui::SameLine ();
   }
 
   if (SK_ImGui_DrawGamepadStatusBar () > 0)

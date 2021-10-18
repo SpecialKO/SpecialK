@@ -1617,7 +1617,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     crash_log->unlock ();
 
     // Shutdown the module gracefully
-    SK_SelfDestruct ();
+    SK_SelfDestruct     (   );
+    SK_TerminateProcess (0x3);
 
     return EXCEPTION_EXECUTE_HANDLER;
   }

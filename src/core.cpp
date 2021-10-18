@@ -2151,8 +2151,7 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_Win32_CleanupDummyWindow ();
 
   // No more exit rumble, please :)
-  SK_XInput_Enable         (FALSE);
-  SK_Steam_ForceInputAppId ((AppId_t)-1);
+  SK_XInput_Enable (FALSE);
 
   if (config.window.background_mute)
     SK_SetGameMute (false);
@@ -2181,6 +2180,22 @@ SK_ShutdownCore (const wchar_t* backend)
 
   extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
               SK_Inject_SetFocusWindow              (0);
+
+  if (config.system.return_to_skif)
+  {
+    HWND hWndExisting =
+      FindWindow (L"SK_Injection_Frontend", nullptr);
+
+    if (hWndExisting)
+    {
+#define WM_SKIF_REPOSITION WM_USER + 0x4096
+
+      SendMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
+      SetForegroundWindow      (hWndExisting);
+      SK_Inject_SetFocusWindow (hWndExisting);
+      ShowWindow               (hWndExisting, SW_NORMAL);
+    }
+  }
 
   SK::DXGI::ShutdownBudgetThread ();
 

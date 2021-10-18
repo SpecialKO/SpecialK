@@ -983,25 +983,6 @@ SetThreadAffinityMask_Detour (
 
 BOOL
 __stdcall
-SK_TerminateParentProcess (UINT uExitCode)
-{
-  if (TerminateProcess_Original != nullptr)
-  {
-    return
-      TerminateProcess_Original ( GetCurrentProcess (),
-                                    uExitCode );
-  }
-
-  else
-  {
-    return
-      TerminateProcess ( GetCurrentProcess (),
-                           uExitCode );
-  }
-}
-
-BOOL
-__stdcall
 SK_TerminateProcess (UINT uExitCode)
 {
   const bool abnormal_dll_state =
@@ -1028,10 +1009,9 @@ SK_TerminateProcess (UINT uExitCode)
     TerminateProcess (GetCurrentProcess (), uExitCode);
 }
 
-using ResetEvent_pfn = BOOL (WINAPI *)(
-  _In_ HANDLE hEvent
-  );
-ResetEvent_pfn ResetEvent_Original = nullptr;
+using ResetEvent_pfn = BOOL (WINAPI *)(_In_ HANDLE hEvent);
+      ResetEvent_pfn
+      ResetEvent_Original = nullptr;
 
 BOOL
 WINAPI
@@ -1087,71 +1067,26 @@ WINAPI
 TerminateProcess_Detour ( HANDLE hProcess,
                           UINT   uExitCode )
 {
-  //bool passthrough = false;
-
-  //// Stupid workaround for Denuvo
-  //auto orig_se =
-  //SK_SEH_ApplyTranslator (
-  //  SK_FilteringStructuredExceptionTranslator (
-  //    EXCEPTION_ACCESS_VIOLATION
-  //  )
-  //);
-  //try {
-  //  passthrough = (SK_GetCallingDLL () == SK_GetDLL ());
-  //}
-  //catch (const SK_SEH_IgnoredException&) { };
-  //SK_SEH_RemoveTranslator (orig_se);
-  //
-  //if (passthrough)
-  //{
-  //  return
-  //    TerminateProcess_Original ( hProcess,
-  //                                  uExitCode );
-  //}
-
-  const bool abnormal_dll_state =
-    ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
-      ReadAcquire (&__SK_DLL_Ending)   != 0  );
-
-  if (! abnormal_dll_state)
+  // A game may Terminate its own process, we want to cleanup SK's DLL
+  if ( GetProcessId (      hProcess      ) ==
+       GetProcessId (GetCurrentProcess ()) )
   {
-    //UNREFERENCED_PARAMETER (uExitCode);
+    const bool abnormal_dll_state =
+      ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
+        ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
-    HANDLE hTarget;
-    DuplicateHandle ( GetCurrentProcess (), GetCurrentProcess (),
-                      GetCurrentProcess (), &hTarget,
-                      PROCESS_ALL_ACCESS, FALSE, 0x0 );
-
-    HANDLE hSelf = hTarget;
-
-    if (GetProcessId (hProcess) == GetProcessId (hSelf))
+    // Ubisoft Anti-Tamper Sillyness, just ignore it.
+    if (uExitCode == 0xdeadc0de)
     {
-      if (uExitCode == 0xdeadc0de)
-      {
-        //SK_Thread_Create ([](LPVOID)->DWORD {
-        //  auto orig_se_thread =
-        //  SK_SEH_ApplyTranslator (SK_BasicStructuredExceptionTranslator);
-        //  try {
-        //    SK_LOG0 ( ( L" !!! Denuvo Catastrophe Avoided !!!" ),
-        //                L"AntiTamper" );
-        //  }
-        //  catch (const SK_SEH_IgnoredException&) { };
-        //  SK_SEH_RemoveTranslator (orig_se_thread);
-        //
-        //  SK_Thread_CloseSelf ();
-        //
-        //  return 0;
-        //});
-
-        SK_ImGui_Warning ( L"Denuvo just tried to terminate the game! "
-                           L"Bad Denuvo, bad!" );
-
-        CloseHandle (hSelf);
-
-        return TRUE;
-      }
-
       return FALSE;
+    }
+
+    if (! abnormal_dll_state)
+    {
+      SK_LOG0 ( ( L"Software Is Terminating Itself With Exit Code (%x)",
+                    uExitCode ), __SK_SUBSYSTEM__ );
+
+      SK_SelfDestruct ();
     }
   }
 
@@ -1269,7 +1204,6 @@ void
 WINAPI
 SK_ExitProcess (UINT uExitCode) noexcept
 {
-  // Dear compiler, leave this function alone!
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
 
@@ -1285,7 +1219,6 @@ void
 WINAPI
 SK_ExitThread (DWORD dwExitCode) noexcept
 {
-  // Dear compiler, leave this function alone!
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
 
@@ -1301,7 +1234,6 @@ WINAPI
 SK_TerminateThread ( HANDLE    hThread,
                      DWORD     dwExitCode ) noexcept
 {
-  // Dear compiler, leave this function alone!
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
 
@@ -1322,7 +1254,6 @@ WINAPI
 SK_TerminateProcess ( HANDLE    hProcess,
                       UINT      uExitCode ) noexcept
 {
-  // Dear compiler, leave this function alone!
   volatile int            dummy = { };
   UNREFERENCED_PARAMETER (dummy);
 
@@ -1445,7 +1376,7 @@ WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
   // Since many, many games don't shutdown cleanly, let's unload ourself.
-  SK_SelfDestruct      ();
+  SK_SelfDestruct ();
 
   if (ExitProcess_Original != nullptr)
   {
@@ -1921,9 +1852,6 @@ ZwSetInformationThread_Detour (
 
   if (ThreadHandle == 0)
   {
-    SK_LOG0 ( ( L"ZwSetInformationThread called with invalid handle, likely to try and crash the game. [ %lu, %lu, %lu, %lu ]",
-                ThreadHandle, ThreadInformationClass, ThreadInformation, ThreadInformationLength ),
-                L"FatalDebug" );
     return 0;
   }
 
@@ -3935,11 +3863,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       if (config.compatibility.rehook_loadlibrary)
       {
         SK_CreateDLLHook2 (      L"kernel32",
-                                  "TerminateProcess",
-                                   TerminateProcess_Detour,
-          static_cast_p2p <void> (&TerminateProcess_Original) );
-
-        SK_CreateDLLHook2 (      L"kernel32",
                                   "TerminateThread",
                                    TerminateThread_Detour,
           static_cast_p2p <void> (&TerminateThread_Original) );
@@ -3956,6 +3879,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       }
     }
 #endif
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "TerminateProcess",
+                               TerminateProcess_Detour,
+      static_cast_p2p <void> (&TerminateProcess_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "OutputDebugStringA",

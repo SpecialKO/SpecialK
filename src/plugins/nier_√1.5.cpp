@@ -29,7 +29,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.9.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -646,27 +646,6 @@ SK_NIER_RAD_FramerateCpl (void)
     }
   }
 
-#ifdef _RR_HDF_EX
-  if (bHighDynamicFramerate)
-  {
-    ImGui::SameLine ();
-
-    if ( ImGui::Button (clockOverride.npc.paused ? ICON_FA_PLAY " NPCs" :
-                                                   ICON_FA_PAUSE " NPCs") )
-    {
-      clockOverride.npc.toggle_pause ();
-    }
-
-    ImGui::SameLine ();
-
-    if ( ImGui::Button (clockOverride.player.paused ? ICON_FA_PLAY  " Player" :
-                                                      ICON_FA_PAUSE " Player") )
-    {
-      clockOverride.player.toggle_pause ();
-    }
-  }
-#endif
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -849,7 +828,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
                                       &seconds, 0.0f, 10.0f ) )
           {
             config.input.cursor.timeout =
-              static_cast <LONG> (( seconds * 1000.0f ));
+              static_cast <LONG> ( seconds * 1000.0f );
           }
         }
       }
@@ -934,13 +913,14 @@ __stdcall
 SK_NIER_RAD_BeginFrame (void)
 {
   // Enable cursor management for gamepad users
-  if ( SK_XInput_Backend->getInputAge (sk_input_dev_type::Gamepad) < 1.0f ||
+  if ( SK_XInput_Backend->getInputAge (4UL) < 1.0f || // 4 == Any XInput Slot
           SK_DI8_Backend->getInputAge (sk_input_dev_type::Gamepad) < 1.0f )
   {
     extern XINPUT_STATE di8_to_xi;
 
-    if ( SK_XInput_Backend->viewed.gamepad <  2 &&
-                  di8_to_xi.dwPacketNumber != 0 )
+    if ( SK_XInput_Backend->viewed.gamepad  < 2 && SK_XInput_Backend->viewed.mouse < 2 &&
+         SK_XInput_Backend->viewed.keyboard < 2 && SK_XInput_Backend->viewed.other < 2 &&
+             di8_to_xi.dwPacketNumber != 0 )
     {
       config.input.gamepad.native_ps4 = true;
     }
@@ -953,7 +933,7 @@ SK_NIER_RAD_BeginFrame (void)
     // Enable this for XInput users only
     if (_SK_NIER_RAD_FixDInput8EnumDevices)
     {
-      if (SK_XInput_Backend->getInputAge (sk_input_dev_type::Gamepad) < 1.0f)
+      if (SK_XInput_Backend->getInputAge (4UL) < 1.0f)
         config.input.gamepad.disable_ps4_hid = true;
     }
   }
@@ -977,63 +957,6 @@ SK_NIER_RAD_BeginFrame (void)
     if (std::exchange (wasInLoadScreen, false))
       __target_fps = origFpsLimit;
   }
-
-
-#ifdef __RR_HDF_EX
-  if (clockOverride.npc.dt != nullptr)
-  {
-    DWORD dwOrig = 0x0;
-
-    SK_RunOnce (
-      VirtualProtect (
-        clockOverride.npc.dt, sizeof (float),
-           PAGE_EXECUTE_READWRITE, &dwOrig )
-    );
-
-    static
-      LARGE_INTEGER
-        liLastFrame = SK_QueryPerf   (),
-        liPerfFreq  = SK_GetPerfFreq ();
-      LARGE_INTEGER
-        liThisFrame = SK_QueryPerf   ();
-
-    static float fOrigTimestep =
-      *clockOverride.npc.dt;
-
-    if (! clockOverride.enabled)
-      fOrigTimestep = *clockOverride.npc.dt;
-
-    if (ReadUCharAcquire (&_SK_NIER_RAD_HighDynamicFramerate) != 0)
-    {
-      clockOverride.enable ();
-
-      double dt =
-        static_cast <double> ( liThisFrame.QuadPart -
-                               liLastFrame.QuadPart ) /
-        static_cast <double> (  liPerfFreq.QuadPart );
-
-      clockOverride.step (static_cast <float> (dt));
-    }
-
-    else
-    {
-      if (clockOverride.enabled)
-      {
-        clockOverride.disable ();
-
-        static constexpr float
-          fStandardDynamicTimestep =
-                       1000.0f / 60.0f / 1000.0f;
-
-        *clockOverride.npc.dt =
-          fOrigTimestep;
-      }
-    }
-
-    liLastFrame =
-      liThisFrame;
-  }
-#endif
 }
 
 #include <minwindef.h>

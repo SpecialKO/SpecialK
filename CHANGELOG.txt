@@ -1,4 +1,31 @@
-﻿21.10.13
+﻿21.10.18
+========
+ + Added feature to turn XInput controllers off by clicking their battery icon
+ + Fixed null termination issues in paths combined with leading slashes
+
+21.10.16
+========
+ + Added button to Display menu to make the active monitor the primary monitor
+ + Fixed keybind for moving game windows to the primary monitor
+
+ + Fixed a few performance issues in Steam Input; you are still recommended to
+     always disable it per-game in Steam games
+ + XInput Placeholders will work when Steam Input is trying to break things if
+     "Rehook XInput" is enabled
+
+21.10.15
+========
+ + Added DLL cleanup for software that invokes TerminateProcess (...) on itself
+ + Added option to bring SKIF to the foreground when a game exits
+
+    >> Enable this per-game by setting :
+
+         [SpecialK.System]
+         ReturnToSKIF=true
+
+       -->  To apply this for all games, add it to Global\master_SpecialK.ini
+
+21.10.13
 ========
  + Optimized wireless gamepad connect / disconnect
  + Re-enabled XInput placeholders for hot-swapping

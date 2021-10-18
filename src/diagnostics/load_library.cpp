@@ -58,10 +58,6 @@ BOOL    (__stdcall *)( DWORD    dwFlags,
                        HMODULE *phModule     );
 
 
-BOOL __stdcall
-SK_TerminateParentProcess (UINT uExitCode);
-
-
 bool SK_LoadLibrary_SILENCE = false;
 
 

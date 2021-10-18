@@ -1464,7 +1464,7 @@ SK_D3D_UnpackShaderCompiler (void)
   if (res)
   {
     SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have "
-                L"June 2010 DirectX Redistributables `ed." ),
+                L"June 2010 DirectX Redistributables installed." ),
                 L"D3DCompile" );
 
     DWORD   res_size     =
@@ -3520,13 +3520,20 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             StrCpyA (display.signal.type, "UNKNOWN");               break;
         };
 
-        display.signal.timing.pixel_clock =
-
         display.signal.connector_idx =
           getTargetName.connectorInstance;
 
         wcsncpy_s ( display.name,                                   64,
                     getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
+
+        MONITORINFO
+          minfo        = {                  };
+          minfo.cbSize = sizeof (MONITORINFO);
+
+        GetMonitorInfoA (display.monitor, &minfo);
+
+        display.primary =
+          ( minfo.dwFlags & MONITORINFOF_PRIMARY );
 
         // Didn't get a name using the Windows APIs, let's fallback to EDID
         if (*display.name == L'\0')

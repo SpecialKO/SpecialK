@@ -507,6 +507,7 @@ sk::ParameterBool*        trace_libraries;
 sk::ParameterBool*        strict_compliance;
 sk::ParameterBool*        silent;
 sk::ParameterFloat*       init_delay;
+sk::ParameterBool*        return_to_skif;
 sk::ParameterStringW*     version; // Version at last boot
 
 struct {
@@ -1164,6 +1165,7 @@ auto DeclKeybind =
     ConfigEntry (enable_cegui,                           L"Enable CEGUI (lazy loading)",                               dll_ini,         L"SpecialK.System",       L"EnableCEGUI"),
     ConfigEntry (safe_cegui,                             L"Safely Initialize CEGUI",                                   dll_ini,         L"SpecialK.System",       L"SafeInitCEGUI"),
     ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
+    ConfigEntry (return_to_skif,                         L"At Application Exit, make SKIF the new Foreground Window",  dll_ini,         L"SpecialK.System",       L"ReturnToSKIF"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
@@ -3489,6 +3491,7 @@ auto DeclKeybind =
   enable_cegui->load      (config.cegui.enable);
   safe_cegui->load        (config.cegui.safe_init);
   init_delay->load        (config.system.global_inject_delay);
+  return_to_skif->load    (config.system.return_to_skif);
   version->load           (config.system.version);
 
   SK_RunOnce (config.cegui.orig_enable = config.cegui.enable);
@@ -4378,6 +4381,7 @@ SK_SaveConfig ( std::wstring name,
   trace_libraries->store                       (config.system.trace_load_library);
   strict_compliance->store                     (config.system.strict_compliance);
   init_delay->store                            (config.system.global_inject_delay);
+  return_to_skif->store                        (config.system.return_to_skif);
   version->store                               (SK_GetVersionStrW ());
 
   if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))

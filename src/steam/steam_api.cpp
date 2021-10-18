@@ -3949,6 +3949,8 @@ SteamAPI_PumpThread (LPVOID user)
 void
 SK_Steam_StartPump (bool force)
 {
+  SK_Steam_ForceInputAppId (0);
+
   if (            ReadAcquire        (&__SK_DLL_Ending)  ||
        nullptr != ReadPointerAcquire ((void **)&hSteamPump) )
   {
@@ -5972,33 +5974,71 @@ SK_Steam_ForceInputAppId (AppId_t appid)
 {
   if (config.steam.appid != 0)
   {
-    SHELLEXECUTEINFOW
-      sexi              = { };
-      sexi.cbSize       = sizeof (SHELLEXECUTEINFOW);
-      sexi.lpVerb       = L"OPEN";
-      sexi.lpFile       = LR"(steam://forceinputappid/0)";
-      sexi.lpParameters = nullptr;
-      sexi.lpDirectory  = nullptr;
-      sexi.nShow        = SW_HIDE;
-      sexi.fMask        = SEE_MASK_FLAG_NO_UI |
-                          SEE_MASK_NOASYNC    |
-                          SEE_MASK_NOZONECHECKS;
+    struct {
+      concurrency::concurrent_queue <AppId_t> app_ids;
+      SK_AutoHandle                           signal =
+        SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
 
-    if ((int)appid != -1)
-    {
-      wchar_t    wszSteamCommand [32] = { };
-      swprintf ( wszSteamCommand,
-                   LR"(steam://forceinputappid/%d)",
-                                        (appid != 0) ?
-                                         appid       :
-                            config.steam.appid ); // Restore game AppId
+      void push (AppId_t appid)
+      {
+        app_ids.push ( appid == 0 ? config.steam.appid
+                                  :              appid );
+        SetEvent (signal.m_h);
+      }
+    } static override_ctx;
 
-      sexi.fMask &= ~SEE_MASK_NOASYNC;
-      sexi.fMask +=  SEE_MASK_ASYNCOK;
-      sexi.lpFile = wszSteamCommand;
-    }
+    SK_RunOnce (
+      SK_Thread_CreateEx ([](LPVOID) -> DWORD
+      {
+        auto hModules = {
+          SK_LoadLibraryW (L"ieframe.dll"),
+          SK_LoadLibraryW (L"WINHTTP.dll")
+        };
 
-    ShellExecuteExW (&sexi);
+        HANDLE hWaitObjects [] = {
+          __SK_DLL_TeardownEvent,
+          override_ctx.signal.m_h
+        };
+
+        DWORD dwWaitState = WAIT_OBJECT_0;
+
+        do
+        {
+          dwWaitState =
+            WaitForMultipleObjects (2, hWaitObjects, FALSE, INFINITE);
+
+          if (dwWaitState == WAIT_OBJECT_0 + 1)
+          {
+            AppId_t                              appid;
+            while (override_ctx.app_ids.try_pop (appid))
+            {
+              ShellExecuteW ( 0, L"OPEN",
+                  SK_FormatStringW ( LR"(steam://forceinputappid/%d)",
+                                                           appid ).c_str (),
+                    nullptr, nullptr, SW_HIDE );
+            }
+          }
+        } while (dwWaitState != WAIT_OBJECT_0);
+
+        // Cleanup on unexpected application termination
+        //
+        ShellExecuteW ( 0, L"OPEN",
+                  LR"(steam://forceinputappid/0)", nullptr, nullptr,
+                    SW_HIDE );
+
+        for (auto module : hModules)
+        {
+          if (              module != 0)
+            SK_FreeLibrary (module);
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] SteamInput Suppressor")
+    );
+
+    override_ctx.push (appid);
   }
 }
 
