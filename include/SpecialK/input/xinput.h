@@ -204,5 +204,8 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
  const char*
  SK_XInput_GetPrimaryHookName (void);
 
+ void
+ SK_XInput_DeferredStatusChecks (void);
+
 
 #endif /* __SK__XINPUT_H__ */

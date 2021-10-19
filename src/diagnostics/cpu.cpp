@@ -282,9 +282,9 @@ GetSystemInfo_Detour (
 
   lpSystemInfo->dwActiveProcessorMask = 0x0;
 
-  for ( int i = 0 ; i < config.render.framerate.override_num_cpus; ++i )
+  for ( uintptr_t i = 0 ; i < (uintptr_t)config.render.framerate.override_num_cpus; ++i )
   {
-    lpSystemInfo->dwActiveProcessorMask |= (1UL << i);
+    lpSystemInfo->dwActiveProcessorMask |= (((uintptr_t)1) << i);
   }
 
   lpSystemInfo->dwNumberOfProcessors = config.render.framerate.override_num_cpus;

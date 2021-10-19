@@ -1,6 +1,8 @@
 ﻿21.10.18
 ========
- + Added feature to turn XInput controllers off by clicking their battery icon
+ + Improved signal timing debug accuracy in framerate limiter
+ + Correctly re-position secondary monitors when changing primary
+ + Added feature to turn X360 controllers off by clicking their battery icon
  + Fixed null termination issues in paths combined with leading slashes
 
 21.10.16

@@ -173,7 +173,6 @@
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
@@ -202,7 +201,6 @@
       <MapExports>true</MapExports>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <ShowProgress>LinkVerbose</ShowProgress>
-      <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <Profile>true</Profile>
       <SetChecksum>true</SetChecksum>
     </Link>
@@ -272,7 +270,6 @@
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <OmitFramePointers>false</OmitFramePointers>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -299,7 +296,6 @@
       <MapExports>true</MapExports>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
       <ShowProgress>LinkVerbose</ShowProgress>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <Profile>true</Profile>
       <SetChecksum>true</SetChecksum>
     </Link>
@@ -368,8 +364,6 @@
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <OmitFramePointers />
       <UseUnicodeForAssemblerListing>false</UseUnicodeForAssemblerListing>
       <SupportJustMyCode>false</SupportJustMyCode>
     </ClCompile>
@@ -396,7 +390,6 @@
       <Profile>true</Profile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
-      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO %(AdditionalOptions)</AdditionalOptions>
@@ -472,11 +465,8 @@
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ConformanceMode>false</ConformanceMode>
       <SupportJustMyCode>false</SupportJustMyCode>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <GuardEHContMetadata>false</GuardEHContMetadata>
-      <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -503,7 +493,6 @@
       <Profile>true</Profile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO %(AdditionalOptions)</AdditionalOptions>

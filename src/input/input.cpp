@@ -3185,9 +3185,9 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
   struct gamepad_cache_s
   {
-    DWORD slot;
-    BOOL  attached      = FALSE;
-    DWORD checked_frame = INFINITE;
+    DWORD   slot;
+    BOOL    attached      = FALSE;
+    ULONG64 checked_frame = INFINITE;
 
     struct battery_s
     {
@@ -3293,8 +3293,10 @@ SK_ImGui_DrawGamepadStatusBar (void)
         if (batteryLevel <= 1)
         {
           batteryColor.Value.w =
-            0.5 + 0.4 * std::cos (3.14159265359 *
-              ((double)(SK::ControlPanel::current_time % 2250) / 1125.0));
+            static_cast <float> (
+              0.5 + 0.4 * std::cos (3.14159265359 *
+                (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
+            );
         }
 
         ImGui::TextColored ( batteryColor, "%hs",
@@ -3313,7 +3315,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
       ImGui::EndGroup ();
 
       if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Click to turn off");
+          ImGui::SetTooltip ("Click to turn off (if supported)");
 
       if (ImGui::IsItemClicked ())
       {

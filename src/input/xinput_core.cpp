@@ -42,6 +42,44 @@
 #define XUSER_MAX_INDEX (DWORD)XUSER_MAX_COUNT-1
 
 
+using SetupDiGetClassDevsW_pfn = HDEVINFO (WINAPI *)(
+  /*[in, optional]*/ const GUID *ClassGuid,
+  /*[in, optional]*/ PCWSTR     Enumerator,
+  /*[in, optional]*/ HWND       hwndParent,
+  /*[in]*/           DWORD      Flags
+);
+
+static SetupDiGetClassDevsW_pfn
+       SetupDiGetClassDevsW_Original = nullptr;
+
+HDEVINFO
+SetupDiGetClassDevsW_Detour (
+  /*[in, optional]*/ const GUID* ClassGuid,
+  /*[in, optional]*/ PCWSTR     Enumerator,
+  /*[in, optional]*/ HWND       hwndParent,
+  /*[in]*/           DWORD      Flags )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+
+    static DWORD
+        dwLastCall = SK_timeGetTime ();
+    if (dwLastCall > SK_timeGetTime () - 500UL)
+    {
+      SetLastError (ERROR_NOT_FOUND);
+
+      return INVALID_HANDLE_VALUE;
+    }
+
+    dwLastCall = SK_timeGetTime ();
+  }
+
+  return
+    SetupDiGetClassDevsW_Original (ClassGuid, Enumerator, hwndParent, Flags);
+}
+
+
 struct SK_XInputContext
 {
   enum
@@ -101,7 +139,8 @@ struct SK_XInputContext
     LPVOID                          XInputPowerOff_Target                = nullptr;
 
     uint8_t                         orig_inst_poweroff [7]               =   {   };
-  } XInput1_3   { },
+  } XInput1_2   { },
+    XInput1_3   { },
     XInput1_4   { },
     XInput9_1_0 { };
 
@@ -205,6 +244,14 @@ SK_XInput_GetPrimaryHookName (void)
     return                 "XInput 1.3";
 #endif
 
+  if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_2)
+#ifdef XINPUT_UPGRADE
+    return (const char *)u8"XInput 1.2→1.4";
+#else
+    return                 "XInput 1.2";
+#endif
+
+
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
 #ifdef XINPUT_UPGRADE
     return (const char *)u8"XInput 9.1.0→1.4";
@@ -226,7 +273,8 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                                  SK_XInputContext::instance_s* pCtx )
 {
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == SK_Modules->HostApp ())
+  if (hModCaller == SK_Modules->HostApp () ||
+   ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
     InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
 
   // Third-party software polled the controller, it better be using the same
@@ -387,9 +435,9 @@ XInputGetStateEx1_4_Detour (
 
     struct call_result_s
     {
-      DWORD           ThreadId =             0;
-      DWORD           Status   = OLE_E_NOCACHE;
-      XINPUT_STATE_EX Sample   = {           };
+      DWORD           ThreadId =                  0UL;
+      DWORD           Status   = (DWORD)OLE_E_NOCACHE;
+      XINPUT_STATE_EX Sample   = {                  };
     } _last_result;
 
     struct timing_s
@@ -713,6 +761,11 @@ XInputEnable1_3_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
+
   return XInputEnable1_4_Detour (enable);
 }
 
@@ -725,6 +778,11 @@ XInputGetState1_3_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
+
   return XInputGetState1_4_Detour (dwUserIndex, pState);
 }
 
@@ -735,6 +793,11 @@ XInputGetStateEx1_3_Detour (
   _Out_ XINPUT_STATE_EX *pState )
 {
   SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
 
   return XInputGetStateEx1_4_Detour (dwUserIndex, pState);
 }
@@ -748,6 +811,11 @@ XInputGetCapabilities1_3_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
+
   return XInputGetCapabilities1_4_Detour (dwUserIndex, dwFlags, pCapabilities);
 }
 
@@ -760,6 +828,11 @@ XInputGetBatteryInformation1_3_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
+
   return XInputGetBatteryInformation1_4_Detour (dwUserIndex, devType, pBatteryInformation);
 }
 
@@ -770,6 +843,77 @@ XInputSetState1_3_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
+
+  return XInputSetState1_4_Detour (dwUserIndex, pVibration);
+}
+
+DWORD
+WINAPI
+XInputGetState1_2_Detour (
+  _In_  DWORD         dwUserIndex,
+  _Out_ XINPUT_STATE *pState )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_2
+  );
+
+  return XInputGetState1_4_Detour (dwUserIndex, pState);
+}
+
+DWORD
+WINAPI
+XInputGetCapabilities1_2_Detour (
+  _In_  DWORD                dwUserIndex,
+  _In_  DWORD                dwFlags,
+  _Out_ XINPUT_CAPABILITIES *pCapabilities )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_2
+  );
+
+  return XInputGetCapabilities1_4_Detour (dwUserIndex, dwFlags, pCapabilities);
+}
+
+DWORD
+WINAPI
+XInputGetBatteryInformation1_2_Detour (
+  _In_  DWORD                       dwUserIndex,
+  _In_  BYTE                        devType,
+  _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_2
+  );
+
+  return XInputGetBatteryInformation1_4_Detour (dwUserIndex, devType, pBatteryInformation);
+}
+
+DWORD
+WINAPI
+XInputSetState1_2_Detour (
+  _In_    DWORD             dwUserIndex,
+  _Inout_ XINPUT_VIBRATION *pVibration )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_2
+  );
 
   return XInputSetState1_4_Detour (dwUserIndex, pVibration);
 }
@@ -819,6 +963,11 @@ XInputPowerOff1_3_Detour (
   _In_ DWORD dwUserIndex)
 {
   SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput1_3
+  );
 
   return
     XInputPowerOff1_4_Detour (dwUserIndex);
@@ -903,6 +1052,11 @@ XInputGetState9_1_0_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput9_1_0
+  );
+
   return XInputGetState1_4_Detour (dwUserIndex, pState);
 }
 
@@ -915,6 +1069,11 @@ XInputGetCapabilities9_1_0_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput9_1_0
+  );
+
   return XInputGetCapabilities1_4_Detour (dwUserIndex, dwFlags, pCapabilities);
 }
 
@@ -926,6 +1085,11 @@ XInputSetState9_1_0_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInput9_1_0
+  );
+
   return XInputSetState1_4_Detour (dwUserIndex, pVibration);
 }
 
@@ -933,6 +1097,13 @@ XInputSetState9_1_0_Detour (
 void
 SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
+  // This causes periodic hitches, so hook and disable it.
+//SK_RunOnce (
+//  SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsW",
+//                                       SetupDiGetClassDevsW_Detour,
+//              static_cast_p2p <void> (&SetupDiGetClassDevsW_Original))
+//);
+
   pCtx->XInputGetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
                                    "XInputGetState" );
@@ -1005,13 +1176,18 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
        static_cast_p2p <void> (&pCtx->XInputEnable_Original) );
   }
 
+  pCtx->XInputPowerOff_Target =
+      SK_GetProcAddress ( pCtx->wszModuleName,
+                                XINPUT_POWEROFF_ORDINAL );
+
   // Down-level (XInput 9_1_0) does not have XInputPowerOff (103)
   //
   if (pCtx->XInputPowerOff_Target != nullptr)
   {
-    pCtx->XInputPowerOff_Target =
-      SK_GetProcAddress ( pCtx->wszModuleName,
-                                XINPUT_POWEROFF_ORDINAL );
+    SK_CreateDLLHook2 (         pCtx->wszModuleName,
+                                     XINPUT_POWEROFF_ORDINAL,
+                                pCtx->XInputPowerOff_Detour,
+       static_cast_p2p <void> (&pCtx->XInputPowerOff_Original) );
   }
 
   SK_ApplyQueuedHooksIfInit ();
@@ -1040,6 +1216,7 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
 static volatile LONG __hooked_xi_1_4   = FALSE;
 static volatile LONG __hooked_xi_1_3   = FALSE;
+static volatile LONG __hooked_xi_1_2   = FALSE;
 static volatile LONG __hooked_xi_9_1_0 = FALSE;
 
 void
@@ -1089,8 +1266,8 @@ SK_Input_HookXInput1_4 (void)
         config.input.gamepad.xinput.hook_setstate ? xinput_ctx.XInput1_4.XInputSetState_Original :
                    (XInputSetState_pfn)SK_GetProcAddress (pCtx->hMod,   "XInputSetState");
 
-      if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
+    //if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+    //  InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_4);
     }
 
     InterlockedIncrementRelease (&__hooked_xi_1_4);
@@ -1151,8 +1328,8 @@ SK_Input_HookXInput1_3 (void)
         config.input.gamepad.xinput.hook_setstate ? xinput_ctx.XInput1_3.XInputSetState_Original :
                    (XInputSetState_pfn)SK_GetProcAddress (pCtx->hMod,   "XInputSetState");
 
-      if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
+    //if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+    //  InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_3);
     }
 
     InterlockedIncrementRelease (&__hooked_xi_1_3);
@@ -1160,6 +1337,67 @@ SK_Input_HookXInput1_3 (void)
 
   if (! pTLS->input_core->ctx_init_thread)
     SK_Thread_SpinUntilAtomicMin (&__hooked_xi_1_3, 2);
+}
+
+void
+SK_Input_HookXInput1_2 (void)
+{
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
+  if (ReadAcquire (&__hooked_xi_1_2) >= 2)
+    return;
+
+  // Upgrade
+  //   Passthrough to 1.4
+  SK_Input_HookXInput1_4 ();
+
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+    return;
+
+  if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_2, TRUE, FALSE))
+  {
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      pTLS->input_core->ctx_init_thread = TRUE;
+
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInput1_2;
+
+    SK_LOG0 ( ( L"  >> Hooking XInput 1.2" ),
+                L"  Input   " );
+
+    pCtx->wszModuleName                        = L"XInput1_2.dll";
+    pCtx->hMod                                 = SK_Modules->LoadLibrary (pCtx->wszModuleName);
+
+    if (SK_Modules->isValid (pCtx->hMod))
+    {
+      pCtx->XInputGetState_Detour              = XInputGetState1_2_Detour;
+      pCtx->XInputGetStateEx_Detour            = nullptr; // Not supported
+      pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_2_Detour;
+      pCtx->XInputGetBatteryInformation_Detour = nullptr; // Not supported
+      pCtx->XInputPowerOff_Detour              = nullptr; // Not supported
+
+      pCtx->XInputSetState_Detour              =
+        config.input.gamepad.xinput.hook_setstate ? XInputSetState1_2_Detour : nullptr;
+
+      SK_Input_HookXInputContext (pCtx);
+
+      pCtx->XInputSetState_Original =
+        config.input.gamepad.xinput.hook_setstate ? xinput_ctx.XInput1_2.XInputSetState_Original :
+                   (XInputSetState_pfn)SK_GetProcAddress (pCtx->hMod,   "XInputSetState");
+
+    //if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+    //  InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput1_2);
+    }
+
+    InterlockedIncrementRelease (&__hooked_xi_1_2);
+  }
+
+  if (! pTLS->input_core->ctx_init_thread)
+    SK_Thread_SpinUntilAtomicMin (&__hooked_xi_1_2, 2);
 }
 
 void
@@ -1212,8 +1450,8 @@ SK_Input_HookXInput9_1_0 (void)
         config.input.gamepad.xinput.hook_setstate ? xinput_ctx.XInput9_1_0.XInputSetState_Original :
                    (XInputSetState_pfn)SK_GetProcAddress (pCtx->hMod,     "XInputSetState");
 
-      if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-        InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
+    //if (ReadPointerAcquire       ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+    //  InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, &xinput_ctx.XInput9_1_0);
     }
 
     InterlockedIncrementRelease (&__hooked_xi_9_1_0);
@@ -1269,7 +1507,7 @@ SK_XInput_RehookIfNeeded (void)
          static_cast_p2p <void> (&pCtx->XInputGetState_Original) )
          )
       {
-        SK_LOG0 ( ( L" Re-hooked XInput using '%s'...",
+        SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"Get",
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
 
@@ -1277,13 +1515,15 @@ SK_XInput_RehookIfNeeded (void)
           xinput_ctx.XInput1_4 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInput1_2.hMod)
+          xinput_ctx.XInput1_2 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
           xinput_ctx.XInput9_1_0 = *pCtx;
       }
 
       else
       {
-        SK_LOG0 ( ( L" Failed to re-hook XInput using '%s'...",
+        SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"Get",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1291,7 +1531,7 @@ SK_XInput_RehookIfNeeded (void)
 
     else
     {
-      SK_LOG0 ( ( L" Failed to remove XInput hook from '%s'...",
+      SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"Get",
              pCtx->wszModuleName ),
           L"Input Mgr." );
     }
@@ -1320,21 +1560,23 @@ SK_XInput_RehookIfNeeded (void)
            static_cast_p2p <void> (&pCtx->XInputSetState_Original) )
            )
         {
-          SK_LOG0 ( ( L" Re-hooked XInput (Set) using '%s'...",
-                         pCtx->wszModuleName ),
-                      L"Input Mgr." );
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"Set",
+                                    pCtx->wszModuleName ),
+              L"Input Mgr." );
 
           if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
             xinput_ctx.XInput1_4 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInput1_2.hMod)
+            xinput_ctx.XInput1_2 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
             xinput_ctx.XInput9_1_0 = *pCtx;
         }
 
         else
         {
-          SK_LOG0 ( ( L" Failed to re-hook XInput (Set) using '%s'...",
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"Set",
                  pCtx->wszModuleName ),
               L"Input Mgr." );
         }
@@ -1342,7 +1584,7 @@ SK_XInput_RehookIfNeeded (void)
 
       else
       {
-        SK_LOG0 ( ( L" Failed to remove XInput (Set) hook from '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"Set",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1372,7 +1614,7 @@ SK_XInput_RehookIfNeeded (void)
         static_cast_p2p <void> (&pCtx->XInputGetCapabilities_Original) )
          )
       {
-        SK_LOG0 ( ( L" Re-hooked XInput (Caps) using '%s'...",
+        SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"Caps",
                        pCtx->wszModuleName ),
                     L"Input Mgr." );
 
@@ -1380,13 +1622,15 @@ SK_XInput_RehookIfNeeded (void)
           xinput_ctx.XInput1_4 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
           xinput_ctx.XInput1_3 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInput1_2.hMod)
+          xinput_ctx.XInput1_2 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
           xinput_ctx.XInput9_1_0 = *pCtx;
       }
 
       else
       {
-        SK_LOG0 ( ( L" Failed to re-hook XInput (Caps) using '%s'...",
+        SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"Caps",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1394,7 +1638,7 @@ SK_XInput_RehookIfNeeded (void)
 
     else
     {
-      SK_LOG0 ( ( L" Failed to remove XInput (Caps) hook from '%s'...",
+      SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"Caps",
              pCtx->wszModuleName ),
           L"Input Mgr." );
     }
@@ -1424,7 +1668,7 @@ SK_XInput_RehookIfNeeded (void)
           static_cast_p2p <void> (&pCtx->XInputGetBatteryInformation_Original) )
            )
         {
-          SK_LOG0 ( ( L" Re-hooked XInput (Battery) using '%s'...",
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"Battery",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
@@ -1436,7 +1680,7 @@ SK_XInput_RehookIfNeeded (void)
 
         else
         {
-          SK_LOG0 ( ( L" Failed to re-hook XInput (Battery) using '%s'...",
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"Battery",
                  pCtx->wszModuleName ),
               L"Input Mgr." );
         }
@@ -1444,7 +1688,7 @@ SK_XInput_RehookIfNeeded (void)
 
       else
       {
-        SK_LOG0 ( ( L" Failed to remove XInput (Battery) hook from '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"Battery",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1474,7 +1718,7 @@ SK_XInput_RehookIfNeeded (void)
            static_cast_p2p <void> (&pCtx->XInputGetStateEx_Original) )
            )
         {
-          SK_LOG0 ( ( L" Re-hooked XInput (Ex) using '%s'...",
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"GetEx",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
@@ -1486,7 +1730,7 @@ SK_XInput_RehookIfNeeded (void)
 
         else
         {
-          SK_LOG0 ( ( L" Failed to re-hook XInput (Ex) using '%s'...",
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"GetEx",
                  pCtx->wszModuleName ),
               L"Input Mgr." );
         }
@@ -1494,7 +1738,7 @@ SK_XInput_RehookIfNeeded (void)
 
       else
       {
-        SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"GetEx",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1517,12 +1761,12 @@ SK_XInput_RehookIfNeeded (void)
       {
         if ( MH_OK ==
                SK_CreateDLLHook2 (  pCtx->wszModuleName,
-                                    XINPUT_GETSTATEEX_ORDINAL,
+                                    XINPUT_POWEROFF_ORDINAL,
                                     pCtx->XInputPowerOff_Detour,
            static_cast_p2p <void> (&pCtx->XInputPowerOff_Original) )
            )
         {
-          SK_LOG0 ( ( L" Re-hooked XInput PowerOff using '%s'...",
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"PowerOff",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
@@ -1534,7 +1778,7 @@ SK_XInput_RehookIfNeeded (void)
 
         else
         {
-          SK_LOG0 ( ( L" Failed to re-hook XInput PowerOff using '%s'...",
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"PowerOff",
                  pCtx->wszModuleName ),
               L"Input Mgr." );
         }
@@ -1542,7 +1786,7 @@ SK_XInput_RehookIfNeeded (void)
 
       else
       {
-        SK_LOG0 ( ( L" Failed to remove XInput (Ex) hook from '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"PowerOff",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1572,7 +1816,7 @@ SK_XInput_RehookIfNeeded (void)
           static_cast_p2p <void> (&pCtx->XInputEnable_Original) )
            )
         {
-          SK_LOG0 ( ( L" Re-hooked XInput (Enable) using '%s'...",
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"Enable",
                          pCtx->wszModuleName ),
                       L"Input Mgr." );
 
@@ -1584,7 +1828,7 @@ SK_XInput_RehookIfNeeded (void)
 
         else
         {
-          SK_LOG0 ( ( L" Failed to re-hook XInput (Enable) using '%s'...",
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"Enable",
                  pCtx->wszModuleName ),
               L"Input Mgr." );
         }
@@ -1592,7 +1836,7 @@ SK_XInput_RehookIfNeeded (void)
 
       else
       {
-        SK_LOG0 ( ( L" Failed to remove XInput (Enable) hook from '%s'...",
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"Enable",
                pCtx->wszModuleName ),
             L"Input Mgr." );
       }
@@ -1723,11 +1967,8 @@ SK_XInput_PulseController ( INT   iJoyID,
 
 
 static volatile DWORD last_poll [XUSER_MAX_COUNT] = { 0, 0, 0, 0 };
-static volatile DWORD dwRet     [XUSER_MAX_COUNT] =
-  { ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
-    ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED };
 
-volatile ULONG SK_XInput_RefreshTime = 750UL;
+volatile ULONG SK_XInput_RefreshTime = 7500UL;
 
 void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS)
 {
@@ -1742,11 +1983,17 @@ void SK_XInput_Refresh (UINT iJoyID)
 static bool
 _ShouldRecheckStatus (INT iJoyID)
 {
-  DWORD dwTime =
-    SK_timeGetTime ();
+  auto idx =
+    std::clamp (iJoyID, 0, (INT)XUSER_MAX_INDEX);
 
-  bool bRecheck = ( ReadULongAcquire (&last_poll [iJoyID]   ) <
-    (      dwTime - ReadULongAcquire (&SK_XInput_RefreshTime) ) );
+  static const DWORD& dwTime =
+    SK::ControlPanel::current_time;
+
+  // Stagger rechecks (250 ms * ID) so they do not all happen in a single frame
+  const bool bRecheck = ReadULongAcquire (&last_poll [idx]   ) <
+      (DWORD)std::max (
+        0L, ( (INT)dwTime - (INT)ReadULongAcquire (&SK_XInput_RefreshTime) -
+                     250L * idx ) );
 
   return bRecheck;
 }
@@ -1805,6 +2052,9 @@ WINAPI
 SK_XInput_PollController ( INT           iJoyID,
                            XINPUT_STATE* pState )
 {
+  if (! config.input.gamepad.hook_xinput)
+    return false;
+
   bool queued_hooks = false;
 
   iJoyID =
@@ -1812,71 +2062,7 @@ SK_XInput_PollController ( INT           iJoyID,
       std::max (0, std::min (iJoyID, (INT)XUSER_MAX_INDEX))
     ];
 
-  if (! config.input.gamepad.hook_xinput)
-    return false;
 
-  auto* pCtx =
-    static_cast <SK_XInputContext::instance_s *>
-      (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
-
-  if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
-  {
-    if (InterlockedCompareExchange (&SK_XInput_TriedToHook, 1, 0))
-      return false;
-
-    // First try 1.4
-    /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput1_4"))*/ SK_Input_HookXInput1_4 ();
-    pCtx =
-      static_cast <SK_XInputContext::instance_s*>
-      (ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook));
-
-    // Then try 1.3, that's generally available.
-    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
-    {
-      /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput1_3"))*/ SK_Input_HookXInput1_3 ();
-      pCtx =
-        static_cast <SK_XInputContext::instance_s*>
-        (ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook));
-    }
-
-    // Down-level 9_1_0 if all else fails (does not support XInputEx)
-    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
-    {
-      /*if (SK_XInput_LinkedVersion.empty () || StrStrIW (SK_XInput_LinkedVersion.c_str (), L"XInput9_1_0"))*/ SK_Input_HookXInput9_1_0 ();
-      pCtx =
-        static_cast <SK_XInputContext::instance_s*>
-        (ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook));
-    }
-
-
-    // No XInput?! User shouldn't be playing games :P
-    if (pCtx == nullptr || pCtx->XInputGetState_Original == nullptr)
-    {
-      SK_LOG0 ((L"Unable to hook XInput, attempting to enter limp-mode..."
-                L" input-related features may not work as intended."),
-               L"Input Mgr.");
-      InterlockedExchangePointer (
-        (LPVOID*)&xinput_ctx.primary_hook,
-        &xinput_ctx.XInput1_3);
-
-      pCtx =
-        static_cast <SK_XInputContext::instance_s*>
-        (ReadPointerAcquire ((volatile LPVOID*)&xinput_ctx.primary_hook));
-
-      HMODULE hModXInput1_3 =
-        SK_Modules->LoadLibrary (L"XInput1_3.dll");
-
-      if (SK_Modules->isValid (hModXInput1_3))
-      {
-        pCtx->XInputGetState_Original =
-          (XInputGetState_pfn)
-          SK_GetProcAddress (L"XInput1_3.dll",
-                             "XInputGetState");
-      }
-    }
-
-    queued_hooks = true;
-  }
 
   // Lazy-load DLLs if somehow a game uses an XInput DLL not listed
   //   in its import table and also not caught by our LoadLibrary hook
@@ -1893,12 +2079,24 @@ SK_XInput_PollController ( INT           iJoyID,
        ) SK_Input_HookXInput1_3 ();
 
     if ( SK_Modules->isValid    (
+         SK_GetModuleHandleW    (L"XInput1_2.dll")
+                                )
+       ) SK_Input_HookXInput1_2 ();
+
+    if ( SK_Modules->isValid    (
          SK_GetModuleHandleW    (L"XInput9_1_0.dll")
                                 )
        ) SK_Input_HookXInput9_1_0 ();
 
     queued_hooks = true;
   }
+
+  if (queued_hooks)
+    SK_ApplyQueuedHooksIfInit ();
+  else
+    SK_XInput_RehookIfNeeded ();
+
+
 
   if (iJoyID == -1)
     return true;
@@ -1908,67 +2106,43 @@ SK_XInput_PollController ( INT           iJoyID,
 
 
 
-  if (queued_hooks)
-    SK_ApplyQueuedHooksIfInit ();
-  else
-    SK_XInput_RehookIfNeeded ();
+  XINPUT_STATE_EX
+    xstate                 = { };
+    xstate.dwPacketNumber  =  1;
 
-
-
-
-  XINPUT_STATE_EX xstate = { };
-  xstate.dwPacketNumber  =  1;
+  DWORD dwRet = ERROR_DEVICE_NOT_CONNECTED;
 
   // This function is actually a performance hazzard when no controllers
   //   are plugged in, so ... throttle the sucker.
-  if (_ShouldRecheckStatus (iJoyID) && pCtx != nullptr)
+  if (_ShouldRecheckStatus (iJoyID))
   {
-    if (pCtx->XInputGetStateEx_Original != nullptr)
+    // Steam does not disable XInput 1.1, awesome!
+    static XInputGetState_pfn
+           XInputGetState_SteamBypass =
+          (XInputGetState_pfn)SK_GetProcAddress (SK_LoadLibraryW (L"XInput1_1.dll"),
+          "XInputGetState"                      );
+
+    XInputGetState_pfn XInputGetState =
+                       XInputGetState_SteamBypass;
+
+    if (XInputGetState != nullptr)
     {
-      static XInputGetStateEx_pfn
-             XInputGetStateEx_SteamBypass =
-            (XInputGetStateEx_pfn)SK_GetProcAddress (SK_LoadLibraryW (L"XInput1_1.dll"),
-            "XInputGetState"                        );
-
-      XInputGetStateEx_pfn XInputGetStateEx =
-                           XInputGetStateEx_SteamBypass;
-
-      WriteULongRelease ( &dwRet             [iJoyID],
+      dwRet =
         SK_XINPUT_CALL  ( xinput_ctx.cs_poll [iJoyID],
                                               iJoyID,
-                            XInputGetStateEx (iJoyID, &xstate) )
-      );
+                              XInputGetState (iJoyID, (XINPUT_STATE *)&xstate) );
+
+      // Error? Mmark the time we saw this error and we'll try again on another frame
+      if (dwRet == ERROR_DEVICE_NOT_CONNECTED)
+        WriteULongRelease (&last_poll [iJoyID], SK_timeGetTime ());
     }
-
-    // Down-level XInput
-    else
-    {
-      if (pCtx->XInputGetState_Original != nullptr)
-      {
-        static XInputGetState_pfn
-               XInputGetState_SteamBypass =
-              (XInputGetState_pfn)SK_GetProcAddress (SK_LoadLibraryW (L"XInput1_1.dll"),
-              "XInputGetState"                      );
-
-        XInputGetState_pfn XInputGetState =
-                           XInputGetState_SteamBypass;
-
-        WriteULongRelease ( &dwRet             [iJoyID],
-          SK_XINPUT_CALL  ( xinput_ctx.cs_poll [iJoyID],
-                                                iJoyID,
-                                XInputGetState (iJoyID, (XINPUT_STATE *)&xstate) )
-        );
-      }
-    }
-
-    if (ReadULongAcquire (&dwRet     [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
-       WriteULongRelease (&last_poll [iJoyID], SK_timeGetTime ());
   }
 
   InterlockedExchange ( &xinput_ctx.LastSlotState [iJoyID],
-                         ReadULongAcquire (&dwRet [iJoyID]) );
+                         dwRet );
 
-  if (ReadULongAcquire (&dwRet [iJoyID]) == ERROR_DEVICE_NOT_CONNECTED)
+  // Broken controllers should not be controlling UIs.
+  if (dwRet != ERROR_SUCCESS)
   {
     SK_XInput_UpdateSlotForUI (FALSE, iJoyID, 0);
 
@@ -1982,13 +2156,12 @@ SK_XInput_PollController ( INT           iJoyID,
   void SK_XInput_StopHolding (DWORD dwUserIndex);
        SK_XInput_StopHolding (iJoyID);
 
-  static DWORD dwLastPacketUI [4] = { 0, 0, 0, 0 };
-
+  static DWORD       dwLastPacketUI [4] = { 0, 0, 0, 0 };
   if (std::exchange (dwLastPacketUI [iJoyID], xstate.dwPacketNumber) != xstate.dwPacketNumber)
     SK_XInput_UpdateSlotForUI (TRUE, iJoyID,  xstate.dwPacketNumber);
 
   if (pState != nullptr)
-    memcpy (pState, &xstate, sizeof XINPUT_STATE); //-V512
+    memcpy (pState, &xstate, sizeof (XINPUT_STATE));
 
   return true;
 }
@@ -1998,6 +2171,7 @@ SK_XInput_PollController ( INT           iJoyID,
 static sk_import_test_s
   _XInput_ImportsToTry [] = { { "XInput1_4.dll",   false },
                               { "XInput1_3.dll",   false },
+                              { "XInput1_2.dll",   false },
                               { "XInput9_1_0.dll", false } };
 
 void
@@ -2020,22 +2194,24 @@ SK_Input_PreHookXInput (void)
     auto& tests =
       _XInput_ImportsToTry;
 
-    SK_TestImports (SK_Modules->HostApp (), tests, 3);
+    SK_TestImports (SK_Modules->HostApp (), tests, 4);
 
-    if (tests [0].used || tests [1].used || tests [2].used)
+    if (tests [0].used || tests [1].used || tests [2].used || tests [3].used)
     {
 #if 0
       SK_LOG0 ( ( L"Game uses XInput, deferring input hooks..." ),
                   L"  Input   " );
       if (tests [0].used) { /*SK_Input_HookXInput1_4   ();*/ SK_XInput_LinkedVersion = L"XInput1_4.dll";   }
       if (tests [1].used) { /*SK_Input_HookXInput1_3   ();*/ SK_XInput_LinkedVersion = L"XInput1_3.dll";   }
-      if (tests [2].used) { /*SK_Input_HookXInput9_1_0 ();*/ SK_XInput_LinkedVersion = L"XInput9_1_0.dll"; }
+      if (tests [2].used) { /*SK_Input_HookXInput1_2   ();*/ SK_XInput_LinkedVersion = L"XInput1_2.dll";   }
+      if (tests [3].used) { /*SK_Input_HookXInput9_1_0 ();*/ SK_XInput_LinkedVersion = L"XInput9_1_0.dll"; }
 #else
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
                   L"  Input   " );
       if (tests [0].used) { SK_Input_HookXInput1_4   (); }
       if (tests [1].used) { SK_Input_HookXInput1_3   (); }
-      if (tests [2].used) { SK_Input_HookXInput9_1_0 (); }
+      if (tests [2].used) { SK_Input_HookXInput1_2   (); }
+      if (tests [3].used) { SK_Input_HookXInput9_1_0 (); }
 
 #endif
     }
@@ -2045,6 +2221,9 @@ SK_Input_PreHookXInput (void)
 
     if (SK_GetModuleHandleW (L"XInput1_3.dll"))
       SK_Input_HookXInput1_3 ();
+
+    if (SK_GetModuleHandleW (L"XInput1_2.dll"))
+      SK_Input_HookXInput1_2 ();
 
     if (SK_GetModuleHandleW (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();

@@ -112,11 +112,15 @@ void SK_HID_AddDeviceRemovalEvent (HANDLE hEvent)
   SK_HID_DeviceRemovalEvents.emplace (hEvent);
 }
 
-static HANDLE SK_XInputHot_NotifyEvent     = 0;
-static HANDLE SK_XInputHot_ReconnectThread = 0;
+static HANDLE SK_XInputHot_NotifyEvent       = 0;
+static HANDLE SK_XInputHot_ReconnectThread   = 0;
 
-extern void SK_XInput_SetRefreshInterval (ULONG ulIntervalMS);
-extern void SK_XInput_Refresh            (UINT iJoyID);
+// Wakes the dumb polling thread when its job is done
+static HANDLE SK_XInputCold_DecommisionEvent = 0;
+
+extern void SK_XInput_SetRefreshInterval   (ULONG ulIntervalMS);
+extern void SK_XInput_Refresh              (UINT iJoyID);
+       void SK_XInput_DeferredStatusChecks (void);
 
 void
 SK_XInput_RefreshControllers (void)
@@ -137,12 +141,13 @@ SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
-  if (SK_XInputHot_NotifyEvent == 0)
-      SK_XInputHot_NotifyEvent =
-                SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+  SK_RunOnce (
+    SK_XInputHot_NotifyEvent =
+              SK_CreateEvent (nullptr, TRUE, TRUE, nullptr)
+  );
 
-  if (SK_XInputHot_ReconnectThread == 0)
-      SK_XInputHot_ReconnectThread =
+  SK_RunOnce (
+    SK_XInputHot_ReconnectThread =
     SK_Thread_CreateEx ([](LPVOID user)->
       DWORD
       {
@@ -206,12 +211,18 @@ SK_XInput_NotifyDeviceArrival (void)
                         {
                           XINPUT_CAPABILITIES caps = { };
 
+                          // Determine all connected XInput controllers and only
+                          //   refresh those that need it...
                           for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
                           {
-                            if (ERROR_SUCCESS == SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps))
+                            if ( ERROR_SUCCESS ==
+                                   SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps) )
                             {
                               SK_XInput_Refresh        (i);
                               SK_XInput_PollController (i);
+
+                              if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                                  SetEvent (SK_XInputCold_DecommisionEvent);
                             }
                           }
                         }
@@ -226,11 +237,11 @@ SK_XInput_NotifyDeviceArrival (void)
                               wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
                               // Ignore XInputGetKeystroke
                         {
+                          // We really have no idea what controller this is, so refresh them all
                           SetEvent (SK_XInputHot_NotifyEvent);
 
-                          // One notification is enough to stop periodically testing
-                          //   slots and use event-based logic instead
-                          SK_XInput_SetRefreshInterval (SK_timeGetTime ());
+                          if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                              SetEvent (SK_XInputCold_DecommisionEvent);
                         }
                       }
                     }
@@ -288,7 +299,25 @@ SK_XInput_NotifyDeviceArrival (void)
             //   late inject
             if (dwWaitStatus == ArrivalEvent)
             {
-              SK_XInput_RefreshControllers ();
+              static ULONGLONG ullLastFrame = 0;
+
+              // Do at most once per-frame, then pick up residuals next frame
+              if ( std::exchange (ullLastFrame, SK_GetFramesDrawn ()) <
+                                                SK_GetFramesDrawn () )
+              {
+                SK_XInput_RefreshControllers (                        );
+                ResetEvent                   (SK_XInputHot_NotifyEvent);
+              }
+
+              else
+              {
+                dwWaitStatus =
+                  MsgWaitForMultipleObjects (0, nullptr, FALSE, 3UL, QS_ALLINPUT);
+
+                if (std::exchange (dwWaitStatus, WAIT_OBJECT_0 + 2) !=
+                                                 WAIT_OBJECT_0)
+                                   dwWaitStatus  = ArrivalEvent;
+              }
             }
 
             if (dwWaitStatus == (WAIT_OBJECT_0 + 2))
@@ -312,7 +341,69 @@ SK_XInput_NotifyDeviceArrival (void)
 
         return 0;
       }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
-    );
+    )
+  );
+}
+
+
+void SK_XInput_DeferredStatusChecks (void)
+{
+  static SK_AutoHandle hHotplugUnawareXInputRefresh (
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+  );
+
+  SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID) -> DWORD
+    {
+      SK_XInputCold_DecommisionEvent =
+                      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+      SetThreadPriority      ( SK_GetCurrentThread (),
+        THREAD_PRIORITY_BELOW_NORMAL );
+      SetThreadPriorityBoost ( SK_GetCurrentThread (),
+        TRUE                         );
+
+      HANDLE hWaitEvents [] = {
+        hHotplugUnawareXInputRefresh.m_h, SK_XInputCold_DecommisionEvent,
+                                                  __SK_DLL_TeardownEvent
+      };
+
+      DWORD  dwWait =  WAIT_OBJECT_0;
+      while (dwWait == WAIT_OBJECT_0)
+      {
+        dwWait =
+          MsgWaitForMultipleObjects ( 3, hWaitEvents, FALSE,
+                                            INFINITE, QS_ALLINPUT );
+
+        XINPUT_STATE                  xstate = { };
+        SK_XInput_PollController (0, &xstate);
+        SK_XInput_PollController (1, &xstate);
+        SK_XInput_PollController (2, &xstate);
+        SK_XInput_PollController (3, &xstate);
+
+        ResetEvent (hHotplugUnawareXInputRefresh.m_h);
+      } while ( dwWait == WAIT_OBJECT_0 ); // Events #1 and #2 end this thread
+
+      if (                (intptr_t)SK_XInputCold_DecommisionEvent > 0)
+      { CloseHandle (std::exchange (SK_XInputCold_DecommisionEvent, (HANDLE)0));
+
+        // One notification is enough to stop periodically testing
+        //   slots and use event-based logic instead
+        SK_XInput_SetRefreshInterval (SK_timeGetTime ());
+      }
+
+      hHotplugUnawareXInputRefresh.Close ();
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] XInput Polling Thread")
+  );
+
+  // Always refresh at the beginning of a frame rather than the end,
+  //   a failure event may cause a lengthy delay, missing VBLANK.
+  if ((intptr_t)hHotplugUnawareXInputRefresh.m_h > 0)
+    SetEvent (  hHotplugUnawareXInputRefresh);
 }
 
 

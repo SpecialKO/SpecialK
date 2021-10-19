@@ -1070,17 +1070,23 @@ sk_hwnd_cache_s::getDevCaps (void)
         int ay1 = rcWindow.top,
             ay2 = rcWindow.bottom;
 
-        DISPLAYCONFIG_PATH_INFO *pOutput = nullptr;
+        DISPLAYCONFIG_PATH_INFO *pOutput  = nullptr;
+        bool                     bVirtual = false;
 
         for (auto idx = 0U; idx < uiNumPaths; ++idx)
         {
           auto *path =
             &pathArray [idx];
 
-          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          if ( (path->                 flags & DISPLAYCONFIG_PATH_ACTIVE)
+            && (path->sourceInfo.statusFlags & DISPLAYCONFIG_SOURCE_IN_USE) )
           {
+            bVirtual =
+              (path->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE);
+
             DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
-              &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+              &modeArray [bVirtual ? path->sourceInfo.sourceModeInfoIdx
+                                   : path->sourceInfo.modeInfoIdx ].sourceMode;
 
             RECT rect;
             rect.left   = pSourceMode->position.x;
@@ -1110,12 +1116,19 @@ sk_hwnd_cache_s::getDevCaps (void)
 
         if (pOutput != nullptr)
         {
+          bVirtual =
+            (pOutput->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE);
+
           devcaps.res.refresh = (float)(
             (double)pOutput->targetInfo.refreshRate.Numerator /
             (double)pOutput->targetInfo.refreshRate.Denominator);
 
-          devcaps.res.x = modeArray [pOutput->sourceInfo.modeInfoIdx].sourceMode.width;
-          devcaps.res.y = modeArray [pOutput->sourceInfo.modeInfoIdx].sourceMode.height;
+          auto modeIdx =
+            bVirtual ? pOutput->sourceInfo.sourceModeInfoIdx
+                     : pOutput->sourceInfo.modeInfoIdx;
+
+          devcaps.res.x = modeArray [modeIdx].sourceMode.width;
+          devcaps.res.y = modeArray [modeIdx].sourceMode.height;
 
           devcaps.last_checked = dwNow;
 
@@ -1579,6 +1592,9 @@ SK_D3D_SetupShaderCompiler (void)
 #endif
 //}
 }
+
+#undef  __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"RenderBase"
 
 #ifndef DPI_ENUMS_DECLARED
 typedef
@@ -2918,8 +2934,11 @@ SK_RenderBackend_V2::output_s::signal_info_s::timing_s::video_standard_s::toStr 
     { D3DKMDT_VSS_OTHER,         "D3DKMDT_VSS_OTHER"         }
   };
 
-  return
-      standard_names [(D3DKMDT_VIDEO_SIGNAL_STANDARD)videoStandard];
+  if (standard_names.count ((D3DKMDT_VIDEO_SIGNAL_STANDARD)videoStandard)) return
+      standard_names [      (D3DKMDT_VIDEO_SIGNAL_STANDARD)videoStandard];
+
+  else
+    return "N/A";
 }
 
 void SK_Display_EnableHDR (void)
@@ -3320,6 +3339,12 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   UINT enum_count = idx;
 
+  for ( auto disp : displays )
+  {
+    // Clear out any old entries that might be wrong now
+    disp.primary = false;
+  }
+
   for ( idx = 0 ; idx < enum_count ; ++idx )
   {
     auto& display =
@@ -3332,6 +3357,9 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     if (! GetMonitorInfoW (display.monitor, &minfo))
       continue;
 
+    display.primary =
+      ( minfo.dwFlags & MONITORINFOF_PRIMARY );
+
     float bestIntersectArea = -1.0f;
 
     int ax1 = minfo.rcMonitor.left,
@@ -3341,15 +3369,22 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
 
+    bool bVirtual = false;
+
     for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
     {
       auto *path =
         &pathArray [pathIdx];
 
-      if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+      bVirtual =
+        ( path->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE );
+
+      if ( (path->                 flags & DISPLAYCONFIG_PATH_ACTIVE)
+        && (path->sourceInfo.statusFlags & DISPLAYCONFIG_SOURCE_IN_USE) )
       {
         DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
-          &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
+          &modeArray [ bVirtual ? path->sourceInfo.sourceModeInfoIdx :
+                                  path->sourceInfo.modeInfoIdx ].sourceMode;
 
         RECT rect;
         rect.left   = pSourceMode->position.x;
@@ -3379,40 +3414,67 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     if (pVidPn != nullptr)
     {
+      bVirtual =
+        ( pVidPn->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE );
+
+      int modeIdx =
+        ( bVirtual ? pVidPn->targetInfo.targetModeInfoIdx
+                   : pVidPn->targetInfo.modeInfoIdx );
+
+      auto pModeInfo =
+        &modeArray [modeIdx];
+
       display.vidpn = *pVidPn;
 
-      display.signal.timing.pixel_clock            =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.pixelRate;
-      display.signal.timing.hsync_freq.Numerator   =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.hSyncFreq.Numerator;
-      display.signal.timing.hsync_freq.Denominator =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.hSyncFreq.Denominator;
-      display.signal.timing.vsync_freq.Numerator   =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.vSyncFreq.Numerator;
-      display.signal.timing.vsync_freq.Denominator =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.vSyncFreq.Denominator;
-      display.signal.timing.active_size.cx         =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.activeSize.cx;
-      display.signal.timing.active_size.cy         =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.activeSize.cy;
-      display.signal.timing.total_size.cx          =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.totalSize.cx;
-      display.signal.timing.total_size.cy          =
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.totalSize.cy;
-      display.signal.timing.videoStandard.
-                                     videoStandard = (UINT32)
-        modeArray [display.vidpn.targetInfo.targetModeInfoIdx].targetMode.targetVideoSignalInfo.videoStandard;
+      if (pModeInfo->infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET)
+      {
+        display.signal.timing.pixel_clock            =
+          pModeInfo->targetMode.targetVideoSignalInfo.pixelRate;
+        display.signal.timing.hsync_freq.Numerator   =
+          pModeInfo->targetMode.targetVideoSignalInfo.hSyncFreq.Numerator;
+        display.signal.timing.hsync_freq.Denominator =
+          pModeInfo->targetMode.targetVideoSignalInfo.hSyncFreq.Denominator;
+        display.signal.timing.vsync_freq.Numerator   =
+          pModeInfo->targetMode.targetVideoSignalInfo.vSyncFreq.Numerator;
+        display.signal.timing.vsync_freq.Denominator =
+          pModeInfo->targetMode.targetVideoSignalInfo.vSyncFreq.Denominator;
+        display.signal.timing.active_size.cx         =
+          pModeInfo->targetMode.targetVideoSignalInfo.activeSize.cx;
+        display.signal.timing.active_size.cy         =
+          pModeInfo->targetMode.targetVideoSignalInfo.activeSize.cy;
+        display.signal.timing.total_size.cx          =
+          pModeInfo->targetMode.targetVideoSignalInfo.totalSize.cx;
+        display.signal.timing.total_size.cy          =
+          pModeInfo->targetMode.targetVideoSignalInfo.totalSize.cy;
+        display.signal.timing.videoStandard.
+                                       videoStandard = (UINT32)
+          pModeInfo->targetMode.targetVideoSignalInfo.videoStandard;
 
-      dll_log->Log (
-          L"PixelRate=%llu, hSyncFreq=%f Hz, vSyncFreq=%f Hz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%s",
-          display.signal.timing.pixel_clock, static_cast <double> (display.signal.timing.hsync_freq.Numerator) /
-                                             static_cast <double> (display.signal.timing.hsync_freq.Denominator),
-                                             static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-                                             static_cast <double> (display.signal.timing.vsync_freq.Denominator),
-          display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
-          display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
-          display.signal.timing.videoStandard.toStr ()
-                   );
+        char szVSyncFreq [16] = { },
+             szHSyncFreq [16] = { };
+
+        std::string_view str_view_vsync (szVSyncFreq, 16),
+                         str_view_hsync (szHSyncFreq, 16);
+
+        SK_FormatStringView ( str_view_vsync, "%7.3f",
+                            static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+                            static_cast <double> (display.signal.timing.vsync_freq.Denominator) ),
+        SK_FormatStringView ( str_view_hsync, "%7.3f",
+                            static_cast <double> (display.signal.timing.hsync_freq.Numerator) /
+                            static_cast <double> (display.signal.timing.hsync_freq.Denominator) / 1000.0 );
+
+        SK_RemoveTrailingDecimalZeros (szVSyncFreq, 16);
+        SK_RemoveTrailingDecimalZeros (szHSyncFreq, 16);
+
+        SK_LOG0 (
+           (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%hs",
+                                  display.name,
+            static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
+                                                           szVSyncFreq, szHSyncFreq,
+                                  display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
+                                  display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
+                                  display.signal.timing.videoStandard.toStr ()), __SK_SUBSYSTEM__ );
+      }
 
       DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
         getHdrInfo                  = { };
@@ -3526,14 +3588,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         wcsncpy_s ( display.name,                                   64,
                     getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
 
-        MONITORINFO
-          minfo        = {                  };
-          minfo.cbSize = sizeof (MONITORINFO);
-
-        GetMonitorInfoA (display.monitor, &minfo);
-
-        display.primary =
-          ( minfo.dwFlags & MONITORINFOF_PRIMARY );
 
         // Didn't get a name using the Windows APIs, let's fallback to EDID
         if (*display.name == L'\0')

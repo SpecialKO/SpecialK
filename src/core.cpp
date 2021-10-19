@@ -3229,6 +3229,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   SK_SLI_UpdateStatus   (device);
   SK_Input_PollKeyboard (      );
 
+  // Always refresh at the beginning of a frame rather than the end,
+  //   a failure event may cause a lengthy delay, missing VBLANK.
+  SK_XInput_DeferredStatusChecks ();
+
+
   InterlockedIncrementAcquire (
     &SK_RenderBackend::frames_drawn
   );

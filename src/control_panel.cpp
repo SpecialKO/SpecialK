@@ -1279,60 +1279,67 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   {
     if (ImGui::Button ("Make Primary Display"))
     {
-      MONITORINFOEXW
-        mexicow        = {                     };
-        mexicow.cbSize = sizeof (MONITORINFOEXW);
+      struct monitor_s {
+        DEVMODE dm             = { };
+        wchar_t wszDevice [32] = { };
+      };
 
-      MONITORINFOEXW
-        oldprimary        = {                     };
-        oldprimary.cbSize = sizeof (MONITORINFOEXW);
+      DEVMODE
+          dm        = {              };
+          dm.dmSize = sizeof (DEVMODE);
 
-      for (auto display : rb.displays)
+      POINTL lOrigin = { };
+
+      std::vector <monitor_s> monitors;
+
+      for ( auto display : rb.displays )
       {
-        if (display.primary)
+        if (EnumDisplaySettings (display.dxgi_name, ENUM_REGISTRY_SETTINGS, &dm))
         {
-          wcsncpy_s ( oldprimary.szDevice, 32,
-                      display.dxgi_name,   _TRUNCATE );
-          break;
+          monitor_s  monitor;
+          wcsncpy_s (monitor.wszDevice, 32, display.dxgi_name, _TRUNCATE);
+                     monitor.dm = dm;
+
+          monitors.emplace_back (monitor);
+        }
+
+        if (! _wcsicmp (display.dxgi_name, rb.displays [rb.active_display].dxgi_name))
+        {
+          lOrigin = dm.dmPosition;
+        }
+
+        dm.dmSize = sizeof (DEVMODE);
+      }
+
+      for ( auto monitor : monitors )
+      {
+        DEVMODE
+          dmNew          = { };
+          dmNew          = monitor.dm;
+          dmNew.dmFields = DM_POSITION;
+
+        // Primary monitor is always at (0,0), so we need to shift all monitors to the new origin
+        dmNew.dmPosition.x -= lOrigin.x;
+        dmNew.dmPosition.y -= lOrigin.y;
+
+        bool primary =
+          ( dmNew.dmPosition.x == 0 && dmNew.dmPosition.y == 0 );
+
+        if ( DISP_CHANGE_SUCCESSFUL !=
+               ChangeDisplaySettingsEx ( monitor.wszDevice, &dmNew, NULL,
+                                         (primary ? CDS_SET_PRIMARY : 0x0) |
+                                                    CDS_UPDATEREGISTRY     |
+                                                    CDS_NORESET, NULL ) )
+        {
+          SK_ReleaseAssert (! L"ChangeDisplaySettingsEx == DISP_CHANGE_SUCCESSFUL");
         }
       }
 
-      if (GetMonitorInfoW (rb.displays [rb.active_display].monitor, &mexicow))
-      {
-        if (oldprimary.szDevice != L'\0')
-        {
-          LONG      result;
-          DEVMODE dm1, dm2;
-
-          memset (&dm1, 0, sizeof (DEVMODE));
-          memset (&dm2, 0, sizeof (DEVMODE));
-
-          EnumDisplaySettings (mexicow.szDevice, ENUM_REGISTRY_SETTINGS, &dm2);
-
-          DWORD dwOrigX    = dm2.dmPosition.x;
-
-          dm2.dmFields     = DM_POSITION;
-          dm2.dmPosition.x = 0;
-          dm2.dmPosition.y = 0;
-
-          ChangeDisplaySettingsEx ( mexicow.szDevice, &dm2, NULL, CDS_SET_PRIMARY    |
-                                                                  CDS_UPDATEREGISTRY |
-                                                                  CDS_NORESET, NULL );
-
-          EnumDisplaySettings (oldprimary.szDevice, ENUM_REGISTRY_SETTINGS, &dm1);
-
-          dm1.dmFields     = DM_POSITION;
-          dm1.dmPosition.x = dwOrigX;
-          dm1.dmPosition.y = 0;
-
-          ChangeDisplaySettingsEx ( oldprimary.szDevice, &dm1, NULL, CDS_UPDATEREGISTRY |
-                                                                     CDS_NORESET, NULL );
-
-          ChangeDisplaySettings (NULL, 0);
-        }
-      }
-      //ChangeDisplaySettingsExW (mexicow.szDevice, nullptr, nullptr, CDS_UPDATEREGISTRY | CDS_SET_PRIMARY, nullptr);
+      ChangeDisplaySettings (NULL, 0);
     }
+
+    if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Setting a monitor as primary gives it control of DWM composition rate and lowers latency when using mismatched refresh rates");
   }
 
   if (rb.displays [rb.active_display].hdr.supported)
