@@ -313,6 +313,10 @@ struct SK_MMCS_TaskEntry {
     if (SK_AvSetMmThreadPriority (hTask, prio))
     {
       priority = prio;
+
+      change.priority =
+                 prio;
+
       return TRUE;
     }
 
@@ -322,35 +326,52 @@ struct SK_MMCS_TaskEntry {
   HANDLE        setMaxCharacteristics ( const char* first_task,
                                         const char* second_task )
   {
-    hTask =
+    HANDLE hTask_ =
       SK_AvSetMmMaxThreadCharacteristicsA (first_task, second_task, &dwTaskIdx);
 
-    if (hTask != nullptr)
+    if (hTask_ != nullptr)
     {
       strncpy_s (task0, 63, first_task,  _TRUNCATE);
       strncpy_s (task1, 63, second_task, _TRUNCATE);
+
+      hTask = hTask_;
     }
 
     else
-      hTask = INVALID_HANDLE_VALUE;
+    {
+      if ( (intptr_t)hTask > 0)
+                     hTask    = INVALID_HANDLE_VALUE;
+                    dwTaskIdx = 0;
+    }
 
     return hTask;
   }
 
   BOOL disassociateWithTask (void)
   {
-    return
-      SK_AvRevertMmThreadCharacteristics (hTask);
+    BOOL bRet = FALSE;
+
+    if ((intptr_t)hTask > 0)
+    {
+      bRet =
+        SK_AvRevertMmThreadCharacteristics (hTask);
+
+      hTask = INVALID_HANDLE_VALUE;
+    }
+
+    return bRet;
   }
 
   HANDLE reassociateWithTask (void)
   {
-    hTask =
+    HANDLE hTask_ =
       SK_AvSetMmMaxThreadCharacteristicsA (task0, task1, &dwTaskIdx);
 
-    if (hTask != nullptr)
+    if (hTask_ != nullptr)
     {
-      SK_AvSetMmThreadPriority (hTask, priority);
+      SK_AvSetMmThreadPriority (hTask_, priority);
+
+      hTask = hTask_;
     }
 
     return hTask;

@@ -73,11 +73,14 @@ SK_MMCS_ApplyPendingTaskPriority (SK_TLS *pTLS = nullptr)
     {
       auto task =
           pTLS->scheduler->mmcs_task;
-    //if (pTLS->scheduler->mmcs_task->hTask > 0)
-    //                          task->reassociateWithTask ();
 
       if (InterlockedCompareExchange (&task->change.pending, 0, 1))
-      { task->setPriority            ( task->change.priority );
+      {
+        // In an active task?
+        if ((intptr_t)pTLS->scheduler->mmcs_task->hTask > 0)
+          task->setPriority (task->change.priority);
+        else // No, we'll apply it the next time we re-associate the task
+          task->priority  =  task->change.priority;
 
         InterlockedDecrement (&__SK_MMCS_PendingChanges);
       }

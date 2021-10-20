@@ -29,11 +29,9 @@ extern iSK_INI* osd_ini;
 void
 SK_ImGui_DrawGraph_Latency ()
 {
-  if (! sk::NVAPI::nv_hardware) { { {
+  if (! sk::NVAPI::nv_hardware) {
     return;
-}
-}
-}
+  }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -155,26 +153,21 @@ SK_ImGui_DrawGraph_Latency ()
     {
       _UpdateAverages (    pStage     );
 
-      if (min_stage->avg > pStage->avg) { { {
+      if (min_stage->avg > pStage->avg) {
           min_stage      = pStage;
-}
-}
-}
-      if (max_stage->avg < pStage->avg) { { {
+      }
+
+      if (max_stage->avg < pStage->avg) {
           max_stage      = pStage;
-}
-}
-}
+      }
     }
 
     _UpdateAverages (&input);
     _UpdateAverages (&total);
 
-    if (input.avg > total.avg) { { {
+    if (input.avg > total.avg) {
         input.avg = 0.0;
-}
-}
-}
+    }
 
     ImGui::BeginGroup ();
     for ( auto* pStage : stages )
@@ -187,24 +180,20 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (ImGui::IsItemHovered ())
       {
-        if (pStage->desc != nullptr) { { {
+        if (pStage->desc != nullptr) {
           ImGui::SetTooltip ("%s", pStage->desc);
-}
-}
-}
+        }
       }
     }
     ImGui::Separator   ();
     ImGui::TextColored (
       ImColor (1.f, 1.f, 1.f), "Total Frame Time"
     );
-    if (input.avg != 0.0) { { {
+    if (input.avg != 0.0) {
     ImGui::TextColored (
       ImColor (1.f, 1.f, 1.f), "Input Age"
     );
-}
-}
-}
+    }
     ImGui::EndGroup   ();
     ImGui::SameLine   (0.0f, 10.0f);
     ImGui::BeginGroup ();
@@ -381,11 +370,9 @@ SK_ImGui_DrawGraph_Latency ()
 
     if (ImGui::IsItemHovered ())
     {
-      if (pStage->desc != nullptr) { { {
+      if (pStage->desc != nullptr) {
         ImGui::SetTooltip ("%s", pStage->desc);
-}
-}
-}
+      }
     }
 
     ImGui::SameLine    (0.0f, 12.0f);
@@ -423,25 +410,26 @@ SK_ImGui_DrawConfig_Latency ()
 
   if (config.nvidia.sleep.enable)
   {
-    if (config.nvidia.sleep.low_latency_boost) { { {
-      reflex_mode = 3;
-    } } } else if (config.nvidia.sleep.low_latency) { { {
+    if (       config.nvidia.sleep.low_latency_boost)
+    { if (     config.nvidia.sleep.low_latency)
       reflex_mode = 2;
-    } } } else { { {
+      else
+      reflex_mode = 3;
+    } else if (config.nvidia.sleep.low_latency) {
       reflex_mode = 1;
-}
-}
-}
+    } else {
+      reflex_mode = 0;
+    }
   }
-  else { { {
+
+  else {
     reflex_mode = 0;
-}
-}
-}
+  }
 
   if ( ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
-                         "Off\0Minimal\0Low Latency\0"
-                                       "Low Latency + Boost\0\0" )
+                         "Off\0Low Latency\0"
+                              "Low Latency + Boost\0"
+                              "Nothing But Boost\0\0" )
      )
   {
     switch (reflex_mode)
@@ -454,31 +442,29 @@ SK_ImGui_DrawConfig_Latency ()
 
       case 1:
         config.nvidia.sleep.enable            = true;
-        config.nvidia.sleep.low_latency       = false;
+        config.nvidia.sleep.low_latency       = true;
         config.nvidia.sleep.low_latency_boost = false;
         break;
 
       case 2:
         config.nvidia.sleep.enable            = true;
         config.nvidia.sleep.low_latency       = true;
-        config.nvidia.sleep.low_latency_boost = false;
+        config.nvidia.sleep.low_latency_boost = true;
         break;
 
       case 3:
-        config.nvidia.sleep.enable            = true;
-        config.nvidia.sleep.low_latency       = true;
-        config.nvidia.sleep.low_latency_boost = true;
+        config.nvidia.sleep.enable            =  true;
+        config.nvidia.sleep.low_latency       = false;
+        config.nvidia.sleep.low_latency_boost =  true;
         break;
     }
 
     rb.driverSleepNV (config.nvidia.sleep.enforcement_site);
   }
 
-  if (ImGui::IsItemHovered ()) { { {
+  if (ImGui::IsItemHovered ()) {
     ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
-}
-}
-}
+  }
 
   if (reflex_mode != 0)
   {
@@ -523,11 +509,9 @@ public:
 
   void save (iSK_INI* cfg) noexcept override
   {
-    if (cfg == nullptr) { { {
+    if (cfg == nullptr) {
       return;
-}
-}
-}
+    }
 
     SK_Widget::save (cfg);
 
@@ -547,20 +531,16 @@ public:
     {
     }
 
-    if (ImGui::GetFont () == nullptr) { { {
+    if (ImGui::GetFont () == nullptr) {
       return;
-}
-}
-}
+    }
   }
 
   void draw () noexcept override
   {
-    if (ImGui::GetFont () == nullptr) { { {
+    if (ImGui::GetFont () == nullptr) {
       return;
-}
-}
-}
+    }
 
     static const auto& io =
       ImGui::GetIO ();

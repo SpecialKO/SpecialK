@@ -1,4 +1,12 @@
-﻿21.10.18
+﻿21.10.19
+========
+ + Fixed Multimedia Class Scheduling in Framerte Limiter
+ + Added support for XInput 1.1 and 1.2
+ + Battery info now available for Xbox controllers in Steam Input-only games
+ + Added NVIDIA Reflex "Nothing But Boost" mode to access the power setting
+     without any of the latency-related features :)
+
+21.10.18
 ========
  + Improved signal timing debug accuracy in framerate limiter
  + Correctly re-position secondary monitors when changing primary

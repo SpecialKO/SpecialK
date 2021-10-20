@@ -2803,6 +2803,18 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 std::atomic_int __SK_RenderThreadCount = 0;
 
 void
+SK_MMCS_EndBufferSwap (void)
+{
+  auto* task  =
+    SK_MMCS_GetTaskForThreadIDEx (
+      SK_Thread_GetCurrentId (), "[GAME] Render Thread",
+                                  "Games", "DisplayPostProcessing" );
+
+  if (task != nullptr)
+      task->disassociateWithTask ();
+}
+
+void
 SK_MMCS_BeginBufferSwap (void)
 {
   static concurrency::concurrent_unordered_set <DWORD> render_threads;
@@ -2810,45 +2822,63 @@ SK_MMCS_BeginBufferSwap (void)
   static const auto&
     game_id = SK_GetCurrentGameID ();
 
-  if ( ! render_threads.count (SK_Thread_GetCurrentId ()) )
+  auto tid =
+    SK_Thread_GetCurrentId ();
+
+  SK_MMCS_TaskEntry* task = nullptr;
+
+  if ( ! render_threads.count (tid) )
   {
     __SK_RenderThreadCount++;
 
-    static bool   first = true;
-    auto*  task = first ?
-      SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
-                                       "[GAME] Primary Render Thread",
-                                         "Games", "DisplayPostProcessing" )
-                        :
-      SK_MMCS_GetTaskForThreadIDEx ( SK_Thread_GetCurrentId (),
+    static bool first = true;
+                task  =
+      SK_MMCS_GetTaskForThreadIDEx ( tid,                       first ?
+                                       "[GAME] Primary Render Thread" :
                                        "[GAME] Ancillary Render Thread",
-                                         "Games", "DisplayPostProcessing" );
+                                        "Games", "DisplayPostProcessing" );
 
     if ( task != nullptr )
     {
       if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
       {
         if (first)
-          task->queuePriority (AVRT_PRIORITY_CRITICAL);
+          task->setPriority (AVRT_PRIORITY_CRITICAL);
         else
-          //task->queuePriority (AVRT_PRIORITY_HIGH);
-          task->queuePriority (AVRT_PRIORITY_CRITICAL);
+          //task->setPriority (AVRT_PRIORITY_HIGH); // Assymetric priority is not desirable
+          task->setPriority (AVRT_PRIORITY_CRITICAL);
       }
 
       else
-        task->queuePriority (AVRT_PRIORITY_LOW);
+        task->setPriority (AVRT_PRIORITY_LOW);
 
-      render_threads.insert (SK_Thread_GetCurrentId ());
+      render_threads.insert (tid);
 
       first = false;
     }
   }
+
+  else
+  {
+    task =
+      SK_MMCS_GetTaskForThreadIDEx ( tid, "[GAME] Render Thread",
+                                           "Games", "DisplayPostProcessing" );
+
+    if (task != nullptr)
+        task->reassociateWithTask ();
+  }
 }
+
 __declspec (noinline)
 void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
+  if (config.render.framerate.enable_mmcss)
+  {
+    SK_MMCS_BeginBufferSwap ();
+  }
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2877,12 +2907,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 
   rb.present_staging.begin_overlays.time.QuadPart =
     SK_QueryPerf ().QuadPart;
-
-
-  if (config.render.framerate.enable_mmcss)
-  {
-    SK_MMCS_BeginBufferSwap ();
-  }
 
   // Invoke any plug-in's frame begin callback
   for ( auto begin_frame_fn : plugin_mgr->begin_frame_fns )
@@ -3273,6 +3297,11 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
                             SK_Thread_GetCurrentId () );
   }
 #endif
+
+  if (config.render.framerate.enable_mmcss)
+  {
+    SK_MMCS_EndBufferSwap ();
+  }
 
   return hr;
 }
