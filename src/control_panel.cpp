@@ -3856,6 +3856,9 @@ SK_ImGui_ControlPanel (void)
                 const char* command,
                       bool  active ) -> void
         {
+          static auto cp =
+            SK_GetCommandProcessor ();
+
           float target_mag = fabs (target);
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
@@ -3873,9 +3876,6 @@ SK_ImGui_ControlPanel (void)
                                              "VSYNC Rate (No Preference)" )
              )
           {
-            static auto cp =
-              SK_GetCommandProcessor ();
-
             target =
               ( ( target < 0.0f ) ? (-1.0f * target_mag) :
                                              target_mag    );
@@ -3896,12 +3896,91 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::IsItemHovered ( ))
           {
             ImGui::BeginTooltip    ( );
+            ImGui::BeginGroup      ( );
             ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
-                                       "Ctrl + Click" );
+                                       "  Ctrl Click" );
+            ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
+                                       "Right Click" );
+            ImGui::EndGroup        ( );
             ImGui::SameLine        ( );
-            ImGui::TextUnformatted ( "to Enter an Exact Framerate" );
+            ImGui::BeginGroup      ( );
+            ImGui::TextUnformatted ( " Enter an Exact Framerate" );
+            ImGui::TextUnformatted ( " Select a Refresh Factor" );
+            ImGui::EndGroup        ( );
             ImGui::EndTooltip      ( );
           }
+
+          ImGui::PushID (command);
+
+          if (SK_ImGui_IsItemRightClicked ())
+          {
+            ImGui::OpenPopup         ("FactoredFramerateMenu");
+            ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+          }
+
+          if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
+          {
+            static auto& rb =
+              SK_GetCurrentRenderBackend ();
+
+            static auto lastRefresh = 0.0f;
+                   auto realRefresh =
+                     SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh;
+
+            static std::string       strFractList ("", 1024);
+            static std::vector <float> fFractList;
+            static int                 iFractSel  = 0;
+            static auto               *pLastLabel = command;
+            static auto                itemWidth  =
+              ImGui::CalcTextSize ("888.88888888").x;
+
+            if ( ( std::exchange (pLastLabel,  command)
+                                            != command ) ||
+                 ( std::exchange (lastRefresh, realRefresh)
+                                            != realRefresh ) )
+            {
+              int idx = 0;
+
+              strFractList.clear ();
+                fFractList.clear ();
+
+              float   fRefresh = realRefresh;
+              while ( fRefresh >= 12.0f )
+              {
+                strFractList +=
+                    ( std::to_string (fRefresh) + '\0' );
+                fFractList.push_back (fRefresh);
+
+                if ( target_mag < fRefresh + 0.75 &&
+                     target_mag > fRefresh - 0.75 )
+                {
+                  iFractSel = idx;
+                }
+
+                fRefresh *= 0.5f;
+                ++idx;
+              }
+
+              strFractList += "\0\0";
+            }
+
+            iFractSel =
+              std::min (fFractList.size (), (size_t)iFractSel);
+
+            ImGui::PushItemWidth (itemWidth);
+
+            if ( ImGui::Combo ( "Refresh Rate Factors",
+                             &iFractSel, strFractList.data () ) )
+            {
+              cp->ProcessCommandFormatted (
+                         "%s %f", command, fFractList [iFractSel] );
+            }
+
+            ImGui::PopItemWidth ();
+            ImGui::EndPopup     ();
+          }
+
+          ImGui::PopID ();
         };
 
         _LimitSlider ( __target_fps, "###FPS_TargetOrLimit",

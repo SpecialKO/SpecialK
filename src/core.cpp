@@ -2812,11 +2812,19 @@ SK_MMCS_EndBufferSwap (void)
 
   if (task != nullptr)
       task->disassociateWithTask ();
+
+//SK_Thread_SetCurrentPriority (
+//  SK_TLS_Bottom ()->win32->thread_prio
+//);
 }
 
 void
 SK_MMCS_BeginBufferSwap (void)
 {
+//SK_TLS_Bottom ()->win32->thread_prio =
+//  SK_Thread_GetCurrentPriority (                             );
+//  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+
   static concurrency::concurrent_unordered_set <DWORD> render_threads;
 
   static const auto&

@@ -1,6 +1,12 @@
-﻿21.10.19
+﻿21.10.21
 ========
- + Fixed Multimedia Class Scheduling in Framerte Limiter
+ + Added right-click option to framerate limiter slider w/ pre-computed
+     fractional refresh rate limits for optimal fixed-refresh pacing
+ + Improved framerate limiter consistency at framerates > 200 FPS
+
+21.10.20
+========
+ + Fixed Multimedia Class Scheduling in Framerate Limiter
  + Added support for XInput 1.1 and 1.2
  + Battery info now available for Xbox controllers in Steam Input-only games
  + Added NVIDIA Reflex "Nothing But Boost" mode to access the power setting
