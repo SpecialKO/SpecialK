@@ -732,8 +732,16 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       if (StrStrIW (compliant_path, L"rxcore"))
         SK_LoadLibraryW (L"xinput1_4.dll");
 
-      hMod =
-        SK_LoadLibraryW (compliant_path);
+      // Windows Defender likes to deadlock in the Steam Overlay
+      if (StrStrIW (compliant_path, L"Windows Defender"))
+      {
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+        hMod = nullptr;
+      }
+
+      else
+        hMod =
+          SK_LoadLibraryW (compliant_path);
     }
     catch (const SK_SEH_IgnoredException&)
     {

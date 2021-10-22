@@ -353,31 +353,31 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
   SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-  if (*pTLS->debug.name == L'\0')
+  if (SK_ValidatePointer ((void *)lpThreadDescription, true) &&
+          pTLS != nullptr                                    &&
+       (! pTLS->debug.naming)
+     )
   {
-    if (! pTLS->debug.naming)
-    {
-      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
 
-      THREADNAME_INFO info = {       };
-      info.dwType          =      4096;
-      info.szName          =    szDesc;
-      info.dwThreadID      = (DWORD)GetThreadId (hThread);
-      info.dwFlags         =       0x0;
+    THREADNAME_INFO info = {       };
+    info.dwType          =      4096;
+    info.szName          =    szDesc;
+    info.dwThreadID      = (DWORD)GetThreadId (hThread);
+    info.dwFlags         =       0x0;
 
-      const DWORD argc = sizeof (info) /
-                         sizeof (ULONG_PTR);
+    const DWORD argc = sizeof (info) /
+                       sizeof (ULONG_PTR);
 
-      pTLS->debug.naming = true;
+    pTLS->debug.naming = true;
 
-      RaiseException ( MAGIC_THREAD_EXCEPTION,
-                         SK_EXCEPTION_CONTINUABLE,
-                           argc,
-          (const ULONG_PTR *)&info );
+    RaiseException ( MAGIC_THREAD_EXCEPTION,
+                       SK_EXCEPTION_CONTINUABLE,
+                         argc,
+        (const ULONG_PTR *)&info );
 
-      pTLS->debug.naming = false;
-    }
+    pTLS->debug.naming = false;
   }
 
   return
