@@ -69,6 +69,8 @@ SK_MMCS_ApplyPendingTaskPriority (SK_TLS *pTLS = nullptr)
         pTLS =
      SK_TLS_Bottom ();
 
+    if (! pTLS) return;
+
     if (pTLS->scheduler->mmcs_task > (SK_MMCS_TaskEntry *)1)
     {
       auto task =
@@ -474,13 +476,13 @@ NtWaitForMultipleObjects_Detour (
   IN BOOLEAN              Alertable,
   IN PLARGE_INTEGER       TimeOut OPTIONAL )
 {
-  SK_MMCS_ApplyPendingTaskPriority ();
-
   NTSTATUS ntStatus =
     NtWaitForMultipleObjects_Original (
            ObjectCount, ObjectsArray,
              WaitType, Alertable,
                TimeOut                  );
+
+  SK_MMCS_ApplyPendingTaskPriority ();
 
   return
     ntStatus;
@@ -737,8 +739,6 @@ BOOL
 WINAPI
 SwitchToThread_Detour (void)
 {
-  SK_MMCS_ApplyPendingTaskPriority ();
-
 #ifdef _M_AMD64
   static bool is_mhw =
     ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld     );
@@ -748,10 +748,16 @@ SwitchToThread_Detour (void)
   if (! (is_mhw || is_aco))
   {
 #endif
-    return
+    BOOL bRet =
       SwitchToThread_Original ();
+
+    SK_MMCS_ApplyPendingTaskPriority ();
+
+    return bRet;
 #ifdef _M_AMD64
   }
+
+  SK_MMCS_ApplyPendingTaskPriority ();
 
 
   static volatile DWORD dwAntiDebugTid = 0;

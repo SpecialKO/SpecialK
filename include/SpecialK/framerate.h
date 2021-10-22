@@ -202,8 +202,7 @@ namespace SK
           LONG64     time  = { },
                      start = { },
                      next  = { },
-                     last  = { },
-                     freq  = { };
+                     last  = { };
 
         volatile
           LONG64     frames = 0;
@@ -223,7 +222,6 @@ namespace SK
         InterlockedExchange64 (&rate_shot.start, ReadAcquire64 (&start));
         InterlockedExchange64 (&rate_shot.next,  ReadAcquire64 (&next));
         InterlockedExchange64 (&rate_shot.last,  ReadAcquire64 (&last));
-        InterlockedExchange64 (&rate_shot.freq,  ReadAcquire64 (&freq));
 
         WriteRelease64 (&rate_shot.frames,
                    ReadAcquire64 (&frames));
@@ -307,8 +305,7 @@ namespace SK
         LONG64      time   = { },
                     start  = { },
                     next   = { },
-                    last   = { },
-                    freq   = { };
+                    last   = { };
       volatile
         LONG64      frames = 0;
       volatile

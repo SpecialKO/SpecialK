@@ -99,6 +99,7 @@ typedef enum DLL_ROLE : unsigned
 
 bool SK_API_IsDXGIBased   (SK_RenderAPI api);
 bool SK_API_IsGDIBased    (SK_RenderAPI api);
+bool SK_API_IsDirect3D9   (SK_RenderAPI api);
 bool SK_API_IsPlugInBased (SK_RenderAPI api);
 
 

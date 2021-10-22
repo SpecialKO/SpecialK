@@ -53,8 +53,8 @@ enum class SK_LimitApplicationSite {
 //float fSwapWaitRatio = 0.77f;
 //float fSwapWaitFract = 0.79f;
 
-float fSwapWaitRatio = 1.5f;
-float fSwapWaitFract = 0.5f;
+float fSwapWaitRatio = 3.33f;
+float fSwapWaitFract = 0.66f;
 
 float
 SK::Framerate::Limiter::undershoot_percent = 7.5f;
@@ -169,29 +169,36 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "MaxDeltaTime",
         new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 
-    //if (! config.render.framerate.enable_mmcss)
+    if ( NtQueryTimerResolution != nullptr &&
+         NtSetTimerResolution   != nullptr )
     {
-      if ( NtQueryTimerResolution != nullptr &&
-           NtSetTimerResolution   != nullptr )
+      auto _SetTimerResolution =
+        ( NtSetTimerResolution_Original != nullptr ) ?
+          NtSetTimerResolution_Original              :
+          NtSetTimerResolution;
+
+      double& dTimerRes =
+        SK::Framerate::Limiter::timer_res_ms;
+
+      ULONG                         min,  max,  cur;
+      if ( NtQueryTimerResolution (&min, &max, &cur) ==
+             STATUS_SUCCESS )
       {
-        ULONG min, max, cur;
-        NtQueryTimerResolution (&min, &max, &cur);
+        dTimerRes =
+          static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"Kernel resolution.: %f ms",
-                      static_cast <float> (cur * 100)/1000000.0f ),
+        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                     L"  Timing  " );
 
-        if (NtSetTimerResolution_Original != nullptr)
-            NtSetTimerResolution_Original (max, TRUE,  &cur);
-        else
-            NtSetTimerResolution          (max, TRUE,  &cur);
+        if ( STATUS_SUCCESS ==
+              _SetTimerResolution (max, TRUE, &cur) )
+        {
+          dTimerRes =
+            static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"New resolution....: %f ms",
-                      static_cast <float> (cur * 100)/1000000.0f ),
-                    L"  Timing  " );
-
-        SK::Framerate::Limiter::timer_res_ms =
-          (static_cast <double> (cur) * 100.0) / 1000000.0;
+          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+                      L"  Timing  " );
+        }
       }
     }
   });
@@ -608,8 +615,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 
   auto now        =
     SK_QueryPerf ().QuadPart,
-       next_vsync =
-    rb.latency.counters.frameStats0.SyncQPCTime.QuadPart;
+       next_vsync = 0LL;
 
   if (tracks_window)
   {
@@ -618,67 +624,65 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
       SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
       if ((intptr_t)hWaitHandle.m_h > 0)
       {
-        SK_WaitForSingleObject (hWaitHandle, 25UL);
+        SK_WaitForSingleObject (hWaitHandle, 50UL);
       }
     }
 
-    // If no DXGI Present Stats, use the DWM Timing for an approximation
-    if (next_vsync == 0LL) // DWM tends to make up fake numbers, but they are better than nothing
+    DWM_TIMING_INFO dwmTiming        = {                      };
+                    dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
+
+    if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
     {
-      DWM_TIMING_INFO dwmTiming        = {                      };
-                      dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
-
-      if ( tracks_window && SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
-      {
-        next_vsync = dwmTiming.qpcVBlank;
-      }
+      next_vsync = dwmTiming.qpcVBlank;
     }
 
-    if (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator > 0 &&
+    auto pDisplay =
+      &rb.displays [rb.active_display];
+
+    if (pDisplay->signal.timing.vsync_freq.Numerator > 0 &&
         next_vsync > now - static_cast <LONGLONG> (
                            static_cast <double> (SK_QpcFreq) /
-                         ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator)     /
-                           static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ) * 120.0 ) )
+                         ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator)     /
+                           static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) * 120.0 ) )
     {
 #if 0
       SK_ImGui_Warning (SK_FormatStringW (L"VSync Freq: %5.2f Hz, HSync Freq: %5.2f kHz",
-                                                                             ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator)   /
-                                                                               static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ),
-                                                                             ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator)   /
-                                                                               static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) / 1000.0).c_str ());
+                                                                             ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator)   /
+                                                                               static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ),
+                                                                             ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator)   /
+                                                                               static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) / 1000.0).c_str ());
 #endif
 
       while (next_vsync < now)
       {
         next_vsync += static_cast <LONGLONG> (
             static_cast <double> (SK_QpcFreq) /
-          ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator)     /
-            static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ) );
+          ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator)     /
+            static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) );
       }
-
-      next_vsync += static_cast <LONGLONG> (
-                    static_cast <double> (SK_QpcFreq) /
-                  ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator)     /
-                    static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ) );
     }
 
     else
       next_vsync = now + ticks_per_frame;
 
-    if (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator > 0)
+    if (pDisplay->signal.timing.hsync_freq.Denominator > 0)
     {
       auto vblanking_lines =
-       ( rb.displays [rb.active_display].signal.timing. total_size.cy -
-         rb.displays [rb.active_display].signal.timing.active_size.cy );
+       ( pDisplay->signal.timing. total_size.cy -
+         pDisplay->signal.timing.active_size.cy );
+
+      SK_RunOnce (SK::Framerate::Limiter::undershoot_percent = 0.0f/*(float)vblanking_lines*/);
 
       // With normal VSYNC on, try to arrive early to prevent missing VBLANK;
       //
       //  * Latent Sync will turn off VSYNC and move the goal post the other direction
       //
-      next_vsync -= 3 * static_cast <LONGLONG> (
+      next_vsync +=
+        static_cast <LONGLONG> (SK::Framerate::Limiter::undershoot_percent) *
+        static_cast <LONGLONG> (
           static_cast <double> (SK_QpcFreq) /
-        ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator)     /
-          static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) );
+        ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator)     /
+          static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) );
     }
 
 ////if (config.render.framerate.enforcement_policy != 2)
@@ -743,60 +747,27 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
   //  SK_QueryPerf ().QuadPart;
   //
 
-  auto __qpcStamp = next_vsync;
 
   ms  = 1000.0 / static_cast <double> (target);
   fps =          static_cast <double> (target);
 
-  WriteRelease64 (
-    &frames, 0ULL
-  );
-
   auto _frames      = ReadAcquire64     (&frames);
   auto _framesDrawn = SK_GetFramesDrawn (       );
 
-  frames_of_fame.frames_measured.first.initClock  (__qpcStamp);
-  frames_of_fame.frames_measured.last.clock_val  = __qpcStamp;
+  frames_of_fame.frames_measured.first.initClock  (next_vsync);
+  frames_of_fame.frames_measured.last.clock_val  = next_vsync;
   frames_of_fame.frames_measured.first.initFrame  (_framesDrawn);
   frames_of_fame.frames_measured.last.frame_idx += _frames;
 
-#if 0
-  DWM_TIMING_INFO dwmTiming        = {                      };
-                  dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
-
-  if ( tracks_window && SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
-  {
-    LONGLONG llCompositionLatency =
-        (LONGLONG)dwmTiming.qpcCompose -
-        (LONGLONG)dwmTiming.qpcVBlank;
-
-    //static double uS =
-    //  static_cast <double> ( SK_GetPerfFreq ().QuadPart ) / ( 1000.0 * 1000.0 );
-
-    //SK_LOG0 ( ( L"Compose: %llu, VBlank: %llu, RefreshPeriod: %f uS...  CompositionLatency: %lli ticks",
-    //              dwmTiming.qpcCompose,  dwmTiming.qpcVBlank,
-    //               static_cast <double> (dwmTiming.qpcRefreshPeriod) * uS,
-    //                         llCompositionLatency ), L"  DWM    ");
-
-    //__qpcStamp =
-    //  dwmTiming.qpcVBlank;
-
-    //if (config.render.framerate.enforcement_policy == 2)
-    //  _perfQuadPart += (llCompositionLatency + ticks_to_undershoot);
-    //else
-    ///__qpcStamp -= (llCompositionLatency + ticks_to_undershoot);
-    __qpcStamp -= ticks_to_undershoot;
-
-    __SK_VBlankLatency_QPCycles =
-      __qpcStamp - dwmTiming.qpcVBlank;
-  }
-#endif
-
-  WriteRelease64 ( &start, __qpcStamp - ticks_per_frame     );
-  WriteRelease64 ( &freq,                        SK_QpcFreq );
+  //WriteRelease64 ( &frames,                        0ULL );
+  //WriteRelease64 ( &time,                           now );
+  //WriteRelease64 ( &start, next_vsync - ticks_per_frame );
+  //WriteRelease64 ( &next,  next_vsync                   );
+  WriteRelease64 ( &start, next_vsync - ticks_per_frame     );
   WriteRelease64 ( &time,                               0LL );
-  WriteRelease64 ( &last,  __qpcStamp - ticks_per_frame * 2 );
-  WriteRelease64 ( &next,  __qpcStamp                       );
+  WriteRelease64 ( &last,  next_vsync - ticks_per_frame * 2 );
+  WriteRelease64 ( &next,  next_vsync                       );
+  WriteRelease64 ( &frames, 0 );
 }
 
 
@@ -833,83 +804,40 @@ SK::Framerate::Limiter::try_wait (void)
 void
 SK::Framerate::Limiter::wait (void)
 {
-  if (limit_behavior != LIMIT_APPLY) {
-    return;
-  }
-
-  if (tracks_window && background == SK_IsGameWindowActive ())
-  {
-    background = (! background);
-  }
-
   // Don't limit under certain circumstances or exiting / alt+tabbing takes
   //   longer than it should.
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
-
-  ULONG origTimerRes = 0,
-         maxTimerRes = 0,
-         minTimerRes = 0;
-
-  if (NtQueryTimerResolution != nullptr)
-  {
-    NtQueryTimerResolution ( &minTimerRes,
-                             &maxTimerRes,
-                             &origTimerRes );
-
-    if (origTimerRes != maxTimerRes)
-    {
-      static int
-        adjustments = 0;
-
-      ULONG                                              now;
-      NtSetTimerResolution_Original (maxTimerRes, TRUE, &now);
-
-      SK::Framerate::Limiter::timer_res_ms =
-          (static_cast <double> (now) * 100.0) / 1000000.0;
-
-      SK_LOG1 ( ( L"Timer Resolution Adjustment #%lu", ++adjustments ),
-                  L"FrameLimit" );
-
-    }
-  }
+  if (limit_behavior != LIMIT_APPLY)
+    return;
 
 
   SK_FPU_ControlWord fpu_cw_orig =
     SK_FPU_SetPrecision (_PC_64);
 
 
+  if (tracks_window && background == SK_IsGameWindowActive ())
+  {
+    background = (! background);
+  }
+
+
   if (! background)
   {
-    if (fps != __target_fps) {
-         init (__target_fps);
-    }
+    set_limit ( __target_fps );
   }
 
   else if (tracks_window)
   {
-    if (__target_fps_bg > 0.0f)
-    {
-      if (fps != __target_fps_bg) {
-           init (__target_fps_bg);
-      }
-    }
-
-    else
-    {
-      if (fps != __target_fps) {
-           init (__target_fps);
-      }
-    }
+    set_limit ( __target_fps_bg > 0.0f ?
+                __target_fps_bg        :
+                __target_fps          );
   }
+
 
   if (tracks_window && __target_fps <= 0.0f)
   {
-    if (NtSetTimerResolution_Original != nullptr &&
-                                       maxTimerRes    !=   origTimerRes)
-        NtSetTimerResolution_Original (maxTimerRes, TRUE, &origTimerRes);
-
     SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 
     return;
@@ -929,14 +857,16 @@ SK::Framerate::Limiter::wait (void)
   else
       _frame_shame       [threadId]  = framesDrawn;
 
-  auto _time =
-    SK_QueryPerf ().QuadPart;
+    auto _time =
+      SK_QueryPerf ().QuadPart;
 
 
   bool normal = true;
 
   if (restart || full_restart)
   {
+    ////WriteRelease64 (&start, SK_QueryPerf ().QuadPart);
+
     ////if (full_restart || config.render.framerate.present_interval == 0)
     {
       init (__target_fps, tracks_window);
@@ -946,7 +876,7 @@ SK::Framerate::Limiter::wait (void)
     restart        = false;
     normal         = false;
 
-    WriteRelease64       (&frames, 0);
+    WriteRelease64 (&frames, 0);
   }
 
   WriteRelease64         (&time,  _time);
@@ -954,18 +884,14 @@ SK::Framerate::Limiter::wait (void)
 
   LONG64 time_  = ReadAcquire64 ( &time   ),
          start_ = ReadAcquire64 ( &start  ),
-         freq_  = ReadAcquire64 ( &freq   ),
          last_  = ReadAcquire64 ( &last   ),
          next_  = ReadAcquire64 ( &frames ) * ticks_per_frame
                                             + start_;
 
-  static const double _freq =
-    static_cast <double> (freq_);
-
   // Actual frametime before we forced a delay
   effective_ms =
-    1000.0 * ( static_cast <double> (time_ - last_)
-                                      /  _freq    );
+    1000.0 * ( static_cast <double> (time_ - last_) /
+               static_cast <double> ( SK_QpcFreq  ) );
 
   WriteRelease64 (&next, next_);
 
@@ -997,8 +923,12 @@ SK::Framerate::Limiter::wait (void)
         ReadAcquire64 ( &frames ) * ticks_per_frame
                                   + start_;
 
-      if (missed_frames > 1.0)
-            full_restart = true;
+      static uint64_t            ullLastReset = 0;
+      if (missed_frames > 1.0 && ullLastReset < SK_GetFramesDrawn () - 16)
+      {
+        ullLastReset = SK_GetFramesDrawn ();
+        full_restart = true;
+      }
       else if (tracks_window)
         InterlockedAdd (&SK_RenderBackend::flip_skip, 1);
     }
@@ -1012,7 +942,7 @@ SK::Framerate::Limiter::wait (void)
       return
         std::max (
           ( static_cast <double> ( next_ - SK_QueryPerf ().QuadPart ) /
-                                       _freq ),
+            static_cast <double> ( SK_QpcFreq )                     ),
             0.0  );
     };
 
@@ -1031,16 +961,13 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
-  if (next_ <= 0LL)
-      next_ = time_ + ticks_per_frame;
-
   if (next_ > 0LL)
   {
     // Flush batched commands before zonking this thread off
     if (tracks_window && rb.d3d11.immediate_ctx != nullptr)
       rb.d3d11.immediate_ctx->Flush ();
 
-  // Create an unnamed waitable timer.
+    // Create an unnamed waitable timer.
     if (timer_wait == nullptr)
     {
       timer_wait =
@@ -1060,8 +987,8 @@ SK::Framerate::Limiter::wait (void)
       if (config.render.framerate.enforcement_policy != 2)
       {
         //__VBlank.waitForBegin ();
-    //////extern void SK_D3DKMT_WaitForVBlank (void);
-    //////            SK_D3DKMT_WaitForVBlank ();
+        extern void SK_D3DKMT_WaitForVBlank (void);
+                    SK_D3DKMT_WaitForVBlank ();
 
         ////SK_D3DKMT_WaitForScanline0 ();
       }
@@ -1073,7 +1000,7 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
-    if ( timer_wait != 0 && to_next_in_secs * 1000.0 >= timer_res_ms * 2.5/*&& config.render.framerate.present_interval != 0*//* && to_next_in_secs * 1000.0 >= timer_res_ms * 2.875*/ )
+    if ( timer_wait != 0 && to_next_in_secs * 1000.0 >= timer_res_ms * 2.875 && config.render.framerate.present_interval != 0 )//* && to_next_in_secs * 1000.0 >= timer_res_ms * 2.875*/ )
     {
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
@@ -1112,11 +1039,11 @@ SK::Framerate::Limiter::wait (void)
         DWORD  dwWait  = WAIT_FAILED;
         while (dwWait != WAIT_OBJECT_0)
         {
-          if (         (intptr_t)hSwapWait.m_h > 0)
+          if (              (intptr_t)hSwapWait.m_h > 0)
             hWaitObjs [iWaitObjs++] = hSwapWait.m_h;
 
-          to_next_in_secs =
-            std::max (0.0, SK_RecalcTimeToNextFrame ());
+          //to_next_in_secs =
+          //  std::max (0.0, SK_RecalcTimeToNextFrame ());
 
           if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 2.0)
             hWaitObjs [iWaitObjs++] = timer_wait;
@@ -1173,6 +1100,7 @@ SK::Framerate::Limiter::wait (void)
       }
     }
 
+
     static D3DKMTGetScanLine_pfn
            D3DKMTGetScanLine =
           (D3DKMTGetScanLine_pfn)SK_GetProcAddress (L"gdi32.dll",
@@ -1183,37 +1111,35 @@ SK::Framerate::Limiter::wait (void)
     static UINT uiLastScanLine = 0;
            UINT uiScanLine     = 0;
 
+    auto pDisplay =
+      &rb.displays [rb.active_display];
 
-    static int iTry = 0;
+    ////////static int iTry = 0;
+    ////////
+    ////////if ((++iTry % 90) == 0)
+    ////////  bScanlineLevelSync = true;
+    ////////
+    ////////else if (time_ < next_)
+    ////////  bScanlineLevelSync = true;
 
-    if ((++iTry % 90) == 0)
-      bScanlineLevelSync = true;
 
-    else if (time_ < next_)
-      bScanlineLevelSync = true;
-
-    do
+    while (time_ < next_)
     {
-      DWORD dwWaitMS =
-        static_cast <DWORD> (
-          std::max (0.0, SK_RecalcTimeToNextFrame () * 1000.0)
-        );
+      YieldProcessor ();
 
-      // 2+ ms remain: we can let the kernel reschedule us and still get
-      //   control of the thread back before deadline in most cases.
-      if (dwWaitMS > 2)
+      // SK's Multimedia Class Scheduling Task for this thread prevents
+      //   CPU starvation, but if the service is turned off, implement
+      //     a fail-safe for very low framerate limits.
+      if (! config.render.framerate.enable_mmcss)
       {
-        YieldProcessor ();
+        DWORD dwWaitMS =
+          static_cast <DWORD> (
+            std::max (0.0, SK_RecalcTimeToNextFrame () * 1000.0)
+          );
 
-        // SK's Multimedia Class Scheduling Task for this thread prevents
-        //   CPU starvation, but if the service is turned off, implement
-        //     a fail-safe for very low framerate limits.
-        if (! config.render.framerate.enable_mmcss)
-        {
-          // This is only practical @ 30 FPS or lower.
-          if (dwWaitMS > 4)
-            SK_SleepEx (1, FALSE);
-        }
+        // This is only practical @ 30 FPS or lower.
+        if (dwWaitMS > 4)
+          SK_SleepEx (1, FALSE);
       }
 
       time_ =
@@ -1241,8 +1167,8 @@ SK::Framerate::Limiter::wait (void)
           //
             //LONGLONG
             //  llNextLine =
-            //    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator) /
-            //                                       static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (rb.displays [rb.active_display].signal.timing.total_size.cy - rb.displays [rb.active_display].signal.timing.active_size.cy);
+            //    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator) /
+            //                                       static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (pDisplay->signal.timing.total_size.cy - pDisplay->signal.timing.active_size.cy);
             //
             //while (SK_QueryPerf ().QuadPart < llNextLine)
             //  YieldProcessor ();
@@ -1276,19 +1202,19 @@ SK::Framerate::Limiter::wait (void)
                 {
                   break;
                 ////  llNextVBLankBegin =
-                ////    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator) /
-                ////                                       static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (rb.displays [rb.active_display].signal.timing.active_size.cy);
+                ////    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator) /
+                ////                                       static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (pDisplay->signal.timing.active_size.cy);
                 ////  llNextVBLankEnd   =
-                ////    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator) /
-                ////                                       static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (rb.displays [rb.active_display].signal.timing.total_size.cy);
+                ////    SK_QueryPerf ().QuadPart + 1.0 / ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator) /
+                ////                                       static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * (pDisplay->signal.timing.total_size.cy);
                 }
 
                 else
                 {
                   LONGLONG llNextLine =
                     SK_QueryPerf ().QuadPart + static_cast <LONGLONG> (
-                                       1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Numerator) /
-                                               static_cast <double> (rb.displays [rb.active_display].signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * 0.5 );
+                                       1.0 / ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator) /
+                                               static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator) ) * SK_QpcFreq * 0.5 );
 
                   while (SK_QueryPerf ().QuadPart < llNextLine)
                     YieldProcessor ();
@@ -1319,23 +1245,23 @@ SK::Framerate::Limiter::wait (void)
           //else
           //{
           //  llNextVBLankBegin +=
-          //    1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
-          //            static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ) * SK_QpcFreq;
+          //    1.0 / ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator) /
+          //            static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) * SK_QpcFreq;
           //
           //  llNextVBLankEnd   +=
-          //    1.0 / ( static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
-          //            static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator) ) * SK_QpcFreq;
+          //    1.0 / ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator) /
+          //            static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) * SK_Qpc;
           //}
         }
       }
 #endif
-    } while (time_ < next_);
+    }
 
-  //if (uiLastScanLine != uiScanLine)
-  //{
-  //  dll_log->Log (L"Drift: %i scanlines", (int)uiLastScanLine - (int)uiScanLine);
-  //  uiLastScanLine = uiScanLine;
-  //}
+    if (uiLastScanLine != uiScanLine)
+    {
+      dll_log->Log (L"Drift: %i scanlines", (int)uiLastScanLine - (int)uiScanLine);
+      uiLastScanLine = uiScanLine;
+    }
   }
 
   else
@@ -1348,34 +1274,23 @@ SK::Framerate::Limiter::wait (void)
   WriteRelease64 (&time, time_);
   WriteRelease64 (&last, time_);
 
-  if (bScanLineReSync && config.render.framerate.enforcement_policy != 2)
+  if (config.render.framerate.present_interval == 0 && bScanLineReSync && config.render.framerate.enforcement_policy != 2)
   {
-    WriteRelease64 (&frames, 0);
-
-    ///LONG64 llVBlank =
-    ///  __VBlank.getNextBegin (SK_QueryPerf ().QuadPart);
-    ///       llVBlank -= ticks_per_frame;
-
-    WriteRelease64 ( &start, time_ );
-    WriteRelease64 ( &time,    0LL );
-    WriteRelease64 ( &last,  time_ - ticks_per_frame );
-    WriteRelease64 ( &next,  time_ + ticks_per_frame );
+    full_restart = true;
+    ///WriteRelease64 (&frames, 0);
+    ///
+    //////LONG64 llVBlank =
+    //////  __VBlank.getNextBegin (SK_QueryPerf ().QuadPart);
+    //////       llVBlank -= ticks_per_frame;
+    ///
+    ///WriteRelease64 ( &start, time_ );
+    ///WriteRelease64 ( &next,  time_ + ticks_per_frame );
   }
 
-  if (! lazy_init)
+  if (! std::exchange (lazy_init, true))
   {
-    lazy_init = true;
-         init (fps, tracks_window);
+    init (fps, tracks_window);
   }
-
-#ifdef _RESTORE_TIMER_RES
-  if (origTimerRes != maxTimerRes)
-  {
-    ULONG                                                   dontCare;
-    if (NtSetTimerResolution_Original != nullptr)
-        NtSetTimerResolution_Original (origTimerRes, TRUE, &dontCare);
-  }
-#endif
 
   SK_FPU_SetControlWord (_MCW_PC, &fpu_cw_orig);
 }
@@ -1384,6 +1299,10 @@ SK::Framerate::Limiter::wait (void)
 void
 SK::Framerate::Limiter::set_limit (double target)
 {
+  // Skip redundant set_limit calls
+  if (fabs (fps - target) < DBL_EPSILON && tracks_window == true)
+    return;
+
   init (target);
 }
 
@@ -1477,8 +1396,10 @@ SK::Framerate::Tick ( bool          wait,
                       LARGE_INTEGER now,
                       IUnknown*     swapchain )
 {
-  auto* pLimiter =
+  auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
+
+  SK_ReleaseAssert (pLimiter != nullptr);
 
   if (wait)
     pLimiter->wait ();
@@ -1508,6 +1429,7 @@ SK::Framerate::Tick ( bool          wait,
     {
       pLimiter->amortization.phase = 0;
     }
+
     pLimiter->frame_history2->addSample (
       pLimiter->effective_frametime (),
         now
@@ -1521,15 +1443,12 @@ SK::Framerate::Tick ( bool          wait,
       skip_frame_history = true;
     }
 
-    if (last_frame != SK_GetFramesDrawn ())
-    {   last_frame  = SK_GetFramesDrawn ();
-
-      if (! (reset_frame_history || skip_frame_history))
-      {
-        SK_ImGui_Frames->timeFrame (dt);
-      }
-
-      else if (reset_frame_history) SK_ImGui_Frames->reset ();
+    if (std::exchange (last_frame, SK_GetFramesDrawn ())
+                                != SK_GetFramesDrawn ())
+    {
+      if (!   (reset_frame_history ||
+                skip_frame_history) ) SK_ImGui_Frames->timeFrame (dt);
+      else if (reset_frame_history)   SK_ImGui_Frames->reset     (  );
     }
   }
 
@@ -1762,37 +1681,34 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       ReadAcquire (&worker.work_idx) ? 0 : 1
     ];
 
-  if (true)//kReadBuffer.first/*worker.ulLastFrame*/ != SK_GetFramesDrawn ())
+  if ( WAIT_OBJECT_0 ==
+         SK_WaitForSingleObject (worker.hSignalConsume, 0) )
   {
-    if ( WAIT_OBJECT_0 ==
-           SK_WaitForSingleObject (worker.hSignalConsume, 0) )
+    LONG idx =
+      ReadAcquire (&worker.work_idx);
+
+    auto& kWriteBuffer =
+      worker.sorted_frame_history [idx];
+          kReadBuffer  =
+      worker.sorted_frame_history [idx ? 0 : 1];
+
+    kWriteBuffer.second.clear ();
+    kWriteBuffer.first = SK_GetFramesDrawn ();
+
+    for (const auto& datum : data)
     {
-      LONG idx =
-        ReadAcquire (&worker.work_idx);
-
-      auto& kWriteBuffer =
-        worker.sorted_frame_history [idx];
-            kReadBuffer  =
-        worker.sorted_frame_history [idx ? 0 : 1];
-
-      kWriteBuffer.second.clear ();
-      kWriteBuffer.first = SK_GetFramesDrawn ();
-
-      for (const auto& datum : data)
+      if (datum.when.QuadPart >= 0)
       {
-        if (datum.when.QuadPart >= 0)
+        if (_disreal (datum.val))
         {
-          if (_disreal (datum.val))
-          {
-            kWriteBuffer.second.emplace_back (datum.val);
-          }
+          kWriteBuffer.second.emplace_back (datum.val);
         }
       }
-
-      worker.ulLastFrame = SK_GetFramesDrawn ();
-
-      SetEvent (worker.hSignalProduce);
     }
+
+    worker.ulLastFrame = SK_GetFramesDrawn ();
+
+    SetEvent (worker.hSignalProduce);
   }
 #pragma warning (pop)
 
@@ -1800,4 +1716,4 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     kReadBuffer.second;
 }
 
-double SK::Framerate::Limiter::timer_res_ms = 0.0;
+double SK::Framerate::Limiter::timer_res_ms = 15.0;

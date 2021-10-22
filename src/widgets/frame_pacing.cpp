@@ -1093,7 +1093,7 @@ public:
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.start));
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.next));
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.last));
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.freq));
+      ImGui::Text ("%llu", SK_QpcFreq);
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
       //ImGui::SameLine  ();

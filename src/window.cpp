@@ -3176,8 +3176,14 @@ SK_Window_RepositionIfNeeded (void)
         dwWaitState =
           WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
 
-        while (ullLastFrame == SK_GetFramesDrawn () && dwWaitState != WAIT_OBJECT_0)
-          SK_Sleep (10);
+        while (ullLastFrame == SK_GetFramesDrawn ())
+        {
+          if (WaitForSingleObject (hSignals [0], 10UL) == _EndSignal)
+          {
+            dwWaitState = _EndSignal;
+            break;
+          }
+        }
 
         if (dwWaitState == WAIT_OBJECT_0 + 1)
         {

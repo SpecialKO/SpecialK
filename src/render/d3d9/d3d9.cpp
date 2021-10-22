@@ -3471,6 +3471,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
          rb.api == SK_RenderAPI::D3D9Ex ||
          rb.api == SK_RenderAPI::Reserved )
     {
+      SK_D3D9_SetFPSTarget (pparams);
+
       D3DDEVICE_CREATION_PARAMETERS dcparams = {};
 
       if (pDevice != nullptr)
@@ -4817,6 +4819,8 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   pPresentationParameters->SwapEffect                 = D3DSWAPEFFECT_FLIPEX;
   pPresentationParameters->MultiSampleType            = D3DMULTISAMPLE_NONE;
   pPresentationParameters->MultiSampleQuality         = 0;
+
+  SK_D3D9_SetFPSTarget (pPresentationParameters);
 
   HRESULT       ret = E_FAIL;
     D3D9_CALL ( ret, D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This, Adapter,

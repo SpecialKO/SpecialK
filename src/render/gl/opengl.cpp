@@ -63,9 +63,21 @@ SK_GL_UpdateRenderStats (void);
 
 extern "C++" int SK_Steam_DrawOSD (void);
 
+using wglGetProcAddress_pfn = PROC (WINAPI *)(LPCSTR);
+      wglGetProcAddress_pfn
+      wgl_get_proc_address  = nullptr;
+
 using wglSwapBuffers_pfn = BOOL (WINAPI *)(HDC);
       wglSwapBuffers_pfn
       wgl_swap_buffers   = nullptr;
+
+using wglSwapIntervalEXT_pfn = BOOL (WINAPI *)(int);
+      wglSwapIntervalEXT_pfn
+      wgl_swap_interval      = nullptr;
+
+using wglGetSwapIntervalEXT_pfn = int (WINAPI *)(void);
+      wglGetSwapIntervalEXT_pfn
+      wgl_get_swap_interval     = nullptr;
 
 using SwapBuffers_pfn  = BOOL (WINAPI *)(HDC);
       SwapBuffers_pfn
@@ -1869,7 +1881,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       }
     }
 
-
     status =
       static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
 
@@ -1935,6 +1946,9 @@ wglSwapBuffers (HDC hDC)
 
   BOOL bRet = FALSE;
 
+  if (                  config.render.framerate.present_interval != -1)
+    SK_GL_SwapInterval (config.render.framerate.present_interval);
+
   if (! config.render.osd.draw_in_vidcap)
     bRet = SK_GL_SwapBuffers (hDC, wgl_swap_buffers);
 
@@ -1963,6 +1977,9 @@ SwapBuffers (HDC hDC)
   config.render.osd._last_normal_frame = SK_GetFramesDrawn ();
 
   BOOL bRet = FALSE;
+
+  if (                  config.render.framerate.present_interval != -1)
+    SK_GL_SwapInterval (config.render.framerate.present_interval);
 
   if (config.render.osd.draw_in_vidcap)
     bRet = SK_GL_SwapBuffers (hDC, gdi_swap_buffers);
@@ -2474,6 +2491,8 @@ SK_HookGL (void)
       SK_Modules->LoadLibrary (L"gdi32.dll");
       SK_LoadRealGL ();
 
+      wgl_get_proc_address =
+        (wglGetProcAddress_pfn)SK_GetProcAddress      (local_gl, "wglGetProcAddress");
       wgl_swap_buffers =
         (wglSwapBuffers_pfn)SK_GetProcAddress         (local_gl, "wglSwapBuffers");
       wgl_make_current =
@@ -2504,6 +2523,9 @@ SK_HookGL (void)
       dll_log->Log (L"[ OpenGL32 ] Hooking OpenGL");
 
       SK_LoadRealGL ();
+
+      wgl_get_proc_address =
+        (wglGetProcAddress_pfn)SK_GetProcAddress       (local_gl, "wglGetProcAddress");
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapBuffers",
@@ -2966,6 +2988,38 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
   return ret;
 }
 
+
+BOOL
+WINAPI
+SK_GL_SwapInterval (int interval)
+{
+  if (wgl_swap_interval == nullptr && wgl_get_proc_address != nullptr)
+      wgl_swap_interval =     (wglSwapIntervalEXT_pfn)
+        wgl_get_proc_address ("wglSwapIntervalEXT");
+
+  if (     wgl_swap_interval != nullptr)
+    return wgl_swap_interval (interval);
+
+  SK_ReleaseAssert (! L"No wglGetSwapIntervalEXT");
+
+  return FALSE;
+}
+
+int
+WINAPI
+SK_GL_GetSwapInterval (void)
+{
+  if (wgl_get_swap_interval == nullptr && wgl_get_proc_address != nullptr)
+      wgl_get_swap_interval = (wglGetSwapIntervalEXT_pfn)
+        wgl_get_proc_address ("wglGetSwapIntervalEXT");
+
+  if (     wgl_get_swap_interval != nullptr)
+    return wgl_get_swap_interval ();
+
+  SK_ReleaseAssert (! L"No wglGetSwapIntervalEXT");
+
+  return 1;
+}
 
 HGLRC
 WINAPI

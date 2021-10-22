@@ -466,18 +466,8 @@ SK_ImGui_DrawConfig_Latency ()
     ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
   }
 
-  if (reflex_mode != 0)
+  if (config.nvidia.sleep.enable && config.nvidia.sleep.low_latency)
   {
-    ///bool unlimited =
-    ///  config.nvidia.sleep.frame_interval_us == 0;
-    ///
-    ///if (ImGui::Checkbox ("Reflex Unlimited FPS", &unlimited))
-    ///{
-    ///  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
-    ///  else           config.nvidia.sleep.frame_interval_us =
-    ///           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
-    ///}
-
     ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.sleep.enforcement_site,
                      "End-of-Frame\0Start-of-Frame\0Input Hook\0\0" );
 
@@ -485,6 +475,18 @@ SK_ImGui_DrawConfig_Latency ()
     {
       ImGui::SetTooltip ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
     }
+
+  //bool unlimited =
+  //  config.nvidia.sleep.frame_interval_us == 0;
+  //
+  //if (ImGui::Checkbox ("Use Unlimited Reflex FPS", &unlimited))
+  //{
+  //  extern float __target_fps;
+  //
+  //  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
+  //  else           config.nvidia.sleep.frame_interval_us =
+  //           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+  //}
 
     ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.sleep.marker_optimization);
   }

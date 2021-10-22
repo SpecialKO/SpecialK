@@ -3011,6 +3011,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       flags |= DXGI_PRESENT_RESTART;
     }
 
+
+#if 0
     if ( config.nvidia.sleep.low_latency_boost &&
          config.nvidia.sleep.enable            &&
          sk::NVAPI::nv_hardware                &&
@@ -3018,6 +3020,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     {
       flags |= DXGI_PRESENT_DO_NOT_WAIT;
     }
+#endif
 
 
 

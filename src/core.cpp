@@ -3497,6 +3497,19 @@ SK_API_IsDXGIBased (SK_RenderAPI api)
 }
 
 bool
+SK_API_IsDirect3D9 (SK_RenderAPI api)
+{
+  switch (api)
+  {
+    case SK_RenderAPI::D3D9:
+    case SK_RenderAPI::D3D9Ex:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool
 SK_API_IsGDIBased (SK_RenderAPI api)
 {
   switch (api)

@@ -1093,7 +1093,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if (ImGui::IsItemHovered () && (_maxAvailableRefresh < _maxRefresh))
       ImGui::SetTooltip ("Higher Refresh Rates are Available at a Different Resolution");
 
-  if (SK_API_IsDXGIBased (rb.api))
+  if ( SK_API_IsDXGIBased (rb.api) || SK_API_IsGDIBased (rb.api) ||
+      (SK_API_IsDirect3D9 (rb.api) && rb.fullscreen_exclusive) )
   {
     extern float __target_fps;
 
@@ -1133,6 +1134,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                                        "  Forced 1/3\0"
                                        "  Forced 1/4\0"
                                        "  Forced OFF\0\0";
+
+    static bool changed = false;
 
     if (ImGui::Combo ("VSYNC", &idx,
                           (__target_fps > 0.0f) ?
@@ -1174,6 +1177,25 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
           L"Fractional VSYNC Rates Require Disabling Special K's Framerate Limiter"
         );
       }
+
+      // Device reset is needed to change VSYNC mode in D3D9...
+      if (SK_API_IsDirect3D9 (rb.api))
+      {
+        if (rb.fullscreen_exclusive)
+        {
+          extern void SK_D3D9_TriggerReset (bool);
+                      SK_D3D9_TriggerReset (false);
+        }
+
+        else // User should not even see this menu in windowed...
+          changed = true;
+      }
+
+      if (SK_API_IsGDIBased (rb.api))
+      {
+        if (config.render.framerate.present_interval != -1)
+          SK_GL_SwapInterval (config.render.framerate.present_interval);
+      }
     }
 
     if (ImGui::IsItemHovered () && idx != VSYNC_NoOverride)
@@ -1181,6 +1203,19 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       ImGui::SetTooltip ( "NOTE: Some games perform additional limiting based"
                           " on their VSYNC setting; consider turning in-game"
                           " VSYNC -OFF-" );
+    }
+
+    if (SK_API_IsGDIBased (rb.api) && config.render.framerate.present_interval == -1)
+    {
+      ImGui::SameLine ();
+      ImGui::Text     ("-%s-", SK_GL_GetSwapInterval () > 0 ?
+                                                       "On" :
+                                                      "Off");
+    }
+
+    if (SK_API_IsDirect3D9 (rb.api) && changed)
+    {
+      ImGui::BulletText ("Game Restart Required");
     }
   }
 
@@ -2213,6 +2248,24 @@ SK_NV_LatencyControlPanel (void)
   {
     ImGui::Separator  ();
     ImGui::Text       ("NVIDIA Driver Black Magic");
+
+    if ((! rb.displays [rb.active_display].primary) && config.nvidia.sleep.low_latency
+                                                    && config.nvidia.sleep.enable)
+    {
+      ImGui::SameLine    (                                 );
+      ImGui::BeginGroup  (                                 );
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                         "  " ICON_FA_EXCLAMATION_TRIANGLE );
+      ImGui::SameLine    (                                 );
+      ImGui::Text        ( " Reflex Latency modes do not"
+                           " work correctly on Secondary"
+                           " monitors."                    );
+      ImGui::EndGroup    (                                 );
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
+    }
+
     ImGui::TreePush   ();
 
     SK_ImGui_DrawConfig_Latency ();
@@ -3920,8 +3973,8 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
           {
-            static auto& rb =
-              SK_GetCurrentRenderBackend ();
+            static float fVRRBias = 6.8f;
+            static bool  bVRRBias = false;
 
             static auto lastRefresh = 0.0f;
                    auto realRefresh =
@@ -3932,7 +3985,7 @@ SK_ImGui_ControlPanel (void)
             static int                 iFractSel  = 0;
             static auto               *pLastLabel = command;
             static auto                itemWidth  =
-              ImGui::CalcTextSize ("888.88888888").x;
+              ImGui::CalcTextSize ("888.888888888").x;
 
             if ( ( std::exchange (pLastLabel,  command)
                                             != command ) ||
@@ -3947,12 +4000,16 @@ SK_ImGui_ControlPanel (void)
               float   fRefresh = realRefresh;
               while ( fRefresh >= 12.0f )
               {
-                strFractList +=
-                    ( std::to_string (fRefresh) + '\0' );
-                fFractList.push_back (fRefresh);
+                float fBiasedRefresh =
+                            fRefresh - (!bVRRBias ? 0.0f :
+                            fRefresh *   fVRRBias * 0.01f );
 
-                if ( target_mag < fRefresh + 0.75 &&
-                     target_mag > fRefresh - 0.75 )
+                strFractList +=
+                    ( std::to_string (fBiasedRefresh) + '\0' );
+                fFractList.push_back (fBiasedRefresh);
+
+                if ( target_mag < fBiasedRefresh + 0.75 &&
+                     target_mag > fBiasedRefresh - 0.75 )
                 {
                   iFractSel = idx;
                 }
@@ -3977,6 +4034,21 @@ SK_ImGui_ControlPanel (void)
             }
 
             ImGui::PopItemWidth ();
+            if (ImGui::Checkbox    ("VRR Bias", &bVRRBias))
+            {
+              lastRefresh = 0.0f;
+            }
+            if (bVRRBias)
+            {
+              ImGui::SameLine ();
+              ImGui::Text ("\t(-%.2f%% Range)", fVRRBias);
+            }
+            //if (                                   bVRRBias &&
+            //ImGui::SliderFloat ("Maximum Range",  &fVRRBias, 0.0f, 10.0f,
+            //                    "-%.2f %%"))
+            //{
+            //
+            //}
             ImGui::EndPopup     ();
           }
 
@@ -4183,9 +4255,12 @@ SK_ImGui_ControlPanel (void)
             sched_drop_down += '\0';
           }
 
-          if (ImGui::Combo ("D3DKMT Process Priority Class", (int *)&sched_class, sched_drop_down.data ()))
+          if (config.render.framerate.present_interval == 0)
           {
-            D3DKMTSetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), sched_class);
+            if (ImGui::Combo ("D3DKMT Process Priority Class", (int *)&sched_class, sched_drop_down.data ()))
+            {
+              D3DKMTSetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), sched_class);
+            }
           }
 
           SK_NV_LatencyControlPanel ();

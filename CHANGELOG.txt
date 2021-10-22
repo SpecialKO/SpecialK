@@ -1,4 +1,12 @@
-﻿21.10.21
+﻿21.10.22
+========
+ + Added VSYNC options to the Display menu in OpenGL and Direct3D9
+ + Added warning in Reflex config if attempting to apply Latency modes on
+     a Secondary monitor (framerate will be wrong among other things)
+ + Fixed a Windows Defender deadlock when it tries to inject MpDetoursCopy...
+    and the Steam Overlay has crashed while holding the DLL loader lock
+
+21.10.21
 ========
  + Added right-click option to framerate limiter slider w/ pre-computed
      fractional refresh rate limits for optimal fixed-refresh pacing

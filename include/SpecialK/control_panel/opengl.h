@@ -19,6 +19,8 @@
  *
 **/
 
+#include <SpecialK/render/gl/opengl_backend.h>
+
 #ifndef __SK__CPL_OPENGL_H__
 #define __SK__CPL_OPENGL_H__
 
