@@ -1125,6 +1125,53 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
 
 
 
+struct SK_GL_ClipControl {
+#define GL_CLIP_ORIGIN         0x935C
+#define GL_CLIP_DEPTH_MODE     0x935D
+
+#define GL_NEGATIVE_ONE_TO_ONE 0x935E
+#define GL_ZERO_TO_ONE         0x935F
+
+#define GL_LOWER_LEFT          0x8CA1
+#define GL_UPPER_LEFT          0x8CA2
+
+using  glClipControl_pfn = void (WINAPI *)(GLenum origin, GLenum depth);
+static glClipControl_pfn
+       glClipControl;
+
+  struct {
+    GLint origin     = GL_LOWER_LEFT;
+    GLint depth_mode = GL_NEGATIVE_ONE_TO_ONE;
+  } original;
+
+  void push (GLint origin, GLint depth_mode)
+  {
+    if (glClipControl == nullptr && wgl_get_proc_address != nullptr)
+        glClipControl =       (glClipControl_pfn)
+        wgl_get_proc_address ("glClipControl");
+
+    if (glClipControl == nullptr)
+      return;
+
+    glGetIntegerv (GL_CLIP_ORIGIN,     &original.origin);
+    glGetIntegerv (GL_CLIP_DEPTH_MODE, &original.depth_mode);
+
+    glClipControl (origin, depth_mode);
+  }
+
+  void pop (void)
+  {
+    if (glClipControl == nullptr)
+      return;
+
+    glClipControl (original.origin, original.depth_mode);
+  }
+} glClipControlARB;
+
+SK_GL_ClipControl::glClipControl_pfn
+SK_GL_ClipControl::glClipControl = nullptr;
+
+
 
 #define SK_GL_GhettoStateBlock_Capture()                                                                              \
   GLint     last_program;              glGetIntegerv   (GL_CURRENT_PROGRAM,              &last_program);              \
@@ -1151,7 +1198,10 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
   GLboolean last_enable_depth_test   = glIsEnabled     (GL_DEPTH_TEST);                                               \
   GLboolean last_enable_scissor_test = glIsEnabled     (GL_SCISSOR_TEST);                                             \
   GLboolean last_enable_stencil_test = glIsEnabled     (GL_STENCIL_TEST);                                             \
-  GLboolean last_srgb_framebuffer    = glIsEnabled     (GL_FRAMEBUFFER_SRGB);
+  GLboolean last_srgb_framebuffer    = glIsEnabled     (GL_FRAMEBUFFER_SRGB);                                         \
+                                                                                                                      \
+  glClipControlARB.push (GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
+
 
 #define SK_GL_GhettoStateBlock_Apply()                                                                  \
   glUseProgram            (                         last_program);                                      \
@@ -1184,7 +1234,9 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
                                                                                                         \
   glColorMask( last_color_mask  [0], last_color_mask  [1], last_color_mask  [2], last_color_mask  [3]); \
   glViewport ( last_viewport    [0], last_viewport    [1], last_viewport    [2], last_viewport    [3]); \
-  glScissor  ( last_scissor_box [0], last_scissor_box [1], last_scissor_box [2], last_scissor_box [3]);
+  glScissor  ( last_scissor_box [0], last_scissor_box [1], last_scissor_box [2], last_scissor_box [3]); \
+                                                                                                        \
+  glClipControlARB.pop ();
 
 
 static GLuint
