@@ -1066,7 +1066,7 @@ auto DeclKeybind =
     Keybind ( &config.render.framerate.latent_sync.
                                   timing_resync_keybind, L"Request a Monitor Timing Resync",                           osd_ini,         L"LatentSync.Control"),
     Keybind ( &config.render.framerate.latent_sync.
-                                  fcat_bars_keybind,     L"Toggle FCAT Tearing Visualizer",                            osd_ini,         L"LatentSync.Control"),
+                               toggle_fcat_bars_keybind, L"Toggle FCAT Tearing Visualizer",                            osd_ini,         L"LatentSync.Control"),
 
 
     // Input
@@ -3500,7 +3500,7 @@ auto DeclKeybind =
   LoadKeybind (&config.render.framerate.latent_sync.tearline_move_up_keybind);
   LoadKeybind (&config.render.framerate.latent_sync.tearline_move_down_keybind);
   LoadKeybind (&config.render.framerate.latent_sync.timing_resync_keybind);
-  LoadKeybind (&config.render.framerate.latent_sync.fcat_bars_keybind);
+  LoadKeybind (&config.render.framerate.latent_sync.toggle_fcat_bars_keybind);
 
 
   if (config.steam.dll_path.empty ())

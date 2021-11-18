@@ -923,7 +923,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 7>
+    std::array <SK_ConfigSerializedKeybind *, 11>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
@@ -932,7 +932,12 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           &config.monitors.monitor_primary_keybind,
           &config.monitors.monitor_next_keybind,
           &config.monitors.monitor_prev_keybind,
-          &config.monitors.monitor_toggle_hdr
+          &config.monitors.monitor_toggle_hdr,
+
+          &config.render.framerate.latent_sync.tearline_move_up_keybind,
+          &config.render.framerate.latent_sync.tearline_move_down_keybind,
+          &config.render.framerate.latent_sync.timing_resync_keybind,
+          &config.render.framerate.latent_sync.toggle_fcat_bars_keybind
         };
 
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
@@ -1034,6 +1039,27 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
             rb.displays [rb.active_display].hdr.enabled = hdr_enable;
           }
         }
+      }
+
+      else if (  keybind == &config.render.framerate.latent_sync.tearline_move_up_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.TearLocation --");
+      }
+
+      else if (  keybind == &config.render.framerate.latent_sync.tearline_move_down_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.TearLocation ++");
+      }
+
+      else if (  keybind == &config.render.framerate.latent_sync.timing_resync_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.ResyncRate ++");
+        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.ResyncRate --");
+      }
+
+      else if (  keybind == &config.render.framerate.latent_sync.toggle_fcat_bars_keybind )
+      {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.ShowFCATBars toggle");
       }
 
       dispatched = TRUE;

@@ -898,6 +898,18 @@ SK_ImGui_DrawFramePercentiles (void)
 void
 SK_ImGui_DrawFCAT (void)
 {
+  ImGui::SetNextWindowSize (ImGui::GetIO ().DisplaySize, ImGuiCond_Always);
+  ImGui::SetNextWindowPos  (ImVec2 (0.0f, 0.0f),         ImGuiCond_Always);
+
+  static constexpr auto flags =
+    ImGuiWindowFlags_NoTitleBar        | ImGuiWindowFlags_NoResize           | ImGuiWindowFlags_NoMove                | ImGuiWindowFlags_NoScrollbar     |
+    ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse         | ImGuiWindowFlags_NoBackground          | ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_NoMouseInputs     | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs     |
+    ImGuiWindowFlags_NoNavFocus        | ImGuiWindowFlags_NoNav              | ImGuiWindowFlags_NoDecoration          | ImGuiWindowFlags_NoInputs;
+
+  ImGui::Begin ( "###FCAT", nullptr,
+                    flags );
+
   DWORD dwNow = SK_GetCurrentMS ();
 
   const ImVec4 col =
@@ -938,6 +950,8 @@ SK_ImGui_DrawFCAT (void)
   draw_list->AddRect                ( xy4, xy5, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
   draw_list->AddRect                ( xy6, xy7, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
   draw_list->PopClipRect            (                                                       );
+
+  ImGui::End ();
 }
 
 float fExtraData = 0.0f;
@@ -1066,51 +1080,6 @@ public:
 
       move = false;
     }
-
-
-
-    DWORD dwNow = SK_GetCurrentMS ();
-
-    const ImVec4 col =
-      ImColor::HSV (  ( (SK_GetFramesDrawn () & 0x1) == 0 ?        (static_cast <float>(dwNow % 250) / 250.0f)
-                                                          : 1.0f - (static_cast <float>(dwNow % 250) / 250.0f) ),
-                                                            1.0f,
-                                                            0.8f );
-
-    const ImU32 col32 =
-       ImColor (col);
-
-    ImDrawList* draw_list =
-      ImGui::GetWindowDrawList ();
-
-    ImVec2 xy0, xy1;
-    ImVec2 xy2, xy3;
-    ImVec2 xy4, xy5;
-    ImVec2 xy6, xy7;
-
-    static auto& io =
-      ImGui::GetIO ();
-
-    xy0 = ImVec2 ( io.DisplaySize.x - io.DisplaySize.x * 0.01f, 0.0f             );
-    xy1 = ImVec2 ( io.DisplaySize.x - io.DisplaySize.x * 0.01f, io.DisplaySize.y );
-
-    xy2 = ImVec2 ( io.DisplaySize.x * 0.01f,                    io.DisplaySize.y );
-    xy3 = ImVec2 ( io.DisplaySize.x * 0.01f,                    0.0f             );
-
-    xy4 = ImVec2 ( io.DisplaySize.x / 2.0f - (io.DisplaySize.x * 0.125f), io.DisplaySize.y );
-    xy5 = ImVec2 ( io.DisplaySize.x / 2.0f - (io.DisplaySize.x * 0.125f), 0.0f             );
-
-    xy6 = ImVec2 ( io.DisplaySize.x / 2.0f + (io.DisplaySize.x * 0.125f), 0.0f             );
-    xy7 = ImVec2 ( io.DisplaySize.x / 2.0f + (io.DisplaySize.x * 0.125f), io.DisplaySize.y );
-
-    draw_list->PushClipRectFullScreen (                                                       );
-    draw_list->AddRect                ( xy0, xy1, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-    draw_list->AddRect                ( xy2, xy3, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-    draw_list->AddRect                ( xy4, xy5, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-    draw_list->AddRect                ( xy6, xy7, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-    draw_list->PopClipRect            (                                                       );
-
-
 
     ImGui::BeginGroup ();
 

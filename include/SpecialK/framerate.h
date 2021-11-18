@@ -295,6 +295,7 @@ namespace SK
                     effective_ms = 0.0;
 
       ULONGLONG     ticks_per_frame     = 0ULL;
+      double        accum_per_frame     =  0.0;
       ULONGLONG     ticks_to_undershoot = 0ULL;
 
       // Don't align timing perfectly on a VBlank interval, because DWM composition is
@@ -306,6 +307,7 @@ namespace SK
                     start  = { },
                     next   = { },
                     last   = { };
+
       volatile
         LONG64      frames = 0;
       volatile

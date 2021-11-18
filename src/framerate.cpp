@@ -128,7 +128,7 @@ struct {
   LONGLONG start_busy  = 0LL;
   LONGLONG start_sleep = 0LL;
 
-  LONGLONG last_rollover = 0;
+  ULONG64  last_rollover = 0ULL;
 
   void reset (void)
   {
@@ -388,15 +388,15 @@ SK_ImGui_LatentSyncConfig (void)
       static constexpr int _MAX_FRAMES = 30;
 
       struct {
-        float input   [_MAX_FRAMES];
-        float display [_MAX_FRAMES];
+        double input   [_MAX_FRAMES];
+        double display [_MAX_FRAMES];
 
         int frames = 0;
 
-        float getInput (void)
+        double getInput (void)
         {
-          float avg     = 0.0f,
-                samples = 0.0f;
+          double avg     = 0.0,
+                 samples = 0.0;
 
           for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
           {
@@ -407,10 +407,10 @@ SK_ImGui_LatentSyncConfig (void)
             ( avg / samples );
         }
 
-        float getDisplay (void)
+        double getDisplay (void)
         {
-          float avg     = 0.0f,
-                samples = 0.0f;
+          double avg     = 0.0,
+                 samples = 0.0;
 
           for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
           {
@@ -486,12 +486,12 @@ SK_ImGui_LatentSyncConfig (void)
       {
         __scanline.lock.requestResync ();
 
-        LONGLONG llVSync0 = static_cast <LONGLONG> (
+        const LONGLONG llVSync0 = static_cast <LONGLONG> (
           ( 1.0 / ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator) /
                     static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) ) * static_cast <double> (SK_QpcFreq)
         );
 
-        LONGLONG llVSync1 =
+        const LONGLONG llVSync1 =
           (pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq) /
            pDisplay->signal.timing.vsync_freq.Numerator;
 
@@ -762,7 +762,7 @@ SK::Framerate::Init (void)
     pCommandProc->AddVariable ( "LatentSync.AdaptiveSync",
             new SK_IVarStub <bool> (&config.render.framerate.latent_sync.adaptive_sync));
 
-    pCommandProc->AddVariable ( "LatentSync.FCATBars",
+    pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
             new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
 
     SK_Scheduler_Init ();
@@ -1453,11 +1453,12 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.present_interval == 0)
     {
-      std::max (1.0,
-        std::round (            ticks_per_refresh > 1 ?
-          static_cast <double> (ticks_per_refresh) /
-          static_cast <double> (ticks_per_frame)      : 1.0)
-      );
+      dMissingTimeBoundary =
+        std::max (1.0,
+          std::round (            ticks_per_refresh > 1 ?
+            static_cast <double> (ticks_per_refresh) /
+            static_cast <double> (ticks_per_frame)      : 1.0)
+        );
     }
 
     static constexpr double dEdgeToleranceLow  = 0.0;
