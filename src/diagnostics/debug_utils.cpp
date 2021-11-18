@@ -3805,7 +3805,10 @@ bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
   if (config.compatibility.disable_debug_features)
+  {
+    SK_MinHook_Init ();
     return false;
+  }
 
   if (SK_IsHostAppSKIM ())
   {
@@ -3884,6 +3887,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                               "TerminateProcess",
                                TerminateProcess_Detour,
       static_cast_p2p <void> (&TerminateProcess_Original) );
+
 
     SK_CreateDLLHook2 (      L"kernel32",
                               "OutputDebugStringA",
