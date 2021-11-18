@@ -2375,6 +2375,11 @@ struct SK_D3D11_RenderCtx {
       D3D11_VIEWPORT                      vp                = {     };
     } hdr;
 
+    struct {
+      SK_ComPtr <ID3D11Texture2D>         pSwapChainCopy    = nullptr;
+      // Copy of last scanned-out frame so that skipped frames never tear
+    } latent_sync;
+
     ~FrameCtx (void);
   };
 
