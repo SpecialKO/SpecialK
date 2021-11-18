@@ -922,7 +922,8 @@ SK_NIER_RAD_BeginFrame (void)
          SK_XInput_Backend->viewed.keyboard < 2 && SK_XInput_Backend->viewed.other < 2 &&
              di8_to_xi.dwPacketNumber != 0 )
     {
-      config.input.gamepad.native_ps4 = true;
+      config.input.gamepad.native_ps4        = true;
+      config.input.gamepad.predefined_layout = 0; // PS4, not Steam controller
     }
 
     if (_SK_NIER_RAD_AutoCursorHide)
