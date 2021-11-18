@@ -3177,6 +3177,9 @@ HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 {
+  auto qpcTimeOfSwap =
+    SK_QueryPerf ();
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -3305,6 +3308,21 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
                             SK_Thread_GetCurrentId () );
   }
 #endif
+
+
+  extern LONGLONG __SK_LatentSyncPostDelay;
+  if (            __SK_LatentSyncPostDelay > 1LL)
+  {
+    extern void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+
+    static SK_AutoHandle
+                   hTimer (INVALID_HANDLE_VALUE);
+
+    SK_Framerate_WaitUntilQPC (
+      qpcTimeOfSwap.QuadPart + __SK_LatentSyncPostDelay,
+                   hTimer.m_h );
+  }
+
 
   if (config.render.framerate.enable_mmcss)
   {

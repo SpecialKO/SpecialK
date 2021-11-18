@@ -408,6 +408,42 @@ struct sk_config_t
       bool    enable_mmcss       =  true;
       int     enforcement_policy =     4; // Refer to framerate.cpp
       bool    auto_low_latency   =  true; // VRR users have the limiter default to low-latency
+      struct latent_sync_s {
+        SK_ConfigSerializedKeybind
+          tearline_move_up_keybind = {
+            SK_Keybind {
+              "Move Tear Location Up 1 Scanline", L"<Not Bound>",
+               false, false, false, 0,
+            }, L"MoveTearlineUp"
+          };
+        SK_ConfigSerializedKeybind
+          tearline_move_down_keybind = {
+            SK_Keybind {
+              "Move Tear Location Down 1 Scanline", L"<Not Bound>",
+               false, false, false, 0,
+            }, L"MoveTearlineDown"
+          };
+        SK_ConfigSerializedKeybind
+          timing_resync_keybind = {
+            SK_Keybind {
+              "Force a Timing Resync", L"<Not Bound>",
+               false, false, false, 0,
+            }, L"ManualResync"
+          };
+        SK_ConfigSerializedKeybind
+          toggle_fcat_bars_keybind = {
+            SK_Keybind {
+              "Toggle Tearline Visualizer", L"<Not Bound>",
+               false, false, false, 0,
+            }, L"ToggleFCATBars"
+          };
+        int   scanline_offset =    -1;
+        int   scanline_resync =   750;
+        int   scanline_error  =     1;
+        bool  adaptive_sync   = false;
+        float delay_bias      =  0.0f;
+        bool  show_fcat_bars  = false; // Not INI-persistent
+      } latent_sync;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex       = false;
@@ -1037,6 +1073,10 @@ enum class SK_GAME_ID
   LegendOfMana,                 // Legend Of Mana.exe
   MonsterHunterStories2,        // game.exe (fantastic),
   FarCry6,                      // FarCry6.exe
+  Ryujinx,                      // Ryujinx.exe
+  yuzu,                         // yuzu.exe
+  ForzaHorizon5,                // ForzaHorizon5.exe
+  HaloInfinite,                 // HaloInfinite.exe
   UNKNOWN_GAME               = 0xffff
 };
 
@@ -1075,6 +1115,7 @@ using wstring_hash = size_t;
 
 extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>>           humanKeyNameToVirtKeyCode;
 extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>>           virtKeyCodeToHumanKeyName;
+extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>>  virtKeyCodeToFullyLocalizedKeyName;
 extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
 #endif /* __SK__CONFIG_H__ */

@@ -1329,16 +1329,16 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       for ( auto display : rb.displays )
       {
-        if (EnumDisplaySettings (display.dxgi_name, ENUM_REGISTRY_SETTINGS, &dm))
+        if (EnumDisplaySettings (display.gdi_name, ENUM_REGISTRY_SETTINGS, &dm))
         {
           monitor_s  monitor;
-          wcsncpy_s (monitor.wszDevice, 32, display.dxgi_name, _TRUNCATE);
+          wcsncpy_s (monitor.wszDevice, 32, display.gdi_name, _TRUNCATE);
                      monitor.dm = dm;
 
           monitors.emplace_back (monitor);
         }
 
-        if (! _wcsicmp (display.dxgi_name, rb.displays [rb.active_display].dxgi_name))
+        if (! _wcsicmp (display.gdi_name, rb.displays [rb.active_display].gdi_name))
         {
           lOrigin = dm.dmPosition;
         }
@@ -3560,7 +3560,9 @@ SK_ImGui_ControlPanel (void)
     }
 
     float refresh_rate =
-      rb.getActiveRefreshRate ();
+      static_cast <float> (
+        rb.getActiveRefreshRate ()
+      );
 
     if (  refresh_rate != 0.0f  )
     {
@@ -3814,7 +3816,7 @@ SK_ImGui_ControlPanel (void)
           if (__target_fps == 0.0f)
           {
             __target_fps =
-              SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh;
+              static_cast <float> (SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh);
           }
 
           config.render.framerate.target_fps = __target_fps;
@@ -3973,18 +3975,18 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
           {
-            static float fVRRBias = 6.8f;
-            static bool  bVRRBias = false;
+            static double dVRRBias = 6.8;
+            static bool   bVRRBias = false;
 
-            static auto lastRefresh = 0.0f;
+            static auto lastRefresh = 0.0;
                    auto realRefresh =
                      SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh;
 
-            static std::string       strFractList ("", 1024);
-            static std::vector <float> fFractList;
-            static int                 iFractSel  = 0;
-            static auto               *pLastLabel = command;
-            static auto                itemWidth  =
+            static std::string        strFractList ("", 1024);
+            static std::vector <double> dFractList;
+            static int                  iFractSel  = 0;
+            static auto                *pLastLabel = command;
+            static auto                 itemWidth  =
               ImGui::CalcTextSize ("888.888888888").x;
 
             if ( ( std::exchange (pLastLabel,  command)
@@ -3995,26 +3997,26 @@ SK_ImGui_ControlPanel (void)
               int idx = 0;
 
               strFractList.clear ();
-                fFractList.clear ();
+                dFractList.clear ();
 
-              float   fRefresh = realRefresh;
-              while ( fRefresh >= 12.0f )
+              double  dRefresh = realRefresh;
+              while ( dRefresh >= 12.0 )
               {
-                float fBiasedRefresh =
-                            fRefresh - (!bVRRBias ? 0.0f :
-                            fRefresh *   fVRRBias * 0.01f );
+                double dBiasedRefresh =
+                             dRefresh - (!bVRRBias ? 0.0f :
+                             dRefresh *   dVRRBias * 0.01f );
 
                 strFractList +=
-                    ( std::to_string (fBiasedRefresh) + '\0' );
-                fFractList.push_back (fBiasedRefresh);
+                    ( std::to_string (dBiasedRefresh) + '\0' );
+                dFractList.push_back (dBiasedRefresh);
 
-                if ( target_mag < fBiasedRefresh + 0.75 &&
-                     target_mag > fBiasedRefresh - 0.75 )
+                if ( target_mag < dBiasedRefresh + 0.75 &&
+                     target_mag > dBiasedRefresh - 0.75 )
                 {
                   iFractSel = idx;
                 }
 
-                fRefresh *= 0.5f;
+                dRefresh *= 0.5;
                 ++idx;
               }
 
@@ -4022,26 +4024,144 @@ SK_ImGui_ControlPanel (void)
             }
 
             iFractSel =
-              std::min (fFractList.size (), (size_t)iFractSel);
+              std::min (static_cast <int> (dFractList.size ()),
+                                           iFractSel);
 
-            ImGui::PushItemWidth (itemWidth);
 
-            if ( ImGui::Combo ( "Refresh Rate Factors",
-                             &iFractSel, strFractList.data () ) )
+            extern int __SK_LatentSyncSkip;
+
+            bool bLatentSync =
+              config.render.framerate.present_interval == 0 &&
+              config.render.framerate.target_fps        > 0.0f;
+
+            if (ImGui::Checkbox ("Latent Sync", &bLatentSync))
             {
-              cp->ProcessCommandFormatted (
-                         "%s %f", command, fFractList [iFractSel] );
+              double dRefresh =
+                rb.getActiveRefreshRate ();
+
+              if (! bLatentSync)
+                config.render.framerate.present_interval = 1;
+              else
+              {
+                config.render.framerate.present_interval = 0;
+                __SK_LatentSyncSkip                      = 0;
+
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f", dRefresh
+                );
+              }
             }
 
-            ImGui::PopItemWidth ();
-            if (ImGui::Checkbox    ("VRR Bias", &bVRRBias))
+            if (bLatentSync)
             {
-              lastRefresh = 0.0f;
+              ImGui::TreePush ("");
+
+              double dRefresh =
+                rb.getActiveRefreshRate ();
+
+              int iMode = 2; // 1:1
+
+              if (     fabs (static_cast <double> (__target_fps) / 4.0 - dRefresh) < 1.0)
+              {
+                __SK_LatentSyncSkip = 4;
+                            iMode   = 0;
+              }
+
+              else if (fabs (static_cast <double> (__target_fps) / 2.0 - dRefresh) < 1.0)
+              {
+                __SK_LatentSyncSkip = 2;
+                            iMode   = 1;
+              }
+
+              else
+              {
+                __SK_LatentSyncSkip = 0;
+
+                if (fabs (static_cast <double> (__target_fps) * 2.0 - dRefresh) < 1.0)
+                {
+                  iMode = 3;
+                }
+                if (fabs (static_cast <double> (__target_fps) * 3.0 - dRefresh) < 1.0)
+                {
+                  iMode = 4;
+                }
+                if (fabs (static_cast <double> (__target_fps) * 4.0 - dRefresh) < 1.0)
+                {
+                  iMode = 5;
+                }
+              }
+
+              if ( ImGui::Combo ( "Scan Mode", &iMode,
+                                  "4x Refresh (D3D11/GL)\0"
+                                  "2x Refresh (D3D11/GL)\0"
+                                  "1:1 Refresh\0"
+                                  "1/2 Refresh\0"
+                                  "1/3 Refresh\0"
+                                  "1/4 Refresh\0\0" ) )
+              {
+                float fTargetFPS =
+                  static_cast <float> (dRefresh);
+
+                __SK_LatentSyncSkip = 0;
+
+                switch (iMode)
+                {
+                  case 0:
+                  case 1:
+                  {
+                    if (rb.api == SK_RenderAPI::D3D11 ||
+                        rb.api == SK_RenderAPI::OpenGL)//SK_API_IsDXGIBased (rb.api) || SK_API_IsGDIBased (rb.api))
+                    {
+                      if (iMode == 0)
+                      {
+                        __SK_LatentSyncSkip = 4;
+                             fTargetFPS *= 4.0f;
+                      }
+
+                      if (iMode == 1)
+                      {
+                        __SK_LatentSyncSkip = 2;
+                             fTargetFPS *= 2.0f;
+                      }
+                    }
+                  } break;
+
+                  default:
+                  case 2: fTargetFPS *= 1.0f; break;
+                  case 3: fTargetFPS /= 2.0f; break;
+                  case 4: fTargetFPS /= 3.0f; break;
+                  case 5: fTargetFPS /= 4.0f; break;
+                }
+
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f", fTargetFPS
+                );
+              }
+              ImGui::TreePop  (  );
             }
-            if (bVRRBias)
+
+            if (config.render.framerate.present_interval != 0)
             {
-              ImGui::SameLine ();
-              ImGui::Text ("\t(-%.2f%% Range)", fVRRBias);
+              ImGui::PushItemWidth (itemWidth);
+
+              if ( ImGui::Combo ( "Refresh Rate Factors",
+                               &iFractSel, strFractList.data () ) )
+              {
+                cp->ProcessCommandFormatted (
+                           "%s %f", command, dFractList [iFractSel] );
+              }
+
+              ImGui::PopItemWidth ();
+
+              if (ImGui::Checkbox    ("VRR Bias", &bVRRBias))
+              {
+                lastRefresh = 0.0f;
+              }
+              if (bVRRBias)
+              {
+                ImGui::SameLine ();
+                ImGui::Text ("\t(-%.2f%% Range)", dVRRBias);
+              }
             }
             //if (                                   bVRRBias &&
             //ImGui::SliderFloat ("Maximum Range",  &fVRRBias, 0.0f, 10.0f,
@@ -4049,11 +4169,46 @@ SK_ImGui_ControlPanel (void)
             //{
             //
             //}
+            extern void SK_ImGui_LatentSyncConfig (void);
+                        SK_ImGui_LatentSyncConfig ();
+
             ImGui::EndPopup     ();
           }
 
           ImGui::PopID ();
         };
+
+        static std::set <SK_ConfigSerializedKeybind *>
+          timing_keybinds = {
+            &config.render.framerate.latent_sync.tearline_move_up_keybind,
+            &config.render.framerate.latent_sync.tearline_move_down_keybind,
+            &config.render.framerate.latent_sync.timing_resync_keybind,
+            &config.render.framerate.latent_sync.toggle_fcat_bars_keybind
+          };
+
+        // Keybinds made using a menu option must process their popups here
+        for ( auto& binding : timing_keybinds )
+        {
+          if (binding->assigning)
+          {
+            if (! ImGui::IsPopupOpen (binding->bind_name))
+              ImGui::OpenPopup (      binding->bind_name);
+
+            std::wstring     original_binding =
+                                      binding->human_readable;
+
+            SK_ImGui_KeybindDialog (  binding           );
+
+            if (             original_binding !=
+                                      binding->human_readable)
+              binding->param->store ( binding->human_readable);
+
+            if (! ImGui::IsPopupOpen (binding->bind_name))
+                                      binding->assigning = false;
+          }
+        }
+
+
 
         _LimitSlider ( __target_fps, "###FPS_TargetOrLimit",
                                             "TargetFPS",
@@ -4084,7 +4239,7 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::BeginGroup ();
 
-            static bool bLowLatency =
+            bool bLowLatency =
                 ( config.render.framerate.enforcement_policy == 2);
 
             if (ImGui::Checkbox ("Low Latency Mode", &bLowLatency))
@@ -4212,7 +4367,7 @@ SK_ImGui_ControlPanel (void)
             D3DKMT_SCHEDULINGPRIORITYCLASS_NORMAL,
             D3DKMT_SCHEDULINGPRIORITYCLASS_ABOVE_NORMAL,
             D3DKMT_SCHEDULINGPRIORITYCLASS_HIGH,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_REALTIME
+            D3DKMT_SCHEDULINGPRIORITYCLASS_REALTIME // Mortals are not authorized to use this :)
           } D3DKMT_SCHEDULINGPRIORITYCLASS;
 
           using D3DKMTSetProcessSchedulingPriorityClass_pfn = NTSTATUS (WINAPI*)(HANDLE, D3DKMT_SCHEDULINGPRIORITYCLASS );
@@ -4248,9 +4403,6 @@ SK_ImGui_ControlPanel (void)
             sched_drop_down += '\0';
 
             sched_drop_down += "High";
-            sched_drop_down += '\0';
-
-            sched_drop_down += "Realtime";
             sched_drop_down += '\0';
             sched_drop_down += '\0';
           }
@@ -4833,7 +4985,7 @@ void
 SK_ImGui_StageNextFrame (void)
 {
   auto& virtualToHuman =
-    virtKeyCodeToHumanKeyName.get ();
+    virtKeyCodeToFullyLocalizedKeyName.get ();
 
   if (imgui_staged)
     return;
@@ -4948,6 +5100,14 @@ SK_ImGui_StageNextFrame (void)
   ////else if (reset_frame_history) SK_ImGui_Frames->reset ();
 
   reset_frame_history = false;
+
+  if (config.render.framerate.latent_sync.show_fcat_bars)
+  {
+    extern void SK_ImGui_DrawFCAT (void);
+                SK_ImGui_DrawFCAT ();
+  }
+
+
 
   extern void SK_Widget_InitLatency        (void);
   extern void SK_Widget_InitFramePacing    (void);
@@ -5205,13 +5365,18 @@ SK_ImGui_StageNextFrame (void)
     ImGui::Spacing         ();
 
     ImGui::TextUnformatted ("Press");                   ImGui::SameLine ();
-    ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
-                               R"('%ws + %ws + %ws')",
-                                    virtualToHuman [VK_CONTROL],
-                                    virtualToHuman [VK_SHIFT],
-                                    virtualToHuman [VK_BACK] );
-                                                        ImGui::SameLine ();
-    ImGui::TextUnformatted (", ");                      ImGui::SameLine ();
+
+    if (SK_GetCurrentGameID () != SK_GAME_ID::HaloInfinite)
+    {
+      ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
+                                 R"('%hs + %hs + %hs')",
+                                      SK_WideCharToUTF8 (virtualToHuman [VK_CONTROL]).c_str (),
+                                      SK_WideCharToUTF8 (virtualToHuman [VK_SHIFT]).c_str   (),
+                                      SK_WideCharToUTF8 (virtualToHuman [VK_BACK]).c_str    () );
+                                                          ImGui::SameLine ();
+      ImGui::TextUnformatted (", ");                      ImGui::SameLine ();
+    }
+
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"('Select + Start' (PlayStation))" );
                                                         ImGui::SameLine ();
@@ -5724,14 +5889,14 @@ SK_ImGui_Toggle (void)
         if (EnableEULAIfPirate ())
           config.imgui.show_eula = true;
 
-        static bool first = true;
-
-        if (first)
+#ifdef _USE_EULA
+        static bool        first = true;
+        if (std::exchange (first,  false))
         {
           eula.never_show_again = true;
           eula.show             = config.imgui.show_eula;
-          first                 = false;
         }
+#endif
       }
     }
 
@@ -5941,7 +6106,7 @@ SK_Display_UpdateOutputTopology (void)
             }
           }
 
-          wcsncpy_s ( display.dxgi_name,  32,
+          wcsncpy_s ( display.gdi_name,   32,
                       outDesc.DeviceName, _TRUNCATE );
 
           SK_RBkEnd_UpdateMonitorName (display, outDesc);
@@ -6101,7 +6266,7 @@ SK_Display_UpdateOutputTopology (void)
             L"[Output Dev]\n"
             L"  +------------------+---------------------\n"
             L"  | EDID Device Name |  %ws\n"
-            L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
+            L"  | GDI  Device Name |  %ws (HMONITOR: %x)\n"
             L"  | Desktop Display. |  %ws%ws\n"
             L"  | Bits Per Color.. |  %u\n"
             L"  | Color Space..... |  %s\n"
@@ -6114,7 +6279,7 @@ SK_Display_UpdateOutputTopology (void)
             L"  |  \"  FullFrame... |  %f\n"
             L"  +------------------+---------------------\n",
               display.name,
-              display.dxgi_name, display.monitor,
+              display.gdi_name, display.monitor,
               display.attached ? L"Yes"                : L"No",
               display.primary  ? L" (Primary Display)" : L"",
                           display.bpc,

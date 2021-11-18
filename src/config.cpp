@@ -36,6 +36,7 @@ SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
+SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToFullyLocalizedKeyName;
 
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
@@ -139,6 +140,10 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
       { hash_lower (L"Legend of Mana.exe"),                     SK_GAME_ID::LegendOfMana                 },
       { hash_lower (L"FarCry6.exe"),                            SK_GAME_ID::FarCry6                      },
+
+      { hash_lower (L"Ryujinx.exe"),                            SK_GAME_ID::Ryujinx                      },
+      { hash_lower (L"yuzu.exe"),                               SK_GAME_ID::yuzu                         },
+      { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                }
     };
 
     first_check = false;
@@ -538,6 +543,15 @@ struct {
     {
       sk::ParameterInt*   render_ahead;
     } control;
+
+    struct
+    {
+      sk::ParameterInt*   offset;
+      sk::ParameterInt*   resync;
+      sk::ParameterInt*   error;
+      sk::ParameterFloat* bias;
+      sk::ParameterBool*  adaptive;
+    } latent_sync;
   } framerate;
   struct {
     sk::ParameterInt*     adapter_override;
@@ -1045,6 +1059,15 @@ auto DeclKeybind =
     Keybind ( &config.monitors.monitor_prev_keybind,     L"Move Game to Previous Monitor",                             osd_ini,         L"Display.Monitor"),
     Keybind ( &config.monitors.monitor_toggle_hdr,       L"Toggle HDR on Selected Monitor",                            osd_ini,         L"Display.Monitor"),
 
+    Keybind ( &config.render.framerate.latent_sync.
+                             tearline_move_down_keybind, L"Move Tear Location Down 1 Scanline",                        osd_ini,         L"LatentSync.Control"),
+    Keybind ( &config.render.framerate.latent_sync.
+                               tearline_move_up_keybind, L"Move Tear Location Up 1 Scanline",                          osd_ini,         L"LatentSync.Control"),
+    Keybind ( &config.render.framerate.latent_sync.
+                                  timing_resync_keybind, L"Request a Monitor Timing Resync",                           osd_ini,         L"LatentSync.Control"),
+    Keybind ( &config.render.framerate.latent_sync.
+                                  fcat_bars_keybind,     L"Toggle FCAT Tearing Visualizer",                            osd_ini,         L"LatentSync.Control"),
+
 
     // Input
     //////////////////////////////////////////////////////////////////////////
@@ -1195,6 +1218,11 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
+    ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
+    ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
+    ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
+    ConfigEntry (render.framerate.latent_sync.adaptive,  L"Allow tearing if framerate is below target FPS",            dll_ini,         L"FrameRate.LatentSync",  L"AdaptiveSync"),
+    ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
@@ -1626,6 +1654,39 @@ auto DeclKeybind =
   // Default = Don't Care
   config.render.dxgi.exception_mode = -1;
   config.render.dxgi.scaling_mode   = -1;
+
+
+  // Load these before assigning defaults based on current game
+  //
+#ifdef _M_IX86
+  apis.ddraw.hook->load  (config.apis.ddraw.hook);
+  apis.d3d8.hook->load   (config.apis.d3d8.hook);
+#endif
+
+  if (! apis.d3d9.hook->load   (config.apis.d3d9.hook))
+    config.apis.d3d9.hook = true;
+
+  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
+    config.apis.d3d9ex.hook = true;
+
+  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
+
+#ifdef _M_AMD64
+  if (! apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook))
+    config.apis.dxgi.d3d12.hook = true;
+#endif
+
+  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
+    config.apis.OpenGL.hook = true;
+
+#ifdef _M_AMD64
+  apis.Vulkan.hook->load       (config.apis.Vulkan.hook);
+#endif
+
+  if (! apis.last_known->load ((int &)config.apis.last_known))
+    config.apis.last_known = SK_RenderAPI::Reserved;
+
 
 
   //
@@ -2480,6 +2541,40 @@ auto DeclKeybind =
                                    L"kaldaien_api64.dll";
         }else config.steam.dll_path            =     L"";
       } break;
+
+      // Nintendo Switch Emulators ( OpenGL / Vulkan )
+      case SK_GAME_ID::yuzu:
+      case SK_GAME_ID::Ryujinx:
+      {
+        config.steam.appid                = 0;
+        config.steam.silent               = true;
+        config.apis.d3d9.hook             = false;
+        config.apis.d3d9ex.hook           = false;
+        config.apis.dxgi.d3d11.hook       = false;
+        config.apis.dxgi.d3d12.hook       = false;
+        config.apis.OpenGL.hook           = true;
+        config.apis.last_known            = SK_RenderAPI::OpenGL;
+        config.system.global_inject_delay = 15.0F;
+      } break;
+
+      case SK_GAME_ID::ForzaHorizon5:
+      case SK_GAME_ID::HaloInfinite:
+      {
+        // Work around DRM / Anti-Debug Quirks
+        config.compatibility.disable_debug_features = true;
+        config.window.dont_hook_wndproc             = true;
+        config.input.cursor.manage                  = true;  // Mouse cursor doesn't auto-hide
+        config.input.gamepad.xinput.hook_setstate   = false; // Breaks haptic feedback
+        config.input.gamepad.xinput.placehold [0]   = false;
+        config.input.gamepad.xinput.placehold [1]   = false;
+        config.input.gamepad.xinput.placehold [2]   = false;
+        config.input.gamepad.xinput.placehold [3]   = false;
+
+        if (SK_GetCurrentGameID () == SK_GAME_ID::HaloInfinite)
+        {
+          config.system.global_inject_delay = 30.0;
+        }
+      } break;
 #endif
     }
   }
@@ -2501,43 +2596,13 @@ auto DeclKeybind =
   );
 
 
-  if (! apis.last_known->load ((int &)config.apis.last_known))
-    config.apis.last_known = SK_RenderAPI::Reserved;
-
-
-#ifdef _M_IX86
-  apis.ddraw.hook->load  (config.apis.ddraw.hook);
-  apis.d3d8.hook->load   (config.apis.d3d8.hook);
-#endif
-
-  if (! apis.d3d9.hook->load (config.apis.d3d9.hook))
-    config.apis.d3d9.hook = true;
-
-  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
-    config.apis.d3d9ex.hook = true;
-
   // D3D9Ex cannot exist without D3D9...
   if (config.apis.d3d9ex.hook)
       config.apis.d3d9.hook = true;
 
-  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
-    config.apis.dxgi.d3d11.hook = true;
-
-#ifdef _M_AMD64
-  apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
-
   // We need to enable D3D11 hooking for D3D12 to work reliably
   if (config.apis.dxgi.d3d12.hook)
       config.apis.dxgi.d3d11.hook = true;
-
-#endif
-
-  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
-    config.apis.OpenGL.hook = true;
-
-#ifdef _M_AMD64
-  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
-#endif
 
 
   osd.version_banner.duration->load      (config.version_banner.duration);
@@ -2623,6 +2688,12 @@ auto DeclKeybind =
 //  render.framerate.control.
 //                  render_ahead->load        (config.render.framerate.max_render_ahead);
   render.framerate.override_cpu_count->load (config.render.framerate.override_num_cpus);
+
+  render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
+  render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
+  render.framerate.latent_sync.error->load    (config.render.framerate.latent_sync.scanline_error);
+  render.framerate.latent_sync.adaptive->load (config.render.framerate.latent_sync.adaptive_sync);
+  render.framerate.latent_sync.bias->load     (config.render.framerate.latent_sync.delay_bias);
 
 
 /////// Range-restrict this to prevent the user from destroying performance
@@ -3426,6 +3497,11 @@ auto DeclKeybind =
   LoadKeybind (&config.monitors.monitor_prev_keybind);
   LoadKeybind (&config.monitors.monitor_toggle_hdr);
 
+  LoadKeybind (&config.render.framerate.latent_sync.tearline_move_up_keybind);
+  LoadKeybind (&config.render.framerate.latent_sync.tearline_move_down_keybind);
+  LoadKeybind (&config.render.framerate.latent_sync.timing_resync_keybind);
+  LoadKeybind (&config.render.framerate.latent_sync.fcat_bars_keybind);
+
 
   if (config.steam.dll_path.empty ())
   {
@@ -4105,6 +4181,13 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.refresh_rate->store        (config.render.framerate.refresh_rate);
 
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
+
+    render.framerate.latent_sync.offset->store    (config.render.framerate.latent_sync.scanline_offset);
+    render.framerate.latent_sync.resync->store    (config.render.framerate.latent_sync.scanline_resync);
+    render.framerate.latent_sync.error->store     (config.render.framerate.latent_sync.scanline_error);
+    render.framerate.latent_sync.adaptive->store  (config.render.framerate.latent_sync.adaptive_sync);
+    render.framerate.latent_sync.bias->store      (config.render.framerate.latent_sync.delay_bias);
+
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 
     // SLI only works in Direct3D
@@ -4525,8 +4608,9 @@ SK_Keybind::parse (void)
 
   static bool init = false;
 
-  static auto& humanToVirtual = humanKeyNameToVirtKeyCode.get ();
-  static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get ();
+  static auto& humanToVirtual = humanKeyNameToVirtKeyCode.get          ();
+  static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get          ();
+  static auto& virtualToLocal = virtKeyCodeToFullyLocalizedKeyName.get ();
 
   auto _PushVirtualToHuman =
   [&] (BYTE vKey, const wchar_t* wszHumanName) ->
@@ -4534,6 +4618,17 @@ SK_Keybind::parse (void)
   {
     auto& pair_builder =
       virtualToHuman [vKey];
+
+    wcsncpy_s ( pair_builder, 64,
+                wszHumanName, _TRUNCATE );
+  };
+
+  auto _PushVirtualToLocal =
+  [&] (BYTE vKey, const wchar_t* wszHumanName) ->
+  void
+  {
+    auto& pair_builder =
+      virtualToLocal [vKey];
 
     wcsncpy_s ( pair_builder, 64,
                 wszHumanName, _TRUNCATE );
@@ -4623,6 +4718,8 @@ SK_Keybind::parse (void)
         _PushHumanToVirtual (name, gsl::narrow_cast <BYTE> (i));
         _PushVirtualToHuman (      gsl::narrow_cast <BYTE> (i), name);
       }
+
+      _PushVirtualToLocal   (      gsl::narrow_cast <BYTE> (i), name);
     }
 
     _PushHumanToVirtual (L"Plus",        gsl::narrow_cast <BYTE> (VK_OEM_PLUS));
