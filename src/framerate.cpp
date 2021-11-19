@@ -44,7 +44,6 @@ extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
 
 void SK_D3DKMT_WaitForScanline0 (void);
 
-#define STATUS_SUCCESS          ((NTSTATUS)0x00000000L)
 #define D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS 8
 
 typedef struct _D3DKMT_GETVERTICALBLANKEVENT {
@@ -1637,7 +1636,13 @@ SK::Framerate::Limiter::wait (void)
                dwWait != WAIT_OBJECT_0 + 1 &&
                dwWait != WAIT_TIMEOUT )
           {
-            dll_log->Log (L"Result of WaitForSingleObject: %x", dwWait);
+            DWORD dwLastError =
+                 GetLastError ();
+
+            dll_log->Log (
+              L"[(%s)-%s:%d] Result of WaitForSingleObject = %x (GetLastError: %x)",
+                     __FUNCTIONW__, __FILEW__, __LINE__, dwWait,  dwLastError
+            );
           }
 
           if ((intptr_t)hSwapWait.m_h > 0)
@@ -1645,9 +1650,6 @@ SK::Framerate::Limiter::wait (void)
 
 
           wait_time.endSleep ();
-
-          if (dwWait == WAIT_TIMEOUT)
-            break;
 
           break;
         }
@@ -2484,7 +2486,10 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
              dwWait != WAIT_OBJECT_0 + 1 &&
              dwWait != WAIT_TIMEOUT )
         {
-          dll_log->Log (L"Result of WaitForSingleObject: %x", dwWait);
+          DWORD dwLastError =
+            GetLastError ();
+
+          dll_log->Log (L"[SK_Framerate_WaitUntilQPC] Result of WaitForSingleObject: %x (GetLastError: %x)", dwWait, dwLastError);
         }
 
         break;

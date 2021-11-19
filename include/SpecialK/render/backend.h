@@ -615,9 +615,9 @@ struct sk_hwnd_cache_s
   {
     struct
     {
-      int   x, y;
-      float refresh;
-    } res { 0, 0, 0.0f };
+      int    x, y;
+      double refresh;
+    } res { 0, 0, 0.0 };
 
     DWORD last_checked     = 0UL;
   } devcaps;
@@ -701,6 +701,7 @@ public:
     struct {
       D3DKMT_HANDLE       hDevice              = 0;
     } device;
+    std::recursive_mutex  lock;
   } adapter;
 
   static auto constexpr
@@ -734,7 +735,7 @@ public:
     } hdr;
     bool                  attached        = false;
     wchar_t               name      [64]  =  { };
-    wchar_t               dxgi_name [32]  =  { };
+    wchar_t               gdi_name  [32]  =  { };
     wchar_t               path_name [128] =  { };
     char                  full_name [128] =  { };
     HMONITOR              monitor         =   0;
@@ -1087,7 +1088,7 @@ public:
   void requestFullscreenMode (bool override = false);
   void requestWindowedMode   (bool override = false);
 
-  float getActiveRefreshRate (HMONITOR hMonitor = 0 /*Default to HWND's nearest*/);
+  double getActiveRefreshRate (HMONITOR hMonitor = 0 /*Default to HWND's nearest*/);
 
   HANDLE getSwapWaitHandle   (void);
   void releaseOwnedResources (void);

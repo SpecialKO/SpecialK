@@ -824,6 +824,11 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
+  config.apis.OpenGL.hook     = true;
+  config.apis.d3d9.hook       = true;
+  config.apis.d3d9ex.hook     = true;
+  config.apis.dxgi.d3d11.hook = true;
+
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -915,12 +920,12 @@ SK_LoadConfigEx (std::wstring name, bool create)
     init = -1;
 
 
-    dll_ini =
-      SK_CreateINI (full_name.c_str ());
+    if (dll_ini == nullptr)
+        dll_ini = SK_CreateINI (full_name.c_str ());
 
     if (! dll_ini)
     {
-      assert (false && L"Out Of Memory");
+      SK_ReleaseAssert (false && L"Out Of Memory");
       init = FALSE; return false;
     }
 
@@ -1656,39 +1661,6 @@ auto DeclKeybind =
   config.render.dxgi.scaling_mode   = -1;
 
 
-  // Load these before assigning defaults based on current game
-  //
-#ifdef _M_IX86
-  apis.ddraw.hook->load  (config.apis.ddraw.hook);
-  apis.d3d8.hook->load   (config.apis.d3d8.hook);
-#endif
-
-  if (! apis.d3d9.hook->load   (config.apis.d3d9.hook))
-    config.apis.d3d9.hook = true;
-
-  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
-    config.apis.d3d9ex.hook = true;
-
-  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
-    config.apis.dxgi.d3d11.hook = true;
-
-#ifdef _M_AMD64
-  if (! apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook))
-    config.apis.dxgi.d3d12.hook = true;
-#endif
-
-  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
-    config.apis.OpenGL.hook = true;
-
-#ifdef _M_AMD64
-  apis.Vulkan.hook->load       (config.apis.Vulkan.hook);
-#endif
-
-  if (! apis.last_known->load ((int &)config.apis.last_known))
-    config.apis.last_known = SK_RenderAPI::Reserved;
-
-
-
   //
   // Application Compatibility Overrides
   // ===================================
@@ -2114,6 +2086,10 @@ auto DeclKeybind =
         // ReShade will totally crash if it is permitted to hook D3D9
         config.apis.d3d9.hook                 = false;
         config.apis.d3d9ex.hook               = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
 
@@ -2135,6 +2111,10 @@ auto DeclKeybind =
         config.apis.d3d9.hook                     = false;
         config.apis.d3d9ex.hook                   = false;
         config.apis.OpenGL.hook                   = false;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
 
@@ -2264,6 +2244,10 @@ auto DeclKeybind =
         config.apis.Vulkan.hook                   = false;
         config.apis.dxgi.d3d12.hook               = false;
         config.render.framerate.enable_mmcss      = true;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
       case SK_GAME_ID::AssassinsCreed_Odyssey:
@@ -2418,12 +2402,15 @@ auto DeclKeybind =
         config.apis.d3d9.hook                     = false;
         config.apis.d3d9ex.hook                   = false;
         config.apis.OpenGL.hook                   = false;
-        config.apis.Vulkan.hook                   = false;
 
         config.threads.enable_file_io_trace       =  true;
 
         extern void SK_OPT_InitPlugin (void);
                     SK_OPT_InitPlugin (    );
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
       case SK_GAME_ID::HuniePop2:
@@ -2432,6 +2419,10 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                      = false;
         config.apis.d3d9.hook                        = false;
         config.textures.cache.ignore_nonmipped       =  true;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
       case SK_GAME_ID::LegendOfMana:
@@ -2510,6 +2501,10 @@ auto DeclKeybind =
         config.nvidia.sleep.low_latency_boost        =  true;
 
         config.system.suppress_crashes               =  true;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.  hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
       case SK_GAME_ID::ResidentEvil8:
@@ -2555,6 +2550,13 @@ auto DeclKeybind =
         config.apis.OpenGL.hook           = true;
         config.apis.last_known            = SK_RenderAPI::OpenGL;
         config.system.global_inject_delay = 15.0F;
+
+        apis.d3d9.hook->store   (config.apis.d3d9.      hook);
+        apis.d3d9ex.hook->store (config.apis.d3d9ex.    hook);
+        apis.d3d11.hook->store  (config.apis.dxgi.d3d11.hook);
+        apis.d3d11.hook->store  (config.apis.dxgi.d3d12.hook);
+        apis.OpenGL.hook->store (config.apis.OpenGL.    hook);
+        apis.last_known->store  ((int)config.apis.last_known);
       } break;
 
       case SK_GAME_ID::ForzaHorizon5:
@@ -2579,7 +2581,46 @@ auto DeclKeybind =
     }
   }
 
-  init = TRUE; }
+  if (! apis.last_known->load ((int &)config.apis.last_known))
+    config.apis.last_known = SK_RenderAPI::Reserved;
+
+
+#ifdef _M_IX86
+  apis.ddraw.hook->load  (config.apis.ddraw.hook);
+  apis.d3d8.hook->load   (config.apis.d3d8.hook);
+#endif
+
+  if (! apis.d3d9.hook->load (config.apis.d3d9.hook))
+    config.apis.d3d9.hook = true;
+
+  if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
+    config.apis.d3d9ex.hook = true;
+
+  // D3D9Ex cannot exist without D3D9...
+  if (config.apis.d3d9ex.hook)
+      config.apis.d3d9.hook = true;
+
+  if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
+    config.apis.dxgi.d3d11.hook = true;
+
+#ifdef _M_AMD64
+  apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
+
+  // We need to enable D3D11 hooking for D3D12 to work reliably
+  if (config.apis.dxgi.d3d12.hook)
+      config.apis.dxgi.d3d11.hook = true;
+
+#endif
+
+  if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
+    config.apis.OpenGL.hook = true;
+
+#ifdef _M_AMD64
+  apis.Vulkan.hook->load (config.apis.Vulkan.hook);
+#endif
+
+  init = TRUE;
+}
 
 
   //
@@ -5101,6 +5142,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
                          const wchar_t* wszDestDir,
                                bool     replace );
 
+      // We've already parsed the file, delete it and we'll reload
       if (dll_ini != nullptr)
       {
         DeleteFileW (dll_ini->get_filename ());

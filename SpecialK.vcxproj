@@ -1599,8 +1599,8 @@
     <ClCompile Include="src\plugins\ys8.cpp" />
     <ClCompile Include="src\popups\steam_achievement.cpp" />
     <ClCompile Include="src\process.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_shader.cpp" />

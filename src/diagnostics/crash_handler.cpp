@@ -1247,9 +1247,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
         static NtContinue_pfn
                NtContinue = (NtContinue_pfn)SK_GetProcAddress (L"NtDll", "NtContinue");
 
-#ifndef NT_SUCCESS
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-#endif
         if (NT_SUCCESS (NtContinue (&context, FALSE)))
                         *pContext =  context;
         else
@@ -1344,9 +1341,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           static NtContinue_pfn
                  NtContinue = (NtContinue_pfn)SK_GetProcAddress (L"NtDll", "NtContinue");
 
-#ifndef NT_SUCCESS
-#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
-#endif
           if (NT_SUCCESS (NtContinue (&context, FALSE)))
                           *pContext =  context;
           else

@@ -30,10 +30,6 @@
 
 //static NtReadFile_pfn NtReadFile_Original = nullptr;
 
-#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS                          0
-#define STATUS_NO_SUCH_FILE                     0xC000000F
-
 #include <SpecialK/diagnostics/file.h>
 
 bool SK_CP2077_PlugInCfg (void)

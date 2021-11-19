@@ -19,15 +19,13 @@
  *
 **/
 
+#include <SpecialK/stdafx.h>
 #include <windows.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
 
 #pragma pack (push,8)
-#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS                          0
-#define STATUS_INFO_LENGTH_MISMATCH             ((NTSTATUS)0xC0000004L)
 #define SystemProcessAndThreadInformation       5
 
 typedef _Return_type_success_(return >= 0)

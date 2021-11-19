@@ -1,5 +1,4 @@
 #define SK_MakeUnicode(str) RTL_CONSTANT_STRING(str)
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
 
 #pragma pack (push,8)
 typedef struct _UNICODE_STRING {

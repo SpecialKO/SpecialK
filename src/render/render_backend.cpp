@@ -19,6 +19,13 @@
  *
 **/
 
+struct {
+  LONGLONG t0;
+
+  SK_QueryPerf ().QuadPart % ((pDisplay->signal.timing.vsync_freq.Denominator * SK_QPCFreq) /
+                               pDisplay->signal.timing.vsync_freq.Numerator);
+};
+
 #include <SpecialK/stdafx.h>
 
 #ifdef  __SK_SUBSYSTEM__
@@ -63,10 +70,10 @@ private:
 };
 
 
-float
+double
 SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 {
-  static float    fRefresh      = 0.0f;
+  static double   dRefresh      = 0.0;
   static DWORD    dwLastChecked = 0;
   static HMONITOR hLastMonitor  = 0;
 
@@ -78,14 +85,14 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
     // Refresh this bastard!
     rb.windows.device.getDevCaps ().last_checked = 0;
 
-    fRefresh =
-      static_cast <float> (rb.windows.device.getDevCaps ().res.refresh);
+    dRefresh =
+      static_cast <double> (rb.windows.device.getDevCaps ().res.refresh);
 
     dwLastChecked = SK_timeGetTime ();
     hLastMonitor  = hMonitor;
   }
 
-  return fRefresh;
+  return dRefresh;
 }
 
 SK_RenderBackend&
@@ -738,7 +745,7 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 }
 
 
-float
+double
 SK_RenderBackend_V2::getActiveRefreshRate (HMONITOR hMonitor)
 {
   // This isn't implemented for arbitrary monitors at the moment
@@ -1119,9 +1126,9 @@ sk_hwnd_cache_s::getDevCaps (void)
           bVirtual =
             (pOutput->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE);
 
-          devcaps.res.refresh = (float)(
+          devcaps.res.refresh =
             (double)pOutput->targetInfo.refreshRate.Numerator /
-            (double)pOutput->targetInfo.refreshRate.Denominator);
+            (double)pOutput->targetInfo.refreshRate.Denominator;
 
           auto modeIdx =
             bVirtual ? pOutput->sourceInfo.sourceModeInfoIdx
@@ -1142,9 +1149,9 @@ sk_hwnd_cache_s::getDevCaps (void)
 
     if (hDC != 0)
     {
-      devcaps.res.x       =         GetDeviceCaps (hDC,  HORZRES);
-      devcaps.res.y       =         GetDeviceCaps (hDC,  VERTRES);
-      devcaps.res.refresh = (float) GetDeviceCaps (hDC, VREFRESH);
+      devcaps.res.x       =          GetDeviceCaps (hDC,  HORZRES);
+      devcaps.res.y       =          GetDeviceCaps (hDC,  VERTRES);
+      devcaps.res.refresh = (double) GetDeviceCaps (hDC, VREFRESH);
 
       ReleaseDC (hwnd, hDC);
     }
@@ -1292,6 +1299,17 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
     if (config.apis.OpenGL.hook)// && SK_GL_GetCurrentContext () != nullptr)
     {
       api = SK_RenderAPI::OpenGL;
+
+#ifdef _DISPLAY_GL_VERSION
+      static int major = 0,
+                 minor = 0;
+
+      SK_RunOnce (glGetIntegerv (GL_MAJOR_VERSION, &major));
+      SK_RunOnce (glGetIntegerv (GL_MINOR_VERSION, &minor));
+
+      if (major > 0) wsnprintf (name, 8,  L"GL %d.%d", major, minor);
+      else
+#endif
       wcsncpy (name, L"OpenGL", 8);
     }
   }
@@ -2369,9 +2387,6 @@ const GUID
 std::wstring
 SK_GetKeyPathFromHKEY (HKEY& key)
 {
-#define STATUS_SUCCESS          ((NTSTATUS)0x00000000L)
-#define STATUS_BUFFER_TOO_SMALL ((NTSTATUS)0xC0000023L)
-
   std::wstring keyPath;
 
   if (key != nullptr)
@@ -2666,6 +2681,9 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
         if (SUCCEEDED (SK_D3DKMT_CloseAdapter (&closeAdapter)))
         {
+          SK_LOG1 ( ( L"SK_D3DKMT_CloseAdapter successful for %ws", display.gdi_name ),
+                        __SK_SUBSYSTEM__ );
+
           adapter.d3dkmt        = 0;
           adapter.VidPnSourceId = 0;
           adapter.luid.HighPart = 0;
@@ -2677,11 +2695,14 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
         openAdapter = { };
 
       wcsncpy_s ( openAdapter.DeviceName, 32,
-                      display.dxgi_name,  _TRUNCATE );
+                      display.gdi_name,  _TRUNCATE );
 
       if ( STATUS_SUCCESS ==
              D3DKMTOpenAdapterFromGdiDisplayName (&openAdapter) )
       {
+        SK_LOG1 ( (L"D3DKMTOpenAdapterFromGdiDisplayName successful for %ws, VidPnSourceId=%lu", display.gdi_name, openAdapter.VidPnSourceId ),
+                   __SK_SUBSYSTEM__ );
+
         adapter.d3dkmt        = openAdapter.hAdapter;
         adapter.VidPnSourceId = openAdapter.VidPnSourceId;
         adapter.luid.HighPart = openAdapter.AdapterLuid.HighPart;
@@ -2692,6 +2713,9 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
       else
       {
+        SK_LOG0 ( (L"D3DKMTOpenAdapterFromGdiDisplayName unsuccessful for %ws", display.gdi_name ),
+                   __SK_SUBSYSTEM__ );
+
         adapter.d3dkmt        = 0;
         adapter.VidPnSourceId = 0;
         adapter.luid.HighPart = 0;
@@ -3285,7 +3309,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           }
         }
 
-        wcsncpy_s ( display.dxgi_name,  32,
+        wcsncpy_s ( display.gdi_name,  32,
                     outDesc.DeviceName, _TRUNCATE );
 
         SK_RBkEnd_UpdateMonitorName (display, outDesc);
@@ -3653,7 +3677,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"[Output Dev]\n"
         L"  +------------------+---------------------------------------------------------------------\n"
         L"  | EDID Device Name |  %hs\n"
-        L"  | DXGI Device Name |  %ws (HMONITOR: %x)\n"
+        L"  | GDI  Device Name |  %ws (HMONITOR: %x)\n"
         L"  | Desktop Display. |  %ws%ws\n"
         L"  | Bits Per Color.. |  %u\n"
         L"  | Color Space..... |  %s\n"
@@ -3666,7 +3690,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | Max FullFrame... |  %f\n"
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
-          display.dxgi_name, display.monitor,
+          display.gdi_name, display.monitor,
           display.attached ? L"Yes"                : L"No",
           display.primary  ? L" (Primary Display)" : L"",
                       display.bpc,

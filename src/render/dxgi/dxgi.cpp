@@ -1941,6 +1941,235 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
   );
 }
 
+HRESULT
+SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComPtr <ID3D11Texture2D>         pBackbuffer;
+  SK_ComPtr <ID3D11RenderTargetView>  pBackbufferRTV;
+
+  SK_ComQIPtr <IDXGISwapChain3> pSwap3  (rb.swapchain);
+  SK_ComQIPtr <ID3D11Device>    pDevice (rb.device);
+
+  if (                          pSwap3.p == nullptr ||
+                               pDevice.p == nullptr ||
+                  rb.d3d11.immediate_ctx == nullptr )
+  {
+    return E_NOINTERFACE;
+  }
+
+  UINT currentBuffer =
+    0;// pSwap3->GetCurrentBackBufferIndex ();
+
+  if ( SUCCEEDED ( pSwap3->GetBuffer (
+                     currentBuffer,
+                       IID_PPV_ARGS (&pBackbuffer.p)
+     )           )                  )
+  {
+    if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
+                                      pBackbuffer, nullptr,
+                                     &pBackbufferRTV.p       )
+       )           )
+    {
+      static constexpr FLOAT
+        fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+      SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
+      SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+      rb.d3d11.immediate_ctx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                        &pOrigRTVs [0].p,
+                                        &pOrigDSV     .p );
+      rb.d3d11.immediate_ctx->OMSetRenderTargets (1, &pBackbufferRTV.p, nullptr);
+      rb.d3d11.immediate_ctx->ClearRenderTargetView (
+        pBackbufferRTV.p, pColor != nullptr ?
+                          pColor            :
+                     fClearColor                    );
+      rb.d3d11.immediate_ctx->OMSetRenderTargets (
+        calc_count (                    &pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
+                                        &pOrigRTVs [0].p,
+                                         pOrigDSV     .p );
+
+      return S_OK;
+    }
+  }
+
+  return E_UNEXPECTED;
+}
+
+HRESULT
+SK_D3D11_InsertBlackFrame (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComPtr <ID3D11Texture2D>         pBackbuffer0;
+  SK_ComPtr <ID3D11Texture2D>         pBackbuffer1;
+
+  SK_ComPtr <ID3D11RenderTargetView>  pBackbuffer0RTV;
+  SK_ComPtr <ID3D11RenderTargetView>  pBackbuffer1RTV;
+
+  SK_ComQIPtr <IDXGISwapChain3> pSwap3  (rb.swapchain);
+  SK_ComQIPtr <ID3D11Device>    pDevice (rb.device);
+
+  if (                          pSwap3.p == nullptr ||
+                               pDevice.p == nullptr ||
+                  rb.d3d11.immediate_ctx == nullptr )
+  {
+    return E_NOINTERFACE;
+  }
+
+  UINT currentBuffer = 0;
+
+  SK_ComPtr <ID3D11Texture2D> pBackbufferCopy;
+
+  if ( SUCCEEDED ( pSwap3->GetBuffer (
+                     currentBuffer,
+                       IID_PPV_ARGS (&pBackbuffer0.p)
+                 )                   )
+     )
+  {
+    D3D11_TEXTURE2D_DESC    texDesc = { };
+    pBackbuffer0->GetDesc (&texDesc);
+
+    if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
+                                      pBackbuffer0, nullptr,
+                                     &pBackbuffer0RTV.p      )
+                   ) &&
+         SUCCEEDED ( pDevice->CreateTexture2D (&texDesc, nullptr, &pBackbufferCopy.p) )
+       )
+    {
+      rb.d3d11.immediate_ctx->CopyResource (
+        pBackbufferCopy.p,
+        pBackbuffer0.p
+      );
+
+      SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
+
+      static constexpr FLOAT
+        fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+      SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
+      SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+      rb.d3d11.immediate_ctx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                        &pOrigRTVs [0].p,
+                                        &pOrigDSV     .p );
+
+      if (pDevCtx1 != nullptr)
+          pDevCtx1->ClearView (pBackbuffer0RTV.p, fClearColor, nullptr, 0);
+      else
+      {
+        rb.d3d11.immediate_ctx->OMSetRenderTargets (1, &pBackbuffer0RTV.p, nullptr);
+        rb.d3d11.immediate_ctx->ClearRenderTargetView (
+          pBackbuffer0RTV.p,  fClearColor             );
+        rb.d3d11.immediate_ctx->OMSetRenderTargets (
+          calc_count (                    &pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
+                                          &pOrigRTVs [0].p,
+                                           pOrigDSV     .p );
+      }
+
+      HRESULT
+      STDMETHODCALLTYPE
+      SK_DXGI_Present ( IDXGISwapChain          *This,
+                        UINT                     SyncInterval,
+                        UINT                     Flags );
+
+      extern int __SK_BFI_Interval;
+
+      SK_DXGI_Present ( pSwap3.p,
+                          __SK_BFI_Interval, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT );
+
+      //SK_DXGI_DispatchPresent1 ( pSwap3, 0, 0, nullptr,
+      //                             SK_DXGI_Present1, SK_DXGI_PresentSource::Hook );
+
+      if ( SUCCEEDED ( pSwap3->GetBuffer ( 0,
+              IID_PPV_ARGS (&pBackbuffer1.p)
+                     )                   )
+         )
+      {
+        rb.d3d11.immediate_ctx->CopyResource (
+          pBackbuffer1.p,
+          pBackbufferCopy.p
+        );
+
+        pDevice->CreateRenderTargetView ( pBackbuffer1, nullptr,
+                                         &pBackbuffer1RTV.p );
+
+        pOrigRTVs [0] = pBackbuffer1RTV;
+
+        rb.d3d11.immediate_ctx->OMSetRenderTargets (
+          calc_count (                    &pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
+                                          &pOrigRTVs [0].p,
+                                           pOrigDSV     .p );
+      }
+
+      return S_OK;
+    }
+  }
+
+  return E_UNEXPECTED;
+}
+
+HRESULT
+SK_D3D11_InsertDuplicateFrame (int MakeBreak = 0)
+{
+  if (_d3d11_rbk->frames_.empty ())
+    return E_NOT_VALID_STATE;
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComPtr <ID3D11Texture2D> pBackbuffer0;
+
+  SK_ComQIPtr <IDXGISwapChain3> pSwap3  (rb.swapchain);
+  SK_ComQIPtr <ID3D11Device>    pDevice (rb.device);
+
+  if (                          pSwap3.p == nullptr ||
+                               pDevice.p == nullptr ||
+                  rb.d3d11.immediate_ctx == nullptr )
+  {
+    return E_NOINTERFACE;
+  }
+
+  UINT currentBuffer = 0;
+
+  if ( SUCCEEDED ( pSwap3->GetBuffer (
+                     currentBuffer,
+                       IID_PPV_ARGS (&pBackbuffer0.p)
+                 )                   )
+     )
+  {
+    D3D11_TEXTURE2D_DESC    texDesc = { };
+    pBackbuffer0->GetDesc (&texDesc);
+
+    if ( MakeBreak == 0 &&
+         ( _d3d11_rbk->frames_.at (0).latent_sync.pSwapChainCopy.p != nullptr ||
+           SUCCEEDED ( pDevice->CreateTexture2D ( &texDesc, nullptr,
+          &_d3d11_rbk->frames_.at (0).latent_sync.pSwapChainCopy.p )
+         )           )
+       )
+    {
+      rb.d3d11.immediate_ctx->CopyResource (
+        _d3d11_rbk->frames_.at (0).latent_sync.pSwapChainCopy.p,
+                                                 pBackbuffer0.p
+      );
+    }
+
+    else if ( MakeBreak == 1 &&
+                nullptr != _d3d11_rbk->frames_.at (0).latent_sync.pSwapChainCopy.p )
+    {
+      rb.d3d11.immediate_ctx->CopyResource (
+                                                 pBackbuffer0.p,
+        _d3d11_rbk->frames_.at (0).latent_sync.pSwapChainCopy.p
+      );
+    }
+
+    return S_OK;
+  }
+
+  return E_UNEXPECTED;
+}
 
 void
 SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
@@ -1979,6 +2208,17 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
         else rb.surface.dxgi = nullptr;
       }
     }
+
+    extern bool
+        __SK_BFI;
+    if (__SK_BFI)
+    {
+      extern HRESULT SK_D3D11_InsertBlackFrame (void);
+                     SK_D3D11_InsertBlackFrame ();
+    }
+
+    else
+      SK_D3D11_ClearSwapchainBackbuffer ();
 
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
     SK_D3D11_TexCacheCheckpoint (                                   );
@@ -3012,6 +3252,31 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
 
+    bool _SkipThisFrame = false;
+
+    extern bool
+        __SK_BFI;
+    if (__SK_BFI)
+      flags &= ~DXGI_PRESENT_RESTART;
+
+
+    extern int __SK_LatentSyncFrame;
+    extern int __SK_LatentSyncSkip;
+
+    // Latent Sync
+    if (config.render.framerate.present_interval == 0 &&
+        config.render.framerate.target_fps        > 0.0f)
+    {
+      if (__SK_LatentSyncSkip != 0 && (__SK_LatentSyncFrame % __SK_LatentSyncSkip) != 0)
+        _SkipThisFrame = true;
+      else
+        flags |= DXGI_PRESENT_RESTART;
+
+      if (interval == 0) flags |=  DXGI_PRESENT_ALLOW_TEARING;
+      else               flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+    }
+
+
 #if 0
     if ( config.nvidia.sleep.low_latency_boost &&
          config.nvidia.sleep.enable            &&
@@ -3023,23 +3288,35 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 #endif
 
 
+    extern void SK_LatentSync_BeginSwap (void);
+    extern void SK_LatentSync_EndSwap   (void);
 
-    if (config.render.framerate.enforcement_policy == 2) // Low Latency
+    SK_LatentSync_BeginSwap ();
+
+    if (config.render.framerate.present_interval == 0 &&
+        config.render.framerate.target_fps        > 0.0f)
     {
-      if (config.render.framerate.present_interval == 0) // VSYNC Off
+      if (rb.d3d11.immediate_ctx != nullptr)
       {
-        if (config.render.framerate.target_fps > 0.0f)   // Limit Configured
-        {
-          // Now we WaitForVBLANK
-          extern void SK_D3DKMT_WaitForVBlank (void);
-                      SK_D3DKMT_WaitForVBlank ();
-        }
+        if (! _SkipThisFrame)
+          SK_D3D11_InsertDuplicateFrame (0);
+        else
+          SK_D3D11_InsertDuplicateFrame (1);
       }
     }
 
-
     HRESULT hr =
-      _Present ( interval, flags );
+      _SkipThisFrame ? _Present ( rb.d3d11.immediate_ctx != nullptr ?
+                                                                  0 : 1,
+                                                        DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT |
+                                ( ( rb.d3d11.immediate_ctx != nullptr) ? DXGI_PRESENT_ALLOW_TEARING
+                                                                       : 0 ) ) :
+                       _Present ( interval, flags );
+
+    if (_SkipThisFrame)
+      hr = S_OK;
+
+    SK_LatentSync_EndSwap ();
 
     rb.setLatencyMarkerNV (PRESENT_END);
 

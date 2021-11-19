@@ -286,8 +286,6 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
                                 threadDescription );
 }
 
-#define STATUS_SUCCESS     0
-
  using RtlEnterCriticalSection_pfn = NTSTATUS (WINAPI *)(PRTL_CRITICAL_SECTION);
        RtlEnterCriticalSection_pfn
        RtlEnterCriticalSection_Original = nullptr;

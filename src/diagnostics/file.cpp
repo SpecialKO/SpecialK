@@ -69,9 +69,6 @@ SK_File_GetNameFromHandle ( HANDLE   hFile,
 NtReadFile_pfn  NtReadFile_Original  = nullptr;
 NtWriteFile_pfn NtWriteFile_Original = nullptr;
 
-#define NT_SUCCESS(Status)                      ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS                          0
-
 iSK_Logger *read_log  = nullptr;
 iSK_Logger *write_log = nullptr;
 

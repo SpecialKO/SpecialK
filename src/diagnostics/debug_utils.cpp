@@ -160,9 +160,6 @@ using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
       GetProcAddress_pfn
       GetProcAddress_Original = nullptr;
 
-#define STATUS_SUCCESS     0
-
-
 using SetThreadPriority_pfn = BOOL (WINAPI *)(HANDLE, int);
       SetThreadPriority_pfn
       SetThreadPriority_Original = nullptr;
@@ -1048,10 +1045,6 @@ NtTerminateProcess_Detour ( HANDLE   ProcessHandle,
       dll_log->Log ( L" *** BLOCKED NtTerminateProcess (%x) ***\t -- %s",
                     ExitStatus, SK_SummarizeCaller ().c_str () );
 
-#define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
-#define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
-#define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
-
       return
         STATUS_SUCCESS;// STATUS_PROCESS_IS_TERMINATING;
     }
@@ -1545,8 +1538,6 @@ using SetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,const CONTEXT *);
 
 GetThreadContext_pfn GetThreadContext_Original = nullptr;
 SetThreadContext_pfn SetThreadContext_Original = nullptr;
-
-#define STATUS_SUCCESS                          0
 
 typedef enum _SK_THREAD_INFORMATION_CLASS {
   ThreadBasicInformation,

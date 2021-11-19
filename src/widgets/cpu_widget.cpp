@@ -1563,9 +1563,6 @@ public:
                                    nullptr, 0,
                                    pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors );
 
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS     0
-
         bUseNtPower =
           NT_SUCCESS (ntStatus);
 

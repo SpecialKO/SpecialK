@@ -22,9 +22,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#define NT_SUCCESS(Status) ((NTSTATUS)(Status) >= 0)
-#define STATUS_SUCCESS     0
-
 SK_LazyGlobal <thread_events>   perfmon;
 
 SK_LazyGlobal <cpu_perf_t>      SK_WMI_CPUStats;
