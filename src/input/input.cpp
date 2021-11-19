@@ -894,9 +894,8 @@ SK_RegisterRawInputDevices (PCRAWINPUTDEVICE pRawInputDevices,
 }
 
 //
-// This function has never once been encountered after debugging > 100 games,
-//   it is VERY likely this logic is broken since no known game uses RawInput
-//     for buffered reads.
+// Halo: Infinite was the first game ever encountered using Buffered RawInput,
+//   so this has only been tested working in that game.
 //
 UINT
 WINAPI
@@ -906,92 +905,98 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_Active ())
+  // Game wants to know size to allocate, let it pass-through
+  if (pData == nullptr)
   {
-    static ImGuiIO& io =
-      ImGui::GetIO ();
+    return
+      GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
+  }
 
-    bool filter = false;
+  static ImGuiIO& io =
+    ImGui::GetIO ();
 
-    // Unconditional
-    if (config.input.ui.capture)
-      filter = true;
+  bool filter = false;
 
-    // Only specific types
-    if (io.WantCaptureKeyboard || io.WantCaptureMouse)
-      filter = true;
+  // Unconditional
+  if (config.input.ui.capture)
+    filter = true;
 
-    if (filter)
+  // Only specific types
+  if (io.WantCaptureKeyboard || io.WantCaptureMouse)
+    filter = true;
+
+  using QWORD = __int64;
+
+  if (pData != nullptr)
+  {
+    const int max_items = ((*pcbSize * 8) / sizeof (RAWINPUT));
+          int count     =                              0;
+        auto *pTemp     =
+          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData (*pcbSize * 8);
+    RAWINPUT *pInput    =                          pTemp;
+    RAWINPUT *pOutput   =                          pData;
+    UINT     cbSize     =                       *pcbSize;
+              *pcbSize  =                              0;
+
+    int       temp_ret  =
+      GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
+
+    auto* pItem =
+          pInput;
+
+    // Sanity check required array storage even though TLS will
+    //   allocate more than enough.
+    SK_ReleaseAssert (temp_ret < max_items);
+
+    for (int i = 0; i < temp_ret; i++)
     {
-      if (pData != nullptr)
+      bool remove = false;
+
+      switch (pItem->header.dwType)
       {
-        RtlSecureZeroMemory (pData, *pcbSize);
-
-        const int max_items = (sizeof (RAWINPUT) / *pcbSize);
-              int count     =                              0;
-            auto *pTemp     =
-                                    new RAWINPUT [max_items];
-        uint8_t *pInput     =               (uint8_t *)pTemp;
-           auto *pOutput    =               (uint8_t *)pData;
-        UINT     cbSize     =                       *pcbSize;
-                  *pcbSize  =                              0;
-
-        int       temp_ret  =
-          GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
-
-        for (int i = 0; i < temp_ret; i++)
-        {
-          auto* pItem = (RAWINPUT *)pInput;
-
-          bool  remove = false;
-          int  advance = pItem->header.dwSize;
-
-          switch (pItem->header.dwType)
-          {
-            case RIM_TYPEKEYBOARD:
-              SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
-              if (SK_ImGui_WantKeyboardCapture ())
-                remove = true;
-              else
-                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
-              break;
-
-            case RIM_TYPEMOUSE:
-              SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
-              if (SK_ImGui_WantMouseCapture ())
-                remove = true;
-              else
-                SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
-              break;
-
-            default:
-              SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
-              if (SK_ImGui_WantGamepadCapture ())
-                remove = true;
-              else
-                SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
-              break;
-          }
-
-          if (config.input.ui.capture)
+        case RIM_TYPEKEYBOARD:
+          SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+          if (filter || SK_ImGui_WantKeyboardCapture ())
             remove = true;
+          else
+            SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
+          break;
 
-          if (! remove)
-          {
-            memcpy (pOutput, pItem, pItem->header.dwSize);
-             pOutput += advance;
-                        ++count;
-            *pcbSize += advance;
-          }
+        case RIM_TYPEMOUSE:
+          SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+          if (filter || SK_ImGui_WantMouseCapture ())
+            remove = true;
+          else
+            SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
+          break;
 
-          pInput += advance;
-        }
-
-        delete [] pTemp;
-
-        return count;
+        default:
+          SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+          if (filter || SK_ImGui_WantGamepadCapture ())
+            remove = true;
+          else
+            SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
+          break;
       }
+
+      if (config.input.ui.capture)
+        remove = true;
+
+      // If item is not removed, append it to the buffer of RAWINPUT
+      //   packets we are allowing the game to see
+      if (! remove)
+      {
+        memcpy (pOutput, pItem, pItem->header.dwSize);
+                pOutput = (RAWINPUT *)((uintptr_t)pOutput + pItem->header.dwSize);
+
+                    ++count;
+        *pcbSize += pItem->header.dwSize;
+      }
+
+      pItem = NEXTRAWINPUTBLOCK (pItem);
     }
+
+    return count;
   }
 
   return
@@ -2956,10 +2961,12 @@ void SK_Input_PreInit (void)
 #endif
 
 
+#if 1
   SK_CreateDLLHook2 (       L"user32",
                              "GetRawInputBuffer",
                               GetRawInputBuffer_Detour,
      static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+#endif
 
 
   if (config.input.gamepad.hook_xinput)
