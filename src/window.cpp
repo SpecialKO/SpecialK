@@ -3913,6 +3913,7 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
   if (lpMsg != nullptr && lpMsg->message == 0xfa57/*WM_USER + WM_SETFOCUS*/)
   {
     SK_Window_OnFocusChange ((HWND)lpMsg->wParam, (HWND)lpMsg->lParam);
+
     lpMsg->message = WM_NULL;
 
     return true;
@@ -3921,12 +3922,14 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
 
   if (                          lpMsg != nullptr &&
                     dwMsgMax >= lpMsg->message   &&
-       SK_ImGui_HandlesMessage (lpMsg, remove, peek)                        )
+       SK_ImGui_HandlesMessage (lpMsg, remove, peek)                       )
   {
     if ( lpMsg->message == WM_INPUT )
     {
       DefWindowProcW ( lpMsg->hwnd,   lpMsg->message,
                        lpMsg->wParam, lpMsg->lParam );
+
+      remove = true;
     }
 
     if (remove)
@@ -4172,8 +4175,15 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
     {
-      DefWindowProcA ( lpMsg->hwnd,   lpMsg->message,
-                       lpMsg->wParam, lpMsg->lParam   );
+      // Early Dispatch may remove the message, in which case don't call DefWindowProc
+      if (lpMsg->message != WM_NULL)
+      {
+        DefWindowProcA ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
+
+        dll_log->Log ( L"Calling DefWindowProcA for message %x on HWND %x - wParam: %08x, lParam: %08x",
+                                             lpMsg->message, lpMsg->hwnd,
+                                                                     lpMsg->wParam,lpMsg->lParam );
+      }
 
       lpMsg->message = WM_NULL;
     }
@@ -4250,7 +4260,15 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
     {
-      DefWindowProcW ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
+      // Early Dispatch may remove the message, in which case don't call DefWindowProc
+      if (lpMsg->message != WM_NULL)
+      {
+        DefWindowProcW ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
+
+        dll_log->Log ( L"Calling DefWindowProcW for message %x on HWND %x - wParam: %08x, lParam: %08x",
+                                             lpMsg->message, lpMsg->hwnd,
+                                                                     lpMsg->wParam,lpMsg->lParam );
+      }
 
       lpMsg->message = WM_NULL;
     }
