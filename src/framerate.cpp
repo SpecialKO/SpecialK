@@ -36,13 +36,11 @@
 
 #include <concurrent_unordered_map.h>
 
-bool __SK_bOriginalTimer = true;
+bool SK_HasHighResWaitableTimer = false;
 
 extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
-
-void SK_D3DKMT_WaitForScanline0 (void);
 
 #define D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS 8
 
@@ -328,15 +326,17 @@ SK_ImGui_LatentSyncConfig (void)
 
       int sel = 0;
 
-      if      (config.render.framerate.latent_sync.delay_bias >= 0.90f ) sel = 0;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.75f ) sel = 1;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.5f  ) sel = 2;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.25f ) sel = 3;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.10f ) sel = 4;
-      else                                                               sel = 5;
+      if      (config.render.framerate.latent_sync.delay_bias >= 0.99f ) sel = 0;
+      else if (config.render.framerate.latent_sync.delay_bias >= 0.90f ) sel = 1;
+      else if (config.render.framerate.latent_sync.delay_bias >= 0.75f ) sel = 2;
+      else if (config.render.framerate.latent_sync.delay_bias >= 0.5f  ) sel = 3;
+      else if (config.render.framerate.latent_sync.delay_bias >= 0.25f ) sel = 4;
+      else if (config.render.framerate.latent_sync.delay_bias >= 0.10f ) sel = 5;
+      else                                                               sel = 6;
 
       if (
-        ImGui::Combo ("Delay Bias", &sel, "90% Input,\t10% Display\0"
+        ImGui::Combo ("Delay Bias", &sel, "All Input,\t No Display\0"
+                                          "90% Input,\t10% Display\0"
                                           "75% Input,\t25% Display\0"
                                           "50% Input,\t50% Display\0"
                                           "25% Input,\t75% Display\0"
@@ -346,13 +346,14 @@ SK_ImGui_LatentSyncConfig (void)
       {
         switch (sel)
         {
-          case 0:  config.render.framerate.latent_sync.delay_bias = 0.90f;  break;
-          case 1:  config.render.framerate.latent_sync.delay_bias = 0.75f;  break;
-          case 2:  config.render.framerate.latent_sync.delay_bias = 0.50f;  break;
-          case 3:  config.render.framerate.latent_sync.delay_bias = 0.25f;  break;
-          case 4:  config.render.framerate.latent_sync.delay_bias = 0.10f;  break;
+          case 0:  config.render.framerate.latent_sync.delay_bias = 1.0f;   break;
+          case 1:  config.render.framerate.latent_sync.delay_bias = 0.90f;  break;
+          case 2:  config.render.framerate.latent_sync.delay_bias = 0.75f;  break;
+          case 3:  config.render.framerate.latent_sync.delay_bias = 0.50f;  break;
+          case 4:  config.render.framerate.latent_sync.delay_bias = 0.25f;  break;
+          case 5:  config.render.framerate.latent_sync.delay_bias = 0.10f;  break;
           default:
-          case 5:  config.render.framerate.latent_sync.delay_bias = 0.00f;
+          case 6:  config.render.framerate.latent_sync.delay_bias = 0.00f;
                    __SK_LatentSyncPostDelay                       = 0;      break;
         }
 
@@ -473,7 +474,14 @@ SK_ImGui_LatentSyncConfig (void)
 
         ImGui::InputFloat ("Retire Stats",  &__SK_LatentSync_SwapSecs, 0.1f, 1.0f, "After %.3f Seconds");
         ImGui::InputInt   ("Adapt Margin",  &__SK_LatentSync_Adaptive);
-    ////ImGui::Checkbox   ("Use Old Timer", &__SK_bOriginalTimer);
+
+        if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
+        {
+          ImGui::Checkbox ("Flush Before Present (GL)",  &config.render.framerate.latent_sync.flush_before_present);
+          ImGui::Checkbox ("Finish Before Present (GL)", &config.render.framerate.latent_sync.finish_before_present);
+          ImGui::Checkbox ("Flush After Present (GL)",   &config.render.framerate.latent_sync.flush_after_present);
+          ImGui::Checkbox ("Finish After Present (GL)",  &config.render.framerate.latent_sync.finish_after_present);
+        }
 
         __SK_LatentSync_Adaptive =
           std::max (0, std::min (25, __SK_LatentSync_Adaptive));
@@ -984,25 +992,6 @@ SK_Framerate_WaitForVBlank (void)
         }
       }
     }
-
-    //static D3DKMTWaitForVerticalBlankEvent_pfn
-    //       D3DKMTWaitForVerticalBlankEvent =
-    //      (D3DKMTWaitForVerticalBlankEvent_pfn)SK_GetProcAddress (L"gdi32.dll",
-    //      "D3DKMTWaitForVerticalBlankEvent");
-    //
-    //if (D3DKMTWaitForVerticalBlankEvent != nullptr)
-    //{
-    //  D3DKMT_WAITFORVERTICALBLANKEVENT
-    //         waitForVerticalBlankEvent               = { };
-    //         waitForVerticalBlankEvent.hAdapter      = rb.adapter.d3dkmt;
-    //         waitForVerticalBlankEvent.VidPnSourceId = rb.adapter.VidPnSourceId;
-    //
-    //  if ( STATUS_SUCCESS ==
-    //         D3DKMTWaitForVerticalBlankEvent (&waitForVerticalBlankEvent) )
-    //  {
-    //    return true;
-    //  }
-    //}
   }
 
   return true;
@@ -1117,41 +1106,6 @@ SK_D3DKMT_WaitForVBlank (void)
 
   SK_Framerate_WaitForVBlank2 ();
 };
-
-void
-SK_D3DKMT_WaitForScanline0 (void)
-{
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  static D3DKMTGetScanLine_pfn
-         D3DKMTGetScanLine =
-        (D3DKMTGetScanLine_pfn)SK_GetProcAddress (L"gdi32.dll",
-        "D3DKMTGetScanLine");
-
-  D3DKMT_GETSCANLINE
-         getScanLine               = { };
-         getScanLine.hAdapter      = rb.adapter.d3dkmt;
-         getScanLine.VidPnSourceId = rb.adapter.VidPnSourceId;
-
-  while ( STATUS_SUCCESS ==
-            D3DKMTGetScanLine (&getScanLine) )
-  {
-    if (getScanLine.ScanLine == 0)
-      break;
-
-    auto *pDisplay =
-      &rb.displays [rb.active_display];
-
-    LONGLONG llHalfOfRemainingTime =
-      ( (pDisplay->signal.timing.total_size.cy - getScanLine.ScanLine) *
-        (pDisplay->signal.timing.hsync_freq.Denominator * SK_QpcFreq) /
-         pDisplay->signal.timing.hsync_freq.Numerator ) / 2;
-
-    while (SK_QueryPerf ().QuadPart < llHalfOfRemainingTime)
-      YieldProcessor ();
-  }
-}
 
 LONG64 __SK_VBlankLatency_QPCycles;
 
@@ -1523,17 +1477,16 @@ SK::Framerate::Limiter::wait (void)
     // Create an unnamed waitable timer.
     if (timer_wait == nullptr)
     {
+      // Prefer high-resolution timer when available, but this won't be available in WINE or Windows 8.1
       timer_wait =
         CreateWaitableTimerEx ( nullptr, nullptr,
            CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
-
-      SK_ReleaseAssert (timer_wait != nullptr);
     }
 
-    static bool bHasHighRes =
+    SK_HasHighResWaitableTimer =
       (timer_wait != nullptr);
 
-    if (! bHasHighRes)
+    if (! SK_HasHighResWaitableTimer)
     {
       if (timer_wait == nullptr)
       {
@@ -1551,14 +1504,13 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
-    if ( timer_wait != 0 && ((! __SK_bOriginalTimer) || to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
+    if ( timer_wait != 0 && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
     {
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
       //     spinning, because the OS scheduler is not accurate enough.
       LARGE_INTEGER liDelay;
                     liDelay.QuadPart =
-                      __SK_bOriginalTimer ?
                       std::min (
                         static_cast <LONGLONG> (
                           to_next_in_secs * 1000.0 - timer_res_ms * fSwapWaitRatio
@@ -1566,17 +1518,15 @@ SK::Framerate::Limiter::wait (void)
                         static_cast <LONGLONG> (
                           to_next_in_secs * 1000.0 * fSwapWaitFract
                                                )
-                      ) :
-                      static_cast <LONGLONG> (
-                          to_next_in_secs * 1000.0
-                                             );
+                               );
 
         liDelay.QuadPart =
       -(liDelay.QuadPart * 10000LL);
 
       // Check if the next frame is sooner than waitable timer resolution before
       //   rescheduling this thread.
-      if ( bHasHighRes ? SetWaitableTimerEx ( timer_wait, &liDelay,
+      if ( SK_HasHighResWaitableTimer ?
+                         SetWaitableTimerEx ( timer_wait, &liDelay,
                                                  0, nullptr, nullptr,
                                                     nullptr, 0 )
                        : SetWaitableTimer   ( timer_wait, &liDelay,
@@ -1611,7 +1561,7 @@ SK::Framerate::Limiter::wait (void)
           to_next_in_secs =
             std::max (0.0, SK_RecalcTimeToNextFrame ());
 
-          if ((! __SK_bOriginalTimer) || static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 2.0)
+          if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 2.0)
             hWaitObjs [iWaitObjs++] = timer_wait;
 
           if (iWaitObjs == 0)
@@ -2430,26 +2380,30 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   if (llQPC < SK_QueryPerf ().QuadPart)
     return;
 
-  if ((intptr_t)hTimer < 0)
-                hTimer =
+  if ((LONG_PTR)hTimer < 0)
+  {             hTimer = SK_HasHighResWaitableTimer ?
     CreateWaitableTimerEx ( nullptr, nullptr,
-       CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
+       CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS ) :
+    CreateWaitableTimer   ( nullptr, FALSE, nullptr );
+  }
 
   double
     to_next_in_secs =
       static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
       static_cast <double> (SK_QpcFreq);
 
+  constexpr
+    double duS = (1000.0 * 10000.0);
+
   // First use a kernel-waitable timer to scrub off most of the
   //   wait time without completely gobbling up a CPU core.
-  if ( (intptr_t)hTimer > 0 && ((! __SK_bOriginalTimer) || to_next_in_secs * 1000.0 >= SK::Framerate::Limiter::timer_res_ms * 2.875) )
+  if ( (LONG_PTR)hTimer > 0 && (to_next_in_secs * 1000.0 >= SK::Framerate::Limiter::timer_res_ms * 2.875) )
   {
     // Schedule the wait period just shy of the timer resolution determined
     //   by NtQueryTimerResolution (...). Excess wait time will be handled by
     //     spinning, because the OS scheduler is not accurate enough.
     LARGE_INTEGER liDelay;
                   liDelay.QuadPart =
-                    __SK_bOriginalTimer ?
                     std::min (
                       static_cast <LONGLONG> (
                         to_next_in_secs * 1000.0 - SK::Framerate::Limiter::timer_res_ms * fSwapWaitRatio
@@ -2457,39 +2411,64 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
                       static_cast <LONGLONG> (
                         to_next_in_secs * 1000.0 * fSwapWaitFract
                                              )
-                    )                   :
-                    static_cast <LONGLONG> (to_next_in_secs * 1000.0 * 0.5);
+                             );
 
       liDelay.QuadPart =
     -(liDelay.QuadPart * 10000LL);
 
     // Check if the next frame is sooner than waitable timer resolution before
     //   rescheduling this thread.
-    if ( SetWaitableTimerEx ( hTimer, &liDelay,
-                                0, nullptr, nullptr,
-                                   nullptr, 0 ) )
+    if ( SK_HasHighResWaitableTimer ?
+           SetWaitableTimerEx ( hTimer, &liDelay,
+                                          0, nullptr, nullptr,
+                                             nullptr, 0 )
+         : SetWaitableTimer   ( hTimer, &liDelay,
+                                          0, nullptr, nullptr,
+                                             FALSE ) )
     {
       DWORD  dwWait  = WAIT_FAILED;
       while (dwWait != WAIT_OBJECT_0)
       {
-        if ((! __SK_bOriginalTimer) || static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 2.0)
+        if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 2.0)
         {
+          to_next_in_secs =
+            static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
+            static_cast <double> (SK_QpcFreq);
+
+          liDelay.QuadPart =
+            -(static_cast <LONGLONG> (to_next_in_secs * duS));
+
           wait_time.beginSleep ();
 
           dwWait =
             SK_WaitForSingleObject_Micro (hTimer, &liDelay);
 
           wait_time.endSleep ();
+
+          if ( dwWait != WAIT_OBJECT_0     &&
+               dwWait != WAIT_OBJECT_0 + 1 &&
+               dwWait != WAIT_TIMEOUT )
+          {
+            DWORD dwLastError =
+              GetLastError ();
+
+            dll_log->Log (L"[SK_Framerate_WaitUntilQPC] Result of WaitForSingleObject: %x (GetLastError: %x)", dwWait, dwLastError);
+          }
         }
 
-        if ( dwWait != WAIT_OBJECT_0     &&
-             dwWait != WAIT_OBJECT_0 + 1 &&
-             dwWait != WAIT_TIMEOUT )
+        else
         {
-          DWORD dwLastError =
-            GetLastError ();
+          auto qpcResidual =
+            SK_QueryPerf ().QuadPart + ( llQPC - SK_QueryPerf ().QuadPart );
 
-          dll_log->Log (L"[SK_Framerate_WaitUntilQPC] Result of WaitForSingleObject: %x (GetLastError: %x)", dwWait, dwLastError);
+          wait_time.beginBusy ();
+
+          while ( SK_QueryPerf ().QuadPart < qpcResidual )
+            YieldProcessor ();
+
+          wait_time.endBusy ();
+
+          return;
         }
 
         break;
@@ -2498,7 +2477,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   }
 
   auto qpcResidual =
-    SK_QueryPerf ().QuadPart + ( llQPC - SK_QueryPerf ().QuadPart ) * 0.825;
+    SK_QueryPerf ().QuadPart + ( llQPC - SK_QueryPerf ().QuadPart );
 
   wait_time.beginBusy ();
 
