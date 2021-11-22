@@ -166,4 +166,32 @@ extern HDC   WINAPI SK_GL_GetCurrentDC      (void);
 extern BOOL  WINAPI SK_GL_SwapInterval      (int interval);
 extern int   WINAPI SK_GL_GetSwapInterval   (void);
 
+#ifndef GL_VERSION_1_1
+typedef unsigned int GLenum;
+typedef int GLint;
+#endif
+
+struct SK_GL_ClipControl {
+#define GL_CLIP_ORIGIN         0x935C
+#define GL_CLIP_DEPTH_MODE     0x935D
+
+#define GL_NEGATIVE_ONE_TO_ONE 0x935E
+#define GL_ZERO_TO_ONE         0x935F
+
+#define GL_LOWER_LEFT          0x8CA1
+#define GL_UPPER_LEFT          0x8CA2
+
+using  glClipControl_pfn = void (WINAPI *)(GLenum origin, GLenum depth);
+static glClipControl_pfn
+       glClipControl;
+
+  struct {
+    GLint origin     = GL_LOWER_LEFT;
+    GLint depth_mode = GL_NEGATIVE_ONE_TO_ONE;
+  } original;
+
+  void push (GLint origin, GLint depth_mode);
+  void pop  (void);
+} extern glClipControlARB;
+
 #endif /* __SK__OPENGL_BACKEND_H__ */

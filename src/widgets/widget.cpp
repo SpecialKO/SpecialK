@@ -653,15 +653,6 @@ SK_Widget::save (iSK_INI* /*ini*/)
   OnConfig (ConfigEvent::SaveComplete);
 }
 
-class SKWG_D3D11_Pipeline : public SK_Widget { };
-class SKWG_D3D12_Pipeline : public SK_Widget { };
-class SKWG_CPU_Monitor    : public SK_Widget { };
-
-
-extern SKWG_D3D11_Pipeline* SK_Widget_GetD3D11Pipeline (void);
-extern SKWG_D3D12_Pipeline* SK_Widget_GetD3D12Pipeline (void);
-extern SKWG_CPU_Monitor*    SK_Widget_GetCPU           (void);
-
 void
 SK_Widget::config_base (void)
 {
@@ -884,7 +875,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   auto widgets =
   { SK_ImGui_Widgets->frame_pacing,    SK_ImGui_Widgets->volume_control,
     SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
-    SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
+    SK_ImGui_Widgets->d3d11_pipeline,
     SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
     SK_ImGui_Widgets->tobii,           SK_ImGui_Widgets->latency
   };
@@ -1073,14 +1064,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 BOOL
 SK_ImGui_WidgetRegistry::SaveConfig (void)
 {
-  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
-  SK_RunOnce (SK_ImGui_Widgets->d3d12_pipeline = SK_Widget_GetD3D12Pipeline ());
-  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU ());
-
   auto widgets =
   { SK_ImGui_Widgets->frame_pacing,    SK_ImGui_Widgets->volume_control,
     SK_ImGui_Widgets->gpu_monitor,     SK_ImGui_Widgets->cpu_monitor,
-    SK_ImGui_Widgets->d3d11_pipeline,  SK_ImGui_Widgets->d3d12_pipeline,
+    SK_ImGui_Widgets->d3d11_pipeline,
     SK_ImGui_Widgets->thread_profiler, SK_ImGui_Widgets->hdr_control,
     SK_ImGui_Widgets->tobii,           SK_ImGui_Widgets->latency
   };

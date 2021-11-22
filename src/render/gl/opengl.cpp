@@ -1124,54 +1124,31 @@ OPENGL_STUB(BOOL,wglUseFontOutlinesW,(HDC hDC, DWORD dw0, DWORD dw1, DWORD dw2, 
 
 
 
+void SK_GL_ClipControl::push (GLint origin, GLint depth_mode)
+{
+  if (glClipControl == nullptr && wgl_get_proc_address != nullptr)
+      glClipControl =       (glClipControl_pfn)
+      wgl_get_proc_address ("glClipControl");
 
-struct SK_GL_ClipControl {
-#define GL_CLIP_ORIGIN         0x935C
-#define GL_CLIP_DEPTH_MODE     0x935D
+  if (glClipControl == nullptr)
+    return;
 
-#define GL_NEGATIVE_ONE_TO_ONE 0x935E
-#define GL_ZERO_TO_ONE         0x935F
+  glGetIntegerv (GL_CLIP_ORIGIN,     &original.origin);
+  glGetIntegerv (GL_CLIP_DEPTH_MODE, &original.depth_mode);
 
-#define GL_LOWER_LEFT          0x8CA1
-#define GL_UPPER_LEFT          0x8CA2
+  glClipControl (origin, depth_mode);
+}
 
-using  glClipControl_pfn = void (WINAPI *)(GLenum origin, GLenum depth);
-static glClipControl_pfn
-       glClipControl;
+void SK_GL_ClipControl::pop (void)
+{
+  if (glClipControl == nullptr)
+    return;
 
-  struct {
-    GLint origin     = GL_LOWER_LEFT;
-    GLint depth_mode = GL_NEGATIVE_ONE_TO_ONE;
-  } original;
-
-  void push (GLint origin, GLint depth_mode)
-  {
-    if (glClipControl == nullptr && wgl_get_proc_address != nullptr)
-        glClipControl =       (glClipControl_pfn)
-        wgl_get_proc_address ("glClipControl");
-
-    if (glClipControl == nullptr)
-      return;
-
-    glGetIntegerv (GL_CLIP_ORIGIN,     &original.origin);
-    glGetIntegerv (GL_CLIP_DEPTH_MODE, &original.depth_mode);
-
-    glClipControl (origin, depth_mode);
-  }
-
-  void pop (void)
-  {
-    if (glClipControl == nullptr)
-      return;
-
-    glClipControl (original.origin, original.depth_mode);
-  }
-} glClipControlARB;
+  glClipControl (original.origin, original.depth_mode);
+}
 
 SK_GL_ClipControl::glClipControl_pfn
 SK_GL_ClipControl::glClipControl = nullptr;
-
-
 
 #define SK_GL_GhettoStateBlock_Capture()                                                                              \
   GLint     last_program;              glGetIntegerv   (GL_CURRENT_PROGRAM,              &last_program);              \
@@ -1200,7 +1177,8 @@ SK_GL_ClipControl::glClipControl = nullptr;
   GLboolean last_enable_stencil_test = glIsEnabled     (GL_STENCIL_TEST);                                             \
   GLboolean last_srgb_framebuffer    = glIsEnabled     (GL_FRAMEBUFFER_SRGB);                                         \
                                                                                                                       \
-  glClipControlARB.push (GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
+  SK_GL_ClipControl clip_control;                                                                                     \
+                    clip_control.push (GL_LOWER_LEFT, GL_NEGATIVE_ONE_TO_ONE);
 
 
 #define SK_GL_GhettoStateBlock_Apply()                                                                  \
@@ -1236,7 +1214,7 @@ SK_GL_ClipControl::glClipControl = nullptr;
   glViewport ( last_viewport    [0], last_viewport    [1], last_viewport    [2], last_viewport    [3]); \
   glScissor  ( last_scissor_box [0], last_scissor_box [1], last_scissor_box [2], last_scissor_box [3]); \
                                                                                                         \
-  glClipControlARB.pop ();
+  clip_control.pop ();
 
 
 static GLuint
@@ -1366,7 +1344,7 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 
   if (config.system.log_level > 1)
   {
-    dll_log->Log ( L"[%x (tid=%x)]  wglMakeCurrent "
+    dll_log->Log ( L"[%x (tid=%04x)]  wglMakeCurrent "
                    L"(hDC=%x, hglrc=%x)",
                      WindowFromDC         (hDC),
                    SK_Thread_GetCurrentId (   ),
@@ -1397,7 +1375,7 @@ wglDeleteContext (HGLRC hglrc)
 
   if (config.system.log_level >= 0 && pTLS != nullptr)
   {
-    dll_log->Log ( L"[%x (tid=%x)]  wglDeleteContext "
+    dll_log->Log ( L"[%x (tid=%04x)]  wglDeleteContext "
                    L"(hglrc=%x)",
                      WindowFromDC             (pTLS->render->gl->current_hdc),
                        SK_Thread_GetCurrentId (   ),
@@ -1415,28 +1393,29 @@ wglDeleteContext (HGLRC hglrc)
     return wgl_delete_context (hglrc);
 
 
-  const std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_gl_ctx);
-
-
   bool has_children = false;
-
-  for ( auto it  = __gl_shared_contexts->begin () ;
-             it != __gl_shared_contexts->end   () ; )
   {
-    if (it->first == hglrc)
-    {
-      has_children = true;
-    //it = __gl_shared_contexts.erase (it);
-      continue;
-    }
-    else if (it->second == hglrc)
-    {        it->second  = nullptr; }
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_gl_ctx);
 
-    ++it;
+    for ( auto it : __gl_shared_contexts.get () )
+    {
+      if (it.first == hglrc)
+      {
+        has_children = true;
+      }
+
+      else if (it.second == hglrc)
+      {        it.second  = nullptr; }
+    }
+
+    if (has_children)
+    {
+      /////__gl_shared_contexts->erase (hglrc);
+    }
   }
 
 
-  if (__gl_primary_context == hglrc && (! has_children))
+  if (__gl_primary_context == hglrc/* && (! has_children)*/)
   {
     ImGui_ImplGL3_InvalidateDeviceObjects ();
 
@@ -1771,6 +1750,9 @@ SK_Overlay_DrawGL (void)
   }
 
 
+  // Queue-up Pre-SK OSD Screenshots
+  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
+
   SK_ImGui_DrawFrame (0x00, nullptr);
 
 
@@ -1786,6 +1768,10 @@ SK_Overlay_DrawGL (void)
   SK_GL_GhettoStateBlock_Apply ();
 
   glPopAttrib ();
+
+
+  // Queue-up Post-SK OSD Screenshots
+  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame, rb);
 }
 
 
@@ -1885,18 +1871,21 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         compatible_dc = true;
     }
 
-    // Ensure the resources we created on the primary context are meaningful
-    //   on this one.
-    SK_LOG0 ( ( L"Implicitly sharing lists because Specical K resources were"
-                L" initialized using a different OpenGL context." ),
-                L" OpenGL32 " );
-
-    if (thread_hglrc == nullptr || wglShareLists (__gl_primary_context, thread_hglrc))
+    if (! compatible_dc)
     {
-      compatible_dc = true;
+      // Ensure the resources we created on the primary context are meaningful
+      //   on this one.
+      SK_LOG0 ( ( L"Implicitly sharing lists because Specical K resources were"
+                  L" initialized using a different OpenGL context." ),
+                  L" OpenGL32 " );
 
-      if (thread_hglrc == nullptr)
-          thread_hglrc = __gl_primary_context;
+      if (thread_hglrc == nullptr || wglShareLists (__gl_primary_context, thread_hglrc))
+      {
+        compatible_dc = true;
+
+        if (thread_hglrc == nullptr)
+            thread_hglrc = __gl_primary_context;
+      }
     }
   }
 
@@ -1914,34 +1903,155 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     SK_GetCurrentRenderBackend ().api =
       SK_RenderAPI::OpenGL;
 
-    SK_BeginBufferSwap      ();
-
     SK_GL_UpdateRenderStats ();
     SK_Overlay_DrawGL       ();
 
+    // Do this before framerate limiting
+    //glFlush                 ();
+    if (config.render.framerate.latent_sync.flush_before_present)
+      glFlush  ();
+    if (config.render.framerate.latent_sync.finish_before_present)
+      glFinish ();
 
-    if (config.render.framerate.enforcement_policy == 2) // Low Latency
+    SK_BeginBufferSwap      ();
+
+
+    extern void SK_LatentSync_BeginSwap (void);
+    extern void SK_LatentSync_EndSwap   (void);
+
+    extern int __SK_LatentSyncFrame;
+    extern int __SK_LatentSyncSkip;
+
+    bool _SkipThisFrame = false;
+
+
+    // Time how long the swap actually takes, because
+    //   various hooked third-party overlays may be
+    //     adding extra CPU time to each swap
+    SK_LatentSync_BeginSwap ();
+
+
+    if (config.render.framerate.present_interval == 0 &&
+        config.render.framerate.target_fps        > 0.0f)
     {
-      if (config.render.framerate.present_interval == 0) // VSYNC Off
+      if (__SK_LatentSyncSkip != 0 && (__SK_LatentSyncFrame % __SK_LatentSyncSkip) != 0)
+        _SkipThisFrame = true;
+
+      if (_SkipThisFrame)
       {
-        if (config.render.framerate.target_fps > 0.0f)   // Limit Configured
-        {
-          // Now we WaitForVBLANK
-          extern void SK_D3DKMT_WaitForVBlank (void);
-                      SK_D3DKMT_WaitForVBlank ();
-        }
+        //BOOL SK_GL_InsertDuplicateFrame (void);
+        //     SK_GL_InsertDuplicateFrame ();
       }
     }
 
-    status =
-      static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+    if (! _SkipThisFrame)
+    {
+      extern bool __SK_BFI;
+      if (__SK_BFI)
+        SK_GL_SwapInterval (1);
+      status =
+        static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+    }
+    else
+      status = TRUE;
+
+    // This info is used to dynamically adjust target
+    //   sync time for laser precision
+    SK_LatentSync_EndSwap ();
 
     if (status)
       SK_EndBufferSwap (S_OK);
     else
       SK_EndBufferSwap (E_UNEXPECTED);
-  }
 
+    if (config.render.framerate.present_interval == 0 &&
+        config.render.framerate.target_fps        > 0.0f)
+    {
+      extern bool __SK_BFI;
+      if (        __SK_BFI)
+      {
+        if (config.render.framerate.latent_sync.flush_after_present)
+          glFlush  ();
+        if (config.render.framerate.latent_sync.finish_after_present)
+          glFinish ();
+
+        ////extern LONGLONG __SK_LatentSync_FrameInterval;
+        ////
+        ////static SK_AutoHandle hTimer (INVALID_HANDLE_VALUE);
+        ////
+        ////extern void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+
+        ////SK_Framerate_WaitUntilQPC (
+        ////  SK_QueryPerf ().QuadPart + __SK_LatentSync_FrameInterval,
+        ////               hTimer.m_h );
+
+        SK_GL_GhettoStateBlock_Capture ();
+
+        glBindFramebuffer (GL_FRAMEBUFFER, 0);
+        glDisable         (GL_FRAMEBUFFER_SRGB);
+
+        glColorMask       (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glDrawBuffer      (GL_BACK_LEFT);
+
+        glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+        glClear      (GL_COLOR_BUFFER_BIT/* | GL_DEPTH_BUFFER_BIT
+                                            | GL_STENCIL_BUFFER_BIT*/);
+
+        SK_GL_GhettoStateBlock_Apply ();
+
+        // TODO: Create a secondary context that shares "display lists" so that
+        //         we have a pure state machine all to ourselves.
+        if (cegGL == nullptr && config.cegui.enable)
+        {
+          ResetCEGUI_GL ();
+        }
+
+        SK_GetCurrentRenderBackend ().api =
+          SK_RenderAPI::OpenGL;
+
+        SK_GL_UpdateRenderStats ();
+        SK_Overlay_DrawGL       ();
+
+        // Do this before framerate limiting
+        glFlush                 ();
+
+        SK_BeginBufferSwap      ();
+
+        extern void SK_LatentSync_BeginSwap (void);
+        extern void SK_LatentSync_EndSwap   (void);
+
+        // Time how long the swap actually takes, because
+        //   various hooked third-party overlays may be
+        //     adding extra CPU time to each swap
+        SK_LatentSync_BeginSwap ();
+
+        SK_GL_SwapInterval (1);
+        status =
+          static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+        SK_GL_SwapInterval (0);
+
+        // This info is used to dynamically adjust target
+        //   sync time for laser precision
+        SK_LatentSync_EndSwap ();
+
+        if (status)
+          SK_EndBufferSwap (S_OK);
+        else
+          SK_EndBufferSwap (E_UNEXPECTED);
+      }
+    }
+
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
+
+    if ( config.render.framerate.present_interval == 0 &&
+         config.render.framerate.target_fps        > 0.0f )
+    {
+      if (config.render.framerate.latent_sync.flush_after_present)
+        glFlush  ();
+      if (config.render.framerate.latent_sync.finish_after_present)
+        glFinish ();
+    }
+  }
 
   // Swap happening on a context we don't care about
   else
@@ -1949,7 +2059,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     status =
       static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
   }
-
 
   return status;
 }
@@ -1991,12 +2100,20 @@ wglSwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
+    dll_log->Log (L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
 
   BOOL bRet = FALSE;
+
+  // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
+  //
+  if ( config.render.framerate.sync_interval_clamp != -1 &&
+       config.render.framerate.sync_interval_clamp < SK_GL_GetSwapInterval () )
+  {
+    SK_GL_SwapInterval (config.render.framerate.sync_interval_clamp);
+  }
 
   if (                  config.render.framerate.present_interval != -1)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
@@ -2021,7 +2138,7 @@ SwapBuffers (HDC hDC)
   WaitForInit_GL ();
 
   if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
+    dll_log->Log (L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
 
   SK_GL_TrackHDC (hDC);
 
@@ -2534,7 +2651,7 @@ SK_HookGL (void)
     const wchar_t* wszBackendDLL (L"OpenGL32.dll");
 
     cs_gl_ctx =
-      new SK_Thread_HybridSpinlock (64);
+      new SK_Thread_HybridSpinlock (512);
 
     if ( StrStrIW ( SK_GetDLLName ().c_str (),
                       wszBackendDLL )
@@ -3012,7 +3129,7 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 {
   WaitForInit_GL ();
 
-  dll_log->Log ( L"[%x (tid=%x)]  wglShareLists "
+  dll_log->Log ( L"[%x (tid=%04x)]  wglShareLists "
                  L"(ctx0=%x, ctx1=%x)",
                    SK_TLS_Bottom ()->render->gl->current_hwnd,
                    SK_Thread_GetCurrentId (   ),
@@ -3124,79 +3241,48 @@ SK_GL_GetCurrentDC (void)
 }
 
 
-
-
-#if 0
-#include <d3d9.h>
-#include <atlbase.h>
-
-static IDirect3DDevice9Ex* __pGLD3D9InteropDevice =
-      (IDirect3DDevice9Ex *)-1;
-
-//
-// Primarily used to expose GL resources to D3D9 so that
-//   the can be used by certain parts of NvAPI that are not
-//     implemented in GL.
-//
-IDirect3DDevice9Ex*
-SK_GL_GetD3D9ExInteropDevice (void)
+BOOL
+SK_GL_InsertDuplicateFrame (void)
 {
-  if (! config.render.framerate.wait_for_vblank)
-    return nullptr;
+  if (glBlitFramebuffer == nullptr)
+    return FALSE;
 
-  if (__pGLD3D9InteropDevice == reinterpret_cast <IDirect3DDevice9Ex *> (-1))
-  {
-    ComPtr <IDirect3D9Ex> pD3D9Ex = nullptr;
+  RECT                                                        rect = { };
+  GetClientRect (SK_TLS_Bottom ()->render->gl->current_hwnd, &rect);
 
-    using Direct3DCreate9ExPROC = HRESULT (STDMETHODCALLTYPE *)(UINT           SDKVersion,
-                                                                IDirect3D9Ex** d3d9ex);
+  SK_GL_GhettoStateBlock_Capture ();
 
-    extern Direct3DCreate9ExPROC Direct3DCreate9Ex_Import;
+  glBindFramebuffer (GL_FRAMEBUFFER, 0);
+  glDisable         (GL_FRAMEBUFFER_SRGB);
 
-    HRESULT hr = (config.apis.d3d9ex.hook) ?
-      Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex)
-                                    :
-                               E_NOINTERFACE;
+  glColorMask       (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
-    HWND hwnd = nullptr;
+  glReadBuffer      (GL_FRONT_LEFT);
+  glDrawBuffer      (GL_BACK_LEFT);
 
-    IDirect3DDevice9Ex* pDev9Ex = nullptr;
+  glBlitFramebuffer ( static_cast <GLint> (rect.left),  static_cast <GLint> (rect.top),
+                      static_cast <GLint> (rect.right), static_cast <GLint> (rect.bottom),
+                      static_cast <GLint> (rect.left),  static_cast <GLint> (rect.top),
+                      static_cast <GLint> (rect.right), static_cast <GLint> (rect.bottom),
+                      GL_COLOR_BUFFER_BIT,
+                      GL_NEAREST );
 
-    if (SUCCEEDED (hr))
-    {
-      hwnd =
-        SK_Win32_CreateDummyWindow ();
+  SK_GL_GhettoStateBlock_Apply ();
 
-      D3DPRESENT_PARAMETERS pparams = { };
-
-      pparams.SwapEffect       = D3DSWAPEFFECT_FLIPEX;
-      pparams.BackBufferFormat = D3DFMT_UNKNOWN;
-      pparams.hDeviceWindow    = hwnd;
-      pparams.Windowed         = TRUE;
-      pparams.BackBufferCount  = 2;
-
-      if ( FAILED ( pD3D9Ex->CreateDeviceEx (
-                      D3DADAPTER_DEFAULT,
-                        D3DDEVTYPE_HAL,
-                          hwnd,
-                            D3DCREATE_HARDWARE_VERTEXPROCESSING,
-                              &pparams,
-                                nullptr,
-                                  &pDev9Ex )
-                  )
-          )
-      {
-        __pGLD3D9InteropDevice = nullptr;
-      } else {
-        pDev9Ex->AddRef ();
-        __pGLD3D9InteropDevice = pDev9Ex;
-      }
-    }
-    else {
-      __pGLD3D9InteropDevice = nullptr;
-    }
-  }
-
-  return __pGLD3D9InteropDevice;
+  return TRUE;
 }
-#endif
+/*
+  Frame 0 Frame 1  ... N
+        |       |      |
+   90Hz |  90Hz |      |
+120Hz |[60FPS]| |      |
+    | |-------| |      |
+|###|=|*|###|=|*|###|=*|
+        |       |      |
+     60Hz    60Hz   60Hz
+        |       |      |
+        |       |      |
+  Frame 0 Frame 1  ... N
+
+75% Input / 25% Display  =  90 FPS Latency  @  60 FPS Display Rate
+*/

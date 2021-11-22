@@ -23,6 +23,7 @@
 #include <SpecialK/resource.h>
 
 #include <SpecialK/render/backend.h>
+#include <SpecialK/render/gl/opengl_screenshot.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
 #include <SpecialK/render/d3d12/d3d12_screenshot.h>
@@ -75,6 +76,13 @@ void SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
        gsl::narrow_cast <int> (SK_RenderAPI::D3D9) )
   {
     SK_D3D9_ProcessScreenshotQueue (stage);
+  }
+
+  else
+  if ( gsl::narrow_cast <int> (rb.api) &
+       gsl::narrow_cast <int> (SK_RenderAPI::OpenGL) )
+  {
+    SK_GL_ProcessScreenshotQueue (stage);
   }
 }
 

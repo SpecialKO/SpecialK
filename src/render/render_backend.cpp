@@ -2457,7 +2457,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 
     UINT devIdx = display.idx;
 
-    wsprintf (display.name, L"UNKNOWN");
+    swprintf (display.name, L"UNKNOWN");
 
     bool nvSuppliedEDID = false;
 
@@ -2606,7 +2606,7 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
           }
         }
 
-        wsprintf ( display.name, edid_name.empty () ?
+        swprintf ( display.name, edid_name.empty () ?
                                     LR"(%ws (%ws))" :
                                       L"%hs",
                      edid_name.empty () ?
@@ -3636,7 +3636,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
             if (! edid_name.empty ())
             {
-              wsprintf (display.name, L"%hs", edid_name.c_str ());
+              swprintf (display.name, L"%hs", edid_name.c_str ());
             }
           }
         }

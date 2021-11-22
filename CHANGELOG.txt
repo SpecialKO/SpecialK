@@ -1,4 +1,76 @@
-﻿21.10.22
+﻿21.11.23
+========
+ + Removed Assertion on Windows 8.1 systems for High-Precision Waitable Timers
+
+ OpenGL Screenshot Support
+ -------------------------
+  + Added support for GL to SK's multi-threaded screenshot capture / encoder
+
+    > Keybinds for 'HUDless Screenshots' exist, but trigger normal screenshots
+
+  Only RGBA8 (32-bit color) games are supported, no known HDR or 10-bpc OpenGL
+    games exist to test on. SK will be adding HDR support to GL, so this will
+      change in the future!
+
+21.11.22
+========
+ + Fixed Deadlocks Caused by OpenGL Shared Context Deletion in Yuzu / Ryujinx
+ + Added Sync Interval Clamping, to prevent games from using fractional-rate
+     VSYNC instead of a proper framerate limiter.
+
+     Fractional-rate VSYNC disables VRR, a SyncIntervalClamp of 1 will fix
+       VRR issues in many games. It is set to 1 by default in these games
+
+         * Forza Horizon 5,  Halo: Infinite,  NieR: Automata / Replicant
+
+       [Render.FrameRate]
+       ClampSyncInterval={-1=Unchanged|Maximum Presentation Interval}
+
+21.11.21
+========
+ + Fixed RawInput Mouse performance at extreme polling rates (i.e. 8 kHz) by
+     ensuring games do not sample the same RAWINPUT packet more than once.
+
+   Duplicate processing has very high overhead and was leading to stutter in
+     many games, if they need to see duplicate data for some reason they will
+       hit SK's input cache now instead of increasing system lock contention.
+
+21.11.20
+========
+ + Full input support for Halo: Infinite and other buffered RawInput games
+ + Fixed issues with unicode path truncation when renaming game profile
+     directories using localized titles in 32-bit builds
+
+21.11.19
+========
+ + Added checkbox to turn on FCAT visualization bars in Latent Sync config
+ + Added keybind to toggle FCAT visualization bars (not visible by default)
+ + Reduced info shown in Latent Sync config when 'Advanced' tab is not open
+ + Removed a few APC queue scheduler assertion messages when I/O Completion
+     Status codes are returned but alertable waits are not enabled
+
+21.11.17
+========
+ + Added support for Forza Horizon 5 and Halo Infinite
+
+    >> For Halo Infinite, use a gamepad to control SK's UI
+
+21.10.30
+========
+ + Added new Latency Statistics to Framepacing Widget (PresentMon-based)
+ + Fixed OpenGL Pixel Unpack Buffer issues in Yuzu that prevented SK's UI
+     from rendering correctly
+
+21.10.24
+========
+ + Improved locale-specific key name support in some ImGui menus
+
+21.10.23
+========
+ + Added support for GL_ARB_clip_control so that SK's UI is not rendered
+     upside down and inside-out in many OpenGL-based emulators
+
+21.10.22
 ========
  + Added VSYNC options to the Display menu in OpenGL and Direct3D9
  + Added warning in Reflex config if attempting to apply Latency modes on

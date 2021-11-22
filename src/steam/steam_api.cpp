@@ -376,7 +376,7 @@ SK_Steam_GetApplicationManifestPath (AppId_t appid)
     {
       wchar_t wszManifest [MAX_PATH + 2] = { };
 
-      wsprintf ( wszManifest,
+      swprintf ( wszManifest,
                    LR"(%s\steamapps\appmanifest_%u.acf)",
                (wchar_t *)steam_lib_paths [i],
                             appid );
@@ -712,7 +712,10 @@ extern bool
 SK_D3D12_CaptureScreenshot (SK_ScreenshotStage when);
 
 extern bool
-SK_D3D9_CaptureSteamScreenshot  (SK_ScreenshotStage when);
+SK_D3D9_CaptureSteamScreenshot (SK_ScreenshotStage when);
+
+extern bool
+SK_GL_CaptureScreenshot (SK_ScreenshotStage when);
 
 SK_Steam_ScreenshotManager::~SK_Steam_ScreenshotManager (void)
 {
@@ -745,6 +748,16 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D12 )
   {
     SK_D3D12_CaptureScreenshot (
+      config.screenshots.show_osd_by_default ?
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+    );
+
+    return;
+  }
+
+  else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::OpenGL )
+  {
+    SK_GL_CaptureScreenshot (
       config.screenshots.show_osd_by_default ?
               SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
     );
@@ -4467,6 +4480,13 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
   {
     captured =
       SK_D3D12_CaptureScreenshot (when);
+  }
+
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::OpenGL) )
+  {
+    captured =
+      SK_GL_CaptureScreenshot (when);
   }
 
   //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
