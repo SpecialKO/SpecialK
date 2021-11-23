@@ -34,7 +34,6 @@ SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom) noex
     dispose ();
 
     hglrc                           = moveFrom.hglrc;
-    hdc                             = moveFrom.hdc;
 
     pixel_buffer_object             = moveFrom.pixel_buffer_object;
     pixel_buffer_fence              = moveFrom.pixel_buffer_fence;
@@ -56,7 +55,6 @@ SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom) noex
     //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
 
     moveFrom.hglrc                           = nullptr;
-    moveFrom.hdc                             = nullptr;
     moveFrom.pixel_buffer_object             = 0;
     moveFrom.pixel_buffer_fence              = nullptr;
 
@@ -91,10 +89,21 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
   //     software with a different format.
   SK_ReleaseAssert ( red_bits   == green_bits &&
                      green_bits == blue_bits  &&
-                     blue_bits  == alpha_bits &&
-                     alpha_bits == 8 );
+                     alpha_bits == 8 ||
+                     alpha_bits == 0 );
 
-  if (hDevice != nullptr && red_bits + green_bits + blue_bits + alpha_bits == 32)
+  bool bValidColorDepth =
+    ( red_bits + green_bits + blue_bits == 24 &&
+                            ( alpha_bits == 0 || alpha_bits == 8 ) );
+
+  if (! bValidColorDepth)
+  {
+    SK_LOG0 ( ( L"Unsupported GL Framebuffer Format:  R%d, G%d, B%d, A%d",
+                  red_bits, green_bits, blue_bits, alpha_bits ),
+                L"OpenGLShot" );
+  }
+
+  if (hDevice != nullptr && bValidColorDepth)
   {
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
@@ -152,6 +161,8 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
     glReadPixels  (0, 0, framebuffer.Width,
                          framebuffer.Height, GL_RGBA,
                                              GL_UNSIGNED_BYTE, nullptr);
+    pixel_buffer_fence =
+      glFenceSync (GL_SYNC_GPU_COMMANDS_COMPLETE, 0x0);
 
     glReadBuffer  (                      orig_read_buffer);
     glBindBuffer  (GL_PIXEL_PACK_BUFFER, orig_pixel_pack_buffer);
@@ -164,9 +175,6 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
     glPixelStorei (GL_PACK_SKIP_PIXELS,   PACK_SKIP_PIXELS);
     glPixelStorei (GL_PACK_SKIP_IMAGES,   PACK_SKIP_IMAGES);
     glPixelStorei (GL_PACK_ALIGNMENT,     PACK_ALIGNMENT);
-
-    pixel_buffer_fence =
-      glFenceSync (GL_SYNC_GPU_COMMANDS_COMPLETE, 0x0);
 
     ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
 
@@ -555,9 +563,21 @@ SK_GL_Screenshot::framebuffer_s::root_;
 void
 SK_GL_Screenshot::dispose (void) noexcept
 {
-  hglrc                    = nullptr;
-  hdc                      = nullptr;
-  pixel_buffer_fence       = nullptr;
+  hglrc = nullptr;
+
+  if (pixel_buffer_fence != nullptr)
+  {
+    GLint64                                       max_timeout;
+    glGetInteger64v (GL_MAX_SERVER_WAIT_TIMEOUT, &max_timeout);
+
+    glWaitSync   (   pixel_buffer_fence, 0x0,
+                          static_cast <GLuint64> (max_timeout));
+    glClientWaitSync(pixel_buffer_fence, 0x0, 250000000); // 250 ms
+
+    glDeleteSync (
+      std::exchange (pixel_buffer_fence, nullptr)
+    );
+  }
 
   if (pixel_buffer_object != 0)
   {
@@ -584,7 +604,7 @@ SK_GL_Screenshot::dispose (void) noexcept
     );
 
   if (before < SK_ScreenshotQueue::pooled.capture_bytes.load  ( ))
-  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); SK_ReleaseAssert (false && "capture underflow"); }
+  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); if (config.system.log_level > 1) SK_ReleaseAssert (false && "capture underflow"); }
 };
 
 bool
@@ -714,77 +734,8 @@ SK_GL_Screenshot::getData ( UINT* const pWidth,
 }
 
 
-volatile LONG __SK_GL_QueuedShots         = 0;
-volatile LONG __SK_GL_InitiateHudFreeShot = 0;
-
-SK_LazyGlobal <concurrency::concurrent_queue <SK_GL_Screenshot *>> gl_screenshot_queue;
-SK_LazyGlobal <concurrency::concurrent_queue <SK_GL_Screenshot *>> gl_screenshot_write_queue;
-
-
-static volatile LONG
-  __SK_HUD_YesOrNo = 1L;
-
-bool
-SK_GL_ShouldSkipHUD (void)
-{
-  return
-    ( SK_Screenshot_IsCapturingHUDless () ||
-       ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
-}
-
-LONG
-SK_GL_ShowGameHUD (void)
-{
-//InterlockedDecrement (&SK_GL_DrawTrackingReqs);
-
-  return
-    InterlockedIncrement (&__SK_HUD_YesOrNo);
-}
-
-LONG
-SK_GL_HideGameHUD (void)
-{
-//InterlockedIncrement (&SK_GL_DrawTrackingReqs);
-
-  return
-    InterlockedDecrement (&__SK_HUD_YesOrNo);
-}
-
-LONG
-SK_GL_ToggleGameHUD (void)
-{
-  static volatile LONG last_state =
-    (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
-
-  if (ReadAcquire (&last_state))
-  {
-    SK_GL_HideGameHUD ();
-
-    return
-      InterlockedDecrement (&last_state);
-  }
-
-  else
-  {
-    SK_GL_ShowGameHUD ();
-
-    return
-      InterlockedIncrement (&last_state);
-  }
-}
-
-void
-SK_Screenshot_GL_RestoreHUD (void)
-{
-  if ( -1 ==
-         InterlockedCompareExchange (
-           &__SK_GL_InitiateHudFreeShot, 0, -1
-         )
-     )
-  {
-    SK_GL_ShowGameHUD ();
-  }
-}
+static SK_LazyGlobal <concurrency::concurrent_queue <SK_GL_Screenshot *>> screenshot_queue;
+static SK_LazyGlobal <concurrency::concurrent_queue <SK_GL_Screenshot *>> screenshot_write_queue;
 
 bool
 SK_GL_CaptureScreenshot  ( SK_ScreenshotStage when =
@@ -813,14 +764,7 @@ SK_GL_CaptureScreenshot  ( SK_ScreenshotStage when =
 
       if (when == SK_ScreenshotStage::BeforeGameHUD)
       {
-      //static const auto& vertex = SK_GL_Shaders->vertex;
-      //static const auto& pixel  = SK_GL_Shaders->pixel;
-      //
-      //if ( vertex.hud.empty () &&
-      //      pixel.hud.empty ()    )
-        {
-          return false;
-        }
+        return false;
       }
 
       InterlockedIncrement (
@@ -892,7 +836,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           {
             if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
             {
-              gl_screenshot_queue->push (
+              screenshot_queue->push (
                 new SK_GL_Screenshot (
                   hglrc
                 )
@@ -912,7 +856,6 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
       }
     }
   }
-
 
   static volatile LONG _lockVal = 0;
 
@@ -959,11 +902,11 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
         static std::vector <SK_GL_Screenshot*> to_write;
 
-        while (! gl_screenshot_write_queue->empty ())
+        while (! screenshot_write_queue->empty ())
         {
-          SK_GL_Screenshot*                        pop_off   = nullptr;
-          if ( gl_screenshot_write_queue->try_pop (pop_off) &&
-                                                   pop_off  != nullptr )
+          SK_GL_Screenshot*                     pop_off   = nullptr;
+          if ( screenshot_write_queue->try_pop (pop_off) &&
+                                                pop_off  != nullptr )
           {
             if (purge_and_run)
             {
@@ -1569,7 +1512,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
     SK_Thread_SpinUntilAtomicMin (&_lockVal, 2);
 
 
-  if (stage != 3)
+  if (stage_ != SK_ScreenshotStage::_FlushQueue && wait == false && purge == false)
     return;
 
 
@@ -1585,9 +1528,9 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
   {
     do
     {
-      SK_GL_Screenshot*                  pop_off   = nullptr;
-      if ( gl_screenshot_queue->try_pop (pop_off) &&
-                                         pop_off  != nullptr )
+      SK_GL_Screenshot*               pop_off   = nullptr;
+      if ( screenshot_queue->try_pop (pop_off) &&
+                                      pop_off  != nullptr )
       {
         if (purge)
           delete pop_off;
@@ -1604,7 +1547,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           //
           if (pop_off->getData (&Width, &Height, &pData, wait))
           {
-            gl_screenshot_write_queue->push (pop_off);
+            screenshot_write_queue->push (pop_off);
             new_jobs = true;
           }
 
@@ -1612,7 +1555,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
             rejected_screenshots.push (pop_off);
         }
       }
-    } while ((! gl_screenshot_queue->empty ()) && (purge || wait));
+    } while ((! screenshot_queue->empty ()) && (purge || wait));
 
     do
     {
@@ -1624,17 +1567,17 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           delete push_back;
 
         else
-          gl_screenshot_queue->push (push_back);
+          screenshot_queue->push (push_back);
       }
     } while ((! rejected_screenshots.empty ()) && (purge || wait));
 
     if ( wait ||
                  purge )
     {
-      if ( gl_screenshot_queue->empty () &&
+      if ( screenshot_queue->empty    () &&
            rejected_screenshots.empty ()    )
       {
-        if ( purge && (! gl_screenshot_write_queue->empty ()) )
+        if ( purge && (! screenshot_write_queue->empty ()) )
         {
           SetThreadPriority   ( hWriteThread,          THREAD_PRIORITY_TIME_CRITICAL );
           SignalObjectAndWait ( signal.abort.initiate,
@@ -1658,52 +1601,4 @@ void
 SK_GL_ProcessScreenshotQueue (SK_ScreenshotStage stage)
 {
   SK_GL_ProcessScreenshotQueueEx (stage, false);
-}
-
-
-void
-SK_GL_WaitOnAllScreenshots (void)
-{
-}
-
-
-
-void SK_Screenshot_GL_EndFrame (void)
-{
-  if (InterlockedCompareExchange (&__SK_GL_InitiateHudFreeShot, 0, -1) == -1)
-  {
-    SK_GL_ShowGameHUD ();
-  }
-}
-
-bool SK_Screenshot_GL_BeginFrame (void)
-{
-//InterlockedExchange (&__SK_ScreenShot_CapturingHUDless, 0);
-
-  if ( ReadAcquire (&__SK_GL_QueuedShots)          > 0 ||
-       ReadAcquire (&__SK_GL_InitiateHudFreeShot) != 0    )
-  {
-  //InterlockedExchange            (&__SK_ScreenShot_CapturingHUDless, 1);
-    if (InterlockedCompareExchange (&__SK_GL_InitiateHudFreeShot, -2, 1) == 1)
-    {
-      //SK_GL_HideGameHUD ();
-    }
-
-    // 1-frame Delay for SDR->HDR Upconversion
-    else if (InterlockedCompareExchange (&__SK_GL_InitiateHudFreeShot, -1, -2) == -2)
-    {
-      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
-    //InterlockedDecrement (&SK_GL_DrawTrackingReqs); (Handled by ShowGameHUD)
-    }
-
-    else if (0 == ReadAcquire (&__SK_GL_InitiateHudFreeShot))
-    {
-      InterlockedDecrement (&__SK_GL_QueuedShots);
-      InterlockedExchange  (&__SK_GL_InitiateHudFreeShot, 1);
-
-      return true;
-    }
-  }
-
-  return false;
 }

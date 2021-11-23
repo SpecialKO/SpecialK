@@ -23,6 +23,52 @@
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 #include <SpecialK/steam_api.h>
 
+extern void SK_Screenshot_PlaySound            (void);
+extern void SK_Steam_CatastropicScreenshotFail (void);
+
+SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom) noexcept
+{
+  if (this != &moveFrom)
+  {
+    dispose ();
+
+    pDev                            = moveFrom.pDev;
+    pSwapChain                      = moveFrom.pSwapChain;
+    pBackbufferSurface              = moveFrom.pBackbufferSurface;
+    pSurfScreenshot                 = moveFrom.pSurfScreenshot;
+
+    ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
+
+    framebuffer.Width               = moveFrom.framebuffer.Width;
+    framebuffer.Height              = moveFrom.framebuffer.Height;
+    framebuffer.NativeFormat        = moveFrom.framebuffer.NativeFormat;
+    framebuffer.PackedDstPitch      = moveFrom.framebuffer.PackedDstPitch;
+    framebuffer.PackedDstSlicePitch = moveFrom.framebuffer.PackedDstSlicePitch;
+    framebuffer.PBufferSize         = moveFrom.framebuffer.PBufferSize;
+
+    framebuffer.PixelBuffer.reset (
+      moveFrom.framebuffer.PixelBuffer.get () // XXX: Shouldn't this be release?
+    );
+
+    //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
+
+    moveFrom.pDev                            = nullptr;
+    moveFrom.pSwapChain                      = nullptr;
+    moveFrom.pBackbufferSurface              = nullptr;
+    moveFrom.pSurfScreenshot                 = nullptr;
+
+    moveFrom.ulCommandIssuedOnFrame          = 0;
+
+    moveFrom.framebuffer.Width               = 0;
+    moveFrom.framebuffer.Height              = 0;
+    moveFrom.framebuffer.NativeFormat        = D3DFMT_UNKNOWN;
+    moveFrom.framebuffer.PackedDstPitch      = 0;
+    moveFrom.framebuffer.PackedDstSlicePitch = 0;
+    moveFrom.framebuffer.PBufferSize         = 0;
+  }
+  return *this;
+}
+
 SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice) : pDev (pDevice)
 {
   if (pDev != nullptr)
@@ -55,11 +101,6 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDev
 
         if (FAILED (hr)) return;
 
-        //static D3DXLoadSurfaceFromSurface_pfn
-        //  D3DXLoadSurfaceFromSurface =
-        //    (D3DXLoadSurfaceFromSurface_pfn)
-        //   SK_GetProcAddress ( d3dx9_43_dll, "D3DXLoadSurfaceFromSurface" );
-
         if (SUCCEEDED ( pDev->CreateRenderTarget ( desc.Width, desc.Height,
                                                      desc.Format, desc.MultiSampleType,
                                                                   desc.MultiSampleQuality,
@@ -78,6 +119,8 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDev
           {
             outstanding_screenshots.emplace (pSurfScreenshot);
 
+            SK_Screenshot_PlaySound ();
+
             return;
           }
         }
@@ -85,11 +128,16 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDev
     }
   }
 
+  SK_Steam_CatastropicScreenshotFail ();
+
   dispose ();
 }
 
+SK_D3D9_Screenshot::framebuffer_s::PinnedBuffer
+SK_D3D9_Screenshot::framebuffer_s::root_;
+
 void
-SK_D3D9_Screenshot::dispose (void)
+SK_D3D9_Screenshot::dispose (void) noexcept
 {
   if (outstanding_screenshots.contains (pBackbufferSurface))
       outstanding_screenshots.erase    (pBackbufferSurface);
@@ -98,17 +146,37 @@ SK_D3D9_Screenshot::dispose (void)
   pSwapChain             = nullptr;
   pDev                   = nullptr;
 
-  if (framebuffer.PixelBuffer.m_pData != nullptr)
-      framebuffer.PixelBuffer.Free ();
+  if ( framebuffer.PixelBuffer ==
+       framebuffer.root_.bytes )
+  {
+    framebuffer.PixelBuffer.release ();
+    framebuffer.PBufferSize =
+      framebuffer.root_.size;
+  }
+
+  framebuffer.PixelBuffer.reset (nullptr);
+
+  size_t before =
+    SK_ScreenshotQueue::pooled.capture_bytes.load ();
+
+  SK_ScreenshotQueue::pooled.capture_bytes -=
+    std::exchange (
+      framebuffer.PBufferSize, 0
+    );
+
+  if (before < SK_ScreenshotQueue::pooled.capture_bytes.load  ( ))
+  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); if (config.system.log_level > 1) SK_ReleaseAssert (false && "capture underflow"); }
 };
 
 bool
 SK_D3D9_Screenshot::getData ( UINT     *pWidth,
                               UINT     *pHeight,
                               uint8_t **ppData,
-                              UINT     *pPitch,
-                              bool      Wait )
+                              bool      wait ) noexcept
 {
+  auto& pooled =
+    SK_ScreenshotQueue::pooled;
+
   auto ReadBack = [&](void) -> bool
   {
     if (ulCommandIssuedOnFrame < SK_GetFramesDrawn () - 2)
@@ -117,25 +185,54 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
         SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
 
       D3DLOCKED_RECT finished_copy = { };
-      UINT           PackedDstPitch;
 
       if ( SUCCEEDED ( pSurfScreenshot->LockRect ( &finished_copy,
                                                      nullptr, 0x0 )
                      )
          )
       {
-        PackedDstPitch = finished_copy.Pitch;
+        framebuffer.PackedDstPitch = finished_copy.Pitch;
 
-        if ( framebuffer.PixelBuffer.AllocateBytes ( framebuffer.Height *
-                                                       PackedDstPitch
-                                                   )
-           )
+        size_t allocSize =
+          (framebuffer.Height + 1)
+                              *
+           framebuffer.PackedDstPitch;
+
+        try
         {
+          // Stash in Root?
+          //  ( Less dynamic allocation for base-case )
+          if ( pooled.capture_bytes.fetch_add  ( allocSize ) == 0 )
+          {
+            if (framebuffer.root_.size.load () < allocSize)
+            {
+              framebuffer.root_.bytes =
+                  std::make_unique <uint8_t []> (allocSize);
+              framebuffer.root_.size.store      (allocSize);
+            }
+
+            allocSize =
+              framebuffer.root_.size;
+
+            framebuffer.PixelBuffer.reset (
+              framebuffer.root_.bytes.get ()
+            );
+          }
+
+          else
+          {
+            framebuffer.PixelBuffer =
+              std::make_unique <uint8_t []> (
+                                      allocSize );
+          }
+
           *pWidth  = framebuffer.Width;
           *pHeight = framebuffer.Height;
 
+          framebuffer.PBufferSize = allocSize;
+
           uint8_t* pSrc =  (uint8_t *)finished_copy.pBits;
-          uint8_t* pDst = framebuffer.PixelBuffer.m_pData;
+          uint8_t* pDst = framebuffer.PixelBuffer.get ();
 
           if (pSrc != nullptr && pDst != nullptr)
           {
@@ -144,33 +241,44 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
               memcpy ( pDst, pSrc, finished_copy.Pitch );
 
               // Eliminate pre-multiplied alpha problems (the stupid way)
-              for ( UINT j = 3 ; j < PackedDstPitch ; j += 4 )
+              for ( UINT j = 3 ; j < framebuffer.PackedDstPitch ; j += 4 )
               {
                 pDst [j] = 255UL;
               }
 
               pSrc += finished_copy.Pitch;
-              pDst +=         PackedDstPitch;
+              pDst +=         framebuffer.PackedDstPitch;
             }
           }
 
-          *pPitch = PackedDstPitch;
+        //*pPitch = framebuffer.PackedDstPitch;
+        }
+
+        catch (const std::exception&)
+        {
+          pooled.capture_bytes   -= allocSize;
         }
 
         SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
                       SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
-                    L"D3D11SShot" );
-
+                    L"D3D9 SShot" );
 
         HRESULT hr =
           pSurfScreenshot->UnlockRect ();
 
         if (hr != S_OK) assert (false);
 
-        *ppData = framebuffer.PixelBuffer.m_pData;
+        if (framebuffer.PBufferSize > 0)
+        {
+          *ppData =
+            framebuffer.PixelBuffer.get ();
 
-        return true;
+          return true;
+        }
       }
+
+      // Something is wrong, just discard the screenshot
+      dispose ();
     }
 
     return false;
@@ -180,7 +288,7 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
   bool ready_to_read = false;
 
 
-  if (! Wait)
+  if (! wait)
   {
     if (isReady ())
     {
@@ -202,29 +310,43 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
 
 
 
-static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot*>> screenshot_queue;
+static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot *>> screenshot_queue;
+static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot *>> screenshot_write_queue;
 
 
 bool
-SK_D3D9_CaptureSteamScreenshot  ( SK_ScreenshotStage when )
+SK_D3D9_CaptureScreenshot  ( SK_ScreenshotStage when =
+                              SK_ScreenshotStage::EndOfFrame )
 {
-  if ( ((int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9) != 0 )
+  static const SK_RenderBackend_V2& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ( ((int)rb.api & (int)SK_RenderAPI::D3D9)
+                   == (int)SK_RenderAPI::D3D9 )
   {
-    int stage = 0;
+    static const
+      std::map <SK_ScreenshotStage, int>
+        __stage_map = {
+          { SK_ScreenshotStage::BeforeGameHUD, 0 },
+          { SK_ScreenshotStage::BeforeOSD,     1 },
+          { SK_ScreenshotStage::EndOfFrame,    2 }
+        };
 
-    static const std::map <SK_ScreenshotStage, int> __stage_map = {
-      { SK_ScreenshotStage::BeforeGameHUD, 0 },
-      { SK_ScreenshotStage::BeforeOSD,     1 },
-      { SK_ScreenshotStage::EndOfFrame,    2 }
-    };
-
-    const auto it = __stage_map.find (when);
-
-    if (it != __stage_map.cend ())
+    const auto it =
+               __stage_map.find (when);
+    if ( it != __stage_map.cend (    ) )
     {
-      stage = it->second;
+      const int stage =
+        it->second;
 
-      InterlockedIncrement (&enqueued_screenshots.stages [stage]);
+      if (when == SK_ScreenshotStage::BeforeGameHUD)
+      {
+        return false;
+      }
+
+      InterlockedIncrement (
+        &enqueued_screenshots.stages [stage]
+      );
 
       return true;
     }
@@ -237,208 +359,807 @@ SK_D3D9_CaptureSteamScreenshot  ( SK_ScreenshotStage when )
 #include <../depends/include/DirectXTex/DirectXTex.h>
 
 void
-SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage_)
+SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
+                                   bool               wait   = false,
+                                   bool               purge  = false )
 {
-  int stage =
-    gsl::narrow_cast <int> (stage_);
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
 
   const int __MaxStage = 2;
+  const int      stage =
+    gsl::narrow_cast <int> (stage_);
 
-  assert (stage >= 0 && stage <= __MaxStage);
+  assert ( stage >= 0 &&
+           stage <= ( __MaxStage + 1 ) );
 
-  if (ReadAcquire (&enqueued_screenshots.stages [stage]) > 0)
+  if ( stage < 0 ||
+       stage > ( __MaxStage + 1 ) )
+    return;
+
+
+  if ( stage == ( __MaxStage + 1 ) && purge )
   {
-    if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
+    // Empty all stage queues first, then we
+    //   can wait for outstanding screenshots
+    //     to finish.
+    for ( int implied_stage =  0          ;
+              implied_stage <= __MaxStage ;
+            ++implied_stage                 )
     {
-      SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
-
-      if (pDev != nullptr)
-      {
-        screenshot_queue->push (
-          new SK_D3D9_Screenshot (pDev)
-        );
-      }
+      InterlockedExchange (
+        &enqueued_screenshots.stages [
+              implied_stage          ],   0
+      );
     }
-
-    else InterlockedIncrement (&enqueued_screenshots.stages [stage]);
   }
 
 
-  if (! screenshot_queue->empty ())
+  else if (stage <= __MaxStage)
   {
-    static volatile
-      HANDLE hSignalScreenshot = INVALID_HANDLE_VALUE;
-
-    if ( INVALID_HANDLE_VALUE ==
-           InterlockedCompareExchangePointer (&hSignalScreenshot, nullptr, INVALID_HANDLE_VALUE) )
+    if (ReadAcquire (&enqueued_screenshots.stages [stage]) > 0)
     {
-      InterlockedExchangePointer ( (void **)&hSignalScreenshot,
-                                     SK_CreateEvent ( nullptr,
-                                                        FALSE, TRUE,
-                                                          nullptr ) );
+      // Just kill any queued shots, we need to be quick about this.
+      if (purge)
+        InterlockedExchange      (&enqueued_screenshots.stages [stage], 0);
 
-      SK_Thread_Create ([](LPVOID) -> DWORD
+      else
       {
-        SetCurrentThreadDescription (          L"[SK] D3D9 Screenshot Capture Thread" );
-        SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL |
-                                                              THREAD_MODE_BACKGROUND_BEGIN );
-
-        HANDLE hSignal =
-          ReadPointerAcquire (&hSignalScreenshot);
-
-        // Any incomplete captures are pushed onto this queue, and then the pending
-        //   queue (once drained) is re-built.
-        //
-        //  This is faster than iterating a synchronized list in highly multi-threaded engines.
-        static concurrency::concurrent_queue <SK_D3D9_Screenshot*> rejected_screenshots;
-
-
-        while (ReadAcquire (&__SK_DLL_Ending) == 0)
-        {
-          MsgWaitForMultipleObjectsEx ( 1, &hSignal, INFINITE, 0x0, 0x0 );
-
-          while (! screenshot_queue->empty ())
+        if (InterlockedDecrement (&enqueued_screenshots.stages [stage]) >= 0)
+        {    // --
+          if ( SK_ScreenshotQueue::pooled.capture_bytes.load  () <
+               SK_ScreenshotQueue::maximum.capture_bytes.load () )
           {
-            SK_D3D9_Screenshot* pop_off = nullptr;
-
-            if (screenshot_queue->try_pop (pop_off) && pop_off != nullptr)
+            if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
             {
-              UINT     Width, Height, Pitch;
-              uint8_t* pData;
+              SK_ComQIPtr <IDirect3DDevice9> pDev (SK_GetCurrentRenderBackend ().device);
 
-              if (pop_off->getData (&Width, &Height, &pData, &Pitch))
+              if (pDev != nullptr)
               {
-                //HRESULT hr = E_UNEXPECTED;
-
-
-                wchar_t      wszAbsolutePathToScreenshot [ MAX_PATH + 2 ] = { };
-                wcsncpy_s   (wszAbsolutePathToScreenshot,  MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
-                //PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.png");
-                PathAppendW (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
-
-                //if ( SUCCEEDED (
-                //  SaveToWICFile ( raw_img, WIC_FLAGS_NONE,
-                //                     GetWICCodec (WIC_CODEC_JPEG),
-                //                    //GetWICCodec (WIC_CODEC_PNG),
-                //                      wszAbsolutePathToScreenshot )
-                //               )
-                //   )
-                //{
-                  wchar_t      wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
-                  wcsncpy_s   (wszAbsolutePathToThumbnail,  MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
-                  PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
-
-                  float aspect = (float)Height /
-                                 (float)Width;
-
-#if 0
-                static SK_ComPtr <IWICImagingFactory> pFactory = nullptr;
-
-                SK_ComPtr <IWICBitmapEncoder>     pEncoder = nullptr;
-                SK_ComPtr <IWICBitmapFrameEncode> pFrame   = nullptr;
-                SK_ComPtr <IWICStream>            pStream  = nullptr;
-
-                if (! pFactory)
-                {
-                  if ( FAILED (
-                        CoCreateInstance ( CLSID_WICImagingFactory, nullptr,
-                                           CLSCTX_INPROC_SERVER,
-                                           IID_PPV_ARGS (&pFactory)
-                                         )
-                              )
-                     )
-                  {
-                    continue;
-                  }
-                }
-
-                GUID guidPixelFormat = GUID_WICPixelFormat24bppRGB;
-
-                if ( SUCCEEDED (pFactory->CreateStream          (&pStream))                                     &&
-                     SUCCEEDED (pStream->InitializeFromFilename (wszAbsolutePathToScreenshot, GENERIC_WRITE))   &&
-                     SUCCEEDED (pFactory->CreateEncoder         (GUID_ContainerFormatJpeg, nullptr, &pEncoder)) &&
-                     SUCCEEDED (pEncoder->Initialize            (pStream, WICBitmapEncoderNoCache))             &&
-                     SUCCEEDED (pEncoder->CreateNewFrame        (&pFrame, nullptr))                             &&
-                     SUCCEEDED (pFrame->Initialize              (nullptr))                                      &&
-                     SUCCEEDED (pFrame->SetSize                 (Width, Height))                                &&
-                     SUCCEEDED (pFrame->SetPixelFormat          (&guidPixelFormat))                             &&
-                     SUCCEEDED (pFrame->WritePixels             (Height, Pitch, Pitch * Height, pData))         &&
-                     SUCCEEDED (pFrame->Commit                  ())                                             &&
-                     SUCCEEDED (pEncoder->Commit                ()) )
-                {
-#else
-                {
-                  using namespace DirectX;
-
-                  DXGI_FORMAT dxgi_format =
-                    SK_D3D9_FormatToDXGI (pop_off->getInternalFormat ());
-
-                  Image raw_img = { };
-
-                  ComputePitch (
-                    dxgi_format,
-                      Width, Height,
-                        raw_img.rowPitch, raw_img.slicePitch
-                  );
-
-                  raw_img.format = dxgi_format;
-                  raw_img.width  = Width;
-                  raw_img.height = Height;
-                  raw_img.pixels = pData;
-
-
-                    ScratchImage thumbnailImage;
-
-                    Resize ( raw_img, 200, (size_t)(200 * aspect), TEX_FILTER_TRIANGLE, thumbnailImage );
-
-                    SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_NONE,
-                                      GetWICCodec (WIC_CODEC_JPEG),
-                                        wszAbsolutePathToThumbnail );
-#endif
-
-                  ScreenshotHandle screenshot =
-                    SK_SteamAPI_AddScreenshotToLibraryEx ( SK_WideCharToUTF8 (wszAbsolutePathToScreenshot).c_str  (),
-                                                             nullptr,//SK_WideCharToUTF8 (wszAbsolutePathToThumbnail).c_str (),
-                                                               Width, Height, true );
-
-                  SK_LOG0 ( ( L"Finished Steam Screenshot Import for Handle: '%x'",
-                              screenshot ), L"SteamSShot" );
-
-                  // Remove the temporary files...
-                  DeleteFileW (wszAbsolutePathToScreenshot);
-                  DeleteFileW (wszAbsolutePathToThumbnail);
-
-                  delete pop_off;
-
-                  continue;
-                }
+                screenshot_queue->push (
+                  new SK_D3D9_Screenshot (pDev)
+                );
               }
-
-              rejected_screenshots.push (pop_off);
             }
           }
 
-          while (! rejected_screenshots.empty ())
-          {
-            SK_D3D9_Screenshot* push_back = nullptr;
+          else {
+            SK_RunOnce (
+              SK_ImGui_Warning (L"Too much screenshot data queued")
+            );
+          }
+        }
 
-            if ( rejected_screenshots.try_pop (push_back) &&
-                                               push_back != nullptr )
+        else // ++
+          InterlockedIncrement   (&enqueued_screenshots.stages [stage]);
+      }
+    }
+  }
+
+  static volatile LONG _lockVal = 0;
+
+  struct signals_s {
+    HANDLE capture    = INVALID_HANDLE_VALUE;
+    HANDLE hq_encode  = INVALID_HANDLE_VALUE;
+
+    struct {
+      HANDLE initiate = INVALID_HANDLE_VALUE;
+      HANDLE finished = INVALID_HANDLE_VALUE;
+    } abort;
+  } static signal = { };
+
+  static HANDLE
+    hWriteThread      = INVALID_HANDLE_VALUE;
+
+
+  if ( 0                    == InterlockedCompareExchange (&_lockVal, 1, 0) &&
+       INVALID_HANDLE_VALUE == signal.capture )
+  {
+    signal.capture        = SK_CreateEvent ( nullptr, FALSE, TRUE,  nullptr );
+    signal.abort.initiate = SK_CreateEvent ( nullptr, TRUE,  FALSE, nullptr );
+    signal.abort.finished = SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+    signal.hq_encode      = SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+
+    hWriteThread =
+    SK_Thread_CreateEx ([](LPVOID) -> DWORD
+    {
+      SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
+
+      do
+      {
+        HANDLE signals [] = {
+          signal.capture,       // Screenshots are waiting for write
+          signal.abort.initiate // Screenshot full-abort requested (i.e. for SwapChain Resize)
+        };
+
+        DWORD dwWait =
+          WaitForMultipleObjects ( 2, signals, FALSE, INFINITE );
+
+        bool
+          purge_and_run =
+            ( dwWait == ( WAIT_OBJECT_0 + 1 ) );
+
+        static std::vector <SK_D3D9_Screenshot*> to_write;
+
+        while (! screenshot_write_queue->empty ())
+        {
+          SK_D3D9_Screenshot*                   pop_off   = nullptr;
+          if ( screenshot_write_queue->try_pop (pop_off) &&
+                                                pop_off  != nullptr )
+          {
+            if (purge_and_run)
             {
-              screenshot_queue->push (push_back);
+              delete pop_off;
+              continue;
+            }
+
+            if (config.screenshots.png_compress)
+              to_write.emplace_back (pop_off);
+
+            SK_D3D9_Screenshot::framebuffer_s* pFrameData =
+              pop_off->getFinishedData ();
+
+            // Why's it on the wait-queue if it's not finished?!
+            assert (pFrameData != nullptr);
+
+            if (pFrameData != nullptr)
+            {
+              using namespace DirectX;
+
+              bool  skip_me = false;
+              Image raw_img = {   };
+
+              ComputePitch (
+                SK_D3D9_FormatToDXGI (pFrameData->NativeFormat),
+                  pFrameData->Width, pFrameData->Height,
+                    raw_img.rowPitch, raw_img.slicePitch
+              );
+
+              // Steam wants JPG, smart people want PNG
+              DirectX::WICCodecs codec = WIC_CODEC_JPEG;
+
+              raw_img.format = SK_D3D9_FormatToDXGI (pop_off->getInternalFormat ());
+              raw_img.width  = pFrameData->Width;
+              raw_img.height = pFrameData->Height;
+              raw_img.pixels = pFrameData->PixelBuffer.get ();
+
+              bool hdr = ( rb.isHDRCapable () &&
+                           rb.isHDRActive  () );
+
+              SK_RunOnce (SK_SteamAPI_InitManagers ());
+
+              wchar_t       wszAbsolutePathToScreenshot [ MAX_PATH + 2 ] = { };
+              wcsncpy_s   ( wszAbsolutePathToScreenshot,  MAX_PATH,
+                              rb.screenshot_mgr.getBasePath (),
+                                _TRUNCATE );
+
+              if ( config.steam.screenshots.enable_hook &&
+                          steam_ctx.Screenshots ()      != nullptr )
+              {
+                PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
+                SK_CreateDirectories (wszAbsolutePathToScreenshot);
+              }
+
+              else if ( hdr )
+              {
+                time_t
+                  screenshot_time;
+
+                codec = WIC_CODEC_PNG;
+
+                PathAppendW (         wszAbsolutePathToScreenshot,
+                  SK_FormatStringW ( LR"(LDR\%lu.png)",
+                              time (&screenshot_time) ).c_str () );
+                SK_CreateDirectories (wszAbsolutePathToScreenshot);
+              }
+
+              // Not HDR and not importing to Steam,
+              //   we've got nothing left to do...
+              else
+              {
+                skip_me = true;
+              }
+
+              if ((! skip_me) && pop_off != nullptr)
+              {
+                ScratchImage
+                  un_srgb;
+                  un_srgb.InitializeFromImage (raw_img);
+
+                DirectX::TexMetadata
+                meta           = {           };
+                meta.width     = raw_img.width;
+                meta.height    = raw_img.height;
+                meta.depth     = 1;
+                meta.format    = raw_img.format;
+                meta.dimension = TEX_DIMENSION_TEXTURE2D;
+                meta.arraySize = 1;
+                meta.mipLevels = 1;
+                meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                ScratchImage
+                  un_scrgb;
+                  un_scrgb.Initialize (meta);
+
+                static const XMVECTORF32 c_MaxNitsFor2084 =
+                  { 10000.0f, 10000.0f, 10000.0f, 1.f };
+
+                static const XMMATRIX c_from2020to709 =
+                {
+                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
+                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                  { 0.f,          0.f,         0.f,        1.f }
+                };
+
+                auto RemoveGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
+                                         value.m128_f32 [0] / 12.92f     :
+                                   pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
+                                         value.m128_f32 [1] / 12.92f     :
+                                   pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
+                                         value.m128_f32 [2] / 12.92f     :
+                                   pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
+                };
+
+                auto ApplyGamma_sRGB = [](XMVECTOR value) ->
+                void
+                {
+                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
+                                         value.m128_f32 [0] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
+                                         value.m128_f32 [1] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
+                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
+                                         value.m128_f32 [2] * 12.92f      :
+                           1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
+                };
+
+                HRESULT hr = S_OK;
+
+                if ( un_srgb.GetImages  () &&
+                     hdr                   && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                     rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
+                  TransformImage ( un_srgb.GetImages     (),
+                                   un_srgb.GetImageCount (),
+                                   un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR value  = inPixels [j];
+                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+
+                      ApplyGamma_sRGB (value);
+
+                      outPixels [j]   =                     value;
+                    }
+                  }, un_scrgb);
+
+                  std::swap (un_scrgb, un_srgb);
+                }
+
+                XMVECTOR maxLum = XMVectorZero ();
+
+                hr =              un_srgb.GetImages     () ?
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      static const XMVECTORF32 s_luminance =
+                      //{ 0.3f, 0.59f, 0.11f, 0.f };
+                      { 0.2125862307855955516f,
+                        0.7151703037034108499f,
+                        0.07220049864333622685f };
+
+                      XMVECTOR v = *pixels++;
+                      RemoveGamma_sRGB          (v);
+                               v = XMVector3Dot (v, s_luminance);
+
+                      maxLum =
+                        XMVectorMax (v, maxLum);
+                    }
+                  })                                       : E_POINTER;
+
+#define _CHROMA_SCALE TRUE
+#ifndef _CHROMA_SCALE
+                  maxLum =
+                    XMVector3Length  (maxLum);
+#else
+                  maxLum =
+                    XMVectorMultiply (maxLum, maxLum);
+#endif
+
+                  hr =               un_srgb.GetImages     () ?
+                    TransformImage ( un_srgb.GetImages     (),
+                                     un_srgb.GetImageCount (),
+                                     un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+
+                        XMVECTOR scale =
+                          XMVectorDivide (
+                            XMVectorAdd (
+                              g_XMOne, XMVectorDivide ( value,
+                                                          maxLum
+                                                      )
+                                        ),
+                            XMVectorAdd (
+                              g_XMOne, value
+                                        )
+                          );
+
+                        XMVECTOR nvalue =
+                          XMVectorMultiply (value, scale);
+                                  value =
+                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                        outPixels [j]   =   value;
+                      }
+                    }, un_scrgb)                             : E_POINTER;
+
+                std::swap (un_srgb, un_scrgb);
+
+                if (         un_srgb.GetImages ()) {
+                  Convert ( *un_srgb.GetImages (),
+                              DXGI_FORMAT_B8G8R8X8_UNORM,
+                                TEX_FILTER_DITHER |
+                                TEX_FILTER_SRGB,
+                                  TEX_THRESHOLD_DEFAULT,
+                                    un_scrgb );
+                }
+
+                if (un_scrgb.GetImages ())
+                {
+                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
+                }
+
+                if (               un_scrgb.GetImages () &&
+                      SUCCEEDED (
+                  SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
+                                     GetWICCodec         (codec),
+                                      wszAbsolutePathToScreenshot )
+                               )
+                   )
+                {
+                  if ( config.steam.screenshots.enable_hook &&
+                          steam_ctx.Screenshots () != nullptr )
+                  {
+                    wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
+                    wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
+                                    rb.screenshot_mgr.getBasePath (),
+                                      _TRUNCATE );
+
+                    PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
+
+                    float aspect = (float)pFrameData->Height /
+                                   (float)pFrameData->Width;
+
+                    ScratchImage thumbnailImage;
+
+                    Resize ( *un_scrgb.GetImages (), 200,
+                               static_cast <size_t> (200.0 * aspect),
+                                TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
+                              | TEX_FILTER_TRIANGLE,
+                                  thumbnailImage );
+
+                    if (               thumbnailImage.GetImages ()) {
+                      SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
+                                        GetWICCodec                (codec),
+                                          wszAbsolutePathToThumbnail );
+
+                      std::string ss_path (
+                        SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
+                      );
+
+                      std::string ss_thumb (
+                        SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
+                      );
+
+                      ScreenshotHandle screenshot =
+                        SK_SteamAPI_AddScreenshotToLibraryEx (
+                          ss_path.c_str    (),
+                            ss_thumb.c_str (),
+                              pFrameData->Width, pFrameData->Height,
+                                true );
+
+                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
+                                  screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
+                                    L"SteamSShot" );
+
+                      // Remove the temporary files...
+                      DeleteFileW (wszAbsolutePathToThumbnail);
+                    }
+                    DeleteFileW (wszAbsolutePathToScreenshot);
+                  }
+                }
+              }
+
+              if (! config.screenshots.png_compress)
+              {
+                delete pop_off;
+                       pop_off = nullptr;
+              }
             }
           }
         }
 
-        SK_Thread_CloseSelf ();
+        if (purge_and_run)
+        {
+          SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
-        CloseHandle (hSignal);
+          purge_and_run = false;
 
-        return 0;
-      });
-    }
+          ResetEvent (signal.abort.initiate); // Abort no longer needed
+          SetEvent   (signal.abort.finished); // Abort is complete
+        }
 
-    else
-      SetEvent (ReadPointerAcquire (&hSignalScreenshot));
+        if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
+        {
+          int enqueued_lossless = 0;
+
+          while ( ! to_write.empty () )
+          {
+            auto it =
+              to_write.back ();
+
+            to_write.pop_back ();
+
+            if ( it                     == nullptr ||
+                 it->getFinishedData () == nullptr )
+            {
+              delete it;
+
+              continue;
+            }
+
+            static concurrency::concurrent_queue <SK_D3D9_Screenshot::framebuffer_s*>
+              raw_images_;
+
+            SK_D3D9_Screenshot::framebuffer_s* fb_orig =
+              it->getFinishedData ();
+
+            SK_ReleaseAssert (fb_orig != nullptr);
+
+            if (fb_orig != nullptr)
+            {
+              SK_D3D9_Screenshot::framebuffer_s* fb_copy =
+                new SK_D3D9_Screenshot::framebuffer_s ();
+
+              fb_copy->Height              = fb_orig->Height; //-V522
+              fb_copy->Width               = fb_orig->Width;
+              fb_copy->NativeFormat        = fb_orig->NativeFormat;
+              fb_copy->PBufferSize         = fb_orig->PBufferSize;
+              fb_copy->PackedDstPitch      = fb_orig->PackedDstPitch;
+              fb_copy->PackedDstSlicePitch = fb_orig->PackedDstSlicePitch;
+
+              fb_copy->PixelBuffer =
+                std::move (fb_orig->PixelBuffer);
+
+              raw_images_.push (fb_copy);
+
+              ++enqueued_lossless;
+            }
+
+            delete it;
+
+            static volatile HANDLE
+              hThread = INVALID_HANDLE_VALUE;
+
+            if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
+            {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
+              concurrency::concurrent_queue <SK_D3D9_Screenshot::framebuffer_s *>*
+                images_to_write =
+                  (concurrency::concurrent_queue <SK_D3D9_Screenshot::framebuffer_s *>*)pUser;
+
+              SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
+              SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
+
+              while (0 == ReadAcquire (&__SK_DLL_Ending))
+              {
+                SK_D3D9_Screenshot::framebuffer_s *pFrameData =
+                  nullptr;
+
+                SK_WaitForSingleObject  (
+                  signal.hq_encode, INFINITE
+                );
+
+                while   (! images_to_write->empty   (          ))
+                { while (! images_to_write->try_pop (pFrameData))
+                  {
+                    SwitchToThread ();
+                  }
+
+                  if (ReadAcquire (&__SK_DLL_Ending))
+                    break;
+
+                  time_t screenshot_time;
+
+                  wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
+                  wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
+                                  rb.screenshot_mgr.getBasePath (),
+                                    _TRUNCATE );
+
+                  bool hdr =
+                    ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
+                      SK_GetCurrentRenderBackend ().isHDRActive  () );
+
+                  if (hdr)
+                  {
+                    PathAppendW ( wszAbsolutePathToLossless,
+                      SK_FormatStringW ( L"HDR\\%lu.jxr",
+                                  time (&screenshot_time) ).c_str () );
+                  }
+
+                  else
+                  {
+                    PathAppendW ( wszAbsolutePathToLossless,
+                      SK_FormatStringW ( L"Lossless\\%lu.png",
+                                  time (&screenshot_time) ).c_str () );
+                  }
+
+                  // Why's it on the wait-queue if it's not finished?!
+                  assert (pFrameData != nullptr);
+
+                  if (pFrameData != nullptr)
+                  {
+                    using namespace DirectX;
+
+                    Image raw_img = { };
+
+                    uint8_t* pDst =
+                      pFrameData->PixelBuffer.get ();
+
+                    for (UINT i = 0; i < pFrameData->Height; ++i)
+                    {
+                      // Eliminate pre-multiplied alpha problems (the stupid way)
+                      switch (pFrameData->NativeFormat)
+                      {
+                        case DXGI_FORMAT_B8G8R8A8_UNORM:
+                        case DXGI_FORMAT_R8G8B8A8_UNORM:
+                        {
+                          for ( UINT j = 3                          ;
+                                     j < pFrameData->PackedDstPitch ;
+                                     j += 4 )
+                          {    pDst [j] = 255UL;        }
+                        } break;
+
+                        case DXGI_FORMAT_R10G10B10A2_UNORM:
+                        {
+                          for ( UINT j = 3                          ;
+                                     j < pFrameData->PackedDstPitch ;
+                                     j += 4 )
+                          {    pDst [j]  |=  0x3;       }
+                        } break;
+
+                        case DXGI_FORMAT_R16G16B16A16_FLOAT:
+                        {
+                          for ( UINT j  = 0                          ;
+                                     j < pFrameData->PackedDstPitch  ;
+                                     j += 8 )
+                          {
+                            glm::vec4 color =
+                              glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
+
+                            color.a = 1.0f;
+
+                            *((uint64*)& (pDst[j])) =
+                              glm::packHalf4x16 (color);
+                          }
+                        } break;
+                      }
+
+                      pDst += pFrameData->PackedDstPitch;
+                    }
+
+                    ComputePitch ( SK_D3D9_FormatToDXGI (pFrameData->NativeFormat),
+                                     pFrameData->Width,
+                                     pFrameData->Height,
+                                       raw_img.rowPitch,
+                                       raw_img.slicePitch
+                    );
+
+                    raw_img.format = SK_D3D9_FormatToDXGI (pFrameData->NativeFormat);
+                    raw_img.width  = pFrameData->Width;
+                    raw_img.height = pFrameData->Height;
+                    raw_img.pixels = pFrameData->PixelBuffer.get ();
+
+                    if (config.screenshots.copy_to_clipboard)
+                    {
+                      ScratchImage
+                        clipboard;
+                        clipboard.InitializeFromImage (raw_img);
+
+                      if (SUCCEEDED ( Convert ( raw_img,
+                                                  DXGI_FORMAT_B8G8R8X8_UNORM,
+                                                    TEX_FILTER_DITHER,
+                                                      TEX_THRESHOLD_DEFAULT,
+                                                        clipboard ) ) )
+                      {
+                        if (! hdr)
+                          rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
+                      }
+                    }
+
+                    if (config.screenshots.png_compress)
+                    {
+                      SK_CreateDirectories (wszAbsolutePathToLossless);
+
+                      ScratchImage
+                        un_srgb;
+                        un_srgb.InitializeFromImage (raw_img);
+
+                      HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
+                                SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
+                                        GetWICCodec (hdr ? WIC_CODEC_WMP :
+                                                           WIC_CODEC_PNG),
+                                             wszAbsolutePathToLossless,
+                                               hdr ?
+                                                 &GUID_WICPixelFormat64bppRGBAHalf :
+                                                 pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                              &GUID_WICPixelFormat48bppRGB :
+                                                                              &GUID_WICPixelFormat24bppBGR)
+                                                                     : E_POINTER;
+
+                      if (SUCCEEDED (hrSaveToWIC))
+                      {
+                        // Refresh
+                        rb.screenshot_mgr.getRepoStats (true);
+                      }
+
+                      else
+                      {
+                        SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
+                                                       SK_DescribeHRESULT (hrSaveToWIC) ),
+                                    L"D3D9 SShot" );
+
+                        SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
+                                           L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
+                                           L"\t\tTo prevent future problems, disable this under Steam Enhancements / Screenshots" );
+                      }
+                    }
+
+                    delete pFrameData;
+                  }
+                }
+              }
+
+              SK_Thread_CloseSelf ();
+
+              return 0;
+            }, L"[SK] D3D9 Screenshot Encoder",
+              (LPVOID)&raw_images_ );
+          } }
+
+          if (enqueued_lossless > 0)
+          {   enqueued_lossless = 0;
+            SetEvent (signal.hq_encode);
+          }
+        }
+      } while (0 == ReadAcquire (&__SK_DLL_Ending));
+
+      SK_Thread_CloseSelf ();
+
+      CloseHandle (signal.capture);
+      CloseHandle (signal.abort.initiate);
+      CloseHandle (signal.abort.finished);
+      CloseHandle (signal.hq_encode);
+
+      return 0;
+    }, L"[SK] D3D9 Screenshot Capture" );
+
+    InterlockedIncrement (&_lockVal);
   }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&_lockVal, 2);
+
+
+  if (stage_ != SK_ScreenshotStage::_FlushQueue && wait == false && purge == false)
+    return;
+
+
+  // Any incomplete captures are pushed onto this queue, and then the pending
+  //   queue (once drained) is re-built.
+  //
+  //  This is faster than iterating a synchronized list in highly multi-threaded engines.
+  static concurrency::concurrent_queue <SK_D3D9_Screenshot *> rejected_screenshots;
+
+  bool new_jobs = false;
+
+  do
+  {
+    do
+    {
+      SK_D3D9_Screenshot*             pop_off   = nullptr;
+      if ( screenshot_queue->try_pop (pop_off) &&
+                                      pop_off  != nullptr )
+      {
+        if (purge)
+          delete pop_off;
+
+        else
+        {
+          UINT     Width, Height;
+          uint8_t* pData;
+
+          // There is a condition in which waiting is necessary;
+          //   after a swapchain resize or fullscreen mode switch.
+          //
+          //  * For now, ignore this problem until it actuall poses one.
+          //
+          if (pop_off->getData (&Width, &Height, &pData, wait))
+          {
+            screenshot_write_queue->push (pop_off);
+            new_jobs = true;
+          }
+
+          else
+            rejected_screenshots.push (pop_off);
+        }
+      }
+    } while ((! screenshot_queue->empty ()) && (purge || wait));
+
+    do
+    {
+      SK_D3D9_Screenshot*                push_back   = nullptr;
+      if ( rejected_screenshots.try_pop (push_back) &&
+                                         push_back  != nullptr )
+      {
+        if (purge)
+          delete push_back;
+
+        else
+          screenshot_queue->push (push_back);
+      }
+    } while ((! rejected_screenshots.empty ()) && (purge || wait));
+
+    if ( wait ||
+                 purge )
+    {
+      if ( screenshot_queue->empty    () &&
+           rejected_screenshots.empty ()    )
+      {
+        if ( purge && (! screenshot_write_queue->empty ()) )
+        {
+          SetThreadPriority   ( hWriteThread,          THREAD_PRIORITY_TIME_CRITICAL );
+          SignalObjectAndWait ( signal.abort.initiate,
+                                signal.abort.finished, INFINITE,              FALSE  );
+        }
+
+        wait  = false;
+        purge = false;
+
+        break;
+      }
+    }
+  } while ( wait ||
+                    purge );
+
+  if (new_jobs)
+    SetEvent (signal.capture);
+}
+
+void
+SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage stage)
+{
+  SK_D3D9_ProcessScreenshotQueueEx (stage, false);
 }

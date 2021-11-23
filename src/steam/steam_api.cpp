@@ -712,7 +712,7 @@ extern bool
 SK_D3D12_CaptureScreenshot (SK_ScreenshotStage when);
 
 extern bool
-SK_D3D9_CaptureSteamScreenshot (SK_ScreenshotStage when);
+SK_D3D9_CaptureScreenshot (SK_ScreenshotStage when);
 
 extern bool
 SK_GL_CaptureScreenshot (SK_ScreenshotStage when);
@@ -765,18 +765,16 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
     return;
   }
 
-  //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
-  //{
-  //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-  //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
-  //  {
-  //    SK_D3D9_CaptureSteamScreenshot ( config.steam.screenshots.show_osd_by_default ?
-  //                                        SK_ScreenshotStage::EndOfFrame :
-  //                                        SK_ScreenshotStage::BeforeOSD );
-  //
-  //    return;
-  //  }
-  //}
+  else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
+  {
+    SK_D3D9_CaptureScreenshot (
+            config.screenshots.show_osd_by_default ?
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+    );
+
+    return;
+  }
+
   //
   // This feature is not supported,  so go back to normal screenshots.
   request.Unregister ();
@@ -4489,19 +4487,12 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
       SK_GL_CaptureScreenshot (when);
   }
 
-  //else if ( (int)SK_GetCurrentRenderBackend ().api & (int)SK_RenderAPI::D3D9 )
-  //{
-  //  // Avoid any exotic pixel formats for now -- 8-bit RGB(A) only
-  //  //if (SK_GetCurrentRenderBackend ().framebuffer_flags == 0x00)
-  //  {
-  //    SK_D3D9_CaptureSteamScreenshot ( when );
-  //
-  //
-  //    steam_log->LogEx ( false, L"Stage=%x (SK_SmartCapture)\n",
-  //                        (int)when );
-  //    return true;
-  //  }
-  //}
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D9) )
+  {
+    captured =
+      SK_D3D9_CaptureScreenshot (when);
+  }
 
   if (captured)
   {

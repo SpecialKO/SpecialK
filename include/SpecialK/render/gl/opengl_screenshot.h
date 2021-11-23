@@ -54,10 +54,16 @@ public:
       return false;
     }
 
-    return (
-      GL_ALREADY_SIGNALED ==
-        glClientWaitSync (pixel_buffer_fence, 0x0, 0)
-           );
+    if (pixel_buffer_fence == nullptr)
+      return true; // We have no way of knowing
+
+    GLsizei count  = 0;
+    GLint   status = 0;
+
+    glGetSynciv (pixel_buffer_fence, GL_SYNC_STATUS, 1, &count, &status);
+
+    return
+      (status == GL_SIGNALED);
   }
 
   SK_GL_Screenshot& __cdecl operator= (      SK_GL_Screenshot&& moveFrom) noexcept;
@@ -128,14 +134,12 @@ public:
 
 protected:
   HGLRC                           hglrc                  = nullptr;
-  HDC                             hdc                    = nullptr;
 
   GLuint                          pixel_buffer_object    = 0;
   GLsync                          pixel_buffer_fence     = nullptr;
   ULONG64                         ulCommandIssuedOnFrame = 0;
 
   framebuffer_s                   framebuffer            = {     };
-  //SK_ComPtr <ID3D11Texture2D>     pStagingBackbufferCopy = nullptr;
 };
 
 void SK_GL_WaitOnAllScreenshots   (void);

@@ -8200,6 +8200,8 @@ SK_D3D9_EndFrame (void)
     }
   }
 
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
+
   if (tex_mgr.init)
       tex_mgr.resetUsedTextures ();
 }
@@ -8581,6 +8583,8 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
   {
     case D3DFMT_UNKNOWN:
       return DXGI_FORMAT_UNKNOWN;
+
+    case D3DFMT_X8R8G8B8:     return DXGI_FORMAT_B8G8R8X8_UNORM;
 
     case D3DFMT_R8G8B8:       return DXGI_FORMAT_R8G8B8A8_UNORM;
   //case D3DFMT_A8R8G8B8:     return DXGI_FORMAT_A8G8R8B8_UNORM;

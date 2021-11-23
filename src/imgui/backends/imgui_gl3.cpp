@@ -263,8 +263,58 @@ ImGui_ImplGL3_CreateFontsTexture (void)
 //glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL,             16 );
 //glTexParameteri ( GL_TEXTURE_2D, GL_GENERATE_MIPMAP,          GL_TRUE );
   glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,     GL_NONE );
+
+
+  GLint                                           last_unpack_buffer = 0;
+  glGetIntegerv (GL_PIXEL_UNPACK_BUFFER_BINDING, &last_unpack_buffer);
+
+  if (last_unpack_buffer != 0)
+    glBindBuffer (GL_PIXEL_UNPACK_BUFFER, 0);
+
+  //
+  // Docs do not explain any attrib bits that backup pixel transfer,
+  //   so do it ourselves...
+  //
+  GLboolean         UNPACK_SWAP_BYTES;
+  glGetBooleanv (GL_UNPACK_SWAP_BYTES,   &UNPACK_SWAP_BYTES);
+  glPixelStorei (GL_UNPACK_SWAP_BYTES,   false);
+  GLboolean         UNPACK_LSB_FIRST;
+  glGetBooleanv (GL_UNPACK_LSB_FIRST,	   &UNPACK_LSB_FIRST);
+  glPixelStorei (GL_UNPACK_LSB_FIRST,    false);
+  GLint             UNPACK_ROW_LENGTH;
+  glGetIntegerv (GL_UNPACK_ROW_LENGTH,   &UNPACK_ROW_LENGTH);
+  glPixelStorei (GL_UNPACK_ROW_LENGTH,       0);
+  GLint             UNPACK_IMAGE_HEIGHT;
+  glGetIntegerv (GL_UNPACK_IMAGE_HEIGHT, &UNPACK_IMAGE_HEIGHT);
+  glPixelStorei (GL_UNPACK_IMAGE_HEIGHT,     0);
+  GLint             UNPACK_SKIP_ROWS;
+  glGetIntegerv (GL_UNPACK_SKIP_ROWS,    &UNPACK_SKIP_ROWS);
+  glPixelStorei (GL_UNPACK_SKIP_ROWS,        0);
+  GLint             UNPACK_SKIP_PIXELS;
+  glGetIntegerv (GL_UNPACK_SKIP_PIXELS,  &UNPACK_SKIP_PIXELS);
+  glPixelStorei (GL_UNPACK_SKIP_PIXELS,      0);
+  GLint             UNPACK_SKIP_IMAGES;
+  glGetIntegerv (GL_UNPACK_SKIP_IMAGES,  &UNPACK_SKIP_IMAGES);
+  glPixelStorei (GL_UNPACK_SKIP_IMAGES,      0);
+  GLint             UNPACK_ALIGNMENT;
+  glGetIntegerv (GL_UNPACK_ALIGNMENT,    &UNPACK_ALIGNMENT);
+  glPixelStorei (GL_UNPACK_ALIGNMENT,        4);
+
   glTexImage2D    ( GL_TEXTURE_2D, 0, GL_RGBA, width, height,         0,
                                       GL_RGBA, GL_UNSIGNED_BYTE, pixels );
+
+  glPixelStorei (GL_UNPACK_SWAP_BYTES,    UNPACK_SWAP_BYTES);
+  glPixelStorei (GL_UNPACK_LSB_FIRST,     UNPACK_LSB_FIRST);
+  glPixelStorei (GL_UNPACK_ROW_LENGTH,    UNPACK_ROW_LENGTH);
+  glPixelStorei (GL_UNPACK_IMAGE_HEIGHT,  UNPACK_IMAGE_HEIGHT);
+  glPixelStorei (GL_UNPACK_SKIP_ROWS,     UNPACK_SKIP_ROWS);
+  glPixelStorei (GL_UNPACK_SKIP_PIXELS,   UNPACK_SKIP_PIXELS);
+  glPixelStorei (GL_UNPACK_SKIP_IMAGES,   UNPACK_SKIP_IMAGES);
+  glPixelStorei (GL_UNPACK_ALIGNMENT,     UNPACK_ALIGNMENT);
+
+  if (last_unpack_buffer != 0)
+    glBindBuffer (GL_PIXEL_UNPACK_BUFFER, last_unpack_buffer);
+
 
   // Store our identifier
   io.Fonts->TexID =

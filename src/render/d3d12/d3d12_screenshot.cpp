@@ -713,7 +713,7 @@ SK_D3D12_Screenshot::dispose (void) noexcept
     );
 
   if (before < SK_ScreenshotQueue::pooled.capture_bytes.load  ( ))
-  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); SK_ReleaseAssert (false && "capture underflow"); }
+  {            SK_ScreenshotQueue::pooled.capture_bytes.store (0); if (config.system.log_level > 1) SK_ReleaseAssert (false && "capture underflow"); }
 };
 
 
@@ -2346,7 +2346,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     SK_Thread_SpinUntilAtomicMin (&_lockVal, 2);
 
 
-  if (stage != 3)
+  if (stage_ != SK_ScreenshotStage::_FlushQueue && wait == false && purge == false)
     return;
 
 

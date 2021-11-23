@@ -2156,7 +2156,7 @@ D3D9SetRenderTarget_Detour (
 
     if (pRenderTarget != pOld) {
       if (pOld != nullptr) {
-        wsprintf (wszDumpName, L"dump\\%03d_out_%p.png", draw_counter, pOld);
+        swprintf (wszDumpName, L"dump\\%03d_out_%p.png", draw_counter, pOld);
 
         dll_log->Log ( L"[FrameTrace] >>> Dumped: Output RT to %s >>>", wszDumpName );
 
@@ -2173,7 +2173,7 @@ D3D9SetRenderTarget_Detour (
     if (pRenderTarget != pOld) {
       pOld = pRenderTarget;
 
-      wsprintf (wszDumpName, L"dump\\%03d_in_%p.png", ++draw_counter, pRenderTarget);
+      swprintf (wszDumpName, L"dump\\%03d_in_%p.png", ++draw_counter, pRenderTarget);
 
       dll_log->Log ( L"[FrameTrace] <<< Dumped: Input RT to  %s  <<<", wszDumpName );
 
