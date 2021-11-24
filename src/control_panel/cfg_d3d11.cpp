@@ -798,7 +798,11 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      INT swap_flag_count = 0;
+      INT          swap_flag_count = 0;
+      std::wstring swap_flags      =
+        SK_DXGI_DescribeSwapChainFlags (
+          static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
+                  &swap_flag_count     );
 
       ImGui::BeginTooltip      ();
       ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
@@ -823,14 +827,9 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
-        ImGui::TextUnformatted ("Flags:");
-      if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
-      //if (rb.isHDRCapable ())
       {
-        ImGui::Separator  ();
-        ImGui::Text ("Display Device:   ");
-        ImGui::Text ("HDR Color Space:  ");
-        ImGui::Text ("Output Bit Depth: ");
+        ImGui::TextUnformatted ("Flags:");
+        if (swap_flag_count > 1) { for ( int i = 1; i < swap_flag_count; i++ ) ImGui::TextUnformatted ("\n"); }
       }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
@@ -866,11 +865,31 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
       {
-        std::wstring swap_flags      =          SK_DXGI_DescribeSwapChainFlags (
-                                        static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
-                                                                           &swap_flag_count);
         ImGui::Text          ("%ws",                                        swap_flags.c_str ());
       }
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
+      ImGui::TextUnformatted ("Display Output Configuration");
+      ImGui::PopStyleColor   ();
+      ImGui::Separator       ();
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (0.685f, 0.685f, 0.685f, 1.0f));
+      //if (rb.isHDRCapable ())
+      {
+        ImGui::Text ("Display Device: ");
+        ImGui::Text ("HDR Color Space: ");
+        ImGui::Text ("Output Bit Depth: ");
+      }
+      ImGui::PopStyleColor   ();
+      ImGui::EndGroup        ();
+
+      ImGui::SameLine        ();
+
+      ImGui::BeginGroup      ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       //if (rb.isHDRCapable ())
       {
         bool _fullscreen = true;
@@ -886,7 +905,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
             (! full_desc.Windowed);
         }
 
-        ImGui::Separator  ();
         ImGui::Text ("%ws", rb.display_name);
 
         if (! rb.scanout.nvapi_hdr.active)
