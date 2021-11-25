@@ -2201,18 +2201,29 @@ SK_Inject_Stop (void)
 
   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
+  bool bHas32BitDLL =
+    GetFileAttributesW (L"SpecialK32.dll") != INVALID_FILE_ATTRIBUTES;
+  bool bHas64BitDLL =
+    GetFileAttributesW (L"SpecialK64.dll") != INVALID_FILE_ATTRIBUTES;
+
   //if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   if (true)
   {
-    PathAppendW      ( wszWOW64, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                         "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    if (bHas32BitDLL)
+    {
+      PathAppendW      ( wszWOW64, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                           "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    }
 
-    PathAppendW      ( wszSys32, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                         "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    if (bHas64BitDLL)
+    {
+      PathAppendW      ( wszSys32, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                           "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    }
   }
 
   else
@@ -2238,15 +2249,21 @@ SK_Inject_Stop (void)
       SK_ExitRemoteProcess ( L"SKIM64.exe", 0x00);
     }
 
-    PathAppendW      ( wszWOW64, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                         "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    if (bHas32BitDLL)
+    {
+      PathAppendW      ( wszWOW64, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                           "SpecialK32.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    }
 
-    PathAppendW      ( wszSys32, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                         "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    if (bHas64BitDLL)
+    {
+      PathAppendW      ( wszSys32, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                           "SpecialK64.dll,RunDLL_InjectionManager Remove", nullptr, SW_HIDE );
+    }
   }
 
   SetCurrentDirectoryW (wszCurrentDir);
@@ -2266,6 +2283,11 @@ SK_Inject_Start (void)
   SK_RunLHIfBitness ( 32, GetSystemDirectoryW      (wszWOW64, MAX_PATH),
                           GetSystemWow64DirectoryW (wszWOW64, MAX_PATH) );
 
+  bool bHas32BitDLL =
+    GetFileAttributesW (L"SpecialK32.dll") != INVALID_FILE_ATTRIBUTES;
+  bool bHas64BitDLL =
+    GetFileAttributesW (L"SpecialK64.dll") != INVALID_FILE_ATTRIBUTES;
+
   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
   {
     if (SKX_IsHookingCBT ())
@@ -2274,15 +2296,21 @@ SK_Inject_Start (void)
                                 "Remove", -128 );
     }
 
-    PathAppendW      ( wszSys32, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszSys32).c_str (),
-                         "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    if (bHas32BitDLL)
+    {
+      PathAppendW      ( wszSys32, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszSys32).c_str (),
+                           "SpecialK64.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    }
 
-    PathAppendW      ( wszWOW64, L"rundll32.exe");
-    SK_ShellExecuteA ( nullptr,
-                         "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
-                         "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    if (bHas64BitDLL)
+    {
+      PathAppendW      ( wszWOW64, L"rundll32.exe");
+      SK_ShellExecuteA ( nullptr,
+                           "open", SK_WideCharToUTF8 (wszWOW64).c_str (),
+                           "SpecialK32.dll,RunDLL_InjectionManager Install", nullptr, SW_HIDE );
+    }
   }
 
   else
