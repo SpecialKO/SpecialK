@@ -108,8 +108,8 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    framebuffer.Width        = io.DisplaySize.x;
-    framebuffer.Height       = io.DisplaySize.y;
+    framebuffer.Width        = static_cast <UINT> (io.DisplaySize.x);
+    framebuffer.Height       = static_cast <UINT> (io.DisplaySize.y);
     framebuffer.NativeFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     DirectX::ComputePitch (

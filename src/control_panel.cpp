@@ -3584,8 +3584,8 @@ SK_ImGui_ControlPanel (void)
         override = true;
       }
 
-      if (_fDPIScale > 100.1f && ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("DPI Awareness:  %u DPI", _uiDPI);
+    //if (_fDPIScale > 100.1f && ImGui::IsItemHovered ())
+    //  ImGui::SetTooltip ("DPI Awareness:  %u DPI", _uiDPI);
     }
 
     else

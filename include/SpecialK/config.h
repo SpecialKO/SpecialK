@@ -381,33 +381,34 @@ struct sk_config_t
 
   struct render_s {
     struct framerate_s {
-      float   target_fps         =  0.0F;
-      float   target_fps_bg      =  0.0F;
-      int     override_num_cpus  = -1;
-      int     pre_render_limit   = -1;
-      int     present_interval   = -1;
-      int     buffer_count       = -1;
-      int     max_delta_time     =  0; // Bad old setting; needs to be phased
-      int     swapchain_wait     =  0;
-      float   refresh_rate       = -1.0F;
- std::wstring rescan_ratio      =L"-1/1";
+      float   target_fps          =  0.0F;
+      float   target_fps_bg       =  0.0F;
+      int     override_num_cpus   = -1;
+      int     pre_render_limit    = -1;
+      int     present_interval    = -1;
+      int     sync_interval_clamp = -1;
+      int     buffer_count        = -1;
+      int     max_delta_time      =  0; // Bad old setting; needs to be phased
+      int     swapchain_wait      =  0;
+      float   refresh_rate        = -1.0F;
+ std::wstring rescan_ratio        =L"-1/1";
       struct rescan_s {
-        UINT Denom               =  1;
-        UINT Numerator           =
+        UINT Denom                =  1;
+        UINT Numerator            =
                static_cast <UINT> (-1);
       } rescan_;
-      int     refresh_denom      =     1;
-      int     pin_render_thread  =    -1;
-      bool    flip_discard       =  true; // Enabled by default (7/6/21)
-      bool    flip_sequential    = false;
-      bool    disable_flip       = false;
-      bool    drop_late_flips    =  true;
-      bool    wait_for_vblank    = false;
-      bool    sleepless_render   = false;
-      bool    sleepless_window   = false;
-      bool    enable_mmcss       =  true;
-      int     enforcement_policy =     4; // Refer to framerate.cpp
-      bool    auto_low_latency   =  true; // VRR users have the limiter default to low-latency
+      int     refresh_denom       =     1;
+      int     pin_render_thread   =    -1;
+      bool    flip_discard        =  true; // Enabled by default (7/6/21)
+      bool    flip_sequential     = false;
+      bool    disable_flip        = false;
+      bool    drop_late_flips     =  true;
+      bool    wait_for_vblank     = false;
+      bool    sleepless_render    = false;
+      bool    sleepless_window    = false;
+      bool    enable_mmcss        =  true;
+      int     enforcement_policy  =     4; // Refer to framerate.cpp
+      bool    auto_low_latency    =  true; // VRR users have the limiter default to low-latency
       struct latent_sync_s {
         SK_ConfigSerializedKeybind
           tearline_move_up_keybind = {
@@ -440,9 +441,15 @@ struct sk_config_t
         int   scanline_offset =    -1;
         int   scanline_resync =   750;
         int   scanline_error  =     1;
-        bool  adaptive_sync   = false;
+        bool  adaptive_sync   =  true;
         float delay_bias      =  0.0f;
         bool  show_fcat_bars  = false; // Not INI-persistent
+
+        bool flush_before_present  = true;
+        bool finish_before_present = false;
+
+        bool flush_after_present   = false;
+        bool finish_after_present  = true;
       } latent_sync;
     } framerate;
     struct d3d9_s {
@@ -686,6 +693,9 @@ struct sk_config_t
                                            //   dimensions of the client window, so
                                            //     that UI input works.
     } mouse;
+
+    // Avoids calling SK_Input_PreInit (...)
+    bool dont_hook_core = false;
   } input;
 
   struct threads_s {
@@ -778,7 +788,8 @@ struct sk_config_t
     } dxgi;
 
     struct khronos_s {
-      bool   hook = true;
+      bool   hook      = true;
+      bool   translate = true;
     } Vulkan,
       OpenGL;
 

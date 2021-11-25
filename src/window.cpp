@@ -6071,8 +6071,14 @@ SK_InstallWindowHook (HWND hWnd)
   }
 
 
-  if (! SK_GetFramesDrawn ())
+  // Not sure why this was conditional upon 1 frame drawn, but NOT
+  //   continuing beyond this point w/ no frames drawn will crash Disgaea PC
+#if 0
+  extern bool
+         SK_GL_OnD3D11;
+  if ((! SK_GL_OnD3D11) && (! SK_GetFramesDrawn ()))
     return;
+#endif
 
 
   if (config.render.framerate.enable_mmcss)

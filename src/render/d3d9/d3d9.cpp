@@ -8584,7 +8584,12 @@ SK_D3D9_FormatToDXGI (D3DFORMAT format)
     case D3DFMT_UNKNOWN:
       return DXGI_FORMAT_UNKNOWN;
 
+    // These may not be accurate, but work insofar as screenshots
     case D3DFMT_X8R8G8B8:     return DXGI_FORMAT_B8G8R8X8_UNORM;
+    case D3DFMT_A8R8G8B8:     return DXGI_FORMAT_B8G8R8A8_UNORM;
+
+    case D3DFMT_X8B8G8R8:     return DXGI_FORMAT_B8G8R8X8_UNORM; // ?
+
 
     case D3DFMT_R8G8B8:       return DXGI_FORMAT_R8G8B8A8_UNORM;
   //case D3DFMT_A8R8G8B8:     return DXGI_FORMAT_A8G8R8B8_UNORM;

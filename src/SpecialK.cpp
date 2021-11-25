@@ -366,6 +366,10 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+      config =
+        sk_config_t::sk_config_t ();
+
+
       skModuleRegistry::Self (hModule);
 
       auto CreateTeardownEvent =

@@ -955,12 +955,41 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
       switch (pItem->header.dwType)
       {
         case RIM_TYPEKEYBOARD:
+        {
           SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
           if (filter || SK_ImGui_WantKeyboardCapture ())
             remove = true;
           else
             SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
-          break;
+
+
+          USHORT VKey =
+            (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
+
+          static auto* pConsole =
+            SK_Console::getInstance ();
+
+        //if (!(((RAWINPUT *) pItem)->data.keyboard.Flags & RI_KEY_BREAK))
+        //{
+        //  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+        //        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+        //}
+
+          switch (((RAWINPUT *) pData)->data.keyboard.Message)
+          {
+            case WM_KEYDOWN:
+            case WM_SYSKEYDOWN:
+                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+              pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+              break;
+
+            case WM_KEYUP:
+            case WM_SYSKEYUP:
+                  io.KeysDown [VKey & 0xFF] = false;
+              pConsole->KeyUp (VKey & 0xFF, MAXDWORD);
+              break;
+          }
+        } break;
 
         case RIM_TYPEMOUSE:
           SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
@@ -2129,10 +2158,14 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   auto SK_ConsumeVKey = [&](int vKey) ->
   SHORT
   {
-    pfnGetFunc (vKey);
+    SHORT sKeyState =
+      pfnGetFunc (vKey);
+
+    sKeyState &= ~(1 << 15); // High-Order Bit = 0
+    sKeyState &= ~1;         // Low-Order Bit  = 0
 
     return
-      0;
+      sKeyState;
   };
 
   // Block keyboard input to the game while the console is active
@@ -2534,7 +2567,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
   bool handled = false;
 
-  if ((! lpMsg)/* || IsChild (game_window.hWnd, lpMsg->hwnd)*/)
+  if ((! lpMsg) || IsChild (game_window.hWnd, lpMsg->hwnd))
   {
     return handled;
   }

@@ -278,3 +278,5 @@ paket-files/
 *.s2
 /StaticAnalysis-cppcheck-build-dir/files.txt
 /StaticAnalysis-cppcheck-build-dir/statistics.txt
+/src/render/gl/opengl_stateblock.cpp
+/src/framerate - Copy.cpp

@@ -398,11 +398,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.keyboard);
             }
 
-            if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
-            {
-              pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
-            }
+        //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
+        ////
+        ////if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
+        ////{
+        ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+        ////        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+        ////}
 
             switch (((RAWINPUT *) pData)->data.keyboard.Message)
             {
@@ -506,11 +508,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           {
             if (foreground)
             {
-              if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
-              {
-                pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
-              }
+          //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
+          ////
+          ////if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
+          ////{
+          ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+          ////        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+          ////}
 
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
               {
@@ -1132,8 +1136,9 @@ MessageProc ( const HWND&   hWnd,
 
       if (dwSize > 0)
       {
-        if ((mouse    && SK_ImGui_WantMouseCapture    ()) ||
-            (keyboard && SK_ImGui_WantKeyboardCapture ()) ||
+        if (mouse || keyboard ||
+            //(mouse    && SK_ImGui_WantMouseCapture    ()) ||
+            //(keyboard && SK_ImGui_WantKeyboardCapture ()) ||
             (gamepad  && SK_ImGui_WantGamepadCapture  ()))
         {
           LPBYTE lpb =

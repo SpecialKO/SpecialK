@@ -143,13 +143,13 @@ SK::ControlPanel::PlugIns::Draw (void)
 
 #ifdef _WIN64
     wcscat   (imp_name_reshade, L"Import.ReShade64");
-    wsprintf (imp_path_reshade, LR"(%s\PlugIns\ThirdParty\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+    swprintf (imp_path_reshade, LR"(%s\PlugIns\ThirdParty\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
 
     wcscat   (imp_name_reshade_ex, L"Import.ReShade64_Custom");
 
     if (SK_IsInjected ())
     {
-      wsprintf (imp_path_reshade_ex, LR"(%s\PlugIns\Unofficial\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+      swprintf (imp_path_reshade_ex, LR"(%s\PlugIns\Unofficial\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
     }
 
     else
@@ -157,20 +157,20 @@ SK::ControlPanel::PlugIns::Draw (void)
       const wchar_t* wszShimFormat =
         LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
-      wsprintf ( imp_path_reshade_ex, wszShimFormat,
+      swprintf ( imp_path_reshade_ex, wszShimFormat,
                    std::wstring (SK_GetDocumentsDir        (                 ) +
                                              LR"(\My Mods\SpecialK)").c_str (  ),
                                  SK_GetBitness             (                 ) );
     }
 #else
     wcscat   (imp_name_reshade, L"Import.ReShade32");
-    wsprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+    swprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
 
     wcscat   (imp_name_reshade_ex, L"Import.ReShade32_Custom");
 
     if (SK_IsInjected ())
     {
-      wsprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      swprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
     }
 
     else
@@ -178,7 +178,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       const wchar_t* wszShimFormat =
         LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
-      wsprintf ( imp_path_reshade_ex, wszShimFormat,
+      swprintf ( imp_path_reshade_ex, wszShimFormat,
                    std::wstring (SK_GetDocumentsDir        (                ) +
                                              L"\\My Mods\\SpecialK").c_str (  ),
                                  SK_GetBitness             (                ) );

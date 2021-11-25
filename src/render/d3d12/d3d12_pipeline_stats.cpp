@@ -295,10 +295,12 @@ void
 __stdcall
 SK_D3D12_UpdateRenderStats (ID3D12GraphicsCommandList *pList, IDXGISwapChain3* pSwapChain)
 {
-  if (! (pSwapChain && ( config.render.show ||
-                          ( SK_ImGui_Widgets->d3d12_pipeline != nullptr &&
-                          ( SK_ImGui_Widgets->d3d12_pipeline->isActive () ) ) ) ) )
-    return;
+  return;
+
+  //if (! (pSwapChain && ( config.render.show ||
+  //                        ( SK_ImGui_Widgets->d3d12_pipeline != nullptr &&
+  //                        ( SK_ImGui_Widgets->d3d12_pipeline->isActive () ) ) ) ) )
+  //  return;
 
   SK_D3D12_UpdateRenderStatsEx (pList, pSwapChain);
 }
@@ -321,7 +323,7 @@ class SKWG_D3D12_Pipeline : public SK_Widget
 public:
   SKWG_D3D12_Pipeline (void) : SK_Widget ("D3D1x_Pipeline")
   {
-    SK_ImGui_Widgets->d3d12_pipeline = this;
+    //SK_ImGui_Widgets->d3d12_pipeline = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };

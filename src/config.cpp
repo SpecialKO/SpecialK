@@ -44,6 +44,8 @@ extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam
 extern float __target_fps;
 extern float __target_fps_bg;
 
+class SKWG_D3D11_Pipeline : public SK_Widget { };
+class SKWG_CPU_Monitor    : public SK_Widget { };
 
 SK_GAME_ID
 __stdcall
@@ -143,7 +145,8 @@ SK_GetCurrentGameID (void)
 
       { hash_lower (L"Ryujinx.exe"),                            SK_GAME_ID::Ryujinx                      },
       { hash_lower (L"yuzu.exe"),                               SK_GAME_ID::yuzu                         },
-      { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                }
+      { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
+      { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
     };
 
     first_check = false;
@@ -522,6 +525,7 @@ struct {
     sk::ParameterFloat*   limiter_tolerance;
     sk::ParameterInt*     prerender_limit;
     sk::ParameterInt*     present_interval;
+    sk::ParameterInt*     sync_interval_clamp;
     sk::ParameterInt*     buffer_count;
     sk::ParameterInt*     max_delta_time;
     sk::ParameterBool*    flip_discard;
@@ -824,11 +828,6 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
-  config.apis.OpenGL.hook     = true;
-  config.apis.d3d9.hook       = true;
-  config.apis.d3d9ex.hook     = true;
-  config.apis.dxgi.d3d11.hook = true;
-
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -897,20 +896,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)";
 
   std::wstring migrate_steam_config;
-
-  /////////if (! PathFileExistsW (steam_config.c_str ()))
-  /////////{
-  /////////  std::wstring achievement_config =
-  /////////    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\achievements.ini)";
-  /////////
-  /////////  if (PathFileExistsW (achievement_config.c_str ()))
-  /////////  {
-  /////////    migrate_steam_config =
-  /////////      steam_config;
-  /////////    steam_config =
-  /////////      achievement_config;
-  /////////  }
-  /////////}
 
   macro_config       =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
@@ -1212,6 +1197,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
+    ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
@@ -1825,6 +1811,9 @@ auto DeclKeybind =
         //SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
         config.render.dxgi.scaling_mode        = DXGI_MODE_SCALING_UNSPECIFIED;
         config.input.mouse.add_relative_motion = false;
+
+        // Prevent VRR disable when game plays cutscenes
+        config.render.framerate.sync_interval_clamp  =     1;
         break;
 
 
@@ -2458,6 +2447,9 @@ auto DeclKeybind =
       // You knowe it's a bad port when it requires all of these overrides (!!)
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
+        // Prevent VRR disable when game plays cutscenes
+        config.render.framerate.sync_interval_clamp  =     1;
+
         config.textures.d3d11.cache                  =  true;
         config.textures.cache.allow_staging          =  true;
         config.textures.cache.max_size               =    64; // SmaLL cache; engine's leaky
@@ -2471,7 +2463,6 @@ auto DeclKeybind =
         config.input.ui.capture_hidden               = false;
         config.input.ui.capture_mouse                = false;
         SK_ImGui_Cursor.prefs.no_warp.ui_open        =  true;
-        config.render.framerate.present_interval     =     1;
         config.render.framerate.sleepless_window     =  true;
         config.render.framerate.sleepless_render     = false; // Reshade Problems
         config.render.framerate.max_delta_time       =     1;
@@ -2541,41 +2532,42 @@ auto DeclKeybind =
       case SK_GAME_ID::yuzu:
       case SK_GAME_ID::Ryujinx:
       {
+        // Any application that creates multiple windows needs this set
+        config.window.borderless          = true;
+
         config.steam.appid                = 0;
         config.steam.silent               = true;
         config.apis.d3d9.hook             = false;
         config.apis.d3d9ex.hook           = false;
-        config.apis.dxgi.d3d11.hook       = false;
-        config.apis.dxgi.d3d12.hook       = false;
         config.apis.OpenGL.hook           = true;
         config.apis.last_known            = SK_RenderAPI::OpenGL;
-        config.system.global_inject_delay = 15.0F;
 
         apis.d3d9.hook->store   (config.apis.d3d9.      hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.    hook);
-        apis.d3d11.hook->store  (config.apis.dxgi.d3d11.hook);
-        apis.d3d11.hook->store  (config.apis.dxgi.d3d12.hook);
         apis.OpenGL.hook->store (config.apis.OpenGL.    hook);
         apis.last_known->store  ((int)config.apis.last_known);
       } break;
 
-      case SK_GAME_ID::ForzaHorizon5:
       case SK_GAME_ID::HaloInfinite:
+        // Prevent VRR disable when using game's framerate limiter
+        config.render.framerate.sync_interval_clamp = 1;
+        break;
+
+      case SK_GAME_ID::ForzaHorizon5:
       {
+        // Prevent VRR disable when using game's framerate limiter
+        config.render.framerate.sync_interval_clamp = 1;
+
         // Work around DRM / Anti-Debug Quirks
         config.compatibility.disable_debug_features = true;
         config.window.dont_hook_wndproc             = true;
+
         config.input.cursor.manage                  = true;  // Mouse cursor doesn't auto-hide
         config.input.gamepad.xinput.hook_setstate   = false; // Breaks haptic feedback
         config.input.gamepad.xinput.placehold [0]   = false;
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
-
-        if (SK_GetCurrentGameID () == SK_GAME_ID::HaloInfinite)
-        {
-          config.system.global_inject_delay = 30.0;
-        }
       } break;
 #endif
     }
@@ -2595,20 +2587,23 @@ auto DeclKeybind =
 
   if (! apis.d3d9ex.hook->load (config.apis.d3d9ex.hook))
     config.apis.d3d9ex.hook = true;
-
-  // D3D9Ex cannot exist without D3D9...
-  if (config.apis.d3d9ex.hook)
-      config.apis.d3d9.hook = true;
+  else
+  {
+    // D3D9Ex cannot exist without D3D9...
+    if (config.apis.d3d9ex.hook)
+        config.apis.d3d9.hook = true;
+  }
 
   if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
     config.apis.dxgi.d3d11.hook = true;
 
 #ifdef _M_AMD64
-  apis.d3d12.hook->load  (config.apis.dxgi.d3d12.hook);
-
-  // We need to enable D3D11 hooking for D3D12 to work reliably
-  if (config.apis.dxgi.d3d12.hook)
-      config.apis.dxgi.d3d11.hook = true;
+  if (apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook))
+  {
+    // We need to enable D3D11 hooking for D3D12 to work reliably
+    if (config.apis.dxgi.d3d12.hook)
+        config.apis.dxgi.d3d11.hook = true;
+  }
 
 #endif
 
@@ -2742,38 +2737,39 @@ auto DeclKeybind =
 ///    config.render.framerate.limiter_tolerance = 1.25f;
 
 
-  render.osd.draw_in_vidcap->load           (config.render.osd. draw_in_vidcap);
+  render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
-  if (render.osd.hdr_luminance->load        (config.render.osd.hdr_luminance))
-    rb.ui_luminance =                        config.render.osd.hdr_luminance;
+  if (render.osd.hdr_luminance->load         (config.render.osd.hdr_luminance))
+    rb.ui_luminance =                         config.render.osd.hdr_luminance;
 
   // D3D9/11
   //
 
-  nvidia.sli.compatibility->load            (config.nvidia.sli.compatibility);
-  nvidia.sli.mode->load                     (config.nvidia.sli.mode);
-  nvidia.sli.num_gpus->load                 (config.nvidia.sli.num_gpus);
-  nvidia.sli.override->load                 (config.nvidia.sli.override);
+  nvidia.sli.compatibility->load             (config.nvidia.sli.compatibility);
+  nvidia.sli.mode->load                      (config.nvidia.sli.mode);
+  nvidia.sli.num_gpus->load                  (config.nvidia.sli.num_gpus);
+  nvidia.sli.override->load                  (config.nvidia.sli.override);
 
-  nvidia.reflex.enable->load                (config.nvidia.sleep.enable);
-  nvidia.reflex.low_latency->load           (config.nvidia.sleep.low_latency);
-  nvidia.reflex.low_latency_boost->load     (config.nvidia.sleep.low_latency_boost);
-  nvidia.reflex.marker_optimization->load   (config.nvidia.sleep.marker_optimization);
-  nvidia.reflex.engagement_policy->load     (config.nvidia.sleep.enforcement_site);
+  nvidia.reflex.enable->load                 (config.nvidia.sleep.enable);
+  nvidia.reflex.low_latency->load            (config.nvidia.sleep.low_latency);
+  nvidia.reflex.low_latency_boost->load      (config.nvidia.sleep.low_latency_boost);
+  nvidia.reflex.marker_optimization->load    (config.nvidia.sleep.marker_optimization);
+  nvidia.reflex.engagement_policy->load      (config.nvidia.sleep.enforcement_site);
 
-  render.framerate.wait_for_vblank->load    (config.render.framerate.wait_for_vblank);
-  render.framerate.buffer_count->load       (config.render.framerate.buffer_count);
-  render.framerate.prerender_limit->load    (config.render.framerate.pre_render_limit);
-  render.framerate.present_interval->load   (config.render.framerate.present_interval);
+  render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
+  render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
+  render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
+  render.framerate.present_interval->load    (config.render.framerate.present_interval);
+  render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
 
   if (render.framerate.refresh_rate)
   {
-    render.framerate.refresh_rate->load     (config.render.framerate.refresh_rate);
+    render.framerate.refresh_rate->load      (config.render.framerate.refresh_rate);
   }
 
   if (render.framerate.rescan_ratio)
   {
-    render.framerate.rescan_ratio->load     (config.render.framerate.rescan_ratio);
+    render.framerate.rescan_ratio->load      (config.render.framerate.rescan_ratio);
 
     if (! config.render.framerate.rescan_ratio.empty ())
     {
@@ -3929,6 +3925,11 @@ void
 SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
+  extern                   SKWG_D3D11_Pipeline*  SK_Widget_GetD3D11Pipeline (void);
+  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline (   ));
+  extern                   SKWG_CPU_Monitor*     SK_Widget_GetCPU           (void);
+  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           (   ));
+
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -3940,12 +3941,18 @@ SK_SaveConfig ( std::wstring name,
   //
   // Shutting down before initialization would be damn near fatal if we didn't catch this! :)
   //
-  if ( dll_ini         == nullptr ||
-       osd_ini         == nullptr    )
+  if ( dll_ini == nullptr ||
+       osd_ini == nullptr    )
     return;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
+
+  // Temp hack to handle GLDX11
+  extern bool SK_GL_OnD3D11;
+  if (        SK_GL_OnD3D11)
+    config.apis.last_known = SK_RenderAPI::OpenGL;
+
 
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
@@ -4166,7 +4173,7 @@ SK_SaveConfig ( std::wstring name,
 
   wchar_t wszFormattedRes [64] = { };
 
-  wsprintf ( wszFormattedRes, L"%lux%lu",
+  swprintf ( wszFormattedRes, L"%lux%lu",
                config.window.res.override.x,
                  config.window.res.override.y );
 
@@ -4192,7 +4199,6 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.wait_for_vblank->store   (config.render.framerate.wait_for_vblank);
     render.framerate.prerender_limit->store   (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->store      (config.render.framerate.buffer_count);
-    render.framerate.present_interval->store  (config.render.framerate.present_interval);
 
     scheduling.priority.raise_always->store   (config.priority.raise_always);
     scheduling.priority.raise_in_bg->store    (config.priority.raise_bg);
@@ -4221,6 +4227,8 @@ SK_SaveConfig ( std::wstring name,
     if (render.framerate.refresh_rate != nullptr)
       render.framerate.refresh_rate->store        (config.render.framerate.refresh_rate);
 
+    render.framerate.present_interval->store      (config.render.framerate.present_interval);
+    render.framerate.sync_interval_clamp->store   (config.render.framerate.sync_interval_clamp);
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
 
     render.framerate.latent_sync.offset->store    (config.render.framerate.latent_sync.scanline_offset);
@@ -4273,13 +4281,13 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.allow_unsafe_refs->store      (config.textures.cache.allow_unsafe_refs);
       texture.cache.manage_residency->store       (config.textures.cache.residency_managemnt);
 
-      wsprintf ( wszFormattedRes, L"%lux%lu",
+      swprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.max.x,
                      config.render.dxgi.res.max.y );
 
       render.dxgi.max_res->store (wszFormattedRes);
 
-      wsprintf ( wszFormattedRes, L"%lux%lu",
+      swprintf ( wszFormattedRes, L"%lux%lu",
                    config.render.dxgi.res.min.x,
                      config.render.dxgi.res.min.y );
 
@@ -4511,27 +4519,30 @@ SK_SaveConfig ( std::wstring name,
   if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))
     dll_ini->remove_section (L"NVIDIA.SLI");
 
+  static constexpr DWORD dwMinTimeBetweenSaves = 3333UL;
+  static           DWORD dwLastTimeSaved       =    0UL;
 
-
-  wchar_t wszFullName [ MAX_PATH + 2 ] = { };
-
-  lstrcatW (wszFullName, SK_GetConfigPath ());
-  lstrcatW (wszFullName,       name.c_str ());
-  lstrcatW (wszFullName,             L".ini");
-
-
-  if (SK_GetFramesDrawn ())
+  if ( ( ReadULong64Acquire (&rb.frames_drawn) > 0 && ( dwLastTimeSaved <
+                                     SK_timeGetTime () - dwMinTimeBetweenSaves ) ) || ReadAcquire (&__SK_DLL_Ending) )
   {
+    dwLastTimeSaved =
+       SK_timeGetTime ();
+
+    wchar_t wszFullName [ MAX_PATH + 2 ] = { };
+
+    lstrcatW (wszFullName, SK_GetConfigPath ());
+    lstrcatW (wszFullName,       name.c_str ());
+    lstrcatW (wszFullName,             L".ini");
+
     if (dll_ini != nullptr)
         dll_ini->write ( wszFullName );
+
+    SK_ImGui_Widgets->SaveConfig ();
+
+    if (  osd_ini)   osd_ini->write (   osd_ini->get_filename () );
+    if (steam_ini) steam_ini->write ( steam_ini->get_filename () );
+    if (macro_ini) macro_ini->write ( macro_ini->get_filename () );
   }
-
-
-  SK_ImGui_Widgets->SaveConfig ();
-
-  if (osd_ini)   osd_ini->write   ( osd_ini->get_filename   () );
-  if (steam_ini) steam_ini->write ( steam_ini->get_filename () );
-  if (macro_ini) macro_ini->write ( macro_ini->get_filename () );
 
 
   if (close_config)

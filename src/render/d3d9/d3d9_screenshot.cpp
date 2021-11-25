@@ -931,10 +931,11 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                     for (UINT i = 0; i < pFrameData->Height; ++i)
                     {
                       // Eliminate pre-multiplied alpha problems (the stupid way)
-                      switch (pFrameData->NativeFormat)
+                      switch (SK_D3D9_FormatToDXGI (pFrameData->NativeFormat))
                       {
                         case DXGI_FORMAT_B8G8R8A8_UNORM:
                         case DXGI_FORMAT_R8G8B8A8_UNORM:
+                        case DXGI_FORMAT_B8G8R8X8_UNORM:
                         {
                           for ( UINT j = 3                          ;
                                      j < pFrameData->PackedDstPitch ;

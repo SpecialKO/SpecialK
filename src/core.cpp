@@ -813,7 +813,12 @@ void BasicInit (void)
   SK::Diagnostics::CrashHandler::InitSyms (    );
 
   //// Do this from the startup thread [these functions queue, but don't apply]
-  SK_Input_PreInit          (); // Hook only symbols in user32 and kernel32
+  if (! config.input.dont_hook_core)
+  {
+    // TODO: Split this into Keyboard hooks and Mouse hooks
+    //         and allow picking them individually
+    SK_Input_PreInit        (); // Hook only symbols in user32 and kernel32
+  }
   SK_HookWinAPI             ();
   SK_CPU_InstallHooks       ();
   SK_NvAPI_PreInitHDR       ();
@@ -1671,13 +1676,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
   {
-    wsprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
+    swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
                 std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
   }
 
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
   {
-    wsprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\ddraw.dll)",
+    swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\ddraw.dll)",
                 std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
   }
 #endif
@@ -3313,14 +3318,15 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   extern LONGLONG __SK_LatentSyncPostDelay;
   if (            __SK_LatentSyncPostDelay > 1LL)
   {
-    extern void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+    SK_AutoHandle hTimer (
+      INVALID_HANDLE_VALUE
+    );
 
-    static SK_AutoHandle
-                   hTimer (INVALID_HANDLE_VALUE);
-
+    extern void
+    SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
     SK_Framerate_WaitUntilQPC (
       qpcTimeOfSwap.QuadPart + __SK_LatentSyncPostDelay,
-                   hTimer.m_h );
+                  hTimer.m_h  );
   }
 
 

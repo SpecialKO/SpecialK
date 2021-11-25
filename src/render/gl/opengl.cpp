@@ -91,7 +91,8 @@ static ULONG GL_HOOKS  = 0UL;
 void
 WaitForInit_GL (void)
 {
-  SK_Thread_SpinUntilFlagged (&__gl_ready);
+  return;
+  //SK_Thread_SpinUntilFlagged (&__gl_ready);
 }
 
 #include <SpecialK/osd/text.h>
@@ -1785,6 +1786,26 @@ SK_Overlay_DrawGL (void)
 
 bool SK_GL_OnD3D11 = false;
 
+HRESULT
+SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
+                               ID3D11Device          *pDevice, HWND               hWnd,
+                               DXGI_SWAP_CHAIN_DESC1 *desc1,   IDXGISwapChain1 **ppSwapChain )
+{
+  SK_InstallWindowHook (hWnd);
+
+  if (game_window.WndProc_Original != nullptr)
+    SK_GetCurrentRenderBackend ().windows.setDevice (hWnd);
+
+  HRESULT hr = E_UNEXPECTED;
+
+  hr =
+    pFactory->CreateSwapChainForHwnd ( pDevice, hWnd,
+                                       desc1,   nullptr,
+                                                nullptr, ppSwapChain );
+
+  return hr;
+}
+
 BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
@@ -1883,7 +1904,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         compatible_dc = true;
     }
 
-    //if (! compatible_dc)
+    if (! compatible_dc)
     {
       // Ensure the resources we created on the primary context are meaningful
       //   on this one.
@@ -1905,8 +1926,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
   if ( compatible_dc && init_.get ()[thread_hglrc] )
   {
-    if (config.apis.OpenGL.translate) SK_GL_OnD3D11 = true;
-
     static SK_ComPtr <IDXGISwapChain1>     pSwapChain;
     static SK_ComPtr <ID3D11Device>        pDevice;
     static SK_ComPtr <ID3D11DeviceContext> pImmediateContext;
@@ -1916,13 +1935,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     struct {
       struct {
-        GLuint   texture;
-        GLuint   color_rbo;
-        GLuint   fbo;
-        HDC      hdc;
-        HGLRC    hglrc;
-        HWND     hwnd;
-        HMONITOR hmonitor;
+        GLuint   texture   = 0;
+        GLuint   color_rbo = 0;
+        GLuint   fbo       = 0;
+        HDC      hdc       = nullptr;
+        HGLRC    hglrc     = nullptr;
       } gl;
 
       struct {
@@ -1939,12 +1956,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         SK_ComPtr <ID3D11BlendState>         pBlendState;
         SK_ComPtr <ID3D11VertexShader>       pVS_BufferFlip;
         SK_ComPtr <ID3D11PixelShader>        pPS_BufferFlip;
-        D3D11_VIEWPORT                       viewport;
+        D3D11_VIEWPORT                       viewport = { };
 
-        HANDLE hDevice;
-        HANDLE hColorBuffer;
-        HWND   hWndSwap;
-        RECT   lastKnownRect;
+        HANDLE hDevice      = nullptr;
+        HANDLE hColorBuffer = nullptr;
+        HANDLE hLatencyWait = nullptr;
+        HWND   hWndSwap     = nullptr;
 
         struct {
           BOOL tearing      = FALSE;
@@ -1954,6 +1971,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         UINT             swapchain_flags = 0x0;
         DXGI_SWAP_EFFECT swap_effect     = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
       } d3d11;
+
+      RECT     lastKnownRect;
+      HWND     hWnd;
+      HMONITOR hMonitor;
 
       bool     stale = false;
     } static dx_gl_interop;
@@ -1969,175 +1990,181 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (pDevice == nullptr)
     {
-      D3D_FEATURE_LEVEL      levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
-                                           D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
-
-      D3D_FEATURE_LEVEL      featureLevel;
-
-      extern void
-      WINAPI
-      SK_HookDXGI (void);
-      SK_HookDXGI (); // Setup the function to create a D3D11 Device
-
-      HRESULT hr =
-        D3D11CreateDevice_Import (
-          nullptr,
-            D3D_DRIVER_TYPE_HARDWARE,
-              nullptr,
-                0x0,
-                  levels,
-                    _ARRAYSIZE(levels),
-                      D3D11_SDK_VERSION,
-                        &pDevice.p,
-                          &featureLevel,
-                            &pImmediateContext.p );
-
-      SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-      SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
-
-      if ( SUCCEEDED (hr)                                              &&
-                    pDevice != nullptr                                 &&
-         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+      if (config.apis.dxgi.d3d11.hook)
       {
-        SK_ComQIPtr <IDXGIFactory5> pFactory5 (pFactory);
+        D3D_FEATURE_LEVEL      levels [] = { D3D_FEATURE_LEVEL_11_0,
+                                             D3D_FEATURE_LEVEL_11_1 };
 
-        if (pFactory5 != nullptr)
+        D3D_FEATURE_LEVEL      featureLevel;
+
+        extern void
+        WINAPI
+        SK_HookDXGI (void);
+        SK_HookDXGI (); // Setup the function to create a D3D11 Device
+
+        if (D3D11CreateDevice_Import != nullptr)
         {
-          const HRESULT hr =
-            pFactory5->CheckFeatureSupport (
-              DXGI_FEATURE_PRESENT_ALLOW_TEARING,
-                &dx_gl_interop.d3d11.caps.tearing,
-                  sizeof (dx_gl_interop.d3d11.caps.tearing)
+          HRESULT hr =
+            D3D11CreateDevice_Import (
+              nullptr,
+                D3D_DRIVER_TYPE_HARDWARE,
+                  nullptr,
+                    0x0,
+                      levels,
+                        _ARRAYSIZE (levels),
+                          D3D11_SDK_VERSION,
+                            &pDevice.p,
+                              &featureLevel,
+                                &pImmediateContext.p );
+
+          SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+          SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
+
+          if ( SUCCEEDED (hr)                                              &&
+                        pDevice != nullptr                                 &&
+             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+             SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+          {
+            SK_GL_OnD3D11 = true;
+
+            SK_ComQIPtr <IDXGIFactory5> pFactory5 (pFactory);
+
+            if (pFactory5 != nullptr)
+            {
+              SK_ReleaseAssert (
+                SUCCEEDED (
+                  pFactory5->CheckFeatureSupport (
+                    DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+                               &dx_gl_interop.d3d11.caps.tearing,
+                        sizeof (dx_gl_interop.d3d11.caps.tearing)
+                                                 )
+                          )
+              );
+
+              dx_gl_interop.d3d11.caps.flip_discard = true;
+            }
+
+            if (dx_gl_interop.d3d11.caps.flip_discard)
+                dx_gl_interop.d3d11.swap_effect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+            if (dx_gl_interop.d3d11.caps.tearing)
+            {
+              dx_gl_interop.d3d11.swapchain_flags =
+                ( DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING |
+                  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT );
+            }
+
+            dx_gl_interop.d3d11. hDevice =
+              wglDXOpenDeviceNV (pDevice);
+          }
+
+          D3D11_BLEND_DESC
+            blend_desc                                        = { };
+            blend_desc.AlphaToCoverageEnable                  = false;
+            blend_desc.RenderTarget [0].BlendEnable           = false;
+            blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+            blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+            blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+            blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+            blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+            blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+            blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+          pDevice->CreateBlendState ( &blend_desc,
+                                        &dx_gl_interop.d3d11.pBlendState.p );
+
+          SK_ReleaseAssert (
+            SUCCEEDED (
+              pDevice->CreatePixelShader ( gl_dx_interop_ps_bytecode,
+                                   sizeof (gl_dx_interop_ps_bytecode),
+                     nullptr, &dx_gl_interop.d3d11.pPS_BufferFlip.p )
+                      )
             );
 
-          SK_ReleaseAssert (SUCCEEDED (hr));
+          SK_ReleaseAssert (
+            SUCCEEDED (
+              pDevice->CreateVertexShader ( gl_dx_interop_vs_bytecode,
+                                    sizeof (gl_dx_interop_vs_bytecode),
+                    nullptr, &dx_gl_interop.d3d11.pVS_BufferFlip.p )
+                      )
+            );
 
-          dx_gl_interop.d3d11.caps.flip_discard = true;
+          D3D11_SAMPLER_DESC
+            sampler_desc                    = { };
+
+            sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
+            sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
+            sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
+            sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
+            sampler_desc.MipLODBias         = 0.f;
+            sampler_desc.MaxAnisotropy      =   1;
+            sampler_desc.ComparisonFunc     =  D3D11_COMPARISON_NEVER;
+            sampler_desc.MinLOD             = -D3D11_FLOAT32_MAX;
+            sampler_desc.MaxLOD             =  D3D11_FLOAT32_MAX;
+
+          pDevice->CreateSamplerState ( &sampler_desc,
+                                          &dx_gl_interop.d3d11.colorSampler.p );
+
+          D3D11_INPUT_ELEMENT_DESC local_layout [] = {
+            { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+          };
+
+          pDevice->CreateInputLayout ( local_layout, 1,
+                                       (void *)(gl_dx_interop_vs_bytecode),
+                                        sizeof (gl_dx_interop_vs_bytecode) /
+                                        sizeof (gl_dx_interop_vs_bytecode [0]),
+                                          &dx_gl_interop.d3d11.pBufferFlipLayout.p );
+
+          pImmediateContext->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+          pImmediateContext->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
+                                                           std::array <UINT,           1> { 0       }.data (),
+                                                           std::array <UINT,           1> { 0       }.data ());
+          pImmediateContext->IASetInputLayout       (dx_gl_interop.d3d11.pBufferFlipLayout);
+          pImmediateContext->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+          static constexpr FLOAT fBlendFactor [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+          pImmediateContext->OMSetBlendState        (dx_gl_interop.d3d11.pBlendState,
+                                                                         fBlendFactor, 0xFFFFFFFF  );
+          pImmediateContext->VSSetShader            (dx_gl_interop.d3d11.pVS_BufferFlip, nullptr, 0);
+          pImmediateContext->PSSetShader            (dx_gl_interop.d3d11.pPS_BufferFlip, nullptr, 0);
+          pImmediateContext->PSSetSamplers   (0, 1, &dx_gl_interop.d3d11.colorSampler.p);
+
+          pImmediateContext->RSSetState               (nullptr   );
+          pImmediateContext->RSSetScissorRects        (0, nullptr);
+          pImmediateContext->OMSetDepthStencilState   (nullptr, 0);
+
+          pImmediateContext->HSSetShader     (nullptr, nullptr, 0);
+          pImmediateContext->DSSetShader     (nullptr, nullptr, 0);
+          pImmediateContext->GSSetShader     (nullptr, nullptr, 0);
+          pImmediateContext->SOSetTargets    (0, nullptr, nullptr);
+
+          dx_gl_interop.gl.hdc   = hDC;
+          dx_gl_interop.gl.hglrc = thread_hglrc;
+          dx_gl_interop.hWnd     = hWnd;
+          dx_gl_interop.hMonitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
+
+          dx_gl_interop.stale = true;
         }
-
-        if (dx_gl_interop.d3d11.caps.flip_discard)
-            dx_gl_interop.d3d11.swap_effect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-
-        if (dx_gl_interop.d3d11.caps.tearing)
-        {
-          dx_gl_interop.d3d11.swapchain_flags =
-            ( DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING |
-              DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT );
-        }
-
-        dx_gl_interop.d3d11. hDevice =
-          wglDXOpenDeviceNV (pDevice);
       }
-
-      D3D11_BLEND_DESC
-        blend_desc                                        = { };
-        blend_desc.AlphaToCoverageEnable                  = false;
-        blend_desc.RenderTarget [0].BlendEnable           = false;
-        blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-        blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
-        blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-        blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-      pDevice->CreateBlendState ( &blend_desc,
-                                    &dx_gl_interop.d3d11.pBlendState.p );
-
-      SK_ReleaseAssert (
-        SUCCEEDED (
-          pDevice->CreatePixelShader ( gl_dx_interop_ps_bytecode,
-                               sizeof (gl_dx_interop_ps_bytecode),
-                 nullptr, &dx_gl_interop.d3d11.pPS_BufferFlip.p )
-                  )
-        );
-
-      SK_ReleaseAssert (
-        SUCCEEDED (
-          pDevice->CreateVertexShader ( gl_dx_interop_vs_bytecode,
-                                sizeof (gl_dx_interop_vs_bytecode),
-                nullptr, &dx_gl_interop.d3d11.pVS_BufferFlip.p )
-                  )
-        );
-
-      D3D11_SAMPLER_DESC
-        sampler_desc                    = { };
-
-        sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
-        sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
-        sampler_desc.MipLODBias         = 0.f;
-        sampler_desc.MaxAnisotropy      =   1;
-        sampler_desc.ComparisonFunc     =  D3D11_COMPARISON_NEVER;
-        sampler_desc.MinLOD             = -D3D11_FLOAT32_MAX;
-        sampler_desc.MaxLOD             =  D3D11_FLOAT32_MAX;
-
-      pDevice->CreateSamplerState ( &sampler_desc,
-                                      &dx_gl_interop.d3d11.colorSampler.p );
-
-      D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-        { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-      };
-
-      pDevice->CreateInputLayout ( local_layout, 1,
-                                   (void *)(gl_dx_interop_vs_bytecode),
-                                    sizeof (gl_dx_interop_vs_bytecode) /
-                                    sizeof (gl_dx_interop_vs_bytecode [0]),
-                                      &dx_gl_interop.d3d11.pBufferFlipLayout.p );
-
-      pImmediateContext->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-      pImmediateContext->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
-                                                       std::array <UINT,           1> { 0       }.data (),
-                                                       std::array <UINT,           1> { 0       }.data ());
-      pImmediateContext->IASetInputLayout       (dx_gl_interop.d3d11.pBufferFlipLayout);
-      pImmediateContext->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
-
-      static constexpr FLOAT fBlendFactor [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-      pImmediateContext->OMSetBlendState        (dx_gl_interop.d3d11.pBlendState,
-                                                                     fBlendFactor, 0xFFFFFFFF  );
-      pImmediateContext->VSSetShader            (dx_gl_interop.d3d11.pVS_BufferFlip, nullptr, 0);
-      pImmediateContext->PSSetShader            (dx_gl_interop.d3d11.pPS_BufferFlip, nullptr, 0);
-      pImmediateContext->PSSetSamplers   (0, 1, &dx_gl_interop.d3d11.colorSampler.p);
-
-      pImmediateContext->RSSetState               (nullptr   );
-      pImmediateContext->RSSetScissorRects        (0, nullptr);
-      pImmediateContext->OMSetDepthStencilState   (nullptr, 0);
-
-      pImmediateContext->HSSetShader     (nullptr, nullptr, 0);
-      pImmediateContext->DSSetShader     (nullptr, nullptr, 0);
-      pImmediateContext->GSSetShader     (nullptr, nullptr, 0);
-      pImmediateContext->SOSetTargets    (0, nullptr, nullptr);
-
-      dx_gl_interop.gl.hdc      = hDC;
-      dx_gl_interop.gl.hglrc    = thread_hglrc;
-      dx_gl_interop.gl.hwnd     = hWnd;
-      dx_gl_interop.gl.hmonitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
-
-      dx_gl_interop.stale = true;
     }
 
-    else
+    else if (SK_GL_OnD3D11)
     {
-           if (dx_gl_interop.d3d11.hWndSwap != hWnd)         dx_gl_interop.stale = true;
-      else if (dx_gl_interop.gl.hwnd        != hWnd)         dx_gl_interop.stale = true;
+      if      (dx_gl_interop.d3d11.hWndSwap != hWnd)         dx_gl_interop.stale = true;
+      else if (dx_gl_interop.hWnd           != hWnd)         dx_gl_interop.stale = true;
+      else if (dx_gl_interop.hMonitor       != hMonitor)     dx_gl_interop.stale = true;
       else if (dx_gl_interop.gl.hdc         != hDC)          dx_gl_interop.stale = true;
       else if (dx_gl_interop.gl.hglrc       != thread_hglrc) dx_gl_interop.stale = true;
-      else if (dx_gl_interop.gl.hmonitor    != hMonitor)     dx_gl_interop.stale = true;
       else
       {
-        RECT                  rcWnd = { };
-        GetClientRect (hWnd, &rcWnd);
-
-        if (! EqualRect (&rcWnd, &dx_gl_interop.d3d11.lastKnownRect))
+        if (! EqualRect (&rcWnd, &dx_gl_interop.lastKnownRect))
                                   dx_gl_interop.stale = true;
       }
     }
 
-    if (std::exchange (dx_gl_interop.stale, false) || pSwapChain == nullptr)
+    if (SK_GL_OnD3D11 && (std::exchange (dx_gl_interop.stale, false) || pSwapChain == nullptr))
     {
       glFinish ();
 
@@ -2169,31 +2196,32 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                    dx_gl_interop.gl.color_rbo = 0;
       }
 
-    //SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+      SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
-      dx_gl_interop.d3d11.lastKnownRect = rcWnd;
+      dx_gl_interop.lastKnownRect = rcWnd;
 
-      auto w = dx_gl_interop.d3d11.lastKnownRect.right  - dx_gl_interop.d3d11.lastKnownRect.left;
-      auto h = dx_gl_interop.d3d11.lastKnownRect.bottom - dx_gl_interop.d3d11.lastKnownRect.top;
+      auto w = dx_gl_interop.lastKnownRect.right  - dx_gl_interop.lastKnownRect.left;
+      auto h = dx_gl_interop.lastKnownRect.bottom - dx_gl_interop.lastKnownRect.top;
 
-      dx_gl_interop.gl.hwnd     = hWnd;
-      dx_gl_interop.gl.hdc      = hDC;
-      dx_gl_interop.gl.hglrc    = thread_hglrc;
-      dx_gl_interop.gl.hmonitor = hMonitor;
+      dx_gl_interop.hWnd     = hWnd;
+      dx_gl_interop.hMonitor = hMonitor;
+      dx_gl_interop.gl.hdc   = hDC;
+      dx_gl_interop.gl.hglrc = thread_hglrc;
 
       DXGI_SWAP_CHAIN_DESC1
-        desc1                             = { };
-        desc1.Format                      = DXGI_FORMAT_R8G8B8A8_UNORM;
-        desc1.SampleDesc.Count            = 1;
-        desc1.SampleDesc.Quality          = 0;
-        desc1.Width                       = w;
-        desc1.Height                      = h;
-        desc1.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
-        desc1.BufferCount                 = _DXBackBuffers;
-        desc1.AlphaMode                   = DXGI_ALPHA_MODE_IGNORE;
-        desc1.Scaling                     = DXGI_SCALING_NONE;//DXGI_SCALING_ASPECT_RATIO_STRETCH;
-        desc1.SwapEffect                  = dx_gl_interop.d3d11.swap_effect;
-        desc1.Flags                       = dx_gl_interop.d3d11.swapchain_flags;
+        desc1                    = { };
+        desc1.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc1.SampleDesc.Count   = 1;
+        desc1.SampleDesc.Quality = 0;
+        desc1.Width              = w;
+        desc1.Height             = h;
+        desc1.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT |
+                                   DXGI_USAGE_BACK_BUFFER;
+        desc1.BufferCount        = _DXBackBuffers;
+        desc1.AlphaMode          = DXGI_ALPHA_MODE_IGNORE;
+        desc1.Scaling            = DXGI_SCALING_NONE;
+        desc1.SwapEffect         = dx_gl_interop.d3d11.swap_effect;
+        desc1.Flags              = dx_gl_interop.d3d11.swapchain_flags;
 
       dx_gl_interop.d3d11.viewport = { 0.0f, 0.0f,
                     static_cast <float> (w),
@@ -2201,18 +2229,20 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                        0.0f, 1.0f
       };
 
+      if (                          dx_gl_interop.d3d11.hLatencyWait != nullptr)
+        CloseHandle (std::exchange (dx_gl_interop.d3d11.hLatencyWait,   nullptr));
+
       if (std::exchange (dx_gl_interop.d3d11.hWndSwap, hWnd) != hWnd || pSwapChain == nullptr)
       {
         pSwapChain = nullptr;
 
-        // Create a NEW SwapChain
-        pFactory->CreateSwapChainForHwnd ( pDevice, dx_gl_interop.d3d11.hWndSwap,
-                                             &desc1, nullptr,
-                                               nullptr, &pSwapChain.p );
-
         pFactory->MakeWindowAssociation ( dx_gl_interop.d3d11.hWndSwap,
                                             DXGI_MWA_NO_ALT_ENTER |
                                             DXGI_MWA_NO_WINDOW_CHANGES );
+
+        SK_GL_CreateInteropSwapChain ( pFactory, pDevice,
+                                         dx_gl_interop.d3d11.hWndSwap,
+                                           &desc1, &pSwapChain.p );
       }
 
       // Dimensions were wrong, SwapChain just needs a resize...
@@ -2223,6 +2253,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                     DXGI_FORMAT_UNKNOWN, dx_gl_interop.d3d11.swapchain_flags
         );
       }
+
+      SK_ComQIPtr <IDXGISwapChain2>
+          pSwapChain2 (pSwapChain);
+      if (pSwapChain2 != nullptr) dx_gl_interop.d3d11.hLatencyWait =
+          pSwapChain2->GetFrameLatencyWaitableObject ();
+
 
       pSwapChain->GetBuffer (
         0, IID_ID3D11Texture2D, (void **)&dx_gl_interop.d3d11.backbuffer.image.p );
@@ -2259,6 +2295,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                 dx_gl_interop.gl.color_rbo, GL_RENDERBUFFER, WGL_ACCESS_WRITE_DISCARD_NV );
     }
 
+
     // TODO: Create a secondary context that shares "display lists" so that
     //         we have a pure state machine all to ourselves.
     if (cegGL == nullptr && config.cegui.enable)
@@ -2282,19 +2319,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     else
     {
-#if 0
-      SK_GetCurrentRenderBackend ().api =
-        SK_RenderAPI::OpenGL;
-
-      SK_GL_UpdateRenderStats ();
-      SK_Overlay_DrawGL       ();
-
-      // Do this before framerate limiting
-      glFlush                 ();
-    //SK_BeginBufferSwap      ();
-#else
       SK_GetCurrentRenderBackend ().setDevice (pDevice);
-#endif
+
       wglDXLockObjectsNV   ( dx_gl_interop.d3d11.hDevice, 1,
                             &dx_gl_interop.d3d11.hColorBuffer );
 
@@ -2315,7 +2341,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (   framebufferStatus != GL_FRAMEBUFFER_COMPLETE)
         SK_LOG0 ( ( L"FBO Status: %x", framebufferStatus ), L"  GLDX11  " );
 
-
       glBlitFramebuffer ( 0,0, w,h,
                           0,0, w,h, GL_COLOR_BUFFER_BIT, GL_NEAREST );
 
@@ -2324,9 +2349,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (err != GL_NO_ERROR)
         SK_LOG0 ( ( L"glBlitFramebufferStatus: %x", err ), L"  GLDX11  " );
 
-      glBindFramebuffer (GL_FRAMEBUFFER,  dx_gl_interop.gl.fbo);
-      glFlush           (                                     );
       glBindFramebuffer (GL_FRAMEBUFFER,          original_fbo);
+      glFlush           (                                     );
 
       wglDXUnlockObjectsNV ( dx_gl_interop.d3d11.hDevice, 1,
                             &dx_gl_interop.d3d11.hColorBuffer );
@@ -2373,21 +2397,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (! _SkipThisFrame)
     {
-      extern bool __SK_BFI;
-      if (__SK_BFI)
-        SK_GL_SwapInterval (0);
-
-      if (pSwapChain != nullptr)
+      if (SK_GL_OnD3D11 && pSwapChain != nullptr)
       {
-        if (dx_gl_interop.d3d11.caps.tearing)
+        if (dx_gl_interop.d3d11.hLatencyWait != 0)
         {
-          SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pSwapChain);
-
-          SK_AutoHandle hSwapWait (
-            pSwapChain2->GetFrameLatencyWaitableObject ()
-          );
-
-          WaitForSingleObject (hSwapWait.m_h, INFINITE);
+          WaitForSingleObject (dx_gl_interop.d3d11.hLatencyWait, 250UL);
         }
 
         int present_interval =
@@ -2410,6 +2424,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       else
       {
+        extern bool
+            __SK_BFI;
+        if (__SK_BFI)
+          SK_GL_SwapInterval (0);
+
         status =
           static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
       }
@@ -2428,82 +2447,81 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         SK_EndBufferSwap (S_OK);
       else
         SK_EndBufferSwap (E_UNEXPECTED);
-    }
 
-    if (config.render.framerate.present_interval == 0 &&
-        config.render.framerate.target_fps        > 0.0f)
-    {
-      extern bool __SK_BFI;
-      if (        __SK_BFI)
+      if (config.render.framerate.present_interval == 0 &&
+          config.render.framerate.target_fps        > 0.0f)
       {
-        ////extern LONGLONG __SK_LatentSync_FrameInterval;
-        ////
-        ////static SK_AutoHandle hTimer (INVALID_HANDLE_VALUE);
-        ////
-        ////extern void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
-
-        ////SK_Framerate_WaitUntilQPC (
-        ////  SK_QueryPerf ().QuadPart + __SK_LatentSync_FrameInterval,
-        ////               hTimer.m_h );
-
-        SK_GL_GhettoStateBlock_Capture ();
-
-        glBindFramebuffer (GL_FRAMEBUFFER, 0);
-        glDisable         (GL_FRAMEBUFFER_SRGB);
-
-        glColorMask       (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glDrawBuffer      (GL_BACK_LEFT);
-
-        glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
-        glClear      (GL_COLOR_BUFFER_BIT/* | GL_DEPTH_BUFFER_BIT
-                                            | GL_STENCIL_BUFFER_BIT*/);
-
-        SK_GL_GhettoStateBlock_Apply ();
-
-        // TODO: Create a secondary context that shares "display lists" so that
-        //         we have a pure state machine all to ourselves.
-        if (cegGL == nullptr && config.cegui.enable)
+        extern bool __SK_BFI;
+        if (        __SK_BFI)
         {
-          ResetCEGUI_GL ();
+          ////extern LONGLONG __SK_LatentSync_FrameInterval;
+          ////
+          ////static SK_AutoHandle hTimer (INVALID_HANDLE_VALUE);
+          ////
+          ////extern void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+
+          ////SK_Framerate_WaitUntilQPC (
+          ////  SK_QueryPerf ().QuadPart + __SK_LatentSync_FrameInterval,
+          ////               hTimer.m_h );
+
+          SK_GL_GhettoStateBlock_Capture ();
+
+          glBindFramebuffer (GL_FRAMEBUFFER, 0);
+          glDisable         (GL_FRAMEBUFFER_SRGB);
+
+          glColorMask       (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+          glDrawBuffer      (GL_BACK_LEFT);
+
+          glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+          glClear      (GL_COLOR_BUFFER_BIT/* | GL_DEPTH_BUFFER_BIT
+                                              | GL_STENCIL_BUFFER_BIT*/);
+
+          SK_GL_GhettoStateBlock_Apply ();
+
+          // TODO: Create a secondary context that shares "display lists" so that
+          //         we have a pure state machine all to ourselves.
+          if (cegGL == nullptr && config.cegui.enable)
+          {
+            ResetCEGUI_GL ();
+          }
+
+          SK_GetCurrentRenderBackend ().api =
+            SK_RenderAPI::OpenGL;
+
+          SK_GL_UpdateRenderStats ();
+          SK_Overlay_DrawGL       ();
+
+          // Do this before framerate limiting
+          glFlush                 ();
+
+          SK_BeginBufferSwap      ();
+
+          extern void SK_LatentSync_BeginSwap (void);
+          extern void SK_LatentSync_EndSwap   (void);
+
+          // Time how long the swap actually takes, because
+          //   various hooked third-party overlays may be
+          //     adding extra CPU time to each swap
+          SK_LatentSync_BeginSwap ();
+
+          SK_GL_SwapInterval (1);
+          status =
+            static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+          SK_GL_SwapInterval (0);
+
+          // This info is used to dynamically adjust target
+          //   sync time for laser precision
+          SK_LatentSync_EndSwap ();
+
+          if (status)
+            SK_EndBufferSwap (S_OK);
+          else
+            SK_EndBufferSwap (E_UNEXPECTED);
         }
-
-        SK_GetCurrentRenderBackend ().api =
-          SK_RenderAPI::OpenGL;
-
-        SK_GL_UpdateRenderStats ();
-        SK_Overlay_DrawGL       ();
-
-        // Do this before framerate limiting
-        glFlush                 ();
-
-        SK_BeginBufferSwap      ();
-
-        extern void SK_LatentSync_BeginSwap (void);
-        extern void SK_LatentSync_EndSwap   (void);
-
-        // Time how long the swap actually takes, because
-        //   various hooked third-party overlays may be
-        //     adding extra CPU time to each swap
-        SK_LatentSync_BeginSwap ();
-
-        SK_GL_SwapInterval (1);
-        if (! config.apis.OpenGL.translate) status =
-          static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
-        SK_GL_SwapInterval (0);
-
-        // This info is used to dynamically adjust target
-        //   sync time for laser precision
-        SK_LatentSync_EndSwap ();
-
-        if (status)
-          SK_EndBufferSwap (S_OK);
-        else
-          SK_EndBufferSwap (E_UNEXPECTED);
       }
-    }
 
-    if (! SK_GL_OnD3D11)
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
+    }
   }
 
   // Swap happening on a context we don't care about
@@ -3585,7 +3603,7 @@ SK_HookGL (void)
     if (SK_GetFramesDrawn () > 1)
       SK_ApplyQueuedHooks ();
 
-    WriteRelease                (&__gl_ready,  TRUE);
+    WriteRelease                (&__gl_ready,    TRUE);
     InterlockedIncrementRelease (&__SK_GL_initialized);
   }
 
@@ -3593,6 +3611,7 @@ SK_HookGL (void)
 }
 
 
+__declspec (noinline)
 HGLRC
 WINAPI
 wglCreateContext (HDC hDC)
@@ -3736,8 +3755,8 @@ SK_GL_GetCurrentDC (void)
   if (    __imp__wglGetCurrentDC != nullptr)
     hdc = __imp__wglGetCurrentDC ();
 
-  HWND hwnd =
-    WindowFromDC (hdc);
+  //HWND hwnd =
+  //  WindowFromDC (hdc);
 
   SK_TLS* pTLS =
         SK_TLS_Bottom ();

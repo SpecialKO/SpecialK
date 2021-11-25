@@ -89,10 +89,10 @@ struct CommandLineArgs {
 
 // CSV output only requires last presented/displayed event to compute frame
 // information, but if outputing to the console we maintain a longer history of
-// presents to compute averages, limited to 120 events (2 seconds @ 60Hz) to
+// presents to compute averages, limited to 360 events (1 second @ 360Hz) to
 // reduce memory/compute overhead.
 struct SwapChainData {
-    enum { PRESENT_HISTORY_MAX_COUNT = 30 };
+  enum { PRESENT_HISTORY_MAX_COUNT = 360 };
     std::shared_ptr<PresentEvent> mPresentHistory[PRESENT_HISTORY_MAX_COUNT];
     uint32_t mPresentHistoryCount;
     uint32_t mNextPresentIndex;

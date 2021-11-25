@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1222,6 +1222,8 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
     SK_ComPtr <ID3D11Device>       pDev11  = nullptr;
     SK_ComPtr <ID3D12Device>       pDev12  = nullptr;
 
+    extern bool SK_GL_OnD3D11;
+
     if (device != nullptr)
     {
       if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
@@ -1258,24 +1260,36 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
             api = SK_RenderAPI::DDrawOn11;
             break;
           default:
-            api = SK_RenderAPI::D3D11;
+            if (! SK_GL_OnD3D11)
+              api = SK_RenderAPI::D3D11;
             break;
         }
 
-        SK_ComPtr <IUnknown> pTest = nullptr;
+        if (api == SK_RenderAPI::D3D11)
+        {
+          if (SK_GL_OnD3D11)
+          {
+            wcsncpy (name, L"GLDX11", 7);
+          }
 
-        if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-          wcsncpy (name, L"D3D11.4", 8); // Creators Update
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
-          wcsncpy (name, L"D3D11.4", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
-          wcsncpy (name, L"D3D11.3", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
-          wcsncpy (name, L"D3D11.2", 8);
-        } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
-          wcsncpy (name, L"D3D11.1", 8);
-        } else {
-          wcsncpy (name, L"D3D11 ", 8);
+          else
+          {
+            SK_ComPtr <IUnknown> pTest = nullptr;
+
+            if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
+              wcsncpy (name, L"D3D11.4", 8); // Creators Update
+            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
+              wcsncpy (name, L"D3D11.4", 8);
+            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
+              wcsncpy (name, L"D3D11.3", 8);
+            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
+              wcsncpy (name, L"D3D11.2", 8);
+            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
+              wcsncpy (name, L"D3D11.1", 8);
+            } else {
+              wcsncpy (name, L"D3D11 ", 8);
+            }
+          }
         }
 
         if (     SK_GetDLLRole () == DLL_ROLE::D3D8)  {
@@ -2123,7 +2137,7 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
       if (config.apis.dxgi.d3d11.hook)
       {
         SK_ComQIPtr <ID3D11Device> pDevice11 (pDevice);
-        if (pDevice11.p != nullptr)
+        if (pDevice11.p != nullptr)// && (! SK_GL_OnD3D11))
         {
         //d3d11.device = pDevice11;
                 device = pDevice;//pDevice11;

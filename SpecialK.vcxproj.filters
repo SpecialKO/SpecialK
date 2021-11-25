@@ -3273,6 +3273,9 @@
     <ClInclude Include="include\SpecialK\popups\popup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\gl\opengl_screenshot.h">
+      <Filter>Header Files\Backends\Render\OpenGL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3751,6 +3754,9 @@
     </ClCompile>
     <ClCompile Include="src\popups\steam_achievement.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\gl\opengl_screenshot.cpp">
+      <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4966,6 +4972,12 @@
     </FxCompile>
     <FxCompile Include="resource\shaders\rtss_d3d11_vs.hlsl">
       <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\vs_gl_dx_interop.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\ps_gl_dx_interop.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

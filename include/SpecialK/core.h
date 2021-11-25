@@ -59,6 +59,7 @@ enum class SK_RenderAPI
   D3D8On11  = 0x2040u,
   DDrawOn11 = 0x4040u,
   GlideOn11 = 0x8040u,
+  GLOn11    = 0x0042u
 };
 
 typedef enum DLL_ROLE : unsigned

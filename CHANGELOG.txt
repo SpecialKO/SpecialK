@@ -1,6 +1,28 @@
-﻿21.11.23
+﻿21.11.25
+========
+ OpenGL on D3D11
+ ---------------
+  + New system translates OpenGL display output to D3D11 to make GL games
+      compatible with windowed mode G-Sync, Reflex and HDR (SK or AutoHDR)
+
+    Feature is enabled by default, but can be disabled by setting:
+
+      [API.Hook]
+      d3d11=false
+
+    Turning off D3D11 support in Special K will use legacy OpenGL
+
+
+21.11.23.1
+==========
+ + Updated D3D9 Screenshot Support (keybinds / Steam integration)
+ + Added support for X8R8G8B8 D3D9 Screenshots
+ + Added support for RGB8 OpenGL Screenshots
+
+21.11.23
 ========
  + Removed Assertion on Windows 8.1 systems for High-Precision Waitable Timers
+
 
  OpenGL Screenshot Support
  -------------------------
@@ -11,6 +33,15 @@
   Only RGBA8 (32-bit color) games are supported, no known HDR or 10-bpc OpenGL
     games exist to test on. SK will be adding HDR support to GL, so this will
       change in the future!
+
+  Special Notice for Steam Games:
+  ===============================
+
+    Steam screenshot integration may have automatically disabled itself in
+      OpenGL games previously run using an older version of SK.
+
+    > Consult the Screenshots section of the Control Panel to re-enable.
+
 
 21.11.22
 ========

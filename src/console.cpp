@@ -195,9 +195,6 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     0
   };
 
-  if (SK_GetCurrentGameID () != SK_GAME_ID::HaloInfinite)
-  {
-
   if ( vkCode  == SK_ImGui_ToggleKeys [0] &&
        Control && Shift )
   {
@@ -212,8 +209,6 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     }
 
     return FALSE;
-  }
-
   }
 
   return TRUE;

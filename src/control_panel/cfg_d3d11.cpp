@@ -35,6 +35,8 @@ extern float __target_fps;
 extern float fSwapWaitFract;
 extern float fSwapWaitRatio;
 
+extern bool SK_GL_OnD3D11;
+
 const wchar_t*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
@@ -702,19 +704,18 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (d3d11)
     {
-      if (ImGui::Button (" Render Mod Tools "))
+      if ((! SK_GL_OnD3D11) && ImGui::Button (" Render Mod Tools "))
       {
         show_shader_mod_dlg = (!show_shader_mod_dlg);
       }
 
-      ImGui::SameLine ();
+      if (! SK_GL_OnD3D11) ImGui::SameLine ();
+      if (! SK_GL_OnD3D11) ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
 
-      ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
-
-      if (ImGui::IsItemHovered ())
+      if (! SK_GL_OnD3D11) if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
 
-      ImGui::SameLine ();
+      if (! SK_GL_OnD3D11) ImGui::SameLine ();
 
       if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
       {

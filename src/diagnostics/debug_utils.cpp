@@ -3353,6 +3353,12 @@ BOOL
 WINAPI
 CloseHandle_Detour ( HANDLE hObject )
 {
+  if (! SK_IsDebuggerPresent ())
+  {
+    return
+      CloseHandle_Original (hObject);
+  }
+
   BOOL bRet = FALSE;
 
   __try
@@ -3407,6 +3413,41 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
+  static bool          basic_init = false;
+  if (! std::exchange (basic_init, true))
+  {
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "TerminateProcess",
+                               TerminateProcess_Detour,
+      static_cast_p2p <void> (&TerminateProcess_Original) );
+
+
+
+    SK_CreateDLLHook2 (       L"kernel32",
+                              "SetThreadPriority",
+                               SetThreadPriority_Detour,
+      static_cast_p2p <void> (&SetThreadPriority_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "SetThreadAffinityMask",
+                               SetThreadAffinityMask_Detour,
+      static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+
+
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "OutputDebugStringA",
+                               OutputDebugStringA_Detour,
+      static_cast_p2p <void> (&OutputDebugStringA_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "OutputDebugStringW",
+                               OutputDebugStringW_Detour,
+      static_cast_p2p <void> (&OutputDebugStringW_Original) );
+  }
+
+
+
   if (config.compatibility.disable_debug_features)
   {
     SK_MinHook_Init ();
@@ -3486,21 +3527,26 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     }
 #endif
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "TerminateProcess",
-                               TerminateProcess_Detour,
-      static_cast_p2p <void> (&TerminateProcess_Original) );
+    // Forza Horizon 5 crashes if these are hooked for some reason,
+    //   the actual code run via the hook is inconsequential
+    //
+#if 0
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "NtCreateThreadEx",
+                               NtCreateThreadEx_Detour,
+      static_cast_p2p <void> (&NtCreateThreadEx_Original) );
+#else
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "ZwCreateThreadEx",
+                               ZwCreateThreadEx_Detour,
+      static_cast_p2p <void> (&ZwCreateThreadEx_Original) );
+#endif
 
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "ZwSetInformationThread",
+                               ZwSetInformationThread_Detour,
+      static_cast_p2p <void> (&ZwSetInformationThread_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "OutputDebugStringA",
-                               OutputDebugStringA_Detour,
-      static_cast_p2p <void> (&OutputDebugStringA_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "OutputDebugStringW",
-                               OutputDebugStringW_Detour,
-      static_cast_p2p <void> (&OutputDebugStringW_Original) );
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "RaiseException",
@@ -3570,33 +3616,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                ResetEvent_Detour,
       static_cast_p2p <void> (&ResetEvent_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetThreadPriority",
-                               SetThreadPriority_Detour,
-      static_cast_p2p <void> (&SetThreadPriority_Original) );
-
-  #if 0
-      SK_CreateDLLHook2 (      L"NtDll",
-                                "NtCreateThreadEx",
-                                 NtCreateThreadEx_Detour,
-        static_cast_p2p <void> (&NtCreateThreadEx_Original) );
-  #else
-      SK_CreateDLLHook2 (      L"NtDll",
-                                "ZwCreateThreadEx",
-                                 ZwCreateThreadEx_Detour,
-        static_cast_p2p <void> (&ZwCreateThreadEx_Original) );
-  #endif
-
-      SK_CreateDLLHook2 (      L"NtDll",
-                                "ZwSetInformationThread",
-                                 ZwSetInformationThread_Detour,
-        static_cast_p2p <void> (&ZwSetInformationThread_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetThreadAffinityMask",
-                               SetThreadAffinityMask_Detour,
-      static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
-
 #ifdef _EXTENDED_DEBUG
     if (true)//config.advanced_debug)
     {
@@ -3624,12 +3643,12 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     // Only hook if we actually have a debugger present, because
     //   hooking this will be detected by many DRM / anti-debug as
     //    the smoking gun that there is a debugger.
-    //if (SK_IsDebuggerPresent ())
+    if (IsDebuggerPresent ())
     {
-      ///SK_CreateDLLHook2 (    L"kernel32",
-      ///                        "CloseHandle",
-      ///                         CloseHandle_Detour,
-      ///static_cast_p2p <void> (&CloseHandle_Original) );
+      SK_CreateDLLHook2 (    L"kernel32",
+                              "CloseHandle",
+                               CloseHandle_Detour,
+      static_cast_p2p <void> (&CloseHandle_Original) );
     }
 
     InterlockedIncrementRelease (&__init);

@@ -81,8 +81,8 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
   glBlendFunc     (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glDisable       (GL_CULL_FACE);
   glDisable       (GL_DEPTH_TEST);
-  glDisable       (GL_STENCIL_TEST);
   glEnable        (GL_SCISSOR_TEST);
+  glDisable       (GL_SCISSOR_TEST);
   glColorMask     (GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   glActiveTexture (GL_TEXTURE0);
 

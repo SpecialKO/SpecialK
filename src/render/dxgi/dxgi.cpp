@@ -2900,6 +2900,14 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       _Present ( SyncInterval, Flags );
   }
 
+  // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
+  //
+  if ( config.render.framerate.sync_interval_clamp != -1 &&
+       config.render.framerate.sync_interval_clamp < static_cast <int> (SyncInterval) )
+  {
+    SyncInterval = config.render.framerate.sync_interval_clamp;
+  }
+
   bool bWaitOnFailure =
     (Flags & DXGI_PRESENT_DO_NOT_WAIT)
           != DXGI_PRESENT_DO_NOT_WAIT;
@@ -6516,6 +6524,19 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
       SK_RunOnce (
         SK_InstallWindowHook (hWndInterop)
       );
+
+      RAWINPUTDEVICE rid [2];
+      rid [0].hwndTarget  = hWndInterop;
+      rid [0].usUsage     = HID_USAGE_GENERIC_MOUSE;
+      rid [0].usUsagePage = HID_USAGE_PAGE_GENERIC;
+      rid [0].dwFlags     = RIDEV_DEVNOTIFY;
+
+      rid [1].hwndTarget  = hWndInterop;
+      rid [1].usUsage     = HID_USAGE_GENERIC_KEYBOARD;
+      rid [1].usUsagePage = HID_USAGE_PAGE_GENERIC;
+      rid [1].dwFlags     = RIDEV_DEVNOTIFY;
+
+      SK_RegisterRawInputDevices (rid, 2, sizeof (RAWINPUTDEVICE));
     }
   }
 
@@ -8691,17 +8712,17 @@ SK_DXGI_HookFactory (IDXGIFactory* pFactory)
               (void **)/*&pFactory2.p*/&pFactory, 15 );
         }
 
-     ///if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
-     ///{
-     ///  DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 16,
-     ///                      "IDXGIFactory2::CreateSwapChainForCoreWindow",
-     ///                       DXGIFactory2_CreateSwapChainForCoreWindow_Override,
-     ///                                    CreateSwapChainForCoreWindow_Original,
-     ///                                    CreateSwapChainForCoreWindow_pfn );
-     ///  SK_Hook_TargetFromVFTable (
-     ///    LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
-     ///      (void **)/*&pFactory2.p*/&pFactory, 16 );
-     ///}
+        if (! LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow.active)
+        {
+          DXGI_VIRTUAL_HOOK ( /*&pFactory2.p*/&pFactory, 16,
+                              "IDXGIFactory2::CreateSwapChainForCoreWindow",
+                               DXGIFactory2_CreateSwapChainForCoreWindow_Override,
+                                            CreateSwapChainForCoreWindow_Original,
+                                            CreateSwapChainForCoreWindow_pfn );
+          SK_Hook_TargetFromVFTable (
+            LocalHook_IDXGIFactory2_CreateSwapChainForCoreWindow,
+              (void **)/*&pFactory2.p*/&pFactory, 16 );
+        }
 
     ////if (! LocalHook_IDXGIFactory2_CreateSwapChainForComposition.active)
     ////{

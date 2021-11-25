@@ -403,7 +403,7 @@ SK::DDraw::Startup (void)
 {
   wchar_t wszImmediateMode [MAX_PATH + 2] = { };
 
-  wsprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
+  swprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
 
 
@@ -417,7 +417,7 @@ SK::DDraw::Startup (void)
                                    ).c_str ()
                                  );
 
-  wsprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
+  swprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
                 std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
 
 
