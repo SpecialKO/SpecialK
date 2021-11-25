@@ -37,6 +37,8 @@
 
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <imgui/backends/imgui_gl3.h>
+#include <../depends/include/GL/glew.h>
+#include <../depends/include/GL/wglew.h>
 extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
 
 extern void SK_Steam_ClearPopups (void);
@@ -1029,8 +1031,8 @@ typedef void (APIENTRY * PFNGLGETCOLORTABLEPARAMETERFVEXTPROC)
 
 OPENGL_STUB(BOOL, wglCopyContext, (HGLRC h1, HGLRC h2, UINT u),
                                   (      h1,       h2,      u));
-OPENGL_STUB(HGLRC,wglCreateContext, (HDC hDC),
-                                    (    hDC));
+//OPENGL_STUB(HGLRC,wglCreateContext, (HDC hDC),
+//                                    (    hDC));
 
 
 OPENGL_STUB(HGLRC,wglCreateLayerContext, (HDC hDC, int idx),
@@ -1319,17 +1321,21 @@ void ResetCEGUI_GL (void)
 }
 
 
-typedef BOOL (WINAPI *wglMakeCurrent_pfn)(HDC hDC, HGLRC hglrc);
-                      wglMakeCurrent_pfn
-                      wgl_make_current = nullptr;
+typedef BOOL  (WINAPI *wglMakeCurrent_pfn)(HDC hDC, HGLRC hglrc);
+                       wglMakeCurrent_pfn
+                       wgl_make_current = nullptr;
 
-typedef BOOL (WINAPI *wglShareLists_pfn)(HGLRC ctx0, HGLRC ctx1);
-                      wglShareLists_pfn
-                      wgl_share_lists = nullptr;
+typedef BOOL  (WINAPI *wglShareLists_pfn)(HGLRC ctx0, HGLRC ctx1);
+                       wglShareLists_pfn
+                       wgl_share_lists = nullptr;
 
-typedef BOOL (WINAPI *wglDeleteContext_pfn)(HGLRC hglrc);
-                      wglDeleteContext_pfn
-                      wgl_delete_context = nullptr;
+typedef HGLRC (WINAPI *wglCreateContext_pfn)(HDC hDC);
+                       wglCreateContext_pfn
+                       wgl_create_context = nullptr;
+
+typedef BOOL  (WINAPI *wglDeleteContext_pfn)(HGLRC hglrc);
+                       wglDeleteContext_pfn
+                       wgl_delete_context = nullptr;
 
 
 __declspec (noinline)
@@ -1342,14 +1348,12 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  if (config.system.log_level > 1)
-  {
-    dll_log->Log ( L"[%x (tid=%04x)]  wglMakeCurrent "
-                   L"(hDC=%x, hglrc=%x)",
-                     WindowFromDC         (hDC),
-                   SK_Thread_GetCurrentId (   ),
-                                           hDC, hglrc );
-  }
+  SK_LOG1 ( ( L"[%x (tid=%04x)]  wglMakeCurrent "
+              L"(hDC=%x, hglrc=%x)",
+                WindowFromDC         (hDC),
+              SK_Thread_GetCurrentId (   ),
+                                      hDC, hglrc ),
+            L" OpenGL32 " );
 
   BOOL ret =
     wgl_make_current (hDC, hglrc);
@@ -1357,8 +1361,6 @@ wglMakeCurrent (HDC hDC, HGLRC hglrc)
 
   pTLS->render->gl->current_hglrc = hglrc;
   pTLS->render->gl->current_hdc   = hDC;
-  pTLS->render->gl->current_hwnd  = pTLS->render->gl->current_hdc != nullptr ?
-                     WindowFromDC  (pTLS->render->gl->current_hdc)     : nullptr;
 
   return ret;
 }
@@ -1375,17 +1377,12 @@ wglDeleteContext (HGLRC hglrc)
 
   if (config.system.log_level >= 0 && pTLS != nullptr)
   {
-    dll_log->Log ( L"[%x (tid=%04x)]  wglDeleteContext "
+    SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglDeleteContext "
                    L"(hglrc=%x)",
                      WindowFromDC             (pTLS->render->gl->current_hdc),
                        SK_Thread_GetCurrentId (   ),
-                                              hglrc );
-  }
-
-
-  if (hglrc == SK_GL_GetCurrentContext ())
-  {
-    wglMakeCurrent (SK_GL_GetCurrentDC (), nullptr);
+                                              hglrc ),
+                L" OpenGL32 " );
   }
 
 
@@ -1410,7 +1407,7 @@ wglDeleteContext (HGLRC hglrc)
 
     if (has_children)
     {
-      /////__gl_shared_contexts->erase (hglrc);
+      __gl_shared_contexts->erase (hglrc);
     }
   }
 
@@ -1429,6 +1426,10 @@ wglDeleteContext (HGLRC hglrc)
                   __gl_primary_context  = nullptr;
   }
 
+////if (hglrc == SK_GL_GetCurrentContext ())
+////{
+////  wglMakeCurrent (SK_GL_GetCurrentDC (), nullptr);
+////}
 
   return wgl_delete_context (hglrc);
 }
@@ -1673,6 +1674,9 @@ static bool __reset_overlays = false;
 void
 SK_Overlay_DrawGL (void)
 {
+  ////if (config.apis.OpenGL.translate)
+  ////  return;
+
   glPushAttrib      (GL_ALL_ATTRIB_BITS);
 
   SK_GL_GhettoStateBlock_Capture ();
@@ -1775,6 +1779,12 @@ SK_Overlay_DrawGL (void)
 }
 
 
+#include <SpecialK/render/d3d11/d3d11_core.h>
+#include <shaders/vs_gl_dx_interop.h>
+#include <shaders/ps_gl_dx_interop.h>
+
+bool SK_GL_OnD3D11 = false;
+
 BOOL
 SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 {
@@ -1848,9 +1858,11 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     }
   }
 
-
 //HWND  hWnd = pTLS->gl.current_hwnd;
 //HGLRC hRC  = ->gl.current_hglrc;
+
+  pTLS_gl.current_hwnd  = pTLS_gl.current_hdc != nullptr ?
+           WindowFromDC  (pTLS_gl.current_hdc)           : nullptr;
 
 //assert (hDC == pTLS->gl.current_hdc);
 
@@ -1871,7 +1883,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         compatible_dc = true;
     }
 
-    if (! compatible_dc)
+    //if (! compatible_dc)
     {
       // Ensure the resources we created on the primary context are meaningful
       //   on this one.
@@ -1891,8 +1903,362 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
 
 
-  if ( compatible_dc )
+  if ( compatible_dc && init_.get ()[thread_hglrc] )
   {
+    if (config.apis.OpenGL.translate) SK_GL_OnD3D11 = true;
+
+    static SK_ComPtr <IDXGISwapChain1>     pSwapChain;
+    static SK_ComPtr <ID3D11Device>        pDevice;
+    static SK_ComPtr <ID3D11DeviceContext> pImmediateContext;
+    static SK_ComPtr <IDXGIFactory2>       pFactory;
+
+    static auto constexpr _DXBackBuffers = 3;
+
+    struct {
+      struct {
+        GLuint   texture;
+        GLuint   color_rbo;
+        GLuint   fbo;
+        HDC      hdc;
+        HGLRC    hglrc;
+        HWND     hwnd;
+        HMONITOR hmonitor;
+      } gl;
+
+      struct {
+        SK_ComPtr <ID3D11SamplerState>       colorSampler;
+        SK_ComPtr <ID3D11Texture2D>          colorBufferGL;
+        SK_ComPtr <ID3D11ShaderResourceView> colorViewGL;
+
+        struct {
+          SK_ComPtr <ID3D11Texture2D>        image;
+          SK_ComPtr <ID3D11RenderTargetView> rtv;
+        } backbuffer;
+
+        SK_ComPtr <ID3D11InputLayout>        pBufferFlipLayout;
+        SK_ComPtr <ID3D11BlendState>         pBlendState;
+        SK_ComPtr <ID3D11VertexShader>       pVS_BufferFlip;
+        SK_ComPtr <ID3D11PixelShader>        pPS_BufferFlip;
+        D3D11_VIEWPORT                       viewport;
+
+        HANDLE hDevice;
+        HANDLE hColorBuffer;
+        HWND   hWndSwap;
+        RECT   lastKnownRect;
+
+        struct {
+          BOOL tearing      = FALSE;
+          BOOL flip_discard = FALSE;
+        } caps;
+
+        UINT             swapchain_flags = 0x0;
+        DXGI_SWAP_EFFECT swap_effect     = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+      } d3d11;
+
+      bool     stale = false;
+    } static dx_gl_interop;
+
+    HWND hWnd =
+      WindowFromDC (hDC);
+
+    RECT                  rcWnd = { };
+    GetClientRect (hWnd, &rcWnd);
+
+    HMONITOR hMonitor =
+      MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
+
+    if (pDevice == nullptr)
+    {
+      D3D_FEATURE_LEVEL      levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
+                                           D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
+
+      D3D_FEATURE_LEVEL      featureLevel;
+
+      extern void
+      WINAPI
+      SK_HookDXGI (void);
+      SK_HookDXGI (); // Setup the function to create a D3D11 Device
+
+      HRESULT hr =
+        D3D11CreateDevice_Import (
+          nullptr,
+            D3D_DRIVER_TYPE_HARDWARE,
+              nullptr,
+                0x0,
+                  levels,
+                    _ARRAYSIZE(levels),
+                      D3D11_SDK_VERSION,
+                        &pDevice.p,
+                          &featureLevel,
+                            &pImmediateContext.p );
+
+      SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+      SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
+
+      if ( SUCCEEDED (hr)                                              &&
+                    pDevice != nullptr                                 &&
+         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+      {
+        SK_ComQIPtr <IDXGIFactory5> pFactory5 (pFactory);
+
+        if (pFactory5 != nullptr)
+        {
+          const HRESULT hr =
+            pFactory5->CheckFeatureSupport (
+              DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+                &dx_gl_interop.d3d11.caps.tearing,
+                  sizeof (dx_gl_interop.d3d11.caps.tearing)
+            );
+
+          SK_ReleaseAssert (SUCCEEDED (hr));
+
+          dx_gl_interop.d3d11.caps.flip_discard = true;
+        }
+
+        if (dx_gl_interop.d3d11.caps.flip_discard)
+            dx_gl_interop.d3d11.swap_effect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+        if (dx_gl_interop.d3d11.caps.tearing)
+        {
+          dx_gl_interop.d3d11.swapchain_flags =
+            ( DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING |
+              DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT );
+        }
+
+        dx_gl_interop.d3d11. hDevice =
+          wglDXOpenDeviceNV (pDevice);
+      }
+
+      D3D11_BLEND_DESC
+        blend_desc                                        = { };
+        blend_desc.AlphaToCoverageEnable                  = false;
+        blend_desc.RenderTarget [0].BlendEnable           = false;
+        blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+        blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+        blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+        blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+      pDevice->CreateBlendState ( &blend_desc,
+                                    &dx_gl_interop.d3d11.pBlendState.p );
+
+      SK_ReleaseAssert (
+        SUCCEEDED (
+          pDevice->CreatePixelShader ( gl_dx_interop_ps_bytecode,
+                               sizeof (gl_dx_interop_ps_bytecode),
+                 nullptr, &dx_gl_interop.d3d11.pPS_BufferFlip.p )
+                  )
+        );
+
+      SK_ReleaseAssert (
+        SUCCEEDED (
+          pDevice->CreateVertexShader ( gl_dx_interop_vs_bytecode,
+                                sizeof (gl_dx_interop_vs_bytecode),
+                nullptr, &dx_gl_interop.d3d11.pVS_BufferFlip.p )
+                  )
+        );
+
+      D3D11_SAMPLER_DESC
+        sampler_desc                    = { };
+
+        sampler_desc.Filter             = D3D11_FILTER_MIN_MAG_MIP_POINT;
+        sampler_desc.AddressU           = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampler_desc.AddressV           = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampler_desc.AddressW           = D3D11_TEXTURE_ADDRESS_WRAP;
+        sampler_desc.MipLODBias         = 0.f;
+        sampler_desc.MaxAnisotropy      =   1;
+        sampler_desc.ComparisonFunc     =  D3D11_COMPARISON_NEVER;
+        sampler_desc.MinLOD             = -D3D11_FLOAT32_MAX;
+        sampler_desc.MaxLOD             =  D3D11_FLOAT32_MAX;
+
+      pDevice->CreateSamplerState ( &sampler_desc,
+                                      &dx_gl_interop.d3d11.colorSampler.p );
+
+      D3D11_INPUT_ELEMENT_DESC local_layout [] = {
+        { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+      };
+
+      pDevice->CreateInputLayout ( local_layout, 1,
+                                   (void *)(gl_dx_interop_vs_bytecode),
+                                    sizeof (gl_dx_interop_vs_bytecode) /
+                                    sizeof (gl_dx_interop_vs_bytecode [0]),
+                                      &dx_gl_interop.d3d11.pBufferFlipLayout.p );
+
+      pImmediateContext->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      pImmediateContext->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
+                                                       std::array <UINT,           1> { 0       }.data (),
+                                                       std::array <UINT,           1> { 0       }.data ());
+      pImmediateContext->IASetInputLayout       (dx_gl_interop.d3d11.pBufferFlipLayout);
+      pImmediateContext->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+      static constexpr FLOAT fBlendFactor [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+      pImmediateContext->OMSetBlendState        (dx_gl_interop.d3d11.pBlendState,
+                                                                     fBlendFactor, 0xFFFFFFFF  );
+      pImmediateContext->VSSetShader            (dx_gl_interop.d3d11.pVS_BufferFlip, nullptr, 0);
+      pImmediateContext->PSSetShader            (dx_gl_interop.d3d11.pPS_BufferFlip, nullptr, 0);
+      pImmediateContext->PSSetSamplers   (0, 1, &dx_gl_interop.d3d11.colorSampler.p);
+
+      pImmediateContext->RSSetState               (nullptr   );
+      pImmediateContext->RSSetScissorRects        (0, nullptr);
+      pImmediateContext->OMSetDepthStencilState   (nullptr, 0);
+
+      pImmediateContext->HSSetShader     (nullptr, nullptr, 0);
+      pImmediateContext->DSSetShader     (nullptr, nullptr, 0);
+      pImmediateContext->GSSetShader     (nullptr, nullptr, 0);
+      pImmediateContext->SOSetTargets    (0, nullptr, nullptr);
+
+      dx_gl_interop.gl.hdc      = hDC;
+      dx_gl_interop.gl.hglrc    = thread_hglrc;
+      dx_gl_interop.gl.hwnd     = hWnd;
+      dx_gl_interop.gl.hmonitor = MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST);
+
+      dx_gl_interop.stale = true;
+    }
+
+    else
+    {
+           if (dx_gl_interop.d3d11.hWndSwap != hWnd)         dx_gl_interop.stale = true;
+      else if (dx_gl_interop.gl.hwnd        != hWnd)         dx_gl_interop.stale = true;
+      else if (dx_gl_interop.gl.hdc         != hDC)          dx_gl_interop.stale = true;
+      else if (dx_gl_interop.gl.hglrc       != thread_hglrc) dx_gl_interop.stale = true;
+      else if (dx_gl_interop.gl.hmonitor    != hMonitor)     dx_gl_interop.stale = true;
+      else
+      {
+        RECT                  rcWnd = { };
+        GetClientRect (hWnd, &rcWnd);
+
+        if (! EqualRect (&rcWnd, &dx_gl_interop.d3d11.lastKnownRect))
+                                  dx_gl_interop.stale = true;
+      }
+    }
+
+    if (std::exchange (dx_gl_interop.stale, false) || pSwapChain == nullptr)
+    {
+      glFinish ();
+
+      if (pSwapChain != nullptr)
+      {
+        SK_LOG0 ( ( L" # Recovering from Stale D3D11 Interop Session" ),
+                    L"  GLDX11  " );
+      }
+
+      if (dx_gl_interop.d3d11.hColorBuffer != nullptr)
+      {
+        wglDXUnregisterObjectNV (dx_gl_interop.d3d11.hDevice,
+                                 dx_gl_interop.d3d11.hColorBuffer);
+                                 dx_gl_interop.d3d11.hColorBuffer = nullptr;
+      }
+
+      IUnknown_AtomicRelease ((void **)&dx_gl_interop.d3d11.colorViewGL.p);
+      IUnknown_AtomicRelease ((void **)&dx_gl_interop.d3d11.colorBufferGL.p);
+      IUnknown_AtomicRelease ((void **)&dx_gl_interop.d3d11.backbuffer.image.p);
+      IUnknown_AtomicRelease ((void **)&dx_gl_interop.d3d11.backbuffer.rtv.p);
+
+      if (                    0 != dx_gl_interop.gl.fbo) {
+        glDeleteFramebuffers  (1, &dx_gl_interop.gl.fbo);
+                                   dx_gl_interop.gl.fbo = 0;
+      }
+
+      if (                    0 != dx_gl_interop.gl.color_rbo) {
+        glDeleteRenderbuffers (1, &dx_gl_interop.gl.color_rbo);
+                                   dx_gl_interop.gl.color_rbo = 0;
+      }
+
+    //SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+
+      dx_gl_interop.d3d11.lastKnownRect = rcWnd;
+
+      auto w = dx_gl_interop.d3d11.lastKnownRect.right  - dx_gl_interop.d3d11.lastKnownRect.left;
+      auto h = dx_gl_interop.d3d11.lastKnownRect.bottom - dx_gl_interop.d3d11.lastKnownRect.top;
+
+      dx_gl_interop.gl.hwnd     = hWnd;
+      dx_gl_interop.gl.hdc      = hDC;
+      dx_gl_interop.gl.hglrc    = thread_hglrc;
+      dx_gl_interop.gl.hmonitor = hMonitor;
+
+      DXGI_SWAP_CHAIN_DESC1
+        desc1                             = { };
+        desc1.Format                      = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc1.SampleDesc.Count            = 1;
+        desc1.SampleDesc.Quality          = 0;
+        desc1.Width                       = w;
+        desc1.Height                      = h;
+        desc1.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_BACK_BUFFER;
+        desc1.BufferCount                 = _DXBackBuffers;
+        desc1.AlphaMode                   = DXGI_ALPHA_MODE_IGNORE;
+        desc1.Scaling                     = DXGI_SCALING_NONE;//DXGI_SCALING_ASPECT_RATIO_STRETCH;
+        desc1.SwapEffect                  = dx_gl_interop.d3d11.swap_effect;
+        desc1.Flags                       = dx_gl_interop.d3d11.swapchain_flags;
+
+      dx_gl_interop.d3d11.viewport = { 0.0f, 0.0f,
+                    static_cast <float> (w),
+                    static_cast <float> (h),
+                                       0.0f, 1.0f
+      };
+
+      if (std::exchange (dx_gl_interop.d3d11.hWndSwap, hWnd) != hWnd || pSwapChain == nullptr)
+      {
+        pSwapChain = nullptr;
+
+        // Create a NEW SwapChain
+        pFactory->CreateSwapChainForHwnd ( pDevice, dx_gl_interop.d3d11.hWndSwap,
+                                             &desc1, nullptr,
+                                               nullptr, &pSwapChain.p );
+
+        pFactory->MakeWindowAssociation ( dx_gl_interop.d3d11.hWndSwap,
+                                            DXGI_MWA_NO_ALT_ENTER |
+                                            DXGI_MWA_NO_WINDOW_CHANGES );
+      }
+
+      // Dimensions were wrong, SwapChain just needs a resize...
+      else
+      {
+        pSwapChain->ResizeBuffers (
+                   _DXBackBuffers, w, h,
+                    DXGI_FORMAT_UNKNOWN, dx_gl_interop.d3d11.swapchain_flags
+        );
+      }
+
+      pSwapChain->GetBuffer (
+        0, IID_ID3D11Texture2D, (void **)&dx_gl_interop.d3d11.backbuffer.image.p );
+      pDevice->CreateRenderTargetView (   dx_gl_interop.d3d11.backbuffer.image.p,
+                                nullptr, &dx_gl_interop.d3d11.backbuffer.rtv.p   );
+
+      D3D11_TEXTURE2D_DESC                            tex_desc = { };
+      dx_gl_interop.d3d11.backbuffer.image->GetDesc (&tex_desc);
+
+      tex_desc.ArraySize          = 1;
+      tex_desc.MipLevels          = 1;
+      tex_desc.SampleDesc.Count   = 1;
+      tex_desc.SampleDesc.Quality = 0;
+      tex_desc.Usage              = D3D11_USAGE_DEFAULT;
+      tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
+                                    D3D11_BIND_SHADER_RESOURCE;
+      tex_desc.CPUAccessFlags     = 0;
+      tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
+
+      pDevice->CreateTexture2D (         &tex_desc,                            nullptr,
+                                         &dx_gl_interop.d3d11.colorBufferGL.p);
+      pDevice->CreateShaderResourceView ( dx_gl_interop.d3d11.colorBufferGL.p, nullptr,
+                                         &dx_gl_interop.d3d11.colorViewGL.p);
+
+      pImmediateContext->RSSetViewports       (   1, &dx_gl_interop.d3d11.viewport     );
+      pImmediateContext->PSSetShaderResources (0, 1, &dx_gl_interop.d3d11.colorViewGL.p);
+
+      glGenRenderbuffers (1, &dx_gl_interop.gl.color_rbo);
+      glGenFramebuffers  (1, &dx_gl_interop.gl.fbo);
+
+      dx_gl_interop.d3d11.hColorBuffer =
+        wglDXRegisterObjectNV ( dx_gl_interop.d3d11.hDevice,
+                                dx_gl_interop.d3d11.colorBufferGL,
+                                dx_gl_interop.gl.color_rbo, GL_RENDERBUFFER, WGL_ACCESS_WRITE_DISCARD_NV );
+    }
+
     // TODO: Create a secondary context that shares "display lists" so that
     //         we have a pure state machine all to ourselves.
     if (cegGL == nullptr && config.cegui.enable)
@@ -1900,20 +2266,81 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       ResetCEGUI_GL ();
     }
 
-    SK_GetCurrentRenderBackend ().api =
-      SK_RenderAPI::OpenGL;
 
-    SK_GL_UpdateRenderStats ();
-    SK_Overlay_DrawGL       ();
+    if (! SK_GL_OnD3D11)
+    {
+      SK_GetCurrentRenderBackend ().api =
+        SK_RenderAPI::OpenGL;
 
-    // Do this before framerate limiting
-    //glFlush                 ();
-    if (config.render.framerate.latent_sync.flush_before_present)
-      glFlush  ();
-    if (config.render.framerate.latent_sync.finish_before_present)
-      glFinish ();
+      SK_GL_UpdateRenderStats ();
+      SK_Overlay_DrawGL       ();
 
-    SK_BeginBufferSwap      ();
+      // Do this before framerate limiting
+      glFlush                 ();
+      SK_BeginBufferSwap      ();
+    }
+
+    else
+    {
+#if 0
+      SK_GetCurrentRenderBackend ().api =
+        SK_RenderAPI::OpenGL;
+
+      SK_GL_UpdateRenderStats ();
+      SK_Overlay_DrawGL       ();
+
+      // Do this before framerate limiting
+      glFlush                 ();
+    //SK_BeginBufferSwap      ();
+#else
+      SK_GetCurrentRenderBackend ().setDevice (pDevice);
+#endif
+      wglDXLockObjectsNV   ( dx_gl_interop.d3d11.hDevice, 1,
+                            &dx_gl_interop.d3d11.hColorBuffer );
+
+      GLint                                   original_fbo;
+      glGetIntegerv (GL_FRAMEBUFFER_BINDING, &original_fbo);
+
+      glBindFramebuffer         (GL_FRAMEBUFFER,  dx_gl_interop.gl.fbo);
+      glFramebufferRenderbuffer (GL_FRAMEBUFFER,  GL_COLOR_ATTACHMENT0,
+                                 GL_RENDERBUFFER, dx_gl_interop.gl.color_rbo);
+
+      glBindFramebuffer (GL_READ_FRAMEBUFFER, 0);
+      glBindFramebuffer (GL_DRAW_FRAMEBUFFER, dx_gl_interop.gl.fbo);
+
+      GLint w = static_cast <GLint> (dx_gl_interop.d3d11.viewport.Width),
+            h = static_cast <GLint> (dx_gl_interop.d3d11.viewport.Height);
+
+      GLenum framebufferStatus =  glCheckFramebufferStatus (GL_DRAW_FRAMEBUFFER);
+      if (   framebufferStatus != GL_FRAMEBUFFER_COMPLETE)
+        SK_LOG0 ( ( L"FBO Status: %x", framebufferStatus ), L"  GLDX11  " );
+
+
+      glBlitFramebuffer ( 0,0, w,h,
+                          0,0, w,h, GL_COLOR_BUFFER_BIT, GL_NEAREST );
+
+      GLenum err = glGetError ();
+
+      if (err != GL_NO_ERROR)
+        SK_LOG0 ( ( L"glBlitFramebufferStatus: %x", err ), L"  GLDX11  " );
+
+      glBindFramebuffer (GL_FRAMEBUFFER,  dx_gl_interop.gl.fbo);
+      glFlush           (                                     );
+      glBindFramebuffer (GL_FRAMEBUFFER,          original_fbo);
+
+      wglDXUnlockObjectsNV ( dx_gl_interop.d3d11.hDevice, 1,
+                            &dx_gl_interop.d3d11.hColorBuffer );
+
+
+      pImmediateContext->OMSetRenderTargets ( 1,
+          &dx_gl_interop.d3d11.backbuffer.rtv.p, nullptr );
+      pImmediateContext->Draw  (4, 0);
+      pImmediateContext->OMSetRenderTargets ( 0, nullptr,
+                                                 nullptr );
+      pImmediateContext->Flush (    );
+    }
+
+
 
 
     extern void SK_LatentSync_BeginSwap (void);
@@ -1948,9 +2375,45 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     {
       extern bool __SK_BFI;
       if (__SK_BFI)
-        SK_GL_SwapInterval (1);
-      status =
-        static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+        SK_GL_SwapInterval (0);
+
+      if (pSwapChain != nullptr)
+      {
+        if (dx_gl_interop.d3d11.caps.tearing)
+        {
+          SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pSwapChain);
+
+          SK_AutoHandle hSwapWait (
+            pSwapChain2->GetFrameLatencyWaitableObject ()
+          );
+
+          WaitForSingleObject (hSwapWait.m_h, INFINITE);
+        }
+
+        int present_interval =
+          SK_GL_GetSwapInterval ();
+
+        if (config.render.framerate.present_interval != -1)
+          present_interval = config.render.framerate.present_interval;
+
+        present_interval =
+          std::min (4, std::max (0, present_interval));
+
+        if (                                             config.render.framerate.sync_interval_clamp > 0)
+          present_interval = std::min (present_interval, config.render.framerate.sync_interval_clamp);
+
+        status =
+          SUCCEEDED ( pSwapChain->Present (        present_interval,
+              (dx_gl_interop.d3d11.caps.tearing && present_interval == 0) ? DXGI_PRESENT_ALLOW_TEARING
+                                                                          : 0x0 ) );
+      }
+
+      else
+      {
+        status =
+          static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+      }
+
     }
     else
       status = TRUE;
@@ -1959,10 +2422,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     //   sync time for laser precision
     SK_LatentSync_EndSwap ();
 
-    if (status)
-      SK_EndBufferSwap (S_OK);
-    else
-      SK_EndBufferSwap (E_UNEXPECTED);
+    if (! SK_GL_OnD3D11)
+    {
+      if (status)
+        SK_EndBufferSwap (S_OK);
+      else
+        SK_EndBufferSwap (E_UNEXPECTED);
+    }
 
     if (config.render.framerate.present_interval == 0 &&
         config.render.framerate.target_fps        > 0.0f)
@@ -1970,11 +2436,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       extern bool __SK_BFI;
       if (        __SK_BFI)
       {
-        if (config.render.framerate.latent_sync.flush_after_present)
-          glFlush  ();
-        if (config.render.framerate.latent_sync.finish_after_present)
-          glFinish ();
-
         ////extern LONGLONG __SK_LatentSync_FrameInterval;
         ////
         ////static SK_AutoHandle hTimer (INVALID_HANDLE_VALUE);
@@ -2026,7 +2487,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         SK_LatentSync_BeginSwap ();
 
         SK_GL_SwapInterval (1);
-        status =
+        if (! config.apis.OpenGL.translate) status =
           static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
         SK_GL_SwapInterval (0);
 
@@ -2041,16 +2502,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       }
     }
 
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
-
-    if ( config.render.framerate.present_interval == 0 &&
-         config.render.framerate.target_fps        > 0.0f )
-    {
-      if (config.render.framerate.latent_sync.flush_after_present)
-        glFlush  ();
-      if (config.render.framerate.latent_sync.finish_after_present)
-        glFinish ();
-    }
+    if (! SK_GL_OnD3D11)
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
   }
 
   // Swap happening on a context we don't care about
@@ -2099,13 +2552,16 @@ wglSwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
 
-  if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
+  SK_LOG1 ( ( L"[%x (tid=%04x)]  wglSwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
+              L" OpenGL32 " );
 
   SK_GL_TrackHDC (hDC);
 
 
   BOOL bRet = FALSE;
+
+  int orig_swap_interval =
+    SK_GL_GetSwapInterval ();
 
   // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
   //
@@ -2126,6 +2582,8 @@ wglSwapBuffers (HDC hDC)
 
   config.render.osd._last_vidcap_frame = SK_GetFramesDrawn ();
 
+  SK_GL_SwapInterval (orig_swap_interval);
+
 
   return bRet;
 }
@@ -2137,8 +2595,8 @@ SwapBuffers (HDC hDC)
 {
   WaitForInit_GL ();
 
-  if (config.system.log_level > 1)
-    dll_log->Log (L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC);
+  SK_LOG1 ( ( L"[%x (tid=%04x)]  SwapBuffers (hDC=%x)", WindowFromDC (hDC), SK_Thread_GetCurrentId (), hDC ),
+              L" OpenGL32 " );
 
   SK_GL_TrackHDC (hDC);
 
@@ -2146,6 +2604,9 @@ SwapBuffers (HDC hDC)
   config.render.osd._last_normal_frame = SK_GetFramesDrawn ();
 
   BOOL bRet = FALSE;
+
+  int orig_swap_interval =
+    SK_GL_GetSwapInterval ();
 
   if (                  config.render.framerate.present_interval != -1)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
@@ -2155,6 +2616,8 @@ SwapBuffers (HDC hDC)
 
   else
     bRet = gdi_swap_buffers (hDC);
+
+  SK_GL_SwapInterval (orig_swap_interval);
 
 
   return bRet;
@@ -2182,7 +2645,7 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 
   WaitForInit_GL ();
 
-  dll_log->Log (L"wglSwapMultipleBuffers [%lu]", n);
+  SK_LOG0 ( ( L"wglSwapMultipleBuffers [%lu]", n ), L" OpenGL32 " );
 
   DWORD dwTotal = 0;
   DWORD dwRet   = 0;
@@ -2668,6 +3131,8 @@ SK_HookGL (void)
         (wglMakeCurrent_pfn)SK_GetProcAddress         (local_gl, "wglMakeCurrent");
       wgl_share_lists =
         (wglShareLists_pfn)SK_GetProcAddress          (local_gl, "wglShareLists");
+      wgl_create_context =
+        (wglCreateContext_pfn)SK_GetProcAddress       (local_gl, "wglCreateContext");
       wgl_delete_context =
         (wglDeleteContext_pfn)SK_GetProcAddress       (local_gl, "wglDeleteContext");
       wgl_swap_multiple_buffers =
@@ -2676,8 +3141,8 @@ SK_HookGL (void)
       pTLS->render->gl->ctx_init_thread = true;
     }
 
-    dll_log->Log (L"[ OpenGL32 ] Additional OpenGL Initialization");
-    dll_log->Log (L"[ OpenGL32 ] ================================");
+    SK_LOG0 ( (L"Additional OpenGL Initialization"), L" OpenGL32 ");
+    SK_LOG0 ( (L"================================"), L" OpenGL32 ");
 
     if ( StrStrIW ( SK_GetDLLName ().c_str (),
                       wszBackendDLL )
@@ -2689,7 +3154,7 @@ SK_HookGL (void)
 
     else
     {
-      dll_log->Log (L"[ OpenGL32 ] Hooking OpenGL");
+      SK_LOG0 ( (L"Hooking OpenGL"), L" OpenGL32 " );
 
       SK_LoadRealGL ();
 
@@ -2710,6 +3175,11 @@ SK_HookGL (void)
                                  "wglShareLists",
                                   wglShareLists,
          static_cast_p2p <void> (&wgl_share_lists) );
+
+      SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
+                                 "wglCreateContext",
+                                  wglCreateContext,
+         static_cast_p2p <void> (&wgl_create_context) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapMultipleBuffers",
@@ -3079,7 +3549,7 @@ SK_HookGL (void)
       SK_GL_HOOK(wglCopyContext);
 
     //SK_GL_HOOK(wglGetProcAddress);
-      SK_GL_HOOK(wglCreateContext);
+    //SK_GL_HOOK(wglCreateContext);
 
       SK_GL_HOOK(wglUseFontBitmapsA);
       SK_GL_HOOK(wglUseFontBitmapsW);
@@ -3095,8 +3565,9 @@ SK_HookGL (void)
     //SK_GL_HOOK(wglRealizeLayerPalette);
     //SK_GL_HOOK(wglSetLayerPaletteEntries);
 
-      dll_log->Log ( L"[ OpenGL32 ]  @ %lu functions hooked",
-                       GL_HOOKS );
+      SK_LOG0 ( (L" @ %lu functions hooked",
+                       GL_HOOKS ),
+                 L" OpenGL32 " );
     }
 
     //
@@ -3122,6 +3593,45 @@ SK_HookGL (void)
 }
 
 
+HGLRC
+WINAPI
+wglCreateContext (HDC hDC)
+{
+  WaitForInit_GL ();
+
+  SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglCreateContext "
+              L"(hDC=%x)",
+              SK_TLS_Bottom ()->render->gl->current_hwnd,
+              SK_Thread_GetCurrentId (   ), hDC ),
+              L" OpenGL32 " );
+
+  HGLRC ret =
+    wgl_create_context (hDC);
+
+  typedef HGLRC (WINAPI *wglCreateContextAttribs_pfn)(HDC hDC, HGLRC hshareContext,
+                                     const int *attribList);
+
+  wglCreateContextAttribs_pfn
+    wgl_create_context_attribs = (wglCreateContextAttribs_pfn)
+           wgl_get_proc_address ("wglCreateContextAttribs");
+
+  if (wgl_create_context_attribs != nullptr)
+  {
+    static const int                       default_attribs [] = { 0, 0 };
+    HGLRC hglrc_upgraded =
+      wgl_create_context_attribs ( hDC, 0, default_attribs );
+
+    if (hglrc_upgraded != nullptr)
+    {
+      wgl_delete_context (
+        std::exchange (ret, hglrc_upgraded)
+      );
+    }
+  }
+
+  return ret;
+}
+
 __declspec (noinline)
 BOOL
 WINAPI
@@ -3129,11 +3639,12 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
 {
   WaitForInit_GL ();
 
-  dll_log->Log ( L"[%x (tid=%04x)]  wglShareLists "
-                 L"(ctx0=%x, ctx1=%x)",
-                   SK_TLS_Bottom ()->render->gl->current_hwnd,
-                   SK_Thread_GetCurrentId (   ),
-                                          ctx0, ctx1 );
+  SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglShareLists "
+              L"(ctx0=%x, ctx1=%x)",
+                SK_TLS_Bottom ()->render->gl->current_hwnd,
+                SK_Thread_GetCurrentId (   ),
+                                       ctx0, ctx1 ),
+              L" OpenGL32 " );
 
   BOOL ret =
     wgl_share_lists (ctx0, ctx1);
@@ -3233,7 +3744,7 @@ SK_GL_GetCurrentDC (void)
 
   if (pTLS != nullptr)
   {
-    pTLS->render->gl->current_hwnd = hwnd;
+  //pTLS->render->gl->current_hwnd = hwnd;
     pTLS->render->gl->current_hdc  = hdc;
   }
 
