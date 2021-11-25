@@ -808,107 +808,117 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
     MODULEINFO mod_info = { };
 
-    GetModuleInformation (
-      GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
-    );
-
-#ifdef _M_AMD64
-    BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
-#else /* _M_IX86 */
-    BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
-#endif
-
-    strncpy_s     (szDupName, MAX_PATH, szModName, _TRUNCATE);
-    pszShortName = szDupName;
-
-    PathStripPathA (pszShortName);
-
-
-    SK_SymLoadModule ( hProc,
-                         nullptr,
-                          pszShortName,
-                            nullptr,
-                              BaseAddr,
-                                mod_info.SizeOfImage );
-
-    SYMBOL_INFO_PACKAGE sip = { };
-
-    sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
-    sip.si.MaxNameLen   = sizeof sip.name;
-
-    DWORD64 Displacement = 0;
-
-    if ( SymFromAddr ( hProc,
-             static_cast <DWORD64> (ip),
-                           &Displacement,
-                             &sip.si ) )
+    if (! GetModuleInformation (
+            GetCurrentProcess (), hModSource, &mod_info, sizeof (mod_info)
+       )                       )
     {
-      DWORD Disp = 0x00UL;
+      stack_entries.emplace_back (
+        stack_entry_s (
+          "Unknown Module", "Unknown Function"
+        )
+      );
+    }
+
+    else
+    {
+#ifdef _M_AMD64
+      BaseAddr = (DWORD64)mod_info.lpBaseOfDll;
+#else /* _M_IX86 */
+      BaseAddr = (DWORD)  mod_info.lpBaseOfDll;
+#endif
+
+      strncpy_s     (szDupName, MAX_PATH, szModName, _TRUNCATE);
+      pszShortName = szDupName;
+
+      PathStripPathA (pszShortName);
+
+
+      SK_SymLoadModule ( hProc,
+                           nullptr,
+                            pszShortName,
+                              nullptr,
+                                BaseAddr,
+                                  mod_info.SizeOfImage );
+
+      SYMBOL_INFO_PACKAGE sip = { };
+
+      sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
+      sip.si.MaxNameLen   = sizeof sip.name;
+
+      DWORD64 Displacement = 0;
+
+      if ( SymFromAddr ( hProc,
+               static_cast <DWORD64> (ip),
+                             &Displacement,
+                               &sip.si ) )
+      {
+        DWORD Disp = 0x00UL;
 
 #ifdef _M_AMD64
-      IMAGEHLP_LINE64 ihl              = {                    };
-                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
+        IMAGEHLP_LINE64 ihl              = {                    };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE64;
 #else /* _M_IX86 */
-      IMAGEHLP_LINE   ihl              = {                  };
-                      ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
+        IMAGEHLP_LINE   ihl              = {                  };
+                        ihl.SizeOfStruct = sizeof IMAGEHLP_LINE;
 #endif
-      BOOL bFileAndLine =
-        SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
+        BOOL bFileAndLine =
+          SK_SymGetLineFromAddr ( hProc, ip, &Disp, &ihl );
 
-      auto AddStackEntry =
+        auto AddStackEntry =
+          [&](void) -> void
+        {
+          stack_entries.emplace_back (
+            stack_entry_s (
+              pszShortName, sip.si.Name
+            )
+          );
+
+          max_symbol_len =
+            std::max (stack_entries.back ().sym_len, max_symbol_len);
+          max_module_len =
+            std::max (stack_entries.back ().mod_len, max_module_len);
+        };
+
+        auto AddStackEntryWithFileAndLine =
         [&](void) -> void
-      {
-        stack_entries.emplace_back (
-          stack_entry_s (
-            pszShortName, sip.si.Name
-          )
-        );
+        {
+          stack_entries.emplace_back (
+            stack_entry_s (
+              pszShortName, sip.si.Name,
+                ihl.FileName, ihl.LineNumber
+            )
+          );
 
-        max_symbol_len =
-          std::max (stack_entries.back ().sym_len, max_symbol_len);
-        max_module_len =
-          std::max (stack_entries.back ().mod_len, max_module_len);
-      };
+          auto& entry =
+            stack_entries.back ();
 
-      auto AddStackEntryWithFileAndLine =
-      [&](void) -> void
-      {
-        stack_entries.emplace_back (
-          stack_entry_s (
-            pszShortName, sip.si.Name,
-              ihl.FileName, ihl.LineNumber
-          )
-        );
+          max_symbol_len =
+            std::max (entry.sym_len, max_symbol_len);
+          max_module_len =
+            std::max (entry.mod_len, max_module_len);
+          max_file_len =
+            std::max (entry.file_len, max_file_len);
+        };
 
-        auto& entry =
-          stack_entries.back ();
+        if (bFileAndLine)
+        {
+          AddStackEntryWithFileAndLine ();
+        }
 
-        max_symbol_len =
-          std::max (entry.sym_len, max_symbol_len);
-        max_module_len =
-          std::max (entry.mod_len, max_module_len);
-        max_file_len =
-          std::max (entry.file_len, max_file_len);
-      };
+        else
+        {
+          AddStackEntry ();
+        }
 
-      if (bFileAndLine)
-      {
-        AddStackEntryWithFileAndLine ();
+        ////if (StrStrIA (sip.si.Name, "Scaleform"))
+        ////  scaleform = true;
+
+        //if (*szTopFunc == '\0')
+        //{
+        //  strncpy_s ( szTopFunc,     512,
+        //                sip.si.Name, _TRUNCATE );
+        //}
       }
-
-      else
-      {
-        AddStackEntry ();
-      }
-
-      ////if (StrStrIA (sip.si.Name, "Scaleform"))
-      ////  scaleform = true;
-
-      //if (*szTopFunc == '\0')
-      //{
-      //  strncpy_s ( szTopFunc,     512,
-      //                sip.si.Name, _TRUNCATE );
-      //}
     }
 
   //SK_SymUnloadModule (hProc, BaseAddr);
