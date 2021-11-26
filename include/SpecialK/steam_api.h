@@ -401,7 +401,7 @@ public:
                      FileDetailsResult_t,
                      get_file_details );
 
-  void Shutdown (void);
+  void Shutdown (bool bGameRequested = false);
 
   ISteamUser*          User                 (void) noexcept { return user_;               }
   int                  UserVersion          (void) noexcept { return user_ver_;           }

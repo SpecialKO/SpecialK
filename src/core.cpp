@@ -1536,15 +1536,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   else
   {
-    // Initialize MinHook before loading config file; required for some plug-ins
-    SK_MinHook_Init ();
-
     blacklist =
       SK_IsInjected    () &&
        PathFileExistsW (SK_GetBlacklistFilename ());
 
     if (! blacklist)
     {
+      // Initialize MinHook before loading config file; required for some plug-ins
+      SK_MinHook_Init ();
+
       wchar_t                log_fname [MAX_PATH + 2] = { };
       SK_PathCombineW      ( log_fname, L"logs",
                                 SK_IsInjected () ?
@@ -1658,6 +1658,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     dll_log->LogEx (false, L"done!\n");
   }
+
+  SK_RunOnce (SK_Display_HookModeChangeAPIs ());
+  SK_RunOnce (SK_ApplyQueuedHooks           ());
 
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
@@ -1972,7 +1975,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
          auto_lock (dummy_windows->lock);
 
   static WNDCLASSW wc = {
-    0,
+    CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
     DummyWindowProc,
     0x00, 0x00,
     SK_GetDLL        (                           ),
@@ -2161,6 +2164,25 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.window.background_mute)
     SK_SetGameMute (false);
 
+
+  const wchar_t* config_name = backend;
+
+  if (SK_IsInjected ())
+  {
+    config_name = L"SpecialK";
+  }
+
+  if (sk::NVAPI::app_name != L"ds3t.exe")
+  {
+    dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
+                                 L" %10s.ini... ", config_name);
+    dwTime =
+          SK_timeGetTime (           );
+    SK_SaveConfig        (config_name);
+    dll_log->LogEx       (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+  }
+
+
   // These games do not handle resolution correctly
   switch (SK_GetCurrentGameID ())
   {
@@ -2211,8 +2233,6 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_EndGPUPolling ();
 
   dll_log->LogEx    (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
-
-  SK::SteamAPI::Shutdown ();
 
   SK_Console::getInstance ()->End ();
 
@@ -2275,47 +2295,45 @@ SK_ShutdownCore (const wchar_t* backend)
   ShutdownWMIThread (pagefile_stats.hShutdownSignal,
                      pagefile_stats.hThread,          L"Pagefile Monitor");
 
-  const wchar_t* config_name = backend;
-
-  if (SK_IsInjected ())
-  {
-    config_name = L"SpecialK";
-  }
-
   PowerSetActiveScheme (
     nullptr,
       &config.cpu.power_scheme_guid_orig
   );
-
-  if (sk::NVAPI::app_name != L"ds3t.exe")
-  {
-    dll_log->LogEx       (true,  L"[ SpecialK ] Saving user preferences to"
-                                 L" %10s.ini... ", config_name);
-    dwTime =
-          SK_timeGetTime (           );
-    SK_SaveConfig        (config_name);
-    dll_log->LogEx       (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
-  }
-
 
   if (! SK_Debug_IsCrashing ())
   {
     SK_UnloadImports        ();
     SK::Framerate::Shutdown ();
 
-    dll_log->LogEx          (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
-    dwTime = SK_timeGetTime ();
-    SK_WMI_Shutdown         ();
-    dll_log->LogEx          (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    dll_log->LogEx             (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
+    dwTime = SK_timeGetTime    ();
+    SK_WMI_Shutdown            ();
+    dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
+    if (! config.steam.silent)
+    {
+      dll_log->LogEx           (true, L"[ SpecialK ] Shutting down SteamAPI integration...        ");
+      dwTime = SK_timeGetTime  ();
+      SK::SteamAPI::Shutdown   ();
+      dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    }
+
+    // Due to hooks on NvAPI methods, best to just leave the library loaded
+#if 0
     if (nvapi_init)
+    {
+      dll_log->LogEx           (true, L"[  NV API  ] Unloading NVAPI Library...                   ");
+      dwTime = SK_timeGetTime  ();
       sk::NVAPI::UnloadLibrary ();
+      dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    }
+#endif
 
-    dll_log->LogEx          (true, L"[ SpecialK ] Shutting down MinHook...                     ");
+    dll_log->LogEx             (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
-    dwTime = SK_timeGetTime ();
-    SK_MinHook_UnInit       ();
-    dll_log->LogEx          (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    dwTime = SK_timeGetTime    ();
+    SK_MinHook_UnInit          ();
+    dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
   }
 
 

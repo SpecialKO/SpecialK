@@ -1514,7 +1514,7 @@ SK_Steam_SetNotifyCorner (void)
 }
 
 void
-SK_SteamAPIContext::Shutdown (void)
+SK_SteamAPIContext::Shutdown (bool bGameRequested)
 {
   static volatile LONG _SimpleMutex = 0;
 
@@ -1549,12 +1549,21 @@ SK_SteamAPIContext::Shutdown (void)
     utils_ver_          = 0;
     remote_storage_ver_ = 0;
 
-    if (SteamAPI_Shutdown_Original != nullptr)
-    {   SteamAPI_Shutdown_Original ();
-        SteamAPI_Shutdown_Original  = nullptr;
+    // Calls to SK_DisableHook do nothing while DLL is shutting down,
+    //   just kinda ignore this whole thing :)
+    if (! ReadAcquire (&__SK_DLL_Ending))
+    {
+      if (bGameRequested)
+      {
+        SK_ReleaseAssert (SteamAPI_Shutdown_Original != nullptr);
 
-      SK_DisableHook (SteamAPI_RunCallbacks);
-      SK_DisableHook (SteamAPI_Shutdown);
+        if (SteamAPI_Shutdown_Original != nullptr)
+        {   SteamAPI_Shutdown_Original ();
+
+          SK_DisableHook (SteamAPI_RunCallbacks);
+          SK_DisableHook (SteamAPI_Shutdown);
+        }
+      }
     }
 
     InterlockedExchange (&_SimpleMutex, 0);
@@ -2996,31 +3005,27 @@ public:
 
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    if (*wszUnlockSound == L'\0')
+    extern iSK_INI* steam_ini;
+
+    if (*wszUnlockSound == L'\0' && steam_ini != nullptr)
     {
-      std::wstring achievement_ini_path (
-        SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)"
-      );
-
-      iSK_INI achievement_ini (achievement_ini_path.c_str ());
-
       // If the config file is empty, establish defaults and then write it.
-      if (achievement_ini.get_sections ().empty ())
+      if (steam_ini->get_sections ().empty ())
       {
-        achievement_ini.import ( L"[Steam.Achievements]\n"
-                                 L"SoundFile=psn\n"
-                                 L"PlaySound=true\n"
-                                 L"TakeScreenshot=false\n"
-                                 L"AnimatePopup=true\n"
-                                 L"NotifyCorner=0\n" );
+        steam_ini->import ( L"[Steam.Achievements]\n"
+                            L"SoundFile=psn\n"
+                            L"PlaySound=true\n"
+                            L"TakeScreenshot=false\n"
+                            L"AnimatePopup=true\n"
+                            L"NotifyCorner=0\n" );
 
-        achievement_ini.write (achievement_ini.get_filename ());
+        steam_ini->write (steam_ini->get_filename ());
       }
 
-      if (achievement_ini.contains_section (L"Steam.Achievements"))
+      if (steam_ini->contains_section (L"Steam.Achievements"))
       {
         iSK_INISection& sec =
-          achievement_ini.get_section (L"Steam.Achievements");
+          steam_ini->get_section (L"Steam.Achievements");
 
         if (sec.contains_key (L"SoundFile"))
         {
@@ -3806,7 +3811,16 @@ SK::SteamAPI::Shutdown (void)
   // Since we might restart SteamAPI, don't do this.
   //SK_AutoClose_Log (steam_log);
 
-  steam_ctx.Shutdown ();
+  // This sometimes snags in weird ways, so
+  //   ignore any exceptions it causes...
+  __try
+  {
+    steam_ctx.Shutdown ();
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
 }
 
 void SK::SteamAPI::Pump (void)
@@ -4071,7 +4085,7 @@ SK::SteamAPI::AppID (void)
                   SK_UTF8ToWideChar (SK_UseManifestToGetAppName (id)).c_str (),
                                                                  id
           );
-          app_cache_mgr->saveAppCache       (true);
+          app_cache_mgr->saveAppCache       ();//true);
           app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
 
           // Trigger profile migration if necessary
@@ -4611,7 +4625,7 @@ SteamAPI_Shutdown_Detour (void)
     SK_GetDLLConfig    ()->write (
       SK_GetDLLConfig  ()->get_filename ()
                                  );
-    steam_ctx.Shutdown ();
+    steam_ctx.Shutdown (true);
   } __except (EXCEPTION_EXECUTE_HANDLER) {}
 
   if (locked)
@@ -7451,7 +7465,7 @@ SK_Steam_GetAppID_NoAPI (void)
                                ).c_str (), AppID
     );
 
-    app_cache_mgr->saveAppCache       (true);
+    app_cache_mgr->saveAppCache       ();//true);
     app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
 
     // Trigger profile migration if necessary
