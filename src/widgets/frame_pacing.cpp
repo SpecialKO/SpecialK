@@ -985,9 +985,7 @@ public:
 
     SK_FramePercentiles->store_percentile_cfg ();
 
-    cfg->write (
-      cfg->get_filename ()
-    );
+    cfg->write ();
   }
 
   void run (void) noexcept override

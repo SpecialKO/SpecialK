@@ -102,7 +102,7 @@ interface iSK_INI : public IUnknown
 
   STDMETHOD_ (void, parse)  (THIS);
   STDMETHOD_ (void, import) (THIS_ const wchar_t* import_data);
-  STDMETHOD_ (void, write)  (THIS_ const wchar_t* fname);
+  STDMETHOD_ (void, write)  (THIS_ const wchar_t* fname = nullptr);
 
   STDMETHOD_ (_TSectionMap&,   get_sections)    (THIS);
   STDMETHOD_ (iSK_INISection&, get_section)     (const wchar_t* section);
@@ -115,6 +115,7 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (const wchar_t*,  get_filename)    (THIS) const;
   STDMETHOD_ (bool,            import_file)     (const wchar_t* fname);
   STDMETHOD_ (bool,            rename)          (const wchar_t* fname);
+  STDMETHOD_ (bool,            reload)          (const wchar_t* fname = nullptr);
 
 protected:
 private:
@@ -143,8 +144,10 @@ private:
     INI_UTF16BE = 0x04 // Not natively supported, but can be converted
   } encoding_;
 
-  ULONG    refs_  = 0;
-  uint32_t crc32_ = 0; // Skip writing config files that haven't changed
+  ULONG    refs_      =   0;
+  uint32_t crc32_     =   0; // Skip writing config files that haven't changed
+  FILETIME flushed_   = { 0 };
+  FILETIME file_stamp = { 0 };
 };
 
 iSK_INI*

@@ -55,43 +55,90 @@ ErrorMessage (errno_t        err,
 #define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) == nullptr) \
 dll_log->Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
 
-iSK_INI::iSK_INI (const wchar_t* filename)
+BOOL
+SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 {
-  encoding_ = INI_UTF8;
+  if (! pfModifyTime)
+    return FALSE;
 
-  AddRef ();
+  SK_AutoHandle hFile (
+    CreateFileW ( wszFile, GENERIC_READ,
+                        FILE_SHARE_READ, nullptr,
+                              OPEN_EXISTING,
+                              FILE_ATTRIBUTE_NORMAL, nullptr )
+  );
 
-  SK_ReleaseAssert (
-          filename != nullptr)
-  if (    filename == nullptr) return;
-  if (   *filename == L'\0'  ) return; // Empty String -> Dummy INI
+  if (hFile.m_h != 0)
+  {
+    FILETIME                   ftCreation,  ftAccess;
+
+    return
+      GetFileTime (hFile.m_h, &ftCreation, &ftAccess, pfModifyTime);
+  }
+
+  return FALSE;
+}
+
+bool
+iSK_INI::reload (const wchar_t *fname)
+{
+  if (fname == nullptr)
+  {
+    SK_ReleaseAssert (
+            wszName != nullptr)
+    if (    wszName == nullptr) return false;
+    if (   *wszName == L'\0'  ) return false; // Empty String -> Dummy INI
+
+    fname = wszName;
+  }
+
+  if (! PathFileExistsW (fname))
+    return false;
+
+  // Avoid reloading when it would make no sense to do so
+  if (! _wcsicmp (fname, wszName))
+  {
+    FILETIME                ftLastWrite =    file_stamp;
+    if (SK_File_GetModificationTime (fname, &file_stamp) &&
+          CompareFileTime (&ftLastWrite,    &file_stamp) <= 0)
+    {
+      flushed_ = file_stamp;
+
+      if (! sections.empty ())
+      {
+        SK_LOG2 ( ( L"Skipping Reload on file '%ws' because it is unchanged", fname ),
+                    L"ConfigLoad" );
+
+        return true;
+      }
+    }
+
+    flushed_ = file_stamp;
+
+    SK_LOG2 ( ( L"Continuing reload on file '%ws' because old modification time = %llu, "
+                L"new = %llu", fname, *(UINT64 *)&ftLastWrite, *(UINT64 *)&file_stamp ),
+                    L"ConfigLoad" );
+  }
+
+  if (data != nullptr)
+  {
+    delete [] data;
+              data = nullptr;
+  }
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
   //   actual pointer we need to free...
   data = nullptr;
 
-  wszName =
-    _wcsdup (filename);
-
-  if ( wszName == nullptr ||
-      *wszName == L'\0' )
-  {
-    return;
-  }
-
-  if (wcsstr (filename, L"Version") != nullptr)
-    SK_CreateDirectories (filename);
-
-  SK_StripTrailingSlashesW (wszName);
-
-  TRY_FILE_IO (_wfsopen (wszName, L"rbS", _SH_DENYNO), wszName, fINI);
+  TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO), fname, fINI);
 
   if (fINI != nullptr)
   {
-    sections.clear ();
+    sections.clear         ();
+    ordered_sections.clear ();
 
     auto size =
-      gsl::narrow_cast <long> (SK_File_GetSize (wszName));
+      gsl::narrow_cast <long> (SK_File_GetSize (fname));
 
     // A 4 MiB INI file seems pretty dman unlikely...
     SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L))
@@ -104,7 +151,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     if (wszData == nullptr)
     {
       fclose (fINI);
-      return;
+      return false;
     }
 
     data  = wszData;
@@ -125,7 +172,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     {
       dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
                      L"file ('%s'), attempting to recover...",
-                       wszName );
+                       fname );
 
       wchar_t* wszSwapMe = wszData;
 
@@ -177,7 +224,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
       if (string == nullptr)
       {
-        return;
+        return false;
       }
 
       unsigned int converted_size =
@@ -190,12 +237,12 @@ iSK_INI::iSK_INI (const wchar_t* filename)
       {
         dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
                        L".ini file ('%s') to UTF-16, aborting!",
-                         wszName );
+                         fname );
 
         delete [] string;
                   string = nullptr;
 
-        return;
+        return false;
       }
 
       wszData =
@@ -210,7 +257,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
                                 wszData, converted_size );
 
         //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
-                        //wszName );
+                        //fname );
       }
 
       delete [] string;
@@ -223,12 +270,48 @@ iSK_INI::iSK_INI (const wchar_t* filename)
     }
 
     parse  ();
+
+    return true;
   }
 
   else
   {
     wszData = nullptr;
+
+    return false;
   }
+}
+
+iSK_INI::iSK_INI (const wchar_t* filename)
+{
+  encoding_ = INI_UTF8;
+
+  AddRef ();
+
+  SK_ReleaseAssert (
+          filename != nullptr)
+  if (    filename == nullptr) return;
+  if (   *filename == L'\0'  ) return; // Empty String -> Dummy INI
+
+  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
+  //   actual pointer we need to free...
+  data = nullptr;
+
+  wszName =
+    _wcsdup (filename);
+
+  if ( wszName == nullptr ||
+      *wszName == L'\0' )
+  {
+    return;
+  }
+
+  if (wcsstr (filename, L"Version") != nullptr)
+    SK_CreateDirectories (filename);
+
+  SK_StripTrailingSlashesW (wszName);
+
+  reload ();
 }
 
 iSK_INI::~iSK_INI (void)
@@ -600,7 +683,7 @@ iSK_INI::parse (void)
 
 
 
-  if (crc32_ == 0x0)
+  //if (crc32_ == 0x0)
   {
     std::wstring outbuf;
                  outbuf.reserve (16384);
@@ -839,7 +922,11 @@ iSK_INISection::set_name (const wchar_t* name_)
   if (parent != nullptr)
   {
     if (name != name_)
-      parent->crc32_ = 0x0;
+    { parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_ ),
+                  L"ConfigMgmt" );
+    }
   }
 
   name = name_;
@@ -871,7 +958,11 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
     ordered_keys.emplace_back (key);
 
     if (parent != nullptr)
-        parent->crc32_ = 0x0;
+    {   parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)", key, value ),
+                  L"ConfigMgmt" );
+    }
   }
 
   else
@@ -880,10 +971,10 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 
     if (! add.first->second._Equal (val_wstr.data ()))
     {
-      if (parent != nullptr)
-      {
-        parent->crc32_ = 0x0;
-      }
+      // Implicit Flush is not needed
+      //
+      ///if (parent != nullptr)
+      ///    parent->crc32_ = 0x0;
 
       add.first->second =
         val_wstr;
@@ -965,6 +1056,9 @@ iSK_INI::write (const wchar_t* fname)
   if (StrStrIW (fname, LR"(\default_)"))
     return;
 
+  if (fname == nullptr)
+      fname = wszName;
+
   std::wstring outbuf;
                outbuf.reserve (16384);
 
@@ -1000,14 +1094,42 @@ iSK_INI::write (const wchar_t* fname)
   }
 
 
-  uint32_t new_crc32 =
-    crc32 ( 0x0, outbuf.data   (),
-                 outbuf.length () * sizeof (wchar_t) );
+  uint32_t new_crc32 = 0;
+  bool     orig_file =
+    (0 == _wcsicmp (fname, get_filename ()));
 
-//dll_log->Log (L"%s => Old: %x, New: %x", get_filename ( ), crc32c_, new_crc32c);
+  if (orig_file)
+  {
+    new_crc32 =
+        crc32 ( 0x0, outbuf.data   (),
+                     outbuf.length () * sizeof (wchar_t) );
 
-  if (new_crc32 == crc32_)
-    return;
+    //dll_log->Log (L"%s => Old: %x, New: %x", fname, crc32_, new_crc32);
+
+    if (new_crc32 == crc32_)
+    {
+      if (ReadAcquire (&__SK_DLL_Ending))
+      {
+        if (SK_File_GetModificationTime (fname, &file_stamp))
+        {
+          // Check if file was re-written externally, if not we can avoid flushing to disk.
+          if (CompareFileTime (&flushed_, &file_stamp) == 0 || (! SK_GetFramesDrawn ()))
+          {                                                 // Also avoid writing INI files when launchers exit
+            SK_LOG2 ( ( L"Flush Skipped For Unmodified INI '%s' (Shutdown)", fname ),
+                        L"ConfigMgmt" );
+            return;
+          }
+        }
+      }
+
+      else
+      {
+        SK_LOG2 ( ( L"Flush Skipped For Unmodified INI '%s' (Normal)", fname ),
+                    L"ConfigMgmt" );
+        return;
+      }
+    }
+  }
 
 
   SK_CreateDirectories (fname);
@@ -1041,7 +1163,15 @@ iSK_INI::write (const wchar_t* fname)
   fputws (outbuf.c_str (), fOut);
   fclose (fOut);
 
-  crc32_ = new_crc32;
+  if (orig_file)
+  {
+    crc32_ = new_crc32;
+
+    if (SK_File_GetModificationTime (fname, &file_stamp))
+    {
+      flushed_ = file_stamp;
+    }
+  }
 }
 
 
@@ -1128,7 +1258,11 @@ iSK_INISection::remove_key (const wchar_t* wszKey)
     keys.erase         (key_w.data ());
 
     if (parent != nullptr)
-        parent->crc32_ = 0x0;
+    {   parent->crc32_ = 0x0;
+
+        SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey ),
+                    L"ConfigMgmt" );
+    }
 
     return true;
   }
@@ -1372,10 +1506,13 @@ iSK_INI::rename (const wchar_t* fname)
   if (  fname  != nullptr &&
        *fname == L'\0' )
   {
-    free (wszName);
+    free (
+      std::exchange (wszName, _wcsdup (fname))
+         );
 
-    wszName =
-      _wcsdup (fname);
+    crc32_     =   0  ;
+    flushed_   = { 0 };
+    file_stamp = { 0 };
 
     return true;
   }

@@ -310,9 +310,7 @@ public:
       _SK_Tobii_CursorColor_B->store  (gaze_cursor.color [2]);
       _SK_Tobii_CursorColor_A->store  (gaze_cursor.color [3]);
 
-      config_file->write (
-        config_file->get_filename ()
-      );
+      config_file->write ();
     }
   }
 

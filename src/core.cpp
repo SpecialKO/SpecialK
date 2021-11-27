@@ -328,9 +328,7 @@ SK_LoadGPUVendorAPIs (void)
 
       config.nvidia.bugs.snuffed_ansel = true;
 
-      SK_GetDLLConfig ()->write (
-        SK_GetDLLConfig ()->get_filename ()
-      );
+      SK_GetDLLConfig ()->write ();
     }
 
     if (restart)
@@ -2131,6 +2129,9 @@ SK_ShutdownCore (const wchar_t* backend)
     return
       true;
   }
+
+  if (__SK_bypass)
+    return true;
 
   SK_PrintUnloadedDLLs (&dll_log.get ());
 

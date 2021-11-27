@@ -3019,7 +3019,7 @@ public:
                             L"AnimatePopup=true\n"
                             L"NotifyCorner=0\n" );
 
-        steam_ini->write (steam_ini->get_filename ());
+        steam_ini->write ();
       }
 
       if (steam_ini->contains_section (L"Steam.Achievements"))
@@ -4622,9 +4622,7 @@ SteamAPI_Shutdown_Detour (void)
       L" *** Game called SteamAPI_Shutdown (...)"
     );
 
-    SK_GetDLLConfig    ()->write (
-      SK_GetDLLConfig  ()->get_filename ()
-                                 );
+    SK_GetDLLConfig    (    )->write ();
     steam_ctx.Shutdown (true);
   } __except (EXCEPTION_EXECUTE_HANDLER) {}
 

@@ -780,7 +780,7 @@ SK_Widget::config_base (void)
       {
         param->store         (binding->human_readable);
 
-        osd_ini->write (osd_ini->get_filename ());
+        osd_ini->write ();
 
         return true;
       }

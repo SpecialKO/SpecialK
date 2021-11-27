@@ -277,7 +277,7 @@ _CreateConfigParameter ( std::type_index type,
     std::unordered_map < std::type_index, _ParameterType >
       __type_map =
       {
-        { std::type_index (typeid (bool)),         _ParameterType::Bool    },         
+        { std::type_index (typeid (bool)),         _ParameterType::Bool    },
         { std::type_index (typeid (int)),          _ParameterType::Int     },
         { std::type_index (typeid (int64_t)),      _ParameterType::Int64   },
         { std::type_index (typeid (float)),        _ParameterType::Float   },

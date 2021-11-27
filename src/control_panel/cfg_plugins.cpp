@@ -38,7 +38,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
   if (! enable)
   {
     ini->remove_section (import_name);
-    ini->write          (ini->get_filename ());
+    ini->write          ();
 
     return true;
   }
@@ -63,7 +63,7 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
                                          path );
 
     ini->import (wszImportRecord);
-    ini->write  (ini->get_filename ());
+    ini->write  ();
 
     return true;
   }

@@ -517,9 +517,7 @@ public:
 
     SK_Widget::save (cfg);
 
-    cfg->write (
-      cfg->get_filename ()
-    );
+    cfg->write ();
   }
 
   void run () noexcept override

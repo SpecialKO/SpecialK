@@ -273,463 +273,470 @@ auto LoadKeybind =
 
 struct {
   struct {
-    sk::ParameterBool*    show;
+    sk::ParameterBool*    show                    = nullptr;
   } time;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterFloat*   interval;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterFloat*   interval                = nullptr;
   } io;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterBool*    frametime;
-    sk::ParameterBool*    advanced;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterBool*    frametime               = nullptr;
+    sk::ParameterBool*    advanced                = nullptr;
   } fps;
 
   struct {
-    sk::ParameterBool*    show;
+    sk::ParameterBool*    show                    = nullptr;
   } memory;
 
   struct {
-    sk::ParameterBool*    show;
+    sk::ParameterBool*    show                    = nullptr;
   } SLI;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterFloat*   interval;
-    sk::ParameterBool*    simple;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterFloat*   interval                = nullptr;
+    sk::ParameterBool*    simple                  = nullptr;
   } cpu;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterBool*    print_slowdown;
-    sk::ParameterFloat*   interval;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterBool*    print_slowdown          = nullptr;
+    sk::ParameterFloat*   interval                = nullptr;
   } gpu;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterFloat*   interval;
-    sk::ParameterInt*     type;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterFloat*   interval                = nullptr;
+    sk::ParameterInt*     type                    = nullptr;
   } disk;
 
   struct {
-    sk::ParameterBool*    show;
-    sk::ParameterFloat*   interval;
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterFloat*   interval                = nullptr;
   } pagefile;
 } monitoring;
 
 struct {
   struct {
-    sk::ParameterBool*    trace_reads;
-    sk::ParameterStringW  ignore_reads;
-    sk::ParameterBool*    trace_writes;
-    sk::ParameterStringW  ignore_writes;
+    sk::ParameterBool*    trace_reads             = nullptr;
+    sk::ParameterStringW  ignore_reads            = {     };
+    sk::ParameterBool*    trace_writes            = nullptr;
+    sk::ParameterStringW  ignore_writes           = {     };
   } file;
 } reverse_engineering;
 
 struct {
   struct {
-    sk::ParameterFloat*   duration;
+    sk::ParameterFloat*   duration                = nullptr;
   } version_banner;
 
 
-  sk::ParameterBool*      show;
+  sk::ParameterBool*      show                    = nullptr;
 
   struct {
-    sk::ParameterInt*     red;
-    sk::ParameterInt*     green;
-    sk::ParameterInt*     blue;
+    sk::ParameterInt*     red                     = nullptr;
+    sk::ParameterInt*     green                   = nullptr;
+    sk::ParameterInt*     blue                    = nullptr;
   } text;
 
   struct {
-    sk::ParameterFloat*   scale;
-    sk::ParameterInt*     pos_x;
-    sk::ParameterInt*     pos_y;
+    sk::ParameterFloat*   scale                   = nullptr;
+    sk::ParameterInt*     pos_x                   = nullptr;
+    sk::ParameterInt*     pos_y                   = nullptr;
   } viewport;
 
   struct {
-    sk::ParameterBool*    remember;
+    sk::ParameterBool*    remember                = nullptr;
   } state;
 } osd;
 
 struct {
-  sk::ParameterFloat*     scale;
-  sk::ParameterBool*      show_eula;
-  sk::ParameterBool*      show_playtime;
-  sk::ParameterBool*      mac_style_menu;
-  sk::ParameterBool*      show_gsync_status;
-  sk::ParameterBool*      show_input_apis;
-  sk::ParameterBool*      disable_alpha;
-  sk::ParameterBool*      antialias_lines;
-  sk::ParameterBool*      antialias_contours;
+  sk::ParameterFloat*     scale                   = nullptr;
+  sk::ParameterBool*      show_eula               = nullptr;
+  sk::ParameterBool*      show_playtime           = nullptr;
+  sk::ParameterBool*      mac_style_menu          = nullptr;
+  sk::ParameterBool*      show_gsync_status       = nullptr;
+  sk::ParameterBool*      show_input_apis         = nullptr;
+  sk::ParameterBool*      disable_alpha           = nullptr;
+  sk::ParameterBool*      antialias_lines         = nullptr;
+  sk::ParameterBool*      antialias_contours      = nullptr;
 } imgui;
 
 struct {
   struct {
-    sk::ParameterStringW*   sound_file;
-    sk::ParameterBool*      play_sound;
-    sk::ParameterBool*      take_screenshot;
-    sk::ParameterBool*      fetch_friend_stats;
+    sk::ParameterStringW*   sound_file            = nullptr;
+    sk::ParameterBool*      play_sound            = nullptr;
+    sk::ParameterBool*      take_screenshot       = nullptr;
+    sk::ParameterBool*      fetch_friend_stats    = nullptr;
 
     struct {
-      sk::ParameterBool*    show;
-      sk::ParameterBool*    show_title;
-      sk::ParameterBool*    animate;
-      sk::ParameterStringW* origin;
-      sk::ParameterFloat*   inset;
-      sk::ParameterInt*     duration;
+      sk::ParameterBool*    show                  = nullptr;
+      sk::ParameterBool*    show_title            = nullptr;
+      sk::ParameterBool*    animate               = nullptr;
+      sk::ParameterStringW* origin                = nullptr;
+      sk::ParameterFloat*   inset                 = nullptr;
+      sk::ParameterInt*     duration              = nullptr;
     } popup;
   } achievements;
 
   struct {
-    sk::ParameterInt*     appid;
-    sk::ParameterInt*     init_delay;
-    sk::ParameterBool*    auto_pump;
-    sk::ParameterStringW* notify_corner;
-    sk::ParameterBool*    block_stat_callback;
-    sk::ParameterBool*    filter_stat_callbacks;
-    sk::ParameterBool*    load_early;
-    sk::ParameterBool*    early_overlay;
-    sk::ParameterBool*    force_load;
-    sk::ParameterBool*    auto_inject;
-    sk::ParameterBool*    reuse_overlay_pause;
-    sk::ParameterStringW* dll_path;
+    sk::ParameterInt*     appid                   = nullptr;
+    sk::ParameterInt*     init_delay              = nullptr;
+    sk::ParameterBool*    auto_pump               = nullptr;
+    sk::ParameterStringW* notify_corner           = nullptr;
+    sk::ParameterBool*    block_stat_callback     = nullptr;
+    sk::ParameterBool*    filter_stat_callbacks   = nullptr;
+    sk::ParameterBool*    load_early              = nullptr;
+    sk::ParameterBool*    early_overlay           = nullptr;
+    sk::ParameterBool*    force_load              = nullptr;
+    sk::ParameterBool*    auto_inject             = nullptr;
+    sk::ParameterBool*    reuse_overlay_pause     = nullptr;
+    sk::ParameterStringW* dll_path                = nullptr;
   } system;
 
   struct {
-    sk::ParameterInt*     online_status;
+    sk::ParameterInt*     online_status           = nullptr;
   } social;
 
   struct {
-    sk::ParameterBool*    silent;
+    sk::ParameterBool*    silent                  = nullptr;
   } log;
 
   struct {
-    sk::ParameterBool*    spoof_BLoggedOn;
+    sk::ParameterBool*    spoof_BLoggedOn         = nullptr;
   } drm;
 
   struct {
-    sk::ParameterStringW* blacklist;
+    sk::ParameterStringW* blacklist               = nullptr;
   } cloud;
 
   struct
   {
-    sk::ParameterInt*     throttle;
+    sk::ParameterInt*     throttle                = nullptr;
   } callbacks;
 
   struct
   {
-    // Will evolve over time, only supports D3D11/12 right now.
-    sk::ParameterBool*    smart_capture;
+    sk::ParameterBool*    smart_capture           = nullptr;
   } screenshots;
 
   struct
   {
-    sk::ParameterFloat*   hdr_luminance;
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
 } steam;
 
 struct {
-  sk::ParameterBool*      include_osd_default;
-  sk::ParameterBool*      keep_png_copy;
-  sk::ParameterBool*      play_sound;
-  sk::ParameterBool*      copy_to_clipboard;
+  sk::ParameterBool*      include_osd_default     = nullptr;
+  sk::ParameterBool*      keep_png_copy           = nullptr;
+  sk::ParameterBool*      play_sound              = nullptr;
+  sk::ParameterBool*      copy_to_clipboard       = nullptr;
 } screenshots;
 
 struct {
   struct
   {
-    sk::ParameterFloat*   hdr_luminance;
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
 } uplay;
 
 struct {
   struct
   {
-    sk::ParameterFloat*   hdr_luminance;
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
 } discord;
 
 struct {
   struct
   {
-    sk::ParameterFloat*   hdr_luminance;
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
 } rtss;
 
 struct {
-  sk::ParameterBool*      per_monitor_aware;
-  sk::ParameterBool*      per_monitor_all_threads;
-  sk::ParameterBool*      disable;
+  sk::ParameterBool*      per_monitor_aware       = nullptr;
+  sk::ParameterBool*      per_monitor_all_threads = nullptr;
+  sk::ParameterBool*      disable                 = nullptr;
 } dpi;
 
 struct {
   struct {
-    sk::ParameterBool*    override;
-    sk::ParameterStringW* compatibility;
-    sk::ParameterStringW* num_gpus;
-    sk::ParameterStringW* mode;
+    sk::ParameterBool*    override                = nullptr;
+    sk::ParameterStringW* compatibility           = nullptr;
+    sk::ParameterStringW* num_gpus                = nullptr;
+    sk::ParameterStringW* mode                    = nullptr;
   } sli;
 
   struct {
-    sk::ParameterBool*    disable;
-    sk::ParameterBool*    disable_hdr;
+    sk::ParameterBool*    disable                 = nullptr;
+    sk::ParameterBool*    disable_hdr             = nullptr;
   } api;
 
   struct
   {
-  //sk::ParameterBool*    fix_10bit_gsync;
-    sk::ParameterBool*    snuffed_ansel;
-    sk::ParameterBool*    bypass_ansel;
+    sk::ParameterBool*    snuffed_ansel           = nullptr;
+    sk::ParameterBool*    bypass_ansel            = nullptr;
   } bugs;
 
   struct
   {
-    sk::ParameterBool*    enable;
-    sk::ParameterBool*    low_latency;
-    sk::ParameterBool*    low_latency_boost;
-    sk::ParameterBool*    marker_optimization;
-    sk::ParameterInt*     engagement_policy;
+    sk::ParameterBool*    enable                  = nullptr;
+    sk::ParameterBool*    low_latency             = nullptr;
+    sk::ParameterBool*    low_latency_boost       = nullptr;
+    sk::ParameterBool*    marker_optimization     = nullptr;
+    sk::ParameterInt*     engagement_policy       = nullptr;
   } reflex;
 } nvidia;
 
 struct {
   struct {
-    sk::ParameterBool*    disable;
+    sk::ParameterBool*    disable                 = nullptr;
   } adl;
 } amd;
 
-sk::ParameterBool*        enable_cegui;
-sk::ParameterBool*        safe_cegui;
-sk::ParameterFloat*       mem_reserve;
-sk::ParameterBool*        debug_output;
-sk::ParameterBool*        debug_wait;
-sk::ParameterBool*        game_output;
-sk::ParameterBool*        handle_crashes;
-sk::ParameterBool*        crash_suppression;
-sk::ParameterBool*        prefer_fahrenheit;
-sk::ParameterBool*        ignore_rtss_delay;
-sk::ParameterInt*         log_level;
-sk::ParameterBool*        trace_libraries;
-sk::ParameterBool*        strict_compliance;
-sk::ParameterBool*        silent;
-sk::ParameterFloat*       init_delay;
-sk::ParameterBool*        return_to_skif;
-sk::ParameterStringW*     version; // Version at last boot
+sk::ParameterBool*        enable_cegui            = nullptr;
+sk::ParameterBool*        safe_cegui              = nullptr;
+sk::ParameterFloat*       mem_reserve             = nullptr;
+sk::ParameterBool*        debug_output            = nullptr;
+sk::ParameterBool*        debug_wait              = nullptr;
+sk::ParameterBool*        game_output             = nullptr;
+sk::ParameterBool*        handle_crashes          = nullptr;
+sk::ParameterBool*        crash_suppression       = nullptr;
+sk::ParameterBool*        prefer_fahrenheit       = nullptr;
+sk::ParameterBool*        ignore_rtss_delay       = nullptr;
+sk::ParameterInt*         log_level               = nullptr;
+sk::ParameterBool*        trace_libraries         = nullptr;
+sk::ParameterBool*        strict_compliance       = nullptr;
+sk::ParameterBool*        silent                  = nullptr;
+sk::ParameterFloat*       init_delay              = nullptr;
+sk::ParameterBool*        return_to_skif          = nullptr;
+sk::ParameterStringW*     version                 = nullptr;
+                       // Version at last boot
 
 struct {
   struct {
-    sk::ParameterFloat*   target_fps;
-    sk::ParameterFloat*   target_fps_bg;
-    sk::ParameterFloat*   limiter_tolerance;
-    sk::ParameterInt*     prerender_limit;
-    sk::ParameterInt*     present_interval;
-    sk::ParameterInt*     sync_interval_clamp;
-    sk::ParameterInt*     buffer_count;
-    sk::ParameterInt*     max_delta_time;
-    sk::ParameterBool*    flip_discard;
-    sk::ParameterBool*    flip_sequential;
-    sk::ParameterBool*    disable_flip_model;
-    sk::ParameterFloat*   refresh_rate;
-    sk::ParameterStringW* rescan_ratio;
-    sk::ParameterBool*    wait_for_vblank;
-    sk::ParameterBool*    allow_dwm_tearing;
-    sk::ParameterBool*    sleepless_window;
-    sk::ParameterBool*    sleepless_render;
-    sk::ParameterBool*    enable_mmcss;
-    sk::ParameterInt*     override_cpu_count;
-    sk::ParameterInt*     enforcement_policy;
-    sk::ParameterBool*    drop_late_frames;
-    sk::ParameterBool*    auto_low_latency;
+    sk::ParameterFloat*   target_fps              = nullptr;
+    sk::ParameterFloat*   target_fps_bg           = nullptr;
+    sk::ParameterInt*     prerender_limit         = nullptr;
+    sk::ParameterInt*     present_interval        = nullptr;
+    sk::ParameterInt*     sync_interval_clamp     = nullptr;
+    sk::ParameterInt*     buffer_count            = nullptr;
+    sk::ParameterInt*     max_delta_time          = nullptr;
+    sk::ParameterBool*    flip_discard            = nullptr;
+    sk::ParameterBool*    flip_sequential         = nullptr;
+    sk::ParameterBool*    disable_flip_model      = nullptr;
+    sk::ParameterFloat*   refresh_rate            = nullptr;
+    sk::ParameterStringW* rescan_ratio            = nullptr;
+    sk::ParameterBool*    wait_for_vblank         = nullptr;
+    sk::ParameterBool*    allow_dwm_tearing       = nullptr;
+    sk::ParameterBool*    sleepless_window        = nullptr;
+    sk::ParameterBool*    sleepless_render        = nullptr;
+    sk::ParameterBool*    enable_mmcss            = nullptr;
+    sk::ParameterInt*     override_cpu_count      = nullptr;
+    sk::ParameterInt*     enforcement_policy      = nullptr;
+    sk::ParameterBool*    drop_late_frames        = nullptr;
+    sk::ParameterBool*    auto_low_latency        = nullptr;
 
     struct
     {
-      sk::ParameterInt*   render_ahead;
+      sk::ParameterInt*   render_ahead            = nullptr;
     } control;
 
     struct
     {
-      sk::ParameterInt*   offset;
-      sk::ParameterInt*   resync;
-      sk::ParameterInt*   error;
-      sk::ParameterFloat* bias;
-      sk::ParameterBool*  adaptive;
+      sk::ParameterInt*   offset                  = nullptr;
+      sk::ParameterInt*   resync                  = nullptr;
+      sk::ParameterInt*   error                   = nullptr;
+      sk::ParameterFloat* bias                    = nullptr;
+      sk::ParameterBool*  adaptive                = nullptr;
     } latent_sync;
   } framerate;
+
   struct {
-    sk::ParameterInt*     adapter_override;
-    sk::ParameterStringW* max_res;
-    sk::ParameterStringW* min_res;
-    sk::ParameterFloat*   min_refresh;
-    sk::ParameterFloat*   max_refresh;
-    sk::ParameterInt*     swapchain_wait;
-    sk::ParameterStringW* scaling_mode;
-    sk::ParameterStringW* exception_mode;
-    sk::ParameterStringW* scanline_order;
-    sk::ParameterStringW* rotation;
-    sk::ParameterBool*    test_present;
-    sk::ParameterBool*    debug_layer;
-    sk::ParameterBool*    safe_fullscreen;
-    sk::ParameterBool*    enhanced_depth;
-    sk::ParameterBool*    deferred_isolation;
-    sk::ParameterInt*     msaa_samples;
-    sk::ParameterBool*    skip_present_test;
-    sk::ParameterInt*     srgb_behavior;
-    sk::ParameterBool*    low_spec_mode;
-    sk::ParameterBool*    hide_hdr_support;
-    sk::ParameterBool*    enable_factory_cache;
-    sk::ParameterBool*    skip_redundant_modes;
-    sk::ParameterBool*    temporary_dwm_hdr;
+    sk::ParameterInt*     adapter_override        = nullptr;
+    sk::ParameterStringW* max_res                 = nullptr;
+    sk::ParameterStringW* min_res                 = nullptr;
+    sk::ParameterFloat*   min_refresh             = nullptr;
+    sk::ParameterFloat*   max_refresh             = nullptr;
+    sk::ParameterInt*     swapchain_wait          = nullptr;
+    sk::ParameterStringW* scaling_mode            = nullptr;
+    sk::ParameterStringW* exception_mode          = nullptr;
+    sk::ParameterStringW* scanline_order          = nullptr;
+    sk::ParameterStringW* rotation                = nullptr;
+    sk::ParameterBool*    test_present            = nullptr;
+    sk::ParameterBool*    debug_layer             = nullptr;
+    sk::ParameterBool*    safe_fullscreen         = nullptr;
+    sk::ParameterBool*    enhanced_depth          = nullptr;
+    sk::ParameterBool*    deferred_isolation      = nullptr;
+    sk::ParameterInt*     msaa_samples            = nullptr;
+    sk::ParameterBool*    skip_present_test       = nullptr;
+    sk::ParameterInt*     srgb_behavior           = nullptr;
+    sk::ParameterBool*    low_spec_mode           = nullptr;
+    sk::ParameterBool*    hide_hdr_support        = nullptr;
+    sk::ParameterBool*    enable_factory_cache    = nullptr;
+    sk::ParameterBool*    skip_redundant_modes    = nullptr;
+    sk::ParameterBool*    temporary_dwm_hdr       = nullptr;
   } dxgi;
+
   struct {
-    sk::ParameterBool*    force_d3d9ex;
-    sk::ParameterBool*    impure;
-    sk::ParameterBool*    enable_texture_mods;
+    sk::ParameterBool*    force_d3d9ex            = nullptr;
+    sk::ParameterBool*    impure                  = nullptr;
+    sk::ParameterBool*    enable_texture_mods     = nullptr;
   } d3d9;
+
   struct {
-    sk::ParameterBool*    draw_in_vidcap;
-    sk::ParameterFloat*   hdr_luminance;
+    sk::ParameterBool*    draw_in_vidcap          = nullptr;
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
   } osd;
 } render;
 
 struct {
-  sk::ParameterBool*      force_fullscreen;
-  sk::ParameterBool*      force_windowed;
-  sk::ParameterBool*      confirm_mode_changes;
-  sk::ParameterBool*      save_monitor_prefs;
+  sk::ParameterBool*      force_fullscreen        = nullptr;
+  sk::ParameterBool*      force_windowed          = nullptr;
+  sk::ParameterBool*      confirm_mode_changes    = nullptr;
+  sk::ParameterBool*      save_monitor_prefs      = nullptr;
 } display;
 
 struct {
   struct {
-    sk::ParameterBool*    clamp_lod_bias;
+    sk::ParameterBool*    clamp_lod_bias          = nullptr;
   } d3d9;
+
   struct {
-    sk::ParameterBool*    precise_hash;
-    sk::ParameterBool*    inject;
-    sk::ParameterBool*    injection_keeps_format;
-    sk::ParameterBool*    gen_mips;
-    sk::ParameterBool*    cache;
+    sk::ParameterBool*    precise_hash            = nullptr;
+    sk::ParameterBool*    inject                  = nullptr;
+    sk::ParameterBool*    injection_keeps_format  = nullptr;
+    sk::ParameterBool*    gen_mips                = nullptr;
+    sk::ParameterBool*    cache                   = nullptr;
   } d3d11;
+
   struct {
-    sk::ParameterInt*     min_evict;
-    sk::ParameterInt*     max_evict;
-    sk::ParameterInt*     min_size;
-    sk::ParameterInt*     max_size;
-    sk::ParameterInt*     min_entries;
-    sk::ParameterInt*     max_entries;
-    sk::ParameterBool*    ignore_non_mipped;
-    sk::ParameterBool*    allow_staging;
-    sk::ParameterBool*    allow_unsafe_refs;
-    sk::ParameterBool*    manage_residency;
+    sk::ParameterInt*     min_evict               = nullptr;
+    sk::ParameterInt*     max_evict               = nullptr;
+    sk::ParameterInt*     min_size                = nullptr;
+    sk::ParameterInt*     max_size                = nullptr;
+    sk::ParameterInt*     min_entries             = nullptr;
+    sk::ParameterInt*     max_entries             = nullptr;
+    sk::ParameterBool*    ignore_non_mipped       = nullptr;
+    sk::ParameterBool*    allow_staging           = nullptr;
+    sk::ParameterBool*    allow_unsafe_refs       = nullptr;
+    sk::ParameterBool*    manage_residency        = nullptr;
   } cache;
-    sk::ParameterStringW* res_root;
-    sk::ParameterBool*    dump_on_load;
+
+    sk::ParameterStringW* res_root                = nullptr;
+    sk::ParameterBool*    dump_on_load            = nullptr;
 } texture;
 
 struct {
   struct
   {
-    sk::ParameterBool*    catch_alt_f4;
-    sk::ParameterBool*    bypass_alt_f4;
-    sk::ParameterBool*    disabled_to_game;
+    sk::ParameterBool*    catch_alt_f4            = nullptr;
+    sk::ParameterBool*    bypass_alt_f4           = nullptr;
+    sk::ParameterBool*    disabled_to_game        = nullptr;
   } keyboard;
 
   struct
   {
-    sk::ParameterBool*    disabled_to_game;
+    sk::ParameterBool*    disabled_to_game        = nullptr;
   } mouse;
 
   struct {
-    sk::ParameterBool*    manage;
-    sk::ParameterBool*    keys_activate;
-    sk::ParameterFloat*   timeout;
-    sk::ParameterBool*    ui_capture;
-    sk::ParameterBool*    hw_cursor;
-    sk::ParameterBool*    no_warp_ui;
-    sk::ParameterBool*    no_warp_visible;
-    sk::ParameterBool*    block_invisible;
-    sk::ParameterBool*    fix_synaptics;
-    sk::ParameterBool*    use_relative_input;
-    sk::ParameterFloat*   antiwarp_deadzone;
+    sk::ParameterBool*    manage                  = nullptr;
+    sk::ParameterBool*    keys_activate           = nullptr;
+    sk::ParameterFloat*   timeout                 = nullptr;
+    sk::ParameterBool*    ui_capture              = nullptr;
+    sk::ParameterBool*    hw_cursor               = nullptr;
+    sk::ParameterBool*    no_warp_ui              = nullptr;
+    sk::ParameterBool*    no_warp_visible         = nullptr;
+    sk::ParameterBool*    block_invisible         = nullptr;
+    sk::ParameterBool*    fix_synaptics           = nullptr;
+    sk::ParameterBool*    use_relative_input      = nullptr;
+    sk::ParameterFloat*   antiwarp_deadzone       = nullptr;
   } cursor;
 
   struct {
-    sk::ParameterBool*    disable_ps4_hid;
-    sk::ParameterBool*    rehook_xinput;
-    sk::ParameterBool*    haptic_ui;
-    sk::ParameterBool*    disable_rumble;
-    sk::ParameterBool*    hook_dinput8;
-    sk::ParameterBool*    hook_dinput7;
-    sk::ParameterBool*    hook_hid;
-    sk::ParameterBool*    hook_xinput;
+    sk::ParameterBool*    disable_ps4_hid         = nullptr;
+    sk::ParameterBool*    rehook_xinput           = nullptr;
+    sk::ParameterBool*    haptic_ui               = nullptr;
+    sk::ParameterBool*    disable_rumble          = nullptr;
+    sk::ParameterBool*    hook_dinput8            = nullptr;
+    sk::ParameterBool*    hook_dinput7            = nullptr;
+    sk::ParameterBool*    hook_hid                = nullptr;
+    sk::ParameterBool*    hook_xinput             = nullptr;
 
     struct {
-      sk::ParameterInt*     ui_slot;
-      sk::ParameterInt*     placeholders;
-      sk::ParameterStringW* assignment;
-      sk::ParameterBool*    hook_setstate;
-      sk::ParameterBool*    auto_slot_assign;
+      sk::ParameterInt*   ui_slot                 = nullptr;
+      sk::ParameterInt*   placeholders            = nullptr;
+      sk::
+        ParameterStringW* assignment              = nullptr;
+      sk::ParameterBool*  hook_setstate           = nullptr;
+      sk::ParameterBool*  auto_slot_assign        = nullptr;
     } xinput;
 
     struct {
-      sk::ParameterInt*     ui_slot;
+      sk::ParameterInt*   ui_slot                 = nullptr;
     } steam;
 
-    sk::ParameterBool*   native_ps4;
-    sk::ParameterBool*   disabled_to_game;
+    sk::ParameterBool*    native_ps4              = nullptr;
+    sk::ParameterBool*    disabled_to_game        = nullptr;
   } gamepad;
 } input;
 
 struct {
-  sk::ParameterBool*      enable_mem_alloc_trace;
-  sk::ParameterBool*      enable_file_io_trace;
+  sk::ParameterBool*      enable_mem_alloc_trace  = nullptr;
+  sk::ParameterBool*      enable_file_io_trace    = nullptr;
 } threads;
 
 struct {
-  sk::ParameterBool*      borderless;
-  sk::ParameterBool*      center;
+  sk::ParameterBool*      borderless              = nullptr;
+  sk::ParameterBool*      center                  = nullptr;
+
   struct {
-    sk::ParameterStringW* x;
-    sk::ParameterStringW* y;
+    sk::ParameterStringW* x                       = nullptr;
+    sk::ParameterStringW* y                       = nullptr;
   } offset;
-  sk::ParameterBool*      background_render;
-  sk::ParameterBool*      background_mute;
-  sk::ParameterBool*      confine_cursor;
-  sk::ParameterBool*      unconfine_cursor;
-  sk::ParameterBool*      persistent_drag;
-  sk::ParameterBool*      fullscreen;
-  sk::ParameterStringW*   override;
-  sk::ParameterBool*      fix_mouse_coords;
-  sk::ParameterInt*       always_on_top;
-  sk::ParameterInt*       preferred_monitor_id; // Used if exact match cannot be found
-  sk::ParameterStringW*   preferred_monitor_exact;
-  sk::ParameterBool*      disable_screensaver;
-  sk::ParameterBool*      dont_hook_wndproc;
+
+  sk::ParameterBool*      background_render       = nullptr;
+  sk::ParameterBool*      background_mute         = nullptr;
+  sk::ParameterBool*      confine_cursor          = nullptr;
+  sk::ParameterBool*      unconfine_cursor        = nullptr;
+  sk::ParameterBool*      persistent_drag         = nullptr;
+  sk::ParameterBool*      fullscreen              = nullptr;
+  sk::ParameterStringW*   override                = nullptr;
+  sk::ParameterBool*      fix_mouse_coords        = nullptr;
+  sk::ParameterInt*       always_on_top           = nullptr;
+  sk::ParameterInt*       preferred_monitor_id    = nullptr; // Used if exact match cannot be found
+  sk::ParameterStringW*   preferred_monitor_exact = nullptr;
+  sk::ParameterBool*      disable_screensaver     = nullptr;
+  sk::ParameterBool*      dont_hook_wndproc       = nullptr;
 } window;
 
 struct {
   struct {
-    sk::ParameterBool*  raise_always;
-    sk::ParameterBool*  raise_in_fg;
-    sk::ParameterBool*  raise_in_bg;
+    sk::ParameterBool*    raise_always            = nullptr;
+    sk::ParameterBool*    raise_in_fg             = nullptr;
+    sk::ParameterBool*    raise_in_bg             = nullptr;
   } priority;
 } scheduling;
 
 
 struct {
-  sk::ParameterStringW*   power_scheme_guid;
+  sk::ParameterStringW*   power_scheme_guid       = nullptr;
 } cpu;
 
 struct {
-  sk::ParameterBool*      rehook_loadlibrary;
-  sk::ParameterBool*      disable_nv_bloat;
-  sk::ParameterBool*      using_wine;
+  sk::ParameterBool*      rehook_loadlibrary      = nullptr;
+  sk::ParameterBool*      disable_nv_bloat        = nullptr;
+  sk::ParameterBool*      using_wine              = nullptr;
 } compatibility;
 
 struct {
   struct {
-    sk::ParameterBool*    hook;
+    sk::ParameterBool*    hook                    = nullptr;
   }
 #ifdef _M_IX86
       ddraw, d3d8,
@@ -742,7 +749,7 @@ struct {
 #endif
       OpenGL;
 
-  sk::ParameterInt*       last_known;
+  sk::ParameterInt*       last_known              = nullptr;
 } apis;
 
 bool
@@ -853,7 +860,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
       SK_FormatStringW ( L"%s%s.ini",
                            SK_GetConfigPath (), name.c_str () );
 
-
   std::wstring undecorated_name (name);
 
   if ( undecorated_name.find (L"default_") != std::wstring::npos &&
@@ -902,17 +908,18 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
   if (init == FALSE || dll_ini == nullptr)
   {
+    SK_RunOnce (     dll_ini   =
+      SK_CreateINI (full_name.c_str ()));
+
     init = -1;
-
-
-    if (dll_ini == nullptr)
-        dll_ini = SK_CreateINI (full_name.c_str ());
 
     if (! dll_ini)
     {
       SK_ReleaseAssert (false && L"Out Of Memory");
       init = FALSE; return false;
     }
+
+    dll_ini->reload (full_name.c_str ());
 
 
     empty   =
@@ -921,15 +928,20 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     SK_CreateDirectories (osd_config.c_str ());
 
+    SK_RunOnce (    osd_ini         =
+      SK_CreateINI (osd_config.c_str ()));
 
-    osd_ini         =
-      SK_CreateINI (osd_config.c_str ());
+    SK_RunOnce (    steam_ini       =
+      SK_CreateINI (steam_config.c_str ()));
 
-    steam_ini =
-      SK_CreateINI (steam_config.c_str ());
+    SK_RunOnce (    macro_ini       =
+      SK_CreateINI (macro_config.c_str ()));
 
-    macro_ini       =
-      SK_CreateINI (macro_config.c_str ());
+
+    osd_ini->reload   ();
+    steam_ini->reload ();
+    macro_ini->reload ();
+
 
 auto DeclKeybind =
   [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
@@ -966,12 +978,12 @@ auto DeclKeybind =
   // Create Parameters
   //
   struct param_decl_s {
-           sk::iParameter **parameter_;
+           sk::iParameter **parameter_   = nullptr;
           std::type_index   type_;
-    const wchar_t          *description_;
-          iSK_INI          *ini_;
-    const wchar_t          *section_;
-    const wchar_t          *key_;
+    const wchar_t          *description_ = nullptr;
+          iSK_INI          *ini_         = nullptr;
+    const wchar_t          *section_     = nullptr;
+    const wchar_t          *key_         = nullptr;
   } params_to_build [] =
 
   //// nb: If you want any hope of reading this table, turn line wrapping off.
@@ -1193,7 +1205,6 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
     ConfigEntry (render.framerate.target_fps_bg,         L"Framerate Target (window in background;  0.0 = same as fg)",dll_ini,         L"Render.FrameRate",      L"BackgroundFPS"),
-    ConfigEntry (render.framerate.limiter_tolerance,     L"Limiter Tolerance",                                         dll_ini,         L"Render.FrameRate",      L"LimiterTolerance"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
@@ -1388,7 +1399,8 @@ auto DeclKeybind =
   {
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterBool* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterBool> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1396,7 +1408,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterInt* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterInt> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1404,7 +1417,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterInt64* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterInt64> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1412,7 +1426,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterFloat* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterFloat> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1420,7 +1435,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterStringW* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterStringW> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1428,7 +1444,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( sk::ParameterVec2f* ) ) )
     {
-      *decl.parameter_ =
+      if (*decl.parameter_ == nullptr)
+          *decl.parameter_ =
         SK_CreateINIParameter <sk::ParameterVec2f> (decl.description_, decl.ini_, decl.section_, decl.key_);
 
       continue;
@@ -1436,7 +1453,8 @@ auto DeclKeybind =
 
     if ( decl.type_ == std::type_index ( typeid ( SK_ConfigSerializedKeybind* ) ) )
     {
-      ((SK_ConfigSerializedKeybind *)decl.parameter_)->param =
+      if (((SK_ConfigSerializedKeybind *)decl.parameter_)->param == nullptr)
+          ((SK_ConfigSerializedKeybind *)decl.parameter_)->param =
         DeclKeybind ( (SK_ConfigSerializedKeybind *)decl.parameter_, decl.ini_, decl.section_ );
 
       continue;
@@ -1595,7 +1613,7 @@ auto DeclKeybind =
                       );
                         //L"[Macro.SpecialK_CommandConsole]\n"
                         //L"Ctrl+Shift+Tab=Console.Show toggle\n\n" );
-    macro_ini->write (macro_ini->get_filename ());
+    macro_ini->write ();
   }
 
   auto& macro_sections =
@@ -2056,7 +2074,6 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [3] = true;
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
-      //config.render.framerate.limiter_tolerance = 4.0f;
 
         SK_D3D11_DeclHUDShader (0x15888ef2, ID3D11VertexShader);
         SK_D3D11_DeclHUDShader (0x1893edbd, ID3D11VertexShader);
@@ -2292,8 +2309,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        //config.render.framerate.limiter_tolerance
-        //                                        = 4.25f;
         config.window.treat_fg_as_active        = true;
         config.input.ui.use_hw_cursor           = false;
         SK_ImGui_Cursor.prefs.no_warp.ui_open   = false;
@@ -2374,7 +2389,6 @@ auto DeclKeybind =
         config.render.dxgi.res.max.x = config.window.res.override.x;
         config.render.dxgi.res.max.y = config.window.res.override.y;
 
-      //config.render.framerate.limiter_tolerance =  5.0f;
         config.render.framerate.buffer_count      =     3;
         config.render.framerate.target_fps        =    60;
         config.render.framerate.pre_render_limit  =     4;
@@ -2604,7 +2618,8 @@ auto DeclKeybind =
     if (config.apis.dxgi.d3d12.hook)
         config.apis.dxgi.d3d11.hook = true;
   }
-
+#else
+  config.apis.dxgi.d3d12.hook = false;
 #endif
 
   if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
@@ -2710,13 +2725,9 @@ auto DeclKeybind =
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
   render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
-//render.framerate.limiter_tolerance->load  (config.render.framerate.limiter_tolerance);
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
-
-//  if (config.render.framerate.limiter_tolerance < 1.0f)
-//      config.render.framerate.limiter_tolerance = 2.75f;
 
   __target_fps    = config.render.framerate.target_fps;
   __target_fps_bg = config.render.framerate.target_fps_bg;
@@ -2731,10 +2742,6 @@ auto DeclKeybind =
   render.framerate.latent_sync.adaptive->load (config.render.framerate.latent_sync.adaptive_sync);
   render.framerate.latent_sync.bias->load     (config.render.framerate.latent_sync.delay_bias);
 
-
-/////// Range-restrict this to prevent the user from destroying performance
-///if (config.render.framerate.limiter_tolerance < 1.25f)
-///    config.render.framerate.limiter_tolerance = 1.25f;
 
 
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
@@ -3633,25 +3640,6 @@ auto DeclKeybind =
   //
   config.input.ui.use_raw_input = false;
 
-
-
-  config.imgui.font.default_font.file = "arial.ttf";
-  config.imgui.font.default_font.size = 18.0f;
-
-  config.imgui.font.japanese.file     = "msgothic.ttc";
-  config.imgui.font.japanese.size     = 18.0f;
-
-  config.imgui.font.cyrillic.file     = "arial.ttf";
-  config.imgui.font.cyrillic.size     = 18.0f;
-
-  config.imgui.font.korean.file       = "malgun.ttf";
-  config.imgui.font.korean.size       = 18.0f;
-
-  config.imgui.font.chinese.file      = "msyh.ttc";
-  config.imgui.font.chinese.size      = 18.0f;
-
-
-
   static bool scanned = false;
 
   if ((! scanned) && (! config.window.res.override.isZero ()))
@@ -4240,10 +4228,14 @@ SK_SaveConfig ( std::wstring name,
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 
     // SLI only works in Direct3D
-    nvidia.sli.compatibility->store               (config.nvidia.sli.compatibility);
-    nvidia.sli.mode->store                        (config.nvidia.sli.mode);
-    nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
-    nvidia.sli.override->store                    (config.nvidia.sli.override);
+    //  + Keep these out of the INI on non-SLI systems for simplicity
+    if (nvapi_init && sk::NVAPI::nv_hardware && sk::NVAPI::CountSLIGPUs ())
+    {
+      nvidia.sli.compatibility->store               (config.nvidia.sli.compatibility);
+      nvidia.sli.mode->store                        (config.nvidia.sli.mode);
+      nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
+      nvidia.sli.override->store                    (config.nvidia.sli.override);
+    }
 
     render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency);
 
@@ -4516,33 +4508,22 @@ SK_SaveConfig ( std::wstring name,
   return_to_skif->store                        (config.system.return_to_skif);
   version->store                               (SK_GetVersionStrW ());
 
-  if (dll_ini != nullptr && (! (nvapi_init && sk::NVAPI::nv_hardware) || (! sk::NVAPI::CountSLIGPUs ())))
-    dll_ini->remove_section (L"NVIDIA.SLI");
 
-  static constexpr DWORD dwMinTimeBetweenSaves = 3333UL;
-  static           DWORD dwLastTimeSaved       =    0UL;
+  wchar_t wszFullName [ MAX_PATH + 2 ] = { };
 
-  if ( ( ReadULong64Acquire (&rb.frames_drawn) > 0 && ( dwLastTimeSaved <
-                                     SK_timeGetTime () - dwMinTimeBetweenSaves ) ) || ReadAcquire (&__SK_DLL_Ending) )
-  {
-    dwLastTimeSaved =
-       SK_timeGetTime ();
+  lstrcatW (wszFullName, SK_GetConfigPath ());
+  lstrcatW (wszFullName,       name.c_str ());
+  lstrcatW (wszFullName,             L".ini");
 
-    wchar_t wszFullName [ MAX_PATH + 2 ] = { };
+  if (dll_ini != nullptr)
+      dll_ini->write ( wszFullName );
 
-    lstrcatW (wszFullName, SK_GetConfigPath ());
-    lstrcatW (wszFullName,       name.c_str ());
-    lstrcatW (wszFullName,             L".ini");
+  SK_ImGui_Widgets->SaveConfig ();
 
-    if (dll_ini != nullptr)
-        dll_ini->write ( wszFullName );
+  if (  osd_ini)   osd_ini->write ();
+  if (steam_ini) steam_ini->write ();
+  if (macro_ini) macro_ini->write ();
 
-    SK_ImGui_Widgets->SaveConfig ();
-
-    if (  osd_ini)   osd_ini->write (   osd_ini->get_filename () );
-    if (steam_ini) steam_ini->write ( steam_ini->get_filename () );
-    if (macro_ini) macro_ini->write ( macro_ini->get_filename () );
-  }
 
 
   if (close_config)
@@ -4910,13 +4891,24 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     if ( need_to_create )
       SK_CreateDirectories (wszAppCache);
 
-    app_cache_db =
+    if (app_cache_db == nullptr)
+        app_cache_db =
       SK_CreateINI         (wszAppCache);
+    else
+    {
+      if (_wcsicmp (app_cache_db->get_filename (), wszAppCache))
+                    app_cache_db->rename          (wszAppCache);
 
-    loadDepotCache ();
+      app_cache_db->reload ();
+    }
 
-    if ( need_to_create )
-      app_cache_db->write (app_cache_db->get_filename ());
+    if (app_cache_db != nullptr)
+    {
+      loadDepotCache ();
+
+      if ( need_to_create )
+        app_cache_db->write ();
+    }
   }
 
   if (app_cache_db != nullptr)
@@ -5050,7 +5042,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     name_map.add_key_value  (wszAppID,   wszAppName);
 
 
-  app_cache_db->write ( app_cache_db->get_filename () );
+  app_cache_db->write ();
 
 
   return true;
@@ -5148,25 +5140,27 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     if (   dwAttribs != INVALID_FILE_ATTRIBUTES &&
          ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
     {
-      UINT
-      SK_RecursiveMove ( const wchar_t* wszOrigDir,
-                         const wchar_t* wszDestDir,
-                               bool     replace );
-
-      // We've already parsed the file, delete it and we'll reload
-      if (dll_ini != nullptr)
-      {
-        DeleteFileW (dll_ini->get_filename ());
-              delete dll_ini;
-                     dll_ini = nullptr;
-      }
-
-      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
+      std::wstring old_ini =
+                   dll_ini != nullptr ? dll_ini->get_filename ()
+                                      : L"";
 
       recursing         = true;
       SK_GetConfigPathEx (true);
       SK_LoadConfigEx    (L"" );
       recursing         = false;
+
+      // We've already parsed/written the new file, delete the old one
+      if ((! old_ini.empty ())  &&
+             dll_ini != nullptr &&
+          _wcsicmp ( old_ini.c_str (), dll_ini->get_filename ()))
+        DeleteFileW (old_ini.c_str ());
+
+      UINT
+      SK_RecursiveMove ( const wchar_t* wszOrigDir,
+                         const wchar_t* wszDestDir,
+                               bool     replace );
+
+      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
     }
   }
 
@@ -5181,7 +5175,7 @@ SK_AppCache_Manager::saveAppCache (bool close)
   {
     storeDepotCache ();
 
-    app_cache_db->write ( app_cache_db->get_filename () );
+    app_cache_db->write ();
 
     if (close)
     {

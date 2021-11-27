@@ -3133,9 +3133,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
         if (hooked > 0)
         {
-          SK_GetDLLConfig   ()->write (
-            SK_GetDLLConfig ()->get_filename ()
-          );
+          SK_GetDLLConfig ()->write ();
         }
       }
 

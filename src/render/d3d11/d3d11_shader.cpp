@@ -1633,7 +1633,7 @@ SK_D3D11_StoreShaderState (void)
     }
   }
 
-  d3d11_shaders_ini->write (d3d11_shaders_ini->get_filename ());
+  d3d11_shaders_ini->write ();
 }
 
 

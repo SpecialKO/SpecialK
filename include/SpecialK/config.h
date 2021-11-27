@@ -218,8 +218,11 @@ struct sk_config_t
       struct font_params_s {
         std::string file   = "";
         float       size   = 7.0F;
-      } chinese,  cyrillic, default_font,
-        japanese, korean;
+      } chinese      { "msyh.ttc",     18.0f },
+        cyrillic     { "arial.ttf",    18.0f },
+        default_font { "arial.ttf",    18.0f },
+        japanese     { "msgothic.ttc", 18.0f },
+        korean       { "malgun.ttf",   18.0f };
     } font;
 
     // Per-game (mostly compatibility) settings
@@ -498,6 +501,12 @@ struct sk_config_t
       bool    skip_mode_changes  = false; // Try to skip rendundant resolution changes
       bool    temporary_dwm_hdr  = false; // Always turns HDR on and off for this game
     } dxgi;
+
+    struct {
+      bool    disable_fullscreen = true;
+      bool    enable_16bit_hdr   = true;
+      bool    enable_10bit_hdr   = false;
+    } gl;
 
     struct osd_s {
       ULONG64 _last_vidcap_frame = 0;

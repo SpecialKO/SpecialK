@@ -190,9 +190,7 @@ struct SK_HDR_Preset_s {
           pParam->store ();
     }
 
-    SK_GetDLLConfig   ()->write (
-      SK_GetDLLConfig ()->get_filename ()
-                                );
+    SK_GetDLLConfig ()->write ();
   }
 
   void setup (void)
@@ -376,9 +374,6 @@ public:
     if (first_widget_run) first_widget_run = false;
     else return;
 
-    hdr_presets [0].setup (); hdr_presets [1].setup ();
-    hdr_presets [2].setup (); hdr_presets [3].setup ();
-
     _SK_HDR_10BitSwapChain =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                   L"Use10BitSwapChain",  __SK_HDR_10BitSwap,
@@ -418,6 +413,7 @@ public:
                                  L"Preset",               __SK_HDR_Preset,
                                  L"Light Adaptation Preset" );
 
+
     if ( __SK_HDR_Preset < 0 ||
          __SK_HDR_Preset >= MAX_HDR_PRESETS )
     {
@@ -441,6 +437,9 @@ public:
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
     }
+
+    hdr_presets [0].setup (); hdr_presets [1].setup ();
+    hdr_presets [2].setup (); hdr_presets [3].setup ();
 
     hdr_presets [__SK_HDR_Preset].activate ();
   }
@@ -566,9 +565,7 @@ public:
 
       if (changed)
       {
-        dll_ini->write (
-          dll_ini->get_filename ()
-        );
+        dll_ini->write ();
 
         SK_ComQIPtr <IDXGISwapChain3> pSwapChain (rb.swapchain);
 
@@ -1005,7 +1002,7 @@ public:
                 _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
                 _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
-                dll_ini->write (dll_ini->get_filename ());
+                dll_ini->write ();
               }
             }
           }
@@ -1030,7 +1027,7 @@ public:
                 __SK_HDR_tonemap       =        preset.colorspace.tonemap;
                 preset.cfg_tonemap->store      (preset.colorspace.tonemap);
 
-                pINI->write (pINI->get_filename ());
+                pINI->write ();
               }
 
               else

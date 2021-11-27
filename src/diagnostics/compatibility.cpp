@@ -807,7 +807,7 @@ SK_Bypass_CRT (LPVOID)
       dll_ini->remove_section (L"Import.ReShade32");
       dll_ini->remove_section (L"Import.ReShade32_Custom");
 #endif
-      dll_ini->write (dll_ini->get_filename ());
+      dll_ini->write ();
     }
 
     if (nButtonPressed == BUTTON_RESET_CONFIG)
@@ -818,7 +818,7 @@ SK_Bypass_CRT (LPVOID)
       // Invalidate, so we don't write the INI we just deleted :)
       dll_ini->rename (L"");
 
-      SK_DeleteConfig (fname);
+      DeleteFileW     (fname.c_str ());
       SK_DeleteConfig (wszConfigName);
 
       // Hard-code known plug-in config files -- bad (lack of) design.
@@ -829,7 +829,7 @@ SK_Bypass_CRT (LPVOID)
 
     else if (nButtonPressed != BUTTON_OK)
     {
-      SK_SaveConfig (wszConfigName);
+      SK_SaveConfig   (wszConfigName);
       dll_ini->rename (L"");
     }
 

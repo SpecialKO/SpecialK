@@ -6340,7 +6340,7 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
         StrStrIW (it->target.module_path, LR"(d3d11.dll)") ?
                                             L"D3D11.Hooks" : nullptr;
 
-      if ((! wszSection) || PathFileExistsW (L"d3d11.dll"))
+      if (! wszSection)
       {
         SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
                       it->target.symbol_name,
@@ -6467,7 +6467,7 @@ SK_D3D11_UpdateHookAddressCache (void)
                                             L"D3D11.Hooks" : nullptr;
 
 
-      if ((! wszSection) || PathFileExistsW (L"d3d11.dll"))
+      if (! wszSection)
       {
         SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
                       it->target.symbol_name,
