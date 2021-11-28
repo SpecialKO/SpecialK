@@ -4469,6 +4469,10 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
                    const wchar_t* wszDestDir,
                          bool     replace )
 {
+  // WTF? You need a different destination
+  if (! _wcsicmp (wszOrigDir, wszDestDir))
+    return 0;
+
   UINT moved = 0;
 
   wchar_t          wszPath [MAX_PATH + 2] = { };
