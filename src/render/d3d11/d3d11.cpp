@@ -953,7 +953,6 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
     _Finish (pDesc);
 }
 
-
 void
 STDMETHODCALLTYPE
 SK_D3D11_UpdateSubresource_Impl (
@@ -999,8 +998,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
 
-  static const bool __sk_dqxi = true;
-    //( SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI );
+  static const bool __attempt_to_cache = config.textures.d3d11.cache;
 
   if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
                                pDstBox->top   >= pDstBox->bottom ||
@@ -1033,8 +1031,8 @@ SK_D3D11_UpdateSubresource_Impl (
       _Finish ();
   }
 
-  if ( ((__sk_dqxi && rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
-      SK_D3D11_IsStagingCacheable (rdim, pDstResource)) && DstSubresource == 0 )
+  if ( __attempt_to_cache && (    (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
+      SK_D3D11_IsStagingCacheable (rdim, pDstResource) ) && DstSubresource == 0 )
   {
     auto& textures =
       SK_D3D11_Textures;
@@ -1046,13 +1044,12 @@ SK_D3D11_UpdateSubresource_Impl (
       D3D11_TEXTURE2D_DESC desc = { };
            pTex->GetDesc (&desc);
 
-      /// DQ XI Temp Hack
-      /// ---------------
-      if (__sk_dqxi)
+      if (__attempt_to_cache)
       {
         const bool skip =
-          ( desc.Usage == D3D11_USAGE_STAGING ||
-            desc.Usage == D3D11_USAGE_DYNAMIC ||
+          ( (desc.Usage == D3D11_USAGE_STAGING    && (! SK_D3D11_IsStagingCacheable (rdim, pDstResource))) ||
+             desc.Usage == D3D11_USAGE_DYNAMIC    ||
+             SK_D3D11_IsTextureUncacheable (pTex) ||
             (! DirectX::IsCompressed (desc.Format)) );
 
         if (skip)
@@ -1149,7 +1146,8 @@ const uint32_t cache_tag    =
         {
           SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
                          SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache (pTex, true);
+          SK_D3D11_RemoveTexFromCache     (pTex, true);
+          SK_D3D11_MarkTextureUncacheable (pTex);
         }
 
         _Finish ();
@@ -6622,7 +6620,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     SK_GetCurrentRenderBackend ();
 
   // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_11_1;
+  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_10_0;
   ID3D11Device*     ret_device = nullptr;
 
   // Allow override of swapchain parameters

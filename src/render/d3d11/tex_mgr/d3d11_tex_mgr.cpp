@@ -2424,6 +2424,47 @@ SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
   return 0x00;
 }
 
+BOOL
+SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture )
+{
+  const UINT size =
+             sizeof (LONG);
+
+  static LONG disable = 1;
+
+  if ( FAILED (
+         pTexture->SetPrivateData ( SKID_D3D11TextureUncacheable,
+                                      size, &disable )
+       )
+     )
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+BOOL
+SK_D3D11_IsTextureUncacheable ( ID3D11Texture2D *pTexture )
+{
+  UINT size =
+       sizeof (LONG);
+
+  LONG disable = 0;
+
+  if ( FAILED (
+         pTexture->GetPrivateData ( SKID_D3D11TextureUncacheable,
+                                     &size, (void *)&disable )
+       )
+     )
+  {
+    return FALSE;
+  }
+
+  return
+    (disable == 1);
+}
+
 void
 __stdcall
 SK_D3D11_UseTexture (ID3D11Texture2D* pTex)
@@ -3432,6 +3473,9 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 
     if (pTex != nullptr)
     {
+      if (SK_D3D11_IsTextureUncacheable (pTex))
+        return false;
+
       D3D11_TEXTURE2D_DESC tex_desc = { };
            pTex->GetDesc (&tex_desc);
 

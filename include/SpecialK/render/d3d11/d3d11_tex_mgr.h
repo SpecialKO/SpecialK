@@ -24,6 +24,11 @@
 
 extern const GUID SKID_D3D11Texture2D_DISCARD;
 
+// The texture was removed from cache and no further attempts to cache should be made
+static constexpr GUID SKID_D3D11TextureUncacheable =
+// {5C5398CA-0F9C-5932-A19D-A2E69792AE04}
+  { 0x5c5398ca, 0xf9c,  0x5932, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x4 } };
+
 struct cache_params_s {
   uint32_t max_entries       = 4096UL;
   uint32_t min_entries       = 1024UL;
@@ -165,6 +170,9 @@ bool
 SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
                               ID3D11Resource           *pRes,
                               SK_TLS                   *pTLS = nullptr );
+
+BOOL SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture );
+BOOL SK_D3D11_IsTextureUncacheable   ( ID3D11Texture2D *pTexture );
 
 
 

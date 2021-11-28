@@ -1,4 +1,22 @@
-﻿21.11.25
+﻿21.11.28
+========
+ + Fixed texture upload performance issues in The Evil Within 1 / 2
+
+ 21.11.27
+========
+ + Fixed first-launch issues on systems without default_SpecialK.ini
+
+21.11.26
+========
+ + Fixed default_{SpecialK|API}.ini files not being loaded when games launch
+     w/o a config file present
+ + Fixed [Reset Config] in Compatibility Launch Menu not deleting config files
+ + Fixed OpenGL API auto-detect in some games on first launch
+
+     >> NOTE: Using the compatibility menu and selecting 'OpenGL' will disable
+                SK's new OpenGL / DX interop features; use 'All APIs' to enable
+
+21.11.25
 ========
  OpenGL on D3D11
  ---------------

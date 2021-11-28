@@ -1130,7 +1130,8 @@ D3D11_UpdateSubresource1_Override (
         {
           SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
                          SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache (pTex, true);
+          SK_D3D11_RemoveTexFromCache     (pTex, true);
+          SK_D3D11_MarkTextureUncacheable (pTex);
         }
 
         D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
