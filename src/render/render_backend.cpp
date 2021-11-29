@@ -485,6 +485,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     rb.surface.nvapi = nullptr;
   };
 
+  SK_RunOnce (disabled = (! SK_NvAPI_GetVRREnablement ()));
+
   if (! ((force || config.apis.NvAPI.gsync_status) &&
                            sk::NVAPI::nv_hardware) )
   {
@@ -1269,7 +1271,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
         {
           if (SK_GL_OnD3D11)
           {
-            wcsncpy (name, L"GLDX11", 7);
+            wcsncpy (name, L"OpenGL-IK", 10);
           }
 
           else
@@ -4092,6 +4094,284 @@ SK_NV_AdaptiveSyncControl (void)
       }
     }
   }
+}
+
+
+
+
+/* size of a form name string */
+#define CCHFORMNAME 32
+
+using EnumDisplaySettingsA_pfn = BOOL (WINAPI *) (
+  _In_opt_ LPCSTR    lpszDeviceName,
+  _In_     DWORD      iModeNum,
+  _Inout_  DEVMODEA *lpDevMode
+  );
+EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
+
+using EnumDisplaySettingsW_pfn = BOOL (WINAPI *) (
+  _In_opt_ LPWSTR    lpszDeviceName,
+  _In_     DWORD      iModeNum,
+  _Inout_  DEVMODEW *lpDevMode
+  );
+EnumDisplaySettingsW_pfn EnumDisplaySettingsW_Original = nullptr;
+
+
+// SAL notation in Win32 API docs is wrong
+using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags
+  );
+ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
+
+// SAL notation in Win32 API docs is wrong
+using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags
+  );
+ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original = nullptr;
+
+using ChangeDisplaySettingsExA_pfn = LONG (WINAPI *)(
+  _In_ LPCSTR    lpszDeviceName,
+  _In_ DEVMODEA *lpDevMode,
+       HWND      hwnd,
+  _In_ DWORD     dwflags,
+  _In_ LPVOID    lParam
+  );
+ChangeDisplaySettingsExA_pfn ChangeDisplaySettingsExA_Original = nullptr;
+
+using ChangeDisplaySettingsExW_pfn = LONG (WINAPI *)(
+  _In_ LPCWSTR   lpszDeviceName,
+  _In_ DEVMODEW *lpDevMode,
+       HWND      hwnd,
+  _In_ DWORD     dwflags,
+  _In_ LPVOID    lParam
+  );
+ChangeDisplaySettingsExW_pfn ChangeDisplaySettingsExW_Original = nullptr;
+
+extern bool SK_GL_OnD3D11;
+
+void SK_GL_SetVirtualDisplayMode (HWND hWnd, bool Fullscreen, UINT Width, UINT Height);
+
+LONG
+WINAPI
+ChangeDisplaySettingsExA_Detour (
+  _In_ LPCSTR    lpszDeviceName,
+  _In_ DEVMODEA *lpDevMode,
+       HWND      hWnd,
+  _In_ DWORD     dwFlags,
+  _In_ LPVOID    lParam )
+{
+  SK_LOG_FIRST_CALL
+
+  // NOP this sucker, we have borderless flip model in GL!
+  if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
+  {
+    if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
+    else
+    {
+      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings (OpenGL Way)"), L" OpenGL32 ");
+    }
+
+    if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
+                                   (lpDevMode->dmFields & DM_PELSHEIGHT) ) )
+    {
+      UINT Width  = lpDevMode != nullptr ? lpDevMode->dmPelsWidth  : 0;
+      UINT Height = lpDevMode != nullptr ? lpDevMode->dmPelsHeight : 0;
+
+      SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
+    }
+
+    return DISP_CHANGE_SUCCESSFUL;
+  }
+
+  static bool called = false;
+
+  DEVMODEA dev_mode        = { };
+           dev_mode.dmSize = sizeof (DEVMODEA);
+
+  if (! config.window.res.override.isZero ())
+  {
+    if (lpDevMode != nullptr)
+    {
+      lpDevMode->dmPelsWidth  = config.window.res.override.x;
+      lpDevMode->dmPelsHeight = config.window.res.override.y;
+    }
+  }
+
+  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
+
+  if (dwFlags != CDS_TEST)
+  {
+    if (called)
+      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+
+    called = true;
+
+    return
+      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+  }
+
+  else
+  {
+    return
+      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+  }
+}
+
+
+LONG
+WINAPI
+ChangeDisplaySettingsA_Detour (
+  _In_opt_ DEVMODEA *lpDevMode,
+  _In_     DWORD     dwFlags )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
+}
+
+LONG
+__stdcall
+SK_ChangeDisplaySettings (DEVMODEW *lpDevMode, DWORD dwFlags)
+{
+  return
+    ChangeDisplaySettingsW_Original != nullptr           ?
+    ChangeDisplaySettingsW_Original (lpDevMode, dwFlags) :
+    ChangeDisplaySettingsW          (lpDevMode, dwFlags);
+}
+
+LONG
+WINAPI
+ChangeDisplaySettingsExW_Detour (
+  _In_ LPWSTR    lpszDeviceName,
+  _In_ DEVMODEW *lpDevMode,
+       HWND      hWnd,
+  _In_ DWORD     dwFlags,
+  _In_ LPVOID    lParam)
+{
+  SK_LOG_FIRST_CALL
+
+  // NOP this sucker, we have borderless flip model in GL!
+  if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
+  {
+    if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
+    else
+    {
+      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings (OpenGL Way)"), L" OpenGL32 ");
+    }
+
+    if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
+                                   (lpDevMode->dmFields & DM_PELSHEIGHT) ) )
+    {
+      UINT Width  = lpDevMode != nullptr ? lpDevMode->dmPelsWidth  : 0;
+      UINT Height = lpDevMode != nullptr ? lpDevMode->dmPelsHeight : 0;
+
+      SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
+    }
+
+    return DISP_CHANGE_SUCCESSFUL;
+  }
+
+  static bool called = false;
+
+  DEVMODEW dev_mode        = { };
+           dev_mode.dmSize = sizeof (DEVMODEW);
+
+  if (! config.window.res.override.isZero ())
+  {
+    if (lpDevMode != nullptr)
+    {
+      lpDevMode->dmPelsWidth  = config.window.res.override.x;
+      lpDevMode->dmPelsHeight = config.window.res.override.y;
+    }
+  }
+
+  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
+
+  if (dwFlags != CDS_TEST)
+  {
+    if (called)
+      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+
+    called = true;
+
+    return
+      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+  }
+
+  else
+  {
+    return
+      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+  }
+}
+
+LONG
+__stdcall
+SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
+                             _In_ DEVMODEW *lpDevMode,
+                                  HWND      hWnd,
+                             _In_ DWORD     dwFlags,
+                             _In_ LPVOID    lParam )
+{
+  return
+    ChangeDisplaySettingsExW_Original != nullptr           ?
+    ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam) :
+    ChangeDisplaySettingsExW          (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+}
+
+LONG
+WINAPI
+ChangeDisplaySettingsW_Detour (
+  _In_opt_ DEVMODEW *lpDevMode,
+  _In_     DWORD     dwFlags )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
+}
+
+void
+SK_Display_HookModeChangeAPIs (void)
+{
+  static volatile LONG               hooked      = FALSE;
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    auto hModUser32 =
+      SK_GetModuleHandle (L"user32");
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "ChangeDisplaySettingsA",
+                               ChangeDisplaySettingsA_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
+    SK_CreateDLLHook2 (      L"user32",
+                              "ChangeDisplaySettingsW",
+                               ChangeDisplaySettingsW_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
+    SK_CreateDLLHook2 (       L"user32",
+                               "ChangeDisplaySettingsExA",
+                               ChangeDisplaySettingsExA_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
+    SK_CreateDLLHook2 (       L"user32",
+                               "ChangeDisplaySettingsExW",
+                               ChangeDisplaySettingsExW_Detour,
+      static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+
+    EnumDisplaySettingsA_Original =
+      (EnumDisplaySettingsA_pfn) SK_GetProcAddress
+      ( hModUser32, "EnumDisplaySettingsA" );
+    EnumDisplaySettingsW_Original =
+      (EnumDisplaySettingsW_pfn) SK_GetProcAddress
+      ( hModUser32, "EnumDisplaySettingsW" );
+
+    InterlockedIncrement (&hooked);
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 

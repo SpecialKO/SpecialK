@@ -2275,6 +2275,56 @@ SK_NV_LatencyControlPanel (void)
   }
 }
 
+void
+SK_NV_GSYNCControlPanel ()
+{
+  if (sk::NVAPI::nv_hardware)
+  {
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    SK_RunOnce (rb.gsync_state.disabled = !SK_NvAPI_GetVRREnablement ());
+
+    if (ImGui::BeginPopup ("G-Sync Control Panel"))
+    {
+      ImGui::Text ("NVIDIA G-Sync Configuration");
+
+      ImGui::TreePush   ();
+
+      static bool bEnableFastSync =
+             SK_NvAPI_GetFastSync ();
+
+      bool bEnableGSync =
+        (! rb.gsync_state.disabled);
+
+      if (ImGui::Checkbox ("Enable G-Sync in this Game", &bEnableGSync))
+      { SK_NvAPI_SetVRREnablement                        (bEnableGSync);
+
+        rb.gsync_state.disabled =
+          (! bEnableGSync);
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Requires a Game Restart");
+
+      if (ImGui::Checkbox ("Enable FastSync in this Game", &bEnableFastSync))
+      {
+        SK_NvAPI_SetFastSync (bEnableFastSync);
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Requires a Game Restart");
+
+      ImGui::TreePop    ();
+      ImGui::EndPopup   ();
+    }
+  }
+}
+
 
 __declspec (dllexport)
 bool
@@ -3677,46 +3727,64 @@ SK_ImGui_ControlPanel (void)
     }
 
 
-    // TEMP HACK: NvAPI does not support G-Sync Status in D3D12
-    if (rb.api != SK_RenderAPI::D3D12)
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
-      if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      char szGSyncStatus [128] = { };
+
+      if (rb.gsync_state.capable)
       {
-        char szGSyncStatus [128] = { };
-
-        if (rb.gsync_state.capable)
+        strcat (szGSyncStatus, "    Supported + ");
+        if (rb.gsync_state.active)
         {
-          strcat (szGSyncStatus, "    Supported + ");
-          if (rb.gsync_state.active)
-          {
-            strcat (szGSyncStatus, "Active");
+          strcat (szGSyncStatus, "Active");
 
-            // Opt-in to Auto-Low Latency the first time this is seen
-            if (config.render.framerate.auto_low_latency) {
-                config.render.framerate.enforcement_policy = 2;
-                config.render.framerate.auto_low_latency   = false;
-            }
+          // Opt-in to Auto-Low Latency the first time this is seen
+          if (config.render.framerate.auto_low_latency) {
+              config.render.framerate.enforcement_policy = 2;
+              config.render.framerate.auto_low_latency   = false;
           }
-          else
-            strcat (szGSyncStatus, "Inactive");
+        }
+        else
+          strcat (szGSyncStatus, "Inactive");
+      }
+
+      else
+      {
+        if (! rb.gsync_state.disabled)
+        {
+          strcat ( szGSyncStatus, ( rb.api == SK_RenderAPI::OpenGL ||
+                                    rb.api == SK_RenderAPI::D3D12 ) ?
+                                    "   Unknown in API" : "   Unsupported" );
         }
 
         else
         {
-          strcat ( szGSyncStatus, rb.api == SK_RenderAPI::OpenGL ?
-                                    " Unknown in GL" : "   Unsupported" );
+          strcat ( szGSyncStatus, "   Disabled in this Game");
         }
+      }
 
-        ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, false);
+      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, false);
 
-        if (rb.api == SK_RenderAPI::OpenGL && ImGui::IsItemHovered ())
+      if (SK_ImGui_IsItemRightClicked ())
+      {
+        ImGui::OpenPopup         ("G-Sync Control Panel");
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+      }
+
+      if (! rb.gsync_state.disabled)
+      {
+        if ( (rb.api == SK_RenderAPI::OpenGL ||
+              rb.api == SK_RenderAPI::D3D12) && ImGui::IsItemHovered () )
         {
           ImGui::SetTooltip (
-            "The NVIDIA driver API does not report this status in OpenGL."
+            "The NVIDIA driver API does not report this status in OpenGL or D3D12."
           );
         }
       }
     }
+
+    if (sk::NVAPI::nv_hardware)
+      SK_NV_GSYNCControlPanel ();
 
 
     if (override)
@@ -4040,9 +4108,29 @@ SK_ImGui_ControlPanel (void)
                 rb.getActiveRefreshRate ();
 
               if (! bLatentSync)
+              {
                 config.render.framerate.present_interval = 1;
+
+                if (rb.gsync_state.disabled)
+                {
+                  SK_NvAPI_SetVRREnablement (TRUE);
+                  rb.gsync_state.disabled = false;
+                }
+              }
+
               else
               {
+                if (! rb.gsync_state.disabled)
+                {
+                  rb.gsync_state.disabled = true;
+                  SK_NvAPI_SetVRREnablement (FALSE);
+
+                  if (rb.gsync_state.capable)
+                  {
+                    SK_RunOnce (SK_ImGui_Warning (L"Game Restart Required to Disable G-Sync"));
+                  }
+                }
+
                 config.render.framerate.present_interval = 0;
                 __SK_LatentSyncSkip                      = 0;
 
@@ -4060,7 +4148,7 @@ SK_ImGui_ControlPanel (void)
                 rb.getActiveRefreshRate ();
 
               int iMode = 2; // 1:1
-
+#if 0
               if (     fabs (static_cast <double> (__target_fps) / 4.0 - dRefresh) < 1.0)
               {
                 __SK_LatentSyncSkip = 4;
@@ -4074,6 +4162,7 @@ SK_ImGui_ControlPanel (void)
               }
 
               else
+#endif
               {
                 __SK_LatentSyncSkip = 0;
 
@@ -4092,8 +4181,8 @@ SK_ImGui_ControlPanel (void)
               }
 
               if ( ImGui::Combo ( "Scan Mode", &iMode,
-                                  "4x Refresh (D3D11/GL)\0"
-                                  "2x Refresh (D3D11/GL)\0"
+                                  "4x Refresh (Disabled)\0"
+                                  "2x Refresh (Disabled)\0"
                                   "1:1 Refresh\0"
                                   "1/2 Refresh\0"
                                   "1/3 Refresh\0"
@@ -4106,6 +4195,7 @@ SK_ImGui_ControlPanel (void)
 
                 switch (iMode)
                 {
+#if 0
                   case 0:
                   case 1:
                   {
@@ -4125,6 +4215,7 @@ SK_ImGui_ControlPanel (void)
                       }
                     }
                   } break;
+#endif
 
                   default:
                   case 2: fTargetFPS *= 1.0f; break;
@@ -5803,18 +5894,8 @@ SK_ImGui_Toggle (void)
 
   static DWORD dwLastTime   = 0x00;
 
-  bool d3d11 = false;
-  bool d3d12 = false;
-  bool d3d9  = false;
-  bool gl    = false;
-
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9) )  d3d9  = true;
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))  d3d11 = true;
-  if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))  d3d12 = true;
-  if (                   rb.api ==                    SK_RenderAPI::OpenGL)  gl    = true;
 
   auto EnableEULAIfPirate = [&](void) ->
   bool
@@ -5837,98 +5918,100 @@ SK_ImGui_Toggle (void)
     return false;
   };
 
-  if (d3d9 || d3d11 || d3d12 || gl)
+
+  SK_ImGui_Visible = (! SK_ImGui_Visible);
+
+  if (SK_ImGui_Visible)
+    ImGui::SetNextWindowFocus ();
+
+  static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
+  static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
+
+  // Turns the hardware cursor on/off as needed
+  ImGui_ToggleCursor ();
+
+  // Most games
+  if (! hModTBFix)
   {
-    SK_ImGui_Visible = (! SK_ImGui_Visible);
-
-    if (SK_ImGui_Visible)
-      ImGui::SetNextWindowFocus ();
-
-    static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
-    static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
-
-    // Turns the hardware cursor on/off as needed
-    ImGui_ToggleCursor ();
-
-    // Most games
-    if (! hModTBFix)
+    // Transition: (Visible -> Invisible)
+    if (! SK_ImGui_Visible)
     {
-      // Transition: (Visible -> Invisible)
-      if (! SK_ImGui_Visible)
-      {
-        // Set the last update time really far in the past to hurry along
-        //   idle cursor detection to hide the mouse cursor after closing
-        //     the control panel.
-        SK_ImGui_Cursor.last_move = 0;
+      // Set the last update time really far in the past to hurry along
+      //   idle cursor detection to hide the mouse cursor after closing
+      //     the control panel.
+      SK_ImGui_Cursor.last_move = 0;
 
-        //SK_ImGui_Cursor.showSystemCursor ();
-      }
+      //SK_ImGui_Cursor.showSystemCursor ();
+    }
 
-      else
-      {
-        SK_ImGui_Cursor.last_move = current_time;
+    else
+    {
+      SK_ImGui_Cursor.last_move = current_time;
 
-        //SK_ImGui_Cursor.showImGuiCursor ();
+      //SK_ImGui_Cursor.showImGuiCursor ();
 
-        if (EnableEULAIfPirate ())
-          config.imgui.show_eula = true;
+      if (EnableEULAIfPirate ())
+        config.imgui.show_eula = true;
 
 #ifdef _USE_EULA
-        static bool        first = true;
-        if (std::exchange (first,  false))
-        {
-          eula.never_show_again = true;
-          eula.show             = config.imgui.show_eula;
-        }
-#endif
+      static bool        first = true;
+      if (std::exchange (first,  false))
+      {
+        eula.never_show_again = true;
+        eula.show             = config.imgui.show_eula;
       }
+#else
+      else
+      {
+        eula.never_show_again = true;
+        eula.show             = false;
+      }
+#endif
     }
+  }
 
-    if (SK_ImGui_Visible)
-    {
-      // Reuse the game's overlay activation callback (if it hase one)
-      if (config.steam.reuse_overlay_pause)
-        SK::SteamAPI::SetOverlayState (true);
+  if (SK_ImGui_Visible)
+  {
+    // Reuse the game's overlay activation callback (if it hase one)
+    if (config.steam.reuse_overlay_pause)
+      SK::SteamAPI::SetOverlayState (true);
 
-      SK_Console::getInstance ()->visible = false;
-    }
-
-
-    // Request the number of players in-game whenever the
-    //   config UI is toggled ON.
-    if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
-        SK::SteamAPI::UpdateNumPlayers ();
+    SK_Console::getInstance ()->visible = false;
+  }
 
 
+  // Request the number of players in-game whenever the
+  //   config UI is toggled ON.
+  if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
+      SK::SteamAPI::UpdateNumPlayers ();
 
 
-    const wchar_t* config_name = SK_GetBackend ();
+  const wchar_t* config_name = SK_GetBackend ();
 
-    if (SK_IsInjected ())
-      config_name = L"SpecialK";
+  if (SK_IsInjected ())
+    config_name = L"SpecialK";
 
-    SK_SaveConfig (config_name);
+  SK_SaveConfig (config_name);
 
 
-    // Immediately stop capturing keyboard/mouse events,
-    //   this is the only way to preserve cursor visibility
-    //     in some games (i.e. Tales of Berseria)
+  // Immediately stop capturing keyboard/mouse events,
+  //   this is the only way to preserve cursor visibility
+  //     in some games (i.e. Tales of Berseria)
 ////io.WantCaptureKeyboard = (! SK_ImGui_Visible);
 ////io.WantCaptureMouse    = (! SK_ImGui_Visible);
 
 
-    // Clear navigation focus on window close
-    if (! SK_ImGui_Visible)
-    {
-      // Reuse the game's overlay activation callback (if it hase one)
-      if (config.steam.reuse_overlay_pause)
-        SK::SteamAPI::SetOverlayState (false);
+  // Clear navigation focus on window close
+  if (! SK_ImGui_Visible)
+  {
+    // Reuse the game's overlay activation callback (if it hase one)
+    if (config.steam.reuse_overlay_pause)
+      SK::SteamAPI::SetOverlayState (false);
 
-      nav_usable = false;
-    }
+    nav_usable = false;
+  }
 
   //reset_frame_history = true;
-  }
 
   if ((! SK_ImGui_Visible) && SK_ImGui_OpenCloseCallback->fn != nullptr)
   {

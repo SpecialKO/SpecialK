@@ -1094,7 +1094,7 @@ ActivateWindow ( HWND hWnd,
     SK_GetCurrentRenderBackend ();
 
   const bool is_game_window =
-    ( hWnd == SK_GetGameWindow () || IsChild (game_window.hWnd, hWnd) );
+    ( hWnd == SK_GetGameWindow () || IsChild (game_window.hWnd, hWnd) || IsChild (hWnd, game_window.hWnd) );
   const bool state_changed  =
     ( wm_dispatch->active_windows [hWnd] != active &&
                   is_game_window );
@@ -1106,7 +1106,7 @@ ActivateWindow ( HWND hWnd,
 
   if (state_changed)
   {
-    HWND hWndFocus =
+        HWND hWndFocus =
           GetFocus ();
 
     if (game_window.active)
@@ -5101,7 +5101,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_WINDOWPOSCHANGED:
     {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd)// || IsChild (game_window.hWnd, hWnd))
       {
         //WINDOWPOS *pWindowPos =
         //  (WINDOWPOS *)lParam;
@@ -6395,200 +6395,6 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   }
 }
 
-
-
-/* size of a form name string */
-#define CCHFORMNAME 32
-
-using EnumDisplaySettingsA_pfn = BOOL (WINAPI *) (
-  _In_opt_ LPCSTR    lpszDeviceName,
-  _In_     DWORD      iModeNum,
-  _Inout_  DEVMODEA *lpDevMode
-  );
-EnumDisplaySettingsA_pfn EnumDisplaySettingsA_Original = nullptr;
-
-using EnumDisplaySettingsW_pfn = BOOL (WINAPI *) (
-  _In_opt_ LPWSTR    lpszDeviceName,
-  _In_     DWORD      iModeNum,
-  _Inout_  DEVMODEW *lpDevMode
-  );
-EnumDisplaySettingsW_pfn EnumDisplaySettingsW_Original = nullptr;
-
-
-// SAL notation in Win32 API docs is wrong
-using ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
-  _In_opt_ DEVMODEA *lpDevMode,
-  _In_     DWORD     dwFlags
-  );
-ChangeDisplaySettingsA_pfn ChangeDisplaySettingsA_Original = nullptr;
-
-// SAL notation in Win32 API docs is wrong
-using ChangeDisplaySettingsW_pfn = LONG (WINAPI *)(
-  _In_opt_ DEVMODEW *lpDevMode,
-  _In_     DWORD     dwFlags
-  );
-ChangeDisplaySettingsW_pfn ChangeDisplaySettingsW_Original = nullptr;
-
-using ChangeDisplaySettingsExA_pfn = LONG (WINAPI *)(
-  _In_ LPCSTR    lpszDeviceName,
-  _In_ DEVMODEA *lpDevMode,
-       HWND      hwnd,
-  _In_ DWORD     dwflags,
-  _In_ LPVOID    lParam
-  );
-ChangeDisplaySettingsExA_pfn ChangeDisplaySettingsExA_Original = nullptr;
-
-using ChangeDisplaySettingsExW_pfn = LONG (WINAPI *)(
-  _In_ LPCWSTR   lpszDeviceName,
-  _In_ DEVMODEW *lpDevMode,
-       HWND      hwnd,
-  _In_ DWORD     dwflags,
-  _In_ LPVOID    lParam
-  );
-ChangeDisplaySettingsExW_pfn ChangeDisplaySettingsExW_Original = nullptr;
-
-LONG
-WINAPI
-ChangeDisplaySettingsExA_Detour (
-  _In_ LPCSTR    lpszDeviceName,
-  _In_ DEVMODEA *lpDevMode,
-       HWND      hWnd,
-  _In_ DWORD     dwFlags,
-  _In_ LPVOID    lParam )
-{
-  SK_LOG_FIRST_CALL
-
-  static bool called = false;
-
-  DEVMODEA dev_mode        = { };
-           dev_mode.dmSize = sizeof (DEVMODEA);
-
-  if (! config.window.res.override.isZero ())
-  {
-    if (lpDevMode != nullptr)
-    {
-      lpDevMode->dmPelsWidth  = config.window.res.override.x;
-      lpDevMode->dmPelsHeight = config.window.res.override.y;
-    }
-  }
-
-  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
-
-  if (dwFlags != CDS_TEST)
-  {
-    if (called)
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
-
-    called = true;
-
-    return
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
-  }
-
-  else
-  {
-    return
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
-  }
-}
-
-
-LONG
-WINAPI
-ChangeDisplaySettingsA_Detour (
-  _In_opt_ DEVMODEA *lpDevMode,
-  _In_     DWORD     dwFlags )
-{
-  SK_LOG_FIRST_CALL
-
-  return
-    ChangeDisplaySettingsExA_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
-}
-
-LONG
-__stdcall
-SK_ChangeDisplaySettings (DEVMODEW *lpDevMode, DWORD dwFlags)
-{
-  return
-    ChangeDisplaySettingsW_Original != nullptr           ?
-    ChangeDisplaySettingsW_Original (lpDevMode, dwFlags) :
-    ChangeDisplaySettingsW          (lpDevMode, dwFlags);
-}
-
-LONG
-WINAPI
-ChangeDisplaySettingsExW_Detour (
-  _In_ LPWSTR    lpszDeviceName,
-  _In_ DEVMODEW *lpDevMode,
-       HWND      hWnd,
-  _In_ DWORD     dwFlags,
-  _In_ LPVOID    lParam)
-{
-  SK_LOG_FIRST_CALL
-
-  static bool called = false;
-
-  DEVMODEW dev_mode        = { };
-           dev_mode.dmSize = sizeof (DEVMODEW);
-
-  if (! config.window.res.override.isZero ())
-  {
-    if (lpDevMode != nullptr)
-    {
-      lpDevMode->dmPelsWidth  = config.window.res.override.x;
-      lpDevMode->dmPelsHeight = config.window.res.override.y;
-    }
-  }
-
-  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
-
-  if (dwFlags != CDS_TEST)
-  {
-    if (called)
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
-
-    called = true;
-
-    return
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
-  }
-
-  else
-  {
-    return
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
-  }
-}
-
-LONG
-__stdcall
-SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
-                             _In_ DEVMODEW *lpDevMode,
-                                  HWND      hWnd,
-                             _In_ DWORD     dwFlags,
-                             _In_ LPVOID    lParam )
-{
-  return
-    ChangeDisplaySettingsExW_Original != nullptr           ?
-    ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam) :
-    ChangeDisplaySettingsExW          (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
-}
-
-LONG
-WINAPI
-ChangeDisplaySettingsW_Detour (
-  _In_opt_ DEVMODEW *lpDevMode,
-  _In_     DWORD     dwFlags )
-{
-  SK_LOG_FIRST_CALL
-
-  return
-    ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
-}
-
-
-
-
 void
 SK_HookWinAPI (void)
 {
@@ -6769,50 +6575,6 @@ SK_HookWinAPI (void)
                                "GetFocus",
                                 GetFocus_Detour,
        static_cast_p2p <void> (&GetFocus_Original) );
-
-#if 0
-    SK_CreateDLLHook2 (      L"user32",
-                              "ChangeDisplaySettingsA",
-                               ChangeDisplaySettingsA_Detour,
-      static_cast_p2p <void> (&ChangeDisplaySettingsA_Original) );
-
-    SK_CreateDLLHook2 (       L"user32",
-                       "ChangeDisplaySettingsW",
-                       ChangeDisplaySettingsW_Detour,
-                       static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
-
-    SK_CreateDLLHook2 (       L"user32",
-                       "ChangeDisplaySettingsExA",
-                       ChangeDisplaySettingsExA_Detour,
-                       static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
-
-    SK_CreateDLLHook2 (       L"user32",
-                       "ChangeDisplaySettingsExW",
-                       ChangeDisplaySettingsExW_Detour,
-                       static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
-#else
-    ChangeDisplaySettingsA_Original =
-      (ChangeDisplaySettingsA_pfn)SK_GetProcAddress
-      ( hModUser32, "ChangeDisplaySettingsA" );
-    ChangeDisplaySettingsExA_Original =
-      (ChangeDisplaySettingsExA_pfn)SK_GetProcAddress
-      ( hModUser32, "ChangeDisplaySettingsExA" );
-    ChangeDisplaySettingsW_Original =
-      (ChangeDisplaySettingsW_pfn)SK_GetProcAddress
-      ( hModUser32, "ChangeDisplaySettingsW" );
-    ChangeDisplaySettingsExW_Original =
-      (ChangeDisplaySettingsExW_pfn)SK_GetProcAddress
-      ( hModUser32, "ChangeDisplaySettingsExW" );
-#endif
-
-
-    EnumDisplaySettingsA_Original =
-      (EnumDisplaySettingsA_pfn) SK_GetProcAddress
-      ( hModUser32, "EnumDisplaySettingsA" );
-    EnumDisplaySettingsW_Original =
-      (EnumDisplaySettingsW_pfn) SK_GetProcAddress
-      ( hModUser32, "EnumDisplaySettingsW" );
-
 
      GetWindowBand =
     (GetWindowBand_pfn)SK_GetProcAddress (L"user32.dll",
@@ -7215,22 +6977,75 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
               if (_DoWindowsOverlap (hWndNewTarget, game_window.hWnd))
               {
                 hWndNewTop = hWndNewTarget;
+              //dll_log->Log (L"Smart Always On Top: Decay From TopMost {1}");
                 bTopMost   = false; // Game will cease to be top-most
               }
             }
 
             else if (hWndNewTarget == game_window.hWnd)
             {
+            //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {0}");
               bTopMost = true; // Game is promoted to top-most
             }
 
             else if (hWndNewTarget != 0)
             {
-              if (! _DoWindowsOverlap (hWndNewTarget, game_window.hWnd))
+              BOOL     bGameIsTopMostOnMonitor
+                                    = TRUE;
+              HMONITOR hMonitorGame = MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+              HWND        hWndAbove =
+                GetWindow (game_window.hWnd, GW_HWNDPREV);
+
+              std::set <HWND> hWndTopLevel,
+                              hWndTopLevelOnGameMonitor;
+
+              EnumWindows ([](HWND hWnd, LPARAM lParam)
+           -> BOOL
+              {
+                std::set <HWND>* pTopLevelSet =
+                  (std::set <HWND> *)lParam;
+
+                pTopLevelSet->emplace (hWnd);
+
+                return TRUE;
+              }, (LPARAM)&hWndTopLevel);
+
+              for (auto hWnd : hWndTopLevel)
+              {
+                if (MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
+                  hWndTopLevelOnGameMonitor.emplace (hWnd);
+              }
+
+              while (hWndAbove != 0 && IsWindow (hWndAbove))
+              {
+                if (IsWindowVisible (hWndAbove) && hWndTopLevelOnGameMonitor.count (hWndAbove))
+                {
+                  bGameIsTopMostOnMonitor = FALSE;
+
+                  if (config.system.log_level > 0)
+                  {
+                    wchar_t                    wszWindowTitle [512] = { };
+                    GetWindowTextW (hWndAbove, wszWindowTitle, 512);
+                    dll_log->Log (L"Window: '%ws' is above the game on its monitor...", wszWindowTitle);
+                  }
+
+                  break;
+                }
+
+                hWndAbove =
+                  GetWindow (hWndAbove, GW_HWNDPREV);
+              }
+
+              //  We're only interested in windows that spill-over on top of the game window
+              //                       not windows that are completely disjoint on a different monitor
+              if (                                     bGameIsTopMostOnMonitor ||
+                  (   _DoWindowsOverlap (hWndNewTarget, game_window.hWnd, FALSE, 1) &&
+                   (! _DoWindowsOverlap (hWndNewTarget, game_window.hWnd))) )
               {
                 if ( MonitorFromWindow (hWndNewTarget,    MONITOR_DEFAULTTONEAREST) !=
                      MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
                 {
+                //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {2}");
                   bTopMost = true; // Game is promoted to top-most
                 }
               }
@@ -7245,13 +7060,18 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 
     if (bOrigTopMost != bTopMost)
     {
+    //dll_log->Log (L"SK_Window_OnFocusChange: bOrigTopMost != bTopMost");
+
       SK_Window_SetTopMost (
         bTopMost, bTopMost, game_window.hWnd
       );
     }
 
     if (hWndNewTop != 0)
+    {
+    //dll_log->Log (L"SK_Window_OnFocusChange: BringWindowToTop (hWndNewTop)");
       BringWindowToTop (hWndNewTop);
+    }
   }
 
   return true;

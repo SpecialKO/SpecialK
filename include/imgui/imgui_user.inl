@@ -1743,11 +1743,15 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   static auto& io =
     ImGui::GetIO ();
 
-  extern bool __stdcall SK_IsGameWindowActive (void);
+  bool bToggleNav = false,
+       bToggleVis = false;
+
+  extern bool __stdcall
+       SK_IsGameWindowActive (void);
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( SK_IsGameWindowActive () )
+  if ( SK_IsGameWindowActive (    ) )
   {
     io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
     io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
@@ -1777,6 +1781,17 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
                     SK_ImGui_WantExit = true;
       }
     }
+
+    bToggleNav |=
+       ( SK_ImGui_Visible                 &&
+         io.KeysDown         [VK_CAPITAL] &&
+         io.KeysDownDuration [VK_CAPITAL] == 0.0f );
+
+    bToggleVis |=
+       ( io.KeyCtrl                    &&
+         io.KeyShift                   &&
+         io.KeysDown         [VK_BACK] &&
+         io.KeysDownDuration [VK_BACK] == 0.0f );
   }
 
   else
@@ -1839,14 +1854,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
       if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
               last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
       {
-        bool toggle = true,
-             nav    = (! nav_usable);
-
         // Additional condition for Final Fantasy X so as not to interfere with soft reset
         if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
                 state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
         {
-          SK_ImGui_ToggleEx (toggle, nav);
+          bToggleNav |= (! nav_usable);
+          bToggleVis |= true;
         }
       }
     }
@@ -1859,11 +1872,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     {
       if (dwLastPress < SK::ControlPanel::current_time - LONG_PRESS)
       {
-        bool toggle_vis = (! SK_ImGui_Active ());
-        bool toggle_nav =    true;
-
         if (SK_ImGui_Active ())
-            SK_ImGui_ToggleEx (toggle_vis, toggle_nav);
+        {
+          bToggleVis |= false; // nop
+          bToggleNav |= true;
+        }
 
         dwLastPress = MAXDWORD;
       }
@@ -1878,6 +1891,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   else
     RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
+
+
+
+  if (                 bToggleVis|bToggleNav)
+    SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
+
 
 
   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
@@ -1964,34 +1983,34 @@ SK_ImGui_PollGamepad (void)
   {
     //auto& gamepad = state.Gamepad;
 
-  ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  //#define MAP_BUTTON(NAV_NO,BUTTON_ENUM)    \
-  //{ io.NavInputs   [(NAV_NO)] =             \
-  //  ( gamepad.wButtons  &  (BUTTON_ENUM)) ? \
-  //                 1.0f : 0.0f;           }
-  //#define MAP_ANALOG(NAV_NO,VALUE,V0,V1)                    \
-  //{ float vn = (float)((VALUE) - V0)  /  (float)(V1 - V0);  \
-  //  if (  vn > 1.0f                )             vn = 1.0f; \
-  //  if (  vn > 0.0f && io.NavInputs [(NAV_NO)] < vn)        \
-  //                     io.NavInputs [(NAV_NO)] = vn; }
-////-------------------------------------------------------------------------------------
-  //MAP_BUTTON (ImGuiNavInput_Activate,   XINPUT_GAMEPAD_A);              // Cross    / A
-  //MAP_BUTTON (ImGuiNavInput_Cancel,     XINPUT_GAMEPAD_B);              // Circle   / B
-  //MAP_BUTTON (ImGuiNavInput_Menu,       XINPUT_GAMEPAD_X);              // Square   / X
-  //MAP_BUTTON (ImGuiNavInput_Input,      XINPUT_GAMEPAD_Y);              // Triangle / Y
-  //MAP_BUTTON (ImGuiNavInput_DpadLeft,   XINPUT_GAMEPAD_DPAD_LEFT);      // D-Pad Left
-  //MAP_BUTTON (ImGuiNavInput_DpadRight,  XINPUT_GAMEPAD_DPAD_RIGHT);     // D-Pad Right
-  //MAP_BUTTON (ImGuiNavInput_DpadUp,     XINPUT_GAMEPAD_DPAD_UP);        // D-Pad Up
-  //MAP_BUTTON (ImGuiNavInput_DpadDown,   XINPUT_GAMEPAD_DPAD_DOWN);      // D-Pad Down
-  //MAP_BUTTON (ImGuiNavInput_FocusPrev,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
-  //MAP_BUTTON (ImGuiNavInput_FocusNext,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
-  //MAP_BUTTON (ImGuiNavInput_TweakSlow,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
-  //MAP_BUTTON (ImGuiNavInput_TweakFast,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
-//---------------------------------------------------------------------==================
-  //MAP_ANALOG (ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
-  //MAP_ANALOG (ImGuiNavInput_LStickRight,gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
-  //MAP_ANALOG (ImGuiNavInput_LStickUp,   gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
-  //MAP_ANALOG (ImGuiNavInput_LStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
+    ////XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    //#define MAP_BUTTON(NAV_NO,BUTTON_ENUM)    \
+    //{ io.NavInputs   [(NAV_NO)] =             \
+    //  ( gamepad.wButtons  &  (BUTTON_ENUM)) ? \
+    //                 1.0f : 0.0f;           }
+    //#define MAP_ANALOG(NAV_NO,VALUE,V0,V1)                    \
+    //{ float vn = (float)((VALUE) - V0)  /  (float)(V1 - V0);  \
+    //  if (  vn > 1.0f                )             vn = 1.0f; \
+    //  if (  vn > 0.0f && io.NavInputs [(NAV_NO)] < vn)        \
+    //                     io.NavInputs [(NAV_NO)] = vn; }
+//  //-------------------------------------------------------------------------------------
+    //MAP_BUTTON (ImGuiNavInput_Activate,   XINPUT_GAMEPAD_A);              // Cross    / A
+    //MAP_BUTTON (ImGuiNavInput_Cancel,     XINPUT_GAMEPAD_B);              // Circle   / B
+    //MAP_BUTTON (ImGuiNavInput_Menu,       XINPUT_GAMEPAD_X);              // Square   / X
+    //MAP_BUTTON (ImGuiNavInput_Input,      XINPUT_GAMEPAD_Y);              // Triangle / Y
+    //MAP_BUTTON (ImGuiNavInput_DpadLeft,   XINPUT_GAMEPAD_DPAD_LEFT);      // D-Pad Left
+    //MAP_BUTTON (ImGuiNavInput_DpadRight,  XINPUT_GAMEPAD_DPAD_RIGHT);     // D-Pad Right
+    //MAP_BUTTON (ImGuiNavInput_DpadUp,     XINPUT_GAMEPAD_DPAD_UP);        // D-Pad Up
+    //MAP_BUTTON (ImGuiNavInput_DpadDown,   XINPUT_GAMEPAD_DPAD_DOWN);      // D-Pad Down
+    //MAP_BUTTON (ImGuiNavInput_FocusPrev,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
+    //MAP_BUTTON (ImGuiNavInput_FocusNext,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
+    //MAP_BUTTON (ImGuiNavInput_TweakSlow,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
+    //MAP_BUTTON (ImGuiNavInput_TweakFast,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
+//  ---------------------------------------------------------------------==================
+    //MAP_ANALOG (ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
+    //MAP_ANALOG (ImGuiNavInput_LStickRight,gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    //MAP_ANALOG (ImGuiNavInput_LStickUp,   gamepad.sThumbLY, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
+    //MAP_ANALOG (ImGuiNavInput_LStickDown, gamepad.sThumbLY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32767);
 
     if (nav_usable)
     {
@@ -2122,20 +2141,6 @@ SK_ImGui_PollGamepad (void)
     }
 
     last_state = state;
-  }
-
-  extern bool __stdcall SK_IsGameWindowActive (void);
-
-  if ( SK_IsGameWindowActive () )
-  {
-    if ( io.KeysDown         [VK_CAPITAL] &&
-         io.KeysDownDuration [VK_CAPITAL] == 0.0f )
-    {
-      bool visible = false,
-           nav     = true;
-
-      SK_ImGui_ToggleEx (visible, nav);
-    }
   }
 
 
@@ -2650,6 +2655,17 @@ SK_ImGui_User_NewFrame (void)
   if (was_idle != SK_ImGui_Cursor.idle  ||  SK_ImGui_IsMouseRelevant ())
   {
     SK_ImGui_Cursor.update ();
+
+    // Send a (nop) position change to cause WM_SETCURSOR
+    if (SK_ImGui_Cursor.idle && (! was_idle))
+    {
+      SK_GetCursorPos    (&cursor_pos);
+      if (WindowFromPoint (cursor_pos) == game_window.hWnd)
+      {
+        PostMessage ( game_window.hWnd,                       WM_SETCURSOR,
+              (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE) );
+      }
+    }
   }
 
 

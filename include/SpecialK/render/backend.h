@@ -1062,6 +1062,7 @@ public:
 
     BOOL                  capable      = FALSE;
     BOOL                  active       = FALSE;
+    BOOL                  disabled     = FALSE;
     DWORD                 last_checked = 0;
   } gsync_state;
 
@@ -1418,5 +1419,7 @@ void SK_Display_DisableDPIScaling      (void);
 
 extern SK_LazyGlobal <
     SK_RenderBackend > __SK_RBkEnd;
+
+void SK_Display_HookModeChangeAPIs (void);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

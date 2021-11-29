@@ -1,4 +1,24 @@
-﻿21.11.28
+﻿21.11.29.1
+==========
+ + Changed 'Multi-Tasking On Top' to not raise the game's window when selecting
+     an app on a different monitor if the game was _NOT_ already the TopMost
+       window on its own monitor
+
+ + Fixed Ctrl + Shift + Backspace not activating the control panel in some games
+     when 'Disable Keyboard Input to Game' is selected
+
+
+21.11.29
+========
+ + Temporarily disabled 2x and 4x Latent Sync modes to fix black screens
+ + Added G-Sync Control Panel (right-click G-Sync status in control panel)
+
+    >> G-Sync and FastSync can be configured per-game
+
+ + Turning on Latent Sync now disables G-Sync; enable FastSync if you need
+     G-Sync like functionality while using Latent Sync
+
+21.11.28
 ========
  + Fixed texture upload performance issues in The Evil Within 1 / 2
 

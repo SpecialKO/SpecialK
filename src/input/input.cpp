@@ -37,13 +37,34 @@ bool SK_WantBackgroundRender (void)
 bool
 SK_InputUtil_IsHWCursorVisible (void)
 {
-  CURSORINFO cursor_info        = { };
-             cursor_info.cbSize = sizeof (CURSORINFO);
+#if 0
+  if (SK_GetCursor () != 0)
+  {
+    CURSORINFO cursor_info        = { };
+               cursor_info.cbSize = sizeof (CURSORINFO);
 
-  SK_GetCursorInfo (&cursor_info);
+    SK_GetCursorInfo (&cursor_info);
 
-  return
-    ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
+    return
+      ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
+  }
+#else
+  BOOL bVisible =
+    (SK_GetCursor () != 0);
+
+  if (bVisible)
+  {
+    CURSORINFO cursor_info        = { };
+               cursor_info.cbSize = sizeof (CURSORINFO);
+
+    SK_GetCursorInfo (&cursor_info);
+
+    bVisible =
+      ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
+  }
+
+  return bVisible;
+#endif
 }
 
 #define SK_HID_READ(type)  SK_HID_Backend->markRead   (type);
@@ -921,10 +942,6 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
   if (config.input.ui.capture)
     filter = true;
 
-  // Only specific types
-  if (io.WantCaptureKeyboard || io.WantCaptureMouse)
-    filter = true;
-
   using QWORD = __int64;
 
   if (pData != nullptr)
@@ -1274,14 +1291,6 @@ ImGuiCursor_Impl (void)
   static auto& io =
     ImGui::GetIO ();
 
-  CURSORINFO         ci        = { };
-                     ci.cbSize = sizeof (CURSORINFO);
-  SK_GetCursorInfo (&ci);
-
-  HCURSOR desired =
-    ( config.input.ui.use_hw_cursor ?
-             ImGui_DesiredCursor () : nullptr );
-
   //
   // Hardware Cursor
   //
@@ -1289,12 +1298,15 @@ ImGuiCursor_Impl (void)
   {
     if (SK_ImGui_IsMouseRelevant ())
     {
-      if (ci.hCursor != desired)
-        SK_SetCursor (  desired);
+      HCURSOR desired =
+    ( config.input.ui.use_hw_cursor ?
+             ImGui_DesiredCursor () : nullptr );
+
+      SK_SetCursor (desired);
 
       extern bool SK_Window_IsCursorActive (void);
       io.MouseDrawCursor =
-        ( (! SK_InputUtil_IsHWCursorVisible ()) && (! SK_ImGui_Cursor.idle) && (SK_Window_IsCursorActive ()) );
+        ( (! SK_ImGui_Cursor.idle) && (SK_Window_IsCursorActive ()) && (! SK_InputUtil_IsHWCursorVisible ()) );
     }
   }
 
@@ -1305,11 +1317,10 @@ ImGuiCursor_Impl (void)
   {
     if (SK_ImGui_IsMouseRelevant ())
     {
-      if (ci.hCursor != desired)
-          SK_SetCursor (desired);
-
-      io.MouseDrawCursor = (! SK_ImGui_Cursor.idle);
+      SK_SetCursor (0);
     }
+
+    io.MouseDrawCursor = (! SK_ImGui_Cursor.idle);
   }
 }
 
@@ -1328,14 +1339,14 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
   if (arrow_cursor == nullptr)
     arrow_cursor = LoadCursor (nullptr, IDC_ARROW);
 
-  CURSORINFO cursor_info        = { };
-             cursor_info.cbSize = sizeof (CURSORINFO);
+  ////CURSORINFO cursor_info        = { };
+  ////           cursor_info.cbSize = sizeof (CURSORINFO);
 
   if (system)
   {
     //if (refs_added == 0) { ShowCursor (TRUE); ++refs_added; }
 
-    SK_GetCursorInfo (&cursor_info);
+    ////SK_GetCursorInfo (&cursor_info);
 
     if ((! SK_ImGui_IsMouseRelevant ()) || SK_InputUtil_IsHWCursorVisible ())
       io.MouseDrawCursor = false;
@@ -1355,10 +1366,6 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
 void
 sk_imgui_cursor_s::activateWindow (bool active)
 {
-  CURSORINFO         ci        = { };
-                     ci.cbSize = sizeof (ci);
-  SK_GetCursorInfo (&ci);
-
   if (active)
   {
     if (SK_ImGui_IsMouseRelevant ())
@@ -1542,8 +1549,11 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   return
-    game_window.active || SK_GetForegroundWindow () == game_window.hWnd;
+    game_window.active || SK_GetForegroundWindow () == game_window.hWnd || IsChild (SK_GetForegroundWindow (), game_window.hWnd);
 }
 
 void
@@ -2567,7 +2577,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
   bool handled = false;
 
-  if ((! lpMsg) || IsChild (game_window.hWnd, lpMsg->hwnd))
+  if ((! lpMsg))// || IsChild (game_window.hWnd, lpMsg->hwnd))
   {
     return handled;
   }

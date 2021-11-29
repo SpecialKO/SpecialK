@@ -186,30 +186,8 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     return TRUE;
 
   UNREFERENCED_PARAMETER (Alt);
-
-  static const SHORT SK_ImGui_ToggleKeys [4] = {
-    VK_BACK,              //Primary button (backspace)
-
-    // Modifier Keys
-    VK_CONTROL, VK_SHIFT, // Ctrl + Shift
-    0
-  };
-
-  if ( vkCode  == SK_ImGui_ToggleKeys [0] &&
-       Control && Shift )
-  {
-    extern void SK_ImGui_Toggle (void);
-
-    SK_ImGui_Toggle ();
-
-    if (IsWindow (game_window.hWnd))
-    {
-      ShowWindowAsync (game_window.hWnd, SW_SHOW);
-             SetFocus (game_window.hWnd);
-    }
-
-    return FALSE;
-  }
+  UNREFERENCED_PARAMETER (Shift);
+  UNREFERENCED_PARAMETER (Control);
 
   return TRUE;
 }
@@ -233,29 +211,26 @@ SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 
   if (new_press)
   {
-    // First give ImGui a chance to process this
-    if (SK_ImGui_KeyPress (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode))
+    // First give plug-ins a chance to process this
+    // Then give
+    SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
+
+    // Do not run the command console if the game window isn't active
+    if (! SK_IsGameWindowActive ())
+      return true;
+
+    if (! SK_ImGui_Active ())
     {
-      // Then give any plug-ins a chance
-      SK_PluginKeyPress   (keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU], vkCode);
-
-      // Do not run the command console if the game window isn't active
-      if (! SK_IsGameWindowActive ())
-        return true;
-
-      if (! SK_ImGui_Active ())
+      // Finally, toggle the command console
+      if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
+           SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
       {
-        // Finally, toggle the command console
-        if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
-             SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
-        {
-          visible = ! visible;
+        visible = ! visible;
 
-          // This will pause/unpause the game
-          SK::SteamAPI::SetOverlayState (visible);
+        // This will pause/unpause the game
+        SK::SteamAPI::SetOverlayState (visible);
 
-          return true;
-        }
+        return true;
       }
     }
 

@@ -223,6 +223,12 @@ bool           SK_NvAPI_InitializeHDR      (void);
 BOOL           SK_NvAPI_EnableAnsel        (DLL_ROLE role);
 BOOL           SK_NvAPI_DisableAnsel       (DLL_ROLE role);
 
+BOOL           SK_NvAPI_GetVRREnablement   (void);
+BOOL           SK_NvAPI_SetVRREnablement   (BOOL bEnable);
+
+BOOL           SK_NvAPI_GetFastSync        (void);
+BOOL           SK_NvAPI_SetFastSync        (BOOL bEnable);
+
 void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
 void __stdcall SK_NvAPI_SetAppName         (const wchar_t* wszAppName);
 
