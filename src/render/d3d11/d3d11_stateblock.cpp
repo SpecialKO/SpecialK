@@ -317,7 +317,11 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     dc->CSGetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT,                    sb->CSUnorderedAccessViews);
   }
 
-  dc->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,  sb->IAVertexBuffers,
+  int max_vtx_input_slots =
+    ft_lvl >= D3D_FEATURE_LEVEL_11_0 ? D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT
+                                     : D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
+
+  dc->IAGetVertexBuffers     (0, max_vtx_input_slots,                        sb->IAVertexBuffers,
                                                                              sb->IAVertexBuffersStrides,
                                                                              sb->IAVertexBuffersOffsets);
   dc->IAGetIndexBuffer       (&sb->IAIndexBuffer, &sb->IAIndexBufferFormat, &sb->IAIndexBufferOffset);
@@ -703,8 +707,11 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   }
 
 
+  int max_vtx_input_slots =
+    ft_lvl >= D3D_FEATURE_LEVEL_11_0 ? D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT
+                                     : D3D10_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT;
   UINT IAVertexBufferCount =
-    calc_count               (sb->IAVertexBuffers, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT);
+    calc_count               (sb->IAVertexBuffers, max_vtx_input_slots);
 
   if (IAVertexBufferCount > 0)
   {
