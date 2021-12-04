@@ -966,7 +966,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
   if (focus.hwnd == nullptr || ( SK_GetFocus () == hWnd && hWnd != nullptr && GetActiveWindow () == hWnd ) )
   {
-    focus              = hWnd;
+    focus.update        (hWnd);
     game_window.hWnd   = hWnd;
     game_window.active = true;
 
@@ -990,7 +990,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
   {
     SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
                L"Window Mgr");
-    device = hWnd;
+    device.update (hWnd);
   }
 }
 
@@ -1000,7 +1000,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   ////if (game_window.hWnd == 0 || (! IsWindow (game_window.hWnd)))
   ////{   game_window.hWnd = hWnd; }
 
-  device = hWnd;
+  device.update (hWnd);
 
   SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
 }
@@ -1337,6 +1337,11 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 
 sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
 {
+  update (wnd);
+}
+
+bool sk_hwnd_cache_s::update (HWND wnd)
+{
   if (hwnd != wnd || last_changed == 0UL)
   {
     hwnd      = wnd;
@@ -1355,7 +1360,11 @@ sk_hwnd_cache_s::sk_hwnd_cache_s (HWND wnd)
 
     if (*title != L'\0' && *class_name != L'\0')
       last_changed = SK_GetFramesDrawn ();
+
+    return true;
   }
+
+  return false;
 }
 
 ULONG64
@@ -2784,10 +2793,16 @@ sizeof (output_s));
 
       SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
 
+      extern void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
+
+      if (config.render.dxgi.temporary_dwm_hdr)
+      {
+        SK_RunOnce (SK_Display_EnableHDR (pOutput));
+      }
+
       if ((! isHDRCapable ()) && __SK_HDR_16BitSwap)
       {
-        extern void SK_Display_EnableHDR (void);
-                    SK_Display_EnableHDR (    );
+        SK_Display_EnableHDR (pOutput);
 
         //assignOutputFromHWND (hWndContainer);
 
@@ -2981,51 +2996,67 @@ SK_RenderBackend_V2::output_s::signal_info_s::timing_s::video_standard_s::toStr 
     return "N/A";
 }
 
-void SK_Display_EnableHDR (void)
+void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 {
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (    rb.displays [rb.active_display].hdr.supported)
-  { if (! rb.displays [rb.active_display].hdr.enabled)
+  if (pOutput == nullptr)
+      pOutput = &rb.displays [rb.active_display];
+
+  if (    pOutput->hdr.supported)
+  { if (! pOutput->hdr.enabled)
     {
       DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
         setHdrState                     = { };
         setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
         setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
-        setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
-        setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
+        setHdrState.header.adapterId    = pOutput->vidpn.targetInfo.adapterId;
+        setHdrState.header.id           = pOutput->vidpn.targetInfo.id;
 
         setHdrState.enableAdvancedColor = true;
 
       if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
-        rb.displays [rb.active_display].hdr.enabled = setHdrState.enableAdvancedColor;
+        pOutput->hdr.enabled = setHdrState.enableAdvancedColor;
+
+        if (pOutput->hdr.enabled)
+          rb.hdr_enabled_displays.emplace (pOutput);
+        else
+          rb.hdr_enabled_displays.erase   (pOutput);
       }
     }
   }
 }
 
-void SK_Display_DisableHDR (void)
+void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 {
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (  rb.displays [rb.active_display].hdr.supported)
-  { if (rb.displays [rb.active_display].hdr.enabled)
+   if (pOutput == nullptr)
+      pOutput = &rb.displays [rb.active_display];
+
+  if (  pOutput->hdr.supported)
+  { if (pOutput->hdr.enabled)
     {
       DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE
         setHdrState                     = { };
         setHdrState.header.type         = DISPLAYCONFIG_DEVICE_INFO_SET_ADVANCED_COLOR_STATE;
         setHdrState.header.size         =     sizeof (DISPLAYCONFIG_SET_ADVANCED_COLOR_STATE);
-        setHdrState.header.adapterId    = rb.displays [rb.active_display].vidpn.targetInfo.adapterId;
-        setHdrState.header.id           = rb.displays [rb.active_display].vidpn.targetInfo.id;
+        setHdrState.header.adapterId    = pOutput->vidpn.targetInfo.adapterId;
+        setHdrState.header.id           = pOutput->vidpn.targetInfo.id;
 
         setHdrState.enableAdvancedColor = false;
 
       if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
-        rb.displays [rb.active_display].hdr.enabled = setHdrState.enableAdvancedColor;
+        pOutput->hdr.enabled = setHdrState.enableAdvancedColor;
+
+        if (pOutput->hdr.enabled)
+          rb.hdr_enabled_displays.emplace (pOutput);
+        else
+          rb.hdr_enabled_displays.erase   (pOutput);
       }
     }
   }
@@ -3748,11 +3779,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     stale_display_info = false;
   }
 
-  if (config.render.dxgi.temporary_dwm_hdr)
-  {
-    SK_Display_EnableHDR ();
-  }
-
 //InterlockedDecrement (&lUpdatingOutputs);
 }
 
@@ -4170,7 +4196,7 @@ ChangeDisplaySettingsExA_Detour (
     if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
     else
     {
-      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings (OpenGL Way)"), L" OpenGL32 ");
+      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings"), L" OpenGL32 ");
     }
 
     if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
@@ -4182,13 +4208,15 @@ ChangeDisplaySettingsExA_Detour (
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
 
-    return DISP_CHANGE_SUCCESSFUL;
+    //return DISP_CHANGE_SUCCESSFUL;
   }
 
   static bool called = false;
 
   DEVMODEA dev_mode        = { };
-           dev_mode.dmSize = sizeof (DEVMODEA);
+           dev_mode.dmSize = sizeof (DEVMODEW);
+
+  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
 
   if (! config.window.res.override.isZero ())
   {
@@ -4259,7 +4287,7 @@ ChangeDisplaySettingsExW_Detour (
     if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
     else
     {
-      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings (OpenGL Way)"), L" OpenGL32 ");
+      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings"), L" OpenGL32 ");
     }
 
     if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
@@ -4271,13 +4299,18 @@ ChangeDisplaySettingsExW_Detour (
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
 
-    return DISP_CHANGE_SUCCESSFUL;
+    //return DISP_CHANGE_SUCCESSFUL;
   }
-
-  static bool called = false;
 
   DEVMODEW dev_mode        = { };
            dev_mode.dmSize = sizeof (DEVMODEW);
+
+  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
+
+  return
+    ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+
+  static bool called = false;
 
   if (! config.window.res.override.isZero ())
   {
@@ -4352,11 +4385,11 @@ SK_Display_HookModeChangeAPIs (void)
                                ChangeDisplaySettingsW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsW_Original) );
     SK_CreateDLLHook2 (       L"user32",
-                               "ChangeDisplaySettingsExA",
+                              "ChangeDisplaySettingsExA",
                                ChangeDisplaySettingsExA_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExA_Original) );
     SK_CreateDLLHook2 (       L"user32",
-                               "ChangeDisplaySettingsExW",
+                              "ChangeDisplaySettingsExW",
                                ChangeDisplaySettingsExW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
 
@@ -4373,124 +4406,3 @@ SK_Display_HookModeChangeAPIs (void)
   else
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
-
-
-
-
-
-///////#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_1)
-////////*++
-///////Routine Description:
-///////    ControlModeBehavior - requests high-level mode enumeration and setting behaviors
-///////Arguments:
-///////    hAdapter                        WDDM display miniport adapter handle.
-///////    pControlModeBehaviorArg
-///////       ->Request                    Input flags indicating the behaviors the OS is requesting.
-///////       ->Satisfied                  Output flags reporting which requests were satisfied.
-///////       ->NotSatisfied               Output flags reporting which requests were NOT satisfied.
-///////Return Value:
-///////    STATUS_SUCCESS
-///////      - Request has been completed successfully.
-///////    STATUS_NO_MEMORY
-///////      - There is insufficient memory to complete this request.
-///////    One of the invalid parameter STATUS_GRAPHICS_* codes that can be returned by the OS via
-///////    DXGDDI_VIDPN* interfaces. These codes should only occur during development since they
-///////    indicate a bug in the driver or OS.
-///////Environment:
-///////    Kernel mode. PASSIVE_LEVEL.
-///////--*/
-///////
-///////typedef union _DXGK_MODE_BEHAVIOR_FLAGS
-///////{
-///////    struct
-///////    {
-///////        UINT    PrioritizeHDR               : 1;    // 0x00000001
-///////        UINT    ColorimetricControl         : 1;    // 0x00000002
-///////        UINT    Reserved                    :30;    // 0xFFFFFFFC
-///////    };
-///////    UINT    Value;
-///////} DXGK_MODE_BEHAVIOR_FLAGS;
-///////
-///////
-///////typedef struct _DXGKARG_CONTROLMODEBEHAVIOR
-///////{
-///////
-///////    IN  DXGK_MODE_BEHAVIOR_FLAGS                Request;
-///////    OUT DXGK_MODE_BEHAVIOR_FLAGS                Satisfied;
-///////    OUT DXGK_MODE_BEHAVIOR_FLAGS                NotSatisfied;
-///////} DXGKARG_CONTROLMODEBEHAVIOR;
-///////
-///////
-///////typedef _Inout_ DXGKARG_CONTROLMODEBEHAVIOR* INOUT_PDXGKARG_CONTROLMODEBEHAVIOR;
-///////
-///////typedef
-///////    _Check_return_
-///////    _Function_class_DXGK_(DXGKDDI_CONTROLMODEBEHAVIOR)
-///////    _IRQL_requires_(PASSIVE_LEVEL)
-///////NTSTATUS
-///////APIENTRY
-///////DXGKDDI_CONTROLMODEBEHAVIOR(
-///////    IN_CONST_HANDLE                             hAdapter,
-///////    INOUT_PDXGKARG_CONTROLMODEBEHAVIOR          pControlModeBehaviorArg
-///////    );
-///////
-///////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////// Purpose: Exposes driver/hardware per monitor/target capabilities.
-/////////  Mode enumeration is typically required to discover if the capability is supported in a particular display
-/////////  configuration but if the capability is not supported then mode enumeration is unnecessary.
-/////////
-///////typedef struct _DXGK_MONITORLINKINFO
-///////{
-///////    DXGK_MONITORLINKINFO_USAGEHINTS     UsageHints;
-///////    DXGK_MONITORLINKINFO_CAPABILITIES   Capabilities;
-///////
-///////#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_4)
-///////    D3DKMDT_WIRE_FORMAT_AND_PREFERENCE  DitheringSupport;
-///////#endif // DXGKDDI_INTERFACE_VERSION_WDDM2_4
-///////} DXGK_MONITORLINKINFO;
-///////
-///////
-////////*++
-///////Routine Description:
-///////    UpdateMonitorLinkInfo - Reports static per monitor capabilities
-///////Arguments:
-///////    hAdapter           - WDDM display miniport adapter handle.
-///////    pUpdateMonitorLinkInfoArg
-///////       ->VideoPresentTargetId - ID of the video present target to which the monitor in question is connected.
-///////       ->MonitorLinkInfo - Structure with overrides from the OS and space for the caps from the driver.
-///////Return Value:
-///////    STATUS_SUCCESS
-///////      - Request has been completed successfully.
-///////    STATUS_NO_MEMORY
-///////      - There is insufficient memory to complete this request.
-///////    One of the invalid parameter STATUS_GRAPHICS_* codes that can be returned by the OS via
-///////    DXGDDI_{VIDPN|MONITOR|* interfaces. These codes should only occur during development since they
-///////    indicate a bug in the driver or OS.
-///////Side-effects:
-///////    None
-///////Environment:
-///////    Kernel mode. PASSIVE_LEVEL.
-///////--*/
-///////typedef struct _DXGKARG_UPDATEMONITORLINKINFO
-///////{
-///////    IN D3DDDI_VIDEO_PRESENT_TARGET_ID               VideoPresentTargetId;
-///////    IN DXGK_MONITORLINKINFO                         MonitorLinkInfo;
-///////
-///////} DXGKARG_UPDATEMONITORLINKINFO;
-///////
-///////typedef _Inout_ DXGKARG_UPDATEMONITORLINKINFO*       INOUT_PDXGKARG_UPDATEMONITORLINKINFO;
-///////
-///////typedef
-///////    _Check_return_
-///////    _Function_class_DXGK_(DXGKDDI_UPDATEMONITORLINKINFO)
-///////    _IRQL_requires_(PASSIVE_LEVEL)
-///////NTSTATUS
-///////APIENTRY
-///////DXGKDDI_UPDATEMONITORLINKINFO(
-///////    IN_CONST_HANDLE                                 hAdapter,
-///////    INOUT_PDXGKARG_UPDATEMONITORLINKINFO            pUpdateMonitorLinkInfoArg
-///////    );
-///////
-///////#endif
-///////

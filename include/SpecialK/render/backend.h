@@ -638,6 +638,7 @@ struct sk_hwnd_cache_s
 
 
   sk_hwnd_cache_s (HWND wnd);
+  bool update     (HWND wnd);
 
   operator const HWND& (void) const noexcept { return hwnd; };
 };
@@ -899,6 +900,10 @@ public:
     SK_HDR_TRANSFER_FUNC
     getEOTF (void);
   } scanout;
+
+  // Set of displays that SK has enabled HDR on, so we can turn it back
+  //   off if user wants
+  std::set <output_s *> hdr_enabled_displays;
 
   wchar_t                 display_name [128]   = { };
 
