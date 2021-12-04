@@ -3095,6 +3095,21 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
   {
     switch (ExceptionRecord->ExceptionCode)
     {
+      case 0x00000087D:
+        if (SK_IsDebuggerPresent ()) // DirectX Debug Layer
+          RtlRaiseException_Original (ExceptionRecord);
+
+        else
+        {
+          //SK_ReleaseAssert (ExceptionRecord->NumberParameters >= 3);
+
+          SK_LOG0 ( ( L"Debug Layer Text: %hs", (char *)ExceptionRecord->ExceptionInformation [2] ),
+                  L" D3DDebug " );
+
+          return;
+        }
+        break;
+
       case DBG_PRINTEXCEPTION_C:
       case DBG_PRINTEXCEPTION_WIDE_C:
       {
@@ -3553,14 +3568,14 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
 
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "RtlRaiseException",
+                               RtlRaiseException_Detour,
+      static_cast_p2p <void> (&RtlRaiseException_Original) );
+
 #ifdef _EXTENDED_DEBUG
     if (true)//config.advanced_debug)
     {
-      //SK_CreateDLLHook2 (      L"NtDll",
-      //                          "RtlRaiseException",
-      //                           RtlRaiseException_Detour,
-      //  static_cast_p2p <void> (&RtlRaiseException_Original) );
-
       if (config.compatibility.rehook_loadlibrary)
       {
         SK_CreateDLLHook2 (      L"NtDll",
