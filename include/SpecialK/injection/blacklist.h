@@ -74,7 +74,6 @@ static constexpr UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"acrotray.exe"),
   SK_MakeUnicode (L"sdtray.exe"),
   SK_MakeUnicode (L"secd.exe"),
-  SK_MakeUnicode (L"CrashRpt1402.dll"),
   SK_MakeUnicode (L"crashsender1400.exe"),
   SK_MakeUnicode (L"crashsender1402.exe"),
   SK_MakeUnicode (L"wallpaper32.exe"),
@@ -220,7 +219,6 @@ static constexpr UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"rzsynapse.exe"),
   SK_MakeUnicode (L"msiafterburner.exe"),
   SK_MakeUnicode (L"googlecrashhandler.exe"),
-  SK_MakeUnicode (L"CrashRpt1402.dll"),
   SK_MakeUnicode (L"crashsender1400.exe"),
   SK_MakeUnicode (L"crashsender1402.exe"),
   SK_MakeUnicode (L"wallpaper32.exe"),
@@ -306,5 +304,8 @@ static constexpr UNICODE_STRING __blacklist [] = {
   //     be a game since it uses D3D shaders
   SK_MakeUnicode (L"libcef.dll"),
   SK_MakeUnicode (L"gamebar.exe"),
+
+  // Does not reply to DLL unload requests
+  SK_MakeUnicode (L"mspaint.exe"),
 };
 #endif

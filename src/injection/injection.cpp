@@ -71,11 +71,11 @@ extern "C"
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
   __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
 
-  __declspec (dllexport)          wchar_t whitelist_patterns [16 * MAX_PATH] = { 0 };
-  __declspec (dllexport)          int     whitelist_count                    =   0;
-  __declspec (dllexport)          wchar_t blacklist_patterns [16 * MAX_PATH] = { 0 };
-  __declspec (dllexport)          int     blacklist_count                    =   0;
-  __declspec (dllexport) volatile LONG    injected_procs                     =   0;
+  __declspec (dllexport)          wchar_t whitelist_patterns [128 * MAX_PATH] = { 0 };
+  __declspec (dllexport)          int     whitelist_count                     =   0;
+  __declspec (dllexport)          wchar_t blacklist_patterns [128 * MAX_PATH] = { 0 };
+  __declspec (dllexport)          int     blacklist_count                     =   0;
+  __declspec (dllexport) volatile LONG    injected_procs                      =   0;
 
   constexpr LONG MAX_HOOKED_PROCS = 262144;
 
@@ -594,6 +594,98 @@ UINT SK_Inject_GetExplorerLowerMsg (void)
   return 0;
 }
 
+
+#define PreventAlwaysOnTop 0
+#define        AlwaysOnTop 1
+#define   SmartAlwaysOnTop 2
+
+bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
+auto _DoWindowsOverlap =
+[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 75) -> bool
+{
+  if (! IsWindow (hWndGame)) return false;
+  if (! IsWindow (hWndApp))  return false;
+
+  if (bSameMonitor != FALSE)
+  {
+    if (MonitorFromWindow (hWndGame, MONITOR_DEFAULTTONEAREST) !=
+        MonitorFromWindow (hWndApp,  MONITOR_DEFAULTTONEAREST))
+    {
+      return false;
+    }
+  }
+
+  RECT rectGame = { },
+       rectApp  = { };
+
+  if (! GetWindowRect (hWndGame, &rectGame)) return false;
+  if (! GetWindowRect (hWndApp,  &rectApp))  return false;
+
+  InflateRect (&rectGame, -iDeadzone, -iDeadzone);
+  InflateRect (&rectApp,  -iDeadzone, -iDeadzone);
+
+  RECT                rectIntersect = { };
+  IntersectRect     (&rectIntersect,
+                             &rectGame, &rectApp);
+
+  // Size of intersection is non-zero, we're done
+  if (! IsRectEmpty (&rectIntersect)) return true;
+
+  // Test for window entirely inside the other
+  UnionRect (&rectIntersect, &rectGame, &rectApp);
+
+  return
+    EqualRect (&rectGame, &rectIntersect);
+};
+
+HWINEVENTHOOK g_WinEventHook;
+
+void
+CALLBACK
+SK_Inject_WinEventHookProc (
+  HWINEVENTHOOK hook,
+  DWORD         event,
+  HWND          hwnd,
+  LONG          idObject,
+  LONG          idChild,
+  DWORD         dwEventThread,
+  DWORD         dwmsEventTime )
+{
+  if (event == EVENT_SYSTEM_FOREGROUND)
+  {
+    if (game_window.hWnd != hwnd)
+    {
+      if (_DoWindowsOverlap (game_window.hWnd, hwnd, FALSE, 25))
+      {
+        static DWORD dwPidShell = 0x0;
+        static HWND  hWndTaskSwitch =
+          FindWindow (nullptr, L"Task Switching");
+
+        if (dwPidShell == 0)
+          GetWindowThreadProcessId (hWndTaskSwitch, &dwPidShell);
+
+        DWORD dwPidNewTarget;
+        GetWindowThreadProcessId (hwnd, &dwPidNewTarget);
+
+        if (dwPidNewTarget == dwPidShell)
+        {
+          return;
+        }
+
+        if (SK_Window_IsTopMost (game_window.hWnd))
+        {
+          SK_Window_SetTopMost (
+            false, false, game_window.hWnd
+          );
+
+          BringWindowToTop (hwnd);
+        }
+        SK_Window_OnFocusChange (hwnd, (HWND)0);
+      }
+    }
+  }
+}
+
 HWND
 SK_Inject_GetFocusWindow (void)
 {
@@ -603,7 +695,7 @@ SK_Inject_GetFocusWindow (void)
   if (pSharedMem != nullptr)
   {
     return
-      (HWND)ULongToHandle (pSharedMem->SystemWide.hWndFocus);
+      (HWND)((uintptr_t)ULongToHandle (pSharedMem->SystemWide.hWndFocus) & 0xFFFFFFFFUL);
   }
 
   return 0;
@@ -617,10 +709,60 @@ SK_Inject_SetFocusWindow (HWND hWndFocus)
 
   if (pSharedMem != nullptr)
   {
-    pSharedMem->SystemWide.hWndFocus =
-      HandleToULong (hWndFocus);
+    if (g_WinEventHook == 0 && hWndFocus != 0x0)
+    {
+      g_WinEventHook =
+        SetWinEventHook (EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr, SK_Inject_WinEventHookProc, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+    }
+
+    else if (g_WinEventHook != 0 && hWndFocus == 0x0)
+    {
+      if (UnhookWinEvent (g_WinEventHook))
+        g_WinEventHook = 0;
+    }
+
+    if (hWndFocus == 0x0 || ChangeWindowMessageFilterEx (hWndFocus, 0xfa57, MSGFLT_ALLOW, nullptr))
+    {
+      pSharedMem->SystemWide.hWndFocus =
+              HandleToULong ((void *)((uintptr_t)hWndFocus & 0xFFFFFFFFUL));
+    }
   }
 }
+
+struct {
+  bool bLowPriv   = false,
+       bQuotaFull = false;
+  HWND hWnd       = nullptr;
+
+  bool isValid (void) const
+  {
+    bool   bValid =                   nullptr != hWnd &&
+      (! (bLowPriv || bQuotaFull)) && IsWindow ( hWnd );
+
+    if (  !bValid                  && nullptr != hWnd)
+            SK_Inject_SetFocusWindow (nullptr);
+
+    return bValid;
+  }
+  void setHwnd (HWND wnd)
+  {
+    if (std::exchange (hWnd, wnd) != wnd)
+       reset   (    );
+  }
+  void postMsg (WPARAM wParam, LPARAM lParam)
+  {
+    if (! PostMessage (hWnd, /*WM_USER+WM_SETFOCUS*/0xfa57, wParam, lParam))
+    {
+      switch (GetLastError ())
+      {
+        case ERROR_ACCESS_DENIED:    bLowPriv   = true; break;
+        case ERROR_NOT_ENOUGH_QUOTA: bQuotaFull = true; break;
+        default:                                        break;
+      }
+    }
+  }
+  void reset   (void)     { bLowPriv = bQuotaFull = false; }
+} static focus_ctx;
 
 
 #include <SpecialK/render/present_mon/TraceSession.hpp>
@@ -1417,49 +1559,6 @@ SK_Inject_SpawnUnloadListener (void)
   }
 }
 
-#define PreventAlwaysOnTop 0
-#define        AlwaysOnTop 1
-#define   SmartAlwaysOnTop 2
-
-bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-auto _DoWindowsOverlap =
-[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 50) -> bool
-{
-  if (! IsWindow (hWndGame)) return false;
-  if (! IsWindow (hWndApp))  return false;
-
-  if (bSameMonitor != FALSE)
-  {
-    if (MonitorFromWindow (hWndGame, MONITOR_DEFAULTTONEAREST) !=
-        MonitorFromWindow (hWndApp,  MONITOR_DEFAULTTONEAREST))
-    {
-      return false;
-    }
-  }
-
-  RECT rectGame = { },
-       rectApp  = { };
-
-  if (! GetWindowRect (hWndGame, &rectGame)) return false;
-  if (! GetWindowRect (hWndApp,  &rectApp))  return false;
-
-  InflateRect (&rectGame, -iDeadzone, -iDeadzone);
-  InflateRect (&rectApp,  -iDeadzone, -iDeadzone);
-
-  RECT                rectIntersect = { };
-  IntersectRect     (&rectIntersect,
-                             &rectGame, &rectApp);
-
-  // Size of intersection is non-zero, we're done
-  if (! IsRectEmpty (&rectIntersect)) return true;
-
-  // Test for window entirely inside the other
-  UnionRect (&rectIntersect, &rectGame, &rectApp);
-
-  return
-    EqualRect (&rectGame, &rectIntersect);
-};
-
 LRESULT
 CALLBACK
 CBTProc ( _In_ int    nCode,
@@ -1477,33 +1576,25 @@ CBTProc ( _In_ int    nCode,
 
   SK_Inject_SpawnUnloadListener ();
 
-  extern bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-
-  if (game_window.hWnd == 0)
+  if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
   {
-    if (hWndToSet != (HWND)~0) return
-      CallNextHookEx (
-        SKX_GetCBTHook (),
-          nCode, wParam, lParam
-      );
-
     if (nCode == HCBT_MOVESIZE)
     {
-      HWND hWndGame =
-        SK_Inject_GetFocusWindow ();
+      HWND hWndGame   = SK_Inject_GetFocusWindow (),
+           hWndwParam = (HWND)wParam;
 
-      if (hWndGame != 0x0 && IsWindow (hWndGame))
+      focus_ctx.setHwnd (hWndGame);
+
+      if (hWndGame != hWndwParam && focus_ctx.isValid ())
       {
-        if (_DoWindowsOverlap (hWndGame, (HWND)wParam))
-          PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)wParam, (LPARAM)0);
-
-        else
+        switch (nCode)
         {
-          if (MonitorFromWindow ((HWND)wParam,   MONITOR_DEFAULTTONEAREST) ==
-              MonitorFromWindow ((HWND)hWndGame, MONITOR_DEFAULTTONEAREST))
-          {
-            PostMessage (hWndGame, /*WM_USER+WM_SETFOCUS*/0xfa57, (WPARAM)hWndGame, (LPARAM)wParam);
-          }
+          case HCBT_MOVESIZE:
+            if (_DoWindowsOverlap (hWndGame, hWndwParam, FALSE))
+            {
+              focus_ctx.postMsg (wParam, static_cast <LPARAM> (0x0));
+            }
+          break;
         }
       }
     }
