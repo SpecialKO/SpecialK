@@ -504,7 +504,7 @@ struct sk_config_t
 
     struct {
       bool    disable_fullscreen = true;
-      bool    enable_16bit_hdr   = true;
+      bool    enable_16bit_hdr   = false;
       bool    enable_10bit_hdr   = false;
     } gl;
 
@@ -699,8 +699,8 @@ struct sk_config_t
       bool    add_relative_motion = true;
       bool    disabled_to_game    = false;
       bool    ignore_small_clips  = false; // Ignore mouse clipping rects < 75% the
-                                           //   dimensions of the client window, so
-                                           //     that UI input works.
+                                          //   dimensions of the client window, so
+                                          //     that UI input works.
     } mouse;
 
     // Avoids calling SK_Input_PreInit (...)
@@ -1097,6 +1097,7 @@ enum class SK_GAME_ID
   yuzu,                         // yuzu.exe
   ForzaHorizon5,                // ForzaHorizon5.exe
   HaloInfinite,                 // HaloInfinite.exe
+  FinalFantasy7Remake,          // ff7remake*.exe
   UNKNOWN_GAME               = 0xffff
 };
 

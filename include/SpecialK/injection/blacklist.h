@@ -304,6 +304,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   //     be a game since it uses D3D shaders
   SK_MakeUnicode (L"libcef.dll"),
   SK_MakeUnicode (L"gamebar.exe"),
+  SK_MakeUnicode (L"gamingservicesui.exe"),
 
   // Does not reply to DLL unload requests
   SK_MakeUnicode (L"mspaint.exe"),

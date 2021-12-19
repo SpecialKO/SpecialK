@@ -437,7 +437,7 @@ SK_Inject_IsInvadingProcess (DWORD dwThreadId)
 {
   for (volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (ReadAcquire (&hooked_pid) == gsl::narrow_cast <LONG> (dwThreadId))
+    if (ReadAcquire (&hooked_pid) == sk::narrow_cast <LONG> (dwThreadId))
       return true;
   }
 
@@ -594,49 +594,7 @@ UINT SK_Inject_GetExplorerLowerMsg (void)
   return 0;
 }
 
-
-#define PreventAlwaysOnTop 0
-#define        AlwaysOnTop 1
-#define   SmartAlwaysOnTop 2
-
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-auto _DoWindowsOverlap =
-[&](HWND hWndGame, HWND hWndApp, BOOL bSameMonitor = FALSE, INT iDeadzone = 75) -> bool
-{
-  if (! IsWindow (hWndGame)) return false;
-  if (! IsWindow (hWndApp))  return false;
-
-  if (bSameMonitor != FALSE)
-  {
-    if (MonitorFromWindow (hWndGame, MONITOR_DEFAULTTONEAREST) !=
-        MonitorFromWindow (hWndApp,  MONITOR_DEFAULTTONEAREST))
-    {
-      return false;
-    }
-  }
-
-  RECT rectGame = { },
-       rectApp  = { };
-
-  if (! GetWindowRect (hWndGame, &rectGame)) return false;
-  if (! GetWindowRect (hWndApp,  &rectApp))  return false;
-
-  InflateRect (&rectGame, -iDeadzone, -iDeadzone);
-  InflateRect (&rectApp,  -iDeadzone, -iDeadzone);
-
-  RECT                rectIntersect = { };
-  IntersectRect     (&rectIntersect,
-                             &rectGame, &rectApp);
-
-  // Size of intersection is non-zero, we're done
-  if (! IsRectEmpty (&rectIntersect)) return true;
-
-  // Test for window entirely inside the other
-  UnionRect (&rectIntersect, &rectGame, &rectApp);
-
-  return
-    EqualRect (&rectGame, &rectIntersect);
-};
 
 HWINEVENTHOOK g_WinEventHook;
 
@@ -655,7 +613,7 @@ SK_Inject_WinEventHookProc (
   {
     if (game_window.hWnd != hwnd)
     {
-      if (_DoWindowsOverlap (game_window.hWnd, hwnd, FALSE, 25))
+      if (SK_Window_TestOverlap (game_window.hWnd, hwnd, FALSE, 25))
       {
         static DWORD dwPidShell = 0x0;
         static HWND  hWndTaskSwitch =
@@ -709,22 +667,35 @@ SK_Inject_SetFocusWindow (HWND hWndFocus)
 
   if (pSharedMem != nullptr)
   {
-    if (g_WinEventHook == 0 && hWndFocus != 0x0)
+    if ( g_WinEventHook == nullptr &&
+              hWndFocus != nullptr )
     {
       g_WinEventHook =
-        SetWinEventHook (EVENT_SYSTEM_FOREGROUND, EVENT_SYSTEM_FOREGROUND, nullptr, SK_Inject_WinEventHookProc, 0, 0, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS);
+        SetWinEventHook ( EVENT_SYSTEM_FOREGROUND,
+                          EVENT_SYSTEM_FOREGROUND, nullptr,
+                            SK_Inject_WinEventHookProc, 0, 0,
+                              WINEVENT_OUTOFCONTEXT/*|
+                              WINEVENT_SKIPOWNTHREAD*/);
     }
 
-    else if (g_WinEventHook != 0 && hWndFocus == 0x0)
+    else
     {
-      if (UnhookWinEvent (g_WinEventHook))
-        g_WinEventHook = 0;
+      if ( g_WinEventHook != nullptr &&
+                hWndFocus == nullptr )
+      {
+        if (UnhookWinEvent (g_WinEventHook))
+                            g_WinEventHook = nullptr;
+      }
     }
 
-    if (hWndFocus == 0x0 || ChangeWindowMessageFilterEx (hWndFocus, 0xfa57, MSGFLT_ALLOW, nullptr))
+    if (                                 hWndFocus == nullptr
+         || ChangeWindowMessageFilterEx (hWndFocus, 0xfa57, MSGFLT_ALLOW, nullptr) )
     {
-      pSharedMem->SystemWide.hWndFocus =
-              HandleToULong ((void *)((uintptr_t)hWndFocus & 0xFFFFFFFFUL));
+      pSharedMem->SystemWide.hWndFocus = sk::narrow_cast <DWORD> (
+          HandleToULong (
+            (void *)((uintptr_t)hWndFocus & 0xFFFFFFFFUL)
+          ) & 0xFFFFFFFFUL
+        );
     }
   }
 }
@@ -1590,7 +1561,7 @@ CBTProc ( _In_ int    nCode,
         switch (nCode)
         {
           case HCBT_MOVESIZE:
-            if (_DoWindowsOverlap (hWndGame, hWndwParam, FALSE))
+            if (SK_Window_TestOverlap (hWndGame, hWndwParam, FALSE))
             {
               focus_ctx.postMsg (wParam, static_cast <LPARAM> (0x0));
             }
@@ -2639,7 +2610,10 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 {
   // Sort of a temporary hack for important games that I support that are
   //   sold on alternative stores to Steam.
-  if (StrStrNIW (wszExecutable, L"ffxv", MAX_PATH) != nullptr)
+  if (     StrStrNIW (wszExecutable, L"ffxv",      MAX_PATH) != nullptr)
+    return true;
+
+  else if (StrStrNIW (wszExecutable, L"ff7remake", MAX_PATH) != nullptr)
     return true;
 
   return

@@ -169,6 +169,11 @@ SK_GetCurrentGameID (void)
                     SK_FFXV_InitPlugin ();
       }
 
+      else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
+      {
+        current_game = SK_GAME_ID::FinalFantasy7Remake;
+      }
+
       else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
       {
         current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
@@ -2010,10 +2015,10 @@ auto DeclKeybind =
 
         config.steam.preload_overlay          = true;
 
-        SK_D3D11_DeclHUDShader (0x3be1c239, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x466e477c, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x588dea7a, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xf15a90ab, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader_Vtx (0x3be1c239);
+        SK_D3D11_DeclHUDShader_Vtx (0x466e477c);
+        SK_D3D11_DeclHUDShader_Vtx (0x588dea7a);
+        SK_D3D11_DeclHUDShader_Vtx (0xf15a90ab);
 
         InterlockedExchange (&SK_SteamAPI_CallbackRateLimit, 10);
         break;
@@ -2062,9 +2067,9 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::TrailsOfColdSteel:
-        SK_D3D11_DeclHUDShader (0x497dc49d, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x671ca0fa, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x75cf58de, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader_Vtx (0x497dc49d);
+        SK_D3D11_DeclHUDShader_Vtx (0x671ca0fa);
+        SK_D3D11_DeclHUDShader_Vtx (0x75cf58de);
         break;
 
       case SK_GAME_ID::Sekiro:
@@ -2075,18 +2080,18 @@ auto DeclKeybind =
         config.render.framerate.buffer_count      = 3;
         config.render.framerate.pre_render_limit  = 4;
 
-        SK_D3D11_DeclHUDShader (0x15888ef2, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x1893edbd, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x26dc61b1, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x3d205776, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x4c8dd6ec, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x5e74f0b4, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xc4ee4c93, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xd931a68c, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xdb921b64, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xe15a43f4, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xf497bad8, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x6fd3fed7, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader_Vtx (0x15888ef2);
+        SK_D3D11_DeclHUDShader_Vtx (0x1893edbd);
+        SK_D3D11_DeclHUDShader_Vtx (0x26dc61b1);
+        SK_D3D11_DeclHUDShader_Vtx (0x3d205776);
+        SK_D3D11_DeclHUDShader_Vtx (0x4c8dd6ec);
+        SK_D3D11_DeclHUDShader_Vtx (0x5e74f0b4);
+        SK_D3D11_DeclHUDShader_Vtx (0xc4ee4c93);
+        SK_D3D11_DeclHUDShader_Vtx (0xd931a68c);
+        SK_D3D11_DeclHUDShader_Vtx (0xdb921b64);
+        SK_D3D11_DeclHUDShader_Vtx (0xe15a43f4);
+        SK_D3D11_DeclHUDShader_Vtx (0xf497bad8);
+        SK_D3D11_DeclHUDShader_Vtx (0x6fd3fed7);
         config.render.dxgi.deferred_isolation = true;
 
         // ReShade will totally crash if it is permitted to hook D3D9
@@ -2197,10 +2202,10 @@ auto DeclKeybind =
                          L"When=PlugIn\n"
                          L"Filename=ReShade64.dll\n");
 
-        SK_D3D11_DeclHUDShader (0x062173ec, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x48dd4bc3, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0x54c0d366, ID3D11VertexShader);
-        SK_D3D11_DeclHUDShader (0xb943178b, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader_Vtx (0x062173ec);
+        SK_D3D11_DeclHUDShader_Vtx (0x48dd4bc3);
+        SK_D3D11_DeclHUDShader_Vtx (0x54c0d366);
+        SK_D3D11_DeclHUDShader_Vtx (0xb943178b);
 
       case SK_GAME_ID::YakuzaKiwami:
       case SK_GAME_ID::YakuzaUnderflow:
@@ -2293,7 +2298,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::CallOfCthulhu:
       {
-        SK_D3D11_DeclHUDShader (0x28c1a0d6, ID3D11PixelShader);
+        SK_D3D11_DeclHUDShader_Pix (0x28c1a0d6);
       } break;
 
       case SK_GAME_ID::JustCause3:
@@ -2492,7 +2497,7 @@ auto DeclKeybind =
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
         config.window.background_render              = false;
 
-        SK_D3D11_DeclHUDShader (0x3e464f00, ID3D11VertexShader);
+        SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);
 
         config.render.dxgi.deferred_isolation        =  true; // Enable render mods
         config.render.dxgi.low_spec_mode             =  true; // Reduce state tracking overhead
@@ -2582,6 +2587,16 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
+      } break;
+
+      case SK_GAME_ID::FinalFantasy7Remake:
+      {
+        SK_D3D11_DeclHUDShader_Vtx (0x38a98690);
+        SK_D3D11_DeclHUDShader_Vtx (0x9d5f74c0);
+        SK_D3D11_DeclHUDShader_Pix (0xa9fd37df);
+
+        config.input.cursor.manage                      = true;
+        config.input.cursor.timeout                     = 0; // Mouse cursor? What's that?
       } break;
 #endif
     }
@@ -2788,8 +2803,8 @@ auto DeclKeybind =
          config.render.framerate.rescan_.Denom     !=                      0 )
     {
       config.render.framerate.refresh_rate =
-        gsl::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
-        gsl::narrow_cast <float> (config.render.framerate.rescan_.Denom);
+        sk::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
+        sk::narrow_cast <float> (config.render.framerate.rescan_.Denom);
     }
   }
 
@@ -3289,8 +3304,6 @@ auto DeclKeybind =
         config.display.monitor_handle = hMonitor;
         rb.next_monitor               = hMonitor;
 
-        SK_Window_RepositionIfNeeded ();
-
         found_exact = true;
       }
     }
@@ -3302,8 +3315,6 @@ auto DeclKeybind =
 
     if (config.display.monitor_idx != 0 && config.display.monitor_handle == 0)
     {
-      extern void SK_Window_RepositionIfNeeded (void);
-
       EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
       {
         (void)hDC;
@@ -3323,8 +3334,6 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
-              SK_Window_RepositionIfNeeded ();
-
               return FALSE;
             }
           }
@@ -3335,8 +3344,6 @@ auto DeclKeybind =
             {
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
-
-              SK_Window_RepositionIfNeeded ();
 
               return FALSE;
             }
@@ -3853,8 +3860,8 @@ SK_ResHack_PatchGame2 ( uint32_t width,
     if (pOut != nullptr)
     {
       struct {
-        uint32_t w = gsl::narrow_cast <uint32_t> (config.window.res.override.x),
-                 h = gsl::narrow_cast <uint32_t> (config.window.res.override.y);
+        uint32_t w = sk::narrow_cast <uint32_t> (config.window.res.override.x),
+                 h = sk::narrow_cast <uint32_t> (config.window.res.override.y);
       } out_data = { };
 
 
@@ -4207,8 +4214,8 @@ SK_SaveConfig ( std::wstring name,
            config.render.framerate.rescan_.Denom     !=                      0 )
       {
         config.render.framerate.refresh_rate =
-            gsl::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
-            gsl::narrow_cast <float> (config.render.framerate.rescan_.Denom);
+            sk::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /
+            sk::narrow_cast <float> (config.render.framerate.rescan_.Denom);
       }
     }
 
@@ -4748,37 +4755,37 @@ SK_Keybind::parse (void)
            i != VK_LCONTROL && i != VK_RCONTROL &&
            i != VK_LMENU    && i != VK_RMENU )
       {
-        _PushHumanToVirtual (name, gsl::narrow_cast <BYTE> (i));
-        _PushVirtualToHuman (      gsl::narrow_cast <BYTE> (i), name);
+        _PushHumanToVirtual (name, sk::narrow_cast <BYTE> (i));
+        _PushVirtualToHuman (      sk::narrow_cast <BYTE> (i), name);
       }
 
-      _PushVirtualToLocal   (      gsl::narrow_cast <BYTE> (i), name);
+      _PushVirtualToLocal   (      sk::narrow_cast <BYTE> (i), name);
     }
 
-    _PushHumanToVirtual (L"Plus",        gsl::narrow_cast <BYTE> (VK_OEM_PLUS));
-    _PushHumanToVirtual (L"Minus",       gsl::narrow_cast <BYTE> (VK_OEM_MINUS));
-    _PushHumanToVirtual (L"Ctrl",        gsl::narrow_cast <BYTE> (VK_CONTROL));
-    _PushHumanToVirtual (L"Alt",         gsl::narrow_cast <BYTE> (VK_MENU));
-    _PushHumanToVirtual (L"Shift",       gsl::narrow_cast <BYTE> (VK_SHIFT));
-    _PushHumanToVirtual (L"Left Shift",  gsl::narrow_cast <BYTE> (VK_LSHIFT));
-    _PushHumanToVirtual (L"Right Shift", gsl::narrow_cast <BYTE> (VK_RSHIFT));
-    _PushHumanToVirtual (L"Left Alt",    gsl::narrow_cast <BYTE> (VK_LMENU));
-    _PushHumanToVirtual (L"Right Alt",   gsl::narrow_cast <BYTE> (VK_RMENU));
-    _PushHumanToVirtual (L"Left Ctrl",   gsl::narrow_cast <BYTE> (VK_LCONTROL));
-    _PushHumanToVirtual (L"Right Ctrl",  gsl::narrow_cast <BYTE> (VK_RCONTROL));
+    _PushHumanToVirtual (L"Plus",        sk::narrow_cast <BYTE> (VK_OEM_PLUS));
+    _PushHumanToVirtual (L"Minus",       sk::narrow_cast <BYTE> (VK_OEM_MINUS));
+    _PushHumanToVirtual (L"Ctrl",        sk::narrow_cast <BYTE> (VK_CONTROL));
+    _PushHumanToVirtual (L"Alt",         sk::narrow_cast <BYTE> (VK_MENU));
+    _PushHumanToVirtual (L"Shift",       sk::narrow_cast <BYTE> (VK_SHIFT));
+    _PushHumanToVirtual (L"Left Shift",  sk::narrow_cast <BYTE> (VK_LSHIFT));
+    _PushHumanToVirtual (L"Right Shift", sk::narrow_cast <BYTE> (VK_RSHIFT));
+    _PushHumanToVirtual (L"Left Alt",    sk::narrow_cast <BYTE> (VK_LMENU));
+    _PushHumanToVirtual (L"Right Alt",   sk::narrow_cast <BYTE> (VK_RMENU));
+    _PushHumanToVirtual (L"Left Ctrl",   sk::narrow_cast <BYTE> (VK_LCONTROL));
+    _PushHumanToVirtual (L"Right Ctrl",  sk::narrow_cast <BYTE> (VK_RCONTROL));
 
 
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_MENU),      L"Alt");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_SHIFT),     L"Shift");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_OEM_PLUS),  L"Plus");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_OEM_MINUS), L"Minus");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LSHIFT),    L"Left Shift");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RSHIFT),    L"Right Shift");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LMENU),     L"Left Alt");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
-    _PushVirtualToHuman (gsl::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_MENU),      L"Alt");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_SHIFT),     L"Shift");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_OEM_PLUS),  L"Plus");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_OEM_MINUS), L"Minus");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_LSHIFT),    L"Left Shift");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RSHIFT),    L"Right Shift");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_LMENU),     L"Left Alt");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
 
     init = true;
   }
