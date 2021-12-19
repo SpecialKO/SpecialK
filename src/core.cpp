@@ -1523,8 +1523,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   bool blacklist = false;
 
   // Injection Compatibility Menu
-  if ( (gsl::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_SHIFT  )) & 0x8000) != 0 &&
-       (gsl::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_CONTROL)) & 0x8000) != 0 )
+  if ( (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_SHIFT  )) & 0x8000) != 0 &&
+       (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (VK_CONTROL)) & 0x8000) != 0 )
   {
     WriteRelease (&__SK_Init, -1);
                    __SK_bypass = true;
@@ -2144,8 +2144,11 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (config.render.dxgi.temporary_dwm_hdr)
   {
-    extern void SK_Display_DisableHDR (void);
-                SK_Display_DisableHDR ();
+    for ( auto pHDROutput : SK_GetCurrentRenderBackend ().hdr_enabled_displays )
+    {
+      extern void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput);
+                  SK_Display_DisableHDR (pHDROutput);
+    }
   }
 
   dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
@@ -2157,6 +2160,9 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime); else
     dll_log->LogEx  (false, L"fail! (%4u ms -> Timeout)\n", SK_timeGetTime () - dwTime);
 
+  extern bool __SKX_WinHook_InstallInputHooks (HWND hWnd);
+              __SKX_WinHook_InstallInputHooks (nullptr);
+
   SK_Win32_CleanupDummyWindow ();
 
   // No more exit rumble, please :)
@@ -2164,6 +2170,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (config.window.background_mute)
     SK_SetGameMute (false);
+
+  SK_ClipCursor (nullptr);
 
 
   const wchar_t* config_name = backend;
@@ -2206,8 +2214,10 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_AutoClose_LogEx (game_debug, game);
   SK_AutoClose_LogEx (dll_log,    dll);
 
+  extern HWND SK_Inject_GetFocusWindow (void);
   extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-              SK_Inject_SetFocusWindow              (0);
+  if (SK_Inject_GetFocusWindow ( ) == game_window.hWnd)
+      SK_Inject_SetFocusWindow (0);
 
   if (config.system.return_to_skif)
   {
@@ -2220,7 +2230,10 @@ SK_ShutdownCore (const wchar_t* backend)
 
       SendMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
       SetForegroundWindow      (hWndExisting);
-      SK_Inject_SetFocusWindow (hWndExisting);
+
+      if (SK_Inject_GetFocusWindow (            ) == 0)
+          SK_Inject_SetFocusWindow (hWndExisting);
+
       ShowWindow               (hWndExisting, SW_NORMAL);
     }
   }
@@ -2802,13 +2815,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
-      //
-      // Defer this process to rule out dummy init. windows in some engines
-      //
-      if (game_window.WndProc_Original == nullptr)
-      {
-        SKX_Window_EstablishRoot ();
-      }
 
       if (game_window.WndProc_Original != nullptr)
       {
@@ -3162,8 +3168,8 @@ SK_BackgroundRender_EndFrame (void)
       GetWindowThreadProcessId (
         SK_GetForegroundWindow (), &dwForegroundPid);
 
-//if ( dwForegroundTid != GetCurrentThreadId  () &&
-//     dwForegroundPid != GetCurrentProcessId () )
+  if (//dwForegroundTid!= GetCurrentThreadId  () &&
+       dwForegroundPid != GetCurrentProcessId () )
   {
       GUITHREADINFO gti        = {                    };
                     gti.cbSize = sizeof (GUITHREADINFO);
@@ -3353,6 +3359,41 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   {
     SK_MMCS_EndBufferSwap ();
   }
+
+
+
+  // Handle missed window activation events; most commonly this is
+  //   because of games that use multiple windows.
+  DWORD                                                 dwProcess;
+  GetWindowThreadProcessId (SK_GetForegroundWindow (), &dwProcess);
+
+  void
+  ActivateWindow ( HWND hWnd,
+                   bool active          = false,
+                   HWND hWndDeactivated = 0 );
+
+  if (GetCurrentProcessId () == dwProcess)
+  {
+    if (! game_window.active)
+    {
+      ActivateWindow (game_window.hWnd, true);
+    }
+  }
+
+  else
+  {
+    if (game_window.active)
+    {
+      ActivateWindow (game_window.hWnd, false);
+    }
+  }
+
+
+  if (rb.next_monitor != rb.monitor)
+  {
+    SK_Window_RepositionIfNeeded ();
+  }
+
 
   return hr;
 }
