@@ -90,6 +90,7 @@ struct SK_XInputContext
     XInputLevel_1_4   =  4,
     XInputLevel_1_2   =  8,
     XInputLevel_1_1   = 16,
+    XInputLevel_Uap   = 32,
   };
 
   struct instance_s
@@ -141,7 +142,8 @@ struct SK_XInputContext
     LPVOID                          XInputPowerOff_Target                = nullptr;
 
     uint8_t                         orig_inst_poweroff [7]               =   {   };
-  } XInput1_1   { },
+  } XInputUap   { },
+    XInput1_1   { },
     XInput1_2   { },
     XInput1_3   { },
     XInput1_4   { },
@@ -262,6 +264,13 @@ SK_XInput_GetPrimaryHookName (void)
     return                 "XInput 1.1";
 #endif
 
+  if (xinput_ctx.primary_hook == &xinput_ctx.XInputUap)
+#ifdef XINPUT_UPGRADE
+    return (const char *)u8"XInput UAP→1.4";
+#else
+    return                 "XInput UAP";
+#endif
+
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
 #ifdef XINPUT_UPGRADE
     return (const char *)u8"XInput 9.1.0→1.4";
@@ -334,7 +343,8 @@ SK_XInput_Enable ( BOOL bEnable )
     contexts [] =
       { //&(xinput_ctx->XInput9_1_0), // Undefined
         &(xinput_ctx.XInput1_4),
-        &(xinput_ctx.XInput1_3) };
+        &(xinput_ctx.XInput1_3),
+        &(xinput_ctx.XInputUap) };
 
   for ( auto& context : contexts )
   {
@@ -763,6 +773,88 @@ XInputSetState1_4_Detour (
     dwRet;
 }
 
+
+void
+WINAPI
+XInputEnableUap_Detour (
+  _In_ BOOL enable )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInputUap
+  );
+
+  return XInputEnable1_4_Detour (enable);
+}
+
+
+DWORD
+WINAPI
+XInputGetStateUap_Detour (
+  _In_  DWORD         dwUserIndex,
+  _Out_ XINPUT_STATE *pState )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInputUap
+  );
+
+  return XInputGetState1_4_Detour (dwUserIndex, pState);
+}
+
+DWORD
+WINAPI
+XInputGetCapabilitiesUap_Detour (
+  _In_  DWORD                dwUserIndex,
+  _In_  DWORD                dwFlags,
+  _Out_ XINPUT_CAPABILITIES *pCapabilities )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInputUap
+  );
+
+  return XInputGetCapabilities1_4_Detour (dwUserIndex, dwFlags, pCapabilities);
+}
+
+DWORD
+WINAPI
+XInputGetBatteryInformationUap_Detour (
+  _In_  DWORD                       dwUserIndex,
+  _In_  BYTE                        devType,
+  _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInputUap
+  );
+
+  return XInputGetBatteryInformation1_4_Detour (dwUserIndex, devType, pBatteryInformation);
+}
+
+DWORD
+WINAPI
+XInputSetStateUap_Detour (
+  _In_    DWORD             dwUserIndex,
+  _Inout_ XINPUT_VIBRATION *pVibration )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_XInput_EstablishPrimaryHook (
+    SK_GetCallingDLL (),
+      &xinput_ctx.XInputUap
+  );
+
+  return XInputSetState1_4_Detour (dwUserIndex, pVibration);
+}
 
 void
 WINAPI
@@ -1297,6 +1389,7 @@ static volatile LONG __hooked_xi_1_3   = FALSE;
 static volatile LONG __hooked_xi_1_2   = FALSE;
 static volatile LONG __hooked_xi_1_1   = FALSE;
 static volatile LONG __hooked_xi_9_1_0 = FALSE;
+static volatile LONG __hooked_xi_uap   = FALSE;
 
 void
 SK_Input_HookXInput1_4 (void)
@@ -1354,6 +1447,63 @@ SK_Input_HookXInput1_4 (void)
 
   if (! pTLS->input_core->ctx_init_thread)
     SK_Thread_SpinUntilAtomicMin (&__hooked_xi_1_4, 2);
+}
+
+void
+SK_Input_HookXInputUap (void)
+{
+  if (! config.input.gamepad.hook_xinput)
+    return;
+
+  if (ReadAcquire (&__hooked_xi_uap) >= 2)
+    return;
+
+  // Upgrade
+  //   Passthrough to 1.4
+  SK_Input_HookXInput1_4 ();
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+    return;
+
+  if (! InterlockedCompareExchangeAcquire (&__hooked_xi_uap, TRUE, FALSE))
+  {
+    if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
+      pTLS->input_core->ctx_init_thread = TRUE;
+
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInputUap;
+
+    SK_LOG0 ( ( L"  >> Hooking XInput UAP" ),
+                L"  Input   " );
+
+    pCtx->wszModuleName                        = L"XInputUap.dll";
+    pCtx->hMod                                 = SK_Modules->LoadLibrary (pCtx->wszModuleName);
+
+    if (SK_Modules->isValid (pCtx->hMod))
+    {
+      pCtx->XInputEnable_Detour                = XInputEnableUap_Detour;
+      pCtx->XInputGetState_Detour              = XInputGetStateUap_Detour;
+      pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilitiesUap_Detour;
+      pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformationUap_Detour;
+
+      pCtx->XInputSetState_Detour              =
+        config.input.gamepad.xinput.hook_setstate ? XInputSetStateUap_Detour : nullptr;
+
+      SK_Input_HookXInputContext (pCtx);
+
+      pCtx->XInputSetState_Original =
+        config.input.gamepad.xinput.hook_setstate ? xinput_ctx.XInputUap.XInputSetState_Original :
+                   (XInputSetState_pfn)SK_GetProcAddress (pCtx->hMod,   "XInputSetState");
+    }
+
+    InterlockedIncrementRelease (&__hooked_xi_uap);
+  }
+
+  if (! pTLS->input_core->ctx_init_thread)
+    SK_Thread_SpinUntilAtomicMin (&__hooked_xi_uap, 2);
 }
 
 void
@@ -1649,6 +1799,8 @@ SK_XInput_RehookIfNeeded (void)
           xinput_ctx.XInput1_1 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
           xinput_ctx.XInput9_1_0 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInputUap.hMod)
+          xinput_ctx.XInputUap = *pCtx;
       }
 
       else
@@ -1704,6 +1856,8 @@ SK_XInput_RehookIfNeeded (void)
             xinput_ctx.XInput1_1 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
             xinput_ctx.XInput9_1_0 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInputUap.hMod)
+            xinput_ctx.XInputUap = *pCtx;
         }
 
         else
@@ -1760,6 +1914,8 @@ SK_XInput_RehookIfNeeded (void)
           xinput_ctx.XInput1_1 = *pCtx;
         if (pCtx->hMod == xinput_ctx.XInput9_1_0.hMod)
           xinput_ctx.XInput9_1_0 = *pCtx;
+        if (pCtx->hMod == xinput_ctx.XInputUap.hMod)
+          xinput_ctx.XInputUap = *pCtx;
       }
 
       else
@@ -1810,6 +1966,8 @@ SK_XInput_RehookIfNeeded (void)
             xinput_ctx.XInput1_4 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInputUap.hMod)
+            xinput_ctx.XInputUap = *pCtx;
         }
 
         else
@@ -1958,6 +2116,8 @@ SK_XInput_RehookIfNeeded (void)
             xinput_ctx.XInput1_4 = *pCtx;
           if (pCtx->hMod == xinput_ctx.XInput1_3.hMod)
             xinput_ctx.XInput1_3 = *pCtx;
+          if (pCtx->hMod == xinput_ctx.XInputUap.hMod)
+            xinput_ctx.XInputUap = *pCtx;
         }
 
         else
@@ -2227,6 +2387,11 @@ SK_XInput_PollController ( INT           iJoyID,
                                 )
        ) SK_Input_HookXInput9_1_0 ();
 
+    if ( SK_Modules->isValid    (
+         SK_GetModuleHandleW    (L"XInputUap.dll")
+                                )
+       ) SK_Input_HookXInputUap ();
+
     queued_hooks = true;
   }
 
@@ -2312,7 +2477,8 @@ static sk_import_test_s
                               { "XInput1_3.dll",   false },
                               { "XInput1_2.dll",   false },
                               { "XInput1_1.dll",   false },
-                              { "XInput9_1_0.dll", false } };
+                              { "XInput9_1_0.dll", false },
+                              { "XInputUap.dll",   false } };
 
 void
 SK_Input_PreHookXInput (void)
@@ -2377,10 +2543,10 @@ SK_Input_PreHookXInput (void)
     auto& tests =
       _XInput_ImportsToTry;
 
-    SK_TestImports (SK_Modules->HostApp (), tests, 5);
+    SK_TestImports (SK_Modules->HostApp (), tests, 6);
 
     if ( tests [0].used || tests [1].used || tests [2].used ||
-         tests [3].used || tests [4].used )
+         tests [3].used || tests [4].used || tests [5].used )
     {
 #if 0
       SK_LOG0 ( ( L"Game uses XInput, deferring input hooks..." ),
@@ -2390,6 +2556,7 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) { /*SK_Input_HookXInput1_2   ();*/ SK_XInput_LinkedVersion = L"XInput1_2.dll";   }
       if (tests [3].used) { /*SK_Input_HookXInput1_1   ();*/ SK_XInput_LinkedVersion = L"XInput1_1.dll";   }
       if (tests [4].used) { /*SK_Input_HookXInput9_1_0 ();*/ SK_XInput_LinkedVersion = L"XInput9_1_0.dll"; }
+      if (tests [5].used) { /*SK_Input_HookXInputUap   ();*/ SK_XInput_LinkedVersion = L"XInputUap.dll";   }
 #else
       SK_LOG0 ( ( L"Game uses XInput, installing input hooks..." ),
                   L"  Input   " );
@@ -2398,6 +2565,7 @@ SK_Input_PreHookXInput (void)
       if (tests [2].used) { SK_Input_HookXInput1_2   (); }
       if (tests [3].used) { SK_Input_HookXInput1_1   (); }
       if (tests [4].used) { SK_Input_HookXInput9_1_0 (); }
+      if (tests [5].used) { SK_Input_HookXInputUap   (); }
 
 #endif
     }
@@ -2416,6 +2584,9 @@ SK_Input_PreHookXInput (void)
 
     if (SK_GetModuleHandleW (L"XInput9_1_0.dll"))
       SK_Input_HookXInput9_1_0 ();
+
+    if (SK_GetModuleHandleW (L"XInputUap.dll"))
+      SK_Input_HookXInputUap ();
   }
 
   SK_RunOnce (SK_XInput_NotifyDeviceArrival ());
@@ -2429,7 +2600,7 @@ SK_XInput_ZeroHaptics (INT iJoyID)
 {
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
   auto steam_idx =
-    gsl::narrow_cast <ControllerIndex_t> (iJoyID);
+    sk::narrow_cast <ControllerIndex_t> (iJoyID);
 
   if (steam_input.count && ControllerPresent (steam_idx))
   {
