@@ -41,10 +41,10 @@ SK_WideCharToUTF8 (const std::wstring& in)
       '\0'
   );
 
-  WideCharToMultiByte   ( CP_UTF8, 0x00,          in.c_str  (),
-                          gsl::narrow_cast <int> (in.length ()),
-                                                 out.data   (),
-                          gsl::narrow_cast <DWORD>       (len),
+  WideCharToMultiByte   ( CP_UTF8, 0x00,         in.c_str  (),
+                          sk::narrow_cast <int> (in.length ()),
+                                                out.data   (),
+                          sk::narrow_cast <DWORD>       (len),
                             nullptr,                   FALSE );
 
   return out;
@@ -62,10 +62,10 @@ SK_UTF8ToWideChar (const std::string& in)
       L'\0'
   );
 
-  MultiByteToWideChar   ( CP_UTF8, 0x00,          in.c_str  (),
-                          gsl::narrow_cast <int> (in.length ()),
-                                                 out.data   (),
-                          gsl::narrow_cast <DWORD>       (len) );
+  MultiByteToWideChar   ( CP_UTF8, 0x00,         in.c_str  (),
+                          sk::narrow_cast <int> (in.length ()),
+                                                out.data   (),
+                          sk::narrow_cast <DWORD>       (len) );
 
   return out;
 }
@@ -282,7 +282,7 @@ SK_GetDocumentsDir (wchar_t* buf, uint32_t* pdwLen)
       wcsncat (buf, docs.c_str (), *pdwLen);
 
       *pdwLen =
-        gsl::narrow_cast <uint32_t> (wcslen (buf));
+        sk::narrow_cast <uint32_t> (wcslen (buf));
 
       return true;
     }

@@ -351,8 +351,8 @@ SK_OPT_InitPlugin (void)
 
   SK_SetPluginName (OPT_VERSION_STR);
 
-  SK_D3D11_DeclHUDShader (0x71532076, ID3D11VertexShader);
-  SK_D3D11_DeclHUDShader (0x9cb67cc4, ID3D11VertexShader);
+  SK_D3D11_DeclHUDShader_Vtx (0x71532076);
+  SK_D3D11_DeclHUDShader_Vtx (0x9cb67cc4);
 
   static auto& opt_cfg =
     opt_config.get ();

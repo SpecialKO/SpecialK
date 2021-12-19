@@ -842,21 +842,21 @@ SK_CPU_GetIntelMicroarch (void)
         case SK_CPU_IntelMicroarch::Airmont:
         case SK_CPU_IntelMicroarch::IceLake:
           cpu.coefficients.energy =
-            1.0e-6 * static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
+            1.0e-6 * static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
           break;
 
         default:
           cpu.coefficients.energy =
-            1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
+            1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
           break;
       }
 
       cpu.coefficients.power =
-        1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> (eax & 0x0FULL));
+        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax & 0x0FULL));
 
       cpu.coefficients.time   =
         1000.0 *
-         ( 1.0 / static_cast <double> (1ULL << gsl::narrow_cast <uint64_t> ((eax >> 16ULL) & 0x0FULL)) );
+         ( 1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t> ((eax >> 16ULL) & 0x0FULL)) );
 
       SK_LOG0 ( ( L"Power Units: %f, Energy Units: %f, Time Units: %f",
                   cpu.coefficients.power, cpu.coefficients.energy, cpu.coefficients.time ),

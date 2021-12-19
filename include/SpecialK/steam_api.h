@@ -174,8 +174,8 @@ struct SK_SteamAchievement
 
     __forceinline float getPercent (void) noexcept
     {
-      return 100.0F * gsl::narrow_cast <float> (current) /
-                      gsl::narrow_cast <float> (max);
+      return 100.0F * sk::narrow_cast <float> (current) /
+                      sk::narrow_cast <float> (max);
     }
   } progress_;
 

@@ -144,7 +144,7 @@ SK_ImGui_DrawTexCache_Chart (void)
     ImGui::PopStyleColor ( );
 
     float size =
-      gsl::narrow_cast <float> (config.textures.cache.max_size);
+      sk::narrow_cast <float> (config.textures.cache.max_size);
 
     ImGui::TreePush  ( "" );
 
@@ -152,7 +152,7 @@ SK_ImGui_DrawTexCache_Chart (void)
                                256.f, 8192.f, "%.0f MiB" ))
     {
       config.textures.cache.max_size =
-        gsl::narrow_cast <int> (size);
+        sk::narrow_cast <int> (size);
 
       auto cp =
         SK_GetCommandProcessor ();
@@ -476,8 +476,8 @@ SK::ControlPanel::D3D11::Draw (void)
                 config.render.framerate.buffer_count = std::min (15, std::max (1, config.render.framerate.buffer_count));
 
             // Trigger a compliant game to invoke IDXGISwapChain::ResizeBuffers (...)
-            PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_MAXIMIZED, MAKELPARAM ( (LONG)io.DisplaySize.x,
-                                                                                    (LONG)io.DisplaySize.y ) );
+            PostMessage (SK_GetGameWindow (), WM_SIZE, SIZE_RESTORED, MAKELPARAM ( (LONG)io.DisplaySize.x,
+                                                                                   (LONG)io.DisplaySize.y ) );
 
             _ResetLimiter ();
           }

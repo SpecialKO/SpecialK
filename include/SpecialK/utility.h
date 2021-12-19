@@ -48,27 +48,6 @@
 
 using HANDLE = void *;
 
-template <typename T, typename T2, typename Q>
-  __inline
-  T
-    static_const_cast ( const typename Q q )
-    {
-      return static_cast <T>  (
-               const_cast <T2>  ( q )
-                              );
-    };
-
-template <typename T, typename Q>
-  __inline
-  T**
-    static_cast_p2p (     Q **      p2p ) noexcept
-    {
-      return static_cast <T **> (
-               static_cast <T*>   ( p2p )
-                                );
-    };
-
-
 enum SK_UNITS {
   Celsius    = 0,
   Fahrenheit = 1,

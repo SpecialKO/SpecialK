@@ -58,29 +58,29 @@ void SK_Screenshot_PlaySound (void)
 void SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
                             const SK_RenderBackend&  rb = SK_GetCurrentRenderBackend () )
 {
-  if ( gsl::narrow_cast <int> (rb.api) &
-       gsl::narrow_cast <int> (SK_RenderAPI::D3D12) )
+  if ( sk::narrow_cast <int> (rb.api) &
+       sk::narrow_cast <int> (SK_RenderAPI::D3D12) )
   {
     SK_D3D12_ProcessScreenshotQueue (stage);
   }
 
   else
-  if ( gsl::narrow_cast <int> (rb.api) &
-       gsl::narrow_cast <int> (SK_RenderAPI::D3D11) )
+  if ( sk::narrow_cast <int> (rb.api) &
+       sk::narrow_cast <int> (SK_RenderAPI::D3D11) )
   {
     SK_D3D11_ProcessScreenshotQueue (stage);
   }
 
   else
-  if ( gsl::narrow_cast <int> (rb.api) &
-       gsl::narrow_cast <int> (SK_RenderAPI::D3D9) )
+  if ( sk::narrow_cast <int> (rb.api) &
+       sk::narrow_cast <int> (SK_RenderAPI::D3D9) )
   {
     SK_D3D9_ProcessScreenshotQueue (stage);
   }
 
   else
-  if ( gsl::narrow_cast <int> (rb.api) &
-       gsl::narrow_cast <int> (SK_RenderAPI::OpenGL) )
+  if ( sk::narrow_cast <int> (rb.api) &
+       sk::narrow_cast <int> (SK_RenderAPI::OpenGL) )
   {
     SK_GL_ProcessScreenshotQueue (stage);
   }

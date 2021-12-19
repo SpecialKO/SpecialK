@@ -26,7 +26,43 @@
 
 #include <Windows.h>
 #include <avrt.h>
-#include <gsl/gsl>
+
+namespace sk
+{
+  template <typename T, typename Q>
+    constexpr
+    T
+      narrow_cast (Q&& q) noexcept
+      {
+        return static_cast <T> (
+                 std::forward <Q> (q)
+                               );
+      };
+};
+
+template < typename T, typename Q    > constexpr
+ T  (*narrow_cast)(             Q&& q) noexcept
+=&sk::narrow_cast < T,          Q    >;
+
+template <typename T, typename T2, typename Q>
+  constexpr
+  T
+    static_const_cast ( const typename Q q )
+    {
+      return static_cast <T>  (
+               const_cast <T2>  ( q )
+                              );
+    };
+
+template <typename T, typename Q>
+  constexpr
+  T**
+    static_cast_p2p (     Q **      p2p ) noexcept
+    {
+      return static_cast <T **> (
+               static_cast <T*>   ( p2p )
+                                );
+    };
 
 constexpr static DWORD SK_WINNT_THREAD_NAME_EXCEPTION = 0x406D1388;
 
@@ -585,12 +621,14 @@ DWORD
 SK_Thread_GetCurrentId (void)
 {
   return
-    gsl::narrow_cast   <DWORD    > (
+    sk::narrow_cast    <DWORD    > (
       reinterpret_cast <DWORD_PTR> (
         SK_Thread_GetTEB_FAST ()->Cid.UniqueThread
       ) & 0x00000000FFFFFFFFULL
     );
 }
+
+DWORD SK_Thread_GetMainId (void);
 
 void SK_Thread_RaiseNameException (THREADNAME_INFO* pTni);
 

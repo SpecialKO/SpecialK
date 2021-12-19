@@ -278,7 +278,7 @@ SK_YS8_RecursiveFileExport (
 
       if (fIN)
       {
-        const size_t size = gsl::narrow_cast <size_t> (
+        const size_t size = sk::narrow_cast <size_t> (
           SK_File_GetSize (in_file.c_str ())
         );
 
@@ -375,7 +375,7 @@ const
                             wszRoot, wszSubDir,
                               fd.cFileName );
 
-      const size_t size = gsl::narrow_cast <size_t> (
+      const size_t size = sk::narrow_cast <size_t> (
         SK_File_GetSize (in_file.c_str ())
       );
 

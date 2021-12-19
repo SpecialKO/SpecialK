@@ -182,8 +182,8 @@ SK::ControlPanel::Window::Draw (void)
           bool right_align  = config.window.offset.x.absolute < 0;
           bool bottom_align = config.window.offset.y.absolute < 0;
 
-          float extent_x    = gsl::narrow_cast <float> (mi.rcMonitor.right  - mi.rcMonitor.left) / 2.0f + 1.0f;
-          float extent_y    = gsl::narrow_cast <float> (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2.0f + 1.0f;
+          float extent_x    = sk::narrow_cast <float> (mi.rcMonitor.right  - mi.rcMonitor.left) / 2.0f + 1.0f;
+          float extent_y    = sk::narrow_cast <float> (mi.rcMonitor.bottom - mi.rcMonitor.top)  / 2.0f + 1.0f;
 
           if (config.window.center) {
             extent_x /= 2.0f;
@@ -195,9 +195,9 @@ SK::ControlPanel::Window::Draw (void)
           static bool queue_move = false;
 
           float fx_pos =
-            gsl::narrow_cast <float> (x_pos),
+            sk::narrow_cast <float> (x_pos),
                 fy_pos =
-            gsl::narrow_cast <float> (y_pos);
+            sk::narrow_cast <float> (y_pos);
 
           moved  = ImGui::SliderFloat ("X Offset##WindowPix",       &fx_pos, 0.0f, extent_x, "%.0f pixels"); ImGui::SameLine ();
           moved |= ImGui::Checkbox    ("Right-aligned##WindowPix",  &right_align);
@@ -206,8 +206,8 @@ SK::ControlPanel::Window::Draw (void)
 
           if (moved)
           {
-            x_pos = gsl::narrow_cast <int> (fx_pos);
-            y_pos = gsl::narrow_cast <int> (fy_pos);
+            x_pos = sk::narrow_cast <int> (fx_pos);
+            y_pos = sk::narrow_cast <int> (fy_pos);
 
             queue_move = true;
           }
@@ -357,11 +357,10 @@ SK::ControlPanel::Window::Draw (void)
         ImGui::Separator    ();
         ImGui::BulletText   ("Improves framepacing when KB&M input is given to other applications");
         ImGui::BulletText   ("Enables G-Sync / FreeSync / VRR in overlapping multi-monitor scenarios");
-        ImGui::BulletText   ("Prevents deadbeat taskbars from orphaning child windows on top of games");
         ImGui::Separator    ();
         if (! config.window.background_render)
           ImGui::Text       (ICON_FA_INFO_CIRCLE " Enable 'Continue Rendering' mode for Ultra-tasking");
-        ImGui::Text         (ICON_FA_EXCLAMATION_TRIANGLE " Experimental feature: extra consistency checks offered by Global Injection");
+        ImGui::Text         (ICON_FA_EXCLAMATION_TRIANGLE " Advanced feature: Leave Global Injection running to raise windows dragged over the game");
         ImGui::EndTooltip   ();
       }
 
@@ -371,7 +370,7 @@ SK::ControlPanel::Window::Draw (void)
           SK_DeferCommand ("Window.TopMost true");
         else if (config.window.always_on_top == 0)
           SK_DeferCommand ("Window.TopMost false");
-        else if (config.window.always_on_top == 2/* && config.window.borderless && config.window.fullscreen*/)
+        else if (config.window.always_on_top == 2)
           SK_DeferCommand ("Window.TopMost true");
       }
 

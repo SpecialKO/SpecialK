@@ -398,8 +398,8 @@ SK_FFXV_InitPlugin (void)
     0xf15a90ab
   };
 
-  for (                 auto  it : __SK_FFXV_UI_Pix_Shaders)
-    SK_D3D11_DeclHUDShader   (it,        ID3D11PixelShader);
+  for (                 auto    it : __SK_FFXV_UI_Pix_Shaders)
+    SK_D3D11_DeclHUDShader_Pix (it);
 
   //SK_CreateDLLHook2 (      L"kernel32",
   //                          "GetEnvironmentVariableA",
@@ -582,9 +582,9 @@ SK_FFXV_PlugInCfg (void)
     {
       ImGui::PushID (name);
 
-      int idx = ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [0] ? 0 :
-                ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [1] ? 1 :
-                ( gsl::narrow_cast <int> (thread.dwPrio) == priority_levels [2] ? 2 : 3 ) ) );
+      int idx = ( sk::narrow_cast <int> (thread.dwPrio) == priority_levels [0] ? 0 :
+                ( sk::narrow_cast <int> (thread.dwPrio) == priority_levels [1] ? 1 :
+                ( sk::narrow_cast <int> (thread.dwPrio) == priority_levels [2] ? 2 : 3 ) ) );
 
       if ( thread.hThread )
       {
@@ -761,7 +761,7 @@ SK_POE2_PlugInCfg (void)
     static SYSTEM_INFO             si = { };
     SK_RunOnce (SK_GetSystemInfo (&si));
 
-    if ((! spoof) || gsl::narrow_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
+    if ((! spoof) || sk::narrow_cast <DWORD> (config.render.framerate.override_num_cpus) > (si.dwNumberOfProcessors / 2))
     {
       ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.14f, .8f, .9f));
       ImGui::BulletText     ("It is strongly suggested that you reduce worker threads to 1/2 max. or lower");

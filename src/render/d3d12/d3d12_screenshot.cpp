@@ -279,13 +279,11 @@ struct ShaderBase
       auto data =
         std::make_unique <char> (static_cast <size_t> (size) + 32);
 
-      memset ( data.get (),
-                 0,
-        gsl::narrow_cast <size_t> (size) + 32 );
+      memset ( data.get (),             0,
+        sk::narrow_cast <size_t> (size) + 32 );
 
-      fread  ( data.get (),
-                 1,
-        gsl::narrow_cast <size_t> (size) + 2,
+      fread  ( data.get (),             1,
+        sk::narrow_cast <size_t> (size) + 2,
                                      fShader );
 
       fclose (fShader);
@@ -1368,7 +1366,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
   const int __MaxStage = 2;
   const int      stage =
-    gsl::narrow_cast <int> (stage_);
+    sk::narrow_cast <int> (stage_);
 
   assert ( stage >= 0 &&
            stage <= ( __MaxStage + 1 ) );

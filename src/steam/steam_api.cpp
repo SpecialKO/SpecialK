@@ -288,7 +288,7 @@ SK_Steam_RecursiveFileScrub (
           ++files;
           liSize.QuadPart +=
             LARGE_INTEGER {          fd.nFileSizeLow,
-            gsl::narrow_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
+            sk::narrow_cast <LONG> (fd.nFileSizeHigh) }.QuadPart;
         }
 
         else
@@ -4324,8 +4324,8 @@ SK_UseManifestToGetDepots (AppId_t appid)
     {
       depots.push_back (
         SK_Steam_Depot {
-          "", gsl::narrow_cast <uint32_t> (atoi  (it            .c_str ())),
-              gsl::narrow_cast <uint64_t> (atoll (values [idx++].c_str ()))
+          "", sk::narrow_cast <uint32_t> (atoi  (it            .c_str ())),
+              sk::narrow_cast <uint64_t> (atoll (values [idx++].c_str ()))
         }
       );
     }
@@ -5301,7 +5301,7 @@ SK_SteamAPI_GetFriendName (uint32_t idx, size_t* pLen)
   static const std::string dummy_ = "";
 
   uint32_t friend_quick_count =
-    gsl::narrow_cast <uint32_t> (
+    sk::narrow_cast <uint32_t> (
       std::max (0i32, SK_SteamAPI_GetNumFriends ())
     );
 

@@ -423,7 +423,7 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
   }
 
   io.DisplayFramebufferScale = ImVec2 ( width, height );
-  //io.DisplaySize             = ImVec2 ( width, height );
+  io.DisplaySize             = ImVec2 ( width, height );
 
 
   return true;
@@ -454,24 +454,15 @@ ImGui_ImplDX9_CreateFontsTexture (void)
     ImGui::GetIO ()
   );
 
-  static bool           init            = false;
-  static unsigned char* pixels          = nullptr;
-  static int            width           = 0,
-                        height          = 0,
-                        bytes_per_pixel = 0;
-
-  // Only needs to be done once, the raw pixels are API agnostic
-  if (! std::exchange (init, true))
-  {
-    io.Fonts->GetTexDataAsRGBA32 ( &pixels,
-                                   &width, &height,
-                                     &bytes_per_pixel );
-  }
-
   // Upload texture to graphics system
   g_FontTexture = nullptr;
 
-  if ( g_pd3dDevice->CreateTexture ( width, height,
+  int                            width   = 0,
+                                 height  = 0;
+  unsigned char                 *pixels  = nullptr;
+  io.Fonts->GetTexDataAsAlpha8 (&pixels, &width, &height);
+  if (                           pixels == nullptr ||
+       g_pd3dDevice->CreateTexture ( width, height,
                                        1, D3DUSAGE_DYNAMIC,
                                           D3DFMT_A8R8G8B8,
                                           D3DPOOL_DEFAULT,
@@ -482,8 +473,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
     return false;
   }
 
-  D3DLOCKED_RECT tex_locked_rect;
-
+  D3DLOCKED_RECT                           tex_locked_rect = { };
   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
                                  nullptr, 0 ) != D3D_OK )
   {
@@ -493,10 +483,16 @@ ImGui_ImplDX9_CreateFontsTexture (void)
 
   for (int y = 0; y < height; y++)
   {
-      memcpy ( (unsigned char *)tex_locked_rect.pBits +
-                                tex_locked_rect.Pitch * y,
-                 pixels + (width * bytes_per_pixel)   * y,
-                          (width * bytes_per_pixel) );
+    ImU32  *pDst =
+      (ImU32 *)((uintptr_t)tex_locked_rect.pBits +
+                           tex_locked_rect.Pitch * y);
+    ImU8   *pSrc =                pixels + width * y;
+
+    for (int x = 0; x < width; x++)
+    {
+      *pDst++ =
+        IM_COL32 (255, 255, 255, (ImU32)(*pSrc++));
+    }
   }
 
   g_FontTexture->UnlockRect (0);
@@ -506,6 +502,8 @@ ImGui_ImplDX9_CreateFontsTexture (void)
     static_cast <void *> (g_FontTexture);
 
   pTLS->texture_management.injection_thread = FALSE;
+
+  EmptyWorkingSet (GetCurrentProcess ());
 
   return true;
 }

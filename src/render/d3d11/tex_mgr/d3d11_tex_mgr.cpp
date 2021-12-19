@@ -2127,7 +2127,7 @@ SK_D3D11_TexMgr::reset (void)
   for ( const auto& desc : textures )
   {
     const auto mem_size =
-     gsl::narrow_cast <int64_t> (desc->mem_size) >> 10ULL;
+     sk::narrow_cast <int64_t> (desc->mem_size) >> 10ULL;
 
    if ( desc->texture != nullptr && cleared.count (desc->texture) == 0 )
    {
@@ -2316,7 +2316,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
       {
         InterlockedIncrement (&desc2d.hits);
 
-        RedundantData_2D += gsl::narrow_cast <LONG64> (size);
+        RedundantData_2D += sk::narrow_cast <LONG64> (size);
         RedundantLoads_2D++;
         RedundantTime_2D += fTime;
       }

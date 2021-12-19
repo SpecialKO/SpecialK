@@ -275,11 +275,11 @@ struct ShaderBase
       auto data =
         std::make_unique <char> (static_cast <size_t> (size) + 32);
 
-      memset ( data.get (),              0,
-        gsl::narrow_cast <size_t> (size) + 32 );
+      memset ( data.get (),             0,
+        sk::narrow_cast <size_t> (size) + 32 );
 
-      fread  ( data.get (),              1,
-        gsl::narrow_cast <size_t> (size) + 2,
+      fread  ( data.get (),             1,
+        sk::narrow_cast <size_t> (size) + 2,
                                      fShader );
 
       fclose (fShader);

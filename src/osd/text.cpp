@@ -782,7 +782,7 @@ SK_DrawOSD (void)
 
     if (dwTime - last_fps_time > 666)
     {
-      fps           = gsl::narrow_cast <double>(1000.0 / mean);
+      fps           = sk::narrow_cast <double>(1000.0 / mean);
       last_fps_time = dwTime;
     }
 

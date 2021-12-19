@@ -33,6 +33,8 @@ struct IUnknown;
 
 #include <string>
 
+#include <imgui/imgui.h>
+
 #ifndef IM_VEC2_DEFINED
 #define IM_VEC2_DEFINED
 struct ImVec2

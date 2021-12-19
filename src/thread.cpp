@@ -384,6 +384,43 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
 
 static volatile LONG _InitDebugExtrasOnce = FALSE;
 
+DWORD
+SK_Thread_GetMainId (void)
+{
+  static DWORD
+           dwMainTid  = std::numeric_limits <DWORD>::max ();
+  if (     dwMainTid != std::numeric_limits <DWORD>::max ())
+    return dwMainTid;
+
+  SK_AutoHandle hThreadSnapshot (
+       CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+  );
+
+  if ((intptr_t)hThreadSnapshot.m_h <= 0)
+  {
+    return 0;
+  }
+
+  THREADENTRY32
+    tent;
+    tent.dwSize = sizeof (THREADENTRY32);
+
+  DWORD result     = 0;
+  DWORD dwCurrentPid = GetCurrentProcessId ();
+
+  for ( BOOL success = Thread32First (hThreadSnapshot.m_h, &tent) ;
+          (! result) &&
+             success && GetLastError() != ERROR_NO_MORE_FILES     ;
+             success = Thread32Next  (hThreadSnapshot.m_h, &tent) )
+  {
+    if (tent.th32OwnerProcessID == dwCurrentPid)
+      result = tent.th32ThreadID;
+  }
+
+  return
+    ( dwMainTid = result );
+}
+
 bool
 SK_Thread_InitDebugExtras (void)
 {
@@ -553,7 +590,7 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
 
 #ifdef _DEBUG
     SK_ReleaseAssert (
-      gsl::narrow_cast   <DWORD    > (
+      sk::narrow_cast    <DWORD    > (
         reinterpret_cast <DWORD_PTR> (
           SK_Thread_GetTEB_FAST ()->Cid.UniqueThread
         ) & 0x00000000FFFFFFFFULL

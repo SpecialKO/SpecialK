@@ -248,7 +248,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
           if (newMipLevels != pDesc->Texture2D.MipLevels)
           {
-            descCopy.Texture2D.MipLevels = gsl::narrow_cast <UINT>( -1 );
+            descCopy.Texture2D.MipLevels = sk::narrow_cast <UINT>( -1 );
             descCopy.Texture2D.MostDetailedMip = 0;
           }
 

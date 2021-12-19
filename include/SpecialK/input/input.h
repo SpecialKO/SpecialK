@@ -30,6 +30,7 @@
 #include <joystickapi.h>
 
 #include <cstdint>
+#include <assert.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void);
 extern int64_t       SK_QpcFreq;
@@ -66,7 +67,7 @@ struct sk_imgui_cursor_s
   RECT    child_client = { 0, 0, 0, 0 };
   RECT    child_rect   = { 0, 0, 0, 0 };
 
-  HCURSOR orig_img     =        nullptr;
+  HCURSOR real_img     =        nullptr;
   POINT   orig_pos     =       { 0, 0 };
   bool    orig_vis     =          false;
 
@@ -157,7 +158,7 @@ struct sk_input_api_context_s
   void markViewed (sk_input_dev_type type) noexcept
   {
     const auto qpcNow =
-      gsl::narrow_cast <uint64_t> (SK_QueryPerf ().QuadPart);
+      sk::narrow_cast <uint64_t> (SK_QueryPerf ().QuadPart);
 
     switch (type)
     {
@@ -570,5 +571,14 @@ extern DWORD SK_GetCurrentMS (void) noexcept;
 UINT WINAPI SK_joyGetNumDevs  (void);
 UINT WINAPI SK_joyGetPosEx    (UINT,LPJOYINFOEX);
 UINT WINAPI SK_joyGetDevCapsW (UINT_PTR,LPJOYCAPSW,UINT);
+
+void
+WINAPI
+SK_keybd_event (
+  _In_ BYTE       bVk,
+  _In_ BYTE       bScan,
+  _In_ DWORD     dwFlags,
+  _In_ ULONG_PTR dwExtraInfo
+);
 
 #endif /* __SK__INPUT_H__ */

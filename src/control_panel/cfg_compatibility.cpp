@@ -474,7 +474,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         ImGui::Text      ( "%8p",
                              GetTopWindow (rb.windows.focus.hwnd)          );
         ImGui::Text      ( "%8p",
-                             GetTopWindow (rb.windows.focus.parent)        );
+                                           rb.windows.focus.parent         );
         ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_STYLE)   );
 
         if (ImGui::IsItemHovered ())
@@ -504,7 +504,7 @@ SK::ControlPanel::Compatibility::Draw (void)
           ImGui::Text      ( "%8p",
                                GetTopWindow (rb.windows.device.hwnd)         );
           ImGui::Text      ( "%8p",
-                               GetTopWindow (rb.windows.device.parent)       );
+                                             rb.windows.device.parent        );
           ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)   );
 
           if (ImGui::IsItemHovered ())

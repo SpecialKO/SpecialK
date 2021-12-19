@@ -716,12 +716,17 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
       PathStripPathA (pszShortName);
 
-      SK_SymLoadModule ( hProc,
-                           nullptr,
-                            pszShortName,
-                              nullptr,
-                                BaseAddr,
-                                  mod_info.SizeOfImage );
+      if (cs_dbghelp != nullptr)
+      {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+        SK_SymLoadModule ( hProc,
+                             nullptr,
+                              pszShortName,
+                                nullptr,
+                                  BaseAddr,
+                                    mod_info.SizeOfImage );
+      }
 
       SYMBOL_INFO_PACKAGE
         sip                 = {                  };
@@ -898,12 +903,17 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
         PathStripPathA (pszShortName);
 
 
-        SK_SymLoadModule ( hProc,
-                             nullptr,
-                              pszShortName,
-                                nullptr,
-                                  BaseAddr,
-                                    mod_info.SizeOfImage );
+        if (cs_dbghelp != nullptr)
+        {
+          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+          SK_SymLoadModule ( hProc,
+                               nullptr,
+                                pszShortName,
+                                  nullptr,
+                                    BaseAddr,
+                                      mod_info.SizeOfImage );
+        }
 
         SYMBOL_INFO_PACKAGE sip = { };
 
@@ -1285,11 +1295,11 @@ public:
            bool
            {
              LARGE_INTEGER lil =
-             {gsl::narrow_cast <DWORD> (lh->runtimes.user.dwLowDateTime),
-              gsl::narrow_cast <LONG>  (lh->runtimes.user.dwHighDateTime)},
+             {sk::narrow_cast <DWORD> (lh->runtimes.user.dwLowDateTime),
+              sk::narrow_cast <LONG>  (lh->runtimes.user.dwHighDateTime)},
                            lir =
-             {gsl::narrow_cast <DWORD> (rh->runtimes.user.dwLowDateTime),
-              gsl::narrow_cast <LONG>  (rh->runtimes.user.dwHighDateTime)};
+             {sk::narrow_cast <DWORD> (rh->runtimes.user.dwLowDateTime),
+              sk::narrow_cast <LONG>  (rh->runtimes.user.dwHighDateTime)};
 
              return
                ( lil.QuadPart < lir.QuadPart );
@@ -1327,7 +1337,7 @@ public:
               SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
             GetExitCodeThread         (it->hThread, &dwExitCode);
 
-            if ( pnum != gsl::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
+            if ( pnum != sk::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
             {
               static SYSTEM_INFO
                   sysinfo = { };

@@ -132,16 +132,16 @@ SK_MSS_CreateTexture2D (
     if ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) &&
           pDesc->Format == DXGI_FORMAT_R8G8B8A8_UNORM )
     {
-      copy.Width  = gsl::narrow_cast <UINT> (3840);
-      copy.Height = gsl::narrow_cast <UINT> (2160);
+      copy.Width  = sk::narrow_cast <UINT> (3840);
+      copy.Height = sk::narrow_cast <UINT> (2160);
 
       ui_tex = true;
     }
 
     else if (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL)
     {
-      copy.Width  = gsl::narrow_cast <UINT> (3840);
-      copy.Height = gsl::narrow_cast <UINT> (2160);
+      copy.Width  = sk::narrow_cast <UINT> (3840);
+      copy.Height = sk::narrow_cast <UINT> (2160);
 
       ui_tex = true;
     }

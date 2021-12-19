@@ -35,6 +35,7 @@ SK_INCLUDE_START_CPP (COM_UTIL)
 #include <atlcomcli.h>
 
 #include <SpecialK/thread.h>
+#include <gsl/pointers>
 
 
 bool SK_COM_TestInit (void);

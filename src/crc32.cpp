@@ -292,7 +292,7 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
      to an eight-byte boundary */
   while (len && (reinterpret_cast <uintptr_t> (next) & 7) != 0)
   {
-    crc0 = _mm_crc32_u8 (gsl::narrow_cast <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (sk::narrow_cast <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
@@ -316,8 +316,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (long_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (long_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (long_shifts, sk::narrow_cast <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (long_shifts, sk::narrow_cast <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * LONG_SHIFT;
     len  -= 3 * LONG_SHIFT;
@@ -339,8 +339,8 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
       next += 8;
     } while (next < end);
 
-    crc0 = shift_crc (short_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc1;
-    crc0 = shift_crc (short_shifts, gsl::narrow_cast <uint32_t> (crc0)) ^ crc2;
+    crc0 = shift_crc (short_shifts, sk::narrow_cast <uint32_t> (crc0)) ^ crc1;
+    crc0 = shift_crc (short_shifts, sk::narrow_cast <uint32_t> (crc0)) ^ crc2;
 
     next += 2 * SHORT_SHIFT;
     len  -= 3 * SHORT_SHIFT;
@@ -417,14 +417,14 @@ crc32c_append_hw (uint32_t crc, const void *buf, size_t len)
   /* compute the crc for up to seven trailing bytes */
   while (len)
   {
-    crc0 = _mm_crc32_u8 (gsl::narrow_cast <uint32_t> (crc0), *next);
+    crc0 = _mm_crc32_u8 (sk::narrow_cast <uint32_t> (crc0), *next);
     ++next;
     --len;
   }
 
   /* return a post-processed crc */
   return
-    gsl::narrow_cast <uint32_t> (crc0) ^ 0xffffffff;
+    sk::narrow_cast <uint32_t> (crc0) ^ 0xffffffff;
 }
 
 extern "C"
@@ -446,7 +446,7 @@ calculate_table (void)
   for (int i = 0; i < 256; i++)
   {
     auto res =
-      gsl::narrow_cast <uint32_t> (i);
+      sk::narrow_cast <uint32_t> (i);
 
     for (auto& t : table)
     {
@@ -468,7 +468,7 @@ calculate_table_hw (void)
   for (unsigned int i = 0; i < 256UL; i++)
   {
     auto res =
-      gsl::narrow_cast <uint32_t> (i);
+      sk::narrow_cast <uint32_t> (i);
 
     for (unsigned int k = 0; k < 8UL * (SHORT_SHIFT - 4UL); k++)
     {

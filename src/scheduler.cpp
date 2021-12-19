@@ -298,17 +298,23 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
   do
   {
     DWORD dwMaxWait =
-      narrow_cast <DWORD> (
+      sk::narrow_cast <DWORD> (
         std::max ( 0.0,
           static_cast <double> ( end - now ) / dTicksPerMS )
                           );
 
     if (dwMaxWait < 5000UL)
     {
-      if (dwMaxWait == 0 && config.render.framerate.max_delta_time < 1)
-          dwMaxWait = 1;
+      GUITHREADINFO gti        = {                    };
+                    gti.cbSize = sizeof (GUITHREADINFO);
 
-      else if (dwMaxWait <= (DWORD)config.render.framerate.max_delta_time)
+      BOOL bGUIThread    =
+        GetGUIThreadInfo (GetCurrentThreadId (), &gti) && IsWindow (gti.hwndActive);
+
+      if (! bGUIThread)
+        return;
+
+      if (dwMaxWait <= (DWORD)config.render.framerate.max_delta_time)
         return;
 
       DWORD dwWaitState =
@@ -1086,7 +1092,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       SK::Framerate::events.getRenderThreadStats ().sleep  (std::max (1UL, dwMilliseconds));
   }
 
-  if (bGUIThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
+  if ((bGUIThread || (game_id == SK_GAME_ID::NieR_Sqrt_1_5 && dwMilliseconds < 3)) && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
     if (sleepless_window && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
     {
@@ -1117,7 +1123,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   }
 
   DWORD max_delta_time =
-    narrow_cast <DWORD> (config.render.framerate.max_delta_time);
+    sk::narrow_cast <DWORD> (config.render.framerate.max_delta_time);
 
 #ifdef _TVFIX
 #pragma region Tales of Vesperia Anti-Stutter Code

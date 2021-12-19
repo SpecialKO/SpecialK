@@ -185,9 +185,14 @@ SK_ImGui_KeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   if (! SK_GetFramesDrawn ())
     return TRUE;
 
+  //
+  // Thise serves no purpose anymore, probably remove it
+  //
+
   UNREFERENCED_PARAMETER (Alt);
   UNREFERENCED_PARAMETER (Shift);
   UNREFERENCED_PARAMETER (Control);
+  UNREFERENCED_PARAMETER (vkCode);
 
   return TRUE;
 }
@@ -317,7 +322,7 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
         commands.idx++;
 
       // Clamp the index
-      if (gsl::narrow_cast <int> (commands.idx) < 0)
+      if (sk::narrow_cast <int> (commands.idx) < 0)
         commands.idx = 0;
       else if (commands.idx >= commands.history.size ())
         commands.idx = commands.history.size () - 1;

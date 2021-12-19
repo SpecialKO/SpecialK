@@ -510,7 +510,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
     static wchar_t wszKeyName [64];
 
-    for ( auto&& it : pools )
+    for ( auto& it : pools )
     {
       std::wstring_view         key_name (wszKeyName, 64);
                                          *wszKeyName = L'\0';
@@ -820,7 +820,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    sk::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName,  MAX_PATH,
                         pwszModule, _TRUNCATE );
@@ -1000,7 +1000,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    sk::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName, MAX_PATH,
                         pwszModule, _TRUNCATE );
@@ -1138,7 +1138,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                   pszProcName, _TRUNCATE );
     else
       snprintf  ( szProcName, 127, "Ordinal%u",
-                    gsl::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
+                    sk::narrow_cast <WORD> ( ordinal & 0xFFFFU ) );
 
     wcsncpy_s         ( wszModName, MAX_PATH,
                         pwszModule, _TRUNCATE );

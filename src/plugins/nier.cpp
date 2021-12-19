@@ -793,7 +793,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
 
       static char szFrameNum [32] = { '\0' };
       snprintf (szFrameNum, 31, "%lli (%c) ", frames_drawn, 'A' +
-                            gsl::narrow_cast <int>(frames_drawn++ % 26LL) );
+                        sk::narrow_cast <int>(frames_drawn++ % 26LL) );
 
       validation += szFrameNum;
     }

@@ -36,7 +36,6 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 #include <comdef.h>
 #include <Unknwnbase.h>
 #include <atlcomcli.h>
-#include <gsl/gsl_util>
 
 #include <stack>
 #include <unordered_map>
@@ -44,6 +43,8 @@ extern SK_TLS* SK_TLS_BottomEx (DWORD dwTid);
 #include <SpecialK/thread.h>
 #include <SpecialK/com_util.h>
 #include <SpecialK/input/input.h>
+
+#include <assert.h>
 
 // Not so global in this case, but the concept remains the same;
 //   deferred initialization until first use of complicated objects.
@@ -778,7 +779,7 @@ public:
     HANDLE           handle            = INVALID_HANDLE_VALUE;
     DWORD            tls_idx           =     0;
     DWORD            tid               =     0;
-    ULONG            last_frame        = gsl::narrow_cast <ULONG>(-1);
+    ULONG            last_frame        = sk::narrow_cast <ULONG>(-1);
     volatile LONG    exceptions        =     0;
     bool             hidden            = false;
     bool             silent_exceptions = false;

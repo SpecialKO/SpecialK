@@ -255,11 +255,11 @@ struct ShaderBase
 
       memset ( data.get (),
                  0,
-        gsl::narrow_cast <size_t> (size) + 32 );
+        sk::narrow_cast <size_t> (size) + 32 );
 
       fread  ( data.get (),
                  1,
-        gsl::narrow_cast <size_t> (size) + 2,
+        sk::narrow_cast <size_t> (size) + 2,
                                      fShader );
 
       fclose (fShader);
@@ -548,8 +548,12 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   pImmediateCtx->VSSetShader          (VertexShaderHDR_Util.shader,     nullptr, 0);
                   pImmediateCtx->PSSetShader          (PixelShader_HDR10toscRGB.shader, nullptr, 0);
                   pImmediateCtx->GSSetShader          (nullptr,                         nullptr, 0);
-                  pImmediateCtx->HSSetShader          (nullptr,                         nullptr, 0);
-                  pImmediateCtx->DSSetShader          (nullptr,                         nullptr, 0);
+
+                  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+                  {
+                    pImmediateCtx->HSSetShader        (nullptr,                         nullptr, 0);
+                    pImmediateCtx->DSSetShader        (nullptr,                         nullptr, 0);
+                  }
 
                   pImmediateCtx->PSSetShaderResources (0, 1, pResources);
                   pImmediateCtx->OMSetRenderTargets   (1, &pRenderTargetView.p, nullptr);
@@ -1048,9 +1052,12 @@ SK_TriggerHudFreeScreenshot (void) noexcept
 {
   extern volatile LONG __SK_D3D12_QueuedShots;
 
-  InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-  InterlockedIncrement (&__SK_D3D11_QueuedShots);
-  InterlockedIncrement (&__SK_D3D12_QueuedShots);
+  if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+  {
+    InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    InterlockedIncrement (&__SK_D3D11_QueuedShots);
+    InterlockedIncrement (&__SK_D3D12_QueuedShots);
+  }
 }
 
 bool
@@ -1112,7 +1119,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
   const int __MaxStage = 2;
   const int      stage =
-    gsl::narrow_cast <int> (stage_);
+    sk::narrow_cast <int> (stage_);
 
   assert ( stage >= 0 &&
            stage <= ( __MaxStage + 1 ) );
@@ -1387,9 +1394,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 HRESULT hr = S_OK;
 
-                if ( un_srgb.GetImages  () &&
-                     hdr                   && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-                     rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                if ( un_srgb.GetImageCount () == 1 &&
+                     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
                 { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
                   TransformImage ( un_srgb.GetImages     (),
                                    un_srgb.GetImageCount (),
@@ -1415,7 +1422,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 XMVECTOR maxLum = XMVectorZero ();
 
-                hr =              un_srgb.GetImages     () ?
+                hr =              un_srgb.GetImageCount () == 1 ?
                   EvaluateImage ( un_srgb.GetImages     (),
                                   un_srgb.GetImageCount (),
                                   un_srgb.GetMetadata   (),
@@ -1449,7 +1456,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     XMVectorMultiply (maxLum, maxLum);
 #endif
 
-                  hr =               un_srgb.GetImages     () ?
+                  hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
                                      un_srgb.GetImageCount (),
                                      un_srgb.GetMetadata   (),
@@ -1483,8 +1490,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 std::swap (un_srgb, un_scrgb);
 
-                if (         un_srgb.GetImages ()) {
-                  Convert ( *un_srgb.GetImages (),
+                if (         un_srgb.GetImageCount () == 1) {
+                  Convert ( *un_srgb.GetImages     (),
                               DXGI_FORMAT_B8G8R8X8_UNORM,
                                 TEX_FILTER_DITHER |
                                 TEX_FILTER_SRGB,
@@ -1492,12 +1499,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     un_scrgb );
                 }
 
-                if (un_scrgb.GetImages ())
+                if (un_scrgb.GetImageCount () == 1)
                 {
                   rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
                 }
 
-                if (               un_scrgb.GetImages () &&
+                if (               un_scrgb.GetImageCount () == 1 &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
                                      GetWICCodec         (codec),

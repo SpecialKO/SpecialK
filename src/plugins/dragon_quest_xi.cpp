@@ -374,11 +374,11 @@ SK_DQXI_PlugInInit (void)
     };
 
 
-  for (               auto  it : __SK_DQXI_UI_Vtx_Shaders)
-  SK_D3D11_DeclHUDShader   (it,        ID3D11VertexShader);
+  for (               auto    it : __SK_DQXI_UI_Vtx_Shaders)
+  SK_D3D11_DeclHUDShader_Vtx (it);
 
-  for (               auto  it : __SK_DQXI_UI_Pix_Shaders)
-  SK_D3D11_DeclHUDShader   (it,         ID3D11PixelShader);
+  for (               auto    it : __SK_DQXI_UI_Pix_Shaders)
+  SK_D3D11_DeclHUDShader_Pix (it);
 }
 
 static auto

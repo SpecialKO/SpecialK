@@ -91,7 +91,7 @@ SK_MHW_PlugInInit (void)
     &__SK_D3D11_PixelShader_CBuffer_Overrides->back ();
 
   *(reinterpret_cast <UINT *> (SK_MHW_CB_Override->Values)) =
-    gsl::narrow_cast <UINT  > (-1);
+     sk::narrow_cast <UINT  > (-1);
 
   int* pCBufferOverrideVal =
     reinterpret_cast <int *> (SK_MHW_CB_Override->Values);
@@ -150,8 +150,8 @@ SK_MHW_PlugInInit (void)
   //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS0_CRC32C, ID3D11VertexShader);
   //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS1_CRC32C, ID3D11VertexShader);
   //SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS2_CRC32C, ID3D11VertexShader);
-  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS3_CRC32C, ID3D11VertexShader);
-  SK_D3D11_DeclHUDShader (SK_MHW_HUD_VS4_CRC32C, ID3D11VertexShader);
+  SK_D3D11_DeclHUDShader_Vtx (SK_MHW_HUD_VS3_CRC32C);
+  SK_D3D11_DeclHUDShader_Vtx (SK_MHW_HUD_VS4_CRC32C);
 
 
   iSK_INI* pINI =

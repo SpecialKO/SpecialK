@@ -1671,15 +1671,20 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
     PathStripPathA (pszShortName);
 
-    if (! SymLoadModule64 ( GetCurrentProcess (),
-                              nullptr,
-                                pszShortName,
-                                  nullptr,
-                                    BaseAddr,
-                                      mod_info.SizeOfImage )
-       ) return 0;
+    if (cs_dbghelp != nullptr)
+    {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    dbghelp_callers.insert (hMod);
+      if (! SymLoadModule64 ( GetCurrentProcess (),
+                                nullptr,
+                                  pszShortName,
+                                    nullptr,
+                                      BaseAddr,
+                                        mod_info.SizeOfImage )
+         ) return 0;
+
+      dbghelp_callers.insert (hMod);
+    }
   }
 
   HANDLE hProc =
@@ -1695,23 +1700,28 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
   DWORD64 Displacement = 0;
 
-  if ( SymFromAddr ( hProc,
-                       ip,
-                         &Displacement,
-                           &sip.si ) )
+  if (cs_dbghelp != nullptr)
   {
-    pszOut [0] = '\0';
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    strncat             ( pszOut.data (), sip.si.Name,
-                            std::min (ulLen, sip.si.NameLen) );
-    ret =
-      gsl::narrow_cast <ULONG> (strlen (pszOut.data ()));
-  }
+    if ( SymFromAddr ( hProc,
+                         ip,
+                           &Displacement,
+                             &sip.si ) )
+    {
+      pszOut [0] = '\0';
 
-  else
-  {
-    pszOut [0] = '\0';
-    ret        = 0;
+      strncat             ( pszOut.data (), sip.si.Name,
+                              std::min (ulLen, sip.si.NameLen) );
+      ret =
+        sk::narrow_cast <ULONG> (strlen (pszOut.data ()));
+    }
+
+    else
+    {
+      pszOut [0] = '\0';
+      ret        = 0;
+    }
   }
 
   return ret;

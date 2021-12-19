@@ -346,19 +346,19 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
       if (target != 0.0)
       {
         float target_delta =
-          gsl::narrow_cast <float> ((1000.0 / (target * 1.05)) / 1000.0);
+          sk::narrow_cast <float> ((1000.0 / (target * 1.05)) / 1000.0);
 
         WriteULongRelease ( (volatile DWORD *)_SK_Sekiro_FrameLockAddr1,
                   *(reinterpret_cast <DWORD *>(&target_delta)));
 
-        int speed = 144 + gsl::narrow_cast <int> (std::ceil (((target - 60.0) / 16.0))) * 8;
+        int speed = 144 + sk::narrow_cast <int> (std::ceil (((target - 60.0) / 16.0))) * 8;
         if (speed > 248)
             speed = 248;
 
         if (_SK_Sekiro_RunSpeedAddr != nullptr)
         {
           WriteUCharRelease ((volatile BYTE *)_SK_Sekiro_RunSpeedAddr,
-                    gsl::narrow_cast <uint8_t> (speed));
+                    sk::narrow_cast <uint8_t> (speed));
         }
       }
 
@@ -382,7 +382,7 @@ bool SK_Sekiro_UnlimitFramerate (bool set, long double target)
       if (_SK_Sekiro_RunSpeedAddr != nullptr)
       {
         WriteUCharRelease ( (volatile  BYTE *)_SK_Sekiro_RunSpeedAddr,
-                    gsl::narrow_cast <uint8_t> (0x90) );
+                    sk::narrow_cast <uint8_t> (0x90) );
       }
     }
 
@@ -634,15 +634,15 @@ SK_Sekiro_PlugInCfg (void)
                   ///             );
 
                   combo_str +=
-                    SK_FormatString ("%7.03f Hz", gsl::narrow_cast <double> (mode.RefreshRate.Numerator) /
-                                                  gsl::narrow_cast <double> (mode.RefreshRate.Denominator));
+                    SK_FormatString ("%7.03f Hz", sk::narrow_cast <double> (mode.RefreshRate.Numerator) /
+                                                  sk::narrow_cast <double> (mode.RefreshRate.Denominator));
                   combo_str += '\0';
 
                   nominal_refresh.push_back (
-                    gsl::narrow_cast <float> (
+                    sk::narrow_cast <float> (
                       std::ceil (
-                        gsl::narrow_cast <double> (mode.RefreshRate.Numerator) /
-                        gsl::narrow_cast <double> (mode.RefreshRate.Denominator)
+                        sk::narrow_cast <double> (mode.RefreshRate.Numerator) /
+                        sk::narrow_cast <double> (mode.RefreshRate.Denominator)
                       )
                     )
                   );

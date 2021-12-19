@@ -88,8 +88,8 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
 
   // Setup viewport, orthographic projection matrix
   glViewport ( 0, 0,
-                 gsl::narrow_cast <GLsizei> (fb_width),
-                 gsl::narrow_cast <GLsizei> (fb_height) );
+                 sk`::narrow_cast <GLsizei> (fb_width),
+                 sk`::narrow_cast <GLsizei> (fb_height) );
 
   const float ortho_projection [4][4] =
   {
@@ -224,24 +224,19 @@ ImGui_ImplGL3_CreateFontsTexture (void)
     ImGui::GetIO ()
   );
 
-  static bool           init   = false;
-  static unsigned char* pixels = nullptr;
-  static int            width  = 0,
-                        height = 0;
+  unsigned char* pixels = nullptr;
+  int            width  = 0,
+                 height = 0;
 
-  // Only needs to be done once, the raw pixels are API agnostic
-  if (! std::exchange (init, true))
-  {
-    // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small)
-    //   because it is more likely to be compatible with user's existing shaders.
-    //
-    //  If your ImTextureId represent a higher-level concept than just a GL texture id,
-    //    consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
-    io.Fonts->GetTexDataAsRGBA32 (
-      &pixels, &width,
-               &height
-    );
-  }
+  // Load as RGBA 32-bits (75% of the memory is wasted, but default font is so small)
+  //   because it is more likely to be compatible with user's existing shaders.
+  //
+  //  If your ImTextureId represent a higher-level concept than just a GL texture id,
+  //    consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+  io.Fonts->GetTexDataAsRGBA32 (
+    &pixels, &width,
+             &height
+  );
 
   // Upload texture to graphics system
   GLint last_texture;

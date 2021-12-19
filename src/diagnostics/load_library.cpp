@@ -294,19 +294,23 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     PathStripPathA (pszShortName);
 
+    if (cs_dbghelp != nullptr)
+    {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    SK_SymLoadModule ( GetCurrentProcess (),
-                         nullptr,
-                          pszShortName,
-                            nullptr,
+      SK_SymLoadModule ( GetCurrentProcess (),
+                           nullptr,
+                            pszShortName,
+                              nullptr,
 #ifdef _M_AMD64
-                              (DWORD64)mod_info.lpBaseOfDll,
+                                (DWORD64)mod_info.lpBaseOfDll,
 #else /* _M_IX86 */
-                                (DWORD)mod_info.lpBaseOfDll,
+                                  (DWORD)mod_info.lpBaseOfDll,
 #endif
-                                  mod_info.SizeOfImage );
+                                    mod_info.SizeOfImage );
 
-    dbghelp_callers.insert (hCallingMod);
+      dbghelp_callers.insert (hCallingMod);
+    }
   }
 
   static StrStrI_pfn            StrStrI =
@@ -1343,7 +1347,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                    L"                                         "
                    L" %s",
                                              base_addr,
-                 gsl::narrow_cast <int32_t> (mod_size),
+                  sk::narrow_cast <int32_t> (mod_size),
                           SK_ConcealUserDir (wszModNameCopy) );
   }
 
@@ -1583,7 +1587,7 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
 
   wchar_t wszModName [MAX_PATH + 2] = { };
 
-  for ( int i = 0; i < gsl::narrow_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
+  for ( int i = 0; i < sk::narrow_cast <int> (cbNeeded / sizeof (HMODULE)); i++ )
   {
     *wszModName = L'\0';
 

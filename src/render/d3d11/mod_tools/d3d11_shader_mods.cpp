@@ -538,10 +538,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       const UINT dev_idx =
         SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
 
+      std::set <ID3D11RenderTargetView*> invalid_views;
+
       //for (auto& rtl : *SK_D3D11_RenderTargets )
       auto& rtl = SK_D3D11_RenderTargets [dev_idx];
                   if (! rtl.rt_views.empty ()  )
-      for (auto& it  :  rtl.rt_views           )
+      for (auto  it  :  rtl.rt_views           )
       {
         D3D11_RENDER_TARGET_VIEW_DESC desc = { };
 
@@ -584,8 +586,13 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
             if (pRes.p != nullptr)
                 pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
+
+            if (pTex.p == nullptr)
+              throw SK_SEH_IgnoredException ();
           }
           catch (const SK_SEH_IgnoredException&) {
+            invalid_views.emplace (it);
+
             continue;
           }
           SK_SEH_RemoveTranslator (orig_se);
@@ -627,6 +634,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             }
           }
         }
+      }
+
+      for (auto it : invalid_views)
+      {
+        if (rtl.rt_views.count (it))
+            rtl.rt_views.erase (it);
       }
 
        const ULONG64      zombie_threshold = 4;//120;
@@ -886,7 +899,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           size_t last_sel = sel;
                       sel =
-            gsl::narrow_cast <size_t> (neutral_idx) + direction;
+            sk::narrow_cast <size_t> (neutral_idx) + direction;
 
           if ((SSIZE_T)sel <  0) sel = 0;
 

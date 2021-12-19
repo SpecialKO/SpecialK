@@ -30,15 +30,10 @@
 
 #include <cstdint>
 #include <cmath>
+#include <numeric>
 #include <forward_list>
 
 #include <SpecialK/utility.h>
-
-template <class T, class U>
-constexpr T narrow_cast(U&& u)
-{
-  return static_cast<T>(std::forward<U>(u));
-}
 
 static constexpr auto
   _disreal =
@@ -93,7 +88,7 @@ static auto SK_DeltaPerf =
        SK_CurrentPerf ();
 
      time.QuadPart -=
-       gsl::narrow_cast <LONGLONG> (
+       sk::narrow_cast <LONGLONG> (
          delta * freq
        );
 

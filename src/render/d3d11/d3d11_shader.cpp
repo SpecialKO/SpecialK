@@ -1118,8 +1118,8 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
 
       if (! clear)
       {
-        InterlockedAdd (&SK_D3D11_TrackingCount->Always,      gsl::narrow_cast <LONG> (num_always_tracked_per_stage));
-        InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, gsl::narrow_cast <LONG> (num_conditionally_tracked));
+        InterlockedAdd (&SK_D3D11_TrackingCount->Always,      sk::narrow_cast <LONG> (num_always_tracked_per_stage));
+        InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, sk::narrow_cast <LONG> (num_conditionally_tracked));
       }
     }
   }
@@ -1150,7 +1150,7 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
       requested [name] = true;
 
       LONG to_inc =
-        gsl::narrow_cast <LONG> (always_tracked_in_ini);
+        sk::narrow_cast <LONG> (always_tracked_in_ini);
 
       InterlockedAdd (&SK_D3D11_DrawTrackingReqs, to_inc);
     }
@@ -1348,15 +1348,15 @@ SK_D3D11_UnloadShaderState (std::wstring& name)
   {
     if (requested [name] == true)
     {   requested [name]  = false;
-      InterlockedAdd (&SK_D3D11_DrawTrackingReqs, -gsl::narrow_cast <LONG> (tracking_reqs_removed));
+      InterlockedAdd (&SK_D3D11_DrawTrackingReqs, -sk::narrow_cast <LONG> (tracking_reqs_removed));
 
     //InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
 
       SK_ReleaseAssert ( tracking_reqs_removed    > 0 ||
                          conditional_reqs_removed > 0 );
 
-      InterlockedAdd (&SK_D3D11_TrackingCount->Always,      -gsl::narrow_cast <LONG> (tracking_reqs_removed));
-      InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, -gsl::narrow_cast <LONG> (conditional_reqs_removed));
+      InterlockedAdd (&SK_D3D11_TrackingCount->Always,      -sk::narrow_cast <LONG> (tracking_reqs_removed));
+      InterlockedAdd (&SK_D3D11_TrackingCount->Conditional, -sk::narrow_cast <LONG> (conditional_reqs_removed));
     }
 
     else
@@ -3421,7 +3421,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   if (                                              pShader != nullptr &&
        ReadAcquire ((volatile LONG *)&tracker->crc32c)      != 0x00    &&
-                      gsl::narrow_cast <SSIZE_T>(list->sel) >= 0       &&
+                       sk::narrow_cast <SSIZE_T>(list->sel) >= 0       &&
                                                  list->sel  < (int)list->contents.size () )
   {
     ImGui::BeginGroup ();
