@@ -53,6 +53,12 @@ struct IWrapDirect3DSwapChain9 : IDirect3DSwapChain9Ex
     InterlockedExchange  (&refs_, orig->Release ());
 
     InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChains);
+
+    SK_ComPtr <IDirect3DSwapChain9Ex>                           upgrade;
+    QueryInterface (__uuidof (IDirect3DSwapChain9Ex), (void **)&upgrade.p);
+
+    if (upgrade.p != nullptr)
+      InterlockedIncrement (&SK_D3D9_LiveWrappedSwapChainsEx);
   }
 
   IWrapDirect3DSwapChain9 ( IWrapDirect3DDevice9  *dev,

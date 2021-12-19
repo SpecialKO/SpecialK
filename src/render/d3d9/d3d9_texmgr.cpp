@@ -1083,8 +1083,8 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
             wait = false;
 
-            load->pSrcData    = gsl::narrow_cast <Byte *> (streaming_memory::data ()) + offset;
-            load->SrcDataSize = gsl::narrow_cast <UINT>   (decomp_size);
+            load->pSrcData    = sk::narrow_cast <Byte *> (streaming_memory::data ()) + offset;
+            load->SrcDataSize = sk::narrow_cast <UINT>   (decomp_size);
 
             if (SUCCEEDED ( D3DXGetImageInfoFromFileInMemory (
                               load->pSrcData,

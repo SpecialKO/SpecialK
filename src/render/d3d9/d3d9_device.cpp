@@ -85,7 +85,8 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
     InterlockedIncrement (&refs_);
 
   if ( riid != IID_IUnknown &&
-       riid != IID_ID3DUserDefinedAnnotation )
+       riid != IID_ID3DUserDefinedAnnotation &&
+       riid != IID_ID3D11Device )
   {
     static bool once = false;
 
@@ -145,6 +146,8 @@ IWrapDirect3DDevice9::Release (void)
 
     pReal = nullptr;
 
+    SK_LOG0 ( ( L"Destroying D3D9 Device" ), L"   D3D9   ");
+
     delete this;
   }
 
@@ -173,6 +176,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDeviceCaps(D3DCAPS9 *pCaps)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayMode(UINT iSwapChain, D3DDISPLAYMODE *pMode)
 {
+#if 1
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -184,6 +188,9 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayMode(UINT iSwapChain, 
   }
 
   return implicit_swapchain_->GetDisplayMode (pMode);
+#else
+  return pReal->GetDisplayMode (iSwapChain, pMode);
+#endif
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS *pParameters)
 {
@@ -205,6 +212,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 {
   SK_LOG_FIRST_CALL
 
+#if 1
   IDirect3DSwapChain9* pTemp = nullptr;
 
   HRESULT hr = pReal->CreateAdditionalSwapChain (pPresentationParameters, &pTemp);
@@ -215,11 +223,15 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 
     additional_swapchains_.push_back ((IWrapDirect3DSwapChain9 *)*ppSwapChain);
   }
+#else
+    HRESULT hr = pReal->CreateAdditionalSwapChain (pPresentationParameters, ppSwapChain);
+#endif
 
   return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9 **ppSwapChain)
 {
+#if 1
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -234,6 +246,9 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, ID
                                                       implicit_swapchain_.p->AddRef ();
   *ppSwapChain = static_cast <IDirect3DSwapChain9 *> (implicit_swapchain_.p);
   return D3D_OK;
+#else
+  return pReal->GetSwapChain (iSwapChain, ppSwapChain);
+#endif
 }
 UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
 {
@@ -241,7 +256,9 @@ UINT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetNumberOfSwapChains (void)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
-  //additional_swapchains_.clear ();
+#if 0
+  additional_swapchains_.clear ();
+#endif
 
   HRESULT hr =
     static_cast <IDirect3DDevice9 *>(pReal)->Reset (pPresentationParameters);
@@ -267,6 +284,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect,
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
 {
+#if 1
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -278,6 +296,9 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetBackBuffer(UINT iSwapChain, U
   }
 
   return implicit_swapchain_->GetBackBuffer (iBackBuffer, Type, ppBackBuffer);
+#else
+  return pReal->GetBackBuffer (iSwapChain, iBackBuffer, Type, ppBackBuffer);
+#endif
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetRasterStatus(UINT iSwapChain, D3DRASTER_STATUS *pRasterStatus)
 {
@@ -349,6 +370,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetRenderTargetData(IDirect3DSur
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9 *pDestSurface)
 {
+#if 1
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -360,6 +382,9 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetFrontBufferData(UINT iSwapCha
   }
 
   return implicit_swapchain_->GetFrontBufferData (pDestSurface);
+#else
+  return pReal->GetFrontBufferData (iSwapChain, pDestSurface);
+#endif
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::StretchRect(IDirect3DSurface9 *pSourceSurface, const RECT *pSourceRect, IDirect3DSurface9 *pDestSurface, const RECT *pDestRect, D3DTEXTUREFILTERTYPE Filter)
 {
@@ -749,15 +774,17 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetGPUThreadPriority(INT Priorit
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::WaitForVBlank(UINT iSwapChain)
 {
-  //if (iSwapChain > 0)
-  //{
-  //  if (iSwapChain < GetNumberOfSwapChains ())
-  //  {
-  //    return additional_swapchains_ [iSwapChain - 1]->GetFrontBufferData (pDestSurface);
-  //  }
-  //  else
-  //    return D3DERR_INVALIDCALL;
-  //}
+#if 0
+  if (iSwapChain > 0)
+  {
+    if (iSwapChain < GetNumberOfSwapChains ())
+    {
+      return additional_swapchains_ [iSwapChain - 1]->GetFrontBufferData (pDestSurface);
+    }
+    else
+      return D3DERR_INVALIDCALL;
+  }
+#endif
 
   return static_cast<IDirect3DDevice9Ex *>(pReal)->WaitForVBlank (iSwapChain);
 }
@@ -817,6 +844,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayModeEx(UINT iSwapChain
 {
   assert (d3d9ex_);
 
+#if 1
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -831,4 +859,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayModeEx(UINT iSwapChain
   return
     implicit_swapchain_->GetDisplayModeEx (
                          pMode, pRotation );
+#else
+  return static_cast <IDirect3DDevice9Ex *>(pReal)->GetDisplayModeEx (iSwapChain, pMode, pRotation);
+#endif
 }

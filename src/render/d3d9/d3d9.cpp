@@ -397,8 +397,6 @@ CEGUI::Direct3D9Renderer* cegD3D9 = nullptr;
 #endif
 
 
-IDirect3DStateBlock9*     cegD3D9_SB = nullptr;
-
 static volatile ULONG __gui_reset_d3d9     = TRUE;
 static volatile ULONG __cegui_frames_drawn =   0L;
 
@@ -473,9 +471,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
     }
 
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
-
     if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
                    cegD3D9  = nullptr;
   }
@@ -494,7 +489,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 #ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
 #endif
-      ResetCEGUI_D3D9 (pWrappedDevice);
+      ResetCEGUI_D3D9 (pDev/*pWrappedDevice*/);
     }
 
     else
@@ -511,59 +506,48 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
     pStateBlock->Capture ();
 
-    bool new_sb = (cegD3D9_SB == nullptr);
+    pDev->SetRenderState (D3DRS_CULLMODE,                 D3DCULL_NONE);
 
-    if (new_sb)
-    {
-      pDev->CreateStateBlock (D3DSBT_ALL, &cegD3D9_SB);
+    pDev->SetRenderState (D3DRS_LIGHTING,                 FALSE);
+    pDev->SetRenderState (D3DRS_SPECULARENABLE,           FALSE);
+    pDev->SetRenderState (D3DRS_FOGENABLE,                FALSE);
+    pDev->SetRenderState (D3DRS_AMBIENT,                  0);
 
-      pDev->SetRenderState (D3DRS_CULLMODE,                 D3DCULL_NONE);
+    pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+    pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
 
-      pDev->SetRenderState (D3DRS_LIGHTING,                 FALSE);
-      pDev->SetRenderState (D3DRS_SPECULARENABLE,           FALSE);
-      pDev->SetRenderState (D3DRS_FOGENABLE,                FALSE);
-      pDev->SetRenderState (D3DRS_AMBIENT,                  0);
+    pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+    pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
+    pDev->SetRenderState (D3DRS_BLENDOP,                  D3DBLENDOP_ADD);
+    pDev->SetRenderState (D3DRS_BLENDOPALPHA,             D3DBLENDOP_ADD);
 
-      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
-      pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
+    pDev->SetRenderState (D3DRS_STENCILENABLE,            FALSE);
+    pDev->SetRenderState (D3DRS_SCISSORTESTENABLE,        FALSE);
 
-      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
-      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
-      pDev->SetRenderState (D3DRS_BLENDOP,                  D3DBLENDOP_ADD);
-      pDev->SetRenderState (D3DRS_BLENDOPALPHA,             D3DBLENDOP_ADD);
+    pDev->SetRenderState (D3DRS_ZENABLE,                  FALSE);
+    pDev->SetRenderState (D3DRS_ZWRITEENABLE,             FALSE);
+    pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
+    pDev->SetRenderState (D3DRS_COLORWRITEENABLE,         D3DCOLORWRITEENABLE_RED   |
+                                                          D3DCOLORWRITEENABLE_GREEN |
+                                                          D3DCOLORWRITEENABLE_BLUE  |
+                                                          D3DCOLORWRITEENABLE_ALPHA );
 
-      pDev->SetRenderState (D3DRS_STENCILENABLE,            FALSE);
-      pDev->SetRenderState (D3DRS_SCISSORTESTENABLE,        FALSE);
+    pDev->SetSamplerState        (0, D3DSAMP_SRGBTEXTURE, FALSE);
 
-      pDev->SetRenderState (D3DRS_ZENABLE,                  FALSE);
-      pDev->SetRenderState (D3DRS_ZWRITEENABLE,             FALSE);
-      pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
-      pDev->SetRenderState (D3DRS_COLORWRITEENABLE,         D3DCOLORWRITEENABLE_RED   |
-                                                            D3DCOLORWRITEENABLE_GREEN |
-                                                            D3DCOLORWRITEENABLE_BLUE  |
-                                                            D3DCOLORWRITEENABLE_ALPHA );
+    pDev->SetTextureStageState   (0, D3DTSS_COLOROP,      D3DTOP_MODULATE);
+    pDev->SetTextureStageState   (0, D3DTSS_COLORARG0,    D3DTA_CURRENT);
+    pDev->SetTextureStageState   (0, D3DTSS_COLORARG1,    D3DTA_TEXTURE);
+    pDev->SetTextureStageState   (0, D3DTSS_COLORARG2,    D3DTA_DIFFUSE);
 
-      pDev->SetSamplerState        (0, D3DSAMP_SRGBTEXTURE, FALSE);
+    pDev->SetTextureStageState   (0, D3DTSS_ALPHAOP,      D3DTOP_MODULATE);
+    pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG0,    D3DTA_CURRENT);
+    pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG1,    D3DTA_TEXTURE);
+    pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG2,    D3DTA_DIFFUSE);
 
-      pDev->SetTextureStageState   (0, D3DTSS_COLOROP,      D3DTOP_MODULATE);
-      pDev->SetTextureStageState   (0, D3DTSS_COLORARG0,    D3DTA_CURRENT);
-      pDev->SetTextureStageState   (0, D3DTSS_COLORARG1,    D3DTA_TEXTURE);
-      pDev->SetTextureStageState   (0, D3DTSS_COLORARG2,    D3DTA_DIFFUSE);
+    pDev->SetTextureStageState   (0, D3DTSS_RESULTARG,    D3DTA_CURRENT);
 
-      pDev->SetTextureStageState   (0, D3DTSS_ALPHAOP,      D3DTOP_MODULATE);
-      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG0,    D3DTA_CURRENT);
-      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG1,    D3DTA_TEXTURE);
-      pDev->SetTextureStageState   (0, D3DTSS_ALPHAARG2,    D3DTA_DIFFUSE);
-
-      pDev->SetTextureStageState   (0, D3DTSS_RESULTARG,    D3DTA_CURRENT);
-
-      pDev->SetSamplerState        (0, D3DSAMP_MINFILTER,   D3DTEXF_POINT);
-      pDev->SetSamplerState        (0, D3DSAMP_MAGFILTER,   D3DTEXF_POINT);
-
-      cegD3D9_SB->Capture ();
-    } else {
-      cegD3D9_SB->Apply ();
-    }
+    pDev->SetSamplerState        (0, D3DSAMP_MINFILTER,   D3DTEXF_POINT);
+    pDev->SetSamplerState        (0, D3DSAMP_MAGFILTER,   D3DTEXF_POINT);
 
     D3DVIEWPORT9        vp_orig = { };
     pDev->GetViewport (&vp_orig);
@@ -721,18 +705,12 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
     }
 
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
-
     if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
                    cegD3D9  = nullptr;
   }
 
   else if (cegD3D9 == nullptr)
   {
-    if (cegD3D9_SB != nullptr) cegD3D9_SB->Release ();
-        cegD3D9_SB  = nullptr;
-
     if (config.cegui.enable)
     {
       int thread_locale =
@@ -1502,10 +1480,13 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
          rb.api == SK_RenderAPI::D3D9Ex ||
          rb.api == SK_RenderAPI::Reserved )
     {
-      rb.releaseOwnedResources ();
+      if (dispatch->pDevice != rb.device || rb.swapchain != dispatch->pSwapChain)
+      {
+        ImGui_ImplDX9_InvalidateDeviceObjects (nullptr);
+        rb.releaseOwnedResources              (       );
+      }
 
-      rb.device    = dispatch->pDevice;
-      //rb.setDevice  (dispatch->pDevice);
+      rb.setDevice  (dispatch->pDevice);
       rb.swapchain = dispatch->pSwapChain;
     }
 
@@ -3252,7 +3233,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                  load_op->type == TexLoadRequest::Immediate )
             {
               load_op->SrcDataSize =
-                gsl::narrow_cast <UINT> (
+                sk::narrow_cast <UINT> (
                   record.size
                 );
 
@@ -3422,8 +3403,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
          rb.api == SK_RenderAPI::D3D9Ex ||
          rb.api == SK_RenderAPI::Reserved )
     {
-      rb.device = pWrappedDevice;
-      //rb.setDevice (pWrappedDevice);
+      rb.setDevice (pDevice);
     }
   }
 
@@ -3764,22 +3744,19 @@ SK_D3D9_HookDeviceAndSwapchain (
 
   int num_hooked = 0;
 
-  IDirect3DDevice9 *pDevice = nullptr;
+  SK_ComPtr <IDirect3DDevice9> pDevice = nullptr;
 
   if ( FAILED ( pDevice_->QueryInterface ( IID_IWrapDirect3DDevice9,
-                                             (void **)&pDevice ) ) )
+                                             (void **)&pDevice.p ) ) )
   {
     // Not wrapped, we're good to go
     pDevice = pDevice_;
-    pDevice->AddRef ();
   }
 
   else if (pDevice != nullptr)
   {
-    IWrapDirect3DDevice9 *pWrapper = (IWrapDirect3DDevice9 *)pDevice;
+    IWrapDirect3DDevice9 *pWrapper = (IWrapDirect3DDevice9 *)pDevice.p;
                            pDevice = pWrapper->pReal;
-
-    pWrapper->AddRef ();
   }
 
   else
@@ -4294,8 +4271,6 @@ SK_D3D9_HookDeviceAndSwapchain (
       SK_RunOnce (SK_ApplyQueuedHooks ());
 //#endif
 
-    pDevice->Release ();
-
     InterlockedIncrementRelease (&__hooked);
   }
 
@@ -4371,8 +4346,8 @@ SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 }
 
 
-///#define WRAP_D3D9_DEVICE
-///#define WRAP_D3D9EX_DEVICE
+//#define WRAP_D3D9_DEVICE
+//#define WRAP_D3D9EX_DEVICE
 
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,
@@ -4575,7 +4550,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
     if (pWrappedDevice != nullptr)
     {
       dll_log->Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
-      ResetCEGUI_D3D9 (pWrappedDevice);
+      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
     }
 
     else
@@ -4735,7 +4710,7 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
 #ifdef _DEBUG
       dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
 #endif
-      ResetCEGUI_D3D9 (pWrappedDevice);
+      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
     }
 
     else
@@ -5497,7 +5472,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
     last_sel = sel;
 
-    for ( int line = 0; line < gsl::narrow_cast <int> (sources.size ()); line++)
+    for ( int line = 0; line < sk::narrow_cast <int> (sources.size ()); line++)
     {
       if (line == sel)
       {
@@ -6595,10 +6570,10 @@ SK_D3D9_TextureModDlg (void)
 
         else
         {
-          if (tex_dbg_idx >= gsl::narrow_cast <int32_t> (textures_used_last_dump.size ()))
+          if (tex_dbg_idx >= sk::narrow_cast <int32_t> (textures_used_last_dump.size ()))
           {
             tex_dbg_idx =
-              std::max (0UL, gsl::narrow_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
+              std::max (0UL, sk::narrow_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
           }
         }
 
@@ -6807,7 +6782,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < gsl::narrow_cast <int> (textures_used_last_dump.size ()); line++)
+     for ( int line = 0; line < sk::narrow_cast <int> (textures_used_last_dump.size ()); line++)
      {
        if (line == sel)
        {
@@ -7209,7 +7184,7 @@ SK_D3D9_TextureModDlg (void)
 
      last_sel = sel;
 
-     for ( int line = 0; line < gsl::narrow_cast <int> (render_textures.size ()); line++ )
+     for ( int line = 0; line < sk::narrow_cast <int> (render_textures.size ()); line++ )
      {
        D3DSURFACE_DESC desc;
 
@@ -8336,7 +8311,7 @@ SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* Primiti
 
     _tracked_vb.instances  = _draw_state.instances;
 
-    InterlockedExchangeAdd (&_tracked_vb.instanced, gsl::narrow_cast <ULONG> (_draw_state.instances));
+    InterlockedExchangeAdd (&_tracked_vb.instanced, sk::narrow_cast <ULONG> (_draw_state.instances));
     InterlockedIncrement   (&_tracked_vb.num_draws);
 
     if (_tracked_vb.wireframe)

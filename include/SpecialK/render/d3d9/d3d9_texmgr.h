@@ -429,7 +429,7 @@ public:
     }
 
     size_t bytesLoaded (void) const noexcept {
-      return gsl::narrow_cast <size_t> (ReadAcquire64 (&bytes_loaded_));
+      return sk::narrow_cast <size_t> (ReadAcquire64 (&bytes_loaded_));
     }
 
     int    jobsRetired  (void) const noexcept {

@@ -192,7 +192,6 @@ namespace D3D9 {
       InterlockedExchange (&num_draws, 0);
       used_textures.clear ();
 
-    //for (auto&  current_texture : current_textures)
       for (auto&& current_texture : current_textures)
         current_texture = nullptr;
     }

@@ -368,7 +368,7 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
 
   const int __MaxStage = 2;
   const int      stage =
-    gsl::narrow_cast <int> (stage_);
+    sk::narrow_cast <int> (stage_);
 
   assert ( stage >= 0 &&
            stage <= ( __MaxStage + 1 ) );
