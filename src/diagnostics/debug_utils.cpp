@@ -1096,6 +1096,12 @@ TerminateThread_Detour ( HANDLE hThread,
     ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
       ReadAcquire (&__SK_DLL_Ending)   != 0  );
 
+  if (SK_IsDebuggerPresent () && GetThreadId (hThread) == SK_Thread_GetMainId ())
+  {
+    __debugbreak ();
+    return TRUE;
+  }
+
   if (! abnormal_dll_state)
   {
     // Fake it, TerminateThread is dangerous and often used by DRM only.
@@ -1669,6 +1675,7 @@ _constUnicodeLen ( const wchar_t* str )
 }
 
 static constexpr wchar_t *wszFakeWinTitle = L"Curious Amnesia";
+SK_PEB                      __OriginalPEB = { };
 
 // Stage a fake PEB so we do not have to deal with as many
 //   anti-debug headaches when using traditional tools that
@@ -1683,7 +1690,47 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
       &__SK_GameBaseAddr, pPeb->ImageBaseAddress, nullptr
     );
 
-    SK_RunOnce (
+    if (_cfg.render.framerate.override_num_cpus != -1)
+    {
+      pPeb->NumberOfProcessors =
+        _cfg.render.framerate.override_num_cpus;
+    }
+
+    if (__OriginalPEB.NumberOfProcessors == 0)
+        __OriginalPEB = *(SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
+
+    BOOL bWasBeingDebugged =
+       pPeb->BeingDebugged;
+
+    static wchar_t wszWindowTitle [512] = { };
+    if (          *wszWindowTitle == L'\0')
+    {
+      wcsncpy (                         wszWindowTitle,
+                  pPeb->ProcessParameters->WindowTitle.Buffer,
+                  pPeb->ProcessParameters->WindowTitle.Length );
+    }
+
+    if (pPeb->BeingDebugged)
+    {
+      SK_Debug_FlagAsDebugging ();
+    }
+
+    if (__OriginalPEB.NumberOfProcessors == 0)
+        __OriginalPEB = *(SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
+
+    if (bRealDebug && SK_GetFramesDrawn () <= 2)
+    {
+      pPeb->BeingDebugged                  = FALSE;
+      pPeb->NtGlobalFlag                  &= ~0x70;
+      pPeb->ProcessParameters->DebugFlags  =  0x00;
+
+      SK_InitUnicodeString (
+        (PUNICODE_STRING)
+        &pPeb->ProcessParameters->WindowTitle,
+                              wszFakeWinTitle );
+    }
+
+    if (bRealDebug) SK_RunOnce (
       SK_Thread_Create ([](LPVOID pUser)->DWORD
       {
         SK_PEB *pPeb =
@@ -1698,39 +1745,56 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
                       pPeb->ProcessParameters->WindowTitle.Buffer,
                       pPeb->ProcessParameters->WindowTitle.Length );
 
+        auto pRealPeb = (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
+
         while (! ReadAcquire (&__SK_DLL_Ending))
         {
-          RtlAcquirePebLock_Original ();
-
-          pPeb->BeingDebugged                  = FALSE;
-          pPeb->NtGlobalFlag                  &= ~0x70;
-          pPeb->ProcessParameters->DebugFlags  =  0x00;
-
-          SK_InitUnicodeString (
-            (PUNICODE_STRING)
-            &pPeb->ProcessParameters->WindowTitle,
-                                  wszFakeWinTitle );
-
-          RtlReleasePebLock_Original ();
-
           // This Tom Foolery is only needed at initial app start
           if (SK_GetFramesDrawn () > 2)
+          {
+            RtlAcquirePebLock_Original ();
+
+            if (bRealDebug)
+            {
+              pRealPeb->BeingDebugged                  =  TRUE;
+              pRealPeb->NtGlobalFlag                  |=  0x70;
+
+              SK_InitUnicodeString (
+                (PUNICODE_STRING)
+                &pRealPeb->ProcessParameters->WindowTitle,
+                                           wszWindowTitle );
+            }
+
+            RtlReleasePebLock_Original ();
+
             break;
+          }
+
+          else
+          {
+            RtlAcquirePebLock_Original ();
+
+            pRealPeb->BeingDebugged                  = FALSE;
+            pRealPeb->NtGlobalFlag                  &= ~0x70;
+            pRealPeb->ProcessParameters->DebugFlags  =  0x00;
+
+            RtlReleasePebLock_Original ();
+          }
         }
 
-        pPeb->BeingDebugged                  = BeingDebugged;
-        pPeb->NtGlobalFlag                  &=  NtGlobalFlag;
-        pPeb->ProcessParameters->DebugFlags  =    DebugFlags;
+        pRealPeb->BeingDebugged                  = BeingDebugged;
+        pRealPeb->NtGlobalFlag                  &=  NtGlobalFlag;
+        pRealPeb->ProcessParameters->DebugFlags  =    DebugFlags;
 
         SK_InitUnicodeString (
             (PUNICODE_STRING)
-            &pPeb->ProcessParameters->WindowTitle,
-                                      wszWindowTitle );
+            &pRealPeb->ProcessParameters->WindowTitle,
+                                       wszWindowTitle );
 
         SK_Thread_CloseSelf ();
 
         return 0;
-      }, static_cast <LPVOID> (pPeb) )
+      }, static_cast <LPVOID> (&__OriginalPEB) )
     );
 
 #if 0
@@ -1777,12 +1841,6 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
     }
 #endif /* SK_ANTIDEBUG_PARANOIA_STAGE3 */
 #endif
-
-    if (_cfg.render.framerate.override_num_cpus != -1)
-    {
-      pPeb->NumberOfProcessors =
-        _cfg.render.framerate.override_num_cpus;
-    }
   }
   __except (EXCEPTION_EXECUTE_HANDLER) { };
 }
@@ -1968,12 +2026,17 @@ ZwCreateThreadEx_Detour (
 
     PathStripPathA (pszShortName);
 
-    SK_SymLoadModule ( GetCurrentProcess (),
-                       nullptr, pszShortName,
-                       nullptr, BaseAddr,
-                       mod_info.SizeOfImage );
+    if (cs_dbghelp != nullptr)
+    {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    dbghelp_callers.insert (hModStart);
+      SK_SymLoadModule ( GetCurrentProcess (),
+                         nullptr, pszShortName,
+                         nullptr, BaseAddr,
+                         mod_info.SizeOfImage );
+
+      dbghelp_callers.insert (hModStart);
+    }
   }
 
 
@@ -2149,12 +2212,17 @@ NtCreateThreadEx_Detour (
 
     PathStripPathA (pszShortName);
 
-    SK_SymLoadModule ( GetCurrentProcess (),
-                       nullptr, pszShortName,
-                       nullptr, BaseAddr,
-                       mod_info.SizeOfImage );
+    if (cs_dbghelp != nullptr)
+    {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    dbghelp_callers.insert (hModStart);
+      SK_SymLoadModule ( GetCurrentProcess (),
+                         nullptr, pszShortName,
+                         nullptr, BaseAddr,
+                         mod_info.SizeOfImage );
+
+      dbghelp_callers.insert (hModStart);
+    }
   }
 
 
@@ -3091,6 +3159,8 @@ VOID
 WINAPI
 RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
 {
+  bool bSkip = false;
+
   __try
   {
     switch (ExceptionRecord->ExceptionCode)
@@ -3106,7 +3176,7 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
           SK_LOG0 ( ( L"Debug Layer Text: %hs", (char *)ExceptionRecord->ExceptionInformation [2] ),
                   L" D3DDebug " );
 
-          return;
+          bSkip = true;
         }
         break;
 
@@ -3162,7 +3232,8 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
   {
     __try
     {
-      RtlRaiseException_Original (ExceptionRecord);
+      if (! bSkip)
+        RtlRaiseException_Original (ExceptionRecord);
     }
 
     __finally
@@ -3485,24 +3556,34 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                            L"NtDll",
                             "RtlInitUnicodeString" );
 
+    // Workaround Steamworks Anti-Debug
+    //
+//#ifdef _EXTENDED_DEBUG
+#if 1
+    SK_CreateDLLHook2 (    L"NtDll",
+                            "RtlAcquirePebLock",
+                             RtlAcquirePebLock_Detour,
+    static_cast_p2p <void> (&RtlAcquirePebLock_Original) );
+
+    SK_CreateDLLHook2 (    L"NtDll",
+                            "RtlReleasePebLock",
+                             RtlReleasePebLock_Detour,
+    static_cast_p2p <void> (&RtlReleasePebLock_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "IsDebuggerPresent",
+                               IsDebuggerPresent_Detour,
+      static_cast_p2p <void> (&IsDebuggerPresent_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32",
+                          "TerminateThread",
+                           TerminateThread_Detour,
+  static_cast_p2p <void> (&TerminateThread_Original) );
+#endif
+
 #ifdef _EXTENDED_DEBUG
     if (true)//config.compatibility.advanced_debug)
     {
-      SK_CreateDLLHook2 (    L"NtDll",
-                              "RtlAcquirePebLock",
-                               RtlAcquirePebLock_Detour,
-      static_cast_p2p <void> (&RtlAcquirePebLock_Original) );
-
-      SK_CreateDLLHook2 (    L"NtDll",
-                              "RtlReleasePebLock",
-                               RtlReleasePebLock_Detour,
-      static_cast_p2p <void> (&RtlReleasePebLock_Original) );
-
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "IsDebuggerPresent",
-                                 IsDebuggerPresent_Detour,
-        static_cast_p2p <void> (&IsDebuggerPresent_Original) );
-
       SK_CreateDLLHook2 (      L"kernel32",
                                 "SetThreadContext",
                                  SetThreadContext_Detour,
