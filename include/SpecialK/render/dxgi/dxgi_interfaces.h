@@ -27,6 +27,9 @@
 #include <dxgi1_3.h>
 #include <dxgi1_4.h>
 #include <dxgi1_5.h>
+#if __has_include (<dxgi1_6.h>)
+#include <dxgi1_6.h>
+#endif
 #include <SpecialK/com_util.h>
 
 interface IDXGISwapChain;
@@ -150,6 +153,7 @@ typedef HRESULT (STDMETHODCALLTYPE *EnumAdapters1_pfn)(
 //#define DXGI_PRESENT_ALLOW_TEARING          0x00000200UL
 //#define DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING  2048
 
+#if !__has_include (<dxgi1_6.h>)
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -822,6 +826,7 @@ extern RPC_IF_HANDLE __MIDL_itf_dxgi1_6_0000_0002_v0_0_s_ifspec;
 
 DEFINE_GUID(IID_IDXGIFactory6,0xc1b6694f,0xff09,0x44a9,0xb0,0x3c,0x77,0x90,0x0a,0x0a,0x1d,0x17);
 DEFINE_GUID(IID_IDXGIFactory7,0xa4966eed,0x76db,0x44da,0x84,0xc1,0xee,0x9a,0x7a,0xfb,0x20,0xa8);
+#endif
 
 HRESULT
 STDMETHODCALLTYPE

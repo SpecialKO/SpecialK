@@ -1415,10 +1415,10 @@ SK_DXGI_BeginHooking (void)
     _default_impl _Args;                                                  \
 }
 
-const GUID IID_IDXGIFactory6 =
-  { 0xc1b6694f, 0xff09, 0x44a9, { 0xb0, 0x3c, 0x77, 0x90, 0x0a, 0x0a, 0x1d, 0x17 } };
-const GUID IID_IDXGIFactory7 =
-  { 0xa4966eed, 0x76db, 0x44da, { 0x84, 0xc1, 0xee, 0x9a, 0x7a, 0xfb, 0x20, 0xa8 } };
+static const GUID IID_IDXGIFactory6 =
+    { 0xc1b6694f, 0xff09, 0x44a9, { 0xb0, 0x3c, 0x77, 0x90, 0x0a, 0x0a, 0x1d, 0x17 } };
+static const GUID IID_IDXGIFactory7 =
+    { 0xa4966eed, 0x76db, 0x44da, { 0x84, 0xc1, 0xee, 0x9a, 0x7a, 0xfb, 0x20, 0xa8 } };
 
 int
 SK_GetDXGIFactoryInterfaceVer (const IID& riid)
@@ -1435,9 +1435,9 @@ SK_GetDXGIFactoryInterfaceVer (const IID& riid)
     return 4;
   if (riid == __uuidof (IDXGIFactory5))
     return 5;
-  if (riid ==       IID_IDXGIFactory6 )
+  if (riid == __uuidof (IDXGIFactory6))
     return 6;
-  if (riid ==       IID_IDXGIFactory7 )
+  if (riid == __uuidof (IDXGIFactory7))
     return 7;
 
   assert (false);
@@ -1462,9 +1462,9 @@ SK_GetDXGIFactoryInterfaceEx (const IID& riid)
     interface_name =  L"     IDXGIFactory4";
   else if (riid == __uuidof (IDXGIFactory5))
     interface_name =  L"     IDXGIFactory5";
-  else if (riid ==       IID_IDXGIFactory6)
+  else if (riid == __uuidof (IDXGIFactory6))
     interface_name =  L"     IDXGIFactory6";
-  else if (riid ==       IID_IDXGIFactory7)
+  else if (riid == __uuidof (IDXGIFactory7))
     interface_name =  L"     IDXGIFactory7";
   else
   {
@@ -1486,7 +1486,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   SK_ComPtr <IDXGIFactory5> pTemp;
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (IID_IDXGIFactory7, (void **)&pTemp)))
+    pFactory->QueryInterface (__uuidof (IDXGIFactory7), (void **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -1508,7 +1508,7 @@ SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory)
   }
 
   if (SUCCEEDED (
-    pFactory->QueryInterface (IID_IDXGIFactory6, (void **)&pTemp)))
+    pFactory->QueryInterface (__uuidof (IDXGIFactory6), (void **)&pTemp)))
   {
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
@@ -1606,10 +1606,10 @@ SK_GetDXGIFactoryInterface (IUnknown *pFactory)
     SK_GetDXGIFactoryInterfaceVer (pFactory);
 
   if (iver == 7)
-    return SK_GetDXGIFactoryInterfaceEx (      IID_IDXGIFactory7);
+    return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory7));
 
   if (iver == 6)
-    return SK_GetDXGIFactoryInterfaceEx (      IID_IDXGIFactory6);
+    return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory6));
 
   if (iver == 5)
     return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory5));
