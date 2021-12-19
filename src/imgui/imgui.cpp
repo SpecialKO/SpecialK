@@ -1926,8 +1926,8 @@ namespace sk_gsl
   GSL_SUPPRESS (bounds.2) // NO-FORMAT: attribute
   constexpr T& at (T* arr, const std::ptrdiff_t i)
   {
-    return ( i >= 0 && i < gsl::narrow_cast <std::ptrdiff_t> (N) ) ?
-             arr [gsl::narrow_cast <std::size_t> (i)]     :
+    return ( i >= 0 && i < sk::narrow_cast <std::ptrdiff_t> (N) ) ?
+             arr [sk::narrow_cast          <std::size_t>    (i)]  :
              arr [0];
   };
 };

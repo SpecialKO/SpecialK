@@ -187,8 +187,8 @@ SK::ControlPanel::Steam::Draw (void)
         const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                     100.0 * ratio,  gsl::narrow_cast <uint32_t> ((ratio * gsl::narrow_cast <float> (num_achievements))),
-                                     gsl::narrow_cast <uint32_t> (                                   num_achievements) );
+                     100.0 * ratio,  sk::narrow_cast <uint32_t> ((ratio * sk::narrow_cast <float> (num_achievements))),
+                                     sk::narrow_cast <uint32_t> (                                  num_achievements) );
 
         ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
         ImGui::ProgressBar    ( ratio,
@@ -377,9 +377,9 @@ SK::ControlPanel::Steam::Draw (void)
         }
       }
 
-      auto *utils = steam_ctx.Utils ();//SK_SteamAPI_Utils ();
+      static bool bOverlayEnabled = (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ());
 
-      if (utils != nullptr && utils->IsOverlayEnabled () && ImGui::CollapsingHeader ("Overlay Notifications"))
+      if (bOverlayEnabled && ImGui::CollapsingHeader ("Overlay Notifications"))
       {
         ImGui::TreePush  ("");
 
@@ -1512,7 +1512,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
                          url += L"/manifests/";
 
             if ( InternetCrackUrl (          url.c_str  (),
-                   gsl::narrow_cast <DWORD> (url.length ()),
+                    sk::narrow_cast <DWORD> (url.length ()),
                                       0x00,
                                         &urlcomps
                                   )
@@ -1590,7 +1590,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
                     if (hGlobal != nullptr)
                     {
                       wchar_t *wszCommand =
-                        gsl::narrow_cast <wchar_t *> (
+                        sk::narrow_cast <wchar_t *> (
                           GlobalLock (hGlobal)
                         );
 

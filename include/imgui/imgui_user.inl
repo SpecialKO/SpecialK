@@ -139,6 +139,7 @@ SK_ImGui_LoadFonts (void)
     }
 
     LoadFont (config.imgui.font.japanese.file,  config.imgui.font.japanese.size, io.Fonts->GetGlyphRangesJapanese                (), &font_cfg);
+    if (config.apis.last_known != SK_RenderAPI::D3D9)
     LoadFont (config.imgui.font.chinese.file,   config.imgui.font.chinese.size,  io.Fonts->GetGlyphRangesChineseSimplifiedCommon (), &font_cfg);
     //LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean                (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic                (), &font_cfg);
@@ -456,19 +457,19 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
           {
-            // 99% of games don't need this, and if we use relative motion to update the cursor position that
-            //   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
-            //     Raw Input does not include cursor acceleration, etc.
-            POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX,
-                           ((RAWINPUT *)pData)->data.mouse.lLastY };
-
-            ////SK_ImGui_Cursor.ClientToLocal (&client);
-
-            SK_ImGui_Cursor.pos.x += client.x;
-            SK_ImGui_Cursor.pos.y += client.y;
-
-            io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-            io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+            ///////////////////////// 99% of games don't need this, and if we use relative motion to update the cursor position that
+            /////////////////////////   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
+            /////////////////////////     Raw Input does not include cursor acceleration, etc.
+            ///////////////////////POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX,
+            ///////////////////////               ((RAWINPUT *)pData)->data.mouse.lLastY };
+            ///////////////////////
+            ///////////////////////////SK_ImGui_Cursor.ClientToLocal (&client);
+            ///////////////////////
+            ///////////////////////SK_ImGui_Cursor.pos.x += client.x;
+            ///////////////////////SK_ImGui_Cursor.pos.y += client.y;
+            ///////////////////////
+            ///////////////////////io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+            ///////////////////////io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
           }
 
           if (self)
@@ -728,15 +729,6 @@ MessageProc ( const HWND&   hWnd,
 
   auto ActivateWindow = [&](bool active = false)
   {
-    bool changed = (active != window_active);
-
-    if ((! active) && changed)
-    {
-      RtlSecureZeroMemory (io.MouseDown, sizeof (bool) * 5  );
-      RtlSecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
-    }
-
-    window_active = active;
   };
 
   switch (msg)
@@ -814,7 +806,7 @@ MessageProc ( const HWND&   hWnd,
     case WM_ACTIVATE:
     case WM_NCACTIVATE:
     {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
         if ( msg == WM_NCACTIVATE ||
              msg == WM_ACTIVATEAPP )
@@ -852,29 +844,32 @@ MessageProc ( const HWND&   hWnd,
 
     case WM_LBUTTONDOWN:
     case WM_LBUTTONDBLCLK: // Sent on receipt of the second click
-      io.MouseDown [0] = true;
+      if (hWnd == game_window.hWnd || hWnd == game_window.child) io.MouseDown [0] = true;
       return true;
 
     case WM_RBUTTONDOWN:
     case WM_RBUTTONDBLCLK: // Sent on receipt of the second click
-      io.MouseDown [1] = true;
+      if (hWnd == game_window.hWnd || hWnd == game_window.child) io.MouseDown [1] = true;
       return true;
 
     case WM_MBUTTONDOWN:
     case WM_MBUTTONDBLCLK: // Sent on receipt of the second click
-      io.MouseDown [2] = true;
+      if (hWnd == game_window.hWnd || hWnd == game_window.child) io.MouseDown [2] = true;
       return true;
 
     case WM_XBUTTONDOWN:
     case WM_XBUTTONDBLCLK: // Sent on receipt of the second click
     {
-      WORD Flags =
-        GET_XBUTTON_WPARAM (wParam);
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
+      {
+        WORD Flags =
+          GET_XBUTTON_WPARAM (wParam);
 
-      io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
-      io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
+        io.MouseDown [3] |= (Flags & XBUTTON1) != 0;
+        io.MouseDown [4] |= (Flags & XBUTTON2) != 0;
 
-      return true;
+        return true;
+      }
     } break;
 
     // Don't care about these events for anything other than filtering;
@@ -887,14 +882,14 @@ MessageProc ( const HWND&   hWnd,
     case WM_RBUTTONUP:
     case WM_MBUTTONUP:
     case WM_XBUTTONUP:
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
         return true;
       } break;
 
 
     case WM_MOUSEWHEEL:
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd || hWnd == game_window.child || IsChild (game_window.hWnd, hWnd))
       {
         io.MouseWheel +=
            static_cast <float> (GET_WHEEL_DELTA_WPARAM (wParam)) /
@@ -921,7 +916,7 @@ MessageProc ( const HWND&   hWnd,
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
     {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -1031,74 +1026,85 @@ MessageProc ( const HWND&   hWnd,
     case WM_KEYUP:
     case WM_SYSKEYUP:
     {
-      InterlockedIncrement (&__SK_KeyMessageCount);
-
-      BYTE vkCode = LOWORD (wParam) & 0xFF;
-      if ( vkCode & 0xF8 ) // Valid Keys:  8 - 255
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
-        // Don't process Alt+Tab or Alt+Enter
-        if ( msg == WM_SYSKEYUP &&
-             ( vkCode == VK_TAB ||
-               vkCode == VK_RETURN )
-           )
+        InterlockedIncrement (&__SK_KeyMessageCount);
+
+        BYTE vkCode = LOWORD (wParam) & 0xFF;
+        if ( vkCode & 0xF8 ) // Valid Keys:  8 - 255
         {
-          return false;
+          // Don't process Alt+Tab or Alt+Enter
+          if ( msg == WM_SYSKEYUP &&
+               ( vkCode == VK_TAB ||
+                 vkCode == VK_RETURN )
+             )
+          {
+            return false;
+          }
+
+          pConsole->KeyUp (vkCode, lParam);
+
+          return true;
         }
-
-        pConsole->KeyUp (vkCode, lParam);
-
-        return true;
       }
     } break;
 
 
     case WM_MOUSEMOVE:
     {
-      POINTS     xyPos = MAKEPOINTS (lParam);
-      LONG   lDeltaRet =
-        SK_ImGui_DeltaTestMouse (
-             std::exchange (last_pos, xyPos),
-                                     lParam);
+      if ((hWnd == game_window.hWnd && (! game_window.child)) || hWnd == game_window.child)
+      {
+        POINTS     xyPos = MAKEPOINTS (lParam);
+        LONG   lDeltaRet =
+          SK_ImGui_DeltaTestMouse (
+               std::exchange (last_pos, xyPos),
+                                       lParam);
 
-      // Return:
-      //
-      //   -1 if no filtering is desired
-      //    0 if message should propogate, but preserve internal cursor state
-      //    1 if message should be removed
-      //
-      if (     lDeltaRet >= 0 )
-        return lDeltaRet;
+        POINT
+          cursor_pos = {
+            last_pos.x,
+            last_pos.y
+          };
 
-      POINT
-        cursor_pos = {
-          last_pos.x,
-          last_pos.y
+        SK_ImGui_Cursor.ClientToLocal (&cursor_pos);
+
+        if (! SK_ImGui_WantMouseCapture ())
+        {
+          SK_ImGui_Cursor.orig_pos =    cursor_pos;
+        }
+
+        // Return:
+        //
+        //   -1 if no filtering is desired
+        //    0 if message should propogate, but preserve internal cursor state
+        //    1 if message should be removed
+        //
+        if (     lDeltaRet >= 0 ) {
+          return lDeltaRet;
+        }
+
+        SK_ImGui_Cursor.pos =           cursor_pos;
+
+        io.MousePos = {
+          (float)cursor_pos.x,
+          (float)cursor_pos.y
         };
 
-      SK_ImGui_Cursor.ClientToLocal (&cursor_pos);
-      SK_ImGui_Cursor.pos =           cursor_pos;
+        if (! SK_ImGui_WantMouseCapture ())
+        {
+          return FALSE;
+        }
 
-      io.MousePos = {
-        (float)cursor_pos.x,
-        (float)cursor_pos.y
-      };
-
-      if (! SK_ImGui_WantMouseCapture ())
-      {
-        SK_ImGui_Cursor.orig_pos =
-                      cursor_pos;
-
-        return FALSE;
+        return TRUE;
       }
-
-      return TRUE;
     } break;
 
 
     case WM_CHAR:
     {
-      if ( hWnd == game_window.hWnd ||
-          IsChild (game_window.hWnd, hWnd) )
+      if ( hWnd == game_window.hWnd  ||
+           hWnd == game_window.child ||
+           IsChild (game_window.hWnd, hWnd) )
       {
         InterlockedIncrement (&__SK_KeyMessageCount);
 
@@ -1226,67 +1232,6 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     }
   }
 
-#if 0
-  if (msg == WM_SETCURSOR)
-  {
-    ////SK_ReleaseAssert (game_window.hWnd == hWnd || IsChild (game_window.hWnd, hWnd));
-
-    if (LOWORD (lParam) == HTCLIENT ||
-        LOWORD (lParam) == HTTRANSPARENT)
-    {
-      extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
-
-      MSG
-        msg_ = { };
-        msg_.message = msg;
-        msg_.lParam  = lParam;
-        msg_.wParam  = wParam;
-
-      if (SK_Input_DetermineMouseIdleState (&msg_))
-        return 1;/*
-      //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
-      SK_ImGui_Cursor.update ();
-
-      if ( SK_ImGui_WantMouseCapture () &&
-              ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
-      {
-        if (! SK_Window_IsCursorActive ())
-              SK_ImGui_Cursor.activateWindow ();
-
-        return 1;
-      }
-
-      else
-      {
-        if (SK_Window_IsCursorActive ())
-        {
-          SK_ImGui_Cursor.activateWindow (false);
-
-          return 0;
-        }
-      }
-
-      if (config.input.cursor.manage)
-      {
-        MSG
-          msg_ = { };
-          msg_.message = msg;
-          msg_.lParam  = lParam;
-          msg_.wParam  = wParam;
-
-        SK_Input_DetermineMouseIdleState (&msg_);
-      }
-
-      return 0;
-    }
-
-    else if (SK_Window_IsCursorActive ())
-    {
-      SK_ImGui_Cursor.activateWindow (false);
-    }*/
-    }
-  }
-#else
   if (msg == WM_SETCURSOR)
   {
     extern bool SK_Window_IsCursorActive (void);
@@ -1296,15 +1241,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     if ( LOWORD (lParam) == HTCLIENT ||
          LOWORD (lParam) == HTTRANSPARENT )
     {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
-        SK_ImGui_Cursor.update ();
-
         if ( SK_ImGui_WantMouseCapture () &&
                 ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
         {
-          SK_ImGui_Cursor.activateWindow (true);
-
           return TRUE;
         }
 
@@ -1322,15 +1263,12 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
           if (! SK_Window_IsCursorActive ())
           {
-            SK_SetCursor (0);
-
             return TRUE;
           }
         }
       }
     }
   }
-#endif
 
   extern bool
   SK_ImGui_WantExit;
@@ -1637,7 +1575,9 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
                     bool& toggle_nav )
 {
   if (toggle_ui)
+  {
     SK_ImGui_Toggle ();
+  }
 
   if (toggle_nav && SK_ImGui_Active ())
     nav_usable = (! nav_usable);
@@ -1753,12 +1693,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   //   that occur during the next frame without losing any input events.
   if ( SK_IsGameWindowActive (    ) )
   {
-    io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
-    io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
-    io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON) ) != 0;
-    io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1)) != 0;
-    io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2)) != 0;
-
     bool Alt =
       (SK_GetAsyncKeyState (VK_MENU)    ) != 0;
     bool Ctrl =
@@ -1770,18 +1704,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     io.KeyShift = Shift;
     io.KeyCtrl  = Ctrl;
 
-    if (config.input.keyboard.catch_alt_f4)
-    {
-      if ( io.KeyAlt                     &&
-           io.KeysDown         [VK_F4  ] &&
-       ( ( io.KeysDownDuration [VK_MENU] > 0 ) ^
-         ( io.KeysDownDuration [VK_F4  ] > 0 ) ))
-      {
-        extern bool SK_ImGui_WantExit;
-                    SK_ImGui_WantExit = true;
-      }
-    }
-
     bToggleNav |=
        ( SK_ImGui_Visible                 &&
          io.KeysDown         [VK_CAPITAL] &&
@@ -1792,12 +1714,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
          io.KeyShift                   &&
          io.KeysDown         [VK_BACK] &&
          io.KeysDownDuration [VK_BACK] == 0.0f );
-  }
-
-  else
-  {
-    RtlSecureZeroMemory (io.KeysDown,  sizeof (bool) * 512);
-    RtlSecureZeroMemory (io.MouseDown, sizeof (bool) * 5);
   }
 
   static XINPUT_STATE last_state = { 1, 0 };
@@ -2494,6 +2410,9 @@ static int64_t g_TicksPerSecond = { };
 void
 SK_ImGui_User_NewFrame (void)
 {
+  extern bool __SK_EnableSetCursor;
+              __SK_EnableSetCursor = true;
+
   static auto& io =
     ImGui::GetIO ();
 
@@ -2546,29 +2465,6 @@ SK_ImGui_User_NewFrame (void)
     std::min ( 0.333f,
     std::max ( 0.0f, static_cast <float> ( delta / ticks_per_sec ) ) );
 
-  // Read keyboard modifiers inputs
-  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
-  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
-  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
-
-  io.KeySuper  = false;
-
-  SK_ImGui_PollGamepad ();
-
-  if (nav_usable)
-  {
-    io.ConfigFlags  |= ( ImGuiConfigFlags_NavEnableKeyboard |
-                         ImGuiConfigFlags_NavEnableGamepad  );
-    io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
-  }
-
-  else
-  {
-    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
-    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
-  }
-
   if ( io.DisplaySize.x <= 0.0f ||
        io.DisplaySize.y <= 0.0f )
   {
@@ -2594,11 +2490,21 @@ SK_ImGui_User_NewFrame (void)
 
   // Hacky solution for missed messages causing no change in cursor pos
   //
-  POINT             cursor_pos = { };
-  SK_GetCursorPos (&cursor_pos);
+  POINT              cursor_pos = { };
+  SK_GetCursorPos  (&cursor_pos);
 
-  if (WindowFromPoint (cursor_pos) == game_window.hWnd)
+  HWND hWndFromPt =
+    WindowFromPoint (cursor_pos);
+
+  if (                           hWndFromPt == game_window.hWnd ||
+      IsChild (game_window.hWnd, hWndFromPt))
   {
+    io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) != 0);
+    io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) != 0);
+    io.MouseDown [2] |= ((SK_GetAsyncKeyState (VK_MBUTTON) ) != 0);
+    io.MouseDown [3] |= ((SK_GetAsyncKeyState (VK_XBUTTON1)) != 0);
+    io.MouseDown [4] |= ((SK_GetAsyncKeyState (VK_XBUTTON2)) != 0);
+
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 
     if ( cursor_pos.x != last_x ||
@@ -2617,21 +2523,42 @@ SK_ImGui_User_NewFrame (void)
         SK_ImGui_Cursor.pos = cursor_pos;
       }
     }
+
+    if ( SK_ImGui_Cursor.pos.x != last_x ||
+         SK_ImGui_Cursor.pos.y != last_y )
+    {
+      io.MousePos.x = static_cast <float> (SK_ImGui_Cursor.pos.x);
+      io.MousePos.y = static_cast <float> (SK_ImGui_Cursor.pos.y);
+    }
   }
 
-  if ( SK_ImGui_Cursor.pos.x != last_x ||
-       SK_ImGui_Cursor.pos.y != last_y )
+  if (SK_IsGameWindowActive ()) for ( UINT i = 7 ; i < 255 ; ++i )
+                              io.KeysDown [i] = SK_GetAsyncKeyState (i) != 0;
+  else {RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
+        RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5);}
+
+  // Read keyboard modifiers inputs
+  io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
+  io.KeyShift  = (io.KeysDown [VK_SHIFT])   != 0;
+  io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
+
+  io.KeySuper  = false;
+
+  SK_ImGui_PollGamepad ();
+
+  if (nav_usable)
   {
-    io.MousePos.x = static_cast <float> (SK_ImGui_Cursor.pos.x);
-    io.MousePos.y = static_cast <float> (SK_ImGui_Cursor.pos.y);
+    io.ConfigFlags  |= ( ImGuiConfigFlags_NavEnableKeyboard |
+                         ImGuiConfigFlags_NavEnableGamepad  );
+    io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
   }
 
-
-
-
-  ImGui::NewFrame ();
-
-
+  else
+  {
+    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableKeyboard;
+    io.ConfigFlags  &= ~ImGuiConfigFlags_NavEnableGamepad;
+    io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
+  }
 
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
@@ -2645,28 +2572,11 @@ SK_ImGui_User_NewFrame (void)
 
   bool was_idle = SK_ImGui_Cursor.idle;
 
-  if (SK_ImGui_Cursor.last_move < SK::ControlPanel::current_time - 500)
-    SK_ImGui_Cursor.idle = true;
-
-  else
+  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500)
     SK_ImGui_Cursor.idle = false;
 
-                                        // Help w/ games that change their cursor constantly
-  if (was_idle != SK_ImGui_Cursor.idle  ||  SK_ImGui_IsMouseRelevant ())
-  {
-    SK_ImGui_Cursor.update ();
-
-    // Send a (nop) position change to cause WM_SETCURSOR
-    if (SK_ImGui_Cursor.idle && (! was_idle))
-    {
-      SK_GetCursorPos    (&cursor_pos);
-      if (WindowFromPoint (cursor_pos) == game_window.hWnd)
-      {
-        PostMessage ( game_window.hWnd,                       WM_SETCURSOR,
-              (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE) );
-      }
-    }
-  }
+  else
+    SK_ImGui_Cursor.idle = (! SK_ImGui_WantMouseCapture ());
 
 
   if (config.input.cursor.manage)
@@ -2696,8 +2606,61 @@ SK_ImGui_User_NewFrame (void)
   }
 
 
+  if (! SK_ImGui_Cursor.idle)
+  {
+    if (SK_ImGui_WantMouseCapture ())
+    {
+      extern HCURSOR ImGui_DesiredCursor (void);
+      SK_SetCursor  (ImGui_DesiredCursor ());
+    }
+
+    extern bool
+    SK_InputUtil_IsHWCursorVisible (void);
+
+    io.MouseDrawCursor =
+      (! SK_InputUtil_IsHWCursorVisible ());
+  }
+
+  else
+    io.MouseDrawCursor = false;
+
+
+  ImGui::NewFrame ();
+
+  __SK_EnableSetCursor = false;
+
+
+  if (SK_IsGameWindowActive ())
+  {
+    if (                           hWndFromPt == game_window.hWnd ||
+        IsChild (game_window.hWnd, hWndFromPt))
+    {
+      io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
+      io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
+      io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON) ) != 0;
+      io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1)) != 0;
+      io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2)) != 0;
+    }
+  }
+
+  if (config.input.keyboard.catch_alt_f4)
+  {
+    if ( io.KeyAlt                     &&
+         io.KeysDown         [VK_F4  ] &&
+     ( ( io.KeysDownDuration [VK_MENU] > 0.0f ) ^
+       ( io.KeysDownDuration [VK_F4  ] > 0.0f ) ) )
+    {
+      extern bool SK_ImGui_WantExit;
+                  SK_ImGui_WantExit = true;
+    }
+  }
+
   //if (eula.show)
     SK_ImGui_DrawEULA (&eula);
+
+
+  last_x = SK_ImGui_Cursor.pos.x;
+  last_y = SK_ImGui_Cursor.pos.y;
 }
 
 bool
