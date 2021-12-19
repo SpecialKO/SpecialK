@@ -196,18 +196,13 @@ SK_KeepAway (void)
   HMODULE hMod =
     skModuleRegistry::HostApp (GetModuleHandle (nullptr));
 
-  wchar_t                         wszSystemDir   [MAX_PATH + 2] = { };
-  wchar_t                         wszWindowsDir  [MAX_PATH + 2] = { };
-  GetSystemWindowsDirectoryW     (wszWindowsDir,  MAX_PATH);
-  SK_RunLHIfBitness              (
-    32, GetSystemWow64DirectoryW (wszSystemDir,   MAX_PATH),
-        GetSystemDirectoryW      (wszSystemDir,   MAX_PATH)
-  );
-
   wchar_t              wszAppFullName [MAX_PATH + 2] = { };
   GetModuleFileName ( hMod,
                        wszAppFullName, MAX_PATH       );
-  if ( StrStrIW (      wszAppFullName, L"rundll32"    )            ) return 0;
+  if ( StrStrIW (      wszAppFullName, L"rundll32"    )            )
+  {
+    return 0;
+  }
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
@@ -1178,6 +1173,16 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
             SK_DontInject ();
         }
 
+        else if (config.apis.OpenGL.hook && gl)
+        {
+          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
+          {
+            return SK_DontInject ();
+          }
+
+          SK_SetDLLRole (DLL_ROLE::OpenGL);
+        }
+
         else if ( ( config.apis.dxgi.d3d11.hook ||
                     config.apis.dxgi.d3d12.hook    )
                                                 && (dxgi || d3d11 || d3d12))
@@ -1207,16 +1212,6 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
           SK_SetDLLRole (DLL_ROLE::D3D9);
         }
 
-        else if (config.apis.OpenGL.hook && gl)
-        {
-          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
-          {
-            return SK_DontInject ();
-          }
-
-          SK_SetDLLRole (DLL_ROLE::OpenGL);
-        }
-
 #ifdef _M_AMD64
         else if (config.apis.Vulkan.hook && vulkan)
           SK_SetDLLRole (DLL_ROLE::Vulkan);
@@ -1231,10 +1226,12 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         //
         else
         {
-          if (config.apis.dxgi.d3d11.hook)
-            SK_SetDLLRole (DLL_ROLE::DXGI);
 #ifdef _M_AMD64
-          if (config.apis.dxgi.d3d12.hook)
+          if (config.apis.dxgi.d3d11.hook ||
+              config.apis.dxgi.d3d12.hook)
+            SK_SetDLLRole (DLL_ROLE::DXGI);
+#else
+          if (config.apis.dxgi.d3d11.hook)
             SK_SetDLLRole (DLL_ROLE::DXGI);
 #endif
           else if (config.apis.OpenGL.hook)
@@ -1252,11 +1249,13 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 #endif
         }
 
-        // Auto-Guess DXGI if all else fails...
+        // Auto-Guess OpenGL if all else fails...
         if (SK_GetDLLRole () == DLL_ROLE::INVALID)
         {
-          config.apis.dxgi.d3d11.hook = true;
-          SK_SetDLLRole (     DLL_ROLE::DXGI   );
+          //config.apis.dxgi.d3d11.hook = true;
+          //SK_SetDLLRole (     DLL_ROLE::DXGI   );
+          config.apis.OpenGL.hook = true;
+          SK_SetDLLRole (     DLL_ROLE::OpenGL   );
         }
 
         // Write any default values to the config file
