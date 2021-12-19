@@ -95,6 +95,19 @@ iSK_INI::reload (const wchar_t *fname)
   if (! PathFileExistsW (fname))
     return false;
 
+  if (file_watch == nullptr)
+  {
+    wchar_t     wszDirName [MAX_PATH] = { };
+    wcsncpy_s ( wszDirName, MAX_PATH,
+                  fname,_TRUNCATE );
+
+    if (PathRemoveFileSpecW (wszDirName))
+    {
+      file_watch =
+        FindFirstChangeNotification (wszDirName, FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+    }
+  }
+
   // Avoid reloading when it would make no sense to do so
   if (! _wcsicmp (fname, wszName))
   {
@@ -138,7 +151,7 @@ iSK_INI::reload (const wchar_t *fname)
     ordered_sections.clear ();
 
     auto size =
-      gsl::narrow_cast <long> (SK_File_GetSize (fname));
+      sk::narrow_cast <long> (SK_File_GetSize (fname));
 
     // A 4 MiB INI file seems pretty dman unlikely...
     SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L))
@@ -203,7 +216,7 @@ iSK_INI::reload (const wchar_t *fname)
         utf8 ? 3 : 0;
 
       const int       real_size =
-        size - gsl::narrow_cast <int> (offset);
+        size - sk::narrow_cast <int> (offset);
 
       char*           start_addr =
       (reinterpret_cast <char *> (wszData)) + offset;
@@ -331,6 +344,13 @@ iSK_INI::~iSK_INI (void)
 
     delete [] data;
     data = nullptr;
+  }
+
+  if (file_watch != nullptr)
+  {
+    FindCloseChangeNotification (
+      std::exchange (file_watch, nullptr)
+    );
   }
 }
 
@@ -1110,13 +1130,18 @@ iSK_INI::write (const wchar_t* fname)
     {
       if (ReadAcquire (&__SK_DLL_Ending))
       {
+        //if (WaitForSingleObject (   file_watch, 0) == WAIT_TIMEOUT)
+        //  return;
+        //
+        //FindNextChangeNotification (file_watch);
+
         if (SK_File_GetModificationTime (fname, &file_stamp))
         {
           // Check if file was re-written externally, if not we can avoid flushing to disk.
           if (CompareFileTime (&flushed_, &file_stamp) == 0 || (! SK_GetFramesDrawn ()))
           {                                                 // Also avoid writing INI files when launchers exit
-            SK_LOG2 ( ( L"Flush Skipped For Unmodified INI '%s' (Shutdown)", fname ),
-                        L"ConfigMgmt" );
+            SK_LOG2 ((L"Flush Skipped For Unmodified INI '%s' (Shutdown)", fname),
+                     L"ConfigMgmt");
             return;
           }
         }
@@ -1352,7 +1377,7 @@ iSK_INI::import_file (const wchar_t* fname)
   if (fImportINI != nullptr)
   {
     auto size =
-      gsl::narrow_cast <long> (
+      sk::narrow_cast <long> (
         SK_File_GetSize (fname)
       );
 
@@ -1412,13 +1437,13 @@ iSK_INI::import_file (const wchar_t* fname)
       const uintptr_t offset =
         utf8 ? 3 : 0;
 
-      const int       real_size  =
-        size - gsl::narrow_cast <int> (offset);
+      const int      real_size  =
+        size - sk::narrow_cast <int> (offset);
 
-      char*           start_addr =
+      char*          start_addr =
       (reinterpret_cast <char *> (wszImportData)) + offset;
 
-      auto*           string =
+      auto*          string =
         new (std::nothrow) char [real_size + 2] { };
 
       if (string != nullptr)
