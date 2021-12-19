@@ -287,7 +287,7 @@ SK_HDR_KeyPress ( BOOL Control,
 
 extern iSK_INI* osd_ini;
 
-class SKWG_HDR_Control : public SK_Widget
+class SKWG_HDR_Control : public SK_Widget, SK_IVariableListener
 {
 public:
   SKWG_HDR_Control (void) noexcept : SK_Widget ("DXGI_HDR")
@@ -302,20 +302,17 @@ public:
       SK_GetCommandProcessor ();
 
     try {
-      pCommandProc->AddVariable ( "HDR.Preset",
-              new SK_IVarStub <int> (&__SK_HDR_Preset));
+      SK_IVarStub <int>* preset  = new SK_IVarStub <int>   (&__SK_HDR_Preset, this);
+      SK_IVarStub <int>* tonemap = new SK_IVarStub <int>   (&__SK_HDR_tonemap);
+      SK_IVarStub <int>* vis     = new SK_IVarStub <int>   (&__SK_HDR_visualization);
+      SK_IVarStub <float>* horz  = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
+      SK_IVarStub <float>* vert  = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
 
-      pCommandProc->AddVariable ( "HDR.Visualization",
-              new SK_IVarStub <int> (&__SK_HDR_visualization));
-
-      pCommandProc->AddVariable ( "HDR.Tonemap",
-              new SK_IVarStub <int> (&__SK_HDR_tonemap));
-
-      pCommandProc->AddVariable ( "HDR.HorizontalSplit",
-              new SK_IVarStub <float> (&__SK_HDR_HorizCoverage));
-
-      pCommandProc->AddVariable ( "HDR.VerticalSplit",
-              new SK_IVarStub <float> (&__SK_HDR_VertCoverage));
+      pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange  (0, 3)         );
+      pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange     (0, 11)        );
+      pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange (0, 2)         );
+      pCommandProc->AddVariable ( "HDR.HorizontalSplit", &horz->setRange    (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange    (0.0f, 100.0f) );
     }
 
     catch (...)
@@ -323,6 +320,18 @@ public:
 
     }
   };
+
+  bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
+  {
+    if (val != nullptr && var->getValuePointer () == &__SK_HDR_Preset)
+    {
+      __SK_HDR_Preset = *(int *)val;
+
+      hdr_presets [__SK_HDR_Preset].activate ();
+    }
+
+    return true;
+  }
 
   void run (void) noexcept override
   {
@@ -1092,11 +1101,6 @@ public:
 
             ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0Luminance (vs EDID Max-Avg-Y)\0"
                                                                                                  "Luminance (vs EDID Max-Local-Y)\0"
-                                                                                               //"Luminance (vs DisplayHDR 400)\0"
-                                                                                               //"Luminance (vs DisplayHDR 500)\0"
-                                                                                               //"Luminance (vs DisplayHDR 600)\0"
-                                                                                               //"Luminance (vs DisplayHDR 1000)\0"
-                                                                                               //"Luminance (vs DisplayHDR 1400)\0"
                                                                                                  "Luminance (Exposure)\0"
                                                                                                  "HDR Overbright Bits\0"
                                                                                                  "8-Bit Quantization\0"
