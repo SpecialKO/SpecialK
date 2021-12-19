@@ -88,8 +88,8 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
 
   // Setup viewport, orthographic projection matrix
   glViewport ( 0, 0,
-                 sk`::narrow_cast <GLsizei> (fb_width),
-                 sk`::narrow_cast <GLsizei> (fb_height) );
+                 sk::narrow_cast <GLsizei> (fb_width),
+                 sk::narrow_cast <GLsizei> (fb_height) );
 
   const float ortho_projection [4][4] =
   {

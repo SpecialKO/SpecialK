@@ -744,6 +744,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     );
   try
   {
+  SK_ComPtr <ID3D11Device> pDev;
+  pDevCtx->GetDevice     (&pDev.p);
+
   pDevCtx->OMSetRenderTargets ( 1,
                                  &_P->pRenderTargetView.p,
                                     nullptr );
@@ -772,8 +775,11 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   pDevCtx->GSSetShader            (nullptr, nullptr, 0);
-  pDevCtx->HSSetShader            (nullptr, nullptr, 0);
-  pDevCtx->DSSetShader            (nullptr, nullptr, 0);
+  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+  {
+    pDevCtx->HSSetShader          (nullptr, nullptr, 0);
+    pDevCtx->DSSetShader          (nullptr, nullptr, 0);
+  }
 
   pDevCtx->VSSetShader            (_P->pVertexShader, nullptr, 0);
   pDevCtx->VSSetConstantBuffers   (0, 1, &_P->pVertexConstantBuffer);
@@ -875,54 +881,84 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
       ImGui::GetIO ()
     );
 
-    static bool           init   = false;
-    static unsigned char* pixels = nullptr;
-    static int            width  = 0,
-                          height = 0;
+    unsigned char* pixels = nullptr;
+    int            width  = 0,
+                   height = 0;
 
-    // Only needs to be done once, the raw pixels are API agnostic
-    if (! std::exchange (init, true))
-    {
-      io.Fonts->GetTexDataAsRGBA32 ( &pixels,
-                                     &width, &height );
-    }
+    io.Fonts->GetTexDataAsAlpha8 ( &pixels,
+                                   &width, &height );
 
     auto* _P =
       &_Frame [slot];
 
     // Upload texture to graphics system
     D3D11_TEXTURE2D_DESC
-      desc                                = { };
-      desc.Width                          = width;
-      desc.Height                         = height;
-      desc.MipLevels                      = 1;
-      desc.ArraySize                      = 1;
-      desc.Format                         = DXGI_FORMAT_R8G8B8A8_UNORM;
-      desc.SampleDesc.Count               = 1;
-      desc.Usage                          = D3D11_USAGE_IMMUTABLE;
-      desc.BindFlags                      = D3D11_BIND_SHADER_RESOURCE;
-      desc.CPUAccessFlags                 = 0;
+      staging_desc                  = { };
+      staging_desc.Width            = width;
+      staging_desc.Height           = height;
+      staging_desc.MipLevels        = 1;
+      staging_desc.ArraySize        = 1;
+      staging_desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+      staging_desc.SampleDesc.Count = 1;
+      staging_desc.Usage            = D3D11_USAGE_STAGING;
+      staging_desc.BindFlags        = 0;
+      staging_desc.CPUAccessFlags   = D3D11_CPU_ACCESS_WRITE;
 
-    D3D11_SUBRESOURCE_DATA
-      subResource                         = { };
-      subResource.pSysMem                 = pixels;
-      subResource.SysMemPitch             = desc.Width * 4;
-      subResource.SysMemSlicePitch        = 0;
+    D3D11_TEXTURE2D_DESC
+      tex_desc                      = staging_desc;
+      tex_desc.Usage                = D3D11_USAGE_DEFAULT;
+      tex_desc.BindFlags            = D3D11_BIND_SHADER_RESOURCE;
+      tex_desc.CPUAccessFlags       = 0;
 
-    SK_ComPtr <ID3D11Texture2D>       pFontTexture = nullptr;
+    SK_ComPtr <ID3D11Texture2D>       pStagingTexture = nullptr;
+    SK_ComPtr <ID3D11Texture2D>       pFontTexture    = nullptr;
 
     ThrowIfFailed (
-      pDev->CreateTexture2D ( &desc, &subResource,
+      pDev->CreateTexture2D ( &staging_desc, nullptr,
+                                     &pStagingTexture.p ));
+        SK_D3D11_SetDebugName   (     pStagingTexture.p,
+                               L"ImGui Staging Texture");
+
+    ThrowIfFailed (
+      pDev->CreateTexture2D ( &tex_desc,     nullptr,
                                      &pFontTexture.p ));
     SK_D3D11_SetDebugName   (         pFontTexture.p,
                                L"ImGui Font Texture");
+
+    SK_ComPtr   <ID3D11DeviceContext> pDevCtx;
+    pDev->GetImmediateContext       (&pDevCtx);
+
+    D3D11_MAPPED_SUBRESOURCE
+          mapped_tex = { };
+
+    ThrowIfFailed (
+      pDevCtx->Map ( pStagingTexture.p, 0, D3D11_MAP_WRITE, 0,
+                     &mapped_tex ));
+
+    for (int y = 0; y < height; y++)
+    {
+      ImU32  *pDst =
+        (ImU32 *)((uintptr_t)mapped_tex.pData +
+                             mapped_tex.RowPitch * y);
+      ImU8   *pSrc =              pixels + width * y;
+
+      for (int x = 0; x < width; x++)
+      {
+        *pDst++ =
+          IM_COL32 (255, 255, 255, (ImU32)(*pSrc++));
+      }
+    }
+
+    pDevCtx->Unmap        ( pStagingTexture, 0 );
+    pDevCtx->CopyResource (    pFontTexture,
+                            pStagingTexture    );
 
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC
       srvDesc = { };
       srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
       srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-      srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+      srvDesc.Texture2D.MipLevels       = tex_desc.MipLevels;
       srvDesc.Texture2D.MostDetailedMip = 0;
 
     ThrowIfFailed (

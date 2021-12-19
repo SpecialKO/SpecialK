@@ -437,17 +437,12 @@ ImGui_ImplDX12_CreateFontsTexture (void)
   if (! _imgui_d3d12.pDevice)
     return;
 
-  static unsigned char* pixels = nullptr;
-  static int            width  = 0,
-                        height = 0;
+  unsigned char* pixels = nullptr;
+  int            width  = 0,
+                 height = 0;
 
-  // Only needs to be done once, the raw pixels are API agnostic
-  static bool          init = false;
-  if (! std::exchange (init, true))
-  {
-    io.Fonts->GetTexDataAsRGBA32 ( &pixels,
-                                   &width, &height );
-  }
+  io.Fonts->GetTexDataAsRGBA32 ( &pixels,
+                                 &width, &height );
 
   try {
     SK_ComPtr <ID3D12Resource>            pTexture;
@@ -1397,6 +1392,9 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
     if (! SK_ValidatePointer (_pSwapChain.p, true))
                               _pSwapChain.p = nullptr;
 
+    if (! SK_ValidatePointer (_pDevice.p, true))
+                              _pDevice.p = nullptr;
+
     frames_.clear ();
 
     _pSwapChain.Release ();
@@ -1585,7 +1583,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
             { frame.fence.p,              L"SK D3D12 Fence"        }
           };
 
-        for ( auto&& _obj : _debugObjects )
+        for ( auto& _obj : _debugObjects )
         {
           SK_D3D12_SetDebugName (
             _obj.pObj,
