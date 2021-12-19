@@ -161,7 +161,7 @@ void SK_DPI_Update (void)
 };
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
-       bool IMGUI_API SK_ImGui_Visible;
+       bool IMGUI_API SK_ImGui_Visible          = false;
        bool           SK_ReShade_Visible        = false;
        bool           SK_ControlPanel_Activated = false;
 
@@ -434,13 +434,13 @@ SK_ImGui_ProcessWarnings (void)
   }
 }
 
+static bool orig_nav_state = false;
+
 void
 SK_ImGui_ConfirmExit (void)
 {
   static const auto& io =
     ImGui::GetIO ();
-
-  SK_ImGui_WantExit = true;
 
   SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f),
@@ -448,9 +448,17 @@ SK_ImGui_ConfirmExit (void)
                                                    0.925f * io.DisplaySize.y )
                                       );
 
-  ImGui::OpenPopup ( SK_ImGui_WantRestart ?
-        "Confirm Forced Software Restart" :
-        "Confirm Forced Software Termination" );
+  if (! ImGui::IsPopupOpen ( SK_ImGui_WantRestart ?
+                "Confirm Forced Software Restart" :
+                "Confirm Forced Software Termination" ) )
+  {
+    SK_ImGui_WantExit = false;
+    orig_nav_state    = nav_usable;
+
+    ImGui::OpenPopup ( SK_ImGui_WantRestart ?
+          "Confirm Forced Software Restart" :
+          "Confirm Forced Software Termination" );
+  }
 }
 
 bool  SK_ImGui_UnconfirmedDisplayChanges = false;
@@ -616,7 +624,7 @@ SK_ImGui_ControlPanelTitle (void)
     __time64_t now     = 0ULL;
      _time64 (&now);
 
-    auto       elapsed = gsl::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime);
+    auto       elapsed = sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime);
 
     uint32_t   secs    =  elapsed % 60ULL;
     uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
@@ -982,11 +990,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   {
     if (! found)
     {
-      if (! _wcsnicmp ( rb.displays [output].name,
-                        rb.display_name, 128 ) )
+      if (rb.monitor == rb.displays [output].monitor)
       {
-        rb.active_display = output;
-                    found = true;
+        found = true;
       }
     }
 
@@ -1005,26 +1011,28 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImGui::TreePush ();
 
+  int active_display = rb.active_display;
+
   // If list is empty, don't show the menu, stupid :)
-  if (display_list [0] != '\0' && ImGui::Combo ("Active Monitor", &rb.active_display, display_list.data ()))
+  if (display_list [0] != '\0' && ImGui::Combo ("Active Monitor", &active_display, display_list.data ()))
   {
-    config.display.monitor_handle  = rb.displays [rb.active_display].monitor;
+    config.display.monitor_handle  = rb.displays [active_display].monitor;
 
     if (config.display.save_monitor_prefs)
     {
-        config.display.monitor_idx      = rb.displays [rb.active_display].idx;
-        config.display.monitor_path_ccd = rb.displays [rb.active_display].path_name;
+        config.display.monitor_idx      = rb.displays [active_display].idx;
+        config.display.monitor_path_ccd = rb.displays [active_display].path_name;
     }
 
     config.display.monitor_default = MONITOR_DEFAULTTONEAREST;
 
     rb.next_monitor =
-      config.display.monitor_handle;
+      rb.displays [active_display].monitor;
 
     if (config.display.save_monitor_prefs)
       SK_SaveConfig ();
 
-    if (rb.next_monitor != rb.monitor)
+    if (rb.monitor != rb.next_monitor)
     {
       SK_Window_RepositionIfNeeded ();
 
@@ -1361,7 +1369,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
           ( dmNew.dmPosition.x == 0 && dmNew.dmPosition.y == 0 );
 
         if ( DISP_CHANGE_SUCCESSFUL !=
-               ChangeDisplaySettingsEx ( monitor.wszDevice, &dmNew, NULL,
+             SK_ChangeDisplaySettingsEx ( monitor.wszDevice, &dmNew, NULL,
                                          (primary ? CDS_SET_PRIMARY : 0x0) |
                                                     CDS_UPDATEREGISTRY     |
                                                     CDS_NORESET, NULL ) )
@@ -1370,7 +1378,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         }
       }
 
-      ChangeDisplaySettings (NULL, 0);
+      SK_ChangeDisplaySettingsEx (nullptr, nullptr, 0, 0, 0);
     }
 
     if (ImGui::IsItemHovered ())
@@ -1756,8 +1764,8 @@ DisplayModeMenu (bool windowed)
         long double
         {
           return
-            gsl::narrow_cast <long double> (fractional.first)/
-            gsl::narrow_cast <long double> (fractional.second);
+            sk::narrow_cast <long double> (fractional.first)/
+            sk::narrow_cast <long double> (fractional.second);
         };
 
       static std::string           combo_str;
@@ -2018,10 +2026,10 @@ DisplayModeMenu (bool windowed)
                 ///             );
 
                 UINT integer_refresh =
-                  gsl::narrow_cast <UINT> (
+                  sk::narrow_cast <UINT> (
                     std::ceil (
-                        gsl::narrow_cast <long double> (dxgi_mode.RefreshRate.Numerator) /
-                        gsl::narrow_cast <long double> (dxgi_mode.RefreshRate.Denominator)
+                        sk::narrow_cast <long double> (dxgi_mode.RefreshRate.Numerator) /
+                        sk::narrow_cast <long double> (dxgi_mode.RefreshRate.Denominator)
                                           )
                     );
 
@@ -2050,7 +2058,7 @@ DisplayModeMenu (bool windowed)
 
             // No Exact Match, but we can probably find something close...
             if ( -1 == current_item &&
-                 -1 != gsl::narrow_cast <INT> (config.render.framerate.refresh_rate) )
+                 -1 != sk::narrow_cast <INT> (config.render.framerate.refresh_rate) )
             {
               int lvl2_idx = 1;
 
@@ -2059,8 +2067,8 @@ DisplayModeMenu (bool windowed)
                 long double ldRefresh =
                   _ComputeRefresh (nomnom.second);
 
-                if ( ldRefresh < gsl::narrow_cast <long double> (config.render.framerate.refresh_rate + 0.333f) &&
-                     ldRefresh > gsl::narrow_cast <long double> (config.render.framerate.refresh_rate - 0.333f) )
+                if ( ldRefresh < sk::narrow_cast <long double> (config.render.framerate.refresh_rate + 0.333f) &&
+                     ldRefresh > sk::narrow_cast <long double> (config.render.framerate.refresh_rate - 0.333f) )
                 {
                   current_item = lvl2_idx-2;
                   break;
@@ -2107,7 +2115,7 @@ DisplayModeMenu (bool windowed)
           config.render.framerate.rescan_.Numerator = refresh.second.first;
           config.render.framerate.rescan_.Denom     = refresh.second.second;
           config.render.framerate.refresh_rate      =
-            gsl::narrow_cast <float> (
+            sk::narrow_cast <float> (
               _ComputeRefresh (refresh.second)
             );
           config.render.framerate.rescan_ratio      =
@@ -2137,9 +2145,9 @@ DisplayModeMenu (bool windowed)
         if ( ImGui::Combo ( "Color Encoding###SubMenu_HDREncode_Combo",
                               &nv_color_idx,
                                nv_color_combo.c_str    (),
-                          gsl::narrow_cast <int> (
+                          sk::narrow_cast <int> (
                                nv_color_encodings.size ()
-                                                 )
+                                                )
                            )
            )
         {
@@ -3763,9 +3771,9 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, false);
+      ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, true);
 
-      if (SK_ImGui_IsItemRightClicked ())
+      if (ImGui::IsItemClicked () || SK_ImGui_IsItemRightClicked ())
       {
         ImGui::OpenPopup         ("G-Sync Control Panel");
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
@@ -4742,10 +4750,13 @@ SK_ImGui_ControlPanel (void)
 
     static std::set <SK_ConfigSerializedKeybind *>
       keybinds = {
-        &config.screenshots.game_hud_free_keybind,
         &config.screenshots.sk_osd_free_keybind,
         &config.screenshots.sk_osd_insertion_keybind
       };
+
+    // Add a HUD Free Screenshot keybind option if HUD shaders are present
+    if (keybinds.size () == 2 && ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+        keybinds.emplace (&config.screenshots.game_hud_free_keybind);
 
     ImGui::SameLine   ();
     ImGui::BeginGroup ();
@@ -4899,7 +4910,7 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0) // We saw nothing (!!)
+  if (code < 0 || (! SK_IsGameWindowActive ())) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
   auto& io =
@@ -4908,40 +4919,21 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
   MOUSEHOOKSTRUCT* mhs =
     (MOUSEHOOKSTRUCT*)lParam;
 
-  bool bPassthrough =
-    mhs->wHitTestCode == HTMAXBUTTON ||
-    mhs->wHitTestCode == HTMINBUTTON ||
-    mhs->wHitTestCode == HTVSCROLL   ||
-    mhs->wHitTestCode == HTCAPTION   ||
-    mhs->wHitTestCode == HTSYSMENU   ||
-    mhs->wHitTestCode == HTNOWHERE   ||
-    mhs->wHitTestCode == HTBORDER    ||
-    mhs->wHitTestCode == HTREDUCE    ||
-    mhs->wHitTestCode == HTCLOSE     ||
-    mhs->wHitTestCode == HTMENU      ||
-    mhs->wHitTestCode == HTSIZE      ||
-    mhs->wHitTestCode == HTZOOM;
+  bool bPassthrough = true;
 
-  if (mhs->wHitTestCode == HTCLIENT)
+  if (mhs->wHitTestCode == HTCLIENT || mhs->wHitTestCode == HTTRANSPARENT)
   {
-    if (mhs->hwnd == game_window.hWnd)
+    if (mhs->hwnd == game_window.hWnd || mhs->hwnd == game_window.child)
     {
-      auto                            pt = mhs->pt;
-      SK_ImGui_Cursor.ScreenToLocal (&pt);
-
-      if ( ChildWindowFromPointEx ( game_window.hWnd, pt,
-              CWP_SKIPTRANSPARENT | CWP_SKIPINVISIBLE
-                                  | CWP_SKIPDISABLED ) == game_window.hWnd )
+      POINT                                          pt (mhs->pt);
+      ScreenToClient             (game_window.hWnd, &pt);
+      if (ChildWindowFromPointEx (game_window.hWnd,  pt, CWP_SKIPDISABLED) == game_window.hWnd)
       {
-        SK_ImGui_Cursor.pos = pt;
-        io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-        io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+        bPassthrough = false;
 
         io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
         io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
       }
-
-      else bPassthrough = true;
     }
   }
 
@@ -4951,8 +4943,16 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseClicked [0] = true;
+        io.MouseDown [0] = true;
 
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
+      }
+      break;
+
+    case WM_LBUTTONUP:
+      if (! bPassthrough)
+      {
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -4962,8 +4962,16 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseClicked [1] = true;
+        io.MouseDown [1] = true;
 
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
+      }
+      break;
+
+    case WM_RBUTTONUP:
+      if (! bPassthrough)
+      {
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -4973,8 +4981,16 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseClicked [2] = true;
+        io.MouseDown [2] = true;
 
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
+      }
+      break;
+
+    case WM_MBUTTONUP:
+      if (! bPassthrough)
+      {
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -4987,42 +5003,53 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         MOUSEHOOKSTRUCTEX* mhsx =
        (MOUSEHOOKSTRUCTEX*)lParam;
 
-        io.MouseDown [3] = (HIWORD (mhsx->mouseData)) == XBUTTON1;
-        io.MouseDown [4] = (HIWORD (mhsx->mouseData)) == XBUTTON2;
+        io.MouseDown [3] |= ((HIWORD (mhsx->mouseData)) == XBUTTON1);
+        io.MouseDown [4] |= ((HIWORD (mhsx->mouseData)) == XBUTTON2);
 
-       if (SK_ImGui_WantMouseCapture ())
-         return 1;
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
+      } break;
+
+    case WM_XBUTTONUP:
+      if (! bPassthrough)
+      {
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
       } break;
 
     case WM_MOUSEWHEEL:
     case WM_MOUSEHWHEEL:
-    {
-      MOUSEHOOKSTRUCTEX* mhsx =
-     (MOUSEHOOKSTRUCTEX*)lParam;
-
-      if (wParam == WM_MOUSEWHEEL)
+      if (! bPassthrough)
       {
-        io.MouseWheel +=
-          (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
-              (float)WHEEL_DELTA;
-      }
+        MOUSEHOOKSTRUCTEX* mhsx =
+       (MOUSEHOOKSTRUCTEX*)lParam;
 
-      else {
-        io.MouseWheelH +=
-          (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
-              (float)WHEEL_DELTA;
-      }
-    } break;
+        if (wParam == WM_MOUSEWHEEL)
+        {
+          io.MouseWheel +=
+            (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
+                (float)WHEEL_DELTA;
+        }
+
+        else {
+          io.MouseWheelH +=
+            (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
+                (float)WHEEL_DELTA;
+        }
+
+        if (SK_ImGui_WantMouseCapture ())
+          return 1;
+      } break;
 
     case WM_MOUSEMOVE:
     case WM_NCMOUSEMOVE:
-      SK_ImGui_Cursor.last_move = current_time;
-
       if (! bPassthrough)
       {
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
+
+    //SK_ImGui_Cursor.last_move = current_time;
       break;
   }
 
@@ -5034,7 +5061,7 @@ LRESULT
 CALLBACK
 SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0)
+  if (code < 0 || (! SK_IsGameWindowActive ())) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
   bool //wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
@@ -5044,16 +5071,23 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
   SHORT vKey =
       std::min (static_cast <SHORT> (wParam),
                 static_cast <SHORT> (  511));
+  auto& io =
+    ImGui::GetIO ();
 
-  if (SK_ImGui_Visible)
+  if (io.KeyAlt && vKey == VK_F4 && isPressed)
   {
-    auto& io =
-      ImGui::GetIO ();
+    if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
+        SK_ImGui_WantExit = true;
 
-    io.KeysDown [vKey] = isPressed;
+    if (SK_ImGui_Active () || SK_ImGui_WantKeyboardCapture ()) return 1;
+  }
 
-    if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
-      return 1;
+  if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
+  {
+    if (isPressed) SK_Console::getInstance ()->KeyDown ((BYTE)(vKey & 0xFF), 0x0);
+    else           SK_Console::getInstance ()->KeyUp   ((BYTE)(vKey & 0xFF), 0x0);
+
+    return 1;
   }
 
   return
@@ -5639,116 +5673,131 @@ SK_ImGui_StageNextFrame (void)
     }
   }
 
-  if (SK_ImGui_WantExit)
-  { SK_ReShade_Visible = true;
 
-    auto _PerformExit = [](void)
-    {
-      SK_SelfDestruct     (   );
-      SK_TerminateProcess (0x0);
-      ExitProcess         (0x0);
-    };
+  auto _PerformExit = [](void)
+  {
+    SK_SelfDestruct     (   );
+    SK_TerminateProcess (0x0);
+    ExitProcess         (0x0);
+  };
+
+  if (SK_ImGui_WantExit)
+  {
+    // Uncomment this to always display a confirmation dialog
+    //SK_ReShade_Visible = true; // Make into user config option
 
     if (config.input.keyboard.catch_alt_f4 || SK_ImGui_Visible)
       SK_ImGui_ConfirmExit ();             // ^^ Control Panel In Use
     else // Want exit, but confirmation is disabled?
       _PerformExit ();
 
-    if ( ImGui::BeginPopupModal ( SK_ImGui_WantRestart ?
-                     "Confirm Forced Software Restart" :
-                     "Confirm Forced Software Termination",
-                                    nullptr,
-                                      ImGuiWindowFlags_AlwaysAutoResize |
-                                      ImGuiWindowFlags_NoScrollbar      |
-                                      ImGuiWindowFlags_NoScrollWithMouse )
-       )
-    {
-      nav_usable = true;
-
-      static const char* szConfirmExit    = " Confirm Exit? ";
-      static const char* szConfirmRestart = " Confirm Restart? ";
-             const char* szConfirm        = SK_ImGui_WantRestart ?
-                                                szConfirmRestart :
-                                                szConfirmExit;
-      static const char* szDisclaimer     =
-        "\n         You will lose any unsaved game progress.      \n\n";
-
-      ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
-      ImGui::Separator   ();
-
-      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),         szConfirm);
-
-      ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
-
-
-      if (ImGui::IsWindowAppearing ())
-      {
-        ImGui::GetIO ().MousePos        = ImGui::GetCursorScreenPos ();
-        ImGui::GetIO ().WantSetMousePos = true;
-      }
-
-      if (ImGui::Button  ("Okay"))
-      {
-        if (SK_ImGui_WantRestart)
-        {
-          SK_RestartGame ();
-        }
-
-        else
-        {
-          _PerformExit ();
-        }
-      }
-      if (ImGui::IsWindowAppearing ())
-      {
-        ImGui::GetIO ().NavActive  = true;
-        ImGui::GetIO ().NavVisible = true;
-
-        ImGui::SetNavID (
-          ImGui::GetItemID (), 0
-        );
-
-        GImGui->NavDisableHighlight  = false;
-        GImGui->NavDisableMouseHover =  true;
-      }
-
-      //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth ()*0.33f);
-      //ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
-
-      ImGui::SameLine    ();
-
-      if (ImGui::Button  ("Cancel"))
-      {
-        SK_ImGui_WantExit    = false;
-        SK_ImGui_WantRestart = false;
-        SK_ReShade_Visible   = false;
-        nav_usable           = false;
-        ImGui::CloseCurrentPopup ();
-      }
-
-      if (! SK_ImGui_WantRestart)
-      {
-        ImGui::SameLine    ();
-        ImGui::TextUnformatted (" ");
-        ImGui::SameLine    ();
-
-        if (ImGui::Checkbox ( "Enable Alt + F4",
-                                &config.input.keyboard.catch_alt_f4 ))
-        {
-          // If user turns off here, then also turn off keyboard hook bypass
-          if (! config.input.keyboard.catch_alt_f4)
-                config.input.keyboard.override_alt_f4 = false;
-        }
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("If disabled, game's default Alt+F4 behavior will apply");
-      }
-
-      ImGui::EndPopup       ();
-    }
+    SK_ImGui_WantExit = false;
   }
 
-  if (io.WantSetMousePos && game_window.active)
+  if ( ImGui::BeginPopupModal ( SK_ImGui_WantRestart ?
+                   "Confirm Forced Software Restart" :
+                   "Confirm Forced Software Termination",
+                                  nullptr,
+                                    ImGuiWindowFlags_AlwaysAutoResize |
+                                    ImGuiWindowFlags_NoScrollbar      |
+                                    ImGuiWindowFlags_NoScrollWithMouse )
+     )
+  {
+    nav_usable = true;
+
+    static const char* szConfirmExit    = " Confirm Exit? ";
+    static const char* szConfirmRestart = " Confirm Restart? ";
+           const char* szConfirm        = SK_ImGui_WantRestart ?
+                                              szConfirmRestart :
+                                              szConfirmExit;
+    static const char* szDisclaimer     =
+      "\n         You will lose any unsaved game progress.      \n\n";
+
+    ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
+    ImGui::Separator   ();
+
+    ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),         szConfirm);
+
+    ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+
+
+    if (ImGui::IsWindowAppearing ())
+    {
+      ImGui::GetIO ().MousePos        = ImGui::GetCursorScreenPos ();
+      ImGui::GetIO ().WantSetMousePos = true;
+    }
+
+    if (ImGui::Button  ("Okay"))
+    {
+      if (SK_ImGui_WantRestart)
+      {
+        SK_RestartGame ();
+      }
+
+      else
+      {
+        _PerformExit ();
+      }
+    }
+    if (ImGui::IsWindowAppearing ())
+    {
+      ImGui::GetIO ().NavActive  = true;
+      ImGui::GetIO ().NavVisible = true;
+
+      ImGui::SetNavID (
+        ImGui::GetItemID (), 0
+      );
+
+      GImGui->NavDisableHighlight  = false;
+      GImGui->NavDisableMouseHover =  true;
+    }
+
+    //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth ()*0.33f);
+    //ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
+
+    ImGui::SameLine    ();
+
+    if (ImGui::Button  ("Cancel"))
+    {
+      SK_ImGui_WantExit    = false;
+      SK_ImGui_WantRestart = false;
+      SK_ReShade_Visible   = false;
+      nav_usable           = orig_nav_state;
+      ImGui::CloseCurrentPopup ();
+    }
+
+    if (! SK_ImGui_WantRestart)
+    {
+      ImGui::SameLine    ();
+      ImGui::TextUnformatted (" ");
+      ImGui::SameLine    ();
+
+      if (ImGui::Checkbox ( "Enable Alt + F4",
+                              &config.input.keyboard.catch_alt_f4 ))
+      {
+        // If user turns off here, then also turn off keyboard hook bypass
+        if (! config.input.keyboard.catch_alt_f4)
+              config.input.keyboard.override_alt_f4 = false;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("If disabled, game's default Alt + F4 behavior will apply");
+
+        if (SK_ImGui_Visible)
+        {
+          ImGui::Separator  ();
+          ImGui::BulletText ("Alt + F4 always displays a confirmation if the control panel is visible");
+        }
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    ImGui::EndPopup       ();
+  }
+
+  if (io.WantSetMousePos && SK_IsGameWindowActive ())
   {
     POINT                 ptCursor;
     if (SK_GetCursorPos (&ptCursor))
@@ -5880,6 +5929,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
+extern bool SK_IsRectTooSmall (RECT* lpRect0, RECT* lpRect1);
+
+extern RECT SK_Input_SaveClipRect    (RECT *pSave = nullptr);
+extern RECT SK_Input_RestoreClipRect (void);
+
 __declspec (dllexport)
 void
 SK_ImGui_Toggle (void)
@@ -5927,6 +5981,21 @@ SK_ImGui_Toggle (void)
   static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
   static HMODULE hModTZFix = SK_GetModuleHandle (L"tzfix.dll");
 
+  if (! (config.window.confine_cursor || config.window.unconfine_cursor))
+  { // Expand clip rects while SK's UI is open so the mouse works as expected :)
+    if (SK_ImGui_Active ())
+    {
+      RECT                     rectClip = { };
+      if (     GetClipCursor (&rectClip) &&
+           SK_IsRectTooSmall (&rectClip, &game_window.actual.window) )
+      {
+         SK_Input_SaveClipRect    ();
+         SK_ClipCursor            (&game_window.actual.window);
+      }
+    }
+    else SK_Input_RestoreClipRect ();
+  }
+
   // Turns the hardware cursor on/off as needed
   ImGui_ToggleCursor ();
 
@@ -5940,8 +6009,6 @@ SK_ImGui_Toggle (void)
       //   idle cursor detection to hide the mouse cursor after closing
       //     the control panel.
       SK_ImGui_Cursor.last_move = 0;
-
-      //SK_ImGui_Cursor.showSystemCursor ();
     }
 
     else
@@ -5972,7 +6039,7 @@ SK_ImGui_Toggle (void)
 
   if (SK_ImGui_Visible)
   {
-    // Reuse the game's overlay activation callback (if it hase one)
+    // Reuse the game's overlay activation callback (if it has one)
     if (config.steam.reuse_overlay_pause)
       SK::SteamAPI::SetOverlayState (true);
 

@@ -42,9 +42,10 @@ SK::Framerate::Stats gamepad_stats_filtered;
 void SK_ImGui_UpdateCursor (void)
 {
   POINT             orig_pos;
-
   SK_GetCursorPos (&orig_pos);
-  SK_SetCursorPos (0, 0);
+
+  SK_SetCursorPos (game_window.actual.window.left + (game_window.actual.window.right  - game_window.actual.window.left) / 2,
+                   game_window.actual.window.top  + (game_window.actual.window.bottom - game_window.actual.window.top)  / 2);
 
   SK_ImGui_Cursor.update ();
 
@@ -72,6 +73,12 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
                   &game_window.actual.window);
     if (PtInRect (&game_window.actual.window, ptCursor))
     {
+      if (center.x == -1.0f && center.y == -1.0f)
+      {
+        center.x = io.DisplaySize.x / 2;
+        center.y = io.DisplaySize.y / 2;
+      }
+
       SK_ImGui_Cursor.pos.x = static_cast <LONG> (center.x);
       SK_ImGui_Cursor.pos.y = static_cast <LONG> (center.y);
 

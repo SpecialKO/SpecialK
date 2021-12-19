@@ -346,6 +346,8 @@ struct sk_window_s {
   bool       unicode          = false;
 
   HWND       hWnd             = nullptr;
+  HWND       parent           = nullptr;
+  HWND       child            = nullptr; // Render viewport
   WNDPROC    WndProc_Original = nullptr;
   WNDPROC    RawProc_Original = nullptr;
 
@@ -740,5 +742,47 @@ auto TriggerStartMenu = [](void)
   }
   SetForegroundWindow (game_window.hWnd);
 #endif
+
+static
+auto SK_Window_TestOverlap = []( HWND hWndGame,
+                                 HWND hWndApp,
+                                 BOOL bSameMonitor = FALSE,
+                                 INT  iDeadzone    = 75 ) ->
+bool
+{
+  if (! IsWindow (hWndGame)) return false;
+  if (! IsWindow (hWndApp))  return false;
+
+  if (bSameMonitor != FALSE)
+  {
+    if (MonitorFromWindow (hWndGame, MONITOR_DEFAULTTONEAREST) !=
+        MonitorFromWindow (hWndApp,  MONITOR_DEFAULTTONEAREST))
+    {
+      return false;
+    }
+  }
+
+  RECT rectGame = { },
+       rectApp  = { };
+
+  if (! GetWindowRect (hWndGame, &rectGame)) return false;
+  if (! GetWindowRect (hWndApp,  &rectApp))  return false;
+
+  InflateRect (&rectGame, -iDeadzone, -iDeadzone);
+  InflateRect (&rectApp,  -iDeadzone, -iDeadzone);
+
+  RECT                rectIntersect = { };
+  IntersectRect     (&rectIntersect,
+                             &rectGame, &rectApp);
+
+  // Size of intersection is non-zero, we're done
+  if (! IsRectEmpty (&rectIntersect)) return true;
+
+  // Test for window entirely inside the other
+  UnionRect (&rectIntersect, &rectGame, &rectApp);
+
+  return
+    EqualRect (&rectGame, &rectIntersect);
+};
 
 #endif /* __SK__WINDOW_H__ */
