@@ -243,34 +243,13 @@ public:
 
     ver_ = 0;
 
-    IUnknown *pPromotion = nullptr;
+    IUnknown *pPromotion;
 
-    if (SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)))
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext1, (void **)&pPromotion)) )
     {
-      ver_ = 4;
-    }
-
-    else if (SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)))
-    {
-      ver_ = 3;
-    }
-
-    else if (SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)))
-    {
-      ver_ = 2;
-    }
-
-    else if (SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext1, (void **)&pPromotion)))
-    {
-      ver_ = 1;
-    }
-
-    if (ver_ != 0)
-    {
-      Release ();
-
-      pReal = (ID3D11DeviceContext *)pPromotion;
-
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
     }
@@ -298,12 +277,10 @@ public:
 
     IUnknown *pPromotion = nullptr;
 
-    if ( SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-         SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
-         SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) )
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) )
     {
-      pPromotion->Release ();
-
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext1 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
     }
@@ -332,11 +309,9 @@ public:
 
     IUnknown *pPromotion = nullptr;
 
-    if ( SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-         SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) )
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) )
     {
-      pPromotion->Release ();
-
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext2 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
     }
@@ -364,10 +339,8 @@ public:
 
     IUnknown *pPromotion = nullptr;
 
-    if (SUCCEEDED (pReal->QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)))
     {
-      pPromotion->Release ();
-
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext3 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
     }

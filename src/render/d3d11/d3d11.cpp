@@ -7541,7 +7541,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
       if (tracker->runtime_ticks != 0ULL)
       {
         tracker->runtime_ms =
-          1000.0 * gsl::narrow_cast <double>
+          1000.0 * sk::narrow_cast <double>
           (        static_cast <long double>    (
                  tracker->runtime_ticks.load () ) /
                    static_cast <long double>     (

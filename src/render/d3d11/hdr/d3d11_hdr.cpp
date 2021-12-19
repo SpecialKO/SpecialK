@@ -551,8 +551,11 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->PSSetShaderResources (0,                         2,          &pResources [0].p);
       pDevCtx->PSSetSamplers        (0, 1, &hdr_base->pSampler0);
 
-      pDevCtx->HSSetShader  (nullptr, nullptr, 0);
-      pDevCtx->DSSetShader  (nullptr, nullptr, 0);
+      if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+      {
+        pDevCtx->HSSetShader(nullptr, nullptr, 0);
+        pDevCtx->DSSetShader(nullptr, nullptr, 0);
+      }
       pDevCtx->GSSetShader  (nullptr, nullptr, 0);
       pDevCtx->SOSetTargets (0, nullptr, nullptr);
 

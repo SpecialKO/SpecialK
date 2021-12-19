@@ -982,8 +982,11 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
     pDevCtx->RSSetScissorRects      (0,       nullptr);
     pDevCtx->RSSetState             (nullptr         );
 
-    pDevCtx->HSSetShader            (nullptr, nullptr,       0);
-    pDevCtx->DSSetShader            (nullptr, nullptr,       0);
+    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pDevCtx->HSSetShader          (nullptr, nullptr,       0);
+      pDevCtx->DSSetShader          (nullptr, nullptr,       0);
+    }
     pDevCtx->GSSetShader            (nullptr, nullptr,       0);
     pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
@@ -1204,8 +1207,11 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   pDevCtx->RSSetViewports         (1,           &vp);
   pDevCtx->RSSetScissorRects      (0,       nullptr);
 
-  pDevCtx->HSSetShader            (nullptr, nullptr,       0);
-  pDevCtx->DSSetShader            (nullptr, nullptr,       0);
+  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+  {
+    pDevCtx->HSSetShader          (nullptr, nullptr,       0);
+    pDevCtx->DSSetShader          (nullptr, nullptr,       0);
+  }
   pDevCtx->GSSetShader            (nullptr, nullptr,       0);
   pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
