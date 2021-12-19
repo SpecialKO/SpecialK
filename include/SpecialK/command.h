@@ -127,8 +127,8 @@ interface SK_IVarStub : public SK_IVariable
   friend interface SK_ICommandProcessor;
 
   SK_IVarStub (void) : type_     (Unknown),
-                       var_      (NULL),
-                       listener_ (nullptr)     { };
+                       var_      (nullptr),
+                       listener_ (nullptr) { };
 
   SK_IVarStub ( T*                    var,
                 SK_IVariableListener* pListener = nullptr );
@@ -140,6 +140,8 @@ interface SK_IVarStub : public SK_IVariable
 
   virtual ~SK_IVarStub (void) noexcept
   {
+    if (min_ != nullptr) delete min_;
+    if (max_ != nullptr) delete max_;
   }
 
   void getValueString ( _Out_opt_ char*     szOut,
@@ -156,12 +158,17 @@ interface SK_IVarStub : public SK_IVariable
                       );
   }
 
-  const T& getValue (void) const { return *var_; }
-  void     setValue (T& val)     {
+  const T& getValue (void) const   { return *var_; }
+  const T& setValue (const T& val) {
+    if (min_ != nullptr && val < *min_) return *var_;
+    if (max_ != nullptr && val > *max_) return *var_;
+
     if (listener_ != NULL)
-      listener_->OnVarChange (this, &val);
+      listener_->OnVarChange (this, (void *)&val);
     else
       *var_ = val;
+
+    return *var_;
   }
 
   // Public interface, the other one is not visible outside this DLL.
@@ -172,13 +179,49 @@ interface SK_IVarStub : public SK_IVariable
   /// NOTE: Avoid doing this, as much as possible...
   T* getValuePtr (void) const noexcept { return var_; }
 
+  SK_IVarStub <T>& setMinValue (const T& val)
+  {
+    if (min_ == nullptr)
+        min_  = new T;
+
+    *min_ = val;
+
+    return *this;
+  }
+
+  SK_IVarStub <T>& setMaxValue (const T& val)
+  {
+    if (max_ == nullptr)
+        max_  = new T;
+
+    *max_ = val;
+
+    return *this;
+  }
+
+  SK_IVarStub <T>& setRange (const T& min, const T& max)
+  {
+    setMinValue (std::forward <const T> (min)).
+    setMaxValue (std::forward <const T> (max));
+
+    return *this;
+  }
+
+  void getRange (T** min, T** max) {
+    if (min != nullptr) *min = min_;
+    if (max != nullptr) *max = max_;
+  }
+
   using _Tp =  T;
 
 protected:
-  typename SK_IVarStub::_Tp* var_;
+  typename SK_IVarStub::_Tp* var_      = nullptr;
+
+  typename SK_IVarStub::_Tp* min_      = nullptr;
+  typename SK_IVarStub::_Tp* max_      = nullptr;
 
 private:
-  SK_IVariableListener*     listener_;
+  SK_IVariableListener*      listener_ = nullptr;
 };
 
 #define SK_CaseAdjust(ch,lower) ((lower) ? ::tolower ((int)(ch)) : (ch))

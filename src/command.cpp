@@ -375,13 +375,28 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       {
         if (command_args_len > 0)
         {
-          const int original_val = ((SK_IVarStub <int>*) var)->getValue ();
+          SK_IVarStub <int>* pVar =
+            (SK_IVarStub <int>*) var;
+
+          const int original_val = pVar->getValue ();
                      int int_val = 0;
 
+          // Wraparound
+          if (! (0 != _stricmp (cmd_args.c_str (), "cycle") &&
+                 0 != _stricmp (cmd_args.c_str (),   "+++")) )
+          {
+            int_val = original_val + 1;
+
+            int             *min, *max;
+            pVar->getRange (&min, &max);
+
+            if (        max != nullptr && int_val > *max)
+              int_val = min == nullptr ? INT_MIN  : *min;
+          }
           /* Increment */
-          if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
-                 0 != _stricmp (cmd_args.c_str (),  "inc") &&
-                 0 != _stricmp (cmd_args.c_str (), "next")) )
+          else if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
+                      0 != _stricmp (cmd_args.c_str (),  "inc") &&
+                      0 != _stricmp (cmd_args.c_str (), "next")) )
           {
             int_val = original_val + 1;
           } else if (! (0 != _stricmp (cmd_args.c_str (),   "--") &&
@@ -392,7 +407,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           } else
             int_val = strtol (cmd_args.c_str (), nullptr, 0);
 
-          ((SK_IVarStub <int>*) var)->setValue (int_val);
+          pVar->setValue (int_val);
         }
       }
 
@@ -400,13 +415,28 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       {
         if (command_args_len > 0)
         {
-          const short original_val = ((SK_IVarStub <short>*) var)->getValue ();
+          SK_IVarStub <short>* pVar =
+            (SK_IVarStub <short>*) var;
+
+          const short original_val = pVar->getValue ();
                    short short_val = 0;
 
+          // Wraparound
+          if (! (0 != _stricmp (cmd_args.c_str (), "cycle") &&
+                 0 != _stricmp (cmd_args.c_str (),   "+++")) )
+          {
+            short_val = original_val + 1;
+
+            short           *min, *max;
+            pVar->getRange (&min, &max);
+
+            if (          max != nullptr && short_val > *max)
+              short_val = min == nullptr ? SHORT_MIN  : *min;
+          }
           /* Increment */
-          if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
-                 0 != _stricmp (cmd_args.c_str (),  "inc") &&
-                 0 != _stricmp (cmd_args.c_str (), "next")) )
+          else if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
+                      0 != _stricmp (cmd_args.c_str (),  "inc") &&
+                      0 != _stricmp (cmd_args.c_str (), "next")) )
           {
             short_val = original_val + 1;
           } else if (! (0 != _stricmp (cmd_args.c_str (),   "--") &&
@@ -417,7 +447,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           } else
             short_val = (short)strtol (cmd_args.c_str (), nullptr, 0);
 
-          ((SK_IVarStub <short>*) var)->setValue (short_val);
+          pVar->setValue (short_val);
         }
       }
 
@@ -535,7 +565,7 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
   if (getValue ())
   {
     len =
-      gsl::narrow_cast <uint32_t> (strlen ("true"));
+      sk::narrow_cast <uint32_t> (strlen ("true"));
 
     if (szOut != nullptr)
       strncpy (szOut, "true", *dwLen);
@@ -546,7 +576,7 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
   else
   {
     len =
-      gsl::narrow_cast <uint32_t> (strlen ("false"));
+      sk::narrow_cast <uint32_t> (strlen ("false"));
 
     if (szOut != nullptr)
       strncpy (szOut, "false", *dwLen);
@@ -636,7 +666,7 @@ SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());
 
     // Remove trailing 0's after the .
-    *dwLen = gsl::narrow_cast <uint32_t> (SK_RemoveTrailingDecimalZeros (szOut, *dwLen));
+    *dwLen = sk::narrow_cast <uint32_t> (SK_RemoveTrailingDecimalZeros (szOut, *dwLen));
   }
 
   else
