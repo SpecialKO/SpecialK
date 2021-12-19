@@ -858,9 +858,9 @@ struct SK_D3D11_KnownTargets
 //#define _PERSIST_DS_VIEWS
   SK_D3D11_KnownTargets (void)
   {
-    rt_views.reserve (128);
+    rt_views.reserve (256);
 #ifdef _PERSIST_DS_VIEWS
-    ds_views.reserve ( 64);
+    ds_views.reserve (128);
 #endif
   }
 

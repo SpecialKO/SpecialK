@@ -2002,12 +2002,14 @@ void SK_D3D11_AssociatePShaderWithHUD (uint32_t crc32, bool set = true);
 
 extern SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
 
-#define SK_D3D11_DeclHUDShader_Vtx(crc32c)  {  \
-    SK_D3D11_Shaders->vertex.addTrackingRef (  \
+#define SK_D3D11_DeclHUDShader_Vtx(crc32c)  {                    \
+    InterlockedIncrement (&SK_D3D11_TrackingCount->Conditional); \
+    SK_D3D11_Shaders->vertex.addTrackingRef (                    \
       SK_D3D11_Shaders->vertex.hud, (crc32c)); }
 
-#define SK_D3D11_DeclHUDShader_Pix(crc32c)  { \
-    SK_D3D11_Shaders->pixel.addTrackingRef  ( \
+#define SK_D3D11_DeclHUDShader_Pix(crc32c)  {                    \
+    InterlockedIncrement (&SK_D3D11_TrackingCount->Conditional); \
+    SK_D3D11_Shaders->pixel.addTrackingRef  (                    \
       SK_D3D11_Shaders->pixel.hud, (crc32c)); }
 
 
