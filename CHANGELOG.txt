@@ -1,4 +1,83 @@
-﻿21.11.29.1
+﻿21.12.19
+========
+ + Fixed various build environment issues:
+
+    * Missing tobii_stream_engine_sk{32|64}.lib
+    * Missing boost/preprocessor/debug/error.hpp
+    * Multiply-defined IID_IDXGIFactory6/7 symbols if using newer dxguid.lib
+
+ + Keybind config for HUDless screenshots only shows up for games with
+     SK HUD shader info (d3d11_shaders.ini or built-in)
+
+21.12.18.2
+==========
+ + Auto-hide mouse cursor (as default config) in Final Fantasy 7 Remake
+ + Add HUD shader info to the D3D11 version of Final Fantasy 7 Remake
+
+21.12.18.1
+==========
+ + Fixed stuck keys after alt-tab in Final Fantasy 7 Remake
+ + Fixed monitor-specific features (HDR, LatentSync, Display menu) in FF7R
+
+21.12.18
+========
+ + Automatically whitelist Final Fantasy 7 Remake
+ + Reduced memory usage for fonts in D3D9 games
+ + Improved support for games with embedded child windows and menu bars
+     (i.e. emulators)
+ + G-Sync status updates quicker when a window changes monitors
+ + Added notification when resizing / moving a window to get the game
+     to resize the SwapChain and re-engage Independent Flip
+ + Improved performance when moving windows between monitors w/ snap
+ + Increased whitelist/blacklist limits to 128 * MAX_PATH characters
+ + Added XInput UAP Support for Halo Infinite
+
+21.12.6
+=======
+ + Reduced mouse stutter in games when the hardware cursor is visible
+ + Implemented RGB[A]8 -> RGBA16F remastering in OpenGL when scRGB HDR is
+     active in the HDR widget
+
+21.12.5
+=======
+ + Improved OpenGL HDR quality (16bpc in many older titles)
+
+     >> Newer engines that primarily draw to offscreen Renderbuffer Objects
+          will see less improvement.
+
+        GL "pipeline remastering" will help in later releases.
+
+21.12.4
+=======
+ + "Multi-Tasking On Top" no longer requires Global Injection to monitor
+     foreground status of other applications
+
+21.12.3
+=======
+ + "Fixed" (workaround) compiler optimization bug so newer versions of MSVC
+     can be used with ImGui
+ + Fixed input not passing to other applications when SK's control panel is
+     visible and "Disable Mouse / Keyboard Input to Game" is enabled
+ + Fixed Tessellation Shader stateblock in D3D Feature Level 10_0/10_1 games
+ + Added logging of D3D Debug Layer when no debugger is attached
+    >> Also disabled Break-on-Error if nothing is attached to catch it :)
+
+21.12.1
+=======
+ + Re-enabled OpenGL `ChangeDisplaySettingsEx` call, though warning is still
+     displayed in any game that attempts to use it.
+ + Fixed mouse input in Prey (2006), but to block mouse warp you need to set
+     "Block Mouse when no Cursor is Visible" in SK's Mouse settings
+ + Made the G-Sync status line of the control panel selectable with keyboard
+
+21.11.30
+========
+ + Improved 'TemporaryDesktopHDRMode' mode on systems with single monitors,
+     it should correctly turn HDR off at application exit
+ + Improved Multi-Tasking On Top's protection against DWM composition when apps
+     are snapped to the sides of adjacent monitors
+
+21.11.29.1
 ==========
  + Changed 'Multi-Tasking On Top' to not raise the game's window when selecting
      an app on a different monitor if the game was _NOT_ already the TopMost

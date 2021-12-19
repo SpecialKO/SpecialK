@@ -1050,13 +1050,17 @@ SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 void
 SK_TriggerHudFreeScreenshot (void) noexcept
 {
+  // Not Supported right now
   extern volatile LONG __SK_D3D12_QueuedShots;
 
-  if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
   {
-    InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
-    InterlockedIncrement (&__SK_D3D11_QueuedShots);
-    InterlockedIncrement (&__SK_D3D12_QueuedShots);
+    if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+    {
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      InterlockedIncrement (&__SK_D3D11_QueuedShots);
+      InterlockedIncrement (&__SK_D3D12_QueuedShots);
+    }
   }
 }
 

@@ -175,9 +175,6 @@
     <Filter Include="Header Files\Diagnostics">
       <UniqueIdentifier>{05b0d4e1-1c73-4c73-b5b0-c2ab8082c6e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\HDR">
-      <UniqueIdentifier>{e6230cbd-a442-439f-bce0-e5ce28092c92}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{edc86cb2-5721-4cae-ba0a-b9be5cf37d5b}</UniqueIdentifier>
     </Filter>
@@ -253,9 +250,6 @@
     <Filter Include="Header Files\External Libraries\LZMA">
       <UniqueIdentifier>{4d14fb72-3c59-42f7-8689-301c47d50537}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\External Libraries\gsl">
-      <UniqueIdentifier>{a32710b7-06e3-44a2-8bb4-13636eb9dc77}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\ImGui">
       <UniqueIdentifier>{6709c4e5-71e0-44ab-bfb0-4a9bfb68a346}</UniqueIdentifier>
     </Filter>
@@ -327,6 +321,21 @@
     </Filter>
     <Filter Include="Source Files\ImGui\Backends">
       <UniqueIdentifier>{ad396826-c477-4a64-abd3-b701ff898f4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\HDR">
+      <UniqueIdentifier>{e6230cbd-a442-439f-bce0-e5ce28092c92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External Libraries\glm\gsl">
+      <UniqueIdentifier>{a32710b7-06e3-44a2-8bb4-13636eb9dc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\Tobii">
+      <UniqueIdentifier>{e427e978-48f5-4c30-9701-5dfcf476a317}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\Tobii">
+      <UniqueIdentifier>{810578f5-6ee0-4230-9c71-7b44f62e7e9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External Libraries\Boost">
+      <UniqueIdentifier>{f271285d-ffd1-42c9-82c5-443c98fc4fc3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3276,6 +3285,444 @@
     <ClInclude Include="include\SpecialK\render\gl\opengl_screenshot.h">
       <Filter>Header Files\Backends\Render\OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="depends\include\boost\align.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\aligned_storage.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\any.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\array.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\asio.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\assert.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\assign.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\atomic.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\beast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\bimap.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\bind.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\blank.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\blank_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\call_traits.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\callable_traits.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cerrno.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\checked_delete.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\chrono.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\circular_buffer.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\circular_buffer_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\compressed_pair.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\compute.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\concept_archetype.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\concept_check.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\config.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\contract.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\contract_macro.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\convert.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\crc.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cregex.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cstdfloat.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cstdint.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cstdlib.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\current_function.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\cxx11_char_types.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\date_time.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\dll.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\dynamic_bitset.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\dynamic_bitset_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\enable_shared_from_this.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\exception_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\filesystem.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\flyweight.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\foreach.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\foreach_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\format.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\function.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\function_equal.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\function_output_iterator.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\functional.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\generator_iterator.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\geometry.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\get_pointer.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\gil.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\hana.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\histogram.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\hof.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\implicit_cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\indirect_reference.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\integer.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\integer_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\integer_traits.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\intrusive_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\io_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\is_placeholder.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\iterator.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\iterator_adaptors.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\lexical_cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\limits.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\local_function.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\locale.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\make_default.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\make_shared.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\make_unique.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\math_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\mem_fn.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\memory_order.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\metaparse.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\mp11.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\mpi.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\multi_array.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\multi_index_container.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\multi_index_container_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\next_prior.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\non_type.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\noncopyable.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\nondet_random.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\none.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\none_t.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\operators.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\operators_v1.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\optional.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\outcome.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\parameter.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\phoenix.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\pointee.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\pointer_cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\pointer_to_other.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\polymorphic_cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\polymorphic_pointer_cast.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\predef.h">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\preprocessor.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\process.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\program_options.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\progress.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\python.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\random.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\range.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\ratio.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\rational.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\ref.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\regex.h">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\regex.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\regex_fwd.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\scope_exit.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\scoped_array.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\scoped_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\shared_array.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\shared_container_iterator.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\shared_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\signals2.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\smart_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\spirit.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\stacktrace.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\static_assert.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\swap.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\thread.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\throw_exception.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\timer.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\token_functions.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\token_iterator.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\tokenizer.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\type.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\type_index.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\type_traits.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\unordered_map.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\unordered_set.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\utility.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\variant.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\version.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\visit_each.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\wave.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\weak_ptr.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\preprocessor\debug\error.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\boost\preprocessor\cat.hpp">
+      <Filter>Header Files\External Libraries\Boost</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3813,10 +4260,10 @@
       <Filter>Header Files\Core</Filter>
     </None>
     <None Include="include\gsl\gsl">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\gsl\gsl_assert">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="Tobii\SDK-License_zh.pdf">
       <Filter>Tobii</Filter>
@@ -4622,25 +5069,25 @@
       <Filter>Header Files\External Libraries\DirectX</Filter>
     </None>
     <None Include="include\gsl\gsl_algorithm">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\gsl\gsl_byte">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\gsl\gsl_util">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\SpecialK\commands\limit_reset.inl">
       <Filter>Header Files\Core</Filter>
     </None>
     <None Include="include\gsl\multi_span">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\gsl\string_span">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="include\gsl\span">
-      <Filter>Header Files\External Libraries\gsl</Filter>
+      <Filter>Header Files\External Libraries\glm\gsl</Filter>
     </None>
     <None Include="depends\include\glm\gtx\inertia.inl">
       <Filter>Header Files\Other Stuff</Filter>
@@ -4746,6 +5193,18 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="SpecialK.ruleset" />
+    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
+      <Filter>Libraries\64-bit\Tobii</Filter>
+    </None>
+    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.exp">
+      <Filter>Libraries\64-bit\Tobii</Filter>
+    </None>
+    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.def">
+      <Filter>Libraries\32-bit\Tobii</Filter>
+    </None>
+    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
+      <Filter>Libraries\32-bit\Tobii</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -4921,7 +5380,10 @@
       <Filter>Libraries\32-bit\SteamAPI</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
-      <Filter>Libraries\32-bit</Filter>
+      <Filter>Libraries\32-bit\Tobii</Filter>
+    </Library>
+    <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.lib">
+      <Filter>Libraries\64-bit\Tobii</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
@@ -4956,9 +5418,6 @@
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\uber_hdr_shader_ps.hlsl">
-      <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
-    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\sRGB_codec_ps.hlsl">
