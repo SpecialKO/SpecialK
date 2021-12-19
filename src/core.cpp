@@ -3389,8 +3389,15 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  if (rb.next_monitor != rb.monitor)
+  MONITORINFO
+    mi        = {                  };
+    mi.cbSize = sizeof (MONITORINFO);
+
+  if (rb.next_monitor != rb.monitor || FALSE == GetMonitorInfo (rb.monitor, &mi))
   {
+    if (rb.next_monitor == rb.monitor)
+        rb.monitor       = 0;
+
     SK_Window_RepositionIfNeeded ();
   }
 

@@ -281,8 +281,10 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
     {
       if (swap_desc.OutputWindow != nullptr)
       {
-        if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
-          rb.windows.setFocus (swap_desc.OutputWindow);
+        HWND hWndRoot = GetAncestor (swap_desc.OutputWindow, GA_ROOT);
+
+        if (rb.windows.focus.hwnd != hWndRoot)
+          rb.windows.setFocus (hWndRoot);
 
         if (rb.windows.device.hwnd == nullptr)
           rb.windows.setDevice (swap_desc.OutputWindow);
@@ -3763,9 +3765,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
              cache.size ();
 
       if (*pNumModes != 0)
-          *pNumModes = gsl::narrow_cast <UINT> (std::min (cache_size, static_cast <size_t> (*pNumModes)));
+          *pNumModes = sk::narrow_cast <UINT> (std::min (cache_size, static_cast <size_t> (*pNumModes)));
       else
-          *pNumModes = gsl::narrow_cast <UINT> (          cache_size);
+          *pNumModes = sk::narrow_cast <UINT> (          cache_size);
 
       if (pDesc != nullptr)
       {
@@ -3889,7 +3891,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         if ( config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED &&
              config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
         {
-          for ( INT i  = gsl::narrow_cast <INT> (*pNumModes) - 1 ;
+          for ( INT i  = sk::narrow_cast <INT> (*pNumModes) - 1 ;
                     i >= 0                                       ;
                   --i )
           {
@@ -5255,10 +5257,11 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     if (GetMonitorInfo (config.display.monitor_handle, &mi))
     {
-      SetWindowPos ( hWnd, HWND_TOP,
-                       mi.rcMonitor.left,
-                       mi.rcMonitor.top,
-                                      0, 0, SWP_NOSIZE );
+      SK_SetWindowPos ( hWnd, HWND_TOP,
+                          mi.rcMonitor.left,
+                          mi.rcMonitor.top,
+                                         0, 0, SWP_NOZORDER       | SWP_NOSIZE |
+                                               SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
     }
   }
 
@@ -5794,6 +5797,9 @@ SK_DXGI_CreateSwapChain_PostInit (
          dwRenderThread == SK_Thread_GetCurrentId () )
      )
   {
+    HWND hWndDevice = pDesc->OutputWindow;
+    HWND hWndRoot   = GetAncestor (hWndDevice, GA_ROOT);
+
     auto& windows =
       rb.windows;
 
@@ -5808,26 +5814,23 @@ SK_DXGI_CreateSwapChain_PostInit (
       _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
       _d3d12_rbk->_pCommandQueue.Release ();
 
-      windows.setDevice (pDesc->OutputWindow);
-      windows.setFocus  (pDesc->OutputWindow);
+      windows.setDevice (hWndDevice);
+      windows.setFocus  (hWndRoot);
     }
 
     else
     {
-      SK_InstallWindowHook (pDesc->OutputWindow);
+      SK_InstallWindowHook (hWndRoot);
 
-      windows.setDevice (pDesc->OutputWindow);
-      windows.setFocus  (pDesc->OutputWindow);
+      windows.setDevice (hWndDevice);
+      windows.setFocus  (hWndRoot);
 
       if (ppSwapChain != nullptr)
         SK_DXGI_HookSwapChain (*ppSwapChain);
     }
 
-    // This is necessary for VLC to work, it feels wrong, but makes life easier
-    //
     extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-                SK_Inject_SetFocusWindow (pDesc->OutputWindow);
-                       game_window.hWnd = pDesc->OutputWindow;
+                SK_Inject_SetFocusWindow (hWndRoot);
 
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games

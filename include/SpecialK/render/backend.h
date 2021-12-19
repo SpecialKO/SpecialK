@@ -1041,15 +1041,16 @@ public:
           ||   riid == IID_ID3D11Device
           ||   riid == IID_ID3D12Device      )
           {
-            //SK_ComPtr <Q> pRet = nullptr;
-            //
-            //if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
-            //{
-            //  return pRet;
-            //}
+            SK_ComPtr <Q> pRet = nullptr;
 
-            return
-              SK_ComQIPtr <Q> (device);
+            if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+            {
+              return pRet;
+            }
+
+            return nullptr;
+            //return
+            //  SK_ComQIPtr <Q> (device);
           }
 
           //static_assert ( riid == IID_IDirect3DDevice9   ||

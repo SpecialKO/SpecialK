@@ -964,10 +964,13 @@ SK_RenderBackend_V2::window_registry_s::getFocus (void)
 void
 SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 {
-  if (focus.hwnd == nullptr || ( SK_GetFocus () == hWnd && hWnd != nullptr && GetActiveWindow () == hWnd ) )
+  HWND hWndRoot =
+    GetAncestor (hWnd, GA_ROOT);
+
+  if (focus.hwnd == nullptr || ( SK_GetFocus () == hWndRoot && hWndRoot != nullptr && GetActiveWindow () == hWndRoot ) )
   {
-    focus.update        (hWnd);
-    game_window.hWnd   = hWnd;
+    focus.update        (hWndRoot);
+    game_window.hWnd   = hWndRoot;
     game_window.active = true;
 
     SK_LOG1 (( __FUNCTIONW__ L" (%X)", hWnd ), L"  DEBUG!  ");
@@ -990,7 +993,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
   {
     SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
                L"Window Mgr");
-    device.update (hWnd);
+    setDevice (hWnd);
   }
 }
 
@@ -1000,7 +1003,8 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   ////if (game_window.hWnd == 0 || (! IsWindow (game_window.hWnd)))
   ////{   game_window.hWnd = hWnd; }
 
-  device.update (hWnd);
+  device.update      (hWnd);
+  game_window.child = hWnd;
 
   SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
 }
@@ -1356,9 +1360,9 @@ bool sk_hwnd_cache_s::update (HWND wnd)
                                        *title = L'\0';
 
     unicode = IsWindowUnicode  (hwnd);
-    parent  = GetParent        (hwnd);
+    parent  = GetAncestor      (hwnd, GA_PARENT);
 
-    if (*title != L'\0' && *class_name != L'\0')
+    if (*title != L'\0' || *class_name != L'\0')
       last_changed = SK_GetFramesDrawn ();
 
     return true;
@@ -2166,6 +2170,23 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
                 api    = SK_RenderAPI::D3D12;
         }
       }
+
+      if (config.apis.d3d9.hook)
+      {
+        SK_ComQIPtr <IDirect3DDevice9> pDevice9 (pDevice);
+        if (pDevice9.p != nullptr)
+        {
+          device = pDevice;
+          api    = SK_RenderAPI::D3D9;
+        }
+
+        SK_ComQIPtr <IDirect3DDevice9Ex> pDevice9Ex (pDevice);
+        if (pDevice9Ex.p != nullptr)
+        {
+          device = pDevice;
+          api    = SK_RenderAPI::D3D9Ex;
+        }
+      }
     }
 
     if (already_set)
@@ -2663,22 +2684,23 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
   output_s* pOutput = nullptr;
 
-  for ( auto& display : displays )
-  {
-    if ( pContainer          != nullptr &&
-         pContainer->monitor == display.monitor )
-    {
-      pOutput = &display;
-      break;
-    }
-  }
+////for ( auto& display : displays )
+////{
+////  if ( pContainer          != nullptr &&
+////       pContainer->monitor == display.monitor )
+////  {
+////    pOutput = &display;
+////    break;
+////  }
+////}
 
   // Fallback to whatever has been assigned to rb.monitor
   if (pOutput == nullptr)
   {
     for ( auto& display : displays )
     {
-      if (display.monitor != 0 &&
+      if (display.attached     &&
+          display.monitor != 0 &&
           display.monitor == monitor)
       {
         pOutput = &display;
@@ -3254,8 +3276,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   if (! _GetAdapter (swapchain.p, pAdapter))
   {
+    // Try without the SwapChain (FF7 Remake workaround)
+    if (! _GetAdapter (nullptr, pAdapter))
   //InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
-    return;
+      return;
   }
 
 
@@ -3290,12 +3314,12 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   bool display_changed [num_displays] = { };
 
-  for ( auto& display : displays )
-  {
-    RtlSecureZeroMemory (
-      &display, display_size
-    );
-  }
+//for ( auto& display : displays )
+//{
+//  RtlSecureZeroMemory (
+//    &display, display_size
+//  );
+//}
 
   UINT                             idx = 0;
   SK_ComPtr <IDXGIOutput>                pOutput;
@@ -3568,133 +3592,144 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         display.hdr.enabled   = false;
       }
 
-      DISPLAYCONFIG_SDR_WHITE_LEVEL
-        getSdrWhiteLevel                  = { };
-        getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
-        getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
-        getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
-        getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
-
-      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+      // Don't need this info unless HDR is active
+      if (display.hdr.enabled)
       {
-        display.hdr.white_level =
-          (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+        DISPLAYCONFIG_SDR_WHITE_LEVEL
+          getSdrWhiteLevel                  = { };
+          getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+          getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
+          getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
+          getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
+
+        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+        {
+          display.hdr.white_level =
+            (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+        }
+
+        else
+          display.hdr.white_level = 80.0f;
       }
 
       else
         display.hdr.white_level = 80.0f;
 
-      DISPLAYCONFIG_TARGET_PREFERRED_MODE
-        getPreferredMode                  = { };
-        getPreferredMode.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
-        getPreferredMode.header.size      =         sizeof (DISPLAYCONFIG_TARGET_PREFERRED_MODE);
-        getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
-        getPreferredMode.header.id        = display.vidpn.targetInfo.id;
-
-      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
+      // Name and preferred modes are immutable, so we can skip this
+      if (*display.path_name == L'\0')
       {
-        display.native.width   = getPreferredMode.width;
-        display.native.height  = getPreferredMode.height;
+        DISPLAYCONFIG_TARGET_PREFERRED_MODE
+          getPreferredMode                  = { };
+          getPreferredMode.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
+          getPreferredMode.header.size      =         sizeof (DISPLAYCONFIG_TARGET_PREFERRED_MODE);
+          getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
+          getPreferredMode.header.id        = display.vidpn.targetInfo.id;
 
-        display.native.refresh = {
-          getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
-          getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
-        };
-      }
-
-      DISPLAYCONFIG_TARGET_DEVICE_NAME
-        getTargetName                     = { };
-        getTargetName.header.type         = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
-        getTargetName.header.size         =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
-        getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
-        getTargetName.header.id           = display.vidpn.targetInfo.id;
-
-      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
-      {
-        switch (getTargetName.outputTechnology)
+        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
         {
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_OTHER:
-            StrCpyA (display.signal.type, "Other");                 break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HD15:
-            StrCpyA (display.signal.type, "HD15 (VGA)");            break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SVIDEO:
-            StrCpyA (display.signal.type, "S-Video");               break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPOSITE_VIDEO:
-            StrCpyA (display.signal.type, "Composite Video");       break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPONENT_VIDEO:
-            StrCpyA (display.signal.type, "Component Video");       break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DVI:
-            StrCpyA (display.signal.type, "DVI");                   break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HDMI:
-            StrCpyA (display.signal.type, "HDMI");                  break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_LVDS:
-            StrCpyA (display.signal.type, "LVDS");                  break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_D_JPN:
-            StrCpyA (display.signal.type, "Japanese D");            break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDI:
-            StrCpyA (display.signal.type, "SDI");                   break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EXTERNAL:
-            StrCpyA (display.signal.type, "Display Port");          break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EMBEDDED:
-            StrCpyA (display.signal.type, "Embedded Display Port"); break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EXTERNAL:
-            StrCpyA (display.signal.type, "UDI");                   break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EMBEDDED:
-            StrCpyA (display.signal.type, "Embedded UDI");          break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDTVDONGLE:
-            StrCpyA (display.signal.type, "SDTV Dongle");           break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_MIRACAST:
-            StrCpyA (display.signal.type, "Miracast Wireless");     break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_WIRED:
-            StrCpyA (display.signal.type, "Indirect Wired");        break;
-          case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_VIRTUAL:
-            StrCpyA (display.signal.type, "Indirect Virtual");      break;
-          default:
-            StrCpyA (display.signal.type, "UNKNOWN");               break;
-        };
+          display.native.width   = getPreferredMode.width;
+          display.native.height  = getPreferredMode.height;
 
-        display.signal.connector_idx =
-          getTargetName.connectorInstance;
-
-        wcsncpy_s ( display.name,                                   64,
-                    getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
-
-
-        // Didn't get a name using the Windows APIs, let's fallback to EDID
-        if (*display.name == L'\0')
-        {
-          if (sk::NVAPI::nv_hardware)
-          {
-            NV_EDID edid = {         };
-                    edid.version = NV_EDID_VER;
-
-            std::string edid_name;
-
-            if ( NVAPI_OK ==
-                   NvAPI_GPU_GetEDID (
-                     display.nvapi.gpu_handle,
-                     display.nvapi.display_id, &edid
-                   )
-               )
-            {
-              edid_name =
-                parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
-            }
-
-            if (! edid_name.empty ())
-            {
-              swprintf (display.name, L"%hs", edid_name.c_str ());
-            }
-          }
+          display.native.refresh = {
+            getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Numerator,
+            getPreferredMode.targetMode.targetVideoSignalInfo.vSyncFreq.Denominator
+          };
         }
 
-        sprintf ( display.full_name,
-                    "%ws -<+>- %s %u", display.name,
-                                       display.signal.type,
-                                       display.signal.connector_idx );
+        DISPLAYCONFIG_TARGET_DEVICE_NAME
+          getTargetName                     = { };
+          getTargetName.header.type         = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME;
+          getTargetName.header.size         =  sizeof (DISPLAYCONFIG_TARGET_DEVICE_NAME);
+          getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
+          getTargetName.header.id           = display.vidpn.targetInfo.id;
 
-        wcsncpy_s ( display.path_name,               128,
-                    getTargetName.monitorDevicePath, _TRUNCATE );
+        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+        {
+          switch (getTargetName.outputTechnology)
+          {
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_OTHER:
+              StrCpyA (display.signal.type, "Other");                 break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HD15:
+              StrCpyA (display.signal.type, "HD15 (VGA)");            break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SVIDEO:
+              StrCpyA (display.signal.type, "S-Video");               break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPOSITE_VIDEO:
+              StrCpyA (display.signal.type, "Composite Video");       break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_COMPONENT_VIDEO:
+              StrCpyA (display.signal.type, "Component Video");       break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DVI:
+              StrCpyA (display.signal.type, "DVI");                   break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_HDMI:
+              StrCpyA (display.signal.type, "HDMI");                  break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_LVDS:
+              StrCpyA (display.signal.type, "LVDS");                  break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_D_JPN:
+              StrCpyA (display.signal.type, "Japanese D");            break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDI:
+              StrCpyA (display.signal.type, "SDI");                   break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EXTERNAL:
+              StrCpyA (display.signal.type, "Display Port");          break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_DISPLAYPORT_EMBEDDED:
+              StrCpyA (display.signal.type, "Embedded Display Port"); break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EXTERNAL:
+              StrCpyA (display.signal.type, "UDI");                   break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_UDI_EMBEDDED:
+              StrCpyA (display.signal.type, "Embedded UDI");          break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_SDTVDONGLE:
+              StrCpyA (display.signal.type, "SDTV Dongle");           break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_MIRACAST:
+              StrCpyA (display.signal.type, "Miracast Wireless");     break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_WIRED:
+              StrCpyA (display.signal.type, "Indirect Wired");        break;
+            case DISPLAYCONFIG_OUTPUT_TECHNOLOGY_INDIRECT_VIRTUAL:
+              StrCpyA (display.signal.type, "Indirect Virtual");      break;
+            default:
+              StrCpyA (display.signal.type, "UNKNOWN");               break;
+          };
+
+          display.signal.connector_idx =
+            getTargetName.connectorInstance;
+
+          wcsncpy_s ( display.name,                                   64,
+                      getTargetName.monitorFriendlyDeviceName, _TRUNCATE );
+
+
+          // Didn't get a name using the Windows APIs, let's fallback to EDID
+          if (*display.name == L'\0')
+          {
+            if (sk::NVAPI::nv_hardware)
+            {
+              NV_EDID edid = {         };
+                      edid.version = NV_EDID_VER;
+
+              std::string edid_name;
+
+              if ( NVAPI_OK ==
+                     NvAPI_GPU_GetEDID (
+                       display.nvapi.gpu_handle,
+                       display.nvapi.display_id, &edid
+                     )
+                 )
+              {
+                edid_name =
+                  parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+              }
+
+              if (! edid_name.empty ())
+              {
+                swprintf (display.name, L"%hs", edid_name.c_str ());
+              }
+            }
+          }
+
+          sprintf ( display.full_name,
+                      "%ws -<+>- %s %u", display.name,
+                                         display.signal.type,
+                                         display.signal.connector_idx );
+
+          wcsncpy_s ( display.path_name,               128,
+                      getTargetName.monitorDevicePath, _TRUNCATE );
+        }
       }
     }
 
@@ -3708,15 +3743,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     display_changed [idx] =
       old_crc != display_crc [idx];
-
-    SK_ComQIPtr <IDXGISwapChain>
-        pChain (swapchain.p);
-    if (pChain.p != nullptr)
-    {
-      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-      pChain->GetDesc     (&swapDesc);
-      assignOutputFromHWND (swapDesc.OutputWindow);
-    }
 
     if (display_changed [idx])
     {
@@ -3758,6 +3784,18 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
   if (any_changed)
   {
+    SK_ComQIPtr <IDXGISwapChain>
+        pChain (swapchain.p);
+    if (pChain.p != nullptr)
+    {
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+      pChain->GetDesc     (&swapDesc);
+      assignOutputFromHWND (swapDesc.OutputWindow);
+    }
+
+    else
+      assignOutputFromHWND (game_window.hWnd);
+
     for ( UINT i = 0 ; i < enum_count; ++i )
     {
       SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] \"%ws\" :: %s",
@@ -3799,7 +3837,7 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
 
   for ( auto& it : displays )
   {
-    if (! IsRectEmpty (&it.rect))
+    if (it.attached && (! IsRectEmpty (&it.rect)))
     {
       int bx1 = it.rect.left;
       int by1 = it.rect.top;
@@ -4193,12 +4231,6 @@ ChangeDisplaySettingsExA_Detour (
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
   {
-    if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
-    else
-    {
-      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings"), L" OpenGL32 ");
-    }
-
     if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
                                    (lpDevMode->dmFields & DM_PELSHEIGHT) ) )
     {
@@ -4207,8 +4239,6 @@ ChangeDisplaySettingsExA_Detour (
 
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
-
-    //return DISP_CHANGE_SUCCESSFUL;
   }
 
   static bool called = false;
@@ -4284,12 +4314,6 @@ ChangeDisplaySettingsExW_Detour (
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
   {
-    if (config.system.log_level > 1) { SK_RunOnce (SK_ImGui_Warning (L"Game Tried to Change Display Modes")); }
-    else
-    {
-      SK_LOG0 ((L"Game Tried to Change Fullscreen Display Settings"), L" OpenGL32 ");
-    }
-
     if ( lpDevMode == nullptr || ( (lpDevMode->dmFields & DM_PELSWIDTH) &&
                                    (lpDevMode->dmFields & DM_PELSHEIGHT) ) )
     {
