@@ -25,8 +25,6 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
-#include <../depends/include/boost/range/counting_range.hpp>
-
 #include <shaders/imgui_d3d11_vs.h>
 #include <shaders/imgui_d3d11_ps.h>
 

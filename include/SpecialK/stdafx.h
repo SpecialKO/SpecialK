@@ -23,6 +23,10 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+__pragma (runtime_checks ("", off))
+#endif
+
 //#define _CRT_NON_CONFORMING_WCSTOK
 //#define WIN32_LEAN_AND_MEAN
 
@@ -62,8 +66,7 @@
 #include <vcruntime_typeinfo.h>
 #include <typeinfo>
 
-#include <xlocinfo.h>
-#include <xlocinfo>
+#include <locale.h>
 #include <ios>
 #include <iosfwd>
 #include <ostream>
