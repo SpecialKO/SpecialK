@@ -1639,7 +1639,7 @@ SK::Framerate::Limiter::wait (void)
       __SK_LatentSyncSkip =
         static_cast <int> (fps / rb.getActiveRefreshRate ());
 
-      if (__SK_LatentSyncSkip == 1)
+      //if (__SK_LatentSyncSkip == 1)
           __SK_LatentSyncSkip  = 0;
 
       if (__scanline.lock.isPending ())
