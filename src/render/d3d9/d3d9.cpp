@@ -1132,7 +1132,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE)
     {
-      dll_log->Log ( L"[  D3D9  ]  >> Refresh Rate Override: %li",
+      dll_log->Log ( L"[  D3D9  ]  >> Refresh Rate Override: %f",
                        config.render.framerate.refresh_rate );
 
       Refresh = (int)config.render.framerate.refresh_rate;
@@ -7029,10 +7029,6 @@ SK_D3D9_TextureModDlg (void)
           last_ht     = std::max (last_ht,    (float)desc.Height + font_size * 10.0f);
 
 
-          extern std::wstring
-          SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
-
-
           bool injected  =
             (tex_mgr.getInjectableTexture (debug_tex_id).size != 0),
                reloading = false;
@@ -7227,10 +7223,10 @@ SK_D3D9_TextureModDlg (void)
 
    ImGui::EndChild ();
 
-   ImGui::BeginGroup ();
-
    ImGui::PopStyleColor ();
    ImGui::PopStyleVar   ();
+
+   ImGui::BeginGroup ();
 
    SK_ComPtr <IDirect3DTexture9> pTex = nullptr;
 
@@ -7350,7 +7346,7 @@ SK_D3D9_TextureModDlg (void)
   {
     ImGui::TreePush ("");
     //if (ImGui::Checkbox ("Dump ALL Shaders   (TBFix_Res\\dump\\shaders\\<ps|vs>_<checksum>.html)", &config.render.dump_shaders)) need_reset.graphics = true;
-    if (ImGui::Checkbox (R"(Dump ALL Textures at Load  (<ResourceRoot>\dump\textures\<format>\*.dds))", &config.textures.dump_on_load))
+    ImGui::Checkbox (R"(Dump ALL Textures at Load  (<ResourceRoot>\dump\textures\<format>\*.dds))", &config.textures.dump_on_load);//) need_reset.graphics = true;
 
     if (ImGui::IsItemHovered ())
     {

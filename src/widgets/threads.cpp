@@ -1202,7 +1202,7 @@ public:
                       setBorder       (true);
   };
 
-  void run (void) noexcept override
+  void run (void) override
   {
     // Thread profiling currently does not work in WINE
     //
@@ -1276,15 +1276,15 @@ public:
         SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
-        if (! pTLS)
+        if (pTLS != nullptr)
         {
           blacklist.emplace (it.second->dwTid);
           continue;
         }
 
-        else if (blacklist.find  (it.second->dwTid) !=
-                 blacklist.cend  (                ))
-        {        blacklist.erase (it.second->dwTid); }
+        if (blacklist.find  (it.second->dwTid) !=
+            blacklist.cend  (                ))
+        {   blacklist.erase (it.second->dwTid); }
 
         rebalance_list.push_back (it.second);
       }
@@ -1494,7 +1494,8 @@ public:
             SKWG_Thread_Entry::runtimes_s runtimes = { };
 
             SKWG_Thread_Entry *ptEntry =
-              new SKWG_Thread_Entry {
+              new (std::nothrow)
+             SKWG_Thread_Entry {
                                INVALID_HANDLE_VALUE,
                                   dwLocalTID,
                                   { { 0 , 0 } , { 0 , 0 },
@@ -1585,17 +1586,17 @@ public:
               ptEnt;
           }
         }
+
+        lLastThreadRefresh =
+         last;
       }
 
       SetEvent (data_thread->hSignalProduce);
-
-      lLastThreadRefresh =
-        last;
     }
   }
 
 
-  void draw (void) noexcept override
+  void draw (void) override
   {
     std::scoped_lock <std::mutex>
                 lock (run_lock);
@@ -2591,31 +2592,31 @@ public:
       {
         case THREAD_PRIORITY_IDLE:
           //prio_txt = std::move ("THREAD_PRIORITY_IDLE");
-          prio_txt = std::move ("Idle");
+          prio_txt = "Idle";
           break;
         case THREAD_PRIORITY_LOWEST:
           //prio_txt = std::move ("THREAD_PRIORITY_LOWEST");
-          prio_txt = std::move ("Lowest");
+          prio_txt = "Lowest";
           break;
         case THREAD_PRIORITY_BELOW_NORMAL:
           //prio_txt = std::move ("THREAD_PRIORITY_BELOW_NORMAL");
-          prio_txt = std::move ("Below Normal");
+          prio_txt = "Below Normal";
           break;
         case THREAD_PRIORITY_NORMAL:
           //prio_txt = std::move ("THREAD_PRIORITY_NORMAL");
-          prio_txt = std::move ("Normal");
+          prio_txt = "Normal";
           break;
         case THREAD_PRIORITY_ABOVE_NORMAL:
           //prio_txt = std::move ("THREAD_PRIORITY_ABOVE_NORMAL");
-          prio_txt = std::move ("Above Normal");
+          prio_txt = "Above Normal";
           break;
         case THREAD_PRIORITY_HIGHEST:
           //prio_txt = std::move ("THREAD_PRIORITY_HIGHEST");
-          prio_txt = std::move ("Highest");
+          prio_txt = "Highest";
           break;
         case THREAD_PRIORITY_TIME_CRITICAL:
           //prio_txt = std::move ("THREAD_PRIORITY_TIME_CRITICAL");
-          prio_txt = std::move ("Time Critical");
+          prio_txt = "Time Critical";
           break;
         default:
           if (! it.second->exited)

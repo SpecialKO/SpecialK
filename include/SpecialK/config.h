@@ -623,9 +623,9 @@ struct sk_config_t
 
   struct input_s {
     struct cursor_s {
-      int     timeout             = 1500UL;
-      bool    manage              =  false;
       bool    keys_activate       =  false;
+      bool    manage              =  false;
+      int     timeout             = 1500UL;
     } cursor;
 
     struct ui_s {

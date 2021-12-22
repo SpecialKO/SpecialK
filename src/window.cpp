@@ -216,15 +216,15 @@ public:
 
           TriggerStartMenu ();
         }
+
+        DWORD                             dwWindowBand = 0x0;
+        GetWindowBand (game_window.hWnd, &dwWindowBand);
+
+        *static_cast <int *> (var->getValuePointer ()) =
+           static_cast <int> (dwWindowBand);
+
+        *(int *)val = dwWindowBand;
       }
-
-      DWORD                             dwWindowBand = 0x0;
-      GetWindowBand (game_window.hWnd, &dwWindowBand);
-
-      *static_cast <int *> (var->getValuePointer ()) =
-         static_cast <int> (dwWindowBand);
-
-      *(int *)val = dwWindowBand;
 
       return true;
     }
@@ -246,9 +246,9 @@ public:
           {
             EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
             {
-              (void)hDC;
-              (void)lpRect;
-              (void)lParam;
+              std::ignore = hDC;
+              std::ignore = lpRect;
+              std::ignore = lParam;
 
               MONITORINFOEXW
                 mi        = {         };
@@ -258,7 +258,7 @@ public:
               {
                 if (config.display.monitor_idx > 0)
                 {
-                  if (StrStrIW (mi.szDevice, SK_FormatStringW (LR"(\DISPLAY%i)", config.display.monitor_idx).c_str ()) != nullptr)
+                  if (0 == _wcsicmp (mi.szDevice, SK_FormatStringW (LR"(\\.\DISPLAY%i)", config.display.monitor_idx).c_str ()))
                   {
                     config.display.monitor_handle = hMonitor;
                     return FALSE;
@@ -290,7 +290,7 @@ public:
 
             if (config.display.monitor_handle != 0)
             {
-              for ( auto display : rb.displays )
+              for ( const auto& display : rb.displays )
               {
                 if (display.monitor == rb.next_monitor)
                 {
@@ -318,51 +318,37 @@ public:
 
         config.display.monitor_handle = 0;
 
-        int monitor_count = 0;
-
-        EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
-        {
-          (void)hDC;
-          (void)lpRect;
-          (void)hMonitor;
-
-          *((int *)lParam) = *(int *)lParam + 1;
-
-          return TRUE;
-        }, (LPARAM)&monitor_count);
-
-        if (set > monitor_count) set =             1;
-        if (set <= 0)            set = monitor_count;
-
-        EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
-        {
-          (void)hDC;
-          (void)lpRect;
-
-          int monitor_id =
-            *((int *)lParam);
-
-          MONITORINFOEXW
-            mi        = {         };
-            mi.cbSize = sizeof (mi);
-
-          if (GetMonitorInfoW (hMonitor, &mi))
-          {
-            if (StrStrIW (mi.szDevice, SK_FormatStringW (LR"(\DISPLAY%i)", monitor_id).c_str ()) != nullptr)
-            {
-              config.display.monitor_handle = hMonitor;
-
-              SK_SaveConfig ();
-
-              return FALSE;
-            }
-          }
-
-          return TRUE;
-        }, (LPARAM)&set);
-
         static auto& rb =
           SK_GetCurrentRenderBackend ();
+
+        UINT highest_idx = 1,
+             lowest_idx  = rb._MAX_DISPLAYS;
+
+        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+        {
+          if (rb.displays [i].attached)
+          {
+            highest_idx = std::max (rb.displays [i].idx, highest_idx);
+            lowest_idx  = std::min (rb.displays [i].idx,  lowest_idx);
+          }
+        }
+
+        if (set > sk::narrow_cast <int> (highest_idx))
+            set = sk::narrow_cast <int> ( lowest_idx);
+        if (set < sk::narrow_cast <int> ( lowest_idx))
+            set = sk::narrow_cast <int> (highest_idx);
+
+        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+        {
+          if ( rb.displays [i].attached &&
+               rb.displays [i].idx      == static_cast <UINT> (set) )
+          {
+            config.display.monitor_handle =
+               rb.displays [i].monitor;
+
+            SK_SaveConfig ();
+          }
+        }
 
         rb.next_monitor =
           config.display.monitor_handle;
@@ -1069,13 +1055,14 @@ ActivateWindow ( HWND hWnd,
     if (game_window.active)
     {
       // Release the AltKin
-      for ( auto VKey = 0x8 ; VKey < 256 ; ++VKey )
+      for ( BYTE VKey = 0x8 ; VKey < 255 ; ++VKey )
       {
-        //if (std::exchange (__LastKeyState [VKey], FALSE) != FALSE)
+        if (std::exchange (__LastKeyState [VKey], (BYTE)FALSE) != (BYTE)FALSE)
         {
-          if ((SK_GetAsyncKeyState (VKey) & 0x8000) == 0x0)
+          if ((SK_GetAsyncKeyState (VKey) & 0x8000) == 0x0/* &&
+               SK_GetKeyState      (VKey)           != 0x0*/)
           {
-            SK_keybd_event (VKey, 0, KEYEVENTF_KEYUP, 0);
+            SK_keybd_event ((BYTE)VKey, 0, KEYEVENTF_KEYUP, 0);
           }
         }
       }
@@ -1085,8 +1072,18 @@ ActivateWindow ( HWND hWnd,
 
     else
     {
-      SK_GetKeyboardState (__LastKeyState);
+      for ( BYTE VKey = 0x8 ; VKey < 255 ; ++VKey )
+      {
+        if ( SK_GetKeyState      (VKey)           != 0x0 ||
+            (SK_GetAsyncKeyState (VKey) & 0x8000) != 0x0)
+        {
+          std::exchange (__LastKeyState [VKey], (BYTE)TRUE);
+        }
+      }
     }
+
+    BYTE              newKeyboardState [256] = { 0 };
+    SetKeyboardState (newKeyboardState);
 
     if (hWndFocus != game_window.hWnd)
     {
@@ -1101,10 +1098,10 @@ ActivateWindow ( HWND hWnd,
 
       bool proposeChange (INT _GPU, DWORD _dwProcess)
       {
-        SK_ComPtr <ID3D11Device> pDev11 =
-          SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ();
-        SK_ComPtr <ID3D12Device> pDev12 =
-          SK_GetCurrentRenderBackend ().getDevice <ID3D12Device> ();
+        SK_ComPtr      <ID3D11Device> pDev11 =
+          rb.getDevice <ID3D11Device> ();
+        SK_ComPtr      <ID3D12Device> pDev12 =
+          rb.getDevice <ID3D12Device> ();
 
         SK_ComQIPtr <IDXGIDevice>
             pDXGIDev (pDev12);
@@ -1120,9 +1117,9 @@ ActivateWindow ( HWND hWnd,
             success = true;
           }
 
-          if (             pDXGIDev != nullptr)
-          { if (SUCCEEDED (pDXGIDev->SetGPUThreadPriority (_GPU)))
-                                                     GPU = _GPU;
+          if (             pDXGIDev.p != nullptr)
+          { if (SUCCEEDED (pDXGIDev.p->SetGPUThreadPriority (_GPU)))
+                                                       GPU = _GPU;
           }
         }
 
@@ -3228,11 +3225,13 @@ SK_AdjustBorder (void)
 void
 SK_Window_RepositionIfNeeded (void)
 {
-  static CHandle hRepoSignal (
+  static SK_AutoHandle hRepoSignal (
     SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
   );
 
   SetEvent (hRepoSignal);
+
+  SK_LOG4 ( ( L"Reposition" ), L"WindowMgr" );
 
   SK_RunOnce (
     SK_Thread_CreateEx (
@@ -3276,7 +3275,7 @@ SK_Window_RepositionIfNeeded (void)
 
         while (ullLastFrame == SK_GetFramesDrawn ())
         {
-          if (WaitForSingleObject (hSignals [0], 10UL) == _EndSignal)
+          if (WaitForSingleObject (hSignals [0], 3UL) == _EndSignal)
           {
             dwWaitState = _EndSignal;
             break;
@@ -3312,6 +3311,8 @@ SK_Window_RepositionIfNeeded (void)
 
           SK_RunOnce (rb.updateOutputTopology ());
 
+          if (! rb.fullscreen_exclusive)
+          {
           if ( config.window.center     ||
                config.window.borderless ||
 
@@ -3366,6 +3367,7 @@ SK_Window_RepositionIfNeeded (void)
             if (std::exchange (lastResOverride.override.y, config.window.res.override.y)
                                                         != config.window.res.override.y)
                                               _overrideRes = true;
+          }
           }
 
           SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -3438,7 +3440,7 @@ SK_Window_RepositionIfNeeded (void)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, L"[SK] Window Relocation Thread", (LPVOID)hRepoSignal)
+    }, L"[SK] Window Relocation Thread", (LPVOID)hRepoSignal.m_h)
   );
 }
 
@@ -4137,9 +4139,9 @@ PeekMessageA_Detour (
               lpMsg->message == WM_INPUT &&
               lpMsg->wParam  == RIM_INPUTSINK )
     {
-      bool keyboard;
-      bool mouse;
-      bool gamepad;
+      bool keyboard = false;
+      bool mouse    = false;
+      bool gamepad  = false;
 
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
@@ -4227,9 +4229,9 @@ PeekMessageW_Detour (
          lpMsg->message == WM_INPUT &&
          lpMsg->wParam  == RIM_INPUTSINK )
     {
-      bool keyboard;
-      bool mouse;
-      bool gamepad;
+      bool keyboard = false;
+      bool mouse    = false;
+      bool gamepad  = false;
 
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
@@ -4308,7 +4310,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
       {
         DefWindowProcA ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
 
-        dll_log->Log ( L"Calling DefWindowProcA for message %x on HWND %x - wParam: %08x, lParam: %08x",
+        dll_log->Log ( L"Calling DefWindowProcA for message %x on HWND %p - wParam: %08x, lParam: %08x",
                                              lpMsg->message, lpMsg->hwnd,
                                                                      lpMsg->wParam,lpMsg->lParam );
       }
@@ -4393,7 +4395,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
       {
         DefWindowProcW ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
 
-        dll_log->Log ( L"Calling DefWindowProcW for message %x on HWND %x - wParam: %08x, lParam: %08x",
+        dll_log->Log ( L"Calling DefWindowProcW for message %x on HWND %p - wParam: %08x, lParam: %08x",
                                              lpMsg->message, lpMsg->hwnd,
                                                                      lpMsg->wParam,lpMsg->lParam );
       }
@@ -5625,6 +5627,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
   HWND      hWndOrder = nullptr;
   DWORD_PTR dwStyleEx =
     GetWindowLongFn (hWnd, GWL_EXSTYLE);
+  DWORD_PTR dwStyleExOrig = dwStyleEx;
 
   extern HWND SK_Inject_GetFocusWindow (void);
   extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
@@ -5644,7 +5647,11 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
     hWndOrder  =  HWND_NOTOPMOST;
   }
 
-  SetWindowLongFn ( hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
+  if (dwStyleEx != dwStyleExOrig)
+  {
+    SetWindowLongFn ( hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
+  }
+
   SK_SetWindowPos ( hWnd,
                     hWndOrder,
                     0, 0, 0, 0,
@@ -7042,13 +7049,13 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
                 hWndTopLevelOnGameMonitor.emplace (hWnd);
             }
 
-            while (hWndAbove != 0 && IsWindow (hWndAbove))
+            while (hWndAbove != nullptr && IsWindow (hWndAbove))
             {
               if (IsWindowVisible (hWndAbove) && hWndTopLevelOnGameMonitor.count (hWndAbove))
               {
                 wchar_t                    wszWindowTitle [128] = { };
                 GetWindowTextW (hWndAbove, wszWindowTitle, 128);
-                if (wcslen (               wszWindowTitle) > 0)
+                if (                       wszWindowTitle [0] != L'\0')
                 {
                   bGameIsTopMostOnMonitor = FALSE;
 
@@ -7093,7 +7100,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
       );
     }
 
-    if (hWndNewTop != 0)
+    if (hWndNewTop != nullptr)
     {
     //dll_log->Log (L"SK_Window_OnFocusChange: BringWindowToTop (hWndNewTop)");
       BringWindowToTop (hWndNewTop);

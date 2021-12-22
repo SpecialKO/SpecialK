@@ -965,7 +965,7 @@ template
    ,typename I   // I models InputIterator
    ,typename U>  // U models unsigned integral constant
 inline typename dtl::disable_if_trivially_destructible<I, void>::type
-   destroy_alloc_n(Allocator &a, I f, U n)
+   destroy_alloc_n(Allocator &a, I f, U n) BOOST_NOEXCEPT_OR_NOTHROW
 {
    while(n){
       --n;
@@ -979,7 +979,7 @@ template
    ,typename I   // I models InputIterator
    ,typename U>  // U models unsigned integral constant
 inline typename dtl::enable_if_trivially_destructible<I, void>::type
-   destroy_alloc_n(Allocator &, I, U)
+   destroy_alloc_n(Allocator &, I, U) BOOST_NOEXCEPT_OR_NOTHROW
 {}
 
 //////////////////////////////////////////////////////////////////////////////

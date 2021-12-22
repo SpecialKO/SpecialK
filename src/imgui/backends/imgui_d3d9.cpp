@@ -188,16 +188,16 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
         if (alpha <   93 && alpha != 0)
             alpha += (93 - alpha) / 2;
 
-        float a = ((float)                         alpha / 255.0f);
-        float r = ((float)((u32_dst & 0xFF0000U) >> 16U) / 255.0f);
-        float g = ((float)((u32_dst & 0x00FF00U) >>  8U) / 255.0f);
-        float b = ((float)((u32_dst & 0x0000FFU)       ) / 255.0f);
+        const float a = ((float)                         alpha / 255.0f);
+        const float r = ((float)((u32_dst & 0xFF0000U) >> 16U) / 255.0f);
+        const float g = ((float)((u32_dst & 0x00FF00U) >>  8U) / 255.0f);
+        const float b = ((float)((u32_dst & 0x0000FFU)       ) / 255.0f);
 
         vtx_dst->col = (
           0xFF000000U |
-          ((UINT)((b * a) * 255U) << 16U) |
-          ((UINT)((g * a) * 255U) << 8U) |
-          ((UINT)((r * a) * 255U))
+          (sk::narrow_cast <UINT>((b * a) * 255U) << 16U) |
+          (sk::narrow_cast <UINT>((g * a) * 255U) << 8U) |
+          (sk::narrow_cast <UINT>((r * a) * 255U))
         );
 
         //memcpy (
@@ -481,17 +481,20 @@ ImGui_ImplDX9_CreateFontsTexture (void)
     return false;
   }
 
-  for (int y = 0; y < height; y++)
+  if (tex_locked_rect.pBits != nullptr)
   {
-    ImU32  *pDst =
-      (ImU32 *)((uintptr_t)tex_locked_rect.pBits +
-                           tex_locked_rect.Pitch * y);
-    ImU8   *pSrc =                pixels + width * y;
-
-    for (int x = 0; x < width; x++)
+    for (int y = 0; y < height; y++)
     {
-      *pDst++ =
-        IM_COL32 (255, 255, 255, (ImU32)(*pSrc++));
+      ImU32  *pDst =
+        (ImU32 *)((uintptr_t)tex_locked_rect.pBits +
+                             tex_locked_rect.Pitch * y);
+      ImU8   *pSrc =                pixels + width * y;
+
+      for (int x = 0; x < width; x++)
+      {
+        *pDst++ =
+          IM_COL32 (255, 255, 255, (ImU32)(*pSrc++));
+      }
     }
   }
 
@@ -502,8 +505,6 @@ ImGui_ImplDX9_CreateFontsTexture (void)
     static_cast <void *> (g_FontTexture);
 
   pTLS->texture_management.injection_thread = FALSE;
-
-  EmptyWorkingSet (GetCurrentProcess ());
 
   return true;
 }

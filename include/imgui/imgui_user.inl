@@ -729,6 +729,7 @@ MessageProc ( const HWND&   hWnd,
 
   auto ActivateWindow = [&](bool active = false)
   {
+    (void)active;
   };
 
   switch (msg)
@@ -2488,22 +2489,34 @@ SK_ImGui_User_NewFrame (void)
   static int last_y = SK_ImGui_Cursor.pos.y;
 
 
+  static            LASTINPUTINFO
+    lii = { sizeof (LASTINPUTINFO), 1 };
+                    LASTINPUTINFO
+    cii = { sizeof (LASTINPUTINFO), 2 };
+
+  bool new_input =
+    ( !GetLastInputInfo (&cii) ||
+          std::exchange ( lii.dwTime,
+                          cii.dwTime ) != cii.dwTime );
+
   // Hacky solution for missed messages causing no change in cursor pos
   //
   POINT              cursor_pos = { };
   SK_GetCursorPos  (&cursor_pos);
 
   HWND hWndFromPt =
-    WindowFromPoint (cursor_pos);
+    PtInRect (&game_window.actual.window, cursor_pos) ?
+                         WindowFromPoint (cursor_pos) :
+                                               nullptr;
 
   if (                           hWndFromPt == game_window.hWnd ||
       IsChild (game_window.hWnd, hWndFromPt))
   {
-    io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) != 0);
-    io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) != 0);
-    io.MouseDown [2] |= ((SK_GetAsyncKeyState (VK_MBUTTON) ) != 0);
-    io.MouseDown [3] |= ((SK_GetAsyncKeyState (VK_XBUTTON1)) != 0);
-    io.MouseDown [4] |= ((SK_GetAsyncKeyState (VK_XBUTTON2)) != 0);
+    io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0;
+    io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0;
+    io.MouseDown [2] |= ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0;
+    io.MouseDown [3] |= ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0;
+    io.MouseDown [4] |= ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0;
 
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 
@@ -2532,10 +2545,11 @@ SK_ImGui_User_NewFrame (void)
     }
   }
 
-  if (SK_IsGameWindowActive ()) for ( UINT i = 7 ; i < 255 ; ++i )
-                              io.KeysDown [i] = SK_GetAsyncKeyState (i) != 0;
-  else {RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
-        RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5);}
+  if (SK_IsGameWindowActive ())
+  { if (new_input) for ( UINT                 i = 7 ; i < 255 ; ++i )
+                                 io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+  } else { RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
+           RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
@@ -2570,7 +2584,7 @@ SK_ImGui_User_NewFrame (void)
                     last_y    = SK_ImGui_Cursor.pos.y;
   }
 
-  bool was_idle = SK_ImGui_Cursor.idle;
+//bool was_idle = SK_ImGui_Cursor.idle;
 
   if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500)
     SK_ImGui_Cursor.idle = false;
@@ -2635,11 +2649,11 @@ SK_ImGui_User_NewFrame (void)
     if (                           hWndFromPt == game_window.hWnd ||
         IsChild (game_window.hWnd, hWndFromPt))
     {
-      io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON) ) != 0;
-      io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON) ) != 0;
-      io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON) ) != 0;
-      io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1)) != 0;
-      io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2)) != 0;
+      io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
+      io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
+      io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
+      io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
+      io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
     }
   }
 
@@ -2658,9 +2672,11 @@ SK_ImGui_User_NewFrame (void)
   //if (eula.show)
     SK_ImGui_DrawEULA (&eula);
 
-
-  last_x = SK_ImGui_Cursor.pos.x;
-  last_y = SK_ImGui_Cursor.pos.y;
+  if (new_input)
+  {
+    last_x = SK_ImGui_Cursor.pos.x;
+    last_y = SK_ImGui_Cursor.pos.y;
+  }
 }
 
 bool

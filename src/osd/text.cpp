@@ -896,9 +896,9 @@ SK_DrawOSD (void)
   gpu_sensors_t* gpu_stats =
     SK_GPU_CurrentSensorData ();
 
-  int afr_idx  = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->currentAFRIndex       : 0,
-      afr_last = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->previousFrameAFRIndex : 0,
-      afr_next = gpu_stats->num_gpus > 1 ? SK_NV_sli_state->nextFrameAFRIndex     : 0;
+  int afr_idx  = (gpu_stats != nullptr && gpu_stats->num_gpus > 1) ? SK_NV_sli_state->currentAFRIndex       : 0,
+      afr_last = (gpu_stats != nullptr && gpu_stats->num_gpus > 1) ? SK_NV_sli_state->previousFrameAFRIndex : 0,
+      afr_next = (gpu_stats != nullptr && gpu_stats->num_gpus > 1) ? SK_NV_sli_state->nextFrameAFRIndex     : 0;
 
 if (gpu_stats != nullptr)
 {

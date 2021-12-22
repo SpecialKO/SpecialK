@@ -151,14 +151,13 @@ SK_WinRing0_Unpack (void)
     SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
                 L" WinRing0 " );
 
-    DWORD   res_size     =
+    const DWORD   res_size =
       SizeofResource ( hModSelf, res );
 
     HGLOBAL packed_winring =
       LoadResource   ( hModSelf, res );
 
-    if (packed_winring == nullptr) { return;
-}
+    if (packed_winring == nullptr) { return; }
 
 
     const void* const locked =
@@ -279,16 +278,16 @@ struct SK_CPU_CoreSensors
     update ( uint64_t new_val,
              double   coeff )
     {
-      ULONG64 _tick =
+      const ULONG64 _tick =
         ReadULong64Acquire (&tick);
 
       //if (new_val != _tick)
       {
-        double elapsed_ms =
+        const double elapsed_ms =
           SK_DeltaPerfMS (ReadAcquire64 (&update_time), 1);
 
-        uint64_t delta =
-          new_val - _tick;
+        const uint64_t delta =
+            new_val - _tick;
 
         result.value      = static_cast <double> (delta) * coeff;
         result.elapsed_ms =                           elapsed_ms;
@@ -893,11 +892,11 @@ SK_CPU_MakePowerUnit_Zen (SK_CPU_ZenCoefficients* pCoeffs)
     if (Rdmsr (RAPL_POWER_UNIT_ZEN, &eax, &edx))
     {
       one_size_fits_all.power  =
-        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>( eax          & 0x0FULL));
+        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>( eax          & 0x0FULL));
       one_size_fits_all.energy =
-        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>((eax >> 8ULL)  & 0x1FULL));
+        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>((eax >> 8ULL)  & 0x1FULL));
       one_size_fits_all.time   =
-        1.0 / static_cast <double> (1ULL << static_cast <uint64_t>((eax >> 16ULL) & 0x0FULL));
+        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>((eax >> 16ULL) & 0x0FULL));
 
       SK_LOG0 ( ( L"Power Units: %f, Energy Units: %f, Time Units: %f",
                       one_size_fits_all.power,
@@ -947,7 +946,7 @@ SK_CPU_IsZen (bool retest/* = false*/)
 
     int i = 0;
 
-    for ( auto& zen : _SK_KnownZen )
+    for ( const auto& zen : _SK_KnownZen )
     {
       if ( InstructionSet::Brand ().find (zen.brandId) !=
               std::string::npos
@@ -1033,10 +1032,10 @@ SK_CPU_AssertPowerUnit_Zen (int64_t core)
   DWORD eax = 0,
         edx = 0;
 
-  DWORD_PTR
+  const DWORD_PTR
     thread_mask = ( 1ULL << core );
 
-  DWORD_PTR orig_mask =
+  const DWORD_PTR orig_mask =
     SK_SetThreadAffinityMask (
                     SK_GetCurrentThread (),
                       thread_mask
@@ -1091,13 +1090,13 @@ SK_CPU_GetJoulesConsumedTotal (DWORD_PTR package)
 
   if (msr_idx != 0x0)
   {
-    DWORD_PTR orig_mask =
+    const DWORD_PTR orig_mask =
       SK_SetThreadAffinityMask (
                       SK_GetCurrentThread (),
                         thread_mask
                                );
 
-    bool success =
+    const bool success =
         Rdmsr (msr_idx, &eax, &edx) && eax != 0;
 
     if (success)
@@ -1130,11 +1129,11 @@ SK_CPU_GetJoulesConsumed (int64_t core)
   static double denom =
                   1.0 / static_cast <double> (cpu.core_count);
 
-  DWORD_PTR thread_mask = (1ULL << core);
-  DWORD     eax         =   0,
-            edx         =   0,
-            msr0_idx    = 0x0,
-            msr1_idx    = 0x0;
+  const DWORD_PTR thread_mask = (1ULL << core);
+        DWORD     eax         =   0,
+                  edx         =   0,
+                  msr0_idx    = 0x0,
+                  msr1_idx    = 0x0;
 
   if (SK_CPU_IsZen ())
   {
@@ -1155,7 +1154,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
 }
 
 
-  DWORD_PTR orig_mask =
+  const DWORD_PTR orig_mask =
     SK_SetThreadAffinityMask (
                     SK_GetCurrentThread (),
                       thread_mask
@@ -1200,11 +1199,11 @@ SK_CPU_GetTemperature_AMDZen (int core)
     return 0.0;
   }
 
-  auto& cpu =
+  const auto& cpu =
     __SK_CPU;
 
-  const unsigned int indexRegister = 0x00059800;
-        unsigned int sensor        = 0;
+  constexpr unsigned int indexRegister = 0x00059800;
+            unsigned int sensor        = 0;
 
   static volatile
     LONG splock_avail = 1;
@@ -1231,7 +1230,7 @@ SK_CPU_GetTemperature_AMDZen (int core)
   const bool usingNeg49To206C =
     ((sensor >> 19) & 0x1) != 0u;
 
-  auto invScale11BitDbl =
+  const auto invScale11BitDbl =
     [ ] (uint32_t in) -> const double
      {
        return (1.0 / 2047.0) *
@@ -1297,9 +1296,9 @@ SK_CPU_UpdateCoreSensors (int core_idx)
     return;
   }
 
-  DWORD_PTR thread_mask = (1ULL << core_idx);
-  DWORD     eax         = 0,
-            edx         = 0;
+  const DWORD_PTR thread_mask = (1ULL << core_idx);
+        DWORD     eax         = 0,
+                  edx         = 0;
 
   const DWORD_PTR orig_mask =
     SK_SetThreadAffinityMask (
@@ -1338,10 +1337,10 @@ SK_CPU_UpdateCoreSensors (int core_idx)
     DWORD                      _eax,  _edx;
     if (Rdpmc ((1 << 30) + 1, &_eax, &_edx))
     {
-      uint64_t pmc = (  static_cast <uint64_t> (_eax) |
-                       (static_cast <uint64_t> (_edx) << 32ULL) ) & 0x000000ffffffffffULL;
+      const uint64_t pmc = (  static_cast <uint64_t> (_eax) |
+                             (static_cast <uint64_t> (_edx) << 32ULL) ) & 0x000000ffffffffffULL;
 
-      auto accum_result =
+      const auto accum_result =
         core.accum2.update (pmc, 1.0);
 
       core.clock_MHz =
@@ -1352,9 +1351,9 @@ SK_CPU_UpdateCoreSensors (int core_idx)
            (eax & 0x80000000) != 0 )
     {
       // get the dist from tjMax from bits 22:16
-      const double deltaT = static_cast <double> (((eax & 0x007F0000UL) >> 16UL));
-      const double tjMax  = core.tjMax;
-      const double tSlope = 1.0;
+      const     double deltaT = static_cast <double> (((eax & 0x007F0000UL) >> 16UL));
+      const     double tjMax  = core.tjMax;
+      constexpr double tSlope = 1.0;
         core.temperature_C =
           static_cast <double> (tjMax - tSlope * deltaT);
     }
@@ -1519,7 +1518,7 @@ public:
     PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid_orig);
   }
 
-  void run (void) noexcept override
+  void run (void) override
   {
     // Wine / Proton / Whatever does not implement most of this; abandon ship!
     if (config.compatibility.using_wine)
@@ -1553,12 +1552,12 @@ public:
             sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors )
                           : nullptr                     );
 
+      if (pwi == nullptr) return; // Ohnoes, I No Can Haz RAM (!!)
+
       static bool bUseNtPower = true;
       if (        bUseNtPower)
       {
-        if (pwi == nullptr) return; // Ohnoes, I No Can Haz RAM (!!)
-
-        NTSTATUS ntStatus =
+        const NTSTATUS ntStatus =
           CallNtPowerInformation ( ProcessorInformation,
                                    nullptr, 0,
                                    pwi,     sizeof (PROCESSOR_POWER_INFORMATION) * sinfo.dwNumberOfProcessors );
@@ -1603,7 +1602,7 @@ public:
         SK::ControlPanel::current_time;
 
 
-      auto avg =
+      const auto avg =
         __AverageEffectiveClock->getAvg ();
 
       if (avg != 0)
@@ -1641,7 +1640,7 @@ public:
     }
   }
 
-  void draw (void) noexcept override
+  void draw (void) override
   {
     if (ImGui::GetFont () == nullptr) return;
 
@@ -1668,7 +1667,7 @@ public:
 
     if ( EastWest == static_cast <int> (DockAnchor::None) )
     {
-      float center_x =
+      const float center_x =
       ( getPos  ().x +
         getSize ().x * 0.5f );
 
@@ -1742,7 +1741,7 @@ public:
 
               while ((ReadAcquire (&__SK_DLL_Ending) == 0) && (! early_out))
               {
-                DWORD dwWait =
+                const DWORD dwWait =
                   WaitForMultipleObjects (3, wait_handles, FALSE, INFINITE);
 
                 switch (dwWait)
@@ -2323,7 +2322,7 @@ public:
   }
 
 protected:
-  const DWORD update_freq        = static_cast <DWORD> (UPDATE_INTERVAL_MS);
+  const DWORD update_freq = sk::narrow_cast <DWORD> (UPDATE_INTERVAL_MS);
 
 private:
   struct active_scheme_s : power_scheme_s {
@@ -2331,7 +2330,7 @@ private:
     volatile LONG dirty  = FALSE;
   } active_scheme;
 
-  DWORD       last_update        = 0UL;
+  DWORD       last_update = 0UL;
 
   std::vector <SK_Stat_DataHistory <float, 64>> cpu_records = { };
                SK_Stat_DataHistory <float,  3>  cpu_clocks  = { };

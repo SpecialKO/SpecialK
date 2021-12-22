@@ -32,7 +32,7 @@
 #include <cstdint>
 #include <assert.h>
 
-extern LARGE_INTEGER SK_QueryPerf (void);
+extern LARGE_INTEGER SK_QueryPerf (void) noexcept;
 extern int64_t       SK_QpcFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
@@ -295,6 +295,8 @@ struct sk_input_api_context_s
             std::min (   getInputAge (1),
               std::min ( getInputAge (2), getInputAge (3) ) ) );
       } break;
+
+      default: return -INFINITY;
     }
 
     return static_cast <float> (

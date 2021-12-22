@@ -115,7 +115,7 @@ SK_Screenshot_IsCapturing (void)
 }
 
 void
-SK_ScreenshotManager::init (void)
+SK_ScreenshotManager::init (void) noexcept
 {
   __try {
     auto repo =
@@ -210,6 +210,9 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
     DeleteDC         (hdcSrc);
     DeleteDC         (hdcDst);
     DeleteDC         (hdcDIB);
+
+    DeleteBitmap     (hBitmap);
+    DeleteBitmap     (hBitmapCopy);
 
     return true;
   }

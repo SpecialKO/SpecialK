@@ -55,7 +55,7 @@ SK_TLS_FastTEBLookup (DWORD dwTlsIndex)
   //  * The original claimed limitation of 64 indexes has not been true
   //      for a very long time. But there's still an upper-bound of ~1088.
   //
-  else if (dwTlsIndex <= TlsMax1)
+  if (dwTlsIndex <= TlsMax1)
   {
     TEB* pTEB =
       (TEB *)SK_Thread_GetTEB_FAST ();
@@ -99,7 +99,7 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
   //  * The original claimed limitation of 64 indexes has not been true
   //      for a very long time. But there's still an upper-bound of ~1088.
   //
-  else if (dwTlsIndex <= TlsMax1)
+  if (dwTlsIndex <= TlsMax1)
   {
     SK_ReleaseAssert (pTEB->TlsExpansionSlots != nullptr);
 
@@ -182,8 +182,8 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
       pTLS =
         new SK_TLS (dwTLSIndex);
 
-      if (! FlsSetValue ( dwTLSIndex,
-                            pTLS ) )
+      if ( FlsSetValue ( dwTLSIndex,
+                          pTLS ) == FALSE )
       {
         // The Win32 API call failed, but did manipulating the TEB manually
         //   work?
@@ -284,9 +284,9 @@ SK_CleanupTLS (void)
 
     if (pTLS->debug.handle != INVALID_HANDLE_VALUE)
     {
-      DWORD                                          dwFlags = 0x0;
-      if (GetHandleInformation (pTLS->debug.handle, &dwFlags))
-      {            CloseHandle (pTLS->debug.handle); }
+      DWORD                                                   dwFlags = 0x0;
+      if (FALSE != GetHandleInformation (pTLS->debug.handle, &dwFlags))
+      {                     CloseHandle (pTLS->debug.handle); }
 
       pTLS->debug.handle = INVALID_HANDLE_VALUE;
     }
@@ -305,7 +305,7 @@ SK_CleanupTLS (void)
 
   if ( FlsSetValue (
          ReadULongAcquire (&__SK_TLS_INDEX),
-           nullptr )
+           nullptr ) != FALSE
      )
   {
     // ...

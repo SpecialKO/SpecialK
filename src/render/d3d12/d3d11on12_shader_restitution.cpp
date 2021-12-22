@@ -315,10 +315,8 @@ class SDR_to_HDR
   public:
     SDR_to_HDR ( const std::wstring& _name,
                        uint32_t      vs_crc32c,
-                       uint32_t      ps_crc32c )
+                       uint32_t      ps_crc32c ) : name (_name)
     {
-      name = _name;
-
       *(&vertexOverride._Myfirst._Val) = vs_crc32c;
       *(&pixelOverride._Myfirst._Val)  = ps_crc32c;
     }

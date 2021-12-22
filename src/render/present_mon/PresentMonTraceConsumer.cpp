@@ -366,7 +366,7 @@ void PMTraceConsumer::HandleDxgkFlip(EVENT_HEADER const& hdr, int32_t flipInterv
 
     // If this is the DWM thread, piggyback these pending presents on our fullscreen present
     if (hdr.ThreadId == DwmPresentThreadId) {
-        for (auto iter = mPresentsWaitingForDWM.begin(); iter != mPresentsWaitingForDWM.end(); iter++) {
+        for (auto iter = mPresentsWaitingForDWM.begin(); iter != mPresentsWaitingForDWM.end(); ++iter) {
             iter->get()->PresentInDwmWaitingStruct = false;
         }
         std::swap(presentEvent->DependentPresents, mPresentsWaitingForDWM);

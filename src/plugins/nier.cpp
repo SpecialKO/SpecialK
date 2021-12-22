@@ -484,8 +484,6 @@ struct {
 } far_ao;
 
 bool                      SK_FAR_PlugInCfg         (void);
-HRESULT STDMETHODCALLTYPE SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
-
 extern bool
 SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
                                 const wchar_t* role, int order, const wchar_t* path );
@@ -785,7 +783,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
                                 "   * This message will go away the first time you actually read it and successfully toggle the OSD.\n" );
   else if (config.system.log_level == 1)
   {
-    std::string validation = "";
+    std::string validation;
 
     if (frames_drawn >= 0 && game_state.needFPSCap ())
     {
@@ -816,7 +814,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     if (game_state.needFPSCap ()) {
       state += "< Needs Cap :";
 
-      std::string reasons = "";
+      std::string reasons;
 
       if (game_state.isLoading  ())   reasons += " loading ";
       if (game_state.isInMenu   ())      reasons += " menu ";
@@ -1222,12 +1220,6 @@ SK_FAR_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   return S_OK;
 }
-
-const wchar_t*
-SK_D3D11_DescribeUsage (D3D11_USAGE usage) noexcept;
-
-std::wstring
-SK_D3D11_DescribeBindFlags (UINT flags);
 
 // Overview (Durante):
 //
@@ -1706,8 +1698,6 @@ extern SK_LazyGlobal <
 > __SK_D3D11_PixelShader_CBuffer_Overrides;
 
 d3d11_shader_tracking_s::cbuffer_override_s* SK_FAR_CB_Override;
-
-extern void SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 
 void
 SK_FAR_InitPlugin (void)
@@ -2598,8 +2588,6 @@ SK_FAR_IsPlugIn (void)
 {
   return far_prefs != nullptr;
 }
-
-extern float __target_fps;
 
 void
 far_game_state_s::uncapFPS (void)

@@ -2944,7 +2944,7 @@ private:
    }
 
    private:
-   BOOST_CONTAINER_FORCEINLINE T *priv_raw_begin() const
+   BOOST_CONTAINER_FORCEINLINE T *priv_raw_begin() const BOOST_NOEXCEPT_OR_NOTHROW
    {  return boost::movelib::to_raw_pointer(m_holder.start());  }
 
    BOOST_CONTAINER_FORCEINLINE T* priv_raw_end() const

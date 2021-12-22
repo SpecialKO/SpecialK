@@ -31,14 +31,14 @@ SK_CountToString (uint64_t count);
 class SKWG_D3D11_Pipeline : public SK_Widget
 {
 public:
-  SKWG_D3D11_Pipeline (void) : SK_Widget ("D3D1x_Pipeline")
+  SKWG_D3D11_Pipeline (void) noexcept : SK_Widget ("D3D1x_Pipeline")
   {
     SK_ImGui_Widgets->d3d11_pipeline = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (true);
   };
 
-  void run (void) noexcept override
+  void run (void) override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )
@@ -75,7 +75,7 @@ public:
     }
   }
 
-  void draw (void) noexcept override
+  void draw (void) override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D11              ) ) )

@@ -41,7 +41,7 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
     return E_POINTER;
   }
 
-  else if (
+  if (
     riid == IID_IWrapDirect3DDevice9Ex  ||
     riid == IID_IWrapDirect3DDevice9    ||
     riid == __uuidof (IUnknown)         ||

@@ -601,7 +601,7 @@ SK_RawInput_ClassifyDevices (void)
       switch ((it).usUsage)
       {
         case HID_USAGE_GENERIC_MOUSE:
-          SK_LOG1 ( (L" >> Registered Mouse    (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Mouse    (HWND=%p, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -609,7 +609,7 @@ SK_RawInput_ClassifyDevices (void)
           break;
 
         case HID_USAGE_GENERIC_KEYBOARD:
-          SK_LOG1 ( (L" >> Registered Keyboard (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Keyboard (HWND=%p, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -618,7 +618,7 @@ SK_RawInput_ClassifyDevices (void)
 
         case HID_USAGE_GENERIC_JOYSTICK: // Joystick
         case HID_USAGE_GENERIC_GAMEPAD:  // Gamepad
-          SK_LOG1 ( (L" >> Registered Gamepad  (HWND=%x, Flags=%x)",
+          SK_LOG1 ( (L" >> Registered Gamepad  (HWND=%p, Flags=%x)",
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
@@ -720,7 +720,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
 
   if (pRawInputDevices != nullptr)
   {
-    for (auto it : raw_devices)
+    for (auto& it : raw_devices)
     {
       pRawInputDevices [idx++] = it;
     }
@@ -824,7 +824,7 @@ NtUserRegisterRawInputDevices_Detour (
         InternalGetWindowText (pDevices [i].hwndTarget, wszWindowTitle, 127);
 
         SK_LOG1 (
-                  ( L"RawInput is being tracked on hWnd=%x - { (%s), '%s' }",
+                  ( L"RawInput is being tracked on hWnd=%p - { (%s), '%s' }",
                       pDevices [i].hwndTarget, wszWindowClass, wszWindowTitle ),
                         __SK_SUBSYSTEM__ );
       }
@@ -1194,9 +1194,6 @@ sk_imgui_cursor_s::ClientToLocal    (LPPOINT lpPoint)
   in.width   = (float)(real_client.right  - real_client.left);
   in.height  = (float)(real_client.bottom - real_client.top);
 
-  float offset_x = 0.0f;
-  float offset_y = 0.0f;
-
   float x =     2.0f * ((float)lpPoint->x /
             std::max (1.0f, in.width )) - 1.0f;
   float y =     2.0f * ((float)lpPoint->y /
@@ -1226,7 +1223,6 @@ ImGui_DesiredCursor (void)
     return 0;
 
   static HCURSOR last_cursor = nullptr;
-  auto&          io          = ImGui::GetIO ();
 
   static const std::map <UINT, HCURSOR>
     __cursor_cache =
@@ -1296,6 +1292,9 @@ static HCURSOR arrow_cursor = nullptr;
 void
 sk_imgui_cursor_s::showSystemCursor (bool system)
 {
+  // Refactoring; function pending removal
+  UNREFERENCED_PARAMETER (system);
+
   static auto& io =
     ImGui::GetIO ();
 
@@ -1445,7 +1444,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
-    if (imgui_capture)
+    if (imgui_capture && SK_IsGameWindowActive ()) // If inactive, skip these tests
     {
       POINT                           ptCursor = SK_ImGui_Cursor.pos;
       SK_ImGui_Cursor.LocalToClient (&ptCursor);
@@ -3851,7 +3850,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
   struct gamepad_cache_s
   {
-    DWORD   slot;
+    DWORD   slot          = 0;
     BOOL    attached      = FALSE;
     ULONG64 checked_frame = INFINITE;
 

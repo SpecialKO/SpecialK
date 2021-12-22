@@ -839,7 +839,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.Format).c_str ());
+      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
       ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
       ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)

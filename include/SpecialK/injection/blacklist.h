@@ -296,8 +296,20 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"eac.exe"),
   SK_MakeUnicode (L"ealink.exe"),
 
+  SK_MakeUnicode (L"crashpad_handler.exe"),
+  SK_MakeUnicode (L"clang-tidy.exe"),
   SK_MakeUnicode (L"clupdater.exe"),
   SK_MakeUnicode (L"activate.exe"),
+  SK_MakeUnicode (L"werfault.exe"),
+  SK_MakeUnicode (L"x64dbg.exe"),
+  SK_MakeUnicode (L"locationnotificationwindows.exe"),
+  SK_MakeUnicode (L"servicehub.datawarehousehost.exe"),
+  SK_MakeUnicode (L"launchtm.exe"),
+  SK_MakeUnicode (L"conhost.exe"),
+  SK_MakeUnicode (L"openconsole.exe"),
+  SK_MakeUnicode (L"displayhdrcompliancetests.exe"),
+  SK_MakeUnicode (L"scriptedsandbox64.exe"),
+
 
   // Early-out for most CEF-based apps;
   //   Stuff like Spotify otherwise appears to
@@ -308,5 +320,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   // Does not reply to DLL unload requests
   SK_MakeUnicode (L"mspaint.exe"),
+  SK_MakeUnicode (L"notepad.exe")
 };
 #endif

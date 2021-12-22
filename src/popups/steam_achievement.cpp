@@ -77,7 +77,7 @@ private:
       float getPercent (void)
       {
         return
-          ( maxProgress / currentProgress ) * 100.0f;
+          ( maxProgress / currentProgress ) * 100.0F;
       }
     } progress;
   } state;

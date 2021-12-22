@@ -21,6 +21,7 @@ SOFTWARE.
 */
 #include <SpecialK/render/present_mon/PresentMon.hpp>
 #include <SpecialK/render/present_mon/TraceSession.hpp>
+#include <SpecialK/utility.h> // sk::narrow_cast
 
 #include <VersionHelpers.h>
 
@@ -171,7 +172,7 @@ double QpcDeltaToSeconds(uint64_t qpcDelta)
 
 uint64_t SecondsDeltaToQpc(double secondsDelta)
 {
-    return (uint64_t) (secondsDelta * gSession.mQpcFrequency.QuadPart);
+    return sk::narrow_cast <uint64_t> (secondsDelta * gSession.mQpcFrequency.QuadPart);
 }
 
 double QpcToSeconds(uint64_t qpc)

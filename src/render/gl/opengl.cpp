@@ -1924,10 +1924,10 @@ struct SK_IndirectX_InteropCtx
     UINT                                   swapchain_flags = 0x0;
     DXGI_SWAP_EFFECT                       swap_effect     = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
-    HWND                                   hWnd;
-    HMONITOR                               hMonitor;
-    RECT                                   lastKnownRect;
-    D3D11_VIEWPORT                         viewport = { };
+    HWND                                   hWnd     = nullptr;
+    HMONITOR                               hMonitor = nullptr;
+    RECT                                   lastKnownRect = { };
+    D3D11_VIEWPORT                         viewport      = { };
   } output;
 
   SK_IndirectX_PresentManager              present_man;
@@ -2161,9 +2161,7 @@ SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
                                ID3D11Device          *pDevice, HWND               hWnd,
                                DXGI_SWAP_CHAIN_DESC1 *desc1,   IDXGISwapChain1 **ppSwapChain )
 {
-  HRESULT hr = E_UNEXPECTED;
-
-  hr =
+  HRESULT hr =
     pFactory->CreateSwapChainForHwnd ( pDevice, hWnd,
                                        desc1,   nullptr,
                                                 nullptr, ppSwapChain );
@@ -4181,8 +4179,8 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
   {
     dll_log->Log (L"glNamedFramebufferTexture (...)");
 
-    static int                                maxAttachments = 0;
-    glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
+    static GLuint                                      maxAttachments = 0;
+    glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, (GLint *)&maxAttachments);
 
     if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + maxAttachments && level == 0)
     {
@@ -4240,8 +4238,8 @@ glFramebufferTexture2D_SK ( GLenum target,
 
     if (textarget == GL_TEXTURE_2D)
     {
-      static int                                maxAttachments = 0;
-      glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, &maxAttachments);
+      static GLuint                                      maxAttachments = 0;
+      glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, (GLint *)&maxAttachments);
 
       if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + maxAttachments)
       {

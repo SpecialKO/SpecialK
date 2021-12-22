@@ -712,7 +712,7 @@ SK_D3D11_SetShaderResources_Impl (
        pDevContext, StartSlot, NumViews, ppShaderResourceViews);
   };
 
-  bool early_out =
+  bool early_out =                      shader_base == nullptr ||
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevContext) ||
     (! bMustNotIgnore) );
 
@@ -1730,17 +1730,14 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
     return hr;
   }
 
-  else
-  {
-    srv_desc.Texture2D.MipLevels       = 1;
-    srv_desc.Texture2D.MostDetailedMip = 0;
+  srv_desc.Texture2D.MipLevels       = 1;
+  srv_desc.Texture2D.MostDetailedMip = 0;
 
-    ////srv_desc.Texture2D.MipLevels       = tex_desc.MipLevels;
-    ////srv_desc.Texture2D.MostDetailedMip = rtv_desc.Texture2D.MipSlice;
+  ////srv_desc.Texture2D.MipLevels       = tex_desc.MipLevels;
+  ////srv_desc.Texture2D.MostDetailedMip = rtv_desc.Texture2D.MipSlice;
 
-    return
-      pDevice->CreateShaderResourceView ( pUndrawableTexture, &srv_desc, ppCopyView );
-  }
+  return
+    pDevice->CreateShaderResourceView ( pUndrawableTexture, &srv_desc, ppCopyView );
 }
 
 
@@ -2817,13 +2814,13 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
                 ImGui::SameLine   ( );
 
-                ImGui::BeginGroup (                                              );
+                ImGui::BeginGroup (                                             );
                 ImGui::Text       ( "%lux%lu",
                                       desc.Width, desc.Height/*, effective_width, effective_height, 0.9875f * content_avail_y - ((float)(bottom_list + 3) * font_size * 1.125f), content_avail_y*//*,
-                                        pTex->d3d9_tex->GetLevelCount ()*/       );
+                                        pTex->d3d9_tex->GetLevelCount ()*/      );
                 ImGui::Text       ( "%ws",
-                                      SK_DXGI_FormatToStr (desc.Format).c_str () );
-                ImGui::EndGroup   (                                              );
+                                      SK_DXGI_FormatToStr (desc.Format).data () );
+                ImGui::EndGroup   (                                             );
 
                 if (pSRV != nullptr)
                 {
@@ -3947,7 +3944,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
             ImGui::BeginGroup ();
             ImGui::Text       ("%08lx", pTex.p);
-            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).c_str ());
+            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).data ());
             ImGui::Text       ("%li",   refs);
             ImGui::EndGroup   ();
           }
@@ -4058,6 +4055,31 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 }
 
 
+std::unordered_map < sk_shader_class,
+                     std::tuple < std::pair <const ImGuiCol, const ImColor>,
+                                  std::pair <const ImGuiCol, const ImColor>,
+                                  std::pair <const ImGuiCol, const ImColor> > >&
+SK_D3D11_ShaderColors (void)
+{
+  static
+    std::unordered_map < sk_shader_class,
+                     std::tuple < std::pair <const ImGuiCol, const ImColor>,
+                                  std::pair <const ImGuiCol, const ImColor>,
+                                  std::pair <const ImGuiCol, const ImColor> > >
+    colors =
+      { { sk_shader_class::Unknown,  ShaderColorDecl (-1) },
+        { sk_shader_class::Vertex,   ShaderColorDecl ( 0) },
+        { sk_shader_class::Pixel,    ShaderColorDecl ( 1) },
+        { sk_shader_class::Geometry, ShaderColorDecl ( 2) },
+        { sk_shader_class::Hull,     ShaderColorDecl ( 3) },
+        { sk_shader_class::Domain,   ShaderColorDecl ( 4) },
+        { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
+
+  return colors;
+}
+
+
+
 void
 SK_D3D11_LiveShaderView (bool& can_scroll)
 {
@@ -4129,12 +4151,15 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
         if (ui_link_activated)
           ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Always);
 
-        ImGui::PushStyleColor (           std::get <0> (SK_D3D11_ShaderColors [shader_type]).first,
-                                (ImVec4&&)std::get <0> (SK_D3D11_ShaderColors [shader_type]).second );
-        ImGui::PushStyleColor (           std::get <1> (SK_D3D11_ShaderColors [shader_type]).first,
-                                (ImVec4&&)std::get <1> (SK_D3D11_ShaderColors [shader_type]).second );
-        ImGui::PushStyleColor (           std::get <2> (SK_D3D11_ShaderColors [shader_type]).first,
-                                (ImVec4&&)std::get <2> (SK_D3D11_ShaderColors [shader_type]).second );
+        static auto& colors =
+          SK_D3D11_ShaderColors ();
+
+        ImGui::PushStyleColor ( std::get <0> (colors [shader_type]).first,
+                                std::get <0> (colors [shader_type]).second );
+        ImGui::PushStyleColor ( std::get <1> (colors [shader_type]).first,
+                                std::get <1> (colors [shader_type]).second );
+        ImGui::PushStyleColor ( std::get <2> (colors [shader_type]).first,
+                                std::get <2> (colors [shader_type]).second );
 
         if (ImGui::CollapsingHeader (label))
         {
@@ -4211,15 +4236,18 @@ SK_D3D11_ShaderModDlg_RTVContributors (void)
                         ImGuiWindowFlags_AlwaysAutoResize |
                         ImGuiWindowFlags_NavFlattened );
 
+  static auto& colors =
+    SK_D3D11_ShaderColors ();
+
   auto _SetupShaderHeaderColors =
   [&](sk_shader_class type)
   {
-    ImGui::PushStyleColor (                std::get <0> (SK_D3D11_ShaderColors [type]).first,
-                            (const ImVec4&)std::get <0> (SK_D3D11_ShaderColors [type]).second );
-    ImGui::PushStyleColor (                std::get <1> (SK_D3D11_ShaderColors [type]).first,
-                            (const ImVec4&)std::get <1> (SK_D3D11_ShaderColors [type]).second );
-    ImGui::PushStyleColor (                std::get <2> (SK_D3D11_ShaderColors [type]).first,
-                            (const ImVec4&)std::get <2> (SK_D3D11_ShaderColors [type]).second );
+    ImGui::PushStyleColor ( std::get <0> (colors [type]).first,
+                            std::get <0> (colors [type]).second );
+    ImGui::PushStyleColor ( std::get <1> (colors [type]).first,
+                            std::get <1> (colors [type]).second );
+    ImGui::PushStyleColor ( std::get <2> (colors [type]).first,
+                            std::get <2> (colors [type]).second );
   };
 
   struct ref_list_base {
@@ -4900,7 +4928,7 @@ struct SK_D3D11_CommandBase
 
 SK_LazyGlobal <SK_D3D11_CommandBase> SK_D3D11_Commands;
 
-void* SK_D3D11_InitShaderMods (void)
+void* SK_D3D11_InitShaderMods (void) noexcept
 {
   static auto *p =
     SK_D3D11_Commands.getPtr ();

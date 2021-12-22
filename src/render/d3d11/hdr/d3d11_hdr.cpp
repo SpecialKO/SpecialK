@@ -83,20 +83,17 @@ struct SK_HDR_FIXUP
         __SK_HDR_Type = scRGB;
     }
 
-    if (     (__SK_HDR_Type & scRGB) != 0)
+    if ((__SK_HDR_Type & scRGB) != 0)
       return DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-    else if ((__SK_HDR_Type & HDR10) != 0)
+    if ((__SK_HDR_Type & HDR10) != 0)
       return DXGI_FORMAT_R10G10B10A2_UNORM;
 
-    else
-    {
-      SK_LOG0 ( ( L"Unknown HDR Format, using R10G10B10A2 (HDR10-ish)" ),
-                  L"HDR Inject" );
+    SK_LOG0 ( ( L"Unknown HDR Format, using R10G10B10A2 (HDR10-ish)" ),
+                L"HDR Inject" );
 
-      return
-        DXGI_FORMAT_R10G10B10A2_UNORM;
-    }
+    return
+      DXGI_FORMAT_R10G10B10A2_UNORM;
   }
 
   SK::DXGI::ShaderBase <ID3D11PixelShader>  PixelShader_scRGB;

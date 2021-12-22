@@ -54,7 +54,7 @@ float                 uav_clear [4] =
                      { 0.0f, 0.0f, 0.0f, 0.0f };
 
 // For effects that blink; updated once per-frame.
-DWORD dwFrameTime = SK::ControlPanel::current_time;
+DWORD& dwFrameTime = SK::ControlPanel::current_time;
 
 DWORD D3D11_GetFrameTime (void)
 {
@@ -145,7 +145,7 @@ SK_D3D11_InitMutexes (void)
   if (ReadAcquire (&_mutex_init) > 1)
     return;
 
-  else if (0 == InterlockedCompareExchange (&_mutex_init, 1, 0))
+  if (0 == InterlockedCompareExchange (&_mutex_init, 1, 0))
   {
     cs_shader      = std::make_unique <SK_Thread_HybridSpinlock> (0x666);
     cs_shader_vs   = std::make_unique <SK_Thread_HybridSpinlock> (0x300);
@@ -571,28 +571,24 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
   size   = sizeof (LONG);
   handle = ReadAcquire (&SK_D3D11_NumberOfSeenContexts);
 
-  auto* new_handle =
-    new LONG { handle };
+  LONG new_handle =
+           handle;
 
-  if ( TRUE != SK_D3D11_SetDeviceContextHandle (pDevCtx, *new_handle) )
+  if ( TRUE != SK_D3D11_SetDeviceContextHandle (pDevCtx, new_handle) )
   {
-    delete new_handle;
-           new_handle = nullptr;
+    new_handle = 0;
   }
 
   else
   {
     InterlockedIncrement (&SK_D3D11_NumberOfSeenContexts);
-
-    handle = *new_handle;
   }
 
   SK_ReleaseAssert (handle < SK_D3D11_MAX_DEV_CONTEXTS);
 
   _CacheResolution (idx, pDevCtx, handle);
 
-  delete new_handle;
-  return     handle;
+  return handle;
 }
 
 void
@@ -668,7 +664,7 @@ SK_D3D11_DescribeResource (ID3D11Resource* pRes)
       return (
         SK_FormatStringW ( L"Tex2D: (%lux%lu): %s { %s/%s }",
           desc.Width,
-          desc.Height, SK_DXGI_FormatToStr (desc.Format)   .c_str (),
+          desc.Height, SK_DXGI_FormatToStr (desc.Format)   . data (),
                     SK_D3D11_DescribeUsage (desc.Usage),
                 SK_D3D11_DescribeBindFlags (desc.BindFlags).c_str () )
       );
@@ -814,7 +810,7 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   SK_LOG1 ( ( L"CreateRTV, Format: %s",
                    SK_DXGI_FormatToStr ( pDesc != nullptr ?
                                          pDesc->Format    :
-                                          DXGI_FORMAT_UNKNOWN).c_str () ),
+                                          DXGI_FORMAT_UNKNOWN).data () ),
               L"  D3D 11  " );
 
   HRESULT ret = E_UNEXPECTED;
@@ -1172,7 +1168,7 @@ const uint32_t cache_tag    =
           return;
         }
 
-        else if (desc.Usage == D3D11_USAGE_DEFAULT)
+        if (desc.Usage == D3D11_USAGE_DEFAULT)
         {
         //-------------------
 
@@ -1703,8 +1699,8 @@ SK_D3D11_CopyResource_Impl (
             SK_ImGui_Warning (
               SK_FormatStringW (
                 L"HDR Format Mismatch During CopyResource: Src=%ws, Dst=%ws",
-                  SK_DXGI_FormatToStr (src_desc.Format).c_str (),
-                  SK_DXGI_FormatToStr (dst_desc.Format).c_str ()
+                  SK_DXGI_FormatToStr (src_desc.Format).data (),
+                  SK_DXGI_FormatToStr (dst_desc.Format).data ()
               ).c_str ()
             );
           }
@@ -4314,7 +4310,7 @@ D3D11Dev_CreateTexture2D_Impl (
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
 
-  else if (rb.device.p == nullptr)
+  if (rb.device.p == nullptr)
   {
     // Better late than never
     if (! pDevCtx)
@@ -4454,8 +4450,8 @@ D3D11Dev_CreateTexture2D_Impl (
             if (config.system.log_level > 4)
             {
               dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
-                SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
-                SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
+                SK_DXGI_FormatToStr (pDesc->Format).                 data (),
+                SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
             }
 
             pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -4500,8 +4496,8 @@ D3D11Dev_CreateTexture2D_Impl (
                   if (config.system.log_level > 4)
                   {
                     dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
-                      SK_DXGI_FormatToStr (pDesc->Format).                 c_str (),
-                      SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).c_str () );
+                      SK_DXGI_FormatToStr (pDesc->Format).                 data (),
+                      SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
                   }
 
                   // 32-bit total -> 64-bit
@@ -4831,12 +4827,9 @@ D3D11Dev_CreateTexture2D_Impl (
               return ( ( hr = S_OK ) );
             }
 
-            else
-            {
-              SK_LOG0 ( (L"*** Texture '%s' failed DirectX::CreateTexture (...) -- (HRESULT=%s), skipping!",
-                         SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
-                         L"DX11TexMgr" );
-            }
+            SK_LOG0 ( (L"*** Texture '%s' failed DirectX::CreateTexture (...) -- (HRESULT=%s), skipping!",
+                       SK_ConcealUserDir (wszTex), _com_error (hr).ErrorMessage () ),
+                       L"DX11TexMgr" );
           }
 
           else
@@ -6698,7 +6691,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
             static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator) /
             static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Denominator) :
               std::numeric_limits <float>::quiet_NaN (), L" ",
-    SK_DXGI_FormatToStr (swap_chain_desc->BufferDesc.Format).c_str (),
+    SK_DXGI_FormatToStr (swap_chain_desc->BufferDesc.Format).data (),
           swap_chain_desc->BufferCount, L" ",
           wszMSAA,
           swap_chain_desc->Windowed ? L"Windowed" : L"Fullscreen",
@@ -7537,7 +7530,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
 
     auto CalcRuntimeMS =
     [ ](d3d11_shader_tracking_s *tracker) noexcept
-     {
+    {
       if (tracker->runtime_ticks != 0ULL)
       {
         tracker->runtime_ms =
@@ -7548,20 +7541,19 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
                  d3d11_shader_tracking_s::disjoint_query.last_results.Frequency)
           );
 
+        // Way too long to be valid, just re-use the last known good value
+        if ( tracker->runtime_ms > 12.0 )
+             tracker->runtime_ms = tracker->last_runtime_ms;
 
-         // Way too long to be valid, just re-use the last known good value
-         if ( tracker->runtime_ms > 12.0 )
-              tracker->runtime_ms = tracker->last_runtime_ms;
+        tracker->last_runtime_ms =
+             tracker->runtime_ms;
+      }
 
-         tracker->last_runtime_ms =
-              tracker->runtime_ms;
-       }
-
-       else
-       {
-         tracker->runtime_ms = 0.0;
-       }
-     };
+      else
+      {
+        tracker->runtime_ms = 0.0;
+      }
+    };
 
     const
      auto

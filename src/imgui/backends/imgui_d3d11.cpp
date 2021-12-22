@@ -1660,7 +1660,7 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   assert (This == rb.swapchain);
 
   auto                                 pDev    =
-    rb.getDevice <ID3D11Device>                  (     );
+    rb.getDevice <ID3D11Device>        (     );
   SK_ComPtr      <ID3D11DeviceContext> pDevCtx = nullptr;
 
   if (rb.d3d11.immediate_ctx != nullptr)
@@ -1717,7 +1717,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 
     SK_LOG0 ( ( L"(+) Acquiring D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
                 pDevice,             swapDesc.BufferCount,
-                SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).c_str (),
+                SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
                                      swapDesc.OutputWindow ),
               L"D3D11BkEnd" );
 
@@ -1812,7 +1812,7 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
     SK_LOG0 ( ( L"(-) Releasing D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
                                         _pDevice.p,
                                         swapDesc.BufferCount,
-                   SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).c_str (),
+                   SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
                                         swapDesc.OutputWindow),
             L"D3D11BkEnd" );
 

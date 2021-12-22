@@ -36,7 +36,7 @@ public:
     setDockingPoint (DockAnchor::SouthWest).setClickThrough (false).setBorder (true);
   };
 
-  void run (void) noexcept override
+  void run (void) override
   {
     static bool first = true;
 

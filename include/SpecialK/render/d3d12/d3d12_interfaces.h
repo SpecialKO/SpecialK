@@ -451,7 +451,7 @@ extern D3D12CreateDevice_pfn   D3D12CreateDevice_Import;
 struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 {
   SK_D3D12_StateTransition ( D3D12_RESOURCE_STATES before,
-                             D3D12_RESOURCE_STATES after ) :
+                             D3D12_RESOURCE_STATES after ) noexcept :
            D3D12_RESOURCE_BARRIER ( { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE,
                                     { nullptr, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
                                                before,
@@ -568,6 +568,23 @@ struct SK_ImGui_ResourcesD3D12
   SK_ComPtr <ID3D12Resource> vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
 	int                    num_vertices [DXGI_MAX_SWAP_CHAIN_BUFFERS] = {};
 };
+
+enum class SK_D3D12_ShaderType {
+  Vertex   =   1,
+  Pixel    =   2,
+  Geometry =   4,
+  Domain   =   8,
+  Hull     =  16,
+  Compute  =  32,
+  Mesh     =  64,
+  Amplify  = 128,
+
+  Invalid  = MAXINT
+};
+
+bool
+SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
+                            ID3D12Device*    pDev12 );
 
 void SK_D3D12_BeginFrame (void);
 void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());

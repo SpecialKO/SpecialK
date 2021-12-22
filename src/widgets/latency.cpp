@@ -391,7 +391,7 @@ SK_ImGui_DrawGraph_Latency ()
     ImGui::TextColored ( ImColor::HSV (0.1f, 1.f, 1.f),
                            bRTSS64 ? "RivaTuner Statistics Server detected, "
                                      "latency measurements may be inaccurate."
-                                   : "Third-party overlay interference, "
+                                   : "No draw calls captured, "
                                      "latency measurements may be inaccurate." );
   }
 
@@ -536,7 +536,7 @@ public:
     }
   }
 
-  void draw () noexcept override
+  void draw () override
   {
     if (ImGui::GetFont () == nullptr) {
       return;

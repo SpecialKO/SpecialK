@@ -664,6 +664,95 @@ struct SK_ColorSpace {
 const wchar_t*
 HDRModeToStr (NV_HDR_MODE mode);
 
+
+#if 0
+class SK_AutoDC
+{
+public:
+    SK_AutoDC  (void) = default;
+    SK_AutoDC  (                 HWND   hWnd,  HDC   hDC)
+                      noexcept : hWnd_ (hWnd), hDC_ (hDC)
+                               {               };
+   ~SK_AutoDC  (void) noexcept {  release ();  };
+
+  HDC  hDC     (void) const noexcept { return hDC_;  };
+  HWND hWnd    (void) const noexcept { return hWnd_; };
+
+  bool release (void) noexcept
+  {
+    if (          (hWnd_||hDC_) &&
+        ReleaseDC (hWnd_, hDC_) != 0)
+    {
+      hWnd_ = nullptr;
+      hDC_  = nullptr;
+    }
+
+    return ( hWnd_ == nullptr &&
+             hDC_  == nullptr );
+  }
+
+  SK_AutoDC            (const SK_AutoDC&          ) = delete;
+  SK_AutoDC& operator= (const SK_AutoDC&          ) = delete;
+  SK_AutoDC            (      SK_AutoDC&& moveFrom) noexcept
+  {                    *this = std::move (moveFrom); }
+  SK_AutoDC& operator= (      SK_AutoDC&& moveFrom)
+  {
+    if (this != &moveFrom)
+    {
+      release ();
+
+      hWnd_ = std::exchange (moveFrom.hWnd_, nullptr);
+      hDC_  = std::exchange (moveFrom.hDC_,  nullptr);
+    }
+
+    return *this;
+  }
+
+private:
+  HWND hWnd_ = nullptr;
+  HDC  hDC_  = nullptr;
+};
+
+class SK_RenderDevice
+{
+public:
+  SK_ComPtr <IUnknown> getDeviceD3D (void) const { return d3d_device;        }
+  HDC                  getDeviceGL  (void) const { return  gl_device.hDC (); }
+
+protected:
+  union {
+    SK_ComPtr <IUnknown> d3d_device;
+    SK_AutoDC             gl_device;
+  };
+};
+
+class SK_SwapChain
+{
+public:
+  SK_ComPtr <IUnknown> getSwapChainD3D (void) const { return d3d_swapchain; }
+
+protected:
+  union {
+    SK_ComPtr <IUnknown> d3d_swapchain;
+  };
+};
+
+class SK_RenderContext
+{
+public:
+  SK_RenderDevice device;
+  SK_SwapChain    swapchain;
+};
+
+class SK_RenderContextIndirect : public SK_RenderContext
+{
+public:
+  SK_RenderDevice presentation_device;
+  SK_SwapChain    presentation_swapchain;
+};
+#endif
+
+
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
@@ -692,7 +781,7 @@ public:
                           VidPnSourceId        =      0;
     LUID                  luid                 = { 0, 0 };
 
-    HANDLE                hWait;
+    HANDLE                hWait                = nullptr;
 
     struct {
       D3DKMT_ADAPTER_PERFDATA data             = { };
@@ -700,7 +789,7 @@ public:
     } perf;
 
     struct {
-      D3DKMT_HANDLE       hDevice              = 0;
+      D3DKMT_HANDLE       hDevice              =  0;
     } device;
     std::recursive_mutex  lock;
   } adapter;
@@ -773,14 +862,14 @@ public:
             UINT32        reserved         : 10;
           } _AdditionalSignalInfo;
 
-          UINT32          videoStandard;
+          UINT32          videoStandard   = 0;
 
           const char*     toStr (void);
         }                 videoStandard;
 
         struct custom_wait_s {
-          HANDLE          hVBlankFront         =  0;
-          HANDLE          hVBlankBack          =  0;
+          HANDLE          hVBlankFront    = nullptr;
+          HANDLE          hVBlankBack     = nullptr;
         } events;
       } timing;
     } signal;
@@ -965,13 +1054,13 @@ public:
     ULONG64  lastFrame = 0ULL;
     ULONG64  lastDelta = 0ULL;
 
-    ULONG64 getDeltaTime (void)
+    ULONG64 getDeltaTime (void) noexcept
     {
       return
         lastDelta;
     }
 
-    void    markFrame    (void)
+    void    markFrame    (void) noexcept
     {
       ULONG64 thisFrame =
         SK_QueryPerf ().QuadPart;
@@ -1031,36 +1120,45 @@ public:
   } d3d12;
 
 
-        HRESULT       setDevice (IUnknown* pDevice);
-  template < class Q, const IID& riid = __uuidof (Q) >
-        SK_ComPtr <Q> getDevice (void)
-        {
-          if ( riid == IID_IDirect3DDevice9
-          ||   riid == IID_IDirect3DDevice9Ex
-          ||   riid == IID_ID3D10Device
-          ||   riid == IID_ID3D11Device
-          ||   riid == IID_ID3D12Device      )
+          HRESULT       setDevice (IUnknown* pDevice);
+  template <typename Q>
+          SK_ComPtr <Q> getDevice (void)
           {
-            SK_ComPtr <Q> pRet = nullptr;
+            REFIID riid =
+              __uuidof (Q);
 
-            if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+            if ( riid == IID_IDirect3DDevice9
+            ||   riid == IID_IDirect3DDevice9Ex
+            ||   riid == IID_ID3D10Device
+            ||   riid == IID_ID3D11Device
+            ||   riid == IID_ID3D12Device      )
             {
-              return pRet;
+              SK_ComPtr <Q> pRet = nullptr;
+
+              if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+              {
+                return pRet;
+              }
+
+              return nullptr;
+              //return
+              //  SK_ComQIPtr <Q> (device);
             }
 
+#ifdef __SK__LOG_H__
+            else
+              SK_LOG0 ( ( L"getDevice Called with Unknown Render Device Class" ), L"COM Helper" );
+#endif
+            else MessageBeep (0xFFFFFFFF);
+
+            ///static_assert ( riid == __uuidof (IDirect3DDevice9)   ||
+            ///                riid == __uuidof (IDirect3DDevice9Ex) ||
+            ///                riid == __uuidof (ID3D11Device)       ||
+            ///                riid == __uuidof (ID3D12Device),
+            ///  "Unknown Render Device Class Requested" );
+
             return nullptr;
-            //return
-            //  SK_ComQIPtr <Q> (device);
           }
-
-          //static_assert ( riid == IID_IDirect3DDevice9   ||
-          //                riid == IID_IDirect3DDevice9Ex ||
-          //                riid == IID_ID3D11Device       ||
-          //                riid == IID_ID3D12Device,
-          //  "Unknown Render Device Class Requested" );
-
-          return nullptr;
-        }
 
   struct gsync_s
   {
@@ -1132,7 +1230,7 @@ using SK_RenderBackend = SK_RenderBackend_V2;
 
 SK_RenderBackend&
 __stdcall
-SK_GetCurrentRenderBackend (void);
+SK_GetCurrentRenderBackend (void) noexcept;
 
 void
 __stdcall
@@ -1168,7 +1266,7 @@ extern volatile ULONG64 SK_Reflex_LastFrameMarked;
 __forceinline
 ULONG64
 __stdcall
-SK_GetFramesDrawn (void)
+SK_GetFramesDrawn (void) noexcept
 {
   return
     ReadULong64Acquire (&SK_RenderBackend::frames_drawn);
@@ -1407,7 +1505,7 @@ typedef struct
 // (bx1, by1) = left-top coordinates of B; (bx2, by2) = right-bottom coordinates of B
 inline int
 ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
-                          int bx1, int by1, int bx2, int by2 )
+                          int bx1, int by1, int bx2, int by2 ) noexcept
 {
   return std::max (0, std::min (ax2, bx2) -
                       std::max (ax1, bx1) ) *
@@ -1422,9 +1520,6 @@ SK_GetThreadDpiAwareness (void);
 bool SK_RenderBackendUtil_IsFullscreen (void);
 void SK_D3D_SetupShaderCompiler        (void);
 void SK_Display_DisableDPIScaling      (void);
-
-extern SK_LazyGlobal <
-    SK_RenderBackend > __SK_RBkEnd;
 
 void SK_Display_HookModeChangeAPIs (void);
 

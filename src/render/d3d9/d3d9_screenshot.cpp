@@ -26,16 +26,16 @@
 extern void SK_Screenshot_PlaySound            (void);
 extern void SK_Steam_CatastropicScreenshotFail (void);
 
-SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom) noexcept
+SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom)
 {
   if (this != &moveFrom)
   {
     dispose ();
 
-    pDev                            = moveFrom.pDev;
-    pSwapChain                      = moveFrom.pSwapChain;
-    pBackbufferSurface              = moveFrom.pBackbufferSurface;
-    pSurfScreenshot                 = moveFrom.pSurfScreenshot;
+    pDev.p                          = moveFrom.pDev.p;
+    pSwapChain.p                    = moveFrom.pSwapChain.p;
+    pBackbufferSurface.p            = moveFrom.pBackbufferSurface.p;
+    pSurfScreenshot.p               = moveFrom.pSurfScreenshot.p;
 
     ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
 
@@ -52,10 +52,10 @@ SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom
 
     //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
 
-    moveFrom.pDev                            = nullptr;
-    moveFrom.pSwapChain                      = nullptr;
-    moveFrom.pBackbufferSurface              = nullptr;
-    moveFrom.pSurfScreenshot                 = nullptr;
+    moveFrom.pDev.p                          = nullptr;
+    moveFrom.pSwapChain.p                    = nullptr;
+    moveFrom.pBackbufferSurface.p            = nullptr;
+    moveFrom.pSurfScreenshot.p               = nullptr;
 
     moveFrom.ulCommandIssuedOnFrame          = 0;
 
@@ -137,7 +137,7 @@ SK_D3D9_Screenshot::framebuffer_s::PinnedBuffer
 SK_D3D9_Screenshot::framebuffer_s::root_;
 
 void
-SK_D3D9_Screenshot::dispose (void) noexcept
+SK_D3D9_Screenshot::dispose (void)
 {
   if (outstanding_screenshots.contains (pBackbufferSurface))
       outstanding_screenshots.erase    (pBackbufferSurface);
@@ -172,7 +172,7 @@ bool
 SK_D3D9_Screenshot::getData ( UINT     *pWidth,
                               UINT     *pHeight,
                               uint8_t **ppData,
-                              bool      wait ) noexcept
+                              bool      wait )
 {
   auto& pooled =
     SK_ScreenshotQueue::pooled;
@@ -756,7 +756,7 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                     ScratchImage thumbnailImage;
 
                     Resize ( *un_scrgb.GetImages (), 200,
-                               static_cast <size_t> (200.0 * aspect),
+                               sk::narrow_cast <size_t> (200.0 * aspect),
                                 TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
                               | TEX_FILTER_TRIANGLE,
                                   thumbnailImage );

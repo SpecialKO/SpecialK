@@ -442,7 +442,7 @@ SK_WMI_Shutdown (void)
 }
 
 bool
-SK_AutoCOMInit::_assert_not_dllmain (void) noexcept
+SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
@@ -463,14 +463,22 @@ SK_AutoCOMInit::_assert_not_dllmain (void) noexcept
 HRESULT
 SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk)
 {
-  __try
+  if (pObj != nullptr)
   {
-    return
-      pObj->QueryInterface (riid, pUnk);
+    __try
+    {
+      return
+        pObj->QueryInterface (riid, pUnk);
+    }
+
+    __except ( (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION)
+                                     ? EXCEPTION_EXECUTE_HANDLER :
+                                       EXCEPTION_CONTINUE_SEARCH )
+    {
+      SK_LOG0 ( ( L"Access Violation Querying Interface For ..." ),
+                  L"COM Helper" );
+    }
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    return E_POINTER;
-  }
+  return E_POINTER;
 }

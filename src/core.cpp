@@ -1431,7 +1431,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
         DWORD dwMilliseconds =
-          static_cast <DWORD> (config.system.global_inject_delay * 1000.0f);
+          sk::narrow_cast <DWORD> (config.system.global_inject_delay * 1000.0f);
 
         SK_SleepEx (dwMilliseconds, FALSE);
 
@@ -3005,7 +3005,7 @@ SK_BeginBufferSwap (void)
 void
 SK_Input_PollKeyboard (void)
 {
-  const ULONGLONG poll_interval = 1ULL;
+  constexpr ULONGLONG poll_interval = 1ULL;
 
   //
   // Do not poll the keyboard while the game window is inactive
@@ -3270,6 +3270,90 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
       void SK_FFXV_SetupThreadPriorities (void);
            SK_FFXV_SetupThreadPriorities ();
       break;
+    case SK_GAME_ID::FinalFantasy7Remake:
+    {
+      uintptr_t pBase =
+        (uintptr_t)SK_Debug_GetImageBaseAddr ();
+
+      static uint8_t orig_bytes_3304DC8 [6] = { 0x0 };
+      static uint8_t orig_bytes_3304DD0 [6] = { 0x0 };
+      static uint8_t orig_bytes_3304E03 [2] = { 0x0 };
+      static uint8_t orig_bytes_1C0C42A [5] = { 0x0 };
+      static uint8_t orig_bytes_1C0C425 [5] = { 0x0 };
+
+      std::queue <DWORD> suspended;
+
+      auto orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+      try
+      {
+        static bool        bPatchable    = false;
+        static bool        bInit         = false;
+        if (std::exchange (bInit, true) == false)
+        {
+          DWORD dwOldProtect = 0x0;
+
+          //suspended =
+          //  SK_SuspendAllOtherThreads ();
+
+          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+          bPatchable = ( 0 == memcmp (
+                          (LPVOID)(pBase + 0x3304DC6), "\x73\x3d", 2) );
+          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, dwOldProtect,           &dwOldProtect);
+
+          if (bPatchable)
+          {
+            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304DC8,
+                            (LPVOID)(pBase + 0x3304DC8),                                        6);
+            memcpy (        (LPVOID)(pBase + 0x3304DC8), "\x90\x90\x90\x90\x90\x90",            6);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, dwOldProtect,           &dwOldProtect);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304DD0,
+                            (LPVOID)(pBase + 0x3304DD0),                                        6);
+            memcpy (        (LPVOID)(pBase + 0x3304DD0), "\x90\x90\x90\x90\x90\x90",            6);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, dwOldProtect,           &dwOldProtect);
+
+            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304E03,
+                            (LPVOID)(pBase + 0x3304E03),                                        2);
+            memcpy (        (LPVOID)(pBase + 0x3304E03), "\x90\x90",                            2);
+            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, dwOldProtect,           &dwOldProtect);
+
+#if 0
+#if 1
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_1C0C42A,
+                            (LPVOID)(pBase + 0x1C0C42A),                                        5);
+            memcpy (        (LPVOID)(pBase + 0x1C0C42A), "\x90\x90\x90\x90\x90",                5);
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, dwOldProtect,           &dwOldProtect);
+#endif
+#if 1
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_1C0C425,
+                            (LPVOID)(pBase + 0x1C0C425),                                        5);
+            memcpy (        (LPVOID)(pBase + 0x1C0C425), "\x90\x90\x90\x90\x90",                5);
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, dwOldProtect,           &dwOldProtect);
+#endif
+#endif
+          }
+        }
+
+        if (bPatchable && __target_fps > 0.0f)
+        {
+          **(float **)(pBase + 0x0590C750) =
+                          __target_fps;
+        }
+      }
+
+      catch (...)
+      {
+      }
+      SK_SEH_RemoveTranslator (orig_se);
+
+      //if (! suspended.empty ())
+      //  SK_ResumeThreads (suspended);
+    } break;
     default:
       break;
   }
@@ -3361,7 +3445,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-
+#ifdef __UNRELIABLE_WINDOW_ACTIVATION_WORKAROUND
   // Handle missed window activation events; most commonly this is
   //   because of games that use multiple windows.
   DWORD                                                 dwProcess;
@@ -3387,8 +3471,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
       ActivateWindow (game_window.hWnd, false);
     }
   }
+#endif
 
 
+#if 0
   MONITORINFO
     mi        = {                  };
     mi.cbSize = sizeof (MONITORINFO);
@@ -3400,6 +3486,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
     SK_Window_RepositionIfNeeded ();
   }
+#else
+  if (rb.next_monitor != rb.monitor)
+  {
+    SK_Window_RepositionIfNeeded ();
+  }
+#endif
 
 
   return hr;

@@ -88,6 +88,12 @@ __pragma (runtime_checks ("", off))
 #include <atomic>
 //#include <thr/xtimec.h>
 
+#ifndef _DEBUG
+#define GSL_UNENFORCED_ON_CONTRACT_VIOLATION
+#else
+#define GSL_THROW_ON_CONTRACT_VIOLATION
+#endif
+
 #include <gsl/gsl>
 #include <gsl/span>
 #include <gsl/pointers>

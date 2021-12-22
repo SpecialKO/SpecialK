@@ -630,8 +630,8 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
   if (SUCCEEDED (GetCurrentThreadDescription (&wszThreadDescription)))
   {
-    if (         wszThreadDescription  != nullptr &&
-         wcslen (wszThreadDescription) > 0           )
+    if ( wszThreadDescription     != nullptr &&
+         wszThreadDescription [0] != L'\0' )
     {
       log_entry_format ( L"[  Thread  ]  ~ Name.....: \"%s\"\n",
                            wszThreadDescription));
@@ -1300,7 +1300,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         SetThreadContext (pRewrite->hThread, &pRewrite->context);
 
                     delete
-                      ReadPointerAcquire ((volatile PVOID *)&pRewrite->_this);
+                      (thread_rewrite_s *)ReadPointerAcquire ((volatile PVOID *)&pRewrite->_this);
 
                     ResumeThread     (pRewrite->hThread);
                     CloseHandle      (pRewrite->hThread);

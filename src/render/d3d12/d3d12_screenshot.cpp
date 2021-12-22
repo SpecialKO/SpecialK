@@ -40,9 +40,9 @@ SK_D3D12_CaptureScreenshot (
   SK_D3D12_Screenshot   *pScreenshot,
   D3D12_RESOURCE_STATES  beforeState = D3D12_RESOURCE_STATE_PRESENT,
   D3D12_RESOURCE_STATES  afterState  = D3D12_RESOURCE_STATE_PRESENT
-) noexcept;
+);
 
-SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveFrom) noexcept
+SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveFrom)
 {
   if (this != &moveFrom)
   {
@@ -53,30 +53,30 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
       auto &&rFrom = moveFrom.readback_ctx;
       auto &&rTo   =          readback_ctx;
 
-      rTo.pBackbufferSurface       = rFrom.pBackbufferSurface;
-      rTo.pStagingBackbufferCopy   = rFrom.pStagingBackbufferCopy;
+      rTo.pBackbufferSurface.p       = rFrom.pBackbufferSurface.p;
+      rTo.pStagingBackbufferCopy.p   = rFrom.pStagingBackbufferCopy.p;
 
-      rTo.pCmdQueue                = rFrom.pCmdQueue;
-      rTo.pCmdAlloc                = rFrom.pCmdAlloc;
-      rTo.pCmdList                 = rFrom.pCmdList;
+      rTo.pCmdQueue.p                = rFrom.pCmdQueue.p;
+      rTo.pCmdAlloc.p                = rFrom.pCmdAlloc.p;
+      rTo.pCmdList.p                 = rFrom.pCmdList.p;
 
-      rTo.pFence                   = rFrom.pFence;
-      rTo.uiFenceVal               = rFrom.uiFenceVal;
+      rTo.pFence.p                   = rFrom.pFence.p;
+      rTo.uiFenceVal                 = rFrom.uiFenceVal;
 
-      rTo.pBackingStore            = rFrom.pBackingStore;
+      rTo.pBackingStore              = rFrom.pBackingStore;
 
 
-      rFrom.pBackbufferSurface     = nullptr;
-      rFrom.pStagingBackbufferCopy = nullptr;
+      rFrom.pBackbufferSurface.p     = nullptr;
+      rFrom.pStagingBackbufferCopy.p = nullptr;
 
-      rFrom.pCmdQueue              = nullptr;
-      rFrom.pCmdAlloc              = nullptr;
-      rFrom.pCmdList               = nullptr;
+      rFrom.pCmdQueue.p              = nullptr;
+      rFrom.pCmdAlloc.p              = nullptr;
+      rFrom.pCmdList.p               = nullptr;
 
-      rFrom.pFence                 = nullptr;
-      rFrom.uiFenceVal             =       0;
+      rFrom.pFence.p                 = nullptr;
+      rFrom.uiFenceVal               =       0;
 
-      rFrom.pBackingStore          = nullptr;
+      rFrom.pBackingStore            = nullptr;
     }
 
     auto&& fromBuffer =
@@ -677,7 +677,7 @@ SK_D3D12_Screenshot::framebuffer_s::PinnedBuffer
 SK_D3D12_Screenshot::framebuffer_s::root_;
 
 void
-SK_D3D12_Screenshot::dispose (void) noexcept
+SK_D3D12_Screenshot::dispose (void)
 {
   readback_ctx.pFence                 = nullptr;
   readback_ctx.uiFenceVal             =       0;
@@ -749,7 +749,7 @@ SK_D3D12_CaptureScreenshot (
   SK_D3D12_Screenshot   *pScreenshot,
   D3D12_RESOURCE_STATES  beforeState,
   D3D12_RESOURCE_STATES  afterState
-) noexcept
+)
 {
   auto pStagingCtx =
     pScreenshot->getReadbackContext ();
@@ -912,7 +912,7 @@ bool
 SK_D3D12_Screenshot::getData ( UINT* const pWidth,
                                UINT* const pHeight,
                                uint8_t   **ppData,
-                               bool        Wait ) noexcept
+                               bool        Wait )
 {
   auto ReadBack =
   [&]
@@ -1643,6 +1643,28 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                            1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
                 };
 
+                auto RemoveREC2084Curve = [](XMVECTOR N)
+                {
+                  static constexpr float m1 = 2610.0 / 4096.0 / 4;
+                  static constexpr float m2 = 2523.0 / 4096.0 * 128;
+                  static constexpr float c1 = 3424.0 / 4096.0;
+                  static constexpr float c2 = 2413.0 / 4096.0 * 32;
+                  static constexpr float c3 = 2392.0 / 4096.0 * 32;
+
+                  float Np [3] = { pow (N.m128_f32 [0], 1.0f / m2),
+                                   pow (N.m128_f32 [1], 1.0f / m2),
+                                   pow (N.m128_f32 [2], 1.0f / m2) };
+
+                  XMVECTOR ret;
+
+                  ret.m128_f32 [0] = pow (std::max (Np [0] - c1, 0.0f) / (c2 - c3 * Np [0]), 1.0f / m1);
+                  ret.m128_f32 [1] = pow (std::max (Np [1] - c1, 0.0f) / (c2 - c3 * Np [1]), 1.0f / m1);
+                  ret.m128_f32 [2] = pow (std::max (Np [2] - c1, 0.0f) / (c2 - c3 * Np [2]), 1.0f / m1);
+                  ret.m128_f32 [3] = 1.0f;
+
+                  return ret;
+                };
+
                 HRESULT hr = S_OK;
 
                 if ( un_srgb.GetImages  () &&
@@ -1658,13 +1680,15 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                     for (size_t j = 0; j < width; ++j)
                     {
-                      XMVECTOR value  = inPixels [j];
+                      XMVECTOR value  = RemoveREC2084Curve (inPixels [j]);
                       XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
                                 value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
 
-                      ApplyGamma_sRGB (value);
-
                       outPixels [j]   =                     value;
+                      outPixels [j].m128_f32 [0] *= 125.0f;
+                      outPixels [j].m128_f32 [1] *= 125.0f;
+                      outPixels [j].m128_f32 [2] *= 125.0f;
+                      outPixels [j].m128_f32 [3]  =   1.0f;
                     }
                   }, un_scrgb);
 
@@ -1735,6 +1759,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           XMVectorMultiply (value, scale);
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                          RemoveGamma_sRGB (value);
                         outPixels [j]   =   value;
                       }
                     }, un_scrgb)                             : E_POINTER;
@@ -1744,8 +1769,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 if (         un_srgb.GetImages ()) {
                   Convert ( *un_srgb.GetImages (),
                               DXGI_FORMAT_B8G8R8X8_UNORM,
-                                TEX_FILTER_DITHER |
-                                TEX_FILTER_SRGB,
+                                TEX_FILTER_DITHER,
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }
@@ -1781,7 +1805,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     ScratchImage thumbnailImage;
 
                     Resize ( *un_scrgb.GetImages (), 200,
-                               static_cast <size_t> (200.0 * aspect),
+                               sk::narrow_cast <size_t> (200.0 * aspect),
                                 TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
                               | TEX_FILTER_TRIANGLE,
                                   thumbnailImage );
@@ -2173,8 +2197,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     _TRUNCATE );
 
                   bool hdr =
-                     (rb.isHDRCapable ()  &&
-                      rb.isHDRActive ());
+                     (rb.isHDRCapable () &&
+                      rb.isHDRActive  ());
 
                   if (hdr)
                   {
@@ -2281,6 +2305,83 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         un_srgb;
                         un_srgb.InitializeFromImage (raw_img);
 
+                      if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+                      {
+                        auto hdr10_metadata        = un_srgb.GetMetadata ();
+                             hdr10_metadata.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                             hdr10_metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                        ScratchImage
+                          un_hdr10;
+                          un_hdr10.Initialize (hdr10_metadata);
+
+                        static const XMMATRIX c_from2020to709 =
+                        {
+                          { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                          { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
+                          { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                          { 0.f,          0.f,         0.f,        1.f }
+                        };
+
+                        auto RemoveREC2084Curve = [](XMVECTOR N)
+                        {
+                          static constexpr float m1 = 2610.0 / 4096.0 / 4;
+                          static constexpr float m2 = 2523.0 / 4096.0 * 128;
+                          static constexpr float c1 = 3424.0 / 4096.0;
+                          static constexpr float c2 = 2413.0 / 4096.0 * 32;
+                          static constexpr float c3 = 2392.0 / 4096.0 * 32;
+
+                          float Np [3] = { pow (N.m128_f32 [0], 1.0f / m2),
+                                           pow (N.m128_f32 [1], 1.0f / m2),
+                                           pow (N.m128_f32 [2], 1.0f / m2) };
+
+                          XMVECTOR ret;
+
+                          ret.m128_f32 [0] = pow (std::max (Np [0] - c1, 0.0f) / (c2 - c3 * Np [0]), 1.0f / m1);
+                          ret.m128_f32 [1] = pow (std::max (Np [1] - c1, 0.0f) / (c2 - c3 * Np [1]), 1.0f / m1);
+                          ret.m128_f32 [2] = pow (std::max (Np [2] - c1, 0.0f) / (c2 - c3 * Np [2]), 1.0f / m1);
+
+                          return ret;
+                        };
+
+                        const XMVECTOR
+                          Normalize_scRGB =
+                            XMVectorReplicate ((rb.display_gamut.maxY / 10000.0f) * 125.0f);
+
+                        auto metadata =
+                          un_srgb.GetMetadata ();
+
+                        metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                        if (
+                          SUCCEEDED (
+                            TransformImage ( un_srgb.GetImages     (),
+                                             un_srgb.GetImageCount (),
+                                             metadata,
+                            [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                            {
+                              UNREFERENCED_PARAMETER(y);
+
+                              for (size_t j = 0; j < width; ++j)
+                              {
+                                XMVECTOR value  = RemoveREC2084Curve (inPixels [j]);
+                                XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                          value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+
+                                outPixels [j]   =
+                                  XMVectorMultiply (value, Normalize_scRGB);
+                                outPixels [j].m128_f32 [3] = 1.0f;
+                              }
+                            }, un_hdr10    )
+                           )        )
+                        {
+                          std::swap (un_srgb, un_hdr10);
+                        }
+
+                        else
+                          hdr = false; // Couldn't undo HDR10, don't store a .jxr
+                      }
+
                       HRESULT hrSaveToWIC =   un_srgb.GetImages () ?
                               SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
                                       GetWICCodec (hdr ? WIC_CODEC_WMP :
@@ -2288,7 +2389,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                            wszAbsolutePathToLossless,
                                              hdr ?
                                                &GUID_WICPixelFormat64bppRGBAHalf :
-                                               nullptr ) : E_POINTER;
+                                             pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                            &GUID_WICPixelFormat48bppRGB :
+                                                                            &GUID_WICPixelFormat24bppBGR)
+                                                                   : E_POINTER;
 
                       if (SUCCEEDED (hrSaveToWIC))
                       {
@@ -2485,7 +2589,7 @@ bool SK_Screenshot_D3D12_BeginFrame (void)
 
 
 // For effects that blink; updated once per-frame.
-extern DWORD dwFrameTime;
+extern DWORD& dwFrameTime;
 
 DWORD D3D12_GetFrameTime (void)
 {

@@ -97,7 +97,7 @@ enum class SK_D3D11_ShaderType {
 class SK_D3D11_HookTallyWhacker
 {
 public:
-  bool is_whack (void)
+  bool is_whack (void) noexcept
   {
     if (whack != 0)
  return whack >  0 ? true : false;
@@ -111,8 +111,8 @@ public:
     }
 
   };
-  int hooked  (int whacks = 1) { return ( dwHookCalls    += whacks ); };
-  int wrapped (int whacks = 1) { return ( dwWrappedCalls += whacks ); };
+  int hooked  (int whacks = 1) noexcept { return ( dwHookCalls    += whacks ); };
+  int wrapped (int whacks = 1) noexcept { return ( dwWrappedCalls += whacks ); };
 
 // Call tallys
 protected:
@@ -1763,13 +1763,13 @@ struct SK_D3D11_KnownShaders
     LONG                          changes_last_frame = 0;
     SK_D3D11_ShaderType           type_              = SK_D3D11_ShaderType::Invalid;
 
-    operator ShaderRegistry <IUnknown>& (void) const
+    operator ShaderRegistry <IUnknown>& (void) const noexcept
     {
       return
         *((ShaderRegistry <IUnknown> *)this);
     }
 
-    operator ShaderRegistry <IUnknown>* (void) const
+    operator ShaderRegistry <IUnknown>* (void) const noexcept
     {
       return
         (ShaderRegistry <IUnknown> *)this;

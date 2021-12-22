@@ -238,9 +238,9 @@ SK_DXGI_MakeTypelessFormat (DXGI_FORMAT typed)
 #endif
 }
 
-BOOL
+bool
 __stdcall
-SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt)
+SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt) noexcept
 {
   switch (fmt)
   {
@@ -265,14 +265,14 @@ SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt)
     case DXGI_FORMAT_BC7_TYPELESS:
     case DXGI_FORMAT_BC7_UNORM:
     case DXGI_FORMAT_BC7_UNORM_SRGB:
-      return TRUE;
+      return true;
 
     default:
-      return FALSE;
+      return false;
   }
 }
 
-BOOL
+bool
 __stdcall
 SK_DXGI_IsFormatFloat (DXGI_FORMAT fmt) noexcept
 {
@@ -289,13 +289,14 @@ SK_DXGI_IsFormatFloat (DXGI_FORMAT fmt) noexcept
     case DXGI_FORMAT_D32_FLOAT:
     case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
     case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
-      return TRUE;
+      return true;
+
     default:
-     return FALSE;
+     return false;
   };
 }
 
-BOOL
+bool
 __stdcall
 SK_DXGI_IsFormatInteger (DXGI_FORMAT fmt) noexcept
 {
@@ -322,14 +323,14 @@ SK_DXGI_IsFormatInteger (DXGI_FORMAT fmt) noexcept
     case DXGI_FORMAT_R32G32B32_UINT:
     case DXGI_FORMAT_R32G32B32A32_SINT:
     case DXGI_FORMAT_R32G32B32A32_UINT:
-      return TRUE;
+      return true;
 
     default:
-      return FALSE;
+      return false;
   };
 }
 
-BOOL
+bool
 __stdcall
 SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept
 {
@@ -374,9 +375,10 @@ SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept
     case DXGI_FORMAT_BC7_UNORM:
     case DXGI_FORMAT_BC7_UNORM_SRGB:
     case DXGI_FORMAT_B4G4R4A4_UNORM:
-      return TRUE;
+      return true;
+
     default:
-      return FALSE;
+      return false;
   }
 }
 
@@ -534,7 +536,8 @@ SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt)
                                                  return UNSUPPORTED;
   }
 }
-std::wstring
+
+std::wstring_view
 __stdcall
 SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept
 {
@@ -759,10 +762,10 @@ struct SK_DXGI_sRGBCoDec {
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    auto                                 pDev =
-      rb.getDevice <ID3D11Device>                   (            );
-    SK_ComQIPtr    <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+    auto                                   pDev =
+      rb.getDevice <ID3D11Device>                     (            );
+    SK_ComQIPtr    <IDXGISwapChain>        pSwapChain (rb.swapchain);
+    SK_ComQIPtr    <ID3D11DeviceContext>   pDevCtx    (rb.d3d11.immediate_ctx);
 
     if (pDev != nullptr)
     {
@@ -869,10 +872,10 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  auto                                 pDev =
-    rb.getDevice <ID3D11Device>                   (                      );
-  SK_ComQIPtr    <IDXGISwapChain>      pSwapChain (pChainThatUsedToBeSRGB);// rb.swapchain);
-  SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+  auto                                   pDev =
+    rb.getDevice <ID3D11Device>                     (                      );
+  SK_ComQIPtr    <IDXGISwapChain>        pSwapChain (pChainThatUsedToBeSRGB);// rb.swapchain);
+  SK_ComQIPtr    <ID3D11DeviceContext>   pDevCtx    (rb.d3d11.immediate_ctx);
 
   if (! pDevCtx)
     return false;
@@ -928,7 +931,7 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
     _ReadWriteBarrier ();
 
     memcpy (    static_cast <SK_DXGI_sRGBCoDec::params_cbuffer_s *> (mapped_resource.pData),
-       &codec.params, sizeof SK_DXGI_sRGBCoDec::params_cbuffer_s );
+       &codec.params, sizeof(SK_DXGI_sRGBCoDec::params_cbuffer_s));
 
     pDevCtx->Unmap (codec.pSRGBParams, 0);
   }
@@ -1008,9 +1011,9 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  auto                                 pDev =
-    rb.getDevice <ID3D11Device>                (                      );
-  SK_ComQIPtr    <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+  auto                                   pDev =
+    rb.getDevice <ID3D11Device>                  (                      );
+  SK_ComQIPtr    <ID3D11DeviceContext>   pDevCtx (rb.d3d11.immediate_ctx);
 
   if (! pDevCtx)
     return false;
@@ -1167,7 +1170,7 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
     _ReadWriteBarrier ();
 
     memcpy (    static_cast <SK_DXGI_sRGBCoDec::params_cbuffer_s *> (mapped_resource.pData),
-       &codec.params, sizeof SK_DXGI_sRGBCoDec::params_cbuffer_s );
+       &codec.params, sizeof(SK_DXGI_sRGBCoDec::params_cbuffer_s));
 
     pDevCtx->Unmap (codec.pSRGBParams, 0);
   }

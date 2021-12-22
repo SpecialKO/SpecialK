@@ -66,7 +66,7 @@ struct shader_disasm_s {
   std::vector <constant_buffer> cbuffers = { };
 };
 
-void* SK_D3D11_InitShaderMods  (void);
+void* SK_D3D11_InitShaderMods  (void) noexcept;
 void  SK_D3D11_LoadShaderState (bool clear = true);
 
 struct SK_ReShadeDrawCallback_s
@@ -96,21 +96,6 @@ SK_LazyGlobal <SK_ReShadeDrawCallback_s>
   { ImGuiCol_Header,        ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.5f,  0.45f).Value }, \
   { ImGuiCol_HeaderHovered, ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.55f, 0.6f ).Value }, \
   { ImGuiCol_HeaderActive,  ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.6f,  0.6f ).Value } }
-
-
-  static
-  std::unordered_map < sk_shader_class,
-                       std::tuple < std::pair <const ImGuiCol, const ImColor>,
-                                    std::pair <const ImGuiCol, const ImColor>,
-                                    std::pair <const ImGuiCol, const ImColor> > >
-    SK_D3D11_ShaderColors =
-      { { sk_shader_class::Unknown,  ShaderColorDecl (-1) },
-        { sk_shader_class::Vertex,   ShaderColorDecl ( 0) },
-        { sk_shader_class::Pixel,    ShaderColorDecl ( 1) },
-        { sk_shader_class::Geometry, ShaderColorDecl ( 2) },
-        { sk_shader_class::Hull,     ShaderColorDecl ( 3) },
-        { sk_shader_class::Domain,   ShaderColorDecl ( 4) },
-        { sk_shader_class::Compute,  ShaderColorDecl ( 5) } };
 
 
 // Creates a temporary texture with an internal format (i.e. single-sampled or not typeless)

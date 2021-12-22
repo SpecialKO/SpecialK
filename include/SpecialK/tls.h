@@ -314,8 +314,8 @@ public:
 };
 
 struct SK_NtQuerySystemInformation {
-  SK_TLS_LocalDataStore <BYTE> NtInfo;
-  LONG                         NtStatus;
+  SK_TLS_LocalDataStore <BYTE> NtInfo   = { };
+  LONG                         NtStatus =  0 ;
 };
 
 class SK_TLS_ScratchMemoryLocal : public SK_TLS_DynamicContext
@@ -793,7 +793,7 @@ public:
   {
     struct stream_pool_s
     {
-      void*    data          = nullptr;
+      uint8_t* data          = nullptr;
       size_t   data_len      = 0;
       uint32_t data_age      = 0;
     } streaming_memory;
@@ -824,7 +824,10 @@ public:
   SK_ScopedBool (std::pair <BOOL *, BOOL> pair) noexcept : pBool_ (pair.first),
                                                            bOrig_ (pair.second) { };
 
-  SK_ScopedBool (const SK_ScopedBool&) = delete;
+  SK_ScopedBool            (const SK_ScopedBool& ) = delete;
+  SK_ScopedBool            (      SK_ScopedBool&&) = delete;
+  SK_ScopedBool& operator= (const SK_ScopedBool& ) = delete;
+  SK_ScopedBool& operator= (      SK_ScopedBool&&) = delete;
 
   ~SK_ScopedBool (void) noexcept
   {

@@ -322,8 +322,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
           1, &__SK_DLL_TeardownEvent,
                dwMaxWait, QS_ALLINPUT,
                            MWMO_INPUTAVAILABLE |
-          bAlertable ? MWMO_ALERTABLE
-                     : 0x0 );
+          (   bAlertable ? MWMO_ALERTABLE
+                         : 0x0 )    );
 
       // APC popping up in strange places?
       if (     dwWaitState == WAIT_IO_COMPLETION)
@@ -942,7 +942,7 @@ SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept
   }
 
   NTSTATUS status =
-    NtDelayExecution ( (BOOLEAN)bAlertable,
+    NtDelayExecution ( (BOOLEAN)(bAlertable != FALSE),
                          &liSleep );
 
   if (status == STATUS_ALERTED || status == STATUS_USER_APC)
@@ -1214,7 +1214,7 @@ Sleep_Detour (DWORD dwMilliseconds)
 
 BOOL
 WINAPI
-QueryPerformanceFrequency_Detour (_Out_ LARGE_INTEGER *lpPerfFreq)
+QueryPerformanceFrequency_Detour (_Out_ LARGE_INTEGER *lpPerfFreq) noexcept
 {
   if (lpPerfFreq)
   {
@@ -1230,7 +1230,7 @@ QueryPerformanceFrequency_Detour (_Out_ LARGE_INTEGER *lpPerfFreq)
 
 BOOL
 WINAPI
-SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
+SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept
 {
   if (RtlQueryPerformanceCounter != nullptr)
     return RtlQueryPerformanceCounter (lpPerformanceCount);
@@ -1244,7 +1244,7 @@ SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount)
 
 BOOL
 WINAPI
-QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER* lpPerformanceCount)
+QueryPerformanceCounter_Detour (_Out_ LARGE_INTEGER* lpPerformanceCount) noexcept
 {
   return
     RtlQueryPerformanceCounter          ?
@@ -1452,7 +1452,7 @@ NtSetTimerResolution_Detour
     pSetCount =
       &setters_ [SK_GetCallerName ()];
 
-    *pSetCount++;
+    (*pSetCount)++;
   }
 
   if (NtQueryTimerResolution != nullptr)

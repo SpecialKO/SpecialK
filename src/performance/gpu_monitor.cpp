@@ -853,7 +853,7 @@ SK_PollGPU (void)
 gpu_sensors_t*
 SK_GPU_CurrentSensorData (void)
 {
-  if (gpu_stats == nullptr)
+  if (ReadPointerAcquire ((volatile PVOID *)&gpu_stats) == nullptr)
   {
     static gpu_sensors_t
             nul_sensors = { };
@@ -868,7 +868,7 @@ uint32_t
 __stdcall
 SK_GPU_GetClockRateInkHz (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)                  ?
@@ -880,7 +880,7 @@ uint32_t
 __stdcall
 SK_GPU_GetMemClockRateInkHz (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)                  ?
@@ -892,7 +892,7 @@ uint64_t
 __stdcall
 SK_GPU_GetMemoryBandwidth (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu <    pDataView->num_gpus)                             ?
@@ -905,7 +905,7 @@ float
 __stdcall
 SK_GPU_GetMemoryLoad (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)                    ?
@@ -916,7 +916,7 @@ SK_GPU_GetMemoryLoad (int gpu)
 float
 __stdcall SK_GPU_GetGPULoad (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)                     ?
@@ -928,7 +928,7 @@ float
 __stdcall
 SK_GPU_GetTempInC           (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)              ?
@@ -940,7 +940,7 @@ uint32_t
 __stdcall
 SK_GPU_GetFanSpeedRPM       (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && pDataView != nullptr && gpu < pDataView->num_gpus) ?
@@ -952,7 +952,7 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMUsed          (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   buffer_t buffer = dxgi_mem_info [0].buffer;
@@ -968,7 +968,7 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMShared        (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   buffer_t buffer = dxgi_mem_info [0].buffer;
@@ -984,7 +984,7 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMCapacity      (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   return (gpu > -1 && gpu < pDataView->num_gpus)                    ?
@@ -996,7 +996,7 @@ uint64_t
 __stdcall
 SK_GPU_GetVRAMBudget        (int gpu)
 {
-  gpu_sensors_t* pDataView =
+  const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
   buffer_t buffer = dxgi_mem_info [0].buffer;

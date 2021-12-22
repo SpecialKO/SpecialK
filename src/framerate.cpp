@@ -205,7 +205,7 @@ void SK_LatentSync_EndSwap (void)
     int total  = 0;
   } static history;
 
-  LONGLONG maxAge =
+  const LONGLONG maxAge =
     static_cast <LONGLONG> (
       __SK_LatentSync_SwapSecs * static_cast <float> (SK_QpcFreq)
     );
@@ -388,12 +388,12 @@ SK_ImGui_LatentSyncConfig (void)
       static constexpr int _MAX_FRAMES = 30;
 
       struct {
-        double input   [_MAX_FRAMES];
-        double display [_MAX_FRAMES];
+        double input   [_MAX_FRAMES] = { };
+        double display [_MAX_FRAMES] = { };
 
         int frames = 0;
 
-        double getInput (void)
+        double getInput (void) noexcept
         {
           double avg     = 0.0,
                  samples = 0.0;
@@ -407,7 +407,7 @@ SK_ImGui_LatentSyncConfig (void)
             ( avg / samples );
         }
 
-        double getDisplay (void)
+        double getDisplay (void) noexcept
         {
           double avg     = 0.0,
                  samples = 0.0;
@@ -1171,9 +1171,9 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
   double dTicksPerFrame = 0.0;
 
   accum_per_frame =
-      modf ( static_cast <double> (SK_QpcFreq) /
-             static_cast <double> (target), &dTicksPerFrame );
-  ticks_per_frame = static_cast <ULONGLONG> (dTicksPerFrame);
+          modf ( static_cast <double> (SK_QpcFreq) /
+                 static_cast <double> (target), &dTicksPerFrame );
+  ticks_per_frame = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1475,24 +1475,21 @@ SK::Framerate::Limiter::wait (void)
     }
 
     // Create an unnamed waitable timer.
-    if (timer_wait == nullptr)
+    if (timer_wait.m_h == nullptr)
     {
       // Prefer high-resolution timer when available, but this won't be available in WINE or Windows 8.1
-      timer_wait =
+      timer_wait.m_h =
         CreateWaitableTimerEx ( nullptr, nullptr,
            CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
     }
 
     SK_HasHighResWaitableTimer =
-      (timer_wait != nullptr);
+      (timer_wait.m_h != nullptr);
 
     if (! SK_HasHighResWaitableTimer)
     {
-      if (timer_wait == nullptr)
-      {
-        timer_wait =
-          CreateWaitableTimer (nullptr, FALSE, nullptr);
-      }
+       timer_wait.m_h =
+         CreateWaitableTimer (nullptr, FALSE, nullptr);
     }
 
     constexpr
@@ -1504,7 +1501,7 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
-    if ( timer_wait != 0 && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
+    if ( timer_wait.m_h != 0 && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
     {
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
@@ -1526,10 +1523,10 @@ SK::Framerate::Limiter::wait (void)
       // Check if the next frame is sooner than waitable timer resolution before
       //   rescheduling this thread.
       if ( SK_HasHighResWaitableTimer ?
-                         SetWaitableTimerEx ( timer_wait, &liDelay,
+                         SetWaitableTimerEx ( timer_wait.m_h, &liDelay,
                                                  0, nullptr, nullptr,
                                                     nullptr, 0 )
-                       : SetWaitableTimer   ( timer_wait, &liDelay,
+                       : SetWaitableTimer   ( timer_wait.m_h, &liDelay,
                                                  0, nullptr, nullptr,
                                                     FALSE )
          )
@@ -1562,7 +1559,7 @@ SK::Framerate::Limiter::wait (void)
             std::max (0.0, SK_RecalcTimeToNextFrame ());
 
           if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > timer_res_ms * 2.0)
-            hWaitObjs [iWaitObjs++] = timer_wait;
+            hWaitObjs [iWaitObjs++] = timer_wait.m_h;
 
           if (iWaitObjs == 0)
             break;
@@ -1574,13 +1571,13 @@ SK::Framerate::Limiter::wait (void)
 
           dwWait = iWaitObjs < 2  &&
                    hWaitObjs  [0] != hSwapWait.m_h ?
-            SK_WaitForSingleObject_Micro ( timer_wait, &liDelay )
+            SK_WaitForSingleObject_Micro ( timer_wait.m_h, &liDelay )
           :  WaitForMultipleObjects      ( iWaitObjs,
                                            hWaitObjs,
                                              TRUE,
-                                               static_cast <DWORD> (
-                                                 static_cast <double> (-liDelay.QuadPart) / 10000.0
-                                                                   ) );
+                                               sk::narrow_cast <DWORD> (
+                                                     static_cast <double> (-liDelay.QuadPart) / 10000.0
+                                                                       ) );
 
           if ( dwWait != WAIT_OBJECT_0     &&
                dwWait != WAIT_OBJECT_0 + 1 &&
@@ -1651,9 +1648,9 @@ SK::Framerate::Limiter::wait (void)
           double dTicksPerFrame = 0.0;
 
           accum_per_frame =
-              modf ( static_cast <double> (SK_QpcFreq) /
-                     static_cast <double> (fps),     &dTicksPerFrame );
-          ticks_per_frame  = static_cast <ULONGLONG> (dTicksPerFrame);
+                  modf ( static_cast <double> (SK_QpcFreq) /
+                         static_cast <double> (fps),     &dTicksPerFrame );
+          ticks_per_frame  = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
           ticks_per_frame +=
             ( ticks_per_frame / ticks_per_refresh ) * config.render.framerate.latent_sync.scanline_error;
 
@@ -1847,6 +1844,8 @@ SK::Framerate::Limiter::wait (void)
               {                                // Avoid Integer Divide by Zero
                 auto qpc_t1 =
                   SK_QueryPerf ();
+
+                SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_HIGHEST);
 
                 if ( STATUS_SUCCESS ==
                        D3DKMTGetScanLine (&getScanLine) && getScanLine.InVerticalBlank)
@@ -2050,6 +2049,10 @@ SK::Framerate::Tick ( bool          wait,
     SK::Framerate::GetLimiter (swapchain);
 
   SK_ReleaseAssert (pLimiter != nullptr);
+
+  // Should never happen, but better safe.
+  if (pLimiter == nullptr)
+    return;
 
   if (wait)
     pLimiter->wait ();
@@ -2286,10 +2289,10 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
 #pragma warning (disable: 4244)
   if (! InterlockedCompareExchange (&worker._init, 1, 0))
   {
-    worker.hSignalProduce =
+    worker.hSignalProduce.m_h =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-    worker.hSignalConsume =
+    worker.hSignalConsume.m_h =
       SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
     SK_Thread_CreateEx ([](LPVOID lpUser)->DWORD
@@ -2300,7 +2303,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         (worker_context_s *)lpUser;
 
       while ( WAIT_OBJECT_0 ==
-                SK_WaitForSingleObject ( pWorker->hSignalProduce,
+                SK_WaitForSingleObject ( pWorker->hSignalProduce.m_h,
                                            INFINITE ) )
       {
         LONG work_idx =
@@ -2319,7 +2322,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
 
         InterlockedExchange (&pWorker->work_idx, work_idx ? 0 : 1);
 
-        SetEvent (pWorker->hSignalConsume);
+        SetEvent (pWorker->hSignalConsume.m_h);
       }
 
       return 0;
@@ -2332,7 +2335,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     ];
 
   if ( WAIT_OBJECT_0 ==
-         SK_WaitForSingleObject (worker.hSignalConsume, 0) )
+         SK_WaitForSingleObject (worker.hSignalConsume.m_h, 0) )
   {
     LONG idx =
       ReadAcquire (&worker.work_idx);
@@ -2477,7 +2480,8 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   }
 
   auto qpcResidual =
-    SK_QueryPerf ().QuadPart + ( llQPC - SK_QueryPerf ().QuadPart );
+    /*SK_QueryPerf ().QuadPart +*/ (llQPC - SK_QueryPerf ().QuadPart);
+    // V1065 [CWE-682] Expression can be simplified, check 'SK_QueryPerf().QuadPart' and similar operands. SpecialK framerate.cpp 2486
 
   wait_time.beginBusy ();
 

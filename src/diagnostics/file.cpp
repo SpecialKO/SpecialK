@@ -299,7 +299,7 @@ SK_GetFileSD ( const wchar_t              *wszPath,
 {
   BOOL bRetVal = FALSE;
 
-  if (0 == wcslen (wszPath))
+  if (wszPath [0] == L'\0')
     return bRetVal;
 
   SK_AutoHandle hFile (

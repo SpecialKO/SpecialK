@@ -110,7 +110,7 @@ public:
 
   ~SK_ScreenshotManager (void) = default;
 
-  void init (void);
+  void init (void) noexcept;
 
   const wchar_t*           getBasePath     (void) const;
   screenshot_repository_s& getRepoStats    (bool refresh = false);

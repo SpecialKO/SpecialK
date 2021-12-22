@@ -137,7 +137,7 @@ public:
    {
      extern volatile LONG __SK_DLL_Attached;
 
-     bool validate = (ReadAcquire (&__SK_DLL_Attached) != 0) &&
+     const bool validate = (ReadAcquire (&__SK_DLL_Attached) != 0) &&
        SK_IsDebuggerPresent ();
 
      DWORD dwNameLen=0;    BOOL       bHasValidInfo          = FALSE;
@@ -159,7 +159,7 @@ public:
        std::move (skWin32Module (hModWin32, mod_info, wszName));
    };
 
-  ~skWin32Module (void) noexcept///
+  ~skWin32Module (void)
   {
     const LONG refs =
       ReadAcquire (&refs_);
@@ -179,13 +179,13 @@ public:
 
 
   LONG AddRef  (void) noexcept;
-  LONG Release (void) noexcept;
+  LONG Release (void);
 
 
   // Assigning an arbitrary HMODULE causes us to track, but not
   //   assume ownership of the Win32 module
   const skWin32Module&
-  operator= (const HMODULE hModWin32) noexcept
+  operator= (const HMODULE hModWin32)
   {
     if (hMod_ != Uninitialized) {
       Release (); assert (ReadAcquire (&refs_) == 0);
@@ -593,7 +593,7 @@ skWin32Module::AddRef (void) noexcept
 
 __inline
 LONG
-skWin32Module::Release (void) noexcept
+skWin32Module::Release (void)
 {
   const LONG ret =
     InterlockedDecrement (&refs_);

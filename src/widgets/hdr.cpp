@@ -290,15 +290,16 @@ extern iSK_INI* osd_ini;
 class SKWG_HDR_Control : public SK_Widget, SK_IVariableListener
 {
 public:
-  SKWG_HDR_Control (void) noexcept : SK_Widget ("DXGI_HDR")
+  SKWG_HDR_Control (void) : SK_Widget ("DXGI_HDR")
   {
     SK_ImGui_Widgets->hdr_control = this;
 
     setAutoFit (true).setDockingPoint (DockAnchor::NorthEast).setClickThrough (false).
                       setBorder (true);
 
-    gsl::not_null <SK_ICommandProcessor*>
-           pCommandProc =
+    const gsl::not_null <
+        SK_ICommandProcessor*
+      >    pCommandProc =
       SK_GetCommandProcessor ();
 
     try {
@@ -323,7 +324,7 @@ public:
 
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
   {
-    if (val != nullptr && var->getValuePointer () == &__SK_HDR_Preset)
+    if (val != nullptr && var != nullptr && var->getValuePointer () == &__SK_HDR_Preset)
     {
       __SK_HDR_Preset = *(int *)val;
 
@@ -333,7 +334,7 @@ public:
     return true;
   }
 
-  void run (void) noexcept override
+  void run (void) override
   {
     static bool first_widget_run = true;
 
@@ -453,7 +454,7 @@ public:
     hdr_presets [__SK_HDR_Preset].activate ();
   }
 
-  void draw (void) noexcept override
+  void draw (void) override
   {
     if (ImGui::GetFont () == nullptr)
       return;
@@ -477,15 +478,15 @@ public:
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
       return;
 
-    auto& io =
+    const auto& io =
       ImGui::GetIO ();
 
-    ImVec2 v2Min (
+    const ImVec2 v2Min (
       io.DisplaySize.x / 6.0f,
       io.DisplaySize.y / 4.0f
     );
 
-    ImVec2 v2Max (
+    const ImVec2 v2Max (
       io.DisplaySize.x / 4.0f,
       io.DisplaySize.y / 3.0f
     );
@@ -582,6 +583,20 @@ public:
         {
           rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
                                                               : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;//DXGI_COLOR_SPACE_CUSTOM
+
+          // Trigger the game to resize the SwapChain so we can change its format and colorspace
+          //
+          PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
+            MAKELPARAM (game_window.actual.client.right -
+                        game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                          game_window.actual.client.top )
+                      );
+          PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
+            MAKELPARAM (game_window.actual.client.right -
+                        game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                          game_window.actual.client.top )
+                      );
+
           pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
                                                            DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
         //rb.scanout.dxgi_colorspace = rb.scanout.colorspace_override;
@@ -612,9 +627,13 @@ public:
     if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
            SixteenBitSwap_Original != __SK_HDR_16BitSwap) )
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
-      ImGui::BulletText     ("Game Restart Required");
-      ImGui::PopStyleColor  ();
+      // HDR mode selected, but it's not active. Game probably needs a restart
+      if (rb.isHDRActive () != (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+        ImGui::BulletText     ("Game Restart Required");
+        ImGui::PopStyleColor  ();
+      }
     }
 
     if ( __SK_HDR_10BitSwap ||
@@ -695,12 +714,9 @@ public:
             ImGui::EndTooltip      (  );
           }
 
-          auto style =
-            ImGui::GetStyle ();
-
           static float fSliderWidth = 0.0f;
           static float fWidth0      = 0.0f;
-                 float fWidth1      =
+           const float fWidth1      =
             ImGui::GetItemRectSize ().x;
 
           ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
@@ -828,7 +844,7 @@ public:
           ImGui::BeginGroup ();
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
           {
-            int selected =
+            const int selected =
               (__SK_HDR_Preset == i) ? 1 : 0;
 
             char              hashed_name [128] = { };
@@ -850,7 +866,7 @@ public:
           ImGui::SameLine   (); ImGui::Spacing ();
           ImGui::SameLine   (); ImGui::Spacing (); ImGui::SameLine ();
           ImGui::BeginGroup ();
-          for ( auto& it : hdr_presets )
+          for ( const auto& it : hdr_presets )
           {
             ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
                           it.peak_white_nits / 1.0_Nits );
@@ -865,7 +881,7 @@ public:
           //  ImGui::Text ( (const char *)u8"Power-Law ɣ: %3.1f",
           //                  it.eotf );
           //}
-          for ( auto& it : hdr_presets )
+          for ( const auto& it : hdr_presets )
           {
             ImGui::Text ( (const char *)u8"Middle Gray: %+5.1f%%",// cd/m²",
                           (it.middle_gray_nits / 1.0_Nits) - 100.0 );
@@ -914,7 +930,7 @@ public:
 
           if (rb.api != SK_RenderAPI::D3D12)
           {
-            bool cfg_quality =
+            const bool cfg_quality =
               ImGui::CollapsingHeader ( "Performance / Quality",
                                           ImGuiTreeNodeFlags_DefaultOpen );
 
@@ -936,14 +952,14 @@ public:
 
               ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
 
-              auto _SummarizeTargets =
+              const auto _SummarizeTargets =
               [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
               {
-                float promoted   = static_cast <float> (dwPromoted);
-                float candidates = static_cast <float> (dwCandidates);
+                const float promoted   = static_cast <float> (dwPromoted);
+                const float candidates = static_cast <float> (dwCandidates);
 
-                float ratio = candidates > 0 ?
-                   promoted / candidates     : 0.0f;
+                const float ratio = candidates > 0 ?
+                         promoted / candidates     : 0.0f;
 
                 ImGui::ProgressBar ( ratio, ImVec2 (-1, 0),
                   SK_FormatString ( "%lu/%lu Candidates Remastered", dwPromoted, dwCandidates ).c_str ()
@@ -1187,25 +1203,25 @@ void SK_Widget_InitHDR (void)
 glm::highp_vec3
 SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
 {
-  const double Xr =       cs.xr / cs.yr;
-  const double Zr = (1. - cs.xr - cs.yr) / cs.yr;
+  const double Xr =        cs.xr / cs.yr;
+  const double Zr = (1.0 - cs.xr - cs.yr) / cs.yr;
 
-  const double Xg =       cs.xg / cs.yg;
-  const double Zg = (1. - cs.xg - cs.yg) / cs.yg;
+  const double Xg =        cs.xg / cs.yg;
+  const double Zg = (1.0 - cs.xg - cs.yg) / cs.yg;
 
-  const double Xb =       cs.xb / cs.yb;
-  const double Zb = (1. - cs.xb - cs.yb) / cs.yb;
+  const double Xb =        cs.xb / cs.yb;
+  const double Zb = (1.0 - cs.xb - cs.yb) / cs.yb;
 
-  const double Yr = 1.;
-  const double Yg = 1.;
-  const double Yb = 1.;
+  constexpr double Yr = 1.0;
+  constexpr double Yg = 1.0;
+  constexpr double Yb = 1.0;
 
-  glm::highp_mat3x3 xyz_primary ( Xr, Xg, Xb,
-                                  Yr, Yg, Yb,
-                                  Zr, Zg, Zb );
+  const glm::highp_mat3x3 xyz_primary ( Xr, Xg, Xb,
+                                        Yr, Yg, Yb,
+                                        Zr, Zg, Zb );
 
-  glm::highp_vec3 S       ( glm::inverse (xyz_primary) *
-                              glm::highp_vec3 (cs.Xw, cs.Yw, cs.Zw) );
+  const glm::highp_vec3 S ( glm::inverse (xyz_primary) *
+                            glm::highp_vec3 (cs.Xw, cs.Yw, cs.Zw) );
 
   return RGB *
     glm::highp_mat3x3 ( S.r * Xr, S.g * Xg, S.b * Xb,
@@ -1216,7 +1232,7 @@ SK_Color_XYZ_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
 glm::highp_vec3
 SK_Color_xyY_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
 {
-  glm::highp_vec3 XYZ =
+  const glm::highp_vec3 XYZ =
     SK_Color_XYZ_from_RGB ( cs, RGB );
 
   return
@@ -1267,14 +1283,14 @@ SK_ImGui_DrawGamut (void)
     std::string     name;
     glm::highp_vec3 r, g,
                     b, w;
-    bool            show;
+    bool            show   = true;
 
-    double          _area    = 0.0;
+    double          _area  = 0.0;
 
     struct {
       std::string text;
-      float       text_len; // ImGui horizontal size
-      float       fIdx;
+      float       text_len = 0.0f; // ImGui horizontal size
+      float       fIdx     = 0.0f;
     } summary;
 
     color_triangle_s (const std::string& _name, SK_ColorSpace cs) : name (_name)
@@ -1286,11 +1302,11 @@ SK_ImGui_DrawGamut (void)
                                  cs.Yw,
                                  cs.Zw};
 
-      double r_x = sqrt (r.x * r.x);  double r_y = sqrt (r.y * r.y);
-      double g_x = sqrt (g.x * g.x);  double g_y = sqrt (g.y * g.y);
-      double b_x = sqrt (b.x * b.x);  double b_y = sqrt (b.y * b.y);
+      const double r_x = sqrt (r.x * r.x);  const double r_y = sqrt (r.y * r.y);
+      const double g_x = sqrt (g.x * g.x);  const double g_y = sqrt (g.y * g.y);
+      const double b_x = sqrt (b.x * b.x);  const double b_y = sqrt (b.y * b.y);
 
-      double A =
+      const double A =
         fabs (r_x*(b_y-g_y) + g_x*(b_y-r_y) + b_x*(r_y-g_y));
 
       _area = A;
@@ -1298,12 +1314,12 @@ SK_ImGui_DrawGamut (void)
       show = true;
     }
 
-    double area (void) const
+    double area (void) const noexcept
     {
       return _area;
     }
 
-    double coverage (const color_triangle_s& target) const
+    double coverage (const color_triangle_s& target) const noexcept
     {
       return
         100.0 * ( area () / target.area () );
@@ -1312,7 +1328,7 @@ SK_ImGui_DrawGamut (void)
 
 #define D65 0.3127f, 0.329f
 
-  static HMONITOR                       hMonLast = 0;
+  static HMONITOR                       hMonLast = nullptr;
   static glm::vec3                      r, g, b, w;
   static std::vector <color_triangle_s> color_spaces;
   static              color_triangle_s _NativeGamut (
@@ -1320,19 +1336,24 @@ SK_ImGui_DrawGamut (void)
                                    rb.display_gamut );
   static std::string                   _CombinedName;
 
-  bool new_monitor =
+  const bool new_monitor =
     ( hMonLast != rb.monitor );
 
-  if (new_monitor)
+  if (new_monitor || ( w.x != rb.display_gamut.Xw ||
+                       w.y != rb.display_gamut.Yw ||
+                       w.z != rb.display_gamut.Zw ) )
   {
-    hMonLast = rb.monitor;
-
     r = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (1.f, 0.f, 0.f))),
     g = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 1.f, 0.f))),
     b = glm::vec3 (SK_Color_xyY_from_RGB (rb.display_gamut, glm::highp_vec3 (0.f, 0.f, 1.f))),
     w = glm::vec3 (                       rb.display_gamut.Xw,
                                           rb.display_gamut.Yw,
                                           rb.display_gamut.Zw );
+
+    if (w.z == 0.0f)
+      return;
+
+    hMonLast = rb.monitor;
 
     _NativeGamut =
       color_triangle_s ( "NativeGamut",   rb.display_gamut );
@@ -1368,15 +1389,15 @@ SK_ImGui_DrawGamut (void)
       );
   }
 
-  auto current_time =
+  const auto current_time =
     SK::ControlPanel::current_time;
 
-  auto style =
+  const auto& style =
     ImGui::GetStyle ();
 
-  float x_pos       = ImGui::GetCursorPosX     () + style.ItemSpacing.x  * 2.0f,
-        line_ht     = ImGui::GetTextLineHeight (),
-        checkbox_ht =                     line_ht + style.FramePadding.y * 2.0f;
+  const float x_pos       = ImGui::GetCursorPosX     () + style.ItemSpacing.x  * 2.0f,
+              line_ht     = ImGui::GetTextLineHeight (),
+              checkbox_ht =                     line_ht + style.FramePadding.y * 2.0f;
 
   ImGui::SetCursorPosX   (x_pos);
   ImGui::BeginGroup      ();
@@ -1426,9 +1447,9 @@ SK_ImGui_DrawGamut (void)
   ImGui::BeginGroup      ();
   for ( auto& space : color_spaces )
   {
-    float y_pos         = ImGui::GetCursorPosY (),
-          text_offset   = max_len - space.summary.text_len,
-          fIdx          =           space.summary.fIdx / num_spaces;
+    const float y_pos         = ImGui::GetCursorPosY (),
+                text_offset   = max_len - space.summary.text_len,
+                fIdx          =           space.summary.fIdx / num_spaces;
 
     ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV (fIdx, 0.85f, 0.98f));
     ImGui::PushID        (static_cast <int> (space.summary.fIdx));
@@ -1451,9 +1472,9 @@ SK_ImGui_DrawGamut (void)
   ImGui::EndGroup        ();
   ImGui::SameLine        ();
 
-  auto _DrawCharts = [&](ImVec2 pos         = ImGui::GetCursorScreenPos    (),
-                         ImVec2 size        = ImGui::GetContentRegionAvail (),
-                         int    draw_labels = -1)
+  const auto _DrawCharts = [&](ImVec2 pos         = ImGui::GetCursorScreenPos    (),
+                               ImVec2 size        = ImGui::GetContentRegionAvail (),
+                               int    draw_labels = -1)
   {
     ImGui::BeginGroup    ();
 
@@ -1464,17 +1485,17 @@ SK_ImGui_DrawGamut (void)
 
     static constexpr float _LabelFontSize = 30.0f;
 
-    ImVec2 label_line2 ( ImGui::GetStyle ().ItemSpacing.x * 4.0f,
+    const ImVec2 label_line2 ( ImGui::GetStyle ().ItemSpacing.x * 4.0f,
       ImGui::GetFont ()->CalcTextSizeA (_LabelFontSize, 1.0f, 1.0f, "T").y );
 
     draw_list->PushClipRect ( ImVec2 (X0,         Y0),
                               ImVec2 (X0 + width, Y0 + height) );
 
     // Compute primary color points in CIE xy space
-    auto _MakeTriangleVerts = [&] (const glm::vec3& r,
-                                   const glm::vec3& g,
-                                   const glm::vec3& b,
-                                   const glm::vec3& w) ->
+    const auto _MakeTriangleVerts = [&] (const glm::vec3& r,
+                                         const glm::vec3& g,
+                                         const glm::vec3& b,
+                                         const glm::vec3& w) ->
     std::array <ImVec2, 4>
     {
       return {
@@ -1542,7 +1563,7 @@ SK_ImGui_DrawGamut (void)
             int           anchor_pt = 1;
             unsigned long last_time = 0;
 
-            int getIdx (void)
+            int getIdx (void) noexcept
             {
               static constexpr unsigned long
                 _RelocationInterval = std::numeric_limits <unsigned long>::max ();
@@ -1560,7 +1581,7 @@ SK_ImGui_DrawGamut (void)
             }
           } static label_locator;
 
-          auto label_idx =
+          const auto label_idx =
             label_locator.getIdx ();
 
           draw_list->AddText ( ImGui::GetFont (), _LabelFontSize,

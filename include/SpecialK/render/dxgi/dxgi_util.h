@@ -33,13 +33,13 @@ constexpr BOOL SK_DXGI_IsFormatBC6Or7 (DXGI_FORMAT fmt)
           fmt <= DXGI_FORMAT_BC7_UNORM_SRGB   );
 }
 
-extern BOOL __stdcall SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt);
+extern bool __stdcall SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt);
 extern bool           SK_DXGI_IsFormatSRGB       (DXGI_FORMAT fmt);
 extern DXGI_FORMAT    SK_DXGI_MakeFormatSRGB     (DXGI_FORMAT fmt);
 
-extern std::wstring __stdcall SK_DXGI_FormatToStr   (DXGI_FORMAT fmt) noexcept;
-extern INT          __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
+extern std::wstring_view __stdcall SK_DXGI_FormatToStr   (DXGI_FORMAT fmt) noexcept;
+extern INT               __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 
-BOOL __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
-BOOL __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
-BOOL __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;
+bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
+bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
+bool __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;

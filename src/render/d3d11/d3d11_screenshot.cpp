@@ -29,20 +29,20 @@ extern void SK_Steam_CatastropicScreenshotFail (void);
 
 extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 
-SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveFrom) noexcept
+SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveFrom)
 {
   if (this != &moveFrom)
   {
     dispose ();
 
-    pDev                            = moveFrom.pDev;
-    pImmediateCtx                   = moveFrom.pImmediateCtx;
+    pDev.p                          = moveFrom.pDev.p;
+    pImmediateCtx.p                 = moveFrom.pImmediateCtx.p;
 
-    pSwapChain                      = moveFrom.pSwapChain;
-    pBackbufferSurface              = moveFrom.pBackbufferSurface;
-    pStagingBackbufferCopy          = moveFrom.pStagingBackbufferCopy;
+    pSwapChain.p                    = moveFrom.pSwapChain.p;
+    pBackbufferSurface.p            = moveFrom.pBackbufferSurface.p;
+    pStagingBackbufferCopy.p        = moveFrom.pStagingBackbufferCopy.p;
 
-    pPixelBufferFence               = moveFrom.pPixelBufferFence;
+    pPixelBufferFence.p             = moveFrom.pPixelBufferFence.p;
     ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
 
     framebuffer.Width               = moveFrom.framebuffer.Width;
@@ -59,12 +59,12 @@ SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveF
 
     //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
 
-    moveFrom.pDev                            = nullptr;
-    moveFrom.pImmediateCtx                   = nullptr;
-    moveFrom.pSwapChain                      = nullptr;
-    moveFrom.pStagingBackbufferCopy          = nullptr;
+    moveFrom.pDev.p                          = nullptr;
+    moveFrom.pImmediateCtx.p                 = nullptr;
+    moveFrom.pSwapChain.p                    = nullptr;
+    moveFrom.pStagingBackbufferCopy.p        = nullptr;
 
-    moveFrom.pPixelBufferFence               = nullptr;
+    moveFrom.pPixelBufferFence.p             = nullptr;
     moveFrom.ulCommandIssuedOnFrame          = 0;
 
     moveFrom.framebuffer.Width               = 0;
@@ -715,7 +715,7 @@ SK_D3D11_Screenshot::framebuffer_s::PinnedBuffer
 SK_D3D11_Screenshot::framebuffer_s::root_;
 
 void
-SK_D3D11_Screenshot::dispose (void) noexcept
+SK_D3D11_Screenshot::dispose (void)
 {
   pPixelBufferFence      = nullptr;
   pStagingBackbufferCopy = nullptr;
@@ -752,7 +752,7 @@ bool
 SK_D3D11_Screenshot::getData ( UINT* const pWidth,
                                UINT* const pHeight,
                                uint8_t   **ppData,
-                               bool        Wait ) noexcept
+                               bool        Wait )
 {
   auto& pooled =
     SK_ScreenshotQueue::pooled;
@@ -844,7 +844,7 @@ SK_D3D11_Screenshot::getData ( UINT* const pWidth,
         pooled.capture_bytes   -= allocSize;
       }
 
-      SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
+      SK_LOG0 ( ( L"Screenshot Readback Complete after %lli frames",
                     SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
                   L"D3D11SShot" );
 
@@ -935,13 +935,10 @@ SK_D3D11_ToggleGameHUD (void)
       InterlockedDecrement (&last_state);
   }
 
-  else
-  {
-    SK_D3D11_ShowGameHUD ();
+  SK_D3D11_ShowGameHUD ();
 
-    return
-      InterlockedIncrement (&last_state);
-  }
+  return
+    InterlockedIncrement (&last_state);
 }
 
 void
@@ -1121,8 +1118,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  const int __MaxStage = 2;
-  const int      stage =
+  constexpr int __MaxStage = 2;
+  const     int      stage =
     sk::narrow_cast <int> (stage_);
 
   assert ( stage >= 0 &&
@@ -1532,7 +1529,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     ScratchImage thumbnailImage;
 
                     Resize ( *un_scrgb.GetImages (), 200,
-                               static_cast <size_t> (200.0 * aspect),
+                               sk::narrow_cast <size_t> (200.0 * aspect),
                                 TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
                               | TEX_FILTER_TRIANGLE,
                                   thumbnailImage );

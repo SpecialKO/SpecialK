@@ -87,6 +87,7 @@
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
@@ -120,7 +121,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-d2RecomputeAddrTaken- /Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -173,7 +174,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
-      <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-d2RecomputeAddrTaken- /Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -220,7 +221,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OmitFramePointers>true</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-</AdditionalOptions>
+      <AdditionalOptions>-d2RecomputeAddrTaken- /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-</AdditionalOptions>
       <ProgramDataBaseFileName>
       </ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
@@ -245,23 +246,23 @@
       <WarningLevel>Level4</WarningLevel>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <ControlFlowGuard>false</ControlFlowGuard>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <ExceptionHandling>Async</ExceptionHandling>
       <StringPooling>true</StringPooling>
       <FloatingPointModel>Precise</FloatingPointModel>
       <FloatingPointExceptions>false</FloatingPointExceptions>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <StructMemberAlignment>Default</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <OpenMPSupport>false</OpenMPSupport>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-</AdditionalOptions>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <AdditionalOptions>-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- </AdditionalOptions>
       <ProgramDataBaseFileName>
       </ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
@@ -270,12 +271,16 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAs>Default</CompileAs>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
     </ClCompile>
     <Lib />
     <Lib />
     <ProjectReference />
+    <Link>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\SKinHook\buffer.c" />

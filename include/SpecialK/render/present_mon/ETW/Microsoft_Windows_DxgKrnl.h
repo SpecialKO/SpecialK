@@ -101,32 +101,32 @@ enum class Channel : uint8_t {
 
 // Event descriptors:
 #define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_) struct name_ { \
-    static uint16_t const Id      = id_; \
-    static uint8_t  const Version = version_; \
-    static uint8_t  const Channel = channel_; \
-    static uint8_t  const Level   = level_; \
-    static uint8_t  const Opcode  = opcode_; \
-    static uint16_t const Task    = task_; \
+    static uint16_t const Id      = id_;                \
+    static uint8_t  const Version = version_;           \
+    static uint8_t  const Channel = channel_;           \
+    static uint8_t  const Level   = level_;             \
+    static uint8_t  const Opcode  = opcode_;            \
+    static uint16_t const Task    = task_;              \
     static Keyword  const Keyword = (Keyword) keyword_; \
 };
 
-EVENT_DESCRIPTOR_DECL(Blit_Info                     , 0x00a6, 0x00, 0x11, 0x04, 0x00, 0x0067, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(Blit_Cancel                   , 0x01f5, 0x00, 0x11, 0x04, 0x00, 0x0135, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(Flip_Info                     , 0x00a8, 0x00, 0x11, 0x00, 0x00, 0x0003, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(FlipMultiPlaneOverlay_Info    , 0x00fc, 0x00, 0x11, 0x00, 0x00, 0x008f, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(HSyncDPCMultiPlane_Info       , 0x017e, 0x00, 0x11, 0x00, 0x00, 0x00e6, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(VSyncDPCMultiPlane_Info       , 0x0111, 0x03, 0x11, 0x00, 0x00, 0x009f, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(MMIOFlip_Info                 , 0x0074, 0x00, 0x11, 0x00, 0x00, 0x0011, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(MMIOFlipMultiPlaneOverlay_Info, 0x0103, 0x03, 0x11, 0x00, 0x00, 0x0090, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(Present_Info                  , 0x00b8, 0x00, 0x11, 0x00, 0x00, 0x006b, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(PresentHistory_Start          , 0x00ab, 0x00, 0x11, 0x00, 0x01, 0x0006, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(PresentHistory_Info           , 0x00ac, 0x00, 0x11, 0x00, 0x00, 0x0006, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(PresentHistoryDetailed_Start  , 0x00d7, 0x00, 0x11, 0x00, 0x01, 0x007e, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(QueuePacket_Start             , 0x00b2, 0x01, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(QueuePacket_Stop              , 0x00b4, 0x01, 0x11, 0x00, 0x02, 0x0009, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(QueuePacket_Start_2           , 0x00f4, 0x01, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(QueuePacket_Start_3           , 0x00f5, 0x02, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001)
-EVENT_DESCRIPTOR_DECL(VSyncDPC_Info                 , 0x0011, 0x00, 0x11, 0x00, 0x00, 0x000b, 0x4000000000000001)
+EVENT_DESCRIPTOR_DECL(Blit_Info                     , 0x00a6, 0x00, 0x11, 0x04, 0x00, 0x0067, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(Blit_Cancel                   , 0x01f5, 0x00, 0x11, 0x04, 0x00, 0x0135, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(Flip_Info                     , 0x00a8, 0x00, 0x11, 0x00, 0x00, 0x0003, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(FlipMultiPlaneOverlay_Info    , 0x00fc, 0x00, 0x11, 0x00, 0x00, 0x008f, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(HSyncDPCMultiPlane_Info       , 0x017e, 0x00, 0x11, 0x00, 0x00, 0x00e6, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(VSyncDPCMultiPlane_Info       , 0x0111, 0x03, 0x11, 0x00, 0x00, 0x009f, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(MMIOFlip_Info                 , 0x0074, 0x00, 0x11, 0x00, 0x00, 0x0011, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(MMIOFlipMultiPlaneOverlay_Info, 0x0103, 0x03, 0x11, 0x00, 0x00, 0x0090, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(Present_Info                  , 0x00b8, 0x00, 0x11, 0x00, 0x00, 0x006b, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(PresentHistory_Start          , 0x00ab, 0x00, 0x11, 0x00, 0x01, 0x0006, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(PresentHistory_Info           , 0x00ac, 0x00, 0x11, 0x00, 0x00, 0x0006, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(PresentHistoryDetailed_Start  , 0x00d7, 0x00, 0x11, 0x00, 0x01, 0x007e, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(QueuePacket_Start             , 0x00b2, 0x01, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(QueuePacket_Stop              , 0x00b4, 0x01, 0x11, 0x00, 0x02, 0x0009, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(QueuePacket_Start_2           , 0x00f4, 0x01, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(QueuePacket_Start_3           , 0x00f5, 0x02, 0x11, 0x00, 0x01, 0x0009, 0x4000000000000001);
+EVENT_DESCRIPTOR_DECL(VSyncDPC_Info                 , 0x0011, 0x00, 0x11, 0x00, 0x00, 0x000b, 0x4000000000000001);
 
 #undef EVENT_DESCRIPTOR_DECL
 

@@ -49,7 +49,7 @@ static D3D9Device_SetRenderTarget_pfn            D3D9SetRenderTarget_Original   
 static D3D9Device_SetDepthStencilSurface_pfn     D3D9SetDepthStencilSurface_Original        = nullptr;
 extern D3D9Device_SetSamplerState_pfn            D3D9Device_SetSamplerState_Original;
 
-using  QueryPerformanceCounter_pfn = BOOL (WINAPI *)( _Out_ LARGE_INTEGER *lpPerformanceCount );
+using  QueryPerformanceCounter_pfn = BOOL (WINAPI *)( _Out_ LARGE_INTEGER *lpPerformanceCount ) noexcept;
 extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
 
 // D3DXSaveSurfaceToFile issues a StretchRect, but we don't want to log that...
@@ -201,7 +201,7 @@ D3D9CreateRenderTarget_Detour (IDirect3DDevice9     *This,
                                 HANDLE               *pSharedHandle)
 {
   tex_log->Log (L"[Unexpected][!] IDirect3DDevice9::CreateRenderTarget (%lu, %lu, "
-                        L"%lu, %lu, %lu, %lu, %08Xh, %08Xh)",
+                        L"%lu, %lu, %lu, %lu, %08ph, %08ph)",
                    Width, Height, Format, MultiSample, MultisampleQuality,
                    Lockable, ppSurface, pSharedHandle);
 
@@ -224,7 +224,7 @@ D3D9CreateDepthStencilSurface_Detour (IDirect3DDevice9     *This,
                                       HANDLE               *pSharedHandle)
 {
   tex_log->Log (L"[Unexpected][!] IDirect3DDevice9::CreateDepthStencilSurface (%lu, %lu, "
-                        L"%lu, %lu, %lu, %lu, %08Xh, %08Xh)",
+                        L"%lu, %lu, %lu, %lu, %08ph, %08ph)",
                    Width, Height, Format, MultiSample, MultisampleQuality,
                    Discard, ppSurface, pSharedHandle);
 
@@ -542,7 +542,7 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
 
-  if (SUCCEEDED (result) && (! tex_mgr.injector.isInjectionThread ()))
+  if (SUCCEEDED (result) && (! tex_mgr.injector.isInjectionThread ()) && ppTexture != nullptr)
   {
     //if (config.textures.log) {
     //  tex_log->Log ( L"[Load-Trace] >> Creating Texture: "
@@ -588,7 +588,7 @@ D3D9BeginScene_Detour (IDirect3DDevice9* This)
 
   draw_state->draws = 0;
 
-  HRESULT result =
+  const HRESULT result =
     D3D9BeginScene_Original (This);
 
   return result;
@@ -781,7 +781,7 @@ namespace streaming_memory {
 
     if (mpool->data_len < len)
     {
-      free (mpool->data);
+      delete [] mpool->data;
 
       if (len < 8192 * 1024)
         mpool->data_len = 8192 * 1024;
@@ -789,7 +789,7 @@ namespace streaming_memory {
         mpool->data_len = len;
 
       mpool->data =
-        malloc (mpool->data_len);
+        new (std::nothrow) uint8_t [mpool->data_len];
 
       mpool->data_age = SK_timeGetTime ();
 
@@ -802,13 +802,10 @@ namespace streaming_memory {
       return false;
     }
 
-    else
-    {
-      return true;
-    }
+    return true;
   }
 
-  void*& data (void)
+  uint8_t*& data (void)
   {
     SK_TLS::tex_mgmt_s::stream_pool_s* mpool =
       &SK_TLS_Bottom ()->texture_management.streaming_memory;
@@ -841,11 +838,11 @@ namespace streaming_memory {
     {
       if (mpool->data_len > max_size)
       {
-        free (mpool->data);
-             mpool->data = nullptr;
+        delete []
+          std::exchange (mpool->data, nullptr);
 
         if (max_size > 0)
-          mpool->data = malloc (max_size);
+          mpool->data = new (std::nothrow) uint8_t [max_size];
 
         if (mpool->data != nullptr)
         {
@@ -1197,7 +1194,7 @@ SK::D3D9::TextureManager::updateQueueOSD (void)
         streaming_text  = szFormatted;
         streaming_text += (count != 1) ? 's' : ' ';
 
-        sprintf (szFormatted, " [%7.2f MiB]", (double)ReadAcquire ((volatile LONG *)&injector.streaming_bytes) / (1024.0f * 1024.0f));
+        sprintf (szFormatted, " [%7.2f MiB]", (double)ReadAcquire ((volatile LONG *)&injector.streaming_bytes) / (1024.0 * 1024.0));
         streaming_text += szFormatted;
 
         if (to_stream)
@@ -1343,9 +1340,9 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
                          (load->type == TexLoadRequest::Immediate) ? L"loading" :
                                                                      L"filtering",
                          load->checksum,
-                           (double)load->SrcDataSize / (1024.0f * 1024.0f),
-                             1000.0f * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                       (double)SK_QpcFreq );
+                           (double)load->SrcDataSize / (1024.0 * 1024.0),
+                             1000.0 * (double)(load->end.QuadPart - load->start.QuadPart) /
+                                      (double)SK_QpcFreq );
     }
 
     Texture* pTex =
@@ -1357,7 +1354,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
                                          (double)SK_QpcFreq);
 
       auto* pSKTex =
-        static_cast <ISKTextureD3D9 *> (load->pDest);
+        dynamic_cast <ISKTextureD3D9 *> (load->pDest);
 
       if (pSKTex != nullptr)
       {
@@ -1791,7 +1788,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
       load_op->checksum    = checksum;
       load_op->type        = TexLoadRequest::Resample;
 
-      load_op->pSrcData    = new uint8_t [SrcDataSize];
+      load_op->pSrcData    = new (std::nothrow) uint8_t [SrcDataSize];
       load_op->SrcDataSize = SrcDataSize;
 
       swprintf (load_op->wszFilename, L"Resample_%x.dds", checksum);
@@ -2473,7 +2470,7 @@ SK::D3D9::TextureManager::Shutdown (void)
     SK_D3D9_GetTextureManager ();
 
   // 16.6 ms per-frame (60 FPS)
-  const float frame_time = 16.6f;
+  constexpr float frame_time = 16.6f;
 
   while (! injector.textures_to_stream.empty ())
   {
@@ -2983,7 +2980,7 @@ SK::D3D9::TextureManager::logUsedTextures (void)
            tex_record->d3d9_tex != nullptr )
       {
         auto* pSKTex =
-          static_cast <ISKTextureD3D9 *> (tex_record->d3d9_tex);
+          tex_record->d3d9_tex;
 
         textures_used_last_dump.emplace (it);
 
@@ -3048,7 +3045,8 @@ ResampleTexture (TexLoadRequest* load)
     tex_log->Log (L"[ Tex. Mgr ] Will not resample cubemap...");
   }
 
-  free (load->pSrcData);
+  delete []
+    std::exchange (load->pSrcData, nullptr);
 
   return hr;
 }
@@ -3197,8 +3195,8 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
     {
       // Yay for magic numbers :P   ==> (8 MiB Min Size, 5 Seconds Between Trims)
       //
-      const size_t   MIN_SIZE = 8192 * 1024;
-      const uint32_t MIN_AGE  = 5000UL;
+      constexpr size_t   MIN_SIZE = 8192 * 1024;
+      constexpr uint32_t MIN_AGE  = 5000UL;
 
       size_t before = streaming_memory::data_len ();
 
@@ -3282,7 +3280,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
       }
     }
 
-    const int MAX_TIME_BETWEEN_TRIMS = 1500UL;
+    constexpr int MAX_TIME_BETWEEN_TRIMS = 1500UL;
     while ( SK_WaitForSingleObject (
               pPool->events_.jobs_added,
                 MAX_TIME_BETWEEN_TRIMS ) ==
@@ -3350,8 +3348,8 @@ SK::D3D9::TextureManager::refreshDataSources (void)
   if ( GetFileAttributesW ((*SK_D3D11_res_root + L"\\inject").c_str ()) !=
          INVALID_FILE_ATTRIBUTES )
   {
-    WIN32_FIND_DATA fd;
-    int             files  = 0;
+    WIN32_FIND_DATA fd     = {   };
+    int             files  =   0;
     LARGE_INTEGER   liSize = { 0 };
 
     tex_log->LogEx ( true, L"[Inject Tex] Enumerating injectable textures..." );
@@ -3766,6 +3764,9 @@ SK::D3D9::TextureManager::getThreadStats (std::vector <TexThreadStats>&/* stats*
 void
 SK::D3D9::TextureThreadPool::postJob (TexLoadRequest* job)
 {
+  if (! job)
+    return;
+
   // Defer the creation of this until the first job is posted
   if (! spool_thread_)
   {

@@ -19,13 +19,6 @@
  *
 **/
 
-struct {
-  LONGLONG t0;
-
-  SK_QueryPerf ().QuadPart % ((pDisplay->signal.timing.vsync_freq.Denominator * SK_QPCFreq) /
-                               pDisplay->signal.timing.vsync_freq.Numerator);
-};
-
 #include <SpecialK/stdafx.h>
 
 #ifdef  __SK_SUBSYSTEM__
@@ -52,23 +45,6 @@ SK_WDDM_CAPS SK_WDDM_SupportedCaps;
 
 extern void
 SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
-
-
-class SK_AutoDC
-{
-public:
-   SK_AutoDC (HWND hWnd, HDC hDC) : hWnd_ (hWnd),
-                                    hDC_  (hDC) { };
-  ~SK_AutoDC (void)    { ReleaseDC (hWnd_, hDC_); }
-
-  HDC  hDC  (void) noexcept { return hDC_;  }
-  HWND hWnd (void) noexcept { return hWnd_; }
-
-private:
-  HWND hWnd_;
-  HDC  hDC_;
-};
-
 
 double
 SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
@@ -97,7 +73,7 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 
 SK_RenderBackend&
 __stdcall
-SK_GetCurrentRenderBackend (void)
+SK_GetCurrentRenderBackend (void) noexcept
 {
   static SK_RenderBackend __SK_RBkEnd;
   return                  __SK_RBkEnd;
@@ -643,7 +619,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
           else
           {
             swapDesc.BufferDesc.RefreshRate.Numerator   =
-              (UINT)config.render.framerate.refresh_rate;
+              sk::narrow_cast <UINT> (config.render.framerate.refresh_rate);
             swapDesc.BufferDesc.RefreshRate.Denominator =
               1;
           }
@@ -973,12 +949,12 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
     game_window.hWnd   = hWndRoot;
     game_window.active = true;
 
-    SK_LOG1 (( __FUNCTIONW__ L" (%X)", hWnd ), L"  DEBUG!  ");
+    SK_LOG1 (( __FUNCTIONW__ L" (%p)", hWnd ), L"  DEBUG!  ");
   }
 
   else
   {
-    SK_LOG1 (( __FUNCTIONW__ L" (%X) --- FAIL [%s %s]", hWnd,
+    SK_LOG1 (( __FUNCTIONW__ L" (%p) --- FAIL [%s %s]", hWnd,
              SK_GetFocus        () != hWnd ?
                   L"GetFocus () != this,"  : L"",
                 GetActiveWindow () != hWnd     ?
@@ -1019,8 +995,8 @@ SK_RenderBackend_V2::scan_out_s::getEOTF (void)
   {
     if (rb.framebuffer_flags & (uint64_t)SK_FRAMEBUFFER_FLAG_FLOAT)
       return Linear; // Seems a 16-bit swapchain is always scRGB...
-    else
-      return SMPTE_2084;
+
+    return SMPTE_2084;
   }
 
   switch (dwm_colorspace)//dxgi_colorspace)
@@ -1947,7 +1923,7 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set)
 
       StrTrimW (wszOrigKeyVal, L" ");
 
-      if (wcslen (wszOrigKeyVal) != 0)
+      if (wszOrigKeyVal [0] != L'\0')
       {
         RegSetValueExW (
           hKey, wszProcessName,
@@ -3341,7 +3317,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
         if (GetMonitorInfoW (outDesc.Monitor, &mi))
         {
-          swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"), LR"(\DISPLAY%i)", &display.idx);
+          swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"), LR"(\DISPLAY%u)", &display.idx);
         }
 
         display.monitor     = outDesc.Monitor;
@@ -3750,7 +3726,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"[Output Dev]\n"
         L"  +------------------+---------------------------------------------------------------------\n"
         L"  | EDID Device Name |  %hs\n"
-        L"  | GDI  Device Name |  %ws (HMONITOR: %x)\n"
+        L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
         L"  | Desktop Display. |  %ws%ws\n"
         L"  | Bits Per Color.. |  %u\n"
         L"  | Color Space..... |  %s\n"
@@ -4331,8 +4307,8 @@ ChangeDisplaySettingsExW_Detour (
 
   EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
 
-  return
-    ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+////return
+////  ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
 
   static bool called = false;
 

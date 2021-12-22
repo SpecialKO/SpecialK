@@ -63,7 +63,7 @@ extern "C"
   bool         __SK_InjectionHistory_crash      [MAX_INJECTED_PROC_HISTORY]            =  { false };
 
   ULONG64      __SK_InjectionHistory_frames     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::Reserved };
+  SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::None };
   AppId_t      __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
   wchar_t      __SK_InjectionHistory_UwpPackage [MAX_INJECTED_PROC_HISTORY *
                                                          PACKAGE_FULL_NAME_MAX_LENGTH] =  {   0   };
@@ -609,6 +609,12 @@ SK_Inject_WinEventHookProc (
   DWORD         dwEventThread,
   DWORD         dwmsEventTime )
 {
+  std::ignore = hook,
+  std::ignore = idObject,
+  std::ignore = idChild,
+  std::ignore = dwEventThread,
+  std::ignore = dwmsEventTime;
+
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
     if (game_window.hWnd != hwnd)
@@ -647,7 +653,7 @@ SK_Inject_WinEventHookProc (
 HWND
 SK_Inject_GetFocusWindow (void)
 {
-  SK_SharedMemory_v1* pSharedMem =
+  const SK_SharedMemory_v1* pSharedMem =
     (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
 
   if (pSharedMem != nullptr)
@@ -656,7 +662,7 @@ SK_Inject_GetFocusWindow (void)
       (HWND)((uintptr_t)ULongToHandle (pSharedMem->SystemWide.hWndFocus) & 0xFFFFFFFFUL);
   }
 
-  return 0;
+  return nullptr;
 }
 
 void
@@ -707,6 +713,7 @@ struct {
 
   bool isValid (void) const
   {
+    const
     bool   bValid =                   nullptr != hWnd &&
       (! (bLowPriv || bQuotaFull)) && IsWindow ( hWnd );
 
@@ -753,11 +760,11 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
       HANDLE hMutex =
         CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
 
-      if (hMutex != 0)
+      if (hMutex != nullptr)
       {
         if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
         {
-          auto __MaxPresentMonSessions =
+          auto constexpr __MaxPresentMonSessions =
             SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
 
           auto first_free_idx   = __MaxPresentMonSessions,
@@ -859,7 +866,7 @@ SK_Etw_UnregisterSession (const char* szPrefix)
       HANDLE hMutex =
         CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
 
-      if (hMutex != 0)
+      if (hMutex != nullptr)
       {
         if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
         {
@@ -1077,8 +1084,8 @@ IsWindows8OrGreater (void)
 bool
 ReadMem (void *addr, void *buf, int size)
 {
-  BOOL b = ReadProcessMemory( GetCurrentProcess(), addr, buf, size, nullptr );
-    return b != FALSE;
+  const BOOL b = ReadProcessMemory (GetCurrentProcess (), addr, buf, size, nullptr);
+      return b != FALSE;
 }
 
 #ifdef _WIN64
@@ -1111,8 +1118,8 @@ GetModuleReferenceCount (HMODULE hDll)
   );
   FreeLibrary (hNtDll);
 
-  return                          b ?
-    pldr_data_table->ReferenceCount : 0;
+  return pldr_data_table != nullptr && b ?
+         pldr_data_table->ReferenceCount : 0;
 }
 
 //
@@ -1151,8 +1158,8 @@ GetModuleLoadCount (HMODULE hDll)
   char* LdrDataOffset =
     (char *)(pbi.PebBaseAddress) + offsetof (PEB, Ldr);
 
-  char*        addr;
-  PEB_LDR_DATA LdrData;
+  char*        addr    = nullptr;
+  PEB_LDR_DATA LdrData = {     };
 
   if ((! ReadMem (LdrDataOffset, &addr,    sizeof (void *))) ||
       (! ReadMem (addr,          &LdrData, sizeof (LdrData))) )
@@ -1162,7 +1169,7 @@ GetModuleLoadCount (HMODULE hDll)
   LIST_ENTRY* next = head;
 
   do {
-    LDR_DATA_TABLE_ENTRY   LdrEntry;
+    LDR_DATA_TABLE_ENTRY   LdrEntry = { };
     LDR_DATA_TABLE_ENTRY* pLdrEntry =
       CONTAINING_RECORD (head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
@@ -1255,7 +1262,7 @@ SetWindowBand_Detour ( HWND  hWnd,
   while (InterlockedCompareExchange (&lLock, 1, 0) != 0)
     SleepEx (1, FALSE);
 
-  BOOL bRet =
+  const BOOL bRet =
     SetWindowBand_Original (
       hWnd, hWndInsertAfter, dwBand
     );
@@ -1558,14 +1565,9 @@ CBTProc ( _In_ int    nCode,
 
       if (hWndGame != hWndwParam && focus_ctx.isValid ())
       {
-        switch (nCode)
+        if (SK_Window_TestOverlap (hWndGame, hWndwParam, FALSE))
         {
-          case HCBT_MOVESIZE:
-            if (SK_Window_TestOverlap (hWndGame, hWndwParam, FALSE))
-            {
-              focus_ctx.postMsg (wParam, static_cast <LPARAM> (0x0));
-            }
-          break;
+          focus_ctx.postMsg (wParam, static_cast <LPARAM> (0x0));
         }
       }
     }
@@ -1652,7 +1654,7 @@ SKX_RemoveCBTHook (void)
                          blacklist_count = 0;
     RtlSecureZeroMemory (blacklist_patterns, sizeof (blacklist_patterns));
 
-              DWORD       self_pid = GetCurrentProcessId ();
+        const DWORD       self_pid = GetCurrentProcessId ();
     std::set <DWORD>   running_pids;
     std::set <DWORD> suspended_pids;
     LONG             hooked_pid_count =
@@ -1810,7 +1812,8 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
 
     if (fPID != nullptr)
     {
-      DWORD dwPID =
+      const
+       DWORD dwPID =
            strtoul ("%lu", nullptr, 0);
       fclose (fPID);
 
@@ -2667,7 +2670,7 @@ SK_Inject_IsAdminSupported (void) noexcept
 
 void SK_Inject_BroadcastAttachNotify (void)
 {
-  CHandle hInjectAck (
+  SK_AutoHandle hInjectAck (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE, LR"(Local\SKIF_InjectAck)" )
   );
 

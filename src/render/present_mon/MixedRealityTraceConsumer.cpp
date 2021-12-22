@@ -62,11 +62,11 @@ GetEventTaskNameFromTdh (EVENT_RECORD *pEventRecord)
 
       if (status == ERROR_SUCCESS)
         taskName = (wchar_t*)((uintptr_t) bufferAddr + info->TaskNameOffset);
-      
+
       free (bufferAddr);
     }
   }
-  
+
   return taskName;
 }
 }
@@ -214,7 +214,7 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
     auto const& hdr = pEventRecord->EventHeader;
     const std::wstring taskName = GetEventTaskNameFromTdh(pEventRecord);
 
-    if (taskName.compare(L"AcquireForRendering") == 0)
+    if (taskName == L"AcquireForRendering")
     {
         const uint64_t ptr = mMetadata.GetEventData<uint64_t>(pEventRecord, L"thisPtr");
         auto sourceIter = FindOrCreatePresentationSource(ptr);
@@ -225,19 +225,19 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
         sourceIter->second->AcquireForPresentationTime = 0;
         sourceIter->second->ReleaseFromPresentationTime = 0;
     }
-    else if (taskName.compare(L"ReleaseFromRendering") == 0)
+    else if (taskName == L"ReleaseFromRendering")
     {
         const uint64_t ptr = mMetadata.GetEventData<uint64_t>(pEventRecord, L"thisPtr");
         auto sourceIter = FindOrCreatePresentationSource(ptr);
         sourceIter->second->ReleaseFromRenderingTime = *(uint64_t*)&hdr.TimeStamp;
     }
-    else if (taskName.compare(L"AcquireForPresentation") == 0)
+    else if (taskName == L"AcquireForPresentation")
     {
         const uint64_t ptr = mMetadata.GetEventData<uint64_t>(pEventRecord, L"thisPtr");
         auto sourceIter = FindOrCreatePresentationSource(ptr);
         sourceIter->second->AcquireForPresentationTime = *(uint64_t*)&hdr.TimeStamp;
     }
-    else if (taskName.compare(L"ReleaseFromPresentation") == 0)
+    else if (taskName == L"ReleaseFromPresentation")
     {
         const uint64_t ptr = mMetadata.GetEventData<uint64_t>(pEventRecord, L"thisPtr");
         auto sourceIter = FindOrCreatePresentationSource(ptr);
@@ -250,16 +250,16 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
             pEvent->Source = *sourceIter->second;
         }
     }
-    else if (taskName.compare(L"OasisPresentationSource") == 0)
+    else if (taskName == L"OasisPresentationSource")
     {
         std::string eventType = mMetadata.GetEventData<std::string>(pEventRecord, L"EventType");
         eventType.pop_back(); // Pop the null-terminator so the compare works.
-        if (eventType.compare("Destruction") == 0) {
+        if (eventType == "Destruction") {
             const uint64_t ptr = mMetadata.GetEventData<uint64_t>(pEventRecord, L"thisPtr");
             CompletePresentationSource(ptr);
         }
     }
-    else if (taskName.compare(L"LsrThread_BeginLsrProcessing") == 0)
+    else if (taskName == L"LsrThread_BeginLsrProcessing")
     {
         // Complete the last LSR.
         auto& pEvent = mActiveLSR;
@@ -288,7 +288,7 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
 
         assert(pEvent->Source.Ptr != 0);
     }
-    else if (taskName.compare(L"LsrThread_LatchedInput") == 0)
+    else if (taskName == L"LsrThread_LatchedInput")
     {
         // Update the active LSR.
         auto& pEvent = mActiveLSR;
@@ -323,7 +323,7 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
             }
          }
     }
-    else if (taskName.compare(L"LsrThread_UnaccountedForVsyncsBetweenStatGathering") == 0)
+    else if (taskName == L"LsrThread_UnaccountedForVsyncsBetweenStatGathering")
     {
         // Update the active LSR.
         auto& pEvent = mActiveLSR;
@@ -334,7 +334,7 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
             pEvent->MissedVsyncCount += unaccountedForMissedVSyncCount;
         }
     }
-    else if (taskName.compare(L"MissedPresentation") == 0)
+    else if (taskName == L"MissedPresentation")
     {
         // Update the active LSR.
         auto& pEvent = mActiveLSR;
@@ -346,7 +346,7 @@ void MRTraceConsumer::HandleDHDEvent(EVENT_RECORD* pEventRecord)
             }
         }
     }
-    else if (taskName.compare(L"OnTimePresentationTiming") == 0 || taskName.compare(L"LatePresentationTiming") == 0)
+    else if (taskName == L"OnTimePresentationTiming" || taskName == L"LatePresentationTiming")
     {
         // Update the active LSR.
         auto& pEvent = mActiveLSR;
@@ -402,7 +402,7 @@ void MRTraceConsumer::HandleSpectrumContinuousEvent(EVENT_RECORD* pEventRecord)
     auto const& hdr = pEventRecord->EventHeader;
     const std::wstring taskName = GetEventTaskNameFromTdh(pEventRecord);
 
-    if (taskName.compare(L"HolographicFrame") == 0)
+    if (taskName == L"HolographicFrame")
     {
         // Ignore rehydrated frames.
         const bool bIsRehydration = mMetadata.GetEventData<bool>(pEventRecord, L"isRehydration");
@@ -440,7 +440,7 @@ void MRTraceConsumer::HandleSpectrumContinuousEvent(EVENT_RECORD* pEventRecord)
             }
         }
     }
-    else if (taskName.compare(L"HolographicFrameMetadata_GetNewPoseForReprojection") == 0)
+    else if (taskName == L"HolographicFrameMetadata_GetNewPoseForReprojection")
     {
         // Link holographicFrameId -> presentId.
         const uint32_t holographicFrameId = mMetadata.GetEventData<uint32_t>(pEventRecord, L"holographicFrameId");

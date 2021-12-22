@@ -2210,8 +2210,8 @@ SK_XInput_PulseController ( INT   iJoyID,
 
   XINPUT_VIBRATION vibes;
 
-  vibes.wLeftMotorSpeed  = (WORD)(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
-  vibes.wRightMotorSpeed = (WORD)(std::min (0.99999f, fStrengthRight) * 65535.0f);
+  vibes.wLeftMotorSpeed  = sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
+  vibes.wRightMotorSpeed = sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f);
 
   if ( pCtx                          != nullptr &&
        pCtx->XInputSetState_Original != nullptr )

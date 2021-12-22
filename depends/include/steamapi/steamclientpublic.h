@@ -553,7 +553,7 @@ public:
 	// Purpose: Initializes a steam ID from its 64-bit representation
 	// Input  : ulSteamID -		64-bit representation of a Steam ID
 	//-----------------------------------------------------------------------------
-	void SetFromUint64( uint64 ulSteamID )
+	void SetFromUint64( uint64 ulSteamID ) noexcept
 	{
 		m_steamid.m_unAll64Bits = ulSteamID;
 	}

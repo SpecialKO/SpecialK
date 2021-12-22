@@ -33,7 +33,7 @@
 #include <numeric>
 #include <forward_list>
 
-#include <SpecialK/utility.h>
+#include <atlbase.h> // CHandle
 
 static constexpr auto
   _disreal =
@@ -52,19 +52,19 @@ static constexpr auto
 
 float SK_Framerate_GetPercentileByIdx (int idx);
 
-using QueryPerformanceCounter_pfn   = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount);
-using QueryPerformanceFrequency_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpFrequency);
+using QueryPerformanceCounter_pfn   = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept;
+using QueryPerformanceFrequency_pfn = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpFrequency)        noexcept;
 
 BOOL
 WINAPI
-SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount);
+SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept;
 
 extern int64_t SK_QpcFreq;
 extern int64_t SK_QpcTicksPerMs;
 
 __forceinline
 LARGE_INTEGER
-SK_CurrentPerf (void)
+SK_CurrentPerf (void) noexcept
  {
    LARGE_INTEGER                time;
    SK_QueryPerformanceCounter (&time);
@@ -73,7 +73,7 @@ SK_CurrentPerf (void)
 
 __forceinline
 LARGE_INTEGER
-SK_QueryPerf (void)
+SK_QueryPerf (void) noexcept
  {
    LARGE_INTEGER                time;
    SK_QueryPerformanceCounter (&time);
@@ -81,7 +81,7 @@ SK_QueryPerf (void)
  };
 
 static auto SK_DeltaPerf =
- [](auto delta, auto freq)->
+ [](auto delta, auto freq) noexcept ->
   LARGE_INTEGER
    {
      LARGE_INTEGER time =
@@ -97,7 +97,7 @@ static auto SK_DeltaPerf =
    };
 
 static auto SK_DeltaPerfMS =
- [](auto delta, auto freq)->
+ [](auto delta, auto freq) noexcept ->
   double
    {
      return
@@ -108,7 +108,7 @@ static auto SK_DeltaPerfMS =
 
 extern  __forceinline
 ULONG64 __stdcall
-SK_GetFramesDrawn (void);
+SK_GetFramesDrawn (void) noexcept;
 
 
 namespace SK
@@ -147,12 +147,7 @@ namespace SK
     class Limiter {
     public:
       Limiter (double target = 60.0, bool tracks_game_window = true);
-
-      ~Limiter (void) noexcept
-      {
-        if (           timer_wait != 0 )
-          CloseHandle (timer_wait);
-      }//= default;
+     ~Limiter (void) = default;
 
       void            init            (double target, bool tracks_window = true); // Todo, use an opaque handle to denote which window
       void            wait            (void);
@@ -236,10 +231,10 @@ namespace SK
             LONG64 frame_idx = -1;
             LONG64 clock_val =  0;
 
-            void initFrame (LONG64 lvi) { frame_idx =
-             ( frame_idx == -1 ) ? lvi  : frame_idx;};
-            void initClock (LONG64 lvc) { clock_val =
-             ( clock_val ==  0 ) ? lvc  : clock_val;};
+            void initFrame (LONG64 lvi) noexcept { frame_idx =
+             ( frame_idx == -1 ) ? lvi           : frame_idx;};
+            void initClock (LONG64 lvc) noexcept { clock_val =
+             ( clock_val ==  0 ) ? lvc           : clock_val;};
           } first, last;
 
           LONG64
@@ -317,8 +312,8 @@ namespace SK
       int32_t        limit_behavior =
                      LIMIT_APPLY;
 
+      CHandle        timer_wait;
       bool           tracks_window = true;
-      HANDLE         timer_wait    = 0;
       bool           lazy_init     = false;
 
       // Two limits applied on the same frame would cause problems, don't allow it.
@@ -389,17 +384,9 @@ namespace SK
 
       struct worker_context_s
       {
-        ~worker_context_s (void) noexcept
-        {
-          if (hSignalProduce != nullptr)
-            CloseHandle (hSignalProduce);
-          if (hSignalConsume != nullptr)
-            CloseHandle (hSignalConsume);
-        }
-
-        HANDLE        hSignalProduce = nullptr;
-        HANDLE        hSignalConsume = nullptr;
-         ULONG        ulLastFrame    = 0;
+              CHandle hSignalProduce;
+              CHandle hSignalConsume;
+                ULONG ulLastFrame    = 0;
         volatile LONG work_idx       = 0;
         volatile LONG _init          = 0;
 
@@ -433,9 +420,10 @@ namespace SK
 
       double calcDataTimespan (void) noexcept
       {
-        uint64_t samples_present =
-          samples < MAX_SAMPLES ?
-                        samples : MAX_SAMPLES;
+        const uint64_t
+          samples_present =
+            samples < MAX_SAMPLES ?
+            samples : MAX_SAMPLES;
 
         LARGE_INTEGER min_time;
                       min_time.QuadPart = std::numeric_limits <LONGLONG>::max ();
@@ -445,7 +433,7 @@ namespace SK
                    sample_idx < samples_present ;
                  ++sample_idx )
         {
-          LARGE_INTEGER sampled_time =
+          const LARGE_INTEGER sampled_time =
             data [sample_idx].when;
 
           if ( sampled_time.QuadPart >
@@ -481,7 +469,7 @@ namespace SK
       double calcOnePercentLow      (double seconds  = 1.0);
       double calcPointOnePercentLow (double seconds  = 1.0);
 
-      double calcMean               (LARGE_INTEGER start)
+      double calcMean               (LARGE_INTEGER start) noexcept
       {
         double mean         = 0.0;
         int    samples_used =  0 ;
@@ -507,13 +495,15 @@ namespace SK
         UNREFERENCED_PARAMETER (start);
 
         std::vector <double>&
-               sampled_lows = sortAndCacheFrametimeHistory ();
-        size_t samples_used = sampled_lows.size            ();
+                     sampled_lows = sortAndCacheFrametimeHistory ();
+        const size_t samples_used = sampled_lows.size            ();
 
-        size_t end_sample_idx =
+        const size_t end_sample_idx =
           std::max ( (size_t)0, std::min
               ( samples_used,
-                  (size_t)std::round ((float)samples_used * (percent / 100.0f))
+                  sk::narrow_cast <size_t> (
+                    std::round ((float)samples_used * (percent / 100.0f))
+                  )
               )
           );
 
@@ -532,11 +522,13 @@ namespace SK
         UNREFERENCED_PARAMETER (start);
 
         std::vector <double>&
-               sampled_lows = sortAndCacheFrametimeHistory ();
-        size_t samples_used = sampled_lows.size            ();
+                     sampled_lows = sortAndCacheFrametimeHistory ();
+        const size_t samples_used = sampled_lows.size            ();
 
-        size_t end_sample_idx =
-          (size_t)std::round ((float)samples_used / 100.0f);
+        const size_t end_sample_idx =
+          sk::narrow_cast <size_t> (
+            std::round ((float)samples_used / 100.0f)
+          );
 
         const double
             one_percent_avg_ms =
@@ -553,11 +545,20 @@ namespace SK
         UNREFERENCED_PARAMETER (start);
 
         std::vector <double>&
-               sampled_lows = sortAndCacheFrametimeHistory ();
-        size_t samples_used = sampled_lows.size            ();
+                     sampled_lows = sortAndCacheFrametimeHistory ();
+        const size_t samples_used = sampled_lows.size            ();
 
-        size_t end_sample_idx =
-          (size_t)std::round ((float)samples_used / 1000.0f);
+        ////  Severity  Code    Description
+        ////  Warning   C26467    Converting from floating point to unsigned
+        ////                      integral types results in non-portable code
+        ////                      if the double/float has a negative value.
+        ////
+        ////// Use gsl::narrow_cast or gsl::narrow instead to guard against
+        ////// undefined behavior and potential data loss
+        const size_t end_sample_idx =
+          sk::narrow_cast <size_t> (
+            std::round ((float)samples_used / 1000.0f)
+          );
 
         const double
             point_one_percent_avg_ms =
@@ -569,7 +570,7 @@ namespace SK
           point_one_percent_avg_ms;
       }
 
-      double calcSqStdDev (double mean, LARGE_INTEGER start)
+      double calcSqStdDev (double mean, LARGE_INTEGER start) noexcept
       {
         double sd2          = 0.0;
         int    samples_used = 0;
@@ -590,7 +591,7 @@ namespace SK
         return sd2 / static_cast <double> (std::max (1, samples_used));
       }
 
-      double calcMin (LARGE_INTEGER start)
+      double calcMin (LARGE_INTEGER start) noexcept
       {
         double min = INFINITY;
 
@@ -609,7 +610,7 @@ namespace SK
         return min;
       }
 
-      double calcMax (LARGE_INTEGER start)
+      double calcMax (LARGE_INTEGER start) noexcept
       {
         double max = -INFINITY;
 

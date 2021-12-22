@@ -78,7 +78,7 @@ public:
 
 protected:
 private:
-  std::unordered_set <_T>                        container_;
+  std::unordered_set <_T>                       container_;
   std::unique_ptr    <SK_Thread_HybridSpinlock> lock_;
 };
 
@@ -158,7 +158,7 @@ struct TexThreadStats {
     LPDIRECT3DDEVICE9   pDevice     = nullptr;
 
     // Resample only
-    LPVOID              pSrcData    = nullptr;
+    uint8_t            *pSrcData    = nullptr;
     UINT                SrcDataSize = 0UL;
 
     uint32_t            checksum    = 0UL;
@@ -420,7 +420,7 @@ public:
 
     void finishJob (void);
 
-    bool isBusy   (void)  {
+    bool isBusy   (void) noexcept {
       return (job_ != nullptr);
     }
 
@@ -646,8 +646,8 @@ public:
       std::scoped_lock <SK_Thread_HybridSpinlock>
                  _lock (cs_results_);
 
-      assert (finished        != nullptr);
-      assert (finished->pDest != nullptr);
+      SK_ReleaseAssert (finished        != nullptr);
+      SK_ReleaseAssert (finished->pDest != nullptr);
 
       // Remove the temporary reference we added earlier
       finished->pDest->Release ();

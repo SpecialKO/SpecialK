@@ -36,6 +36,7 @@ extern __inline SK_TLS* SK_TLS_Bottom (void);
 
 enum class SK_RenderAPI
 {
+  None      = 0x0000u,
   Reserved  = 0x0001u,
 
   // Native API Implementations

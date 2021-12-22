@@ -726,8 +726,7 @@ D3D11_FinishCommandList_Override (
     return hr;
   }
 
-  else
-    return
+  return
     D3D11_FinishCommandList_Original
         (This, RestoreDeferredContextState, ppCommandList);
 }
@@ -1124,79 +1123,73 @@ D3D11_UpdateSubresource1_Override (
         return;
       }
 
-      else
+      if (SK_D3D11_TextureIsCached (pTex))
       {
-        if (SK_D3D11_TextureIsCached (pTex))
-        {
-          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache     (pTex, true);
-          SK_D3D11_MarkTextureUncacheable (pTex);
-        }
+        SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                       SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+        SK_D3D11_RemoveTexFromCache     (pTex, true);
+        SK_D3D11_MarkTextureUncacheable (pTex);
+      }
 
-        D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
-                                             pDstBox, pSrcData, SrcRowPitch,
-                                               SrcDepthPitch );
-        const auto end     = SK_QueryPerf ().QuadPart;
-              auto elapsed = end - start;
+      D3D11_UpdateSubresource_Original ( This, pDstResource, DstSubresource,
+                                           pDstBox, pSrcData, SrcRowPitch,
+                                             SrcDepthPitch );
+      const auto end     = SK_QueryPerf ().QuadPart;
+            auto elapsed = end - start;
 
-        if (desc.Usage == D3D11_USAGE_STAGING)
-        {
-          auto& map_ctx = (*mapped_resources)[This];
+      if (desc.Usage == D3D11_USAGE_STAGING)
+      {
+        auto& map_ctx = (*mapped_resources)[This];
 
-          map_ctx.dynamic_textures  [pDstResource] = checksum;
-          map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
+        map_ctx.dynamic_textures  [pDstResource] = checksum;
+        map_ctx.dynamic_texturesx [pDstResource] = top_crc32c;
 
-          SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
-                        desc.Width, desc.Height, top_crc32c ),
-                      L"DX11TexMgr" );
+        SK_LOG1 ( ( L"New Staged Texture: (%lux%lu) -- %x",
+                      desc.Width, desc.Height, top_crc32c ),
+                    L"DX11TexMgr" );
 
-          map_ctx.dynamic_times2    [checksum]  = elapsed;
-          map_ctx.dynamic_sizes2    [checksum]  = size;
+        map_ctx.dynamic_times2    [checksum]  = elapsed;
+        map_ctx.dynamic_sizes2    [checksum]  = size;
 
-          return;
-        }
+        return;
+      }
 
-        else
-        {
-          // Various engines use tiny 4x4, 2x2 and even 1x1 textures that we stand to gain no
-          //   benefits from caching or supporting texture injection on, so skip them.
-          bool cacheable = ( desc.MiscFlags <= 4 &&
-                             desc.Width      > 4 &&
-                             desc.Height     > 4 &&
-                             desc.ArraySize == 1 //||
-                           //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
-                           );
+      // Various engines use tiny 4x4, 2x2 and even 1x1 textures that we stand to gain no
+      //   benefits from caching or supporting texture injection on, so skip them.
+      bool cacheable = ( desc.MiscFlags <= 4 &&
+                         desc.Width      > 4 &&
+                         desc.Height     > 4 &&
+                         desc.ArraySize == 1 //||
+                       //((desc.ArraySize  % 6 == 0) && (desc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE))
+                       );
 
-          bool compressed = false;
+      bool compressed = false;
 
-          if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
-                desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
-               (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
-                desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
-          {
-            compressed = true;
-          }
+      if ( (desc.Format >= DXGI_FORMAT_BC1_TYPELESS  &&
+            desc.Format <= DXGI_FORMAT_BC5_SNORM)    ||
+           (desc.Format >= DXGI_FORMAT_BC6H_TYPELESS &&
+            desc.Format <= DXGI_FORMAT_BC7_UNORM_SRGB) )
+      {
+        compressed = true;
+      }
 
-          // If this isn't an injectable texture, then filter out non-mipmapped
-          //   textures.
-          if (/*(! injectable) && */
-              cache_opts.ignore_non_mipped)
-            cacheable &= (desc.MipLevels > 1 || compressed);
+      // If this isn't an injectable texture, then filter out non-mipmapped
+      //   textures.
+      if (/*(! injectable) && */
+          cache_opts.ignore_non_mipped)
+        cacheable &= (desc.MipLevels > 1 || compressed);
 
-          if (cacheable)
-          {
-            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
-                          desc.Width, desc.Height, top_crc32c ),
-                        L"DX11TexMgr" );
+      if (cacheable)
+      {
+        SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
+                      desc.Width, desc.Height, top_crc32c ),
+                    L"DX11TexMgr" );
 
-            textures->CacheMisses_2D++;
-            textures->refTexture2D ( pTex, &desc, cache_tag, size, elapsed, top_crc32c,
-                                       L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS );
+        textures->CacheMisses_2D++;
+        textures->refTexture2D ( pTex, &desc, cache_tag, size, elapsed, top_crc32c,
+                                   L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS );
 
-            return;
-          }
-        }
+        return;
       }
     }
   }
@@ -1229,16 +1222,13 @@ D3D11_UpdateSubresource_Override (
                                         FALSE );
   }
 
-  else
-  {
-    D3D11_UpdateSubresource_Original (
-      This,
-        pDstResource,
-         DstSubresource, pDstBox,
-                         pSrcData, SrcRowPitch,
-                                   SrcDepthPitch
-    );
-  }
+  D3D11_UpdateSubresource_Original (
+    This,
+      pDstResource,
+       DstSubresource, pDstBox,
+                       pSrcData, SrcRowPitch,
+                                 SrcDepthPitch
+  );
 }
 
 
@@ -1262,15 +1252,12 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
                                 pMappedResource, FALSE );
   }
 
-  else
-  {
-    return
-      D3D11_Map_Original (
-        This, pResource, Subresource,
-          MapType, MapFlags,
-            pMappedResource
-      );
-  }
+  return
+    D3D11_Map_Original (
+      This, pResource, Subresource,
+        MapType, MapFlags,
+          pMappedResource
+    );
 }
 
 
@@ -1666,15 +1653,12 @@ D3D11_CopySubresourceRegion_Override (
       );
   }
 
-  else
-  {
-    return
-      D3D11_CopySubresourceRegion_Original (
-        This, pDstResource, DstSubresource,
-          DstX, DstY, DstZ, pSrcResource,
-            SrcSubresource, pSrcBox
-      );
-  }
+  return
+    D3D11_CopySubresourceRegion_Original (
+      This, pDstResource, DstSubresource,
+        DstX, DstY, DstZ, pSrcResource,
+          SrcSubresource, pSrcBox
+    );
 #endif
 }
 

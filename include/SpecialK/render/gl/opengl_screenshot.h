@@ -46,7 +46,7 @@ public:
 
   __inline bool isValid (void) noexcept { return hglrc              != nullptr &&
                                                  pixel_buffer_fence != nullptr; }
-  __inline bool isReady (void)
+  __inline bool isReady (void) noexcept
   {
     if (                                      (! isValid ()) ||
        (ulCommandIssuedOnFrame > (SK_GetFramesDrawn () - 1))  )
@@ -66,16 +66,16 @@ public:
       (status == GL_SIGNALED);
   }
 
-  SK_GL_Screenshot& __cdecl operator= (      SK_GL_Screenshot&& moveFrom) noexcept;
+  SK_GL_Screenshot& __cdecl operator= (      SK_GL_Screenshot&& moveFrom);
 
   SK_GL_Screenshot                    (const SK_GL_Screenshot&          ) = delete;
   SK_GL_Screenshot&          operator=(const SK_GL_Screenshot&          ) = delete;
 
-  void dispose (void) noexcept;
+  void dispose (void);
   bool getData ( UINT* const pWidth,
                  UINT* const pHeight,
                  uint8_t   **ppData,
-                 bool        Wait = false ) noexcept;
+                 bool        Wait = false );
 
   __inline
   DXGI_FORMAT

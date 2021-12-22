@@ -143,7 +143,7 @@ SK_D3D11_SetPipelineStats (void* pData) noexcept
 {
   memcpy ( &SK::DXGI::pipeline_stats_d3d11.last_results,
              pData,
-               sizeof D3D11_QUERY_DATA_PIPELINE_STATISTICS );
+               sizeof(D3D11_QUERY_DATA_PIPELINE_STATISTICS));
 }
 
 void

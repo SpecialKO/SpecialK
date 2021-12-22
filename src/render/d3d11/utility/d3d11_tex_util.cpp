@@ -24,7 +24,7 @@
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
-#define __SK_SUBSYSTEM__ L"  D3D 11  "
+auto constexpr __SK_SUBSYSTEM__ (L"  D3D 11  ");
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>

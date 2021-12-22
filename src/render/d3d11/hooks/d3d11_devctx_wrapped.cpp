@@ -190,11 +190,10 @@ public:
       return    0;
     }
 
-    else
-      SK_LOG0 ( ( L"ID3D11Multithread::Release (...) -> xrefs=%lu, "
-                                                       L"refs=%lu, refs_=%lu",
-                  xrefs, refs, refs_ ), __SK_SUBSYSTEM__
-              );
+    SK_LOG0 ( ( L"ID3D11Multithread::Release (...) -> xrefs=%lu, "
+                                                     L"refs=%lu, refs_=%lu",
+                xrefs, refs, refs_ ), __SK_SUBSYSTEM__
+            );
 
     return refs;
   }
@@ -486,7 +485,7 @@ public:
     ////  }
     ////}
 
-    else if (riid == IID_ID3D11Device)
+    if (riid == IID_ID3D11Device)
     {
       SK_LOG_FIRST_CALL
 
@@ -620,8 +619,7 @@ public:
                             TRUE : FALSE,
                   nullptr, pReal,
              StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
+           ppShaderResourceViews, dev_ctx_handle_ );
     else
 #endif
       pReal->PSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
@@ -633,13 +631,12 @@ public:
                                        UINT                       NumClassInstances ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-      SK_D3D11_SetShader_Impl     (pReal,
-            pPixelShader, sk_shader_class::Pixel,
-                                  ppClassInstances,
-                                 NumClassInstances, true,
-                                 dev_ctx_handle_
-      );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_SetShader_Impl     (pReal,
+                pPixelShader, sk_shader_class::Pixel,
+                                      ppClassInstances,
+                                     NumClassInstances, true,
+                                     dev_ctx_handle_);
     else
 #endif
       pReal->PSSetShader (pPixelShader, ppClassInstances, NumClassInstances);
@@ -662,13 +659,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                                         UINT                       NumClassInstances ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShader_Impl   (pReal,
-             pVertexShader, sk_shader_class::Vertex,
-                                    ppClassInstances,
-                                   NumClassInstances, true,
-                                           dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_SetShader_Impl   (pReal,
+               pVertexShader, sk_shader_class::Vertex,
+                                      ppClassInstances,
+                                     NumClassInstances, true,
+                                             dev_ctx_handle_);
     else
 #endif
       pReal->VSSetShader (pVertexShader, ppClassInstances, NumClassInstances);
@@ -682,13 +678,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_DrawIndexed_Impl (pReal,
-                                       IndexCount,
-                                  StartIndexLocation,
-                                  BaseVertexLocation, TRUE,
-                                    dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_DrawIndexed_Impl (pReal,
+                                         IndexCount,
+                                    StartIndexLocation,
+                                    BaseVertexLocation, TRUE,
+                                      dev_ctx_handle_);
     else
 #endif
       pReal->DrawIndexed (
@@ -705,12 +700,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_Draw_Impl (       pReal,
-                               VertexCount,
-                          StartVertexLocation, true,
-                       dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_Draw_Impl (       pReal,
+                                 VertexCount,
+                            StartVertexLocation, true,
+                         dev_ctx_handle_
+          );
     else
 #endif
       pReal->Draw ( VertexCount,
@@ -737,12 +732,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     else
 #endif
       return
-      pReal->Map (
-          pResource,
-        Subresource,
-               MapType,
-               MapFlags,
-              pMappedResource );
+        pReal->Map (
+            pResource,
+          Subresource,
+                 MapType,
+                 MapFlags,
+                pMappedResource );
   }
 
   void STDMETHODCALLTYPE Unmap (
@@ -750,11 +745,10 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_ UINT          Subresource ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_Unmap_Impl       (pReal,
-            pResource,
-          Subresource, TRUE
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_Unmap_Impl       (pReal,
+              pResource,
+            Subresource, TRUE       );
     else
 #endif
       pReal->Unmap (pResource, Subresource);
@@ -765,10 +759,10 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_range_     (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                       ID3D11Buffer *const *ppConstantBuffers ) override
   {
-      pReal->PSSetConstantBuffers ( StartSlot,
-                       NumBuffers,
-                ppConstantBuffers
-      );
+    pReal->PSSetConstantBuffers ( StartSlot,
+                     NumBuffers,
+              ppConstantBuffers
+    );
   }
 
   void STDMETHODCALLTYPE IASetInputLayout (
@@ -812,11 +806,11 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
-      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_DrawIndexedInstanced_Impl ( pReal,
-                                             IndexCountPerInstance, InstanceCount,
-                                             StartIndexLocation,  BaseVertexLocation,
-                                             StartInstanceLocation, TRUE, dev_ctx_handle_ );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+      SK_D3D11_DrawIndexedInstanced_Impl ( pReal,
+                                           IndexCountPerInstance, InstanceCount,
+                                           StartIndexLocation,  BaseVertexLocation,
+                                           StartInstanceLocation, TRUE, dev_ctx_handle_ );
     else
 #endif
       pReal->DrawIndexedInstanced (IndexCountPerInstance, InstanceCount, StartIndexLocation, BaseVertexLocation, StartInstanceLocation);
@@ -831,14 +825,14 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
-      if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-            SK_D3D11_DrawInstanced_Impl (pReal,
-                                        VertexCountPerInstance,
-                                                      InstanceCount,
-                                   StartVertexLocation,
-                                                 StartInstanceLocation,
-                                     TRUE, dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_DrawInstanced_Impl (pReal,
+                                      VertexCountPerInstance,
+                                                    InstanceCount,
+                                 StartVertexLocation,
+                                               StartInstanceLocation,
+                                   TRUE, dev_ctx_handle_
+                                      );
     else
 #endif
       pReal->DrawInstanced (
@@ -866,13 +860,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
                                       UINT                       NumClassInstances ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShader_Impl   (pReal,
-           pGeometryShader, sk_shader_class::Geometry,
-                                    ppClassInstances,
-                                   NumClassInstances, true,
-               dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_SetShader_Impl   (pReal,
+             pGeometryShader, sk_shader_class::Geometry,
+                                      ppClassInstances,
+                                     NumClassInstances, true,
+                 dev_ctx_handle_    );
     else
 #endif
       pReal->GSSetShader (pGeometryShader, ppClassInstances, NumClassInstances);
@@ -890,15 +883,15 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Vertex,
-                        deferred_ ?
-                             TRUE : FALSE,
-                        nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_SetShaderResources_Impl (
+             SK_D3D11_ShaderType::Vertex,
+                          deferred_ ?
+                               TRUE : FALSE,
+                          nullptr, pReal,
+               StartSlot, NumViews,
+             ppShaderResourceViews, dev_ctx_handle_
+                                           );
     else
 #endif
       pReal->VSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
@@ -955,15 +948,15 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_SetShaderResources_Impl (
-           SK_D3D11_ShaderType::Geometry,
-                               deferred_ ?
-                                    TRUE : FALSE,
-                          nullptr, pReal,
-             StartSlot, NumViews,
-           ppShaderResourceViews, dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_SetShaderResources_Impl (
+             SK_D3D11_ShaderType::Geometry,
+                                 deferred_ ?
+                                      TRUE : FALSE,
+                            nullptr, pReal,
+               StartSlot, NumViews,
+             ppShaderResourceViews, dev_ctx_handle_
+                                           );
     else
 #endif
       pReal->GSSetShaderResources (StartSlot, NumViews, ppShaderResourceViews);
@@ -986,13 +979,12 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_opt_                                                   ID3D11DepthStencilView        *pDepthStencilView ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_OMSetRenderTargets_Impl (pReal,
-                               NumViews,
-                    ppRenderTargetViews,
-                     pDepthStencilView, TRUE,
-                     dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_OMSetRenderTargets_Impl (pReal,
+                                 NumViews,
+                      ppRenderTargetViews,
+                       pDepthStencilView, TRUE,
+                       dev_ctx_handle_     );
     else
 #endif
       pReal->OMSetRenderTargets (NumViews, ppRenderTargetViews, pDepthStencilView);
@@ -1008,14 +1000,14 @@ if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
     _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts ) override
   {
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
-        SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (pReal,
-                   NumRTVs,
-                    ppRenderTargetViews,
-                     pDepthStencilView,  UAVStartSlot, NumUAVs,
-                               ppUnorderedAccessViews,   pUAVInitialCounts,
-          TRUE, dev_ctx_handle_
-        );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+          SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (pReal,
+                     NumRTVs,
+                      ppRenderTargetViews,
+                       pDepthStencilView,  UAVStartSlot, NumUAVs,
+                                 ppUnorderedAccessViews,   pUAVInitialCounts,
+            TRUE, dev_ctx_handle_
+          );
     else
 #endif
       pReal->OMSetRenderTargetsAndUnorderedAccessViews (

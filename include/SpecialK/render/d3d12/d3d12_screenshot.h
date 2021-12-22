@@ -53,7 +53,7 @@ public:
     framebuffer_s*                        pBackingStore          = nullptr;
   };
 
-  explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
+  explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
   explicit SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
                                  const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
                                  const SK_ComPtr <IDXGISwapChain3>&    pSwapChain );
@@ -63,7 +63,7 @@ public:
           }
 
   __inline bool isValid (void) noexcept { return readback_ctx.pFence.p != nullptr; }
-  __inline bool isReady (void)
+  __inline bool isReady (void) noexcept
   {
     if (                                      (! isValid ()) ||
        (ulCommandIssuedOnFrame > (SK_GetFramesDrawn () - 1))  )
@@ -77,16 +77,16 @@ public:
            );
   }
 
-  SK_D3D12_Screenshot& __cdecl operator= (      SK_D3D12_Screenshot&& moveFrom) noexcept;
+  SK_D3D12_Screenshot& __cdecl operator= (      SK_D3D12_Screenshot&& moveFrom);
 
   SK_D3D12_Screenshot                    (const SK_D3D12_Screenshot&          ) = delete;
   SK_D3D12_Screenshot&          operator=(const SK_D3D12_Screenshot&          ) = delete;
 
-  void dispose (void) noexcept;
+  void dispose (void);
   bool getData ( UINT* const pWidth,
                  UINT* const pHeight,
                  uint8_t   **ppData,
-                 bool        Wait = false ) noexcept;
+                 bool        Wait = false );
 
   __inline
   DXGI_FORMAT
@@ -105,9 +105,9 @@ public:
       std::unique_ptr <uint8_t []> bytes   = nullptr;
     } static root_;
 
-    ~framebuffer_s (void)
+    ~framebuffer_s (void) noexcept
     {
-      if (PixelBuffer == root_.bytes)
+      if (PixelBuffer.get () == root_.bytes.get ())
           PixelBuffer.release ();
 
       PixelBuffer.reset ();
@@ -144,7 +144,7 @@ public:
   }
 
   readback_ctx_s*
-  getReadbackContext (void)
+  getReadbackContext (void) noexcept
   {
     return &readback_ctx;
   }

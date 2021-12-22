@@ -531,7 +531,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
           dll_log->Log ( L"[SteamRange] Steam Replacement Pixel Shader <scRGB %f nits>",
-                          config.steam.overlay_hdr_luminance * 80.0f
+                          config.steam.overlay_hdr_luminance * 80.0
                                  )//,steam_ps_scRGB.c_str () )
         );
 
@@ -587,12 +587,9 @@ SK_D3D11_CreateShader_Impl (
     S_OK;
 
   const auto GetResources =
-  [&]( SK_Thread_CriticalSection**                        ppCritical,
-       SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>** ppShaderDomain ) noexcept
+  [&]( gsl::not_null <SK_Thread_CriticalSection**>                        ppCritical,
+       gsl::not_null <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>**> ppShaderDomain ) noexcept
   {
-    if (! ppShaderDomain)
-      return;
-
     auto& shaders =
       SK_D3D11_Shaders;
 

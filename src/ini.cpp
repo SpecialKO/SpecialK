@@ -970,7 +970,7 @@ void
 __stdcall
 iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 {
-  auto add =
+  const auto add =
     keys.emplace (std::make_pair (key, value));
 
   if (add.second)

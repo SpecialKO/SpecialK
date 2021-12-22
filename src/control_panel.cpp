@@ -476,7 +476,7 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVM
   if (pDirty_ != nullptr)
   {
     pDirty       = pDirty_;
-    display_name = display_name_;
+    display_name = std::move (display_name_);
     orig_mode    = orig_mode_;
     dwInitiated  = SK_timeGetTime ();
 
@@ -674,7 +674,7 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-  static CHandle hAdjustEvent (
+  static SK_AutoHandle hAdjustEvent (
     SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
   );
 
@@ -718,7 +718,7 @@ SK_ImGui_AdjustCursor (void)
       return 0;
     },
     L"[SK] Cursor Adjustment Thread",
-    (LPVOID)hAdjustEvent
+    (LPVOID)hAdjustEvent.m_h
   );
 }
 
@@ -1335,7 +1335,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       std::vector <monitor_s> monitors;
 
-      for ( auto display : rb.displays )
+      for ( const auto& display : rb.displays )
       {
         if (EnumDisplaySettings (display.gdi_name, ENUM_REGISTRY_SETTINGS, &dm))
         {
@@ -1354,10 +1354,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         dm.dmSize = sizeof (DEVMODE);
       }
 
-      for ( auto monitor : monitors )
+      for ( const auto& monitor : monitors )
       {
         DEVMODE
-          dmNew          = { };
           dmNew          = monitor.dm;
           dmNew.dmFields = DM_POSITION;
 
@@ -1365,7 +1364,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         dmNew.dmPosition.x -= lOrigin.x;
         dmNew.dmPosition.y -= lOrigin.y;
 
-        bool primary =
+        const bool primary =
           ( dmNew.dmPosition.x == 0 && dmNew.dmPosition.y == 0 );
 
         if ( DISP_CHANGE_SUCCESSFUL !=
@@ -3532,8 +3531,8 @@ SK_ImGui_ControlPanel (void)
     else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) &&
                     (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated_d3d9))
     {
-      if (! translated_d3d9)lstrcatA  (szAPIName, (const char *)   u8"→11");
-      else                  lstrcpynA (szAPIName, (const char *)u8"D3D9→11", 32);
+      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→11");
+      else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
     }
 
     lstrcatA ( szAPIName,
@@ -3589,11 +3588,11 @@ SK_ImGui_ControlPanel (void)
                                        szResolution))
       {
         config.window.res.override.x =
-                  static_cast <UINT> (
+              sk::narrow_cast <UINT> (
         io.DisplayFramebufferScale.x );
 
         config.window.res.override.y =
-                  static_cast <UINT> (
+              sk::narrow_cast <UINT> (
         io.DisplayFramebufferScale.y );
 
         override =
@@ -4130,12 +4129,12 @@ SK_ImGui_ControlPanel (void)
               {
                 if (! rb.gsync_state.disabled)
                 {
-                  rb.gsync_state.disabled = true;
-                  SK_NvAPI_SetVRREnablement (FALSE);
+                  ///rb.gsync_state.disabled = true;
+                  ///SK_NvAPI_SetVRREnablement (FALSE);
 
                   if (rb.gsync_state.capable)
                   {
-                    SK_RunOnce (SK_ImGui_Warning (L"Game Restart Required to Disable G-Sync"));
+                    SK_RunOnce (SK_ImGui_Warning (L"Latent Sync may not work correctly while G-Sync is active"));
                   }
                 }
 

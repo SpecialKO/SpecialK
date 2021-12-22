@@ -215,8 +215,8 @@ D3D11Dev_CreateShaderResourceView_Override (
 
               SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
                             cache_desc.crc32c,
-                       SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
-                                SK_DXGI_FormatToStr (newFormat).c_str () ),
+                       SK_DXGI_FormatToStr (pDesc->Format).data      (),
+                                SK_DXGI_FormatToStr (newFormat).data () ),
                           L"DX11TexMgr" );
             }
 
@@ -389,8 +389,8 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
             SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
                           cache_desc.crc32c,
-                     SK_DXGI_FormatToStr (pDesc->Format).c_str      (),
-                              SK_DXGI_FormatToStr (newFormat).c_str () ),
+                     SK_DXGI_FormatToStr (pDesc->Format).data      (),
+                              SK_DXGI_FormatToStr (newFormat).data () ),
                         L"DX11TexMgr" );
           }
         }
@@ -617,7 +617,7 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
-  if ((pDesc != nullptr) ||
+  if ((pDesc == nullptr) ||
                  ( pDesc->Width  < 4 &&
                    pDesc->Height < 4    ))
   {

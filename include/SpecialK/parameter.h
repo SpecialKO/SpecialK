@@ -177,7 +177,7 @@ public:
 
   bool         load          (      bool&         ref) override;
 
-  enum boolean_term_t {
+  enum class boolean_term_e {
     TrueFalse   = 0,
     OnOff       = 1,
     YesNo       = 2,
@@ -185,7 +185,7 @@ public:
   };
 
 protected:
-  boolean_term_t type = TrueFalse;
+  boolean_term_e type = boolean_term_e::TrueFalse;
 };
 
 class ParameterFloat : public Parameter <float>
@@ -315,7 +315,7 @@ public:
     }
 
     else
-      assert (false);
+      SK_ReleaseAssert (! L"Unknown Parameter Type");
 
     return params.back ().get ();
   }

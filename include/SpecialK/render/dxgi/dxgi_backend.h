@@ -310,7 +310,7 @@ struct mem_info_t {
 static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 128;
 
 LONG
-SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pCtx);
+SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pDevCtx);
 
 // Use this when wrapping a device context, we want the wrapper and the
 //   internal pointer to agree on context handle
@@ -435,7 +435,7 @@ extern CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
 extern CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
-std::wstring
+std::wstring_view
 __stdcall
 SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept;
 
@@ -467,22 +467,22 @@ std::wstring
 SK_GetDXGIFactoryInterfaceEx (const IID& riid);
 
 int
-SK_GetDXGIFactoryInterfaceVer (IUnknown *pFactory);
+SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory);
 
 std::wstring
-SK_GetDXGIFactoryInterface (IUnknown *pFactory);
+SK_GetDXGIFactoryInterface    (gsl::not_null <IUnknown *> pFactory);
 
 int
 SK_GetDXGIAdapterInterfaceVer (const IID& riid);
 
 std::wstring
-SK_GetDXGIAdapterInterfaceEx (const IID& riid);
+SK_GetDXGIAdapterInterfaceEx  (const IID& riid);
 
 int
-SK_GetDXGIAdapterInterfaceVer (IUnknown *pAdapter);
+SK_GetDXGIAdapterInterfaceVer (gsl::not_null <IUnknown *> pAdapter);
 
 std::wstring
-SK_GetDXGIAdapterInterface (IUnknown *pAdapter);
+SK_GetDXGIAdapterInterface    (gsl::not_null <IUnknown *> pAdapter);
 
 void        SK_DXGI_QuickHook (void);
 void WINAPI SK_HookDXGI       (void);

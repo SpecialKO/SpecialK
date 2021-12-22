@@ -35,19 +35,19 @@
 class SK_D3D9_Screenshot
 {
 public:
-  explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
+  explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
   explicit SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice);
           ~SK_D3D9_Screenshot (void) {
             dispose ();
           }
 
-  SK_D3D9_Screenshot& __cdecl operator= (      SK_D3D9_Screenshot&& moveFrom) noexcept;
+  SK_D3D9_Screenshot& __cdecl operator= (      SK_D3D9_Screenshot&& moveFrom);
 
   SK_D3D9_Screenshot                    (const SK_D3D9_Screenshot&          ) = delete;
   SK_D3D9_Screenshot&          operator=(const SK_D3D9_Screenshot&          ) = delete;
 
   __inline bool isValid (void) noexcept { return true; }
-  __inline bool isReady (void)
+  __inline bool isReady (void) noexcept
   {
     if ( (! isValid ())                                       ||
          (ulCommandIssuedOnFrame > (SK_GetFramesDrawn () - 1)) )
@@ -58,15 +58,15 @@ public:
     return true;
   }
 
-  void dispose (void) noexcept;
+  void dispose (void);
 
 
   bool getData ( UINT     *pWidth,
                  UINT     *pHeight,
                  uint8_t **ppData,
-                 bool      Wait = false ) noexcept;
+                 bool      Wait = false );
 
-  __inline D3DFORMAT getInternalFormat (void) {
+  __inline D3DFORMAT getInternalFormat (void) noexcept {
     return framebuffer.NativeFormat;
   }
 
@@ -79,9 +79,9 @@ public:
       std::unique_ptr <uint8_t []> bytes   = nullptr;
     } static root_;
 
-    ~framebuffer_s (void)
+    ~framebuffer_s (void) noexcept
     {
-      if (PixelBuffer == root_.bytes)
+      if (PixelBuffer.get () == root_.bytes.get ())
         PixelBuffer.release (); // Does not free
 
       PixelBuffer.reset ();

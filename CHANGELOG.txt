@@ -1,4 +1,17 @@
-﻿21.12.19
+﻿21.12.22
+========
+ + Fix GDI memory leak when copying screenshots to clipboard
+
+21.12.20
+========
+ + Lossless (SDR) screenshots taken in 10-bpc D3D12 games
+     will now use 48-bpp PNG to preserve lossless quality
+ + Added D3D12 Shader Load Activity to Logs
+ + Removed auto-disable G-Sync option from Latent Sync
+ + Optimized Latent Sync's signal timing acquisition
+ + Optimized framerate limiter for Final Fantasy 7 Remake
+
+21.12.19
 ========
  + Fixed various build environment issues:
 

@@ -330,7 +330,7 @@ SK_ETW_EndTracing (void)
 }
 
 char          SK_PresentDebugStr [2][256] = { "", "" };
-volatile LONG SK_PresentIdx;
+volatile LONG SK_PresentIdx               =          0;
 
 extern void SK_ImGui_DrawFramePercentiles (void);
 
@@ -403,12 +403,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
   extra_status_line = 0;
 
   SK_SpawnPresentMonWorker ();
-  if (*SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)] != '\0')
+
+  auto presentStrIdx =
+    ReadAcquire (&SK_PresentIdx);
+
+  if (*SK_PresentDebugStr [presentStrIdx] != '\0')
   {
     extra_status_line = 1;
 
     ImGui::TextUnformatted (
-      SK_PresentDebugStr [ReadAcquire (&SK_PresentIdx)]
+      SK_PresentDebugStr [presentStrIdx]
     );
 
     ImGui::SameLine ();
@@ -959,7 +963,7 @@ float fExtraData = 0.0f;
 class SKWG_FramePacing : public SK_Widget
 {
 public:
-  SKWG_FramePacing (void) noexcept : SK_Widget ("FramePacing")
+  SKWG_FramePacing (void) : SK_Widget ("FramePacing")
   {
     SK_ImGui_Widgets->frame_pacing = this;
 
@@ -969,14 +973,14 @@ public:
     SK_FramePercentiles->load_percentile_cfg ();
   };
 
-  void load (iSK_INI* cfg) noexcept override
+  void load (iSK_INI* cfg) override
   {
     SK_Widget::load (cfg);
 
     SK_FramePercentiles->load_percentile_cfg ();
   }
 
-  void save (iSK_INI* cfg) noexcept override
+  void save (iSK_INI* cfg) override
   {
     if (cfg == nullptr)
       return;
@@ -988,7 +992,7 @@ public:
     cfg->write ();
   }
 
-  void run (void) noexcept override
+  void run (void) override
   {
     static auto* cp =
       SK_GetCommandProcessor ();
@@ -1059,7 +1063,7 @@ public:
     }
   }
 
-  void draw (void) noexcept override
+  void draw (void) override
   {
     if (ImGui::GetFont () == nullptr)
       return;
@@ -1215,7 +1219,7 @@ public:
   }
 
 
-  void config_base (void) noexcept override
+  void config_base (void) override
   {
     SK_Widget::config_base ();
 

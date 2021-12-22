@@ -43,7 +43,7 @@ using SetThreadDescription_pfn = HRESULT (WINAPI *)(HANDLE, PCWSTR);
       SetThreadDescription_pfn
       SetThreadDescription_Original = nullptr;
 
-const DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
+static constexpr DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
 SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
 SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
@@ -564,10 +564,10 @@ SetThreadAffinityMask_Detour (
 #define MAX_THREAD_NAME_LEN MAX_PATH
 
 struct SK_ThreadBaseParams {
-  LPTHREAD_START_ROUTINE lpStartFunc;
-  LPVOID                 lpUserParams;
-  HANDLE                 hHandleToStuffInternally;
-  wchar_t                lpThreadName [MAX_THREAD_NAME_LEN] = { };
+  LPTHREAD_START_ROUTINE lpStartFunc                        = nullptr;
+  LPVOID                 lpUserParams                       = nullptr;
+  HANDLE                 hHandleToStuffInternally           = nullptr;
+  wchar_t                lpThreadName [MAX_THREAD_NAME_LEN] = {     };
 };
 
 DWORD

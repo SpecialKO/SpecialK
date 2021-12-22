@@ -4840,7 +4840,7 @@ using PlaySoundW_pfn  = BOOL  (WINAPI *)(LPCWSTR,HMODULE,DWORD);
 
 DWORD
 WINAPI
-SK_timeGetTime (void)
+SK_timeGetTime (void) noexcept
 {
   LARGE_INTEGER                    qpcNow;
   if (SK_QueryPerformanceCounter (&qpcNow))

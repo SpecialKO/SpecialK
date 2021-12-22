@@ -27,7 +27,7 @@
 extern void SK_Screenshot_PlaySound            (void);
 extern void SK_Steam_CatastropicScreenshotFail (void);
 
-SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom) noexcept
+SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom)
 {
   if (this != &moveFrom)
   {
@@ -193,7 +193,7 @@ SK_GL_Screenshot::framebuffer_s::PinnedBuffer
 SK_GL_Screenshot::framebuffer_s::root_;
 
 void
-SK_GL_Screenshot::dispose (void) noexcept
+SK_GL_Screenshot::dispose (void)
 {
   hglrc = nullptr;
 
@@ -243,7 +243,7 @@ bool
 SK_GL_Screenshot::getData ( UINT* const pWidth,
                             UINT* const pHeight,
                             uint8_t   **ppData,
-                            bool        Wait ) noexcept
+                            bool        Wait )
 {
   auto& pooled =
     SK_ScreenshotQueue::pooled;

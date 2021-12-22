@@ -778,7 +778,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::BeginGroup      (                  );
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
         ImGui::Text            ( "%ws",
-                                   SK_DXGI_FormatToStr (tex_desc.Format).c_str () );
+                                   SK_DXGI_FormatToStr (tex_desc.Format).data () );
         ImGui::Text            ( "%08x", entry.crc32c);
         ImGui::Text            ( "%.3f MiB", (float)
                                    tex_size / (1024.0f * 1024.0f) );

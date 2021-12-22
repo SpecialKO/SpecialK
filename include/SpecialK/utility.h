@@ -199,7 +199,8 @@ class SK_AutoHandle : public CHandle
   //   the signed half of the address space is only for kernel
 
 public:
-   SK_AutoHandle (HANDLE hHandle) noexcept : CHandle (hHandle) { };
+   SK_AutoHandle (HANDLE hHandle) noexcept : CHandle (hHandle)              { };
+   SK_AutoHandle (void)           noexcept : CHandle (INVALID_HANDLE_VALUE) { };
   ~SK_AutoHandle (void)           noexcept
   {
     // We cannot close these handles because technically they
@@ -594,14 +595,14 @@ private:
   class InstructionSet_Internal
   {
   public:
-    InstructionSet_Internal (void) noexcept : nIds_     { 0     }, nExIds_   { 0     },
-                                              vendor_   (       ), brand_    (       ),
-                                              family_   { 0     }, model_    { 0     },
-                                              stepping_ { 0     },
-                                              isIntel_  { false }, isAMD_    { false },
-                                              f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
-                                              f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
-                                              f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
+    InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
+                                     vendor_   (       ), brand_    (       ),
+                                     family_   { 0     }, model_    { 0     },
+                                     stepping_ { 0     },
+                                     isIntel_  { false }, isAMD_    { false },
+                                     f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
+                                     f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
+                                     f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
     {
       //int cpuInfo[4] = {-1};
       std::array <int, 4> cpui;
@@ -614,7 +615,7 @@ private:
 
       for (int i = 0; i <= nIds_; ++i)
       {
-        __cpuidex          (cpui.data (), i, 0);
+        __cpuidex (cpui.data (), i, 0);
         data_.emplace_back (cpui);
       }
 
@@ -750,7 +751,7 @@ SK_make_unique_nothrow (Args && ... args) noexcept
 (  T ( std::forward   < Args >     (args)   ... ))
 );
 
-DWORD WINAPI SK_timeGetTime (void);
+DWORD WINAPI SK_timeGetTime (void) noexcept;
 BOOL  WINAPI SK_PlaySound   (_In_opt_ LPCWSTR pszSound,
                              _In_opt_ HMODULE hmod,
                              _In_     DWORD   fdwSound);

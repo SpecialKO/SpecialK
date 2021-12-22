@@ -281,3 +281,4 @@ paket-files/
 /src/render/gl/opengl_stateblock.cpp
 /src/framerate - Copy.cpp
 /packages.7z
+*.BuildAgent

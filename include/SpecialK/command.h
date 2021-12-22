@@ -140,8 +140,8 @@ interface SK_IVarStub : public SK_IVariable
 
   virtual ~SK_IVarStub (void) noexcept
   {
-    if (min_ != nullptr) delete min_;
-    if (max_ != nullptr) delete max_;
+    delete min_;
+    delete max_;
   }
 
   void getValueString ( _Out_opt_ char*     szOut,

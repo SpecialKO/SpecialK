@@ -5624,7 +5624,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         window->DC.GroupStack.resize(0);
         window->MenuColumns.Update(3, style.ItemSpacing.x, window_just_activated_by_user);
 
-        if ((flags & ImGuiWindowFlags_ChildWindow) && (window->DC.ItemFlags != parent_window->DC.ItemFlags))
+        if ((flags & ImGuiWindowFlags_ChildWindow) && (parent_window != nullptr && window->DC.ItemFlags != parent_window->DC.ItemFlags))
         {
             window->DC.ItemFlags = parent_window->DC.ItemFlags;
             window->DC.ItemFlagsStack.push_back(window->DC.ItemFlags);

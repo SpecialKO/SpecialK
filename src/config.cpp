@@ -2595,8 +2595,18 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader_Vtx (0x9d5f74c0);
         SK_D3D11_DeclHUDShader_Pix (0xa9fd37df);
 
-        config.input.cursor.manage                      = true;
-        config.input.cursor.timeout                     = 0; // Mouse cursor? What's that?
+        config.input.cursor.manage               = true;
+        config.input.cursor.timeout              = 0; // Mouse cursor? What's that?
+
+        config.render.framerate.buffer_count     = 3;
+        config.render.framerate.pre_render_limit = 3;
+        config.render.framerate.max_delta_time   = 1;
+        config.render.framerate.sleepless_render = true;
+        config.render.framerate.sleepless_window = true;
+
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook = false;
       } break;
 #endif
     }

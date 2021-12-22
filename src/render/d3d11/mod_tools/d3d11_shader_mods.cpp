@@ -178,7 +178,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
       const NUMBERFMTA fmt = { 0, 0, 3, dot, comma, 0 };
 
-      snprintf (szNumber, 15, "%i", num);
+      snprintf (szNumber, 15, "%i", num), szNumber [15] = '\0';
 
       GetNumberFormatA ( MAKELCID (LOCALE_USER_DEFAULT, SORT_DEFAULT),
                            0x00,
@@ -195,7 +195,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       static auto& shaders = SK_D3D11_Shaders;
       static auto& vertex  = shaders->vertex;
 
-      auto tracker =
+      auto const tracker =
         &vertex.tracked;
 
       static int min_verts_input,
@@ -642,7 +642,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             rtl.rt_views.erase (it);
       }
 
-       const ULONG64      zombie_threshold = 4;//120;
+   constexpr ULONG64      zombie_threshold = 4;//120;
       static ULONG64 last_zombie_pass      = frames_drawn;
 
       if (last_zombie_pass <= frames_drawn - zombie_threshold / 2)
@@ -1120,12 +1120,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
               ImGui::SameLine   ( );
 
-              ImGui::BeginGroup (                                              );
+              ImGui::BeginGroup (                                             );
               ImGui::Text       ( "%lux%lu",
                                     desc.Width, desc.Height/*, effective_width, effective_height, 0.9875f * content_avail_y - ((float)(bottom_list + 3) * font_size * 1.125f), content_avail_y*//*,
-                                      pTex->d3d9_tex->GetLevelCount ()*/       );
+                                      pTex->d3d9_tex->GetLevelCount ()*/      );
               ImGui::Text       ( "%ws",
-                                    SK_DXGI_FormatToStr (desc.Format).c_str () );
+                                    SK_DXGI_FormatToStr (desc.Format).data () );
               ImGui::Text       ( "%ws",
                                     SK_D3D11_DescribeUsage (desc.Usage) );
               ImGui::EndGroup   ();

@@ -485,7 +485,7 @@ SK_DS3_GetMonitorDims (void)
   monitor_dims_s dims;
 
   MONITORINFO minfo = { };
-  minfo.cbSize      = sizeof MONITORINFO;
+  minfo.cbSize      = sizeof (MONITORINFO);
 
   GetMonitorInfo ( MonitorFromWindow ( ds3_state.Window,
                                          MONITOR_DEFAULTTOPRIMARY ),
@@ -1060,7 +1060,7 @@ SK_DS3_SetFullscreenState (
     if (ds3_cfg.window.borderless && sus_state.MaxWindow)
     {
       DEVMODEW devmode = { };
-               devmode.dmSize  = sizeof DEVMODEW;
+               devmode.dmSize  = sizeof (DEVMODEW);
 
       EnumDisplaySettingsW_Original (nullptr, ENUM_CURRENT_SETTINGS, &devmode);
 

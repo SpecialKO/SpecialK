@@ -61,7 +61,7 @@ struct SK_ImGui_D3D12Ctx
     { INT size;
     } Vb, Ib;
   } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
-} _imgui_d3d12;
+} static _imgui_d3d12;
 
 extern
 void
@@ -358,7 +358,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   ctx->IASetIndexBuffer (
     std::array <D3D12_INDEX_BUFFER_VIEW, 1> (
     { pHeap->Ib->GetGPUVirtualAddress (),
-      pHeap->Ib.size * sizeof (ImDrawIdx),
+      pHeap->Ib.size * sizeof (ImDrawIdx), // C:\Users\amcol\source\repos\SpecialK\src\imgui\backends\imgui_d3d12.cpp(361): error: non-constant-expression cannot be narrowed from type 'unsigned long long' to 'UINT' (aka 'unsigned int') in initializer list [clang-diagnostic-c++11-narrowing]
                        sizeof (ImDrawIdx) == 2 ?
                           DXGI_FORMAT_R16_UINT :
                           DXGI_FORMAT_R32_UINT
@@ -851,7 +851,7 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 {
   SK_LOG0 ( ( L"(+) Acquiring D3D12 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
                 device, num_frames_in_flight,
-                                      SK_DXGI_FormatToStr (rtv_format).c_str (),
+                                      SK_DXGI_FormatToStr (rtv_format).data (),
                                       hwnd ),
               L"D3D12BkEnd" );
 
@@ -883,7 +883,7 @@ ImGui_ImplDX12_Shutdown (void)
   {
     SK_LOG0 ( ( L"(-) Releasing D3D12 Render Context: Device=%08xh, SwapChain: {%ws, HWND=%08xh}",
                                             _imgui_d3d12.pDevice.p,
-                       SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).c_str (),
+                       SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).data (),
                                             _imgui_d3d12.hWndSwapChain),
                 L"D3D12BkEnd" );
   }

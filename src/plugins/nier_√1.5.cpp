@@ -29,7 +29,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2.1"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -62,7 +62,7 @@ struct {
   std::vector <DIDEVICEINSTANCEW> attached;
   std::recursive_mutex            lock;
   DIDEVICEINSTANCEW               last_good = { };
-} static __DInput8;
+} __DInput8;
 
 struct {
   bool enabled = false;
@@ -934,7 +934,7 @@ SK_NIER_RAD_BeginFrame (void)
     // Enable this for XInput users only
     if (_SK_NIER_RAD_FixDInput8EnumDevices)
     {
-      if (SK_XInput_Backend->getInputAge (4UL) < 1.0f)
+      //if (SK_XInput_Backend->getInputAge (4UL) < 1.0f /*|| SK_DI8_Backend->getInputAge (sk_input_dev_type::Gamepad ???*/)
         config.input.gamepad.disable_ps4_hid = true;
     }
   }

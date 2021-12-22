@@ -33,7 +33,7 @@ typedef _Return_type_success_(return >= 0)
 typedef NTSTATUS *PNTSTATUS;
 typedef LONG       KPRIORITY;
 
-#define INITIAL_THREAD_CAPACITY 128
+constexpr auto INITIAL_THREAD_CAPACITY = 128;
 
 typedef enum _KTHREAD_STATE
 {

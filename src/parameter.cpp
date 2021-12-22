@@ -257,15 +257,15 @@ sk::ParameterBool::get_value_str (void)
 #else
   // Traditional behavior, more soothing ont he eyes ;)
   switch (type) {
-    case ZeroNonZero:
-      return value  ?  L"1"    : L"0";
-    case YesNo:
-      return value  ?  L"yes"  : L"no";
-    case OnOff:
-      return value  ?  L"on"   : L"off";
-    case TrueFalse:
+    case boolean_term_e::ZeroNonZero:
+      return value                  ?  L"1"    : L"0";
+    case boolean_term_e::YesNo:
+      return value                  ?  L"yes"  : L"no";
+    case boolean_term_e::OnOff:
+      return value                  ?  L"on"   : L"off";
+    case boolean_term_e::TrueFalse:
     default:
-      return value  ?  L"true" : L"false";
+      return value                  ?  L"true" : L"false";
   }
 #endif
 }
@@ -286,14 +286,17 @@ sk::ParameterBool::set_value (bool val)
 void
 sk::ParameterBool::set_value_str (const wchar_t *str)
 {
+  if (str == nullptr || *str == '\0')
+    return;
+
   size_t len = wcslen (str);
 
-  type = TrueFalse;
+  type = boolean_term_e::TrueFalse;
 
   switch (len)
   {
     case 1:
-      type = ZeroNonZero;
+      type = boolean_term_e::ZeroNonZero;
 
       if (str [0] == L'1')
         value = true;
@@ -302,11 +305,11 @@ sk::ParameterBool::set_value_str (const wchar_t *str)
     case 2:
       if ( towlower (str [0]) == L'o' &&
            towlower (str [1]) == L'n' ) {
-        type  = OnOff;
+        type  = boolean_term_e::OnOff;
         value = true;
       } else if ( towlower (str [0]) == L'n' &&
                   towlower (str [1]) == L'o' ) {
-        type  = YesNo;
+        type  = boolean_term_e::YesNo;
         value = false;
       }
       break;
@@ -315,12 +318,12 @@ sk::ParameterBool::set_value_str (const wchar_t *str)
       if ( towlower (str [0]) == L'y' &&
            towlower (str [1]) == L'e' &&
            towlower (str [2]) == L's' ) {
-        type  = YesNo;
+        type  = boolean_term_e::YesNo;
         value = true;
       } else if ( towlower (str [0]) == L'o' &&
                   towlower (str [1]) == L'f' &&
                   towlower (str [2]) == L'f' ) {
-        type  = OnOff;
+        type  = boolean_term_e::OnOff;
         value = false;
       }
       break;
@@ -344,12 +347,12 @@ sk::ParameterBool::set_value_str (const std::wstring& str)
 {
   size_t len = str.length ();
 
-  type = TrueFalse;
+  type = boolean_term_e::TrueFalse;
 
   switch (len)
   {
     case 1:
-      type = ZeroNonZero;
+      type = boolean_term_e::ZeroNonZero;
 
       if (str [0] == L'1')
         value = true;
@@ -358,11 +361,11 @@ sk::ParameterBool::set_value_str (const std::wstring& str)
     case 2:
       if ( towlower (str [0]) == L'o' &&
            towlower (str [1]) == L'n' ) {
-        type  = OnOff;
+        type  = boolean_term_e::OnOff;
         value = true;
       } else if ( towlower (str [0]) == L'n' &&
                   towlower (str [1]) == L'o' ) {
-        type  = YesNo;
+        type  = boolean_term_e::YesNo;
         value = false;
       }
       break;
@@ -371,12 +374,12 @@ sk::ParameterBool::set_value_str (const std::wstring& str)
       if ( towlower (str [0]) == L'y' &&
            towlower (str [1]) == L'e' &&
            towlower (str [2]) == L's' ) {
-        type  = YesNo;
+        type  = boolean_term_e::YesNo;
         value = true;
       } else if ( towlower (str [0]) == L'o' &&
                   towlower (str [1]) == L'f' &&
                   towlower (str [2]) == L'f' ) {
-        type  = OnOff;
+        type  = boolean_term_e::OnOff;
         value = false;
       }
       break;

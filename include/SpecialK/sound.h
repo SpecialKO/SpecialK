@@ -82,7 +82,7 @@ public:
         // This is all happening from the application's message pump in most games,
         //   so this specialized function avoids deadlocking the pump.
         InternalGetWindowText (win.root, wszTitle, 511);
-        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, static_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
+        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, sk::narrow_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
 
         //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
                     //L"  WASAPI  " );
@@ -308,7 +308,7 @@ public:
       session_mgr_->UnregisterSessionNotification (this);
   }
 
-  void Deactivate (void) noexcept
+  void Deactivate (void)
   {
     meter_info_   = nullptr;
     endpoint_vol_ = nullptr;
@@ -472,7 +472,7 @@ public:
 
   IAudioMeterInformation* getMeterInfo (void) noexcept
   {
-    return meter_info_;
+    return meter_info_.p;
   }
 
   SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) noexcept
@@ -486,7 +486,7 @@ public:
   SK_WASAPI_AudioSession** getInactive (int* pCount = nullptr) noexcept
   {
     if (pCount)
-      *pCount = static_cast <int> (inactive_sessions_.view.size ());
+      *pCount = sk::narrow_cast <int> (inactive_sessions_.view.size ());
 
     return
       inactive_sessions_.view.data ();

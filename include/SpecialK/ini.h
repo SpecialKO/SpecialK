@@ -58,7 +58,7 @@ public:
                                                   parent (_parent) {
   }
 
-  virtual ~iSK_INISection (void) noexcept { };
+  virtual ~iSK_INISection (void) = default;
 
   /*** IUnknown methods ***/
   STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);

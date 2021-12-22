@@ -410,7 +410,7 @@ SteamAPI_RunCallbacks_throttled (void)
 {
   static UINT64 ullLastCallback = 0;
 
-  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > (UINT64)((double)SK_QpcFreq * 0.025))
+  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > sk::narrow_cast <UINT64>((double)SK_QpcFreq * 0.025))
   {
     ullLastCallback =
       SK_QueryPerf ().QuadPart;
@@ -879,7 +879,7 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
       {
         SK_LOG3 ( ( LR"(GetProcAddress ([%ws], {Ordinal: %lu})  -  %ws)",
                         SK_GetModuleFullName (hModule).c_str (),
-                              ((uintptr_t)lpProcName & 0xFFFFU),
+                       (DWORD)((uintptr_t)lpProcName & 0xFFFFU),
                           SK_SummarizeCaller (       ).c_str () ),
                      L"DLL_Loader" );
       }
@@ -1125,15 +1125,7 @@ TerminateThread_Detour ( HANDLE hThread,
       }
     }
 
-    return TRUE;
-
-    // Stupid anti-tamper, just ignore it, it'll all be over quickly
-    if ( SK_GetCurrentGameID () == SK_GAME_ID::OctopathTraveler &&
-                     dwExitCode == 0x0 )
-    {
-      return
-        SK_TerminateThread (hThread, dwExitCode);
-    }
+////return TRUE;
 
     //UNREFERENCED_PARAMETER (uExitCode);
     if (dwExitCode == 0xdeadc0de)
@@ -1699,8 +1691,10 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
     if (__OriginalPEB.NumberOfProcessors == 0)
         __OriginalPEB = *(SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
 
+#if 0
     BOOL bWasBeingDebugged =
        pPeb->BeingDebugged;
+#endif
 
     static wchar_t wszWindowTitle [512] = { };
     if (          *wszWindowTitle == L'\0')
@@ -1735,8 +1729,6 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
       {
         SK_PEB *pPeb =
           static_cast <SK_PEB *>(pUser);
-
-        wchar_t wszWindowTitle [512] = { };
 
         BOOLEAN BeingDebugged = pPeb->BeingDebugged;
         ULONG   NtGlobalFlag  = pPeb->NtGlobalFlag;
@@ -2080,11 +2072,6 @@ ZwCreateThreadEx_Detour (
     if (config.system.log_level > 5)
       CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
 
-    SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by "
-                L"starting visible and suspended!",
-                     GetThreadId (*ThreadHandle) ),
-                L"DieAntiDbg" );
-
     Suspicious = TRUE;
   }
 
@@ -2265,11 +2252,6 @@ NtCreateThreadEx_Detour (
 
     if (config.system.log_level > 5)
       CreateFlags |= THREAD_CREATE_FLAGS_CREATE_SUSPENDED;
-
-    SK_LOG0 ( ( L"Tried to begin a debugger-hidden thread; punish it by "
-                L"starting visible and suspended!",
-                     GetThreadId (*ThreadHandle) ),
-                L"DieAntiDbg" );
 
     Suspicious = TRUE;
   }
@@ -3165,6 +3147,9 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
   {
     switch (ExceptionRecord->ExceptionCode)
     {
+      case 0x00000087A:
+      case 0x00000087B:
+      case 0x00000087C:
       case 0x00000087D:
         if (SK_IsDebuggerPresent ()) // DirectX Debug Layer
           RtlRaiseException_Original (ExceptionRecord);
@@ -3198,16 +3183,16 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
           if (ExceptionRecord->ExceptionCode == DBG_PRINTEXCEPTION_C)
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*hs",
-              wszModule, ExceptionRecord->ExceptionInformation [0],
-                         ExceptionRecord->ExceptionInformation [1] );
+              wszModule, sk::narrow_cast <UINT> (ExceptionRecord->ExceptionInformation [0]),
+                      reinterpret_cast <char *> (ExceptionRecord->ExceptionInformation [1]));
           }
 
           // UTF-16 (rarely ever seen)
           else
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*ws",
-              wszModule, ExceptionRecord->ExceptionInformation [0],
-                         ExceptionRecord->ExceptionInformation [1] );
+              wszModule, sk::narrow_cast <UINT> (ExceptionRecord->ExceptionInformation [0]),
+                   reinterpret_cast <wchar_t *> (ExceptionRecord->ExceptionInformation [1]));
 
             //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))
             //               (ExceptionRecord->ExceptionInformation [0]) != L'\n')
@@ -3262,6 +3247,24 @@ RaiseException_Detour (
   {
     switch (dwExceptionCode)
     {
+      case 0x00000087A:
+      case 0x00000087B:
+      case 0x00000087C:
+      case 0x00000087D:
+        if (SK_IsDebuggerPresent ()) // DirectX Debug Layer
+          RaiseException_Original (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments);
+
+        else
+        {
+          //SK_ReleaseAssert (ExceptionRecord->NumberParameters >= 3);
+
+          SK_LOG0 ( ( L"Debug Layer Text: %hs", (char *)lpArguments [2] ),
+                  L" D3DDebug " );
+
+          skip = true;
+        }
+        break;
+
       case DBG_PRINTEXCEPTION_C:
       case DBG_PRINTEXCEPTION_WIDE_C:
       {
@@ -3280,16 +3283,16 @@ RaiseException_Detour (
           if (dwExceptionCode == DBG_PRINTEXCEPTION_C)
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*hs",
-              wszModule, lpArguments [0],
-                         lpArguments [1] );
+              wszModule, sk::narrow_cast <UINT> (lpArguments [0]),
+                      reinterpret_cast <char *> (lpArguments [1]));
           }
 
           // UTF-16 (rarely ever seen)
           else
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*ws",
-              wszModule, lpArguments [0],
-                         lpArguments [1] );
+              wszModule, sk::narrow_cast <UINT> (lpArguments [0]),
+                   reinterpret_cast <wchar_t *> (lpArguments [1]));
 
             //if (((wchar_t *)ExceptionRecord->ExceptionInformation [1]))
             //               (ExceptionRecord->ExceptionInformation [0]) != L'\n')
@@ -3558,8 +3561,8 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
     // Workaround Steamworks Anti-Debug
     //
-//#ifdef _EXTENDED_DEBUG
-#if 1
+#ifdef _EXTENDED_DEBUG
+//#if 1
     SK_CreateDLLHook2 (    L"NtDll",
                             "RtlAcquirePebLock",
                              RtlAcquirePebLock_Detour,
@@ -3649,14 +3652,15 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RaiseException_Detour,
       static_cast_p2p <void> (&RaiseException_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll",
+#ifdef _EXTENDED_DEBUG
+    if (true)//config.advanced_debug)
+    {
+      // Unstable in Halo Infinite
+      SK_CreateDLLHook2 (      L"NtDll",
                               "RtlRaiseException",
                                RtlRaiseException_Detour,
       static_cast_p2p <void> (&RtlRaiseException_Original) );
 
-#ifdef _EXTENDED_DEBUG
-    if (true)//config.advanced_debug)
-    {
       if (config.compatibility.rehook_loadlibrary)
       {
         SK_CreateDLLHook2 (      L"NtDll",

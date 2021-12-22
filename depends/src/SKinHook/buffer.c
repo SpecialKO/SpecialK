@@ -39,6 +39,7 @@
 #define PAGE_EXECUTE_FLAGS \
     (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)
 
+#pragma warning (disable:4201)
 // Memory slot.
 typedef struct _MEMORY_SLOT
 {

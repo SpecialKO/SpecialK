@@ -100,8 +100,8 @@ public:
     SaveComplete,
   };
 
-  virtual void run  (void) noexcept { };
-  virtual void draw (void) noexcept { };
+  virtual void run  (void) { };
+  virtual void draw (void) { };
 
   virtual void run_base    (void);
   virtual void draw_base   (void);
@@ -117,28 +117,28 @@ public:
   };
 
 
-  SK_Widget& setName          (const char* szName)                 { name           = szName;         return *this; }
-  SK_Widget& setScale         (float       fScale)        noexcept { scale          = fScale;         return *this; }
+  SK_Widget& setName          (const char*   szName)                 { name           = szName;         return *this; }
+  SK_Widget& setScale         (float         fScale)        noexcept { scale          = fScale;         return *this; }
 //---------------------
-  SK_Widget& setVisible       (bool        bVisible)      noexcept { visible        = bVisible;
-                                                                 if (visible)  {
-                                                          setActive (visible); }                      return *this; }
-  SK_Widget& flashVisible     (void)                      noexcept { last_flash     =
-                                               static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f;  return *this; }
-  SK_Widget& setActive        (bool        bActive)       noexcept { active         = bActive;        return *this; }
+  SK_Widget& setVisible       (bool          bVisible)      noexcept { visible        = bVisible;
+                                                                   if (visible)  {
+                                                            setActive (visible); }                      return *this; }
+  SK_Widget& flashVisible     (void)                        noexcept { last_flash     =
+                                                 static_cast <float> ( SK_GetCurrentMS () ) / 1000.0f;  return *this; }
+  SK_Widget& setActive        (bool          bActive)       noexcept { active         = bActive;        return *this; }
 //--------------------
-  SK_Widget& setMovable       (bool        bMovable)      noexcept { movable        = bMovable;       return *this; }
-  SK_Widget& setResizable     (bool        bResizable)    noexcept { resizable      = bResizable;     return *this; }
-  SK_Widget& setAutoFit       (bool        bAutofit)      noexcept { autofit        = bAutofit;       return *this; }
-  SK_Widget& setBorder        (bool        bBorder)       noexcept { border         = bBorder;        return *this; }
-  SK_Widget& setClickThrough  (bool        bClickthrough) noexcept { click_through  = bClickthrough;  return *this; }
-  SK_Widget& setFlashDuration (float       fSeconds)      noexcept { flash_duration = fSeconds;       return *this; }
-  SK_Widget& setMinSize       (ImVec2&     iv2MinSize)    noexcept { min_size       = iv2MinSize;     return *this; }
-  SK_Widget& setMaxSize       (ImVec2&     iv2MaxSize)    noexcept { max_size       = iv2MaxSize;     return *this; }
-  SK_Widget& setSize          (ImVec2&     iv2Size)       noexcept { size           = iv2Size;        return *this; }
-  SK_Widget& setPos           (ImVec2&     iv2Pos)        noexcept { pos            = iv2Pos;         return *this; }
-  SK_Widget& setDockingPoint  (DockAnchor  dock_anchor)   noexcept { docking        = dock_anchor;    return *this; }
-  SK_Widget& setAlpha         (float       fAlpha)        noexcept { alpha          = fAlpha;         return *this; }
+  SK_Widget& setMovable       (bool          bMovable)      noexcept { movable        = bMovable;       return *this; }
+  SK_Widget& setResizable     (bool          bResizable)    noexcept { resizable      = bResizable;     return *this; }
+  SK_Widget& setAutoFit       (bool          bAutofit)      noexcept { autofit        = bAutofit;       return *this; }
+  SK_Widget& setBorder        (bool          bBorder)       noexcept { border         = bBorder;        return *this; }
+  SK_Widget& setClickThrough  (bool          bClickthrough) noexcept { click_through  = bClickthrough;  return *this; }
+  SK_Widget& setFlashDuration (float         fSeconds)      noexcept { flash_duration = fSeconds;       return *this; }
+  SK_Widget& setMinSize       (const ImVec2& iv2MinSize)    noexcept { min_size       = iv2MinSize;     return *this; }
+  SK_Widget& setMaxSize       (const ImVec2& iv2MaxSize)    noexcept { max_size       = iv2MaxSize;     return *this; }
+  SK_Widget& setSize          (const ImVec2& iv2Size)       noexcept { size           = iv2Size;        return *this; }
+  SK_Widget& setPos           (const ImVec2& iv2Pos)        noexcept { pos            = iv2Pos;         return *this; }
+  SK_Widget& setDockingPoint  (DockAnchor    dock_anchor)   noexcept { docking        = dock_anchor;    return *this; }
+  SK_Widget& setAlpha         (float         fAlpha)        noexcept { alpha          = fAlpha;         return *this; }
 
 
   const std::string& getName          (void) const noexcept { return    name;                   }
@@ -179,7 +179,7 @@ protected:
   virtual void save (iSK_INI* config_file);
 
   // This will be private when I get the factory setup
-  SK_Widget (const char* szName) noexcept : name (szName)
+  SK_Widget (const char* szName) : name (szName)
   {
     version__ = 1;
     state__   = 0;

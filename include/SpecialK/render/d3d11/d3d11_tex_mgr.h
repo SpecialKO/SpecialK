@@ -185,23 +185,23 @@ public:
 
     //TexRefs_2D.reserve       (8192);
     //Textures_2D.reserve      (8192);
-    HashMap_2D [ 1].reserve  ( 256); // Only      1x1
-    HashMap_2D [ 2].reserve  ( 512); // Up to     2x2
-    HashMap_2D [ 3].reserve  ( 512); // Up to     4x4
-    HashMap_2D [ 4].reserve  ( 512); // Up to     8x8
-    HashMap_2D [ 5].reserve  (1024); // Up to    16x16
-    HashMap_2D [ 6].reserve  ( 512); // Up to    32x32
-    HashMap_2D [ 7].reserve  ( 256); // Up to    64x64
-    HashMap_2D [ 8].reserve  ( 256); // Up to   128x128
-    HashMap_2D [ 9].reserve  (1280); // Up to   256x256
-    HashMap_2D [10].reserve  (2048); // Up to   512x512
-    HashMap_2D [11].reserve  (4096); // Up to  1024x1024
-    HashMap_2D [12].reserve  (4096); // Up to  2048x2048
-    HashMap_2D [13].reserve  (1024); // Up to  4096x4096
-    HashMap_2D [14].reserve  (  16); // Up to  8192x8192
-    HashMap_2D [15].reserve  (   8); // Up to 16384x16384
-    HashMap_2D [16].reserve  (   4); // Up to 32768x32768
-    HashMap_2D [17].reserve  (   2); // Up to 65536x65536
+    HashMap_2D.at ( 1).reserve  ( 256); // Only      1x1
+    HashMap_2D.at ( 2).reserve  ( 512); // Up to     2x2
+    HashMap_2D.at ( 3).reserve  ( 512); // Up to     4x4
+    HashMap_2D.at ( 4).reserve  ( 512); // Up to     8x8
+    HashMap_2D.at ( 5).reserve  (1024); // Up to    16x16
+    HashMap_2D.at ( 6).reserve  ( 512); // Up to    32x32
+    HashMap_2D.at ( 7).reserve  ( 256); // Up to    64x64
+    HashMap_2D.at ( 8).reserve  ( 256); // Up to   128x128
+    HashMap_2D.at ( 9).reserve  (1280); // Up to   256x256
+    HashMap_2D.at (10).reserve  (2048); // Up to   512x512
+    HashMap_2D.at (11).reserve  (4096); // Up to  1024x1024
+    HashMap_2D.at (12).reserve  (4096); // Up to  2048x2048
+    HashMap_2D.at (13).reserve  (1024); // Up to  4096x4096
+    HashMap_2D.at (14).reserve  (  16); // Up to  8192x8192
+    HashMap_2D.at (15).reserve  (   8); // Up to 16384x16384
+    HashMap_2D.at (16).reserve  (   4); // Up to 32768x32768
+    HashMap_2D.at (17).reserve  (   2); // Up to 65536x65536
 
     AggregateSize_2D  = 0ULL;
     RedundantData_2D  = 0ULL;

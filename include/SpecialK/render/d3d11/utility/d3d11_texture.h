@@ -30,7 +30,7 @@ SK_D3D11_DescribeTexFailure (const D3D11_TEXTURE2D_DESC   *__restrict pDesc)
              L"Format: %s, Usage: %s, CPUAccess: %x, BindFlags: %s, Misc Flags: %s]",
                            pDesc->Width,  pDesc->Height,
                        pDesc->MipLevels,  pDesc->ArraySize,
-              SK_DXGI_FormatToStr        (pDesc->Format).c_str (),
+              SK_DXGI_FormatToStr        (pDesc->Format).data (),
               SK_D3D11_DescribeUsage     (pDesc->Usage),
                                           pDesc->CPUAccessFlags,
               SK_D3D11_DescribeBindFlags (pDesc->BindFlags).c_str (),

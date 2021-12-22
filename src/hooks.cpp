@@ -132,7 +132,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
 
   if ( GetModuleInformation ( GetCurrentProcess (),
                                 hModLib, &mod_info,
-                                  sizeof MODULEINFO ) )
+                                  sizeof (MODULEINFO) ) )
   {
     if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
     {
@@ -237,7 +237,7 @@ SK_Hook_ResolveTarget ( sk_hook_cache_record_s &cache )
 
     if ( GetModuleInformation ( GetCurrentProcess (),
                                   hModBase, &mod_info,
-                                    sizeof MODULEINFO ) )
+                                    sizeof (MODULEINFO) ) )
     {
       cache.target.image_size = mod_info.SizeOfImage;
     }

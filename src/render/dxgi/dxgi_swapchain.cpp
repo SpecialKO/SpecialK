@@ -225,7 +225,7 @@ IWrapDXGISwapChain::Release (void)
 
   if (refs == 0)
   {
-    SK_LOG0 ( ( L"(-) Releasing wrapped SwapChain (%08xh)... device=%08xh, hwnd=%08xh", pReal, pDev.p, hwnd),
+    SK_LOG0 ( ( L"(-) Releasing wrapped SwapChain (%08ph)... device=%08ph, hwnd=%08ph", pReal, pDev.p, hwnd),
              L"Swap Chain");
 
     if (ver_ > 0)
@@ -284,10 +284,17 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
   SK_ReleaseAssert (pDev.p != nullptr);
 
-  //return
-  //  pReal->GetDevice (riid, ppDevice);
-  return
-    pDev->QueryInterface (riid, ppDevice);
+  if (pDev.p == nullptr && pReal != nullptr)
+  {
+    return
+      pReal->GetDevice (riid, ppDevice);
+  }
+
+  if (pDev.p != nullptr)
+    return
+      pDev->QueryInterface (riid, ppDevice);
+
+  return E_NOINTERFACE;
 }
 
 HRESULT
@@ -308,9 +315,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 }
 
 UINT
-SK_DXGI_FixUpLatencyWaitFlag ( IDXGISwapChain *pSwapChain,
+SK_DXGI_FixUpLatencyWaitFlag (
+                gsl::not_null <IDXGISwapChain*> pSwapChain,
                                UINT             Flags,
-                               BOOL            bCreation = FALSE )
+                               BOOL             bCreation = FALSE )
 {
   // This flag can only be assigned at the time of swapchain creation,
   //   if it's not present in the swapchain's description, its too late.
@@ -328,10 +336,6 @@ SK_DXGI_FixUpLatencyWaitFlag ( IDXGISwapChain *pSwapChain,
 
   return    Flags;
 }
-
-
-bool SK_Window_IsTopMost  (HWND hWnd);
-void SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd);
 
 
 HRESULT

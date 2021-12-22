@@ -978,7 +978,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
                   wszOutName,
                     crc32c,
                       pDesc->Width, pDesc->Height,
-                      pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
+                      pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).data (),
                         pDesc->MipLevels, compressed ?
                                                "Yes" : "No",
                         pDesc->Format ==
@@ -1613,7 +1613,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                  wszOutPath, top_crc32 );
   }
 
-  if ((! error) && wcslen (wszOutName) != 0)
+  if ((! error) && wszOutName [0] != L'\0')
   {
     if (GetFileAttributes (wszOutName) == INVALID_FILE_ATTRIBUTES)
     {
@@ -1644,7 +1644,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                     top_crc32,
                       checksum,
                         pDesc->Width, pDesc->Height,
-                        pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).c_str (),
+                        pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).data (),
                           pDesc->MipLevels,
                             pDesc->BindFlags,
                               pDesc->Usage,
@@ -1876,7 +1876,7 @@ SK_D3D11_TexCacheCheckpoint (void)
               L"refs+1=%lu, refs=%lu",
               tex_desc->Width,
               tex_desc->Height,           tex_desc->MipLevels,
-              SK_DXGI_FormatToStr        (tex_desc->Format).   c_str (),
+              SK_DXGI_FormatToStr        (tex_desc->Format).   data  (),
               SK_D3D11_DescribeBindFlags (tex_desc->BindFlags).c_str (),
               SK_D3D11_DescribeMiscFlags (
                 (D3D11_RESOURCE_MISC_FLAG)tex_desc->MiscFlags).c_str (),
@@ -2047,7 +2047,7 @@ SK_D3D11_TexMgr::reset (void)
     }
 
 
-    const float overfill_factor = 1.05f;
+    constexpr float overfill_factor = 1.05f;
 
     bool no_work = true;
 
@@ -2427,8 +2427,8 @@ SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
 BOOL
 SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture )
 {
-  const UINT size =
-             sizeof (LONG);
+  constexpr UINT size =
+                 sizeof (LONG);
 
   static LONG disable = 1;
 

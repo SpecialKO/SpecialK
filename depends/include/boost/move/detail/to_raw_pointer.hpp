@@ -29,12 +29,12 @@ namespace boost {
 namespace movelib {
 
 template <class T>
-BOOST_MOVE_FORCEINLINE T* to_raw_pointer(T* p)
+BOOST_MOVE_FORCEINLINE T* to_raw_pointer(T* p) BOOST_NOEXCEPT_OR_NOTHROW
 {  return p; }
 
 template <class Pointer>
 BOOST_MOVE_FORCEINLINE typename boost::movelib::pointer_element<Pointer>::type*
-to_raw_pointer(const Pointer &p)
+to_raw_pointer(const Pointer &p) BOOST_NOEXCEPT_OR_NOTHROW
 {  return ::boost::movelib::to_raw_pointer(p.operator->());  }
 
 } //namespace movelib
