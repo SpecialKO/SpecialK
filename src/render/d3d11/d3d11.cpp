@@ -4290,7 +4290,8 @@ D3D11Dev_CreateTexture2D_Impl (
   if (This != nullptr)
       This->QueryInterface (IID_ID3D11On12Device, (void **)&pD3D11On12Device.p);
 
-  if (pD3D11On12Device.p != nullptr)
+                                       // Ansel would deadlock us while calling QueryInterface in getDevice <...>
+  if (pD3D11On12Device.p != nullptr || (rb.api != SK_RenderAPI::D3D11 && rb.api != SK_RenderAPI::Reserved))
   {
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
