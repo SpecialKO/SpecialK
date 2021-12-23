@@ -730,12 +730,11 @@ ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
       if (SK_GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
       {
         try {
-          cegD3D9 = static_cast <CEGUI::Direct3D9Renderer *> (
-            &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev)
-          );
+          cegD3D9 =
+            &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev);
         }
 
-        catch (CEGUI::Exception& e)
+        catch (const CEGUI::Exception& e)
         {
           SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
                      L"   CEGUI  "  );
@@ -3263,7 +3262,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
               //tex_mgr.injector.unlockStreaming ();
 
-                Texture* pExistingTex =
+                const Texture* pExistingTex =
                   tex_mgr.getTexture (load_op->checksum);
 
                 if (pExistingTex != nullptr)
@@ -7243,8 +7242,8 @@ SK_D3D9_TextureModDlg (void)
                                     _tracked_rt.vertex_shaders.size () );
 
         // Some Render Targets are MASSIVE, let's try to keep the damn things on the screen ;)
-        float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, (float)desc.Width  / 2.0f);
-        float effective_height = std::min (0.75f * ImGui::GetIO ().DisplaySize.y, (float)desc.Height / 2.0f);
+        const float effective_width  = std::min (0.75f * ImGui::GetIO ().DisplaySize.x, static_cast <float> (desc.Width)  / 2.0f);
+        const float effective_height = std::min (0.75f * ImGui::GetIO ().DisplaySize.y, static_cast <float> (desc.Height) / 2.0f);
 
         ImGui::SameLine ();
 
@@ -8459,7 +8458,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
 
             if (SUCCEEDED (pConstantTable->GetDesc (&ct_desc)))
             {
-              UINT constant_count = ct_desc.Constants;
+              const UINT constant_count = ct_desc.Constants;
 
               for (UINT i = 0; i < constant_count; i++)
               {

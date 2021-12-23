@@ -2407,7 +2407,7 @@ __forceinline
 UINT
 calc_count (_T** arr, UINT max_count) noexcept
 {
-  for ( INT i = static_cast <INT> (max_count - 1) ;
+  for ( INT i = sk::narrow_cast <INT> (max_count - 1) ;
             i >= 0 ;
           --i )
   {

@@ -257,7 +257,7 @@ SK_IsInjected (bool set) noexcept
 void
 SK_Inject_ValidateProcesses (void)
 {
-  for (volatile LONG& hooked_pid : g_sHookedPIDs)
+  for (const volatile LONG& hooked_pid : g_sHookedPIDs)
   {
     SK_AutoHandle hProc (
       OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
@@ -435,7 +435,8 @@ SK_Inject_AcquireProcess (void)
 bool
 SK_Inject_IsInvadingProcess (DWORD dwThreadId)
 {
-  for (volatile LONG& hooked_pid : g_sHookedPIDs)
+  for (const
+       volatile LONG& hooked_pid : g_sHookedPIDs)
   {
     if (ReadAcquire (&hooked_pid) == sk::narrow_cast <LONG> (dwThreadId))
       return true;
@@ -554,8 +555,8 @@ SK_Inject_CleanupSharedMemory (void)
 
 HWND SK_Inject_GetExplorerWindow (void)
 {
-  SK_SharedMemory_v1 *pShared =
-    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+  const SK_SharedMemory_v1 *pShared =
+       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
 
   if (pShared != nullptr)
   {
@@ -568,8 +569,8 @@ HWND SK_Inject_GetExplorerWindow (void)
 
 UINT SK_Inject_GetExplorerRaiseMsg (void)
 {
-  SK_SharedMemory_v1 *pShared =
-    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+  const SK_SharedMemory_v1 *pShared =
+       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
 
   if (pShared != nullptr)
   {
@@ -582,8 +583,8 @@ UINT SK_Inject_GetExplorerRaiseMsg (void)
 
 UINT SK_Inject_GetExplorerLowerMsg (void)
 {
-  SK_SharedMemory_v1 *pShared =
-    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+  const SK_SharedMemory_v1 *pShared =
+       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
 
   if (pShared != nullptr)
   {
@@ -1450,7 +1451,7 @@ SK_Inject_SpawnUnloadListener (void)
             else wnd_class.cbSize = 0;
           }
 #endif
-          DWORD dwWaitState =
+          const DWORD dwWaitState =
             MsgWaitForMultipleObjectsEx (
               2, signals, INFINITE, QS_ALLINPUT, 0x0
             );
@@ -1657,7 +1658,7 @@ SKX_RemoveCBTHook (void)
         const DWORD       self_pid = GetCurrentProcessId ();
     std::set <DWORD>   running_pids;
     std::set <DWORD> suspended_pids;
-    LONG             hooked_pid_count =
+    const LONG          hooked_pid_count =
       std::max   (0L,
         std::min (MAX_HOOKED_PROCS, ReadAcquire (&num_hooked_pids)));
 
@@ -2266,9 +2267,9 @@ SK_Inject_Stop (void)
 
   //SK_ExitRemoteProcess (L"SKIM64.exe", 0x00);
 
-  bool bHas32BitDLL =
+  const bool bHas32BitDLL =
     GetFileAttributesW (L"SpecialK32.dll") != INVALID_FILE_ATTRIBUTES;
-  bool bHas64BitDLL =
+  const bool bHas64BitDLL =
     GetFileAttributesW (L"SpecialK64.dll") != INVALID_FILE_ATTRIBUTES;
 
   //if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
@@ -2348,9 +2349,9 @@ SK_Inject_Start (void)
   SK_RunLHIfBitness ( 32, GetSystemDirectoryW      (wszWOW64, MAX_PATH),
                           GetSystemWow64DirectoryW (wszWOW64, MAX_PATH) );
 
-  bool bHas32BitDLL =
+  const bool bHas32BitDLL =
     GetFileAttributesW (L"SpecialK32.dll") != INVALID_FILE_ATTRIBUTES;
-  bool bHas64BitDLL =
+  const bool bHas64BitDLL =
     GetFileAttributesW (L"SpecialK64.dll") != INVALID_FILE_ATTRIBUTES;
 
   if (GetFileAttributes (L"SKIM64.exe") == INVALID_FILE_ATTRIBUTES)
@@ -2421,7 +2422,8 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 
   SK_Inject_ValidateProcesses ();
 
-  for (volatile LONG& hooked_pid : g_sHookedPIDs)
+  for (const
+       volatile LONG& hooked_pid : g_sHookedPIDs)
   {
     if (ReadAcquire (&hooked_pid) != 0)
     {

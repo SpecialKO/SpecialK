@@ -646,8 +646,8 @@ public:
       std::scoped_lock <SK_Thread_HybridSpinlock>
                  _lock (cs_results_);
 
-      SK_ReleaseAssert (finished        != nullptr);
-      SK_ReleaseAssert (finished->pDest != nullptr);
+      SK_ReleaseAssert (finished        != nullptr &&
+                        finished->pDest != nullptr);
 
       // Remove the temporary reference we added earlier
       finished->pDest->Release ();

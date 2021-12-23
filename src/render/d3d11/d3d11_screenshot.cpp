@@ -1298,10 +1298,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
               else if ( hdr )
               {
-                time_t
-                  screenshot_time;
-
-                codec = WIC_CODEC_PNG;
+                time_t screenshot_time = 0;
+                       codec           = WIC_CODEC_PNG;
 
                 PathAppendW (         wszAbsolutePathToScreenshot,
                   SK_FormatStringW ( LR"(LDR\%lu.png)",
@@ -1665,7 +1663,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   if (ReadAcquire (&__SK_DLL_Ending))
                     break;
 
-                  time_t screenshot_time;
+                  time_t screenshot_time = 0;
 
                   wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
                   wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
