@@ -6937,8 +6937,11 @@ D3D11CreateDevice_Detour (
     }
   }
 
+  // Ignore Ansel
+  const bool bAnsel =
+    StrStrIW (SK_GetModuleName (SK_GetCallingDLL ()).c_str (), L"NvCamera");
 
-  if (pTLS_d3d11.skip_d3d11_create_device != FALSE)
+  if (pTLS_d3d11.skip_d3d11_create_device != FALSE || bAnsel)
   {
     HRESULT hr =
       D3D11CreateDevice_Import ( pAdapter, DriverType, Software, Flags,
@@ -6946,7 +6949,8 @@ D3D11CreateDevice_Detour (
                                      ppDevice, pFeatureLevel,
                                        ppImmediateContext );
 
-    pTLS->render->d3d11->skip_d3d11_create_device = FALSE;
+    if (! bAnsel)
+      pTLS->render->d3d11->skip_d3d11_create_device = FALSE;
 
     return hr;
   }

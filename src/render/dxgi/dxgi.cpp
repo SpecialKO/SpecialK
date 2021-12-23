@@ -2630,8 +2630,9 @@ SK_DXGI_TestPresentFlags (DWORD Flags) noexcept
   return true;
 }
 
+constexpr
 BOOL
-SK_DXGI_IsFlipModelSwapEffect (DXGI_SWAP_EFFECT swapEffect)
+SK_DXGI_IsFlipModelSwapEffect (DXGI_SWAP_EFFECT swapEffect) noexcept
 {
   return
     ( swapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
@@ -2639,7 +2640,7 @@ SK_DXGI_IsFlipModelSwapEffect (DXGI_SWAP_EFFECT swapEffect)
 }
 
 BOOL
-SK_DXGI_IsFlipModelSwapChain (DXGI_SWAP_CHAIN_DESC& desc)
+SK_DXGI_IsFlipModelSwapChain (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
 {
   return
     SK_DXGI_IsFlipModelSwapEffect (desc.SwapEffect);
@@ -3831,7 +3832,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         if (fMaxRefresh < 1.0f)
             fMaxRefresh = 1000.0f;
 
-        for ( auto it : reduced_list )
+        for ( const auto& it : reduced_list )
         {
           double fRefresh =
             static_cast <float> (
@@ -3847,8 +3848,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
         // If refresh rate filtering would have eliminated all resolutions, then
         //   ignore the limits and give the entire list or the game will panic :)
-        if (cache.empty ()) for ( auto it : reduced_list )
-                      cache.push_back (it);
+        if (cache.empty ())
+          for ( const auto&  it : reduced_list )
+            cache.push_back (it);
 
         *pNumModes =
           static_cast <UINT> (cache.size ());
@@ -4276,10 +4278,11 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
   RealGetWindowClassW (
     desc.OutputWindow, wszClass, 63);
 
-  bool dummy_window =
+  const bool dummy_window =
     StrStrIW (wszClass, L"Kiero DirectX Window")         || // CyberEngine
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass");
+    StrStrIW (wszClass, L"RTSSWndClass")                 ||
+    StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
 
   return
     (! dummy_window);
@@ -4294,10 +4297,11 @@ SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) 
   RealGetWindowClassW (
          OutputWindow, wszClass, 63);
 
-  bool dummy_window =
+  const bool dummy_window =
     StrStrIW (wszClass, L"DX12")                         || // REFramework
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass");
+    StrStrIW (wszClass, L"RTSSWndClass")                 ||
+    StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
 
   return
     (! dummy_window);
@@ -6911,11 +6915,9 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
   IDXGIAdapter* pOverrideAdapter = nullptr;
   IDXGIFactory* pFactory         = nullptr;
 
-  HRESULT res;
+  HRESULT res = E_FAIL;
 
-  if ((*ppAdapter) == nullptr)
-    res = E_FAIL;
-  else
+  if (    (*ppAdapter) != nullptr)
     res = (*ppAdapter)->GetParent (IID_PPV_ARGS (&pFactory));
 
   if (FAILED (res))
