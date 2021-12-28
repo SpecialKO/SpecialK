@@ -78,8 +78,8 @@ SK_ImGui_DrawGraph_Latency ()
     stage->color =
       ImColor::HSV ( ( ++id ) /
         static_cast <float> (
-             sizeof ( stages) /
-             sizeof (*stages) ), 0.5f,
+        static_cast <float> (sizeof ( stages)) /
+        static_cast <float> (sizeof (*stages)) ), 0.5f,
                                  1.0f );
   }
 

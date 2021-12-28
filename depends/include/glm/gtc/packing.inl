@@ -13,6 +13,8 @@
 namespace glm{
 namespace detail
 {
+	/* Kaldaien added constexpr (12/27/21)*/
+	constexpr
 	GLM_FUNC_QUALIFIER glm::uint16 float2half(glm::uint32 f)
 	{
 		// 10 bits    =>                         EE EEEFFFFF
@@ -31,6 +33,8 @@ namespace detail
 			((f >> 13) & 0x03ff); // Mantissa
 	}
 
+	/* Kaldaien added constexpr (12/27/21)*/
+	constexpr
 	GLM_FUNC_QUALIFIER glm::uint32 float2packed11(glm::uint32 f)
 	{
 		// 10 bits    =>                         EE EEEFFFFF
@@ -49,6 +53,8 @@ namespace detail
 			((f >> 17) & 0x003f); // Mantissa
 	}
 
+	/* Kaldaien added constexpr (12/27/21)*/
+	constexpr
 	GLM_FUNC_QUALIFIER glm::uint32 packed11ToFloat(glm::uint32 p)
 	{
 		// 10 bits    =>                         EE EEEFFFFF

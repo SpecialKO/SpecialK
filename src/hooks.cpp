@@ -54,9 +54,11 @@ SK_GetModuleHandleW (PCWSTR lpModuleName)
   ( PUNICODE_STRING DestinationString,
     PCWSTR          SourceString                );
 
-  typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
-  (       ULONG,           ULONG,
-    const UNICODE_STRING*, HMODULE*            );
+  using LdrGetDllHandle_pfn = NTSTATUS (WINAPI *)(
+        ULONG, ULONG,
+  const UNICODE_STRING*,
+        HMODULE*
+    );
 
   static RtlInitUnicodeString_pfn
          RtlInitUnicodeString =
@@ -285,8 +287,8 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
         std::wstring& val =
           hook_cfg.get_value (wide_symbol.c_str ());
 
-        if (val != serialized)
-            val  = serialized;
+        if (! val._Equal (serialized))
+              val.assign (serialized);
       }
 
       else
@@ -306,7 +308,7 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
         if (! val._Equal (ver_str))
         {
           ini->remove_section (hook_cfg.name.c_str ());
-          val = ver_str;
+          val.assign (ver_str);
         }
       }
 
@@ -779,7 +781,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     if (hMod != skModuleRegistry::INVALID_MODULE)
 
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
-                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast <wchar_t *>(hMod), &hMod );
   }
 
   void      *pFuncAddr = nullptr;
@@ -951,7 +953,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
-                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast <wchar_t *> (hMod), &hMod );
   }
 
   void      *pFuncAddr = nullptr;
@@ -1098,7 +1100,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
     if (hMod != skModuleRegistry::INVALID_MODULE)
       GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_PIN |
-                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (wchar_t *)hMod, &hMod );
+                           GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast <wchar_t *>(hMod), &hMod );
   }
 
   void      *pFuncAddr = nullptr;

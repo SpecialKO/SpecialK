@@ -545,8 +545,8 @@ SK_RenderBackendUtil_IsFullscreen (void)
   }
 
   else
-  if ( (static_cast <int> (rb.api) &
-        static_cast <int> (SK_RenderAPI::D3D9)) != 0 )
+  if ( (static_cast <UINT> (rb.api) &
+        static_cast <UINT> (SK_RenderAPI::D3D9)) != 0 )
   {
     SK_ComQIPtr <IDirect3DSwapChain9>
                          pSwapChain9 (rb.swapchain);
@@ -582,7 +582,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
 
   if (! fullscreen_exclusive)
   {
-    if (static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D9))
+    if (static_cast <UINT> (api) & static_cast <UINT> (SK_RenderAPI::D3D9))
     {
       SK_D3D9_TriggerReset (true);
     }
@@ -591,7 +591,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
   SK_ComQIPtr <IDXGISwapChain>
                    pSwapChain (swapchain);
 
-  //if ((static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11)))
+  //if ((static_cast <UINT> (api) & static_cast <UINT> (SK_RenderAPI::D3D11)))
   {
     if (swapchain != nullptr)
     {
@@ -702,8 +702,8 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
   if (fullscreen_exclusive)
   {
-    if ( static_cast <int> (api) &
-         static_cast <int> (SK_RenderAPI::D3D9) )
+    if ( static_cast <UINT> (api) &
+         static_cast <UINT> (SK_RenderAPI::D3D9) )
     {
       SK_D3D9_TriggerReset (true);
     }
@@ -1054,17 +1054,17 @@ sk_hwnd_cache_s::getDevCaps (void)
       {
         float bestIntersectArea = -1.0f;
 
-        int ax1 = rcWindow.left,
-            ax2 = rcWindow.right;
-        int ay1 = rcWindow.top,
-            ay2 = rcWindow.bottom;
+        const int ax1 = rcWindow.left;
+        const int ax2 = rcWindow.right;
+        const int ay1 = rcWindow.top;
+        const int ay2 = rcWindow.bottom;
 
-        DISPLAYCONFIG_PATH_INFO *pOutput  = nullptr;
-        bool                     bVirtual = false;
+        const DISPLAYCONFIG_PATH_INFO *pOutput  = nullptr;
+              bool                     bVirtual = false;
 
         for (auto idx = 0U; idx < uiNumPaths; ++idx)
         {
-          auto *path =
+          const auto *path =
             &pathArray [idx];
 
           if ( (path->                 flags & DISPLAYCONFIG_PATH_ACTIVE)
@@ -1073,24 +1073,24 @@ sk_hwnd_cache_s::getDevCaps (void)
             bVirtual =
               (path->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE);
 
-            DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+            const DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
               &modeArray [bVirtual ? path->sourceInfo.sourceModeInfoIdx
                                    : path->sourceInfo.modeInfoIdx ].sourceMode;
 
-            RECT rect;
-            rect.left   = pSourceMode->position.x;
-            rect.top    = pSourceMode->position.y;
-            rect.right  = pSourceMode->position.x + pSourceMode->width;
-            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+            const RECT rect =
+              { pSourceMode->position.x,
+                pSourceMode->position.y,
+                pSourceMode->position.x + sk::narrow_cast <LONG> (pSourceMode->width),
+                pSourceMode->position.y + sk::narrow_cast <LONG> (pSourceMode->height) };
 
             if (! IsRectEmpty (&rect))
             {
-              int bx1 = rect.left;
-              int by1 = rect.top;
-              int bx2 = rect.right;
-              int by2 = rect.bottom;
+              const int bx1 = rect.left;
+              const int by1 = rect.top;
+              const int bx2 = rect.right;
+              const int by2 = rect.bottom;
 
-              int intersectArea =
+              const int intersectArea =
                 ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
 
               if (intersectArea > bestIntersectArea)
@@ -1109,10 +1109,10 @@ sk_hwnd_cache_s::getDevCaps (void)
             (pOutput->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE);
 
           devcaps.res.refresh =
-            (double)pOutput->targetInfo.refreshRate.Numerator /
-            (double)pOutput->targetInfo.refreshRate.Denominator;
+            static_cast <double> (pOutput->targetInfo.refreshRate.Numerator) /
+            static_cast <double> (pOutput->targetInfo.refreshRate.Denominator);
 
-          auto modeIdx =
+          const auto modeIdx =
             bVirtual ? pOutput->sourceInfo.sourceModeInfoIdx
                      : pOutput->sourceInfo.modeInfoIdx;
 
@@ -1131,9 +1131,9 @@ sk_hwnd_cache_s::getDevCaps (void)
 
     if (hDC != 0)
     {
-      devcaps.res.x       =          GetDeviceCaps (hDC,  HORZRES);
-      devcaps.res.y       =          GetDeviceCaps (hDC,  VERTRES);
-      devcaps.res.refresh = (double) GetDeviceCaps (hDC, VREFRESH);
+      devcaps.res.x       =                       GetDeviceCaps (hDC,  HORZRES);
+      devcaps.res.y       =                       GetDeviceCaps (hDC,  VERTRES);
+      devcaps.res.refresh = static_cast <double> (GetDeviceCaps (hDC, VREFRESH));
 
       ReleaseDC (hwnd, hDC);
     }
@@ -1210,9 +1210,9 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
     {
       if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
       {
-        reinterpret_cast <int &> (api) =
-          ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-            static_cast <int> (SK_RenderAPI::D3D9Ex)  );
+        reinterpret_cast <UINT &> (api) =
+          (  static_cast <UINT> (SK_RenderAPI::D3D9  ) |
+             static_cast <UINT> (SK_RenderAPI::D3D9Ex)  );
 
         wcsncpy (name, L"D3D9Ex", 8);
       }
@@ -2112,7 +2112,7 @@ SK_RenderBackend_V2::setDevice (IUnknown *pDevice)
 
   else if (pDevice != nullptr)
   {
-    bool already_set =
+    const bool already_set =
       device.p != nullptr;
 
     //SK_ComQIPtr <ID3D10Device> pDevice10 (pDevice);
@@ -2233,13 +2233,15 @@ blockType (uint8_t* block) noexcept
 static std::string
 SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 {
-  char     name [13] = { };
-  unsigned i;
+  if (block == nullptr)
+    return "Bad Pointer";
 
   uint8_t const* ptr =
     block + DESCRIPTOR_DATA;
 
-  for (i = 0; i < 13; ++i, ++ptr)
+  char name [13] = { };
+
+  for (auto i = 0; i < 13; ++i, ++ptr)
   {
     if (*ptr == 0xa)
     {
@@ -2464,8 +2466,6 @@ SK_GetKeyPathFromHKEY (HKEY& key)
     keyPath;
 }
 
-//static volatile LONG lUpdatingOutputs = 0;
-
 void
 SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                               DXGI_OUTPUT_DESC&              outDesc )
@@ -2477,7 +2477,8 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
   {
     std::string edid_name;
 
-    UINT devIdx = display.idx;
+    const UINT devIdx =
+          display.idx;
 
     swprintf (display.name, L"UNKNOWN");
 
@@ -2488,9 +2489,9 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 #if 1
     if (sk::NVAPI::nv_hardware != false)
     {
-      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
-      NvU32               nvGpuCount                             =   0;
-      NvDisplayHandle     nvDisplayHandle;
+      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] =      { };
+      NvU32               nvGpuCount                             =        0;
+      NvDisplayHandle     nvDisplayHandle                        =  nullptr;
       NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
       NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
 
@@ -2687,7 +2688,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
   if (pOutput != nullptr)
   {
-    auto& display = *pOutput;
+    const auto& display = *pOutput;
 
     if (D3DKMTOpenAdapterFromGdiDisplayName == nullptr)
         D3DKMTOpenAdapterFromGdiDisplayName =
@@ -3246,15 +3247,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   };
 
 
-//  while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
-//    ;
-
-
   if (! _GetAdapter (swapchain.p, pAdapter))
   {
     // Try without the SwapChain (FF7 Remake workaround)
     if (! _GetAdapter (nullptr, pAdapter))
-  //InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
       return;
   }
 
@@ -3311,24 +3307,27 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       DXGI_OUTPUT_DESC                  outDesc  = { };
       if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
       {
-        MONITORINFOEXW
-        mi        = {         };
-        mi.cbSize = sizeof (mi);
+        unsigned int gdi_idx = display.idx;
 
-        if (GetMonitorInfoW (outDesc.Monitor, &mi))
+        wcsncpy_s ( display.gdi_name,  32,
+                    outDesc.DeviceName, _TRUNCATE );
+
+        if (1 == swscanf (StrStrIW (display.gdi_name, LR"(\DISPLAY)"),
+                                                      LR"(\DISPLAY%u)", &gdi_idx))
         {
-          swscanf (StrStrIW (mi.szDevice, LR"(\DISPLAY)"), LR"(\DISPLAY%u)", &display.idx);
+          display.stale |= (std::exchange (display.idx, gdi_idx) != gdi_idx);
         }
 
-        display.monitor     = outDesc.Monitor;
-        display.rect        = outDesc.DesktopCoordinates;
-        display.attached    = outDesc.AttachedToDesktop;
+        display.stale |= (std::exchange (display.monitor, outDesc.Monitor)            != outDesc.Monitor);
+        display.stale |= (std::exchange (display.rect,    outDesc.DesktopCoordinates) != outDesc.DesktopCoordinates);
+
+        std::exchange (display.attached, outDesc.AttachedToDesktop != FALSE);
 
         if (sk::NVAPI::nv_hardware != false)
         {
           NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
           NvU32               nvGpuCount                             =   0;
-          NvDisplayHandle     nvDisplayHandle;
+          NvDisplayHandle     nvDisplayHandle                        = nullptr;
           NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
           NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
 
@@ -3355,9 +3354,6 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.nvapi.output_id      = nvOutputId;
           }
         }
-
-        wcsncpy_s ( display.gdi_name,  32,
-                    outDesc.DeviceName, _TRUNCATE );
 
         SK_RBkEnd_UpdateMonitorName (display, outDesc);
 
@@ -3408,9 +3404,9 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     }
   }
 
-  UINT enum_count = idx;
+  const UINT enum_count = idx;
 
-  for ( auto disp : displays )
+  for ( auto& disp : displays )
   {
     // Clear out any old entries that might be wrong now
     disp.primary = false;
@@ -3433,18 +3429,18 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     float bestIntersectArea = -1.0f;
 
-    int ax1 = minfo.rcMonitor.left,
-        ax2 = minfo.rcMonitor.right;
-    int ay1 = minfo.rcMonitor.top,
-        ay2 = minfo.rcMonitor.bottom;
+    const int ax1 = minfo.rcMonitor.left;
+    const int ax2 = minfo.rcMonitor.right;
+    const int ay1 = minfo.rcMonitor.top;
+    const int ay2 = minfo.rcMonitor.bottom;
 
-    DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
+    const DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
 
     bool bVirtual = false;
 
-    for (UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx)
+    for ( UINT32 pathIdx = 0; pathIdx < uiNumPaths; ++pathIdx )
     {
-      auto *path =
+      const auto *path =
         &pathArray [pathIdx];
 
       bVirtual =
@@ -3453,24 +3449,24 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       if ( (path->                 flags & DISPLAYCONFIG_PATH_ACTIVE)
         && (path->sourceInfo.statusFlags & DISPLAYCONFIG_SOURCE_IN_USE) )
       {
-        DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
+        const DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
           &modeArray [ bVirtual ? path->sourceInfo.sourceModeInfoIdx :
                                   path->sourceInfo.modeInfoIdx ].sourceMode;
 
-        RECT rect;
-        rect.left   = pSourceMode->position.x;
-        rect.top    = pSourceMode->position.y;
-        rect.right  = pSourceMode->position.x + pSourceMode->width;
-        rect.bottom = pSourceMode->position.y + pSourceMode->height;
+        const RECT rect =
+          { pSourceMode->position.x,
+            pSourceMode->position.y,
+            pSourceMode->position.x + sk::narrow_cast <LONG> (pSourceMode->width),
+            pSourceMode->position.y + sk::narrow_cast <LONG> (pSourceMode->height) };
 
         if (! IsRectEmpty (&rect))
         {
-          int bx1 = rect.left;
-          int by1 = rect.top;
-          int bx2 = rect.right;
-          int by2 = rect.bottom;
+          const int bx1 = rect.left;
+          const int by1 = rect.top;
+          const int bx2 = rect.right;
+          const int by2 = rect.bottom;
 
-          int intersectArea =
+          const int intersectArea =
             ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
 
           if (intersectArea > bestIntersectArea)
@@ -3488,11 +3484,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       bVirtual =
         ( pVidPn->flags & DISPLAYCONFIG_PATH_SUPPORT_VIRTUAL_MODE );
 
-      int modeIdx =
+      const int modeIdx =
         ( bVirtual ? pVidPn->targetInfo.targetModeInfoIdx
                    : pVidPn->targetInfo.modeInfoIdx );
 
-      auto pModeInfo =
+      const DISPLAYCONFIG_MODE_INFO* pModeInfo =
         &modeArray [modeIdx];
 
       display.vidpn = *pVidPn;
@@ -3517,8 +3513,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           pModeInfo->targetMode.targetVideoSignalInfo.totalSize.cx;
         display.signal.timing.total_size.cy          =
           pModeInfo->targetMode.targetVideoSignalInfo.totalSize.cy;
-        display.signal.timing.videoStandard.
-                                       videoStandard = (UINT32)
+        display.signal.timing.videoStandard.videoStandard =
           pModeInfo->targetMode.targetVideoSignalInfo.videoStandard;
 
         char szVSyncFreq [16] = { },
@@ -3538,13 +3533,15 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         SK_RemoveTrailingDecimalZeros (szHSyncFreq, 16);
 
         SK_LOG0 (
-           (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%hs",
-                                  display.name,
-            static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
-                                                           szVSyncFreq, szHSyncFreq,
-                                  display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
-                                  display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
-                                  display.signal.timing.videoStandard.toStr ()), __SK_SUBSYSTEM__ );
+           ( L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, "
+                          L"activeSize=(%lix%li), totalSize=(%lix%li), Standard=%hs",
+                                   display.name,
+             static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
+                                                            szVSyncFreq, szHSyncFreq,
+                                   display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
+                                   display.signal.timing.total_size. cx, display.signal.timing.total_size. cy,
+                                   display.signal.timing.videoStandard.toStr () ),
+                                   __SK_SUBSYSTEM__ );
       }
 
       DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
@@ -3592,7 +3589,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         display.hdr.white_level = 80.0f;
 
       // Name and preferred modes are immutable, so we can skip this
-      if (*display.path_name == L'\0')
+      if (*display.path_name == L'\0' || display.stale)
       {
         DISPLAYCONFIG_TARGET_PREFERRED_MODE
           getPreferredMode                  = { };
@@ -3709,16 +3706,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       }
     }
 
-    auto old_crc =
-     display_crc [idx];
+    display.stale = false;
 
-     display_crc [idx] =
-             crc32c ( 0,
-    &display,
-     display_size   );
-
-    display_changed [idx] =
-      old_crc != display_crc [idx];
+    display_changed [idx] = display_crc [idx] !=
+            std::exchange ( display_crc [idx],
+               crc32c ( 0, &display, display_size ) );
 
     if (display_changed [idx])
     {
@@ -3728,7 +3720,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | EDID Device Name |  %hs\n"
         L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
         L"  | Desktop Display. |  %ws%ws\n"
-        L"  | Bits Per Color.. |  %u\n"
+        L"  | Bits Per Color.. |  %i\n"
         L"  | Color Space..... |  %s\n"
         L"  | Red Primary..... |  %f, %f\n"
         L"  | Green Primary... |  %f, %f\n"
@@ -3754,7 +3746,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     }
   }
 
-  bool any_changed =
+  const bool any_changed =
     std::count ( std::begin (display_changed),
                  std::end   (display_changed), true ) > 0;
 
@@ -3792,35 +3784,30 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   {
     stale_display_info = false;
   }
-
-//InterlockedDecrement (&lUpdatingOutputs);
 }
 
 const SK_RenderBackend_V2::output_s*
 SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
 {
-  //while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
-  //  ;
-
   const output_s* pOutput = nullptr;
 
   float bestIntersectArea = -1.0f;
 
-  int ax1 = rkRect.left,
-      ax2 = rkRect.right;
-  int ay1 = rkRect.top,
-      ay2 = rkRect.bottom;
+  const int ax1 = rkRect.left;
+  const int ax2 = rkRect.right;
+  const int ay1 = rkRect.top;
+  const int ay2 = rkRect.bottom;
 
-  for ( auto& it : displays )
+  for ( const auto& it : displays )
   {
     if (it.attached && (! IsRectEmpty (&it.rect)))
     {
-      int bx1 = it.rect.left;
-      int by1 = it.rect.top;
-      int bx2 = it.rect.right;
-      int by2 = it.rect.bottom;
+      const int bx1 = it.rect.left;
+      const int by1 = it.rect.top;
+      const int bx2 = it.rect.right;
+      const int by2 = it.rect.bottom;
 
-      int intersectArea =
+      const int intersectArea =
         ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
 
       if (intersectArea > bestIntersectArea)
@@ -3831,8 +3818,6 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
       }
     }
   }
-
-  //InterlockedDecrement (&lUpdatingOutputs);
 
   return pOutput;
 }
@@ -4007,7 +3992,7 @@ SK_NV_AdaptiveSyncControl (void)
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    for ( auto& display : rb.displays )
+    for ( const auto& display : rb.displays )
     {
       if (display.monitor == rb.monitor)
       {
@@ -4034,7 +4019,7 @@ SK_NV_AdaptiveSyncControl (void)
 
             if (deltaFlipTime > 0)
             {
-              double dFlipRate  =
+              const double dFlipRate  =
                 static_cast <double> (SK_GetFramesDrawn () - lastFlipFrame) *
               ( static_cast <double> (deltaFlipTime) /
                 static_cast <double> (SK_QpcFreq) );

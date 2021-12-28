@@ -575,7 +575,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                                               &load_time, pTLS )
     );
 
-    const bool staged = false;
+    constexpr bool staged = false;
 
     if (pTex != nullptr)
     {
@@ -694,7 +694,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
         ImGui::PushStyleColor (ImGuiCol_Border, border_color);
 
-        const float scale_factor = 1.0f;
+        constexpr float scale_factor = 1.0f;
 
         const float content_avail_y =
           ( ImGui::GetWindowContentRegionMax ().y -

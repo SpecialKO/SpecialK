@@ -40,8 +40,8 @@ public:
 
   void run (void) override
   {
-    if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-            static_cast <int> (SK_RenderAPI::D3D11              ) ) )
+    if (! ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <UINT> (SK_RenderAPI::D3D11              ) ) )
     {
       setActive (false);
       return;
@@ -77,8 +77,8 @@ public:
 
   void draw (void) override
   {
-    if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-            static_cast <int> (SK_RenderAPI::D3D11              ) ) )
+    if (! ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <UINT> (SK_RenderAPI::D3D11              ) ) )
     {
       setVisible (false);
       return;

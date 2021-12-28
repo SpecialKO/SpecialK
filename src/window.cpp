@@ -324,12 +324,12 @@ public:
         UINT highest_idx = 1,
              lowest_idx  = rb._MAX_DISPLAYS;
 
-        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+        for ( auto& display : rb.displays )
         {
-          if (rb.displays [i].attached)
+          if (display.attached)
           {
-            highest_idx = std::max (rb.displays [i].idx, highest_idx);
-            lowest_idx  = std::min (rb.displays [i].idx,  lowest_idx);
+            highest_idx = std::max (display.idx, highest_idx);
+            lowest_idx  = std::min (display.idx,  lowest_idx);
           }
         }
 
@@ -338,13 +338,13 @@ public:
         if (set < sk::narrow_cast <int> ( lowest_idx))
             set = sk::narrow_cast <int> (highest_idx);
 
-        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+        for ( auto& display : rb.displays )
         {
-          if ( rb.displays [i].attached &&
-               rb.displays [i].idx      == static_cast <UINT> (set) )
+          if ( display.attached &&
+               display.idx      == static_cast <UINT> (set) )
           {
             config.display.monitor_handle =
-               rb.displays [i].monitor;
+               display.monitor;
 
             SK_SaveConfig ();
           }
@@ -1166,8 +1166,8 @@ ActivateWindow ( HWND hWnd,
     //
 
     if ( game_window.active && config.display.force_fullscreen &&
-        ( static_cast <int> (rb.api)                &
-          static_cast <int> (SK_RenderAPI::D3D9     )
+        ( static_cast <UINT> (rb.api)               &
+          static_cast <UINT> (SK_RenderAPI::D3D9    )
         )                                           )
     {
       SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,

@@ -955,7 +955,7 @@ iSK_INISection::set_name (const wchar_t* name_)
 __declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::contains_key (const wchar_t* key)
+iSK_INISection::contains_key (const wchar_t* key) const
 {
   auto _kvp =
     keys.find (key);
@@ -1005,7 +1005,7 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
 __declspec(nothrow)
 bool
 __stdcall
-iSK_INI::contains_section (const wchar_t* section)
+iSK_INI::contains_section (const wchar_t* section) const
 {
   return
     ( sections.find (section) !=

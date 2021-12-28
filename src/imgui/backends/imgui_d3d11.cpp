@@ -365,8 +365,10 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
 
   int                       VertexBufferSize        = 5000,
                             IndexBufferSize         = 10000;
-} _Frame [_MAX_BACKBUFFERS];
+};
 
+SK_LazyGlobal <SK_ImGui_D3D11_BackbufferResourceIsolation>
+                                   _Frame;
 SK_LazyGlobal <SK_ImGui_D3D11Ctx>  _imgui_d3d11;
 
 static UINT                     g_frameIndex            = 0;//UINT_MAX;
@@ -487,7 +489,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
    //(g_frameIndex % g_numFramesInSwapChain);
 
   auto* _P =
-    &_Frame [currentBuffer];
+    &_Frame.getPtr ()[currentBuffer];
 
   if (! _P->pVertexConstantBuffer)
       return ImGui_ImplDX11_InvalidateDeviceObjects ();
@@ -889,7 +891,7 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
                                    &width, &height );
 
     auto* _P =
-      &_Frame [slot];
+      &_Frame.getPtr ()[slot];
 
     // Upload texture to graphics system
     D3D11_TEXTURE2D_DESC
@@ -1025,7 +1027,7 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed )
 {
   auto* _P =
-    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+    &_Frame.getPtr ()[g_frameIndex % g_numFramesInSwapChain];
 
   if ( _P->pVertexShaderuPlayHDR != nullptr &&
        _P->pVertexConstantBuffer != nullptr &&
@@ -1066,7 +1068,7 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                           _In_ D3D11_Draw_pfn       pfnD3D11Draw )
 {
   auto* _P =
-    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+    &_Frame.getPtr ()[g_frameIndex % g_numFramesInSwapChain];
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -1106,7 +1108,7 @@ SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
   UNREFERENCED_PARAMETER (crc32);
 
   auto* _P =
-    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+    &_Frame.getPtr ()[g_frameIndex % g_numFramesInSwapChain];
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (
@@ -1155,7 +1157,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                                   UINT                 idx )
 {
   auto* _P =
-    &_Frame [idx];
+    &_Frame.getPtr ()[idx];
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -1488,7 +1490,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
   auto _CleanupBackbuffer = [&](UINT index) -> void
   {
-    auto* _P = &_Frame [index];
+    auto* _P = &_Frame.getPtr ()[index];
 
     _P->VertexBufferSize = 5000;
     _P->IndexBufferSize  = 10000;
@@ -1604,7 +1606,7 @@ ImGui_ImplDX11_NewFrame (void)
                            *flag_result.first = flag_result.second;
 
   auto *_Pool =
-    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+    &_Frame.getPtr ()[g_frameIndex % g_numFramesInSwapChain];
 
   if (! _Pool->pFontSampler_clamp)
     return;
@@ -1721,8 +1723,8 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
                                      swapDesc.OutputWindow ),
               L"D3D11BkEnd" );
 
-    if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) || _Frame [0].pBackBuffer.p       == nullptr ||
-                                                                     _Frame [0].pRenderTargetView.p == nullptr)
+    if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) || _Frame->pBackBuffer.p       == nullptr ||
+                                                                     _Frame->pRenderTargetView.p == nullptr)
     {
       //throw (SK_ComException (E_INVALIDARG));
     }
@@ -1749,8 +1751,8 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
                                             L"SK Generic Overlay Blend State");
 
       frames_.resize (1);
-      frames_ [0].hdr.pRTV      = _Frame [0].pRenderTargetView;
-      frames_ [0].pRenderOutput = _Frame [0].pBackBuffer;
+      frames_ [0].hdr.pRTV      = _Frame->pRenderTargetView;
+      frames_ [0].pRenderOutput = _Frame->pBackBuffer;
 
       bool SK_CEGUI_InitD3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDeviceCtx, ID3D11Texture2D *pBackBuffer);
 

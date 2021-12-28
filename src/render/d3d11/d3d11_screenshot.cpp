@@ -1224,12 +1224,13 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
       do
       {
         HANDLE signals [] = {
-          signal.capture,       // Screenshots are waiting for write
-          signal.abort.initiate // Screenshot full-abort requested (i.e. for SwapChain Resize)
+          signal.capture,        // Screenshots are waiting for write
+          signal.abort.initiate, // Screenshot full-abort requested (i.e. for SwapChain Resize)
+          __SK_DLL_TeardownEvent
         };
 
         DWORD dwWait =
-          WaitForMultipleObjects ( 2, signals, FALSE, INFINITE );
+          WaitForMultipleObjects ( 3, signals, FALSE, INFINITE );
 
         bool
           purge_and_run =
@@ -1826,6 +1827,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             SetEvent (signal.hq_encode);
           }
         }
+
+        // DLL Teardown
+        if (dwWait == (WAIT_OBJECT_0 + 2))
+          break;
       } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
       SK_Thread_CloseSelf ();

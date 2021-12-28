@@ -231,13 +231,13 @@ struct shader_stage_s
 
   void nulBind (int slot, ID3D11ShaderResourceView* pView)
   {
-    IUnknown_Set ((IUnknown **)&skipped_bindings [slot],
-                  (IUnknown  *)pView);
+    IUnknown_Set (reinterpret_cast <IUnknown **>(&skipped_bindings [slot]),
+                  reinterpret_cast <IUnknown  *>(pView));
   };
 
   void Bind (int slot, ID3D11ShaderResourceView* pView)
   {
-    IUnknown_AtomicRelease ((void **)&skipped_bindings [slot]);
+    IUnknown_AtomicRelease (reinterpret_cast <void **>(&skipped_bindings [slot]));
 
     // The D3D11 Runtime is holding a reference if this is non-null.
     real_bindings [slot] = pView;

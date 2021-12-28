@@ -698,7 +698,7 @@ public:
     for ( auto it : keys )
     {
       if (it._Equal (key))
-        return values [idx];
+        return gsl::at (values, idx);
 
       ++idx;
     }
@@ -725,7 +725,7 @@ public:
       {
         return
           SK_UTF8ToWideChar (
-            values [idx]
+            gsl::at (values, idx)
           );
       }
 

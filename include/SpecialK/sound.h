@@ -183,22 +183,21 @@ public:
     if (IID_IUnknown == riid)
     {
       AddRef ();
-      *ppv = (IUnknown *)this;
+      *ppv = this;
+
+      return S_OK;
     }
 
     else if (__uuidof (IAudioSessionEvents) == riid)
     {
       AddRef ();
-      *ppv = (IAudioSessionEvents *)this;
+      *ppv = this;
+
+      return S_OK;
     }
 
-    else
-    {
-      *ppv = nullptr;
-      return E_NOINTERFACE;
-    }
-
-    return S_OK;
+    *ppv = nullptr;
+    return E_NOINTERFACE;
   }
 
   ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
@@ -435,13 +434,13 @@ public:
     if (IID_IUnknown == riid)
     {
       AddRef ();
-      *ppv = (IUnknown *)this;
+      *ppv = this;
     }
 
     else if (__uuidof (IAudioSessionNotification) == riid)
     {
       AddRef ();
-      *ppv = (IAudioSessionNotification *)this;
+      *ppv = this;
     }
 
     else
@@ -607,19 +606,19 @@ protected:
 
 
 private:
-    volatile LONG                                  refs_;
-    std::set <SK_WASAPI_AudioSession*>             sessions_;
+    volatile LONG                            refs_;
+    std::set <SK_WASAPI_AudioSession*>       sessions_;
 
     struct {
       std::set    <SK_WASAPI_AudioSession *> data;
       std::vector <SK_WASAPI_AudioSession *> view;
     } active_sessions_, inactive_sessions_;
 
-    SK_ComPtr <IAudioSessionManager2>              session_mgr_;
-    SK_ComPtr <IAudioMeterInformation>             meter_info_;
-    SK_ComPtr <IAudioEndpointVolume>               endpoint_vol_;
-    SK_ComPtr <IAudioLoudness>                     loudness_;
-    SK_ComPtr <IAudioAutoGainControl>              auto_gain_;
+    SK_ComPtr <IAudioSessionManager2>        session_mgr_;
+    SK_ComPtr <IAudioMeterInformation>       meter_info_;
+    SK_ComPtr <IAudioEndpointVolume>         endpoint_vol_;
+    SK_ComPtr <IAudioLoudness>               loudness_;
+    SK_ComPtr <IAudioAutoGainControl>        auto_gain_;
 };
 
 

@@ -56,23 +56,23 @@ class SK_TextOverlay
 friend class SK_TextOverlayManager;
 
 public:
-  ~SK_TextOverlay (void);
+        ~SK_TextOverlay (void);
 
-  float update    (const char* szText);
+  float       update    (const char* szText);
 
-  float draw      (float x = 0.0f, float y = 0.0f, bool full = false);
-  void  reset     (void);//CEGUI::Renderer* renderer);
+  float       draw      (float x = 0.0f, float y = 0.0f, bool full = false);
+  void        reset     (void);//CEGUI::Renderer* renderer);
 
-  void  resize    (float incr)                 noexcept;
-  void  setScale  (float scale)                noexcept;
-  float getScale  (void)                       noexcept;
+  void        resize    (float incr)                 noexcept;
+  void        setScale  (float scale)                noexcept;
+  float       getScale  (void)                       noexcept;
 
-  void  move      (float  x_off, float  y_off) noexcept;
-  void  setPos    (float  x,     float  y)     noexcept;
-  void  getPos    (float& x,     float& y)     noexcept;
+  void        move      (float  x_off, float  y_off) noexcept;
+  void        setPos    (float  x,     float  y)     noexcept;
+  void        getPos    (float& x,     float& y)     noexcept;
 
-  char* getName   (void) noexcept { return data_.name; }
-  char* getText   (void) noexcept { return data_.text; }
+  const char* getName   (void) noexcept { return data_.name.c_str (); }
+  const char* getText   (void) noexcept { return data_.text;          }
 
 protected:
    SK_TextOverlay (const char* szAppName);
@@ -80,8 +80,8 @@ protected:
 private:
   struct
   {
-    char   name [64] = { };
-
+    std::string
+           name;
     char*  text          = nullptr; // UTF-8
     size_t text_len      = 0;
     size_t text_capacity = 0;
@@ -93,8 +93,9 @@ private:
     ///CEGUI::Font*
     ///       cegui     = nullptr;
 
-    char   name [64] = { };
-    float  scale     = 1.0f;
+    std::string
+           name;
+    float  scale         = 1.0f;
     DWORD  primary_color = 0xFFFFFFFF; // For text that doesn't use its own
     DWORD  shadow_color  = 0x0;
   } font_;

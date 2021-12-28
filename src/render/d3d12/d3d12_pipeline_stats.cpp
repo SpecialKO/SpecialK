@@ -330,9 +330,9 @@ public:
 
   void run (void) noexcept override
   {
-    if ( ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-           static_cast <int> (SK_RenderAPI::D3D12) ) !=
-           static_cast <int> (SK_RenderAPI::D3D12) )
+    if ( ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
+           static_cast <UINT> (SK_RenderAPI::D3D12) ) !=
+           static_cast <UINT> (SK_RenderAPI::D3D12) )
     {
       setActive (false);
       return;
@@ -368,9 +368,9 @@ public:
 
   void draw (void) noexcept override
   {
-    if ( ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-           static_cast <int> (SK_RenderAPI::D3D12) ) !=
-           static_cast <int> (SK_RenderAPI::D3D12) )
+    if ( ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
+           static_cast <UINT> (SK_RenderAPI::D3D12) ) !=
+           static_cast <UINT> (SK_RenderAPI::D3D12) )
     {
       setVisible (false);
       return;

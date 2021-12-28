@@ -659,9 +659,13 @@ void Output (void)
     // Update tracking information.
     CheckForTerminatedRealtimeProcesses (&terminatedProcesses);
 
-    SK_WaitForSingleObject (
-      __SK_DLL_TeardownEvent, 33
-                           );
+    if ( WAIT_OBJECT_0 ==
+      SK_WaitForSingleObject (
+        __SK_DLL_TeardownEvent, 33
+                             ) )
+    {
+      gQuit = true;
+    }
   }
 
   // Output warning if events were lost.

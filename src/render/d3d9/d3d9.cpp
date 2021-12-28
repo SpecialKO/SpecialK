@@ -1567,8 +1567,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     if (pDevEx != nullptr || pUpgradedDev != nullptr)
     {
-      reinterpret_cast <int &> (rb.api)  = ( static_cast <int> (SK_RenderAPI::D3D9  ) |
-                                             static_cast <int> (SK_RenderAPI::D3D9Ex)   );
+      reinterpret_cast <UINT &> (rb.api)  = ( static_cast <UINT> (SK_RenderAPI::D3D9  ) |
+                                              static_cast <UINT> (SK_RenderAPI::D3D9Ex)   );
     }
 
     else

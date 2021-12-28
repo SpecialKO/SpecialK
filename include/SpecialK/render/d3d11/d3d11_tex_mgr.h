@@ -90,8 +90,8 @@ struct SK_D3D11_TEXTURE2D_DESC
     Format         = descFrom.Format;
     SampleDesc     = descFrom.SampleDesc;
     Usage          = descFrom.Usage;
-    BindFlags      = (D3D11_BIND_FLAG      )descFrom.BindFlags;
-    CPUAccessFlags = (D3D11_CPU_ACCESS_FLAG)descFrom.CPUAccessFlags;
+    BindFlags      = static_cast <D3D11_BIND_FLAG      >(descFrom.BindFlags);
+    CPUAccessFlags = static_cast <D3D11_CPU_ACCESS_FLAG>(descFrom.CPUAccessFlags);
     MiscFlags      = descFrom.MiscFlags;
   }
 };

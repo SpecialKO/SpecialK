@@ -200,14 +200,16 @@ D3D9CreateRenderTarget_Detour (IDirect3DDevice9     *This,
                                 IDirect3DSurface9   **ppSurface,
                                 HANDLE               *pSharedHandle)
 {
-  tex_log->Log (L"[Unexpected][!] IDirect3DDevice9::CreateRenderTarget (%lu, %lu, "
-                        L"%lu, %lu, %lu, %lu, %08ph, %08ph)",
-                   Width, Height, Format, MultiSample, MultisampleQuality,
-                   Lockable, ppSurface, pSharedHandle);
+  tex_log->Log ( L"[Unexpected][!] IDirect3DDevice9::CreateRenderTarget (%lu, %lu, "
+                         L"%lu, %lu, %lu, %s, %08ph, %08ph)",
+                    Width, Height, Format, MultiSample, MultisampleQuality,
+                    Lockable ? L"Lockable" :
+                           L"Not Lockable", ppSurface, pSharedHandle );
 
-  return D3D9CreateRenderTarget_Original (This, Width, Height, Format,
-                                          MultiSample, MultisampleQuality,
-                                          Lockable, ppSurface, pSharedHandle);
+  return
+    D3D9CreateRenderTarget_Original ( This, Width, Height, Format,
+                                        MultiSample, MultisampleQuality,
+                                          Lockable, ppSurface, pSharedHandle );
 }
 
 COM_DECLSPEC_NOTHROW
@@ -223,10 +225,11 @@ D3D9CreateDepthStencilSurface_Detour (IDirect3DDevice9     *This,
                                       IDirect3DSurface9   **ppSurface,
                                       HANDLE               *pSharedHandle)
 {
-  tex_log->Log (L"[Unexpected][!] IDirect3DDevice9::CreateDepthStencilSurface (%lu, %lu, "
-                        L"%lu, %lu, %lu, %lu, %08ph, %08ph)",
+  tex_log->Log ( L"[Unexpected][!] IDirect3DDevice9::CreateDepthStencilSurface (%lu, %lu, "
+                        L"%lu, %lu, %lu, %s, %08ph, %08ph)",
                    Width, Height, Format, MultiSample, MultisampleQuality,
-                   Discard, ppSurface, pSharedHandle);
+                   Discard ? L"Discard" :
+                      L"Do Not Discard", ppSurface, pSharedHandle );
 
   return
     D3D9CreateDepthStencilSurface_Original ( This, Width, Height, Format,
@@ -991,16 +994,18 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
   {
     wchar_t       arc_name [MAX_PATH + 2] = { };
 
-    CFileInStream arc_stream              = { };
-    CLookToRead   look_stream             = { };
+    // TODO:  Allocate from TLS instead of heap
+    CFileInStream  arc_stream             = { };
+    auto          look_stream             =
+             std::make_unique <CLookToRead> ( );
     ISzAlloc      thread_alloc            = { };
     ISzAlloc      thread_tmp_alloc        = { };
 
     FileInStream_CreateVTable (&arc_stream);
-    LookToRead_CreateVTable   (&look_stream, False);
+    LookToRead_CreateVTable   ( look_stream.get (), False);
 
-    look_stream.realStream = &arc_stream.s;
-    LookToRead_Init         (&look_stream);
+    look_stream->realStream = &arc_stream.s;
+    LookToRead_Init          ( look_stream.get ());
 
     thread_alloc.Alloc     = SzAlloc;
     thread_alloc.Free      = SzFree;
@@ -1034,7 +1039,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
     SzArEx_Init (&arc);
 
-    if (SzArEx_Open (&arc, &look_stream.s, &thread_alloc, &thread_tmp_alloc) != SZ_OK)
+    if (SzArEx_Open (&arc, &look_stream->s, &thread_alloc, &thread_tmp_alloc) != SZ_OK)
     {
       tex_log->Log ( L"[Inject Tex]  ** Cannot open archive file: %s",
                        arc_name );
@@ -1070,8 +1075,8 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
           size_t   offset        = 0;
           size_t   decomp_size   = 0;
 
-          if (SZ_OK == SzArEx_Extract ( &arc,          &look_stream.s, fileno,
-                                        &block_idx,    &out,        &out_len,
+          if (SZ_OK == SzArEx_Extract ( &arc,          &look_stream->s, fileno,
+                                        &block_idx,    &out,          &out_len,
                                         &offset,       &decomp_size,
                                         &thread_alloc, &thread_tmp_alloc ) )
           {
@@ -2518,7 +2523,8 @@ SK::D3D9::TextureManager::purge (void)
   if (shutting_down)
     return;
 
-  static auto& _remove_textures = remove_textures.get ();
+  static auto& _remove_textures =
+                remove_textures.get ();
 
   int      released           = 0;
   int      released_injected  = 0;
@@ -2529,8 +2535,8 @@ SK::D3D9::TextureManager::purge (void)
 
   tex_log->Log ( L"[ Tex. Mgr ]  ***  Current Cache Size: %6.2f MiB "
                                           L"(User Limit: %6.2f MiB)",
-                  (double)cacheSizeTotal () / (1024.0 * 1024.0),
-                    (double)config.textures.cache.max_size );
+        static_cast <double> (cacheSizeTotal ()) / (1024.0 * 1024.0),
+        static_cast <double> (config.textures.cache.max_size) );
 
   tex_log->Log (L"[ Tex. Mgr ]   Releasing textures...");
 
@@ -2634,7 +2640,7 @@ SK::D3D9::TextureManager::purge (void)
 
     else
     {
-      tex_log->Log (L"[ Tex. Mgr ] Invalid reference count (%lu)!", tex_refs);
+      tex_log->Log (L"[ Tex. Mgr ] Invalid reference count (%i)!", tex_refs);
     }
 
     ++released;
@@ -2683,7 +2689,7 @@ SK::D3D9::TextureManager::purge (void)
                    released,
                      textures.size () );
 
-  tex_log->Log ( L"[ Tex. Mgr ]   >> Reclaimed %6.2f MiB of memory (%6.2f MiB from %lu inject)",
+  tex_log->Log ( L"[ Tex. Mgr ]   >> Reclaimed %6.2f MiB of memory (%6.2f MiB from %i inject)",
                    (double)reclaimed          / (1024.0 * 1024.0),
                    (double)reclaimed_injected / (1024.0 * 1024.0),
                            released_injected );
@@ -3239,9 +3245,15 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
   auto* pPool =
     static_cast <TextureThreadPool *> (user);
 
-  SK_WaitForSingleObject (pPool->events_.jobs_added, INFINITE);
+  HANDLE hWaitMulti [] = {
+    __SK_DLL_TeardownEvent, pPool->events_.jobs_added
+  };
 
-  while (SK_WaitForSingleObject (pPool->events_.shutdown, 0) == WAIT_TIMEOUT)
+  WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE);
+
+  hWaitMulti [1] = pPool->events_.shutdown;
+
+  while (WaitForMultipleObjects (2, hWaitMulti, FALSE, 0) == WAIT_TIMEOUT)
   {
     TexLoadRequest* pJob =
       pPool->getNextJob ();
@@ -3270,7 +3282,11 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
       // All worker threads are busy, so wait...
       if (! started)
       {
-        SK_WaitForSingleObject (pPool->events_.results_waiting, INFINITE);
+        HANDLE hWaitMultiResults [] = {
+          __SK_DLL_TeardownEvent, pPool->events_.results_waiting
+        };
+
+        WaitForMultipleObjects (2, hWaitMultiResults, FALSE, INFINITE);
       }
 
       else
@@ -3329,14 +3345,15 @@ SK::D3D9::TextureManager::refreshDataSources (void)
     crc_init = true;
   }
 
-  CFileInStream arc_stream  = { };
-  CLookToRead   look_stream = { };
+  auto          look_stream      =
+    std::make_unique <CLookToRead> ( );
+  CFileInStream arc_stream       = { };
 
   FileInStream_CreateVTable (&arc_stream);
-  LookToRead_CreateVTable   (&look_stream, FALSE);
+  LookToRead_CreateVTable   ( look_stream.get (), FALSE);
 
-  look_stream.realStream = &arc_stream.s;
-  LookToRead_Init         (&look_stream);
+  look_stream->realStream = &arc_stream.s;
+  LookToRead_Init         ( look_stream.get ());
 
   injectable_textures.clear ();
   archives.clear            ();
@@ -3500,9 +3517,9 @@ SK::D3D9::TextureManager::refreshDataSources (void)
           {
             int tex_count = 0;
 
-            CSzArEx       arc = { };
-            ISzAlloc      thread_alloc;
-            ISzAlloc      thread_tmp_alloc;
+            CSzArEx       arc              = { };
+            ISzAlloc      thread_alloc     = { };
+            ISzAlloc      thread_tmp_alloc = { };
 
             thread_alloc.Alloc     = SzAlloc;
             thread_alloc.Free      = SzFree;
@@ -3527,7 +3544,7 @@ SK::D3D9::TextureManager::refreshDataSources (void)
             SzArEx_Init (&arc);
 
             if ( SzArEx_Open ( &arc,
-                                 &look_stream.s,
+                                 &look_stream->s,
                                    &thread_alloc,
                                      &thread_tmp_alloc ) == SZ_OK )
             {
@@ -3949,7 +3966,7 @@ ISKTextureD3D9::UnlockRect (UINT Level)
       for (size_t h = 0; h < desc.Height; BCn_tex ? h += 4 : ++h)
       {
         crc32c_ =
-          safe_crc32c (crc32c_, sptr, stride * ( BCn_tex ? 4 : 1 ));
+          safe_crc32c (crc32c_, sptr, (size_t)stride * ( BCn_tex ? 4 : 1 ));
 
         sptr += lock_lvl0.Pitch;
       }
@@ -3963,7 +3980,7 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
     for (UINT i = 0; i < pTex->GetLevelCount (); i++)
     {
-      this->tex_size += ( lock_lvl0.Pitch * W );
+      this->tex_size += ( (SSIZE_T)lock_lvl0.Pitch * (SSIZE_T)W );
 
       if (W > 1) W >>= 1;
       if (H > 1) H >>= 1;

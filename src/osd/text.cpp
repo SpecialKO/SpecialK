@@ -184,8 +184,8 @@ SK_TextOverlayManager::getTextOverlay (const char* szAppName)
 
 SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 {
-  strncpy (data_.name, szAppName, 32);
-  strncpy (font_.name, "Consola", 64);
+  data_.name = szAppName;
+  font_.name = "Consola";
 
   data_.text_capacity = 4096;
   data_.text          = (char *)calloc (1, data_.text_capacity);
@@ -208,7 +208,7 @@ SK_TextOverlay::SK_TextOverlay (const char* szAppName)
 SK_TextOverlay::~SK_TextOverlay (void)
 {
   SK_TextOverlayManager::getInstance ()->
-                   removeTextOverlay (data_.name);
+                   removeTextOverlay (data_.name.c_str ());
 
   std::free (data_.text);
 
@@ -2015,7 +2015,7 @@ void
 SK_TextOverlay::setPos (float x,float y) noexcept
 {
   // We cannot anchor the command console to the left or bottom...
-  if (0 == strcmp (data_.name, "SpecialK Console"))
+  if (data_.name._Equal ("SpecialK Console"))
   {
     x = std::max (0.0f, x);
     y = std::max (0.0f, y);

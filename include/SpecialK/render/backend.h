@@ -809,6 +809,7 @@ public:
   SK_ColorSpace           working_gamut        = { 0.0F }; // Metadata range
 
   struct output_s {
+    bool                  stale           = true;
     UINT                  idx             =  0;
     RECT                  rect            = { 0, 0, 0, 0 };
     int                   bpc             =  8;
@@ -1062,7 +1063,7 @@ public:
 
     void    markFrame    (void) noexcept
     {
-      ULONG64 thisFrame =
+      const ULONG64 thisFrame =
         SK_QueryPerf ().QuadPart;
 
       lastDelta =

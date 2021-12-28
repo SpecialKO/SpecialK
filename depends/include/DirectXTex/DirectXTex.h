@@ -81,7 +81,7 @@ namespace DirectX
     };
 
     void __cdecl ComputePitch( _In_ DXGI_FORMAT fmt, _In_ size_t width, _In_ size_t height,
-                               _Out_ size_t& rowPitch, _Out_ size_t& slicePitch, _In_ DWORD flags = CP_FLAGS_NONE );
+                     _Out_ size_t& rowPitch, _Out_ size_t& slicePitch, _In_ DWORD flags = CP_FLAGS_NONE );
 
     size_t __cdecl ComputeScanlines( _In_ DXGI_FORMAT fmt, _In_ size_t height );
 

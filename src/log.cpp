@@ -223,7 +223,6 @@ SK_Log_GetPath (const wchar_t* wszFileName)
 }
 
 
-__declspec(nothrow)
 void
 iSK_Logger::close (void)
 {
@@ -271,7 +270,6 @@ iSK_Logger::close (void)
 }
 
 
-__declspec(nothrow)
 bool
 iSK_Logger::init ( const wchar_t* const wszFileName,
                    const wchar_t* const wszMode )
@@ -319,7 +317,6 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   return (initialized = true);
 }
 
-__declspec(nothrow)
 void
 iSK_Logger::LogEx ( bool                 _Timestamp,
   _In_z_ _Printf_format_string_
@@ -412,7 +409,6 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   SK_FlushLog (this);
 }
 
-__declspec(nothrow)
 void
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     wchar_t const* const _Format,
@@ -501,7 +497,6 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   SK_FlushLog (this);
 }
 
-__declspec(nothrow)
 [[deprecated]]
 void
 iSK_Logger::Log   ( _In_z_ _Printf_format_string_
@@ -538,7 +533,6 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   SK_FlushLog (this);
 }
 
-__declspec(nothrow)
 HRESULT
 iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
 {
@@ -554,7 +548,6 @@ iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
   return E_NOINTERFACE;
 }
 
-__declspec(nothrow)
 ULONG
 iSK_Logger::AddRef (THIS) noexcept
 {
@@ -562,7 +555,6 @@ iSK_Logger::AddRef (THIS) noexcept
     InterlockedIncrement (&refs);
 }
 
-__declspec(nothrow)
 ULONG
 iSK_Logger::Release (THIS) noexcept
 {

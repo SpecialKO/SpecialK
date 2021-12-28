@@ -56,13 +56,15 @@ sk::ParameterInt64* __SK_NIER_RAD_LastKnownTSOffset      = nullptr;
 HANDLE __SK_NIER_RAD_DeviceArrivalEvent = INVALID_HANDLE_VALUE;
 HANDLE __SK_NIER_RAD_DeviceRemovalEvent = INVALID_HANDLE_VALUE;
 
-struct {
+struct rr_dinput8_s {
   HRESULT                         hr;
   std::vector <DIDEVICEINSTANCEW> devices;
   std::vector <DIDEVICEINSTANCEW> attached;
   std::recursive_mutex            lock;
   DIDEVICEINSTANCEW               last_good = { };
-} __DInput8;
+};
+
+SK_LazyGlobal <rr_dinput8_s> __DInput8;
 
 struct {
   bool enabled = false;
@@ -451,27 +453,33 @@ SK_NIER_RAD_GamepadLatencyTester (void)
       ULONGLONG    times  [2] = { };
       int                   i = 0;
 
+      HANDLE hWaitMulti [] = {
+        __SK_DLL_TeardownEvent,
+        hStartStop
+      };
+
       do
       {
-        SK_WaitForSingleObject (hStartStop, INFINITE);
-
-        if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
+        if (WAIT_OBJECT_0 != WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE))
         {
-          XINPUT_STATE& old = states [(i + 1) % 2];
-          XINPUT_STATE& now = states [ i++    % 2];
-
-          if (old.dwPacketNumber != now.dwPacketNumber)
+          if (SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &states [i % 2]))
           {
-            LARGE_INTEGER nowTime = SK_QueryPerf ();
-            ULONGLONG     oldTime = times [0];
-                                    times [0] = times [1];
-                                    times [1] = nowTime.QuadPart;
+            XINPUT_STATE& old = states [(i + 1) % 2];
+            XINPUT_STATE& now = states [ i++    % 2];
 
-            gamepad_stats.addSample ( 1000.0 *
-              static_cast <double> (times [0] - oldTime) /
-              static_cast <double> (SK_QpcFreq),
-                nowTime
-            );
+            if (old.dwPacketNumber != now.dwPacketNumber)
+            {
+              LARGE_INTEGER nowTime = SK_QueryPerf ();
+              ULONGLONG     oldTime = times [0];
+                                      times [0] = times [1];
+                                      times [1] = nowTime.QuadPart;
+
+              gamepad_stats.addSample ( 1000.0 *
+                static_cast <double> (times [0] - oldTime) /
+                static_cast <double> (SK_QpcFreq),
+                  nowTime
+              );
+            }
           }
         }
       } while (! ReadAcquire (&__SK_DLL_Ending));
@@ -867,10 +875,10 @@ bool SK_NIER_RAD_PlugInCfg (void)
       if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Cache the last used controller so gamepads do not need to be turned on / plugged in before starting the game.");
 
-      if (_SK_NIER_RAD_CacheLastGamepad || __DInput8.last_good.wUsage == 0x05)
+      if (_SK_NIER_RAD_CacheLastGamepad || __DInput8->last_good.wUsage == 0x05)
       {
         ImGui::SameLine      ();
-        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %ws\t", __DInput8.last_good.tszProductName);
+        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %ws\t", __DInput8->last_good.tszProductName);
         ImGui::SameLine      ();
 
         if (ImGui::Button ("Clear Cache"))
@@ -880,8 +888,8 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
           changed = true;
 
-          ZeroMemory ( &__DInput8.last_good,
-                sizeof (__DInput8.last_good) );
+          ZeroMemory ( &__DInput8->last_good,
+                sizeof (__DInput8->last_good) );
 
           DeleteFileW (L"dinput8.devcache");
         }
@@ -1014,7 +1022,7 @@ BOOL DIEnumDevicesCallback_ ( LPCDIDEVICEINSTANCE lpddi,
   }
 
   else
-    __DInput8.devices.push_back (*lpddi);
+    __DInput8->devices.push_back (*lpddi);
 
   return
     DIENUM_CONTINUE;
@@ -1031,7 +1039,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
   if (dwDevType == DI8DEVCLASS_GAMECTRL && _SK_NIER_RAD_FixDInput8EnumDevices)
   {
     std::scoped_lock <std::recursive_mutex> lock
-                                    (__DInput8.lock);
+                                    (__DInput8->lock);
 
     static bool          once = false;
     if (! std::exchange (once, true))
@@ -1040,7 +1048,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                                              dwDevType,  dwFlags),
                   L"RadicalRep" );
 
-      __DInput8.hr =
+      __DInput8->hr =
         _IDirectInput8W_EnumDevices ( This, dwDevType,
                                         DIEnumDevicesCallback_, pvRef,
                                           _SK_NIER_RAD_EnumOnlyForceFeedback ? DIEDFL_FORCEFEEDBACK
@@ -1069,22 +1077,22 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
         events [dwWait - WAIT_OBJECT_0]
       );
 
-      __DInput8.attached.clear ();
+      __DInput8->attached.clear ();
 
-      for ( auto& device : __DInput8.devices )
+      for ( auto& device : __DInput8->devices )
       {
         if ( DI_OK == This->GetDeviceStatus (device.guidInstance) )
         {
-          __DInput8.attached.push_back (device);
+          __DInput8->attached.push_back (device);
 
           if (_SK_NIER_RAD_CacheLastGamepad && device.wUsage == 0x05)
           {
-            __DInput8.last_good = device;
+            __DInput8->last_good = device;
 
             if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "wb");
                       fLastKnownController != nullptr)
             {
-              fwrite (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+              fwrite (&__DInput8->last_good, sizeof (__DInput8->last_good), 1,
                       fLastKnownController);
               fclose (fLastKnownController);
             }
@@ -1093,14 +1101,14 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
       }
     }
 
-    for ( auto& attached : __DInput8.attached )
+    for ( auto& attached : __DInput8->attached )
     {
       if ( lpCallback (&attached, pvRef) == DIENUM_STOP )
         break;
     }
 
-    if (__DInput8.attached.empty () && __DInput8.last_good.wUsage == 0x05)
-      lpCallback (&__DInput8.last_good, pvRef);
+    if (__DInput8->attached.empty () && __DInput8->last_good.wUsage == 0x05)
+      lpCallback (&__DInput8->last_good, pvRef);
 
     return S_OK;
   }
@@ -1269,12 +1277,12 @@ void SK_NIER_RAD_InitPlugin (void)
 
   SK_HID_AddDeviceArrivalEvent (
     ( __SK_NIER_RAD_DeviceArrivalEvent =
-        SK_CreateEvent (nullptr, TRUE, TRUE, L"Device Arrival")
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr/*L"Device Arrival"*/)
     )                          );
 
   SK_HID_AddDeviceRemovalEvent (
     ( __SK_NIER_RAD_DeviceRemovalEvent =
-        SK_CreateEvent (nullptr, TRUE, FALSE, L"Device Removal")
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr/*L"Device Removal"*/)
     )                          );
 
   SK_CreateFuncHook (       L"Keyboard Hook",
@@ -1298,7 +1306,7 @@ void SK_NIER_RAD_InitPlugin (void)
     if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "rb");
               fLastKnownController != nullptr)
     {
-      fread  (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+      fread  (&__DInput8->last_good, sizeof (__DInput8->last_good), 1,
               fLastKnownController);
       fclose (fLastKnownController);
     }

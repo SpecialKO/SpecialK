@@ -6526,20 +6526,20 @@ SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
 }
 
 //static concurrency::concurrent_unordered_map <HWND, std::pair <ID3D11Device*, IDXGISwapChain*>> _discarded;
-static concurrency::concurrent_unordered_map <HWND, std::pair <ID3D11Device*, IDXGISwapChain*>> _recyclables;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <HWND, std::pair <ID3D11Device*, IDXGISwapChain*>>> _recyclables;
 
 std::pair <ID3D11Device*, IDXGISwapChain*>
 SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (HWND hWnd)
 {
-  std::pair <ID3D11Device*, IDXGISwapChain*> pDevChain =
+  std::pair        <ID3D11Device *, IDXGISwapChain *> pDevChain =
     std::make_pair <ID3D11Device *, IDXGISwapChain *> (
-      nullptr, nullptr
+                           nullptr, nullptr
     );
 
-  if ( _recyclables.count (hWnd) != 0 )
+  if ( _recyclables->count (hWnd) != 0 )
   {
     pDevChain =
-      _recyclables.at (hWnd);
+      _recyclables->at (hWnd);
   }
 
   return pDevChain;
@@ -6553,11 +6553,11 @@ SK_D3D11_MakeCachedDeviceAndSwapChainForHwnd (IDXGISwapChain* pSwapChain, HWND h
       pDevice, pSwapChain
     );
 
-    _recyclables [hWnd] =
+    _recyclables.get ()[hWnd] =
       pDevChain;
 
   return
-    _recyclables [hWnd];
+    _recyclables.get ()[hWnd];
 }
 
 UINT
@@ -6565,7 +6565,7 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
 {
 #ifdef _DEBUG
   auto* pValidate =
-    _recyclables [hWnd];
+    _recyclables.get ()[hWnd];
 
   assert (pValidate == pChain);
 #endif
@@ -6576,12 +6576,12 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
   UINT ret =
     std::numeric_limits <UINT>::max ();
 
-  if (_recyclables.count (hWnd) != 0)
+  if (_recyclables->count (hWnd) != 0)
     ret = 0;
 
-  _recyclables [hWnd] =
+  _recyclables.get ()[hWnd] =
     std::make_pair <ID3D11Device*, IDXGISwapChain*> (
-      nullptr, nullptr
+                          nullptr, nullptr
     );
 
 //_discarded [hWnd][pDevice] = pChain;

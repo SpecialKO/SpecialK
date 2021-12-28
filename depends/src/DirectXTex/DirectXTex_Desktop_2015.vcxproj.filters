@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CLInclude Include="DirectXTex.h">
-      <Filter>Header Files</Filter>
-    </CLInclude>
-    <CLInclude Include="DirectXTex.inl">
-      <Filter>Header Files</Filter>
-    </CLInclude>
     <ClCompile Include="BC4BC5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -28,9 +22,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <CLInclude Include="DDS.h">
-      <Filter>Source Files</Filter>
-    </CLInclude>
-    <CLInclude Include="DirectXTexp.h">
       <Filter>Source Files</Filter>
     </CLInclude>
     <ClInclude Include="filters.h">
@@ -42,6 +33,7 @@
     <ClInclude Include="..\..\include\DirectXTex\DirectXTexP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\DirectXTex\DirectXTex.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BC.cpp">
@@ -138,5 +130,6 @@
     <None Include="Shaders\Compiled\BC7Encode_TryMode456CS.inc">
       <Filter>Source Files\Shaders\Compiled</Filter>
     </None>
+    <None Include="..\..\include\DirectXTex\DirectXTex.inl" />
   </ItemGroup>
 </Project>

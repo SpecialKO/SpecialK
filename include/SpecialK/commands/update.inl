@@ -51,12 +51,12 @@ skUpdateCmd::execute (const char* szArgs)
 
   else
   {
-    wchar_t wszProduct [128] = { };
+    std::array <wchar_t, 128> wszProduct = { };
 
-    mbtowc (wszProduct, szArgs, strlen (szArgs));
+    mbtowc (wszProduct.data (), szArgs, strlen (szArgs));
 
-    SK_FetchVersionInfo1 (wszProduct, true);
-    SK_UpdateSoftware1   (wszProduct, true);
+    SK_FetchVersionInfo1 (wszProduct.data (), true);
+    SK_UpdateSoftware1   (wszProduct.data (), true);
   }
 
   return SK_ICommandResult ("Manual update initiated...", szArgs);

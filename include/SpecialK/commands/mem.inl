@@ -171,6 +171,10 @@ skMemCmd::execute (const char* szArgs)
       sprintf (result, "%s", reinterpret_cast <char *> (addr));
       return SK_ICommandResult ("mem", szArgs, result, 1);
       break;
+
+    default:
+      SK_ReleaseAssert (! L"Unknown Memory Type");
+      break;
   }
 
   return SK_ICommandResult ("mem", szArgs);
