@@ -830,18 +830,9 @@ extern float SK_ImGui_PulseNav_Strength;
 
             do
             {
-              HANDLE hMultiWait [2] = {
-                __SK_DLL_TeardownEvent, hStartStop
-              };
+              SK_WaitForSingleObject (hStartStop, INFINITE);
 
-              DWORD dwWaitState =
-                WaitForMultipleObjects (2, hMultiWait, FALSE, INFINITE);
-
-              INT slot =
-                static_cast <INT> (config.input.gamepad.xinput.ui_slot);
-
-              if ( dwWaitState == (WAIT_OBJECT_0 + 1) &&
-                     SK_XInput_PollController (slot, &states [i % 2]) )
+              if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
               {
                 XINPUT_STATE& old = states [(i + 1) % 2];
                 XINPUT_STATE& now = states [ i++    % 2];

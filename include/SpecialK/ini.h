@@ -67,7 +67,7 @@ public:
 
   STDMETHOD_ (std::wstring&, get_value)    (const wchar_t* key);
   STDMETHOD_ (void,          set_name)     (const wchar_t* name_);
-  STDMETHOD_ (bool,          contains_key) (const wchar_t* key) const;
+  STDMETHOD_ (bool,          contains_key) (const wchar_t* key);
   STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value);
   STDMETHOD_ (bool,          remove_key)   (const wchar_t* key);
 
@@ -105,12 +105,10 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (void, write)  (THIS_ const wchar_t* fname = nullptr);
 
   STDMETHOD_ (_TSectionMap&,   get_sections)    (THIS);
-  // Inserts a new named (section) if one does not already exist
   STDMETHOD_ (iSK_INISection&, get_section)     (const wchar_t* section);
-  STDMETHOD_ (bool,            contains_section)(const wchar_t* section) const;
+  STDMETHOD_ (bool,            contains_section)(const wchar_t* section);
   STDMETHOD_ (bool,            remove_section)  (const wchar_t* section);
 
-  // Inserts a new printf (_Format) named section if one does not already exist
   STDMETHOD_ (iSK_INISection&, get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
                                                   wchar_t const* const _Format,
                                                                        ... );

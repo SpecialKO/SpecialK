@@ -695,8 +695,7 @@ public:
 
   virtual ~SK_TLS (void) noexcept
   {
-    if ( reinterpret_cast <intptr_t>
-                  (debug.handle) > 0 )
+    if ( (intptr_t)debug.handle > 0)
       CloseHandle (debug.handle);
 
     // Cleanup ();

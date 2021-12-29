@@ -1097,8 +1097,7 @@ public:
 
             HANDLE hSignals [] = {
               pParams->hSignalProduce,
-              pParams->hSignalShutdown,
-              __SK_DLL_TeardownEvent
+              pParams->hSignalShutdown
             };
 
             HANDLE hCurrentProcess = GetCurrentProcess ();
@@ -1108,7 +1107,6 @@ public:
 
             constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
             constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
-            constexpr int WAIT_DLL_TEARDOWN    = WAIT_OBJECT_0 + 2;
 
             static auto& rb =
               SK_GetCurrentRenderBackend ();
@@ -1116,7 +1114,7 @@ public:
             do
             {
               dwWaitState =
-                 WaitForMultipleObjects ( 3,
+                 WaitForMultipleObjects ( 2,
                             hSignals, FALSE, INFINITE );
 
               if (dwWaitState == WAIT_PRODUCE_DATA)
@@ -1176,8 +1174,7 @@ public:
                   );
                 }
               }
-            } while (dwWaitState != WAIT_SHUTDOWN_THREAD &&
-                     dwWaitState != WAIT_DLL_TEARDOWN);
+            } while (dwWaitState != WAIT_SHUTDOWN_THREAD);
 
             return 0;
           },
@@ -2083,83 +2080,74 @@ public:
 
                       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
 
-                      HANDLE hWaitMulti [2] = {
-                        __SK_DLL_TeardownEvent, hRecoveryEvent
-                      };
-
                       do
                       {
-                        if ( WAIT_OBJECT_0 !=
-                             WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
+                        SK_WaitForSingleObject (hRecoveryEvent, INFINITE);
+
+                        suspend_params_s            suspend_me = { };
+                        while (pWaitQueue->try_pop (suspend_me))
                         {
-                          suspend_params_s            suspend_me = { };
-                          while (pWaitQueue->try_pop (suspend_me))
+                          // Two threads are always invalid for suspension:
+                          //
+                          //  1. The watchdog thread (this one)
+                          //  2. The kernel data collection thread
+                          //
+                          if ( suspend_me.dwTid == SK_Thread_GetCurrentId () ||
+                               suspend_me.dwTid == pDataCollector->dwProducerTid )
                           {
-                            // Two threads are always invalid for suspension:
-                            //
-                            //  1. The watchdog thread (this one)
-                            //  2. The kernel data collection thread
-                            //
-                            if ( suspend_me.dwTid == SK_Thread_GetCurrentId () ||
-                                 suspend_me.dwTid == pDataCollector->dwProducerTid )
-                            {
-                              continue;
-                            }
-
-                            SK_AutoHandle hThread__ (
-                              OpenThread ( THREAD_SUSPEND_RESUME,
-                                             FALSE,
-                                               suspend_me.dwTid )
-                            );
-
-                            if (SuspendThread (hThread__) != -1)
-                            {
-                              CONTEXT                           threadCtx = { };
-                              GetThreadContext (hThread__.m_h, &threadCtx);
-
-                              suspend_me.time_requested  =
-                                SK_GetCurrentMS   ();
-                              suspend_me.frame_requested =
-                                SK_GetFramesDrawn ();
-                              suspend_me.hThread         =
-                                hThread__.Detach  ();
-
-                              suspended_threads.emplace_back (
-                                suspend_me
-                              );
-                            }
+                            continue;
                           }
+
+                          SK_AutoHandle hThread__ (
+                            OpenThread ( THREAD_SUSPEND_RESUME,
+                                           FALSE,
+                                             suspend_me.dwTid )
+                          );
+
+                          if (SuspendThread (hThread__) != -1)
+                          {
+                            CONTEXT                           threadCtx = { };
+                            GetThreadContext (hThread__.m_h, &threadCtx);
+
+                            suspend_me.time_requested  =
+                              SK_GetCurrentMS   ();
+                            suspend_me.frame_requested =
+                              SK_GetFramesDrawn ();
+                            suspend_me.hThread         =
+                              hThread__.Detach  ();
+
+                            suspended_threads.emplace_back (
+                              suspend_me
+                            );
+                          }
+                        }
 
 #define CHECKUP_TIME 666UL
 #define MIN_FRAMES   4
 
-                          std::vector <suspend_params_s> leftovers;
-                                                         leftovers.reserve (
-                                               suspended_threads.size ()   );
-                          for ( auto& thread : suspended_threads )
+                        std::vector <suspend_params_s> leftovers;
+                                                       leftovers.reserve (
+                                             suspended_threads.size ()   );
+                        for ( auto& thread : suspended_threads )
+                        {
+                          if (thread.time_requested < (SK_GetCurrentMS () - CHECKUP_TIME))
                           {
-                            if (thread.time_requested < (SK_GetCurrentMS () - CHECKUP_TIME))
+                            SK_AutoHandle hThread
+                                  (thread.hThread);
+
+                            if (thread.frame_requested > (SK_GetFramesDrawn () - MIN_FRAMES))
                             {
-                              SK_AutoHandle hThread
-                                    (thread.hThread);
-
-                              if (thread.frame_requested > (SK_GetFramesDrawn () - MIN_FRAMES))
-                              {
-                                SK_ImGui_Warning (L"Unsafe thread suspension detected; thread resumed to prevent deadlock!");
-                                ResumeThread (hThread.m_h);
-                              }
-
-                              continue;
+                              SK_ImGui_Warning (L"Unsafe thread suspension detected; thread resumed to prevent deadlock!");
+                              ResumeThread (hThread.m_h);
                             }
 
-                            leftovers.emplace_back (thread);
+                            continue;
                           }
 
-                          std::swap (leftovers, suspended_threads);
+                          leftovers.emplace_back (thread);
                         }
 
-                        else
-                          break;
+                        std::swap (leftovers, suspended_threads);
                       } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
                       CancelWaitableTimer (hRecoveryEvent);
@@ -2248,9 +2236,8 @@ public:
 
         int sel = 0;
 
-        LONG dwPrio = sk::narrow_cast <LONG> (
-          GetThreadPriority (hSelectedThread)
-        );
+        DWORD dwPrio =
+          GetThreadPriority (hSelectedThread);
 
         switch (dwPrio)
         {

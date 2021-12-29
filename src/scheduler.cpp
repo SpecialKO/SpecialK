@@ -431,8 +431,6 @@ SK_WaitForSingleObject_Micro ( _In_  HANDLE          hHandle,
         case STATUS_ALERTED:
         case STATUS_USER_APC:
           return WAIT_IO_COMPLETION;
-        default:
-          break;
       }
     }
 
@@ -1445,9 +1443,9 @@ NtSetTimerResolution_Detour
      "NtQueryTimerResolution" );
 
   static Concurrency::concurrent_unordered_map
-    < std::wstring, unsigned int > setters_;
+    < std::wstring, int > setters_;
 
-  unsigned int *pSetCount = nullptr;
+  int *pSetCount = nullptr;
 
   if (SetResolution)
   {
@@ -1477,7 +1475,7 @@ NtSetTimerResolution_Detour
   if ((! pSetCount) || (*(pSetCount) % 100) == 1)
   {
     SK_LOG0 ( ( L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
-                 (double)(DesiredResolution * 100) / 1000000.0,
+                  (float)(DesiredResolution * 100) / 1000000.0,
                               SetResolution ? L"Set" : L"Get",
                                     SK_GetCallerName ().c_str (),
                                     pSetCount != nullptr ? *pSetCount

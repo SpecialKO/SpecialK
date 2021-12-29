@@ -1662,15 +1662,11 @@ struct ImGuiStorage
 {
     struct Pair
     {
-        ImGuiID key = 0;
-        union {
-          int   val_i;
-          float val_f;
-          void* val_p = nullptr;
-        };
-        Pair (ImGuiID _key, int _val_i)   { key = _key; val_i = _val_i; }
-        Pair (ImGuiID _key, float _val_f) { key = _key; val_f = _val_f; }
-        Pair (ImGuiID _key, void* _val_p) { key = _key; val_p = _val_p; }
+        ImGuiID key;
+        union { int val_i; float val_f; void* val_p; };
+        Pair(ImGuiID _key, int _val_i)   { key = _key; val_i = _val_i; }
+        Pair(ImGuiID _key, float _val_f) { key = _key; val_f = _val_f; }
+        Pair(ImGuiID _key, void* _val_p) { key = _key; val_p = _val_p; }
     };
     ImVector<Pair>      Data;
 

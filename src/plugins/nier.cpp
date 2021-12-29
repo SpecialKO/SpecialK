@@ -399,7 +399,7 @@ static D3D11_DrawIndexed_pfn                 _D3D11_DrawIndexed_Original        
 static D3D11_Draw_pfn                        _D3D11_Draw_Original                         = nullptr;
 
 
-struct far_hudless_s
+struct
 {
   bool        enqueue = false; // Trigger a Steam screenshot
   int         clear   = 4;     // Reset enqueue after 3 frames
@@ -409,9 +409,7 @@ struct far_hudless_s
     "HUD Free Screenshot", L"Num -",
      false, false, false, VK_OEM_MINUS
   };
-};
-
-SK_LazyGlobal <far_hudless_s> __FAR_HUDLESS;
+} static __FAR_HUDLESS;
 
 struct far_cam_state_s
 {
@@ -461,9 +459,7 @@ struct far_cam_state_s
 
     return (focus_lock = (! focus_lock));
   }
-};
-
-SK_LazyGlobal <far_cam_state_s> far_cam;
+} static far_cam;
 
 // (Presumable) Size of compute shader workgroup
 UINT   __FAR_GlobalIllumWorkGroupSize =   128;
@@ -558,9 +554,9 @@ SK_FAR_CreateBuffer (
             float light_pos [4] = { lights [i].world_pos [0], lights [i].world_pos [1],
                                     lights [i].world_pos [2], lights [i].world_pos [3] };
 
-            glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam->pCamera)) [0],
-                                        light_pos [1] - (reinterpret_cast <float *> (far_cam->pCamera)) [1],
-                                        light_pos [2] - (reinterpret_cast <float *> (far_cam->pCamera)) [2],
+            glm::vec4   cam_pos_world ( light_pos [0] - (reinterpret_cast <float *> (far_cam.pCamera)) [0],
+                                        light_pos [1] - (reinterpret_cast <float *> (far_cam.pCamera)) [1],
+                                        light_pos [2] - (reinterpret_cast <float *> (far_cam.pCamera)) [2],
                                                      1.0f );
 
             glm::mat4x4 world_mat ( lights [i].world_to_vol [ 0], lights [i].world_to_vol [ 1], lights [i].world_to_vol [ 2], lights [i].world_to_vol [ 3],
@@ -934,27 +930,27 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     }
 
 
-    if (__FAR_HUDLESS->enqueue)
+    if (__FAR_HUDLESS.enqueue)
     {
-      if (__FAR_HUDLESS->clear == 4-1)
+      if (__FAR_HUDLESS.clear == 4-1)
       {
         // In all truth, I should capture the screenshot myself, but I don't
         //   want to bother with that right now ;)
         SK_SteamAPI_TakeScreenshot ();
-        __FAR_HUDLESS->clear--;
+        __FAR_HUDLESS.clear--;
       }
 
-      else if (__FAR_HUDLESS->clear <= 0)
+      else if (__FAR_HUDLESS.clear <= 0)
       {
         (*game_state.pHUDOpacity) =
-          __FAR_HUDLESS->opacity;
+          __FAR_HUDLESS.opacity;
 
-        __FAR_HUDLESS->clear   = 4;
-        __FAR_HUDLESS->enqueue = false;
+        __FAR_HUDLESS.clear   = 4;
+        __FAR_HUDLESS.enqueue = false;
       }
 
       else
-        __FAR_HUDLESS->clear--;
+        __FAR_HUDLESS.clear--;
     }
   }
 
@@ -1005,8 +1001,8 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     float ddX = uLX;
     float ddY = uLY;
 
-    vec3_t pos;     pos     [0] = (*far_cam->pCamera) [0]; pos    [1] = (*far_cam->pCamera) [1]; pos    [2] = (*far_cam->pCamera) [2];
-    vec3_t target;  target  [0] = (*far_cam->pLook)   [0]; target [1] = (*far_cam->pLook)   [1]; target [2] = (*far_cam->pLook)   [2];
+    vec3_t pos;     pos     [0] = (*far_cam.pCamera) [0]; pos    [1] = (*far_cam.pCamera) [1]; pos    [2] = (*far_cam.pCamera) [2];
+    vec3_t target;  target  [0] = (*far_cam.pLook)   [0]; target [1] = (*far_cam.pLook)   [1]; target [2] = (*far_cam.pLook)   [2];
 
     vec3_t diff; diff [0] = target [0] - pos [0];
                  diff [1] = target [1] - pos [1];
@@ -1019,14 +1015,14 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     dX = ddX*diff [2]/hypXY;
     dY = ddX*diff [0]/hypXY;
 
-    (*far_cam->pLook)   [0] = target [0] - dX;
-    (*far_cam->pLook)   [2] = target [2] + dY;
+    (*far_cam.pLook) [0]   = target [0] - dX;
+    (*far_cam.pLook) [2]   = target [2] + dY;
 
-    (*far_cam->pCamera) [0] = pos    [0] - dX;
-    (*far_cam->pCamera) [2] = pos    [2] + dY;
+    (*far_cam.pCamera) [0] = pos    [0] - dX;
+    (*far_cam.pCamera) [2] = pos    [2] + dY;
 
-    pos     [0] = (*far_cam->pCamera) [0]; pos    [1] = (*far_cam->pCamera) [1]; pos    [2] = (*far_cam->pCamera) [2];
-    target  [0] = (*far_cam->pLook)   [0]; target [1] = (*far_cam->pLook)   [1]; target [2] = (*far_cam->pLook)   [2];
+    pos     [0] = (*far_cam.pCamera) [0]; pos    [1] = (*far_cam.pCamera) [1]; pos    [2] = (*far_cam.pCamera) [2];
+    target  [0] = (*far_cam.pLook)   [0]; target [1] = (*far_cam.pLook)   [1]; target [2] = (*far_cam.pLook)   [2];
 
     diff    [0] = target [0] - pos [0];
     diff    [1] = target [1] - pos [1];
@@ -1039,11 +1035,11 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
     dZ = ddY * diff [1] / hypXY;
 
 
-    (*far_cam->pLook) [0]   = target [0] + dX;
-    (*far_cam->pLook) [2]   = target [2] + dY;
+    (*far_cam.pLook) [0]   = target [0] + dX;
+    (*far_cam.pLook) [2]   = target [2] + dY;
 
-    (*far_cam->pCamera) [0] = pos    [0] + dX;
-    (*far_cam->pCamera) [2] = pos    [2] + dY;
+    (*far_cam.pCamera) [0] = pos    [0] + dX;
+    (*far_cam.pCamera) [2] = pos    [2] + dY;
   }
 }
 
@@ -1087,20 +1083,20 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
   const auto uiHudlessMask =
-    SK_MakeKeyMask ( __FAR_HUDLESS->keybind.vKey,  __FAR_HUDLESS->keybind.ctrl,
-                     __FAR_HUDLESS->keybind.shift, __FAR_HUDLESS->keybind.alt );
+    SK_MakeKeyMask ( __FAR_HUDLESS.keybind.vKey,  __FAR_HUDLESS.keybind.ctrl,
+                     __FAR_HUDLESS.keybind.shift, __FAR_HUDLESS.keybind.alt );
 
   const auto uiLockCenterMask =
-    SK_MakeKeyMask ( far_cam->center_binding.vKey,  far_cam->center_binding.ctrl,
-                     far_cam->center_binding.shift, far_cam->center_binding.alt );
+    SK_MakeKeyMask ( far_cam.center_binding.vKey,  far_cam.center_binding.ctrl,
+                     far_cam.center_binding.shift, far_cam.center_binding.alt );
 
   const auto uiLockFocusMask =
-    SK_MakeKeyMask ( far_cam->focus_binding.vKey,  far_cam->focus_binding.ctrl,
-                     far_cam->focus_binding.shift, far_cam->focus_binding.alt );
+    SK_MakeKeyMask ( far_cam.focus_binding.vKey,  far_cam.focus_binding.ctrl,
+                     far_cam.focus_binding.shift, far_cam.focus_binding.alt );
 
   const auto uiToggleFreelookMask =
-    SK_MakeKeyMask ( far_cam->freelook_binding.vKey,  far_cam->freelook_binding.ctrl,
-                     far_cam->freelook_binding.shift, far_cam->freelook_binding.alt );
+    SK_MakeKeyMask ( far_cam.freelook_binding.vKey,  far_cam.freelook_binding.ctrl,
+                     far_cam.freelook_binding.shift, far_cam.freelook_binding.alt );
 
   switch (uiMaskedKeyCode)
   {
@@ -1138,23 +1134,23 @@ SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
       {
         if (uiMaskedKeyCode == uiHudlessMask)
         {
-          if (__FAR_HUDLESS->enqueue == false )
+          if (__FAR_HUDLESS.enqueue == false )
           {
-            __FAR_HUDLESS->clear     = 4;
-            __FAR_HUDLESS->enqueue   = true;
-            __FAR_HUDLESS->opacity   = (*game_state.pHUDOpacity);
+            __FAR_HUDLESS.clear     = 4;
+            __FAR_HUDLESS.enqueue   = true;
+            __FAR_HUDLESS.opacity   = (*game_state.pHUDOpacity);
             *game_state.pHUDOpacity = 0.0f;
           }
         }
 
         else if (uiMaskedKeyCode == uiLockCenterMask)
         {
-          far_cam->toggleCenterLock ();
+          far_cam.toggleCenterLock ();
         }
 
         else if (uiMaskedKeyCode == uiLockFocusMask)
         {
-          far_cam->toggleFocusLock ();
+          far_cam.toggleFocusLock ();
         }
 
         else if (uiMaskedKeyCode == uiToggleFreelookMask)
@@ -2060,10 +2056,10 @@ SK_FAR_InitPlugin (void)
           return ret;
         };
 
-    far_hudless_binding = LoadKeybind (&__FAR_HUDLESS->keybind,    L"HUDFreeScreenshot");
-    far_center_lock     = LoadKeybind (&far_cam->center_binding,   L"ToggleCameraCenterLock");
-    far_focus_lock      = LoadKeybind (&far_cam->focus_binding,    L"ToggleCameraFocusLock");
-    far_free_look       = LoadKeybind (&far_cam->freelook_binding, L"ToggleCameraFreelook");
+    far_hudless_binding = LoadKeybind (&__FAR_HUDLESS.keybind,    L"HUDFreeScreenshot");
+    far_center_lock     = LoadKeybind (&far_cam.center_binding,   L"ToggleCameraCenterLock");
+    far_focus_lock      = LoadKeybind (&far_cam.focus_binding,    L"ToggleCameraFocusLock");
+    far_free_look       = LoadKeybind (&far_cam.freelook_binding, L"ToggleCameraFreelook");
 
 
 
@@ -2489,39 +2485,39 @@ SK_FAR_PlugInCfg (void)
 
       ImGui::Text          ("HUD Free Screenshot Keybinding:  "); ImGui::SameLine ();
 
-      changed |= Keybinding (&__FAR_HUDLESS->keybind, far_hudless_binding);
+      changed |= Keybinding (&__FAR_HUDLESS.keybind, far_hudless_binding);
 
       ImGui::Separator ();
 
-      if (ImGui::Checkbox   ("Lock Camera Origin", &far_cam->center_lock))
+      if (ImGui::Checkbox   ("Lock Camera Origin", &far_cam.center_lock))
       {
-        far_cam->center_lock = (! far_cam->center_lock);
-        far_cam->toggleCenterLock ();
+        far_cam.center_lock = (! far_cam.center_lock);
+        far_cam.toggleCenterLock ();
       }
 
       ImGui::SameLine       ();
-      changed |= Keybinding (&far_cam->center_binding, far_center_lock);
+      changed |= Keybinding (&far_cam.center_binding, far_center_lock);
 
-      if (ImGui::Checkbox   ("Lock Camera Focus", &far_cam->focus_lock))
+      if (ImGui::Checkbox   ("Lock Camera Focus", &far_cam.focus_lock))
       {
-        far_cam->focus_lock = (! far_cam->focus_lock);
-        far_cam->toggleFocusLock ();
+        far_cam.focus_lock = (! far_cam.focus_lock);
+        far_cam.toggleFocusLock ();
       }
 
 
       ImGui::SameLine ();
-      changed |= Keybinding (&far_cam->focus_binding, far_focus_lock);
+      changed |= Keybinding (&far_cam.focus_binding, far_focus_lock);
 
       ImGui::Checkbox ("Use Gamepad Freelook", &__FAR_Freelook);
 
       ImGui::SameLine       ();
-      changed |= Keybinding (&far_cam->freelook_binding, far_free_look);
+      changed |= Keybinding (&far_cam.freelook_binding, far_free_look);
 
       ImGui::Separator ();
 
       ImGui::Text ( "Origin: (%.3f, %.3f, %.3f) - Look: (%.3f,%.3f,%.3f",
-                      ((float *)far_cam->pCamera)[0], ((float *)far_cam->pCamera)[1], ((float *)far_cam->pCamera)[2],
-                      ((float *)far_cam->pLook)  [0], ((float *)far_cam->pLook)  [1], ((float *)far_cam->pLook)  [2]);
+                      ((float *)far_cam.pCamera)[0], ((float *)far_cam.pCamera)[1], ((float *)far_cam.pCamera)[2],
+                      ((float *)far_cam.pLook)[0],   ((float *)far_cam.pLook)[1],   ((float *)far_cam.pLook)[2] );
 
       ImGui::TreePop        ();
     }
@@ -2735,7 +2731,7 @@ void far_game_state_s::initForSteam2021 (void)
   //NieRAutomata.exe+7521EE - 89 05 6C758D00        - mov [NieRAutomata.exe+1029760],eax { (0) }
   pShortcuts = reinterpret_cast <DWORD *> (uiBaseAddr + 0x1029760);
 
-  far_cam->pCamera = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020960);
-  far_cam->pLook   = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020970);
-  far_cam->pRoll   = reinterpret_cast <float  *> (uiBaseAddr + 0x10209A8);
+  far_cam.pCamera = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020960);
+  far_cam.pLook   = reinterpret_cast <vec3_t *> (uiBaseAddr + 0x1020970);
+  far_cam.pRoll   = reinterpret_cast <float  *> (uiBaseAddr + 0x10209A8);
 }

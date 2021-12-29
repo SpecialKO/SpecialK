@@ -93,8 +93,8 @@ static inline
 const HANDLE
   SK_GetCurrentThread (void) noexcept
   {
-    static const                      HANDLE
-           _caller (reinterpret_cast <HANDLE> (-2));
+      static const   HANDLE
+           _caller ((HANDLE)-2);
     return _caller;
   };
 
@@ -102,8 +102,8 @@ static inline
 const HANDLE
   SK_GetCurrentProcess (void) noexcept
   {
-    static const                    HANDLE
-           _host (reinterpret_cast <HANDLE> (-1));
+    static const   HANDLE
+           _host ((HANDLE)-1);
     return _host;
   };
 

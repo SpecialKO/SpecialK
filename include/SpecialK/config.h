@@ -704,12 +704,8 @@ struct sk_config_t
     } mouse;
 
     // Avoids calling SK_Input_PreInit (...)
-    bool    dont_hook_core         = false;
+    bool dont_hook_core = false;
   } input;
-
-  struct network_s {
-    bool    disable_access         = false;
-  } network;
 
   struct threads_s {
     bool    enable_mem_alloc_trace = false;
@@ -718,7 +714,7 @@ struct sk_config_t
 
   struct injection_s {
     struct global_cache_s {
-      bool  use_static_addresses   = false;
+      bool  use_static_addresses = false;
     } global;
   } injection;
 

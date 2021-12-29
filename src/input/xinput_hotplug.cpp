@@ -91,25 +91,25 @@ SK_XInput_Holding (DWORD dwUserIndex)
   return false;
 }
 
-SK_LazyGlobal <std::set <HANDLE>> SK_HID_DeviceArrivalEvents;
-SK_LazyGlobal <std::set <HANDLE>> SK_HID_DeviceRemovalEvents;
+std::set <HANDLE> SK_HID_DeviceArrivalEvents;
+std::set <HANDLE> SK_HID_DeviceRemovalEvents;
 
 void SK_HID_AddDeviceArrivalEvent (HANDLE hEvent)
 {
-  if (SK_HID_DeviceRemovalEvents->empty () &&
-      SK_HID_DeviceArrivalEvents->empty ())
-         SK_XInput_NotifyDeviceArrival  ();
+  if (SK_HID_DeviceRemovalEvents.empty () &&
+      SK_HID_DeviceArrivalEvents.empty ())
+         SK_XInput_NotifyDeviceArrival ();
 
-  SK_HID_DeviceArrivalEvents->emplace (hEvent);
+  SK_HID_DeviceArrivalEvents.emplace (hEvent);
 }
 
 void SK_HID_AddDeviceRemovalEvent (HANDLE hEvent)
 {
-  if (SK_HID_DeviceRemovalEvents->empty () &&
-      SK_HID_DeviceArrivalEvents->empty ())
-         SK_XInput_NotifyDeviceArrival  ();
+  if (SK_HID_DeviceRemovalEvents.empty () &&
+      SK_HID_DeviceArrivalEvents.empty ())
+         SK_XInput_NotifyDeviceArrival ();
 
-  SK_HID_DeviceRemovalEvents->emplace (hEvent);
+  SK_HID_DeviceRemovalEvents.emplace (hEvent);
 }
 
 static HANDLE SK_XInputHot_NotifyEvent       = 0;
@@ -165,89 +165,92 @@ SK_XInput_NotifyDeviceArrival (void)
       [] (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
       -> LRESULT
         {
-          if (message == WM_DEVICECHANGE)
+          switch (message)
           {
-            switch (wParam)
+            case WM_DEVICECHANGE:
             {
-              case DBT_DEVICEARRIVAL:
-              case DBT_DEVICEREMOVECOMPLETE:
+              switch (wParam)
               {
-                DEV_BROADCAST_HDR* pDevHdr =
-                  (DEV_BROADCAST_HDR *)lParam;
-
-                if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+                case DBT_DEVICEARRIVAL:
+                case DBT_DEVICEREMOVECOMPLETE:
                 {
-                  bool arrival =
-                    (wParam == DBT_DEVICEARRIVAL);
+                  DEV_BROADCAST_HDR* pDevHdr =
+                    (DEV_BROADCAST_HDR *)lParam;
 
-                  SK_ReleaseAssert (
-                    pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
-                  )
-
-                  DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
-                    (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
-
-                  static constexpr GUID GUID_DEVINTERFACE_HID =
-                    { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
-
-                  if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID))
+                  if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                   {
-                    SK_LOG0 ( ( L" Device %s:\t%s",  arrival ? L"Arrival"
-                                                             : L"Removal",
-                                                     pDev->dbcc_name ),
-                                __SK_SUBSYSTEM__ );
+                    bool arrival =
+                      (wParam == DBT_DEVICEARRIVAL);
 
-                    if (arrival)
+                    SK_ReleaseAssert (
+                      pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
+                    )
+
+                    DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
+                      (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
+
+                    static constexpr GUID GUID_DEVINTERFACE_HID =
+                      { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+
+                    if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID))
                     {
-                      for (  auto event : SK_HID_DeviceArrivalEvents.get ()  )
-                        SetEvent (event);
+                      SK_LOG0 ( ( L" Device %s:\t%s",  arrival ? L"Arrival"
+                                                               : L"Removal",
+                                                       pDev->dbcc_name ),
+                                  __SK_SUBSYSTEM__ );
 
-                      // XInput devices contain IG_...
-                      if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
-                            wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
-                            // Ignore XInputGetKeystroke
+                      if (arrival)
                       {
-                        XINPUT_CAPABILITIES caps = { };
+                        for (  auto event : SK_HID_DeviceArrivalEvents  )
+                          SetEvent (event);
 
-                        // Determine all connected XInput controllers and only
-                        //   refresh those that need it...
-                        for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
+                        // XInput devices contain IG_...
+                        if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
+                              wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+                              // Ignore XInputGetKeystroke
                         {
-                          if ( ERROR_SUCCESS ==
-                                 SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps) )
-                          {
-                            SK_XInput_Refresh        (i);
-                            SK_XInput_PollController (i);
+                          XINPUT_CAPABILITIES caps = { };
 
-                            if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
-                                SetEvent (SK_XInputCold_DecommisionEvent);
+                          // Determine all connected XInput controllers and only
+                          //   refresh those that need it...
+                          for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
+                          {
+                            if ( ERROR_SUCCESS ==
+                                   SK_XInput_GetCapabilities (i, XINPUT_DEVTYPE_GAMEPAD, &caps) )
+                            {
+                              SK_XInput_Refresh        (i);
+                              SK_XInput_PollController (i);
+
+                              if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                                  SetEvent (SK_XInputCold_DecommisionEvent);
+                            }
                           }
                         }
                       }
-                    }
 
-                    else
-                    {
-                      for (  auto event : SK_HID_DeviceRemovalEvents.get ()  )
-                        SetEvent (event);
-
-                      if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
-                            wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
-                            // Ignore XInputGetKeystroke
+                      else
                       {
-                        // We really have no idea what controller this is, so refresh them all
-                        SetEvent (SK_XInputHot_NotifyEvent);
+                        for (  auto event : SK_HID_DeviceRemovalEvents  )
+                          SetEvent (event);
 
-                        if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
-                            SetEvent (SK_XInputCold_DecommisionEvent);
+                        if (  wcsstr (pDev->dbcc_name, L"IG_")     != nullptr &&
+                              wcsstr (pDev->dbcc_name, LR"(\kbd)") == nullptr )
+                              // Ignore XInputGetKeystroke
+                        {
+                          // We really have no idea what controller this is, so refresh them all
+                          SetEvent (SK_XInputHot_NotifyEvent);
+
+                          if ((intptr_t)SK_XInputCold_DecommisionEvent > 0)
+                              SetEvent (SK_XInputCold_DecommisionEvent);
+                        }
                       }
                     }
                   }
-                }
-              } break;
-            }
+                } break;
+              }
 
-            return 0;
+              return 0;
+            } break;
           };
 
           return

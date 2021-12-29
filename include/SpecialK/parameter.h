@@ -83,7 +83,7 @@ public:
   }
 
   // Returns true if a key exists but has no value
-  virtual bool empty (void) const;
+  virtual bool empty (void);
 
   std::type_index          type_;
 

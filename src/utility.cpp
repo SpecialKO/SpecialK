@@ -22,7 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 int
-SK_MessageBox (const std::wstring& caption, const std::wstring& title, uint32_t flags)
+SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
   return
     MessageBox (nullptr, caption.c_str (), title.c_str (),

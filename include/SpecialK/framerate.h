@@ -564,7 +564,7 @@ namespace SK
             point_one_percent_avg_ms =
               std::accumulate ( sampled_lows.begin (),
                                 sampled_lows.begin ()  + end_sample_idx,
-                          0.0 ) / static_cast <double> ( end_sample_idx );
+                                        0.0 ) / (double)(end_sample_idx);
 
         return
           point_one_percent_avg_ms;

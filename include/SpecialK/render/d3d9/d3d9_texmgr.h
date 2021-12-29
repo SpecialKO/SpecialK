@@ -236,9 +236,9 @@ struct TexThreadStats {
 
 
     float                      getTimeSaved         (void) const  { return time_saved;                   }
-    LONG64                     getByteSaved         (void)        { return ReadAcquire64 (&bytes_saved); }
-     LONG                      getHitCount          (void)        { return ReadAcquire   (&hits);        }
-     LONG                      getMissCount         (void)        { return ReadAcquire   (&misses);      }
+    LONG64                     getByteSaved         (void)                { return ReadAcquire64 (&bytes_saved); }
+     LONG                      getHitCount          (void)                { return ReadAcquire   (&hits);        }
+     LONG                      getMissCount         (void)                { return ReadAcquire   (&misses);      }
 
 
     void                       resetUsedTextures    (void);
@@ -541,13 +541,8 @@ public:
       {
         shutdown ();
 
-        HANDLE hWaitMulti [] = {
-          __SK_DLL_TeardownEvent, spool_thread_
-        };
-
-        if ( (WAIT_OBJECT_0 + 1) ==
-              WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
-          CloseHandle (spool_thread_);
+        SK_WaitForSingleObject (spool_thread_, INFINITE);
+        CloseHandle            (spool_thread_);
       }
 
       CloseHandle (events_.results_waiting);
@@ -653,9 +648,6 @@ public:
 
       SK_ReleaseAssert (finished        != nullptr &&
                         finished->pDest != nullptr);
-
-      if (! finished)
-        return;
 
       // Remove the temporary reference we added earlier
       finished->pDest->Release ();

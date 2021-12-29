@@ -169,7 +169,7 @@ SK_GetCurrentGameID (void)
                     SK_FFXV_InitPlugin ();
       }
 
-      else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake_" ) )
+      else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
       {
         current_game = SK_GAME_ID::FinalFantasy7Remake;
       }
@@ -692,10 +692,6 @@ struct {
 } input;
 
 struct {
-  sk::ParameterBool*      disable_access          = nullptr;
-} network;
-
-struct {
   sk::ParameterBool*      enable_mem_alloc_trace  = nullptr;
   sk::ParameterBool*      enable_file_io_trace    = nullptr;
 } threads;
@@ -1207,10 +1203,6 @@ auto DeclKeybind =
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
-
-    // Networking
-    //////////////////////////////////////////////////////////////////////////
-    ConfigEntry (network.disable_access,                 L"Disable a game's access to your network",                   dll_ini,         L"Network.System",        L"DisableAccess"),
 
 
     // Framerate Limiter
@@ -2612,14 +2604,9 @@ auto DeclKeybind =
         config.render.framerate.sleepless_render = true;
         config.render.framerate.sleepless_window = true;
 
-        config.apis.d3d9.hook                    = false;
-        config.apis.d3d9ex.hook                  = false;
-        config.apis.OpenGL.hook                  = false;
-
-        config.network.disable_access            = true;
-
-        // Game has buggy Alt+F4 handling, we'll handle it instead
-        config.input.keyboard.override_alt_f4    = true;
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook = false;
       } break;
 #endif
     }
@@ -2756,7 +2743,6 @@ auto DeclKeybind =
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
 
 
-  network.disable_access->load              (config.network.disable_access);
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
@@ -3094,10 +3080,10 @@ auto DeclKeybind =
 
   if (input.gamepad.xinput.placeholders->load (placeholder_mask))
   {
-    config.input.gamepad.xinput.placehold [0] = ( sk::narrow_cast <UINT> (placeholder_mask) & 0x1U );
-    config.input.gamepad.xinput.placehold [1] = ( sk::narrow_cast <UINT> (placeholder_mask) & 0x2U );
-    config.input.gamepad.xinput.placehold [2] = ( sk::narrow_cast <UINT> (placeholder_mask) & 0x4U );
-    config.input.gamepad.xinput.placehold [3] = ( sk::narrow_cast <UINT> (placeholder_mask) & 0x8U );
+    config.input.gamepad.xinput.placehold [0] = ( placeholder_mask & 0x1 );
+    config.input.gamepad.xinput.placehold [1] = ( placeholder_mask & 0x2 );
+    config.input.gamepad.xinput.placehold [2] = ( placeholder_mask & 0x4 );
+    config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
   input.gamepad.disable_rumble->load          (config.input.gamepad.disable_rumble);
@@ -3209,11 +3195,10 @@ auto DeclKeybind =
     static DISPLAYCONFIG_MODE_INFO *modeArray = nullptr;
 
     static std::map <std::wstring, HMONITOR>
-        _PathDeviceToHMONITOR;
-    //if (_PathDeviceToHMONITOR.empty ())
-    {
-      _PathDeviceToHMONITOR.clear ();
+                      _PathDeviceToHMONITOR;
 
+    if (_PathDeviceToHMONITOR.empty ())
+    {
       if ( ERROR_SUCCESS ==
              GetDisplayConfigBufferSizes ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths,          &uiNumModes )
                                                                 && uiNumPaths <= 128 &&  uiNumModes <= 1024 )
@@ -3232,11 +3217,12 @@ auto DeclKeybind =
       }
     }
 
+    static BOOL bEnumerated =
     EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
     {
-      std::ignore = hDC;
-      std::ignore = lpRect;
-      std::ignore = lParam;
+      (void)hDC;
+      (void)lpRect;
+      (void)lParam;
 
       MONITORINFOEXW
         mi        = {         };
@@ -3246,10 +3232,10 @@ auto DeclKeybind =
       {
         float bestIntersectArea = -1.0f;
 
-        const int ax1 = mi.rcMonitor.left;
-        const int ax2 = mi.rcMonitor.right;
-        const int ay1 = mi.rcMonitor.top;
-        const int ay2 = mi.rcMonitor.bottom;
+        int ax1 = mi.rcMonitor.left,
+            ax2 = mi.rcMonitor.right;
+        int ay1 = mi.rcMonitor.top,
+            ay2 = mi.rcMonitor.bottom;
 
         DISPLAYCONFIG_PATH_INFO *pVidPn = nullptr;
 
@@ -3263,21 +3249,20 @@ auto DeclKeybind =
             DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
               &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
 
-            RECT
-              rect =
-              { pSourceMode->position.x,
-                pSourceMode->position.y,
-                pSourceMode->position.x + sk::narrow_cast <LONG> (pSourceMode->width),
-                pSourceMode->position.y + sk::narrow_cast <LONG> (pSourceMode->height) };
+            RECT rect;
+            rect.left   = pSourceMode->position.x;
+            rect.top    = pSourceMode->position.y;
+            rect.right  = pSourceMode->position.x + pSourceMode->width;
+            rect.bottom = pSourceMode->position.y + pSourceMode->height;
 
             if (! IsRectEmpty (&rect))
             {
-              const int bx1 = rect.left;
-              const int by1 = rect.top;
-              const int bx2 = rect.right;
-              const int by2 = rect.bottom;
+              int bx1 = rect.left;
+              int by1 = rect.top;
+              int bx2 = rect.right;
+              int by2 = rect.bottom;
 
-              const int intersectArea =
+              int intersectArea =
                 ComputeIntersectionArea (ax1, ay1, ax2, ay2, bx1, by1, bx2, by2);
 
               if (intersectArea > bestIntersectArea)
@@ -3313,7 +3298,7 @@ auto DeclKeybind =
     mi        = {         };
     mi.cbSize = sizeof (mi);
 
-    const HMONITOR hMonitor =
+    HMONITOR hMonitor =
       _PathDeviceToHMONITOR [config.display.monitor_path_ccd];
 
     if (GetMonitorInfoW (hMonitor, &mi))
@@ -3342,9 +3327,9 @@ auto DeclKeybind =
     {
       EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
       {
-        std::ignore = hDC;
-        std::ignore = lpRect;
-        std::ignore = lParam;
+        (void)hDC;
+        (void)lpRect;
+        (void)lParam;
 
         MONITORINFOEXW
           mi        = {         };
@@ -4199,7 +4184,6 @@ SK_SaveConfig ( std::wstring name,
 
   window.override->store (wszFormattedRes);
 
-  network.disable_access->store               (config.network.disable_access);
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
@@ -5523,19 +5507,19 @@ SK_Render_GetAPIHookMask (void)
     return static_cast <SK_RenderAPI> (config.apis.last_known);
   }
 
-  UINT mask = 0;
+  int mask = 0;
 
 #ifdef _M_IX86
-  if (config.apis.d3d8.hook)       mask |= static_cast <UINT> (SK_RenderAPI::D3D8);
-  if (config.apis.ddraw.hook)      mask |= static_cast <UINT> (SK_RenderAPI::DDraw);
+  if (config.apis.d3d8.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D8);
+  if (config.apis.ddraw.hook)      mask |= static_cast <int> (SK_RenderAPI::DDraw);
 #endif
-  if (config.apis.d3d9.hook)       mask |= static_cast <UINT> (SK_RenderAPI::D3D9);
-  if (config.apis.d3d9ex.hook)     mask |= static_cast <UINT> (SK_RenderAPI::D3D9Ex);
-  if (config.apis.dxgi.d3d11.hook) mask |= static_cast <UINT> (SK_RenderAPI::D3D11);
-  if (config.apis.OpenGL.hook)     mask |= static_cast <UINT> (SK_RenderAPI::OpenGL);
+  if (config.apis.d3d9.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D9);
+  if (config.apis.d3d9ex.hook)     mask |= static_cast <int> (SK_RenderAPI::D3D9Ex);
+  if (config.apis.dxgi.d3d11.hook) mask |= static_cast <int> (SK_RenderAPI::D3D11);
+  if (config.apis.OpenGL.hook)     mask |= static_cast <int> (SK_RenderAPI::OpenGL);
 #ifdef _M_AMD64
-  if (config.apis.Vulkan.hook)     mask |= static_cast <UINT> (SK_RenderAPI::Vulkan);
-  if (config.apis.dxgi.d3d12.hook) mask |= static_cast <UINT> (SK_RenderAPI::D3D12);
+  if (config.apis.Vulkan.hook)     mask |= static_cast <int> (SK_RenderAPI::Vulkan);
+  if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif
 
   return

@@ -317,11 +317,12 @@ LoadWidgetBool ( bool    *pbVal,
 
     if (pbVal != nullptr)
     {
-      if (! ret->load  (*pbVal))
-            ret->store (*pbVal);
+      if (! ret->load (*pbVal))
+      {
+        ret->store    (*pbVal);
+      }
 
-      *pbVal =
-        ret->get_value ();
+      *pbVal = ret->get_value ();
     }
   }
 
@@ -347,11 +348,12 @@ LoadWidgetDocking ( SK_Widget::DockAnchor *pdaVal,
 
     if (pdaVal != nullptr)
     {
-      if (! ret->load  (*reinterpret_cast <int *> (pdaVal)))
-            ret->store (*reinterpret_cast <int *> (pdaVal));
+      if (! ret->load (*(int *)pdaVal))
+      {
+        ret->store    (*(int *)pdaVal);
+      }
 
-      *reinterpret_cast <int *> (pdaVal) =
-        ret->get_value ();
+      *(int *)pdaVal = ret->get_value ();
     }
   }
 
@@ -377,11 +379,12 @@ LoadWidgetVec2 ( ImVec2  *piv2Val,
 
     if (piv2Val != nullptr)
     {
-      if (! ret->load  (*piv2Val))
-            ret->store (*piv2Val);
+      if (! ret->load (*piv2Val))
+      {
+        ret->store    (*piv2Val);
+      }
 
-      *piv2Val =
-        ret->get_value ();
+      *piv2Val = ret->get_value ();
     }
   }
 
@@ -407,11 +410,12 @@ LoadWidgetFloat ( float  *pfVal,
 
     if (pfVal != nullptr)
     {
-      if (! ret->load  (*pfVal))
-            ret->store (*pfVal);
+      if (! ret->load (*pfVal))
+      {
+        ret->store    (*pfVal);
+      }
 
-      *pfVal =
-        ret->get_value ();
+      *pfVal = ret->get_value ();
     }
   }
 

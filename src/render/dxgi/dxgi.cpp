@@ -2683,10 +2683,10 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
   }
 }
 
-auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return ( static_cast <UINT> (api) &
-                                                              static_cast <UINT> (SK_RenderAPI::D3D11) ) ==
-                                                              static_cast <UINT> (SK_RenderAPI::D3D11); };
-auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return                api == SK_RenderAPI::D3D12;  };
+auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return ( static_cast <int> (api) &
+                                                              static_cast <int> (SK_RenderAPI::D3D11) ) ==
+                                                              static_cast <int> (SK_RenderAPI::D3D11); };
+auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return               api == SK_RenderAPI::D3D12;  };
 
 volatile LONG lResetD3D11 = 0;
 volatile LONG lResetD3D12 = 0;
@@ -3306,7 +3306,7 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
     );
 }
 
-struct sk_dxgi_factory_cache_s {
+struct {
   std::unique_ptr <std::recursive_mutex> mutex = nullptr;
 
   struct {
@@ -3565,9 +3565,7 @@ struct sk_dxgi_factory_cache_s {
 
     return 0;
   }
-};
-
-SK_LazyGlobal <sk_dxgi_factory_cache_s> __SK_DXGI_FactoryCache;
+} __SK_DXGI_FactoryCache;
 
 
 auto
@@ -3630,10 +3628,10 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     tag =
       crc32c (0x0, &frame, sizeof (callframe_s));
 
-    if (__SK_DXGI_FactoryCache->cached_descs.count (tag) != 0)
+    if (__SK_DXGI_FactoryCache.cached_descs.count (tag) != 0)
     {
       auto& cache =
-        __SK_DXGI_FactoryCache->cached_descs [tag];
+        __SK_DXGI_FactoryCache.cached_descs [tag];
 
       size_t cache_size =
              cache.size ();
@@ -3652,7 +3650,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       }
 
       size_t& hits =
-        __SK_DXGI_FactoryCache->cache_hits [tag];
+        __SK_DXGI_FactoryCache.cache_hits [tag];
 
       // First cache hit needs to be logged
       if (! hits++)
@@ -3805,7 +3803,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       if (tag != 0x0)
       {
         auto& cache =
-          __SK_DXGI_FactoryCache->cached_descs [tag];
+          __SK_DXGI_FactoryCache.cached_descs [tag];
 
         std::unordered_set <uint32_t>       reduced_set;
         std::vector        <DXGI_MODE_DESC> reduced_list;
@@ -4283,8 +4281,8 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
   const bool dummy_window =
     StrStrIW (wszClass, L"Kiero DirectX Window")         || // CyberEngine
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass");//                 ||
-  //StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
+    StrStrIW (wszClass, L"RTSSWndClass")                 ||
+    StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
 
   return
     (! dummy_window);
@@ -6522,8 +6520,8 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
 
 #define __PAIR_DEVICE_TO_CHAIN
 #ifdef  __PAIR_DEVICE_TO_CHAIN
-SK_LazyGlobal <concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>>> _recyclable_d3d11;
-SK_LazyGlobal <concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>>> _recyclable_d3d12;
+static concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>> _recyclable_d3d11;
+static concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>> _recyclable_d3d12;
 #else
 static concurrency::concurrent_unordered_map <HWND, IDXGISwapChain1*> _discarded;
 static concurrency::concurrent_unordered_map <HWND, IDXGISwapChain1*> _recyclables;
@@ -6537,21 +6535,21 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
   IDXGISwapChain1* pChain = nullptr;
 
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if ( pDev11.p != nullptr && _recyclable_d3d11->count (hWnd) )
+  if ( pDev11.p != nullptr && _recyclable_d3d11.count (hWnd) )
   {
-    SK_ReleaseAssert (_recyclable_d3d11.get ()[hWnd].count (pDevice) > 0);
+    SK_ReleaseAssert (_recyclable_d3d11 [hWnd].count (pDevice) > 0);
 
-    pChain = (IDXGISwapChain1 *)_recyclable_d3d11.get ()[hWnd][pDevice];
+    pChain = (IDXGISwapChain1 *)_recyclable_d3d11 [hWnd][pDevice];
 
     if (pChain != nullptr)
         pChain->AddRef ();
   }
 
-  else if ( pDev12.p != nullptr && _recyclable_d3d12->count (hWnd) )
+  else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )
   {
-    SK_ReleaseAssert (_recyclable_d3d12.get ()[hWnd].count (pDevice) > 0);
+    SK_ReleaseAssert (_recyclable_d3d12 [hWnd].count (pDevice) > 0);
 
-    pChain = (IDXGISwapChain1 *)_recyclable_d3d12.get ()[hWnd][pDevice];
+    pChain = (IDXGISwapChain1 *)_recyclable_d3d12 [hWnd][pDevice];
 
     if (pChain != nullptr)
         pChain->AddRef ();
@@ -6574,8 +6572,8 @@ SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnk
   SK_ComQIPtr <ID3D12Device> pDev12 (pDevice);
 
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if      (pDev11.p != nullptr) _recyclable_d3d11.get ()[hWnd][pDevice] = pSwapChain;
-  else if (pDev12.p != nullptr) _recyclable_d3d12.get ()[hWnd][pDevice] = pSwapChain;
+  if      (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
+  else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
 #else
   _recyclables [hWnd] = pSwapChain;
 #endif
@@ -6605,28 +6603,28 @@ SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pD
   _recyclables [hWnd] = nullptr;
 #else
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if (pDev11.p != nullptr && _recyclable_d3d11.get ()[hWnd][pDevice] != nullptr)
+  if (pDev11.p != nullptr && _recyclable_d3d11 [hWnd][pDevice] != nullptr)
   {
     auto swapchain =
-      _recyclable_d3d11.get ()[hWnd][pDevice];
+      _recyclable_d3d11 [hWnd][pDevice];
 
     ret = 0;
-    _recyclable_d3d11.get ()[hWnd][pDevice] = nullptr;
+    _recyclable_d3d11 [hWnd][pDevice] = nullptr;
 
     _d3d11_rbk->release (swapchain);
   }
 
   // D3D12 can never have more than one swapchain on an HWND, so ...
   //   this is silly
-  else if (pDev12.p != nullptr && _recyclable_d3d12->count (hWnd) > 0)
+  else if (pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) > 0)
   {
     auto swapchain =
-      _recyclable_d3d12.get ()[hWnd][pDevice];
+      _recyclable_d3d12 [hWnd][pDevice];
 
     SK_ReleaseAssert (swapchain != nullptr)
 
     ret = 0;
-    _recyclable_d3d12.get ()[hWnd][pDevice] = nullptr;
+    _recyclable_d3d12 [hWnd][pDevice] = nullptr;
 
     _d3d12_rbk->release (swapchain);
   }
@@ -7273,7 +7271,7 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
     if (Adapter == 0)
     {
       IDXGIAdapter1 *pAdapter1 =
-        __SK_DXGI_FactoryCache->getAdapter0 (This);
+        __SK_DXGI_FactoryCache.getAdapter0 (This);
 
       if (pAdapter1 != nullptr)
       { *ppAdapter   = pAdapter1;
@@ -7448,17 +7446,17 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   if (config.render.dxgi.use_factory_cache)
   {
     bool current =
-      __SK_DXGI_FactoryCache->isCurrent ();
+      __SK_DXGI_FactoryCache.isCurrent ();
 
     if (current)
     {
-      if (__SK_DXGI_FactoryCache->hasInterface (riid))
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
         return
-          __SK_DXGI_FactoryCache->addRef (ppFactory, riid);
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
     }
 
     else
-      __SK_DXGI_FactoryCache->reset ();
+      __SK_DXGI_FactoryCache.reset ();
   }
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -7490,7 +7488,7 @@ WINAPI CreateDXGIFactory (REFIID   riid,
 
     if (config.render.dxgi.use_factory_cache)
     {
-      __SK_DXGI_FactoryCache->addFactory (ppFactory, riid);
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
   }
 
@@ -7510,17 +7508,17 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   if (config.render.dxgi.use_factory_cache)
   {
     bool current =
-      __SK_DXGI_FactoryCache->isCurrent ();
+      __SK_DXGI_FactoryCache.isCurrent ();
 
     if (current)
     {
-      if (__SK_DXGI_FactoryCache->hasInterface (riid))
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
         return
-          __SK_DXGI_FactoryCache->addRef (ppFactory, riid);
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
     }
 
     else
-      __SK_DXGI_FactoryCache->reset ();
+      __SK_DXGI_FactoryCache.reset ();
   }
 
 
@@ -7529,7 +7527,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
   UNREFERENCED_PARAMETER (iver);
 
-  //if (riid != IID_IDXGIFactory1 || (! __SK_DXGI_FactoryCache->isCurrent ()))
+  //if (riid != IID_IDXGIFactory1 || (! __SK_DXGI_FactoryCache.isCurrent ()))
   //{
     DXGI_LOG_CALL_2 (L"                    CreateDXGIFactory1       ",
                      L"%s, %08" _L(PRIxPTR) L"h",
@@ -7578,7 +7576,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
     if (config.render.dxgi.use_factory_cache)
     {
-      __SK_DXGI_FactoryCache->addFactory (ppFactory, riid);
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
   }
 
@@ -7599,17 +7597,17 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
   {
     bool current =
-      __SK_DXGI_FactoryCache->isCurrent ();
+      __SK_DXGI_FactoryCache.isCurrent ();
 
     if (current)
     {
-      if (__SK_DXGI_FactoryCache->hasInterface (riid))
+      if (__SK_DXGI_FactoryCache.hasInterface (riid))
         return
-          __SK_DXGI_FactoryCache->addRef (ppFactory, riid);
+          __SK_DXGI_FactoryCache.addRef (ppFactory, riid);
     }
 
     else
-      __SK_DXGI_FactoryCache->reset ();
+      __SK_DXGI_FactoryCache.reset ();
   }
 
   std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
@@ -7659,7 +7657,7 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
     if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
     {
-      __SK_DXGI_FactoryCache->addFactory (ppFactory, riid);
+      __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
   }
 

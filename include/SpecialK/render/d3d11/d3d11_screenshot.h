@@ -50,7 +50,7 @@ public:
 
   __inline bool isValid (void) noexcept { return pImmediateCtx     != nullptr &&
                                                  pPixelBufferFence != nullptr; }
-  __inline bool isReady (void)
+  __inline bool isReady (void) noexcept
   {
     if (                                      (! isValid ()) ||
        (ulCommandIssuedOnFrame > (SK_GetFramesDrawn () - 1))  )

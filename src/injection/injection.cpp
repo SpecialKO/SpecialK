@@ -763,11 +763,7 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
 
       if (hMutex != nullptr)
       {
-        HANDLE hMultiple [] = {
-          __SK_DLL_TeardownEvent, hMutex
-        };
-
-        if (WaitForMultipleObjects (2, hMultiple, FALSE, INFINITE) == (WAIT_OBJECT_0 + 1))
+        if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
         {
           auto constexpr __MaxPresentMonSessions =
             SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
@@ -873,11 +869,7 @@ SK_Etw_UnregisterSession (const char* szPrefix)
 
       if (hMutex != nullptr)
       {
-        HANDLE hMultiple [2] = {
-          __SK_DLL_TeardownEvent, hMutex
-        };
-
-        if (WaitForMultipleObjects (2, hMultiple, FALSE, INFINITE) == (WAIT_OBJECT_0 + 1))
+        if (WaitForSingleObject (hMutex, INFINITE) == WAIT_OBJECT_0)
         {
           for ( int i = 0;
                     i < SK_SharedMemory_v1::EtwSessionList_s::__MaxPresentMonSessions;
@@ -1360,8 +1352,105 @@ SK_Inject_SpawnUnloadListener (void)
 
         if (hHookTeardown != SK_INVALID_HANDLE)
         {
+          WNDCLASSEXW
+          wnd_class               = {                       };
+          wnd_class.hInstance     = GetModuleHandle (nullptr);
+          wnd_class.lpszClassName = L"SK_WindowBand_Agent";
+          wnd_class.lpfnWndProc   = SK_WindowBand_AgentProc;
+          wnd_class.cbSize        = sizeof (WNDCLASSEXW);
+
           InterlockedIncrement  (&injected_procs);
 
+#if 0
+          if (GetModuleHandle (L"explorer.exe"))
+          {
+            ATOM eve =
+              RegisterClassExW (&wnd_class);
+
+            if (eve == 0)
+              UnregisterClassW (L"SK_WindowBand_Agent", GetModuleHandle (nullptr));
+
+            if (eve != 0 || RegisterClassExW (&wnd_class))
+            {
+              SK_SharedMemory_v1* pShared =
+                (SK_SharedMemory_v1*)SK_Inject_GetViewOfSharedMemory ();
+
+              if (pShared != nullptr)
+              {
+                static HANDLE
+                hExplorerDispatchThread =
+                CreateThread (nullptr, 0, [](LPVOID pUser) ->
+                DWORD
+                {
+                  auto hThreadSelf =
+                    *(HANDLE *)pUser;
+
+                  SK_SharedMemory_v1 *pShared =
+                    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+                  if (! pShared)
+                  {
+                    CloseHandle (hThreadSelf);
+                    return 0;
+                  }
+
+                  // Extra init needed for hooks
+                  InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0);
+
+                  SK_MinHook_Init ();
+
+                  SK_CreateDLLHook2 (       L"user32",
+                                      "SetWindowBand",
+                                       SetWindowBand_Detour,
+              static_cast_p2p <void> (&SetWindowBand_Original) );
+
+                  SK_ApplyQueuedHooks ();
+
+                  pShared->SystemWide.hWndExplorer =
+                    HandleToULong (
+                      CreateWindowExW ( 0, L"SK_WindowBand_Agent", NULL, 0,
+                                        0, 0, 0, 0, HWND_MESSAGE,  NULL, NULL, NULL )
+                                  );
+
+                  if (pShared->SystemWide.hWndExplorer != 0)
+                  {
+                    pShared->SystemWide.uMsgExpRaise = 0xf00d;//RegisterWindowMessageW (L"uMsgExpRaise");
+                    pShared->SystemWide.uMsgExpLower = 0xf00f;//RegisterWindowMessageW (L"uMsgExpLower");
+                  }
+
+                  HWND hWndExplorer =
+                    (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
+
+                  DWORD  dwWaitState  = WAIT_TIMEOUT;
+                  while (dwWaitState != WAIT_OBJECT_0)
+                  {
+                    dwWaitState =
+                      MsgWaitForMultipleObjects ( 1,   &__SK_DLL_TeardownEvent,
+                                                  FALSE, INFINITE, QS_ALLINPUT );
+
+                    if (dwWaitState == WAIT_OBJECT_0 + 1)
+                    {
+                      MSG                   msg = { };
+                      while (PeekMessageW (&msg, hWndExplorer, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+                      {
+                        TranslateMessage (&msg);
+                        DispatchMessageW (&msg);
+                      }
+                    }
+                  }
+
+                  CloseHandle (hThreadSelf);
+
+                  return 0;
+                }, &hExplorerDispatchThread, CREATE_SUSPENDED, nullptr);
+
+                if (hExplorerDispatchThread != 0)
+                  ResumeThread (hExplorerDispatchThread);
+              }
+            }
+            else wnd_class.cbSize = 0;
+          }
+#endif
           const DWORD dwWaitState =
             MsgWaitForMultipleObjectsEx (
               2, signals, INFINITE, QS_ALLINPUT, 0x0
@@ -1380,11 +1469,38 @@ SK_Inject_SpawnUnloadListener (void)
                              QS_ALLINPUT, 0x0 );
           }
 
+#if 0
+          if (GetModuleHandle (L"explorer.exe"))
+          {
+            SK_SharedMemory_v1 *pShared =
+              (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
+
+            if (pShared != nullptr)
+            {
+              HWND hWndToKill =
+                (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
+
+              if (IsWindow        (hWndToKill))
+                if (DestroyWindow (hWndToKill))
+                  pShared->SystemWide.hWndExplorer = (DWORD)~0;
+
+              if ( std::exchange (wnd_class.cbSize, 0) )
+                UnregisterClassW (wnd_class.lpszClassName, wnd_class.hInstance);
+
+              SK_MinHook_UnInit ();
+            }
+          }
+#endif
+
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
         }
 
-        SK_SleepEx (333UL, FALSE);
+        if (! SK_GetHostAppUtil ()->isInjectionTool ())
+        {
+          if (GetModuleLoadCount (SK_GetDLL ()) > 1)
+                          FreeLibrary (SK_GetDLL ());
+        }
 
         CloseHandle (g_hPacifierThread);
                      g_hPacifierThread = 0;
@@ -1394,15 +1510,7 @@ SK_Inject_SpawnUnloadListener (void)
         InterlockedExchangePointer ((void **)&g_hModule_CBT, 0);
 
         if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
-        {
-          if (! SK_GetHostAppUtil ()->isInjectionTool ())
-          {
-            if (GetModuleLoadCount ( SK_GetDLL ()) > 1)
-                        FreeLibrary (SK_GetDLL ());
-          }
-
           FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
-        }
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
@@ -2341,14 +2449,14 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 BOOL
 SK_IsWindowsVersionOrGreater (DWORD dwMajorVersion, DWORD dwMinorVersion, DWORD dwBuildNumber)
 {
+  NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW);
+
   OSVERSIONINFOEXW
     osInfo                     = { };
     osInfo.dwOSVersionInfoSize = sizeof (OSVERSIONINFOEXW);
 
-  using RtlGetVersion_pfn = NTSTATUS (WINAPI *) (LPOSVERSIONINFOEXW);
-        RtlGetVersion_pfn RtlGetVersion =
-       (RtlGetVersion_pfn)GetProcAddress (GetModuleHandleW (L"ntdll"),
-       "RtlGetVersion");
+  *reinterpret_cast<FARPROC *>(&RtlGetVersion) =
+    SK_GetProcAddress (L"ntdll", "RtlGetVersion");
 
   if (RtlGetVersion != nullptr)
   {

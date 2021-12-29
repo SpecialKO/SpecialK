@@ -75,7 +75,7 @@ sk::iParameter::store (void)
 }
 
 bool
-sk::iParameter::empty (void) const
+sk::iParameter::empty (void)
 {
   if (ini != nullptr)
   {

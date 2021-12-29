@@ -23,8 +23,6 @@
 #ifndef __SK__LOG_H__
 #define __SK__LOG_H__
 
-#define COM_STDMETHOD_CAN_THROW
-
 struct IUnknown;
 #include <Unknwnbase.h>
 #include <Unknwn.h>
@@ -127,12 +125,10 @@ public:
   volatile LONG    relocated   = FALSE;
 
   // Temporary augmentation for log issues during thread suspension
-  _Acquires_exclusive_lock_       (this->log_mutex)
-  __analysis_assume_lock_acquired (this->log_mutex)
-  bool             lock           (void) { if (! lockless) { EnterCriticalSection (&log_mutex); return true; } return false; }
-  _Releases_exclusive_lock_       (this->log_mutex)
-  __analysis_assume_lock_released (this->log_mutex)
-  bool             unlock         (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
+  _Acquires_exclusive_lock_ (this->log_mutex)
+  bool             lock     (void) { if (! lockless) { EnterCriticalSection (&log_mutex); return true; } return false; }
+  _Releases_exclusive_lock_ (this->log_mutex)
+  bool             unlock   (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
 };
 
 interface iSK_Logger*

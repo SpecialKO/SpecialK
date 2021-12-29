@@ -2598,14 +2598,12 @@ SK_ImGui_User_NewFrame (void)
     extern bool SK_Window_IsCursorActive       (void);
     extern bool SK_InputUtil_IsHWCursorVisible (void);
 
-    int max_refs = 4; // No infinite loops please
-
     if (SK_Window_IsCursorActive ())
     {
       if (! SK_InputUtil_IsHWCursorVisible ())
       {
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( max_refs > 0 && ShowCursor (TRUE) < 0 ) --max_refs;
+          while ( ShowCursor (TRUE) < 0 ) ;
       }
     }
 
@@ -2614,7 +2612,7 @@ SK_ImGui_User_NewFrame (void)
       if (SK_InputUtil_IsHWCursorVisible ())
       {
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( max_refs > 0 && ShowCursor (FALSE) > -1 ) --max_refs;
+          while ( ShowCursor (FALSE) >= -1 ) ;
 
         SK_SetCursor (0);
       }

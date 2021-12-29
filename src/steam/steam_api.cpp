@@ -4480,29 +4480,29 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
 
   bool captured = false;
 
-  if ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
-       static_cast <UINT> (SK_RenderAPI::D3D11) )
+  if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+       static_cast <int> (SK_RenderAPI::D3D11) )
   {
     captured =
       SK_D3D11_CaptureScreenshot (when);
   }
 
-  else if ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
-            static_cast <UINT> (SK_RenderAPI::D3D12) )
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D12) )
   {
     captured =
       SK_D3D12_CaptureScreenshot (when);
   }
 
-  else if ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
-            static_cast <UINT> (SK_RenderAPI::OpenGL) )
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::OpenGL) )
   {
     captured =
       SK_GL_CaptureScreenshot (when);
   }
 
-  else if ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
-            static_cast <UINT> (SK_RenderAPI::D3D9) )
+  else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+            static_cast <int> (SK_RenderAPI::D3D9) )
   {
     captured =
       SK_D3D9_CaptureScreenshot (when);

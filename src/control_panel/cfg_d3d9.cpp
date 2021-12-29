@@ -41,8 +41,8 @@ SK::ControlPanel::D3D9::Draw (void)
     show_shader_mod_dlg = SK_D3D9_TextureModDlg ();
 
 
-  if ( ( static_cast <UINT> (SK::ControlPanel::render_api) & static_cast <UINT> (SK_RenderAPI::D3D9) ) ==
-                                                             static_cast <UINT> (SK_RenderAPI::D3D9)   &&
+  if ( ( static_cast <int> (SK::ControlPanel::render_api) & static_cast <int> (SK_RenderAPI::D3D9) ) ==
+                                                            static_cast <int> (SK_RenderAPI::D3D9)   &&
        ImGui::CollapsingHeader ("Direct3D 9 Settings", ImGuiTreeNodeFlags_DefaultOpen) )
   {
     ImGui::TreePush ("");

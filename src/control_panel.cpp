@@ -1617,17 +1617,17 @@ DisplayModeMenu (bool windowed)
   //   deal with right now, involving ChangeDisplaySettings (...)
   bool     can_go_full = false;
 
-  if (( (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D9)  ) ||
-        (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D11) ) ))
+  if (( (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
+        (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) ) ))
   {
     // ATTN Unity:  Use asynchronous window messages!
     can_go_full = !( rb.windows.unity && (
-                            (UINT)rb.api & (UINT)SK_RenderAPI::D3D11) );
+                             (int)rb.api & (int)SK_RenderAPI::D3D11) );
   }
 
 
-  if ( static_cast <UINT> (rb.api) &
-       static_cast <UINT> (SK_RenderAPI::D3D11) )
+  if ( static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D11) )
   {
     if (rb.srgb_stripped)
     {
@@ -1710,10 +1710,10 @@ DisplayModeMenu (bool windowed)
   }
 
 
-  if ( static_cast <UINT> (rb.api) &
-       static_cast <UINT> (SK_RenderAPI::D3D11) ||
-       static_cast <UINT> (rb.api) &
-       static_cast <UINT> (SK_RenderAPI::D3D12) )
+  if ( static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D11) ||
+       static_cast <int> (rb.api) &
+       static_cast <int> (SK_RenderAPI::D3D12) )
   {
     if (mode == DISPLAY_MODE_FULLSCREEN)
     {
@@ -2217,9 +2217,6 @@ DisplayModeMenu (bool windowed)
           config.window.borderless = true;
           config.window.fullscreen = false;
           break;
-
-        default:
-          break;
       }
 
       SK_ImGui_AdjustCursor ();
@@ -2486,8 +2483,8 @@ SK_ImGui_ControlPanel (void)
         }
 
         bool supports_texture_mods =
-        //( static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D9)  ) ||
-          ( static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D11) );
+        //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
+          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) );
 
         if (supports_texture_mods)
         {
@@ -3520,19 +3517,19 @@ SK_ImGui_ControlPanel (void)
     snprintf ( szAPIName, 32, "%ws",  rb.name );
 
     // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
-    auto api_mask = static_cast <UINT> (rb.api);
+    auto api_mask = static_cast <int> (rb.api);
 
     bool translated_d3d9 =
       config.apis.d3d9.translated;
 
-    if (0x0 != (api_mask &  static_cast <UINT> (SK_RenderAPI::D3D12)) &&
-                api_mask != static_cast <UINT> (SK_RenderAPI::D3D12))
+    if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D12)) &&
+                api_mask != static_cast <int> (SK_RenderAPI::D3D12))
     {
       lstrcatA (szAPIName, "On12");
     }
 
-    else if (0x0 != (api_mask &  static_cast <UINT> (SK_RenderAPI::D3D11)) &&
-                    (api_mask != static_cast <UINT> (SK_RenderAPI::D3D11)  || translated_d3d9))
+    else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) &&
+                    (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated_d3d9))
     {
       if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→11");
       else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
@@ -3661,8 +3658,8 @@ SK_ImGui_ControlPanel (void)
 
     if (ImGui::IsItemHovered ())
     {
-      if ( static_cast <UINT> (rb.api) &
-           static_cast <UINT> (SK_RenderAPI::D3D9) )
+      if ( static_cast <int> (rb.api) &
+           static_cast <int> (SK_RenderAPI::D3D9) )
       {
         auto pDev9 =
           rb.getDevice <IDirect3DDevice9> ();
@@ -3678,10 +3675,10 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      else if ( (static_cast <UINT> (rb.api) &
-                 static_cast <UINT> (SK_RenderAPI::D3D11)) ||
-                (static_cast <UINT> (rb.api) &
-                 static_cast <UINT> (SK_RenderAPI::D3D12)) )
+      else if ( (static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D11)) ||
+                (static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D12)) )
       {
         SK_ComQIPtr <IDXGISwapChain>
             pSwapDXGI (rb.swapchain);
@@ -5053,9 +5050,6 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
     //SK_ImGui_Cursor.last_move = current_time;
       break;
-
-    default:
-      break;
   }
 
   return
@@ -5151,21 +5145,21 @@ SK_ImGui_StageNextFrame (void)
     ImGui_ImplGL3_NewFrame ();
   }
 
-  else if (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D9))
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
   {
     d3d9 = true;
 
     ImGui_ImplDX9_NewFrame ();
   }
 
-  else if (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D11))
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
   {
     d3d11 = true;
 
     ImGui_ImplDX11_NewFrame ();
   }
 
-  else if (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D12))
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
   {
     d3d12 = true;
 
@@ -5869,8 +5863,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui_ImplGL3_RenderDrawData (ImGui::GetDrawData ());
   }
 
-  else if ( ( static_cast <UINT> (rb.api) &
-              static_cast <UINT> (SK_RenderAPI::D3D9) ) != 0 )
+  else if ( ( static_cast <int> (rb.api) &
+              static_cast <int> (SK_RenderAPI::D3D9) ) != 0 )
   {
     auto pDev =
           rb.getDevice <IDirect3DDevice9> ();
@@ -5886,17 +5880,17 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     }
   }
 
-  else if ( ( static_cast <UINT> (rb.api) &
-              static_cast <UINT> (SK_RenderAPI::D3D11) ) != 0 )
+  else if ( ( static_cast <int> (rb.api) &
+              static_cast <int> (SK_RenderAPI::D3D11) ) != 0 )
   {
     ImGui::Render ();
     ImGui_ImplDX11_RenderDrawData (ImGui::GetDrawData ());
   }
 
-  else if ( ( static_cast <UINT> (rb.api) &
-              static_cast <UINT> (SK_RenderAPI::D3D12) ) != 0 )
+  else if ( ( static_cast <int> (rb.api) &
+              static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
   {
-    if (! _d3d12_rbk->frames_.empty ())
+    if (_d3d12_rbk->frames_.size () > 0)
     {
       int swapIdx = 0;
 

@@ -281,7 +281,7 @@ public:
   bool
     isValid (HMODULE const hModTest) const noexcept
   {
-    return ( hModTest > static_cast <HMODULE> (nullptr) //&&
+    return ( hModTest > (HMODULE)nullptr //&&
                        );// hModTest != INVALID_MODULE );
   }
 

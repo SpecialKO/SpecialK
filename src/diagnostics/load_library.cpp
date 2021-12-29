@@ -1849,86 +1849,81 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       SetCurrentThreadDescription (L"[SK] DLL Enumerator");
       SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
-      HANDLE hMultiWait [] = {
-        __SK_DLL_TeardownEvent, hWalkDone.m_h
+      SK_WaitForSingleObject (hWalkDone.m_h, INFINITE);
+
+      WaitForInit ();
+
+      auto CleanupLog =
+      [](iSK_Logger*& pLogger) ->
+      void
+      {
+        if ( pLogger != nullptr )
+        {
+          // Invokes Release (), which also deletes the log...
+          //   while another thread is potentially flushing it.
+          //
+          //     >>  Can you feel the danger?!  <<
+          //
+          //  * Seriously, this whole thing sucks and you better fix it! :P
+          // --------------------------------------------------------------
+             pLogger->close ();
+             pLogger  = nullptr;
+        }
       };
 
-      if (WaitForMultipleObjects (2, hMultiWait, FALSE, INFINITE) != WAIT_OBJECT_0)
+      // Doing a full enumeration is slow as hell, spawn a worker thread for this
+      //   and learn to deal with the fact that some symbol names will be invalid;
+      //     the crash handler will load them, but certain diagnostic readings under
+      //       normal operation will not.
+      auto* pWorkingSet =
+        static_cast <enum_working_set_s *> (user);
+
+      const SK_ModuleEnum when =
+             pWorkingSet->when;
+
+      if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
       {
-        WaitForInit ();
-
-        auto CleanupLog =
-        [](iSK_Logger*& pLogger) ->
-        void
-        {
-          if ( pLogger != nullptr )
-          {
-            // Invokes Release (), which also deletes the log...
-            //   while another thread is potentially flushing it.
-            //
-            //     >>  Can you feel the danger?!  <<
-            //
-            //  * Seriously, this whole thing sucks and you better fix it! :P
-            // --------------------------------------------------------------
-               pLogger->close ();
-               pLogger  = nullptr;
-          }
-        };
-
-        // Doing a full enumeration is slow as hell, spawn a worker thread for this
-        //   and learn to deal with the fact that some symbol names will be invalid;
-        //     the crash handler will load them, but certain diagnostic readings under
-        //       normal operation will not.
-        auto* pWorkingSet =
-          static_cast <enum_working_set_s *> (user);
-
-        const SK_ModuleEnum when =
-               pWorkingSet->when;
-
-        if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
-        {
-          delete pWorkingSet;
-
-          SetEvent (hWalkDone.m_h);
-
-          CleanupLog   (pLogger);
-          SK_Thread_CloseSelf ();
-
-          return 0;
-        }
-
-        if ( when != SK_ModuleEnum::PreLoad )
-          SK_WalkModules (    pWorkingSet->count * sizeof (HMODULE),
-                              pWorkingSet->proc,
-                              pWorkingSet->modules,
-                              pWorkingSet->when );
-        SK_ThreadWalkModules (pWorkingSet);
-
-        if ( when != SK_ModuleEnum::PreLoad && pLogger != nullptr )
-        {
-          SK_PrintUnloadedDLLs (pLogger);
-        }
-
-        if ( when   == SK_ModuleEnum::PreLoad &&
-            pLogger != nullptr )
-        {
-          pLogger->LogEx (
-            false,
-              L"================================================================== "
-              L"(End Preloads) "
-              L"==================================================================\n\n"
-          );
-        }
-
-        if (when != SK_ModuleEnum::PreLoad)
-        {
-          CleanupLog (pLogger);
-        }
-
         delete pWorkingSet;
 
         SetEvent (hWalkDone.m_h);
+
+        CleanupLog   (pLogger);
+        SK_Thread_CloseSelf ();
+
+        return 0;
       }
+
+      if ( when != SK_ModuleEnum::PreLoad )
+        SK_WalkModules (    pWorkingSet->count * sizeof (HMODULE),
+                            pWorkingSet->proc,
+                            pWorkingSet->modules,
+                            pWorkingSet->when );
+      SK_ThreadWalkModules (pWorkingSet);
+
+      if ( when != SK_ModuleEnum::PreLoad && pLogger != nullptr )
+      {
+        SK_PrintUnloadedDLLs (pLogger);
+      }
+
+      if ( when   == SK_ModuleEnum::PreLoad &&
+          pLogger != nullptr )
+      {
+        pLogger->LogEx (
+          false,
+            L"================================================================== "
+            L"(End Preloads) "
+            L"==================================================================\n\n"
+        );
+      }
+
+      if (when != SK_ModuleEnum::PreLoad)
+      {
+        CleanupLog (pLogger);
+      }
+
+      delete pWorkingSet;
+
+      SetEvent (hWalkDone.m_h);
 
       SK_Thread_CloseSelf ();
 

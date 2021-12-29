@@ -243,9 +243,9 @@ SK::ControlPanel::D3D11::Draw (void)
     show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
   bool d3d11 =
-    static_cast <UINT> (render_api) & static_cast <UINT> (SK_RenderAPI::D3D11);
+    static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
   bool d3d12 =
-    static_cast <UINT> (render_api) & static_cast <UINT> (SK_RenderAPI::D3D12);
+    static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
 
   if (                                 (d3d11 &&
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||

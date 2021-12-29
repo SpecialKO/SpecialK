@@ -1,8 +1,6 @@
 namespace glm{
 namespace detail
 {
-	/* Kaldaien added constexpr (12/27/21)*/
-	constexpr
 	GLM_FUNC_QUALIFIER float overflow()
 	{
 		volatile float f = 1e10;

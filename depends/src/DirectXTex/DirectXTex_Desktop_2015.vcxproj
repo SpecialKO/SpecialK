@@ -375,7 +375,6 @@
     <ProjectReference />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\DirectXTex\DirectXTex.h" />
     <ClInclude Include="..\..\include\DirectXTex\DirectXTexP.h" />
     <CLInclude Include="BC.h" />
     <ClCompile Include="BC.cpp" />
@@ -385,6 +384,9 @@
     <CLInclude Include="DDS.h" />
     <ClInclude Include="filters.h" />
     <CLInclude Include="scoped.h" />
+    <CLInclude Include="DirectXTex.h" />
+    <CLInclude Include="DirectXTexp.h" />
+    <CLInclude Include="DirectXTex.inl" />
     <ClCompile Include="BCDirectCompute.cpp" />
     <ClCompile Include="DirectXTexCompress.cpp" />
     <ClCompile Include="DirectXTexCompressGPU.cpp" />
@@ -409,7 +411,6 @@
     <ClCompile Include="DirectXTexWIC.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\include\DirectXTex\DirectXTex.inl" />
     <None Include="Shaders\BC6HEncode.hlsl">
       <FileType>Document</FileType>
     </None>

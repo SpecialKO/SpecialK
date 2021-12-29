@@ -48,7 +48,7 @@ SK_PresentMon_Main (int argc, char **argv)
   while (! StartTraceSession ())
   {
     if ( WAIT_OBJECT_0 ==
-           SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) )
+           SK_WaitForSingleObject (__SK_DLL_TeardownEvent, 2000UL) )
     {
       return 6;
     }

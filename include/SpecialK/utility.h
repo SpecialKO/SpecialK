@@ -87,9 +87,9 @@ bool           SK_IsTrue                    (const wchar_t* string);
 bool           SK_IsAdmin                   (void);
 void           SK_ElevateToAdmin            (void); // Needs DOS 8.3 filename support
 void           SK_RestartGame               (const wchar_t* wszDLL = nullptr);
-int            SK_MessageBox                (const std::wstring& caption,
-                                             const std::wstring& title,
-                                                   uint32_t      flags);
+int            SK_MessageBox                (std::wstring caption,
+                                             std::wstring title,
+                                             uint32_t     flags);
 
 LPVOID         SK_Win32_GetTokenInfo        (_TOKEN_INFORMATION_CLASS tic);
 LPVOID         SK_Win32_ReleaseTokenInfo    (LPVOID                   lpTokenBuf);
@@ -205,8 +205,8 @@ public:
   {
     // We cannot close these handles because technically they
     //   were never opened (by usermode code).
-    if ( reinterpret_cast <intptr_t> (m_h) < 0 )
-                                      m_h = nullptr;
+    if ((intptr_t)m_h < (intptr_t)nullptr)
+                  m_h =           nullptr;
 
     // Signed handles are often special cases
     //   such as -2 = Current Thread, -1 = Current Process

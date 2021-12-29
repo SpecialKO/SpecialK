@@ -1,36 +1,5 @@
-﻿21.12.28
+﻿21.12.22
 ========
- + Optimized cursor auto-hide and fixed a cursor-related lockup in Epic Overlay
- + Global Hook teardown delay (333 ms) for apps that exit before DLL cleanup
-
-21.12.23
-========
- + Do not activate Ansel with Special K unless you are using a gamepad,
-     Ansel's overlay will break keyboard input until you restart the game.
-
-    >> SK's support for Ansel goes as far as preventing it from deadlocking
-         if enabled. Its keyboard problems will not be fixed
-
- + Workaround D3D11 deadlocks caused by Ansel + Epic Game Overlay in D3D12
-
-21.12.22
-========
- + Improved C++ Exception Safety in SK's COM Smart Pointer
-
- + Fix monitor reassignment on systems with gaps in -attached- devices
-     and non-increasing sequences following GDI's '\\.\DISPLAYxx'
-       naming convention  (e.g. 2,5,4 instead of typical 1,2,3)
-
-   ->>  Internally, SK uses VidPN Path Name to identify monitors  <<-
-
-    ( Game Developers are STRONGLY encouraged to store VidPN Paths
-        instead of GDI display index values in config files )
-
-"\\?\DISPLAY#GSMC0A0#5&2dafe0a1&3&UID49410#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}"
-
-   ^^^ This is not a user-friendly identifier, but it persists across
-         reboots, driver updates and whatever else Windows 11 breaks.
-
  + Fix GDI memory leak when copying screenshots to clipboard
 
 21.12.20

@@ -484,7 +484,7 @@ SK::ControlPanel::Compatibility::Draw (void)
                                   )
                               ).c_str ());
 
-        ImGui::Text      ( "%8lx", static_cast <DWORD> (
+        ImGui::Text      ( "%8x", static_cast <DWORD> (
                                     SK_GetWindowLongPtrW (rb.windows.focus.hwnd, GWL_EXSTYLE)
                          )                            );
         ImGui::EndGroup ();
@@ -498,23 +498,23 @@ SK::ControlPanel::Compatibility::Draw (void)
           ImGui::Text      ( "%ws",          rb.windows.device.title         );
           ImGui::Text      ( "%8lu",         rb.windows.device.owner.pid     );
           ImGui::Text      ( "%8lu",         rb.windows.device.owner.tid     );
-          ImGui::Text      ( "%8llu",        rb.windows.device.last_changed  );
+          ImGui::Text      ( "%8lu",         rb.windows.device.last_changed  );
           ImGui::Text      ( "%8s",          rb.windows.device.unicode ?
                                                                  "Yes" : "No" );
           ImGui::Text      ( "%8p",
                                GetTopWindow (rb.windows.device.hwnd)         );
           ImGui::Text      ( "%8p",
                                              rb.windows.device.parent        );
-          ImGui::Text      ( "%8llx", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)   );
+          ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)   );
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ( "%s", _SummarizeWindowStyle (
+            ImGui::SetTooltip ( _SummarizeWindowStyle (
                                     static_cast <DWORD> (
                                       SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_STYLE)
                                     )
                                 ).c_str ());
 
-          ImGui::Text      ( "%8llx", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_EXSTYLE) );
+          ImGui::Text      ( "%8x", SK_GetWindowLongPtrW (rb.windows.device.hwnd, GWL_EXSTYLE) );
           ImGui::EndGroup  ();
         }
         ImGui::EndGroup ();
@@ -526,8 +526,8 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Separator   ( );
 
       ImGui::Text        ( "ImGui Cursor State: %lu (%lu,%lu) { %lu, %lu }",
-    static_cast <unsigned long> (SK_ImGui_Cursor.visible), SK_ImGui_Cursor.pos.x,
-                                                           SK_ImGui_Cursor.pos.y,
+              (unsigned long)SK_ImGui_Cursor.visible, SK_ImGui_Cursor.pos.x,
+                                                      SK_ImGui_Cursor.pos.y,
                                SK_ImGui_Cursor.orig_pos.x, SK_ImGui_Cursor.orig_pos.y );
       ImGui::SameLine    ( );
       ImGui::Text        (" {%s :: Last Update: %lu}",

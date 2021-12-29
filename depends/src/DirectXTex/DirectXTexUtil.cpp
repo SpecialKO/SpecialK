@@ -1,6 +1,6 @@
 //-------------------------------------------------------------------------------------
 // DirectXTexUtil.cpp
-//
+//  
 // DirectX Texture Library - Utilities
 //
 // THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
@@ -117,7 +117,7 @@ bool DirectX::_DXGIToWIC( DXGI_FORMAT format, GUID& guid, bool ignoreRGBvsBGR )
         }
         else
         {
-            memcpy( &guid, &GUID_WICPixelFormat32bppRGBA, sizeof(GUID) );
+            memcpy( &guid, &GUID_WICPixelFormat32bppRGBA, sizeof(GUID) );      
         }
         return true;
 
@@ -127,7 +127,7 @@ bool DirectX::_DXGIToWIC( DXGI_FORMAT format, GUID& guid, bool ignoreRGBvsBGR )
 
     case DXGI_FORMAT_D16_UNORM:
         memcpy( &guid, &GUID_WICPixelFormat16bppGray, sizeof(GUID) );
-        return true;
+        return true;    
 
     case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
         memcpy( &guid, &GUID_WICPixelFormat32bppBGRA, sizeof(GUID) );

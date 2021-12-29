@@ -1237,7 +1237,7 @@ public:
   {
     DISPPARAMS
       dispparams =
-      { pvarParams, nullptr, sk::narrow_cast <unsigned int>(nParams), 0 };
+      { pvarParams, nullptr, (unsigned int)nParams, 0 };
 
     return
       this->p->Invoke ( dispid, IID_NULL, LOCALE_USER_DEFAULT,
@@ -1291,8 +1291,7 @@ public:
     if ( pVar->vt == VT_UNKNOWN ||  pVar->vt == VT_DISPATCH ||
         (pVar->vt  & VT_ARRAY)  || (pVar->vt  & VT_BYREF) )
     {
-      const HRESULT
-               hr =
+      HRESULT hr =
         pDispatch->Invoke ( dwDispID, IID_NULL,
                               LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUTREF,
                                 &dispparams, nullptr, nullptr, nullptr );

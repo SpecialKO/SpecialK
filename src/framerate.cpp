@@ -1000,10 +1000,10 @@ SK_Framerate_WaitForVBlank (void)
   SK_ComQIPtr <IDXGISwapChain>     dxgi_swap (rb.swapchain);
   SK_ComPtr   <IDXGIOutput>        dxgi_output = nullptr;
 
-  SK_RenderAPI             api  = rb.api;
-  if (                     api ==                     SK_RenderAPI::D3D10  ||
-       static_cast <UINT> (api) & static_cast <UINT> (SK_RenderAPI::D3D11) ||
-       static_cast <UINT> (api) & static_cast <UINT> (SK_RenderAPI::D3D12) )
+  SK_RenderAPI            api  = rb.api;
+  if (                    api ==                    SK_RenderAPI::D3D10  ||
+       static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D11) ||
+       static_cast <int> (api) & static_cast <int> (SK_RenderAPI::D3D12) )
   {
     if (            dxgi_swap != nullptr &&
          SUCCEEDED (dxgi_swap->GetContainingOutput (&dxgi_output)) )
@@ -2302,14 +2302,9 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       worker_context_s* pWorker =
         (worker_context_s *)lpUser;
 
-      HANDLE hMultiWait [] = {
-        pWorker->hSignalProduce.m_h,
-        __SK_DLL_TeardownEvent
-      };
-
       while ( WAIT_OBJECT_0 ==
-                WaitForMultipleObjects ( 2, hMultiWait,
-                                            FALSE, INFINITE ) )
+                SK_WaitForSingleObject ( pWorker->hSignalProduce.m_h,
+                                           INFINITE ) )
       {
         LONG work_idx =
           ReadAcquire (&pWorker->work_idx);
@@ -2339,12 +2334,8 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       ReadAcquire (&worker.work_idx) ? 0 : 1
     ];
 
-  HANDLE hMultiWait [] = {
-    worker.hSignalConsume.m_h, __SK_DLL_TeardownEvent
-  };
-
   if ( WAIT_OBJECT_0 ==
-         WaitForMultipleObjects (2, hMultiWait, FALSE, 0) )
+         SK_WaitForSingleObject (worker.hSignalConsume.m_h, 0) )
   {
     LONG idx =
       ReadAcquire (&worker.work_idx);

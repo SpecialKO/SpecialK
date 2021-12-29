@@ -215,11 +215,7 @@ struct resample_dispatch_s
           ///if (task != nullptr && task->hTask > 0)
           ///    task->disassociateWithTask ();
 
-          HANDLE hWaitMulti [] = {
-            hResampleWork, __SK_DLL_TeardownEvent
-          };
-
-          if (WaitForMultipleObjects (2, hWaitMulti, FALSE, 666UL) != WAIT_OBJECT_0)
+          if (SK_WaitForSingleObject (hResampleWork, 666UL) != WAIT_OBJECT_0)
           {
             if ( task        == nullptr                ||
                  task->dwTid != SK_Thread_GetCurrentId () )
@@ -230,9 +226,7 @@ struct resample_dispatch_s
                                        THREAD_PRIORITY_LOWEST );
             }
 
-            if ( (WAIT_OBJECT_0 + 1) ==
-                  WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
-              break;
+            SK_WaitForSingleObject (hResampleWork, INFINITE);
           }
 
           ///if (task != nullptr && task->hTask > 0)

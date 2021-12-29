@@ -603,36 +603,31 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       cmdQueue->Signal (pFence,                       1));
                         pFence->SetEventOnCompletion (1,
                                   hEvent.m_h);
-    HANDLE hWaitMulti [] =
-    { __SK_DLL_TeardownEvent,     hEvent.m_h };
+    SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
 
-    if ( WAIT_OBJECT_0 !=
-         WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
-    {
-      // Create texture view
-      D3D12_SHADER_RESOURCE_VIEW_DESC
-        srvDesc                           = { };
-        srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
-        srvDesc.ViewDimension             = D3D12_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels       = desc.MipLevels;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+    // Create texture view
+    D3D12_SHADER_RESOURCE_VIEW_DESC
+      srvDesc                           = { };
+      srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+      srvDesc.ViewDimension             = D3D12_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-      _imgui_d3d12.pDevice->CreateShaderResourceView (
-        pTexture, &srvDesc, _imgui_d3d12.hFontSrvCpuDescHandle
-      );
+    _imgui_d3d12.pDevice->CreateShaderResourceView (
+      pTexture, &srvDesc, _imgui_d3d12.hFontSrvCpuDescHandle
+    );
 
-      _imgui_d3d12.pFontTexture.Attach (
-        pTexture.Detach ()
-      );
+    _imgui_d3d12.pFontTexture.Attach (
+      pTexture.Detach ()
+    );
 
-      SK_D3D12_SetDebugName (
-        _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
-      );
+    SK_D3D12_SetDebugName (
+      _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
+    );
 
-      io.Fonts->TexID =
-        (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr;
-    }
+    io.Fonts->TexID =
+      (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr;
   }
 
   catch (const SK_ComException& e) {
@@ -1090,17 +1085,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                    )
        )
     {
-      HANDLE hWaitMulti [] = {
-          __SK_DLL_TeardownEvent,
-        stagingFrame.fence.event
-      };
-
       // Event is automatically reset after this wait is released
-      if ( WAIT_OBJECT_0 ==
-           WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
-      {
-        return;
-      }
+      SK_WaitForSingleObject (stagingFrame.fence.event, INFINITE);
     }
   }
 
@@ -1308,15 +1294,7 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
                  )
      )
   {
-    HANDLE hWaitMulti [] = {
-      __SK_DLL_TeardownEvent, fence.event
-    };
-
-    if ( WAIT_OBJECT_0 ==
-         WaitForMultipleObjects (2, hWaitMulti, FALSE, INFINITE) )
-    {
-      return false;
-    }
+    SK_WaitForSingleObject (fence.event, INFINITE);
   }
 
   // Update CPU side fence value now that it is guaranteed to have come through
@@ -1793,7 +1771,7 @@ void
 SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                         const std::wstring&     kName )
 {
-  if (pD3D12Obj != nullptr && (! kName.empty ()))
+  if (pD3D12Obj != nullptr && kName.size () > 0)
   {
 #if 1
     D3D_SET_OBJECT_NAME_N_W ( pD3D12Obj,

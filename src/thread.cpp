@@ -59,11 +59,11 @@ SK_Thread_HasCustomName (DWORD dwTid)
            SelfTitled.cend (     ) );
 }
 
+static std::wstring _noname = L"";
+
 std::wstring&
 SK_Thread_GetName (DWORD dwTid)
 {
-  static std::wstring
-     _noname  = L"";
   auto& names =
     _SK_ThreadNames.get ();
 

@@ -2282,10 +2282,8 @@ SK_Window_ActivateCursor (bool changed = false)
     {
       if (config.input.ui.use_hw_cursor)
       {
-        int max_refs = 4; // No infinite loops please
-
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( max_refs > 0 && ShowCursor (TRUE) < 0 ) --max_refs;
+          while ( ShowCursor (TRUE) < 0 ) ;
 
         // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
         //   activate the window using the game's cursor or our override
@@ -2343,10 +2341,8 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
       SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
       SK_SetCursor     (0);
 
-      int max_refs = 4; // No infinite loops please
-
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-        while ( max_refs > 0 && ShowCursor (FALSE) > -1 ) --max_refs;
+        while ( ShowCursor (FALSE) >= -1 ) ;
 
       last_mouse.cursor  = false;
       last_mouse.sampled = SK::ControlPanel::current_time;
@@ -3216,8 +3212,6 @@ SK_Proxy_LLKeyboardProc (
          wParam, lParam );
 }
 
-extern "C" HHOOK hHookCBT;
-
 BOOL
 WINAPI
 UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
@@ -3273,12 +3267,6 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
       return
         UnhookWindowsHookEx_Original (hhk);
     }
-  }
-
-  if (hhk == hHookCBT)
-  {
-    MessageBeep (0xFFFFFFFF);
-    return TRUE;
   }
 
   return

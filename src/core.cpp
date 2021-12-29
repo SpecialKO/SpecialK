@@ -44,8 +44,6 @@
 #pragma comment (lib, R"(depends\lib\lzma\Win32\libzma.lib)")
 #endif
 
-#define __SK_SUBSYSTEM__ L"  SK-Core "
-
 volatile HANDLE   hInitThread     = { INVALID_HANDLE_VALUE };
 volatile DWORD    dwInitThreadId  =   1;
 
@@ -2272,10 +2270,10 @@ SK_ShutdownCore (const wchar_t* backend)
     DWORD dwTime_WMIShutdown =
          SK_timeGetTime ();
 
-    if ((LONG_PTR)hThread > 0)
+    if (hThread != INVALID_HANDLE_VALUE)
     {
       // Signal the thread to shutdown
-      if ( (LONG_PTR)hSignal > 0 ||
+      if ( hSignal == INVALID_HANDLE_VALUE ||
             SignalObjectAndWait (hSignal, hThread, 66UL, FALSE)
                         != WAIT_OBJECT_0 )  // Give 66 milliseconds, and
       {                                     // then we're killing
@@ -2283,14 +2281,14 @@ SK_ShutdownCore (const wchar_t* backend)
                             hThread = INVALID_HANDLE_VALUE;
       }
 
-      if ((LONG_PTR)hThread > 0)
+      if (hThread != INVALID_HANDLE_VALUE)
       {
         CloseHandle (hThread);
                      hThread = INVALID_HANDLE_VALUE;
       }
     }
 
-    if ((LONG_PTR)hSignal > 0)
+    if (hSignal != INVALID_HANDLE_VALUE)
     {
       CloseHandle (hSignal);
                    hSignal = INVALID_HANDLE_VALUE;
@@ -2683,8 +2681,8 @@ return;
 
           if (config.apis.dxgi.d3d11.hook)
           {
-            if ( static_cast <UINT> (SK_GetCurrentRenderBackend ().api) &
-                 static_cast <UINT> (SK_RenderAPI::D3D11              ) )
+            if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
+                 static_cast <int> (SK_RenderAPI::D3D11              ) )
             {
               config.cegui.enable =
                 DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
@@ -2772,8 +2770,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
       extern SK_Widget* SK_HDR_GetWidget (void);
 
-      if ( (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D11)) ||
-           (static_cast <UINT> (rb.api) & static_cast <UINT> (SK_RenderAPI::D3D12)) )
+      if ( (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11)) ||
+           (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12)) )
       {
         auto hdr =
           SK_HDR_GetWidget ();
@@ -3244,15 +3242,15 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   //
   SK_RenderBackendUtil_IsFullscreen ();
 
-  if ( static_cast <UINT> (rb.api)  &
-       static_cast <UINT> (SK_RenderAPI::D3D11) )
+  if ( static_cast <int> (rb.api)  &
+       static_cast <int> (SK_RenderAPI::D3D11) )
   {
     // Clear any resources we were tracking for the shader mod subsystem
     SK_D3D11_EndFrame (pTLS);
   }
 
-  else if ( static_cast <UINT> (rb.api) &
-            static_cast <UINT> (SK_RenderAPI::D3D12) )
+  else if ( static_cast <int> (rb.api) &
+            static_cast <int> (SK_RenderAPI::D3D12) )
   {
     SK_D3D12_EndFrame (pTLS);
   }
@@ -3525,8 +3523,8 @@ SK_SetDLLRole (DLL_ROLE role)
 
 DWORD SK_GetParentProcessId (void) // By Napalm @ NetCore2K
 {
-  ULONG_PTR pbi [6] = { };
-  ULONG     ulSize  =  0 ;
+  ULONG_PTR pbi    [6];
+  ULONG     ulSize = 0;
 
   LONG (WINAPI *NtQueryInformationProcess)(HANDLE ProcessHandle,      ULONG ProcessInformationClass,
                                            PVOID  ProcessInformation, ULONG ProcessInformationLength,
