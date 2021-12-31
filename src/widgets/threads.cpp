@@ -552,8 +552,8 @@ ProcessInformation ( PDWORD                       pdData,
       DWORD                        dData = 0;
       NTSTATUS                        ns = STATUS_INVALID_PARAMETER;
 
-      if (pQuery->NtInfo.len  < 131072)
-          pQuery->NtInfo.alloc (131072, true);
+      if (pQuery->NtInfo.len  < 2048000)
+          pQuery->NtInfo.alloc (2048000, true);
 
       void* pspi = nullptr;
 

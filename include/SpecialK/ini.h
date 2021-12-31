@@ -24,6 +24,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <set>
 
 #include <Unknwnbase.h>
 
@@ -50,10 +51,16 @@ public:
 
   iSK_INISection ( const wchar_t* section_name,
                          iSK_INI* _parent )     : name   (section_name),
-                                                 parent (_parent) {
+                                                  parent (_parent) {
   }
 
   iSK_INISection ( const std::wstring& sec_name,
+                              iSK_INI* _parent) : name   (sec_name),
+                                                  parent (_parent) {
+  }
+
+  iSK_INISection ( const
+                    std::wstring_view& sec_name,
                               iSK_INI* _parent) : name   (sec_name),
                                                   parent (_parent) {
   }
@@ -70,6 +77,21 @@ public:
   STDMETHOD_ (bool,          contains_key) (const wchar_t* key);
   STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value);
   STDMETHOD_ (bool,          remove_key)   (const wchar_t* key);
+
+
+  // Private to DLL
+  STDMETHOD_ (std::wstring&, get_value)    (const std::wstring_view key);
+  STDMETHOD_ (void,          set_name)     (const std::wstring_view name_);
+  STDMETHOD_ (bool,          contains_key) (const std::wstring_view key);
+  STDMETHOD_ (void,          add_key_value)(const std::wstring_view key, const std::wstring_view value);
+  STDMETHOD_ (bool,          remove_key)   (const std::wstring_view key);
+
+  STDMETHOD_ (std::wstring&, get_value)    (const std::wstring& key);
+  STDMETHOD_ (void,          set_name)     (const std::wstring& name_);
+  STDMETHOD_ (std::wstring*, contains_key) (const std::wstring& key);
+  STDMETHOD_ (void,          add_key_value)(const std::wstring& key, const std::wstring& value);
+  STDMETHOD_ (bool,          remove_key)   (const std::wstring& key);
+
 
   //protected:
   //private:
@@ -117,14 +139,23 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (bool,            rename)          (const wchar_t* fname);
   STDMETHOD_ (bool,            reload)          (const wchar_t* fname = nullptr);
 
+
+  // Private to DLL
+  STDMETHOD_ (iSK_INISection&, get_section)     (const std::wstring_view section);
+  STDMETHOD_ (bool,            contains_section)(const std::wstring_view section);
+  STDMETHOD_ (bool,            remove_section)  (const std::wstring_view section);
+
+  STDMETHOD_ (iSK_INISection&, get_section)     (const std::wstring& section);
+  STDMETHOD_ (iSK_INISection*, contains_section)(const std::wstring& section);
+  STDMETHOD_ (bool,            remove_section)  (const std::wstring& section);
+
 protected:
 private:
   FILE*     fINI    = nullptr;
 
-  wchar_t*  wszName = nullptr;
-  wchar_t*  wszData = nullptr;
-  wchar_t*     data = nullptr; // The original allocation base
-       //  (wszData may be offset against a Byte Order Marker)
+  std::wstring          name;
+  std::vector <wchar_t> data;
+  int                   bom_size = 0;
 
   std::unordered_map <
     std::wstring, iSK_INISection
@@ -133,8 +164,8 @@ private:
   // Preserve insertion order so that we write the INI file in the
   //   same order we read it. Otherwise things get jumbled around
   //     arbitrarily as the map is re-hashed.
-  std::vector <std::wstring>
-            ordered_sections;
+  std::vector <iSK_INISection *>
+              ordered_sections;
 
   // Preserve File Encoding
   enum CharacterEncoding {

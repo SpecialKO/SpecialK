@@ -1564,32 +1564,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
-  if (config.system.log_level > 0 && GetWindowBand != nullptr)
-  {
-    HWND hWndExplorer = SK_Inject_GetExplorerWindow ();
-    if ( hWndExplorer != 0 && IsWindow (hWndExplorer))
-    {
-      DWORD                             dwBand = 0;
-      GetWindowBand (game_window.hWnd, &dwBand);
-
-      bool fakeFSE =
-        ( dwBand == ZBID_DESKTOP && ImGui::Button ("Emulate Fullscreen Exclusive") );
-
-      if (fakeFSE)
-      {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.ZBand 8"); // ZBID_IMMERSIVE_INACTIVEMOBODY
-      }
-
-      else if (dwBand != ZBID_DESKTOP && ImGui::Button ("Switch to Regular Windowed"))
-      {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.ZBand 1");
-      }
-
-      if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Turn Fullscreen Exclusive emulation off before Alt-Tab");
-    }
-  }
-
   ImGui::TreePop ();
 }
 

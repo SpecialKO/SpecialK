@@ -151,12 +151,12 @@ extern "C" {
       HRESULT  __stdcall SK_EndBufferSwap     (HRESULT hr, IUnknown* device = nullptr,
                                                SK_TLS *pTLS = SK_TLS_Bottom () );
 
-      HMODULE      __stdcall SK_GetDLL          (void) noexcept;
+      HMODULE      __stdcall SK_GetDLL          (void);
       DLL_ROLE     __stdcall SK_GetDLLRole      (void);
 #ifdef __cplusplus
 };
 #endif
-      std::wstring __stdcall SK_GetDLLName      (void) noexcept;
+      std::wstring __stdcall SK_GetDLLName      (void);
 
 
 void           __stdcall SK_SetConfigPath (const wchar_t* path);

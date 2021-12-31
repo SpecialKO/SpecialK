@@ -15,30 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <CLInclude Include="DirectXTex.h">
-      <Filter>Header Files</Filter>
-    </CLInclude>
     <CLInclude Include="DirectXTex.inl">
       <Filter>Header Files</Filter>
     </CLInclude>
     <ClCompile Include="BC4BC5.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClInclude Include="BCDirectCompute.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <CLInclude Include="DDS.h">
-      <Filter>Source Files</Filter>
-    </CLInclude>
-    <CLInclude Include="DirectXTexp.h">
-      <Filter>Source Files</Filter>
-    </CLInclude>
-    <ClInclude Include="filters.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <CLInclude Include="scoped.h">
-      <Filter>Source Files</Filter>
-    </CLInclude>
     <ClInclude Include="..\..\include\DirectXTex\DirectXTexP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -101,11 +83,6 @@
     <ClCompile Include="DirectXTexD3D12.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <CLInclude Include="BC.h">
-      <Filter>Source Files</Filter>
-    </CLInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\CompileShaders.cmd">

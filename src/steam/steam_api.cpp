@@ -6000,7 +6000,9 @@ SK_Steam_ForceInputAppId (AppId_t appid)
     struct {
       concurrency::concurrent_queue <AppId_t> app_ids;
       SK_AutoHandle                           signal =
-        SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+         SK_AutoHandle (
+           SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr )
+                       );
 
       void push (AppId_t appid)
       {

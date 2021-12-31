@@ -4205,6 +4205,9 @@
     <ClCompile Include="src\render\gl\opengl_screenshot.cpp">
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\ff7_remake.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\cursors\ovr_ptr.cur">

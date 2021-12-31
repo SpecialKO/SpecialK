@@ -30,7 +30,7 @@ WaitForInit_Vk (void)
   SK_Thread_SpinUntilFlagged (&__vk_ready);
 }
 
-extern HMODULE WINAPI SK_GetDLL   (void) noexcept;
+extern HMODULE WINAPI SK_GetDLL   (void);
 extern void           WaitForInit (void);
 extern bool           SK_InitCOM  (void);
 

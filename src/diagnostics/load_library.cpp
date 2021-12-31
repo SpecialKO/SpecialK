@@ -1805,9 +1805,9 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
   SK_LoadLibrary_SILENCE = false;
 
   static iSK_Logger* pLogger  = SK_CreateLog (L"logs/modules.log");
-  const DWORD        dwProcID = GetCurrentProcessId ();
-        DWORD        cbNeeded = 0;
-        HANDLE       hProc    =
+  const  DWORD       dwProcID = GetCurrentProcessId ();
+         DWORD       cbNeeded = 0;
+         HANDLE      hProc    =
     // Get a handle to the process.
     OpenProcess ( PROCESS_QUERY_INFORMATION |
                   PROCESS_VM_READ,
@@ -1857,17 +1857,11 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       [](iSK_Logger*& pLogger) ->
       void
       {
-        if ( pLogger != nullptr )
-        {
-          // Invokes Release (), which also deletes the log...
-          //   while another thread is potentially flushing it.
-          //
-          //     >>  Can you feel the danger?!  <<
-          //
-          //  * Seriously, this whole thing sucks and you better fix it! :P
-          // --------------------------------------------------------------
-             pLogger->close ();
-             pLogger  = nullptr;
+        if (pLogger != nullptr )
+        {   pLogger->close ();
+
+          delete
+            std::exchange (pLogger, nullptr);
         }
       };
 
@@ -1883,7 +1877,8 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
 
       if (pWorkingSet->proc == nullptr && (when != SK_ModuleEnum::PreLoad))
       {
-        delete pWorkingSet;
+        delete
+          std::exchange (pWorkingSet, nullptr);
 
         SetEvent (hWalkDone.m_h);
 
@@ -1921,7 +1916,11 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
         CleanupLog (pLogger);
       }
 
-      delete pWorkingSet;
+      if (pWorkingSet != nullptr && pWorkingSet->proc != nullptr)
+                       CloseHandle (pWorkingSet->proc);
+
+      delete
+        std::exchange (pWorkingSet, nullptr);
 
       SetEvent (hWalkDone.m_h);
 

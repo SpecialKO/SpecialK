@@ -27,28 +27,21 @@ SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
 bool
 sk::iParameter::load (void)
 {
-  if (ini != nullptr)
+  iSK_INISection* section =
+    ( ini == nullptr ) ? nullptr
+                       : ini->contains_section (ini_section);
+
+  if (section != nullptr)
   {
-    const wchar_t*  sec_name =
-      ini_section.c_str ();
+    std::wstring* key =
+      section->contains_key (ini_key);
 
-    if (ini->contains_section (sec_name))
+    if (   key != nullptr &&
+        (! key->empty ()) )
     {
-      iSK_INISection& section =
-        ini->get_section (sec_name);
+      set_value_str (*key);
 
-      if (section.contains_key (ini_key.c_str ()))
-      {
-        std::wstring& new_value =
-          section.get_value (ini_key.c_str ());
-
-        if (! new_value.empty ())
-        {
-          set_value_str (new_value);
-
-          return true;
-        }
-      }
+      return true;
     }
   }
 
@@ -58,42 +51,26 @@ sk::iParameter::load (void)
 bool
 sk::iParameter::store (void)
 {
-  bool ret = false;
-
   if (ini != nullptr)
   {
-    iSK_INISection& section =
-      ini->get_section (ini_section.c_str ());
-
-    section.add_key_value ( ini_key.c_str (),
-                            get_value_str ().c_str () );
-
-    ret = true;
+    ini->get_section (ini_section).add_key_value (
+                      ini_key,         get_value_str ()
+                                                 );
   }
 
-  return ret;
+  return
+    ( ini != nullptr );
 }
 
 bool
 sk::iParameter::empty (void)
 {
-  if (ini != nullptr)
-  {
-    const wchar_t*  sec_name =
-      ini_section.c_str ();
+  if (  ini != nullptr   &&   ini->contains_section (ini_section))
+  { if ( iSK_INISection& section = ini->get_section (ini_section);
+                         section.contains_key       (ini_key))
+    { std::wstring& new_value   = section.get_value (ini_key);
 
-    if (ini->contains_section (sec_name))
-    {
-      iSK_INISection& section =
-        ini->get_section (sec_name);
-
-      if (section.contains_key (ini_key.c_str ()))
-      {
-        std::wstring& new_value =
-          section.get_value (ini_key.c_str ());
-
-        return new_value.empty ();
-      }
+      return        new_value.empty ();
     }
   }
 
@@ -104,11 +81,8 @@ sk::iParameter::empty (void)
 std::wstring
 sk::ParameterInt::get_value_str (void)
 {
-  wchar_t str [32] = { };
-  _itow (value, str, 10);
-
   return
-    str;
+    std::to_wstring (value);
 }
 
 int
@@ -173,11 +147,8 @@ sk::ParameterInt::load (int& ref)
 std::wstring
 sk::ParameterInt64::get_value_str (void)
 {
-  wchar_t str [32] = { };
-  _i64tow (value, str, 10);
-
   return
-    str;
+    std::to_wstring (value);
 }
 
 int64_t
@@ -435,8 +406,8 @@ sk::ParameterBool::load (bool& ref)
 std::wstring
 sk::ParameterFloat::get_value_str (void)
 {
-  wchar_t val_str [325] = { };
-  swprintf (val_str, L"%f", value);
+  wchar_t     val_str [32] = { };
+  _snwprintf (val_str, 31, L"%f", value);
 
   SK_RemoveTrailingDecimalZeros (val_str);
 
@@ -585,16 +556,17 @@ sk::ParameterStringW::load (std::wstring& ref)
 std::wstring
 sk::ParameterVec2f::get_value_str (void)
 {
-  wchar_t x_str [325] = { };
-  wchar_t y_str [325] = { };
+  wchar_t     x_str [32] = { };
+  wchar_t     y_str [32] = { };
 
-  swprintf (x_str, L"%f", value.x);
-  swprintf (y_str, L"%f", value.y);
+  _snwprintf (x_str, 31, L"%f", value.x);
+  _snwprintf (y_str, 31, L"%f", value.y);
 
   SK_RemoveTrailingDecimalZeros (x_str);
   SK_RemoveTrailingDecimalZeros (y_str);
 
-  return SK_FormatStringW (L"(%s,%s)", x_str, y_str);
+  return
+    SK_FormatStringW (L"(%s,%s)", x_str, y_str);
 }
 
 ImVec2

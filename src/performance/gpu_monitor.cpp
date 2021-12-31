@@ -130,9 +130,9 @@ SK_D3DKMT_CloseAdapter (D3DKMT_CLOSEADAPTER *pCloseAdapter)
 
 
 
-static HANDLE hPollEvent     = nullptr;
-static HANDLE hShutdownEvent = nullptr;
-static HANDLE hPollThread    = nullptr;
+static SK_AutoHandle hPollEvent;
+static SK_AutoHandle hShutdownEvent;
+static SK_AutoHandle hPollThread;
 
 void
 SK_GPU_InitSensorData (void)
@@ -736,11 +736,6 @@ SK_GPUPollingThread (LPVOID user)
     (void **)& gpu_stats, nullptr
   );
 
-  hPollThread = nullptr;
-
-  CloseHandle (hPollEvent);
-               hPollEvent = nullptr;
-
   SK_Thread_CloseSelf ();
 
   return 0;
@@ -757,16 +752,9 @@ SK_EndGPUPolling (void)
       CloseHandle        (hPollThread); // Thread cleans itself up normally
     }
 
-    CloseHandle (hShutdownEvent);
-
-    if (hPollEvent != nullptr)
-    {
-      CloseHandle (hPollEvent);
-                   hPollEvent = nullptr;
-    }
-
-    hShutdownEvent = nullptr;
-    hPollThread    = nullptr;
+    hPollEvent.Close     ();
+    hShutdownEvent.Close ();
+    hPollThread.Close    ();
   }
 
   if (ReadAcquire (&__SK_DLL_Ending))
@@ -801,9 +789,9 @@ SK_PollGPU (void)
   static volatile ULONG              init       (FALSE);
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    hShutdownEvent = SK_CreateEvent    (nullptr, TRUE, FALSE, nullptr);
-    hPollEvent     = SK_CreateEvent    (nullptr, TRUE,  TRUE, nullptr);
-    hPollThread    = SK_Thread_CreateEx ( SK_GPUPollingThread );
+    hShutdownEvent.Attach (SK_CreateEvent     (nullptr, TRUE, FALSE, nullptr));
+    hPollEvent.Attach     (SK_CreateEvent     (nullptr, TRUE,  TRUE, nullptr));
+    hPollThread.Attach    (SK_Thread_CreateEx ( SK_GPUPollingThread ));
   }
 
   gpu_sensors_t* pSensors =

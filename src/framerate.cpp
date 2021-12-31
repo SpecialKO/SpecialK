@@ -248,8 +248,8 @@ struct scanline_target_s {
                                    //   Useful for tuning tolerances
 
     struct {
-      SK_AutoHandle acquire = INVALID_HANDLE_VALUE;
-      SK_AutoHandle resync  = INVALID_HANDLE_VALUE;
+      SK_AutoHandle acquire;
+      SK_AutoHandle resync;
     } signals;
 
     void requestResync (void)
@@ -269,20 +269,21 @@ struct scanline_target_s {
               config.render.framerate.latent_sync.scanline_offset;
       }
 
-      SetEvent   (signals.resync);
+      if (        signals.resync.isValid ())
+        SetEvent (signals.resync);
     }
 
     void notifyAcquired (void)
     {
-      ResetEvent (signals.resync);
-      SetEvent   (signals.acquire);
+      if (signals.resync.isValid  ()) ResetEvent (signals.resync);
+      if (signals.acquire.isValid ()) SetEvent   (signals.acquire);
     }
 
     bool isResyncing  (void) { return WaitForSingleObject (signals.resync,  0) == WAIT_OBJECT_0; }
     bool isPending    (void) { return WaitForSingleObject (signals.acquire, 0) == WAIT_OBJECT_0; }
 
-    void resetSignals (void) { ResetEvent (signals.resync);
-                               ResetEvent (signals.acquire);                                     }
+    void resetSignals (void) { if (signals.resync.isValid  ()) ResetEvent (signals.resync);
+                               if (signals.acquire.isValid ()) ResetEvent (signals.acquire);     }
   } lock;
 } __scanline;
 
@@ -1187,7 +1188,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
     if (config.render.framerate.swapchain_wait > 0)
     {
       SK_AutoHandle hWaitHandle (SK_GetCurrentRenderBackend ().getSwapWaitHandle ());
-      if ((intptr_t)hWaitHandle.m_h > 0)
+      if (          hWaitHandle.isValid ())
       {
         SK_WaitForSingleObject (hWaitHandle, 50UL);
       }
@@ -1475,21 +1476,23 @@ SK::Framerate::Limiter::wait (void)
     }
 
     // Create an unnamed waitable timer.
-    if (timer_wait.m_h == nullptr)
+    if (! timer_wait.isValid ())
     {
       // Prefer high-resolution timer when available, but this won't be available in WINE or Windows 8.1
-      timer_wait.m_h =
+      timer_wait.Attach (
         CreateWaitableTimerEx ( nullptr, nullptr,
-           CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS );
+           CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS )
+                        );
     }
 
     SK_HasHighResWaitableTimer =
-      (timer_wait.m_h != nullptr);
+      (timer_wait.isValid ());
 
     if (! SK_HasHighResWaitableTimer)
     {
-       timer_wait.m_h =
-         CreateWaitableTimer (nullptr, FALSE, nullptr);
+       timer_wait.Attach (
+         CreateWaitableTimer (nullptr, FALSE, nullptr)
+                         );
     }
 
     constexpr
@@ -1501,7 +1504,7 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
-    if ( timer_wait.m_h != 0 && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
+    if ( timer_wait.isValid () && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
     {
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
@@ -1531,7 +1534,7 @@ SK::Framerate::Limiter::wait (void)
                                                     FALSE )
          )
       {
-        SK_AutoHandle hSwapWait (0);
+        SK_AutoHandle hSwapWait;
 
         if (config.render.framerate.present_interval != 0)
         {
@@ -1551,7 +1554,7 @@ SK::Framerate::Limiter::wait (void)
         {
           if (config.render.framerate.present_interval != 0)
           {
-            if (              (intptr_t)hSwapWait.m_h > 0)
+            if (                        hSwapWait.isValid ())
               hWaitObjs [iWaitObjs++] = hSwapWait.m_h;
           }
 
@@ -1592,8 +1595,8 @@ SK::Framerate::Limiter::wait (void)
             );
           }
 
-          if ((intptr_t)hSwapWait.m_h > 0)
-                        hSwapWait.Close ();
+          if (hSwapWait.isValid ())
+              hSwapWait.Close   ();
 
 
           wait_time.endSleep ();

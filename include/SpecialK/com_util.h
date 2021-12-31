@@ -774,6 +774,7 @@ typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> SK_ComDispatchDriver;
 template <class T>
 class _NoAddRefReleaseOnSK_ComPtr : public T
 {
+public:
   virtual ~_NoAddRefReleaseOnSK_ComPtr (void) noexcept { };
 
   private:

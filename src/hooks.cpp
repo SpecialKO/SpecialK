@@ -1654,9 +1654,13 @@ MH_STATUS
 __stdcall
 SK_MinHook_UnInit (void)
 {
-  if (! ReadAcquire (&__SK_DLL_Attached))
-    return MH_ERROR_NOT_INITIALIZED;
-
+#ifdef __FULL_UNLOAD
+  if (! ReadAcquire (&__SK_DLL_Ending))
+#endif
+  {
+    if (! ReadAcquire (&__SK_DLL_Attached))
+      return MH_ERROR_NOT_INITIALIZED;
+  }
 
   const MH_STATUS status =
     MH_Uninitialize ();

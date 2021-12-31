@@ -266,7 +266,7 @@ protected:
 class skModuleRegistry
 {
 public:
-  skModuleRegistry (void) noexcept (false)
+  skModuleRegistry (void)
   {
     _known_module_bases.reserve (96);
     _known_module_names.reserve (96);
@@ -434,8 +434,8 @@ private:
 public:
 
   // Special References that are valid for SK's entire lifetime
-  static skWin32Module& HostApp (HMODULE hModToSet = skWin32Module::Uninitialized) noexcept;
-  static skWin32Module& Self    (HMODULE hModToSet = skWin32Module::Uninitialized) noexcept;
+  static skWin32Module& HostApp (HMODULE hModToSet = skWin32Module::Uninitialized);
+  static skWin32Module& Self    (HMODULE hModToSet = skWin32Module::Uninitialized);
 
 
 public:

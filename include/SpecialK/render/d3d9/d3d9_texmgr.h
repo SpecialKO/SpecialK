@@ -643,6 +643,9 @@ public:
 
     void            postFinished (TexLoadRequest* finished)
     {
+      if (finished == nullptr) // WTF?
+        return;
+
       std::scoped_lock <SK_Thread_HybridSpinlock>
                  _lock (cs_results_);
 

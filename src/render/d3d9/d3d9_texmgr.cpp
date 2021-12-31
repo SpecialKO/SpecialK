@@ -2634,7 +2634,7 @@ SK::D3D9::TextureManager::purge (void)
 
     else
     {
-      tex_log->Log (L"[ Tex. Mgr ] Invalid reference count (%lu)!", tex_refs);
+      tex_log->Log (L"[ Tex. Mgr ] Invalid reference count (%li)!", tex_refs);
     }
 
     ++released;
@@ -2683,9 +2683,9 @@ SK::D3D9::TextureManager::purge (void)
                    released,
                      textures.size () );
 
-  tex_log->Log ( L"[ Tex. Mgr ]   >> Reclaimed %6.2f MiB of memory (%6.2f MiB from %lu inject)",
-                   (double)reclaimed          / (1024.0 * 1024.0),
-                   (double)reclaimed_injected / (1024.0 * 1024.0),
+  tex_log->Log ( L"[ Tex. Mgr ]   >> Reclaimed %6.2f MiB of memory (%6.2f MiB from %li inject)",
+         sk::narrow_cast <double> (reclaimed)          / (1024.0 * 1024.0),
+         sk::narrow_cast <double> (reclaimed_injected) / (1024.0 * 1024.0),
                            released_injected );
   updateOSD ();
 

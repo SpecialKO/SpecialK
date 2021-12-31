@@ -2282,8 +2282,11 @@ SK_Window_ActivateCursor (bool changed = false)
     {
       if (config.input.ui.use_hw_cursor)
       {
+        // This would start a war with the Epic Overlay if we didn't add an escape
+        int recursion = 4;
+
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( ShowCursor (TRUE) < 0 ) ;
+          while ( recursion > 0 && ShowCursor (TRUE) < 0 ) --recursion;
 
         // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
         //   activate the window using the game's cursor or our override
@@ -2341,8 +2344,10 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
       SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
       SK_SetCursor     (0);
 
+      int recursion = 4;
+
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-        while ( ShowCursor (FALSE) >= -1 ) ;
+        while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
 
       last_mouse.cursor  = false;
       last_mouse.sampled = SK::ControlPanel::current_time;

@@ -1857,6 +1857,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern bool                     SK_NIER_RAD_PlugInCfg (void);
         plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
         break;
+
+      case SK_GAME_ID::FinalFantasy7Remake:
+        extern void SK_FF7R_InitPlugin (void);
+                    SK_FF7R_InitPlugin ();
+        break;
 #endif
     }
 
@@ -2160,20 +2165,6 @@ SK_ShutdownCore (const wchar_t* backend)
     dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime); else
     dll_log->LogEx  (false, L"fail! (%4u ms -> Timeout)\n", SK_timeGetTime () - dwTime);
 
-  extern bool __SKX_WinHook_InstallInputHooks (HWND hWnd);
-              __SKX_WinHook_InstallInputHooks (nullptr);
-
-  SK_Win32_CleanupDummyWindow ();
-
-  // No more exit rumble, please :)
-  SK_XInput_Enable (FALSE);
-
-  if (config.window.background_mute)
-    SK_SetGameMute (false);
-
-  SK_ClipCursor (nullptr);
-
-
   const wchar_t* config_name = backend;
 
   if (SK_IsInjected ())
@@ -2190,6 +2181,34 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_SaveConfig        (config_name);
     dll_log->LogEx       (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
   }
+
+
+  dll_log->LogEx    (true, L"[   ImGui  ] Shutting down ImGui...                       ");
+
+  dwTime =
+    SK_timeGetTime ();
+
+  if (ImGui::GetCurrentContext () != nullptr)
+  {
+    ImGui::Shutdown (
+      ImGui::GetCurrentContext ()
+    );
+  }
+
+  dll_log->LogEx    (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime);
+
+  extern bool __SKX_WinHook_InstallInputHooks (HWND hWnd);
+              __SKX_WinHook_InstallInputHooks (nullptr);
+
+  SK_Win32_CleanupDummyWindow ();
+
+  // No more exit rumble, please :)
+  SK_XInput_Enable (FALSE);
+
+  if (config.window.background_mute)
+    SK_SetGameMute (false);
+
+  SK_ClipCursor (nullptr);
 
 
   // These games do not handle resolution correctly
@@ -2216,25 +2235,32 @@ SK_ShutdownCore (const wchar_t* backend)
 
   extern HWND SK_Inject_GetFocusWindow (void);
   extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-  if (SK_Inject_GetFocusWindow ( ) == game_window.hWnd)
-      SK_Inject_SetFocusWindow (0);
+  if (SK_Inject_GetFocusWindow (       ) == game_window.hWnd)
+      SK_Inject_SetFocusWindow (nullptr);
 
   if (config.system.return_to_skif)
   {
     HWND hWndExisting =
       FindWindow (L"SK_Injection_Frontend", nullptr);
 
-    if (hWndExisting)
+    if (hWndExisting != nullptr)
     {
+      DWORD                                    dwPid = 0x0;
+      GetWindowThreadProcessId (hWndExisting, &dwPid);
+
+      if ( dwPid != 0x0 &&
+           dwPid != GetCurrentProcessId () )
+      {
 #define WM_SKIF_REPOSITION WM_USER + 0x4096
 
-      SendMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
-      SetForegroundWindow      (hWndExisting);
+        PostMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
+      //SetForegroundWindow      (hWndExisting);
 
-      if (SK_Inject_GetFocusWindow (            ) == 0)
-          SK_Inject_SetFocusWindow (hWndExisting);
+        if (SK_Inject_GetFocusWindow (            ) == nullptr)
+            SK_Inject_SetFocusWindow (hWndExisting);
 
-      ShowWindow               (hWndExisting, SW_NORMAL);
+        ShowWindow                   (hWndExisting, SW_NORMAL);
+      }
     }
   }
 
@@ -2348,6 +2374,15 @@ SK_ShutdownCore (const wchar_t* backend)
     dwTime = SK_timeGetTime    ();
     SK_MinHook_UnInit          ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+
+    LoadLibraryW_Original   = nullptr;
+    LoadLibraryA_Original   = nullptr;
+    LoadLibraryExA_Original = nullptr;
+    LoadLibraryExW_Original = nullptr;
+    FreeLibrary_Original    = nullptr;
+    SleepEx_Original        = nullptr;
+
+    // ... Many, many more...
   }
 
 

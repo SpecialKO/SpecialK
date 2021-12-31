@@ -84,12 +84,10 @@ iSK_INI::reload (const wchar_t *fname)
 {
   if (fname == nullptr)
   {
-    SK_ReleaseAssert (
-            wszName != nullptr)
-    if (    wszName == nullptr) return false;
-    if (   *wszName == L'\0'  ) return false; // Empty String -> Dummy INI
+    SK_ReleaseAssert (name.size  () > 0)
+    if (              name.empty ()) return false; // Empty String -> Dummy INI
 
-    fname = wszName;
+    fname = name.c_str ();
   }
 
   if (! PathFileExistsW (fname))
@@ -109,7 +107,7 @@ iSK_INI::reload (const wchar_t *fname)
   }
 
   // Avoid reloading when it would make no sense to do so
-  if (! _wcsicmp (fname, wszName))
+  if (! _wcsicmp (fname, name.c_str ()))
   {
     FILETIME                ftLastWrite =    file_stamp;
     if (SK_File_GetModificationTime (fname, &file_stamp) &&
@@ -133,15 +131,7 @@ iSK_INI::reload (const wchar_t *fname)
                     L"ConfigLoad" );
   }
 
-  if (data != nullptr)
-  {
-    delete [] data;
-              data = nullptr;
-  }
-
-  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
-  //   actual pointer we need to free...
-  data = nullptr;
+  data.clear ();
 
   TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO), fname, fINI);
 
@@ -156,38 +146,36 @@ iSK_INI::reload (const wchar_t *fname)
     // A 4 MiB INI file seems pretty dman unlikely...
     SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L))
 
-    wszData =
-      new (std::nothrow) wchar_t [size + 3] { };
+    data.resize (size + 3);
 
-    SK_ReleaseAssert (wszData != nullptr)
+    SK_ReleaseAssert (data.size () > 0)
 
-    if (wszData == nullptr)
+    if (data.size () == 0)
     {
       fclose (fINI);
       return false;
     }
 
-    data  = wszData;
-    fread  (wszData, size, 1, fINI);
+    fread  (data.data (), size, 1, fINI);
     fclose (fINI);
 
     // First, consider Unicode
     // UTF16-LE  (All is well in the world)
-    if (*wszData == 0xFEFF)
+    if (*data.data () == 0xFEFF)
     {
-      ++wszData; // Skip the BOM
+      bom_size = 1; // Skip the BOM
 
       encoding_ = INI_UTF16LE;
     }
 
     // UTF16-BE  (Somehow we are swapped)
-    else if (*wszData == 0xFFFE)
+    else if (*data.data () == 0xFFFE)
     {
       dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
                      L"file ('%s'), attempting to recover...",
                        fname );
 
-      wchar_t* wszSwapMe = wszData;
+      wchar_t* wszSwapMe = data.data ();
 
       for (int i = 0; i < size; i += 2)
       {
@@ -198,7 +186,7 @@ iSK_INI::reload (const wchar_t *fname)
         ++wszSwapMe;
       }
 
-      ++wszData; // Skip the BOM
+      bom_size = 1; // Skip the BOM
 
       encoding_ = INI_UTF16BE;
     }
@@ -208,9 +196,9 @@ iSK_INI::reload (const wchar_t *fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 = (reinterpret_cast <unsigned char *> (wszData)) [0] == 0xEF &&
-                  (reinterpret_cast <unsigned char *> (wszData)) [1] == 0xBB &&
-                  (reinterpret_cast <unsigned char *> (wszData)) [2] == 0xBF;
+      bool utf8 = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
+                  (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
+                  (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
 
       const uintptr_t offset =
         utf8 ? 3 : 0;
@@ -219,7 +207,7 @@ iSK_INI::reload (const wchar_t *fname)
         size - sk::narrow_cast <int> (offset);
 
       char*           start_addr =
-      (reinterpret_cast <char *> (wszData)) + offset;
+      (reinterpret_cast <char *> (data.data ())) + offset;
 
       auto*           string =
         new (std::nothrow) char [real_size + 3] { };
@@ -231,9 +219,7 @@ iSK_INI::reload (const wchar_t *fname)
         memcpy (string, start_addr, real_size);
       }
 
-      delete [] wszData;
-                wszData = nullptr;
-                data    = nullptr;
+      data.clear ();
 
       if (string == nullptr)
       {
@@ -258,16 +244,15 @@ iSK_INI::reload (const wchar_t *fname)
         return false;
       }
 
-      wszData =
-        new (std::nothrow) wchar_t [converted_size + 3] { };
+      if (data.size () < converted_size + 3)
+          data.resize   (converted_size + 3);
 
-      SK_ReleaseAssert (wszData != nullptr)
+      SK_ReleaseAssert (data.size () > 0)
 
-      if (wszData != nullptr)
+      if (data.size () > 0)
       {
-        data                  = wszData;
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
-                                wszData, converted_size );
+                             data.data (),   converted_size );
 
         //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
                         //fname );
@@ -277,7 +262,7 @@ iSK_INI::reload (const wchar_t *fname)
                 string = nullptr;
 
       // No Byte-Order Marker
-      data      = wszData;
+      bom_size  = 0;
 
       encoding_ = INI_UTF8;
     }
@@ -289,7 +274,7 @@ iSK_INI::reload (const wchar_t *fname)
 
   else
   {
-    wszData = nullptr;
+    data.clear ();
 
     return false;
   }
@@ -306,15 +291,9 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   if (    filename == nullptr) return;
   if (   *filename == L'\0'  ) return; // Empty String -> Dummy INI
 
-  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is the
-  //   actual pointer we need to free...
-  data = nullptr;
+  name = filename;
 
-  wszName =
-    _wcsdup (filename);
-
-  if ( wszName == nullptr ||
-      *wszName == L'\0' )
+  if (name.empty ())
   {
     return;
   }
@@ -322,7 +301,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   if (wcsstr (filename, L"Version") != nullptr)
     SK_CreateDirectories (filename);
 
-  SK_StripTrailingSlashesW (wszName);
+  SK_StripTrailingSlashesW (name.data ());
 
   reload ();
 }
@@ -336,14 +315,8 @@ iSK_INI::~iSK_INI (void)
 
   if (refs == 0)
   {
-    if (wszName != nullptr)
-    {
-      free (wszName);
-            wszName = nullptr;
-    }
-
-    delete [] data;
-    data = nullptr;
+    name.clear ();
+    data.clear ();
   }
 
   if (file_watch != nullptr)
@@ -546,12 +519,7 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
-  SK_ReleaseAssert (wszData != nullptr)
-  SK_ReleaseAssert (data    != nullptr)
-
-  // Should be a ByteOrderMarker offset, always
-  //   > data (base alloc. addr)
-  SK_ReleaseAssert (wszData >= data)
+  SK_ReleaseAssert (data.size () > 0)
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -561,10 +529,13 @@ iSK_INI::parse (void)
   if (pTLS == nullptr)
     return;
 
-  if (wszData != nullptr)
+  if (data.size () > 0)
   {
+    std::wstring temp_name;
+                 temp_name.reserve (32);
+
     size_t len =
-      lstrlenW (wszData);
+      lstrlenW (&data [bom_size]);
 
     SK_ReleaseAssert (len > 0)
 
@@ -572,7 +543,7 @@ iSK_INI::parse (void)
     bool strip_cr = false;
 
     wchar_t* wszStrip =
-      &wszData [0];
+      &data [bom_size];
 
     // Find if the file has any Cr's
     for (size_t i = 0; i < len; i++)
@@ -587,12 +558,12 @@ iSK_INI::parse (void)
     }
 
     wchar_t* wszDataEnd =
-      &wszData [0];
+      &data [bom_size];
 
     if (strip_cr)
     {
       wchar_t* wszDataNext =
-        &wszData [0];
+        &data [bom_size];
 
       for (size_t i = 0; i < len; i++)
       {
@@ -613,7 +584,7 @@ iSK_INI::parse (void)
                         reinterpret_cast <uintptr_t> (wszDataEnd) );
 
       len =
-        lstrlenW (wszData);
+        lstrlenW (&data [bom_size]);
     }
 
     else
@@ -625,18 +596,18 @@ iSK_INI::parse (void)
     }
 
     wchar_t* wszSecondToLast =
-      CharPrevW (wszData, wszDataEnd);
+      CharPrevW (&data [bom_size], wszDataEnd);
 
     wchar_t* begin           = nullptr;
     wchar_t* end             = nullptr;
-    wchar_t* wszDataCur      = &wszData [0];
+    wchar_t* wszDataCur      = &data [bom_size];
 
     for ( wchar_t* i = wszDataCur;
                    i < wszDataEnd &&
                    i != nullptr;     i = CharNextW (i) )
     {
       if ( *i == L'[' &&
-           (i == wszData || *CharPrevW (&wszData [0], i) == L'\n') )
+           (i == &data [bom_size] || *CharPrevW (&data [bom_size], i) == L'\n') )
       {
         begin =
           CharNextW (i);
@@ -678,17 +649,20 @@ iSK_INI::parse (void)
           }
         }
 
+        temp_name.assign (sec_name);
+
         iSK_INISection
-                section ( sec_name  );
+                section ( temp_name );
         Process_Section ( section,
                             start, finish,
                               &pTLS );
 
-        sections.emplace (
-          std::make_pair (sec_name, section)
-        );
-
-        ordered_sections.emplace_back (sec_name);
+        ordered_sections.emplace_back (
+               &sections.emplace      (
+                                        section.name,
+                             std::move (section)
+                                      ).first->second
+                                      );
 
         if (eof)
           break;
@@ -710,12 +684,11 @@ iSK_INI::parse (void)
 
     for ( auto& it : ordered_sections )
     {
-      iSK_INISection& section =
-        get_section (it.c_str ());
+      iSK_INISection& section = *it;
 
       section.parent = this;
 
-      if ( (! section.name.empty         ()) &&
+      if ( (! section.name.        empty ()) &&
            (! section.ordered_keys.empty ()) )
       {
         outbuf.append (L"[");
@@ -724,10 +697,10 @@ iSK_INI::parse (void)
         for ( auto& key_it : section.ordered_keys )
         {
           const std::wstring& val =
-            section.get_value (key_it.c_str ());
+            section.get_value (key_it);
 
           outbuf.append (key_it).append (L"=");
-          outbuf.append (val).append (L"\n");
+          outbuf.append (val).   append (L"\n");
         }
 
         outbuf.append (L"\n");
@@ -763,6 +736,9 @@ iSK_INI::import (const wchar_t* import_data)
 
   if (wszImport != nullptr)
   {
+    std::wstring temp_name;
+                 temp_name.reserve (32);
+
     int len =
       lstrlenW (wszImport);
 
@@ -874,11 +850,13 @@ iSK_INI::import (const wchar_t* import_data)
           }
         }
 
+        temp_name.assign (sec_name);
+
         // Import if the section already exists
-        if (contains_section (sec_name))
+        if (contains_section (temp_name))
         {
           iSK_INISection& section =
-            get_section  (sec_name);
+            get_section  (temp_name);
 
           section.parent = this;
 
@@ -889,18 +867,17 @@ iSK_INI::import (const wchar_t* import_data)
         else
         {
           iSK_INISection
-                  section ( sec_name  );
+                  section ( temp_name );
           Process_Section ( section,
                               start, finish,
-                                &pTLS );
+                                &pTLS ).parent = this;
 
-          section.parent = this;
-
-          sections.emplace  (
-            std::make_pair  (sec_name, section)
-          );
-
-          ordered_sections.emplace_back (sec_name);
+          ordered_sections.emplace_back (
+                 &sections.emplace      (
+                                          section.name,
+                               std::move (section)
+                                        ).first->second
+                                        );
         }
 
         if (eof)
@@ -922,6 +899,32 @@ std::wstring&
 __stdcall
 iSK_INISection::get_value (const wchar_t* key)
 {
+  return
+    get_value (std::wstring_view (key));
+}
+
+__declspec(nothrow)
+std::wstring&
+__stdcall
+iSK_INISection::get_value (const std::wstring_view key)
+{
+  auto it_key =
+    keys.find (key.data ());
+
+  if (it_key != keys.cend ())
+    return (*it_key).second;
+
+  static
+    std::wstring
+         invalid = L"Invalid";
+  return invalid;
+}
+
+__declspec(nothrow)
+std::wstring&
+__stdcall
+iSK_INISection::get_value (const std::wstring& key)
+{
   auto it_key =
     keys.find (key);
 
@@ -939,12 +942,39 @@ void
 __stdcall
 iSK_INISection::set_name (const wchar_t* name_)
 {
+  return
+    set_name (std::wstring_view (name_));
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::set_name (const std::wstring_view name_)
+{
   if (parent != nullptr)
   {
-    if (name != name_)
+    if (! name_._Equal (name))
     { parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_ ),
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.data () ),
+                  L"ConfigMgmt" );
+    }
+  }
+
+  name = name_;
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::set_name (const std::wstring& name_)
+{
+  if (parent != nullptr)
+  {
+    if (! name_._Equal (name))
+    { parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::set_name (%ws)", name_.c_str () ),
                   L"ConfigMgmt" );
     }
   }
@@ -957,8 +987,17 @@ bool
 __stdcall
 iSK_INISection::contains_key (const wchar_t* key)
 {
-  auto _kvp =
-    keys.find (key);
+  return
+    contains_key (std::wstring_view (key));
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INISection::contains_key (const std::wstring_view key)
+{
+  const auto _kvp =
+    keys.find (key.data ());
 
   return
     (   _kvp != keys.cend  () &&
@@ -966,9 +1005,34 @@ iSK_INISection::contains_key (const wchar_t* key)
 }
 
 __declspec(nothrow)
+std::wstring*
+__stdcall
+iSK_INISection::contains_key (const std::wstring& key)
+{
+  const auto _kvp =
+    keys.find (key);
+
+  if (       _kvp != keys.cend  () &&
+          (! _kvp->second.empty () ))
+    return  &_kvp->second;
+
+  return nullptr;
+}
+
+__declspec(nothrow)
 void
 __stdcall
 iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
+{
+  return
+    add_key_value ( std::wstring_view (key),
+                    std::wstring_view (value) );
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::add_key_value (const std::wstring_view key, const std::wstring_view value)
 {
   const auto add =
     keys.emplace (std::make_pair (key, value));
@@ -980,16 +1044,15 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
     if (parent != nullptr)
     {   parent->crc32_ = 0x0;
 
-      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)", key, value ),
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
+                                                 key.data (), value.data () ),
                   L"ConfigMgmt" );
     }
   }
 
   else
   {
-    std::wstring_view val_wstr (value);
-
-    if (! add.first->second._Equal (val_wstr.data ()))
+    if (! value._Equal (add.first->second))
     {
       // Implicit Flush is not needed
       //
@@ -997,7 +1060,43 @@ iSK_INISection::add_key_value (const wchar_t* key, const wchar_t* value)
       ///    parent->crc32_ = 0x0;
 
       add.first->second =
-        val_wstr;
+        value;
+    }
+  }
+}
+
+__declspec(nothrow)
+void
+__stdcall
+iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value)
+{
+  const auto add =
+    keys.emplace (std::make_pair (key, value));
+
+  if (add.second)
+  {
+    ordered_keys.emplace_back (key);
+
+    if (parent != nullptr)
+    {   parent->crc32_ = 0x0;
+
+      SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::add_key_value (%ws, %ws)",
+                                                 key.c_str (), value.c_str () ),
+                  L"ConfigMgmt" );
+    }
+  }
+
+  else
+  {
+    if (! value._Equal (add.first->second))
+    {
+      // Implicit Flush is not needed
+      //
+      ///if (parent != nullptr)
+      ///    parent->crc32_ = 0x0;
+
+      add.first->second =
+        value;
     }
   }
 }
@@ -1008,8 +1107,31 @@ __stdcall
 iSK_INI::contains_section (const wchar_t* section)
 {
   return
-    ( sections.find (section) !=
-      sections.cend (       ) );
+    contains_section (std::wstring_view (section));
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INI::contains_section (const std::wstring_view section)
+{
+  return
+    ( sections.find (section.data ()) !=
+      sections.cend (               ) );
+}
+
+__declspec(nothrow)
+iSK_INISection*
+__stdcall
+iSK_INI::contains_section (const std::wstring& section)
+{
+  const auto _sec =
+    sections.find (section);
+
+  if (_sec != sections.cend ())
+    return &_sec->second;
+
+  return nullptr;
 }
 
 __declspec(nothrow)
@@ -1017,16 +1139,52 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const wchar_t* section)
 {
-  auto sec_pair =
-    sections.try_emplace (section,
-          iSK_INISection (section, this)
-    );
-
-  if (sec_pair.second)
-    ordered_sections.emplace_back (section);
-
   return
-    sec_pair.first->second;
+    get_section (std::wstring_view (section));
+}
+
+__declspec(nothrow)
+iSK_INISection&
+__stdcall
+iSK_INI::get_section (const std::wstring_view section)
+{
+  std::wstring wstr (section);
+
+  bool try_emplace =
+    ( sections.find (wstr) ==
+      sections.cend (    ) );
+
+  iSK_INISection& ret =
+    sections [wstr];
+
+  if (try_emplace)
+  {
+                                    ret.name = std::move (wstr);
+    ordered_sections.emplace_back (&ret);;
+  }
+
+  return ret;
+}
+
+__declspec(nothrow)
+iSK_INISection&
+__stdcall
+iSK_INI::get_section (const std::wstring& section)
+{
+  bool try_emplace =
+    ( sections.find (section) ==
+      sections.cend (       ) );
+
+  iSK_INISection& ret =
+    sections [section];
+
+  if (try_emplace)
+  {
+                                    ret.name = section;
+    ordered_sections.emplace_back (&ret);
+  }
+
+  return ret;
 }
 
 
@@ -1060,8 +1218,8 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
 
   if (try_emplace)
   {
-                        ret.name = wszFormatted;
-    ordered_sections.emplace_back (wszFormatted);
+                                    ret.name = wszFormatted;
+    ordered_sections.emplace_back (&ret);
   }
 
   return ret;
@@ -1077,15 +1235,14 @@ iSK_INI::write (const wchar_t* fname)
     return;
 
   if (fname == nullptr)
-      fname = wszName;
+      fname = name.c_str ();
 
   std::wstring outbuf;
                outbuf.reserve (16384);
 
   for ( auto& it : ordered_sections )
   {
-    iSK_INISection& section =
-      get_section (it.c_str ());
+    iSK_INISection& section = *it;
 
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
@@ -1096,7 +1253,7 @@ iSK_INI::write (const wchar_t* fname)
       for ( auto& key_it : section.ordered_keys )
       {
         const std::wstring& val =
-          section.get_value (key_it.c_str ());
+          section.get_value (key_it);
 
         outbuf += key_it + L"=";
         outbuf += val    + L"\n";
@@ -1247,17 +1404,39 @@ bool
 __stdcall
 iSK_INI::remove_section (const wchar_t* wszSection)
 {
-  std::wstring_view section_w (wszSection);
+  return
+    remove_section (std::wstring_view (wszSection));
+}
 
-  auto it =
-    std::find ( ordered_sections.begin (),
-                ordered_sections.end   (),
-                  section_w );
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INI::remove_section (const std::wstring_view wszSection)
+{
+  const std::wstring wstr (wszSection.data ());
 
-  if (it != ordered_sections.end ())
+  return
+    remove_section (wstr);
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INI::remove_section (const std::wstring& wszSection)
+{
+  const auto it =
+    sections.find (wszSection);
+
+  if (it != sections.cend ())
   {
-    ordered_sections.erase (it);
-    sections.erase         (section_w.data ());
+    sections.erase (it);
+
+    const auto ordered_it =
+      std::find ( ordered_sections.begin (),
+                  ordered_sections.end   (), &(it->second) );
+
+    if (ordered_it != ordered_sections.cend ())
+                      ordered_sections.erase (ordered_it);
 
     return true;
   }
@@ -1270,22 +1449,42 @@ bool
 __stdcall
 iSK_INISection::remove_key (const wchar_t* wszKey)
 {
-  std::wstring_view key_w (wszKey);
+  return
+    remove_key (std::wstring_view (wszKey));
+}
 
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INISection::remove_key (const std::wstring_view wszKey)
+{
+  return
+    remove_key (std::wstring (wszKey));
+}
+
+__declspec(nothrow)
+bool
+__stdcall
+iSK_INISection::remove_key (const std::wstring& wszKey)
+{
   auto it =
-    std::find ( ordered_keys.begin (),
-                ordered_keys.end   (),
-                  key_w );
+    keys.find (wszKey);
 
-  if (it != ordered_keys.end ())
+  if (it != keys.end ())
   {
-    ordered_keys.erase (it);
-    keys.erase         (key_w.data ());
+    keys.erase (it);
+
+    const auto ordered_it =
+      std::find ( ordered_keys.begin (),
+                  ordered_keys.end   (), wszKey );
+
+    if (ordered_it != ordered_keys.cend ())
+                      ordered_keys.erase (ordered_it);
 
     if (parent != nullptr)
     {   parent->crc32_ = 0x0;
 
-        SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey ),
+        SK_LOG2 ( ( L"Forced INI Flush: iSK_INISection::remove_key (%ws)", wszKey.c_str () ),
                     L"ConfigMgmt" );
     }
 
@@ -1342,7 +1541,8 @@ __declspec(nothrow)
 const wchar_t*
 iSK_INI::get_filename (void) const
 {
-  return wszName;
+  return
+    name.c_str ();
 }
 
 __declspec(nothrow)
@@ -1357,19 +1557,9 @@ iSK_INI::import_file (const wchar_t* fname)
 
   // We skip a few bytes (Unicode BOM) in certain circumstances, so this is
   //   the actual pointer we need to free...
-  CHeapPtr <wchar_t> wszImportName (
-    new (std::nothrow) wchar_t [len + 2] { }
-  );
-
-  if (wszImportName == nullptr)
-    return false;
-
   wchar_t  *wszImportData = nullptr;
   wchar_t  *alloc         = wszImportData;
   FILE*     fImportINI    = nullptr;
-
-  wcsncpy_s (wszImportName, len + 1,
-                         fname, _TRUNCATE);
 
   TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO),
                          fname, fImportINI);
@@ -1407,7 +1597,7 @@ iSK_INI::import_file (const wchar_t* fname)
     {
       dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
                      L"file ('%s'), attempting to recover...",
-                       wszImportName.m_pData );
+                       fname );
 
       wchar_t* wszSwapMe = wszImportData;
 
@@ -1473,7 +1663,7 @@ iSK_INI::import_file (const wchar_t* fname)
         {
           dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI "
                          L"Encoded .ini file ('%s') to UTF-16, aborting!",
-                           wszImportName.m_pData );
+                           fname );
         }
 
         if (        string != nullptr) {
@@ -1531,9 +1721,7 @@ iSK_INI::rename (const wchar_t* fname)
   if (  fname  != nullptr &&
        *fname == L'\0' )
   {
-    free (
-      std::exchange (wszName, _wcsdup (fname))
-         );
+    name = fname;
 
     crc32_     =   0  ;
     flushed_   = { 0 };

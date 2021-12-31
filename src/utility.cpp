@@ -4881,3 +4881,43 @@ SK_PlaySound ( _In_opt_ LPCWSTR pszSound,
       pszSound, hmod,
       fdwSound );
 }
+
+
+HINSTANCE
+SK_Util_ExplorePath (
+  const std::wstring_view& path )
+{
+  SHELLEXECUTEINFOW
+    sexi              = { };
+    sexi.cbSize       = sizeof (SHELLEXECUTEINFOW);
+    sexi.lpVerb       = L"EXPLORE";
+    sexi.lpFile       = path.data ();
+    sexi.nShow        = SW_SHOWNORMAL;
+    sexi.fMask        = SEE_MASK_FLAG_NO_UI |
+                        SEE_MASK_ASYNCOK    | SEE_MASK_NOZONECHECKS;
+
+  if (ShellExecuteExW (&sexi))
+    return sexi.hInstApp;
+
+  return 0;
+}
+
+HINSTANCE
+SK_Util_OpenURI (
+  const std::wstring_view& path,
+               DWORD       dwAction )
+{
+  SHELLEXECUTEINFOW
+    sexi              = { };
+    sexi.cbSize       = sizeof (SHELLEXECUTEINFOW);
+    sexi.lpVerb       = L"OPEN";
+    sexi.lpFile       = path.data ();
+    sexi.nShow        = dwAction;
+    sexi.fMask        = SEE_MASK_FLAG_NO_UI |
+                        SEE_MASK_ASYNCOK    | SEE_MASK_NOZONECHECKS;
+
+  if (ShellExecuteExW (&sexi))
+    return sexi.hInstApp;
+
+  return 0;
+}

@@ -197,38 +197,6 @@ public:
 
   bool OnVarChange (SK_IVariable* var, void* val) override
   {
-    if (var == zband_)
-    {
-      if (val != nullptr)
-      {
-        DWORD                             orig = 0;
-        GetWindowBand (game_window.hWnd, &orig);
-
-        const int set  =
-          *static_cast <int *> (val);
-
-        if (static_cast <DWORD> (set) != orig)
-        {
-          SendMessageTimeout ( SK_Inject_GetExplorerWindow   (),
-                               SK_Inject_GetExplorerRaiseMsg (), (WPARAM)game_window.hWnd,
-                                                                 (LPARAM)             set,
-                               0x0,                        150UL,               nullptr );
-
-          TriggerStartMenu ();
-        }
-
-        DWORD                             dwWindowBand = 0x0;
-        GetWindowBand (game_window.hWnd, &dwWindowBand);
-
-        *static_cast <int *> (var->getValuePointer ()) =
-           static_cast <int> (dwWindowBand);
-
-        *(int *)val = dwWindowBand;
-      }
-
-      return true;
-    }
-
     if (var == preferred_monitor_)
     {
       if (val != nullptr)
@@ -767,13 +735,6 @@ public:
       return;
     }
 
-    zband_ =
-      SK_CreateVar (SK_IVariable::Int,&config.window.zband,this);
-
-    cmd->AddVariable (
-      "Window.ZBand",
-              zband_ );
-
     preferred_monitor_ =
       SK_CreateVar (SK_IVariable::Int,&config.display.monitor_idx,this);
 
@@ -984,7 +945,6 @@ protected:
     };
   } state_;
 
-  SK_IVariable* zband_             = nullptr;
   SK_IVariable* monitor_           = nullptr;
   SK_IVariable* preferred_monitor_ = nullptr;
   SK_IVariable* borderless_        = nullptr;

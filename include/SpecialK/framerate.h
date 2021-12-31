@@ -22,6 +22,9 @@
 #ifndef __SK__FRAMERATE_H__
 #define __SK__FRAMERATE_H__
 
+// TODO: Separate header for RAII classes
+#include <SpecialK/utility.h>
+
 #include <boost/sort/pdqsort/pdqsort.hpp>
 
 #include <Unknwnbase.h>
@@ -32,8 +35,6 @@
 #include <cmath>
 #include <numeric>
 #include <forward_list>
-
-#include <atlbase.h> // CHandle
 
 static constexpr auto
   _disreal =
@@ -312,7 +313,7 @@ namespace SK
       int32_t        limit_behavior =
                      LIMIT_APPLY;
 
-      CHandle        timer_wait;
+      SK_AutoHandle  timer_wait;
       bool           tracks_window = true;
       bool           lazy_init     = false;
 
@@ -384,8 +385,8 @@ namespace SK
 
       struct worker_context_s
       {
-              CHandle hSignalProduce;
-              CHandle hSignalConsume;
+        SK_AutoHandle hSignalProduce;
+        SK_AutoHandle hSignalConsume;
                 ULONG ulLastFrame    = 0;
         volatile LONG work_idx       = 0;
         volatile LONG _init          = 0;

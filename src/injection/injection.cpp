@@ -89,7 +89,8 @@ extern "C"
 
 // Change in design, we will use mapped memory instead of DLL shared memory in
 // versions 21.6.x+ in order to communicate between 32-bit and 64-bit apps.
-volatile HANDLE hMapShared = INVALID_HANDLE_VALUE;
+volatile HANDLE hMapShared                   = INVALID_HANDLE_VALUE;
+         HANDLE hWhitelistChangeNotification = INVALID_HANDLE_VALUE;
 
 
 extern void SK_Process_Snapshot    (void);
@@ -264,7 +265,7 @@ SK_Inject_ValidateProcesses (void)
                       ReadAcquire (&hooked_pid) )
                   );
 
-    if (reinterpret_cast <intptr_t> (hProc.m_h) <= 0)//== INVALID_HANDLE_VALUE)
+    if (! hProc.isValid ())
     {
       ReadAcquire (&hooked_pid);
     }
@@ -464,7 +465,7 @@ SK_Inject_GetSharedMemory (void)
   HANDLE hExistingFile =
     OpenFileMapping (FILE_MAP_ALL_ACCESS, FALSE, LR"(Local\SK_GlobalSharedMemory_v1)");
 
-  if (hExistingFile != 0)
+  if (hExistingFile != nullptr)
   {
     if ( INVALID_HANDLE_VALUE ==
            InterlockedCompareExchangePointer (&hMapShared, hExistingFile, INVALID_HANDLE_VALUE) )
@@ -507,6 +508,7 @@ SK_Inject_GetViewOfSharedMemory (void)
   if (lpLocalView != nullptr)
     return lpLocalView;
 
+  // Do not close this
   HANDLE hMap =
     SK_Inject_GetSharedMemory ();
 
@@ -538,61 +540,17 @@ SK_Inject_CleanupSharedMemory (void)
 {
   WritePointerRelease (&_pSharedMemoryView, nullptr);
 
-  HANDLE hLocalMap =
-    InterlockedCompareExchangePointer (&hMapShared, INVALID_HANDLE_VALUE, ReadPointerAcquire (&hMapShared));
+  SK_AutoHandle hLocalMap (
+    InterlockedCompareExchangePointer (&hMapShared, INVALID_HANDLE_VALUE,
+                   ReadPointerAcquire (&hMapShared))
+  );
 
   if (hLocalMap != INVALID_HANDLE_VALUE)
   {
     UnmapViewOfFile (
       SK_Inject_GetViewOfSharedMemory ()
     );
-
-    CloseHandle (hLocalMap);
   }
-}
-
-
-
-HWND SK_Inject_GetExplorerWindow (void)
-{
-  const SK_SharedMemory_v1 *pShared =
-       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
-
-  if (pShared != nullptr)
-  {
-    return
-      (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
-  }
-
-  return 0;
-}
-
-UINT SK_Inject_GetExplorerRaiseMsg (void)
-{
-  const SK_SharedMemory_v1 *pShared =
-       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
-
-  if (pShared != nullptr)
-  {
-    return
-      (UINT)pShared->SystemWide.uMsgExpRaise;
-  }
-
-  return 0;
-}
-
-UINT SK_Inject_GetExplorerLowerMsg (void)
-{
-  const SK_SharedMemory_v1 *pShared =
-       (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
-
-  if (pShared != nullptr)
-  {
-    return
-      (UINT)pShared->SystemWide.uMsgExpLower;
-  }
-
-  return 0;
 }
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
@@ -758,8 +716,9 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
 
     if (pSharedMem)
     {
-      HANDLE hMutex =
-        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
+      SK_AutoHandle hMutex (
+        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" )
+      );
 
       if (hMutex != nullptr)
       {
@@ -777,26 +736,24 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
             if ( ( first_free_idx == __MaxPresentMonSessions ) &&
                      pSharedMem->EtwSessions.PresentMon [i].dwPid != 0x0 )
             {
-              HANDLE hProcess =
+              SK_AutoHandle hProcess (
                 OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
-                                pSharedMem->EtwSessions.PresentMon [i].dwPid );
+                                pSharedMem->EtwSessions.PresentMon [i].dwPid )
+              );
 
               DWORD dwExitCode = 0x0;
 
-              if (                      hProcess != 0          &&
+              if (                      hProcess != nullptr    &&
                    GetExitCodeProcess ( hProcess, &dwExitCode) &&
                                                    dwExitCode  != STILL_ACTIVE )
               {
                 first_free_idx = i;
               }
 
-              else if (hProcess == 0)
+              else if (hProcess == nullptr)
               {
                 first_free_idx = i;
               }
-
-              if (         hProcess != 0)
-              CloseHandle (hProcess);
             }
 
             else if ( pSharedMem->EtwSessions.PresentMon [i].dwPid  == 0x0 )
@@ -843,8 +800,6 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
             }
           }
         }
-
-        CloseHandle (hMutex);
       }
     }
   }
@@ -864,8 +819,9 @@ SK_Etw_UnregisterSession (const char* szPrefix)
 
     if (pSharedMem)
     {
-      HANDLE hMutex =
-        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" );
+      SK_AutoHandle hMutex (
+        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" )
+      );
 
       if (hMutex != nullptr)
       {
@@ -887,8 +843,6 @@ SK_Etw_UnregisterSession (const char* szPrefix)
             }
           }
         }
-
-        CloseHandle (hMutex);
       }
     }
   }
@@ -1101,7 +1055,7 @@ int
 GetModuleReferenceCount (HMODULE hDll)
 {
   HMODULE hNtDll =
-    LoadLibraryW (L"NtDll");
+    SK_LoadLibraryW (L"NtDll");
   if (!   hNtDll)
       return 0;
 
@@ -1117,10 +1071,10 @@ GetModuleReferenceCount (HMODULE hDll)
     NT_SUCCESS (
       LdrFindEntryForAddress ( hDll, &pldr_data_table )
   );
-  FreeLibrary (hNtDll);
+  SK_FreeLibrary (hNtDll);
 
-  return pldr_data_table != nullptr && b ?
-         pldr_data_table->ReferenceCount : 0;
+  return (pldr_data_table != nullptr && b) ?
+          pldr_data_table->ReferenceCount  : 0;
 }
 
 //
@@ -1136,7 +1090,7 @@ GetModuleLoadCount (HMODULE hDll)
   PROCESS_BASIC_INFORMATION pbi = { 0 };
 
   HMODULE hNtDll =
-    LoadLibraryW (L"NtDll");
+    SK_LoadLibraryW (L"NtDll");
   if (!   hNtDll)
       return 0;
 
@@ -1151,7 +1105,7 @@ GetModuleLoadCount (HMODULE hDll)
                                     ProcessBasicInformation, &pbi,
                                                       sizeof (pbi), nullptr )
   );
-  FreeLibrary (hNtDll);
+  SK_FreeLibrary (hNtDll);
 
   if (! b)
     return 0;
@@ -1213,108 +1167,20 @@ GetModuleLoadCount (HMODULE hDll)
 volatile HMODULE  g_hModule_CBT     = 0;
 volatile LONG     g_sOnce           = 0;
 
-HWND  hWndToSet   = (HWND)~0;
-DWORD dwBandToSet = ZBID_DESKTOP;
-
-LRESULT
-CALLBACK
-SK_WindowBand_AgentProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-  static auto *pShared = (SK_SharedMemory_v1 *)
-          SK_Inject_GetViewOfSharedMemory ();
-
-  if (! pShared)
-  {
-    return
-      DefWindowProcW (hwnd, message, wParam, lParam);
-  }
-
-  if (message      == pShared->SystemWide.uMsgExpRaise)
-  {
-    hWndToSet   =  (HWND)wParam;
-    dwBandToSet = (DWORD)lParam;
-
-    return 0;
-  }
-
-  else if (message == pShared->SystemWide.uMsgExpLower)
-  {
-    hWndToSet   =  (HWND)wParam;
-    dwBandToSet = (DWORD)ZBID_DESKTOP;
-
-    return 0;
-  }
-
-  return
-    DefWindowProcW (hwnd, message, wParam, lParam);
-};
-
-static SetWindowBand_pfn
-       SetWindowBand_Original = nullptr;
-
-BOOL
-WINAPI
-SetWindowBand_Detour ( HWND  hWnd,
-                       HWND  hWndInsertAfter,
-                       DWORD dwBand )
-{
-  static volatile LONG lLock = 0;
-
-  while (InterlockedCompareExchange (&lLock, 1, 0) != 0)
-    SleepEx (1, FALSE);
-
-  const BOOL bRet =
-    SetWindowBand_Original (
-      hWnd, hWndInsertAfter, dwBand
-    );
-
-  HWND hWndReal = hWndToSet;
-
-  if (hWndReal != (HWND)~0)
-  {
-    if (SetWindowBand_Original (hWndReal, HWND_TOP, dwBandToSet))
-    {
-      extern void WINAPI
-        SK_keybd_event (
-          _In_ BYTE       bVk,
-          _In_ BYTE       bScan,
-          _In_ DWORD     dwFlags,
-          _In_ ULONG_PTR dwExtraInfo );
-
-      SK_keybd_event (VK_LWIN,   (BYTE)MapVirtualKey (VK_LWIN,   0), KEYEVENTF_EXTENDEDKEY,                   0);
-      SK_keybd_event (VK_LWIN,   (BYTE)MapVirtualKey (VK_LWIN,   0), KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP, 0);
-      SK_keybd_event (VK_ESCAPE, (BYTE)MapVirtualKey (VK_ESCAPE, 0), 0,                                       0);
-      SK_keybd_event (VK_ESCAPE, (BYTE)MapVirtualKey (VK_ESCAPE, 0),                         KEYEVENTF_KEYUP, 0);
-
-      SleepEx (150UL, FALSE);
-
-      PostMessage              (hWndReal, 0xf00f,   dwBandToSet, 0);
-                                hWndToSet = (HWND)~0;
-    }
-  }
-
-  InterlockedExchange (&lLock, 0);
-
-  return
-    bRet;
-}
-
 void
 SK_Inject_SpawnUnloadListener (void)
 {
-#define _AtomicClose(handle) if ((handle) != SK_INVALID_HANDLE) \
-      CloseHandle (std::exchange((handle), SK_INVALID_HANDLE));
-
-  if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, 0))
+  if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
     g_hPacifierThread = (HANDLE)
       CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
       {
-        HANDLE hHookTeardown =
+        SK_AutoHandle hHookTeardown (
           OpenEvent ( EVENT_ALL_ACCESS, FALSE,
               SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                     LR"(Local\SK_GlobalHookTeardown64)") );
+                                     LR"(Local\SK_GlobalHookTeardown64)") )
+                                    );
 
         if (! InterlockedCompareExchange (&g_sOnce, TRUE, FALSE))
         {
@@ -1330,131 +1196,40 @@ SK_Inject_SpawnUnloadListener (void)
           }
         }
 
-        // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
-        SetThreadDescription_pfn
-            _SetThreadDescriptionWin10 =
-            (SetThreadDescription_pfn)GetProcAddress (GetModuleHandle (L"Kernel32"),
-            "SetThreadDescription");
+        HMODULE hModKernel32 =
+          SK_LoadLibraryW (L"Kernel32");
 
-        if (_SetThreadDescriptionWin10 != nullptr) {
-            _SetThreadDescriptionWin10 (
-              g_hPacifierThread,
-                L"[SK] Global Hook Pacifier"
-            );
+        if (hModKernel32 != nullptr)
+        {
+          // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
+           SetThreadDescription_pfn
+          _SetThreadDescriptionWin10 =
+          (SetThreadDescription_pfn)GetProcAddress (hModKernel32, "SetThreadDescription");
+
+          if (_SetThreadDescriptionWin10 != nullptr) {
+              _SetThreadDescriptionWin10 (
+                g_hPacifierThread,
+                  L"[SK] Global Hook Pacifier"
+              );
+          }
+
+          FreeLibrary (hModKernel32);
         }
 
         SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);
 
-        HANDLE signals [] = {
-              hHookTeardown,
-          __SK_DLL_TeardownEvent
-        };
+        const HANDLE
+          signals [] =
+          {     hHookTeardown,
+            __SK_DLL_TeardownEvent };
 
-        if (hHookTeardown != SK_INVALID_HANDLE)
+        if (hHookTeardown != nullptr)
         {
-          WNDCLASSEXW
-          wnd_class               = {                       };
-          wnd_class.hInstance     = GetModuleHandle (nullptr);
-          wnd_class.lpszClassName = L"SK_WindowBand_Agent";
-          wnd_class.lpfnWndProc   = SK_WindowBand_AgentProc;
-          wnd_class.cbSize        = sizeof (WNDCLASSEXW);
-
           InterlockedIncrement  (&injected_procs);
 
-#if 0
-          if (GetModuleHandle (L"explorer.exe"))
-          {
-            ATOM eve =
-              RegisterClassExW (&wnd_class);
-
-            if (eve == 0)
-              UnregisterClassW (L"SK_WindowBand_Agent", GetModuleHandle (nullptr));
-
-            if (eve != 0 || RegisterClassExW (&wnd_class))
-            {
-              SK_SharedMemory_v1* pShared =
-                (SK_SharedMemory_v1*)SK_Inject_GetViewOfSharedMemory ();
-
-              if (pShared != nullptr)
-              {
-                static HANDLE
-                hExplorerDispatchThread =
-                CreateThread (nullptr, 0, [](LPVOID pUser) ->
-                DWORD
-                {
-                  auto hThreadSelf =
-                    *(HANDLE *)pUser;
-
-                  SK_SharedMemory_v1 *pShared =
-                    (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
-
-                  if (! pShared)
-                  {
-                    CloseHandle (hThreadSelf);
-                    return 0;
-                  }
-
-                  // Extra init needed for hooks
-                  InterlockedCompareExchange (&__SK_DLL_Attached, 1, 0);
-
-                  SK_MinHook_Init ();
-
-                  SK_CreateDLLHook2 (       L"user32",
-                                      "SetWindowBand",
-                                       SetWindowBand_Detour,
-              static_cast_p2p <void> (&SetWindowBand_Original) );
-
-                  SK_ApplyQueuedHooks ();
-
-                  pShared->SystemWide.hWndExplorer =
-                    HandleToULong (
-                      CreateWindowExW ( 0, L"SK_WindowBand_Agent", NULL, 0,
-                                        0, 0, 0, 0, HWND_MESSAGE,  NULL, NULL, NULL )
-                                  );
-
-                  if (pShared->SystemWide.hWndExplorer != 0)
-                  {
-                    pShared->SystemWide.uMsgExpRaise = 0xf00d;//RegisterWindowMessageW (L"uMsgExpRaise");
-                    pShared->SystemWide.uMsgExpLower = 0xf00f;//RegisterWindowMessageW (L"uMsgExpLower");
-                  }
-
-                  HWND hWndExplorer =
-                    (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
-
-                  DWORD  dwWaitState  = WAIT_TIMEOUT;
-                  while (dwWaitState != WAIT_OBJECT_0)
-                  {
-                    dwWaitState =
-                      MsgWaitForMultipleObjects ( 1,   &__SK_DLL_TeardownEvent,
-                                                  FALSE, INFINITE, QS_ALLINPUT );
-
-                    if (dwWaitState == WAIT_OBJECT_0 + 1)
-                    {
-                      MSG                   msg = { };
-                      while (PeekMessageW (&msg, hWndExplorer, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
-                      {
-                        TranslateMessage (&msg);
-                        DispatchMessageW (&msg);
-                      }
-                    }
-                  }
-
-                  CloseHandle (hThreadSelf);
-
-                  return 0;
-                }, &hExplorerDispatchThread, CREATE_SUSPENDED, nullptr);
-
-                if (hExplorerDispatchThread != 0)
-                  ResumeThread (hExplorerDispatchThread);
-              }
-            }
-            else wnd_class.cbSize = 0;
-          }
-#endif
           const DWORD dwWaitState =
-            MsgWaitForMultipleObjectsEx (
-              2, signals, INFINITE, QS_ALLINPUT, 0x0
-            );
+            WaitForMultipleObjects ( 2, signals,
+                                 FALSE, INFINITE );
 
           // Is Process Actively Using Special K (?)
           if ( dwWaitState      == WAIT_OBJECT_0 &&
@@ -1464,50 +1239,29 @@ SK_Inject_SpawnUnloadListener (void)
             //
             //  ==> Must continue waiting for application exit ...
             //
-            MsgWaitForMultipleObjectsEx (
-              1, &__SK_DLL_TeardownEvent, INFINITE,
-                             QS_ALLINPUT, 0x0 );
+            WaitForSingleObject (
+              __SK_DLL_TeardownEvent, INFINITE
+            );
           }
-
-#if 0
-          if (GetModuleHandle (L"explorer.exe"))
-          {
-            SK_SharedMemory_v1 *pShared =
-              (SK_SharedMemory_v1 *)SK_Inject_GetViewOfSharedMemory ();
-
-            if (pShared != nullptr)
-            {
-              HWND hWndToKill =
-                (HWND)ULongToHandle (pShared->SystemWide.hWndExplorer);
-
-              if (IsWindow        (hWndToKill))
-                if (DestroyWindow (hWndToKill))
-                  pShared->SystemWide.hWndExplorer = (DWORD)~0;
-
-              if ( std::exchange (wnd_class.cbSize, 0) )
-                UnregisterClassW (wnd_class.lpszClassName, wnd_class.hInstance);
-
-              SK_MinHook_UnInit ();
-            }
-          }
-#endif
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
         }
 
+        // Slow down for non-games, they frighten easily
+        if (! ReadAcquire (&__SK_DLL_Attached))
+          SK_SleepEx (1500UL, FALSE);
+
         if (! SK_GetHostAppUtil ()->isInjectionTool ())
         {
           if (GetModuleLoadCount (SK_GetDLL ()) > 1)
-                          FreeLibrary (SK_GetDLL ());
+                     FreeLibrary (SK_GetDLL ());
         }
 
         CloseHandle (g_hPacifierThread);
-                     g_hPacifierThread = 0;
+                     g_hPacifierThread = nullptr;
 
-        _AtomicClose (hHookTeardown);
-
-        InterlockedExchangePointer ((void **)&g_hModule_CBT, 0);
+        InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
         if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
           FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
@@ -1516,14 +1270,14 @@ SK_Inject_SpawnUnloadListener (void)
       }, nullptr, CREATE_SUSPENDED, nullptr
     );
 
-    if (g_hPacifierThread != 0)
+    if (g_hPacifierThread != nullptr)
     {
-      HMODULE hMod;
+      HMODULE hMod = nullptr;
 
       GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                             (LPCWSTR)SK_GetDLL (), &hMod );
 
-      if (hMod)
+      if (hMod != nullptr)
       {
         InterlockedExchangePointer ((void **)&g_hModule_CBT, hMod);
         ResumeThread               (g_hPacifierThread);
@@ -1588,7 +1342,7 @@ SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
     OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
   );
 
-  if (reinterpret_cast <intptr_t> (hProcess.m_h) <= 0)// == INVALID_HANDLE_VALUE)
+  if (! hProcess.isValid ())
     return FALSE;
 
   return
@@ -1600,6 +1354,8 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
+  SK_SleepEx (500, FALSE);
+
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
     return;
@@ -1623,10 +1379,13 @@ SKX_InstallCBTHook (void)
 }
 
 
+
 void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
+  SK_SleepEx (500, FALSE);
+
   HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)&CBTProc, &hModSelf );
@@ -1634,12 +1393,13 @@ SKX_RemoveCBTHook (void)
   HHOOK hHookOrig =
     SKX_GetCBTHook ();
 
-  HANDLE hHookTeardown =
+  SK_AutoHandle hHookTeardown (
     OpenEvent ( (DWORD)EVENT_ALL_ACCESS, FALSE,
       SK_RunLHIfBitness ( 32, LR"(Local\SK_GlobalHookTeardown32)",
-                              LR"(Local\SK_GlobalHookTeardown64)") );
+                              LR"(Local\SK_GlobalHookTeardown64)") )
+                              );
 
-  if ((intptr_t)hHookTeardown > 0)
+  if (          hHookTeardown.isValid ())
   {   SetEvent (hHookTeardown);  }
 
   if ( hHookOrig != nullptr &&
@@ -1647,6 +1407,9 @@ SKX_RemoveCBTHook (void)
   {
     if (SK_GetHostAppUtil ()->isInjectionTool ())
     {
+      if (INVALID_HANDLE_VALUE   !=  hWhitelistChangeNotification)
+        FindCloseChangeNotification (hWhitelistChangeNotification);
+
       InterlockedDecrement (&injected_procs);
     }
 
@@ -1703,9 +1466,6 @@ SKX_RemoveCBTHook (void)
     hHookCBT = nullptr;
   }
 
-  if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
-    CloseHandle (                  hHookTeardown);
-
   dwHookPID = 0x0;
 }
 
@@ -1753,12 +1513,13 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
            [](LPVOID user) ->
              DWORD
                {
-                 HANDLE hHookTeardown =
+                 SK_AutoHandle hHookTeardown (
                    OpenEvent ( EVENT_ALL_ACCESS, FALSE,
                        SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                              LR"(Local\SK_GlobalHookTeardown64)") );
+                                              LR"(Local\SK_GlobalHookTeardown64)") )
+                                             );
 
-                 if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
+                 if (hHookTeardown.isValid ())
                  {
                    ResetEvent (hHookTeardown);
                  }
@@ -1772,12 +1533,6 @@ RunDLL_InjectionManager ( HWND   hwnd,        HINSTANCE hInst,
                                                  hHookTeardown };
 
                    WaitForMultipleObjects (2, events, FALSE, INFINITE);
-                 }
-
-                 if (reinterpret_cast <intptr_t> (hHookTeardown) > 0)
-                 {
-                   CloseHandle (hHookTeardown);
-                                hHookTeardown = 0;
                  }
 
                  SK_Thread_CloseSelf ();
@@ -2222,7 +1977,7 @@ SK_ExitRemoteProcess (const wchar_t* wszProcName, UINT uExitCode = 0x0)
   SK_AutoHandle   hProcSnap   (
     CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0) );
 
-  if ((intptr_t)hProcSnap.m_h <= 0)
+  if (! hProcSnap.isValid ())
     return false;
 
   pe32.dwSize =
@@ -2561,7 +2316,7 @@ SK_Inject_InitWhiteAndBlacklists (void)
 
     SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
 
-    HANDLE hChangeNotification =
+    hWhitelistChangeNotification =
       FindFirstChangeNotificationW (
         global_cfg_dir.c_str (), FALSE,
           FILE_NOTIFY_CHANGE_FILE_NAME  |
@@ -2569,13 +2324,13 @@ SK_Inject_InitWhiteAndBlacklists (void)
           FILE_NOTIFY_CHANGE_LAST_WRITE
       );
 
-    if (hChangeNotification != INVALID_HANDLE_VALUE)
+    if (hWhitelistChangeNotification != INVALID_HANDLE_VALUE)
     {
       while ( FindNextChangeNotification (
-                     hChangeNotification ) != FALSE )
+            hWhitelistChangeNotification ) != FALSE )
       {
         if ( WAIT_OBJECT_0 ==
-               WaitForSingleObject (hChangeNotification, INFINITE) )
+               WaitForSingleObject (hWhitelistChangeNotification, INFINITE) )
         {
           SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
         }
@@ -2676,7 +2431,7 @@ void SK_Inject_BroadcastAttachNotify (void)
     OpenEvent ( EVENT_ALL_ACCESS, FALSE, LR"(Local\SKIF_InjectAck)" )
   );
 
-  if (hInjectAck.m_h > 0)
+  if (hInjectAck.isValid ())
   {
     SetEvent (hInjectAck.m_h);
   }

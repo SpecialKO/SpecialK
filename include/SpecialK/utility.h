@@ -24,6 +24,102 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+class SK_AutoHandle
+{
+  // Signed handles are invalid, since handles are pointers and
+  //   the signed half of the address space is only for kernel
+
+public:
+   SK_AutoHandle (_Inout_ SK_AutoHandle& h) noexcept : m_h (nullptr)
+   {
+     Attach (
+       h.Detach ()
+     );
+   }
+
+   explicit
+   SK_AutoHandle (HANDLE hHandle) noexcept : m_h (hHandle)              { };
+   SK_AutoHandle (void)           noexcept : m_h (INVALID_HANDLE_VALUE) { };
+  ~SK_AutoHandle (void)           noexcept
+  {
+    // We cannot close these handles because technically they
+    //   were never opened (by usermode code).
+    if ((intptr_t)m_h < (intptr_t)nullptr)
+                  m_h =           nullptr;
+
+    // Signed handles are often special cases
+    //   such as -2 = Current Thread, -1 = Current Process
+    if (m_h != nullptr)
+    {
+      CloseHandle (
+        std::exchange (m_h, nullptr)
+      );
+    }
+  }
+
+  SK_AutoHandle& operator= (_Inout_ SK_AutoHandle& h) noexcept
+  {
+    if (this != &h)
+    {
+      if (m_h != nullptr)
+      {
+        Close ();
+      }
+
+      Attach (
+        h.Detach ()
+      );
+    }
+
+    return (*this);
+  }
+
+	operator HANDLE (void) const noexcept
+  {
+    return m_h;
+  };
+
+  // Attach to an existing handle (takes ownership).
+  void Attach (_In_ HANDLE h) noexcept
+  {
+    //SK_ReleaseAssert (m_h == nullptr);
+    m_h = h; // Take ownership
+  }
+
+  // Detach the handle from the object (releases ownership).
+  HANDLE Detach (void) noexcept
+  {
+    return (  // Release ownership
+      std::exchange (m_h, nullptr)
+    );
+  }
+
+  // Close the handle.
+  void Close (void) noexcept
+  {
+    __try
+    {
+      CloseHandle (m_h);
+                   m_h = nullptr;
+    }
+
+    // Anti-debug does stuff here...
+    __except (EXCEPTION_CONTINUE_EXECUTION)
+    {
+      (void)m_h;
+    }
+  }
+
+  bool isValid (void) const noexcept
+  {
+    return
+      ((intptr_t)m_h > 0);
+  }
+
+public:
+  HANDLE m_h;
+};
+
 #include <Unknwnbase.h>
 
 #include <intrin.h>
@@ -191,31 +287,6 @@ void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 
 PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
 PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
-
-
-class SK_AutoHandle : public CHandle
-{
-  // Signed handles are invalid, since handles are pointers and
-  //   the signed half of the address space is only for kernel
-
-public:
-   SK_AutoHandle (HANDLE hHandle) noexcept : CHandle (hHandle)              { };
-   SK_AutoHandle (void)           noexcept : CHandle (INVALID_HANDLE_VALUE) { };
-  ~SK_AutoHandle (void)           noexcept
-  {
-    // We cannot close these handles because technically they
-    //   were never opened (by usermode code).
-    if ((intptr_t)m_h < (intptr_t)nullptr)
-                  m_h =           nullptr;
-
-    // Signed handles are often special cases
-    //   such as -2 = Current Thread, -1 = Current Process
-  }
-
-  const HANDLE& get (void) const noexcept { return m_h; };
-};
-
-
 
 extern void WINAPI  SK_ExitProcess      (      UINT      uExitCode  ) noexcept;
 extern void WINAPI  SK_ExitThread       (      DWORD     dwExitCode ) noexcept;
@@ -755,5 +826,14 @@ DWORD WINAPI SK_timeGetTime (void) noexcept;
 BOOL  WINAPI SK_PlaySound   (_In_opt_ LPCWSTR pszSound,
                              _In_opt_ HMODULE hmod,
                              _In_     DWORD   fdwSound);
+
+HINSTANCE
+SK_Util_OpenURI (
+  const std::wstring_view& path,
+               DWORD       dwAction );
+
+HINSTANCE
+SK_Util_ExplorePath (
+  const std::wstring_view& path);
 
 #endif /* __SK__UTILITY_H__ */

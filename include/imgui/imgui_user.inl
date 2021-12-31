@@ -2602,8 +2602,10 @@ SK_ImGui_User_NewFrame (void)
     {
       if (! SK_InputUtil_IsHWCursorVisible ())
       {
+        int recursion = 4;
+
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( ShowCursor (TRUE) < 0 ) ;
+          while ( recursion > 0 && ShowCursor (TRUE) < 0 ) --recursion;
       }
     }
 
@@ -2611,8 +2613,10 @@ SK_ImGui_User_NewFrame (void)
     {
       if (SK_InputUtil_IsHWCursorVisible ())
       {
+        int recursion = 4;
+
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( ShowCursor (FALSE) >= -1 ) ;
+          while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
 
         SK_SetCursor (0);
       }

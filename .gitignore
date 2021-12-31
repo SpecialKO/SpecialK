@@ -282,3 +282,4 @@ paket-files/
 /src/framerate - Copy.cpp
 /packages.7z
 *.BuildAgent
+/src/.clang-tidy.cpt_backup

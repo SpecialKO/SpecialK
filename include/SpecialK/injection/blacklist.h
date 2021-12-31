@@ -320,6 +320,8 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   // Does not reply to DLL unload requests
   SK_MakeUnicode (L"mspaint.exe"),
-  SK_MakeUnicode (L"notepad.exe")
+  SK_MakeUnicode (L"notepad.exe"),
+  SK_MakeUnicode (L"explorer.exe"),
+  SK_MakeUnicode (L"prevhost.exe")
 };
 #endif

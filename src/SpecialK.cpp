@@ -132,22 +132,23 @@ SK_DLL_GetBootstraps (void)
     __dll_bootstraps.get ();
 }
 
-static skWin32Module hModApp  =
-       skWin32Module::Uninitialized;
-static skWin32Module hModSelf =
-       skWin32Module::Uninitialized;
-
 skWin32Module&
-skModuleRegistry::HostApp (HMODULE hModToSet) noexcept
+skModuleRegistry::HostApp (HMODULE hModToSet)
 {
+  static skWin32Module hModApp  =
+         skWin32Module::Uninitialized;
+
   if ( hModApp   == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
   {    hModApp    = hModToSet;                      }
 return hModApp;   }
 
 skWin32Module&
-skModuleRegistry::Self (HMODULE hModToSet) noexcept
+skModuleRegistry::Self (HMODULE hModToSet)
 {
+  static skWin32Module hModSelf =
+         skWin32Module::Uninitialized;
+
   if ( hModSelf  == skWin32Module::Uninitialized &&
        hModToSet != skWin32Module::Uninitialized    )
   {    hModSelf   = hModToSet;                      }
@@ -156,7 +157,7 @@ return hModSelf;  }
 
 HMODULE
 __stdcall
-SK_GetDLL (void) noexcept
+SK_GetDLL (void)
 {
   return
     __SK_hModSelf;
@@ -164,7 +165,7 @@ SK_GetDLL (void) noexcept
 
 std::wstring
 __stdcall
-SK_GetDLLName (void) noexcept
+SK_GetDLLName (void)
 {
   return
     __SK_hModSelf;
@@ -1045,6 +1046,30 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       bool is_steamworks_game =
            SK_Path_wcsstr (wszProcessName, L"SteamApps") != nullptr;
 
+      bool is_epic_game = (! is_steamworks_game) &&
+           (    StrStrIW (GetCommandLineW (), L"-epicapp") ||
+             SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
+
+      bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
+           GetModuleHandleW (L"AppXDeploymentClient.dll") != nullptr;
+
+      bool is_ubisoft_game =
+        (! is_steamworks_game) && (! is_epic_game) &&
+        (! is_microsoft_game ) && ( GetModuleHandleW (L"uplay_aux_r164.dll") != nullptr ||
+                                    GetModuleHandleW (L"uplay_aux_r264.dll") != nullptr );
+
+      bool is_gog_game =
+        (! is_steamworks_game) && (! is_epic_game)    &&
+        (! is_microsoft_game ) && (! is_ubisoft_game) &&
+           SK_Path_wcsstr (wszProcessName, LR"(GOG Galaxy\Games)") != nullptr;
+
+      bool is_origin_game =
+        (! is_steamworks_game) && (! is_epic_game)    && (! is_gog_game) &&
+        (! is_microsoft_game ) && (! is_ubisoft_game) &&
+           SK_Path_wcsstr (wszProcessName, LR"(Origin Games\)") != nullptr;
+
+
+
       // Most frequently imported DLLs for games that use SteamAPI
       //
       //  It is trivial to use SteamAPI without linking to the DLL, so
@@ -1070,7 +1095,8 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
       //
       //   => We still need to figure out the primary graphics API.
       //
-      if ( ( is_steamworks_game ||
+      if ( ( is_steamworks_game || is_epic_game    || is_origin_game ||
+            /*is_microsoft_game || */ is_ubisoft_game || is_gog_game ||
              SK_Inject_TestWhitelists (SK_GetFullyQualifiedApp ()) ) &&
           (! SK_Inject_TestBlacklists (SK_GetFullyQualifiedApp ()) )  )
       {
@@ -1436,6 +1462,8 @@ SK_Detach (DLL_ROLE role)
 
     else if (bootstraps.at (role).shutdown ())
     {
+      SK_TLS_Release ();
+
       return TRUE;
     }
   }

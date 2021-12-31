@@ -1920,8 +1920,11 @@ protected:
 using _ShaderBundle =
     SK_D3D11_KnownShaders::
                   ShaderRegistry <IUnknown>*;
-static
-  std::map < sk_shader_class, _ShaderBundle >
+
+static std::map < sk_shader_class, _ShaderBundle >&
+__SK_D3D11_ShaderBundleMap (void)
+{
+  static std::map < sk_shader_class, _ShaderBundle >
   _shaders =
   { { sk_shader_class::Vertex,   (_ShaderBundle)&SK_D3D11_Shaders->vertex   },
     { sk_shader_class::Pixel,    (_ShaderBundle)&SK_D3D11_Shaders->pixel    },
@@ -1929,6 +1932,9 @@ static
     { sk_shader_class::Hull,     (_ShaderBundle)&SK_D3D11_Shaders->hull     },
     { sk_shader_class::Domain,   (_ShaderBundle)&SK_D3D11_Shaders->domain   },
     { sk_shader_class::Compute,  (_ShaderBundle)&SK_D3D11_Shaders->compute  } };
+
+  return _shaders;
+}
 
 static DWORD& dwFrameTime = SK::ControlPanel::current_time;
 
@@ -1975,8 +1981,11 @@ auto IsWireframe = [](sk_shader_class shader_class, uint32_t crc32c)
   d3d11_shader_tracking_s* tracker   = nullptr;
   bool                     wireframe = false;
 
+  static auto& _bundles =
+    __SK_D3D11_ShaderBundleMap ();
+
   _ShaderBundle pShader =
-    _shaders [shader_class];
+    _bundles [shader_class];
 
   tracker   = &pShader->tracked;
   wireframe =  pShader->wireframe.find (crc32c) !=
@@ -1996,8 +2005,11 @@ auto IsOnTop = [&](sk_shader_class shader_class, uint32_t crc32c)
   d3d11_shader_tracking_s* tracker = nullptr;
   bool                     on_top  = false;
 
+  static auto& _bundles =
+    __SK_D3D11_ShaderBundleMap ();
+
   _ShaderBundle pShader =
-    _shaders [shader_class];
+    _bundles [shader_class];
 
   tracker = &pShader->tracked;
   on_top  =  pShader->on_top.find (crc32c) !=
@@ -2017,8 +2029,11 @@ auto IsSkipped = [&](sk_shader_class shader_class, uint32_t crc32c)
   d3d11_shader_tracking_s* tracker     = nullptr;
   bool                     blacklisted = false;
 
+  static auto& _bundles =
+    __SK_D3D11_ShaderBundleMap ();
+
   _ShaderBundle pShader =
-    _shaders [shader_class];
+    _bundles [shader_class];
 
       tracker          = &pShader->tracked;
   if (tracker->crc32c == crc32c && tracker->cancel_draws)
@@ -2035,8 +2050,11 @@ auto IsHud = [&](sk_shader_class shader_class, uint32_t crc32c)
   d3d11_shader_tracking_s* tracker = nullptr;
   bool                     hud     = false;
 
+  static auto& _bundles =
+    __SK_D3D11_ShaderBundleMap ();
+
   _ShaderBundle pShader =
-    _shaders [shader_class];
+    _bundles [shader_class];
 
   tracker = &pShader->tracked;
   hud     =  pShader->hud.find (crc32c) !=

@@ -1770,6 +1770,10 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\plugins\ff7_remake.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\plugins\monster_hunter_world.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
