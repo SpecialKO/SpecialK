@@ -51,6 +51,8 @@ extern "C"
 {
   DWORD        dwHookPID  = 0x0;     // Process that owns the CBT hook
   HHOOK        hHookCBT   = nullptr; // CBT hook
+  HHOOK        hHookShell = nullptr; // Shell hook
+  HHOOK        hHookDebug = nullptr; // Debug hook
   BOOL         bAdmin     = FALSE;   // Is SKIM64 able to inject into admin apps?
 
   LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                 =  {   0   };
@@ -1163,7 +1165,6 @@ GetModuleLoadCount (HMODULE hDll)
 #endif
 
          HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
-         HANDLE   g_hHookTeardown   = SK_INVALID_HANDLE;
 volatile HMODULE  g_hModule_CBT     = 0;
 volatile LONG     g_sOnce           = 0;
 
@@ -1248,14 +1249,23 @@ SK_Inject_SpawnUnloadListener (void)
           InterlockedDecrement  (&injected_procs);
         }
 
-        // Slow down for non-games, they frighten easily
-        if (! ReadAcquire (&__SK_DLL_Attached))
-          SK_SleepEx (1500UL, FALSE);
+        // It's not going to go out of scope for RAII, the scope is going
+        //   to disappear.  Close manually.
+        hHookTeardown.Close ();
+
+        int load_count = 0;
 
         if (! SK_GetHostAppUtil ()->isInjectionTool ())
         {
-          if (GetModuleLoadCount (SK_GetDLL ()) > 1)
-                     FreeLibrary (SK_GetDLL ());
+          // Slow down for non-games, they frighten easily
+          if (! ReadAcquire (&__SK_DLL_Attached))
+            SK_SleepEx (250UL, FALSE);
+
+          load_count =
+            GetModuleLoadCount (SK_GetDLL ());
+
+          if (load_count > 1)
+            FreeLibrary (SK_GetDLL ());
         }
 
         CloseHandle (g_hPacifierThread);
@@ -1263,8 +1273,16 @@ SK_Inject_SpawnUnloadListener (void)
 
         InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
-        if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
-          FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
+        SK_SleepEx (250UL, FALSE);
+
+        load_count =
+          GetModuleLoadCount (SK_GetDLL ());
+
+        if (load_count >= 1)
+        {
+          if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
+            FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
+        }
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
@@ -1294,6 +1312,52 @@ SK_Inject_SpawnUnloadListener (void)
 
 LRESULT
 CALLBACK
+DebugProc ( _In_ int    nCode,
+            _In_ WPARAM wParam,
+            _In_ LPARAM lParam )
+{
+  if (nCode < 0)
+  {
+    return
+      CallNextHookEx (
+        0, nCode, wParam, lParam
+      );
+  }
+
+  if (SKX_GetCBTHook () != nullptr)
+      SK_Inject_SpawnUnloadListener ();
+
+  return
+    CallNextHookEx (
+      0, nCode, wParam, lParam
+    );
+}
+
+LRESULT
+CALLBACK
+ShellProc ( _In_ int    nCode,
+            _In_ WPARAM wParam,
+            _In_ LPARAM lParam )
+{
+  if (nCode < 0)
+  {
+    return
+      CallNextHookEx (
+        0, nCode, wParam, lParam
+      );
+  }
+
+  if (SKX_GetCBTHook () != nullptr)
+      SK_Inject_SpawnUnloadListener ();
+
+  return
+    CallNextHookEx (
+      0, nCode, wParam, lParam
+    );
+}
+
+LRESULT
+CALLBACK
 CBTProc ( _In_ int    nCode,
           _In_ WPARAM wParam,
           _In_ LPARAM lParam )
@@ -1302,12 +1366,12 @@ CBTProc ( _In_ int    nCode,
   {
     return
       CallNextHookEx (
-        SKX_GetCBTHook (),
-          nCode, wParam, lParam
+        0, nCode, wParam, lParam
       );
   }
 
-  SK_Inject_SpawnUnloadListener ();
+  if (SKX_GetCBTHook () != nullptr)
+      SK_Inject_SpawnUnloadListener ();
 
   if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
   {
@@ -1330,8 +1394,7 @@ CBTProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      SKX_GetCBTHook (),
-        nCode, wParam, lParam
+      0, nCode, wParam, lParam
     );
 }
 
@@ -1354,7 +1417,7 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
-  SK_SleepEx (500, FALSE);
+  SK_SleepEx (250UL, FALSE);
 
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
@@ -1371,11 +1434,19 @@ SKX_InstallCBTHook (void)
   HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)&CBTProc, &hModSelf );
-  hHookCBT =
+  hHookCBT   =
     SetWindowsHookEx (WH_CBT,     CBTProc,  hModSelf, 0);
 
-  if (hHookCBT != 0)
+  if (hHookCBT != nullptr)
+  {
+    hHookShell =
+      SetWindowsHookEx (WH_SHELL, ShellProc,  hModSelf, 0);
+
+    hHookDebug =
+      SetWindowsHookEx (WH_DEBUG, DebugProc,  hModSelf, 0);
+
     InterlockedExchange (&__SK_HookContextOwner, TRUE);
+  }
 }
 
 
@@ -1384,7 +1455,7 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  SK_SleepEx (500, FALSE);
+  SK_SleepEx (750UL, FALSE);
 
   HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
@@ -1464,6 +1535,12 @@ SKX_RemoveCBTHook (void)
     while (ReadAcquire (&injected_procs) > 0);
 
     hHookCBT = nullptr;
+
+    if (hHookShell != nullptr && UnhookWindowsHookEx (hHookShell))
+        hHookShell  = nullptr;
+
+    if (hHookDebug != nullptr && UnhookWindowsHookEx (hHookDebug))
+        hHookDebug  = nullptr;
   }
 
   dwHookPID = 0x0;

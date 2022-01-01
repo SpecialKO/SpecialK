@@ -2398,6 +2398,11 @@ SK_ShutdownCore (const wchar_t* backend)
 
   WriteRelease (&__SK_Init, -2);
 
+#ifdef _SK_CONSISTENCY_CHECK
+  // Teardown static globals
+  __SK_LazyRiver.atExit ();
+#endif
+
   return true;
 }
 

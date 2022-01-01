@@ -4208,6 +4208,9 @@
     <ClCompile Include="src\plugins\ff7_remake.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\lazy_global.cpp">
+      <Filter>Source Files\Utility</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\cursors\ovr_ptr.cur">

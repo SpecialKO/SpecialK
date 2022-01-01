@@ -127,7 +127,7 @@ SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
   auto& pTLS =
     *ppTLS;
 
-  ULONG dwTLSIndex =
+  const ULONG dwTLSIndex =
     ReadULongAcquire (&__SK_TLS_INDEX);
 
   pTLS =
@@ -286,9 +286,9 @@ SK_CleanupTLS (void)
     {
       DWORD                                                   dwFlags = 0x0;
       if (FALSE != GetHandleInformation (pTLS->debug.handle, &dwFlags))
-      {                     CloseHandle (pTLS->debug.handle); }
+      {                                  pTLS->debug.handle.Close (); }
 
-      pTLS->debug.handle = INVALID_HANDLE_VALUE;
+      pTLS->debug.handle.m_h = INVALID_HANDLE_VALUE;
     }
 
 #ifdef _DEBUG
@@ -1064,10 +1064,9 @@ SK_TLS::Cleanup (SK_TLS_CleanupReason_e reason)
   freed += scheduler.isAllocated      () ? scheduler     ->Cleanup (reason) : 0;
   freed +=                                 dxtex          .Cleanup (reason)    ;
 
-  if ((intptr_t)debug.handle > 0)
+  if (debug.handle.isValid ())
   {
-    CloseHandle (debug.handle);
-                 debug.handle = INVALID_HANDLE_VALUE;
+    debug.handle.Close ();
   }
 
 

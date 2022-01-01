@@ -299,6 +299,9 @@
     <ClInclude Include="..\..\..\src\SKinHook\hde\table64.h" />
     <ClInclude Include="..\..\..\src\SKinHook\trampoline.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SKinHook.sln" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

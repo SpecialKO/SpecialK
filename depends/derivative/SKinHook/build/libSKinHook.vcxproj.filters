@@ -58,4 +58,7 @@
       <UniqueIdentifier>{9d24b740-be2e-4cfd-b9a4-340a50946ee9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SKinHook.sln" />
+  </ItemGroup>
 </Project>

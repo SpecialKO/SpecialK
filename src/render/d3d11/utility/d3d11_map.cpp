@@ -32,11 +32,11 @@
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/control_panel/d3d11.h>
 
+extern
 SK_LazyGlobal <
   std::unordered_map < ID3D11DeviceContext *,
                        mapped_resources_s  >
-              >
-  mapped_resources;
+              >        mapped_resources;
 
 SK_LazyGlobal < memory_tracking_s >
   mem_map_stats;

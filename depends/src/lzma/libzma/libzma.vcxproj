@@ -371,6 +371,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\include\lzma\7zVersion.aps" />
+    <None Include="libzma.sln" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\include\lzma\7zVersion.rc" />

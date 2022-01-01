@@ -1759,6 +1759,12 @@
     <ClCompile Include="src\input\input.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\lazy_global.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="src\plugins\ac_valhalla.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

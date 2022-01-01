@@ -695,8 +695,8 @@ public:
 
   virtual ~SK_TLS (void) noexcept
   {
-    if ( (intptr_t)debug.handle > 0)
-      CloseHandle (debug.handle);
+    if (debug.handle.isValid ())
+        debug.handle.Close ();
 
     // Cleanup ();
   }
@@ -707,20 +707,21 @@ public:
     context_record.pTLS     = this;
 
     // Try to grab a reference to the existing thread handle (w/ ALL_ACCESS) first
-    debug.handle =
-      OpenThread ( THREAD_ALL_ACCESS, FALSE, SK_Thread_GetCurrentId () );
+    debug.handle.Attach (
+      OpenThread ( THREAD_ALL_ACCESS, FALSE, SK_Thread_GetCurrentId () )
+    );
 
     // If that fails, duplicate the thread handle with greater access
-    if ((intptr_t)debug.handle <= 0)
+    if (! debug.handle.isValid ())
     {
       if (! DuplicateHandle ( SK_GetCurrentProcess (), SK_GetCurrentThread  (),
-                              SK_GetCurrentProcess (), &debug.handle,
+                              SK_GetCurrentProcess (), &debug.handle.m_h,
                               THREAD_ALL_ACCESS,       FALSE,
                               0x0
                             )
          )
       {
-        debug.handle =
+        debug.handle.m_h =
           INVALID_HANDLE_VALUE;
       }
     }
@@ -739,7 +740,7 @@ public:
 
   // Scratch memory pool for DXTex to reduce its tendency to fragment the
   //   the address space up while batching multiple format conversion jobs.
-  SK_DXTex_ThreadContext    dxtex   = { };
+  SK_DXTex_ThreadContext                    dxtex   = { };
 
   SK_LazyGlobal <SK_DInput7_ThreadContext>  dinput7;
   SK_LazyGlobal <SK_DInput8_ThreadContext>  dinput8;
@@ -776,7 +777,8 @@ public:
     callsite_list_t  suppressed_addrs  = {   };
     wchar_t          name
          [MAX_THREAD_NAME_LEN]         = {   };
-    HANDLE           handle            = INVALID_HANDLE_VALUE;
+    SK_AutoHandle    handle            =
+      SK_AutoHandle (INVALID_HANDLE_VALUE);
     DWORD            tls_idx           =     0;
     DWORD            tid               =     0;
     ULONG            last_frame        = sk::narrow_cast <ULONG>(-1);

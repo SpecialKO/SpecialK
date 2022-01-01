@@ -53,6 +53,11 @@ template <        >
   _RTL_CONSTANT_STRING_remove_const_macro(s)                \
 }
 
+void SK_LazyCleanup (void)
+{
+  __SK_LazyRiver->atExit ();
+}
+
 SK_LazyGlobal <skModuleRegistry>
               SK_Modules;
 
@@ -362,6 +367,10 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+#ifdef _SK_CONSISTENCY_CHECK
+      std::atexit (SK_LazyCleanup);
+#endif
+
       config =
         sk_config_t::sk_config_t ();
 

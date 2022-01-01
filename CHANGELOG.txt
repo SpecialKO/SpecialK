@@ -1,4 +1,8 @@
-﻿21.12.31
+﻿1.9.9.9 A.D. ラヴォスの日
+========================
+ + Regularly Scheduled Time Egg Maintenance
+
+21.12.31
 ========
  + Optimized INI parser memory management / load speed
  + Increased throttling on SKIF's Start/Stop injection

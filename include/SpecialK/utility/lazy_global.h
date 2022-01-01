@@ -26,13 +26,38 @@
 
 #include <mutex>
 #include <memory>
+#include <concurrent_vector.h>
 #include <SpecialK/thread.h>
 #include <SpecialK/diagnostics/memory.h>
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
+
+
+class SK_LazyDeinit
+{
+public:
+  virtual void Deinit (void) = 0;
+};
+
+class SK_LazyObjectFoundry
+{
+public:
+  void atExit (void)
+  {
+#ifdef _SK_CONSISTENCY_CHECK
+    for ( auto it : globals )
+               it->Deinit ();
+#endif
+
+    globals.clear ();
+  }
+
+  Concurrency::concurrent_vector <SK_LazyDeinit *> globals;
+};
+
 template <typename T>
-class SK_LazyGlobal
+class SK_LazyGlobal : public SK_LazyDeinit
 {
   enum _AllocState {
     Uninitialized = 0,
@@ -55,6 +80,10 @@ public:
       try {
         pDeferredObject =
           std::make_unique <T> ();
+
+#ifdef _SK_CONSISTENCY_CHECK
+        __SK_LazyRiver->globals.push_back (this);
+#endif
       }
 
       catch (...) {
@@ -105,9 +134,10 @@ __forceinline bool  isAllocated (void) const      noexcept
   SK_LazyGlobal& operator=   (      SK_LazyGlobal&&) = delete;
 
   constexpr SK_LazyGlobal (void) noexcept {
+
   }
 
-  ~SK_LazyGlobal (void) noexcept
+  void Deinit (void) noexcept
   {
     // Allocated off heap w/ C++ new
     if (isAllocated ())
@@ -128,6 +158,11 @@ __forceinline bool  isAllocated (void) const      noexcept
     }
   }
 
+  ~SK_LazyGlobal (void) noexcept
+  {
+    Deinit ();
+  }
+
 protected:
            std::unique_ptr <T>
                 pDeferredObject = nullptr;
@@ -135,5 +170,8 @@ protected:
 };
 
 #pragma warning (pop)
+
+extern SK_LazyGlobal <SK_LazyObjectFoundry>
+                    __SK_LazyRiver;
 
 #endif /* __SK__LAZY_GLOBAL_H__*/

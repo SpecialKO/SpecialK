@@ -582,8 +582,9 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
 
   if (pTLS != nullptr)
   {
-    pTLS->debug.handle = pStartParams->hHandleToStuffInternally;
-    pTLS->debug.tid    = SK_Thread_GetCurrentId ();
+    pTLS->debug.handle.Attach (pStartParams->hHandleToStuffInternally);
+    pTLS->debug.tid =
+      SK_Thread_GetCurrentId ();
 
     wcsncpy_s ( pTLS->debug.name, MAX_THREAD_NAME_LEN,
       pStartParams->lpThreadName,           _TRUNCATE );
@@ -703,10 +704,10 @@ SK_Thread_CloseSelf (void)
     HANDLE hCopyAndSwapHandle =
       INVALID_HANDLE_VALUE;
 
-    if ((intptr_t)pTLS->debug.handle > 0)
-    { std::swap  (pTLS->debug.handle, hCopyAndSwapHandle);
-      if (! CloseHandle (             hCopyAndSwapHandle)) {
-        std::swap(pTLS->debug.handle, hCopyAndSwapHandle); }
+    if (pTLS->debug.handle.isValid ())
+    { std::swap  (pTLS->debug.handle.m_h, hCopyAndSwapHandle);
+      if (! CloseHandle (                 hCopyAndSwapHandle)) {
+        std::swap(pTLS->debug.handle.m_h, hCopyAndSwapHandle); }
       else
         return true;
     }

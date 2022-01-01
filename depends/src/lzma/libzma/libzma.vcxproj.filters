@@ -250,6 +250,7 @@
     <None Include="..\..\..\include\lzma\7zVersion.aps">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="libzma.sln" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\..\include\lzma\7zVersion.rc">
