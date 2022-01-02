@@ -40,6 +40,8 @@
 #include <SpecialK/control_panel/steam.h>
 #include <SpecialK/control_panel/window.h>
 
+#include <SpecialK/storefront/epic.h>
+
 #include <SpecialK/nvapi.h>
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
@@ -5291,7 +5293,7 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  if (! SK::SteamAPI::GetOverlayState (true))
+  if (! SK_GetStoreOverlayState (true))
   {
     SK_DrawOSD     ();
     SK_DrawConsole ();
@@ -5817,8 +5819,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   // Optionally:  Disable SK's OSD while the Steam overlay is active
   //
-  if (  config.steam.overlay_hides_sk_osd &&
-        SK::SteamAPI::GetOverlayState (true) )
+  if ( config.steam.overlay_hides_sk_osd &&
+       SK_GetStoreOverlayState (true) )
   {
     return 0;
   }

@@ -174,6 +174,10 @@ extern SK_LazyGlobal <iSK_Logger> budget_log;
 extern SK_LazyGlobal <iSK_Logger> game_debug;
 extern SK_LazyGlobal <iSK_Logger> tex_log;
 extern SK_LazyGlobal <iSK_Logger> steam_log;
+extern SK_LazyGlobal <iSK_Logger> epic_log;
+
+
+bool SK_GetStoreOverlayState (bool bReal);
 
 
 // Pass nullptr to cleanup ALL windows; for internal use only.

@@ -383,6 +383,9 @@ DllMain ( HMODULE hModule,
             __SK_DLL_TeardownEvent =
                     SK_CreateEvent ( nullptr, TRUE,
                                              FALSE, nullptr );
+
+        extern void SK_Inject_SpawnUnloadListener (void);
+                    SK_Inject_SpawnUnloadListener ();
       };
 
       auto EarlyOut =
@@ -391,8 +394,8 @@ DllMain ( HMODULE hModule,
         if (bRet)
         {
           SK_DLL_SetAttached        ( false );
-          CreateTeardownEvent       (       );
           DisableThreadLibraryCalls (hModule);
+          CreateTeardownEvent       (       );
         }
 
         return bRet;

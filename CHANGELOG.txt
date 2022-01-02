@@ -1,4 +1,21 @@
-﻿1.9.9.9 A.D. ラヴォスの日
+﻿22.1.2
+======
+ Initial Epic Online Services Integration
+ ----------------------------------------
+  + Achievement unlock sound has been added to EGS games
+  + SK's OSD contextually hides/shows itself in response to Epic overlay state
+  + SK can pause EOS overlay aware games when opening the control panel
+
+  There is a lot of overlap in features between SteamAPI and EOS, so the
+    Steam control panel will be unified with EOS in later builds. For now all
+      of these features are controlled using the Steam INI settings.
+
+22.1.1
+======
+ + Fixed Epic Online Services overlay occasionally removing SK's global hook
+ + GOG, Epic Game Store and Ubisoft games are auto-whitelisted for injection
+
+1.9.9.9 A.D. ラヴォスの日
 ========================
  + Regularly Scheduled Time Egg Maintenance
 

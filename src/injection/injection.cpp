@@ -898,122 +898,6 @@ SK_Inject_RenameProcess (void)
   //RtlReleasePebLock ();
 }
 
-#if 0
-#include <winternl.h>                   //PROCESS_BASIC_INFORMATION
-
-bool
-ReadMem ( void *addr,
-          void *buf,
-          int   size )
-{
-  return
-    ReadProcessMemory ( GetCurrentProcess (), addr,
-                                               buf, size,
-                                                 nullptr ) != FALSE;
-}
-
-using NtQueryInformationProcess_pfn =
-  NTSTATUS (NTAPI *)(HANDLE,PROCESSINFOCLASS,PVOID,ULONG,PULONG);
-
-int
-GetModuleReferenceCount (HMODULE hModToTest)
-{
-  LdrFindEntryForAddress_pfn
-  LdrFindEntryForAddress =
- (LdrFindEntryForAddress_pfn)SK_GetProcAddress ( L"NtDll",
- "LdrFindEntryForAddress"                      );
-
-  if (LdrFindEntryForAddress != nullptr)
-  {
-    PLDR_DATA_TABLE_ENTRY__SK
-      pLdrDataTable = nullptr;
-
-    if ( NT_SUCCESS (
-           LdrFindEntryForAddress ( hModToTest, &pLdrDataTable )
-       )            )                     return pLdrDataTable->ReferenceCount;
-  }
-
-  return 0;
-}
-
-int
-GetModuleLoadCount (HMODULE hModToTest)
-{
-  PROCESS_BASIC_INFORMATION pbi = { 0 };
-
-  NtQueryInformationProcess_pfn
-  NtQueryInformationProcess =
- (NtQueryInformationProcess_pfn)SK_GetProcAddress ( L"NtDll",
- "NtQueryInformationProcess"                      );
-
-  if (! NtQueryInformationProcess)
-    return 0;
-
-  if ( NT_SUCCESS (
-      NtQueryInformationProcess ( GetCurrentProcess (),
-                                    ProcessBasicInformation, &pbi,
-                                                      sizeof (pbi), nullptr )
-                   ) )
-  {
-    uint8_t *pLdrDataOffset =
-   (uint8_t *)(pbi.PebBaseAddress) + offsetof (PEB, Ldr);
-
-    uint8_t*     addr;
-    PEB_LDR_DATA LdrData;
-
-    if ((! ReadMem (pLdrDataOffset, &addr,    sizeof (void *))) ||
-        (! ReadMem (addr,           &LdrData, sizeof (LdrData))) )
-      return 0;
-
-    LIST_ENTRY *pHead = LdrData.InMemoryOrderModuleList.Flink;
-    LIST_ENTRY *pNext = pHead;
-
-    do
-    {
-      LDR_DATA_TABLE_ENTRY   LdrEntry = { };
-      LDR_DATA_TABLE_ENTRY *pLdrEntry =
-        CONTAINING_RECORD ( pHead,
-                             LDR_DATA_TABLE_ENTRY,
-                               InMemoryOrderLinks );
-
-      if (! ReadMem (pLdrEntry, &LdrEntry, sizeof (LdrEntry)))
-        return 0;
-
-      if (LdrEntry.DllBase == (LPVOID)hModToTest)
-      {
-        //
-        //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
-        //
-        int offDdagNode =
-          (0x14 - SK_RunLHIfBitness (64, 1, 0)) * sizeof (LPVOID); // See offset on LDR_DDAG_NODE *DdagNode;
-
-        ULONG    count        = 0;
-        uint8_t* addrDdagNode = ((uint8_t *)pLdrEntry) + offDdagNode;
-
-        //
-        //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_ddag_node.htm
-        //  See offset on ULONG LoadCount;
-        //
-        if ( (! ReadMem (addrDdagNode, &addr,      sizeof (LPVOID))) ||
-             (! ReadMem (               addr + 3 * sizeof (LPVOID),
-                                       &count,     sizeof (count))) )
-        {
-          return 0;
-        }
-
-        return
-          count;
-      }
-
-      pHead =
-        LdrEntry.InMemoryOrderLinks.Flink;
-    }
-    while (pHead != pNext);
-  }
-
-  return 0;
-}
-#else
 #include <winternl.h>                   //PROCESS_BASIC_INFORMATION
 
 // warning C4996: 'GetVersionExW': was declared deprecated
@@ -1056,27 +940,29 @@ using NtQueryInformationProcess_pfn = NTSTATUS (NTAPI *)(HANDLE,PROCESSINFOCLASS
 int
 GetModuleReferenceCount (HMODULE hDll)
 {
-  HMODULE hNtDll =
-    SK_LoadLibraryW (L"NtDll");
-  if (!   hNtDll)
-      return 0;
+  int refs = -1;
 
-  LdrFindEntryForAddress_pfn
-  LdrFindEntryForAddress =
- (LdrFindEntryForAddress_pfn)GetProcAddress (hNtDll,
- "LdrFindEntryForAddress");
+  if ( HMODULE hNtDll = SK_LoadLibraryW (L"NtDll") ;
+               hNtDll != nullptr )
+  {
+    auto LdrFindEntryForAddress =
+        (LdrFindEntryForAddress_pfn)SK_GetProcAddress (hNtDll,
+        "LdrFindEntryForAddress");
 
-  PLDR_DATA_TABLE_ENTRY__SK pldr_data_table = nullptr;
+    if (LdrFindEntryForAddress != nullptr)
+    {
+      if ( PLDR_DATA_TABLE_ENTRY__SK                  pLdrDataTable;
+           NT_SUCCESS (LdrFindEntryForAddress (hDll, &pLdrDataTable)) )
+      {
+        refs =
+          pLdrDataTable->ReferenceCount;
+      }
+    }
 
-  bool b = false;
-  if (LdrFindEntryForAddress != nullptr) b =
-    NT_SUCCESS (
-      LdrFindEntryForAddress ( hDll, &pldr_data_table )
-  );
-  SK_FreeLibrary (hNtDll);
+    SK_FreeLibrary (hNtDll);
+  }
 
-  return (pldr_data_table != nullptr && b) ?
-          pldr_data_table->ReferenceCount  : 0;
+  return refs;
 }
 
 //
@@ -1089,17 +975,16 @@ GetModuleLoadCount (HMODULE hDll)
   if (! IsWindows8OrGreater ())
     return 0;
 
-  PROCESS_BASIC_INFORMATION pbi = { 0 };
+  PROCESS_BASIC_INFORMATION pbi = { };
 
   HMODULE hNtDll =
     SK_LoadLibraryW (L"NtDll");
   if (!   hNtDll)
       return 0;
 
-  NtQueryInformationProcess_pfn
-  NtQueryInformationProcess =
- (NtQueryInformationProcess_pfn)GetProcAddress (hNtDll,
- "NtQueryInformationProcess");
+  auto NtQueryInformationProcess =
+      (NtQueryInformationProcess_pfn)SK_GetProcAddress (hNtDll,
+      "NtQueryInformationProcess");
 
   bool b = false;
   if (NtQueryInformationProcess != nullptr) b = NT_SUCCESS (
@@ -1130,7 +1015,7 @@ GetModuleLoadCount (HMODULE hDll)
     LDR_DATA_TABLE_ENTRY* pLdrEntry =
       CONTAINING_RECORD (head, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
-    if (! ReadMem (pLdrEntry , &LdrEntry, sizeof (LdrEntry)))
+    if (! ReadMem (pLdrEntry, &LdrEntry, sizeof (LdrEntry)))
       return 0;
 
     if (LdrEntry.DllBase == (void *)hDll)
@@ -1162,7 +1047,6 @@ GetModuleLoadCount (HMODULE hDll)
 
   return 0;
 } //GetModuleLoadCount
-#endif
 
          HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
 volatile HMODULE  g_hModule_CBT     = 0;
@@ -1173,30 +1057,34 @@ SK_Inject_SpawnUnloadListener (void)
 {
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
+    static SK_AutoHandle hHookTeardown (
+      OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+          SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
+                                 LR"(Local\SK_GlobalHookTeardown64)") )
+                                );
+
+    if (! InterlockedCompareExchange (&g_sOnce, TRUE, FALSE))
+    {
+      LONG idx =
+        InterlockedIncrement (&num_hooked_pids);
+
+      if (idx < MAX_HOOKED_PROCS)
+      {
+        WriteULongRelease (
+          &hooked_pids [idx],
+            GetCurrentProcessId ()
+        );
+      }
+
+      std::atexit ([]{
+        hHookTeardown.Close ();
+      });
+    }
+
     g_hPacifierThread = (HANDLE)
       CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
       {
-        SK_AutoHandle hHookTeardown (
-          OpenEvent ( EVENT_ALL_ACCESS, FALSE,
-              SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
-                                     LR"(Local\SK_GlobalHookTeardown64)") )
-                                    );
-
-        if (! InterlockedCompareExchange (&g_sOnce, TRUE, FALSE))
-        {
-          LONG idx =
-            InterlockedIncrement (&num_hooked_pids);
-
-          if (idx < MAX_HOOKED_PROCS)
-          {
-            WriteULongRelease (
-              &hooked_pids [idx],
-                GetCurrentProcessId ()
-            );
-          }
-        }
-
         HMODULE hModKernel32 =
           SK_LoadLibraryW (L"Kernel32");
 
@@ -1205,7 +1093,7 @@ SK_Inject_SpawnUnloadListener (void)
           // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
            SetThreadDescription_pfn
           _SetThreadDescriptionWin10 =
-          (SetThreadDescription_pfn)GetProcAddress (hModKernel32, "SetThreadDescription");
+          (SetThreadDescription_pfn)SK_GetProcAddress (hModKernel32, "SetThreadDescription");
 
           if (_SetThreadDescriptionWin10 != nullptr) {
               _SetThreadDescriptionWin10 (
@@ -1214,17 +1102,19 @@ SK_Inject_SpawnUnloadListener (void)
               );
           }
 
-          FreeLibrary (hModKernel32);
+          SK_FreeLibrary (hModKernel32);
         }
 
         SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);
+        CloseHandle       (g_hPacifierThread);
+                           g_hPacifierThread = nullptr;
 
         const HANDLE
           signals [] =
           {     hHookTeardown,
             __SK_DLL_TeardownEvent };
 
-        if (hHookTeardown != nullptr)
+        if (hHookTeardown.isValid ())
         {
           InterlockedIncrement  (&injected_procs);
 
@@ -1249,40 +1139,9 @@ SK_Inject_SpawnUnloadListener (void)
           InterlockedDecrement  (&injected_procs);
         }
 
-        // It's not going to go out of scope for RAII, the scope is going
-        //   to disappear.  Close manually.
-        hHookTeardown.Close ();
-
-        int load_count = 0;
-
-        if (! SK_GetHostAppUtil ()->isInjectionTool ())
-        {
-          // Slow down for non-games, they frighten easily
-          if (! ReadAcquire (&__SK_DLL_Attached))
-            SK_SleepEx (250UL, FALSE);
-
-          load_count =
-            GetModuleLoadCount (SK_GetDLL ());
-
-          if (load_count > 1)
-            FreeLibrary (SK_GetDLL ());
-        }
-
-        CloseHandle (g_hPacifierThread);
-                     g_hPacifierThread = nullptr;
-
         InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
-        SK_SleepEx (250UL, FALSE);
-
-        load_count =
-          GetModuleLoadCount (SK_GetDLL ());
-
-        if (load_count >= 1)
-        {
-          if (GetModuleReferenceCount (SK_GetDLL ()) >= 1)
-            FreeLibraryAndExitThread  (SK_GetDLL (), 0x0);
-        }
+        FreeLibraryAndExitThread (SK_GetDLL (), 0x0);
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
@@ -1316,17 +1175,6 @@ DebugProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-  if (nCode < 0)
-  {
-    return
-      CallNextHookEx (
-        0, nCode, wParam, lParam
-      );
-  }
-
-  if (SKX_GetCBTHook () != nullptr)
-      SK_Inject_SpawnUnloadListener ();
-
   return
     CallNextHookEx (
       0, nCode, wParam, lParam
@@ -1339,17 +1187,6 @@ ShellProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-  if (nCode < 0)
-  {
-    return
-      CallNextHookEx (
-        0, nCode, wParam, lParam
-      );
-  }
-
-  if (SKX_GetCBTHook () != nullptr)
-      SK_Inject_SpawnUnloadListener ();
-
   return
     CallNextHookEx (
       0, nCode, wParam, lParam
@@ -1369,9 +1206,6 @@ CBTProc ( _In_ int    nCode,
         0, nCode, wParam, lParam
       );
   }
-
-  if (SKX_GetCBTHook () != nullptr)
-      SK_Inject_SpawnUnloadListener ();
 
   if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
   {
@@ -1417,7 +1251,7 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
-  SK_SleepEx (250UL, FALSE);
+  SK_SleepEx (50UL, FALSE);
 
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
@@ -1455,7 +1289,7 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  SK_SleepEx (750UL, FALSE);
+  SK_SleepEx (50UL, FALSE);
 
   HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,

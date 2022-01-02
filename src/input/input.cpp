@@ -2919,7 +2919,7 @@ SK_Proxy_MouseProc   (
     else
     {
       // Game uses a mouse hook for input that the Steam overlay cannot block
-      if (SK::SteamAPI::GetOverlayState (true))
+      if (SK_GetStoreOverlayState (true))
       {
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -3045,7 +3045,7 @@ SK_Proxy_LLMouseProc   (
     else
     {
       // Game uses a mouse hook for input that the Steam overlay cannot block
-      if (SK::SteamAPI::GetOverlayState (true))
+      if (SK_GetStoreOverlayState (true))
       {
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -3118,7 +3118,7 @@ SK_Proxy_KeyboardProc (
     else
     {
       // Game uses a keyboard hook for input that the Steam overlay cannot block
-      if (SK::SteamAPI::GetOverlayState (true) || SK_Console::getInstance ()->isVisible ())
+      if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -3192,7 +3192,7 @@ SK_Proxy_LLKeyboardProc (
     else
     {
       // Game uses a keyboard hook for input that the Steam overlay cannot block
-      if (SK::SteamAPI::GetOverlayState (true) || SK_Console::getInstance ()->isVisible ())
+      if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
         return
           CallNextHookEx (0, nCode, wParam, lParam);

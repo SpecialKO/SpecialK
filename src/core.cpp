@@ -26,6 +26,8 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
 
+#include <SpecialK/storefront/epic.h>
+
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
 
@@ -809,6 +811,8 @@ void BasicInit (void)
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init   (    );
   SK::Diagnostics::CrashHandler::InitSyms (    );
+
+  SK::EOS::Init (false);
 
   //// Do this from the startup thread [these functions queue, but don't apply]
   if (! config.input.dont_hook_core)
@@ -3760,9 +3764,18 @@ SK_API_IsPlugInBased (SK_RenderAPI api)
   }
 }
 
+bool
+SK_GetStoreOverlayState (bool bReal)
+{
+  return
+    SK::SteamAPI::GetOverlayState (bReal) ||
+    SK::EOS::     GetOverlayState (bReal);
+}
+
 SK_LazyGlobal <iSK_Logger> dll_log;
 SK_LazyGlobal <iSK_Logger> crash_log;
 SK_LazyGlobal <iSK_Logger> budget_log;
 SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
+SK_LazyGlobal <iSK_Logger> epic_log;

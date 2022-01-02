@@ -337,6 +337,15 @@
     <Filter Include="Header Files\External Libraries\Boost">
       <UniqueIdentifier>{f271285d-ffd1-42c9-82c5-443c98fc4fc3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Epic Online Services">
+      <UniqueIdentifier>{1e64ae8a-e5ac-45a9-8211-e8461b3e5b95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Epic Online Services">
+      <UniqueIdentifier>{f1545578-b3a7-4872-9517-27b07a6cc3c0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Epic Online Services\SDK">
+      <UniqueIdentifier>{9cb54327-1628-45da-b6b3-f009d88942e1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3723,6 +3732,204 @@
     <ClInclude Include="depends\include\boost\preprocessor\cat.hpp">
       <Filter>Header Files\External Libraries\Boost</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\storefront\epic.h">
+      <Filter>Header Files\Epic Online Services</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_achievements.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_achievements_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_anticheatclient.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_anticheatclient_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_anticheatcommon_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_anticheatserver.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_anticheatserver_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_auth.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_auth_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_base.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_common.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_connect.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_connect_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_custominvites.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_custominvites_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_ecom.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_ecom_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_friends.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_friends_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_init.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_kws.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_kws_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_leaderboards.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_leaderboards_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_lobby.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_lobby_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_logging.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_metrics.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_metrics_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_mods.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_mods_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_p2p.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_p2p_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_platform_prereqs.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_playerdatastorage.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_playerdatastorage_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_presence.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_presence_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_progressionsnapshot.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_progressionsnapshot_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_reports.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_reports_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_result.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc_admin.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc_admin_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc_audio.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc_audio_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_rtc_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_sanctions.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_sanctions_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_sdk.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_sessions.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_sessions_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_stats.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_stats_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_titlestorage.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_titlestorage_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_ui.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_ui_keys.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_ui_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_userinfo.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_userinfo_types.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\EOS\eos_version.h">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4199,9 +4406,6 @@
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\popups\steam_achievement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\gl\opengl_screenshot.cpp">
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
@@ -4210,6 +4414,12 @@
     </ClCompile>
     <ClCompile Include="src\lazy_global.cpp">
       <Filter>Source Files\Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\popups\steam_achievement.cpp">
+      <Filter>Source Files\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\epic.cpp">
+      <Filter>Source Files\Epic Online Services</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5210,6 +5420,12 @@
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
       <Filter>Libraries\32-bit\Tobii</Filter>
+    </None>
+    <None Include="depends\include\EOS\eos_achievements_types_deprecated.inl">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
+    </None>
+    <None Include="depends\include\EOS\eos_leaderboards_types_deprecated.inl">
+      <Filter>Header Files\Epic Online Services\SDK</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

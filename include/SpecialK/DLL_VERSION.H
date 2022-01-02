@@ -1,11 +1,11 @@
 ﻿#pragma once
 
 
-#define SK_MAJOR 1
-#define SK_MINOR 9
-#define SK_BUILD 9
-#define SK_REV_N 9
-#define SK_REV   9 A.D. ラヴォスの日
+#define SK_MAJOR 22
+#define SK_MINOR 1
+#define SK_BUILD 2
+#define SK_REV_N 0
+#define SK_REV   0
 
 
 #define _A2(a)     #a

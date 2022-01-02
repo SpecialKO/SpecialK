@@ -482,6 +482,9 @@ GetProcAddress_Detour     (
   _In_ HMODULE hModule,
   _In_ LPCSTR  lpProcName )
 {
+  if (lpProcName == nullptr) // Let someone else sort this out
+    return GetProcAddress_Original (hModule, lpProcName);
+
   if (    ReadAcquire (&__SK_DLL_Ending  ) ||
        (! ReadAcquire (&__SK_DLL_Attached)  )
       )
