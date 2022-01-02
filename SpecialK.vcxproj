@@ -1736,6 +1736,7 @@
     <ClInclude Include="include\SpecialK\SpecialK.h" />
     <ClInclude Include="include\SpecialK\stdafx.h" />
     <ClInclude Include="include\SpecialK\steam_api.h" />
+    <ClInclude Include="include\SpecialK\storefront\achievements.h" />
     <ClInclude Include="include\SpecialK\storefront\epic.h" />
     <ClInclude Include="include\SpecialK\targetver.h" />
     <ClInclude Include="include\SpecialK\thread.h" />
@@ -2255,6 +2256,7 @@
     <ClCompile Include="src\steam\utils.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\storefront\achievements.cpp" />
     <ClCompile Include="src\storefront\epic.cpp" />
     <ClCompile Include="src\thread.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>

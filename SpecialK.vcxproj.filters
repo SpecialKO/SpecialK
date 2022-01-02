@@ -43,14 +43,8 @@
     <Filter Include="Source Files\Core">
       <UniqueIdentifier>{ffa43eba-e15f-42a6-94db-48550860d406}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Steam">
-      <UniqueIdentifier>{c3098b41-772c-44ec-a241-c1d2809830e4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Core">
       <UniqueIdentifier>{a98c3961-e34c-4dee-bd96-cdaca60362c3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Steam">
-      <UniqueIdentifier>{102f0d86-c8ed-40c2-9302-187b733bc17b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Update Server">
       <UniqueIdentifier>{69190189-2515-42b6-a6e6-9814f2bb651a}</UniqueIdentifier>
@@ -126,9 +120,6 @@
     </Filter>
     <Filter Include="Header Files\Backends\Render\DDraw">
       <UniqueIdentifier>{10611ec8-047b-4de6-879f-aaf611ca1087}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Steam\Wrapper">
-      <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Control Panel">
       <UniqueIdentifier>{d4c169c2-1d29-434c-aeb1-f506299a9b73}</UniqueIdentifier>
@@ -337,14 +328,29 @@
     <Filter Include="Header Files\External Libraries\Boost">
       <UniqueIdentifier>{f271285d-ffd1-42c9-82c5-443c98fc4fc3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Epic Online Services">
-      <UniqueIdentifier>{1e64ae8a-e5ac-45a9-8211-e8461b3e5b95}</UniqueIdentifier>
+    <Filter Include="Header Files\Storefronts">
+      <UniqueIdentifier>{98b5cab5-120c-415c-999d-399963f62266}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Epic Online Services">
+    <Filter Include="Header Files\Storefronts\Steam">
+      <UniqueIdentifier>{102f0d86-c8ed-40c2-9302-187b733bc17b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Storefronts\Epic Online Services">
       <UniqueIdentifier>{f1545578-b3a7-4872-9517-27b07a6cc3c0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Epic Online Services\SDK">
+    <Filter Include="Header Files\Storefronts\Epic Online Services\SDK">
       <UniqueIdentifier>{9cb54327-1628-45da-b6b3-f009d88942e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Storefronts">
+      <UniqueIdentifier>{f9968d23-a6bf-4ded-adee-a888b46f1bf2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Storefronts\Epic Online Services">
+      <UniqueIdentifier>{1e64ae8a-e5ac-45a9-8211-e8461b3e5b95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Storefronts\Steam">
+      <UniqueIdentifier>{c3098b41-772c-44ec-a241-c1d2809830e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Storefronts\Steam\Wrapper">
+      <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -433,7 +439,7 @@
       <Filter>Header Files\Config</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\steam_api.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
@@ -532,88 +538,88 @@
       <Filter>Header Files\Diagnostics</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapplist.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamapps.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamappticket.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamclient.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamcontroller.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamfriends.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgamecoordinator.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgameserver.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamgameserverstats.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamhtmlsurface.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamhttp.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteaminventory.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammasterserverupdater.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammatchmaking.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammusic.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteammusicremote.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamnetworking.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamparentalsettings.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamps3overlayrenderer.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamremotestorage.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamscreenshots.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamugc.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamunifiedmessages.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamuser.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamuserstats.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamutils.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteamvideo.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\matchmakingtypes.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d9.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
@@ -631,34 +637,34 @@
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamuniverse.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steam_api.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steam_api_flat.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steam_gameserver.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamclientpublic.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamencryptedappticket.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamhttpenums.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamps3params.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\steamtypes.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\steam.h">
-      <Filter>Header Files\Steam</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\ansel.h">
       <Filter>Header Files\Backends</Filter>
@@ -3733,202 +3739,205 @@
       <Filter>Header Files\External Libraries\Boost</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\storefront\epic.h">
-      <Filter>Header Files\Epic Online Services</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_achievements.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_achievements_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_anticheatclient.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_anticheatclient_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_anticheatcommon_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_anticheatserver.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_anticheatserver_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_auth.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_auth_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_base.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_common.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_connect.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_connect_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_custominvites.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_custominvites_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_ecom.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_ecom_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_friends.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_friends_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_init.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_kws.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_kws_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_leaderboards.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_leaderboards_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_lobby.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_lobby_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_logging.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_metrics.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_metrics_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_mods.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_mods_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_p2p.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_p2p_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_platform_prereqs.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_playerdatastorage.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_playerdatastorage_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_presence.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_presence_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_progressionsnapshot.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_progressionsnapshot_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_reports.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_reports_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_result.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc_admin.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc_admin_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc_audio.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc_audio_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_rtc_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_sanctions.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_sanctions_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_sdk.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_sessions.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_sessions_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_stats.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_stats_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_titlestorage.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_titlestorage_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_ui.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_ui_keys.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_ui_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_userinfo.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_userinfo_types.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\EOS\eos_version.h">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\storefront\achievements.h">
+      <Filter>Header Files\Storefronts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -4029,7 +4038,7 @@
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
     <ClCompile Include="src\steam\steam_api.cpp">
-      <Filter>Source Files\Steam</Filter>
+      <Filter>Source Files\Storefronts\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\performance\gpu_monitor.cpp">
       <Filter>Source Files\Stats</Filter>
@@ -4281,13 +4290,13 @@
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\steam\client.cpp">
-      <Filter>Source Files\Steam\Wrapper</Filter>
+      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
     </ClCompile>
     <ClCompile Include="src\steam\user.cpp">
-      <Filter>Source Files\Steam\Wrapper</Filter>
+      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
     </ClCompile>
     <ClCompile Include="src\steam\utils.cpp">
-      <Filter>Source Files\Steam\Wrapper</Filter>
+      <Filter>Source Files\Storefronts\Steam\Wrapper</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\persona4.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -4416,10 +4425,13 @@
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="src\popups\steam_achievement.cpp">
-      <Filter>Source Files\Steam</Filter>
+      <Filter>Source Files\Storefronts\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\storefront\epic.cpp">
-      <Filter>Source Files\Epic Online Services</Filter>
+      <Filter>Source Files\Storefronts\Epic Online Services</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\achievements.cpp">
+      <Filter>Source Files\Storefronts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5422,10 +5434,10 @@
       <Filter>Libraries\32-bit\Tobii</Filter>
     </None>
     <None Include="depends\include\EOS\eos_achievements_types_deprecated.inl">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </None>
     <None Include="depends\include\EOS\eos_leaderboards_types_deprecated.inl">
-      <Filter>Header Files\Epic Online Services\SDK</Filter>
+      <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
