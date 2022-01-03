@@ -1,0 +1,313 @@
+/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#include <SpecialK/stdafx.h>
+
+
+#include <SpecialK/control_panel/platform.h>
+#include <SpecialK/control_panel/steam.h>
+#include <SpecialK/control_panel/epic.h>
+
+#include <SpecialK/storefront/epic.h>
+
+using namespace SK::ControlPanel;
+
+bool
+SK::ControlPanel::Platform::Draw (void)
+{
+  const ImGuiIO& io =
+    ImGui::GetIO ();
+
+  if (SK::SteamAPI::AppID () != 0 || SK::EOS::GetTicksRetired () > 0)
+  {
+    static bool bSteam = (SK::SteamAPI::AppID      () != 0);
+    static bool bEpic  = (SK::EOS::GetTicksRetired () >  0);
+
+    static std::string header_label =
+      SK_FormatString ( "%s Enhancements###Platform_Enhancements",
+                        bSteam ? "Steam"
+                               : bEpic ? "Epic"
+                                       : "Platform" );
+
+    if ( ImGui::CollapsingHeader (header_label.c_str (), ImGuiTreeNodeFlags_CollapsingHeader |
+                                                         ImGuiTreeNodeFlags_DefaultOpen ) )
+    {
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
+      ImGui::TreePush       ("");
+
+      if (SK_SteamAPI_GetNumPossibleAchievements () > 0 ||
+          SK_EOS_GetNumPossibleAchievements      () > 0)
+      {
+        static char szProgress [128] = { };
+
+        const float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
+        const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
+
+        snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
+                     100.0 * ratio,  sk::narrow_cast <uint32_t> ((ratio * sk::narrow_cast <float> (num_achievements))),
+                                     sk::narrow_cast <uint32_t> (                                  num_achievements) );
+
+        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
+        ImGui::ProgressBar    ( ratio,
+                                  ImVec2 (-1, 0),
+                                    szProgress );
+        ImGui::PopStyleColor  ();
+
+        const int friends =
+          SK_SteamAPI_GetNumFriends ();
+
+        if (friends > 0 && ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip   ();
+
+        //static int num_records = 0;
+
+          const auto max_lines =
+            static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
+          int  cur_line    = 0;
+          int  num_records = 0;
+
+          ImGui::BeginGroup     ();
+
+          ImGui::PushStyleColor ( ImGuiCol_Text,          ImVec4 (1.f, 1.f, 1.f, 1.f)         );
+          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
+
+          for (uint32_t i = 0; i < (uint32_t)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
+          {
+            size_t            len   = 0;
+            const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
+
+            const float percent =
+              SK_SteamAPI_GetUnlockedPercentForFriend (i);
+
+            if (percent > 0.0f)
+            {
+              ImGui::ProgressBar     ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
+              ImGui::SameLine        ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
+              ImGui::TextUnformatted (name.c_str ());
+              ImGui::PopStyleColor   (1);
+
+              ++num_records;
+
+              if (cur_line >= max_lines)
+              {
+                ImGui::EndGroup     ( );
+                ImGui::SameLine     ( );
+                ImGui::BeginGroup   ( );
+                cur_line = 0;
+              }
+
+              else
+                ++cur_line;
+            }
+          }
+
+          ImGui::PopStyleColor  (2);
+          ImGui::EndGroup       ( );
+          ImGui::EndTooltip     ( );
+        }
+
+        if (ImGui::CollapsingHeader ("Achievements") )
+        {
+          ImGui::TreePush ("");
+          ImGui::BeginGroup ();
+
+          if (ImGui::Button (" Test Unlock "))
+            SK_Steam_UnlockAchievement (0);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
+
+          ImGui::SameLine ();
+
+          ImGui::Checkbox ("Play Sound ", &config.steam.achievements.play_sound);
+
+          if (config.steam.achievements.play_sound)
+          {
+            ImGui::SameLine ();
+
+            static SKTL_BidirectionalHashMap <std::wstring, int> sound_map
+            {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
+
+            int i = 0;
+
+            const auto& it =
+              sound_map.find (config.steam.achievements.sound_file);
+
+            if (it != sound_map.cend ())
+            {
+              if (! config.steam.achievements.sound_file.empty ())
+                i = it->second;
+              else
+                i = 3;
+            }
+
+            if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
+            {
+              config.steam.achievements.sound_file.assign (
+                sound_map [i]
+              );
+
+              SK_Steam_LoadUnlockSound (
+                config.steam.achievements.sound_file.c_str ()
+              );
+            }
+          }
+
+          ImGui::EndGroup ();
+          ImGui::SameLine ();
+
+          ImGui::Checkbox ("Take Screenshot", &config.steam.achievements.take_screenshot);
+
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+          const bool uncollapsed =
+            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap);
+
+          ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
+
+          if (uncollapsed)
+          {
+            ImGui::TreePush ("");
+
+            int  mode    = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
+            bool changed = false;
+
+            ImGui::Text          ("Draw Mode:");                              ImGui::SameLine ();
+
+            changed |=
+              ImGui::RadioButton ("Disabled ##AchievementPopup",   &mode, 0); ImGui::SameLine ();
+            changed |=
+              ImGui::RadioButton ("Stationary ##AchievementPopup", &mode, 1); ImGui::SameLine ();
+            ImGui::BeginGroup    ( );
+            changed |=
+              ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
+
+              ImGui::SameLine    ( );
+              ImGui::Combo       ( "##PopupLoc",         &config.steam.achievements.popup.origin,
+                                           "Top-Left\0"
+                                           "Top-Right\0"
+                                           "Bottom-Left\0"
+                                           "Bottom-Right\0\0" );
+
+            if ( changed )
+            {
+              config.steam.achievements.popup.show    = (mode > 0);
+              config.steam.achievements.popup.animate = (mode > 1);
+
+              // Make sure the duration gets set non-zero when this changes
+              if (config.steam.achievements.popup.show)
+              {
+                if ( config.steam.achievements.popup.duration == 0 )
+                  config.steam.achievements.popup.duration = 6666UL;
+              }
+            }
+
+            if (config.steam.achievements.popup.show)
+            {
+              ImGui::BeginGroup ( );
+              ImGui::TreePush   ("");
+              ImGui::Text       ("Duration:"); ImGui::SameLine ();
+
+              float duration =
+                std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
+
+              if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
+              {
+                config.steam.achievements.popup.duration =
+                  static_cast <LONG> ( duration * 1000.0f );
+              }
+              ImGui::TreePop   ( );
+              ImGui::EndGroup  ( );
+            }
+            ImGui::EndGroup    ( );
+
+            //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
+            ImGui::TreePop     ( );
+          }
+
+          ImGui::TreePop       ( );
+          ImGui::PopStyleColor (3);
+        }
+      }
+
+      static bool bSteamOverlayEnabled = (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ());
+
+      bool bOverlayEnabled =
+        ( bSteamOverlayEnabled || SK::EOS::GetTicksRetired () > 0 );
+
+      if (bOverlayEnabled && ImGui::CollapsingHeader ("Overlay Notifications"))
+      {
+        ImGui::TreePush  ("");
+
+        if (ImGui::Combo ( " ", &config.steam.notify_corner,
+                                  "Top-Left\0"
+                                  "Top-Right\0"
+                                  "Bottom-Left\0"
+                                  "Bottom-Right\0"
+                                  "(Let Game Decide)\0\0" ))
+        {
+          SK_Steam_SetNotifyCorner ();
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Applies Only to Traditional Overlay (not Big Picture)");
+
+        ImGui::TreePop ();
+      }
+
+      SK::ControlPanel::Steam::Draw ();
+      SK::ControlPanel::Epic::Draw  ();
+
+      ImGui::TreePop       ( );
+      ImGui::PopStyleColor (3);
+    }
+
+    SK::ControlPanel::Steam::DrawFooter ();
+    SK::ControlPanel::Epic::DrawFooter  ();
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK::ControlPanel::Platform::DrawMenu (void)
+{
+  SK::ControlPanel::Steam::DrawMenu ();
+  SK::ControlPanel::Epic::DrawMenu  ();
+
+  return false;
+}
+
+bool
+SK::ControlPanel::Platform::WarnIfUnsupported (void)
+{
+  return
+    SK::ControlPanel::Steam::WarnIfUnsupported () ||
+    SK::ControlPanel::Epic::WarnIfUnsupported  ();
+}

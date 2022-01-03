@@ -19,14 +19,14 @@
  *
 **/
 
-#ifndef __SK__CPL_STEAM_H__
-#define __SK__CPL_STEAM_H__
+#ifndef __SK__CPL_EPIC_H__
+#define __SK__CPL_EPIC_H__
 
 namespace SK
 {
   namespace ControlPanel
   {
-    namespace Steam
+    namespace Epic
     {
       bool Draw              (void);
       bool DrawMenu          (void);
@@ -36,4 +36,4 @@ namespace SK
   };
 };
 
-#endif /* __SK__CPL_STEAM_H__ */
+#endif /* __SK__CPL_EPIC_H__ */

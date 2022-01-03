@@ -68,4 +68,9 @@ namespace SK_ImGui
   bool BatteryMeter (void);
 };
 
+struct show_eula_s {
+  bool show;
+  bool never_show_again;
+} extern eula;
+
 #endif /* __SK__CONTROL_PANEL_H__ */

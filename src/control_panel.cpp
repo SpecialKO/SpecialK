@@ -37,7 +37,7 @@
 #include <SpecialK/control_panel/osd.h>
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/sound.h>
-#include <SpecialK/control_panel/steam.h>
+#include <SpecialK/control_panel/platform.h>
 #include <SpecialK/control_panel/window.h>
 
 #include <SpecialK/storefront/epic.h>
@@ -84,11 +84,8 @@ __declspec (dllexport)
 void
 SK_ImGui_Toggle (void);
 
-//extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
-extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
-
-extern bool     __stdcall SK_FAR_IsPlugIn      (void);
-extern void     __stdcall SK_FAR_ControlPanel  (void);
+extern bool __stdcall SK_FAR_IsPlugIn      (void);
+extern void __stdcall SK_FAR_ControlPanel  (void);
 
 std::wstring
 SK_NvAPI_GetGPUInfoStr (void);
@@ -168,13 +165,6 @@ extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
        bool           SK_ControlPanel_Activated = false;
 
 extern void ImGui_ToggleCursor (void);
-
-struct show_eula_s {
-  bool show;
-  bool never_show_again;
-} extern eula;
-
-
 
 bool SK_ImGui_WantExit    = false;
 bool SK_ImGui_WantRestart = false;
@@ -2545,21 +2535,6 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        ////////if ( (! SK::SteamAPI::AppID ())          &&
-        ////////     (! config.steam.force_load_steamapi) )
-        ////////{
-        ////////  ImGui::Separator ();
-        ////////
-        ////////  if (ImGui::MenuItem ("Manually Inject SteamAPI", ""))
-        ////////  {
-        ////////    config.steam.force_load_steamapi = true;
-        ////////    SK_Steam_KickStart  ();
-        ////////
-        ////////    if (SK_GetFramesDrawn () > 1)
-        ////////      SK_ApplyQueuedHooks ();
-        ////////  }
-        ////////}
-
         ImGui::Separator ();
         //if (ImGui::MenuItem ("Unload Special K", "EXPERIMENTAL"))
         //{
@@ -3094,14 +3069,14 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        if (SK_SteamAPI_AppID () != 0x0)
+        if (SK::SteamAPI::AppID () != 0x0)
         {
           if (ImGui::MenuItem ( "Check PCGamingWiki for this Game", "Third-Party Site", &selected ))
           {
             SK_SteamOverlay_GoToURL (
               SK_FormatString (
                 "http://pcgamingwiki.com/api/appid.php?appid=%lu",
-                                           SK_SteamAPI_AppID ()
+                                           SK::SteamAPI::AppID ()
               ).c_str (), true
             );
           }
@@ -4787,8 +4762,8 @@ SK_ImGui_ControlPanel (void)
     ImGui::TreePop    ();
   }
 
-  SK::ControlPanel::PlugIns::Draw ();
-  SK::ControlPanel::Steam::Draw   ();
+  SK::ControlPanel::PlugIns::Draw  ();
+  SK::ControlPanel::Platform::Draw ();
 
   SK_ImGui::BatteryMeter ();
 
@@ -4857,26 +4832,35 @@ SK_ImGui_InstallOpenCloseCallback (SK_ImGui_OpenCloseCallback_pfn fn, void* user
 static bool keep_open;
 
 void
-SK_Steam_GetUserName (char* pszName, int max_len = 512)
+SK_Platform_GetUserName (char* pszName, int max_len = 512)
 {
-  if (SK_SteamAPI_Friends () != nullptr)
-  {
-    auto orig_se =
-      SK_SEH_ApplyTranslator (
-        SK_FilteringStructuredExceptionTranslator (
-          EXCEPTION_ACCESS_VIOLATION
-        )
-      );
+  if (pszName == nullptr)
+    return;
 
-    try
+  if (*pszName != L'\0')
+    return;
+
+  if (SK::SteamAPI::AppID () != 0)
+  {
+    if (SK_SteamAPI_Friends () != nullptr)
     {
-      strncpy_s (                         pszName,  max_len,
-        SK_SteamAPI_Friends ()->GetPersonaName (), _TRUNCATE
-                );
+      auto orig_se =
+        SK_SEH_ApplyTranslator (
+          SK_FilteringStructuredExceptionTranslator (
+            EXCEPTION_ACCESS_VIOLATION
+          )
+        );
+
+      try
+      {
+        strncpy_s (                         pszName,  max_len,
+          SK_SteamAPI_Friends ()->GetPersonaName (), _TRUNCATE
+                  );
+      }
+      catch (const SK_SEH_IgnoredException&)
+      {                                    }
+      SK_SEH_RemoveTranslator (orig_se);
     }
-    catch (const SK_SEH_IgnoredException&)
-    {                                    }
-    SK_SEH_RemoveTranslator (orig_se);
   }
 }
 
@@ -5300,8 +5284,6 @@ SK_ImGui_StageNextFrame (void)
   }
 
 
-
-
   static DWORD dwStartTime = current_time;
   if ((current_time < dwStartTime + 1000 * config.version_banner.duration) || eula.show)
   {
@@ -5320,8 +5302,8 @@ SK_ImGui_StageNextFrame (void)
                                    ImGuiWindowFlags_NoInputs        |
                                    ImGuiWindowFlags_NoFocusOnAppearing );
 
-    static char szName [512] = { };
-    SK_Steam_GetUserName (szName);
+    static char              szName [512] = { };
+    SK_Platform_GetUserName (szName);
 
 
     ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%ws   ", SK_GetPluginName ().c_str ()); ImGui::SameLine ();
@@ -5921,32 +5903,8 @@ SK_ImGui_Toggle (void)
     last_frame    = SK_GetFramesDrawn ();
   }
 
-  static DWORD dwLastTime   = 0x00;
-
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-
-  auto EnableEULAIfPirate = [&](void) ->
-  bool
-  {
-    bool pirate = ( SK_SteamAPI_AppID    () != 0 &&
-                    SK_Steam_PiratesAhoy () != 0x0 );
-    if (pirate)
-    {
-      if (dwLastTime < current_time - 1000)
-      {
-        dwLastTime             = current_time;
-
-        eula.show              = true;
-        eula.never_show_again  = false;
-
-        return true;
-      }
-    }
-
-    return false;
-  };
-
 
   SK_ImGui_Visible = (! SK_ImGui_Visible);
 
@@ -5992,23 +5950,13 @@ SK_ImGui_Toggle (void)
 
       //SK_ImGui_Cursor.showImGuiCursor ();
 
-      if (EnableEULAIfPirate ())
+      if (SK::ControlPanel::Platform::WarnIfUnsupported ())
         config.imgui.show_eula = true;
-
-#ifdef _USE_EULA
-      static bool        first = true;
-      if (std::exchange (first,  false))
-      {
-        eula.never_show_again = true;
-        eula.show             = config.imgui.show_eula;
-      }
-#else
       else
       {
         eula.never_show_again = true;
         eula.show             = false;
       }
-#endif
     }
   }
 

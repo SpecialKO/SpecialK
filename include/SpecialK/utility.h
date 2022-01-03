@@ -387,12 +387,15 @@ public:
 
     return SKIF || SKIM || (RunDll32 && SK_IsRunDLLInvocation ());
   }
+  bool         isBlacklisted             (void)     const;
+  void         setBlacklisted            (bool set);
 
 
 protected:
-  bool        SKIM     = false;
-  bool        SKIF     = false;
-  bool        RunDll32 = false;
+  bool        SKIM        = false;
+  bool        SKIF        = false;
+  bool        RunDll32    = false;
+  bool        Blacklisted = false;
 };
 
 SK_HostAppUtil*

@@ -33,10 +33,7 @@ extern HWND           SK_GetParentWindow    (HWND);
 extern bool __stdcall SK_IsGameWindowActive (void);
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
-struct show_eula_s {
-  bool show             = false;
-  bool never_show_again = false;
-} eula;
+show_eula_s eula;
 
 const ImWchar*
 SK_ImGui_GetGlyphRangesDefaultEx (void)

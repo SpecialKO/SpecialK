@@ -48,7 +48,7 @@ namespace SK
     uint32_t          AppID           (void);
     std::string       AppName         (void);
 
-    EOS_EpicAccountId UserSteamID     (void);
+    EOS_EpicAccountId UserID          (void);
 
     LONGLONG          GetTicksRetired (void);
 
@@ -290,6 +290,12 @@ using EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn =
                                             EOS_NotificationId                             Id);
 
 
+using EOS_Achievements_GetPlayerAchievementCount_pfn =
+      uint32_t           (EOS_CALL *)(      EOS_HAchievements                                  Handle,
+                                      const EOS_Achievements_GetPlayerAchievementCountOptions* Options);
 
+using EOS_Achievements_GetUnlockedAchievementCount_pfn =
+      uint32_t           (EOS_CALL *)(      EOS_HAchievements                                    Handle,
+                                      const EOS_Achievements_GetUnlockedAchievementCountOptions* Options);
 
 #endif /* __SK__EPIC_ONLINE_SERVICES_H__ */

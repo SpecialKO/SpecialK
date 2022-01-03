@@ -201,7 +201,7 @@ static constexpr UNICODE_STRING __bluelist [] = {
 //SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"systemsettings.exe"),
   SK_MakeUnicode (L"nvcplui.exe"),
-//SK_MakeUnicode (L"perfwatson2.exe"),
+  SK_MakeUnicode (L"perfwatson2.exe"),
   SK_MakeUnicode (L"oalinst.exe"),
   SK_MakeUnicode (L"dxsetup.exe"),
   SK_MakeUnicode (L"uninstall.exe"),

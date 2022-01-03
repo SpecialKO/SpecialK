@@ -48,6 +48,9 @@ public:
       SK::SteamAPI::TakeScreenshot ();
     }
   }
+
+  static EOS_Achievements_GetPlayerAchievementCount_pfn   GetPlayerAchievementCount;;
+  static EOS_Achievements_GetUnlockedAchievementCount_pfn GetUnlockedAchievementCount;;
 };
 
 class SK_EOS_OverlayManager
@@ -225,6 +228,38 @@ SK_LazyGlobal <SK_EOS_AchievementManager> eos_achievements;
 EOS_UI_AddNotifyDisplaySettingsUpdated_pfn    SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original    = nullptr;
 EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original = nullptr;
 
+EOS_Achievements_GetPlayerAchievementCount_pfn   SK_EOS_AchievementManager::GetPlayerAchievementCount   = nullptr;
+EOS_Achievements_GetUnlockedAchievementCount_pfn SK_EOS_AchievementManager::GetUnlockedAchievementCount = nullptr;
+
+// Cache this instead of getting it from the Steam client constantly;
+//   doing that is far more expensive than you would think.
+size_t
+SK_EOS_GetNumPossibleAchievements (void)
+{
+  if (eos_achievements->GetPlayerAchievementCount == nullptr)
+    return 0;
+
+  static std::pair <size_t,bool> possible =
+  { 0, false };
+
+  if ( possible.second          == false   &&
+       epic_ctx.Achievements () != nullptr )
+  {
+    //epic_achievements->getAchievements (&possible.first);
+    //possible = { possible.first, true };
+
+    EOS_Achievements_GetPlayerAchievementCountOptions opt =
+   {EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_LATEST};
+
+    possible.first  = eos_achievements->GetPlayerAchievementCount (epic_ctx.Achievements (), &opt);
+
+    if (possible.first != 0)
+        possible.second = true;
+  }
+
+  return possible.first;
+}
+
 void
 EOS_CALL
 SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy (const EOS_UI_OnDisplaySettingsUpdatedCallbackInfo* Data)
@@ -358,6 +393,15 @@ EOS_Shutdown_Detour (void)
     EOS_Shutdown_Original ();
 }
 
+volatile LONGLONG __SK_EOS_Ticks = 0;
+
+LONGLONG
+SK::EOS::GetTicksRetired (void)
+{
+  return
+    ReadAcquire64 (&__SK_EOS_Ticks);
+}
+
 void
 EOS_CALL
 EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
@@ -366,6 +410,8 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
 
   if (epic_ctx.Platform () == nullptr)
       epic_ctx.InitEpicOnlineServices (nullptr, Handle);
+
+  InterlockedIncrement64 (&__SK_EOS_Ticks);
 
   return
     EOS_Platform_Tick_Original (Handle);
@@ -449,6 +495,12 @@ SK::EOS::Init (bool pre_load)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_RemoveNotifyDisplaySettingsUpdated",
                                         EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour,
          static_cast_p2p <void> (&eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original) );
+
+    eos_achievements->GetUnlockedAchievementCount = (EOS_Achievements_GetUnlockedAchievementCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName, "EOS_Achievements_GetUnlockedAchievementCount");
+
+    eos_achievements->GetPlayerAchievementCount   = (EOS_Achievements_GetPlayerAchievementCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName, "EOS_Achievements_GetPlayerAchievementCount");
 
     SK_ApplyQueuedHooks ();
   }

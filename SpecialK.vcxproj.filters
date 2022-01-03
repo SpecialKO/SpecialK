@@ -3939,6 +3939,12 @@
     <ClInclude Include="include\SpecialK\storefront\achievements.h">
       <Filter>Header Files\Storefronts</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\platform.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\epic.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4432,6 +4438,12 @@
     </ClCompile>
     <ClCompile Include="src\storefront\achievements.cpp">
       <Filter>Source Files\Storefronts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_platform.cpp">
+      <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_epic.cpp">
+      <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

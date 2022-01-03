@@ -1638,9 +1638,11 @@
     <ClInclude Include="include\SpecialK\control_panel\compatibility.h" />
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h" />
     <ClInclude Include="include\SpecialK\control_panel\d3d9.h" />
+    <ClInclude Include="include\SpecialK\control_panel\epic.h" />
     <ClInclude Include="include\SpecialK\control_panel\input.h" />
     <ClInclude Include="include\SpecialK\control_panel\opengl.h" />
     <ClInclude Include="include\SpecialK\control_panel\osd.h" />
+    <ClInclude Include="include\SpecialK\control_panel\platform.h" />
     <ClInclude Include="include\SpecialK\control_panel\plugins.h" />
     <ClInclude Include="include\SpecialK\control_panel\sound.h" />
     <ClInclude Include="include\SpecialK\control_panel\steam.h" />
@@ -1774,6 +1776,7 @@
     <ClCompile Include="src\control_panel\cfg_d3d9.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_epic.cpp" />
     <ClCompile Include="src\control_panel\cfg_input.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -1783,6 +1786,7 @@
     <ClCompile Include="src\control_panel\cfg_osd.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_platform.cpp" />
     <ClCompile Include="src\control_panel\cfg_plugins.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

@@ -2254,7 +2254,7 @@ struct sk_host_process_s {
 };
 
 SK_LazyGlobal <sk_host_process_s> host_proc;
-SK_LazyGlobal <SK_HostAppUtil>    host_app_util;
+SK_HostAppUtil                    host_app_util;
 
 bool __SK_RunDLL_Bypass = false;
 
@@ -4160,12 +4160,26 @@ SK_HostAppUtil::init (void)
   SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
 }
 
+void
+SK_HostAppUtil::setBlacklisted (bool set)
+{
+  Blacklisted = set;
+}
+
+bool
+SK_HostAppUtil::isBlacklisted (void) const
+{
+  return Blacklisted;
+}
+
+
+
 SK_HostAppUtil*
 SK_GetHostAppUtil (void)
 {
   // Push the statically initialized value onto the global datastore in the
   //   form of a pointer so that we have an easier time debugging this.
-  return host_app_util.getPtr ();
+  return &host_app_util;
 }
 
 

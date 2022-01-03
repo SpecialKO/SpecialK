@@ -166,562 +166,331 @@ SK_Steam_CloudQuery (void)
 bool
 SK::ControlPanel::Steam::Draw (void)
 {
-  const ImGuiIO& io =
-    ImGui::GetIO ();
-
   if (SK::SteamAPI::AppID () != 0)
   {
-    if ( ImGui::CollapsingHeader ("Steam Enhancements", ImGuiTreeNodeFlags_CollapsingHeader |
-                                                        ImGuiTreeNodeFlags_DefaultOpen ) )
+    auto* pRemote =
+      steam_ctx.RemoteStorage ();// SK_SteamAPI_RemoteStorage ();
+
+    bool app_has_cloud_storage =
+      ( pRemote != nullptr ? ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)    &&
+        pRemote->IsCloudEnabledForAccount () && pRemote->IsCloudEnabledForApp ()
+                           : false );
+
+    struct sk_steam_cloud_entry_s {
+      std::string filename;
+      std::string detail;   // Temporary, formatted string.
+      int32_t     size;     // Apparently 2 GiB is a hard limit, but we can
+                            //   always use negative storage if we run out ;)
+      int64_t     timestamp;
+      bool        blacklisted;
+    };
+
+    static std::vector <sk_steam_cloud_entry_s> files;
+
+    // Empty
+    if ( files.size () == 1 && files [0].size == 0 )
+      app_has_cloud_storage = false;
+
+    else if (app_has_cloud_storage && files.empty ( ))
     {
-      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
-      ImGui::TreePush       ("");
+      const int32_t num_files =
+        pRemote->GetFileCount ();
 
-      if (SK_SteamAPI_GetNumPossibleAchievements () > 0)
+      for (int i = 0; i < num_files; i++)
       {
-        static char szProgress [128] = { };
+        sk_steam_cloud_entry_s file = { };
 
-        const float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
-        const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
+        file.filename  =
+          pRemote->GetFileNameAndSize (i, &file.size);
+        file.timestamp =
+          pRemote->GetFileTimestamp     (file.filename.c_str ());
 
-        snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                     100.0 * ratio,  sk::narrow_cast <uint32_t> ((ratio * sk::narrow_cast <float> (num_achievements))),
-                                     sk::narrow_cast <uint32_t> (                                  num_achievements) );
+        file.blacklisted =
+          (config.steam.cloud.blacklist.count (file.filename) != 0);
 
-        ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
-        ImGui::ProgressBar    ( ratio,
-                                  ImVec2 (-1, 0),
-                                    szProgress );
-        ImGui::PopStyleColor  ();
-
-        const int friends =
-          SK_SteamAPI_GetNumFriends ();
-
-        if (friends && ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip   ();
-
-        //static int num_records = 0;
-
-          const auto max_lines =
-            static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
-          int  cur_line    = 0;
-          int  num_records = 0;
-
-          ImGui::BeginGroup     ();
-
-          ImGui::PushStyleColor ( ImGuiCol_Text,          ImVec4 (1.f, 1.f, 1.f, 1.f)         );
-          ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
-
-          for (uint32_t i = 0; i < (uint32_t)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
-          {
-            size_t            len   = 0;
-            const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
-
-            const float percent =
-              SK_SteamAPI_GetUnlockedPercentForFriend (i);
-
-            if (percent > 0.0f)
-            {
-              ImGui::ProgressBar     ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
-              ImGui::SameLine        ( );
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
-              ImGui::TextUnformatted (name.c_str ());
-              ImGui::PopStyleColor   (1);
-
-              ++num_records;
-
-              if (cur_line >= max_lines)
-              {
-                ImGui::EndGroup     ( );
-                ImGui::SameLine     ( );
-                ImGui::BeginGroup   ( );
-                cur_line = 0;
-              }
-
-              else
-                ++cur_line;
-            }
-          }
-
-          ImGui::PopStyleColor  (2);
-          ImGui::EndGroup       ( );
-          ImGui::EndTooltip     ( );
-        }
-
-        if (ImGui::CollapsingHeader ("Achievements") )
-        {
-          ImGui::TreePush ("");
-          ImGui::BeginGroup ();
-
-          if (ImGui::Button (" Test Unlock "))
-            SK_Steam_UnlockAchievement (0);
-
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
-
-          ImGui::SameLine ();
-
-          ImGui::Checkbox ("Play Sound ", &config.steam.achievements.play_sound);
-
-          if (config.steam.achievements.play_sound)
-          {
-            ImGui::SameLine ();
-
-            static SKTL_BidirectionalHashMap <std::wstring, int> sound_map
-            {  { L"psn", 0 }, { L"xbox", 1 }, { L"dream_theater", 2 }  };
-
-            int i = 0;
-
-            const auto& it =
-              sound_map.find (config.steam.achievements.sound_file);
-
-            if (it != sound_map.cend ())
-            {
-              if (! config.steam.achievements.sound_file.empty ())
-                i = it->second;
-              else
-                i = 3;
-            }
-
-            if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
-            {
-              config.steam.achievements.sound_file.assign (
-                sound_map [i]
-              );
-
-              SK_Steam_LoadUnlockSound (
-                config.steam.achievements.sound_file.c_str ()
-              );
-            }
-          }
-
-          ImGui::EndGroup ();
-          ImGui::SameLine ();
-
-          ImGui::Checkbox ("Take Screenshot", &config.steam.achievements.take_screenshot);
-
-          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-
-          const bool uncollapsed =
-            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap);
-
-          ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
-
-          if (uncollapsed)
-          {
-            ImGui::TreePush ("");
-
-            int  mode    = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
-            bool changed = false;
-
-            ImGui::Text          ("Draw Mode:");                              ImGui::SameLine ();
-
-            changed |=
-              ImGui::RadioButton ("Disabled ##AchievementPopup",   &mode, 0); ImGui::SameLine ();
-            changed |=
-              ImGui::RadioButton ("Stationary ##AchievementPopup", &mode, 1); ImGui::SameLine ();
-            ImGui::BeginGroup    ( );
-            changed |=
-              ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
-
-              ImGui::SameLine    ( );
-              ImGui::Combo       ( "##PopupLoc",         &config.steam.achievements.popup.origin,
-                                           "Top-Left\0"
-                                           "Top-Right\0"
-                                           "Bottom-Left\0"
-                                           "Bottom-Right\0\0" );
-
-            if ( changed )
-            {
-              config.steam.achievements.popup.show    = (mode > 0);
-              config.steam.achievements.popup.animate = (mode > 1);
-
-              // Make sure the duration gets set non-zero when this changes
-              if (config.steam.achievements.popup.show)
-              {
-                if ( config.steam.achievements.popup.duration == 0 )
-                  config.steam.achievements.popup.duration = 6666UL;
-              }
-            }
-
-            if (config.steam.achievements.popup.show)
-            {
-              ImGui::BeginGroup ( );
-              ImGui::TreePush   ("");
-              ImGui::Text       ("Duration:"); ImGui::SameLine ();
-
-              float duration =
-                std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
-
-              if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
-              {
-                config.steam.achievements.popup.duration =
-                  static_cast <LONG> ( duration * 1000.0f );
-              }
-              ImGui::TreePop   ( );
-              ImGui::EndGroup  ( );
-            }
-            ImGui::EndGroup    ( );
-
-            //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
-            ImGui::TreePop     ( );
-          }
-
-          ImGui::TreePop       ( );
-          ImGui::PopStyleColor (3);
-        }
+        files.emplace_back (file);
       }
 
-      static bool bOverlayEnabled = (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ());
-
-      if (bOverlayEnabled && ImGui::CollapsingHeader ("Overlay Notifications"))
-      {
-        ImGui::TreePush  ("");
-
-        if (ImGui::Combo ( " ", &config.steam.notify_corner,
-                                  "Top-Left\0"
-                                  "Top-Right\0"
-                                  "Bottom-Left\0"
-                                  "Bottom-Right\0"
-                                  "(Let Game Decide)\0\0" ))
-        {
-          SK_Steam_SetNotifyCorner ();
-        }
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Applies Only to Traditional Overlay (not Big Picture)");
-
-        ImGui::TreePop ();
-      }
-
-
-
-
-
-      auto* pRemote =
-        steam_ctx.RemoteStorage ();// SK_SteamAPI_RemoteStorage ();
-
-      bool app_has_cloud_storage =
-        ( pRemote != nullptr ? ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)    &&
-          pRemote->IsCloudEnabledForAccount () && pRemote->IsCloudEnabledForApp ()
-                             : false );
-
-      struct sk_steam_cloud_entry_s {
-        std::string filename;
-        std::string detail;   // Temporary, formatted string.
-        int32_t     size;     // Apparently 2 GiB is a hard limit, but we can
-                              //   always use negative storage if we run out ;)
-        int64_t     timestamp;
-        bool        blacklisted;
-      };
-
-      static std::vector <sk_steam_cloud_entry_s> files;
-
-      // Empty
-      if ( files.size () == 1 && files [0].size == 0 )
-        app_has_cloud_storage = false;
-
-      else if (app_has_cloud_storage && files.empty ( ))
-      {
-        const int32_t num_files =
-          pRemote->GetFileCount ();
-
-        for (int i = 0; i < num_files; i++)
-        {
-          sk_steam_cloud_entry_s file = { };
-
-          file.filename  =
-            pRemote->GetFileNameAndSize (i, &file.size);
-          file.timestamp =
-            pRemote->GetFileTimestamp     (file.filename.c_str ());
-
-          file.blacklisted =
-            (config.steam.cloud.blacklist.count (file.filename) != 0);
-
-          files.emplace_back (file);
-        }
-
-        if (files.empty ())
-          files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
-      }
+      if (files.empty ())
+        files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
+    }
 
 
 #ifdef _ENABLE_OBSOLETE_REDISTRIBUTABLE_CLEANUP
-      static uint64_t redist_size  = UINT64_MAX;
-      static int      redist_count = -1;
+    static uint64_t redist_size  = UINT64_MAX;
+    static int      redist_count = -1;
 
-      if (redist_count == -1 || redist_size == UINT64_MAX)
+    if (redist_count == -1 || redist_size == UINT64_MAX)
+    {
+      const uint64_t finished_size =
+        SK_Steam_ScrubRedistributables (redist_count, false);
+
+      if (redist_count != -1)
+        redist_size = finished_size;
+    }
+
+    if (redist_count > 0)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+
+      const bool summarize =
+        ImGui::CollapsingHeader ("Wasted Disk Space", ImGuiTreeNodeFlags_DefaultOpen);
+
+      ImGui::PopStyleColor (3);
+
+      if (summarize)
       {
-        const uint64_t finished_size =
-          SK_Steam_ScrubRedistributables (redist_count, false);
+        ImGui::TreePush ("");
 
-        if (redist_count != -1)
-          redist_size = finished_size;
+        if (
+          ImGui::MenuItem ( SK_FormatString (
+                              "Steam is currently wasting %ws on %i redistributable files!",
+                                SK_File_SizeToStringF (redist_size, 5, 2).data,
+                                  redist_count
+                            ).c_str (), "" )
+           )
+        {
+          redist_size =
+            SK_Steam_ScrubRedistributables (redist_count, true);
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Click here to free the wasted space.");
+
+        ImGui::TreePop  ();
+      }
+    }
+#endif
+
+    if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
+    {
+      bool dirty = false;
+
+      const  DWORD cycle_freq = 2250UL;
+      static DWORD last_cycle = current_time;
+      static int   detail_idx = 0;
+
+      if (last_cycle < current_time - cycle_freq)
+      {
+        detail_idx = ~detail_idx;
+        last_cycle =  current_time;
+        dirty      =  true;
       }
 
-      if (redist_count > 0)
+      ImGui::BeginChild ( "CloudStorageList",
+                            ImVec2 ( -1.0f, font.size_multiline *
+                      static_cast <float> (files.size ())       +
+                                     0.1f * font.size_multiline ),
+                              true,
+                                ImGuiWindowFlags_AlwaysAutoResize );
+      for ( auto it : files )
       {
-        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+        ImGui::PushID   (it.filename.c_str ());
 
-        const bool summarize =
-          ImGui::CollapsingHeader ("Wasted Disk Space", ImGuiTreeNodeFlags_DefaultOpen);
+        bool allow_sync = false;
 
-        ImGui::PopStyleColor (3);
-
-        if (summarize)
+        if (it.size != 0)
         {
-          ImGui::TreePush ("");
+          allow_sync =
+            (! it.blacklisted);
+        }
 
-          if (
-            ImGui::MenuItem ( SK_FormatString (
-                                "Steam is currently wasting %ws on %i redistributable files!",
-                                  SK_File_SizeToStringF (redist_size, 5, 2).data,
-                                    redist_count
-                              ).c_str (), "" )
-             )
+        if (dirty)
+        {
+          switch (detail_idx)
           {
-            redist_size =
-              SK_Steam_ScrubRedistributables (redist_count, true);
+            case 0:
+              it.detail = SK_FormatString ("%i Bytes", it.size);
+              break;
+            default:
+            {
+              const struct tm *t = _localtime64 (&it.timestamp);
+                    it.detail    =      asctime (  t);
+            } break;
+          }
+        }
+
+        if ( ImGui::MenuItem ( it.filename.c_str (),
+                               it.detail.c_str   (), &allow_sync ) )
+        {
+          if (        allow_sync  && config.steam.cloud.blacklist.count (it.filename) != 0)
+          {
+            config.steam.cloud.blacklist.erase (it.filename);
+            it.blacklisted = false;
+          }
+
+          else if ((! allow_sync) && config.steam.cloud.blacklist.count (it.filename) == 0)
+          {
+            config.steam.cloud.blacklist.emplace (it.filename);
+            it.blacklisted = true;
+          }
+
+          SK_SaveConfig ();
+        }
+
+        ImGui::PopID    ();
+      }
+      ImGui::EndChild   ();
+    }
+
+    if (SK_Denuvo_UsedByGame ())
+    {
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
+      ImGui::PushStyleColor (ImGuiCol_Text,          (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
+
+      if (ImGui::CollapsingHeader ("Denuvo"))
+      {
+        ImGui::PopStyleColor (4);
+
+        ImGui::TreePush ("");
+
+        size_t idx = 0;
+
+        ImGui::BeginGroup ();
+        for ( const auto& it : denuvo_files.get () )
+        {
+          const size_t found =
+            it.path.find_last_of (L'\\');
+
+          ImGui::BeginGroup      ();
+          ImGui::Text            ( "Key %zi:",
+                                         idx++ );
+          ImGui::TextUnformatted ( "First Activated:" );
+          ImGui::EndGroup        ();
+
+          ImGui::SameLine        ();
+
+          ImGui::BeginGroup      ();
+          ImGui::Text            ( "%ws", &it.path.c_str ()[found + 1] );
+
+          if (denuvo_files->size () > idx)
+          {
+            ImGui::SameLine      ();
+            ImGui::TextColored   (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
+          }
+
+          ImGui::Text            ( "%02d/%02d/%d  %02d:%02d",
+                                     it.st_local.wMonth, it.st_local.wDay, it.st_local.wYear,
+                                     it.st_local.wHour,  it.st_local.wMinute );
+
+          ImGui::EndGroup        ();
+        }
+        ImGui::EndGroup          ();
+
+        ImGui::SameLine          ();
+
+        ImGui::BeginGroup        ();
+        for ( const auto& it : denuvo_files.get () )
+        {
+          const size_t found =
+            it.path.find_last_of (L'\\');
+
+          ImGui::PushID (_wtol (&it.path.c_str ()[found + 1]));
+
+          if (ImGui::Button      ("  Delete Me  "))
+          {
+            DeleteFileW (it.path.c_str ());
+
+            SK_Denuvo_UsedByGame (true); // Re-Test
           }
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Click here to free the wasted space.");
-
-          ImGui::TreePop  ();
-        }
-      }
-#endif
-
-      if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
-      {
-        bool dirty = false;
-
-        const  DWORD cycle_freq = 2250UL;
-        static DWORD last_cycle = current_time;
-        static int   detail_idx = 0;
-
-        if (last_cycle < current_time - cycle_freq)
-        {
-          detail_idx = ~detail_idx;
-          last_cycle =  current_time;
-          dirty      =  true;
-        }
-
-        ImGui::BeginChild ( "CloudStorageList",
-                              ImVec2 ( -1.0f, font.size_multiline *
-                        static_cast <float> (files.size ())       +
-                                       0.1f * font.size_multiline ),
-                                true,
-                                  ImGuiWindowFlags_AlwaysAutoResize );
-        for ( auto it : files )
-        {
-          ImGui::PushID   (it.filename.c_str ());
-
-          bool allow_sync = false;
-
-          if (it.size != 0)
           {
-            allow_sync =
-              (! it.blacklisted);
+            ImGui::BeginTooltip  ();
+            ImGui::Text          ("Force Denuvo to Re-Activate the next time the Game Starts");
+            ImGui::Separator     ();
+            ImGui::BulletText    ("Useful if you plan to go offline for an extended period.");
+            ImGui::BulletText    (" >> RESTART the game immediately after doing this to re-activate <<");
+            ImGui::EndTooltip    ();
           }
 
-          if (dirty)
-          {
-            switch (detail_idx)
-            {
-              case 0:
-                it.detail = SK_FormatString ("%i Bytes", it.size);
-                break;
-              default:
-              {
-                const struct tm *t = _localtime64 (&it.timestamp);
-                      it.detail    =      asctime (  t);
-              } break;
-            }
-          }
+          ImGui::TextUnformatted ( "" );
 
-          if ( ImGui::MenuItem ( it.filename.c_str (),
-                                 it.detail.c_str   (), &allow_sync ) )
-          {
-            if (        allow_sync  && config.steam.cloud.blacklist.count (it.filename) != 0)
-            {
-              config.steam.cloud.blacklist.erase (it.filename);
-              it.blacklisted = false;
-            }
-
-            else if ((! allow_sync) && config.steam.cloud.blacklist.count (it.filename) == 0)
-            {
-              config.steam.cloud.blacklist.emplace (it.filename);
-              it.blacklisted = true;
-            }
-
-            SK_SaveConfig ();
-          }
-
-          ImGui::PopID    ();
+          ImGui::PopID           ();
         }
-        ImGui::EndChild   ();
-      }
-
-
-
-
-      if (SK_Denuvo_UsedByGame ())
-      {
-        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
-        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.00f, 0.00f, 0.00f, 1.00f));
-        ImGui::PushStyleColor (ImGuiCol_Text,          (ImVec4&&)ImColor::HSV (0.15f, 1.0f, 1.0f));
-
-        if (ImGui::CollapsingHeader ("Denuvo"))
-        {
-          ImGui::PopStyleColor (4);
-
-          ImGui::TreePush ("");
-
-          size_t idx = 0;
-
-          ImGui::BeginGroup ();
-          for ( const auto& it : denuvo_files.get () )
-          {
-            const size_t found =
-              it.path.find_last_of (L'\\');
-
-            ImGui::BeginGroup      ();
-            ImGui::Text            ( "Key %zi:",
-                                           idx++ );
-            ImGui::TextUnformatted ( "First Activated:" );
-            ImGui::EndGroup        ();
-
-            ImGui::SameLine        ();
-
-            ImGui::BeginGroup      ();
-            ImGui::Text            ( "%ws", &it.path.c_str ()[found + 1] );
-
-            if (denuvo_files->size () > idx)
-            {
-              ImGui::SameLine      ();
-              ImGui::TextColored   (ImColor::HSV (0.08f, 1.f, 1.f), " [ Expired ]");
-            }
-
-            ImGui::Text            ( "%02d/%02d/%d  %02d:%02d",
-                                       it.st_local.wMonth, it.st_local.wDay, it.st_local.wYear,
-                                       it.st_local.wHour,  it.st_local.wMinute );
-
-            ImGui::EndGroup        ();
-          }
-          ImGui::EndGroup          ();
-
-          ImGui::SameLine          ();
-
-          ImGui::BeginGroup        ();
-          for ( const auto& it : denuvo_files.get () )
-          {
-            const size_t found =
-              it.path.find_last_of (L'\\');
-
-            ImGui::PushID (_wtol (&it.path.c_str ()[found + 1]));
-
-            if (ImGui::Button      ("  Delete Me  "))
-            {
-              DeleteFileW (it.path.c_str ());
-
-              SK_Denuvo_UsedByGame (true); // Re-Test
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip  ();
-              ImGui::Text          ("Force Denuvo to Re-Activate the next time the Game Starts");
-              ImGui::Separator     ();
-              ImGui::BulletText    ("Useful if you plan to go offline for an extended period.");
-              ImGui::BulletText    (" >> RESTART the game immediately after doing this to re-activate <<");
-              ImGui::EndTooltip    ();
-            }
-
-            ImGui::TextUnformatted ( "" );
-
-            ImGui::PopID           ();
-          }
-          ImGui::EndGroup          ();
-
-          ImGui::TreePop  ();
-        }
-
-        else
-        {
-          ImGui::PopStyleColor   (4);
-        }
-      }
-
-      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
-      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
-
-      if (ImGui::CollapsingHeader ("Compatibility"))
-      {
-        ImGui::TreePush ("");
-        ImGui::Checkbox (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "Fixes pesky games that use SteamAPI to deny Offline mode");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("This is a much larger problem than you would believe.");
-          ImGui::BulletText   ("This also fixes some games that crash when Steam disconnects (unrelated to DRM).");
-          ImGui::EndTooltip   ();
-        }
-
-        ImGui::Checkbox (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
-
-        ImGui::SameLine ();
-
-        ImGui::Checkbox (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
-
-        ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
-          ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
-          ImGui::EndTooltip   ();
-        }
+        ImGui::EndGroup          ();
 
         ImGui::TreePop  ();
       }
 
-      ImGui::PopStyleColor (3);
-
-      bool valid =
-        (! config.steam.silent) &&
-        (! SK_Steam_PiratesAhoy ());
-
-      if (valid)
-        ImGui::MenuItem ("SteamAPI Valid",   "", &valid, false);
       else
-        ImGui::MenuItem ("SteamAPI Invalid", "", &valid, false);
-
-      ImGui::PopStyleColor (3);
-      ImGui::TreePop       ( );
+      {
+        ImGui::PopStyleColor   (4);
+      }
     }
 
+    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+    if (ImGui::CollapsingHeader ("Compatibility"))
+    {
+      ImGui::TreePush ("");
+      ImGui::Checkbox (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "Fixes pesky games that use SteamAPI to deny Offline mode");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("This is a much larger problem than you would believe.");
+        ImGui::BulletText   ("This also fixes some games that crash when Steam disconnects (unrelated to DRM).");
+        ImGui::EndTooltip   ();
+      }
+
+      ImGui::Checkbox (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
+
+      ImGui::SameLine ();
+
+      ImGui::Checkbox (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
+
+      ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
+        ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
+        ImGui::EndTooltip   ();
+      }
+
+      ImGui::TreePop  ();
+    }
+
+    ImGui::PopStyleColor (3);
+
+    bool valid =
+      (! config.steam.silent) &&
+      (! SK_Steam_PiratesAhoy ());
+
+    if (valid)
+      ImGui::MenuItem ("SteamAPI Valid",   "", &valid, false);
+    else
+      ImGui::MenuItem ("SteamAPI Invalid", "", &valid, false);
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK::ControlPanel::Steam::DrawFooter (void)
+{
+  if (SK::SteamAPI::AppID () != 0)
+  {
     ImGui::Columns    ( 1 );
     ImGui::Separator  (   );
 
@@ -835,13 +604,13 @@ SK::ControlPanel::Steam::Draw (void)
                    "Fetching Achievements... %.2f%% (%u/%u) : %s",
                      100.0 * ratio,
 static_cast <uint32_t> (
-                      ratio * static_cast <float>    (friends)
-                     ),
-                              static_cast <uint32_t> (friends),
-                    SK_SteamAPI_GetFriendName (
+                    ratio * static_cast <float>    (friends)
+                  ),
+                            static_cast <uint32_t> (friends),
+                  SK_SteamAPI_GetFriendName (
 static_cast <uint32_t> (
                       ratio * static_cast <float>    (friends))
-                    ).c_str ()
+                  ).c_str ()
                );
 
       ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
@@ -1669,6 +1438,30 @@ SK::ControlPanel::Steam::DrawMenu (void)
     }
   }
 #endif
+
+  return false;
+}
+
+
+bool
+SK::ControlPanel::Steam::WarnIfUnsupported (void)
+{
+  static DWORD dwLastTime = 0x00;
+
+  bool pirate = ( SK::SteamAPI::AppID  () != 0 &&
+                  SK_Steam_PiratesAhoy () != 0x0 );
+  if (pirate)
+  {
+    if (dwLastTime < current_time - 1000)
+    {
+      dwLastTime             = current_time;
+
+      eula.show              = true;
+      eula.never_show_again  = false;
+
+      return true;
+    }
+  }
 
   return false;
 }

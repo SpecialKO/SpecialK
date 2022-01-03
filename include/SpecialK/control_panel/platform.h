@@ -19,21 +19,20 @@
  *
 **/
 
-#ifndef __SK__CPL_STEAM_H__
-#define __SK__CPL_STEAM_H__
+#ifndef __SK__CPL_PLATFORM_H__
+#define __SK__CPL_PLATFORM_H__
 
 namespace SK
 {
   namespace ControlPanel
   {
-    namespace Steam
+    namespace Platform
     {
       bool Draw              (void);
       bool DrawMenu          (void);
-      bool DrawFooter        (void);
       bool WarnIfUnsupported (void);
     };
   };
 };
 
-#endif /* __SK__CPL_STEAM_H__ */
+#endif /* __SK__CPL_PLATFORM_H__ */

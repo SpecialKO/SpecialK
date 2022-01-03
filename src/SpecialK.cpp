@@ -176,6 +176,7 @@ SK_GetDLLName (void)
     __SK_hModSelf;
 }
 
+
 #include <appmodel.h>
 
 // Various detection methods to prevent injection into software that is
@@ -283,6 +284,8 @@ SK_KeepAway (void)
     }
   }
 
+  if (ret != 0)
+    SK_GetHostAppUtil ()->setBlacklisted (true);
 
   return ret;
 }
@@ -929,6 +932,8 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
     {
       if (SK_Inject_TestBlacklists (SK_GetFullyQualifiedApp ()))
       {
+        SK_GetHostAppUtil ()->setBlacklisted (true);
+
         SK_SetDLLRole (DLL_ROLE::INVALID);
 
         return TRUE;
