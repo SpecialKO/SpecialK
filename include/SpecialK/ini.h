@@ -74,7 +74,7 @@ public:
 
   STDMETHOD_ (std::wstring&, get_value)    (const wchar_t* key);
   STDMETHOD_ (void,          set_name)     (const wchar_t* name_);
-  STDMETHOD_ (bool,          contains_key) (const wchar_t* key);
+  STDMETHOD_ (bool,          contains_key) (const wchar_t* key) const;
   STDMETHOD_ (void,          add_key_value)(const wchar_t* key, const wchar_t* value);
   STDMETHOD_ (bool,          remove_key)   (const wchar_t* key);
 
@@ -82,15 +82,18 @@ public:
   // Private to DLL
   STDMETHOD_ (std::wstring&, get_value)    (const std::wstring_view key);
   STDMETHOD_ (void,          set_name)     (const std::wstring_view name_);
-  STDMETHOD_ (bool,          contains_key) (const std::wstring_view key);
+  STDMETHOD_ (bool,          contains_key) (const std::wstring_view key) const;
   STDMETHOD_ (void,          add_key_value)(const std::wstring_view key, const std::wstring_view value);
   STDMETHOD_ (bool,          remove_key)   (const std::wstring_view key);
 
   STDMETHOD_ (std::wstring&, get_value)    (const std::wstring& key);
   STDMETHOD_ (void,          set_name)     (const std::wstring& name_);
-  STDMETHOD_ (std::wstring*, contains_key) (const std::wstring& key);
+  STDMETHOD_ (const
+              std::wstring*, contains_key) (const std::wstring& key) const;
   STDMETHOD_ (void,          add_key_value)(const std::wstring& key, const std::wstring& value);
   STDMETHOD_ (bool,          remove_key)   (const std::wstring& key);
+  STDMETHOD_ (const
+              std::wstring&, get_cvalue)   (const std::wstring& key) const;
 
 
   //protected:

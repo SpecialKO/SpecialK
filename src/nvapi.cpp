@@ -1204,8 +1204,8 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
   app_name      = wszAppName;
 
-  if (              app_cache_mgr->loadAppCacheForExe (wszAppName))
-    friendly_name = app_cache_mgr->getAppNameFromPath (wszAppName);
+  if (              app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ()/*wszAppName*/))
+    friendly_name = app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ()/*wszAppName*/);
   else
     friendly_name = wszAppName; // Not so friendly, but whatever...
 

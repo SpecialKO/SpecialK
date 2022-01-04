@@ -23,6 +23,7 @@
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
+#include <SpecialK/storefront/epic.h>
 #include <filesystem>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
@@ -4903,7 +4904,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
     // It may be necessary to write the INI immediately after creating it,
     //   but usually not.
     bool need_to_create =
-      ( GetFileAttributesW (wszAppCache) == INVALID_FILE_ATTRIBUTES );
+      (! std::filesystem::exists (wszAppCache));
 
     if ( need_to_create )
       SK_CreateDirectories (wszAppCache);
@@ -4925,6 +4926,93 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
       if ( need_to_create )
         app_cache_db->write ();
+    }
+  }
+
+  // The app name is literally in the command line, but it is best we
+  //   read the .egstore manifest for consistency
+  else if (StrStrIA (GetCommandLineA (), "-epicapp="))
+  {
+    try {
+      std::filesystem::path path =
+        std::move (std::wstring (wszExe));
+
+      while (! std::filesystem::equivalent ( path.parent_path    (),
+                                             path.root_directory () ) )
+      {
+        if (std::filesystem::is_directory (path / L".egstore"))
+        {
+          for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
+          {
+            if (! file.is_regular_file ())
+              continue;
+
+            if (file.path ().extension ().compare (L".mancpn") == 0)
+            {
+              if (std::fstream mancpn (file.path (), std::fstream::in);
+                               mancpn.is_open ())
+              {
+                char                     szLine [512] = { };
+                while (! mancpn.getline (szLine, 511).eof ())
+                {
+                  if (StrStrIA (szLine, "\"AppName\"") != nullptr)
+                  {
+                    char       szEpicApp [65] = { };
+                    const char  *substr =     StrStrIA (szLine, ":");
+                    strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
+                     *strrchr (szEpicApp, '"') = '\0';
+
+                    wchar_t            wszAppCache [MAX_PATH + 2] = { };
+                    std::wstring_view
+                      app_cache_view ( wszAppCache, MAX_PATH + 2 );
+
+                    SK_FormatStringViewW (
+                      app_cache_view, LR"(%s\My Mods\SpecialK\Profiles\AppCache\#EpicApps\%hs\SpecialK.AppCache)",
+                        SK_GetDocumentsDir ().c_str (), szEpicApp
+                                         );
+
+                    // It may be necessary to write the INI immediately after creating it,
+                    //   but usually not.
+                    bool need_to_create =
+                      (! std::filesystem::exists (wszAppCache));
+
+                    if ( need_to_create )
+                      SK_CreateDirectories (wszAppCache);
+
+                    if (app_cache_db == nullptr)
+                        app_cache_db =
+                      SK_CreateINI         (wszAppCache);
+                    else
+                    {
+                      if (_wcsicmp (app_cache_db->get_filename (), wszAppCache))
+                                    app_cache_db->rename          (wszAppCache);
+
+                      app_cache_db->reload ();
+                    }
+
+                    if (app_cache_db != nullptr)
+                    {
+                      if ( need_to_create )
+                        app_cache_db->write ();
+                    }
+
+                    path = LR"(\)";
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        path =
+          path.parent_path ();
+      }
+    }
+
+    catch (...)
+    {
+
     }
   }
 
@@ -4973,15 +5061,15 @@ SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
   if (app_cache_db == nullptr)
     return L"";
 
-  iSK_INISection&
+  const iSK_INISection&
     name_map =
       app_cache_db->get_section (L"AppID_Cache.Names");
 
-  std::wstring app_id_as_wstr =
+  const std::wstring app_id_as_wstr =
     std::to_wstring (uiAppID);
 
-  if (     name_map.contains_key (app_id_as_wstr.c_str ()) )
-    return name_map.get_value    (app_id_as_wstr.c_str ());
+  if (     name_map.contains_key (app_id_as_wstr) )
+    return name_map.get_cvalue   (app_id_as_wstr);
 
   return L"";
 }
@@ -5065,13 +5153,275 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   return true;
 }
 
+bool
+SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
+                                     const wchar_t* wszHostApp,
+                                     const wchar_t* wszAppName,
+                                     const char*    szEpicApp )
+{
+  std::ignore = wszFullPath;
+
+  if (app_cache_db == nullptr)
+    return false;
+
+  iSK_INISection& rev_map =
+    app_cache_db->get_section (L"EpicApp_Cache.RevMap");
+  iSK_INISection& fwd_map =
+    app_cache_db->get_section (L"EpicApp_Cache.FwdMap");
+  iSK_INISection& name_map =
+    app_cache_db->get_section (L"EpicApp_Cache.Names");
+
+  const std::wstring  wszEpicApp (
+    SK_UTF8ToWideChar (szEpicApp)
+  );
+
+
+  if (fwd_map.contains_key (wszHostApp))
+    fwd_map.get_value      (wszHostApp) = wszFullPath;
+  else
+    fwd_map.add_key_value  (wszHostApp,   wszFullPath);
+
+  if (rev_map.contains_key (wszFullPath))
+    rev_map.get_value      (wszFullPath) = wszHostApp;
+  else
+    rev_map.add_key_value  (wszFullPath,   wszHostApp);
+
+  if (name_map.contains_key (wszEpicApp))
+    name_map.get_value      (wszEpicApp) = wszAppName;
+  else
+    name_map.add_key_value  (wszEpicApp,   wszAppName);
+
+
+  app_cache_db->write ();
+
+
+  return true;
+}
+
+#include <filesystem>
+
 std::wstring
 SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 {
+  uint32_t uiAppID =
+    getAppIDFromPath (wszPath);
+
+  if (uiAppID != 0)
+  {
+    return
+      getConfigPathForAppID (uiAppID);
+  }
+
+  std::filesystem::path path =
+    std::move (std::wstring (wszPath));
+
+  try
+  {
+    while (! std::filesystem::equivalent ( path.parent_path    (),
+                                           path.root_directory () ) )
+    {
+      if (std::filesystem::is_directory (path / L".egstore"))
+      {
+        for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
+        {
+          if (! file.is_regular_file ())
+            continue;
+
+          if (file.path ().extension ().compare (L".mancpn") == 0)
+          {
+            if (std::fstream mancpn (file.path (), std::fstream::in);
+                             mancpn.is_open ())
+            {
+              char                     szLine [512] = { };
+              while (! mancpn.getline (szLine, 511).eof ())
+              {
+                if (StrStrIA (szLine, "\"AppName\"") != nullptr)
+                {
+                  char       szEpicApp [65] = { };
+                  const char  *substr =     StrStrIA (szLine, ":");
+                  strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
+                   *strrchr (szEpicApp, '"') = '\0';
+
+                  return
+                    getConfigPathForEpicApp (szEpicApp);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      path =
+        path.parent_path ();
+    }
+  }
+
+  catch (...)
+  {
+  }
+
   return
-    getConfigPathForAppID ( getAppIDFromPath (wszPath) );
+    SK_GetNaiveConfigPath ();
 }
 
+std::wstring
+SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
+{
+  const wchar_t *wszEpicAppSwitch =
+    StrStrIW (wszCmdLine, L"-epicapp=");
+
+  if (wszEpicAppSwitch != nullptr)
+  {
+    wchar_t wszEpicApp [65] = { };
+
+    if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
+    {
+      std::string szEpicApp =
+        SK_WideCharToUTF8 (wszEpicApp);
+
+      return
+        getConfigPathForEpicApp ( szEpicApp.c_str () );
+    }
+  }
+
+  return
+    SK_GetNaiveConfigPath ();
+}
+
+
+std::wstring
+SK_AppCache_Manager::getAppNameFromEpicApp (const char* szEpicApp) const
+{
+  if (app_cache_db == nullptr)
+    return L"";
+
+  const iSK_INISection&
+    name_map =
+      app_cache_db->get_section (L"EpicApp_Cache.Names");
+
+  const std::wstring app_name_as_wstr =
+    SK_UTF8ToWideChar (szEpicApp);
+
+  if (     name_map.contains_key (app_name_as_wstr) )
+    return name_map.get_cvalue   (app_name_as_wstr);
+
+  return L"";
+}
+
+std::wstring
+SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
+{
+  // The cache is broken right now, we can do a full manifest lookup in as little time though.
+  std::ignore = szEpicApp;
+
+  static bool recursing = false;
+
+  // If no AppCache (probably not a Steam game), or opting-out of central repo,
+  //   then don't parse crap and just use the traditional path.
+  if ( app_cache_db == nullptr || (! config.system.central_repository) )
+    return SK_GetNaiveConfigPath ();
+
+  std::wstring path = SK_GetNaiveConfigPath (         );
+  std::wstring name ( SK_UTF8ToWideChar (SK::EOS::AppName ()) );//getAppNameFromEpicApp (szEpicApp) );
+
+  // Non-trivial name = custom path, remove the old-style <program.exe>
+  if (! name.empty ())
+  {
+    std::wstring original_dir (path);
+
+    size_t pos = 0;
+    if (  (pos = path.find (SK_GetHostApp (), pos)) != std::wstring::npos)
+    {
+      std::wstring       host_app (SK_GetHostApp ());
+      path.replace (pos, host_app.length (), L"\0");
+    }
+
+    name.erase ( std::remove_if ( name.begin (),
+                                  name.end   (),
+
+                                    [](wchar_t tval)
+                                    {
+                                      static
+                                      const std::unordered_set <wchar_t>
+                                        invalid_file_char =
+                                        {
+                                          L'\\', L'/', L':',
+                                          L'*',  L'?', L'\"',
+                                          L'<',  L'>', L'|',
+                                        //L'&',
+
+                                          //
+                                          // Obviously a period is not an invalid character,
+                                          //   but three of them in a row messes with
+                                          //     Windows Explorer and some Steam games use
+                                          //       ellipsis in their titles.
+                                          //
+                                          L'.'
+                                        };
+
+                                      return
+                                        ( invalid_file_char.find (tval) !=
+                                          invalid_file_char.end  (    ) );
+                                    }
+                                ),
+
+                     name.end ()
+               );
+
+    // Strip trailing spaces from name, these are usually the result of
+    //   deleting one of the non-useable characters above.
+    for (auto it = name.rbegin (); it != name.rend (); ++it)
+    {
+      if (*it == L' ') *it = L'\0';
+      else                   break;
+    }
+
+    // Truncating a std::wstring by inserting L'\0' actually does nothing,
+    //   so construct path by treating name as a C-String.
+    path =
+      SK_FormatStringW ( LR"(%s\%s\)",
+                         path.c_str (),
+                         name.c_str () );
+
+    SK_StripTrailingSlashesW (path.data ());
+
+    if (recursing)
+      return path;
+
+    DWORD dwAttribs =
+      GetFileAttributesW (original_dir.c_str ());
+
+    //if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
+    if (   dwAttribs != INVALID_FILE_ATTRIBUTES &&
+         ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
+    {
+      std::wstring old_ini =
+                   dll_ini != nullptr ? dll_ini->get_filename ()
+                                      : L"";
+
+      recursing         = true;
+      SK_GetConfigPathEx (true);
+      SK_LoadConfigEx    (L"" );
+      recursing         = false;
+
+      // We've already parsed/written the new file, delete the old one
+      if ((! old_ini.empty ())  &&
+             dll_ini != nullptr &&
+          _wcsicmp ( old_ini.c_str (), dll_ini->get_filename ()))
+        DeleteFileW (old_ini.c_str ());
+
+      UINT
+      SK_RecursiveMove ( const wchar_t* wszOrigDir,
+                         const wchar_t* wszDestDir,
+                               bool     replace );
+
+      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
+    }
+  }
+
+  return
+    path;
+}
 
 std::wstring
 SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const

@@ -40,13 +40,14 @@ namespace SK
     void Init     (bool preload);
     void Shutdown (void);
 
-
     void  __stdcall SetOverlayState  (bool active);
     bool  __stdcall GetOverlayState  (bool real);
     bool  __stdcall IsOverlayAware   (void); // Did the game install a callback?
 
     uint32_t          AppID           (void);
     std::string       AppName         (void);
+    std::string_view  PlayerName      (void);
+    std::string_view  PlayerNickname  (void);
 
     EOS_EpicAccountId UserID          (void);
 
@@ -55,12 +56,12 @@ namespace SK
 
     // The state that we are explicitly telling the game
     //   about, not the state of the actual overlay...
-    extern bool               overlay_state;
+    extern bool       overlay_state;
 
     extern EOS_EpicAccountId  player;
 
-    std::string   GetConfigDir (void);
-    std::string   GetDataDir   (void);
+    std::string       GetConfigDir (void);
+    std::string       GetDataDir   (void);
   }
 }
 
@@ -203,6 +204,7 @@ public:
   EOS_HStats           Stats                (void) noexcept { return stats_;              }
   EOS_HFriends         Friends              (void) noexcept { return friends_;            }
   EOS_HPlatform        Platform             (void) noexcept { return platform_;           }
+  EOS_HAuth            Auth                 (void) noexcept { return auth_;               }
 
   SK_IVariable*        popup_origin   = nullptr;
   SK_IVariable*        notify_corner  = nullptr;
@@ -216,8 +218,17 @@ public:
   } var_strings;
 
   const char*          GetEpicInstallPath (void);
+  HMODULE              GetEOSDLL          (void) const { return sdk_dll_; }
 
-protected:
+  std::string_view     GetDisplayName (void) const { return user.display_name;  }
+  std::string_view     GetNickName    (void) const { return user.nickname;      }
+
+//protected:
+  struct
+  {
+    std::string display_name;
+    std::string nickname;
+  } user;
 
 private:
   EOS_HPlatform        platform_       = nullptr;
@@ -227,6 +238,7 @@ private:
   EOS_HStats           stats_          = nullptr;
   EOS_HFriends         friends_        = nullptr;
   EOS_HUI              ui_             = nullptr;
+  EOS_HAuth            auth_           = nullptr;
 
   HMODULE              sdk_dll_        = nullptr;
 };
@@ -297,5 +309,12 @@ using EOS_Achievements_GetPlayerAchievementCount_pfn =
 using EOS_Achievements_GetUnlockedAchievementCount_pfn =
       uint32_t           (EOS_CALL *)(      EOS_HAchievements                                    Handle,
                                       const EOS_Achievements_GetUnlockedAchievementCountOptions* Options);
+
+using EOS_Platform_GetAchievementsInterface_pfn = EOS_HAchievements (EOS_CALL *)(EOS_HPlatform Handle);
+using EOS_Platform_GetUIInterface_pfn           = EOS_HUI           (EOS_CALL *)(EOS_HPlatform Handle);
+using EOS_Platform_GetAuthInterface_pfn         = EOS_HAuth         (EOS_CALL *)(EOS_HPlatform Handle);
+using EOS_Platform_GetFriendsInterface_pfn      = EOS_HFriends      (EOS_CALL *)(EOS_HPlatform Handle);
+using EOS_Platform_GetStatsInterface_pfn        = EOS_HStats        (EOS_CALL *)(EOS_HPlatform Handle);
+using EOS_Platform_GetUserInfoInterface_pfn     = EOS_HUserInfo     (EOS_CALL *)(EOS_HPlatform Handle);
 
 #endif /* __SK__EPIC_ONLINE_SERVICES_H__ */

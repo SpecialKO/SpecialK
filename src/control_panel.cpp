@@ -589,6 +589,7 @@ SK_ImGui_ControlPanelTitle (void)
 {
   static char szTitle [512] = { };
   const  bool steam         = (SK::SteamAPI::AppID () != 0x0);
+  const  bool epic          = StrStrIA (GetCommandLineA (), "-epicapp");
 
   {
     // TEMP HACK
@@ -622,10 +623,12 @@ SK_ImGui_ControlPanelTitle (void)
     uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
     uint32_t   hours   =  elapsed / 3600ULL;
 
-    if (steam)
+    if (steam || epic)
     {
-      std::string appname =
-        SK::SteamAPI::AppName ();
+      std::string appname = steam ?
+        SK::SteamAPI::AppName ()  :
+                            epic  ?
+        SK::EOS::AppName      ()  : "";
 
       if (appname.length ())
         title += L"      -      ";
@@ -4861,6 +4864,12 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
       {                                    }
       SK_SEH_RemoveTranslator (orig_se);
     }
+  }
+
+  else if (SK::EOS::UserID () != 0 && SK::EOS::PlayerNickname ().empty ())
+  {
+    strncpy_s (pszName,                            max_len,
+               SK::EOS::PlayerNickname ().data (), _TRUNCATE);
   }
 }
 

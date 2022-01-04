@@ -264,7 +264,7 @@ void
 EOS_CALL
 SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy (const EOS_UI_OnDisplaySettingsUpdatedCallbackInfo* Data)
 {
-  SK_ReleaseAssert (Data->ClientData == eos_overlay.getPtr ());
+  SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == eos_overlay.getPtr ());
 
   epic_log->Log (
     L"SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy ({ bIsVisible=%i, bIsExclusiveInput=%i }",
@@ -278,7 +278,7 @@ void
 EOS_CALL
 SK_EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy (const EOS_Achievements_OnAchievementsUnlockedCallbackV2Info* Data)
 {
-  SK_ReleaseAssert (Data->ClientData == eos_achievements.getPtr ());
+  SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == eos_achievements.getPtr ());
 
   epic_log->Log (
     L"EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy ({ Achievement=%hs })",
@@ -286,6 +286,52 @@ SK_EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy (const EOS_Achievemen
   );
 
   eos_achievements->unlock (Data->AchievementId);
+}
+
+void
+EOS_CALL
+SK_EOS_UserInfo_QueryUserInfoCallback_Proxy (const EOS_UserInfo_QueryUserInfoCallbackInfo* Data)
+{
+  if (Data->ResultCode == EOS_EResult::EOS_Success)
+  {
+    SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == pEOSCtx.getPtr ());
+
+    using EOS_UserInfo_CopyUserInfo_pfn = EOS_EResult (EOS_CALL *)(EOS_HUserInfo                     Handle,
+                                                             const EOS_UserInfo_CopyUserInfoOptions* Options,
+                                                                   EOS_UserInfo**                    OutUserInfo);
+    auto  EOS_UserInfo_CopyUserInfo =
+         (EOS_UserInfo_CopyUserInfo_pfn)SK_GetProcAddress (epic_ctx.GetEOSDLL (),
+         "EOS_UserInfo_CopyUserInfo");
+
+    using EOS_UserInfo_Release_pfn = void (EOS_CALL *)(EOS_UserInfo* UserInfo);
+    auto  EOS_UserInfo_Release     =
+         (EOS_UserInfo_Release_pfn)SK_GetProcAddress (epic_ctx.GetEOSDLL (),
+         "EOS_UserInfo_Release");
+
+    if (EOS_UserInfo_Release != nullptr && EOS_UserInfo_CopyUserInfo != nullptr)
+    {
+      EOS_UserInfo_CopyUserInfoOptions opts =
+      {
+        EOS_USERINFO_COPYUSERINFO_API_LATEST,
+        Data->LocalUserId,
+        Data->LocalUserId
+      };
+
+      EOS_UserInfo*                                              pUserInfo = nullptr;
+      EOS_EResult result =
+        EOS_UserInfo_CopyUserInfo (epic_ctx.UserInfo (), &opts, &pUserInfo);
+
+      if (result == EOS_EResult::EOS_Success)
+      {
+        pEOSCtx->user.display_name = pUserInfo->DisplayName;
+        pEOSCtx->user.nickname     = pUserInfo->Nickname;
+
+        EOS_UserInfo_Release (pUserInfo);
+      }
+    }
+  }
+
+  //SK_ReleaseAssert (Data->ResultCode == EOS_EResult::EOS_Success);
 }
 
 bool
@@ -554,8 +600,6 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
   // But we're not, so we will yoink the game's HPlatform instance
   platform_ = platform;
 
-
-  using EOS_Platform_GetUIInterface_pfn = EOS_HUI (EOS_CALL *)(EOS_HPlatform Handle);
   auto  EOS_Platform_GetUIInterface =
        (EOS_Platform_GetUIInterface_pfn)SK_GetProcAddress (sdk_dll_,
        "EOS_Platform_GetUIInterface");
@@ -569,12 +613,10 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
       { EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST };
 
     eos_overlay->AddNotifyDisplaySettingsUpdated_Original (
-      ui_, &opts, eos_overlay.getPtr (),
+      ui_, &opts, nullptr,//eos_overlay.getPtr (),
         SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy  );
   }
 
-
-  using EOS_Platform_GetAchievementsInterface_pfn = EOS_HAchievements (EOS_CALL *)(EOS_HPlatform Handle);
   auto  EOS_Platform_GetAchievementsInterface =
        (EOS_Platform_GetAchievementsInterface_pfn)SK_GetProcAddress (sdk_dll_,
        "EOS_Platform_GetAchievementsInterface");
@@ -600,11 +642,77 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
         { EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_LATEST };
 
       EOS_Achievements_AddNotifyAchievementsUnlockedV2 (
-        achievements_, &opts, eos_achievements.getPtr (),
+        achievements_, &opts, nullptr,//eos_achievements.getPtr (),
           SK_EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy
       );
 
       eos_achievements->loadSound (config.steam.achievements.sound_file.c_str ());
+    }
+  }
+
+  auto EOS_Platform_GetAuthInterface =
+      (EOS_Platform_GetAuthInterface_pfn)SK_GetProcAddress     (sdk_dll_,
+      "EOS_Platform_GetAuthInterface");
+  auto EOS_Platform_GetFriendsInterface =
+      (EOS_Platform_GetFriendsInterface_pfn)SK_GetProcAddress  (sdk_dll_,
+      "EOS_Platform_GetFriendsInterface");
+  auto EOS_Platform_GetStatsInterface =
+      (EOS_Platform_GetStatsInterface_pfn)SK_GetProcAddress    (sdk_dll_,
+      "EOS_Platform_GetStatsInterface");
+  auto EOS_Platform_GetUserInfoInterface =
+      (EOS_Platform_GetUserInfoInterface_pfn)SK_GetProcAddress (sdk_dll_,
+      "EOS_Platform_GetUserInfoInterface");
+
+  if (EOS_Platform_GetAuthInterface     != nullptr)     auth_      =
+      EOS_Platform_GetAuthInterface       (platform_);
+  if (EOS_Platform_GetFriendsInterface  != nullptr)     friends_   =
+      EOS_Platform_GetFriendsInterface    (platform_);
+  if (EOS_Platform_GetStatsInterface    != nullptr)     stats_     =
+      EOS_Platform_GetStatsInterface      (platform_);
+  if (EOS_Platform_GetUserInfoInterface != nullptr)     user_info_ =
+      EOS_Platform_GetUserInfoInterface   (platform_);
+
+
+  if (auth_ != nullptr)
+  {
+    using EOS_Auth_GetLoggedInAccountsCount_pfn = int32_t (EOS_CALL *)(EOS_HAuth Handle);
+    auto  EOS_Auth_GetLoggedInAccountsCount =
+         (EOS_Auth_GetLoggedInAccountsCount_pfn)SK_GetProcAddress (sdk_dll_,
+         "EOS_Auth_GetLoggedInAccountsCount");
+
+    int32_t logins = EOS_Auth_GetLoggedInAccountsCount != nullptr ?
+                     EOS_Auth_GetLoggedInAccountsCount (auth_)    : 0;
+
+    SK_ReleaseAssert (logins <= 1);
+
+    using EOS_Auth_GetLoggedInAccountByIndex_pfn = EOS_EpicAccountId (EOS_CALL *)(EOS_HAuth Handle, int32_t Index);
+    auto  EOS_Auth_GetLoggedInAccountByIndex =
+         (EOS_Auth_GetLoggedInAccountByIndex_pfn)SK_GetProcAddress (sdk_dll_,
+         "EOS_Auth_GetLoggedInAccountByIndex");
+
+    SK::EOS::player =
+      EOS_Auth_GetLoggedInAccountByIndex (auth_, 0);
+
+    if (user_info_ != nullptr)
+    {
+      using EOS_UserInfo_QueryUserInfo_pfn = void (EOS_CALL *)(EOS_HUserInfo                        Handle,
+                                                         const EOS_UserInfo_QueryUserInfoOptions*   Options,
+                                                               void*                                ClientData,
+                                                         const EOS_UserInfo_OnQueryUserInfoCallback CompletionDelegate);
+
+      auto EOS_UserInfo_QueryUserInfo =
+          (EOS_UserInfo_QueryUserInfo_pfn)SK_GetProcAddress (sdk_dll_,
+          "EOS_UserInfo_QueryUserInfo");
+
+      if (EOS_UserInfo_QueryUserInfo != nullptr)
+      {
+        EOS_UserInfo_QueryUserInfoOptions
+          opts = { EOS_USERINFO_QUERYUSERINFO_API_LATEST,
+                   SK::EOS::player,
+                   SK::EOS::player };
+
+        EOS_UserInfo_QueryUserInfo (user_info_, &opts, nullptr/*this*/, SK_EOS_UserInfo_QueryUserInfoCallback_Proxy);
+      }
     }
   }
 
@@ -619,3 +727,145 @@ bool SK_EOSContext::OnVarChange (SK_IVariable *, void *)
 {
   return true;
 }
+
+
+
+std::string_view
+SK::EOS::PlayerName (void)
+{
+  std::string_view view =
+    pEOSCtx->GetDisplayName ();
+
+  if (view.empty ())
+    return "";
+
+  return view;
+}
+
+std::string_view
+SK::EOS::PlayerNickname (void)
+{
+  std::string_view view =
+    pEOSCtx->GetNickName ();
+
+  if (view.empty ())
+    return "";
+
+  return view;
+}
+
+EOS_EpicAccountId
+SK::EOS::UserID (void)
+{
+  return
+    SK::EOS::player;
+}
+
+#include <filesystem>
+
+std::string
+SK::EOS::AppName (void)
+{
+  static std::string name = "";
+
+  if (                                                          name.empty () &&
+      app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ()).empty ())
+  {
+    std::filesystem::path path =
+      std::move (std::wstring (SK_GetFullyQualifiedApp ()));
+
+    char szDisplayName [65] = { };
+    char szEpicApp     [65] = { };
+
+    try
+    {
+      while (! std::filesystem::equivalent ( path.parent_path    (),
+                                             path.root_directory () ) )
+      {
+        if (std::filesystem::is_directory (path / L".egstore"))
+        {
+          for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
+          {
+            if (! file.is_regular_file ())
+              continue;
+
+            if (file.path ().extension ().compare (L".mancpn") == 0)
+            {
+              CRegKey hkManifestRoot;
+                      hkManifestRoot.Open (HKEY_CURRENT_USER, LR"(Software\Epic Games\EOS)");
+
+              wchar_t wszManifestPath [MAX_PATH + 2] = { };
+              ULONG   ulManifestLen =  MAX_PATH;
+              hkManifestRoot.QueryStringValue (L"ModSdkMetadataDir", wszManifestPath, &ulManifestLen);
+
+              PathAppendW (wszManifestPath, file.path ().stem ().c_str ());
+              StrCatW     (wszManifestPath, L".item");
+
+              if (! std::filesystem::exists (wszManifestPath))
+                break;
+
+              if (std::fstream mancpn (wszManifestPath, std::fstream::in);
+                               mancpn.is_open ())
+              {
+                char                     szLine [512] = { };
+                while (! mancpn.getline (szLine, 511).eof ())
+                {
+                  if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
+                  {
+                    const char      *substr =     StrStrIA (szLine, ":");
+                    strncpy_s (szDisplayName, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
+                     *strrchr (szDisplayName, '"') = '\0';
+                    continue;
+                  }
+
+                  else if (StrStrIA (szLine, "\"AppName\"") != nullptr)
+                  {
+                    const char      *substr = StrStrIA (szLine, ":");
+                    strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
+                     *strrchr (szEpicApp, '"') = '\0';
+                    continue;
+                  }
+
+                  if (*szDisplayName != '\0' && *szEpicApp != '\0')
+                  {
+                    app_cache_mgr->addAppToCache (
+                        SK_GetFullyQualifiedApp (),
+                                  SK_GetHostApp (),
+                              SK_UTF8ToWideChar (szDisplayName).c_str (),
+                                                 szEpicApp
+                    );
+
+                    name = szDisplayName;
+                    break;
+                  }
+                }
+
+                path = LR"(\)";
+                break;
+              }
+            }
+          }
+        }
+
+        path =
+          path.parent_path ();
+      }
+
+      app_cache_mgr->saveAppCache       ();
+      app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
+
+      // Trigger profile migration if necessary
+      app_cache_mgr->getConfigPathForEpicApp (szEpicApp);
+    }
+
+    catch (...)
+    {
+
+    }
+  }
+
+  return
+    name;
+}
+
+EOS_EpicAccountId SK::EOS::player = 0;

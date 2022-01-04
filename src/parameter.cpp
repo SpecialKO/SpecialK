@@ -27,13 +27,13 @@ SK_LazyGlobal <sk::ParameterFactory> g_ParameterFactory;
 bool
 sk::iParameter::load (void)
 {
-  iSK_INISection* section =
+  const iSK_INISection* section =
     ( ini == nullptr ) ? nullptr
                        : ini->contains_section (ini_section);
 
   if (section != nullptr)
   {
-    std::wstring* key =
+    const std::wstring* key =
       section->contains_key (ini_key);
 
     if (   key != nullptr &&

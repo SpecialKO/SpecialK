@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/DLL_VERSION.H>
+#include <SpecialK/storefront/epic.h> // Lazy EOS init
 
 __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
@@ -494,6 +495,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       SK_Input_HookDI7 ();
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
       SK_Input_HookHID ();
+    else if (   StrStrI (lpFileName, SK_TEXT("EOSSDK-Win")))
+      SK::EOS::Init (false);
 
 #if 0
     if (! config.steam.silent) {

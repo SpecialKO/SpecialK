@@ -963,20 +963,28 @@ struct SK_AppCache_Manager
     OwnsGame   =  1,
     _Alignment_=  LONG_MAX };
 
-  bool          saveAppCache       (bool           close = false);
-  bool          loadAppCacheForExe (const wchar_t* wszExe);
+  bool          saveAppCache           (bool           close = false);
+  bool          loadAppCacheForExe     (const wchar_t* wszExe);
+  bool          loadAppCacheForEpicApp (const char*    szEpicApp);
 
-  uint32_t      getAppIDFromPath   (const wchar_t* wszPath) const;
-  std::wstring  getAppNameFromID   (uint32_t       uiAppID) const;
-  std::wstring  getAppNameFromPath (const wchar_t* wszPath) const;
+  uint32_t      getAppIDFromPath       (const wchar_t* wszPath)   const;
+  std::wstring  getAppNameFromID       (uint32_t       uiAppID)   const;
+  std::wstring  getAppNameFromPath     (const wchar_t* wszPath)   const;
+  std::wstring  getAppNameFromEpicApp  (const char*    szEpicApp) const;
 
-  bool          addAppToCache      ( const wchar_t* wszRelativePath,
-                                     const wchar_t* wszExecutable,
-                                     const wchar_t* wszAppName,
-                                           uint32_t uiAppID );
+  bool          addAppToCache       ( const wchar_t* wszRelativePath,
+                                      const wchar_t* wszExecutable,
+                                      const wchar_t* wszAppName,
+                                            uint32_t uiAppID );
+  bool          addAppToCache       ( const wchar_t* wszRelativePath,
+                                      const wchar_t* wszExecutable,
+                                      const wchar_t* wszAppName,
+                                         const char* szEpicApp );
 
-  std::wstring  getConfigPathFromAppPath (const wchar_t* wszPath) const;
-  std::wstring  getConfigPathForAppID    (uint32_t       uiAppID) const;
+  std::wstring  getConfigPathFromAppPath (const wchar_t* wszPath)    const; // Steam
+  std::wstring  getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const; // Epic
+  std::wstring  getConfigPathForAppID    (uint32_t       uiAppID)    const;
+  std::wstring  getConfigPathForEpicApp  (const char*    szEpicApp)  const;
 
   int           migrateProfileData       (LPVOID reserved = nullptr);
 

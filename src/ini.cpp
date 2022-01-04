@@ -938,6 +938,23 @@ iSK_INISection::get_value (const std::wstring& key)
 }
 
 __declspec(nothrow)
+const std::wstring&
+__stdcall
+iSK_INISection::get_cvalue (const std::wstring& key) const
+{
+  const auto it_key =
+    keys.find (key);
+
+  if (it_key != keys.cend ())
+    return (*it_key).second;
+
+  static
+    std::wstring
+         invalid = L"Invalid";
+  return invalid;
+}
+
+__declspec(nothrow)
 void
 __stdcall
 iSK_INISection::set_name (const wchar_t* name_)
@@ -985,7 +1002,7 @@ iSK_INISection::set_name (const std::wstring& name_)
 __declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::contains_key (const wchar_t* key)
+iSK_INISection::contains_key (const wchar_t* key) const
 {
   return
     contains_key (std::wstring_view (key));
@@ -994,7 +1011,7 @@ iSK_INISection::contains_key (const wchar_t* key)
 __declspec(nothrow)
 bool
 __stdcall
-iSK_INISection::contains_key (const std::wstring_view key)
+iSK_INISection::contains_key (const std::wstring_view key) const
 {
   const auto _kvp =
     keys.find (key.data ());
@@ -1005,9 +1022,9 @@ iSK_INISection::contains_key (const std::wstring_view key)
 }
 
 __declspec(nothrow)
-std::wstring*
+const std::wstring*
 __stdcall
-iSK_INISection::contains_key (const std::wstring& key)
+iSK_INISection::contains_key (const std::wstring& key) const
 {
   const auto _kvp =
     keys.find (key);

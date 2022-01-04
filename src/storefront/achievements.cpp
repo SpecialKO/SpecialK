@@ -86,7 +86,7 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
   {
     SK_ConcealUserDir (wszFileName);
 
-    epic_log->LogEx ( true,
+    steam_log->LogEx ( true,
                         L"  >> Loading Achievement Unlock Sound: '%s'...",
                           wszFileName );
 
@@ -104,7 +104,7 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 
     fclose (fWAV);
 
-    epic_log->LogEx (false, L" %d bytes\n", size);
+    steam_log->LogEx (false, L" %d bytes\n", size);
 
     default_loaded = false;
   }
@@ -115,8 +115,8 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
     if ((! psn) && (! xbox) && (! dt))
       psn = true;
 
-    epic_log->Log ( L"  * Loading Built-In Achievement Unlock Sound: '%s'",
-                      wszFileName );
+    steam_log->Log ( L"  * Loading Built-In Achievement Unlock Sound: '%s'",
+                       wszFileName );
 
     HRSRC default_sound = nullptr;
 

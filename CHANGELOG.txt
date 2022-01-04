@@ -1,4 +1,20 @@
-﻿22.1.2
+﻿22.1.4.1
+========
+ + Improved AppCache (config name lookup) performance for EGS
+ + Stopped loading SteamAPI for GOG / EGS games that ship with SteamAPI DLLs
+ + Quicker Start/Stop DLL unload for apps that lock SK's DLL and then suspend
+
+22.1.4
+======
+ + Epic Game Store titles store config in Profiles\<Localized Game Name>
+     instead of <game.exe> now
+ + Active game title has been added to the control panel for EGS games
+
+22.1.3
+======
+ + Added preliminary 'Epic Enhancements' section to control panel
+
+22.1.2
 ======
  Initial Epic Online Services Integration
  ----------------------------------------

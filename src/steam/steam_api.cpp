@@ -604,22 +604,25 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   else
     wcsncpy_s (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
 
-  static wchar_t
-    wszFullSteamDllPath [MAX_PATH + 2] = { };
+  if (StrStrIW (wszExecutablePath, LR"(SteamApps\common\)"))
+  {
+    static wchar_t
+      wszFullSteamDllPath [MAX_PATH + 2] = { };
 
-  std::wstring recursed (
-    _SK_RecursiveFileSearch ( wszExecutablePath,
-                              wszSteamLib        )
-  );
+    std::wstring recursed (
+      _SK_RecursiveFileSearch ( wszExecutablePath,
+                                wszSteamLib        )
+    );
 
-  wcsncpy_s (dll_file,             MAX_PATH, recursed.c_str (), _TRUNCATE);
-  wcsncpy_s ( wszFullSteamDllPath, MAX_PATH, dll_file,          _TRUNCATE);
+    wcsncpy_s (dll_file,             MAX_PATH, recursed.c_str (), _TRUNCATE);
+    wcsncpy_s ( wszFullSteamDllPath, MAX_PATH, dll_file,          _TRUNCATE);
 
 
-  if (SK_Modules->LoadLibrary             (wszFullSteamDllPath))
-  { wcsncpy_s       (wszDestBuf, max_size, wszFullSteamDllPath, _TRUNCATE);
-    cfg_path.assign (wszDestBuf);
-    return true;
+    if (SK_Modules->LoadLibrary             (wszFullSteamDllPath))
+    { wcsncpy_s       (wszDestBuf, max_size, wszFullSteamDllPath, _TRUNCATE);
+      cfg_path.assign (wszDestBuf);
+      return true;
+    }
   }
 
   return false;
@@ -3273,9 +3276,6 @@ private:
 
   SteamAPICall_t global_request = { };
   SteamAPICall_t stats_request  = { };
-
-  bool           default_loaded = false;
-  uint8_t*       unlock_sound   = nullptr;   // A .WAV (PCM) file
 };
 
 static std::unique_ptr <SK_Steam_AchievementManager> steam_achievements = nullptr;
@@ -7290,6 +7290,8 @@ SK::SteamAPI::GetDataDir (void)
     std::string ();
 }
 
+#include <SpecialK/storefront/epic.h>
+
 uint32_t
 SK_Steam_GetAppID_NoAPI (void)
 {
@@ -7352,6 +7354,19 @@ SK_Steam_GetAppID_NoAPI (void)
 
     return
       config.steam.appid;
+  }
+
+  //
+  // Alternative platforms init now
+  //
+  else if (StrStrIA (GetCommandLineA (), "-epicapp"))
+  {
+    SK::EOS::AppName ();
+
+    // Trigger profile migration if necessary
+    app_cache_mgr->getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());
+
+    SK_GetConfigPathEx (true);
   }
 
   return 0;

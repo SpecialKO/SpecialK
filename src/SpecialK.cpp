@@ -396,6 +396,8 @@ DllMain ( HMODULE hModule,
       {
         if (bRet)
         {
+
+
           SK_DLL_SetAttached        ( false );
           DisableThreadLibraryCalls (hModule);
           CreateTeardownEvent       (       );

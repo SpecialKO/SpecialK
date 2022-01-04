@@ -1121,9 +1121,12 @@ SK_Inject_SpawnUnloadListener (void)
           // One of the reasons for blacklisting is processes that
           //   suspend themselves while our DLL is loaded, so we need a
           //     finite wait time.
-          const DWORD dwTimeout =
+          DWORD dwTimeout =
             ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                 666UL : INFINITE;
+                                                 333UL : INFINITE;
+
+          if (GetModuleLoadCount (g_hModule_CBT) > 1)
+                     dwTimeout = 0;
 
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
@@ -1131,8 +1134,8 @@ SK_Inject_SpawnUnloadListener (void)
 
           if (! SK_GetHostAppUtil ()->isInjectionTool ())
           {
-            if (GetModuleLoadCount (SK_GetDLL ()) > 2)
-                       FreeLibrary (SK_GetDLL ());
+            if (GetModuleLoadCount (g_hModule_CBT) > 2)
+                       FreeLibrary (g_hModule_CBT);
           }
 
           // Is Process Actively Using Special K (?)
@@ -1152,9 +1155,9 @@ SK_Inject_SpawnUnloadListener (void)
           InterlockedDecrement  (&injected_procs);
         }
 
-        InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
+        FreeLibraryAndExitThread (g_hModule_CBT, 0x0);
 
-        FreeLibraryAndExitThread (SK_GetDLL (), 0x0);
+        InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
