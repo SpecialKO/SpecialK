@@ -2806,9 +2806,10 @@ SK_RestartGame (const wchar_t* wszDLL)
   {
     wchar_t      wszRunDLLCmd [MAX_PATH * 4] = { };
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"RunDll32.exe %s,RunDLL_RestartGame %s",
+                 L"RunDll32.exe %s,RunDLL_RestartGame %s %s",
                    wszShortPath,
-                     SK_GetFullyQualifiedApp () );
+                     SK_GetFullyQualifiedApp (),
+                     PathGetArgsW (GetCommandLineW ()) );
 
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };

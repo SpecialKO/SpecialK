@@ -35,6 +35,8 @@
 #include <SpecialK/commands/mem.inl>
 #include <SpecialK/commands/update.inl>
 
+#include <filesystem>
+
 
 #ifdef _WIN64
 #pragma comment (lib, R"(depends\lib\DirectXTex\x64\DirectXTex.lib)")
@@ -2417,372 +2419,6 @@ SK_ShutdownCore (const wchar_t* backend)
   return true;
 }
 
-
-
-
-void
-SK_UnpackCEGUI (void)
-{
-  HMODULE hModSelf =
-    SK_GetDLL ();
-
-  HRSRC res =
-    FindResource ( hModSelf, MAKEINTRESOURCE (IDR_CEGUI_PACKAGE), L"7ZIP" );
-
-  if (res)
-  {
-    DWORD   res_size     =
-      SizeofResource ( hModSelf, res );
-
-    HGLOBAL packed_cegui =
-      LoadResource   ( hModSelf, res );
-
-    if (! packed_cegui) return;
-
-
-    const void* const locked =
-      (void *)LockResource (packed_cegui);
-
-
-    if (locked != nullptr)
-    {
-      SK_LOG0 ( ( L"Unpacking CEGUI for first-time execution" ),
-                  L"CEGUI-Inst" );
-
-      wchar_t      wszArchive     [MAX_PATH + 2] = { };
-      wchar_t      wszDestination [MAX_PATH + 2] = { };
-
-      _snwprintf_s ( wszDestination, MAX_PATH, LR"(%s\My Mods\SpecialK\)",
-                     SK_GetDocumentsDir ().c_str () );
-
-      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
-        SK_CreateDirectories (wszDestination);
-
-      wcscpy_s    (wszArchive, MAX_PATH, wszDestination);
-      PathAppendW (wszArchive, L"CEGUI.7z");
-
-      FILE* fPackedCEGUI =
-        _wfopen   (wszArchive, L"wb");
-
-      if (fPackedCEGUI != nullptr)
-      {
-        fwrite    (locked, 1, res_size, fPackedCEGUI);
-        fclose    (fPackedCEGUI);
-      }
-
-      if (GetFileAttributesW (wszArchive) != INVALID_FILE_ATTRIBUTES)
-      {
-        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-        DeleteFileW       (wszArchive);
-      }
-    }
-
-    UnlockResource (packed_cegui);
-  }
-};
-
-static volatile LONG CEGUI_Init = FALSE;
-
-void
-SetupCEGUI (SK_RenderAPI& LastKnownAPI)
-{
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  if (rb.api == SK_RenderAPI::D3D12)
-    return;
-
-#ifdef _DEBUG
-return;
-#endif
-
-  if ( (rb.api != SK_RenderAPI::Reserved) &&
-        rb.api == LastKnownAPI            &&
-       ( (! InterlockedCompareExchange (&CEGUI_Init, TRUE, FALSE)) ) )
-  {
-    if (StrStrIW (SK_GetHostPath (), L"WindowsApps"))
-    {
-      config.cegui.enable = false;
-
-      return;
-    }
-
-    if ( SK_GetModuleHandle (L"CEGUIBase-0")         != nullptr &&
-         SK_GetModuleHandle (L"CEGUIOgreRenderer-0") != nullptr )
-    {
-      config.cegui.enable = false;
-      SK_ImGui_Warning    (L"CEGUI has been disabled due to game engine already using it!");
-      InterlockedExchange (&CEGUI_Init, TRUE);
-
-      return;
-    }
-
-    bool local = false;
-    if (! SK_COMPAT_IsSystemDllInstalled (L"D3DCompiler_43.dll", &local))
-    {
-      if (! local)
-      {
-        config.cegui.enable = false;
-        SK_ImGui_Warning    (L"CEGUI has been disabled due to missing DirectX files.");
-        InterlockedExchange (&CEGUI_Init, TRUE);
-
-        return;
-      }
-    }
-
-    // Brutally stupid hack for brutally stupid OS (Windows 7)
-    //
-    //   1. Lock the DLL loader + Suspend all Threads
-    //   2. Change Working Dir  + Delay-Load CEGUI DLLs
-    //   3. Restore Working Dir
-    //   4. Resume all Threads  + Unlock DLL Loader
-    //
-    //     >> Not necessary if the kernel supports altered DLL search
-    //          paths <<
-    //
-
-    SK_LockDllLoader ();
-
-    // Disable until we validate CEGUI's state
-    config.cegui.enable = false;
-
-    wchar_t wszCEGUIModPath [ MAX_PATH +  2 ] = { };
-    wchar_t wszCEGUITestDLL [ MAX_PATH +  2 ] = { };
-    wchar_t wszEnvPath      [ MAX_PATH + 64 ] = { };
-
-    const wchar_t* wszArch = SK_RunLHIfBitness ( 64, L"x64",
-                                                     L"Win32" );
-
-    swprintf (wszCEGUIModPath, LR"(%sCEGUI\bin\%s)", SK_GetRootPath (), wszArch);
-
-    if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
-    {
-      swprintf ( wszCEGUIModPath, LR"(%s\My Mods\SpecialK\CEGUI\bin\%s)",
-                   SK_GetDocumentsDir ().c_str (), wszArch );
-
-      swprintf (wszEnvPath, LR"(CEGUI_PARENT_DIR=%s\My Mods\SpecialK\)", SK_GetDocumentsDir ().c_str ());
-    }
-    else
-      swprintf (wszEnvPath, L"CEGUI_PARENT_DIR=%s", SK_GetRootPath ());
-
-    if (GetFileAttributes (wszCEGUIModPath) == INVALID_FILE_ATTRIBUTES)
-    {
-      // Disable CEGUI if unpack fails
-      SK_SaveConfig  ();
-      SK_UnpackCEGUI ();
-    }
-
-    _wputenv  (wszEnvPath);
-
-    lstrcatW  (wszCEGUITestDLL, wszCEGUIModPath);
-    lstrcatW  (wszCEGUITestDLL, L"\\CEGUIBase-0.dll");
-
-    wchar_t wszWorkingDir [MAX_PATH + 2] = { };
-
-    if (! config.cegui.safe_init)
-    {
-      //std::queue <DWORD> tids =
-      //  SK_SuspendAllOtherThreads ();
-
-      GetCurrentDirectory    (MAX_PATH, wszWorkingDir);
-      SetCurrentDirectory    (        wszCEGUIModPath);
-    }
-
-    // This is only guaranteed to be supported on Windows 8, but Win7 and Vista
-    //   do support it if a certain Windows Update (KB2533623) is installed.
-    using AddDllDirectory_pfn          = DLL_DIRECTORY_COOKIE (WINAPI *)(_In_ PCWSTR               NewDirectory);
-    using RemoveDllDirectory_pfn       = BOOL                 (WINAPI *)(_In_ DLL_DIRECTORY_COOKIE Cookie);
-    using SetDefaultDllDirectories_pfn = BOOL                 (WINAPI *)(_In_ DWORD                DirectoryFlags);
-
-    static auto k32_AddDllDirectory =
-      (AddDllDirectory_pfn)
-        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
-                                                 "AddDllDirectory" );
-
-    static auto k32_RemoveDllDirectory =
-      (RemoveDllDirectory_pfn)
-        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
-                                                 "RemoveDllDirectory" );
-
-    static auto k32_SetDefaultDllDirectories =
-      (SetDefaultDllDirectories_pfn)
-        SK_GetProcAddress ( SK_GetModuleHandle (L"kernel32"),
-                                                 "SetDefaultDllDirectories" );
-
-    const int thread_locale =
-      _configthreadlocale (0);
-      _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
-
-    char* szLocale =
-      setlocale (LC_ALL, nullptr);
-
-    auto locale_orig =
-                      ( szLocale == nullptr ) ?
-                            std::string ("C") : std::string (szLocale);
-
-    if     (szLocale != nullptr) setlocale (LC_ALL, "C");
-
-    if ( k32_AddDllDirectory          && k32_RemoveDllDirectory &&
-         k32_SetDefaultDllDirectories &&
-
-           GetFileAttributesW (wszCEGUITestDLL) != INVALID_FILE_ATTRIBUTES )
-    {
-      SK_ConcealUserDir (wszCEGUITestDLL);
-
-      dll_log->Log (L"[  CEGUI   ] Enabling CEGUI: (%s)", wszCEGUITestDLL);
-
-      wchar_t wszEnvVar [ MAX_PATH + 32 ] = { };
-
-       swprintf (wszEnvVar, L"CEGUI_MODULE_DIR=%s", wszCEGUIModPath);
-      _wputenv  (wszEnvVar);
-
-      // This tests for the existence of the DLL before attempting to load it...
-      auto DelayLoadDLL = [&](const char* szDLL)->
-        bool
-        {
-          if (! config.cegui.safe_init)
-            return SUCCEEDED ( __HrLoadAllImportsForDll (szDLL) );
-
-          k32_SetDefaultDllDirectories (
-            LOAD_LIBRARY_SEARCH_SYSTEM32 | LOAD_LIBRARY_SEARCH_USER_DIRS
-          );
-
-          DLL_DIRECTORY_COOKIE cookie = nullptr;
-          bool                 ret    = false;
-
-          static auto
-               setRet = [&](bool set_val) ->
-          void {  ret =          set_val; };
-
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            [](       unsigned int  nExceptionCode,
-                EXCEPTION_POINTERS *pException )->
-            void
-            {
-              // Delay-load DLL Failure Exception ; no idea if there's a constant
-              //   defined for this somewhere in the Windows headers...
-              if (nExceptionCode == EXCEPTION_ACCESS_VIOLATION ||
-                  nExceptionCode == 0xc06d007e)
-              {
-                throw (SK_SEH_IgnoredException ());
-              }
-
-              if ( pException                  != nullptr &&
-                   pException->ExceptionRecord != nullptr )
-              {
-                RaiseException ( nExceptionCode,
-                                 pException->ExceptionRecord->ExceptionFlags,
-                                 pException->ExceptionRecord->NumberParameters,
-                                 pException->ExceptionRecord->ExceptionInformation );
-              }
-            }
-          );
-
-          try
-          {
-            cookie = k32_AddDllDirectory (wszCEGUIModPath);
-            ret    = SUCCEEDED           (__HrLoadAllImportsForDll (szDLL));
-          }
-
-          catch (const SK_SEH_IgnoredException&)
-          {
-            // The magic number 0xc06d007e will come about if the DLL we're trying
-            //   to delay load has some sort of unsatisfied dependency
-            ret = false;
-          }
-          SK_SEH_RemoveTranslator (orig_se);
-
-          k32_SetDefaultDllDirectories (
-            LOAD_LIBRARY_SEARCH_DEFAULT_DIRS
-          );
-
-          k32_RemoveDllDirectory (cookie);
-
-          return ret;
-        };
-
-      if (DelayLoadDLL ("CEGUIBase-0.dll"))
-      {
-        FILE* fTest =
-          _wfopen (L"CEGUI.log", L"wtc+");
-
-        if (fTest != nullptr)
-        {
-          fclose (fTest);
-
-          if (rb.api == SK_RenderAPI::OpenGL)
-          {
-            if (config.apis.OpenGL.hook)
-            {
-              config.cegui.enable =
-                DelayLoadDLL ("CEGUIOpenGLRenderer-0.dll");
-            }
-          }
-
-          if ( rb.api == SK_RenderAPI::D3D9 ||
-               rb.api == SK_RenderAPI::D3D9Ex )
-          {
-            if (config.apis.d3d9.hook || config.apis.d3d9ex.hook)
-            {
-              config.cegui.enable =
-                DelayLoadDLL ("CEGUIDirect3D9Renderer-0.dll");
-            }
-          }
-
-          if (config.apis.dxgi.d3d11.hook)
-          {
-            if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
-                 static_cast <int> (SK_RenderAPI::D3D11              ) )
-            {
-              config.cegui.enable =
-                DelayLoadDLL ("CEGUIDirect3D11Renderer-0.dll");
-            }
-          }
-        }
-
-        else
-        {
-          const wchar_t* wszDisableMsg =
-            L"File permissions are preventing CEGUI from functioning;"
-            L" it has been disabled.";
-
-          ///SK_ImGui_Warning (
-          ///  SK_FormatStringW ( L"%s\n\n"
-          ///                     L"\t\t\t\t>> To fix this, run the game %s "
-          ///                                               L"administrator.",
-          ///                     wszDisableMsg,
-          ///                       SK_IsInjected              () &&
-          ///                    (! SK_Inject_IsAdminSupported ()) ?
-          ///                         L"and SKIM64 as" :
-          ///                                    L"as" ).c_str ()
-          ///);
-
-          SK_LOG0 ( (L"%ws", wszDisableMsg),
-                     L"  CEGUI   " );
-        }
-      }
-    }
-
-    if (! locale_orig.empty ())
-      setlocale (LC_ALL, locale_orig.c_str ());
-    _configthreadlocale (thread_locale);
-
-
-    // If we got this far and CEGUI's not enabled, it's because something went horribly wrong.
-    if (! (config.cegui.enable && SK_GetModuleHandle (L"CEGUIBase-0")))
-      InterlockedExchange (&CEGUI_Init, FALSE);
-
-    if (! config.cegui.safe_init)
-    {
-      SetCurrentDirectory (wszWorkingDir);
-    //SK_ResumeThreads    (tids);
-    }
-
-    SK_UnlockDllLoader  ();
-  }
-}
-
 void
 SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
@@ -3006,20 +2642,6 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   // Handle init. actions that depend on the number of frames
   //   drawn...
   SK_FrameCallback (rb);
-
-  rb.present_staging.begin_cegui.time =
-    SK_QueryPerf ();
-
-
-  if (config.cegui.enable && rb.api != SK_RenderAPI::D3D12)
-    SetupCEGUI (LastKnownAPI);
-
-  if (config.cegui.frames_drawn > 0 || rb.api == SK_RenderAPI::D3D12)
-  {
-  }
-
-  rb.present_staging.end_cegui.time =
-    SK_QueryPerf ();
 
   if (config.render.framerate.enforcement_policy == 1 && rb.swapchain.p != nullptr)
   {
@@ -3438,11 +3060,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     &SK_RenderBackend::frames_drawn
   );
 
-  if (config.cegui.enable && ReadAcquire (&CEGUI_Init))
-  {
-    config.cegui.frames_drawn++;
-  }
-
   SK_StartPerfMonThreads ();
 
 
@@ -3639,8 +3256,53 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
 
   SK_WaitForParentToExit ();
 
-  SK_ShellExecuteA ( hwnd, "runas", lpszCmdLine,
-                       nullptr, nullptr, nCmdShow );
+  // Strip enclosing quotes
+  if (*lpszCmdLine == '"')
+     ++lpszCmdLine;
+
+  std::string work_dir;
+  char*      szArgs  = nullptr;
+  char* szExecutable =
+    StrStrIA (lpszCmdLine, ".exe");
+
+  if (szExecutable != nullptr)
+  {
+    if (     *(szExecutable + 4) != '\0')
+      szArgs = szExecutable + 5;
+
+    *(szExecutable + 4) = '\0';
+
+    work_dir =
+      std::filesystem::path (lpszCmdLine).parent_path ().string ();
+  }
+
+  szExecutable = lpszCmdLine;
+
+  if (szArgs == nullptr || (! StrStrIA (szArgs, "-epicapp=")))
+  {
+    SK_ShellExecuteA ( hwnd, "runas", szExecutable,
+                         szArgs, work_dir.empty () ?
+                                           nullptr :
+                                 work_dir.c_str (), nCmdShow );
+  }
+
+  // Epic Game, needs launcher assistance to restart
+  else
+  {
+    char *szAppId =
+      StrStrIA (szArgs, "-epicapp=") + 9;
+    char *szSpace =
+      StrStrIA (szAppId, " ");
+
+    if (szSpace != nullptr)
+       *szSpace = '\0';
+
+    const std::string epic_launch (
+      SK_FormatString ("com.epicgames.launcher://apps/%s?action=launch&silent=true", szAppId)
+    );
+
+    SK_ShellExecuteA ( hwnd, "runas", epic_launch.c_str (), nullptr, nullptr, nCmdShow );
+  }
 }
 
 void
@@ -3655,8 +3317,53 @@ RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
 
   SK_WaitForParentToExit ();
 
-  SK_ShellExecuteA ( hwnd, "open", lpszCmdLine,
-                       nullptr, nullptr, nCmdShow );
+  // Strip enclosing quotes
+  if (*lpszCmdLine == '"')
+     ++lpszCmdLine;
+
+  std::string work_dir;
+  char*      szArgs  = nullptr;
+  char* szExecutable =
+    StrStrIA (lpszCmdLine, ".exe");
+
+  if (szExecutable != nullptr)
+  {
+    if (     *(szExecutable + 4) != '\0')
+      szArgs = szExecutable + 5;
+
+    *(szExecutable + 4) = '\0';
+
+    work_dir =
+      std::filesystem::path (lpszCmdLine).parent_path ().string ();
+  }
+
+  szExecutable = lpszCmdLine;
+
+  if (szArgs == nullptr || (! StrStrIA (szArgs, "-epicapp=")))
+  {
+    SK_ShellExecuteA ( hwnd, "open", szExecutable,
+                         szArgs, work_dir.empty () ?
+                                           nullptr :
+                                 work_dir.c_str (), nCmdShow );
+  }
+
+  // Epic Game, needs launcher assistance to restart
+  else
+  {
+    char *szAppId =
+      StrStrIA (szArgs, "-epicapp=") + 9;
+    char *szSpace =
+      StrStrIA (szAppId, " ");
+
+    if (szSpace != nullptr)
+       *szSpace = '\0';
+
+    const std::string epic_launch (
+      SK_FormatString ("com.epicgames.launcher://apps/%s?action=launch&silent=true", szAppId)
+    );
+
+    SK_ShellExecuteA ( hwnd, "open", epic_launch.c_str (), nullptr, nullptr, nCmdShow );
+  }
 }
 
 
