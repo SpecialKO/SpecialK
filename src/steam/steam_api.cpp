@@ -20,7 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SPecialK/storefront/achievements.h>
+#include <SpecialK/storefront/achievements.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -1674,73 +1674,6 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
   return false;
 }
 
-
-#define FREEBIE     96.0f
-#define COMMON      75.0f
-#define UNCOMMON    50.0f
-#define RARE        25.0f
-#define VERY_RARE   15.0f
-#define ONE_PERCENT  1.0f
-
-
-std::string
-SK_Steam_RarityToColor (float percent)
-{
-#ifdef SK_USE_OLD_ACHIEVEMENT_COLORS
-  if (percent <= ONE_PERCENT)
-    return "FFFF1111";
-
-  if (percent <= VERY_RARE)
-    return "FFFFC711";
-
-  if (percent <= RARE)
-    return "FFFFFACD";
-
-  if (percent <= UNCOMMON)
-    return "FF0084FF";
-
-  if (percent <= COMMON)
-    return "FFFFFFFF";
-
-  if (percent >= FREEBIE)
-    return "FFBBBBBB";
-
-  return "FFFFFFFF";
-#else
-  ImVec4 color =
-    ImColor::HSV (0.4f * (percent / 100.0f), 1.0f, 1.0f);
-
-  return
-    SK_FormatString ("FF%02X%02X%02X", (int)(color.x * 255.0f),
-                                       (int)(color.y * 255.0f),
-                                       (int)(color.z * 255.0f) );
-#endif
-}
-
-const char*
-SK_Steam_RarityToName (float percent)
-{
-  if (percent <= ONE_PERCENT)
-    return "The Other 1%";
-
-  if (percent <= VERY_RARE)
-    return "Very Rare";
-
-  if (percent <= RARE)
-    return "Rare";
-
-  if (percent <= UNCOMMON)
-    return "Uncommon";
-
-  if (percent <= COMMON)
-    return "Common";
-
-  if (percent >= FREEBIE)
-    return "Freebie";
-
-  return "Common";
-}
-
 bool           has_global_data  = false;
 LONG           next_friend      = 0;
 LONG           friend_count     = 0;
@@ -1749,112 +1682,6 @@ LONGLONG       friends_done     = 0;
 
 class SK_Steam_AchievementManager : public SK_AchievementManager
 {
-public:
-  class Achievement : public SK_SteamAchievement
-  {
-  public:
-    Achievement (int idx, const char* szName, ISteamUserStats* stats)
-    {
-      idx_            = idx;
-
-      global_percent_ = 0.0f;
-      unlocked_       = false;
-      time_           = 0;
-
-      friends_.possible = 0;
-      friends_.unlocked = 0;
-
-      icons_.achieved   = nullptr;
-      icons_.unachieved = nullptr;
-
-      progress_.max     = 0;
-      progress_.current = 0;
-
-      name_ =
-        _strdup (szName);
-
-      if (stats != nullptr)
-      {
-        const char* human =
-          stats->GetAchievementDisplayAttribute (szName, "name");
-
-        const char* desc =
-          stats->GetAchievementDisplayAttribute (szName, "desc");
-
-        human_name_ =
-          _strdup (human != nullptr ? human : "<INVALID>");
-        desc_ =
-          _strdup ( desc != nullptr ? desc  : "<INVALID>");
-      }
-    }
-
-     Achievement (const Achievement& copy) = delete;
-
-    ~Achievement (void)
-    {
-      if (name_ != nullptr)
-      {
-        free ((void *)name_);
-        name_ = nullptr;
-      }
-
-      if (human_name_ != nullptr)
-      {
-        free ((void *)human_name_);
-        human_name_ = nullptr;
-      }
-
-      if (desc_ != nullptr)
-      {
-        free ((void *)desc_);
-        desc_ = nullptr;
-      }
-
-      if (icons_.unachieved != nullptr)
-      {
-        free (icons_.unachieved);
-        icons_.unachieved = nullptr;
-      }
-
-      if (icons_.achieved != nullptr)
-      {
-        free (icons_.achieved);
-        icons_.achieved = nullptr;
-      }
-    }
-
-    void update (ISteamUserStats* stats)
-    {
-      stats->GetAchievementAndUnlockTime ( name_,
-                                          &unlocked_,
-                              (uint32_t *)&time_ );
-    }
-
-    void update_global (ISteamUserStats* stats)
-    {
-      // Reset to 0.0 on read failure
-      if (! stats->GetAchievementAchievedPercent (
-              name_,
-                &global_percent_                 )
-         )
-      {
-        steam_log->Log (
-          L" Global Achievement Read Failure For '%hs'", name_
-        );
-        global_percent_ = 0.0f;
-      }
-    }
-  };
-
-private:
-  struct SK_AchievementPopup
-  {
-    CEGUI::Window* window;
-    DWORD          time;
-    bool           final_pos; // When the animation is finished, this will be set.
-    Achievement*   achievement;
-  };
-
 public:
   SK_Steam_AchievementManager (const wchar_t* wszUnlockSound) :
     unlock_listener ( this, &SK_Steam_AchievementManager::OnUnlock       ),
@@ -1902,18 +1729,13 @@ public:
     achievements.list.resize        (achv_reserve);
     achievements.string_map.reserve (achv_reserve);
 
-    for (uint32_t i = 0; i < achv_reserve; i++)
-      achievements.list [i] = nullptr;
+    //for (uint32_t i = 0; i < achv_reserve; i++)
+    //  achievements.list [i] = {nullptr;
+    achievements.list.clear ();
   }
 
   ~SK_Steam_AchievementManager (void)
   {
-    if ((! default_loaded) && (unlock_sound != nullptr))
-    {
-      delete [] unlock_sound;
-      unlock_sound = nullptr;
-    }
-
     unlock_listener.Unregister ();
     stat_receipt.Unregister    ();
     icon_listener.Unregister   ();
@@ -1929,41 +1751,39 @@ public:
 
     for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
     {
-      Achievement* pAchievement = achievements.list [i];
+      const Achievement* achievement =
+                         achievements.list [i];
 
-      if (! pAchievement)
+      if (achievement == nullptr || achievement->name_.empty ())
         continue;
 
-      Achievement& achievement = *pAchievement;
-
       steam_log->LogEx (false, L"\n [%c] Achievement %03lu......: '%hs'\n",
-                        achievement.unlocked_ ? L'X' : L' ',
-                        i, achievement.name_
-      );
+                        achievement->unlocked_ ? L'X' : L' ',
+                        i, achievement->name_.c_str ());
       steam_log->LogEx (false,
                         L"  + Human Readable Name...: %hs\n",
-                        achievement.human_name_);
-      if (achievement.desc_ != nullptr && strlen (achievement.desc_))
+                        achievement->text_.locked.human_name.c_str ());
+      if (! achievement->text_.locked.desc.empty ())
         steam_log->LogEx (false,
                           L"  *- Detailed Description.: %hs\n",
-                          achievement.desc_);
+                          achievement->text_.locked.desc.c_str ());
 
-      if (achievement.global_percent_ > 0.0f)
+      if (achievement->global_percent_ > 0.0f)
         steam_log->LogEx (false,
                           L"  #-- Rarity (Global).....: %6.2f%%\n",
-                          achievement.global_percent_);
+                          achievement->global_percent_);
 
-      if (achievement.friends_.possible > 0)
+      if (achievement->friends_.possible > 0)
         steam_log->LogEx ( false,
                           L"  #-- Rarity (Friend).....: %6.2f%%\n",
-          100.0 * (static_cast <double> (achievement.friends_.unlocked) /
-                   static_cast <double> (achievement.friends_.possible)) );
+          100.0 * (static_cast <double> (achievement->friends_.unlocked) /
+                   static_cast <double> (achievement->friends_.possible)) );
 
-      if (achievement.unlocked_)
+      if (achievement->unlocked_)
       {
         steam_log->LogEx (false,
                           L"  @--- Player Unlocked At.: %s",
-                          _wctime32 (&achievement.time_));
+                          _wctime64 (&achievement->time_));
       }
     }
 
@@ -2515,7 +2335,8 @@ public:
         }
 
         steam_log->Log ( L" Achievement: '%hs' (%hs) - Unlocked!",
-                           achievement->human_name_, achievement->desc_ );
+                           achievement->text_.unlocked.human_name.c_str (),
+                           achievement->text_.unlocked.desc      .c_str ());
 
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
@@ -2540,8 +2361,8 @@ public:
 
         steam_log->Log ( L" Achievement: '%hs' (%hs) - "
                          L"Progress %lu / %lu (%04.01f%%)",
-                           achievement->human_name_,
-                           achievement->desc_,
+                           achievement->text_.locked.human_name.c_str (),
+                           achievement->text_.locked.desc      .c_str (),
                              pParam->m_nCurProgress,
                              pParam->m_nMaxProgress,
                                100.0 * progress );
@@ -2598,320 +2419,6 @@ public:
     }
   }
 
-  void clearPopups (void)
-  {
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->lock ();
-
-    if (popups.empty ())
-    {
-      if (steam_popup_cs != nullptr)
-          steam_popup_cs->unlock ();
-      return;
-    }
-
-    popups.clear ();
-
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->unlock ();
-  }
-
-  int drawPopups (void)
-  {
-    if (! ( config.cegui.enable &&
-            config.cegui.frames_drawn > 0))
-    {
-      return 0;
-    }
-
-
-    int drawn = 0;
-
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->lock ();
-
-    if (popups.empty ())
-    {
-      if (steam_popup_cs != nullptr)
-          steam_popup_cs->unlock ();
-      return drawn;
-    }
-
-    //
-    // We don't need this, we always do this from the render thread.
-    //
-    {
-      try
-      {
-        auto& DisplaySize =
-          CEGUI::System::getDllSingleton ().getRenderer ()->
-                          getDisplaySize ();
-
-        // If true, we need to redraw all text overlays to prevent flickering
-        bool removed = false;
-        bool created = false;
-
-#define POPUP_DURATION_MS config.steam.achievements.popup.duration
-
-        auto it =
-          popups.begin ();
-
-        float inset =
-          config.steam.achievements.popup.inset;
-
-        if (inset < 0.0001f)  inset = 0.0f;
-
-        const float full_ht =
-          DisplaySize.d_height * (1.0f - inset);
-
-        const float full_wd = DisplaySize.d_width * (1.0f - inset);
-
-        float x_origin, y_origin,
-              x_dir,    y_dir;
-
-        CEGUI::Window* first = it->window;
-
-        const float win_ht0 = ( first != nullptr ?
-          (it->window->getPixelSize ().d_height) : 0.0f );
-        const float win_wd0 = ( first != nullptr ?
-           (it->window->getPixelSize ().d_width) : 0.0f );
-
-        const float title_wd =
-          DisplaySize.d_width * (1.0f - 2.0f * inset);
-
-        const float title_ht =
-          DisplaySize.d_height * (1.0f - 2.0f * inset);
-
-        float fract_x = 0.0f,
-              fract_y = 0.0f;
-
-        modf (title_wd / win_wd0, &fract_x);
-        modf (title_ht / win_ht0, &fract_y);
-
-        float x_off = full_wd / (4.0f * fract_x);
-        float y_off = full_ht / (4.0f * fract_y);
-
-        // 0.0 == Special Case: Flush With Anchor Point
-        if (inset == 0.0f)
-        {
-          x_off = 0.000001f;
-          y_off = 0.000001f;
-        }
-
-        switch (config.steam.achievements.popup.origin)
-        {
-          default:
-          case 0:
-            x_origin =        inset;                          x_dir = 1.0f;
-            y_origin =        inset;                          y_dir = 1.0f;
-            break;
-          case 1:
-            x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-            y_origin =        inset;                          y_dir =  1.0f;
-            break;
-          case 2:
-            x_origin =        inset;                          x_dir =  1.0f;
-            y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
-            break;
-          case 3:
-            x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-            y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
-            break;
-        }
-
-        CEGUI::UDim x_pos (x_origin, x_off * x_dir);
-        CEGUI::UDim y_pos (y_origin, y_off * y_dir);
-
-        static int take_screenshot = 0;
-
-        while (it != popups.cend ())
-        {
-          if (SK_timeGetTime () < (*it).time + POPUP_DURATION_MS)
-          {
-            float percent_of_lifetime =
-              ( static_cast <float> ((*it).time + POPUP_DURATION_MS - SK_timeGetTime ()) /
-                static_cast <float> (             POPUP_DURATION_MS)                     );
-
-            //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-            CEGUI::Window* win = (*it).window;
-
-            if (win == nullptr)
-            {
-              win     = createPopupWindow (&*it);
-              created = true;
-            }
-
-            const float win_ht =
-              win->getPixelSize ().d_height;
-
-            const float win_wd =
-              win->getPixelSize ().d_width;
-
-            CEGUI::UVector2 win_pos (x_pos, y_pos);
-
-            float bottom_y = win_pos.d_y.d_scale * full_ht +
-                             win_pos.d_y.d_offset          +
-                             win_ht;
-
-            // The bottom of the window would be off-screen, so
-            //   move it to the top and offset by the width of
-            //     each popup.
-            if ( bottom_y > full_ht || bottom_y < win_ht0 )
-            {
-              y_pos  = CEGUI::UDim (y_origin, y_off * y_dir);
-              x_pos += x_dir * win->getSize ().d_width;
-
-              win_pos   = (CEGUI::UVector2 (x_pos, y_pos));
-            }
-
-            float right_x = win_pos.d_x.d_scale * full_wd +
-                            win_pos.d_x.d_offset          +
-                            win_wd;
-
-            // Window is off-screen horizontally AND vertically
-            if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
-            {
-              // Since we're not going to draw this, treat it as a new
-              //   popup until it first becomes visible.
-              (*it).time =
-                SK_timeGetTime ();
-              win->hide        ();
-            }
-
-            else
-            {
-              if (config.steam.achievements.popup.animate)
-              {
-                CEGUI::UDim percent (
-                  CEGUI::UDim (y_origin, y_off).percent ()
-                );
-
-                if (percent_of_lifetime <= 0.1f)
-                {
-                  win_pos.d_y /= (percent * 100.0f *
-                                  CEGUI::UDim (percent_of_lifetime / 0.1f, 0.0f));
-                }
-
-                else if (percent_of_lifetime >= 0.9f)
-                {
-                  win_pos.d_y /= (percent * 100.0f *
-                                  CEGUI::UDim ( (1.0f -
-                                  (percent_of_lifetime - 0.9f) / 0.1f),
-                                  0.0f ));
-                }
-
-                else if (! it->final_pos)
-                {
-                  take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
-                  it->final_pos   = true;
-                }
-              }
-
-              else if (! it->final_pos)
-              {
-                take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
-                it->final_pos   = true;
-              }
-
-              win->show        ();
-              win->setPosition (win_pos);
-            }
-
-            y_pos += y_dir * win->getSize ().d_height;
-
-            ++it;
-            //} else {
-            //it = popups.erase (it);
-            //}
-          }
-
-          else
-          {
-            //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-            CEGUI::Window* win = (*it).window;
-
-            CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
-
-            removed = true;
-            //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
-            //}
-
-            it = popups.erase (it);
-          }
-        }
-
-        // Invalidate text overlays any time a window is removed,
-        //   this prevents flicker.
-        if (removed || created || take_screenshot > 0)
-        {
-          SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
-            CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
-        }
-
-        // Popup is in the final location, so now is when screenshots
-        //   need to be taken.
-        if (config.steam.achievements.take_screenshot && take_screenshot > 0)
-        {
-          // Delay the screenshot so it doesn't show up twice
-          --take_screenshot;
-
-          if (! take_screenshot)
-          {
-            SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
-            take_screenshot = -1;
-          }
-        }
-
-        ++drawn;
-      }
-
-      catch (const CEGUI::GenericException&) {}
-    }
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->unlock ();
-
-    return drawn;
-  }
-
-  float getPercentOfAchievementsUnlocked (void) const
-  {
-    return percent_unlocked;
-  }
-
-  Achievement* getAchievement (const char* szName) const
-  {
-    if (achievements.string_map.count (szName))
-      return achievements.string_map.at (szName);
-
-    return nullptr;
-  }
-
-  SK_SteamAchievement** getAchievements (size_t* pnAchievements = nullptr)
-  {
-    ISteamUserStats* stats = steam_ctx.UserStats       ();
-    size_t           count = stats->GetNumAchievements ();
-
-    if (pnAchievements != nullptr)
-      *pnAchievements = count;
-
-    static std::set    <SK_SteamAchievement *> achievement_set;
-    static std::vector <SK_SteamAchievement *> achievement_data;
-
-    if (achievement_set.size () != count)
-    {
-      for (size_t i = 0; i < count; i++)
-      {
-        if (! achievement_set.count (achievements.list [i]))
-        {
-          achievement_set.emplace    (achievements.list [i]);
-          achievement_data.push_back (achievements.list [i]);
-        }
-      }
-    }
-
-    return achievement_data.data ();
-  }
-
   void requestStats (void)
   {
     auto pUserStats =
@@ -2949,13 +2456,14 @@ public:
       {
         //steam_log->Log (L"  >> %hs", stats->GetAchievementName (i));
 
-        auto& achievement =
+        auto* achievement =
           achievements.list [i];
 
-        if (achievement == nullptr)
+        if ( achievement == nullptr   ||
+             achievement->name_.empty () )
         {
-          achievement =
-            new Achievement (i,
+          achievement = new
+            Achievement (i,
               stats->GetAchievementName (i),
               stats
             );
@@ -2976,7 +2484,7 @@ public:
           //     the locked icon.
           if ( steam_ctx.UserStats () )
           {    steam_ctx.UserStats ()->GetAchievementIcon (
-                 achievement->name_
+                 achievement->name_.c_str ()
                );
           }
 
@@ -2989,7 +2497,8 @@ public:
           achievement->update (stats);
         }
 
-        if (achievement->unlocked_)
+        if ( achievement != nullptr &&
+             achievement->unlocked_ )
           unlocked++;
       }
 
@@ -3039,223 +2548,7 @@ public:
     return false;
   }
 
-protected:
-  CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup)
-  {
-    if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
-
-    if (popup->achievement == nullptr)
-      return nullptr;
-
-    CEGUI::System* pSys =
-      CEGUI::System::getDllSingletonPtr ();
-
-    extern CEGUI::Window* SK_achv_popup;
-
-    char     szPopupName [32] = { };
-    sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
-
-    popup->window              = SK_achv_popup->clone (true);
-    Achievement*   achievement = popup->achievement;
-    CEGUI::Window* achv_popup  = popup->window;
-
-    assert (achievement != nullptr);
-
-    achv_popup->setName (szPopupName);
-
-    CEGUI::Window* achv_title  = achv_popup->getChild ("Title");
-    achv_title->setText ((const CEGUI::utf8 *)achievement->human_name_);
-
-    CEGUI::Window* achv_desc = achv_popup->getChild ("Description");
-    achv_desc->setText ((const CEGUI::utf8 *)achievement->desc_);
-
-    CEGUI::Window* achv_rank = achv_popup->getChild ("Rank");
-    achv_rank->setProperty ( "NormalTextColour",
-                            SK_Steam_RarityToColor (achievement->global_percent_).c_str ()
-    );
-    achv_rank->setText ( SK_Steam_RarityToName (achievement->global_percent_) );
-
-    CEGUI::Window* achv_global = achv_popup->getChild ("GlobalRarity");
-
-    char       szGlobal [32] = { };
-    snprintf ( szGlobal, 32,
-                 "Global: %6.2f%%",
-                   achievement->global_percent_ );
-    achv_global->setText (szGlobal);
-
-    CEGUI::Window* achv_friend =
-      achv_popup->getChild ("FriendRarity");
-
-    char       szFriend [32] = { };
-    snprintf ( szFriend, 32,
-                 "Friends: %6.2f%%",
-                   100.0 * ( (double)          achievement->friends_.unlocked /
-                             (double)std::max (achievement->friends_.possible, 1) )
-             );
-    achv_friend->setText (szFriend);
-
-
-    // If the server hasn't updated the unlock time, just use the current time
-    if (achievement->time_ == 0)
-      _time32 (&achievement->time_);
-
-    CEGUI::Window* achv_unlock  = achv_popup->getChild ("UnlockTime");
-    CEGUI::Window* achv_percent = achv_popup->getChild ("ProgressBar");
-
-    float progress =
-      achievement->progress_.getPercent ();
-
-    char szUnlockTime [128] = { };
-    if (progress == 100.0f)
-    {
-      snprintf ( szUnlockTime, 128,
-                   "Unlocked: %s", _ctime32 (&achievement->time_) );
-
-      achv_percent->setProperty ( "CurrentProgress", "1.0" );
-    }
-
-    else
-    {
-      snprintf ( szUnlockTime, 16,
-                   "%5.4f",
-                     progress / 100.0
-      );
-
-      achv_percent->setProperty ( "CurrentProgress", szUnlockTime );
-
-      snprintf ( szUnlockTime, 128,
-                   "Current Progress: %li/%li (%6.2f%%)",
-                     achievement->progress_.current,
-                     achievement->progress_.max,
-                                  progress
-      );
-    }
-    achv_unlock->setText (szUnlockTime);
-
-    auto pUserStats = steam_ctx.UserStats ();
-    auto pUtils = steam_ctx.Utils ();
-
-    int icon_idx =
-      ( pUserStats != nullptr ?
-        pUserStats->GetAchievementIcon (achievement->name_) :
-                              0 );
-
-    // Icon width and height
-    uint32 w = 0,
-      h = 0;
-
-    if (icon_idx != 0)
-    {
-      if (pUtils != nullptr)
-          pUtils->GetImageSize (icon_idx, &w, &h);
-
-      int tries = 1;
-
-      while (achievement->icons_.achieved == nullptr && tries < 8)
-      {
-        achievement->icons_.achieved =
-          (uint8_t *)_aligned_malloc (static_cast <size_t> (4) * w * h, 16);
-
-        if (pUtils != nullptr)
-        {
-          if ( ! pUtils->GetImageRGBA (
-                   icon_idx,
-                     achievement->icons_.achieved,
-                       ( 4 * w * h )
-                 )
-             )
-          {
-            _aligned_free (achievement->icons_.achieved);
-                           achievement->icons_.achieved = nullptr;
-
-            ++tries;
-          }
-
-          else
-          {
-            steam_log->Log ( L" * Fetched RGBA Icon (idx=%li) for Achievement: '%hs'  (%lux%lu) "
-                             L"{ Took %li try(s) }",
-                               icon_idx, achievement->name_, w, h, tries
-            );
-          }
-        }
-      }
-    }
-
-    if (achievement->icons_.achieved != nullptr)
-    {
-      bool exists =
-        CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_);
-
-      CEGUI::Image& img =
-        ( exists ?
-            CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_) :
-            CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_) );
-
-      if (! exists) try
-      {
-        /* StaticImage */
-        CEGUI::Texture& Tex =
-          pSys->getRenderer ()->createTexture (achievement->name_);
-
-        Tex.loadFromMemory ( achievement->icons_.achieved,
-                               CEGUI::Sizef ( static_cast <float> (w),
-                                              static_cast <float> (h) ),
-                               CEGUI::Texture::PF_RGBA );
-
-        ((CEGUI::BasicImage &)img).setTexture (&Tex);
-
-        const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
-
-        ((CEGUI::BasicImage &)img).setArea       (rect);
-        ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
-      }
-
-      catch (const CEGUI::GenericException&)
-      {
-      }
-
-      try
-      {
-        CEGUI::Window* staticImage =
-          achv_popup->getChild ("Icon");
-
-        staticImage->setProperty ( "Image",
-                                     achievement->name_ );
-      }
-
-      catch (const CEGUI::GenericException&)
-      {
-      }
-    }
-
-    if (config.steam.achievements.popup.show_title)
-    {
-      std::string app_name = SK::SteamAPI::AppName ();
-
-      if (! app_name.empty ())
-      {
-        achv_popup->setText (
-          (const CEGUI::utf8 *)app_name.c_str ()
-        );
-      }
-    }
-
-    CEGUI::System::getDllSingleton ().
-      getDefaultGUIContext ().
-             getRootWindow ()->
-                  addChild (popup->window);
-
-    return achv_popup;
-  }
-
 private:
-  struct SK_AchievementStorage
-  {
-    std::vector        <             Achievement*> list;
-    std::unordered_map <std::string, Achievement*> string_map;
-  } achievements; // SELF
-
   struct friend_s {
     std::string        name             =   "";
     float              percent_unlocked = 0.0f;
@@ -3268,11 +2561,6 @@ private:
 
   std::unordered_map <uint64_t, uint32_t>
     friend_sid_to_idx;
-
-  float                             percent_unlocked;
-
-  std::vector <SK_AchievementPopup> popups;
-  int                               lifetime_popups;
 
   SteamAPICall_t global_request = { };
   SteamAPICall_t stats_request  = { };
@@ -4988,10 +4276,10 @@ SK_SteamAPI_GetNumPossibleAchievements (void)
   return possible.first;
 }
 
-std::vector <SK_SteamAchievement *>&
+std::vector <SK_Achievement *>&
 SK_SteamAPI_GetAllAchievements (void)
 {
-  static std::vector <SK_SteamAchievement *> achievements;
+  static std::vector <SK_Achievement *> achievements;
 
   if (steam_achievements == nullptr)
   {
@@ -5001,7 +4289,7 @@ SK_SteamAPI_GetAllAchievements (void)
 
   size_t num;
 
-  SK_SteamAchievement** ppAchv =
+  SK_Achievement** ppAchv =
     steam_achievements->getAchievements (&num);
 
   if (achievements.size () != num)
@@ -5015,14 +4303,14 @@ SK_SteamAPI_GetAllAchievements (void)
   return achievements;
 }
 
-std::vector <SK_SteamAchievement *>&
+std::vector <SK_Achievement *>&
 SK_SteamAPI_GetUnlockedAchievements (void)
 {
-  static std::vector <SK_SteamAchievement *> unlocked_achievements;
+  static std::vector <SK_Achievement *> unlocked_achievements;
 
   unlocked_achievements.clear ();
 
-  std::vector <SK_SteamAchievement *>& achievements =
+  std::vector <SK_Achievement *>& achievements =
     SK_SteamAPI_GetAllAchievements ();
 
   for ( auto& it : achievements )
@@ -5034,14 +4322,14 @@ SK_SteamAPI_GetUnlockedAchievements (void)
   return unlocked_achievements;
 }
 
-std::vector <SK_SteamAchievement *>&
+std::vector <SK_Achievement *>&
 SK_SteamAPI_GetLockedAchievements (void)
 {
-  static std::vector <SK_SteamAchievement *> locked_achievements;
+  static std::vector <SK_Achievement *> locked_achievements;
 
   locked_achievements.clear ();
 
-  std::vector <SK_SteamAchievement *>& achievements =
+  std::vector <SK_Achievement *>& achievements =
     SK_SteamAPI_GetAllAchievements ();
 
   for ( auto& it : achievements )
@@ -5131,7 +4419,7 @@ SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
 
   size_t shared = 0;
 
-  std::vector <SK_SteamAchievement *>&
+  std::vector <SK_Achievement *>&
     unlocked_achvs = SK_SteamAPI_GetUnlockedAchievements ();
 
   if (pStats != nullptr)
@@ -7361,7 +6649,8 @@ SK_Steam_GetAppID_NoAPI (void)
   //
   else if (StrStrIA (GetCommandLineA (), "-epicapp"))
   {
-    SK::EOS::AppName ();
+    SK::EOS::Init (false); // Hook EOS SDK; game was launched by Epic
+    SK::EOS::AppName (  ); // Use manifest to get app name
 
     // Trigger profile migration if necessary
     app_cache_mgr->getConfigPathFromAppPath (SK_GetFullyQualifiedApp ());

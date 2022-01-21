@@ -88,10 +88,61 @@ private:
   } text;
 
   struct {
-    int       ach_id;
     struct {
-      AppId_t app_id;
+      double global;
+      double friends;
+    } unlock_percent;
+
+    bool has_unlock_stats = false;
+  } stats;
+
+  struct {
+    struct epic_s {
+      uint16_t xp;
+
+      enum class
+      trophy_type
+      {
+        Invalid,// (< 5 or > 200)
+        Bronze, // (  5 -  45 XP)
+        Silver, // ( 50 -  95 XP)
+        Gold    // (100 - 200 XP)
+      };
+
+      trophy_type getTrophy (void)
+      {
+        if (xp >= 5 && xp <= 45)
+          return trophy_type::Bronze;
+
+        if (xp >= 50 && xp <= 95)
+          return trophy_type::Silver;
+
+        if (xp >= 100 && xp <= 200)
+          return trophy_type::Gold;
+
+        return trophy_type::Invalid;
+      }
+
+      bool has_xp = false;
+    } eos;
+  } value;
+
+  struct {
+    struct {
+      int               ach_id;
+      AppId_t           app_id;
     } steam;
+
+    struct {
+      uint32_t          ach_idx;
+      EOS_ProductUserId app_user_id;
+    } epic;
+
+    struct {
+    } galaxy;
+
+    struct {
+    } xbox;
   } platform;
 };
 

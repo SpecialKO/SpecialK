@@ -3408,7 +3408,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     }
   }
 
-  UINT enum_count = idx;
+  UINT        enum_count = idx;
+  static UINT last_count = idx;
 
   for ( auto disp : displays )
   {
@@ -3592,8 +3593,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         display.hdr.white_level = 80.0f;
 
       // Name and preferred modes are immutable, so we can skip this
-      if (*display.path_name == L'\0')
-      {
+      if (*display.path_name == L'\0' || last_count != enum_count)
+      {                               // That only applies if the number of monitors did not change
+        // Clear any cached names
+        *display.name = L'\0';
+
         DISPLAYCONFIG_TARGET_PREFERRED_MODE
           getPreferredMode                  = { };
           getPreferredMode.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_PREFERRED_MODE;
@@ -3719,6 +3723,8 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     display_changed [idx] =
       old_crc != display_crc [idx];
+
+    last_count = enum_count;
 
     if (display_changed [idx])
     {

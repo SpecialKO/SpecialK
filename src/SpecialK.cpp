@@ -396,8 +396,6 @@ DllMain ( HMODULE hModule,
       {
         if (bRet)
         {
-
-
           SK_DLL_SetAttached        ( false );
           DisableThreadLibraryCalls (hModule);
           CreateTeardownEvent       (       );
@@ -781,6 +779,8 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
     if (auto_boot_viable)
     {
       SK_SetDLLRole (std::get <0> (role_reversal [last_known]));
+
+
 
       // This actually _saves_ the config, after parsing and
       //   trimming it.

@@ -495,7 +495,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       SK_Input_HookDI7 ();
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
       SK_Input_HookHID ();
-    else if (   StrStrI (lpFileName, SK_TEXT("EOSSDK-Win")))
+    else if (   StrStrI ( lpFileName, SK_TEXT("EOSSDK-Win")) ||
+                StrStrIW (wszModName,        L"EOSSDK-Win") )
       SK::EOS::Init (false);
 
 #if 0

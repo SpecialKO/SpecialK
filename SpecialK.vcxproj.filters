@@ -136,9 +136,6 @@
     <Filter Include="Header Files\Control Panel">
       <UniqueIdentifier>{1d99dc0a-9961-4f90-84bd-cad61eebd693}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Plugins\OSD">
-      <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Render\D3D8">
       <UniqueIdentifier>{09f216f3-b598-4a6a-aee1-587fd9d42d27}</UniqueIdentifier>
     </Filter>
@@ -352,6 +349,9 @@
     <Filter Include="Source Files\Storefronts\Steam\Wrapper">
       <UniqueIdentifier>{b68a55ad-9318-4278-8ca3-36d75f0cf5fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\OSD">
+      <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -403,16 +403,16 @@
       <Filter>Header Files\Core</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\command.h">
-      <Filter>Header Files\Plugins\OSD</Filter>
+      <Filter>Header Files\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\console.h">
-      <Filter>Header Files\Plugins\OSD</Filter>
+      <Filter>Header Files\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\osd\popup.h">
-      <Filter>Header Files\Plugins\OSD</Filter>
+      <Filter>Header Files\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\osd\text.h">
-      <Filter>Header Files\Plugins\OSD</Filter>
+      <Filter>Header Files\OSD</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h">
       <Filter>Header Files\Diagnostics</Filter>
@@ -4430,9 +4430,6 @@
     <ClCompile Include="src\lazy_global.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
-    <ClCompile Include="src\popups\steam_achievement.cpp">
-      <Filter>Source Files\Storefronts\Steam</Filter>
-    </ClCompile>
     <ClCompile Include="src\storefront\epic.cpp">
       <Filter>Source Files\Storefronts\Epic Online Services</Filter>
     </ClCompile>
@@ -4444,6 +4441,12 @@
     </ClCompile>
     <ClCompile Include="src\control_panel\cfg_epic.cpp">
       <Filter>Source Files\Control Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\storefront\platform.cpp">
+      <Filter>Source Files\Storefronts</Filter>
+    </ClCompile>
+    <ClCompile Include="src\popups\achievement.cpp">
+      <Filter>Source Files\OSD</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

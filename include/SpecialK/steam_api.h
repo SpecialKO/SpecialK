@@ -34,6 +34,7 @@ struct IUnknown;
 #include <SpecialK/log.h>
 #include <SpecialK/command.h>
 #include <SpecialK/render/screenshot.h>
+#include <SpecialK/storefront/achievements.h>
 
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
@@ -131,57 +132,6 @@ SK_Steam_TestImports (HMODULE hMod);
 void
 SK_Steam_InitCommandConsoleVariables (void);
 
-//
-// Internal data stored in the Achievement Manager, this is
-//   the publicly visible data...
-//
-//   I do not want to expose the poorly designed interface
-//     of the full achievement manager outside the DLL,
-//       so there exist a few flattened API functions
-//         that can communicate with it and these are
-//           the data they provide.
-//
-struct SK_SteamAchievement
-{
-  const char* name_;          // UTF-8 (I think?)
-  const char* human_name_;    // UTF-8
-  const char* desc_;          // UTF-8
-
-  // Raw pixel data (RGB8) for achievement icons
-  struct
-  {
-    uint8_t*  achieved;
-    uint8_t*  unachieved;
-  } icons_;
-
-  // If we were to call ISteamStats::GetAchievementName (...),
-  //   this is the index we could use.
-  int         idx_;
-
-  float       global_percent_;
-  __time32_t  time_;
-
-  struct
-  {
-    int unlocked; // Number of friends who have unlocked
-    int possible; // Number of friends who may be able to unlock
-  } friends_;
-
-  struct
-  {
-    int current;
-    int max;
-
-    __forceinline float getPercent (void) noexcept
-    {
-      return 100.0F * sk::narrow_cast <float> (current) /
-                      sk::narrow_cast <float> (max);
-    }
-  } progress_;
-
-  bool        unlocked_;
-};
-
 class SK_Steam_ScreenshotManager
 {
 public:
@@ -233,9 +183,9 @@ private:
 
 size_t SK_SteamAPI_GetNumPossibleAchievements (void);
 
-std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetUnlockedAchievements (void);
-std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetLockedAchievements   (void);
-std::vector <SK_SteamAchievement *>& SK_SteamAPI_GetAllAchievements      (void);
+std::vector <SK_Achievement *>& SK_SteamAPI_GetUnlockedAchievements (void);
+std::vector <SK_Achievement *>& SK_SteamAPI_GetLockedAchievements   (void);
+std::vector <SK_Achievement *>& SK_SteamAPI_GetAllAchievements      (void);
 
 float  SK_SteamAPI_GetUnlockedPercentForFriend      (uint32_t friend_idx);
 size_t SK_SteamAPI_GetUnlockedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats);

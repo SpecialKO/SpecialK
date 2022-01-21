@@ -1,4 +1,28 @@
-﻿22.1.4.1
+﻿22.1.20.1
+=========
+ + Improved reliability of temporary desktop resolution override for single-monitor
+     users and for multi-monitor users who run the game on the default monitor
+ + Flush display name cache when new monitors are powered on/off so that the Display
+     menu's monitor list shows correct names
+
+22.1.20
+=======
+ + Added option to apply a display resolution override while the game is running,
+     grants access to optimized borderless window resolutions that would require
+       changing display settings manually otherwise.
+ + Resolutions changed in the Display menu no longer save to the System Registry
+ + Display Management Keybinds are now in the Display menu on single-monitor systems
+
+22.1.5
+======
+ + Added achievement progress indicator for EGS games
+ + Added minimal achievement config for EGS
+
+ - Configuration should be wrapping up in one or two extra releases,
+     and CEGUI will be removed in favor of an ImGui-based achievement popup
+       that works in D3D12.
+
+22.1.4.1
 ========
  + Improved AppCache (config name lookup) performance for EGS
  + Stopped loading SteamAPI for GOG / EGS games that ship with SteamAPI DLLs

@@ -92,6 +92,7 @@ extern "C"
 // Change in design, we will use mapped memory instead of DLL shared memory in
 // versions 21.6.x+ in order to communicate between 32-bit and 64-bit apps.
 volatile HANDLE hMapShared                   = INVALID_HANDLE_VALUE;
+volatile HANDLE hMapRecords                  = INVALID_HANDLE_VALUE;
          HANDLE hWhitelistChangeNotification = INVALID_HANDLE_VALUE;
 
 
@@ -101,6 +102,9 @@ extern bool SK_Process_Suspend     (DWORD dwPid);
 extern bool SK_Process_Resume      (DWORD dwPid);
 
 extern volatile LONG  __SK_HookContextOwner;
+
+SK_InjectionRecord_s* __stdcall  SK_Inject_GetRecord32      (DWORD dwPid);
+SK_InjectionRecord_s* __stdcall  SK_Inject_GetRecord32ByIdx (int   idx);
 
 SK_InjectionRecord_s*
 __stdcall
@@ -194,12 +198,158 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
          __SK_InjectionHistory [idx].render.frames        = __SK_InjectionHistory_frames [idx];
          __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
 
+#ifndef _M_AMD64
+        extern LPVOID SK_Inject_GetViewOf32BitRecords (void);
+
+        auto   *pRecords = (SK_InjectionRecord_s *)SK_Inject_GetViewOf32BitRecords ();
+        memcpy (pRecords, __SK_InjectionHistory, sizeof (__SK_InjectionHistory));
+#endif
+
         return S_OK;
       }
     }
   }
 
   return E_NOINTERFACE;
+}
+
+
+static volatile LPVOID _pInjection32View  = nullptr;
+
+HANDLE
+SK_Inject_Get32BitRecordMemory (void)
+{
+  HANDLE hLocalMap =
+    ReadPointerAcquire (&hMapRecords);
+
+  if (hLocalMap != INVALID_HANDLE_VALUE)
+    return hLocalMap;
+
+  HANDLE hExistingFile =
+    OpenFileMapping (FILE_MAP_ALL_ACCESS, FALSE, LR"(Local\SK_32BitInjectionRecords_v1)");
+
+  if (hExistingFile != nullptr)
+  {
+    if ( INVALID_HANDLE_VALUE ==
+           InterlockedCompareExchangePointer (&hMapRecords, hExistingFile, INVALID_HANDLE_VALUE) )
+    {
+      WritePointerRelease (&hMapRecords, hExistingFile);
+
+      return hExistingFile;
+    }
+
+    CloseHandle (hExistingFile);
+  }
+
+  HANDLE hNewFile  =
+    CreateFileMapping ( INVALID_HANDLE_VALUE, nullptr,
+                           PAGE_READWRITE, 0, sizeof (__SK_InjectionHistory),
+                             LR"(Local\SK_32BitInjectionRecords_v1)" );
+
+  if (hNewFile != 0)
+  {
+    if ( INVALID_HANDLE_VALUE ==
+           InterlockedCompareExchangePointer (&hMapRecords, hNewFile, INVALID_HANDLE_VALUE) )
+    {
+      return hNewFile;
+    }
+
+    CloseHandle (hNewFile);
+  }
+
+  return SK_INVALID_HANDLE;
+}
+
+LPVOID
+SK_Inject_GetViewOf32BitRecords (void)
+{
+  LPVOID lpLocalView =
+    ReadPointerAcquire (&_pInjection32View);
+
+  if (lpLocalView != nullptr)
+    return lpLocalView;
+
+  // Do not close this
+  HANDLE hMap =
+    SK_Inject_Get32BitRecordMemory ();
+
+  if (hMap != nullptr)
+  {
+    lpLocalView =
+      MapViewOfFile (hMap, FILE_MAP_ALL_ACCESS, 0, 0, sizeof (__SK_InjectionHistory));
+
+    if (lpLocalView != nullptr)
+    {
+      if ( nullptr ==
+             InterlockedCompareExchangePointer (&_pInjection32View, lpLocalView, nullptr) )
+      {
+        return lpLocalView;
+      }
+
+      UnmapViewOfFile (lpLocalView);
+    }
+
+    return
+      ReadPointerAcquire (&_pInjection32View);
+  }
+
+  return nullptr;
+}
+
+void
+SK_Inject_Cleanup32BitRecords (void)
+{
+  WritePointerRelease (&_pInjection32View, nullptr);
+
+  SK_AutoHandle hLocalMap (
+    InterlockedCompareExchangePointer (&hMapRecords, INVALID_HANDLE_VALUE,
+                   ReadPointerAcquire (&hMapRecords))
+  );
+
+  if (hLocalMap != INVALID_HANDLE_VALUE)
+  {
+    UnmapViewOfFile (
+      SK_Inject_GetViewOf32BitRecords ()
+    );
+  }
+}
+
+SK_InjectionRecord_s*
+__stdcall
+SK_Inject_GetRecord32 (DWORD dwPid)
+{
+  if (auto pHistory32 = (SK_InjectionRecord_s *)SK_Inject_GetViewOf32BitRecords ();
+           pHistory32 != nullptr)
+  {
+    for ( int idx = 0                         ;
+              idx < MAX_INJECTED_PROC_HISTORY ;
+            ++idx )
+    {
+      if ( pHistory32 [idx].process.id == dwPid )
+      {
+        return
+          &pHistory32 [idx];
+      }
+    }
+  }
+
+  return nullptr;
+}
+
+SK_InjectionRecord_s*
+__stdcall
+SK_Inject_GetRecord32ByIdx (int idx)
+{
+  if (auto pHistory32 = (SK_InjectionRecord_s *)SK_Inject_GetViewOf32BitRecords ();
+           pHistory32 != nullptr)
+  {
+    return
+      SK_Inject_GetRecord32 (
+        pHistory32 [idx].process.id
+      );
+  }
+
+  return nullptr;
 }
 
 LONG local_record = 0;
@@ -1123,7 +1273,7 @@ SK_Inject_SpawnUnloadListener (void)
           //     finite wait time.
           DWORD dwTimeout =
             ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                 333UL : INFINITE;
+                                                 100UL : INFINITE;
 
           if (GetModuleLoadCount (g_hModule_CBT) > 1)
                      dwTimeout = 0;
@@ -1134,8 +1284,8 @@ SK_Inject_SpawnUnloadListener (void)
 
           if (! SK_GetHostAppUtil ()->isInjectionTool ())
           {
-            if (GetModuleLoadCount (g_hModule_CBT) > 2)
-                       FreeLibrary (g_hModule_CBT);
+            //if (GetModuleLoadCount (g_hModule_CBT) > 2)
+            //           FreeLibrary (g_hModule_CBT);
           }
 
           // Is Process Actively Using Special K (?)
@@ -1191,6 +1341,7 @@ DebugProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
+
   return
     CallNextHookEx (
       0, nCode, wParam, lParam

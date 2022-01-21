@@ -486,7 +486,7 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVM
     {
       SK_ChangeDisplaySettingsEx (
                    display_name.c_str (), &orig_mode,
-                                       0, CDS_UPDATEREGISTRY, nullptr
+                                       0, 0x0, nullptr
       );
 
       *pDirty = true;
@@ -587,9 +587,9 @@ void SK_ImGui_UpdateCursor      (void);
 const char*
 SK_ImGui_ControlPanelTitle (void)
 {
-  static char szTitle [512] = { };
-  const  bool steam         = (SK::SteamAPI::AppID () != 0x0);
-  const  bool epic          = StrStrIA (GetCommandLineA (), "-epicapp");
+  static        char szTitle [512] = { };
+  const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
+  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp");
 
   {
     // TEMP HACK
@@ -623,12 +623,12 @@ SK_ImGui_ControlPanelTitle (void)
     uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
     uint32_t   hours   =  elapsed / 3600ULL;
 
-    if (steam || epic)
+    if (bSteam || bEpic)
     {
-      std::string appname = steam ?
-        SK::SteamAPI::AppName ()  :
-                            epic  ?
-        SK::EOS::AppName      ()  : "";
+      std::string appname = bSteam ?
+        SK::SteamAPI::AppName ()   :
+                            bEpic  ?
+        SK::EOS::AppName       ()  : "";
 
       if (appname.length ())
         title += L"      -      ";
@@ -1053,9 +1053,17 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         if ( DISP_CHANGE_SUCCESSFUL ==
                SK_ChangeDisplaySettingsEx (
                    display_name.c_str (), &resolution.modes [resolution.idx],
-                                       0, CDS_UPDATEREGISTRY, nullptr )
+                                       0, 0x0/*CDS_UPDATEREGISTRY*/, nullptr)
            )
         {
+          if (config.display.resolution.save)
+          {
+            config.display.resolution.override.x = resolution.modes [resolution.idx].dmPelsWidth;
+            config.display.resolution.override.y = resolution.modes [resolution.idx].dmPelsHeight;
+          }
+
+          config.display.resolution.applied = true;
+
           SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
         }
       }
@@ -1084,7 +1092,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         if ( DISP_CHANGE_SUCCESSFUL ==
                SK_ChangeDisplaySettingsEx (
                    display_name.c_str (), &refresh.modes [refresh.idx],
-                                       0, CDS_UPDATEREGISTRY, nullptr )
+                                       0, 0/*CDS_UPDATEREGISTRY*/, nullptr)
            )
         {
           SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
@@ -1509,54 +1517,80 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Changes to 'Active Monitor' using this menu (not keybinds) will be remembered");
+  }
 
-    static std::set <SK_ConfigSerializedKeybind *>
-      keybinds = {
-        &config.monitors.monitor_primary_keybind,
-        &config.monitors.monitor_next_keybind,
-        &config.monitors.monitor_prev_keybind,
-        &config.monitors.monitor_toggle_hdr
-      };
-
-    if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))
+  if (ImGui::Checkbox ("Remember Display Resolution", &config.display.resolution.save))
+  {
+    if (config.display.resolution.save)
     {
-      const auto Keybinding =
-      [] (SK_ConfigSerializedKeybind *binding) ->
-      auto
-      {
-        if (binding == nullptr)
-          return false;
-
-        std::string label =
-          SK_WideCharToUTF8      (binding->human_readable);
-
-        ImGui::PushID            (binding->bind_name);
-
-        binding->assigning =
-          SK_ImGui_KeybindSelect (binding, label.c_str ());
-
-        ImGui::PopID             ();
-
-        return true;
-      };
-
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {
-        ImGui::Text ( "%s:  ",
-                        keybind->bind_name );
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {
-        Keybinding  (   keybind );
-      }
-      ImGui::EndGroup   ();
-
-      ImGui::EndMenu    ();
+      config.display.monitor_idx =
+        rb.displays [rb.active_display].idx;
+      config.display.monitor_path_ccd =
+        rb.displays [rb.active_display].path_name;
     }
+
+    else
+    {
+      // Revert to no preference
+      config.display.monitor_idx      = 0;
+      config.display.monitor_path_ccd = L"";
+
+      config.display.resolution.override.x = 0;
+      config.display.resolution.override.y = 0;
+    }
+
+    SK_SaveConfig ();
+  }
+
+  if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Changes to Resolution on 'Active Monitor' will apply to future launches of this game");
+
+  static std::set <SK_ConfigSerializedKeybind *>
+    keybinds = {
+      &config.monitors.monitor_primary_keybind,
+      &config.monitors.monitor_next_keybind,
+      &config.monitors.monitor_prev_keybind,
+      &config.monitors.monitor_toggle_hdr
+    };
+
+  if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))
+  {
+    const auto Keybinding =
+    [] (SK_ConfigSerializedKeybind *binding) ->
+    auto
+    {
+      if (binding == nullptr)
+        return false;
+
+      std::string label =
+        SK_WideCharToUTF8      (binding->human_readable);
+
+      ImGui::PushID            (binding->bind_name);
+
+      binding->assigning =
+        SK_ImGui_KeybindSelect (binding, label.c_str ());
+
+      ImGui::PopID             ();
+
+      return true;
+    };
+
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      ImGui::Text ( "%s:  ",
+                      keybind->bind_name );
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      Keybinding  (   keybind );
+    }
+    ImGui::EndGroup   ();
+
+    ImGui::EndMenu    ();
   }
 
   ImGui::TreePop ();
@@ -4866,7 +4900,7 @@ SK_Platform_GetUserName (char* pszName, int max_len = 512)
     }
   }
 
-  else if (SK::EOS::UserID () != 0 && SK::EOS::PlayerNickname ().empty ())
+  else if (SK::EOS::UserID () != 0 && (! SK::EOS::PlayerNickname ().empty ()))
   {
     strncpy_s (pszName,                            max_len,
                SK::EOS::PlayerNickname ().data (), _TRUNCATE);

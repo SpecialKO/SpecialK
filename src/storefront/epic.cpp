@@ -23,6 +23,8 @@
 #include <storefront/epic.h>
 #include <storefront/achievements.h>
 
+#include "EOS/eos_auth.h"
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
@@ -49,8 +51,17 @@ public:
     }
   }
 
-  static EOS_Achievements_GetPlayerAchievementCount_pfn   GetPlayerAchievementCount;;
-  static EOS_Achievements_GetUnlockedAchievementCount_pfn GetUnlockedAchievementCount;;
+  static EOS_Achievements_GetPlayerAchievementCount_pfn                  GetPlayerAchievementCount;
+  static EOS_Achievements_GetUnlockedAchievementCount_pfn                GetUnlockedAchievementCount;
+  static EOS_Achievements_GetAchievementDefinitionCount_pfn              GetAchievementDefinitionCount;
+  static EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn            AddNotifyAchievementsUnlockedV2;
+  static EOS_Achievements_CopyPlayerAchievementByIndex_pfn               CopyPlayerAchievementByIndex;
+  static EOS_Achievements_QueryPlayerAchievements_pfn                    QueryPlayerAchievements;
+  static EOS_Achievements_PlayerAchievement_Release_pfn                  PlayerAchievement_Release;
+  static EOS_Achievements_CopyAchievementDefinitionV2ByIndex_pfn         CopyAchievementDefinitionV2ByIndex;
+  static EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId_pfn CopyAchievementDefinitionV2ByAchievementId;
+  static EOS_Achievements_QueryDefinitions_pfn                           QueryDefinitions;
+  static EOS_Achievements_DefinitionV2_Release_pfn                       DefinitionV2_Release;
 };
 
 class SK_EOS_OverlayManager
@@ -225,39 +236,86 @@ public:
 SK_LazyGlobal <SK_EOS_OverlayManager>     eos_overlay;
 SK_LazyGlobal <SK_EOS_AchievementManager> eos_achievements;
 
-EOS_UI_AddNotifyDisplaySettingsUpdated_pfn    SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original    = nullptr;
-EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original = nullptr;
+EOS_UI_AddNotifyDisplaySettingsUpdated_pfn                      SK_EOS_OverlayManager::AddNotifyDisplaySettingsUpdated_Original       = nullptr;
+EOS_UI_RemoveNotifyDisplaySettingsUpdated_pfn                   SK_EOS_OverlayManager::RemoveNotifyDisplaySettingsUpdated_Original    = nullptr;
 
-EOS_Achievements_GetPlayerAchievementCount_pfn   SK_EOS_AchievementManager::GetPlayerAchievementCount   = nullptr;
-EOS_Achievements_GetUnlockedAchievementCount_pfn SK_EOS_AchievementManager::GetUnlockedAchievementCount = nullptr;
+EOS_Achievements_QueryPlayerAchievements_pfn                    SK_EOS_AchievementManager::QueryPlayerAchievements                    = nullptr;
+EOS_Achievements_GetPlayerAchievementCount_pfn                  SK_EOS_AchievementManager::GetPlayerAchievementCount                  = nullptr;
+EOS_Achievements_PlayerAchievement_Release_pfn                  SK_EOS_AchievementManager::PlayerAchievement_Release                  = nullptr;
+EOS_Achievements_GetUnlockedAchievementCount_pfn                SK_EOS_AchievementManager::GetUnlockedAchievementCount                = nullptr;
+EOS_Achievements_CopyPlayerAchievementByIndex_pfn               SK_EOS_AchievementManager::CopyPlayerAchievementByIndex               = nullptr;
+EOS_Achievements_GetAchievementDefinitionCount_pfn              SK_EOS_AchievementManager::GetAchievementDefinitionCount              = nullptr;
+EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn            SK_EOS_AchievementManager::AddNotifyAchievementsUnlockedV2            = nullptr;
+EOS_Achievements_CopyAchievementDefinitionV2ByIndex_pfn         SK_EOS_AchievementManager::CopyAchievementDefinitionV2ByIndex         = nullptr;
+EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId_pfn SK_EOS_AchievementManager::CopyAchievementDefinitionV2ByAchievementId = nullptr;
+EOS_Achievements_QueryDefinitions_pfn                           SK_EOS_AchievementManager::QueryDefinitions                           = nullptr;
+EOS_Achievements_DefinitionV2_Release_pfn                       SK_EOS_AchievementManager::DefinitionV2_Release                       = nullptr;
 
 // Cache this instead of getting it from the Steam client constantly;
 //   doing that is far more expensive than you would think.
 size_t
 SK_EOS_GetNumPossibleAchievements (void)
 {
-  if (eos_achievements->GetPlayerAchievementCount == nullptr)
+  if (eos_achievements->GetAchievementDefinitionCount == nullptr)
     return 0;
 
   static std::pair <size_t,bool> possible =
   { 0, false };
 
-  if ( possible.second          == false   &&
-       epic_ctx.Achievements () != nullptr )
+  if ( possible.second        == false  &&
+       epic->Achievements () != nullptr && epic->UserId () != 0 )
   {
     //epic_achievements->getAchievements (&possible.first);
     //possible = { possible.first, true };
 
-    EOS_Achievements_GetPlayerAchievementCountOptions opt =
-   {EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_LATEST};
+    constexpr EOS_Achievements_GetAchievementDefinitionCountOptions opt = {
+              EOS_ACHIEVEMENTS_GETACHIEVEMENTDEFINITIONCOUNT_API_LATEST   };
 
-    possible.first  = eos_achievements->GetPlayerAchievementCount (epic_ctx.Achievements (), &opt);
+    possible.first =
+      eos_achievements->GetAchievementDefinitionCount (
+        epic->Achievements (), &opt
+      );
 
     if (possible.first != 0)
         possible.second = true;
   }
 
   return possible.first;
+}
+
+float
+__stdcall
+SK_EOS_PercentOfAchievementsUnlocked (void)
+{
+  if (eos_achievements.getPtr () != nullptr)
+    return eos_achievements->getPercentOfAchievementsUnlocked ();
+
+  return 0.0f;
+}
+
+float
+__stdcall
+SK::EOS::PercentOfAchievementsUnlocked (void)
+{
+  return SK_EOS_PercentOfAchievementsUnlocked ();
+}
+
+void
+SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound)
+{
+  eos_achievements->loadSound (wszUnlockSound);
+}
+
+void
+SK_EOS_LogAllAchievements (void)
+{
+  //eos_achievements->log_all_achievements ();
+}
+
+void
+SK_EOS_UnlockAchievement (uint32_t idx)
+{
+  eos_achievements->unlock (std::to_string (idx).c_str ());
 }
 
 void
@@ -274,64 +332,115 @@ SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy (const EOS_UI_OnDisplaySettings
   eos_overlay->OnActivate (Data);
 }
 
-void
-EOS_CALL
-SK_EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy (const EOS_Achievements_OnAchievementsUnlockedCallbackV2Info* Data)
-{
-  SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == eos_achievements.getPtr ());
+static bool has_unlock_callback = false;
 
-  epic_log->Log (
-    L"EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy ({ Achievement=%hs })",
-      Data->AchievementId
-  );
-
-  eos_achievements->unlock (Data->AchievementId);
-}
+// Unlike Steam, EGS implements interface versions in the actual DLL, and
+//   this means that we need to use the oldest versions of this stuff possible
+//     or the calls will fail.
+static auto constexpr EOS_ACHIEVEMENTS_QUERYPLAYERACHIEVEMENTS_API_OLDEST         = 1;
+static auto constexpr EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_OLDEST       = 1;
+static auto constexpr EOS_ACHIEVEMENTS_COPYPLAYERACHIEVEMENTBYINDEX_API_OLDEST    = 1;
+static auto constexpr EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDEST = 2;
 
 void
-EOS_CALL
-SK_EOS_UserInfo_QueryUserInfoCallback_Proxy (const EOS_UserInfo_QueryUserInfoCallbackInfo* Data)
+SK_EOS_Achievements_RefreshPlayerStats (void)
 {
-  if (Data->ResultCode == EOS_EResult::EOS_Success)
+  const EOS_Achievements_QueryPlayerAchievementsOptions query_opts =
+      { EOS_ACHIEVEMENTS_QUERYPLAYERACHIEVEMENTS_API_OLDEST, epic->UserId (),
+                                                             epic->UserId () };
+
+  eos_achievements->QueryPlayerAchievements ( epic->Achievements (), &query_opts,
+                                              epic.getPtr        (),
+  [](const EOS_Achievements_OnQueryPlayerAchievementsCompleteCallbackInfo* Data)
   {
-    SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == pEOSCtx.getPtr ());
+    const gsl::not_null <SK_EOSContext *> This =
+            static_cast <SK_EOSContext *> (Data->ClientData);
 
-    using EOS_UserInfo_CopyUserInfo_pfn = EOS_EResult (EOS_CALL *)(EOS_HUserInfo                     Handle,
-                                                             const EOS_UserInfo_CopyUserInfoOptions* Options,
-                                                                   EOS_UserInfo**                    OutUserInfo);
-    auto  EOS_UserInfo_CopyUserInfo =
-         (EOS_UserInfo_CopyUserInfo_pfn)SK_GetProcAddress (epic_ctx.GetEOSDLL (),
-         "EOS_UserInfo_CopyUserInfo");
+    auto hAchievements = This->Achievements ();
+    auto UserId        = This->UserId       ();
 
-    using EOS_UserInfo_Release_pfn = void (EOS_CALL *)(EOS_UserInfo* UserInfo);
-    auto  EOS_UserInfo_Release     =
-         (EOS_UserInfo_Release_pfn)SK_GetProcAddress (epic_ctx.GetEOSDLL (),
-         "EOS_UserInfo_Release");
+    SK_ReleaseAssert (Data->UserId == UserId);
 
-    if (EOS_UserInfo_Release != nullptr && EOS_UserInfo_CopyUserInfo != nullptr)
+    if ( Data->ResultCode == EOS_EResult::EOS_Success &&
+         Data->UserId     == UserId )
     {
-      EOS_UserInfo_CopyUserInfoOptions opts =
+      const EOS_Achievements_GetPlayerAchievementCountOptions get_opts =
+          { EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_OLDEST, UserId };
+
+      const int
+          num_achievements =
+          eos_achievements->GetPlayerAchievementCount (hAchievements, &get_opts);
+      int unlock_count     = 0;
+
+      EOS_Achievements_CopyPlayerAchievementByIndexOptions copy_opts = {
+      EOS_ACHIEVEMENTS_COPYPLAYERACHIEVEMENTBYINDEX_API_OLDEST, UserId, 0,
+                                                                UserId };
+
+      for (   copy_opts.AchievementIndex = 0;
+              copy_opts.AchievementIndex < num_achievements;
+            ++copy_opts.AchievementIndex )
       {
-        EOS_USERINFO_COPYUSERINFO_API_LATEST,
-        Data->LocalUserId,
-        Data->LocalUserId
-      };
+              EOS_Achievements_PlayerAchievement* achv = nullptr;
+        const EOS_EResult                         result =
+          eos_achievements->CopyPlayerAchievementByIndex (hAchievements, &copy_opts, &achv);
 
-      EOS_UserInfo*                                              pUserInfo = nullptr;
-      EOS_EResult result =
-        EOS_UserInfo_CopyUserInfo (epic_ctx.UserInfo (), &opts, &pUserInfo);
+        if (result == EOS_EResult::EOS_Success)
+        {
+          auto pManagedAchievement =
+            eos_achievements->getAchievement (achv->AchievementId);
 
-      if (result == EOS_EResult::EOS_Success)
-      {
-        pEOSCtx->user.display_name = pUserInfo->DisplayName;
-        pEOSCtx->user.nickname     = pUserInfo->Nickname;
+          pManagedAchievement->unlocked_               =
+            (achv->UnlockTime != EOS_ACHIEVEMENTS_ACHIEVEMENT_UNLOCKTIME_UNDEFINED);
+          pManagedAchievement->time_                   = achv->UnlockTime;
+          pManagedAchievement->progress_.precalculated = achv->Progress;
 
-        EOS_UserInfo_Release (pUserInfo);
+          if (pManagedAchievement->unlocked_)
+          {
+            ++unlock_count;
+          }
+
+          eos_achievements->PlayerAchievement_Release (achv);
+        }
       }
-    }
-  }
 
-  //SK_ReleaseAssert (Data->ResultCode == EOS_EResult::EOS_Success);
+      if (! std::exchange (has_unlock_callback, true))
+      {
+        eos_achievements->loadSound (config.steam.achievements.sound_file.c_str ());
+
+        constexpr EOS_Achievements_AddNotifyAchievementsUnlockedV2Options
+          notify_opts = { EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDEST };
+
+        eos_achievements->AddNotifyAchievementsUnlockedV2 ( epic->Achievements (), &notify_opts,
+                                                                     eos_achievements.getPtr (),
+        [](const EOS_Achievements_OnAchievementsUnlockedCallbackV2Info* Data)
+        {
+          if (Data->UserId == epic->UserId ())
+          {
+            SK_ReleaseAssert ( Data->UnlockTime !=
+                                 EOS_ACHIEVEMENTS_ACHIEVEMENT_UNLOCKTIME_UNDEFINED );
+
+            epic_log->Log (
+              L"EOS_Achievements_OnAchievementsUnlockedCallbackV2 ({ Achievement=%hs })",
+                Data->AchievementId
+            );
+
+            SK_EOS_Achievements_RefreshPlayerStats ();
+
+            eos_achievements->unlock (Data->AchievementId);
+          }
+        });
+      }
+
+      eos_achievements->percent_unlocked =
+        static_cast <float> (
+          static_cast <double> (unlock_count) /
+          static_cast <double> (SK_EOS_GetNumPossibleAchievements ())
+        );
+    }
+
+    else
+      SK_EOS_Achievements_RefreshPlayerStats ();
+  });
 }
 
 bool
@@ -454,10 +563,75 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
 {
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
 
-  if (epic_ctx.Platform () == nullptr)
-      epic_ctx.InitEpicOnlineServices (nullptr, Handle);
+  // Initialize various things on the first successful tick,
+  //   this may happen multiple times until actual log-in...
+  if ( epic->Platform () == nullptr ||
+       epic->UserId   () == nullptr )
+  {
+    epic->InitEpicOnlineServices (nullptr, Handle);
+  }
+
+  else if (epic->UserId () != nullptr && (! has_unlock_callback))
+  {
+    if (epic->Achievements      () != nullptr &&
+        epic->UserId            () != nullptr)
+    {
+      constexpr auto EOS_ACHIEVEMENTS_QUERYDEFINITIONS_API_MINIMUM = 2;
+
+      EOS_Achievements_QueryDefinitionsOptions
+        query_opts             = { };
+        query_opts.ApiVersion  = EOS_ACHIEVEMENTS_QUERYDEFINITIONS_API_MINIMUM;
+        query_opts.LocalUserId = epic->UserId ();
+
+      eos_achievements->QueryDefinitions ( epic->Achievements (), &query_opts,
+                                           epic.getPtr        (),
+      [](const EOS_Achievements_OnQueryDefinitionsCompleteCallbackInfo* Data)
+      {
+        if (Data->ResultCode == EOS_EResult::EOS_Success)
+        {
+          static bool          copy_once = false;
+          if (! std::exchange (copy_once, true))
+          {
+            EOS_Achievements_GetAchievementDefinitionCountOptions def_count_opts = {
+            EOS_ACHIEVEMENTS_GETACHIEVEMENTDEFINITIONCOUNT_API_LATEST              };
+
+            uint32_t num_achievements =
+              eos_achievements->GetAchievementDefinitionCount (
+                epic->Achievements (), &def_count_opts        );
+
+            EOS_Achievements_CopyAchievementDefinitionV2ByIndexOptions def_copy_opts = {
+            EOS_ACHIEVEMENTS_COPYACHIEVEMENTDEFINITIONV2BYINDEX_API_LATEST, 0          };
+
+            for (   def_copy_opts.AchievementIndex = 0 ;
+                    def_copy_opts.AchievementIndex < num_achievements ;
+                  ++def_copy_opts.AchievementIndex )
+            {
+              EOS_Achievements_DefinitionV2*
+                 pAchievement = nullptr;
+
+              if ( EOS_EResult::EOS_Success ==
+                     eos_achievements->CopyAchievementDefinitionV2ByIndex (
+                       epic->Achievements (), &def_copy_opts, &pAchievement )
+                 )
+              {
+                eos_achievements->addAchievement (
+                              new SK_AchievementManager::Achievement (
+                                           def_copy_opts.AchievementIndex,
+                                                        pAchievement));
+                eos_achievements->DefinitionV2_Release (pAchievement);
+              }
+            }
+          }
+
+          SK_EOS_Achievements_RefreshPlayerStats ();
+        }
+      });
+    }
+  }
 
   InterlockedIncrement64 (&__SK_EOS_Ticks);
+
+  SK_EOS_SetNotifyCorner ();
 
   return
     EOS_Platform_Tick_Original (Handle);
@@ -505,7 +679,7 @@ SK::EOS::Init (bool pre_load)
     epic_log->init (L"logs/eos.log", L"wt+,ccs=UTF-8");
     epic_log->silent = config.steam.silent;
 
-    epic_ctx.PreInit (hModEOS);
+    epic->PreInit (hModEOS);
 
     /* Since we probably missed the opportunity to catch EOS_Platform_Create,
          hook EOS_Platform_Tick and watch for the game's EOS_HPlatform */
@@ -530,9 +704,6 @@ SK::EOS::Init (bool pre_load)
                                         EOS_Platform_Release_Detour,
                static_cast_p2p <void> (&EOS_Platform_Release_Original) );
 
-    SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Platform_Release",
-                                        EOS_Platform_Release_Detour,
-               static_cast_p2p <void> (&EOS_Platform_Release_Original) );
 
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_AddNotifyDisplaySettingsUpdated",
                                         EOS_UI_AddNotifyDisplaySettingsUpdated_Detour,
@@ -542,18 +713,91 @@ SK::EOS::Init (bool pre_load)
                                         EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour,
          static_cast_p2p <void> (&eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original) );
 
-    eos_achievements->GetUnlockedAchievementCount = (EOS_Achievements_GetUnlockedAchievementCount_pfn)
-      SK_GetProcAddress (wszEOSDLLName, "EOS_Achievements_GetUnlockedAchievementCount");
 
-    eos_achievements->GetPlayerAchievementCount   = (EOS_Achievements_GetPlayerAchievementCount_pfn)
-      SK_GetProcAddress (wszEOSDLLName, "EOS_Achievements_GetPlayerAchievementCount");
+    eos_achievements->GetUnlockedAchievementCount     = (EOS_Achievements_GetUnlockedAchievementCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_GetUnlockedAchievementCount");
+    eos_achievements->GetPlayerAchievementCount       = (EOS_Achievements_GetPlayerAchievementCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_GetPlayerAchievementCount");
+    eos_achievements->GetAchievementDefinitionCount   = (EOS_Achievements_GetAchievementDefinitionCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_GetAchievementDefinitionCount");
+    eos_achievements->AddNotifyAchievementsUnlockedV2 = (EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_AddNotifyAchievementsUnlockedV2");
+    eos_achievements->CopyPlayerAchievementByIndex    = (EOS_Achievements_CopyPlayerAchievementByIndex_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_CopyPlayerAchievementByIndex");
+    eos_achievements->QueryPlayerAchievements         = (EOS_Achievements_QueryPlayerAchievements_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_QueryPlayerAchievements");
+    eos_achievements->PlayerAchievement_Release       = (EOS_Achievements_PlayerAchievement_Release_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_PlayerAchievement_Release");
+    eos_achievements->CopyAchievementDefinitionV2ByIndex
+                                                      = (EOS_Achievements_CopyAchievementDefinitionV2ByIndex_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_CopyAchievementDefinitionV2ByIndex");
+    eos_achievements->CopyAchievementDefinitionV2ByAchievementId
+                                                      = (EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_CopyAchievementDefinitionV2ByAchievementId");
+    eos_achievements->QueryDefinitions                = (EOS_Achievements_QueryDefinitions_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_QueryDefinitions");
+    eos_achievements->DefinitionV2_Release            = (EOS_Achievements_DefinitionV2_Release_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_DefinitionV2_Release");
+
+
+    epic->Platform_GetAchievementsInterface           = (EOS_Platform_GetAchievementsInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetAchievementsInterface");
+    epic->Platform_GetAuthInterface                   = (EOS_Platform_GetAuthInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetAuthInterface");
+    epic->Platform_GetFriendsInterface                = (EOS_Platform_GetFriendsInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetFriendsInterface");
+    epic->Platform_GetStatsInterface                  = (EOS_Platform_GetStatsInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetStatsInterface");
+    epic->Platform_GetUIInterface                     = (EOS_Platform_GetUIInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetUIInterface");
+    epic->Platform_GetUserInfoInterface               = (EOS_Platform_GetUserInfoInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetUserInfoInterface");
+    epic->Platform_GetConnectInterface                = (EOS_Platform_GetConnectInterface_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Platform_GetConnectInterface");
+
+    epic->Auth_GetLoggedInAccountsCount               = (EOS_Auth_GetLoggedInAccountsCount_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Auth_GetLoggedInAccountsCount");
+    epic->Auth_GetLoggedInAccountByIndex              = (EOS_Auth_GetLoggedInAccountByIndex_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Auth_GetLoggedInAccountByIndex");
+
+    epic->UserInfo_QueryUserInfo                      = (EOS_UserInfo_QueryUserInfo_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_UserInfo_QueryUserInfo");
+    epic->UserInfo_CopyUserInfo                       = (EOS_UserInfo_CopyUserInfo_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_UserInfo_CopyUserInfo");
+    epic->UserInfo_Release                            = (EOS_UserInfo_Release_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_UserInfo_Release");
+
+    epic->ProductUserId_FromString                    = (EOS_ProductUserId_FromString_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_ProductUserId_FromString");
+    epic->Connect_GetLoggedInUserByIndex              = (EOS_Connect_GetLoggedInUserByIndex_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_Connect_GetLoggedInUserByIndex");
+
+    epic->UI_SetDisplayPreference                     = (EOS_UI_SetDisplayPreference_pfn)
+      SK_GetProcAddress (wszEOSDLLName,                 "EOS_UI_SetDisplayPreference");
+
+#if 0
+    if (epic->ProductUserId_FromString != nullptr)
+    {
+      char                                        szUserId [64] = { };
+      if ( const char *pszId = StrStrIA (GetCommandLineA (), "-epicuserid=") ;
+                       pszId != nullptr &&
+          1 == sscanf (pszId, "-epicuserid=%s -", szUserId) )
+      {
+        EOS_ProductUserId id =
+          epic->ProductUserId_FromString (szUserId);
+
+        epic->product_user_id_ = id;
+
+      }
+    }
+#endif
 
     SK_ApplyQueuedHooks ();
   }
 
   // Preloading not supported, SK has no EOS Credentials
   //
-  //if (epic_ctx.InitEpicOnlineServices (hModEOS))
+  //if (epic->InitEpicOnlineServices (hModEOS))
   //{
   //  EOS_InitializeOptions
   //}
@@ -563,7 +807,7 @@ void
 SK::EOS::Shutdown (void)
 {
   epic_log->Log (L"STUB Shutdown");
-  //epic_ctx.Shutdown ();
+  //epic->Shutdown ();
 }
 
 void
@@ -597,121 +841,93 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
       return false;
   }
 
-  // But we're not, so we will yoink the game's HPlatform instance
-  platform_ = platform;
-
-  auto  EOS_Platform_GetUIInterface =
-       (EOS_Platform_GetUIInterface_pfn)SK_GetProcAddress (sdk_dll_,
-       "EOS_Platform_GetUIInterface");
-
-  if (EOS_Platform_GetUIInterface != nullptr) ui_ =
-      EOS_Platform_GetUIInterface (platform_);
-
-  if (ui_ != nullptr)
-  {
-    EOS_UI_AddNotifyDisplaySettingsUpdatedOptions opts =
-      { EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST };
-
-    eos_overlay->AddNotifyDisplaySettingsUpdated_Original (
-      ui_, &opts, nullptr,//eos_overlay.getPtr (),
-        SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy  );
-  }
-
-  auto  EOS_Platform_GetAchievementsInterface =
-       (EOS_Platform_GetAchievementsInterface_pfn)SK_GetProcAddress (sdk_dll_,
-       "EOS_Platform_GetAchievementsInterface");
-
-  if (EOS_Platform_GetAchievementsInterface != nullptr) achievements_ =
-      EOS_Platform_GetAchievementsInterface (platform_);
-
-  if (achievements_ != nullptr)
-  {
-    using EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn =
-      EOS_NotificationId (EOS_CALL *)(      EOS_HAchievements                                        Handle,
-                                      const EOS_Achievements_AddNotifyAchievementsUnlockedV2Options* Options,
-                                            void*                                                    ClientData,
-                                      const EOS_Achievements_OnAchievementsUnlockedCallbackV2        NotificationFn);
-
-    auto EOS_Achievements_AddNotifyAchievementsUnlockedV2 =
-        (EOS_Achievements_AddNotifyAchievementsUnlockedV2_pfn)SK_GetProcAddress (sdk_dll_,
-        "EOS_Achievements_AddNotifyAchievementsUnlockedV2");
-
-    if (EOS_Achievements_AddNotifyAchievementsUnlockedV2 != nullptr)
-    {
-      EOS_Achievements_AddNotifyAchievementsUnlockedV2Options opts =
-        { EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_LATEST };
-
-      EOS_Achievements_AddNotifyAchievementsUnlockedV2 (
-        achievements_, &opts, nullptr,//eos_achievements.getPtr (),
-          SK_EOS_Achievements_OnAchievementsUnlockedCallbackV2_Proxy
-      );
-
-      eos_achievements->loadSound (config.steam.achievements.sound_file.c_str ());
-    }
-  }
-
-  auto EOS_Platform_GetAuthInterface =
-      (EOS_Platform_GetAuthInterface_pfn)SK_GetProcAddress     (sdk_dll_,
-      "EOS_Platform_GetAuthInterface");
-  auto EOS_Platform_GetFriendsInterface =
-      (EOS_Platform_GetFriendsInterface_pfn)SK_GetProcAddress  (sdk_dll_,
-      "EOS_Platform_GetFriendsInterface");
-  auto EOS_Platform_GetStatsInterface =
-      (EOS_Platform_GetStatsInterface_pfn)SK_GetProcAddress    (sdk_dll_,
-      "EOS_Platform_GetStatsInterface");
-  auto EOS_Platform_GetUserInfoInterface =
-      (EOS_Platform_GetUserInfoInterface_pfn)SK_GetProcAddress (sdk_dll_,
-      "EOS_Platform_GetUserInfoInterface");
-
-  if (EOS_Platform_GetAuthInterface     != nullptr)     auth_      =
-      EOS_Platform_GetAuthInterface       (platform_);
-  if (EOS_Platform_GetFriendsInterface  != nullptr)     friends_   =
-      EOS_Platform_GetFriendsInterface    (platform_);
-  if (EOS_Platform_GetStatsInterface    != nullptr)     stats_     =
-      EOS_Platform_GetStatsInterface      (platform_);
-  if (EOS_Platform_GetUserInfoInterface != nullptr)     user_info_ =
-      EOS_Platform_GetUserInfoInterface   (platform_);
-
+  if (Platform_GetAuthInterface != nullptr)  auth_ =
+      Platform_GetAuthInterface (platform);
 
   if (auth_ != nullptr)
   {
-    using EOS_Auth_GetLoggedInAccountsCount_pfn = int32_t (EOS_CALL *)(EOS_HAuth Handle);
-    auto  EOS_Auth_GetLoggedInAccountsCount =
-         (EOS_Auth_GetLoggedInAccountsCount_pfn)SK_GetProcAddress (sdk_dll_,
-         "EOS_Auth_GetLoggedInAccountsCount");
-
-    int32_t logins = EOS_Auth_GetLoggedInAccountsCount != nullptr ?
-                     EOS_Auth_GetLoggedInAccountsCount (auth_)    : 0;
+    int32_t logins = Auth_GetLoggedInAccountsCount != nullptr ?
+                     Auth_GetLoggedInAccountsCount (auth_)    : 0;
 
     SK_ReleaseAssert (logins <= 1);
 
-    using EOS_Auth_GetLoggedInAccountByIndex_pfn = EOS_EpicAccountId (EOS_CALL *)(EOS_HAuth Handle, int32_t Index);
-    auto  EOS_Auth_GetLoggedInAccountByIndex =
-         (EOS_Auth_GetLoggedInAccountByIndex_pfn)SK_GetProcAddress (sdk_dll_,
-         "EOS_Auth_GetLoggedInAccountByIndex");
+    SK::EOS::player.account =
+      Auth_GetLoggedInAccountByIndex (auth_, 0);
 
-    SK::EOS::player =
-      EOS_Auth_GetLoggedInAccountByIndex (auth_, 0);
-
-    if (user_info_ != nullptr)
+    if (SK::EOS::player.account != nullptr)
     {
-      using EOS_UserInfo_QueryUserInfo_pfn = void (EOS_CALL *)(EOS_HUserInfo                        Handle,
-                                                         const EOS_UserInfo_QueryUserInfoOptions*   Options,
-                                                               void*                                ClientData,
-                                                         const EOS_UserInfo_OnQueryUserInfoCallback CompletionDelegate);
+      // But we're not, so we will yoink the game's HPlatform instance
+      platform_ = platform;
 
-      auto EOS_UserInfo_QueryUserInfo =
-          (EOS_UserInfo_QueryUserInfo_pfn)SK_GetProcAddress (sdk_dll_,
-          "EOS_UserInfo_QueryUserInfo");
+      if (Platform_GetUIInterface != nullptr) ui_ =
+          Platform_GetUIInterface (platform_);
 
-      if (EOS_UserInfo_QueryUserInfo != nullptr)
+      if (ui_ != nullptr)
+      {
+        EOS_UI_AddNotifyDisplaySettingsUpdatedOptions opts =
+          { EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST };
+
+        SK_RunOnce (
+          eos_overlay->AddNotifyDisplaySettingsUpdated_Original (
+            ui_, &opts, eos_overlay.getPtr (),
+            SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy)
+        );
+
+        SK_EOS_SetNotifyCorner ();
+      }
+
+      if (Platform_GetAchievementsInterface != nullptr) achievements_ =
+          Platform_GetAchievementsInterface (platform_);
+
+      if (Platform_GetFriendsInterface  != nullptr)  friends_   =
+          Platform_GetFriendsInterface  (platform_);
+      if (Platform_GetStatsInterface    != nullptr)  stats_     =
+          Platform_GetStatsInterface    (platform_);
+      if (Platform_GetUserInfoInterface != nullptr)  user_info_ =
+          Platform_GetUserInfoInterface (platform_);
+      if (Platform_GetConnectInterface  != nullptr)  connect_   =
+          Platform_GetConnectInterface  (platform_);
+
+      if (user_info_ != nullptr && UserInfo_QueryUserInfo != nullptr)
       {
         EOS_UserInfo_QueryUserInfoOptions
           opts = { EOS_USERINFO_QUERYUSERINFO_API_LATEST,
-                   SK::EOS::player,
-                   SK::EOS::player };
+                   SK::EOS::player.account,
+                   SK::EOS::player.account };
 
-        EOS_UserInfo_QueryUserInfo (user_info_, &opts, nullptr/*this*/, SK_EOS_UserInfo_QueryUserInfoCallback_Proxy);
+        UserInfo_QueryUserInfo (user_info_, &opts, this, [](const EOS_UserInfo_QueryUserInfoCallbackInfo* Data)
+        {
+          if (Data->ResultCode == EOS_EResult::EOS_Success)
+          {
+            SK_ReleaseAssert (Data->ClientData == nullptr || Data->ClientData == epic.getPtr ());
+
+            if ( epic->UserInfo_Release      != nullptr &&
+                 epic->UserInfo_CopyUserInfo != nullptr )
+            {
+              EOS_UserInfo_CopyUserInfoOptions opts =
+              {
+                EOS_USERINFO_COPYUSERINFO_API_LATEST,
+                SK::EOS::player.account,
+                SK::EOS::player.account
+              };
+
+              EOS_UserInfo*                                             pUserInfo = nullptr;
+              EOS_EResult result =
+                epic->UserInfo_CopyUserInfo (epic->UserInfo (), &opts, &pUserInfo);
+
+              if (result == EOS_EResult::EOS_Success)
+              {
+                epic->user.display_name = pUserInfo->DisplayName != nullptr ? pUserInfo->DisplayName : "";
+                epic->user.nickname     = pUserInfo->Nickname    != nullptr ? pUserInfo->Nickname    : "";
+
+                SK::EOS::player.user   = epic->Connect_GetLoggedInUserByIndex (epic->Connect (), 0);
+                epic->product_user_id_ = epic->Connect_GetLoggedInUserByIndex (epic->Connect (), 0);
+
+                epic->UserInfo_Release (pUserInfo);
+              }
+            }
+          }
+        });
       }
     }
   }
@@ -720,7 +936,7 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
 }
 
 
-SK_LazyGlobal <SK_EOSContext> pEOSCtx;
+SK_LazyGlobal <SK_EOSContext> epic;
 bool SK::EOS::overlay_state = false;
 
 bool SK_EOSContext::OnVarChange (SK_IVariable *, void *)
@@ -734,7 +950,7 @@ std::string_view
 SK::EOS::PlayerName (void)
 {
   std::string_view view =
-    pEOSCtx->GetDisplayName ();
+    epic->GetDisplayName ();
 
   if (view.empty ())
     return "";
@@ -746,10 +962,16 @@ std::string_view
 SK::EOS::PlayerNickname (void)
 {
   std::string_view view =
-    pEOSCtx->GetNickName ();
+    epic->GetNickName ();
 
   if (view.empty ())
-    return "";
+  {
+    view =
+      epic->GetDisplayName ();
+
+    if (view.empty ())
+      return "";
+  }
 
   return view;
 }
@@ -758,7 +980,7 @@ EOS_EpicAccountId
 SK::EOS::UserID (void)
 {
   return
-    SK::EOS::player;
+    SK::EOS::player.account;
 }
 
 #include <filesystem>
@@ -868,4 +1090,45 @@ SK::EOS::AppName (void)
     name;
 }
 
-EOS_EpicAccountId SK::EOS::player = 0;
+void
+SK_EOS_SetNotifyCorner (void)
+{
+  // 4 == Don't Care
+  if (config.steam.notify_corner != 4)
+  {
+    if ( epic->UI ()                   != nullptr &&
+         epic->UI_SetDisplayPreference != nullptr )
+    {
+      EOS_UI_SetDisplayPreferenceOptions opts = {
+      EOS_UI_SETDISPLAYPREFERENCE_API_LATEST,
+        static_cast <EOS_UI_ENotificationLocation> (config.steam.notify_corner)
+      };
+
+      epic->UI_SetDisplayPreference ( epic->UI (), &opts );
+    }
+  }
+}
+
+SK::EOS::player_s
+SK::EOS::player = { };
+
+EOS_Platform_GetAchievementsInterface_pfn SK_EOSContext::Platform_GetAchievementsInterface = nullptr;
+EOS_Platform_GetAuthInterface_pfn         SK_EOSContext::Platform_GetAuthInterface         = nullptr;
+EOS_Platform_GetFriendsInterface_pfn      SK_EOSContext::Platform_GetFriendsInterface      = nullptr;
+EOS_Platform_GetStatsInterface_pfn        SK_EOSContext::Platform_GetStatsInterface        = nullptr;
+EOS_Platform_GetUIInterface_pfn           SK_EOSContext::Platform_GetUIInterface           = nullptr;
+EOS_Platform_GetUserInfoInterface_pfn     SK_EOSContext::Platform_GetUserInfoInterface     = nullptr;
+EOS_Platform_GetConnectInterface_pfn      SK_EOSContext::Platform_GetConnectInterface      = nullptr;
+
+EOS_Auth_GetLoggedInAccountsCount_pfn     SK_EOSContext::Auth_GetLoggedInAccountsCount     = nullptr;
+EOS_Auth_GetLoggedInAccountByIndex_pfn    SK_EOSContext::Auth_GetLoggedInAccountByIndex    = nullptr;
+
+EOS_UserInfo_QueryUserInfo_pfn            SK_EOSContext::UserInfo_QueryUserInfo            = nullptr;
+EOS_UserInfo_CopyUserInfo_pfn             SK_EOSContext::UserInfo_CopyUserInfo             = nullptr;
+EOS_UserInfo_Release_pfn                  SK_EOSContext::UserInfo_Release                  = nullptr;
+
+EOS_ProductUserId_FromString_pfn          SK_EOSContext::ProductUserId_FromString          = nullptr;
+EOS_Connect_GetLoggedInUserByIndex_pfn    SK_EOSContext::Connect_GetLoggedInUserByIndex    = nullptr;
+
+// Move to overlay manager
+EOS_UI_SetDisplayPreference_pfn           SK_EOSContext::UI_SetDisplayPreference           = nullptr;

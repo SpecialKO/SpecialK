@@ -283,3 +283,5 @@ paket-files/
 /packages.7z
 *.BuildAgent
 /src/.clang-tidy.cpt_backup
+/SpecialK-kitandkabootle.ruleset
+/SpecialK-boundscheck.ruleset

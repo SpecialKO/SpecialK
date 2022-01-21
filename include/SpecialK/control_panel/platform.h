@@ -35,4 +35,6 @@ namespace SK
   };
 };
 
+void SK_Platform_SetNotifyCorner (void);
+
 #endif /* __SK__CPL_PLATFORM_H__ */

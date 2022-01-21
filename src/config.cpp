@@ -25,6 +25,7 @@
 
 #include <SpecialK/storefront/epic.h>
 #include <filesystem>
+#include <optional>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
@@ -605,6 +606,8 @@ struct {
   sk::ParameterBool*      force_windowed          = nullptr;
   sk::ParameterBool*      confirm_mode_changes    = nullptr;
   sk::ParameterBool*      save_monitor_prefs      = nullptr;
+  sk::ParameterBool*      save_resolution         = nullptr;
+  sk::ParameterStringW*   override_resolution     = nullptr;
 } display;
 
 struct {
@@ -1016,7 +1019,9 @@ auto DeclKeybind =
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
-    ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         osd_ini,         L"Display.Monitor",       L"RememberPreference"),
+    ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
+    ConfigEntry (display.save_resolution,                L"Remember Monitor Resolution for the Current Game" ,         dll_ini,         L"Display.Monitor",       L"RememberResolution"),
+    ConfigEntry (display.override_resolution,            L"Apply Resolution Override for the Current Game",            dll_ini,         L"Display.Monitor",       L"ResolutionForMonitor"),
 
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
@@ -2748,6 +2753,22 @@ auto DeclKeybind =
   display.force_windowed->load              (config.display.force_windowed);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
   display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
+  display.save_resolution->load             (config.display.resolution.save);
+
+  if (config.display.resolution.save)
+  {
+    std::wstring                             override_str;
+    display.override_resolution->load       (override_str);
+
+    if ( 2 ==
+           _snwscanf ( override_str.c_str  (),
+                       override_str.length (), L"%dx%d",
+                         &config.display.resolution.override.x,
+                         &config.display.resolution.override.y ) )
+    {
+      ;
+    }
+  }
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);
   render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
@@ -3187,6 +3208,42 @@ auto DeclKeybind =
 
   bool found_exact = false;
 
+  extern LONG
+  __stdcall
+  SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
+                               _In_ DEVMODEW *lpDevMode,
+                                    HWND      hWnd,
+                               _In_ DWORD     dwFlags,
+                               _In_ LPVOID    lParam );
+
+  static auto _ApplyResolutionOverride = [&](MONITORINFOEX& mi)
+  {
+    if (! config.display.resolution.override.isZero ())
+    {
+      DEVMODEW devmode              = {               };
+               devmode.dmSize       = sizeof (DEVMODEW);
+               devmode.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
+               devmode.dmPelsWidth  = config.display.resolution.override.x;
+               devmode.dmPelsHeight = config.display.resolution.override.y;
+
+      if ( DISP_CHANGE_SUCCESSFUL ==
+             SK_ChangeDisplaySettingsEx (
+                 mi.szDevice, &devmode,
+                 0, CDS_TEST, nullptr )
+         )
+      {
+        if ( DISP_CHANGE_SUCCESSFUL ==
+               SK_ChangeDisplaySettingsEx (
+                   mi.szDevice, &devmode,
+                 0, 0/*CDS_UPDATEREGISTRY*/, nullptr )
+           )
+        {
+          config.display.resolution.applied = true;
+        }
+      }
+    }
+  };
+
   if (! config.display.monitor_path_ccd.empty ())
   {
     static UINT32 uiNumPaths =  128;
@@ -3316,6 +3373,8 @@ auto DeclKeybind =
         rb.next_monitor               = hMonitor;
 
         found_exact = true;
+
+        _ApplyResolutionOverride (mi);
       }
     }
   }
@@ -3326,11 +3385,13 @@ auto DeclKeybind =
 
     if (config.display.monitor_idx != 0 && config.display.monitor_handle == 0)
     {
-      EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
+      EnumDisplayMonitors ( nullptr, nullptr,
+      [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam)
+   -> BOOL
       {
-        (void)hDC;
-        (void)lpRect;
-        (void)lParam;
+        std::ignore = hDC;
+        std::ignore = lpRect;
+        std::ignore = lParam;
 
         MONITORINFOEXW
           mi        = {         };
@@ -3345,6 +3406,8 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
+              _ApplyResolutionOverride (mi);
+
               return FALSE;
             }
           }
@@ -3356,6 +3419,8 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
+              _ApplyResolutionOverride (mi);
+
               return FALSE;
             }
           }
@@ -3366,8 +3431,37 @@ auto DeclKeybind =
     }
 
     // No preference established, so handle should be null
-    else if (config.display.monitor_idx == 0)
-             config.display.monitor_handle = 0;
+    else if ( config.display.monitor_idx   == 0 )
+    {         config.display.monitor_handle = 0;
+      if ( !  config.display.resolution.override.isZero () )
+      {
+        EnumDisplayMonitors ( nullptr,
+                              nullptr,
+        [](HMONITOR hMonitor, HDC, LPRECT, LPARAM)
+     -> BOOL
+        {
+          MONITORINFOEXW
+            mi = { };
+            mi.cbSize = sizeof (MONITORINFOEXW);
+
+          if (GetMonitorInfoW (hMonitor, &mi))
+          {
+            if (mi.dwFlags & MONITORINFOF_PRIMARY)
+            {
+              config.display.monitor_handle = hMonitor;
+              rb.next_monitor               = hMonitor;
+
+              _ApplyResolutionOverride (mi);
+
+              return FALSE;
+            }
+          }
+
+          // Keep looking, we only want the primary monitor
+          return TRUE;
+        }, 0);
+      }
+    }
   }
 
 
@@ -4189,6 +4283,24 @@ SK_SaveConfig ( std::wstring name,
   display.force_windowed->store               (config.display.force_windowed);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
   display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
+  display.save_resolution->store              (config.display.resolution.save);
+
+  if ((! config.display.resolution.override.isZero ()) || config.display.resolution.save)
+  {
+    if (config.display.resolution.save)
+    {
+      display.override_resolution->store (
+        SK_FormatStringW ( L"%dx%d",
+                             config.display.resolution.override.x,
+                             config.display.resolution.override.y )
+      );
+    }
+
+    else
+    {
+      display.override_resolution->store (L"0x0");
+    }
+  }
 
 //if (close_config)
   render.framerate.target_fps->store          (config.render.framerate.target_fps);//__target_fps);

@@ -541,6 +541,17 @@ struct sk_config_t
     bool      force_windowed       = false;
     bool      confirm_mode_changes = true;
     bool      save_monitor_prefs   = true;
+    struct resolution_s {
+      bool           save          = true;
+      bool           applied       = false;
+      struct desktop_override_s {
+        unsigned int x             = 0;
+        unsigned int y             = 0;
+        bool isZero (void) noexcept { return x == 0 && y == 0; };
+      } override, original;
+      // TODO
+      std::wstring  monitor_path_ccd = L"";
+    } resolution;
   } display;
 
   struct textures_s {

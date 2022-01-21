@@ -41,11 +41,11 @@ SK::ControlPanel::Platform::Draw (void)
     static bool bSteam = (SK::SteamAPI::AppID      () != 0);
     static bool bEpic  = (SK::EOS::GetTicksRetired () >  0);
 
-    static std::string header_label =
+    static const std::string header_label = std::move (
       SK_FormatString ( "%s Enhancements###Platform_Enhancements",
-                        bSteam ? "Steam"
-                               : bEpic ? "Epic"
-                                       : "Platform" );
+                        bSteam ? "Steam" :
+                         bEpic ? "Epic"  :
+                             "Platform" )             );
 
     if ( ImGui::CollapsingHeader (header_label.c_str (), ImGuiTreeNodeFlags_CollapsingHeader |
                                                          ImGuiTreeNodeFlags_DefaultOpen ) )
@@ -55,13 +55,21 @@ SK::ControlPanel::Platform::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
       ImGui::TreePush       ("");
 
-      if (SK_SteamAPI_GetNumPossibleAchievements () > 0 ||
-          SK_EOS_GetNumPossibleAchievements      () > 0)
+      static bool
+        bHasAchievements =
+          ( bSteam && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
+          ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 );
+
+
+      if (bHasAchievements)
       {
         static char szProgress [128] = { };
 
-        const float  ratio            = SK::SteamAPI::PercentOfAchievementsUnlocked ();
-        const size_t num_achievements = SK_SteamAPI_GetNumPossibleAchievements      ();
+        const float  ratio            = bEpic ? SK::EOS::PercentOfAchievementsUnlocked      ()
+                                              : SK::SteamAPI::PercentOfAchievementsUnlocked ();
+
+        const size_t num_achievements = bEpic ? SK_EOS_GetNumPossibleAchievements           ()
+                                              : SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
                      100.0 * ratio,  sk::narrow_cast <uint32_t> ((ratio * sk::narrow_cast <float> (num_achievements))),
@@ -134,7 +142,8 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::BeginGroup ();
 
           if (ImGui::Button (" Test Unlock "))
-            SK_Steam_UnlockAchievement (0);
+            bEpic ? SK_EOS_UnlockAchievement   (0)
+                  : SK_Steam_UnlockAchievement (0);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Perform a FAKE unlock so that you can tune your preferences.");
@@ -169,9 +178,14 @@ SK::ControlPanel::Platform::Draw (void)
                 sound_map [i]
               );
 
-              SK_Steam_LoadUnlockSound (
-                config.steam.achievements.sound_file.c_str ()
-              );
+              auto SK_Platform_LoadUnlockSound = [](void)
+              {
+                if (SK::EOS::UserID () != nullptr)
+                     SK_EOS_LoadUnlockSound   (config.steam.achievements.sound_file.c_str ());
+                else SK_Steam_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
+              };
+
+              SK_Platform_LoadUnlockSound ();
             }
           }
 
@@ -184,10 +198,14 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
+          // TODO: Implement popup for non-Steam
           const bool uncollapsed =
-            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap);
+            bSteam ? ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap)
+                   : false;
 
-          ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
+          if (bSteam) {
+            ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
+          }
 
           if (uncollapsed)
           {
@@ -254,7 +272,16 @@ SK::ControlPanel::Platform::Draw (void)
         }
       }
 
-      static bool bSteamOverlayEnabled = (steam_ctx.Utils () != nullptr && steam_ctx.Utils ()->IsOverlayEnabled ());
+      else
+      {
+        // Handle late init situations
+        bHasAchievements =
+         ( ( bSteam && SK_SteamAPI_GetNumPossibleAchievements () > 0 )
+        || ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 ) );
+      }
+
+      static bool bSteamOverlayEnabled = steam_ctx.Utils () != nullptr
+                                      && steam_ctx.Utils ()->IsOverlayEnabled ();
 
       bool bOverlayEnabled =
         ( bSteamOverlayEnabled || SK::EOS::GetTicksRetired () > 0 );
@@ -270,7 +297,7 @@ SK::ControlPanel::Platform::Draw (void)
                                   "Bottom-Right\0"
                                   "(Let Game Decide)\0\0" ))
         {
-          SK_Steam_SetNotifyCorner ();
+          SK_Platform_SetNotifyCorner ();
         }
 
         if (ImGui::IsItemHovered ())

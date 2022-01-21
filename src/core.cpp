@@ -2160,6 +2160,13 @@ SK_ShutdownCore (const wchar_t* backend)
     }
   }
 
+  if (config.display.resolution.applied)
+  {
+    SK_ChangeDisplaySettingsEx (
+      nullptr, nullptr,
+        0, CDS_RESET, nullptr  );
+  }
+
   dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");
 
   DWORD dwTime =
