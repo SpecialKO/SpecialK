@@ -216,33 +216,6 @@ extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
 extern          HWND hWndUpdateDlg;
 extern volatile LONG __SK_TaskDialogActive;
 
-
-#ifndef SK_BUILD__INSTALLER
-#ifdef _WIN64
-# define SK_CEGUI_LIB_BASE "CEGUI/x64/"
-#else
-# define SK_CEGUI_LIB_BASE "CEGUI/Win32/"
-#endif
-
-#define _SKC_MakeCEGUILib(library) \
-  __pragma (comment (lib, SK_CEGUI_LIB_BASE #library ##".lib"))
-
-_SKC_MakeCEGUILib ("CEGUIDirect3D11Renderer-0")
-_SKC_MakeCEGUILib ("CEGUIBase-0")
-_SKC_MakeCEGUILib ("CEGUICoreWindowRendererSet")
-_SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
-_SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
-_SKC_MakeCEGUILib ("CEGUISTBImageCodec")
-
-#include <delayimp.h>
-#pragma comment (lib, "delayimp.lib")
-
-#include <CEGUI/Rect.h>
-#include <CEGUI/RendererModules/Direct3D11/Renderer.h>
-
-CEGUI::Direct3D11Renderer* cegD3D11 = nullptr;
-#endif
-
 void __stdcall SK_D3D11_ResetTexCache (void);
 
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
@@ -370,247 +343,6 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 static volatile ULONG __gui_reset_dxgi   = TRUE;
 static volatile ULONG __osd_frames_drawn = 0;
 
-void
-SK_CEGUI_RelocateLog (void)
-{
-  if (! config.cegui.enable) return;
-
-
-  // Move the log file that this darn thing just created...
-  if (GetFileAttributesW (L"CEGUI.log") != INVALID_FILE_ATTRIBUTES)
-  {
-    char     szNewLogPath [MAX_PATH + 2] = { };
-    wchar_t wszNewLogPath [MAX_PATH + 2] = { };
-
-    wcsncpy_s(wszNewLogPath, MAX_PATH, SK_GetConfigPath (), _TRUNCATE);
-    strncpy_s( szNewLogPath, MAX_PATH,
-                SK_WideCharToUTF8 (wszNewLogPath).c_str (), _TRUNCATE);
-
-    lstrcatA ( szNewLogPath,  R"(logs\CEGUI.log)");
-    lstrcatW (wszNewLogPath, LR"(logs\CEGUI.log)");
-
-    CopyFileExW ( L"CEGUI.log", wszNewLogPath,
-                    nullptr, nullptr, nullptr,
-                      0x00 );
-
-    try {
-      auto& logger =
-        CEGUI::Logger::getDllSingleton ();
-
-      logger.setLogFilename (reinterpret_cast <const CEGUI::utf8 *> (szNewLogPath), true);
-
-      logger.logEvent       ("[Special K] ---- Log File Moved ----");
-      logger.logEvent       ("");
-
-      DeleteFileW (L"CEGUI.log");
-    }
-
-    catch (const CEGUI::FileIOException& e)
-    {
-      SK_LOG0 ( (L"CEGUI Exception During Log File Relocation"),
-                L"   CEGUI  "  );
-      SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                  e.getFunctionName    ().c_str (),
-                  e.getFileName        ().c_str (),
-                  e.getLine            (),
-                          e.getName    ().c_str (),
-                          e.getMessage ().c_str () ),
-                 L"   CEGUI  "  );
-    }
-  }
-}
-
-CEGUI::Window* SK_achv_popup = nullptr;
-
-CEGUI::System*
-SK_CEGUI_GetSystem (void)
-{
-  if (! config.cegui.enable) return nullptr;
-
-
-  return CEGUI::System::getDllSingletonPtr ();
-}
-
-
-void
-__SEH_InitParser (CEGUI::XMLParser* parser)
-{
-  try
-  {
-    if (parser->isPropertyPresent ("SchemaDefaultResourceGroup"))
-      parser->setProperty ("SchemaDefaultResourceGroup", "schemas");
-  }
-
-  catch (...)
-  {
-    config.cegui.enable = false;
-  }
-}
-
-void
-SK_CEGUI_InitParser (void)
-{
-  CEGUI::System& pSys =
-    CEGUI::System::getDllSingleton ();
-
-  // setup default group for validation schemas
-  CEGUI::XMLParser* parser =
-    pSys.getXMLParser ();
-
-  if (SK_ValidatePointer (parser))
-  {
-    __SEH_InitParser (parser);
-  }
-
-  else
-    config.cegui.enable = false;
-}
-
-
-void
-SK_CEGUI_InitBase ()
-{
-  if (! config.cegui.enable) return;
-
-
-  try
-  {
-    auto& system =
-      CEGUI::System::getDllSingleton ();
-
-    // initialise the required dirs for the DefaultResourceProvider
-    auto* rp =
-        static_cast <CEGUI::DefaultResourceProvider *>
-            (system.getResourceProvider ());
-
-
-    CEGUI::SchemeManager* pSchemeMgr =
-      CEGUI::SchemeManager::getDllSingletonPtr ();
-
-    CEGUI::FontManager* pFontMgr =
-      CEGUI::FontManager::getDllSingletonPtr ();
-
-
-         char szRootPath [MAX_PATH + 2] = { };
-    snprintf (szRootPath, MAX_PATH, "%ws", _wgetenv (L"CEGUI_PARENT_DIR"));
-              szRootPath [MAX_PATH] = '\0';
-
-    CEGUI::String dataPathPrefix ( ( std::string (szRootPath) +
-                                     std::string ("CEGUI/datafiles") ).c_str () );
-
-    /* for each resource type, set a resource group directory. We cast strings
-       to "const CEGUI::utf8*" in order to support general Unicode strings,
-       rather than only ASCII strings (even though currently they're all ASCII).
-       */
-    rp->setResourceGroupDirectory("schemes",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/schemes/"));
-    rp->setResourceGroupDirectory("imagesets",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/imagesets/"));
-    rp->setResourceGroupDirectory("fonts",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/fonts/"));
-    rp->setResourceGroupDirectory("layouts",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/layouts/"));
-    rp->setResourceGroupDirectory("looknfeels",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/looknfeel/"));
-    rp->setResourceGroupDirectory("lua_scripts",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/lua_scripts/"));
-    rp->setResourceGroupDirectory("schemas",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/xml_schemas/"));
-    rp->setResourceGroupDirectory("animations",
-      dataPathPrefix + reinterpret_cast<const CEGUI::utf8*>("/animations/"));
-
-    // set the default resource groups to be used
-    CEGUI::ImageManager::setImagesetDefaultResourceGroup ("imagesets");
-    //CEGUI::ImageManager::addImageType                    ("BasicImage");
-    CEGUI::Font::setDefaultResourceGroup                 ("fonts");
-    CEGUI::Scheme::setDefaultResourceGroup               ("schemes");
-    CEGUI::WidgetLookManager::setDefaultResourceGroup    ("looknfeels");
-    CEGUI::WindowManager::setDefaultResourceGroup        ("layouts");
-    CEGUI::ScriptModule::setDefaultResourceGroup         ("lua_scripts");
-    CEGUI::AnimationManager::setDefaultResourceGroup     ("animations");
-
-    pSchemeMgr->createFromFile ("VanillaSkin.scheme");
-    pSchemeMgr->createFromFile ("TaharezLook.scheme");
-
-    pFontMgr->createFromFile ("Consolas-12.font");
-    pFontMgr->createFromFile ("DejaVuSans-10-NoScale.font");
-    pFontMgr->createFromFile ("DejaVuSans-12-NoScale.font");
-    pFontMgr->createFromFile ("Jura-18-NoScale.font");
-    pFontMgr->createFromFile ("Jura-13-NoScale.font");
-    pFontMgr->createFromFile ("Jura-10-NoScale.font");
-
-
-    SK_CEGUI_InitParser ();
-
-    // ^^^^ This is known to fail in debug builds; if it does,
-    //        config.cegui.enable will be turned off.
-
-    if (! config.cegui.enable)
-      return;
-
-
-    auto* renderer =
-      system.getRenderer ();
-
-    // Set a default window size if CEGUI cannot figure it out...
-    if ( renderer->getDisplaySize () ==
-           CEGUI::Sizef (0.0f, 0.0f) )
-    {
-      renderer->setDisplaySize (
-          CEGUI::Sizef (
-            static_cast <float> (game_window.render_x),
-              static_cast <float> (game_window.render_y)
-          )
-      );
-    }
-
-#if 0
-    if ( config.window.borderless     &&
-         config.window.res.override.x &&
-         config.window.res.override.y )
-    {
-      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
-          CEGUI::Sizef (
-            config.window.res.override.x,
-              config.window.res.override.y
-          )
-      );
-    }
-#endif
-
-    CEGUI::WindowManager& window_mgr =
-      CEGUI::WindowManager::getDllSingleton ();
-
-    CEGUI::Window* root =
-      window_mgr.createWindow ("DefaultWindow", "root");
-
-    system.getDefaultGUIContext ().setRootWindow (root);
-
-   //This window is never used, it is the prototype from which all
-   //  achievement popup dialogs will be cloned. This makes the whole
-   //    process of instantiating pop ups quicker.
-    SK_achv_popup =
-      window_mgr.loadLayoutFromFile ("Achievements.layout");
-  }
-
-  catch (CEGUI::Exception& e)
-  {
-    SK_LOG0 ( (L"CEGUI Exception During Core Init"),
-               L"   CEGUI  "  );
-    SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                e.getFunctionName    ().c_str (),
-                e.getFileName        ().c_str (),
-                e.getLine            (),
-                        e.getName    ().c_str (),
-                        e.getMessage ().c_str () ),
-               L"   CEGUI  "  );
-
-    config.cegui.enable = false;
-  }
-
-  SK_Steam_ClearPopups ();
-}
-
 DXGI_FORMAT
 SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
                                               BOOL bFlipModel = FALSE )
@@ -700,124 +432,9 @@ void ResetImGui_D3D12 (IDXGISwapChain* This)
   _d3d12_rbk->release (This);
 }
 
-void ResetCEGUI_D3D11 (IDXGISwapChain* This)
+void ResetImGui_D3D11 (IDXGISwapChain* This)
 {
   _d3d11_rbk->release (This);
-}
-
-bool
-SK_CEGUI_InitD3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDeviceCtx, ID3D11Texture2D *pBackBuffer)
-{
-  if (! SK_GetModuleHandle (L"CEGUIDirect3D11Renderer-0.dll"))
-    return false;
-
-  SK_ReleaseAssert (pDevice != nullptr && pDeviceCtx != nullptr && pBackBuffer != nullptr);
-
-  D3D11_VIEWPORT vp_orig = { };
-  UINT           num_vp  =  1;
-
-  pDeviceCtx->RSGetViewports (&num_vp, &vp_orig);
-
-  D3D11_VIEWPORT                    vp = { };
-  D3D11_TEXTURE2D_DESC backbuffer_desc = { };
-
-  pBackBuffer->GetDesc (&backbuffer_desc);
-
-  vp.Width    = static_cast <float> (backbuffer_desc.Width);
-  vp.Height   = static_cast <float> (backbuffer_desc.Height);
-  vp.MinDepth = 0.0f;
-  vp.MaxDepth = 1.0f;
-  vp.TopLeftX = 0.0f;
-  vp.TopLeftY = 0.0f;
-
-  pDeviceCtx->RSSetViewports (1, &vp);
-
-  int thread_locale =
-    _configthreadlocale (0);
-    _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
-
-  char* szLocale =
-    setlocale (LC_ALL, nullptr);
-
-  std::string locale_orig (
-    szLocale != nullptr ? szLocale : ""
-  );
-
-  if (! locale_orig.empty ())
-    setlocale (LC_ALL, "C");
-
-  if (config.cegui.enable)
-  {
-    try {
-      cegD3D11 = static_cast <CEGUI::Direct3D11Renderer *>
-        (&CEGUI::Direct3D11Renderer::bootstrapSystem (
-          pDevice, pDeviceCtx
-         )
-        );
-    }
-
-    catch (CEGUI::Exception& e)
-    {
-      SK_LOG0 ( (L"CEGUI Exception During D3D11 Bootstrap"),
-                 L"   CEGUI  "  );
-      SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                  e.getFunctionName    ().c_str (),
-                  e.getFileName        ().c_str (),
-                  e.getLine            (),
-                          e.getName    ().c_str (),
-                          e.getMessage ().c_str () ),
-                 L"   CEGUI  "  );
-
-      cegD3D11            = nullptr;
-      config.cegui.enable = false;
-    }
-  }
-  else
-    cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);
-
-  if ((uintptr_t)cegD3D11 > 1)
-    SK_CEGUI_RelocateLog (    );
-
-  pDeviceCtx->RSSetViewports (1, &vp_orig);
-
-  if ((uintptr_t)cegD3D11 > 1)
-  {
-    if (! locale_orig.empty ())
-      setlocale (LC_ALL, "C");
-
-    SK_CEGUI_InitBase    ();
-
-    SK_PopupManager::getInstance       ()->destroyAllPopups (        );
-    SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegD3D11*/);
-  }
-
-  SK_Steam_ClearPopups ();
-
-  if (! locale_orig.empty ())
-    setlocale (LC_ALL, locale_orig.c_str ());
-
-  _configthreadlocale (thread_locale);
-
-  return
-    ( cegD3D11 > reinterpret_cast <CEGUI::Direct3D11Renderer *> (1) );
-}
-
-void
-SK_CEGUI_DestroyD3D11 (void)
-{
-  if (cegD3D11 != nullptr)
-  {
-    if ((uintptr_t)cegD3D11 > 1)
-    {
-      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-      SK_PopupManager::getInstance       ()->destroyAllPopups   ();
-
-      cegD3D11 = reinterpret_cast <CEGUI::Direct3D11Renderer *> (1);// nullptr;
-
-      CEGUI::WindowManager::getDllSingleton    ().cleanDeadPool ();
-      CEGUI::Direct3D11Renderer::destroySystem ();
-    }
-  }
 }
 
 DWORD dwRenderThread = 0x0000;
@@ -1744,17 +1361,14 @@ SK_GetDXGIAdapterInterface (gsl::not_null <IUnknown *> pAdapter)
 }
 
 void
-SK_CEGUI_QueueResetD3D12 (void)
+SK_ImGui_QueueResetD3D12 (void)
 {
   InterlockedExchange (&__gui_reset_dxgi, TRUE);
 }
 
 void
-SK_CEGUI_QueueResetD3D11 (void)
+SK_ImGui_QueueResetD3D11 (void)
 {
-  if (cegD3D11 == (CEGUI::Direct3D11Renderer *)1)
-    cegD3D11 = nullptr;
-
   InterlockedExchange (&__gui_reset_dxgi, TRUE);
 }
 
@@ -2343,7 +1957,7 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
 }
 
 void
-SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
+SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 {
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
@@ -2379,35 +1993,24 @@ SK_CEGUI_DrawD3D11 (IDXGISwapChain* This)
 
   if (InterlockedCompareExchange (&__gui_reset_dxgi, FALSE, TRUE))
   {
-    if ((uintptr_t)cegD3D11 > 1)
-      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-
-    if (cegD3D11 != nullptr)
-    {
-      if ((uintptr_t)cegD3D11 > 1)
-      {
-        CEGUI::WindowManager::getDllSingleton ().cleanDeadPool ();
-        cegD3D11->destroySystem ();
-      }
-
-      cegD3D11 = nullptr;
-    }
+    ResetImGui_D3D11 (This);
   }
 
-  else if (cegD3D11 == nullptr)
+  else
   {
-        DXGI_SWAP_CHAIN_DESC
-                    swapDesc = { };
-    This->GetDesc (&swapDesc);
-
-    if (IsWindow (swapDesc.OutputWindow) &&
-                  swapDesc.OutputWindow != 0)
+    static bool          once = false;
+    if (! std::exchange (once, true))
     {
-      SK_RunOnce (SK_InstallWindowHook (swapDesc.OutputWindow));
-    }
+          DXGI_SWAP_CHAIN_DESC
+                      swapDesc = { };
+      This->GetDesc (&swapDesc);
 
-    if (config.cegui.enable)
-      ResetCEGUI_D3D11 (This);
+      if (IsWindow (swapDesc.OutputWindow) &&
+                    swapDesc.OutputWindow != 0)
+      {
+        SK_RunOnce (SK_InstallWindowHook (swapDesc.OutputWindow));
+      }
+    }
   }
 
 
@@ -3100,7 +2703,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
 
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
-    else if (_IsBackendD3D11 (rb.api)) SK_CEGUI_DrawD3D11 (This);
+    else if (_IsBackendD3D11 (rb.api)) SK_ImGui_DrawD3D11 (This);
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
@@ -4840,7 +4443,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   if (! skippable)
   {
     ResetImGui_D3D12 (This);
-    ResetCEGUI_D3D11 (This);
+    ResetImGui_D3D11 (This);
 
     ret =
       ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -4853,7 +4456,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   if (FAILED (ret))
   {
     ResetImGui_D3D12 (This);
-    ResetCEGUI_D3D11 (This);
+    ResetImGui_D3D11 (This);
 
     ret =
       ResizeBuffers_Original ( This, BufferCount, Width, Height,
@@ -5061,7 +4664,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format, FALSE, TRUE);
 
   //ResetImGui_D3D12 (This);
-  //ResetCEGUI_D3D11 (This);
+  //ResetImGui_D3D11 (This);
 
   static UINT           numModeChanges = 0;
   static DXGI_MODE_DESC lastModeSet;
@@ -6188,11 +5791,13 @@ DXGIFactory_CreateSwapChain_Override (
                                        pDesc, ppSwapChain );
   }
 
-  SK_ComQIPtr <ID3D11Device>       pD3D11Dev   (pDevice);
-  SK_ComQIPtr <ID3D12CommandQueue> pD3D12Queue (pDevice);
+  SK_ComQIPtr <ID3D11Device>       pD3D11Dev (pDevice);
+  SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
+  SK_ComPtr   <ID3D12Device>       pDev12;
 
-  if (pD3D12Queue != nullptr)
-  {
+  if (pCmdQueue != nullptr)
+  {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
+
     SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ), L"Direct3D12" );
   }
 
@@ -6224,9 +5829,9 @@ DXGIFactory_CreateSwapChain_Override (
 
         bool workable = true;
 
-        if (pD3D11Dev.p   != nullptr && (FAILED (pSwapToRecycle->GetDevice (__uuidof (ID3D11Device),       (void **)&pOriginalD3D11Dev.p))   || (!  pD3D11Dev.IsEqualObject (pOriginalD3D11Dev  ))))
+        if (pD3D11Dev.p != nullptr && (FAILED (pSwapToRecycle->GetDevice (__uuidof (ID3D11Device),       (void **)&pOriginalD3D11Dev.p))   || (!pD3D11Dev.IsEqualObject (pOriginalD3D11Dev  ))))
           workable = false;
-        if (pD3D12Queue.p != nullptr && (FAILED (pSwapToRecycle->GetDevice (__uuidof (ID3D12CommandQueue), (void **)&pOriginalD3D12Queue.p)) || (!pD3D12Queue.IsEqualObject (pOriginalD3D12Queue))))
+        if (pCmdQueue.p != nullptr && (FAILED (pSwapToRecycle->GetDevice (__uuidof (ID3D12CommandQueue), (void **)&pOriginalD3D12Queue.p)) || (!pCmdQueue.IsEqualObject (pOriginalD3D12Queue))))
           workable = false;
 
         if (! workable)
@@ -6335,6 +5940,15 @@ DXGIFactory_CreateSwapChain_Override (
   {
     if (pTemp != nullptr)
     {
+      //
+      // HACK for HDR RenderTargetView issues in D3D12
+      //
+      if (pCmdQueue != nullptr && pDev12 != nullptr)
+      {
+        SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
+        SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
+      }
+
       SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
       SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
                                                ppSwapChain);
@@ -6344,7 +5958,7 @@ DXGIFactory_CreateSwapChain_Override (
     if ( SK_DXGI_IsFlipModelSwapChain (new_desc) &&
       (! SK_DXGI_IsFlipModelSwapChain (descCopy)) )
     {
-      if (  pD3D12Queue.p  == nullptr &&
+      if (  pCmdQueue.p    == nullptr &&
             pSwapToRecycle == nullptr &&
            ppSwapChain     != nullptr /*&& (! config.apis.d3d9.translated)*/ )
       {
@@ -6776,7 +6390,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   {
     if (pTemp != nullptr)
     {
-//
+      //
       // HACK for HDR RenderTargetView issues in D3D12
       //
       if (pCmdQueue != nullptr && pDev12 != nullptr)
