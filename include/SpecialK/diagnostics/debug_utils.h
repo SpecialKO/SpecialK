@@ -814,7 +814,7 @@ SK_SEH_SetTranslator (
 
 
 void WINAPI
-SK_SetLastError (DWORD dwErrCode);
+SK_SetLastError (DWORD dwErrCode) noexcept;
 
 LPVOID
 SK_Debug_GetImageBaseAddr (void);

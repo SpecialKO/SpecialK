@@ -36,7 +36,7 @@ SK_DbgHlp_Callers (void)
                                    (    _T  )(_L(x)) : (      _T  )(x))
 #define SK_TEXT(x) \
               (const _T*) (LPCVOID (std::type_index (typeid (_T)) ==      \
-                                   std::type_index (typeid (wchar_t))) ? \
+                                    std::type_index (typeid (wchar_t))) ? \
                            (const _T *)(_L(x)) : (const _T *)(x))
 
 using StrStrI_pfn            =
@@ -203,7 +203,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
                  (StrStrI_pfn) &StrStrIW   :
                  (StrStrI_pfn) &StrStrIA );
 
-  static std::vector <const _T*> pinnable_libs =
+  static const std::vector <const _T*> pinnable_libs =
   {
     // Fix for premature DLL unload issue discussed here:
     //
@@ -213,7 +213,10 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("XAudio2_8"),
     SK_TEXT ("XAudio2_9"),
 
-    SK_TEXT ("nvapi"),
+    SK_TEXT ("nvapi"), SK_TEXT ("NvCameraAllowlisting"),
+
+
+    SK_TEXT ("kbd"), // Keyboard Layouts take > ~20 ms to load, leave 'em loaded
 
     //// Some software repeatedly loads and unloads this, which can
     ////   cause TLS-related problems if left unchecked... just leave
@@ -227,7 +230,22 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
       return true;
   }
 
-  return false;
+  bool pinnable = false;
+
+  // If Platform Integration is Opt'd-Out, turn Library Pinning -Off-
+  //
+  //   ( Generally for Debugging, Users Shouldn't Rely on This... )
+  //
+  if ((! pinnable) && config.platform.silent != true)
+  {      pinnable =
+      StrStrI (
+        pStr, SK_RunLHIfBitness (64,
+            SK_TEXT ("steamclient64.dll"),
+            SK_TEXT ("steamclient"".dll"))
+      );
+  }
+
+  return pinnable;
 
 #pragma pop_macro ("StrStrI")
 }

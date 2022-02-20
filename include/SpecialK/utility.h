@@ -113,7 +113,7 @@ public:
   bool isValid (void) const noexcept
   {
     return
-      ((intptr_t)m_h > 0);
+      (reinterpret_cast <intptr_t> (m_h) > 0);
   }
 
 public:
@@ -251,7 +251,7 @@ iSK_INI*       SK_GetDLLConfig              (void);
 
 HMODULE        SK_GetCallingDLL             (LPCVOID pReturn = _ReturnAddress ());
 std::wstring   SK_GetCallerName             (LPCVOID pReturn = _ReturnAddress ());
-HMODULE        SK_GetModuleFromAddr         (LPCVOID addr) noexcept;
+HMODULE        SK_GetModuleFromAddr         (LPCVOID addr);
 std::wstring   SK_GetModuleName             (HMODULE hDll);
 std::wstring   SK_GetModuleFullName         (HMODULE hDll);
 std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
@@ -371,6 +371,7 @@ void
                SK_ResumeThreads          (std::queue <DWORD> threads);
 
 
+bool __cdecl   SK_IsServiceHost          (void);
 bool __cdecl   SK_IsRunDLLInvocation     (void);
 bool __cdecl   SK_IsSuperSpecialK        (void);
 

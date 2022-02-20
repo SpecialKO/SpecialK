@@ -1198,8 +1198,8 @@ public:
   {
     SK_ImGui_Widgets->thread_profiler = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::West).setClickThrough (false).
-                      setBorder       (true);
+    setAutoFit      ( true).setDockingPoint (DockAnchor::West).
+    setClickThrough (false).setBorder       (true            );
   };
 
   void run (void) override
@@ -2870,12 +2870,48 @@ void SK_Widget_InvokeThreadProfiler (void)
   if (SK_GetHostAppUtil ()->isInjectionTool ())
     return;
 
-  extern volatile LONG          lLastThreadCreate;
-  InterlockedIncrementAcquire (&lLastThreadCreate);
+  static
+    SK_AutoHandle produce_event (
+                 SK_CreateEvent ( nullptr, FALSE,
+                                           FALSE, nullptr ) );
 
-  if (ReadAcquire (&__SK_DLL_Ending) == FALSE)
-  {
-    SK_Widget_InitThreadProfiler ();
-        __thread_profiler__->run ();
-  }
+  SK_RunOnce (
+    SK_Thread_CreateEx (
+     [ ](LPVOID)
+   -> DWORD
+      {
+        HANDLE wait_objs [] =   {
+              produce_event.m_h,
+         __SK_DLL_TeardownEvent };
+
+        DWORD  dwRet  = WAIT_OBJECT_0;
+        while (dwRet == WAIT_OBJECT_0)
+        {      dwRet  =
+          WaitForMultipleObjects (
+            2, wait_objs, FALSE, INFINITE
+          );
+
+          if (dwRet == WAIT_OBJECT_0)
+          {
+            extern volatile LONG          lLastThreadCreate;
+            InterlockedIncrementAcquire (&lLastThreadCreate);
+
+            if (ReadAcquire (&__SK_DLL_Ending) == FALSE)
+            {
+              SK_Widget_InitThreadProfiler ();
+                  __thread_profiler__->run ();
+
+              continue;
+            }
+          }
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] Thread Profiler Data Broker"
+    )
+  );
+
+  SetEvent (produce_event.m_h);
 }

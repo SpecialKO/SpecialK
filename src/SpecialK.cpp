@@ -66,7 +66,7 @@ SK_Thread_HybridSpinlock* budget_mutex        = nullptr;
 SK_Thread_HybridSpinlock* wmi_cs              = nullptr;
 SK_Thread_HybridSpinlock* cs_dbghelp          = nullptr;
 SK_Thread_HybridSpinlock* steam_callback_cs   = nullptr;
-SK_Thread_HybridSpinlock* steam_popup_cs      = nullptr;
+SK_Thread_HybridSpinlock* platform_popup_cs   = nullptr;
 SK_Thread_HybridSpinlock* steam_init_cs       = nullptr;
 
                 HANDLE __SK_DLL_TeardownEvent = nullptr;
@@ -261,6 +261,11 @@ SK_KeepAway (void)
 
     if (rc != APPMODEL_ERROR_NO_PACKAGE)
     {
+      if (SK_GetModuleHandleW (L"AppXDeploymentClient.dll") != nullptr)
+      {
+        SK_GetHostAppUtil ()->setBlacklisted (true);
+      }
+
       bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
            dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
            glide = false;
@@ -370,6 +375,9 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_ATTACH:
     {
+      if (SK_IsServiceHost ())
+        return FALSE;
+
 #ifdef _SK_CONSISTENCY_CHECK
       std::atexit (SK_LazyCleanup);
 #endif
@@ -424,6 +432,13 @@ DllMain ( HMODULE hModule,
       INT dll_isolation_lvl =
         SK_KeepAway ();
 
+      // Will be implicitly set in call to SK_KeepAway
+      if (SK_GetHostAppUtil ()->isBlacklisted ())
+      {
+        OutputDebugStringW (L"Special K Disabled For Blacklisted App");
+        return TRUE;
+      }
+
       ////if (dll_isolation_lvl >= 3)                  return EarlyOut (FALSE);
 
       SK_TLS_Acquire ();
@@ -468,6 +483,9 @@ DllMain ( HMODULE hModule,
     //
     case DLL_PROCESS_DETACH:
     {
+      bool bAttached =
+        SK_DLL_IsAttached ();
+
       if ((intptr_t)__SK_DLL_TeardownEvent > (intptr_t)nullptr) SetEvent (
                     __SK_DLL_TeardownEvent                               );
 
@@ -482,12 +500,7 @@ DllMain ( HMODULE hModule,
         {
           SKX_RemoveCBTHook ();
         }
-
-        SwitchToThread ();
       }
-
-      bool bAttached =
-        SK_DLL_IsAttached ();
 
       // Attached _AND_ non-trivially Initialized
       if (bAttached)
@@ -1346,7 +1359,7 @@ SK_Attach (DLL_ROLE role)
         SK_CleanupMutex (&wmi_cs);
 
         SK_CleanupMutex (&steam_callback_cs);
-        SK_CleanupMutex (&steam_popup_cs);
+        SK_CleanupMutex (&platform_popup_cs);
         SK_CleanupMutex (&steam_init_cs);
 
         void SK_D3D11_CleanupMutexes (void);
@@ -1380,7 +1393,7 @@ SK_Attach (DLL_ROLE role)
 
             steam_callback_cs =
               new SK_Thread_HybridSpinlock (256UL);
-            steam_popup_cs    =
+            platform_popup_cs =
               new SK_Thread_HybridSpinlock (512UL);
             steam_init_cs     =
               new SK_Thread_HybridSpinlock (128UL);
@@ -1463,7 +1476,7 @@ SK_Detach (DLL_ROLE role)
     SK_CleanupMutex (&budget_mutex);     SK_CleanupMutex (&init_mutex);
     SK_CleanupMutex (&cs_dbghelp);       SK_CleanupMutex (&wmi_cs);
 
-    SK_CleanupMutex (&steam_callback_cs);SK_CleanupMutex (&steam_popup_cs);
+    SK_CleanupMutex (&steam_callback_cs);SK_CleanupMutex (&platform_popup_cs);
     SK_CleanupMutex (&steam_init_cs);
 
     void SK_D3D11_CleanupMutexes (void);

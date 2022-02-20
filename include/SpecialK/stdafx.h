@@ -69,6 +69,7 @@ __pragma (runtime_checks ("", off))
 #include <locale.h>
 #include <ios>
 #include <iosfwd>
+#include <fstream>
 #include <ostream>
 #include <istream>
 #include <iterator>
@@ -182,9 +183,6 @@ __pragma (runtime_checks ("", off))
 #define _IMAGEHLP_SOURCE_
 #  include <DbgHelp.h>
 #pragma warning   (pop)
-
-#include <CEGUI/CEGUI.h>
-#include <CEGUI/System.h>
 
 #include <concurrent_queue.h>
 #include <concurrent_vector.h>

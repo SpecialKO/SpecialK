@@ -728,7 +728,7 @@ SK_Inject_WinEventHookProc (
 
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
-    if (game_window.hWnd != hwnd)
+    if (game_window.hWnd != hwnd && game_window.hWnd != nullptr && IsWindow (game_window.hWnd))
     {
       if (SK_Window_TestOverlap (game_window.hWnd, hwnd, FALSE, 25))
       {
@@ -869,7 +869,7 @@ SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
     if (pSharedMem)
     {
       SK_AutoHandle hMutex (
-        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" )
+        CreateMutexW ( nullptr, TRUE, LR"(Local\SK_EtwMutex0)" )
       );
 
       if (hMutex != nullptr)
@@ -972,7 +972,7 @@ SK_Etw_UnregisterSession (const char* szPrefix)
     if (pSharedMem)
     {
       SK_AutoHandle hMutex (
-        CreateMutexW ( nullptr, FALSE, LR"(Local\SK_EtwMutex0)" )
+        CreateMutexW ( nullptr, TRUE, LR"(Local\SK_EtwMutex0)" )
       );
 
       if (hMutex != nullptr)
@@ -1231,6 +1231,7 @@ SK_Inject_SpawnUnloadListener (void)
       });
     }
 
+#if 1
     g_hPacifierThread = (HANDLE)
       CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
@@ -1273,10 +1274,10 @@ SK_Inject_SpawnUnloadListener (void)
           //     finite wait time.
           DWORD dwTimeout =
             ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                 100UL : INFINITE;
+                                                   0UL : 1250UL;
 
-          if (GetModuleLoadCount (g_hModule_CBT) > 1)
-                     dwTimeout = 0;
+          if (dwTimeout != 0UL && GetModuleLoadCount (g_hModule_CBT) > 1)
+              dwTimeout = 150UL;
 
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
@@ -1332,6 +1333,7 @@ SK_Inject_SpawnUnloadListener (void)
         CloseHandle                (g_hPacifierThread);
       }
     }
+#endif
   }
 }
 
@@ -1418,7 +1420,7 @@ void
 __stdcall
 SKX_InstallCBTHook (void)
 {
-  SK_SleepEx (50UL, FALSE);
+  SK_SleepEx (15UL, FALSE);
 
   // Nothing to do here, move along.
   if (SKX_GetCBTHook () != nullptr)
@@ -1456,8 +1458,6 @@ void
 __stdcall
 SKX_RemoveCBTHook (void)
 {
-  SK_SleepEx (50UL, FALSE);
-
   HMODULE                                   hModSelf;
   GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                         (LPCWSTR)&CBTProc, &hModSelf );

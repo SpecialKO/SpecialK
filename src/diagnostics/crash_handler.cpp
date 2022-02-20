@@ -51,16 +51,11 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
 void
 SK_SymSetOpts_Once (void)
 {
-  if (cs_dbghelp != nullptr)
-  {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-    SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
-    SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                        SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
-                        SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
-                        SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
-  }
+  SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
+  SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
+                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+                      SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
+                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
 }
 void
 SK_SymSetOpts (void)
@@ -69,6 +64,10 @@ SK_SymSetOpts (void)
   {
     SK_RunOnce (SK_SymSetOpts_Once ());
   }
+
+  else SK_LOG0 ( ( L"SK_SymSetOpts (...) called before initializing "
+                   L"critical section!" ),
+                   L"CrashHandle" );
 }
 
 
@@ -1467,112 +1466,71 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           {
             iSK_Logger*       log_file = nullptr;
 
-            if (dll_log->name.find (fd.cFileName) != std::wstring::npos)
-            {
-              log_file = dll_log.getPtr ();
-            }
+            std::array <iSK_Logger *, 7> logs {
+              dll_log.getPtr (), steam_log.getPtr (),
+                                  epic_log.getPtr (), crash_log.getPtr (),
+                                                     game_debug.getPtr (),
+                                   tex_log.getPtr (),
+                                budget_log.getPtr ()
+            };
 
-            else if (steam_log->name.find (fd.cFileName) != std::wstring::npos)
+            for ( auto log : logs )
             {
-              log_file = steam_log.getPtr ();
-            }
-
-            else if (crash_log->name.find (fd.cFileName) != std::wstring::npos)
-            {
-              log_file = crash_log.getPtr ();
-            }
-
-            else if (game_debug->name.find (fd.cFileName) != std::wstring::npos)
-            {
-              log_file = game_debug.getPtr ();
-            }
-
-            else if (tex_log->name.find (fd.cFileName) != std::wstring::npos)
-            {
-              log_file = tex_log.getPtr ();
-            }
-
-            else if (budget_log->name.find (fd.cFileName) != std::wstring::npos)
-            {
-              log_file = budget_log.getPtr ();
-            }
-
-            // There's a small chance that we may crash prior to loading CEGUI's DLLs, in which case
-            //   trying to grab a static reference to the Logger Singleton would blow stuff up.
-            //
-            //   Avoid this by counting the number of frames actually drawn.
-            if (config.cegui.enable && StrStrW (fd.cFileName, L"CEGUI.log") && SK_GetFramesDrawn () > 120)
-            {
-              const wchar_t* wszLogFile = L"CEGUI.log";
-
-              // File has been relocated yet
-              if (GetFileAttributesW (L"CEGUI.log") == INVALID_FILE_ATTRIBUTES)
+              if (log->name.find (fd.cFileName) != std::wstring::npos)
               {
-                wszLogFile = wszOrigPath;
+                log_file = log;
+                break;
+              }
+            }
+
+            ++files;
+
+            bool locked = false;
+
+            if ( log_file       != nullptr &&
+                 log_file->fLog != nullptr &&
+                 log_file       != crash_log.getPtr () )
+            {
+              if (0 == InterlockedCompareExchange (&log_file->relocated, 1, 0))
+              {
+                                          log_file->lockless = false;
+                fflush (log_file->fLog);  log_file->lock ();
+                fclose (log_file->fLog);
+
+                locked = true;
               }
 
-              SK_File_FullCopy (wszLogFile, wszDestPath);
-
-              CEGUI::Logger::getDllSingleton ().
-                setLogFilename (
-                  reinterpret_cast <const CEGUI::utf8 *> (
-                    SK_WideCharToUTF8 (wszDestPath).c_str ()
-                  ),
-                    true
-                );
+              else
+                SK_Thread_SpinUntilAtomicMin (&log_file->relocated, 2);
             }
 
-            else
+            SK_File_FullCopy         (wszOrigPath, wszDestPath);
+            SK_File_SetNormalAttribs (wszDestPath);
+
+            if ( log_file != nullptr &&
+                 log_file != crash_log.getPtr () )
             {
-              ++files;
+              log_file->name = wszDestPath;
+              log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
 
-              bool locked = false;
-
-              if ( log_file       != nullptr &&
-                   log_file->fLog != nullptr &&
-                   log_file       != crash_log.getPtr () )
+              if (locked)
               {
-                if (0 == InterlockedCompareExchange (&log_file->relocated, 1, 0))
-                {
-                                            log_file->lockless = false;
-                  fflush (log_file->fLog);  log_file->lock ();
-                  fclose (log_file->fLog);
-
-                  locked = true;
-                }
-
-                else
-                  SK_Thread_SpinUntilAtomicMin (&log_file->relocated, 2);
+                locked = false;
+                log_file->unlock ();
               }
 
-              SK_File_FullCopy         (wszOrigPath, wszDestPath);
-              SK_File_SetNormalAttribs (wszDestPath);
+              InterlockedIncrement (&log_file->relocated);
+            }
 
-              if ( log_file != nullptr &&
-                   log_file != crash_log.getPtr () )
+            if ( log_file       != nullptr &&
+                (log_file->fLog == nullptr ||
+                                   locked  ||
+                 log_file       == crash_log.getPtr ()) )
+            {
+              if (locked)
               {
-                log_file->name = wszDestPath;
-                log_file->fLog = _wfopen (log_file->name.c_str (), L"a");
-
-                if (locked)
-                {
-                  locked = false;
-                  log_file->unlock ();
-                }
-
-                InterlockedIncrement (&log_file->relocated);
-              }
-
-              if ( log_file       != nullptr &&
-                  (log_file->fLog == nullptr ||
-                                     locked  ||
-                   log_file       == crash_log.getPtr ()) )
-              {
-                if (locked)
-                {
-                  locked = false;
-                  log_file->unlock ();
-                }
+                locked = false;
+                log_file->unlock ();
               }
             }
           }
@@ -1603,20 +1561,6 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     }
 
     InterlockedExchange (&__SK_Crashed, 1);
-
-    // CEGUI is potentially the reason we crashed, so ...
-    //   set it back to its original state.
-    if (! config.cegui.orig_enable)
-      config.cegui.enable = false;
-
-    if ( config.cegui.enable && config.cegui.frames_drawn < 90 &&
-         SK_GetFramesDrawn () > config.cegui.frames_drawn )
-    {
-      SK_LOG0 ( ( L"*** CEGUI is the suspected cause of this crash,"
-                  L" disabling..." ),
-                    L"Prognostic" );
-      config.cegui.enable = false;
-    }
 
     crash_log->unlock ();
 
@@ -1671,20 +1615,15 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
     PathStripPathA (pszShortName);
 
-    if (cs_dbghelp != nullptr)
-    {
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    if (! SymLoadModule64 ( GetCurrentProcess (),
+                              nullptr,
+                                pszShortName,
+                                  nullptr,
+                                    BaseAddr,
+                                      mod_info.SizeOfImage )
+       ) return 0;
 
-      if (! SymLoadModule64 ( GetCurrentProcess (),
-                                nullptr,
-                                  pszShortName,
-                                    nullptr,
-                                      BaseAddr,
-                                        mod_info.SizeOfImage )
-         ) return 0;
-
-      dbghelp_callers.insert (hMod);
-    }
+    dbghelp_callers.insert (hMod);
   }
 
   HANDLE hProc =
@@ -1700,28 +1639,23 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
   DWORD64 Displacement = 0;
 
-  if (cs_dbghelp != nullptr)
+  if ( SymFromAddr ( hProc,
+                       ip,
+                         &Displacement,
+                           &sip.si ) )
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    pszOut [0] = '\0';
 
-    if ( SymFromAddr ( hProc,
-                         ip,
-                           &Displacement,
-                             &sip.si ) )
-    {
-      pszOut [0] = '\0';
+    strncat             ( pszOut.data (), sip.si.Name,
+                            std::min (ulLen, sip.si.NameLen) );
+    ret =
+      sk::narrow_cast <ULONG> (strlen (pszOut.data ()));
+  }
 
-      strncat             ( pszOut.data (), sip.si.Name,
-                              std::min (ulLen, sip.si.NameLen) );
-      ret =
-        sk::narrow_cast <ULONG> (strlen (pszOut.data ()));
-    }
-
-    else
-    {
-      pszOut [0] = '\0';
-      ret        = 0;
-    }
+  else
+  {
+    pszOut [0] = '\0';
+    ret        = 0;
   }
 
   return ret;
@@ -1731,12 +1665,10 @@ void
 WINAPI
 SK_SymRefreshModuleList ( HANDLE hProc )
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   SymRefreshModuleList (hProc);
 }
 
-using SteamAPI_SetBreakpadAppID_pfn = void (__cdecl *)( uint32_t unAppID );
+using SteamAPI_SetBreakpadAppID_pfn        = void (__cdecl *)( uint32_t unAppID );
 using SteamAPI_UseBreakpadCrashHandler_pfn = void (__cdecl *)( char const *pchVersion, char const *pchDate,
                                                               char const *pchTime,    bool        bFullMemoryDumps,
                                                               void       *pvContext,  LPVOID      m_pfnPreMinidumpCallback );
@@ -1771,7 +1703,7 @@ SteamAPI_UseBreakpadCrashHandler_Detour ( char const *pchVersion,
 void
 SK_BypassSteamCrashHandler (void)
 {
-  if (! config.steam.silent)
+  if (! config.platform.silent)
   {
     const wchar_t* wszSteamDLL =
       SK_RunLHIfBitness (64, L"steam_api64.dll",
@@ -1806,10 +1738,7 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-    SymCleanup (SK_GetCurrentProcess ());
-
+    SymCleanup    (SK_GetCurrentProcess ());
     SymInitialize (
       SK_GetCurrentProcess (),
         nullptr,
@@ -1823,7 +1752,7 @@ CrashHandler::InitSyms (void)
 
     ///if (config.system.handle_crashes)
     ///{
-    ///  if (! config.steam.silent)
+    ///  if (! config.platform.silent)
     ///    SK_BypassSteamCrashHandler ();
     ///}
   }

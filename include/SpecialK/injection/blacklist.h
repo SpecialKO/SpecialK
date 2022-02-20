@@ -194,14 +194,16 @@ static constexpr UNICODE_STRING __blacklist [] = {
 // Bluelist = Bounce the DLL out ASAP, do not attempt to defer unload
 static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"setup.exe"),
+  SK_MakeUnicode (L"cl.exe"),
   SK_MakeUnicode (L"gamebarft.exe"),
   SK_MakeUnicode (L"gamebarftserver.exe"),
+  SK_MakeUnicode (L"msbuild.exe"),
   SK_MakeUnicode (L"vrserver.exe"),
-  SK_MakeUnicode (L"svchost.exe"),
-//SK_MakeUnicode (L"jusched.exe"),
+  SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"systemsettings.exe"),
   SK_MakeUnicode (L"nvcplui.exe"),
   SK_MakeUnicode (L"perfwatson2.exe"),
+  SK_MakeUnicode (L"dataexchangehost.exe"),
   SK_MakeUnicode (L"oalinst.exe"),
   SK_MakeUnicode (L"dxsetup.exe"),
   SK_MakeUnicode (L"uninstall.exe"),
@@ -212,6 +214,8 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"dotnetfx40_client_x86_x64.exe"),
   SK_MakeUnicode (L"ndp451-kb2872776-x86-x64-allos-enu.exe"),
   SK_MakeUnicode (L"identity_helper.exe"),
+  SK_MakeUnicode (L"yourphoneserver.exe"), // Injects into UWP app that later suspends itself
+  SK_MakeUnicode (L"razer synapse service.exe"),
 };
 
 static constexpr UNICODE_STRING __graylist [] = {
@@ -322,6 +326,27 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"mspaint.exe"),
   SK_MakeUnicode (L"notepad.exe"),
   SK_MakeUnicode (L"explorer.exe"),
-  SK_MakeUnicode (L"prevhost.exe")
+  SK_MakeUnicode (L"prevhost.exe"),
+
+  SK_MakeUnicode (L"windowsterminal.exe"),
+  SK_MakeUnicode (L"cmd.exe"),
+  SK_MakeUnicode (L"powershell.exe"),
+  SK_MakeUnicode (L"epicwebhelper.exe"),
+  SK_MakeUnicode (L"steamwebhelper.exe"),
+  SK_MakeUnicode (L"galaxyclient helper.exe"),
+
+
+  SK_MakeUnicode (L"applicationframehost.exe"),
+  SK_MakeUnicode (L"servicehub.host.clr.x86.exe"),
+  SK_MakeUnicode (L"servicehub.settingshost.exe"),
+  SK_MakeUnicode (L"servicehub.identityhost.exe"),
+  SK_MakeUnicode (L"servicehub.threadedwaitdialog.exe"),
+  SK_MakeUnicode (L"nvidia web helper.exe"),
+  SK_MakeUnicode (L"steam.exe"),
+  SK_MakeUnicode (L"tobii.eyex.engine.exe"),
+  SK_MakeUnicode (L"esrv.exe"),
+  SK_MakeUnicode (L"ipoint.exe"),
+  SK_MakeUnicode (L"itype.exe"),
+  SK_MakeUnicode (L"devenv.exe")
 };
 #endif

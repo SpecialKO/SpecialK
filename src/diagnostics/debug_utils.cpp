@@ -2030,26 +2030,17 @@ ZwCreateThreadEx_Detour (
 
     PathStripPathA (pszShortName);
 
-    if (cs_dbghelp != nullptr)
-    {
-      //if (cs_dbghelp->try_lock ())
-      cs_dbghelp->lock ();
-      {
-        SK_SymLoadModule ( GetCurrentProcess (),
-                           nullptr, pszShortName,
-                           nullptr, BaseAddr,
-                           mod_info.SizeOfImage );
+    SK_SymLoadModule ( GetCurrentProcess (),
+                       nullptr, pszShortName,
+                       nullptr, BaseAddr,
+                       mod_info.SizeOfImage );
 
-        dbghelp_callers.insert (hModStart);
+    dbghelp_callers.insert (hModStart);
 
-        ulLen =
-          SK_GetSymbolNameFromModuleAddr (
-            hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-              szSymbol, ulLen );
-
-        cs_dbghelp->unlock ();
-      }
-    }
+    ulLen =
+      SK_GetSymbolNameFromModuleAddr (
+        hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+          szSymbol, ulLen );
   }
 
   if (ulLen == 0)
@@ -2215,27 +2206,18 @@ NtCreateThreadEx_Detour (
 
     PathStripPathA (pszShortName);
 
-    if (cs_dbghelp != nullptr)
-    {
-      cs_dbghelp->lock ();
-      //if (cs_dbghelp->try_lock ())
-      {
-        SK_SymLoadModule ( GetCurrentProcess (),
-                           nullptr, pszShortName,
-                           nullptr, BaseAddr,
-                           mod_info.SizeOfImage );
+    SK_SymLoadModule ( GetCurrentProcess (),
+                       nullptr, pszShortName,
+                       nullptr, BaseAddr,
+                       mod_info.SizeOfImage );
 
-        ulLen =
-          SK_GetSymbolNameFromModuleAddr (
-            hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-              szSymbol, ulLen
-        );
+    ulLen =
+      SK_GetSymbolNameFromModuleAddr (
+        hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+          szSymbol, ulLen
+    );
 
-        dbghelp_callers.insert (hModStart);
-
-        cs_dbghelp->unlock ();
-      }
-    }
+    dbghelp_callers.insert (hModStart);
   }
 
   if (ulLen == 0)
@@ -3862,9 +3844,11 @@ SymRefreshModuleList (
   _In_ HANDLE hProcess
 )
 {
-  if (SymRefreshModuleList_Imp != nullptr)
+  if (SymRefreshModuleList_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     BOOL bRet =
       SymRefreshModuleList_Imp (hProcess);
@@ -3890,11 +3874,11 @@ StackWalk64(
   _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress
 )
 {
-  if (StackWalk64_Imp != nullptr)
+  if (StackWalk64_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       StackWalk64_Imp ( MachineType,
@@ -3925,11 +3909,11 @@ StackWalk (
   _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress
 )
 {
-  if (StackWalk_Imp != nullptr)
+  if (StackWalk_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       StackWalk_Imp ( MachineType,
@@ -3953,7 +3937,7 @@ SymSetOptions (
   _In_ DWORD SymOptions
 )
 {
-  if (SymSetOptions_Imp != nullptr)
+  if (SymSetOptions_Imp != nullptr && cs_dbghelp != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
@@ -3995,10 +3979,10 @@ SymGetModuleBase64 (
 {
   if (SymGetModuleBase64_Imp != nullptr)
   {
+    SK_SymSetOpts ();
+
     // The DLL already has a critical section guarding this
     ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-    SK_SymSetOpts ();
 
     return
       SymGetModuleBase64_Imp ( hProcess, qwAddr );
@@ -4016,10 +4000,10 @@ SymGetModuleBase (
 {
   if (SymGetModuleBase_Imp != nullptr)
   {
+    SK_SymSetOpts ();
+
     // The DLL already has a critical section guarding this
     ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-    SK_SymSetOpts ();
 
     return
       SymGetModuleBase_Imp ( hProcess, dwAddr );
@@ -4038,11 +4022,11 @@ SymGetLineFromAddr64 (
   _Out_ PIMAGEHLP_LINE64 Line64
 )
 {
-  if (SymGetLineFromAddr64_Imp != nullptr)
+  if (SymGetLineFromAddr64_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetLineFromAddr64_Imp ( hProcess, qwAddr,
@@ -4061,11 +4045,11 @@ SymGetLineFromAddr (
   _Out_ PIMAGEHLP_LINE   Line
 )
 {
-  if (SymGetLineFromAddr_Imp != nullptr)
+  if (SymGetLineFromAddr_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetLineFromAddr_Imp ( hProcess, dwAddr,
@@ -4084,11 +4068,11 @@ SymInitialize (
   _In_     BOOL   fInvadeProcess
 )
 {
-  if (SymInitialize_Imp != nullptr)
+  if (SymInitialize_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymInitialize_Imp ( hProcess, UserSearchPath, fInvadeProcess );
@@ -4105,11 +4089,11 @@ SymUnloadModule (
   _In_ DWORD  BaseOfDll
 )
 {
-  if (SymUnloadModule_Imp != nullptr)
+  if (SymUnloadModule_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymUnloadModule_Imp ( hProcess, BaseOfDll );
@@ -4125,11 +4109,11 @@ SymUnloadModule64 (
   _In_ DWORD64 BaseOfDll
 )
 {
-  if (SymUnloadModule64_Imp != nullptr)
+  if (SymUnloadModule64_Imp != nullptr && cs_dbghelp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
     SK_SymSetOpts ();
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymUnloadModule64_Imp ( hProcess, BaseOfDll );
@@ -4187,9 +4171,9 @@ SymFromAddr (
     if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                               && (! ReadAcquire (&__SK_DLL_Ending))))
     {
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
       SK_SymSetOpts ();
+
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
       return
         SAFE_SymFromAddr ( hProcess, Address,
@@ -4248,13 +4232,13 @@ SymLoadModule (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
         SK_SymSetOpts ();
 
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
+          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
           if ( SymLoadModule_Imp (
                  hProcess, hFile, ImageName,
                    ModuleName,    BaseOfDll,
@@ -4301,13 +4285,13 @@ SymLoadModule64 (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
         SK_SymSetOpts ();
 
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
+          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
           if ( SymLoadModule64_Imp (
                  hProcess, hFile, ImageName,
                    ModuleName,    BaseOfDll,
@@ -4338,7 +4322,7 @@ SymSetSearchPathW (
   _In_     HANDLE hProcess,
   _In_opt_ PCWSTR SearchPath )
 {
-  if (SymSetSearchPathW_Imp != nullptr)
+  if (SymSetSearchPathW_Imp != nullptr && cs_dbghelp != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
@@ -4358,7 +4342,7 @@ SymGetSearchPathW (
   _Out_opt_ PWSTR  SearchPath,
   _In_      DWORD  SearchPathLength)
 {
-  if (SymGetSearchPathW_Imp != nullptr)
+  if (SymGetSearchPathW_Imp != nullptr && cs_dbghelp != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 

@@ -1,4 +1,37 @@
-﻿22.2.20.1-NOCEGUI
+﻿22.2.21-NOCEGUI
+===============
+ + Eliminated locking caused by unsafe DllMain in NvCameraWhitelisting (ANSEL)
+ + Added pre-defined PlayStation + Button combos for:
+
+     Screenshot:                      PS + Share
+     Latent Sync FCAT Bar Toggle:     PS + L3
+     Latent Sync +5 Scanline Offset:  PS + Up
+     Latent Sync -5 Scanline Offset:  PS + Down
+
+   Holding PS for 20 frames or pressing and releasing PS without activating
+   one of the button combos above will open the control panel
+
+    - Currently only works in games that use native DualShock/DualSense
+
+        (i.e. Dying Light 2)
+
+    These will be customizable in the future, after figuring out an Xbox equiv.
+
+     * Use DS4Windows if you actually want to use SK's control panel after
+         opening it using PS; also set DS4Win's PS button binding to "Unset" :)
+
+22.2.20.3-NOCEGUI
+=================
+ + Fixed even more issues with deadlock in Dying Light 2
+ + Updated software licenses and copyleft SK 2022
+
+22.2.20.2-NOCEGUI
+=================
+ + Fixed a rare deadlock in dbghelper.dll during game startup
+ + Added WM_DEVICECHANGE stutter mitigation for Monster Hunter Rise and other
+     games with poor gamepad hot-plug performance
+
+22.2.20.1-NOCEGUI
 =================
  + Epic's Overlay is driving me nuts reloading Steamclient64.dll every 150 ms,
      SK now pins that DLL so that it cannot be unloaded.
