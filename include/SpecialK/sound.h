@@ -27,18 +27,32 @@
 #include <endpointvolume.h>
 #include <SpecialK/com_util.h>
 
-void                    __stdcall SK_SetGameMute                    (bool bMute);
+using SK_ISimpleAudioVolume      = SK_ComPtr <ISimpleAudioVolume>;
+using SK_IAudioMeterInformation  = SK_ComPtr <IAudioMeterInformation>;
+using SK_IAudioAutoGainControl   = SK_ComPtr <IAudioAutoGainControl>;
+using SK_IAudioEndpointVolume    = SK_ComPtr <IAudioEndpointVolume>;
+using SK_IChannelAudioVolume     = SK_ComPtr <IChannelAudioVolume>;
+using SK_IAudioLoudness          = SK_ComPtr <IAudioLoudness>;
 
-IAudioMeterInformation* __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
-ISimpleAudioVolume*     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
-IChannelAudioVolume*    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
-void                    __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
+using SK_IMMDevice               = SK_ComPtr <IMMDevice>;
+using SK_IMMDeviceEnumerator     = SK_ComPtr <IMMDeviceEnumerator>;
+using SK_IAudioSessionEnumerator = SK_ComPtr <IAudioSessionEnumerator>;
+using SK_IAudioSessionControl    = SK_ComPtr <IAudioSessionControl>;
+using SK_IAudioSessionControl2   = SK_ComPtr <IAudioSessionControl2>;
+using SK_IAudioSessionManager2   = SK_ComPtr <IAudioSessionManager2>;
 
-const char*             __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
+void                      __stdcall SK_SetGameMute                    (bool bMute);
+BOOL                      __stdcall SK_IsGameMuted                    (void);
+SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
+SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
+SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
+void                      __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
 
-IAudioEndpointVolume*   __stdcall SK_MMDev_GetEndpointVolumeControl (void);
-IAudioLoudness*         __stdcall SK_MMDev_GetLoudness              (void);
-IAudioAutoGainControl*  __stdcall SK_MMDev_GetAutoGainControl       (void);
+const char*               __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
+
+SK_IAudioEndpointVolume   __stdcall SK_MMDev_GetEndpointVolumeControl (void);
+SK_IAudioLoudness         __stdcall SK_MMDev_GetLoudness              (void);
+SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (void);
 
 #include <SpecialK/steam_api.h>
 #include <SpecialK/window.h>
@@ -54,7 +68,7 @@ class SK_WASAPI_SessionManager;
 class SK_WASAPI_AudioSession : public IAudioSessionEvents
 {
 public:
-  SK_WASAPI_AudioSession ( IAudioSessionControl2    *pSession,
+  SK_WASAPI_AudioSession ( SK_IAudioSessionControl2 pSession,
                            SK_WASAPI_SessionManager *pParent  ) :
     control_ (pSession),
      parent_ (pParent),
@@ -135,29 +149,29 @@ public:
     }
   }
 
-  ISimpleAudioVolume* getSimpleAudioVolume (void)
+  SK_ISimpleAudioVolume getSimpleAudioVolume (void)
   {
-    ISimpleAudioVolume* pRet = nullptr;
+    SK_ISimpleAudioVolume pRet;
 
-    if (SUCCEEDED (control_->QueryInterface <ISimpleAudioVolume> (&pRet)))
+    if (SUCCEEDED (control_->QueryInterface <ISimpleAudioVolume> (&pRet.p)))
       return pRet;
 
     return nullptr;
   }
 
-  IChannelAudioVolume* getChannelAudioVolume (void)
+  SK_IChannelAudioVolume getChannelAudioVolume (void)
   {
-    IChannelAudioVolume* pRet = nullptr;
+    SK_IChannelAudioVolume pRet;
 
-    if (SUCCEEDED (control_->QueryInterface <IChannelAudioVolume> (&pRet)))
+    if (SUCCEEDED (control_->QueryInterface <IChannelAudioVolume> (&pRet.p)))
       return pRet;
 
     return nullptr;
   }
 
-  IAudioEndpointVolume*  getEndpointVolume  (void);
-  IAudioLoudness*        getLoudness        (void);
-  IAudioAutoGainControl* getAutoGainControl (void);
+  SK_IAudioEndpointVolume   getEndpointVolume  (void);
+  SK_IAudioLoudness         getLoudness        (void);
+  SK_IAudioAutoGainControl  getAutoGainControl (void);
 
   DWORD getProcessId (void)
   {
@@ -373,13 +387,12 @@ public:
       if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
         continue;
 
-      IAudioSessionControl2* pSessionCtl2;
-      if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2)))
+      SK_IAudioSessionControl2 pSessionCtl2;
+      if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
         continue;
 
       DWORD dwProcess = 0;
       if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
-        pSessionCtl2->Release ();
         continue;
       }
 
@@ -470,7 +483,7 @@ public:
     return ulRef;
   }
 
-  IAudioMeterInformation* getMeterInfo (void) noexcept
+  SK_IAudioMeterInformation getMeterInfo (void) noexcept
   {
     return meter_info_.p;
   }
@@ -500,8 +513,8 @@ public:
     {
       pNewSession->AddRef ();
 
-      SK_ComPtr <IAudioSessionControl2> pSessionCtl2;
-      if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2)))
+      SK_IAudioSessionControl2                                             pSessionCtl2;
+      if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
       {
         DWORD dwProcess = 0;
         if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)))
@@ -607,19 +620,25 @@ protected:
 
 
 private:
-    volatile LONG                                  refs_;
-    std::set <SK_WASAPI_AudioSession*>             sessions_;
+    volatile LONG                      refs_;
+    std::set <SK_WASAPI_AudioSession*> sessions_;
 
     struct {
-      std::set    <SK_WASAPI_AudioSession *> data;
-      std::vector <SK_WASAPI_AudioSession *> view;
-    } active_sessions_, inactive_sessions_;
+      using session_set_t         =
+               std::set <   SK_WASAPI_AudioSession *>;
+            session_set_t    data = {  };
 
-    SK_ComPtr <IAudioSessionManager2>              session_mgr_;
-    SK_ComPtr <IAudioMeterInformation>             meter_info_;
-    SK_ComPtr <IAudioEndpointVolume>               endpoint_vol_;
-    SK_ComPtr <IAudioLoudness>                     loudness_;
-    SK_ComPtr <IAudioAutoGainControl>              auto_gain_;
+      using session_vec_t         =
+               std::vector <SK_WASAPI_AudioSession *>;
+            session_vec_t    view = {  };
+    }                                  active_sessions_,
+                                       inactive_sessions_;
+
+    SK_IAudioSessionManager2           session_mgr_;
+    SK_IAudioMeterInformation          meter_info_;
+    SK_IAudioEndpointVolume            endpoint_vol_;
+    SK_IAudioLoudness                  loudness_;
+    SK_IAudioAutoGainControl           auto_gain_;
 };
 
 

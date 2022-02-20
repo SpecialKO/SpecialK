@@ -21,40 +21,52 @@
 
 #include <SpecialK/stdafx.h>
 
-IAudioMeterInformation*
+SK_IAudioMeterInformation
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (void)
 {
-  SK_ComPtr <IMMDeviceEnumerator> pDevEnum   = nullptr;
-  SK_ComPtr <IMMDevice>           pDevice    = nullptr;
+  SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
+  SK_IMMDevice              pDevice    = nullptr;
 
-  IAudioMeterInformation*         pMeterInfo = nullptr;
+  SK_IAudioMeterInformation pMeterInfo = nullptr;
 
 
-  if ( FAILED (
-         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator))
-              ) || pDevEnum == nullptr
-     ) return nullptr;
+  try
+  {
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-  if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( eRender,
-                                               eConsole,
-                                                 &pDevice )
-              ) || pDevice == nullptr
-     ) return nullptr;
+    if (pDevEnum == nullptr)
+      return nullptr;
 
-  HRESULT hr = pDevice->Activate ( __uuidof (IAudioMeterInformation),
-                                     CLSCTX_ALL,
-                                       nullptr,
-                                         IID_PPV_ARGS_Helper (&pMeterInfo) );
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice));
 
-  if (SUCCEEDED (hr))
-    return pMeterInfo;
+    if (pDevice == nullptr)
+      return nullptr;
 
-  return nullptr;
+    ThrowIfFailed (
+      pDevice->Activate ( __uuidof (IAudioMeterInformation),
+                                      CLSCTX_ALL,
+                                        nullptr,
+                                          IID_PPV_ARGS_Helper (&pMeterInfo.p) ));
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
+    pMeterInfo = nullptr;
+  }
+
+  return pMeterInfo;
 }
 
 // OLD NAME for DLL Export
+//   [ Smart Ptr. Not Allowed;  Caller -MUST- Release ]
 IAudioMeterInformation*
 __stdcall
 SK_GetAudioMeterInfo (void)
@@ -77,282 +89,331 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
     *count    = 0;
   }
 
-  SK_ComPtr <IMMDevice>               pDevice;
-  SK_ComPtr <IMMDeviceEnumerator>     pDevEnum;
-  SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
-  SK_ComPtr <IAudioSessionManager2>   pSessionMgr2;
-  SK_ComPtr <IAudioSessionControl>    pSessionCtl;
-  SK_ComPtr <IAudioSessionControl2>   pSessionCtl2;
+  int                        num_sessions = 0;
 
-  if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-    return;
+  SK_IMMDevice               pDevice;
+  SK_IMMDeviceEnumerator     pDevEnum;
+  SK_IAudioSessionEnumerator pSessionEnum;
+  SK_IAudioSessionManager2   pSessionMgr2;
+  SK_IAudioSessionControl    pSessionCtl;
+  SK_IAudioSessionControl2   pSessionCtl2;
 
-  if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( eRender,
-                                               eConsole,
-                                                 &pDevice )
-              )
-     ) return;
+  try
+  {
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-  if (FAILED (pDevice->Activate (
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice));
+
+    ThrowIfFailed (
+      pDevice->Activate (
                 __uuidof (IAudioSessionManager2),
                   CLSCTX_ALL,
                     nullptr,
-                      reinterpret_cast <void **>(&pSessionMgr2)
-             )
-         )
-     ) return;
+                      reinterpret_cast <void **>(&pSessionMgr2.p)));
 
-  if (FAILED (pSessionMgr2->GetSessionEnumerator (&pSessionEnum)))
+    ThrowIfFailed (
+      pSessionMgr2->GetSessionEnumerator (&pSessionEnum.p));
+
+    ThrowIfFailed (
+      pSessionEnum->GetCount (&num_sessions));
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed "
+                L"During Enumerator Setup : %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
     return;
+  }
 
-  int num_sessions;
-
-  if (FAILED (pSessionEnum->GetCount (&num_sessions)))
-    return;
 
   for (int pass = 0; pass < 2;            pass++) // First Pass:   Top-level windows
   for (int i    = 0;    i < num_sessions; i++   ) // Second Pass:  Everything else
   {
-    if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-      continue;
+    try
+    {
+      ThrowIfFailed (
+        pSessionEnum->GetSession (i, &pSessionCtl.p));
 
-    if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
-      continue;
+      ThrowIfFailed (
+        pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2.p)));
 
-    DWORD dwProcess = 0;
-    if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
-      continue;
+      DWORD dwProcess = 0;
 
-    AudioSessionState state;
+      ThrowIfFailed (
+        pSessionCtl2->GetProcessId (&dwProcess));
+
+      AudioSessionState state;
 
 if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
-    {
-      if ( unique_procs.count (dwProcess) == 0  && ( max_count == 0 || (count != nullptr && *count < max_count ) ) )
       {
-        if ((pass == 1 || SK_FindRootWindow (dwProcess).root != nullptr) || dwProcess == 0)
+        if ( unique_procs.count (dwProcess) == 0  && ( max_count == 0 || (count != nullptr && *count < max_count ) ) )
         {
-          if (procs != nullptr)
-            procs [unique_procs.size ()] = dwProcess;
-
-          unique_procs.insert (dwProcess);
-
-          if (count != nullptr)
-            (*count)++;
-
-          wchar_t* wszDisplayName = nullptr;
-          if (SUCCEEDED (pSessionCtl2->GetSessionIdentifier (&wszDisplayName)))
+          if ((pass == 1 || SK_FindRootWindow (dwProcess).root != nullptr) || dwProcess == 0)
           {
-            dll_log->Log  (L"Name: %ws", wszDisplayName);
-            CoTaskMemFree (wszDisplayName);
-          }
+            if (procs != nullptr)
+              procs [unique_procs.size ()] = dwProcess;
 
-          SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
-                      L"  WASAPI  " );
+            unique_procs.insert (dwProcess);
+
+            if (count != nullptr)
+              (*count)++;
+
+            wchar_t* wszDisplayName = nullptr;
+            if (SUCCEEDED (pSessionCtl2->GetSessionIdentifier (&wszDisplayName)))
+            {
+              dll_log->Log  (L"Name: %ws", wszDisplayName);
+              CoTaskMemFree (wszDisplayName);
+            }
+
+            SK_LOG4 ( ( L" Audio Session (pid=%lu)", dwProcess ),
+                        L"  WASAPI  " );
+          }
         }
       }
+    }
+
+    catch (const std::exception& e)
+    {
+      SK_LOG0 ( ( L"%ws (...) Failed "
+                  L"During Process Enumeration : %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
+
+      continue;
     }
   }
 }
 
-IAudioSessionControl*
+SK_IAudioSessionControl
 __stdcall
 SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
                                    ERole     endpoint_role = eConsole,
                                    DWORD     proc_id       = GetCurrentProcessId () )
 {
-  SK_ComPtr <IMMDevice>               pDevice;
-  SK_ComPtr <IMMDeviceEnumerator>     pDevEnum;
-  SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
-  SK_ComPtr <IAudioSessionManager2>   pSessionMgr2;
-  SK_ComPtr <IAudioSessionControl2>   pSessionCtl2;
+  SK_IMMDevice               pDevice;
+  SK_IMMDeviceEnumerator     pDevEnum;
+  SK_IAudioSessionEnumerator pSessionEnum;
+  SK_IAudioSessionManager2   pSessionMgr2;
+  SK_IAudioSessionControl2   pSessionCtl2;
 
-  if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+  int num_sessions = 0;
+
+  try {
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (data_flow,
+                                           endpoint_role,
+                                             &pDevice.p));
+
+    ThrowIfFailed (
+      pDevice->Activate (
+        __uuidof (IAudioSessionManager2),
+          CLSCTX_ALL,
+            nullptr,
+              reinterpret_cast <void **>(&pSessionMgr2.p)));
+
+    ThrowIfFailed (
+      pSessionMgr2->GetSessionEnumerator (&pSessionEnum.p));
+
+    ThrowIfFailed (
+      pSessionEnum->GetCount (&num_sessions));
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed "
+                L"During Enumerator Setup : %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
     return nullptr;
-
-  if ( FAILED (
-         pDevEnum->GetDefaultAudioEndpoint ( data_flow,
-                                               endpoint_role,
-                                                 &pDevice )
-              )
-     ) return nullptr;
-
-  if (FAILED (pDevice->Activate (
-                __uuidof (IAudioSessionManager2),
-                  CLSCTX_ALL,
-                    nullptr,
-                      reinterpret_cast <void **>(&pSessionMgr2)
-             )
-         )
-     ) return nullptr;
-
-  if (FAILED (pSessionMgr2->GetSessionEnumerator (&pSessionEnum)))
-    return nullptr;
-
-  int num_sessions;
-
-  if (FAILED (pSessionEnum->GetCount (&num_sessions)))
-    return nullptr;
+  }
 
   for (int i = 0; i < num_sessions; i++)
   {
-    IAudioSessionControl *pSessionCtl;
-       AudioSessionState  state;
-
-    if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-      continue;
-
-    if (FAILED (pSessionCtl->GetState (&state)) || state != AudioSessionStateActive)
+    try
     {
-      pSessionCtl->Release ();
-      continue;
+      SK_IAudioSessionControl pSessionCtl (nullptr);
+          AudioSessionState   state (
+            AudioSessionStateInactive
+          );          DWORD   dwProcess = 0;
+
+      ThrowIfFailed (
+        pSessionEnum->GetSession (i, &pSessionCtl.p));
+
+      ThrowIfFailed (
+        pSessionCtl->GetState (&state));
+
+      if (AudioSessionStateActive != state)
+        continue;
+
+      ThrowIfFailed (
+          pSessionCtl->QueryInterface (
+            IID_PPV_ARGS (&pSessionCtl2.p)));
+
+      ThrowIfFailed (
+        pSessionCtl2->GetProcessId (&dwProcess));
+
+      if (dwProcess == proc_id)
+        return pSessionCtl;
     }
 
-    if (FAILED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSessionCtl2))))
+    catch (const std::exception& e)
     {
-      pSessionCtl->Release ();
-      continue;
+      SK_LOG0 ( ( L"%ws (...) Failed "
+                  L"During Session Enumeration : %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
     }
-
-    DWORD dwProcess = 0;
-
-    if (FAILED (pSessionCtl2->GetProcessId (&dwProcess)))
-    {
-      pSessionCtl->Release ();
-      continue;
-    }
-
-    if (dwProcess == proc_id)
-      return pSessionCtl;
-
-    else
-      pSessionCtl->Release ();
   }
 
   return nullptr;
 }
 
-IChannelAudioVolume*
+SK_IChannelAudioVolume
 __stdcall
 SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
 {
-  SK_ComPtr <IAudioSessionControl> pSessionCtl =
+  SK_IAudioSessionControl pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
   {
-    IChannelAudioVolume *pChannelAudioVolume = nullptr;
+    SK_IChannelAudioVolume pChannelAudioVolume;
 
-    if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pChannelAudioVolume))))
-      return pChannelAudioVolume;
+    if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pChannelAudioVolume.p))))
+      return pChannelAudioVolume.p;
   }
 
   return nullptr;
 }
 
-ISimpleAudioVolume*
+SK_ISimpleAudioVolume
 __stdcall
 SK_WASAPI_GetVolumeControl (DWORD proc_id)
 {
-  SK_ComPtr <IAudioSessionControl> pSessionCtl =
+  SK_IAudioSessionControl pSessionCtl =
     SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
 
   if (pSessionCtl != nullptr)
   {
-    ISimpleAudioVolume *pSimpleAudioVolume = nullptr;
+    SK_ISimpleAudioVolume pSimpleAudioVolume;
 
-    if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSimpleAudioVolume))))
+    if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSimpleAudioVolume.p))))
       return pSimpleAudioVolume;
   }
 
   return nullptr;
 }
 
-IAudioEndpointVolume*
+SK_IAudioEndpointVolume
 __stdcall
 SK_MMDev_GetEndpointVolumeControl (void)
 {
-             IAudioEndpointVolume *pEndVol  = nullptr;
-  SK_ComPtr <IMMDeviceEnumerator>  pDevEnum = nullptr;
-  SK_ComPtr <IMMDevice>            pDevice  = nullptr;
+  SK_IAudioEndpointVolume pEndVol  = nullptr;
+  SK_IMMDeviceEnumerator  pDevEnum = nullptr;
+  SK_IMMDevice            pDevice  = nullptr;
 
+  try {
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
-          &&
-      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                                      eConsole,
-                                                        &pDevice))
-     )
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice.p));
+
+    ThrowIfFailed (
+      pDevice->Activate (__uuidof (IAudioEndpointVolume),
+                           CLSCTX_ALL,
+                             nullptr,
+                               IID_PPV_ARGS_Helper (&pEndVol.p)));
+  }
+
+  catch (const std::exception& e)
   {
-    if (FAILED (
-          pDevice->Activate (__uuidof (IAudioEndpointVolume),
-                               CLSCTX_ALL,
-                                 nullptr,
-                                   IID_PPV_ARGS_Helper (&pEndVol))
-       )          )
-    {
-      pEndVol = nullptr;
-    }
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
+    pEndVol = nullptr;
   }
 
   return pEndVol;
 }
 
-IAudioLoudness*
+SK_IAudioLoudness
 __stdcall
 SK_MMDev_GetLoudness (void)
 {
-             IAudioLoudness       *pLoudness = nullptr;
-  SK_ComPtr <IMMDeviceEnumerator>  pDevEnum  = nullptr;
-  SK_ComPtr <IMMDevice>            pDevice   = nullptr;
+  SK_IAudioLoudness      pLoudness = nullptr;
+  SK_IMMDeviceEnumerator pDevEnum  = nullptr;
+  SK_IMMDevice           pDevice   = nullptr;
 
-
-  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
-          &&
-      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                                      eConsole,
-                                                        &pDevice))
-     )
+  try
   {
-    if (FAILED (
-          pDevice->Activate (__uuidof (IAudioLoudness),
-                               CLSCTX_ALL,
-                                 nullptr,
-                                   IID_PPV_ARGS_Helper (&pLoudness))
-       )          )
-    {
-      pLoudness = nullptr;
-    }
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice));
+
+    ThrowIfFailed (
+      pDevice->Activate (__uuidof (IAudioLoudness),
+                           CLSCTX_ALL,
+                             nullptr,
+                               IID_PPV_ARGS_Helper (&pLoudness.p)));
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
+    pLoudness = nullptr;
   }
 
   return pLoudness;
 }
 
-IAudioAutoGainControl*
+SK_IAudioAutoGainControl
 __stdcall
 SK_MMDev_GetAutoGainControl (void)
 {
-             IAudioAutoGainControl *pAutoGain = nullptr;
-  SK_ComPtr <IMMDeviceEnumerator>   pDevEnum  = nullptr;
-  SK_ComPtr <IMMDevice>             pDevice   = nullptr;
+  SK_IAudioAutoGainControl pAutoGain = nullptr;
+  SK_IMMDeviceEnumerator   pDevEnum  = nullptr;
+  SK_IMMDevice             pDevice   = nullptr;
 
 
-  if (SUCCEEDED (pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))
-          &&
-      SUCCEEDED (pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                                      eConsole,
-                                                        &pDevice))
-     )
+  try
   {
-    if (FAILED (
-          pDevice->Activate (__uuidof (IAudioAutoGainControl),
-                               CLSCTX_ALL,
-                                 nullptr,
-                                   IID_PPV_ARGS_Helper (&pAutoGain))
-       )          )
-    {
-      pAutoGain = nullptr;
-    }
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice.p));
+
+    ThrowIfFailed (
+      pDevice->Activate (__uuidof (IAudioAutoGainControl),
+                           CLSCTX_ALL,
+                             nullptr,
+                               IID_PPV_ARGS_Helper (&pAutoGain.p)));
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
+    pAutoGain = nullptr;
   }
 
   return pAutoGain;
@@ -532,14 +593,30 @@ void
 __stdcall
 SK_SetGameMute (bool bMute)
 {
-  ISimpleAudioVolume* pVolume =
+  SK_ISimpleAudioVolume pVolume =
     SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
   if (pVolume != nullptr)
-  {
       pVolume->SetMute (bMute, nullptr);
-      pVolume->Release ();
-  }
+}
+
+BOOL
+__stdcall
+SK_IsGameMuted (void)
+{
+  SK_ISimpleAudioVolume pVolume =
+    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+
+  BOOL bMuted = FALSE;
+
+  if ( pVolume != nullptr && SUCCEEDED (
+       pVolume->GetMute ( &bMuted )    )
+     ) return              bMuted;
+
+  SK_ReleaseAssert (! L"pVolume->GetMute (...) Failed");
+
+  return
+    bMuted;
 }
 
 
@@ -564,21 +641,21 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
   return S_OK;
 }
 
-IAudioEndpointVolume*
+SK_IAudioEndpointVolume
 SK_WASAPI_AudioSession::getEndpointVolume (void)
 {
   return
     parent_->endpoint_vol_;
 }
 
-IAudioLoudness*
+SK_IAudioLoudness
 SK_WASAPI_AudioSession::getLoudness (void)
 {
   return
     parent_->loudness_;
 }
 
-IAudioAutoGainControl*
+SK_IAudioAutoGainControl
 SK_WASAPI_AudioSession::getAutoGainControl (void)
 {
   return
