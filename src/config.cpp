@@ -967,6 +967,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
     osd_ini->reload      ();
+    input_ini->reload    ();
     platform_ini->reload ();
     macro_ini->reload    ();
 
@@ -3170,9 +3171,11 @@ auto DeclKeybind =
     free (wszAssign);
   }
 
-  input.gamepad.hook_scepad->load               (config.input.gamepad.hook_scepad);
-  input.gamepad.scepad.disable_touchpad->load   (config.input.gamepad.scepad.disable_touch);
-  input.gamepad.scepad.share_clicks_touch->load (config.input.gamepad.scepad.share_clicks_touch);
+  input.gamepad.hook_scepad->load                 (config.input.gamepad.hook_scepad);
+  input.gamepad.scepad.disable_touchpad->load     (config.input.gamepad.scepad.disable_touch);
+  input.gamepad.scepad.share_clicks_touch->load   (config.input.gamepad.scepad.share_clicks_touch);
+  input.gamepad.scepad.mute_applies_to_game->load (config.input.gamepad.scepad.mute_applies_to_game);
+  input.gamepad.scepad.enhanced_ps_button->load   (config.input.gamepad.scepad.enhanced_ps_button);
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
@@ -4203,23 +4206,25 @@ SK_SaveConfig ( std::wstring name,
       xinput_assign += L",";
   }
 
-  input.gamepad.xinput.assignment->store         (xinput_assign);
-  input.gamepad.disable_rumble->store            (config.input.gamepad.disable_rumble);
-  input.gamepad.xinput.hook_setstate->store      (config.input.gamepad.xinput.hook_setstate);
-  input.gamepad.xinput.auto_slot_assign->store   (config.input.gamepad.xinput.auto_slot_assign);
+  input.gamepad.xinput.assignment->store           (xinput_assign);
+  input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
+  input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
 
-  input.gamepad.hook_scepad->store               (config.input.gamepad.hook_scepad);
-  input.gamepad.scepad.disable_touchpad->store   (config.input.gamepad.scepad.disable_touch);
-  input.gamepad.scepad.share_clicks_touch->store (config.input.gamepad.scepad.share_clicks_touch);
+  input.gamepad.hook_scepad->store                 (config.input.gamepad.hook_scepad);
+  input.gamepad.scepad.disable_touchpad->store     (config.input.gamepad.scepad.disable_touch);
+  input.gamepad.scepad.share_clicks_touch->store   (config.input.gamepad.scepad.share_clicks_touch);
+  input.gamepad.scepad.mute_applies_to_game->store (config.input.gamepad.scepad.mute_applies_to_game);
+  input.gamepad.scepad.enhanced_ps_button->store   (config.input.gamepad.scepad.enhanced_ps_button);
 
 
-  threads.enable_mem_alloc_trace->store          (config.threads.enable_mem_alloc_trace);
-  threads.enable_file_io_trace->store            (config.threads.enable_file_io_trace);
+  threads.enable_mem_alloc_trace->store            (config.threads.enable_mem_alloc_trace);
+  threads.enable_file_io_trace->store              (config.threads.enable_file_io_trace);
 
-  window.borderless->store                       (config.window.borderless);
-  window.center->store                           (config.window.center);
-  window.background_render->store                (config.window.background_render);
-  window.background_mute->store                  (config.window.background_mute);
+  window.borderless->store                         (config.window.borderless);
+  window.center->store                             (config.window.center);
+  window.background_render->store                  (config.window.background_render);
+  window.background_mute->store                    (config.window.background_mute);
   if (config.window.offset.x.absolute != 0)
   {
     wchar_t   wszAbsolute [16] = { };
@@ -4682,6 +4687,7 @@ SK_SaveConfig ( std::wstring name,
   SK_ImGui_Widgets->SaveConfig ();
 
   if (     osd_ini)      osd_ini->write ();
+  if (   input_ini)    input_ini->write ();
   if (platform_ini) platform_ini->write ();
   if (   macro_ini)    macro_ini->write ();
 
@@ -4699,6 +4705,12 @@ SK_SaveConfig ( std::wstring name,
     {
       delete osd_ini;
              osd_ini = nullptr;
+    }
+
+    if (input_ini != nullptr)
+    {
+      delete input_ini;
+             input_ini = nullptr;
     }
 
     if (platform_ini != nullptr)

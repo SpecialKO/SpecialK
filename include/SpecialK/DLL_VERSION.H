@@ -1,27 +1,23 @@
 ﻿#pragma once
 
-
-#define SK_MAJOR 22
-#define SK_MINOR 1
-#define SK_BUILD 20
+#define SK_YEAR 22
+#define SK_MONTH 2
+#define SK_DATE  20
 #define SK_REV_N 1
 #define SK_REV   1
-
 
 #define _A2(a)     #a
 #define  _A(a)  _A2(a)
 #define _L2(w)  L ## w
-#define  _L(w) _L2(w)
-
+#define  _L(w)   _L2(w)
 
 #if (defined (SK_REV) && SK_REV_N > 0)
-#define SK_VERSION_STR_A    _A(SK_MAJOR) "." _A(SK_MINOR) "." _A(SK_BUILD) "." _A(SK_REV)
+#define SK_VERSION_STR_A    _A(SK_YEAR) "." _A(SK_MONTH) "." _A(SK_DATE) "." _A(SK_REV)
 #else
-#define SK_VERSION_STR_A    _A(SK_MAJOR) "." _A(SK_MINOR) "." _A(SK_BUILD)
+#define SK_VERSION_STR_A    _A(SK_YEAR) "." _A(SK_MONTH) "." _A(SK_DATE)
 #endif
 
 #define SK_VERSION_STR_W _L(SK_VERSION_STR_A)
 
-
-#define SK_FILE_VERSION     SK_MAJOR,SK_MINOR,SK_BUILD,SK_REV_N
-#define SK_PRODUCT_VERSION  SK_MAJOR,SK_MINOR,SK_BUILD,SK_REV_N
+#define SK_FILE_VERSION     SK_YEAR,SK_MONTH,SK_DATE,SK_REV_N
+#define SK_PRODUCT_VERSION  SK_YEAR,SK_MONTH,SK_DATE,SK_REV_N

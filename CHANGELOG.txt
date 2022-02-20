@@ -1,4 +1,160 @@
-﻿22.1.20.1
+﻿22.2.20.1-NOCEGUI
+=================
+ + Epic's Overlay is driving me nuts reloading Steamclient64.dll every 150 ms,
+     SK now pins that DLL so that it cannot be unloaded.
+
+       [+] This DLL pinning behavior can be disabled w/ [Steam.Log] Silent=true
+
+ + Added option to enable/disable PlayStation button opening SK's control panel
+ + Changed mute button to mute game instead of changing input capture
+ + Share -> Touchpad Click, Mute Button and PlayStation Button behavior are
+     stored in Global\input.ini now instead of per-game
+
+     >> Trackpad disable is still per-game, since some games kinda need it (!)
+
+   Gamepad-specific bindings are now a practical feature since SK has access
+     to a button that no game can use (or even see) -- the PlayStation button.
+
+       [[ not implemented ]]
+       ---------------------
+       ( i.e. PS + L2 ==> Screenshot   or   PS + L3 ==> Toggle HUD )
+
+   If any SK functions come to mind that normally require a keyboard, but
+     would be handy using a gamepad, please share while this stuff is fresh :)
+
+22.2.20-NOCEGUI
+===============
+ + DualShock / DualSense users can now open SK's control panel by pressing the
+     PlayStation button (in games that use libScePad for enhanced PS input)
+ + Mute button on PlayStation controllers can be used to toggle SK's UI input
+     capture mode (e.g. play game while control panel is open)
+ + Added options to disable touchpad input (PS-native games) and
+     map the Share button to trackpad touch
+
+      >> All notes assume, unless otherwise stated, the pad is wired via USB
+
+22.2.19.1-NOCEGUI
+=================
+ + Fix back and forth button icon switching in Dying Light 2 if a DualSense
+     controller is used while DS4Windows is active.
+
+22.2.19-NOCEGUI
+===============
+ + Add input blocking (and API status) functionality for games that use
+     PlayStation's native API (libScePad.dll)
+ + Additional protection for EGS games with invalid manifests
+
+22.2.18-NOCEGUI
+===============
+ + Fixed potential crashes for EGS games with manifests that do not match
+     the locally installed game
+ + Fixed black screens due to Multisampled Depth/Stencil in Dear Esther when
+     promoting to Flip Model  ( Color is single-sampled, D/S must also be )
+
+22.2.6-NOCEGUI
+==============
+ + Removed 8.3 DOS Filename warnings, "Restart Game" becomes "Exit Game"
+     on systems that lack support.
+ + Removed warnings for staging textures that are only partially updated by
+     the game engine (D3D11)
+ + Changed Latent Sync's Scanline Adjust keybinds to +/- 5 Scanlines and
+     apply the new sync point immediately.
+
+22.2.5-NOCEGUI
+==============
+ + Added HDR Setup button to Display menu for compatible displays
+ + Added protection against changing SwapChain backbuffer count in D3D12
+ + Added checks to prevent overriding SwapChain backbuffer count using a
+     number of buffers smaller than the engine originally requested.
+
+22.2.4-NOCEGUI
+==============
+ + Fixed HDR crash at startup in D3D12 mode in Dying Light 2
+
+22.2.2-NOCEGUI
+==============
+ + Defaulted most of SK's widgets to click-through: enable
+
+    † Reset global OSD INI for changes to take hold on existing installs
+    ‡ Exceptional Widgets (break rules; not "amazing widgets" :P)
+
+          1. HDR Widget
+          2. Thread Profiler Widget
+
+    Right-click a widget while the SK control panel is active to change a
+      click-through enabled widget to work even when control panel is closed
+
+22.2.1-NOCEGUI
+==============
+ + The SK_Res\Achievements directory no longer removes the 'Initialize Texture Mods'
+     menu option from the File menu
+ + Automagically blacklist SK from injection into Windows Terminal and many other
+     non-game UWP applications that use graphics and game input APIs
+ + Added additional protection against injection into user interactive service hosts
+
+     >> SK's not a threat to them, however, they tend to stop responding to SK's DLL
+          unload broadcast message and the DLL should bounce out immediately instead.
+
+ + Fixed some games not registering window re-activation when using Multitasking-On-Top
+ + Changed SteamInput code to apply only when exiting a process that has drawn at
+     least one frame
+ + DualShock / DualSense controllers will not work with SK unless SteamInput is
+     disabled and DS4Windows is used instead or they are plugged in via USB and SK is
+       set to use DirectInput instead of XInput (gamepad settings)
+
+22.1.31-NOCEGUI
+===============
+ + Fix typo in HTTP status code logging that might crash on 300 range responses
+ + Fix C++17 std::filesystem time vs. system clock epoch in cache age calculations
+
+22.1.30-NOCEGUI
+===============
+ + Improved error handling for Steam users with private profiles
+ + Added additional backend caching for Steam statistics and increased update freq.
+
+22.1.29-NOCEGUI
+===============
+ + Improved caching behavior for Achievement data.
+
+22.1.28-NOCEGUI
+===============
+ + Added caching and non-SteamAPI based achievement stat collection
+
+22.1.27-NOCEGUI
+===============
+ + Reduced Start/Stop Injection delay from 50 ms to 15 ms
+ + No longer issue steam://forceinputappid/ commands if Steam is not running
+ + Changed Steam achievement icon pre-fetching to use SK's cloud server
+
+22.1.24-NOCEGUI
+===============
+ + Added achievement icon pre-fetch for Steam and EOS (SK_Res\Achievements\...)
+
+22.1.23-NOCEGUI
+===============
+ + Added Texture Cache / Mod support for D3D11 Mipmap Clamped Textures (God of War)
+
+22.1.22-NOCEGUI
+===============
+ + Fixed potential buffer overrun while calculating Steam friend achievement stats
+ + Fixed UTF8 character encoding in EOS achievement text
+
+22.1.21.1-NOCEGUI
+=================
+ + Implemented File | Restart Game for EGS games (fixes game stuck in background)
+
+22.1.21-NOCEGUI
+===============
+ + Removed CEGUI and temporarily removed achievement popups along with it
+ + The achievement popups will be back, but it's important to test w/ CEGUI gone
+     before proceeding to replace that popup with a new ImGui window
+
+  * Render APIs most affected:  D3D9, OpenGL (w/o OpenGL-IK) and D3D11
+
+    D3D12 is unaffected, so all testing should focus on those APIs.
+
+
+22.1.20.1
 =========
  + Improved reliability of temporary desktop resolution override for single-monitor
      users and for multi-monitor users who run the game on the default monitor
