@@ -103,6 +103,15 @@ SK_ImGui_CenterCursorOnWindow (void)
     SK_ImGui_CenterCursorAtPos ();
 }
 
+static DWORD last_xinput   = 0;
+static DWORD last_scepad   = 0;
+static DWORD last_hid      = 0;
+static DWORD last_di7      = 0;
+static DWORD last_di8      = 0;
+static DWORD last_steam    = 0;
+static DWORD last_rawinput = 0;
+static DWORD last_winhook  = 0;
+static DWORD last_win32    = 0;
 
 bool
 SK::ControlPanel::Input::Draw (void)
@@ -115,19 +124,11 @@ SK::ControlPanel::Input::Draw (void)
 
   if (config.imgui.show_input_apis)
   {
-    static DWORD last_xinput   = 0;
-    static DWORD last_hid      = 0;
-    static DWORD last_di7      = 0;
-    static DWORD last_di8      = 0;
-    static DWORD last_steam    = 0;
-    static DWORD last_rawinput = 0;
-    static DWORD last_winhook  = 0;
-    static DWORD last_win32    = 0;
+    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput  { };
+    struct { ULONG reads;                   } sce_pad { };
+    struct { ULONG reads;                   } steam   { };
 
-    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput { };
-    struct { ULONG reads;                   } steam  { };
-
-    struct { ULONG kbd_reads, mouse_reads; } winhook { };
+    struct { ULONG kbd_reads, mouse_reads; } winhook  { };
 
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
@@ -141,6 +142,8 @@ SK::ControlPanel::Input::Draw (void)
     xinput.reads [1]        = SK_XInput_Backend->reads   [1];
     xinput.reads [2]        = SK_XInput_Backend->reads   [2];
     xinput.reads [3]        = SK_XInput_Backend->reads   [3];
+
+    sce_pad.reads           = SK_ScePad_Backend->reads   [2/*sk_input_dev_type::Gamepad*/];
 
     winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
     winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
@@ -171,6 +174,9 @@ SK::ControlPanel::Input::Draw (void)
 
     if (SK_XInput_Backend->nextFrame ())
       last_xinput   = current_time;
+
+    if (SK_ScePad_Backend->nextFrame ())
+      last_scepad   = current_time;
 
     if (SK_Steam_Backend->nextFrame ())
       last_steam    = current_time;
@@ -228,6 +234,15 @@ SK::ControlPanel::Input::Draw (void)
         }
         ImGui::EndTooltip   ();
       }
+    }
+
+    if (last_scepad > current_time - 500UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float) last_scepad ) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::SameLine       ();
+      ImGui::Text           ("       PlayStation");
+      ImGui::PopStyleColor  ();
     }
 
     if (last_hid > current_time - 500UL)
@@ -608,6 +623,52 @@ SK::ControlPanel::Input::Draw (void)
         ////ImGui::SameLine   ();
         ////ImGui::InputInt4  ("###Slot Remapping", slots);
         ////ImGui::EndGroup   ();
+
+        ImGui::Separator ( );
+      }
+
+      if (config.input.gamepad.hook_scepad || last_scepad != 0)
+      {
+        if (last_scepad != 0)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+          if (ImGui::CollapsingHeader ("PlayStation  (DualShock 4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
+          {
+            ImGui::TreePush ("");
+            ImGui::Checkbox ("Hook libScePad", &config.input.gamepad.hook_scepad);
+
+            if (ImGui::IsItemHovered ())
+                ImGui::SetTooltip ("Features in this section of the control panel will not work if disabled");
+
+            if (config.input.gamepad.hook_scepad)
+            {
+              ImGui::SameLine   (0.0f, 30);
+
+              ImGui::BeginGroup ();
+              ImGui::Checkbox   ("Disable Touchpad",             &config.input.gamepad.scepad.disable_touch);
+              ImGui::Checkbox   ("Use Share as Touchpad Click",  &config.input.gamepad.scepad.share_clicks_touch);
+              ImGui::EndGroup   ();
+
+              ImGui::SameLine   ();
+
+              ImGui::BeginGroup ();
+              ImGui::Checkbox ("Apply Mute Button to -Game-",                           &config.input.gamepad.scepad.mute_applies_to_game);
+              ImGui::Checkbox ("Toggle Control Panel using  (" ICON_FA_PLAYSTATION ")", &config.input.gamepad.scepad.enhanced_ps_button);
+
+              if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
+
+              ImGui::EndGroup   ();
+            }
+
+            ImGui::TreePop  (  );
+          }
+
+          ImGui::PopStyleColor (3);
+        }
       }
 // TODO
 #if 0
@@ -793,8 +854,6 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PopStyleColor (3);
         ImGui::PopID         ( );
       };
-
-      ImGui::Separator       ( );
 
 #if 1
       static DWORD dwLastCheck = current_time;

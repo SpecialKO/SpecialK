@@ -29,10 +29,11 @@
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
-iSK_INI*       dll_ini    = nullptr;
-iSK_INI*       osd_ini    = nullptr;
-iSK_INI*       steam_ini  = nullptr;
-iSK_INI*       macro_ini  = nullptr;
+iSK_INI*       dll_ini      = nullptr;
+iSK_INI*       osd_ini      = nullptr;
+iSK_INI*       input_ini    = nullptr;
+iSK_INI*       platform_ini = nullptr;
+iSK_INI*       macro_ini    = nullptr;
 
 SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
@@ -226,7 +227,7 @@ SK_GetCurrentGameID (void)
 
             // CAPCOM anti-tamper workarounds
             config.window.dont_hook_wndproc   = true;
-            config.steam.silent               = true;
+            config.platform.silent            = true;
           }
         }
       }
@@ -374,43 +375,21 @@ struct {
 
 struct {
   struct {
-    sk::ParameterStringW*   sound_file            = nullptr;
-    sk::ParameterBool*      play_sound            = nullptr;
-    sk::ParameterBool*      take_screenshot       = nullptr;
-    sk::ParameterBool*      fetch_friend_stats    = nullptr;
-
-    struct {
-      sk::ParameterBool*    show                  = nullptr;
-      sk::ParameterBool*    show_title            = nullptr;
-      sk::ParameterBool*    animate               = nullptr;
-      sk::ParameterStringW* origin                = nullptr;
-      sk::ParameterFloat*   inset                 = nullptr;
-      sk::ParameterInt*     duration              = nullptr;
-    } popup;
-  } achievements;
-
-  struct {
     sk::ParameterInt*     appid                   = nullptr;
     sk::ParameterInt*     init_delay              = nullptr;
     sk::ParameterBool*    auto_pump               = nullptr;
-    sk::ParameterStringW* notify_corner           = nullptr;
     sk::ParameterBool*    block_stat_callback     = nullptr;
     sk::ParameterBool*    filter_stat_callbacks   = nullptr;
     sk::ParameterBool*    load_early              = nullptr;
     sk::ParameterBool*    early_overlay           = nullptr;
     sk::ParameterBool*    force_load              = nullptr;
     sk::ParameterBool*    auto_inject             = nullptr;
-    sk::ParameterBool*    reuse_overlay_pause     = nullptr;
     sk::ParameterStringW* dll_path                = nullptr;
   } system;
 
   struct {
     sk::ParameterInt*     online_status           = nullptr;
   } social;
-
-  struct {
-    sk::ParameterBool*    silent                  = nullptr;
-  } log;
 
   struct {
     sk::ParameterBool*    spoof_BLoggedOn         = nullptr;
@@ -429,12 +408,39 @@ struct {
   {
     sk::ParameterBool*    smart_capture           = nullptr;
   } screenshots;
+} steam;
 
-  struct
-  {
+struct
+{
+  struct {
+    sk::ParameterStringW* sound_file              = nullptr;
+    sk::ParameterBool*    play_sound              = nullptr;
+    sk::ParameterBool*    take_screenshot         = nullptr;
+    sk::ParameterBool*    fetch_friend_stats      = nullptr;
+
+    struct {
+    sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterBool*    show_title              = nullptr;
+    sk::ParameterBool*    animate                 = nullptr;
+    sk::ParameterStringW* origin                  = nullptr;
+    sk::ParameterFloat*   inset                   = nullptr;
+    sk::ParameterInt*     duration                = nullptr;
+    } popup;
+  } achievements;
+
+  struct {
+    sk::ParameterBool*    silent                  = nullptr;
+  } log;
+
+  struct {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
-} steam;
+
+  struct {
+    sk::ParameterStringW* notify_corner           = nullptr;
+    sk::ParameterBool*    reuse_overlay_pause     = nullptr;
+  } system;
+} platform;
 
 struct {
   sk::ParameterBool*      include_osd_default     = nullptr;
@@ -505,8 +511,6 @@ struct {
   } adl;
 } amd;
 
-sk::ParameterBool*        enable_cegui            = nullptr;
-sk::ParameterBool*        safe_cegui              = nullptr;
 sk::ParameterFloat*       mem_reserve             = nullptr;
 sk::ParameterBool*        debug_output            = nullptr;
 sk::ParameterBool*        debug_wait              = nullptr;
@@ -676,6 +680,7 @@ struct {
     sk::ParameterBool*    hook_dinput7            = nullptr;
     sk::ParameterBool*    hook_hid                = nullptr;
     sk::ParameterBool*    hook_xinput             = nullptr;
+    sk::ParameterBool*    hook_scepad             = nullptr;
 
     struct {
       sk::ParameterInt*   ui_slot                 = nullptr;
@@ -685,6 +690,13 @@ struct {
       sk::ParameterBool*  hook_setstate           = nullptr;
       sk::ParameterBool*  auto_slot_assign        = nullptr;
     } xinput;
+
+    struct {
+      sk::ParameterBool*  disable_touchpad        = nullptr;
+      sk::ParameterBool*  share_clicks_touch      = nullptr;
+      sk::ParameterBool*  mute_applies_to_game    = nullptr;
+      sk::ParameterBool*  enhanced_ps_button      = nullptr;
+    } scepad;
 
     struct {
       sk::ParameterInt*   ui_slot                 = nullptr;
@@ -861,7 +873,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring custom_name; // User may have custom prefs
   std::wstring master_name;
 
-  std::wstring osd_config, steam_config, macro_config;
+  std::wstring   osd_config, platform_config,
+               macro_config,    input_config;
 
   full_name = // For paths with :, do not prepend the config root
     name.find (L':') != std::wstring::npos ?
@@ -907,10 +920,13 @@ SK_LoadConfigEx (std::wstring name, bool create)
   osd_config         =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
 
-  steam_config =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\steam.ini)";
+  input_config         =
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\input.ini)";
 
-  std::wstring migrate_steam_config;
+  platform_config =
+    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\platform.ini)";
+
+  std::wstring migrate_platform_config;
 
   macro_config       =
     SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
@@ -940,16 +956,19 @@ SK_LoadConfigEx (std::wstring name, bool create)
     SK_RunOnce (    osd_ini         =
       SK_CreateINI (osd_config.c_str ()));
 
-    SK_RunOnce (    steam_ini       =
-      SK_CreateINI (steam_config.c_str ()));
+    SK_RunOnce (    input_ini         =
+      SK_CreateINI (input_config.c_str ()));
+
+    SK_RunOnce (    platform_ini    =
+      SK_CreateINI (platform_config.c_str ()));
 
     SK_RunOnce (    macro_ini       =
       SK_CreateINI (macro_config.c_str ()));
 
 
-    osd_ini->reload   ();
-    steam_ini->reload ();
-    macro_ini->reload ();
+    osd_ini->reload      ();
+    platform_ini->reload ();
+    macro_ini->reload    ();
 
 
 auto DeclKeybind =
@@ -1121,6 +1140,14 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
 
+    ConfigEntry (input.gamepad.hook_scepad,              L"Install hooks for libScePad",                               dll_ini,         L"Input.libScePad",       L"Enable"),
+    ConfigEntry (input.gamepad.scepad.disable_touchpad,  L"Disable Touchpad Input",                                    input_ini,       L"Input.libScePad",       L"DisableTouchpad"),
+    ConfigEntry (input.gamepad.scepad.share_clicks_touch,L"Share Button can be used as Touchpad Click",                input_ini,       L"Input.libScePad",       L"ShareClicksTouchpad"),
+    ConfigEntry (input.gamepad.scepad.
+                                   mute_applies_to_game, L"Mute Button on DualSense will Mute the Game",               input_ini,       L"Input.libScePad",       L"MuteButtonAppliesToGame"),
+    ConfigEntry (input.gamepad.scepad.enhanced_ps_button,L"PlayStation / Home Button activates SK's control panel and "
+                                                         L"may be used for special button combos (e.g. trigger sshot)",input_ini,       L"Input.libScePad",       L"AdvancedPlayStationButton"),
+
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
@@ -1198,8 +1225,6 @@ auto DeclKeybind =
     ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
     ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
     ConfigEntry (ignore_rtss_delay,                      L"Ignore RTSS Delay Incompatibilities",                       dll_ini,         L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
-    ConfigEntry (enable_cegui,                           L"Enable CEGUI (lazy loading)",                               dll_ini,         L"SpecialK.System",       L"EnableCEGUI"),
-    ConfigEntry (safe_cegui,                             L"Safely Initialize CEGUI",                                   dll_ini,         L"SpecialK.System",       L"SafeInitCEGUI"),
     ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
     ConfigEntry (return_to_skif,                         L"At Application Exit, make SKIF the new Foreground Window",  dll_ini,         L"SpecialK.System",       L"ReturnToSKIF"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
@@ -1359,21 +1384,24 @@ auto DeclKeybind =
 
 
     // The one odd-ball Steam achievement setting that can be specified per-game
-    ConfigEntry (steam.achievements.sound_file,          L"Achievement Sound File",                                    dll_ini,         L"Steam.Achievements",    L"SoundFile"),
+    ConfigEntry (platform.achievements.sound_file,       L"Achievement Sound File",                                    dll_ini,         L"Platform.Achievements", L"SoundFile"),
 
     // Steam Achievement Enhancements  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (steam.achievements.play_sound,          L"Silence is Bliss?",                                         steam_ini,       L"Steam.Achievements",    L"PlaySound"),
-    ConfigEntry (steam.achievements.take_screenshot,     L"Precious Memories",                                         steam_ini,       L"Steam.Achievements",    L"TakeScreenshot"),
-    ConfigEntry (steam.achievements.fetch_friend_stats,  L"Friendly Competition",                                      steam_ini,       L"Steam.Achievements",    L"FetchFriendStats"),
-    ConfigEntry (steam.achievements.popup.origin,        L"Achievement Popup Position",                                steam_ini,       L"Steam.Achievements",    L"PopupOrigin"),
-    ConfigEntry (steam.achievements.popup.animate,       L"Achievement Notification Animation",                        steam_ini,       L"Steam.Achievements",    L"AnimatePopup"),
-    ConfigEntry (steam.achievements.popup.show_title,    L"Achievement Popup Includes Game Title?",                    steam_ini,       L"Steam.Achievements",    L"ShowPopupTitle"),
-    ConfigEntry (steam.achievements.popup.inset,         L"Achievement Notification Inset X",                          steam_ini,       L"Steam.Achievements",    L"PopupInset"),
-    ConfigEntry (steam.achievements.popup.duration,      L"Achievement Popup Duration (in ms)",                        steam_ini,       L"Steam.Achievements",    L"PopupDuration"),
+    ConfigEntry (platform.achievements.play_sound,       L"Silence is Bliss?",                                         platform_ini,    L"Platform.Achievements", L"PlaySound"),
+    ConfigEntry (platform.achievements.take_screenshot,  L"Precious Memories",                                         platform_ini,    L"Platform.Achievements", L"TakeScreenshot"),
+    ConfigEntry (platform.achievements.
+                                    fetch_friend_stats,  L"Friendly Competition",                                      platform_ini,    L"Platform.Achievements", L"FetchFriendStats"),
+    ConfigEntry (platform.achievements.popup.origin,     L"Achievement Popup Position",                                platform_ini,    L"Platform.Achievements", L"PopupOrigin"),
+    ConfigEntry (platform.achievements.popup.animate,    L"Achievement Notification Animation",                        platform_ini,    L"Platform.Achievements", L"AnimatePopup"),
+    ConfigEntry (platform.achievements.popup.show_title, L"Achievement Popup Includes Game Title?",                    platform_ini,    L"Platform.Achievements", L"ShowPopupTitle"),
+    ConfigEntry (platform.achievements.popup.inset,      L"Achievement Notification Inset X",                          platform_ini,    L"Platform.Achievements", L"PopupInset"),
+    ConfigEntry (platform.achievements.popup.duration,   L"Achievement Popup Duration (in ms)",                        platform_ini,    L"Platform.Achievements", L"PopupDuration"),
 
-    ConfigEntry (steam.system.notify_corner,             L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Steam.System",          L"NotifyCorner"),
+    ConfigEntry (platform.system.notify_corner,          L"Overlay Notification Position  (non-Big Picture Mode)",     dll_ini,         L"Platform.System",       L"NotifyCorner"),
+    ConfigEntry (platform.system.reuse_overlay_pause,    L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Platform.System",       L"ReuseOverlayPause"),
+
     ConfigEntry (steam.system.appid,                     L"Steam AppID",                                               dll_ini,         L"Steam.System",          L"AppID"),
     ConfigEntry (steam.system.init_delay,                L"Delay SteamAPI initialization if the game doesn't do it",   dll_ini,         L"Steam.System",          L"AutoInitDelay"),
     ConfigEntry (steam.system.auto_pump,                 L"Should we force the game to run Steam callbacks?",          dll_ini,         L"Steam.System",          L"AutoPumpCallbacks"),
@@ -1384,7 +1412,6 @@ auto DeclKeybind =
     ConfigEntry (steam.system.force_load,                L"Forcefully load steam_api{64}.dll",                         dll_ini,         L"Steam.System",          L"ForceLoadSteamAPI"),
     ConfigEntry (steam.system.auto_inject,               L"Automatically load steam_api{64}.dll into any game whose "
                                                          L"path includes SteamApps\\common, but doesn't use steam_api",dll_ini,         L"Steam.System",          L"AutoInjectSteamAPI"),
-    ConfigEntry (steam.system.reuse_overlay_pause,       L"Pause Overlay Aware games when control panel is visible",   dll_ini,         L"Steam.System",          L"ReuseOverlayPause"),
     ConfigEntry (steam.social.online_status,             L"Always apply a social state (defined by EPersonaState) at"
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
@@ -1392,15 +1419,15 @@ auto DeclKeybind =
 
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
+    ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  platform_ini,    L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
 
     // These are all system-wide for all Steam games
-    ConfigEntry (steam.overlay.hdr_luminance,            L"Make the Steam Overlay visible in HDR mode!",               steam_ini,       L"Steam.Overlay",         L"Luminance_scRGB"),
-    ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  steam_ini,       L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
+    ConfigEntry (platform.overlay.hdr_luminance,         L"Make the Steam Overlay visible in HDR mode!",               platform_ini,    L"Platform.Overlay",      L"Luminance_scRGB"),
 
     // Swashbucklers pay attention
     //////////////////////////////////////////////////////////////////////////
 
-    ConfigEntry (steam.log.silent,                       L"Makes steam_api.log go away [DISABLES STEAMAPI FEATURES]",  dll_ini,         L"Steam.Log",             L"Silent"),
+    ConfigEntry (platform.log.silent,                    L"Makes steam_api.log go away [DISABLES STEAMAPI FEATURES]",  dll_ini,         L"Steam.Log",             L"Silent"),
     ConfigEntry (steam.cloud.blacklist,                  L"CSV list of files to block from cloud sync.",               dll_ini,         L"Steam.Cloud",           L"FilesNotToSync"),
     ConfigEntry (steam.drm.spoof_BLoggedOn,              L"Fix For Stupid Games That Don't Know How DRM Works",        dll_ini,         L"Steam.DRMWorks",        L"SpoofBLoggedOn"),
   };
@@ -1710,7 +1737,7 @@ auto DeclKeybind =
         config.render.dxgi.exception_mode      = D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR;
 
         // Not a Steam game :(
-        config.steam.silent                    = true;
+        config.platform.silent                 = true;
 
         config.system.strict_compliance        = false; // Uses NVIDIA Ansel, so this won't work!
 
@@ -1865,8 +1892,6 @@ auto DeclKeybind =
                                                    //   supported in this game
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
-        // Contrary to its name, this game needs this turned off ;)
-        config.cegui.safe_init             = false;
         config.steam.force_load_steamapi   = true; // Not safe in all games, but it is here.
         break;
 
@@ -1937,8 +1962,6 @@ auto DeclKeybind =
 #endif
 
       case SK_GAME_ID::DotHackGU:
-        config.cegui.safe_init         = false; // If not turned off, the game will have problems
-                                                // loading its constituent DLLs
       //config.textures.d3d11.generate_mips = true;
         break;
 
@@ -2178,7 +2201,6 @@ auto DeclKeybind =
         config.textures.cache.allow_unsafe_refs   =  true;
         config.render.dxgi.deferred_isolation     = false;
         config.textures.cache.residency_managemnt = false;
-        config.cegui.enable                       = false; // Off by default
         config.render.framerate.disable_flip      = false;
         config.render.framerate.swapchain_wait    =     1;
         config.window.borderless                  =  true;
@@ -2235,7 +2257,7 @@ auto DeclKeybind =
         config.window.always_on_top               =      0;
         config.render.dxgi.deferred_isolation     =   true;
         config.render.framerate.flip_discard      =   true;
-        config.steam.reuse_overlay_pause          =  false;
+        config.platform.reuse_overlay_pause       =  false;
         config.render.framerate.swapchain_wait    =      1;
         config.window.borderless                  =   true;
         config.window.fullscreen                  =   true;
@@ -2315,7 +2337,7 @@ auto DeclKeybind =
         config.steam.force_load_steamapi  = true;
         config.steam.auto_inject          = true;
         config.steam.auto_pump_callbacks  = true;
-        config.steam.silent               = true;
+        config.platform.silent            = true;
       } break;
 
       case SK_GAME_ID::Tales_of_Vesperia:
@@ -2342,7 +2364,7 @@ auto DeclKeybind =
       case SK_GAME_ID::MonsterHunterWorld:
       {
         config.window.dont_hook_wndproc = true;
-        config.steam.silent             = true;
+        config.platform.silent          = true;
       } break;
 
       case SK_GAME_ID::Cyberpunk2077:
@@ -2531,22 +2553,22 @@ auto DeclKeybind =
         config.system.suppress_crashes               =  true;
         config.compatibility.impersonate_debugger    = false;
 
-        config.steam.silent =
+        config.platform.silent =
           !( PathFileExistsW ( L"steam_api64.dll" )
           && CopyFile        ( L"steam_api64.dll",
                             L"kaldaien_api64.dll", FALSE )
            );
 
-        if (! config.steam.silent )
+        if (! config.platform.silent )
         {     config.steam.auto_inject         =    true;
               config.steam.auto_pump_callbacks =    true;
               config.steam.force_load_steamapi =    true;
               config.steam.preload_client      =    true;
               config.steam.preload_overlay     =    true;
               config.steam.init_delay          =       1;
-              config.steam.achievements.
+              config.platform.achievements.
                             pull_friend_stats  =    true;
-              config.steam.silent              =   false;
+              config.platform.silent           =   false;
               config.steam.appid               = 1196590;
               config.steam.dll_path            =
                                    L"kaldaien_api64.dll";
@@ -2561,7 +2583,7 @@ auto DeclKeybind =
         config.window.borderless          = true;
 
         config.steam.appid                = 0;
-        config.steam.silent               = true;
+        config.platform.silent            = true;
         config.apis.d3d9.hook             = false;
         config.apis.d3d9ex.hook           = false;
         config.apis.OpenGL.hook           = true;
@@ -2614,6 +2636,10 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook = false;
         config.apis.OpenGL.hook = false;
       } break;
+
+      case SK_GAME_ID::DyingLight2:
+        config.input.mouse.ignore_small_clips = true;
+        break;
 #endif
     }
   }
@@ -2692,7 +2718,7 @@ auto DeclKeybind =
 
   imgui.scale->load                      (config.imgui.scale);
   imgui.show_eula->load                  (config.imgui.show_eula);
-  imgui.show_playtime->load              (config.steam.show_playtime);
+  imgui.show_playtime->load              (config.platform.show_playtime);
   imgui.show_gsync_status->load          (config.apis.NvAPI.gsync_status);
   imgui.mac_style_menu->load             (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->load            (config.imgui.show_input_apis);
@@ -3089,6 +3115,7 @@ auto DeclKeybind =
   input.gamepad.disable_ps4_hid->load    (config.input.gamepad.disable_ps4_hid);
   input.gamepad.rehook_xinput->load      (config.input.gamepad.rehook_xinput);
   input.gamepad.hook_xinput->load        (config.input.gamepad.hook_xinput);
+  input.gamepad.hook_scepad->load        (config.input.gamepad.hook_scepad);
 
   // Hidden INI values; they're loaded, but never written
   input.gamepad.hook_dinput8->load       (config.input.gamepad.hook_dinput8);
@@ -3142,6 +3169,11 @@ auto DeclKeybind =
 
     free (wszAssign);
   }
+
+  input.gamepad.hook_scepad->load               (config.input.gamepad.hook_scepad);
+  input.gamepad.scepad.disable_touchpad->load   (config.input.gamepad.scepad.disable_touch);
+  input.gamepad.scepad.share_clicks_touch->load (config.input.gamepad.scepad.share_clicks_touch);
+
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
 
@@ -3550,34 +3582,34 @@ auto DeclKeybind =
   dpi.per_monitor_aware->load       (config.dpi.per_monitor.aware);
   dpi.per_monitor_all_threads->load (config.dpi.per_monitor.aware_on_all_threads);
 
-  steam.achievements.play_sound->load         (config.steam.achievements.play_sound);
-  steam.achievements.sound_file->load         (config.steam.achievements.sound_file);
-  steam.achievements.take_screenshot->load    (config.steam.achievements.take_screenshot);
-  steam.achievements.fetch_friend_stats->load (config.steam.achievements.pull_friend_stats);
-  steam.achievements.popup.animate->load      (config.steam.achievements.popup.animate);
-  steam.achievements.popup.show_title->load   (config.steam.achievements.popup.show_title);
+  platform.achievements.play_sound->load         (config.platform.achievements.play_sound);
+  platform.achievements.sound_file->load         (config.platform.achievements.sound_file);
+  platform.achievements.take_screenshot->load    (config.platform.achievements.take_screenshot);
+  platform.achievements.fetch_friend_stats->load (config.platform.achievements.pull_friend_stats);
+  platform.achievements.popup.animate->load      (config.platform.achievements.popup.animate);
+  platform.achievements.popup.show_title->load   (config.platform.achievements.popup.show_title);
 
-  if (((sk::iParameter *)steam.achievements.popup.origin)->load ())
+  if (((sk::iParameter *)platform.achievements.popup.origin)->load ())
   {
-    config.steam.achievements.popup.origin =
+    config.platform.achievements.popup.origin =
       SK_Steam_PopupOriginWStrToEnum (
-        steam.achievements.popup.origin->get_value ().c_str ()
+        platform.achievements.popup.origin->get_value ().c_str ()
       );
   }
 
   else
   {
-    config.steam.achievements.popup.origin = 3;
+    config.platform.achievements.popup.origin = 3;
   }
 
-  steam.achievements.popup.inset->load    (config.steam.achievements.popup.inset);
-  steam.achievements.popup.duration->load (config.steam.achievements.popup.duration);
+  platform.achievements.popup.inset->load    (config.platform.achievements.popup.inset);
+  platform.achievements.popup.duration->load (config.platform.achievements.popup.duration);
 
-  if (config.steam.achievements.popup.duration == 0)
+  if (config.platform.achievements.popup.duration == 0)
   {
-    config.steam.achievements.popup.show        = false;
-    config.steam.achievements.pull_friend_stats = false;
-    config.steam.achievements.pull_global_stats = false;
+    config.platform.achievements.popup.show        = false;
+    config.platform.achievements.pull_friend_stats = false;
+    config.platform.achievements.pull_global_stats = false;
   }
 
 
@@ -3601,7 +3633,7 @@ auto DeclKeybind =
   }
 
 
-  steam.log.silent->load                      (config.steam.silent);
+  platform.log.silent->load                   (config.platform.silent);
   steam.drm.spoof_BLoggedOn->load             (config.steam.spoof_BLoggedOn);
 
   // We may already know the AppID before loading the game's config.
@@ -3623,7 +3655,6 @@ auto DeclKeybind =
   steam.system.early_overlay->load            (config.steam.preload_overlay);
   steam.system.force_load->load               (config.steam.force_load_steamapi);
   steam.system.auto_inject->load              (config.steam.auto_inject);
-  steam.system.reuse_overlay_pause->load      (config.steam.reuse_overlay_pause);
 
   int                                 throttle = -1;
   if (steam.callbacks.throttle->load (throttle))
@@ -3632,12 +3663,13 @@ auto DeclKeybind =
                                       throttle );
   }
 
-  steam.overlay.hdr_luminance->load           (config.steam.overlay_hdr_luminance);
-  steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
+  platform.system.reuse_overlay_pause->load   (config.platform.reuse_overlay_pause);
+  platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
   rtss.overlay.hdr_luminance->load            (config.rtss.overlay_luminance);
   discord.overlay.hdr_luminance->load         (config.discord.overlay_luminance);
 
+  steam.screenshots.smart_capture->load       (config.steam.screenshots.enable_hook);
   screenshots.include_osd_default->load       (config.screenshots.show_osd_by_default);
   screenshots.keep_png_copy->load             (config.screenshots.png_compress);
   screenshots.play_sound->load                (config.screenshots.play_sound);
@@ -3674,12 +3706,12 @@ auto DeclKeybind =
 
   bool global_override = false;
 
-  if (steam_ini->contains_section (L"Steam.Social"))
+  if (platform_ini->contains_section (L"Steam.Social"))
   {
-    if (steam_ini->get_section (L"Steam.Social").contains_key (L"OnlineStatus"))
+    if (platform_ini->get_section (L"Steam.Social").contains_key (L"OnlineStatus"))
     {
-      swscanf ( steam_ini->get_section (L"Steam.Social").
-                           get_value   (L"OnlineStatus").c_str (),
+      swscanf ( platform_ini->get_section (L"Steam.Social").
+                              get_value   (L"OnlineStatus").c_str (),
                   L"%d", &config.steam.online_status );
       global_override = true;
     }
@@ -3690,11 +3722,11 @@ auto DeclKeybind =
     steam.social.online_status->load (config.steam.online_status);
 
 
-  if (((sk::iParameter *)steam.system.notify_corner)->load ())
+  if (((sk::iParameter *)platform.system.notify_corner)->load ())
   {
-    config.steam.notify_corner =
+    config.platform.notify_corner =
       SK_Steam_PopupOriginWStrToEnum (
-        steam.system.notify_corner->get_value ().c_str ()
+        platform.system.notify_corner->get_value ().c_str ()
     );
   }
 
@@ -3720,13 +3752,9 @@ auto DeclKeybind =
   debug_wait->load        (config.system.wait_for_debugger);
   debug_output->load      (config.system.display_debug_out);
   game_output->load       (config.system.game_output);
-  enable_cegui->load      (config.cegui.enable);
-  safe_cegui->load        (config.cegui.safe_init);
   init_delay->load        (config.system.global_inject_delay);
   return_to_skif->load    (config.system.return_to_skif);
   version->load           (config.system.version);
-
-  SK_RunOnce (config.cegui.orig_enable = config.cegui.enable);
 
 
 
@@ -3798,8 +3826,8 @@ auto DeclKeybind =
 
   // The name of this config file is different in 0.10.x, but want to load existing values
   //   if the user has any; that involves renaming the file after loading it.
-  if (! migrate_steam_config.empty ())
-    steam_ini->rename (migrate_steam_config.c_str ());
+  if (! migrate_platform_config.empty ())
+    platform_ini->rename (migrate_platform_config.c_str ());
 
 
   // Config opted-in to debugger wait
@@ -4101,7 +4129,7 @@ SK_SaveConfig ( std::wstring name,
 
   imgui.scale->store                          (config.imgui.scale);
   imgui.show_eula->store                      (config.imgui.show_eula);
-  imgui.show_playtime->store                  (config.steam.show_playtime);
+  imgui.show_playtime->store                  (config.platform.show_playtime);
   imgui.show_gsync_status->store              (config.apis.NvAPI.gsync_status);
   imgui.mac_style_menu->store                 (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->store                (config.imgui.show_input_apis);
@@ -4175,17 +4203,23 @@ SK_SaveConfig ( std::wstring name,
       xinput_assign += L",";
   }
 
-  input.gamepad.xinput.assignment->store       (xinput_assign);
-  input.gamepad.disable_rumble->store          (config.input.gamepad.disable_rumble);
-  input.gamepad.xinput.hook_setstate->store    (config.input.gamepad.xinput.hook_setstate);
-  input.gamepad.xinput.auto_slot_assign->store (config.input.gamepad.xinput.auto_slot_assign);
-  threads.enable_mem_alloc_trace->store        (config.threads.enable_mem_alloc_trace);
-  threads.enable_file_io_trace->store          (config.threads.enable_file_io_trace);
+  input.gamepad.xinput.assignment->store         (xinput_assign);
+  input.gamepad.disable_rumble->store            (config.input.gamepad.disable_rumble);
+  input.gamepad.xinput.hook_setstate->store      (config.input.gamepad.xinput.hook_setstate);
+  input.gamepad.xinput.auto_slot_assign->store   (config.input.gamepad.xinput.auto_slot_assign);
 
-  window.borderless->store                     (config.window.borderless);
-  window.center->store                         (config.window.center);
-  window.background_render->store              (config.window.background_render);
-  window.background_mute->store                (config.window.background_mute);
+  input.gamepad.hook_scepad->store               (config.input.gamepad.hook_scepad);
+  input.gamepad.scepad.disable_touchpad->store   (config.input.gamepad.scepad.disable_touch);
+  input.gamepad.scepad.share_clicks_touch->store (config.input.gamepad.scepad.share_clicks_touch);
+
+
+  threads.enable_mem_alloc_trace->store          (config.threads.enable_mem_alloc_trace);
+  threads.enable_file_io_trace->store            (config.threads.enable_file_io_trace);
+
+  window.borderless->store                       (config.window.borderless);
+  window.center->store                           (config.window.center);
+  window.background_render->store                (config.window.background_render);
+  window.background_mute->store                  (config.window.background_mute);
   if (config.window.offset.x.absolute != 0)
   {
     wchar_t   wszAbsolute [16] = { };
@@ -4536,28 +4570,28 @@ SK_SaveConfig ( std::wstring name,
     dll_ini->get_section (L"CPU.Power").remove_key (L"PowerSchemeGUID");
 
 
-  dpi.disable->store                           (config.dpi.disable_scaling);
-  dpi.per_monitor_aware->store                 (config.dpi.per_monitor.aware);
-  dpi.per_monitor_all_threads->store           (config.dpi.per_monitor.aware_on_all_threads);
+  dpi.disable->store                              (config.dpi.disable_scaling);
+  dpi.per_monitor_aware->store                    (config.dpi.per_monitor.aware);
+  dpi.per_monitor_all_threads->store              (config.dpi.per_monitor.aware_on_all_threads);
 
 
-  steam.achievements.sound_file->store         (config.steam.achievements.sound_file);
-  steam.achievements.play_sound->store         (config.steam.achievements.play_sound);
-  steam.achievements.take_screenshot->store    (config.steam.achievements.take_screenshot);
-  steam.achievements.fetch_friend_stats->store (config.steam.achievements.pull_friend_stats);
-  steam.achievements.popup.origin->store       (
-    SK_Steam_PopupOriginToWStr (config.steam.achievements.popup.origin)
+  platform.achievements.sound_file->store         (config.platform.achievements.sound_file);
+  platform.achievements.play_sound->store         (config.platform.achievements.play_sound);
+  platform.achievements.take_screenshot->store    (config.platform.achievements.take_screenshot);
+  platform.achievements.fetch_friend_stats->store (config.platform.achievements.pull_friend_stats);
+  platform.achievements.popup.origin->store       (
+    SK_Steam_PopupOriginToWStr (config.platform.achievements.popup.origin)
   );
-  steam.achievements.popup.inset->store        (config.steam.achievements.popup.inset);
+  platform.achievements.popup.inset->store        (config.platform.achievements.popup.inset);
 
-  if (! config.steam.achievements.popup.show)
+  if (! config.platform.achievements.popup.show)
   {
-    config.steam.achievements.popup.duration = 0;
+    config.platform.achievements.popup.duration = 0;
   }
 
-  steam.achievements.popup.duration->store     (config.steam.achievements.popup.duration);
-  steam.achievements.popup.animate->store      (config.steam.achievements.popup.animate);
-  steam.achievements.popup.show_title->store   (config.steam.achievements.popup.show_title);
+  platform.achievements.popup.duration->store     (config.platform.achievements.popup.duration);
+  platform.achievements.popup.animate->store      (config.platform.achievements.popup.animate);
+  platform.achievements.popup.show_title->store   (config.platform.achievements.popup.show_title);
 
   if (config.steam.appid == 0)
   {
@@ -4577,20 +4611,19 @@ SK_SaveConfig ( std::wstring name,
   steam.system.early_overlay->store            (config.steam.preload_overlay);
   steam.system.force_load->store               (config.steam.force_load_steamapi);
   steam.system.auto_inject->store              (config.steam.auto_inject);
-  steam.system.notify_corner->store            (
-                    SK_Steam_PopupOriginToWStr (config.steam.notify_corner)
-  );
-  steam.system.reuse_overlay_pause->store      (config.steam.reuse_overlay_pause);
   steam.system.dll_path->store                 (config.steam.dll_path);
 
   steam.callbacks.throttle->store              (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));
 
   steam.social.online_status->store            (config.steam.online_status);
 
-  steam.log.silent->store                      (config.steam.silent);
   steam.drm.spoof_BLoggedOn->store             (config.steam.spoof_BLoggedOn);
 
-  steam.overlay.hdr_luminance->store           (config.steam.overlay_hdr_luminance);
+  platform.system.notify_corner->store         (
+                    SK_Steam_PopupOriginToWStr (config.platform.notify_corner));
+  platform.system.reuse_overlay_pause->store   (config.platform.reuse_overlay_pause);
+  platform.log.silent->store                   (config.platform.silent);
+  platform.overlay.hdr_luminance->store        (config.platform.overlay_hdr_luminance);
 
   steam.screenshots.smart_capture->store       (config.steam.screenshots.enable_hook);
 
@@ -4630,8 +4663,6 @@ SK_SaveConfig ( std::wstring name,
   }
 
   debug_wait->store                            (config.system.wait_for_debugger);
-  enable_cegui->store                          (config.cegui.enable);
-  safe_cegui->store                            (config.cegui.safe_init);
   trace_libraries->store                       (config.system.trace_load_library);
   strict_compliance->store                     (config.system.strict_compliance);
   init_delay->store                            (config.system.global_inject_delay);
@@ -4650,9 +4681,9 @@ SK_SaveConfig ( std::wstring name,
 
   SK_ImGui_Widgets->SaveConfig ();
 
-  if (  osd_ini)   osd_ini->write ();
-  if (steam_ini) steam_ini->write ();
-  if (macro_ini) macro_ini->write ();
+  if (     osd_ini)      osd_ini->write ();
+  if (platform_ini) platform_ini->write ();
+  if (   macro_ini)    macro_ini->write ();
 
 
 
@@ -4670,10 +4701,10 @@ SK_SaveConfig ( std::wstring name,
              osd_ini = nullptr;
     }
 
-    if (steam_ini != nullptr)
+    if (platform_ini != nullptr)
     {
-      delete steam_ini;
-             steam_ini = nullptr;
+      delete platform_ini;
+             platform_ini = nullptr;
     }
 
     if (macro_ini != nullptr)
@@ -5045,6 +5076,10 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
   //   read the .egstore manifest for consistency
   else if (StrStrIA (GetCommandLineA (), "-epicapp="))
   {
+    // Epic games might have multiple manifests, break-out early after finding the first one.
+    //
+    bool found_manifest = false;
+
     try {
       std::filesystem::path path =
         std::move (std::wstring (wszExe));
@@ -5052,10 +5087,16 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
       while (! std::filesystem::equivalent ( path.parent_path    (),
                                              path.root_directory () ) )
       {
+        if (found_manifest)
+          break;
+
         if (std::filesystem::is_directory (path / L".egstore"))
         {
           for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
           {
+            if (found_manifest)
+              break;
+
             if (! file.is_regular_file ())
               continue;
 
@@ -5109,6 +5150,9 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
                     }
 
                     path = LR"(\)";
+
+                    found_manifest = true;
+
                     break;
                   }
                 }
@@ -5122,9 +5166,11 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
       }
     }
 
-    catch (...)
+    catch (const std::exception& e)
     {
-
+      SK_LOG0 ( ( L"Appcache Parse Failure: %hs during Epic Name Lookup",
+                  e.what () ),
+                  L" AppCache " );
     }
   }
 
@@ -5354,8 +5400,11 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
                   strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
                    *strrchr (szEpicApp, '"') = '\0';
 
-                  return
+                   auto ret =
                     getConfigPathForEpicApp (szEpicApp);
+
+                   if (! ret.empty ())
+                     return ret;
                 }
               }
             }
@@ -5368,8 +5417,11 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
     }
   }
 
-  catch (...)
+  catch (const std::exception& e)
   {
+    SK_LOG0 ( ( L"Appcache Parse Failure: %hs during Epic Name Lookup",
+                e.what () ),
+                L" AppCache " );
   }
 
   return
@@ -5883,11 +5935,11 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
 bool
 SK_AppCache_Manager::wantFriendStats (void)
 {
-  if (! config.steam.achievements.pull_friend_stats)
+  if (! config.platform.achievements.pull_friend_stats)
     return false;
 
   bool global_pref =
-    config.steam.achievements.pull_friend_stats;
+    config.platform.achievements.pull_friend_stats;
 
   if (app_cache_db == nullptr)
     return global_pref;

@@ -49,8 +49,10 @@ void SK_Input_HookHID         (void);
 void SK_Input_HookXInput1_3   (void);
 void SK_Input_HookXInput1_4   (void);
 void SK_Input_HookXInput9_1_0 (void);
+void SK_Input_HookScePad      (void);
 
 void SK_Input_PreHookXInput   (void);
+void SK_Input_PreHookScePad   (void);
 
 void SK_Input_PreInit (void);
 void SK_Input_Init    (void);
@@ -307,6 +309,7 @@ struct sk_input_api_context_s
 };
 
 extern SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
@@ -442,6 +445,8 @@ using keybd_event_pfn = void (WINAPI *)(
 
 using SetCursor_pfn = HCURSOR (WINAPI *)(HCURSOR hCursor);
 using GetCursor_pfn = HCURSOR (WINAPI *)(VOID);
+
+using ShowCursor_pfn = int (WINAPI *)(BOOL);
 
 extern keybd_event_pfn keybd_event_Original;
 extern SetCursor_pfn   SetCursor_Original;
@@ -582,5 +587,7 @@ SK_keybd_event (
   _In_ DWORD     dwFlags,
   _In_ ULONG_PTR dwExtraInfo
 );
+
+int WINAPI SK_ShowCursor (BOOL bShow);
 
 #endif /* __SK__INPUT_H__ */

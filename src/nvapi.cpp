@@ -1209,13 +1209,13 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
   else
     friendly_name = wszAppName; // Not so friendly, but whatever...
 
-  NvAPI_Status ret;
-
   if (! config.apis.NvAPI.enable) {
     nv_hardware = false;
     bLibInit    = TRUE + 1; // Clearly this isn't a boolean; just for looks
     return FALSE;
   }
+
+  NvAPI_Status ret       = NVAPI_ERROR;
 
   // We want this error to be silent, because this tool works on AMD GPUs too!
   NVAPI_SILENT ()
@@ -1290,6 +1290,14 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
     if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
       dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
+      nv_hardware = false;
+    }
+
+    if ( NvU32                                     gpu_count = 0;
+         NVAPI_NO_IMPLEMENTATION ==
+           NvAPI_EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count) )
+    {
+      dll_log->LogEx (false, L"no implementation for NvAPI_EnumPhysicalGPUs ");
       nv_hardware = false;
     }
 

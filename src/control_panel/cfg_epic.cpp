@@ -103,9 +103,9 @@ SK::ControlPanel::Epic::DrawFooter (void)
       if (ImGui::BeginPopup ("EpicOverlayPauseMenu"))
       {
         if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
-            &config.steam.reuse_overlay_pause))
+            &config.platform.reuse_overlay_pause))
         {
-          SK::EOS::SetOverlayState (config.steam.reuse_overlay_pause);
+          SK::EOS::SetOverlayState (config.platform.reuse_overlay_pause);
         }
 
         ImGui::EndPopup     ();

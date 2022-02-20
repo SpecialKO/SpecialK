@@ -50,6 +50,8 @@
 
 #include <imgui/font_awesome.h>
 
+#include <filesystem>
+
 LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
 BOOL imgui_staged          = FALSE;
@@ -633,7 +635,7 @@ SK_ImGui_ControlPanelTitle (void)
       if (appname.length ())
         title += L"      -      ";
 
-      if (config.steam.show_playtime)
+      if (config.platform.show_playtime)
       {
         snprintf ( szTitle, 511, "%ws%s     (%01u:%02u:%02u)###SK_MAIN_CPL",
                      title.c_str (), appname.c_str (),
@@ -649,7 +651,7 @@ SK_ImGui_ControlPanelTitle (void)
 
     else
     {
-      if (config.steam.show_playtime)
+      if (config.platform.show_playtime)
       {
         title += L"      -      ";
 
@@ -1387,6 +1389,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         ImGui::SetTooltip ("Setting a monitor as primary gives it control of DWM composition rate and lowers latency when using mismatched refresh rates");
   }
 
+  ImVec2 vHDRPos;
+
   if (rb.displays [rb.active_display].hdr.supported)
   {
     bool hdr_enable =
@@ -1419,8 +1423,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
 
     ImGui::SameLine ();
-    ImGui::TextUnformatted ("\t@ ");
+    ImGui::TextUnformatted (" ");
     ImGui::SameLine ();
+
+    vHDRPos.y =
+      ImGui::GetCursorPosY ();
 
     switch (rb.displays [rb.active_display].hdr.encoding)
     {
@@ -1440,8 +1447,12 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         ImGui::Text ("ICtCp (%lu-bpc)",       rb.displays [rb.active_display].bpc);
         break;
     }
-  }
 
+    ImGui::SameLine        ();
+    vHDRPos.x =
+      ImGui::GetCursorPosX ();
+    ImGui::Spacing         ();
+  }
 
   static bool bDPIAware  =
       IsProcessDPIAware (),
@@ -1589,8 +1600,33 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       Keybinding  (   keybind );
     }
     ImGui::EndGroup   ();
-
     ImGui::EndMenu    ();
+  }
+
+  // Display
+  if (rb.displays [rb.active_display].hdr.supported)
+  {
+    ImGui::SetCursorPos (vHDRPos);
+
+    bool hdr =
+      SK_ImGui_Widgets->hdr_control->isVisible ();
+
+    ImGui::TextUnformatted ("\t");
+    ImGui::SameLine        (    );
+
+    if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
+    {
+      hdr = (! hdr);
+
+      SK_ImGui_Widgets->hdr_control->
+        setVisible (hdr).
+        setActive  (hdr);
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
+    }
   }
 
   ImGui::TreePop ();
@@ -2394,7 +2430,7 @@ SK_ImGui_ControlPanel (void)
         }
       }
 
-      ImGui::MenuItem  ("Display Playtime in Title",     "", &config.steam.show_playtime);
+      ImGui::MenuItem  ("Display Playtime in Title",     "", &config.platform.show_playtime);
       ImGui::MenuItem  ("Display Mac-style Menu at Top", "", &config.imgui.use_mac_style_menu);
       ImGui::Separator ();
 
@@ -2491,9 +2527,13 @@ SK_ImGui_ControlPanel (void)
 
         if (supports_texture_mods)
         {
-          static bool bHasTextureMods =
-            ( INVALID_FILE_ATTRIBUTES !=
-                GetFileAttributesW (SK_D3D11_res_root->c_str ()) );
+          static std::error_code ec = { };
+          static bool
+          bHasTextureMods =
+            std::filesystem::exists (
+              std::filesystem::path (SK_D3D11_res_root.get ())
+            / std::filesystem::path (LR"(inject\textures)"), ec
+          );
 
           if (bHasTextureMods)
           {
@@ -2504,16 +2544,12 @@ SK_ImGui_ControlPanel (void)
           {
             if (ImGui::MenuItem ("Initialize Texture Mods", "", nullptr))
             {
-              wchar_t      wszPath [MAX_PATH + 2] = { };
-              wcsncpy_s   (wszPath, MAX_PATH,
-                 SK_D3D11_res_root->c_str (), _TRUNCATE);
-              PathAppendW (wszPath, LR"(inject\textures\)");
-
-              SK_CreateDirectories (wszPath);
-
+              ec              = { };
               bHasTextureMods =
-                ( INVALID_FILE_ATTRIBUTES !=
-                    GetFileAttributesW (SK_D3D11_res_root->c_str ()) );
+                std::filesystem::create_directories (
+                  std::filesystem::path (SK_D3D11_res_root.get ())
+                / std::filesystem::path (LR"(inject\textures)"), ec
+              );
             }
           }
         }
@@ -2646,14 +2682,14 @@ SK_ImGui_ControlPanel (void)
         if (steam_overlay)
         {
           float steam_nits =
-            config.steam.overlay_hdr_luminance / 1.0_Nits;
+            config.platform.overlay_hdr_luminance / 1.0_Nits;
 
           if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
                                      &steam_nits,
                                       80.0f, rb.display_gamut.maxAverageY,
                                         (const char *)u8"%.1f cd/m²" ) )
           {
-            config.steam.overlay_hdr_luminance =
+            config.platform.overlay_hdr_luminance =
                                     steam_nits * 1.0_Nits;
 
             SK_SaveConfig ();
@@ -2762,15 +2798,19 @@ SK_ImGui_ControlPanel (void)
         bool hdr =
           SK_ImGui_Widgets->hdr_control->isVisible ();
 
-        if (ImGui::Checkbox ("HDR Widget", &hdr))
+        if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
         {
-          SK_ImGui_Widgets->hdr_control->setVisible (hdr).setActive (hdr);
+          hdr = (! hdr);
+
+          SK_ImGui_Widgets->hdr_control->
+            setVisible (hdr).
+            setActive  (hdr);
         }
 
-        ImGui::SameLine ();
-
-        ImGui::TextColored ( ImColor::HSV (0.07f, 0.8f, .9f),
-                               "For advanced users; experimental" );
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
+        }
       };
 
       if ( rb.isHDRCapable ()  &&
@@ -5844,7 +5884,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   // Optionally:  Disable SK's OSD while the Steam overlay is active
   //
-  if ( config.steam.overlay_hides_sk_osd &&
+  if ( config.platform.overlay_hides_sk_osd &&
        SK_GetStoreOverlayState (true) )
   {
     return 0;
@@ -6006,7 +6046,7 @@ SK_ImGui_Toggle (void)
   if (SK_ImGui_Visible)
   {
     // Reuse the game's overlay activation callback (if it has one)
-    if (config.steam.reuse_overlay_pause)
+    if (config.platform.reuse_overlay_pause)
       SK::SteamAPI::SetOverlayState (true);
 
     SK_Console::getInstance ()->visible = false;
@@ -6038,7 +6078,7 @@ SK_ImGui_Toggle (void)
   if (! SK_ImGui_Visible)
   {
     // Reuse the game's overlay activation callback (if it hase one)
-    if (config.steam.reuse_overlay_pause)
+    if (config.platform.reuse_overlay_pause)
       SK::SteamAPI::SetOverlayState (false);
 
     nav_usable = false;

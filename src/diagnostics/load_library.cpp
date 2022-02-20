@@ -205,13 +205,13 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
   static std::vector <const _T*> pinnable_libs =
   {
-    SK_TEXT ("CEGUI"),
-
     // Fix for premature DLL unload issue discussed here:
     //
     //   https://blogs.msdn.microsoft.com/chuckw/2015/10/09/known-issues-xaudio-2-7/
     ///
     SK_TEXT ("XAudio2_7"),
+    SK_TEXT ("XAudio2_8"),
+    SK_TEXT ("XAudio2_9"),
 
     SK_TEXT ("nvapi"),
 
@@ -448,7 +448,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            // NVIDIA's User-Mode D3D Frontend
            StrStrI  (lpFileName, SK_TEXT("nvd3dum.dll")) ||
            StrStrIW (wszModName,        L"nvd3dum.dll")  ) )
-      SK_BootD3D9   ();
+      SK_RunOnce (SK_BootD3D9   ())
 #ifdef _M_IX86
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
@@ -462,49 +462,52 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
-      SK_BootDXGI   ();
+      SK_RunOnce (SK_BootDXGI   ())
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("dxcore.dll")) || // Unity?! WTF are you doing?
                 StrStrIW (wszModName,        L"dxcore.dll") ))
-      SK_BootDXGI   ();
+      SK_RunOnce (SK_BootDXGI   ())
 #ifdef _M_AMD64
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
                 StrStrIW (wszModName,        L"d3d12.dll") ))
-      SK_BootDXGI   ();
+      SK_RunOnce (SK_BootDXGI   ())
     else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
                 StrStrIW (wszModName,        L"vulkan-1.dll")  )
-      SK_BootVulkan ();
+      SK_RunOnce (SK_BootVulkan ())
 #endif
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszModName,        L"OpenGL32.dll") ))
-      SK_BootOpenGL ();
+      SK_RunOnce (SK_BootOpenGL ())
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
-                                 SK_Input_HookXInput1_3 ();
+                     SK_RunOnce (SK_Input_HookXInput1_3 ())
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
-                                 SK_Input_HookXInput1_4 ();
+                     SK_RunOnce (SK_Input_HookXInput1_4 ())
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
-                                 SK_Input_HookXInput9_1_0 ();
+                     SK_RunOnce (SK_Input_HookXInput9_1_0 ())
     else if (   StrStrI (lpFileName, SK_TEXT("dinput8.dll")) )
-      SK_Input_HookDI8 ();
+      SK_RunOnce (SK_Input_HookDI8 ())
     else if (   StrStrI (lpFileName, SK_TEXT("dinput.dll")) )
-      SK_Input_HookDI7 ();
+      SK_RunOnce (SK_Input_HookDI7 ())
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
-      SK_Input_HookHID ();
+      SK_RunOnce (SK_Input_HookHID ())
     else if (   StrStrI ( lpFileName, SK_TEXT("EOSSDK-Win")) ||
                 StrStrIW (wszModName,        L"EOSSDK-Win") )
-      SK::EOS::Init (false);
+      SK_RunOnce (SK::EOS::Init (false))
+    else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
+                StrStrIW (wszModName,        L"libScePad") )
+      SK_RunOnce (SK_Input_HookScePad ());
 
 #if 0
-    if (! config.steam.silent) {
+    if (! config.platform.silent) {
       if ( StrStrIA (lpFileName, szSteamAPIDLL)    ||
            StrStrIA (lpFileName, szSteamNativeDLL) ||
            StrStrIA (lpFileName, szSteamClientDLL) ) {
-        SK_HookSteamAPI ();
+        SK_RunOnce (SK_HookSteamAPI ())
       }
     }
 #endif
@@ -747,6 +750,14 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
+      else if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
+      {
+        dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
+
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+        hMod = nullptr;
+      }
+
       else
         hMod =
           SK_LoadLibraryW (compliant_path);
@@ -928,6 +939,15 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
     SK_FixSlashesW (compliant_path);             } else
                     compliant_path =
                          (wchar_t *)lpFileName;
+  }
+
+  if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
+  {
+    dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
+
+    SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+    return nullptr;
   }
 
   SK_LockDllLoader ();
@@ -1365,6 +1385,26 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   pLogger->LogEx (false, L"\n");
 }
 
+BOOL
+SK_SafeCloseHandle (HANDLE& khHandle)
+{
+  __try {
+    return
+      CloseHandle (
+         khHandle );
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_INVALID_HANDLE ?
+                EXCEPTION_EXECUTE_HANDLER                    :
+                EXCEPTION_CONTINUE_SEARCH )
+  {
+    //khHandle = INVALID_HANDLE_VALUE;
+  }
+
+  return FALSE;
+}
+
+
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {
@@ -1478,7 +1518,7 @@ SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
   };
   SK_SEH_RemoveTranslator (orig_se);
 
-  CloseHandle (pWorkingSet_->proc);
+  SK_SafeCloseHandle (pWorkingSet_->proc);
 
   LeaveCriticalSection (&cs_thread_walk);
 
@@ -1641,7 +1681,7 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
           SK_BootModule (wszModName);
         }
 
-        if (! config.steam.silent)
+        if (! config.platform.silent)
         {
           if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
                StrStrIW (wszModName, wszSteamAPIAltDLL) ||
@@ -1921,7 +1961,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       }
 
       if (pWorkingSet != nullptr && pWorkingSet->proc != nullptr)
-                       CloseHandle (pWorkingSet->proc);
+                SK_SafeCloseHandle (pWorkingSet->proc);
 
       delete
         std::exchange (pWorkingSet, nullptr);

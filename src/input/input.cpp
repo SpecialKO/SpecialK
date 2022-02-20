@@ -1066,31 +1066,6 @@ sk_imgui_cursor_s SK_ImGui_Cursor;
 
 HCURSOR GetGameCursor (void);
 
-#if 0
-bool
-SK_ImGui_IsMouseRelevantEx (void)
-{
-  // SK_ImGui_Visible is the full-blown config UI;
-  //   but we also have floating widgets that may capture mouse
-  //     input.
-  return config.input.mouse.disabled_to_game ||
-         ImGui::IsWindowHovered (
-                    ImGuiHoveredFlags_AnyWindow                      |
-                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem   |
-                    ImGuiHoveredFlags_AllowWhenBlockedByPopup
-                                )                                   ||
-         ImGui::IsAnyItemActive  () || ImGui::IsAnyItemFocused      ||
-         ImGui::IsAnyItemHovered ();
-      // ^^^ These are our floating widgets
-}
-
-bool
-SK_ImGui_IsMouseRelevant (void)
-{
-  return
-    ( SK_ImGui_IsMouseRelevantEx () || SK_ImGui_Active () || SK_ImGui_WantMouseCapture () );
-}
-#else
 bool
 SK_ImGui_IsMouseRelevantEx (void)
 {
@@ -1113,7 +1088,6 @@ SK_ImGui_IsMouseRelevant (void)
 {
   return SK_ImGui_IsMouseRelevantEx ();
 }
-#endif
 
 void
 sk_imgui_cursor_s::update (void)
@@ -3800,6 +3774,7 @@ SK_Input_Init (void)
   SK_Input_PreHookHID    ();
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();
+  SK_Input_PreHookScePad ();
 }
 
 
@@ -4007,6 +3982,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
 
 SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 

@@ -244,84 +244,90 @@ struct sk_config_t
       void* resolved         = nullptr;
     } cached_overlay_callback;
 
-    struct achievements_s {
-      std::wstring
-              sound_file            = L"";
-
-      struct popup_s {
-        float inset                 = 0.005F;
-        int   origin                = 0;
-        int   duration              = 5000UL;
-        bool  show                  =  true;
-        bool  show_title            =  true;
-        bool  animate               =  true;
-      } popup;
-
-      bool    take_screenshot       = false;
-      bool    play_sound            =  true;
-      bool    pull_friend_stats     =  true;
-      bool    pull_global_stats     =  true;
-    } achievements;
-
     struct cloud_s {
       std::set <std::string> blacklist;
     } cloud;
 
     std::wstring
-              dll_path              = L"";
+                dll_path              = L"";
 
-    int       appid                 = 0;
-    int       notify_corner         = 4;   // 0=Top-Left,
-                                           // 1=Top-Right,
-                                           // 2=Bottom-Left,
-                                           // 3=Bottom-Right,
-                                           // 4=Don't Care
-    int       online_status         = -1;  // Force a certain online status at all times
-    int       init_delay            = 0UL; // Disable to prevent crashing in many games
-    int       callback_throttle     = -1;
-
-    float     overlay_hdr_luminance = 4.375F; // 350 nits
-                                              //   that do not use it
-
-    bool      silent                = false;
-    bool      preload_client        = false;
-    bool      preload_overlay       = false;  // For input processing, this is important
-    bool      show_playtime         =  true;  // In the control panel title
-    bool      force_load_steamapi   = false;  // Load steam_api{64}.dll even in games
-    bool      auto_pump_callbacks   =  true;
-    bool      block_stat_callback   = false;
-    bool      filter_stat_callback  = false;
-    bool      spoof_BLoggedOn       = false;
-    bool      overlay_hides_sk_osd  =  true;
-    bool      reuse_overlay_pause   =  true;  // Use Steam's overlay pause mode for our own
-                                              //   control panel
-    bool      auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
+    int         appid                 = 0;
+    int         online_status         = -1;  // Force a certain online status at all times
+    int         init_delay            = 0UL; // Disable to prevent crashing in many games
+    int         callback_throttle     = -1;
+    bool        preload_client        = false;
+    bool        preload_overlay       = false;  // For input processing, this is important
+    bool        force_load_steamapi   = false;  // Load steam_api{64}.dll even in games
+    bool        auto_pump_callbacks   =  true;
+    bool        block_stat_callback   = false;
+    bool        filter_stat_callback  = false;
+    bool        spoof_BLoggedOn       = false;
+    bool        auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
 
     struct screenshot_handler_s {
-      bool    enable_hook           =  true;
+      bool      enable_hook           =  true;
     } screenshots;
   } steam;
 
+  struct platform_s {
+    struct achievements_s {
+      std::wstring
+                sound_file            = L"";
+
+      struct popup_s {
+        float   inset                 = 0.005F;
+        int     origin                = 0;
+        int     duration              = 5000UL;
+        bool    show                  =  true;
+        bool    show_title            =  true;
+        bool    animate               =  true;
+      } popup;
+
+      bool      take_screenshot       = false;
+      bool      play_sound            =  true;
+      bool      pull_friend_stats     =  true;
+      bool      pull_global_stats     =  true; // N/A for EOS
+    } achievements;
+
+    float       overlay_hdr_luminance = 4.37F; // 350 nits
+                                               //   that do not use it
+
+    int         notify_corner         = 4;     // 0=Top-Left,
+                                               // 1=Top-Right,
+                                               // 2=Bottom-Left,
+                                               // 3=Bottom-Right,
+                                               // 4=Don't Care
+    bool        show_playtime         =  true; // In the control panel title
+    bool        overlay_hides_sk_osd  =  true;
+    bool        reuse_overlay_pause   =  true; // Use Steam's overlay pause mode for our own
+                                               //   control panel
+    bool        silent                = false;
+  } platform;
+
+  struct epic_s {
+    std::string app_name              = "";
+  };
+
   struct uplay_s {
-    float overlay_luminance     = 4.375F; // 350 nits
-    bool  present               = false;  // Is the overlay detected?
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
   } uplay;
 
   struct discord_s {
-    float overlay_luminance     = 4.375F; // 350 nits
-    bool  present               = false;  // Is the overlay detected?
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
   } discord;
 
   struct rtss_s {
-    float overlay_luminance     = 4.375F; // 350 nits
-    bool  present               = false;  // Is the overlay detected?
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
   } rtss;
 
   struct screenshots_s {
-    bool    png_compress          =  true;
-    bool    show_osd_by_default   =  true;
-    bool    play_sound            =  true;
-    bool    copy_to_clipboard     =  true;
+    bool        png_compress          =  true;
+    bool        show_osd_by_default   =  true;
+    bool        play_sound            =  true;
+    bool        copy_to_clipboard     =  true;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {
@@ -416,14 +422,14 @@ struct sk_config_t
         SK_ConfigSerializedKeybind
           tearline_move_up_keybind = {
             SK_Keybind {
-              "Move Tear Location Up 1 Scanline", L"<Not Bound>",
+              "Move Tear Location Up 5 Scanlines", L"<Not Bound>",
                false, false, false, 0,
             }, L"MoveTearlineUp"
           };
         SK_ConfigSerializedKeybind
           tearline_move_down_keybind = {
             SK_Keybind {
-              "Move Tear Location Down 1 Scanline", L"<Not Bound>",
+              "Move Tear Location Down 5 Scanlines", L"<Not Bound>",
                false, false, false, 0,
             }, L"MoveTearlineDown"
           };
@@ -641,51 +647,59 @@ struct sk_config_t
 
     struct ui_s {
       union {
-        bool  capture           = false;
+        bool  capture             = false;
         bool  capture_mouse;
       };
-      bool    capture_hidden    = false; // Capture mouse if HW cursor is not visible
-      bool    capture_keyboard  = false;
-      bool    capture_gamepad   = false;
-      bool    use_hw_cursor     =  true;
-      bool    use_raw_input     =  true;
+      bool    capture_hidden      = false; // Capture mouse if HW cursor is not visible
+      bool    capture_keyboard    = false;
+      bool    capture_gamepad     = false;
+      bool    use_hw_cursor       =  true;
+      bool    use_raw_input       =  true;
     } ui;
 
     struct gamepad_s {
-      int     predefined_layout = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
-      bool    disabled_to_game  = false;
-      bool    disable_ps4_hid   = false;
-      bool    rehook_xinput     = false;
-      bool    haptic_ui         = true;
-      bool    disable_rumble    = false;
-      bool    hook_dinput8      = true;
-      bool    hook_dinput7      = true;
-      bool    hook_hid          = true;
-      bool    hook_xinput       = true; // Kind of important ;)
-      bool    native_ps4        = false;
+      int     predefined_layout   = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
+      bool    disabled_to_game    = false;
+      bool    disable_ps4_hid     = false;
+      bool    rehook_xinput       = false;
+      bool    haptic_ui           = true;
+      bool    disable_rumble      = false;
+      bool    hook_dinput8        = true;
+      bool    hook_dinput7        = true;
+      bool    hook_hid            = true;
+      bool    hook_xinput         = true; // Kind of important ;)
+      bool    hook_scepad         = true;
+      bool    native_ps4          = false;
 
       struct xinput_s {
         unsigned
-        int   ui_slot           =    0;
-        bool  placehold  [4]    = { false };
+        int   ui_slot             =    0;
+        bool  placehold  [4]      = { false };
         unsigned
-        int   assignment [4]    = { 0, 1, 2, 3 };
-        bool  hook_setstate     =  true; // Some software causes feedback loops
-        bool  auto_slot_assign  = false;
+        int   assignment [4]      = { 0, 1, 2, 3 };
+        bool  hook_setstate       =  true; // Some software causes feedback loops
+        bool  auto_slot_assign    = false;
       } xinput;
+
+      struct scepad_s {
+        bool disable_touch        = false;
+        bool share_clicks_touch   =  true;
+        bool mute_applies_to_game =  true;
+        bool enhanced_ps_button   =  true;
+      } scepad;
 
       struct steam_s
       {
         unsigned
-        int   ui_slot           =    0;
+        int   ui_slot             =    0;
       } steam;
     } gamepad;
 
     struct keyboard_s {
-      bool    block_windows_key = false;
-      bool    catch_alt_f4      = true;
-      bool    override_alt_f4   = false; // For games that have prompts (i.e. DQ XI / Yakuza)
-      bool    disabled_to_game  = false;
+      bool    block_windows_key   = false;
+      bool    catch_alt_f4        = true;
+      bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
+      bool    disabled_to_game    = false;
     } keyboard;
 
     struct mouse_s {
@@ -1117,6 +1131,7 @@ enum class SK_GAME_ID
   ForzaHorizon5,                // ForzaHorizon5.exe
   HaloInfinite,                 // HaloInfinite.exe
   FinalFantasy7Remake,          // ff7remake*.exe
+  DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   UNKNOWN_GAME               = 0xffff
 };
 

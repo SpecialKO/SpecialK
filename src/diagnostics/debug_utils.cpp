@@ -313,13 +313,18 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
 
 void
 WINAPI
-SK_SetLastError (DWORD dwErrCode)
+SK_SetLastError (DWORD dwErrCode) noexcept
 {
-  if (SetLastError_Original != nullptr)
-      SetLastError_Original (dwErrCode);
+  __try {
+    if (SetLastError_Original != nullptr)
+        SetLastError_Original (dwErrCode);
 
-  else
-    SetLastError (dwErrCode);
+    else
+      SetLastError (dwErrCode);
+  }
+
+  __finally {
+  }
 }
 
 void
@@ -1980,6 +1985,10 @@ ZwCreateThreadEx_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  char    thread_name [512] = { };
+  char    szSymbol    [256] = { };
+  ULONG   ulLen             =  0 ;
+
   HMODULE hModStart =
     SK_GetModuleFromAddr (StartRoutine);
 
@@ -2023,27 +2032,31 @@ ZwCreateThreadEx_Detour (
 
     if (cs_dbghelp != nullptr)
     {
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+      //if (cs_dbghelp->try_lock ())
+      cs_dbghelp->lock ();
+      {
+        SK_SymLoadModule ( GetCurrentProcess (),
+                           nullptr, pszShortName,
+                           nullptr, BaseAddr,
+                           mod_info.SizeOfImage );
 
-      SK_SymLoadModule ( GetCurrentProcess (),
-                         nullptr, pszShortName,
-                         nullptr, BaseAddr,
-                         mod_info.SizeOfImage );
+        dbghelp_callers.insert (hModStart);
 
-      dbghelp_callers.insert (hModStart);
+        ulLen =
+          SK_GetSymbolNameFromModuleAddr (
+            hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+              szSymbol, ulLen );
+
+        cs_dbghelp->unlock ();
+      }
     }
   }
 
-
-  char    thread_name [512] = { };
-  char    szSymbol    [256] = { };
-  ULONG   ulLen             = 191;
-
-  ulLen =
-    SK_GetSymbolNameFromModuleAddr (
-      hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-        szSymbol, ulLen
-  );
+  if (ulLen == 0)
+      ulLen =
+        SK_GetSymbolNameFromModuleAddr (
+          hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+            szSymbol, ulLen );
 
   if (ulLen > 0)
   {
@@ -2062,10 +2075,6 @@ ZwCreateThreadEx_Detour (
                 ).c_str ()
     );
   }
-
-
-
-
 
   BOOL Suspicious = FALSE;
 
@@ -2161,6 +2170,10 @@ NtCreateThreadEx_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  char    thread_name [512] = { };
+  char    szSymbol    [256] = { };
+  ULONG   ulLen             =  0 ;
+
   HMODULE hModStart =
     SK_GetModuleFromAddr (StartRoutine);
 
@@ -2204,27 +2217,33 @@ NtCreateThreadEx_Detour (
 
     if (cs_dbghelp != nullptr)
     {
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+      cs_dbghelp->lock ();
+      //if (cs_dbghelp->try_lock ())
+      {
+        SK_SymLoadModule ( GetCurrentProcess (),
+                           nullptr, pszShortName,
+                           nullptr, BaseAddr,
+                           mod_info.SizeOfImage );
 
-      SK_SymLoadModule ( GetCurrentProcess (),
-                         nullptr, pszShortName,
-                         nullptr, BaseAddr,
-                         mod_info.SizeOfImage );
+        ulLen =
+          SK_GetSymbolNameFromModuleAddr (
+            hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+              szSymbol, ulLen
+        );
 
-      dbghelp_callers.insert (hModStart);
+        dbghelp_callers.insert (hModStart);
+
+        cs_dbghelp->unlock ();
+      }
     }
   }
 
-
-  char    thread_name [512] = { };
-  char    szSymbol    [256] = { };
-  ULONG   ulLen             = 191;
-
-  ulLen =
-    SK_GetSymbolNameFromModuleAddr (
-      hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-        szSymbol, ulLen
-  );
+  if (ulLen == 0)
+      ulLen =
+        SK_GetSymbolNameFromModuleAddr (
+          hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+            szSymbol, ulLen
+      );
 
   if (ulLen > 0)
   {
@@ -3809,20 +3828,26 @@ BOOL
 WINAPI
 SK_IsDebuggerPresent (void) noexcept
 {
-  if (IsDebuggerPresent_Original == nullptr)
-  {
-    if (ReadAcquire (&__SK_DLL_Attached))
-      SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
+  __try {
+    if (IsDebuggerPresent_Original == nullptr)
+    {
+      if (ReadAcquire (&__SK_DLL_Attached))
+        SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
+    }
+
+    if (bRealDebug)
+      return TRUE;
+
+    if (     IsDebuggerPresent_Original != nullptr )
+      return IsDebuggerPresent_Original ();
+
+    return
+      IsDebuggerPresent ();
   }
 
-  if (bRealDebug)
-    return TRUE;
-
-  if (     IsDebuggerPresent_Original != nullptr )
-    return IsDebuggerPresent_Original ();
-
-  return
-    IsDebuggerPresent ();
+  __finally {
+    return FALSE;
+  }
 }
 
 

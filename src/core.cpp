@@ -843,7 +843,7 @@ void BasicInit (void)
 
   // Steam Overlay and SteamAPI Manipulation
   //
-  if (! config.steam.silent)
+  if (! config.platform.silent)
   {
     config.steam.force_load_steamapi = false;
 
@@ -2033,13 +2033,13 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
 
         if (hWndParent != 0 && IsWindow (hWndParent))
         {
-          SK_Thread_Create ([](LPVOID user)->DWORD
+          SK_Thread_CreateEx ([](LPVOID user)->DWORD
           {
             HWND hWnd = (HWND)user;
 
-            SetForegroundWindow (hWnd);
-            SetFocus            (hWnd);
-            SetActiveWindow     (hWnd);
+          //SetForegroundWindow (hWnd);
+          //SetFocus            (hWnd);
+          //SetActiveWindow     (hWnd);
             ShowWindow          (hWnd, SW_HIDE);
 
             MSG                 msg = { };
@@ -2058,7 +2058,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
             SK_Thread_CloseSelf ();
 
             return 0;
-          }, (LPVOID)hWnd);
+          }, L"[SK] Dummy Window Proc", (LPVOID)hWnd);
         }
       }
     }
@@ -2221,7 +2221,8 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.window.background_mute)
     SK_SetGameMute (false);
 
-  SK_ClipCursor (nullptr);
+  if (config.window.confine_cursor)
+    SK_ClipCursor (nullptr);
 
 
   // These games do not handle resolution correctly
@@ -2246,33 +2247,39 @@ SK_ShutdownCore (const wchar_t* backend)
   SK_AutoClose_LogEx (game_debug, game);
   SK_AutoClose_LogEx (dll_log,    dll);
 
-  extern HWND SK_Inject_GetFocusWindow (void);
-  extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-  if (SK_Inject_GetFocusWindow (       ) == game_window.hWnd)
-      SK_Inject_SetFocusWindow (nullptr);
-
-  if (config.system.return_to_skif)
+  if (SK_GetFramesDrawn () > 0)
   {
-    HWND hWndExisting =
-      FindWindow (L"SK_Injection_Frontend", nullptr);
+    // If an override was applied at runtime, reset it
+    SK_Steam_ForceInputAppId (0);
 
-    if (hWndExisting != nullptr)
+    extern HWND SK_Inject_GetFocusWindow (void);
+    extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+    if (SK_Inject_GetFocusWindow (       ) == game_window.hWnd)
+        SK_Inject_SetFocusWindow (nullptr);
+
+    if (config.system.return_to_skif)
     {
-      DWORD                                    dwPid = 0x0;
-      GetWindowThreadProcessId (hWndExisting, &dwPid);
+      HWND hWndExisting =
+        FindWindow (L"SK_Injection_Frontend", nullptr);
 
-      if ( dwPid != 0x0 &&
-           dwPid != GetCurrentProcessId () )
+      if (hWndExisting != nullptr && IsWindow (hWndExisting))
       {
+        DWORD                                    dwPid = 0x0;
+        GetWindowThreadProcessId (hWndExisting, &dwPid);
+
+        if ( dwPid != 0x0 &&
+             dwPid != GetCurrentProcessId () )
+        {
 #define WM_SKIF_REPOSITION WM_USER + 0x4096
 
-        PostMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
-      //SetForegroundWindow      (hWndExisting);
+          PostMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
+          SetForegroundWindow      (hWndExisting);
 
-        if (SK_Inject_GetFocusWindow (            ) == nullptr)
-            SK_Inject_SetFocusWindow (hWndExisting);
+          if (SK_Inject_GetFocusWindow (            ) == nullptr)
+              SK_Inject_SetFocusWindow (hWndExisting);
 
-        ShowWindow                   (hWndExisting, SW_NORMAL);
+          ShowWindow                   (hWndExisting, SW_NORMAL);
+        }
       }
     }
   }
@@ -2363,7 +2370,7 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_WMI_Shutdown            ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
-    if (! config.steam.silent)
+    if (! config.platform.silent)
     {
       dll_log->LogEx           (true, L"[ SpecialK ] Shutting down SteamAPI integration...        ");
       dwTime = SK_timeGetTime  ();
@@ -2765,7 +2772,17 @@ SK_Input_PollKeyboard (void)
   {
     if (! toggle_time)
     {
-      SK_Steam_UnlockAchievement (0);
+      //
+      // HACK: Test Achievement Unlock (TODO: REMOVE)
+      //
+      static bool
+          bSteam = (SK::SteamAPI::AppID () != 0);
+      if (bSteam)
+        SK_Steam_UnlockAchievement (0);
+
+      else if (SK::EOS::GetTicksRetired ( ) > 0)
+               SK_EOS_UnlockAchievement (0);
+
 
       config.time.show =
         (! config.time.show);

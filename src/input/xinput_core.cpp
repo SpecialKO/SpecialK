@@ -440,6 +440,9 @@ XInputGetState1_4_Detour (
   //   whatever the game is actively using -- helps with X360Ce
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
+  if (dwUserIndex == config.input.gamepad.xinput.ui_slot && ReadAcquire (&SK_ScePad_Backend->reads [2]) > 0)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   return dwRet;
 }
 
