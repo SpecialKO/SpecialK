@@ -285,3 +285,5 @@ paket-files/
 /src/.clang-tidy.cpt_backup
 /SpecialK-kitandkabootle.ruleset
 /SpecialK-boundscheck.ruleset
+*.cpt_backup
+/resource/RCa34336

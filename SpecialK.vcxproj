@@ -102,7 +102,7 @@
     <MultiProcFXC>true</MultiProcFXC>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Special K\</OutDir>
+    <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
     <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <TargetName>SpecialK32</TargetName>
@@ -117,7 +117,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>SpecialK64</TargetName>
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Special K\</OutDir>
+    <OutDir>C:\Users\amcol\Documents\My Mods\SpecialK\</OutDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\ucrt</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
     <CodeAnalysisRuleSet>SpecialK-kitandkabootle.ruleset</CodeAnalysisRuleSet>
@@ -185,12 +185,12 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AssemblyDebug>true</AssemblyDebug>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;</AdditionalDependencies>
       <BaseAddress>
       </BaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -277,7 +277,7 @@
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <OutputFile>C:\Users\amcol\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <EntryPointSymbol>
@@ -286,7 +286,7 @@
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <AssemblyDebug>true</AssemblyDebug>
       <LargeAddressAware>true</LargeAddressAware>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;</AdditionalDependencies>
       <BaseAddress>
       </BaseAddress>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
@@ -376,14 +376,14 @@
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>d3dx9_43.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
       </EntryPointSymbol>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;userenv.lib;comctl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;userenv.lib;comctl32.lib</AdditionalDependencies>
       <ImportLibrary />
       <AssemblyDebug>true</AssemblyDebug>
       <SetChecksum>true</SetChecksum>
@@ -481,12 +481,12 @@
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>CEGUIBase-0.dll;CEGUIDirect3D11Renderer-0.dll;CEGUIDirect3D9Renderer-0.dll;CEGUIOpenGLRenderer-0.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>d3dx9_43.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;d3dcompiler.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;userenv.lib;comctl32.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;psapi.lib;legacy_stdio_definitions.lib;mmdevapi.lib;%(AdditionalDependencies);imm32.lib;wininet.lib;tdh.lib;userenv.lib;comctl32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
       <ImportLibrary />
@@ -546,10 +546,12 @@
     <Text Include="resource\licenses\7zip.txt" />
     <Text Include="resource\licenses\ADL.txt" />
     <Text Include="resource\licenses\DirectXTex.txt" />
+    <Text Include="resource\licenses\fontawesome.txt" />
     <Text Include="resource\licenses\FreeType2.txt" />
     <Text Include="resource\licenses\GLM_0_9_4_5.txt" />
     <Text Include="resource\licenses\ImGui.txt" />
     <Text Include="resource\licenses\MinHook.txt" />
+    <Text Include="resource\licenses\nlohmann-json.txt" />
     <Text Include="resource\licenses\nvapi.txt" />
     <Text Include="resource\licenses\OpenLibSys.txt" />
     <Text Include="resource\licenses\Overview.txt" />
@@ -715,354 +717,7 @@
     <ClInclude Include="depends\include\boost\visit_each.hpp" />
     <ClInclude Include="depends\include\boost\wave.hpp" />
     <ClInclude Include="depends\include\boost\weak_ptr.hpp" />
-    <ClInclude Include="depends\include\CEGUI\Affector.h" />
-    <ClInclude Include="depends\include\CEGUI\Animation.h" />
-    <ClInclude Include="depends\include\CEGUI\AnimationInstance.h" />
-    <ClInclude Include="depends\include\CEGUI\AnimationManager.h" />
-    <ClInclude Include="depends\include\CEGUI\Animation_xmlHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\Base.h" />
-    <ClInclude Include="depends\include\CEGUI\BasicImage.h" />
-    <ClInclude Include="depends\include\CEGUI\BasicRenderedStringParser.h" />
-    <ClInclude Include="depends\include\CEGUI\BidiVisualMapping.h" />
-    <ClInclude Include="depends\include\CEGUI\BoundSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\CEGUI.h" />
-    <ClInclude Include="depends\include\CEGUI\CentredRenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\ChainedXMLHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\Clipboard.h" />
-    <ClInclude Include="depends\include\CEGUI\Colour.h" />
-    <ClInclude Include="depends\include\CEGUI\ColourRect.h" />
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\ColourPicker.h" />
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Controls.h" />
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Conversions.h" />
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Types.h" />
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\Module.h" />
-    <ClInclude Include="depends\include\CEGUI\CompositeResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\Config_xmlHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\CoordConverter.h" />
-    <ClInclude Include="depends\include\CEGUI\DataContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\DefaultLogger.h" />
-    <ClInclude Include="depends\include\CEGUI\DefaultRenderedStringParser.h" />
-    <ClInclude Include="depends\include\CEGUI\DefaultResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\DynamicModule.h" />
-    <ClInclude Include="depends\include\CEGUI\Element.h" />
-    <ClInclude Include="depends\include\CEGUI\Event.h" />
-    <ClInclude Include="depends\include\CEGUI\EventArgs.h" />
-    <ClInclude Include="depends\include\CEGUI\EventSet.h" />
-    <ClInclude Include="depends\include\CEGUI\Exceptions.h" />
-    <ClInclude Include="depends\include\CEGUI\FactoryModule.h" />
-    <ClInclude Include="depends\include\CEGUI\FactoryRegisterer.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\ComponentBase.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\Dimensions.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\Enums.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\EventAction.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\EventLinkDefinition.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\FalagardPropertyBase.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\FormattingSetting.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\FrameComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\ImageryComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\ImagerySection.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\LayerSpecification.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\NamedArea.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\NamedDefinitionCollator.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinition.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinitionBase.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyInitialiser.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyLinkDefinition.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\SectionSpecification.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\StateImagery.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\TextComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookFeel.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookManager.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\XMLEnumHelper.h" />
-    <ClInclude Include="depends\include\CEGUI\falagard\XMLHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\Font.h" />
-    <ClInclude Include="depends\include\CEGUI\FontGlyph.h" />
-    <ClInclude Include="depends\include\CEGUI\FontManager.h" />
-    <ClInclude Include="depends\include\CEGUI\Font_xmlHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\FormattedRenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\ForwardRefs.h" />
-    <ClInclude Include="depends\include\CEGUI\FreeFunctionSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\FreeTypeFont.h" />
-    <ClInclude Include="depends\include\CEGUI\FribidiVisualMapping.h" />
-    <ClInclude Include="depends\include\CEGUI\FunctorCopySlot.h" />
-    <ClInclude Include="depends\include\CEGUI\FunctorPointerSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\FunctorReferenceBinder.h" />
-    <ClInclude Include="depends\include\CEGUI\FunctorReferenceSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\GlobalEventSet.h" />
-    <ClInclude Include="depends\include\CEGUI\GUIContext.h" />
-    <ClInclude Include="depends\include\CEGUI\GUILayout_xmlHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\IconvStringTranscoder.h" />
-    <ClInclude Include="depends\include\CEGUI\Image.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodecModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageFactory.h" />
-    <ClInclude Include="depends\include\CEGUI\ImageManager.h" />
-    <ClInclude Include="depends\include\CEGUI\InjectedInputReceiver.h" />
-    <ClInclude Include="depends\include\CEGUI\InputEvent.h" />
     <ClInclude Include="depends\include\CEGUI\Interpolator.h" />
-    <ClInclude Include="depends\include\CEGUI\IteratorBase.h" />
-    <ClInclude Include="depends\include\CEGUI\JustifiedRenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\KeyFrame.h" />
-    <ClInclude Include="depends\include\CEGUI\LeftAlignedRenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\LinkedEvent.h" />
-    <ClInclude Include="depends\include\CEGUI\Logger.h" />
-    <ClInclude Include="depends\include\CEGUI\MemberFunctionSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\MemoryAllocatedObject.h" />
-    <ClInclude Include="depends\include\CEGUI\MemoryAllocation.h" />
-    <ClInclude Include="depends\include\CEGUI\MemoryOgreAllocator.h" />
-    <ClInclude Include="depends\include\CEGUI\MemoryStdAllocator.h" />
-    <ClInclude Include="depends\include\CEGUI\MemorySTLWrapper.h" />
-    <ClInclude Include="depends\include\CEGUI\MinibidiVisualMapping.h" />
-    <ClInclude Include="depends\include\CEGUI\MinizipResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\MouseCursor.h" />
-    <ClInclude Include="depends\include\CEGUI\NamedElement.h" />
-    <ClInclude Include="depends\include\CEGUI\NamedXMLResourceManager.h" />
-    <ClInclude Include="depends\include\CEGUI\PCRERegexMatcher.h" />
-    <ClInclude Include="depends\include\CEGUI\PixmapFont.h" />
-    <ClInclude Include="depends\include\CEGUI\Property.h" />
-    <ClInclude Include="depends\include\CEGUI\PropertyHelper.h" />
-    <ClInclude Include="depends\include\CEGUI\PropertySet.h" />
-    <ClInclude Include="depends\include\CEGUI\Quaternion.h" />
-    <ClInclude Include="depends\include\CEGUI\Rect.h" />
-    <ClInclude Include="depends\include\CEGUI\RefCounted.h" />
-    <ClInclude Include="depends\include\CEGUI\RegexMatcher.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringImageComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringParser.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringTextComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringWidgetComponent.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderedStringWordWrapper.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderEffect.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderEffectFactory.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderEffectManager.h" />
-    <ClInclude Include="depends\include\CEGUI\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\ViewportTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\ViewportTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\ViewportTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\EventPusher.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\MemoryFile.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RendererDef.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\WindowTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ImageCodec.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\WindowTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\FBOTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GLES.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\ViewportTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ApplePBTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GeometryBufferBase.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3FBOTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3GeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3Renderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLFBOTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLGeometryBuffer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GlmPimpl.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLRenderer.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLXPBTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RendererBase.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Shader.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ShaderManager.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderFrag.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderVert.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StateChangeWrapper.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ViewportTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\WGLPBTextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderingContext.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderingSurface.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderingWindow.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderQueue.h" />
-    <ClInclude Include="depends\include\CEGUI\RenderTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\ResourceProvider.h" />
-    <ClInclude Include="depends\include\CEGUI\RightAlignedRenderedString.h" />
-    <ClInclude Include="depends\include\CEGUI\Scheme.h" />
-    <ClInclude Include="depends\include\CEGUI\SchemeManager.h" />
-    <ClInclude Include="depends\include\CEGUI\Scheme_xmlHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\ScriptModule.h" />
-    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\Functor.h" />
-    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\ScriptModule.h" />
-    <ClInclude Include="depends\include\CEGUI\SimpleTimer.h" />
-    <ClInclude Include="depends\include\CEGUI\Singleton.h" />
-    <ClInclude Include="depends\include\CEGUI\Size.h" />
-    <ClInclude Include="depends\include\CEGUI\SlotFunctorBase.h" />
-    <ClInclude Include="depends\include\CEGUI\String.h" />
-    <ClInclude Include="depends\include\CEGUI\StringTranscoder.h" />
-    <ClInclude Include="depends\include\CEGUI\SubscriberSlot.h" />
-    <ClInclude Include="depends\include\CEGUI\System.h" />
-    <ClInclude Include="depends\include\CEGUI\SystemKeys.h" />
-    <ClInclude Include="depends\include\CEGUI\Texture.h" />
-    <ClInclude Include="depends\include\CEGUI\TextureTarget.h" />
-    <ClInclude Include="depends\include\CEGUI\TextUtils.h" />
-    <ClInclude Include="depends\include\CEGUI\TplInterpolators.h" />
-    <ClInclude Include="depends\include\CEGUI\TplProperty.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWindowFactory.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWindowFactoryRegisterer.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWindowProperty.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWindowRendererFactory.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWindowRendererProperty.h" />
-    <ClInclude Include="depends\include\CEGUI\TplWRFactoryRegisterer.h" />
-    <ClInclude Include="depends\include\CEGUI\TypedProperty.h" />
-    <ClInclude Include="depends\include\CEGUI\UDim.h" />
-    <ClInclude Include="depends\include\CEGUI\Vector.h" />
-    <ClInclude Include="depends\include\CEGUI\Vertex.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\All.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ButtonBase.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ClippedContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Combobox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ComboDropList.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\DefaultWindow.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\DragContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Editbox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\FrameWindow.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\GridLayoutContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\GroupBox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\HorizontalLayoutContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemEntry.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemListBase.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemListbox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\LayoutCell.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\LayoutContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Listbox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ListboxItem.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ListboxTextItem.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ListHeader.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ListHeaderSegment.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Menubar.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\MenuBase.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\MenuItem.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\MultiColumnList.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\MultiLineEditbox.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\PopupMenu.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ProgressBar.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\PushButton.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\RadioButton.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrollablePane.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Scrollbar.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledItemListBase.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\SequentialLayoutContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Slider.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Spinner.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\TabButton.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\TabControl.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Thumb.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Titlebar.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\ToggleButton.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Tooltip.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\Tree.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\TreeItem.h" />
-    <ClInclude Include="depends\include\CEGUI\widgets\VerticalLayoutContainer.h" />
-    <ClInclude Include="depends\include\CEGUI\Win32StringTranscoder.h" />
-    <ClInclude Include="depends\include\CEGUI\Window.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowFactory.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowFactoryManager.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowManager.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRenderer.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererManager.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Button.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Default.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Editbox.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\FrameWindow.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemEntry.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemListbox.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Listbox.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeader.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeaderSegment.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Menubar.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MenuItem.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Module.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiColumnList.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiLineEditbox.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\PopupMenu.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ProgressBar.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ScrollablePane.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Scrollbar.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Slider.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Static.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticImage.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticText.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabButton.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabControl.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Titlebar.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ToggleButton.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tooltip.h" />
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tree.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLAttributes.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLHandler.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParserModule.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParserModule.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParserModule.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParserModule.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParser.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserModule.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserProperties.h" />
-    <ClInclude Include="depends\include\CEGUI\XMLSerializer.h" />
     <ClInclude Include="depends\include\DirectXTex\BC.h" />
     <ClInclude Include="depends\include\DirectXTex\BCDirectCompute.h" />
     <ClInclude Include="depends\include\DirectXTex\d3dx12.h" />
@@ -1515,8 +1170,6 @@
     <ClInclude Include="depends\include\glm\vec4.hpp" />
     <ClInclude Include="depends\include\glm\vector_relational.hpp" />
     <ClInclude Include="depends\include\glm\virtrev\xstream.hpp" />
-    <ClInclude Include="depends\include\GL\glew.h" />
-    <ClInclude Include="depends\include\GL\glfw.h" />
     <ClInclude Include="depends\include\GL\glxew.h" />
     <ClInclude Include="depends\include\GL\wglew.h" />
     <ClInclude Include="depends\include\lzma\7z.h" />
@@ -1526,7 +1179,6 @@
     <ClInclude Include="depends\include\lzma\7zFile.h" />
     <ClInclude Include="depends\include\lzma\7zTypes.h" />
     <ClInclude Include="depends\include\lzma\7zVersion.h" />
-    <ClInclude Include="depends\include\lzma\Aes.h" />
     <ClInclude Include="depends\include\lzma\Alloc.h" />
     <ClInclude Include="depends\include\lzma\Bcj2.h" />
     <ClInclude Include="depends\include\lzma\Bra.h" />
@@ -1622,6 +1274,7 @@
     <ClInclude Include="include\imgui\fa_regular_400.ttf.h" />
     <ClInclude Include="include\imgui\fa_solid_900.ttf.h" />
     <ClInclude Include="include\imgui\font_awesome.h" />
+    <ClInclude Include="include\json\json.hpp" />
     <ClInclude Include="include\shaders\imgui_d3d11_ps.h" />
     <ClInclude Include="include\shaders\imgui_d3d11_vs.h" />
     <ClInclude Include="include\shaders\sRGB_codec_ps.h" />
@@ -1657,6 +1310,7 @@
     <ClInclude Include="include\SpecialK\hash.h" />
     <ClInclude Include="include\SpecialK\injection\blacklist.h" />
     <ClInclude Include="include\SpecialK\input\dinput7_backend.h" />
+    <ClInclude Include="include\SpecialK\input\sce_pad.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
     <ClInclude Include="include\SpecialK\plugin\nier.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h" />
@@ -1766,6 +1420,7 @@
     </ClCompile>
     <ClCompile Include="src\com_util.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
     </ClCompile>
     <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
@@ -1830,6 +1485,7 @@
     <ClCompile Include="src\input\input.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\input\sce_pad.cpp" />
     <ClCompile Include="src\lazy_global.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -2513,78 +2169,6 @@
     <None Include="depends\include\glm\gtx\vector_query.inl" />
     <None Include="depends\include\glm\gtx\verbose_operator.inl" />
     <None Include="depends\include\glm\gtx\wrap.inl" />
-    <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </None>
     <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -2630,20 +2214,6 @@
     <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
-    <None Include="resource\packages\CEGUI32.7z">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="resource\packages\CEGUI64.7z">
-      <FileType>Document</FileType>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="resource\packages\D3DCompiler_47_32.7z" />
-    <None Include="resource\packages\D3DCompiler_47_64.7z" />
-    <None Include="resource\packages\D3DX11_43_32.7z" />
-    <None Include="resource\packages\D3DX11_43_64.7z" />
     <None Include="resource\packages\D3DX9_43_32.7z" />
     <None Include="resource\packages\D3DX9_43_64.7z" />
     <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
@@ -2657,6 +2227,11 @@
     <None Include="resource\packages\tobii_stream_engine_sk64.7z">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+    </None>
+    <None Include="resource\packages\libScePad_64.7z">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <FileType>Document</FileType>
     </None>
     <None Include="resource\packages\WinRing0_32.7z">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -2689,78 +2264,6 @@
     <Media Include="resource\xbox.wav" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIBase-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </Library>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

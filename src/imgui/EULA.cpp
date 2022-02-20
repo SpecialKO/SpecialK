@@ -200,11 +200,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ADL).c_str ());
     }
 
-    //if (config.cegui.enable && ImGui::CollapsingHeader ("CEGUI (D3D9/11/GL)"))
-    //{
-    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_CEGUI).c_str ());
-    //}
-
     if ( ((int)SK_GetCurrentRenderBackend ().api &  (int)SK_RenderAPI::D3D11 ||
                SK_GetCurrentRenderBackend ().api ==      SK_RenderAPI::D3D12 ) &&
          ImGui::CollapsingHeader ("DirectXTex (D3D11/12)")
@@ -219,14 +214,12 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     }
 
 
-    //if ( config.cegui.enable &&  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
+    //if ( SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL &&
     //       ImGui::CollapsingHeader ("GLEW (OpenGL)")
     //   )
     //{
     //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_GLEW).c_str ());
     //}
-
-    //IDR_LICENSE_GLFW_2_2    TEXTFILE  "licenses/GLFW_2_2.txt"
 
     if (ImGui::CollapsingHeader ("GLM v 0.9.4.5"))
     {
@@ -238,7 +231,15 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_IMGUI).c_str ());
     }
 
-    //IDR_LICENSE_MESA_7_0    TEXTFILE  "licenses/Mesa_7_0.txt"
+    if (ImGui::CollapsingHeader ("fontawesome"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FONTAWESOME).c_str ());
+    }
+
+    if (ImGui::CollapsingHeader ("nlohmann-json"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NLOHMANN_JSON).c_str ());
+    }
 
     if (ImGui::CollapsingHeader ("MinHook"))
     {
@@ -258,12 +259,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NVAPI).c_str ());
     }
 
-    //if (config.cegui.enable && ImGui::CollapsingHeader ("PCRE"))
-    //{
-    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE).c_str ());
-    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_PCRE_CPP).c_str ());
-    //}
-
     if (ImGui::CollapsingHeader ("Special K"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_SPECIALK).c_str ());
@@ -281,11 +276,6 @@ SK_ImGui_DrawEULA (LPVOID reserved)
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_VULKAN).c_str ());
     }
-
-    //if (config.cegui.enable && ImGui::CollapsingHeader ("ZLIB"))
-    //{
-    //  ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_ZLIB).c_str ());
-    //}
 
     ImGui::EndChild (); // EULA_Inset
     ImGui::BeginChild ("EULA_Inset", ImVec2 (0.0f, ImGui::GetFrameHeightWithSpacing () * 1.1616f), false, ImGuiWindowFlags_NavFlattened);

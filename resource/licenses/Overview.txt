@@ -9,10 +9,12 @@
   OpenLibSys    |  2007 - 2008  -  OpenLibSys.org
   ADL           |  2008 - 2013  -  Advanced Micro Devices, Inc.
   MinHook       |  2009 - 2016  -  Tsuda Kageyu
+  nlohmann-json |  2013 - 2022  -  Niels Lohmann
   dear ImGui    |  2014 - 2019  -  Omar Cornut and
                 |               -    ImGui contributors
   Vulkan        |  2015 - 2016  -  The Khronos Group Inc.
   DirectX Tex   |  2017 - 2019  -  Microsoft Corp
+  fontawesome   |  2021         -  RStudio, PBC.
                 |
 ~~~~~~~~~~[ Algorithms ]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                 |                                            |
