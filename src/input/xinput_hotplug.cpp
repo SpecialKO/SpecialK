@@ -55,7 +55,7 @@ std::array <SK_XInput_PacketJournal, XUSER_MAX_COUNT + 1> xinput_packets;
 
 
 SK_XInput_PacketJournal
-SK_XInput_GetPacketJournal (DWORD dwUserIndex)
+SK_XInput_GetPacketJournal (DWORD dwUserIndex) noexcept
 {
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_COUNT - 1UL)];
@@ -178,7 +178,7 @@ SK_XInput_NotifyDeviceArrival (void)
 
                   if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
                   {
-                    bool arrival =
+                    const bool arrival =
                       (wParam == DBT_DEVICEARRIVAL);
 
                     SK_ReleaseAssert (
@@ -246,10 +246,16 @@ SK_XInput_NotifyDeviceArrival (void)
                     }
                   }
                 } break;
+
+                default: // Don't care
+                  break;
               }
 
               return 0;
             } break;
+
+            default: // Don't care
+              break;
           };
 
           return
@@ -422,7 +428,7 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return (DWORD)E_POINTER;
 
-  bool was_holding =
+  const bool was_holding =
     ReadAcquire (&placeholders [dwUserIndex].holding);
 
   if ( dwRet != ERROR_SUCCESS &&
@@ -455,7 +461,7 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
     }
 
     RtlSecureZeroMemory (
-      &pState->Gamepad, sizeof XINPUT_GAMEPAD
+      &pState->Gamepad, sizeof (XINPUT_GAMEPAD)
     );
 
     if (! was_holding)
@@ -653,7 +659,7 @@ RegisterDeviceNotificationW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  auto* pNotifyFilter =
+  const auto* pNotifyFilter =
     static_cast <DEV_BROADCAST_DEVICEINTERFACE_W *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
@@ -697,7 +703,7 @@ RegisterDeviceNotificationA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  auto* pNotifyFilter =
+  const auto* pNotifyFilter =
     static_cast <DEV_BROADCAST_DEVICEINTERFACE_A *> (NotificationFilter);
 
   if (pNotifyFilter->dbcc_devicetype == DBT_DEVTYP_DEVICEINTERFACE && (! (Flags & DEVICE_NOTIFY_SERVICE_HANDLE)))
@@ -759,7 +765,7 @@ SK_RegisterDeviceNotification (_In_ HANDLE hRecipient)
   static const GUID GUID_DEVINTERFACE_HID =
     { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
 
-  bool bUnicode =
+  const bool bUnicode =
     IsWindowUnicode ((HWND)hRecipient);
 
   if (bUnicode)

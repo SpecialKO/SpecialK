@@ -52,70 +52,76 @@ struct SK_SceInputContext
 
   struct instance_s
   {
-    const wchar_t*                   wszModuleName                         = L"libScePad.dll";
-    HMODULE                          hMod                                  = nullptr;
+    const wchar_t*                     wszModuleName                           = L"libScePad.dll";
+    HMODULE                            hMod                                    = nullptr;
+                                                                               
+    scePadInit_pfn                     scePadInit_Detour                       = nullptr;
+    scePadInit_pfn                     scePadInit_Original                     = nullptr;
+    LPVOID                             scePadInit_Target                       = nullptr;
+                                                                               
+    scePadGetHandle_pfn                scePadGetHandle_Detour                  = nullptr;
+    scePadGetHandle_pfn                scePadGetHandle_Original                = nullptr;
+    LPVOID                             scePadGetHandle_Target                  = nullptr;
+                                                                               
+    scePadOpen_pfn                     scePadOpen_Detour                       = nullptr;
+    scePadOpen_pfn                     scePadOpen_Original                     = nullptr;
+    LPVOID                             scePadOpen_Target                       = nullptr;
+                                                                               
+    scePadClose_pfn                    scePadClose_Detour                      = nullptr;
+    scePadClose_pfn                    scePadClose_Original                    = nullptr;
+    LPVOID                             scePadClose_Target                      = nullptr;
+                                                                               
+    scePadSetParticularMode_pfn        scePadSetParticularMode_Detour          = nullptr;
+    scePadSetParticularMode_pfn        scePadSetParticularMode_Original        = nullptr;
+    LPVOID                             scePadSetParticularMode_Target          = nullptr;
 
-    scePadInit_pfn                   scePadInit_Detour                     = nullptr;
-    scePadInit_pfn                   scePadInit_Original                   = nullptr;
-    LPVOID                           scePadInit_Target                     = nullptr;
+    scePadGetControllerInformation_pfn scePadGetControllerInformation_Detour   = nullptr;
+    scePadGetControllerInformation_pfn scePadGetControllerInformation_Original = nullptr;
+    LPVOID                             scePadGetControllerInformation_Target   = nullptr;
 
-    scePadGetHandle_pfn              scePadGetHandle_Detour                = nullptr;
-    scePadGetHandle_pfn              scePadGetHandle_Original              = nullptr;
-    LPVOID                           scePadGetHandle_Target                = nullptr;
-
-    scePadOpen_pfn                   scePadOpen_Detour                     = nullptr;
-    scePadOpen_pfn                   scePadOpen_Original                   = nullptr;
-    LPVOID                           scePadOpen_Target                     = nullptr;
-
-    scePadClose_pfn                  scePadClose_Detour                    = nullptr;
-    scePadClose_pfn                  scePadClose_Original                  = nullptr;
-    LPVOID                           scePadClose_Target                    = nullptr;
-
-    scePadSetParticularMode_pfn      scePadSetParticularMode_Detour        = nullptr;
-    scePadSetParticularMode_pfn      scePadSetParticularMode_Original      = nullptr;
-    LPVOID                           scePadSetParticularMode_Target        = nullptr;
-
-    scePadRead_pfn                   scePadRead_Detour                     = nullptr;
-    scePadRead_pfn                   scePadRead_Original                   = nullptr;
-    LPVOID                           scePadRead_Target                     = nullptr;
-
-    scePadReadState_pfn              scePadReadState_Detour                = nullptr;
-    scePadReadState_pfn              scePadReadState_Original              = nullptr;
-    LPVOID                           scePadReadState_Target                = nullptr;
-
-    scePadResetOrientation_pfn       scePadResetOrientation_Detour         = nullptr;
-    scePadResetOrientation_pfn       scePadResetOrientation_Original       = nullptr;
-    LPVOID                           scePadResetOrientation_Target         = nullptr;
-
+    scePadRead_pfn                     scePadRead_Detour                       = nullptr;
+    scePadRead_pfn                     scePadRead_Original                     = nullptr;
+    LPVOID                             scePadRead_Target                       = nullptr;
+                                                                               
+    scePadReadState_pfn                scePadReadState_Detour                  = nullptr;
+    scePadReadState_pfn                scePadReadState_Original                = nullptr;
+    LPVOID                             scePadReadState_Target                  = nullptr;
+                                                                               
+    scePadResetOrientation_pfn         scePadResetOrientation_Detour           = nullptr;
+    scePadResetOrientation_pfn         scePadResetOrientation_Original         = nullptr;
+    LPVOID                             scePadResetOrientation_Target           = nullptr;
+                                                                               
     scePadSetAngularVelocity\
-DeadbandState_pfn                    scePadSetAngularVelocity\
-DeadbandState_Detour                                                       = nullptr;
+DeadbandState_pfn                      scePadSetAngularVelocity\
+DeadbandState_Detour                                                           = nullptr;
     scePadSetAngularVelocity\
-DeadbandState_pfn                    scePadSetAngularVelocity\
-DeadbandState_Original                                                     = nullptr;
-    LPVOID                           scePadSetAngularVelocity\
-DeadbandState_Target                                                       = nullptr;
-
-    scePadSetMotionSensorState_pfn   scePadSetMotionSensorState_Detour     = nullptr;
-    scePadSetMotionSensorState_pfn   scePadSetMotionSensorState_Original   = nullptr;
-    LPVOID                           scePadSetMotionSensorState_Target     = nullptr;
-
-    scePadSetTiltCorrectionState_pfn scePadSetTiltCorrectionState_Detour   = nullptr;
-    scePadSetTiltCorrectionState_pfn scePadSetTiltCorrectionState_Original = nullptr;
-    LPVOID                           scePadSetTiltCorrectionState_Target   = nullptr;
-
-    scePadSetVibration_pfn           scePadSetVibration_Detour             = nullptr;
-    scePadSetVibration_pfn           scePadSetVibration_Original           = nullptr;
-    LPVOID                           scePadSetVibration_Target             = nullptr;
-
-    scePadResetLightBar_pfn          scePadResetLightBar_Detour            = nullptr;
-    scePadResetLightBar_pfn          scePadResetLightBar_Original          = nullptr;
-    LPVOID                           scePadResetLightBar_Target            = nullptr;
-
-    scePadSetLightBar_pfn            scePadSetLightBar_Detour              = nullptr;
-    scePadSetLightBar_pfn            scePadSetLightBar_Original            = nullptr;
-    LPVOID                           scePadSetLightBar_Target              = nullptr;
+DeadbandState_pfn                      scePadSetAngularVelocity\
+DeadbandState_Original                                                         = nullptr;
+    LPVOID                             scePadSetAngularVelocity\
+DeadbandState_Target                                                           = nullptr;
+                                                                               
+    scePadSetMotionSensorState_pfn     scePadSetMotionSensorState_Detour       = nullptr;
+    scePadSetMotionSensorState_pfn     scePadSetMotionSensorState_Original     = nullptr;
+    LPVOID                             scePadSetMotionSensorState_Target       = nullptr;
+                                                                               
+    scePadSetTiltCorrectionState_pfn   scePadSetTiltCorrectionState_Detour     = nullptr;
+    scePadSetTiltCorrectionState_pfn   scePadSetTiltCorrectionState_Original   = nullptr;
+    LPVOID                             scePadSetTiltCorrectionState_Target     = nullptr;
+                                                                               
+    scePadSetVibration_pfn             scePadSetVibration_Detour               = nullptr;
+    scePadSetVibration_pfn             scePadSetVibration_Original             = nullptr;
+    LPVOID                             scePadSetVibration_Target               = nullptr;
+                                                                               
+    scePadResetLightBar_pfn            scePadResetLightBar_Detour              = nullptr;
+    scePadResetLightBar_pfn            scePadResetLightBar_Original            = nullptr;
+    LPVOID                             scePadResetLightBar_Target              = nullptr;
+                                                                               
+    scePadSetLightBar_pfn              scePadSetLightBar_Detour                = nullptr;
+    scePadSetLightBar_pfn              scePadSetLightBar_Original              = nullptr;
+    LPVOID                             scePadSetLightBar_Target                = nullptr;
   } scePad { };
+
+  Concurrency::concurrent_unordered_map <SK_ScePadHandle, ULONG64> _timeStamps;
 };
 
 SK_SceInputContext sceinput_ctx;
@@ -158,12 +164,18 @@ SK_ScePadOpen (SK_SceUserID userID, int type,
                 userID, type, index, inputParam, _handle ),
               __SK_SUBSYSTEM__ );
 
+  SK_ScePadData                                               _dontCare = { };
+  if (sceinput_ctx.scePad.scePadReadState_Original (_handle, &_dontCare) == 0)
+    WriteULong64Release (&sceinput_ctx._timeStamps [_handle], 1ULL);
+
   return _handle;
 }
 
 SK_ScePadResult
 SK_ScePadClose (SK_ScePadHandle handle)
 {
+  WriteULong64Release (&sceinput_ctx._timeStamps [handle], 0ULL);
+
   return sceinput_ctx.scePad.
     scePadClose_Original (handle);
 }
@@ -202,22 +214,22 @@ bool
 __cdecl
 SK_SAFE_memcpy ( _Out_writes_bytes_all_ (_Size) void*       _Dst,
                  _In_reads_bytes_       (_Size) void const* _Src,
-                 _In_                           size_t      _Size )
+                 _In_                           size_t      _Size ) noexcept
 {
   __try
   {
     memcpy (_Dst, _Src, _Size);
   }
 
-  __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                                    EXCEPTION_EXECUTE_HANDLER :
-                                    EXCEPTION_CONTINUE_SEARCH)
+  __finally
   {
     return false;
   }
 
   return true;
 }
+
+volatile ULONG64 llLastScePadFrame = 0ULL;
 
 SK_ScePadResult
 SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
@@ -236,20 +248,26 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
   bool bToggleNav = false,
        bToggleVis = false;
 
+  const ULONG64 ullLastTimeStamp =
+    ReadULong64Acquire (&sceinput_ctx._timeStamps [handle]);
+
+  const ULONG64 ullThisFrame =
+                SK_GetFramesDrawn ();
+
   SK_ScePadResult result =
     sceinput_ctx.scePad.
                  scePadReadState_Original (handle, iData);
 
 
-  static volatile ULONG64 llLastChordFrame  = 0ULL;
-  static volatile ULONG64 llFirstChordFrame = 1ULL;
+  static volatile ULONG64 ullLastChordFrame  = 0ULL;
+  static volatile ULONG64 ullFirstChordFrame = 1ULL;
 
-  if (iData != nullptr && result == SK_SCE_ERROR_OK)
+  if (iData != nullptr && result == SK_SCE_ERROR_OK && ullLastTimeStamp < ullThisFrame)
   {
     static auto _JustPressed =
     []( const SK_ScePadButtonBitmap&             currentButtons,
         const SK_ScePadButtonBitmap&             previousButtons,
-        const SK_ScePadButtonBitmap::enum_type_t testSet )
+        const SK_ScePadButtonBitmap::enum_type_t testSet ) noexcept
  -> bool
     {
       static_assert (std::is_trivial <SK_ScePadButtonBitmap::enum_type_t> ());
@@ -261,7 +279,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
     static auto _JustReleased =
     []( const SK_ScePadButtonBitmap&             currentButtons,
         const SK_ScePadButtonBitmap&             previousButtons,
-        const SK_ScePadButtonBitmap::enum_type_t testSet )
+        const SK_ScePadButtonBitmap::enum_type_t testSet ) noexcept
  -> bool
     {
       static_assert (std::is_trivial <SK_ScePadButtonBitmap::enum_type_t> ());
@@ -270,9 +288,6 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
               && previousButtons.isDown (testSet));
     };
 
-    const ULONG64 llThisFrame =
-      SK_GetFramesDrawn ();
-
     if (config.input.gamepad.scepad.enhanced_ps_button)
     {
       if ( _JustPressed  ( iData->buttonMask, last_result [handle].
@@ -280,26 +295,26 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                              SK_ScePadButtonBitmap::PlayStation )
          )
       {
-        WriteULong64Release (&llLastChordFrame,  llThisFrame);
-        WriteULong64Release (&llFirstChordFrame, llThisFrame);
+        WriteULong64Release (&ullLastChordFrame,  ullThisFrame);
+        WriteULong64Release (&ullFirstChordFrame, ullThisFrame);
       }
 
-      static constexpr auto llFrameGracePeriod = 20ULL;
+      static constexpr auto ullFrameGracePeriod = 20ULL;
 
       if ( _JustReleased ( iData->buttonMask, last_result [handle].
                            second.buttonMask,
                              SK_ScePadButtonBitmap::PlayStation ) ||
           ( iData->buttonMask.isDown (
                              SK_ScePadButtonBitmap::PlayStation ) &&
-            ReadULong64Acquire (&llLastChordFrame ) ==
-            ReadULong64Acquire (&llFirstChordFrame) && llThisFrame >
-            ReadULong64Acquire (&llFirstChordFrame) +  llFrameGracePeriod )
+            ReadULong64Acquire (&ullLastChordFrame ) ==
+            ReadULong64Acquire (&ullFirstChordFrame) && ullThisFrame >
+            ReadULong64Acquire (&ullFirstChordFrame) +  ullFrameGracePeriod )
          )
       {
         // Check to see if any other buttons are held -- if so, do not toggle the
         //   control panel
-        if ( ReadULong64Acquire (&llLastChordFrame ) ==
-             ReadULong64Acquire (&llFirstChordFrame) )
+        if ( ReadULong64Acquire (&ullLastChordFrame ) ==
+             ReadULong64Acquire (&ullFirstChordFrame) )
         {
           if (SK_ImGui_Active ())
           {
@@ -313,7 +328,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
             bToggleVis |= true;
           }
 
-          WriteULong64Release (&llLastChordFrame, llThisFrame);
+          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
         }
       }
     }
@@ -327,7 +342,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                          )
          )
       {
-        WriteULong64Release (&llLastChordFrame, llThisFrame);
+        WriteULong64Release (&ullLastChordFrame, ullThisFrame);
 
         SK_SteamAPI_TakeScreenshot ();
       }
@@ -340,7 +355,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                           )
            )
         {
-          WriteULong64Release (&llLastChordFrame, llThisFrame);
+          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
       
           SK_SteamAPI_TakeScreenshot ();
         }
@@ -350,7 +365,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                                )
                 )
         {
-          WriteULong64Release (&llLastChordFrame, llThisFrame);
+          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
       
           config.render.framerate.latent_sync.show_fcat_bars =
             !config.render.framerate.latent_sync.show_fcat_bars;
@@ -361,7 +376,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                                )
                 )
         {
-          WriteULong64Release (&llLastChordFrame, llThisFrame);
+          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
       
           auto cp =
             SK_GetCommandProcessor ();
@@ -380,7 +395,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
                                )
                 )
         {
-          WriteULong64Release (&llLastChordFrame, llThisFrame);
+          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
       
           auto cp =
             SK_GetCommandProcessor ();
@@ -417,14 +432,18 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
 
     if (config.input.gamepad.scepad.share_clicks_touch)
     {
-      if (iData->buttonMask.isDown   (SK_ScePadButtonBitmap::Share))
-        iData->buttonMask.setButtons (SK_ScePadButtonBitmap::TouchPad);
+      if (iData->buttonMask.isDown     (SK_ScePadButtonBitmap::Share))
+          iData->buttonMask.setButtons (SK_ScePadButtonBitmap::TouchPad);
     }
+
+    InterlockedCompareExchange64 (
+      (volatile LONG64 *)&sceinput_ctx._timeStamps [handle], ullLastTimeStamp, ullThisFrame);
   }
 
 
-  if ((! SK_ImGui_WantGamepadCapture ()) && (config.input.gamepad.scepad.enhanced_ps_button == false
-                                         || (!iData->buttonMask.isDown (SK_ScePadButtonBitmap::PlayStation))))
+  if ((! SK_ImGui_WantGamepadCapture ()) && ( config.input.gamepad.scepad.enhanced_ps_button == false ||
+                                            ( iData != nullptr &&
+                                            !(iData->buttonMask.isDown (SK_ScePadButtonBitmap::PlayStation)))))
   {
     last_result [handle] =
       std::make_pair (
@@ -474,8 +493,37 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
     SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
 
 
+  if (last_result [handle].first == 0)
+    WriteULong64Release (&llLastScePadFrame, SK_GetFramesDrawn ());
+
+
   return
     last_result [handle].first;
+}
+
+SK_ScePadResult
+SK_ScePadGetControllerInformation ( SK_ScePadHandle                handle,
+                                    SK_ScePadControllerInformation *pInfo )
+{
+  SK_LOG_FIRST_CALL;
+
+  return sceinput_ctx.scePad.
+    scePadGetControllerInformation_Original (handle, pInfo);
+}
+
+void
+SK_ScePad_PaceMaker (void)
+{
+  for ( const auto &[handle , timeStamp] : sceinput_ctx._timeStamps )
+  {
+    if ( const auto lastTimeStamp = ReadULong64Acquire (&timeStamp);
+                    lastTimeStamp > 0ULL &&
+                    lastTimeStamp < SK_GetFramesDrawn () )
+    {
+      SK_ScePadData                _dontCare = { };
+      SK_ScePadReadState (handle, &_dontCare);
+    }
+  }
 }
 
 SK_ScePadResult
@@ -535,99 +583,91 @@ SK_Input_HookScePadContext (SK_SceInputContext::instance_s *pCtx)
 {
   pCtx->scePadInit_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadInit" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadInit",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadInit",
                               pCtx->scePadInit_Detour,
      static_cast_p2p <void> (&pCtx->scePadInit_Original) );
 
   pCtx->scePadGetHandle_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadGetHandle" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadGetHandle",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadGetHandle",
                               pCtx->scePadGetHandle_Detour,
      static_cast_p2p <void> (&pCtx->scePadGetHandle_Original) );
 
   pCtx->scePadOpen_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadOpen" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadOpen",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadOpen",
                               pCtx->scePadOpen_Detour,
      static_cast_p2p <void> (&pCtx->scePadOpen_Original) );
 
   pCtx->scePadClose_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadClose" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadClose",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadClose",
                               pCtx->scePadClose_Detour,
      static_cast_p2p <void> (&pCtx->scePadClose_Original) );
 
   pCtx->scePadSetParticularMode_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetParticularMode" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetParticularMode",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetParticularMode",
                               pCtx->scePadSetParticularMode_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetParticularMode_Original) );
 
   pCtx->scePadRead_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadRead" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadRead",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadRead",
                               pCtx->scePadRead_Detour,
      static_cast_p2p <void> (&pCtx->scePadRead_Original) );
 
   pCtx->scePadReadState_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadReadState" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadReadState",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadReadState",
                               pCtx->scePadReadState_Detour,
      static_cast_p2p <void> (&pCtx->scePadReadState_Original) );
 
   pCtx->scePadResetOrientation_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadResetOrientation" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadResetOrientation",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadResetOrientation",
                               pCtx->scePadResetOrientation_Detour,
      static_cast_p2p <void> (&pCtx->scePadResetOrientation_Original) );
 
   pCtx->scePadSetAngularVelocityDeadbandState_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetAngularVelocityDeadbandState" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetAngularVelocityDeadbandState",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetAngularVelocityDeadbandState",
                               pCtx->scePadSetAngularVelocityDeadbandState_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetAngularVelocityDeadbandState_Original) );
 
   pCtx->scePadSetMotionSensorState_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetMotionSensorState" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetMotionSensorState",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetMotionSensorState",
                               pCtx->scePadSetMotionSensorState_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetMotionSensorState_Original) );
 
   pCtx->scePadSetTiltCorrectionState_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetTiltCorrectionState" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetTiltCorrectionState",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetTiltCorrectionState",
                               pCtx->scePadSetTiltCorrectionState_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetTiltCorrectionState_Original) );
 
   pCtx->scePadSetVibration_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetVibration" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetVibration",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetVibration",
                               pCtx->scePadSetVibration_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetVibration_Original) );
 
+  pCtx->scePadGetControllerInformation_Target =
+  SK_GetProcAddress (         pCtx->wszModuleName, "scePadGetControllerInformation" );
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadGetControllerInformation",
+                              pCtx->scePadGetControllerInformation_Detour,
+     static_cast_p2p <void> (&pCtx->scePadGetControllerInformation_Original) );
+
   pCtx->scePadResetLightBar_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadResetLightBar" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadResetLightBar",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadResetLightBar",
                               pCtx->scePadResetLightBar_Detour,
      static_cast_p2p <void> (&pCtx->scePadResetLightBar_Original) );
 
   pCtx->scePadSetLightBar_Target =
   SK_GetProcAddress (         pCtx->wszModuleName, "scePadSetLightBar" );
-  SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                   "scePadSetLightBar",
+  SK_CreateDLLHook2 (         pCtx->wszModuleName, "scePadSetLightBar",
                               pCtx->scePadSetLightBar_Detour,
      static_cast_p2p <void> (&pCtx->scePadSetLightBar_Original) );
 }
@@ -652,31 +692,33 @@ SK_Input_HookScePad (void)
     SK_LOG0 ( ( L"  >> Hooking libScePad" ),
                 L"  Input   " );
 
-    auto pCtx = &sceinput_ctx.scePad;
+    auto pCtx =
+      &sceinput_ctx.scePad;
 
     pCtx->wszModuleName                         = L"libScePad.dll";
     pCtx->hMod                                  = SK_Modules->LoadLibrary (pCtx->wszModuleName);
 
     if (SK_Modules->isValid (hModScePad))
     {
-      pCtx->scePadInit_Detour                   = SK_ScePadInit;
-      pCtx->scePadGetHandle_Detour              = SK_ScePadGetHandle;
-      pCtx->scePadOpen_Detour                   = SK_ScePadOpen;
-      pCtx->scePadClose_Detour                  = SK_ScePadClose;
-      pCtx->scePadSetParticularMode_Detour      = SK_ScePadSetParticularMode;
-      pCtx->scePadRead_Detour                   = SK_ScePadRead;
-      pCtx->scePadReadState_Detour              = SK_ScePadReadState;
-      pCtx->scePadResetOrientation_Detour       = SK_ScePadResetOrientation;
+      pCtx->scePadInit_Detour                     = SK_ScePadInit;
+      pCtx->scePadGetHandle_Detour                = SK_ScePadGetHandle;
+      pCtx->scePadOpen_Detour                     = SK_ScePadOpen;
+      pCtx->scePadClose_Detour                    = SK_ScePadClose;
+      pCtx->scePadSetParticularMode_Detour        = SK_ScePadSetParticularMode;
+      pCtx->scePadRead_Detour                     = SK_ScePadRead;
+      pCtx->scePadReadState_Detour                = SK_ScePadReadState;
+      pCtx->scePadResetOrientation_Detour         = SK_ScePadResetOrientation;
       pCtx->scePadSetAngularVelocity\
-DeadbandState_Detour                            = SK_ScePadSetAngularVelocityDeadbandState;
+DeadbandState_Detour                              = SK_ScePadSetAngularVelocityDeadbandState;
       pCtx->scePadSetAngularVelocity\
-DeadbandState_Detour                            = SK_ScePadSetAngularVelocityDeadbandState;
-      pCtx->scePadSetMotionSensorState_Detour   = SK_ScePadSetMotionSensorState;
+DeadbandState_Detour                              = SK_ScePadSetAngularVelocityDeadbandState;
+      pCtx->scePadSetMotionSensorState_Detour     = SK_ScePadSetMotionSensorState;
 
-      pCtx->scePadSetTiltCorrectionState_Detour = SK_ScePadSetTiltCorrectionState;
-      pCtx->scePadSetVibration_Detour           = SK_ScePadSetVibration;
-      pCtx->scePadResetLightBar_Detour          = SK_ScePadResetLightBar;
-      pCtx->scePadSetLightBar_Detour            = SK_ScePadSetLightBar;
+      pCtx->scePadSetTiltCorrectionState_Detour   = SK_ScePadSetTiltCorrectionState;
+      pCtx->scePadSetVibration_Detour             = SK_ScePadSetVibration;
+      pCtx->scePadGetControllerInformation_Detour = SK_ScePadGetControllerInformation;
+      pCtx->scePadResetLightBar_Detour            = SK_ScePadResetLightBar;
+      pCtx->scePadSetLightBar_Detour              = SK_ScePadSetLightBar;
 
       SK_Input_HookScePadContext (pCtx);
 
@@ -710,9 +752,10 @@ SK_Input_PreHookScePad (void)
   if (! hModScePad)
     return;
 
-  static scePadSetParticularMode_pfn
-         scePadSetParticularMode = (scePadSetParticularMode_pfn)SK_GetProcAddress (hModScePad,
-        "scePadSetParticularMode");
+  static auto
+      scePadSetParticularMode =
+     (scePadSetParticularMode_pfn)SK_GetProcAddress (hModScePad,
+     "scePadSetParticularMode");
 
   if (scePadSetParticularMode != nullptr)
       scePadSetParticularMode (true);

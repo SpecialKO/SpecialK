@@ -480,7 +480,7 @@ XInputGetStateEx1_4_Detour (
       } _observed;
     } _timing;
 
-    void updateState (DWORD dwRetVal, XINPUT_STATE_EX& xiState)
+    void updateState (DWORD dwRetVal, const XINPUT_STATE_EX& xiState)
     {
       DWORD ThreadId =
         SK_GetCurrentThreadId ();
@@ -506,7 +506,7 @@ XInputGetStateEx1_4_Detour (
       _last_result.Status = dwRetVal;
       _last_result.Sample = xiState;
 
-      LONGLONG qpcTime =
+      const LONGLONG qpcTime =
         SK_QueryPerf ().QuadPart;
 
       if (++call_count > 1)
@@ -529,7 +529,7 @@ XInputGetStateEx1_4_Detour (
             ( ThreadId == SK_GetCurrentRenderBackend ().thread );
     }
 
-    bool shouldThrottle (void)
+    bool shouldThrottle (void) noexcept
     {
       if (_timing._observed.bPolledByRenderThread)
         return false;
@@ -2211,10 +2211,13 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
     return false;
 
-  XINPUT_VIBRATION vibes;
-
-  vibes.wLeftMotorSpeed  = sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthLeft)  * 65535.0f);
-  vibes.wRightMotorSpeed = sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f);
+  XINPUT_VIBRATION
+    vibes {
+      .wLeftMotorSpeed  =
+        sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthLeft)  * 65535.0f),
+      .wRightMotorSpeed =
+        sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f)
+    };
 
   if ( pCtx                          != nullptr &&
        pCtx->XInputSetState_Original != nullptr )
@@ -2303,7 +2306,7 @@ static DWORD SK_XInput_UI_LastSeenController = DWORD_MAX;
 static DWORD SK_XInput_UI_LastSeenTime       =         0;
 
 void
-SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount)
+SK_XInput_UpdateSlotForUI (BOOL success, DWORD dwUserIndex, DWORD dwPacketCount) noexcept
 {
   static constexpr DWORD MIGRATION_PERIOD = 750;
 
@@ -2618,14 +2621,13 @@ SK_XInput_ZeroHaptics (INT iJoyID)
       std::max (0, std::min (iJoyID, (INT)XUSER_MAX_INDEX))
     ];
 
-  if ( ERROR_SUCCESS !=
-         ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) )
-  {
-    return;
-  }
+//if ( ERROR_SUCCESS !=
+//       ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) )
+//{
+//  return;
+//}
 
-
-  auto* pCtx = (
+  const auto* pCtx = (
     static_cast <SK_XInputContext::instance_s *>
       (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook))
   );
@@ -2633,10 +2635,13 @@ SK_XInput_ZeroHaptics (INT iJoyID)
   if (pCtx == nullptr)
     return;
 
-  if (iJoyID >= XUSER_MAX_COUNT) return;
+  if (iJoyID >= XUSER_MAX_COUNT)
+    return;
 
-  bool orig_enable =
-  SK_XInput_Enable          (FALSE);
+  const bool
+    orig_enable =
+      SK_XInput_Enable (FALSE);
+
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
   SK_XInput_Enable          (orig_enable);
 }

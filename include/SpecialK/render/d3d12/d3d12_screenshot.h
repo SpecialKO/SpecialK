@@ -71,10 +71,22 @@ public:
       return false;
     }
 
-    return (
-      readback_ctx.pFence->GetCompletedValue () >
-      readback_ctx.uiFenceVal
-           );
+    bool bRet = false;
+
+    __try {
+      bRet = (
+        readback_ctx.pFence->GetCompletedValue () >
+        readback_ctx.uiFenceVal
+             );
+      __leave;
+    }
+
+    __finally
+    {
+      return false;
+    }
+
+    return bRet;
   }
 
   SK_D3D12_Screenshot& __cdecl operator= (      SK_D3D12_Screenshot&& moveFrom);

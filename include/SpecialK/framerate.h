@@ -426,9 +426,9 @@ namespace SK
             samples < MAX_SAMPLES ?
             samples : MAX_SAMPLES;
 
-        LARGE_INTEGER min_time;
-                      min_time.QuadPart = std::numeric_limits <LONGLONG>::max ();
-        LARGE_INTEGER max_time = {                   0ULL };
+        LARGE_INTEGER min_time   {
+                     .QuadPart = std::numeric_limits <LONGLONG>::max () };
+        LARGE_INTEGER max_time = {                                 0ULL };
 
         for ( auto sample_idx = 0ULL            ;
                    sample_idx < samples_present ;
@@ -458,14 +458,14 @@ namespace SK
       }
 
          int calcNumSamples         (double seconds  = 1.0);
-      double calcMean               (double seconds  = 1.0);
+      double calcMean               (double seconds  = 1.0) noexcept;
       double calcSqStdDev           (double mean,
-                                     double seconds  = 1.0);
-      double calcMin                (double seconds  = 1.0);
-      double calcMax                (double seconds  = 1.0);
+                                     double seconds  = 1.0) noexcept;
+      double calcMin                (double seconds  = 1.0) noexcept;
+      double calcMax                (double seconds  = 1.0) noexcept;
          int calcHitches            (double tolerance,
                                      double mean,
-                                     double seconds  = 1.0);
+                                     double seconds  = 1.0) noexcept;
 
       double calcOnePercentLow      (double seconds  = 1.0);
       double calcPointOnePercentLow (double seconds  = 1.0);

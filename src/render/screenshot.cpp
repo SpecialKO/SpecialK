@@ -44,7 +44,8 @@ void SK_Screenshot_PlaySound (void)
       std::filesystem::path (SK_GetDocumentsDir ()) /
            LR"(My Mods\SpecialK\Assets\Shared\Sounds\screenshot.wav)";
 
-    if (std::filesystem::exists (sound_file))
+    std::error_code                          ec;
+    if (std::filesystem::exists (sound_file, ec))
     {
       SK_PlaySound ( sound_file.c_str (),
                        nullptr, SND_ASYNC |
@@ -116,9 +117,15 @@ void
 SK_ScreenshotManager::init (void) noexcept
 {
   __try {
-    auto repo =
+    const auto& repo =
       getRepoStats (true);
-  } __except (EXCEPTION_EXECUTE_HANDLER) { };
+
+    std::ignore = repo;
+  }
+
+  __finally {
+    // Don't care
+  };
 }
 
 const wchar_t*
@@ -145,12 +152,13 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
 
   if (OpenClipboard (nullptr))
   {
-    int _bpc    =
-      static_cast <int> (DirectX::BitsPerPixel (image.format)),
+    const int
+        _bpc    =
+      sk::narrow_cast <int> (DirectX::BitsPerPixel (image.format)),
         _width  =
-      static_cast <int> (                       image.width),
+      sk::narrow_cast <int> (                       image.width),
         _height =
-      static_cast <int> (                       image.height);
+      sk::narrow_cast <int> (                       image.height);
 
     SK_ReleaseAssert (image.format == DXGI_FORMAT_B8G8R8X8_UNORM);
 
@@ -166,7 +174,7 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
       bmh.biWidth         =   _width;
       bmh.biHeight        =  -_height;
       bmh.biPlanes        =  1;
-      bmh.biBitCount      =  static_cast <WORD> (_bpc);
+      bmh.biBitCount      = sk::narrow_cast <WORD> (_bpc);
       bmh.biCompression   = BI_RGB;
       bmh.biXPelsPerMeter = 10;
       bmh.biYPelsPerMeter = 10;
@@ -186,7 +194,9 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
             &bitplane, nullptr, 0 );
     memcpy ( bitplane,
                image.pixels,
-                 (_bpc / 8) * _width * _height
+        static_cast <size_t> (_bpc / 8) *
+        static_cast <size_t> (_width  ) *
+        static_cast <size_t> (_height )
            );
 
     HDC     hdcSrc  = CreateCompatibleDC (GetDC (nullptr));
@@ -234,7 +244,7 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
 
   SK_CreateDirectories (getBasePath ());
 
-  BOOL bRet =
+  const BOOL bRet =
     GetDiskFreeSpaceExW (
       getBasePath (),
         &useable, &capacity, &free );
@@ -248,10 +258,10 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
     return false;
   }
 
-  // Don't take screenshots if the general free space is < .5%
-  if (static_cast <double> (free.QuadPart) / static_cast <double> (capacity.QuadPart) < 0.005)
+  // Don't take screenshots if the general free space is < .25%
+  if (static_cast <double> (free.QuadPart) / static_cast <double> (capacity.QuadPart) < 0.0025)
   {
-    SK_ImGui_Warning (L"Free space on Screenshot Drive is < 0.5%, disabling Screenshots.");
+    SK_ImGui_Warning (L"Free space on Screenshot Drive is < 0.25%, disabling Screenshots.");
     return false;
   }
 

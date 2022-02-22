@@ -95,19 +95,37 @@ private:
   enum_type_t _value;
 };
 
-enum class SK_ScePadDeviceClass
+struct SK_ScePadDeviceClass
 {
-  Invalid       = -1,
-  Standard      =  0,
-  Guitar        =  1,
-  Drum          =  2,
-  DJ_Turntable  =  3,
-  DanceMat      =  4,
-  Navigation    =  5,
-  SteeringWheel =  6,
-  Stick         =  7,
-  FlightStick   =  8,
-  Gun           =  9
+  enum type
+  {
+    Invalid       = -1,
+    Standard      =  0,
+    Guitar        =  1,
+    Drum          =  2,
+    DJ_Turntable  =  3,
+    DanceMat      =  4,
+    Navigation    =  5,
+    SteeringWheel =  6,
+    Stick         =  7,
+    FlightStick   =  8,
+    Gun           =  9
+  };
+
+  uint8_t _value;
+};
+
+struct SK_ScePadConnectionType
+{
+  enum type
+  {
+    Local            = 0,
+    RemoteVita       = 1,
+    RemoteDualShock4 = 2,
+    RemoteDualSense  = 3 //?
+  };
+
+  uint8_t _value;
 };
 
 static constexpr int SK_SCEPAD_PORT_TYPE_STANDARD          =  0;
@@ -169,7 +187,7 @@ struct SK_ScePadControllerInformation
 {
   SK_ScePadTouchPadInformation touchPadInfo;
   SK_ScePadStickInformation    stickInfo;
-  uint8_t                      connectionType;
+  SK_ScePadConnectionType      connectionType;
   uint8_t                      connectedCount;
   bool                         connected;
   SK_ScePadDeviceClass         deviceClass;
@@ -210,9 +228,9 @@ struct SK_ScePadTouchData
 struct SK_ScePadExtensionUnitData
 {
   uint32_t extensionUnitId;
-  uint8_t reserve     [ 1];
-  uint8_t dataLength;
-  uint8_t data        [10];
+  uint8_t  reserve    [ 1];
+  uint8_t  dataLength;
+  uint8_t  data       [10];
 };
 
 struct SK_SceFQuaternion
@@ -236,7 +254,7 @@ struct SK_ScePadData
   SK_SceFVector3             angularVelocity;
   SK_ScePadTouchData         touchData;
   bool                       connected; // sizeof(bool) == 1 ( Intended? )
-  uint64_t                   timestamp;
+  uint64_t                   timeStamp;
   SK_ScePadExtensionUnitData eud;
   uint8_t                    connectedCount;
   uint8_t                    reserve [2];
@@ -259,39 +277,40 @@ struct SK_ScePadColor
   uint8_t reserve [1];
 };
 
-SK_ScePadResult SK_ScePadInit      (void);
-SK_ScePadHandle SK_ScePadGetHandle (SK_SceUserID userID, int type,
-                                                         int index);
-SK_ScePadResult SK_ScePadOpen      (SK_SceUserID userID, int type,
-                                                         int index, SK_ScePadOpenParam *inputParam);
-SK_ScePadResult SK_ScePadClose     (SK_ScePadHandle handle);
-
+SK_ScePadResult SK_ScePadInit                            (void);
 SK_ScePadResult SK_ScePadSetParticularMode               (bool mode);
+SK_ScePadHandle SK_ScePadGetHandle                       (SK_SceUserID userID, int type,
+                                                                               int index);
+SK_ScePadResult SK_ScePadOpen                            (SK_SceUserID userID, int type,
+                                                                               int index, SK_ScePadOpenParam *inputParam);
+SK_ScePadResult SK_ScePadClose                           (SK_ScePadHandle handle);
 SK_ScePadResult SK_ScePadRead                            (SK_ScePadHandle handle, SK_ScePadData *iData, int count);
 SK_ScePadResult SK_ScePadReadState                       (SK_ScePadHandle handle, SK_ScePadData *iData);
 SK_ScePadResult SK_ScePadResetOrientation                (SK_ScePadHandle handle);
 SK_ScePadResult SK_ScePadSetAngularVelocityDeadbandState (SK_ScePadHandle handle, bool enable);
 SK_ScePadResult SK_ScePadSetMotionSensorState            (SK_ScePadHandle handle, bool enable);
 SK_ScePadResult SK_ScePadSetTiltCorrectionState          (SK_ScePadHandle handle, bool enable);
-SK_ScePadResult SK_ScePadSetVibration                    (SK_ScePadHandle handle, SK_ScePadVibrationParam *param);
+SK_ScePadResult SK_ScePadSetVibration                    (SK_ScePadHandle handle, SK_ScePadVibrationParam        *param);
+SK_ScePadResult SK_ScePadGetControllerInformation        (SK_ScePadHandle handle, SK_ScePadControllerInformation *pInfo);
 
 SK_ScePadResult SK_ScePadPadResetLightBar                (SK_ScePadHandle handle);
 SK_ScePadResult SK_ScePadSetLightBar                     (SK_ScePadHandle handle, SK_ScePadColor *param);
 
 using scePadInit_pfn                            = SK_ScePadResult (*)(void);
-using scePadGetHandle_pfn                       = SK_ScePadHandle (*)(SK_SceUserID userID, int type, int index);
-using scePadOpen_pfn                            = SK_ScePadResult (*)(SK_SceUserID userID, int type, int index,
-                                                                      SK_ScePadOpenParam *inputParam);
+using scePadSetParticularMode_pfn               = SK_ScePadResult (*)(bool mode);
+using scePadGetHandle_pfn                       = SK_ScePadHandle (*)(SK_SceUserID userID, int type,
+                                                                                           int index);
+using scePadOpen_pfn                            = SK_ScePadResult (*)(SK_SceUserID userID, int type,
+                                                                                           int index, SK_ScePadOpenParam *inputParam);
 using scePadClose_pfn                           = SK_ScePadResult (*)(SK_ScePadHandle handle);
-using scePadSetParticularMode_pfn               = SK_ScePadResult (*)(bool);
-
 using scePadRead_pfn                            = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadData *iData, int count);
 using scePadReadState_pfn                       = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadData *iData);
 using scePadResetOrientation_pfn                = SK_ScePadResult (*)(SK_ScePadHandle handle);
 using scePadSetAngularVelocityDeadbandState_pfn = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
 using scePadSetMotionSensorState_pfn            = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
 using scePadSetTiltCorrectionState_pfn          = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
-using scePadSetVibration_pfn                    = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadVibrationParam *param);
+using scePadSetVibration_pfn                    = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadVibrationParam        *param);
+using scePadGetControllerInformation_pfn        = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadControllerInformation *pInfo);
 
 using scePadResetLightBar_pfn                   = SK_ScePadResult (*)(SK_ScePadHandle handle);
 using scePadSetLightBar_pfn                     = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadColor *param);

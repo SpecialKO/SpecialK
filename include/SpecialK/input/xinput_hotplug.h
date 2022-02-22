@@ -41,7 +41,7 @@ typedef struct _SK_XInput_PacketJournal
 
 
 SK_XInput_PacketJournal
-SK_XInput_GetPacketJournal (DWORD dwUserIndex);
+SK_XInput_GetPacketJournal (DWORD dwUserIndex) noexcept;
 
 bool
 SK_XInput_Holding ( DWORD dwUserIndex );

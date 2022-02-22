@@ -3144,6 +3144,9 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   //   a failure event may cause a lengthy delay, missing VBLANK.
   SK_XInput_DeferredStatusChecks ();
 
+  extern void SK_ScePad_PaceMaker (void);
+              SK_ScePad_PaceMaker ();
+
 
   InterlockedIncrementAcquire (
     &SK_RenderBackend::frames_drawn
