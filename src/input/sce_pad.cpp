@@ -135,16 +135,30 @@ SK_ScePadHandle
 SK_ScePadGetHandle (SK_SceUserID userID, int type,
                                          int index)
 {
-  return sceinput_ctx.scePad.
-    scePadGetHandle_Original (userID, type, index);
+  SK_ScePadHandle
+          _handle = sceinput_ctx.scePad.
+  scePadGetHandle_Original (userID, type, index);
+
+  SK_LOG0 ( ( L"scePadGetHandle (%x, %x, %d) => %x",
+                userID, type, index, _handle ),
+              __SK_SUBSYSTEM__ );
+
+  return _handle;
 }
 
-SK_ScePadResult
+SK_ScePadHandle
 SK_ScePadOpen (SK_SceUserID userID, int type,
                                     int index, SK_ScePadOpenParam *inputParam)
 {
-  return sceinput_ctx.scePad.
-    scePadOpen_Original (userID, type, index, inputParam);
+  SK_ScePadHandle
+          _handle = sceinput_ctx.scePad.
+     scePadOpen_Original (userID, type, index, inputParam);
+
+  SK_LOG0 ( ( L"scePadOpen (%x, %x, %d, %p) => %x",
+                userID, type, index, inputParam, _handle ),
+              __SK_SUBSYSTEM__ );
+
+  return _handle;
 }
 
 SK_ScePadResult
@@ -683,13 +697,12 @@ SK_Input_PreHookScePad (void)
     return;
 
   static std::wstring path_to_driver =
-        SK_FormatStringW ( LR"(%ws\Drivers\PlayStation\%ws)",
-            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
-                            sceinput_ctx.scePad.wszModuleName
+        SK_FormatStringW ( LR"(%ws\Drivers\PlayStation\libScePad_sk64.dll)",
+            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
                          );
 
   if (! PathFileExistsW (path_to_driver.c_str ()))
-  {SK_CreateDirectories (path_to_driver.c_str ());
+  {SK_CreateDirectories (path_to_driver.c_str ());}
 
   HMODULE hModScePad =
     SK_LoadLibraryW (sceinput_ctx.scePad.wszModuleName);
@@ -703,6 +716,4 @@ SK_Input_PreHookScePad (void)
 
   if (scePadSetParticularMode != nullptr)
       scePadSetParticularMode (true);
-
-  //SK_RunOnce (SK_XInput_NotifyDeviceArrival ());
 }
