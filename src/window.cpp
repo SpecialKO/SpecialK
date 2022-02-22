@@ -1045,7 +1045,7 @@ ActivateWindow ( HWND hWnd,
     BYTE              newKeyboardState [256] = { 0 };
     SetKeyboardState (newKeyboardState);
 
-    if (hWndFocus != game_window.hWnd)
+    if (hWndFocus != game_window.hWnd && (is_game_window && (! game_window.active)))
     {
       BringWindowToTop    (hWndFocus);
       SetForegroundWindow (hWndFocus);
@@ -1484,8 +1484,10 @@ SK_ExpandSmallClipCursor (RECT *lpRect)
     // Report this if user _explicitly_ wants the feature, but
     //   don't report anything if implicitly unclipping while
     //     SK's control panel is open.
-    if (config.input.mouse.ignore_small_clips)
-    {
+    if (  config.input.mouse.ignore_small_clips)
+    { if (config.window.unconfine_cursor)
+             SK_ClipCursor (nullptr);
+
       static bool          reported = false;
       if (! std::exchange (reported,  true ))
       {
@@ -2636,8 +2638,6 @@ SK_SetWindowLongPtrA (
   }
 
         DWORD dwPid;
-  const DWORD dwThreadId     =
-    SK_Thread_GetCurrentId  ();
   const DWORD dwOrigThreadId =
     GetWindowThreadProcessId (hWnd, &dwPid);
 
@@ -2740,8 +2740,6 @@ SK_SetWindowLongPtrW (
 
 
         DWORD dwPid;
-  const DWORD dwThreadId     =
-    SK_Thread_GetCurrentId  ();
   const DWORD dwOrigThreadId =
     GetWindowThreadProcessId (hWnd, &dwPid);
 
@@ -4697,8 +4695,6 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
     SK_GetForegroundWindow ();
 
         DWORD dwPid;
-  const DWORD dwThreadId     =
-    SK_Thread_GetCurrentId  ();
   const DWORD dwOrigThreadId =
     GetWindowThreadProcessId (hWndForeground, &dwPid);
 
@@ -5019,13 +5015,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         _In_ DWORD     dwData,
         _In_ ULONG_PTR dwExtraInfo );
 
-      extern void WINAPI
-        SK_keybd_event (
-          _In_ BYTE       bVk,
-          _In_ BYTE       bScan,
-          _In_ DWORD     dwFlags,
-          _In_ ULONG_PTR dwExtraInfo );
-
       if (SK_GetForegroundWindow () != game_window.hWnd)
       {
         HWND hWndStartMenu =
@@ -5159,10 +5148,47 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       break;
 
 
-    //case WM_DEVICECHANGE:
-    //  if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam))
-    //    return 1;
-    //  break;
+    case WM_DEVICECHANGE:
+    {
+      bool bIgnore = true;
+
+      switch (wParam)
+      {
+        case DBT_DEVICEARRIVAL:
+        case DBT_DEVICEREMOVECOMPLETE:
+        {
+          const auto pDevHdr =
+            (DEV_BROADCAST_HDR *)lParam;
+
+          if (pDevHdr->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+          {
+            const auto pDevW =
+              (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
+
+            static constexpr GUID GUID_DEVINTERFACE_HID     =
+              { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
+
+            static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
+              { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
+
+            if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
+            {
+              bIgnore = false;
+            }
+          }
+        }
+      }
+
+      if (bIgnore)
+      {
+        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-gamepad device, "
+                    L"hiding it from the game..." ), __SK_SUBSYSTEM__ );
+
+        return
+          DefWindowProcW (hWnd, uMsg, wParam, lParam);
+      }
+    } break;
 
 
     case WM_DESTROY:
@@ -6736,7 +6762,7 @@ LRESULT
 WINAPI
 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-  if (pWin == nullptr)
+  if (pWin == nullptr || ! IsWindow (hWnd_))
     return 1;
 
   LRESULT ret = 1;

@@ -140,7 +140,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"postcrashdump.exe"),
 
-  SK_MakeUnicode (L"launcher.exe"),
+  //SK_MakeUnicode (L"launcher.exe"),
   SK_MakeUnicode (L"launchpad.exe"),
   SK_MakeUnicode (L"fallout4launcher.exe"),
   SK_MakeUnicode (L"skyrimselauncher.exe"),
@@ -165,7 +165,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"coherentui_host.exe"),
   SK_MakeUnicode (L"activationui.exe"),
   SK_MakeUnicode (L"zossteamstarter.exe"),
-  SK_MakeUnicode (L"eac.exe"),
+//SK_MakeUnicode (L"eac.exe"),
   SK_MakeUnicode (L"ealink.exe"),
 
   SK_MakeUnicode (L"clupdater.exe"),
@@ -250,8 +250,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"vc2010redist_x64.exe"),
   SK_MakeUnicode (L"ubisoftgamelauncher64.exe"),
   SK_MakeUnicode (L"sen3launcher.exe"),
-
-  ////SK_MakeUnicode (L"control.exe"),
 #else
   SK_MakeUnicode (L"vacodeinspectionsserver.exe"),
 
@@ -330,9 +328,11 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   SK_MakeUnicode (L"windowsterminal.exe"),
   SK_MakeUnicode (L"cmd.exe"),
+  SK_MakeUnicode (L"steam.exe"),
   SK_MakeUnicode (L"powershell.exe"),
   SK_MakeUnicode (L"epicwebhelper.exe"),
   SK_MakeUnicode (L"steamwebhelper.exe"),
+  SK_MakeUnicode (L"epicgameslauncher.exe"),
   SK_MakeUnicode (L"galaxyclient helper.exe"),
 
 
@@ -342,7 +342,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"servicehub.identityhost.exe"),
   SK_MakeUnicode (L"servicehub.threadedwaitdialog.exe"),
   SK_MakeUnicode (L"nvidia web helper.exe"),
-  SK_MakeUnicode (L"steam.exe"),
   SK_MakeUnicode (L"tobii.eyex.engine.exe"),
   SK_MakeUnicode (L"esrv.exe"),
   SK_MakeUnicode (L"ipoint.exe"),

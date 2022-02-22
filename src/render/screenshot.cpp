@@ -28,6 +28,8 @@
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
 #include <SpecialK/render/d3d12/d3d12_screenshot.h>
 
+#include <filesystem>
+
 
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
@@ -38,19 +40,15 @@ void SK_Screenshot_PlaySound (void)
 {
   if (config.screenshots.play_sound)
   {
-    static HGLOBAL sound_ref     =
-      LoadResource (   SK_GetDLL (),
-        FindResource ( SK_GetDLL (), MAKEINTRESOURCE (IDR_SCREENSHOT), L"WAVE" )
-                   );
+    static const auto sound_file =
+      std::filesystem::path (SK_GetDocumentsDir ()) /
+           LR"(My Mods\SpecialK\Assets\Shared\Sounds\screenshot.wav)";
 
-    if (sound_ref != nullptr)
+    if (std::filesystem::exists (sound_file))
     {
-      static auto sound =
-        LockResource (sound_ref);
-
-      if (sound != nullptr)
-        SK_PlaySound ( (LPCWSTR)sound, nullptr, SND_ASYNC |
-                                                SND_MEMORY );
+      SK_PlaySound ( sound_file.c_str (),
+                       nullptr, SND_ASYNC |
+                                SND_FILENAME );
     }
   }
 }

@@ -541,102 +541,108 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       std::set <ID3D11RenderTargetView*> invalid_views;
 
       //for (auto& rtl : *SK_D3D11_RenderTargets )
-      auto& rtl = SK_D3D11_RenderTargets [dev_idx];
-                  if (! rtl.rt_views.empty ()  )
-      for (auto  it  :  rtl.rt_views           )
+      auto& rtl =
+        SK_D3D11_RenderTargets [dev_idx];
+
+      if (! ( rtl.rt_views.empty () ||
+              rtl.max_rt_views   == 0 ) )
       {
-        D3D11_RENDER_TARGET_VIEW_DESC desc = { };
-
-        if (it == nullptr)
-          continue;
-
-        auto orig_se =
-        SK_SEH_ApplyTranslator (
-          SK_FilteringStructuredExceptionTranslator (
-            EXCEPTION_ACCESS_VIOLATION
-          )
-        );
-        try
+        for (auto& it : rtl.rt_views )
         {
-          it->GetDesc (&desc);
-        }
-        catch (const SK_SEH_IgnoredException& e) {
-          UNREFERENCED_PARAMETER (e);
-          desc.Format = DXGI_FORMAT_UNKNOWN;
-        }
-        SK_SEH_RemoveTranslator (orig_se);
+          D3D11_RENDER_TARGET_VIEW_DESC desc = { };
 
-        if (desc.Format == DXGI_FORMAT_UNKNOWN)
-          continue;
+          if (it == nullptr)
+            continue;
 
-        if ( desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
-             desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
-        {
-          SK_ComPtr <ID3D11Resource>  pRes = nullptr;
-          SK_ComPtr <ID3D11Texture2D> pTex = nullptr;
-
-          orig_se =
+          auto orig_se =
           SK_SEH_ApplyTranslator (
             SK_FilteringStructuredExceptionTranslator (
               EXCEPTION_ACCESS_VIOLATION
             )
           );
-          try {
-            it->GetResource (&pRes.p);
-
-            if (pRes.p != nullptr)
-                pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
-
-            if (pTex.p == nullptr)
-              throw SK_SEH_IgnoredException ();
+          try
+          {
+            it->GetDesc (&desc);
           }
-          catch (const SK_SEH_IgnoredException&) {
-            invalid_views.emplace (it);
-
-            continue;
+          catch (const SK_SEH_IgnoredException& e) {
+            UNREFERENCED_PARAMETER (e);
+            desc.Format = DXGI_FORMAT_UNKNOWN;
           }
           SK_SEH_RemoveTranslator (orig_se);
 
-          if ( pRes != nullptr &&
-               pTex != nullptr )
+          if (desc.Format == DXGI_FORMAT_UNKNOWN)
+            continue;
+
+          if ( desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
+               desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
           {
-            D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
+            SK_ComPtr <ID3D11Resource>  pRes = nullptr;
+            SK_ComPtr <ID3D11Texture2D> pTex = nullptr;
 
-            srv_desc.Format                    = desc.Format;
-            srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
-            srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
-            srv_desc.ViewDimension             = desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS ?
-                                                                       D3D11_SRV_DIMENSION_TEXTURE2DMS :
-                                                                       D3D11_SRV_DIMENSION_TEXTURE2D;
+            orig_se =
+            SK_SEH_ApplyTranslator (
+              SK_FilteringStructuredExceptionTranslator (
+                EXCEPTION_ACCESS_VIOLATION
+              )
+            );
+            try {
+              it->GetResource (&pRes.p);
 
-            auto pDev =
-              rb.getDevice <ID3D11Device> ();
+              if (pRes.p != nullptr)
+                  pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
 
-            if (pDev != nullptr)
+              if (pTex.p == nullptr)
+                throw SK_SEH_IgnoredException ();
+            }
+            catch (const SK_SEH_IgnoredException&) {
+              invalid_views.emplace (it);
+
+              continue;
+            }
+            SK_SEH_RemoveTranslator (orig_se);
+
+            if ( pRes != nullptr &&
+                 pTex != nullptr )
             {
-              if (render_lifetime.count (it) == 0)
+              D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
+
+              srv_desc.Format                    = desc.Format;
+              srv_desc.Texture2D.MipLevels       = desc.Texture2D.MipSlice + 1;
+              srv_desc.Texture2D.MostDetailedMip = desc.Texture2D.MipSlice;
+              srv_desc.ViewDimension             = desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS ?
+                                                                         D3D11_SRV_DIMENSION_TEXTURE2DMS :
+                                                                         D3D11_SRV_DIMENSION_TEXTURE2D;
+
+              auto pDev =
+                rb.getDevice <ID3D11Device> ();
+
+              if (pDev != nullptr)
               {
-                render_textures.push_back (it);
-                render_lifetime.insert    ( std::make_pair (it,
-                                              lifetime { frames_drawn, 1 }) );
+                if (render_lifetime.count     (it) == 0)
+                {   render_textures.push_back (it);
+                    render_lifetime.insert    (
+                               std::make_pair (it,
+                                    lifetime { frames_drawn, 1 })
+                    );
+                }
+
+                else
+                {
+                  auto&    lifetime =
+                    render_lifetime [it];
+
+                  lifetime.frames_active++;
+                  lifetime.last_frame = frames_drawn;
+                }
+
+                live_textures.insert (it);
               }
-
-              else
-              {
-                auto& lifetime =
-                  render_lifetime [it];
-
-                lifetime.frames_active++;
-                lifetime.last_frame = frames_drawn;
-              }
-
-              live_textures.insert (it);
             }
           }
         }
       }
 
-      for (auto it : invalid_views)
+      for (auto& it : invalid_views)
       {
         if (rtl.rt_views.count (it))
             rtl.rt_views.erase (it);

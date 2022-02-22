@@ -379,7 +379,9 @@ public:
     if (! ImGui::GetFont ()) return;
 
     const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;
+#ifdef _ProperSpacing
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+#endif
 
     char szAvg  [512] = { };
 

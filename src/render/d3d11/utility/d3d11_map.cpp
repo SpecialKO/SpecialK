@@ -407,9 +407,15 @@ SK_D3D11_Unmap_Impl (
                     D3D11_TEXTURE2D_DESC    new_desc = { };
                     pOverrideTex->GetDesc (&new_desc);
 
-                    SK_ReleaseAssert (
-                      size == SK_D3D11_ComputeTextureSize (&new_desc)
-                    );
+                    if (size != SK_D3D11_ComputeTextureSize (&new_desc))
+                    {
+                      SK_LOG0 ( ( L"Unexpected size for mapped texture, %d bytes (Expected: %d) ",
+                                  size, SK_D3D11_ComputeTextureSize (&new_desc) ),
+                                 L"StagingTex" );
+                    }
+                    //SK_ReleaseAssert (
+                    //  size == SK_D3D11_ComputeTextureSize (&new_desc)
+                    //);
 
                     std::scoped_lock <SK_Thread_HybridSpinlock>
                           scope_lock (*cache_cs);

@@ -42,48 +42,6 @@ extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
 
-#define D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS 8
-
-typedef struct _D3DKMT_GETVERTICALBLANKEVENT {
-  D3DKMT_HANDLE                  hAdapter;
-  D3DKMT_HANDLE                  hDevice;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-  HANDLE                         *phEvent;
-} D3DKMT_GETVERTICALBLANKEVENT;
-
-typedef struct _D3DKMT_WAITFORVERTICALBLANKEVENT2 {
-  D3DKMT_HANDLE                  hAdapter;
-  D3DKMT_HANDLE                  hDevice;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-  UINT                           NumObjects;
-  HANDLE                         ObjectHandleArray [D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS];
-} D3DKMT_WAITFORVERTICALBLANKEVENT2;
-
-typedef struct _D3DKMT_WAITFORVERTICALBLANKEVENT {
-  D3DKMT_HANDLE                  hAdapter;
-  D3DKMT_HANDLE                  hDevice;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-} D3DKMT_WAITFORVERTICALBLANKEVENT;
-
-typedef struct _D3DKMT_GETSCANLINE {
-  D3DKMT_HANDLE                  hAdapter;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-  BOOLEAN                        InVerticalBlank;
-  UINT                           ScanLine;
-} D3DKMT_GETSCANLINE;
-
-typedef struct _D3DKMT_SETSTABLEPOWERSTATE {
-  D3DKMT_HANDLE hAdapter;
-  BOOL          Enabled;
-} D3DKMT_SETSTABLEPOWERSTATE;
-
-using D3DKMTGetDWMVerticalBlankEvent_pfn   = NTSTATUS (WINAPI *)(const D3DKMT_GETVERTICALBLANKEVENT      *unnamedParam1);
-using D3DKMTWaitForVerticalBlankEvent2_pfn = NTSTATUS (WINAPI *)(const D3DKMT_WAITFORVERTICALBLANKEVENT2 *unnamedParam1);
-using D3DKMTWaitForVerticalBlankEvent_pfn  = NTSTATUS (WINAPI *)(const D3DKMT_WAITFORVERTICALBLANKEVENT  *unnamedParam1);
-using D3DKMTGetScanLine_pfn                = NTSTATUS (WINAPI *)(D3DKMT_GETSCANLINE                      *unnamedParam1);
-using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SETSTABLEPOWERSTATE        *unnamedParam1);
-
-
 int64_t                     SK_QpcFreq       = 0;
 int64_t                     SK_QpcTicksPerMs = 0;
 SK::Framerate::EventCounter SK::Framerate::events;
@@ -612,12 +570,12 @@ SK_ImGui_LatentSyncConfig (void)
 
     if (bAdvanced)
     {
-      ImGui::Text       (u8"%5.2f μs",
+      ImGui::Text       ((const char *)u8"%5.2f μs",
                                 (static_cast <double> (__SK_LatentSyncSwapTime) /
                                  static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
       ImGui::Text       ("%3.1f%%", wait_time.getBusyPercent ());
       ImGui::Text       ("");
-      ImGui::Text       (u8"%5.2f μs",
+      ImGui::Text       ((const char *)u8"%5.2f μs",
                                 (static_cast <double> (config.render.framerate.latent_sync.scanline_error) /
                                  static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
       if (config.render.framerate.latent_sync.delay_bias != 0.0f)
@@ -630,7 +588,7 @@ SK_ImGui_LatentSyncConfig (void)
     if (locked)
     {
       ImGui::Text     ("Scanline %d",  __scanline.lock.target);
-      ImGui::Text     (u8"± %5.2f μs",
+      ImGui::Text     ((const char *)u8"± %5.2f μs",
                               (static_cast <double> (__scanline.lock.margin) /
                                static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
       ImGui::Text     (" (%5.2f scanlines)",
@@ -731,7 +689,7 @@ SK::Framerate::Init (void)
 {
   static std::once_flag the_wuncler;
 
-  std::call_once (the_wuncler, [&](void)
+  std::call_once (the_wuncler, [](void)
   {
     SK_FPU_LogPrecision ();
 
@@ -1550,7 +1508,8 @@ SK::Framerate::Limiter::wait (void)
         int    iWaitObjs = 0;
 
         DWORD  dwWait  = WAIT_FAILED;
-        while (dwWait != WAIT_OBJECT_0)
+        while (dwWait != WAIT_OBJECT_0) // S1751	Change this loop body so that it can be executed more than once.
+
         {
           if (config.render.framerate.present_interval != 0)
           {

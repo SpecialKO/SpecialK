@@ -527,16 +527,16 @@ SK_D3D11_CreateShader_Impl (
                                           rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
       {
         static std::string steam_ps_scRGB =
-          __SK_MakeSteamPS (false, true, config.steam.overlay_hdr_luminance);
+          __SK_MakeSteamPS (false, true, config.platform.overlay_hdr_luminance);
 
         SK_RunOnce (
           dll_log->Log ( L"[SteamRange] Steam Replacement Pixel Shader <scRGB %f nits>",
-                          config.steam.overlay_hdr_luminance * 80.0
+                          config.platform.overlay_hdr_luminance * 80.0
                                  )//,steam_ps_scRGB.c_str () )
         );
 
         static ID3D10Blob* steam_blob_scRGB =
-        __SK_MakeSteamPS_Bytecode (false, true, config.steam.overlay_hdr_luminance);
+        __SK_MakeSteamPS_Bytecode (false, true, config.platform.overlay_hdr_luminance);
 
         pShaderBytecode = steam_blob_scRGB->GetBufferPointer ();
         BytecodeLength  = steam_blob_scRGB->GetBufferSize    ();
@@ -549,16 +549,16 @@ SK_D3D11_CreateShader_Impl (
               )
       {
         static std::string steam_ps_PQ =
-          __SK_MakeSteamPS (true, false, config.steam.overlay_hdr_luminance * 80.0f);
+          __SK_MakeSteamPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);
 
         SK_RunOnce (
           dll_log->Log ( L"[SteamRange] Steam Replacement Pixel Shader <PQ %f nits>",
-                            config.steam.overlay_hdr_luminance
+                            config.platform.overlay_hdr_luminance
                                    )//, steam_ps_PQ.c_str () )
         );
 
         static ID3D10Blob* steam_blob_PQ =
-          __SK_MakeSteamPS_Bytecode (true, false, config.steam.overlay_hdr_luminance * 80.0f);
+          __SK_MakeSteamPS_Bytecode (true, false, config.platform.overlay_hdr_luminance * 80.0f);
 
         pShaderBytecode = steam_blob_PQ->GetBufferPointer ();
         BytecodeLength  = steam_blob_PQ->GetBufferSize    ();
@@ -868,36 +868,37 @@ struct SK_D3D11_KnownTargets
 
   void clear (void)
   {
-    max_rt_views = std::max (max_rt_views, rt_views.size () * 2);
-
-#ifdef _PERSIST_DS_VIEWS
-    max_ds_views = std::max (max_ds_views, ds_views.size () * 2);
-#endif
+    max_rt_views =
+      std::max (max_rt_views, rt_views.max_size ());
 
     rt_views.clear ();
-#ifdef _PERSIST_DS_VIEWS
-    ds_views.clear ();
-#endif
 
-    rt_views.reserve (max_rt_views);
+    if (rt_views.max_size () < max_rt_views)
+        rt_views.reserve      (max_rt_views);
+
 #ifdef _PERSIST_DS_VIEWS
-    ds_views.reserve (max_ds_views);
+    max_ds_views =
+      std::max (max_ds_views, ds_views.size ());
+
+    ds_views.clear ();
+
+    if (ds_views.max_size () < max_ds_views)
+        ds_views.reserve      (max_ds_views);
 #endif
   }
 
   std::unordered_set <ID3D11RenderTargetView *> rt_views;
+                                     size_t max_rt_views = 256;
 #ifdef _PERSIST_DS_VIEWS
   std::unordered_set <ID3D11DepthStencilView *> ds_views;
-#endif
-                                     size_t max_rt_views = 0;
-#ifdef _PERSIST_DS_VIEWS
-                                     size_t max_ds_views = 0;
+                                     size_t max_ds_views = 128;
 #endif
 
-  static bool _mod_tool_wants;
+  static bool   _mod_tool_wants;
 };
 
-extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets, SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
+extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets,
+  SK_D3D11_MAX_DEV_CONTEXTS + 1>> SK_D3D11_RenderTargets;
 
 extern ID3D11Texture2D* SK_D3D11_TrackedTexture;
 extern SK_LazyGlobal <

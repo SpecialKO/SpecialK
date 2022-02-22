@@ -168,6 +168,7 @@ bool           __cdecl   SK_IsHostAppSKIM     (void);
 bool           __stdcall SK_IsInjected        (bool set = false) noexcept;
 bool           __stdcall SK_HasGlobalInjector (void);
 
+
 extern SK_LazyGlobal <iSK_Logger> dll_log;
 extern SK_LazyGlobal <iSK_Logger> crash_log;
 extern SK_LazyGlobal <iSK_Logger> budget_log;
@@ -187,6 +188,11 @@ HWND SK_Win32_CreateDummyWindow  (HWND hWndParent = HWND_MESSAGE);
 void __stdcall SK_EstablishRootPath   (void);
 void __stdcall SK_StartPerfMonThreads (void);
 
+// TODO: "Builtin Manager" for resources that were traditionally
+//         packed directly into the DLL, but must be downloaded
+//           starting with v. 22.2.22
+//
+void SK_FetchBuiltinSounds (void);
 
 extern volatile LONG __SK_DLL_Ending;
 extern volatile LONG __SK_DLL_Attached;

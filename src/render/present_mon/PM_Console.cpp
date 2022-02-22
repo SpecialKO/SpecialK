@@ -77,7 +77,7 @@ UpdateConsole ( uint32_t           processId,
     PresentEvent* displayN = nullptr;
 
     ///if (args.mTrackDisplay)
-    if (true)
+    ///if (true)
     {
       uint64_t display0ScreenTime = 0;
       uint64_t latSum             = 0;

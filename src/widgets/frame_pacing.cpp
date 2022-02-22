@@ -343,9 +343,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
   const  float font_size           =
     ( ImGui::GetFont  ()->FontSize * io.FontGlobalScale );
 
+#ifdef _ProperSpacing
   const  float font_size_multiline =
     ( ImGui::GetStyle ().ItemSpacing.y      +
       ImGui::GetStyle ().ItemInnerSpacing.y + font_size );
+#endif
 
 
   float sum = 0.0f;
@@ -967,8 +969,8 @@ public:
   {
     SK_ImGui_Widgets->frame_pacing = this;
 
-    setResizable    (                false).setAutoFit      (true).setMovable (false).
-    setDockingPoint (DockAnchor::SouthEast).setClickThrough (true).setVisible (false);
+    setResizable    (                false).setAutoFit (true ).setMovable (false).
+    setDockingPoint (DockAnchor::SouthEast).setVisible (false);
 
     SK_FramePercentiles->load_percentile_cfg ();
   };

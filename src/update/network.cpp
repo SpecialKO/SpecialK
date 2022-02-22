@@ -313,7 +313,7 @@ struct sk_pcm_sound_s {
   uint8_t* buf = nullptr;
 };
 
-SK_LazyGlobal <sk_pcm_sound_s>       annoy_sound;
+//SK_LazyGlobal <sk_pcm_sound_s>       annoy_sound;
 SK_LazyGlobal <sk::ParameterFactory> g_UpdateParameterFactory;
 
 INT_PTR
@@ -390,6 +390,7 @@ RemindMeLater_DlgProc (
     {
       SetTimer (hWndDlg, SK_UPDATE_TIMER, 150, nullptr);
 
+#if 0
       HRSRC   default_sound =
         FindResource (__SK_hModSelf, MAKEINTRESOURCE (IDR_ANNOYING), L"WAVE");
 
@@ -399,8 +400,9 @@ RemindMeLater_DlgProc (
           LoadResource (__SK_hModSelf, default_sound);
 
         if (annoy_sound->ref != nullptr)
-          annoy_sound->buf = (uint8_t *)LockResource (annoy_sound->ref);
+            annoy_sound->buf = (uint8_t *)LockResource (annoy_sound->ref);
       }
+#endif
 
       ComboBox_InsertString (hWndNextCheck, 0, L"Next launch");
       ComboBox_InsertString (hWndNextCheck, 1, L"After 15 Minutes");
@@ -418,6 +420,7 @@ RemindMeLater_DlgProc (
     {
       if (LOWORD (wParam) == IDOK)
       {
+#if 0
         srand (GetCurrentProcessId ());
 
         if (! (rand () % 2))
@@ -425,6 +428,7 @@ RemindMeLater_DlgProc (
                          nullptr,
                            SND_ASYNC |
                            SND_MEMORY );
+#endif
 
         FILETIME                  ftNow;
         GetSystemTimeAsFileTime (&ftNow);

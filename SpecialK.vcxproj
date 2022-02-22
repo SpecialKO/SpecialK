@@ -30,7 +30,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -38,7 +38,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <SpectreMitigation>false</SpectreMitigation>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -63,7 +63,7 @@
     <WindowsAppContainer>false</WindowsAppContainer>
     <EnableUnitySupport>false</EnableUnitySupport>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -158,12 +158,12 @@
       <OpenMPSupport>false</OpenMPSupport>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>-d2RecomputeAddrTaken- /Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
+      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <ConformanceMode>true</ConformanceMode>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -215,7 +215,7 @@
       <ResourceOutputFileName>resource\SpecialK.manifest</ResourceOutputFileName>
     </ManifestResourceCompile>
     <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
+      <PreserveSbr>false</PreserveSbr>
     </Bscmake>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -223,6 +223,9 @@
     <FxCompile>
       <DisableOptimizations>false</DisableOptimizations>
     </FxCompile>
+    <Xdcmake>
+      <DocumentLibraryDependencies>false</DocumentLibraryDependencies>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -231,7 +234,7 @@
       <Optimization>MaxSpeed</Optimization>
       <PreprocessorDefinitions>NTDDI_VERSION=NTDDI_WINTHRESHOLD;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;NOMINMAX;_WIN64;WIN32;_DEBUG;_WINDOWS;_USRDLL;SK_EXPORTS;GLEW_STATIC;%(PreprocessorDefinitions);/D_WIN32_WINNT _WIN32_WINNT_WIN7;/DWINVER _WIN32_WINNT_WIN7;PSAPI_VERSION=1;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NON_CONFORMING_SWPRINTFS;SK_BUILD_DLL=1;DIRECTINPUT_VERSION=0x0800;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>-d2RecomputeAddrTaken- /Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
+      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /Oy- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf</AdditionalOptions>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -261,7 +264,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
       <ConformanceMode>true</ConformanceMode>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
@@ -314,7 +317,7 @@
       <ResourceOutputFileName>resource\SpecialK.manifest</ResourceOutputFileName>
     </ManifestResourceCompile>
     <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
+      <PreserveSbr>false</PreserveSbr>
     </Bscmake>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -322,6 +325,9 @@
     <FxCompile>
       <DisableOptimizations>false</DisableOptimizations>
     </FxCompile>
+    <Xdcmake>
+      <DocumentLibraryDependencies>false</DocumentLibraryDependencies>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -343,7 +349,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
@@ -355,7 +361,7 @@
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>-d2RecomputeAddrTaken- /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <OpenMPSupport>false</OpenMPSupport>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
@@ -370,13 +376,14 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <OmitFramePointers>true</OmitFramePointers>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>d3dx9_43.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
@@ -428,6 +435,9 @@
       <ShaderModel>5.1</ShaderModel>
       <EnableDebuggingInformation>true</EnableDebuggingInformation>
     </FxCompile>
+    <Xdcmake>
+      <DocumentLibraryDependencies>false</DocumentLibraryDependencies>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -442,7 +452,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <StringPooling>true</StringPooling>
       <UseFullPaths>true</UseFullPaths>
@@ -451,7 +461,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>-d2RecomputeAddrTaken- /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-   %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-   %(AdditionalOptions)</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <OpenMPSupport>true</OpenMPSupport>
@@ -472,16 +482,17 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
       <GuardEHContMetadata>false</GuardEHContMetadata>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>d3dx9_43.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk64.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
       </EntryPointSymbol>
@@ -538,6 +549,12 @@
       <AllResourcesBound>true</AllResourcesBound>
       <TreatWarningAsError>true</TreatWarningAsError>
     </FxCompile>
+    <Bscmake>
+      <PreserveSbr>false</PreserveSbr>
+    </Bscmake>
+    <Xdcmake>
+      <DocumentLibraryDependencies>false</DocumentLibraryDependencies>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="CHANGELOG.txt" />
@@ -1420,7 +1437,7 @@
     </ClCompile>
     <ClCompile Include="src\com_util.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp17</LanguageStandard>
+      <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
     </ClCompile>
     <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
@@ -2214,33 +2231,13 @@
     <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
-    <None Include="resource\packages\D3DX9_43_32.7z" />
-    <None Include="resource\packages\D3DX9_43_64.7z" />
     <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="resource\packages\tobii_stream_engine_sk32.7z">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="resource\packages\tobii_stream_engine_sk64.7z">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </None>
     <None Include="resource\packages\libScePad_64.7z">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="resource\packages\WinRing0_32.7z">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </None>
-    <None Include="resource\packages\WinRing0_64.7z">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </None>
     <None Include="SpecialK.ruleset" />
@@ -2256,12 +2253,7 @@
     <ResourceCompile Include="SpecialK.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="resource\annoying.wav" />
     <Media Include="resource\crash.wav" />
-    <Media Include="resource\dream_theater.wav" />
-    <Media Include="resource\psn_trophy.wav" />
-    <Media Include="resource\screenshot.wav" />
-    <Media Include="resource\xbox.wav" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">

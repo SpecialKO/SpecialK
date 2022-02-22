@@ -1457,8 +1457,8 @@ public:
     {
       int i = 0;
 
-      const DWORD dwPID = GetCurrentProcessId    (),
-                  dwTID = SK_Thread_GetCurrentId ();
+      const DWORD dwPID = GetCurrentProcessId    ();
+                //dwTID = SK_Thread_GetCurrentId ();
 
       SYSTEM_PROCESS_INFORMATION* pProc = pInfo;
 

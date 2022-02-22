@@ -65,8 +65,8 @@ public:
   {
     SK_ImGui_Widgets->gpu_monitor = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::West).setBorder (true).
-                      setClickThrough (false);
+    setAutoFit (true).setDockingPoint (DockAnchor::West).
+    setBorder  (true);
   };
 
   void load (iSK_INI* cfg) noexcept override

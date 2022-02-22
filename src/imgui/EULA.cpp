@@ -120,7 +120,9 @@ SK_ImGui_DrawEULA (LPVOID reserved)
   if (((show_eula_s *)reserved)->show)
     ImGui::OpenPopup (szTitle);
 
+#ifdef _ProperSpacing
   const  float font_size = ImGui::GetFont  ()->FontSize * io.FontGlobalScale;
+#endif
 
   if (ImGui::BeginPopupModal (szTitle, nullptr, ImGuiWindowFlags_AlwaysAutoResize /*| ImGuiWindowFlags_NavFlattened*/))
   {

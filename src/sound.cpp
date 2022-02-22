@@ -373,7 +373,9 @@ SK_MMDev_GetLoudness (void)
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+    // This is optional and almost nothing implements it,
+    //   silence this at log level 0!
+    SK_LOG1 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
               ),L"  WASAPI  " );
 
     pLoudness = nullptr;
@@ -410,7 +412,9 @@ SK_MMDev_GetAutoGainControl (void)
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+    // This is optional and almost nothing implements it,
+    //   silence this at log level 0!
+    SK_LOG1 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
               ),L"  WASAPI  " );
 
     pAutoGain = nullptr;

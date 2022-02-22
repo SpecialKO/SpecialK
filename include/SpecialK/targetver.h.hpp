@@ -19,29 +19,27 @@
  *
 **/
 
-#include <SpecialK/stdafx.h>
+#pragma once
 
-#include <SpecialK/control_panel/opengl.h>
-#include <SpecialK/control_panel/osd.h>
+// Including SDKDDKVer.h defines the highest available Windows platform.
 
+#ifndef WINVER
+#define WINVER 	_WIN32_WINNT_WINBLUE
+#endif
 
-using namespace SK::ControlPanel;
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 	_WIN32_WINNT_WINBLUE
+#endif
 
-bool
-SK::ControlPanel::OpenGL::Draw (void)
-{
-  if ( ( static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::OpenGL) ) ==
-                                          static_cast <int> (SK_RenderAPI::OpenGL)   &&
-       ImGui::CollapsingHeader ("OpenGL Settings", ImGuiTreeNodeFlags_DefaultOpen) )
-  {
-    ImGui::TreePush ("");
+#ifndef _WIN32_WINDOWS
+#define _WIN32_WINDOWS 0x0501
+#endif
 
-    OSD::DrawVideoCaptureOptions ();
+#ifndef _WIN32_IE
+#define _WIN32_IE _WIN32_IE_IE110
+#endif
 
-    ImGui::TreePop  ();
+// If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
+// set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
 
-    return true;
-  }
-
-  return false;
-}
+#include <SDKDDKVer.h>

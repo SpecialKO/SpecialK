@@ -49,4 +49,51 @@ struct sk_internet_get_t {
   int     status                                       = STATUS_INVALID;
 };
 
+struct sk_download_request_s
+{
+  std::wstring  path;
+  INTERNET_PORT port =       INTERNET_DEFAULT_HTTP_PORT;
+  wchar_t       wszHostName [INTERNET_MAX_HOST_NAME_LENGTH] = { };
+  wchar_t       wszHostPath [INTERNET_MAX_PATH_LENGTH]      = { };
+
+  uint64_t      user = 0;
+
+  bool (*finish_routine)( const std::vector <uint8_t>&&,
+                          const std::wstring_view ) = nullptr;
+
+  sk_download_request_s (void) { };
+  sk_download_request_s (const std::wstring&    local_path,
+                         const std::string_view url,
+                         bool (*finisher)(const std::vector <uint8_t>&&,
+                                          const std::wstring_view) = nullptr)
+  {
+    finish_routine = finisher;
+    path           = local_path;
+
+    std::wstring wide_url =
+      SK_UTF8ToWideChar (url.data ());
+
+    URL_COMPONENTSW
+      urlcomps                  = {                      };
+      urlcomps.dwStructSize     = sizeof (URL_COMPONENTSW);
+
+      urlcomps.lpszHostName     = wszHostName;
+      urlcomps.dwHostNameLength = INTERNET_MAX_HOST_NAME_LENGTH;
+
+      urlcomps.lpszUrlPath      = wszHostPath;
+      urlcomps.dwUrlPathLength  = INTERNET_MAX_PATH_LENGTH;
+
+    InternetCrackUrlW (         wide_url.c_str  (),
+       sk::narrow_cast <DWORD> (wide_url.length ()),
+                         0x00,
+                           &urlcomps );
+
+    if (wide_url.find (L"https") != std::wstring::npos)
+      port = INTERNET_DEFAULT_HTTPS_PORT;
+  }
+};
+
+void SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio = false);
+
+
 #endif /* __SK_Update__Network_H__ */

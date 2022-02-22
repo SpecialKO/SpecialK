@@ -120,7 +120,6 @@ static HANDLE SK_XInputCold_DecommisionEvent = 0;
 
 extern void SK_XInput_SetRefreshInterval   (ULONG ulIntervalMS);
 extern void SK_XInput_Refresh              (UINT iJoyID);
-       void SK_XInput_DeferredStatusChecks (void);
 
 void
 SK_XInput_RefreshControllers (void)

@@ -337,7 +337,9 @@ SK_Bypass_CRT (LPVOID)
       return dgVoodoo_Check ();
     };
 
+#ifdef _M_IX86
   const bool has_dgvoodoo = dgVoodoo_Check ();
+#endif
 
   const wchar_t* wszAPI = SK_GetBackend ();
 

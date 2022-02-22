@@ -159,13 +159,13 @@ struct ShaderBase
       compilerOutput;
 
     HRESULT hr =
-      D3DCompile ( szShaderString,
-                     strlen (szShaderString),
-                       nullptr, nullptr, nullptr,
-                         szEntryPoint, szShaderModel,
-                           0, 0,
-                             &bytecode.p,
-                               &compilerOutput.p );
+      SK_D3D_Compile ( szShaderString,
+                strlen (szShaderString),
+                  nullptr, nullptr, nullptr,
+                    szEntryPoint, szShaderModel,
+                      0, 0,
+                        &bytecode.p,
+                          &compilerOutput.p );
 
     if (FAILED (hr))
     {

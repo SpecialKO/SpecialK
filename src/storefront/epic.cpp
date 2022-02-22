@@ -37,18 +37,77 @@ public:
   {
     std::ignore = szAchievement;
 
-    if (config.steam.achievements.play_sound)
+    if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
     {
-      SK_PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC |
-                                                     SND_MEMORY );
+      SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
+                               nullptr, SND_ASYNC |
+                                        SND_MEMORY );
     }
 
     // If the user wants a screenshot, but no popups (why?!), this is when
     //   the screenshot needs to be taken.
-    if (       config.steam.achievements.take_screenshot )
+    if (       config.platform.achievements.take_screenshot )
     {
       SK::SteamAPI::TakeScreenshot ();
     }
+
+    log_all_achievements ();
+  }
+
+  void log_all_achievements (void) const
+  {
+    for (uint32 i = 0; i < SK_EOS_GetNumPossibleAchievements (); i++)
+    {
+      const Achievement* achievement =
+                         achievements.list [i];
+
+      if (achievement == nullptr || achievement->name_.empty ())
+        continue;
+
+      epic_log->LogEx  (false, L"\n [%c] Achievement %03lu......: '%hs'\n",
+                        achievement->unlocked_ ? L'X' : L' ',
+                     i, achievement->name_.data ());
+      epic_log->LogEx  (false,
+                        L"  + Human Readable Name...: %ws\n",
+                        achievement->      unlocked_                    ?
+                        achievement->text_.unlocked.human_name.c_str () :
+                        achievement->text_.  locked.human_name.c_str ());
+      if (! (achievement->unlocked_ && achievement->text_.locked.desc.empty ()))
+      {
+        epic_log->LogEx (false,
+                        L"  *- Detailed Description.: %ws\n",
+                        achievement->text_.locked.desc.c_str ());
+      }
+      else if ((achievement->unlocked_ && !achievement->text_.unlocked.desc.empty ()))
+      {
+        epic_log->LogEx (false,
+                        L"  *- Detailed Description.: %ws\n",
+                        achievement->text_.unlocked.desc.c_str ());
+      }
+
+      if (achievement->global_percent_ > 0.0f)
+      {
+        epic_log->LogEx (false,
+                         L"  #-- Rarity (Global).....: %6.2f%%\n",
+                         achievement->global_percent_);
+      }
+      if (achievement->friends_.possible > 0)
+      {
+        epic_log->LogEx (false,
+                         L"  #-- Rarity (Friend).....: %6.2f%%\n",
+          100.0 * (static_cast <double> (achievement->friends_.unlocked) /
+                   static_cast <double> (achievement->friends_.possible)) );
+      }
+
+      if (achievement->unlocked_)
+      {
+        epic_log->LogEx (false,
+                         L"  @--- Player Unlocked At.: %s",
+                         _wctime64 (&achievement->time_));
+      }
+    }
+
+    epic_log->LogEx (false, L"\n");
   }
 
   static EOS_Achievements_GetPlayerAchievementCount_pfn                  GetPlayerAchievementCount;
@@ -85,7 +144,7 @@ public:
 
     // If we want to use this as our own, then don't let the Epic overlay
     //   unpause the game on deactivation unless the control panel is closed.
-    if (config.steam.reuse_overlay_pause && SK::EOS::IsOverlayAware ())
+    if (config.platform.reuse_overlay_pause && SK::EOS::IsOverlayAware ())
     {
       // Deactivating, but we might want to hide this event from the game...
       if (Data->bIsVisible == 0)
@@ -287,10 +346,7 @@ float
 __stdcall
 SK_EOS_PercentOfAchievementsUnlocked (void)
 {
-  if (eos_achievements.getPtr () != nullptr)
-    return eos_achievements->getPercentOfAchievementsUnlocked ();
-
-  return 0.0f;
+  return eos_achievements->getPercentOfAchievementsUnlocked ();
 }
 
 float
@@ -309,7 +365,7 @@ SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound)
 void
 SK_EOS_LogAllAchievements (void)
 {
-  //eos_achievements->log_all_achievements ();
+  eos_achievements->log_all_achievements ();
 }
 
 void
@@ -345,6 +401,9 @@ static auto constexpr EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDES
 void
 SK_EOS_Achievements_RefreshPlayerStats (void)
 {
+  if (config.system.log_level > 1)
+    epic_log->Log (L"!! SK_EOS_Achievements_RefreshPlayerStats");
+
   const EOS_Achievements_QueryPlayerAchievementsOptions query_opts =
       { EOS_ACHIEVEMENTS_QUERYPLAYERACHIEVEMENTS_API_OLDEST, epic->UserId (),
                                                              epic->UserId () };
@@ -367,7 +426,7 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
       const EOS_Achievements_GetPlayerAchievementCountOptions get_opts =
           { EOS_ACHIEVEMENTS_GETPLAYERACHIEVEMENTCOUNT_API_OLDEST, UserId };
 
-      const int
+      const uint32_t
           num_achievements =
           eos_achievements->GetPlayerAchievementCount (hAchievements, &get_opts);
       int unlock_count     = 0;
@@ -403,13 +462,18 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
         }
       }
 
+      eos_achievements->log_all_achievements ();
+
       if (! std::exchange (has_unlock_callback, true))
       {
-        eos_achievements->loadSound (config.steam.achievements.sound_file.c_str ());
+        eos_achievements->loadSound (config.platform.achievements.sound_file.c_str ());
 
         constexpr EOS_Achievements_AddNotifyAchievementsUnlockedV2Options
           notify_opts = { EOS_ACHIEVEMENTS_ADDNOTIFYACHIEVEMENTSUNLOCKEDV2_API_OLDEST };
 
+        //
+        // Install a Lambda Callback
+        //
         eos_achievements->AddNotifyAchievementsUnlockedV2 ( epic->Achievements (), &notify_opts,
                                                                      eos_achievements.getPtr (),
         [](const EOS_Achievements_OnAchievementsUnlockedCallbackV2Info* Data)
@@ -419,10 +483,20 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
             SK_ReleaseAssert ( Data->UnlockTime !=
                                  EOS_ACHIEVEMENTS_ACHIEVEMENT_UNLOCKTIME_UNDEFINED );
 
-            epic_log->Log (
-              L"EOS_Achievements_OnAchievementsUnlockedCallbackV2 ({ Achievement=%hs })",
-                Data->AchievementId
-            );
+            auto pAchievement =
+              eos_achievements->getAchievement (Data->AchievementId);
+
+            if (pAchievement != nullptr)
+              epic_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
+                                 pAchievement->text_.unlocked.human_name.c_str (),
+                                 pAchievement->text_.unlocked.desc      .c_str () );
+            else
+            {
+              epic_log->Log (
+                L"EOS_Achievements_OnAchievementsUnlockedCallbackV2 ({ Achievement=%hs })",
+                  Data->AchievementId
+              );
+            }
 
             SK_EOS_Achievements_RefreshPlayerStats ();
 
@@ -437,9 +511,6 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
           static_cast <double> (SK_EOS_GetNumPossibleAchievements ())
         );
     }
-
-    else
-      SK_EOS_Achievements_RefreshPlayerStats ();
   });
 }
 
@@ -475,7 +546,7 @@ void
 __stdcall
 SK::EOS::SetOverlayState (bool active)
 {
-  if (config.steam.silent)
+  if (config.platform.silent)
     return;
 
   eos_overlay->invokeCallbacks (active);
@@ -561,9 +632,11 @@ void
 EOS_CALL
 EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
 {
+  // Temporarily incompatible
+  SK_RunOnce (config.platform.reuse_overlay_pause = false);
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
 
-  // Initialize various things on the first successful tick,
+  // Initialize various things on the first s.uccessful tick,
   //   this may happen multiple times until actual log-in...
   if ( epic->Platform () == nullptr ||
        epic->UserId   () == nullptr )
@@ -583,49 +656,59 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
         query_opts.ApiVersion  = EOS_ACHIEVEMENTS_QUERYDEFINITIONS_API_MINIMUM;
         query_opts.LocalUserId = epic->UserId ();
 
-      eos_achievements->QueryDefinitions ( epic->Achievements (), &query_opts,
-                                           epic.getPtr        (),
-      [](const EOS_Achievements_OnQueryDefinitionsCompleteCallbackInfo* Data)
+      static bool          query_once = false;
+      if (! std::exchange (query_once, true))
       {
-        if (Data->ResultCode == EOS_EResult::EOS_Success)
+        if (config.system.log_level > 1)
+                epic_log->Log (L"?? eos_achievements->QueryDefinitions");
+
+        eos_achievements->QueryDefinitions ( epic->Achievements (), &query_opts,
+                                             epic.getPtr        (),
+        [](const EOS_Achievements_OnQueryDefinitionsCompleteCallbackInfo* Data)
         {
-          static bool          copy_once = false;
-          if (! std::exchange (copy_once, true))
+          if (Data->ResultCode == EOS_EResult::EOS_Success)
           {
-            EOS_Achievements_GetAchievementDefinitionCountOptions def_count_opts = {
-            EOS_ACHIEVEMENTS_GETACHIEVEMENTDEFINITIONCOUNT_API_LATEST              };
-
-            uint32_t num_achievements =
-              eos_achievements->GetAchievementDefinitionCount (
-                epic->Achievements (), &def_count_opts        );
-
-            EOS_Achievements_CopyAchievementDefinitionV2ByIndexOptions def_copy_opts = {
-            EOS_ACHIEVEMENTS_COPYACHIEVEMENTDEFINITIONV2BYINDEX_API_LATEST, 0          };
-
-            for (   def_copy_opts.AchievementIndex = 0 ;
-                    def_copy_opts.AchievementIndex < num_achievements ;
-                  ++def_copy_opts.AchievementIndex )
+            static bool          copy_once = false;
+            if (! std::exchange (copy_once, true))
             {
-              EOS_Achievements_DefinitionV2*
-                 pAchievement = nullptr;
+              EOS_Achievements_GetAchievementDefinitionCountOptions def_count_opts = {
+              EOS_ACHIEVEMENTS_GETACHIEVEMENTDEFINITIONCOUNT_API_LATEST              };
 
-              if ( EOS_EResult::EOS_Success ==
-                     eos_achievements->CopyAchievementDefinitionV2ByIndex (
-                       epic->Achievements (), &def_copy_opts, &pAchievement )
-                 )
+              uint32_t num_achievements =
+                eos_achievements->GetAchievementDefinitionCount (
+                  epic->Achievements (), &def_count_opts        );
+
+              EOS_Achievements_CopyAchievementDefinitionV2ByIndexOptions def_copy_opts = {
+              EOS_ACHIEVEMENTS_COPYACHIEVEMENTDEFINITIONV2BYINDEX_API_LATEST, 0          };
+
+              for (   def_copy_opts.AchievementIndex = 0 ;
+                      def_copy_opts.AchievementIndex < num_achievements ;
+                    ++def_copy_opts.AchievementIndex )
               {
-                eos_achievements->addAchievement (
-                              new SK_AchievementManager::Achievement (
-                                           def_copy_opts.AchievementIndex,
-                                                        pAchievement));
-                eos_achievements->DefinitionV2_Release (pAchievement);
+                EOS_Achievements_DefinitionV2*
+                   pAchievement = nullptr;
+
+                if ( EOS_EResult::EOS_Success ==
+                       eos_achievements->CopyAchievementDefinitionV2ByIndex (
+                         epic->Achievements (), &def_copy_opts, &pAchievement )
+                   )
+                {
+                  eos_achievements->addAchievement (
+                                new SK_AchievementManager::Achievement (
+                                             def_copy_opts.AchievementIndex,
+                                                          pAchievement));
+                  eos_achievements->DefinitionV2_Release (pAchievement);
+                }
               }
+
+              if (num_achievements > 0)
+                SK_EOS_Achievements_RefreshPlayerStats ();
             }
           }
 
-          SK_EOS_Achievements_RefreshPlayerStats ();
-        }
-      });
+          else query_once = false;
+        });
+      }
     }
   }
 
@@ -660,7 +743,7 @@ EOS_Platform_Release_Detour (EOS_HPlatform Handle)
 void
 SK::EOS::Init (bool pre_load)
 {
-  if (config.steam.silent)
+  if (config.platform.silent)
     return;
 
   const wchar_t*
@@ -671,48 +754,103 @@ SK::EOS::Init (bool pre_load)
   if ((! pre_load) && (! SK_GetModuleHandle (wszEOSDLLName)))
     return;
 
-  HMODULE hModEOS =
-    SK_LoadLibraryW (wszEOSDLLName);
-
-  if ((! pre_load) && hModEOS != nullptr)
+  static HMODULE     hModEOS = nullptr;
+  if (std::exchange (hModEOS, SK_LoadLibraryW (wszEOSDLLName)) == nullptr)
   {
     epic_log->init (L"logs/eos.log", L"wt+,ccs=UTF-8");
-    epic_log->silent = config.steam.silent;
+    epic_log->silent = config.platform.silent;
+
+    SK_ICommandProcessor* cmd =
+    SK_GetCommandProcessor ();
+
+    #define cmdAddAliasedVar(name,pVar)                 \
+      for ( const char* alias : { "Epic."     #name,    \
+                                  "Platform." #name } ) \
+        cmd->AddVariable (alias, pVar);
+
+    cmdAddAliasedVar (TakeScreenshot,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.take_screenshot));
+    cmdAddAliasedVar (ShowPopup,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.show));
+    cmdAddAliasedVar (PopupDuration,
+        SK_CreateVar (SK_IVariable::Int,
+                        (int  *)&config.platform.achievements.popup.duration));
+    cmdAddAliasedVar (PopupInset,
+        SK_CreateVar (SK_IVariable::Float,
+                        (float*)&config.platform.achievements.popup.inset));
+    cmdAddAliasedVar (ShowPopupTitle,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.show_title));
+    cmdAddAliasedVar (PopupAnimate,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.animate));
+    cmdAddAliasedVar (PlaySound,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.play_sound));
+
+    epic->popup_origin =
+      SK_CreateVar ( SK_IVariable::String,
+                       epic->var_strings.popup_origin,
+                       epic.getPtr () );
+    cmdAddAliasedVar ( PopupOrigin,
+                       epic->popup_origin );
+
+    epic->notify_corner =
+      SK_CreateVar ( SK_IVariable::String,
+                       epic->var_strings.notify_corner,
+                       epic.getPtr () );
+    cmdAddAliasedVar ( NotifyCorner,
+                       epic->notify_corner );
 
     epic->PreInit (hModEOS);
 
+    // We may wind up in here before MinHook would normally be initialized
+    SK_MinHook_Init ();
+  }
+
+  auto _SetupEOS =
+  [&](void)
+  {
     /* Since we probably missed the opportunity to catch EOS_Platform_Create,
          hook EOS_Platform_Tick and watch for the game's EOS_HPlatform */
 
+    if (                                EOS_Initialize_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Initialize",
                                         EOS_Initialize_Detour,
                static_cast_p2p <void> (&EOS_Initialize_Original) );
 
+    if (                                EOS_Shutdown_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Shutdown",
                                         EOS_Shutdown_Detour,
                static_cast_p2p <void> (&EOS_Shutdown_Original) );
 
+    if (                                EOS_Platform_Tick_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Platform_Tick",
                                         EOS_Platform_Tick_Detour,
                static_cast_p2p <void> (&EOS_Platform_Tick_Original) );
 
+    if (                                EOS_Platform_Create_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Platform_Create",
                                         EOS_Platform_Create_Detour,
                static_cast_p2p <void> (&EOS_Platform_Create_Original) );
 
+    if (                                EOS_Platform_Release_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_Platform_Release",
                                         EOS_Platform_Release_Detour,
                static_cast_p2p <void> (&EOS_Platform_Release_Original) );
 
 
+    if (                          eos_overlay->AddNotifyDisplaySettingsUpdated_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_AddNotifyDisplaySettingsUpdated",
                                         EOS_UI_AddNotifyDisplaySettingsUpdated_Detour,
          static_cast_p2p <void> (&eos_overlay->AddNotifyDisplaySettingsUpdated_Original) );
 
+    if (                          eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original == nullptr)
     SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_RemoveNotifyDisplaySettingsUpdated",
                                         EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour,
          static_cast_p2p <void> (&eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original) );
-
 
     eos_achievements->GetUnlockedAchievementCount     = (EOS_Achievements_GetUnlockedAchievementCount_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_GetUnlockedAchievementCount");
@@ -793,6 +931,12 @@ SK::EOS::Init (bool pre_load)
 #endif
 
     SK_ApplyQueuedHooks ();
+  };
+
+  if ((! pre_load) && hModEOS != nullptr)
+  {
+    if (SK::EOS::GetTicksRetired () == 0)
+      _SetupEOS ();
   }
 
   // Preloading not supported, SK has no EOS Credentials
@@ -817,7 +961,8 @@ SK_EOSContext::PreInit (HMODULE hEOSDLL)
 }
 
 bool
-SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
+SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
+                                        EOS_HPlatform platform )
 {
   // If we were a registered EOS product, this is where we would init...
   if (platform == nullptr)
@@ -846,13 +991,15 @@ SK_EOSContext::InitEpicOnlineServices (HMODULE hEOSDLL, EOS_HPlatform platform)
 
   if (auth_ != nullptr)
   {
-    int32_t logins = Auth_GetLoggedInAccountsCount != nullptr ?
-                     Auth_GetLoggedInAccountsCount (auth_)    : 0;
+    int32_t logins =
+      ( Auth_GetLoggedInAccountsCount != nullptr ) ?
+        Auth_GetLoggedInAccountsCount (auth_)      : 0;
 
-    SK_ReleaseAssert (logins <= 1);
+    //SK_ReleaseAssert (logins <= 1);
 
     SK::EOS::player.account =
-      Auth_GetLoggedInAccountByIndex (auth_, 0);
+      ( logins > 0 ) ? Auth_GetLoggedInAccountByIndex (auth_, 0)
+                     : nullptr;
 
     if (SK::EOS::player.account != nullptr)
     {
@@ -1004,6 +1151,9 @@ SK::EOS::AppName (void)
       while (! std::filesystem::equivalent ( path.parent_path    (),
                                              path.root_directory () ) )
       {
+        if (! name.empty ())
+          break;
+
         if (std::filesystem::is_directory (path / L".egstore"))
         {
           for ( const auto& file : std::filesystem::directory_iterator (path / L".egstore") )
@@ -1024,7 +1174,7 @@ SK::EOS::AppName (void)
               StrCatW     (wszManifestPath, L".item");
 
               if (! std::filesystem::exists (wszManifestPath))
-                break;
+                continue;
 
               if (std::fstream mancpn (wszManifestPath, std::fstream::in);
                                mancpn.is_open ())
@@ -1062,10 +1212,13 @@ SK::EOS::AppName (void)
                   }
                 }
 
-                path = LR"(\)";
+                path = L"/";
                 break;
               }
             }
+
+            if (! name.empty ())
+              break;
           }
         }
 
@@ -1077,12 +1230,12 @@ SK::EOS::AppName (void)
       app_cache_mgr->loadAppCacheForExe (SK_GetFullyQualifiedApp ());
 
       // Trigger profile migration if necessary
-      app_cache_mgr->getConfigPathForEpicApp (szEpicApp);
+      SK_RunOnce (app_cache_mgr->getConfigPathForEpicApp (szEpicApp));
     }
 
-    catch (...)
+    catch (const std::exception& e)
     {
-
+      epic_log->Log (L"App Name Parse Failure: %hs", e.what ());
     }
   }
 
@@ -1094,14 +1247,14 @@ void
 SK_EOS_SetNotifyCorner (void)
 {
   // 4 == Don't Care
-  if (config.steam.notify_corner != 4)
+  if (config.platform.notify_corner != 4)
   {
     if ( epic->UI ()                   != nullptr &&
          epic->UI_SetDisplayPreference != nullptr )
     {
       EOS_UI_SetDisplayPreferenceOptions opts = {
       EOS_UI_SETDISPLAYPREFERENCE_API_LATEST,
-        static_cast <EOS_UI_ENotificationLocation> (config.steam.notify_corner)
+        static_cast <EOS_UI_ENotificationLocation> (config.platform.notify_corner)
       };
 
       epic->UI_SetDisplayPreference ( epic->UI (), &opts );

@@ -37,7 +37,10 @@ MIDL_INTERFACE("B18B10CE-2649-405a-870F-95F777D4313A") IDirect3DDevice9Ex;
 #include <d3d9.h>
 #include <SpecialK/nvapi.h>
 
+#include <filesystem>
+
 using namespace SK::D3D9;
+
 
 volatile LONG               __d3d9_ready = FALSE;
 
@@ -367,43 +370,13 @@ void SK_D3D9_SetPixelShader       ( IDirect3DDevice9       *pDev,
 void SK_D3D9_SetVertexShader      ( IDirect3DDevice9       *pDev,
                                     IDirect3DVertexShader9 *pShader );
 
-
-
-
-#ifndef SK_BUILD__INSTALLER
-#pragma comment (lib, "d3dx9.lib")
-
-#ifdef _WIN64
-# define SK_CEGUI_LIB_BASE "CEGUI/x64/"
-#else
-# define SK_CEGUI_LIB_BASE "CEGUI/Win32/"
-#endif
-
-#define _SKC_MakeCEGUILib(library) \
-  __pragma (comment (lib, SK_CEGUI_LIB_BASE #library ##".lib"))
-
-_SKC_MakeCEGUILib ("CEGUIDirect3D9Renderer-0")
-_SKC_MakeCEGUILib ("CEGUIBase-0")
-_SKC_MakeCEGUILib ("CEGUICoreWindowRendererSet")
-_SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
-_SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
-_SKC_MakeCEGUILib ("CEGUISTBImageCodec")
-
-#include <CEGUI/Rect.h>
-#include <CEGUI/RendererModules/Direct3D9/Renderer.h>
-
-static
-CEGUI::Direct3D9Renderer* cegD3D9 = nullptr;
-#endif
-
-
 static volatile ULONG __gui_reset_d3d9     = TRUE;
-static volatile ULONG __cegui_frames_drawn =   0L;
+static volatile ULONG __imgui_frames_drawn =   0L;
 
-void ResetCEGUI_D3D9 (IDirect3DDevice9* pDev);
+void SK_ImGUI_ResetD3D9 (IDirect3DDevice9* pDev);
 
 void
-SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
+SK_ImGui_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 {
   static volatile LONG             __first_frame =       TRUE;
   if (InterlockedCompareExchange (&__first_frame, FALSE, TRUE) == TRUE)
@@ -459,23 +432,19 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
 
 
-  InterlockedIncrementAcquire (&__cegui_frames_drawn);
+  static bool init = false;
 
+  InterlockedIncrementAcquire           (&__imgui_frames_drawn);
   if (InterlockedCompareExchangeRelease (&__gui_reset_d3d9, FALSE, TRUE))
   {
-    if ((uintptr_t)cegD3D9 > 1)
-    {
-      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-      SK_PopupManager::getInstance       ()->destroyAllPopups   ();
 
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
-    }
+    //SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
+    //SK_PopupManager::getInstance       ()->destroyAllPopups   ();
 
-    if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
-                   cegD3D9  = nullptr;
+    init = false;
   }
 
-  else if (cegD3D9 == nullptr)
+  else if (std::exchange (init, true) == false)
   {
     D3DPRESENT_PARAMETERS              pparams = { };
     pSwapChain->GetPresentParameters (&pparams);
@@ -487,13 +456,13 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     if (pWrappedDevice != nullptr)
     {
 #ifdef _DEBUG
-      dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+      dll_log.Log (L"Using wrapper for SK_ImGUI_ResetD3D9!");
 #endif
-      ResetCEGUI_D3D9 (pDev/*pWrappedDevice*/);
+      SK_ImGUI_ResetD3D9 (pDev/*pWrappedDevice*/);
     }
 
     else
-      ResetCEGUI_D3D9 (pDev);
+      SK_ImGUI_ResetD3D9 (pDev);
   }
 
   else if (pDev != nullptr)
@@ -606,24 +575,7 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     //   aspect ratio itself
     surf_desc.Width  = vp_orig.Width;
     surf_desc.Height = vp_orig.Height;
-
-    if (config.cegui.enable && (uintptr_t)cegD3D9 > 1)
-    {
-      CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
-          CEGUI::Sizef (
-            static_cast <float> (surf_desc.Width),
-            static_cast <float> (surf_desc.Height)
-          )
-      );
-    }
 #endif
-
-
-    if ((uintptr_t)cegD3D9 > 1)
-    {
-      cegD3D9->beginRendering ();
-      SK_TextOverlayManager::getInstance ()->drawAllOverlays (0.0f, 0.0f);
-    }
 
     pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
     pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
@@ -632,10 +584,6 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
 
     pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
-
-    if ((uintptr_t)cegD3D9 > 1)
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-
 
     const auto api = SK_GetCurrentRenderBackend ().api;
 
@@ -648,22 +596,16 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
     }
 
 
-    if ((uintptr_t)cegD3D9 > 1 && SK_Steam_DrawOSD () != 0)
-    {
-      pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
-      pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
-      pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
-      pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
-      pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
-
-      pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
-
-      if ((uintptr_t)cegD3D9 > 1)
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-    }
-
-    if ((uintptr_t)cegD3D9 > 1)
-      cegD3D9->endRendering ();
+    //if ((uintptr_t)cegD3D9 > 1 && SK_Steam_DrawOSD () != 0)
+    //{
+    //  pDev->SetRenderState (D3DRS_SRGBWRITEENABLE,          FALSE);
+    //  pDev->SetRenderState (D3DRS_ALPHABLENDENABLE,         TRUE);
+    //  pDev->SetRenderState (D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+    //  pDev->SetRenderState (D3DRS_SRCBLEND,                 D3DBLEND_INVSRCALPHA);
+    //  pDev->SetRenderState (D3DRS_DESTBLEND,                D3DBLEND_SRCALPHA);
+    //
+    //  pDev->SetRenderState (D3DRS_ALPHATESTENABLE,          FALSE);
+    //}
 
     pDev->SetViewport (&vp_orig);
 
@@ -676,104 +618,20 @@ SK_CEGUI_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 }
 
 void
-SK_CEGUI_QueueResetD3D9 (void)
+SK_ImGui_QueueResetD3D9 (void)
 {
   InterlockedExchangeAcquire (&__gui_reset_d3d9, TRUE);
 }
 
-
-extern void
-SK_CEGUI_RelocateLog (void);
-extern void
-SK_CEGUI_InitBase    (void);
-
-
 void
-ResetCEGUI_D3D9 (IDirect3DDevice9* pDev)
+SK_ImGUI_ResetD3D9 (IDirect3DDevice9* pDev)
 {
   SK_Window_RepositionIfNeeded ();
 
-  if (cegD3D9 != nullptr || (pDev == nullptr))
-  {
-    SK_Steam_ClearPopups ();
-
-    if ((uintptr_t)cegD3D9 > 1)
-    {
-      SK_TextOverlayManager::getInstance ()->destroyAllOverlays ();
-      SK_PopupManager::getInstance ()->destroyAllPopups         ();
-
-      CEGUI::WindowManager::getDllSingleton ().cleanDeadPool    ();
-    }
-
-    if ((uintptr_t)cegD3D9 > 1) cegD3D9->destroySystem ();
-                   cegD3D9  = nullptr;
-  }
-
-  else if (cegD3D9 == nullptr)
-  {
-    if (config.cegui.enable)
-    {
-      int thread_locale =
-        _configthreadlocale (0);
-        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
-
-      char* szLocale =
-        setlocale (LC_ALL, nullptr);
-
-      std::string locale_orig (
-        szLocale != nullptr ? szLocale : ""
-      );
-
-      if (! locale_orig.empty ())
-        setlocale (LC_ALL, "C");
-
-      if (SK_GetModuleHandle (L"CEGUIDirect3D9Renderer-0.dll"))
-      {
-        try {
-          cegD3D9 =
-            &CEGUI::Direct3D9Renderer::bootstrapSystem (pDev);
-        }
-
-        catch (const CEGUI::Exception& e)
-        {
-          SK_LOG0 ( (L"CEGUI Exception During D3D9 Bootstrap"),
-                     L"   CEGUI  "  );
-          SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                      e.getFunctionName    ().c_str (),
-                      e.getFileName        ().c_str (),
-                      e.getLine            (),
-                              e.getName    ().c_str (),
-                              e.getMessage ().c_str () ),
-                     L"   CEGUI  "  );
-
-          config.cegui.enable = false;
-        }
-
-        SK_CEGUI_RelocateLog ();
-
-        if (! locale_orig.empty ())
-          setlocale (LC_ALL, "C");
-
-        SK_CEGUI_InitBase    ();
-
-        SK_PopupManager::getInstance ()->destroyAllPopups       ();
-        SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegD3D9*/);
-      }
-
-      if (! locale_orig.empty ())
-        setlocale (LC_ALL, locale_orig.c_str ());
-
-      _configthreadlocale (thread_locale);
-    }
-
-    else
-      cegD3D9 = (CEGUI::Direct3D9Renderer *)1;
-
-    SK_Steam_ClearPopups ();
-  }
-
   if (pDev != nullptr)
   {
+    SK_Steam_ClearPopups ();
+
     //
     // Initialize ImGui for D3D9 games
     //
@@ -923,9 +781,254 @@ SK_HookD3D9 (void)
   SK_Thread_SpinUntilFlagged   (&__d3d9_ready);
 }
 
-void
-SK_UnpackD3DX9 (void)
+//
+// D3DX9 Ghetto Delay Load :)
+//
+HMODULE SK_D3DX9_Unpack (void);
+
+HMODULE
+SK_D3DX9_GetModule (bool acquire = false)
 {
+  static auto     hModD3DX9_43 =
+    SK_LoadLibraryA ("d3dx9_43.dll");
+
+  if ( nullptr == hModD3DX9_43 && acquire )
+  {  SK_RunOnce ( hModD3DX9_43 =
+                   SK_D3DX9_Unpack () )   }
+
+  if ( nullptr != hModD3DX9_43 )
+  { 
+    SK_RunOnce (  std::atexit ( []
+    {FreeLibrary (hModD3DX9_43);}) )
+  }
+
+  return
+    hModD3DX9_43;
+}
+
+LPCVOID
+SK_D3DX9_GetProcAddress (const char* szProc)
+{
+  return
+    SK_GetProcAddress (
+      SK_D3DX9_GetModule (true),
+        szProc );
+}
+
+using D3DXDisassembleShader_pfn =
+  HRESULT (WINAPI *)( const DWORD*, BOOL,
+                            LPCSTR, LPD3DXBUFFER* );
+
+using D3DXGetShaderConstantTable_pfn =
+  HRESULT (WINAPI *)( const DWORD*,
+                        LPD3DXCONSTANTTABLE* );
+
+using D3DXSaveTextureToFileW_pfn = 
+  HRESULT (WINAPI *)( LPCWSTR, D3DXIMAGE_FILEFORMAT,
+                      LPDIRECT3DBASETEXTURE9,
+                const PALETTEENTRY* );
+
+using D3DXGetImageInfoFromFileInMemory_pfn =
+  HRESULT (WINAPI *)( LPCVOID, UINT, 
+                      D3DXIMAGE_INFO* );
+
+HRESULT
+WINAPI
+SK_D3DXDisassembleShader (
+const DWORD         *pShader, 
+      BOOL           EnableColorCode, 
+      LPCSTR         pComments, 
+      LPD3DXBUFFER *ppDisassembly )
+{
+  static auto
+    _D3DXDisassembleShader =
+    (D3DXDisassembleShader_pfn)SK_D3DX9_GetProcAddress
+   ("D3DXDisassembleShader");
+
+  return
+    ( _D3DXDisassembleShader != nullptr )
+    ? _D3DXDisassembleShader (
+                     pShader, EnableColorCode,
+                     pComments, ppDisassembly )
+    : E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_D3DXGetShaderConstantTable (
+const DWORD               *pFunction,
+      LPD3DXCONSTANTTABLE *ppConstantTable )
+{
+  static auto
+    _D3DXGetShaderConstantTable =
+    (D3DXGetShaderConstantTable_pfn)SK_D3DX9_GetProcAddress
+   ("D3DXGetShaderConstantTable");
+
+  return
+    ( _D3DXGetShaderConstantTable != nullptr )
+    ? _D3DXGetShaderConstantTable (pFunction, ppConstantTable)
+    : E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_D3DXGetImageInfoFromFileInMemory (
+  LPCVOID         pSrcData,
+  UINT            SrcDataSize,
+  D3DXIMAGE_INFO* pSrcInfo)
+{
+  static auto
+    _D3DXGetImageInfoFromFileInMemory =
+    (D3DXGetImageInfoFromFileInMemory_pfn)SK_D3DX9_GetProcAddress
+   ("D3DXGetImageInfoFromFileInMemory");
+
+  return
+    ( _D3DXGetImageInfoFromFileInMemory != nullptr )
+    ? _D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, pSrcInfo)
+    : E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_D3DXSaveTextureToFile (
+      LPCTSTR                pDestFile,
+      D3DXIMAGE_FILEFORMAT   DestFormat,
+      LPDIRECT3DBASETEXTURE9 pSrcTexture,
+const PALETTEENTRY           *pSrcPalette )
+{
+  static auto
+    _D3DXSaveTextureToFile =
+    (D3DXSaveTextureToFile_pfn)SK_D3DX9_GetProcAddress
+   ("D3DXSaveTextureToFile");
+
+  return
+    ( _D3DXSaveTextureToFile != nullptr )
+    ? _D3DXSaveTextureToFile ( pDestFile,   DestFormat,
+                               pSrcTexture, pSrcPalette )
+    : E_NOTIMPL;
+}
+
+D3DXCreateTextureFromFileInMemoryEx_pfn
+D3DXCreateTextureFromFileInMemoryEx_Original = nullptr;
+
+HRESULT
+WINAPI
+SK_D3DXCreateTextureFromFileInMemoryEx (
+  _In_        LPDIRECT3DDEVICE9  pDevice,
+  _In_        LPCVOID            pSrcData,
+  _In_        UINT               SrcDataSize,
+  _In_        UINT               Width,
+  _In_        UINT               Height,
+  _In_        UINT               MipLevels,
+  _In_        DWORD              Usage,
+  _In_        D3DFORMAT          Format,
+  _In_        D3DPOOL            Pool,
+  _In_        DWORD              Filter,
+  _In_        DWORD              MipFilter,
+  _In_        D3DCOLOR           ColorKey,
+  _Inout_opt_ D3DXIMAGE_INFO     *pSrcInfo,
+  _Out_opt_   PALETTEENTRY       *pPalette,
+  _Out_       LPDIRECT3DTEXTURE9 *ppTexture )
+{
+  if (D3DXCreateTextureFromFileInMemoryEx_Original != nullptr) return
+      D3DXCreateTextureFromFileInMemoryEx_Original (
+        pDevice,
+          pSrcData,         SrcDataSize,
+            Width,          Height,    MipLevels,
+              Usage,        Format,    Pool,
+                Filter,     MipFilter, ColorKey,
+                  pSrcInfo, pPalette,
+                    ppTexture );
+
+  // Game does not use D3DX, but we do... load an unhooked proc
+  static auto
+       D3DXCreateTextureFromFileInMemoryEx_NotHooked =
+      (D3DXCreateTextureFromFileInMemoryEx_pfn)SK_D3DX9_GetProcAddress (
+      "D3DXCreateTextureFromFileInMemoryEx" );
+
+  if ( D3DXCreateTextureFromFileInMemoryEx_NotHooked != nullptr ) return
+       D3DXCreateTextureFromFileInMemoryEx_NotHooked (
+         pDevice,
+           pSrcData,         SrcDataSize,
+             Width,          Height,    MipLevels,
+               Usage,        Format,    Pool,
+                 Filter,     MipFilter, ColorKey,
+                   pSrcInfo, pPalette,
+                     ppTexture );
+
+  // Uh oh
+  return
+    E_NOTIMPL;
+}
+
+HMODULE
+SK_D3DX9_Unpack (void)
+{
+  static
+    SK_AutoHandle hTransferComplete (
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+    );
+
+  wchar_t      wszArchive     [MAX_PATH + 2] = { };
+  wchar_t      wszDestination [MAX_PATH + 2] = { };
+  
+  wcsncpy_s (  wszDestination, MAX_PATH,
+           SK_GetHostPath (), _TRUNCATE  );
+  
+  if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+    SK_CreateDirectories (wszDestination);
+
+  wcsncpy_s (  wszArchive,      MAX_PATH,
+               wszDestination, _TRUNCATE );
+  PathAppendW (wszArchive, L"D3DX9_43.7z");
+
+  SK_RunOnce (
+  SK_Network_EnqueueDownload (
+    sk_download_request_s (wszArchive,
+      SK_RunLHIfBitness ( 64, R"(https://sk-data.special-k.info/redist/D3DX9_43_64.7z)",
+                              R"(https://sk-data.special-k.info/redist/D3DX9_43_32.7z)" ),
+      []( const std::vector <uint8_t>&& data,
+          const std::wstring_view       file ) -> bool
+      {
+        SK_LOG0 ( ( L"Unpacking D3DX9_43.dll because user does not have "
+                    L"June 2010 DirectX Redistributables installed." ),
+                    L"D3DCompile" );
+
+        std::filesystem::path
+                    full_path (file.data ());
+
+        if ( FILE *fPackedD3DX9 = _wfopen (full_path.c_str (), L"wb") ;
+                   fPackedD3DX9 != nullptr )
+        {
+          fwrite (data.data (), 1, data.size (), fPackedD3DX9);
+          fclose (                               fPackedD3DX9);
+
+          SK_Decompress7zEx ( full_path.c_str (),
+                              full_path.parent_path (
+                                      ).c_str (), nullptr );
+          DeleteFileW       ( full_path.c_str ()          );
+
+          SetEvent (hTransferComplete);
+        }
+
+        return true;
+      }
+    ), true // High Priority
+  ));
+
+  if ( WAIT_TIMEOUT ==
+         SK_WaitForSingleObject (hTransferComplete, 4500UL) )
+  {
+    // Download thread timed-out
+    return nullptr;
+  }
+
+  return
+    SK_LoadLibraryW (
+      (std::filesystem::path (wszDestination) / L"d3dx9_43.dll").c_str ()
+    );
+
+#if 0
   HMODULE hModSelf =
     SK_GetDLL ();
 
@@ -934,7 +1037,8 @@ SK_UnpackD3DX9 (void)
 
   if (res)
   {
-    SK_LOG0 ( ( L"Unpacking D3DX9_43.dll because user does not have June 2010 DirectX Redistributables installed." ),
+    SK_LOG0 ( ( L"Unpacking D3DX9_43.dll because user does not have "
+                L"June 2010 DirectX Redistributables installed." ),
                 L"D3DCompile" );
 
     DWORD   res_size     =
@@ -943,8 +1047,7 @@ SK_UnpackD3DX9 (void)
     HGLOBAL packed_d3dx9 =
       LoadResource   ( hModSelf, res );
 
-    if (! packed_d3dx9) return;
-
+    if (! packed_d3dx9) return nullptr;
 
     const void* const locked =
       (void *)LockResource (packed_d3dx9);
@@ -972,20 +1075,16 @@ SK_UnpackD3DX9 (void)
         fclose    (fPackedD3DX9);
       }
 
-      using SK_7Z_DECOMP_PROGRESS_PFN = int (__stdcall *)(int current, int total);
-
-      ///extern
-      ///HRESULT
-      ///SK_Decompress7zEx ( const wchar_t*            wszArchive,
-      ///                    const wchar_t*            wszDestination,
-      ///                    SK_7Z_DECOMP_PROGRESS_PFN callback );
-
       SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
       DeleteFileW       (wszArchive);
     }
 
     UnlockResource (packed_d3dx9);
   }
+
+  return
+    SK_LoadLibraryW (L"d3dx9_43.dll");
+#endif
 };
 
 void
@@ -1003,10 +1102,14 @@ d3d9_init_callback (finish_pfn finish)
   if (! SK_COMPAT_IsSystemDllInstalled (L"d3dx9_43.dll", &local_d3d9))
   {
     if (! local_d3d9)
-     SK_UnpackD3DX9 ();
+      SK_D3DX9_GetModule (true); // Fetch / Unpack if not installed
   }
 
-  __HrLoadAllImportsForDll ("d3dx9_43.dll");
+  else
+  {
+    // Load the system-wide DLL
+    SK_D3DX9_GetModule (false);
+  }
 
   auto *pCommandProc =
     SK_GetCommandProcessor ();
@@ -1205,7 +1308,7 @@ _HandleSwapChainException (const wchar_t* wszOrigin)
               L"(%ws)", wszOrigin ),
               L"   D3D9   " );
 
-  SK_CEGUI_QueueResetD3D9 ();
+  SK_ImGui_QueueResetD3D9 ();
 
   return D3DERR_DEVICELOST;
 };
@@ -1531,7 +1634,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       // Queue-up Pre-SK OSD Screenshots
       SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::BeforeOSD);
 
-      SK_CEGUI_DrawD3D9 ( pDev,
+      SK_ImGui_DrawD3D9 ( pDev,
                             pSwapChain );
 
       // Queue-up Post-SK OSD Screenshots
@@ -2135,7 +2238,7 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
 
     if (ReadAcquire (&ImGui_Init))
     {
-      ResetCEGUI_D3D9                       (nullptr);
+      SK_ImGUI_ResetD3D9                    (nullptr);
       ImGui_ImplDX9_InvalidateDeviceObjects (pPresentationParameters);
     }
 
@@ -4548,12 +4651,12 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
     if (pWrappedDevice != nullptr)
     {
-      dll_log->Log (L"Using (D3D9Ex) wrapper for ResetCEGUI_D3D9!");
-      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
+      dll_log->Log (L"Using (D3D9Ex) wrapper for SK_ImGUI_ResetD3D9!");
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
     }
 
     else
-      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
   }
 
 
@@ -4707,13 +4810,13 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
     if (pWrappedDevice != nullptr)
     {
 #ifdef _DEBUG
-      dll_log.Log (L"Using wrapper for ResetCEGUI_D3D9!");
+      dll_log.Log (L"Using wrapper for SK_ImGUI_ResetD3D9!");
 #endif
-      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
     }
 
     else
-      ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
   }
 
 
@@ -4846,8 +4949,8 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
 
 
-  ResetCEGUI_D3D9 (nullptr);
-  //ResetCEGUI_D3D9 (*ppReturnedDeviceInterface);
+  SK_ImGUI_ResetD3D9   (nullptr);
+  //SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
 
 
   return ret;
@@ -5356,7 +5459,7 @@ SK_D3D9_DrawFileList (bool& can_scroll)
 
         source.name = szFileName;
 
-        for ( auto it : injectable )
+        for ( auto& it : injectable )
         {
           if (it.second.archive == archive_no)
           {
@@ -5395,8 +5498,10 @@ SK_D3D9_DrawFileList (bool& can_scroll)
     int idx = 0;
 
     // First the .7z Data Sources
-    for ( auto it : archives )
+    for ( auto& it : archives )
     {
+      std::ignore = it;
+
       sources.emplace_back (EnumerateSource (idx++));
     }
 
@@ -6534,7 +6639,9 @@ SK_LiveVertexStreamView (bool& can_scroll)
   ImGui::EndGroup      ();
 }
 
-
+extern int32_t  tex_dbg_idx;
+extern uint32_t debug_tex_id;
+extern std::set <uint32_t> textures_used_last_dump;
 
 bool
 SK_D3D9_TextureModDlg (void)
@@ -6549,7 +6656,7 @@ SK_D3D9_TextureModDlg (void)
   auto HandleKeyboard = [&](void)
   {
     extern std::set <uint32_t> textures_used_last_dump;
-    extern int32_t             tex_dbg_idx;
+    
 
     if (io.KeyCtrl && io.KeyShift)
     {
@@ -6558,8 +6665,6 @@ SK_D3D9_TextureModDlg (void)
       {
         tex_dbg_idx += (io.KeysDownDuration [VK_OEM_6] == 0.0f) ? 1 : 0;
         tex_dbg_idx -= (io.KeysDownDuration [VK_OEM_4] == 0.0f) ? 1 : 0;
-
-        extern uint32_t debug_tex_id;
 
         if (tex_dbg_idx < 0 || (textures_used_last_dump.empty ()))
         {
@@ -6680,10 +6785,6 @@ SK_D3D9_TextureModDlg (void)
     static std::vector <std::string> list_contents;
     static bool                      list_dirty     = false;
     static int                       sel            =     0;
-
-    extern std::set <uint32_t> textures_used_last_dump;
-    extern               int32_t  tex_dbg_idx;
-    extern              uint32_t  debug_tex_id;
 
     ImGui::BeginChild ( ImGui::GetID ("D3D9_ToolHeadings"),
                           ImVec2 (font_size * 66.0f, font_size * 2.5f),
@@ -7899,11 +8000,11 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
   SK_ComPtr <ID3DXBuffer> pDisasm = nullptr;
 
   HRESULT hr =
-    D3DXDisassembleShader ((DWORD *)pbFunc, FALSE, "", &pDisasm);
+    SK_D3DXDisassembleShader ((DWORD *)pbFunc, FALSE, "", &pDisasm.p);
 
-  if (SUCCEEDED (hr) && strlen ((const char *)pDisasm->GetBufferPointer ()))
-  {
-    char* szDisasm = _strdup ((const char *)pDisasm->GetBufferPointer ());
+  // Is this nul-terminated?
+  if (SUCCEEDED (hr) &&      *(const char *)pDisasm->GetBufferPointer () != '\0')
+  { char* szDisasm = _strdup ((const char *)pDisasm->GetBufferPointer ());
 
     char* comments_end  =                szDisasm != nullptr ?
                                          strstr (szDisasm,          "\n ") : nullptr;
@@ -8452,7 +8553,7 @@ SK::D3D9::ShaderTracker::use (IUnknown *pShader)
         {
           SK_ComPtr <ID3DXConstantTable> pConstantTable = nullptr;
 
-          if (SUCCEEDED (D3DXGetShaderConstantTable ((DWORD *)pbFunc, &pConstantTable)))
+          if (SUCCEEDED (SK_D3DXGetShaderConstantTable ((DWORD *)pbFunc, &pConstantTable)))
           {
             D3DXCONSTANTTABLE_DESC ct_desc = { };
 

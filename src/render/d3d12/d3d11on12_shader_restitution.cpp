@@ -59,12 +59,12 @@ struct ShaderBase
               messageBlob;
 
     HRESULT hr =
-      D3DCompile ( szShaderString,
-           strlen (szShaderString),
-             nullptr, nullptr, nullptr,
-               szEntryPoint, szShaderModel,
-                        0, 0, &shaderBlob,
-                             &messageBlob );
+      SK_D3D_Compile ( szShaderString,
+               strlen (szShaderString),
+                 nullptr, nullptr, nullptr,
+                   szEntryPoint, szShaderModel,
+                            0, 0, &shaderBlob,
+                                 &messageBlob );
 
     if (FAILED (hr))
     {
@@ -154,13 +154,13 @@ struct ShaderBase
       compilerOutput;
 
     HRESULT hr =
-      D3DCompile ( szShaderString,
-                     strlen (szShaderString),
-                       nullptr, nullptr, nullptr,
-                         szEntryPoint, szShaderModel,
-                           0, 0,
-                             &shaderBlob.p,
-                               &compilerOutput.p );
+      SK_D3D_Compile ( szShaderString,
+               strlen (szShaderString),
+                 nullptr, nullptr, nullptr,
+                   szEntryPoint, szShaderModel,
+                     0, 0,
+                       &shaderBlob.p,
+                         &compilerOutput.p );
 
     if (FAILED (hr))
     {

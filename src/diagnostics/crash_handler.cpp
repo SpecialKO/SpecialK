@@ -92,9 +92,9 @@ bool SK_Debug_IsCrashing (void)
 
 
 struct sk_crash_sound_s {
-  HGLOBAL             ref        = nullptr;
-  uint8_t*            buf        = nullptr;
-  ISimpleAudioVolume* volume_ctl = nullptr;
+  HGLOBAL               ref        = nullptr;
+  uint8_t*              buf        = nullptr;
+  SK_ISimpleAudioVolume volume_ctl = nullptr;
 
   bool play (void);
 };
@@ -161,7 +161,7 @@ sk_crash_sound_s::play (void)
   if (volume_ctl != nullptr)
   {
       volume_ctl->SetMasterVolume (orig_volume, nullptr);
-      volume_ctl->Release ();
+      volume_ctl = nullptr;
   }
 
   return played_sound;

@@ -240,7 +240,7 @@ SK::ControlPanel::D3D11::Draw (void)
     SK_TLS_Bottom ();
 
   if (show_shader_mod_dlg)
-    show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
+      show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
   bool d3d11 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
@@ -714,20 +714,6 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (! SK_GL_OnD3D11) if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
-
-      if (! SK_GL_OnD3D11) ImGui::SameLine ();
-
-      if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
-      {
-        SK_CEGUI_QueueResetD3D11 ();
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
-        ImGui::EndTooltip ();
-      }
     }
 
     // This only works when we have wrapped SwapChains

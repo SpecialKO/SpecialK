@@ -35,9 +35,6 @@ typedef BOOL (WINAPI *GetLogicalProcessorInformationEx_pfn)(LOGICAL_PROCESSOR_RE
                        GetLogicalProcessorInformationEx_pfn
                        GetLogicalProcessorInformationEx_Original = nullptr;
 
-const std::vector <uintptr_t>&
-SK_CPU_GetLogicalCorePairs (void);
-
 size_t
 SK_CPU_CountPhysicalCores (void);
 

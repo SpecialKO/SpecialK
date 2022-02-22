@@ -20,7 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
-
+#include <filesystem>
 
 #include <tobii/tobii.h>
 #include <tobii/tobii_streams.h>
@@ -168,6 +168,68 @@ SK_Tobii_URL_Receiver ( char const* url,
 void
 SK_UnpackTobiiStreamEngine (void)
 {
+  static
+    SK_AutoHandle hTransferComplete (
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+    );
+
+  wchar_t       wszArchive     [MAX_PATH + 2] = { };
+  wchar_t       wszDestination [MAX_PATH + 2] = { };
+
+  wcsncpy_s   ( wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str (),
+                               _TRUNCATE );
+  PathAppendW ( wszDestination,
+    LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine\)" );
+
+  if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+    SK_CreateDirectories (wszDestination);
+
+  wcsncpy_s   ( wszArchive,      MAX_PATH,
+                wszDestination, _TRUNCATE );
+  PathAppendW ( wszArchive, L"tobii_stream_engine_sk.7z" );
+
+  SK_RunOnce (
+  SK_Network_EnqueueDownload (
+    sk_download_request_s (wszArchive,
+      SK_RunLHIfBitness ( 64,
+        R"(https://sk-data.special-k.info/redist/tobii_stream_engine_sk64.7z)",
+        R"(https://sk-data.special-k.info/redist/tobii_stream_engine_sk32.7z)" ),
+      []( const std::vector <uint8_t>&& data,
+          const std::wstring_view       file ) -> bool
+      {
+        SK_LOG0 ( ( L"Unpacking Tobii Stream Engine" ),
+                    L"Tobii Eyes" );
+                    
+        std::filesystem::path
+                    full_path (file.data ());
+
+        if ( FILE *fPackedTobii = _wfopen (full_path.c_str (), L"wb") ;
+                   fPackedTobii != nullptr )
+        {
+          fwrite (data.data (), 1, data.size (), fPackedTobii);
+          fclose (                               fPackedTobii);
+
+          SK_Decompress7zEx ( full_path.c_str (),
+                              full_path.parent_path (
+                                      ).c_str (), nullptr );
+          DeleteFileW       ( full_path.c_str ()          );
+
+          SetEvent (hTransferComplete);
+        }
+
+        return true;
+      }
+    ), true // High Priority
+  ));
+
+  if ( WAIT_TIMEOUT ==
+         SK_WaitForSingleObject (hTransferComplete, 4500UL) )
+  {
+    // Download thread timed-out
+    return;
+  }
+
+#if 0
   HMODULE hModSelf =
     SK_GetDLL ();
 
@@ -207,7 +269,7 @@ SK_UnpackTobiiStreamEngine (void)
       PathAppendW (wszArchive, L"tobii_stream_engine_sk.7z");
 
       ///SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
-      ///            L"D3DCompile" );
+      ///            L"TobiiStuff" );
 
       FILE* fPackedTobii =
         _wfopen   (wszArchive, L"wb");
@@ -235,6 +297,7 @@ SK_UnpackTobiiStreamEngine (void)
 
     UnlockResource (packed_tobii);
   }
+#endif
 };
 
 

@@ -707,9 +707,11 @@ public:
     context_record.pTLS     = this;
 
     // Try to grab a reference to the existing thread handle (w/ ALL_ACCESS) first
-    debug.handle.Attach (
-      OpenThread ( THREAD_ALL_ACCESS, FALSE, SK_Thread_GetCurrentId () )
-    );
+    HANDLE hThread =
+      OpenThread (THREAD_ALL_ACCESS, FALSE, SK_Thread_GetCurrentId ());
+
+    if (hThread != 0)
+      debug.handle.Attach (hThread);
 
     // If that fails, duplicate the thread handle with greater access
     if (! debug.handle.isValid ())

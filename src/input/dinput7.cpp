@@ -336,14 +336,11 @@ SK_BootDI7 (void)
 
       else if (hBackend != nullptr)
       {
-        const bool bProxy =
-          ( SK_GetModuleHandle (L"dinput8.dll") != hBackend );
-
         if ( MH_OK ==
-                SK_CreateDLLHook2 (      L"dinput.dll",
-                                          "DirectInputCreateEx",
-                                           DirectInputCreateEx,
-                  static_cast_p2p <void> (&DirectInputCreateEx_Import) )
+               SK_CreateDLLHook2 ( L"dinput.dll",
+                                    "DirectInputCreateEx",
+                                     DirectInputCreateEx,
+             static_cast_p2p <void>(&DirectInputCreateEx_Import) )
            )
         {
           SK_CreateDLLHook2 (      L"dinput.dll",

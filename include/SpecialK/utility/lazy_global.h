@@ -137,7 +137,7 @@ __forceinline bool  isAllocated (void) const      noexcept
 
   }
 
-  void Deinit (void) noexcept
+  void Deinit (void) noexcept override 
   {
     // Allocated off heap w/ C++ new
     if (isAllocated ())
@@ -158,7 +158,7 @@ __forceinline bool  isAllocated (void) const      noexcept
     }
   }
 
-  ~SK_LazyGlobal (void) noexcept
+  virtual ~SK_LazyGlobal (void) noexcept
   {
     Deinit ();
   }

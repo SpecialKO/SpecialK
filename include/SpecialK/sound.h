@@ -115,8 +115,9 @@ public:
 
         if (hSnap)
         {
-          PROCESSENTRY32 pent;
-          pent.dwSize = sizeof (PROCESSENTRY32);
+          PROCESSENTRY32
+            pent        = {                     };
+            pent.dwSize = sizeof (PROCESSENTRY32);
 
           if (Process32First (hSnap, &pent))
           {
@@ -338,8 +339,9 @@ public:
     else
       return;
 
-    meter_info_ =
-      SK_WASAPI_GetAudioMeterInfo ();
+    meter_info_.Attach (
+      SK_WASAPI_GetAudioMeterInfo ().Detach ()
+    );
 
     if (meter_info_ != nullptr && (! sessions_.empty ()))
       return;
@@ -432,9 +434,9 @@ public:
 
     session_mgr_->RegisterSessionNotification (this);
 
-    endpoint_vol_ = SK_MMDev_GetEndpointVolumeControl ();
-    auto_gain_    = SK_MMDev_GetAutoGainControl       ();
-    loudness_     = SK_MMDev_GetLoudness              ();
+    endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
+    auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
+    loudness_.    Attach (SK_MMDev_GetLoudness              ().Detach ());
   }
 
   // IUnknown
@@ -483,7 +485,7 @@ public:
     return ulRef;
   }
 
-  SK_IAudioMeterInformation getMeterInfo (void) noexcept
+  SK_IAudioMeterInformation getMeterInfo (void)
   {
     return meter_info_.p;
   }

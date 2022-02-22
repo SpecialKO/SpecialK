@@ -35,7 +35,7 @@ enum {
   SK_HDR_TONEMAP_HDR10_FILMIC      = 3
 };
 
-auto
+static auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
 {
@@ -51,7 +51,7 @@ auto
   return ret;
 };
 
-auto
+static auto
 _HDRKeybinding = [] ( SK_Keybind*           binding,
                       sk::ParameterStringW* param ) ->
 auto
@@ -471,8 +471,8 @@ public:
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
-      u8"HDR10 Passthrough (Native HDR)\0\0\0";
+      (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
+                    u8"HDR10 Passthrough (Native HDR)\0\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
@@ -1096,7 +1096,7 @@ public:
               bool bKill22 =
                 ( __SK_HDR_Exp != 1.0 );
 
-              if (ImGui::Checkbox (u8"Fix SDR/HDR Black Level Mismatch", &bKill22))
+              if (ImGui::Checkbox ("Fix SDR/HDR Black Level Mismatch", &bKill22))
               {
                   __SK_HDR_Exp = ( bKill22 ?
                                        2.2f : 1.0f );

@@ -52,7 +52,7 @@ struct SK_SceInputContext
 
   struct instance_s
   {
-    const wchar_t*                   wszModuleName                         =     L"";
+    const wchar_t*                   wszModuleName                         = L"libScePad.dll";
     HMODULE                          hMod                                  = nullptr;
 
     scePadInit_pfn                   scePadInit_Detour                     = nullptr;
@@ -120,18 +120,18 @@ DeadbandState_Target                                                       = nul
 
 SK_SceInputContext sceinput_ctx;
 
-int
+SK_ScePadResult
 SK_ScePadInit (void)
 {
-  int ret = sceinput_ctx.scePad.
-                         scePadInit_Original ();
+  SK_ScePadResult ret = sceinput_ctx.scePad.
+                                     scePadInit_Original ();
 
   SK_ScePadSetParticularMode (true);
 
   return ret;
 }
 
-int
+SK_ScePadHandle
 SK_ScePadGetHandle (SK_SceUserID userID, int type,
                                          int index)
 {
@@ -139,7 +139,7 @@ SK_ScePadGetHandle (SK_SceUserID userID, int type,
     scePadGetHandle_Original (userID, type, index);
 }
 
-int
+SK_ScePadResult
 SK_ScePadOpen (SK_SceUserID userID, int type,
                                     int index, SK_ScePadOpenParam *inputParam)
 {
@@ -147,14 +147,14 @@ SK_ScePadOpen (SK_SceUserID userID, int type,
     scePadOpen_Original (userID, type, index, inputParam);
 }
 
-int
-SK_ScePadClose (int handle)
+SK_ScePadResult
+SK_ScePadClose (SK_ScePadHandle handle)
 {
   return sceinput_ctx.scePad.
     scePadClose_Original (handle);
 }
 
-int
+SK_ScePadResult
 SK_ScePadSetParticularMode (bool mode)
 {
   SK_LOG_FIRST_CALL;
@@ -165,8 +165,8 @@ SK_ScePadSetParticularMode (bool mode)
     sceinput_ctx.scePad.scePadSetParticularMode_Original (true);
 }
 
-int
-SK_ScePadRead (int handle, SK_ScePadData *iData, int count)
+SK_ScePadResult
+SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
 {
   SK_LOG_FIRST_CALL;
 
@@ -182,64 +182,213 @@ WINAPI
 SK_ImGui_ToggleEx ( bool& toggle_ui,
                     bool& toggle_nav );
 
-int
-SK_ScePadReadState (int handle, SK_ScePadData* iData)
+// Safe in the sense that the exception is caught, the validity
+//   and completeness of the memory copy is not guaranteed
+bool
+__cdecl
+SK_SAFE_memcpy ( _Out_writes_bytes_all_ (_Size) void*       _Dst,
+                 _In_reads_bytes_       (_Size) void const* _Src,
+                 _In_                           size_t      _Size )
+{
+  __try
+  {
+    memcpy (_Dst, _Src, _Size);
+  }
+
+  __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER :
+                                    EXCEPTION_CONTINUE_SEARCH)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+SK_ScePadResult
+SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
 {
   SK_LOG_FIRST_CALL;
 
-  static concurrency::concurrent_unordered_map <int, std::pair <int, SK_ScePadData>> last_result;
+  using result_record_t =       std::pair <SK_ScePadResult,   SK_ScePadData>;
+  using result_map_t    =
+    concurrency::concurrent_unordered_map <SK_ScePadHandle, result_record_t>;
+
+  static result_map_t
+    last_result;
 
   SK_SCEPAD_READ (sk_input_dev_type::Gamepad);
 
   bool bToggleNav = false,
        bToggleVis = false;
 
-  int result =
+  SK_ScePadResult result =
     sceinput_ctx.scePad.
                  scePadReadState_Original (handle, iData);
 
 
-  if (iData != nullptr)
+  static volatile ULONG64 llLastChordFrame  = 0ULL;
+  static volatile ULONG64 llFirstChordFrame = 1ULL;
+
+  if (iData != nullptr && result == SK_SCE_ERROR_OK)
   {
-    const  DWORD LONG_PRESS   = 5UL;
-    static DWORD dwLastToggle = 0;
-    static DWORD dwLastPress  = 0;
-
-    if ( ( last_result [handle].second.buttons &
-             static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION) ) !=
-             static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION) &&
-         (                      iData->buttons &
-             static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION) ) ==
-             static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION)
-       )
+    static auto _JustPressed =
+    []( const SK_ScePadButtonBitmap&             currentButtons,
+        const SK_ScePadButtonBitmap&             previousButtons,
+        const SK_ScePadButtonBitmap::enum_type_t testSet )
+ -> bool
     {
-      if (dwLastToggle < SK::ControlPanel::current_time - LONG_PRESS)
+      static_assert (std::is_trivial <SK_ScePadButtonBitmap::enum_type_t> ());
+
+      return (    currentButtons.isDown (testSet) &&
+              (! previousButtons.isDown (testSet)) );
+    };
+
+    static auto _JustReleased =
+    []( const SK_ScePadButtonBitmap&             currentButtons,
+        const SK_ScePadButtonBitmap&             previousButtons,
+        const SK_ScePadButtonBitmap::enum_type_t testSet )
+ -> bool
+    {
+      static_assert (std::is_trivial <SK_ScePadButtonBitmap::enum_type_t> ());
+
+      return ((!  currentButtons.isDown (testSet))
+              && previousButtons.isDown (testSet));
+    };
+
+    const ULONG64 llThisFrame =
+      SK_GetFramesDrawn ();
+
+    if (config.input.gamepad.scepad.enhanced_ps_button)
+    {
+      if ( _JustPressed  ( iData->buttonMask, last_result [handle].
+                           second.buttonMask,
+                             SK_ScePadButtonBitmap::PlayStation )
+         )
       {
-        if (SK_ImGui_Active ())
-        {
-          bToggleVis |= true;
-          bToggleNav |= true;
-        }
+        WriteULong64Release (&llLastChordFrame,  llThisFrame);
+        WriteULong64Release (&llFirstChordFrame, llThisFrame);
+      }
 
-        else
-        {
-          bToggleNav |= (! nav_usable);
-          bToggleVis |= true;
-        }
+      static constexpr auto llFrameGracePeriod = 20ULL;
 
-        dwLastToggle = SK::ControlPanel::current_time;
+      if ( _JustReleased ( iData->buttonMask, last_result [handle].
+                           second.buttonMask,
+                             SK_ScePadButtonBitmap::PlayStation ) ||
+          ( iData->buttonMask.isDown (
+                             SK_ScePadButtonBitmap::PlayStation ) &&
+            ReadULong64Acquire (&llLastChordFrame ) ==
+            ReadULong64Acquire (&llFirstChordFrame) && llThisFrame >
+            ReadULong64Acquire (&llFirstChordFrame) +  llFrameGracePeriod )
+         )
+      {
+        // Check to see if any other buttons are held -- if so, do not toggle the
+        //   control panel
+        if ( ReadULong64Acquire (&llLastChordFrame ) ==
+             ReadULong64Acquire (&llFirstChordFrame) )
+        {
+          if (SK_ImGui_Active ())
+          {
+            bToggleVis |= true;
+            bToggleNav |= true;
+          }
+
+          else
+          {
+            bToggleNav |= (! nav_usable);
+            bToggleVis |= true;
+          }
+
+          WriteULong64Release (&llLastChordFrame, llThisFrame);
+        }
       }
     }
 
-    if ( (                     iData->buttons & static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_MUTE)) &&
-         (last_result [handle].second.buttons & static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_MUTE)) == 0 )
-    {
-      if (dwLastPress < SK::ControlPanel::current_time - LONG_PRESS)
-      {
-        SK_SetGameMute (! SK_IsGameMuted ());
 
-        dwLastPress = SK::ControlPanel::current_time;
+    if (! SK_ImGui_WantGamepadCapture ())
+    {
+      if ((! config.input.gamepad.scepad.share_clicks_touch) &&
+            _JustPressed ( iData->buttonMask, last_result [handle].
+                           second.buttonMask, SK_ScePadButtonBitmap::Share
+                         )
+         )
+      {
+        WriteULong64Release (&llLastChordFrame, llThisFrame);
+
+        SK_SteamAPI_TakeScreenshot ();
       }
+
+      if ( config.input.gamepad.scepad.enhanced_ps_button &&
+           iData->buttonMask.isDown (SK_ScePadButtonBitmap::PlayStation) )
+      {
+        if ( _JustPressed ( iData->buttonMask, last_result [handle].
+                            second.buttonMask, SK_ScePadButtonBitmap::Share
+                          )
+           )
+        {
+          WriteULong64Release (&llLastChordFrame, llThisFrame);
+      
+          SK_SteamAPI_TakeScreenshot ();
+        }
+      
+        else if ( _JustPressed ( iData->buttonMask, last_result [handle].
+                                 second.buttonMask, SK_ScePadButtonBitmap::L3
+                               )
+                )
+        {
+          WriteULong64Release (&llLastChordFrame, llThisFrame);
+      
+          config.render.framerate.latent_sync.show_fcat_bars =
+            !config.render.framerate.latent_sync.show_fcat_bars;
+        }
+      
+        else if ( _JustPressed ( iData->buttonMask, last_result [handle].
+                                 second.buttonMask, SK_ScePadButtonBitmap::Up
+                               )
+                )
+        {
+          WriteULong64Release (&llLastChordFrame, llThisFrame);
+      
+          auto cp =
+            SK_GetCommandProcessor ();
+      
+          cp->ProcessCommandLine ("LatentSync.TearLocation --");
+          cp->ProcessCommandLine ("LatentSync.TearLocation --");
+          cp->ProcessCommandLine ("LatentSync.TearLocation --");
+          cp->ProcessCommandLine ("LatentSync.TearLocation --");
+          cp->ProcessCommandLine ("LatentSync.TearLocation --");
+          cp->ProcessCommandLine ("LatentSync.ResyncRate ++");
+          cp->ProcessCommandLine ("LatentSync.ResyncRate --");
+        }
+      
+        else if ( _JustPressed ( iData->buttonMask, last_result [handle].
+                                 second.buttonMask, SK_ScePadButtonBitmap::Down
+                               )
+                )
+        {
+          WriteULong64Release (&llLastChordFrame, llThisFrame);
+      
+          auto cp =
+            SK_GetCommandProcessor ();
+      
+          cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+          cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+          cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+          cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+          cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+          cp->ProcessCommandLine ("LatentSync.ResyncRate --");
+          cp->ProcessCommandLine ("LatentSync.ResyncRate ++");
+        }
+      }
+    }
+
+    if ( config.input.gamepad.scepad.mute_applies_to_game &&
+         _JustPressed ( iData->buttonMask, last_result [handle].
+                        second.buttonMask, SK_ScePadButtonBitmap::Mute
+                      )
+       )
+    {
+      SK_SetGameMute (! SK_IsGameMuted ());
     }
 
 
@@ -249,58 +398,60 @@ SK_ScePadReadState (int handle, SK_ScePadData* iData)
       iData->touchData.touch [0] = { };
       iData->touchData.touch [1] = { };
 
-      iData->buttons &= ~static_cast <uint32_t> (
-          SK_ScePadDataOffset::PAD_BUTTON_TOUCH_PAD );
+      iData->buttonMask.clearButtons (SK_ScePadButtonBitmap::TouchPad);
     }
 
     if (config.input.gamepad.scepad.share_clicks_touch)
     {
-      if ( (iData->buttons & static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_SHARE)) ==
-                             static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_SHARE) )
-      {
-        iData->buttons |= static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_TOUCH_PAD);
-      }
+      if (iData->buttonMask.isDown   (SK_ScePadButtonBitmap::Share))
+        iData->buttonMask.setButtons (SK_ScePadButtonBitmap::TouchPad);
     }
   }
 
 
-  if (! SK_ImGui_WantGamepadCapture ())
+  if ((! SK_ImGui_WantGamepadCapture ()) && (config.input.gamepad.scepad.enhanced_ps_button == false
+                                         || (!iData->buttonMask.isDown (SK_ScePadButtonBitmap::PlayStation))))
   {
     last_result [handle] =
-      std::make_pair (result, iData != nullptr ? *iData : SK_ScePadData ());
+      std::make_pair (
+         result, iData != nullptr ?
+                *iData            : SK_ScePadData { 0 }
+      );
+
+    if (result == SK_SCE_ERROR_OK)
+      SK_SCEPAD_VIEW (0); // TODO: Decode Handle Value
   }
 
   else
   {
+    auto&
+      result_cache       = last_result [handle];
+      result_cache.first =      result;
+
     if (iData != nullptr)
     {
-      auto& last_good_result =
-        last_result [handle].second;
+      auto cached = // Makin copies
+        result_cache.second;
+        result_cache.second = *iData;
 
-      bool setPS     = iData->buttons & static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION);
-      bool clearPS   = (! setPS);
-      bool setMute   = iData->buttons & static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_MUTE);
-      bool clearMute = (! setMute);
+      cached.buttonMask = SK_ScePadButtonBitmap::None;
 
-      last_good_result.buttons          = 0UL;
-      last_good_result.leftStick.x      = std::numeric_limits <uint8_t> ().max () / 2;
-      last_good_result.leftStick.y      = std::numeric_limits <uint8_t> ().max () / 2;
-      last_good_result.rightStick.x     = std::numeric_limits <uint8_t> ().max () / 2;
-      last_good_result.rightStick.y     = std::numeric_limits <uint8_t> ().max () / 2;
-      last_good_result.analogButtons.l2 = 0;
-      last_good_result.analogButtons.r2 = 0;
+      static constexpr uint8_t neutral_stick_pos =
+        std::numeric_limits <uint8_t>::max () / 2;
 
-      last_good_result.buttons |= setPS   ?
-        static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION) :  0;
-      last_good_result.buttons &= clearPS ?
-       ~static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_PLAYSTATION) : ~0;
+      cached.leftStick       = { neutral_stick_pos, neutral_stick_pos };
+      cached.rightStick      = { neutral_stick_pos, neutral_stick_pos };
+      cached.analogButtons   = { .l2 = 0,                  .r2 = 0    };
+      cached.acceleration    = { .x  = 0.0f,  .y = 0.00f,  .z  = 0.0f };
+      cached.angularVelocity = { .x  = 0.0f,  .y = 0.00f,  .z  = 0.0f };
 
-      last_good_result.buttons |= setMute   ?
-        static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_MUTE) :  0;
-      last_good_result.buttons &= clearMute ?
-       ~static_cast <uint32_t> (SK_ScePadDataOffset::PAD_BUTTON_MUTE) : ~0;
+      for ( auto& touchPt : cached.touchData.touch )
+      {
+        touchPt = { .x = 0,
+                    .y = 0, .id = 0 };
+      }
 
-      memcpy (iData, &last_good_result, sizeof (SK_ScePadData));
+      SK_SAFE_memcpy (iData, &cached, sizeof (SK_ScePadData));
     }
   }
 
@@ -313,50 +464,50 @@ SK_ScePadReadState (int handle, SK_ScePadData* iData)
     last_result [handle].first;
 }
 
-int
-SK_ScePadResetOrientation (int handle)
+SK_ScePadResult
+SK_ScePadResetOrientation (SK_ScePadHandle handle)
 {
   return sceinput_ctx.scePad.
     scePadResetOrientation_Original (handle);
 }
 
-int
-SK_ScePadSetAngularVelocityDeadbandState (int handle, bool enable)
+SK_ScePadResult
+SK_ScePadSetAngularVelocityDeadbandState (SK_ScePadHandle handle, bool enable)
 {
   return sceinput_ctx.scePad.
     scePadSetAngularVelocityDeadbandState_Original (handle, enable);
 }
 
-int
-SK_ScePadSetMotionSensorState (int handle, bool enable)
+SK_ScePadResult
+SK_ScePadSetMotionSensorState (SK_ScePadHandle handle, bool enable)
 {
   return sceinput_ctx.scePad.
     scePadSetMotionSensorState_Original (handle, enable);
 }
 
-int
-SK_ScePadSetTiltCorrectionState (int handle, bool enable)
+SK_ScePadResult
+SK_ScePadSetTiltCorrectionState (SK_ScePadHandle handle, bool enable)
 {
   return sceinput_ctx.scePad.
     scePadSetTiltCorrectionState_Original (handle, enable);
 }
 
-int
-SK_ScePadSetVibration (int handle, SK_ScePadVibrationParam *param)
+SK_ScePadResult
+SK_ScePadSetVibration (SK_ScePadHandle handle, SK_ScePadVibrationParam *param)
 {
   return sceinput_ctx.scePad.
     scePadSetVibration_Original (handle, param);
 }
 
-int
-SK_ScePadResetLightBar (int handle)
+SK_ScePadResult
+SK_ScePadResetLightBar (SK_ScePadHandle handle)
 {
   return sceinput_ctx.scePad.
     scePadResetLightBar_Original (handle);
 }
 
-int
-SK_ScePadSetLightBar (int handle, SK_ScePadColor* param)
+SK_ScePadResult
+SK_ScePadSetLightBar (SK_ScePadHandle handle, SK_ScePadColor* param)
 {
   return sceinput_ctx.scePad.
     scePadSetLightBar_Original (handle, param);
@@ -531,62 +682,23 @@ SK_Input_PreHookScePad (void)
   if (! config.input.gamepad.hook_scepad)
     return;
 
-#if 0
-  xinput_ctx.XInput_SK.wszModuleName =
-#ifdef _WIN64
-    L"XInput_SK64.dll";
-#else
-    L"XInput_SK32.dll";
-#endif
-
   static std::wstring path_to_driver =
-        SK_FormatStringW ( LR"(%ws\Drivers\XInput\%ws)",
+        SK_FormatStringW ( LR"(%ws\Drivers\PlayStation\%ws)",
             std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
-                            xinput_ctx.XInput_SK.wszModuleName
+                            sceinput_ctx.scePad.wszModuleName
                          );
 
   if (! PathFileExistsW (path_to_driver.c_str ()))
   {SK_CreateDirectories (path_to_driver.c_str ());
 
-    wchar_t                  wszSystemHighestXInput [MAX_PATH] = { };
-    PathCombineW (           wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_4.dll");
-    if (! CopyFileW (        wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-    {                       *wszSystemHighestXInput = L'\0';
-      PathCombineW (         wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_3.dll");
-      if (! CopyFileW (      wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-      {                     *wszSystemHighestXInput = L'\0';
-        PathCombineW (       wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_2.dll");
-        if (! CopyFileW (    wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-        {                   *wszSystemHighestXInput = L'\0';
-          PathCombineW (     wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_1.dll");
-          if (! CopyFileW (  wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-          {                 *wszSystemHighestXInput = L'\0';
-            PathCombineW (   wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput9_1_0.dll");
-            if (! CopyFileW (wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-            {
-              SK_ReleaseAssert (! L"XInput Is Borked, Yay!");
-            }
-          }
-        }
-      }
-    }
-  }
-#endif
-
   HMODULE hModScePad =
-    SK_LoadLibraryW (L"libScePad.dll");
+    SK_LoadLibraryW (sceinput_ctx.scePad.wszModuleName);
 
   if (! hModScePad)
     return;
 
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  if (pTLS == nullptr)
-    return;
-
   static scePadSetParticularMode_pfn
-         scePadSetParticularMode     = (scePadSetParticularMode_pfn)SK_GetProcAddress (hModScePad,
+         scePadSetParticularMode = (scePadSetParticularMode_pfn)SK_GetProcAddress (hModScePad,
         "scePadSetParticularMode");
 
   if (scePadSetParticularMode != nullptr)

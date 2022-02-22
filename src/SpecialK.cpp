@@ -435,7 +435,7 @@ DllMain ( HMODULE hModule,
       // Will be implicitly set in call to SK_KeepAway
       if (SK_GetHostAppUtil ()->isBlacklisted ())
       {
-        OutputDebugStringW (L"Special K Disabled For Blacklisted App");
+        //OutputDebugStringW (L"Special K Disabled For Blacklisted App");
         return TRUE;
       }
 

@@ -86,7 +86,8 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
     return 0ui32;
   }
 
-  if (pDesc->MiscFlags > D3D11_RESOURCE_MISC_TEXTURECUBE)
+  if (pDesc->MiscFlags  > D3D11_RESOURCE_MISC_TEXTURECUBE &&
+      pDesc->MiscFlags != D3D11_RESOURCE_MISC_RESOURCE_CLAMP)
   {
     SK_LOG0 ( (L">> Hashing texture with unexpected MiscFlags: "
                    L"0x%04X",

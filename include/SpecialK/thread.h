@@ -139,22 +139,22 @@ public:
 
   ~SK_Thread_CriticalSection (void) noexcept = default;
 
-  _Acquires_exclusive_lock_ (*this->cs_)
+  _Acquires_exclusive_lock_ (cs_)
   void lock (void) noexcept {
     EnterCriticalSection (cs_);
   }
 
-  _Releases_exclusive_lock_ (*this->cs_)
+  _Releases_exclusive_lock_ (cs_)
   void unlock (void) noexcept
   {
     LeaveCriticalSection (cs_);
   }
 
-  _Acquires_exclusive_lock_ (*this->cs_)
+  _When_ (return != false, _Acquires_exclusive_lock_ (cs_))
   bool try_lock (void) noexcept
   {
     return
-      TryEnterCriticalSection (cs_);
+      TryEnterCriticalSection (cs_) == TRUE;
   }
 
 protected:

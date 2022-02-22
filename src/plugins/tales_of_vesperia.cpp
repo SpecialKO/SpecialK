@@ -782,21 +782,13 @@ SK_TVFix_BeginFrame (void)
     {   pDXGIDev->SetGPUThreadPriority (5); }
   }
 
-  static bool enable =
-    config.cegui.enable;
-
   LONG ulFramesDrawn =
     SK_GetFramesDrawn ();
 
   if (ulFramesDrawn > 30 && ulFramesDrawn < 33)
   {
-    if (ulFramesDrawn == 31)
-      config.cegui.enable = (! enable);
-    else if (ulFramesDrawn == 32)
-      config.cegui.enable = enable;
-
-    extern void SK_CEGUI_QueueResetD3D11 (void);
-    SK_RunOnce (SK_CEGUI_QueueResetD3D11 ());
+    extern void SK_ImGui_QueueResetD3D11 (void);
+    SK_RunOnce (SK_ImGui_QueueResetD3D11 ());
 
     if (ulFramesDrawn == 31)
     {

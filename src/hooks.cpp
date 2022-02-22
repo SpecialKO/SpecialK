@@ -36,57 +36,76 @@ extern NTSTATUS WINAPI
 SK_Module_UnlockLoader ( ULONG Flags,
                          ULONG Cookie );
 
+
+typedef void (WINAPI *RtlInitUnicodeString_pfn)
+( PUNICODE_STRING DestinationString,
+  PCWSTR          SourceString                );
+
+typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
+(       ULONG,           ULONG,
+  const UNICODE_STRING*, HMODULE*            );
+
+HMODULE                  hModNtDll             = nullptr;
+RtlInitUnicodeString_pfn _RtlInitUnicodeString = nullptr;
+LdrGetDllHandle_pfn       LdrGetDllHandle      = nullptr;
+
+
 HMODULE
-SK_GetModuleHandleW (PCWSTR lpModuleName)
+SK_GetModuleHandleW (PCWSTR lpModuleName) noexcept
 {
+  HMODULE hModRet = 0;
+
   if (lpModuleName == nullptr)
     return GetModuleHandleW (nullptr);
 
-  static HMODULE hModNtDll =
-    GetModuleHandleW (L"NtDll");
+  __try {
+    if (! hModNtDll)
+    {     hModNtDll =
+      GetModuleHandleW (L"NtDll");
 
-  if (! hModNtDll)
-    return 0;
-
-  HMODULE hMod = nullptr;
-
-  typedef void (WINAPI *RtlInitUnicodeString_pfn)
-  ( PUNICODE_STRING DestinationString,
-    PCWSTR          SourceString                );
-
-  typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
-  (       ULONG,           ULONG,
-    const UNICODE_STRING*, HMODULE*            );
-
-  static RtlInitUnicodeString_pfn
-         RtlInitUnicodeString =
-         (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
-                                                          "RtlInitUnicodeString" );
-
-  static LdrGetDllHandle_pfn
-         LdrGetDllHandle =
-        (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
-                                                    "LdrGetDllHandle" );
-
-  UNICODE_STRING         ucsModuleName          = { };
-  RtlInitUnicodeString (&ucsModuleName, lpModuleName);
-
-  HMODULE hModRet = 0;
-  {
-    if ( NT_SUCCESS ( LdrGetDllHandle (
-                        0, 0,
-                          &ucsModuleName,
-                            &hMod )
-                    )
-       )
-    {
-      if (hMod != nullptr)
-        hModRet = hMod;
+      if (! hModNtDll)
+        __leave;
     }
+
+    HMODULE hMod = nullptr;
+
+    if (_RtlInitUnicodeString == nullptr)
+        _RtlInitUnicodeString =
+        (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
+                                                         "RtlInitUnicodeString" );
+
+    if (LdrGetDllHandle == nullptr)
+        LdrGetDllHandle =
+       (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
+                                                   "LdrGetDllHandle" );
+
+     UNICODE_STRING         ucsModuleName          = { };
+    _RtlInitUnicodeString (&ucsModuleName, lpModuleName);
+
+    {
+      if ( NT_SUCCESS ( LdrGetDllHandle (
+                          0, 0,
+                            &ucsModuleName,
+                              &hMod )
+                      )
+         )
+      {
+        if (hMod != nullptr)
+          hModRet = hMod;
+      }
+    }
+
+    if (hModRet == nullptr)
+        hModRet = GetModuleHandleW (lpModuleName);
   }
 
-  if (hModRet == nullptr)
-      hModRet = GetModuleHandleW (lpModuleName);
+  __finally
+  {
+    if (SK_IsDebuggerPresent ())
+    {
+      OutputDebugStringW (L"Unhandled Exception in GetModuleHandleW");
+    }
+  }
 
   return hModRet;
 }
@@ -305,7 +324,10 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 
         if (! val._Equal (ver_str))
         {
+          ini->get_section    (hook_cfg.name.c_str ()).set_name (L"HookCache.Invalid");
           ini->remove_section (hook_cfg.name.c_str ());
+          ini->write          ();
+
           val = ver_str;
         }
       }
@@ -550,22 +572,6 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-MH_STATUS
-__stdcall
-SK_EnableHookEx (void *pTarget, UINT idx);
 
 MH_STATUS
 __stdcall

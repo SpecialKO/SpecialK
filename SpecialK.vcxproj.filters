@@ -229,9 +229,6 @@
     <Filter Include="Header Files\External Libraries\MinHook">
       <UniqueIdentifier>{eda4ade5-aec0-4a7c-9849-bcf2be4b754e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\External Libraries\CEGUI">
-      <UniqueIdentifier>{c65c1daa-a455-4b55-80b4-fb6f5e8974a7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\ADL">
       <UniqueIdentifier>{51912521-fb53-4fdf-8bec-de0f19a29cbf}</UniqueIdentifier>
     </Filter>
@@ -351,6 +348,24 @@
     </Filter>
     <Filter Include="Header Files\OSD">
       <UniqueIdentifier>{8fbcdce6-8e2c-4712-9b40-d4085ce8ac67}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Licenses">
+      <UniqueIdentifier>{bd7cc558-e4a0-47ed-ab8f-3ee3a6f79798}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Sounds">
+      <UniqueIdentifier>{24adda20-1d1b-40e0-b69c-13bcfe0eeda5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Packaged Dependencies">
+      <UniqueIdentifier>{18025ce6-e5a7-426c-af1a-1d5f90016531}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Cursors">
+      <UniqueIdentifier>{f2ebc178-55a5-4f2d-80fb-f738fa7b2acc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\scePad">
+      <UniqueIdentifier>{0014a4f6-2317-4112-aed5-07ce6bea964e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\scePad">
+      <UniqueIdentifier>{cb601a33-6e3a-4861-b13a-47671e146df6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -804,81 +819,6 @@
     <ClInclude Include="depends\include\nvapi\nvShaderExtnEnums.h">
       <Filter>Header Files\External Libraries\NvAPI</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CEGUI.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ButtonBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Button.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Animation.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Animation_xmlHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\AnimationInstance.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\AnimationManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\BasicRenderedStringParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Base.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\BasicImage.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\BoundSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CentredRenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ChainedXMLHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Clipboard.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ClippedContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Affector.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ApplePBTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\lzma\Aes.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\All.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\BidiVisualMapping.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ComboDropList.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Colour.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\ColourPicker.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ColourRect.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Combobox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\Compiler.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
@@ -887,12 +827,6 @@
     </ClInclude>
     <ClInclude Include="depends\include\lzma\Bra.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CompositeResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\ComponentBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\lzma\CpuArch.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
@@ -903,326 +837,11 @@
     <ClInclude Include="depends\include\DirectXTex\BCDirectCompute.h">
       <Filter>Header Files\External Libraries\DirectXTex</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Config_xmlHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Conversions.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Controls.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CoordConverter.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\DataContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Default.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\DefaultLogger.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\DefaultRenderedStringParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\DefaultResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\DefaultWindow.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\WinRing0\Driver.h">
       <Filter>Header Files\External Libraries\WinRing0</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Exceptions.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Event.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\EventAction.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\EventArgs.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\EventLinkDefinition.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\EventPusher.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\EventSet.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FactoryModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FactoryRegisterer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\FalagardPropertyBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Font_xmlHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Font.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FontGlyph.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FontManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FormattedRenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\FormattingSetting.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\FrameComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\FrameWindow.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\FrameWindow.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GeometryBufferBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\DragContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\Dimensions.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\Delta.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\FBOTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ForwardRefs.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FreeFunctionSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FreeTypeFont.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FribidiVisualMapping.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\GL\glew.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3FBOTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3GeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GL3Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\GLES.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLFBOTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLGeometryBuffer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\GL\glfw.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\Functor.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FunctorCopySlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FunctorPointerSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FunctorReferenceBinder.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\FunctorReferenceSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLRenderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\GlobalEventSet.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GLXPBTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\GUIContext.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\GUILayout_xmlHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\GroupBox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\GridLayoutContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\HorizontalLayoutContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\IconvStringTranscoder.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Image.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodec.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\TGA\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SILLY\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\PVR\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\FreeImage\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\Corona\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\DevIL\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\STB\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageCodecModules\SDL2\ImageCodecModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageFactory.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ImageManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\ImageryComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\ImagerySection.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemEntry.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemEntry.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemListBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ItemListbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ItemListbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\IteratorBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\JustifiedRenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\KeyFrame.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\LayerSpecification.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\LayoutCell.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\LayoutContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\LeftAlignedRenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\lzma\LzmaLib.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
@@ -1251,101 +870,11 @@
     <ClInclude Include="depends\include\lzma\LzmaEnc.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\GlmPimpl.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\InjectedInputReceiver.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\InputEvent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\LinkedEvent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Listbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Listbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ListboxItem.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ListboxTextItem.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ListHeader.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeader.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ListHeaderSegment.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ListHeaderSegment.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\Alloc.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\DynamicModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Editbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Editbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Element.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\Enums.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Logger.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Menubar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Menubar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\MenuBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MenuItem.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\MenuItem.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MouseCursor.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\MtCoder.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\MultiLineEditbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiColumnList.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\MultiColumnList.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\MultiLineEditbox.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Module.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\Module.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\WinRing0\vxd\OpenLS.h">
       <Filter>Header Files\External Libraries\WinRing0</Filter>
@@ -1374,159 +903,6 @@
     <ClInclude Include="depends\include\WinRing0\dll\OpenLibSys.h">
       <Filter>Header Files\External Libraries\WinRing0</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemorySTLWrapper.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemberFunctionSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemoryAllocatedObject.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemoryAllocation.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\MemoryFile.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemoryOgreAllocator.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MemoryStdAllocator.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MinizipResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\MinibidiVisualMapping.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\NamedArea.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\NamedDefinitionCollator.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\NamedElement.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\NamedXMLResourceManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Rect.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RefCounted.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RegexMatcher.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringImageComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringTextComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringWidgetComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderedStringWordWrapper.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderEffect.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderEffectFactory.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderEffectManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Renderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RendererBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RendererDef.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderingContext.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderingSurface.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderingWindow.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderQueue.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\RenderTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\Precomp.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
@@ -1536,401 +912,14 @@
     <ClInclude Include="depends\include\lzma\Ppmd.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\PopupMenu.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\PopupMenu.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ProgressBar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ProgressBar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Property.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinition.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyDefinitionBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\PropertyHelper.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyInitialiser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\PropertyLinkDefinition.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\PushButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\PropertySet.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\ResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\ResourceProvider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RightAlignedRenderedString.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\SchemeManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Scheme_xmlHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Scheme.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ScriptModules\Lua\ScriptModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\ScriptModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ScrollablePane.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrollablePane.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Scrollbar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Scrollbar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ScrolledItemListBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\SectionSpecification.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\SequentialLayoutContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ShaderManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Shader.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Singleton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Size.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Slider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Slider.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\SlotFunctorBase.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\PCRERegexMatcher.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
     <ClInclude Include="depends\include\lzma\Sort.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Quaternion.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\PixmapFont.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\SimpleTimer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Spinner.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderFrag.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StandardShaderVert.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\StateChangeWrapper.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\StateImagery.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Static.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticImage.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\StaticText.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\String.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\StringTranscoder.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\SubscriberSlot.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\TabButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\TabControl.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\TabControl.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\TextComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\DirectFB\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\Texture.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Null\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\TextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TextUtils.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\lzma\Sha256.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\lzma\Threads.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tree.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Tree.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\TreeItem.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Thumb.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Titlebar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Titlebar.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\ToggleButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\ToggleButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererSets\Core\Tooltip.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\Tooltip.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplInterpolators.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplProperty.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWindowFactory.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWindowFactoryRegisterer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWindowProperty.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWindowRendererFactory.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWindowRendererProperty.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TplWRFactoryRegisterer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\VerticalLayoutContainer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGLES\ViewportTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D11\ViewportTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D10\ViewportTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\ViewportTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Direct3D9\ViewportTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Vertex.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetComponent.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookFeel.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\WidgetLookManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Win32StringTranscoder.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Window.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowFactory.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowFactoryManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRenderer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\WindowRendererManager.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Irrlicht\WindowTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\Ogre\WindowTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLAttributes.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\XMLEnumHelper.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\falagard\XMLHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLHandler.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParser.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\RapidXML\XMLParserModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\TinyXML\XMLParserModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Libxml2\XMLParserModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Expat\XMLParserModule.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLParserModules\Xerces\XMLParserProperties.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\XMLSerializer.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\lzma\Xz.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
@@ -1940,27 +929,6 @@
     </ClInclude>
     <ClInclude Include="depends\include\lzma\XzEnc.h">
       <Filter>Header Files\External Libraries\LZMA</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\Vector.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\UDim.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\CommonDialogs\ColourPicker\Types.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\TypedProperty.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\SystemKeys.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\System.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\widgets\RadioButton.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\MinHook\MinHook.h">
       <Filter>Header Files\External Libraries\MinHook</Filter>
@@ -2870,9 +1838,6 @@
     </ClInclude>
     <ClInclude Include="depends\include\glm\ext\vector_ulp.hpp">
       <Filter>Header Files\External Libraries\glm</Filter>
-    </ClInclude>
-    <ClInclude Include="depends\include\CEGUI\RendererModules\OpenGL\WGLPBTextureTarget.h">
-      <Filter>Header Files\External Libraries\CEGUI</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\glm\gtx\verbose_operator.hpp">
       <Filter>Header Files\External Libraries\glm</Filter>
@@ -3945,6 +2910,12 @@
     <ClInclude Include="include\SpecialK\control_panel\epic.h">
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
+    <ClInclude Include="include\json\json.hpp">
+      <Filter>Header Files\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\input\sce_pad.h">
+      <Filter>Header Files\Backends\Input\scePad</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4448,53 +3419,17 @@
     <ClCompile Include="src\popups\achievement.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
+    <ClCompile Include="src\input\sce_pad.cpp">
+      <Filter>Source Files\Backends\Input\scePad</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="resource\cursors\ovr_ptr.cur">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\cursors\ovr_horz.cur">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="injector64.dll">
       <Filter>Update Server</Filter>
     </None>
     <None Include="README.md" />
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files\External Libraries\ImGui</Filter>
-    </None>
-    <None Include="resource\packages\CEGUI32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\CEGUI64.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DCompiler_47_32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DCompiler_47_64.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DX9_43_32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DX9_43_64.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DX11_43_32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\D3DX11_43_64.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\WinRing0_32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\WinRing0_64.7z">
-      <Filter>Resource Files</Filter>
     </None>
     <None Include="include\SpecialK\commands\mem.inl">
       <Filter>Header Files\Utility</Filter>
@@ -4516,12 +3451,6 @@
     </None>
     <None Include="Tobii\API-Reference.pdf">
       <Filter>Tobii</Filter>
-    </None>
-    <None Include="resource\packages\tobii_stream_engine_sk32.7z">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="resource\packages\tobii_stream_engine_sk64.7z">
-      <Filter>Resource Files</Filter>
     </None>
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
@@ -4693,60 +3622,6 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
-    <None Include="depends\lib\CEGUI\Win32\CEGUIBase-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.exp">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIBase-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
-    <None Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.exp">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </None>
     <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb">
       <Filter>Libraries\64-bit\DirectXTex</Filter>
     </None>
@@ -5454,6 +4329,18 @@
     <None Include="depends\include\EOS\eos_leaderboards_types_deprecated.inl">
       <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </None>
+    <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
+      <Filter>Resource Files\Packaged Dependencies</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_horz.cur">
+      <Filter>Resource Files\Cursors</Filter>
+    </None>
+    <None Include="resource\cursors\ovr_ptr.cur">
+      <Filter>Resource Files\Cursors</Filter>
+    </None>
+    <None Include="resource\packages\libScePad_64.7z">
+      <Filter>Resource Files\Packaged Dependencies</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">
@@ -5467,68 +4354,11 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="resource\annoying.wav">
-      <Filter>Resource Files</Filter>
-    </Media>
     <Media Include="resource\crash.wav">
-      <Filter>Resource Files</Filter>
-    </Media>
-    <Media Include="resource\psn_trophy.wav">
-      <Filter>Resource Files</Filter>
-    </Media>
-    <Media Include="resource\xbox.wav">
-      <Filter>Resource Files</Filter>
-    </Media>
-    <Media Include="resource\dream_theater.wav">
-      <Filter>Resource Files</Filter>
-    </Media>
-    <Media Include="resource\screenshot.wav">
-      <Filter>Resource Files</Filter>
+      <Filter>Resource Files\Sounds</Filter>
     </Media>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="resource\licenses\7zip.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\ADL.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\DirectXTex.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\FreeType2.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\GLM_0_9_4_5.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\ImGui.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\MinHook.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\nvapi.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\Overview.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\SpecialK.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\stb.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\Vulkan.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\OpenLibSys.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="resource\licenses\tobii.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
     <Text Include="depends\include\glm\CMakeLists.txt">
       <Filter>Header Files\External Libraries\glm</Filter>
     </Text>
@@ -5536,62 +4366,56 @@
       <Filter>Tobii</Filter>
     </Text>
     <Text Include="CHANGELOG.txt" />
+    <Text Include="resource\licenses\ADL.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\GLM_0_9_4_5.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\ImGui.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\MinHook.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\nvapi.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\OpenLibSys.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\Overview.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\SpecialK.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\stb.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\tobii.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\Vulkan.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\7zip.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\DirectXTex.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\FreeType2.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\fontawesome.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\nlohmann-json.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIBase-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICommonDialogs-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D9Renderer-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIDirect3D11Renderer-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIOpenGLRenderer-0.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUIRapidXMLParser.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\Win32\CEGUISTBImageCodec.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIBase-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICommonDialogs-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUICoreWindowRendererSet.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D9Renderer-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D10Renderer-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIDirect3D11Renderer-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIOpenGLRenderer-0.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUIRapidXMLParser.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
-    <Library Include="depends\lib\CEGUI\x64\CEGUISTBImageCodec.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
-    </Library>
     <Library Include="depends\lib\glew\Win32\glew.lib">
       <Filter>Libraries\32-bit\CEGUI</Filter>
     </Library>

@@ -171,14 +171,6 @@ SK_NNK2_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  extern bool
-  __stdcall
-  SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-  extern HRESULT
-  __stdcall
-  SK_UpdateSoftware (const wchar_t* wszProduct);
-
   // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
   //
   ////if (SK_FetchVersionInfo (L"NiNoStutter"))

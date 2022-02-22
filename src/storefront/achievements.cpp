@@ -24,6 +24,21 @@
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/resource.h>
 
+//#define _HAS_CEGUI_REPLACEMENT
+#ifdef __CPP20
+#define __cpp_lib_format
+#include <format>
+#include <source_location>
+#endif
+
+#include <ctime>
+#include <chrono>
+#include <filesystem>
+#include <concurrent_queue.h>
+#include <concurrent_unordered_set.h>
+
+using namespace std::chrono_literals;
+
 void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 {
   auto log =
@@ -39,27 +54,27 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 
   wchar_t wszFileName [MAX_PATH + 2] = { };
 
-  extern iSK_INI* steam_ini;
+  extern iSK_INI* platform_ini;
 
-  if (*wszUnlockSound == L'\0' && steam_ini != nullptr)
+  if (*wszUnlockSound == L'\0' && platform_ini != nullptr)
   {
     // If the config file is empty, establish defaults and then write it.
-    if (steam_ini->get_sections ().empty ())
+    if (platform_ini->get_sections ().empty ())
     {
-      steam_ini->import ( L"[Steam.Achievements]\n"
-                          L"SoundFile=psn\n"
-                          L"PlaySound=true\n"
-                          L"TakeScreenshot=false\n"
-                          L"AnimatePopup=true\n"
-                          L"NotifyCorner=0\n" );
+      platform_ini->import ( L"[Platform.Achievements]\n"
+                             L"SoundFile=psn\n"
+                             L"PlaySound=true\n"
+                             L"TakeScreenshot=false\n"
+                             L"AnimatePopup=true\n"
+                             L"NotifyCorner=0\n" );
 
-      steam_ini->write ();
+      platform_ini->write ();
     }
 
-    if (steam_ini->contains_section (L"Steam.Achievements"))
+    if (platform_ini->contains_section (L"Platform.Achievements"))
     {
       iSK_INISection& sec =
-        steam_ini->get_section (L"Steam.Achievements");
+        platform_ini->get_section (L"Platform.Achievements");
 
       if (sec.contains_key (L"SoundFile"))
       {
@@ -72,18 +87,19 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 
   else
   {
-    wcsncpy_s ( wszFileName,    MAX_PATH,
+    wcsncpy_s ( wszFileName,     MAX_PATH,
                 wszUnlockSound, _TRUNCATE );
   }
 
-  if ((!      _wcsnicmp (wszFileName, L"psn", MAX_PATH)))
-    psn  = true;
-  else if  (! _wcsnicmp (wszFileName, L"xbox", MAX_PATH))
+  if ((!      _wcsnicmp (wszFileName, L"psn",           MAX_PATH)))
+    psn  = true;                                        
+  else if  (! _wcsnicmp (wszFileName, L"xbox",          MAX_PATH))
     xbox = true;
   else if ((! _wcsnicmp (wszFileName, L"dream_theater", MAX_PATH)))
     dt   = true;
 
-  FILE *fWAV = nullptr;
+  FILE *fWAV  = nullptr;
+  size_t size = 0;
 
   if ( (!  psn) &&
        (! xbox) &&
@@ -95,23 +111,31 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
                   L"  >> Loading Achievement Unlock Sound: '%s'...",
                     wszFileName );
 
-                fseek (fWAV, 0, SEEK_END);
-    long size = ftell (fWAV);
-               rewind (fWAV);
+    try
+    {
+      size =
+        sk::narrow_cast <size_t> (
+          std::filesystem::file_size (wszFileName) );
 
-    unlock_sound =
-      static_cast <uint8_t *> (
-        malloc (size)
-      );
+      if (size > unlock_sound.size ())
+                 unlock_sound.resize (size);
 
-    if (unlock_sound != nullptr)
-      fread  (unlock_sound, size, 1, fWAV);
+      if (     unlock_sound.size () >= size)
+        fread (unlock_sound.data (),   size, 1, fWAV);
+
+      default_loaded = false;
+    }
+
+    catch (const std::exception& e)
+    {
+      size        = 0;
+      std::ignore = e;
+      // ...
+    }
 
     fclose (fWAV);
 
     log->LogEx (false, L" %d bytes\n", size);
-
-    default_loaded = false;
   }
 
   else
@@ -123,36 +147,761 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
     log->Log ( L"  * Loading Built-In Achievement Unlock Sound: '%s'",
                  wszFileName );
 
-    HRSRC default_sound = nullptr;
+    auto sound_file =
+      std::filesystem::path (SK_GetDocumentsDir ()) /
+           LR"(My Mods\SpecialK\Assets\Shared\Sounds\)";
 
     if (psn)
-      default_sound =
-      FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_TROPHY),        L"WAVE");
+      sound_file /= L"psn_trophy.wav";
     else if (xbox)
-      default_sound =
-      FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_XBOX),          L"WAVE");
+      sound_file /= L"xbox.wav";
     else
-      default_sound =
-      FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_DREAM_THEATER), L"WAVE");
+      sound_file /= L"dream_theater.wav";
 
-    if (default_sound != nullptr)
+    if (! std::filesystem::exists (sound_file))
     {
-      HGLOBAL sound_ref     =
-        LoadResource (SK_GetDLL (), default_sound);
+      // We're missing something, queue up a replacement download...
+      //
+      //   It won't finish in time for the load below, but it'll be
+      //     there for the next game launch at least.
+      SK_FetchBuiltinSounds ();
+    }
 
-      if (sound_ref != nullptr)
+    if ((fWAV = _wfopen (sound_file.c_str (), L"rb")) != nullptr)
+    {
+      try
       {
-        unlock_sound        =
-          static_cast <uint8_t *> (LockResource (sound_ref));
+        size =
+          sk::narrow_cast <size_t> (
+            std::filesystem::file_size (sound_file) );
+
+        if (size > unlock_sound.size ())
+                   unlock_sound.resize (size);
+
+        if (     unlock_sound.size () >= size)
+          fread (unlock_sound.data (),   size, 1, fWAV);
 
         default_loaded = true;
       }
+
+      catch (const std::exception& e)
+      {
+        size        = 0;
+        std::ignore = e;
+        // ...
+      }
+
+      fclose (fWAV);
     }
   }
 };
 
+//static constexpr auto SK_BACKEND_URL = "https://backend.special-k.info/";
+#define                 SK_BACKEND_URL   "https://backend.special-k.info/"
+
+void
+SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
+{
+  static SK_AutoHandle hFetchEvent (
+    SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr )
+  );
+
+  static
+    concurrency::concurrent_queue <sk_download_request_s>
+                   download_queue;
+
+  static
+    concurrency::concurrent_queue <sk_download_request_s>
+                   download_queueX;
+
+  if (! high_prio)
+  {
+    download_queue.push (
+        std::move (req) );
+  }
+
+  else
+  {
+    download_queueX.push (
+      std::move (req));
+  }
+
+  SetEvent (hFetchEvent.m_h);
+
+  SK_RunOnce
+  ( SK_Thread_CreateEx ([](LPVOID pUser)
+ -> DWORD
+    {
+      HANDLE hWaitEvents [] = {
+        __SK_DLL_TeardownEvent, *(HANDLE *)pUser
+      };
+
+      while ( WAIT_OBJECT_0 !=
+                WaitForMultipleObjects ( 2, hWaitEvents, FALSE, INFINITE ) )
+      {
+        sk_download_request_s              download;
+        while (!   (download_queue.empty  (        ) &&
+                    download_queueX.empty (        )))
+        {
+          while (! (download_queueX.try_pop (download) ||
+                    download_queue.try_pop  (download)))
+            SK_SleepEx (1UL, FALSE);
+
+          ULONG ulTimeout = 5000UL;
+
+          PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
+          HINTERNET hInetHTTPGetReq  = nullptr,
+                    hInetHost        = nullptr,
+          hInetRoot                  =
+            InternetOpen (
+              L"Special K - Asset Crawler",
+                INTERNET_OPEN_TYPE_DIRECT,
+                  nullptr, nullptr,
+                    0x00
+            );
+
+          if (config.system.log_level > 0)
+          {
+            steam_log->Log (L"Trying URL: %ws:%d/%ws ==> %ws", download.wszHostName, download.port,
+                                                               download.wszHostPath, download.path.c_str ());
+          }
+
+          // (Cleanup On Error)
+          auto CLEANUP = [&](bool clean = false) ->
+          DWORD
+          {
+            if (! clean)
+            {
+              DWORD dwLastError =
+                   GetLastError ();
+
+              OutputDebugStringW (
+                ( std::wstring (L"WinInet Failure (") +
+                      std::to_wstring (dwLastError)   +
+                  std::wstring (L"): ")               +
+                         _com_error   (dwLastError).ErrorMessage ()
+                ).c_str ()
+              );
+            }
+
+            if (hInetHTTPGetReq != nullptr) InternetCloseHandle (hInetHTTPGetReq);
+            if (hInetHost       != nullptr) InternetCloseHandle (hInetHost);
+            if (hInetRoot       != nullptr) InternetCloseHandle (hInetRoot);
+
+            if ((! clean) && download.finish_routine != nullptr)
+            {
+              std::vector <uint8_t>               empty {};
+              download.finish_routine (std::move (empty), download.path);
+            }
+
+            return 0;
+          };
+
+          if (hInetRoot == nullptr)
+            return CLEANUP ();
+
+          DWORD_PTR dwInetCtx = 0;
+
+          hInetHost =
+            InternetConnect ( hInetRoot,
+                                download.wszHostName,
+                                  download.port,
+                                    nullptr, nullptr,
+                                      INTERNET_SERVICE_HTTP,
+                                        0x00,
+                                          (DWORD_PTR)&dwInetCtx );
+
+          if (hInetHost == nullptr)
+          {
+            return CLEANUP ();
+          }
+
+          hInetHTTPGetReq =
+            HttpOpenRequest ( hInetHost,
+                                nullptr,
+                                  download.wszHostPath,
+                                    L"HTTP/1.1",
+                                      nullptr,
+                                        rgpszAcceptTypes,
+                                                                            INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
+                                          INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
+                                          INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC |
+                                          ( download.port == INTERNET_DEFAULT_HTTPS_PORT ?
+                                                             INTERNET_FLAG_SECURE        : 0x0 ),
+                                            (DWORD_PTR)&dwInetCtx );
+
+
+          // Wait 2500 msecs for a dead connection, then give up
+          //
+          InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
+                                 &ulTimeout,    sizeof (ULONG) );
+
+
+          if (hInetHTTPGetReq == nullptr)
+          {
+            return CLEANUP ();
+          }
+
+          if ( HttpSendRequestW ( hInetHTTPGetReq,
+                                    nullptr,
+                                      0,
+                                        nullptr,
+                                          0 ) )
+          {
+            DWORD dwStatusCode        = 0;
+            DWORD dwStatusCode_Len    = sizeof (DWORD);
+
+            DWORD dwContentLength     = 0;
+            DWORD dwContentLength_Len = sizeof (DWORD);
+            DWORD dwSizeAvailable;
+
+            HttpQueryInfo ( hInetHTTPGetReq,
+                             HTTP_QUERY_STATUS_CODE |
+                             HTTP_QUERY_FLAG_NUMBER,
+                               &dwStatusCode,
+                                 &dwStatusCode_Len,
+                                   nullptr );
+
+            if (dwStatusCode == 200 || dwStatusCode == 403 /* json errors */)
+            {                       // ^^ If Content Type == json
+              HttpQueryInfo ( hInetHTTPGetReq,
+                                HTTP_QUERY_CONTENT_LENGTH |
+                                HTTP_QUERY_FLAG_NUMBER,
+                                  &dwContentLength,
+                                    &dwContentLength_Len,
+                                      nullptr );
+
+              std::vector <uint8_t> http_chunk;
+              std::vector <uint8_t> concat_buffer;
+                                    concat_buffer.reserve (dwContentLength);
+
+              while ( InternetQueryDataAvailable ( hInetHTTPGetReq,
+                                                     &dwSizeAvailable,
+                                                       0x00, NULL )
+                )
+              {
+                if (dwSizeAvailable > 0)
+                {
+                  DWORD dwSizeRead = 0;
+
+                  if (http_chunk.size () < dwSizeAvailable)
+                      http_chunk.resize   (dwSizeAvailable);
+
+                  if ( InternetReadFile ( hInetHTTPGetReq,
+                                            http_chunk.data (),
+                                              dwSizeAvailable,
+                                                &dwSizeRead )
+                     )
+                  {
+                    if (dwSizeRead == 0)
+                      break;
+
+                    concat_buffer.insert ( concat_buffer.cend   (),
+                                            http_chunk.cbegin   (),
+                                              http_chunk.cbegin () + dwSizeRead );
+
+                    if (dwSizeRead < dwSizeAvailable)
+                      break;
+                  }
+                }
+
+                else
+                  break;
+              }
+
+              // Write the original file to disk if no finish routine exists,
+              //   or if it returns false
+              if (    download.finish_routine == nullptr ||
+                   (! download.finish_routine (std::move (concat_buffer), download.path)) )
+              {
+                if ( FILE *fOut = _wfopen ( download.path.c_str (), L"wb+" ) ;
+                           fOut != nullptr )
+                {
+                  fwrite ( concat_buffer.data (),
+                           concat_buffer.size (), 1, fOut );
+                  fclose (                           fOut );
+                }
+              }
+            }
+
+            else
+            {
+              SK_LOG0 ( ( L"Received unexpected HTTP Response Code: %d for %ws:%d%ws",
+                                                      dwStatusCode,
+                         download.wszHostName, download.port, download.wszHostPath ),
+                           L"   HTTP   " );
+            }
+          }
+
+          CLEANUP (true);
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Achievement NetWorker", &hFetchEvent.m_h)
+  );
+}
+
+#undef snprintf
+#include <json/json.hpp>
+#include <SpecialK/steam_api.h>
+
+using kvpair_s =
+   std::pair <std::string,
+              std::string>;
+
+static auto const
+SK_HTTP_BundleArgs =
+ [] ( std::initializer_list
+            <kvpair_s> list_ )
+-> std::vector <kvpair_s>
+ {
+   std::vector <kvpair_s> bundle;
+
+   for ( auto& entry : list_ )
+   {
+     bundle.push_back (
+       std::move (entry)
+     );
+   }
+
+   return
+     std::move (bundle);
+ };
+
+kvpair_s
+SK_HTTP_MakeKVPair ( const char*         key,
+                     const std::string&& str_val )
+{
+  return
+    kvpair_s { key,
+           str_val
+    };
+};
+
+kvpair_s
+SK_HTTP_MakeKVPair ( const char*    key,
+                     const uint64_t val )
+{
+  return
+    SK_HTTP_MakeKVPair ( key,
+      std::move (
+         std::to_string (val) )
+    );
+};
+
+std::string
+SK_Steam_FormatApiRequest ( const char *apiClass,
+                            const char *apiFunc,
+                                   int  apiVer,
+   const std::vector <kvpair_s>&&       vals )
+{
+  std::string output =
+    SK_FormatString (
+      SK_BACKEND_URL "%s/%s%d.php?",
+        apiClass, apiFunc, apiVer
+    );
+
+  int count = 0;
+
+  for ( const auto& it : vals )
+  {
+    if (count > 0) output += "&";
+
+    output += SK_FormatString ( "%s=%s",
+          it.first.c_str (), it.second.c_str () );
+
+    ++count;
+  }
+
+  return output;
+}
+
 SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, ISteamUserStats* stats)
 {
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
+
+  static const auto
+    schema = ( achievements_path /
+             L"SchemaForGame.json" );
+
+  static const auto
+    friend_stats = ( achievements_path /
+                   L"FriendStatsForGame.json" );
+
+  static const uint64_t ui64_sid =
+    SK::SteamAPI::UserSteamID ().ConvertToUint64 ();
+
+  static const std::string url =
+    SK_Steam_FormatApiRequest
+    ( "ISteamUser", "GetFriendList", 1,
+         SK_HTTP_BundleArgs
+      ( {SK_HTTP_MakeKVPair ("steamid",
+            std::to_string (ui64_sid))} )
+    );
+
+  static bool          once = false;
+  if (! std::exchange (once, true))
+  {
+    static concurrency::concurrent_unordered_set <uint64_t> friends;
+    static concurrency::concurrent_unordered_set <uint64_t> friends_who_own;
+    static concurrency::concurrent_unordered_set <uint64_t> friends_processed;
+
+    std::error_code                                      ec = { };
+    if ( std::filesystem::exists          (friend_stats, ec) &&
+         std::filesystem::file_time_type::clock::now ( ) -
+         std::filesystem::last_write_time (friend_stats, ec) > 8h )
+    {
+      try {
+        nlohmann::json jsonFriends =
+          std::move (
+            nlohmann::json::parse (
+              std::ifstream (friend_stats), nullptr, true
+            )
+          );
+
+        for ( const auto& friend_ : jsonFriends ["friends"] )
+        {
+          friends_who_own.insert (
+            (uint64_t)std::atoll (
+              friend_ ["steamid"].get <std::string_view> ().data ()
+            )
+          );
+        }
+      }
+
+      catch (const std::exception& e)
+      {
+        if (! std::filesystem::remove (friend_stats, ec))
+        {
+          steam_log->Log (L"Error while managing friend ownership file, %hs", ec.message ().c_str ());
+        }
+
+#ifdef __CPP20
+        const auto&& src_loc =
+          std::source_location::current ();
+
+        steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                     src_loc.file_name     (),
+                                     src_loc.line          (),
+                                     src_loc.column        (), e.what ());
+        steam_log->Log (L"%hs",      src_loc.function_name ());
+        steam_log->Log (L"%hs",
+          std::format ( std::string ("{:*>") +
+                     std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+        std::ignore = e;
+#endif
+      }
+
+      for ( const auto& friend_id : friends_who_own )
+      {
+        SK_Network_EnqueueDownload (
+          sk_download_request_s ( std::to_wstring (friend_id),
+            SK_Steam_FormatApiRequest (
+              "ISteamUserStats", "GetPlayerAchievements", 1,
+               SK_HTTP_BundleArgs (
+              {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+               SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
+            ),
+          []( const std::vector <uint8_t>&& data,
+              const std::wstring_view       file )
+          {
+            std::ignore = file;
+
+            if (config.system.log_level > 0)
+            { steam_log->Log ( L"%hs",
+                 std::string ( data.data (),
+                               data.data () + data.size ()
+                             ).c_str () );
+            }
+
+            if (! data.empty ())
+            {
+              try {
+                nlohmann::json jsonAchieved =
+                  std::move (
+                    nlohmann::json::parse ( data.cbegin (),
+                                            data.cend   (), nullptr, true )
+                  );
+              }
+
+              catch (const std::exception& e)
+              {
+                if (config.system.log_level > 0)
+                {
+#ifdef __CPP20
+                  const auto&& src_loc =
+                    std::source_location::current ();
+
+                  steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                               src_loc.file_name     (),
+                                               src_loc.line          (),
+                                               src_loc.column        (), e.what ());
+                  steam_log->Log (L"%hs",      src_loc.function_name ());
+                  steam_log->Log (L"%hs",
+                    std::format ( std::string ("{:*>") +
+                               std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                  std::ignore = e;
+#endif
+                }
+              }
+
+              SK_SleepEx (1UL, FALSE);
+            }
+
+            else
+            {
+              steam_log->Log (
+                L"Unknown Achievement Status for %ws", file.data ()
+              );
+              SK_SleepEx (2UL, FALSE);
+            }
+
+            return true;
+          })
+        );
+      }
+    }
+
+
+    else
+    {
+      SK_Network_EnqueueDownload (
+      sk_download_request_s (schema, url.c_str (),
+      []( const std::vector <uint8_t>&& data,
+          const std::wstring_view       file )
+      {
+        std::ignore = file;
+
+        try {
+          nlohmann::json jsonFriends =
+            std::move (
+              nlohmann::json::parse ( data.cbegin (),
+                                      data.cend   (), nullptr, true )
+            );
+
+          for ( const auto& friend_ : jsonFriends ["friendslist"]["friends"] )
+          {
+                   const uint64_t
+                 friend_id =  sk::
+            narrow_cast <uint64_t> (
+              std::atoll (
+                &friend_ ["steamid"].get
+                < std::string_view >( )[0]
+                         )         );
+
+            friends.insert (friend_id);
+
+            SK_Network_EnqueueDownload (
+              sk_download_request_s ( std::to_wstring (friend_id),
+                SK_Steam_FormatApiRequest (
+                  "IPlayerService", "GetOwnedGames", 1,
+                   SK_HTTP_BundleArgs (
+                  {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+                   SK_HTTP_MakeKVPair ("appid",   config.steam.appid)}) ),
+              []( const std::vector <uint8_t>&& data,
+                  const std::wstring_view       file )
+              {
+                try
+                {
+                  nlohmann::json jsonOwned =
+                    std::move (
+                      nlohmann::json::parse ( data.cbegin (),
+                                              data.cend   (), nullptr, true )
+                    );
+
+                  uint64_t _friend_id =
+                      (uint64_t)std::wcstoll (file.data (), nullptr, 10);
+
+                  if (jsonOwned.count ("response")                      &&
+                      jsonOwned       ["response"].count ("game_count") &&
+                      jsonOwned       ["response"]       ["game_count"].get <int> () != 0)
+                  {
+                    friends_who_own.insert (_friend_id);
+
+                    steam_log->Log (L"Friend: %hs owns this game...",
+                            steam_ctx.Friends ()->
+                                   GetFriendPersonaName (CSteamID (_friend_id))
+                    );
+                  }
+
+                  friends_processed.insert (_friend_id);
+
+                  SK_SleepEx (3UL, FALSE);
+                }
+
+                catch (const std::exception& e)
+                {
+#ifdef __CPP20
+                  const auto&& src_loc =
+                    std::source_location::current ();
+
+                  steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                               src_loc.file_name     (),
+                                               src_loc.line          (),
+                                               src_loc.column        (), e.what ());
+                  steam_log->Log (L"%hs",      src_loc.function_name ());
+                  steam_log->Log (L"%hs",
+                    std::format ( std::string ("{:*>") +
+                               std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                  std::ignore = e;
+#endif
+                }
+
+                if (friends_processed.size () == friends.size ())
+                {
+                  static std::atomic <size_t> idx = 0;
+                  static nlohmann::json root_owner;
+
+                  for ( const auto& friend_id : friends_who_own )
+                  {
+                    const std::wstring wszFriendId =
+                        std::to_wstring (friend_id);
+
+                    SK_Network_EnqueueDownload (
+                      sk_download_request_s (wszFriendId,
+                        SK_Steam_FormatApiRequest
+                        ( "ISteamUserStats", "GetPlayerAchievements", 1,
+                           SK_HTTP_BundleArgs (
+                          {SK_HTTP_MakeKVPair ("steamid", friend_id         ),
+                           SK_HTTP_MakeKVPair ("appid",   config.steam.appid)})
+                        ),
+                      []( const std::vector <uint8_t>&& data,
+                          const std::wstring_view       file )
+                      {
+                        //steam_log->Log (L"%hs", std::string (data.data (), data.data () + data.size ()).c_str ());
+
+                        try
+                        {
+                          const size_t idx_ =
+                            idx.fetch_add (1);
+
+                          root_owner ["friends"][idx_]["steamid"] =
+                            SK_WideCharToUTF8 (file.data ()).c_str ();
+
+                          if (! data.empty ())
+                          {
+                            nlohmann::json jsonAchieved =
+                              std::move (
+                                nlohmann::json::parse ( data.cbegin (),
+                                                        data.cend   (), nullptr, true )
+                              );
+
+                            if ( jsonAchieved.contains ("playerstats") &&
+                                 jsonAchieved          ["playerstats"].contains ("achievements") )
+                            {
+                              const auto& achievements_ =
+                                jsonAchieved ["playerstats"]["achievements"];
+
+                              for ( const auto& achievement : achievements_ )
+                              {
+                                auto& cached_achievement =
+                                  root_owner ["friends"][idx_]["achievements"][achievement ["apiname"].get <std::string_view> ().data ()];
+
+                                if ( ( achievement.contains ("unlocktime") && achievement ["unlocktime"].get <int> () != 0 ) ||
+                                     ( achievement.contains ("achieved" )  && achievement ["achieved"  ].get <int> () != 0 )  )
+                                {
+                                  cached_achievement ["achieved"]   = true;
+                                  cached_achievement ["unlocktime"] = achievement ["unlocktime"].get <int> ();
+                                }
+
+                                else
+                                {
+                                  cached_achievement ["achieved"]   = false;
+                                  cached_achievement ["unlocktime"] = 0;
+                                }
+                              }
+                            }
+
+                            // (i.e. {"playerstats":{"error":"Profile is not public","success":false}})
+                            else
+                            {
+                              if (jsonAchieved.contains ("playerstats") && jsonAchieved ["playerstats"].contains ("error"))
+                                root_owner ["friends"][idx_]["error"] = jsonAchieved ["playerstats"]["error"].get <std::string_view> ().data ();
+                              else
+                                root_owner ["friends"][idx_]["state"] = std::string ((char *)data.data ());
+                            }
+                          }
+
+                          else
+                          {
+                            root_owner ["friends"][idx_]["error"] = "Null Steam WebAPI Response";
+                            steam_log->Log (L"Unknown Achievement Status for %ws", file.data ());
+                          }
+                        }
+
+                        catch (const std::exception& e)
+                        {
+#ifdef __CPP20
+                          const auto&& src_loc =
+                            std::source_location::current ();
+
+                          steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                                       src_loc.file_name     (),
+                                                       src_loc.line          (),
+                                                       src_loc.column        (), e.what ());
+                          steam_log->Log (L"%hs",      src_loc.function_name ());
+                          steam_log->Log (L"%hs",
+                            std::format ( std::string ("{:*>") +
+                                       std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+                          std::ignore = e;
+#endif
+                        }
+
+                        if (idx == friends_who_own.size ())
+                        {
+                          std::ofstream (friend_stats) << root_owner;
+                        }
+
+                        SK_SleepEx (2UL, FALSE);
+
+                        return true;
+                      })
+                    );
+                  }
+                }
+
+                return true;
+              })
+            );
+          }
+        }
+
+        catch (const std::exception& e)
+        {
+#ifdef __CPP20
+          const auto&& src_loc =
+            std::source_location::current ();
+
+          steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                       src_loc.file_name     (),
+                                       src_loc.line          (),
+                                       src_loc.column        (), e.what ());
+          steam_log->Log (L"%hs",      src_loc.function_name ());
+          steam_log->Log (L"%hs",
+            std::format ( std::string ("{:*>") +
+                       std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+          std::ignore = e;
+#endif
+        }
+
+        return true;
+      }));
+    }
+  }
+
+
   idx_  = idx;
   name_ = szName;
 
@@ -165,19 +914,164 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
       stats->GetAchievementDisplayAttribute (szName, "desc");
 
     text_.locked.human_name =
-      (human != nullptr ? human : "<INVALID>");
+      (human != nullptr ? SK_UTF8ToWideChar (human) : L"<INVALID>");
     text_.locked.desc =
-      ( desc != nullptr ? desc  : "<INVALID>");
+      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  : L"<INVALID>");
 
     text_.unlocked.human_name =
-      (human != nullptr ? human : "<INVALID>");
+      (human != nullptr ? SK_UTF8ToWideChar (human) : L"<INVALID>");
     text_.unlocked.desc =
-      ( desc != nullptr ? desc  : "<INVALID>");
+      ( desc != nullptr ? SK_UTF8ToWideChar (desc)  : L"<INVALID>");
+  }
+
+  static SK_LazyGlobal <nlohmann::json> json;
+  static std::error_code                ec = { };
+
+  static const auto _DownloadIcons = [](const nlohmann::basic_json <>& achievement)
+  {
+    const auto szName =
+      achievement ["name"].get <std::string_view> ().data ();
+
+    std::filesystem::path unlock_img (achievements_path /
+        SK_FormatString ("Unlocked_%s.jpg", szName));
+    std::filesystem::path   lock_img (achievements_path /
+        SK_FormatString   ("Locked_%s.jpg", szName));
+
+    if (! std::filesystem::exists (unlock_img, ec)) SK_Network_EnqueueDownload (
+            sk_download_request_s (unlock_img, achievement ["icon"    ].get <std::string_view> ().data ()), true);
+    if (! std::filesystem::exists (lock_img,   ec)) SK_Network_EnqueueDownload (
+            sk_download_request_s (lock_img,   achievement ["icongray"].get <std::string_view> ().data ()), true);
+  };
+
+  if ( static bool        checked_schema = false ;
+      (! std::exchange   (checked_schema,  true))
+  && ((! std::filesystem::exists (schema, ec)) || std::filesystem::file_time_type::clock::now ( ) -
+                                                  std::filesystem::last_write_time ( schema, ec ) > 8h) )
+  {
+    std::filesystem::create_directories (
+                  achievements_path, ec );
+
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (schema,
+        SK_Steam_FormatApiRequest
+        ( "ISteamUserStats", "GetSchemaForGame", 2,
+           SK_HTTP_BundleArgs (
+           { SK_HTTP_MakeKVPair ( "appid",
+                      config.steam.appid ) }
+                              )
+        ),
+        []( const std::vector <uint8_t>&& data,
+            const std::wstring_view       file )
+        {
+          std::ignore = file;
+
+          try
+          {
+            json.get () = std::move
+            ( nlohmann::json::parse
+              ( data.cbegin (),
+                  data.cend (),
+                       nullptr,
+                       true   )  );
+
+            const auto& game_ =
+              json.get ()["game"];
+
+            if (game_.
+                contains ("availableGameStats"))
+            { const auto&  availableGameStats_ =
+                game_.at ("availableGameStats");
+
+              if (availableGameStats_.
+                  contains (              "achievements"))
+              { const auto&                achievements_ =
+                  availableGameStats_.at ("achievements");
+                for ( auto & achievement : achievements_ )
+                { _DownloadIcons (
+                             achievement
+                  );
+                }
+              }
+            }
+          }
+
+          catch (const std::exception& e)
+          {
+#ifdef __CPP20
+            const auto&& src_loc =
+              std::source_location::current ();
+
+            steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                         src_loc.file_name     (),
+                                         src_loc.line          (),
+                                         src_loc.column        (), e.what ());
+            steam_log->Log (L"%hs",      src_loc.function_name ());
+            steam_log->Log (L"%hs",
+              std::format ( std::string ("{:*>") +
+                         std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+            std::ignore = e;
+#endif
+          }
+
+          return false;
+        }
+      ), true
+    );
+  }
+
+  else if (std::filesystem::exists (schema, ec))
+  {
+    std::filesystem::path unlock_img (achievements_path / SK_FormatString ("Unlocked_%s.jpg", szName));
+    std::filesystem::path   lock_img (achievements_path / SK_FormatString ("Locked_%s.jpg",   szName));
+
+    if (! ( std::filesystem::exists (unlock_img, ec) &&
+            std::filesystem::exists (  lock_img, ec) ) )
+    {
+      try {
+        // Lazy-init
+        if (! json.isAllocated ())
+        {
+          json.get () =
+            std::move (
+              nlohmann::json::parse (std::ifstream (schema), nullptr, true)
+            );
+        }
+
+        if (json.get ()["game"]["availableGameStats"]["achievements"].size () > sk::narrow_cast <unsigned int> (idx))
+        {
+          const auto& achievement =
+            json.get ()["game"]["availableGameStats"]["achievements"][idx];
+
+          if (config.system.log_level > 1)
+            SK_ReleaseAssert (achievement ["name"].get <std::string_view> ()._Equal (szName));
+
+          _DownloadIcons (achievement);
+        }
+      }
+
+      catch (const std::exception& e)
+      {
+#ifdef __CPP20
+        const auto&& src_loc =
+          std::source_location::current ();
+
+        steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                     src_loc.file_name     (),
+                                     src_loc.line          (),
+                                     src_loc.column        (), e.what ());
+        steam_log->Log (L"%hs",      src_loc.function_name ());
+        steam_log->Log (L"%hs",
+          std::format ( std::string ("{:*>") +
+                     std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+        std::ignore = e;
+#endif
+      }
+    }
   }
 }
 
-#include <filesystem>
-#include <concurrent_queue.h>
 #include <EOS/eos_achievements_types.h>
 
 SK_AchievementManager::Achievement::Achievement ( int                            idx,
@@ -186,308 +1080,82 @@ SK_AchievementManager::Achievement::Achievement ( int                           
   idx_                      = idx;
   name_                     = def->AchievementId;
 
-  text_.locked.human_name   = def->LockedDisplayName;
-  text_.locked.desc         = def->LockedDescription;
+  text_.locked.human_name   = SK_UTF8ToWideChar (def->LockedDisplayName);
+  text_.locked.desc         = SK_UTF8ToWideChar (def->LockedDescription);
 
-  text_.unlocked.human_name = def->UnlockedDisplayName;
-  text_.unlocked.desc       = def->UnlockedDescription;
+  text_.unlocked.human_name = SK_UTF8ToWideChar (def->UnlockedDisplayName);
+  text_.unlocked.desc       = SK_UTF8ToWideChar (def->UnlockedDescription);
 
-  struct download_request_s
+
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
+
+
+  // Epic allows up to 1024x1024 achievement icons, and also allows PNG
+  //
+  //   Full detail icons waste a lot of disk space, so we may resize and re-encode
+  //
+  static const auto _IconTranscoder =
+  [ ]( const std::vector <uint8_t> &&buffer,
+       const std::wstring_view       file )
   {
-    std::wstring  path;
-    INTERNET_PORT port = INTERNET_DEFAULT_HTTP_PORT;
-    wchar_t       wszHostName [INTERNET_MAX_HOST_NAME_LENGTH] = { };
-    wchar_t       wszHostPath [INTERNET_MAX_PATH_LENGTH]      = { };
+    DirectX::ScratchImage img;
 
-    download_request_s (void) { };
-    download_request_s (const std::wstring& local_path,
-                        const char*         url)
+    if ( buffer.size () > (1024 * 100) /* 100 KiB or Greater */ &&
+          SUCCEEDED ( DirectX::LoadFromWICMemory (
+                       buffer.data (),
+                       buffer.size (), DirectX::WIC_FLAGS_NONE, nullptr, img ) )
+       )
     {
-      path = local_path;
+      const auto metadata =
+        img.GetMetadata ();
 
-      std::wstring wide_url =
-        SK_UTF8ToWideChar (url);
-
-      URL_COMPONENTSW
-        urlcomps                  = {                      };
-        urlcomps.dwStructSize     = sizeof (URL_COMPONENTSW);
-
-        urlcomps.lpszHostName     = wszHostName;
-        urlcomps.dwHostNameLength = INTERNET_MAX_HOST_NAME_LENGTH;
-
-        urlcomps.lpszUrlPath      = wszHostPath;
-        urlcomps.dwUrlPathLength  = INTERNET_MAX_PATH_LENGTH;
-
-      InternetCrackUrl (          wide_url.c_str  (),
-         sk::narrow_cast <DWORD> (wide_url.length ()),
-                           0x00,
-                             &urlcomps );
-
-      if (wide_url.find (L"https") != std::wstring::npos)
-        port = INTERNET_DEFAULT_HTTPS_PORT;
-    }
-  };
-
-  static SK_AutoHandle hFetchEvent (
-      SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr )
-    );
-
-  static concurrency::concurrent_queue <download_request_s *>
-                                        download_queue;
-
-  try {
-    std::filesystem::path achievements_path (
-      std::filesystem::path (SK_GetConfigPath ()) / LR"(SK_Res/Achievements)"
-    );
-
-    std::filesystem::path unlock_img (achievements_path / L"Unlocked_");
-                          unlock_img += def->AchievementId;
-                          unlock_img += L".jpg";
-
-    std::filesystem::path lock_img (achievements_path / L"Locked_");
-                          lock_img += def->AchievementId;
-                          lock_img += L".jpg";
-
-    std::filesystem::create_directories (achievements_path);
-
-    if (! std::filesystem::exists (unlock_img)) { download_queue.push (new
-               download_request_s (unlock_img, def->UnlockedIconURL)); SetEvent (hFetchEvent.m_h); }
-    if (! std::filesystem::exists (lock_img))   { download_queue.push (new
-               download_request_s (lock_img,   def->LockedIconURL  )); SetEvent (hFetchEvent.m_h); }
-  }
-
-  catch (...) {};
-
-  if (! download_queue.empty ())
-  {
-    SK_RunOnce (
-      SK_Thread_CreateEx ([](LPVOID pUser) -> DWORD
+      // > 256x256 should be converted to JPEG for space savings
+      if (metadata.width > 256 || metadata.height > 256)
       {
-        HANDLE hWaitEvents [] = {
-          __SK_DLL_TeardownEvent, *(HANDLE *)pUser
-        };
-
-        while ( WaitForMultipleObjects ( 2, hWaitEvents, FALSE, INFINITE ) != WAIT_OBJECT_0 )
+        // > 512x512 should be resized for even more space savings
+        if (metadata.width > 512 || metadata.height > 512)
         {
-          download_request_s*                download_ptr;
-          while (!   download_queue.empty   (            ))
-          { while (! download_queue.try_pop (download_ptr))
-              SK_SleepEx (1, FALSE);
-
-            std::unique_ptr <download_request_s>
-                             download       (download_ptr);
-
-            ULONG ulTimeout = 5000UL;
-
-            PCWSTR rgpszAcceptTypes [] = { L"*/*", nullptr };
-            HINTERNET hInetHTTPGetReq  = nullptr,
-                      hInetHost        = nullptr,
-            hInetRoot                  =
-              InternetOpen (
-                L"Special K - Asset Crawler",
-                  INTERNET_OPEN_TYPE_DIRECT,
-                    nullptr, nullptr,
-                      0x00
-              );
-
-            // (Cleanup On Error)
-            auto CLEANUP = [&](bool clean = false) ->
-            DWORD
-            {
-              if (! clean)
-              {
-                DWORD dwLastError =
-                     GetLastError ();
-
-                OutputDebugStringW (
-                  ( std::wstring (L"WinInet Failure (") +
-                        std::to_wstring (dwLastError)   +
-                    std::wstring (L"): ")               +
-                           _com_error   (dwLastError).ErrorMessage ()
-                  ).c_str ()
-                );
-              }
-
-              if (hInetHTTPGetReq != nullptr) InternetCloseHandle (hInetHTTPGetReq);
-              if (hInetHost       != nullptr) InternetCloseHandle (hInetHost);
-              if (hInetRoot       != nullptr) InternetCloseHandle (hInetRoot);
-
-              return 0;
-            };
-
-            if (hInetRoot == nullptr)
-              return CLEANUP ();
-
-            DWORD_PTR dwInetCtx = 0;
-
-            hInetHost =
-              InternetConnect ( hInetRoot,
-                                  download->wszHostName,
-                                    download->port,
-                                      nullptr, nullptr,
-                                        INTERNET_SERVICE_HTTP,
-                                          0x00,
-                                            (DWORD_PTR)&dwInetCtx );
-
-            if (hInetHost == nullptr)
-            {
-              return CLEANUP ();
-            }
-
-            hInetHTTPGetReq =
-              HttpOpenRequest ( hInetHost,
-                                  nullptr,
-                                    download->wszHostPath,
-                                      L"HTTP/1.1",
-                                        nullptr,
-                                          rgpszAcceptTypes,
-                                                                              INTERNET_FLAG_IGNORE_CERT_DATE_INVALID |
-                                            INTERNET_FLAG_CACHE_IF_NET_FAIL | INTERNET_FLAG_IGNORE_CERT_CN_INVALID   |
-                                            INTERNET_FLAG_RESYNCHRONIZE     | INTERNET_FLAG_CACHE_ASYNC |
-                                            ( download->port == INTERNET_DEFAULT_HTTPS_PORT ?
-                                                                INTERNET_FLAG_SECURE        : 0x0 ),
-                                              (DWORD_PTR)&dwInetCtx );
-
-
-            // Wait 2500 msecs for a dead connection, then give up
-            //
-            InternetSetOptionW ( hInetHTTPGetReq, INTERNET_OPTION_RECEIVE_TIMEOUT,
-                                   &ulTimeout,    sizeof (ULONG) );
-
-
-            if (hInetHTTPGetReq == nullptr)
-            {
-              return CLEANUP ();
-            }
-
-            if ( HttpSendRequestW ( hInetHTTPGetReq,
-                                      nullptr,
-                                        0,
-                                          nullptr,
-                                            0 ) )
-            {
-              DWORD dwStatusCode        = 0;
-              DWORD dwStatusCode_Len    = sizeof (DWORD);
-
-              DWORD dwContentLength     = 0;
-              DWORD dwContentLength_Len = sizeof (DWORD);
-              DWORD dwSizeAvailable;
-
-              HttpQueryInfo ( hInetHTTPGetReq,
-                               HTTP_QUERY_STATUS_CODE |
-                               HTTP_QUERY_FLAG_NUMBER,
-                                 &dwStatusCode,
-                                   &dwStatusCode_Len,
-                                     nullptr );
-
-              if (dwStatusCode == 200)
-              {
-                HttpQueryInfo ( hInetHTTPGetReq,
-                                  HTTP_QUERY_CONTENT_LENGTH |
-                                  HTTP_QUERY_FLAG_NUMBER,
-                                    &dwContentLength,
-                                      &dwContentLength_Len,
-                                        nullptr );
-
-                std::vector <char> http_chunk;
-                std::vector <char> concat_buffer;
-
-                while ( InternetQueryDataAvailable ( hInetHTTPGetReq,
-                                                       &dwSizeAvailable,
-                                                         0x00, NULL )
-                  )
-                {
-                  if (dwSizeAvailable > 0)
-                  {
-                    DWORD dwSizeRead = 0;
-
-                    if (http_chunk.size () < dwSizeAvailable)
-                        http_chunk.resize   (dwSizeAvailable);
-
-                    if ( InternetReadFile ( hInetHTTPGetReq,
-                                              http_chunk.data (),
-                                                dwSizeAvailable,
-                                                  &dwSizeRead )
-                       )
-                    {
-                      if (dwSizeRead == 0)
-                        break;
-
-                      concat_buffer.insert ( concat_buffer.cend   (),
-                                              http_chunk.cbegin   (),
-                                                http_chunk.cbegin () + dwSizeRead );
-
-                      if (dwSizeRead < dwSizeAvailable)
-                        break;
-                    }
-                  }
-
-                  else
-                    break;
-                }
-
-                // Epic allows up to 1024x1024 achievement icons, and also allows PNG
-                //
-                //   Full detail icons waste a lot of disk space, so we may resize and re-encode
-                //
-                bool optimized = false;
-
-                DirectX::ScratchImage img;
-
-                if ( concat_buffer.size () > (1024 * 100) /* 100 KiB or Greater */ &&
-                      SUCCEEDED ( DirectX::LoadFromWICMemory (
-                                   concat_buffer.data (),
-                                   concat_buffer.size (), DirectX::WIC_FLAGS_NONE, nullptr, img ) )
-                   )
-                {
-                  const auto metadata =
-                    img.GetMetadata ();
-
-                  // > 256x256 should be converted to JPEG for space savings
-                  if (metadata.width > 256 || metadata.height > 256)
-                  {
-                    // > 512x512 should be resized for even more space savings
-                    if (metadata.width > 512 || metadata.height > 512)
-                    {
-                      DirectX::ScratchImage                                                    resized;
-                      if ( SUCCEEDED (DirectX::Resize (*img.GetImage (0, 0, 0), 512, 512, 0x0, resized)) )
-                          img.InitializeFromImage (*resized.GetImage (0, 0, 0));
-                    }
-
-                    optimized = SUCCEEDED (
-                      DirectX::SaveToWICFile (
-                        *img.GetImage (0, 0, 0), 0x0,
-                          DirectX::GetWICCodec (DirectX::WICCodecs::WIC_CODEC_JPEG),
-                            download->path.c_str ()
-                      )
-                    );
-                  }
-                }
-
-                // Write the original file to disk
-                if (! optimized)
-                {
-                  FILE *fOut =
-                    _wfopen ( download->path.c_str (), L"wb+" );
-
-                  if (fOut != nullptr)
-                  {
-                    fwrite (concat_buffer.data (), concat_buffer.size (), 1, fOut);
-                    fclose (fOut);
-                  }
-                }
-              }
-            }
-
-            CLEANUP (true);
-          }
+          DirectX::ScratchImage                                                    resized;
+          if ( SUCCEEDED (DirectX::Resize (*img.GetImage (0, 0, 0), 512, 512, 0x0, resized)) )
+              img.InitializeFromImage (*resized.GetImage (0, 0, 0));
         }
 
-        SK_Thread_CloseSelf ();
+        return SUCCEEDED (
+          DirectX::SaveToWICFile (
+            *img.GetImage (0, 0, 0), 0x0,
+              DirectX::GetWICCodec (DirectX::WICCodecs::WIC_CODEC_JPEG),
+                file.data ()     )
+                         );
+      }
+    }
 
-        return 0;
-      }, L"[SK] EOS Achievement Worker", &hFetchEvent.m_h)
+    return false;
+  };
+
+  try {
+    SK_RunOnce (
+      std::filesystem::create_directories (
+                        achievements_path )
     );
+
+    std::filesystem::path unlock_img (achievements_path /
+        SK_FormatString ("Unlocked_%s.jpg", def->AchievementId));
+    std::filesystem::path lock_img   (achievements_path /
+        SK_FormatString ("Locked_%s.jpg",   def->AchievementId));
+
+    if (! std::filesystem::exists (unlock_img)) SK_Network_EnqueueDownload (
+            sk_download_request_s (unlock_img, def->UnlockedIconURL, _IconTranscoder) );
+    if (! std::filesystem::exists (lock_img))   SK_Network_EnqueueDownload (
+            sk_download_request_s (lock_img,   def->LockedIconURL,   _IconTranscoder) );
+  }
+
+  catch (const std::exception& e)
+  {
+    epic_log->Log (L"Achievement Icon Fetch Failure: %hs", e.what ());
   }
 }
 
@@ -541,7 +1209,7 @@ SK_AchievementManager::getAchievements (size_t* pnAchievements)
     stats->GetNumAchievements ();
 
   if (pnAchievements != nullptr)
-    *pnAchievements = count;
+     *pnAchievements = count;
 
   static std::set    <SK_Achievement *> achievement_set;
   static std::vector <SK_Achievement *> achievement_data;
@@ -564,20 +1232,20 @@ SK_AchievementManager::getAchievements (size_t* pnAchievements)
 void
 SK_AchievementManager::clearPopups (void)
 {
-  if (steam_popup_cs != nullptr)
-      steam_popup_cs->lock ();
+  if (platform_popup_cs != nullptr)
+      platform_popup_cs->lock ();
 
   if (popups.empty ())
   {
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->unlock ();
+    if (platform_popup_cs != nullptr)
+        platform_popup_cs->unlock ();
     return;
   }
 
   popups.clear ();
 
-  if (steam_popup_cs != nullptr)
-      steam_popup_cs->unlock ();
+  if (platform_popup_cs != nullptr)
+      platform_popup_cs->unlock ();
 }
 
 #define FREEBIE     96.0f
@@ -649,258 +1317,254 @@ SK_Achievement_RarityToName (float percent)
 int
 SK_AchievementManager::drawPopups (void)
 {
-  if (! ( config.cegui.enable &&
-          config.cegui.frames_drawn > 0))
-  {
-    return 0;
-  }
+////if (! ( config.cegui.enable &&
+////        config.cegui.frames_drawn > 0))
+////{
+////  return 0;
+////}
 
 
   int drawn = 0;
 
-  if (steam_popup_cs != nullptr)
-      steam_popup_cs->lock ();
+  if (platform_popup_cs != nullptr)
+      platform_popup_cs->lock ();
 
   if (popups.empty ())
   {
-    if (steam_popup_cs != nullptr)
-        steam_popup_cs->unlock ();
+    if (platform_popup_cs != nullptr)
+        platform_popup_cs->unlock ();
     return drawn;
   }
 
   //
   // We don't need this, we always do this from the render thread.
   //
+
+  auto& io =
+    ImGui::GetIO ();
+
+  // If true, we need to redraw all text overlays to prevent flickering
+  bool removed = false;
+  bool created = false;
+
+#define POPUP_DURATION_MS config.platform.achievements.popup.duration
+
+  auto it =
+    popups.begin ();
+
+  float inset =
+    config.platform.achievements.popup.inset;
+
+  if (inset < 0.0001f)  inset = 0.0f;
+
+  const float full_ht =
+    io.DisplaySize.y * (1.0f - inset);
+
+  const float full_wd = io.DisplaySize.x * (1.0f - inset);
+
+  float x_origin, y_origin,
+        x_dir,    y_dir;
+
+  ////////////CEGUI::Window* first = it->window;
+
+  const float win_ht0 = 256.0f;// (first != nullptr ?
+    //(it->window->getPixelSize ().d_height) : 0.0f );
+  const float win_wd0 = 512.0f;// (first != nullptr ?
+     //(it->window->getPixelSize ().d_width) : 0.0f );
+
+  const float title_wd =
+    io.DisplaySize.x * (1.0f - 2.0f * inset);
+
+  const float title_ht =
+    io.DisplaySize.y * (1.0f - 2.0f * inset);
+
+  float fract_x = 0.0f,
+        fract_y = 0.0f;
+
+  modf (title_wd / win_wd0, &fract_x);
+  modf (title_ht / win_ht0, &fract_y);
+
+  float x_off = full_wd / (4.0f * fract_x);
+  float y_off = full_ht / (4.0f * fract_y);
+
+  // 0.0 == Special Case: Flush With Anchor Point
+  if (inset == 0.0f)
   {
-    try
-    {
-      auto& DisplaySize =
-        CEGUI::System::getDllSingleton ().getRenderer ()->
-                        getDisplaySize ();
-
-      // If true, we need to redraw all text overlays to prevent flickering
-      bool removed = false;
-      bool created = false;
-
-#define POPUP_DURATION_MS config.steam.achievements.popup.duration
-
-      auto it =
-        popups.begin ();
-
-      float inset =
-        config.steam.achievements.popup.inset;
-
-      if (inset < 0.0001f)  inset = 0.0f;
-
-      const float full_ht =
-        DisplaySize.d_height * (1.0f - inset);
-
-      const float full_wd = DisplaySize.d_width * (1.0f - inset);
-
-      float x_origin, y_origin,
-            x_dir,    y_dir;
-
-      CEGUI::Window* first = it->window;
-
-      const float win_ht0 = ( first != nullptr ?
-        (it->window->getPixelSize ().d_height) : 0.0f );
-      const float win_wd0 = ( first != nullptr ?
-         (it->window->getPixelSize ().d_width) : 0.0f );
-
-      const float title_wd =
-        DisplaySize.d_width * (1.0f - 2.0f * inset);
-
-      const float title_ht =
-        DisplaySize.d_height * (1.0f - 2.0f * inset);
-
-      float fract_x = 0.0f,
-            fract_y = 0.0f;
-
-      modf (title_wd / win_wd0, &fract_x);
-      modf (title_ht / win_ht0, &fract_y);
-
-      float x_off = full_wd / (4.0f * fract_x);
-      float y_off = full_ht / (4.0f * fract_y);
-
-      // 0.0 == Special Case: Flush With Anchor Point
-      if (inset == 0.0f)
-      {
-        x_off = 0.000001f;
-        y_off = 0.000001f;
-      }
-
-      switch (config.steam.achievements.popup.origin)
-      {
-        default:
-        case 0:
-          x_origin =        inset;                          x_dir = 1.0f;
-          y_origin =        inset;                          y_dir = 1.0f;
-          break;
-        case 1:
-          x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-          y_origin =        inset;                          y_dir =  1.0f;
-          break;
-        case 2:
-          x_origin =        inset;                          x_dir =  1.0f;
-          y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
-          break;
-        case 3:
-          x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
-          y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
-          break;
-      }
-
-      CEGUI::UDim x_pos (x_origin, x_off * x_dir);
-      CEGUI::UDim y_pos (y_origin, y_off * y_dir);
-
-      static int take_screenshot = 0;
-
-      while (it != popups.cend ())
-      {
-        if (SK_timeGetTime () < (*it).time + POPUP_DURATION_MS)
-        {
-          float percent_of_lifetime =
-            ( static_cast <float> ((*it).time + POPUP_DURATION_MS - SK_timeGetTime ()) /
-              static_cast <float> (             POPUP_DURATION_MS)                     );
-
-          //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-          CEGUI::Window* win = (*it).window;
-
-          if (win == nullptr)
-          {
-            win     = createPopupWindow (&*it);
-            created = true;
-          }
-
-          const float win_ht =
-            win->getPixelSize ().d_height;
-
-          const float win_wd =
-            win->getPixelSize ().d_width;
-
-          CEGUI::UVector2 win_pos (x_pos, y_pos);
-
-          float bottom_y = win_pos.d_y.d_scale * full_ht +
-                           win_pos.d_y.d_offset          +
-                           win_ht;
-
-          // The bottom of the window would be off-screen, so
-          //   move it to the top and offset by the width of
-          //     each popup.
-          if ( bottom_y > full_ht || bottom_y < win_ht0 )
-          {
-            y_pos  = CEGUI::UDim (y_origin, y_off * y_dir);
-            x_pos += x_dir * win->getSize ().d_width;
-
-            win_pos   = (CEGUI::UVector2 (x_pos, y_pos));
-          }
-
-          float right_x = win_pos.d_x.d_scale * full_wd +
-                          win_pos.d_x.d_offset          +
-                          win_wd;
-
-          // Window is off-screen horizontally AND vertically
-          if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
-          {
-            // Since we're not going to draw this, treat it as a new
-            //   popup until it first becomes visible.
-            (*it).time =
-              SK_timeGetTime ();
-            win->hide        ();
-          }
-
-          else
-          {
-            if (config.steam.achievements.popup.animate)
-            {
-              CEGUI::UDim percent (
-                CEGUI::UDim (y_origin, y_off).percent ()
-              );
-
-              if (percent_of_lifetime <= 0.1f)
-              {
-                win_pos.d_y /= (percent * 100.0f *
-                                CEGUI::UDim (percent_of_lifetime / 0.1f, 0.0f));
-              }
-
-              else if (percent_of_lifetime >= 0.9f)
-              {
-                win_pos.d_y /= (percent * 100.0f *
-                                CEGUI::UDim ( (1.0f -
-                                (percent_of_lifetime - 0.9f) / 0.1f),
-                                0.0f ));
-              }
-
-              else if (! it->final_pos)
-              {
-                take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
-                it->final_pos   = true;
-              }
-            }
-
-            else if (! it->final_pos)
-            {
-              take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
-              it->final_pos   = true;
-            }
-
-            win->show        ();
-            win->setPosition (win_pos);
-          }
-
-          y_pos += y_dir * win->getSize ().d_height;
-
-          ++it;
-          //} else {
-          //it = popups.erase (it);
-          //}
-        }
-
-        else
-        {
-          //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-          CEGUI::Window* win = (*it).window;
-
-          CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
-
-          removed = true;
-          //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
-          //}
-
-          it = popups.erase (it);
-        }
-      }
-
-      // Invalidate text overlays any time a window is removed,
-      //   this prevents flicker.
-      if (removed || created || take_screenshot > 0)
-      {
-        SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
-          CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
-      }
-
-      // Popup is in the final location, so now is when screenshots
-      //   need to be taken.
-      if (config.steam.achievements.take_screenshot && take_screenshot > 0)
-      {
-        // Delay the screenshot so it doesn't show up twice
-        --take_screenshot;
-
-        if (! take_screenshot)
-        {
-          SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
-          take_screenshot = -1;
-        }
-      }
-
-      ++drawn;
-    }
-
-    catch (const CEGUI::GenericException&) {}
+    x_off = 0.000001f;
+    y_off = 0.000001f;
   }
 
-  if (steam_popup_cs != nullptr)
-      steam_popup_cs->unlock ();
+  switch (config.platform.achievements.popup.origin)
+  {
+    default:
+    case 0:
+      x_origin =        inset;                          x_dir = 1.0f;
+      y_origin =        inset;                          y_dir = 1.0f;
+      break;
+    case 1:
+      x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
+      y_origin =        inset;                          y_dir =  1.0f;
+      break;
+    case 2:
+      x_origin =        inset;                          x_dir =  1.0f;
+      y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+      break;
+    case 3:
+      x_origin = 1.0f - inset - (win_wd0 / full_wd);    x_dir = -1.0f;
+      y_origin = 1.0f - inset - (win_ht0 / full_ht);    y_dir = -1.0f;
+      break;
+  }
+
+  float x_pos (x_origin + x_off * x_dir);
+  float y_pos (y_origin + y_off * y_dir);
+
+  static int take_screenshot = 0;
+
+  while (it != popups.cend ())
+  {
+    if (SK_timeGetTime () < (*it).time + POPUP_DURATION_MS)
+    {
+      float percent_of_lifetime =
+        ( static_cast <float> ((*it).time + POPUP_DURATION_MS - SK_timeGetTime ()) /
+          static_cast <float> (             POPUP_DURATION_MS)                     );
+
+      //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+      CEGUI::Window* win = (*it).window;
+
+      if (win == nullptr)
+      {
+        win     = createPopupWindow (&*it);
+        created = true;
+      }
+
+      const float win_ht =
+        256.0f;//win->getPixelSize ().d_height;
+
+      const float win_wd =
+        512.0f;//win->getPixelSize ().d_width;
+
+      ImVec2 win_pos (x_pos, y_pos);
+
+      float d_scale  = 0.05f;
+      float d_offset = 0.05f;
+
+      float bottom_y = win_pos.y * d_scale * full_ht +
+                       win_pos.y * d_offset          +
+                       win_ht;
+
+      // The bottom of the window would be off-screen, so
+      //   move it to the top and offset by the width of
+      //     each popup.
+      if ( bottom_y > full_ht || bottom_y < win_ht0 )
+      {
+        y_pos  =    (y_origin, y_off * y_dir);
+        x_pos += x_dir * 1024;//win->getSize ().d_width;
+
+        win_pos   = ImVec2 (x_pos, y_pos);
+      }
+
+      float right_x = win_pos.x * d_scale * full_wd +
+                      win_pos.x * d_offset          +
+                      win_wd;
+
+      // Window is off-screen horizontally AND vertically
+      if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
+      {
+        // Since we're not going to draw this, treat it as a new
+        //   popup until it first becomes visible.
+        (*it).time =
+          SK_timeGetTime ();
+      //win->hide        ();
+      }
+
+      else
+      {
+        if (config.platform.achievements.popup.animate)
+        {
+          float percent = y_origin * 0.01f;// +y_off)
+          //CEGUI::UDim percent (
+          //  CEGUI::UDim (y_origin, y_off).percent ()
+          //);
+
+          if (percent_of_lifetime <= 0.1f)
+          {
+            win_pos.y /= (percent * 100.0f *
+                          percent_of_lifetime / 0.1f);
+          }
+
+          else if (percent_of_lifetime >= 0.9f)
+          {
+            win_pos.y /= (percent * 100.0f *
+                                     (1.0f -
+                         (percent_of_lifetime - 0.9f) / 0.1f));
+          }
+
+          else if (! it->final_pos)
+          {
+            take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+            it->final_pos   = true;
+          }
+        }
+
+        else if (! it->final_pos)
+        {
+          take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+          it->final_pos   = true;
+        }
+
+///////win->show        ();
+///////win->setPosition (win_pos);
+      }
+
+      y_pos += y_dir * 256.0f/*win->getSize().d_height*/;
+
+      ++it;
+      //} else {
+      //it = popups.erase (it);
+      //}
+    }
+
+    else
+    {
+      //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
+////////////////////////////////////////////CEGUI::Window* win = (*it).window;
+////////////////////////////////////////////
+////////////////////////////////////////////CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
+
+      removed = true;
+      //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
+      //}
+
+      it = popups.erase (it);
+    }
+  }
+
+  // Invalidate text overlays any time a window is removed,
+  //   this prevents flicker.
+  if (removed || created || take_screenshot > 0)
+  {
+    SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
+    //CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
+  }
+
+  // Popup is in the final location, so now is when screenshots
+  //   need to be taken.
+  if (config.platform.achievements.take_screenshot && take_screenshot > 0)
+  {
+    // Delay the screenshot so it doesn't show up twice
+    --take_screenshot;
+
+    if (! take_screenshot)
+    {
+      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
+      take_screenshot = -1;
+    }
+  }
+
+  ++drawn;
+
+  if (platform_popup_cs != nullptr)
+      platform_popup_cs->unlock ();
 
   return drawn;
 }
@@ -909,7 +1573,7 @@ SK_AchievementManager::drawPopups (void)
 CEGUI::Window*
 SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 {
-  if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
+////if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
 
   if (popup->achievement == nullptr)
     return nullptr;
@@ -918,16 +1582,18 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
     ( SK::EOS::UserID () != nullptr ) ?
                    epic_log.getPtr () : steam_log.getPtr ();
 
+  char     szPopupName [32] = { };
+  sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
+
+  Achievement*   achievement = popup->achievement;
+
+#ifdef _HAS_CEGUI_REPLACEMENT
   CEGUI::System* pSys =
     CEGUI::System::getDllSingletonPtr ();
 
   extern CEGUI::Window* SK_achv_popup;
 
-  char     szPopupName [32] = { };
-  sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
-
   popup->window              = SK_achv_popup->clone (true);
-  Achievement*   achievement = popup->achievement;
   CEGUI::Window* achv_popup  = popup->window;
 
   assert (achievement != nullptr);
@@ -1007,6 +1673,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
     );
   }
   achv_unlock->setText (szUnlockTime);
+#endif
 
   auto pUserStats = steam_ctx.UserStats ();
   auto pUtils     = steam_ctx.Utils     ();
@@ -1060,6 +1727,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
   if (achievement->icons_.achieved != nullptr)
   {
+#ifdef _HAS_CEGUI_REPLACEMENT
     bool exists =
       CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_.c_str ());
 
@@ -1103,9 +1771,11 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
     catch (const CEGUI::GenericException&)
     {
     }
+#endif
   }
 
-  if (config.steam.achievements.popup.show_title)
+#ifdef _HAS_CEGUI_REPLACEMENT
+  if (config.platform.achievements.popup.show_title)
   {
     std::string app_name = SK::SteamAPI::AppName ();
 
@@ -1123,4 +1793,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
                 addChild (popup->window);
 
   return achv_popup;
+#else
+  return nullptr;
+#endif
 }

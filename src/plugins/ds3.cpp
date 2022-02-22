@@ -48,11 +48,6 @@ static SetActiveWindow_pfn      SetActiveWindow_Original      = nullptr;
 typedef void (STDMETHODCALLTYPE *SK_EndFrame_pfn)(void);
 static SK_EndFrame_pfn          SK_EndFrame_Original          = nullptr;
 
-extern BOOL
-__stdcall
-SK_DrawExternalOSD (std::string app_name, std::string text);
-
-
 
 typedef void (WINAPI *D3D11_RSSetViewports_pfn)(
         ID3D11DeviceContext*,
@@ -100,31 +95,6 @@ DXGISwap_SetFullscreenState_pfn   DXGISwap_SetFullscreenState_Original   = nullp
 extern     void    WINAPI D3D11_RSSetViewports_Override     ( ID3D11DeviceContext*,
                                                               UINT,
                                                         const D3D11_VIEWPORT* );
-
-extern HRESULT STDMETHODCALLTYPE
-  DXGISwap_ResizeTarget_Override ( IDXGISwapChain *,
-                        _In_ const DXGI_MODE_DESC * );
-
-extern HRESULT STDMETHODCALLTYPE
-  DXGISwap_ResizeBuffers_Override ( IDXGISwapChain *,
-                               _In_ UINT,
-                               _In_ UINT,
-                               _In_ UINT,
-                               _In_ DXGI_FORMAT,
-                               _In_ UINT );
-
-extern HRESULT STDMETHODCALLTYPE
-  DXGISwap_GetFullscreenState_Override (
-    _In_       IDXGISwapChain  *This,
-    _Out_opt_  BOOL            *pFullscreen,
-    _Out_opt_  IDXGIOutput    **ppTarget );
-
-extern HRESULT STDMETHODCALLTYPE
-  DXGISwap_SetFullscreenState_Override (
-    _In_  IDXGISwapChain *This,
-    _In_  BOOL            Fullscreen,
-    _Out_ IDXGIOutput    *pTarget );
-
 
 extern __declspec (noinline) void CALLBACK SK_PluginKeyPress (BOOL, BOOL, BOOL, BYTE);
 
@@ -290,11 +260,6 @@ SK_DS3_GetConfig (void)
 #define sus_state SK_SUS_GetState  ( )
 
 
-
-extern void
-__stdcall
-SK_SetPluginName (std::wstring name);
-
 #define SUS_VERSION_NUM L"0.6.0"
 #define SUS_VERSION_STR L"Souls Unsqueezed v " SUS_VERSION_NUM
 
@@ -308,14 +273,6 @@ __stdcall
 SK_DS3_CheckVersion (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
-
-  extern bool
-  __stdcall
-  SK_FetchVersionInfo (const wchar_t* wszProduct);
-
-  extern HRESULT
-  __stdcall
-  SK_UpdateSoftware (const wchar_t* wszProduct);
 
   // 12/28/20: Disabled version checks, since I don't intend to ever update this thing again.
   //
@@ -648,8 +605,6 @@ SK_DS3_SetActiveWindow (
 }
 
 
-
-extern void SK_Display_DisableDPIScaling (void);
 
 void
 SK_DS3_InitPlugin (void)

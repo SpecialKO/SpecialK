@@ -68,20 +68,6 @@ SK::ControlPanel::D3D9::Draw (void)
       ImGui::SetTooltip ("Prevents artificial texture sharpening / shimmer");
     }
 
-    ImGui::SameLine ();
-
-    if (ImGui::Checkbox ("Enable CEGUI", &config.cegui.enable))
-    {
-      SK_CEGUI_QueueResetD3D9 ();
-    }
-
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::BeginTooltip    ();
-      ImGui::TextUnformatted ("Disabling may resolve graphics issues, but will disable achievement pop-ups and OSD text.");
-      ImGui::EndTooltip      ();
-    }
-
     // This only works when we have wrapped SwapChains
     if ( ReadAcquire (&SK_D3D9_LiveWrappedSwapChains)   != 0 ||
          ReadAcquire (&SK_D3D9_LiveWrappedSwapChainsEx) != 0 )

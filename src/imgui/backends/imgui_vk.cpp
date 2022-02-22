@@ -451,9 +451,6 @@ ImGui_ImplVulkan_CreateFontsTexture (VkCommandBuffer command_buffer)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  extern void
-  SK_ImGui_LoadFonts (void);
-
   SK_ImGui_LoadFonts ();
 
   unsigned char* pixels = nullptr;

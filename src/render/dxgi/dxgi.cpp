@@ -619,10 +619,11 @@ UINT SK_DXGI_FixUpLatencyWaitFlag (gsl::not_null <IDXGISwapChain*> pSwapChainRaw
 
 extern int                      gpu_prio;
 
-bool bAlwaysAllowFullscreen = false;
-bool bFlipMode              = false;
-bool bWait                  = false;
-bool bOriginallyFlip        = false;
+bool  bAlwaysAllowFullscreen  = false;
+bool  bFlipMode               = false;
+bool  bWait                   = false;
+bool  bOriginallyFlip         = false;
+UINT uiOriginalBltSampleCount = 0UL;
 
 // Used for integrated GPU override
 int              SK_DXGI_preferred_adapter = -1;
@@ -2808,7 +2809,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
-      HRESULT ret;
+      HRESULT ret = E_UNEXPECTED;
 
       auto _EndSwap = [&](void)
       {
@@ -2891,8 +2892,42 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                          PresentSwapChain_pfn   DXGISwapChain_Present,
                          SK_DXGI_PresentSource  Source)
 {
-  return
+  // Backup and restore the RTV bindings Before / After Present for games that
+  //   are using Flip Model but weren't originally designed to use it
+  //
+  //     ( Flip Model unbinds these things during Present (...) )
+  //
+  SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
+  SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+  SK_ComPtr <ID3D11Device>           pDevice;
+  SK_ComPtr <ID3D11DeviceContext>    pDevCtx;
+
+  if (! bOriginallyFlip &&
+        SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void**)&pDevice.p)))
+  {
+    pDevice->GetImmediateContext (&pDevCtx.p);
+
+    if (pDevCtx.p != nullptr)
+    {
+      pDevCtx->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                    &pOrigRTVs [0].p,
+                                    &pOrigDSV     .p );
+    }
+  }
+
+  HRESULT ret =
     SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
+
+  if (pDevCtx.p != nullptr)
+  {
+    pDevCtx->OMSetRenderTargets (
+      calc_count (&pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
+                  &pOrigRTVs [0].p,
+                   pOrigDSV     .p
+                                );
+  }
+
+  return ret;
 }
 
 
@@ -4163,10 +4198,13 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
       dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
     }
 
-    BufferCount =
-      std::min (16ui32,
-       std::max (2ui32, BufferCount)
-               );
+    if (BufferCount != 0 || swap_desc.BufferCount < 2)
+    {
+      BufferCount =
+        std::min (16ui32,
+         std::max (2ui32, BufferCount)
+                 );
+    }
   }
 
   if (! config.window.res.override.isZero ())
@@ -4364,7 +4402,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
       }
     }
 
-    if (BufferCount != 0)
+    if (BufferCount != 0 || swap_desc.BufferCount < 2)
     {
       BufferCount =
         std::min (16ui32,
@@ -4666,8 +4704,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   //ResetImGui_D3D12 (This);
   //ResetImGui_D3D11 (This);
 
-  static UINT           numModeChanges = 0;
-  static DXGI_MODE_DESC lastModeSet;
+  static UINT           numModeChanges =  0 ;
+  static DXGI_MODE_DESC lastModeSet    = { };
 
   if (config.render.dxgi.skip_mode_changes)
   {
@@ -4870,6 +4908,9 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
       SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
     bOriginallyFlip = already_flip_model;
+
+    if (! bOriginallyFlip)
+      uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
 
     // If auto-update prompt is visible, don't go fullscreen.
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
@@ -5799,6 +5840,26 @@ DXGIFactory_CreateSwapChain_Override (
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ), L"Direct3D12" );
+
+    if ( config.render.framerate.buffer_count >= 0 &&
+         config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+    {
+      SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" ),
+                  L"Direct3D12" );
+
+      config.render.framerate.buffer_count = -1;
+    }
+  }
+
+  if ( config.render.framerate.buffer_count >= 0 &&
+       config.render.framerate.buffer_count < sk::narrow_cast <int> (pDesc->BufferCount) )
+  {
+    SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override uses fewer "
+                L"buffers than the engine requested -(OVERRIDE DISABLED)-" ),
+                L"   DXGI   " );
+
+    config.render.framerate.buffer_count =
+      sk::narrow_cast <int> (pDesc->BufferCount);
   }
 
   auto                 orig_desc =  pDesc;
@@ -6045,7 +6106,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
         SK_InstallWindowHook (hWndInterop)
       );
 
-      RAWINPUTDEVICE rid [2];
+      RAWINPUTDEVICE rid [2] = { };
       rid [0].hwndTarget  = hWndInterop;
       rid [0].usUsage     = HID_USAGE_GENERIC_MOUSE;
       rid [0].usUsagePage = HID_USAGE_PAGE_GENERIC;
@@ -6310,6 +6371,39 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   pFullscreenDesc != nullptr ? &new_fullscreen_desc
                              : nullptr;
 
+  SK_ComPtr   <ID3D12Device>       pDev12;
+  SK_ComQIPtr <ID3D11Device>       pDev11    (pDevice);
+  SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
+
+  if (pCmdQueue != nullptr)
+  {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
+    SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ),
+                       L"Direct3D12" );
+
+    if ( config.render.framerate.buffer_count >= 0 &&
+         config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+    {
+      SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" ),
+                  L"Direct3D12" );
+
+      config.render.framerate.buffer_count = -1;
+    }
+  }
+
+  if ( config.render.framerate.buffer_count >= 0 &&
+       config.render.framerate.buffer_count < sk::narrow_cast <int> (pDesc->BufferCount) )
+  {
+    SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override uses fewer "
+                L"buffers than the engine requested -(OVERRIDE DISABLED)-" ),
+                L"   DXGI   " );
+
+    config.render.framerate.buffer_count =
+      sk::narrow_cast <int> (pDesc->BufferCount);
+  }
+
+  // We got something that was neither D3D11 nor D3D12, uh oh!
+  SK_ReleaseAssert (pDev11.p != nullptr || pDev12.p != nullptr);
+
   SK_TLS_Bottom ()->render->d3d11->ctx_init_thread = true;
 
   SK_DXGI_CreateSwapChain_PreInit (
@@ -6317,22 +6411,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   );
 
   IDXGISwapChain1 *pTemp (nullptr);
-
-  SK_ComPtr   <ID3D12Device>       pDev12;
-  SK_ComQIPtr <ID3D11Device>       pDev11    (pDevice);
-  SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
-
-  if (pCmdQueue != nullptr)
-  {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
-
-    SK_LOG0 (
-      ( L" <*> Native D3D12 SwapChain Captured" ),
-        L"Direct3D12" );
-  }
-
-  // We got something that was neither D3D11 nor D3D12, uh oh!
-  SK_ReleaseAssert (pDev11.p != nullptr || pDev12.p != nullptr);
-
   IDXGISwapChain1 *pCache = nullptr;
 
   // Cache Flip Model Chains

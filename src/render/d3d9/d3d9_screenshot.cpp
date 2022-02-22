@@ -181,8 +181,8 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
   {
     if (ulCommandIssuedOnFrame < SK_GetFramesDrawn () - 2)
     {
-      const size_t BytesPerPel =
-        SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
+      //const size_t BytesPerPel =
+      //  SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
 
       D3DLOCKED_RECT finished_copy = { };
 
@@ -1013,7 +1013,7 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                                              wszAbsolutePathToLossless,
                                                hdr ?
                                                  &GUID_WICPixelFormat64bppRGBAHalf :
-                                                 pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                    (DXGI_FORMAT)pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
                                                                               &GUID_WICPixelFormat48bppRGB :
                                                                               &GUID_WICPixelFormat24bppBGR)
                                                                      : E_POINTER;

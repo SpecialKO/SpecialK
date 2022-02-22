@@ -67,7 +67,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 #ifdef _M_AMD64
           case SK_RenderAPI::D3D12:
             config.apis.dxgi.d3d12.hook = true;
-            break;
+            [[fallthrough]]; // Shared logic, both are needed
 #endif
           case SK_RenderAPI::D3D11:
             config.apis.dxgi.d3d11.hook = true;
@@ -214,6 +214,7 @@ SK::ControlPanel::Compatibility::Draw (void)
 #else
         config.apis.d3d8.hook       = false; config.apis.ddraw.hook      = false;
 #endif
+        // The active API will be re-enabled immediately
       }
 
       if (ImGui::IsItemHovered ())

@@ -374,9 +374,6 @@ static UINT                     g_numFramesInSwapChain  = 1;
 static UINT                     g_frameBufferWidth      = 0UL;
 static UINT                     g_frameBufferHeight     = 0UL;
 
-std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
-
 ID3D11RenderTargetView*
 SK_D3D11_GetHDRHUDView (void)
 {
@@ -448,10 +445,6 @@ struct HISTOGRAM_DISPATCH_CBUFFER
 
   float    RGB_to_xyY [4][4];
 };
-
-
-extern void
-SK_ImGui_LoadFonts (void);
 
 #include <SpecialK/tls.h>
 
@@ -702,8 +695,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
                                                                         rb.ui_luminance );
       constant_buffer->luminance_scale   [1] = 2.2f;
       constant_buffer->luminance_scale   [2] = rb.display_gamut.minY * 1.0_Nits;
-      constant_buffer->steam_luminance   [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
-                                                                        config.steam.overlay_hdr_luminance );
+      constant_buffer->steam_luminance   [0] = ( bEOTF_is_PQ ? -80.0f * config.platform.overlay_hdr_luminance :
+                                                                        config.platform.overlay_hdr_luminance );
       constant_buffer->steam_luminance   [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
                                                     //                                     1.0f));
       constant_buffer->steam_luminance   [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
@@ -1684,9 +1677,6 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
 }
 
 
-void SK_CEGUI_InitBase    (void);
-void SK_CEGUI_RelocateLog (void);
-
 bool
 SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
                           ID3D11Device*        pDevice,
@@ -1752,11 +1742,6 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
       frames_ [0].hdr.pRTV      = _Frame [0].pRenderTargetView;
       frames_ [0].pRenderOutput = _Frame [0].pBackBuffer;
 
-      bool SK_CEGUI_InitD3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDeviceCtx, ID3D11Texture2D *pBackBuffer);
-
-      SK_CEGUI_InitD3D11 (pDevice, pDeviceCtx, frames_ [0].pRenderOutput);
-
-
       _pSwapChain = pSwapChain;
       _pDevice    = pDevice;
       _pDeviceCtx = pDeviceCtx;
@@ -1816,18 +1801,35 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
                                         swapDesc.OutputWindow),
             L"D3D11BkEnd" );
 
-    SK_ReleaseAssert (pSwapChain == nullptr || _pSwapChain.p == nullptr || _pSwapChain.IsEqualObject (pSwapChain));
+    // Release residual references that should have been released following SwapChain Present
+    //
+    extern bool
+           bOriginallyFlip;
+    if ((! bOriginallyFlip) && ( swapDesc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
+                                 swapDesc.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL ))
+    {
+      if (_pDeviceCtx.p != nullptr)
+          _pDeviceCtx->OMSetRenderTargets (0, nullptr, nullptr);
+    }
 
-    SK_D3D11_ResetTexCache ();
-    SK_D3D11_EndFrame      ();
+    SK_ReleaseAssert ( pSwapChain   == nullptr ||
+                      _pSwapChain.p == nullptr ||
+                      _pSwapChain.IsEqualObject (pSwapChain) );
 
-    _pSwapChain.Release ();
-    _pDeviceCtx.Release ();
-    _pDevice.Release    ();
+    SK_D3D11_EndFrame     ();
+
+    _pSwapChain.Release   ();
+    _pDeviceCtx.Release   ();
+    bool bDeviceRemoved =
+      _pDevice.p != nullptr  &&
+      _pDevice.p->AddRef  () <= 2;
+  if (_pDevice.p != nullptr)
+      _pDevice.p->Release ();
+      _pDevice.Release    ();
 
     pGenericBlend.Release ();
 
-    frames_.clear ();
+    frames_.clear         ();
 
     void
     SK_HDR_ReleaseResources (void);
@@ -1837,11 +1839,10 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
     SK_DXGI_ReleaseSRGBLinearizer (void);
     SK_DXGI_ReleaseSRGBLinearizer ();
 
-    void
-    SK_CEGUI_DestroyD3D11 (void);
-    SK_CEGUI_DestroyD3D11 ();
-
     ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+    if (bDeviceRemoved)
+      SK_D3D11_ResetTexCache ();
   }
 }
 
@@ -1859,16 +1860,10 @@ SK_D3D11_RenderCtx::FrameCtx::~FrameCtx (void)
 
 
 #include <SpecialK/nvapi.h>
-#include <CEGUI/RendererModules/Direct3D11/Renderer.h>
 
-extern volatile LONG         __SK_NVAPI_UpdateGSync;
-extern          CEGUI::Direct3D11Renderer* cegD3D11;
+extern volatile LONG __SK_NVAPI_UpdateGSync;
 
 //extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
-
-extern void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);
-extern void ApplyStateblock  (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb);
-
 
 void
 SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
@@ -1913,12 +1908,14 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   {
     if (SK_Steam_DrawOSD ())
     {
+#if 0
       if ((uintptr_t)cegD3D11 > 1)
       {
               cegD3D11->beginRendering ();
         CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
               cegD3D11->endRendering   ();
       }
+#endif
     }
   };
 
@@ -1948,16 +1945,14 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     }
 
 
-    if ((uintptr_t)cegD3D11 > 1)
+    if (hdr_mode || (! hudless))
     {
-      if (hdr_mode || (! hudless))
-      {
-                  cegD3D11->beginRendering ();
-        SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
-            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-                    cegD3D11->endRendering ();
-      }
+      ////          cegD3D11->beginRendering ();
+      ////SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
+      ////    CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
+      ////            cegD3D11->endRendering ();
     }
+
 
     if (hdr_mode)
     {

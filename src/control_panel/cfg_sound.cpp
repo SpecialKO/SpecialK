@@ -282,7 +282,9 @@ SK_ImGui_VolumeManager (void)
     io (ImGui::GetIO ());
 
   const  float font_size           =             ImGui::GetFont  ()->FontSize                        * io.FontGlobalScale;
+#ifdef _ProperSpacing
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+#endif
 
   std::string app_name;
 

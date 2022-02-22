@@ -617,6 +617,9 @@ SK_D3D11_SetShaderResources_Impl (
   // but I am pretty sure it never happens.
   SK_ReleaseAssert (hooked ^ ( _vftable != nullptr ) )
 
+  if ((! hooked) && (! _vftable))
+    return;
+
   SK_Thread_HybridSpinlock*
       cs_lock     = nullptr;
 
@@ -770,8 +773,8 @@ SK_D3D11_SetShaderResources_Impl (
     const uint32_t shader_crc32c = tracked.crc32c.load ();
     const bool     active        = tracked.active.get  (dev_idx);
 
-    auto& set_resources  = tracked.set_of_res;
-    auto& set_views      = tracked.set_of_views;
+    auto& set_resources = tracked.set_of_res;
+    auto& set_views     = tracked.set_of_views;
 
     auto& ctx_res  =
       SK_D3D11_PerCtxResources [dev_idx];
@@ -1107,8 +1110,8 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
       };
 
 
-      SK_LOG0 ( ( L"Shader Stage '%s' Contributes %lu Always-Tracked and "
-                                                L"%lu Conditionally-Tracked States "
+      SK_LOG0 ( ( L"Shader Stage '%s' Contributes %zu Always-Tracked and "
+                                                L"%zu Conditionally-Tracked States "
                   L"to D3D11 State Tracker",
                     shader_class_name (i),
                       num_always_tracked_per_stage,
@@ -1509,7 +1512,7 @@ SK_D3D11_StoreShaderState (void)
 
   if (! d3d11_shaders_ini->get_sections ().empty ())
   {
-    auto secs =
+    auto& secs =
       d3d11_shaders_ini->get_sections ();
 
     for ( auto& it : secs )
@@ -2000,7 +2003,8 @@ auto IsWireframe = [](sk_shader_class shader_class, uint32_t crc32c)
   return wireframe;
 };
 
-auto IsOnTop = [&](sk_shader_class shader_class, uint32_t crc32c)
+static auto IsOnTop =
+[](sk_shader_class shader_class, uint32_t crc32c)
 {
   d3d11_shader_tracking_s* tracker = nullptr;
   bool                     on_top  = false;
@@ -2024,7 +2028,8 @@ auto IsOnTop = [&](sk_shader_class shader_class, uint32_t crc32c)
   return on_top;
 };
 
-auto IsSkipped = [&](sk_shader_class shader_class, uint32_t crc32c)
+static auto IsSkipped =
+[](sk_shader_class shader_class, uint32_t crc32c)
 {
   d3d11_shader_tracking_s* tracker     = nullptr;
   bool                     blacklisted = false;
@@ -2045,7 +2050,8 @@ auto IsSkipped = [&](sk_shader_class shader_class, uint32_t crc32c)
   return blacklisted;
 };
 
-auto IsHud = [&](sk_shader_class shader_class, uint32_t crc32c)
+static auto IsHud =
+[](sk_shader_class shader_class, uint32_t crc32c)
 {
   d3d11_shader_tracking_s* tracker = nullptr;
   bool                     hud     = false;
@@ -2401,7 +2407,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       std::set <uint32_t>&
       {
         static std::set <uint32_t> set  [6];
-        static size_t              size [6];
+        static size_t              size [6] = { 0 };
 
         switch (type)
         {
@@ -3293,12 +3299,13 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         auto repo =
           repos [sk_shader_state_s::ClassToIdx (shader_type)];
 
-        hr = D3DDisassemble ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
+        hr =
+         SK_D3D_Disassemble ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
                               repo->descs [pDevice][tracker->crc32c].bytecode.size (),
                                 D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
         if (SUCCEEDED (hr))
         {
-             D3DReflect     ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
+         SK_D3D_Reflect     ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
                               repo->descs [pDevice][tracker->crc32c].bytecode.size (),
                                 IID_ID3D11ShaderReflection, (void **)&pReflect);
         }
@@ -4930,7 +4937,7 @@ struct SK_D3D11_CommandBase
 
   SK_D3D11_CommandBase (void)
   {
-    auto cp =
+    gsl::not_null <SK_ICommandProcessor *> cp =
       SK_GetCommandProcessor ();
 
     cp->AddCommand ("D3D11.ShaderMods.Load",         new (std::nothrow) ShaderMods::Load         ());

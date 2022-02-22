@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <filesystem>
 
 extern iSK_INI* osd_ini;
 
@@ -140,6 +141,77 @@ volatile LONG __SK_WR0_NoThreads = 0;
 void
 SK_WinRing0_Unpack (void)
 {
+  static
+    SK_AutoHandle hTransferComplete (
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+    );
+
+  if (SK_IsAdmin ())
+  {
+    SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
+                L" WinRing0 " );
+
+    wchar_t      wszArchive     [MAX_PATH + 2] = { };
+    wchar_t      wszDestination [MAX_PATH + 2] = { };
+
+    static std::wstring path_to_driver =
+      SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
+          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
+                       );
+    
+    wcsncpy_s ( wszDestination,           MAX_PATH,
+                path_to_driver.c_str (), _TRUNCATE );
+    
+    if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
+      SK_CreateDirectories (wszDestination);
+
+    wcsncpy_s (  wszArchive,      MAX_PATH,
+                 wszDestination, _TRUNCATE );
+    PathAppendW (wszArchive, L"WinRing0.7z");
+
+    SK_RunOnce (
+    SK_Network_EnqueueDownload (
+      sk_download_request_s (wszArchive,
+        SK_RunLHIfBitness ( 64, R"(https://sk-data.special-k.info/redist/WinRing0_64.7z)",
+                                R"(https://sk-data.special-k.info/redist/WinRing0_32.7z)" ),
+        []( const std::vector <uint8_t>&& data,
+            const std::wstring_view       file ) -> bool
+        {
+          std::filesystem::path
+                      full_path (file.data ());
+
+          if ( FILE *fPackedWinRing0 = _wfopen (full_path.c_str (), L"wb") ;
+                     fPackedWinRing0 != nullptr )
+          {
+            fwrite (data.data (), 1, data.size (), fPackedWinRing0);
+            fclose (                               fPackedWinRing0);
+
+            SK_Decompress7zEx ( full_path.c_str (),
+                                full_path.parent_path (
+                                        ).c_str (), nullptr );
+            DeleteFileW       ( full_path.c_str ()          );
+
+            SetEvent (hTransferComplete);
+          }
+
+          return true;
+        }
+      ), true // High Priority
+    ));
+
+    if ( WAIT_TIMEOUT ==
+           SK_WaitForSingleObject (hTransferComplete, 4500UL) )
+    {
+      SK_LOG0 ( ( L"WinRing0 Download Timed-Out" ),
+                  L" WinRing0 " );
+
+      // Download thread timed-out
+      return;
+    }
+  }
+
+  return;
+#if 0
   HMODULE hModSelf =
     SK_GetDLL ();
 
@@ -179,7 +251,7 @@ SK_WinRing0_Unpack (void)
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES) {
         SK_CreateDirectories (wszDestination);
-}
+      }
 
       wcsncpy_s   (wszArchive, MAX_PATH, wszDestination, _TRUNCATE);
       PathAppendW (wszArchive, L"WinRing0.7z");
@@ -214,6 +286,7 @@ SK_WinRing0_Unpack (void)
 
     UnlockResource (packed_winring);
   }
+#endif
 };
 
 enum SK_CPU_IntelMicroarch
@@ -1474,8 +1547,8 @@ public:
   {
     SK_ImGui_Widgets->cpu_monitor = this;
 
-    setAutoFit (true).setDockingPoint (DockAnchor::East).setClickThrough (false),
-                      setBorder       (true);
+    setAutoFit (true).setDockingPoint (DockAnchor::East).
+    setBorder  (true);
 
     active_scheme.notify   = INVALID_HANDLE_VALUE;
 

@@ -22,72 +22,193 @@
 #ifndef __SK__SCEPAD_H__
 #define __SK__SCEPAD_H__
 
-#include <stdint.h>
-#include <inttypes.h>
+#include <cstdint>
+#include <cinttypes>
 
-using SK_SceUserID = int;
+using SK_SceUserID    = int32_t;
+using SK_ScePadHandle = int32_t;
+using SK_ScePadResult = int;
 
-enum class
-SK_ScePadDataOffset
+// Shizam, a scoped enum only half the pain in the ass enum class is (!!)
+class SK_ScePadButtonBitmap
 {
-  PAD_BUTTON_SHARE       = 0x000000001UL, // "Create"
-  PAD_BUTTON_L3          = 0x000000002UL,
-  PAD_BUTTON_R3          = 0x000000004UL,
-  PAD_BUTTON_OPTIONS     = 0x000000008UL,
-  PAD_BUTTON_UP          = 0x000000010UL,
-  PAD_BUTTON_RIGHT       = 0x000000020UL,
-  PAD_BUTTON_DOWN        = 0x000000040UL,
-  PAD_BUTTON_LEFT        = 0x000000080UL,
-  PAD_BUTTON_L2          = 0x000000100UL,
-  PAD_BUTTON_R2          = 0x000000200UL,
-  PAD_BUTTON_L1          = 0x000000400UL,
-  PAD_BUTTON_R1          = 0x000000800UL,
-  PAD_BUTTON_TRIANGLE    = 0x000001000UL,
-  PAD_BUTTON_PLAYSTATION = 0x000010000UL,
-  PAD_BUTTON_CIRCLE      = 0x000002000UL,
-  PAD_BUTTON_CROSS       = 0x000004000UL,
-  PAD_BUTTON_SQUARE      = 0x000008000UL,
-  PAD_BUTTON_TOUCH_PAD   = 0x000100000UL,
-  PAD_BUTTON_MUTE        = 0x000200000UL,
-} SK_ScePadDataOffset;
+public:
+  using enum_type_t =
+           uint32_t;
 
-#define SK_SCEPAD_BUTTON_START PAD_BUTTON_OPTIONS
+  SK_ScePadButtonBitmap (void)
+  {
+    _value = None;
+  }
 
-#define SK_SCEPAD_PORT_TYPE_STANDARD           0
-#define SK_SCEPAD_PORT_TYPE_SPECIAL            2
-#define SK_SCEPAD_PORT_TYPE_REMOTE_CONTROL    16
+  SK_ScePadButtonBitmap (enum_type_t init) :
+                             _value (init) { };
 
-#define SK_SCEPAD_MAX_DATA_NUM                64
-#define SK_SCEPAD_MAX_TOUCH_NUM                2
-#define SK_SCEPAD_MAX_DEVICE_UNIQUE_DATA_SIZE 12
+  enum
+  {
+    None        = 0x000000000UL,
+    Share       = 0x000000001UL, // Requires SK_ScePadSetParticularMode
+    L3          = 0x000000002UL,
+    R3          = 0x000000004UL,
+    Options     = 0x000000008UL,
+    Up          = 0x000000010UL,
+    Right       = 0x000000020UL,
+    Down        = 0x000000040UL,
+    Left        = 0x000000080UL,
+    L2          = 0x000000100UL,
+    R2          = 0x000000200UL,
+    L1          = 0x000000400UL,
+    R1          = 0x000000800UL,
+    Triangle    = 0x000001000UL,
+    PlayStation = 0x000010000UL, // Requires SK_ScePadSetParticularMode
+    Circle      = 0x000002000UL,
+    Cross       = 0x000004000UL,
+    Square      = 0x000008000UL,
+    TouchPad    = 0x000100000UL,
+    Mute        = 0x000200000UL, // Requires SK_ScePadSetParticularMode
+    All         = static_cast <enum_type_t> (UINT_MAX)
+  };
 
-struct SK_ScePadOpenParam {
+  operator enum_type_t (void) const noexcept
+  {
+    return _value;
+  }
+
+  bool isDown (enum_type_t mask) const noexcept
+  {
+    if (mask != SK_ScePadButtonBitmap::None)
+      return ( mask == (_value &  mask) );
+    else
+      return            _value == mask;
+  }
+
+  void setState (enum_type_t mask, bool set) noexcept
+  {
+    if (set) _value |=  mask;
+    else     _value &= ~mask;
+  }
+
+  void clearButtons (enum_type_t mask) noexcept { setState (mask, false); }
+  void setButtons   (enum_type_t mask) noexcept { setState (mask, true);  }
+
+private:
+  enum_type_t _value;
+};
+
+enum class SK_ScePadDeviceClass
+{
+  Invalid       = -1,
+  Standard      =  0,
+  Guitar        =  1,
+  Drum          =  2,
+  DJ_Turntable  =  3,
+  DanceMat      =  4,
+  Navigation    =  5,
+  SteeringWheel =  6,
+  Stick         =  7,
+  FlightStick   =  8,
+  Gun           =  9
+};
+
+static constexpr int SK_SCEPAD_PORT_TYPE_STANDARD          =  0;
+static constexpr int SK_SCEPAD_PORT_TYPE_SPECIAL           =  2;
+static constexpr int SK_SCEPAD_PORT_TYPE_REMOTE_CONTROL    = 16;
+
+static constexpr int SK_SCEPAD_MAX_DATA_NUM                = 64;
+static constexpr int SK_SCEPAD_MAX_TOUCH_NUM               =  2;
+static constexpr int SK_SCEPAD_MAX_DEVICE_UNIQUE_DATA_SIZE = 12;
+
+static constexpr int SK_SCE_ERROR_OK               = 0x00000000;
+static constexpr int SK_SCE_ERROR_NOT_SUPPORTED    = 0x80000004;
+static constexpr int SK_SCE_ERROR_ALREADY          = 0x80000020;
+static constexpr int SK_SCE_ERROR_BUSY             = 0x80000021;
+static constexpr int SK_SCE_ERROR_OUT_OF_MEMORY    = 0x80000022;
+static constexpr int SK_SCE_ERROR_PRIV_REQUIRED    = 0x80000023;
+static constexpr int SK_SCE_ERROR_NOT_FOUND        = 0x80000025;
+static constexpr int SK_SCE_ERROR_ILLEGAL_CONTEXT  = 0x80000030;
+static constexpr int SK_SCE_ERROR_CPUDI            = 0x80000031;
+static constexpr int SK_SCE_ERROR_SEMAPHORE        = 0x80000041;
+static constexpr int SK_SCE_ERROR_INVALID_ID       = 0x80000100;
+static constexpr int SK_SCE_ERROR_INVALID_NAME     = 0x80000101;
+static constexpr int SK_SCE_ERROR_INVALID_INDEX    = 0x80000102;
+static constexpr int SK_SCE_ERROR_INVALID_POINTER  = 0x80000103;
+static constexpr int SK_SCE_ERROR_INVALID_SIZE     = 0x80000104;
+static constexpr int SK_SCE_ERROR_INVALID_FLAG     = 0x80000105;
+static constexpr int SK_SCE_ERROR_INVALID_COMMAND  = 0x80000106;
+static constexpr int SK_SCE_ERROR_INVALID_MODE     = 0x80000107;
+static constexpr int SK_SCE_ERROR_INVALID_FORMAT   = 0x80000108;
+static constexpr int SK_SCE_ERROR_INVALID_VALUE    = 0x800001FE;
+static constexpr int SK_SCE_ERROR_INVALID_ARGUMENT = 0x800001FF;
+static constexpr int SK_SCE_ERROR_NOENT            = 0x80000202;
+static constexpr int SK_SCE_ERROR_BAD_FILE         = 0x80000209;
+static constexpr int SK_SCE_ERROR_ACCESS_ERROR     = 0x8000020D;
+static constexpr int SK_SCE_ERROR_EXIST            = 0x80000211;
+static constexpr int SK_SCE_ERROR_INVAL            = 0x80000216;
+static constexpr int SK_SCE_ERROR_MFILE            = 0x80000218;
+static constexpr int SK_SCE_ERROR_NOSPC            = 0x8000021C;
+static constexpr int SK_SCE_ERROR_DFUNC            = 0x800002FF;
+
+struct SK_ScePadTouchPadInformation
+{
+  float pixelDensity;
+
+  struct
+  {
+  	uint16_t x;
+  	uint16_t y;
+  } resolution;
+};
+
+struct SK_ScePadStickInformation
+{
+  uint8_t deadZoneLeft;
+  uint8_t deadZoneRight;
+};
+
+struct SK_ScePadControllerInformation
+{
+  SK_ScePadTouchPadInformation touchPadInfo;
+  SK_ScePadStickInformation    stickInfo;
+  uint8_t                      connectionType;
+  uint8_t                      connectedCount;
+  bool                         connected;
+  SK_ScePadDeviceClass         deviceClass;
+  uint8_t                      reserve [8];
+};
+
+struct SK_ScePadOpenParam
+{
   uint8_t reserve [8];
 };
 
-struct SK_ScePadAnalogStick {
+struct SK_ScePadAnalogStick
+{
   uint8_t x, y;
 };
 
-struct SK_ScePadAnalogButtons {
+struct SK_ScePadAnalogButtons
+{
   uint8_t l2, r2;
   uint8_t padding [2];
 };
 
-struct SK_ScePadTouch {
+struct SK_ScePadTouch
+{
   uint16_t x, y;
   uint8_t    id;
   uint8_t reserve [3];
 };
 
-struct SK_ScePadTouchData {
+struct SK_ScePadTouchData
+{
   uint8_t        touchNum;
   uint8_t        reserve [                      3];
   uint32_t       reserve1;
   SK_ScePadTouch touch   [SK_SCEPAD_MAX_TOUCH_NUM];
 };
 
-struct SK_ScePadExtensionUnitData {
+struct SK_ScePadExtensionUnitData
+{
   uint32_t extensionUnitId;
   uint8_t reserve     [ 1];
   uint8_t dataLength;
@@ -106,7 +227,7 @@ struct SK_SceFVector3
 
 struct SK_ScePadData
 {
-  uint32_t                   buttons;
+  SK_ScePadButtonBitmap      buttonMask;
   SK_ScePadAnalogStick       leftStick;
   SK_ScePadAnalogStick       rightStick;
   SK_ScePadAnalogButtons     analogButtons;
@@ -124,61 +245,55 @@ struct SK_ScePadData
             [SK_SCEPAD_MAX_DEVICE_UNIQUE_DATA_SIZE];
 };
 
-struct SK_ScePadVibrationParam {
+struct SK_ScePadVibrationParam
+{
   uint8_t bigMotor;   // 0 - stop 1~255:rotate
   uint8_t smallMotor; // 0 - stop 1~255:rotate
 };
 
-struct SK_ScePadColor {
+struct SK_ScePadColor
+{
   uint8_t r;
   uint8_t g;
   uint8_t b;
   uint8_t reserve [1];
 };
 
-int SK_ScePadInit (void);
+SK_ScePadResult SK_ScePadInit      (void);
+SK_ScePadHandle SK_ScePadGetHandle (SK_SceUserID userID, int type,
+                                                         int index);
+SK_ScePadResult SK_ScePadOpen      (SK_SceUserID userID, int type,
+                                                         int index, SK_ScePadOpenParam *inputParam);
+SK_ScePadResult SK_ScePadClose     (SK_ScePadHandle handle);
 
-// userID = UserID which opens pad
-// type = (PAD_PORT_TYPE_STANDARD|PAD_PORT_TYPE_SPECIAL|PAD_PORT_TYPE_REMOTE_CONTROL)
-// index = 0
+SK_ScePadResult SK_ScePadSetParticularMode               (bool mode);
+SK_ScePadResult SK_ScePadRead                            (SK_ScePadHandle handle, SK_ScePadData *iData, int count);
+SK_ScePadResult SK_ScePadReadState                       (SK_ScePadHandle handle, SK_ScePadData *iData);
+SK_ScePadResult SK_ScePadResetOrientation                (SK_ScePadHandle handle);
+SK_ScePadResult SK_ScePadSetAngularVelocityDeadbandState (SK_ScePadHandle handle, bool enable);
+SK_ScePadResult SK_ScePadSetMotionSensorState            (SK_ScePadHandle handle, bool enable);
+SK_ScePadResult SK_ScePadSetTiltCorrectionState          (SK_ScePadHandle handle, bool enable);
+SK_ScePadResult SK_ScePadSetVibration                    (SK_ScePadHandle handle, SK_ScePadVibrationParam *param);
 
-int SK_ScePadGetHandle (SK_SceUserID userID, int type,
-                                             int index);
-int SK_ScePadOpen      (SK_SceUserID userID, int type,
-                                             int index, SK_ScePadOpenParam *inputParam);
-int SK_ScePadClose     (int handle);
+SK_ScePadResult SK_ScePadPadResetLightBar                (SK_ScePadHandle handle);
+SK_ScePadResult SK_ScePadSetLightBar                     (SK_ScePadHandle handle, SK_ScePadColor *param);
 
-// PadData - Controller Data Param
-// count = PAD_MAX_DATA_NUM (HISTORY)
+using scePadInit_pfn                            = SK_ScePadResult (*)(void);
+using scePadGetHandle_pfn                       = SK_ScePadHandle (*)(SK_SceUserID userID, int type, int index);
+using scePadOpen_pfn                            = SK_ScePadResult (*)(SK_SceUserID userID, int type, int index,
+                                                                      SK_ScePadOpenParam *inputParam);
+using scePadClose_pfn                           = SK_ScePadResult (*)(SK_ScePadHandle handle);
+using scePadSetParticularMode_pfn               = SK_ScePadResult (*)(bool);
 
-int SK_ScePadSetParticularMode               (bool mode);
-int SK_ScePadRead                            (int handle, SK_ScePadData *iData, int count);
-int SK_ScePadReadState                       (int handle, SK_ScePadData *iData);
-int SK_ScePadResetOrientation                (int handle);
-int SK_ScePadSetAngularVelocityDeadbandState (int handle, bool enable);
-int SK_ScePadSetMotionSensorState            (int handle, bool enable);
-int SK_ScePadSetTiltCorrectionState          (int handle, bool enable);
-int SK_ScePadSetVibration                    (int handle, SK_ScePadVibrationParam *param);
+using scePadRead_pfn                            = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadData *iData, int count);
+using scePadReadState_pfn                       = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadData *iData);
+using scePadResetOrientation_pfn                = SK_ScePadResult (*)(SK_ScePadHandle handle);
+using scePadSetAngularVelocityDeadbandState_pfn = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
+using scePadSetMotionSensorState_pfn            = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
+using scePadSetTiltCorrectionState_pfn          = SK_ScePadResult (*)(SK_ScePadHandle handle, bool enable);
+using scePadSetVibration_pfn                    = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadVibrationParam *param);
 
-int SK_ScePadPadResetLightBar                (int handle);
-int SK_ScePadSetLightBar                     (int handle, SK_ScePadColor *param);
-
-using scePadInit_pfn                            = int (*)(void);
-using scePadGetHandle_pfn                       = int (*)(SK_SceUserID userID, int type, int index);
-using scePadOpen_pfn                            = int (*)(SK_SceUserID userID, int type, int index,
-                                                          SK_ScePadOpenParam *inputParam);
-using scePadClose_pfn                           = int (*)(int handle);
-using scePadSetParticularMode_pfn               = int (*)(bool);
-
-using scePadRead_pfn                            = int (*)(int handle, SK_ScePadData *iData, int count);
-using scePadReadState_pfn                       = int (*)(int handle, SK_ScePadData *iData);
-using scePadResetOrientation_pfn                = int (*)(int handle);
-using scePadSetAngularVelocityDeadbandState_pfn = int (*)(int handle, bool enable);
-using scePadSetMotionSensorState_pfn            = int (*)(int handle, bool enable);
-using scePadSetTiltCorrectionState_pfn          = int (*)(int handle, bool enable);
-using scePadSetVibration_pfn                    = int (*)(int handle, SK_ScePadVibrationParam *param);
-
-using scePadResetLightBar_pfn                   = int (*)(int handle);
-using scePadSetLightBar_pfn                     = int (*)(int handle, SK_ScePadColor *param);
+using scePadResetLightBar_pfn                   = SK_ScePadResult (*)(SK_ScePadHandle handle);
+using scePadSetLightBar_pfn                     = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadColor *param);
 
 #endif /* __SK__SCEPAD_H__ */

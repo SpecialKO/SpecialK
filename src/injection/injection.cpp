@@ -2483,13 +2483,15 @@ SK_Inject_TestUserBlacklist (const wchar_t* wszExecutable)
 bool
 SK_Inject_TestBlacklists (const wchar_t* wszExecutable)
 {
-  wchar_t    wszExecutableCopy [MAX_PATH] = { };
-  wcsncpy_s (wszExecutableCopy, MAX_PATH,
-             wszExecutable,     _TRUNCATE );
+  ////wchar_t    wszExecutableCopy [MAX_PATH] = { };
+  ////wcsncpy_s (wszExecutableCopy, MAX_PATH,
+  ////           wszExecutable,     _TRUNCATE );
 
-  PathStripPath (wszExecutableCopy);
-  if (StrStrNIW (wszExecutableCopy, L"launcher", MAX_PATH) != nullptr)
-    return true;
+  //// This rule would prevent 'Book of Demons' from working
+  //
+  //PathStripPath (wszExecutableCopy);
+  //if (StrStrNIW (wszExecutableCopy, L"launcher", MAX_PATH) != nullptr)
+  //  return true;
 
   return
     SK_Inject_TestUserBlacklist (wszExecutable);

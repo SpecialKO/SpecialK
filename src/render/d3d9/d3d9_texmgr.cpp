@@ -33,24 +33,23 @@ using namespace SK::D3D9;
 
 extern SK_LazyGlobal <std::wstring> SK_D3D11_res_root;
 
-static D3DXCreateTextureFromFileInMemoryEx_pfn D3DXCreateTextureFromFileInMemoryEx_Original = nullptr;
+static D3D9Device_BeginScene_pfn                 D3D9BeginScene_Original                = nullptr;
+static D3D9Device_EndScene_pfn                   D3D9EndScene_Original                  = nullptr;
+static D3D9Device_SetRenderState_pfn             D3D9SetRenderState_Original            = nullptr;
 
-static D3D9Device_BeginScene_pfn                 D3D9BeginScene_Original                    = nullptr;
-static D3D9Device_EndScene_pfn                   D3D9EndScene_Original                      = nullptr;
-static D3D9Device_SetRenderState_pfn             D3D9SetRenderState_Original                = nullptr;
+static D3D9Device_StretchRect_pfn                D3D9StretchRect_Original               = nullptr;
+static D3D9Device_CreateTexture_pfn              D3D9CreateTexture_Original             = nullptr;
+static D3D9Device_CreateRenderTarget_pfn         D3D9CreateRenderTarget_Original        = nullptr;
+static D3D9Device_CreateDepthStencilSurface_pfn  D3D9CreateDepthStencilSurface_Original = nullptr;
 
-static D3D9Device_StretchRect_pfn                D3D9StretchRect_Original                   = nullptr;
-static D3D9Device_CreateTexture_pfn              D3D9CreateTexture_Original                 = nullptr;
-static D3D9Device_CreateRenderTarget_pfn         D3D9CreateRenderTarget_Original            = nullptr;
-static D3D9Device_CreateDepthStencilSurface_pfn  D3D9CreateDepthStencilSurface_Original     = nullptr;
-
-static D3D9Device_SetTexture_pfn                 D3D9SetTexture_Original                    = nullptr;
-static D3D9Device_SetRenderTarget_pfn            D3D9SetRenderTarget_Original               = nullptr;
-static D3D9Device_SetDepthStencilSurface_pfn     D3D9SetDepthStencilSurface_Original        = nullptr;
+static D3D9Device_SetTexture_pfn                 D3D9SetTexture_Original                = nullptr;
+static D3D9Device_SetRenderTarget_pfn            D3D9SetRenderTarget_Original           = nullptr;
+static D3D9Device_SetDepthStencilSurface_pfn     D3D9SetDepthStencilSurface_Original    = nullptr;
 extern D3D9Device_SetSamplerState_pfn            D3D9Device_SetSamplerState_Original;
+extern D3DXCreateTextureFromFileInMemoryEx_pfn   D3DXCreateTextureFromFileInMemoryEx_Original;
 
 using  QueryPerformanceCounter_pfn = BOOL (WINAPI *)( _Out_ LARGE_INTEGER *lpPerformanceCount ) noexcept;
-extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;
+extern QueryPerformanceCounter_pfn QueryPerformanceCounter_Original;;
 
 // D3DXSaveSurfaceToFile issues a StretchRect, but we don't want to log that...
 bool dumping          = false;
@@ -957,21 +956,24 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
                                 THREAD_MODE_BACKGROUND_BEGIN );
         }
 
-        D3DXGetImageInfoFromFileInMemory (
-          load->pSrcData,
-            load->SrcDataSize,
-              &img_info );
+        hr =
+          SK_D3DXGetImageInfoFromFileInMemory (
+            load->pSrcData,
+              load->SrcDataSize,
+                &img_info );
 
-        hr = D3DXCreateTextureFromFileInMemoryEx_Original (
-          load->pDevice,
-            load->pSrcData, load->SrcDataSize,
-              D3DX_DEFAULT, D3DX_DEFAULT, img_info.MipLevels,
-                0, D3DFMT_FROM_FILE,
-                  D3DPOOL_DEFAULT,
-                    D3DX_DEFAULT, D3DX_DEFAULT,
-                      0,
-                        &img_info, nullptr,
-                          &load->pSrc );
+        if (SUCCEEDED (hr))
+                       hr =
+          SK_D3DXCreateTextureFromFileInMemoryEx (
+            load->pDevice,
+              load->pSrcData, load->SrcDataSize,
+                D3DX_DEFAULT, D3DX_DEFAULT, img_info.MipLevels,
+                  0, D3DFMT_FROM_FILE,
+                    D3DPOOL_DEFAULT,
+                      D3DX_DEFAULT, D3DX_DEFAULT,
+                        0,
+                          &img_info, nullptr,
+                            &load->pSrc );
 
         load->pSrcData = nullptr;
       }
@@ -1083,7 +1085,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
             load->pSrcData    = sk::narrow_cast <Byte *> (streaming_memory::data ()) + offset;
             load->SrcDataSize = sk::narrow_cast <UINT>   (decomp_size);
 
-            if (SUCCEEDED ( D3DXGetImageInfoFromFileInMemory (
+            if (SUCCEEDED ( SK_D3DXGetImageInfoFromFileInMemory (
                               load->pSrcData,
                                 load->SrcDataSize,
                                   &img_info )
@@ -1093,7 +1095,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
               load->pSrc = nullptr;
 
               hr =
-                D3DXCreateTextureFromFileInMemoryEx_Original (
+                SK_D3DXCreateTextureFromFileInMemoryEx (
                   load->pDevice,
                     load->pSrcData, load->SrcDataSize,
                       img_info.Width, img_info.Height, img_info.MipLevels,
@@ -1488,7 +1490,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   if (tex_mgr.injector.isInjectionThread ())
   {
     return
-      D3DXCreateTextureFromFileInMemoryEx_Original (
+      SK_D3DXCreateTextureFromFileInMemoryEx (
         pDevice,
           pSrcData, SrcDataSize,
             Width, Height, MipLevels,
@@ -1550,7 +1552,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   tex_mgr.injector.beginLoad  ();
 
   D3DXIMAGE_INFO info = { };
-  D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info);
+  SK_D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info);
 
   tex_mgr.injector.endLoad  ();
 
@@ -1663,13 +1665,13 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   tex_mgr.injector.beginLoad ();
 
   hr =
-    D3DXCreateTextureFromFileInMemoryEx_Original ( pDevice,
-                                                     pSrcData,         SrcDataSize,
-                                                       Width,          Height,    will_replace ? 1 : MipLevels,
-                                                         Usage,        Format,    Pool,
-                                                           Filter,     MipFilter, ColorKey,
-                                                             pSrcInfo, pPalette,
-                                                               ppTexture );
+    SK_D3DXCreateTextureFromFileInMemoryEx ( pDevice,
+                                               pSrcData,         SrcDataSize,
+                                                 Width,          Height,    will_replace ? 1 : MipLevels,
+                                                   Usage,        Format,    Pool,
+                                                     Filter,     MipFilter, ColorKey,
+                                                       pSrcInfo, pPalette,
+                                                         ppTexture );
 
   tex_mgr.injector.endLoad ();
 
@@ -1857,7 +1859,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
     tex_mgr.injector.beginLoad ();
 
-    D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info_);
+    SK_D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info_);
 
     tex_mgr.dumpTexture (info_.Format, checksum, *ppTexture);
 
@@ -1934,7 +1936,7 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
     injector.beginLoad ();
 
     hr =
-      D3DXSaveTextureToFile (wszFileName, D3DXIFF_DDS, pTex, nullptr);
+      SK_D3DXSaveTextureToFile (wszFileName, D3DXIFF_DDS, pTex, nullptr);
 
     if (SUCCEEDED (hr))
       dumped_textures [checksum] = true;
@@ -2183,8 +2185,6 @@ D3D9SetRenderTarget_Detour (
   return D3D9SetRenderTarget_Original (This, RenderTargetIndex, pRenderTarget);
 }
 
-HMODULE d3dx9_43_dll;
-
 void
 SK::D3D9::TextureManager::Init (void)
 {
@@ -2216,9 +2216,6 @@ SK::D3D9::TextureManager::Init (void)
     CreateDirectoryW (SK_D3D11_res_root->c_str (), nullptr);
 
   tex_log->init (L"logs/textures.log", L"wt+,ccs=UTF-8");
-
-  d3dx9_43_dll =
-    SK_GetModuleHandle (L"D3DX9_43.DLL");
 
   init = true;
 
@@ -2453,10 +2450,12 @@ SK::D3D9::TextureManager::Hook (void)
   //                     &D3D9SetDepthStencilSurface);
   //MH_QueueEnableHook (  D3D9SetDepthStencilSurface_Detour);
 
-  SK_CreateDLLHook2 (      L"D3DX9_43.DLL",
-                            "D3DXCreateTextureFromFileInMemoryEx",
-                             D3DXCreateTextureFromFileInMemoryEx_Detour,
-    static_cast_p2p <void> (&D3DXCreateTextureFromFileInMemoryEx_Original) );
+  if (GetModuleHandle (      L"D3DX9_43.DLL") != nullptr )
+  { SK_CreateDLLHook2 (      L"D3DX9_43.DLL",
+                              "D3DXCreateTextureFromFileInMemoryEx",
+                               D3DXCreateTextureFromFileInMemoryEx_Detour,
+      static_cast_p2p <void> (&D3DXCreateTextureFromFileInMemoryEx_Original) );
+  }
 }
 
 // Skip the purge step on shutdown
@@ -2507,9 +2506,6 @@ SK::D3D9::TextureManager::Shutdown (void)
                        to_delete.pop   ();
     DeleteFileW ( file_to_delete.c_str () );
   }
-
-  // Special K is explicitly linked against D3DX9_43 in 0.8.x+
-  //FreeLibrary (d3dx9_43_dll);
 }
 
 void
@@ -3017,17 +3013,16 @@ ResampleTexture (TexLoadRequest* load)
 
   D3DXIMAGE_INFO img_info = { };
 
-  D3DXGetImageInfoFromFileInMemory (
-    load->pSrcData,
-      load->SrcDataSize,
-        &img_info );
+  HRESULT hr =
+    SK_D3DXGetImageInfoFromFileInMemory (
+      load->pSrcData,
+        load->SrcDataSize,
+          &img_info );
 
-  HRESULT hr = E_FAIL;
-
-  if (img_info.Depth == 1)
+  if (SUCCEEDED (hr) && img_info.Depth == 1)
   {
     hr =
-      D3DXCreateTextureFromFileInMemoryEx_Original (
+      SK_D3DXCreateTextureFromFileInMemoryEx (
         load->pDevice,
             load->pSrcData, load->SrcDataSize,
               img_info.Width, img_info.Height, 0,

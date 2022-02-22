@@ -219,8 +219,9 @@ extern "C" {
          LPVOID pfnSteamInternal_CreateInterface = nullptr;
 volatile LONG __SK_Steam_Downloading             = 0;
 
-auto constexpr _ConstructPath =
-[&](auto&& path_base, const wchar_t* path_end)
+static auto constexpr
+_ConstructPath =
+[](auto&& path_base, const wchar_t* path_end)
 {
   std::array <wchar_t, MAX_PATH + 1>
     path { };
@@ -451,7 +452,7 @@ SK_GetManifestContentsForAppID (AppId_t appid)
     if (bRead && dwRead)
     {
       manifest =
-        std::move (manifest_data);
+        std::move (szManifestData.release ());
 
       return
         manifest;
@@ -926,7 +927,7 @@ public:
 
     // If we want to use this as our own, then don't let the Steam overlay
     //   unpause the game on deactivation unless the control panel is closed.
-    if (config.steam.reuse_overlay_pause && SK::SteamAPI::IsOverlayAware ())
+    if (config.platform.reuse_overlay_pause && SK::SteamAPI::IsOverlayAware ())
     {
       // Deactivating, but we might want to hide this event from the game...
       if (pParam->m_bActive == 0)
@@ -1505,12 +1506,12 @@ void
 SK_Steam_SetNotifyCorner (void)
 {
   // 4 == Don't Care
-  if (config.steam.notify_corner != 4)
+  if (config.platform.notify_corner != 4)
   {
     if (steam_ctx.Utils ())
     {
       steam_ctx.Utils ()->SetOverlayNotificationPosition (
-        static_cast <ENotificationPosition> (config.steam.notify_corner)
+        static_cast <ENotificationPosition> (config.platform.notify_corner)
       );
     }
   }
@@ -1639,11 +1640,11 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
   {
     known = true;
 
-    config.steam.notify_corner =
+    config.platform.notify_corner =
       SK_Steam_PopupOriginStrToEnum (*reinterpret_cast <char **> (val));
 
-    strncpy_s (                   var_strings.notify_corner,  16,
-      SK_Steam_PopupOriginToStr (config.steam.notify_corner), _TRUNCATE
+    strncpy_s (                      var_strings.notify_corner,  16,
+      SK_Steam_PopupOriginToStr (config.platform.notify_corner), _TRUNCATE
     );
 
     SK_Steam_SetNotifyCorner ();
@@ -1655,13 +1656,13 @@ SK_SteamAPIContext::OnVarChange (SK_IVariable* var, void* val)
   {
     known = true;
 
-    config.steam.achievements.popup.origin =
+    config.platform.achievements.popup.origin =
       SK_Steam_PopupOriginStrToEnum (*reinterpret_cast <char **> (val));
 
     strncpy_s ( var_strings.popup_origin,
         sizeof (var_strings.popup_origin),
                  SK_Steam_PopupOriginToStr (
-                   config.steam.achievements.popup.origin
+                   config.platform.achievements.popup.origin
                 ), _TRUNCATE
              );
 
@@ -1712,7 +1713,7 @@ public:
     loadSound (wszUnlockSound);
 
     uint32_t achv_reserve =
-      std::max (user_stats->GetNumAchievements (), (uint32_t)128UL);
+      std::max (user_stats->GetNumAchievements (), (uint32_t)64UL);
     friend_count =
       friends->GetFriendCount (k_EFriendFlagImmediate);
 
@@ -1729,9 +1730,8 @@ public:
     achievements.list.resize        (achv_reserve);
     achievements.string_map.reserve (achv_reserve);
 
-    //for (uint32_t i = 0; i < achv_reserve; i++)
-    //  achievements.list [i] = {nullptr;
-    achievements.list.clear ();
+    for (uint32_t i = 0; i < achv_reserve; i++)
+      achievements.list [i] = nullptr;
   }
 
   ~SK_Steam_AchievementManager (void)
@@ -1761,11 +1761,11 @@ public:
                         achievement->unlocked_ ? L'X' : L' ',
                         i, achievement->name_.c_str ());
       steam_log->LogEx (false,
-                        L"  + Human Readable Name...: %hs\n",
+                        L"  + Human Readable Name...: %ws\n",
                         achievement->text_.locked.human_name.c_str ());
       if (! achievement->text_.locked.desc.empty ())
         steam_log->LogEx (false,
-                          L"  *- Detailed Description.: %hs\n",
+                          L"  *- Detailed Description.: %ws\n",
                           achievement->text_.locked.desc.c_str ());
 
       if (achievement->global_percent_ > 0.0f)
@@ -1859,8 +1859,8 @@ public:
       {
         pullStats ();
 
-        if ( config.steam.achievements.pull_global_stats &&
-                                     (! has_global_data) )
+        if ( config.platform.achievements.pull_global_stats &&
+                                        (! has_global_data) )
         {
           has_global_data = true;
 
@@ -1879,7 +1879,7 @@ public:
           {
             // Uninstall the game's callback while we're fetching friend stats,
             //   some games panic when they get data from other users.
-            for ( auto it : *UserStatsReceived_callbacks )
+            for ( auto& it : *UserStatsReceived_callbacks )
             {
               if (it.second && SK_IsAddressExecutable (it.first))
                 SteamAPI_UnregisterCallback_Original ((class CCallbackBase *)it.first);
@@ -1908,7 +1908,7 @@ public:
                 friend_stats      [i].account_id =
                                          sid.ConvertToUint64 ();
                 friend_stats      [i].unlocked.resize (
-                  achievements.list.capacity ()
+                  stats->GetNumAchievements ()
                 );
               }
 
@@ -2034,16 +2034,17 @@ public:
         {
           std::string name = stats->GetAchievementName (i);
 
+          bool bAchieved = false;
+
           stats->GetUserAchievement (
             pParam->m_steamIDUser,
-                      name.c_str (),
-                    reinterpret_cast <bool *> (
-                      &friend_stats [friend_idx].unlocked [i]
-                    )
+                      name.c_str (), &bAchieved
           );
 
-          if (friend_stats [friend_idx].unlocked [i])
+          if (bAchieved)
           {
+            friend_stats [friend_idx].unlocked [i] = TRUE;
+
             unlocked++;
 
             // On the first unlocked achievement, make a note...
@@ -2055,10 +2056,13 @@ public:
 
             can_unlock = true;
 
-            ++achievements.list [i]->friends_.unlocked;
+            ++(achievements.list [i]->friends_.unlocked);
 
             ///steam_log->Log (L" >> Has unlocked '%24hs'", szName);
           }
+
+          else
+            friend_stats [friend_idx].unlocked [i] = FALSE;
         }
 
         friend_stats [friend_idx].percent_unlocked =
@@ -2080,7 +2084,7 @@ public:
           );
 
           for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
-            ++achievements.list [i]->friends_.possible;
+            ++(achievements.list [i]->friends_.possible);
         }
 
         else
@@ -2328,21 +2332,26 @@ public:
 
         achievement->unlocked_ = true;
 
-        if (config.steam.achievements.play_sound)
+        if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
         {
-          SK_PlaySound ( (LPCWSTR)unlock_sound, nullptr, SND_ASYNC |
-                                                         SND_MEMORY );
+          SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
+                                   nullptr, SND_ASYNC |
+                                            SND_MEMORY );
         }
 
-        steam_log->Log ( L" Achievement: '%hs' (%hs) - Unlocked!",
+        steam_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
                            achievement->text_.unlocked.human_name.c_str (),
                            achievement->text_.unlocked.desc      .c_str ());
 
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
-        if (       config.steam.achievements.take_screenshot )
-        {  if ( (! config.steam.achievements.popup.show) ||
+        if (       config.platform.achievements.take_screenshot )
+        {  if ( (! config.platform.achievements.popup.show) ||
+#ifdef _HAS_CEGUI_REPLACEMENT
                 (! config.cegui.enable)                  ||
+#else
+                   true                                  ||
+#endif
                 (  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) )
            {
              SK::SteamAPI::TakeScreenshot ();
@@ -2359,7 +2368,7 @@ public:
           static_cast <float> (pParam->m_nCurProgress) /
           static_cast <float> (pParam->m_nMaxProgress);
 
-        steam_log->Log ( L" Achievement: '%hs' (%hs) - "
+        steam_log->Log ( L" Achievement: '%ws' (%ws) - "
                          L"Progress %lu / %lu (%04.01f%%)",
                            achievement->text_.locked.human_name.c_str (),
                            achievement->text_.locked.desc      .c_str (),
@@ -2375,9 +2384,10 @@ public:
                       pParam->m_rgchAchievementName );
     }
 
-    if ( config.cegui.enable                  &&
-         config.steam.achievements.popup.show &&
-         config.cegui.frames_drawn > 0        &&
+#ifdef _HAS_CEGUI_REPLACEMENT
+    if ( config.cegui.enable                     &&
+         config.platform.achievements.popup.show &&
+         config.cegui.frames_drawn > 0           &&
                        achievement != nullptr    )
     {
       CEGUI::System* pSys =
@@ -2386,8 +2396,8 @@ public:
       if ( pSys                 != nullptr &&
            pSys->getRenderer () != nullptr )
       {
-        if (steam_popup_cs != nullptr)
-            steam_popup_cs->lock ();
+        if (platform_popup_cs != nullptr)
+            platform_popup_cs->lock ();
 
         try
         {
@@ -2413,10 +2423,11 @@ public:
         {
         }
 
-        if (steam_popup_cs != nullptr)
-            steam_popup_cs->unlock ();
+        if (platform_popup_cs != nullptr)
+            platform_popup_cs->unlock ();
       }
     }
+#endif
   }
 
   void requestStats (void)
@@ -2450,7 +2461,14 @@ public:
 
     if (stats)
     {
+      //
+      // NOTE: Memory allocation works differently in SteamAPI than EOS,
+      //         this needs to transition to addAchievement (...)
+      //
       int unlocked = 0;
+
+      if (achievements.list.size () < stats->GetNumAchievements ())
+          achievements.list.resize (  stats->GetNumAchievements ());
 
       for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
       {
@@ -2468,6 +2486,8 @@ public:
               stats
             );
 
+          achievements.list       [i] =
+                                   achievement;
           achievements.string_map [achievement->name_] =
                                    achievement;
                                    achievement->update (stats);
@@ -2586,7 +2606,7 @@ SK_Steam_LogAllAchievements (void)
 void
 SK_Steam_UnlockAchievement (uint32_t idx)
 {
-  if (config.steam.silent)
+  if (config.platform.silent)
     return;
 
   if (! steam_achievements)
@@ -2613,10 +2633,11 @@ SK_Steam_UnlockAchievement (uint32_t idx)
 
       steam_achievements->pullStats ();
 
-      UserAchievementStored_t store;
-      store.m_nCurProgress = 0;
-      store.m_nMaxProgress = 0;
-      store.m_nGameID      = CGameID (SK::SteamAPI::AppID ()).ToUint64 ();
+      UserAchievementStored_t
+               store                = { };
+               store.m_nCurProgress =  0 ;
+               store.m_nMaxProgress =  0 ;
+               store.m_nGameID      = CGameID (SK::SteamAPI::AppID ()).ToUint64 ();
       strncpy (store.m_rgchAchievementName, name.c_str (), 128);
 
       SK_Steam_AchievementManager::Achievement* achievement =
@@ -2843,13 +2864,13 @@ SteamAPI_RunCallbacks_Detour (void)
 
     strncpy_s ( steam_ctx.var_strings.popup_origin, 16,
                   SK_Steam_PopupOriginToStr (
-                    config.steam.achievements.popup.origin
+                    config.platform.achievements.popup.origin
                   ), _TRUNCATE
               );
 
     strncpy_s ( steam_ctx.var_strings.notify_corner, 16,
                   SK_Steam_PopupOriginToStr (
-                    config.steam.notify_corner
+                    config.platform.notify_corner
                   ), _TRUNCATE
               );
 
@@ -2968,7 +2989,7 @@ SK::SteamAPI::Init (bool pre_load)
 {
   UNREFERENCED_PARAMETER (pre_load);
 
-  if (config.steam.silent)
+  if (config.platform.silent)
     return;
 }
 
@@ -3241,7 +3262,7 @@ SK::SteamAPI::AppID (void)
       id = ( utils != nullptr   ?
              utils->GetAppID () : atoi (szSteamGameId) );
 
-      if (id != 0)
+      if (id != 0 && id != 1157970)
       {
         if (config.system.central_repository &&
           (! app_cache_mgr->getAppIDFromPath (SK_GetFullyQualifiedApp ())))
@@ -3259,6 +3280,9 @@ SK::SteamAPI::AppID (void)
           app_cache_mgr->getConfigPathForAppID (id);
         }
       }
+
+      if (id == 1157970)
+          id = 0;  // Special K's AppID is a mistake of some sort, ignore it
 
       InterlockedIncrement (&init);
     }
@@ -3390,7 +3414,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
         char*   data = nullptr;
 
         local_data =
-          std::make_unique <char []> (dwSize + 4u);
+          std::make_unique <char []> (dwSize + static_cast <size_t> (4u));
               data = local_data.get ();
 
         if (data == nullptr)
@@ -3600,7 +3624,7 @@ void
 __stdcall
 SK::SteamAPI::SetOverlayState (bool active)
 {
-  if (config.steam.silent)
+  if (config.platform.silent)
     return;
 
   if (__SK_Steam_IgnoreOverlayActivation)
@@ -3952,45 +3976,50 @@ void
 SK_Steam_InitCommandConsoleVariables (void)
 {
   steam_log->init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
-  steam_log->silent = config.steam.silent;
+  steam_log->silent = config.platform.silent;
 
   SK_ICommandProcessor* cmd =
     SK_GetCommandProcessor ();
 
-  cmd->AddVariable ("Steam.TakeScreenshot",
+  #define cmdAddAliasedVar(name,pVar)                 \
+    for ( const char* alias : { "Steam."    #name,    \
+                                "Platform." #name } ) \
+      cmd->AddVariable (alias, pVar);
+
+  cmdAddAliasedVar (TakeScreenshot,
       SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.steam.achievements.take_screenshot));
-  cmd->AddVariable ("Steam.ShowPopup",
+                      (bool *)&config.platform.achievements.take_screenshot));
+  cmdAddAliasedVar (ShowPopup,
       SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.steam.achievements.popup.show));
-  cmd->AddVariable ("Steam.PopupDuration",
+                      (bool *)&config.platform.achievements.popup.show));
+  cmdAddAliasedVar (PopupDuration,
       SK_CreateVar (SK_IVariable::Int,
-                      (int  *)&config.steam.achievements.popup.duration));
-  cmd->AddVariable ("Steam.PopupInset",
+                      (int  *)&config.platform.achievements.popup.duration));
+  cmdAddAliasedVar (PopupInset,
       SK_CreateVar (SK_IVariable::Float,
-                      (float*)&config.steam.achievements.popup.inset));
-  cmd->AddVariable ("Steam.ShowPopupTitle",
+                      (float*)&config.platform.achievements.popup.inset));
+  cmdAddAliasedVar (ShowPopupTitle,
       SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.steam.achievements.popup.show_title));
-  cmd->AddVariable ("Steam.PopupAnimate",
+                      (bool *)&config.platform.achievements.popup.show_title));
+  cmdAddAliasedVar (PopupAnimate,
       SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.steam.achievements.popup.animate));
-  cmd->AddVariable ("Steam.PlaySound",
+                      (bool *)&config.platform.achievements.popup.animate));
+  cmdAddAliasedVar (PlaySound,
       SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.steam.achievements.play_sound));
+                      (bool *)&config.platform.achievements.play_sound));
 
   steam_ctx.popup_origin =
     SK_CreateVar ( SK_IVariable::String,
                      steam_ctx.var_strings.popup_origin,
                     &steam_ctx );
-  cmd->AddVariable ( "Steam.PopupOrigin",
+  cmdAddAliasedVar ( PopupOrigin,
                      steam_ctx.popup_origin );
 
   steam_ctx.notify_corner =
     SK_CreateVar ( SK_IVariable::String,
                      steam_ctx.var_strings.notify_corner,
                     &steam_ctx );
-  cmd->AddVariable ( "Steam.NotifyCorner",
+  cmdAddAliasedVar ( NotifyCorner,
                      steam_ctx.notify_corner );
 
   steam_ctx.tbf_pirate_fun =
@@ -4071,7 +4100,7 @@ SK_HookSteamAPI (void)
   SK_RunOnce ( SK::SteamAPI::steam_size =
                SK_File_GetSize (wszSteamAPI) );
 
-  if (config.steam.silent)
+  if (config.platform.silent)
     return hooks;
 
   if (! SK_GetModuleHandle (wszSteamAPI))
@@ -4114,17 +4143,22 @@ SK_HookSteamAPI (void)
                         static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
 
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_ISteamController_GetDigitalActionData",
-                        SteamAPI_ISteamController_GetDigitalActionData_Detour,
-                        static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
-                                                                                         ++hooks;
+    // Older DLLs will not have this, and we should avoid printing an error in the log
+    if (SK_GetProcAddress (wszSteamAPI,
+                             "SteamAPI_ISteamController_GetDigitalActionData") != nullptr)
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ISteamController_GetDigitalActionData",
+                          SteamAPI_ISteamController_GetDigitalActionData_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
+                                                                                           ++hooks;
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_ISteamController_GetAnalogActionData",
-                        SteamAPI_ISteamController_GetAnalogActionData_Detour,
-                        static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
-                                                                                         ++hooks;
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ISteamController_GetAnalogActionData",
+                          SteamAPI_ISteamController_GetAnalogActionData_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
+                                                                                           ++hooks;
+    }
 
     //
     // Do not queue these up (by calling CreateDLLHook2),
@@ -4217,12 +4251,13 @@ SK_SteamAPI_InitManagers (void)
       has_global_data = false;
       next_friend     = 0;
 
-      if (stats->GetNumAchievements ())
+          stats->RequestCurrentStats ();
+      if (stats->GetNumAchievements  ())
       {
         steam_log->Log (L" Creating Achievement Manager...");
 
         steam_achievements = std::make_unique <SK_Steam_AchievementManager> (
-          config.steam.achievements.sound_file.c_str     ()
+          config.platform.achievements.sound_file.c_str     ()
         );
       }
 
@@ -4853,7 +4888,7 @@ SK_Steam_PiratesAhoy (void)
       return verdict;
 
     if ( hAsyncSigCheck == 0 &&
-      (! config.steam.silent) )
+      (! config.platform.silent) )
     {
       switch (validation_pass)
       {
@@ -4905,8 +4940,8 @@ SK_Steam_PiratesAhoy (void)
     SK_File_GetCRC32C (SK_Steam_GetDLLPath ());
 
   // DLL is too small to be legit, don't enable SteamAPI features
-  if ( SK::SteamAPI::steam_size > 0 &&
-       SK::SteamAPI::steam_size < (1024 * 92) )
+  if ( SK::SteamAPI::steam_size > 0LL &&
+       SK::SteamAPI::steam_size < (1024LL * 92LL) )
   {
     verdict = 0x68992;
   }
@@ -4925,7 +4960,7 @@ SK_Steam_PiratesAhoy (void)
   decided = true;
 
   // User opted out of Steam enhancement, no further action necessary
-  if (config.steam.silent && verdict)
+  if (config.platform.silent && verdict)
   {
     validation_pass = SK_Steam_FileSigPass_e::Done;
     verdict         = 0x00;
@@ -5032,7 +5067,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
           if (! steam_ctx.Utils ())
             return;
 
-          SK_SHA1_Hash SHA1;
+          SK_SHA1_Hash SHA1 = { };
           memcpy (SHA1.hash, pParam->m_FileSHA, 20);
 
           std::wstring wszStrippedName  = wszFileName;
@@ -5162,6 +5197,20 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 void
 SK_Steam_ForceInputAppId (AppId_t appid)
 {
+  static volatile LONG set_once = FALSE;
+
+  if ( ReadAcquire (&__SK_DLL_Ending) &&
+       ReadAcquire (&set_once) )
+  {
+    // Cleanup on unexpected application termination
+    //
+    SK_ShellExecuteA ( 0, "OPEN",
+              R"(steam://forceinputappid/0)", nullptr, nullptr,
+                    SW_HIDE );
+
+    return;
+  }
+
   if (config.steam.appid != 0)
   {
     struct {
@@ -5196,27 +5245,51 @@ SK_Steam_ForceInputAppId (AppId_t appid)
 
         do
         {
-          dwWaitState =
-            WaitForMultipleObjects (2, hWaitObjects, FALSE, INFINITE);
+          if (SK_IsProcessRunning (L"steam.exe"))
+            break;
+        } while (WaitForSingleObject (__SK_DLL_TeardownEvent, 3333UL) == WAIT_TIMEOUT);
 
-          if (dwWaitState == WAIT_OBJECT_0 + 1)
+        if (SK_IsProcessRunning (L"steam.exe"))
+        {
+          do
           {
-            AppId_t                              appid;
-            while (override_ctx.app_ids.try_pop (appid))
-            {
-              ShellExecuteW ( 0, L"OPEN",
-                  SK_FormatStringW ( LR"(steam://forceinputappid/%d)",
-                                                           appid ).c_str (),
-                    nullptr, nullptr, SW_HIDE );
-            }
-          }
-        } while (dwWaitState != WAIT_OBJECT_0);
+            dwWaitState =
+              WaitForMultipleObjects (2, hWaitObjects, FALSE, INFINITE);
 
-        // Cleanup on unexpected application termination
-        //
-        ShellExecuteW ( 0, L"OPEN",
-                  LR"(steam://forceinputappid/0)", nullptr, nullptr,
-                    SW_HIDE );
+            if (dwWaitState == WAIT_OBJECT_0 + 1)
+            {
+              while (SK_GetFramesDrawn () == 0)
+              {
+                SK_SleepEx (25, FALSE);
+
+                if (ReadAcquire (&__SK_DLL_Ending))
+                  break;
+              }
+
+              if (SK_GetFramesDrawn () > 0)
+              {
+                AppId_t                              appid;
+                while (override_ctx.app_ids.try_pop (appid))
+                {
+                  if (! InterlockedCompareExchange (&set_once, TRUE, FALSE))
+                  {
+                    std::atexit ([] {
+                      SK_Steam_ForceInputAppId (0);
+                    });
+                  }
+
+                  if (! ReadAcquire (&__SK_DLL_Ending))
+                  {
+                    ShellExecuteW ( 0, L"OPEN",
+                        SK_FormatStringW ( LR"(steam://forceinputappid/%d)",
+                                                                 appid ).c_str (),
+                          nullptr, nullptr, SW_HIDE );
+                  }
+                }
+              }
+            }
+          } while (dwWaitState != WAIT_OBJECT_0);
+        }
 
         for (auto module : hModules)
         {
@@ -6615,6 +6688,10 @@ SK_Steam_GetAppID_NoAPI (void)
     if (dwSteamGameIdLen > 1)
       AppID = strtol (szSteamGameId, nullptr, 0);
   }
+
+  // Special K's AppID is a mistake of some sort, ignore it
+  if (AppID == 1157970)
+  {   AppID = 0; config.steam.appid = 0; }
 
   // If we have an AppID, stash it in the config file for future use
   if (AppID != 0)

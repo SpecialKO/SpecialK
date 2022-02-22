@@ -125,9 +125,9 @@ public:
   volatile LONG    relocated   = FALSE;
 
   // Temporary augmentation for log issues during thread suspension
-  _Acquires_exclusive_lock_ (this->log_mutex)
+  _Acquires_exclusive_lock_ (log_mutex)
   bool             lock     (void) { if (! lockless) { EnterCriticalSection (&log_mutex); return true; } return false; }
-  _Releases_exclusive_lock_ (this->log_mutex)
+  _Releases_exclusive_lock_ (log_mutex)
   bool             unlock   (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
 };
 

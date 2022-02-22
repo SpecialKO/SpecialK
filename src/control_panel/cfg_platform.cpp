@@ -150,9 +150,9 @@ SK::ControlPanel::Platform::Draw (void)
 
           ImGui::SameLine ();
 
-          ImGui::Checkbox ("Play Sound ", &config.steam.achievements.play_sound);
+          ImGui::Checkbox ("Play Sound ", &config.platform.achievements.play_sound);
 
-          if (config.steam.achievements.play_sound)
+          if (config.platform.achievements.play_sound)
           {
             ImGui::SameLine ();
 
@@ -162,11 +162,11 @@ SK::ControlPanel::Platform::Draw (void)
             int i = 0;
 
             const auto& it =
-              sound_map.find (config.steam.achievements.sound_file);
+              sound_map.find (config.platform.achievements.sound_file);
 
             if (it != sound_map.cend ())
             {
-              if (! config.steam.achievements.sound_file.empty ())
+              if (! config.platform.achievements.sound_file.empty ())
                 i = it->second;
               else
                 i = 3;
@@ -174,15 +174,15 @@ SK::ControlPanel::Platform::Draw (void)
 
             if (ImGui::Combo ("###AchievementSound", &i, "PlayStation Network\0Xbox Live\0Dream Theater\0Custom\0\0", 4))
             {
-              config.steam.achievements.sound_file.assign (
+              config.platform.achievements.sound_file.assign (
                 sound_map [i]
               );
 
               auto SK_Platform_LoadUnlockSound = [](void)
               {
                 if (SK::EOS::UserID () != nullptr)
-                     SK_EOS_LoadUnlockSound   (config.steam.achievements.sound_file.c_str ());
-                else SK_Steam_LoadUnlockSound (config.steam.achievements.sound_file.c_str ());
+                     SK_EOS_LoadUnlockSound   (config.platform.achievements.sound_file.c_str ());
+                else SK_Steam_LoadUnlockSound (config.platform.achievements.sound_file.c_str ());
               };
 
               SK_Platform_LoadUnlockSound ();
@@ -192,7 +192,7 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::EndGroup ();
           ImGui::SameLine ();
 
-          ImGui::Checkbox ("Take Screenshot", &config.steam.achievements.take_screenshot);
+          ImGui::Checkbox ("Take Screenshot", &config.platform.achievements.take_screenshot);
 
           ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
@@ -204,14 +204,14 @@ SK::ControlPanel::Platform::Draw (void)
                    : false;
 
           if (bSteam) {
-            ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.steam.achievements.pull_friend_stats);
+            ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.platform.achievements.pull_friend_stats);
           }
 
           if (uncollapsed)
           {
             ImGui::TreePush ("");
 
-            int  mode    = (config.steam.achievements.popup.show + config.steam.achievements.popup.animate);
+            int  mode    = (config.platform.achievements.popup.show + config.platform.achievements.popup.animate);
             bool changed = false;
 
             ImGui::Text          ("Draw Mode:");                              ImGui::SameLine ();
@@ -225,7 +225,7 @@ SK::ControlPanel::Platform::Draw (void)
               ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
 
               ImGui::SameLine    ( );
-              ImGui::Combo       ( "##PopupLoc",         &config.steam.achievements.popup.origin,
+              ImGui::Combo       ( "##PopupLoc",         &config.platform.achievements.popup.origin,
                                            "Top-Left\0"
                                            "Top-Right\0"
                                            "Bottom-Left\0"
@@ -233,29 +233,29 @@ SK::ControlPanel::Platform::Draw (void)
 
             if ( changed )
             {
-              config.steam.achievements.popup.show    = (mode > 0);
-              config.steam.achievements.popup.animate = (mode > 1);
+              config.platform.achievements.popup.show    = (mode > 0);
+              config.platform.achievements.popup.animate = (mode > 1);
 
               // Make sure the duration gets set non-zero when this changes
-              if (config.steam.achievements.popup.show)
+              if (config.platform.achievements.popup.show)
               {
-                if ( config.steam.achievements.popup.duration == 0 )
-                  config.steam.achievements.popup.duration = 6666UL;
+                if ( config.platform.achievements.popup.duration == 0 )
+                  config.platform.achievements.popup.duration = 6666UL;
               }
             }
 
-            if (config.steam.achievements.popup.show)
+            if (config.platform.achievements.popup.show)
             {
               ImGui::BeginGroup ( );
               ImGui::TreePush   ("");
               ImGui::Text       ("Duration:"); ImGui::SameLine ();
 
               float duration =
-                std::max ( 1.0f, ( (float)config.steam.achievements.popup.duration / 1000.0f ) );
+                std::max ( 1.0f, ( (float)config.platform.achievements.popup.duration / 1000.0f ) );
 
               if ( ImGui::SliderFloat ( "##PopupDuration", &duration, 1.0f, 30.0f, "%.2f Seconds" ) )
               {
-                config.steam.achievements.popup.duration =
+                config.platform.achievements.popup.duration =
                   static_cast <LONG> ( duration * 1000.0f );
               }
               ImGui::TreePop   ( );
@@ -263,7 +263,7 @@ SK::ControlPanel::Platform::Draw (void)
             }
             ImGui::EndGroup    ( );
 
-            //ImGui::SliderFloat ("Inset Percentage",    &config.steam.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
+            //ImGui::SliderFloat ("Inset Percentage",    &config.platform.achievements.popup.inset, 0.0f, 1.0f, "%.3f%%", 0.01f);
             ImGui::TreePop     ( );
           }
 
@@ -290,7 +290,7 @@ SK::ControlPanel::Platform::Draw (void)
       {
         ImGui::TreePush  ("");
 
-        if (ImGui::Combo ( " ", &config.steam.notify_corner,
+        if (ImGui::Combo ( " ", &config.platform.notify_corner,
                                   "Top-Left\0"
                                   "Top-Right\0"
                                   "Bottom-Left\0"

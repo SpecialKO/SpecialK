@@ -717,7 +717,7 @@ void
 SK_D3D9_TriggerReset (bool);
 
 void
-SK_CEGUI_QueueResetD3D9 (void);
+SK_ImGui_QueueResetD3D9 (void);
 
 void
 WINAPI
@@ -736,6 +736,55 @@ HookD3D9 (LPVOID user);
 unsigned int
 __stdcall
 HookD3D9Ex (LPVOID user);
+
+
+HRESULT
+WINAPI
+SK_D3DXDisassembleShader (
+const DWORD         *pShader, 
+      BOOL           EnableColorCode, 
+      LPCSTR         pComments, 
+      LPD3DXBUFFER *ppDisassembly );
+
+HRESULT
+WINAPI
+SK_D3DXGetShaderConstantTable (
+const DWORD               *pFunction,
+      LPD3DXCONSTANTTABLE *ppConstantTable );
+
+HRESULT
+WINAPI
+SK_D3DXGetImageInfoFromFileInMemory (
+      LPCVOID         pSrcData,
+      UINT            SrcDataSize,
+      D3DXIMAGE_INFO* pSrcInfo );
+
+HRESULT
+WINAPI
+SK_D3DXSaveTextureToFile (
+      LPCTSTR                pDestFile,
+      D3DXIMAGE_FILEFORMAT   DestFormat,
+      LPDIRECT3DBASETEXTURE9 pSrcTexture,
+const PALETTEENTRY           *pSrcPalette );
+
+HRESULT
+WINAPI
+SK_D3DXCreateTextureFromFileInMemoryEx (
+  _In_        LPDIRECT3DDEVICE9  pDevice,
+  _In_        LPCVOID            pSrcData,
+  _In_        UINT               SrcDataSize,
+  _In_        UINT               Width,
+  _In_        UINT               Height,
+  _In_        UINT               MipLevels,
+  _In_        DWORD              Usage,
+  _In_        D3DFORMAT          Format,
+  _In_        D3DPOOL            Pool,
+  _In_        DWORD              Filter,
+  _In_        DWORD              MipFilter,
+  _In_        D3DCOLOR           ColorKey,
+  _Inout_opt_ D3DXIMAGE_INFO     *pSrcInfo,
+  _Out_opt_   PALETTEENTRY       *pPalette,
+  _Out_       LPDIRECT3DTEXTURE9 *ppTexture );
 
 
 #endif /* __SK__D3D9_BACKEND_H__ */

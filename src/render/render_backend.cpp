@@ -1485,75 +1485,6 @@ D3DStripShader_47_Detour     (
 
 
 void
-SK_D3D_UnpackShaderCompiler (void)
-{
-  HMODULE hModSelf =
-    SK_GetDLL ();
-
-  HRSRC res =
-    FindResource (
-      hModSelf,
-        MAKEINTRESOURCE (IDR_D3DCOMPILER_PACKAGE),
-          L"7ZIP"
-    );
-
-  if (res)
-  {
-    SK_LOG0 ( ( L"Unpacking D3DCompiler_47.dll because user does not have "
-                L"June 2010 DirectX Redistributables installed." ),
-                L"D3DCompile" );
-
-    DWORD   res_size     =
-      SizeofResource ( hModSelf, res );
-
-    HGLOBAL packed_compiler =
-      LoadResource   ( hModSelf, res );
-
-    if (! packed_compiler) return;
-
-
-    const void* const locked =
-      (void *)LockResource (packed_compiler);
-
-
-    if (locked != nullptr)
-    {
-      wchar_t      wszArchive     [MAX_PATH + 2] = { };
-      wchar_t      wszDestination [MAX_PATH + 2] = { };
-
-      wcsncpy_s ( wszDestination,    MAX_PATH,
-                  SK_GetHostPath (), _TRUNCATE );
-
-      if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
-        SK_CreateDirectories (wszDestination);
-
-      wcscpy      (wszArchive, wszDestination);
-      PathAppendW (wszArchive, L"D3DCompiler_47.7z");
-
-      ///SK_LOG0 ( ( L" >> Archive: %s [Destination: %s]", wszArchive,wszDestination ),
-      ///            L"D3DCompile" );
-
-      FILE* fPackedCompiler =
-        _wfopen   (wszArchive, L"wb");
-
-      if (fPackedCompiler != nullptr)
-      {
-        fwrite (locked, 1, res_size, fPackedCompiler);
-        fclose (fPackedCompiler);
-      }
-
-      if (GetFileAttributes (wszArchive) != INVALID_FILE_ATTRIBUTES)
-      {
-        SK_Decompress7zEx (wszArchive, wszDestination, nullptr);
-        DeleteFileW       (wszArchive);
-      }
-    }
-
-    UnlockResource (packed_compiler);
-  }
-};
-
-void
 SK_D3D_SetupShaderCompiler (void)
 {
   bool local_install = false;
@@ -1569,7 +1500,7 @@ SK_D3D_SetupShaderCompiler (void)
   {
     if (! local_install)
     {
-      SK_D3D_UnpackShaderCompiler ();
+      //SK_D3D_UnpackShaderCompiler ();
     }
   }
 
@@ -1614,6 +1545,109 @@ SK_D3D_SetupShaderCompiler (void)
     }
 #endif
 //}
+}
+
+HMODULE
+SK_D3D_GetShaderCompiler (void)
+{
+  static HMODULE hModCompiler =
+    SK_LoadLibraryW (L"D3DCompiler_47.dll");
+
+  if (hModCompiler != nullptr)
+    return hModCompiler;
+
+  SK_RunOnce ([&]
+  {
+    for ( auto wszDLLName : { L"D3DCompiler_46.dll", L"D3DCompiler_45.dll",
+                              L"D3DCompiler_44.dll", L"D3DCompiler_43.dll",
+                              L"D3DCompiler_42.dll", L"D3DCompiler_41.dll",
+                              L"D3DCompiler_40.dll" } )
+    {
+      hModCompiler =
+        SK_LoadLibraryW (wszDLLName);
+
+      if (hModCompiler != nullptr)
+        break;
+    }
+  });
+
+  return hModCompiler;
+}
+
+HRESULT
+WINAPI
+SK_D3D_Disassemble (_In_reads_bytes_(SrcDataSize) LPCVOID    pSrcData,
+                    _In_                          SIZE_T     SrcDataSize,
+                    _In_                          UINT       Flags,
+                    _In_opt_                      LPCSTR     szComments,
+                    _Out_                         ID3DBlob** ppDisassembly)
+{
+  using D3DDisassemble_pfn = HRESULT (WINAPI *)(LPCVOID,SIZE_T,UINT,LPCSTR,ID3DBlob**);
+
+  static D3DDisassemble_pfn
+        _D3DDisassemble =
+        (D3DDisassemble_pfn)SK_GetProcAddress (SK_D3D_GetShaderCompiler (),
+        "D3DDisassemble");
+
+  if (_D3DDisassemble != nullptr)
+    return _D3DDisassemble ( pSrcData, SrcDataSize, Flags,
+                              szComments, ppDisassembly );
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_D3D_Reflect (_In_reads_bytes_(SrcDataSize) LPCVOID pSrcData,
+                _In_                          SIZE_T  SrcDataSize,
+                _In_                          REFIID  pInterface,
+                _Out_                         void**  ppReflector)
+{
+  using D3DReflect_pfn = HRESULT (WINAPI *)(LPCVOID,SIZE_T,REFIID,void**);
+
+  static D3DReflect_pfn
+        _D3DReflect =
+        (D3DReflect_pfn)SK_GetProcAddress (SK_D3D_GetShaderCompiler (),
+        "D3DReflect");
+
+  if (_D3DReflect != nullptr)
+    return _D3DReflect (pSrcData, SrcDataSize, pInterface, ppReflector);
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_D3D_Compile (
+  _In_reads_bytes_(SrcDataSize)           LPCVOID           pSrcData,
+  _In_                                    SIZE_T            SrcDataSize,
+  _In_opt_                                LPCSTR            pSourceName,
+  _In_reads_opt_(_Inexpressible_(pDefines->Name != NULL))
+                                    CONST D3D_SHADER_MACRO* pDefines,
+  _In_opt_                                ID3DInclude*      pInclude,
+  _In_opt_                                LPCSTR            pEntrypoint,
+  _In_                                    LPCSTR            pTarget,
+  _In_                                    UINT              Flags1,
+  _In_                                    UINT              Flags2,
+  _Out_                                   ID3DBlob**        ppCode,
+  _Always_(_Outptr_opt_result_maybenull_) ID3DBlob**        ppErrorMsgs)
+{
+  using D3DCompile_pfn = HRESULT (WINAPI *)(LPCVOID,SIZE_T,LPCSTR,CONST D3D_SHADER_MACRO*,
+                                            ID3DInclude*,LPCSTR,LPCSTR,UINT,UINT,
+                                            ID3DBlob**,ID3DBlob**);
+
+  static D3DCompile_pfn
+        _D3DCompile =
+        (D3DCompile_pfn)SK_GetProcAddress (SK_D3D_GetShaderCompiler (),
+        "D3DCompile");
+
+  if (_D3DCompile != nullptr)
+    return _D3DCompile ( pSrcData, SrcDataSize, pSourceName,
+                           pDefines, pInclude, pEntrypoint,
+                             pTarget, Flags1, Flags2, ppCode,
+                               ppErrorMsgs );
+
+  return E_NOTIMPL;
 }
 
 #undef  __SK_SUBSYSTEM__

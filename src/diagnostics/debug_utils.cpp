@@ -3506,41 +3506,6 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
-  static bool          basic_init = false;
-  if (! std::exchange (basic_init, true))
-  {
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "TerminateProcess",
-                               TerminateProcess_Detour,
-      static_cast_p2p <void> (&TerminateProcess_Original) );
-
-
-
-    SK_CreateDLLHook2 (       L"kernel32",
-                              "SetThreadPriority",
-                               SetThreadPriority_Detour,
-      static_cast_p2p <void> (&SetThreadPriority_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetThreadAffinityMask",
-                               SetThreadAffinityMask_Detour,
-      static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
-
-
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "OutputDebugStringA",
-                               OutputDebugStringA_Detour,
-      static_cast_p2p <void> (&OutputDebugStringA_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "OutputDebugStringW",
-                               OutputDebugStringW_Detour,
-      static_cast_p2p <void> (&OutputDebugStringW_Original) );
-  }
-
-
-
   if (config.compatibility.disable_debug_features)
   {
     SK_MinHook_Init ();
@@ -3557,6 +3522,39 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
   if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
     SK_MinHook_Init ();
+
+    static bool          basic_init = false;
+    if (! std::exchange (basic_init, true))
+    {
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "TerminateProcess",
+                                 TerminateProcess_Detour,
+        static_cast_p2p <void> (&TerminateProcess_Original) );
+
+
+
+      SK_CreateDLLHook2 (       L"kernel32",
+                                "SetThreadPriority",
+                                 SetThreadPriority_Detour,
+        static_cast_p2p <void> (&SetThreadPriority_Original) );
+
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "SetThreadAffinityMask",
+                                 SetThreadAffinityMask_Detour,
+        static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+
+
+
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "OutputDebugStringA",
+                                 OutputDebugStringA_Detour,
+        static_cast_p2p <void> (&OutputDebugStringA_Original) );
+
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "OutputDebugStringW",
+                                 OutputDebugStringW_Detour,
+        static_cast_p2p <void> (&OutputDebugStringW_Original) );
+    }
 
      SK_InitUnicodeString =
     (RtlInitUnicodeString_pfn)SK_GetProcAddress (

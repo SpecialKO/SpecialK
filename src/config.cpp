@@ -1142,7 +1142,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
 
     ConfigEntry (input.gamepad.hook_scepad,              L"Install hooks for libScePad",                               dll_ini,         L"Input.libScePad",       L"Enable"),
-    ConfigEntry (input.gamepad.scepad.disable_touchpad,  L"Disable Touchpad Input",                                    input_ini,       L"Input.libScePad",       L"DisableTouchpad"),
+    ConfigEntry (input.gamepad.scepad.disable_touchpad,  L"Disable Touchpad Input",                                    dll_ini,         L"Input.libScePad",       L"DisableTouchpad"),
     ConfigEntry (input.gamepad.scepad.share_clicks_touch,L"Share Button can be used as Touchpad Click",                input_ini,       L"Input.libScePad",       L"ShareClicksTouchpad"),
     ConfigEntry (input.gamepad.scepad.
                                    mute_applies_to_game, L"Mute Button on DualSense will Mute the Game",               input_ini,       L"Input.libScePad",       L"MuteButtonAppliesToGame"),
@@ -3645,9 +3645,21 @@ auto DeclKeybind =
 
   if (config.steam.appid != 0)
   {
-    SetEnvironmentVariableA ( "SteamGameId",
-             SK_FormatString ("%lu", config.steam.appid).c_str ()
-                            );
+    if (config.steam.appid != 1157970)
+    {
+      SetEnvironmentVariableA ( "SteamGameId",
+               SK_FormatString ("%lu", config.steam.appid).c_str ()
+                              );
+    }
+
+    // Special K's AppID belongs to Special K, not this game!
+    else
+    {
+      config.steam.appid               = 0;
+      steam.system.appid->store       (  0  );
+      steam.system.auto_inject->store (false);
+      steam.system.force_load->store  (false);
+    }
   }
 
   steam.system.init_delay->load               (config.steam.init_delay);
@@ -4605,6 +4617,15 @@ SK_SaveConfig ( std::wstring name,
     {
       config.steam.appid = SK::SteamAPI::AppID ();
     }
+  }
+
+  
+  // Special K's AppID belongs to Special K, not this game!
+  if (config.steam.appid == 1157970)
+  {   config.steam.appid               = 0;
+      config.steam.auto_inject         = false;
+      config.steam.force_load_steamapi = false;
+      config.steam.dll_path            = L"";
   }
 
   steam.system.appid->store                    (config.steam.appid);

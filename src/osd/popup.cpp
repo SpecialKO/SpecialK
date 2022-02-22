@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 
+#ifdef _HAS_CEGUI_REPLACEMENT
 SK_PopupWindow::SK_PopupWindow (const char* szLayout)
 {
   if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return;
@@ -226,3 +227,4 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 
   return true;
 }
+#endif

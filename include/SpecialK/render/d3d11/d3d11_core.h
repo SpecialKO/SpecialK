@@ -1993,7 +1993,7 @@ void  __stdcall SK_D3D11_UpdateRenderStats  (IDXGISwapChain*  pSwapChain);
 
 
 BOOL SK_DXGI_SupportsTearing  (void);
-void SK_CEGUI_QueueResetD3D11 (void);
+void SK_ImGui_QueueResetD3D11 (void);
 
 
 void SK_D3D11_AssociateVShaderWithHUD (uint32_t crc32, bool set = true);

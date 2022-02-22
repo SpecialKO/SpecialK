@@ -23,7 +23,9 @@
 #define __SK__EPIC_ONLINE_SERVICES_H__
 
 // F*ck it, we'll do it live!
+#ifndef EOS_USE_DLLEXPORT
 #define EOS_USE_DLLEXPORT 0
+#endif
 #include <EOS/eos_sdk.h>
 
 #include <cstdint>

@@ -1468,9 +1468,6 @@ HCURSOR GetGameCursor (void)
   return hCurLast;
 }
 
-HWND SK_Win32_CreateDummyWindow  (HWND hWndParent);
-void SK_Win32_CleanupDummyWindow (HWND hwnd);
-
 bool
 __stdcall
 SK_IsGameWindowActive (void)
@@ -2603,7 +2600,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
               if (config.input.ui.use_hw_cursor)
               {
-                HCURSOR ImGui_DesiredCursor (void);
                 SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)ImGui_DesiredCursor ());
               }
 
@@ -3743,7 +3739,7 @@ SK_Input_Init (void)
                 layout_desc.c_str (), layout_sig [0], layout_sig [1], layout_sig [2] ),
               L"Key Layout" );
 
-  auto CreateInputVar_Bool = [&](auto name, auto config_var)
+  auto CreateInputVar_Bool = [](auto name, auto config_var)
   {
     cp->AddVariable  (
       name,
@@ -3753,7 +3749,7 @@ SK_Input_Init (void)
     );
   };
 
-  auto CreateInputVar_Int = [&](auto name, auto config_var)
+  auto CreateInputVar_Int = [](auto name, auto config_var)
   {
     cp->AddVariable  (
       name,

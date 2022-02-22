@@ -658,8 +658,10 @@ SK_Widget::config_base (void)
 {
   static bool changed = false;
 
+#ifdef _ProperSpacing
   const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;//io.FontGlobalScale;
   const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+#endif
 
   if (ImGui::Checkbox ("Movable", &movable))
   {
@@ -1034,12 +1036,30 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
       else if (  keybind == &config.render.framerate.latent_sync.tearline_move_up_keybind )
       {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.TearLocation --");
+        auto cp =
+          SK_GetCommandProcessor ();
+
+        cp->ProcessCommandLine ("LatentSync.TearLocation --");
+        cp->ProcessCommandLine ("LatentSync.TearLocation --");
+        cp->ProcessCommandLine ("LatentSync.TearLocation --");
+        cp->ProcessCommandLine ("LatentSync.TearLocation --");
+        cp->ProcessCommandLine ("LatentSync.TearLocation --");
+        cp->ProcessCommandLine ("LatentSync.ResyncRate ++");
+        cp->ProcessCommandLine ("LatentSync.ResyncRate --");
       }
 
       else if (  keybind == &config.render.framerate.latent_sync.tearline_move_down_keybind )
       {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("LatentSync.TearLocation ++");
+        auto cp =
+          SK_GetCommandProcessor ();
+
+        cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+        cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+        cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+        cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+        cp->ProcessCommandLine ("LatentSync.TearLocation ++");
+        cp->ProcessCommandLine ("LatentSync.ResyncRate ++");
+        cp->ProcessCommandLine ("LatentSync.ResyncRate --");
       }
 
       else if (  keybind == &config.render.framerate.latent_sync.timing_resync_keybind )

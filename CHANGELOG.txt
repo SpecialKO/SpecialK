@@ -1,4 +1,18 @@
-﻿22.2.21-NOCEGUI
+﻿22.2.22.968-NOCEGUI
+===================
+ + Fix frozen screen issues in some non-Flip compliant games (i.e. CrossCode)
+ + Improved global hook standby performance (waiting for 'Stop Service')
+ + Removed embedded sound files from SK's DLLs
+
+     >> Previously built-in sounds now live in "Assets/Shared/Sounds/..."
+
+22.2.22-NOCEGUI
+===============
+ + Upgraded build tools to Visual Studio 2022
+ + D3DX9, Tobii Stream Engine and WinRing0 are no longer packed into SK's DLL;
+     these are now downloaded on-first-use from SK's CDN.
+
+22.2.21-NOCEGUI
 ===============
  + Eliminated locking caused by unsafe DllMain in NvCameraWhitelisting (ANSEL)
  + Added pre-defined PlayStation + Button combos for:

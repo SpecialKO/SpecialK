@@ -29,11 +29,6 @@ bool SK_Okami_use_grain = true;
 
 extern iSK_INI* dll_ini;
 
-void
-WINAPI
-SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash );
-
-
 typedef bool (__cdecl *m2_WindowControl_resizeBackBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
 typedef bool (__cdecl *m2_WindowControl_resizeRenderBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
 

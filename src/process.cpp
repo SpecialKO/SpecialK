@@ -257,8 +257,8 @@ struct SK_NtDllContext
           HeapAlloc (hHeap, 0x0, 262144);
 
         dwHeapSize =
-          ( pSnapshot != NULL ?
-                       262144 : 0 );
+          ( pSnapshot != nullptr ?
+                          262144 : 0 );
       }
 
       unlock ();
@@ -330,58 +330,58 @@ struct SK_NtDllContext
   }
 };
 
-SK_NtDllContext SK_NtDll;
+SK_LazyGlobal <SK_NtDllContext> SK_NtDll;
 
 PSYSTEM_PROCESS_INFORMATION
 SK_Process_SnapshotNt (void)
 {
-      SK_NtDll.init ();
-  if (SK_NtDll.QuerySystemInformation == nullptr)
+      SK_NtDll->init ();
+  if (SK_NtDll->QuerySystemInformation == nullptr)
   {
     return nullptr;
   }
 
-  SK_NtDll.lock ();
+  SK_NtDll->lock ();
 
-  RtlSecureZeroMemory ( SK_NtDll.pSnapshot, SK_NtDll.dwHeapSize );
+  RtlSecureZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
 
-  DWORD                      dSize = 0;
   DWORD                      dData = 0;
   PSYSTEM_PROCESS_INFORMATION pspi = nullptr;
 
   NTSTATUS                      ns =
-    SK_NtDll.QuerySystemInformation ( SystemProcessInformation,
-                                       SK_NtDll.pSnapshot,
-                                       SK_NtDll.dwHeapSize, &dData );
+    SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
+                                         SK_NtDll->pSnapshot,
+                                         SK_NtDll->dwHeapSize, &dData );
 
   // Memory was not filled.
   if (ns != STATUS_SUCCESS)
   {
-    for (  dSize = SK_NtDll.dwHeapSize ;
+    for ( DWORD
+          dSize = SK_NtDll->dwHeapSize ;
           (pspi == nullptr) && dSize  != 0 ;
                                dSize <<= 1  )
     {
       if ( ( pspi = (PSYSTEM_PROCESS_INFORMATION)
-                    HeapReAlloc ( SK_NtDll.hHeap,     0x0,
-                                  SK_NtDll.pSnapshot, dSize ) ) == nullptr )
+                    HeapReAlloc ( SK_NtDll->hHeap,     0x0,
+                                  SK_NtDll->pSnapshot, dSize ) ) == nullptr )
       {
         ns    = STATUS_NO_MEMORY;
         dData = 0;
 
-        if (               SK_NtDll.pSnapshot != nullptr) {
-          HeapFree (       SK_NtDll.hHeap,           0x0,
-            std::exchange (SK_NtDll.pSnapshot,   nullptr)
+        if (               SK_NtDll->pSnapshot != nullptr) {
+          HeapFree (       SK_NtDll->hHeap,           0x0,
+            std::exchange (SK_NtDll->pSnapshot,   nullptr)
           );
         }
 
         break;
       }
 
-      SK_NtDll.dwHeapSize = dSize;
-      SK_NtDll.pSnapshot  = pspi;
+      SK_NtDll->dwHeapSize = dSize;
+      SK_NtDll->pSnapshot  = pspi;
 
-      ns = SK_NtDll.QuerySystemInformation ( SystemProcessInformation,
-                                              pspi, dSize, &dData );
+      ns = SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
+                                                pspi, dSize, &dData );
 
       if (ns != STATUS_SUCCESS)
       {
@@ -393,10 +393,10 @@ SK_Process_SnapshotNt (void)
     }
   }
 
-  SK_NtDll.unlock ();
+  SK_NtDll->unlock ();
 
   if (dData != 0)
-    return SK_NtDll.pSnapshot;
+    return SK_NtDll->pSnapshot;
 
   return nullptr;
 }
@@ -404,12 +404,12 @@ SK_Process_SnapshotNt (void)
 VOID
 SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
 {
-  SK_NtDll.init ();
-  SK_NtDll.lock ();
+  SK_NtDll->init ();
+  SK_NtDll->lock ();
 
   PSYSTEM_PROCESS_INFORMATION pProc = nullptr;
 
-  if (SK_NtDll.pSnapshot == nullptr)
+  if (SK_NtDll->pSnapshot == nullptr)
   {
     pProc =
       SK_Process_SnapshotNt ();
@@ -417,18 +417,16 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
 
   else
   {
-    pProc = SK_NtDll.pSnapshot;
+    pProc = SK_NtDll->pSnapshot;
   }
 
   SK_ReleaseAssert (pProc != nullptr);
 
   if (pProc == nullptr)
   {
-    SK_NtDll.unlock ();
+    SK_NtDll->unlock ();
     return;
   }
-
-  int i = 0;
 
   do
   {
@@ -444,21 +442,21 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
     int threads =
       pProc->TotalThreadCount;
 
-    for ( i = 0; i < threads; ++i )
+    for ( int i = 0; i < threads; ++i )
     {
       if ( (DWORD)((uintptr_t)pProc->aThreads [i].Cid.UniqueProcess & 0xFFFFFFFFU) != dwPID )
         continue;
 
-      if (pThreads->pItems == NULL)
+      if (pThreads->pItems == nullptr)
       {
         pThreads->capacity = INITIAL_THREAD_CAPACITY;
         pThreads->pItems   =
               (PTHREAD_ENTRY)HeapAlloc (
-                SK_NtDll.hHeap, 0,
+                SK_NtDll->hHeap, 0,
                   pThreads->capacity * sizeof (THREAD_ENTRY)
               );
 
-        if (pThreads->pItems == NULL)
+        if (pThreads->pItems == nullptr)
           break;
       }
 
@@ -466,15 +464,16 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
       {
         PTHREAD_ENTRY p =
             (PTHREAD_ENTRY)HeapReAlloc (
-              SK_NtDll.hHeap, 0,
+              SK_NtDll->hHeap, 0,
                 pThreads->pItems,
-               (pThreads->capacity << 1) * sizeof (THREAD_ENTRY)
+               (pThreads->capacity << 1U) * sk::narrow_cast <UINT> (
+                                             sizeof (THREAD_ENTRY) )
             );
 
-        if (p == NULL)
+        if (p == nullptr)
           break;
 
-        pThreads->capacity <<= 1;
+        pThreads->capacity <<= 1U;
         pThreads->pItems     = p;
       }
 
@@ -487,7 +486,7 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
     }
   }
 
-  SK_NtDll.unlock ();
+  SK_NtDll->unlock ();
 }
 
 void
@@ -499,8 +498,8 @@ SK_Process_Snapshot (void)
 bool
 SK_Process_IsSuspended (DWORD dwPid)
 {
-  SK_NtDll.init ();
-  SK_NtDll.lock ();
+  SK_NtDll->init ();
+  SK_NtDll->lock ();
 
   bool state = false;
 
@@ -524,10 +523,10 @@ SK_Process_IsSuspended (DWORD dwPid)
 
   if (threads.pItems != nullptr)
   {
-    HeapFree (SK_NtDll.hHeap, 0x0, threads.pItems);
+    HeapFree (SK_NtDll->hHeap, 0x0, threads.pItems);
   }
 
-  SK_NtDll.unlock ();
+  SK_NtDll->unlock ();
 
   return state;
 }
@@ -535,8 +534,8 @@ SK_Process_IsSuspended (DWORD dwPid)
 bool
 SK_Process_Suspend (DWORD dwPid)
 {
-      SK_NtDll.init ();
-  if (SK_NtDll.SuspendProcess == nullptr)
+      SK_NtDll->init ();
+  if (SK_NtDll->SuspendProcess == nullptr)
     return false;
 
   SK_AutoHandle hProcess (
@@ -548,7 +547,7 @@ SK_Process_Suspend (DWORD dwPid)
   {
     return
       NT_SUCCESS (
-        SK_NtDll.SuspendProcess (hProcess.m_h)
+        SK_NtDll->SuspendProcess (hProcess.m_h)
       );
   }
 
@@ -558,8 +557,8 @@ SK_Process_Suspend (DWORD dwPid)
 bool
 SK_Process_Resume (DWORD dwPid)
 {
-      SK_NtDll.init ();
-  if (SK_NtDll.ResumeProcess == nullptr)
+      SK_NtDll->init ();
+  if (SK_NtDll->ResumeProcess == nullptr)
     return false;
 
   SK_AutoHandle hProcess (
@@ -571,7 +570,7 @@ SK_Process_Resume (DWORD dwPid)
   {
     return
       NT_SUCCESS (
-        SK_NtDll.ResumeProcess (hProcess.m_h)
+        SK_NtDll->ResumeProcess (hProcess.m_h)
       );
   }
 

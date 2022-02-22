@@ -26,7 +26,7 @@
 void SK_Platform_SetNotifyCorner (void)
 {
   // 4 == Don't Care
-  if (config.steam.notify_corner != 4)
+  if (config.platform.notify_corner != 4)
   {
     if (SK::EOS::UserID () != nullptr) SK_EOS_SetNotifyCorner   ();
     else                               SK_Steam_SetNotifyCorner ();

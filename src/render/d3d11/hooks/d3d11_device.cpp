@@ -385,7 +385,8 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
             override = true;
 
-            SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
+            if (config.system.log_level > 0)
+              SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
 
             SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
                           cache_desc.crc32c,

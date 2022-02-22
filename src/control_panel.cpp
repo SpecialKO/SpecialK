@@ -3492,11 +3492,13 @@ SK_ImGui_ControlPanel (void)
     first_frame = false;
   }
 
+#ifdef _ProperSpacing
   const  float font_size           =
     ( ImGui::GetFont  ()->FontSize * io.FontGlobalScale );
   const  float font_size_multiline =
     ( font_size + ImGui::GetStyle ().ItemSpacing.y +
                   ImGui::GetStyle ().ItemInnerSpacing.y );
+#endif
 
   ImGuiStyle& style =
     ImGui::GetStyle ();

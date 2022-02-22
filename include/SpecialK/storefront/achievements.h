@@ -44,8 +44,8 @@ struct SK_Achievement
   {
     struct
     {
-      std::string human_name;  // UTF-8
-      std::string desc;        // UTF-8
+      std::wstring human_name;  // UTF-16
+      std::wstring desc;        // UTF-16
     } unlocked,
       locked;
   } text_;
@@ -98,15 +98,6 @@ namespace CEGUI
 class SK_AchievementManager
 {
 public:
-  ~SK_AchievementManager (void)
-  {
-    if ((! default_loaded) && (unlock_sound != nullptr))
-    {
-      delete [] unlock_sound;
-      unlock_sound = nullptr;
-    }
-  }
-
   class Achievement : public SK_Achievement
   {
   public:
@@ -189,8 +180,8 @@ protected:
   std::vector <SK_AchievementPopup> popups;
   int                               lifetime_popups;
 
-  bool     default_loaded = false;
-  uint8_t* unlock_sound   = nullptr; // A .WAV (PCM) file
+  bool                  default_loaded = false;
+  std::vector <uint8_t> unlock_sound; // A .WAV (PCM) file
 };
 
 #endif /* __SK__ACHIEVEMENTS_H__ */

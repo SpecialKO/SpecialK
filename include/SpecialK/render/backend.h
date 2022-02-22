@@ -1020,7 +1020,6 @@ public:
       LARGE_INTEGER time = LARGE_INTEGER { 0LL, 0LL };
     } submit,
       begin_overlays,
-      begin_cegui,   end_cegui,
       begin_imgui,   end_imgui,
       begin_texmgmt, end_texmgmt;
   } present_staging;
@@ -1522,5 +1521,81 @@ void SK_D3D_SetupShaderCompiler        (void);
 void SK_Display_DisableDPIScaling      (void);
 
 void SK_Display_HookModeChangeAPIs (void);
+
+HMODULE
+SK_D3D_GetShaderCompiler (void);
+
+HRESULT
+WINAPI
+SK_D3D_Disassemble (_In_reads_bytes_(SrcDataSize) LPCVOID    pSrcData,
+                    _In_                          SIZE_T     SrcDataSize,
+                    _In_                          UINT       Flags,
+                    _In_opt_                      LPCSTR     szComments,
+                    _Out_                         ID3DBlob** ppDisassembly);
+
+HRESULT
+WINAPI
+SK_D3D_Reflect (_In_reads_bytes_(SrcDataSize) LPCVOID pSrcData,
+                _In_                          SIZE_T  SrcDataSize,
+                _In_                          REFIID  pInterface,
+                _Out_                         void**  ppReflector);
+
+HRESULT
+WINAPI
+SK_D3D_Compile (
+  _In_reads_bytes_(SrcDataSize)           LPCVOID           pSrcData,
+  _In_                                    SIZE_T            SrcDataSize,
+  _In_opt_                                LPCSTR            pSourceName,
+  _In_reads_opt_(_Inexpressible_(pDefines->Name != NULL))
+                                    CONST D3D_SHADER_MACRO* pDefines,
+  _In_opt_                                ID3DInclude*      pInclude,
+  _In_opt_                                LPCSTR            pEntrypoint,
+  _In_                                    LPCSTR            pTarget,
+  _In_                                    UINT              Flags1,
+  _In_                                    UINT              Flags2,
+  _Out_                                   ID3DBlob**        ppCode,
+  _Always_(_Outptr_opt_result_maybenull_) ID3DBlob**        ppErrorMsgs);
+
+
+#define D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS 8
+
+typedef struct _D3DKMT_GETVERTICALBLANKEVENT {
+  D3DKMT_HANDLE                  hAdapter;
+  D3DKMT_HANDLE                  hDevice;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+  HANDLE                         *phEvent;
+} D3DKMT_GETVERTICALBLANKEVENT;
+
+typedef struct _D3DKMT_WAITFORVERTICALBLANKEVENT2 {
+  D3DKMT_HANDLE                  hAdapter;
+  D3DKMT_HANDLE                  hDevice;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+  UINT                           NumObjects;
+  HANDLE                         ObjectHandleArray [D3DKMT_MAX_WAITFORVERTICALBLANK_OBJECTS];
+} D3DKMT_WAITFORVERTICALBLANKEVENT2;
+
+typedef struct _D3DKMT_WAITFORVERTICALBLANKEVENT {
+  D3DKMT_HANDLE                  hAdapter;
+  D3DKMT_HANDLE                  hDevice;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+} D3DKMT_WAITFORVERTICALBLANKEVENT;
+
+typedef struct _D3DKMT_GETSCANLINE {
+  D3DKMT_HANDLE                  hAdapter;
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
+  BOOLEAN                        InVerticalBlank;
+  UINT                           ScanLine;
+} D3DKMT_GETSCANLINE;
+
+typedef struct _D3DKMT_SETSTABLEPOWERSTATE {
+  D3DKMT_HANDLE hAdapter;
+  BOOL          Enabled;
+} D3DKMT_SETSTABLEPOWERSTATE;
+
+using D3DKMTGetDWMVerticalBlankEvent_pfn   = NTSTATUS (WINAPI *)(const D3DKMT_GETVERTICALBLANKEVENT      *unnamedParam1);
+using D3DKMTWaitForVerticalBlankEvent2_pfn = NTSTATUS (WINAPI *)(const D3DKMT_WAITFORVERTICALBLANKEVENT2 *unnamedParam1);
+using D3DKMTWaitForVerticalBlankEvent_pfn  = NTSTATUS (WINAPI *)(const D3DKMT_WAITFORVERTICALBLANKEVENT  *unnamedParam1);
+using D3DKMTGetScanLine_pfn                = NTSTATUS (WINAPI *)(D3DKMT_GETSCANLINE                      *unnamedParam1);
+using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SETSTABLEPOWERSTATE        *unnamedParam1);
 
 #endif /* __SK__RENDER_BACKEND__H__ */

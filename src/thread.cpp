@@ -150,7 +150,9 @@ SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
                               argc,
              (const ULONG_PTR *)pTni );
     }
-    __except (EXCEPTION_EXECUTE_HANDLER) { }
+    __finally {
+      // This is a continuable exception, but let's be safe
+    }
   }
 
   SK_Thread_SetWin10NameFromException (pTni);

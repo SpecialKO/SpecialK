@@ -1718,8 +1718,6 @@ SK_Input_HookDI8 (void)
 
       if (SK_GetModuleHandle (L"dinput.dll"))
       {
-        extern void
-        SK_Input_HookDI7 (void);
         SK_Input_HookDI7 ();
       }
 

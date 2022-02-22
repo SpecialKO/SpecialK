@@ -155,40 +155,6 @@ WaitForInit_GL (void)
 
 #include <SpecialK/osd/text.h>
 
-
-#ifndef SK_BUILD__INSTALLER
-#ifdef _WIN64
-# define SK_CEGUI_LIB_BASE "CEGUI/x64/"
-#else
-# define SK_CEGUI_LIB_BASE "CEGUI/Win32/"
-#endif
-
-#define _SKC_MakeCEGUILib(library) \
-  __pragma (comment (lib, SK_CEGUI_LIB_BASE #library ##".lib"))
-
-_SKC_MakeCEGUILib ("CEGUIOpenGLRenderer-0")
-_SKC_MakeCEGUILib ("CEGUIBase-0")
-_SKC_MakeCEGUILib ("CEGUICoreWindowRendererSet")
-_SKC_MakeCEGUILib ("CEGUIRapidXMLParser")
-_SKC_MakeCEGUILib ("CEGUICommonDialogs-0")
-_SKC_MakeCEGUILib ("CEGUISTBImageCodec")
-
-#include <delayimp.h>
-#include <CEGUI/RendererModules/OpenGL/GL3Renderer.h>
-
-#pragma comment (lib, "delayimp.lib")
-
-CEGUI::OpenGL3Renderer* cegGL       = nullptr;
-#endif
-
-
-extern void
-SK_CEGUI_RelocateLog (void);
-
-extern void
-SK_CEGUI_InitBase (void);
-
-
 static
 HMODULE local_gl = nullptr;
 
@@ -1281,104 +1247,6 @@ SK_GL_ClipControl::glClipControl = nullptr;
 static GLuint
      ceGL_VAO = 0;
 
-void ResetCEGUI_GL (void)
-{
-  if (! config.cegui.enable)
-    return;
-
-  assert (imp_wglGetCurrentContext != nullptr);
-
-  if ( cegGL == nullptr && SK_GetFramesDrawn       ()  > 10 &&
-                           SK_GL_GetCurrentContext () != nullptr  )
-  {
-    if (SK_GetModuleHandle (L"CEGUIOpenGLRenderer-0.dll"))
-    {
-      glPushAttrib (GL_ALL_ATTRIB_BITS);
-
-      SK_GL_GhettoStateBlock_Capture ();
-
-      int thread_locale =
-        _configthreadlocale (0);
-        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
-
-      char* szLocale =
-        setlocale (LC_ALL, NULL);
-
-      std::string locale_orig (
-        szLocale != nullptr ? szLocale : ""
-      );
-
-      if (! locale_orig.empty ())
-        setlocale (LC_ALL, "C");
-
-      try {
-        CEGUI::OpenGL3Renderer* cegGL_new =
-          &CEGUI::OpenGL3Renderer::bootstrapSystem ();
-
-        cegGL = cegGL_new;
-      }
-
-      catch (CEGUI::Exception& e)
-      {
-        SK_LOG0 ( (L"CEGUI Exception During OpenGL Bootstrap"),
-                   L"   CEGUI  "  );
-        SK_LOG0 ( (L" >> %hs (%hs:%lu): Exception %hs -- %hs",
-                    e.getFunctionName    ().c_str (),
-                    e.getFileName        ().c_str (),
-                    e.getLine            (),
-                            e.getName    ().c_str (),
-                            e.getMessage ().c_str () ),
-                   L"   CEGUI  "  );
-
-        config.cegui.enable = false;
-        cegGL               = nullptr;
-      }
-
-      SK_GL_GhettoStateBlock_Apply ();
-
-      if (cegGL != nullptr)
-      {
-        if (! locale_orig.empty ())
-          setlocale (LC_ALL, "C");
-
-        cegGL->enableExtraStateSettings (true);
-
-        // Backup GL state
-        glGetIntegerv (GL_ARRAY_BUFFER_BINDING,         &last_array_buffer);
-        glGetIntegerv (GL_ELEMENT_ARRAY_BUFFER_BINDING, &last_element_array_buffer);
-        glGetIntegerv (GL_VERTEX_ARRAY_BINDING,         &last_vertex_array);
-
-        // Do not touch the default VAO state (assuming the context even has one)
-        if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
-
-        glBindVertexArray (ceGL_VAO);
-
-        if (! locale_orig.empty ())
-          setlocale (LC_ALL, "C");
-
-        SK_CEGUI_RelocateLog ();
-        SK_CEGUI_InitBase    ();
-
-              SK_PopupManager::getInstance ()->destroyAllPopups (     );
-        SK_TextOverlayManager::getInstance ()->resetAllOverlays (/*cegGL*/);
-
-        SK_Steam_ClearPopups ();
-
-        glBindVertexArray (                         last_vertex_array);
-        glBindBuffer      (GL_ARRAY_BUFFER,         last_array_buffer);
-        glBindBuffer      (GL_ELEMENT_ARRAY_BUFFER, last_element_array_buffer);
-      }
-
-      if (! locale_orig.empty ())
-        setlocale (LC_ALL, locale_orig.c_str ());
-
-      _configthreadlocale (thread_locale);
-
-      glPopAttrib ();
-    }
-  }
-}
-
 
 typedef BOOL  (WINAPI *wglMakeCurrent_pfn)(HDC hDC, HGLRC hglrc);
                        wglMakeCurrent_pfn
@@ -1480,12 +1348,6 @@ wglDeleteContext (HGLRC hglrc)
     if (! SK_GL_OnD3D11)
     {
       ImGui_ImplGL3_InvalidateDeviceObjects ();
-
-      if (config.cegui.enable && (uintptr_t)cegGL > 1)
-      {
-        cegGL->destroySystem ();
-        cegGL       = nullptr;
-      }
     }
 
     init_.get () [__gl_primary_context] = false;
@@ -1755,23 +1617,6 @@ SK_Overlay_DrawGL (void)
 
   GetClientRect (SK_TLS_Bottom ()->render->gl->current_hwnd, &rect_now);
 
-  static bool need_resize;
-
-  need_resize |= ( memcmp (&rect, &rect_now, sizeof (RECT)) != 0 );
-
-  if (config.cegui.enable && need_resize && cegGL != nullptr)
-  {
-    CEGUI::System::getDllSingleton ().getRenderer ()->setDisplaySize (
-        CEGUI::Sizef (
-          static_cast <float> (rect_now.right - rect_now.left),
-            static_cast <float> (rect_now.bottom - rect_now.top)
-        )
-    );
-
-    need_resize    = false;
-  __reset_overlays = true;
-  }
-
   rect = rect_now;
 
 
@@ -1804,39 +1649,10 @@ SK_Overlay_DrawGL (void)
   glEnable          (GL_BLEND);
 
 
-  if (config.cegui.enable)
-  {
-    if (cegGL != nullptr)
-    {
-      cegGL->beginRendering ();
-      {
-        if (__reset_overlays)
-        {
-          SK_TextOverlayManager::getInstance ( )->resetAllOverlays (/*cegGL*/);
-        __reset_overlays = false;
-        }
-
-        SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
-            CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-      }
-    }
-  }
-
-
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
 
   SK_ImGui_DrawFrame (0x00, nullptr);
-
-
-  if (config.cegui.enable && cegGL != nullptr)
-  {
-    if (SK_Steam_DrawOSD () != 0)
-    {
-      CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-    }
-    cegGL->endRendering  ();
-  }
 
   SK_GL_GhettoStateBlock_Apply ();
 
@@ -2613,13 +2429,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (! SK_GL_OnD3D11)
     {
-      // TODO: Create a secondary context that shares "display lists" so that
-      //         we have a pure state machine all to ourselves.
-      if (cegGL == nullptr && config.cegui.enable)
-      {
-        ResetCEGUI_GL ();
-      }
-
       SK_GetCurrentRenderBackend ().api =
         SK_RenderAPI::OpenGL;
 
@@ -2815,13 +2624,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                               | GL_STENCIL_BUFFER_BIT*/);
 
           SK_GL_GhettoStateBlock_Apply ();
-
-          // TODO: Create a secondary context that shares "display lists" so that
-          //         we have a pure state machine all to ourselves.
-          if (cegGL == nullptr && config.cegui.enable)
-          {
-            ResetCEGUI_GL ();
-          }
 
           SK_GetCurrentRenderBackend ().api =
             SK_RenderAPI::OpenGL;

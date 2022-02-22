@@ -1943,7 +1943,7 @@ SK_D3D11_TexCacheCheckpoint (void)
 
 
 
-  static int       iter               = 0;
+         int       iter               = 0;
 
   static bool      init               = false;
   static ULONGLONG ullMemoryTotal_KiB = 0;
@@ -1962,7 +1962,7 @@ SK_D3D11_TexCacheCheckpoint (void)
   bool reset =
     SK_D3D11_need_tex_reset || SK_D3D11_try_tex_reset;
 
-  static PROCESS_MEMORY_COUNTERS pmc = {   };
+  PROCESS_MEMORY_COUNTERS pmc = {   };
 
   const bool has_non_zero_reserve =
     config.mem.reserve > 0.0f;
@@ -1975,10 +1975,11 @@ SK_D3D11_TexCacheCheckpoint (void)
     reset |=
       (          (textures->AggregateSize_2D >> 20ULL) > (uint64_t)cache_opts.max_size    ||
                   textures->Entries_2D                 >           cache_opts.max_entries ||
-       ( has_non_zero_reserve && ((config.mem.reserve / 100.0f) * ullMemoryTotal_KiB)
-                                                      < (pmc.PagefileUsage >> 10UL)
-       )
-      );
+                                                                                    false
+     //( has_non_zero_reserve && ((config.mem.reserve / 100.0f) * ullMemoryTotal_KiB)
+     //                                               < (pmc.PagefileUsage >> 10UL)
+     //)
+     ) ;
   }
 
   if (reset)
@@ -2170,13 +2171,13 @@ SK_D3D11_TexMgr::reset (void)
                                     count >=           cache_opts.min_evict )
 
               // An arbitrary purge request was issued
-                                                                               ||
-             (SK_D3D11_amount_to_purge     >            0                   &&
-              SK_D3D11_amount_to_purge     <=           purged              &&
-                                     count >=           cache_opts.min_evict ) ||
+                                                                  ||
+             (SK_D3D11_amount_to_purge     >  0                   &&
+              SK_D3D11_amount_to_purge     <= purged              &&
+                                     count >= cache_opts.min_evict ) ||
 
               // Have we evicted as many textures as we can in one pass?
-                                     count >=           max_count )
+                                     count >= max_count )
          {
            SK_D3D11_amount_to_purge =
              std::max (0, SK_D3D11_amount_to_purge);

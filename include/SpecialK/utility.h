@@ -104,7 +104,9 @@ public:
     }
 
     // Anti-debug does stuff here...
-    __except (EXCEPTION_CONTINUE_EXECUTION)
+    __except (GetExceptionCode () == EXCEPTION_INVALID_HANDLE  ?
+                                     EXCEPTION_EXECUTE_HANDLER :
+                                     EXCEPTION_CONTINUE_SEARCH )
     {
       (void)m_h;
     }
@@ -680,7 +682,7 @@ private:
                                      f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
     {
       //int cpuInfo[4] = {-1};
-      std::array <int, 4> cpui;
+      std::array <int, 4> cpui = { -1, -1, -1, -1 };
 
       // Calling __cpuid with 0x0 as the function_id argument
       // gets the number of the highest valid function ID.

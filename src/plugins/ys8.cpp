@@ -667,9 +667,6 @@ SK_YS8_ControlPanel (void)
               ImGui::SetTooltip    ("%ws", wszPath);
         }
 
-        // For safety, never allow a user to touch the final 256 MiB of storage on their device
-        const ULONG FILESYSEM_RESERVE_MIB = 256UL;
-
         if (SK_D3D11_MipmapCacheSize > 0)
         {
           ImGui::SameLine ();
@@ -702,6 +699,9 @@ SK_YS8_ControlPanel (void)
         //
         //if (config.textures.d3d11.cache_gen_mips)
         //{
+        //  For safety, never allow a user to touch the final 256 MiB of storage on their device
+        //  const ULONG FILESYSEM_RESERVE_MIB = 256UL;
+        // 
         //  ImGui::SliderInt ( "Minimum Storage Reserve###SK_YS8_MipCacheSize",
         //                       &min_reserve, FILESYSEM_RESERVE_MIB, upper_lim,
         //                                                          SK_WideCharToUTF8 (

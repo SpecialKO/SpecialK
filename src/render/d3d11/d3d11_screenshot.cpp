@@ -134,13 +134,13 @@ struct ShaderBase
       amorphousTheMessenger;
 
     HRESULT hr =
-      D3DCompile ( szShaderString,
-                     strlen (szShaderString),
-                       nullptr, nullptr, nullptr,
-                         szEntryPoint, szShaderModel,
-                           0, 0,
-                             &amorphousTheBlob,
-                               &amorphousTheMessenger );
+      SK_D3D_Compile ( szShaderString,
+                         strlen (szShaderString),
+                           nullptr, nullptr, nullptr,
+                             szEntryPoint, szShaderModel,
+                               0, 0,
+                                 &amorphousTheBlob,
+                                   &amorphousTheMessenger );
 
     if (FAILED (hr))
     {
@@ -760,8 +760,6 @@ SK_D3D11_Screenshot::getData ( UINT* const pWidth,
   auto ReadBack =
   [&]
   {
-    const size_t BitsPerPel =
-      DirectX::BitsPerPixel (framebuffer.NativeFormat);
     const UINT   Subresource =
       D3D11CalcSubresource ( 0, 0, 1 );
 

@@ -472,7 +472,7 @@ SK::ControlPanel::Steam::Draw (void)
     ImGui::PopStyleColor (3);
 
     bool valid =
-      (! config.steam.silent) &&
+      (! config.platform.silent) &&
       (! SK_Steam_PiratesAhoy ());
 
     if (valid)
@@ -561,9 +561,9 @@ SK::ControlPanel::Steam::DrawFooter (void)
       if (ImGui::BeginPopup ("SteamOverlayPauseMenu"))
       {
         if (ImGui::Checkbox ("Pause Game while Control Panel is Visible",
-            &config.steam.reuse_overlay_pause))
+            &config.platform.reuse_overlay_pause))
         {
-          SK::SteamAPI::SetOverlayState (config.steam.reuse_overlay_pause);
+          SK::SteamAPI::SetOverlayState (config.platform.reuse_overlay_pause);
         }
 
         SteamCallbackThrottleSubMenu ();
@@ -593,7 +593,7 @@ SK::ControlPanel::Steam::DrawFooter (void)
     if ( (! SK_SteamAPI_FriendStatsFinished  ())        &&
             SK_SteamAPI_GetNumPlayers        ()  > 1    &&
             SK_SteamAPI_FriendStatPercentage () != 0.0f &&
-            config.steam.achievements.pull_friend_stats )
+            config.platform.achievements.pull_friend_stats )
     {
       const float ratio   = SK_SteamAPI_FriendStatPercentage ();
       const int   friends = SK_SteamAPI_GetNumFriends        ();

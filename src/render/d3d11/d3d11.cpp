@@ -117,10 +117,10 @@ __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 // Local DLL's cached addresses
 SK_HookCacheEntryLocal ( D3D11CreateDevice,             L"d3d11.dll",
                          D3D11CreateDevice_Detour,
-static_cast_p2p <void> (&D3D11CreateDevice_Import) )
+                         nullptr )
 SK_HookCacheEntryLocal ( D3D11CreateDeviceAndSwapChain, L"d3d11.dll",
                          D3D11CreateDeviceAndSwapChain_Detour,
-static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import) )
+                         nullptr )
 
 static sk_hook_cache_array global_d3d11_records =
   { &GlobalHook_D3D11CreateDevice,
@@ -144,6 +144,9 @@ SK_D3D11_InitMutexes (void)
 {
   if (ReadAcquire (&_mutex_init) > 1)
     return;
+
+  LocalHook_D3D11CreateDevice.trampoline             = static_cast_p2p <void> (&D3D11CreateDevice_Import);
+  LocalHook_D3D11CreateDeviceAndSwapChain.trampoline = static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import);
 
   if (0 == InterlockedCompareExchange (&_mutex_init, 1, 0))
   {
@@ -412,7 +415,7 @@ SK_D3D11_ResetContextState ( ID3D11DeviceContext *pDevCtx,
       d3d11_shader_stages [i][dev_idx];
 
 
-    UINT k = 1;
+    SIZE_T k = 1;
 
     // Optimization strategy based on contiguous arrays of binding slots
     //
@@ -1172,7 +1175,7 @@ const uint32_t cache_tag    =
         {
         //-------------------
 
-          bool cacheable = ( desc.MiscFlags <= 4 &&
+          bool cacheable = ((desc.MiscFlags <= 4 || desc.MiscFlags == D3D11_RESOURCE_MISC_RESOURCE_CLAMP) &&
                              desc.Width      > 0 &&
                              desc.Height     > 0 &&
                              desc.ArraySize == 1 //||
@@ -1512,10 +1515,10 @@ SK_D3D11_CopySubresourceRegion_Impl (
 
                     pDevCtx->CopyResource (pDstResource, pOverrideTex);
 
-                    const ULONGLONG load_end =
-                      (ULONGLONG)SK_QueryPerf ().QuadPart;
-
-                    //time_elapsed = load_end - map_ctx.texture_times [pDstResource];
+                  //const ULONGLONG load_end =
+                  //  (ULONGLONG)SK_QueryPerf ().QuadPart;
+                  //
+                  //time_elapsed = load_end - map_ctx.texture_times [pDstResource];
                     filename     = wszTex;
 
                     SK_LOG0 ( ( L" *** Texture Injected Late... %x :: %x  { %ws }",
@@ -2563,7 +2566,7 @@ const
     // Temporary storage for any CBuffer that needs staging
     std::array
       <d3d11_shader_tracking_s::cbuffer_override_s*, 128>
-        overrides;
+        overrides = { nullptr };
 
     for (int i = 0; i < 5; i++)
     {
@@ -4390,6 +4393,50 @@ D3D11Dev_CreateTexture2D_Impl (
 #endif
   }
 
+
+  // Handle stuff like DSV textures created for SwapChains that had their
+  //   MSAA status removed to be compatible with Flip
+  extern bool
+        bOriginallyFlip;
+  if (! bOriginallyFlip)
+  {
+    extern UINT
+        uiOriginalBltSampleCount;
+    if (uiOriginalBltSampleCount == pDesc->SampleDesc.Count && pDesc->SampleDesc.Count > 1)
+    {
+      if ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ==
+                               D3D11_BIND_DEPTH_STENCIL )
+      {
+        bool bSwapChainSized = false;
+
+        if (rb.swapchain != nullptr)
+        {
+          SK_ComQIPtr <IDXGISwapChain>
+                           pSwapChain (
+                             rb.swapchain );
+          DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+          pSwapChain->GetDesc (&swapDesc);
+
+          if (swapDesc.BufferDesc.Width  == pDesc->Width &&
+              swapDesc.BufferDesc.Height == pDesc->Height)
+          {
+            bSwapChainSized = true;
+          }
+        }
+
+        if (rb.swapchain == nullptr || bSwapChainSized)
+        {
+          dll_log->Log (
+            L"Flip Override [ Orig Depth/Stencil Sample Count: %d, New: %d ]",
+                                          pDesc->SampleDesc.Count, 1
+          );
+          pDesc->SampleDesc.Count = 1;
+        }
+      }
+    }
+  }
+
+
   //--- HDR Format Wars (or at least format re-training) ---
   if ( pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&
@@ -4439,12 +4486,12 @@ D3D11Dev_CreateTexture2D_Impl (
 
             if (bpc == 11)
             {
-              InterlockedAdd64     (&SK_HDR_RenderTargets_11bpc->BytesAllocated, 4 * pDesc->Width * pDesc->Height);
+              InterlockedAdd64     (&SK_HDR_RenderTargets_11bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
               InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded);
             }
             else if (bpc == 10)
             {
-              InterlockedAdd64     (&SK_HDR_RenderTargets_10bpc->BytesAllocated, 4 * pDesc->Width * pDesc->Height);
+              InterlockedAdd64     (&SK_HDR_RenderTargets_10bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
               InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded);
             }
 
@@ -4502,7 +4549,7 @@ D3D11Dev_CreateTexture2D_Impl (
                   }
 
                   // 32-bit total -> 64-bit
-                  InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4 * pDesc->Width * pDesc->Height);
+                  InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
                   pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -4579,8 +4626,10 @@ D3D11Dev_CreateTexture2D_Impl (
                      pInitialData            != nullptr &&
                      pInitialData->pSysMem   != nullptr &&
                      pDesc->SampleDesc.Count == 1       &&
-                     pDesc->MiscFlags        == 0x00    &&
-                     //pDesc->MiscFlags        != 0x01    &&
+                    (pDesc->MiscFlags        == 0x00 ||
+                     pDesc->MiscFlags        == D3D11_RESOURCE_MISC_RESOURCE_CLAMP)
+                                                        &&
+                     //pDesc->MiscFlags        != 0x01  &&
                      pDesc->CPUAccessFlags   == 0x0     &&
                      pDesc->Width             > 0       &&
                      pDesc->Height            > 0       &&
@@ -6589,6 +6638,9 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
   return ret;
 }
 
+extern bool
+SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -6605,10 +6657,27 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
+  DXGI_LOG_CALL_1 (L"D3D11CreateDeviceAndSwapChain", L"Flags=0x%x", Flags );
+
+  if (pSwapChainDesc != nullptr && ! SK_DXGI_IsSwapChainReal (*pSwapChainDesc))
+  {
+    return
+      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                               DriverType,
+                                                 Software,
+                                                   Flags,
+                                                     pFeatureLevels,
+                                                       FeatureLevels,
+                                                         SDKVersion,
+                                                           pSwapChainDesc,
+                                                             ppSwapChain,
+                                                               ppDevice,
+                                                                 pFeatureLevel,
+                                                                   ppImmediateContext );
+  }
+
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
-
-  WaitForInitD3D11 ();
 
   static SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -6627,7 +6696,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   auto swap_chain_desc =
     swap_chain_override.get ();
 
-  DXGI_LOG_CALL_1 (L"D3D11CreateDeviceAndSwapChain", L"Flags=0x%x", Flags );
+  WaitForInitD3D11 ();
 
   SK_D3D11_Init ();
 

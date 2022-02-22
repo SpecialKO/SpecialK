@@ -171,7 +171,7 @@ SK_GPUPollingThread (LPVOID user)
 
   SK_GPU_InitSensorData ();
 
-  UNREFERENCED_PARAMETER (user);
+  std::ignore = user;
 
   const HANDLE hEvents [2] = {
     hPollEvent,
@@ -179,8 +179,8 @@ SK_GPUPollingThread (LPVOID user)
   };
 
   SetCurrentThreadDescription  (L"[SK] GPU Performance Monitor");
-  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
-  SetThreadPriorityBoost       (GetCurrentThread (), TRUE);
+  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+  SetThreadPriorityBoost       (GetCurrentThread (),   FALSE);
 
 
   auto SwitchToThreadMinPageFaults = [](void) ->
@@ -213,11 +213,11 @@ SK_GPUPollingThread (LPVOID user)
     }
   }
 
-
   while (true)
   {
     DWORD dwWait =
-      WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
+      WaitForMultipleObjectsEx ( 2, hEvents, FALSE,
+                                   INFINITE, FALSE );
 
     if (     dwWait == WAIT_OBJECT_0 + 1) break;
     else if (dwWait != WAIT_OBJECT_0    ) break;
@@ -693,7 +693,7 @@ SK_GPUPollingThread (LPVOID user)
         SK_D3DKMT_QueryAdapterPerfData (hDC,
                       &adapterPerfData );
 
-        ReleaseDC (NULL, hDC);
+        ReleaseDC (nullptr, hDC);
       }
 
       stats.num_gpus = 1;

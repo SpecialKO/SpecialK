@@ -416,6 +416,76 @@ SK_LoadGPUVendorAPIs (void)
   }
 }
 
+void SK_FetchBuiltinSounds (void)
+{
+  wchar_t           wszArchive  [MAX_PATH + 2] = { };
+  static const auto wszDestination =
+      std::filesystem::path (SK_GetDocumentsDir ()) /
+           LR"(My Mods\SpecialK\Assets\Shared\Sounds\)";
+
+  static const std::filesystem::path
+    predefined_sounds [] =
+    {
+      std::filesystem::path (wszDestination) / LR"(dream_theater.wav)",
+      std::filesystem::path (wszDestination) / LR"(screenshot.wav)",
+      std::filesystem::path (wszDestination) / LR"(psn_trophy.wav)",
+      std::filesystem::path (wszDestination) / LR"(crash.wav)",
+      std::filesystem::path (wszDestination) / LR"(xbox.wav)"
+    };
+
+  static bool incomplete_set = false;
+
+  for ( auto& sound : predefined_sounds )
+  {
+    if (! std::filesystem::exists (sound))
+    {
+      incomplete_set = true;
+      break;
+    }
+  }
+
+  if (! incomplete_set) return;
+
+  SK_CreateDirectories (wszDestination.c_str ());
+
+  wcsncpy_s   ( wszArchive,               MAX_PATH,
+                wszDestination.c_str (), _TRUNCATE );
+  PathAppendW ( wszArchive,          L"builtin.7z" );
+
+  SK_RunOnce (
+  SK_Network_EnqueueDownload ( 
+    sk_download_request_s (wszArchive, R"(https://sk-data.special-k.info/sounds/builtin.7z)",
+      []( const std::vector <uint8_t>&& data,
+          const std::wstring_view       file ) -> bool
+      {
+        std::filesystem::path
+                    full_path (file.data ());
+
+        if ( FILE *fPackedSounds = _wfopen (full_path.c_str (), L"wb") ;
+                   fPackedSounds != nullptr )
+        {
+          fwrite (data.data (), 1, data.size (), fPackedSounds);
+          fclose (                               fPackedSounds);
+
+          if ( SUCCEEDED (
+                 SK_Decompress7zEx ( full_path.c_str (),
+                                     full_path.parent_path (
+                                            ).c_str (), nullptr )
+                         )
+             )
+          {
+            DeleteFileW (full_path.c_str ());
+
+            incomplete_set = false;
+          }
+        }
+
+        return true;
+      }
+    ), true // High Priority
+  ));
+}
+
 void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
@@ -432,6 +502,8 @@ SK_InitCore (std::wstring, void* callback)
 extern void BasicInit (void);
             BasicInit (    );
 #endif
+
+  SK_FetchBuiltinSounds ();
 
   switch (SK_GetCurrentGameID ())
   {
@@ -1163,7 +1235,7 @@ SK_RecursiveFileSearch ( const wchar_t* wszDir,
 
   else
   {
-    dll_log->Log ( L"No Such File Exists",
+    dll_log->Log ( L"No Such File [%ws] Exists",
                    SK_ConcealUserDir (std::wstring (*matches.begin ()).data ()) );
   }
 

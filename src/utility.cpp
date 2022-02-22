@@ -672,29 +672,41 @@ SK_GetProcAddress (const HMODULE hMod, const char* szFunc) noexcept
 {
   FARPROC proc = nullptr;
 
-  if (hMod != nullptr)
-  {
-    SK_SetLastError (NO_ERROR);
-
-    if (GetProcAddress_Original != nullptr)
+  __try {
+    if (hMod != nullptr)
     {
+      SK_SetLastError (NO_ERROR);
+
+      if (GetProcAddress_Original != nullptr)
+      {
+        proc =
+          GetProcAddress_Original (hMod, szFunc);
+
+        if (GetLastError () != NO_ERROR)
+          proc = nullptr;
+
+        __leave;
+      }
+
       proc =
-        GetProcAddress_Original (hMod, szFunc);
+        GetProcAddress (hMod, szFunc);
 
-      if (GetLastError () == NO_ERROR)
-        return proc;
+      if (GetLastError () != NO_ERROR)
+        proc = nullptr;
 
-      return nullptr;
+      __leave;
     }
-
-    proc =
-      GetProcAddress (hMod, szFunc);
-
-    if (GetLastError () == NO_ERROR)
-      return proc;
   }
 
-  return nullptr;
+  __finally
+  {
+    if (SK_IsDebuggerPresent ())
+    {
+      OutputDebugStringW (L"Unhandled Exception in GetProcAddress");
+    }
+  }
+
+  return proc;
 }
 
 FARPROC
@@ -746,7 +758,7 @@ SK_GetModuleName (HMODULE hDll)
 }
 
 HMODULE
-SK_GetModuleFromAddr (LPCVOID addr) noexcept
+SK_GetModuleFromAddr (LPCVOID addr)
 {
   HMODULE hModOut = nullptr;
 
@@ -1492,10 +1504,9 @@ SK_Path_wcsicmp (const wchar_t* wszStr1, const wchar_t* wszStr2)
 const wchar_t*
 SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
 {
-             int len     = 0;
   const wchar_t* pwszStr = wszStr;
 
-  for (len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
+  for (int len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
   {
     if (*pwszStr == L'\0')
       break;
@@ -2295,6 +2306,24 @@ SK_IsRunDLLInvocation (void)
 
 bool
 __cdecl
+SK_IsServiceHost (void)
+{
+  static const wchar_t* wszHostApp = SK_GetHostApp ();
+  static const bool     bSvchost   =
+    nullptr != StrStrIW (wszHostApp, L"svchost"             ) ||
+    nullptr != StrStrIW (wszHostApp, L"dllhost"             ) ||
+    nullptr != StrStrIW (wszHostApp, L"sihost"              ) ||
+    nullptr != StrStrIW (wszHostApp, L"PerfWatson"          ) ||
+    nullptr != StrStrIW (wszHostApp, L"DataExchangeHost"    ) ||
+    nullptr != StrStrIW (wszHostApp, L"GamebarFTServer"     ) ||
+    nullptr != StrStrIW (wszHostApp, L"ApplicationFrameHost") ||
+    nullptr != StrStrIW (wszHostApp, L"Service");
+
+  return bSvchost;
+}
+
+bool
+__cdecl
 SK_IsSuperSpecialK (void)
 {
   return ( SK_IsRunDLLInvocation () ||
@@ -2513,8 +2542,6 @@ SK_PathCombineW ( _Out_writes_ (MAX_PATH) LPWSTR pszDest,
                                 _In_opt_ LPCWSTR pszDir,
                                 _In_opt_ LPCWSTR pszFile )
 {
-  void SK_StripLeadingSlashesW (wchar_t *wszInOut);
-
   wchar_t                  wszFile [MAX_PATH + 2] = { };
   wcsncpy_s               (wszFile, MAX_PATH, pszFile, _TRUNCATE);
   SK_StripLeadingSlashesW (wszFile);
@@ -2755,7 +2782,8 @@ SK_RestartGame (const wchar_t* wszDLL)
 {
   // This would make debugging very difficult otherwise :)
   if (SK_IsDebuggerPresent ())
-              __debugbreak ();
+
+    __debugbreak ();
 
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
@@ -2776,8 +2804,8 @@ SK_RestartGame (const wchar_t* wszDLL)
   {
     if (wszDLL != nullptr)
     {
-      SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
-      return;
+      //SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+      //return;
     }
 
     else if (SK_HasGlobalInjector ())
@@ -2797,8 +2825,8 @@ SK_RestartGame (const wchar_t* wszDLL)
 
     if (SK_FileHasSpaces (wszShortPath))
     {
-      SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
-      return;
+      //SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+      //return;
     }
   }
 
@@ -3114,10 +3142,11 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       sexec_info.nShow        = SW_HIDE;
       sexec_info.hInstApp     = nullptr;
 
-      ShellExecuteEx (&sexec_info);
-
-      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle            (sexec_info.hProcess);
+      if (ShellExecuteEx (&sexec_info))
+      {
+        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        CloseHandle            (sexec_info.hProcess);
+      }
     }
   }
 
@@ -3177,6 +3206,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
     // Fallback to "runas" if the COM interface above does not function
     //   as designed.
+    else
     { SHELLEXECUTEINFO
       sexec_info;
       sexec_info.cbSize       = sizeof (SHELLEXECUTEINFO);
@@ -3189,10 +3219,11 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       sexec_info.nShow        = SW_HIDE;
       sexec_info.hInstApp     = nullptr;
 
-      ShellExecuteEx (&sexec_info);
-
-      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle            (sexec_info.hProcess);
+      if (ShellExecuteEx (&sexec_info))
+      {
+        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        CloseHandle            (sexec_info.hProcess);
+      }
 
       // ------------------
 
@@ -3206,10 +3237,11 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       sexec_info.nShow        = SW_HIDE;
       sexec_info.hInstApp     = nullptr;
 
-      ShellExecuteEx (&sexec_info);
-
-      SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
-      CloseHandle            (sexec_info.hProcess);
+      if (ShellExecuteEx (&sexec_info))
+      {
+        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        CloseHandle            (sexec_info.hProcess);
+      }
 
       wchar_t wszTemp [MAX_PATH + 2] = { };
 
@@ -3220,8 +3252,6 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
                                 dwTime+1,       wszTemp );
       SK_File_MoveNoFail      ( wszKernelSys,   wszTemp );
       SK_DeleteTemporaryFiles ( wszCurrentDir           );
-
-      return;
     }
   }
 }
@@ -3290,34 +3320,34 @@ SK_WinRing0_Uninstall (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
-                    FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, path_to_driver.c_str (),
-                    &sinfo,  &pinfo );
+    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                        &sinfo,  &pinfo ))
+    {
+      DWORD dwWaitState = 1;
 
-    DWORD dwWaitState = 1;
+      do { if (   WAIT_OBJECT_0 ==
+               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+        {       dwWaitState  = WAIT_OBJECT_0;                }
+        else  { dwWaitState++; SK_Sleep (80);                }
+      } while ( dwWaitState < 50 &&
+                dwWaitState != WAIT_OBJECT_0 );
 
-    do { if (   WAIT_OBJECT_0 ==
-             SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-      {       dwWaitState  = WAIT_OBJECT_0;                }
-      else  { dwWaitState++; SK_Sleep (4);                 }
-    } while ( dwWaitState < 25 &&
-              dwWaitState != WAIT_OBJECT_0 );
+      CloseHandle (pinfo.hThread);
+      CloseHandle (pinfo.hProcess);
 
-    CloseHandle (pinfo.hThread);
-    CloseHandle (pinfo.hProcess);
+      RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
+      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                               dwTime                         , wszTemp);
+      SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
+      RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
+      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                               dwTime+1                       , wszTemp);
+      SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
+      SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
 
-    RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
-    GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                             dwTime                         , wszTemp);
-    SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
-    RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
-    GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                             dwTime+1                       , wszTemp);
-    SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
-    SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
-
-    InterlockedExchange (&__SK_WR0_Init, 0L);
-    return;
+      InterlockedExchange (&__SK_WR0_Init, 0L);
+    }
   }
 }
 
@@ -3380,28 +3410,29 @@ SK_WinRing0_Install (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
-                    FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, path_to_driver.c_str (),
-                    &sinfo,  &pinfo );
+    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                        &sinfo,  &pinfo ))
+    {
+      DWORD dwWaitState = 1;
 
-    DWORD dwWaitState = 1;
+      do { if (   WAIT_OBJECT_0 ==
+               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+        {       dwWaitState  = WAIT_OBJECT_0;                }
+        else  { dwWaitState++; SK_Sleep (80);                }
+      } while ( dwWaitState < 50 &&
+                dwWaitState != WAIT_OBJECT_0 );
 
-    do { if (   WAIT_OBJECT_0 ==
-             SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-      {       dwWaitState  = WAIT_OBJECT_0;                }
-      else  { dwWaitState++; SK_Sleep (4);                 }
-    } while ( dwWaitState < 25 &&
-              dwWaitState != WAIT_OBJECT_0 );
+      CloseHandle (pinfo.hThread);
+      CloseHandle (pinfo.hProcess);
 
-    CloseHandle (pinfo.hThread);
-    CloseHandle (pinfo.hProcess);
+      wchar_t wszTemp [MAX_PATH + 2] = { };
 
-    wchar_t wszTemp [MAX_PATH + 2] = { };
-
-    GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
-                             SK_timeGetTime       (), wszTemp);
-    SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
-    SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
+      GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
+                               SK_timeGetTime       (), wszTemp);
+      SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
+      SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
+    }
   }
 }
 
@@ -4529,34 +4560,21 @@ SK_RecursiveMove ( const wchar_t* wszOrigDir,
       {
         iSK_Logger* log_file = nullptr;
 
-        if (dll_log->name.find (fd.cFileName) != std::wstring::npos)
-        {
-          log_file = dll_log.getPtr ();
-        }
+        std::array <iSK_Logger *, 7> logs {
+          dll_log.getPtr (), steam_log.getPtr (),
+                              epic_log.getPtr (), crash_log.getPtr (),
+                                                 game_debug.getPtr (),
+                               tex_log.getPtr (),
+                            budget_log.getPtr ()
+        };
 
-        else if (steam_log->name.find (fd.cFileName) != std::wstring::npos)
+        for ( auto log : logs )
         {
-          log_file = steam_log.getPtr ();
-        }
-
-        else if (crash_log->name.find (fd.cFileName) != std::wstring::npos)
-        {
-          log_file = crash_log.getPtr ();
-        }
-
-        else if (game_debug->name.find (fd.cFileName) != std::wstring::npos)
-        {
-          log_file = game_debug.getPtr ();
-        }
-
-        else if (tex_log->name.find (fd.cFileName) != std::wstring::npos)
-        {
-          log_file = tex_log.getPtr ();
-        }
-
-        else if (budget_log->name.find (fd.cFileName) != std::wstring::npos)
-        {
-          log_file = budget_log.getPtr ();
+          if (log->name.find (fd.cFileName) != std::wstring::npos)
+          {
+            log_file = log;
+            break;
+          }
         }
 
         const bool lock_and_move =

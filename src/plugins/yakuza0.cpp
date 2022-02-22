@@ -758,17 +758,16 @@ SK_Yakuza0_PlugInCfg (void)
 
     if (! (yakuza0 || yakuza_cant_count))
     {
-      extern volatile PVOID __SK_GameBaseAddr;
       static         LPVOID         pBaseAddr =
         ReadPointerAcquire (&__SK_GameBaseAddr);
 
       bool restart_required = false;
       bool disabled         =
-        (  dof_shader0->Enable |
-           dof_shader1->Enable |
-           dof_shader2->Enable |
-           dof_shader3->Enable |
-           dof_shader4->Enable |
+        (  dof_shader0->Enable||
+           dof_shader1->Enable||
+           dof_shader2->Enable||
+           dof_shader3->Enable||
+           dof_shader4->Enable||
           blur_shader0->Enable );
 
       if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1000,11 +999,11 @@ SK_Yakuza0_PlugInCfg (void)
       } ImGui::EndGroup      ( );
 
       bool disabled_now =
-        (  dof_shader0->Enable |
-           dof_shader1->Enable |
-           dof_shader2->Enable |
-           dof_shader3->Enable |
-           dof_shader4->Enable |
+        (  dof_shader0->Enable||
+           dof_shader1->Enable||
+           dof_shader2->Enable||
+           dof_shader3->Enable||
+           dof_shader4->Enable||
           blur_shader0->Enable );
 
       if (disabled_now != disabled)

@@ -22,21 +22,19 @@
 #ifndef __SK__OSD_POPUP_H__
 #define __SK__OSD_POPUP_H__
 
-#include <CEGUI/CEGUI.h>
-
 class SK_PopupWindow {
 friend class SK_PopupManager;
 
 public:
-  CEGUI::Window* getChild (const char* szName);
-  operator CEGUI::Window* (void);
+  /*CEGUI::Window*/void* getChild (const char* szName);
+  operator /*CEGUI::Window*/void* (void);
 
 protected:
    SK_PopupWindow (const char* szLayout);
   ~SK_PopupWindow (void);
 
 private:
-  CEGUI::Window* window_;
+  /*CEGUI::Window*/void* window_;
 };
 
 class SK_PopupManager {
@@ -54,7 +52,7 @@ public:
   void            drawAllPopups    (void);
   bool            isPopup          (SK_PopupWindow* popup);
 
-  bool            OnDestroyPopup   (const CEGUI::EventArgs& e);
+  bool            OnDestroyPopup   (const void* e);
 
 protected:
   SK_PopupManager (void);
@@ -64,10 +62,10 @@ private:
   static CRITICAL_SECTION cs;
 
   SKTL_BidirectionalHashMap <
-    SK_PopupWindow *, CEGUI::Window  *
+    SK_PopupWindow *, /*CEGUI::Window*/void*
   > popups_ { };
 
-  CEGUI::GUIContext* gui_ctx_;
+  /*CEGUI::GUIContext*/void* gui_ctx_;
 };
 
 #endif /* __SK__OSD_POPUP_H__ */

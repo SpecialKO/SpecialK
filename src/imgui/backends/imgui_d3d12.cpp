@@ -326,8 +326,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
                                                                     rb.ui_luminance );
     constant_buffer->luminance_scale [1] = 2.2f;
     constant_buffer->luminance_scale [2] = rb.display_gamut.minY * 1.0_Nits;
-    constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.steam.overlay_hdr_luminance :
-                                                                    config.steam.overlay_hdr_luminance );
+    constant_buffer->steam_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.platform.overlay_hdr_luminance :
+                                                                    config.platform.overlay_hdr_luminance );
     constant_buffer->steam_luminance [1] = 2.2f;
     constant_buffer->steam_luminance [2] = ( bEOTF_is_PQ ? -80.0f * config.uplay.overlay_luminance :
                                                                     config.uplay.overlay_luminance );

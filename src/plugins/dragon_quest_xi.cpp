@@ -174,7 +174,7 @@ d3d11_shader_tracking_s::cbuffer_override_s* SK_DQXI_CB_Override;
 #define SK_DQXI_HDR_SECTION     L"DragonQuestXI.HDR"
 #define SK_DQXI_MISC_SECTION    L"DragonQuestXI.Misc"
 
-auto DeclKeybind =
+static auto DeclKeybind =
 [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 sk::ParameterStringW*
 {

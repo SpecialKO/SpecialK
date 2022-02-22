@@ -500,8 +500,8 @@ public:
   {
     SK_ImGui_Widgets->latency = this;
 
-    setResizable    (                false).setAutoFit      (true).setMovable (false).
-    setDockingPoint (DockAnchor::SouthWest).setClickThrough (true).setVisible (false);
+    setResizable    (                false).setAutoFit (true).setMovable (false).
+    setDockingPoint (DockAnchor::SouthWest).setVisible (false);
   };
 
   void load (iSK_INI* cfg) noexcept override

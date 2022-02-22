@@ -591,7 +591,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
                                 journal.sequence.last, journal.sequence.current);
             ImGui::Separator   ( );
-            ImGui::Columns     (2, nullptr, 0);
+            ImGui::Columns     (2, nullptr, false);
             ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
             ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
             ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
@@ -855,7 +855,7 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::PopID         ( );
       };
 
-#if 1
+#if 0
       static DWORD dwLastCheck = current_time;
       static UINT  dwLastCount = SK_joyGetNumDevs ();
 
