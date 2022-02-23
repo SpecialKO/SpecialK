@@ -46,9 +46,6 @@
     <Filter Include="Header Files\Core">
       <UniqueIdentifier>{a98c3961-e34c-4dee-bd96-cdaca60362c3}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Update Server">
-      <UniqueIdentifier>{69190189-2515-42b6-a6e6-9814f2bb651a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Config">
       <UniqueIdentifier>{7d5f7846-2431-4902-b97b-a08873bbf392}</UniqueIdentifier>
     </Filter>
@@ -193,9 +190,6 @@
     <Filter Include="Libraries\64-bit\NvAPI">
       <UniqueIdentifier>{58a66b12-45f0-47c7-a412-d5fdaed5c060}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\64-bit\SteamAPI">
-      <UniqueIdentifier>{3ae4fa5d-b7f9-47a1-a044-d1b7f6e1a7b0}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Libraries\64-bit\DirectXTex">
       <UniqueIdentifier>{38d19e62-fa23-42d2-a4ba-36dceab33cf8}</UniqueIdentifier>
     </Filter>
@@ -213,9 +207,6 @@
     </Filter>
     <Filter Include="Libraries\32-bit\DirectXTex">
       <UniqueIdentifier>{d4ee0829-8195-4ffc-89cf-502b0c3b1224}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\SteamAPI">
-      <UniqueIdentifier>{d31301b6-a59a-4612-b814-10d0997babf2}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\External Libraries">
       <UniqueIdentifier>{39a97315-e7ef-410a-8cca-ac9d1af65679}</UniqueIdentifier>
@@ -3424,9 +3415,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="injector64.dll">
-      <Filter>Update Server</Filter>
-    </None>
     <None Include="README.md" />
     <None Include="include\imgui\imgui_user.inl">
       <Filter>Header Files\External Libraries\ImGui</Filter>
@@ -3627,12 +3615,6 @@
     </None>
     <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
       <Filter>Libraries\32-bit\DirectXTex</Filter>
-    </None>
-    <None Include="installer.dll">
-      <Filter>Update Server</Filter>
-    </None>
-    <None Include="installer64.dll">
-      <Filter>Update Server</Filter>
     </None>
     <None Include="depends\include\glm\gtx\associated_min_max.inl">
       <Filter>Header Files\External Libraries\glm</Filter>
@@ -4431,9 +4413,6 @@
     <Library Include="depends\lib\nvapi\x64\nvapi64.lib">
       <Filter>Libraries\64-bit\NvAPI</Filter>
     </Library>
-    <Library Include="depends\lib\steamapi\x64\steam_api64.lib">
-      <Filter>Libraries\64-bit\SteamAPI</Filter>
-    </Library>
     <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib">
       <Filter>Libraries\64-bit\DirectXTex</Filter>
     </Library>
@@ -4448,9 +4427,6 @@
     </Library>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
       <Filter>Libraries\32-bit\DirectXTex</Filter>
-    </Library>
-    <Library Include="depends\lib\steamapi\Win32\steam_api.lib">
-      <Filter>Libraries\32-bit\SteamAPI</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
       <Filter>Libraries\32-bit\Tobii</Filter>

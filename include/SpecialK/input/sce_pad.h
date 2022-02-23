@@ -315,4 +315,6 @@ using scePadGetControllerInformation_pfn        = SK_ScePadResult (*)(SK_ScePadH
 using scePadResetLightBar_pfn                   = SK_ScePadResult (*)(SK_ScePadHandle handle);
 using scePadSetLightBar_pfn                     = SK_ScePadResult (*)(SK_ScePadHandle handle, SK_ScePadColor *param);
 
+bool SK_ScePad_TranslateToXInput (SK_ScePadHandle handle, XINPUT_STATE& bridge_out);
+
 #endif /* __SK__SCEPAD_H__ */

@@ -37,6 +37,8 @@
 
 #include <filesystem>
 
+#include <Aux_ulib.h>
+
 
 #ifdef _WIN64
 #pragma comment (lib, R"(depends\lib\DirectXTex\x64\DirectXTex.lib)")

@@ -22,6 +22,8 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/DLL_VERSION.h>
 
+#include <Aux_ulib.h>
+
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 
@@ -29,6 +31,8 @@
 #include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #endif
+
+#pragma comment (lib, "Aux_ulib.lib")
 
 char _RTL_CONSTANT_STRING_type_check (const char    *s);
 char _RTL_CONSTANT_STRING_type_check (const wchar_t *s);
@@ -378,6 +382,8 @@ DllMain ( HMODULE hModule,
       if (SK_IsServiceHost ())
         return FALSE;
 
+      AuxUlibInitialize ();
+
 #ifdef _SK_CONSISTENCY_CHECK
       std::atexit (SK_LazyCleanup);
 #endif
@@ -606,6 +612,13 @@ DllMain ( HMODULE hModule,
         if (pTLS != nullptr)
         {   pTLS->debug.mapped = true;
 
+          BOOL                                  bHoldingLock;
+          if (AuxUlibIsDLLSynchronizationHeld (&bHoldingLock))
+          {
+            if (bHoldingLock)
+              return TRUE;
+          }
+
           // Kick-off data collection on external thread creation
           SK_Widget_InvokeThreadProfiler ();
         }
@@ -625,7 +638,13 @@ DllMain ( HMODULE hModule,
 
       if (SK_DLL_IsAttached ())
       {
-        SK_Widget_InvokeThreadProfiler ();
+        BOOL                                  bHoldingLock;
+        if (AuxUlibIsDLLSynchronizationHeld (&bHoldingLock))
+        {
+          if (! bHoldingLock)
+            SK_Widget_InvokeThreadProfiler ();
+        }
+        
 
         // Strip TLS and Mark Free able
         // ----------------------------

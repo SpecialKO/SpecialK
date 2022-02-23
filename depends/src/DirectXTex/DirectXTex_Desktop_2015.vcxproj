@@ -43,12 +43,14 @@
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|X64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -113,7 +115,7 @@
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -130,7 +132,7 @@
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
       <BrowseInformation>false</BrowseInformation>
       <ShowIncludes>true</ShowIncludes>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
@@ -140,6 +142,7 @@
       <ConformanceMode>false</ConformanceMode>
       <OpenMPSupport>false</OpenMPSupport>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -188,7 +191,7 @@
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <StringPooling>true</StringPooling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -198,7 +201,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <OmitFramePointers>false</OmitFramePointers>
+      <OmitFramePointers>true</OmitFramePointers>
       <PreprocessKeepComments>false</PreprocessKeepComments>
       <SmallerTypeCheck>false</SmallerTypeCheck>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -206,7 +209,7 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
       <BrowseInformation>false</BrowseInformation>
-      <WarningLevel>EnableAllWarnings</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <ShowIncludes>true</ShowIncludes>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -255,10 +258,10 @@
       <Optimization>MaxSpeed</Optimization>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-</AdditionalOptions>
+      <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-  /Zo</AdditionalOptions>
       <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
@@ -276,13 +279,12 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <OmitFramePointers>true</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <SupportJustMyCode>false</SupportJustMyCode>
+      <SupportJustMyCode>true</SupportJustMyCode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <ConformanceMode>false</ConformanceMode>
-      <OpenMPSupport>false</OpenMPSupport>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <GuardEHContMetadata>false</GuardEHContMetadata>
@@ -325,10 +327,9 @@
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <OpenMPSupport>false</OpenMPSupport>
-      <FloatingPointModel>Precise</FloatingPointModel>
+      <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>Async</ExceptionHandling>
-      <AdditionalOptions>/Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- </AdditionalOptions>
+      <AdditionalOptions>/Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-   /Zo</AdditionalOptions>
       <PreprocessorDefinitions>_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WIN10;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions);_STL_CONCRT_SUPPORT</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>DirectXTexP.h</PrecompiledHeaderFile>
@@ -339,7 +340,6 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -347,7 +347,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <SupportJustMyCode>false</SupportJustMyCode>
+      <SupportJustMyCode>true</SupportJustMyCode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
