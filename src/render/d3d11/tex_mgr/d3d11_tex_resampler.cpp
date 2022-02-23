@@ -403,8 +403,8 @@ struct resample_dispatch_s
     {
       if (hResampleWork != INVALID_HANDLE_VALUE)
       {
-        CloseHandle (hResampleWork);
-                     hResampleWork = INVALID_HANDLE_VALUE;
+        SK_CloseHandle (hResampleWork);
+                        hResampleWork = INVALID_HANDLE_VALUE;
       }
     }
 

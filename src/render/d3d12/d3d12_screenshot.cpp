@@ -2431,10 +2431,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
       SK_Thread_CloseSelf ();
 
-      CloseHandle (signal.capture);
-      CloseHandle (signal.abort.initiate);
-      CloseHandle (signal.abort.finished);
-      CloseHandle (signal.hq_encode);
+      SK_CloseHandle (signal.capture);
+      SK_CloseHandle (signal.abort.initiate);
+      SK_CloseHandle (signal.abort.finished);
+      SK_CloseHandle (signal.hq_encode);
 
       return 0;
     }, L"[SK] D3D12 Screenshot Capture" );

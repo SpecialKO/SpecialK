@@ -542,12 +542,12 @@ public:
         shutdown ();
 
         SK_WaitForSingleObject (spool_thread_, INFINITE);
-        CloseHandle            (spool_thread_);
+        SK_CloseHandle         (spool_thread_);
       }
 
-      CloseHandle (events_.results_waiting);
-      CloseHandle (events_.jobs_added);
-      CloseHandle (events_.shutdown);
+      SK_CloseHandle (events_.results_waiting);
+      SK_CloseHandle (events_.jobs_added);
+      SK_CloseHandle (events_.shutdown);
     }
 
     void postJob (TexLoadRequest* job);

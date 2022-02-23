@@ -476,7 +476,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
         }
       } while (! ReadAcquire (&__SK_DLL_Ending));
 
-      CloseHandle (hStartStop);
+      SK_CloseHandle (hStartStop);
 
       SK_Thread_CloseSelf ();
 

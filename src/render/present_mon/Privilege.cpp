@@ -98,8 +98,8 @@ EnableDebugPrivilege (void)
                                )
      )
   {
-    CloseHandle (hToken);
-    FreeLibrary (hModule);
+    SK_CloseHandle (hToken);
+    SK_FreeLibrary (hModule);
 
     return false;
   }
@@ -112,8 +112,8 @@ EnableDebugPrivilege (void)
   auto adjustError =
       GetLastError ();
 
-  CloseHandle (hToken);
-  FreeLibrary (hModule);
+  SK_CloseHandle (hToken);
+  SK_FreeLibrary (hModule);
 
   return
    ( adjustResult != 0         &&

@@ -45,67 +45,54 @@ typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
 (       ULONG,           ULONG,
   const UNICODE_STRING*, HMODULE*            );
 
-HMODULE                  hModNtDll             = nullptr;
 RtlInitUnicodeString_pfn _RtlInitUnicodeString = nullptr;
 LdrGetDllHandle_pfn       LdrGetDllHandle      = nullptr;
 
 
 HMODULE
-SK_GetModuleHandleW (PCWSTR lpModuleName) noexcept
+SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
-  HMODULE hModRet = 0;
+  HMODULE hModRet = nullptr;
 
   if (lpModuleName == nullptr)
     return GetModuleHandleW (nullptr);
 
-  __try {
-    if (! hModNtDll)
-    {     hModNtDll =
-      GetModuleHandleW (L"NtDll");
+  static HMODULE hModNtDll =
+    GetModuleHandleW (L"NtDll");
 
-      if (! hModNtDll)
-        __leave;
-    }
+  if (! hModNtDll)
+    return nullptr;
 
-    HMODULE hMod = nullptr;
+  HMODULE hMod = nullptr;
 
-    if (_RtlInitUnicodeString == nullptr)
-        _RtlInitUnicodeString =
-        (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
-                                                         "RtlInitUnicodeString" );
+  if (_RtlInitUnicodeString == nullptr)
+      _RtlInitUnicodeString =
+      (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
+                                                       "RtlInitUnicodeString" );
 
-    if (LdrGetDllHandle == nullptr)
-        LdrGetDllHandle =
-       (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
-                                                   "LdrGetDllHandle" );
+  if (LdrGetDllHandle == nullptr)
+      LdrGetDllHandle =
+     (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
+                                                 "LdrGetDllHandle" );
 
-     UNICODE_STRING         ucsModuleName          = { };
-    _RtlInitUnicodeString (&ucsModuleName, lpModuleName);
+   UNICODE_STRING         ucsModuleName          = { };
+  _RtlInitUnicodeString (&ucsModuleName, lpModuleName);
 
-    {
-      if ( NT_SUCCESS ( LdrGetDllHandle (
-                          0, 0,
-                            &ucsModuleName,
-                              &hMod )
-                      )
-         )
-      {
-        if (hMod != nullptr)
-          hModRet = hMod;
-      }
-    }
-
-    if (hModRet == nullptr)
-        hModRet = GetModuleHandleW (lpModuleName);
-  }
-
-  __finally
   {
-    if (SK_IsDebuggerPresent ())
+    if ( NT_SUCCESS ( LdrGetDllHandle (
+                        0, 0,
+                          &ucsModuleName,
+                            &hMod )
+                    )
+       )
     {
-      OutputDebugStringW (L"Unhandled Exception in GetModuleHandleW");
+      if (hMod != nullptr)
+        hModRet = hMod;
     }
   }
+
+  if (hModRet == nullptr)
+      hModRet = GetModuleHandleW (lpModuleName);
 
   return hModRet;
 }
@@ -530,7 +517,7 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
     iSK_INISection& cfg_sec =
       ini->get_section (wszSecName);
 
-    static wchar_t wszKeyName [64];
+    static wchar_t wszKeyName [64] = { };
 
     for ( auto& it : pools )
     {

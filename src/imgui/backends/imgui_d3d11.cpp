@@ -861,6 +861,14 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
 
   auto _BuildForSlot = [&](UINT slot) -> void
   {
+    auto* _P =
+      &_Frame [slot];
+
+    if (_P->pFontSampler_clamp != nullptr &&
+        _P->pFontSampler_wrap  != nullptr &&
+        _P->pFontTextureView   != nullptr) return;
+
+
     // Do not dump ImGui font textures
     SK_ScopedBool auto_bool (&pTLS->imgui->drawing);
                               pTLS->imgui->drawing = true;
@@ -880,9 +888,6 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
 
     io.Fonts->GetTexDataAsAlpha8 ( &pixels,
                                    &width, &height );
-
-    auto* _P =
-      &_Frame [slot];
 
     // Upload texture to graphics system
     D3D11_TEXTURE2D_DESC
@@ -1176,6 +1181,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
   try
   {
+    if (_P->pVertexShader == nullptr)
     ThrowIfFailed (
       pDev->CreateVertexShader ( (void *)(imgui_d3d11_vs_bytecode),
                                   sizeof (imgui_d3d11_vs_bytecode) /
@@ -1184,6 +1190,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pVertexShader,
                                           L"ImGui Vertex Shader");
 
+    if (_P->pVertexShaderSteamHDR == nullptr)
     ThrowIfFailed (
       pDev->CreateVertexShader ( (void *)(steam_d3d11_vs_bytecode),
                                   sizeof (steam_d3d11_vs_bytecode) /
@@ -1192,6 +1199,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pVertexShaderSteamHDR,
                               L"Steam Overlay HDR Vertex Shader");
 
+    if (_P->pVertexShaderDiscordHDR == nullptr)
     ThrowIfFailed (
       pDev->CreateVertexShader ( (void *)(discord_d3d11_vs_bytecode),
                                   sizeof (discord_d3d11_vs_bytecode) /
@@ -1200,6 +1208,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pVertexShaderDiscordHDR,
                               L"Discord Overlay HDR Vertex Shader");
 
+    if (_P->pVertexShaderRTSSHDR == nullptr)
     ThrowIfFailed (
       pDev->CreateVertexShader ( (void *)(rtss_d3d11_vs_bytecode),
                                   sizeof (rtss_d3d11_vs_bytecode) /
@@ -1208,6 +1217,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pVertexShaderRTSSHDR,
                               L"RTSS Overlay HDR Vertex Shader");
 
+    if (_P->pVertexShaderuPlayHDR == nullptr)
     ThrowIfFailed (
       pDev->CreateVertexShader ( (void *)(uplay_d3d11_vs_bytecode),
                                   sizeof (uplay_d3d11_vs_bytecode) /
@@ -1223,6 +1233,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
     };
 
+    if (_P->pInputLayout == nullptr)
     ThrowIfFailed (
       pDev->CreateInputLayout ( local_layout, 3,
                                    (void *)(imgui_d3d11_vs_bytecode),
@@ -1241,11 +1252,13 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
       desc.MiscFlags         = 0;
 
+      if (_P->pVertexConstantBuffer == nullptr)
       ThrowIfFailed (
         pDev->CreateBuffer (&desc, nullptr, &_P->pVertexConstantBuffer));
 
       desc.ByteWidth         = sizeof (float) * 4;
 
+      if (_P->pPixelConstantBuffer == nullptr)
       ThrowIfFailed (
         pDev->CreateBuffer (&desc, nullptr, &_P->pPixelConstantBuffer));
 
@@ -1253,6 +1266,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       SK_D3D11_SetDebugName ( _P->pPixelConstantBuffer,  L"ImGui Pixel Constant Buffer");
     }
 
+    if (_P->pPixelShader == nullptr)
     ThrowIfFailed (
       pDev->CreatePixelShader ( (void *)(imgui_d3d11_ps_bytecode),
                                  sizeof (imgui_d3d11_ps_bytecode) /
@@ -1261,6 +1275,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                  _P->pPixelShader,
                                          L"ImGui Pixel Shader");
 
+    if (_P->pPixelShaderSteamHDR == nullptr)
     ThrowIfFailed (
       pDev->CreatePixelShader ( (void *) (steam_d3d11_ps_bytecode),
                                   sizeof (steam_d3d11_ps_bytecode) /
@@ -1269,6 +1284,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pPixelShaderSteamHDR,
                                L"Steam Overlay HDR Pixel Shader");
 
+    if (_P->pPixelShaderDiscordHDR == nullptr)
     ThrowIfFailed (
       pDev->CreatePixelShader ( (void *) (discord_d3d11_ps_bytecode),
                                   sizeof (discord_d3d11_ps_bytecode) /
@@ -1277,6 +1293,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     SK_D3D11_SetDebugName (                   _P->pPixelShaderDiscordHDR,
                                L"Discord Overlay HDR Pixel Shader");
 
+    if (_P->pPixelShaderuPlayHDR == nullptr)
     ThrowIfFailed (
       pDev->CreatePixelShader ( (void *) (uplay_d3d11_ps_bytecode),
                                   sizeof (uplay_d3d11_ps_bytecode) /
@@ -1299,6 +1316,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
       desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
+      if (_P->pBlendState == nullptr)
       ThrowIfFailed (
         pDev->CreateBlendState (&desc, &_P->pBlendState));
       SK_D3D11_SetDebugName (           _P->pBlendState,
@@ -1314,6 +1332,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.ScissorEnable   = true;
       desc.DepthClipEnable = true;
 
+      if (_P->pRasterizerState == nullptr)
       ThrowIfFailed (
         pDev->CreateRasterizerState (&desc, &_P->pRasterizerState ));
       SK_D3D11_SetDebugName (                _P->pRasterizerState,
@@ -1334,12 +1353,14 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.FrontFace.StencilFunc    = D3D11_COMPARISON_NEVER;
       desc.BackFace                 = desc.FrontFace;
 
+      if (_P->pDepthStencilState == nullptr)
       ThrowIfFailed (
         pDev->CreateDepthStencilState (&desc, &_P->pDepthStencilState));
       SK_D3D11_SetDebugName (                  _P->pDepthStencilState,
                                            L"ImGui Depth/Stencil State");
     }
 
+    if (_P->pBackBuffer == nullptr)
     ThrowIfFailed (
       pSwapChain->GetBuffer  (0, IID_PPV_ARGS (&_P->pBackBuffer.p))
     ); SK_D3D11_SetDebugName (                  _P->pBackBuffer,
@@ -1383,6 +1404,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
         pDesc = nullptr;
     }
 
+    if (_P->pRenderTargetView == nullptr)
     ThrowIfFailed (
       pDev->CreateRenderTargetView  ( _P->pBackBuffer, pDesc,
                                      &_P->pRenderTargetView.p ));
@@ -1503,27 +1525,27 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
       return 0;
     };
 
-    if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
-    if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
-    if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
-    if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
-    if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
-
-    if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
-    if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
-    if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
-    if (_P->pPixelShader)            { _ReleaseAndCountRefs (&_P->pPixelShader);            assert (refs == 0); }
-    if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
-    if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
-    if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
-    if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
-    if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
-    if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
-    if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
-    if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
-    if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
-    if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
-    if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
+////if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
+////if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
+////if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
+////if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
+////if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
+////
+////if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
+////if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
+////if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
+////if (_P->pPixelShader)            { _ReleaseAndCountRefs (&_P->pPixelShader);            assert (refs == 0); }
+////if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
+////if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
+////if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
+////if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
+////if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
+////if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
+////if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
+////if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
+////if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
+////if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
+////if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
 
     if (_P->pRenderTargetView.p)
         _P->pRenderTargetView.Release ();

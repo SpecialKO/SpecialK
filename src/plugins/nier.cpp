@@ -1059,7 +1059,7 @@ SK_FAR_OSD_Disclaimer (LPVOID user)
 
   far_prefs->write              (far_prefs_file);
 
-  CloseHandle (GetCurrentThread ());
+  SK_CloseHandle (GetCurrentThread ());
 
   return 0;
 }

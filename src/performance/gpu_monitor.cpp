@@ -749,7 +749,7 @@ SK_EndGPUPolling (void)
     if (SignalObjectAndWait (hShutdownEvent, hPollThread, 125UL, FALSE) != WAIT_OBJECT_0)
     {
       SK_TerminateThread (hPollThread, 0x00);
-      CloseHandle        (hPollThread); // Thread cleans itself up normally
+      SK_CloseHandle      (hPollThread); // Thread cleans itself up normally
     }
 
     hPollEvent.Close     ();

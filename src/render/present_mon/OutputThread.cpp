@@ -22,6 +22,7 @@ SOFTWARE.
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
 #include <SpecialK/utility/lazy_global.h>
+#include <SpecialK/utility.h>
 #include <SpecialK/thread.h>
 
 extern HANDLE __SK_DLL_TeardownEvent;
@@ -210,8 +211,8 @@ CheckForTerminatedRealtimeProcesses (
         processId, qpc
       );
 
-      CloseHandle (processInfo->mHandle);
-                   processInfo->mHandle = NULL;
+      SK_CloseHandle (processInfo->mHandle);
+                      processInfo->mHandle = NULL;
     }
   }
 }
@@ -685,7 +686,7 @@ void Output (void)
       &pair.second;
 
     if (processInfo->mHandle != NULL)
-      CloseHandle  (processInfo->mHandle);
+      SK_CloseHandle (processInfo->mHandle);
 
     CloseOutputCsv (processInfo);
   }

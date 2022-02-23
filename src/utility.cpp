@@ -672,41 +672,29 @@ SK_GetProcAddress (const HMODULE hMod, const char* szFunc) noexcept
 {
   FARPROC proc = nullptr;
 
-  __try {
-    if (hMod != nullptr)
-    {
-      SK_SetLastError (NO_ERROR);
-
-      if (GetProcAddress_Original != nullptr)
-      {
-        proc =
-          GetProcAddress_Original (hMod, szFunc);
-
-        if (GetLastError () != NO_ERROR)
-          proc = nullptr;
-
-        __leave;
-      }
-
-      proc =
-        GetProcAddress (hMod, szFunc);
-
-      if (GetLastError () != NO_ERROR)
-        proc = nullptr;
-
-      __leave;
-    }
-  }
-
-  __finally
+  if (hMod != nullptr)
   {
-    if (SK_IsDebuggerPresent ())
+    SK_SetLastError (NO_ERROR);
+
+    if (GetProcAddress_Original != nullptr)
     {
-      OutputDebugStringW (L"Unhandled Exception in GetProcAddress");
+      proc =
+        GetProcAddress_Original (hMod, szFunc);
+
+      if (GetLastError () == NO_ERROR)
+        return proc;
+
+      return nullptr;
     }
+
+    proc =
+      GetProcAddress (hMod, szFunc);
+
+    if (GetLastError () == NO_ERROR)
+      return proc;
   }
 
-  return proc;
+  return nullptr;
 }
 
 FARPROC
@@ -2640,7 +2628,7 @@ HRESULT ModifyPrivilege(
                                 szPrivilege,
                                 &luid ))
     {
-        CloseHandle( hToken );
+        SK_CloseHandle( hToken );
         return ERROR_FUNCTION_FAILED;
     }
 
@@ -2662,7 +2650,7 @@ HRESULT ModifyPrivilege(
     }
 
     // Close the handle.
-    CloseHandle(hToken);
+    SK_CloseHandle(hToken);
 
     return hr;
 }
@@ -2853,9 +2841,9 @@ SK_RestartGame (const wchar_t* wszDLL)
     // Save config prior to comitting suicide
     SK_SelfDestruct ();
 
-    ResumeThread (pinfo.hThread);
-    CloseHandle  (pinfo.hThread);
-    CloseHandle  (pinfo.hProcess);
+    ResumeThread   (pinfo.hThread);
+    SK_CloseHandle (pinfo.hThread);
+    SK_CloseHandle (pinfo.hProcess);
   }
 
   SK_TerminateProcess (0x00);
@@ -3145,7 +3133,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       if (ShellExecuteEx (&sexec_info))
       {
         SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
-        CloseHandle            (sexec_info.hProcess);
+        SK_CloseHandle         (sexec_info.hProcess);
       }
     }
   }
@@ -3222,7 +3210,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       if (ShellExecuteEx (&sexec_info))
       {
         SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
-        CloseHandle            (sexec_info.hProcess);
+        SK_CloseHandle         (sexec_info.hProcess);
       }
 
       // ------------------
@@ -3333,8 +3321,8 @@ SK_WinRing0_Uninstall (void)
       } while ( dwWaitState < 50 &&
                 dwWaitState != WAIT_OBJECT_0 );
 
-      CloseHandle (pinfo.hThread);
-      CloseHandle (pinfo.hProcess);
+      SK_CloseHandle (pinfo.hThread);
+      SK_CloseHandle (pinfo.hProcess);
 
       RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
       GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
@@ -3423,8 +3411,8 @@ SK_WinRing0_Install (void)
       } while ( dwWaitState < 50 &&
                 dwWaitState != WAIT_OBJECT_0 );
 
-      CloseHandle (pinfo.hThread);
-      CloseHandle (pinfo.hProcess);
+      SK_CloseHandle (pinfo.hThread);
+      SK_CloseHandle (pinfo.hProcess);
 
       wchar_t wszTemp [MAX_PATH + 2] = { };
 
@@ -3479,8 +3467,8 @@ SK_ElevateToAdmin (void)
                   FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
                   &sinfo,  &pinfo );
 
-  CloseHandle (pinfo.hThread);
-  CloseHandle (pinfo.hProcess);
+  SK_CloseHandle (pinfo.hThread);
+  SK_CloseHandle (pinfo.hProcess);
 
   // Save config prior to comitting suicide
   SK_SelfDestruct     (    );
@@ -4162,7 +4150,7 @@ SK_DeferCommands (const char** szCommands, int count)
           }
         }
 
-        CloseHandle (hNewCmds);
+        SK_CloseHandle (hNewCmds);
         SK_Thread_CloseSelf ();
 
         return 0;
@@ -4696,7 +4684,7 @@ SK_Win32_GetTokenSid (_TOKEN_INFORMATION_CLASS tic)
       }
     }
 
-    CloseHandle (hToken);
+    SK_CloseHandle (hToken);
   }
 
   return pRet;
@@ -4787,7 +4775,7 @@ SK_ShellExecuteW ( _In_opt_ HWND    hwnd,
   if (args.hThread != 0)
   {
     SK_WaitForSingleObject (args.hThread, INFINITE);
-    CloseHandle            (args.hThread);
+    SK_CloseHandle         (args.hThread);
   }
 
   return
@@ -4847,7 +4835,7 @@ SK_ShellExecuteA ( _In_opt_ HWND   hwnd,
   if (args.hThread != 0)
   {
     SK_WaitForSingleObject (args.hThread, INFINITE);
-    CloseHandle            (args.hThread);
+    SK_CloseHandle         (args.hThread);
   }
 
   return
@@ -4953,4 +4941,39 @@ SK_Util_OpenURI (
     return sexi.hInstApp;
 
   return 0;
+}
+
+
+
+
+
+
+BOOL
+SK_IsHandleValid (HANDLE hHandle)
+{
+	auto dwInfo = 0UL;
+
+  return
+	  ( 0 == GetHandleInformation (hHandle, &dwInfo) );
+}
+
+BOOL
+SK_SafeCloseHandle (HANDLE hHandle)
+{
+	__try
+	{
+		if (! SK_IsHandleValid (hHandle))
+      return FALSE;
+
+		return
+      CloseHandle (hHandle) ?
+                       TRUE : FALSE;
+	}
+
+	__except (EXCEPTION_EXECUTE_HANDLER)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
 }

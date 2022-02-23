@@ -329,7 +329,7 @@ struct SK_FFXV_Thread
 {
   ~SK_FFXV_Thread (void) {///noexcept {
     if (hThread)
-      CloseHandle (hThread);
+      SK_CloseHandle (hThread);
   }
 
   HANDLE               hThread = 0;

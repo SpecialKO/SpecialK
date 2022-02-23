@@ -58,24 +58,11 @@ public:
       return false;
     }
 
-    bool bRet = false;
-
-    __try
-    {
-      bRet = (
-        S_FALSE != pImmediateCtx->GetData     (
-                pPixelBufferFence, nullptr,
-                                       0, 0x0 )
-             );
-      __leave;
-    }
-
-    __finally
-    {
-      return false;
-    }
-
-    return bRet;
+    return (
+      S_FALSE != pImmediateCtx->GetData     (
+              pPixelBufferFence, nullptr,
+                                     0, 0x0 )
+           );
   }
 
   SK_D3D11_Screenshot& __cdecl operator= (      SK_D3D11_Screenshot&& moveFrom);

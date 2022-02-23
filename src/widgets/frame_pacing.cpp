@@ -320,7 +320,7 @@ SK_ETW_EndTracing (void)
         StopTraceSession () || (__SK_ETW_PresentMon_Thread == 0);
     }
 
-    CloseHandle (
+    SK_CloseHandle (
        LongToHandle (PresentMon_ETW)
          ); __SK_ETW_PresentMon_Thread = 0;
   }

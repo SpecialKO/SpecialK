@@ -238,7 +238,7 @@ SK_Inject_Get32BitRecordMemory (void)
       return hExistingFile;
     }
 
-    CloseHandle (hExistingFile);
+    SK_CloseHandle (hExistingFile);
   }
 
   HANDLE hNewFile  =
@@ -254,7 +254,7 @@ SK_Inject_Get32BitRecordMemory (void)
       return hNewFile;
     }
 
-    CloseHandle (hNewFile);
+    SK_CloseHandle (hNewFile);
   }
 
   return SK_INVALID_HANDLE;
@@ -627,7 +627,7 @@ SK_Inject_GetSharedMemory (void)
       return hExistingFile;
     }
 
-    CloseHandle (hExistingFile);
+    SK_CloseHandle (hExistingFile);
   }
 
   HANDLE hNewFile  =
@@ -643,7 +643,7 @@ SK_Inject_GetSharedMemory (void)
       return hNewFile;
     }
 
-    CloseHandle (hNewFile);
+    SK_CloseHandle (hNewFile);
   }
 
   return SK_INVALID_HANDLE;
@@ -1257,7 +1257,7 @@ SK_Inject_SpawnUnloadListener (void)
         }
 
         SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);
-        CloseHandle       (g_hPacifierThread);
+        SK_CloseHandle    (g_hPacifierThread);
                            g_hPacifierThread = nullptr;
 
         const HANDLE
@@ -1330,7 +1330,7 @@ SK_Inject_SpawnUnloadListener (void)
       else
       {
         TerminateThread            (g_hPacifierThread, 0x0);
-        CloseHandle                (g_hPacifierThread);
+        SK_CloseHandle             (g_hPacifierThread);
       }
     }
 #endif

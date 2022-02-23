@@ -133,7 +133,7 @@ public:
             } while (Process32Next (hSnap, &pent));
           }
 
-          CloseHandle (hSnap);
+          SK_CloseHandle (hSnap);
         }
       }
 

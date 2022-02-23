@@ -339,8 +339,8 @@ SK_XInput_NotifyDeviceArrival (void)
         else if (config.system.log_level > 0)
           SK_ReleaseAssert (! L"Failed to register Window Class!");
 
-        CloseHandle (SK_XInputHot_NotifyEvent);
-                     SK_XInputHot_NotifyEvent = 0;
+        SK_CloseHandle (SK_XInputHot_NotifyEvent);
+                        SK_XInputHot_NotifyEvent = 0;
 
         SK_Thread_CloseSelf ();
 

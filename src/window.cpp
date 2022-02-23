@@ -2688,7 +2688,7 @@ SK_SetWindowLongPtrA (
         }
       }
 
-      CloseHandle (dispatch->hSignal);
+      SK_CloseHandle (dispatch->hSignal);
 
       SK_Thread_CloseSelf ();
 
@@ -2789,7 +2789,7 @@ SK_SetWindowLongPtrW (
         }
       }
 
-      CloseHandle (dispatch->hSignal);
+      SK_CloseHandle (dispatch->hSignal);
 
       SK_Thread_CloseSelf ();
 

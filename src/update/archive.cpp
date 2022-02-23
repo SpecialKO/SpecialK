@@ -275,7 +275,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                         &dwWritten,
                             nullptr );
 
-      CloseHandle (hOutFile);
+      SK_CloseHandle (hOutFile);
 
       // We still need to move files in order to replace ones currently
       //   involving execution, but if the user does not want backups,
@@ -406,7 +406,7 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                         &dwWritten,
                             nullptr );
 
-      CloseHandle (hOutFile);
+      SK_CloseHandle (hOutFile);
 
       if ( GetFileAttributes (wszUserConfig)     == INVALID_FILE_ATTRIBUTES ||
            GetFileAttributes (wszDefaultConfig)  == INVALID_FILE_ATTRIBUTES ||
@@ -560,7 +560,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                         &dwWritten,
                             nullptr );
 
-      CloseHandle (hOutFile);
+      SK_CloseHandle (hOutFile);
     }
 
     else

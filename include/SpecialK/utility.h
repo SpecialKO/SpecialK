@@ -24,6 +24,11 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+BOOL SK_IsHandleValid   (HANDLE hHandle);
+BOOL SK_SafeCloseHandle (HANDLE hHandle);
+
+#define SK_CloseHandle SK_SafeCloseHandle
+
 class SK_AutoHandle
 {
   // Signed handles are invalid, since handles are pointers and

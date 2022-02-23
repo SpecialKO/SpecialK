@@ -150,7 +150,8 @@ SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
                               argc,
              (const ULONG_PTR *)pTni );
     }
-    __finally {
+
+    __except (EXCEPTION_EXECUTE_HANDLER) {
       // This is a continuable exception, but let's be safe
     }
   }
@@ -404,7 +405,7 @@ SK_Thread_GetMainId (void)
   }
 
   THREADENTRY32
-    tent;
+    tent        = {                    };
     tent.dwSize = sizeof (THREADENTRY32);
 
   DWORD result     = 0;
@@ -617,7 +618,7 @@ SKX_ThreadThunk ( LPVOID lpUserPassThrough )
     pStartParams->lpStartFunc (pStartParams->lpUserParams);
 
   if (pTLS == nullptr) // We cannot rely on the caller to free this handle
-    CloseHandle (pStartParams->hHandleToStuffInternally);
+    SK_CloseHandle (pStartParams->hHandleToStuffInternally);
 
   SK_LocalFree ((HLOCAL)pStartParams);
 
@@ -708,7 +709,7 @@ SK_Thread_CloseSelf (void)
 
     if (pTLS->debug.handle.isValid ())
     { std::swap  (pTLS->debug.handle.m_h, hCopyAndSwapHandle);
-      if (! CloseHandle (                 hCopyAndSwapHandle)) {
+      if (! SK_CloseHandle (              hCopyAndSwapHandle)) {
         std::swap(pTLS->debug.handle.m_h, hCopyAndSwapHandle); }
       else
         return true;

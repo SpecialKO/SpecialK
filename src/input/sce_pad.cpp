@@ -54,23 +54,23 @@ struct SK_SceInputContext
   {
     const wchar_t*                     wszModuleName                           = L"libScePad.dll";
     HMODULE                            hMod                                    = nullptr;
-                                                                               
+
     scePadInit_pfn                     scePadInit_Detour                       = nullptr;
     scePadInit_pfn                     scePadInit_Original                     = nullptr;
     LPVOID                             scePadInit_Target                       = nullptr;
-                                                                               
+
     scePadGetHandle_pfn                scePadGetHandle_Detour                  = nullptr;
     scePadGetHandle_pfn                scePadGetHandle_Original                = nullptr;
     LPVOID                             scePadGetHandle_Target                  = nullptr;
-                                                                               
+
     scePadOpen_pfn                     scePadOpen_Detour                       = nullptr;
     scePadOpen_pfn                     scePadOpen_Original                     = nullptr;
     LPVOID                             scePadOpen_Target                       = nullptr;
-                                                                               
+
     scePadClose_pfn                    scePadClose_Detour                      = nullptr;
     scePadClose_pfn                    scePadClose_Original                    = nullptr;
     LPVOID                             scePadClose_Target                      = nullptr;
-                                                                               
+
     scePadSetParticularMode_pfn        scePadSetParticularMode_Detour          = nullptr;
     scePadSetParticularMode_pfn        scePadSetParticularMode_Original        = nullptr;
     LPVOID                             scePadSetParticularMode_Target          = nullptr;
@@ -82,15 +82,15 @@ struct SK_SceInputContext
     scePadRead_pfn                     scePadRead_Detour                       = nullptr;
     scePadRead_pfn                     scePadRead_Original                     = nullptr;
     LPVOID                             scePadRead_Target                       = nullptr;
-                                                                               
+
     scePadReadState_pfn                scePadReadState_Detour                  = nullptr;
     scePadReadState_pfn                scePadReadState_Original                = nullptr;
     LPVOID                             scePadReadState_Target                  = nullptr;
-                                                                               
+
     scePadResetOrientation_pfn         scePadResetOrientation_Detour           = nullptr;
     scePadResetOrientation_pfn         scePadResetOrientation_Original         = nullptr;
     LPVOID                             scePadResetOrientation_Target           = nullptr;
-                                                                               
+
     scePadSetAngularVelocity\
 DeadbandState_pfn                      scePadSetAngularVelocity\
 DeadbandState_Detour                                                           = nullptr;
@@ -99,23 +99,23 @@ DeadbandState_pfn                      scePadSetAngularVelocity\
 DeadbandState_Original                                                         = nullptr;
     LPVOID                             scePadSetAngularVelocity\
 DeadbandState_Target                                                           = nullptr;
-                                                                               
+
     scePadSetMotionSensorState_pfn     scePadSetMotionSensorState_Detour       = nullptr;
     scePadSetMotionSensorState_pfn     scePadSetMotionSensorState_Original     = nullptr;
     LPVOID                             scePadSetMotionSensorState_Target       = nullptr;
-                                                                               
+
     scePadSetTiltCorrectionState_pfn   scePadSetTiltCorrectionState_Detour     = nullptr;
     scePadSetTiltCorrectionState_pfn   scePadSetTiltCorrectionState_Original   = nullptr;
     LPVOID                             scePadSetTiltCorrectionState_Target     = nullptr;
-                                                                               
+
     scePadSetVibration_pfn             scePadSetVibration_Detour               = nullptr;
     scePadSetVibration_pfn             scePadSetVibration_Original             = nullptr;
     LPVOID                             scePadSetVibration_Target               = nullptr;
-                                                                               
+
     scePadResetLightBar_pfn            scePadResetLightBar_Detour              = nullptr;
     scePadResetLightBar_pfn            scePadResetLightBar_Original            = nullptr;
     LPVOID                             scePadResetLightBar_Target              = nullptr;
-                                                                               
+
     scePadSetLightBar_pfn              scePadSetLightBar_Detour                = nullptr;
     scePadSetLightBar_pfn              scePadSetLightBar_Original              = nullptr;
     LPVOID                             scePadSetLightBar_Target                = nullptr;
@@ -199,8 +199,15 @@ SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
   for (int i = 0 ; i < count ; ++i)
     SK_SCEPAD_READ (sk_input_dev_type::Gamepad);
 
-  return sceinput_ctx.scePad.
-    scePadRead_Original (handle, iData, count);
+  SK_ScePadData                surrogate = { };
+  SK_ScePadReadState (handle, &surrogate);
+
+  if (! SK_ImGui_WantGamepadCapture ())
+    return
+      sceinput_ctx.scePad.
+                   scePadRead_Original (handle, iData, count);
+
+  return SK_SCE_ERROR_OK;
 }
 
 extern bool
@@ -356,31 +363,31 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
            )
         {
           WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-      
+
           SK_SteamAPI_TakeScreenshot ();
         }
-      
+
         else if ( _JustPressed ( iData->buttonMask, last_result [handle].
                                  second.buttonMask, SK_ScePadButtonBitmap::L3
                                )
                 )
         {
           WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-      
+
           config.render.framerate.latent_sync.show_fcat_bars =
             !config.render.framerate.latent_sync.show_fcat_bars;
         }
-      
+
         else if ( _JustPressed ( iData->buttonMask, last_result [handle].
                                  second.buttonMask, SK_ScePadButtonBitmap::Up
                                )
                 )
         {
           WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-      
+
           auto cp =
             SK_GetCommandProcessor ();
-      
+
           cp->ProcessCommandLine ("LatentSync.TearLocation --");
           cp->ProcessCommandLine ("LatentSync.TearLocation --");
           cp->ProcessCommandLine ("LatentSync.TearLocation --");
@@ -389,17 +396,17 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
           cp->ProcessCommandLine ("LatentSync.ResyncRate ++");
           cp->ProcessCommandLine ("LatentSync.ResyncRate --");
         }
-      
+
         else if ( _JustPressed ( iData->buttonMask, last_result [handle].
                                  second.buttonMask, SK_ScePadButtonBitmap::Down
                                )
                 )
         {
           WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-      
+
           auto cp =
             SK_GetCommandProcessor ();
-      
+
           cp->ProcessCommandLine ("LatentSync.TearLocation ++");
           cp->ProcessCommandLine ("LatentSync.TearLocation ++");
           cp->ProcessCommandLine ("LatentSync.TearLocation ++");
@@ -511,6 +518,59 @@ SK_ScePadGetControllerInformation ( SK_ScePadHandle                handle,
     scePadGetControllerInformation_Original (handle, pInfo);
 }
 
+SK_ScePadData _PrimaryPad = { };
+XINPUT_STATE  sce_to_xi   = { };
+
+bool
+SK_ScePad_TranslateToXInput (SK_ScePadHandle handle, XINPUT_STATE& bridge_out)
+{
+  std::ignore = handle;
+  std::ignore = bridge_out;
+
+  //sceinput_ctx.scePad.scePadReadState_Original (handle, &_PrimaryPad);
+  //
+  //const XINPUT_STATE lastState =
+  //                  bridge_out;
+  //
+  //static const
+  //  std::vector <std::pair <SK_ScePadButtonBitmap::enum_type_t, DWORD>>
+  //    fwd_map = {
+  //    { SK_ScePadButtonBitmap::Share,       XINPUT_GAMEPAD_BACK           },
+  //    { SK_ScePadButtonBitmap::Options,     XINPUT_GAMEPAD_START          },
+  //    { SK_ScePadButtonBitmap::Up,          XINPUT_GAMEPAD_DPAD_UP        },
+  //    { SK_ScePadButtonBitmap::Down,        XINPUT_GAMEPAD_DPAD_DOWN      },
+  //    { SK_ScePadButtonBitmap::Left,        XINPUT_GAMEPAD_DPAD_LEFT      },
+  //    { SK_ScePadButtonBitmap::Right,       XINPUT_GAMEPAD_DPAD_RIGHT     },
+  //    { SK_ScePadButtonBitmap::R1,          XINPUT_GAMEPAD_RIGHT_SHOULDER },
+  //    { SK_ScePadButtonBitmap::L1,          XINPUT_GAMEPAD_LEFT_SHOULDER  },
+  //    { SK_ScePadButtonBitmap::R2,          XINPUT_GAMEPAD_RIGHT_TRIGGER  },
+  //    { SK_ScePadButtonBitmap::L2,          XINPUT_GAMEPAD_LEFT_TRIGGER   },
+  //    { SK_ScePadButtonBitmap::R3,          XINPUT_GAMEPAD_RIGHT_THUMB    },
+  //    { SK_ScePadButtonBitmap::L3,          XINPUT_GAMEPAD_LEFT_THUMB     },
+  //    { SK_ScePadButtonBitmap::Triangle,    XINPUT_GAMEPAD_Y              },
+  //    { SK_ScePadButtonBitmap::Circle,      XINPUT_GAMEPAD_B              },
+  //    { SK_ScePadButtonBitmap::Cross,       XINPUT_GAMEPAD_A              },
+  //    { SK_ScePadButtonBitmap::Square,      XINPUT_GAMEPAD_X              },
+  //    { SK_ScePadButtonBitmap::PlayStation, XINPUT_GAMEPAD_GUIDE          }
+  //    };
+  //
+  //for ( const auto &[native, xinput] : fwd_map )
+  //{
+  //  if ( _PrimaryPad.buttonMask.isDown (native) )
+  //       bridge_out.Gamepad.wButtons |= xinput;
+  //}
+  //
+  //if (memcmp ( &bridge_out.Gamepad,
+  //              &lastState.Gamepad,
+  //   sizeof (XINPUT_STATE::Gamepad) ))
+  //{
+  //  bridge_out.dwPacketNumber++;
+  //  return true;
+  //}
+
+  return true;
+}
+
 void
 SK_ScePad_PaceMaker (void)
 {
@@ -520,8 +580,11 @@ SK_ScePad_PaceMaker (void)
                     lastTimeStamp > 0ULL &&
                     lastTimeStamp < SK_GetFramesDrawn () )
     {
-      SK_ScePadData                _dontCare = { };
-      SK_ScePadReadState (handle, &_dontCare);
+      if (timeStamp != 0x0)
+      {
+        SK_ScePadReadState (handle, &_PrimaryPad);
+      //sceinput_ctx.scePad.scePadReadState_Original (handle, &_PrimaryPad);
+      }
     }
   }
 }

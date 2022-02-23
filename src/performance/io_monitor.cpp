@@ -519,8 +519,8 @@ SK_MonitorCPU (LPVOID user_param)
 
   if (cpu.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
-    CloseHandle (cpu.hShutdownSignal);
-                 cpu.hShutdownSignal = INVALID_HANDLE_VALUE;
+    SK_CloseHandle (cpu.hShutdownSignal);
+                    cpu.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
   return 0;
@@ -938,7 +938,7 @@ DISK_CLEANUP:
 
   if (disk.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
-    CloseHandle (disk.hShutdownSignal);
+    SK_CloseHandle (disk.hShutdownSignal);
     disk.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 
@@ -1269,7 +1269,7 @@ PAGEFILE_CLEANUP:
 
   if (pagefile.hShutdownSignal != INVALID_HANDLE_VALUE)
   {
-    CloseHandle (pagefile.hShutdownSignal);
+    SK_CloseHandle (pagefile.hShutdownSignal);
     pagefile.hShutdownSignal = INVALID_HANDLE_VALUE;
   }
 

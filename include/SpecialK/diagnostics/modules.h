@@ -40,7 +40,7 @@
 #endif
 
 #define SK_GetModuleHandle SK_GetModuleHandleW
-HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName) noexcept;
+HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
 
 // Additional Validation if Debugger is Attached
 BOOL WINAPI SK_IsDebuggerPresent (void) noexcept;

@@ -669,11 +669,11 @@ SK::D3D9::TextureWorkerThread::~TextureWorkerThread (void)
 
   SK_WaitForSingleObject (thread_, INFINITE);
 
-  CloseHandle (control_.shutdown);
-  CloseHandle (control_.trim);
-  CloseHandle (control_.start);
+  SK_CloseHandle (control_.shutdown);
+  SK_CloseHandle (control_.trim);
+  SK_CloseHandle (control_.start);
 
-  CloseHandle (thread_);
+  SK_CloseHandle (thread_);
 }
 
 void
@@ -982,7 +982,7 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
         // OUT OF MEMORY ?!
       }
 
-      CloseHandle (hTexFile);
+      SK_CloseHandle (hTexFile);
     }
   }
 
@@ -2488,7 +2488,7 @@ SK::D3D9::TextureManager::Shutdown (void)
   DeleteCriticalSection (&cs_cache);
   DeleteCriticalSection (&osd_cs);
 
-  CloseHandle (decomp_semaphore);
+  SK_CloseHandle (decomp_semaphore);
 
   tex_log->Log ( L"[Perf Stats] At shutdown: %7.2f seconds (%7.2f frames)"
                  L" saved by cache",

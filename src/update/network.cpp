@@ -262,7 +262,7 @@ DownloadThread (LPVOID user)
       }
 
       if (hGetFile != INVALID_HANDLE_VALUE)
-        CloseHandle (hGetFile);
+        SK_CloseHandle (hGetFile);
 
       else
         SetErrorState ();

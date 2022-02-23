@@ -431,7 +431,7 @@ UNREFERENCED_PARAMETER (user);
     SK_RunLHIfBitness (64, SK_LoadPlugIns64 (), SK_LoadPlugIns32 ());
 
 #ifdef SPAWN_THREAD
-  CloseHandle (GetCurrentThread ());
+  SK_CloseHandle (GetCurrentThread ());
 
   return 0;
 }, nullptr, 0x00, nullptr);

@@ -1103,7 +1103,7 @@ SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
       SetForegroundWindow (win.root);
       SetActiveWindow     (win.root);
     }
-    CloseHandle (sei.hProcess);
+    SK_CloseHandle (sei.hProcess);
   }
 };
 

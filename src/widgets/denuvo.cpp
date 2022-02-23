@@ -127,7 +127,7 @@ SK_Denuvo_UsedByGame (bool retest)
 
             ++files;
 
-            CloseHandle (hFile);
+            SK_CloseHandle (hFile);
           }
 
           LARGE_INTEGER fsize;

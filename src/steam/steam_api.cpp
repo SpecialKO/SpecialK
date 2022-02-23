@@ -727,7 +727,7 @@ SK_Steam_ScreenshotManager::~SK_Steam_ScreenshotManager (void)
   {
     if (           hSigReady [i] != INVALID_HANDLE_VALUE)
     {    SetEvent (hSigReady [i]);
-      CloseHandle (hSigReady [i]);
+   SK_CloseHandle (hSigReady [i]);
                    hSigReady [i]  = INVALID_HANDLE_VALUE;
     }
   }
@@ -3208,8 +3208,8 @@ SK_Steam_KillPump (void)
   {
     SignalObjectAndWait (
       hSteamPumpKill, hPumpThread, 20UL, FALSE
-    ); CloseHandle (hSteamPumpKill);
-                    hSteamPumpKill = INVALID_HANDLE_VALUE;
+    );SK_CloseHandle (hSteamPumpKill);
+                      hSteamPumpKill = INVALID_HANDLE_VALUE;
   }
 }
 

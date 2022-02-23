@@ -1329,8 +1329,8 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 
   if (fence.event != 0)
   {
-    CloseHandle (fence.event);
-                 fence.event = 0;
+    SK_CloseHandle (fence.event);
+                    fence.event = 0;
   }
 }
 

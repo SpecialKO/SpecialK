@@ -1126,8 +1126,8 @@ TerminateThread_Detour ( HANDLE hThread,
           if (GetThreadId (hThread) != GetCurrentThreadId ())
           {
             // Handle is real, we can close it.
-            SuspendThread (hThread);
-            CloseHandle   (hThread);
+            SuspendThread  (hThread);
+            SK_CloseHandle (hThread);
           }
         }
       }
@@ -2676,7 +2676,7 @@ struct SK_FFXV_Thread
 {
   ~SK_FFXV_Thread (void) {
     if (hThread)
-      CloseHandle (hThread);
+      SK_CloseHandle (hThread);
   }
 
            HANDLE   hThread  = nullptr;
@@ -2924,7 +2924,7 @@ SK_Exception_HandleThreadName (
               task->queuePriority (AVRT_PRIORITY_NORMAL);
             }
           }
-          CloseHandle (hThread);
+          SK_CloseHandle (hThread);
         }
       }
 
@@ -3065,14 +3065,14 @@ SK_Exception_HandleThreadName (
           }
 
           if (! killed)
-            CloseHandle (hThread);
+            SK_CloseHandle (hThread);
 
           else
           {
             extern void SK_MHW_PlugIn_Shutdown ();
                         SK_MHW_PlugIn_Shutdown ();
 
-            CloseHandle (hThread);
+            SK_CloseHandle (hThread);
           }
         }
       }
@@ -3854,7 +3854,6 @@ SymRefreshModuleList (
     return bRet;
   }
 
-
   return FALSE;
 }
 
@@ -4340,14 +4339,18 @@ SymGetSearchPathW (
   _Out_opt_ PWSTR  SearchPath,
   _In_      DWORD  SearchPathLength)
 {
-  if (SymGetSearchPathW_Imp != nullptr && cs_dbghelp != nullptr)
+  if (SymGetSearchPathW_Imp != nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    if (SearchPath != nullptr)
+    {  *SearchPath = L'\0';  }
+
+    BOOL bRet =
+      SymGetSearchPathW_Imp (hProcess, SearchPath, SearchPathLength);
 
     if (SearchPath != nullptr)
-       *SearchPath = L'\0';
-    return
-      SymGetSearchPathW_Imp (hProcess, SearchPath, SearchPathLength);
+    {   SearchPath [SearchPathLength-1] = L'\0';};
+
+    return bRet;
   }
 
   return FALSE;

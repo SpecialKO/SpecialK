@@ -1403,26 +1403,6 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
   pLogger->LogEx (false, L"\n");
 }
 
-BOOL
-SK_SafeCloseHandle (HANDLE& khHandle)
-{
-  __try {
-    return
-      CloseHandle (
-         khHandle );
-  }
-
-  __except ( GetExceptionCode () == EXCEPTION_INVALID_HANDLE ?
-                EXCEPTION_EXECUTE_HANDLER                    :
-                EXCEPTION_CONTINUE_SEARCH )
-  {
-    //khHandle = INVALID_HANDLE_VALUE;
-  }
-
-  return FALSE;
-}
-
-
 void
 SK_ThreadWalkModules (enum_working_set_s* pWorkingSet)
 {

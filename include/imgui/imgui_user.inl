@@ -16,6 +16,7 @@ volatile LONG
 
 #include <SpecialK/input/input.h>
 #include <SpecialK/input/xinput.h>
+#include <SpecialK/input/sce_pad.h>
 #include <SpecialK/input/xinput_hotplug.h>
 
 #include <algorithm>
@@ -1616,6 +1617,7 @@ extern IDirectInputDevice8W_GetDeviceState_pfn
 
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;
+extern XINPUT_STATE  sce_to_xi;
 
 using joyGetNumDevs_pfn  = UINT (WINAPI *)(void);
 using joyGetPosEx_pfn    = UINT (WINAPI *)(UINT,LPJOYINFOEX);
@@ -1726,22 +1728,22 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
   api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
 #endif
 
-  if (api_bridge)
-  {
-    // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-    //   for no good reason.
-    JOYINFOEX joy_ex   { };
-    JOYCAPSW  joy_caps { };
+if (api_bridge)
+{
+  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+  //   for no good reason.
+  JOYINFOEX joy_ex   { };
+  JOYCAPSW  joy_caps { };
 
-    joy_ex.dwSize  = sizeof (JOYINFOEX);
-    joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-                     JOY_RETURNCENTERED | JOY_USEDEADZONE;
+  joy_ex.dwSize  = sizeof (JOYINFOEX);
+  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
-    SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
-    SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
+  SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+  SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
 
-    SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
-  }
+  SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
+}
 
 #if 1
   state = joy_to_xi;
@@ -1756,6 +1758,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
       *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
   }
 #endif
+
+
+  //extern void SK_ScePad_PaceMaker (void);
+  //            SK_ScePad_PaceMaker ();
+
 
   bool bRet = false;
 

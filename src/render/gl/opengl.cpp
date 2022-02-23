@@ -1886,7 +1886,7 @@ SK_IndirectX_PresentManager::Start (SK_IndirectX_InteropCtx *pCtx)
 
         } while (! ReadAcquire (&__SK_DLL_Ending));
 
-        CloseHandle (
+        SK_CloseHandle (
           std::exchange (pCtx->present_man.hNotifyPresent, INVALID_HANDLE_VALUE)
         );
 
@@ -2350,8 +2350,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         desc1.SwapEffect         = dx_gl_interop.output.swap_effect;
         desc1.Flags              = dx_gl_interop.output.swapchain_flags;
 
-      if (                          dx_gl_interop.output.hSemaphore != nullptr)
-        CloseHandle (std::exchange (dx_gl_interop.output.hSemaphore,   nullptr));
+      if (                             dx_gl_interop.output.hSemaphore != nullptr)
+        SK_CloseHandle (std::exchange (dx_gl_interop.output.hSemaphore,   nullptr));
 
       if (std::exchange (dx_gl_interop.output.hWnd, hWnd) != hWnd || pSwapChain == nullptr)
       {

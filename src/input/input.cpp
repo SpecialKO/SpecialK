@@ -3604,6 +3604,12 @@ void SK_Input_PreInit (void)
 
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );
+
+  if (config.input.gamepad.hook_scepad)
+  {
+    if (GetModuleHandleW (L"libScePad.dll") != nullptr)
+      SK_Input_HookScePad ();
+  }
 }
 
 

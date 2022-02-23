@@ -143,8 +143,8 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
     //  break;
   }
 
-  CloseHandle (hFlushReq);
-               hFlushReq = nullptr;
+  SK_CloseHandle (hFlushReq);
+                  hFlushReq = nullptr;
 
   SK_Thread_CloseSelf  ();
 

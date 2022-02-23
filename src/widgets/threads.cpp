@@ -1187,9 +1187,9 @@ public:
 
     ~SK_Thread_DataCollector (void)
     {
-      SignalObjectAndWait (hSignalShutdown, hProduceThread, 100, FALSE);
-      CloseHandle         (hSignalProduce);  CloseHandle (hSignalConsume);
-      CloseHandle         (hSignalShutdown); CloseHandle (hProduceThread);
+      SignalObjectAndWait (hSignalShutdown,  hProduceThread, 100, FALSE);
+      SK_CloseHandle      (hSignalProduce);  SK_CloseHandle (hSignalConsume);
+      SK_CloseHandle      (hSignalShutdown); SK_CloseHandle (hProduceThread);
     }
   };
 
@@ -1377,8 +1377,8 @@ public:
 
             if (it->hThread != hThreadOrig)
             {
-              CloseHandle (it->hThread);
-                           it->hThread = INVALID_HANDLE_VALUE;
+              SK_CloseHandle (it->hThread);
+                              it->hThread = INVALID_HANDLE_VALUE;
             }
           }
 
@@ -2151,7 +2151,7 @@ public:
                       } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
                       CancelWaitableTimer (hRecoveryEvent);
-                      CloseHandle         (hRecoveryEvent);
+                      SK_CloseHandle      (hRecoveryEvent);
 
                       SK_Thread_CloseSelf ();
 
@@ -2822,8 +2822,8 @@ public:
       if ( it.second->hThread != nullptr &&
            it.second->hThread != INVALID_HANDLE_VALUE )
       {
-        CloseHandle (it.second->hThread);
-                     it.second->hThread = INVALID_HANDLE_VALUE;
+        SK_CloseHandle (it.second->hThread);
+                        it.second->hThread = INVALID_HANDLE_VALUE;
       }
     }
 

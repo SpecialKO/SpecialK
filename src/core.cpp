@@ -37,6 +37,8 @@
 
 #include <filesystem>
 
+#include <Aux_ulib.h>
+
 
 #ifdef _WIN64
 #pragma comment (lib, R"(depends\lib\DirectXTex\x64\DirectXTex.lib)")
@@ -1543,7 +1545,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
           } else OutputDebugStringA (
              "[SK Init] Unable to Restore Suspended Thread Context");
 
-          CloseHandle (delay_params.parent);
+          SK_CloseHandle (delay_params.parent);
         }
 
         SK_Thread_CloseSelf ();
@@ -2401,15 +2403,15 @@ SK_ShutdownCore (const wchar_t* backend)
 
       if (hThread != INVALID_HANDLE_VALUE)
       {
-        CloseHandle (hThread);
-                     hThread = INVALID_HANDLE_VALUE;
+        SK_CloseHandle (hThread);
+                       hThread = INVALID_HANDLE_VALUE;
       }
     }
 
     if (hSignal != INVALID_HANDLE_VALUE)
     {
-      CloseHandle (hSignal);
-                   hSignal = INVALID_HANDLE_VALUE;
+      SK_CloseHandle (hSignal);
+                     hSignal = INVALID_HANDLE_VALUE;
     }
 
     dll_log->LogEx ( false, L"done! (%4u ms)\n",

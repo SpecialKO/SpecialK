@@ -1,4 +1,18 @@
-﻿22.2.22.968-NOCEGUI
+﻿22.2.25-NOCEGUI
+===============
+ + Improved D3D11 resolution / window resize performance
+ + Fixed an issue that was preventing screenshot functions from working in D3D11/12
+
+22.2.24-NOCEGUI
+===============
+ + DualSense controller support extended to God of War
+
+22.2.23-NOCEGUI
+===============
+ + Improved framerate limiter accuracy during arithmetic overflow edge-cases
+ + Workaround irregular libScePad polling in Dying Light 2 in menus
+
+22.2.22.968-NOCEGUI
 ===================
  + Fix frozen screen issues in some non-Flip compliant games (i.e. CrossCode)
  + Improved global hook standby performance (waiting for 'Stop Service')

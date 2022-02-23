@@ -1301,8 +1301,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                     delete
                       (thread_rewrite_s *)ReadPointerAcquire ((volatile PVOID *)&pRewrite->_this);
 
-                    ResumeThread     (pRewrite->hThread);
-                    CloseHandle      (pRewrite->hThread);
+                    ResumeThread   (pRewrite->hThread);
+                    SK_CloseHandle (pRewrite->hThread);
 
                     ++__ignored_exceptions;
                   }

@@ -9286,8 +9286,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
     if (budget_thread->shutdown != INVALID_HANDLE_VALUE)
     {
-      CloseHandle (budget_thread->shutdown);
-                   budget_thread->shutdown = INVALID_HANDLE_VALUE;
+      SK_CloseHandle (budget_thread->shutdown);
+                      budget_thread->shutdown = INVALID_HANDLE_VALUE;
     }
 
     if ( dwWaitState == WAIT_OBJECT_0 )
@@ -9304,8 +9304,8 @@ SK::DXGI::ShutdownBudgetThread ( void )
 
     if (budget_thread->handle != INVALID_HANDLE_VALUE)
     {
-      CloseHandle ( budget_thread->handle );
-                    budget_thread->handle = INVALID_HANDLE_VALUE;
+      SK_CloseHandle ( budget_thread->handle );
+                       budget_thread->handle = INVALID_HANDLE_VALUE;
     }
 
     SK_AutoClose_LogEx (budget_log, budget);

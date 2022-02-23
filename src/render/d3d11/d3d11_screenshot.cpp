@@ -760,7 +760,7 @@ SK_D3D11_Screenshot::getData ( UINT* const pWidth,
   auto ReadBack =
   [&]
   {
-    const UINT   Subresource =
+    const UINT Subresource =
       D3D11CalcSubresource ( 0, 0, 1 );
 
     D3D11_MAPPED_SUBRESOURCE finished_copy = { };
@@ -1828,10 +1828,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
       SK_Thread_CloseSelf ();
 
-      CloseHandle (signal.capture);
-      CloseHandle (signal.abort.initiate);
-      CloseHandle (signal.abort.finished);
-      CloseHandle (signal.hq_encode);
+      SK_CloseHandle (signal.capture);
+      SK_CloseHandle (signal.abort.initiate);
+      SK_CloseHandle (signal.abort.finished);
+      SK_CloseHandle (signal.hq_encode);
 
       return 0;
     }, L"[SK] D3D11 Screenshot Capture" );

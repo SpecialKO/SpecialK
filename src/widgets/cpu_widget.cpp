@@ -1872,8 +1872,8 @@ public:
                 }
               }
 
-              CloseHandle (pMgr->hInstallEvent);
-              CloseHandle (pMgr->hUninstallEvent);
+              SK_CloseHandle (pMgr->hInstallEvent);
+              SK_CloseHandle (pMgr->hUninstallEvent);
 
               SK_Thread_CloseSelf ();
 
