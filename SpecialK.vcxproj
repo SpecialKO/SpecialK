@@ -373,8 +373,15 @@
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
       <OmitFramePointers>true</OmitFramePointers>
+=======
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <OmitFramePointers>true</OmitFramePointers>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <FloatingPointModel>Fast</FloatingPointModel>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
@@ -480,8 +487,15 @@
       <EnableModules>true</EnableModules>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <ConformanceMode>false</ConformanceMode>
+<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+=======
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <BrowseInformation>false</BrowseInformation>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>

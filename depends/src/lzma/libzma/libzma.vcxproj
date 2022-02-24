@@ -41,7 +41,12 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
+<<<<<<< HEAD
     <VCToolsVersion>14.32.31114</VCToolsVersion>
+=======
+    <VCToolsVersion>
+    </VCToolsVersion>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -231,7 +236,12 @@
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <OmitFramePointers>true</OmitFramePointers>
+<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
+=======
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+      <SupportJustMyCode>true</SupportJustMyCode>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
     </ClCompile>
     <Link>
@@ -273,6 +283,10 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+<<<<<<< HEAD
+=======
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <AdditionalOptions>/Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-   /Zo</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -280,7 +294,12 @@
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <BrowseInformation>false</BrowseInformation>
+<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
+=======
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+      <SupportJustMyCode>true</SupportJustMyCode>
+>>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
     </ClCompile>
     <Link>
