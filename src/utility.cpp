@@ -1228,20 +1228,15 @@ public:
                   s.c_str () )
     );
   }
-  auto operator!= (const SK_PreHashed_String& s) const
-  {
-    return
-      ! (*this == s);
-  }
   constexpr auto size     (void) const { return size_;    }
   constexpr auto get_hash (void) const { return hash_;    }
   constexpr auto c_str    (void) const ->
       const wchar_t*                   { return wstrptr_; }
 
 private:
-        size_t   hash_    {         };
-        size_t   size_    {         };
-  const wchar_t* wstrptr_ { nullptr };
+        size_t   hash_    = 0;
+        size_t   size_    = 0;
+  const wchar_t* wstrptr_ = nullptr;
 };
 
 bool
@@ -3111,8 +3106,8 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       do {
         SK_Sleep (25UL);
-      } while ( GetFileAttributes (wszHostDLL) != INVALID_FILE_ATTRIBUTES &&
-                                         tries++ < 32 );
+      } while ( tries++ < 32 &&
+                  INVALID_FILE_ATTRIBUTES != GetFileAttributes (wszHostDLL) );
     }
 
     // Fallback to "runas" if the COM interface above does not function

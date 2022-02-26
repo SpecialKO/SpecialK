@@ -27,7 +27,7 @@ static void
 SK_D3D11_DescribeTexFailure (const D3D11_TEXTURE2D_DESC   *__restrict pDesc)
 {
   SK_LOG0 ( (L"Texture Hash Fail: Access Violation [Tex: %lux%lu : %lu LODs :: Array Size %lu"
-             L"Format: %s, Usage: %s, CPUAccess: %x, BindFlags: %s, Misc Flags: %s]",
+             L"Format: %hs, Usage: %hs, CPUAccess: %x, BindFlags: %hs, Misc Flags: %hs]",
                            pDesc->Width,  pDesc->Height,
                        pDesc->MipLevels,  pDesc->ArraySize,
               SK_DXGI_FormatToStr        (pDesc->Format).data (),

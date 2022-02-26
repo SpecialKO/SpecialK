@@ -693,7 +693,7 @@ SK_DrawOSD (void)
                             time,
                               127 );
 
-    static HMODULE hModGame = SK_Modules->HostApp ();
+    static HMODULE hModGame = skModuleRegistry::HostApp ();
     static wchar_t wszGameName [MAX_PATH + 2] = { };
 
     if (wszGameName [0] == L'\0')
@@ -1217,21 +1217,21 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
   {
     if (SK_IsD3D11 ())
     {
-      OSD_R_PRINTF "\n%ws",
+      OSD_R_PRINTF "\n%hs",
         SK::DXGI::getPipelineStatsDesc ().c_str ()
       OSD_END
     }
 
     else if (SK_IsD3D9 ())
     {
-      OSD_R_PRINTF "\n%ws",
+      OSD_R_PRINTF "\n%hs",
         SK::D3D9::getPipelineStatsDesc ().c_str ()
       OSD_END
     }
 
     else if (SK_IsOpenGL ())
     {
-      OSD_R_PRINTF "\n%ws",
+      OSD_R_PRINTF "\n%hs",
         SK::OpenGL::getPipelineStatsDesc ().c_str ()
       OSD_END
     }

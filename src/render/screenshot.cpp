@@ -199,11 +199,11 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
         static_cast <size_t> (_height )
            );
 
-    HDC     hdcSrc  = CreateCompatibleDC (GetDC (nullptr));
-    HDC     hdcDst  = CreateCompatibleDC (GetDC (nullptr));
+    HDC  hdcSrc  = CreateCompatibleDC (GetDC (nullptr));
+    HDC  hdcDst  = CreateCompatibleDC (GetDC (nullptr));
 
-    HBITMAP hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
-    HBITMAP hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
+    auto hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
+    auto hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
 
     BitBlt (hdcDst, 0, 0, _width,
                           _height, hdcSrc, 0, 0, SRCCOPY);
@@ -271,8 +271,8 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
 SK_ScreenshotManager::screenshot_repository_s&
 SK_ScreenshotManager::getRepoStats (bool refresh)
 {
-  auto constexpr _ConstructPath =
-  [&](auto&& path_base, const wchar_t* path_end)
+  static auto _ConstructPath =
+  [](auto&& path_base, const wchar_t* path_end)
   {
     std::array <wchar_t, MAX_PATH + 1>
                      path { };

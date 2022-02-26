@@ -38,8 +38,8 @@ iSK_INI*       macro_ini    = nullptr;
 SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCode;
-SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToHumanKeyName;
-SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>> virtKeyCodeToFullyLocalizedKeyName;
+SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToHumanKeyName;
+SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToFullyLocalizedKeyName;
 
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
 extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
@@ -49,6 +49,16 @@ extern float __target_fps_bg;
 
 class SKWG_D3D11_Pipeline : public SK_Widget { };
 class SKWG_CPU_Monitor    : public SK_Widget { };
+
+extern SKWG_D3D11_Pipeline*  SK_Widget_GetD3D11Pipeline (void);
+extern SKWG_CPU_Monitor*     SK_Widget_GetCPU           (void);
+
+void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+
+UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
+                        const wchar_t* wszDestDir,
+                              bool     replace );
 
 SK_GAME_ID
 __stdcall
@@ -150,13 +160,14 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"yuzu.exe"),                               SK_GAME_ID::yuzu                         },
       { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
       { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
+      { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
     };
 
     first_check = false;
 
 #ifdef _M_AMD64
     // For games that can't be matched using a single executable filename
-    if (! _games.count (hash_lower (SK_GetHostApp ())))
+    if (! _games.contains (hash_lower (SK_GetHostApp ())))
     {
       auto app_id =
         SK_Steam_GetAppID_NoAPI ();
@@ -238,6 +249,24 @@ SK_GetCurrentGameID (void)
     {
       current_game =
         _games [hash_lower (SK_GetHostApp ())];
+
+      if (current_game == SK_GAME_ID::EasyAntiCheat)
+      {
+        ShellExecute (NULL, NULL, L"EldenRing.exe", NULL, NULL, 0);
+        //if (std::filesystem::exists (std::filesystem::path (SK_GetHostPath ()) / L"eldenring.exe"))
+        //{
+        //  STARTUPINFOW        sinfo = { };
+        //  PROCESS_INFORMATION pinfo = { };
+        //
+        //  sinfo.cb          = sizeof (STARTUPINFOW);
+        //  sinfo.wShowWindow = SW_SHOWNORMAL;
+        //  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
+        //
+        //  CreateProcess ( nullptr, L"eldenring.exe", nullptr, nullptr,
+        //                  TRUE,     0x0, nullptr, SK_GetHostPath (),
+        //                  &sinfo,   &pinfo );
+        //}
+      }
     }
   }
 
@@ -973,7 +1002,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
 auto DeclKeybind =
-  [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
+  [](const SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
     auto
     {
       auto* ret =
@@ -1013,10 +1042,11 @@ auto DeclKeybind =
           iSK_INI          *ini_         = nullptr;
     const wchar_t          *section_     = nullptr;
     const wchar_t          *key_         = nullptr;
-  } params_to_build [] =
+  };
 
+  static const std::initializer_list <param_decl_s> params_to_build
   //// nb: If you want any hope of reading this table, turn line wrapping off.
-    //
+  //
   {
     ConfigEntry (osd.version_banner.duration,            L"How long to display version info at startup, 0=disable)",   osd_ini,         L"SpecialK.VersionBanner",L"Duration"),
     ConfigEntry (osd.show,                               L"OSD Visibility",                                            osd_ini,         L"SpecialK.OSD",          L"Show"),
@@ -1500,13 +1530,13 @@ auto DeclKeybind =
     }
   }
 
-  iSK_INI::_TSectionMap& sections =
+  const iSK_INI::_TSectionMap& sections =
     dll_ini->get_sections ();
 
   auto sec =
     sections.cbegin ();
 
-  int import = 0;
+  int import_idx = 0;
 
   auto& host_executable =
     imports->host_executable;
@@ -1533,12 +1563,12 @@ auto DeclKeybind =
   {
     auto& import_ =
       imports->imports
-         [import];
+         [import_idx];
 
-    if ((*sec).first.find (L"Import.") != std::wstring::npos)
+    if (sec->first.find (L"Import.") != std::wstring::npos)
     {
       const wchar_t* wszNext =
-        wcschr ((*sec).first.c_str (), L'.');
+        wcschr (sec->first.c_str (), L'.');
 
       import_.name =
         wszNext != nullptr    ?
@@ -1551,7 +1581,7 @@ auto DeclKeybind =
              );
       import_.filename->register_to_ini (
         dll_ini,
-          (*sec).first,
+          sec->first,
             L"Filename" );
 
       import_.when =
@@ -1561,7 +1591,7 @@ auto DeclKeybind =
              );
       import_.when->register_to_ini (
         dll_ini,
-          (*sec).first,
+          sec->first,
             L"When" );
 
       import_.role =
@@ -1571,7 +1601,7 @@ auto DeclKeybind =
              );
       import_.role->register_to_ini (
         dll_ini,
-          (*sec).first,
+          sec->first,
             L"Role" );
 
       import_.architecture =
@@ -1581,7 +1611,7 @@ auto DeclKeybind =
              );
       import_.architecture->register_to_ini (
         dll_ini,
-          (*sec).first,
+          sec->first,
             L"Architecture" );
 
       import_.blacklist =
@@ -1591,41 +1621,37 @@ auto DeclKeybind =
              );
       import_.blacklist->register_to_ini (
         dll_ini,
-          (*sec).first,
+          sec->first,
             L"Blacklist" );
 
-      ((sk::iParameter *)import_.filename)->load     ();
-      ((sk::iParameter *)import_.when)->load         ();
-      ((sk::iParameter *)import_.role)->load         ();
-      ((sk::iParameter *)import_.architecture)->load ();
-      ((sk::iParameter *)import_.blacklist)->load    ();
+      static_cast <sk::iParameter *> (import_.filename    )->load ();
+      static_cast <sk::iParameter *> (import_.when        )->load ();
+      static_cast <sk::iParameter *> (import_.role        )->load ();
+      static_cast <sk::iParameter *> (import_.architecture)->load ();
+      static_cast <sk::iParameter *> (import_.blacklist   )->load ();
 
       import_.hLibrary = nullptr;
 
-      ++import;
-
-      if (import > SK_MAX_IMPORTS)
+      if (++import_idx > SK_MAX_IMPORTS)
         break;
     }
 
-
-
-    if ((*sec).first.find (L"Macro.") != std::wstring::npos)
+    if (sec->first.find (L"Macro.") != std::wstring::npos)
     {
-      for ( auto& it : (*sec).second.keys )
+      for ( auto &[key_name, command] : sec->second.keys )
       {
-        SK_KeyCommand cmd;
+        SK_KeyCommand
+          cmd = { .binding = { .human_readable = key_name },
+                  .command =                      command };
 
-        cmd.binding.human_readable = it.first;
-        cmd.binding.parse ();
+          cmd.binding.parse ();
 
-        cmd.command = it.second;
-
-        SK_KeyboardMacros->emplace (cmd.binding.masked_code, cmd);
+        SK_KeyboardMacros->emplace (
+                     cmd.binding.masked_code,
+          std::move (cmd)
+        );
       }
     }
-
-
 
     ++sec;
   }
@@ -1663,19 +1689,18 @@ auto DeclKeybind =
 
   while (sec != macro_sections.cend ())
   {
-    if ((*sec).first.find (L"Macro.") != std::wstring::npos)
+    for ( auto &[key_name, command] : sec->second.keys )
     {
-      for ( auto& it : (*sec).second.keys )
-      {
-        SK_KeyCommand cmd;
+      SK_KeyCommand
+        cmd = { .binding = { .human_readable = key_name },
+                .command =                      command };
 
-        cmd.binding.human_readable = it.first;
         cmd.binding.parse ();
 
-        cmd.command = it.second;
-
-        SK_KeyboardMacros->emplace (cmd.binding.masked_code, cmd);
-      }
+      SK_KeyboardMacros->emplace (
+                   cmd.binding.masked_code,
+        std::move (cmd)
+      );
     }
 
     ++sec;
@@ -2184,11 +2209,8 @@ auto DeclKeybind =
       {
         if (! IsProcessDPIAware ())
         {
-          void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-               SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-
-          void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-               SK_Display_SetMonitorDPIAwareness (false);
+          SK_Display_ForceDPIAwarenessUsingAppCompat (true);
+          SK_Display_SetMonitorDPIAwareness          (false);
 
           // Only do this for Steam games, the Microsoft Store Yakuza games
           //   are chronically DPI unaware and broken
@@ -2225,6 +2247,9 @@ auto DeclKeybind =
         config.apis.d3d9.hook                     =  false;
         config.apis.d3d9ex.hook                   =  false;
 
+        SK_Display_ForceDPIAwarenessUsingAppCompat (true);
+        SK_Display_SetMonitorDPIAwareness          (false);
+
         dll_ini->import (L"[Import.ReShade64_Custom]\n"
                          L"Architecture=x64\n"
                          L"Role=Unofficial\n"
@@ -2241,12 +2266,6 @@ auto DeclKeybind =
       {
         if (! IsProcessDPIAware ())
         {
-          void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-               SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-
-          void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-               SK_Display_SetMonitorDPIAwareness (false);
-
           // Oly do this for Steam games, the Microsoft Store Yakuza games
           //   are chronically DPI unaware and broken
           if (StrStrIW (SK_GetHostPath (), L"SteamApps"))
@@ -3313,9 +3332,9 @@ auto DeclKeybind =
     static BOOL bEnumerated =
     EnumDisplayMonitors (nullptr, nullptr, [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam) -> BOOL
     {
-      (void)hDC;
-      (void)lpRect;
-      (void)lParam;
+      std::ignore = hDC;
+      std::ignore = lpRect;
+      std::ignore = lParam;
 
       MONITORINFOEXW
         mi        = {         };
@@ -3418,7 +3437,7 @@ auto DeclKeybind =
   {
     window.preferred_monitor_id->load (config.display.monitor_idx);
 
-    if (config.display.monitor_idx != 0 && config.display.monitor_handle == 0)
+    if (config.display.monitor_idx != 0 && config.display.monitor_handle == nullptr)
     {
       EnumDisplayMonitors ( nullptr, nullptr,
       [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam)
@@ -4068,10 +4087,8 @@ void
 SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
-  extern                   SKWG_D3D11_Pipeline*  SK_Widget_GetD3D11Pipeline (void);
-  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline (   ));
-  extern                   SKWG_CPU_Monitor*     SK_Widget_GetCPU           (void);
-  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           (   ));
+  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
+  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ());
 
   if (name.empty ())
   {
@@ -4322,7 +4339,7 @@ SK_SaveConfig ( std::wstring name,
   }
 
 
-  wchar_t wszFormattedRes [64] = { };
+  wchar_t wszFormattedRes [32] = { };
 
   swprintf ( wszFormattedRes, L"%lux%lu",
                config.window.res.override.x,
@@ -4619,7 +4636,7 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-  
+
   // Special K's AppID belongs to Special K, not this game!
   if (config.steam.appid == 1157970)
   {   config.steam.appid               = 0;
@@ -4839,35 +4856,32 @@ SK_Keybind::parse (void)
   static auto& virtualToHuman = virtKeyCodeToHumanKeyName.get          ();
   static auto& virtualToLocal = virtKeyCodeToFullyLocalizedKeyName.get ();
 
-  auto _PushVirtualToHuman =
-  [&] (BYTE vKey, const wchar_t* wszHumanName) ->
-  void
+  static const auto _PushVirtualToHuman =
+  [] (BYTE vKey_, const wchar_t* wszHumanName)
   {
     auto& pair_builder =
-      virtualToHuman [vKey];
+      virtualToHuman [vKey_];
 
-    wcsncpy_s ( pair_builder, 64,
+    wcsncpy_s ( pair_builder, 32,
                 wszHumanName, _TRUNCATE );
   };
 
-  auto _PushVirtualToLocal =
-  [&] (BYTE vKey, const wchar_t* wszHumanName) ->
-  void
+  static const auto _PushVirtualToLocal =
+  [] (BYTE vKey_, const wchar_t* wszHumanName)
   {
     auto& pair_builder =
-      virtualToLocal [vKey];
+      virtualToLocal [vKey_];
 
-    wcsncpy_s ( pair_builder, 64,
+    wcsncpy_s ( pair_builder, 32,
                 wszHumanName, _TRUNCATE );
   };
 
-  auto _PushHumanToVirtual =
-  [&] (const wchar_t* wszHumanName, BYTE vKey) ->
-  void
+  static const auto _PushHumanToVirtual =
+  [] (const wchar_t* wszHumanName, BYTE vKey_)
   {
     humanToVirtual.emplace (
       hash_string (wszHumanName),
-        vKey
+        vKey_
     );
   };
 
@@ -4875,7 +4889,7 @@ SK_Keybind::parse (void)
   {
     for (int i = 0; i < 0xFF; i++)
     {
-      wchar_t name [64] = { };
+      wchar_t name [32] = { };
 
       switch (i)
       {
@@ -5115,7 +5129,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
     try {
       std::filesystem::path path =
-        std::move (std::wstring (wszExe));
+        std::wstring (wszExe);
 
       while (! std::filesystem::equivalent ( path.parent_path    (),
                                              path.root_directory () ) )
@@ -5223,12 +5237,12 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
     fwd_map =
       app_cache_db->get_section (L"AppID_Cache.FwdMap");
 
-  wchar_t* wszSteamApps =
+  const wchar_t* wszSteamApps =
     StrStrIW ( wszPath, LR"(SteamApps\common\)" );
 
   if (wszSteamApps != nullptr)
   {
-    wchar_t* wszRelPath =
+    const wchar_t* wszRelPath =
     {
       CharNextW (
         StrStrIW (
@@ -5256,10 +5270,8 @@ SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
     name_map =
       app_cache_db->get_section (L"AppID_Cache.Names");
 
-  const std::wstring app_id_as_wstr =
-    std::to_wstring (uiAppID);
-
-  if (     name_map.contains_key (app_id_as_wstr) )
+  if ( std::wstring               app_id_as_wstr = std::to_wstring (uiAppID) ;
+           name_map.contains_key (app_id_as_wstr) )
     return name_map.get_cvalue   (app_id_as_wstr);
 
   return L"";
@@ -5268,7 +5280,8 @@ SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
 std::wstring
 SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
 {
-  uint32_t uiAppID = getAppIDFromPath (wszPath);
+  const uint32_t uiAppID =
+    getAppIDFromPath (wszPath);
 
   if (uiAppID != 0)
   {
@@ -5302,7 +5315,7 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     std::wstring (wszFullPath) + L'\0'
                                );
 
-  wchar_t* wszRelPath =
+  const wchar_t* wszRelPath =
   {
     CharNextW (
       StrStrIW (
@@ -5316,9 +5329,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
               )
   };
 
-
-  wchar_t   wszAppID [32] = { };
-  swprintf (wszAppID, L"%0u", uiAppID);
+  wchar_t     wszAppID [32] = { };
+  swprintf_s (wszAppID, 31, L"%0u", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;
@@ -5389,22 +5401,18 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   return true;
 }
 
-#include <filesystem>
-
 std::wstring
 SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 {
-  uint32_t uiAppID =
-    getAppIDFromPath (wszPath);
-
-  if (uiAppID != 0)
+  if ( auto uiAppID  = getAppIDFromPath (wszPath) ;
+            uiAppID != 0 )
   {
     return
       getConfigPathForAppID (uiAppID);
   }
 
   std::filesystem::path path =
-    std::move (std::wstring (wszPath));
+                     wszPath;
 
   try
   {
@@ -5464,20 +5472,17 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 std::wstring
 SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
 {
-  const wchar_t *wszEpicAppSwitch =
-    StrStrIW (wszCmdLine, L"-epicapp=");
-
-  if (wszEpicAppSwitch != nullptr)
+  if (const wchar_t *wszEpicAppSwitch  = StrStrIW (wszCmdLine, L"-epicapp=");
+                     wszEpicAppSwitch != nullptr)
   {
     wchar_t wszEpicApp [65] = { };
 
     if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
     {
-      std::string szEpicApp =
-        SK_WideCharToUTF8 (wszEpicApp);
-
       return
-        getConfigPathForEpicApp ( szEpicApp.c_str () );
+        getConfigPathForEpicApp (
+          SK_WideCharToUTF8 (wszEpicApp).c_str ()
+        );
     }
   }
 
@@ -5485,6 +5490,24 @@ SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
     SK_GetNaiveConfigPath ();
 }
 
+
+static const
+  std::unordered_set <wchar_t>
+    invalid_file_chars =
+    {
+      L'\\', L'/', L':',
+      L'*',  L'?', L'\"',
+      L'<',  L'>', L'|',
+    //L'&',
+
+      //
+      // Obviously a period is not an invalid character,
+      //   but three of them in a row messes with
+      //     Windows Explorer and some Steam games use
+      //       ellipsis in their titles.
+      //
+      L'.'
+    };
 
 std::wstring
 SK_AppCache_Manager::getAppNameFromEpicApp (const char* szEpicApp) const
@@ -5518,8 +5541,9 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
   if ( app_cache_db == nullptr || (! config.system.central_repository) )
     return SK_GetNaiveConfigPath ();
 
-  std::wstring path = SK_GetNaiveConfigPath (         );
-  std::wstring name ( SK_UTF8ToWideChar (SK::EOS::AppName ()) );//getAppNameFromEpicApp (szEpicApp) );
+  std::wstring path = SK_GetNaiveConfigPath ();
+  std::wstring name =
+    SK_UTF8ToWideChar (SK::EOS::AppName ());
 
   // Non-trivial name = custom path, remove the old-style <program.exe>
   if (! name.empty ())
@@ -5533,48 +5557,9 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
       path.replace (pos, host_app.length (), L"\0");
     }
 
-    name.erase ( std::remove_if ( name.begin (),
-                                  name.end   (),
+    std::erase_if ( name,      [](wchar_t tval) {
+      return invalid_file_chars.contains (tval);} );
 
-                                    [](wchar_t tval)
-                                    {
-                                      static
-                                      const std::unordered_set <wchar_t>
-                                        invalid_file_char =
-                                        {
-                                          L'\\', L'/', L':',
-                                          L'*',  L'?', L'\"',
-                                          L'<',  L'>', L'|',
-                                        //L'&',
-
-                                          //
-                                          // Obviously a period is not an invalid character,
-                                          //   but three of them in a row messes with
-                                          //     Windows Explorer and some Steam games use
-                                          //       ellipsis in their titles.
-                                          //
-                                          L'.'
-                                        };
-
-                                      return
-                                        ( invalid_file_char.find (tval) !=
-                                          invalid_file_char.end  (    ) );
-                                    }
-                                ),
-
-                     name.end ()
-               );
-
-    // Strip trailing spaces from name, these are usually the result of
-    //   deleting one of the non-useable characters above.
-    for (auto it = name.rbegin (); it != name.rend (); ++it)
-    {
-      if (*it == L' ') *it = L'\0';
-      else                   break;
-    }
-
-    // Truncating a std::wstring by inserting L'\0' actually does nothing,
-    //   so construct path by treating name as a C-String.
     path =
       SK_FormatStringW ( LR"(%s\%s\)",
                          path.c_str (),
@@ -5585,12 +5570,8 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
     if (recursing)
       return path;
 
-    DWORD dwAttribs =
-      GetFileAttributesW (original_dir.c_str ());
-
-    //if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
-    if (   dwAttribs != INVALID_FILE_ATTRIBUTES &&
-         ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
+    std::error_code                                  err;
+    if (std::filesystem::is_directory (original_dir, err))
     {
       std::wstring old_ini =
                    dll_ini != nullptr ? dll_ini->get_filename ()
@@ -5607,12 +5588,8 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
           _wcsicmp ( old_ini.c_str (), dll_ini->get_filename ()))
         DeleteFileW (old_ini.c_str ());
 
-      UINT
-      SK_RecursiveMove ( const wchar_t* wszOrigDir,
-                         const wchar_t* wszDestDir,
-                               bool     replace );
-
-      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
+      SK_RecursiveMove ( original_dir.c_str (),
+                                 path.c_str (), false );
     }
   }
 
@@ -5630,7 +5607,7 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
   if ( app_cache_db == nullptr || (! config.system.central_repository) )
     return SK_GetNaiveConfigPath ();
 
-  std::wstring path = SK_GetNaiveConfigPath (       );
+  std::wstring path = SK_GetNaiveConfigPath ();
   std::wstring name ( getAppNameFromID      (uiAppID) );
 
   // Non-trivial name = custom path, remove the old-style <program.exe>
@@ -5645,48 +5622,9 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
       path.replace (pos, host_app.length (), L"\0");
     }
 
-    name.erase ( std::remove_if ( name.begin (),
-                                  name.end   (),
+    std::erase_if ( name,      [](wchar_t tval) {
+      return invalid_file_chars.contains (tval);} );
 
-                                    [](wchar_t tval)
-                                    {
-                                      static
-                                      const std::unordered_set <wchar_t>
-                                        invalid_file_char =
-                                        {
-                                          L'\\', L'/', L':',
-                                          L'*',  L'?', L'\"',
-                                          L'<',  L'>', L'|',
-                                        //L'&',
-
-                                          //
-                                          // Obviously a period is not an invalid character,
-                                          //   but three of them in a row messes with
-                                          //     Windows Explorer and some Steam games use
-                                          //       ellipsis in their titles.
-                                          //
-                                          L'.'
-                                        };
-
-                                      return
-                                        ( invalid_file_char.find (tval) !=
-                                          invalid_file_char.end  (    ) );
-                                    }
-                                ),
-
-                     name.end ()
-               );
-
-    // Strip trailing spaces from name, these are usually the result of
-    //   deleting one of the non-useable characters above.
-    for (auto it = name.rbegin (); it != name.rend (); ++it)
-    {
-      if (*it == L' ') *it = L'\0';
-      else                   break;
-    }
-
-    // Truncating a std::wstring by inserting L'\0' actually does nothing,
-    //   so construct path by treating name as a C-String.
     path =
       SK_FormatStringW ( LR"(%s\%s\)",
                          path.c_str (),
@@ -5697,12 +5635,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
     if (recursing)
       return path;
 
-    DWORD dwAttribs =
-      GetFileAttributesW (original_dir.c_str ());
-
-    //if ( GetFileAttributesW (path.c_str ()) == INVALID_FILE_ATTRIBUTES &&
-    if (   dwAttribs != INVALID_FILE_ATTRIBUTES &&
-         ( dwAttribs & FILE_ATTRIBUTE_DIRECTORY )  )
+    std::error_code                                  err;
+    if (std::filesystem::is_directory (original_dir, err))
     {
       std::wstring old_ini =
                    dll_ini != nullptr ? dll_ini->get_filename ()
@@ -5719,12 +5653,8 @@ SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
           _wcsicmp ( old_ini.c_str (), dll_ini->get_filename ()))
         DeleteFileW (old_ini.c_str ());
 
-      UINT
-      SK_RecursiveMove ( const wchar_t* wszOrigDir,
-                         const wchar_t* wszDestDir,
-                               bool     replace );
-
-      SK_RecursiveMove (original_dir.c_str (), path.c_str (), false);
+      SK_RecursiveMove ( original_dir.c_str (),
+                                 path.c_str (), false );
     }
   }
 
@@ -5743,8 +5673,8 @@ SK_AppCache_Manager::saveAppCache (bool close)
 
     if (close)
     {
-      delete app_cache_db,
-             app_cache_db = nullptr;
+      delete
+        std::exchange (app_cache_db, nullptr);
     }
 
     return true;
@@ -5982,7 +5912,7 @@ SK_AppCache_Manager::wantFriendStats (void)
 
   if (sec.contains_key (L"FetchFromServer"))
   {
-    std::wstring& val =
+    const std::wstring& val =
       sec.get_value    (L"FetchFromServer");
 
     if (val._Equal (L"UseGlobalPreference"))
@@ -6013,7 +5943,7 @@ SK_AppCache_Manager::getLicenseRevision (void)
 
   if (sec.contains_key (L"LastRevision"))
   {
-    std::wstring& val =
+    const std::wstring& val =
       sec.get_value    (L"LastRevision");
 
     return must_show ? 0 :

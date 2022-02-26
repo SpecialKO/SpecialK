@@ -417,7 +417,7 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
 
   if (fmt_new != fmt_orig)
   {
-    SK_LOG0 ((L" >> HDR: Overriding Original Format: '%s' with '%s'",
+    SK_LOG0 ((L" >> HDR: Overriding Original Format: '%hs' with '%hs'",
              SK_DXGI_FormatToStr (fmt_orig).data (),
              SK_DXGI_FormatToStr (fmt_new).data  ()),
              L"   DXGI   ");
@@ -467,144 +467,144 @@ DWORD __stdcall HookDXGI (LPVOID user);
 #define D3D_FEATURE_LEVEL_12_0 0xc000
 #define D3D_FEATURE_LEVEL_12_1 0xc100
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode) noexcept
 {
   switch (mode)
   {
     case DXGI_MODE_SCALING_CENTERED:
-      return L"DXGI_MODE_SCALING_CENTERED";
+      return "DXGI_MODE_SCALING_CENTERED";
     case DXGI_MODE_SCALING_UNSPECIFIED:
-      return L"DXGI_MODE_SCALING_UNSPECIFIED";
+      return "DXGI_MODE_SCALING_UNSPECIFIED";
     case DXGI_MODE_SCALING_STRETCHED:
-      return L"DXGI_MODE_SCALING_STRETCHED";
+      return "DXGI_MODE_SCALING_STRETCHED";
     default:
-      return L"UNKNOWN";
+      return "UNKNOWN";
   }
 }
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order) noexcept
 {
   switch (order)
   {
   case DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED:
-    return L"DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED";
+    return "DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED";
   case DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE:
-    return L"DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE";
+    return "DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE";
   case DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST:
-    return L"DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST";
+    return "DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST";
   case DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST:
-    return L"DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST";
+    return "DXGI_MODE_SCANLINE_ORDER_LOWER_FIELD_FIRST";
   default:
-    return L"UNKNOWN";
+    return "UNKNOWN";
   }
 }
 
 #define DXGI_SWAP_EFFECT_FLIP_DISCARD (DXGI_SWAP_EFFECT)4
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect) noexcept
 {
   switch ((int)swap_effect)
   {
     case DXGI_SWAP_EFFECT_DISCARD:
-      return    L"Discard  (BitBlt)";
+      return    "Discard  (BitBlt)";
     case DXGI_SWAP_EFFECT_SEQUENTIAL:
-      return L"Sequential  (BitBlt)";
+      return "Sequential  (BitBlt)";
     case DXGI_SWAP_EFFECT_FLIP_DISCARD:
-      return    L"Discard  (Flip)";
+      return    "Discard  (Flip)";
     case DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL:
-      return L"Sequential  (Flip)";
+      return "Sequential  (Flip)";
     default:
-      return L"UNKNOWN";
+      return "UNKNOWN";
   }
 }
 
-std::wstring
+std::string
 SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines)
 {
-  std::wstring out;
+  std::string out;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_NONPREROTATED)
-    out += L"Non-Pre Rotated\n", pLines ? (*pLines)++ : 0;
+    out += "Non-Pre Rotated\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH)
-    out += L"Allow Fullscreen Mode Switch\n", pLines ? (*pLines)++ : 0;
+    out += "Allow Fullscreen Mode Switch\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE)
-    out += L"GDI Compatible\n", pLines ? (*pLines)++ : 0;
+    out += "GDI Compatible\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT)
-    out += L"DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT\n", pLines ? (*pLines)++ : 0;
+    out += "DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER)
-    out += L"DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER\n", pLines ? (*pLines)++ : 0;
+    out += "DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    out += L"Latency Waitable\n", pLines ? (*pLines)++ : 0;
+    out += "Latency Waitable\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER)
-    out += L"DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER\n", pLines ? (*pLines)++ : 0;
+    out += "DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)
-    out += L"DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO\n", pLines ? (*pLines)++ : 0;
+    out += "DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO\n", pLines ? (*pLines)++ : 0;
 
   #define DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED 1024
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED)
-    out += L"DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED\n", pLines ? (*pLines)++ : 0;
+    out += "DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED\n", pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-    out += L"Supports Tearing in Windowed Mode\n", pLines ? (*pLines)++ : 0;
+    out += "Supports Tearing in Windowed Mode\n", pLines ? (*pLines)++ : 0;
 
   return out;
 }
 
 
-std::wstring
+std::string
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
                              const DWORD* pFeatureLevels )
 {
   if (FeatureLevels == 0 || pFeatureLevels == nullptr)
-    return L"N/A";
+    return "N/A";
 
-  std::wstring out = L"";
+  std::string out = "";
 
   for (int i = 0; i < FeatureLevels; i++)
   {
     switch (pFeatureLevels [i])
     {
     case D3D_FEATURE_LEVEL_9_1:
-      out += L" 9_1";
+      out += " 9_1";
       break;
     case D3D_FEATURE_LEVEL_9_2:
-      out += L" 9_2";
+      out += " 9_2";
       break;
     case D3D_FEATURE_LEVEL_9_3:
-      out += L" 9_3";
+      out += " 9_3";
       break;
     case D3D_FEATURE_LEVEL_10_0:
-      out += L" 10_0";
+      out += " 10_0";
       break;
     case D3D_FEATURE_LEVEL_10_1:
-      out += L" 10_1";
+      out += " 10_1";
       break;
     case D3D_FEATURE_LEVEL_11_0:
-      out += L" 11_0";
+      out += " 11_0";
       break;
     case D3D_FEATURE_LEVEL_11_1:
-      out += L" 11_1";
+      out += " 11_1";
       break;
     case D3D_FEATURE_LEVEL_12_0:
-      out += L" 12_0";
+      out += " 12_0";
       break;
     case D3D_FEATURE_LEVEL_12_1:
-      out += L" 12_1";
+      out += " 12_1";
       break;
     default:
       out +=
-        SK_FormatStringW (L" Unknown (%u)", pFeatureLevels [i]);
+        SK_FormatString (" Unknown (%u)", pFeatureLevels [i]);
       break;
     }
   }
@@ -1068,34 +1068,34 @@ SK_GetDXGIFactoryInterfaceVer (const IID& riid)
   return -1;
 }
 
-std::wstring
+std::string
 SK_GetDXGIFactoryInterfaceEx (const IID& riid)
 {
-  std::wstring interface_name;
+  std::string interface_name;
 
   if (riid == __uuidof (IDXGIFactory))
-    interface_name =  L"      IDXGIFactory";
+    interface_name =  "      IDXGIFactory";
   else if (riid == __uuidof (IDXGIFactory1))
-    interface_name =  L"     IDXGIFactory1";
+    interface_name =  "     IDXGIFactory1";
   else if (riid == __uuidof (IDXGIFactory2))
-    interface_name =  L"     IDXGIFactory2";
+    interface_name =  "     IDXGIFactory2";
   else if (riid == __uuidof (IDXGIFactory3))
-    interface_name =  L"     IDXGIFactory3";
+    interface_name =  "     IDXGIFactory3";
   else if (riid == __uuidof (IDXGIFactory4))
-    interface_name =  L"     IDXGIFactory4";
+    interface_name =  "     IDXGIFactory4";
   else if (riid == __uuidof (IDXGIFactory5))
-    interface_name =  L"     IDXGIFactory5";
+    interface_name =  "     IDXGIFactory5";
   else if (riid == __uuidof (IDXGIFactory6))
-    interface_name =  L"     IDXGIFactory6";
+    interface_name =  "     IDXGIFactory6";
   else if (riid == __uuidof (IDXGIFactory7))
-    interface_name =  L"     IDXGIFactory7";
+    interface_name =  "     IDXGIFactory7";
   else
   {
     wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
     {
-      interface_name = pwszIID;
+      interface_name = SK_WideCharToUTF8 (pwszIID);
       CoTaskMemFree   (pwszIID);
     }
   }
@@ -1222,7 +1222,7 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
   return -1;
 }
 
-std::wstring
+std::string
 SK_GetDXGIFactoryInterface (gsl::not_null <IUnknown *> pFactory)
 {
   const int iver =
@@ -1252,7 +1252,7 @@ SK_GetDXGIFactoryInterface (gsl::not_null <IUnknown *> pFactory)
   if (iver == 0)
     return SK_GetDXGIFactoryInterfaceEx (__uuidof (IDXGIFactory));
 
-  return L"{Invalid-Factory-UUID}";
+  return "{Invalid-Factory-UUID}";
 }
 
 int
@@ -1274,28 +1274,28 @@ SK_GetDXGIAdapterInterfaceVer (const IID& riid)
   return -1;
 }
 
-std::wstring
+std::string
 SK_GetDXGIAdapterInterfaceEx (const IID& riid)
 {
-  std::wstring interface_name;
+  std::string interface_name;
 
   if (riid == __uuidof (IDXGIAdapter))
-    interface_name = L"IDXGIAdapter";
+    interface_name = "IDXGIAdapter";
   else if (riid == __uuidof (IDXGIAdapter1))
-    interface_name = L"IDXGIAdapter1";
+    interface_name = "IDXGIAdapter1";
   else if (riid == __uuidof (IDXGIAdapter2))
-    interface_name = L"IDXGIAdapter2";
+    interface_name = "IDXGIAdapter2";
   else if (riid == __uuidof (IDXGIAdapter3))
-    interface_name = L"IDXGIAdapter3";
+    interface_name = "IDXGIAdapter3";
   else if (riid == __uuidof (IDXGIAdapter4))
-    interface_name = L"IDXGIAdapter4";
+    interface_name = "IDXGIAdapter4";
   else
   {
     wchar_t *pwszIID = nullptr;
 
     if (SUCCEEDED (StringFromIID (riid, (LPOLESTR *)&pwszIID)))
     {
-      interface_name = pwszIID;
+      interface_name = SK_WideCharToUTF8 (pwszIID);
       CoTaskMemFree   (pwszIID);
     }
   }
@@ -1337,7 +1337,7 @@ SK_GetDXGIAdapterInterfaceVer (gsl::not_null <IUnknown *> pAdapter)
   return -1;
 }
 
-std::wstring
+std::string
 SK_GetDXGIAdapterInterface (gsl::not_null <IUnknown *> pAdapter)
 {
   const int iver =
@@ -1358,7 +1358,7 @@ SK_GetDXGIAdapterInterface (gsl::not_null <IUnknown *> pAdapter)
   if (iver == 0)
     return SK_GetDXGIAdapterInterfaceEx (__uuidof (IDXGIAdapter));
 
-  return L"{Invalid-Adapter-UUID}";
+  return "{Invalid-Adapter-UUID}";
 }
 
 void
@@ -1388,7 +1388,7 @@ typedef HRESULT (WINAPI *IDXGISwapChain4_SetHDRMetaData_pfn)
                          IDXGISwapChain4_SetHDRMetaData_pfn
                          IDXGISwapChain4_SetHDRMetaData_Original = nullptr;
 
-const wchar_t*
+const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 void
@@ -3209,17 +3209,17 @@ struct {
 auto
  _EnumFlagsToStr =
   [](UINT Flags)->
-    std::wstring
-  { std::wstring str;
+    std::string
+  { std::string str;
 
     if (Flags == 0x0)
-    {   str  = L"0x0";
+    {   str  = "0x0";
     } else
     { if ( 0x0 != ( Flags & DXGI_ENUM_MODES_INTERLACED ) )
-        str +=                    L"Interlaced";
+        str +=                    "Interlaced";
       if ( 0x0 != ( Flags & DXGI_ENUM_MODES_SCALING    ) )
-        str += ( str.empty () ?    L"Stretched"
-                              : L" & Stetched" );
+        str += ( str.empty () ?    "Stretched"
+                              : " & Stetched" );
     } return     str;
   };
 
@@ -3242,7 +3242,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
   auto _LogCall = [&](void)
   { DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
-                     L"%08" _L(PRIxPTR) L"h, %ws, %ws, %u, %08"
+                     L"%08" _L(PRIxPTR) L"h, %hs, %hs, %u, %08"
                               _L(PRIxPTR) L"h",
             (uintptr_t)This,
                        SK_DXGI_FormatToStr (EnumFormat).data  (),
@@ -3258,8 +3258,12 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       DXGI_OUTPUT_DESC   desc;
       DXGI_FORMAT      format;
       UINT              flags;
-    } frame = { {}, EnumFormat,
-                        Flags };
+    };
+    
+    callframe_s
+        frame =
+           { { }, EnumFormat,
+                  Flags };
 
     This->GetDesc (&frame.desc);
 
@@ -3424,7 +3428,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       {        UINT idx = 0;
         for ( auto pIt = pDesc ; pIt < pDesc + *pNumModes; ++pIt, ++idx )
         {
-          dll_log->Log ( L"[   DXGI   ]  Mode%03u: %lux%lu [%ws] @ %4.1f Hz",
+          dll_log->Log ( L"[   DXGI   ]  Mode%03u: %lux%lu [%hs] @ %4.1f Hz",
                                               idx,  pIt->Width,
                                                     pIt->Height,
                                SK_DXGI_FormatToStr (pIt->Format).c_str (),
@@ -3778,8 +3782,8 @@ DXGIOutput_FindClosestMatchingMode_Override (
   );
 
   SK_LOG0 (
-    ( L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
-                                           L"Scanlines=%s",
+    ( L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
+                                           L"Scanlines=%hs",
         pModeToMatch->Width, pModeToMatch->Height,
           pModeToMatch->RefreshRate.Denominator != 0 ?
             static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
@@ -4158,7 +4162,7 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
   This->GetDesc      (&swap_desc);
 
   DXGI_LOG_CALL_I5 ( L"   IDXGISwapChain3", L"ResizeBuffers1        ",
-                     L"%u,%u,%u,%s,0x%08X",
+                     L"%u,%u,%u,%hs,0x%08X",
                      BufferCount,
                        Width, Height,
     SK_DXGI_FormatToStr (NewFormat).data (),
@@ -4353,7 +4357,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   This->GetDesc      (&swap_desc);
 
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
-                     L"%u,%u,%u,%s,0x%08X",
+                     L"%u,%u,%u,%hs,0x%08X",
                      BufferCount,
                        Width, Height,
     SK_DXGI_FormatToStr (NewFormat).data (),
@@ -4537,7 +4541,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
   DXGI_LOG_CALL_I6 (
     L"    IDXGISwapChain", L"ResizeTarget         ",
       L"{ (%ux%u@%3.1f Hz),"
-      L"fmt=%s,scaling=0x%02x,scanlines=0x%02x }",
+      L"fmt=%hs,scaling=0x%02x,scanlines=0x%02x }",
                      pNewTargetParameters->Width,
                      pNewTargetParameters->Height,
                      pNewTargetParameters->RefreshRate.Denominator != 0 ?
@@ -4802,7 +4806,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     L"[Swap Chain]  { %ws }\n"
     L"  +-------------+-------------------------------------------------------------------------+\n"
     L"  | Resolution. |  %4lux%4lu @ %6.2f Hz%-50ws|\n"
-    L"  | Format..... |  %-71ws|\n"
+    L"  | Format..... |  %-71hs|\n"
     L"  | Buffers.... |  %-2lu%-69ws|\n"
     L"  | MSAA....... |  %-71ws|\n"
     L"  | Mode....... |  %-71ws|\n"
@@ -5788,7 +5792,9 @@ DXGIFactory_CreateSwapChain_Override (
     return S_OK;
 
   std::wstring iname =
-    SK_GetDXGIFactoryInterface (This);
+    SK_UTF8ToWideChar (
+      SK_GetDXGIFactoryInterface (This)
+    );
 
   if (iname == L"{Invalid-Factory-UUID}")
   {
@@ -6065,7 +6071,9 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
  _In_opt_       IDXGIOutput               *pRestrictToOutput,
     _Out_       IDXGISwapChain1          **ppSwapChain )
 {
-  std::wstring iname = SK_GetDXGIFactoryInterface (This);
+  std::wstring iname = SK_UTF8ToWideChar (
+    SK_GetDXGIFactoryInterface (This)
+  );
 
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (),
@@ -6331,8 +6339,9 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
-  std::wstring iname =
-    SK_GetDXGIFactoryInterface (This);
+  std::wstring iname = SK_UTF8ToWideChar (
+    SK_GetDXGIFactoryInterface (This)
+   );
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
                        L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
@@ -6526,7 +6535,9 @@ _In_opt_       IDXGIOutput            *pRestrictToOutput,
 _Outptr_       IDXGISwapChain1       **ppSwapChain )
 {
   std::wstring iname =
-    SK_GetDXGIFactoryInterface (This);
+    SK_UTF8ToWideChar (
+      SK_GetDXGIFactoryInterface (This)
+    );
 
   // Wrong prototype, but who cares right now? :P
   DXGI_LOG_CALL_I3 ( iname.c_str (),
@@ -6948,7 +6959,9 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
 
   if (! silent)
   {
-    std::wstring iname = SK_GetDXGIFactoryInterface (This);
+    std::wstring iname = SK_UTF8ToWideChar (
+      SK_GetDXGIFactoryInterface (This)
+    );
 
     DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters1         ",
                          L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
@@ -7013,7 +7026,7 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
                                          UINT           Adapter,
                                   _Out_  IDXGIAdapter **ppAdapter)
 {
-  std::wstring iname = SK_GetDXGIFactoryInterface    (This);
+  std::wstring iname = SK_UTF8ToWideChar (SK_GetDXGIFactoryInterface (This));
 
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
                        L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
@@ -7151,13 +7164,13 @@ WINAPI CreateDXGIFactory (REFIID   riid,
       __SK_DXGI_FactoryCache.reset ();
   }
 
-  std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
-  int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
   UNREFERENCED_PARAMETER (iver);
 
   DXGI_LOG_CALL_2 ( L"                    CreateDXGIFactory        ",
-                    L"%s, %08" _L(PRIxPTR) L"h",
+                    L"%hs, %08" _L(PRIxPTR) L"h",
                       iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory_Import == nullptr)
@@ -7214,7 +7227,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   }
 
 
-  std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+  std::wstring iname = SK_UTF8ToWideChar (SK_GetDXGIFactoryInterfaceEx  (riid));
   int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
   UNREFERENCED_PARAMETER (iver);
@@ -7302,13 +7315,13 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
       __SK_DXGI_FactoryCache.reset ();
   }
 
-  std::wstring iname = SK_GetDXGIFactoryInterfaceEx  (riid);
-  int          iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid);
+  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid);
 
   UNREFERENCED_PARAMETER (iver);
 
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
-                    L"0x%04X, %s, %08" _L(PRIxPTR) L"h",
+                    L"0x%04X, %hs, %08" _L(PRIxPTR) L"h",
                       Flags, iname.c_str (), (uintptr_t)ppFactory );
 
   if (CreateDXGIFactory2_Import == nullptr)
@@ -7663,65 +7676,65 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 }
 
 
-const wchar_t*
+const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept
 {
   switch (space)
   {
     case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709:
-      return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
+      return "DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709";
     case DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709:
-      return L"DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
+      return "DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709";
     case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709:
-      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
+      return "DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P709";
     case DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020:
-      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
+      return "DXGI_COLOR_SPACE_RGB_STUDIO_G22_NONE_P2020";
     case DXGI_COLOR_SPACE_RESERVED:
-      return L"DXGI_COLOR_SPACE_RESERVED";
+      return "DXGI_COLOR_SPACE_RESERVED";
     case DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601:
-      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
+      return "DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P601";
     case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601:
-      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
+      return "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P601";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P709";
     case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709:
-      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
+      return "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P709";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_LEFT_P2020";
     case DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_FULL_G22_LEFT_P2020";
     case DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020:
-      return L"DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
+      return "DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_LEFT_P2020";
     case DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020:
-      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
+      return "DXGI_COLOR_SPACE_RGB_STUDIO_G2084_NONE_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G22_TOPLEFT_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G2084_TOPLEFT_P2020";
     case DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020:
-      return L"DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
+      return "DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_GHLG_TOPLEFT_P2020";
     case DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_FULL_GHLG_TOPLEFT_P2020";
     case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709:
-      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
+      return "DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P709";
     case DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020:
-      return L"DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
+      return "DXGI_COLOR_SPACE_RGB_STUDIO_G24_NONE_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P709";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_LEFT_P2020";
     case DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020:
-      return L"DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
+      return "DXGI_COLOR_SPACE_YCBCR_STUDIO_G24_TOPLEFT_P2020";
     case DXGI_COLOR_SPACE_CUSTOM:
-      return L"DXGI_COLOR_SPACE_CUSTOM";
+      return "DXGI_COLOR_SPACE_CUSTOM";
     default:
-      return L"Unknown?!";
+      return "Unknown?!";
   };
 };
 
@@ -7732,7 +7745,7 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace,
   UINT                  *pColorSpaceSupported )
 {
-  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%s) ",
+  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
                 DXGIColorSpaceToStr (ColorSpace) ),
               L"   DXGI   " );
 
@@ -7781,7 +7794,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   BOOL                   bWrapped = FALSE
 )
 {
-  SK_LOG0 ( ( L"[!] IDXGISwapChain3::SetColorSpace1 (%s)",
+  SK_LOG0 ( ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
                    DXGIColorSpaceToStr (ColorSpace) ),
               L"   DXGI   " );
 
@@ -7791,7 +7804,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
                            ColorSpace != rb.scanout.colorspace_override )
   {
-    SK_LOG0 ( ( L" >> HDR: Overriding Original Color Space: '%s' with '%s'",
+    SK_LOG0 ( ( L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
                 DXGIColorSpaceToStr (ColorSpace),
                 DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)
                                         rb.scanout.colorspace_override)
@@ -7960,7 +7973,7 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
         L"  | Device Name.... |  %ws (HMONITOR: %x)\n"
         L"  | Desktop Display |  %ws\n"
         L"  | Bits Per Color. |  %u\n"
-        L"  | Color Space.... |  %s\n"
+        L"  | Color Space.... |  %hs\n"
         L"  | Red Primary.... |  %f, %f\n"
         L"  | Green Primary.. |  %f, %f\n"
         L"  | Blue Primary... |  %f, %f\n"
@@ -8017,11 +8030,11 @@ SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
   }
 }
 
-std::wstring
+std::string
 SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 {
   UNREFERENCED_PARAMETER (fmt);
-  return L"<NOT IMPLEMENTED>";
+  return "<NOT IMPLEMENTED>";
 }
 
 

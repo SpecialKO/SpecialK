@@ -119,7 +119,7 @@ DeadbandState_Target                                                           =
     scePadSetLightBar_pfn              scePadSetLightBar_Detour                = nullptr;
     scePadSetLightBar_pfn              scePadSetLightBar_Original              = nullptr;
     LPVOID                             scePadSetLightBar_Target                = nullptr;
-  } scePad { };
+  } scePad;
 
   Concurrency::concurrent_unordered_map <SK_ScePadHandle, ULONG64> _timeStamps;
 };

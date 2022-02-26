@@ -574,6 +574,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     pHdrColorData->hdrMode                       = inputData->hdrMode;
     pHdrColorData->static_metadata_descriptor_id = inputData->static_metadata_descriptor_id;
 
+    //// std::bit_cast ?
     memcpy ( &pHdrColorData->mastering_display_data,
                  &inputData->mastering_display_data,
           sizeof (inputData->mastering_display_data) );
@@ -632,7 +633,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"<%s> HDR Mode:    %s", pHdrColorData->cmd == NV_HDR_CMD_GET    ? //-V547
+  SK_LOG0 ( ( L"<%s> HDR Mode:    %hs",pHdrColorData->cmd == NV_HDR_CMD_GET    ? //-V547
                                                         L"Get"                 :
                                        pHdrColorData->cmd == NV_HDR_CMD_SET    ?
                                                         L"Set"                 : L"Unknown",

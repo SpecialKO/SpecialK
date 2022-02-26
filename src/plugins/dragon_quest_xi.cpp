@@ -607,9 +607,9 @@ SK_DQXI_PlugInCfg (void)
 
         ImGui::BeginGroup (  );
         ImGui::TreePush   ("");
-        ImGui::Text ( "%ui files using %ws",
+        ImGui::Text ( "%ui files using %hs",
                      repo.files,
-                     SK_File_SizeToString (repo.liSize.QuadPart).data ()
+          SK_WideCharToUTF8 (SK_File_SizeToString (repo.liSize.QuadPart).data ()).c_str ()
         );
 
         if (ImGui::IsItemHovered ())

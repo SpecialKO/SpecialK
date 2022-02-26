@@ -1132,6 +1132,7 @@ enum class SK_GAME_ID
   HaloInfinite,                 // HaloInfinite.exe
   FinalFantasy7Remake,          // ff7remake*.exe
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
+  EasyAntiCheat,                // start_protected_game.exe
   UNKNOWN_GAME               = 0xffff
 };
 
@@ -1169,8 +1170,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 using wstring_hash = size_t;
 
 extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>>           humanKeyNameToVirtKeyCode;
-extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>>           virtKeyCodeToHumanKeyName;
-extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [64]>>  virtKeyCodeToFullyLocalizedKeyName;
+extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>>           virtKeyCodeToHumanKeyName;
+extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>>  virtKeyCodeToFullyLocalizedKeyName;
 extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
 #endif /* __SK__CONFIG_H__ */

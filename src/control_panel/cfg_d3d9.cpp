@@ -279,8 +279,8 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
 
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-      ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
-      ImGui::Text            ("%ws",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
+      ImGui::Text            ("%hs",                SK_D3D9_FormatToStr (pparams.BackBufferFormat).c_str       ());
+      ImGui::Text            ("%hs",                SK_D3D9_FormatToStr (pparams.AutoDepthStencilFormat).c_str ());
       ImGui::Text            ("%ux%u",                                   pparams.BackBufferWidth, pparams.BackBufferHeight);
       ImGui::Text            ("%u",                                      pparams.BackBufferCount);
       if (! pparams.Windowed)
@@ -297,11 +297,11 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
         ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
       else
         ImGui::Text          ("%u: UNKNOWN or Invalid",                  pparams.PresentationInterval);
-      ImGui::Text            ("%ws",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
+      ImGui::Text            ("%hs",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
       ImGui::Text            ("%u",                                      pparams.MultiSampleType);
       if (pparams.Flags != 0)
         ImGui::Text
-                             ("%ws", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ()) ;
+                             ("%hs", SK_D3D9_PresentParameterFlagsToStr (pparams.Flags).c_str ());
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();

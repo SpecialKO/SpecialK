@@ -1460,7 +1460,7 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
                         "Press ESC To Clear Keybind");
     ImGui::Separator   (                            );
 
-    ImGui::Text        ("Binding:  %ws", keybind->human_readable.c_str ());
+    ImGui::Text        ("Binding:  %hs", SK_WideCharToUTF8 (keybind->human_readable).c_str ());
 
     ImGui::EndPopup ();
   }
@@ -1590,7 +1590,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
       return -1;
     }
 
-    ImGui::Text ("Binding:  %ws", unparsed.c_str ());
+    ImGui::Text ("Binding:  %hs", SK_WideCharToUTF8 (unparsed).c_str ());
 
     ImGui::EndPopup ();
   }

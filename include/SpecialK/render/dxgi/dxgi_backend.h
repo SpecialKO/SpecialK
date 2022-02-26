@@ -362,7 +362,7 @@ namespace SK
     bool Startup  (void);
     bool Shutdown (void);
 
-    std::wstring getPipelineStatsDesc (void);
+    std::string getPipelineStatsDesc (void);
 
     //extern HMODULE hModD3D10;
     extern HMODULE hModD3D11;
@@ -435,23 +435,23 @@ extern CreateDXGIFactory_pfn  CreateDXGIFactory_Import;
 extern CreateDXGIFactory1_pfn CreateDXGIFactory1_Import;
 extern CreateDXGIFactory2_pfn CreateDXGIFactory2_Import;
 
-std::wstring_view
+std::string_view
 __stdcall
 SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept;
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode) noexcept;
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeScanlineOrder (DXGI_MODE_SCANLINE_ORDER order) noexcept;
 
-const wchar_t*
+const char*
 SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect) noexcept;
 
-std::wstring
+std::string
 SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags);
 
-std::wstring
+std::string
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
                              const DWORD* pFeatureLevels );
 
@@ -463,25 +463,25 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
 int
 SK_GetDXGIFactoryInterfaceVer (const IID& riid);
 
-std::wstring
+std::string
 SK_GetDXGIFactoryInterfaceEx (const IID& riid);
 
 int
 SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory);
 
-std::wstring
+std::string
 SK_GetDXGIFactoryInterface    (gsl::not_null <IUnknown *> pFactory);
 
 int
 SK_GetDXGIAdapterInterfaceVer (const IID& riid);
 
-std::wstring
+std::string
 SK_GetDXGIAdapterInterfaceEx  (const IID& riid);
 
 int
 SK_GetDXGIAdapterInterfaceVer (gsl::not_null <IUnknown *> pAdapter);
 
-std::wstring
+std::string
 SK_GetDXGIAdapterInterface    (gsl::not_null <IUnknown *> pAdapter);
 
 void        SK_DXGI_QuickHook (void);

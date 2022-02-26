@@ -37,8 +37,8 @@ extern bool __stdcall SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt);
 extern bool           SK_DXGI_IsFormatSRGB       (DXGI_FORMAT fmt);
 extern DXGI_FORMAT    SK_DXGI_MakeFormatSRGB     (DXGI_FORMAT fmt);
 
-extern std::wstring_view __stdcall SK_DXGI_FormatToStr   (DXGI_FORMAT fmt) noexcept;
-extern INT               __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
+extern std::string_view __stdcall SK_DXGI_FormatToStr   (DXGI_FORMAT fmt) noexcept;
+extern INT              __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 
 bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;

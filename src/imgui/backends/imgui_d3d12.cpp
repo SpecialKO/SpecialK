@@ -457,8 +457,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
 
 
-    ThrowIfFailed ( hEvent.m_h > 0 ?
-                              S_OK : E_UNEXPECTED );
+    ThrowIfFailed ( hEvent.m_h != 0 ?
+                               S_OK : E_UNEXPECTED );
 
     // Upload texture to graphics system
     D3D12_HEAP_PROPERTIES
@@ -849,7 +849,7 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
                       D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle,
                       HWND                        hwnd )
 {
-  SK_LOG0 ( ( L"(+) Acquiring D3D12 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
+  SK_LOG0 ( ( L"(+) Acquiring D3D12 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                 device, num_frames_in_flight,
                                       SK_DXGI_FormatToStr (rtv_format).data (),
                                       hwnd ),
@@ -881,7 +881,7 @@ ImGui_ImplDX12_Shutdown (void)
 
   if (_imgui_d3d12.pDevice.p != nullptr)
   {
-    SK_LOG0 ( ( L"(-) Releasing D3D12 Render Context: Device=%08xh, SwapChain: {%ws, HWND=%08xh}",
+    SK_LOG0 ( ( L"(-) Releasing D3D12 Render Context: Device=%08xh, SwapChain: {%hs, HWND=%08xh}",
                                             _imgui_d3d12.pDevice.p,
                        SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).data (),
                                             _imgui_d3d12.hWndSwapChain),
@@ -1025,7 +1025,7 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
                            *(void***)*(&pCmdList), 16,
-                            D3D12GraphicsCommandList_CopyTextureRegion_Detour,
+                           D3D12GraphicsCommandList_CopyTextureRegion_Detour,
                   (void **)&D3D12GraphicsCommandList_CopyTextureRegion_Original );
   }
 }

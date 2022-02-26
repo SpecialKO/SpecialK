@@ -142,18 +142,14 @@ struct SK_XInputContext
     LPVOID                          XInputPowerOff_Target                = nullptr;
 
     uint8_t                         orig_inst_poweroff [7]               =   {   };
-  } XInputUap   { },
-    XInput1_1   { },
-    XInput1_2   { },
-    XInput1_3   { },
-    XInput1_4   { },
-    XInput9_1_0 { },
-    XInput_SK   { };
+  } XInputUap, XInput1_1, XInput1_2,
+    XInput1_3, XInput1_4, XInput9_1_0,
+    XInput_SK;
 
-  std::recursive_mutex cs_poll   [XUSER_MAX_COUNT];
-  std::recursive_mutex cs_haptic [XUSER_MAX_COUNT];
-  std::recursive_mutex cs_hook   [XUSER_MAX_COUNT];
-  std::recursive_mutex cs_caps   [XUSER_MAX_COUNT];
+  std::recursive_mutex cs_poll   [XUSER_MAX_COUNT] = { };
+  std::recursive_mutex cs_haptic [XUSER_MAX_COUNT] = { };
+  std::recursive_mutex cs_hook   [XUSER_MAX_COUNT] = { };
+  std::recursive_mutex cs_caps   [XUSER_MAX_COUNT] = { };
 
   volatile instance_s*              primary_hook                         = nullptr;
   volatile LONG                     primary_level                        = XInputLevel_NONE;
@@ -292,7 +288,7 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                                  SK_XInputContext::instance_s* pCtx )
 {
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == SK_Modules->HostApp () ||
+  if (hModCaller == skModuleRegistry::HostApp () ||
    ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
     InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
 
@@ -2549,7 +2545,7 @@ SK_Input_PreHookXInput (void)
     auto& tests =
       _XInput_ImportsToTry;
 
-    SK_TestImports (SK_Modules->HostApp (), tests, 6);
+    SK_TestImports (skModuleRegistry::HostApp (), tests, 6);
 
     if ( tests [0].used || tests [1].used || tests [2].used ||
          tests [3].used || tests [4].used || tests [5].used )

@@ -41,12 +41,8 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <EnableUnitySupport>true</EnableUnitySupport>
-<<<<<<< HEAD
     <VCToolsVersion>14.32.31114</VCToolsVersion>
-=======
-    <VCToolsVersion>
-    </VCToolsVersion>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
+    <VCToolsVersion>14.32.31114</VCToolsVersion>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -92,6 +88,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\Win32;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK</IncludePath>
     <OutDir>$(SolutionDir)depends\lib\lzma\$(Platform)\</OutDir>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\..\..\include\</IncludePath>
@@ -100,6 +97,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)\..\..\..\include\</IncludePath>
     <OutDir>$(SolutionDir)depends\lib\lzma\$(Platform)\</OutDir>
     <LinkIncremental>false</LinkIncremental>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -232,17 +230,16 @@
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <OmitFramePointers>true</OmitFramePointers>
-<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
-=======
       <GuardEHContMetadata>false</GuardEHContMetadata>
-      <SupportJustMyCode>true</SupportJustMyCode>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -283,24 +280,20 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-<<<<<<< HEAD
-=======
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <AdditionalOptions>/Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-   /Zo</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <BrowseInformation>false</BrowseInformation>
-<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
-=======
       <GuardEHContMetadata>false</GuardEHContMetadata>
-      <SupportJustMyCode>true</SupportJustMyCode>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

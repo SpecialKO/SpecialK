@@ -37,7 +37,7 @@ extern float fSwapWaitRatio;
 
 extern bool SK_GL_OnD3D11;
 
-const wchar_t*
+const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 
@@ -209,14 +209,14 @@ SK_ImGui_DrawTexCache_Chart (void)
 
         ImGui::BeginGroup ();
         if (fully_resident != 0)
-          ImGui::TextColored (ImColor (0.1f, 0.98f, 0.1f),   "\t\t%ws",
-                                      SK_File_SizeToStringF (size_vram,   2, 3, Auto, pTLS).data ());
+          ImGui::TextColored (ImColor (0.1f, 0.98f, 0.1f),   "\t\t%hs",
+                   SK_WideCharToUTF8 (SK_File_SizeToStringF (size_vram,   2, 3, Auto, pTLS).data ()).c_str ());
         if (shared_memory != 0)
-          ImGui::TextColored (ImColor (0.98f, 0.98f, 0.25f), "\t\t%ws",
-                                      SK_File_SizeToStringF (size_shared, 2, 3, Auto, pTLS).data ());
+          ImGui::TextColored (ImColor (0.98f, 0.98f, 0.25f), "\t\t%hs",
+                   SK_WideCharToUTF8 (SK_File_SizeToStringF (size_shared, 2, 3, Auto, pTLS).data ()).c_str ());
         if (on_disk != 0)
-          ImGui::TextColored (ImColor (0.98f, 0.1f, 0.1f),   "\t\t%ws",
-                                      SK_File_SizeToStringF (size_disk,   2, 3, Auto, pTLS).data ());
+          ImGui::TextColored (ImColor (0.98f, 0.1f, 0.1f),   "\t\t%hs",
+                   SK_WideCharToUTF8 (SK_File_SizeToStringF (size_disk,   2, 3, Auto, pTLS).data ()).c_str ());
         ImGui::EndGroup ();
       }
     }
@@ -764,7 +764,7 @@ SK_D3D11_ShowShaderModDlg (void)
 }
 
 
-extern std::wstring
+extern std::string
 SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines = nullptr);
 
 
@@ -785,8 +785,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       static SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
-      INT          swap_flag_count = 0;
-      std::wstring swap_flags      =
+      INT         swap_flag_count = 0;
+      std::string swap_flags      =
         SK_DXGI_DescribeSwapChainFlags (
           static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
                   &swap_flag_count     );
@@ -825,13 +825,13 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-      ImGui::Text            ("%ws",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
+      ImGui::Text            ("%hs",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
       ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
       ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
-        ImGui::Text          ("%ws",        SK_DXGI_DescribeScalingMode (fullscreen_desc.Scaling));
+        ImGui::Text          ("%hs",        SK_DXGI_DescribeScalingMode (fullscreen_desc.Scaling));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
-        ImGui::Text          ("%ws",      SK_DXGI_DescribeScanlineOrder (fullscreen_desc.ScanlineOrdering));
+        ImGui::Text          ("%hs",      SK_DXGI_DescribeScanlineOrder (fullscreen_desc.ScanlineOrdering));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.RefreshRate.Denominator != 0)
         ImGui::Text          ("%.2f Hz",                                 static_cast <float> (fullscreen_desc.RefreshRate.Numerator) /
                                                                          static_cast <float> (fullscreen_desc.RefreshRate.Denominator));
@@ -847,12 +847,12 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  rb.present_interval);
       else
         ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);
-      ImGui::Text            ("%ws",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
+      ImGui::Text            ("%hs",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
       if (swap_desc.Flags != 0)
       {
-        ImGui::Text          ("%ws",                                        swap_flags.c_str ());
+        ImGui::Text          ("%hs",                                        swap_flags.c_str ());
       }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
@@ -897,17 +897,17 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         if (! rb.scanout.nvapi_hdr.active)
         {
           if (_fullscreen)
-            ImGui::Text ("%ws",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
+            ImGui::Text ("%hs",                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dxgi_colorspace));
           else
-            ImGui::Text ("%ws (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
+            ImGui::Text ("%hs (DWM Assigned)", DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.dwm_colorspace));
           ImGui::Text   ("%d", rb.scanout.bpc);
         }
 
         else
         {
-          ImGui::Text ("%ws (%s)", HDRModeToStr (rb.scanout.nvapi_hdr.mode),
+          ImGui::Text ("%hs (%s)", HDRModeToStr (rb.scanout.nvapi_hdr.mode),
                                                  rb.scanout.nvapi_hdr.getFormatStr ());
-          ImGui::Text ("%s",                     rb.scanout.nvapi_hdr.getBpcStr    ());
+          ImGui::Text ("%hs",                    rb.scanout.nvapi_hdr.getBpcStr    ());
         }
       }
       ImGui::PopStyleColor   ();

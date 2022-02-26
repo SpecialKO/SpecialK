@@ -25,7 +25,7 @@
 
 extern iSK_INI* osd_ini;
 
-extern std::wstring
+extern std::string
 SK_CountToString (uint64_t count);
 
 class SKWG_D3D11_Pipeline : public SK_Widget
@@ -103,7 +103,7 @@ public:
         ( szAvg,
             511,
               "Vertex Invocations:\n\n\n"
-              "          min: %ws Invocations,   max: %ws Invocations,   avg: %ws Invocations\n",
+              "          min: %s Invocations,   max: %s Invocations,   avg: %s Invocations\n",
                   SK_CountToString   (static_cast <uint64_t> (pipeline.vertex.verts_invoked.getMin ())).c_str   (),
                     SK_CountToString (max_invoke).c_str                                                         (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.verts_invoked.getAvg ())).c_str () );
@@ -131,7 +131,7 @@ public:
         ( szAvg,
             511,
               "Vertices Input:\n\n\n"
-              "          min: %ws Vertices,   max: %ws Vertices,   avg: %ws Vertices\n",
+              "          min: %s Vertices,   max: %s Vertices,   avg: %s Vertices\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.verts_input.getMin ())).c_str (),
                     SK_CountToString   (max_verts).c_str                                                      (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.verts_input.getAvg ())).c_str () );
@@ -159,7 +159,7 @@ public:
         ( szAvg,
             511,
               "Primitives Assembled:\n\n\n"
-              "          min: %ws Triangles,   max: %ws Triangles,   avg: %ws Triangles\n",
+              "          min: %s Triangles,   max: %s Triangles,   avg: %s Triangles\n",
                   SK_CountToString     (static_cast <uint64_t> (pipeline.vertex.prims_input.getMin ())).c_str (),
                     SK_CountToString   (max_prims).c_str                                                      (),
                       SK_CountToString (static_cast <uint64_t> (pipeline.vertex.prims_input.getAvg ())).c_str () );
@@ -227,7 +227,7 @@ public:
         ( szAvg,
             511,
               "Pixels Shaded:\n\n\n"
-              "          min: %ws Pixels,   max: %ws Pixels,   avg: %ws Pixels\n",
+              "          min: %s Pixels,   max: %s Pixels,   avg: %s Pixels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.raster.pixels_filled.getMin ())).c_str (),
                   SK_CountToString   (max_fill).c_str                                                         (),
                     SK_CountToString (static_cast <uint64_t> (pipeline.raster.pixels_filled.getAvg ())).c_str () );
@@ -261,7 +261,7 @@ public:
         ( szAvg,
             511,
               "Compute Shader Invocations:\n\n\n"
-              "          min: %ws Compels,   max: %ws Compels,   avg: %ws Compels\n",
+              "          min: %s Compels,   max: %s Compels,   avg: %s Compels\n",
                 SK_CountToString     (static_cast <uint64_t> (pipeline.compute.dispatches.getMin ())).c_str (),
                   SK_CountToString   (max_dispatch).c_str                                                   (),
                     SK_CountToString (static_cast <uint64_t> (pipeline.compute.dispatches.getAvg ())).c_str () );

@@ -29,6 +29,8 @@
 #include <regex>
 #include <sddl.h>
 
+#include <SpecialK/render/present_mon/TraceSession.hpp>
+
 #define SK_INVALID_HANDLE nullptr
 
 NtUserSetWindowsHookEx_pfn    NtUserSetWindowsHookEx    = nullptr;
@@ -42,7 +44,7 @@ HMODULE hModHookInstance = nullptr;
 //   This struct will be filled-in when SK boots up using the loose mess of
 //     variables below, in order to make working with that data less insane.
 //
-SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { 0 };
+SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
 static auto constexpr x = sizeof (SK_InjectionRecord_s);
 
@@ -55,35 +57,35 @@ extern "C"
   HHOOK        hHookDebug = nullptr; // Debug hook
   BOOL         bAdmin     = FALSE;   // Is SKIM64 able to inject into admin apps?
 
-  LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                 =  {   0   };
+  LONG         g_sHookedPIDs [MAX_INJECTED_PROCS]                                      =  { };
 
-  wchar_t      __SK_InjectionHistory_name       [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  {   0   };
-  wchar_t      __SK_InjectionHistory_win_title  [MAX_INJECTED_PROC_HISTORY * 128     ] =  {   0   };
-  DWORD        __SK_InjectionHistory_ids        [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_inject     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  __time64_t   __SK_InjectionHistory_eject      [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  bool         __SK_InjectionHistory_crash      [MAX_INJECTED_PROC_HISTORY]            =  { false };
-
-  ULONG64      __SK_InjectionHistory_frames     [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
-  SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { SK_RenderAPI::None };
-  AppId_t      __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  {   0   };
+  wchar_t      __SK_InjectionHistory_name       [MAX_INJECTED_PROC_HISTORY * MAX_PATH] =  { };
+  wchar_t      __SK_InjectionHistory_win_title  [MAX_INJECTED_PROC_HISTORY * 128     ] =  { };
+  DWORD        __SK_InjectionHistory_ids        [MAX_INJECTED_PROC_HISTORY]            =  { };
+  __time64_t   __SK_InjectionHistory_inject     [MAX_INJECTED_PROC_HISTORY]            =  { };
+  __time64_t   __SK_InjectionHistory_eject      [MAX_INJECTED_PROC_HISTORY]            =  { };
+  bool         __SK_InjectionHistory_crash      [MAX_INJECTED_PROC_HISTORY]            =  { };
+                                                                                            
+  ULONG64      __SK_InjectionHistory_frames     [MAX_INJECTED_PROC_HISTORY]            =  { };
+  SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { };
+  AppId_t      __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  { };
   wchar_t      __SK_InjectionHistory_UwpPackage [MAX_INJECTED_PROC_HISTORY *
-                                                         PACKAGE_FULL_NAME_MAX_LENGTH] =  {   0   };
+                                                         PACKAGE_FULL_NAME_MAX_LENGTH] =  { };
 
-  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                 =  0L;
-  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers             =  0L;
+  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::count                     =   0L;
+  __declspec (dllexport) volatile LONG SK_InjectionRecord_s::rollovers                 =   0L;
 
-  __declspec (dllexport)          wchar_t whitelist_patterns [128 * MAX_PATH] = { 0 };
-  __declspec (dllexport)          int     whitelist_count                     =   0;
-  __declspec (dllexport)          wchar_t blacklist_patterns [128 * MAX_PATH] = { 0 };
-  __declspec (dllexport)          int     blacklist_count                     =   0;
-  __declspec (dllexport) volatile LONG    injected_procs                      =   0;
+  __declspec (dllexport)          wchar_t whitelist_patterns [128 * MAX_PATH] = { };
+  __declspec (dllexport)          int     whitelist_count                     =  0;
+  __declspec (dllexport)          wchar_t blacklist_patterns [128 * MAX_PATH] = { };
+  __declspec (dllexport)          int     blacklist_count                     =  0;
+  __declspec (dllexport) volatile LONG    injected_procs                      =  0;
 
   constexpr LONG MAX_HOOKED_PROCS = 262144;
 
   // Recordkeeping on processes with CBT hooks; required to release the DLL
   //   in any process that has become suspended since hook install.
-  volatile LONG  num_hooked_pids                =   0;
+  volatile LONG  num_hooked_pids                =  0;
   volatile DWORD hooked_pids [MAX_HOOKED_PROCS] = { };
 };
 #pragma data_seg ()
@@ -853,9 +855,6 @@ struct {
   void reset   (void)     { bLowPriv = bQuotaFull = false; }
 } static focus_ctx;
 
-
-#include <SpecialK/render/present_mon/TraceSession.hpp>
-
 std::string
 SK_Etw_RegisterSession (const char* szPrefix, bool bReuse)
 {
@@ -1056,7 +1055,7 @@ bool
 IsWindows8OrGreater (void)
 {
   OSVERSIONINFO
-    ovi                     = { 0 };
+    ovi                     = {                    };
     ovi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
 
   GetVersionEx (&ovi);
@@ -1274,9 +1273,9 @@ SK_Inject_SpawnUnloadListener (void)
           //     finite wait time.
           DWORD dwTimeout =
             ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                   0UL : 1250UL;
+                                                   1UL : 2222UL;
 
-          if (dwTimeout != 0UL && GetModuleLoadCount (g_hModule_CBT) > 1)
+          if (dwTimeout !=  1UL && GetModuleLoadCount (g_hModule_CBT) > 1)
               dwTimeout = 150UL;
 
           const DWORD dwWaitState =

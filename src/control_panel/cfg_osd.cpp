@@ -427,12 +427,12 @@ ErrorMessage ( _NvAPI_Status err,
 }
 
 
-std::wstring
+std::string
 SK_NvAPI_GetGPUInfoStr (void)
 {
-  return L"";
+  return "";
 
-  static wchar_t adapters [4096] = { };
+  static char adapters [4096] = { };
 
   if (*adapters != L'\0')
     return adapters;

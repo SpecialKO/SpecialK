@@ -32,7 +32,7 @@ namespace SK
     bool Startup  (void);
     bool Shutdown (void);
 
-    std::wstring
+    std::string
     getPipelineStatsDesc (void);
 
   }

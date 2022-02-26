@@ -307,8 +307,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"locationnotificationwindows.exe"),
   SK_MakeUnicode (L"servicehub.datawarehousehost.exe"),
   SK_MakeUnicode (L"launchtm.exe"),
-  SK_MakeUnicode (L"conhost.exe"),
-  SK_MakeUnicode (L"openconsole.exe"),
   SK_MakeUnicode (L"displayhdrcompliancetests.exe"),
   SK_MakeUnicode (L"scriptedsandbox64.exe"),
 

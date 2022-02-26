@@ -89,7 +89,7 @@ SK_ImGui_Toggle (void);
 extern bool __stdcall SK_FAR_IsPlugIn      (void);
 extern void __stdcall SK_FAR_ControlPanel  (void);
 
-std::wstring
+std::string
 SK_NvAPI_GetGPUInfoStr (void);
 
 void
@@ -130,14 +130,14 @@ static float _fDPIScale = 100.0f;
 void SK_DPI_Update (void)
 {
   using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
-  static GetDpiForSystem_pfn
-         GetDpiForSystem = (GetDpiForSystem_pfn)
+  static
+    auto GetDpiForSystem = (GetDpiForSystem_pfn)
     SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
                                     "GetDpiForSystem" );
 
   using  GetDpiForWindow_pfn = UINT (WINAPI *)(HWND);
-  static GetDpiForWindow_pfn
-         GetDpiForWindow = (GetDpiForWindow_pfn)
+  static
+    auto GetDpiForWindow = (GetDpiForWindow_pfn)
     SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
                                     "GetDpiForWindow" );
 
@@ -408,7 +408,7 @@ SK_ImGui_ProcessWarnings (void)
      )
   {
     ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f),
-                           "\n\t%ws\t\n\n", warning.message.c_str () );
+                           "\n\t%hs\t\n\n", SK_WideCharToUTF8 (warning.message).c_str () );
 
     ImGui::Separator   ();
     ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f), "   " );
@@ -459,12 +459,12 @@ bool  SK_ImGui_UnconfirmedDisplayChanges = false;
 DWORD SK_ImGui_DisplayChangeTime         = 0;
 
 void
-SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVMODEW orig_mode_)
+SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::string display_name_, DEVMODEW orig_mode_)
 {
-  static bool               *pDirty = nullptr;
-  static std::wstring  display_name = L"";
-  static DEVMODEW         orig_mode = { };
-  static DWORD          dwInitiated = DWORD_MAX;
+  static bool              *pDirty = nullptr;
+  static std::string  display_name = "";
+  static DEVMODEW        orig_mode = { };
+  static DWORD         dwInitiated = DWORD_MAX;
 
   // We're initiating
   if (pDirty_ != nullptr)
@@ -486,9 +486,9 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVM
   {
     if (SK_ImGui_DisplayChangeTime < SK_timeGetTime () - 15000)
     {
-      SK_ChangeDisplaySettingsEx (
-                   display_name.c_str (), &orig_mode,
-                                       0, 0x0, nullptr
+      SK_ChangeDisplaySettingsEx (SK_UTF8ToWideChar (
+                   display_name).c_str (), &orig_mode,
+                                        0, 0x0, nullptr
       );
 
       *pDirty = true;
@@ -496,7 +496,7 @@ SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::wstring display_name_, DEVM
       dwInitiated  = DWORD_MAX;
       pDirty       = nullptr;
       orig_mode    = { };
-      display_name = L"";
+      display_name = "";
 
       SK_ImGui_UnconfirmedDisplayChanges = false;
 
@@ -597,22 +597,22 @@ SK_ImGui_ControlPanelTitle (void)
     // TEMP HACK
     static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
 
-    static std::wstring title;
-                        title.clear ();
+    static std::string title;
+                       title.clear ();
 
   //extern std::wstring __stdcall SK_GetPluginName (void);
   //extern bool         __stdcall SK_HasPlugin     (void);
 
     if (SK_HasPlugin () && hModTBFix == (HMODULE)nullptr)
-      title += SK_GetPluginName ();
+      title += SK_WideCharToUTF8 (SK_GetPluginName ());
     else
     {
-      title += L"Special K  (v ";
-      title += SK_GetVersionStrW ();
-      title += L")";
+      title += "Special K  (v ";
+      title += SK_GetVersionStrA ();
+      title += ")";
     }
 
-    title += L"  Control Panel";
+    title += "  Control Panel";
 
     extern __time64_t __SK_DLL_AttachTime;
 
@@ -633,18 +633,18 @@ SK_ImGui_ControlPanelTitle (void)
         SK::EOS::AppName       ()  : "";
 
       if (appname.length ())
-        title += L"      -      ";
+        title += "      -      ";
 
       if (config.platform.show_playtime)
       {
-        snprintf ( szTitle, 511, "%ws%s     (%01u:%02u:%02u)###SK_MAIN_CPL",
+        snprintf ( szTitle, 511, "%hs%hs     (%01u:%02u:%02u)###SK_MAIN_CPL",
                      title.c_str (), appname.c_str (),
                        hours, mins, secs );
       }
 
       else
       {
-        snprintf ( szTitle, 511, "%ws%s###SK_MAIN_CPL",
+        snprintf ( szTitle, 511, "%hs%s###SK_MAIN_CPL",
                      title.c_str (), appname.c_str () );
       }
     }
@@ -653,15 +653,15 @@ SK_ImGui_ControlPanelTitle (void)
     {
       if (config.platform.show_playtime)
       {
-        title += L"      -      ";
+        title += "      -      ";
 
-        snprintf ( szTitle, 511, "%ws(%01u:%02u:%02u)###SK_MAIN_CPL",
+        snprintf ( szTitle, 511, "%hs(%01u:%02u:%02u)###SK_MAIN_CPL",
                      title.c_str (),
                        hours, mins, secs );
       }
 
       else
-        snprintf (szTitle, 511, "%ws###SK_MAIN_CPL", title.c_str ());
+        snprintf (szTitle, 511, "%hs###SK_MAIN_CPL", title.c_str ());
     }
   }
 
@@ -773,7 +773,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   };
 
   static
-   std::wstring display_name; // (i.e. \\DISPLAY0... legacy GDI name)
+   std::string  display_name; // (i.e. \\DISPLAY0... legacy GDI name)
   static list_s      refresh,
                   resolution;
 
@@ -827,7 +827,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       GetMonitorInfo (hMonCurrent, &minfo);
 
       display_name =
-        minfo.szDevice;
+        SK_WideCharToUTF8 (minfo.szDevice);
 
       DEVMODEW dm_now  = { },
                dm_enum = { };
@@ -1044,18 +1044,18 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       dm_orig        = {               };
       dm_orig.dmSize = sizeof (DEVMODEW);
 
-    if (EnumDisplaySettingsW (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    if (EnumDisplaySettingsW (SK_UTF8ToWideChar (display_name).c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
     {
       if ( DISP_CHANGE_SUCCESSFUL ==
-             SK_ChangeDisplaySettingsEx (
-                 display_name.c_str (), &resolution.modes [resolution.idx],
-                                     0, CDS_TEST, nullptr )
+             SK_ChangeDisplaySettingsEx (SK_UTF8ToWideChar (
+                 display_name).c_str (), &resolution.modes [resolution.idx],
+                                      0, CDS_TEST, nullptr )
          )
       {
         if ( DISP_CHANGE_SUCCESSFUL ==
-               SK_ChangeDisplaySettingsEx (
-                   display_name.c_str (), &resolution.modes [resolution.idx],
-                                       0, 0x0/*CDS_UPDATEREGISTRY*/, nullptr)
+               SK_ChangeDisplaySettingsEx (SK_UTF8ToWideChar (
+                   display_name).c_str (), &resolution.modes [resolution.idx],
+                                        0, 0x0/*CDS_UPDATEREGISTRY*/, nullptr)
            )
         {
           if (config.display.resolution.save)
@@ -1083,18 +1083,18 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       dm_orig        = {               };
       dm_orig.dmSize = sizeof (DEVMODEW);
 
-    if (EnumDisplaySettingsW (display_name.c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
+    if (EnumDisplaySettingsW (SK_UTF8ToWideChar (display_name).c_str (), ENUM_CURRENT_SETTINGS, &dm_orig))
     {
       if ( DISP_CHANGE_SUCCESSFUL ==
-             SK_ChangeDisplaySettingsEx (
-                 display_name.c_str (), &refresh.modes [refresh.idx],
-                                     0, CDS_TEST, nullptr )
+             SK_ChangeDisplaySettingsEx (SK_UTF8ToWideChar (
+                 display_name).c_str (), &refresh.modes [refresh.idx],
+                                      0, CDS_TEST, nullptr )
          )
       {
         if ( DISP_CHANGE_SUCCESSFUL ==
-               SK_ChangeDisplaySettingsEx (
-                   display_name.c_str (), &refresh.modes [refresh.idx],
-                                       0, 0/*CDS_UPDATEREGISTRY*/, nullptr)
+               SK_ChangeDisplaySettingsEx (SK_UTF8ToWideChar (
+                   display_name).c_str (), &refresh.modes [refresh.idx],
+                                        0, 0/*CDS_UPDATEREGISTRY*/, nullptr)
            )
         {
           SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
@@ -2372,6 +2372,8 @@ SK_NV_GSYNCControlPanel ()
 }
 
 
+float __SK_ER_Speed = 1.0f;
+
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -2425,7 +2427,7 @@ SK_ImGui_ControlPanel (void)
       {
         if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
         {
-          //ImGui::TextWrapped ("%ws", SK_NvAPI_GetGPUInfoStr ().c_str ());
+          //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
           ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
         }
       }
@@ -3342,7 +3344,7 @@ SK_ImGui_ControlPanel (void)
        {
          ImGui::MenuItem ( "Special K Bootstrapper",
                              SK_FormatString (
-                               "%ws API Wrapper  %s",
+                               "%s API Wrapper  %s",
                                  SK_GetBackend   (),
                                SK_GetVersionStrA ()
                              ).c_str (), ""
@@ -3912,7 +3914,13 @@ SK_ImGui_ControlPanel (void)
 
         bool limit = (__target_fps > 0.0f);
 
-            ImGui::BeginGroup ();
+        if (SK::SteamAPI::AppID () == 1245620)
+        {
+          ImGui::SliderFloat ("Game Speed", &__SK_ER_Speed, 0.8f, 1.2f, "%.3fx");
+        }
+
+        ImGui::BeginGroup ();
+
         if (ImGui::Checkbox ("Framerate Limit", &limit))
         {
           if (__target_fps != 0.0f) // Negative zero... it exists and we don't want it.
@@ -4810,9 +4818,9 @@ SK_ImGui_ControlPanel (void)
       ImGui::BeginGroup (  );
       ImGui::Separator  (  );
       ImGui::TreePush   ("");
-      ImGui::Text ( "%u files using %ws",
+      ImGui::Text ( "%u files using %hs",
                       repo.files,
-                        SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()
+                        SK_WideCharToUTF8 (SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()).c_str ()
                   );
 
       if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())
@@ -5391,7 +5399,8 @@ SK_ImGui_StageNextFrame (void)
     SK_Platform_GetUserName (szName);
 
 
-    ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%ws   ", SK_GetPluginName ().c_str ()); ImGui::SameLine ();
+    ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%hs   ",
+                                                  SK_WideCharToUTF8 (SK_GetPluginName ()).c_str ()); ImGui::SameLine ();
 
     if (*szName != '\0')
     {
@@ -5429,8 +5438,8 @@ SK_ImGui_StageNextFrame (void)
     char current_ver        [128] = { };
     char current_branch_str [ 64] = { };
 
-    snprintf (current_ver,        127, "%ws (%i)", vinfo.package.c_str (), vinfo.build);
-    snprintf (current_branch_str,  63, "%ws",      vinfo.branch.c_str  ());
+    snprintf (current_ver,        127, "%hs (%i)", SK_WideCharToUTF8 (vinfo.package).c_str (), vinfo.build);
+    snprintf (current_branch_str,  63, "%hs",      SK_WideCharToUTF8 (vinfo.branch).c_str  ());
 
     static SK_VersionInfo vinfo_latest =
       SK_Version_GetLatestInfo (nullptr);
@@ -5658,7 +5667,7 @@ SK_ImGui_StageNextFrame (void)
 
   if (SK_ImGui_UnconfirmedDisplayChanges)
   {
-    SK_ImGui_ConfirmDisplaySettings (nullptr, L"", {});
+    SK_ImGui_ConfirmDisplaySettings (nullptr, "", {});
 
     if ( ImGui::BeginPopupModal ( "Confirm Display Setting Changes",
                                     nullptr,
@@ -6097,16 +6106,6 @@ SK_ImGui_Toggle (void)
 
 
 
-
-void
-SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
-                              DXGI_OUTPUT_DESC&              outDesc );
-void
-SK_DXGI_UpdateColorSpace    ( IDXGISwapChain3*   This,
-                              DXGI_OUTPUT_DESC1* outDesc = nullptr );
-
-const wchar_t*
-DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 void
 SK_Display_UpdateOutputTopology (void)

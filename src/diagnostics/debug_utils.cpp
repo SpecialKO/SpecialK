@@ -344,7 +344,7 @@ SetLastError_Detour (
 
   if (dwErrCode != NO_ERROR)
   {
-    if (_ReturnAddress () != SetLastError_Detour)
+    if (_ReturnAddress () != &SetLastError_Detour)
     {
       SK_TLS* pTLS =
         SK_TLS_Bottom ();
@@ -599,25 +599,25 @@ GetProcAddress_Detour     (
     //// Compat Hack No Longer Needed, but is a handy way to disable
     ////   D3D11On12 interop if a game needs pure D3D12 for some reson.
     ////
-    ////if (             *lpProcName == 'D' &&
-    ////     (! lstrcmpA (lpProcName, "D3D11On12CreateDevice")) )
-    ////{
-    ////  if (SK_IsInjected ())
-    ////  {
-    ////    SK_RunOnce (
-    ////      SK_ImGui_WarningWithTitle (
-    ////        SK_FormatStringW (
-    ////          L"The overlay '%ws' uses D3D11On12 and has been disabled to prevent crashing.\r\n\r\n\t\t"
-    ////          L">> Please use Special K in Local Injection mode or turn the third-party overlay off.",
-    ////            SK_GetCallerName ().c_str ()
-    ////        ).c_str (),
-    ////        L"A non-D3D12 native overlay was detected."
-    ////      )
-    ////    );
-    ////
-    ////    return nullptr;
-    ////  }
-    ////}
+    //if (             *lpProcName == 'D' &&
+    //     (! lstrcmpA (lpProcName, "D3D11On12CreateDevice")) )
+    //{
+    //  if (SK_IsInjected ())
+    //  {
+    //    SK_RunOnce (
+    //      SK_ImGui_WarningWithTitle (
+    //        SK_FormatStringW (
+    //          L"The overlay '%ws' uses D3D11On12 and has been disabled to prevent crashing.\r\n\r\n\t\t"
+    //          L">> Please use Special K in Local Injection mode or turn the third-party overlay off.",
+    //            SK_GetCallerName ().c_str ()
+    //        ).c_str (),
+    //        L"A non-D3D12 native overlay was detected."
+    //      )
+    //    );
+    //
+    //    return nullptr;
+    //  }
+    //}
 
  ////   if ( SK_GetCurrentGameID () == SK_GAME_ID::ResidentEvil8 &&
  ////        *lpProcName == 'S'      &&
@@ -2749,6 +2749,19 @@ SK_Exception_HandleThreadName (
         wide_name;
 
 #ifdef _M_AMD64
+      if (StrStrIA (info->szName, "CSCheatDetection"))
+      {
+        //F3 0F11 05 DE7E5A01
+        DWORD dwOldProt = 0x0;
+        uint8_t* pNOP = (uint8_t *)SK_Debug_GetImageBaseAddr () + 0x25A7F22;
+        VirtualProtect (pNOP, 8, PAGE_EXECUTE_READWRITE, &dwOldProt);
+        memcpy (pNOP, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
+        VirtualProtect (pNOP, 8, dwOldProt, &dwOldProt);
+
+        //0x7FF6B0AB9000+25A6F22
+        ////SuspendThread (GetCurrentThread ());
+      }
+
       if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
       {
         SK_AutoHandle hThread (
@@ -3745,7 +3758,7 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     // Only hook if we actually have a debugger present, because
     //   hooking this will be detected by many DRM / anti-debug as
     //    the smoking gun that there is a debugger.
-    if (IsDebuggerPresent ())
+    //if (IsDebuggerPresent ())
     {
       SK_CreateDLLHook2 (    L"kernel32",
                               "CloseHandle",

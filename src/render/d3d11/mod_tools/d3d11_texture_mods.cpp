@@ -494,8 +494,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "");
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press %ws to select the previous texture from this list", virtKeyCodeToHumanKeyName [VK_OEM_4]);
-      ImGui::BulletText   ("Press %ws to select the next texture from this list",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
+      ImGui::BulletText   ("Press %hs to select the previous texture from this list", SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_4]).c_str ());
+      ImGui::BulletText   ("Press %hs to select the next texture from this list",     SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_6]).c_str ());
       ImGui::EndTooltip   ();
     }
 
@@ -777,7 +777,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         ImGui::SameLine        (                  );
         ImGui::BeginGroup      (                  );
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-        ImGui::Text            ( "%ws",
+        ImGui::Text            ( "%hs",
                                    SK_DXGI_FormatToStr (tex_desc.Format).data () );
         ImGui::Text            ( "%08x", entry.crc32c);
         ImGui::Text            ( "%.3f MiB", (float)
@@ -917,13 +917,13 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               ImGui::SameLine        ();
               ImGui::BeginGroup      ();
               ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
-              ImGui::Text            ("%ws", SK_D3D11_DescribeUsage     (
+              ImGui::Text            ("%hs", SK_D3D11_DescribeUsage     (
                                                tex_desc.Usage )             );
-              ImGui::Text            ("%ws", SK_D3D11_DescribeBindFlags (
+              ImGui::Text            ("%hs", SK_D3D11_DescribeBindFlags (
                               (D3D11_BIND_FLAG)tex_desc.BindFlags).c_str () );
               if (tex_desc.MiscFlags != 0)
               {
-                ImGui::Text          ("%ws", SK_D3D11_DescribeMiscFlags (
+                ImGui::Text          ("hs", SK_D3D11_DescribeMiscFlags (
                      (D3D11_RESOURCE_MISC_FLAG)tex_desc.MiscFlags).c_str () );
               }
               ImGui::PopStyleColor   ();

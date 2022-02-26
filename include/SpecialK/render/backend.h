@@ -296,7 +296,7 @@ struct SK_WDDM_CAPS {
   D3DKMT_WDDM_3_0_CAPS _3_0 = { };
 
   void init (void);
-} extern SK_WDDM_SupportedCaps;
+};
 
 typedef enum _KMTQUERYADAPTERINFOTYPE
 {
@@ -607,40 +607,35 @@ extern reset_stage_e         trigger_reset;
 extern mode_change_request_e request_mode_change;
 
 struct sk_hwnd_cache_s
-{
-  HWND    hwnd             = HWND_DESKTOP;
-  HWND    parent           = HWND_DESKTOP;
+{      sk_hwnd_cache_s  (HWND window);
+  HWND    hwnd         = HWND_DESKTOP;
+  HWND    parent       = HWND_DESKTOP;
+  struct
+  { DWORD pid          = 0x0,
+          tid          = 0x0;
+  }       owner;
+  bool    unicode      = false;
+  ULONG64 last_changed = 0ULL;
 
   struct devcaps_s
-  {
-    struct
-    {
-      int    x, y;
-      double refresh;
-    } res { 0, 0, 0.0 };
+  { struct
+    { int    x         =   0;
+      int    y         =   0;
+      double refresh   = 0.0;
+    }        res;
 
-    DWORD last_checked     = 0UL;
+    DWORD last_checked = 0UL;
   } devcaps;
-
-  devcaps_s&
-  getDevCaps (void);
 
   wchar_t class_name [128] = { };
   wchar_t title      [128] = { };
 
-  struct {
-    DWORD pid, tid;
-  }       owner            = { 0, 0 };
+  operator const HWND& (void) const noexcept {
+    return hwnd;
+  };
 
-  bool    unicode          = false;
-
-  ULONG64 last_changed     = 0UL;
-
-
-  sk_hwnd_cache_s (HWND wnd);
-  bool update     (HWND wnd);
-
-  operator const HWND& (void) const noexcept { return hwnd; };
+  devcaps_s& getDevCaps (void);
+  bool       update     (HWND window);
 };
 
 constexpr
@@ -653,15 +648,18 @@ operator"" _Nits ( long double whitepoint_scalar ) noexcept
 
 #pragma pack(push,8)
 struct SK_ColorSpace {
-  float xr, yr,
-        xg, yg,
-        xb, yb,
-        Xw, Yw, Zw;
+  float xr = 0.0f, yr = 0.0f,
+        xg = 0.0f, yg = 0.0f,
+        xb = 0.0f, yb = 0.0f,
+        Xw = 0.0f, Yw = 0.0f, Zw = 0.0f;
 
-  float minY, maxLocalY, maxAverageY, maxY;
+  float minY        = 0.0f,
+        maxLocalY   = 0.0f,
+        maxAverageY = 0.0f,
+        maxY        = 0.0f;
 };
 
-const wchar_t*
+const char*
 HDRModeToStr (NV_HDR_MODE mode);
 
 
@@ -759,6 +757,7 @@ public:
    SK_RenderBackend_V2 (void);
   ~SK_RenderBackend_V2 (void);
 
+  wchar_t                 display_name [128]   = {     };
   SK_ComPtr <IUnknown>    device               = nullptr;
   SK_ComPtr <IUnknown>    swapchain            = nullptr;
   SK_ComPtr <IDXGIFactory1>
@@ -805,71 +804,72 @@ public:
   bool                    srgb_stripped        = false; // sRGB may be stripped from swapchains for advanced features to work
   bool                    hdr_capable          = false;
   bool                    driver_based_hdr     = false;
-  SK_ColorSpace           display_gamut        = { 0.0F }; // EDID
-  SK_ColorSpace           working_gamut        = { 0.0F }; // Metadata range
+  SK_ColorSpace           display_gamut;       // EDID
+  SK_ColorSpace           working_gamut;       // Metadata range
 
   struct output_s {
-    UINT                  idx             =  0;
-    RECT                  rect            = { 0, 0, 0, 0 };
-    int                   bpc             =  8;
-    SK_ColorSpace         gamut           = { };
-    DXGI_COLOR_SPACE_TYPE colorspace      = DXGI_COLOR_SPACE_CUSTOM;
-    bool                  primary         = false;
-
-    struct {
-      bool                enabled         = false;
-      bool                supported       = false;
-      float               white_level     = 80.0f;
-      DISPLAYCONFIG_COLOR_ENCODING
-                          encoding        = DISPLAYCONFIG_COLOR_ENCODING_RGB;
-    } hdr;
-    bool                  attached        = false;
-    wchar_t               name      [64]  =  { };
-    wchar_t               gdi_name  [32]  =  { };
-    wchar_t               path_name [128] =  { };
-    char                  full_name [128] =  { };
-    HMONITOR              monitor         =   0;
-    DISPLAYCONFIG_PATH_INFO
-                          vidpn           =  { };
-    struct native_res_s {
-      uint32_t            width           =   0;
-      uint32_t            height          =   0;
-      DXGI_RATIONAL       refresh         = { 0, 0 };
+    UINT                  idx                  =   0;
+    RECT                  rect                 = { 0, 0,
+                                                   0, 0 };
+    int                   bpc                  =   8;
+    SK_ColorSpace         gamut;
+    DXGI_COLOR_SPACE_TYPE colorspace           = DXGI_COLOR_SPACE_CUSTOM;
+    bool                  primary              = false;
+                                               
+    struct {                                   
+      bool                enabled              = false;
+      bool                supported            = false;
+      float               white_level          = 80.0f;
+      DISPLAYCONFIG_COLOR_ENCODING             
+                          encoding             = DISPLAYCONFIG_COLOR_ENCODING_RGB;
+    } hdr;                                     
+    bool                  attached             = false;
+    wchar_t               name      [64]       =  { };
+    wchar_t               gdi_name  [32]       =  { };
+    wchar_t               path_name [128]      =  { };
+    char                  full_name [128]      =  { };
+    HMONITOR              monitor              =   0;
+    DISPLAYCONFIG_PATH_INFO                    
+                          vidpn                =  { };
+    struct native_res_s {                      
+      uint32_t            width                =   0;
+      uint32_t            height               =   0;
+      DXGI_RATIONAL       refresh              = { 0, 0 };
     } native;
 
     struct nvapi_ctx_s {
-      NvPhysicalGpuHandle gpu_handle      =   0;
-      NvDisplayHandle     display_handle  =   0;
-      NvU32               display_id      =   0;
-      NvU32               output_id       =   0;
+      NvPhysicalGpuHandle gpu_handle           =   0;
+      NvDisplayHandle     display_handle       =   0;
+      NvU32               display_id           =   0;
+      NvU32               output_id            =   0;
     } nvapi;
 
     struct signal_info_s {
-      char                type [32]       = { };
-      UINT                connector_idx   =  0;
+      char                type [32]            = { };
+      UINT                connector_idx        =  0;
 
       struct timing_s {
-        UINT64            pixel_clock     =   0ULL;
-        DXGI_RATIONAL     hsync_freq      = { 0, 0 };
-        DXGI_RATIONAL     vsync_freq      = { 0, 0 };
-        SIZEL             active_size     = { 0, 0 };
-        SIZEL             total_size      = { 0, 0 };
+        UINT64            pixel_clock          =   0ULL;
+        DXGI_RATIONAL     hsync_freq           = { 0, 0 };
+        DXGI_RATIONAL     vsync_freq           = { 0, 0 };
+        SIZEL             active_size          = { 0, 0 };
+        SIZEL             total_size           = { 0, 0 };
 
         union video_standard_s {
           struct additional_info_s {
-            UINT32        videoStandard    : 16;
-            UINT32        vSyncFreqDivider :  6;
-            UINT32        reserved         : 10;
+            UINT32        videoStandard    :16 = 0;
+            UINT32        vSyncFreqDivider : 6 = 0;
+            UINT32        reserved         :10 = 0;
           } _AdditionalSignalInfo;
 
-          UINT32          videoStandard   = 0;
+          UINT32          videoStandard        = 0;
 
           const char*     toStr (void);
         }                 videoStandard;
 
         struct custom_wait_s {
-          HANDLE          hVBlankFront    = nullptr;
-          HANDLE          hVBlankBack     = nullptr;
+          HANDLE          hVBlankFront         = nullptr;
+          HANDLE          hVBlankBack          = nullptr;
         } events;
       } timing;
     } signal;
@@ -892,7 +892,7 @@ public:
       struct {
         NvU32                  supports_YUV422_12bit : 1;
         NvU32                  supports_10b_12b_444  : 2;
-      } color_support_hdr = { };
+      } color_support_hdr                           = { };
 
       struct {
         NvU32                  display_id           = std::numeric_limits <NvU32>::max ();
@@ -908,7 +908,7 @@ public:
         //                     { std::make_tuple ( NV_BPC_DEFAULT,
         //                                         NV_COLOR_FORMAT_DEFAULT,
         //                                         NV_DYNAMIC_RANGE_AUTO ); }
-      } raw = { };
+      } raw;
 
       NV_HDR_MODE              mode                 = NV_HDR_MODE_OFF;
       NV_COLOR_FORMAT          color_format         = NV_COLOR_FORMAT_DEFAULT;
@@ -965,7 +965,7 @@ public:
 
         return dynamic_range_map [dynamic_range];
       }
-    } nvapi_hdr = { };
+    } nvapi_hdr;
 
     enum SK_HDR_TRANSFER_FUNC
     {
@@ -993,8 +993,6 @@ public:
   // Set of displays that SK has enabled HDR on, so we can turn it back
   //   off if user wants
   std::set <output_s *> hdr_enabled_displays;
-
-  wchar_t                 display_name [128]   = { };
 
            bool checkHDRState (void); ///< Call in response to WM_DISPLAYCHANGE
   __inline void setHDRCapable (bool set) noexcept { hdr_capable = set; }
@@ -1026,7 +1024,7 @@ public:
 
 
   struct latency_monitor_s {
-    void submitQueuedFrame (IDXGISwapChain1* pSwapChain);
+    bool stale = true;
 
     struct {
         DXGI_FRAME_STATISTICS frameStats0   = {   };
@@ -1034,23 +1032,26 @@ public:
         UINT                  lastPresent   =     0;
         ULONGLONG             lastFrame     =  0ULL;
     } counters;
+
     struct {
         UINT                 PresentQueue   =     0;
         UINT                    SyncDelay   =     0;
         float                     TotalMs   =  0.0F;
     } delays;
+
     struct {
         float                 AverageMs     =  0.0F;
         float                     MaxMs     =  0.0F;
         float                   ScaleMs     = 99.0F;
         float                 History [120] = {   };
     } stats;
-
-    bool stale = true;
+    
+    void submitQueuedFrame (IDXGISwapChain1 *pSwapChain);
   } static latency;
 
+
   struct frame_delta_s {
-    ULONG64  lastFrame = 0ULL;
+    LONGLONG lastFrame =  0LL;
     ULONG64  lastDelta = 0ULL;
 
     ULONG64 getDeltaTime (void) noexcept
@@ -1061,13 +1062,13 @@ public:
 
     void    markFrame    (void) noexcept
     {
-      ULONG64 thisFrame =
+      LONGLONG thisFrame =
         SK_QueryPerf ().QuadPart;
 
       lastDelta =
         ( thisFrame - lastFrame );
-
-      lastFrame = thisFrame;
+      lastFrame =
+          thisFrame;
     }
   } frame_delta;
 
@@ -1077,10 +1078,10 @@ public:
   struct window_registry_s
   {
     // Most input processing happens in this HWND's message pump
-    sk_hwnd_cache_s       focus                = { HWND_DESKTOP };
+    sk_hwnd_cache_s       focus      { HWND_DESKTOP };
 
     // Defines the client rectangle and not much else
-    sk_hwnd_cache_s       device               = { HWND_DESKTOP };
+    sk_hwnd_cache_s       device     { HWND_DESKTOP };
 
     // This Unity engine is so terrible at window management that we need
     //   to flag the game and start disabling features!
@@ -1160,17 +1161,17 @@ public:
           }
 
   struct gsync_s
-  {
-    void update (bool force = false);
+  { void update (bool force = false);
 
-    BOOL                  capable      = FALSE;
-    BOOL                  active       = FALSE;
-    BOOL                  disabled     = FALSE;
-    DWORD                 last_checked = 0;
+    BOOL  capable      = FALSE;
+    BOOL  active       = FALSE;
+    BOOL  disabled     = FALSE;
+    DWORD last_checked = 0;
   } gsync_state;
 
 
-  SK_ScreenshotManager    screenshot_mgr;
+  SK_ScreenshotManager
+     screenshot_mgr;
 
 
   //
@@ -1495,7 +1496,7 @@ typedef struct
     {
       SK_MONITOR_CAPS_VSDB vsdb;
       SK_MONITOR_CAPS_VCDB vcdb;
-    } data;
+    } data = { };
   } SK_MONITOR_CAPABILITIES;
 
 

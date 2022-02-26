@@ -46,6 +46,13 @@ SK_WDDM_CAPS SK_WDDM_SupportedCaps;
 extern void
 SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
 
+extern void
+SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
+
+bool SK_Display_IsDPIAwarenessUsingAppCompat (void);
+void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+
 double
 SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 {
@@ -1355,19 +1362,19 @@ SK_GetFramesDrawn_NonInline (void)
 }
 
 
-const wchar_t*
+const char*
 HDRModeToStr (NV_HDR_MODE mode)
 {
   switch (mode)
   {
-    case NV_HDR_MODE_OFF:              return L"Off";
-    case NV_HDR_MODE_UHDA:             return L"HDR10";
-    case NV_HDR_MODE_EDR:              return L"Extended Dynamic Range";
-    case NV_HDR_MODE_SDR:              return L"Standard Dynamic Range";
-    case NV_HDR_MODE_DOLBY_VISION:     return L"Dolby Vision";
-    case NV_HDR_MODE_UHDA_PASSTHROUGH: return L"HDR10 Pass through";
-    case NV_HDR_MODE_UHDA_NB:          return L"Notebook HDR";
-    default:                           return L"Invalid";
+    case NV_HDR_MODE_OFF:              return "Off";
+    case NV_HDR_MODE_UHDA:             return "HDR10";
+    case NV_HDR_MODE_EDR:              return "Extended Dynamic Range";
+    case NV_HDR_MODE_SDR:              return "Standard Dynamic Range";
+    case NV_HDR_MODE_DOLBY_VISION:     return "Dolby Vision";
+    case NV_HDR_MODE_UHDA_PASSTHROUGH: return "HDR10 Pass through";
+    case NV_HDR_MODE_UHDA_NB:          return "Notebook HDR";
+    default:                           return "Invalid";
   };
 };
 
@@ -2071,17 +2078,12 @@ SK_Display_DisableDPIScaling (void)
 {
   if (! IsProcessDPIAware ())
   {
-    bool SK_Display_IsDPIAwarenessUsingAppCompat (void);
-
     bool bWasAppCompatAware =
       SK_Display_IsDPIAwarenessUsingAppCompat ();
 
     // Persistently disable DPI scaling problems so that initialization order doesn't matter
-    void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-         SK_Display_ForceDPIAwarenessUsingAppCompat (true);
-
-    void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-         SK_Display_SetMonitorDPIAwareness (false);
+    SK_Display_ForceDPIAwarenessUsingAppCompat (true);
+    SK_Display_SetMonitorDPIAwareness          (false);
 
     if ((! bWasAppCompatAware) && SK_Display_IsDPIAwarenessUsingAppCompat ())
     {
@@ -2221,7 +2223,7 @@ const uint8_t
   edid_v1_descriptor_flag [] =
     { 0x00, 0x00 };
 
-const wchar_t*
+const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 #define EDID_LENGTH                        0x80
@@ -2665,9 +2667,9 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
         swprintf ( display.name, edid_name.empty () ?
                                     LR"(%ws (%ws))" :
                                       L"%hs",
-                     edid_name.empty () ?
+                     edid_name.empty ()       ?
                        disp_desc.DeviceString :
-            (WCHAR *)edid_name.c_str (),
+      (const WCHAR *)edid_name.c_str (),
                          disp_desc.DeviceName );
       }
     }
@@ -2819,13 +2821,12 @@ sizeof (output_s));
     {
       // Windows tends to cache this stuff, we're going to build our own with
       //   more up-to-date values instead.
-      DXGI_OUTPUT_DESC1 uncachedOutDesc;
-      uncachedOutDesc.BitsPerColor = pContainer->bpc;
-      uncachedOutDesc.ColorSpace   = pContainer->colorspace;
+      DXGI_OUTPUT_DESC1
+        uncachedOutDesc;
+        uncachedOutDesc.BitsPerColor = pContainer->bpc;
+        uncachedOutDesc.ColorSpace   = pContainer->colorspace;
 
       SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
-
-      extern void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
 
       if (config.render.dxgi.temporary_dwm_hdr)
       {
@@ -3769,7 +3770,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
         L"  | Desktop Display. |  %ws%ws\n"
         L"  | Bits Per Color.. |  %u\n"
-        L"  | Color Space..... |  %s\n"
+        L"  | Color Space..... |  %hs\n"
         L"  | Red Primary..... |  %f, %f\n"
         L"  | Green Primary... |  %f, %f\n"
         L"  | Blue Primary.... |  %f, %f\n"
@@ -4089,7 +4090,7 @@ SK_NV_AdaptiveSyncControl (void)
           else lastChecked = SK_timeGetTime () + 333;
         }
 
-        ImGui::Text       ("Adaptive Sync Status for %ws", rb.display_name);
+        ImGui::Text       ("Adaptive Sync Status for %hs", SK_WideCharToUTF8 (rb.display_name).c_str ());
         ImGui::Separator  ();
         ImGui::BeginGroup ();
         ImGui::Text       ("Current State:");

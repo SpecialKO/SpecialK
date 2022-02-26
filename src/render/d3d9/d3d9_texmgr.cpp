@@ -1875,7 +1875,7 @@ SK::D3D9::TextureManager::deleteDumpedTexture (D3DFORMAT fmt, uint32_t checksum)
     wchar_t wszPath     [MAX_PATH + 2] = { };
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
+    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%hs",
                  SK_D3D11_res_root->c_str (),
                    SK_GetHostApp (),
                      SK_D3D9_FormatToStr (fmt, false).c_str () );
@@ -1920,7 +1920,7 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
     wchar_t wszPath     [MAX_PATH + 2] = { };
     wchar_t wszFileName [MAX_PATH + 2] = { };
 
-    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%s",
+    swprintf ( wszPath, L"%s\\dump\\textures\\%s\\%hs",
                  SK_D3D11_res_root->c_str (),
                    SK_GetHostApp (),
                      SK_D3D9_FormatToStr (fmt_real, false).c_str () );

@@ -395,7 +395,7 @@ SK_D3D11_ChecksumShaderBytecode (
   _In_ const void   *pShaderBytecode,
   _In_       SIZE_T  BytecodeLength  );
 
-std::wstring
+std::string
 SK_D3D11_DescribeResource (ID3D11Resource* pRes);
 
 
@@ -2062,10 +2062,10 @@ HookD3D11 (LPVOID user);
 int  SK_D3D11_PurgeHookAddressCache  (void);
 void SK_D3D11_UpdateHookAddressCache (void);
 
-const wchar_t* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage)  noexcept;
-const wchar_t* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter) noexcept;
-std::wstring   SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
-std::wstring   SK_D3D11_DescribeBindFlags (/*D3D11_BIND_FLAG*/UINT  flags);
+const char* SK_D3D11_DescribeUsage     (D3D11_USAGE              usage)  noexcept;
+const char* SK_D3D11_DescribeFilter    (D3D11_FILTER             filter) noexcept;
+std::string SK_D3D11_DescribeMiscFlags (D3D11_RESOURCE_MISC_FLAG flags);
+std::string SK_D3D11_DescribeBindFlags (/*D3D11_BIND_FLAG*/UINT  flags);
 
 
 constexpr int VERTEX_SHADER_STAGE   = 0;

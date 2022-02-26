@@ -365,7 +365,7 @@ SK::ControlPanel::Steam::Draw (void)
           ImGui::SameLine        ();
 
           ImGui::BeginGroup      ();
-          ImGui::Text            ( "%ws", &it.path.c_str ()[found + 1] );
+          ImGui::Text            ( "%hs", SK_WideCharToUTF8 (&it.path.c_str ()[found + 1]).c_str () );
 
           if (denuvo_files->size () > idx)
           {

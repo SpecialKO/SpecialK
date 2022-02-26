@@ -20,9 +20,9 @@
 **/
 
 #include <SpecialK/stdafx.h>
-
-
 #include <SpecialK/control_panel/plugins.h>
+
+#include <filesystem>
 
 extern iSK_INI* dll_ini;
 
@@ -96,7 +96,7 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   if (ImGui::IsItemHovered ())
   {
     if (GetFileAttributesW (path) == INVALID_FILE_ATTRIBUTES)
-      ImGui::SetTooltip ("Please install %s to %ws", name.c_str (), path);
+      ImGui::SetTooltip ("Please install %s to %hs", name.c_str (), std::filesystem::path (path).c_str ());
   }
 
   if (ini->contains_section (import_name))

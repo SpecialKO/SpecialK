@@ -979,9 +979,9 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
   if (file_names.size ( ) > 2)
   {
     static std::string self_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules->Self ()));
+      SK_WideCharToUTF8 (SK_GetModuleName (skModuleRegistry::Self ()));
     static std::string host_ansi =
-      SK_WideCharToUTF8 (SK_GetModuleName (SK_Modules->HostApp ()));
+      SK_WideCharToUTF8 (SK_GetModuleName (skModuleRegistry::HostApp ()));
 
 
     ImGui::PushStyleColor (ImGuiCol_Text,   (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.99f));
@@ -1214,7 +1214,8 @@ public:
 
     static
       std::once_flag init_once;
-    std::call_once ( init_once, [&](void)
+    std::call_once ( init_once,
+    [this]()
     {
       k32SetThreadInformation =
         (SetThreadInformation_pfn)SK_GetProcAddress (
@@ -1762,7 +1763,7 @@ public:
           _com_error err (error_state.code & 0xFFFF);
 
           ImGui::BeginGroup ();
-          ImGui::Text       ("\t0x%04lx (%ws)", (error_state.code & 0xFFFF), err.ErrorMessage ());
+          ImGui::Text       ("\t0x%04lx (%hs)", (error_state.code & 0xFFFF), SK_WideCharToUTF8 (err.ErrorMessage ()).c_str ());
           ImGui::EndGroup   ();
 
           ImGui::BeginGroup ();
@@ -2474,7 +2475,7 @@ public:
         ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.472222f, 0.23f, 0.91f));
 
       if (it.second->name.length () > 1)
-        ImGui::Text ("%ws", it.second->name.c_str ());
+        ImGui::Text ("%hs", SK_WideCharToUTF8 (it.second->name).c_str ());
       else
       {
         NTSTATUS  ntStatus;

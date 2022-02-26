@@ -465,8 +465,8 @@ SK::ControlPanel::Compatibility::Draw (void)
         ImGui::BeginGroup();
         ImGui::Text      ( "Focus"                                         );
         ImGui::Text      ( "%6p",          rb.windows.focus.hwnd           );
-        ImGui::Text      ( "%ws",          rb.windows.focus.class_name     );
-        ImGui::Text      ( "%ws",          rb.windows.focus.title          );
+        ImGui::Text      ( "%hs", SK_WideCharToUTF8 (rb.windows.focus.class_name).c_str () );
+        ImGui::Text      ( "%hs", SK_WideCharToUTF8 (rb.windows.focus.title).c_str      () );
         ImGui::Text      ( "%8lu",         rb.windows.focus.owner.pid      );
         ImGui::Text      ( "%8lu",         rb.windows.focus.owner.tid      );
         ImGui::Text      ( "%8lu",         rb.windows.focus.last_changed   );
@@ -495,8 +495,8 @@ SK::ControlPanel::Compatibility::Draw (void)
           ImGui::BeginGroup();
           ImGui::Text      ( "Device"                                        );
           ImGui::Text      ( "%6p",          rb.windows.device.hwnd          );
-          ImGui::Text      ( "%ws",          rb.windows.device.class_name    );
-          ImGui::Text      ( "%ws",          rb.windows.device.title         );
+          ImGui::Text      ( "%hs", SK_WideCharToUTF8 (rb.windows.device.class_name).c_str () );
+          ImGui::Text      ( "%hs", SK_WideCharToUTF8 (rb.windows.device.title).c_str      () );
           ImGui::Text      ( "%8lu",         rb.windows.device.owner.pid     );
           ImGui::Text      ( "%8lu",         rb.windows.device.owner.tid     );
           ImGui::Text      ( "%8lu",         rb.windows.device.last_changed  );

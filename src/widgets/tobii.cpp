@@ -148,7 +148,7 @@ void
 SK_Tobii_URL_Receiver ( char const* url,
                               void* user_data )
 {
-  char* buffer =
+  auto buffer =
     (char *)user_data;
 
   if (buffer != nullptr)
@@ -791,7 +791,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
       return;
     }
 
-  char url [256] = { 0 };
+  char url [256] = { };
 
   error =
     tobii_enumerate_local_device_urls ( api,

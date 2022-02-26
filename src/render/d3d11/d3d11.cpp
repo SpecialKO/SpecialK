@@ -638,12 +638,12 @@ SK_D3D11_ChecksumShaderBytecode ( _In_ const void   *pShaderBytecode,
   return ret;
 }
 
-std::wstring
+std::string
 SK_D3D11_DescribeResource (ID3D11Resource* pRes)
 {
   if (pRes == nullptr)
   {
-    return L"N/A";
+    return "N/A";
   }
 
   D3D11_RESOURCE_DIMENSION rDim;
@@ -652,7 +652,7 @@ SK_D3D11_DescribeResource (ID3D11Resource* pRes)
   switch (rDim)
   {
     case D3D11_RESOURCE_DIMENSION_BUFFER:
-      return L"Buffer";
+      return "Buffer";
       break;
 
     case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
@@ -665,7 +665,7 @@ SK_D3D11_DescribeResource (ID3D11Resource* pRes)
           pTex2D->GetDesc (&desc);
 
       return (
-        SK_FormatStringW ( L"Tex2D: (%lux%lu): %s { %s/%s }",
+        SK_FormatString ( "Tex2D: (%lux%lu): %hs { %hs/%hs }",
           desc.Width,
           desc.Height, SK_DXGI_FormatToStr (desc.Format)   . data (),
                     SK_D3D11_DescribeUsage (desc.Usage),
@@ -674,7 +674,7 @@ SK_D3D11_DescribeResource (ID3D11Resource* pRes)
     } break;
 
     default:
-      return L"Other";
+      return "Other";
   }
 };
 
@@ -1701,7 +1701,7 @@ SK_D3D11_CopyResource_Impl (
           {
             SK_ImGui_Warning (
               SK_FormatStringW (
-                L"HDR Format Mismatch During CopyResource: Src=%ws, Dst=%ws",
+                L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
                   SK_DXGI_FormatToStr (src_desc.Format).data (),
                   SK_DXGI_FormatToStr (dst_desc.Format).data ()
               ).c_str ()
@@ -4497,7 +4497,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
             if (config.system.log_level > 4)
             {
-              dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
+              dll_log->Log ( L"HDR Override [ Orig Fmt: %hs, New Fmt: %hs ]",
                 SK_DXGI_FormatToStr (pDesc->Format).                 data (),
                 SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
             }
@@ -4543,7 +4543,7 @@ D3D11Dev_CreateTexture2D_Impl (
                 {
                   if (config.system.log_level > 4)
                   {
-                    dll_log->Log ( L"HDR Override [ Orig Fmt: %s, New Fmt: %s ]",
+                    dll_log->Log ( L"HDR Override [ Orig Fmt: %hs, New Fmt: %hs ]",
                       SK_DXGI_FormatToStr (pDesc->Format).                 data (),
                       SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
                   }
@@ -6701,7 +6701,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   SK_D3D11_Init ();
 
   dll_log->LogEx ( true,
-                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %s\n",
+                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %hs\n",
                        FeatureLevels,
                          SK_DXGI_FeatureLevelsToStr (
                            FeatureLevels,
@@ -6746,7 +6746,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       L"[Swap Chain]\n"
       L"  +-------------+-------------------------------------------------------------------------+\n"
       L"  | Resolution. |  %4lux%4lu @ %6.2f Hz%-50ws|\n"
-      L"  | Format..... |  %-71ws|\n"
+      L"  | Format..... |  %-71hs|\n"
       L"  | Buffers.... |  %-2lu%-69ws|\n"
       L"  | MSAA....... |  %-71ws|\n"
       L"  | Mode....... |  %-71ws|\n"

@@ -54,11 +54,11 @@ struct IUnknown;
 
 void SK_D3D9_QuickHook (void);
 
-std::wstring  SK_D3D9_FormatToStr                (D3DFORMAT Format, bool include_ordinal);
-std::wstring  SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
-std::wstring  SK_D3D9_SwapEffectToStr            (D3DSWAPEFFECT Effect);
+std::string   SK_D3D9_FormatToStr                (D3DFORMAT Format, bool include_ordinal);
+std::string   SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
+std::string   SK_D3D9_SwapEffectToStr            (D3DSWAPEFFECT Effect);
 INT __stdcall SK_D3D9_BytesPerPixel              (D3DFORMAT Format);
-std::wstring  SK_D3D9_UsageToStr                 (DWORD dwUsage);
+std::string   SK_D3D9_UsageToStr                 (DWORD dwUsage);
 DXGI_FORMAT   SK_D3D9_FormatToDXGI               (D3DFORMAT format);
 
 namespace SK   {
@@ -290,7 +290,7 @@ namespace SK
     bool Startup  (void);
     bool Shutdown (void);
 
-    std::wstring WINAPI getPipelineStatsDesc (void);
+    std::string WINAPI getPipelineStatsDesc (void);
 
     struct PipelineStatsD3D9 {
       struct StatQueryD3D9 {
@@ -698,19 +698,19 @@ using D3D9Device_CreateAdditionalSwapChain_pfn = HRESULT (STDMETHODCALLTYPE *)
 
 
 
-std::wstring
+std::string
 SK_D3D9_UsageToStr (DWORD dwUsage);
 
-std::wstring
+std::string
 SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal = true);
 
-const wchar_t*
+const char*
 SK_D3D9_PoolToStr (D3DPOOL pool);
 
-std::wstring
+std::string
 SK_D3D9_SwapEffectToStr (D3DSWAPEFFECT Effect);
 
-std::wstring
+std::string
 SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags);
 
 void

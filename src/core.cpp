@@ -85,7 +85,7 @@ struct init_params_s {
 init_params_s&
 SKX_GetInitParams (void)
 {
-  static init_params_s params;
+  static init_params_s params = { };
   return               params;
 };
 
@@ -99,7 +99,7 @@ SK_GetInitParams (void)
 wchar_t*
 SKX_GetBackend (void)
 {
-  static wchar_t SK_Backend [     128    ] = { };
+  static wchar_t SK_Backend [128] = { };
   return         SK_Backend;
 }
 
@@ -455,7 +455,7 @@ void SK_FetchBuiltinSounds (void)
   PathAppendW ( wszArchive,          L"builtin.7z" );
 
   SK_RunOnce (
-  SK_Network_EnqueueDownload ( 
+  SK_Network_EnqueueDownload (
     sk_download_request_s (wszArchive, R"(https://sk-data.special-k.info/sounds/builtin.7z)",
       []( const std::vector <uint8_t>&& data,
           const std::wstring_view       file ) -> bool
@@ -1006,7 +1006,7 @@ DllThread (LPVOID user)
     {
       SK_D3D_SetupShaderCompiler ();
 
-      WritePointerRelease ( const_cast <void **> (&hInitThread),
+      WritePointerRelease ( (volatile PVOID *)(&hInitThread),
                               INVALID_HANDLE_VALUE );
       WriteULongRelease   (                       &dwInitThreadId,
                               0                    );
@@ -1293,7 +1293,7 @@ SK_GetDebugSymbolPath (void)
 
 
     std::wstring symbol_file =
-      SK_GetModuleFullName (SK_Modules->Self ());
+      SK_GetModuleFullName (skModuleRegistry::Self ());
 
     wchar_t wszSelfName    [MAX_PATH + 2] = { };
     wchar_t wszGenericName [MAX_PATH + 2] = { };
@@ -1377,7 +1377,7 @@ SK_GetDebugSymbolPath (void)
     std::wstring
       stripped (symbol_file);
       stripped =
-        SK_ConcealUserDir ((wchar_t *)stripped.c_str ());
+        SK_ConcealUserDir (stripped.data ());
 
 
     if (GetFileAttributesW (symbol_file.c_str ()) != INVALID_FILE_ATTRIBUTES)
@@ -2648,11 +2648,10 @@ SK_MMCS_BeginBufferSwap (void)
     {
       if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
       {
-        if (first)
+        //if (first)
           task->setPriority (AVRT_PRIORITY_CRITICAL);
-        else
+        //else
           //task->setPriority (AVRT_PRIORITY_HIGH); // Assymetric priority is not desirable
-          task->setPriority (AVRT_PRIORITY_CRITICAL);
       }
 
       else
@@ -2978,6 +2977,19 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_GetCurrentRenderBackend ();
 
   rb.frame_delta.markFrame ();
+
+#ifdef _WIN64
+  if (SK::SteamAPI::AppID () == 1245620)
+  {
+    static float* fAddr =
+      (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE08);
+         extern float __SK_ER_Speed;
+        *fAddr = __SK_ER_Speed * static_cast <float> (
+             std::max (0.000001, static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+                                 static_cast <double> (SK_QpcFreq)));
+  }
+#endif
+
 
   auto _FrameTick = [&](void) -> void
   {

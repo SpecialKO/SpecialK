@@ -106,10 +106,10 @@ SK_D3D11_UpdateRenderStats (IDXGISwapChain* pSwapChain)
   SK_D3D11_UpdateRenderStatsEx (pSwapChain);
 }
 
-std::wstring
+std::string
 SK_CountToString (uint64_t count)
 {
-  wchar_t str [64] = { };
+  char str [64] = { };
 
   unsigned int unit = 0;
 
@@ -121,17 +121,17 @@ SK_CountToString (uint64_t count)
   switch (unit)
   {
     case 1000000000UL:
-      swprintf (str, L"%6.2f Billion ", (float)count / (float)unit);
+      sprintf (str, "%6.2f Billion ", (float)count / (float)unit);
       break;
     case 1000000UL:
-      swprintf (str, L"%6.2f Million ", (float)count / (float)unit);
+      sprintf (str, "%6.2f Million ", (float)count / (float)unit);
       break;
     case 1000UL:
-      swprintf (str, L"%6.2f Thousand", (float)count / (float)unit);
+      sprintf (str, "%6.2f Thousand", (float)count / (float)unit);
       break;
     case 1UL:
     default:
-      swprintf (str, L"%15llu", count);
+      sprintf (str, "%15llu", count);
       break;
   }
 
@@ -147,15 +147,15 @@ SK_D3D11_SetPipelineStats (void* pData) noexcept
 }
 
 void
-SK_D3D11_GetVertexPipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetVertexPipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.VSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"  VERTEX : %s   (%s Verts ==> %s Triangles)",
+    sprintf ( szDesc,
+                "  VERTEX : %s   (%s Verts ==> %s Triangles)",
                   SK_CountToString (stats.VSInvocations).c_str (),
                     SK_CountToString (stats.IAVertices).c_str (),
                       SK_CountToString (stats.IAPrimitives).c_str () );
@@ -163,68 +163,68 @@ SK_D3D11_GetVertexPipelineDesc (wchar_t* wszDesc)
 
   else
   {
-    swprintf ( wszDesc,
-                L"  VERTEX : <Unused>" );
+    sprintf ( szDesc,
+                "  VERTEX : <Unused>" );
   }
 }
 
 void
-SK_D3D11_GetGeometryPipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetGeometryPipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.GSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"%s  GEOM   : %s   (%s Prims)",
-                  std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                "%s  GEOM   : %s   (%s Prims)",
+                  std::string (szDesc).c_str (),
                     SK_CountToString (stats.GSInvocations).c_str (),
                       SK_CountToString (stats.GSPrimitives).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                L"%s  GEOM   : <Unused>",
-                  std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                "%s  GEOM   : <Unused>",
+                  std::string (szDesc).c_str () );
   }
 }
 
 void
-SK_D3D11_GetTessellationPipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetTessellationPipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"%s  TESS   : %s Hull ==> %s Domain",
-                  std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                "%s  TESS   : %s Hull ==> %s Domain",
+                  std::string (szDesc).c_str (),
                     SK_CountToString (stats.HSInvocations).c_str (),
                       SK_CountToString (stats.DSInvocations).c_str () ) ;
   }
 
   else
   {
-    swprintf ( wszDesc,
-                L"%s  TESS   : <Unused>",
-                  std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                "%s  TESS   : <Unused>",
+                  std::string (szDesc).c_str () );
   }
 }
 
 void
-SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetRasterPipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.CInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
-                  std::wstring (wszDesc).c_str (), 100.0 *
+    sprintf ( szDesc,
+                "%s  RASTER : %5.1f%% Filled     (%s Triangles IN )",
+                  std::string (szDesc).c_str (), 100.0 *
                       ( static_cast <double> (stats.CPrimitives) /
                         static_cast <double> (stats.CInvocations) ),
                     SK_CountToString (stats.CInvocations).c_str () );
@@ -232,91 +232,91 @@ SK_D3D11_GetRasterPipelineDesc (wchar_t* wszDesc)
 
   else
   {
-    swprintf ( wszDesc,
-                L"%s  RASTER : <Unused>",
-                  std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                "%s  RASTER : <Unused>",
+                  std::string (szDesc).c_str () );
   }
 }
 
 void
-SK_D3D11_GetPixelPipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetPixelPipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.PSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"%s  PIXEL  : %s   (%s Triangles OUT)",
-                  std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                "%s  PIXEL  : %s   (%s Triangles OUT)",
+                  std::string (szDesc).c_str (),
                     SK_CountToString (stats.PSInvocations).c_str (),
                       SK_CountToString (stats.CPrimitives).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                L"%s  PIXEL  : <Unused>",
-                  std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                "%s  PIXEL  : <Unused>",
+                  std::string (szDesc).c_str () );
   }
 }
 
 void
-SK_D3D11_GetComputePipelineDesc (wchar_t* wszDesc)
+SK_D3D11_GetComputePipelineDesc (char* szDesc)
 {
   const D3D11_QUERY_DATA_PIPELINE_STATISTICS& stats =
      SK::DXGI::pipeline_stats_d3d11.last_results;
 
   if (stats.CSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                L"%s  COMPUTE: %s",
-                  std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                "%s  COMPUTE: %s",
+                  std::string (szDesc).c_str (),
   SK_CountToString (stats.CSInvocations).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                L"%s  COMPUTE: <Unused>",
-                  std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                "%s  COMPUTE: <Unused>",
+                  std::string (szDesc).c_str () );
   }
 }
 
-std::wstring
+std::string
 SK::DXGI::getPipelineStatsDesc (void)
 {
-  wchar_t wszDesc [1024] = { };
+  char szDesc [1024] = { };
 
   //
   // VERTEX SHADING
   //
-  SK_D3D11_GetVertexPipelineDesc (wszDesc);       lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetVertexPipelineDesc (szDesc);       lstrcatA (szDesc, "\n");
 
   //
   // GEOMETRY SHADING
   //
-  SK_D3D11_GetGeometryPipelineDesc (wszDesc);     lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetGeometryPipelineDesc (szDesc);     lstrcatA (szDesc, "\n");
 
   //
   // TESSELLATION
   //
-  SK_D3D11_GetTessellationPipelineDesc (wszDesc); lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetTessellationPipelineDesc (szDesc); lstrcatA (szDesc, "\n");
 
   //
   // RASTERIZATION
   //
-  SK_D3D11_GetRasterPipelineDesc (wszDesc);       lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetRasterPipelineDesc (szDesc);       lstrcatA (szDesc, "\n");
 
   //
   // PIXEL SHADING
   //
-  SK_D3D11_GetPixelPipelineDesc (wszDesc);        lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetPixelPipelineDesc (szDesc);        lstrcatA (szDesc, "\n");
 
   //
   // COMPUTE
   //
-  SK_D3D11_GetComputePipelineDesc (wszDesc);      lstrcatW (wszDesc, L"\n");
+  SK_D3D11_GetComputePipelineDesc (szDesc);      lstrcatA (szDesc, "\n");
 
-  return wszDesc;
+  return szDesc;
 }

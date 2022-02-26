@@ -115,6 +115,7 @@
     <LinkIncremental>false</LinkIncremental>
     <MultiProcFXC>true</MultiProcFXC>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <TargetName>SpecialK64</TargetName>
@@ -128,6 +129,7 @@
     <MultiProcFXC>true</MultiProcFXC>
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
     <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -364,26 +366,22 @@
       <EnableModules>false</EnableModules>
       <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)  /Zo</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
-      <ConformanceMode>false</ConformanceMode>
+      <ConformanceMode>true</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-<<<<<<< HEAD
       <SupportJustMyCode>false</SupportJustMyCode>
       <OmitFramePointers>true</OmitFramePointers>
-=======
-      <SupportJustMyCode>true</SupportJustMyCode>
+      <SupportJustMyCode>false</SupportJustMyCode>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <OmitFramePointers>true</OmitFramePointers>
       <GuardEHContMetadata>false</GuardEHContMetadata>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <FloatingPointModel>Fast</FloatingPointModel>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -476,7 +474,6 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <EnablePREfast>false</EnablePREfast>
       <ShowIncludes>false</ShowIncludes>
@@ -484,20 +481,18 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <EnableModules>true</EnableModules>
+      <EnableModules>false</EnableModules>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <ConformanceMode>false</ConformanceMode>
-<<<<<<< HEAD
+      <ConformanceMode>true</ConformanceMode>
       <SupportJustMyCode>false</SupportJustMyCode>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-=======
-      <SupportJustMyCode>true</SupportJustMyCode>
+      <SupportJustMyCode>false</SupportJustMyCode>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <GuardEHContMetadata>false</GuardEHContMetadata>
->>>>>>> 73dddd11068b5990fba0a39cf94bbd8dd3730ce0
       <BrowseInformation>false</BrowseInformation>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1530,9 +1525,11 @@
     </ClCompile>
     <ClCompile Include="src\plugins\ac_valhalla.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\cyberpunk2077.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\dragon_quest_xi.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -1545,6 +1542,7 @@
     </ClCompile>
     <ClCompile Include="src\plugins\monster_hunter_world.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\nier_√1.5.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -1585,6 +1583,7 @@
     </ClCompile>
     <ClCompile Include="src\plugins\ys8.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\popups\achievement.cpp" />
     <ClCompile Include="src\process.cpp">

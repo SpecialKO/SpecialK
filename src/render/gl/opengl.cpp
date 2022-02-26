@@ -3136,13 +3136,13 @@ SK_GL_UpdateRenderStats (void)
   }
 }
 
-extern std::wstring
+extern std::string
 SK_CountToString (uint64_t count);
 
-std::wstring
+std::string
 SK::OpenGL::getPipelineStatsDesc (void)
 {
-  wchar_t wszDesc [1024];
+  char szDesc [1024];
 
   D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { };
 
@@ -3166,8 +3166,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.VSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
+    sprintf ( szDesc,
+                 "  VERTEX : %s   (%s Verts ==> %s Triangles)\n",
                    SK_CountToString (stats.VSInvocations).c_str (),
                      SK_CountToString (stats.IAVertices).c_str (),
                        SK_CountToString (stats.IAPrimitives).c_str () );
@@ -3175,8 +3175,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
   else
   {
-    swprintf ( wszDesc,
-                 L"  VERTEX : <Unused>\n" );
+    sprintf ( szDesc,
+                 "  VERTEX : <Unused>\n" );
   }
 
   //
@@ -3184,18 +3184,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.GSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"%s  GEOM   : %s   (%s Prims)\n",
-                   std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                 "%s  GEOM   : %s   (%s Prims)\n",
+                   std::string (szDesc).c_str (),
                      SK_CountToString (stats.GSInvocations).c_str (),
                        SK_CountToString (stats.GSPrimitives).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  GEOM   : <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  GEOM   : <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
   //
@@ -3203,18 +3203,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.HSInvocations > 0 || stats.DSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"%s  TESS   : %s Hull ==> %s Domain\n",
-                   std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                 "%s  TESS   : %s Hull ==> %s Domain\n",
+                   std::string (szDesc).c_str (),
                      SK_CountToString (stats.HSInvocations).c_str (),
                        SK_CountToString (stats.DSInvocations).c_str () ) ;
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  TESS   : <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  TESS   : <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
   //
@@ -3222,9 +3222,9 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.CInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
-                   std::wstring (wszDesc).c_str (), 100.0f *
+    sprintf ( szDesc,
+                 "%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
+                   std::string (szDesc).c_str (), 100.0f *
                        ( static_cast <long double> (stats.CPrimitives) /
                          static_cast <long double> (stats.CInvocations) ),
                      SK_CountToString (stats.CInvocations).c_str () );
@@ -3232,9 +3232,9 @@ SK::OpenGL::getPipelineStatsDesc (void)
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  RASTER : <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  RASTER : <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
   //
@@ -3242,18 +3242,18 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.PSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"%s  PIXEL  : %s   (%s Triangles OUT)\n",
-                   std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                 "%s  PIXEL  : %s   (%s Triangles OUT)\n",
+                   std::string (szDesc).c_str (),
                      SK_CountToString (stats.PSInvocations).c_str (),
                        SK_CountToString (stats.CPrimitives).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  PIXEL  : <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  PIXEL  : <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
   //
@@ -3261,19 +3261,19 @@ SK::OpenGL::getPipelineStatsDesc (void)
   //
   if (stats.CSInvocations > 0)
   {
-    swprintf ( wszDesc,
-                 L"%s  COMPUTE: %s\n",
-                   std::wstring (wszDesc).c_str (), SK_CountToString (stats.CSInvocations).c_str () );
+    sprintf ( szDesc,
+                 "%s  COMPUTE: %s\n",
+                   std::string (szDesc).c_str (), SK_CountToString (stats.CSInvocations).c_str () );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  COMPUTE: <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  COMPUTE: <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
-  return wszDesc;
+  return szDesc;
 }
 
 

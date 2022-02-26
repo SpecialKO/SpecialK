@@ -1727,7 +1727,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
     DXGI_SWAP_CHAIN_DESC  swapDesc = { };
     pSwapChain->GetDesc (&swapDesc);
 
-    SK_LOG0 ( ( L"(+) Acquiring D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
+    SK_LOG0 ( ( L"(+) Acquiring D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                 pDevice,             swapDesc.BufferCount,
                 SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
                                      swapDesc.OutputWindow ),

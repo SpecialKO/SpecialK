@@ -479,21 +479,21 @@ SK_ImGui_DrawGraph_FramePacing (void)
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
-  if (! rb.latency.stale)
+  if (! SK_RenderBackend_V2::latency.stale)
   {
-    rb.latency.stats.MaxMs =
-      *std::max_element ( std::begin (rb.latency.stats.History),
-                          std::end   (rb.latency.stats.History) );
-    rb.latency.stats.ScaleMs =
-     std::max ( 99.0f, rb.latency.stats.MaxMs );
+    SK_RenderBackend_V2::latency.stats.MaxMs =
+      *std::max_element ( std::begin (SK_RenderBackend_V2::latency.stats.History),
+                          std::end   (SK_RenderBackend_V2::latency.stats.History) );
+                       SK_RenderBackend_V2::latency.stats.ScaleMs =
+     std::max ( 99.0f, SK_RenderBackend_V2::latency.stats.MaxMs );
 
     // ...
 
-    rb.latency.stats.AverageMs =
+    SK_RenderBackend_V2::latency.stats.AverageMs =
       std::accumulate (
-        std::begin ( rb.latency.stats.History ),
-        std::end   ( rb.latency.stats.History ), 0.0f )
-      / std::size  ( rb.latency.stats.History );
+        std::begin ( SK_RenderBackend_V2::latency.stats.History ),
+        std::end   ( SK_RenderBackend_V2::latency.stats.History ), 0.0f )
+      / std::size  ( SK_RenderBackend_V2::latency.stats.History );
 
     snprintf
       ( szAvg,
@@ -503,12 +503,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
           u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
               sum / frames,
                 target_frametime,
-                    rb.latency.delays.PresentQueue,
-                    rb.latency.delays.PresentQueue != 1 ?
-                                                   "s " : "  ",
-                      rb.latency.stats.AverageMs,
-                      rb.latency.stats.MaxMs,
-                        rb.latency.delays.SyncDelay,
+                    SK_RenderBackend_V2::latency.delays.PresentQueue,
+                    SK_RenderBackend_V2::latency.delays.PresentQueue != 1 ?
+                                                                     "s " : "  ",
+                      SK_RenderBackend_V2::latency.stats.AverageMs,
+                      SK_RenderBackend_V2::latency.stats.MaxMs,
+                      SK_RenderBackend_V2::latency.delays.SyncDelay,
             (double)max - (double)min,
                     1000.0f / (sum / frames),
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
@@ -550,12 +550,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
   ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                             "###Floating_LatencyHistogram",
-                           rb.latency.stats.History,
-                             IM_ARRAYSIZE (rb.latency.stats.History),
+                           SK_RenderBackend_V2::latency.stats.History,
+             IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History),
                                SK_GetFramesDrawn () % 120,
                                  "",
                                    0,
-                                     rb.latency.stats.ScaleMs,
+                           SK_RenderBackend_V2::latency.stats.ScaleMs,
                                       border_dims );
   ImGui::PopStyleColor  ();
 

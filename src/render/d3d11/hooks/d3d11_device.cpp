@@ -213,7 +213,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
               override = true;
 
-              SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+              SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
                             cache_desc.crc32c,
                        SK_DXGI_FormatToStr (pDesc->Format).data      (),
                                 SK_DXGI_FormatToStr (newFormat).data () ),
@@ -388,7 +388,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
             if (config.system.log_level > 0)
               SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
 
-            SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%s', Now: '%s' }",
+            SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
                           cache_desc.crc32c,
                      SK_DXGI_FormatToStr (pDesc->Format).data      (),
                               SK_DXGI_FormatToStr (newFormat).data () ),
@@ -657,7 +657,7 @@ D3D11Dev_CreateTexture2D_Override (
 
   //if (pDesc && pDesc->Usage == D3D11_USAGE_STAGING)
   //{
-  //  dll_log.Log ( L"Code Origin ('%s') - Staging: %lux%lu - Format: %s, CPU Access: %x, Misc Flags: %x",
+  //  dll_log.Log ( L"Code Origin ('%s') - Staging: %lux%lu - Format: %hs, CPU Access: %x, Misc Flags: %x",
   //                  SK_GetCallerName ().c_str (), pDesc->Width, pDesc->Height,
   //                  SK_DXGI_FormatToStr          (pDesc->Format).c_str (),
   //                         pDesc->CPUAccessFlags, pDesc->MiscFlags );

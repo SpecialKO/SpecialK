@@ -231,9 +231,9 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
       std::wstring freq =
         user_prefs.get_value (L"Frequency");
 
-      wchar_t h [3] = { L"0" },
-              d [3] = { L"0" },
-              w [3] = { L"0" };
+      wchar_t h [3] = { },
+              d [3] = { },
+              w [3] = { };
 
       swscanf ( freq.c_str (), L"%3[^h]h", h );
 
@@ -717,9 +717,9 @@ SK_FetchVersionInfo2 ( const wchar_t* wszProduct,
       std::wstring freq =
         user_prefs.get_value (L"Frequency");
 
-      wchar_t h [3] = { L"0" },
-              d [3] = { L"0" },
-              w [3] = { L"0" };
+      wchar_t h [3] = { },
+              d [3] = { },
+              w [3] = { };
 
       swscanf ( freq.c_str (), L"%3[^h]h", h );
 
@@ -1247,7 +1247,7 @@ SK_Version_GetAvailableBranches (const wchar_t* wszProduct)
 uint64_t
 SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
 {
-  uint64_t update_freq = MAXULONGLONG;
+  auto update_freq = MAXULONGLONG;
 
   UNREFERENCED_PARAMETER (wszProduct);
   //if (wszProduct == nullptr)
@@ -1266,9 +1266,9 @@ SK_Version_GetUpdateFrequency (const wchar_t* wszProduct)
     std::wstring freq =
       user_prefs.get_value (L"Frequency");
 
-    wchar_t h [3] = { L"0" },
-            d [3] = { L"0" },
-            w [3] = { L"0" };
+    wchar_t h [3] = { },
+            d [3] = { },
+            w [3] = { };
 
     swscanf ( freq.c_str (), L"%3[^h]h", h );
 
@@ -1412,20 +1412,21 @@ SK_Version_GetLatestBranchInfo_V1 (const wchar_t* wszProduct, const char* szBran
       iSK_INISection& branch_sec =
         repo_ini.get_section (wszFormatted);
 
-      auto ParseInstallPackage = [](const char* szBranch, const wchar_t*) ->
-        SK_VersionInfo_V1
-          {
-            SK_VersionInfo_V1 vinfo1;
+      auto ParseInstallPackage =
+      [](const char* szInstallBranch, const wchar_t*)
+      {
+        SK_VersionInfo_V1 vinfo1;
 
-            vinfo1.branch  = SK_UTF8ToWideChar (szBranch);
+        vinfo1.branch  =
+          SK_UTF8ToWideChar (szInstallBranch);
 
-            wchar_t wszPackage_ [128] = { };
-            swscanf (vinfo1.package.c_str (), L"%127[^,],%i", wszPackage_, &vinfo1.build);
+        wchar_t wszPackage_ [128] = { };
+        swscanf (vinfo1.package.c_str (), L"%127[^,],%i", wszPackage_, &vinfo1.build);
 
-            vinfo1.package = wszPackage_;
+        vinfo1.package = wszPackage_;
 
-            return vinfo1;
-          };
+        return vinfo1;
+      };
 
       SK_BranchInfo_V1 branch {
         0x1,

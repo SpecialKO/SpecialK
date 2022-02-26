@@ -2842,7 +2842,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                 ImGui::Text       ( "%lux%lu",
                                       desc.Width, desc.Height/*, effective_width, effective_height, 0.9875f * content_avail_y - ((float)(bottom_list + 3) * font_size * 1.125f), content_avail_y*//*,
                                         pTex->d3d9_tex->GetLevelCount ()*/      );
-                ImGui::Text       ( "%ws",
+                ImGui::Text       ( "%hs",
                                       SK_DXGI_FormatToStr (desc.Format).data () );
                 ImGui::EndGroup   (                                             );
 
@@ -3061,8 +3061,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::BeginTooltip ();
       ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), "You can cancel all render passes using the selected %s shader to disable an effect", szShaderWord);
       ImGui::Separator    ();
-      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the previous shader", virtKeyCodeToHumanKeyName [VK_OEM_4]);
-      ImGui::BulletText   ("Press %ws while the mouse is hovering this list to select the next shader",     virtKeyCodeToHumanKeyName [VK_OEM_6]);
+      ImGui::BulletText   ("Press %hs while the mouse is hovering this list to select the previous shader", SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_4]).c_str ());
+      ImGui::BulletText   ("Press %hs while the mouse is hovering this list to select the next shader",     SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_6]).c_str ());
       ImGui::EndTooltip   ();
     }
 
@@ -3969,7 +3969,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
             ImGui::BeginGroup ();
             ImGui::Text       ("%08lx", pTex.p);
-            ImGui::Text       ("%ws",   SK_DXGI_FormatToStr (fmt).data ());
+            ImGui::Text       ("%hs",   SK_DXGI_FormatToStr (fmt).data ());
             ImGui::Text       ("%li",   refs);
             ImGui::EndGroup   ();
           }
@@ -4125,7 +4125,7 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
       bool        used_last_frame       = false;
       bool        ui_link_activated     = false;
       char        label           [512] = { };
-      wchar_t     wszPipelineDesc [512] = { };
+      char        szPipelineDesc  [512] = { };
 
       switch (shader_type)
       {
@@ -4133,7 +4133,7 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
           ui_link_activated = change_sel_vs != 0x00;
           used_last_frame   = shaders->vertex.changes_last_frame > 0;
           //SK_D3D11_GetVertexPipelineDesc (wszPipelineDesc);
-          sprintf (label,     "Vertex Shaders\t\t%ws###LiveVertexShaderTree", wszPipelineDesc);
+          sprintf (label,     "Vertex Shaders\t\t%hs###LiveVertexShaderTree", szPipelineDesc);
           break;
         case sk_shader_class::Pixel:
           ui_link_activated = change_sel_ps != 0x00;
@@ -4141,31 +4141,31 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
           //SK_D3D11_GetRasterPipelineDesc (wszPipelineDesc);
           //lstrcatW                       (wszPipelineDesc, L"\t\t");
           //SK_D3D11_GetPixelPipelineDesc  (wszPipelineDesc);
-          sprintf (label,     "Pixel Shaders\t\t%ws###LivePixelShaderTree", wszPipelineDesc);
+          sprintf (label,     "Pixel Shaders\t\t%hs###LivePixelShaderTree", szPipelineDesc);
           break;
         case sk_shader_class::Geometry:
           ui_link_activated = change_sel_gs != 0x00;
           used_last_frame   = shaders->geometry.changes_last_frame > 0;
           //SK_D3D11_GetGeometryPipelineDesc (wszPipelineDesc);
-          sprintf (label,     "Geometry Shaders\t\t%ws###LiveGeometryShaderTree", wszPipelineDesc);
+          sprintf (label,     "Geometry Shaders\t\t%hs###LiveGeometryShaderTree", szPipelineDesc);
           break;
         case sk_shader_class::Hull:
           ui_link_activated = change_sel_hs != 0x00;
           used_last_frame   = shaders->hull.changes_last_frame > 0;
           //SK_D3D11_GetTessellationPipelineDesc (wszPipelineDesc);
-          sprintf (label,     "Hull Shaders\t\t%ws###LiveHullShaderTree", wszPipelineDesc);
+          sprintf (label,     "Hull Shaders\t\t%hs###LiveHullShaderTree", szPipelineDesc);
           break;
         case sk_shader_class::Domain:
           ui_link_activated = change_sel_ds != 0x00;
           used_last_frame   = shaders->domain.changes_last_frame > 0;
           //SK_D3D11_GetTessellationPipelineDesc (wszPipelineDesc);
-          sprintf (label,     "Domain Shaders\t\t%ws###LiveDomainShaderTree", wszPipelineDesc);
+          sprintf (label,     "Domain Shaders\t\t%hs###LiveDomainShaderTree", szPipelineDesc);
           break;
         case sk_shader_class::Compute:
           ui_link_activated = change_sel_cs != 0x00;
           used_last_frame   = shaders->compute.changes_last_frame > 0;
           //SK_D3D11_GetComputePipelineDesc (wszPipelineDesc);
-          sprintf (label,     "Compute Shaders\t\t%ws###LiveComputeShaderTree", wszPipelineDesc);
+          sprintf (label,     "Compute Shaders\t\t%hs###LiveComputeShaderTree", szPipelineDesc);
           break;
         default:
           break;
@@ -4199,7 +4199,7 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
   SK_ImGui_AutoFont fixed_font (
      io.Fonts->Fonts [SK_IMGUI_FIXED_FONT]
   );
-  ImGui::TextColored (ImColor (238, 250, 5), "%ws", SK::DXGI::getPipelineStatsDesc ().c_str ());
+  ImGui::TextColored (ImColor (238, 250, 5), "%hs", SK::DXGI::getPipelineStatsDesc ().c_str ());
   fixed_font.Detach  ();
 
   ImGui::Separator   ();

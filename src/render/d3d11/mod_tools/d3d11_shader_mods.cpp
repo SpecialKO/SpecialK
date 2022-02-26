@@ -1130,9 +1130,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               ImGui::Text       ( "%lux%lu",
                                     desc.Width, desc.Height/*, effective_width, effective_height, 0.9875f * content_avail_y - ((float)(bottom_list + 3) * font_size * 1.125f), content_avail_y*//*,
                                       pTex->d3d9_tex->GetLevelCount ()*/      );
-              ImGui::Text       ( "%ws",
+              ImGui::Text       ( "%hs",
                                     SK_DXGI_FormatToStr (desc.Format).data () );
-              ImGui::Text       ( "%ws",
+              ImGui::Text       ( "%hs",
                                     SK_D3D11_DescribeUsage (desc.Usage) );
               ImGui::EndGroup   ();
 

@@ -335,12 +335,12 @@ auto wcrlen =
       size_t  _len    = 0;
       const
       wchar_t*  _it   = _start;
-      while   ( _it   >    0 &&
+      while   ( _it  != nullptr &&
                 _it   < _end )
       {         _it   =
      CharNextW (_it);
             ++_len;
-           if ( _it != 0 &&
+           if ( _it != nullptr &&
                *_it == L'\0' ) break;
       }return _len;
     };
@@ -658,10 +658,8 @@ iSK_INI::parse (void)
                               &pTLS );
 
         ordered_sections.emplace_back (
-               &sections.emplace      (
-                                        section.name,
-                             std::move (section)
-                                      ).first->second
+               &sections.emplace      (section.name,
+                                       section).first->second
                                       );
 
         if (eof)

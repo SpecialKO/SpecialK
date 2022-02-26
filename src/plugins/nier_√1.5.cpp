@@ -870,7 +870,7 @@ bool SK_NIER_RAD_PlugInCfg (void)
       if (_SK_NIER_RAD_CacheLastGamepad || __DInput8.last_good.wUsage == 0x05)
       {
         ImGui::SameLine      ();
-        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %ws\t", __DInput8.last_good.tszProductName);
+        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %hs\t", SK_WideCharToUTF8 (__DInput8.last_good.tszProductName).c_str ());
         ImGui::SameLine      ();
 
         if (ImGui::Button ("Clear Cache"))

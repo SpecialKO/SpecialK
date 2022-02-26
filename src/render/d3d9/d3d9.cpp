@@ -4768,10 +4768,10 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
     if (pPresentationParameters != nullptr)
     {
       dll_log->LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%ws, "
+                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%hs, "
                                         L"Count=%lu - "
-                                        L"SwapEffect: %ws, Flags: 0x%04X, "
-                                        L"AutoDepthStencil: %ws "
+                                        L"SwapEffect: %hs, Flags: 0x%04X, "
+                                        L"AutoDepthStencil: %hs "
                                         L"PresentationInterval: %u\n",
                          pPresentationParameters->BackBufferWidth,
                          pPresentationParameters->BackBufferHeight,
@@ -4781,7 +4781,7 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
                          pPresentationParameters->Flags,
                          pPresentationParameters->EnableAutoDepthStencil ?
     SK_D3D9_FormatToStr (pPresentationParameters->AutoDepthStencilFormat).c_str () :
-                         L"N/A",
+                         "N/A",
                          pPresentationParameters->PresentationInterval);
 
       if (! pPresentationParameters->Windowed)
@@ -5107,11 +5107,11 @@ SK_D3D9_UpdateRenderStats (IDirect3DSwapChain9* pSwapChain, IDirect3DDevice9* pD
   }
 }
 
-std::wstring
+std::string
 WINAPI
 SK::D3D9::getPipelineStatsDesc (void)
 {
-  wchar_t wszDesc [1024] = { };
+  char szDesc [1024] = { };
 
   D3DDEVINFO_D3D9PIPELINETIMINGS& stats =
     pipeline_stats_d3d9->last_results;
@@ -5121,15 +5121,15 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.VertexProcessingTimePercent > 0.0f)
   {
-    swprintf ( wszDesc,
-                 L"  VERTEX : %5.2f%%\n",
+    sprintf ( szDesc,
+                 "  VERTEX : %5.2f%%\n",
                    stats.VertexProcessingTimePercent );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"  VERTEX : <Unused>\n" );
+    sprintf ( szDesc,
+                 "  VERTEX : <Unused>\n" );
   }
 
   //
@@ -5137,17 +5137,17 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.PixelProcessingTimePercent > 0.0f)
   {
-    swprintf ( wszDesc,
-                 L"%s  PIXEL  : %5.2f%%\n",
-                   std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                 "%s  PIXEL  : %5.2f%%\n",
+                   std::string (szDesc).c_str (),
                      stats.PixelProcessingTimePercent );
   }
 
   else
   {
-    swprintf ( wszDesc,
-                 L"%s  PIXEL  : <Unused>\n",
-                   std::wstring (wszDesc).c_str () );
+    sprintf ( szDesc,
+                 "%s  PIXEL  : <Unused>\n",
+                   std::string (szDesc).c_str () );
   }
 
   //
@@ -5155,9 +5155,9 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.OtherGPUProcessingTimePercent > 0.0f)
   {
-    swprintf ( wszDesc,
-                 L"%s  OTHER  : %5.2f%%\n",
-                   std::wstring (wszDesc).c_str (), stats.OtherGPUProcessingTimePercent);
+    sprintf ( szDesc,
+                 "%s  OTHER  : %5.2f%%\n",
+                   std::string (szDesc).c_str (), stats.OtherGPUProcessingTimePercent);
   }
 
   //
@@ -5165,13 +5165,13 @@ SK::D3D9::getPipelineStatsDesc (void)
   //
   if (stats.GPUIdleTimePercent > 0.0f)
   {
-    swprintf ( wszDesc,
-                 L"%s  IDLE   : %5.2f%%\n",
-                   std::wstring (wszDesc).c_str (),
+    sprintf ( szDesc,
+                 "%s  IDLE   : %5.2f%%\n",
+                   std::string (szDesc).c_str (),
                      stats.GPUIdleTimePercent );
   }
 
-  return wszDesc;
+  return szDesc;
 }
 
 unsigned int
@@ -5916,7 +5916,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
           {
             fmt = desc.Format;
             ImGui::Image ( pTex/*->pTex*/, ImVec2  ( std::max (64.0f, (float)desc.Width / 16.0f),
-      ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
+          ((float)desc.Height / (float)desc.Width) * std::max (64.0f, (float)desc.Width / 16.0f) ),
                                        ImVec2  (0,0),             ImVec2  (1,1),
                                        ImColor (255,255,255,255), ImColor (242,242,13,255) );
           }
@@ -5932,7 +5932,7 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
           ImGui::BeginGroup  ();
           ImGui::Text        ("%08lx", it);
-          ImGui::Text        ("%ws",   SK_D3D9_FormatToStr (fmt).c_str ());
+          ImGui::Text        ("%hs",   SK_D3D9_FormatToStr (fmt).c_str ());
           ImGui::EndGroup    ();
         }
       }
@@ -6353,7 +6353,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
     bool wireframe =
       tracker->wireframes.count (tracker->vertex_buffer);
 
-    extern std::wstring
+    extern std::string
     SK_D3D9_UsageToStr (DWORD dwUsage);
 
     D3DVERTEXBUFFER_DESC desc = { };
@@ -6389,11 +6389,11 @@ SK_LiveVertexStreamView (bool& can_scroll)
       ImGui::SameLine    ();
 
       ImGui::BeginGroup  ();
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%ws",  SK_D3D9_FormatToStr (desc.Format).c_str ());
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%hs",  SK_D3D9_FormatToStr (desc.Format).c_str ());
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%s",  desc.Type == D3DRTYPE_VERTEXBUFFER ? "Vertex Buffer" :
                                                                   desc.Type == D3DRTYPE_INDEXBUFFER  ? "Index Buffer"  :
                                                                                                        "Unknown?!" );
-      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%ws",  SK_D3D9_UsageToStr (desc.Usage).c_str ());
+      ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%hs",  SK_D3D9_UsageToStr (desc.Usage).c_str ());
       ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.4f, 1.0f), "%lu", desc.Size);
       ImGui::EndGroup    ();
 
@@ -6590,7 +6590,7 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
             ImGui::BeginGroup ();
             ImGui::Text       ("Texture: %08lx", it);
-            ImGui::Text       ("Format:  %ws",   SK_D3D9_FormatToStr (fmt).c_str ());
+            ImGui::Text       ("Format:  %hs",   SK_D3D9_FormatToStr (fmt).c_str ());
             ImGui::EndGroup   ();
           }
         }
@@ -7012,7 +7012,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::Text ("%lux%lu (%lu %s)",
                        desc.Width, desc.Height,
                        num_lods, num_lods > 1 ? "LODs" : "LOD");
-          ImGui::Text ("%ws",
+          ImGui::Text ("%hs",
                        SK_D3D9_FormatToStr (desc.Format).c_str ( ));
           ImGui::Text ("%.3f MiB",
             (double)pTex->d3d9_tex->tex_size / ( 1024.0f * 1024.0f ));
@@ -7148,7 +7148,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::Text       ( "%lux%lu  (%lu %s)",
                                 desc.Width, desc.Height,
                                    num_lods, num_lods > 1 ? "LODs" : "LOD" );
-          ImGui::Text       ( "%ws",
+          ImGui::Text       ( "%hs",
                                 SK_D3D9_FormatToStr (desc.Format).c_str () );
           ImGui::Text       ( "%.3f MiB",
                                 (double)pTex->d3d9_tex->override_size / (1024.0f * 1024.0f) );
@@ -7365,7 +7365,7 @@ SK_D3D9_TextureModDlg (void)
         ImGui::Text ( "Dimensions:   %lux%lu",
                         desc.Width, desc.Height/*,
                           pTex->d3d9_tex->GetLevelCount ()*/ );
-        ImGui::Text ( "Format:       %ws",
+        ImGui::Text ( "Format:       %hs",
                         SK_D3D9_FormatToStr (desc.Format).c_str () );
 
         ImGui::Separator     ();
@@ -7479,22 +7479,22 @@ SK_D3D9_TextureModDlg (void)
 
 
 
-std::wstring
+std::string
 SK_D3D9_UsageToStr (DWORD dwUsage)
 {
-  std::wstring usage;
+  std::string usage;
 
   if (dwUsage & D3DUSAGE_RENDERTARGET)
-    usage += L"RenderTarget ";
+    usage += "RenderTarget ";
 
   if (dwUsage & D3DUSAGE_DEPTHSTENCIL)
-    usage += L"Depth/Stencil ";
+    usage += "Depth/Stencil ";
 
   if (dwUsage & D3DUSAGE_DYNAMIC)
-    usage += L"Dynamic";
+    usage += "Dynamic";
 
   if (usage.empty ())
-    usage = L"Don't Care";
+    usage = "Don't Care";
 
   return usage;
 }
@@ -7539,13 +7539,13 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 
 #if 0
     case D3DFMT_UYVY                 :
-      return std::wstring (L"FourCC 'UYVY'");
+      return std::string ("FourCC 'UYVY'");
     case D3DFMT_R8G8_B8G8            :
-      return std::wstring (L"FourCC 'RGBG'");
+      return std::string ("FourCC 'RGBG'");
     case D3DFMT_YUY2                 :
-      return std::wstring (L"FourCC 'YUY2'");
+      return std::string ("FourCC 'YUY2'");
     case D3DFMT_G8R8_G8B8            :
-      return std::wstring (L"FourCC 'GRGB'");
+      return std::string ("FourCC 'GRGB'");
 #endif
     case D3DFMT_DXT1:          return -1;
     case D3DFMT_DXT2:          return -2;
@@ -7577,8 +7577,8 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 
 #if 0
     case D3DFMT_VERTEXDATA           :
-      return std::wstring (L"VERTEXDATA") +
-                (include_ordinal ? L" (100)" : L"");
+      return std::string ("VERTEXDATA") +
+                (include_ordinal ? " (100)" : "");
 #endif
     case D3DFMT_INDEX16:       return 2;
     case D3DFMT_INDEX32:       return 4;
@@ -7587,7 +7587,7 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 
 #if 0
     case D3DFMT_MULTI2_ARGB8         :
-      return std::wstring (L"FourCC 'MET1'");
+      return std::string ("FourCC 'MET1'");
 #endif
 
     // Floating point surface formats
@@ -7604,8 +7604,8 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 
 #if 0
     case D3DFMT_CxV8U8               :
-      return std::wstring (L"CxV8U8") +
-                (include_ordinal ? L" (117)" : L"");
+      return std::string ("CxV8U8") +
+                (include_ordinal ? " (117)" : "");
 #endif
 
 /* D3D9Ex only -- */
@@ -7617,16 +7617,16 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
 #if 0
     // 2.8 biased fixed point
     case D3DFMT_A2B10G10R10_XR_BIAS  :
-      return std::wstring (L"A2B10G10R10_XR_BIAS") +
-                (include_ordinal ? L" (119)" : L"");
+      return std::string ("A2B10G10R10_XR_BIAS") +
+                (include_ordinal ? " (119)" : "");
 #endif
 
 
 #if 0
     // Binary format indicating that the data has no inherent type
     case D3DFMT_BINARYBUFFER         :
-      return std::wstring (L"BINARYBUFFER") +
-                (include_ordinal ? L" (199)" : L"");
+      return std::string ("BINARYBUFFER") +
+                (include_ordinal ? " (199)" : "");
 #endif
 
 #endif // !D3D_DISABLE_9EX
@@ -7636,317 +7636,317 @@ SK_D3D9_BytesPerPixel (D3DFORMAT Format)
   return 0;
 }
 
-std::wstring
+std::string
 SK_D3D9_SwapEffectToStr (D3DSWAPEFFECT Effect)
 {
   switch (Effect)
   {
     case D3DSWAPEFFECT_COPY:
-      return std::wstring (L"Copy");
+      return std::string ("Copy");
     case D3DSWAPEFFECT_FLIP:
-      return std::wstring (L"Flip");
+      return std::string ("Flip");
     case D3DSWAPEFFECT_DISCARD:
-      return std::wstring (L"Discard");
+      return std::string ("Discard");
     case D3DSWAPEFFECT_OVERLAY:
-      return std::wstring (L"Overlay");
+      return std::string ("Overlay");
     case D3DSWAPEFFECT_FLIPEX:
-      return std::wstring   (L"FlipEx");
+      return std::string ("FlipEx");
     default:
-      return L"UNKNOWN";
+      return "UNKNOWN";
   }
 };
 
-std::wstring
+std::string
 SK_D3D9_PresentParameterFlagsToStr (DWORD dwFlags)
 {
-  std::wstring out = L"";
+  std::string out = "";
 
   if (dwFlags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER)
-    out += L"D3DPRESENTFLAG_LOCKABLE_BACKBUFFER  ";
+    out += "D3DPRESENTFLAG_LOCKABLE_BACKBUFFER  ";
 
   if (dwFlags & D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL)
-    out += L"D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL  ";
+    out += "D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL  ";
 
   if (dwFlags & D3DPRESENTFLAG_DEVICECLIP)
-    out += L"D3DPRESENTFLAG_DEVICECLIP  ";
+    out += "D3DPRESENTFLAG_DEVICECLIP  ";
 
   if (dwFlags & D3DPRESENTFLAG_VIDEO)
-    out += L"D3DPRESENTFLAG_VIDEO  ";
+    out += "D3DPRESENTFLAG_VIDEO  ";
 
   if (dwFlags & D3DPRESENTFLAG_NOAUTOROTATE)
-    out += L"D3DPRESENTFLAG_NOAUTOROTATE  ";
+    out += "D3DPRESENTFLAG_NOAUTOROTATE  ";
 
   if (dwFlags & D3DPRESENTFLAG_UNPRUNEDMODE)
-    out += L"D3DPRESENTFLAG_UNPRUNEDMODE  ";
+    out += "D3DPRESENTFLAG_UNPRUNEDMODE  ";
 
   if (dwFlags & D3DPRESENTFLAG_OVERLAY_LIMITEDRGB)
-    out += L"D3DPRESENTFLAG_OVERLAY_LIMITEDRGB  ";
+    out += "D3DPRESENTFLAG_OVERLAY_LIMITEDRGB  ";
 
   if (dwFlags & D3DPRESENTFLAG_OVERLAY_YCbCr_BT709)
-    out += L"D3DPRESENTFLAG_OVERLAY_YCbCr_BT709  ";
+    out += "D3DPRESENTFLAG_OVERLAY_YCbCr_BT709  ";
 
   if (dwFlags & D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC)
-    out += L"D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC  ";
+    out += "D3DPRESENTFLAG_OVERLAY_YCbCr_xvYCC  ";
 
   if (dwFlags & D3DPRESENTFLAG_RESTRICTED_CONTENT)
-    out += L"D3DPRESENTFLAG_RESTRICTED_CONTENT  ";
+    out += "D3DPRESENTFLAG_RESTRICTED_CONTENT  ";
 
   if (dwFlags & D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER)
-    out += L"D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER  ";
+    out += "D3DPRESENTFLAG_RESTRICT_SHARED_RESOURCE_DRIVER  ";
 
   return out;
 };
 
-std::wstring
+std::string
 SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
 {
   switch (Format)
   {
     case D3DFMT_UNKNOWN:
-      return std::wstring (L"Unknown") + (include_ordinal ? L" (0)" :
-                                                            L"");
+      return std::string ("Unknown") + (include_ordinal ? " (0)" :
+                                                          "");
 
     case D3DFMT_R8G8B8:
-      return std::wstring (L"R8G8B8")   +
-                (include_ordinal ? L" (20)" : L"");
+      return std::string ("R8G8B8")   +
+                (include_ordinal ? " (20)" : "");
     case D3DFMT_A8R8G8B8:
-      return std::wstring (L"A8R8G8B8") +
-                (include_ordinal ? L" (21)" : L"");
+      return std::string ("A8R8G8B8") +
+                (include_ordinal ? " (21)" : "");
     case D3DFMT_X8R8G8B8:
-      return std::wstring (L"X8R8G8B8") +
-                (include_ordinal ? L" (22)" : L"");
+      return std::string ("X8R8G8B8") +
+                (include_ordinal ? " (22)" : "");
     case D3DFMT_R5G6B5               :
-      return std::wstring (L"R5G6B5")   +
-                (include_ordinal ? L" (23)" : L"");
+      return std::string ("R5G6B5")   +
+                (include_ordinal ? " (23)" : "");
     case D3DFMT_X1R5G5B5             :
-      return std::wstring (L"X1R5G5B5") +
-                (include_ordinal ? L" (24)" : L"");
+      return std::string ("X1R5G5B5") +
+                (include_ordinal ? " (24)" : "");
     case D3DFMT_A1R5G5B5             :
-      return std::wstring (L"A1R5G5B5") +
-                (include_ordinal ? L" (25)" : L"");
+      return std::string ("A1R5G5B5") +
+                (include_ordinal ? " (25)" : "");
     case D3DFMT_A4R4G4B4             :
-      return std::wstring (L"A4R4G4B4") +
-                (include_ordinal ? L" (26)" : L"");
+      return std::string ("A4R4G4B4") +
+                (include_ordinal ? " (26)" : "");
     case D3DFMT_R3G3B2               :
-      return std::wstring (L"R3G3B2")   +
-                (include_ordinal ? L" (27)" : L"");
+      return std::string ("R3G3B2")   +
+                (include_ordinal ? " (27)" : "");
     case D3DFMT_A8                   :
-      return std::wstring (L"A8")       +
-                (include_ordinal ? L" (28)" : L"");
+      return std::string ("A8")       +
+                (include_ordinal ? " (28)" : "");
     case D3DFMT_A8R3G3B2             :
-      return std::wstring (L"A8R3G3B2") +
-                (include_ordinal ? L" (29)" : L"");
+      return std::string ("A8R3G3B2") +
+                (include_ordinal ? " (29)" : "");
     case D3DFMT_X4R4G4B4             :
-      return std::wstring (L"X4R4G4B4") +
-                (include_ordinal ? L" (30)" : L"");
+      return std::string ("X4R4G4B4") +
+                (include_ordinal ? " (30)" : "");
     case D3DFMT_A2B10G10R10          :
-      return std::wstring (L"A2B10G10R10") +
-                (include_ordinal ? L" (31)" : L"");
+      return std::string ("A2B10G10R10") +
+                (include_ordinal ? " (31)" : "");
     case D3DFMT_A8B8G8R8             :
-      return std::wstring (L"A8B8G8R8") +
-                (include_ordinal ? L" (32)" : L"");
+      return std::string ("A8B8G8R8") +
+                (include_ordinal ? " (32)" : "");
     case D3DFMT_X8B8G8R8             :
-      return std::wstring (L"X8B8G8R8") +
-                (include_ordinal ? L" (33)" : L"");
+      return std::string ("X8B8G8R8") +
+                (include_ordinal ? " (33)" : "");
     case D3DFMT_G16R16               :
-      return std::wstring (L"G16R16") +
-                (include_ordinal ? L" (34)" : L"");
+      return std::string ("G16R16") +
+                (include_ordinal ? " (34)" : "");
     case D3DFMT_A2R10G10B10          :
-      return std::wstring (L"A2R10G10B10") +
-                (include_ordinal ? L" (35)" : L"");
+      return std::string ("A2R10G10B10") +
+                (include_ordinal ? " (35)" : "");
     case D3DFMT_A16B16G16R16         :
-      return std::wstring (L"A16B16G16R16") +
-                (include_ordinal ? L" (36)" : L"");
+      return std::string ("A16B16G16R16") +
+                (include_ordinal ? " (36)" : "");
 
     case D3DFMT_A8P8                 :
-      return std::wstring (L"A8P8") +
-                (include_ordinal ? L" (40)" : L"");
+      return std::string ("A8P8") +
+                (include_ordinal ? " (40)" : "");
     case D3DFMT_P8                   :
-      return std::wstring (L"P8") +
-                (include_ordinal ? L" (41)" : L"");
+      return std::string ("P8") +
+                (include_ordinal ? " (41)" : "");
 
     case D3DFMT_L8                   :
-      return std::wstring (L"L8") +
-                (include_ordinal ? L" (50)" : L"");
+      return std::string ("L8") +
+                (include_ordinal ? " (50)" : "");
     case D3DFMT_A8L8                 :
-      return std::wstring (L"A8L8") +
-                (include_ordinal ? L" (51)" : L"");
+      return std::string ("A8L8") +
+                (include_ordinal ? " (51)" : "");
     case D3DFMT_A4L4                 :
-      return std::wstring (L"A4L4") +
-                (include_ordinal ? L" (52)" : L"");
+      return std::string ("A4L4") +
+                (include_ordinal ? " (52)" : "");
 
     case D3DFMT_V8U8                 :
-      return std::wstring (L"V8U8") +
-                (include_ordinal ? L" (60)" : L"");
+      return std::string ("V8U8") +
+                (include_ordinal ? " (60)" : "");
     case D3DFMT_L6V5U5               :
-      return std::wstring (L"L6V5U5") +
-                (include_ordinal ? L" (61)" : L"");
+      return std::string ("L6V5U5") +
+                (include_ordinal ? " (61)" : "");
     case D3DFMT_X8L8V8U8             :
-      return std::wstring (L"X8L8V8U8") +
-                (include_ordinal ? L" (62)" : L"");
+      return std::string ("X8L8V8U8") +
+                (include_ordinal ? " (62)" : "");
     case D3DFMT_Q8W8V8U8             :
-      return std::wstring (L"Q8W8V8U8") +
-                (include_ordinal ? L" (63)" : L"");
+      return std::string ("Q8W8V8U8") +
+                (include_ordinal ? " (63)" : "");
     case D3DFMT_V16U16               :
-      return std::wstring (L"V16U16") +
-                (include_ordinal ? L" (64)" : L"");
+      return std::string ("V16U16") +
+                (include_ordinal ? " (64)" : "");
     case D3DFMT_A2W10V10U10          :
-      return std::wstring (L"A2W10V10U10") +
-                (include_ordinal ? L" (67)" : L"");
+      return std::string ("A2W10V10U10") +
+                (include_ordinal ? " (67)" : "");
 
     case D3DFMT_UYVY                 :
-      return std::wstring (L"FourCC 'UYVY'");
+      return std::string ("FourCC 'UYVY'");
     case D3DFMT_R8G8_B8G8            :
-      return std::wstring (L"FourCC 'RGBG'");
+      return std::string ("FourCC 'RGBG'");
     case D3DFMT_YUY2                 :
-      return std::wstring (L"FourCC 'YUY2'");
+      return std::string ("FourCC 'YUY2'");
     case D3DFMT_G8R8_G8B8            :
-      return std::wstring (L"FourCC 'GRGB'");
+      return std::string ("FourCC 'GRGB'");
     case D3DFMT_DXT1                 :
-      return std::wstring (L"DXT1");
+      return std::string ("DXT1");
     case D3DFMT_DXT2                 :
-      return std::wstring (L"DXT2");
+      return std::string ("DXT2");
     case D3DFMT_DXT3                 :
-      return std::wstring (L"DXT3");
+      return std::string ("DXT3");
     case D3DFMT_DXT4                 :
-      return std::wstring (L"DXT4");
+      return std::string ("DXT4");
     case D3DFMT_DXT5                 :
-      return std::wstring (L"DXT5");
+      return std::string ("DXT5");
 
     case D3DFMT_D16_LOCKABLE         :
-      return std::wstring (L"D16_LOCKABLE") +
-                (include_ordinal ? L" (70)" : L"");
+      return std::string ("D16_LOCKABLE") +
+                (include_ordinal ? " (70)" : "");
     case D3DFMT_D32                  :
-      return std::wstring (L"D32") +
-                (include_ordinal ? L" (71)" : L"");
+      return std::string ("D32") +
+                (include_ordinal ? " (71)" : "");
     case D3DFMT_D15S1                :
-      return std::wstring (L"D15S1") +
-                (include_ordinal ? L" (73)" : L"");
+      return std::string ("D15S1") +
+                (include_ordinal ? " (73)" : "");
     case D3DFMT_D24S8                :
-      return std::wstring (L"D24S8") +
-                (include_ordinal ? L" (75)" : L"");
+      return std::string ("D24S8") +
+                (include_ordinal ? " (75)" : "");
     case D3DFMT_D24X8                :
-      return std::wstring (L"D24X8") +
-                (include_ordinal ? L" (77)" : L"");
+      return std::string ("D24X8") +
+                (include_ordinal ? " (77)" : "");
     case D3DFMT_D24X4S4              :
-      return std::wstring (L"D24X4S4") +
-                (include_ordinal ? L" (79)" : L"");
+      return std::string ("D24X4S4") +
+                (include_ordinal ? " (79)" : "");
     case D3DFMT_D16                  :
-      return std::wstring (L"D16") +
-                (include_ordinal ? L" (80)" : L"");
+      return std::string ("D16") +
+                (include_ordinal ? " (80)" : "");
 
     case D3DFMT_D32F_LOCKABLE        :
-      return std::wstring (L"D32F_LOCKABLE") +
-                (include_ordinal ? L" (82)" : L"");
+      return std::string ("D32F_LOCKABLE") +
+                (include_ordinal ? " (82)" : "");
     case D3DFMT_D24FS8               :
-      return std::wstring (L"D24FS8") +
-                (include_ordinal ? L" (83)" : L"");
+      return std::string ("D24FS8") +
+                (include_ordinal ? " (83)" : "");
 
 /* D3D9Ex only -- */
 #if !defined(D3D_DISABLE_9EX)
 
     /* Z-Stencil formats valid for CPU access */
     case D3DFMT_D32_LOCKABLE         :
-      return std::wstring (L"D32_LOCKABLE") +
-                (include_ordinal ? L" (84)" : L"");
+      return std::string ("D32_LOCKABLE") +
+                (include_ordinal ? " (84)" : "");
     case D3DFMT_S8_LOCKABLE          :
-      return std::wstring (L"S8_LOCKABLE") +
-                (include_ordinal ? L" (85)" : L"");
+      return std::string ("S8_LOCKABLE") +
+                (include_ordinal ? " (85)" : "");
 
 #endif // !D3D_DISABLE_9EX
 
 
 
     case D3DFMT_L16                  :
-      return std::wstring (L"L16") +
-                (include_ordinal ? L" (81)" : L"");
+      return std::string ("L16") +
+                (include_ordinal ? " (81)" : "");
 
     case D3DFMT_VERTEXDATA           :
-      return std::wstring (L"VERTEXDATA") +
-                (include_ordinal ? L" (100)" : L"");
+      return std::string ("VERTEXDATA") +
+                (include_ordinal ? " (100)" : "");
     case D3DFMT_INDEX16              :
-      return std::wstring (L"INDEX16") +
-                (include_ordinal ? L" (101)" : L"");
+      return std::string ("INDEX16") +
+                (include_ordinal ? " (101)" : "");
     case D3DFMT_INDEX32              :
-      return std::wstring (L"INDEX32") +
-                (include_ordinal ? L" (102)" : L"");
+      return std::string ("INDEX32") +
+                (include_ordinal ? " (102)" : "");
 
     case D3DFMT_Q16W16V16U16         :
-      return std::wstring (L"Q16W16V16U16") +
-                (include_ordinal ? L" (110)" : L"");
+      return std::string ("Q16W16V16U16") +
+                (include_ordinal ? " (110)" : "");
 
     case D3DFMT_MULTI2_ARGB8         :
-      return std::wstring (L"FourCC 'MET1'");
+      return std::string ("FourCC 'MET1'");
 
     // Floating point surface formats
 
     // s10e5 formats (16-bits per channel)
     case D3DFMT_R16F                 :
-      return std::wstring (L"R16F") +
-                (include_ordinal ? L" (111)" : L"");
+      return std::string ("R16F") +
+                (include_ordinal ? " (111)" : "");
     case D3DFMT_G16R16F              :
-      return std::wstring (L"G16R16F") +
-                (include_ordinal ? L" (112)" : L"");
+      return std::string ("G16R16F") +
+                (include_ordinal ? " (112)" : "");
     case D3DFMT_A16B16G16R16F        :
-      return std::wstring (L"A16B16G16R16F") +
-               (include_ordinal ? L" (113)" : L"");
+      return std::string ("A16B16G16R16F") +
+               (include_ordinal ? " (113)" : "");
 
     // IEEE s23e8 formats (32-bits per channel)
     case D3DFMT_R32F                 :
-      return std::wstring (L"R32F") +
-                (include_ordinal ? L" (114)" : L"");
+      return std::string ("R32F") +
+                (include_ordinal ? " (114)" : "");
     case D3DFMT_G32R32F              :
-      return std::wstring (L"G32R32F") +
-                (include_ordinal ? L" (115)" : L"");
+      return std::string ("G32R32F") +
+                (include_ordinal ? " (115)" : "");
     case D3DFMT_A32B32G32R32F        :
-      return std::wstring (L"A32B32G32R32F") +
-                (include_ordinal ? L" (116)" : L"");
+      return std::string ("A32B32G32R32F") +
+                (include_ordinal ? " (116)" : "");
 
     case D3DFMT_CxV8U8               :
-      return std::wstring (L"CxV8U8") +
-                (include_ordinal ? L" (117)" : L"");
+      return std::string ("CxV8U8") +
+                (include_ordinal ? " (117)" : "");
 
 /* D3D9Ex only -- */
 #if !defined(D3D_DISABLE_9EX)
 
     // Monochrome 1 bit per pixel format
     case D3DFMT_A1                   :
-      return std::wstring (L"A1") +
-                (include_ordinal ? L" (118)" : L"");
+      return std::string ("A1") +
+                (include_ordinal ? " (118)" : "");
 
     // 2.8 biased fixed point
     case D3DFMT_A2B10G10R10_XR_BIAS  :
-      return std::wstring (L"A2B10G10R10_XR_BIAS") +
-                (include_ordinal ? L" (119)" : L"");
+      return std::string ("A2B10G10R10_XR_BIAS") +
+                (include_ordinal ? " (119)" : "");
 
 
     // Binary format indicating that the data has no inherent type
     case D3DFMT_BINARYBUFFER         :
-      return std::wstring (L"BINARYBUFFER") +
-                (include_ordinal ? L" (199)" : L"");
+      return std::string ("BINARYBUFFER") +
+                (include_ordinal ? " (199)" : "");
 
 #endif // !D3D_DISABLE_9EX
 /* -- D3D9Ex only */
   }
 
-  return std::wstring (L"UNKNOWN?!");
+  return std::string ("UNKNOWN?!");
 }
 
-const wchar_t*
+const char*
 SK_D3D9_PoolToStr (D3DPOOL pool)
 {
   switch (pool)
   {
     case D3DPOOL_DEFAULT:
-      return L"    Default   (0)";
+      return "    Default   (0)";
     case D3DPOOL_MANAGED:
-      return L"    Managed   (1)";
+      return "    Managed   (1)";
     case D3DPOOL_SYSTEMMEM:
-      return L"System Memory (2)";
+      return "System Memory (2)";
     case D3DPOOL_SCRATCH:
-      return L"   Scratch    (3)";
+      return "   Scratch    (3)";
     default:
-      return L"   UNKNOWN?!     ";
+      return "   UNKNOWN?!     ";
   }
 }
 

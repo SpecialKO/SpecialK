@@ -118,10 +118,9 @@ BOOL
 SK_Window_IsUnicode (HWND hWnd)
 {
   struct cache_entry_s {
-    explicit cache_entry_s (HWND hWnd)
+    explicit cache_entry_s (HWND hWnd) : hwnd (hWnd)
     {
       unicode = IsWindowUnicode (hWnd);
-      hwnd    = hWnd;
     };
 
     BOOL test_and_set (HWND hWnd)
@@ -290,9 +289,8 @@ public:
           SK_GetCurrentRenderBackend ();
 
         UINT highest_idx = 1,
-             lowest_idx  = rb._MAX_DISPLAYS;
-
-        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+             lowest_idx  =   SK_RenderBackend_V2::_MAX_DISPLAYS;
+        for ( int i = 0; i < SK_RenderBackend_V2::_MAX_DISPLAYS ; ++i )
         {
           if (rb.displays [i].attached)
           {
@@ -306,7 +304,7 @@ public:
         if (set < sk::narrow_cast <int> ( lowest_idx))
             set = sk::narrow_cast <int> (highest_idx);
 
-        for ( int i = 0; i < rb._MAX_DISPLAYS ; ++i )
+        for ( int i = 0; i < SK_RenderBackend_V2::_MAX_DISPLAYS ; ++i )
         {
           if ( rb.displays [i].attached &&
                rb.displays [i].idx      == static_cast <UINT> (set) )
@@ -1042,7 +1040,7 @@ ActivateWindow ( HWND hWnd,
       }
     }
 
-    BYTE              newKeyboardState [256] = { 0 };
+    BYTE              newKeyboardState [256] = { };
     SetKeyboardState (newKeyboardState);
 
     if (hWndFocus != game_window.hWnd && (is_game_window && (! game_window.active)))

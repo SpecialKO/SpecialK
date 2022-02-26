@@ -1769,14 +1769,14 @@ SK::Framerate::Limiter::wait (void)
       static HANDLE hReSyncThread =
         SK_Thread_CreateEx ([](LPVOID) -> DWORD
         {
-          SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
-
           HANDLE hWaitHandles [] = {
             __scanline.lock.signals.resync, __SK_DLL_TeardownEvent
           };
 
           while ( WaitForMultipleObjects ( 2, hWaitHandles, FALSE, INFINITE ) == WAIT_OBJECT_0 )
           {
+            SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+
             __scanline.lock.acquired = false;
 
             auto qpc_start =
@@ -1853,6 +1853,8 @@ SK::Framerate::Limiter::wait (void)
                         iTry = 1;
 
                         __scanline.lock.notifyAcquired ();
+
+                        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
                         break;
                       }

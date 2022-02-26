@@ -224,7 +224,7 @@ _ConstructPath =
 [](auto&& path_base, const wchar_t* path_end)
 {
   std::array <wchar_t, MAX_PATH + 1>
-    path { };
+                   path { };
   SK_PathCombineW (path.data (), path_base.data (), path_end);
   return           path;
 };
@@ -481,9 +481,7 @@ SK_Steam_FindInstallPath (uint32_t appid)
 
     // This is a relative path, we need to build a full path
     std::wstring install_path =
-      std::move (
-        SK_UTF8ToWideChar (install_path_utf8)
-      );
+        SK_UTF8ToWideChar (install_path_utf8);
 
     if (manifest_path.length () < MAX_PATH)
     {
@@ -591,7 +589,7 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   }
 
   // Try the DLL we went back to the root of the install dir-tree for first.
-  if (                         *dll_file != L'\0')
+  if (                                     *dll_file != L'\0')
   { wcsncpy_s (wszExecutablePath, MAX_PATH, dll_file, _TRUNCATE); }
 
   // Then get the base install directory from Steam (if we can).
@@ -1684,7 +1682,7 @@ LONGLONG       friends_done     = 0;
 class SK_Steam_AchievementManager : public SK_AchievementManager
 {
 public:
-  SK_Steam_AchievementManager (const wchar_t* wszUnlockSound) :
+  SK_Steam_AchievementManager (const wchar_t* wszUnlockSound) : 
     unlock_listener ( this, &SK_Steam_AchievementManager::OnUnlock       ),
     stat_receipt    ( this, &SK_Steam_AchievementManager::AckStoreStats  ),
     icon_listener   ( this, &SK_Steam_AchievementManager::OnRecvIcon     ),
@@ -3027,7 +3025,8 @@ DWORD
 WINAPI
 SteamAPI_PumpThread (LPVOID user)
 {
-  auto _Terminate = [&]
+  static auto _Terminate =
+  []
   {
     InterlockedExchangePointer ((void **)&hSteamPump, nullptr);
 
@@ -3036,7 +3035,8 @@ SteamAPI_PumpThread (LPVOID user)
     return 0;
   };
 
-  auto _TerminateOnSignal = [&](DWORD dwWaitState)
+  static auto _TerminateOnSignal =
+  [](DWORD dwWaitState)
   {
     if (dwWaitState != WAIT_TIMEOUT)
     {
@@ -3513,11 +3513,9 @@ SK_UseManifestToGetDepots (AppId_t appid)
 
     for ( auto& it : mounted_depots )
     {
-      depots.push_back (
-        SK_Steam_Depot {
+      depots.emplace_back (
           "", sk::narrow_cast <uint32_t> (atoi  (it            .c_str ())),
               sk::narrow_cast <uint64_t> (atoll (values [idx++].c_str ()))
-        }
       );
     }
   }
@@ -5140,8 +5138,8 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 
                 if (validation_pass == SK_Steam_FileSigPass_e::SteamAPI)
                 {
-                  verdict |= ~( k_ECheckFileSignatureInvalidSignature );
-                  decided  =    true;
+                  verdict |= ~k_ECheckFileSignatureInvalidSignature;
+                  decided  =  true;
                 }
               }
             } break;
