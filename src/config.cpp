@@ -161,6 +161,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
       { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
       { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
+      { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    }
     };
 
     first_check = false;
@@ -253,19 +254,7 @@ SK_GetCurrentGameID (void)
       if (current_game == SK_GAME_ID::EasyAntiCheat)
       {
         ShellExecute (NULL, NULL, L"EldenRing.exe", NULL, NULL, 0);
-        //if (std::filesystem::exists (std::filesystem::path (SK_GetHostPath ()) / L"eldenring.exe"))
-        //{
-        //  STARTUPINFOW        sinfo = { };
-        //  PROCESS_INFORMATION pinfo = { };
-        //
-        //  sinfo.cb          = sizeof (STARTUPINFOW);
-        //  sinfo.wShowWindow = SW_SHOWNORMAL;
-        //  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
-        //
-        //  CreateProcess ( nullptr, L"eldenring.exe", nullptr, nullptr,
-        //                  TRUE,     0x0, nullptr, SK_GetHostPath (),
-        //                  &sinfo,   &pinfo );
-        //}
+        exit (0);
       }
     }
   }

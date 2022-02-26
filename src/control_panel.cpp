@@ -2371,9 +2371,6 @@ SK_NV_GSYNCControlPanel ()
   }
 }
 
-
-float __SK_ER_Speed = 1.0f;
-
 __declspec (dllexport)
 bool
 SK_ImGui_ControlPanel (void)
@@ -3913,11 +3910,6 @@ SK_ImGui_ControlPanel (void)
         float target_orig = __target_fps;
 
         bool limit = (__target_fps > 0.0f);
-
-        if (SK::SteamAPI::AppID () == 1245620)
-        {
-          ImGui::SliderFloat ("Game Speed", &__SK_ER_Speed, 0.8f, 1.2f, "%.3fx");
-        }
 
         ImGui::BeginGroup ();
 

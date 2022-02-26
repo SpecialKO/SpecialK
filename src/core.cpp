@@ -535,6 +535,10 @@ extern void BasicInit (void);
                   SK_Sekiro_InitPlugin (    );
       break;
 
+    case SK_GAME_ID::EldenRing:
+      SK_ER_InitPlugin ();
+      break;
+
     case SK_GAME_ID::FarCry5:
     {
       auto _UnpackEasyAntiCheatBypass = [&](void) ->
@@ -2978,17 +2982,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   rb.frame_delta.markFrame ();
 
-#ifdef _WIN64
-  if (SK::SteamAPI::AppID () == 1245620)
+
+  // Invoke any plug-in's frame end callback
+  for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
-    static float* fAddr =
-      (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE08);
-         extern float __SK_ER_Speed;
-        *fAddr = __SK_ER_Speed * static_cast <float> (
-             std::max (0.000001, static_cast <double> (rb.frame_delta.getDeltaTime ()) /
-                                 static_cast <double> (SK_QpcFreq)));
+    end_frame_fn ();
   }
-#endif
 
 
   auto _FrameTick = [&](void) -> void

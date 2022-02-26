@@ -1133,6 +1133,7 @@ enum class SK_GAME_ID
   FinalFantasy7Remake,          // ff7remake*.exe
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
+  EldenRing,                    // eldenring.exe
   UNKNOWN_GAME               = 0xffff
 };
 

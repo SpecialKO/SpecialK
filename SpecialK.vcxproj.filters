@@ -3413,6 +3413,9 @@
     <ClCompile Include="src\input\sce_pad.cpp">
       <Filter>Source Files\Backends\Input\scePad</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\elden_ring.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

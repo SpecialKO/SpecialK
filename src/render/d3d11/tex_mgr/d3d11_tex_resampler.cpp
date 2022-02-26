@@ -31,6 +31,10 @@
 static       HANDLE hResampleWork       = INVALID_HANDLE_VALUE;
 static unsigned int dispatch_thread_idx = 0;
 
+int SK_D3D11_TexStreamPriority = 1; // 0=Low  (Pop-In),
+                                    // 1=Balanced,
+                                    // 2=High (No Pop-In)
+
 struct resample_dispatch_s
 {
   void delayInit (void)
@@ -256,7 +260,6 @@ struct resample_dispatch_s
     size_t MAX_TEXTURE_UPLOADS_PER_FRAME;
     int    MAX_UPLOAD_TIME_PER_FRAME_IN_MS;
 
-    extern int SK_D3D11_TexStreamPriority;
     switch    (SK_D3D11_TexStreamPriority)
     {
       case 0:

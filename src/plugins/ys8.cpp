@@ -149,67 +149,12 @@ static bool  nearest_neighbor          = false;
 
 
 
-int SK_D3D11_TexStreamPriority = 1; // 0=Low  (Pop-In),
-                                    // 1=Balanced,
-                                    // 2=High (No Pop-In)
+extern int SK_D3D11_TexStreamPriority;
 
 
 
 extern std::wstring
 DescribeResource (ID3D11Resource* pRes);
-
-//extern
-//HRESULT
-//WINAPI
-//D3D11Dev_CreateSamplerState_Override (
-//  _In_            ID3D11Device        *This,
-//  _In_      const D3D11_SAMPLER_DESC  *pSamplerDesc,
-//  _Out_opt_       ID3D11SamplerState **ppSamplerState );
-//
-//extern
-//HRESULT
-//WINAPI
-//D3D11Dev_CreateShaderResourceView_Override (
-//  _In_           ID3D11Device                     *This,
-//  _In_           ID3D11Resource                   *pResource,
-//  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
-//  _Out_opt_      ID3D11ShaderResourceView        **ppSRView );
-//
-//extern
-//HRESULT
-//WINAPI
-//D3D11Dev_CreateTexture2D_Override (
-//  _In_            ID3D11Device           *This,
-//  _In_      const D3D11_TEXTURE2D_DESC   *pDesc,
-//  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
-//  _Out_opt_       ID3D11Texture2D        **ppTexture2D );
-//
-//extern
-//HRESULT
-//STDMETHODCALLTYPE
-//D3D11_Map_Override (
-//   _In_ ID3D11DeviceContext      *This,
-//   _In_ ID3D11Resource           *pResource,
-//   _In_ UINT                      Subresource,
-//   _In_ D3D11_MAP                 MapType,
-//   _In_ UINT                      MapFlags,
-//_Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource );
-//
-//extern
-//void
-//STDMETHODCALLTYPE
-//D3D11_CopyResource_Override (
-//       ID3D11DeviceContext *This,
-//  _In_ ID3D11Resource      *pDstResource,
-//  _In_ ID3D11Resource      *pSrcResource );
-//
-//extern
-//void
-//WINAPI
-//D3D11_RSSetViewports_Override (
-//        ID3D11DeviceContext* This,
-//        UINT                 NumViewports,
-//  const D3D11_VIEWPORT*      pViewports );
 
 extern
 void

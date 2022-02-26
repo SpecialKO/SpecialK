@@ -2749,19 +2749,6 @@ SK_Exception_HandleThreadName (
         wide_name;
 
 #ifdef _M_AMD64
-      if (StrStrIA (info->szName, "CSCheatDetection"))
-      {
-        //F3 0F11 05 DE7E5A01
-        DWORD dwOldProt = 0x0;
-        uint8_t* pNOP = (uint8_t *)SK_Debug_GetImageBaseAddr () + 0x25A7F22;
-        VirtualProtect (pNOP, 8, PAGE_EXECUTE_READWRITE, &dwOldProt);
-        memcpy (pNOP, "\x90\x90\x90\x90\x90\x90\x90\x90", 8);
-        VirtualProtect (pNOP, 8, dwOldProt, &dwOldProt);
-
-        //0x7FF6B0AB9000+25A6F22
-        ////SuspendThread (GetCurrentThread ());
-      }
-
       if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
       {
         SK_AutoHandle hThread (

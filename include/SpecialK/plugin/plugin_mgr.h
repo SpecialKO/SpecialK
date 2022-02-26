@@ -147,6 +147,7 @@ bool SK_Yakuza0_PlugInCfg  (void);
 
 void SK_Perona4_InitPlugin (void);
 void SK_YS8_InitPlugin     (void);
+void SK_ER_InitPlugin      (void);
 
 #else
 HRESULT __stdcall

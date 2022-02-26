@@ -1,4 +1,10 @@
-﻿22.2.26-NOCEGUI
+﻿22.2.26.3-NOCEGUI
+=================
+ + Updated framerate limiter code for Elden Ring 1.0.2.1
+ + Added Elden Ring control panel section
+ + Uncapped framerate during cinematics
+
+22.2.26-NOCEGUI
 ===============
  + Added EAC Disable Feature for Elden Ring
  + Added framreate limiter fixes for Elden Ring
