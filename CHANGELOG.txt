@@ -1,4 +1,8 @@
-﻿22.2.26.3-NOCEGUI
+﻿22.2.26.5-NOCEGUI
+=================
+ + Added Thread Priority Inversion fix for Elden Ring
+
+22.2.26.3-NOCEGUI
 =================
  + Updated framerate limiter code for Elden Ring 1.0.2.1
  + Added Elden Ring control panel section
