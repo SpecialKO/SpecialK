@@ -950,15 +950,16 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
     std::set <uint32_t>                       hud_shader;
   } draw_states [7];
 
-  auto shader_class_idx = [](const std::wstring& name)
+  auto shader_class_idx =
+  [](const std::wstring& _name)
   {
-    if (name == L"Vertex")   return 0;
-    if (name == L"Pixel")    return 1;
-    if (name == L"Geometry") return 2;
-    if (name == L"Hull")     return 3;
-    if (name == L"Domain")   return 4;
-    if (name == L"Compute")  return 5;
-                             return 6;
+    if (_name == L"Vertex")   return 0;
+    if (_name == L"Pixel")    return 1;
+    if (_name == L"Geometry") return 2;
+    if (_name == L"Hull")     return 3;
+    if (_name == L"Domain")   return 4;
+    if (_name == L"Compute")  return 5;
+                              return 6;
   };
 
   while (sec != sections.end ())
@@ -3496,7 +3497,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         snprintf (szDraws, 128, "%3i Dispatch%sLast Frame        ", draws, draws != 1 ? "es " : " ");
     }
 
-    snprintf (szTextures,   64, "(%#i %s)",  num_used_textures, num_used_textures != 1 ? "textures" : "texture");
+    snprintf (szTextures,   64, "(%i %s)",   num_used_textures, num_used_textures != 1 ? "textures" : "texture");
     snprintf (szRuntime,    32,  "%0.4f ms", tracker->runtime_ms);
     snprintf (szAvgRuntime, 32,  "%0.4f ms", tracker->runtime_ms / immediate_draws);
 

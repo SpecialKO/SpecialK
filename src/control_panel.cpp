@@ -3889,8 +3889,8 @@ SK_ImGui_ControlPanel (void)
   {          plugin_cfg ();                      }
 
 
-  static bool has_own_limiter    = (hModTBFix);
-  static bool has_own_limiter_ex = (hModTZFix);
+  static bool has_own_limiter    = hModTBFix;
+  static bool has_own_limiter_ex = hModTZFix;
 
   if (! has_own_limiter)
   {

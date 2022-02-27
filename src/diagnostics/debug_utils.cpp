@@ -24,6 +24,9 @@
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <winternl.h>
 
+#include <steamapi/isteamcontroller.h>
+#include <SpecialK/input/input.h>
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
@@ -434,9 +437,6 @@ SteamAPI_IsSteamRunning_override (void)
 
 
 extern bool SK_ImGui_WantGamepadCapture (void);
-
-#include <steamapi/isteamcontroller.h>
-#include <SpecialK/input/input.h>
 
 #define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
 #define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
