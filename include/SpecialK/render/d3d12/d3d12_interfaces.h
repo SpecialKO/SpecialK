@@ -41,8 +41,8 @@
 //   It could take multiple frames before a working combo of all
 //         of these things emerge and we can start drawing.
 //   
-static inline IDXGISwapChain3* pLazyD3D12Chain  = nullptr;
-static inline ID3D12Device*    pLazyD3D12Device = nullptr;
+extern IDXGISwapChain3* pLazyD3D12Chain;
+extern ID3D12Device*    pLazyD3D12Device;
 
 typedef
   HRESULT (*D3D12SerializeRootSignature_pfn)(

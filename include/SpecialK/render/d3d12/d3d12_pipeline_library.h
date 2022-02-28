@@ -25,8 +25,7 @@
 using D3D12Device1_CreatePipelineLibrary_pfn =
 HRESULT (STDMETHODCALLTYPE *)(ID3D12Device1*,const void*,SIZE_T,REFIID,void**);
 
-static inline
-  D3D12Device1_CreatePipelineLibrary_pfn
-  D3D12Device1_CreatePipelineLibrary_Original = nullptr;
+extern D3D12Device1_CreatePipelineLibrary_pfn
+       D3D12Device1_CreatePipelineLibrary_Original;
 
 void SK_D3D12_HookPipelineLibrary (ID3D12Device1 *pDevice1);

@@ -28,6 +28,12 @@
 
 #include <SpecialK/render/d3d12/d3d12_command_queue.h>
 
+D3D12CommandQueue_ExecuteCommandLists_pfn
+D3D12CommandQueue_ExecuteCommandLists_Original = nullptr;
+
+IDXGISwapChain3* pLazyD3D12Chain  = nullptr;
+ID3D12Device*    pLazyD3D12Device = nullptr;
+
 void STDMETHODCALLTYPE
 D3D12CommandQueue_ExecuteCommandLists_Detour (
   ID3D12CommandQueue        *This,

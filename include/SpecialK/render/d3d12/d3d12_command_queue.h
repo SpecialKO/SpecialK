@@ -27,7 +27,7 @@ D3D12CommandQueue_ExecuteCommandLists_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12CommandQueue*, UINT,
                       ID3D12CommandList* const *);
 
-static inline D3D12CommandQueue_ExecuteCommandLists_pfn
-              D3D12CommandQueue_ExecuteCommandLists_Original = nullptr;
+extern D3D12CommandQueue_ExecuteCommandLists_pfn
+       D3D12CommandQueue_ExecuteCommandLists_Original;
 
 void SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12);

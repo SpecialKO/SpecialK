@@ -27,6 +27,10 @@
 #define __SK_SUBSYSTEM__ L"D12PipeLib"
 
 #include <SpecialK/render/d3d12/d3d12_pipeline_library.h>
+
+D3D12Device1_CreatePipelineLibrary_pfn
+D3D12Device1_CreatePipelineLibrary_Original = nullptr;
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device1_CreatePipelineLibrary_Detour (

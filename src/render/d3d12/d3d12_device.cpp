@@ -37,6 +37,15 @@
 extern volatile LONG  __d3d12_hooked;
 LPVOID pfnD3D12CreateDevice = nullptr;
 
+D3D12Device_CreateGraphicsPipelineState_pfn
+D3D12Device_CreateGraphicsPipelineState_Original = nullptr;
+D3D12Device_CreateRenderTargetView_pfn
+D3D12Device_CreateRenderTargetView_Original      = nullptr;
+D3D12Device_CreateCommittedResource_pfn
+D3D12Device_CreateCommittedResource_Original     = nullptr;
+D3D12Device_CreatePlacedResource_pfn
+D3D12Device_CreatePlacedResource_Original        = nullptr;
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device_CreateGraphicsPipelineState_Detour (
