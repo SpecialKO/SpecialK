@@ -328,6 +328,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"cmd.exe"),
   SK_MakeUnicode (L"steam.exe"),
   SK_MakeUnicode (L"powershell.exe"),
+  SK_MakeUnicode (L"openconsole.exe"),
   SK_MakeUnicode (L"epicwebhelper.exe"),
   SK_MakeUnicode (L"steamwebhelper.exe"),
   SK_MakeUnicode (L"epicgameslauncher.exe"),
@@ -344,6 +345,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"esrv.exe"),
   SK_MakeUnicode (L"ipoint.exe"),
   SK_MakeUnicode (L"itype.exe"),
-  SK_MakeUnicode (L"devenv.exe")
+  SK_MakeUnicode (L"devenv.exe"),
 };
 #endif

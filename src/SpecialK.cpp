@@ -265,10 +265,12 @@ SK_KeepAway (void)
 
     if (rc != APPMODEL_ERROR_NO_PACKAGE)
     {
-      if (SK_GetModuleHandleW (L"AppXDeploymentClient.dll") != nullptr)
-      {
-        SK_GetHostAppUtil ()->setBlacklisted (true);
-      }
+      // Epic's Overlay Loads This
+      //
+      ////if (SK_GetModuleHandleW (L"AppXDeploymentClient.dll") != nullptr)
+      ////{
+      ////  SK_GetHostAppUtil ()->setBlacklisted (true);
+      ////}
 
       bool gl    = false, vulkan = false, d3d9  = false, d3d11 = false,
            dxgi  = false, d3d8   = false, ddraw = false, d3d12 = false,
@@ -644,7 +646,7 @@ DllMain ( HMODULE hModule,
           if (! bHoldingLock)
             SK_Widget_InvokeThreadProfiler ();
         }
-        
+
 
         // Strip TLS and Mark Free able
         // ----------------------------

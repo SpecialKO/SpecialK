@@ -407,12 +407,10 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <PreventDllBinding>false</PreventDllBinding>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -520,12 +518,10 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <DataExecutionPrevention>false</DataExecutionPrevention>
+      <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
-      <PreventDllBinding>false</PreventDllBinding>
-      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1364,7 +1360,11 @@
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_tex_mgr.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\d3d11_state_tracker.h" />
     <ClInclude Include="include\SpecialK\render\d3d11\utility\d3d11_texture.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_command_queue.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_device.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_dxil_shader.h" />
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h" />
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_pipeline_library.h" />
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d8\d3d8_backend.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_screenshot.h" />
@@ -1645,6 +1645,9 @@
     <ClCompile Include="src\render\d3d12\d3d11on12_shader_restitution.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp" />
+    <ClCompile Include="src\render\d3d12\d3d12_device.cpp" />
+    <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp" />
     <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

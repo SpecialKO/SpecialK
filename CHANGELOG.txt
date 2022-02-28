@@ -1,4 +1,15 @@
-﻿22.2.26.5-NOCEGUI
+﻿22.2.28-NOCEGUI
+===============
+ + Added D3D12 pipeline library (shader cache) flush if Elden Ring tries to
+    use a stale / invalid cache from old driver version or changed hardware.
+
+    >> Pipeline caching would otherwise not work at all after driver update
+
+22.2.27-NOCEGUI
+===============
+ + Ignore EAC's launch window to prevent SKIF auto-stop in Elden Ring
+
+22.2.26.5-NOCEGUI
 =================
  + Added Thread Priority Inversion fix for Elden Ring
 

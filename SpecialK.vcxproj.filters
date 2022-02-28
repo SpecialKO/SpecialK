@@ -2907,6 +2907,18 @@
     <ClInclude Include="include\SpecialK\input\sce_pad.h">
       <Filter>Header Files\Backends\Input\scePad</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_device.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_pipeline_library.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_command_queue.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3d12\d3d12_dxil_shader.h">
+      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3415,6 +3427,15 @@
     </ClCompile>
     <ClCompile Include="src\plugins\elden_ring.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_device.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

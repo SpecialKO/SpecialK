@@ -21,9 +21,28 @@
 
 #pragma once
 
+#include <SpecialK/render/dxgi/dxgi_backend.h>
+
 #include <Unknwnbase.h>
 
 #include <d3d12.h>
+#include <dxgidebug.h>
+#include <D3D11SDKLayers.h>
+
+#include <atomic>
+
+//
+// No references are held.
+// 
+//   This is just used to combine a SwapChain with a Device / Command Queue
+//     if we happen to inject SK late and did not witness the D3D12 SwapChain's
+//       creation...
+// 
+//   It could take multiple frames before a working combo of all
+//         of these things emerge and we can start drawing.
+//   
+static inline IDXGISwapChain3* pLazyD3D12Chain  = nullptr;
+static inline ID3D12Device*    pLazyD3D12Device = nullptr;
 
 typedef
   HRESULT (*D3D12SerializeRootSignature_pfn)(
@@ -427,26 +446,15 @@ ID3D12Device vftable
     };
 #endif
 
-
-
 extern bool SK_D3D12_Init         (void);
 extern void SK_D3D12_Shutdown     (void);
 extern void SK_D3D12_EnableHooks  (void);
 
-typedef HRESULT (WINAPI *D3D12CreateDevice_pfn)(
-  _In_opt_  IUnknown          *pAdapter,
-            D3D_FEATURE_LEVEL  MinimumFeatureLevel,
-  _In_      REFIID             riid,
-  _Out_opt_ void             **ppDevice);
+using D3D12CreateDevice_pfn =
+  HRESULT(WINAPI *)(IUnknown*,D3D_FEATURE_LEVEL,REFIID,void**);
 
 extern          IUnknown*      g_pD3D12Dev;
 extern D3D12CreateDevice_pfn   D3D12CreateDevice_Import;
-
-#include <atomic>
-
-#include <d3d12.h>
-#include <dxgidebug.h>
-#include <D3D11SDKLayers.h>
 
 struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 {
@@ -582,9 +590,8 @@ enum class SK_D3D12_ShaderType {
   Invalid  = MAXINT
 };
 
-bool
-SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
-                            ID3D12Device*    pDev12 );
+bool SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
+                                 ID3D12Device*    pDev12 );
 
 void SK_D3D12_BeginFrame (void);
 void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());

@@ -1685,7 +1685,7 @@ ClipCursor_Detour (const RECT *lpRect)
   { // Expand clip rects while SK's UI is open so the mouse works as expected :)
     if ( SK_ImGui_Active () )
     {
-      SK_LOG0 ( ( L"Ignoring Clip Rectangle Set While SK's UI is Active" ),
+      SK_LOG1 ( ( L"Ignoring Clip Rectangle Set While SK's UI is Active" ),
                   L"Input Mgr." );
 
       SK_Input_SaveClipRect (&game_window.cursor_clip  );

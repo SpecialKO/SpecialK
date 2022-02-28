@@ -365,8 +365,8 @@ namespace SK
     std::string getPipelineStatsDesc (void);
 
     //extern HMODULE hModD3D10;
-    extern HMODULE hModD3D11;
-    extern HMODULE hModD3D12;
+    static HMODULE hModD3D12 = nullptr;
+    static HMODULE hModD3D11 = nullptr;
 
     HRESULT StartBudgetThread           (IDXGIAdapter** ppAdapter);
     HRESULT StartBudgetThread_NoAdapter (void);

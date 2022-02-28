@@ -88,8 +88,6 @@ extern bool SK_D3D11_ShowShaderModDlg (void);
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
 
-HMODULE SK::DXGI::hModD3D11 = nullptr;
-
 SK::DXGI::PipelineStatsD3D11 SK::DXGI::pipeline_stats_d3d11 = { };
 
 volatile HANDLE hResampleThread = nullptr;
