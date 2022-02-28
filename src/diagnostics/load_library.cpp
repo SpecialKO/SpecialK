@@ -518,7 +518,10 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       SK_RunOnce (SK::EOS::Init (false))
     else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
                 StrStrIW (wszModName,        L"libScePad") )
-      SK_RunOnce (SK_Input_HookScePad ());
+      SK_RunOnce (SK_Input_HookScePad ())
+    else if (   StrStrI ( lpFileName, SK_TEXT("tier0_s")) ||
+                StrStrIW (wszModName,        L"tier0_s") )
+      SK_RunOnce (SK_InitSteamTier0 ())
 
 #if 0
     if (! config.platform.silent) {

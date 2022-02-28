@@ -1949,6 +1949,7 @@
     <ClCompile Include="src\steam\steam_api.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\steam\steam_tier0.cpp" />
     <ClCompile Include="src\steam\user.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

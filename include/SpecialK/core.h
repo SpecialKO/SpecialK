@@ -208,4 +208,11 @@ SK_CreateEvent (
   _In_     BOOL                  bInitialState,
   _In_opt_ LPCWSTR               lpName);
 
+DWORD
+WINAPI
+SK_SetThreadIdealProcessor (
+  HANDLE hThread,
+  DWORD  dwIdealProcessor
+);
+
 #endif /* __SK__CORE_H__ */

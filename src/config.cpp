@@ -73,6 +73,8 @@ SK_SEH_LaunchEldenRing (void)
     sinfo.wShowWindow = SW_SHOWNORMAL;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_FORCEOFFFEEDBACK;
 
+    SetEnvironmentVariable (L"SteamNoOverlayUIDrawing", L"0");
+
     CreateProcess ( L"eldenring.exe", nullptr, nullptr, nullptr,
                     TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );

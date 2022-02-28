@@ -102,6 +102,9 @@ void
 __stdcall
 SK_ER_EndFrame (void)
 {
+  if (SK_ER_PlugIn.bFixPrioInversion)
+    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+
   static float* fAddr =
     (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE28); // 1.0.2: 0x3B4FE08);
 

@@ -1593,8 +1593,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     }
 
 #if 0
-    SetThreadIdealProcessor (GetCurrentThread (),       6);
-    SetThreadAffinityMask   (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
+    SK_SetThreadIdealProcessor (GetCurrentThread (),       6);
+    SetThreadAffinityMask      (GetCurrentThread (), (1 << 7) | (1 << 6));//config.render.framerate.pin_render_thread);
 #endif
 
 

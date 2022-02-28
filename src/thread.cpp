@@ -424,6 +424,34 @@ SK_Thread_GetMainId (void)
     ( dwMainTid = result );
 }
 
+using SetThreadIdealProcessor_pfn = DWORD (WINAPI *)(HANDLE,DWORD);
+      SetThreadIdealProcessor_pfn
+      SetThreadIdealProcessor_Original = nullptr;
+
+DWORD
+WINAPI
+SK_SetThreadIdealProcessor (HANDLE hThread, DWORD dwIdealProcessor)
+{
+  if (SetThreadIdealProcessor_Original != nullptr)
+    return SetThreadIdealProcessor_Original (hThread, dwIdealProcessor);
+
+  return SetThreadIdealProcessor (hThread, dwIdealProcessor);
+}
+
+DWORD
+WINAPI
+SetThreadIdealProcessor_Detour (HANDLE hThread, DWORD dwIdealProcessor)
+{
+  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  {
+    return
+      SetThreadIdealProcessor_Original (hThread, MAXIMUM_PROCESSORS);
+  }
+
+  return
+    SetThreadIdealProcessor_Original (hThread, dwIdealProcessor);
+}
+
 bool
 SK_Thread_InitDebugExtras (void)
 {
@@ -459,6 +487,10 @@ SK_Thread_InitDebugExtras (void)
         );
       }
     }
+
+    SK_CreateDLLHook2 ( L"kernel32", "SetThreadIdealProcessor",
+                                      SetThreadIdealProcessor_Detour,
+             static_cast_p2p <void> (&SetThreadIdealProcessor_Original) );
 
     InterlockedIncrementRelease (&_InitDebugExtrasOnce);
 

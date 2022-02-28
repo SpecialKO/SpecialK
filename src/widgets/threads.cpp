@@ -1335,8 +1335,8 @@ public:
           {
             DWORD dwExitCode = 0;
             DWORD pnum       =
-              SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
-            GetExitCodeThread         (it->hThread, &dwExitCode);
+            SK_SetThreadIdealProcessor (it->hThread, MAXIMUM_PROCESSORS);
+            GetExitCodeThread          (it->hThread, &dwExitCode);
 
             if ( pnum != sk::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
             {
@@ -1357,7 +1357,7 @@ public:
               if (pnum != ideal && (( (dwMask >> pnum)  & 0x1) == 0x1)
                                 && (( (dwMask >> ideal) & 0x1) == 0x1))
               {
-                if ( SetThreadIdealProcessor ( it->hThread, ideal ) != DWORD_MAX )
+                if ( SK_SetThreadIdealProcessor ( it->hThread, ideal ) != DWORD_MAX )
                   pnum = ideal;
               }
 
@@ -2189,7 +2189,7 @@ public:
               (pTLS->scheduler->affinity_mask & (Processor0 << j)) != 0;
 
             UINT i =
-              SetThreadIdealProcessor (hSelectedThread, MAXIMUM_PROCESSORS);
+              SK_SetThreadIdealProcessor (hSelectedThread, MAXIMUM_PROCESSORS);
 
             bool ideal = (i == j);
 
@@ -2551,7 +2551,7 @@ public:
         continue;
 
       UINT i =
-        SetThreadIdealProcessor (it.second->hThread, MAXIMUM_PROCESSORS);
+        SK_SetThreadIdealProcessor (it.second->hThread, MAXIMUM_PROCESSORS);
 
       if (i == (UINT)-1)
         i = 0;

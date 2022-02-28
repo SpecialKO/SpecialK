@@ -129,6 +129,8 @@ namespace SK
 bool
 SK_Steam_TestImports (HMODULE hMod);
 
+void SK_InitSteamTier0 (void);
+
 void
 SK_Steam_InitCommandConsoleVariables (void);
 

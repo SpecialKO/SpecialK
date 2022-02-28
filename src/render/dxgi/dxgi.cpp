@@ -2700,7 +2700,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     rb.present_interval = interval;
 
-    if (interval != 0)
+    if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
 
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
@@ -4388,11 +4388,34 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   {
     if (! dxgi_caps.swapchain.allow_tearing)
     {
-      SK_ReleaseAssert ( 0 ==
-        (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-                       );
+      if (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+      {
+        SK_ComPtr <IDXGIFactory5> pFactory5;
+        if ( SUCCEEDED (
+               CreateDXGIFactory_Import (IID_IDXGIFactory5, (void **)&pFactory5.p)
+             )
+           )
+        {
+          const HRESULT hr =
+            pFactory5->CheckFeatureSupport (
+              DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+                &dxgi_caps.swapchain.allow_tearing,
+                  sizeof (dxgi_caps.swapchain.allow_tearing)
+            );
 
-      SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+          dxgi_caps.swapchain.allow_tearing =
+            SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
+        }
+
+        if (! dxgi_caps.swapchain.allow_tearing)
+        {
+          SK_ReleaseAssert ( 0 ==
+            (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
+                           );
+
+          SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        }
+      }
     }
 
     else

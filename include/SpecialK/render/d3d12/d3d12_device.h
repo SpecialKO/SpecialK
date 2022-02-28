@@ -35,6 +35,10 @@ D3D12Device_CreateRenderTargetView_pfn = void
                       D3D12_CPU_DESCRIPTOR_HANDLE);
 
 using
+D3D12Device_GetResourceAllocationInfo_pfn = D3D12_RESOURCE_ALLOCATION_INFO
+(STDMETHODCALLTYPE *)(ID3D12Device*,UINT,UINT,const D3D12_RESOURCE_DESC*);
+
+using
 D3D12Device_CreateCommittedResource_pfn = HRESULT
 (STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_HEAP_PROPERTIES*,D3D12_HEAP_FLAGS,
                                     const D3D12_RESOURCE_DESC*,D3D12_RESOURCE_STATES,
@@ -52,7 +56,9 @@ extern D3D12Device_CreateGraphicsPipelineState_pfn
        D3D12Device_CreateGraphicsPipelineState_Original;
 extern D3D12Device_CreateRenderTargetView_pfn
        D3D12Device_CreateRenderTargetView_Original;
-extern D3D12Device_CreateCommittedResource_pfn          
+extern D3D12Device_GetResourceAllocationInfo_pfn
+       D3D12Device_GetResourceAllocationInfo_Original;
+extern D3D12Device_CreateCommittedResource_pfn
        D3D12Device_CreateCommittedResource_Original;
 extern D3D12Device_CreatePlacedResource_pfn
        D3D12Device_CreatePlacedResource_Original;

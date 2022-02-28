@@ -3078,8 +3078,8 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
   // Tales of Symphonia and Zestiria both pin the render thread to the last
   //   CPU... let's try to keep our worker threads OFF that CPU.
 
-  SetThreadIdealProcessor (SK_GetCurrentThread (),         processor_num);
-  SetThreadAffinityMask   (SK_GetCurrentThread (), (1UL << processor_num) & 0xFFFFFFFF);
+  SK_SetThreadIdealProcessor (SK_GetCurrentThread (),         processor_num);
+     SetThreadAffinityMask   (SK_GetCurrentThread (), (1UL << processor_num) & 0xFFFFFFFF);
 
   auto* pThread =
     static_cast <TextureWorkerThread *> (user);

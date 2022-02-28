@@ -118,8 +118,8 @@ struct resample_dispatch_s
         SK_TLS *pTLS =
           SK_TLS_Bottom ();
 
-        SetThreadIdealProcessor ( SK_GetCurrentThread (),
-                                    sk::narrow_cast <DWORD> (thread_idx) );
+        SK_SetThreadIdealProcessor ( SK_GetCurrentThread (),
+                                       sk::narrow_cast <DWORD> (thread_idx) );
         if (! disjoint)
         {
           SetThreadAffinityMask ( SK_GetCurrentThread (), logic_mask );

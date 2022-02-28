@@ -41,6 +41,8 @@ D3D12Device_CreateGraphicsPipelineState_pfn
 D3D12Device_CreateGraphicsPipelineState_Original = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
+D3D12Device_GetResourceAllocationInfo_pfn
+D3D12Device_GetResourceAllocationInfo_Original   = nullptr;
 D3D12Device_CreateCommittedResource_pfn
 D3D12Device_CreateCommittedResource_Original     = nullptr;
 D3D12Device_CreatePlacedResource_pfn
@@ -256,6 +258,51 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
     );
 }
 
+D3D12_RESOURCE_ALLOCATION_INFO
+STDMETHODCALLTYPE
+D3D12Device_GetResourceAllocationInfo_Detour (
+      ID3D12Device        *This,
+      UINT                 visibleMask,
+      UINT                 numResourceDescs,
+const D3D12_RESOURCE_DESC *pResourceDescs)
+{
+  SK_LOG_FIRST_CALL
+
+  if (numResourceDescs > 0 && numResourceDescs < 64 && pResourceDescs != nullptr)
+  {
+    D3D12_RESOURCE_DESC res_desc [64] = { };
+
+    for ( UINT iRes = 0 ; iRes < numResourceDescs ; ++iRes )
+    {
+      res_desc [iRes] = pResourceDescs [iRes];
+
+      switch (res_desc [iRes].Dimension)
+      {
+        case D3D12_RESOURCE_DIMENSION_BUFFER:
+          res_desc [iRes].Alignment  = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+          break;
+        case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
+          if (res_desc [iRes].Alignment == 4096)
+              res_desc [iRes].Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+          break;
+        default:
+          break;
+      }
+    }
+
+    auto ret =
+      D3D12Device_GetResourceAllocationInfo_Original ( This,
+        visibleMask, numResourceDescs, res_desc/*pResourceDescs*/);
+
+    if (ret.SizeInBytes != UINT64_MAX)
+      return ret;
+  }
+
+  return
+    D3D12Device_GetResourceAllocationInfo_Original ( This,
+      visibleMask, numResourceDescs, pResourceDescs);
+}
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device_CreateCommittedResource_Detour (
@@ -272,18 +319,6 @@ _COM_Outptr_opt_ void                  **ppvResource )
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
   {
-    if (pDesc->Alignment == 4096)// && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-        _desc.Alignment = 0;
-
-    if (pDesc->Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
-    {
-      if (pDesc->Alignment == 4096)
-      {
-        SK_RunOnce (SK_ImGui_Warning (L"Gotcha!"));
-
-        _desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-      }
-    }
   }
 
   return
@@ -308,18 +343,6 @@ _COM_Outptr_opt_ void                  **ppvResource )
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
   {
-    if (pDesc->Alignment == 4096)// && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
-         _desc.Alignment = 0;
-
-    if (pDesc->Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
-    {
-      if (pDesc->Alignment == 4096)
-      {
-        SK_RunOnce (SK_ImGui_Warning (L"Gotcha!"));
-
-        _desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-      }
-    }
   }
 
   return
@@ -330,16 +353,12 @@ _COM_Outptr_opt_ void                  **ppvResource )
 
 
 void
-SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)
+_InstallDeviceHooksImpl (ID3D12Device* pDev12)
 {
   assert (pDev12 != nullptr);
 
   if (pDev12 == nullptr)
     return;
-
-  static bool
-      once = false;
-  if (once) return;
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateGraphicsPipelineState",
                             *(void ***)*(&pDev12), 10,
@@ -350,6 +369,15 @@ SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)
                            *(void ***)*(&pDev12), 20,
                             D3D12Device_CreateRenderTargetView_Detour,
                   (void **)&D3D12Device_CreateRenderTargetView_Original );
+
+  ////
+  // Hooking this causes crashes, it needs to be wrapped...
+  //
+
+  //SK_CreateVFTableHook2 ( L"ID3D12Device::GetResourceAllocationInfo",
+  //                         *(void ***)*(&pDev12), 25,
+  //                          D3D12Device_GetResourceAllocationInfo_Detour,
+  //                (void **)&D3D12Device_GetResourceAllocationInfo_Original );
   
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommittedResource",
                            *(void ***)*(&pDev12), 27,
@@ -452,8 +480,11 @@ SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)
   // 75 CreateCommandQueue1
 
   SK_ApplyQueuedHooks ();
-
-  once = true;
+}
+void
+SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)
+{
+  SK_RunOnce (_InstallDeviceHooksImpl (pDev12));
 }
 
 D3D12CreateDevice_pfn D3D12CreateDevice_Import = nullptr;

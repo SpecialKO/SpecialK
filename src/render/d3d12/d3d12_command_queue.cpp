@@ -107,7 +107,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 }
 
 void
-SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12)
+_InstallCommandQueueHooksImpl (ID3D12Device* pDev12)
 {
   assert (pDev12 != nullptr);
 
@@ -117,9 +117,6 @@ SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12)
   SK_ComPtr < ID3D12CommandQueue > p12Queue;
   D3D12_COMMAND_QUEUE_DESC queue_desc = { };
 
-  static bool once = false;
-  if         (once) return;
-
   if (SUCCEEDED (pDev12->CreateCommandQueue (
                           &queue_desc,
                     IID_PPV_ARGS (&p12Queue.p))))
@@ -128,7 +125,11 @@ SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12)
                              *(void ***)*(&p12Queue.p), 10,
                               D3D12CommandQueue_ExecuteCommandLists_Detour,
                     (void **)&D3D12CommandQueue_ExecuteCommandLists_Original );
-
-    once = true;
   }
+}
+
+void
+SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12)
+{
+  SK_RunOnce (_InstallCommandQueueHooksImpl (pDev12));
 }
