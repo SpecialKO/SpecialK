@@ -1622,6 +1622,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_IsInjected    () &&
        PathFileExistsW (SK_GetBlacklistFilename ());
 
+    if (SK_GetCurrentGameID () == SK_GAME_ID::EasyAntiCheat)
+      blacklist = true;
+
     if (! blacklist)
     {
       // Initialize MinHook before loading config file; required for some plug-ins

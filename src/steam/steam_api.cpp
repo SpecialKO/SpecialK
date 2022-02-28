@@ -3354,13 +3354,13 @@ SK_Steam_LoadOverlayEarly (void)
                             L"GameOverlayRenderer.dll"    ) );
 
 
-  bool bEnableHooks =
-    SK_EnableApplyQueuedHooks ();
-
-  SK_ApplyQueuedHooks ();
-
-  if (! bEnableHooks)
-    SK_DisableApplyQueuedHooks ();
+  //bool bEnableHooks =
+  //  SK_EnableApplyQueuedHooks ();
+  //
+  //SK_ApplyQueuedHooks ();
+  //
+  //if (! bEnableHooks)
+  //  SK_DisableApplyQueuedHooks ();
 
 
   hModOverlay =

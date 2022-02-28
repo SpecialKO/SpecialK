@@ -743,7 +743,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   {
     if ( *ppDevice != g_pD3D11Dev )
     {
-      SK_LOG0 ( (L" >> Device = %08" _L(PRIxPTR) L"h (Feature Level:%s)",
+      SK_LOG0 ( (L" >> Device = %08" _L(PRIxPTR) L"h (Feature Level:%hs)",
                       (uintptr_t)*ppDevice,
                         SK_DXGI_FeatureLevelsToStr ( 1,
                                                       (DWORD *)&FeatureLevel

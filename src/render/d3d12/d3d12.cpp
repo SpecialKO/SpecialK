@@ -99,7 +99,7 @@ D3D12CreateDevice_Detour (
       //if ( *ppDevice != g_pD3D12Dev )
       //{
         // TODO: This isn't the right way to get the feature level
-        dll_log->Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%s)",
+        dll_log->Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%hs)",
                          *ppDevice,
                            SK_DXGI_FeatureLevelsToStr ( 1,
                                                          (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
@@ -867,6 +867,103 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 }
 
 using
+D3D12Device_CreateCommittedResource_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_HEAP_PROPERTIES*,D3D12_HEAP_FLAGS,
+                                    const D3D12_RESOURCE_DESC*,D3D12_RESOURCE_STATES,
+                                    const D3D12_CLEAR_VALUE*,REFIID,void**);
+D3D12Device_CreateCommittedResource_pfn
+D3D12Device_CreateCommittedResource_Original = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device_CreateCommittedResource_Detour (
+                 ID3D12Device           *This,
+_In_       const D3D12_HEAP_PROPERTIES  *pHeapProperties,
+                 D3D12_HEAP_FLAGS        HeapFlags,
+_In_       const D3D12_RESOURCE_DESC    *pDesc,
+                 D3D12_RESOURCE_STATES   InitialResourceState,
+_In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
+                 REFIID                  riidResource,
+_COM_Outptr_opt_ void                  **ppvResource )
+{
+  D3D12_RESOURCE_DESC _desc = *pDesc;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  {
+    if (pDesc->Alignment == 4096)// && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+        _desc.Alignment = 0;
+
+    if (pDesc->Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+    {
+      if (pDesc->Alignment == 4096)
+      {
+        SK_RunOnce (SK_ImGui_Warning (L"Gotcha!"));
+
+        _desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+      }
+    }
+  }
+
+  return
+    D3D12Device_CreateCommittedResource_Original ( This,
+      pHeapProperties, HeapFlags, &_desc/*pDesc*/, InitialResourceState,
+        pOptimizedClearValue, riidResource, ppvResource );
+}
+
+using
+D3D12Device_CreatePlacedResource_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Heap*,
+                       UINT64,const D3D12_RESOURCE_DESC*,
+                                    D3D12_RESOURCE_STATES,
+                              const D3D12_CLEAR_VALUE*,REFIID,void**);
+
+D3D12Device_CreatePlacedResource_pfn
+D3D12Device_CreatePlacedResource_Original = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device_CreatePlacedResource_Detour (
+                 ID3D12Device           *This,
+_In_             ID3D12Heap             *pHeap,
+                 UINT64                  HeapOffset,
+_In_       const D3D12_RESOURCE_DESC    *pDesc,
+                 D3D12_RESOURCE_STATES   InitialState,
+_In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
+                 REFIID                  riid,
+_COM_Outptr_opt_ void                  **ppvResource )
+{
+  D3D12_RESOURCE_DESC _desc = *pDesc;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  {
+    if (pDesc->Alignment == 4096)// && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+         _desc.Alignment = 0;
+
+    if (pDesc->Dimension == D3D12_RESOURCE_DIMENSION_BUFFER)
+    {
+      if (pDesc->Alignment == 4096)
+      {
+        SK_RunOnce (SK_ImGui_Warning (L"Gotcha!"));
+
+        _desc.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+      }
+    }
+  }
+
+  return
+    D3D12Device_CreatePlacedResource_Original ( This,
+      pHeap, HeapOffset, &_desc/*pDesc*/, InitialState,
+        pOptimizedClearValue, riid, ppvResource );
+}
+
+//virtual HRESULT STDMETHODCALLTYPE CreateReservedResource( 
+//    _In_  const D3D12_RESOURCE_DESC *pDesc,
+//    D3D12_RESOURCE_STATES InitialState,
+//    _In_opt_  const D3D12_CLEAR_VALUE *pOptimizedClearValue,
+//    REFIID riid,
+//    _COM_Outptr_opt_  void **ppvResource) = 0;
+
+using
 D3D12CommandQueue_ExecuteCommandLists_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12CommandQueue*, UINT,
                       ID3D12CommandList* const *);
@@ -969,6 +1066,27 @@ SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
                                *(void ***)*(&pDev12), 20,
                                 D3D12Device_CreateRenderTargetView_Detour,
                       (void **)&D3D12Device_CreateRenderTargetView_Original );
+
+      SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommittedResource",
+                               *(void ***)*(&pDev12), 27,
+                                D3D12Device_CreateCommittedResource_Detour,
+                      (void **)&D3D12Device_CreateCommittedResource_Original );
+
+      SK_CreateVFTableHook2 ( L"ID3D12Device::CreatePlacedResource",
+                               *(void ***)*(&pDev12), 29,
+                                D3D12Device_CreatePlacedResource_Detour,
+                      (void **)&D3D12Device_CreatePlacedResource_Original );
+
+      // 21 CreateDepthStencilView
+      // 22 CreateSampler
+      // 23 CopyDescriptors
+      // 24 CopyDescriptorsSimple
+      // 25 GetResourceAllocationInfo
+      // 26 GetCustomHeapProperties
+      // 27 CreateCommittedResource
+      // 28 CreateHeap
+      // 29 CreatePlacedResource
+      // 30 CreateReservedResource
     }
 
     SK_ComPtr < ID3D12CommandQueue > p12Queue;

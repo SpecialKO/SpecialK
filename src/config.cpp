@@ -60,6 +60,41 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
+extern const wchar_t* SK_GetSteamDir (void);
+
+void
+SK_SEH_LaunchEldenRing (void)
+{
+  __try {
+    STARTUPINFOW        sinfo = { };
+    PROCESS_INFORMATION pinfo = { };
+
+    sinfo.cb          = sizeof (STARTUPINFOW);
+    sinfo.wShowWindow = SW_SHOWNORMAL;
+    sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_FORCEOFFFEEDBACK;
+
+    CreateProcess ( L"eldenring.exe", nullptr, nullptr, nullptr,
+                    TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
+                    &sinfo,  &pinfo );
+
+    if (pinfo.hProcess != 0)
+    {
+      // Save config prior to comitting suicide
+      SK_SelfDestruct ();
+
+      ResumeThread     (pinfo.hThread);
+      SK_CloseHandle   (pinfo.hThread);
+      SK_CloseHandle   (pinfo.hProcess);
+      WaitForInputIdle (pinfo.hProcess, 500UL);
+
+      SK_TerminateProcess (0x00);
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  }
+}
+
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
@@ -253,8 +288,10 @@ SK_GetCurrentGameID (void)
 
       if (current_game == SK_GAME_ID::EasyAntiCheat)
       {
-        ShellExecute (NULL, NULL, L"EldenRing.exe", NULL, NULL, 0);
-        exit (0);
+        if (std::filesystem::exists (L"eldenring.exe"))
+        {
+          SK_SEH_LaunchEldenRing ();
+        }
       }
     }
   }

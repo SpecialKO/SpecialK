@@ -38,14 +38,16 @@ SK::ControlPanel::Platform::Draw (void)
 
   if (SK::SteamAPI::AppID () != 0 || SK::EOS::GetTicksRetired () > 0)
   {
-    static bool bSteam = (SK::SteamAPI::AppID      () != 0);
-    static bool bEpic  = (SK::EOS::GetTicksRetired () >  0);
+    // Steam AppID never changes, but EOS tick count might...
+    //   also some Steam games use EOS but aren't themselves an Epic game
+    static bool bSteam =  (SK::SteamAPI::AppID      () != 0);
+           bool bEpic  = ((SK::EOS::GetTicksRetired () >  0) && (! bSteam));
 
-    static const std::string header_label = std::move (
+    static const std::string header_label =
       SK_FormatString ( "%s Enhancements###Platform_Enhancements",
                         bSteam ? "Steam" :
                          bEpic ? "Epic"  :
-                             "Platform" )             );
+                             "Platform" );
 
     if ( ImGui::CollapsingHeader (header_label.c_str (), ImGuiTreeNodeFlags_CollapsingHeader |
                                                          ImGuiTreeNodeFlags_DefaultOpen ) )
