@@ -1872,7 +1872,6 @@ public:
         {
           static bool run_once = false;
 
-
           if (run_once)
           {
             // Uninstall the game's callback while we're fetching friend stats,

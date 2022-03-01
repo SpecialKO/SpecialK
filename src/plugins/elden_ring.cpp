@@ -29,6 +29,13 @@
 struct {
   float fSpeed            = 1.0f;
   bool  bFixPrioInversion = true;
+  bool  bUncapFramerate   = true;
+
+  struct {
+    sk::ParameterFloat* game_speed         = nullptr;
+    sk::ParameterBool*  fix_prio_inversion = nullptr;
+    sk::ParameterBool*  uncap_framerate    = nullptr;
+  } ini;
 } SK_ER_PlugIn;
 
 struct code_patch_s {
@@ -103,7 +110,10 @@ __stdcall
 SK_ER_EndFrame (void)
 {
   if (SK_ER_PlugIn.bFixPrioInversion)
-    SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+  {
+    if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_BELOW_NORMAL)
+        SetThreadPriority (GetCurrentThread (),    THREAD_PRIORITY_LOWEST);
+  }
 
   static float* fAddr =
     (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE28); // 1.0.2: 0x3B4FE08);
@@ -147,16 +157,21 @@ SK_ER_PlugInCfg (void)
         if (! SK_ER_PlugIn.bFixPrioInversion)
           SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL); // Game default
         else
-          SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL); // Sensible default
+          SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);       // Sensible default
+
+        SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.bFixPrioInversion);
       }
       ImGui::SameLine    (  );
-      ImGui::SliderFloat ("Game Speed",                           &SK_ER_PlugIn.fSpeed, 0.75f, 1.5f, "%.3fx");
+  if (ImGui::SliderFloat ("Game Speed",                           &SK_ER_PlugIn.fSpeed, 0.75f, 1.5f, "%.3fx"))
+      {
+        SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.fSpeed);
+      }
       ImGui::EndGroup    (  );
 
-      static int                      sel = 0;
+      int                             sel = SK_ER_PlugIn.bUncapFramerate ? 0 : 1;
   if (ImGui::Combo ("Framerate Cap", &sel, "Unlocked\0Normal\0\0"))
       {
-        bool unlocked = (sel == 0);
+        SK_ER_PlugIn.bUncapFramerate = (sel == 0);
 
         static auto patches =
           { &clock_tick0, &clock_tick1, &clock_tick2,
@@ -164,9 +179,22 @@ SK_ER_PlugInCfg (void)
 
         for (auto patch : patches)
         {
-          if (unlocked) patch->apply (&patch->replacement);
-          else          patch->apply (&patch->original);
+          if (SK_ER_PlugIn.bUncapFramerate) patch->apply (&patch->replacement);
+          else                              patch->apply (&patch->original);
         }
+
+        SK_ER_PlugIn.ini.uncap_framerate->store (SK_ER_PlugIn.bUncapFramerate);
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("For Best Unlocked Results");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Use Borderless Window Mode");
+        ImGui::BulletText      ("Configure Refresh Rate using SK's Display Menu");
+        ImGui::BulletText      ("Right-Click Framerate Limit to use Latent Sync (VSYNC Off Mode)");
+        ImGui::EndTooltip      ();
       }
 
       ImGui::TreePop     (  );
@@ -180,8 +208,38 @@ SK_ER_PlugInCfg (void)
 }
 
 void
+SK_ER_InitConfig (void)
+{
+  SK_ER_PlugIn.ini.game_speed =
+    _CreateConfigParameterFloat ( L"EldenRing.PlugIn",
+                                  L"GameSpeed", SK_ER_PlugIn.fSpeed,
+                                                       L"Game Speed" );
+
+  if (! SK_ER_PlugIn.ini.game_speed->load  (SK_ER_PlugIn.fSpeed))
+        SK_ER_PlugIn.ini.game_speed->store (1.0f);
+
+  SK_ER_PlugIn.ini.fix_prio_inversion =
+    _CreateConfigParameterBool ( L"EldenRing.PlugIn",
+                                 L"FixPrioInversion", SK_ER_PlugIn.bFixPrioInversion,
+                                                                     L"Priority Fix" );
+
+  if (! SK_ER_PlugIn.ini.fix_prio_inversion->load  (SK_ER_PlugIn.bFixPrioInversion))
+        SK_ER_PlugIn.ini.fix_prio_inversion->store (true);
+
+  SK_ER_PlugIn.ini.uncap_framerate =
+    _CreateConfigParameterBool ( L"EldenRing.PlugIn",
+                                 L"UncapFramerate", SK_ER_PlugIn.bUncapFramerate,
+                                                          L"Remove 60 FPS Limit" );
+
+  if (! SK_ER_PlugIn.ini.uncap_framerate->load  (SK_ER_PlugIn.bUncapFramerate))
+        SK_ER_PlugIn.ini.uncap_framerate->store (true);
+}
+
+void
 SK_ER_InitPlugin (void)
 {
+  SK_ER_InitConfig ();
+
   __try
   {
     if (*((uint8_t *)SK_Debug_GetImageBaseAddr () + 0x0DFEFC0) == 0xC7)
@@ -207,8 +265,10 @@ SK_ER_InitPlugin (void)
                          patch->pAddr, 7 );
         VirtualProtect ( patch->pAddr, 7, dwOldProt,              &dwOldProt );
 
-        // Unlock By Default
-        patch->apply (&patch->replacement);
+        if (SK_ER_PlugIn.bUncapFramerate)
+        {
+          patch->apply (&patch->replacement);
+        }
       }
 
       // Disable the code that writes delta time every frame
@@ -220,7 +280,7 @@ SK_ER_InitPlugin (void)
       plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
 
       if (SK_ER_PlugIn.bFixPrioInversion)
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
+        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
     }
   }
 

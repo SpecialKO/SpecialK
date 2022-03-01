@@ -3941,14 +3941,14 @@ SK_ImGui_ControlPanel (void)
               " to your target FPS."
             );
 
-            if ( ( rb.api == SK_RenderAPI::D3D11 ||
-                   rb.api == SK_RenderAPI::D3D12 ) && (! (config.render.framerate.flip_discard &&
-                                                          config.render.framerate.swapchain_wait > 0)))
-            {
-              ImGui::Separator       ();
-              ImGui::TextUnformatted ("Did you know ... to get the most out of SK's Framerate Limiter:");
-              ImGui::BulletText      ("Enable Flip Model + Waitable SwapChain in D3D11/12 / SwapChain Settings");
-            }
+          //if ( ( rb.api == SK_RenderAPI::D3D11 ||
+          //       rb.api == SK_RenderAPI::D3D12 ) && (! (config.render.framerate.flip_discard &&
+          //                                              config.render.framerate.swapchain_wait > 0)))
+          //{
+          //  ImGui::Separator       ();
+          //  ImGui::TextUnformatted ("Did you know ... to get the most out of SK's Framerate Limiter:");
+          //  ImGui::BulletText      ("Enable Flip Model + Waitable SwapChain in D3D11/12 / SwapChain Settings");
+          //}
 
             ImGui::EndTooltip ();
           }

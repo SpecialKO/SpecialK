@@ -2653,6 +2653,11 @@ auto DeclKeybind =
       case SK_GAME_ID::DyingLight2:
         config.input.mouse.ignore_small_clips = true;
         break;
+
+      case SK_GAME_ID::EldenRing:
+        // Minimize chance of games screwing up achievements
+        config.platform.achievements.pull_friend_stats = false;
+        break;
 #endif
     }
   }

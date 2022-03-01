@@ -1,4 +1,15 @@
-﻿22.2.28.2-NOCEGUI
+﻿22.3.1.1-NOCEGUI
+================
+ + Handle ERROR_INVALID_PARAMETER during D3D12 Shader Pipeline Library creation
+    ( fixes startup hangs in Elden Ring )
+
+22.3.1-NOCEGUI
+==============
+ + Elden Ring settings are now saved in INI persistently
+ + Elden Ring Prio. Inversion fix only applied if render thread is Below Normal
+ + Disabled SteamAPI friend achievement sync. for Elden Ring
+
+22.2.28.2-NOCEGUI
 =================
  + Injecting SK _late_ into a Flip Model game that knows what DXGI tearing
      flags are no longer triggers an assertion failure

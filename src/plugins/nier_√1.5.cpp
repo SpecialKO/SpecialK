@@ -1,5 +1,5 @@
 //
-// Copyright 2021 Andon "Kaldaien" Coleman
+// Copyright 2021-2022 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -23,7 +23,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/DLL_VERSION.H>
 #include <imgui/font_awesome.h>
 
 

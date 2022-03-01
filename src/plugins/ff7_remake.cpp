@@ -22,7 +22,6 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/DLL_VERSION.H>
 #include <imgui/font_awesome.h>
 
 #include <SpecialK/control_panel/plugins.h>
