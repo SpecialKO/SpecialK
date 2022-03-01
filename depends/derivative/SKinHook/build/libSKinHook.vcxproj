@@ -232,7 +232,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <StructMemberAlignment>Default</StructMemberAlignment>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalOptions>/Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf-  /Zo</AdditionalOptions>
       <ProgramDataBaseFileName>
@@ -249,6 +249,7 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Lib />
     <ProjectReference />
@@ -292,12 +293,13 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <BrowseInformation>false</BrowseInformation>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Lib />
     <Lib />

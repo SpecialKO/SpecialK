@@ -34,11 +34,16 @@
 // Various device-resource hacks are here for HDR
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
+#include <concurrent_unordered_map.h>
+#include <concurrent_unordered_set.h>
+
 extern volatile LONG  __d3d12_hooked;
 LPVOID pfnD3D12CreateDevice = nullptr;
 
 D3D12Device_CreateGraphicsPipelineState_pfn
 D3D12Device_CreateGraphicsPipelineState_Original = nullptr;
+//D3D12Device2_CreatePipelineState_pfn
+//D3D12Device2_CreatePipelineState_Original        = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
@@ -47,6 +52,8 @@ D3D12Device_CreateCommittedResource_pfn
 D3D12Device_CreateCommittedResource_Original     = nullptr;
 D3D12Device_CreatePlacedResource_pfn
 D3D12Device_CreatePlacedResource_Original        = nullptr;
+D3D12Device_CreateCommandAllocator_pfn
+D3D12Device_CreateCommandAllocator_Original      = nullptr;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -215,6 +222,133 @@ static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x
     hrPipelineCreate;
 }
 
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device2_CreatePipelineState_Detour ( 
+              ID3D12Device2                    *This,
+        const D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
+              REFIID                            riid,
+_COM_Outptr_  void                            **ppPipelineState )
+{
+  const D3D12_PIPELINE_STATE_STREAM_DESC* pSubObj = pDesc;
+
+  switch (*(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE *)pSubObj->pPipelineStateSubobjectStream)
+  {
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_ROOT_SIGNATURE:       break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_HS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_GS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_STREAM_OUTPUT:        break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND:                break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_MASK:          break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RASTERIZER:           break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL:        break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_INPUT_LAYOUT:         break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_IB_STRIP_CUT_VALUE:   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PRIMITIVE_TOPOLOGY:   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RENDER_TARGET_FORMATS:break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL_FORMAT: break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_DESC:          break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_NODE_MASK:            break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CACHED_PSO:           break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS:                break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL1:       break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VIEW_INSTANCING:      break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_AS:                   break;
+    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS:                   break;
+  }
+
+  return S_OK;
+}
+
+
+
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device_CreateCommandAllocator_Detour (
+  ID3D12Device            *This,
+  D3D12_COMMAND_LIST_TYPE  type,
+  REFIID                   riid,
+  _COM_Outptr_  void      **ppCommandAllocator )
+{
+  if (riid == __uuidof (ID3D12CommandAllocator))
+  {
+    struct allocator_cache_s {
+      concurrency::concurrent_unordered_map <ID3D12Device*,
+        concurrency::concurrent_unordered_set <ID3D12CommandAllocator*>>
+          heap;
+      int cycles = 0;
+    } static
+      direct_, bundle_,
+      copy_,   compute_;
+
+    allocator_cache_s*
+             pCache = nullptr;
+
+    switch (type)
+    {
+      case D3D12_COMMAND_LIST_TYPE_DIRECT:  pCache = &direct_;  break;
+      case D3D12_COMMAND_LIST_TYPE_BUNDLE:  pCache = &bundle_;  break;
+      case D3D12_COMMAND_LIST_TYPE_COPY:    pCache = &copy_;    break;
+      case D3D12_COMMAND_LIST_TYPE_COMPUTE: pCache = &compute_; break;
+      default:
+        break;
+    }
+
+    if (pCache != nullptr)
+    {
+      for ( auto pAllocator : pCache->heap [This] )
+      {
+        if (pAllocator != nullptr)
+        {
+          if (pAllocator->AddRef () == 2)
+          {   *ppCommandAllocator =
+                       pAllocator;
+
+            if (pCache->cycles > 12)
+            {   pCache->cycles = 0;
+                pAllocator->Reset ();
+            }
+
+            return S_OK;
+          }
+
+          else
+          {
+            ++pCache->cycles;
+            pAllocator->Release ();
+          }
+        }
+      }
+
+      if ( SUCCEEDED (
+             D3D12Device_CreateCommandAllocator_Original (
+               This, type,
+               riid, ppCommandAllocator
+             )       )
+         )
+      {
+        ((ID3D12CommandAllocator *)*ppCommandAllocator)->AddRef ();
+        pCache->heap [This].insert (
+          (ID3D12CommandAllocator *)*ppCommandAllocator
+        );
+
+        return S_OK;
+      }
+    }
+  }
+
+  return
+    D3D12Device_CreateCommandAllocator_Original ( This,
+        type, riid, ppCommandAllocator
+    );
+}
+
 void
 STDMETHODCALLTYPE
 D3D12Device_CreateRenderTargetView_Detour (
@@ -360,6 +494,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   if (pDev12 == nullptr)
     return;
 
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandAllocator",
+                            *(void ***)*(&pDev12), 9,
+                             D3D12Device_CreateCommandAllocator_Detour,
+                   (void **)&D3D12Device_CreateCommandAllocator_Original );
+
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateGraphicsPipelineState",
                             *(void ***)*(&pDev12), 10,
                              D3D12Device_CreateGraphicsPipelineState_Detour,
@@ -388,6 +527,16 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
                            *(void ***)*(&pDev12), 29,
                             D3D12Device_CreatePlacedResource_Detour,
                   (void **)&D3D12Device_CreatePlacedResource_Original );
+
+  // 7  UINT    STDMETHODCALLTYPE GetNodeCount
+  // 8  HRESULT STDMETHODCALLTYPE CreateCommandQueue
+  // 9  HRESULT STDMETHODCALLTYPE CreateCommandAllocator
+  // 10 HRESULT STDMETHODCALLTYPE CreateGraphicsPipelineState
+  // 11 HRESULT STDMETHODCALLTYPE CreateComputePipelineState
+  // 12 HRESULT STDMETHODCALLTYPE CreateCommandList
+  // 13 HRESULT STDMETHODCALLTYPE CheckFeatureSupport
+  // 14 HRESULT STDMETHODCALLTYPE CreateDescriptorHeap
+  // 15 UINT    STDMETHODCALLTYPE GetDescriptorHandleIncrementSize
 
   // 21 CreateDepthStencilView
   // 22 CreateSampler

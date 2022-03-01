@@ -114,7 +114,7 @@
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
     <MultiProcFXC>true</MultiProcFXC>
-    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <CopyLocalDebugSymbols>false</CopyLocalDebugSymbols>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -128,7 +128,7 @@
     <LinkIncremental>false</LinkIncremental>
     <MultiProcFXC>true</MultiProcFXC>
     <IntDir>$(SolutionDir)build\$(Configuration)\x64\</IntDir>
-    <CopyLocalDebugSymbols>true</CopyLocalDebugSymbols>
+    <CopyLocalDebugSymbols>false</CopyLocalDebugSymbols>
     <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -375,13 +375,14 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <SupportJustMyCode>false</SupportJustMyCode>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <SupportJustMyCode>false</SupportJustMyCode>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <FloatingPointModel>Fast</FloatingPointModel>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -407,10 +408,15 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RegisterOutput>false</RegisterOutput>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <PreventDllBinding>true</PreventDllBinding>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -489,8 +495,9 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <BrowseInformation>false</BrowseInformation>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -518,10 +525,15 @@
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <DataExecutionPrevention>true</DataExecutionPrevention>
+      <DataExecutionPrevention>false</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <RandomizedBaseAddress>true</RandomizedBaseAddress>
+      <RegisterOutput>false</RegisterOutput>
+      <SupportUnloadOfDelayLoadedDLL>true</SupportUnloadOfDelayLoadedDLL>
+      <SupportNobindOfDelayLoadedDLL>true</SupportNobindOfDelayLoadedDLL>
+      <CLRUnmanagedCodeCheck>false</CLRUnmanagedCodeCheck>
+      <PreventDllBinding>true</PreventDllBinding>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -1537,7 +1549,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">-d2RecomputeAddrTaken- /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="src\plugins\elden_ring.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="src\plugins\ff7_remake.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>

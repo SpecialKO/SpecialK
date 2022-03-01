@@ -281,7 +281,7 @@
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <SupportJustMyCode>false</SupportJustMyCode>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -296,6 +296,7 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -363,10 +364,11 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
       <DisableSpecificWarnings>5054</DisableSpecificWarnings>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>

@@ -25,7 +25,20 @@
 using D3D12Device1_CreatePipelineLibrary_pfn =
 HRESULT (STDMETHODCALLTYPE *)(ID3D12Device1*,const void*,SIZE_T,REFIID,void**);
 
+using D3D12PipelineLibrary_StorePipeline_pfn =
+HRESULT (STDMETHODCALLTYPE *)(ID3D12PipelineLibrary*,LPCWSTR,ID3D12PipelineState*);
+
+using D3D12PipelineLibrary_LoadGraphicsPipeline_pfn = 
+HRESULT (STDMETHODCALLTYPE *)(ID3D12PipelineLibrary*,LPCWSTR,
+                         const D3D12_GRAPHICS_PIPELINE_STATE_DESC*,REFIID,void**);
+
 extern D3D12Device1_CreatePipelineLibrary_pfn
        D3D12Device1_CreatePipelineLibrary_Original;
+
+extern D3D12PipelineLibrary_StorePipeline_pfn
+       D3D12PipelineLibrary_StorePipeline_Original;
+
+extern D3D12PipelineLibrary_LoadGraphicsPipeline_pfn
+       D3D12PipelineLibrary_LoadGraphicsPipeline_Original;
 
 void SK_D3D12_HookPipelineLibrary (ID3D12Device1 *pDevice1);

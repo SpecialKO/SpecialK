@@ -233,13 +233,14 @@
       <ConformanceMode>true</ConformanceMode>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <SupportJustMyCode>false</SupportJustMyCode>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -291,9 +292,10 @@
       <SupportJustMyCode>false</SupportJustMyCode>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableModules>false</EnableModules>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

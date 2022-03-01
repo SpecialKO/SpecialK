@@ -233,3 +233,44 @@ SK_ER_InitPlugin (void)
     );
   }
 }
+
+
+
+
+// 32-bit Launcher Bypass Code
+void
+SK_SEH_LaunchEldenRing (void)
+{
+  __try {
+    STARTUPINFOW        sinfo = { };
+    PROCESS_INFORMATION pinfo = { };
+
+    sinfo.cb          = sizeof (STARTUPINFOW);
+    sinfo.wShowWindow = SW_SHOWNORMAL;
+    sinfo.dwFlags     = STARTF_USESHOWWINDOW | STARTF_FORCEOFFFEEDBACK;
+
+    // EAC Launcher has SteamNoOverlayUIDrawing set to 1, we don't want
+    //   to inherit that (!!)
+    SetEnvironmentVariable (L"SteamNoOverlayUIDrawing", L"0");
+
+    CreateProcess ( L"eldenring.exe", nullptr, nullptr, nullptr,
+                    TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
+                    &sinfo,  &pinfo );
+
+    if (pinfo.hProcess != 0)
+    {
+      // Save config prior to comitting suicide
+      SK_SelfDestruct ();
+
+      ResumeThread     (pinfo.hThread);
+      SK_CloseHandle   (pinfo.hThread);
+      SK_CloseHandle   (pinfo.hProcess);
+      WaitForInputIdle (pinfo.hProcess, 5UL);
+
+      SK_TerminateProcess (0x00);
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER) {
+  }
+}
