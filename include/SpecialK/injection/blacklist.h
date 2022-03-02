@@ -346,5 +346,6 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ipoint.exe"),
   SK_MakeUnicode (L"itype.exe"),
   SK_MakeUnicode (L"devenv.exe"),
+  SK_MakeUnicode (L"msedge.exe")
 };
 #endif

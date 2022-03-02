@@ -1,4 +1,13 @@
-﻿22.3.1.1-NOCEGUI
+﻿22.3.1.3-NOCEGUI
+================
+ + Updated Elden Ring Plug-In for 3/1/22 patch
+
+22.3.1.2-NOCEGUI
+================
+ + Default Elden Ring settings to block KB&M input while Elden Ring game window
+     is not focused and keep mouse from leaving game window while it is focused
+
+22.3.1.1-NOCEGUI
 ================
  + Handle ERROR_INVALID_PARAMETER during D3D12 Shader Pipeline Library creation
     ( fixes startup hangs in Elden Ring )

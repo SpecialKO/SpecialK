@@ -48,33 +48,35 @@ struct code_patch_s {
   void apply (executable_code_s *pExec);
 };
 
+
+
 code_patch_s clock_tick0
-{ .pAddr       = (void *)0x0DFEF87,
+{ .pAddr       = (void *)0xDFF397,//0x0DFEF87,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 code_patch_s clock_tick1
-{ .pAddr       = (void *)0x0DFEFA3,
+{ .pAddr       = (void *)0xDFF3B3,//0x0DFEFA3,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 code_patch_s clock_tick2
-{ .pAddr       = (void *)0x0DFEFAF,
+{ .pAddr       = (void *)0xDFF3BF,//0x0DFEFAF,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 code_patch_s clock_tick3
-{ .pAddr       = (void *)0x0DFEFC0,
+{ .pAddr       = (void *)0xDFF3D0,//0x0DFEFC0,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 code_patch_s clock_tick4
-{ .pAddr       = (void *)0x0DFEFCD,
+{ .pAddr       = (void *)0xDFF3DD,//0x0DFEFCD,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 code_patch_s clock_tick5
-{ .pAddr       = (void *)0x0DFEFDD,
+{ .pAddr       = (void *)0xDFF3ED,//0DFEFDD,
   .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
   .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
@@ -116,7 +118,7 @@ SK_ER_EndFrame (void)
   }
 
   static float* fAddr =
-    (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE28); // 1.0.2: 0x3B4FE08);
+    (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE38);//0x3B4FE28); // 1.0.2: 0x3B4FE08);
 
   *fAddr =
     SK_ER_PlugIn.fSpeed * static_cast <float> (
@@ -242,13 +244,13 @@ SK_ER_InitPlugin (void)
 
   __try
   {
-    if (*((uint8_t *)SK_Debug_GetImageBaseAddr () + 0x0DFEFC0) == 0xC7)
+    if (*((uint8_t *)SK_Debug_GetImageBaseAddr () + 0xDFF397) == 0xC7)
     {
       //F3 0F11 05 DE7E5A01
       // 1.0.2.1: 0x25A7F72
       
       DWORD dwOldProt = 0x0;
-      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + 0x25A7F72;
+      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + 0x25A8412;//0x25A7F72;
 
       //EldenRing.exe+DFEF87 - C7 43 20 00000000     - mov [rbx+20],00000000 { 0 }
       //EldenRing.exe+DFEFA3 - C7 43 20 00000000     - mov [rbx+20],00000000 { 0 }
@@ -281,6 +283,8 @@ SK_ER_InitPlugin (void)
 
       if (SK_ER_PlugIn.bFixPrioInversion)
         SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+      return;
     }
   }
 
@@ -288,10 +292,12 @@ SK_ER_InitPlugin (void)
                                     EXCEPTION_EXECUTE_HANDLER  :
                                     EXCEPTION_CONTINUE_SEARCH )
   {
-    SK_ImGui_Warning (
-      L"This version of Elden Ring is not Compatible with Special K"
-    );
+    // Warning comes after this
   }
+
+  SK_ImGui_Warning (
+    L"This version of Elden Ring is not Compatible with Special K"
+  );
 }
 
 

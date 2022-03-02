@@ -330,7 +330,7 @@ D3D12Device1_CreatePipelineLibrary_Detour (
 
     if ( hr == D3D12_ERROR_ADAPTER_NOT_FOUND ||
          hr == D3D12_ERROR_DRIVER_VERSION_MISMATCH ||
-         hr == ERROR_INVALID_PARAMETER )
+         hr == E_INVALIDARG )
     {
       SK_LOG0 ( ( L" * Recovering from Invalid Cache => initializing empty..." ),
                   __SK_SUBSYSTEM__ );
@@ -347,7 +347,7 @@ D3D12Device1_CreatePipelineLibrary_Detour (
 
   // This stuff doesn't work anyway, seems D3D12 changes the vftable
 #if 0
-  if (ppPipelineLibrary != nullptr && *ppPipelineLibrary != nullptr)
+  if (SUCCEEDED (hr) && ppPipelineLibrary != nullptr && *ppPipelineLibrary != nullptr)
   {
     SK_RunOnce (
       SK_CreateVFTableHook  ( L"ID3D12PipelineLibrary::StorePipeline",

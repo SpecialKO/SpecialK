@@ -2657,6 +2657,11 @@ auto DeclKeybind =
       case SK_GAME_ID::EldenRing:
         // Minimize chance of games screwing up achievements
         config.platform.achievements.pull_friend_stats = false;
+
+        // Keep mouse inside game window while playing and prevent
+        // input when game is not focused (background_render)
+        config.window.confine_cursor    = true;
+        config.window.background_render = true;
         break;
 #endif
     }
