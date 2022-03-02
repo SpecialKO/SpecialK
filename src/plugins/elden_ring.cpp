@@ -293,7 +293,7 @@ SK_ER_InitConfig (void)
                              addresses [game_ver_str].cached )
     {
       SK_LOG0 ( ( L"Uncached Address (%hs) => %ph", name.c_str (), address ),
-                  L"EldenRing" );
+                  L"Elden Ring" );
     }
   }
 

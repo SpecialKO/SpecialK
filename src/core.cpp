@@ -3266,7 +3266,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_Window_RepositionIfNeeded ();
   }
 #else
-  if (rb.next_monitor != rb.monitor)
+  if ( rb.next_monitor != nullptr &&
+       rb.next_monitor != rb.monitor )
   {
     SK_Window_RepositionIfNeeded ();
   }

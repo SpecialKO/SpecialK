@@ -231,6 +231,10 @@ D3D12Device2_CreatePipelineState_Detour (
               REFIID                            riid,
 _COM_Outptr_  void                            **ppPipelineState )
 {
+  std::ignore = This;
+  std::ignore = riid;
+  std::ignore = ppPipelineState;
+
   const D3D12_PIPELINE_STATE_STREAM_DESC* pSubObj = pDesc;
 
   switch (*(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE *)pSubObj->pPipelineStateSubobjectStream)
@@ -279,13 +283,16 @@ D3D12Device_CreateCommandAllocator_Detour (
   if (riid == __uuidof (ID3D12CommandAllocator))
   {
     struct allocator_cache_s {
-      concurrency::concurrent_unordered_map <ID3D12Device*,
-        concurrency::concurrent_unordered_set <ID3D12CommandAllocator*>>
-          heap;
-      int cycles = 0;
+      using heap_type_t =
+        concurrency::concurrent_unordered_map <ID3D12Device*,
+        concurrency::concurrent_unordered_map <ID3D12CommandAllocator*, ULONG64>>;
+
+      const char* type   = "Unknown";
+      heap_type_t heap   = heap_type_t ();
+      int         cycles = 0;
     } static
-      direct_, bundle_,
-      copy_,   compute_;
+      direct_ { .type = "Direct" }, bundle_  { .type = "Bundle"  },
+      copy_   { .type = "Copy"   }, compute_ { .type = "Compute" };
 
     allocator_cache_s*
              pCache = nullptr;
@@ -302,29 +309,60 @@ D3D12Device_CreateCommandAllocator_Detour (
 
     if (pCache != nullptr)
     {
-      for ( auto pAllocator : pCache->heap [This] )
+      int extra = 0;
+
+      for ( auto &[pAllocator, LastFrame] : pCache->heap [This] )
       {
-        if (pAllocator != nullptr)
+        if (pAllocator != nullptr && LastFrame != 0)
         {
           if (pAllocator->AddRef () == 2)
-          {   *ppCommandAllocator =
-                       pAllocator;
+          {
+            if (extra++ == 0)
+            {
+              *ppCommandAllocator =
+                         pAllocator;
 
-            if (pCache->cycles > 12)
-            {   pCache->cycles = 0;
+              if (std::exchange (LastFrame, SK_GetFramesDrawn ()) !=
+                                            SK_GetFramesDrawn ())
+              {
                 pAllocator->Reset ();
+              }
+              
+              SK_LOG1 ( ( L"%hs Command Allocator Reused", pCache->type ),
+                            __SK_SUBSYSTEM__ );
             }
 
-            return S_OK;
+            // We found a cached allocator, but let's continue looking for any
+            // dead allocators to free.
+            if (extra > 5)
+            {
+              // Hopefully this is not still live...
+              pAllocator->SetName (
+                SK_FormatStringW ( L"Zombie %hs Allocator (%d)",
+                                     pCache->type, pCache->cycles ).c_str ()
+                                  );
+
+              pAllocator->Release ();
+              pAllocator->Release ();
+
+              LastFrame = 0; // Dead
+
+              SK_LOG1 ( ( L"%hs Command Allocator Released", pCache->type ),
+                            __SK_SUBSYSTEM__ );
+            }
           }
 
           else
           {
             ++pCache->cycles;
+
             pAllocator->Release ();
           }
         }
       }
+
+      if (extra > 0) // Cache hit
+        return S_OK;
 
       if ( SUCCEEDED (
              D3D12Device_CreateCommandAllocator_Original (
@@ -334,9 +372,10 @@ D3D12Device_CreateCommandAllocator_Detour (
          )
       {
         ((ID3D12CommandAllocator *)*ppCommandAllocator)->AddRef ();
+
         pCache->heap [This].insert (
-          (ID3D12CommandAllocator *)*ppCommandAllocator
-        );
+          std::make_pair ( (ID3D12CommandAllocator *)*ppCommandAllocator,
+                               SK_GetFramesDrawn () ) );
 
         return S_OK;
       }
@@ -449,15 +488,9 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riidResource,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
-  D3D12_RESOURCE_DESC _desc = *pDesc;
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
-  {
-  }
-
   return
     D3D12Device_CreateCommittedResource_Original ( This,
-      pHeapProperties, HeapFlags, &_desc/*pDesc*/, InitialResourceState,
+      pHeapProperties, HeapFlags, pDesc, InitialResourceState,
         pOptimizedClearValue, riidResource, ppvResource );
 }
 
@@ -473,15 +506,9 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riid,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
-  D3D12_RESOURCE_DESC _desc = *pDesc;
-
-  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
-  {
-  }
-
   return
     D3D12Device_CreatePlacedResource_Original ( This,
-      pHeap, HeapOffset, &_desc/*pDesc*/, InitialState,
+      pHeap, HeapOffset, pDesc, InitialState,
         pOptimizedClearValue, riid, ppvResource );
 }
 

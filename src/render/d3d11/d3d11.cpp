@@ -808,7 +808,7 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   _Out_opt_       ID3D11RenderTargetView        **ppRTView,
                   BOOL                            bWrapped )
 {
-  SK_LOG1 ( ( L"CreateRTV, Format: %s",
+  SK_LOG1 ( ( L"CreateRTV, Format: %hs",
                    SK_DXGI_FormatToStr ( pDesc != nullptr ?
                                          pDesc->Format    :
                                           DXGI_FORMAT_UNKNOWN).data () ),
@@ -6796,7 +6796,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
             static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode) )
     {
       SK_LOG0 ( ( L" >> Scaling Override "
-                  L"(Requested: %s, Using: %s)",
+                  L"(Requested: %hs, Using: %hs)",
                       SK_DXGI_DescribeScalingMode (
                         swap_chain_desc->BufferDesc.Scaling
                       ),
