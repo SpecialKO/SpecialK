@@ -988,6 +988,11 @@ struct SK_AppCache_Manager
     OwnsGame   =  1,
     _Alignment_=  LONG_MAX };
 
+  enum FriendPreference
+  { Default    = -1, // Use Global Setting
+    Disable    =  0,
+    Enable     =  1 };
+
   bool          saveAppCache           (bool           close = false);
   bool          loadAppCacheForExe     (const wchar_t* wszExe);
   bool          loadAppCacheForEpicApp (const char*    szEpicApp);
@@ -1019,13 +1024,14 @@ struct SK_AppCache_Manager
   int           storeDepotCache          (DepotId_t steam_depot = 0);
 
 
-  time_t        setFriendOwnership (uint64_t friend_, Ownership owns             );
-  Ownership     getFriendOwnership (uint64_t friend_, time_t*   updated = nullptr);
+  time_t        setFriendOwnership  (uint64_t friend_, Ownership owns             );
+  Ownership     getFriendOwnership  (uint64_t friend_, time_t*   updated = nullptr);
 
-  time_t        setFriendAchievPct (uint64_t friend_, float   percent          );
-  float         getFriendAchievPct (uint64_t friend_, time_t* updated = nullptr);
+  time_t        setFriendAchievPct  (uint64_t friend_, float   percent          );
+  float         getFriendAchievPct  (uint64_t friend_, time_t* updated = nullptr);
 
-  bool          wantFriendStats    (void); // Per-application override
+  void          setFriendPreference (FriendPreference);
+  bool          wantFriendStats     (void); // Per-application override
 
 #define SK_LICENSE_REVISION 20190408
 

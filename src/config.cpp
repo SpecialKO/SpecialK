@@ -2656,7 +2656,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::EldenRing:
         // Minimize chance of games screwing up achievements
-        config.platform.achievements.pull_friend_stats = false;
+        app_cache_mgr->setFriendPreference (SK_AppCache_Manager::Disable);
 
         // Keep mouse inside game window while playing and prevent
         // input when game is not focused (background_render)
@@ -5896,6 +5896,33 @@ SK_AppCache_Manager::getFriendAchievPct (uint64_t friend_, time_t* updated)
 
   return
     0.0f;
+}
+
+void
+SK_AppCache_Manager::setFriendPreference (FriendPreference set)
+{
+  if (app_cache_db == nullptr)
+    return;
+
+  auto& pref =
+    app_cache_db->get_section (L"Friend.Achievements").
+                    get_value (L"FetchFromServer");
+
+  switch (set)
+  {
+    case Enable:
+      pref = L"true";
+      break;
+    case Disable:
+      pref = L"false";
+      break;
+    case Default:
+    default:
+      pref = L"UseGlobalPreference";
+      break;
+  }
+
+  app_cache_db->write ();
 }
 
 bool
