@@ -26,6 +26,24 @@
 #include <imgui/font_awesome.h>
 #include <algorithm>
 
+struct address_cache_s {
+  std::unordered_map <std::string, uintptr_t> cached;
+};
+
+template <auto _N>
+  using code_bytes_t =
+     boost::container::static_vector <uint8_t, _N>;
+
+struct code_patch_s {
+  void* pAddr;
+
+  struct executable_code_s {
+    code_bytes_t <8> inst_bytes;
+  } original, replacement;
+  
+  void apply (executable_code_s *pExec);
+};
+
 struct {
   float fSpeed            = 1.0f;
   bool  bFixPrioInversion = true;
@@ -36,49 +54,12 @@ struct {
     sk::ParameterBool*  fix_prio_inversion = nullptr;
     sk::ParameterBool*  uncap_framerate    = nullptr;
   } ini;
+
+  std::unordered_map <std::wstring, address_cache_s> addresses;
+
+  code_patch_s clock_tick0, clock_tick1, clock_tick2,
+               clock_tick3, clock_tick4, clock_tick5;
 } SK_ER_PlugIn;
-
-struct code_patch_s {
-  void* pAddr;
-
-  struct executable_code_s {
-    std::vector <uint8_t> inst_bytes;
-  } original, replacement;
-  
-  void apply (executable_code_s *pExec);
-};
-
-
-
-code_patch_s clock_tick0
-{ .pAddr       = (void *)0xDFF397,//0x0DFEF87,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
-
-code_patch_s clock_tick1
-{ .pAddr       = (void *)0xDFF3B3,//0x0DFEFA3,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
-
-code_patch_s clock_tick2
-{ .pAddr       = (void *)0xDFF3BF,//0x0DFEFAF,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
-
-code_patch_s clock_tick3
-{ .pAddr       = (void *)0xDFF3D0,//0x0DFEFC0,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
-
-code_patch_s clock_tick4
-{ .pAddr       = (void *)0xDFF3DD,//0x0DFEFCD,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
-
-code_patch_s clock_tick5
-{ .pAddr       = (void *)0xDFF3ED,//0DFEFDD,
-  .original    = std::vector <uint8_t> {0   ,0   ,0,   0,0,0,0},
-  .replacement = std::vector <uint8_t> {0xC7,0x43,0x20,0,0,0,0}};
 
 static auto
 SK_VirtualProtect =
@@ -117,15 +98,24 @@ SK_ER_EndFrame (void)
         SetThreadPriority (GetCurrentThread (),    THREAD_PRIORITY_LOWEST);
   }
 
-  static float* fAddr =
-    (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x3B4FE38);//0x3B4FE28); // 1.0.2: 0x3B4FE08);
+  static auto& addresses = 
+    SK_ER_PlugIn.addresses [
+       SK_GetDLLVersionStr (SK_GetHostApp ())
+                           ].cached;
 
-  *fAddr =
-    SK_ER_PlugIn.fSpeed * static_cast <float> (
-       std::min (0.5000,
-       std::max (0.0001, static_cast <double> (SK_GetCurrentRenderBackend ().frame_delta.getDeltaTime ())  /
-                         static_cast <double> (SK_QpcFreq)))
-    );
+  static float* fAddr = addresses.contains ("dt_float") ? 
+      (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + addresses ["dt_float"])
+                                                        : nullptr;
+
+  if (fAddr != nullptr)
+  {
+    *fAddr =
+      SK_ER_PlugIn.fSpeed * static_cast <float> (
+        std::min (  2.00000,
+         std::max ( 0.00005,
+           static_cast <double> (SK_GetCurrentRenderBackend ().frame_delta.getDeltaTime ()) /
+           static_cast <double> (SK_QpcFreq) ) ) );
+  }
 }
 
 bool
@@ -137,6 +127,11 @@ SK_ER_PlugInCfg (void)
           SK_GetDLLVersionStr (
              SK_GetHostApp () ) ) +
               "###EldenRingHeader\0";
+
+  static auto& addresses =
+    SK_ER_PlugIn.addresses [
+       SK_GetDLLVersionStr (SK_GetHostApp ())
+                           ].cached;
 
   if ( ImGui::CollapsingHeader ( utf8VersionString.data (),
                                    ImGuiTreeNodeFlags_DefaultOpen )
@@ -163,11 +158,14 @@ SK_ER_PlugInCfg (void)
 
         SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.bFixPrioInversion);
       }
+  if (addresses.contains ("dt_float"))
+  {
       ImGui::SameLine    (  );
   if (ImGui::SliderFloat ("Game Speed",                           &SK_ER_PlugIn.fSpeed, 0.75f, 1.5f, "%.3fx"))
       {
         SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.fSpeed);
       }
+  }
       ImGui::EndGroup    (  );
 
       int                             sel = SK_ER_PlugIn.bUncapFramerate ? 0 : 1;
@@ -175,11 +173,9 @@ SK_ER_PlugInCfg (void)
       {
         SK_ER_PlugIn.bUncapFramerate = (sel == 0);
 
-        static auto patches =
-          { &clock_tick0, &clock_tick1, &clock_tick2,
-            &clock_tick3, &clock_tick4, &clock_tick5 };
-
-        for (auto patch : patches)
+        for ( auto patch : { &SK_ER_PlugIn.clock_tick0, &SK_ER_PlugIn.clock_tick1,
+                             &SK_ER_PlugIn.clock_tick2, &SK_ER_PlugIn.clock_tick3,
+                             &SK_ER_PlugIn.clock_tick4, &SK_ER_PlugIn.clock_tick5 } )
         {
           if (SK_ER_PlugIn.bUncapFramerate) patch->apply (&patch->replacement);
           else                              patch->apply (&patch->original);
@@ -235,6 +231,90 @@ SK_ER_InitConfig (void)
 
   if (! SK_ER_PlugIn.ini.uncap_framerate->load  (SK_ER_PlugIn.bUncapFramerate))
         SK_ER_PlugIn.ini.uncap_framerate->store (true);
+
+  auto& addresses =
+    SK_ER_PlugIn.addresses;
+
+  addresses [L"ELDEN RING™  1.2.1.0"].
+   cached =
+        { { "clock_tick0", 0x0DFEF87 }, { "clock_tick1", 0x0DFEFA3 },
+          { "clock_tick2", 0x0DFEFAF }, { "clock_tick3", 0x0DFEFC0 },
+          { "clock_tick4", 0x0DFEFCD }, { "clock_tick5", 0x0DFEFDD },
+          { "write_delta", 0x25A7F72 }, { "dt_float",    0x3B4FE28 } };
+
+  addresses [L"ELDEN RING™  1.2.2.0"].
+   cached =
+        { { "clock_tick0", 0x0DFF397 }, { "clock_tick1", 0x0DFF3B3 },
+          { "clock_tick2", 0x0DFF3BF }, { "clock_tick3", 0x0DFF3D0 },
+          { "clock_tick4", 0x0DFF3DD }, { "clock_tick5", 0x0DFF3ED },
+          { "write_delta", 0x25A8412 }, { "dt_float",    0x3B4FE38 } };
+
+  std::wstring game_ver_str =
+    SK_GetDLLVersionStr (SK_GetHostApp ());
+
+  if (! addresses.contains (game_ver_str))
+  {
+    void* pBaseAddr =
+      SK_Debug_GetImageBaseAddr ();
+
+    const uint8_t pattern0 [] = { 0xC7, 0x43, 0x18, 0x02, 0x00,
+                                  0x00, 0x00, 0xc7, 0x43, 0x20 };
+    const uint8_t pattern1 [] = { 0x18, 0xC7, 0x43, 0x20, 0x89 };
+    const uint8_t pattern2 [] = { 0x7B, 0x18, 0xC7, 0x43, 0x20 };
+
+    auto
+      p0 = (void *)( 7 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, pBaseAddr ) ) ),
+      p1 = (void *)( 7 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p0 ) ) ),
+      p2 = (void *)( 7 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p1 ) ) );
+
+    auto
+      p3 = (void *)( 1 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, pBaseAddr ) ) ),
+      p4 = (void *)( 1 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, p3 ) ) );
+
+    auto
+      p5 = (void *)( 2 + static_cast <uint8_t *>
+       ( SK_ScanAlignedEx ( pattern2, 5, nullptr, p0 ) ) );
+
+    addresses [game_ver_str].
+     cached =
+          { { "clock_tick0", (uintptr_t)p0 - (uintptr_t)pBaseAddr },
+            { "clock_tick1", (uintptr_t)p1 - (uintptr_t)pBaseAddr },
+            { "clock_tick2", (uintptr_t)p2 - (uintptr_t)pBaseAddr },
+            { "clock_tick3", (uintptr_t)p3 - (uintptr_t)pBaseAddr },
+            { "clock_tick4", (uintptr_t)p4 - (uintptr_t)pBaseAddr },
+            { "clock_tick5", (uintptr_t)p5 - (uintptr_t)pBaseAddr } };
+
+    for ( const auto &[name, address] :
+                             addresses [game_ver_str].cached )
+    {
+      SK_LOG0 ( ( L"Uncached Address (%hs) => %ph", name.c_str (), address ),
+                  L"EldenRing" );
+    }
+  }
+
+  auto& addr_cache =
+    SK_ER_PlugIn.addresses [game_ver_str].cached;
+
+  for ( auto &[record, name] :
+          std::initializer_list <
+            std::pair <code_patch_s&, std::string> >
+              { { SK_ER_PlugIn.clock_tick0, "clock_tick0" },
+                { SK_ER_PlugIn.clock_tick1, "clock_tick1" },
+                { SK_ER_PlugIn.clock_tick2, "clock_tick2" },
+                { SK_ER_PlugIn.clock_tick3, "clock_tick3" },
+                { SK_ER_PlugIn.clock_tick4, "clock_tick4" },
+                { SK_ER_PlugIn.clock_tick5, "clock_tick5" } } )
+  {
+    record = {
+      .pAddr       = (void *)addr_cache [name],
+      .original    = code_bytes_t <8> {0   ,0   ,0,   0,0,0,0},
+      .replacement = code_bytes_t <8> {0xC7,0x43,0x20,0,0,0,0} };
+  }
 }
 
 void
@@ -242,57 +322,63 @@ SK_ER_InitPlugin (void)
 {
   SK_ER_InitConfig ();
 
-  __try
+  auto& addr_cache =
+    SK_ER_PlugIn.addresses [SK_GetDLLVersionStr (SK_GetHostApp ())].cached;
+
+  if (             const auto* pClockTick0 = (uint8_t *)
+       SK_Debug_GetImageBaseAddr () +
+                            addr_cache ["clock_tick0"] ;
+       SK_ValidatePointer     (pClockTick0) &&
+       SK_IsAddressExecutable (pClockTick0) &&
+                              *pClockTick0  == 0xC7 )
   {
-    if (*((uint8_t *)SK_Debug_GetImageBaseAddr () + 0xDFF397) == 0xC7)
+    SK_GetCommandProcessor ()->AddVariable (
+      "EldenRing.fClockMultiplier", SK_CreateVar ( SK_IVariable::Float,
+                                                  &SK_ER_PlugIn.fSpeed )
+                                       );
+
+    for ( auto &[patch, name] :
+        std::initializer_list <
+          std::pair <code_patch_s&, std::string> >
+            { { SK_ER_PlugIn.clock_tick0, "clock_tick0" },
+              { SK_ER_PlugIn.clock_tick1, "clock_tick1" },
+              { SK_ER_PlugIn.clock_tick2, "clock_tick2" },
+              { SK_ER_PlugIn.clock_tick3, "clock_tick3" },
+              { SK_ER_PlugIn.clock_tick4, "clock_tick4" },
+              { SK_ER_PlugIn.clock_tick5, "clock_tick5" } } )
     {
-      //F3 0F11 05 DE7E5A01
-      // 1.0.2.1: 0x25A7F72
-      
+      patch.pAddr = (void *)addr_cache [name];
+
+      (uintptr_t&)patch.pAddr +=
+        (uintptr_t)SK_Debug_GetImageBaseAddr ();
+
+      memcpy (
+        patch.original.inst_bytes.data (),
+        patch.pAddr, 7
+      );
+
+      patch.apply ( SK_ER_PlugIn.bUncapFramerate ?
+                              &patch.replacement : &patch.original );
+    }
+
+    if (addr_cache.contains ("write_delta"))
+    {
       DWORD dwOldProt = 0x0;
-      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + 0x25A8412;//0x25A7F72;
-
-      //EldenRing.exe+DFEF87 - C7 43 20 00000000     - mov [rbx+20],00000000 { 0 }
-      //EldenRing.exe+DFEFA3 - C7 43 20 00000000     - mov [rbx+20],00000000 { 0 }
-      //EldenRing.exe+DFEFAF - C7 43 20 00000000     - mov [rbx+20],00000000 { 0 }
-
-      for ( auto *patch : { &clock_tick0, &clock_tick1, &clock_tick2,
-                            &clock_tick3, &clock_tick4, &clock_tick5 } )
-      {
-        (uintptr_t&)patch->pAddr +=
-          (uintptr_t)SK_Debug_GetImageBaseAddr ();
-
-        VirtualProtect ( patch->pAddr, 7, PAGE_EXECUTE_READWRITE, &dwOldProt );
-        memcpy         ( patch->original.inst_bytes.data (),
-                         patch->pAddr, 7 );
-        VirtualProtect ( patch->pAddr, 7, dwOldProt,              &dwOldProt );
-
-        if (SK_ER_PlugIn.bUncapFramerate)
-        {
-          patch->apply (&patch->replacement);
-        }
-      }
+      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta"];
 
       // Disable the code that writes delta time every frame
       VirtualProtect (pNOP,   8, PAGE_EXECUTE_READWRITE, &dwOldProt);
       memcpy (        pNOP,  "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
       VirtualProtect (pNOP,   8,              dwOldProt, &dwOldProt);
-
-      plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
-      plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
-
-      if (SK_ER_PlugIn.bFixPrioInversion)
-        SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
-
-      return;
     }
-  }
 
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                                    EXCEPTION_EXECUTE_HANDLER  :
-                                    EXCEPTION_CONTINUE_SEARCH )
-  {
-    // Warning comes after this
+    plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
+    plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
+
+    if (SK_ER_PlugIn.bFixPrioInversion)
+      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+
+    return;
   }
 
   SK_ImGui_Warning (
@@ -331,7 +417,6 @@ SK_SEH_LaunchEldenRing (void)
       ResumeThread     (pinfo.hThread);
       SK_CloseHandle   (pinfo.hThread);
       SK_CloseHandle   (pinfo.hProcess);
-      WaitForInputIdle (pinfo.hProcess, 5UL);
 
       SK_TerminateProcess (0x00);
     }

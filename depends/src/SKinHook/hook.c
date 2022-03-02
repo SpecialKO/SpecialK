@@ -810,6 +810,7 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
         if ( pThread->tid          == GetCurrentThreadId () ||
              GetThreadId (hThread) != pThread->tid             )
         {
+          CloseHandle (hThread);
           continue;
         }
 

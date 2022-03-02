@@ -1839,6 +1839,16 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                                                     minfo.RegionSize;
   size_t pages = 0;
 
+  MODULEINFO mod_info = { };
+
+  GetModuleInformation (
+    GetCurrentProcess (), nullptr, &mod_info, sizeof (mod_info)
+  );
+
+  end_addr =
+    (uint8_t *)std::max ( (uintptr_t)minfo.BaseAddress + mod_info.SizeOfImage,
+                          (uintptr_t)minfo.BaseAddress + minfo.RegionSize );
+
 #ifndef _WIN64
   // Account for possible overflow in 32-bit address space in very rare (address randomization) cases
 uint8_t* const PAGE_WALK_LIMIT =
@@ -1860,9 +1870,9 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
   {
     if (minfo.Protect & PAGE_NOACCESS || (! (minfo.Type & MEM_IMAGE)))
       break;
-
+  
     pages += VirtualQuery (end_addr, &minfo, sizeof (minfo));
-
+  
     end_addr =
       static_cast <uint8_t *> (minfo.BaseAddress) + minfo.RegionSize;
   }
@@ -1919,12 +1929,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     uint8_t* next_rgn =
      (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
-    if ( (! (minfo.Type     & MEM_IMAGE))   ||
-         (! (minfo.State    & MEM_COMMIT))  ||
-             minfo.Protect  & PAGE_NOACCESS ||
-             minfo.Protect == 0             ||
-         ( ! params.testPrivs (minfo) )     ||
-
+    if ( (! (minfo.Type     & MEM_IMAGE))    ||
+         //(! (minfo.State    & MEM_COMMIT))   ||
+            (minfo.Protect  & PAGE_NOACCESS) ||
+             minfo.Protect == 0              ||
+         ( ! params.testPrivs (minfo) )      ||
+    
         // It is not a good idea to scan Special K's DLL, since in many cases the pattern
         //   we are scanning for becomes a part of the DLL and makes an exhaustive search
         //     even more exhausting.
@@ -1938,12 +1948,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       it    = next_rgn;
       idx   = 0;
       begin = it;
-
+    
       continue;
     }
 
     // Do not search past the end of the module image!
-    if (next_rgn >= end_addr)
+    if (next_rgn > end_addr)
       break;
 
     while (it < next_rgn)

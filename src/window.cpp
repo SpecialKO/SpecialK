@@ -6359,7 +6359,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
          )
        )
     {
-      MH_EnableHook (target_proc);
+      MH_QueueEnableHook (target_proc);
 
       dll_log->Log (L"[Window Mgr]  >> Hooked %s.", ( target_proc == class_proc ? L"ClassProc" :
                     L"WndProc" ) );
@@ -6377,7 +6377,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
                              )
             )
     {
-      MH_EnableHook (alt_proc);
+      MH_QueueEnableHook (alt_proc);
 
       dll_log->Log (L"[Window Mgr]  >> Hooked %s.", ( alt_proc == class_proc ? L"ClassProc" :
                     L"WndProc" ) );

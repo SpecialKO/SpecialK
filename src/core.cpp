@@ -535,10 +535,6 @@ extern void BasicInit (void);
                   SK_Sekiro_InitPlugin (    );
       break;
 
-    case SK_GAME_ID::EldenRing:
-      SK_ER_InitPlugin ();
-      break;
-
     case SK_GAME_ID::FarCry5:
     {
       auto _UnpackEasyAntiCheatBypass = [&](void) ->
@@ -2542,6 +2538,13 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       }
 
       SK_LocalFree (wszDescription);
+
+
+#ifdef _WIN64
+      if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+        SK_ER_InitPlugin ();
+#endif
+
 
       extern SK_Widget* SK_HDR_GetWidget (void);
 
