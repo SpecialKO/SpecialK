@@ -2660,8 +2660,11 @@ auto DeclKeybind =
 
         // Keep mouse inside game window while playing and prevent
         // input when game is not focused (background_render)
-        config.window.confine_cursor    = true;
-        config.window.background_render = true;
+        config.window.confine_cursor             = true;
+        config.window.background_render          = true;
+        config.apis.dxgi.d3d11.hook              = false;
+        config.apis.OpenGL.hook                  = false;
+        config.render.framerate.sleepless_window = false;
         break;
 #endif
     }

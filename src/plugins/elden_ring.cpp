@@ -22,6 +22,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <SpecialK/render/d3d12/d3d12_screenshot.h>
 #include <SpecialK/utility.h>
 #include <imgui/font_awesome.h>
 #include <algorithm>
@@ -94,6 +95,8 @@ SK_ER_EndFrame (void)
 {
   if (SK_ER_PlugIn.bFixPrioInversion)
   {
+    config.render.framerate.sleepless_window = false;
+
     if (GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_BELOW_NORMAL)
         SetThreadPriority (GetCurrentThread (),    THREAD_PRIORITY_LOWEST);
   }
@@ -200,6 +203,49 @@ SK_ER_PlugInCfg (void)
 
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
+
+    static bool hud = true;
+
+    if (ImGui::Checkbox ("Enable HUD", &hud))
+    {
+      if (hud)
+        SK_D3D12_ShowGameHUD ();
+      else
+        SK_D3D12_HideGameHUD ();
+    }
+
+    ImGui::Separator ();
+
+    if (ImGui::TreeNode ("Individual Shader Passes"))
+    {
+      extern concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
+      extern concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
+
+      static constexpr GUID SKID_D3D12DisablePipelineState =
+        { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+
+      for ( auto &[ps, live] : _vertexShaders )
+      {
+        if (live)
+        {
+          UINT size = 1;
+          bool disable;
+
+          ps->GetPrivateData (SKID_D3D12DisablePipelineState, &size, &disable);
+
+          disable = (! disable);
+
+          if (ImGui::Checkbox (SK_FormatString ("Vtx Pipeline %p", ps).c_str (), &disable))
+          {
+            disable = (! disable);
+
+            ps->SetPrivateData (SKID_D3D12DisablePipelineState, size, &disable);
+          }
+        }
+      }
+
+      ImGui::TreePop ();
+    }
   }
 
   return true;
@@ -374,9 +420,6 @@ SK_ER_InitPlugin (void)
 
     plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
     plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
-
-    if (SK_ER_PlugIn.bFixPrioInversion)
-      SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
     return;
   }

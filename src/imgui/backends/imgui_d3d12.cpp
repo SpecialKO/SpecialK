@@ -68,6 +68,9 @@ void
 __stdcall
 SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList  *pList, IDXGISwapChain3 *pSwapChain);
 
+static constexpr GUID SKID_D3D12DisablePipelineState = { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+extern concurrency::concurrent_unordered_set <ID3D12PipelineState *> _criticalVertexShaders;
+
 HRESULT
 WINAPI
 D3D12SerializeRootSignature ( const D3D12_ROOT_SIGNATURE_DESC* pRootSignature,
@@ -275,6 +278,13 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   ctx->SetDescriptorHeaps       (1, &descriptorHeaps.pImGui.p);
 
 
+
+  // Don't let the user disable ImGui's pipeline state (!!)
+  bool                                                                             _enable = false;
+  _imgui_d3d12.pPipelineState->SetPrivateData (SKID_D3D12DisablePipelineState, 1, &_enable);
+  SK_RunOnce (_criticalVertexShaders.insert (_imgui_d3d12.pPipelineState));
+
+
   //
   // HDR STUFF
   //
@@ -423,6 +433,9 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
       idx_offset += pcmd->ElemCount;
     } vtx_offset +=  cmd_list->VtxBuffer.Size;
   }
+
+  extern bool SK_D3D12_ShouldSkipHUD (void);
+              SK_D3D12_ShouldSkipHUD ();
 }
 
 static void
@@ -923,6 +936,158 @@ ImGui_ImplDX12_NewFrame (void)
 
 SK_LazyGlobal <SK_ImGui_ResourcesD3D12> SK_ImGui_D3D12;
 
+using D3D12GraphicsCommandList_SetPipelineState_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                       ID3D12PipelineState* );
+      D3D12GraphicsCommandList_SetPipelineState_pfn
+      D3D12GraphicsCommandList_SetPipelineState_Original = nullptr;
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_SetPipelineState_Detour (
+  ID3D12GraphicsCommandList *This,
+  ID3D12PipelineState       *pPipelineState )
+{
+  SK_LOG_FIRST_CALL
+
+  UINT size    = 1;
+  bool disable = false;
+
+  if ( SUCCEEDED (pPipelineState->GetPrivateData (SKID_D3D12DisablePipelineState, &size, &disable)) )
+  {
+    This->SetPrivateData ( SKID_D3D12DisablePipelineState, 1, &disable );
+  }
+
+  else
+  {
+    static bool _disable = false;
+
+    This->SetPrivateData ( SKID_D3D12DisablePipelineState, 1, &_disable );
+  }
+
+  D3D12GraphicsCommandList_SetPipelineState_Original ( This,
+                                                        pPipelineState );
+}
+
+
+using D3D12GraphicsCommandList_DrawInstanced_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*, 
+                       UINT,UINT,UINT,UINT );
+      D3D12GraphicsCommandList_DrawInstanced_pfn
+      D3D12GraphicsCommandList_DrawInstanced_Original = nullptr;
+using D3D12GraphicsCommandList_DrawIndexedInstanced_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                       UINT,UINT,UINT,INT,UINT );
+      D3D12GraphicsCommandList_DrawIndexedInstanced_pfn
+      D3D12GraphicsCommandList_DrawIndexedInstanced_Original = nullptr;
+
+static bool
+  __SkipEveryOther = false;
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_DrawInstanced_Detour (
+  ID3D12GraphicsCommandList *This,
+  UINT                       VertexCountPerInstance,
+  UINT                       InstanceCount,
+  UINT                       StartVertexLocation,
+  UINT                       StartInstanceLocation )
+{
+  SK_LOG_FIRST_CALL
+
+  if (__SkipEveryOther)
+  {
+    static int
+           x = 0;
+    if ((++x & 1) == 0)
+      return;
+  }
+
+  UINT size    = 1;
+  bool disable = false;
+
+  if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
+  {
+    if (disable)
+      return;
+  }
+
+  return
+    D3D12GraphicsCommandList_DrawInstanced_Original (
+      This, VertexCountPerInstance, InstanceCount,
+               StartVertexLocation, StartInstanceLocation );
+}
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
+  ID3D12GraphicsCommandList *This,
+  UINT                       IndexCountPerInstance,
+  UINT                       InstanceCount,
+  UINT                       StartIndexLocation,
+  INT                        BaseVertexLocation,
+  UINT                       StartInstanceLocation )
+{
+  SK_LOG_FIRST_CALL
+
+  if (__SkipEveryOther)
+  {
+    static int
+           x = 0;
+    if ((++x & 1) == 0)
+      return;
+  }
+
+  UINT size    = 1;
+  bool disable = false;
+
+  if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
+  {
+    if (disable)
+      return;
+  }
+
+  return
+    D3D12GraphicsCommandList_DrawIndexedInstanced_Original (
+      This, IndexCountPerInstance, InstanceCount, StartIndexLocation,
+                           BaseVertexLocation, StartInstanceLocation );
+}
+
+void
+_InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
+{
+  if (std::exchange (D3D12GraphicsCommandList_DrawInstanced_Original,
+                    (D3D12GraphicsCommandList_DrawInstanced_pfn)1) == nullptr)
+  {
+    SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::DrawInstanced",
+                           *(void***)*(&pCmdList), 12,
+                             D3D12GraphicsCommandList_DrawInstanced_Detour,
+                   (void **)&D3D12GraphicsCommandList_DrawInstanced_Original );
+  }
+
+  if (std::exchange (D3D12GraphicsCommandList_DrawIndexedInstanced_Original,
+                    (D3D12GraphicsCommandList_DrawIndexedInstanced_pfn)1) == nullptr)
+  {
+    SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::DrawIndexedInstanced",
+                           *(void***)*(&pCmdList), 13,
+                             D3D12GraphicsCommandList_DrawIndexedInstanced_Detour,
+                   (void **)&D3D12GraphicsCommandList_DrawIndexedInstanced_Original );
+  }
+
+  if (std::exchange (D3D12GraphicsCommandList_SetPipelineState_Original,
+                    (D3D12GraphicsCommandList_SetPipelineState_pfn)1) == nullptr)
+  {
+    SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::SetPipelineState",
+                           *(void***)*(&pCmdList), 25,
+                              D3D12GraphicsCommandList_SetPipelineState_Detour,
+                    (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
+  }
+
+  SK_GetCommandProcessor ()->AddVariable (
+    "D3D12.SkipEveryOther", SK_CreateVar (SK_IVariable::Boolean, &__SkipEveryOther)
+  );
+}
+
 
 /// --------------- UGLY COMPAT HACK ----------------------
 using D3D12GraphicsCommandList_CopyTextureRegion_pfn = void
@@ -955,15 +1120,32 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   const  D3D12_TEXTURE_COPY_LOCATION *pSrc,
   const  D3D12_BOX                   *pSrcBox )
 {
+  D3D12_RESOURCE_DESC
+    src_desc = pSrc->pResource->GetDesc (),
+    dst_desc = pDst->pResource->GetDesc ();
+
+#if 0
+  if (D3D12_RESOURCE_DIMENSION_BUFFER    == src_desc.Dimension &&
+      D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension && 
+      pDst->SubresourceIndex             == 0 &&
+      pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr && 
+                                    DstX == 0 && DstY    == 0       && DstZ == 0)
+  {
+    extern void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
+
+    SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+  }
+#endif
+
   if (__SK_HDR_16BitSwap)
   {
     // Format override siliness in D3D12
     static volatile LONG lSizeSkips   = 0;
     static volatile LONG lFormatSkips = 0;
 
-    D3D12_RESOURCE_DESC
-      src_desc = pSrc->pResource->GetDesc (),
-      dst_desc = pDst->pResource->GetDesc ();
+    //D3D12_RESOURCE_DESC
+    //  src_desc = pSrc->pResource->GetDesc (),
+    //  dst_desc = pDst->pResource->GetDesc ();
 
     if (D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension)
     {
@@ -1111,6 +1293,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   ///bool hdr_display =
   ///  (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
+  SK_RunOnce (
+    _InitDrawCommandHooks (pCommandList)
+  );
+
   if ( __SK_HDR_16BitSwap &&
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
                         pHDRPipeline.p   != nullptr &&
@@ -1119,6 +1305,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     SK_RunOnce (
       _InitCopyTextureRegionHook (pCommandList)
     );
+
+
+    // Don't let user disable HDR re-processing
+    bool                                                              _enable = false;
+    pHDRPipeline->SetPrivateData (SKID_D3D12DisablePipelineState, 1, &_enable);
+    SK_RunOnce (_criticalVertexShaders.insert (pHDRPipeline));
+
 
     HDR_LUMINANCE
       cbuffer_luma = {
@@ -1183,6 +1376,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeOSD,     rb);
+
+  extern void SK_D3D12_WriteResources (void);
+              SK_D3D12_WriteResources ();
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );

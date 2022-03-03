@@ -32,6 +32,7 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io = ImGui::GetIO ());
 
 
 extern LONG SK_D3D11_ToggleGameHUD          (void);
+extern LONG SK_D3D12_ToggleGameHUD          (void);
 extern void SK_TriggerHudFreeScreenshot     (void) noexcept;
 
 #ifdef _M_AMD64
@@ -936,6 +937,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
   {
     SK_D3D11_ToggleGameHUD ();
+    SK_D3D12_ToggleGameHUD ();
 
     dispatched = TRUE;
   }
@@ -950,7 +952,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
                                     ((! keybind->alt)   || Alt)     &&
                                     ((! keybind->shift) || Shift) )
     {
-      if (       keybind == &config.screenshots.game_hud_free_keybind )
+      if ( keybind == &config.screenshots.game_hud_free_keybind )
       {
 #ifdef _M_AMD64
         static bool __yakuza0 =

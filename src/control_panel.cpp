@@ -4787,6 +4787,10 @@ SK_ImGui_ControlPanel (void)
     if (rb.api == SK_RenderAPI::D3D11 && keybinds.size () == 2 && ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
         keybinds.emplace (&config.screenshots.game_hud_free_keybind);
 
+    // Experimental D3D12 HUDless
+    else if (rb.api == SK_RenderAPI::D3D12 && keybinds.size () == 2)
+        keybinds.emplace (&config.screenshots.game_hud_free_keybind);
+
     ImGui::SameLine   ();
     ImGui::BeginGroup ();
     ImGui::BeginGroup ();

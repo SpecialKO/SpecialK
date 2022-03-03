@@ -3259,7 +3259,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
       DXGI_FORMAT      format;
       UINT              flags;
     };
-    
+
     callframe_s
         frame =
            { { }, EnumFormat,
@@ -3924,7 +3924,9 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
     StrStrIW (wszClass, L"Kiero DirectX Window")         || // CyberEngine
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
     StrStrIW (wszClass, L"RTSSWndClass")                 ||
-    StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
+    StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
+    // F' it, there's a pattern here, just ignore all dummies.
+    StrStrIW (wszClass, L"dummy");
 
   return
     (! dummy_window);
@@ -3943,7 +3945,9 @@ SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) 
     StrStrIW (wszClass, L"DX12")                         || // REFramework
     StrStrIW (wszClass, L"Special K Dummy Window Class") ||
     StrStrIW (wszClass, L"RTSSWndClass")                 ||
-    StrStrIW (wszClass, L"EOSOVHDummyWindowClass");         // Epic Online Store Overlay
+    StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
+    // F' it, there's a pattern here, just ignore all dummies.
+    StrStrIW (wszClass, L"dummy");
 
   return
     (! dummy_window);
@@ -4800,11 +4804,11 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     if (GetMonitorInfo (config.display.monitor_handle, &mi))
     {
-      SK_SetWindowPos ( hWnd, HWND_TOP,
-                          mi.rcMonitor.left,
-                          mi.rcMonitor.top,
-                                         0, 0, SWP_NOZORDER       | SWP_NOSIZE |
-                                               SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
+      //SK_SetWindowPos ( hWnd, HWND_TOP,
+      //                    mi.rcMonitor.left,
+      //                    mi.rcMonitor.top,
+      //                                   0, 0, SWP_NOZORDER       | SWP_NOSIZE |
+      //                                         SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
     }
   }
 

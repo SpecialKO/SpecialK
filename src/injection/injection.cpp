@@ -1273,10 +1273,10 @@ SK_Inject_SpawnUnloadListener (void)
           //     finite wait time.
           DWORD dwTimeout =
             ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                 150UL : INFINITE;
+                                                   0UL : INFINITE;
 
-          if (dwTimeout != 150UL && GetModuleLoadCount (g_hModule_CBT) > 1)
-              dwTimeout = 2500UL;
+          if (dwTimeout !=  0UL && GetModuleLoadCount (g_hModule_CBT) > 1)
+              dwTimeout = 250UL;
 
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,

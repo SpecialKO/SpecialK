@@ -163,3 +163,7 @@ void SK_D3D12_ProcessScreenshotQueue (SK_ScreenshotStage stage = SK_ScreenshotSt
 bool SK_Screenshot_D3D12_BeginFrame  (void);
 void SK_Screenshot_D3D12_EndFrame    (void);
 void SK_Screenshot_D3D12_RestoreHUD  (void);
+
+LONG SK_D3D12_HideGameHUD   (void);
+LONG SK_D3D12_ShowGameHUD   (void);
+LONG SK_D3D12_ToggleGameHUD (void);

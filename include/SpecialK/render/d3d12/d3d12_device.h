@@ -29,6 +29,12 @@ D3D12Device_CreateGraphicsPipelineState_pfn = HRESULT
                       REFIID,void**);
 
 using
+D3D12Device2_CreatePipelineState_pfn = HRESULT 
+(STDMETHODCALLTYPE *)(ID3D12Device2*,
+                 const D3D12_PIPELINE_STATE_STREAM_DESC*,
+                       REFIID,void**);
+
+using
 D3D12Device_CreateRenderTargetView_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Resource*,
                 const D3D12_RENDER_TARGET_VIEW_DESC*,
@@ -59,6 +65,8 @@ D3D12Device_CreateCommandAllocator_pfn = HRESULT
 
 extern D3D12Device_CreateGraphicsPipelineState_pfn
        D3D12Device_CreateGraphicsPipelineState_Original;
+extern D3D12Device2_CreatePipelineState_pfn
+       D3D12Device2_CreatePipelineState_Original;
 extern D3D12Device_CreateRenderTargetView_pfn
        D3D12Device_CreateRenderTargetView_Original;
 extern D3D12Device_GetResourceAllocationInfo_pfn

@@ -1135,57 +1135,57 @@ SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D12_Screenshot *>> screenshot
 SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D12_Screenshot *>> screenshot_write_queue;
 
 
-static volatile LONG
-  __SK_HUD_YesOrNo = 1L;
+//static volatile LONG
+//  __SK_HUD_YesOrNo = 1L;
+//
+//bool
+//SK_D3D12_ShouldSkipHUD (void)
+//{
+//  return
+//    ( SK_Screenshot_IsCapturingHUDless () ||
+//       ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
+//}
 
-bool
-SK_D3D12_ShouldSkipHUD (void)
-{
-  return
-    ( SK_Screenshot_IsCapturingHUDless () ||
-       ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
-}
-
-LONG
-SK_D3D12_ShowGameHUD (void)
-{
-  InterlockedDecrement (&SK_D3D12_DrawTrackingReqs);
-
-  return
-    InterlockedIncrement (&__SK_HUD_YesOrNo);
-}
-
-LONG
-SK_D3D12_HideGameHUD (void)
-{
-  InterlockedIncrement (&SK_D3D12_DrawTrackingReqs);
-
-  return
-    InterlockedDecrement (&__SK_HUD_YesOrNo);
-}
-
-LONG
-SK_D3D12_ToggleGameHUD (void)
-{
-  static volatile LONG last_state =
-    (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
-
-  if (ReadAcquire (&last_state) != 0)
-  {
-    SK_D3D12_HideGameHUD ();
-
-    return
-      InterlockedDecrement (&last_state);
-  }
-
-  else
-  {
-    SK_D3D12_ShowGameHUD ();
-
-    return
-      InterlockedIncrement (&last_state);
-  }
-}
+//LONG
+//SK_D3D12_ShowGameHUD (void)
+//{
+//  InterlockedDecrement (&SK_D3D12_DrawTrackingReqs);
+//
+//  return
+//    InterlockedIncrement (&__SK_HUD_YesOrNo);
+//}
+//
+//LONG
+//SK_D3D12_HideGameHUD (void)
+//{
+//  InterlockedIncrement (&SK_D3D12_DrawTrackingReqs);
+//
+//  return
+//    InterlockedDecrement (&__SK_HUD_YesOrNo);
+//}
+//
+//LONG
+//SK_D3D12_ToggleGameHUD (void)
+//{
+//  static volatile LONG last_state =
+//    (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
+//
+//  if (ReadAcquire (&last_state) != 0)
+//  {
+//    SK_D3D12_HideGameHUD ();
+//
+//    return
+//      InterlockedDecrement (&last_state);
+//  }
+//
+//  else
+//  {
+//    SK_D3D12_ShowGameHUD ();
+//
+//    return
+//      InterlockedIncrement (&last_state);
+//  }
+//}
 
 void
 SK_Screenshot_D3D12_RestoreHUD (void)
@@ -1332,17 +1332,14 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
 
       if (when == SK_ScreenshotStage::BeforeGameHUD)
       {
-#ifdef SK_D3D12_HUDLESS
-        static const auto& vertex = SK_D3D12_Shaders->vertex;
-        static const auto& pixel  = SK_D3D12_Shaders->pixel;
+        //static const auto& vertex = SK_D3D12_Shaders->vertex;
+        //static const auto& pixel  = SK_D3D12_Shaders->pixel;
 
-        if ( vertex.hud.empty () &&
-              pixel.hud.empty ()    )
-        {
-          return false;
-        }
-        return false;
-#endif
+        //if ( vertex.hud.empty () &&
+        //      pixel.hud.empty ()    )
+        //{
+        //  return false;
+        //}
       }
 
       InterlockedIncrement (
@@ -2547,6 +2544,9 @@ SK_D3D12_WaitOnAllScreenshots (void)
 
 void SK_Screenshot_D3D12_EndFrame (void)
 {
+  extern bool   SK_D3D12_ShouldSkipHUD (void);
+  std::ignore = SK_D3D12_ShouldSkipHUD (    );
+
   if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, 0, -1) == -1)
   {
     SK_D3D12_ShowGameHUD ();
@@ -2561,15 +2561,22 @@ bool SK_Screenshot_D3D12_BeginFrame (void)
        ReadAcquire (&__SK_D3D12_InitiateHudFreeShot) != 0    )
   {
     InterlockedExchange            (&__SK_ScreenShot_CapturingHUDless, 1);
-    if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, -2, 1) == 1)
+    if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, -3, 1) == 1)
     {
       SK_D3D12_HideGameHUD ();
+      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
     }
 
-    // 1-frame Delay for SDR->HDR Upconversion
+    // 2-frame Delay for SDR->HDR Upconversion
+    else if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, -2, -3) == -3)
+    {
+      //SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
+    //InterlockedDecrement (&SK_D3D12_DrawTrackingReqs); (Handled by ShowGameHUD)
+    }
+
     else if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, -1, -2) == -2)
     {
-      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
+      //SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
     //InterlockedDecrement (&SK_D3D12_DrawTrackingReqs); (Handled by ShowGameHUD)
     }
 

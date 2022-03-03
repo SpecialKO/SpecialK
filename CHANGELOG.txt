@@ -1,4 +1,21 @@
-﻿22.3.2-NOCEGUI
+﻿22.3.3.1-NOCEGUI
+================
+ + Fixed compat. with other D3D12 games when using HUD toggle
+ + Force sleepless window thread off in Elden Ring
+
+22.3.3-NOCEGUI
+==============
+ + Added support for D3D12 HUDless Screenshots (See Screenshots cpl for Keybinds)
+ + Added support for D3D12 HUD toggle          (Alt + Shift + H)
+
+ (*) Tested only in Elden Ring ;)
+
+22.3.2.1-NOCEGUI
+================
+ + Fixed compatibility with "PauseEldenRing" mode
+ + Forcefully disable SteamAPI friend achievement fetch so achievements unlock
+
+22.3.2-NOCEGUI
 ==============
  + Elden Ring Framerate Limit code is pattern-scanned and patched accordingly now,
      no updates required for compatibility with future patches.

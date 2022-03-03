@@ -327,3 +327,29 @@ SK_ScreenshotManager::getRepoStats (bool refresh)
 
   return screenshots;
 }
+
+void
+SK_TriggerHudFreeScreenshot (void) noexcept
+{
+  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
+  {
+    extern volatile LONG SK_D3D11_DrawTrackingReqs;
+    extern volatile LONG __SK_D3D11_QueuedShots;
+
+    if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+    {
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      InterlockedIncrement (&__SK_D3D11_QueuedShots);
+    }
+  }
+
+  else if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
+  {
+    extern volatile LONG __SK_D3D12_QueuedShots;
+    //if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+    //{
+      //InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      InterlockedIncrement (&__SK_D3D12_QueuedShots);
+    //}
+  }
+}

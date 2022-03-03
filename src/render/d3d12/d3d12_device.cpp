@@ -31,6 +31,8 @@
 #include <SpecialK/render/d3d12/d3d12_dxil_shader.h>
 #include <SpecialK/render/d3d12/d3d12_device.h>
 
+#include <DirectXTex/d3dx12.h>
+
 // Various device-resource hacks are here for HDR
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
@@ -42,8 +44,8 @@ LPVOID pfnD3D12CreateDevice = nullptr;
 
 D3D12Device_CreateGraphicsPipelineState_pfn
 D3D12Device_CreateGraphicsPipelineState_Original = nullptr;
-//D3D12Device2_CreatePipelineState_pfn
-//D3D12Device2_CreatePipelineState_Original        = nullptr;
+D3D12Device2_CreatePipelineState_pfn
+D3D12Device2_CreatePipelineState_Original        = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
@@ -54,6 +56,175 @@ D3D12Device_CreatePlacedResource_pfn
 D3D12Device_CreatePlacedResource_Original        = nullptr;
 D3D12Device_CreateCommandAllocator_pfn
 D3D12Device_CreateCommandAllocator_Original      = nullptr;
+
+                                                                                                  // {4D5298CA-D9F0-6133-A19D-B1D597920000}
+static constexpr GUID SKID_D3D12KnownVtxShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x00 } };
+static constexpr GUID SKID_D3D12KnownPixShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x01 } };
+static constexpr GUID SKID_D3D12KnownGeoShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x02 } };
+static constexpr GUID SKID_D3D12KnownHulShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x03 } };
+static constexpr GUID SKID_D3D12KnownDomShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x04 } };
+static constexpr GUID SKID_D3D12KnownComShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x05 } };
+static constexpr GUID SKID_D3D12KnownMshShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x06 } };
+static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x07 } };
+
+static constexpr GUID SKID_D3D12DisablePipelineState = { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+
+concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
+concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>   _vertexShaders;
+concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>    _pixelShaders;
+
+void
+__stdcall
+SK_D3D12_PipelineDrainPlug (void *pBpOil) // Don't let it spill
+{
+  SK_LOG0 (
+    ( L"ID3D12PipelineState (%p) Destroyed", pBpOil ),
+      __SK_SUBSYSTEM__ );
+
+  if (_vertexShaders.count ((ID3D12PipelineState *)pBpOil))
+      _vertexShaders [      (ID3D12PipelineState *)pBpOil] = false;
+
+  if (_pixelShaders.count ((ID3D12PipelineState *)pBpOil))
+      _pixelShaders [      (ID3D12PipelineState *)pBpOil]  = false;
+}
+
+struct SK_D3D12_ShaderRepo
+{
+  struct {
+    const char*         name;
+    SK_D3D12_ShaderType mask;
+  } type;
+
+  struct hash_s {
+    struct dxilHashTest
+    {
+      // std::hash <DxilContainerHash>
+      //
+      size_t operator ()( const DxilContainerHash& h ) const
+      {
+        size_t      __h = 0;
+        for (size_t __i = 0; __i < DxilContainerHashSize; ++__i)
+        {
+          __h = h.Digest [__i] +
+                  (__h << 06)  +  (__h << 16)
+                               -   __h;
+        }
+
+        return __h;
+      }
+
+      // std::equal_to <DxilContainerHash>
+      //
+      bool operator ()( const DxilContainerHash& h1,
+                        const DxilContainerHash& h2 ) const
+      {
+        return
+          ( 0 == memcmp ( h1.Digest,
+                          h2.Digest, DxilContainerHashSize ) );
+      }
+    };
+
+    concurrency::concurrent_unordered_set <DxilContainerHash, dxilHashTest, dxilHashTest>
+          used;
+    GUID  guid;
+
+    hash_s (const GUID& guid_)
+    {   memcpy ( &guid,&guid_, sizeof (GUID) );
+    };
+  } hash;
+};
+
+
+static volatile LONG
+  __SK_HUD_YesOrNo = 1L;
+
+bool
+SK_D3D12_ShouldSkipHUD (void)
+{
+  bool ret =
+    ( SK_Screenshot_IsCapturingHUDless () ||
+       ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
+  if ( ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 )
+  {
+    UINT size    = 1;
+    bool disable = true;
+    
+    for ( auto &[ps,live] : _vertexShaders )
+    {
+      if (live && (! _criticalVertexShaders.count (ps)))
+          ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
+    }
+  }
+
+  return ret;
+}
+
+LONG
+SK_D3D12_ShowGameHUD (void)
+{
+  //InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+
+  UINT size    = 1;
+  bool disable = false;
+  
+  for ( auto &[ps,live] : _vertexShaders )
+  {
+    if (live)
+      ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
+  }
+
+  return
+    InterlockedIncrement (&__SK_HUD_YesOrNo);
+}
+
+LONG
+SK_D3D12_HideGameHUD (void)
+{
+  //InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+
+  UINT size    = 1;
+  bool disable = true;
+  
+  for ( auto &[ps,live] : _vertexShaders )
+  {
+    if (live && (! _criticalVertexShaders.count (ps)))
+      ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
+  }
+
+  return
+    InterlockedDecrement (&__SK_HUD_YesOrNo);
+}
+
+LONG
+SK_D3D12_ToggleGameHUD (void)
+{
+  static volatile LONG last_state =
+    (ReadAcquire (&__SK_HUD_YesOrNo) > 0);
+
+  if (ReadAcquire (&last_state))
+  {
+    SK_D3D12_HideGameHUD ();
+
+    return
+      InterlockedDecrement (&last_state);
+  }
+
+  SK_D3D12_ShowGameHUD ();
+
+  return
+    InterlockedIncrement (&last_state);
+}
+
+
+static SK_D3D12_ShaderRepo
+  vertex   { { "Vertex",   SK_D3D12_ShaderType::Vertex   }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownVtxShaderDigest) } },
+  pixel    { { "Pixel",    SK_D3D12_ShaderType::Pixel    }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownPixShaderDigest) } },
+  geometry { { "Geometry", SK_D3D12_ShaderType::Geometry }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownGeoShaderDigest) } },
+  hull     { { "Hull",     SK_D3D12_ShaderType::Hull     }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownHulShaderDigest) } },
+  domain   { { "Domain",   SK_D3D12_ShaderType::Domain   }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownDomShaderDigest) } },
+  compute  { { "Compute",  SK_D3D12_ShaderType::Compute  }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownComShaderDigest) } },
+  mesh     { { "Mesh",     SK_D3D12_ShaderType::Mesh     }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownMshShaderDigest) } },
+  amplify  { { "Amplify",  SK_D3D12_ShaderType::Amplify  }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownAmpShaderDigest) } };
 
 HRESULT
 STDMETHODCALLTYPE
@@ -71,71 +242,9 @@ _COM_Outptr_ void                              **ppPipelineState )
 
   if (pDesc == nullptr)
     return hrPipelineCreate;
-                                                                                                  // {4D5298CA-D9F0-6133-A19D-B1D597920000}
-static constexpr GUID SKID_D3D12KnownVtxShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x00 } };
-static constexpr GUID SKID_D3D12KnownPixShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x01 } };
-static constexpr GUID SKID_D3D12KnownGeoShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x02 } };
-static constexpr GUID SKID_D3D12KnownHulShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x03 } };
-static constexpr GUID SKID_D3D12KnownDomShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x04 } };
-static constexpr GUID SKID_D3D12KnownComShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x05 } };
-static constexpr GUID SKID_D3D12KnownMshShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x06 } };
-static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x07 } };
-
-  struct shader_repo_s
-  {
-    struct {
-      const char*         name;
-      SK_D3D12_ShaderType mask;
-    } type;
-
-    struct hash_s {
-      struct dxilHashTest
-      {
-        // std::hash <DxilContainerHash>
-        //
-        size_t operator ()( const DxilContainerHash& h ) const
-        {
-          size_t      __h = 0;
-          for (size_t __i = 0; __i < DxilContainerHashSize; ++__i)
-          {
-            __h = h.Digest [__i] +
-                    (__h << 06)  +  (__h << 16)
-                                 -   __h;
-          }
-
-          return __h;
-        }
-
-        // std::equal_to <DxilContainerHash>
-        //
-        bool operator ()( const DxilContainerHash& h1,
-                          const DxilContainerHash& h2 ) const
-        {
-          return
-            ( 0 == memcmp ( h1.Digest,
-                            h2.Digest, DxilContainerHashSize ) );
-        }
-      };
-
-      concurrency::concurrent_unordered_set <DxilContainerHash, dxilHashTest, dxilHashTest>
-            used;
-      GUID  guid;
-
-      hash_s (const GUID& guid_)
-      {   memcpy ( &guid,&guid_, sizeof (GUID) );
-      };
-    } hash;
-  } static vertex   { { "Vertex",   SK_D3D12_ShaderType::Vertex   }, { shader_repo_s::hash_s (SKID_D3D12KnownVtxShaderDigest) } },
-           pixel    { { "Pixel",    SK_D3D12_ShaderType::Pixel    }, { shader_repo_s::hash_s (SKID_D3D12KnownPixShaderDigest) } },
-           geometry { { "Geometry", SK_D3D12_ShaderType::Geometry }, { shader_repo_s::hash_s (SKID_D3D12KnownGeoShaderDigest) } },
-           hull     { { "Hull",     SK_D3D12_ShaderType::Hull     }, { shader_repo_s::hash_s (SKID_D3D12KnownHulShaderDigest) } },
-           domain   { { "Domain",   SK_D3D12_ShaderType::Domain   }, { shader_repo_s::hash_s (SKID_D3D12KnownDomShaderDigest) } },
-           compute  { { "Compute",  SK_D3D12_ShaderType::Compute  }, { shader_repo_s::hash_s (SKID_D3D12KnownComShaderDigest) } },
-           mesh     { { "Mesh",     SK_D3D12_ShaderType::Mesh     }, { shader_repo_s::hash_s (SKID_D3D12KnownMshShaderDigest) } },
-           amplify  { { "Amplify",  SK_D3D12_ShaderType::Amplify  }, { shader_repo_s::hash_s (SKID_D3D12KnownAmpShaderDigest) } };
 
   static const
-    std::unordered_map <SK_D3D12_ShaderType, shader_repo_s&>
+    std::unordered_map <SK_D3D12_ShaderType, SK_D3D12_ShaderRepo&>
       repo_map =
         { { SK_D3D12_ShaderType::Vertex,   vertex   },
           { SK_D3D12_ShaderType::Pixel,    pixel    },
@@ -146,22 +255,26 @@ static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x
           { SK_D3D12_ShaderType::Mesh,     mesh     },
           { SK_D3D12_ShaderType::Amplify,  amplify  } };
 
-  auto _StashAHash = [&](SK_D3D12_ShaderType type)
+  auto _StashAHash =
+  [&](   SK_D3D12_ShaderType                     type,
+      const D3D12_GRAPHICS_PIPELINE_STATE_DESC* pDesc )
   {
-    const D3D12_SHADER_BYTECODE
-                     *pBytecode = nullptr;
+    using bytecode_t =
+      const D3D12_SHADER_BYTECODE*;
+     
+    bytecode_t pBytecode = nullptr;
 
     switch (type)
     {
-      case SK_D3D12_ShaderType::Vertex:  pBytecode = (D3D12_SHADER_BYTECODE *)(
+      case SK_D3D12_ShaderType::Vertex:  pBytecode = (bytecode_t)(
         pDesc->VS.BytecodeLength ? pDesc->VS.pShaderBytecode : nullptr); break;
-      case SK_D3D12_ShaderType::Pixel:   pBytecode = (D3D12_SHADER_BYTECODE *)(
+      case SK_D3D12_ShaderType::Pixel:   pBytecode = (bytecode_t)(
         pDesc->PS.BytecodeLength ? pDesc->PS.pShaderBytecode : nullptr); break;
-      case SK_D3D12_ShaderType::Geometry:pBytecode = (D3D12_SHADER_BYTECODE *)(
+      case SK_D3D12_ShaderType::Geometry:pBytecode = (bytecode_t)(
         pDesc->GS.BytecodeLength ? pDesc->GS.pShaderBytecode : nullptr); break;
-      case SK_D3D12_ShaderType::Domain:  pBytecode = (D3D12_SHADER_BYTECODE *)(
+      case SK_D3D12_ShaderType::Domain:  pBytecode = (bytecode_t)(
         pDesc->DS.BytecodeLength ? pDesc->DS.pShaderBytecode : nullptr); break;
-      case SK_D3D12_ShaderType::Hull:    pBytecode = (D3D12_SHADER_BYTECODE *)(
+      case SK_D3D12_ShaderType::Hull:    pBytecode = (bytecode_t)(
         pDesc->HS.BytecodeLength ? pDesc->HS.pShaderBytecode : nullptr); break;
       default:                           pBytecode = nullptr;            break;
     }
@@ -173,7 +286,7 @@ static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x
 
       if ( FourCC == DFCC_Container || FourCC == DFCC_DXIL )
       {
-        shader_repo_s& repo =
+        SK_D3D12_ShaderRepo& repo =
           repo_map.at (type);
 
         if (repo.hash.used.insert (((DxilContainerHeader *)pBytecode)->Hash).second)
@@ -189,39 +302,165 @@ static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x
                     __SK_SUBSYSTEM__ );
         }
 
-        //SK_ComQIPtr <ID3D12Object>
-        //    pPipelineState ((IUnknown *)*ppPipelineState);
-        //if (pPipelineState != nullptr)
-        //{
-        //  ////pPipelineState->SetPrivateData ( repo.hash.guid,
-        //  ////                         DxilContainerHashSize,
-        //  ////                                     pHash );
-        //}
+        if (                          ppPipelineState  != nullptr &&
+            (*(ID3D12PipelineState **)ppPipelineState) != nullptr )
+        {   (*(ID3D12PipelineState **)
+                   ppPipelineState)->SetPrivateData ( repo.hash.guid,
+                                          DxilContainerHashSize,
+                                                      pHash );
+
+          if (     type == SK_D3D12_ShaderType::Pixel)
+            _pixelShaders  [*(ID3D12PipelineState **)ppPipelineState] = true;
+          else if (type == SK_D3D12_ShaderType::Vertex)
+            _vertexShaders [*(ID3D12PipelineState **)ppPipelineState] = true;
+        }
       }
 
       else
       {
-        shader_repo_s& repo =
+        const SK_D3D12_ShaderRepo& repo =
           repo_map.at (type);
 
-        SK_LOG0 ( ( L"%9hs Shader (FourCC=%hs,%lu)", repo.type.name, (char *)&FourCC, FourCC ), __SK_SUBSYSTEM__ );
+        SK_LOG0 ( ( L"%9hs Shader (FourCC=%hs,%lu)",
+                             repo.type.name, (char *)&FourCC, FourCC ),
+      __SK_SUBSYSTEM__ );
       }
     }
   };
 
   if (SUCCEEDED (hrPipelineCreate))
   {
-    if (pDesc->VS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Vertex);
-    if (pDesc->PS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Pixel);
-    if (pDesc->GS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Geometry);
-    if (pDesc->HS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Hull);
-    if (pDesc->DS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Domain);
+    UINT uiDontCare = 0;
+
+    SK_ComQIPtr <ID3DDestructionNotifier>
+                    pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
+
+    if (pDestructomatic != nullptr)
+    {   pDestructomatic->RegisterDestructionCallback (
+                   SK_D3D12_PipelineDrainPlug,
+                   *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
+
+      if (pDesc->VS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Vertex,   pDesc);
+      if (pDesc->PS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Pixel,    pDesc);
+      if (pDesc->GS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Geometry, pDesc);
+      if (pDesc->HS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Hull,     pDesc);
+      if (pDesc->DS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Domain,   pDesc);
+
+      if (pDesc->CachedPSO.pCachedBlob)
+      {
+        SK_LOG0 ( ( L"CachedPSO: %zu-bytes (%p)", pDesc->CachedPSO.CachedBlobSizeInBytes,
+                                                  pDesc->CachedPSO.pCachedBlob ),
+                    __SK_SUBSYSTEM__ );
+      }
+    }
+    
+    else
+      SK_ReleaseAssert (! "ID3DDestructionNotifier Implemented");
   }
 
   return
     hrPipelineCreate;
 }
 
+struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
+{
+           SK_D3D12_PipelineParser (void) = default;
+  virtual ~SK_D3D12_PipelineParser (void) = default;
+
+  inline void
+  _StashAHash (SK_D3D12_ShaderType       type,
+            const D3D12_SHADER_BYTECODE* pBytecode)
+  {
+    static const
+      std::unordered_map < SK_D3D12_ShaderType,
+                           SK_D3D12_ShaderRepo& >
+        repo_map =
+          { { SK_D3D12_ShaderType::Vertex,   vertex   },
+            { SK_D3D12_ShaderType::Pixel,    pixel    },
+            { SK_D3D12_ShaderType::Geometry, geometry },
+            { SK_D3D12_ShaderType::Hull,     hull     },
+            { SK_D3D12_ShaderType::Domain,   domain   },
+            { SK_D3D12_ShaderType::Compute,  compute  },
+            { SK_D3D12_ShaderType::Mesh,     mesh     },
+            { SK_D3D12_ShaderType::Amplify,  amplify  } };
+
+    if (pBytecode != nullptr/* && repo_map.count (type)*/)
+    {
+      auto FourCC =  ((DxilContainerHeader *)pBytecode)->HeaderFourCC;
+      auto pHash  = &((DxilContainerHeader *)pBytecode)->Hash.Digest [0];
+
+      if ( FourCC == DFCC_Container || FourCC == DFCC_DXIL )
+      {
+        SK_D3D12_ShaderRepo& repo =
+          repo_map.at (type);
+
+        if (repo.hash.used.insert (((DxilContainerHeader *)pBytecode)->Hash).second)
+        {
+          SK_LOG0 ( ( L"PipelineParsed %9hs Shader (BytecodeType=%s) [%02x%02x%02x%02x%02x%02x%02x%02x"
+                                                                    L"%02x%02x%02x%02x%02x%02x%02x%02x]",
+                      repo.type.name, FourCC ==
+                                        DFCC_Container ?
+                                               L"DXBC" : L"DXIL",
+              pHash [ 0], pHash [ 1], pHash [ 2], pHash [ 3], pHash [ 4], pHash [ 5],
+              pHash [ 6], pHash [ 7], pHash [ 8], pHash [ 9], pHash [10], pHash [11],
+              pHash [12], pHash [13], pHash [14], pHash [15] ),
+                    __SK_SUBSYSTEM__ );
+        }
+
+        if (pPipelineState != nullptr)
+        {   pPipelineState->SetPrivateData ( repo.hash.guid,
+                                      DxilContainerHashSize,
+                                                 pHash );
+
+          if (     type == SK_D3D12_ShaderType::Pixel)
+            _pixelShaders  [pPipelineState] = true;
+          else if (type == SK_D3D12_ShaderType::Vertex)
+            _vertexShaders [pPipelineState] = true;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L"%9hs Shader (FourCC=%hs,%lu)",
+                               repo.type.name, (char *)&FourCC, FourCC ),
+        __SK_SUBSYSTEM__ );
+        }
+      }
+    }
+  };
+
+  void FlagsCb (D3D12_PIPELINE_STATE_FLAGS flags) override
+  {
+    dll_log->Log (L"Flags: %x", flags);
+  }
+
+  void VSCb (const D3D12_SHADER_BYTECODE& VS) override
+  {
+    const D3D12_SHADER_BYTECODE* pBytecode =
+      ( VS.BytecodeLength > 0 ) ? (const D3D12_SHADER_BYTECODE *)
+        VS.pShaderBytecode      : nullptr;
+
+    if (                                        pBytecode != nullptr)
+      _StashAHash (SK_D3D12_ShaderType::Vertex, pBytecode);
+  }
+
+  void PSCb (const D3D12_SHADER_BYTECODE& PS) override
+  {
+    const D3D12_SHADER_BYTECODE* pBytecode =
+      ( PS.BytecodeLength > 0 ) ? (const D3D12_SHADER_BYTECODE *)
+        PS.pShaderBytecode      : nullptr;
+
+    if (                                       pBytecode != nullptr)
+      _StashAHash (SK_D3D12_ShaderType::Pixel, pBytecode);
+  }
+
+  void CachedPSOCb (const D3D12_CACHED_PIPELINE_STATE& cachedPSO) override
+  {
+    dll_log->Log (L"CachedPSO: %zu-bytes (%p)", cachedPSO.CachedBlobSizeInBytes,
+                                                cachedPSO.pCachedBlob);
+  }
+
+  ID3D12PipelineState* pPipelineState = nullptr;
+};
 
 HRESULT
 STDMETHODCALLTYPE
@@ -231,42 +470,38 @@ D3D12Device2_CreatePipelineState_Detour (
               REFIID                            riid,
 _COM_Outptr_  void                            **ppPipelineState )
 {
-  std::ignore = This;
-  std::ignore = riid;
-  std::ignore = ppPipelineState;
+  HRESULT hr =
+    D3D12Device2_CreatePipelineState_Original (
+           This, pDesc, riid, ppPipelineState );
 
-  const D3D12_PIPELINE_STATE_STREAM_DESC* pSubObj = pDesc;
-
-  switch (*(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE *)pSubObj->pPipelineStateSubobjectStream)
+  if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
   {
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_ROOT_SIGNATURE:       break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_HS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_GS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_STREAM_OUTPUT:        break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND:                break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_MASK:          break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RASTERIZER:           break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL:        break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_INPUT_LAYOUT:         break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_IB_STRIP_CUT_VALUE:   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PRIMITIVE_TOPOLOGY:   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RENDER_TARGET_FORMATS:break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL_FORMAT: break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_DESC:          break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_NODE_MASK:            break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CACHED_PSO:           break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS:                break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL1:       break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VIEW_INSTANCING:      break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_AS:                   break;
-    case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MS:                   break;
+    UINT uiDontCare = 0;
+
+    SK_ComQIPtr <ID3DDestructionNotifier>
+                    pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
+
+    if (pDestructomatic != nullptr)
+    {   pDestructomatic->RegisterDestructionCallback (
+                   SK_D3D12_PipelineDrainPlug,
+                   *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
+
+      SK_D3D12_PipelineParser
+        SK_D3D12_PipelineParse;
+        SK_D3D12_PipelineParse.pPipelineState =
+        *(ID3D12PipelineState **)ppPipelineState;
+
+      if ( SUCCEEDED (
+             D3DX12ParsePipelineStream (*pDesc, &SK_D3D12_PipelineParse)
+                     )
+         )
+      {
+        return hr;
+      }
+    }
   }
 
-  return S_OK;
+  return hr;
 }
 
 
@@ -334,7 +569,7 @@ D3D12Device_CreateCommandAllocator_Detour (
 
             // We found a cached allocator, but let's continue looking for any
             // dead allocators to free.
-            if (extra > 5)
+            if (extra > 4)
             {
               // Hopefully this is not still live...
               pAllocator->SetName (
@@ -476,6 +711,296 @@ const D3D12_RESOURCE_DESC *pResourceDescs)
       visibleMask, numResourceDescs, pResourceDescs);
 }
 
+
+const GUID IID_ITrackD3D12Resource =
+{ 0x696442be, 0xa72e, 0x4059, { 0xac, 0x78, 0x5b, 0x5c, 0x98, 0x04, 0x0f, 0xad } };
+
+concurrency::concurrent_unordered_map <ID3D12Device*, std::tuple <ID3D12Fence*, volatile UINT64, UINT64>> _downstreamFence;
+
+struct DECLSPEC_UUID("696442be-a72e-4059-ac78-5b5c98040fad")
+SK_ITrackD3D12Resource final : IUnknown
+{
+  SK_ITrackD3D12Resource ( ID3D12Device   *pDevice,
+                           ID3D12Resource *pResource,
+                           ID3D12Fence    *pFence_,
+                  volatile UINT64         *puiFenceValue_ ) :
+                                   pReal  (pResource),
+                                   pDev   (pDevice),
+                                   pFence (pFence_),
+                                   ver_   (0)
+  {
+    pResource->SetPrivateDataInterface (
+      IID_ITrackD3D12Resource, this
+    );
+
+    NextFrame =
+      SK_GetFramesDrawn () + _d3d12_rbk->frames_.size ();
+
+    pCmdQueue =
+      _d3d12_rbk->_pCommandQueue;
+  }
+
+  virtual ~SK_ITrackD3D12Resource (void)
+  {
+  }
+
+  SK_ITrackD3D12Resource            (const SK_ITrackD3D12Resource &) = delete;
+  SK_ITrackD3D12Resource &operator= (const SK_ITrackD3D12Resource &) = delete;
+
+#pragma region IUnknown
+  HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, void **ppvObj) override; // 0
+  ULONG   STDMETHODCALLTYPE AddRef         (void)                       override; // 1
+  ULONG   STDMETHODCALLTYPE Release        (void)                       override; // 2
+#pragma endregion
+
+  volatile LONG                  refs_ = 1;
+  unsigned int                   ver_;
+  ID3D12Resource                *pReal;
+  SK_ComPtr <ID3D12Device>       pDev;
+  SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+  SK_ComPtr <ID3D12Fence>        pFence;
+  UINT64                         uiFence   = 0;
+  UINT64                         NextFrame = 0;
+};
+
+HRESULT
+STDMETHODCALLTYPE
+SK_ITrackD3D12Resource::QueryInterface (REFIID riid, void **ppvObj)
+{
+  if (ppvObj == nullptr)
+  {
+    return E_POINTER;
+  }
+
+  if (
+    riid == __uuidof (this)      ||
+    riid == __uuidof (IUnknown)  ||
+    riid == IID_ITrackD3D12Resource )
+  {
+    auto _GetVersion = [](REFIID riid) ->
+    UINT
+    {
+      if (riid == __uuidof (ID3D12Resource))  return 0;
+
+      return 0;
+    };
+
+    UINT required_ver =
+      _GetVersion (riid);
+
+    if (ver_ < required_ver)
+    {
+      IUnknown* pPromoted = nullptr;
+
+      if ( FAILED (
+             pReal->QueryInterface ( riid,
+                           (void **)&pPromoted )
+                  ) || pPromoted == nullptr
+         )
+      {
+        return E_NOINTERFACE;
+      }
+
+      ver_ =
+        SK_COM_PromoteInterface (&pReal, pPromoted) ?
+                                       required_ver : ver_;
+    }
+
+    else
+    {
+      AddRef ();
+    }
+
+    *ppvObj = this;
+
+    return S_OK;
+  }
+
+  HRESULT hr =
+    pReal->QueryInterface (riid, ppvObj);
+
+  if ( riid != IID_IUnknown &&
+       riid != IID_ID3DUserDefinedAnnotation )
+  {
+    static
+      std::unordered_set <std::wstring> reported_guids;
+
+    wchar_t                wszGUID [41] = { };
+    StringFromGUID2 (riid, wszGUID, 40);
+
+    bool once =
+      reported_guids.count (wszGUID) > 0;
+
+    if (! once)
+    {
+      reported_guids.emplace (wszGUID);
+
+      SK_LOG0 ( ( L"QueryInterface on tracked D3D12 Resource for Mystery UUID: %s",
+                      wszGUID ), L"   DXGI   " );
+    }
+  }
+
+  return hr;
+}
+
+ULONG
+STDMETHODCALLTYPE
+SK_ITrackD3D12Resource::AddRef (void)
+{
+  return
+    InterlockedIncrement (&refs_);
+}
+
+ULONG
+STDMETHODCALLTYPE
+SK_ITrackD3D12Resource::Release (void)
+{
+  ULONG xrefs =
+    InterlockedDecrement (&refs_);
+
+  if (xrefs == 1)
+  {
+    SK_LOG0 ( ( L"(-) Releasing tracked Resource (%08ph)... device=%08ph", pReal, pDev.p),
+             __SK_SUBSYSTEM__ );
+
+    delete this;
+  }
+
+  return xrefs;
+}
+
+concurrency::concurrent_queue <SK_ITrackD3D12Resource *> _resourcesToWrite_Downstream;
+concurrency::concurrent_queue <SK_ITrackD3D12Resource *> _resourcesToWrite_Upstream;
+
+void
+SK_D3D12_EnqueueResource_Down (SK_ITrackD3D12Resource* pResource)
+{
+                                     pResource->pReal->AddRef ();
+                                     pResource->AddRef        ();
+  _resourcesToWrite_Downstream.push (pResource);
+}
+
+void
+SK_D3D12_EnqueueResource_Up (SK_ITrackD3D12Resource* pResource)
+{
+                                   pResource->pReal->AddRef ();
+                                   pResource->AddRef        ();
+  _resourcesToWrite_Upstream.push (pResource);
+}
+
+void
+SK_D3D12_WriteResources (void)
+{
+  SK_ITrackD3D12Resource *pRes;
+
+  std::queue <SK_ITrackD3D12Resource *> _rejects;
+
+  while (! _resourcesToWrite_Downstream.empty ())
+  {
+    if (_resourcesToWrite_Downstream.try_pop (pRes))
+    {
+      if (pRes->uiFence == 0 && pRes->NextFrame <= SK_GetFramesDrawn ())
+      {
+        auto &[pFence, uiFenceVal, ulNextFrame] =
+          _downstreamFence [pRes->pDev];
+
+        if ( const UINT64 sync_value = ReadULong64Acquire (&uiFenceVal) + 1 ;
+             SUCCEEDED ( pRes->pCmdQueue->Signal (
+                           pFence, sync_value    )
+                       )
+         )
+        {
+          pRes->uiFence =                   sync_value;
+          WriteULong64Release (&uiFenceVal, sync_value);
+        }
+      }
+
+      if (pRes->uiFence > 0 && pRes->pFence->GetCompletedValue () >= pRes->uiFence)
+      {
+        DirectX::ScratchImage image;
+
+        if ( pRes->pCmdQueue != nullptr &&
+               SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
+                                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) )
+        {
+          DirectX::SaveToDDSFile (
+            image.GetImages     (),
+            image.GetImageCount (),
+              image.GetMetadata (),
+                               0x0,
+              SK_FormatStringW (L"%p.dds", pRes->pReal).c_str ()
+          );
+        }
+
+        pRes->pReal->Release ();
+        pRes->Release        ();
+      }
+
+      else
+      {
+        _rejects.push (pRes);
+      }
+    }
+  }
+
+  // Give it a go again the next frame
+  while (! _rejects.empty ())
+  {
+    auto pReject =
+      _rejects.front ();
+      _rejects.pop   ();
+
+    _resourcesToWrite_Downstream.push (pReject);
+  }
+
+  // Most likely to have complete data CPU-side
+  while (! _resourcesToWrite_Upstream.empty ())
+  {
+    if (_resourcesToWrite_Upstream.try_pop (pRes))
+    {
+      DirectX::ScratchImage image;
+
+      if ( pRes->pCmdQueue != nullptr &&
+             SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
+                                                   D3D12_RESOURCE_STATE_COMMON,
+                                                   D3D12_RESOURCE_STATE_COMMON)) )
+      {
+        DirectX::SaveToDDSFile (
+          image.GetImages     (),
+          image.GetImageCount (),
+            image.GetMetadata (),
+                             0x0,
+            SK_FormatStringW (L"%p.dds", pRes->pReal).c_str ()
+        );
+      }
+
+      pRes->pReal->Release ();
+      pRes->Release        ();
+    }
+  }
+}
+
+void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource)
+{
+  SK_ComPtr <ID3D12Device> pDevice;
+  if (SUCCEEDED (This->GetDevice (IID_ID3D12Device, (void **)&pDevice.p)))
+  {
+    auto& [pFence, UIFenceVal, NextFrame] =
+      _downstreamFence [pDevice];
+
+    if (pFence == nullptr)
+      pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,
+                          IID_ID3D12Fence, (void **)&pFence);
+
+    SK_D3D12_EnqueueResource_Down (
+      new (std::nothrow) SK_ITrackD3D12Resource ( pDevice, pResource,
+                                                        pFence,
+                                                      &UIFenceVal )
+    );
+  }
+}
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device_CreateCommittedResource_Detour (
@@ -488,6 +1013,73 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riidResource,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
+  if (pDesc != nullptr) // Not optional, but some games try it anyway :)
+  {
+    if (     ppvResource      != nullptr            &&
+            riidResource      == IID_ID3D12Resource &&
+        pDesc->Dimension      == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+        pHeapProperties->Type == D3D12_HEAP_TYPE_DEFAULT &&
+   ( ( pDesc->Flags & ( D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET |
+                        D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL |
+                        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS /*|
+                          D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE*/ ) ) == 0x0 ) )
+    {
+      ID3D12Resource *pResource = nullptr;
+      HRESULT hrCreateCommitted =
+        D3D12Device_CreateCommittedResource_Original ( This,
+          pHeapProperties, HeapFlags, pDesc, InitialResourceState,
+            pOptimizedClearValue, riidResource, (void **)&pResource );
+
+      if (SUCCEEDED (hrCreateCommitted))
+      {
+#ifdef _DUMP_TEXTURES
+        auto& [pFence, UIFenceVal, NextFrame] =
+          _downstreamFence [This];
+
+        if (pFence == nullptr)
+          This->CreateFence (0, D3D12_FENCE_FLAG_NONE,
+                            IID_ID3D12Fence, (void **)&pFence);
+
+        SK_D3D12_EnqueueResource_Down (
+          new (std::nothrow) SK_ITrackD3D12Resource ( This, pResource,
+                                                            pFence,
+                                                          &UIFenceVal )
+        );
+#endif
+
+        *ppvResource = pResource;
+      }
+
+      return hrCreateCommitted;
+    }
+
+    else if
+       (     ppvResource      != nullptr            &&
+            riidResource      == IID_ID3D12Resource &&
+        pDesc->Dimension      == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+        pHeapProperties->Type == D3D12_HEAP_TYPE_UPLOAD )
+    {
+      ID3D12Resource *pResource = nullptr;
+      HRESULT hrCreateCommitted =
+        D3D12Device_CreateCommittedResource_Original ( This,
+          pHeapProperties, HeapFlags, pDesc, InitialResourceState,
+            pOptimizedClearValue, riidResource, (void **)&pResource );
+
+      if (SUCCEEDED (hrCreateCommitted))
+      {
+#ifdef _DUMP_TEXTURES
+        SK_D3D12_EnqueueResource_Up (
+          new (std::nothrow) SK_ITrackD3D12Resource (This, pResource)
+        );
+#endif
+
+        *ppvResource = pResource;
+      }
+
+      return hrCreateCommitted;
+    }
+  }
+
   return
     D3D12Device_CreateCommittedResource_Original ( This,
       pHeapProperties, HeapFlags, pDesc, InitialResourceState,
@@ -605,6 +1197,16 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // ID3D12Device2
   //---------------
   // 47 CreatePipelineState
+
+  SK_ComQIPtr <ID3D12Device2>
+                    pDevice2 (pDev12);
+  if (   nullptr != pDevice2 )
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12Device2::CreatePipelineState",
+                             *(void ***)*(&pDevice2.p), 47,
+                              D3D12Device2_CreatePipelineState_Detour,
+                    (void **)&D3D12Device2_CreatePipelineState_Original );
+  }
 
   // ID3D12Device3
   //---------------
