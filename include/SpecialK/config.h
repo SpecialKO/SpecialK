@@ -28,6 +28,7 @@
 #include <set>
 #include <unordered_set>
 #include <concurrent_unordered_map.h>
+#include <filesystem>
 #include <intsafe.h>
 
 #include <SpecialK/render/backend.h>
@@ -1166,6 +1167,12 @@ const wchar_t*
 __stdcall
 SK_GetVersionStr (void) noexcept;
 
+void
+WINAPI
+SK_Resource_SetRoot (const wchar_t* root);
+
+std::filesystem::path
+SK_Resource_GetRoot (void);
 
 extern bool
 SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel);

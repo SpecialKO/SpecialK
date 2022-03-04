@@ -4317,23 +4317,7 @@ SK_ImGui_ControlPanel (void)
         // Keybinds made using a menu option must process their popups here
         for ( auto& binding : timing_keybinds )
         {
-          if (binding->assigning)
-          {
-            if (! ImGui::IsPopupOpen (binding->bind_name))
-              ImGui::OpenPopup (      binding->bind_name);
 
-            std::wstring     original_binding =
-                                      binding->human_readable;
-
-            SK_ImGui_KeybindDialog (  binding           );
-
-            if (             original_binding !=
-                                      binding->human_readable)
-              binding->param->store ( binding->human_readable);
-
-            if (! ImGui::IsPopupOpen (binding->bind_name))
-                                      binding->assigning = false;
-          }
         }
 
 

@@ -414,6 +414,13 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
               if (    download.finish_routine == nullptr ||
                    (! download.finish_routine (std::move (concat_buffer), download.path)) )
               {
+                auto directory =
+                  std::filesystem::path (download.path).parent_path ();
+
+                std::error_code                                       ec = { };
+                if (! std::filesystem::exists             (directory, ec))
+                      std::filesystem::create_directories (directory, ec);
+
                 if ( FILE *fOut = _wfopen ( download.path.c_str (), L"wb+" ) ;
                            fOut != nullptr )
                 {

@@ -80,3 +80,7 @@ extern D3D12Device_CreateCommandAllocator_pfn
 
 bool SK_D3D12_HookDeviceCreation (void);
 void SK_D3D12_InstallDeviceHooks (ID3D12Device* pDev12);
+
+static inline constexpr GUID SKID_D3D12IgnoredTextureCopy = { 0x3d5298cb, 0xd8f0,  0x7233, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+
+void SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList);

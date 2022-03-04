@@ -3089,6 +3089,25 @@ SK_D3D11_SetResourceRoot (const wchar_t* root)
 
 void
 WINAPI
+SK_Resource_SetRoot (const wchar_t* root)
+{
+  // Redirect while a proper cross-API design is considered ;)
+  SK_D3D11_SetResourceRoot (root);
+}
+
+std::filesystem::path
+SK_Resource_GetRoot (void)
+{
+  wchar_t     wszPath [ MAX_PATH + 2 ] = { };
+  wcsncpy_s ( wszPath,  MAX_PATH,
+              SK_EvalEnvironmentVars (SK_D3D11_res_root->c_str ()).c_str (),
+                       _TRUNCATE );
+
+  return wszPath;
+}
+
+void
+WINAPI
 SK_D3D11_EnableTexDump (bool enable)
 {
   SK_D3D11_dump_textures = enable;

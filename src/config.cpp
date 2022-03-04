@@ -3809,10 +3809,7 @@ auto DeclKeybind =
   ///}
 
 
-  void
-  WINAPI
-  SK_D3D11_SetResourceRoot (const wchar_t* root);
-  SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
+  SK_Resource_SetRoot (config.textures.d3d11.res_root.c_str ());
 
 
   //

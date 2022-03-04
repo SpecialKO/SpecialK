@@ -31,6 +31,8 @@
 #include <SpecialK/render/d3d12/d3d12_dxil_shader.h>
 #include <SpecialK/render/d3d12/d3d12_device.h>
 
+#include <filesystem>
+
 #include <DirectXTex/d3dx12.h>
 
 // Various device-resource hacks are here for HDR
@@ -734,7 +736,7 @@ SK_ITrackD3D12Resource final : IUnknown
     );
 
     NextFrame =
-      SK_GetFramesDrawn () + _d3d12_rbk->frames_.size ();
+      SK_GetFramesDrawn () + 1;// _d3d12_rbk->frames_.size ();
 
     pCmdQueue =
       _d3d12_rbk->_pCommandQueue;
@@ -888,6 +890,52 @@ SK_D3D12_EnqueueResource_Up (SK_ITrackD3D12Resource* pResource)
   _resourcesToWrite_Upstream.push (pResource);
 }
 
+
+struct d3d12_tex_upload_s
+{
+  std::vector <D3D12_SUBRESOURCE_DATA> subresources;
+
+  SK_ComPtr   <ID3D12Resource>         pUploadHeap;
+  SK_ComPtr   <ID3D12Resource>         pDest;
+  SK_ComPtr   <ID3D12Device>           pDevice;
+};
+
+static concurrency::concurrent_queue <d3d12_tex_upload_s> _resourcesToReplace;
+
+void
+SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList)
+{
+  SK_ComPtr <ID3D12Device>            pDev;
+  pCmdList->GetDevice (IID_PPV_ARGS (&pDev.p));
+
+  while (! _resourcesToReplace.empty ())
+  {
+    d3d12_tex_upload_s               upload;
+    if (_resourcesToReplace.try_pop (upload))
+    {
+      SK_ReleaseAssert (upload.pDevice.IsEqualObject (pDev));
+
+      if (upload.pDevice.IsEqualObject (pDev))
+      {
+        SK_D3D12_RenderCtx::transition_state (
+          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                    D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
+
+        UpdateSubresources ( pCmdList,
+          upload.pDest.p, upload.pUploadHeap.p,
+                     0ULL, 0U, 1,//static_cast <unsigned int> (upload.subresources.size ()),
+                                                           upload.subresources.data () );
+
+        SK_D3D12_RenderCtx::transition_state (
+          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
+      }
+    }
+  }
+}
+
 void
 SK_D3D12_WriteResources (void)
 {
@@ -915,22 +963,327 @@ SK_D3D12_WriteResources (void)
         }
       }
 
+
+      static auto path =
+        SK_Resource_GetRoot () / LR"(dump\textures)",
+             load_path =
+        SK_Resource_GetRoot () / LR"(inject\textures)";
+
+
+      static int _num_injected = 0;
+
       if (pRes->uiFence > 0 && pRes->pFence->GetCompletedValue () >= pRes->uiFence)
       {
         DirectX::ScratchImage image;
 
-        if ( pRes->pCmdQueue != nullptr &&
-               SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
-                                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-                                                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) )
+        UINT size   = 1;
+        bool ignore = true;
+
+        pRes->pReal->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
+
+        static
+          std::unordered_set <uint32_t>
+            _injectable;
+        if (_injectable.empty ())
         {
-          DirectX::SaveToDDSFile (
-            image.GetImages     (),
-            image.GetImageCount (),
-              image.GetMetadata (),
-                               0x0,
-              SK_FormatStringW (L"%p.dds", pRes->pReal).c_str ()
-          );
+          for ( auto const& file : std::filesystem::directory_iterator { load_path } )
+          {
+            if ( file.path ().has_extension () &&
+                 file.path ().extension     ().compare (L".dds") == 0 )
+            {
+              std::string name =
+                file.path ().stem ().string ();
+
+              if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
+              {
+                uint32_t crc;
+
+                if ( 1 ==
+                      std::sscanf (
+                        name.c_str (),
+                          "d3d12_sk0_crc32c_%x",
+                                    &crc )
+                   )
+                {
+                  if (_injectable.insert (crc).second)
+                  {
+                    SK_LOG1 ( ( L"Injectable %x", crc ),
+                                  __SK_SUBSYSTEM__ );
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // NOTE: If a texture is loaded, unloaded and later reloaded, then
+        //         this current optimization will ail to re-inject
+        if ( ((_num_injected < _injectable.size ()) ||
+                      config.textures.dump_on_load) &&
+                                                    pRes->pCmdQueue != nullptr
+             && SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
+                                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) )
+        {
+          uint32_t hash =
+            crc32c (
+              0x0, image.GetPixels     (),
+                   image.GetPixelsSize () );
+
+          std::error_code                              ec;
+          if (! std::filesystem::is_directory   (path, ec))
+            std::filesystem::create_directories (path, ec);
+
+          std::wstring hashed_name =
+            SK_FormatStringW (L"d3d12_sk0_crc32c_%08x.dds", hash);
+
+          std::wstring
+            file_to_dump   = path      / hashed_name,
+            file_to_inject = load_path / hashed_name;
+
+          bool injected = false;
+
+          if (_injectable.contains (hash) && std::filesystem::exists (file_to_inject, ec))
+          {
+            SK_ComPtr <ID3D12Device>               pDev;
+            pRes->pReal->GetDevice (IID_PPV_ARGS (&pDev.p));
+
+            d3d12_tex_upload_s upload;
+
+            DirectX::ScratchImage inject_img;
+
+            if ( SUCCEEDED (
+              DirectX::LoadFromDDSFile (
+                                  file_to_inject.c_str (), 0x0, 
+                                 nullptr, inject_img ) )
+              && SUCCEEDED (
+              DirectX::PrepareUpload ( pDev, inject_img.GetImages     (),
+                                             1,//inject_img.GetImageCount (),
+                                             inject_img.GetMetadata   (),
+                                               upload.subresources )
+                           )
+               )
+            {
+              upload.pDevice = pDev;
+              upload.pDest   = pRes->pReal;
+
+              //const UINT64 buffer_size =
+              //  GetRequiredIntermediateSize ( pRes->pReal, 0, 1 );
+              //    //static_cast <unsigned int> ( upload.subresources.size () ) );
+              
+              {
+                UINT width  = inject_img.GetMetadata ().width;
+                UINT height = inject_img.GetMetadata ().height;
+
+                ///upload.pUploadHeap.p->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
+                ///upload.pUploadHeap.p->AddRef (); // Keep alive until upload finishes
+
+                try {
+                  SK_ComPtr <ID3D12Resource>            uploadBuffer;
+
+                  SK_ComPtr <ID3D12Fence>               pFence;
+                  SK_AutoHandle                         hEvent (
+                                                SK_CreateEvent ( nullptr, FALSE,
+                                                                          FALSE, nullptr )
+                                                               );
+
+                  SK_ComPtr <ID3D12CommandQueue>        cmdQueue;
+                  SK_ComPtr <ID3D12CommandAllocator>    cmdAlloc;
+                  SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
+
+
+                  ThrowIfFailed ( hEvent.m_h != 0 ?
+                                             S_OK : E_UNEXPECTED );
+
+                  // Upload texture to graphics system
+                  D3D12_HEAP_PROPERTIES
+                    props                      = { };
+
+                  D3D12_RESOURCE_DESC
+                    desc                       = { };
+
+                  UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                                              & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+                  UINT uploadSize  = height * uploadPitch;
+
+                    desc.Dimension             = D3D12_RESOURCE_DIMENSION_BUFFER;
+                    desc.Alignment             = 0;
+                    desc.Width                 = uploadSize;
+                    desc.Height                = 1;
+                    desc.DepthOrArraySize      = 1;
+                    desc.MipLevels             = 1;
+                    desc.Format                = DXGI_FORMAT_UNKNOWN;
+                    desc.SampleDesc.Count      = 1;
+                    desc.SampleDesc.Quality    = 0;
+                    desc.Layout                = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+                    desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
+
+                    props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+                    props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+                    props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+                  ThrowIfFailed (
+                    pDev->CreateCommittedResource (
+                      &props, D3D12_HEAP_FLAG_NONE,
+                      &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+                      nullptr, IID_PPV_ARGS (&uploadBuffer.p))
+                  ); SK_D3D12_SetDebugName (  uploadBuffer.p,
+                        L"ImGui D3D12 Texture Upload Buffer" );
+
+                  void        *mapped = nullptr;
+                  D3D12_RANGE  range  = { 0, uploadSize };
+
+                  ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
+
+                  for ( int y = 0; y < height; y++ )
+                  {
+                    memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
+                    inject_img.GetImage (0,0,0)->pixels  + y * width * 4,
+                                                               width * 4 );
+                  }
+
+                  uploadBuffer->Unmap (0, &range);
+
+                  D3D12_TEXTURE_COPY_LOCATION
+                    srcLocation                                    = { };
+                    srcLocation.pResource                          = uploadBuffer;
+                    srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+                    srcLocation.PlacedFootprint.Footprint.Format   = inject_img.GetMetadata ().format;//DXGI_FORMAT_R8G8B8A8_UNORM;
+                    srcLocation.PlacedFootprint.Footprint.Width    = width;
+                    srcLocation.PlacedFootprint.Footprint.Height   = height;
+                    srcLocation.PlacedFootprint.Footprint.Depth    = 1;
+                    srcLocation.PlacedFootprint.Footprint.RowPitch = uploadPitch;
+
+                  D3D12_TEXTURE_COPY_LOCATION
+                    dstLocation                  = { };
+                    dstLocation.pResource        = upload.pDest.p;
+                    dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+                    dstLocation.SubresourceIndex = 0;
+
+
+                  ThrowIfFailed (
+                    pDev->CreateFence (
+                      0, D3D12_FENCE_FLAG_NONE,
+                                IID_PPV_ARGS (&pFence.p))
+                   ); SK_D3D12_SetDebugName  ( pFence.p,
+                   L"ImGui D3D12 Texture Upload Fence");
+
+                  D3D12_COMMAND_QUEUE_DESC
+                    queueDesc          = { };
+                    queueDesc.Type     = D3D12_COMMAND_LIST_TYPE_DIRECT;
+                    queueDesc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+                    queueDesc.NodeMask = 1;
+
+                  ThrowIfFailed (
+                    pDev->CreateCommandQueue (
+                         &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
+                    ); SK_D3D12_SetDebugName (      cmdQueue.p,
+                      L"ImGui D3D12 Texture Upload Cmd Queue");
+
+                  ThrowIfFailed (
+                    pDev->CreateCommandAllocator (
+                      D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                  IID_PPV_ARGS (&cmdAlloc.p))
+                  ); SK_D3D12_SetDebugName (     cmdAlloc.p,
+                    L"ImGui D3D12 Texture Upload Cmd Allocator");
+
+                  ThrowIfFailed (
+                    pDev->CreateCommandList (
+                      0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                         cmdAlloc, nullptr,
+                                IID_PPV_ARGS (&cmdList.p))
+                  ); SK_D3D12_SetDebugName (   cmdList.p,
+                  L"ImGui D3D12 Texture Upload Cmd List");
+
+                  SK_D3D12_RenderCtx::transition_state (
+                             cmdList, upload.pDest.p, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                                      D3D12_RESOURCE_STATE_COPY_DEST,
+                                                      D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
+
+                  uploadBuffer->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
+
+                  cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
+                                               &srcLocation, nullptr );
+
+                  SK_D3D12_RenderCtx::transition_state (
+                             cmdList, upload.pDest.p, D3D12_RESOURCE_STATE_COPY_DEST,
+                                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                                      D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
+
+                  ThrowIfFailed (                     cmdList->Close ());
+
+                                 cmdQueue->ExecuteCommandLists (1,
+                                           (ID3D12CommandList* const*)
+                                                     &cmdList);
+
+                  ThrowIfFailed (
+                    cmdQueue->Signal (pFence,                       1));
+                                      pFence->SetEventOnCompletion (1,
+                                                hEvent.m_h);
+                  SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
+
+                  ////_resourcesToReplace.push (upload);
+                  injected       = true;
+                  _num_injected++;
+                }
+
+                catch (const SK_ComException& e) {
+                  SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                              __SK_SUBSYSTEM__ );
+                }
+              }
+            }
+          }
+
+          static
+            std::unordered_set <uint32_t>
+              _dumped;
+          if (_dumped.empty ())
+          {
+            for ( auto const& file : std::filesystem::directory_iterator { path } )
+            {
+              if ( file.path ().has_extension () &&
+                   file.path ().extension     ().compare (L".dds") == 0 )
+              {
+                std::string name =
+                  file.path ().stem ().string ();
+
+                if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
+                {
+                  uint32_t crc;
+
+                  if ( 1 ==
+                        std::sscanf (
+                          name.c_str (),
+                            "d3d12_sk0_crc32c_%x",
+                                      &crc )
+                     )
+                  {
+                    if (_dumped.insert (crc).second)
+                    {
+                      SK_LOG1 ( ( L"Previously Dumped %x", crc ),
+                                  __SK_SUBSYSTEM__ );
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          if (                 (! injected) &&
+               config.textures.dump_on_load &&
+                (! _dumped.contains (hash)) && (! std::filesystem::exists (
+                                                         file_to_dump, ec ) )
+             )
+          {
+            DirectX::SaveToDDSFile (
+              image.GetImages     (),
+              image.GetImageCount (),
+                image.GetMetadata (),
+                                 0x0,
+                file_to_dump.c_str()
+            );
+          }
         }
 
         pRes->pReal->Release ();

@@ -24,6 +24,7 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/d3d12/d3d12_device.h>
 
 #include <shaders/imgui_d3d11_vs.h>
 #include <shaders/imgui_d3d11_ps.h>
@@ -1056,8 +1057,7 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
 void
 _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
 {
-  if (std::exchange (D3D12GraphicsCommandList_DrawInstanced_Original,
-                    (D3D12GraphicsCommandList_DrawInstanced_pfn)1) == nullptr)
+  if (D3D12GraphicsCommandList_DrawInstanced_Original == nullptr)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::DrawInstanced",
                            *(void***)*(&pCmdList), 12,
@@ -1065,8 +1065,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                    (void **)&D3D12GraphicsCommandList_DrawInstanced_Original );
   }
 
-  if (std::exchange (D3D12GraphicsCommandList_DrawIndexedInstanced_Original,
-                    (D3D12GraphicsCommandList_DrawIndexedInstanced_pfn)1) == nullptr)
+  if (D3D12GraphicsCommandList_DrawIndexedInstanced_Original == nullptr)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::DrawIndexedInstanced",
                            *(void***)*(&pCmdList), 13,
@@ -1074,8 +1073,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                    (void **)&D3D12GraphicsCommandList_DrawIndexedInstanced_Original );
   }
 
-  if (std::exchange (D3D12GraphicsCommandList_SetPipelineState_Original,
-                    (D3D12GraphicsCommandList_SetPipelineState_pfn)1) == nullptr)
+  if (D3D12GraphicsCommandList_SetPipelineState_Original == nullptr)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::SetPipelineState",
                            *(void***)*(&pCmdList), 25,
@@ -1083,8 +1081,10 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                     (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
   }
 
-  SK_GetCommandProcessor ()->AddVariable (
-    "D3D12.SkipEveryOther", SK_CreateVar (SK_IVariable::Boolean, &__SkipEveryOther)
+  SK_RunOnce (
+    SK_GetCommandProcessor ()->AddVariable (
+      "D3D12.SkipEveryOther", SK_CreateVar (SK_IVariable::Boolean, &__SkipEveryOther)
+    )
   );
 }
 
@@ -1124,16 +1124,33 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
     src_desc = pSrc->pResource->GetDesc (),
     dst_desc = pDst->pResource->GetDesc ();
 
-#if 0
+#if 1
   if (D3D12_RESOURCE_DIMENSION_BUFFER    == src_desc.Dimension &&
       D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension && 
       pDst->SubresourceIndex             == 0 &&
       pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr && 
-                                    DstX == 0 && DstY    == 0       && DstZ == 0)
+                                    DstX == 0 &&
+                                    DstY == 0 )
   {
-    extern void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
+    UINT size   = 1U;
+    bool ignore = false;
 
-    SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+    pSrc->pResource->GetPrivateData (SKID_D3D12IgnoredTextureCopy, &size, &ignore);
+
+    if (! ignore)
+    {
+      size = 1U;
+      pDst->pResource->GetPrivateData (SKID_D3D12IgnoredTextureCopy, &size, &ignore);
+    }
+
+    if (! ignore)
+    {
+      static constexpr GUID SKID_D3D12IgnoredTextureCopy = { 0x3d5298cb, 0xd8f0,  0x7233, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+      extern void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
+
+      
+      SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+    }
   }
 #endif
 
@@ -1202,8 +1219,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 void
 _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 {
-  if (std::exchange (D3D12GraphicsCommandList_CopyTextureRegion_Original,
-                    (D3D12GraphicsCommandList_CopyTextureRegion_pfn)1) == nullptr)
+  if (D3D12GraphicsCommandList_CopyTextureRegion_Original == nullptr)
   {
     SK_CreateVFTableHook ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
                            *(void***)*(&pCmdList), 16,
@@ -1297,6 +1313,18 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     _InitDrawCommandHooks (pCommandList)
   );
 
+  static std::error_code ec;
+  static bool inject_textures =
+    std::filesystem::exists   (SK_Resource_GetRoot () / LR"(inject/textures/)", ec) &&
+  (!std::filesystem::is_empty (SK_Resource_GetRoot () / LR"(inject/textures/)", ec));
+
+  if (config.textures.dump_on_load || inject_textures)
+  {
+    SK_RunOnce (
+      _InitCopyTextureRegionHook (pCommandList)
+    );
+  }
+
   if ( __SK_HDR_16BitSwap &&
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
                         pHDRPipeline.p   != nullptr &&
@@ -1379,6 +1407,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   extern void SK_D3D12_WriteResources (void);
               SK_D3D12_WriteResources ();
+
+  SK_D3D12_CommitUploadQueue (pCommandList);
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );

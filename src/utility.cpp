@@ -1929,11 +1929,11 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     uint8_t* next_rgn =
      (uint8_t *)minfo.BaseAddress + minfo.RegionSize;
 
-    if ( (! (minfo.Type     & MEM_IMAGE))    ||
-         //(! (minfo.State    & MEM_COMMIT))   ||
-            (minfo.Protect  & PAGE_NOACCESS) ||
-             minfo.Protect == 0              ||
-         ( ! params.testPrivs (minfo) )      ||
+    if ( (! (minfo.Type     & MEM_IMAGE))   ||
+       //(! (minfo.State    & MEM_COMMIT))  ||
+             minfo.Protect  & PAGE_NOACCESS ||
+             minfo.Protect == 0             ||
+         ( ! params.testPrivs (minfo) )     ||
     
         // It is not a good idea to scan Special K's DLL, since in many cases the pattern
         //   we are scanning for becomes a part of the DLL and makes an exhaustive search
@@ -1953,7 +1953,8 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
     }
 
     // Do not search past the end of the module image!
-    if (next_rgn > end_addr)
+    if (align != 1 ? next_rgn >= end_addr
+                   : next_rgn >  end_addr)
       break;
 
     while (it < next_rgn)

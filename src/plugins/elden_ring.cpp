@@ -201,51 +201,197 @@ SK_ER_PlugInCfg (void)
       ImGui::TreePop     (  );
     }
 
-    ImGui::PopStyleColor (3);
-    ImGui::TreePop       ( );
-
-    static bool hud = true;
-
-    if (ImGui::Checkbox ("Enable HUD", &hud))
+    if (ImGui::CollapsingHeader (ICON_FA_IMAGE "\tGraphics Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      if (hud)
-        SK_D3D12_ShowGameHUD ();
-      else
-        SK_D3D12_HideGameHUD ();
-    }
+      static bool show_hud = true;
 
-    ImGui::Separator ();
-
-    if (ImGui::TreeNode ("Individual Shader Passes"))
-    {
-      extern concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
-      extern concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
-
-      static constexpr GUID SKID_D3D12DisablePipelineState =
-        { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
-
-      for ( auto &[ps, live] : _vertexShaders )
+      ImGui::TreePush   ("");
+      ImGui::BeginGroup (  );
+      
+      if (ImGui::Checkbox ("Show HUD", &show_hud))
       {
-        if (live)
+        if (show_hud) SK_D3D12_ShowGameHUD ();
+        else          SK_D3D12_HideGameHUD ();
+      }
+
+      ImGui::SameLine ();
+
+      const auto Keybinding =
+      [] (SK_ConfigSerializedKeybind *binding, sk::ParameterStringW* param)
+   -> auto
+      {
+        if (! (binding != nullptr && param != nullptr))
+          return false;
+
+        std::string label =
+          SK_WideCharToUTF8 (binding->human_readable);
+
+        ImGui::PushID (binding->bind_name);
+
+        if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+          ImGui::OpenPopup (        binding->bind_name);
+
+        std::wstring original_binding =
+                                binding->human_readable;
+
+        SK_ImGui_KeybindDialog (binding);
+
+        ImGui::PopID ();
+
+        if (original_binding != binding->human_readable)
         {
-          UINT size = 1;
-          bool disable;
+          param->store (binding->human_readable);
 
-          ps->GetPrivateData (SKID_D3D12DisablePipelineState, &size, &disable);
+          SK_SaveConfig ();
 
-          disable = (! disable);
+          return true;
+        }
 
-          if (ImGui::Checkbox (SK_FormatString ("Vtx Pipeline %p", ps).c_str (), &disable))
+        return false;
+      };
+
+      ImGui::BeginGroup ();
+        ImGui::Text     ("HUD Toggle:  "         );
+        ImGui::Text     ("HUD Free Screenshot:  ");
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+        Keybinding      (&config.render.keys.hud_toggle,
+                          config.render.keys.hud_toggle.param);
+        Keybinding      (&config.screenshots.game_hud_free_keybind,
+                          config.screenshots.game_hud_free_keybind.param);
+      ImGui::EndGroup   ();
+      ImGui::Separator  ();
+
+#pragma region "Advanced"
+      if ( config.system.log_level > 0
+        && ImGui::TreeNode ("Pipeline State Permutations")
+         )
+      {
+        static constexpr GUID SKID_D3D12DisablePipelineState =
+          { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+
+        ImGui::BeginGroup ();
+
+        extern
+          concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
+                                 _vertexShaders;
+        for ( auto &[ps, live] : _vertexShaders )
+        {
+          if (! live) continue;
+
+          UINT size    = 1;
+          bool disable = false;
+
+          if ( FAILED ( ps->GetPrivateData (
+                          SKID_D3D12DisablePipelineState, &size, &disable
+             )        )                    ) {             size=1;disable=false; }
+
+          bool enable =
+            (! disable);
+
+          ImGui::PushID ((int)(intptr_t)ps);
+
+          if (ImGui::Checkbox (" Vertex::", &enable))
           {
-            disable = (! disable);
+            disable =
+              (! enable);
 
             ps->SetPrivateData (SKID_D3D12DisablePipelineState, size, &disable);
+          }
+
+          ImGui::PopID  ();
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+
+        std::string name (" ", MAX_PATH + 1);
+
+        for ( auto &[ps, live] : _vertexShaders )
+        {
+          if (! live) continue;
+
+          if ( UINT                                               uiStrLen = MAX_PATH ;
+        FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
+             ) ) { *name.data () = '\0'; }
+          
+          ImGui::PushID ((int)(intptr_t)ps);
+
+          if (ImGui::InputText (SK_FormatString ("  %08x", ps).c_str (),
+                                                          name.data  (), MAX_PATH))
+            SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
+
+          ImGui::PopID  ();
+        }
+        ImGui::EndGroup ();
+        ImGui::TreePop  ();
+      }
+      ImGui::EndGroup   ();
+#pragma endregion
+
+      static std::error_code                    ec = { };
+      static std::filesystem::path pathPlayStation =
+        SK_Resource_GetRoot () / LR"(inject/textures)"
+          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds";
+
+      static bool                   bPlayStation_AtStart =
+        std::filesystem::exists (pathPlayStation, ec),
+                                    bPlayStation =
+                                    bPlayStation_AtStart,
+                                    bFetching   = false;
+
+  if (ImGui::Checkbox ("Enable " ICON_FA_PLAYSTATION " Buttons", &bPlayStation))
+      {
+        if (! bFetching)
+        {
+          if (  std::filesystem::exists (pathPlayStation, ec))
+          { if (std::filesystem::remove (pathPlayStation, ec))
+                                            bPlayStation = false;
+          }
+
+          else
+          {
+            bFetching = true;
+
+            SK_Network_EnqueueDownload (
+                 sk_download_request_s (
+                   pathPlayStation.wstring (),
+                     R"(https://sk-data.special-k.info/addon/EldenRing/)"
+                               R"(buttons/d3d12_sk0_crc32c_ae7c1bb2.dds)",
+            []( const std::vector <uint8_t>&&,
+                const std::wstring_view )
+             -> bool
+                {
+                  bFetching    = false;
+                  bPlayStation = true;
+            
+                  return false;
+                }
+              ), true
+            );
           }
         }
       }
 
-      ImGui::TreePop ();
+      if ( bFetching || bPlayStation_AtStart !=
+                        bPlayStation )
+      {
+        ImGui::SameLine ();
+
+        if (bFetching) ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading...");
+        else
+        {              ImGui::Bullet      ();
+                       ImGui::SameLine    ();
+                       ImGui::TextColored (ImVec4 (1.f,1.f,0.f,1.f), "Game Restart Required");
+        }
+      }
+
+      ImGui::TreePop     ( );
     }
+
+    ImGui::PopStyleColor (3);
+    ImGui::TreePop       ( );
   }
 
   return true;
@@ -287,13 +433,18 @@ SK_ER_InitConfig (void)
           { "clock_tick2", 0x0DFEFAF }, { "clock_tick3", 0x0DFEFC0 },
           { "clock_tick4", 0x0DFEFCD }, { "clock_tick5", 0x0DFEFDD },
           { "write_delta", 0x25A7F72 }, { "dt_float",    0x3B4FE28 } };
-
   addresses [L"ELDEN RING™  1.2.2.0"].
    cached =
         { { "clock_tick0", 0x0DFF397 }, { "clock_tick1", 0x0DFF3B3 },
           { "clock_tick2", 0x0DFF3BF }, { "clock_tick3", 0x0DFF3D0 },
           { "clock_tick4", 0x0DFF3DD }, { "clock_tick5", 0x0DFF3ED },
           { "write_delta", 0x25A8412 }, { "dt_float",    0x3B4FE38 } };
+  addresses [L"ELDEN RING™  1.2.3.0"].
+   cached =
+        { { "clock_tick0", 0x0DFFE77 }, { "clock_tick1", 0x0DFFE93 },
+          { "clock_tick2", 0x0DFFECD }, { "clock_tick3", 0x0DFFE9F },
+          { "clock_tick4", 0x0DFFEB0 }, { "clock_tick5", 0x0DFFEBD },
+          { "write_delta", 0x25A9752 }, { "dt_float",    0x3B52E78 } };
 
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
@@ -466,5 +617,6 @@ SK_SEH_LaunchEldenRing (void)
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER) {
+    // Swallow _all_ exceptions, EAC deserves a swift death
   }
 }
