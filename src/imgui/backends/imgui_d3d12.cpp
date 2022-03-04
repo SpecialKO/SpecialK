@@ -1108,6 +1108,8 @@ using D3D12GraphicsCommandList_CopyTextureRegion_pfn = void
 //{
 //}
 
+extern bool SK_D3D12_IsTextureInjectionNeeded (void);
+
 // Workaround for Control in HDR
 void
 STDMETHODCALLTYPE
@@ -1125,7 +1127,12 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
     dst_desc = pDst->pResource->GetDesc ();
 
 #if 1
-  if (D3D12_RESOURCE_DIMENSION_BUFFER    == src_desc.Dimension &&
+  static bool
+    bUseInjection = 
+      SK_D3D12_IsTextureInjectionNeeded ();
+
+  if (                                           bUseInjection &&
+      D3D12_RESOURCE_DIMENSION_BUFFER    == src_desc.Dimension &&
       D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension && 
       pDst->SubresourceIndex             == 0 &&
       pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr && 
@@ -1145,11 +1152,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 
     if (! ignore)
     {
-      static constexpr GUID SKID_D3D12IgnoredTextureCopy = { 0x3d5298cb, 0xd8f0,  0x7233, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
-      extern void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
-
-      
-      SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+      extern void
+        SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
+        SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
     }
   }
 #endif

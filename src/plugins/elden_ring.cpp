@@ -154,9 +154,9 @@ SK_ER_PlugInCfg (void)
       ImGui::BeginGroup  (  );
   if (ImGui::Checkbox    ("Fix Render Thread Priority Inversion", &SK_ER_PlugIn.bFixPrioInversion))
       {
-        if (! SK_ER_PlugIn.bFixPrioInversion)
+        if ((! SK_ER_PlugIn.bFixPrioInversion) && GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_LOWEST)
           SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL); // Game default
-        else
+        else if (                                 GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_BELOW_NORMAL)
           SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);       // Sensible default
 
         SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.bFixPrioInversion);

@@ -1,4 +1,10 @@
-﻿22.3.4.2-NOCEGUI
+﻿22.3.4.3-NOCEGUI
+================
+ + Optimized overlapping D3D12 HDR / Texture Injection code that was activating for HDR
+     users without texture mods present
+ + Elden Ring's Priority Inversion fix applies correct default state when toggled
+
+22.3.4.2-NOCEGUI
 ================
  + Added in-game option to download and install PlayStation buttons in Elden Ring
  + Added HUD Toggle / Screenshot keybind settings to Elden Ring's control panel

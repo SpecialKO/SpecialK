@@ -717,15 +717,13 @@ const D3D12_RESOURCE_DESC *pResourceDescs)
 const GUID IID_ITrackD3D12Resource =
 { 0x696442be, 0xa72e, 0x4059, { 0xac, 0x78, 0x5b, 0x5c, 0x98, 0x04, 0x0f, 0xad } };
 
-concurrency::concurrent_unordered_map <ID3D12Device*, std::tuple <ID3D12Fence*, volatile UINT64, UINT64>> _downstreamFence;
-
 struct DECLSPEC_UUID("696442be-a72e-4059-ac78-5b5c98040fad")
 SK_ITrackD3D12Resource final : IUnknown
 {
   SK_ITrackD3D12Resource ( ID3D12Device   *pDevice,
                            ID3D12Resource *pResource,
                            ID3D12Fence    *pFence_,
-                  volatile UINT64         *puiFenceValue_ ) :
+                  volatile UINT64         */*puiFenceValue_*/) :
                                    pReal  (pResource),
                                    pDev   (pDevice),
                                    pFence (pFence_),
@@ -890,6 +888,118 @@ SK_D3D12_EnqueueResource_Up (SK_ITrackD3D12Resource* pResource)
   _resourcesToWrite_Upstream.push (pResource);
 }
 
+static size_t _num_injected = 0;
+
+static std::unordered_set <uint32_t> _injectable;
+static std::unordered_set <uint32_t> _dumped;
+
+concurrency::concurrent_unordered_map <ID3D12Device*, std::tuple <ID3D12Fence*, volatile UINT64, UINT64>> _downstreamFence;
+
+void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource)
+{
+  // Early-out if there's no work to be done
+  if ((! config.textures.dump_on_load) && (_num_injected >= _injectable.size ()))
+      return;
+
+  SK_ComPtr <ID3D12Device> pDevice;
+  if (SUCCEEDED (This->GetDevice (IID_ID3D12Device, (void **)&pDevice.p)))
+  {
+    auto& [pFence, UIFenceVal, NextFrame] =
+      _downstreamFence [pDevice];
+
+    if (pFence == nullptr)
+      pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,
+                          IID_ID3D12Fence, (void **)&pFence);
+
+    SK_D3D12_EnqueueResource_Down (
+      new (std::nothrow) SK_ITrackD3D12Resource ( pDevice, pResource,
+                                                        pFence,
+                                                      &UIFenceVal )
+    );
+  }
+}
+
+bool SK_D3D12_IsTextureInjectionNeeded (void)
+{
+  std::error_code ec = { };
+
+  static auto path =
+  SK_Resource_GetRoot () / LR"(dump\textures)",
+         load_path =
+  SK_Resource_GetRoot () / LR"(inject\textures)";
+
+  auto scanInjectable = [&]{
+  if (_injectable.empty ())
+  {
+    for ( auto const& file : std::filesystem::directory_iterator { load_path, ec } )
+    {
+      if ( file.path ().has_extension () &&
+           file.path ().extension     ().compare (L".dds") == 0 )
+      {
+        std::string name =
+          file.path ().stem ().string ();
+
+        if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
+        {
+          uint32_t crc;
+
+          if ( 1 ==
+                 std::sscanf (
+                   name.c_str (),
+                     "d3d12_sk0_crc32c_%x",
+                               &crc )
+             )
+          {
+            if (_injectable.insert (crc).second)
+            {
+              SK_LOG1 ( ( L"Injectable %x", crc ),
+                          __SK_SUBSYSTEM__ );
+            }
+          }
+        }
+      }
+    }
+  }};
+
+  auto scanDumped = [&]{
+  if (_dumped.empty ())
+  {
+    for ( auto const& file : std::filesystem::directory_iterator { path, ec } )
+    {
+      if ( file.path ().has_extension () &&
+           file.path ().extension     ().compare (L".dds") == 0 )
+      {
+        std::string name =
+          file.path ().stem ().string ();
+
+        if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
+        {
+          uint32_t crc;
+
+          if ( 1 ==
+                std::sscanf (
+                  name.c_str (),
+                    "d3d12_sk0_crc32c_%x",
+                              &crc )
+             )
+          {
+            if (_dumped.insert (crc).second)
+            {
+              SK_LOG1 ( ( L"Previously Dumped %x", crc ),
+                          __SK_SUBSYSTEM__ );
+            }
+          }
+        }
+      }
+    }
+  }};
+
+  scanInjectable ();
+  scanDumped     ();
+
+  return
+    (config.textures.dump_on_load || (! _injectable.empty ()));
+}
 
 struct d3d12_tex_upload_s
 {
@@ -903,40 +1013,6 @@ struct d3d12_tex_upload_s
 static concurrency::concurrent_queue <d3d12_tex_upload_s> _resourcesToReplace;
 
 void
-SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList)
-{
-  SK_ComPtr <ID3D12Device>            pDev;
-  pCmdList->GetDevice (IID_PPV_ARGS (&pDev.p));
-
-  while (! _resourcesToReplace.empty ())
-  {
-    d3d12_tex_upload_s               upload;
-    if (_resourcesToReplace.try_pop (upload))
-    {
-      SK_ReleaseAssert (upload.pDevice.IsEqualObject (pDev));
-
-      if (upload.pDevice.IsEqualObject (pDev))
-      {
-        SK_D3D12_RenderCtx::transition_state (
-          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-                                    D3D12_RESOURCE_STATE_COPY_DEST,
-                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
-
-        UpdateSubresources ( pCmdList,
-          upload.pDest.p, upload.pUploadHeap.p,
-                     0ULL, 0U, 1,//static_cast <unsigned int> (upload.subresources.size ()),
-                                                           upload.subresources.data () );
-
-        SK_D3D12_RenderCtx::transition_state (
-          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_COPY_DEST,
-                                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
-      }
-    }
-  }
-}
-
-void
 SK_D3D12_WriteResources (void)
 {
   SK_ITrackD3D12Resource *pRes;
@@ -947,7 +1023,14 @@ SK_D3D12_WriteResources (void)
   {
     if (_resourcesToWrite_Downstream.try_pop (pRes))
     {
-      if (pRes->uiFence == 0 && pRes->NextFrame <= SK_GetFramesDrawn ())
+      static auto path =
+        SK_Resource_GetRoot () / LR"(dump\textures)",
+             load_path =
+        SK_Resource_GetRoot () / LR"(inject\textures)";
+
+      std::error_code ec = { };
+
+      if (pRes->uiFence == 0)// && pRes->NextFrame <= SK_GetFramesDrawn ())
       {
         auto &[pFence, uiFenceVal, ulNextFrame] =
           _downstreamFence [pRes->pDev];
@@ -963,58 +1046,9 @@ SK_D3D12_WriteResources (void)
         }
       }
 
-
-      static auto path =
-        SK_Resource_GetRoot () / LR"(dump\textures)",
-             load_path =
-        SK_Resource_GetRoot () / LR"(inject\textures)";
-
-
-      static int _num_injected = 0;
-
       if (pRes->uiFence > 0 && pRes->pFence->GetCompletedValue () >= pRes->uiFence)
       {
         DirectX::ScratchImage image;
-
-        UINT size   = 1;
-        bool ignore = true;
-
-        pRes->pReal->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
-
-        static
-          std::unordered_set <uint32_t>
-            _injectable;
-        if (_injectable.empty ())
-        {
-          for ( auto const& file : std::filesystem::directory_iterator { load_path } )
-          {
-            if ( file.path ().has_extension () &&
-                 file.path ().extension     ().compare (L".dds") == 0 )
-            {
-              std::string name =
-                file.path ().stem ().string ();
-
-              if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
-              {
-                uint32_t crc;
-
-                if ( 1 ==
-                      std::sscanf (
-                        name.c_str (),
-                          "d3d12_sk0_crc32c_%x",
-                                    &crc )
-                   )
-                {
-                  if (_injectable.insert (crc).second)
-                  {
-                    SK_LOG1 ( ( L"Injectable %x", crc ),
-                                  __SK_SUBSYSTEM__ );
-                  }
-                }
-              }
-            }
-          }
-        }
 
         // NOTE: If a texture is loaded, unloaded and later reloaded, then
         //         this current optimization will ail to re-inject
@@ -1025,12 +1059,16 @@ SK_D3D12_WriteResources (void)
                                                       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                                                       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) )
         {
+          UINT size   = 1;
+          bool ignore = true;
+
+          pRes->pReal->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
+
           uint32_t hash =
             crc32c (
               0x0, image.GetPixels     (),
                    image.GetPixelsSize () );
 
-          std::error_code                              ec;
           if (! std::filesystem::is_directory   (path, ec))
             std::filesystem::create_directories (path, ec);
 
@@ -1072,8 +1110,8 @@ SK_D3D12_WriteResources (void)
               //    //static_cast <unsigned int> ( upload.subresources.size () ) );
               
               {
-                UINT width  = inject_img.GetMetadata ().width;
-                UINT height = inject_img.GetMetadata ().height;
+                UINT width  = static_cast <UINT> (inject_img.GetMetadata ().width);
+                UINT height = static_cast <UINT> (inject_img.GetMetadata ().height);
 
                 ///upload.pUploadHeap.p->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
                 ///upload.pUploadHeap.p->AddRef (); // Keep alive until upload finishes
@@ -1135,11 +1173,11 @@ SK_D3D12_WriteResources (void)
 
                   ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
 
-                  for ( int y = 0; y < height; y++ )
+                  for ( UINT y = 0; y < height; y++ )
                   {
                     memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
-                    inject_img.GetImage (0,0,0)->pixels  + y * width * 4,
-                                                               width * 4 );
+                    inject_img.GetImage (0,0,0)->pixels  + y * width * 4U,
+                                                               width * 4U );
                   }
 
                   uploadBuffer->Unmap (0, &range);
@@ -1235,41 +1273,6 @@ SK_D3D12_WriteResources (void)
             }
           }
 
-          static
-            std::unordered_set <uint32_t>
-              _dumped;
-          if (_dumped.empty ())
-          {
-            for ( auto const& file : std::filesystem::directory_iterator { path } )
-            {
-              if ( file.path ().has_extension () &&
-                   file.path ().extension     ().compare (L".dds") == 0 )
-              {
-                std::string name =
-                  file.path ().stem ().string ();
-
-                if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
-                {
-                  uint32_t crc;
-
-                  if ( 1 ==
-                        std::sscanf (
-                          name.c_str (),
-                            "d3d12_sk0_crc32c_%x",
-                                      &crc )
-                     )
-                  {
-                    if (_dumped.insert (crc).second)
-                    {
-                      SK_LOG1 ( ( L"Previously Dumped %x", crc ),
-                                  __SK_SUBSYSTEM__ );
-                    }
-                  }
-                }
-              }
-            }
-          }
-
           if (                 (! injected) &&
                config.textures.dump_on_load &&
                 (! _dumped.contains (hash)) && (! std::filesystem::exists (
@@ -1307,6 +1310,7 @@ SK_D3D12_WriteResources (void)
     _resourcesToWrite_Downstream.push (pReject);
   }
 
+
   // Most likely to have complete data CPU-side
   while (! _resourcesToWrite_Upstream.empty ())
   {
@@ -1334,23 +1338,37 @@ SK_D3D12_WriteResources (void)
   }
 }
 
-void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource)
+void
+SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList)
 {
-  SK_ComPtr <ID3D12Device> pDevice;
-  if (SUCCEEDED (This->GetDevice (IID_ID3D12Device, (void **)&pDevice.p)))
+  SK_ComPtr <ID3D12Device>            pDev;
+  pCmdList->GetDevice (IID_PPV_ARGS (&pDev.p));
+
+  while (! _resourcesToReplace.empty ())
   {
-    auto& [pFence, UIFenceVal, NextFrame] =
-      _downstreamFence [pDevice];
+    d3d12_tex_upload_s               upload;
+    if (_resourcesToReplace.try_pop (upload))
+    {
+      SK_ReleaseAssert (upload.pDevice.IsEqualObject (pDev));
 
-    if (pFence == nullptr)
-      pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,
-                          IID_ID3D12Fence, (void **)&pFence);
+      if (upload.pDevice.IsEqualObject (pDev))
+      {
+        SK_D3D12_RenderCtx::transition_state (
+          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                    D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
 
-    SK_D3D12_EnqueueResource_Down (
-      new (std::nothrow) SK_ITrackD3D12Resource ( pDevice, pResource,
-                                                        pFence,
-                                                      &UIFenceVal )
-    );
+        UpdateSubresources ( pCmdList,
+          upload.pDest.p, upload.pUploadHeap.p,
+                     0ULL, 0U, 1,//static_cast <unsigned int> (upload.subresources.size ()),
+                                                           upload.subresources.data () );
+
+        SK_D3D12_RenderCtx::transition_state (
+          pCmdList, upload.pDest.p, D3D12_RESOURCE_STATE_COPY_DEST,
+                                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+                                    D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES );
+      }
+    }
   }
 }
 
