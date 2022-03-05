@@ -72,8 +72,8 @@ static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x
 static constexpr GUID SKID_D3D12DisablePipelineState = { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
 
 concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
-concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>   _vertexShaders;
-concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>    _pixelShaders;
+concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
+concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
 
 void
 __stdcall
@@ -87,7 +87,7 @@ SK_D3D12_PipelineDrainPlug (void *pBpOil) // Don't let it spill
       _vertexShaders [      (ID3D12PipelineState *)pBpOil] = false;
 
   if (_pixelShaders.count ((ID3D12PipelineState *)pBpOil))
-      _pixelShaders [      (ID3D12PipelineState *)pBpOil]  = false;
+      _pixelShaders [      (ID3D12PipelineState *)pBpOil] = false;
 }
 
 struct SK_D3D12_ShaderRepo
@@ -332,32 +332,37 @@ _COM_Outptr_ void                              **ppPipelineState )
 
   if (SUCCEEDED (hrPipelineCreate))
   {
-    UINT uiDontCare = 0;
+    // Do not enable in other games for now, needs more testing
+    //
+    if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+    {
+      UINT uiDontCare = 0;
 
-    SK_ComQIPtr <ID3DDestructionNotifier>
-                    pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
+      SK_ComQIPtr <ID3DDestructionNotifier>
+                      pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
 
-    if (pDestructomatic != nullptr)
-    {   pDestructomatic->RegisterDestructionCallback (
-                   SK_D3D12_PipelineDrainPlug,
-                   *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
+      if (pDestructomatic != nullptr)
+      {   pDestructomatic->RegisterDestructionCallback (
+                     SK_D3D12_PipelineDrainPlug,
+                     *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
 
-      if (pDesc->VS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Vertex,   pDesc);
-      if (pDesc->PS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Pixel,    pDesc);
-      if (pDesc->GS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Geometry, pDesc);
-      if (pDesc->HS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Hull,     pDesc);
-      if (pDesc->DS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Domain,   pDesc);
+        if (pDesc->VS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Vertex,   pDesc);
+        if (pDesc->PS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Pixel,    pDesc);
+        if (pDesc->GS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Geometry, pDesc);
+        if (pDesc->HS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Hull,     pDesc);
+        if (pDesc->DS.pShaderBytecode) _StashAHash (SK_D3D12_ShaderType::Domain,   pDesc);
 
-      if (pDesc->CachedPSO.pCachedBlob)
-      {
-        SK_LOG0 ( ( L"CachedPSO: %zu-bytes (%p)", pDesc->CachedPSO.CachedBlobSizeInBytes,
-                                                  pDesc->CachedPSO.pCachedBlob ),
-                    __SK_SUBSYSTEM__ );
+        if (pDesc->CachedPSO.pCachedBlob)
+        {
+          SK_LOG0 ( ( L"CachedPSO: %zu-bytes (%p)", pDesc->CachedPSO.CachedBlobSizeInBytes,
+                                                    pDesc->CachedPSO.pCachedBlob ),
+                      __SK_SUBSYSTEM__ );
+        }
       }
+      
+      else
+        SK_ReleaseAssert (! "ID3DDestructionNotifier Implemented");
     }
-    
-    else
-      SK_ReleaseAssert (! "ID3DDestructionNotifier Implemented");
   }
 
   return
@@ -414,10 +419,15 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
                                       DxilContainerHashSize,
                                                  pHash );
 
-          if (     type == SK_D3D12_ShaderType::Pixel)
-            _pixelShaders  [pPipelineState] = true;
-          else if (type == SK_D3D12_ShaderType::Vertex)
-            _vertexShaders [pPipelineState] = true;
+          // Do not enable in other games for now, needs more testing
+          //
+          if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+          {
+            if (     type == SK_D3D12_ShaderType::Pixel)
+              _pixelShaders  [pPipelineState] = true;
+            else if (type == SK_D3D12_ShaderType::Vertex)
+              _vertexShaders [pPipelineState] = true;
+          }
         }
 
         else
@@ -472,10 +482,16 @@ D3D12Device2_CreatePipelineState_Detour (
               REFIID                            riid,
 _COM_Outptr_  void                            **ppPipelineState )
 {
+  SK_LOG_FIRST_CALL
+
   HRESULT hr =
     D3D12Device2_CreatePipelineState_Original (
            This, pDesc, riid, ppPipelineState );
 
+  // Do not enable in other games for now, needs more testing
+  //
+  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  {
   if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
   {
     UINT uiDontCare = 0;
@@ -502,6 +518,7 @@ _COM_Outptr_  void                            **ppPipelineState )
       }
     }
   }
+  }
 
   return hr;
 }
@@ -517,12 +534,14 @@ D3D12Device_CreateCommandAllocator_Detour (
   REFIID                   riid,
   _COM_Outptr_  void      **ppCommandAllocator )
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  {
   if (riid == __uuidof (ID3D12CommandAllocator))
   {
     struct allocator_cache_s {
       using heap_type_t =
         concurrency::concurrent_unordered_map <ID3D12Device*,
-        concurrency::concurrent_unordered_map <ID3D12CommandAllocator*, ULONG64>>;
+        concurrency::concurrent_unordered_map <ID3D12CommandAllocator*, volatile ULONG64>>;
 
       const char* type   = "Unknown";
       heap_type_t heap   = heap_type_t ();
@@ -550,42 +569,45 @@ D3D12Device_CreateCommandAllocator_Detour (
 
       for ( auto &[pAllocator, LastFrame] : pCache->heap [This] )
       {
-        if (pAllocator != nullptr && LastFrame != 0)
+        if (pAllocator != nullptr && ReadULong64Acquire (&LastFrame) != 0)
         {
           if (pAllocator->AddRef () == 2)
           {
             if (extra++ == 0)
             {
               *ppCommandAllocator =
-                         pAllocator;
-
-              if (std::exchange (LastFrame, SK_GetFramesDrawn ()) !=
-                                            SK_GetFramesDrawn ())
-              {
-                pAllocator->Reset ();
-              }
+                       pAllocator;
+                       pAllocator->Reset ();
               
               SK_LOG1 ( ( L"%hs Command Allocator Reused", pCache->type ),
+                            __SK_SUBSYSTEM__ );
+
+              SK_LOG1 ( ( L"Allocator Heap Size: %d", pCache->heap [This].size ()),
                             __SK_SUBSYSTEM__ );
             }
 
             // We found a cached allocator, but let's continue looking for any
             // dead allocators to free.
-            if (extra > 4)
+            else
             {
-              // Hopefully this is not still live...
-              pAllocator->SetName (
-                SK_FormatStringW ( L"Zombie %hs Allocator (%d)",
-                                     pCache->type, pCache->cycles ).c_str ()
-                                  );
+              // There are an insane number (200+) of live Direct Cmd Allocators
+              //   in Elden Ring
+              if (pAllocator->Release () == 1 && extra > 256)
+              {
+                // Hopefully this is not still live...
+                pAllocator->SetName (
+                  SK_FormatStringW ( L"Zombie %hs Allocator (%d)",
+                                       pCache->type, pCache->cycles ).c_str ()
+                                    );
 
-              pAllocator->Release ();
-              pAllocator->Release ();
+                WriteULong64Release (&LastFrame, 0); // Dead
 
-              LastFrame = 0; // Dead
+                pAllocator->Release ();
 
-              SK_LOG1 ( ( L"%hs Command Allocator Released", pCache->type ),
+                SK_LOG1 ( ( L"%hs Command Allocator Released (%p)", pCache->type,
+                                                                    pAllocator ),
                             __SK_SUBSYSTEM__ );
+              }
             }
           }
 
@@ -608,15 +630,16 @@ D3D12Device_CreateCommandAllocator_Detour (
              )       )
          )
       {
-        ((ID3D12CommandAllocator *)*ppCommandAllocator)->AddRef ();
+        (*(ID3D12CommandAllocator **)ppCommandAllocator)->AddRef ();
 
         pCache->heap [This].insert (
-          std::make_pair ( (ID3D12CommandAllocator *)*ppCommandAllocator,
-                               SK_GetFramesDrawn () ) );
+          std::make_pair ( *(ID3D12CommandAllocator **)ppCommandAllocator,
+                               SK_GetFramesDrawn () + 1 ) );
 
         return S_OK;
       }
     }
+  }
   }
 
   return
@@ -734,7 +757,7 @@ SK_ITrackD3D12Resource final : IUnknown
     );
 
     NextFrame =
-      SK_GetFramesDrawn () + 1;// _d3d12_rbk->frames_.size ();
+      SK_GetFramesDrawn ();// + _d3d12_rbk->frames_.size ();
 
     pCmdQueue =
       _d3d12_rbk->_pCommandQueue;

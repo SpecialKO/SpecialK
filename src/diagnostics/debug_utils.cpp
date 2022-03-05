@@ -2749,6 +2749,95 @@ SK_Exception_HandleThreadName (
         wide_name;
 
 #ifdef _M_AMD64
+      if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+      {
+        if (! config.system.game_output)
+        {
+          extern size_t SK_CPU_CountLogicalCores (void);
+
+          static auto cores =
+            SK_CPU_CountLogicalCores ();
+
+          SK_AutoHandle hThread (
+            OpenThread ( THREAD_ALL_ACCESS, FALSE, dwTid )
+          );
+
+          if (StrStrIA (info->szName, "EzWorkPool_LOW_Clus"))
+          {
+            static auto constexpr _PoolSize = 4;
+
+            int j = 0;
+
+            std::sscanf (info->szName, "EzWorkPool_LOW_Clus%d", &j);
+
+            int mask = 0x0;
+
+            for ( int i = 0 ; i < cores / _PoolSize ; ++i )
+              mask |= (1 << i);
+
+            mask <<= (j * (cores / _PoolSize));
+
+            SetThreadAffinityMask (hThread, mask);
+
+            dll_log->Log (L"Clus%d %08x", j, mask);
+          }
+
+          if (StrStrIA (info->szName, "EzWorkPool_HIGHEST"))
+          {
+            static auto constexpr _PoolSize = 8;
+
+            static int highest = 0;
+
+            int mask = 0x0;
+
+            for ( int i = 0 ; i < cores / _PoolSize ; ++i )
+              mask |= (1 << i);
+
+            mask <<= (highest++ * (cores / _PoolSize));
+
+            SetThreadAffinityMask (hThread, mask);
+
+            dll_log->Log (L"Highest%d %08x", highest-1, mask);
+          }
+
+          if (StrStrIA (info->szName, "LoadProcess"))
+          {
+            static auto constexpr _PoolSize = 6;
+
+            static int highest = 0;
+
+            int mask = 0x0;
+
+            for ( int i = 0 ; i < cores / _PoolSize ; ++i )
+              mask |= (1 << i);
+
+            mask <<= (highest++ * (cores / _PoolSize));
+
+            SetThreadAffinityMask (hThread, mask);
+
+            dll_log->Log (L"LoadProcess%d %08x", highest-1, mask);
+          }
+
+          if (StrStrIA (info->szName, "EzWorkPool_LOW_AllC"))
+          {
+            static auto constexpr _PoolSize = 2;
+
+            static int highest = 0;
+
+            int mask = 0x0;
+
+            for ( int i = 0 ; i < cores / _PoolSize ; ++i )
+              mask |= (1 << i);
+
+            mask <<= (highest++ * (cores / _PoolSize));
+
+            SetThreadAffinityMask (hThread, mask);
+
+            dll_log->Log (L"AllC%d %08x", highest-1, mask);
+          }
+        }
+      }
+
       if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
       {
         SK_AutoHandle hThread (

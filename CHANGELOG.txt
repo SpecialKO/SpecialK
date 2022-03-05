@@ -1,4 +1,15 @@
-﻿22.3.4.3-NOCEGUI
+﻿22.3.5-NOCEGUI
+==============
+ + Reduced D3D12 Copy Command Allocator overhead in Elden Ring
+ + Testing alternate Thread Pool scheduling to fix 'EzWorkPool' dumping all
+     of its threads onto core 0/2 in Elden Ring
+
+    >> Set [SpecialK.System] GameOutput=false to opt-in
+
+       * Consult the Thread Widget to confirm 'Ez...' threads are being 
+           distributed to different CPU cores.
+
+22.3.4.3-NOCEGUI
 ================
  + Optimized overlapping D3D12 HDR / Texture Injection code that was activating for HDR
      users without texture mods present

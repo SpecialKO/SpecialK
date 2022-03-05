@@ -3434,11 +3434,11 @@
     <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp">
       <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
-    </ClCompile>
     <ClCompile Include="src\steam\steam_tier0.cpp">
       <Filter>Source Files\Storefronts\Steam</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
+      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
