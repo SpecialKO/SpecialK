@@ -961,7 +961,7 @@ D3D12GraphicsCommandList_SetPipelineState_Detour (
     SK_ComPtr <ID3D12Device>               pDevice;
     if ( SUCCEEDED (
            This->GetDevice (IID_PPV_ARGS (&pDevice.p))) )
-      SK_D3D12_AddMissingPipelineState (   pDevice.p, pPipelineState );
+    { SK_D3D12_AddMissingPipelineState (   pDevice.p, pPipelineState ); }
   }
 
   UINT64 current_frame =

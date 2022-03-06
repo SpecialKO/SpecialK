@@ -63,6 +63,7 @@ concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShad
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
 
+concurrency::concurrent_queue         <SK_ComPtr <ID3D12PipelineState>>   _pendingPSOBlobs;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, std::string> _latePSOBlobs;
 
 void
@@ -226,18 +227,54 @@ SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
 
   static const uint8_t empty [DxilContainerHashSize] = { };
 
-  SK_ComPtr <ID3DBlob>             pBlob;
-  pPipelineState->GetCachedBlob  (&pBlob.p);
   pPipelineState->SetPrivateData ( SKID_D3D12KnownVtxShaderDigest,
                                             DxilContainerHashSize,
                                                           empty );
   
-                 // We're keeping this alive so we can track it
-                 pPipelineState->AddRef ();
-  _latePSOBlobs [pPipelineState] = 
-    SK_FormatString ( "%08x",
-      crc32c ( 0x0, pBlob->GetBufferPointer (), pBlob->GetBufferSize () )
-                    );
+  _pendingPSOBlobs.push (pPipelineState);
+
+  static SK_AutoHandle hNotify (
+      SK_CreateEvent ( nullptr, FALSE,
+                                FALSE, nullptr ) );
+
+  SK_RunOnce
+  ( SK_Thread_CreateEx ([](LPVOID)
+ -> DWORD
+    {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_LOWEST);
+
+      HANDLE hWaitObjs [] = {
+             hNotify.m_h,
+             __SK_DLL_TeardownEvent
+      };
+
+      while ( WAIT_OBJECT_0 ==
+                WaitForMultipleObjects ( 2, hWaitObjs, FALSE, INFINITE ) )
+      {
+        while (! _pendingPSOBlobs.empty ())
+        {
+          SK_ComPtr <ID3D12PipelineState> pPipelineState;
+          if (_pendingPSOBlobs.try_pop (  pPipelineState))
+          {
+            SK_ComPtr <ID3DBlob>             pBlob;
+            pPipelineState->GetCachedBlob  (&pBlob.p);
+            
+            _latePSOBlobs [pPipelineState] = 
+              SK_FormatString ( "%08x",
+                      crc32c ( 0x0, pBlob->GetBufferPointer (),
+                                    pBlob->GetBufferSize    () )
+                              );
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] D3D12 Pipeline Cache Coordinator")
+  );
+
+  SetEvent (hNotify);
 }
 
 HRESULT
