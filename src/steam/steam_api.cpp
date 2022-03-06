@@ -5203,6 +5203,30 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 {
   static volatile LONG changes = 0;
 
+  if ( config.steam.skip_forceinputappid )
+  {
+      // For some people who use Steam Input, SpecialK's invocation of
+      // the `steam://forceinputappid` endpoint causes at least two
+      // strange behaviors:
+      //   1. The directional inputs from a controller no longer have any
+      //      effect on the Steam Overlay; and
+      //   2. After a game closes, directional inputs from a controller no
+      //      longer have any effect in Steam's Big Picture Mode.
+      //
+      // It's not clear what the root cause of these issues is (or why only
+      // directional inputs are affected), but refraining from using the
+      // `steam://forceinputappid` endpoint appears to fix the problems.
+      //
+      // This solution may have other side effects relating to SpecialK's
+      // interactions with Steam Input, but some people may find the tradeoff
+      // to be worthwhile, particularly if they play video games from a couch
+      // where being able to use directional inputs to navigate the Steam
+      // Overlay and Steam's Big Picture Mode is an essential feature.
+      steam_log->Log( L"Skipped use of `steam://forceinputappid` endpoint "
+                      L"because Steam.System.SkipForceInputAppID is true." );
+      return;
+  }
+
   if ( ReadAcquire (&__SK_DLL_Ending) &&
        ReadAcquire (&changes) > 1 ) // First change is always to 0
   {

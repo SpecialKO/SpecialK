@@ -421,6 +421,7 @@ struct {
     sk::ParameterBool*    force_load              = nullptr;
     sk::ParameterBool*    auto_inject             = nullptr;
     sk::ParameterStringW* dll_path                = nullptr;
+    sk::ParameterBool*    skip_forceinputappid    = nullptr;
   } system;
 
   struct {
@@ -1459,6 +1460,9 @@ auto DeclKeybind =
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
     ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteamAPI rate",     dll_ini,         L"Steam.System",          L"CallbackThrottle"),
+    ConfigEntry (steam.system.skip_forceinputappid,      L"If true, SpecialK will not invoke the "
+                                                         L"`steam://forceinputappid` endpoint.",                       dll_ini,         L"Steam.System",          L"SkipForceInputAppID"),
+
 
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
@@ -3734,6 +3738,7 @@ auto DeclKeybind =
   steam.system.early_overlay->load            (config.steam.preload_overlay);
   steam.system.force_load->load               (config.steam.force_load_steamapi);
   steam.system.auto_inject->load              (config.steam.auto_inject);
+  steam.system.skip_forceinputappid->load     (config.steam.skip_forceinputappid);
 
   int                                 throttle = -1;
   if (steam.callbacks.throttle->load (throttle))

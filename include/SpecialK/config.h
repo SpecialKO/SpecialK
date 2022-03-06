@@ -265,6 +265,7 @@ struct sk_config_t
     bool        filter_stat_callback  = false;
     bool        spoof_BLoggedOn       = false;
     bool        auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
+    bool        skip_forceinputappid  = false;  // If true, steam://forceinputappid is not used.
 
     struct screenshot_handler_s {
       bool      enable_hook           =  true;
