@@ -4347,9 +4347,6 @@
     <None Include="resource\cursors\ovr_ptr.cur">
       <Filter>Resource Files\Cursors</Filter>
     </None>
-    <None Include="resource\packages\libScePad_64.7z">
-      <Filter>Resource Files\Packaged Dependencies</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

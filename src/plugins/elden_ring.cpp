@@ -159,7 +159,7 @@ SK_ER_PlugInCfg (void)
         else if (                                 GetThreadPriority (GetCurrentThread ()) == THREAD_PRIORITY_BELOW_NORMAL)
           SetThreadPriority (GetCurrentThread (), THREAD_PRIORITY_LOWEST);       // Sensible default
 
-        SK_ER_PlugIn.ini.game_speed->store (SK_ER_PlugIn.bFixPrioInversion);
+        SK_ER_PlugIn.ini.fix_prio_inversion->store (SK_ER_PlugIn.bFixPrioInversion);
       }
   if (addresses.contains ("dt_float"))
   {
@@ -263,16 +263,23 @@ SK_ER_PlugInCfg (void)
       ImGui::EndGroup   ();
       ImGui::Separator  ();
 
+      auto currentFrame =
+            SK_GetFramesDrawn ();
+
 #pragma region "Advanced"
-      if ( config.system.log_level > 0
-        && ImGui::TreeNode ("Pipeline State Permutations")
+      if ( //config.system.log_level > 0
+           ImGui::TreeNode ("Recently Used Shaders")
          )
       {
+        std::string name (" ", MAX_PATH + 1);
+
+        static auto constexpr _RECENT_USE_THRESHOLD = 30;
+        static auto constexpr _ACTIVE_THRESHOLD     = 300;
+
         static constexpr GUID SKID_D3D12DisablePipelineState =
           { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
 
         ImGui::BeginGroup ();
-
         extern
           concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
                                  _vertexShaders;
@@ -280,7 +287,14 @@ SK_ER_PlugInCfg (void)
         {
           if (! live) continue;
 
-          UINT size    = 1;
+          UINT   size      = 8UL;
+          UINT64 lastFrame = 0ULL;
+
+          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
+
+          if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
+
+               size    = 1;
           bool disable = false;
 
           if ( FAILED ( ps->GetPrivateData (
@@ -306,11 +320,18 @@ SK_ER_PlugInCfg (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        std::string name (" ", MAX_PATH + 1);
-
         for ( auto &[ps, live] : _vertexShaders )
         {
           if (! live) continue;
+
+          UINT   size      = 8UL;
+          UINT64 lastFrame = 0ULL;
+
+          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
+
+          if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
+
+          *name.data () = '\0';
 
           if ( UINT                                               uiStrLen = MAX_PATH ;
         FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
@@ -320,6 +341,76 @@ SK_ER_PlugInCfg (void)
 
           if (ImGui::InputText (SK_FormatString ("  %08x", ps).c_str (),
                                                           name.data  (), MAX_PATH))
+            SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
+
+          ImGui::PopID  ();
+        }
+        ImGui::EndGroup ();
+
+        ImGui::Separator ();
+
+        ImGui::BeginGroup ();
+        extern
+          concurrency::concurrent_unordered_map <ID3D12PipelineState*, std::string>
+                                _latePSOBlobs;
+        for ( auto &[ps, str] : _latePSOBlobs )
+        {
+          bool   disable   = false;
+          UINT   size      = sizeof (UINT64);
+          UINT64 lastFrame = 0;
+
+          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
+
+          if (currentFrame > lastFrame + _ACTIVE_THRESHOLD) continue;
+
+          if ( FAILED ( ps->GetPrivateData (
+                          SKID_D3D12DisablePipelineState, &size, &disable
+             )        )                    ) {             size=1;disable=false; }
+
+          bool enable =
+            (! disable);
+
+          ImGui::PushID ((int)(intptr_t)ps);
+
+          if (ImGui::Checkbox (" Other::", &enable))
+          {
+            disable =
+              (! enable);
+
+            ps->SetPrivateData (SKID_D3D12DisablePipelineState, size, &disable);
+          }
+
+          ImGui::PopID  ();
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+
+        for ( auto &[ps, str] : _latePSOBlobs )
+        {
+          UINT   size      = sizeof (UINT64);
+          UINT64 lastFrame = 0;
+
+          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
+
+          if (currentFrame > lastFrame + _ACTIVE_THRESHOLD) continue;
+
+          *name.data () = '\0';
+
+          ImGui::PushStyleColor ( ImGuiCol_Text,
+            currentFrame > lastFrame - _RECENT_USE_THRESHOLD   ?
+                                 ImColor (0.5f,0.5f,0.5f,1.0f) :
+                                 ImColor (1.0f,1.0f,1.0f,1.0f) );
+
+          if ( UINT                                               uiStrLen = MAX_PATH ;
+        FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
+             ) ) { *name.data () = '\0'; }
+
+          ImGui::PopStyleColor ();
+          
+          ImGui::PushID ((int)(intptr_t)ps);
+
+          if (ImGui::InputText (str.c_str (),             name.data (), MAX_PATH))
             SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
 
           ImGui::PopID  ();
@@ -405,7 +496,7 @@ SK_ER_InitConfig (void)
                                   L"GameSpeed", SK_ER_PlugIn.fSpeed,
                                                        L"Game Speed" );
 
-  if (! SK_ER_PlugIn.ini.game_speed->load  (SK_ER_PlugIn.fSpeed))
+  if (! SK_ER_PlugIn.ini.game_speed->load  (SK_ER_PlugIn.fSpeed) || SK_ER_PlugIn.fSpeed < 0.1f)
         SK_ER_PlugIn.ini.game_speed->store (1.0f);
 
   SK_ER_PlugIn.ini.fix_prio_inversion =

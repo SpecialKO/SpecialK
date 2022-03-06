@@ -3161,8 +3161,6 @@ SteamAPI_PumpThread (LPVOID user)
 void
 SK_Steam_StartPump (bool force)
 {
-  SK_Steam_ForceInputAppId (0);
-
   if (            ReadAcquire        (&__SK_DLL_Ending)  ||
        nullptr != ReadPointerAcquire ((void **)&hSteamPump) )
   {
@@ -5196,10 +5194,10 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 void
 SK_Steam_ForceInputAppId (AppId_t appid)
 {
-  static volatile LONG set_once = FALSE;
+  static volatile LONG changes = 0;
 
   if ( ReadAcquire (&__SK_DLL_Ending) &&
-       ReadAcquire (&set_once) )
+       ReadAcquire (&changes) > 1 ) // First change is always to 0
   {
     // Cleanup on unexpected application termination
     //
@@ -5221,8 +5219,12 @@ SK_Steam_ForceInputAppId (AppId_t appid)
 
       void push (AppId_t appid)
       {
-        app_ids.push ( appid == 0 ? config.steam.appid
-                                  :              appid );
+        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
+                                                                :              appid );
+
+        if (appid != 0)
+          InterlockedIncrement (&changes);
+
         SetEvent (signal.m_h);
       }
     } static override_ctx;
@@ -5270,15 +5272,14 @@ SK_Steam_ForceInputAppId (AppId_t appid)
                 AppId_t                              appid;
                 while (override_ctx.app_ids.try_pop (appid))
                 {
-                  if (! InterlockedCompareExchange (&set_once, TRUE, FALSE))
-                  {
-                    std::atexit ([] {
-                      SK_Steam_ForceInputAppId (0);
-                    });
-                  }
-
                   if (! ReadAcquire (&__SK_DLL_Ending))
                   {
+                    SK_RunOnce (
+                      std::atexit ([]{
+                        SK_Steam_ForceInputAppId (0);
+                      })
+                    );
+
                     ShellExecuteW ( 0, L"OPEN",
                         SK_FormatStringW ( LR"(steam://forceinputappid/%d)",
                                                                  appid ).c_str (),

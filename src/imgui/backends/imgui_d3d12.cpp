@@ -25,6 +25,7 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d12/d3d12_device.h>
+#include <SpecialK/render/d3d12/d3d12_dxil_shader.h>
 
 #include <shaders/imgui_d3d11_vs.h>
 #include <shaders/imgui_d3d11_ps.h>
@@ -64,12 +65,7 @@ struct SK_ImGui_D3D12Ctx
   } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
 } static _imgui_d3d12;
 
-extern
-void
-__stdcall
-SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList  *pList, IDXGISwapChain3 *pSwapChain);
-
-static constexpr GUID SKID_D3D12DisablePipelineState = { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
+// A few ImGui pipeline states must never be disabled during render mod
 extern concurrency::concurrent_unordered_set <ID3D12PipelineState *> _criticalVertexShaders;
 
 HRESULT
@@ -281,8 +277,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
 
   // Don't let the user disable ImGui's pipeline state (!!)
-  bool                                                                             _enable = false;
-  _imgui_d3d12.pPipelineState->SetPrivateData (SKID_D3D12DisablePipelineState, 1, &_enable);
+  bool                                                                                         _enable = false;
+  _imgui_d3d12.pPipelineState->SetPrivateData (SKID_D3D12DisablePipelineState, sizeof (bool), &_enable);
   SK_RunOnce (_criticalVertexShaders.insert (_imgui_d3d12.pPipelineState));
 
 
@@ -937,6 +933,10 @@ ImGui_ImplDX12_NewFrame (void)
 
 SK_LazyGlobal <SK_ImGui_ResourcesD3D12> SK_ImGui_D3D12;
 
+extern void
+SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
+                                   ID3D12PipelineState *pPipelineState );
+
 using D3D12GraphicsCommandList_SetPipelineState_pfn = void
 (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
                        ID3D12PipelineState* );
@@ -951,20 +951,33 @@ D3D12GraphicsCommandList_SetPipelineState_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  UINT size    = 1;
+  // We do not actually care what this is, only that it exists.
+  UINT size_ = DxilContainerHashSize;
+
+  if ( FAILED ( pPipelineState->GetPrivateData (
+                  SKID_D3D12KnownVtxShaderDigest,
+                                          &size_, nullptr ) ) )
+  {
+    SK_ComPtr <ID3D12Device>               pDevice;
+    if ( SUCCEEDED (
+           This->GetDevice (IID_PPV_ARGS (&pDevice.p))) )
+      SK_D3D12_AddMissingPipelineState (   pDevice.p, pPipelineState );
+  }
+
+  UINT64 current_frame =
+    SK_GetFramesDrawn ();
+
+  pPipelineState->SetPrivateData (
+    SKID_D3D12LastFrameUsed, sizeof (current_frame),
+                                    &current_frame );
+
+  UINT size    = sizeof (bool);
   bool disable = false;
 
-  if ( SUCCEEDED (pPipelineState->GetPrivateData (SKID_D3D12DisablePipelineState, &size, &disable)) )
-  {
-    This->SetPrivateData ( SKID_D3D12DisablePipelineState, 1, &disable );
-  }
-
-  else
-  {
-    static bool _disable = false;
-
-    This->SetPrivateData ( SKID_D3D12DisablePipelineState, 1, &_disable );
-  }
+  pPipelineState->GetPrivateData (
+    SKID_D3D12DisablePipelineState, &size, &disable );
+            This->SetPrivateData (
+    SKID_D3D12DisablePipelineState,  size, &disable );
 
   D3D12GraphicsCommandList_SetPipelineState_Original ( This,
                                                         pPipelineState );
@@ -981,9 +994,14 @@ using D3D12GraphicsCommandList_DrawIndexedInstanced_pfn = void
                        UINT,UINT,UINT,INT,UINT );
       D3D12GraphicsCommandList_DrawIndexedInstanced_pfn
       D3D12GraphicsCommandList_DrawIndexedInstanced_Original = nullptr;
-
-static bool
-  __SkipEveryOther = false;
+using D3D12GraphicsCommandList_ExecuteIndirect_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                       ID3D12CommandSignature*,
+                       UINT,  ID3D12Resource*,
+                       UINT64,ID3D12Resource*,
+                       UINT64 );
+      D3D12GraphicsCommandList_ExecuteIndirect_pfn
+      D3D12GraphicsCommandList_ExecuteIndirect_Original = nullptr;
 
 void
 STDMETHODCALLTYPE
@@ -996,15 +1014,7 @@ D3D12GraphicsCommandList_DrawInstanced_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (__SkipEveryOther)
-  {
-    static int
-           x = 0;
-    if ((++x & 1) == 0)
-      return;
-  }
-
-  UINT size    = 1;
+  UINT size    = sizeof (bool);
   bool disable = false;
 
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
@@ -1031,15 +1041,7 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (__SkipEveryOther)
-  {
-    static int
-           x = 0;
-    if ((++x & 1) == 0)
-      return;
-  }
-
-  UINT size    = 1;
+  UINT size    = sizeof (bool);
   bool disable = false;
 
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
@@ -1052,6 +1054,34 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
     D3D12GraphicsCommandList_DrawIndexedInstanced_Original (
       This, IndexCountPerInstance, InstanceCount, StartIndexLocation,
                            BaseVertexLocation, StartInstanceLocation );
+}
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_ExecuteIndirect_Detour (
+  ID3D12GraphicsCommandList *This,
+  ID3D12CommandSignature    *pCommandSignature,
+  UINT                       MaxCommandCount,
+  ID3D12Resource            *pArgumentBuffer,
+  UINT64                     ArgumentBufferOffset,
+  ID3D12Resource            *pCountBuffer,
+  UINT64                     CountBufferOffset )
+{
+  SK_LOG_FIRST_CALL
+
+  UINT size    = sizeof (bool);
+  bool disable = false;
+
+  if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
+  {
+    if (disable)
+      return;
+  }
+
+  return
+    D3D12GraphicsCommandList_ExecuteIndirect_Original (
+      This, pCommandSignature, MaxCommandCount, pArgumentBuffer,
+        ArgumentBufferOffset, pCountBuffer, CountBufferOffset );
 }
 
 void
@@ -1081,11 +1111,48 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                      (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
   }
 
-  SK_RunOnce (
-    SK_GetCommandProcessor ()->AddVariable (
-      "D3D12.SkipEveryOther", SK_CreateVar (SK_IVariable::Boolean, &__SkipEveryOther)
-    )
-  );
+  // 26 ResourceBarrier
+  // 27 ExecuteBundle
+  // 28 SetDescriptorHeaps
+  // 29 SetComputeRootSignature
+  // 30 SetGraphicsRootSignature
+  // 31 SetComputeRootDescriptorTable
+  // 32 SetGraphicsRootDescriptorTable
+  // 33 SetComputeRoot32BitConstant
+  // 34 SetGraphicsRoot32BitConstant
+  // 35 SetComputeRoot32BitConstants
+  // 36 SetGraphicsRoot32BitConstants
+  // 37 SetComputeRootConstantBufferView
+  // 38 SetGraphicsRootConstantBufferView
+  // 39 SetComputeRootShaderResourceView
+  // 40 SetGraphicsRootShaderResourceView
+  // 41 SetComputeRootUnorderedAccessView
+  // 42 SetGraphicsRootUnorderedAccessView
+  // 43 IASetIndexBuffer
+  // 44 IASetVertexBuffers
+  // 45 SOSetTargets
+  // 46 OMSetRenderTargets
+  // 47 ClearDepthStencilView
+  // 48 ClearRenderTargetView
+  // 49 ClearUnorderedAccessViewUint
+  // 50 ClearUnorderedAccessViewFloat
+  // 51 DiscardResource
+  // 52 BeginQuery
+  // 53 EndQuery
+  // 54 ResolveQueryData
+  // 55 SetPredication        
+  // 56 SetMarker
+  // 57 BeginEvent
+  // 58 EndEvent
+  // 59 ExecuteIndirect
+
+  if (D3D12GraphicsCommandList_ExecuteIndirect_Original == nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ExecuteIndirect",
+                            *(void***)*(&pCmdList), 59,
+                               D3D12GraphicsCommandList_ExecuteIndirect_Detour,
+                     (void **)&D3D12GraphicsCommandList_ExecuteIndirect_Original );
+  }
 }
 
 
@@ -1228,12 +1295,13 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
                             *(void***)*(&pCmdList), 16,
-                            D3D12GraphicsCommandList_CopyTextureRegion_Detour,
-                   (void **)&D3D12GraphicsCommandList_CopyTextureRegion_Original );
+                               D3D12GraphicsCommandList_CopyTextureRegion_Detour,
+                     (void **)&D3D12GraphicsCommandList_CopyTextureRegion_Original );
+
+    SK_ApplyQueuedHooks ();
   }
 }
 /// --------------- UGLY COMPAT HACK ----------------------
-
 
 
 void
@@ -1305,9 +1373,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     }
   }
 
-  ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
-  ////                               stagingFrame.pRoot->pSwapChain );
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1339,10 +1404,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       _InitCopyTextureRegionHook (pCommandList)
     );
 
-
     // Don't let user disable HDR re-processing
-    bool                                                              _enable = false;
-    pHDRPipeline->SetPrivateData (SKID_D3D12DisablePipelineState, 1, &_enable);
+    bool                                                                          _enable = false;
+    pHDRPipeline->SetPrivateData (SKID_D3D12DisablePipelineState, sizeof (bool), &_enable);
     SK_RunOnce (_criticalVertexShaders.insert (pHDRPipeline));
 
 
@@ -1425,9 +1489,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                                 D3D12_RESOURCE_STATE_PRESENT,
                                                                 D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-  ////SK_D3D12_UpdateRenderStatsEx ( stagingFrame.pCmdList,
-  ////                               stagingFrame.pRoot->pSwapChain );
-
   stagingFrame.exec_cmd_list ();
 
   if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
@@ -1471,9 +1532,6 @@ void
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
   assert (bCmdListRecording);
-
-  ////SK_D3D12_UpdateRenderStatsEx ( pCmdList,
-  ////                               pRoot->pSwapChain );
 
   if (FAILED (pCmdList->Close ()))
     return;

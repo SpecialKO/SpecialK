@@ -595,3 +595,9 @@ bool SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
 
 void SK_D3D12_BeginFrame (void);
 void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
+
+
+
+static inline GUID
+  SKID_D3D12LastFrameUsed =
+    { 0xbaaddaad, 0xf00d,  0xcafe, { 0x13, 0x37, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90 } };

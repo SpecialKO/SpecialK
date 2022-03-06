@@ -1945,6 +1945,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         extern void SK_FF7R_InitPlugin (void);
                     SK_FF7R_InitPlugin ();
         break;
+
+      case SK_GAME_ID::EldenRing:
+        break;
 #endif
     }
 

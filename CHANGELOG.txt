@@ -1,4 +1,10 @@
-﻿22.3.5-NOCEGUI
+﻿22.3.6-NOCEGUI
+==============
+ + Fixed SteamInputAppID not being set to 0 initially
+ + Removed libScePad.dll resource dependency from project
+ + Fixed wrong game speed value being written to Elden Ring INI
+
+22.3.5-NOCEGUI
 ==============
  + Reduced D3D12 Copy Command Allocator overhead in Elden Ring
  + Testing alternate Thread Pool scheduling to fix 'EzWorkPool' dumping all

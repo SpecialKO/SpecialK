@@ -59,21 +59,11 @@ D3D12Device_CreatePlacedResource_Original        = nullptr;
 D3D12Device_CreateCommandAllocator_pfn
 D3D12Device_CreateCommandAllocator_Original      = nullptr;
 
-                                                                                                  // {4D5298CA-D9F0-6133-A19D-B1D597920000}
-static constexpr GUID SKID_D3D12KnownVtxShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x00 } };
-static constexpr GUID SKID_D3D12KnownPixShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x01 } };
-static constexpr GUID SKID_D3D12KnownGeoShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x02 } };
-static constexpr GUID SKID_D3D12KnownHulShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x03 } };
-static constexpr GUID SKID_D3D12KnownDomShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x04 } };
-static constexpr GUID SKID_D3D12KnownComShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x05 } };
-static constexpr GUID SKID_D3D12KnownMshShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x06 } };
-static constexpr GUID SKID_D3D12KnownAmpShaderDigest = { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x07 } };
-
-static constexpr GUID SKID_D3D12DisablePipelineState = { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
-
 concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
+
+concurrency::concurrent_unordered_map <ID3D12PipelineState*, std::string> _latePSOBlobs;
 
 void
 __stdcall
@@ -217,7 +207,6 @@ SK_D3D12_ToggleGameHUD (void)
     InterlockedIncrement (&last_state);
 }
 
-
 static SK_D3D12_ShaderRepo
   vertex   { { "Vertex",   SK_D3D12_ShaderType::Vertex   }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownVtxShaderDigest) } },
   pixel    { { "Pixel",    SK_D3D12_ShaderType::Pixel    }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownPixShaderDigest) } },
@@ -227,6 +216,29 @@ static SK_D3D12_ShaderRepo
   compute  { { "Compute",  SK_D3D12_ShaderType::Compute  }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownComShaderDigest) } },
   mesh     { { "Mesh",     SK_D3D12_ShaderType::Mesh     }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownMshShaderDigest) } },
   amplify  { { "Amplify",  SK_D3D12_ShaderType::Amplify  }, { SK_D3D12_ShaderRepo::hash_s (SKID_D3D12KnownAmpShaderDigest) } };
+
+// Track a Pipeline State Object that we never saw the creation of
+void
+SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
+                                   ID3D12PipelineState *pPipelineState )
+{
+  std::ignore = pDevice;
+
+  static const uint8_t empty [DxilContainerHashSize] = { };
+
+  SK_ComPtr <ID3DBlob>             pBlob;
+  pPipelineState->GetCachedBlob  (&pBlob.p);
+  pPipelineState->SetPrivateData ( SKID_D3D12KnownVtxShaderDigest,
+                                            DxilContainerHashSize,
+                                                          empty );
+  
+                 // We're keeping this alive so we can track it
+                 pPipelineState->AddRef ();
+  _latePSOBlobs [pPipelineState] = 
+    SK_FormatString ( "%08x",
+      crc32c ( 0x0, pBlob->GetBufferPointer (), pBlob->GetBufferSize () )
+                    );
+}
 
 HRESULT
 STDMETHODCALLTYPE
@@ -1650,8 +1662,6 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // 73 CreateShaderCacheSession
   // 74 ShaderCacheControl
   // 75 CreateCommandQueue1
-
-  SK_ApplyQueuedHooks ();
 }
 void
 SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)
@@ -1681,7 +1691,7 @@ D3D12CreateDevice_Detour (
   DXGI_LOG_CALL_0 ( L"D3D12CreateDevice" );
 
   dll_log->LogEx ( true,
-                     L"[  D3D 12  ]  <~> Minimum Feature Level - %s\n",
+                     L"[  D3D 12  ]  <~> Minimum Feature Level - %hs\n",
                          SK_DXGI_FeatureLevelsToStr (
                            1,
                              (DWORD *)&MinimumFeatureLevel
@@ -1726,6 +1736,11 @@ D3D12CreateDevice_Detour (
         //g_pD3D12Dev =
         //  (IUnknown *)*ppDevice;
       //}
+
+      SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
+      SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
+
+      SK_ApplyQueuedHooks ();
     }
   }
 
@@ -1740,11 +1755,11 @@ SK_D3D12_HookDeviceCreation (void)
     return    hooked;
 
   if ( MH_OK ==
-         SK_CreateDLLHook ( L"d3d12.dll",
-                             "D3D12CreateDevice",
-                              D3D12CreateDevice_Detour,
-                   (LPVOID *)&D3D12CreateDevice_Import,
-                          &pfnD3D12CreateDevice )
+         SK_CreateDLLHook2 ( L"d3d12.dll",
+                              "D3D12CreateDevice",
+                               D3D12CreateDevice_Detour,
+                    (LPVOID *)&D3D12CreateDevice_Import,
+                           &pfnD3D12CreateDevice )
      )
   {
     std::exchange (hooked, true);

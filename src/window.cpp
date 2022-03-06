@@ -4261,16 +4261,6 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
     {
-      // Early Dispatch may remove the message, in which case don't call DefWindowProc
-      if (lpMsg->message != WM_NULL)
-      {
-        DefWindowProcA ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
-
-        dll_log->Log ( L"Calling DefWindowProcA for message %x on HWND %p - wParam: %08x, lParam: %08x",
-                                             lpMsg->message, lpMsg->hwnd,
-                                                                     lpMsg->wParam,lpMsg->lParam );
-      }
-
       lpMsg->message = WM_NULL;
     }
   }
@@ -4346,15 +4336,6 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
     {
-      // Early Dispatch may remove the message, in which case don't call DefWindowProc
-      if (lpMsg->message != WM_NULL)
-      {
-        DefWindowProcW ( lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam );
-
-        dll_log->Log ( L"Calling DefWindowProcW for message %x on HWND %p - wParam: %08x, lParam: %08x",
-                                             lpMsg->message, lpMsg->hwnd,
-                                                                     lpMsg->wParam,lpMsg->lParam );
-      }
 
       lpMsg->message = WM_NULL;
     }
@@ -5176,6 +5157,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             }
           }
         }
+
+        default:
+          bIgnore = false;
+          break;
       }
 
       if (bIgnore)
@@ -5183,8 +5168,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-gamepad device, "
                     L"hiding it from the game..." ), __SK_SUBSYSTEM__ );
 
-        return
-          DefWindowProcW (hWnd, uMsg, wParam, lParam);
+        return IsWindowUnicode (hWnd) ?
+                DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+                DefWindowProcA (hWnd, uMsg, wParam, lParam);
       }
     } break;
 

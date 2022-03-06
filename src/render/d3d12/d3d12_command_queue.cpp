@@ -40,54 +40,55 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   UINT                      NumCommandLists,
   ID3D12CommandList* const  *ppCommandLists )
 {
-  static bool          once = false;
-  if (! std::exchange (once,  true))
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static bool once = false;
+
+  if ( pLazyD3D12Chain  != nullptr &&
+       pLazyD3D12Device != nullptr )
   {
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    SK_ComPtr <ID3D12Device> pDevice12;
-
-    D3D12_COMMAND_QUEUE_DESC
-         queueDesc  =  This->GetDesc ();
-    if ( queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
-         SUCCEEDED (   This->GetDevice (
-                         IID_ID3D12Device,
-                        (void **)&pDevice12.p
-                                       ) // We are not holding a ref, so test pointers before using
-                   ) && SK_ValidatePointer                         (pLazyD3D12Device,      true) &&
-                        SK_IsAddressExecutable ((*(const void***)*(&pLazyD3D12Device))[0], true) &&
-                        pDevice12.IsEqualObject (
-               pLazyD3D12Device                 )
-       )
+    if (! std::exchange (once, true))
     {
-      if (rb.d3d12.command_queue == nullptr)
+      SK_ComPtr <ID3D12Device> pDevice12;
+
+      D3D12_COMMAND_QUEUE_DESC
+           queueDesc  =  This->GetDesc ();
+      if ( queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
+           SUCCEEDED (   This->GetDevice (
+                           IID_ID3D12Device,
+                          (void **)&pDevice12.p
+                                         ) // We are not holding a ref, so test pointers before using
+                     ) && SK_ValidatePointer                         (pLazyD3D12Device,      true) &&
+                          SK_IsAddressExecutable ((*(const void***)*(&pLazyD3D12Device))[0], true) &&
+                          pDevice12.IsEqualObject (
+                 pLazyD3D12Device                 )
+         )
       {
-        // Now we are holding a ref...
-        rb.setDevice            (pLazyD3D12Device);
-        rb.swapchain           = pLazyD3D12Chain;
-        rb.d3d12.command_queue = This;
-        rb.api                 = SK_RenderAPI::D3D12;
+        if (rb.d3d12.command_queue == nullptr)
+        {
+          // Now we are holding a ref...
+          rb.setDevice            (pLazyD3D12Device);
+          rb.swapchain           = pLazyD3D12Chain;
+          rb.d3d12.command_queue = This;
+          rb.api                 = SK_RenderAPI::D3D12;
 
-        _d3d12_rbk->init (
-          (IDXGISwapChain3 *)pLazyD3D12Chain,
-            This
-        );
+          _d3d12_rbk->init (
+            (IDXGISwapChain3 *)pLazyD3D12Chain,
+              This
+          );
+        }
       }
+
+      else once = false;
     }
-
-    else once = false;
   }
-
 
   if (once)
   {
     if ( ReadULong64Acquire (&SK_Reflex_LastFrameMarked) <
          ReadULong64Acquire (&SK_RenderBackend::frames_drawn) )
     {
-      static auto& rb =
-       SK_GetCurrentRenderBackend ();
-
       WriteULong64Release (
         &SK_Reflex_LastFrameMarked,
          ReadULong64Acquire (&SK_RenderBackend::frames_drawn)
