@@ -214,6 +214,7 @@ typedef BOOL (WINAPI *NtUserUnhookWindowsHookEx_pfn)(
 extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
 
+bool SK_Inject_IsHookActive (void);
 // Part of the DLL Shared Data Segment
 //
 //struct SK_InjectionBase_s

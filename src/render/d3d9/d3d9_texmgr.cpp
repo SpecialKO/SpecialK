@@ -378,7 +378,10 @@ D3D9SetTexture_Detour (
   static auto& _tracked_vs = tracked_vs.get ();
   static auto& _tracked_ps = tracked_ps.get ();
 
-  if (pTexture == nullptr)
+  auto& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  if (tex_mgr.injector.isInjectionThread ())
   {
     return
       D3D9SetTexture_Original (This, Sampler, pTexture);
@@ -388,9 +391,6 @@ D3D9SetTexture_Detour (
     //dll_log.Log ( L"[FrameTrace] SetTexture      - Sampler: %lu, pTexture: %ph",
     //               Sampler, pTexture );
   //}
-
-  SK::D3D9::TextureManager& tex_mgr =
-    SK_D3D9_GetTextureManager ();
 
   tex_mgr.applyTexture  (pTexture);
   _tracked_rt.active  = (pTexture == _tracked_rt.tracking_tex);
@@ -414,12 +414,11 @@ D3D9SetTexture_Detour (
   void*    dontcare   = nullptr;
 
   HRESULT hr =
-    pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare);
+    pTexture != nullptr ?
+    pTexture->QueryInterface (IID_SKTextureD3D9, &dontcare)
+                        : S_OK;
 
-  if (FAILED (hr))
-    return D3D9SetTexture_Original (This, Sampler, pTexture);
-
-  if ( hr == S_OK )
+  if (hr == S_OK && pTexture != nullptr)
   {
     auto* pSKTex =
       static_cast <ISKTextureD3D9 *> (pTexture);
@@ -460,6 +459,7 @@ D3D9SetTexture_Detour (
       {
         //SwitchToThread ();
         YieldProcessor ();
+        break;
       }
     }
 
@@ -737,7 +737,8 @@ SK::D3D9::TextureManager::Injector::isStreaming (uint32_t checksum) const
 {
   bool ret = false;
 
-  if (textures_in_flight.count (checksum) && textures_in_flight.at (checksum) != nullptr)
+  if ( textures_in_flight.count (checksum) &&
+       textures_in_flight.at    (checksum) != nullptr )
     ret = true;
 
   return ret;
@@ -746,13 +747,15 @@ SK::D3D9::TextureManager::Injector::isStreaming (uint32_t checksum) const
 void
 SK::D3D9::TextureManager::Injector::finishedStreaming (uint32_t checksum)
 {
-  textures_in_flight [checksum] = nullptr;//erase (checksum);
+  textures_in_flight [checksum] = nullptr;
 }
 
 void
-SK::D3D9::TextureManager::Injector::addTextureInFlight ( SK::D3D9::TexLoadRequest* load_op )
+SK::D3D9::TextureManager::Injector::addTextureInFlight (SK::D3D9::TexLoadRequest *load_op)
 {
-  textures_in_flight.insert (std::make_pair (load_op->checksum, load_op));
+  textures_in_flight.insert (
+    std::make_pair (load_op->checksum, load_op)
+  );
 }
 
 SK::D3D9::TexLoadRequest*
@@ -887,13 +890,8 @@ SK::D3D9::TextureManager::isTextureInjectable (uint32_t checksum) const
 bool
 SK::D3D9::TextureManager::removeInjectableTexture (uint32_t checksum)
 {
-  if (injectable_textures.count (checksum) != 0)
-  {
-    InterlockedExchange (&injectable_textures [checksum].removed, TRUE);
-    return true;
-  }
-
-  return false;
+  return                         injectable_textures.count (checksum) != 0 &&
+    InterlockedCompareExchange (&injectable_textures.at    (checksum).removed, TRUE, FALSE);
 }
 
 HRESULT
@@ -941,51 +939,66 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
 
     if (hTexFile != INVALID_HANDLE_VALUE)
     {
-      size = GetFileSize (hTexFile, nullptr);
+      size =
+        GetFileSize (hTexFile, nullptr);
 
-      if (streaming_memory::alloc (size))
+      if (size > 0 && streaming_memory::alloc (size))
       {
         load->pSrcData = streaming_memory::data ();
 
-        ReadFile (hTexFile, load->pSrcData, (DWORD)size, &read, nullptr);
-
-        load->SrcDataSize = read;
-
-        if (streamed && size > (128 * 1024))
+        if (ReadFile (hTexFile, load->pSrcData, (DWORD)size, &read, nullptr))
         {
-          SetThreadPriority ( SK_GetCurrentThread (),
-                                THREAD_PRIORITY_BELOW_NORMAL |
-                                THREAD_MODE_BACKGROUND_BEGIN );
+          load->SrcDataSize = read;
+
+          if (streamed && size > (128 * 1024))
+          {
+            SetThreadPriority ( SK_GetCurrentThread (),
+                                  THREAD_PRIORITY_BELOW_NORMAL |
+                                  THREAD_MODE_BACKGROUND_BEGIN );
+          }
+
+          hr =
+            SK_D3DXGetImageInfoFromFileInMemory (
+              load->pSrcData,
+                load->SrcDataSize,
+                  &img_info );
+
+          if (SUCCEEDED (hr))
+          {
+            auto& tex_mgr =
+              SK_D3D9_GetTextureManager ();
+
+            tex_mgr.injector.beginLoad ();
+
+            hr =
+              SK_D3DXCreateTextureFromFileInMemoryEx (
+                load->pDevice,
+                  load->pSrcData, load->SrcDataSize,
+                    D3DX_DEFAULT, D3DX_DEFAULT, img_info.MipLevels,
+                      0, D3DFMT_FROM_FILE,
+                        D3DPOOL_DEFAULT,
+                          D3DX_DEFAULT, D3DX_DEFAULT,
+                            0,
+                              &img_info, nullptr,
+                                &load->pSrc );
+
+            tex_mgr.injector.endLoad ();
+
+            load->pSrcData = nullptr;
+          }
         }
-
-        hr =
-          SK_D3DXGetImageInfoFromFileInMemory (
-            load->pSrcData,
-              load->SrcDataSize,
-                &img_info );
-
-        if (SUCCEEDED (hr))
-                       hr =
-          SK_D3DXCreateTextureFromFileInMemoryEx (
-            load->pDevice,
-              load->pSrcData, load->SrcDataSize,
-                D3DX_DEFAULT, D3DX_DEFAULT, img_info.MipLevels,
-                  0, D3DFMT_FROM_FILE,
-                    D3DPOOL_DEFAULT,
-                      D3DX_DEFAULT, D3DX_DEFAULT,
-                        0,
-                          &img_info, nullptr,
-                            &load->pSrc );
-
-        load->pSrcData = nullptr;
       }
 
       else {
         // OUT OF MEMORY ?!
+        hr = E_POINTER;
       }
 
       SK_CloseHandle (hTexFile);
     }
+
+    else
+      hr = E_HANDLE;
   }
 
   //
@@ -1087,12 +1100,13 @@ SK::D3D9::TextureManager::injectTexture (TexLoadRequest* load)
             load->pSrcData    = sk::narrow_cast <Byte *> (streaming_memory::data ()) + offset;
             load->SrcDataSize = sk::narrow_cast <UINT>   (decomp_size);
 
-            if (SUCCEEDED ( SK_D3DXGetImageInfoFromFileInMemory (
+            hr = 
+              SK_D3DXGetImageInfoFromFileInMemory (
                               load->pSrcData,
                                 load->SrcDataSize,
-                                  &img_info )
-                          )
-               )
+                                  &img_info );
+
+            if (SUCCEEDED (hr))
             {
               load->pSrc = nullptr;
 
@@ -1322,7 +1336,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
 
   for ( auto it : finished_streams )
   {
-    if ((! __need_purge) && (loaded > max_per_frame || (frame % 3) != 0))
+    if ((! __need_purge) && (loaded > max_per_frame))// || (frame % 3) != 0))
     {
       it->pDest->AddRef ();
       stream_pool.sm_tex->postFinished (it);
@@ -1517,7 +1531,8 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   // Don't dump or cache these
 
 
-  if ( /*(Usage & D3DUSAGE_DYNAMIC) || */ (Usage & D3DUSAGE_RENDERTARGET) || pSrcData == nullptr || SrcDataSize == 0)
+  if ( (Usage & D3DUSAGE_RENDERTARGET) ||
+                   pSrcData == nullptr || SrcDataSize == 0 )
     checksum = 0x00;
   else
     checksum = safe_crc32c (0, pSrcData, SrcDataSize);
@@ -1546,8 +1561,8 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   if ( Pool == D3DPOOL_DEFAULT && ( config.textures.dump_on_load &&
         (! tex_mgr.isTextureDumped     (checksum))         &&
         (! tex_mgr.isTextureInjectable (checksum)) ) || (
-                                  //config.textures.d3d11.cache ||
-                                    config.textures.on_demand_dump ) )
+                                    config.textures.d3d11.cache /*||
+                                    config.textures.on_demand_dump*/ ) )
     Usage = D3DUSAGE_DYNAMIC;
 
 
@@ -1912,8 +1927,7 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
 {
   HRESULT hr = E_FAIL;
 
-  if ( (! isTextureInjectable (checksum)) &&
-       (! isTextureDumped     (checksum)) )
+  if (! isTextureDumped (checksum))
   {
     D3DFORMAT fmt_real = fmt;
 
@@ -2459,6 +2473,8 @@ SK::D3D9::TextureManager::Hook (void)
                                D3DXCreateTextureFromFileInMemoryEx_Detour,
       static_cast_p2p <void> (&D3DXCreateTextureFromFileInMemoryEx_Original) );
   }
+
+  SK_ApplyQueuedHooks ();
 }
 
 // Skip the purge step on shutdown
@@ -2622,8 +2638,8 @@ SK::D3D9::TextureManager::purge (void)
       if (! pSKTex->freed && pSKTex->pTexOverride)
         injected_refs [checksum]--;
 
-      if (pSKTex->pTex)
-        cleared.emplace     (pSKTex->pTex);
+      if (               pSKTex->pTex != nullptr)
+        cleared.emplace (pSKTex->pTex);
 
        textures [checksum]      = nullptr;
       _remove_textures [pSKTex] = false;
@@ -2647,20 +2663,24 @@ SK::D3D9::TextureManager::purge (void)
 
   std::map <uint32_t, IDirect3DTexture9 *> injected_remove;
 
-  for (auto it : injected_textures)
+  for ( auto& it : injected_textures )
   {
-    if (injected_textures [it.first] != nullptr && injected_refs [it.first] == 0)
+    if ( injected_textures [it.first] != nullptr &&
+         injected_refs     [it.first] == 0 )
     {
-      injected_remove.emplace (std::make_pair (it.first, it.second));
+      injected_remove.emplace (
+        std::make_pair (it.first, it.second)
+      );
     }
   }
 
-  for (auto it : injected_remove)
+  for ( auto& it : injected_remove )
   {
     if (start_size - reclaimed <= target_size)
       break;
 
-    if (it.second != nullptr && injected_refs [it.first] == 0)
+    if (                it.second != nullptr &&
+         injected_refs [it.first] == 0 )
     {
       it.second->Release ();
 
@@ -2717,9 +2737,21 @@ SK::D3D9::TextureManager::reset (void)
 
   while (true)
   {
-    getTexture         (0);
+    getTexture (0);
 
-    auto keep_going = [&]{ if (injector.hasPendingLoads ()) return true; for ( auto it : injector.textures_in_flight ) { if (it.second != nullptr) return true; } return false; };
+    auto keep_going = [&]
+    {
+      if (injector.hasPendingLoads ())
+        return true;
+      
+      for ( auto& it : injector.textures_in_flight )
+      {
+        if (it.second != nullptr)
+          return true;
+      }
+      
+      return false;
+    };
 
     if (! keep_going ())
     {
@@ -3055,7 +3087,6 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 {
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
-
   {
     if (! streaming_memory::data_len ())
     {
@@ -3172,7 +3203,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 
             if (pStream->pSrc != nullptr) pStream->pSrc->Release ();
 
-            pStream->pSrc = pStream->pDest;
+                pStream->pSrc = pStream->pDest;
 
             if (pStream->pSrc != nullptr)
             {

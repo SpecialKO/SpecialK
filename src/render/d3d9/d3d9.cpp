@@ -6656,50 +6656,46 @@ SK_D3D9_TextureModDlg (void)
   auto HandleKeyboard = [&](void)
   {
     extern std::set <uint32_t> textures_used_last_dump;
-    
 
-    if (io.KeyCtrl && io.KeyShift)
+    if ( io.KeysDownDuration [VK_OEM_6] == 0.0f ||
+         io.KeysDownDuration [VK_OEM_4] == 0.0f )
     {
-      if ( io.KeysDownDuration [VK_OEM_6] == 0.0f ||
-           io.KeysDownDuration [VK_OEM_4] == 0.0f )
+      tex_dbg_idx += (io.KeysDownDuration [VK_OEM_6] == 0.0f) ? 1 : 0;
+      tex_dbg_idx -= (io.KeysDownDuration [VK_OEM_4] == 0.0f) ? 1 : 0;
+
+      if (tex_dbg_idx < 0 || (textures_used_last_dump.empty ()))
       {
-        tex_dbg_idx += (io.KeysDownDuration [VK_OEM_6] == 0.0f) ? 1 : 0;
-        tex_dbg_idx -= (io.KeysDownDuration [VK_OEM_4] == 0.0f) ? 1 : 0;
-
-        if (tex_dbg_idx < 0 || (textures_used_last_dump.empty ()))
-        {
-          tex_dbg_idx  = -1;
-          debug_tex_id =  0;
-        }
-
-        else
-        {
-          if (tex_dbg_idx >= sk::narrow_cast <int32_t> (textures_used_last_dump.size ()))
-          {
-            tex_dbg_idx =
-              std::max (0UL, sk::narrow_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
-          }
-        }
-
-        if (tex_dbg_idx >= 0)
-        {
-          debug_tex_id = 0;
-          int idx = 0;
-          for (auto it : textures_used_last_dump)
-          {
-            if (tex_dbg_idx == idx++)
-            {
-              debug_tex_id = it;
-              break;
-            }
-          }
-        }
-
-        SK::D3D9::TextureManager& tex_mgr =
-          SK_D3D9_GetTextureManager ();
-
-        tex_mgr.updateOSD ();
+        tex_dbg_idx  = -1;
+        debug_tex_id =  0;
       }
+
+      else
+      {
+        if (tex_dbg_idx >= sk::narrow_cast <int32_t> (textures_used_last_dump.size ()))
+        {
+          tex_dbg_idx =
+            std::max (0UL, sk::narrow_cast <uint32_t> (textures_used_last_dump.size ()) - 1UL);
+        }
+      }
+
+      if (tex_dbg_idx >= 0)
+      {
+        debug_tex_id = 0;
+        int idx = 0;
+        for (auto it : textures_used_last_dump)
+        {
+          if (tex_dbg_idx == idx++)
+          {
+            debug_tex_id = it;
+            break;
+          }
+        }
+      }
+
+      SK::D3D9::TextureManager& tex_mgr =
+        SK_D3D9_GetTextureManager ();
+
+      tex_mgr.updateOSD ();
     }
   };
 
@@ -6926,8 +6922,8 @@ SK_D3D9_TextureModDlg (void)
      ImGui::BeginTooltip ();
      ImGui::TextColored  (ImVec4 (0.9f, 0.6f, 0.2f, 1.0f), R"(If highlighting is enabled, the "debug" texture will blink to make identifying textures easier.)");
      ImGui::Separator    ();
-     ImGui::BulletText   ("Press Ctrl + Shift + [ to select the previous texture from this list");
-     ImGui::BulletText   ("Press Ctrl + Shift + ] to select the next texture from this list");
+     ImGui::BulletText   ("Press %hs to select the previous texture from this list", SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_4]).c_str ());
+     ImGui::BulletText   ("Press %hs to select the next texture from this list",     SK_WideCharToUTF8 (virtKeyCodeToHumanKeyName [VK_OEM_6]).c_str ());
      ImGui::EndTooltip   ();
    }
 
@@ -7348,12 +7344,13 @@ SK_D3D9_TextureModDlg (void)
 
         ImGui::SameLine ();
 
-        ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.5f, 0.5f, 0.5f, 1.0f));
-        ImGui::BeginChild ( ImGui::GetID ("Item Selection3"),
-                            ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
-                                     std::max (256.0f,            effective_height + font_size * 4.0f + (float)shaders * font_size) ),
-                              true,
-                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
+        ImGui::PushStyleColor
+                          (ImGuiCol_Border, ImVec4 (0.5f, 0.5f, 0.5f, 1.0f) );
+        ImGui::BeginChild (ImGui::GetID ("Item Selection3"),
+                           ImVec2 ( std::max (font_size * 30.0f, effective_width  + 24.0f),
+                                    std::max (256.0f,            effective_height + font_size * 4.0f + (float)shaders * font_size) ),
+                             true,
+                               ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened);
 
         last_width  = effective_width;
         last_ht     = effective_height + font_size * 4.0f + (float)shaders * font_size;
@@ -7380,6 +7377,7 @@ SK_D3D9_TextureModDlg (void)
                                      ImColor (255,255,255,255), ImColor (255,255,255,128)
                                );
         ImGui::EndChildFrame   ();
+        ImGui::PopStyleColor   ();
 
         if (shaders > 0)
         {
@@ -7397,7 +7395,7 @@ SK_D3D9_TextureModDlg (void)
         }
 
         ImGui::EndChild        ();
-        ImGui::PopStyleColor   (2);
+        ImGui::PopStyleColor   ();
       }
     }
 

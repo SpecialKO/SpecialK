@@ -606,6 +606,13 @@ SKX_GetCBTHook (void) noexcept
   return hHookCBT;
 }
 
+bool
+SK_Inject_IsHookActive (void)
+{
+  return
+    ( SK_IsInjected () && dwHookPID != 0x0 );
+}
+
 // Lazy-init
 HANDLE
 SK_Inject_GetSharedMemory (void)

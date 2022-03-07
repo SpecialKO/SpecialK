@@ -2521,8 +2521,9 @@ SK_ImGui_ControlPanel (void)
         }
 
         bool supports_texture_mods =
-        //( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
-          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) );
+          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9)  ) ||
+          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11) ) ||
+          ( static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12) );
 
         if (supports_texture_mods)
         {
@@ -2619,10 +2620,13 @@ SK_ImGui_ControlPanel (void)
         //}
 
 
-        if (ImGui::MenuItem ("Restart Game"))
+        if ((! SK_IsInjected ()) || SK_Inject_IsHookActive ())
         {
-          SK_ImGui_WantRestart = true;
-          SK_ImGui_WantExit    = true;
+          if (ImGui::MenuItem ("Restart Game"))
+          {
+            SK_ImGui_WantRestart = true;
+            SK_ImGui_WantExit    = true;
+          }
         }
 
         // Self-explanatory, I think

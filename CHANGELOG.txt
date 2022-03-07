@@ -1,4 +1,11 @@
-﻿22.3.7-NOCEGUI
+﻿22.3.7.1-NOCEGUI
+================
+ + Removed Restart option from File menu if Global Injection is not active
+ + Changed ] and [ keybinds in D3D9 mod tools window to behave like D3D111
+ + Fixed D3D9 Blocking Texture loads delaying more threads than intended
+ + Added Initialize Texutre Mods to File menu for D3D9/12
+
+22.3.7-NOCEGUI
 ==============
  + Added 64-bit Steam AppID support (non-Steam games launched via Steam)
  + Fixed accidental removal of Latent Sync keybind config logic
