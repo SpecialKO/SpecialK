@@ -569,12 +569,11 @@ public:
       {
         SK::D3D9::TexLoadRef ref (nullptr);
 
-        while (! results_.empty ())
-             if (results_.try_pop (ref))
-             {
-               results.emplace_back (ref);
-               InterlockedDecrement (&jobs_done_);
-             }
+        if (results_.try_pop (ref))
+        {
+          results.emplace_back (ref);
+          InterlockedDecrement (&jobs_done_);
+        }
       }
 
       ResetEvent (events_.results_waiting);
@@ -623,7 +622,13 @@ public:
       dwResults =
         SK_WaitForSingleObject (events_.jobs_added, 0UL);
 
-      if (dwResults != WAIT_OBJECT_0 && 0 == ReadAcquire (&jobs_waiting_))
+      while (dwResults != WAIT_OBJECT_0)
+      {
+        dwResults =
+          SK_WaitForSingleObject (events_.jobs_added, 0);
+      }
+      
+      if (0 == ReadAcquire (&jobs_waiting_))
         return nullptr;
 
       SK::D3D9::TexLoadRef ref (nullptr);
@@ -868,27 +873,27 @@ public:
 
     if (ret == 0)
     {
-      if (pTex != nullptr && pTex != this)
+      if ( pTex != nullptr &&
+           pTex != this )
       {
-        LPVOID dontcare;
-        if (FAILED (pTex->QueryInterface (IID_SKTextureD3D9, &dontcare)) && (! freed))
+        LPVOID                                                 dontcare;
+        if ( FAILED (pTex->QueryInterface (IID_SKTextureD3D9, &dontcare)) &&
+                                  std::exchange (freed, true) == false )
         {
-          pTex->Release ();
+          std::exchange (pTex, nullptr)->Release ();
 
-          if (pTexOverride != nullptr)
+          if (std::exchange (pTexOverride, nullptr) != nullptr)
           {
-            if (injected_textures.count (tex_crc32c) && injected_textures.at (tex_crc32c) != nullptr && injected_refs.count (tex_crc32c))
-              injected_refs [tex_crc32c]--;
-
-            pTexOverride = nullptr;
+            if ( injected_textures.count (tex_crc32c)            &&
+                 injected_textures.at    (tex_crc32c) != nullptr &&
+                 injected_refs.count     (tex_crc32c) )
+                 injected_refs           [tex_crc32c]--;
           }
-
-          pTex  = nullptr;
-          freed = true;
         }
       }
 
       can_free = true;
+
       // Does not delete this immediately; defers the
       //   process until the next cached texture load.
       SK_D3D9_GetTextureManager ().removeTexture (this);
