@@ -32,6 +32,9 @@
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
 
+#define __cpp_lib_format
+#include <format>
+
 using            callback_set = std::multiset <class CCallbackBase*>;
 using threadsafe_callback_map = Concurrency::concurrent_unordered_map
                                                       <LPVOID, bool>;
@@ -360,7 +363,7 @@ int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries = nullptr);
 
 std::wstring
-SK_Steam_GetApplicationManifestPath (AppId_t appid)
+SK_Steam_GetApplicationManifestPath (AppId64_t appid)
 {
   if (appid == 0)
     appid = SK::SteamAPI::AppID ();
@@ -378,7 +381,7 @@ SK_Steam_GetApplicationManifestPath (AppId_t appid)
       wchar_t wszManifest [MAX_PATH + 2] = { };
 
       swprintf ( wszManifest,
-                   LR"(%s\steamapps\appmanifest_%u.acf)",
+                   LR"(%s\steamapps\appmanifest_%llu.acf)",
                (wchar_t *)steam_lib_paths [i],
                             appid );
 
@@ -401,7 +404,7 @@ SK_Steam_GetApplicationManifestPath (AppId_t appid)
 }
 
 std::string
-SK_GetManifestContentsForAppID (AppId_t appid)
+SK_GetManifestContentsForAppID (AppId64_t appid)
 {
   static std::string manifest;
 
@@ -463,7 +466,7 @@ SK_GetManifestContentsForAppID (AppId_t appid)
 }
 
 std::wstring
-SK_Steam_FindInstallPath (uint32_t appid)
+SK_Steam_FindInstallPath (AppId64_t appid)
 {
   std::string manifest =
     SK_GetManifestContentsForAppID (appid);
@@ -3237,7 +3240,7 @@ SK::SteamAPI::GetCallbacksRun (void)
     ReadAcquire64 (&SK_SteamAPI_CallbackRunCount);
 }
 
-uint32_t
+AppId64_t
 SK::SteamAPI::AppID (void)
 {
   ISteamUtils* utils =
@@ -3251,13 +3254,13 @@ SK::SteamAPI::AppID (void)
 
   if (utils != nullptr || dwSteamGameIdLen > 3)
   {
-    static          uint32_t id   = 0;
-    static volatile LONG     init = FALSE;
+    static          AppId64_t id   = 0;
+    static volatile LONG      init = FALSE;
 
     if (InterlockedCompareExchange (&init, TRUE, FALSE) == FALSE)
     {
-      id = ( utils != nullptr   ?
-             utils->GetAppID () : atoi (szSteamGameId) );
+      id = ( utils != nullptr     ? static_cast <AppId64_t> (
+             utils->GetAppID () ) : atoll (szSteamGameId) );
 
       if (id != 0 && id != 1157970)
       {
@@ -3300,7 +3303,7 @@ SK::SteamAPI::AppID (void)
 }
 
 // Easier to DLL export a flat interface
-uint32_t
+AppId64_t
 __stdcall
 SK_SteamAPI_AppID (void)
 {
@@ -3471,7 +3474,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 }
 
 std::string
-SK_UseManifestToGetAppName (AppId_t appid)
+SK_UseManifestToGetAppName (AppId64_t appid)
 {
   std::string manifest_data =
     SK_GetManifestContentsForAppID (appid);
@@ -3493,7 +3496,7 @@ SK_UseManifestToGetAppName (AppId_t appid)
 }
 
 std::vector <SK_Steam_Depot>
-SK_UseManifestToGetDepots (AppId_t appid)
+SK_UseManifestToGetDepots (AppId64_t appid)
 {
   std::vector <SK_Steam_Depot> depots;
 
@@ -3523,7 +3526,7 @@ SK_UseManifestToGetDepots (AppId_t appid)
 }
 
 ManifestId_t
-SK_UseManifestToGetDepotManifest (AppId_t appid, DepotId_t depot)
+SK_UseManifestToGetDepotManifest (AppId64_t appid, DepotId_t depot)
 {
   std::string manifest_data =
     SK_GetManifestContentsForAppID (appid);
@@ -5192,7 +5195,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 }
 
 void
-SK_Steam_ForceInputAppId (AppId_t appid)
+SK_Steam_ForceInputAppId (AppId64_t appid)
 {
   static volatile LONG changes = 0;
 
@@ -5211,13 +5214,13 @@ SK_Steam_ForceInputAppId (AppId_t appid)
   if (config.steam.appid != 0)
   {
     struct {
-      concurrency::concurrent_queue <AppId_t> app_ids;
-      SK_AutoHandle                           signal =
+      concurrency::concurrent_queue <AppId64_t> app_ids;
+      SK_AutoHandle                             signal =
          SK_AutoHandle (
            SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr )
                        );
 
-      void push (AppId_t appid)
+      void push (AppId64_t appid)
       {
         app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
                                                                 :              appid );
@@ -5269,7 +5272,7 @@ SK_Steam_ForceInputAppId (AppId_t appid)
 
               if (SK_GetFramesDrawn () > 0)
               {
-                AppId_t                              appid;
+                AppId64_t                            appid;
                 while (override_ctx.app_ids.try_pop (appid))
                 {
                   if (! ReadAcquire (&__SK_DLL_Ending))
@@ -5281,9 +5284,10 @@ SK_Steam_ForceInputAppId (AppId_t appid)
                     );
 
                     ShellExecuteW ( 0, L"OPEN",
-                        SK_FormatStringW ( LR"(steam://forceinputappid/%d)",
-                                                                 appid ).c_str (),
-                          nullptr, nullptr, SW_HIDE );
+                         std::format (
+                           LR"(steam://forceinputappid/{})", appid ).c_str (),
+                             nullptr, nullptr, SW_HIDE
+                    );
                   }
                 }
               }
@@ -6414,9 +6418,9 @@ SK_SteamAPIContext::ClientFriends (void)
 }
 
 
-AppId_t
+AppId64_t
 SK_SteamAPIContext::ReassignAppIDForPipe ( HSteamPipe hPipe,
-                                           AppId_t    nAppID,
+                                           AppId64_t  nAppID,
                                            bool       bTrackProcess )
 {
   static auto* client_engine =
@@ -6438,7 +6442,7 @@ SK_SteamAPIContext::ReassignAppIDForPipe ( HSteamPipe hPipe,
 
       if (utils != nullptr)
         return
-          utils->SetAppIDForCurrentPipe (nAppID, bTrackProcess);
+          utils->SetAppIDForCurrentPipe (sk::narrow_cast <uint32_t> (nAppID), bTrackProcess);
     }
   }
 
@@ -6653,13 +6657,13 @@ SK::SteamAPI::GetDataDir (void)
 
 #include <SpecialK/storefront/epic.h>
 
-uint32_t
+uint64_t
 SK_Steam_GetAppID_NoAPI (void)
 {
   static constexpr int MAX_APPID_LEN = 32;
 
   DWORD    dwSteamGameIdLen                  =  0 ;
-  uint32_t AppID                             =  0 ;
+  uint64_t AppID                             =  0 ;
   char     szSteamGameId [MAX_APPID_LEN + 1] = { };
 
   // First, look for steam_appid.txt
@@ -6670,8 +6674,8 @@ SK_Steam_GetAppID_NoAPI (void)
       fgets (szSteamGameId, MAX_APPID_LEN, fAppID);
                                    fclose (fAppID);
 
-      dwSteamGameIdLen = (DWORD)strlen (szSteamGameId);
-      AppID            =        strtol (szSteamGameId, nullptr, 0);
+      dwSteamGameIdLen = (DWORD)strlen  (szSteamGameId);
+      AppID            =        strtoll (szSteamGameId, nullptr, 0);
     }
   }
 
@@ -6686,7 +6690,7 @@ SK_Steam_GetAppID_NoAPI (void)
 
 
     if (dwSteamGameIdLen > 1)
-      AppID = strtol (szSteamGameId, nullptr, 0);
+      AppID = strtoll (szSteamGameId, nullptr, 0);
   }
 
   // Special K's AppID is a mistake of some sort, ignore it

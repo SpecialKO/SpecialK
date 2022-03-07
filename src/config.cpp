@@ -27,6 +27,9 @@
 #include <filesystem>
 #include <optional>
 
+#define __cpp_lib_format
+#include <format>
+
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
 iSK_INI*       dll_ini      = nullptr;
@@ -397,7 +400,7 @@ struct {
 
 struct {
   struct {
-    sk::ParameterInt*     appid                   = nullptr;
+    sk::ParameterInt64*   appid                   = nullptr;
     sk::ParameterInt*     init_delay              = nullptr;
     sk::ParameterBool*    auto_pump               = nullptr;
     sk::ParameterBool*    block_stat_callback     = nullptr;
@@ -3666,15 +3669,27 @@ auto DeclKeybind =
 
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
-    steam.system.appid->load                  (config.steam.appid);
+      steam.system.appid->load                (config.steam.appid);
 
   if (config.steam.appid != 0)
   {
     if (config.steam.appid != 1157970)
     {
-      SetEnvironmentVariableA ( "SteamGameId",
-               SK_FormatString ("%lu", config.steam.appid).c_str ()
-                              );
+#if 0
+      // Non-Steam Games: Ignore this to prevent general weirdness.
+      if ( ( static_cast <size_t>  (std::numeric_limits <int>::max () - 1) ) <=
+             static_cast <AppId_t> (config.steam.appid) )
+          
+      {   config.steam.appid        = 0;
+          steam.system.appid->store ( 0 );
+      }
+
+      else
+#endif
+      {
+        SetEnvironmentVariableA ( "SteamGameId",
+                 std::format ("{}", config.steam.appid).c_str () );
+      }
     }
 
     // Special K's AppID belongs to Special K, not this game!
@@ -4341,15 +4356,10 @@ SK_SaveConfig ( std::wstring name,
     window.preferred_monitor_id->store    (0);
   }
 
-
-  wchar_t wszFormattedRes [32] = { };
-
-  swprintf ( wszFormattedRes, L"%lux%lu",
-               config.window.res.override.x,
-                 config.window.res.override.y );
-
-  window.override->store (wszFormattedRes);
-
+  window.override->store (
+                       std::format ( L"{}x{}", config.window.res.override.x,
+                                               config.window.res.override.y ) );
+                       
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
@@ -4361,9 +4371,8 @@ SK_SaveConfig ( std::wstring name,
     if (config.display.resolution.save)
     {
       display.override_resolution->store (
-        SK_FormatStringW ( L"%dx%d",
-                             config.display.resolution.override.x,
-                             config.display.resolution.override.y )
+                       std::format ( L"{}x{}", config.display.resolution.override.x,
+                                               config.display.resolution.override.y )
       );
     }
 
@@ -4474,22 +4483,17 @@ SK_SaveConfig ( std::wstring name,
       texture.cache.allow_unsafe_refs->store      (config.textures.cache.allow_unsafe_refs);
       texture.cache.manage_residency->store       (config.textures.cache.residency_managemnt);
 
-      swprintf ( wszFormattedRes, L"%lux%lu",
-                   config.render.dxgi.res.max.x,
-                     config.render.dxgi.res.max.y );
+      render.dxgi.max_res->store (
+                           std::format ( L"{}x{}", config.render.dxgi.res.max.x,
+                                                   config.render.dxgi.res.max.y ) );
+      render.dxgi.min_res->store (
+                           std::format ( L"{}x{}", config.render.dxgi.res.min.x,
+                                                   config.render.dxgi.res.min.y ) );
 
-      render.dxgi.max_res->store (wszFormattedRes);
-
-      swprintf ( wszFormattedRes, L"%lux%lu",
-                   config.render.dxgi.res.min.x,
-                     config.render.dxgi.res.min.y );
-
-      render.dxgi.min_res->store (wszFormattedRes);
-
-      render.dxgi.max_refresh->store (config.render.dxgi.refresh.max);
-      render.dxgi.min_refresh->store (config.render.dxgi.refresh.min);
-
-      render.dxgi.swapchain_wait->store (config.render.framerate.swapchain_wait);
+      render.dxgi.max_refresh->store              (config.render.dxgi.refresh.max);
+      render.dxgi.min_refresh->store              (config.render.dxgi.refresh.min);
+                                                  
+      render.dxgi.swapchain_wait->store           (config.render.framerate.swapchain_wait);
 
       switch (config.render.dxgi.scaling_mode)
       {
@@ -5230,7 +5234,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
   return false;
 }
 
-uint32_t
+AppId64_t
 SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
 {
   if (app_cache_db == nullptr)
@@ -5264,7 +5268,7 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
 }
 
 std::wstring
-SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
+SK_AppCache_Manager::getAppNameFromID (AppId64_t uiAppID) const
 {
   if (app_cache_db == nullptr)
     return L"";
@@ -5283,7 +5287,7 @@ SK_AppCache_Manager::getAppNameFromID (uint32_t uiAppID) const
 std::wstring
 SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
 {
-  const uint32_t uiAppID =
+  const AppId64_t uiAppID =
     getAppIDFromPath (wszPath);
 
   if (uiAppID != 0)
@@ -5298,7 +5302,7 @@ bool
 SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
                                      const wchar_t*,
                                      const wchar_t* wszAppName,
-                                           uint32_t uiAppID )
+                                          AppId64_t uiAppID )
 {
   if (app_cache_db == nullptr)
     return false;
@@ -5332,8 +5336,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
               )
   };
 
-  wchar_t     wszAppID [32] = { };
-  swprintf_s (wszAppID, 31, L"%0u", uiAppID);
+  wchar_t         wszAppID [32] = { };
+  std::format_to (wszAppID, L"{:0}", uiAppID);
 
   if (fwd_map.contains_key (wszRelPath))
     fwd_map.get_value      (wszRelPath) = wszAppID;
@@ -5601,7 +5605,7 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
 }
 
 std::wstring
-SK_AppCache_Manager::getConfigPathForAppID (uint32_t uiAppID) const
+SK_AppCache_Manager::getConfigPathForAppID (AppId64_t uiAppID) const
 {
   static bool recursing = false;
 

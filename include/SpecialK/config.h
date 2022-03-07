@@ -252,7 +252,7 @@ struct sk_config_t
     std::wstring
                 dll_path              = L"";
 
-    int         appid                 = 0;
+    int64_t     appid                 = 0LL;
     int         online_status         = -1;  // Force a certain online status at all times
     int         init_delay            = 0UL; // Disable to prevent crashing in many games
     int         callback_throttle     = -1;
@@ -998,15 +998,15 @@ struct SK_AppCache_Manager
   bool          loadAppCacheForExe     (const wchar_t* wszExe);
   bool          loadAppCacheForEpicApp (const char*    szEpicApp);
 
-  uint32_t      getAppIDFromPath       (const wchar_t* wszPath)   const;
-  std::wstring  getAppNameFromID       (uint32_t       uiAppID)   const;
+  uint64_t      getAppIDFromPath       (const wchar_t* wszPath)   const;
+  std::wstring  getAppNameFromID       (uint64_t       uiAppID)   const;
   std::wstring  getAppNameFromPath     (const wchar_t* wszPath)   const;
   std::wstring  getAppNameFromEpicApp  (const char*    szEpicApp) const;
 
   bool          addAppToCache       ( const wchar_t* wszRelativePath,
                                       const wchar_t* wszExecutable,
                                       const wchar_t* wszAppName,
-                                            uint32_t uiAppID );
+                                            uint64_t uiAppID );
   bool          addAppToCache       ( const wchar_t* wszRelativePath,
                                       const wchar_t* wszExecutable,
                                       const wchar_t* wszAppName,
@@ -1014,7 +1014,7 @@ struct SK_AppCache_Manager
 
   std::wstring  getConfigPathFromAppPath (const wchar_t* wszPath)    const; // Steam
   std::wstring  getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const; // Epic
-  std::wstring  getConfigPathForAppID    (uint32_t       uiAppID)    const;
+  std::wstring  getConfigPathForAppID    (uint64_t       uiAppID)    const;
   std::wstring  getConfigPathForEpicApp  (const char*    szEpicApp)  const;
 
   int           migrateProfileData       (LPVOID reserved = nullptr);

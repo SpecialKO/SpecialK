@@ -39,6 +39,8 @@ struct IUnknown;
 
 #define STEAM_CALLRESULT( thisclass, func, param, var ) CCallResult< thisclass, param > var; void func( param *pParam, bool )
 
+typedef uint64_t AppId64_t;
+
 namespace SK
 {
   namespace SteamAPI
@@ -60,7 +62,7 @@ namespace SK
     bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame);
 
 
-    uint32_t    AppID           (void);
+    AppId64_t   AppID           (void);
     std::string AppName         (void);
 
     CSteamID    UserSteamID     (void);
@@ -226,7 +228,7 @@ int                   SK_HookSteamAPI                           (void);
 void                  SK_Steam_ClearPopups                      (void);
 int                   SK_Steam_DrawOSD                          (void);
 
-void                  SK_Steam_ForceInputAppId                  (AppId_t appid);
+void                  SK_Steam_ForceInputAppId                  (uint64_t appid);
 bool                  SK_Steam_LoadOverlayEarly                 (void);
 
 void                  SK_Steam_InitCommandConsoleVariables      (void);
@@ -392,7 +394,7 @@ public:
   void* ClientUser    (void);
   void* ClientUtils   (void);
 
-  AppId_t    ReassignAppIDForPipe (HSteamPipe hPipe, AppId_t nAppID, bool bTrackProcess);
+  AppId64_t  ReassignAppIDForPipe (HSteamPipe hPipe, AppId64_t nAppID, bool bTrackProcess);
   HSteamPipe GetGamePipe          (void) noexcept { return hSteamPipe; }
 
   // We create extra pipes any time SteamAPI stuff is invoked from a different
@@ -502,13 +504,13 @@ bool
 SK_Steam_ConnectUserIfNeeded (CSteamID user);
 
 std::wstring
-SK_Steam_GetApplicationManifestPath (AppId_t appid = 0);
+SK_Steam_GetApplicationManifestPath (AppId64_t appid = 0);
 
-uint32_t
+uint64_t
 SK_Steam_GetAppID_NoAPI (void);
 
 std::string
-SK_UseManifestToGetAppName (AppId_t appid = 0);
+SK_UseManifestToGetAppName (AppId64_t appid = 0);
 
 struct SK_Steam_Depot
 {

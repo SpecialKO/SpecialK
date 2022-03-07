@@ -1,4 +1,9 @@
-﻿22.3.6-NOCEGUI
+﻿22.3.7-NOCEGUI
+==============
+ + Added 64-bit Steam AppID support (non-Steam games launched via Steam)
+ + Fixed accidental removal of Latent Sync keybind config logic
+
+22.3.6-NOCEGUI
 ==============
  + Fixed SteamInputAppID not being set to 0 initially
  + Removed libScePad.dll resource dependency from project

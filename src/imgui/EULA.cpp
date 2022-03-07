@@ -83,7 +83,7 @@ SK_ImGui_DrawEULA (LPVOID reserved)
 
 
   //extern uint32_t __stdcall SK_Steam_PiratesAhoy (void);
-  extern uint32_t __stdcall SK_SteamAPI_AppID    (void);
+  extern AppId64_t __stdcall SK_SteamAPI_AppID    (void);
 
   ImGuiIO& io =
     ImGui::GetIO ();

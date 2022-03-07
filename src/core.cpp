@@ -977,7 +977,7 @@ DllThread (LPVOID user)
   SK_InitCore ( params->backend,
                 params->callback );
 
-  AppId_t appid (
+  AppId64_t appid (
     SK_Steam_GetAppID_NoAPI ()
   );
 

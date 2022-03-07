@@ -23,7 +23,7 @@
 
 struct denuvo_file_s
 {
-  AppId_t      app;
+  AppId64_t    app;
   CSteamID     user;
   uint64       hash;
   std::wstring path;
@@ -57,7 +57,7 @@ SK_Denuvo_UsedByGame (bool retest)
   CSteamID     usr_id =
     SK::SteamAPI::UserSteamID ();
 
-  uint32_t     app_id =
+  AppId64_t    app_id =
     SK::SteamAPI::AppID ();
 
   std::wstring path   =
@@ -72,7 +72,7 @@ SK_Denuvo_UsedByGame (bool retest)
   wchar_t wszSearchPath  [MAX_PATH + 2] = { };
 
   swprintf_s ( wszInstallPath, MAX_PATH,
-                 LR"(%ws\userdata\%u\%u\)",
+                 LR"(%ws\userdata\%u\%llu\)",
                                path.c_str (),
                                  usr_id.GetAccountID (),
                                    app_id );

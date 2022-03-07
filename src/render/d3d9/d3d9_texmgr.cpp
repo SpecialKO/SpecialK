@@ -84,6 +84,8 @@ SK::D3D9::TextureManager::getTextureArchives (std::vector <std::wstring>& arcs)
 size_t
 SK::D3D9::TextureManager::getInjectableTextures (SK::D3D9::TexList& texture_list) const
 {
+  texture_list.clear ();
+
   for ( auto& it : injectable_textures )
   {
     if (ReadAcquire (&it.second.removed) == 0)
@@ -545,7 +547,7 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
   {
     //if (config.textures.log) {
     //  tex_log->Log ( L"[Load-Trace] >> Creating Texture: "
-    //                 L"(%d x %d), Format: %s, Usage: [%s], Pool: %s",
+    //                 L"(%d x %d), Format: %hs, Usage: [%hs], Pool: %hs",
     //                   Width, Height,
     //                     SK_D3D9_FormatToStr (Format).c_str (),
     //                     SK_D3D9_UsageToStr  (Usage).c_str (),
@@ -878,8 +880,8 @@ SK::D3D9::TextureManager::isTextureBlacklisted (uint32_t/* checksum*/) const
 bool
 SK::D3D9::TextureManager::isTextureInjectable (uint32_t checksum) const
 {
-  return             ( injectable_textures.count (checksum) != 0   ) &&
-         ReadAcquire (&injectable_textures.at    (checksum).removed) == FALSE;
+  return             ( injectable_textures.count (checksum) != 0 &&
+         ReadAcquire (&injectable_textures.at    (checksum).removed) == FALSE );
 }
 
 bool
@@ -1515,7 +1517,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   // Don't dump or cache these
 
 
-  if ( /*(Usage & D3DUSAGE_DYNAMIC) ||*/ (Usage & D3DUSAGE_RENDERTARGET) || pSrcData == nullptr || SrcDataSize == 0 )
+  if ( /*(Usage & D3DUSAGE_DYNAMIC) || */ (Usage & D3DUSAGE_RENDERTARGET) || pSrcData == nullptr || SrcDataSize == 0)
     checksum = 0x00;
   else
     checksum = safe_crc32c (0, pSrcData, SrcDataSize);
@@ -1543,8 +1545,9 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   // Necessary to make D3DX texture write functions work
   if ( Pool == D3DPOOL_DEFAULT && ( config.textures.dump_on_load &&
         (! tex_mgr.isTextureDumped     (checksum))         &&
-        (! tex_mgr.isTextureInjectable (checksum)) ) /*|| (
-                                    config.textures.on_demand_dump )*/ )
+        (! tex_mgr.isTextureInjectable (checksum)) ) || (
+                                  //config.textures.d3d11.cache ||
+                                    config.textures.on_demand_dump ) )
     Usage = D3DUSAGE_DYNAMIC;
 
 
@@ -1840,10 +1843,10 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
     {//config.textures.log) {
       //tex_log->Log ( L"[Load Trace] Texture:   (%lu x %lu) * <LODs: %lu> - FAST_CRC32: %X",
       //                info.Width, info.Height, (*ppTexture)->GetLevelCount (), checksum );
-      //tex_log->Log ( L"[Load Trace]              Usage: %-20s - Format: %-20s",
+      //tex_log->Log ( L"[Load Trace]              Usage: %-20hs - Format: %-20hs",
       //                SK_D3D9_UsageToStr    (Usage).c_str (),
       //                  SK_D3D9_FormatToStr (Format).c_str () );
-      //tex_log->Log ( L"[Load Trace]                Pool: %s",
+      //tex_log->Log ( L"[Load Trace]                Pool: %hs",
       //                SK_D3D9_PoolToStr (Pool) );
       //tex_log->Log ( L"[Load Trace]      Load Time: %6.4f ms",
       //                1000.0f * (double)(end.QuadPart - start.QuadPart) / (double)SK_GetPerfFreq ().QuadPart );
@@ -1936,7 +1939,9 @@ SK::D3D9::TextureManager::dumpTexture (D3DFORMAT fmt, uint32_t checksum, IDirect
     injector.beginLoad ();
 
     hr =
-      SK_D3DXSaveTextureToFile (wszFileName, D3DXIFF_DDS, pTex, nullptr);
+      SK_D3DXSaveTextureToFileW (wszFileName, D3DXIFF_DDS, pTex, nullptr);
+
+    injector.endLoad ();
 
     if (SUCCEEDED (hr))
       dumped_textures [checksum] = true;
@@ -2300,8 +2305,6 @@ SK::D3D9::TextureManager::Init (void)
                           5,//config.textures.worker_threads,
                             nullptr );
 
-  ///resample_pool       = new TextureThreadPool ();
-
   stream_pool.lrg_tex = std::make_unique <TextureThreadPool> ();
   stream_pool.sm_tex  = std::make_unique <TextureThreadPool> ();
 
@@ -2516,10 +2519,10 @@ SK::D3D9::TextureManager::purge (void)
 
   static auto& _remove_textures = remove_textures.get ();
 
-  int      released           = 0;
-  int      released_injected  = 0;
-   int64_t reclaimed          = 0;
-   int64_t reclaimed_injected = 0;
+  int     released           = 0;
+  int     released_injected  = 0;
+  int64_t reclaimed          = 0;
+  int64_t reclaimed_injected = 0;
 
   tex_log->Log (L"[ Tex. Mgr ] -- TextureManager::purge (...) -- ");
 
@@ -3223,7 +3226,7 @@ SK::D3D9::TextureWorkerThread::ThreadProc (LPVOID user)
 
   streaming_memory::trim (0, SK_timeGetTime ());
 
-  //SK_Thread_CloseSelf ();
+  SK_Thread_CloseSelf ();
   return 0;
 }
 
@@ -3291,7 +3294,7 @@ SK::D3D9::TextureThreadPool::Spooler (LPVOID user)
     }
   }
 
-  //SK_Thread_CloseSelf ();
+  SK_Thread_CloseSelf ();
   return 0;
 }
 
@@ -3359,12 +3362,12 @@ SK::D3D9::TextureManager::refreshDataSources (void)
         if (fd.dwFileAttributes != INVALID_FILE_ATTRIBUTES)
         {
           if (wcsstr (_wcslwr (fd.cFileName), L".dds"))
-{
+          {
             uint32_t                           checksum = 0;
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
+            if (TRUE == ReadAcquire (&injectable_textures [checksum].removed))
                 continue;
 
             ++files;
@@ -3403,12 +3406,12 @@ SK::D3D9::TextureManager::refreshDataSources (void)
         {
           if (wcsstr (_wcslwr (fd.cFileName), L".dds"))
           {
-            uint32_t checksum;
+            uint32_t                           checksum = 0;
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
-              continue;
+            if (TRUE == ReadAcquire (&injectable_textures [checksum].removed))
+                continue;
 
             ++files;
 
@@ -3446,12 +3449,12 @@ SK::D3D9::TextureManager::refreshDataSources (void)
         {
           if (wcsstr (_wcslwr (fd.cFileName), L".dds"))
           {
-            uint32_t checksum;
+            uint32_t                           checksum = 0;
             swscanf (fd.cFileName, L"%x.dds", &checksum);
 
             // Already got this texture...
-            if (FALSE == ReadAcquire (&injectable_textures [checksum].removed))
-              continue;
+            if (TRUE == ReadAcquire (&injectable_textures [checksum].removed))
+                continue;
 
             ++files;
 
@@ -3841,10 +3844,10 @@ ISKTextureD3D9::use (void)
     {
       tex_log->Log ( L"[Dump Trace] Texture:   (%lu x %lu) * <LODs: %lu> - CRC32C: %08X",
                         desc.Width, desc.Height, pTex->GetLevelCount (), tex_crc32c);
-      tex_log->Log ( L"[Dump Trace]              Usage: %-20s - Format: %-20s",
+      tex_log->Log ( L"[Dump Trace]              Usage: %-20hs - Format: %-20hs",
                         SK_D3D9_UsageToStr  (desc.Usage).c_str  (),
                         SK_D3D9_FormatToStr (desc.Format).c_str ());
-      tex_log->Log ( L"[Dump Trace]               Pool: %s",
+      tex_log->Log ( L"[Dump Trace]               Pool: %hs",
                         SK_D3D9_PoolToStr (desc.Pool));
 
       tex_mgr.injector.beginLoad ();

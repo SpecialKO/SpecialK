@@ -890,21 +890,21 @@ SK_D3DXGetImageInfoFromFileInMemory (
 
 HRESULT
 WINAPI
-SK_D3DXSaveTextureToFile (
-      LPCTSTR                pDestFile,
+SK_D3DXSaveTextureToFileW (
+      LPCWSTR                pDestFile,
       D3DXIMAGE_FILEFORMAT   DestFormat,
       LPDIRECT3DBASETEXTURE9 pSrcTexture,
 const PALETTEENTRY           *pSrcPalette )
 {
   static auto
-    _D3DXSaveTextureToFile =
-    (D3DXSaveTextureToFile_pfn)SK_D3DX9_GetProcAddress
-   ("D3DXSaveTextureToFile");
+    _D3DXSaveTextureToFileW =
+    (D3DXSaveTextureToFileW_pfn)SK_D3DX9_GetProcAddress
+   ("D3DXSaveTextureToFileW");
 
   return
-    ( _D3DXSaveTextureToFile != nullptr )
-    ? _D3DXSaveTextureToFile ( pDestFile,   DestFormat,
-                               pSrcTexture, pSrcPalette )
+    ( _D3DXSaveTextureToFileW != nullptr )
+    ? _D3DXSaveTextureToFileW ( pDestFile,   DestFormat,
+                                pSrcTexture, pSrcPalette )
     : E_NOTIMPL;
 }
 

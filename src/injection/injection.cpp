@@ -68,7 +68,7 @@ extern "C"
                                                                                             
   ULONG64      __SK_InjectionHistory_frames     [MAX_INJECTED_PROC_HISTORY]            =  { };
   SK_RenderAPI __SK_InjectionHistory_api        [MAX_INJECTED_PROC_HISTORY]            =  { };
-  AppId_t      __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  { };
+  AppId64_t    __SK_InjectionHistory_AppId      [MAX_INJECTED_PROC_HISTORY]            =  { };
   wchar_t      __SK_InjectionHistory_UwpPackage [MAX_INJECTED_PROC_HISTORY *
                                                          PACKAGE_FULL_NAME_MAX_LENGTH] =  { };
 

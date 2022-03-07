@@ -74,7 +74,9 @@ void SK_Inject_BroadcastAttachNotify (void);
 
 #define MAX_INJECTED_PROCS        32
 #define MAX_INJECTED_PROC_HISTORY 128
-#define INJECTION_RECORD_ABI_VER  "1.2"
+#define INJECTION_RECORD_ABI_VER  "1.2.1"
+
+typedef uint64_t AppId64_t;
 
 extern "C"
 {
@@ -106,7 +108,7 @@ struct SK_InjectionRecord_s
   } input;
 
   struct {
-    uint32_t     steam_appid     =  0 ;
+    AppId64_t    steam_appid     =  0 ;
     wchar_t      uwp_full_name [
              PACKAGE_FULL_NAME_MAX_LENGTH
                                ] = { };
