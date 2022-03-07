@@ -141,7 +141,7 @@ struct TexThreadStats {
              int           fileno  = 0UL;
     enum     TexLoadMethod method  = DontCare;
     volatile LONG          removed = FALSE; // Rather than removing entries and
-                                            //   shuffling lists in memory, alter this
+                                           //   shuffling lists in memory, alter this
   };
 
   using TexList = std::vector < std::pair < uint32_t, TexRecord > >;
@@ -554,8 +554,9 @@ public:
 
     void getFinished (std::vector <TexLoadRequest *>& results)
     {
-      const DWORD dwResults =
-        SK_WaitForSingleObject (events_.results_waiting, 0);
+      DWORD dwResults = 0;
+            dwResults =
+        SK_WaitForSingleObject (events_.results_waiting, 0L);
 
       // Nothing waiting
       if (dwResults != WAIT_OBJECT_0 && (0 == ReadAcquire (&jobs_done_)))
@@ -568,10 +569,12 @@ public:
       {
         SK::D3D9::TexLoadRef ref (nullptr);
 
-        while (! results_.try_pop (ref)) ;
-
-        results.emplace_back (ref);
-        InterlockedDecrement (&jobs_done_);
+        while (! results_.empty ())
+             if (results_.try_pop (ref))
+             {
+               results.emplace_back (ref);
+               InterlockedDecrement (&jobs_done_);
+             }
       }
 
       ResetEvent (events_.results_waiting);
@@ -617,24 +620,21 @@ public:
       TexLoadRequest* job       = nullptr;
       DWORD           dwResults = 0;
 
-      while (dwResults != WAIT_OBJECT_0)
-      {
-        dwResults =
-          SK_WaitForSingleObject (events_.jobs_added, 0);
-      }
+      dwResults =
+        SK_WaitForSingleObject (events_.jobs_added, 0UL);
 
-      if (0 == ReadAcquire (&jobs_waiting_))
+      if (dwResults != WAIT_OBJECT_0 && 0 == ReadAcquire (&jobs_waiting_))
         return nullptr;
 
-      {
-        SK::D3D9::TexLoadRef ref (nullptr);
+      SK::D3D9::TexLoadRef ref (nullptr);
 
-        while (! jobs_.try_pop (ref))
-          job = ref;
+      while (! jobs_.empty ())
+      {    if (jobs_.try_pop (ref)) break; }
 
-        InterlockedDecrement (&jobs_waiting_);
-        ResetEvent (events_.jobs_added);
-      }
+      job = ref;
+
+      InterlockedDecrement (&jobs_waiting_);
+      ResetEvent       (events_.jobs_added);
 
       return job;
     }
@@ -700,11 +700,8 @@ public:
   {
     bool working (void) const noexcept
     {
-      if (lrg_tex && lrg_tex->working ())
-        return true;
-
-      if (sm_tex  && sm_tex->working  ())
-        return true;
+      if (lrg_tex && lrg_tex->working ()) return true;
+      if ( sm_tex &&  sm_tex->working ()) return true;
 
       return false;
     }
@@ -714,7 +711,7 @@ public:
       size_t len = 0;
 
       if (lrg_tex) len += lrg_tex->queueLength ();
-      if (sm_tex)  len += sm_tex->queueLength  ();
+      if ( sm_tex) len +=  sm_tex->queueLength ();
 
       return len;
     }
@@ -722,13 +719,13 @@ public:
     void getFinished (std::vector <TexLoadRequest *>& results) const
     {
       std::vector <TexLoadRequest *> lrg_loads;
-      std::vector <TexLoadRequest *> sm_loads;
+      std::vector <TexLoadRequest *>  sm_loads;
 
-      if (sm_tex)  sm_tex->getFinished  (sm_loads);
+      if ( sm_tex)  sm_tex->getFinished  (sm_loads);
       if (lrg_tex) lrg_tex->getFinished (lrg_loads);
 
-      results.insert (results.cbegin (), lrg_loads.cbegin (), lrg_loads.cend ());
-      results.insert (results.cbegin (),  sm_loads.cbegin  (), sm_loads.cend ());
+      for ( auto&& load : lrg_loads ) results.emplace_back (load);
+      for ( auto&& load :  sm_loads ) results.emplace_back (load);
 
       return;
     }
@@ -740,9 +737,8 @@ public:
 
       // A "Large" load is one >= 128 KiB
       if (job->SrcDataSize > (128 * 1024))
-        lrg_tex->postJob (job);
-      else
-        sm_tex->postJob (job);
+          lrg_tex->postJob (job);
+      else sm_tex->postJob (job);
     }
 
     std::unique_ptr <TextureThreadPool> lrg_tex;

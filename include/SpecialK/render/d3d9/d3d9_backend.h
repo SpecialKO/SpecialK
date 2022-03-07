@@ -761,8 +761,8 @@ SK_D3DXGetImageInfoFromFileInMemory (
 
 HRESULT
 WINAPI
-SK_D3DXSaveTextureToFile (
-      LPCTSTR                pDestFile,
+SK_D3DXSaveTextureToFileW (
+      LPCWSTR                pDestFile,
       D3DXIMAGE_FILEFORMAT   DestFormat,
       LPDIRECT3DBASETEXTURE9 pSrcTexture,
 const PALETTEENTRY           *pSrcPalette );
