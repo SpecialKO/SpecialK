@@ -21,6 +21,8 @@
 
 #include <SpecialK/stdafx.h>
 
+#define __cpp_lib_format
+#include <format>
 
 std::wstring
 ErrorMessage (errno_t        err,
@@ -1245,12 +1247,12 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  if (fname == nullptr)
+      fname = name.c_str ();
+
   // Do NOT overwrite default files
   if (StrStrIW (fname, LR"(\default_)"))
     return;
-
-  if (fname == nullptr)
-      fname = name.c_str ();
 
   std::wstring outbuf;
                outbuf.reserve (16384);
@@ -1262,16 +1264,16 @@ iSK_INI::write (const wchar_t* fname)
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
     {
-      outbuf += L"[";
-      outbuf += section.name + L"]\n";
+      outbuf +=
+        std::format ( L"[{}]\n", section.name );
 
       for ( auto& key_it : section.ordered_keys )
       {
         const std::wstring& val =
           section.get_value (key_it);
 
-        outbuf += key_it + L"=";
-        outbuf += val    + L"\n";
+        outbuf +=
+          std::format ( L"{}={}\n", key_it, val );
       }
 
       outbuf += L"\n";
@@ -1283,6 +1285,7 @@ iSK_INI::write (const wchar_t* fname)
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);
+    outbuf.shrink_to_fit ();
   }
 
 
@@ -1327,7 +1330,6 @@ iSK_INI::write (const wchar_t* fname)
       }
     }
   }
-
 
   SK_CreateDirectories (fname);
 
