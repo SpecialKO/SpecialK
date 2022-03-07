@@ -717,6 +717,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
               []( const std::vector <uint8_t>&& data,
                   const std::wstring_view       file )
               {
+                auto steam_friends =
+                 steam_ctx.Friends ();
+
                 try
                 {
                   nlohmann::json jsonOwned =
@@ -734,10 +737,13 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
                   {
                     friends_who_own.insert (_friend_id);
 
-                    steam_log->Log (L"Friend: %hs owns this game...",
-                            steam_ctx.Friends ()->
-                                   GetFriendPersonaName (CSteamID (_friend_id))
-                    );
+                    if (steam_friends != nullptr)
+                    {
+                      steam_log->Log (L"Friend: %hs owns this game...",
+                        steam_friends == nullptr ? "Unknown (SteamAPI Malfunction)" :
+                        steam_friends->GetFriendPersonaName (CSteamID (_friend_id))
+                      );
+                    }
                   }
 
                   friends_processed.insert (_friend_id);
