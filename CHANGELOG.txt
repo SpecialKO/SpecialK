@@ -1,11 +1,15 @@
-﻿22.3.11-NOCEGUI
+﻿22.3.11.1-NOCEGUI
+=================
+ + Fixed Latent Sync causing crashes in some D3D12 "Fullscreen" games
+
+22.3.11-NOCEGUI
 ===============
  + Added support for HDR override in Guardians of the Galaxy and Forza Horizon 5
 
 22.3.7.1-NOCEGUI
 ================
  + Removed Restart option from File menu if Global Injection is not active
- + Changed ] and [ keybinds in D3D9 mod tools window to behave like D3D111
+ + Changed ] and [ keybinds in D3D9 mod tools window to behave like D3D11
  + Fixed D3D9 Blocking Texture loads delaying more threads than intended
  + Added Initialize Texutre Mods to File menu for D3D9/12
 

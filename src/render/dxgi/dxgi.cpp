@@ -2314,6 +2314,20 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                       UINT _Flags) ->
   HRESULT
   {
+    // Unreal Engine will crash itself if VSYNC is off while it's in fullscreen
+    if (_Flags & DXGI_PRESENT_ALLOW_TEARING)
+    {
+      BOOL bFullscreen =
+        SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+
+      // We don't want that to happen :)
+      if (bFullscreen || (SUCCEEDED (This->GetFullscreenState (&bFullscreen, nullptr)) && bFullscreen))
+      {
+        // Remove this flag
+        _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+      }
+    }
+
     // If Unreal Engine sees DXGI_ERROR_INVALID_CALL due to flip model fullscreen
     //   transition, it's going to bitch about 'crashing'.
     auto _Ret = [&](HRESULT ret) -> HRESULT

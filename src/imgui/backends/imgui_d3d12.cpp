@@ -1686,6 +1686,11 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
                  cmd_lists
     );
   }
+
+  else
+  {
+    _d3d12_rbk->release (pRoot->_pSwapChain.p);
+  }
 }
 
 bool
@@ -1801,14 +1806,6 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 
     ImGui_ImplDX12_Shutdown ();
 
-    pHDRCopyPipeline.Release             ();
-    pHDRPipeline.Release                 ();
-    pHDRSignature.Release                ();
-
-    descriptorHeaps.pBackBuffers.Release ();
-    descriptorHeaps.pImGui.Release       ();
-    descriptorHeaps.pHDR.Release         ();
-
     ///// 1 frame delay for re-init
     ///frame_delay.fetch_add (1);
 
@@ -1820,6 +1817,15 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                               _pDevice.p = nullptr;
 
     frames_.clear ();
+
+    // Do this after closing the command lists (frames_.clear ())
+    pHDRCopyPipeline.Release             ();
+    pHDRPipeline.Release                 ();
+    pHDRSignature.Release                ();
+
+    descriptorHeaps.pBackBuffers.Release ();
+    descriptorHeaps.pImGui.Release       ();
+    descriptorHeaps.pHDR.Release         ();
 
     _pSwapChain.Release ();
     _pDevice.Release    ();
