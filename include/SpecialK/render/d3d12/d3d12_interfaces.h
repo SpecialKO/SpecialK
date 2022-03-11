@@ -476,7 +476,6 @@ struct SK_D3D12_RenderCtx {
   SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
 
   SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
-  SK_ComPtr <ID3D12PipelineState>         pHDRCopyPipeline  = nullptr;
   SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
 
   struct {

@@ -1269,10 +1269,6 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
     static volatile LONG lSizeSkips   = 0;
     static volatile LONG lFormatSkips = 0;
 
-    //D3D12_RESOURCE_DESC
-    //  src_desc = pSrc->pResource->GetDesc (),
-    //  dst_desc = pDst->pResource->GetDesc ();
-
     if (D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension)
     {
       static auto& rb =
@@ -1375,8 +1371,7 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 
   DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
   _d3d12_rbk->_pSwapChain->GetDesc1
-                               (&swapDesc); SK_ReleaseAssert (
-       _imgui_d3d12.RTVFormat == swapDesc.Format );
+                               (&swapDesc);
   if ( _imgui_d3d12.RTVFormat != swapDesc.Format || swapIdx > _d3d12_rbk->frames_.size () )
   {
     return;
@@ -1390,30 +1385,29 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
   if (stagingFrame.fence == nullptr)
     return;
 
-  //auto pCommandList =
-  //  stagingFrame.pCmdList.p;
-
   HDR_LUMINANCE
     cbuffer_luma = {
       {  __SK_HDR_Luma,
-         __SK_HDR_Exp,
-                 1.0f,
-                 1.0f
+         __SK_HDR_Exp, 1.0f,
+                       1.0f
       }
     };
 
+  // Passthrough mode so we can reuse the HDR shader to blit incompatible image formats
+  static auto constexpr TONEMAP_CopyResource = 255;
+
   static HDR_COLORSPACE_PARAMS
     cbuffer_cspace              = { };
-    cbuffer_cspace.uiToneMapper = 255;
+    cbuffer_cspace.uiToneMapper = TONEMAP_CopyResource;
 
   static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-  pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature                         );
-  pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline                          );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                         );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 12, &cbuffer_cspace, 0                         );
-  pCommandList->OMSetBlendFactor                  ( kfBlendFactors                                    );
-  pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP              );
+  pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
+  pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
+  pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
+  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 12, &cbuffer_cspace, 0            );
+  pCommandList->OMSetBlendFactor                  ( kfBlendFactors                       );
+  pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
   _d3d12_rbk->
           _pDevice->CreateShaderResourceView ( pResource, nullptr,
@@ -1470,10 +1464,19 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     _pSwapChain->GetCurrentBackBufferIndex ();
 
   DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
-  pSwapChain->GetDesc1         (&swapDesc); SK_ReleaseAssert (
-       _imgui_d3d12.RTVFormat == swapDesc.Format );
+  pSwapChain->GetDesc1         (&swapDesc);
   if ( _imgui_d3d12.RTVFormat != swapDesc.Format || swapIdx > frames_.size () )
   {
+    static bool          once = false;
+    if (! std::exchange (once, true))
+    {
+      SK_LOG0 ( ( L"ImGui Expects SwapChain Format %hs, but Got %hs... "
+                  L"no attempt to draw will be made.",
+                    SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).data (),
+                    SK_DXGI_FormatToStr (       swapDesc.Format).data () ),
+                  __SK_SUBSYSTEM__ );
+    }
+
     return;
   }
 
@@ -1826,7 +1829,6 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
     frames_.clear ();
 
     // Do this after closing the command lists (frames_.clear ())
-    pHDRCopyPipeline.Release             ();
     pHDRPipeline.Release                 ();
     pHDRSignature.Release                ();
 
@@ -2190,16 +2192,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           &psoDesc, IID_PPV_ARGS (&pHDRPipeline.p)
        ));SK_D3D12_SetDebugName  ( pHDRPipeline.p, L"SK HDR Pipeline State" );
 
-      psoDesc.PS = { gl_dx_interop_ps_bytecode,
-             sizeof (gl_dx_interop_ps_bytecode) /
-             sizeof (gl_dx_interop_ps_bytecode) [0]
-                   };
-
-      ThrowIfFailed (
-        _pDevice->CreateGraphicsPipelineState (
-          &psoDesc, IID_PPV_ARGS (&pHDRCopyPipeline.p)
-       ));SK_D3D12_SetDebugName  ( pHDRCopyPipeline.p, L"SK HDR Copy Assist Pipeline State" );
-
       HWND                   hWnd = HWND_BROADCAST;
       _pSwapChain->GetHwnd (&hWnd);
 
@@ -2219,10 +2211,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
     catch (const SK_ComException& e)
     {
-      SK_ImGui_WarningWithTitle (
-        SK_FormatStringW ( L"SK D3D12 Init Failed: %hs", e.what () ).c_str (),
-                           L"D3D12 Is b0rked!"
-                                );
+      SK_LOG0 ( ( L"SK D3D12 Init Failed: %hs", e.what () ),
+                  __SK_SUBSYSTEM__ );
     }
   }
 

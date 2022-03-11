@@ -1,4 +1,8 @@
-﻿22.3.11.2-NOCEGUI
+﻿22.3.11.3-NOCEGUI
+=================
+ + Added extra logging for D3D12 SwapChain format issues during ImGui init
+
+22.3.11.2-NOCEGUI
 =================
  + Fixed OpenGL-IK DX/GL Interop Shader broken in 22.3.11
  + Fixed HDR in Life is Strange True Colors (D3D12)
@@ -3196,7 +3200,7 @@ Recommended SwapChain Settings for HDR:
 
 0.8.20:
 
- + [D3D11] Added texture updae frequency (0 = Manually Refresh, 1+ = Auto) for the
+ + [D3D11] Added texture update frequency (0 = Manually Refresh, 1+ = Auto) for the
              texture mod tools.
  + [D3D11] Added option to replace 24-bit Depth Buffer with 32-bit
  + [D3D11] Improved multi-threaded safety in the D3D11 mod tools for games that draw
