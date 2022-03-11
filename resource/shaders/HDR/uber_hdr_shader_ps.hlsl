@@ -1901,8 +1901,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     Luminance (hdr_color.rgb);
 
   hdr_color.rgb *=
-    (                            hdrPaperWhite +
-      fLuma * (input.color.xxx - hdrPaperWhite) );
+    (                            hdrPaperWhite/*+
+      fLuma * (input.color.xxx - hdrPaperWhite)*/);
 
   hdr_color.rgb += hdrLuminance_Min / 80.0f;
 

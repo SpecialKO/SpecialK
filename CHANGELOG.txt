@@ -1,5 +1,6 @@
-﻿22.3.11.1-NOCEGUI
+﻿22.3.11.2-NOCEGUI
 =================
+ + Fixed OpenGL-IK DX/GL Interop Shader broken in 22.3.11
  + Fixed HDR in Life is Strange True Colors (D3D12)
  + Fixed Latent Sync causing crashes in some D3D12 "Fullscreen" games
 
