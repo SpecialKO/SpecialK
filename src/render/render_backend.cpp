@@ -3098,6 +3098,12 @@ void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 void
 SK_RenderBackend_V2::updateOutputTopology (void)
 {
+  // This needs to be limited to once per-frame
+  //
+  static volatile   ULONG64 ulLastUpdate = 0LL;
+  if (InterlockedExchange (&ulLastUpdate, SK_GetFramesDrawn ())
+                                       == SK_GetFramesDrawn ()) return;
+
   update_outputs = false;
 
   gsync_state.update (true);
@@ -4245,6 +4251,12 @@ ChangeDisplaySettingsExA_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  if (config.textures.d3d9_mod)
+  {
+    return DISP_CHANGE_SUCCESSFUL;
+  }
+
+
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
   {
@@ -4327,6 +4339,11 @@ ChangeDisplaySettingsExW_Detour (
   _In_ LPVOID    lParam)
 {
   SK_LOG_FIRST_CALL
+
+  if (config.textures.d3d9_mod)
+  {
+    return DISP_CHANGE_SUCCESSFUL;
+  }
 
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)

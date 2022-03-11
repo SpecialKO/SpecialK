@@ -48,6 +48,8 @@ D3D12Device_CreateGraphicsPipelineState_pfn
 D3D12Device_CreateGraphicsPipelineState_Original = nullptr;
 D3D12Device2_CreatePipelineState_pfn
 D3D12Device2_CreatePipelineState_Original        = nullptr;
+D3D12Device_CreateShaderResourceView_pfn
+D3D12Device_CreateShaderResourceView_Original    = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
@@ -141,7 +143,7 @@ SK_D3D12_ShouldSkipHUD (void)
   {
     UINT size    = 1;
     bool disable = true;
-    
+
     for ( auto &[ps,live] : _vertexShaders )
     {
       if (live && (! _criticalVertexShaders.count (ps)))
@@ -159,7 +161,7 @@ SK_D3D12_ShowGameHUD (void)
 
   UINT size    = 1;
   bool disable = false;
-  
+
   for ( auto &[ps,live] : _vertexShaders )
   {
     if (live)
@@ -177,7 +179,7 @@ SK_D3D12_HideGameHUD (void)
 
   UINT size    = 1;
   bool disable = true;
-  
+
   for ( auto &[ps,live] : _vertexShaders )
   {
     if (live && (! _criticalVertexShaders.count (ps)))
@@ -230,7 +232,7 @@ SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
   pPipelineState->SetPrivateData ( SKID_D3D12KnownVtxShaderDigest,
                                             DxilContainerHashSize,
                                                           empty );
-  
+
   _pendingPSOBlobs.push (pPipelineState);
 
   static SK_AutoHandle hNotify (
@@ -258,8 +260,8 @@ SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
           {
             SK_ComPtr <ID3DBlob>             pBlob;
             pPipelineState->GetCachedBlob  (&pBlob.p);
-            
-            _latePSOBlobs [pPipelineState] = 
+
+            _latePSOBlobs [pPipelineState] =
               SK_FormatString ( "%08x",
                       crc32c ( 0x0, pBlob->GetBufferPointer (),
                                     pBlob->GetBufferSize    () )
@@ -312,7 +314,7 @@ _COM_Outptr_ void                              **ppPipelineState )
   {
     using bytecode_t =
       const D3D12_SHADER_BYTECODE*;
-     
+
     bytecode_t pBytecode = nullptr;
 
     switch (type)
@@ -408,7 +410,7 @@ _COM_Outptr_ void                              **ppPipelineState )
                       __SK_SUBSYSTEM__ );
         }
       }
-      
+
       else
         SK_ReleaseAssert (! "ID3DDestructionNotifier Implemented");
     }
@@ -525,7 +527,7 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
 
 HRESULT
 STDMETHODCALLTYPE
-D3D12Device2_CreatePipelineState_Detour ( 
+D3D12Device2_CreatePipelineState_Detour (
               ID3D12Device2                    *This,
         const D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
               REFIID                            riid,
@@ -627,7 +629,7 @@ D3D12Device_CreateCommandAllocator_Detour (
               *ppCommandAllocator =
                        pAllocator;
                        pAllocator->Reset ();
-              
+
               SK_LOG1 ( ( L"%hs Command Allocator Reused", pCache->type ),
                             __SK_SUBSYSTEM__ );
 
@@ -694,6 +696,53 @@ D3D12Device_CreateCommandAllocator_Detour (
   return
     D3D12Device_CreateCommandAllocator_Original ( This,
         type, riid, ppCommandAllocator
+    );
+}
+
+void
+STDMETHODCALLTYPE
+D3D12Device_CreateShaderResourceView_Detour (
+                ID3D12Device                    *This,
+_In_opt_        ID3D12Resource                  *pResource,
+_In_opt_  const D3D12_SHADER_RESOURCE_VIEW_DESC *pDesc,
+_In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
+{
+  // HDR Fix-Ups
+  if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
+       pDesc     != nullptr && pDesc->ViewDimension ==
+                                D3D12_SRV_DIMENSION_TEXTURE2D )
+  {
+    // Handle explicitly defined SRVs, they might expect the SwapChain to be RGBA8
+    if (pDesc->Format != 0x0)
+    {
+      auto desc =
+        pResource->GetDesc ();
+
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+           desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      {
+        if (                       pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+            DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS)
+        {
+          SK_LOG_FIRST_CALL
+
+            auto fixed_desc = *pDesc;
+                 fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+          return
+            D3D12Device_CreateShaderResourceView_Original ( This,
+               pResource, &fixed_desc,
+                 DestDescriptor
+            );
+        }
+      }
+    }
+  }
+
+  return
+    D3D12Device_CreateShaderResourceView_Original ( This,
+       pResource, pDesc,
+         DestDescriptor
     );
 }
 
@@ -1092,8 +1141,7 @@ SK_D3D12_WriteResources (void)
   std::queue <SK_ITrackD3D12Resource *> _rejects;
 
   while (! _resourcesToWrite_Downstream.empty ())
-  {
-    if (_resourcesToWrite_Downstream.try_pop (pRes))
+  { if (   _resourcesToWrite_Downstream.try_pop (pRes))
     {
       static auto path =
         SK_Resource_GetRoot () / LR"(dump\textures)",
@@ -1102,7 +1150,7 @@ SK_D3D12_WriteResources (void)
 
       std::error_code ec = { };
 
-      if (pRes->uiFence == 0)// && pRes->NextFrame <= SK_GetFramesDrawn ())
+      if (pRes->uiFence == 0 && pRes->NextFrame <= SK_GetFramesDrawn () - 5)
       {
         auto &[pFence, uiFenceVal, ulNextFrame] =
           _downstreamFence [pRes->pDev];
@@ -1118,8 +1166,14 @@ SK_D3D12_WriteResources (void)
         }
       }
 
-      if (pRes->uiFence > 0 && pRes->pFence->GetCompletedValue () >= pRes->uiFence)
+      if ( pRes->uiFence                      > 0 &&
+           pRes->pFence->GetCompletedValue () >= pRes->uiFence)
       {
+        UINT size   = 1;
+        bool ignore = true;
+
+        pRes->pReal->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
+
         DirectX::ScratchImage image;
 
         // NOTE: If a texture is loaded, unloaded and later reloaded, then
@@ -1128,12 +1182,9 @@ SK_D3D12_WriteResources (void)
                       config.textures.dump_on_load) &&
                                                     pRes->pCmdQueue != nullptr
              && SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
-                                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-                                                      D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)) )
+                                                      D3D12_RESOURCE_STATE_COMMON,
+                                                      D3D12_RESOURCE_STATE_COMMON)) )
         {
-          UINT size   = 1;
-          bool ignore = true;
-
           pRes->pReal->SetPrivateData (SKID_D3D12IgnoredTextureCopy, size, &ignore);
 
           uint32_t hash =
@@ -1164,7 +1215,7 @@ SK_D3D12_WriteResources (void)
 
             if ( SUCCEEDED (
               DirectX::LoadFromDDSFile (
-                                  file_to_inject.c_str (), 0x0, 
+                                  file_to_inject.c_str (), 0x0,
                                  nullptr, inject_img ) )
               && SUCCEEDED (
               DirectX::PrepareUpload ( pDev, inject_img.GetImages     (),
@@ -1180,7 +1231,7 @@ SK_D3D12_WriteResources (void)
               //const UINT64 buffer_size =
               //  GetRequiredIntermediateSize ( pRes->pReal, 0, 1 );
               //    //static_cast <unsigned int> ( upload.subresources.size () ) );
-              
+
               {
                 UINT width  = static_cast <UINT> (inject_img.GetMetadata ().width);
                 UINT height = static_cast <UINT> (inject_img.GetMetadata ().height);
@@ -1212,9 +1263,37 @@ SK_D3D12_WriteResources (void)
                   D3D12_RESOURCE_DESC
                     desc                       = { };
 
-                  UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
-                                              & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
-                  UINT uploadSize  = height * uploadPitch;
+                  D3D12_RESOURCE_DESC textureDesc {};
+                  textureDesc.Format             = inject_img.GetMetadata ().format;
+                  textureDesc.Width              = (uint32)inject_img.GetMetadata ().width;
+                  textureDesc.Height             = (uint32)inject_img.GetMetadata ().height;
+                  textureDesc.Flags              = D3D12_RESOURCE_FLAG_NONE;
+                  textureDesc.DepthOrArraySize   = 1;
+                  textureDesc.MipLevels          = 1;//(uint16)textureMetaData.mipLevels;
+                  textureDesc.SampleDesc.Count   = 1;
+                  textureDesc.SampleDesc.Quality = 0;
+                  textureDesc.Dimension          = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+                  textureDesc.Layout             = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+                  textureDesc.Alignment          = 0;
+
+                  UINT64 uploadSize = 0;
+                  UINT   numRows;
+                  UINT64 rowSizesInBytes;
+                  D3D12_PLACED_SUBRESOURCE_FOOTPRINT layouts;
+                  const uint64 numSubResources = 1;
+
+                  pDev->GetCopyableFootprints ( &textureDesc,     0,
+                                         (uint32)numSubResources, 0,
+                                                &layouts,
+                                                &numRows,
+                                                   &rowSizesInBytes,
+                                                &uploadSize );
+
+                  UINT uploadPitch = upload.subresources [0].RowPitch;
+                //UINT uploadSize  = upload.subresources [0].SlicePitch;
+                  ////UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                  ////                            & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+                  ////UINT uploadSize  = height * uploadPitch;
 
                     desc.Dimension             = D3D12_RESOURCE_DIMENSION_BUFFER;
                     desc.Alignment             = 0;
@@ -1247,9 +1326,9 @@ SK_D3D12_WriteResources (void)
 
                   for ( UINT y = 0; y < height; y++ )
                   {
-                    memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
-                    inject_img.GetImage (0,0,0)->pixels  + y * width * 4U,
-                                                               width * 4U );
+                    memcpy ( (void*) ((uintptr_t) mapped    + y * uploadPitch),
+                        inject_img.GetImage (0,0,0)->pixels + y *
+                        inject_img.GetImage (0,0,0)->rowPitch, rowSizesInBytes );
                   }
 
                   uploadBuffer->Unmap (0, &range);
@@ -1566,6 +1645,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
                              D3D12Device_CreateGraphicsPipelineState_Detour,
                    (void **)&D3D12Device_CreateGraphicsPipelineState_Original );
 
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateShaderResourceView",
+                           *(void ***)*(&pDev12), 18,
+                            D3D12Device_CreateShaderResourceView_Detour,
+                  (void **)&D3D12Device_CreateShaderResourceView_Original );
+
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateRenderTargetView",
                            *(void ***)*(&pDev12), 20,
                             D3D12Device_CreateRenderTargetView_Detour,
@@ -1579,12 +1663,12 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   //                         *(void ***)*(&pDev12), 25,
   //                          D3D12Device_GetResourceAllocationInfo_Detour,
   //                (void **)&D3D12Device_GetResourceAllocationInfo_Original );
-  
+
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommittedResource",
                            *(void ***)*(&pDev12), 27,
                             D3D12Device_CreateCommittedResource_Detour,
                   (void **)&D3D12Device_CreateCommittedResource_Original );
-  
+
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreatePlacedResource",
                            *(void ***)*(&pDev12), 29,
                             D3D12Device_CreatePlacedResource_Detour,
@@ -1617,7 +1701,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // 35 Evict
   // 36 CreateFence
   // 37 GetDeviceRemovedReason
-  // 38 GetCopyableFootprints 
+  // 38 GetCopyableFootprints
   // 39 CreateQueryHeap
   // 40 SetStablePowerState
   // 41 CreateCommandSignature
@@ -1743,7 +1827,7 @@ D3D12CreateDevice_Detour (
     // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
     if ( iver >= 3 )
     {
-      SK::DXGI::StartBudgetThread ( (IDXGIAdapter **)&pAdapter );
+      SK_RunOnce (SK::DXGI::StartBudgetThread ( (IDXGIAdapter **)&pAdapter ));
     }
   }
 
@@ -1774,10 +1858,8 @@ D3D12CreateDevice_Detour (
         //  (IUnknown *)*ppDevice;
       //}
 
-      SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
-      SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
-
-      SK_ApplyQueuedHooks ();
+      SK_RunOnce (SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice));
+      SK_RunOnce (SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice));
     }
   }
 
@@ -1792,15 +1874,15 @@ SK_D3D12_HookDeviceCreation (void)
     return    hooked;
 
   if ( MH_OK ==
-         SK_CreateDLLHook2 ( L"d3d12.dll",
-                              "D3D12CreateDevice",
-                               D3D12CreateDevice_Detour,
-                    (LPVOID *)&D3D12CreateDevice_Import,
-                           &pfnD3D12CreateDevice )
+         SK_CreateDLLHook ( L"d3d12.dll",
+                             "D3D12CreateDevice",
+                              D3D12CreateDevice_Detour,
+                   (LPVOID *)&D3D12CreateDevice_Import,
+                          &pfnD3D12CreateDevice )
      )
   {
     std::exchange (hooked, true);
-    
+
     InterlockedIncrement (&__d3d12_ready);
   }
 

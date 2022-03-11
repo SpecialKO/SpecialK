@@ -56,8 +56,6 @@ SK_D3D12_Init (void)
   {
     if (SK_D3D12_HookDeviceCreation ())
     {
-      SK_ApplyQueuedHooks ();
-
       return true;
     }
   }

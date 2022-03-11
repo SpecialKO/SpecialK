@@ -951,33 +951,36 @@ D3D12GraphicsCommandList_SetPipelineState_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  // We do not actually care what this is, only that it exists.
-  UINT size_ = DxilContainerHashSize;
-
-  if ( FAILED ( pPipelineState->GetPrivateData (
-                  SKID_D3D12KnownVtxShaderDigest,
-                                          &size_, nullptr ) ) )
+  if (pPipelineState != nullptr)
   {
-    SK_ComPtr <ID3D12Device>               pDevice;
-    if ( SUCCEEDED (
-           This->GetDevice (IID_PPV_ARGS (&pDevice.p))) )
-    { SK_D3D12_AddMissingPipelineState (   pDevice.p, pPipelineState ); }
+    // We do not actually care what this is, only that it exists.
+    UINT size_ = DxilContainerHashSize;
+
+    if ( FAILED ( pPipelineState->GetPrivateData (
+                    SKID_D3D12KnownVtxShaderDigest,
+                                            &size_, nullptr ) ) )
+    {
+      SK_ComPtr <ID3D12Device>               pDevice;
+      if ( SUCCEEDED (
+             This->GetDevice (IID_PPV_ARGS (&pDevice.p))) )
+      { SK_D3D12_AddMissingPipelineState (   pDevice.p, pPipelineState ); }
+    }
+
+    UINT64 current_frame =
+      SK_GetFramesDrawn ();
+
+    pPipelineState->SetPrivateData (
+      SKID_D3D12LastFrameUsed, sizeof (current_frame),
+                                      &current_frame );
+
+    UINT size    = sizeof (bool);
+    bool disable = false;
+
+    pPipelineState->GetPrivateData (
+      SKID_D3D12DisablePipelineState, &size, &disable );
+              This->SetPrivateData (
+      SKID_D3D12DisablePipelineState,  size, &disable );
   }
-
-  UINT64 current_frame =
-    SK_GetFramesDrawn ();
-
-  pPipelineState->SetPrivateData (
-    SKID_D3D12LastFrameUsed, sizeof (current_frame),
-                                    &current_frame );
-
-  UINT size    = sizeof (bool);
-  bool disable = false;
-
-  pPipelineState->GetPrivateData (
-    SKID_D3D12DisablePipelineState, &size, &disable );
-            This->SetPrivateData (
-    SKID_D3D12DisablePipelineState,  size, &disable );
 
   D3D12GraphicsCommandList_SetPipelineState_Original ( This,
                                                         pPipelineState );
@@ -1153,6 +1156,8 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                                D3D12GraphicsCommandList_ExecuteIndirect_Detour,
                      (void **)&D3D12GraphicsCommandList_ExecuteIndirect_Original );
   }
+
+  SK_ApplyQueuedHooks ();
 }
 
 
@@ -1204,7 +1209,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       pDst->SubresourceIndex             == 0 &&
       pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr && 
                                     DstX == 0 &&
-                                    DstY == 0 )
+                                    DstY == 0 && DstZ == 0 )
   {
     UINT size   = 1U;
     bool ignore = false;
@@ -1297,8 +1302,6 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
                             *(void***)*(&pCmdList), 16,
                                D3D12GraphicsCommandList_CopyTextureRegion_Detour,
                      (void **)&D3D12GraphicsCommandList_CopyTextureRegion_Original );
-
-    SK_ApplyQueuedHooks ();
   }
 }
 /// --------------- UGLY COMPAT HACK ----------------------
@@ -1476,7 +1479,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   extern void SK_D3D12_WriteResources (void);
               SK_D3D12_WriteResources ();
-
+  
   SK_D3D12_CommitUploadQueue (pCommandList);
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
@@ -1501,7 +1504,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     stagingFrame.fence.value =
       sync_value;
   }
-
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
 }
