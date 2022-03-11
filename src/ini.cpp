@@ -1264,19 +1264,35 @@ iSK_INI::write (const wchar_t* fname)
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
     {
-      outbuf +=
-        std::format ( L"[{}]\n", section.name );
-
-      for ( auto& key_it : section.ordered_keys )
+      try
       {
-        const std::wstring& val =
-          section.get_value (key_it);
+        std::wstring section_str;
+                     section_str.reserve (4096);
 
-        outbuf +=
-          std::format ( L"{}={}\n", key_it, val );
+        section_str +=
+          std::format ( L"[{}]\n", section.name );
+
+        for ( auto& key_it : section.ordered_keys )
+        {
+          const std::wstring& val =
+            section.get_value (key_it);
+
+          section_str +=
+            std::format ( L"{}={}\n", key_it, val );
+        }
+
+        section_str += L"\n";
+        outbuf      += section_str;
       }
 
-      outbuf += L"\n";
+      catch (const std::exception& e)
+      {
+        // Not logged using std::format, because that would be silly
+        SK_LOG0 ( ( L"std::format (...) exception: %hs",
+                        e.what () ),
+                    L"   {fmt}  " );
+                   
+      }
     }
   }
 

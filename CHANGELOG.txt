@@ -1,4 +1,8 @@
-﻿22.3.7.1-NOCEGUI
+﻿22.3.11-NOCEGUI
+===============
+ + Added support for HDR override in Guardians of the Galaxy and Forza Horizon 5
+
+22.3.7.1-NOCEGUI
 ================
  + Removed Restart option from File menu if Global Injection is not active
  + Changed ] and [ keybinds in D3D9 mod tools window to behave like D3D111

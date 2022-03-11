@@ -27,6 +27,9 @@
 #include <imgui/font_awesome.h>
 #include <algorithm>
 
+#define __cpp_lib_format
+#include <format>
+
 struct address_cache_s {
   std::unordered_map <std::string, uintptr_t> cached;
 };
@@ -271,19 +274,25 @@ SK_ER_PlugInCfg (void)
            ImGui::TreeNode ("Recently Used Shaders")
          )
       {
-        std::string name (" ", MAX_PATH + 1);
-
         static auto constexpr _RECENT_USE_THRESHOLD = 30;
         static auto constexpr _ACTIVE_THRESHOLD     = 300;
 
         static constexpr GUID SKID_D3D12DisablePipelineState =
           { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
 
-        ImGui::BeginGroup ();
+        static constexpr GUID SKID_D3D12KnownVtxShaderDigest =
+          { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x00 } };
+
+        static constexpr GUID SKID_D3D12KnownPixShaderDigest =
+          { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x01 } };
+
+        static auto constexpr   DxilContainerHashSize  = 16;
+        std::multimap <uint32_t, ID3D12PipelineState *> shaders;
+
         extern
           concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
-                                 _vertexShaders;
-        for ( auto &[ps, live] : _vertexShaders )
+                                 _pixelShaders;
+        for ( auto &[ps, live] : _pixelShaders )
         {
           if (! live) continue;
 
@@ -292,60 +301,107 @@ SK_ER_PlugInCfg (void)
 
           ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
 
-          if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
+        //if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
 
-               size    = 1;
-          bool disable = false;
+                  size =  DxilContainerHashSize;
+          uint8_t digest [DxilContainerHashSize];
 
-          if ( FAILED ( ps->GetPrivateData (
+          ps->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
+
+          shaders.emplace (
+            crc32c (0x0, digest, 16), ps
+          );
+        }
+
+        std::string name (" ", MAX_PATH + 1);
+
+        ImGui::BeginGroup ();
+        extern
+          concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
+                                 _pixelShaders;
+
+        for ( const auto &[bucket, dump] : shaders )
+        {
+          bool   disable = false;
+          UINT   size    = sizeof (bool);
+
+          if ( FAILED ( dump->GetPrivateData (
                           SKID_D3D12DisablePipelineState, &size, &disable
              )        )                    ) {             size=1;disable=false; }
 
           bool enable =
             (! disable);
 
-          ImGui::PushID ((int)(intptr_t)ps);
+          ImGui::PushID ((int)(intptr_t)dump);
 
-          if (ImGui::Checkbox (" Vertex::", &enable))
+          auto range =
+            shaders.equal_range (bucket);
+
+          if (ImGui::Checkbox (" Pixel::", &enable))
           {
             disable =
               (! enable);
 
-            ps->SetPrivateData (SKID_D3D12DisablePipelineState, size, &disable);
+            for ( auto it = range.first ; it != range.second ; ++it )
+            {
+              it->second->SetPrivateData (
+                SKID_D3D12DisablePipelineState, size, &disable
+              );
+            }
+          }
+          
+                  size =  DxilContainerHashSize;
+          uint8_t digest [DxilContainerHashSize];
+
+            dump->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
+
+            std::string out =
+              std::format ("{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}"
+                           "{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}",
+                             digest[ 0],digest[ 1],digest[ 2],digest[ 3],
+                             digest[ 4],digest[ 5],digest[ 6],digest[ 7],
+                             digest[ 8],digest[ 9],digest[10],digest[11],
+                             digest[12],digest[13],digest[14],digest[15]);
+
+          if (ImGui::IsItemClicked (1))
+          {
+            SK_LOG0 ( ( L"%hs", out.c_str () ), L"   DXGI   " );
           }
 
-          ImGui::PopID  ();
+          ImGui::SameLine ();
+          ImGui::Text     ("  %hs", out.c_str ());
+          ImGui::PopID    ();
         }
         ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
-
-        for ( auto &[ps, live] : _vertexShaders )
-        {
-          if (! live) continue;
-
-          UINT   size      = 8UL;
-          UINT64 lastFrame = 0ULL;
-
-          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
-
-          if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
-
-          *name.data () = '\0';
-
-          if ( UINT                                               uiStrLen = MAX_PATH ;
-        FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
-             ) ) { *name.data () = '\0'; }
-          
-          ImGui::PushID ((int)(intptr_t)ps);
-
-          if (ImGui::InputText (SK_FormatString ("  %08x", ps).c_str (),
-                                                          name.data  (), MAX_PATH))
-            SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
-
-          ImGui::PopID  ();
-        }
-        ImGui::EndGroup ();
+        //ImGui::SameLine   ();
+        //ImGui::BeginGroup ();
+        //
+        //for ( auto &[ps, live] : _vertexShaders )
+        //{
+        //  if (! live) continue;
+        //
+        //  UINT   size      = 8UL;
+        //  UINT64 lastFrame = 0ULL;
+        //
+        //  ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
+        //
+        //  if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
+        //
+        //  *name.data () = '\0';
+        //
+        //  if ( UINT                                               uiStrLen = MAX_PATH ;
+        //FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
+        //     ) ) { *name.data () = '\0'; }
+        //  
+        //  ImGui::PushID ((int)(intptr_t)ps);
+        //
+        //  if (ImGui::InputText (SK_FormatString ("  %08x", ps).c_str (),
+        //                                                  name.data  (), MAX_PATH))
+        //    SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
+        //
+        //  ImGui::PopID ();
+        //}
+        //ImGui::EndGroup ();
 
         ImGui::Separator ();
 

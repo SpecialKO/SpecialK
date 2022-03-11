@@ -5,8 +5,12 @@
 
 struct PS_INPUT
 {
-  float4 pos : SV_POSITION;
-  float2 uv  : TEXCOORD0;
+  //float4 pos : SV_POSITION;
+  //float2 uv  : TEXCOORD0;
+  float4 pos      : SV_POSITION;
+  float4 color    : COLOR0;
+  float2 uv       : TEXCOORD0;
+  float2 coverage : TEXCOORD1;
 };
 
 sampler   Sampler     : register (s0);

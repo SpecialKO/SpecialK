@@ -881,6 +881,8 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
+  try
+  {
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -3894,6 +3896,15 @@ auto DeclKeybind =
   }
 
   return (! empty);
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"Exception %hs during INI Parse", e.what () ),
+                L"  Config  " );
+  }
+
+  return false;
 }
 
 void
@@ -5307,60 +5318,69 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
   if (app_cache_db == nullptr)
     return false;
 
-  if (StrStrIW (wszFullPath, LR"(SteamApps\common\)") == nullptr)
-      return false;
-
-  iSK_INISection& rev_map =
-    app_cache_db->get_section (L"AppID_Cache.RevMap");
-  iSK_INISection& fwd_map =
-    app_cache_db->get_section (L"AppID_Cache.FwdMap");
-  iSK_INISection& name_map =
-    app_cache_db->get_section (L"AppID_Cache.Names");
-
-
-  std::wstring wszRelativeCopy (
-    std::wstring (wszFullPath) + L'\0'
-                               );
-
-  const wchar_t* wszRelPath =
+  try
   {
-    CharNextW (
-      StrStrIW (
-        CharNextW (
-          StrStrIW (
-            StrStrIW ( wszRelativeCopy.data (),
-                                         LR"(SteamApps\common\)" ),
-                                         LR"(\)"  )
-                  ),                     LR"(\)"
-               )
-              )
-  };
+    if (StrStrIW (wszFullPath, LR"(SteamApps\common\)") == nullptr)
+        return false;
 
-  wchar_t         wszAppID [32] = { };
-  std::format_to (wszAppID, L"{:0}", uiAppID);
-
-  if (fwd_map.contains_key (wszRelPath))
-    fwd_map.get_value      (wszRelPath) = wszAppID;
-  else
-    fwd_map.add_key_value  (wszRelPath,   wszAppID);
+    iSK_INISection& rev_map =
+      app_cache_db->get_section (L"AppID_Cache.RevMap");
+    iSK_INISection& fwd_map =
+      app_cache_db->get_section (L"AppID_Cache.FwdMap");
+    iSK_INISection& name_map =
+      app_cache_db->get_section (L"AppID_Cache.Names");
 
 
-  if (rev_map.contains_key (wszAppID))
-    rev_map.get_value      (wszAppID) = wszRelPath;
-  else
-    rev_map.add_key_value  (wszAppID,   wszRelPath);
+    std::wstring wszRelativeCopy (
+      std::wstring (wszFullPath) + L'\0'
+                                 );
+
+    const wchar_t* wszRelPath =
+    {
+      CharNextW (
+        StrStrIW (
+          CharNextW (
+            StrStrIW (
+              StrStrIW ( wszRelativeCopy.data (),
+                                           LR"(SteamApps\common\)" ),
+                                           LR"(\)"  )
+                    ),                     LR"(\)"
+                 )
+                )
+    };
+
+    wchar_t         wszAppID [32] = { };
+    std::format_to (wszAppID, L"{:0}", uiAppID);
+
+    if (fwd_map.contains_key (wszRelPath))
+      fwd_map.get_value      (wszRelPath) = wszAppID;
+    else
+      fwd_map.add_key_value  (wszRelPath,   wszAppID);
 
 
-  if (name_map.contains_key (wszAppID))
-    name_map.get_value      (wszAppID) = wszAppName;
-  else
-    name_map.add_key_value  (wszAppID,   wszAppName);
+    if (rev_map.contains_key (wszAppID))
+      rev_map.get_value      (wszAppID) = wszRelPath;
+    else
+      rev_map.add_key_value  (wszAppID,   wszRelPath);
 
 
-  app_cache_db->write ();
+    if (name_map.contains_key (wszAppID))
+      name_map.get_value      (wszAppID) = wszAppName;
+    else
+      name_map.add_key_value  (wszAppID,   wszAppName);
 
+    app_cache_db->write ();
 
-  return true;
+    return true;
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"Exception: %hs during addApptoCache (...)", e.what () ),
+                L"  Config  " );
+  }
+
+  return false;
 }
 
 bool

@@ -1485,6 +1485,8 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+ try
+ {
   // If Global Injection Delay, block initialization thread until the delay period ends
   if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
   {
@@ -1998,6 +2000,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   }
 
   return true;
+ }
+ catch (const std::exception& e)
+ {
+   SK_LOG0 ( ( L"Exception '%hs' during StartupCore (...)", e.what () ),
+               L" SpecialK " );
+   return false;
+ }
 }
 
 

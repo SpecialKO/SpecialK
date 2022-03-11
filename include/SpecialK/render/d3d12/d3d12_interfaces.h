@@ -476,12 +476,14 @@ struct SK_D3D12_RenderCtx {
   SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
 
   SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
+  SK_ComPtr <ID3D12PipelineState>         pHDRCopyPipeline  = nullptr;
   SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
 
   struct {
     SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers      = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist   = nullptr;
   } descriptorHeaps;
 
 	struct FrameCtx {
@@ -507,6 +509,8 @@ struct SK_D3D12_RenderCtx {
       SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
       D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU = { 0 };
       D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU = { 0 };
+      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU   =  { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU   =  { 0 };
       D3D12_RECT                          scissor           = {     };
       D3D12_VIEWPORT                      vp                = {     };
 

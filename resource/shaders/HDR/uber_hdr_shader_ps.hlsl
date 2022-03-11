@@ -62,6 +62,7 @@ float3 gain (float3 x, float k)
 #define TONEMAP_ACES_FILMIC           1
 #define TONEMAP_HDR10_to_scRGB        2
 #define TONEMAP_HDR10_to_scRGB_FILMIC 3
+#define TONEMAP_COPYRESOURCE          255
 
 
 float3
@@ -1763,6 +1764,15 @@ XYZtosRGB (float3 color)
 
 float4 main (PS_INPUT input) : SV_TARGET
 {
+  if (uiToneMapper == TONEMAP_COPYRESOURCE)
+  {
+    return
+      float4 (
+        texMainScene.Sample ( sampler0,
+                                input.uv ).rgb, 1.0f
+      );
+  }
+
   input.color.x -= hdrLuminance_Min / 80.0f;
 
   bool bIsHDR10 = false;

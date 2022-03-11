@@ -721,8 +721,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
            desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
       {
-        if (                       pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-            DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS)
+        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+             DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
         {
           SK_LOG_FIRST_CALL
 
@@ -765,8 +765,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
     if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
          desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if (                       pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-          DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS)
+      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+           DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
       {
         SK_LOG_FIRST_CALL
 
