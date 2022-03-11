@@ -990,7 +990,7 @@ D3D12GraphicsCommandList_SetPipelineState_Detour (
 
 
 using D3D12GraphicsCommandList_DrawInstanced_pfn = void
-(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*, 
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
                        UINT,UINT,UINT,UINT );
       D3D12GraphicsCommandList_DrawInstanced_pfn
       D3D12GraphicsCommandList_DrawInstanced_Original = nullptr;
@@ -1145,7 +1145,7 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   // 52 BeginQuery
   // 53 EndQuery
   // 54 ResolveQueryData
-  // 55 SetPredication        
+  // 55 SetPredication
   // 56 SetMarker
   // 57 BeginEvent
   // 58 EndEvent
@@ -1173,7 +1173,7 @@ using D3D12GraphicsCommandList_CopyTextureRegion_pfn = void
       D3D12GraphicsCommandList_CopyTextureRegion_pfn
       D3D12GraphicsCommandList_CopyTextureRegion_Original = nullptr;
 
-using D3D12GraphicsCommandList_CopyResource_pfn = void 
+using D3D12GraphicsCommandList_CopyResource_pfn = void
 (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
                        ID3D12Resource*,ID3D12Resource* );
       D3D12GraphicsCommandList_CopyResource_pfn
@@ -1182,7 +1182,7 @@ using D3D12GraphicsCommandList_CopyResource_pfn = void
 extern bool SK_D3D12_IsTextureInjectionNeeded (void);
 
 // Workaround for Guardians of the Galaxy in HDR
-// 
+//
 void
 STDMETHODCALLTYPE
 D3D12GraphicsCommandList_CopyResource_Detour (
@@ -1232,14 +1232,14 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 
 #if 1
   static bool
-    bUseInjection = 
+    bUseInjection =
       SK_D3D12_IsTextureInjectionNeeded ();
 
   if (                                           bUseInjection &&
       D3D12_RESOURCE_DIMENSION_BUFFER    == src_desc.Dimension &&
-      D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension && 
+      D3D12_RESOURCE_DIMENSION_TEXTURE2D == dst_desc.Dimension &&
       pDst->SubresourceIndex             == 0 &&
-      pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr && 
+      pSrc->SubresourceIndex             == 0 && pSrcBox == nullptr &&
                                     DstX == 0 &&
                                     DstY == 0 && DstZ == 0 )
   {
@@ -1287,7 +1287,8 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       if ( pSwap.p == nullptr ||
            ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
              src_desc.Height == swapDesc.BufferDesc.Height &&
-             src_desc.Format == swapDesc.BufferDesc.Format )
+            (src_desc.Format == swapDesc.BufferDesc.Format ||
+             dst_desc.Format == swapDesc.BufferDesc.Format) )
          )
       {
         if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER &&
@@ -1311,6 +1312,13 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
                DirectX::BitsPerPixel (src_desc.Format) !=
                DirectX::BitsPerPixel (dst_desc.Format) )
           {
+            // We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
+            if (dst_desc.Format == swapDesc.BufferDesc.Format)
+            {
+              extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
+                          SK_D3D12_HDR_CopyBuffer (This, pDst->pResource);
+            }
+
             InterlockedIncrement (&lFormatSkips);
 
             return;
@@ -1415,18 +1423,17 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
   // pRenderOutput is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
 //pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
 //                                                      stagingFrame.     pRenderOutput.p             );
-  SK_D3D12_StateTransition barriers [2] = {
-    stagingFrame.hdr.barriers.process [1],
-    stagingFrame.hdr.barriers.process [1]
-  };
-
-  barriers [0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-  barriers [0].Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
-  barriers [0].Transition.pResource   = pResource;
-
-  barriers [1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-  barriers [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
-  barriers [1].Transition.pResource   = pResource;
+//SK_D3D12_StateTransition barriers [2] = {
+//  stagingFrame.hdr.barriers.process [1],
+//  stagingFrame.hdr.barriers.process [1]
+//};
+//
+//barriers [0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+//barriers [0].Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
+//barriers [0].Transition.pResource   = pResource;
+//barriers [1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+//barriers [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
+//barriers [1].Transition.pResource   = pResource;
 
 //pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
   pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
@@ -1610,7 +1617,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   extern void SK_D3D12_WriteResources (void);
               SK_D3D12_WriteResources ();
-  
+
   SK_D3D12_CommitUploadQueue (pCommandList);
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
