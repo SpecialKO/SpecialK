@@ -1,4 +1,12 @@
-﻿22.3.18-NOCEGUI
+﻿22.3.18.1-NOCEGUI
+=================
+ + Elden Ring DualShock 4 controller users should open SK's control panel and
+     re-enable PS buttons.
+     
+    >> This will delete the old texture and download the correct new one.
+
+
+22.3.18-NOCEGUI
 ===============
  + Updated Elden Ring plug-in with new button texture hash and game speed code
  + Restored normal HDR Peak Luminance behavior for scRGB / ACES Filmic tonemaps

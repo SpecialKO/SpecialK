@@ -482,8 +482,14 @@ SK_ER_PlugInCfg (void)
       static std::error_code                    ec = { };
       static std::filesystem::path pathPlayStation =
         SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_0041d76d.dds";
-           //L"d3d12_sk0_crc32c_ae7c1bb2.dds"; // Hash changed in 1.3.0
+          /  L"d3d12_sk0_crc32c_0041d76d.dds",
+                                   pathPlayStation_Old =
+        SK_Resource_GetRoot () / LR"(inject/textures)"
+          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds"; // Hash changed in 1.3.0
+
+      // Remove the old texture mod, since there's extra overhead until they all load
+      if (std::filesystem::exists (pathPlayStation_Old, ec))
+          std::filesystem::remove (pathPlayStation_Old, ec);
 
       static bool                   bPlayStation_AtStart =
         std::filesystem::exists (pathPlayStation, ec),
