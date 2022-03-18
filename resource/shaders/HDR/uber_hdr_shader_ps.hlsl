@@ -1900,9 +1900,10 @@ float4 main (PS_INPUT input) : SV_TARGET
   float fLuma =
     Luminance (hdr_color.rgb);
 
-  hdr_color.rgb *=
-    (                            hdrPaperWhite/*+
-      fLuma * (input.color.xxx - hdrPaperWhite)*/);
+  hdr_color.rgb *= uiToneMapper != TONEMAP_HDR10_to_scRGB ?
+    (                            hdrPaperWhite +
+      fLuma * (input.color.xxx - hdrPaperWhite) )         :
+                                 hdrPaperWhite;
 
   hdr_color.rgb += hdrLuminance_Min / 80.0f;
 
@@ -2022,22 +2023,6 @@ float4 main (PS_INPUT input) : SV_TARGET
     float fUserTarget =
       ( input.color.x / 0.0125 );
 
-    // Closest appropriate published ref. val
-    ///if (fUserTarget >= 1999.0f)
-    ///  _fSDRTarget = 343.0f;
-    ///else if (fUserTarget >= 1499.0f)
-    ///  _fSDRTarget = 276.0f;
-    ///else if (fUserTarget >= 999.0f)
-    ///  _fSDRTarget = 203.0f;
-    ///else if (fUserTarget >= 799.0f)
-    ///  _fSDRTarget = 172.0f;
-    ///else if (fUserTarget >= 599.0f)
-    ///  _fSDRTarget = 138.0f;
-    ///else if (fUserTarget >= 399.0f)
-    ///  _fSDRTarget = 101.0f;
-    ///else
-    ///  _fSDRTarget = 80.0f; // This ain't HDR!
-
     _fSDRTarget = fUserTarget / 18.0;
 
     if (fLuma * 80.0 <= _fSDRTarget)
@@ -2054,19 +2039,6 @@ float4 main (PS_INPUT input) : SV_TARGET
         fDivisor = (  hdrLuminance_MaxAvg - _fSDRTarget) / 80.0; break;
       case VISUALIZE_LOCAL_LUMA:
         fDivisor = (hdrLuminance_MaxLocal - _fSDRTarget) / 80.0; break;
-      //case VISUALIZE_HDR400_LUMA:
-      //  fDivisor =                 (400.0 - _fSDRTarget) / 80.0; break;
-      //case VISUALIZE_HDR500_LUMA:
-      //  fDivisor =                 (500.0 - _fSDRTarget) / 80.0; break;
-      //case VISUALIZE_HDR600_LUMA:
-      //  fDivisor =                 (600.0 - _fSDRTarget) / 80.0; break;
-      //case VISUALIZE_HDR1000_LUMA:
-      //  fDivisor =                (1000.0 - _fSDRTarget) / 80.0; break;
-      //case VISUALIZE_HDR1400_LUMA:
-      //  fDivisor =                (1400.0 - _fSDRTarget) / 80.0; break;
-
-      //case VISUALIZE_DOLBY_LUMA: // Dolby Vision 10,000 nits
-      //  fDivisor =               (10000.0 - _fSDRTarget) / 80.0; break;
     };
 
     if (visualFunc.x == VISUALIZE_EXPOSURE)
@@ -2120,9 +2092,6 @@ float4 main (PS_INPUT input) : SV_TARGET
 
       return float4 (vDist.rgb, 1.0f);
     }
-    //return float4 (colormap (1.0f).rgb * 125.0f, 1.0f);
-
-    //luma /= fDivisor;
 
     const float fLumaMaxAvg =
       hdrLuminance_MaxAvg   / 80.0;

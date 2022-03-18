@@ -981,7 +981,8 @@ D3D12GraphicsCommandList_SetPipelineState_Detour (
     pPipelineState->GetPrivateData (
       SKID_D3D12DisablePipelineState, &size, &disable );
               This->SetPrivateData (
-      SKID_D3D12DisablePipelineState,  size, &disable );
+      SKID_D3D12DisablePipelineState,  sizeof (bool),
+                                             &disable );
   }
 
   D3D12GraphicsCommandList_SetPipelineState_Original ( This,
@@ -1200,8 +1201,26 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     {
       if (src_desc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       {
-        extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
-                    SK_D3D12_HDR_CopyBuffer (This, pSrcResource);
+        if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
+        {
+          SK_ComQIPtr <IDXGISwapChain>
+              pSwap (  SK_GetCurrentRenderBackend ().swapchain  );
+          DXGI_SWAP_CHAIN_DESC swapDesc = { };
+          if (pSwap)
+              pSwap->GetDesc (&swapDesc);
+
+          if ( pSwap.p == nullptr ||
+               ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
+                 src_desc.Height == swapDesc.BufferDesc.Height &&
+                (src_desc.Format == swapDesc.BufferDesc.Format ||
+                 dst_desc.Format == swapDesc.BufferDesc.Format) )
+             )
+          {
+            // We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
+            extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
+                        SK_D3D12_HDR_CopyBuffer (This, pSrcResource);
+          }
+        }
 
         return;
       }
@@ -1299,7 +1318,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
           return;
         }
 
-        else if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+        else if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D )
         {
           auto typelessSrc = DirectX::MakeTypeless (src_desc.Format),
                typelessDst = DirectX::MakeTypeless (dst_desc.Format);
@@ -1309,10 +1328,12 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
                DirectX::BitsPerPixel (dst_desc.Format) )
           {
             // We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
-            if (dst_desc.Format == swapDesc.BufferDesc.Format)
+            if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
             {
               extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
-                          SK_D3D12_HDR_CopyBuffer (This, pDst->pResource);
+                          SK_D3D12_HDR_CopyBuffer (This, pSrc->pResource);
+
+              return;
             }
 
             InterlockedIncrement (&lFormatSkips);
@@ -1414,29 +1435,22 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
                                                stagingFrame.hdr.hBufferCopy_CPU
                                              );
 
-  // pRenderOutput is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
-//pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
-//                                                      stagingFrame.     pRenderOutput.p             );
-//SK_D3D12_StateTransition barriers [2] = {
-//  stagingFrame.hdr.barriers.process [1],
-//  stagingFrame.hdr.barriers.process [1]
-//};
-//
-//barriers [0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-//barriers [0].Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
-//barriers [0].Transition.pResource   = pResource;
-//barriers [1].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-//barriers [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
-//barriers [1].Transition.pResource   = pResource;
+  SK_D3D12_StateTransition barriers [] = {
+    { D3D12_RESOURCE_STATE_COPY_DEST,     D3D12_RESOURCE_STATE_RENDER_TARGET },
+    { D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST     }
+  };
 
-//pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
+  barriers [0].Transition.pResource = stagingFrame.pRenderOutput.p;
+  barriers [1].Transition.pResource = stagingFrame.pRenderOutput.p;
+
+  pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
   pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
   pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hBufferCopy_GPU              );
   pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr    );
   pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
   pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
   pCommandList->DrawInstanced                     ( 4, 1, 0, 0                                        );
-//pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
+  pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
 }
 
 void

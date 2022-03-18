@@ -283,10 +283,23 @@ HRESULT
 STDMETHODCALLTYPE
 D3D12Device_CreateGraphicsPipelineState_Detour (
              ID3D12Device                       *This,
-_In_   const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc,
+_In_   const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc_,
              REFIID                              riid,
 _COM_Outptr_ void                              **ppPipelineState )
 {
+  D3D12_GRAPHICS_PIPELINE_STATE_DESC
+    desc_ = *pDesc_;
+       auto *pDesc =
+             &desc_;
+
+//if (pDesc->NumRenderTargets == 1 &&
+//    pDesc->RTVFormats   [0] != DXGI_FORMAT_UNKNOWN )
+//{
+//  if ( DirectX::MakeTypeless (pDesc->RTVFormats [0]) == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
+//       DirectX::MakeTypeless (pDesc->RTVFormats [0]) == DXGI_FORMAT_R10G10B10A2_TYPELESS )
+//                              pDesc->RTVFormats [0]   = DXGI_FORMAT_UNKNOWN;
+//}
+
   HRESULT hrPipelineCreate =
     D3D12Device_CreateGraphicsPipelineState_Original (
       This, pDesc,
@@ -1289,7 +1302,7 @@ SK_D3D12_WriteResources (void)
                                                    &rowSizesInBytes,
                                                 &uploadSize );
 
-                  UINT uploadPitch = upload.subresources [0].RowPitch;
+                  UINT uploadPitch = sk::narrow_cast <UINT> (upload.subresources [0].RowPitch);
                 //UINT uploadSize  = upload.subresources [0].SlicePitch;
                   ////UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
                   ////                            & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
