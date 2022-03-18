@@ -27,9 +27,6 @@
 #include <imgui/font_awesome.h>
 #include <algorithm>
 
-#define __cpp_lib_format
-#include <format>
-
 struct address_cache_s {
   std::unordered_map <std::string, uintptr_t> cached;
 };
@@ -109,9 +106,14 @@ SK_ER_EndFrame (void)
        SK_GetDLLVersionStr (SK_GetHostApp ())
                            ].cached;
 
-  static float* fAddr = addresses.contains ("dt_float") ? 
+  static float* fAddr = addresses.contains ("dt_float") ?
+                        addresses.contains ("write_delta0") ?
+                                     (float *)((uintptr_t)addresses ["dt_float"])
+                                                            :
       (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + addresses ["dt_float"])
                                                         : nullptr;
+
+  SK_RunOnce (fAddr = SK_ValidatePointer (fAddr, true) ? fAddr : nullptr);
 
   if (fAddr != nullptr)
   {
@@ -480,7 +482,8 @@ SK_ER_PlugInCfg (void)
       static std::error_code                    ec = { };
       static std::filesystem::path pathPlayStation =
         SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds";
+          /  L"d3d12_sk0_crc32c_0041d76d.dds";
+           //L"d3d12_sk0_crc32c_ae7c1bb2.dds"; // Hash changed in 1.3.0
 
       static bool                   bPlayStation_AtStart =
         std::filesystem::exists (pathPlayStation, ec),
@@ -592,6 +595,13 @@ SK_ER_InitConfig (void)
           { "clock_tick2", 0x0DFFECD }, { "clock_tick3", 0x0DFFE9F },
           { "clock_tick4", 0x0DFFEB0 }, { "clock_tick5", 0x0DFFEBD },
           { "write_delta", 0x25A9752 }, { "dt_float",    0x3B52E78 } };
+  addresses [L"ELDEN RING™  1.3.1.0"].
+   cached =
+        { { "clock_tick0",  0x0E07F47 }, { "clock_tick1",  0x0E07F63 },
+          { "clock_tick2",  0x0E07F9D }, { "clock_tick3",  0x0E07F6F },
+          { "clock_tick4",  0x0E07F80 }, { "clock_tick5",  0x0E07F8D },
+          { "write_delta0", 0x0D75074 }, { "write_delta1", 0x0D75086 },
+          { "dt_float",     0x014FE38 } };
 
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
@@ -705,6 +715,7 @@ SK_ER_InitPlugin (void)
                               &patch.replacement : &patch.original );
     }
 
+
     if (addr_cache.contains ("write_delta"))
     {
       DWORD dwOldProt = 0x0;
@@ -715,6 +726,26 @@ SK_ER_InitPlugin (void)
       memcpy (        pNOP,  "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
       VirtualProtect (pNOP,   8,              dwOldProt, &dwOldProt);
     }
+
+
+    // Added in 1.3.1.0
+    if (addr_cache.contains ("write_delta0"))
+    {
+      DWORD dwOldProt = 0x0;
+      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta0"];
+    
+      // Disable the code that writes delta time every frame
+      VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
+      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
+      VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
+
+               pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta1"];
+      
+      VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
+      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
+      VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
+    }
+
 
     plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
     plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);

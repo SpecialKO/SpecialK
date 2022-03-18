@@ -334,4 +334,7 @@ extern bool __SK_bypass;
 # define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
 #endif
 
+#define __cpp_lib_format
+#include <format>
+
 #pragma warning ( disable : 4652 )

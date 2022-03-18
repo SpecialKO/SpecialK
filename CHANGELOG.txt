@@ -1,4 +1,9 @@
-﻿22.3.11.3-NOCEGUI
+﻿22.3.18-NOCEGUI
+===============
+ + Updated Elden Ring plug-in with new button texture hash and game speed code
+ + Restored normal HDR Peak Luminance behavior for scRGB / ACES Filmic tonemaps
+
+22.3.11.3-NOCEGUI
 =================
  + Added extra logging for D3D12 SwapChain format issues during ImGui init
 
