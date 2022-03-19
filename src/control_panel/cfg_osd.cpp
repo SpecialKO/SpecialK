@@ -145,14 +145,16 @@ SK::ControlPanel::OSD::Draw (void)
 
       if (config.fps.show)
       {
-        int idx =  config.fps.show + config.fps.frametime + config.fps.advanced - 1;
+        int idx =  config.fps.compact ? 0 :
+                   config.fps.show + config.fps.frametime + config.fps.advanced;
 
         ImGui::SameLine ();
-        ImGui::Combo    ("Details", &idx, "Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 3);
+        ImGui::Combo    ("Details", &idx, "Compact\0Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 4);
 
-             if (idx == 2) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  }
-        else if (idx == 1) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; }
-        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; }
+             if (idx == 3) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  config.fps.compact = false; }
+        else if (idx == 2) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; config.fps.compact = false; }
+        else if (idx == 1) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = false; }
+        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = true;  }
       }
       ImGui::EndGroup   ();
       ImGui::TreePop    ();

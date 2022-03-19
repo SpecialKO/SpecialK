@@ -1,5 +1,6 @@
 ﻿22.3.19-NOCEGUI
 ===============
+ + Added 'Compact' FPS detail mode (see "OSD Settings" / "Basic Monitoring")
  + Cleanup plug-in ABI (missing / incorrectly named DLL exports)
 
 22.3.18.2-NOCEGUI

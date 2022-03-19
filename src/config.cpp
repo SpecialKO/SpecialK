@@ -318,6 +318,7 @@ struct {
     sk::ParameterBool*    show                    = nullptr;
     sk::ParameterBool*    frametime               = nullptr;
     sk::ParameterBool*    advanced                = nullptr;
+    sk::ParameterBool*    compact                 = nullptr;
   } fps;
 
   struct {
@@ -1096,6 +1097,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.fps.show,                    L"Show Framerate Monitoring",                                 osd_ini,         L"Monitor.FPS",           L"Show"),
     ConfigEntry (monitoring.fps.frametime,               L"Show Frametime in Framerate Counter",                       osd_ini,         L"Monitor.FPS",           L"DisplayFrametime"),
     ConfigEntry (monitoring.fps.advanced,                L"Show Advanced Statistics in Framerate Counter",             osd_ini,         L"Monitor.FPS",           L"AdvancedStatistics"),
+    ConfigEntry (monitoring.fps.compact,                 L"Show FRAPS-like ('120') Statistics in Framerate Counter",   osd_ini,         L"Monitor.FPS",           L"CompactStatistics"),
     ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
 
     ConfigEntry (prefer_fahrenheit,                      L"Prefer Fahrenheit Units",                                   osd_ini,         L"SpecialK.OSD",          L"PreferFahrenheit"),
@@ -2771,6 +2773,7 @@ auto DeclKeybind =
   monitoring.fps.show->load      (config.fps.show);
   monitoring.fps.frametime->load (config.fps.frametime);
   monitoring.fps.advanced->load  (config.fps.advanced);
+  monitoring.fps.compact->load   (config.fps.compact);
 
   if (((sk::iParameter *)monitoring.memory.show)->load     () && config.osd.remember_state)
        config.mem.show = monitoring.memory.show->get_value ();
@@ -4151,6 +4154,7 @@ SK_SaveConfig ( std::wstring name,
 //mem_reserve->store                          (config.mem.reserve);
 
   monitoring.fps.show->store                  (config.fps.show);
+  monitoring.fps.compact->store               (config.fps.compact);
   monitoring.fps.advanced->store              (config.fps.advanced);
   monitoring.fps.frametime->store             (config.fps.frametime);
 

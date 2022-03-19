@@ -801,65 +801,74 @@ SK_DrawOSD (void)
         (! plugin_mgr->isTalesOfZestiria) &&
              pLimiter->frame_history2->calcNumSamples () > 0;
 
-      if (! gsync)
+      if (! config.fps.compact)
       {
-        format =
-          ( config.fps.frametime  ?
-              config.fps.advanced ?
-                has_cpu_frametime ?
-                  "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
-                  "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
-                  "  %-7ws:  %#4.01f FPS, %#13.01f ms"                                                                    :
-                  "  %-7ws:  %#4.01f FPS"
-          );
+        if (! gsync)
+        {
+          format =
+            ( config.fps.frametime  ?
+                config.fps.advanced ?
+                  has_cpu_frametime ?
+                    "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                    "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                    "  %-7ws:  %#4.01f FPS, %#13.01f ms"                                                                    :
+                    "  %-7ws:  %#4.01f FPS"
+            );
+        }
+
+        else
+        {
+          format =
+            ( config.fps.frametime ?
+              config.fps.advanced  ?
+                has_cpu_frametime  ?
+                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
+                  "  %-7ws:  %#4.01f FPS (G-Sync)"
+            );
+        }
+
+        if (has_cpu_frametime)
+        {
+          OSD_PRINTF format,
+            rb.name,
+              fps,
+                mean,
+                  sqrt (sd),
+                    min,
+                      max,
+                        hitches,
+                          1000.0 / effective_mean,
+                            effective_mean
+          OSD_END
+        }
+
+        else
+        {
+          OSD_PRINTF format,
+            rb.name,
+              fps,
+                mean,
+                  sqrt (sd),
+                    min,
+                      max,
+                        hitches
+          OSD_END
+        }
+
+        OSD_PRINTF "\n" OSD_END
       }
 
       else
       {
-        format =
-          ( config.fps.frametime ?
-            config.fps.advanced  ?
-              has_cpu_frametime  ?
-                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
-                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
-                "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
-                "  %-7ws:  %#4.01f FPS (G-Sync)"
-          );
-      }
-
-      if (has_cpu_frametime)
-      {
-        OSD_PRINTF format,
-          rb.name,
-            // Cast to FP to avoid integer division by zero.
-            fps,
-              mean,
-                sqrt (sd),
-                  min,
-                    max,
-                      hitches,
-                        1000.0 / effective_mean,
-                          effective_mean
-        OSD_END
-      }
-
-      else
-      {
-        OSD_PRINTF format,
-          rb.name,
-            // Cast to FP to avoid integer division by zero.
-            fps,
-              mean,
-                sqrt (sd),
-                  min,
-                    max,
-                      hitches
+        OSD_PRINTF "%2.0f", fps
         OSD_END
       }
     }
 
     // No Frametime History
-    else
+    else if (! config.fps.compact)
     {
       const char* format = "";
 
@@ -884,9 +893,9 @@ SK_DrawOSD (void)
           // Cast to FP to avoid integer division by zero.
           1000.0f * 0.0f / 1.0f, 0.0f
       OSD_END
-    }
 
-    OSD_PRINTF "\n" OSD_END
+      OSD_PRINTF "\n" OSD_END
+    }
   }
 
   // Poll GPU stats...

@@ -158,6 +158,7 @@ struct sk_config_t
 
   struct fps_osd_s {
     bool   show           = true;
+    bool   compact        = false;
     bool   advanced       = false;
     bool   frametime      = true;
 
