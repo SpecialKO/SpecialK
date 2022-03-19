@@ -98,7 +98,7 @@ HRESULT (WINAPI *)(
 #pragma data_seg (".SK_DXGI_Hooks")
 extern "C"
 {
-#define SK_HookCacheEntryGlobalDll(x) __declspec (dllexport)\
+#define SK_HookCacheEntryGlobalDll(x) SK_API\
                                       SK_HookCacheEntryGlobal (x)
   // Global DLL's cache
   SK_HookCacheEntryGlobalDll (IDXGIFactory_CreateSwapChain)

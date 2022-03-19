@@ -26,6 +26,7 @@
 
 
 #include <SpecialK/com_util.h>
+#include <SpecialK/config.h>
 #include <SpecialK/core.h>
 
 #include <Windows.h>
@@ -1145,10 +1146,10 @@ public:
               //  SK_ComQIPtr <Q> (device);
             }
 
-#ifdef __SK__LOG_H__
-            else
-              SK_LOG0 ( ( L"getDevice Called with Unknown Render Device Class" ), L"COM Helper" );
-#endif
+////#ifdef __SK__LOG_H__
+////            else
+////              SK_LOG0 ( ( L"getDevice Called with Unknown Render Device Class" ), L"COM Helper" );
+////#endif
             else MessageBeep (0xFFFFFFFF);
 
             ///static_assert ( riid == __uuidof (IDirect3DDevice9)   ||
@@ -1236,10 +1237,10 @@ void
 __stdcall
 SK_InitRenderBackends (void);
 
-__declspec (dllexport)
+SK_API
 IUnknown* __stdcall SK_Render_GetDevice (void);
 
-__declspec (dllexport)
+SK_API
 IUnknown* __stdcall SK_Render_GetSwapChain (void);
 
 void SK_BootD3D8   (void);

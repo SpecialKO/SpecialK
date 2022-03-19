@@ -34,6 +34,7 @@
 #include <cstdint>
 #include <cmath>
 #include <numeric>
+#include <limits>
 #include <forward_list>
 
 static constexpr auto

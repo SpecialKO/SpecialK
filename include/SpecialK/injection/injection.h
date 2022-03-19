@@ -115,8 +115,8 @@ struct SK_InjectionRecord_s
     // Others?
   } platform;
 
-  static __declspec (dllexport) volatile LONG count;
-  static __declspec (dllexport) volatile LONG rollovers;
+  static SK_API volatile LONG count;
+  static SK_API volatile LONG rollovers;
 };
 };
 

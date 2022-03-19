@@ -620,9 +620,7 @@ SK_DXTex_GetMetadataFromDDSFile  = GetMetadataFromDDSFile                 PRIVAT
 SK_DXTex_LoadFromDDSFile         = LoadFromDDSFile                        PRIVATE
 SK_DXTex_CreateTexture           = SK_DXTex_CreateTexture                 PRIVATE
 
-SK_Render_GetDevice              = SK_Render_GetDevice PRIVATE
-
-
+;SK_Render_GetDevice              = SK_Render_GetDevice PRIVATE
 
 ;
 ; Exposing stuff in the 400 range is so-so design wise, but the

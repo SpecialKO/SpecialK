@@ -1458,7 +1458,7 @@ using SK_ImGui_ResetCallback_pfn = void (__stdcall *)(void);
 SK_LazyGlobal <std::vector <SK_ComPtr <IUnknown>>>       external_resources;
 SK_LazyGlobal <std::set    <SK_ImGui_ResetCallback_pfn>> reset_callbacks;
 
-__declspec (dllexport)
+SK_API
 void
 __stdcall
 SKX_ImGui_RegisterResource (IUnknown* pRes)
@@ -1467,7 +1467,7 @@ SKX_ImGui_RegisterResource (IUnknown* pRes)
 }
 
 
-__declspec (dllexport)
+SK_API
 void
 __stdcall
 SKX_ImGui_RegisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
@@ -1475,7 +1475,7 @@ SKX_ImGui_RegisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
   reset_callbacks->emplace (pCallback);
 }
 
-__declspec (dllexport)
+SK_API
 void
 __stdcall
 SKX_ImGui_UnregisterResetCallback (SK_ImGui_ResetCallback_pfn pCallback)
@@ -1816,7 +1816,7 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
     if (_pSwapChain.p != nullptr)
         _pSwapChain->GetDesc (&swapDesc);
 
-    SK_LOG0 ( ( L"(-) Releasing D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %ws, HWND=%08xh}",
+    SK_LOG0 ( ( L"(-) Releasing D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                                         _pDevice.p,
                                         swapDesc.BufferCount,
                    SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),

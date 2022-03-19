@@ -1674,7 +1674,7 @@ SK_MinHook_UnInit (void)
             return new_fn
 
 extern "C"
-__declspec (dllexport)
+SK_API
 MH_STATUS
 __stdcall
 SK_UnInit_MinHook (void)
@@ -1683,7 +1683,7 @@ SK_UnInit_MinHook (void)
 }
 
 extern "C"
-__declspec (dllexport)
+SK_API
 MH_STATUS
 __stdcall
 SK_Init_MinHook (void)

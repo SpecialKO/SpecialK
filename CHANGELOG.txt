@@ -1,10 +1,14 @@
-﻿22.3.18.1-NOCEGUI
+﻿22.3.19-NOCEGUI
+===============
+ + Cleanup plug-in ABI (missing / incorrectly named DLL exports)
+
+22.3.18.2-NOCEGUI
 =================
+ + Update game speed memory pattern for Elden Ring 1.3.1
  + Elden Ring DualShock 4 controller users should open SK's control panel and
      re-enable PS buttons.
-     
-    >> This will delete the old texture and download the correct new one.
 
+    >> This will delete the old texture and download the correct new one.
 
 22.3.18-NOCEGUI
 ===============

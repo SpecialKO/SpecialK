@@ -2970,6 +2970,11 @@ bool ImGui::ItemAdd(const ImRect& bb, ImGuiID id, const ImRect* nav_bb_arg)
 // This is roughly matching the behavior of internal-facing ItemHoverable()
 // - we allow hovering to be true when ActiveId==window->MoveID, so that clicking on non-interactive items such as a Text() item still returns true with IsItemHovered()
 // - this should work even for non-interactive items that have no ID, so we cannot use LastItemId
+bool ImGui::IsItemHovered(void)
+{
+  return IsItemHovered (0);
+}
+
 bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
 {
     ImGuiContext& g = *GImGui;
@@ -6042,6 +6047,12 @@ void ImGui::PopTextWrapPos()
     ImGuiWindow* window = GetCurrentWindow();
     window->DC.TextWrapPosStack.pop_back();
     window->DC.TextWrapPos = window->DC.TextWrapPosStack.empty() ? -1.0f : window->DC.TextWrapPosStack.back();
+}
+
+void ImGui::PushStyleColor(ImGuiCol idx, const ImVec4& col)
+{
+  PushStyleColor (idx, ImColor ( col.x, col.y,
+                                 col.z, col.w ));
 }
 
 void ImGui::PushStyleColor(ImGuiCol idx, const ImColor& col)

@@ -6028,7 +6028,7 @@ SK_AppCache_Manager::migrateProfileData (LPVOID)
 }
 
 
-__declspec (dllexport)
+SK_API
 SK_RenderAPI
 __stdcall
 SK_Render_GetAPIHookMask (void)

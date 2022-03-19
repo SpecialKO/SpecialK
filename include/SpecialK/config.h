@@ -1177,7 +1177,7 @@ SK_Resource_GetRoot (void);
 extern bool
 SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel);
 
-extern __declspec (dllexport) void
+extern SK_API void
 __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind);
 

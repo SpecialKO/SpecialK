@@ -82,7 +82,7 @@ SK_Display_UpdateOutputTopology (void);
 
 bool __imgui_alpha = true;
 
-__declspec (dllexport)
+SK_API
 void
 SK_ImGui_Toggle (void);
 
@@ -2371,7 +2371,7 @@ SK_NV_GSYNCControlPanel ()
   }
 }
 
-__declspec (dllexport)
+SK_API
 bool
 SK_ImGui_ControlPanel (void)
 {
@@ -3345,7 +3345,7 @@ SK_ImGui_ControlPanel (void)
        {
          ImGui::MenuItem ( "Special K Bootstrapper",
                              SK_FormatString (
-                               "%s API Wrapper  %s",
+                               "%ws API Wrapper  %s",
                                  SK_GetBackend   (),
                                SK_GetVersionStrA ()
                              ).c_str (), ""
@@ -5885,7 +5885,7 @@ extern/*IMGUI_API*/ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, I
 //
 // Hook this to override Special K's GUI
 //
-__declspec (dllexport)
+SK_API
 DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                               LPVOID lpUser )
@@ -5985,7 +5985,7 @@ extern bool SK_IsRectTooSmall (RECT* lpRect0, RECT* lpRect1);
 extern RECT SK_Input_SaveClipRect    (RECT *pSave = nullptr);
 extern RECT SK_Input_RestoreClipRect (void);
 
-__declspec (dllexport)
+SK_API
 void
 SK_ImGui_Toggle (void)
 {

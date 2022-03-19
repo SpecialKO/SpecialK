@@ -107,9 +107,6 @@ SK_ER_EndFrame (void)
                            ].cached;
 
   static float* fAddr = addresses.contains ("dt_float") ?
-                        addresses.contains ("write_delta0") ?
-                                     (float *)((uintptr_t)addresses ["dt_float"])
-                                                            :
       (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + addresses ["dt_float"])
                                                         : nullptr;
 
@@ -488,8 +485,9 @@ SK_ER_PlugInCfg (void)
           /  L"d3d12_sk0_crc32c_ae7c1bb2.dds"; // Hash changed in 1.3.0
 
       // Remove the old texture mod, since there's extra overhead until they all load
-      if (std::filesystem::exists (pathPlayStation_Old, ec))
-          std::filesystem::remove (pathPlayStation_Old, ec);
+      static bool had_old =
+        std::filesystem::exists (pathPlayStation_Old, ec) ?
+        std::filesystem::remove (pathPlayStation_Old, ec) : false;
 
       static bool                   bPlayStation_AtStart =
         std::filesystem::exists (pathPlayStation, ec),
@@ -606,8 +604,10 @@ SK_ER_InitConfig (void)
         { { "clock_tick0",  0x0E07F47 }, { "clock_tick1",  0x0E07F63 },
           { "clock_tick2",  0x0E07F9D }, { "clock_tick3",  0x0E07F6F },
           { "clock_tick4",  0x0E07F80 }, { "clock_tick5",  0x0E07F8D },
+          { "write_delta",  0x25B2D62 }, { "dt_float",     0x3B63FE8 },
           { "write_delta0", 0x0D75074 }, { "write_delta1", 0x0D75086 },
-          { "dt_float",     0x014FE38 } };
+        //{ "dt_float",    0x014FE38 } };
+        };
 
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
@@ -728,9 +728,9 @@ SK_ER_InitPlugin (void)
       uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta"];
 
       // Disable the code that writes delta time every frame
-      VirtualProtect (pNOP,   8, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (        pNOP,  "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
-      VirtualProtect (pNOP,   8,              dwOldProt, &dwOldProt);
+      VirtualProtect (pNOP,  8, PAGE_EXECUTE_READWRITE, &dwOldProt);
+      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
+      VirtualProtect (pNOP,  8,              dwOldProt, &dwOldProt);
     }
 
 

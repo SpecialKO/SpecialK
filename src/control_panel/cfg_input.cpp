@@ -1405,7 +1405,7 @@ SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
   return ret;
 }
 
-__declspec (dllexport)
+SK_API
 void
 __stdcall
 SK_ImGui_KeybindDialog (SK_Keybind* keybind)
@@ -1475,7 +1475,7 @@ struct SK_GamepadCombo_V0 {
 
 bool SK_ImGui_GamepadComboDialogActive = false;
 
-__declspec (dllexport)
+SK_API
 INT
 __stdcall
 SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)

@@ -906,7 +906,7 @@ mode_change_request_e request_mode_change (mode_change_request_e::None);
 
 
 // Does NOT implicitly AddRef, do NOT hold a reference to this!
-__declspec (dllexport)
+SK_API
 IUnknown*
 __stdcall
 SK_Render_GetDevice (void)
@@ -916,7 +916,7 @@ SK_Render_GetDevice (void)
 }
 
 // Does NOT implicitly AddRef, do NOT hold a reference to this!
-__declspec (dllexport)
+SK_API
 IUnknown*
 __stdcall
 SK_Render_GetSwapChain (void)

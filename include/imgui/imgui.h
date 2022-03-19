@@ -34,6 +34,7 @@ Index of this file:
 #if !defined(IMGUI_DISABLE_INCLUDE_IMCONFIG_H) || defined(IMGUI_INCLUDE_IMCONFIG_H)
 #include "imconfig.h"
 #include <SpecialK/config.h>
+#undef IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #endif
 
 //-----------------------------------------------------------------------------
@@ -320,6 +321,7 @@ namespace ImGui
     IMGUI_API void          PushFont(ImFont* font);                                         // use NULL as a shortcut to push default font
     IMGUI_API void          PopFont();
     IMGUI_API void          PushStyleColor (ImGuiCol idx, const ImColor& col);
+    IMGUI_API void          PushStyleColor (ImGuiCol idx, const ImVec4& col);
     IMGUI_API void          PopStyleColor  (int count = 1);
     IMGUI_API void          PushStyleVar(ImGuiStyleVar idx, float val);
     IMGUI_API void          PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
@@ -627,7 +629,8 @@ namespace ImGui
     // Item/Widgets Utilities
     // - Most of the functions are referring to the last/previous item we submitted.
     // - See Demo Window under "Widgets->Querying Status" for an interactive visualization of most of those functions.
-    IMGUI_API bool          IsItemHovered(ImGuiHoveredFlags flags = 0);                         // is the last item hovered? (and usable, aka not blocked by a popup, etc.). See ImGuiHoveredFlags for more options.
+    IMGUI_API bool          IsItemHovered(void);                                                // is the last item hovered? (and usable, aka not blocked by a popup, etc.). See ImGuiHoveredFlags for more options.
+    IMGUI_API bool          IsItemHovered(ImGuiHoveredFlags flags);                       // is the last item hovered? (and usable, aka not blocked by a popup, etc.). See ImGuiHoveredFlags for more options.
     IMGUI_API bool          IsItemActive();                                                     // is the last item active? (e.g. button being held, text field being edited. This will continuously return true while holding mouse button on an item. Items that don't interact will always return false)
     IMGUI_API bool          IsItemFocused();                                                    // is the last item focused for keyboard/gamepad navigation?
     IMGUI_API bool          IsItemClicked(int mouse_button = 0);                                // is the last item clicked? (e.g. button/node just clicked on) == IsMouseClicked(mouse_button) && IsItemHovered()
@@ -2250,5 +2253,5 @@ protected:
   ImFont* font_ = nullptr;
 };
 
-extern                        void SK_ImGui_LoadFonts (void);
-extern __declspec (dllexport) void SK_ImGui_Toggle    (void);
+extern        void SK_ImGui_LoadFonts (void);
+extern SK_API void SK_ImGui_Toggle    (void);

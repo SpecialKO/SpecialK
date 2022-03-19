@@ -1151,9 +1151,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
               ImGui::BeginGroup ();
               ImGui::Text       ( "%lu",                   refs );
-              ImGui::Text       ( "%ws", SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)         desc.BindFlags).c_str ());
+              ImGui::Text       ( "%hs", SK_D3D11_DescribeBindFlags ((D3D11_BIND_FLAG)         desc.BindFlags).c_str ());
               ImGui::Text       ( multisampled ? "Multi-Sampled (%lux)" : "", desc.SampleDesc.Count); ImGui::SameLine ();
-              ImGui::Text       ( "%ws", SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)desc.MiscFlags).c_str ());
+              ImGui::Text       ( "%hs", SK_D3D11_DescribeMiscFlags ((D3D11_RESOURCE_MISC_FLAG)desc.MiscFlags).c_str ());
               ImGui::EndGroup   (                  );
 
               if (success && pSRV != nullptr)
@@ -1200,8 +1200,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                     ImGui::Text ("%u", desc.SampleDesc.Count);
                     ImGui::Text ("%u", desc.SampleDesc.Quality);
                   }
-                  ImGui::Text (      "%ws", SK_D3D11_DescribeUsage (desc.Usage));
-                  ImGui::Text ("%u (  %ws)", desc.BindFlags,
+                  ImGui::Text (      "%hs", SK_D3D11_DescribeUsage (desc.Usage));
+                  ImGui::Text ("%u (  %hs)", desc.BindFlags,
                                           SK_D3D11_DescribeBindFlags (
                     (D3D11_BIND_FLAG)desc.BindFlags).c_str ());
                   ImGui::Text ("%x", desc.CPUAccessFlags);

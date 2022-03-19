@@ -2238,7 +2238,7 @@ using D3D11On12CreateDevice_pfn =
                        _COM_Outptr_opt_ ID3D11DeviceContext** ppImmediateContext,
                        _Out_opt_        D3D_FEATURE_LEVEL*    pChosenFeatureLevel );
 
-extern "C" __declspec (dllexport) D3D11On12CreateDevice_pfn extern D3D11On12CreateDevice;
+extern "C" SK_API D3D11On12CreateDevice_pfn extern D3D11On12CreateDevice;
 
 
 #define SK_D3D11_DeclKMT(x) extern "C" __declspec (dllexport) extern \
