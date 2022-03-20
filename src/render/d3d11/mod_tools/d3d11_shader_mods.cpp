@@ -494,7 +494,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
     live_rt_view =
-        ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen);
+        ImGui::CollapsingHeader ("Live RenderTarget View", 0x0);//ImGuiTreeNodeFlags_DefaultOpen);
 
     SK_D3D11_KnownTargets::_mod_tool_wants =
         live_rt_view;

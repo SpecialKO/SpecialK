@@ -1,4 +1,8 @@
-﻿22.3.20-NOCEGUI
+﻿22.3.21-NOCPU
+=============
+ + Removed hardware monitoring support from CPU widget
+
+22.3.20-NOCEGUI
 ===============
  + Added support for SKIFsvc{64|32} to install/uninstall WinRing0
  + Added 7.5s timeout for RunDLL-based WinRing0 install
