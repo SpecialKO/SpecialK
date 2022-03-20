@@ -3059,9 +3059,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
   UNREFERENCED_PARAMETER (hwnd);
   UNREFERENCED_PARAMETER (nCmdShow);
 
-  SK_AutoCOMInit auto_com (
-    COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE
-  );
+  SK_AutoCOMInit auto_com;
 
   if (StrStrA (lpszCmdLine, "Install"))
   {
@@ -3116,8 +3114,8 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
       int tries = 0;
 
       do {
-        SK_Sleep (25UL);
-      } while ( tries++ < 32 &&
+        SK_Sleep (15UL);
+      } while ( tries++ < 16 &&
                   INVALID_FILE_ATTRIBUTES != GetFileAttributes (wszHostDLL) );
     }
 
@@ -3138,7 +3136,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       if (ShellExecuteEx (&sexec_info))
       {
-        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        SK_WaitForSingleObject (sexec_info.hProcess, 7500UL);
         SK_CloseHandle         (sexec_info.hProcess);
       }
     }
@@ -3215,7 +3213,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       if (ShellExecuteEx (&sexec_info))
       {
-        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        SK_WaitForSingleObject (sexec_info.hProcess, 7500UL);
         SK_CloseHandle         (sexec_info.hProcess);
       }
 
@@ -3233,7 +3231,7 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
       if (ShellExecuteEx (&sexec_info))
       {
-        SK_WaitForSingleObject (sexec_info.hProcess, INFINITE);
+        SK_WaitForSingleObject (sexec_info.hProcess, 7500UL);
         CloseHandle            (sexec_info.hProcess);
       }
 

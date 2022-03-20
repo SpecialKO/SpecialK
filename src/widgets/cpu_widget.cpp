@@ -466,6 +466,8 @@ SK_WR0_Deinit (void)
 bool
 SK_WR0_Init (void)
 {
+  InstructionSet::deferredInit ();
+
   LONG init =
     ReadAcquire (&__SK_WR0_Init);
 

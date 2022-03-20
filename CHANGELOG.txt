@@ -1,4 +1,9 @@
-﻿22.3.19-NOCEGUI
+﻿22.3.20-NOCEGUI
+===============
+ + Added support for SKIFsvc{64|32} to install/uninstall WinRing0
+ + Added 7.5s timeout for RunDLL-based WinRing0 install
+
+22.3.19-NOCEGUI
 ===============
  + Added 'Compact' FPS detail mode (see "OSD Settings" / "Basic Monitoring")
  + Cleanup plug-in ABI (missing / incorrectly named DLL exports)
@@ -2060,7 +2065,7 @@ Recommended SwapChain Settings for HDR:
     Altering vertex shader material state is not recommended due to the number of
       draw calls made and vertex instancing, focus most experimentation on pixel shaders
 
-
+      5r4
 
 0.9.19:
 
