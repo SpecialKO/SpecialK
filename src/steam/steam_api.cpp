@@ -1272,7 +1272,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
   if (SK_IsAddressExecutable           (pCallback))
   {
     // We will dispatch this callback to all registered interfaces ourself.
-    if (iCallback != UserStatsReceived_t::k_iCallback)
+    if (true || //(! config.platform.achievements.pull_friend_stats) //< Temporarily skip while achievement popups are not implemented
+                 iCallback != UserStatsReceived_t::k_iCallback)
       SteamAPI_RegisterCallback_Original (pCallback, iCallback);
   }
 
@@ -2883,7 +2884,8 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  static bool fetch_stats = true;
+  static bool fetch_stats = false;// config.platform.achievements.pull_global_stats ||
+                                  // config.platform.achievements.pull_friend_stats;
 
   if (fetch_stats)
   {
