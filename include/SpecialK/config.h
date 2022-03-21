@@ -301,7 +301,7 @@ struct sk_config_t
                                                // 4=Don't Care
     bool        show_playtime         =  true; // In the control panel title
     bool        overlay_hides_sk_osd  =  true;
-    bool        reuse_overlay_pause   =  true; // Use Steam's overlay pause mode for our own
+    bool        reuse_overlay_pause   =  false;// Use Steam's overlay pause mode for our own
                                                //   control panel
     bool        silent                = false;
   } platform;

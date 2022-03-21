@@ -696,12 +696,14 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
            "SteamInternal_CreateInterface" )
      )
   {
+#if 0
     SK_CreateDLLHook2 (     wszSteamLib,
                               "SteamInternal_CreateInterface",
                                SteamInternal_CreateInterface_Detour,
       static_cast_p2p <void> (&SteamInternal_CreateInterface_Original),
                            &pfnSteamInternal_CreateInterface );
     MH_QueueEnableHook (    pfnSteamInternal_CreateInterface );
+#endif
 
     return TRUE;
   }
