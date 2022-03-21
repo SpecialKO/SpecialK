@@ -3077,22 +3077,21 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
     SK_PathCombineW   ( wszUserDLL, wszCurrentDir,
        SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
                                L"WinRing0.dll" )
-                 );
+                      );
 
     SK_PathCombineW ( wszKernelSys, wszCurrentDir,
                                  L"WinRing0x64.sys" ); // 64-bit Drivers Only
 
-    if (! ( PathFileExistsW (wszUserDLL) &&
-            PathFileExistsW (wszKernelSys) ) )
-    {
-      SK_WinRing0_Unpack ();
-    }
-
     if (SK_IsAdmin ())
     {
-      SK_WR0_Init ();
+      if (! ( PathFileExistsW (wszUserDLL) &&
+              PathFileExistsW (wszKernelSys) ) )
+      {
+        SK_WinRing0_Unpack ();
+      }
 
-      return;
+      if (SK_WR0_Init ())
+        return;
     }
 
     SK_PathCombineW ( wszHostDLL, wszCurrentDir,
@@ -3264,7 +3263,11 @@ SK_WinRing0_Uninstall (void)
                                               L"Installer32.dll") );
 
   extern volatile LONG __SK_WR0_Init;
-  SK_WR0_Deinit ();
+
+  if (SK_IsAdmin ())
+  {
+    SK_WR0_Deinit ();
+  }
 
   if (GetFileAttributesW (kernelmode_driver_path.c_str ()) == INVALID_FILE_ATTRIBUTES)
   {
@@ -3286,7 +3289,8 @@ SK_WinRing0_Uninstall (void)
   if (PathFileExistsW (installer_path.c_str ()))
           DeleteFileW (installer_path.c_str ());
 
-  if (CopyFileW (src_dll.c_str (), installer_path.c_str (), FALSE))
+  if (PathFileExistsW (                  installer_path.c_str ()) ||
+            CopyFileW (src_dll.c_str (), installer_path.c_str (), FALSE))
   {
     wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
     wchar_t wszShortPath [MAX_PATH + 2] = { };
@@ -3348,11 +3352,9 @@ SK_WinRing0_Install (void)
 {
   SK_WinRing0_Unpack ();
 
-  if (SK_IsAdmin ())
-  {
-    if (SK_WR0_Init ())
-      return;
-  }
+  if ( SK_IsAdmin  () &&
+       SK_WR0_Init () ) return;
+    //return;
 
   static std::wstring path_to_driver =
     SK_FormatStringW ( LR"(%ws\My Mods\SpecialK\Drivers\WinRing0\)",
@@ -3372,7 +3374,8 @@ SK_WinRing0_Install (void)
   if (PathFileExistsW (installer_path.c_str ()))
           DeleteFileW (installer_path.c_str ());
 
-  if (CopyFileW (src_dll.c_str (), installer_path.c_str (), FALSE))
+  if (            PathFileExistsW (installer_path.c_str ()) ||
+      CopyFileW (src_dll.c_str (), installer_path.c_str (), FALSE))
   {
                   wchar_t wszRunDLL32 [MAX_PATH + 2] = { };
     GetSystemDirectoryW  (wszRunDLL32, MAX_PATH);
@@ -3415,15 +3418,15 @@ SK_WinRing0_Install (void)
       } while ( dwWaitState < 50 &&
                 dwWaitState != WAIT_OBJECT_0 );
 
-      SK_CloseHandle (pinfo.hThread);
-      SK_CloseHandle (pinfo.hProcess);
-
-      wchar_t wszTemp [MAX_PATH + 2] = { };
-
-      GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
-                               SK_timeGetTime       (), wszTemp);
-      SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
-      SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
+      //SK_CloseHandle (pinfo.hThread);
+      //SK_CloseHandle (pinfo.hProcess);
+      //
+      //wchar_t wszTemp [MAX_PATH + 2] = { };
+      //
+      //GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
+      //                         SK_timeGetTime       (), wszTemp);
+      //SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
+      //SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
     }
   }
 }

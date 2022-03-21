@@ -1,4 +1,10 @@
-﻿22.3.20-NOCEGUI
+﻿22.3.21.1-NOCEGUI
+=================
+ + Control panel's overlay pause feature is now disabled by default
+     ( compat hack for "Going Under" )
+ + Changed CPU Widget driver install procedure to use SKIF
+
+22.3.20-NOCEGUI
 ===============
  + Added support for SKIFsvc{64|32} to install/uninstall WinRing0
  + Added 7.5s timeout for RunDLL-based WinRing0 install

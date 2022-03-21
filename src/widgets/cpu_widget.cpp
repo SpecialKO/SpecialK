@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <imgui/font_awesome.h>
 #include <filesystem>
 
 extern iSK_INI* osd_ini;
@@ -146,10 +147,9 @@ SK_WinRing0_Unpack (void)
       SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
     );
 
-  if (SK_IsAdmin ())
   {
-    SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
-                L" WinRing0 " );
+    ///SK_LOG0 ( ( L"Unpacking WinRing0 Driver because user does not have it in the proper location." ),
+    ///            L" WinRing0 " );
 
     wchar_t      wszArchive     [MAX_PATH + 2] = { };
     wchar_t      wszDestination [MAX_PATH + 2] = { };
@@ -466,21 +466,12 @@ SK_WR0_Deinit (void)
 bool
 SK_WR0_Init (void)
 {
-  InstructionSet::deferredInit ();
-
   LONG init =
     ReadAcquire (&__SK_WR0_Init);
 
   if (init != 0) {
     return (init == 1);
   }
-
-  // Was it really worth whatever performance this gained?
-  //  -- Debugging this missing call was not easy!
-  InstructionSet::deferredInit (); // If it happens again -> IMMEDIATE INIT !!!
-
-
-  bool install_fail = false;
 
   static std::wstring path_to_driver =
     SK_FormatStringW ( LR"(%ws\My Mods\SpecialK\Drivers\WinRing0\%s)",
@@ -494,18 +485,13 @@ SK_WR0_Init (void)
 
   if (! has_WinRing0)
   {
-    if (SK_IsAdmin ())
+    if (! SK_IsAdmin ())
     {
       SK_LOG0 ( ( L"Installing WinRing0 Driver" ),
                   L"CPU Driver" );
-
-      SK_WinRing0_Unpack ();
     }
 
-    else
-    {
-      install_fail = true;
-    }
+    SK_WinRing0_Unpack ();
 
     has_WinRing0 =
       GetFileAttributesW (path_to_driver.c_str ()) != INVALID_FILE_ATTRIBUTES;
@@ -586,24 +572,27 @@ SK_WR0_Init (void)
       SK_WR0_Init ();
   }
 
-  SK_LOG0 ( ( L"WinRing0 driver is: %s", init == 1 ? L"Present" :
-                                                     L"Not Present" ),
-              L"CPU Driver" );
+  if (! SK_IsAdmin ())
+  {
+    SK_LOG0 ( ( L"WinRing0 driver is: %s", init == 1 ? L"Present" :
+                                                       L"Not Present" ),
+                L"CPU Driver" );
 
-  //if (init != 1)
-  //{
-  //  SK_LOG0 ( ( L"  >> Detailed stats will be missing from the CPU"
-  //              L" widget without WinRing0" ),
-  //              L"CPU Driver" );
-  //}
+    //if (init != 1)
+    //{
+    //  SK_LOG0 ( ( L"  >> Detailed stats will be missing from the CPU"
+    //              L" widget without WinRing0" ),
+    //              L"CPU Driver" );
+    //}
 
-  SK_LOG0 ( (L"Installed CPU: %hs",
-                  InstructionSet::Brand  ().c_str () ),
-             L"CPU Driver" );
-  SK_LOG0 ( (L" >> Family: %02xh, Model: %02xh, Stepping: %02xh",
-                  InstructionSet::Family   (), InstructionSet::Model (),
-                  InstructionSet::Stepping () ),
-             L"CPU Driver" );
+    SK_LOG0 ( (L"Installed CPU: %hs",
+                    InstructionSet::Brand  ().c_str () ),
+               L"CPU Driver" );
+    SK_LOG0 ( (L" >> Family: %02xh, Model: %02xh, Stepping: %02xh",
+                    InstructionSet::Family   (), InstructionSet::Model (),
+                    InstructionSet::Stepping () ),
+               L"CPU Driver" );
+  }
 
   return
     (init == 1);
@@ -617,16 +606,16 @@ SK_CPU_GetIntelMicroarch (void)
 
   if (cpu.intel_arch != SK_CPU_IntelMicroarch::KnownIntelArchs) {
     return cpu.intel_arch;
-}
+  }
 
 
   if (! SK_WR0_Init ()) {
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
-}
+  }
 
   if (SK_CPU_IsZen ()) {
     cpu.intel_arch = SK_CPU_IntelMicroarch::NotIntel;
-}
+  }
 
 
   DWORD eax = 0,
@@ -652,37 +641,37 @@ SK_CPU_GetIntelMicroarch (void)
                   case 2:
                     for ( auto& core : cpu.cores ) {
                       core.tjMax = 80.0 + 10.0;
-}
+                    }
                     break;
                   case 4:
                     for ( auto& core : cpu.cores ) {
                       core.tjMax = 90.0 + 10.0;
-}
+                    }
                     break;
                   default:
                     for ( auto& core : cpu.cores ) {
                       core.tjMax = 85.0 + 10.0;
-}
+                    }
                     break;
                 }
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
-}
+                }
                 break;
               case 0x0B: // G0
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0 + 10.0;
-}
+                }
                 break;
               case 0x0D: // M0
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
-}
+                }
                 break;
               default:
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 85.0 + 10.0;
-}
+                }
                 break;
             }
             break;
@@ -691,7 +680,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
             for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
-}
+            }
             break;
 
           case 0x1C: // Intel Atom (45nm)
@@ -702,19 +691,19 @@ SK_CPU_GetIntelMicroarch (void)
               case 0x02: // C0
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0;
-}
+                }
                 break;
 
               case 0x0A: // A0, B0
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 100.0;
-}
+                }
                 break;
 
               default:
                 for ( auto& core : cpu.cores ) {
                   core.tjMax = 90.0;
-}
+                }
                 break;
             } break;
 
@@ -728,7 +717,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Nehalem;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x0A: // -----
@@ -737,7 +726,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::SandyBridge;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x3A: // Intel Core i5, i7 3xxx LGA1155 (22nm)
@@ -745,7 +734,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::IvyBridge;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x3C: // Intel Core i5, i7 4xxx LGA1150 (22nm)
@@ -756,7 +745,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Haswell;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x3D: // Intel Core M-5xxx (14nm)
@@ -766,14 +755,14 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Broadwell;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x36: // Intel Atom S1xxx, D2xxx, N2xxx (32nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Atom;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x37: // Intel Atom E3xxx, Z3xxx (22nm)
@@ -784,7 +773,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Silvermont;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x4E:
@@ -794,14 +783,14 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Skylake;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x4C:
             cpu.intel_arch = SK_CPU_IntelMicroarch::Airmont;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x8E:
@@ -809,7 +798,7 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::KabyLake;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           case 0x0E:
@@ -826,14 +815,14 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::ApolloLake;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
 
           default:
             cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
             for ( auto& core : cpu.cores ) { core.tjMax =
               SK_CPU_GetIntelTjMax (core.cpu_core);
-}
+            }
             break;
         }
       } break;
@@ -851,14 +840,14 @@ SK_CPU_GetIntelMicroarch (void)
             cpu.intel_arch = SK_CPU_IntelMicroarch::NetBurst;
             for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
-}
+            }
             break;
 
           default:
             cpu.intel_arch = SK_CPU_IntelMicroarch::UnknownIntel;
             for ( auto& core : cpu.cores ) {
               core.tjMax = 100.0;
-}
+            }
             break;
         }
       } break;
@@ -967,7 +956,7 @@ SK_CPU_MakePowerUnit_Zen (SK_CPU_ZenCoefficients* pCoeffs)
     if (Rdmsr (RAPL_POWER_UNIT_ZEN, &eax, &edx))
     {
       one_size_fits_all.power  =
-        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>( eax          & 0x0FULL));
+        1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>( eax           & 0x0FULL));
       one_size_fits_all.energy =
         1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t>((eax >> 8ULL)  & 0x1FULL));
       one_size_fits_all.time   =
@@ -1226,7 +1215,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
 
   else {
     return ret;
-}
+  }
 
 
   const DWORD_PTR orig_mask =
@@ -1237,7 +1226,7 @@ SK_CPU_GetJoulesConsumed (int64_t core)
 
   if (orig_mask == 0u) {
     return ret;
-}
+  }
 
 
   if ( ( msr1_idx != 0x0 && Rdmsr (msr1_idx, &eax, &edx) && eax != 0 ) ||
@@ -1285,7 +1274,7 @@ SK_CPU_GetTemperature_AMDZen (int core)
 
   while (! InterlockedCompareExchange (&splock_avail, 0, 1)) {
     ;
-}
+  }
 
   WritePciConfigDword  (PCI_CONFIG_ADDR (0, 0, 0), 0x60, indexRegister);
   sensor =
@@ -1383,7 +1372,7 @@ SK_CPU_UpdateCoreSensors (int core_idx)
 
   if (orig_mask == 0u) {
     return;
-}
+  }
 
   if (SK_CPU_IsZen ())
   {
@@ -1891,7 +1880,12 @@ public:
             ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.f, 0.f, 1.f, 1.f));
 
             if (SK_ImGui::VerticalToggleButton ("Install Driver", &never))
-              SetEvent            (SK_WinRing0.hInstallEvent);
+            {
+              SK_ImGui_WarningWithTitle (
+                L"Please use SKIF to Install the Driver\r\n\r\n\t\t\tSettings > Advanced Monitoring\t",
+                    L"In-Game Driver Install Unsupported" );
+            // SetEvent (SK_WinRing0.hInstallEvent);
+            }
 
             if (ImGui::IsItemHovered ())
             {

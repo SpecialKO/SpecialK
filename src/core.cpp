@@ -1487,6 +1487,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 {
  try
  {
+  InstructionSet::deferredInit ();
+
   // If Global Injection Delay, block initialization thread until the delay period ends
   if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
   {
