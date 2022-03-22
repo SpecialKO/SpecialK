@@ -1,4 +1,9 @@
-﻿22.3.21.1-NOCEGUI
+﻿22.3.21.2-NOCEGUI
+=================
+ + Disable in-process SteamAPI achievement statistics fetch since achievement
+     popups are not implemented in NOCEGUI branch
+
+22.3.21.1-NOCEGUI
 =================
  + Control panel's overlay pause feature is now disabled by default
      ( compat hack for "Going Under" )

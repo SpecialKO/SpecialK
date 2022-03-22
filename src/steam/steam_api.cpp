@@ -2884,8 +2884,8 @@ SteamAPI_RunCallbacks_Detour (void)
     }
   }
 
-  static bool fetch_stats = false;// config.platform.achievements.pull_global_stats ||
-                                  // config.platform.achievements.pull_friend_stats;
+  static bool fetch_stats = config.platform.achievements.pull_global_stats;// ||
+                         // config.platform.achievements.pull_friend_stats;
 
   if (fetch_stats)
   {
