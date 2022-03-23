@@ -21,8 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-#define __cpp_lib_format
-#include <format>
 
 std::wstring
 ErrorMessage (errno_t        err,
@@ -1248,7 +1246,7 @@ __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
   if (fname == nullptr)
-      fname = name.c_str ();
+    fname = name.c_str ();
 
   // Do NOT overwrite default files
   if (StrStrIW (fname, LR"(\default_)"))
@@ -1264,35 +1262,19 @@ iSK_INI::write (const wchar_t* fname)
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
     {
-      try
+      outbuf += L"[";
+      outbuf += section.name + L"]\n";
+
+      for ( auto& key_it : section.ordered_keys )
       {
-        std::wstring section_str;
-                     section_str.reserve (4096);
+        const std::wstring& val =
+          section.get_value (key_it);
 
-        section_str +=
-          std::format ( L"[{}]\n", section.name );
-
-        for ( auto& key_it : section.ordered_keys )
-        {
-          const std::wstring& val =
-            section.get_value (key_it);
-
-          section_str +=
-            std::format ( L"{}={}\n", key_it, val );
-        }
-
-        section_str += L"\n";
-        outbuf      += section_str;
+        outbuf += key_it + L"=";
+        outbuf += val    + L"\n";
       }
 
-      catch (const std::exception& e)
-      {
-        // Not logged using std::format, because that would be silly
-        SK_LOG0 ( ( L"std::format (...) exception: %hs",
-                        e.what () ),
-                    L"   {fmt}  " );
-                   
-      }
+      outbuf += L"\n";
     }
   }
 
@@ -1301,7 +1283,6 @@ iSK_INI::write (const wchar_t* fname)
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);
-    outbuf.shrink_to_fit ();
   }
 
 
