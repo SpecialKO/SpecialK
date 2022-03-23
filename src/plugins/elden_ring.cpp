@@ -479,10 +479,10 @@ SK_ER_PlugInCfg (void)
       static std::error_code                    ec = { };
       static std::filesystem::path pathPlayStation =
         SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_0041d76d.dds",
+          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds",
                                    pathPlayStation_Old =
         SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds"; // Hash changed in 1.3.0
+          /  L"d3d12_sk0_crc32c_0041d76d.dds"; // Hash changed in 1.3.0, then changed back in 1.3.2
 
       // Remove the old texture mod, since there's extra overhead until they all load
       static bool had_old =
@@ -606,7 +606,13 @@ SK_ER_InitConfig (void)
           { "clock_tick4",  0x0E07F80 }, { "clock_tick5",  0x0E07F8D },
           { "write_delta",  0x25B2D62 }, { "dt_float",     0x3B63FE8 },
           { "write_delta0", 0x0D75074 }, { "write_delta1", 0x0D75086 },
-        //{ "dt_float",    0x014FE38 } };
+        };
+  addresses [L"ELDEN RING™  1.3.2.0"].
+   cached =
+        { { "clock_tick0",  0x0E07F27 }, { "clock_tick1",  0x0E07F43 },
+          { "clock_tick2",  0x0E07F7D }, { "clock_tick3",  0x0E07F4F },
+          { "clock_tick4",  0x0E07F60 }, { "clock_tick5",  0x0E07F6D },
+          { "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 },
         };
 
   std::wstring game_ver_str =

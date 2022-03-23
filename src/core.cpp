@@ -2554,12 +2554,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       SK_LocalFree (wszDescription);
 
 
-#ifdef _WIN64
-      if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
-        SK_ER_InitPlugin ();
-#endif
-
-
       extern SK_Widget* SK_HDR_GetWidget (void);
 
       if ( (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11)) ||
@@ -2617,6 +2611,15 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //
         SK_RunOnce (SK_Window_RepositionIfNeeded ());
         SK_RunOnce (game_window.active |= (SK_GetForegroundWindow () == game_window.hWnd));
+      }
+
+      // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
+      if (frames_drawn > 15)
+      {
+#ifdef _WIN64
+        if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+            SK_RunOnce (SK_ER_InitPlugin ());
+#endif
       }
     } break;
   }
