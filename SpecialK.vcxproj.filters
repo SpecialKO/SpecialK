@@ -2919,6 +2919,9 @@
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_dxil_shader.h">
       <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
     </ClInclude>
+    <ClInclude Include="include\shaders\epic_d3d11_vs.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4510,6 +4513,9 @@
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\ps_gl_dx_interop.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\epic_d3d11_vs.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

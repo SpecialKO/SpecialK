@@ -83,6 +83,13 @@ extern HRESULT
                              _In_ INT                   BaseVertexLocation,
                              _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
 
+extern HRESULT
+  SK_D3D11_Inject_EpicHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
+                            _In_ UINT                  IndexCount,
+                            _In_ UINT                  StartIndexLocation,
+                            _In_ INT                   BaseVertexLocation,
+                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
+
 extern bool SK_D3D11_ShowShaderModDlg (void);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
@@ -3532,6 +3539,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 #define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
 #define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
 #define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
+#define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
 
     if ( STEAM_OVERLAY_VS_CRC32C ==
                        vs_crc )
@@ -3548,7 +3556,8 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     }
 
     else if ( DISCORD_OVERLAY_VS_CRC32C == vs_crc ||
-                 RTSS_OVERLAY_VS_CRC32C == vs_crc )
+                 RTSS_OVERLAY_VS_CRC32C == vs_crc ||
+                 EPIC_OVERLAY_VS_CRC32C == vs_crc )
     {
       if ( SUCCEEDED (
              SK_D3D11_InjectGenericHDROverlay ( pDevCtx, VertexCount,
@@ -3654,6 +3663,7 @@ SK_D3D11_DrawIndexed_Impl (
   if ( rb.isHDRCapable ()  &&
        rb.isHDRActive  () )
   {
+#define EPIC_OVERLAY_VS_CRC32C  0xa7ee5199
 #define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
 
     if (dev_idx == UINT_MAX)
@@ -3667,6 +3677,21 @@ SK_D3D11_DrawIndexed_Impl (
     {
       if ( SUCCEEDED (
              SK_D3D11_Inject_uPlayHDR ( pDevCtx, IndexCount,
+                                         StartIndexLocation,
+                                           BaseVertexLocation,
+                                             D3D11_DrawIndexed_Original )
+           )
+         )
+      {
+        return;
+      }
+    }
+
+    else if ( EPIC_OVERLAY_VS_CRC32C ==
+                SK_D3D11_Shaders->vertex.current.shader [dev_idx] )
+    {
+      if ( SUCCEEDED (
+             SK_D3D11_Inject_EpicHDR ( pDevCtx, IndexCount,
                                          StartIndexLocation,
                                            BaseVertexLocation,
                                              D3D11_DrawIndexed_Original )

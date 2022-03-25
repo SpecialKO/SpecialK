@@ -2716,6 +2716,23 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
+        if (config.epic.present)
+        {
+          float epic_nits =
+            config.platform.overlay_hdr_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "Epic Overlay Luminance###EPIC_LUMINANCE",
+                                     &epic_nits,
+                                      80.0f, rb.display_gamut.maxAverageY,
+                                        (const char *)u8"%.1f cd/m²" ) )
+          {
+            config.platform.overlay_hdr_luminance =
+                                    epic_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
         if (config.discord.present)
         {
           float discord_nits =

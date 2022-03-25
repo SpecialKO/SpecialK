@@ -22,6 +22,7 @@
 #include <shaders/steam_d3d11_vs.h>
 #include <shaders/steam_d3d11_ps.h>
 
+#include <shaders/epic_d3d11_vs.h>
 #include <shaders/rtss_d3d11_vs.h>
 #include <shaders/discord_d3d11_vs.h>
 #include <shaders/discord_d3d11_ps.h>
@@ -340,6 +341,7 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
   ID3D11VertexShader*       pVertexShaderDiscordHDR = nullptr;
   ID3D11VertexShader*       pVertexShaderRTSSHDR    = nullptr;
   ID3D11VertexShader*       pVertexShaderuPlayHDR   = nullptr;
+  ID3D11VertexShader*       pVertexShaderEpicHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderuPlayHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderSteamHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderDiscordHDR  = nullptr;
@@ -711,6 +713,10 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
                                                                         config.discord.overlay_luminance );
       constant_buffer->discord_luminance [1] = 2.2f;
 
+      constant_buffer->steam_luminance   [0] = ( bEOTF_is_PQ ? -80.0f * config.platform.overlay_hdr_luminance :
+                                                                        config.platform.overlay_hdr_luminance );
+      constant_buffer->steam_luminance   [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
+                                                    //                                     1.0f));
     }
 
     pDevCtx->Unmap (_P->pVertexConstantBuffer, 0);
@@ -1054,6 +1060,7 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
 }
 
 #define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
 #define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
 #define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
 
@@ -1146,6 +1153,46 @@ SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
     E_NOT_VALID_STATE;
 }
 
+HRESULT
+SK_D3D11_Inject_EpicHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
+                          _In_ UINT                  IndexCount,
+                          _In_ UINT                  StartIndexLocation,
+                          _In_ INT                   BaseVertexLocation,
+                          _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed )
+{
+  auto* _P =
+    &_Frame [g_frameIndex % g_numFramesInSwapChain];
+
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (
+      SK_D3D11_GetDeviceContextHandle (pDevCtx)
+    );
+
+  SK_ScopedBool auto_bool0 (flag_result.first);
+                           *flag_result.first = flag_result.second;
+
+  if ( _P->pVertexShaderEpicHDR  != nullptr &&
+       _P->pVertexConstantBuffer != nullptr &&
+       _P->pPixelShaderSteamHDR  != nullptr    )
+  {
+    pDevCtx->VSSetShader          ( _P->pVertexShaderEpicHDR,
+                                      nullptr, 0 );
+    pDevCtx->PSSetShader          ( _P->pPixelShaderSteamHDR,
+                                      nullptr, 0 );
+    pDevCtx->VSSetConstantBuffers ( 0, 1,
+                                    &_P->pVertexConstantBuffer );
+    pfnD3D11DrawIndexed ( pDevCtx, IndexCount, StartIndexLocation, BaseVertexLocation );
+
+    config.epic.present = true;
+
+    return
+      S_OK;
+  }
+
+  return
+    E_NOT_VALID_STATE;
+}
+
 bool
 ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChain,
                                                   ID3D11Device*        pDev,
@@ -1225,6 +1272,15 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                     nullptr, &_P->pVertexShaderuPlayHDR));
     SK_D3D11_SetDebugName (                   _P->pVertexShaderuPlayHDR,
                               L"uPlay Overlay HDR Vertex Shader");
+
+    if (_P->pVertexShaderEpicHDR == nullptr)
+    ThrowIfFailed (
+      pDev->CreateVertexShader ( (void *)(epic_d3d11_vs_bytecode),
+                                  sizeof (epic_d3d11_vs_bytecode) /
+                                  sizeof (epic_d3d11_vs_bytecode [0]),
+                                    nullptr, &_P->pVertexShaderEpicHDR));
+    SK_D3D11_SetDebugName (                   _P->pVertexShaderEpicHDR,
+                              L"Epic Overlay HDR Vertex Shader");
 
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC    local_layout [] = {

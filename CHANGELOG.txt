@@ -1,4 +1,8 @@
-﻿22.3.22.1-NOCEGUI
+﻿22.3.25-NOCEGUI
+===============
+ + Added Epic Overlay HDR Color Correction and Luminance control (D3D11)
+
+22.3.22.1-NOCEGUI
 =================
  + Added 15 frame initialization delay to Elden Ring plug-in to avoid
      compatibility problems with Flawless Widescreen's framerate stuff

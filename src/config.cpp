@@ -258,9 +258,13 @@ SK_GetCurrentGameID (void)
       {
         std::error_code                               ec;
         if (std::filesystem::exists (L"eldenring.exe",ec))
-        { extern void
-          SK_SEH_LaunchEldenRing (void);
-          SK_SEH_LaunchEldenRing (    );
+        {
+          if (! std::filesystem::exists (L"SpecialK.AllowEAC",ec))
+          {
+            extern void
+            SK_SEH_LaunchEldenRing (void);
+            SK_SEH_LaunchEldenRing (    );
+          }
         }
       }
     }

@@ -308,7 +308,9 @@ struct sk_config_t
 
   struct epic_s {
     std::string app_name              = "";
-  };
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
+  } epic;
 
   struct uplay_s {
     float       overlay_luminance     = 4.375F; // 350 nits
