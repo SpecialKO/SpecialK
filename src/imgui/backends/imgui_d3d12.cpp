@@ -1199,7 +1199,12 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     if (dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
         dst_desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
-      if (src_desc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+      auto typelessSrc = DirectX::MakeTypeless (src_desc.Format),
+           typelessDst = DirectX::MakeTypeless (dst_desc.Format);
+      
+      if ( typelessSrc != typelessDst &&
+             DirectX::BitsPerPixel (src_desc.Format) !=
+             DirectX::BitsPerPixel (dst_desc.Format) )
       {
         if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
         {
@@ -1216,7 +1221,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
                  dst_desc.Format == swapDesc.BufferDesc.Format) )
              )
           {
-            // We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
+            //// We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
             extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
                         SK_D3D12_HDR_CopyBuffer (This, pSrcResource);
           }
@@ -1327,14 +1332,20 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
                DirectX::BitsPerPixel (src_desc.Format) !=
                DirectX::BitsPerPixel (dst_desc.Format) )
           {
-            // We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
-            if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
+            // We're copying -to- the SwapChain, so we can use SK's Blitter to copy an incompatible format
+            if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT && typelessSrc != DXGI_FORMAT_R16G16B16A16_TYPELESS)
             {
               extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
                           SK_D3D12_HDR_CopyBuffer (This, pSrc->pResource);
 
               return;
             }
+
+            //
+            // Either some unrelated copy, or the engine is copying back -from- the SwapChain
+            //
+            //  * This case is not currently implemented (rarely used)
+            //
 
             InterlockedIncrement (&lFormatSkips);
 

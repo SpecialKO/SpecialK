@@ -1,6 +1,15 @@
-﻿22.3.25-NOCEGUI
+﻿22.3.25.1-NOCEGUI
+=================
+ + Fixed HDR-related crash in Ghostwire: Tokyo (D3D12) from SwapChain readback
+
+  >> This game has non-defeatable HDR settings, you can bypass the game's HDR:
+      
+      [Render.DXGI]
+      HideHDRSupport=true
+
+22.3.25-NOCEGUI
 ===============
- + Added Epic Overlay HDR Color Correction and Luminance control (D3D11)
+ + Added Epic Overlay HDR Color Correction and Luminance Control (D3D11)
 
 22.3.22.1-NOCEGUI
 =================

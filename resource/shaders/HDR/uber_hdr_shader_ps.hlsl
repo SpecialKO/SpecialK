@@ -1898,7 +1898,7 @@ float4 main (PS_INPUT input) : SV_TARGET
         );
 
   float fLuma =
-    Luminance (hdr_color.rgb);
+    length (hdr_color.rgb);// Luminance (hdr_color.rgb);
 
   hdr_color.rgb *= uiToneMapper != TONEMAP_HDR10_to_scRGB ?
     (                            hdrPaperWhite +
