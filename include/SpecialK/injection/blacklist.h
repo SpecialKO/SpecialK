@@ -137,6 +137,9 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"s2gs.exe"),      // Sacred 2 game server
 #endif
 
+  SK_MakeUnicode (L"redprelauncher.exe"), // CD PROJEKT RED's pre-launcher included in the root of Cyberpunk 2077
+  SK_MakeUnicode (L"redlauncher.exe"),    // CD PROJEKT RED's launcher located below %APPDATA%
+
   SK_MakeUnicode (L"sihost.exe"),
   SK_MakeUnicode (L"postcrashdump.exe"),
 
@@ -292,6 +295,9 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"rottlauncher.exe"),
   SK_MakeUnicode (L"configtool.exe"),
 
+  SK_MakeUnicode (L"redprelauncher.exe"), // CD PROJEKT RED's pre-launcher included in the root of Cyberpunk 2077
+  SK_MakeUnicode (L"redlauncher.exe"),    // CD PROJEKT RED's launcher located below %APPDATA%
+
   SK_MakeUnicode (L"coherentui_host.exe"),
   SK_MakeUnicode (L"activationui.exe"),
   SK_MakeUnicode (L"zossteamstarter.exe"),
@@ -346,6 +352,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ipoint.exe"),
   SK_MakeUnicode (L"itype.exe"),
   SK_MakeUnicode (L"devenv.exe"),
-  SK_MakeUnicode (L"msedge.exe")
+  SK_MakeUnicode (L"msedge.exe"),
+  SK_MakeUnicode (L"vsgraphics.exe")
 };
 #endif
