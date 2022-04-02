@@ -6899,8 +6899,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       const bool
        dummy_window = (
         nullptr != StrStrIW (wszClass,L"Special K Dummy Window Class (Ex)")
-               ||
+               ||  // RTSS
         nullptr != StrStrIW (wszClass,L"RTSSWndClass")
+               ||  // Twitch
+        nullptr != StrStrIW (wszClass,L"CurseOverlayTemporaryDirect3D11Window")
        );
 
       if (! dummy_window)
@@ -7092,12 +7094,25 @@ D3D11Dev_CreateDeferredContext_Override (
   _In_            UINT                  ContextFlags,
   _Out_opt_       ID3D11DeviceContext **ppDeferredContext )
 {
-  DXGI_LOG_CALL_2 ( L"ID3D11Device::CreateDeferredContext",
-                    L"ContextFlags=0x%x, **ppDeferredContext=%p",
-                      ContextFlags,        ppDeferredContext );
+  bool silent =
+    (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey);
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey)
-    return D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
+  if ((! silent) && SK_GetModuleName (SK_GetCallingDLL ()).find (L"TwitchNativeOverlay") != std::wstring::npos)
+    silent = true;
+
+  // STFU and use a single context Twitch
+  if (! silent)
+  {
+    DXGI_LOG_CALL_2 ( L"ID3D11Device::CreateDeferredContext",
+                      L"ContextFlags=0x%x, **ppDeferredContext=%p",
+                        ContextFlags,        ppDeferredContext );
+  }
+
+  else
+  {
+    return
+      D3D11Dev_CreateDeferredContext_Original (This, ContextFlags, ppDeferredContext);
+  }
 
 #ifdef SK_D3D11_WRAP_DEFERRED_CTX
   if (config.render.dxgi.deferred_isolation)

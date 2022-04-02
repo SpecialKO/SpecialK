@@ -1,4 +1,11 @@
-﻿22.3.25.1-NOCEGUI
+﻿22.4.1-NOCEGUI
+==============
+ + Added additional device (integrated/discrete) GPU selection info to OpenGL-IK logs
+ + Disable logging for deferred D3D11 contexts Twitch's overlay constantly creates
+ + Fixed assertion failure triggered by some overlays when passing invalid shaders
+ + Added CD Projekt launchers to internal blacklist
+
+22.3.25.1-NOCEGUI
 =================
  + Fixed HDR-related crash in Ghostwire: Tokyo (D3D12) from SwapChain readback
 
