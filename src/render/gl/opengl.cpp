@@ -2135,33 +2135,80 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         WINAPI SK_HookDXGI (void);
                SK_HookDXGI (    ); // Setup the function to create a D3D11 Device
 
-        if (D3D11CreateDevice_Import != nullptr)
+        SK_ComPtr <IDXGIAdapter>  pAdapter [16] = { nullptr };
+        SK_ComPtr <IDXGIFactory7> pFactory7     =   nullptr;
+
+        if (D3D11CreateDeviceAndSwapChain_Import != nullptr)
         {
-          D3D_FEATURE_LEVEL        levels [] = { D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1,
-                                                 D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1 };
+          if ( SUCCEEDED (
+                 CreateDXGIFactory2 ( 0x2,
+                                      __uuidof (IDXGIFactory7),
+                                          (void **)&pFactory7.p ) )
+             )
+          {
+            pFactory7->QueryInterface <IDXGIFactory2> (&pFactory.p);
+
+            UINT uiAdapterIdx = 0;
+
+            SK_LOG0 ((" DXGI Adapters from Highest to Lowest Perf. "), L"Open GL-IK");
+            SK_LOG0 ((" ------------------------------------------ "), L"Open GL-IK");
+
+            while ( SUCCEEDED (
+                      pFactory7->EnumAdapterByGpuPreference ( uiAdapterIdx,
+                       DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+                                    __uuidof (IDXGIAdapter),
+                                        (void **)&pAdapter [uiAdapterIdx].p
+                  )           )                             )
+            {
+              DXGI_ADAPTER_DESC         adapter_desc = { };
+              pAdapter [uiAdapterIdx]->
+                              GetDesc (&adapter_desc);
+
+              SK_LOG0 ( ( L" %d) '%ws'",
+                          uiAdapterIdx, adapter_desc.Description ),
+                          L"  GLDX11  " );
+
+              ++uiAdapterIdx;
+            }
+          }
+
+          D3D_FEATURE_LEVEL        levels [] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
+                                                 D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0 };
           D3D_FEATURE_LEVEL featureLevel;
 
           HRESULT hr =
+            DXGI_ERROR_UNSUPPORTED;
+
+          hr =
             D3D11CreateDevice_Import (
-              nullptr,
+              nullptr,//pAdapter [0].p,
                 D3D_DRIVER_TYPE_HARDWARE,
                   nullptr,
                     0x0,
                       levels,
-                        _ARRAYSIZE (levels),
+          _ARRAYSIZE (levels),
                           D3D11_SDK_VERSION,
                             &pDevice.p,
                               &featureLevel,
                                 &pDevCtx.p );
 
-          SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-          SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
+          if (FAILED (hr))
+          {
+            pDevCtx = nullptr;
+            pDevice = nullptr;
+          }
 
-          if ( SUCCEEDED (hr)                                              &&
-                        pDevice != nullptr                                 &&
-             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-             SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+          if ( SK_ComPtr <IDXGIDevice>
+                       pDevDXGI = nullptr ;
+
+              SUCCEEDED (hr)                                                     &&
+                        pDevice != nullptr                                       &&
+                  ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)         ||
+             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))       &&
+             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p)) &&
+             SUCCEEDED (pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory)))
+                  )
+             )
           {
             SK_GL_OnD3D11 = true;
 
