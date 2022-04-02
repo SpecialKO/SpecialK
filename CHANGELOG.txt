@@ -1,4 +1,20 @@
-﻿22.4.1.1-NOCEGUI
+﻿22.4.1.2-NOCEGUI
+================
+ + Added option to force 10-bpc in SDR (D3D9/D3D11/D3D12), stability not guaranteed
+
+     [Display.Output]
+     Force10bpcSDR=true ; Possibly broken game, hurray! :)
+
+    [ 10-bpc screenshots are not supported in D3D9 yet ]
+
+ + Fixed a number of VSYNC related issues in D3D9 games
+
+    * Tooltip in control panel now reports correct values
+    * Forcing present interval 0 correctly turns off VSYNC (when fullscreen exclusive)
+    * Resolution, Format and VSYNC Overrides are applied at D3D9 device creation instead
+        of delaying them until the first device reset (Alt+Enter / Alt-Tab)
+
+22.4.1.1-NOCEGUI
 ================
  + Fixed potential crash during shutdown in Tales of Arise
 

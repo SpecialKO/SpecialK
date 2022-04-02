@@ -24,6 +24,11 @@
 
 #include <boost/container/static_vector.hpp>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"HookEngine"
+
 #define _L2(w)  L ## w
 #define  _L(w) _L2(w)
 
@@ -714,35 +719,52 @@ SK_ValidateHookAddress ( const wchar_t * /*wszModuleName*/,
   return true;
 }
 
+HMODULE
+SK_GetModuleFromAddr (void* pAddr) noexcept
+{
+  HMODULE hModRet = nullptr;
+
+  __try {
+    HMODULE hModRet = nullptr;
+
+    if ( TRUE ==
+           GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                                  (LPCWSTR)pAddr,
+                                    &hModRet )
+       )
+    {
+      return hModRet;
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+
+  return nullptr;
+}
+
 bool
 __stdcall
-SK_ValidateVFTableAddress ( const wchar_t * /*wszHookName*/,
-                                  void    * /*pVFTable*/,
-                                  void    * /*pVFAddr*/ ) noexcept
-{
-  ////HMODULE hModVFTable = nullptr;
-  ////HMODULE hModVFAddr  = nullptr;
-  ////
-  ////GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-  ////                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-  ////                       (LPCWSTR)pVFTable,
-  ////                         &hModVFTable );
-  ////
-  ////GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-  ////                     GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-  ////                       (LPCWSTR)pVFAddr,
-  ////                         &hModVFAddr );
-  ////
-  ////if (hModVFTable != hModVFAddr)
-  ////{
-  ////  dll_log.Log ( L"[HookEngine] VFTable Entry for '%s' found in '%s'; expected '%s'",
-  ////                wszHookName,
-  ////                  SK_StripUserNameFromPathW (  SK_GetModuleFullName (hModVFAddr).data  ()),
-  ////                    SK_StripUserNameFromPathW (SK_GetModuleFullName (hModVFTable).data () )
-  ////              );
-  ////
-  ////  return false;
-  ////}
+SK_ValidateVFTableAddress ( const wchar_t *wszHookName,
+                                  void    *pVFTable,
+                                  void    *pVFAddr ) noexcept
+{ 
+  HMODULE hModVFTable = SK_GetModuleFromAddr (pVFTable);
+  HMODULE hModVFAddr  = SK_GetModuleFromAddr (pVFAddr);
+  
+  if (hModVFTable != hModVFAddr)
+  {
+    SK_LOGi0 (
+      L"VFTable Entry for '%ws' found in '%ws'; expected '%ws'",
+        wszHookName,
+          SK_StripUserNameFromPathW (  SK_GetModuleFullName (hModVFAddr).data  ()),
+            SK_StripUserNameFromPathW (SK_GetModuleFullName (hModVFTable).data ())
+    );
+  
+    return false;
+  }
 
   return true;
 }

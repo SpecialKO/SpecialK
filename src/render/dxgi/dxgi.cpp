@@ -417,10 +417,9 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
 
   if (fmt_new != fmt_orig)
   {
-    SK_LOG0 ((L" >> HDR: Overriding Original Format: '%hs' with '%hs'",
-             SK_DXGI_FormatToStr (fmt_orig).data (),
-             SK_DXGI_FormatToStr (fmt_new).data  ()),
-             L"   DXGI   ");
+    SK_LOGi0 ( L" >> HDR: Overriding Original Format: '%hs' with '%hs'",
+                         SK_DXGI_FormatToStr (fmt_orig).data (),
+                         SK_DXGI_FormatToStr (fmt_new ).data () );
   }
 
   return
@@ -1420,9 +1419,8 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nu
       ///{
       ///  rb.setHDRCapable (true);
       ///
-      ///  SK_LOG0 ( ( L"Unexpected IDXGIOutput6 ColorSpace: %s",
-      ///                DXGIColorSpaceToStr (outDesc->ColorSpace) ),
-      ///              L"   DXGI   ");
+      ///  SK_LOGi0 ( L"Unexpected IDXGIOutput6 ColorSpace: %s",
+      ///               DXGIColorSpaceToStr (outDesc->ColorSpace) );
       ///}
 
       rb.scanout.bpc             = outDesc->BitsPerColor;
@@ -2203,9 +2201,8 @@ SK_DXGI_TestSwapChainCreationFlags (DWORD dwFlags)
     {
       logged = true;
 
-      SK_LOG0 ( ( L"Skipping SwapChain Present due to "
-                    L"SwapChain Creation Flags: %x", dwFlags ),
-                    L"   DXGI   " );
+      SK_LOGi0 ( L"Skipping SwapChain Present due to "
+                 L"SwapChain Creation Flags: %x", dwFlags );
     }
 
     return false;
@@ -2549,8 +2546,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                  rb.d3d11.immediate_ctx = pDevCtx;
                  rb.setDevice            (pSwapDev);
 
-          SK_LOG0 ( (L"Active D3D11 Device Context Established on first Presented Frame" ),
-                     L"  D3D 11  " );
+          SK_LOGs0 ( L"  D3D 11  ",
+                     L"Active D3D11 Device Context Established on first Presented Frame" );
         }
       }
 
@@ -2579,14 +2576,15 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
             if (! wszSection)
             {
-              SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+              SK_LOGs0 ( L"Hook Cache",
+                         L"Hook for '%hs' resides in '%s', will not cache!",
                             it->target.symbol_name,
              SK_ConcealUserDir (
                   std::wstring (
                             it->target.module_path
                                ).data ()
-                )                                                             ),
-                          L"Hook Cache" );
+                               )
+                       );
             }
             SK_Hook_CacheTarget ( *it, wszSection );
 
@@ -3530,8 +3528,7 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
 {
   if (! FindClosestMatchingMode_Original)
   {
-    SK_LOG0 ( ( L"SK_DXGI_FindClosestMode (...) called without a hooked IDXGIOutput" ),
-                L"   DXGI   " );
+    SK_LOGi0 ( L"SK_DXGI_FindClosestMode (...) called without a hooked IDXGIOutput" );
 
     return E_NOINTERFACE;
   }
@@ -3795,18 +3792,17 @@ DXGIOutput_FindClosestMatchingMode_Override (
             (uintptr_t)pConcernedDevice
   );
 
-  SK_LOG0 (
-    ( L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
-                                           L"Scanlines=%hs",
-        pModeToMatch->Width, pModeToMatch->Height,
-          pModeToMatch->RefreshRate.Denominator != 0 ?
-            static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
-            static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
-              std::numeric_limits <float>::quiet_NaN (),
-        SK_DXGI_FormatToStr           (pModeToMatch->Format).data (),
-        SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
-        SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering) ),
-      L"   DXGI   "
+  SK_LOGi0 (
+    L"[?]  Desired Mode:  %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
+                                         L"Scanlines=%hs",
+      pModeToMatch->Width, pModeToMatch->Height,
+        pModeToMatch->RefreshRate.Denominator != 0 ?
+          static_cast <float> (pModeToMatch->RefreshRate.Numerator) /
+          static_cast <float> (pModeToMatch->RefreshRate.Denominator) :
+            std::numeric_limits <float>::quiet_NaN (),
+      SK_DXGI_FormatToStr           (pModeToMatch->Format).data (),
+      SK_DXGI_DescribeScalingMode   (pModeToMatch->Scaling),
+      SK_DXGI_DescribeScanlineOrder (pModeToMatch->ScanlineOrdering)
   );
 
 
@@ -3872,18 +3868,18 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
   if (SUCCEEDED (ret))
   {
-    SK_LOG0 (
-      ( L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
-                                             L"Scanlines=%s",
-        pClosestMatch->Width, pClosestMatch->Height,
-          pClosestMatch->RefreshRate.Denominator != 0 ?
-            static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
-            static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
-              std::numeric_limits <float>::quiet_NaN (),
-        SK_DXGI_FormatToStr           (pClosestMatch->Format).data (),
-        SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
-        SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering) ),
-        L"   DXGI   " );
+    SK_LOGi0 (
+      L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
+                                           L"Scanlines=%s",
+      pClosestMatch->Width, pClosestMatch->Height,
+        pClosestMatch->RefreshRate.Denominator != 0 ?
+          static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
+          static_cast <float> (pClosestMatch->RefreshRate.Denominator) :
+            std::numeric_limits <float>::quiet_NaN (),
+      SK_DXGI_FormatToStr           (pClosestMatch->Format).data (),
+      SK_DXGI_DescribeScalingMode   (pClosestMatch->Scaling),
+      SK_DXGI_DescribeScanlineOrder (pClosestMatch->ScanlineOrdering)
+    );
   }
 
   return ret;
@@ -4097,9 +4093,9 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       { bool  mode_change =      (Fullscreen != _OriginalFullscreen) || (pOutput.p != pTarget && pTarget != nullptr);
         if (! mode_change)
         {
-          SK_LOG0 ( ( L"Redundant Fullscreen Mode Change Ignored  ( %s )", Fullscreen ?
-                                                                        L"Fullscreen" : L"Windowed" ),
-                      L"   DXGI   " );
+          SK_LOGi0 ( L"Redundant Fullscreen Mode Change Ignored  ( %s )",
+                                 Fullscreen ?
+                              L"Fullscreen" : L"Windowed" );
           return S_OK;
         }
       }
@@ -4267,7 +4263,8 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
         rb.srgb_stripped = true;
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+      //NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;
@@ -4497,7 +4494,8 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
         rb.srgb_stripped = true;
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+        //NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;
@@ -5022,14 +5020,16 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
       if (request_mode_change == mode_change_request_e::Fullscreen)
       {
-        dll_log->Log ( L"[   DXGI   ]  >> User-Requested Mode Change: Fullscreen" );
+        SK_LOGi0 (L" >> User-Requested Mode Change: Fullscreen");
+
         pDesc->Windowed = FALSE;
       }
 
       if (config.display.force_fullscreen && pDesc->Windowed)
       {
-        dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-                       L"(Requested: Windowed, Using: Fullscreen)" );
+        SK_LOGi0 ( L" >> Display Override "
+                   L"(Requested: Windowed, Using: Fullscreen)" );
+
         pDesc->Windowed = FALSE;
       }
 
@@ -5042,8 +5042,9 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
              IsWindow (pDesc->OutputWindow)
            )
         {
-          dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-                         L"(Requested: Fullscreen, Using: Windowed)" );
+          SK_LOGi0 ( L" >> Display Override "
+                     L"(Requested: Fullscreen, Using: Windowed)" );
+
           pDesc->Windowed = TRUE;
         }
       }
@@ -5064,7 +5065,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
         switch (pDesc->BufferDesc.Format)
         {
           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-            dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
+            SK_LOGs0 ( L" DXGI 1.2 ",
+                       L" >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
             rb.srgb_stripped = true;
             [[fallthrough]];
           case DXGI_FORMAT_B8G8R8A8_UNORM:
@@ -5072,8 +5074,12 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
             break;
           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+          //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+            
+            SK_LOGs0 ( L" DXGI 1.2 ",
+                       L" >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
+
             rb.srgb_stripped = true;
             [[fallthrough]];
           case DXGI_FORMAT_R8G8B8A8_UNORM:
@@ -5086,9 +5092,25 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
           if (          pDesc->OutputWindow != 0 &&
               IsWindow (pDesc->OutputWindow)     && (! pDesc->Windowed))
           {
-            dll_log->Log ( L"[ DXGI 1.2 ]  Flip Model SwapChains Must be Created Windowed Initially");
+            SK_LOGs0 ( L" DXGI 1.2 ",
+                       L" Flip Model SwapChains Must be Created Windowed Initially" );
+
             pDesc->Windowed = TRUE;
           }
+        }
+      }
+
+      if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
+      {
+        if ( DirectX::MakeTypeless (pDesc->BufferDesc.Format) ==
+             DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) )
+        {
+          SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
+                     L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",
+                       SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data () );
+
+          pDesc->BufferDesc.Format =
+            DXGI_FORMAT_R10G10B10A2_UNORM;
         }
       }
 
@@ -5100,7 +5122,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
            config.render.framerate.buffer_count       <   16 )
       {
         pDesc->BufferCount = config.render.framerate.buffer_count;
-        dll_log->Log (L"[   DXGI   ]  >> Buffer Count Override: %lu buffers", pDesc->BufferCount);
+        SK_LOGi0 (L" >> Buffer Count Override : % lu buffers", pDesc->BufferCount);
       }
 
       if ( ( config.render.framerate.flip_discard ||
@@ -5108,22 +5130,24 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
               dxgi_caps.swapchain.allow_tearing )
       {
         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
+
+        SK_LOGs0 ( L" DXGI 1.5 ",
+                   L" >> Tearing Option : Enable" );
       }
 
       if ( config.render.dxgi.scaling_mode != -1 &&
             pDesc->BufferDesc.Scaling      !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
       {
-        dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
-                       L"(Requested: %s, Using: %s)",
-                         SK_DXGI_DescribeScalingMode (
-                           pDesc->BufferDesc.Scaling
-                         ),
-                           SK_DXGI_DescribeScalingMode (
-                             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-                           )
-                     );
+        SK_LOGi0 ( L" >> Scaling Override "
+                   L"(Requested: %s, Using: %s)",
+                     SK_DXGI_DescribeScalingMode (
+                       pDesc->BufferDesc.Scaling
+                     ),
+                       SK_DXGI_DescribeScalingMode (
+                         (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
+                       )
+                 );
 
         pDesc->BufferDesc.Scaling =
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
@@ -5133,15 +5157,15 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
             pDesc->BufferDesc.ScanlineOrdering !=
               (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
       {
-        dll_log->Log ( L"[   DXGI   ]  >> Scanline Override "
-                       L"(Requested: %s, Using: %s)",
-                         SK_DXGI_DescribeScanlineOrder (
-                           pDesc->BufferDesc.ScanlineOrdering
-                         ),
-                           SK_DXGI_DescribeScanlineOrder (
-                             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-                           )
-                     );
+        SK_LOGi0 ( L" >> Scanline Override "
+                   L"(Requested: %s, Using: %s)",
+                     SK_DXGI_DescribeScanlineOrder (
+                       pDesc->BufferDesc.ScanlineOrdering
+                     ),
+                       SK_DXGI_DescribeScanlineOrder (
+                         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
+                       )
+                 );
 
         pDesc->BufferDesc.ScanlineOrdering =
           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
@@ -5154,15 +5178,15 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
           )
         )
       {
-        dll_log->Log ( L"[   DXGI   ]  >> Refresh Override "
-                       L"(Requested: %f, Using: %f)",
+        SK_LOGi0 ( L" >> Refresh Override "
+                   L"(Requested: %f, Using: %f)",
                     pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
             static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
             static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
                         std::numeric_limits <float>::quiet_NaN (),
             static_cast <float> (config.render.framerate.rescan_.Numerator) /
             static_cast <float> (config.render.framerate.rescan_.Denom)
-                     );
+                 );
 
         if (config.render.framerate.rescan_.Denom != 1)
         {
@@ -5232,12 +5256,13 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
       pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
-    SK_LOG0 ( ( L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
-                   (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
-                     L"Flip" : L"Traditional",
-                       bWait ? L"Yes" : L"No",
-                       bWait ? config.render.framerate.swapchain_wait : 0 ),
-                L" DXGI 1.2 " );
+    SK_LOGs0 ( L" DXGI 1.2 ",
+               L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
+                 (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
+                   L"Flip" : L"Traditional",
+                     bWait ? L"Yes" : L"No",
+                     bWait ? config.render.framerate.swapchain_wait : 0
+             );
 
 
     // HDR override requires Flip Model
@@ -5251,8 +5276,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
       if (pDesc->SampleDesc.Count != 1)
       {
-        SK_LOG0 ( ( L"  >> Disabling SwapChain-based MSAA for Flip Model compliance."),
-                    L" DXGI 1.2 " );
+        SK_LOGs0 ( L" DXGI 1.2 ",
+                   L"  >> Disabling SwapChain-based MSAA for Flip Model compliance." );
 
         pDesc->SampleDesc.Count = 1;
       }
@@ -5373,7 +5398,8 @@ SK_DXGI_CreateSwapChain_PostInit (
          pDesc->OutputWindow != nullptr &&
          pDesc->OutputWindow != windows.device )
     {
-      dll_log->Log (L"[   DXGI   ] Game created a new window?!");
+      SK_LOGi0 (L"Game created a new window?!");
+
       rb.releaseOwnedResources ();
 
       // This is a hard reset, we're going to get a new cmd queue
@@ -5454,7 +5480,7 @@ SK_DXGI_CreateSwapChain_PostInit (
         // Immediately following creation, wait on the SwapChain to get the semaphore initialized.
         SK_AutoHandle hWaitHandle (rb.getSwapWaitHandle ());
         if ((intptr_t)hWaitHandle.m_h > 0 )
-          {
+        {
           SK_WaitForSingleObject (
                 hWaitHandle.m_h, 15
           );
@@ -5711,9 +5737,10 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   {
     rb.api  = SK_RenderAPI::D3D12;
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) created using D3D12 Command Queue",
-             (uintptr_t)pSwapChain ),
-           L"   DXGI   " );
+    SK_LOGi0 (
+      L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) created using D3D12 Command Queue",
+               (uintptr_t)pSwapChain
+    );
 
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
@@ -5741,9 +5768,10 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     *ppDest =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
-                 (uintptr_t)pSwapChain ),
-               L"   DXGI   " );
+    SK_LOGi0 (
+      L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
+               (uintptr_t)pSwapChain
+    );
 
     rb.swapchain = *ppDest;
     _PushInitialDWMColorSpace (pSwapChain, rb);
@@ -5771,9 +5799,10 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   {
     rb.api  = SK_RenderAPI::D3D12;
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D12 Command Queue",
-                 (uintptr_t)pSwapChain ),
-               L"   DXGI   " );
+    SK_LOGi0 (
+      L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D12 Command Queue",
+               (uintptr_t)pSwapChain
+    );
 
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
@@ -5801,9 +5830,10 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     *ppDest =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
-    SK_LOG0 ( (L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
-                 (uintptr_t)pSwapChain ),
-               L"   DXGI   " );
+    SK_LOGi0 (
+      L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
+               (uintptr_t)pSwapChain
+    );
 
     rb.swapchain = *ppDest;
     _PushInitialDWMColorSpace (pSwapChain, rb);
@@ -5886,13 +5916,13 @@ DXGIFactory_CreateSwapChain_Override (
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ), L"Direct3D12" );
+    SK_LOGs0 ( L"Direct3D12", L" <*> Native D3D12 SwapChain Captured" );
 
     if ( config.render.framerate.buffer_count >= 0 &&
          config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
     {
-      SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" ),
-                  L"Direct3D12" );
+      SK_LOGs0 ( L"Direct3D12",
+                 L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
       config.render.framerate.buffer_count = -1;
     }
@@ -5901,9 +5931,8 @@ DXGIFactory_CreateSwapChain_Override (
   if ( config.render.framerate.buffer_count >= 0 &&
        config.render.framerate.buffer_count < sk::narrow_cast <int> (pDesc->BufferCount) )
   {
-    SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override uses fewer "
-                L"buffers than the engine requested -(OVERRIDE DISABLED)-" ),
-                L"   DXGI   " );
+    SK_LOGi0 ( L" [-] SwapChain Buffer Count Override uses fewer "
+               L"buffers than the engine requested -(OVERRIDE DISABLED)-" );
 
     config.render.framerate.buffer_count =
       sk::narrow_cast <int> (pDesc->BufferCount);
@@ -5991,9 +6020,11 @@ DXGIFactory_CreateSwapChain_Override (
 
           if (recycle_desc.Flags != pDesc->Flags)
           {
-            SK_LOG0 ( ( L" Flags (%x) on SwapChain to be recycled for HWND (%p) do not match requested (%x)...",
-                        recycle_desc.Flags, pDesc->OutputWindow, pDesc->Flags ),
-                        L"DXGI Reuse" );
+            SK_LOGs0 ( L"DXGI Reuse",
+                       L" Flags (%x) on SwapChain to be recycled for HWND (%p) do not match requested (%x)...",
+             recycle_desc.Flags,                        pDesc->OutputWindow,
+                   pDesc->Flags
+            );
           }
         }
 
@@ -6081,8 +6112,7 @@ DXGIFactory_CreateSwapChain_Override (
     return ret;
   }
 
-  SK_LOG0 ( ( L"SwapChain Creation Failed, trying again without overrides..." ),
-              L"   DXGI   " );
+  SK_LOGi0 (L"SwapChain Creation Failed, trying again without overrides...");
 
   DXGI_CALL ( ret,
                 CreateSwapChain_Original ( This, pDevice,
@@ -6427,14 +6457,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
-    SK_LOG0 ( ( L" <*> Native D3D12 SwapChain Captured" ),
-                       L"Direct3D12" );
+    SK_LOGs0 ( L"Direct3D12",
+               L" <*> Native D3D12 SwapChain Captured" );
 
     if ( config.render.framerate.buffer_count >= 0 &&
          config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
     {
-      SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" ),
-                  L"Direct3D12" );
+      SK_LOGs0 ( L"Direct3D12",
+                 L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
       config.render.framerate.buffer_count = -1;
     }
@@ -6443,9 +6473,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   if ( config.render.framerate.buffer_count >= 0 &&
        config.render.framerate.buffer_count < sk::narrow_cast <int> (pDesc->BufferCount) )
   {
-    SK_LOG0 ( ( L" [-] SwapChain Buffer Count Override uses fewer "
-                L"buffers than the engine requested -(OVERRIDE DISABLED)-" ),
-                L"   DXGI   " );
+    SK_LOGi0 ( L" [-] SwapChain Buffer Count Override uses fewer "
+               L"buffers than the engine requested -(OVERRIDE DISABLED)-" );
 
     config.render.framerate.buffer_count =
       sk::narrow_cast <int> (pDesc->BufferCount);
@@ -6475,9 +6504,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     bRecycledSwapChains = true;
 
     DXGI_CALL ( ret, S_OK );
-    SK_LOG0   (
-      ( L" ### Returning Cached SwapChain for HWND previously seen" ),
-        L" DXGI 1.0 "     );
+    SK_LOGs0  ( L" DXGI 1.0 ",
+                L" ### Returning Cached SwapChain for HWND previously seen" );
 
     //// Expect to be holding one reference at this point, or something's gone wrong!
     //SK_ReleaseAssert (pCache->AddRef  () == 2 && pCache->Release () == 1);
@@ -6551,8 +6579,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     return ret;
   }
 
-  SK_LOG0 ( ( L"SwapChain Creation Failed, trying again without overrides..." ),
-              L"   DXGI   " );
+  SK_LOGi0 (L"SwapChain Creation Failed, trying again without overrides...");
 
   DXGI_CALL ( ret, CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, &orig_desc1, &orig_fullscreen_desc,
                                                        pRestrictToOutput, &pTemp ) );
@@ -7490,24 +7517,24 @@ SK_HookDXGI (void)
       DXGIGetDebugInterface1_Import = (DXGIGetDebugInterface1_pfn)
         SK_GetProcAddress (hBackend, "DXGIGetDebugInterface1");
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory:      %s",
-                    SK_MakePrettyAddress (CreateDXGIFactory_Import).c_str ()  ),
-                  L" DXGI 1.0 " );
+      SK_LOGs0 ( L" DXGI 1.0 ",
+                 L"  CreateDXGIFactory:      %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory_Import).c_str () );
       SK_LogSymbolName                   (CreateDXGIFactory_Import);
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory1:     %s",
-                    SK_MakePrettyAddress (CreateDXGIFactory1_Import).c_str () ),
-                  L" DXGI 1.1 " );
+      SK_LOGs0 ( L" DXGI 1.1 ",
+                 L"  CreateDXGIFactory1:     %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory1_Import).c_str () );
       SK_LogSymbolName                   (CreateDXGIFactory1_Import);
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory2:     %s",
-                    SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () ),
-                  L" DXGI 1.3 " );
+      SK_LOGs0 ( L" DXGI 1.3 ",
+                 L"  CreateDXGIFactory2:     %s",
+                    SK_MakePrettyAddress (CreateDXGIFactory2_Import).c_str () );
       SK_LogSymbolName                   (CreateDXGIFactory2_Import);
 
-      SK_LOG0 ( ( L"  DXGIGetDebugInterface1: %s",
-                    SK_MakePrettyAddress (DXGIGetDebugInterface1_Import).c_str () ),
-                  L" DXGI 1.3 " );
+      SK_LOGs0 ( L" DXGI 1.3 ",
+                 L"  DXGIGetDebugInterface1: %s",
+                    SK_MakePrettyAddress (DXGIGetDebugInterface1_Import).c_str () );
       SK_LogSymbolName                   (DXGIGetDebugInterface1_Import);
 
       LocalHook_CreateDXGIFactory.target.addr  = CreateDXGIFactory_Import;
@@ -7572,28 +7599,28 @@ SK_HookDXGI (void)
         pfnCreateDXGIFactory2 = LocalHook_CreateDXGIFactory2.target.addr;
       }
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory:  %s  %s",
+      SK_LOGs0 ( L" DXGI 1.0 ",
+                 L"  CreateDXGIFactory:  %s  %s",
                     SK_MakePrettyAddress (pfnCreateDXGIFactory).c_str  (),
                                              CreateDXGIFactory_Import ?
-                                               L"{ Hooked }" :
-                                               L"" ),
-                  L" DXGI 1.0 " );
+                                                        L"{ Hooked }" :
+                                                        L""   );
       SK_LogSymbolName                   (pfnCreateDXGIFactory);
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory1: %s  %s",
+      SK_LOGs0 ( L" DXGI 1.1 ",
+                 L"  CreateDXGIFactory1: %s  %s",
                     SK_MakePrettyAddress (pfnCreateDXGIFactory1).c_str  (),
                                              CreateDXGIFactory1_Import ?
-                                               L"{ Hooked }" :
-                                               L"" ),
-                  L" DXGI 1.1 " );
+                                                         L"{ Hooked }" :
+                                                         L""   );
       SK_LogSymbolName                   (pfnCreateDXGIFactory1);
 
-      SK_LOG0 ( ( L"  CreateDXGIFactory2: %s  %s",
+      SK_LOGs0 ( L" DXGI 1.3 ",
+                 L"  CreateDXGIFactory2: %s  %s",
                     SK_MakePrettyAddress (pfnCreateDXGIFactory2).c_str  (),
                                              CreateDXGIFactory2_Import ?
-                                               L"{ Hooked }" :
-                                               L"" ),
-                  L" DXGI 1.3 " );
+                                                         L"{ Hooked }" :
+                                                         L""   );
       SK_LogSymbolName                   (pfnCreateDXGIFactory2);
 
       LocalHook_CreateDXGIFactory.target.addr  = pfnCreateDXGIFactory;
@@ -7786,9 +7813,8 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace,
   UINT                  *pColorSpaceSupported )
 {
-  SK_LOG0 ( ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
-                DXGIColorSpaceToStr (ColorSpace) ),
-              L"   DXGI   " );
+  SK_LOGi0 ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
+                   DXGIColorSpaceToStr (ColorSpace) );
 
   // SK has a trick where it can override PQ to scRGB, but often when that
   //   mode is active, the game's going to fail this call. We need to lie (!)
@@ -7819,9 +7845,9 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
     }
 
     if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT )
-      SK_LOG0 ( ( L"[#] Color Space Supported. ") , L" DXGI HDR ");
+      SK_LOGs0 ( L" DXGI HDR ", L"[#] Color Space Supported." );
     if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_OVERLAY_PRESENT )
-      SK_LOG0 ( ( L"[#] Overlay Supported." ),      L" DXGI HDR ");
+      SK_LOGs0 ( L" DXGI HDR ", L"[#] Overlay Supported."     );
   }
 
   return hr;
@@ -7835,9 +7861,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   BOOL                   bWrapped = FALSE
 )
 {
-  SK_LOG0 ( ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
-                   DXGIColorSpaceToStr (ColorSpace) ),
-              L"   DXGI   " );
+  SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
+                 DXGIColorSpaceToStr (ColorSpace) );
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -7845,11 +7870,11 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
                            ColorSpace != rb.scanout.colorspace_override )
   {
-    SK_LOG0 ( ( L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
-                DXGIColorSpaceToStr (ColorSpace),
-                DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)
-                                        rb.scanout.colorspace_override)
-              ),L"   DXGI   " );
+    SK_LOGi0 ( L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
+                   DXGIColorSpaceToStr (      ColorSpace),
+                   DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)
+                                   rb.scanout.colorspace_override)
+    );
 
     ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
   }
@@ -7861,8 +7886,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
          swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
                       && ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
   {                      ColorSpace  = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
-    SK_LOG0 ( ( L"Game tried to use the wrong color space (HDR10), using scRGB instead."),
-                L" DXGI HDR " );
+    SK_LOGs0 ( L" DXGI HDR ",
+               L"Game tried to use the wrong color space (HDR10), using scRGB instead." );
   }
 
   HRESULT hr =                      bWrapped ?
@@ -8667,10 +8692,9 @@ SK::DXGI::Shutdown (void)
   //   up the Present (...) hook.
   if (SK_GetFramesDrawn () < 2)
   {
-    SK_LOG0 ( ( L" !!! No frames drawn using DXGI backend; purging "
-                L"injection address cache..."
-              ),
-                L"Hook Cache" );
+    SK_LOGs0 ( L"Hook Cache",
+               L" !!! No frames drawn using DXGI backend; purging "
+               L"injection address cache..." );
 
     for ( auto& it : local_dxgi_records )
     {

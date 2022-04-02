@@ -21,6 +21,10 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"   D3D9   "
+#endif
+
 #include <SpecialK/render/d3d9/d3d9_swapchain.h>
 #include <SpecialK/render/d3d9/d3d9_device.h>
 
@@ -125,7 +129,7 @@ IWrapDirect3DSwapChain9::Release (void)
 
   if (local_refs == 0 && refs != 0)
   {
-    SK_LOG0 ( (L"Reference count for 'ID3D9SwapChain' object is inconsistent: %li, but expected 0.", refs), L"   D3D9   ");
+    SK_LOGi0 ( L"Reference count for 'ID3D9SwapChain' object is inconsistent: %li, but expected 0.", refs );
 
     refs = 0;
   }

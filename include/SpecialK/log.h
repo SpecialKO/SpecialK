@@ -186,4 +186,20 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 #define SK_LOG3(expr,src) SK_LOG(expr,3,src)
 #define SK_LOG4(expr,src) SK_LOG(expr,4,src)
 
+#define SK_LOGN(lvl,src,...) SK_LOG (      (__VA_ARGS__),\
+                                    lvl,src              )
+#define SK_LOGs0(src,   ...) SK_LOGN( 0,src,__VA_ARGS__  )
+#define SK_LOGs1(src,   ...) SK_LOGN( 1,src,__VA_ARGS__  )
+#define SK_LOGs2(src,   ...) SK_LOGN( 2,src,__VA_ARGS__  )
+#define SK_LOGs3(src,   ...) SK_LOGN( 3,src,__VA_ARGS__  )
+#define SK_LOGs4(src,   ...) SK_LOGN( 4,src,__VA_ARGS__  )
+
+#define SK_LOGn(lvl,    ...) SK_LOG (      (__VA_ARGS__),\
+                                   lvl,__SK_SUBSYSTEM__  )
+#define SK_LOGi0(       ...) SK_LOGn(0,     __VA_ARGS__  )
+#define SK_LOGi1(       ...) SK_LOGn(1,     __VA_ARGS__  )
+#define SK_LOGi2(       ...) SK_LOGn(2,     __VA_ARGS__  )
+#define SK_LOGi3(       ...) SK_LOGn(3,     __VA_ARGS__  )
+#define SK_LOGi4(       ...) SK_LOGn(4,     __VA_ARGS__  )
+
 #endif /* __SK__LOG_H__ */

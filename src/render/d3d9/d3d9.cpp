@@ -25,6 +25,10 @@
 #define _L2(w)  L ## w
 #define  _L(w) _L2(w)
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"   D3D9   "
+#endif
+
 #include <SpecialK/render/d3d9/d3d9_device.h>
 #include <SpecialK/render/d3d9/d3d9_screenshot.h>
 
@@ -392,14 +396,14 @@ SK_ImGui_DrawD3D9 (IDirect3DDevice9* pDev, IDirect3DSwapChain9* pSwapChain)
 
       if (! wszSection)
       {
-        SK_LOG0 ( ( L"Hook for '%hs' resides in '%s', will not cache!",
+        SK_LOGs0 ( L"Hook Cache",
+                   L"Hook for '%hs' resides in '%s', will not cache!",
                       it->target.symbol_name,
        SK_ConcealUserDir (
             std::wstring (
                       it->target.module_path
                          ).data ()
-          )                                                             ),
-                    L"Hook Cache" );
+                 )       );
       }
 
       else
@@ -675,8 +679,8 @@ SK_HookD3D9 (void)
                         == DLL_ROLE::D3D9) ? backend_dll :
                                   SK_GetModuleHandle (L"d3d9.dll");
 
-    SK_LOG0 ( (L"Importing Direct3DCreate9{Ex}..."), L"   D3D9   ");
-    SK_LOG0 ( (L"================================"), L"   D3D9   ");
+    SK_LOGi0 (L"Importing Direct3DCreate9{Ex}...");
+    SK_LOGi0 (L"================================");
 
     if (! _wcsicmp (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll"))
     {
@@ -689,10 +693,9 @@ SK_HookD3D9 (void)
         LocalHook_Direct3DCreate9.active      = true;
       }
 
-      SK_LOG0 ( ( L"  Direct3DCreate9:   %s",
-                    SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () ),
-                  L"   D3D9   " );
-      SK_LogSymbolName                   (Direct3DCreate9_Import);
+      SK_LOGi0 ( L"  Direct3DCreate9:   %s",
+                  SK_MakePrettyAddress (Direct3DCreate9_Import).c_str () );
+      SK_LogSymbolName                 (Direct3DCreate9_Import);
 
       if (config.apis.d3d9ex.hook)
       {
@@ -701,9 +704,9 @@ SK_HookD3D9 (void)
           Direct3DCreate9Ex_Import =  \
             (Direct3DCreate9Ex_pfn)SK_GetProcAddress (hBackend, "Direct3DCreate9Ex");
 
-          SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s",
-                        SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () ),
-                      L"  D3D9Ex  " );
+          SK_LOGs0 ( L"  D3D9Ex  ",
+                     L"  Direct3DCreate9Ex: %s",
+                        SK_MakePrettyAddress (Direct3DCreate9Ex_Import).c_str () );
           SK_LogSymbolName                   (Direct3DCreate9Ex_Import);
 
           LocalHook_Direct3DCreate9Ex.target.addr = Direct3DCreate9Ex_Import;
@@ -757,14 +760,13 @@ SK_HookD3D9 (void)
         success &= ( LocalHook_Direct3DCreate9Ex.active ||
                     (MH_QueueEnableHook (pfnDirect3DCreate9Ex) == MH_OK) );
 
-      SK_LOG0 ( ( L"  Direct3DCreate9:   %s  { Hooked  }",
-                    SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () ),
-                  L"   D3D9   " );
+      SK_LOGi0 ( L"  Direct3DCreate9:   %s  { Hooked  }",
+                    SK_MakePrettyAddress (pfnDirect3DCreate9).c_str () );
       SK_LogSymbolName                   (pfnDirect3DCreate9);
 
-      SK_LOG0 ( ( L"  Direct3DCreate9Ex: %s  { Hooked  }",
-                    SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () ),
-                  L"  D3D9Ex  " );
+      SK_LOGs0 ( L"  D3D9Ex  ",
+                 L"  Direct3DCreate9Ex: %s  { Hooked  }",
+                    SK_MakePrettyAddress (pfnDirect3DCreate9Ex).c_str () );
       SK_LogSymbolName                   (pfnDirect3DCreate9Ex);
     }
 
@@ -990,9 +992,9 @@ SK_D3DX9_Unpack (void)
       []( const std::vector <uint8_t>&& data,
           const std::wstring_view       file ) -> bool
       {
-        SK_LOG0 ( ( L"Unpacking D3DX9_43.dll because user does not have "
-                    L"June 2010 DirectX Redistributables installed." ),
-                    L"D3DCompile" );
+        SK_LOGs0 ( L"D3DCompile",
+                   L"Unpacking D3DX9_43.dll because user does not have "
+                   L"June 2010 DirectX Redistributables installed." );
 
         std::filesystem::path
                     full_path (file.data ());
@@ -1157,8 +1159,9 @@ SK::D3D9::Shutdown (void)
 
   if (SK_GetFramesDrawn () < 2)
   {
-    SK_LOG0 ( ( L" !!! No frames drawn using D3D9 backend; purging injection address cache..." ),
-                L"Hook Cache" );
+    SK_LOGs0 ( L"Hook Cache",
+      L" !!! No frames drawn using D3D9 backend; "
+             L"purging injection address cache..." );
 
     for ( auto it : local_d3d9_records )
     {
@@ -1234,7 +1237,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
     if ( pPresentationParameters           != nullptr &&
          pPresentationParameters->Windowed == FALSE)
     {
-      dll_log->Log ( L"[  D3D9  ]  >> Refresh Rate Override: %f",
+      SK_LOGi0 ( L" >> Refresh Rate Override: %f",
                        config.render.framerate.refresh_rate );
 
       Refresh = (int)config.render.framerate.refresh_rate;
@@ -1279,22 +1282,76 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
   {
     if (       config.render.framerate.buffer_count != -1 &&
          (UINT)config.render.framerate.buffer_count !=
-           pPresentationParameters->BackBufferCount ) {
-      dll_log->Log ( L"[   D3D9   ]  >> Backbuffer Override: (Requested=%lu, Override=%li)",
+           pPresentationParameters->BackBufferCount )
+    {
+      SK_LOGi0 ( L" >> Backbuffer Override: (Requested=%lu, Override=%li)",
                        pPresentationParameters->BackBufferCount,
-                         config.render.framerate.buffer_count );
+                           config.render.framerate.buffer_count );
       pPresentationParameters->BackBufferCount =
         config.render.framerate.buffer_count;
     }
 
+    auto
+    _SK_D3D9_IsPresentIntervalEquivalent =
+      [](int sk_interval, int d3d9_interval)
+   -> bool
+      {
+        switch (sk_interval)
+        {
+          case 0:
+            return (d3d9_interval == D3DPRESENT_INTERVAL_IMMEDIATE ||
+                    d3d9_interval == D3DPRESENT_FORCEIMMEDIATE);
+
+          case 1:
+            return (d3d9_interval == D3DPRESENT_INTERVAL_ONE ||
+                    d3d9_interval == D3DPRESENT_INTERVAL_DEFAULT);
+          
+          case 2:
+            return d3d9_interval == D3DPRESENT_INTERVAL_TWO;
+
+          case 3:
+            return d3d9_interval == D3DPRESENT_INTERVAL_THREE;
+          
+          case 4:
+            return d3d9_interval == D3DPRESENT_INTERVAL_FOUR;
+
+          default:
+            SK_ReleaseAssert (! L"Invalid D3D9 Present Interval");
+            return false;
+        }
+      };
+
     if (       config.render.framerate.present_interval != -1 &&
-         (UINT)config.render.framerate.present_interval !=
-            pPresentationParameters->PresentationInterval ) {
-      dll_log->Log ( L"[   D3D9   ]  >> VSYNC Override: (Requested=1:%lu, Override=1:%li)",
-                       pPresentationParameters->PresentationInterval,
-                         config.render.framerate.present_interval );
-      pPresentationParameters->PresentationInterval =
-        config.render.framerate.present_interval;
+         (! _SK_D3D9_IsPresentIntervalEquivalent (
+               config.render.framerate.present_interval,
+          pPresentationParameters->PresentationInterval) ) )
+    {
+      SK_LOGi0 (
+        L" >> VSYNC Override: (Requested=%lu, Override=%li)",
+
+        SK_D3D9_GetNominalPresentInterval (
+          pPresentationParameters->PresentationInterval
+        ),     config.render.framerate.present_interval
+      );
+
+      if (     config.render.framerate.present_interval == 0)
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+      else if (config.render.framerate.present_interval == 1)
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+      else if (config.render.framerate.present_interval == 2)
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_TWO;
+      else if (config.render.framerate.present_interval == 3)
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_THREE;
+      else if (config.render.framerate.present_interval == 4)
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_FOUR;
+      else
+      {
+        SK_LOGi0 (
+          L"Invalid Present Interval: %d Requested; defaulting to 1:1 Refresh",
+            config.render.framerate.present_interval );
+
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_ONE;
+      }
     }
   }
 }
@@ -1304,9 +1361,9 @@ __inline
 HRESULT
 _HandleSwapChainException (const wchar_t* wszOrigin)
 {
-  SK_LOG0 ( ( L"*** First-chance exception during SwapChain Presentation "
-              L"(%ws)", wszOrigin ),
-              L"   D3D9   " );
+  SK_LOGi0 (
+    L"*** First-chance exception during SwapChain Presentation (%ws)",
+                                          wszOrigin );
 
   SK_ImGui_QueueResetD3D9 ();
 
@@ -1560,9 +1617,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     // This ain't good!   (Log it REPEATEDLY)
     //
-    SK_LOG0 ( (L" Dispatch failure for D3D9 SwapChain Presentation; %s",
-                  L"Unknown Combination of Parameters" ),
-               L"   D3D9   " );
+    SK_LOGi0 ( L" Dispatch failure for D3D9 SwapChain Presentation; %s",
+                  L"Unknown Combination of Parameters" );
 
     return E_NOTIMPL;
   };
@@ -1989,8 +2045,8 @@ D3D9CreateAdditionalSwapChain_Override ( IDirect3DDevice9       *This,
                                          D3DPRESENT_PARAMETERS  *pPresentationParameters,
                                          IDirect3DSwapChain9   **ppSwapChain )
 {
-  dll_log->Log (L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
-                                    L" %08" _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                    L" %08" _L(PRIxPTR) L"h) - "
     L"%s",
     L"IDirect3DDevice9::CreateAdditionalSwapChain", This,
       (uintptr_t)pPresentationParameters, (uintptr_t)ppSwapChain,
@@ -2333,8 +2389,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   }
 
 
-
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                  L"IDirect3DDevice9::Reset",
                    (uintptr_t)This, (uintptr_t)pPresentationParameters,
@@ -2398,8 +2453,8 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
   }
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
-                                    L" %08"  _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                    L" %08"  _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"IDirect3DDevice9Ex::ResetEx",
                      (uintptr_t)This, (uintptr_t)pPresentationParameters,
@@ -2450,7 +2505,7 @@ D3D9SetGammaRamp_Override ( IDirect3DDevice9 *This,
                  _In_       DWORD             Flags,
                  _In_ const D3DGAMMARAMP     *pRamp )
 {
-  dll_log->Log (L"[   D3D9   ] SetGammaRamp (...) ");
+  SK_LOGi0 (L"SetGammaRamp (...) ");
 
   return
     D3D9Device_SetGammaRamp_Original ( This,
@@ -3413,7 +3468,8 @@ D3D9StretchRect_Override (      IDirect3DDevice9    *This,
   {
     if (pSourceRect != nullptr && pDestRect != nullptr)
     {
-      dll_log->Log ( L"[CompatHack] StretchRect: { %i, %i, %ix%i } -> { %i, %i, %ix%i }",
+      SK_LOGs0 ( L"CompatHack",
+                 L"StretchRect: { %i, %i, %ix%i } -> { %i, %i, %ix%i }",
                        pSourceRect->left, pSourceRect->top, pSourceRect->right  - pSourceRect->left,
                                                             pSourceRect->bottom - pSourceRect->top,
                        pDestRect->left,   pDestRect->top,   pDestRect->right    - pDestRect->left,
@@ -3471,7 +3527,8 @@ SK_SetPresentParamsD3D9 ( IDirect3DDevice9      *pDevice,
   D3DDISPLAYMODEEX *pImplicitModeEx = &implict_mode_ex;
 
 
-  return SK_SetPresentParamsD3D9Ex (pDevice, pparams, &pImplicitModeEx);
+  return
+    SK_SetPresentParamsD3D9Ex (pDevice, pparams, &pImplicitModeEx);
 }
 
 __declspec (noinline)
@@ -3486,11 +3543,318 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
 ////return pparams;
 
-  if (SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex || (! pDevice))
+  bool bContextInit =
+    SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex;
+
+  if (! bContextInit)
+  {
+    if ( pparams != nullptr && config.render.output.force_10bpc &&
+         pparams->BackBufferFormat != D3DFMT_A2R10G10B10 )
+    {
+      static constexpr
+        auto OverrideFormat (D3DFMT_A2R10G10B10);
+
+      SK_LOGi0 ( L" >> Overriding D3D9 SwapChain Format (original = %hs) "
+                                                        "override = %hs",
+                SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
+                SK_D3D9_FormatToStr (           OverrideFormat).c_str () );
+
+      pparams->
+        BackBufferFormat =
+          OverrideFormat;
+    }
+
+    if (pparams != nullptr)
+    {
+      if ( rb.api == SK_RenderAPI::D3D9   ||
+           rb.api == SK_RenderAPI::D3D9Ex ||
+           rb.api == SK_RenderAPI::Reserved )
+      {
+        SK_D3D9_SetFPSTarget (pparams);
+
+        D3DDEVICE_CREATION_PARAMETERS dcparams = {};
+
+        if (pDevice != nullptr)
+          pDevice->GetCreationParameters (&dcparams);
+
+        auto& windows =
+          rb.windows;
+
+        if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
+        {
+          if (dcparams.hFocusWindow)
+            windows.setFocus (dcparams.hFocusWindow);
+          else if (pparams->hDeviceWindow)
+            windows.setFocus (pparams->hDeviceWindow);
+        }
+
+        if (windows.device == nullptr || (! IsWindow (windows.device)))
+        {
+          windows.setDevice (
+            pparams->hDeviceWindow     != nullptr ?
+              pparams->hDeviceWindow   :
+                (HWND)windows.device   != nullptr?
+                  (HWND)windows.device :
+                    (HWND)windows.focus );
+        }
+
+
+        bool switch_to_fullscreen = ( config.display.force_fullscreen && pparams->Windowed )  ||
+                                       ( (! rb.fullscreen_exclusive)  &&
+                                            request_mode_change       == mode_change_request_e::Fullscreen );
+
+        bool switch_to_windowed   = ( config.display.force_windowed   && (! pparams->Windowed) ) ||
+                                       (    rb.fullscreen_exclusive   &&
+                                            request_mode_change       == mode_change_request_e::Windowed   );
+
+
+        if (switch_to_fullscreen && windows.device )
+        {
+          pparams->hDeviceWindow = windows.device;
+
+          HMONITOR hMonitor =
+            MonitorFromWindow ( game_window.hWnd,
+                                  MONITOR_DEFAULTTONEAREST );
+
+          MONITORINFO mi  = { };
+          mi.cbSize       = sizeof (mi);
+          GetMonitorInfo (hMonitor, &mi);
+
+          // This must be non-zero to go fullscreen
+          if (pparams->FullScreen_RefreshRateInHz == 0)
+          {
+            if (config.render.framerate.refresh_rate == -1)
+            {
+              if (*ppFullscreenDisplayMode != nullptr)
+                pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
+
+              if (pparams->FullScreen_RefreshRateInHz == 0)
+              {
+                extern double
+                SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor);
+
+                pparams->FullScreen_RefreshRateInHz =
+                  static_cast <UINT> (SK_Display_GetDefaultRefreshRate (hMonitor));
+              }
+            }
+          }
+
+          if (config.render.framerate.refresh_rate != -1.0f)
+          {
+            pparams->FullScreen_RefreshRateInHz =
+              (UINT)config.render.framerate.refresh_rate;
+          }
+
+          if (pparams->FullScreen_RefreshRateInHz != 0)
+          {
+            pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
+            pparams->EnableAutoDepthStencil = true;
+
+            pparams->Windowed               = FALSE;
+
+
+            UINT monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
+            UINT monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+            if ( pparams->BackBufferWidth < 512 ||
+                 pparams->BackBufferWidth > monitor_width )
+                 pparams->BackBufferWidth = monitor_width;
+
+            if ( pparams->BackBufferHeight < 256 ||
+                 pparams->BackBufferHeight > monitor_height )
+                 pparams->BackBufferHeight = monitor_height;
+
+
+            if (*ppFullscreenDisplayMode == nullptr)
+              *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->render->d3d9->allocTempFullscreenStorage ();
+
+            if (*ppFullscreenDisplayMode != nullptr)
+            {
+              (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
+              (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
+              (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
+              (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
+              (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+            }
+          }
+
+          else
+          {
+            pparams->Windowed = TRUE;
+
+            // Must be NULL if the fullscreen override failed
+            if (ppFullscreenDisplayMode != nullptr)
+              (*ppFullscreenDisplayMode) = nullptr;
+
+            SK_LOGi0 (L" *** Could not force fullscreen mode due to "
+                                       L"indeterminate refresh rate!");
+          }
+        }
+
+
+        else if (switch_to_windowed)
+        {
+          if (pparams->hDeviceWindow || dcparams.hFocusWindow != nullptr)
+          {
+            pparams->Windowed                   = TRUE;
+            pparams->FullScreen_RefreshRateInHz = 0;
+
+            // Must be NULL if forcing fullscreen -> windowed
+            if (*ppFullscreenDisplayMode != nullptr)
+              *ppFullscreenDisplayMode = nullptr;
+          }
+
+          else
+          {
+            SK_LOGi0 (L" *** Could not force windowed mode, because "
+                                      L"game has no device window ?!");
+
+            pparams->Windowed = FALSE;
+          }
+        }
+
+
+        //
+        //  <-(+] Forced Borderless Window [+)->
+        //     ------------------------------
+        //        -> ( NOT FULLSCREEN ) <-
+        //
+        if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
+        {
+          //  <- @  [No Resolution Override]  @ ->
+          //
+          if (config.window.res.override.isZero ())
+          {
+            RECT wnd_rect =
+              *SK_GetGameRect ();
+
+            static int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
+            static int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
+            static int title = SK_GetSystemMetrics (SM_CYCAPTION );
+
+            if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
+                                       ( wnd_rect.right  - wnd_rect.left ),
+                                       (       2 * x_dlg + 1             ) )
+
+                                   ||
+
+                 SK_DiscontEpsilon ( pparams->BackBufferHeight,
+                                       ( wnd_rect.bottom - wnd_rect.top  ),
+                                       (       2 * y_dlg + title + 1     ) )
+               )
+            {
+              pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
+              pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
+
+              SK_LOGs0 ( L"Window Mgr",
+                         L"Border Compensated Resolution ==> (%lu x %lu)",
+                               pparams->BackBufferWidth,
+                                 pparams->BackBufferHeight );
+            }
+          }
+
+          //  <- @  [OVERRIDE Resolution]  @ ->
+          //
+          else
+          {
+            pparams->BackBufferWidth  = config.window.res.override.x;
+            pparams->BackBufferHeight = config.window.res.override.y;
+          }
+        }
+
+               RECT        client = {        };
+        SK_GetClientRect ( pparams->hDeviceWindow,
+                          &client );
+
+
+        //  Non-Zero Values for Backbuffer Width / Height
+        //  =============================================
+        //
+        //   An override may be necessary; at the very least we will make
+        //     note of the explicit values provided by the game.
+        //
+        //
+        //  NOTE:    If (Zero, Zero) is supplied for (Width, Height) -- it is a
+        // ~~~~~~~     special-case indicating to Windows that the client rect.
+        //               determines SwapChain resolution
+        //
+        //     -=> * The client rectangle can be spoofed by Special K even +
+        //         +   to the D3D9 Runtime itself !                        * <=-
+        //
+        //
+        //    -------------------------------------------------------------------
+        //    (  The 0x0 case is one we have to consider carefully in order     )
+        //    (    to figure out how the game is designed to behave vis-a-vis.  )
+        //    (      resolution scaling if the window is resized.               )
+        //
+        if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
+        {
+          /* User wants an override, so let's get down to brass tacks... */
+          if (! config.window.res.override.isZero ())
+          {
+            pparams->BackBufferWidth  = config.window.res.override.x;
+            pparams->BackBufferHeight = config.window.res.override.y;
+          }
+
+          /* If this is Zero, we need to actually create the render device / swapchain and
+               then get the value Windows assigned us... */
+          SK_SetWindowResX (pparams->BackBufferWidth);
+          SK_SetWindowResY (pparams->BackBufferHeight);
+        }
+
+        // Implicit Resolution
+        //
+        //
+        else
+        {
+          // If this is zero, we need to actually create the render device / swapchain and
+          //   then get the value Windows assigned us...
+          SK_SetWindowResX (client.right  - client.left);
+          SK_SetWindowResY (client.bottom - client.top);;
+        }
+
+        // Range Restrict to prevent D3DERR_INVALID_CALL
+        if (pparams->PresentationInterval > D3DPRESENT_INTERVAL_IMMEDIATE)
+            pparams->PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+
+        if (pparams->Windowed)
+        {
+          //SetWindowPos_Original ( hWndRender,
+                                    //HWND_TOP,
+                                      //0, 0,
+                                        //pparams->BackBufferWidth, pparams->BackBufferHeight,
+                                          //SWP_NOZORDER | SWP_NOSENDCHANGING );
+        }
+
+        else if (switch_to_fullscreen)
+        {
+          //if ( SetWindowLongPtrW_Original == nullptr ||
+          //     GetWindowLongPtrW_Original == nullptr )
+          //{
+          //  SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+          //  SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
+          //                                                                   SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+          //
+          //  SK_InstallWindowHook (pparams->hDeviceWindow);
+          //}
+          //
+          //else
+          //{
+          //  SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
+          //  SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
+          //                                                                      SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
+          //}
+        }
+
+        rb.fullscreen_exclusive = (! pparams->Windowed);
+      }
+    }
+  }
+
+  if (bContextInit || (! pDevice))
   {
     return pparams;
   }
-
 
   SK_ComQIPtr <IWrapDirect3DDevice9>
                     pWrappedDevice (pDevice);
@@ -3509,14 +3873,25 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
     }
   }
 
-  SK_ComPtr <IDirect3DDevice9Ex> pDevEx = nullptr;
+  SK_ComPtr
+   < IDirect3DDevice9Ex >
+                 pDevEx = nullptr;
 
-  if (pparams != nullptr && pDevice != nullptr && ( SUCCEEDED (((IUnknown *)pDevice)->QueryInterface <IDirect3DDevice9Ex> (&pDevEx.p))))
+  if ( pparams != nullptr &&
+       pDevice != nullptr &&
+       ( SUCCEEDED ( ( (IUnknown *)pDevice )->
+           QueryInterface <IDirect3DDevice9Ex> (
+                                  &pDevEx.p    )
+       )           )
+     )
   {
     if (config.render.d3d9.force_d3d9ex)
     {
       pparams->Windowed                   = TRUE;
-      pparams->BackBufferFormat           = D3DFMT_X8R8G8B8;
+
+      if (! config.render.output.force_10bpc)
+        pparams->BackBufferFormat         = D3DFMT_X8R8G8B8;
+
       pparams->BackBufferCount            = 3;
       pparams->PresentationInterval       = 1;
       pparams->FullScreen_RefreshRateInHz = 0;
@@ -3525,6 +3900,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
       pparams->SwapEffect                 = D3DSWAPEFFECT_FLIPEX;
       pparams->MultiSampleType            = D3DMULTISAMPLE_NONE;
       pparams->MultiSampleQuality         = 0;
+
+      rb.fullscreen_exclusive             = false;
     }
   }
 
@@ -3532,9 +3909,10 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
   {
     if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven && pparams != nullptr)
     {
-      dll_log->Log (L"[CompatHack] D3D9 Backbuffer using format %hs changed to %hs.",
+      SK_LOGs0 ( L"CompatHack",
+                 L"D3D9 Backbuffer using format %hs changed to %hs.",
         SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
-        SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8).c_str ());
+        SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8          ).c_str () );
 
       pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
       pparams->BackBufferCount        = 1;
@@ -3543,291 +3921,6 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
       pparams->MultiSampleQuality     = 0;
       pparams->EnableAutoDepthStencil = true;
       pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
-    }
-  }
-
-
-  if (pparams != nullptr)
-  {
-    if ( rb.api == SK_RenderAPI::D3D9   ||
-         rb.api == SK_RenderAPI::D3D9Ex ||
-         rb.api == SK_RenderAPI::Reserved )
-    {
-      SK_D3D9_SetFPSTarget (pparams);
-
-      D3DDEVICE_CREATION_PARAMETERS dcparams = {};
-
-      if (pDevice != nullptr)
-        pDevice->GetCreationParameters (&dcparams);
-
-      auto& windows =
-        rb.windows;
-
-      if (game_window.hWnd == nullptr || (! IsWindow (game_window.hWnd)))
-      {
-        if (dcparams.hFocusWindow)
-          windows.setFocus (dcparams.hFocusWindow);
-        else if (pparams->hDeviceWindow)
-          windows.setFocus (pparams->hDeviceWindow);
-      }
-
-      if (windows.device == nullptr || (! IsWindow (windows.device)))
-      {
-        windows.setDevice (
-          pparams->hDeviceWindow     != nullptr ?
-            pparams->hDeviceWindow   :
-              (HWND)windows.device   != nullptr?
-                (HWND)windows.device :
-                  (HWND)windows.focus );
-      }
-
-
-      bool switch_to_fullscreen = ( config.display.force_fullscreen && pparams->Windowed )  ||
-                                     ( (! rb.fullscreen_exclusive)  &&
-                                          request_mode_change       == mode_change_request_e::Fullscreen );
-
-      bool switch_to_windowed   = ( config.display.force_windowed   && (! pparams->Windowed) ) ||
-                                     (    rb.fullscreen_exclusive   &&
-                                          request_mode_change       == mode_change_request_e::Windowed   );
-
-
-      if (switch_to_fullscreen && windows.device )
-      {
-        pparams->hDeviceWindow = windows.device;
-
-        HMONITOR hMonitor =
-          MonitorFromWindow ( game_window.hWnd,
-                                MONITOR_DEFAULTTONEAREST );
-
-        MONITORINFO mi  = { };
-        mi.cbSize       = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        // This must be non-zero to go fullscreen
-        if (pparams->FullScreen_RefreshRateInHz == 0)
-        {
-          if (config.render.framerate.refresh_rate == -1)
-          {
-            if (*ppFullscreenDisplayMode != nullptr)
-              pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
-
-            if (pparams->FullScreen_RefreshRateInHz == 0)
-            {
-              extern double
-              SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor);
-
-              pparams->FullScreen_RefreshRateInHz =
-                static_cast <UINT> (SK_Display_GetDefaultRefreshRate (hMonitor));
-            }
-          }
-        }
-
-        if (config.render.framerate.refresh_rate != -1.0f)
-        {
-          pparams->FullScreen_RefreshRateInHz =
-            (UINT)config.render.framerate.refresh_rate;
-        }
-
-        if (pparams->FullScreen_RefreshRateInHz != 0)
-        {
-          pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
-          pparams->EnableAutoDepthStencil = true;
-
-          pparams->Windowed               = FALSE;
-
-
-          UINT monitor_width  = mi.rcMonitor.right  - mi.rcMonitor.left;
-          UINT monitor_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
-
-          if ( pparams->BackBufferWidth < 512 ||
-               pparams->BackBufferWidth > monitor_width )
-               pparams->BackBufferWidth = monitor_width;
-
-          if ( pparams->BackBufferHeight < 256 ||
-               pparams->BackBufferHeight > monitor_height )
-               pparams->BackBufferHeight = monitor_height;
-
-
-          if (*ppFullscreenDisplayMode == nullptr)
-            *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->render->d3d9->allocTempFullscreenStorage ();
-
-          if (*ppFullscreenDisplayMode != nullptr)
-          {
-            (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
-            (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
-            (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
-            (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
-            (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
-          }
-        }
-
-        else
-        {
-          pparams->Windowed = TRUE;
-
-          // Must be NULL if the fullscreen override failed
-          if (ppFullscreenDisplayMode != nullptr)
-            (*ppFullscreenDisplayMode) = nullptr;
-
-          SK_LOG0 ( ( L" *** Could not force fullscreen mode due to indeterminate refresh rate!" ),
-                      L"   D3D9   ");
-        }
-      }
-
-
-      else if (switch_to_windowed)
-      {
-        if (pparams->hDeviceWindow || dcparams.hFocusWindow != nullptr)
-        {
-          pparams->Windowed                   = TRUE;
-          pparams->FullScreen_RefreshRateInHz = 0;
-
-          // Must be NULL if forcing fullscreen -> windowed
-          if (*ppFullscreenDisplayMode != nullptr)
-            *ppFullscreenDisplayMode = nullptr;
-        }
-
-        else
-        {
-          SK_LOG0 ( ( L" *** Could not force windowed mode, game has no device window?!" ),
-                      L"   D3D9   ");
-          pparams->Windowed = FALSE;
-        }
-      }
-
-
-      //
-      //  <-(+] Forced Borderless Window [+)->
-      //     ------------------------------
-      //        -> ( NOT FULLSCREEN ) <-
-      //
-      if (pparams->Windowed && config.window.borderless && (! config.window.fullscreen))
-      {
-        //  <- @  [No Resolution Override]  @ ->
-        //
-        if (config.window.res.override.isZero ())
-        {
-          RECT wnd_rect =
-            *SK_GetGameRect ();
-
-          static int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-          static int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-          static int title = SK_GetSystemMetrics (SM_CYCAPTION );
-
-          if ( SK_DiscontEpsilon ( pparams->BackBufferWidth,
-                                     ( wnd_rect.right  - wnd_rect.left ),
-                                     (       2 * x_dlg + 1             ) )
-
-                                 ||
-
-               SK_DiscontEpsilon ( pparams->BackBufferHeight,
-                                     ( wnd_rect.bottom - wnd_rect.top  ),
-                                     (       2 * y_dlg + title + 1     ) )
-             )
-          {
-            pparams->BackBufferWidth  = ( wnd_rect.right  - wnd_rect.left );
-            pparams->BackBufferHeight = ( wnd_rect.bottom - wnd_rect.top  );
-
-            dll_log->Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                             pparams->BackBufferWidth,
-                               pparams->BackBufferHeight );
-          }
-        }
-
-        //  <- @  [OVERRIDE Resolution]  @ ->
-        //
-        else
-        {
-          pparams->BackBufferWidth  = config.window.res.override.x;
-          pparams->BackBufferHeight = config.window.res.override.y;
-        }
-      }
-
-             RECT        client = {        };
-      SK_GetClientRect ( pparams->hDeviceWindow,
-                        &client );
-
-
-      //  Non-Zero Values for Backbuffer Width / Height
-      //  =============================================
-      //
-      //   An override may be necessary; at the very least we will make
-      //     note of the explicit values provided by the game.
-      //
-      //
-      //  NOTE:    If (Zero, Zero) is supplied for (Width, Height) -- it is a
-      // ~~~~~~~     special-case indicating to Windows that the client rect.
-      //               determines SwapChain resolution
-      //
-      //     -=> * The client rectangle can be spoofed by Special K even +
-      //         +   to the D3D9 Runtime itself !                        * <=-
-      //
-      //
-      //    -------------------------------------------------------------------
-      //    (  The 0x0 case is one we have to consider carefully in order     )
-      //    (    to figure out how the game is designed to behave vis-a-vis.  )
-      //    (      resolution scaling if the window is resized.               )
-      //
-      if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
-      {
-        /* User wants an override, so let's get down to brass tacks... */
-        if (! config.window.res.override.isZero ())
-        {
-          pparams->BackBufferWidth  = config.window.res.override.x;
-          pparams->BackBufferHeight = config.window.res.override.y;
-        }
-
-        /* If this is Zero, we need to actually create the render device / swapchain and
-             then get the value Windows assigned us... */
-        SK_SetWindowResX (pparams->BackBufferWidth);
-        SK_SetWindowResY (pparams->BackBufferHeight);
-      }
-
-      // Implicit Resolution
-      //
-      //
-      else
-      {
-        // If this is zero, we need to actually create the render device / swapchain and
-        //   then get the value Windows assigned us...
-        SK_SetWindowResX (client.right  - client.left);
-        SK_SetWindowResY (client.bottom - client.top);;
-      }
-
-      // Range Restrict to prevent D3DERR_INVALID_CALL
-      if (pparams->PresentationInterval > 16)
-          pparams->PresentationInterval = 0;
-
-      if (pparams->Windowed)
-      {
-        //SetWindowPos_Original ( hWndRender,
-                                  //HWND_TOP,
-                                    //0, 0,
-                                      //pparams->BackBufferWidth, pparams->BackBufferHeight,
-                                        //SWP_NOZORDER | SWP_NOSENDCHANGING );
-      }
-
-      else if (switch_to_fullscreen)
-      {
-        //if ( SetWindowLongPtrW_Original == nullptr ||
-        //     GetWindowLongPtrW_Original == nullptr )
-        //{
-        //  SetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE, (GetWindowLongPtrW (pparams->hDeviceWindow, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-        //  SetWindowPos      (pparams->hDeviceWindow, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE             | SWP_NOSIZE     | SWP_DEFERERASE |
-        //                                                                   SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS     | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-        //
-        //  SK_InstallWindowHook (pparams->hDeviceWindow);
-        //}
-        //
-        //else
-        //{
-        //  SetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE, (GetWindowLongPtrW_Original (game_window.hWnd, GWL_EXSTYLE) & ~(WS_EX_TOPMOST)) | (WS_EX_APPWINDOW));
-        //  SetWindowPos_Original      (game_window.hWnd, HWND_TOP, 0, 0, 0, 0, SWP_NOSENDCHANGING | SWP_NOMOVE         | SWP_NOSIZE     | SWP_DEFERERASE |
-        //                                                                      SWP_NOCOPYBITS     | SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW | SWP_NOREPOSITION );
-        //}
-      }
-
-      rb.fullscreen_exclusive = (! pparams->Windowed);
     }
   }
 
@@ -4549,16 +4642,16 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
                                       SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved ) ||
     SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex;
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
-                                     L" %08" _L(PRIxPTR) L"h, 0x%04X,"
-                                     L" %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
-                                     L" %08" _L(PRIxPTR) L"h) - "
-               L"%s",
-               L"IDirect3D9Ex::CreateDeviceEx",
-                 (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                   hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                     (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
-                       SK_SummarizeCaller ().c_str () );
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
+                    L" %08" _L(PRIxPTR) L"h, 0x%04X,"
+                    L" %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
+                    L" %08" _L(PRIxPTR) L"h) - "
+                L"%s",
+                L"IDirect3D9Ex::CreateDeviceEx",
+                  (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                      (uintptr_t)pFullscreenDisplayMode, (uintptr_t)ppReturnedDeviceInterface,
+                        SK_SummarizeCaller ().c_str () );
 
   if (skip_device)
   {
@@ -4619,11 +4712,12 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
   // Ignore video swapchains
   if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
   {
-    if (!StrStrIW (SK_GetHostApp ( ), L"vlc.exe"))
+    if (!StrStrIW (SK_GetHostApp (), L"vlc.exe"))
     {
-      SK_LOG0 ( (L" %% Ignoring D3D9Ex device created using a video-only "
-                 L"SwapChain (%08" _L(PRIxPTR) L"h)", (uintptr_t)This),
-                 L"  D3D9Ex  ");
+      SK_LOGs0 (            L"  D3D9Ex  ",
+                 L" %% Ignoring D3D9Ex device created using a video-only "
+                 L"SwapChain (%08" _L(PRIxPTR) L"h)", (uintptr_t)This
+               );
       *ppReturnedDeviceInterface = pTemp;
       return ret;
     }
@@ -4651,7 +4745,7 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
     if (pWrappedDevice != nullptr)
     {
-      dll_log->Log (L"Using (D3D9Ex) wrapper for SK_ImGUI_ResetD3D9!");
+      SK_LOGi0 (L"Using (D3D9Ex) wrapper for SK_ImGUI_ResetD3D9!");
       SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
     }
 
@@ -4688,10 +4782,10 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
       skip_device = true;
   }
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08"
-                                           _L(PRIxPTR) L"h, 0x%04X, %08"
-                                           _L(PRIxPTR) L"h, %08"
-                                           _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08"
+                            _L(PRIxPTR) L"h, 0x%04X, %08"
+                            _L(PRIxPTR) L"h, %08"
+                            _L(PRIxPTR) L"h) - "
                L"%s",
                  L"IDirect3D9::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
@@ -4753,9 +4847,9 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   {
     if (! StrStrIW (SK_GetHostApp (), L"vlc.exe"))
     {
-      SK_LOG0 ( (L" %% Ignoring D3D9 device created using a video-only "
-                 L"SwapChain (%08" _L(PRIxPTR) L")", (uintptr_t)This),
-                 L"   D3D9   ");
+      SK_LOGi0 ( L" %% Ignoring D3D9 device created using a video-only "
+                 L"SwapChain (%08" _L(PRIxPTR) L")", (uintptr_t)This );
+
       return ret;
     }
   }
@@ -4767,12 +4861,11 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   {
     if (pPresentationParameters != nullptr)
     {
-      dll_log->LogEx (true,
-                L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%hs, "
-                                        L"Count=%lu - "
-                                        L"SwapEffect: %hs, Flags: 0x%04X, "
-                                        L"AutoDepthStencil: %hs "
-                                        L"PresentationInterval: %u\n",
+      SK_LOGi0 ( L" SwapChain Settings:   Res=(%ux%u), Format=%hs, "
+                           L"Count=%lu - "
+                           L"SwapEffect: %hs, Flags: 0x%04X, "
+                           L"AutoDepthStencil: %hs "
+                           L"PresentationInterval: %u\n",
                          pPresentationParameters->BackBufferWidth,
                          pPresentationParameters->BackBufferHeight,
     SK_D3D9_FormatToStr (pPresentationParameters->BackBufferFormat).c_str (),
@@ -4782,17 +4875,15 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
                          pPresentationParameters->EnableAutoDepthStencil ?
     SK_D3D9_FormatToStr (pPresentationParameters->AutoDepthStencilFormat).c_str () :
                          "N/A",
-                         pPresentationParameters->PresentationInterval);
+                         pPresentationParameters->PresentationInterval );
 
       if (! pPresentationParameters->Windowed)
       {
-        dll_log->LogEx (true,
-                L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
-                   pPresentationParameters->FullScreen_RefreshRateInHz);
-        dll_log->LogEx (true,
-                L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
+        SK_LOGi0 ( L" Fullscreen Settings:  Refresh Rate: %u\n",
+                   pPresentationParameters->FullScreen_RefreshRateInHz );
+        SK_LOGi0 ( L" Multisample Settings: Type: %X, Quality: %u\n",
                    pPresentationParameters->MultiSampleType,
-                   pPresentationParameters->MultiSampleQuality);
+                   pPresentationParameters->MultiSampleQuality );
       }
     }
 
@@ -4855,13 +4946,13 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
       skip_device = true;
   }
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
-                           L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
+          L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
-                   L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                     hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                       (uintptr_t)ppReturnedDeviceInterface,
-                         SK_SummarizeCaller ().c_str () );
+                    L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                      hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                        (uintptr_t)ppReturnedDeviceInterface,
+                          SK_SummarizeCaller ().c_str () );
 
   if (skip_device)
   {
@@ -4913,31 +5004,28 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
   //     might help diagnose the problem.
   if (! SUCCEEDED (ret))
   {
-    dll_log->LogEx (true,
-               L"[   D3D9   ]  SwapChain Settings:   Res=(%ux%u), Format=%04i, "
-                                       L"Count=%lu - "
-                                       L"SwapEffect: 0x%02X, Flags: 0x%04X,"
-                                       L"AutoDepthStencil: %s "
-                                       L"PresentationInterval: %u\n",
-                  pPresentationParameters->BackBufferWidth,
-                  pPresentationParameters->BackBufferHeight,
-                  pPresentationParameters->BackBufferFormat,
-                  pPresentationParameters->BackBufferCount,
-                  pPresentationParameters->SwapEffect,
-                  pPresentationParameters->Flags,
-                  pPresentationParameters->EnableAutoDepthStencil ? L"true" :
-                                                                    L"false",
-                  pPresentationParameters->PresentationInterval);
+    SK_LOGi0 (L" SwapChain Settings : Res = (%u x %u), Format = %04i, "
+                         L"Count=%lu - "
+                         L"SwapEffect: 0x%02X, Flags: 0x%04X,"
+                         L"AutoDepthStencil: %s "
+                         L"PresentationInterval: %u\n",
+                 pPresentationParameters->BackBufferWidth,
+                 pPresentationParameters->BackBufferHeight,
+                 pPresentationParameters->BackBufferFormat,
+                 pPresentationParameters->BackBufferCount,
+                 pPresentationParameters->SwapEffect,
+                 pPresentationParameters->Flags,
+                 pPresentationParameters->EnableAutoDepthStencil ? L"true" :
+                                                                   L"false",
+                 pPresentationParameters->PresentationInterval );
 
     if (! pPresentationParameters->Windowed)
     {
-      dll_log->LogEx (true,
-               L"[   D3D9   ]  Fullscreen Settings:  Refresh Rate: %u\n",
-                  pPresentationParameters->FullScreen_RefreshRateInHz);
-      dll_log->LogEx (true,
-               L"[   D3D9   ]  Multisample Settings: Type: %X, Quality: %u\n",
+      SK_LOGi0 ( L" Fullscreen Settings:  Refresh Rate: %u\n",
+                  pPresentationParameters->FullScreen_RefreshRateInHz );
+      SK_LOGi0 ( L" Multisample Settings: Type: %X, Quality: %u\n",
                   pPresentationParameters->MultiSampleType,
-                  pPresentationParameters->MultiSampleQuality);
+                  pPresentationParameters->MultiSampleQuality );
     }
 
     return ret;
@@ -4970,7 +5058,7 @@ Direct3DCreate9 (UINT SDKVersion)
     WaitForInit       ();
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu) - "
+  SK_LOGi0 ( L"[!] %s (%lu) - "
                  L"%s",
                    L"Direct3DCreate9",
                      SDKVersion,
@@ -4983,8 +5071,9 @@ Direct3DCreate9 (UINT SDKVersion)
   {
     if (SK_GetModuleHandle (L"GeDoSaTo.dll"))
     {
-      dll_log->Log ( L"[CompatHack] <!> Disabling D3D9Ex optimizations "
-                                        "because GeDoSaTo.dll is present!" );
+      SK_LOGs0 ( L"CompatHack",
+                 L" <!> Disabling D3D9Ex optimizations "
+                      "because GeDoSaTo.dll is present!" );
       force_d3d9ex = false;
     }
   }
@@ -4999,10 +5088,10 @@ Direct3DCreate9 (UINT SDKVersion)
     {
       if (force_d3d9ex)
       {
-        dll_log->Log ( L"[   D3D9   ] [!] %s (%lu) - "
-           L"%s",
-           L"Direct3DCreate9", SDKVersion,
-             SK_SummarizeCaller ().c_str () );
+        SK_LOGi0 ( L"[!] %s (%lu) - "
+                       L"%s",
+                       L"Direct3DCreate9", SDKVersion,
+                         SK_SummarizeCaller ().c_str () );
       }
 
       d3d9 = Direct3DCreate9_Import (SDKVersion);
@@ -5035,7 +5124,7 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
     WaitForInit       ();
 
 
-  dll_log->Log ( L"[   D3D9   ] [!] %s (%lu, %08" _L(PRIxPTR) L"h) - "
+  SK_LOGi0 ( L"[!] %s (%lu, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                    L"Direct3DCreate9Ex",
                      SDKVersion,
@@ -5228,7 +5317,7 @@ HookD3D9 (LPVOID user)
 
         SK_ComPtr <IDirect3DDevice9> pD3D9Dev = nullptr;
 
-        dll_log->Log (L"[   D3D9   ]  Hooking D3D9...");
+        SK_LOGi0 (L" Hooking D3D9...");
 
         pTLS->render->d3d9->ctx_init_thread = TRUE;
 
@@ -5256,13 +5345,13 @@ HookD3D9 (LPVOID user)
                 (void **)&pD3D9.p, 16 );
           }
 
-          dll_log->Log (L"[   D3D9   ]   * Success");
+          SK_LOGi0 (L"  * Success");
         }
 
         else
         {
           _com_error err (hr);
-          dll_log->Log ( L"[   D3D9   ]   * Failure  (%s)",
+          SK_LOGi0 ( L"  * Failure  (%s)",
                          err.ErrorMessage () );
 
           if (! LocalHook_D3D9CreateDevice.active)
@@ -5294,7 +5383,7 @@ HookD3D9 (LPVOID user)
 
         if (SUCCEEDED (hr))
         {
-          dll_log->Log (L"[   D3D9   ]  Hooking D3D9Ex...");
+          SK_LOGi0 (L" Hooking D3D9Ex...");
 
           hwnd    =
             SK_Win32_CreateDummyWindow ();
@@ -5339,12 +5428,12 @@ HookD3D9 (LPVOID user)
 
             SK_D3D9_HookDeviceAndSwapchain (pD3D9DevEx);
 
-            dll_log->Log (L"[   D3D9   ]   * Success");
+            SK_LOGi0 (L"  * Success");
           }
 
           else
           {
-            dll_log->Log (L"[   D3D9   ]   * Failure");
+            SK_LOGi0 (L"  * Failure");
 
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {

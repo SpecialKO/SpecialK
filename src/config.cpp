@@ -18,7 +18,12 @@
  *   If not, see <http://www.gnu.org/licenses/>.
  *
 **/
+
 #include <SpecialK/stdafx.h>
+
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"  Config  "
+#endif
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -642,6 +647,7 @@ struct {
   sk::ParameterBool*      save_monitor_prefs      = nullptr;
   sk::ParameterBool*      save_resolution         = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
+  sk::ParameterBool*      force_10bpc_sdr         = nullptr;
 } display;
 
 struct {
@@ -1268,6 +1274,7 @@ auto DeclKeybind =
 
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
+    ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
     ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
 
 
@@ -2815,6 +2822,7 @@ auto DeclKeybind =
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
+  display.force_10bpc_sdr->load             (config.render.output.force_10bpc);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
   display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
   display.save_resolution->load             (config.display.resolution.save);
@@ -3907,8 +3915,9 @@ auto DeclKeybind =
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"Exception %hs during INI Parse", e.what () ),
-                L"  Config  " );
+    SK_LOGi0 (
+      L"Exception %hs during INI Parse", e.what ()
+    );
   }
 
   return false;
@@ -4381,6 +4390,7 @@ SK_SaveConfig ( std::wstring name,
                        
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
+  display.force_10bpc_sdr->store              (config.render.output.force_10bpc);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
   display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
   display.save_resolution->store              (config.display.resolution.save);
@@ -5241,9 +5251,9 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
     catch (const std::exception& e)
     {
-      SK_LOG0 ( ( L"Appcache Parse Failure: %hs during Epic Name Lookup",
-                  e.what () ),
-                  L" AppCache " );
+      SK_LOGs0 ( L" AppCache ",
+                 L"Appcache Parse Failure: %hs during Epic Name Lookup",
+                                             e.what () );
     }
   }
 
@@ -5384,8 +5394,8 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"Exception: %hs during addApptoCache (...)", e.what () ),
-                L"  Config  " );
+    SK_LOGs0 ( L" AppCache ",
+               L"Exception: %hs during addAppToCache (...)", e.what () );
   }
 
   return false;
@@ -5495,9 +5505,9 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"Appcache Parse Failure: %hs during Epic Name Lookup",
-                e.what () ),
-                L" AppCache " );
+    SK_LOGs0 ( L" AppCache ",
+               L"Appcache Parse Failure: %hs during Epic Name Lookup",
+                               e.what () );
   }
 
   return

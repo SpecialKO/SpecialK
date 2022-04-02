@@ -538,6 +538,12 @@ struct sk_config_t
           }, L"HUDToggle"
         };
     } keys;
+
+    struct output_format_s {
+      bool    force_8bpc           = false; ///< UNUSED
+      bool    force_10bpc          = false; ///< D3D9/11/12
+      bool    force_16bpc          = false; ///< UNUSED
+    } output;
   } render;
 
   struct display_s {

@@ -97,8 +97,8 @@ IWrapDirect3DDevice9::QueryInterface (REFIID riid, void **ppvObj)
       wchar_t                wszGUID [41] = { };
       StringFromGUID2 (riid, wszGUID, 40);
 
-      SK_LOG0 ( ( L"QueryInterface on wrapped D3D9 Device Context for Mystery UUID: %s",
-                      wszGUID ), L"   D3D9   " );
+      SK_LOGi0 ( L"QueryInterface on wrapped D3D9 Device Context"
+                 L" for Mystery UUID : %s", wszGUID );
     }
   }
 
@@ -146,7 +146,7 @@ IWrapDirect3DDevice9::Release (void)
 
     pReal = nullptr;
 
-    SK_LOG0 ( ( L"Destroying D3D9 Device" ), L"   D3D9   ");
+    SK_LOGi0 (L"Destroying D3D9 Device");
 
     delete this;
   }

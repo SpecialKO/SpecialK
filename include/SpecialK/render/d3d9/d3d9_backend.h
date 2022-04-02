@@ -787,4 +787,30 @@ SK_D3DXCreateTextureFromFileInMemoryEx (
   _Out_       LPDIRECT3DTEXTURE9 *ppTexture );
 
 
+static auto
+SK_D3D9_GetNominalPresentInterval =
+  [](int d3d9_interval)
+-> int
+  {
+    switch (d3d9_interval)
+    {
+      case D3DPRESENT_INTERVAL_IMMEDIATE:
+      case D3DPRESENT_FORCEIMMEDIATE:
+        return 0;
+      case D3DPRESENT_INTERVAL_ONE:
+      case D3DPRESENT_INTERVAL_DEFAULT:
+        return 1;
+      case D3DPRESENT_INTERVAL_TWO:
+        return 2;
+      case D3DPRESENT_INTERVAL_THREE:
+        return 3;
+      case D3DPRESENT_INTERVAL_FOUR:
+        return 4;
+      default:
+        SK_ReleaseAssert (! L"Invalid D3D9 Present Interval");
+        return 1;
+    }
+  };
+
+
 #endif /* __SK__D3D9_BACKEND_H__ */

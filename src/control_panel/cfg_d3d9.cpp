@@ -285,16 +285,19 @@ SK_ImGui_SummarizeD3D9Swapchain (IDirect3DSwapChain9 *pSwap9)
       ImGui::Text            ("%u",                                      pparams.BackBufferCount);
       if (! pparams.Windowed)
         ImGui::Text          ("%u Hz",                                   pparams.FullScreen_RefreshRateInHz);
-      if (pparams.PresentationInterval == 0)
-        ImGui::Text          ("%u: VSYNC OFF",                           pparams.PresentationInterval);
-      else if (pparams.PresentationInterval == 1)
-        ImGui::Text          ("%u: Normal V-SYNC",                       pparams.PresentationInterval);
-      else if (pparams.PresentationInterval == 2)
-        ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  pparams.PresentationInterval);
-      else if (pparams.PresentationInterval == 3)
-        ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  pparams.PresentationInterval);
-      else if (pparams.PresentationInterval == 4)
-        ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  pparams.PresentationInterval);
+      if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE ||
+          pparams.PresentationInterval == D3DPRESENT_FORCEIMMEDIATE)
+        ImGui::Text          ("%u: VSYNC OFF",                           SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
+      else if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_DEFAULT)
+        ImGui::Text          ("%u: Default V-SYNC",                      SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
+      else if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_ONE)
+        ImGui::Text          ("%u: Normal V-SYNC",                       SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
+      else if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_TWO)
+        ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
+      else if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_THREE)
+        ImGui::Text          ("%u: 1/3 Refresh V-SYNC",                  SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
+      else if (pparams.PresentationInterval == D3DPRESENT_INTERVAL_FOUR)
+        ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  SK_D3D9_GetNominalPresentInterval (pparams.PresentationInterval));
       else
         ImGui::Text          ("%u: UNKNOWN or Invalid",                  pparams.PresentationInterval);
       ImGui::Text            ("%hs",            SK_D3D9_SwapEffectToStr (pparams.SwapEffect).c_str ());
