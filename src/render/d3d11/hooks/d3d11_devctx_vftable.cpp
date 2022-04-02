@@ -325,14 +325,16 @@ D3D11_VSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pVertexShader,
@@ -374,13 +376,16 @@ D3D11_PSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pPixelShader,
@@ -422,13 +427,16 @@ D3D11_GSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pGeometryShader,
@@ -470,13 +478,16 @@ D3D11_HSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pHullShader,
@@ -520,13 +531,16 @@ D3D11_DSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pDomainShader,
@@ -567,13 +581,16 @@ D3D11_CSSetShader_Override (
  _In_opt_ ID3D11ClassInstance *const *ppClassInstances,
           UINT                        NumClassInstances )
 {
-  if (NumClassInstances > 256)
+  if (ppClassInstances != nullptr && NumClassInstances > 256)
   {
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
   else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
+    if (ppClassInstances == nullptr)
+       NumClassInstances = 0;
+
     return
       SK_D3D11_SetShader_Impl (
         This,           pComputeShader,

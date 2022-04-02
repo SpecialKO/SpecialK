@@ -6919,8 +6919,24 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
         else
         {
-          windows.setDevice    (swap_chain_desc->OutputWindow);
-          SK_InstallWindowHook (swap_chain_desc->OutputWindow);
+          SK_LOG0 ( ( L"Installing Window Hooks for Window Class: '%ws'", wszClass ),
+                      __SK_SUBSYSTEM__ );
+
+          static HWND hWndLast =
+            swap_chain_desc->OutputWindow;
+
+          if ((! IsWindow (windows.getDevice ())) || hWndLast != swap_chain_desc->OutputWindow)
+          {
+            hWndLast            = swap_chain_desc->OutputWindow;
+            windows.setDevice    (swap_chain_desc->OutputWindow);
+            SK_InstallWindowHook (swap_chain_desc->OutputWindow);
+          }
+
+          else
+          {
+            SK_LOG0 ( ( L"Ignored because a window hook already exists..."),
+                        __SK_SUBSYSTEM__ );
+          }
         }
       }
     }

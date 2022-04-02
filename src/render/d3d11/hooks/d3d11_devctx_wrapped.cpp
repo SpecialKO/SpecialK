@@ -630,6 +630,12 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    if (     ppClassInstances != nullptr && NumClassInstances > 256)
+    {
+      SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
+    }
+    else if (ppClassInstances == nullptr)   NumClassInstances = 0;
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShader_Impl     (pReal,
@@ -658,6 +664,12 @@ public:
     _In_reads_opt_ (NumClassInstances)  ID3D11ClassInstance *const *ppClassInstances,
                                         UINT                       NumClassInstances ) override
   {
+    if (     ppClassInstances != nullptr && NumClassInstances > 256)
+    {
+      SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
+    }
+    else if (ppClassInstances == nullptr)   NumClassInstances = 0;
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShader_Impl   (pReal,
@@ -859,6 +871,12 @@ public:
     _In_reads_opt_(NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                       UINT                       NumClassInstances ) override
   {
+    if (     ppClassInstances != nullptr && NumClassInstances > 256)
+    {
+      SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
+    }
+    else if (ppClassInstances == nullptr)   NumClassInstances = 0;
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShader_Impl   (pReal,
@@ -1403,6 +1421,12 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    if (     ppClassInstances != nullptr && NumClassInstances > 256)
+    {
+      SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
+    }
+    else if (ppClassInstances == nullptr)   NumClassInstances = 0;
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShader_Impl          (      pReal,
@@ -1464,6 +1488,12 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    if (     ppClassInstances != nullptr && NumClassInstances > 256)
+    {
+      SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
+    }
+    else if (ppClassInstances == nullptr)   NumClassInstances = 0;
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShader_Impl   (pReal,
