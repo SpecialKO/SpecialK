@@ -127,7 +127,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
       <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -184,7 +184,7 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
       <AdditionalOptions>/Zo /Gw /Gm- /Ob3 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -250,6 +250,7 @@
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
+      <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
     </ClCompile>
     <Lib />
     <ProjectReference />
@@ -300,6 +301,7 @@
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
+      <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
     </ClCompile>
     <Lib />
     <Lib />

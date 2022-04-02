@@ -169,7 +169,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
       { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
       { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
-      { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    }
+      { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    },
+      { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         }
     };
 
     first_check = false;
@@ -2683,6 +2684,12 @@ auto DeclKeybind =
         config.apis.dxgi.d3d11.hook              = false;
         config.apis.OpenGL.hook                  = false;
         config.render.framerate.sleepless_window = false;
+        break;
+
+      case SK_GAME_ID::TinyTinasWonderlands:
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook = false;
         break;
 #endif
     }

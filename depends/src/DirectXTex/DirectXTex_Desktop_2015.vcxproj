@@ -139,7 +139,7 @@
       <BrowseInformation>false</BrowseInformation>
       <ShowIncludes>true</ShowIncludes>
       <WarningLevel>Level4</WarningLevel>
-      <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -217,7 +217,7 @@
       <BrowseInformation>false</BrowseInformation>
       <WarningLevel>Level4</WarningLevel>
       <ShowIncludes>true</ShowIncludes>
-      <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -291,7 +291,7 @@
       <ConformanceMode>true</ConformanceMode>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <DisableSpecificWarnings>5054</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
@@ -363,7 +363,7 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
-      <DisableSpecificWarnings>5054</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <GuardEHContMetadata>false</GuardEHContMetadata>

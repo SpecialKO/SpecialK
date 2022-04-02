@@ -1333,7 +1333,7 @@ SK_D3D12_WriteResources (void)
                         L"ImGui D3D12 Texture Upload Buffer" );
 
                   void        *mapped = nullptr;
-                  D3D12_RANGE  range  = { 0, uploadSize };
+                  D3D12_RANGE  range  = { 0, sk::narrow_cast <SIZE_T> (uploadSize) };
 
                   ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
 
@@ -1341,7 +1341,8 @@ SK_D3D12_WriteResources (void)
                   {
                     memcpy ( (void*) ((uintptr_t) mapped    + y * uploadPitch),
                         inject_img.GetImage (0,0,0)->pixels + y *
-                        inject_img.GetImage (0,0,0)->rowPitch, rowSizesInBytes );
+                        inject_img.GetImage (0,0,0)->rowPitch,
+                             static_cast <size_t> (rowSizesInBytes) );
                   }
 
                   uploadBuffer->Unmap (0, &range);

@@ -12,10 +12,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MinHook", "MinHook.vcxproj"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
-		Debug|x64 = Debug|x64
-		Release|Win32 = Release|Win32
-		Release|x64 = Release|x64
+		Debug|Win32      = Debug|Win32
+		Debug|x64        = Debug|x64
+		Release|Win32    = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{F142A341-5EE0-442D-A15F-98AE9B48DBAE}.Debug|Win32.ActiveCfg = Debug|Win32

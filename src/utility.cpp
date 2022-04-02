@@ -965,10 +965,11 @@ SK_IsAddressExecutable (LPCVOID addr, bool silent)
 
   if (! silent)
   {
-    SK_LOG0 ( ( L"Executable Address Validation for addr. %s FAILED!  --  %s",
-                  SK_MakePrettyAddress (addr).c_str (),
-                  SK_SummarizeCaller   (    ).c_str () ),
-                L" SK Debug " );
+    SK_LOGs0 ( L" SK Debug ",
+      L"Executable Address Validation for addr. %s "
+      L"FAILED!-- % s",
+      SK_MakePrettyAddress (addr).c_str (),
+      SK_SummarizeCaller   (    ).c_str ());
   }
 
   return false;
@@ -1297,6 +1298,8 @@ SK_TestImports (          HMODULE  hMod,
   uintptr_t                pImgBase = (uintptr_t)
     SK_Debug_GetImageBaseAddr ();
 
+  int important_imports = 0;
+
   const int      MAX_IMPORTS  =  16;
   size_t hashes [MAX_IMPORTS] = { };
 
@@ -1371,13 +1374,25 @@ SK_TestImports (          HMODULE  hMod,
       {
         __try
         {
-          if ((! pTests [i].used) && hashes [i] == hashed_str)
+          if ( (! pTests [i].used)
+               && hashes [i] == hashed_str )
           {
-            pTests [i].used = true;
-                     ++hits;
+            if ((! StrStrIA (szImport, "D3DPERF_BeginEvent")) &&
+                (! StrStrIA (szImport, "D3DPERF_EndEvent")))
+            {
+              pTests [i].used = true;
+
+              ++hits;
+              ++important_imports;
+            }
+
+            else
+            {
+              --hits;
+              --important_imports;
+            }
           }
         }
-
         __except (EXCEPTION_EXECUTE_HANDLER) { };
       }
 
@@ -1402,15 +1417,18 @@ SK_TestImports (          HMODULE  hMod,
         if ( GetModuleHandleExA ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
                                     pTests [i].szModuleName,
                                       &hMod ) )
+        {
           pTests [i].used = true;
+        }
       }
     }
 
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
-      dll_log->Log ( L"[RenderBoot] Exception Code %x Encountered Examining "
-                     L"pre-Loaded Render Import DLL (idx = [%li / %li])",
-                     GetExceptionCode (), i, nCount );
+      SK_LOGs0 ( L"RenderBoot",
+                 L"Exception Code % x Encountered Examining "
+                 L"pre-Loaded Render Import DLL (idx = [%li / %li])",
+                   GetExceptionCode (), i, nCount );
       return;
     }
   }

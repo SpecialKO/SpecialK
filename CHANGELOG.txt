@@ -1,4 +1,13 @@
-﻿22.4.1.2-NOCEGUI
+﻿22.4.2-NOCEGUI
+==============
+ + Slight improvements to 10-bpc SDR mode (D3D9/11/12)
+ + Handle dummy window creation by third-party overlays and mods better,
+     so that they don't trigger assertion failures when SK can't figure out
+       which window is supposed to be handling input.
+ + Added AVX2 version of Special K (64-bit), probably will not have much effect, but
+     I am curious :)
+
+22.4.1.2-NOCEGUI
 ================
  + Added option to force 10-bpc in SDR (D3D9/D3D11/D3D12), stability not guaranteed
 

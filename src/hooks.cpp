@@ -722,8 +722,6 @@ SK_ValidateHookAddress ( const wchar_t * /*wszModuleName*/,
 HMODULE
 SK_GetModuleFromAddr (void* pAddr) noexcept
 {
-  HMODULE hModRet = nullptr;
-
   __try {
     HMODULE hModRet = nullptr;
 

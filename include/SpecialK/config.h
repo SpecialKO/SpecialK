@@ -1150,6 +1150,7 @@ enum class SK_GAME_ID
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe
+  TinyTinasWonderlands,         // Wonderlands.exe
   UNKNOWN_GAME               = 0xffff
 };
 
