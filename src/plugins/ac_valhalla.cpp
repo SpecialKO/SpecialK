@@ -27,20 +27,14 @@
 #define ACVD_VERSION_NUM L"0.0.1"
 #define ACVD_VERSION_STR L"Assassin's Creed: Valhalla v " ACVD_VERSION_NUM
 
-//static NtReadFile_pfn NtReadFile_Original = nullptr;
-
 #include <SpecialK/diagnostics/file.h>
 
 void
 SK_ACV_InitPlugin (void)
 {
-//SK_SetPluginName (ACVD_VERSION_STR);
-
-  auto intro_vids =
-    SK_GetDLLConfig ()->get_section (L"ACValhalla.PlugIn").
-                        get_value   (L"DisableIntroVideos");
-
-  if (SK_IsTrue (intro_vids.c_str ()))
-  {
-  }
+  // Pending Removal:
+  //
+  //   This plug-in was never finished and what little there was has been
+  //     scattered throughout other parts of the code since.
+  //
 }
