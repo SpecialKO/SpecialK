@@ -131,6 +131,9 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ffx&x-2_launcher.exe"),
   SK_MakeUnicode (L"ubisoftgamelauncher.exe"),
   SK_MakeUnicode (L"uplayinstaller.exe"),
+  
+  SK_MakeUnicode (L"redprelauncher.exe"), // CD PROJEKT RED's pre-launcher included in the root of Cyberpunk 2077
+  SK_MakeUnicode (L"redlauncher.exe"),    // CD PROJEKT RED's launcher located below %APPDATA%
 
   SK_MakeUnicode (L"akibauu_config.exe"),
   SK_MakeUnicode (L"gameserver.exe"),// Sacred   game server
@@ -262,6 +265,9 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"ffx&x-2_launcher.exe"),
   SK_MakeUnicode (L"ubisoftgamelauncher.exe"),
   SK_MakeUnicode (L"uplayinstaller.exe"),
+  
+  SK_MakeUnicode (L"redprelauncher.exe"), // CD PROJEKT RED's pre-launcher included in the root of Cyberpunk 2077
+  SK_MakeUnicode (L"redlauncher.exe"),    // CD PROJEKT RED's launcher located below %APPDATA%
 
   SK_MakeUnicode (L"akibauu_config.exe"),
   SK_MakeUnicode (L"gameserver.exe"),// Sacred   game server
