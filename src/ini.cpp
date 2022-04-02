@@ -1262,16 +1262,20 @@ iSK_INI::write (const wchar_t* fname)
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
     {
-      outbuf += L"[";
-      outbuf += section.name + L"]\n";
+      outbuf +=
+        SK_FormatStringW (
+          L"[%ws]\n", section.name.c_str ()
+        );
 
       for ( auto& key_it : section.ordered_keys )
       {
         const std::wstring& val =
-          section.get_value (key_it);
+          section.get_cvalue (key_it);
 
-        outbuf += key_it + L"=";
-        outbuf += val    + L"\n";
+        outbuf +=
+          SK_FormatStringW (
+            L"%ws=%ws\n", key_it.c_str (),
+                             val.c_str () );
       }
 
       outbuf += L"\n";

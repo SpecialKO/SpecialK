@@ -1,4 +1,8 @@
-﻿22.4.1-NOCEGUI
+﻿22.4.1.1-NOCEGUI
+================
+ + Fixed potential crash during shutdown in Tales of Arise
+
+22.4.1-NOCEGUI
 ==============
  + Added additional device (integrated/discrete) GPU selection info to OpenGL-IK logs
  + Disable logging for deferred D3D11 contexts Twitch's overlay constantly creates
