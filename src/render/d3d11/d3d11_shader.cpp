@@ -4938,17 +4938,34 @@ struct SK_D3D11_CommandBase
 
   SK_D3D11_CommandBase (void)
   {
-    gsl::not_null <SK_ICommandProcessor *> cp =
-      SK_GetCommandProcessor ();
+    static bool init = false;
 
-    cp->AddCommand ("D3D11.ShaderMods.Load",         new (std::nothrow) ShaderMods::Load         ());
-    cp->AddCommand ("D3D11.ShaderMods.Unload",       new (std::nothrow) ShaderMods::Unload       ());
-    cp->AddCommand ("D3D11.ShaderMods.ToggleConfig", new (std::nothrow) ShaderMods::ToggleConfig ());
-    cp->AddCommand ("D3D11.ShaderMods.Store",        new (std::nothrow) ShaderMods::Store        ());
-    cp->AddCommand ("D3D11.ShaderMods.Clear",        new (std::nothrow) ShaderMods::Clear        ());
-    cp->AddCommand ("D3D11.ShaderMods.Set",          new (std::nothrow) ShaderMods::Set          ());
-    cp->AddCommand ("D3D11.ShaderMods.Unset",        new (std::nothrow) ShaderMods::Unset        ());
-    cp->AddCommand ("D3D11.ShaderMods.Toggle",       new (std::nothrow) ShaderMods::Toggle       ());
+    // There should be only one (!!)
+    SK_ReleaseAssert (std::exchange (init, true) == false);
+
+    gsl::not_null <SK_ICommandProcessor *> cp =
+      SK_Render_InitializeSharedCVars ();
+
+    // XXX: gsl::not_null <...> followed by null check --- lol
+    if (! cp)
+      return;
+
+    cp->AddCommand ( "D3D11.ShaderMods.Load",
+        new (std::nothrow) ShaderMods::Load         () );
+    cp->AddCommand ( "D3D11.ShaderMods.Unload",               
+        new (std::nothrow) ShaderMods::Unload       () );
+    cp->AddCommand ( "D3D11.ShaderMods.ToggleConfig",
+        new (std::nothrow) ShaderMods::ToggleConfig () );
+    cp->AddCommand ( "D3D11.ShaderMods.Store",
+        new (std::nothrow) ShaderMods::Store        () );
+    cp->AddCommand ( "D3D11.ShaderMods.Clear",      
+        new (std::nothrow) ShaderMods::Clear        () );
+    cp->AddCommand ( "D3D11.ShaderMods.Set",        
+        new (std::nothrow) ShaderMods::Set          () );
+    cp->AddCommand ( "D3D11.ShaderMods.Unset",      
+        new (std::nothrow) ShaderMods::Unset        () );
+    cp->AddCommand ( "D3D11.ShaderMods.Toggle",
+        new (std::nothrow) ShaderMods::Toggle       () );
   }
 };
 

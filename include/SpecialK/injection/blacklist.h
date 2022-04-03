@@ -323,6 +323,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"libcef.dll"),
   SK_MakeUnicode (L"gamebar.exe"),
   SK_MakeUnicode (L"gamingservicesui.exe"),
+  SK_MakeUnicode (L"pwahelper.exe"),
 
   // Does not reply to DLL unload requests
   SK_MakeUnicode (L"mspaint.exe"),

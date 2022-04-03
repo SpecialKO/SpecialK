@@ -1,4 +1,17 @@
-﻿22.4.2-NOCEGUI
+﻿22.4.2.2-NOCEGUI
+================
+ + Added a preference under the HDR Menu for SK's automatic HDR On/Off feature
+ + HDR menu now shows in Control Panel for users with HDR capable displays running
+     on SDR desktop (previously it only showed if desktop HDR was enabled)
+
+22.4.2.1-NOCEGUI
+================
+ + Code cleanup and race condition removal
+ + AVX2 DLL size reduced, offers marginal gains, but free performance is always nice
+
+  >> Rename AVX2 DLL to simply SpecialK64.dll to use it instead of the normal SSE2 version.
+
+22.4.2-NOCEGUI
 ==============
  + Slight improvements to 10-bpc SDR mode (D3D9/11/12)
  + Handle dummy window creation by third-party overlays and mods better,

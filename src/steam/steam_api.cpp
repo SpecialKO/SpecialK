@@ -3982,54 +3982,61 @@ SK_Steam_InitCommandConsoleVariables (void)
   steam_log->init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
   steam_log->silent = config.platform.silent;
 
-  SK_ICommandProcessor* cmd =
-    SK_GetCommandProcessor ();
+  SK_ICommandProcessor* cmd = nullptr;
 
   #define cmdAddAliasedVar(name,pVar)                 \
     for ( const char* alias : { "Steam."    #name,    \
                                 "Platform." #name } ) \
       cmd->AddVariable (alias, pVar);
 
-  cmdAddAliasedVar (TakeScreenshot,
-      SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.platform.achievements.take_screenshot));
-  cmdAddAliasedVar (ShowPopup,
-      SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.platform.achievements.popup.show));
-  cmdAddAliasedVar (PopupDuration,
-      SK_CreateVar (SK_IVariable::Int,
-                      (int  *)&config.platform.achievements.popup.duration));
-  cmdAddAliasedVar (PopupInset,
-      SK_CreateVar (SK_IVariable::Float,
-                      (float*)&config.platform.achievements.popup.inset));
-  cmdAddAliasedVar (ShowPopupTitle,
-      SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.platform.achievements.popup.show_title));
-  cmdAddAliasedVar (PopupAnimate,
-      SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.platform.achievements.popup.animate));
-  cmdAddAliasedVar (PlaySound,
-      SK_CreateVar (SK_IVariable::Boolean,
-                      (bool *)&config.platform.achievements.play_sound));
+  SK_RunOnce (
+    cmd =
+      SK_Render_InitializeSharedCVars ()
+  );
+  
+  if (cmd != nullptr)
+  {
+    cmdAddAliasedVar (TakeScreenshot,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.take_screenshot));
+    cmdAddAliasedVar (ShowPopup,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.show));
+    cmdAddAliasedVar (PopupDuration,
+        SK_CreateVar (SK_IVariable::Int,
+                        (int  *)&config.platform.achievements.popup.duration));
+    cmdAddAliasedVar (PopupInset,
+        SK_CreateVar (SK_IVariable::Float,
+                        (float*)&config.platform.achievements.popup.inset));
+    cmdAddAliasedVar (ShowPopupTitle,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.show_title));
+    cmdAddAliasedVar (PopupAnimate,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.popup.animate));
+    cmdAddAliasedVar (PlaySound,
+        SK_CreateVar (SK_IVariable::Boolean,
+                        (bool *)&config.platform.achievements.play_sound));
 
-  steam_ctx.popup_origin =
-    SK_CreateVar ( SK_IVariable::String,
-                     steam_ctx.var_strings.popup_origin,
-                    &steam_ctx );
-  cmdAddAliasedVar ( PopupOrigin,
-                     steam_ctx.popup_origin );
+    steam_ctx.popup_origin =
+      SK_CreateVar ( SK_IVariable::String,
+                       steam_ctx.var_strings.popup_origin,
+                      &steam_ctx );
+    cmdAddAliasedVar ( PopupOrigin,
+                       steam_ctx.popup_origin );
 
-  steam_ctx.notify_corner =
-    SK_CreateVar ( SK_IVariable::String,
-                     steam_ctx.var_strings.notify_corner,
-                    &steam_ctx );
-  cmdAddAliasedVar ( NotifyCorner,
-                     steam_ctx.notify_corner );
+    steam_ctx.notify_corner =
+      SK_CreateVar ( SK_IVariable::String,
+                       steam_ctx.var_strings.notify_corner,
+                      &steam_ctx );
+    cmdAddAliasedVar ( NotifyCorner,
+                       steam_ctx.notify_corner );
 
-  steam_ctx.tbf_pirate_fun =
-    SK_CreateVar ( SK_IVariable::Float,
-                     &steam_ctx.tbf_float,
-                     &steam_ctx );
+    steam_ctx.tbf_pirate_fun =
+      SK_CreateVar ( SK_IVariable::Float,
+                       &steam_ctx.tbf_float,
+                       &steam_ctx );
+  }
 }
 
 DWORD

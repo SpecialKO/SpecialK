@@ -760,54 +760,61 @@ SK::EOS::Init (bool pre_load)
     epic_log->init (L"logs/eos.log", L"wt+,ccs=UTF-8");
     epic_log->silent = config.platform.silent;
 
-    SK_ICommandProcessor* cmd =
-    SK_GetCommandProcessor ();
+    SK_ICommandProcessor* cmd = nullptr;
 
     #define cmdAddAliasedVar(name,pVar)                 \
       for ( const char* alias : { "Epic."     #name,    \
                                   "Platform." #name } ) \
         cmd->AddVariable (alias, pVar);
 
-    cmdAddAliasedVar (TakeScreenshot,
-        SK_CreateVar (SK_IVariable::Boolean,
-                        (bool *)&config.platform.achievements.take_screenshot));
-    cmdAddAliasedVar (ShowPopup,
-        SK_CreateVar (SK_IVariable::Boolean,
-                        (bool *)&config.platform.achievements.popup.show));
-    cmdAddAliasedVar (PopupDuration,
-        SK_CreateVar (SK_IVariable::Int,
-                        (int  *)&config.platform.achievements.popup.duration));
-    cmdAddAliasedVar (PopupInset,
-        SK_CreateVar (SK_IVariable::Float,
-                        (float*)&config.platform.achievements.popup.inset));
-    cmdAddAliasedVar (ShowPopupTitle,
-        SK_CreateVar (SK_IVariable::Boolean,
-                        (bool *)&config.platform.achievements.popup.show_title));
-    cmdAddAliasedVar (PopupAnimate,
-        SK_CreateVar (SK_IVariable::Boolean,
-                        (bool *)&config.platform.achievements.popup.animate));
-    cmdAddAliasedVar (PlaySound,
-        SK_CreateVar (SK_IVariable::Boolean,
-                        (bool *)&config.platform.achievements.play_sound));
+    SK_RunOnce (
+      cmd =
+        SK_Render_InitializeSharedCVars ()
+    );
 
-    epic->popup_origin =
-      SK_CreateVar ( SK_IVariable::String,
-                       epic->var_strings.popup_origin,
-                       epic.getPtr () );
-    cmdAddAliasedVar ( PopupOrigin,
-                       epic->popup_origin );
+    if (cmd != nullptr)
+    {
+      cmdAddAliasedVar (TakeScreenshot,
+          SK_CreateVar (SK_IVariable::Boolean,
+                          (bool *)&config.platform.achievements.take_screenshot));
+      cmdAddAliasedVar (ShowPopup,
+          SK_CreateVar (SK_IVariable::Boolean,
+                          (bool *)&config.platform.achievements.popup.show));
+      cmdAddAliasedVar (PopupDuration,
+          SK_CreateVar (SK_IVariable::Int,
+                          (int  *)&config.platform.achievements.popup.duration));
+      cmdAddAliasedVar (PopupInset,
+          SK_CreateVar (SK_IVariable::Float,
+                          (float*)&config.platform.achievements.popup.inset));
+      cmdAddAliasedVar (ShowPopupTitle,
+          SK_CreateVar (SK_IVariable::Boolean,
+                          (bool *)&config.platform.achievements.popup.show_title));
+      cmdAddAliasedVar (PopupAnimate,
+          SK_CreateVar (SK_IVariable::Boolean,
+                          (bool *)&config.platform.achievements.popup.animate));
+      cmdAddAliasedVar (PlaySound,
+          SK_CreateVar (SK_IVariable::Boolean,
+                          (bool *)&config.platform.achievements.play_sound));
 
-    epic->notify_corner =
-      SK_CreateVar ( SK_IVariable::String,
-                       epic->var_strings.notify_corner,
-                       epic.getPtr () );
-    cmdAddAliasedVar ( NotifyCorner,
-                       epic->notify_corner );
+      epic->popup_origin =
+        SK_CreateVar ( SK_IVariable::String,
+                         epic->var_strings.popup_origin,
+                         epic.getPtr () );
+      cmdAddAliasedVar ( PopupOrigin,
+                         epic->popup_origin );
 
-    epic->PreInit (hModEOS);
+      epic->notify_corner =
+        SK_CreateVar ( SK_IVariable::String,
+                         epic->var_strings.notify_corner,
+                         epic.getPtr () );
+      cmdAddAliasedVar ( NotifyCorner,
+                         epic->notify_corner );
 
-    // We may wind up in here before MinHook would normally be initialized
-    SK_MinHook_Init ();
+      epic->PreInit (hModEOS);
+
+      // We may wind up in here before MinHook would normally be initialized
+      SK_MinHook_Init ();
+    }
   }
 
   auto _SetupEOS =

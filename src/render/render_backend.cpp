@@ -89,31 +89,40 @@ SK_GetCurrentRenderBackend (void) noexcept
 void
 __stdcall
 SK_InitRenderBackends (void)
-{ static
-  auto *pCommandProcessor =
-   SK_GetCommandProcessor ();
+{
+  SK_ICommandProcessor
+    *pCommandProcessor = nullptr;
 
-  pCommandProcessor->AddVariable ( "RenderHooks.D3D9Ex",
-                                     new SK_IVarStub <bool> (&config.apis.d3d9ex.hook ) );
-  pCommandProcessor->AddVariable ( "RenderHooks.D3D9",
-                                     new SK_IVarStub <bool> (&config.apis.d3d9.hook ) );
+  SK_RunOnce (
+    pCommandProcessor =
+      SK_Render_InitializeSharedCVars ()
+  );
 
-  pCommandProcessor->AddVariable ( "RenderHooks.D3D11",
-                                     new SK_IVarStub <bool> (&config.apis.dxgi.d3d11.hook ) );
+  if (pCommandProcessor != nullptr)
+  {
+    pCommandProcessor->AddVariable (         "RenderHooks.D3D9Ex",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.d3d9ex.hook));
+    pCommandProcessor->AddVariable (         "RenderHooks.D3D9",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.d3d9.hook));
+    //
+    // -?- Originally there were two variables for d3d9.hook ... not sure why
+    //
+    pCommandProcessor->AddVariable (              "RenderHooks.D3D11",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d11.hook));
 #ifdef _M_AMD64
-  pCommandProcessor->AddVariable ( "RenderHooks.D3D12",
-                                     new SK_IVarStub <bool> (&config.apis.dxgi.d3d12.hook ) );
-  pCommandProcessor->AddVariable ( "RenderHooks.Vulkan",
-                                     new SK_IVarStub <bool> (&config.apis.Vulkan.hook ) );
+    pCommandProcessor->AddVariable (              "RenderHooks.D3D12",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d12.hook));
+    pCommandProcessor->AddVariable (         "RenderHooks.Vulkan",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.Vulkan.hook));
 #else /* _M_IX86 */
-  pCommandProcessor->AddVariable ( "RenderHooks.D3D8",
-                                     new SK_IVarStub <bool> (&config.apis.d3d8.hook ) );
-  pCommandProcessor->AddVariable ( "RenderHooks.DDraw",
-                                     new SK_IVarStub <bool> (&config.apis.ddraw.hook ) );
+    pCommandProcessor->AddVariable (         "RenderHooks.D3D8",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.d3d8.hook));
+    pCommandProcessor->AddVariable (         "RenderHooks.DDraw",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.ddraw.hook));
 #endif
-
-  pCommandProcessor->AddVariable ( "RenderHooks.OpenGL",
-                                     new SK_IVarStub <bool> (&config.apis.OpenGL.hook ) );
+    pCommandProcessor->AddVariable (         "RenderHooks.OpenGL",
+        SK_CreateVar (SK_IVariable::Boolean, &config.apis.OpenGL.hook));
+  }
 }
 
 
@@ -1378,119 +1387,6 @@ HDRModeToStr (NV_HDR_MODE mode)
   };
 };
 
-
-using D3DStripShader_pfn =
-HRESULT (WINAPI *)
-(   LPCVOID   pShaderBytecode,
-    SIZE_T    BytecodeLength,
-    UINT      uStripFlags,
-  ID3DBlob  **ppStrippedBlob );
-
-D3DStripShader_pfn
-D3DStripShader_40_Original;
-D3DStripShader_pfn
-D3DStripShader_41_Original;
-D3DStripShader_pfn
-D3DStripShader_42_Original;
-D3DStripShader_pfn
-D3DStripShader_43_Original;
-D3DStripShader_pfn
-D3DStripShader_47_Original;
-
-#undef  __SK_SUBSYSTEM__
-#define __SK_SUBSYSTEM__ L"Shadr Comp"
-
-HRESULT
-WINAPI
-D3DStripShader_40_Detour      (
-  LPCVOID    pShaderBytecode,
-  SIZE_T     BytecodeLength,
-  UINT       uStripFlags,
-  ID3DBlob** ppStrippedBlob   )
-{
-  UNREFERENCED_PARAMETER (pShaderBytecode);
-  UNREFERENCED_PARAMETER (BytecodeLength);
-  UNREFERENCED_PARAMETER (uStripFlags);
-  UNREFERENCED_PARAMETER (ppStrippedBlob);
-
-  SK_LOG_FIRST_CALL
-
-  return S_OK;
-}
-
-HRESULT
-WINAPI
-D3DStripShader_41_Detour      (
-  LPCVOID    pShaderBytecode,
-  SIZE_T     BytecodeLength,
-  UINT       uStripFlags,
-  ID3DBlob** ppStrippedBlob   )
-{
-  UNREFERENCED_PARAMETER (pShaderBytecode);
-  UNREFERENCED_PARAMETER (BytecodeLength);
-  UNREFERENCED_PARAMETER (uStripFlags);
-  UNREFERENCED_PARAMETER (ppStrippedBlob);
-
-  SK_LOG_FIRST_CALL
-
-  return S_OK;
-}
-
-HRESULT
-WINAPI
-D3DStripShader_42_Detour      (
-  LPCVOID    pShaderBytecode,
-  SIZE_T     BytecodeLength,
-  UINT       uStripFlags,
-  ID3DBlob** ppStrippedBlob   )
-{
-  UNREFERENCED_PARAMETER (pShaderBytecode);
-  UNREFERENCED_PARAMETER (BytecodeLength);
-  UNREFERENCED_PARAMETER (uStripFlags);
-  UNREFERENCED_PARAMETER (ppStrippedBlob);
-
-  SK_LOG_FIRST_CALL
-
-  return S_OK;
-}
-
-HRESULT
-WINAPI
-D3DStripShader_43_Detour      (
-  LPCVOID    pShaderBytecode,
-  SIZE_T     BytecodeLength,
-  UINT       uStripFlags,
-  ID3DBlob** ppStrippedBlob   )
-{
-  UNREFERENCED_PARAMETER (pShaderBytecode);
-  UNREFERENCED_PARAMETER (BytecodeLength);
-  UNREFERENCED_PARAMETER (uStripFlags);
-  UNREFERENCED_PARAMETER (ppStrippedBlob);
-
-  SK_LOG_FIRST_CALL
-
-  return S_OK;
-}
-
-HRESULT
-WINAPI
-D3DStripShader_47_Detour     (
-  LPCVOID    pShaderBytecode,
-  SIZE_T     BytecodeLength,
-  UINT       uStripFlags,
-  ID3DBlob** ppStrippedBlob  )
-{
-  UNREFERENCED_PARAMETER (pShaderBytecode);
-  UNREFERENCED_PARAMETER (BytecodeLength);
-  UNREFERENCED_PARAMETER (uStripFlags);
-  UNREFERENCED_PARAMETER (ppStrippedBlob);
-
-  SK_LOG_FIRST_CALL
-
-  return S_OK;
-}
-
-
 void
 SK_D3D_SetupShaderCompiler (void)
 {
@@ -1510,48 +1406,6 @@ SK_D3D_SetupShaderCompiler (void)
       //SK_D3D_UnpackShaderCompiler ();
     }
   }
-
-#if 0
-  struct SK_D3D_AntiStrip {
-    const wchar_t*    wszDll;
-    const    char*    szSymbol;
-           LPVOID    pfnHookFunc;
-              void** ppfnTrampoline;
-  } static strippers [] =
-  { { L"D3DCOMPILER_47.dll",
-       "D3DStripShader",   D3DStripShader_47_Detour,
-  static_cast_p2p <void> (&D3DStripShader_47_Original) },
-    { L"D3DCOMPILER_43.dll",
-       "D3DStripShader",   D3DStripShader_43_Detour,
-  static_cast_p2p <void> (&D3DStripShader_43_Original) },
-    { L"D3DCOMPILER_42.dll",
-       "D3DStripShader",   D3DStripShader_42_Detour,
-  static_cast_p2p <void> (&D3DStripShader_42_Original) },
-    { L"D3DCOMPILER_41.dll",
-       "D3DStripShader",   D3DStripShader_41_Detour,
-  static_cast_p2p <void> (&D3DStripShader_41_Original) },
-    { L"D3DCOMPILER_40.dll",
-       "D3DStripShader",   D3DStripShader_40_Detour,
-  static_cast_p2p <void> (&D3DStripShader_40_Original) } };
-#endif
-
-//if (SUCCEEDED (__HrLoadAllImportsForDll ("D3DCOMPILER_47.dll")))
-//{
-// Causes problems with CroEngine games, we don't need unstripped
-//   shaders anyway.
-#ifdef _USE_ANTISTRIP
-    for ( auto& stripper : strippers )
-    {
-      if (SK_GetModuleHandleW (stripper.wszDll) != nullptr)
-      {
-        SK_CreateDLLHook2 ( stripper.wszDll,
-                            stripper.szSymbol,
-                            stripper.pfnHookFunc,
-                            stripper.ppfnTrampoline );
-      }
-    }
-#endif
-//}
 }
 
 HMODULE
@@ -1563,7 +1417,8 @@ SK_D3D_GetShaderCompiler (void)
   if (hModCompiler != nullptr)
     return hModCompiler;
 
-  SK_RunOnce ([&]
+  static bool once = false;
+  if (std::exchange (once, true) == false)
   {
     for ( auto wszDLLName : { L"D3DCompiler_46.dll", L"D3DCompiler_45.dll",
                               L"D3DCompiler_44.dll", L"D3DCompiler_43.dll",
@@ -1576,7 +1431,7 @@ SK_D3D_GetShaderCompiler (void)
       if (hModCompiler != nullptr)
         break;
     }
-  });
+  }
 
   return hModCompiler;
 }
@@ -4463,4 +4318,35 @@ SK_Display_HookModeChangeAPIs (void)
 
   else
     SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+}
+
+SK_ICommandProcessor*
+SK_Render_InitializeSharedCVars (void)
+{
+  SK_ICommandProcessor 
+    *pCommandProc = nullptr;
+
+  SK_RunOnce ( pCommandProc =
+          SK_GetCommandProcessor () );
+
+  if (pCommandProc != nullptr)
+  {
+    pCommandProc->AddVariable ( "PresentationInterval",
+            new SK_IVarStub <int> (
+              &config.render.framerate.present_interval )
+                              );
+    pCommandProc->AddVariable ( "PreRenderLimit",
+            new SK_IVarStub <int> (
+              &config.render.framerate.pre_render_limit )
+                              );
+    pCommandProc->AddVariable ( "BufferCount",
+            new SK_IVarStub <int> (
+              &config.render.framerate.buffer_count )
+                              );
+  }
+
+  else
+    pCommandProc = SK_GetCommandProcessor ();
+
+  return pCommandProc;
 }

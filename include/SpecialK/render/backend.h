@@ -1522,7 +1522,11 @@ bool SK_RenderBackendUtil_IsFullscreen (void);
 void SK_D3D_SetupShaderCompiler        (void);
 void SK_Display_DisableDPIScaling      (void);
 
-void SK_Display_HookModeChangeAPIs (void);
+interface
+SK_ICommandProcessor;
+SK_ICommandProcessor*
+     SK_Render_InitializeSharedCVars   (void);
+void SK_Display_HookModeChangeAPIs     (void);
 
 HMODULE
 SK_D3D_GetShaderCompiler (void);

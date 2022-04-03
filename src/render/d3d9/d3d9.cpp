@@ -1100,36 +1100,44 @@ d3d9_init_callback (finish_pfn finish)
     SK_Thread_SpinUntilFlagged (&__d3d9_ready);
   }
 
-  bool local_d3d9 = false;
-  if (! SK_COMPAT_IsSystemDllInstalled (L"d3dx9_43.dll", &local_d3d9))
+  // Another Render API was seen first, we should ignore this stuff
+  if (SK_GetFramesDrawn () == 0)
   {
-    if (! local_d3d9)
-      SK_D3DX9_GetModule (true); // Fetch / Unpack if not installed
+    bool local_d3d9 = false;
+    if (! SK_COMPAT_IsSystemDllInstalled (L"d3dx9_43.dll", &local_d3d9))
+    {
+      if (! local_d3d9)
+        SK_D3DX9_GetModule (true); // Fetch / Unpack if not installed
+    }
+
+    else
+    {
+      // Load the system-wide DLL
+      SK_D3DX9_GetModule (false);
+    }
   }
 
   else
   {
-    // Load the system-wide DLL
-    SK_D3DX9_GetModule (false);
+    SK_LOGi0 (
+      L"Ignoring d3d9_init_callback (...) because frames have"
+      L" been drawn using a different graphics API (%ws).",
+                                  SK_Render_GetAPIName (
+                 SK_GetCurrentRenderBackend ().api     )
+             );
   }
 
-  auto *pCommandProc =
-    SK_GetCommandProcessor ();
+  SK_ICommandProcessor *pCommandProc = nullptr;
 
-  pCommandProc->AddVariable ( "PresentationInterval",
-          new SK_IVarStub <int> (
-            &config.render.framerate.present_interval )
-                            );
+  SK_RunOnce (
+    pCommandProc = 
+      SK_Render_InitializeSharedCVars ()
+  );
 
-  pCommandProc->AddVariable ( "PreRenderLimit",
-          new SK_IVarStub <int> (
-            &config.render.framerate.pre_render_limit )
-                            );
-
-  pCommandProc->AddVariable ( "BufferCount",
-          new SK_IVarStub <int> (
-            &config.render.framerate.buffer_count )
-                            );
+  if (pCommandProc != nullptr)
+  {
+    // TODO: Any D3D9 Specific Console Variables..?
+  }
 
   finish ();
 }
@@ -6876,7 +6884,7 @@ SK_D3D9_TextureModDlg (void)
     if (ImGui::Button ("  Refresh Textures  "))
     {
       SK_ICommandProcessor& command =
-        *SK_GetCommandProcessor ();
+        *SK_Render_InitializeSharedCVars ();
 
       command.ProcessCommandLine ("Textures.Trace true");
 

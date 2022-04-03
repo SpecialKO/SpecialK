@@ -2330,28 +2330,39 @@ SK::D3D9::TextureManager::Init (void)
   stream_pool.lrg_tex = std::make_unique <TextureThreadPool> ();
   stream_pool.sm_tex  = std::make_unique <TextureThreadPool> ();
 
-  SK_ICommandProcessor& command =
-    *SK_GetCommandProcessor ();
+  SK_ICommandProcessor* pCommandProc = nullptr;
 
-  command.AddVariable (
-    "Textures.Remap",
-      SK_CreateVar (SK_IVariable::Boolean, &__remap_textures) );
+  SK_RunOnce (
+    pCommandProc =
+      SK_Render_InitializeSharedCVars ()
+  );
 
-  command.AddVariable (
-    "Textures.Purge",
-      SK_CreateVar (SK_IVariable::Boolean, &__need_purge) );
-
-  command.AddVariable (
-    "Textures.Trace",
-      SK_CreateVar (SK_IVariable::Boolean, &__log_used) );
-
-  command.AddVariable (
-    "Textures.ShowCache",
-      SK_CreateVar (SK_IVariable::Boolean, &__show_cache) );
-
-  command.AddVariable (
-    "Textures.MaxCacheSize",
-      SK_CreateVar (SK_IVariable::Int,     &config.textures.cache.max_size) );
+  // TODO: These kinda overlap with D3D11 variables of the same name,
+  //         could (... will?) make for an awkward bug years from now.
+  //
+  if (pCommandProc != nullptr)
+  {
+    pCommandProc->AddVariable (
+      "Textures.Remap",
+        SK_CreateVar (SK_IVariable::Boolean, &__remap_textures)
+    );
+    pCommandProc->AddVariable (
+      "Textures.Purge",
+        SK_CreateVar (SK_IVariable::Boolean, &__need_purge)
+    );
+    pCommandProc->AddVariable (
+      "Textures.Trace",
+        SK_CreateVar (SK_IVariable::Boolean, &__log_used)
+    );
+    pCommandProc->AddVariable (
+      "Textures.ShowCache",
+        SK_CreateVar (SK_IVariable::Boolean, &__show_cache)
+    );
+    pCommandProc->AddVariable (
+      "Textures.MaxCacheSize",
+        SK_CreateVar (SK_IVariable::Int,     &config.textures.cache.max_size)
+    );
+  }
 }
 
 #include <utility.h>

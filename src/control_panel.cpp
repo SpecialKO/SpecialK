@@ -1391,7 +1391,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImVec2 vHDRPos;
 
-  if (rb.displays [rb.active_display].hdr.supported)
+  if ( rb.displays [rb.active_display].hdr.supported ||
+                    rb.isHDRCapable () )
   {
     bool hdr_enable =
       rb.displays [rb.active_display].hdr.enabled;
@@ -1604,7 +1605,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   }
 
   // Display
-  if (rb.displays [rb.active_display].hdr.supported)
+  if ( rb.displays [rb.active_display].hdr.supported ||
+       rb.isHDRCapable () )
   {
     ImGui::SetCursorPos (vHDRPos);
 
@@ -2648,6 +2650,8 @@ SK_ImGui_ControlPanel (void)
         DisplayMenu    ();
         ImGui::EndMenu ();
       }
+      
+      static bool changed_hdr = false;
 
       auto HDRMenu =
       [&](void)
@@ -2818,27 +2822,115 @@ SK_ImGui_ControlPanel (void)
         bool hdr =
           SK_ImGui_Widgets->hdr_control->isVisible ();
 
-        if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
-        {
-          hdr = (! hdr);
+        // Put any bullet points on the same line as the button
+        bool same_line = false;
 
-          SK_ImGui_Widgets->hdr_control->
-            setVisible (hdr).
-            setActive  (hdr);
+        if ( (rb.displays [rb.active_display].hdr.supported ||
+                           rb.isHDRCapable ())              &&
+             (rb.displays [rb.active_display].hdr.enabled) )
+        {
+          if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
+          {
+            hdr = (! hdr);
+
+            SK_ImGui_Widgets->hdr_control->
+              setVisible (hdr).
+              setActive  (hdr);
+          }
+
+          same_line = true;
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
+          }
         }
 
-        if (ImGui::IsItemHovered ())
+        static bool
+            hdr_toggled = false;
+        if (hdr_toggled)
         {
-          ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
+          if (    same_line)
+            ImGui::SameLine ();
+
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart May Be Required");
+          ImGui::PopStyleColor  ();
+        }
+
+        //
+        // TODO: Put a button in this part of the control panel to control the
+        //         behavior of temporary Desktop HDR
+
+        if ((  rb.displays [rb.active_display].hdr.supported ||
+                            rb.isHDRCapable () )             &&
+            (! rb.displays [rb.active_display].hdr.enabled ) )
+        {
+          bool bEnabled = false;
+
+          if (ImGui::Checkbox ("Enable HDR###EnableHDRUsingCPL", &bEnabled))
+          {
+            extern void
+            SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
+            SK_Display_EnableHDR (&rb.displays [rb.active_display]);
+
+            hdr_toggled = true;
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "Select scRGB from the HDR Calibration "
+              "tool after turning HDR on"
+              "\r\n\r\n"
+              "\t\t( The Display menu has additional settings )"
+              "\r\n\r\n"
+              "\t\t\t >> Most Games Require a Restart <<"
+            );
+          }
+
+          ImGui::SameLine       ();
+
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f));
+          ImGui::BulletText     ("HDR Is Not Currently Enabled");
+          ImGui::PopStyleColor  ();
+        }
+
+        else if (rb.displays [rb.active_display].hdr.enabled)
+        {
+          if ( ImGui::Checkbox (
+                 "Enable / Disable HDR when this game Starts or Exits",
+                   &config.render.dxgi.temporary_dwm_hdr )
+             )
+          {
+            SK_SaveConfig ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text (
+              "If SK's scRGB HDR mode is active, HDR is automatically enabled"
+              " -- regardless what you set here" );
+
+            ImGui::BulletText (
+              "Automatic Enable / Disable will still turn HDR off when games exit"
+            );
+            ImGui::EndTooltip ();
+          }
         }
       };
 
-      if ( rb.isHDRCapable ()  &&
-           rb.isHDRActive  () )
+      if ( rb.displays [rb.active_display].hdr.supported ||
+                        rb.isHDRCapable () )
+           //&&
+           //rb.isHDRActive() )//< This menu was originally shown only when HDR is
+                               //    already on, but that turns out to be unintuitive
       {
-        if (ImGui::BeginMenu (ICON_FA_SUN "  HDR"))
+        if (ImGui::BeginMenu (ICON_FA_SUN "  HDR###CalibrateFromCPL"))
         {
           HDRMenu ();
+
           ImGui::EndMenu ();
         }
       }

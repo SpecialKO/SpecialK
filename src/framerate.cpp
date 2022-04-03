@@ -36,6 +36,11 @@
 
 #include <concurrent_unordered_map.h>
 
+#pragma float_control (precise,  on)
+#pragma float_control ( except, off)
+#pragma fp_contract   (         off)
+#pragma fenv_access   (         off)
+
 bool SK_HasHighResWaitableTimer = false;
 
 extern NtQueryTimerResolution_pfn NtQueryTimerResolution;

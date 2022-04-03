@@ -75,9 +75,6 @@ void WINAPI SK_D3D11_PopulateResourceList (bool refresh = false) ;
 void
 SK_D3D11_InitTextures (void)
 {
-  static auto *pCommandProcessor =
-    SK_GetCommandProcessor ();
-
   static volatile LONG SK_D3D11_tex_init = FALSE;
 
   SK_TLS* pTLS =
@@ -121,25 +118,41 @@ SK_D3D11_InitTextures (void)
       SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
     }
 
-    pCommandProcessor->AddVariable ("TexCache.Enable",
-         new SK_IVarStub <bool> ((bool *)&config.textures.d3d11.cache));
-    pCommandProcessor->AddVariable ("TexCache.MaxEntries",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_entries));
-    pCommandProcessor->AddVariable ("TexC ache.MinEntries",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_entries));
-    pCommandProcessor->AddVariable ("TexCache.MaxSize",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_size));
-    pCommandProcessor->AddVariable ("TexCache.MinSize",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_size));
-    pCommandProcessor->AddVariable ("TexCache.MinEvict",
-         new SK_IVarStub <int>  ((int *)&cache_opts.min_evict));
-    pCommandProcessor->AddVariable ("TexCache.MaxEvict",
-         new SK_IVarStub <int>  ((int *)&cache_opts.max_evict));
-    pCommandProcessor->AddVariable ("TexCache.IgnoreNonMipped",
-         new SK_IVarStub <bool> ((bool *)&cache_opts.ignore_non_mipped));
+    SK_ICommandProcessor *pCommandProcessor = nullptr;
 
-    if ((! SK_D3D11_inject_textures_ffx) && config.textures.d3d11.inject)
+    SK_RunOnce (
+      pCommandProcessor =
+        SK_Render_InitializeSharedCVars ()
+    );
+
+    // TODO: These kinda overlap with D3D11 variables of the same name,
+    //         could (... will?) make for an awkward bug years from now.
+    //
+    if (pCommandProcessor != nullptr)
+    {
+      pCommandProcessor->AddVariable ("TexCache.Enable",
+          SK_CreateVar (SK_IVariable::Boolean, &config. textures.d3d11.cache));
+      pCommandProcessor->AddVariable ("TexCache.MaxEntries",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.      max_entries));
+      pCommandProcessor->AddVariable ("TexCache.MinEntries",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.      min_entries));
+      pCommandProcessor->AddVariable ("TexCache.MaxSize",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.         max_size));
+      pCommandProcessor->AddVariable ("TexCache.MinSize",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.         min_size));
+      pCommandProcessor->AddVariable ("TexCache.MinEvict",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.        min_evict));
+      pCommandProcessor->AddVariable ("TexCache.MaxEvict",
+          SK_CreateVar (SK_IVariable::Int,     &cache_opts.        max_evict));
+      pCommandProcessor->AddVariable ("TexCache.IgnoreNonMipped",
+          SK_CreateVar (SK_IVariable::Boolean, &cache_opts.ignore_non_mipped));
+    }
+
+    if ((! SK_D3D11_inject_textures_ffx) &&
+                    config.textures.d3d11.inject)
+    {
       SK_D3D11_PopulateResourceList ();
+    }
 
 
     // XXX: Why is this here?

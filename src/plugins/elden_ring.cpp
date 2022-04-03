@@ -698,7 +698,17 @@ SK_ER_InitPlugin (void)
        SK_IsAddressExecutable (pClockTick0) &&
                               *pClockTick0  == 0xC7 )
   {
-    SK_GetCommandProcessor ()->AddVariable (
+    auto *cp =
+      SK_Render_InitializeSharedCVars ();
+
+    if (! cp)
+    {
+      SK_ImGui_Warning (L"Special K Command Processor is Busted...");
+
+      return;
+    }
+
+    cp->AddVariable (
       "EldenRing.fClockMultiplier", SK_CreateVar ( SK_IVariable::Float,
                                                   &SK_ER_PlugIn.fSpeed )
                                        );

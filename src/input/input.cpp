@@ -3666,11 +3666,11 @@ char SK_KeyMap_LeftHand_Arrow (char key)
 void
 SK_Input_Init (void)
 {
+  static bool                      once = false;
+  SK_ReleaseAssert (std::exchange (once, true) == false);
+
   SK_ImGui_InputLanguage_s::keybd_layout =
     GetKeyboardLayout (0);
-
-  static auto* cp =
-    SK_GetCommandProcessor ();
 
   bool azerty = false;
   bool qwertz = false;
@@ -3745,7 +3745,10 @@ SK_Input_Init (void)
                 layout_desc.c_str (), layout_sig [0], layout_sig [1], layout_sig [2] ),
               L"Key Layout" );
 
-  auto CreateInputVar_Bool = [](auto name, auto config_var)
+  auto *cp =
+    SK_Render_InitializeSharedCVars ();
+
+  auto CreateInputVar_Bool = [&](auto name, auto config_var)
   {
     cp->AddVariable  (
       name,
@@ -3755,7 +3758,7 @@ SK_Input_Init (void)
     );
   };
 
-  auto CreateInputVar_Int = [](auto name, auto config_var)
+  auto CreateInputVar_Int = [&](auto name, auto config_var)
   {
     cp->AddVariable  (
       name,

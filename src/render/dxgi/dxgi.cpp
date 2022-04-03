@@ -7636,30 +7636,23 @@ SK_HookDXGI (void)
       SK_D3D11_Init         ();
     }
 
-    SK_ICommandProcessor* pCommandProc =
-      SK_GetCommandProcessor ();
+    SK_ICommandProcessor *pCommandProc = nullptr;
 
+    SK_RunOnce (
+      pCommandProc =
+        SK_Render_InitializeSharedCVars ()
+    );
 
-    pCommandProc->AddVariable ( "SwapChainWait",
-            new SK_IVarStub <int> (
-              &config.render.framerate.swapchain_wait )
-                              );
-    pCommandProc->AddVariable ( "PresentationInterval",
-            new SK_IVarStub <int> (
-              &config.render.framerate.present_interval )
-                              );
-    pCommandProc->AddVariable ( "PreRenderLimit",
-            new SK_IVarStub <int> (
-              &config.render.framerate.pre_render_limit )
-                              );
-    pCommandProc->AddVariable ( "BufferCount",
-            new SK_IVarStub <int> (
-              &config.render.framerate.buffer_count )
-                              );
-    pCommandProc->AddVariable ( "UseFlipDiscard",
-            new SK_IVarStub <bool> (
-              &config.render.framerate.flip_discard )
-                              );
+    if (pCommandProc != nullptr)
+    {
+      pCommandProc->AddVariable
+       ( "SwapChainWait", SK_CreateVar ( SK_IVariable::Int,
+           &config.render.framerate.swapchain_wait ) );
+
+      pCommandProc->AddVariable
+       ( "UseFlipDiscard", SK_CreateVar ( SK_IVariable::Boolean,
+           &config.render.framerate.flip_discard ) );
+    }
 
     SK_DXGI_BeginHooking ();
 

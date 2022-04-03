@@ -19,12 +19,18 @@
  *
 **/
 
+#pragma once
 #pragma warning ( disable : 4652 )
 
-#pragma once
-
 #ifdef _MSC_VER
-__pragma (runtime_checks ("", off))
+#ifndef _DEBUG
+#pragma runtime_checks   ("", off)
+#pragma inline_depth     (    255)
+#pragma inline_recursion (     on)
+#pragma vtordisp         (      2)
+#pragma strict_gs_check  (    off)
+#pragma check_stack -
+#endif
 #endif
 
 //#define _CRT_NON_CONFORMING_WCSTOK

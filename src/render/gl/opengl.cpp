@@ -193,6 +193,18 @@ opengl_init_callback (finish_pfn finish)
 {
   SK_BootOpenGL ();
 
+  SK_ICommandProcessor *pCommandProc = nullptr;
+
+  SK_RunOnce (
+    pCommandProc =
+      SK_Render_InitializeSharedCVars ()
+  );
+
+  if (pCommandProc != nullptr)
+  {
+    // TODO: Any OpenGL Specific Console Variables..?
+  }
+
   finish ();
 }
 
