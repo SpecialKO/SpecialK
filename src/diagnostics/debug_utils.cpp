@@ -98,18 +98,42 @@ SK_Debug_LoadHelper (void)
     wchar_t wszSystemDbgHelp   [MAX_PATH + 2] = { };
     wchar_t wszIsolatedDbgHelp [MAX_PATH + 2] = { };
 
-    GetSystemDirectory ( wszSystemDbgHelp, MAX_PATH       );
-    PathAppendW        ( wszSystemDbgHelp, L"dbghelp.dll" );
+    GetSystemDirectory (wszSystemDbgHelp, MAX_PATH      );
+    PathAppendW        (wszSystemDbgHelp, L"dbghelp.dll");
 
-    lstrcatW           ( wszIsolatedDbgHelp, path_to_driver.c_str () );
-    PathAppendW        ( wszIsolatedDbgHelp,
-                             SK_RunLHIfBitness (64, L"dbghelp_sk64.dll",
-                                                    L"dbghelp_sk32.dll") );
+    lstrcatW           (wszIsolatedDbgHelp, path_to_driver.c_str ());
+    PathAppendW        (wszIsolatedDbgHelp,
+                            SK_RunLHIfBitness (64, L"dbghelp_sk64.dll",
+                                                   L"dbghelp_sk32.dll"));
 
-    if (PathFileExistsW (wszIsolatedDbgHelp) == FALSE)
+    if ( FALSE == PathFileExistsW          (wszIsolatedDbgHelp) ||
+         FALSE == SK_Assert_SameDLLVersion (wszIsolatedDbgHelp,
+                                               wszSystemDbgHelp)
+       )
     {
+      if (PathFileExistsW (wszIsolatedDbgHelp))
+      {
+        SK_LOGi0 (
+          L"Performing in-place upgrade for %ws",
+            SK_StripUserNameFromPathW (
+              (std::wstring (wszIsolatedDbgHelp) + L'\0').data ()
+                                      )
+                 );
+
+        wchar_t
+          wszTemp [MAX_PATH + 2] = { };
+
+        GetTempFileNameW   (path_to_driver.c_str   (),
+                            L"SKI", SK_timeGetTime (),
+                                                wszTemp);
+        SK_File_MoveNoFail (wszIsolatedDbgHelp, wszTemp);
+      }
+
+      SK_DeleteTemporaryFiles (path_to_driver.c_str ());
+
       SK_CreateDirectories (wszIsolatedDbgHelp);
-      CopyFileW            (wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
+      CopyFileW            (
+          wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
     }
 
     auto* mods =
@@ -3627,10 +3651,12 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                  SetThreadPriority_Detour,
         static_cast_p2p <void> (&SetThreadPriority_Original) );
 
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "SetThreadAffinityMask",
-                                 SetThreadAffinityMask_Detour,
-        static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+      // Hooking this causes Death Stranding to Explode
+      //
+//////SK_CreateDLLHook2 (      L"kernel32",
+//////                          "SetThreadAffinityMask",
+//////                           SetThreadAffinityMask_Detour,
+//////  static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
 
 
 

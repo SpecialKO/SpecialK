@@ -1748,6 +1748,102 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   return false;
 }
 
+bool
+__stdcall
+SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
+                           const wchar_t* wszTestFile1 )
+{
+  std::wstring
+    wszVerStr0 = L"",
+    wszVerStr1 = L"";
+
+  using test_pair_s =
+    std::pair <std::wstring&, const wchar_t*>;
+
+  test_pair_s
+    tests [] =
+      { { wszVerStr0, wszTestFile0 },
+        { wszVerStr1, wszTestFile1 } };
+
+  for ( auto &[wszVerStr, wszTestFile] : tests )
+  {
+    UINT     cbTranslatedBytes = 0,
+             cbProductBytes    = 0,
+             cbVersionBytes    = 0;
+
+    uint8_t cbData [16384] = { };
+    size_t dwSize = 16383;
+
+    wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
+    wchar_t* wszFileVersion = nullptr; // "
+
+    struct LANGANDCODEPAGE {
+      WORD wLanguage;
+      WORD wCodePage;
+    } *lpTranslate = nullptr;
+
+    BOOL bRet =
+      SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                                 FILE_VER_GET_PREFETCHED,
+                                   wszTestFile,
+                                     0x00,
+                  static_cast <DWORD> (dwSize),
+                                         cbData );
+
+    SK_ReleaseAssert ( L"File Has No Version Info?!"
+       && bRet == TRUE );
+    if (! bRet)
+    {
+      return bRet;
+    }
+
+    if ( SK_VerQueryValueW ( cbData,
+                               TEXT ("\\VarFileInfo\\Translation"),
+                   static_cast_p2p <void> (&lpTranslate),
+                                           &cbTranslatedBytes ) && cbTranslatedBytes &&
+                                                                   lpTranslate )
+    {
+      wchar_t        wszPropName [64] = { };
+      _snwprintf_s ( wszPropName, 63,
+                      LR"(\StringFileInfo\%04x%04x\FileDescription)",
+                        lpTranslate   [0].wLanguage,
+                          lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileDescrip),
+                                        &cbProductBytes );
+
+      _snwprintf_s ( wszPropName, 63,
+                      LR"(\StringFileInfo\%04x%04x\FileVersion)",
+                        lpTranslate   [0].wLanguage,
+                          lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileVersion),
+                                        &cbVersionBytes );
+    }
+
+    if ( cbTranslatedBytes == 0 ||
+           (cbProductBytes == 0 && cbVersionBytes == 0) )
+    {
+      SK_ReleaseAssert (L"Version Info Contains No Version...");
+
+      return false;
+    }
+
+    if (cbVersionBytes)
+    {
+      wszVerStr =
+        wszFileVersion;
+    }
+  }
+
+  return (! wszVerStr0.empty ()) &&
+            wszVerStr0._Equal (wszVerStr1);
+};
+
 std::wstring
 __stdcall
 SK_GetDLLVersionStr (const wchar_t* wszName)
@@ -2325,6 +2421,7 @@ SK_IsServiceHost (void)
     nullptr != StrStrIW (wszHostApp, L"svchost"             ) ||
     nullptr != StrStrIW (wszHostApp, L"dllhost"             ) ||
     nullptr != StrStrIW (wszHostApp, L"sihost"              ) ||
+    nullptr != StrStrIW (wszHostApp, L"pwahelper"           ) ||
     nullptr != StrStrIW (wszHostApp, L"PerfWatson"          ) ||
     nullptr != StrStrIW (wszHostApp, L"DataExchangeHost"    ) ||
     nullptr != StrStrIW (wszHostApp, L"GamebarFTServer"     ) ||

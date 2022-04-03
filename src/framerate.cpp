@@ -36,6 +36,11 @@
 
 #include <concurrent_unordered_map.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"  Timing  "
+
 #pragma float_control (precise,  on)
 #pragma float_control ( except, off)
 #pragma fp_contract   (         off)
@@ -1255,6 +1260,8 @@ SK::Framerate::Limiter::try_wait (void)
 
 
 //#define _RESTORE_TIMER_RES
+extern NtSetTimerResolution_pfn
+       NtSetTimerResolution_Original;
 
 void
 SK::Framerate::Limiter::wait (void)
@@ -1290,6 +1297,20 @@ SK::Framerate::Limiter::wait (void)
     set_limit ( __target_fps_bg > 0.0f ?
                 __target_fps_bg        :
                 __target_fps          );
+  }
+
+
+  if (NtSetTimerResolution_Original != nullptr)
+  {
+    ULONG                    min,  max,        cur;
+    NtQueryTimerResolution (&min, &max,       &cur);
+    if                            (max    !=   cur)
+    {NtSetTimerResolution_Original(max, TRUE, &cur);
+
+      SK_LOGi0 (
+       L"Fixing Unexpected Deviation in Process Timer Resolution"
+      );
+    }
   }
 
 

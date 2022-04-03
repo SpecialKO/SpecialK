@@ -1,4 +1,19 @@
-﻿22.4.2.2-NOCEGUI
+﻿22.4.3-NOCEGUI
+==============
+ + Special K's local copies of XInput and dbghelp DLLs from System32 are now
+     checked to make sure they are the same version as the DLLs stored in System32,
+       and will update themselves otherwise.
+
+ + Bypass software that may be setting per-process timer resolution higher (worse)
+     than intended via repeated calls to NtSetTimerResolution / timeBeginPeriod.
+
+    >> This -seems- to be a bug in Windows, because it should not be possible for
+         the timer resolution of a process to change while SK has these functions
+           nop'd.
+
+    * Fix is only applied while SK's framerate limiter is engaged, so always? ;)
+
+22.4.2.2-NOCEGUI
 ================
  + Added a preference under the HDR Menu for SK's automatic HDR On/Off feature
  + HDR menu now shows in Control Panel for users with HDR capable displays running

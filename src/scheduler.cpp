@@ -1466,10 +1466,15 @@ NtSetTimerResolution_Detour
                        static_cast <float> (cur * 100)/1000000.0f );
     }
 
-    if (! SetResolution)
-      ret = NtSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
-   else
-      ret = NtSetTimerResolution_Original (max, TRUE, CurrentResolution);
+    // TODO: Make configurable for power saving mode
+    //
+    if (config.render.framerate.target_fps <= 0.0f)
+    {
+      if (! SetResolution)
+        ret = NtSetTimerResolution_Original (DesiredResolution, SetResolution, CurrentResolution);
+      else
+        ret = NtSetTimerResolution_Original (max,               TRUE,          CurrentResolution);
+    }
   }
 
   if ((! pSetCount) || (*(pSetCount) % 100) == 1)

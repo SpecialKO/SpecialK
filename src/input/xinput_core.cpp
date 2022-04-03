@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <imgui/font_awesome.h>
+#include <system_error>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -2501,30 +2502,56 @@ SK_Input_PreHookXInput (void)
                             xinput_ctx.XInput_SK.wszModuleName
                          );
 
-  if (! PathFileExistsW (path_to_driver.c_str ()))
-  {SK_CreateDirectories (path_to_driver.c_str ());
+  std::filesystem::path
+    path_to_highest_xinput_ver = L"";
 
-    wchar_t                  wszSystemHighestXInput [MAX_PATH] = { };
-    PathCombineW (           wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_4.dll");
-    if (! CopyFileW (        wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-    {                       *wszSystemHighestXInput = L'\0';
-      PathCombineW (         wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_3.dll");
-      if (! CopyFileW (      wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-      {                     *wszSystemHighestXInput = L'\0';
-        PathCombineW (       wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_2.dll");
-        if (! CopyFileW (    wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-        {                   *wszSystemHighestXInput = L'\0';
-          PathCombineW (     wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput1_1.dll");
-          if (! CopyFileW (  wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-          {                 *wszSystemHighestXInput = L'\0';
-            PathCombineW (   wszSystemHighestXInput, SK_GetSystemDirectory (), L"XInput9_1_0.dll");
-            if (! CopyFileW (wszSystemHighestXInput, path_to_driver.c_str (), FALSE))
-            {
-              SK_ReleaseAssert (! L"XInput Is Borked, Yay!");
-            }
-          }
-        }
+  std::error_code ec =
+    std::error_code ();
+
+  static const auto *pSystemDirectory =
+    SK_GetSystemDirectory ();
+  
+  for ( auto&& version :
+          { ( std::filesystem::path (pSystemDirectory) / L"XInput1_4.dll"   ),
+            ( std::filesystem::path (pSystemDirectory) / L"XInput1_3.dll"   ),
+            ( std::filesystem::path (pSystemDirectory) / L"XInput1_2.dll"   ),
+            ( std::filesystem::path (pSystemDirectory) / L"XInput1_1.dll"   ),
+            ( std::filesystem::path (pSystemDirectory) / L"XInput9_1_0.dll" )
+          } )
+  {
+    if (std::filesystem::exists (version, ec))
+    {
+      path_to_highest_xinput_ver = version;
+      break;
+    }
+  }
+
+  if ( (! std::filesystem::exists ( path_to_driver,              ec))||
+       (! SK_Assert_SameDLLVersion (path_to_driver.            c_str (),
+                                    path_to_highest_xinput_ver.c_str ()) ) )
+  { SK_CreateDirectories           (path_to_driver.c_str ());
+
+    if (    std::filesystem::exists (path_to_highest_xinput_ver, ec))
+    { if (  std::filesystem::exists (path_to_driver.c_str (),    ec))
+      if (! std::filesystem::remove (path_to_driver.c_str (),    ec))
+      {
+        SK_File_MoveNoFail (         path_to_driver.c_str (),
+          ( std::filesystem::current_path () /
+                            L"XInput_Old.tmp" ).    c_str () );
       }
+
+      // Done (re)moving out-of-date XInput DLL
+    
+      if (! std::filesystem::copy_file (path_to_highest_xinput_ver,
+                                        path_to_driver, ec))
+      {
+        SK_ReleaseAssert (! L"XInput Is Borked, Yay!");
+      }
+
+      // Cleanup any temporary XInput DLLs
+      SK_DeleteTemporaryFiles (
+        std::filesystem::current_path ().c_str ()
+      );
     }
   }
 
