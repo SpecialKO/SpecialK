@@ -1581,27 +1581,27 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
       return 0;
     };
 
-////if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
-////if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
-////if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
-////if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
-////if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
-////
-////if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
-////if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
-////if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
-////if (_P->pPixelShader)            { _ReleaseAndCountRefs (&_P->pPixelShader);            assert (refs == 0); }
-////if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
-////if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
-////if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
-////if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
-////if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
-////if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
-////if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
-////if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
-////if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
-////if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
-////if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
+    if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
+    if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
+    if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
+    if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
+    if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
+    
+    if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
+    if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
+    if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
+    if (_P->pPixelShader)            { _ReleaseAndCountRefs (&_P->pPixelShader);            assert (refs == 0); }
+    if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
+    if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
+    if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
+    if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
+    if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
+    if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
+    if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
+    if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }
+    if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
+    if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
+    if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
 
     if (_P->pRenderTargetView.p)
         _P->pRenderTargetView.Release ();
@@ -1799,22 +1799,25 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
     {
       SK_DXGI_UpdateSwapChain (pSwapChain);
 
-      D3D11_BLEND_DESC
-        blend                                        = {  };
-        blend.RenderTarget [0].BlendEnable           = TRUE;
-        blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-        blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
-        blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-        blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-        blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
-        blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-        blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
-                                                       D3D11_COLOR_WRITE_ENABLE_GREEN |
-                                                       D3D11_COLOR_WRITE_ENABLE_BLUE;
+      if (pGenericBlend.p == nullptr)
+      {
+        D3D11_BLEND_DESC
+          blend                                        = {  };
+          blend.RenderTarget [0].BlendEnable           = TRUE;
+          blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+          blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+          blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+          blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+          blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
+                                                         D3D11_COLOR_WRITE_ENABLE_GREEN |
+                                                         D3D11_COLOR_WRITE_ENABLE_BLUE;
 
-      ThrowIfFailed (pDevice->CreateBlendState (&blend, &pGenericBlend.p));
-      SK_D3D11_SetDebugName (                            pGenericBlend.p,
-                                            L"SK Generic Overlay Blend State");
+        ThrowIfFailed (pDevice->CreateBlendState (&blend, &pGenericBlend.p));
+        SK_D3D11_SetDebugName (                            pGenericBlend.p,
+                                              L"SK Generic Overlay Blend State");
+      }
 
       frames_.resize (1);
       frames_ [0].hdr.pRTV      = _Frame [0].pRenderTargetView;

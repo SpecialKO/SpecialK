@@ -2284,6 +2284,46 @@ SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
   }
 }
 
+using SK_DXGI_PresentStatusMap = std::map <HRESULT, std::string_view>;
+const SK_DXGI_PresentStatusMap&
+SK_DXGI_GetPresentStatusMap (void)
+{
+  static const
+    SK_DXGI_PresentStatusMap
+      static_map =
+      {
+        { DXGI_STATUS_OCCLUDED,                     "DXGI_STATUS_OCCLUDED"                     },
+        { DXGI_STATUS_CLIPPED,                      "DXGI_STATUS_CLIPPED"                      },
+        { DXGI_STATUS_MODE_CHANGED,                 "DXGI_STATUS_MODE_CHANGED"                 },
+        { DXGI_STATUS_MODE_CHANGE_IN_PROGRESS,      "DXGI_STATUS_MODE_CHANGE_IN_PROGRESS"      },
+        { DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE, "DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE" },
+        { DXGI_STATUS_NO_REDIRECTION,               "DXGI_STATUS_NO_REDIRECTION"               },
+        { DXGI_STATUS_NO_DESKTOP_ACCESS,            "DXGI_STATUS_NO_DESKTOP_ACCESS"            },
+
+        // Not status codes, but likely to appear in the same error contexts
+        { DXGI_ERROR_DEVICE_REMOVED,                "DXGI_ERROR_DEVICE_REMOVED"                },
+        { DXGI_ERROR_DEVICE_RESET,                  "DXGI_ERROR_DEVICE_RESET"                  },
+        { DXGI_ERROR_INVALID_CALL,                  "DXGI_ERROR_INVALID_CALL"                  },
+      };
+
+  return
+    static_map;
+}
+
+std::string
+SK_DXGI_DescribePresentStatus (HRESULT hrPresentStatus)
+{ 
+  static const auto& map =
+    SK_DXGI_GetPresentStatusMap ();
+
+  return
+    map.contains (hrPresentStatus)         ?
+    map.at       (hrPresentStatus).data () :
+        SK_FormatString (
+          "Unknown Present Status (%x)",
+           (DWORD)hrPresentStatus );
+}
+
 auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return ( static_cast <int> (api) &
                                                               static_cast <int> (SK_RenderAPI::D3D11) ) ==
                                                               static_cast <int> (SK_RenderAPI::D3D11); };
@@ -2334,6 +2374,83 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       {
         _d3d11_rbk->release (This);
         _d3d12_rbk->release (This);
+      }
+
+      if (ret != S_OK)
+      {
+        // This would recurse infinitely without the ghetto lock
+        //
+        static volatile LONG             lLock  =  0;
+        if (InterlockedCompareExchange (&lLock, 1, 0) == 0)
+        {
+          HRESULT hrTest =
+            SK_DXGI_PresentBase ( This, SyncInterval, DXGI_PRESENT_TEST,
+                                    Source, DXGISwapChain_Present,
+                                            DXGISwapChain1_Present1,
+                                              pPresentParameters );
+
+          if (hrTest == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+          {
+            DXGI_SWAP_CHAIN_DESC swapDesc = { };
+            This->GetDesc      (&swapDesc);
+            DXGI_MODE_DESC       modeDesc = {       .Width  = swapDesc.BufferDesc.Width,
+                                                    .Height = swapDesc.BufferDesc.Height,
+                                                    .Format =
+                                 swapDesc.BufferDesc.Format };
+            {           This->ResizeTarget  (&modeDesc);
+                        BringWindowToTop     (swapDesc.OutputWindow); }
+            if (FAILED (This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
+                                                                    swapDesc.BufferDesc.Height,
+                                              swapDesc.BufferDesc.Format,
+                                              swapDesc.Flags )))
+            {
+              if ( FAILED (
+                This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
+                                                            swapDesc.BufferDesc.Height,
+                                      swapDesc.BufferDesc.Format,
+                                      swapDesc.Flags )
+                          )
+                 )
+              {
+                // Fullscreen Mode Switch is -BORKED- (generally due to Flip Model)
+                //
+                //  --> Fallback to Windowed Mode
+                This->SetFullscreenState (
+                  FALSE, nullptr
+                );
+
+                if (SUCCEEDED (This->ResizeTarget  (&modeDesc)))
+                               This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
+                                                                           swapDesc.BufferDesc.Height,
+                                                     swapDesc.BufferDesc.Format,
+                                                     swapDesc.Flags );
+
+                static LONG64      lLastFrameWarned = -10000LL;
+                if (std::exchange (lLastFrameWarned, (LONG64)SK_GetFramesDrawn ()) <
+                                                     (LONG64)SK_GetFramesDrawn () - 50LL)
+                {
+                  SK_ImGui_WarningWithTitle (
+                    L"Game FAILED to Correctly Engage Fullscreen Exclusive Mode!\r\n\r\n"
+                    L"\t\t\t>>  Borderless Fullscreen Fallback Activated  <<\r\n\r\n\r\n"
+
+                    L"\tIf the game has a Borderless Fullscreen setting, use it to avoid this"
+                    L" warning.\r\n\r\n"
+
+                    L"\tFor games without Borderless Fullscreen, set 'ForceWindowed=true'"
+                    L"\r\n\r\n\r\n\r\n"
+
+                    L"\t\t* As a last resort, manually disable DXGI Flip Model in SK's INI.",
+                  //-----------------------------------------------------------------------
+                    L"Flip Model + Fullscreen Exclusive is UNSUPPORTED by this Game"
+                  );
+
+                  BringWindowToTop (swapDesc.OutputWindow);
+                }
+              }
+            }
+          }
+          InterlockedExchange (&lLock, 0);
+        }
       }
 
       return
@@ -2387,6 +2504,61 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   //
   if (! SK_DXGI_TestPresentFlags (Flags))
   {
+    HRESULT hrPresent =
+             _Present ( SyncInterval, Flags );
+
+    if ((Flags & DXGI_PRESENT_TEST) ==
+                 DXGI_PRESENT_TEST  && hrPresent != S_OK)
+    {
+      if (hrPresent == DXGI_STATUS_CLIPPED)
+      {
+        SK_LOGi1 (L" * DXGI_PRESENT_TEST returned DXGI_STATUS_CLIPPED; "
+                  L"Ignored, rendering continues!");
+      }
+
+      else if (hrPresent == DXGI_STATUS_MODE_CHANGED                 ||
+               hrPresent == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS      ||
+               hrPresent == DXGI_STATUS_OCCLUDED                     ||
+               hrPresent == DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE ||
+               hrPresent == DXGI_STATUS_NO_DESKTOP_ACCESS)
+      {
+        SK_LOGi1 (
+          L" * DXGI_PRESENT_TEST returned %hs; "
+          L"Delaying for 1 screen refresh!",
+            SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
+        );
+
+        if ( rb.active_display >= 0 &&
+             rb.active_display <= SK_RenderBackend_V2::_MAX_DISPLAYS )
+        {
+          auto& VSyncFreq =
+            rb.displays [rb.active_display].signal.timing.vsync_freq;
+
+          if (VSyncFreq.Denominator > 0UL)
+          {
+            SK_SleepEx (
+              std::clamp (                (DWORD)(     1000.0  /
+                ( static_cast <double> (VSyncFreq.Numerator  ) /
+                  static_cast <double> (VSyncFreq.Denominator) )
+                                                 ), 1UL, 25UL),
+                  TRUE );
+          }
+        }
+
+        return
+          hrPresent;
+      }
+
+      SK_LOGi1 (
+        L" * DXGI_PRESENT_TEST returned %hs; "
+        L"Ohnoes Everyone Panic!",
+            SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
+      );
+
+      return
+        hrPresent;
+    }
+
     //SK_D3D11_EndFrame ();
     //SK_D3D12_EndFrame ();
 
@@ -3845,7 +4017,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
                         DXGI_MODE_SCALING_CENTERED )
   {
     dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
-                   L"(Requested: %s, Using: %s)",
+                   L"(Requested: %hs, Using: %hs)",
                      SK_DXGI_DescribeScalingMode (
                        mode_to_match.Scaling
                      ),
@@ -3869,8 +4041,8 @@ DXGIOutput_FindClosestMatchingMode_Override (
   if (SUCCEEDED (ret))
   {
     SK_LOGi0 (
-      L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%s, Scaling=%s, "
-                                           L"Scanlines=%s",
+      L"[#]  Closest Match: %lux%lu@%.2f Hz, Format=%hs, Scaling=%hs, "
+                                           L"Scanlines=%hs",
       pClosestMatch->Width, pClosestMatch->Height,
         pClosestMatch->RefreshRate.Denominator != 0 ?
           static_cast <float> (pClosestMatch->RefreshRate.Numerator) /
@@ -3923,8 +4095,8 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
   ////  return false;
 
   // CyberEngine Tweak Workaround
-  if (desc.BufferDesc.Width == 100 && desc.BufferDesc.Height == 100 && desc.BufferDesc.RefreshRate.Numerator != 0)
-    return false;
+  //if (desc.BufferDesc.Width == 100 && desc.BufferDesc.Height == 100 && desc.BufferDesc.RefreshRate.Numerator != 0)
+  //  return false;
 
   wchar_t              wszClass [64] = { };
   RealGetWindowClassW (
@@ -3937,6 +4109,13 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
     StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (wszClass, L"dummy");
+
+  if (dummy_window)
+    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
+                 wszClass );
+  else
+    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
+                 wszClass );
 
   return
     (! dummy_window);
@@ -3958,6 +4137,13 @@ SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) 
     StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (wszClass, L"dummy");
+
+  if (dummy_window)
+    SK_LOGi0 ( L"Ignoring CreateSwapChainForHwnd using Window Class: %ws",
+                 wszClass );
+  else
+    SK_LOGi1 ( L"Typical CreateSwapChainForHwnd using Window Class: %ws",
+                 wszClass );
 
   return
     (! dummy_window);

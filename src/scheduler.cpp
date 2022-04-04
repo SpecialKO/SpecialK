@@ -29,10 +29,11 @@
 using NTSTATUS = _Return_type_success_(return >= 0) LONG;
 
 
-NtQueryTimerResolution_pfn NtQueryTimerResolution = nullptr;
-NtSetTimerResolution_pfn   NtSetTimerResolution   = nullptr;
+NtQueryTimerResolution_pfn NtQueryTimerResolution        = nullptr;
+NtSetTimerResolution_pfn   NtSetTimerResolution          = nullptr;
+NtSetTimerResolution_pfn   NtSetTimerResolution_Original = nullptr;
 
-NtDelayExecution_pfn       NtDelayExecution       = nullptr;
+NtDelayExecution_pfn       NtDelayExecution              = nullptr;
 
 
 LPVOID pfnQueryPerformanceCounter = nullptr;
@@ -1376,8 +1377,6 @@ SK_GetPerfFreq (void)
   if (     _SK_PerfFreq.QuadPart != 0)
     return _SK_PerfFreq;
 
-
-
   if (ReadAcquire (&_SK_PerfFreqInit) < 2)
   {
     RtlQueryPerformanceFrequency =
@@ -1419,28 +1418,22 @@ SK_GetPerfFreq (void)
     _SK_PerfFreq;
 }
 
-
-
-
-
-NtSetTimerResolution_pfn NtSetTimerResolution_Original = nullptr;
-
-
 NTSTATUS
 NTAPI
 NtSetTimerResolution_Detour
 (
-  IN  ULONG               DesiredResolution,
-  IN  BOOLEAN             SetResolution,
-  OUT PULONG              CurrentResolution
+  IN   ULONG    DesiredResolution,
+  IN   BOOLEAN      SetResolution,
+  OUT  PULONG   CurrentResolution
 )
 {
   NTSTATUS ret = 0;
 
   if (NtQueryTimerResolution == nullptr)
-      NtQueryTimerResolution =
+  {   NtQueryTimerResolution =
      (NtQueryTimerResolution_pfn)::SK_GetProcAddress ( L"NtDll",
      "NtQueryTimerResolution" );
+  }
 
   static Concurrency::concurrent_unordered_map
     < std::wstring, int > setters_;
@@ -1455,15 +1448,27 @@ NtSetTimerResolution_Detour
     (*pSetCount)++;
   }
 
+  bool bPrint = true;
+
+  // RTSS is going to spam us to death with this, just make note of it once
+  if (SK_GetCallerName ().find (L"RTSSHooks") != std::wstring::npos)
+  {
+                bPrint = false;
+    SK_RunOnce (bPrint = true);
+  }
+
   if (NtQueryTimerResolution != nullptr)
   {
     ULONG                    min,  max,  cur;
     NtQueryTimerResolution (&min, &max, &cur);
 
-    if (pSetCount != nullptr && (*(pSetCount) % 100) == 1)
+    if ( bPrint               &&
+         pSetCount != nullptr && (*(pSetCount) % 100) == 1 )
     {
-      dll_log->Log ( L"[  Timing  ] Kernel resolution.: %f ms",
-                       static_cast <float> (cur * 100)/1000000.0f );
+      SK_LOGs0 ( L"  Timing  ",
+                 L"Kernel resolution.: %f ms", static_cast <float>
+                                   (cur * 100)/1000000.0f
+      );
     }
 
     // TODO: Make configurable for power saving mode
@@ -1477,15 +1482,15 @@ NtSetTimerResolution_Detour
     }
   }
 
-  if ((! pSetCount) || (*(pSetCount) % 100) == 1)
+  if (bPrint && ((! pSetCount) || (*(pSetCount) % 100) == 1))
   {
-    SK_LOG0 ( ( L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
-                  (float)(DesiredResolution * 100) / 1000000.0,
-                              SetResolution ? L"Set" : L"Get",
-                                    SK_GetCallerName ().c_str (),
-                                    pSetCount != nullptr ? *pSetCount
-                                                         :  0 ),
-             L"Scheduler " );
+    SK_LOGs0 ( L"Scheduler ",
+               L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
+                (float)(DesiredResolution * 100) / 1000000.0,
+                            SetResolution ? L"Set" : L"Get",
+                                  SK_GetCallerName ().c_str (),
+                                  pSetCount != nullptr ? *pSetCount
+                                                       :  0 );
   }
 
   return ret;
@@ -1493,22 +1498,18 @@ NtSetTimerResolution_Detour
 
 void SK_Scheduler_Init (void)
 {
-  static std::once_flag the_wuncler;
+  SK_ICommandProcessor
+    *pCommandProc = nullptr;
 
-  std::call_once (the_wuncler, [&](void)
+  SK_RunOnce (
+     pCommandProc =
+       SK_Render_InitializeSharedCVars ()
+  );
+
+  if (pCommandProc != nullptr)
   {
     dTicksPerMS =
       static_cast <double> (SK_GetPerfFreq ().QuadPart) / 1000.0;
-
-    NtQueryTimerResolution =
-      reinterpret_cast <NtQueryTimerResolution_pfn> (
-        SK_GetProcAddress ( L"NtDll",
-                             "NtQueryTimerResolution" ) );
-
-    NtSetTimerResolution =
-      reinterpret_cast <NtSetTimerResolution_pfn> (
-        SK_GetProcAddress ( L"NtDll",
-                             "NtSetTimerResolution" ) );
 
     RtlQueryPerformanceFrequency =
       (QueryPerformanceCounter_pfn)
@@ -1588,12 +1589,16 @@ void SK_Scheduler_Init (void)
                                NtSetTimerResolution_Detour,
       static_cast_p2p <void> (&NtSetTimerResolution_Original) );
 
+    SK_ApplyQueuedHooks ();
+
+    NtSetTimerResolution     = NtSetTimerResolution_Original;
+    NtQueryTimerResolution   =
+      reinterpret_cast       <NtQueryTimerResolution_pfn> (
+        SK_GetProcAddress ( L"NtDll",
+                             "NtQueryTimerResolution" )   );
+
     if (0 == InterlockedCompareExchange (&__sleep_init, 1, 0))
     {
-      SK_ICommandProcessor* pCommandProc =
-        SK_GetCommandProcessor ();
-
-
       pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
               new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
 
@@ -1608,7 +1613,7 @@ void SK_Scheduler_Init (void)
                            "QueryPerformanceCounter" )
       );
 #endif
-  });
+  }
 }
 
 void

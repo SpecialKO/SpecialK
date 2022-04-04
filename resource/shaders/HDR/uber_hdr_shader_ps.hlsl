@@ -1773,7 +1773,8 @@ float4 main (PS_INPUT input) : SV_TARGET
       );
   }
 
-  input.color.x -= hdrLuminance_Min / 80.0f;
+  input.color.x -= ( hdrLuminance_Min /
+                     hdrLuminance_MaxLocal );
 
   bool bIsHDR10 = false;
 
@@ -1898,14 +1899,16 @@ float4 main (PS_INPUT input) : SV_TARGET
         );
 
   float fLuma =
-    length (hdr_color.rgb);// Luminance (hdr_color.rgb);
+    /*length (hdr_color.rgb);// */
+    Luminance (hdr_color.rgb);
 
   hdr_color.rgb *= uiToneMapper != TONEMAP_HDR10_to_scRGB ?
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
 
-  hdr_color.rgb += hdrLuminance_Min / 80.0f;
+  hdr_color.rgb += ( hdrLuminance_Min /
+                     hdrLuminance_MaxLocal );
 
   fLuma =
     Luminance (hdr_color.rgb);

@@ -699,97 +699,95 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
 void
 SK::Framerate::Init (void)
 {
-  static std::once_flag the_wuncler;
+  SK_ICommandProcessor
+    *pCommandProc = nullptr;
 
-  std::call_once (the_wuncler, [](void)
+  SK_RunOnce (
+    pCommandProc =
+      SK_Render_InitializeSharedCVars ()
+  );
+
+  if (pCommandProc == nullptr)
+    return; // Uh oh?! Something tells me we've been here before...
+
+  SK_FPU_LogPrecision ();
+
+  pCommandProc->AddVariable ( "LimitSite",
+          new SK_IVarStub <int> (&config.render.framerate.enforcement_policy));
+
+  pCommandProc->AddVariable ( "WaitForVBLANK",
+          new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
+
+
+  pCommandProc->AddVariable ( "TargetFPS",
+          new SK_IVarStub <float> (&__target_fps,    &__ProdigalFramerateSon));
+  pCommandProc->AddVariable ( "BackgroundFPS",
+          new SK_IVarStub <float> (&__target_fps_bg, &__ProdigalFramerateSon));
+
+  pCommandProc->AddVariable ( "SwapWaitRatio",
+          new SK_IVarStub <float> (&fSwapWaitRatio));
+
+  pCommandProc->AddVariable ( "SwapWaitFract",
+          new SK_IVarStub <float> (&fSwapWaitFract));
+
+  pCommandProc->AddVariable ( "Undershoot",
+          new SK_IVarStub <float> (&SK::Framerate::Limiter::undershoot_percent));
+
+  pCommandProc->AddVariable ( "LatentSync.TearLocation",
+          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
+
+  pCommandProc->AddVariable ( "LatentSync.ResyncRate",
+          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
+
+  pCommandProc->AddVariable ( "LatentSync.AdaptiveSync",
+          new SK_IVarStub <bool> (&config.render.framerate.latent_sync.adaptive_sync));
+
+  pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
+          new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
+
+  // Implicitly applies queued hooks
+  SK_Scheduler_Init ();
+
+  pCommandProc->AddVariable ( "MaxDeltaTime",
+      new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
+
+  if ( NtQueryTimerResolution != nullptr &&
+       NtSetTimerResolution   != nullptr )
   {
-    SK_FPU_LogPrecision ();
+    auto _SetTimerResolution =
+      ( NtSetTimerResolution_Original != nullptr ) ?
+        NtSetTimerResolution_Original              :
+        NtSetTimerResolution;
 
+    double& dTimerRes =
+      SK::Framerate::Limiter::timer_res_ms;
 
-    SK_ICommandProcessor* pCommandProc =
-      SK_GetCommandProcessor ();
-
-    if (pCommandProc == nullptr)
-      return; // Uh oh?!
-
-
-    pCommandProc->AddVariable ( "LimitSite",
-            new SK_IVarStub <int> (&config.render.framerate.enforcement_policy));
-
-    pCommandProc->AddVariable ( "WaitForVBLANK",
-            new SK_IVarStub <bool> (&config.render.framerate.wait_for_vblank));
-
-
-    pCommandProc->AddVariable ( "TargetFPS",
-            new SK_IVarStub <float> (&__target_fps,    &__ProdigalFramerateSon));
-    pCommandProc->AddVariable ( "BackgroundFPS",
-            new SK_IVarStub <float> (&__target_fps_bg, &__ProdigalFramerateSon));
-
-    pCommandProc->AddVariable ( "SwapWaitRatio",
-            new SK_IVarStub <float> (&fSwapWaitRatio));
-
-    pCommandProc->AddVariable ( "SwapWaitFract",
-            new SK_IVarStub <float> (&fSwapWaitFract));
-
-    pCommandProc->AddVariable ( "Undershoot",
-            new SK_IVarStub <float> (&SK::Framerate::Limiter::undershoot_percent));
-
-    pCommandProc->AddVariable ( "LatentSync.TearLocation",
-            new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
-
-    pCommandProc->AddVariable ( "LatentSync.ResyncRate",
-            new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
-
-    pCommandProc->AddVariable ( "LatentSync.AdaptiveSync",
-            new SK_IVarStub <bool> (&config.render.framerate.latent_sync.adaptive_sync));
-
-    pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
-            new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
-
-    SK_Scheduler_Init ();
-
-
-    pCommandProc->AddVariable ( "MaxDeltaTime",
-        new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
-
-    if ( NtQueryTimerResolution != nullptr &&
-         NtSetTimerResolution   != nullptr )
+    ULONG                         min,  max,  cur;
+    if ( NtQueryTimerResolution (&min, &max, &cur) ==
+           STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
     {
-      auto _SetTimerResolution =
-        ( NtSetTimerResolution_Original != nullptr ) ?
-          NtSetTimerResolution_Original              :
-          NtSetTimerResolution;
+      dTimerRes =
+        static_cast <double> (cur) / 10000.0;
 
-      double& dTimerRes =
-        SK::Framerate::Limiter::timer_res_ms;
+      SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
+                  L"  Timing  " );
 
-      ULONG                         min,  max,  cur;
-      if ( NtQueryTimerResolution (&min, &max, &cur) ==
-             STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
+      if ( STATUS_SUCCESS ==
+            _SetTimerResolution (max, TRUE, &cur) )
       {
         dTimerRes =
           static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
+        SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
                     L"  Timing  " );
-
-        if ( STATUS_SUCCESS ==
-              _SetTimerResolution (max, TRUE, &cur) )
-        {
-          dTimerRes =
-            static_cast <double> (cur) / 10000.0;
-
-          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
-                      L"  Timing  " );
-        }
       }
     }
+  }
 
-    __scanline.lock.signals.resync.Attach (
-      SK_CreateEvent (nullptr, TRUE, TRUE, nullptr));
-    __scanline.lock.signals.acquire.Attach (
-      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr));
-  });
+  __scanline.lock.signals.resync.Attach (
+    SK_CreateEvent (nullptr, TRUE, TRUE, nullptr));
+  __scanline.lock.signals.acquire.Attach (
+    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr));
 }
 
 void
@@ -1300,16 +1298,50 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
+
   if (NtSetTimerResolution_Original != nullptr)
   {
     ULONG                    min,  max,        cur;
     NtQueryTimerResolution (&min, &max,       &cur);
     if                            (max    !=   cur)
-    {NtSetTimerResolution_Original(max, TRUE, &cur);
+    {  SK_ReleaseAssert  ( STATUS_SUCCESS ==
+    NtSetTimerResolution_Original (max, TRUE, &cur)
+                         );
 
-      SK_LOGi0 (
-       L"Fixing Unexpected Deviation in Process Timer Resolution"
-      );
+     SK_LOGi0 ( L"Fixing Unexpected Deviation in "
+                L"Process Timer Resolution...    ");
+
+      auto _SetTimerResolution =
+      ( NtSetTimerResolution_Original != nullptr ) ?
+        NtSetTimerResolution_Original              :
+        NtSetTimerResolution;
+
+      double& dTimerRes =
+        SK::Framerate::Limiter::timer_res_ms;
+
+      if ( NtQueryTimerResolution (&min, &max, &cur) ==
+             STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
+      {
+        dTimerRes =
+          static_cast <double> (cur) / 10000.0;
+
+        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
+                    L"  Timing  " );
+
+        if ( STATUS_SUCCESS ==
+              _SetTimerResolution (max, TRUE, &cur) )
+        {
+          dTimerRes =
+            static_cast <double> (cur) / 10000.0;
+
+          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+                      L"  Timing  " );
+        }
+
+        else SK_ReleaseAssert (!
+          L"_SetTimerResolution (max, TRUE, &cur) != STATUS_SUCCESS"
+        );
+      }
     }
   }
 
