@@ -2919,14 +2919,11 @@ SK_RestartGame (const wchar_t* wszDLL)
 
     else if (SK_HasGlobalInjector ())
     {
-      std::wstring global_dll =
-        SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\SpecialK)";
-
-#ifdef _WIN64
-      global_dll.append (L"64.dll");
-#else
-      global_dll.append (L"32.dll");
-#endif
+      std::filesystem::path global_dll =
+        SK_FormatStringW (
+          SK_RunLHIfBitness (64, LR"(%ws/SpecialK64.dll)",
+                                 LR"(%ws/SpecialK32.dll)"),
+          SK_GetInstallPath () );
 
                 wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
       GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
@@ -3366,8 +3363,8 @@ void
 SK_WinRing0_Uninstall (void)
 {
   static std::wstring path_to_driver =
-    SK_FormatStringW ( LR"(%ws\My Mods\SpecialK\Drivers\WinRing0\)",
-                       SK_GetDocumentsDir ().c_str () );
+    SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
+                       SK_GetInstallPath () );
 
   static std::wstring kernelmode_driver_path =
     path_to_driver + std::wstring (L"WinRing0x64.sys"); // 64-bit Drivers Only
@@ -3472,8 +3469,8 @@ SK_WinRing0_Install (void)
     //return;
 
   static std::wstring path_to_driver =
-    SK_FormatStringW ( LR"(%ws\My Mods\SpecialK\Drivers\WinRing0\)",
-                       SK_GetDocumentsDir ().c_str () );
+    SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
+                       SK_GetInstallPath () );
 
   static std::wstring installer_path =
     path_to_driver + std::wstring (

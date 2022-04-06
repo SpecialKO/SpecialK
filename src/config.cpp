@@ -954,21 +954,21 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
 
   master_name        =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\master_)" + undecorated_name + L".ini";
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\master_)" + undecorated_name + L".ini";
 
   osd_config         =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\osd.ini)";
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\osd.ini)";
 
   input_config         =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\input.ini)";
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\input.ini)";
 
   platform_config =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\platform.ini)";
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\platform.ini)";
 
   std::wstring migrate_platform_config;
 
   macro_config       =
-    SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\macros.ini)";
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\macros.ini)";
 
   if (init == FALSE || dll_ini == nullptr)
   {
@@ -5129,8 +5129,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
       app_cache_view ( wszAppCache, MAX_PATH + 2 );
 
     SK_FormatStringViewW (
-      app_cache_view, LR"(%s\My Mods\SpecialK\Profiles\AppCache\%s\SpecialK.AppCache)",
-        SK_GetDocumentsDir ().c_str (),
+      app_cache_view, LR"(%ws\Profiles\AppCache\%s\SpecialK.AppCache)",
+        SK_GetInstallPath (),
           wszRelPath.data ()
                          );
 
@@ -5210,8 +5210,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
                       app_cache_view ( wszAppCache, MAX_PATH + 2 );
 
                     SK_FormatStringViewW (
-                      app_cache_view, LR"(%s\My Mods\SpecialK\Profiles\AppCache\#EpicApps\%hs\SpecialK.AppCache)",
-                        SK_GetDocumentsDir ().c_str (), szEpicApp
+                      app_cache_view, LR"(%ws\Profiles\AppCache\#EpicApps\%hs\SpecialK.AppCache)",
+                                         SK_GetInstallPath (), szEpicApp
                                          );
 
                     // It may be necessary to write the INI immediately after creating it,

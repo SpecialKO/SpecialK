@@ -2395,10 +2395,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
             This->GetFullscreenState (&bFullscreen, nullptr);
 
             DXGI_SWAP_CHAIN_DESC swapDesc = { };
-            DXGI_MODE_DESC       modeDesc = { };
             This->GetDesc      (&swapDesc);
-                                 modeDesc.Format = swapDesc.BufferDesc.Format;
-
+            DXGI_MODE_DESC       modeDesc =
+                     { .Width  = swapDesc.BufferDesc.Width,
+                       .Height = swapDesc.BufferDesc.Height,
+                       .Format = swapDesc.BufferDesc.Format };
             if ( FAILED (
               This->ResizeBuffers ( swapDesc.BufferCount,
                                     swapDesc.BufferDesc.Width,
@@ -2411,10 +2412,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
               _d3d11_rbk->release (This);
               _d3d12_rbk->release (This);
 
-              SK_GetCurrentRenderBackend ().releaseOwnedResources ();
-
-              modeDesc.Width  = swapDesc.BufferDesc.Width;
-              modeDesc.Height = swapDesc.BufferDesc.Height;
+            //SK_GetCurrentRenderBackend ().releaseOwnedResources ();
 
               This->ResizeTarget (&modeDesc);
 
@@ -2440,20 +2438,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                 if (std::exchange (lLastFrameWarned, (LONG64)SK_GetFramesDrawn ()) <
                                                      (LONG64)SK_GetFramesDrawn () - 50LL)
                 {
-                  SK_ImGui_WarningWithTitle (
-                    L"Game FAILED to Correctly Engage Fullscreen Exclusive Mode!\r\n\r\n"
-                    L"\t\t\t>>  Borderless Fullscreen Fallback Activated  <<\r\n\r\n\r\n"
-
-                    L"\tIf the game has a Borderless Fullscreen setting, use it to avoid this"
-                    L" warning.\r\n\r\n"
-
-                    L"\tFor games without Borderless Fullscreen, set 'ForceWindowed=true'"
-                    L"\r\n\r\n\r\n\r\n"
-
-                    L"\t\t* As a last resort, manually disable DXGI Flip Model in SK's INI.",
-                  //-----------------------------------------------------------------------
-                    L"Flip Model + Fullscreen Exclusive is UNSUPPORTED by this Game"
-                  );
+                  extern void SK_ImGui_ReportModeSwitchFailure (void);
+                              SK_ImGui_ReportModeSwitchFailure (    );
                 }
               }
             }
@@ -4273,10 +4259,10 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
   BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
-  if (config.render.dxgi.skip_mode_changes)
+  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed)
   {
     // Does not work correctly when recycling swapchains
-    if (! bRecycledSwapChains)
+    if ((! bRecycledSwapChains) || config.display.force_windowed)
     {
       SK_ComPtr <IDXGIOutput>                                            pOutput;
       BOOL                                      _OriginalFullscreen;

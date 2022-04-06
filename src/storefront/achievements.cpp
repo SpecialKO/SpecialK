@@ -148,8 +148,8 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
                  wszFileName );
 
     auto sound_file =
-      std::filesystem::path (SK_GetDocumentsDir ()) /
-           LR"(My Mods\SpecialK\Assets\Shared\Sounds\)";
+      std::filesystem::path (SK_GetInstallPath ()) /
+                        LR"(Assets\Shared\Sounds\)";
 
     if (psn)
       sound_file /= L"psn_trophy.wav";

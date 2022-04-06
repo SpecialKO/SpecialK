@@ -156,8 +156,7 @@ SK_WinRing0_Unpack (void)
 
     static std::wstring path_to_driver =
       SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
-          std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                       );
+                         SK_GetInstallPath () );
     
     wcsncpy_s ( wszDestination,           MAX_PATH,
                 path_to_driver.c_str (), _TRUNCATE );
@@ -243,8 +242,7 @@ SK_WinRing0_Unpack (void)
 
       static std::wstring path_to_driver =
         SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\)",
-            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                         );
+                           SK_GetInstallPath () );
 
       wcsncpy_s ( wszDestination,          MAX_PATH,
                   path_to_driver.c_str (), _TRUNCATE );
@@ -474,8 +472,8 @@ SK_WR0_Init (void)
   }
 
   static std::wstring path_to_driver =
-    SK_FormatStringW ( LR"(%ws\My Mods\SpecialK\Drivers\WinRing0\%s)",
-                       SK_GetDocumentsDir ().c_str (),
+    SK_FormatStringW ( LR"(%ws\Drivers\WinRing0\%s)",
+                       SK_GetInstallPath (),
       SK_RunLHIfBitness ( 64, L"WinRing0x64.dll",
                               L"WinRing0.dll" )
     );

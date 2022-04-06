@@ -801,10 +801,9 @@ SK_Input_PreHookScePad (void)
   if (! config.input.gamepad.hook_scepad)
     return;
 
-  static std::wstring path_to_driver =
-        SK_FormatStringW ( LR"(%ws\Drivers\PlayStation\libScePad_sk64.dll)",
-            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
-                         );
+  static std::filesystem::path path_to_driver =
+    std::filesystem::path (SK_GetInstallPath ()) /
+     LR"(Drivers\PlayStation\libScePad_sk64.dll)";
 
   if (! PathFileExistsW (path_to_driver.c_str ()))
   {SK_CreateDirectories (path_to_driver.c_str ());}

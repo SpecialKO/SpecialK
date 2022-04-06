@@ -428,7 +428,8 @@ SK_ImGui_ProcessWarnings (void)
   }
 }
 
-static bool orig_nav_state = false;
+static bool orig_nav_state           = false;
+static bool dxgi_mode_switch_failure = false;
 
 void
 SK_ImGui_ConfirmExit (void)
@@ -453,6 +454,12 @@ SK_ImGui_ConfirmExit (void)
           "Confirm Forced Software Restart" :
           "Confirm Forced Software Termination" );
   }
+}
+
+void
+SK_ImGui_ReportModeSwitchFailure (void)
+{
+  dxgi_mode_switch_failure = true;
 }
 
 bool  SK_ImGui_UnconfirmedDisplayChanges = false;
@@ -5956,6 +5963,139 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::EndPopup       ();
   }
+
+
+
+  if (std::exchange (dxgi_mode_switch_failure, false))
+  {
+    SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
+    ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f),
+                                            ImVec2 ( 0.925f * io.DisplaySize.x,
+                                                     0.925f * io.DisplaySize.y )
+                                        );
+
+    if (! ImGui::IsPopupOpen ("Fullscreen / Windowed Display Mode Switch Failure"))
+    {
+      SK_ImGui_WantExit = false;
+      orig_nav_state    = nav_usable;
+
+      ImGui::OpenPopup ("Fullscreen / Windowed Display Mode Switch Failure");
+    }
+  }
+
+  if ( ImGui::BeginPopupModal (
+         "Fullscreen / Windowed Display Mode Switch Failure",
+           nullptr,
+             ImGuiWindowFlags_AlwaysAutoResize |
+             ImGuiWindowFlags_NoScrollbar      |
+             ImGuiWindowFlags_NoScrollWithMouse )
+     )
+  {
+    static bool
+        shown_once = false;
+    if (shown_once) ImGui::CloseCurrentPopup ();
+
+    else
+    {
+      auto _ClosePopup = [](void)
+      {
+        shown_once           = true;
+        SK_ImGui_WantExit    = false;
+        SK_ImGui_WantRestart = false;
+        SK_ReShade_Visible   = false;
+        nav_usable           = orig_nav_state;
+        ImGui::CloseCurrentPopup ();
+      };
+
+      nav_usable = true;
+
+      static const char* szAction      = " Reconfigure? ";
+      static const char* szDescription =
+        "\n         Flip Model Fullscreen Mode Switch Failed      \n\n";
+
+      ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDescription);
+      ImGui::Separator   ();
+      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),         szAction);
+
+      ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+
+      if (ImGui::Button  ("Force Windowed"))
+      {
+        config.display.force_windowed   =  true;
+        config.display.force_fullscreen = false;
+
+        _ClosePopup ();
+      } if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Safest Option");
+          ImGui::Spacing      ();
+          ImGui::SameLine     ();
+          ImGui::Text         ("Prefer SK's Window Mode Optimizations except for...");
+          ImGui::Separator    ();
+          ImGui::Text         ("Scenarios not to Force Windowed Mode:");
+          ImGui::BulletText   ("Desktop and Game run at different Resolutions");
+          ImGui::BulletText   ("Desktop and Game run at different Refresh Rates");
+          ImGui::BulletText   ("Game is not giving you Hardware: Independent Flip");
+          ImGui::EndTooltip   ();
+        }
+
+      if (ImGui::IsWindowAppearing ())
+      {
+        ImGui::GetIO ().MousePos    = ImGui::GetCursorScreenPos ();
+        ImGui::GetIO ().MousePos.y += ImGui::GetTextLineHeight  () * 2.0f;
+        ImGui::GetIO ().WantSetMousePos = true;
+
+        ImGui::GetIO ().NavActive  = true;
+        ImGui::GetIO ().NavVisible = true;
+
+        ImGui::SetNavID (
+          ImGui::GetItemID (), 0
+        );
+
+        GImGui->NavDisableHighlight  = false;
+        GImGui->NavDisableMouseHover =  true;
+      }
+
+      //ImGui::PushItemWidth (ImGui::GetWindowContentRegionWidth ()*0.33f);
+      //ImGui::SameLine (); ImGui::SameLine (); ImGui::PopItemWidth ();
+
+      ImGui::SameLine    ();
+
+      if (ImGui::Button  ("Disable Flip Model"))
+      {
+        config.render.framerate.flip_discard = false;
+
+        _ClosePopup ();
+      } if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Not Recommended");
+          ImGui::Spacing      ();
+          ImGui::SameLine     ();
+          ImGui::Text         ("Task switching performance will suffer, HDR will not work");
+          ImGui::Separator    ();
+          ImGui::Text         ("Last-resort, if you really -must- have fullscreen exclusive");
+          ImGui::EndTooltip   ();
+        }
+
+      ImGui::SameLine    ();
+
+      if (ImGui::Button  ("No"))
+      {
+        _ClosePopup ();
+      } if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "Do nothing, stop showing this message (until the next game launch) "
+            "and hope for the best."
+          );
+        }
+    }
+
+    ImGui::EndPopup       ();
+  }
+
 
   if (io.WantSetMousePos && SK_IsGameWindowActive ())
   {

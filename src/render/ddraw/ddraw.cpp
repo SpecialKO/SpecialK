@@ -404,7 +404,7 @@ SK::DDraw::Startup (void)
   wchar_t wszImmediateMode [MAX_PATH + 2] = { };
 
   swprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-               std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
+                               SK_GetInstallPath () );
 
 
   imports->dgvoodoo_d3dimm               = new import_s ();
@@ -417,8 +417,8 @@ SK::DDraw::Startup (void)
                                    ).c_str ()
                                  );
 
-  swprintf ( wszImmediateMode, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
-                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str () );
+  swprintf ( wszImmediateMode, LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
+                               SK_GetInstallPath () );
 
 
   imports->dgvoodoo_d3d8               = new import_s ();

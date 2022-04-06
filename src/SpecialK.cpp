@@ -878,9 +878,9 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
   bool has_dgvoodoo =
    ( GetFileAttributesW (
        SK_FormatStringW ( LR"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-           std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" )
-                         .c_str ()
-                        ).c_str () ) != INVALID_FILE_ATTRIBUTES );
+                            SK_GetInstallPath ()
+                        ).c_str ()
+                        ) != INVALID_FILE_ATTRIBUTES );
 #endif
 
   const wchar_t* wszSelfTitledDLL =

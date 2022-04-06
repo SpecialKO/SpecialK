@@ -171,7 +171,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
               nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
         SK_D3D12_SetDebugName (       pHeap->Vb.p,
           L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
@@ -207,7 +207,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
               nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
         SK_D3D12_SetDebugName (       pHeap->Ib.p,
           L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
@@ -523,7 +523,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommittedResource (
         &props, D3D12_HEAP_FLAG_NONE,
-        &desc,  D3D12_RESOURCE_STATE_COMMON,
+        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr, IID_PPV_ARGS (&uploadBuffer.p))
     ); SK_D3D12_SetDebugName (  uploadBuffer.p,
           L"ImGui D3D12 Texture Upload Buffer" );

@@ -163,8 +163,9 @@ extern "C" {
       std::wstring __stdcall SK_GetDLLName      (void);
 
 
-void           __stdcall SK_SetConfigPath (const wchar_t* path);
-const wchar_t* __stdcall SK_GetConfigPath (void);
+void           __stdcall SK_SetConfigPath  (const wchar_t* path);
+const wchar_t* __stdcall SK_GetConfigPath  (void);
+const wchar_t* __stdcall SK_GetInstallPath (void);
 
 const wchar_t* __stdcall SK_GetBackend        (void);
 void           __cdecl   SK_SetDLLRole        (DLL_ROLE role);

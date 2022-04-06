@@ -142,12 +142,8 @@ SK_ImGui_LoadFonts (void)
     //LoadFont (config.imgui.font.korean.file,    config.imgui.font.korean.size,   io.Fonts->GetGlyphRangesKorean                (), &font_cfg);
     LoadFont (config.imgui.font.cyrillic.file,  config.imgui.font.cyrillic.size, io.Fonts->GetGlyphRangesCyrillic                (), &font_cfg);
 
-    sk_fs::path fontDir
-          (SK_GetDocumentsDir ());
-
-    fontDir /= L"My Mods"  ;
-    fontDir /= L"SpecialK" ;
-    fontDir /= L"Fonts"    ;
+    sk_fs::path fontDir =
+      sk_fs::path (SK_GetInstallPath ()) / L"Fonts";
 
     std::error_code ec = { };
 

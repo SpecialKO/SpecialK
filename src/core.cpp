@@ -136,6 +136,21 @@ SK_GetRootPath (void)
 }
 
 
+wchar_t*
+SKX_GetInstallPath (void)
+{
+  static wchar_t SK_InstallPath [MAX_PATH + 2] = { };
+  return         SK_InstallPath;
+}
+
+const wchar_t*
+__stdcall
+SK_GetInstallPath (void)
+{
+  return SKX_GetInstallPath ();
+}
+
+
 
 wchar_t*
 SKX_GetNaiveConfigPath (void)
@@ -422,8 +437,8 @@ void SK_FetchBuiltinSounds (void)
 {
   wchar_t           wszArchive  [MAX_PATH + 2] = { };
   static const auto wszDestination =
-      std::filesystem::path (SK_GetDocumentsDir ()) /
-           LR"(My Mods\SpecialK\Assets\Shared\Sounds\)";
+      std::filesystem::path (SK_GetInstallPath ()) /
+                        LR"(Assets\Shared\Sounds\)";
 
   static const std::filesystem::path
     predefined_sounds [] =
@@ -1256,8 +1271,7 @@ SK_HasGlobalInjector (void)
   {
     wchar_t     wszBasePath [MAX_PATH + 2] = { };
     wcsncpy_s ( wszBasePath, MAX_PATH,
-                  std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\)" ).c_str (),
-                    _TRUNCATE );
+          SK_GetInstallPath (), _TRUNCATE );
 
     lstrcatW (wszBasePath, SK_RunLHIfBitness ( 64, L"SpecialK64.dll",
                                                    L"SpecialK32.dll" ));
@@ -1292,7 +1306,7 @@ SK_GetDebugSymbolPath (void)
     }
 
 
-    std::wstring symbol_file =
+    std::filesystem::path symbol_file =
       SK_GetModuleFullName (skModuleRegistry::Self ());
 
     wchar_t wszSelfName    [MAX_PATH + 2] = { };
@@ -1341,19 +1355,15 @@ SK_GetDebugSymbolPath (void)
       }
 
       std::wstring dir (wszCurrentPath); dir += L";";
-                   dir.append (SK_GetDocumentsDir ());
-                   dir.append (LR"(\My Mods\SpecialK\)");
+                   dir.append (SK_GetInstallPath ());
 
       wcsncpy_s ( wszDbgSymbols,  MAX_PATH * 3,
                     dir.c_str (), _TRUNCATE );
 
-      symbol_file = SK_GetDocumentsDir ();
-      symbol_file.append (LR"(\My Mods\SpecialK\SpecialK)");
-      symbol_file.append (
-        SK_RunLHIfBitness ( 64, L"64.pdb",
-                                L"32.pdb"
-                          )
-                         );
+      symbol_file  = SK_GetInstallPath ();
+      symbol_file /=
+        SK_RunLHIfBitness ( 64, L"SpecialK64.pdb",
+                                L"SpecialK32.pdb" );
     }
 
     else
@@ -1428,6 +1438,34 @@ SK_EstablishRootPath (void)
     wszConfigPath, sizeof (wchar_t) * (MAX_PATH + 2)
   );
 
+  if (SK_GetModuleName (SK_GetDLL ())._Equal (
+    SK_RunLHIfBitness (64, L"SpecialK64.dll",
+                           L"SpecialK32.dll")))
+  {
+    try {
+      std::filesystem::path path =
+        SK_GetModuleFullName (SK_GetDLL ());
+
+      wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
+                    path.parent_path ().wstring ().
+                                          c_str (), _TRUNCATE );
+    }
+
+    catch (const std::exception& e)
+    {
+      std::ignore = e;
+#ifdef DEBUG
+      _debugbreak ();
+#endif
+    }
+  }
+
+  if (*SK_GetInstallPath () == L'\0')
+  {
+    swprintf ( SKX_GetInstallPath (), LR"(%s\My Mods\SpecialK)",
+               SK_GetDocumentsDir ().c_str () );
+  }
+
   // Store config profiles in a centralized location rather than
   //   relative to the game's executable
   //
@@ -1437,8 +1475,8 @@ SK_EstablishRootPath (void)
   {
     if (! SK_IsSuperSpecialK ())
     {
-      swprintf ( SKX_GetRootPath (), LR"(%s\My Mods\SpecialK)",
-                 SK_GetDocumentsDir ().c_str () );
+      wcsncpy_s (SKX_GetRootPath    (),  MAX_PATH,
+                 SKX_GetInstallPath (), _TRUNCATE);
     }
 
     else
@@ -1449,7 +1487,7 @@ SK_EstablishRootPath (void)
     wcsncpy_s ( wszConfigPath,      MAX_PATH,
                 SKX_GetRootPath (), _TRUNCATE  );
     lstrcatW  ( wszConfigPath, LR"(\Profiles\)");
-    lstrcatW  ( wszConfigPath, SK_GetHostApp  ());
+    lstrcatW  ( wszConfigPath, SK_GetHostApp ());
   }
 
 
@@ -1691,10 +1729,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     dll_log->LogEx (false, L"failed!\n");
 
-    std::wstring default_global_name (
-      ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\default_)" )
-                              + config_name
-    );
+    std::filesystem::path default_global_name (
+      SK_FormatStringW (
+        LR"(%ws\Global\default_%ws)",
+          SK_GetInstallPath (), config_name ) );
 
     std::wstring default_name (
       SK_FormatStringW ( L"%s%s%s",
@@ -1703,8 +1741,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                                config_name )
     );
 
-    std::wstring default_global_ini (default_global_name + L".ini");
-    std::wstring default_ini        (default_name        + L".ini");
+    std::wstring default_global_ini (default_global_name.wstring () + L".ini");
+    std::wstring default_ini        (default_name                   + L".ini");
 
     if (GetFileAttributesW (default_global_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
     {
@@ -1765,13 +1803,13 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
   {
     swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
-                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+                              SK_GetInstallPath ());
   }
 
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
   {
     swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\ddraw.dll)",
-                std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+                              SK_GetInstallPath ());
   }
 #endif
 

@@ -143,45 +143,45 @@ SK::ControlPanel::PlugIns::Draw (void)
 
 #ifdef _WIN64
     wcscat   (imp_name_reshade, L"Import.ReShade64");
-    swprintf (imp_path_reshade, LR"(%s\PlugIns\ThirdParty\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+    swprintf (imp_path_reshade, LR"(%ws\PlugIns\ThirdParty\ReShade\ReShade64.dll)",
+                                SK_GetInstallPath ());
 
     wcscat   (imp_name_reshade_ex, L"Import.ReShade64_Custom");
 
     if (SK_IsInjected ())
     {
-      swprintf (imp_path_reshade_ex, LR"(%s\PlugIns\Unofficial\ReShade\ReShade64.dll)", std::wstring (SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)").c_str ());
+      swprintf (imp_path_reshade_ex, LR"(%ws\PlugIns\Unofficial\ReShade\ReShade64.dll)",
+                                     SK_GetInstallPath ());
     }
 
     else
     {
-      const wchar_t* wszShimFormat =
-        LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
+      static constexpr wchar_t* wszShimFormat =
+        LR"(%ws\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
-      swprintf ( imp_path_reshade_ex, wszShimFormat,
-                   std::wstring (SK_GetDocumentsDir        (                 ) +
-                                             LR"(\My Mods\SpecialK)").c_str (  ),
-                                 SK_GetBitness             (                 ) );
+      swprintf (imp_path_reshade_ex,  wszShimFormat,
+                SK_GetInstallPath (), SK_GetBitness ());
     }
 #else
     wcscat   (imp_name_reshade, L"Import.ReShade32");
-    swprintf (imp_path_reshade, L"%s\\PlugIns\\ThirdParty\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+    swprintf (imp_path_reshade, LR"(%ws\PlugIns\ThirdParty\ReShade\ReShade32.dll)",
+                                SK_GetInstallPath ());
 
     wcscat   (imp_name_reshade_ex, L"Import.ReShade32_Custom");
 
     if (SK_IsInjected ())
     {
-      swprintf (imp_path_reshade_ex, L"%s\\PlugIns\\Unofficial\\ReShade\\ReShade32.dll", std::wstring (SK_GetDocumentsDir () + L"\\My Mods\\SpecialK").c_str ());
+      swprintf (imp_path_reshade_ex, LR"(%ws\PlugIns\Unofficial\ReShade\ReShade32.dll)",
+                                     SK_GetInstallPath ());
     }
 
     else
     {
-      const wchar_t* wszShimFormat =
+      static constexpr wchar_t* wszShimFormat =
         LR"(%s\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
-      swprintf ( imp_path_reshade_ex, wszShimFormat,
-                   std::wstring (SK_GetDocumentsDir        (                ) +
-                                             L"\\My Mods\\SpecialK").c_str (  ),
-                                 SK_GetBitness             (                ) );
+      swprintf (imp_path_reshade_ex,  wszShimFormat,
+                SK_GetInstallPath (), SK_GetBitness ());
     }
 #endif
     bool reshade_official   = dll_ini->contains_section (imp_name_reshade);

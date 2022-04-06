@@ -319,7 +319,7 @@ SK_Bypass_CRT (LPVOID)
       return
         GetFileAttributesA (
           SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                              std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str ()
+                              SK_GetInstallPath ()
                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
     };
@@ -560,8 +560,8 @@ SK_Bypass_CRT (LPVOID)
             SK_Inject_SwitchToGlobalInjector ();
 
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -597,8 +597,8 @@ SK_Bypass_CRT (LPVOID)
             SK_Inject_SwitchToGlobalInjector ();
 
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -625,8 +625,8 @@ SK_Bypass_CRT (LPVOID)
           else
           {
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -654,8 +654,8 @@ SK_Bypass_CRT (LPVOID)
           {
             SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -683,8 +683,8 @@ SK_Bypass_CRT (LPVOID)
           {
             SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -712,8 +712,8 @@ SK_Bypass_CRT (LPVOID)
           {
             SK_Inject_SwitchToGlobalInjector ();
             temp_dll = SK_UTF8ToWideChar (
-                         SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                           SK_GetDocumentsDir ().c_str (),
+                         SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                           SK_GetInstallPath (),
 #ifdef _M_IX86
                              32
 #else /* _M_AMD64 */
@@ -749,8 +749,8 @@ SK_Bypass_CRT (LPVOID)
             {
               SK_Inject_SwitchToGlobalInjector ();
               temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                             SK_GetDocumentsDir ().c_str (),
+                           SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                             SK_GetInstallPath (),
 #ifdef _M_IX86
                                32
 #else /* _M_AMD64 */
@@ -778,8 +778,8 @@ SK_Bypass_CRT (LPVOID)
               SK_Inject_SwitchToGlobalInjector ();
 
               temp_dll = SK_UTF8ToWideChar (
-                           SK_FormatString ( R"(%ws\My Mods\SpecialK\SpecialK%lu.dll)",
-                             SK_GetDocumentsDir ().c_str (),
+                           SK_FormatString ( R"(%ws\SpecialK%lu.dll)",
+                             SK_GetInstallPath (),
 #ifdef _M_IX86
                                32
 #else /* _M_AMD64 */

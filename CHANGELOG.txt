@@ -1,4 +1,22 @@
-﻿22.4.6-NOCEGUI
+﻿22.4.7-NOCEGUI
+==============
+ *** Portable Global Injection ***
+  
+   Global Injection supports installing to arbitrary paths now, profiles and all
+     supporting assets will be loaded relative to the directory that SpecialK32.dll
+       and SpecialK64.dll are in.
+
+    You can keep entirely different installs of Special K if that's your thing, just
+      put SKIF and Special K's DLLs in their own directory :)
+
+
+22.4.6.1-NOCEGUI
+================
+ + Fixed resource management crash in Death Stranding Director's Cut (D3D12)
+ + Added an options dialog to turn on 'Force Windowed' mode or disable Flip Model
+     in games that fail to transition into / out of fullscreen exclusive (D3D11)
+
+22.4.6-NOCEGUI
 ==============
  + Improved reliability of Fullscreen Exclusive workaround in D3D11.
 

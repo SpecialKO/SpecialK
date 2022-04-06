@@ -41,8 +41,8 @@ void SK_Screenshot_PlaySound (void)
   if (config.screenshots.play_sound)
   {
     static const auto sound_file =
-      std::filesystem::path (SK_GetDocumentsDir ()) /
-           LR"(My Mods\SpecialK\Assets\Shared\Sounds\screenshot.wav)";
+      std::filesystem::path (SK_GetInstallPath ()) /
+           LR"(Assets\Shared\Sounds\screenshot.wav)";
 
     std::error_code                          ec;
     if (std::filesystem::exists (sound_file, ec))

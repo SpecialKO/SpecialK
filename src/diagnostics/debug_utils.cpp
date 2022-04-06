@@ -89,11 +89,9 @@ SK_Debug_LoadHelper (void)
   //     the system DLL.
   if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
-    static std::wstring path_to_driver =
-      SK_FormatStringW ( LR"(%ws\Drivers\Dbghelp\)",
-                        std::wstring ( SK_GetDocumentsDir () +
-                                       LR"(\My Mods\SpecialK)" ).c_str ()
-      );
+    static std::filesystem::path path_to_driver =
+      std::filesystem::path (SK_GetInstallPath ()) /
+                             LR"(Drivers\Dbghelp\)";
 
     wchar_t wszSystemDbgHelp   [MAX_PATH + 2] = { };
     wchar_t wszIsolatedDbgHelp [MAX_PATH + 2] = { };

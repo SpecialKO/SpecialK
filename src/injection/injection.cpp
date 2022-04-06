@@ -2393,10 +2393,8 @@ SK_Inject_InitWhiteAndBlacklists (void)
     SK_AutoCOMInit _require_COM;
 
     static
-      std::wstring global_cfg_dir =
-        std::wstring (
-          SK_GetDocumentsDir () + LR"(\My Mods\SpecialK\Global\)"
-        );
+      std::filesystem::path global_cfg_dir =
+        std::filesystem::path (SK_GetInstallPath ()) / L"Global\\";
 
     SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
 

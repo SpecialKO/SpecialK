@@ -2496,11 +2496,10 @@ SK_Input_PreHookXInput (void)
     L"XInput_SK32.dll";
 #endif
 
-  static std::wstring path_to_driver =
-        SK_FormatStringW ( LR"(%ws\Drivers\XInput\%ws)",
-            std::wstring ( SK_GetDocumentsDir () + LR"(\My Mods\SpecialK)" ).c_str (),
-                            xinput_ctx.XInput_SK.wszModuleName
-                         );
+  static std::filesystem::path path_to_driver =
+        (std::filesystem::path (SK_GetInstallPath ()) /
+                                LR"(Drivers\XInput)") /
+                                 xinput_ctx.XInput_SK.wszModuleName;
 
   std::filesystem::path
     path_to_highest_xinput_ver = L"";

@@ -176,10 +176,10 @@ SK_UnpackTobiiStreamEngine (void)
   wchar_t       wszArchive     [MAX_PATH + 2] = { };
   wchar_t       wszDestination [MAX_PATH + 2] = { };
 
-  wcsncpy_s   ( wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str (),
+  wcsncpy_s   ( wszDestination, MAX_PATH, SK_GetInstallPath (),
                                _TRUNCATE );
   PathAppendW ( wszDestination,
-    LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine\)" );
+    LR"(PlugIns\ThirdParty\StreamEngine\)" );
 
   if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
     SK_CreateDirectories (wszDestination);
@@ -259,8 +259,8 @@ SK_UnpackTobiiStreamEngine (void)
       wchar_t      wszArchive     [MAX_PATH + 2] = { };
       wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-      wcscpy_s    (wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str ());
-      PathAppendW (wszDestination, LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine\)");
+      wcscpy_s    (wszDestination, MAX_PATH, SK_GetInstallPath ().c_str ());
+      PathAppendW (wszDestination, LR"(PlugIns\ThirdParty\StreamEngine\)");
 
       if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
         SK_CreateDirectories (wszDestination);
@@ -758,8 +758,8 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
 
   wchar_t      wszDestination [MAX_PATH + 2] = { };
 
-  wcscpy_s    (wszDestination, MAX_PATH, SK_GetDocumentsDir ().c_str ());
-  PathAppendW (wszDestination, LR"(My Mods\SpecialK\PlugIns\ThirdParty\StreamEngine)");
+  wcscpy_s    (wszDestination, MAX_PATH, SK_GetInstallPath ());
+  PathAppendW (wszDestination, LR"(PlugIns\ThirdParty\StreamEngine)");
   PathAppendW (wszDestination, LIBRARY_NAME);
 
   static HMODULE hModTobii;

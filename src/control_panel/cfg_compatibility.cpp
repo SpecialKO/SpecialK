@@ -159,17 +159,13 @@ SK::ControlPanel::Compatibility::Draw (void)
       static bool has_dgvoodoo2 =
         GetFileAttributesA (
           SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo\d3dimm.dll)",
-                              std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
+                              SK_GetInstallPath ()
                           ).c_str ()
         ) != INVALID_FILE_ATTRIBUTES;
 
-      // Leaks memory, but who cares? :P
-      static const char* dgvoodoo2_install_path =
-        _strdup (
+      static std::string dgvoodoo2_install_path =
           SK_FormatString ( R"(%ws\PlugIns\ThirdParty\dgVoodoo)",
-                  std::wstring ( SK_GetDocumentsDir () + L"\\My Mods\\SpecialK" ).c_str ()
-              ).c_str ()
-        );
+                              SK_GetInstallPath () );
 
       auto Tooltip_dgVoodoo2 = []
       {
@@ -180,7 +176,7 @@ SK::ControlPanel::Compatibility::Draw (void)
             ImGui::SameLine    ();
             ImGui::TextColored (ImColor (255, 255, 0),   "dgVoodoo2");
             ImGui::Separator   ();
-            ImGui::BulletText  ("Please install this to: '%s'", dgvoodoo2_install_path);
+            ImGui::BulletText  ("Please install this to: '%s'", dgvoodoo2_install_path.c_str ());
           ImGui::EndTooltip   ();
         }
       };

@@ -39,7 +39,9 @@ SK_SYS_GetVersionPath (void)
 
   else
   {
-    return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\Version\\");
+    return
+      std::filesystem::path (SK_GetInstallPath ()) / LR"(Version\)";
+    //return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\Version\\");
   }
 }
 
@@ -53,7 +55,8 @@ SK_SYS_GetInstallPath (void)
 
   else
   {
-    return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
+    return SK_GetInstallPath ();
+    //return SK_GetDocumentsDir () + std::wstring (L"\\My Mods\\SpecialK\\");
   }
 }
 

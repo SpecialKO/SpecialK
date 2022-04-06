@@ -6018,8 +6018,8 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
 
         else
         {
-          PathAppendW (wszDLLPath,      SK_GetDocumentsDir ().c_str ()   );
-          PathAppendW (wszDLLPath, LR"(%s\My Mods\SpecialK\SpecialK.dll)");
+          PathAppendW (wszDLLPath, SK_GetInstallPath ());
+          PathAppendW (wszDLLPath, LR"(\SpecialK.dll)");
         }
 
         if (PathRemoveFileSpec (wszDLLPath)            )
