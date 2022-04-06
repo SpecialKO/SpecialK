@@ -1,4 +1,12 @@
-﻿22.4.4-NOCEGUI
+﻿22.4.6-NOCEGUI
+==============
+ + Improved reliability of Fullscreen Exclusive workaround in D3D11.
+
+     => Alt + Enter generally doesn't work for games that have had
+          Flip Model forced on, but mode changes requested from the
+            game's control panel should work.
+
+22.4.4-NOCEGUI
 ==============
  + Added recovery mechanism for games that fail to correctly engage
      Fullscreen Exclusive while DXGI Flip Model is enabled (D3D11)

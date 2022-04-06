@@ -712,11 +712,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       constant_buffer->discord_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.discord.overlay_luminance :
                                                                         config.discord.overlay_luminance );
       constant_buffer->discord_luminance [1] = 2.2f;
-
-      constant_buffer->steam_luminance   [0] = ( bEOTF_is_PQ ? -80.0f * config.platform.overlay_hdr_luminance :
-                                                                        config.platform.overlay_hdr_luminance );
-      constant_buffer->steam_luminance   [1] = 2.2f;//( bEOTF_is_PQ ? 1.0f : (rb.ui_srgb ? 2.2f :
-                                                    //                                     1.0f));
     }
 
     pDevCtx->Unmap (_P->pVertexConstantBuffer, 0);
@@ -1555,14 +1550,20 @@ SK_ImGui_ResetExternal (void)
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
+//#define RESET_FONT
+#define RESET_VTX_IDX_BUFFERS
+//#define RESET_SHADERS
+
   SK_ImGui_ResetExternal ();
 
   auto _CleanupBackbuffer = [&](UINT index) -> void
   {
     auto* _P = &_Frame [index];
 
+#ifdef RESET_VTX_IDX_BUFFERS
     _P->VertexBufferSize = 5000;
     _P->IndexBufferSize  = 10000;
+#endif
 
     auto _ReleaseAndCountRefs = [](auto** ppUnknown) -> ULONG
     {
@@ -1581,12 +1582,18 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
       return 0;
     };
 
+#ifdef RESET_FONT
     if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
     if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
     if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
+#endif
+
+#ifdef RESET_VTX_IDX_BUFFERS
     if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
     if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
+#endif
     
+#ifdef RESET_SHADERS
     if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
     if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
     if (_P->pRasterizerState)        { _ReleaseAndCountRefs (&_P->pRasterizerState);        assert (refs == 0); }
@@ -1602,6 +1609,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
     if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
     if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
+#endif
 
     if (_P->pRenderTargetView.p)
         _P->pRenderTargetView.Release ();

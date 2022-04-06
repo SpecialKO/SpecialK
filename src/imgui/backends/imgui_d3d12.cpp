@@ -171,7 +171,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
               nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
         SK_D3D12_SetDebugName (       pHeap->Vb.p,
           L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
@@ -207,7 +207,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
               nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
         SK_D3D12_SetDebugName (       pHeap->Ib.p,
           L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
@@ -523,7 +523,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommittedResource (
         &props, D3D12_HEAP_FLAG_NONE,
-        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+        &desc,  D3D12_RESOURCE_STATE_COMMON,
         nullptr, IID_PPV_ARGS (&uploadBuffer.p))
     ); SK_D3D12_SetDebugName (  uploadBuffer.p,
           L"ImGui D3D12 Texture Upload Buffer" );
@@ -1304,6 +1304,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       if (pSwap)
           pSwap->GetDesc (&swapDesc);
 
+      //
+      // SwapChain Copies:   Potentially fixable using shader-based copy
+      //
       if ( pSwap.p == nullptr ||
            ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
              src_desc.Height == swapDesc.BufferDesc.Height &&
@@ -1350,7 +1353,50 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
             InterlockedIncrement (&lFormatSkips);
 
             return;
-          }
+          }         
+        }
+      }
+
+      auto typelessFootprintSrc = DirectX::MakeTypeless (pSrc->PlacedFootprint.Footprint.Format),
+           typelessFootprintDst = DirectX::MakeTypeless (pDst->PlacedFootprint.Footprint.Format);
+
+      //
+      // Handle situations where engine uses some, but not all, modified swapchain properties
+      // 
+      //  (e.g. knows the format is different, but computes size using the original format)
+      //
+      if ( typelessFootprintSrc == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
+           typelessFootprintDst == DXGI_FORMAT_R16G16B16A16_TYPELESS )
+      {
+        const UINT src_row_pitch =      pSrc->PlacedFootprint.Footprint.Width *
+          (static_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintSrc) / 8));
+        const UINT dst_row_pitch =      pDst->PlacedFootprint.Footprint.Width *
+          (static_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintDst) / 8));
+
+        if ( pSrc->PlacedFootprint.Footprint.RowPitch < src_row_pitch ||
+             pDst->PlacedFootprint.Footprint.RowPitch < dst_row_pitch )
+        {
+          SK_LOGi0 (
+            L"Skipping invalid CopyTextureRegion:"
+            L" (SrcPitch: Requested = %lu, Valid >= %lu),"
+            L" (DstPitch: Requested = %lu, Valid >= %lu) - SrcFmt: (%hs | %hs) /"
+            L" DstFmt: (% hs | % hs)",
+              pSrc->PlacedFootprint.Footprint.RowPitch, src_row_pitch,
+              pDst->PlacedFootprint.Footprint.RowPitch, dst_row_pitch,
+                SK_DXGI_FormatToStr (pSrc->PlacedFootprint.Footprint.Format).data (),
+                SK_DXGI_FormatToStr (                       src_desc.Format).data (),
+                SK_DXGI_FormatToStr (pDst->PlacedFootprint.Footprint.Format).data (),
+                SK_DXGI_FormatToStr (                       dst_desc.Format).data ()
+          );
+
+          InterlockedIncrement (&lSizeSkips);
+
+          //
+          // TODO: Implement a copy-from-swapchain to temporary surface w/ format conversion
+          //         and allow this mismatched format subregion copy to read from it.
+          //
+
+          return;
         }
       }
     }
@@ -2266,6 +2312,10 @@ SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                    static_cast <UINT> ( (utf8_copy).size () ),
                                         (utf8_copy).data ()
                             );
+
+    SK_LOGi2 (
+      L"Created D3D12 Object: %ws", kName.c_str ()
+    );
 #else
     pD3D12Obj->SetName ( kName.c_str () );
 #endif

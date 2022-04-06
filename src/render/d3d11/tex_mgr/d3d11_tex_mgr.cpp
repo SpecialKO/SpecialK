@@ -2442,9 +2442,9 @@ BOOL
 SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture )
 {
   constexpr UINT size =
-                 sizeof (LONG);
+                 sizeof (bool);
 
-  static LONG disable = 1;
+  constexpr bool disable = true;
 
   if ( FAILED (
          pTexture->SetPrivateData ( SKID_D3D11TextureUncacheable,
@@ -2462,9 +2462,9 @@ BOOL
 SK_D3D11_IsTextureUncacheable ( ID3D11Texture2D *pTexture )
 {
   UINT size =
-       sizeof (LONG);
+       sizeof (bool);
 
-  LONG disable = 0;
+  bool disable = false;
 
   if ( FAILED (
          pTexture->GetPrivateData ( SKID_D3D11TextureUncacheable,
@@ -2476,7 +2476,8 @@ SK_D3D11_IsTextureUncacheable ( ID3D11Texture2D *pTexture )
   }
 
   return
-    (disable == 1);
+    ( disable != false ) ?
+                 TRUE    : FALSE;
 }
 
 void

@@ -61,6 +61,52 @@ DWORD D3D11_GetFrameTime (void)
   return dwFrameTime;
 }
 
+void
+SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
+                        const std::wstring&      kName )
+{
+  if (! pDevChild)
+    return;
+
+  static int
+      __SK_D3D11_DebugLayerActive  = -1;
+  if (__SK_D3D11_DebugLayerActive == -1)
+  {
+    SK_ComPtr <ID3D11Device> pDev;
+    pDevChild->GetDevice (  &pDev.p );
+
+    SK_ComQIPtr <ID3D11Debug> pDebug (pDev);
+    __SK_D3D11_DebugLayerActive =
+                              pDebug.p != nullptr ?
+                                                1 : 0;
+  }
+
+  // Store object names only if we are logging stuff or if the
+  //   D3D11 debug layer is active
+  if (kName.empty () || ( __SK_D3D11_DebugLayerActive == 0 &&
+                               config.system.log_level < 2 ))
+  {
+    return;
+  }
+
+  SK_LOGi2 (
+    L"Created D3D11 Object: %ws", kName.c_str ()
+  );
+
+  D3D_SET_OBJECT_NAME_N_W ( pDevChild,
+                   static_cast <UINT> ( kName.size () ),
+                                        kName.data ()
+                          );
+
+  std::string utf8_copy =
+    SK_WideCharToUTF8 (kName);
+
+  D3D_SET_OBJECT_NAME_N_A ( pDevChild,
+                 static_cast <UINT> ( (utf8_copy).size () ),
+                                      (utf8_copy).data ()
+                          );
+}
+
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
@@ -506,8 +552,8 @@ SK_D3D11_SetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx,
 {
   SK_ReleaseAssert (handle < SK_D3D11_MAX_DEV_CONTEXTS);
 
-  const UINT size =
-             sizeof (LONG);
+  constexpr UINT size =
+                 sizeof (LONG);
 
   if ( FAILED (
          pDevCtx->SetPrivateData ( SKID_D3D11DeviceContextHandle,

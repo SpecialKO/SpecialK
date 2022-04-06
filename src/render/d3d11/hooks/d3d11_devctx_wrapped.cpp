@@ -2083,7 +2083,7 @@ public:
                           (RestoreDeferredContextState == FALSE)))
     {
       (*ppCommandList)->SetPrivateData ( SKID_D3D11DeviceContextOrigin,
-                                           sizeof (ptrdiff_t), pReal );
+                                           sizeof (std::uintptr_t), pReal );
       SK_D3D11_ResetContextState (pReal, dev_ctx_handle_);
     }
     else

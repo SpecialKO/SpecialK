@@ -385,6 +385,9 @@ SK::ControlPanel::D3D11::Draw (void)
             disable =
               (! enable);
 
+            size =
+              sizeof (bool);
+
             for ( auto it = range.first ; it != range.second ; ++it )
             {
               it->second->SetPrivateData (
@@ -396,15 +399,15 @@ SK::ControlPanel::D3D11::Draw (void)
                   size =  DxilContainerHashSize;
           uint8_t digest [DxilContainerHashSize];
 
-            dump->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
+          dump->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
 
-            std::string out =
-              std::format ("{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}"
-                           "{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}",
-                             digest[ 0],digest[ 1],digest[ 2],digest[ 3],
-                             digest[ 4],digest[ 5],digest[ 6],digest[ 7],
-                             digest[ 8],digest[ 9],digest[10],digest[11],
-                             digest[12],digest[13],digest[14],digest[15]);
+          std::string out =
+            std::format ("{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}"
+                         "{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}",
+                           digest[ 0],digest[ 1],digest[ 2],digest[ 3],
+                           digest[ 4],digest[ 5],digest[ 6],digest[ 7],
+                           digest[ 8],digest[ 9],digest[10],digest[11],
+                           digest[12],digest[13],digest[14],digest[15]);
 
           if (ImGui::IsItemClicked (1))
           {
@@ -458,6 +461,9 @@ SK::ControlPanel::D3D11::Draw (void)
           ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
 
           if (currentFrame > lastFrame + _ACTIVE_THRESHOLD) continue;
+
+          size =
+            sizeof (bool);
 
           if ( FAILED ( ps->GetPrivateData (
                           SKID_D3D12DisablePipelineState, &size, &disable

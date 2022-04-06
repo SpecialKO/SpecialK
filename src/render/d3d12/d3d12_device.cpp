@@ -1327,7 +1327,7 @@ SK_D3D12_WriteResources (void)
                   ThrowIfFailed (
                     pDev->CreateCommittedResource (
                       &props, D3D12_HEAP_FLAG_NONE,
-                      &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+                      &desc,  D3D12_RESOURCE_STATE_COMMON,
                       nullptr, IID_PPV_ARGS (&uploadBuffer.p))
                   ); SK_D3D12_SetDebugName (  uploadBuffer.p,
                         L"ImGui D3D12 Texture Upload Buffer" );

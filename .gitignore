@@ -258,14 +258,9 @@ paket-files/
 *.i
 *.exe
 *.plog
-/codealike.json
 /.vs/SpecialK/v16
-/build/Release/Win32/SpecialK.tlog
-/build/Release/Win32/SpecialK32.ClangTidy
-/.vs/SpecialK/v16/ipch
-/build/Release/Win32
-/.vs/SpecialK/v16/ipch/AutoPCH/10eaad2a1e957ecf/APPS_LIST.ipch
-/.vs/SpecialK/v16/ipch/AutoPCH
+*.tlog
+*.ClangTidy
 /include/shaders/*.h
 /flip.txt
 *.clang-tidy
@@ -276,86 +271,20 @@ paket-files/
 *.s1
 *.a2
 *.s2
-/StaticAnalysis-cppcheck-build-dir/files.txt
-/StaticAnalysis-cppcheck-build-dir/statistics.txt
-/src/render/gl/opengl_stateblock.cpp
-/src/framerate - Copy.cpp
 /packages.7z
 *.BuildAgent
-/src/.clang-tidy.cpt_backup
-/SpecialK-kitandkabootle.ruleset
-/SpecialK-boundscheck.ruleset
+*.clang-tidy.*
+*.ruleset
 *.cpt_backup
-/resource/RCa34336
-/.SpecialK.sln.swp
-/.SpecialK.sln.swo
 /.cdf
-/%USER%/uplay_d3d11_vs.cso
-/%USER%/uplay_d3d11_ps.cso
-/%USER%/uber_hdr_shader_ps.cso
-/%USER%/steam_d3d11_vs.cso
-/%USER%/steam_d3d11_ps.cso
-/%USER%/SpecialK64.exp
-/%USER%/SpecialK64.dll
-/%USER%/rtss_d3d11_vs.cso
-/%USER%/imgui_d3d11_vs.cso
-/%USER%/imgui_d3d11_ps.cso
-/%USER%/discord_d3d11_vs.cso
-/%USER%/discord_d3d11_ps.cso
+*.exp
+*.cso
 *.swp
-/depends/src/lzma/libzma/Release - AVX2/unity_1FA63POAF5C6B05N.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_Z9IY9J8PGYAY9B3N.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_W4O1P3ITU2JUXU7I.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_R2BHFDEJCYC73IO5.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_PO9TCWO6Y0OBKH0T.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_GGTQBRXXX3R02LVR.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_FVGFPLXBLIZY6N3O.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_FL5JMS79WE8AEBUU.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_E2OJQUFXL385Y41K.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_DISG3UING85VQE5U.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_9O3SH3QF4DVBFS3D.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_6KX88273MURAJKVZ.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_5M135Q8HK7JJZWEF.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_3DJ0KC08XFMBMFDT.cpp
-/depends/src/lzma/libzma/Release - AVX2/unity_1FA63POAF5C6B05N.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_Z9IY9J8PGYAY9B3N.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_W4O1P3ITU2JUXU7I.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_R2BHFDEJCYC73IO5.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_PO9TCWO6Y0OBKH0T.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_GGTQBRXXX3R02LVR.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_FVGFPLXBLIZY6N3O.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_FL5JMS79WE8AEBUU.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_E2OJQUFXL385Y41K.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_DISG3UING85VQE5U.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_9O3SH3QF4DVBFS3D.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_6KX88273MURAJKVZ.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_5M135Q8HK7JJZWEF.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_3DJ0KC08XFMBMFDT.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/unity_1FA63POAF5C6B05N.cpp
-/depends/derivative/SKinHook/build/x64/Release - AVX2/libSKinHook/unity_P1YQQ5FJBE8L6HTG.cpp
-/depends/derivative/SKinHook/build/x64/Release - AVX2/libSKinHook/unity_8ACZMTJKFBLE6Y23.cpp
-/depends/derivative/SKinHook/build/Win32/Release - AVX2/libSKinHook/unity_P1YQQ5FJBE8L6HTG.cpp
-/depends/derivative/SKinHook/build/Win32/Release - AVX2/libSKinHook/unity_8ACZMTJKFBLE6Y23.cpp
-/depends/src/lzma/libzma/x64/Release - AVX2/libzma.vcxproj.FileListAbsolute.txt
-/depends/src/lzma/libzma/x64/Release - AVX2/libzma.lib.recipe
-/depends/src/lzma/libzma/Release - AVX2/libzma.vcxproj.FileListAbsolute.txt
-/depends/src/lzma/libzma/Release - AVX2/libzma.lib.recipe
-/depends/derivative/SKinHook/build/x64/Release - AVX2/libSKinHook/libSKinHook.vcxproj.FileListAbsolute.txt
-/depends/derivative/SKinHook/build/x64/Release - AVX2/libSKinHook/libMinHook64.lib.recipe
-/depends/derivative/SKinHook/build/Win32/Release - AVX2/libSKinHook/libSKinHook.vcxproj.FileListAbsolute.txt
-/depends/derivative/SKinHook/build/Win32/Release - AVX2/libSKinHook/libMinHook.lib.recipe
-/build/Release - AVX2/x64/SpecialK64-AVX2.iobj
-/build/Release - AVX2/x64/SpecialK64-AVX2.dll.recipe
-/build/Release - AVX2/x64/SpecialK64-AVX2.dll.intermediate.manifest
-/build/Release - AVX2/Win32/SpecialK32-AVX2.iobj
-/build/Release - AVX2/Win32/SpecialK32-AVX2.dll.recipe
-/build/Release - AVX2/Win32/SpecialK32-AVX2.dll.intermediate.manifest
-/build/Release - AVX2/Win32/SpecialK.res
-/build/Release - AVX2/Win32/Resource.res
-/build/Release - AVX2/Win32/7zVersion.res
-/depends/src/lzma/libzma/x64/Release - AVX2/libzma.lib.recipe
-/depends/src/lzma/libzma/x64/Release - AVX2/7zVersion.res
-/build/Release - AVX2/x64/SpecialK.res
-/build/Release - AVX2/x64/Resource.res
-/build/Release - AVX2/x64/7zVersion.res
-/depends/src/lzma/libzma/Release - AVX2/7zVersion.res
+*.swo
+*.res
+*.recipe
+*.iobj
+*.intermediate.manifest
+*.FileListAbsolute.*
+unity_*.cpp
+opengl_stateblock.cpp

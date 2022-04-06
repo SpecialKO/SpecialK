@@ -318,38 +318,12 @@ void
 SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
                              ID3D11DeviceContext *pDstCtx );
 
-static int __SK_D3D11_DebugLayerActive = -1;
+extern std::string
+SK_WideCharToUTF8 (const std::wstring& in);
 
-__forceinline
 void
 SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
-                        const std::wstring&      kName )
-{
-  if (! pDevChild)
-    return;
-
-  if (__SK_D3D11_DebugLayerActive == -1)
-  {
-    SK_ComPtr <ID3D11Device> pDev;
-    pDevChild->GetDevice (  &pDev.p );
-
-    SK_ComQIPtr <ID3D11Debug> pDebug (pDev);
-    __SK_D3D11_DebugLayerActive =
-                              pDebug.p != nullptr ?
-                                                1 : 0;
-  }
-
-  if (__SK_D3D11_DebugLayerActive == 0)
-    return;
-
-  if (kName.size () > 0)
-  {
-    D3D_SET_OBJECT_NAME_N_W ( pDevChild,
-                   static_cast <UINT> ( kName.size () ),
-                                        kName.data ()
-                            );
-  }
-}
+                        const std::wstring&      kName );
 
 void
 SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,

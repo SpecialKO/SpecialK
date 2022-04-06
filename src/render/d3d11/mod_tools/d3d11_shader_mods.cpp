@@ -704,21 +704,26 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
           );// , Silent);
           try
           {
-            UINT   size        = 4;
-            UINT   data        = 0;
+            UINT size = sizeof (UINT);
+            UINT data = 0;
 
-            if (live_textures.count (it) != 0)
+            if (live_textures.contains (it))
             {
-              if ( FAILED (it->GetPrivateData ( SKID_D3D11DeviceContextHandle, &size, &data )))
+              if ( FAILED ( it->GetPrivateData (
+                              SKID_D3D11DeviceContextHandle, &size, &data ) ) )
               {
-                size = 4;
+                size = sizeof (UINT);
                 data =
                   ( InterlockedIncrement (&idx_counter) + 1 );
 
-                it->SetPrivateData ( SKID_D3D11DeviceContextHandle, size, &data );
+                it->SetPrivateData (
+                  SKID_D3D11DeviceContextHandle, size, &data
+                );
               }
 
-              rt2.emplace_back (std::make_pair (it, data));
+              rt2.emplace_back (
+                std::make_pair (it, data)
+              );
             }
           }
           catch (const SK_SEH_IgnoredException&)

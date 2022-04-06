@@ -2376,7 +2376,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         _d3d12_rbk->release (This);
       }
 
-      if (ret != S_OK)
+      if (ret != S_OK && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
       {
         // This would recurse infinitely without the ghetto lock
         //
@@ -2389,24 +2389,39 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                                             DXGISwapChain1_Present1,
                                               pPresentParameters );
 
-          if (hrTest == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS)
+          if ( hrTest == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
           {
+            BOOL                       bFullscreen = FALSE;
+            This->GetFullscreenState (&bFullscreen, nullptr);
+
             DXGI_SWAP_CHAIN_DESC swapDesc = { };
+            DXGI_MODE_DESC       modeDesc = { };
             This->GetDesc      (&swapDesc);
-            DXGI_MODE_DESC       modeDesc = {       .Width  = swapDesc.BufferDesc.Width,
-                                                    .Height = swapDesc.BufferDesc.Height,
-                                                    .Format =
-                                 swapDesc.BufferDesc.Format };
-            {           This->ResizeTarget  (&modeDesc);
-                        BringWindowToTop     (swapDesc.OutputWindow); }
-            if (FAILED (This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
-                                                                    swapDesc.BufferDesc.Height,
-                                              swapDesc.BufferDesc.Format,
-                                              swapDesc.Flags )))
+                                 modeDesc.Format = swapDesc.BufferDesc.Format;
+
+            if ( FAILED (
+              This->ResizeBuffers ( swapDesc.BufferCount,
+                                    swapDesc.BufferDesc.Width,
+                                    swapDesc.BufferDesc.Height,
+                                    swapDesc.BufferDesc.Format,
+                                    swapDesc.Flags )
+                        )
+               )
             {
+              _d3d11_rbk->release (This);
+              _d3d12_rbk->release (This);
+
+              SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+
+              modeDesc.Width  = swapDesc.BufferDesc.Width;
+              modeDesc.Height = swapDesc.BufferDesc.Height;
+
+              This->ResizeTarget (&modeDesc);
+
               if ( FAILED (
-                This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
-                                                            swapDesc.BufferDesc.Height,
+                This->ResizeBuffers ( swapDesc.BufferCount,
+                                      swapDesc.BufferDesc.Width,
+                                      swapDesc.BufferDesc.Height,
                                       swapDesc.BufferDesc.Format,
                                       swapDesc.Flags )
                           )
@@ -2415,11 +2430,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                 // Fullscreen Mode Switch is -BORKED- (generally due to Flip Model)
                 //
                 //  --> Fallback to Windowed Mode
-                This->SetFullscreenState (
-                  FALSE, nullptr
-                );
-
-                if (SUCCEEDED (This->ResizeTarget  (&modeDesc)))
+                if (SUCCEEDED (This->SetFullscreenState (! bFullscreen, nullptr)))
                                This->ResizeBuffers ( swapDesc.BufferCount, swapDesc.BufferDesc.Width,
                                                                            swapDesc.BufferDesc.Height,
                                                      swapDesc.BufferDesc.Format,
@@ -2443,8 +2454,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                   //-----------------------------------------------------------------------
                     L"Flip Model + Fullscreen Exclusive is UNSUPPORTED by this Game"
                   );
-
-                  BringWindowToTop (swapDesc.OutputWindow);
                 }
               }
             }
@@ -2508,59 +2517,55 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
              _Present ( SyncInterval, Flags );
 
     if ((Flags & DXGI_PRESENT_TEST) ==
-                 DXGI_PRESENT_TEST  && hrPresent != S_OK)
+                 DXGI_PRESENT_TEST)
     {
-      if (hrPresent == DXGI_STATUS_CLIPPED)
+      if (hrPresent != S_OK)
       {
-        SK_LOGi1 (L" * DXGI_PRESENT_TEST returned DXGI_STATUS_CLIPPED; "
-                  L"Ignored, rendering continues!");
-      }
-
-      else if (hrPresent == DXGI_STATUS_MODE_CHANGED                 ||
-               hrPresent == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS      ||
-               hrPresent == DXGI_STATUS_OCCLUDED                     ||
-               hrPresent == DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE ||
-               hrPresent == DXGI_STATUS_NO_DESKTOP_ACCESS)
-      {
-        SK_LOGi1 (
-          L" * DXGI_PRESENT_TEST returned %hs; "
-          L"Delaying for 1 screen refresh!",
-            SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
-        );
-
-        if ( rb.active_display >= 0 &&
-             rb.active_display <= SK_RenderBackend_V2::_MAX_DISPLAYS )
+        if (hrPresent == DXGI_STATUS_CLIPPED)
         {
-          auto& VSyncFreq =
-            rb.displays [rb.active_display].signal.timing.vsync_freq;
+          SK_LOGi1 (L" * DXGI_PRESENT_TEST returned DXGI_STATUS_CLIPPED; "
+                    L"Ignored, rendering continues!");
+        }
 
-          if (VSyncFreq.Denominator > 0UL)
+        else if (hrPresent == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS      ||
+                 hrPresent == DXGI_STATUS_OCCLUDED                     ||
+                 hrPresent == DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE ||
+                 hrPresent == DXGI_STATUS_NO_DESKTOP_ACCESS)
+        {
+          SK_LOGi1 (
+            L" * DXGI_PRESENT_TEST returned %hs; "
+            L"Delaying for 1 screen refresh!",
+              SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
+          );
+
+          if ( rb.active_display >= 0 &&
+               rb.active_display <= SK_RenderBackend_V2::_MAX_DISPLAYS )
           {
-            SK_SleepEx (
-              std::clamp (                (DWORD)(     1000.0  /
-                ( static_cast <double> (VSyncFreq.Numerator  ) /
-                  static_cast <double> (VSyncFreq.Denominator) )
-                                                 ), 1UL, 25UL),
-                  TRUE );
+            auto& VSyncFreq =
+              rb.displays [rb.active_display].signal.timing.vsync_freq;
+          
+            if (VSyncFreq.Denominator > 0UL)
+            {
+              SK_SleepEx (
+                std::clamp (                (DWORD)(     1000.0  /
+                  ( static_cast <double> (VSyncFreq.Numerator  ) /
+                    static_cast <double> (VSyncFreq.Denominator) )
+                                                   ), 4UL, 40UL),
+                   FALSE );
+            }
           }
         }
 
-        return
-          hrPresent;
+        else
+        {
+          SK_LOGi1 (
+            L" * DXGI_PRESENT_TEST returned %hs; "
+            L"Ohnoes Everyone Panic!",
+                SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
+          );
+        }
       }
-
-      SK_LOGi1 (
-        L" * DXGI_PRESENT_TEST returned %hs; "
-        L"Ohnoes Everyone Panic!",
-            SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
-      );
-
-      return
-        hrPresent;
     }
-
-    //SK_D3D11_EndFrame ();
-    //SK_D3D12_EndFrame ();
 
     // Third-party software doesn't always behave compliantly in games that
     //   use presentation testing... so we may need to resort to this or
@@ -2569,7 +2574,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       return S_OK;
 
     return
-      _Present ( SyncInterval, Flags );
+      hrPresent;
   }
 
   // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
@@ -4311,7 +4316,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
           UINT _Flags =
             SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
 
-          if (sd.Windowed == Fullscreen && FAILED (This->ResizeBuffers (0, 0, 0, DXGI_FORMAT_UNKNOWN, _Flags)))
+          if (sd.Windowed == Fullscreen && FAILED (This->ResizeBuffers (sd.BufferCount, sd.BufferDesc.Width, sd.BufferDesc.Height, sd.BufferDesc.Format, _Flags)))
           {
             rb.fullscreen_exclusive = bOrigFullscreen;
             return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
@@ -5513,38 +5518,39 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
   const uint32_t max_latency =
     config.render.framerate.pre_render_limit;
 
-  SK_ComQIPtr <IDXGISwapChain2>
-      pSwapChain2 (pSwapChain);
-  if (pSwapChain2 != nullptr)
-  {
-    if (max_latency < 16 && max_latency > 0)
-    {
-      dll_log->Log ( L"[   DXGI   ] Setting Swapchain Frame Latency: %lu",
-                                           max_latency);
-      pSwapChain2->SetMaximumFrameLatency (max_latency);
-    }
-  }
-
   DXGI_SWAP_CHAIN_DESC  swapDesc = { };
   pSwapChain->GetDesc (&swapDesc);
 
-  //if (! (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
+  if ((swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+                     == DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
   {
-    if ( max_latency < 16 &&
-         max_latency >  0 )
+    SK_ComQIPtr <IDXGISwapChain2>
+        pSwapChain2 (pSwapChain);
+    if (pSwapChain2 != nullptr)
     {
-      SK_ComPtr <IDXGIDevice1> pDevice1;
-
-      if (SUCCEEDED ( pSwapChain->GetDevice (
-                         IID_PPV_ARGS (&pDevice1.p)
-                                            )
-                    )
-         )
+      if (max_latency < 16 && max_latency > 0)
       {
-        dll_log->Log ( L"[   DXGI   ] Setting Device    Frame Latency: %lu",
-                                          max_latency);
-        pDevice1->SetMaximumFrameLatency (max_latency);
+        dll_log->Log ( L"[   DXGI   ] Setting Swapchain Frame Latency: %lu",
+                                             max_latency);
+        pSwapChain2->SetMaximumFrameLatency (max_latency);
       }
+    }
+  }
+
+  if ( max_latency < 16 &&
+       max_latency >  0 )
+  {
+    SK_ComPtr <IDXGIDevice1> pDevice1;
+
+    if (SUCCEEDED ( pSwapChain->GetDevice (
+                       IID_PPV_ARGS (&pDevice1.p)
+                                          )
+                  )
+       )
+    {
+      dll_log->Log ( L"[   DXGI   ] Setting Device    Frame Latency: %lu",
+                                        max_latency);
+      pDevice1->SetMaximumFrameLatency (max_latency);
     }
   }
 
