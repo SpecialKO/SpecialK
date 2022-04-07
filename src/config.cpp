@@ -170,7 +170,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
       { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
       { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    },
-      { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         }
+      { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         },
+      { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        }
     };
 
     first_check = false;

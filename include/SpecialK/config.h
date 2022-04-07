@@ -1151,6 +1151,7 @@ enum class SK_GAME_ID
   EasyAntiCheat,                // start_protected_game.exe
   EldenRing,                    // eldenring.exe
   TinyTinasWonderlands,         // Wonderlands.exe
+  Elex2,                        // ELEX2.exe
   UNKNOWN_GAME               = 0xffff
 };
 

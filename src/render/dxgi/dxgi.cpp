@@ -2009,6 +2009,9 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
       {
         SK_RunOnce (SK_InstallWindowHook (swapDesc.OutputWindow));
       }
+
+      // Uh oh, try again?
+      else once = false;
     }
   }
 
@@ -2409,10 +2412,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                         )
                )
             {
-              _d3d11_rbk->release (This);
-              _d3d12_rbk->release (This);
-
-            //SK_GetCurrentRenderBackend ().releaseOwnedResources ();
+            //_d3d11_rbk->release (This);
+            //_d3d12_rbk->release (This);
 
               This->ResizeTarget (&modeDesc);
 
@@ -2507,39 +2508,42 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     {
       if (hrPresent != S_OK)
       {
+        extern DWORD WINAPI
+        SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
+
         if (hrPresent == DXGI_STATUS_CLIPPED)
         {
           SK_LOGi1 (L" * DXGI_PRESENT_TEST returned DXGI_STATUS_CLIPPED; "
                     L"Ignored, rendering continues!");
         }
 
-        else if (hrPresent == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS      ||
-                 hrPresent == DXGI_STATUS_OCCLUDED                     ||
+        else if (hrPresent == DXGI_STATUS_MODE_CHANGED)
+        {
+          SK_LOGi1 (
+            L" * DXGI_PRESENT_TEST returned %hs; "
+            L"Resizing the SwapChain for Compliance!",
+              SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
+          );
+
+          DXGI_SWAP_CHAIN_DESC swapDesc = { };
+          This->GetDesc      (&swapDesc);
+          This->ResizeBuffers ( 0,
+                                0, 0,
+                                   DXGI_FORMAT_UNKNOWN,
+                                     swapDesc.Flags );
+        }
+
+        else if (hrPresent == DXGI_STATUS_OCCLUDED                     ||
                  hrPresent == DXGI_STATUS_GRAPHICS_VIDPN_SOURCE_IN_USE ||
                  hrPresent == DXGI_STATUS_NO_DESKTOP_ACCESS)
         {
           SK_LOGi1 (
             L" * DXGI_PRESENT_TEST returned %hs; "
-            L"Delaying for 1 screen refresh!",
+            L"yielding thread execution...",
               SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
           );
 
-          if ( rb.active_display >= 0 &&
-               rb.active_display <= SK_RenderBackend_V2::_MAX_DISPLAYS )
-          {
-            auto& VSyncFreq =
-              rb.displays [rb.active_display].signal.timing.vsync_freq;
-          
-            if (VSyncFreq.Denominator > 0UL)
-            {
-              SK_SleepEx (
-                std::clamp (                (DWORD)(     1000.0  /
-                  ( static_cast <double> (VSyncFreq.Numerator  ) /
-                    static_cast <double> (VSyncFreq.Denominator) )
-                                                   ), 4UL, 40UL),
-                   FALSE );
-            }
-          }
+          SK_DelayExecution (0.5, TRUE);
         }
 
         else
@@ -2549,6 +2553,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
             L"Ohnoes Everyone Panic!",
                 SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
           );
+
+          SK_DelayExecution (3.333, TRUE);
         }
       }
     }
@@ -2556,7 +2562,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     // Third-party software doesn't always behave compliantly in games that
     //   use presentation testing... so we may need to resort to this or
     //     the game's performance derails itself.
-    if ( config.render.dxgi.present_test_skip && (Flags & DXGI_PRESENT_TEST) == DXGI_PRESENT_TEST )
+    if ( config.render.dxgi.present_test_skip && (Flags & DXGI_PRESENT_TEST)
+                                                       == DXGI_PRESENT_TEST )
       return S_OK;
 
     return

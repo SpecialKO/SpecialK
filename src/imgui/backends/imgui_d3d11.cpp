@@ -1550,9 +1550,9 @@ SK_ImGui_ResetExternal (void)
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
-#define RESET_FONT
+//#define RESET_FONT
 #define RESET_VTX_IDX_BUFFERS
-#define RESET_SHADERS
+//#define RESET_SHADERS
 
   SK_ImGui_ResetExternal ();
 

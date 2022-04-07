@@ -605,15 +605,15 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
             D3D11_TEXTURE2D_DESC  texDesc = { };
             backbuffer->GetDesc (&texDesc);
 
-            ////if ( (texDesc.Width  == Width     || Width     == 0) &&
-            ////     (texDesc.Height == Height    || Height    == 0) &&
-            ////     (texDesc.Format == NewFormat || NewFormat == DXGI_FORMAT_UNKNOWN) )
-            ////{
-            ////  SK_LOGi1 (L"ResizeBuffers => NOP");
-            ////  continue;
-            ////}
-            ////
-            ////else
+            if ( (texDesc.Width  == Width     || Width     == 0) &&
+                 (texDesc.Height == Height    || Height    == 0) &&
+                 (texDesc.Format == NewFormat || NewFormat == DXGI_FORMAT_UNKNOWN) )
+            {
+              SK_LOGi1 (L"ResizeBuffers => NOP");
+              continue;
+            }
+
+            else
             {
               SK_LOGi1 (L"ResizeBuffers => Remove");
               backbuffer.Release ();
