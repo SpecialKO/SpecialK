@@ -416,7 +416,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
-          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET |
+          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET    |
+                                       D3D11_BIND_UNORDERED_ACCESS |
                                        D3D11_BIND_SHADER_RESOURCE;
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
@@ -604,15 +605,15 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
             D3D11_TEXTURE2D_DESC  texDesc = { };
             backbuffer->GetDesc (&texDesc);
 
-            if ( (texDesc.Width  == Width     || Width     == 0) &&
-                 (texDesc.Height == Height    || Height    == 0) &&
-                 (texDesc.Format == NewFormat || NewFormat == DXGI_FORMAT_UNKNOWN) )
-            {
-              SK_LOGi1 (L"ResizeBuffers => NOP");
-              continue;
-            }
-
-            else
+            ////if ( (texDesc.Width  == Width     || Width     == 0) &&
+            ////     (texDesc.Height == Height    || Height    == 0) &&
+            ////     (texDesc.Format == NewFormat || NewFormat == DXGI_FORMAT_UNKNOWN) )
+            ////{
+            ////  SK_LOGi1 (L"ResizeBuffers => NOP");
+            ////  continue;
+            ////}
+            ////
+            ////else
             {
               SK_LOGi1 (L"ResizeBuffers => Remove");
               backbuffer.Release ();
