@@ -2376,7 +2376,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         _d3d12_rbk->release (This);
       }
 
-      if (ret != S_OK && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+      if ( ret != S_OK && (! bOriginallyFlip) )
       {
         // This would recurse infinitely without the ghetto lock
         //

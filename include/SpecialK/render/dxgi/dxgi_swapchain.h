@@ -42,6 +42,7 @@ const GUID IID_IUnwrappedDXGISwapChain =
 const GUID IID_IWrapDXGISwapChain =
 { 0x24430a12, 0x6e3c, 0x4706, { 0xaf, 0xfa, 0xb3, 0xee, 0xf2, 0xdf, 0x41, 0x2 } };
 
+extern bool bOriginallyFlip;
 
 struct DECLSPEC_UUID("24430A12-6E3C-4706-AFFA-B3EEF2DF4102")
 IWrapDXGISwapChain : IDXGISwapChain4
@@ -102,6 +103,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
              pDev12 ( pDevice );
     d3d12_ = pDev12.p != nullptr;
 
+    flip_model.active =
+      ( sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
+        sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+    flip_model.native = bOriginallyFlip;
+
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
   }
 
@@ -154,6 +160,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
     SK_ComQIPtr <ID3D12Device>
              pDev12 ( pDevice );
     d3d12_ = pDev12.p != nullptr;
+
+    flip_model.active =
+      ( sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
+        sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+    flip_model.native = bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
   }
@@ -244,16 +255,35 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   bool                  d3d12_          = false;
   bool                  waitable_       = false;
+
+  struct {
+    bool                active          = false;
+    bool                native          = false;
+
+    bool                isOverrideActive (void)
+    {
+      return 
+        active && (! native);
+    }
+  } flip_model;
+
   UINT                  gameWidth_      = 0;
   UINT                  gameHeight_     = 0;
   bool                  fakeFullscreen_ = false;
   DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
   DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
 
-  UINT        lastWidth       = 0;
-  UINT        lastHeight      = 0;
-  DXGI_FORMAT lastFormat      = DXGI_FORMAT_UNKNOWN;
-  UINT        lastBufferCount = 0;
+  std::mutex            _backbufferLock;
+  std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
+                        _backbuffers;
+
+  UINT                  lastWidth       = 0;
+  UINT                  lastHeight      = 0;
+  DXGI_FORMAT           lastFormat      = DXGI_FORMAT_UNKNOWN;
+  UINT                  lastBufferCount = 0;
+
+  // Shared logic between Present (...) and Present1 (...)
+  void                  PresentBase (void);
 };
 
 

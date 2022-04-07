@@ -34,6 +34,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   BOOL                   bWrapped = FALSE
 );
 
+// Various compat hacks applied if the game was originally Blt Model
 extern BOOL _NO_ALLOW_MODE_SWITCH;
 
 volatile LONG SK_DXGI_LiveWrappedSwapChains  = 0;
@@ -297,10 +298,59 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
   return E_NOINTERFACE;
 }
 
+void
+IWrapDXGISwapChain::PresentBase (void)
+{
+  // D3D12 is already Flip Model and doesn't need this
+  if (flip_model.isOverrideActive () && (! d3d12_))
+  {
+    SK_ComQIPtr <ID3D11Device>
+        pD3D11Dev (pDev);
+    if (pD3D11Dev.p != nullptr)
+    {
+      SK_ComPtr <ID3D11DeviceContext>    pDevCtx;
+      pD3D11Dev.p->GetImmediateContext (&pDevCtx);
+
+      if (pDevCtx.p != nullptr)
+      {
+        std::scoped_lock lock (_backbufferLock);
+
+        if (_backbuffers.contains (0) &&
+            _backbuffers          [0].p != nullptr)
+        {
+          SK_ComPtr               <ID3D11Texture2D>           pBackbuffer;
+          pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackbuffer.p);
+
+          if (pBackbuffer.p != nullptr)
+          {
+            pDevCtx->CopyResource (pBackbuffer, _backbuffers [0].p);
+
+            if (config.render.framerate.flip_discard)
+            {
+              SK_ComQIPtr <ID3D11DeviceContext1>
+                  pDevCtx1 (pDevCtx);
+              if (pDevCtx1.p != nullptr)
+              {
+                pDevCtx1->DiscardResource (pBackbuffer);
+              }
+            }
+
+            // Do it NOW, the actual Present call may be hooked by other
+            //   overlays and we want this flushed before they add work.
+            pDevCtx->Flush ();
+          }
+        }
+      }
+    }
+  }
+}
+
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
+  PresentBase ();
+
   return
     SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
                                 nullptr, SK_DXGI_PresentSource::Wrapper );
@@ -310,6 +360,86 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 {
+  // D3D12 is already Flip Model and doesn't need this
+  if (flip_model.isOverrideActive () && (! d3d12_))
+  {
+    SK_ReleaseAssert (Buffer == 0);
+
+    if (config.system.log_level > 0)
+      SK_ReleaseAssert (riid == IID_ID3D11Texture2D);
+
+    if (riid == IID_ID3D11Texture2D)
+    {
+      SK_LOGi1 (L"GetBuffer (%d)", Buffer);
+
+      std::scoped_lock lock (_backbufferLock);
+
+      D3D11_TEXTURE2D_DESC texDesc  = { };
+      DXGI_SWAP_CHAIN_DESC swapDesc = { };
+      pReal->GetDesc     (&swapDesc);
+
+      const bool contains =
+        _backbuffers.contains (Buffer) &&
+        _backbuffers          [Buffer].p != nullptr;
+
+      if (contains)
+        _backbuffers [Buffer]->GetDesc (&texDesc);
+
+      if ( contains &&
+             texDesc.Width  == swapDesc.BufferDesc.Width  &&
+             texDesc.Height == swapDesc.BufferDesc.Height &&
+             texDesc.Format == swapDesc.BufferDesc.Format )
+      {
+        auto backbuffer =
+            _backbuffers [Buffer];
+
+        *ppSurface =
+          backbuffer.p;
+          backbuffer.p->AddRef ();
+
+        return S_OK;
+      }
+
+      else
+      {
+        SK_ComPtr   <ID3D11Texture2D> backbuffer;
+        SK_ComQIPtr <ID3D11Device>    pDev11 (pDev);
+
+        if (pDev11.p != nullptr)
+        {
+          texDesc                    = { };
+          texDesc.Width              = swapDesc.BufferDesc.Width;
+          texDesc.Height             = swapDesc.BufferDesc.Height;
+          texDesc.Format             = swapDesc.BufferDesc.Format;
+          texDesc.ArraySize          = 1;
+          texDesc.SampleDesc.Count   = 1;
+          texDesc.SampleDesc.Quality = 0;
+          texDesc.MipLevels          = 1;
+          texDesc.Usage              = D3D11_USAGE_DEFAULT;
+          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET |
+                                       D3D11_BIND_SHADER_RESOURCE;
+
+          if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
+          {
+            SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d %hs )",
+                          Buffer,
+                               swapDesc.BufferDesc.Width,
+                               swapDesc.BufferDesc.Height,
+          SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
+
+            _backbuffers [Buffer] = backbuffer;
+
+            *ppSurface =
+              backbuffer.p;
+              backbuffer.p->AddRef ();
+
+            return S_OK;
+          }
+        }
+      }
+    }
+  }
+
   return
     pReal->GetBuffer (Buffer, riid, ppSurface);
 }
@@ -458,6 +588,58 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
 
   if (SUCCEEDED (hr))
   {
+    // D3D12 is already Flip Model and doesn't need this
+    if (flip_model.isOverrideActive () && (! d3d12_))
+    {
+      std::scoped_lock lock (_backbufferLock);
+
+      if (! _backbuffers.empty ())
+      {
+        SK_LOGi1 (L"ResizeBuffers [_backbuffers=%d]", _backbuffers.size ());
+
+        for ( auto &[slot, backbuffer] : _backbuffers )
+        {
+          if (backbuffer.p != nullptr)
+          {
+            D3D11_TEXTURE2D_DESC  texDesc = { };
+            backbuffer->GetDesc (&texDesc);
+
+            if ( (texDesc.Width  == Width     || Width     == 0) &&
+                 (texDesc.Height == Height    || Height    == 0) &&
+                 (texDesc.Format == NewFormat || NewFormat == DXGI_FORMAT_UNKNOWN) )
+            {
+              SK_LOGi1 (L"ResizeBuffers => NOP");
+              continue;
+            }
+
+            else
+            {
+              SK_LOGi1 (L"ResizeBuffers => Remove");
+              backbuffer.Release ();
+            }
+          }
+        }
+
+        bool clear = true;
+
+        for ( auto &[slot, backbuffer] : _backbuffers )
+        {
+          if (backbuffer.p != nullptr)
+          {
+            clear = false;
+            break;
+          }
+        }
+
+        if (clear)
+        {
+          SK_LOGi1 (L"ResizeBuffers => Clear");
+          _backbuffers.clear ();
+        }
+      }
+    }
+
+
     if (Height != 0)
     gameHeight_ =
         Height;
@@ -579,6 +761,8 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
 
   // Almost never used by anything, so log it if it happens.
   SK_LOG_ONCE (L"Present1 ({Wrapped SwapChain})");
+
+  PresentBase ();
 
   return
     SK_DXGI_DispatchPresent1 ( (IDXGISwapChain1 *)pReal, SyncInterval, PresentFlags, pPresentParameters,

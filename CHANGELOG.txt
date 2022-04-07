@@ -1,4 +1,12 @@
-﻿22.4.7-NOCEGUI
+﻿22.4.7.2-NOCEGUI
+================
+ + Added proxy backbuffer surfaces for non-flip (D3D11) games to support fullscreen
+
+22.4.7.1-NOCEGUI
+================
+ + Fixed D3D12 "Fullscreen Mode" (lol) in some games after Alt+Tab
+
+22.4.7-NOCEGUI
 ==============
  *** Portable Global Injection ***
   
