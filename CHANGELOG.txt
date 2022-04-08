@@ -1,4 +1,33 @@
-﻿22.4.8-NOCEGUI
+﻿22.4.8.3-NOCEGUI
+================
+ + Changed SK's Injection Success Event to not signal if SKIF has explicitly
+     been configured not to stop injection.
+ + Added Chrono Cross's launcher to internal injection blacklist
+ + Fixed Flip Discard emulation discarding the wrong surface in fullscreen mode
+
+22.4.8.2-NOCEGUI
+================
+ + Added XInputGetKeystroke (...) hook to correctly block input while SK's control panel
+     is active in games that use buffered-input for XInput rather than polling.
+
+22.4.8.1-NOCEGUI
+================
+ + Changed behavior of Fullscreen + Borderless slightly, it now will always adjust both
+     the window size and framebuffer resolution.
+
+     * This is helpful for games that had odd-ball resolutions preventing flip model,
+         such as Final Fantasy XIV. But it's also a departure from previous design.
+
+     Because the Borderless + Fullscreen option now always matches window and framebuffer,
+       it may cause problems with games that have options for sub-native resolution windows.
+
+      >> You should turn SK's "Fullscreen" option off in those cases, or use SK's Display
+           menu instead to select a desktop resolution to run Borderless+Fullscreen.
+
+  + Corrected long-standing issue in Horizon Zero Dawn where its Fullscreen mode would add
+      a window border rather than remove it when SK was used :)
+
+22.4.8-NOCEGUI
 ==============
  + Created Plug-In for ELEX2 to speed file I/O (load screens) up by a factor of 100x
 

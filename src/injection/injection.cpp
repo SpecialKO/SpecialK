@@ -2394,7 +2394,7 @@ SK_Inject_InitWhiteAndBlacklists (void)
 
     static
       std::filesystem::path global_cfg_dir =
-        std::filesystem::path (SK_GetInstallPath ()) / L"Global\\";
+        std::filesystem::path (SK_GetInstallPath ()) / LR"(Global\)";
 
     SK_Inject_ParseWhiteAndBlacklists (global_cfg_dir);
 
@@ -2508,9 +2508,19 @@ SK_Inject_IsAdminSupported (void) noexcept
     ( bAdmin != FALSE );
 }
 
-
 void SK_Inject_BroadcastAttachNotify (void)
 {
+  // Since SKIF is going to ignore this setting, we'll implement it here ourselves.
+  static auto regKVDisableStopOnInjection =
+    SK_MakeRegKeyB ( LR"(SOFTWARE\Kaldaien\Special K\)",
+                        LR"(Disable Stop On Injection)" );
+
+  if (regKVDisableStopOnInjection.getData ())
+    return;
+
+  
+  // -- Feature is actually enabled, allow the event to signal. --
+
   SK_AutoHandle hInjectAck (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE, LR"(Local\SKIF_InjectAck)" )
   );
