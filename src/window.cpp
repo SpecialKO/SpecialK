@@ -4809,6 +4809,13 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
 
 bool __ignore = false;
 
+#ifndef WM_NCUAHDRAWCAPTION
+#define WM_NCUAHDRAWCAPTION (0x00AE)
+#endif
+#ifndef WM_NCUAHDRAWFRAME
+#define WM_NCUAHDRAWFRAME   (0x00AF)
+#endif
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -5272,6 +5279,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_ACTIVATE:
     case WM_NCACTIVATE:
     {
+      if (uMsg == WM_NCACTIVATE && config.window.borderless)
+      {
+        return
+          DefWindowProcW (hWnd, uMsg, wParam, -1);
+      }
+
       if (  uMsg == WM_NCACTIVATE ||
             uMsg == WM_ACTIVATEAPP   )
       {
@@ -5415,7 +5428,26 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
     break;
 
+    case WM_NCUAHDRAWCAPTION:
+	  case WM_NCUAHDRAWFRAME:
+      if ( config.window.borderless ||
+           rb.fullscreen_exclusive ) return 0;
+      break;
+
+    case WM_NCPAINT:
+      if ( config.window.borderless ||
+           rb.fullscreen_exclusive ) return 0;
+      break;
+
     case WM_NCCALCSIZE:
+      if (wParam == TRUE)
+      {
+        if ( config.window.borderless ||
+             rb.fullscreen_exclusive )
+        {
+          return 0;
+        }
+      }
       break;
 
     case WM_SHOWWINDOW:

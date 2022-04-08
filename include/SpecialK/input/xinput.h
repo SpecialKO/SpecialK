@@ -129,6 +129,13 @@ typedef struct _XINPUT_BATTERY_INFORMATION {
   BYTE BatteryLevel;
 } XINPUT_BATTERY_INFORMATION, *PXINPUT_BATTERY_INFORMATION;
 
+typedef struct _XINPUT_KEYSTROKE {
+  WORD  VirtualKey;
+  WCHAR Unicode;
+  WORD  Flags;
+  BYTE  UserIndex;
+  BYTE  HidCode;
+} XINPUT_KEYSTROKE, *PXINPUT_KEYSTROKE;
 
 
 using XInputGetState_pfn        = DWORD (WINAPI *)(
@@ -164,6 +171,16 @@ using XInputEnable_pfn = void (WINAPI *)(
 
 using XInputPowerOff_pfn = DWORD (WINAPI *)(
   _In_ DWORD dwUserIndex
+);
+
+#define XINPUT_KEYSTROKE_KEYDOWN 0x0001
+#define XINPUT_KEYSTROKE_KEYUP   0x0002
+#define XINPUT_KEYSTROKE_REPEAT  0x0004
+
+using XInputGetKeystroke_pfn = DWORD (WINAPI *)(
+  DWORD             dwUserIndex,
+  DWORD             dwReserved,
+  PXINPUT_KEYSTROKE pKeystroke
 );
 
 

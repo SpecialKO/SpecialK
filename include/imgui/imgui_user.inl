@@ -1534,6 +1534,27 @@ SK_ImGui_FilterXInput (
   return false;
 }
 
+bool
+_Success_(false)
+SK_ImGui_FilterXInputKeystroke (
+  _In_  DWORD             dwUserIndex,
+  _Out_ XINPUT_KEYSTROKE *pKeystroke )
+{
+  bool disable =
+    config.input.gamepad.disabled_to_game ||
+      ( SK_ImGui_WantGamepadCapture ()   &&
+        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
+
+  if (disable)
+  {
+    RtlSecureZeroMemory (&pKeystroke->Flags, sizeof (pKeystroke->Flags));
+
+    return true;
+  }
+
+  return false;
+}
+
 
 struct {
   struct linear_pulse_event_s {

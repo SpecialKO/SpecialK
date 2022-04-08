@@ -232,7 +232,11 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
   if (              latency.counters.lastFrame !=
      std::exchange (latency.counters.lastFrame, SK_GetFramesDrawn ()) )
   {
-    if (SUCCEEDED (pSwapChain->GetFrameStatistics  (&latency.counters.frameStats1)))
+    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    pSwapChain->GetDesc (&swapDesc);
+
+    if ( SK_DXGI_IsFlipModelSwapChain (swapDesc)
+     && SUCCEEDED (pSwapChain->GetFrameStatistics  (&latency.counters.frameStats1)) )
     {              pSwapChain->GetLastPresentCount (&latency.counters.lastPresent);
 
       SK_RunOnce (latency.counters.frameStats0 = latency.counters.frameStats1);

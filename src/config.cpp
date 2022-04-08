@@ -2692,6 +2692,13 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook = false;
         config.apis.OpenGL.hook = false;
         break;
+
+      case SK_GAME_ID::Elex2:
+        config.textures.cache.ignore_nonmipped = true;
+
+        SK_D3D11_DeclHUDShader_Vtx (0x2725bc3e); // Primary UI
+        SK_D3D11_DeclHUDShader_Vtx (0xcdb10248); // Radar
+        break;
 #endif
     }
   }

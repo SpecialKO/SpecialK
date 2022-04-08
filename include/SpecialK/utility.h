@@ -139,6 +139,7 @@ public:
 #include <bitset>
 #include <array>
 #include <string>
+#include <typeindex>
 
 #include <SpecialK/SpecialK.h>
 #include <SpecialK/ini.h>
@@ -847,5 +848,328 @@ SK_Util_OpenURI (
 HINSTANCE
 SK_Util_ExplorePath (
   const std::wstring_view& path);
+
+
+
+namespace SK
+{
+  namespace WindowsRegistry
+  {
+    template <class _Tp>
+    class KeyValue
+    {
+      struct KeyDesc {
+        HKEY         hKey                 = HKEY_CURRENT_USER;
+        wchar_t    wszSubKey   [MAX_PATH] =               L"";
+        wchar_t    wszKeyValue [MAX_PATH] =               L"";
+        DWORD        dwType               =          REG_NONE;
+        DWORD        dwFlags              =        RRF_RT_ANY;
+      };
+
+    public:
+      bool hasData (void)
+      {
+        auto _GetValue =
+        [&]( _Tp*     pVal,
+               DWORD* pLen = nullptr ) ->
+        LSTATUS
+        {
+          LSTATUS lStat =
+            RegGetValueW ( _desc.hKey,
+                             _desc.wszSubKey,
+                               _desc.wszKeyValue,
+                               _desc.dwFlags,
+                                 &_desc.dwType,
+                                   pVal, pLen );
+
+          return lStat;
+        };
+
+        auto _SizeofData =
+        [&](void) ->
+        DWORD
+        {
+          DWORD len = 0;
+
+          if ( ERROR_SUCCESS ==
+                 _GetValue ( nullptr, &len )
+             ) return len;
+
+          return 0;
+        };
+
+        _Tp   out;
+        DWORD dwOutLen;
+
+        auto type_idx =
+          std::type_index (typeid (_Tp));;
+
+        if ( type_idx == std::type_index (typeid (std::wstring)) )
+        {
+          // Two null terminators are stored at the end of REG_SZ, so account for those
+          return (_SizeofData() > 4);
+        }
+
+        if ( type_idx == std::type_index (typeid (bool)) )
+        {
+          _desc.dwType = REG_BINARY;
+              dwOutLen = sizeof (bool);
+        }
+
+        if ( type_idx == std::type_index (typeid (int)) )
+        {
+          _desc.dwType = REG_DWORD;
+              dwOutLen = sizeof (int);
+        }
+
+        if ( type_idx == std::type_index (typeid (float)) )
+        {
+          _desc.dwFlags = RRF_RT_REG_BINARY;
+          _desc.dwType  = REG_BINARY;
+               dwOutLen = sizeof (float);
+        }
+
+        if ( ERROR_SUCCESS !=
+               _GetValue (&out, &dwOutLen) ) return false;
+
+        return true;
+      };
+
+      std::wstring getWideString (void)
+      {
+        auto _GetValue =
+        [&]( _Tp*     pVal,
+               DWORD* pLen = nullptr ) ->
+        LSTATUS
+        {
+          LSTATUS lStat =
+            RegGetValueW ( _desc.hKey,
+                             _desc.wszSubKey,
+                               _desc.wszKeyValue,
+                               _desc.dwFlags,
+                                 &_desc.dwType,
+                                   pVal, pLen );
+
+          return lStat;
+        };
+
+        auto _SizeofData =
+        [&](void) ->
+        DWORD
+        {
+          DWORD len = 0;
+
+          if ( ERROR_SUCCESS ==
+                 _GetValue ( nullptr, &len )
+             ) return len;
+
+          return 0;
+        };
+
+        _Tp   out;
+        DWORD dwOutLen = _SizeofData();
+        std::wstring _out(dwOutLen, '\0');
+
+        auto type_idx =
+          std::type_index (typeid (_Tp));
+
+        if ( type_idx == std::type_index (typeid (std::wstring)) )
+        {
+          _desc.dwFlags = RRF_RT_REG_SZ;
+          _desc.dwType  = REG_SZ;
+
+          if ( ERROR_SUCCESS != 
+            RegGetValueW ( _desc.hKey,
+                             _desc.wszSubKey,
+                               _desc.wszKeyValue,
+                               _desc.dwFlags,
+                                 &_desc.dwType,
+                                   _out.data(), &dwOutLen)) return std::wstring();
+
+          // Strip null terminators
+          _out.erase(std::find(_out.begin(), _out.end(), '\0'), _out.end());
+        }
+
+        return _out;
+      };
+
+      _Tp getData (void)
+      {
+        auto _GetValue =
+        [&]( _Tp*     pVal,
+               DWORD* pLen = nullptr ) ->
+        LSTATUS
+        {
+          LSTATUS lStat =
+            RegGetValueW ( _desc.hKey,
+                             _desc.wszSubKey,
+                               _desc.wszKeyValue,
+                               _desc.dwFlags,
+                                 &_desc.dwType,
+                                   pVal, pLen );
+
+          return lStat;
+        };
+
+        auto _SizeofData =
+        [&](void) ->
+        DWORD
+        {
+          DWORD len = 0;
+
+          if ( ERROR_SUCCESS ==
+                 _GetValue ( nullptr, &len )
+             ) return len;
+
+          return 0;
+        };
+
+        _Tp   out;
+        DWORD dwOutLen;
+
+        auto type_idx =
+          std::type_index (typeid (_Tp));
+
+        if ( type_idx == std::type_index (typeid (bool)) )
+        {
+          _desc.dwType = REG_BINARY;
+              dwOutLen = sizeof (bool);
+        }
+
+        if ( type_idx == std::type_index (typeid (int)) )
+        {
+          _desc.dwType = REG_DWORD;
+              dwOutLen = sizeof (int);
+        }
+
+        if ( type_idx == std::type_index (typeid (float)) )
+        {
+          _desc.dwFlags = RRF_RT_REG_BINARY;
+          _desc.dwType  = REG_BINARY;
+               dwOutLen = sizeof (float);
+        }
+
+        if ( ERROR_SUCCESS !=
+               _GetValue (&out, &dwOutLen) ) out = _Tp ();
+
+        return out;
+      };
+
+      _Tp putData (_Tp in)
+      {
+        auto _SetValue =
+        [&]( _Tp*    pVal,
+             LPDWORD pLen = nullptr ) ->
+        LSTATUS
+        {
+          LSTATUS lStat         = STATUS_INVALID_DISPOSITION;
+          HKEY    hKeyToSet     = 0;
+          DWORD   dwDisposition = 0;
+          DWORD   dwDataSize    = 0;
+
+          lStat =
+            RegCreateKeyExW (
+              _desc.hKey,
+                _desc.wszSubKey,
+                  0x00, nullptr,
+                    REG_OPTION_NON_VOLATILE,
+                    KEY_ALL_ACCESS, nullptr,
+                      &hKeyToSet, &dwDisposition );
+
+          auto type_idx =
+            std::type_index (typeid (_Tp));
+
+          if ( type_idx == std::type_index (typeid (std::wstring)) )
+          {
+            std::wstring _in = std::wstringstream(in).str();
+
+            _desc.dwType     = REG_SZ;
+                  dwDataSize = (DWORD) _in.size ( ) * sizeof(wchar_t);
+
+            lStat =
+              RegSetKeyValueW ( hKeyToSet,
+                                  nullptr,
+                                  _desc.wszKeyValue,
+                                  _desc.dwType,
+                           (LPBYTE) _in.data(), dwDataSize);
+            
+            RegCloseKey (hKeyToSet);
+
+            return lStat;
+          }
+
+          if ( type_idx == std::type_index (typeid (bool)) )
+          {
+            _desc.dwType     = REG_BINARY;
+                  dwDataSize = sizeof (bool);
+          }
+
+          if ( type_idx == std::type_index (typeid (int)) )
+          {
+            _desc.dwType     = REG_DWORD;
+                  dwDataSize = sizeof (int);
+          }
+
+          if ( type_idx == std::type_index (typeid (float)) )
+          {
+            _desc.dwFlags    = RRF_RT_DWORD;
+            _desc.dwType     = REG_BINARY;
+                  dwDataSize = sizeof (float);
+          }
+
+          lStat =
+            RegSetKeyValueW ( hKeyToSet,
+                                nullptr,
+                                _desc.wszKeyValue,
+                                _desc.dwType,
+                                  pVal, dwDataSize );
+
+          RegCloseKey (hKeyToSet);
+
+          UNREFERENCED_PARAMETER (pLen);
+
+          return lStat;
+        };
+
+        if ( ERROR_SUCCESS == _SetValue (&in) )
+          return in;
+
+        return _Tp ();
+      };
+
+      static KeyValue <typename _Tp>
+         MakeKeyValue ( const wchar_t *wszSubKey,
+                        const wchar_t *wszKeyValue,
+                        HKEY           hKey    = HKEY_CURRENT_USER,
+                        LPDWORD        pdwType = nullptr,
+                        DWORD          dwFlags = RRF_RT_ANY )
+      {
+        KeyValue <_Tp> kv;
+
+        wcsncpy_s ( kv._desc.wszSubKey, MAX_PATH,
+                             wszSubKey, _TRUNCATE );
+
+        wcsncpy_s ( kv._desc.wszKeyValue, MAX_PATH,
+                             wszKeyValue, _TRUNCATE );
+
+        kv._desc.hKey    = hKey;
+        kv._desc.dwType  = ( pdwType != nullptr ) ?
+                                         *pdwType : REG_NONE;
+        kv._desc.dwFlags = dwFlags;
+
+        return kv;
+      }
+
+    protected:
+    private:
+      KeyDesc _desc;
+    };
+  };
+
+#define SK_MakeRegKeyF  SK::WindowsRegistry::KeyValue <float>::MakeKeyValue
+#define SK_MakeRegKeyB  SK::WindowsRegistry::KeyValue <bool>::MakeKeyValue
+#define SK_MakeRegKeyI  SK::WindowsRegistry::KeyValue <int>::MakeKeyValue
+#define SK_MakeRegKeyWS SK::WindowsRegistry::KeyValue <std::wstring>::MakeKeyValue
+};
 
 #endif /* __SK__UTILITY_H__ */

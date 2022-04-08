@@ -1224,58 +1224,70 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
   try
   {
     if (_P->pVertexShader == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(imgui_d3d11_vs_bytecode),
-                                  sizeof (imgui_d3d11_vs_bytecode) /
-                                  sizeof (imgui_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShader));
-    SK_D3D11_SetDebugName (                   _P->pVertexShader,
-                                          L"ImGui Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(imgui_d3d11_vs_bytecode),
+                                    sizeof (imgui_d3d11_vs_bytecode) /
+                                    sizeof (imgui_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShader));
+      SK_D3D11_SetDebugName (                   _P->pVertexShader,
+                                            L"ImGui Vertex Shader");
+    }
 
     if (_P->pVertexShaderSteamHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(steam_d3d11_vs_bytecode),
-                                  sizeof (steam_d3d11_vs_bytecode) /
-                                  sizeof (steam_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShaderSteamHDR));
-    SK_D3D11_SetDebugName (                   _P->pVertexShaderSteamHDR,
-                              L"Steam Overlay HDR Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(steam_d3d11_vs_bytecode),
+                                    sizeof (steam_d3d11_vs_bytecode) /
+                                    sizeof (steam_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderSteamHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderSteamHDR,
+                                L"Steam Overlay HDR Vertex Shader");
+    }
 
     if (_P->pVertexShaderDiscordHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(discord_d3d11_vs_bytecode),
-                                  sizeof (discord_d3d11_vs_bytecode) /
-                                  sizeof (discord_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShaderDiscordHDR));
-    SK_D3D11_SetDebugName (                   _P->pVertexShaderDiscordHDR,
-                              L"Discord Overlay HDR Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(discord_d3d11_vs_bytecode),
+                                    sizeof (discord_d3d11_vs_bytecode) /
+                                    sizeof (discord_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderDiscordHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderDiscordHDR,
+                                L"Discord Overlay HDR Vertex Shader");
+    }
 
     if (_P->pVertexShaderRTSSHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(rtss_d3d11_vs_bytecode),
-                                  sizeof (rtss_d3d11_vs_bytecode) /
-                                  sizeof (rtss_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShaderRTSSHDR));
-    SK_D3D11_SetDebugName (                   _P->pVertexShaderRTSSHDR,
-                              L"RTSS Overlay HDR Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(rtss_d3d11_vs_bytecode),
+                                    sizeof (rtss_d3d11_vs_bytecode) /
+                                    sizeof (rtss_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderRTSSHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderRTSSHDR,
+                                L"RTSS Overlay HDR Vertex Shader");
+    }
 
     if (_P->pVertexShaderuPlayHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(uplay_d3d11_vs_bytecode),
-                                  sizeof (uplay_d3d11_vs_bytecode) /
-                                  sizeof (uplay_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShaderuPlayHDR));
-    SK_D3D11_SetDebugName (                   _P->pVertexShaderuPlayHDR,
-                              L"uPlay Overlay HDR Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(uplay_d3d11_vs_bytecode),
+                                    sizeof (uplay_d3d11_vs_bytecode) /
+                                    sizeof (uplay_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderuPlayHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderuPlayHDR,
+                                L"uPlay Overlay HDR Vertex Shader");
+    }
 
     if (_P->pVertexShaderEpicHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreateVertexShader ( (void *)(epic_d3d11_vs_bytecode),
-                                  sizeof (epic_d3d11_vs_bytecode) /
-                                  sizeof (epic_d3d11_vs_bytecode [0]),
-                                    nullptr, &_P->pVertexShaderEpicHDR));
-    SK_D3D11_SetDebugName (                   _P->pVertexShaderEpicHDR,
-                              L"Epic Overlay HDR Vertex Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreateVertexShader ( (void *)(epic_d3d11_vs_bytecode),
+                                    sizeof (epic_d3d11_vs_bytecode) /
+                                    sizeof (epic_d3d11_vs_bytecode [0]),
+                                      nullptr, &_P->pVertexShaderEpicHDR));
+      SK_D3D11_SetDebugName (                   _P->pVertexShaderEpicHDR,
+                                L"Epic Overlay HDR Vertex Shader");
+    }
 
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC    local_layout [] = {
@@ -1285,13 +1297,15 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     };
 
     if (_P->pInputLayout == nullptr)
-    ThrowIfFailed (
-      pDev->CreateInputLayout ( local_layout, 3,
-                                   (void *)(imgui_d3d11_vs_bytecode),
-                                    sizeof (imgui_d3d11_vs_bytecode) /
-                                    sizeof (imgui_d3d11_vs_bytecode [0]),
-                            &_P->pInputLayout ));
-    SK_D3D11_SetDebugName (  _P->pInputLayout, L"ImGui Vertex Input Layout");
+    {
+      ThrowIfFailed (
+        pDev->CreateInputLayout ( local_layout, 3,
+                                     (void *)(imgui_d3d11_vs_bytecode),
+                                      sizeof (imgui_d3d11_vs_bytecode) /
+                                      sizeof (imgui_d3d11_vs_bytecode [0]),
+                              &_P->pInputLayout ));
+      SK_D3D11_SetDebugName (  _P->pInputLayout, L"ImGui Vertex Input Layout");
+    }
 
     // Create the constant buffers
     {
@@ -1304,54 +1318,67 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.MiscFlags         = 0;
 
       if (_P->pVertexConstantBuffer == nullptr)
-      ThrowIfFailed (
-        pDev->CreateBuffer (&desc, nullptr, &_P->pVertexConstantBuffer));
+      {
+        ThrowIfFailed (
+          pDev->CreateBuffer (&desc, nullptr, &_P->pVertexConstantBuffer));
+        SK_D3D11_SetDebugName (                _P->pVertexConstantBuffer,
+                                          L"ImGui Vertex Constant Buffer");
+      }
 
       desc.ByteWidth         = sizeof (float) * 4;
 
       if (_P->pPixelConstantBuffer == nullptr)
-      ThrowIfFailed (
-        pDev->CreateBuffer (&desc, nullptr, &_P->pPixelConstantBuffer));
-
-      SK_D3D11_SetDebugName ( _P->pVertexConstantBuffer, L"ImGui Vertex Constant Buffer");
-      SK_D3D11_SetDebugName ( _P->pPixelConstantBuffer,  L"ImGui Pixel Constant Buffer");
+      {
+        ThrowIfFailed (
+          pDev->CreateBuffer (&desc, nullptr, &_P->pPixelConstantBuffer));
+        SK_D3D11_SetDebugName (                _P->pPixelConstantBuffer,
+                                          L"ImGui Pixel Constant Buffer");
+      }
     }
 
     if (_P->pPixelShader == nullptr)
-    ThrowIfFailed (
-      pDev->CreatePixelShader ( (void *)(imgui_d3d11_ps_bytecode),
-                                 sizeof (imgui_d3d11_ps_bytecode) /
-                                 sizeof (imgui_d3d11_ps_bytecode [0]),
-                                   nullptr, &_P->pPixelShader ));
-    SK_D3D11_SetDebugName (                  _P->pPixelShader,
-                                         L"ImGui Pixel Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreatePixelShader ( (void *)(imgui_d3d11_ps_bytecode),
+                                   sizeof (imgui_d3d11_ps_bytecode) /
+                                   sizeof (imgui_d3d11_ps_bytecode [0]),
+                                     nullptr, &_P->pPixelShader ));
+      SK_D3D11_SetDebugName (                  _P->pPixelShader,
+                                           L"ImGui Pixel Shader");
+    }
 
     if (_P->pPixelShaderSteamHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreatePixelShader ( (void *) (steam_d3d11_ps_bytecode),
-                                  sizeof (steam_d3d11_ps_bytecode) /
-                                  sizeof (steam_d3d11_ps_bytecode [0]),
-                                    nullptr, &_P->pPixelShaderSteamHDR ));
-    SK_D3D11_SetDebugName (                   _P->pPixelShaderSteamHDR,
-                               L"Steam Overlay HDR Pixel Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreatePixelShader ( (void *) (steam_d3d11_ps_bytecode),
+                                    sizeof (steam_d3d11_ps_bytecode) /
+                                    sizeof (steam_d3d11_ps_bytecode [0]),
+                                      nullptr, &_P->pPixelShaderSteamHDR ));
+      SK_D3D11_SetDebugName (                   _P->pPixelShaderSteamHDR,
+                                 L"Steam Overlay HDR Pixel Shader");
+    }
 
     if (_P->pPixelShaderDiscordHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreatePixelShader ( (void *) (discord_d3d11_ps_bytecode),
-                                  sizeof (discord_d3d11_ps_bytecode) /
-                                  sizeof (discord_d3d11_ps_bytecode [0]),
-                                    nullptr, &_P->pPixelShaderDiscordHDR ));
-    SK_D3D11_SetDebugName (                   _P->pPixelShaderDiscordHDR,
-                               L"Discord Overlay HDR Pixel Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreatePixelShader ( (void *) (discord_d3d11_ps_bytecode),
+                                    sizeof (discord_d3d11_ps_bytecode) /
+                                    sizeof (discord_d3d11_ps_bytecode [0]),
+                                      nullptr, &_P->pPixelShaderDiscordHDR ));
+      SK_D3D11_SetDebugName (                   _P->pPixelShaderDiscordHDR,
+                                 L"Discord Overlay HDR Pixel Shader");
+    }
 
     if (_P->pPixelShaderuPlayHDR == nullptr)
-    ThrowIfFailed (
-      pDev->CreatePixelShader ( (void *) (uplay_d3d11_ps_bytecode),
-                                  sizeof (uplay_d3d11_ps_bytecode) /
-                                  sizeof (uplay_d3d11_ps_bytecode [0]),
-                                    nullptr, &_P->pPixelShaderuPlayHDR ));
-    SK_D3D11_SetDebugName (                   _P->pPixelShaderuPlayHDR,
-                               L"uPlay Overlay HDR Pixel Shader");
+    {
+      ThrowIfFailed (
+        pDev->CreatePixelShader ( (void *) (uplay_d3d11_ps_bytecode),
+                                    sizeof (uplay_d3d11_ps_bytecode) /
+                                    sizeof (uplay_d3d11_ps_bytecode [0]),
+                                      nullptr, &_P->pPixelShaderuPlayHDR ));
+      SK_D3D11_SetDebugName (                   _P->pPixelShaderuPlayHDR,
+                                 L"uPlay Overlay HDR Pixel Shader");
+    }
 
     // Create the blending setup
     {
@@ -1368,10 +1395,12 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
       if (_P->pBlendState == nullptr)
-      ThrowIfFailed (
-        pDev->CreateBlendState (&desc, &_P->pBlendState));
-      SK_D3D11_SetDebugName (           _P->pBlendState,
-                                    L"ImGui Blend State");
+      {
+        ThrowIfFailed (
+          pDev->CreateBlendState (&desc, &_P->pBlendState));
+        SK_D3D11_SetDebugName (           _P->pBlendState,
+                                      L"ImGui Blend State");
+      }
     }
 
     // Create the rasterizer state
@@ -1384,10 +1413,12 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.DepthClipEnable = true;
 
       if (_P->pRasterizerState == nullptr)
-      ThrowIfFailed (
-        pDev->CreateRasterizerState (&desc, &_P->pRasterizerState ));
-      SK_D3D11_SetDebugName (                _P->pRasterizerState,
-                                         L"ImGui Rasterizer State");
+      {
+        ThrowIfFailed (
+          pDev->CreateRasterizerState (&desc, &_P->pRasterizerState ));
+        SK_D3D11_SetDebugName (                _P->pRasterizerState,
+                                           L"ImGui Rasterizer State");
+      }
     }
 
     // Create depth-stencil State
@@ -1405,17 +1436,21 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       desc.BackFace                 = desc.FrontFace;
 
       if (_P->pDepthStencilState == nullptr)
-      ThrowIfFailed (
-        pDev->CreateDepthStencilState (&desc, &_P->pDepthStencilState));
-      SK_D3D11_SetDebugName (                  _P->pDepthStencilState,
-                                           L"ImGui Depth/Stencil State");
+      {
+        ThrowIfFailed (
+          pDev->CreateDepthStencilState (&desc, &_P->pDepthStencilState));
+        SK_D3D11_SetDebugName (                  _P->pDepthStencilState,
+                                             L"ImGui Depth/Stencil State");
+      }
     }
 
     if (_P->pBackBuffer == nullptr)
-    ThrowIfFailed (
-      pSwapChain->GetBuffer  (0, IID_PPV_ARGS (&_P->pBackBuffer.p))
-    ); SK_D3D11_SetDebugName (                  _P->pBackBuffer,
-                                            L"ImGui BackBuffer");
+    {
+      ThrowIfFailed (
+        pSwapChain->GetBuffer  (0, IID_PPV_ARGS (&_P->pBackBuffer.p))
+      ); SK_D3D11_SetDebugName (                  _P->pBackBuffer,
+                                               L"ImGui BackBuffer");
+    }
 
     D3D11_RENDER_TARGET_VIEW_DESC      rt_desc = { };
     D3D11_RENDER_TARGET_VIEW_DESC       *pDesc = &rt_desc;
@@ -1456,11 +1491,13 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     }
 
     if (_P->pRenderTargetView == nullptr)
-    ThrowIfFailed (
-      pDev->CreateRenderTargetView  ( _P->pBackBuffer, pDesc,
-                                     &_P->pRenderTargetView.p ));
-    SK_D3D11_SetDebugName (           _P->pRenderTargetView,
-                                  L"ImGui RenderTargetView" );
+    {
+      ThrowIfFailed (
+        pDev->CreateRenderTargetView  ( _P->pBackBuffer, pDesc,
+                                       &_P->pRenderTargetView.p ));
+      SK_D3D11_SetDebugName (           _P->pRenderTargetView,
+                                    L"ImGui RenderTargetView" );
+    }
 
     return true;
   }
@@ -1550,9 +1587,9 @@ SK_ImGui_ResetExternal (void)
 void
 ImGui_ImplDX11_InvalidateDeviceObjects (void)
 {
-//#define RESET_FONT
-#define RESET_VTX_IDX_BUFFERS
-//#define RESET_SHADERS
+  #define RESET_FONT
+  #define RESET_VTX_IDX_BUFFERS
+  #define RESET_SHADERS
 
   SK_ImGui_ResetExternal ();
 

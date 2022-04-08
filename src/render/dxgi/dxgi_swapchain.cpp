@@ -323,7 +323,13 @@ IWrapDXGISwapChain::PresentBase (void)
 
           if (pBackbuffer.p != nullptr)
           {
-            pDevCtx->CopyResource (pBackbuffer, _backbuffers [0].p);
+            D3D11_TEXTURE2D_DESC        texDesc = { };
+            _backbuffers [0]->GetDesc (&texDesc);
+
+            if (texDesc.SampleDesc.Count > 1)
+              pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, texDesc.Format);
+            else
+              pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
 
             if (config.render.framerate.flip_discard)
             {
@@ -331,13 +337,9 @@ IWrapDXGISwapChain::PresentBase (void)
                   pDevCtx1 (pDevCtx);
               if (pDevCtx1.p != nullptr)
               {
-                pDevCtx1->DiscardResource (pBackbuffer);
+                pDevCtx1->DiscardResource (_backbuffers [0].p);
               }
             }
-
-            // Do it NOW, the actual Present call may be hooked by other
-            //   overlays and we want this flushed before they add work.
-            pDevCtx->Flush ();
           }
         }
       }
@@ -416,16 +418,20 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
-          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET    |
-                                       D3D11_BIND_UNORDERED_ACCESS |
+          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET |
                                        D3D11_BIND_SHADER_RESOURCE;
+
+          // MSAA SwapChains can't use UA
+          if (texDesc.SampleDesc.Count <= 1)
+              texDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
-            SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d %hs )",
+            SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
                           Buffer,
                                swapDesc.BufferDesc.Width,
                                swapDesc.BufferDesc.Height,
+                               texDesc.SampleDesc.Count,
           SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
 
             _backbuffers [Buffer] = backbuffer;
@@ -583,12 +589,55 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   }
 
 
+
+  auto origWidth  = Width;
+  auto origHeight = Height;
+
+  auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+  if (config.window.borderless && config.window.fullscreen && (! rb.fullscreen_exclusive))
+  {
+    if ( rb.active_display >= 0 &&
+         rb.active_display < rb._MAX_DISPLAYS )
+    {
+      Width  = rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left;
+      Height = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+
+      if (origWidth != Width || origHeight != Height)
+      {
+        SK_LOGi0 (
+          L" >> SwapChain Resolution Override (Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
+          origWidth, origHeight,
+              Width,     Height );
+      }
+    }
+  }
+
+  if (! config.window.res.override.isZero ())
+  {
+    Width  = config.window.res.override.x;
+    Height = config.window.res.override.y;
+
+    if (origWidth != Width || origHeight != Height)
+    {
+      SK_LOGi0 (
+        L" >> SwapChain Resolution Override (Requested: %dx%d), (Actual: %dx%d) [ User-Defined Resolution ]",
+        origWidth, origHeight,
+            Width,     Height );
+    }
+  }
+
+
   HRESULT hr =
     pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
 
 
   if (SUCCEEDED (hr))
   {
+    if (SUCCEEDED (hr))
+      SK_RealizeForegroundWindow (hWnd_);
+
     // D3D12 is already Flip Model and doesn't need this
     if (flip_model.isOverrideActive () && (! d3d12_))
     {
@@ -674,8 +723,13 @@ IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
   ///  return S_OK;
   ///}
 
-  return
+  HRESULT hr =
     pReal->ResizeTarget (pNewTargetParameters);
+
+  if (SUCCEEDED (hr))
+    SK_RealizeForegroundWindow (hWnd_);
+
+  return hr;
 }
 
 HRESULT

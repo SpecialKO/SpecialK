@@ -473,4 +473,22 @@ HRESULT SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSA
 HRESULT SK_DXGI_ReportLiveObjects (IUnknown* pDev = nullptr);
 
 
+static constexpr
+BOOL
+SK_DXGI_IsFlipModelSwapEffect (DXGI_SWAP_EFFECT swapEffect) noexcept
+{
+  return
+    ( swapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
+      swapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
+}
+
+static
+BOOL
+SK_DXGI_IsFlipModelSwapChain (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
+{
+  return
+    SK_DXGI_IsFlipModelSwapEffect (desc.SwapEffect);
+};
+
+
 #endif /* __SK__DXGI_BACKEND_H__ */

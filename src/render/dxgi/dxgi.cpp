@@ -2234,23 +2234,6 @@ SK_DXGI_TestPresentFlags (DWORD Flags) noexcept
   return true;
 }
 
-constexpr
-BOOL
-SK_DXGI_IsFlipModelSwapEffect (DXGI_SWAP_EFFECT swapEffect) noexcept
-{
-  return
-    ( swapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
-      swapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
-}
-
-BOOL
-SK_DXGI_IsFlipModelSwapChain (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
-{
-  return
-    SK_DXGI_IsFlipModelSwapEffect (desc.SwapEffect);
-};
-
-
 void
 SK_DXGI_SetupPluginOnFirstFrame ( IDXGISwapChain *This,
                                   UINT            SyncInterval,
@@ -2354,17 +2337,40 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                       UINT _Flags) ->
   HRESULT
   {
-    // Unreal Engine will crash itself if VSYNC is off while it's in fullscreen
+    BOOL bFullscreen =
+      SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+
+    // Only works in Windowed +
+    //  ... needs a special SwapChain creation flag and Flip Model
     if (_Flags & DXGI_PRESENT_ALLOW_TEARING)
     {
-      BOOL bFullscreen =
-        SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+      BOOL  bIgnore = bFullscreen;
+      if (! bIgnore)
+      {
+        DXGI_SWAP_CHAIN_DESC swapDesc = { };
+        This->GetDesc      (&swapDesc);
 
-      // We don't want that to happen :)
-      if (bFullscreen || (SUCCEEDED (This->GetFullscreenState (&bFullscreen, nullptr)) && bFullscreen))
+        if (! (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING))
+          bIgnore = TRUE;
+
+        if (! SK_DXGI_IsFlipModelSwapEffect (swapDesc.SwapEffect))
+          bIgnore = TRUE;
+      }
+
+      if (bIgnore || (SUCCEEDED (This->GetFullscreenState (&bIgnore, nullptr)) && bIgnore))
       {
         // Remove this flag
         _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+      }
+    }
+
+    // Only works in Fullscreen
+    if (_Flags & DXGI_PRESENT_RESTART)
+    {
+      if (! (bFullscreen || (SUCCEEDED (This->GetFullscreenState (&bFullscreen, nullptr)) && bFullscreen)))
+      {
+        // Remove this flag
+        _Flags &= ~DXGI_PRESENT_RESTART;
       }
     }
 
@@ -2527,10 +2533,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
           DXGI_SWAP_CHAIN_DESC swapDesc = { };
           This->GetDesc      (&swapDesc);
-          This->ResizeBuffers ( 0,
-                                0, 0,
-                                   DXGI_FORMAT_UNKNOWN,
-                                     swapDesc.Flags );
+          This->ResizeBuffers ( swapDesc.BufferCount,       swapDesc.BufferDesc.Width,
+                                                            swapDesc.BufferDesc.Height,
+                                swapDesc.BufferDesc.Format, swapDesc.Flags );
         }
 
         else if (hrPresent == DXGI_STATUS_OCCLUDED                     ||
@@ -2543,7 +2548,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
               SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
           );
 
-          SK_DelayExecution (0.5, TRUE);
+          SK_DelayExecution (40.0, TRUE);
         }
 
         else
@@ -2554,10 +2559,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                 SK_DXGI_DescribePresentStatus (hrPresent).c_str ()
           );
 
-          SK_DelayExecution (3.333, TRUE);
+          SK_DelayExecution (5.0, TRUE);
         }
       }
     }
+
 
     // Third-party software doesn't always behave compliantly in games that
     //   use presentation testing... so we may need to resort to this or
@@ -5464,6 +5470,21 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
                    L"  >> Disabling SwapChain-based MSAA for Flip Model compliance." );
 
         pDesc->SampleDesc.Count = 1;
+      }
+    }
+
+    if (config.window.borderless && config.window.fullscreen && pDesc->Windowed != FALSE)
+    {
+      HMONITOR hMonTarget =
+        MonitorFromWindow (pDesc->OutputWindow, MONITOR_DEFAULTTONEAREST);
+
+      MONITORINFO minfo        = { };
+                  minfo.cbSize = sizeof (MONITORINFO);
+
+      if (GetMonitorInfoW (hMonTarget, &minfo))
+      {
+        pDesc->BufferDesc.Width  = minfo.rcMonitor.right  - minfo.rcMonitor.left;
+        pDesc->BufferDesc.Height = minfo.rcMonitor.bottom - minfo.rcMonitor.top;
       }
     }
 

@@ -21,6 +21,8 @@
 
 #pragma warning ( disable : 4273 )
 
+#define __SK_SUBSYSTEM__ L"  OpenGL  "
+
 #define WIN32_LEAN_AND_MEAN
 
 #include <cstdint>
@@ -1945,7 +1947,7 @@ static concurrency::concurrent_unordered_map <HDC, SK_IndirectX_InteropCtx>
 void
 SK_GL_SetVirtualDisplayMode (HWND hWnd, bool Fullscreen, UINT Width, UINT Height)
 {
-  dll_log->Log (
+  SK_LOGi1 (
     L"SK_GL_SetVirtualDisplayMode (%x, %s, %lu, %lu)", hWnd, Fullscreen ? L"Fullscreen"
                                                                         : L"Windowed", Width, Height);
 

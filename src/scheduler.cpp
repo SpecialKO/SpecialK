@@ -304,14 +304,14 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
           static_cast <double> ( end - now ) / dTicksPerMS )
                           );
 
+    GUITHREADINFO gti        = {                    };
+                  gti.cbSize = sizeof (GUITHREADINFO);
+
+    BOOL bGUIThread    =
+      GetGUIThreadInfo (GetCurrentThreadId (), &gti) && IsWindow (gti.hwndActive);
+
     if (dwMaxWait < 5000UL)
     {
-      GUITHREADINFO gti        = {                    };
-                    gti.cbSize = sizeof (GUITHREADINFO);
-
-      BOOL bGUIThread    =
-        GetGUIThreadInfo (GetCurrentThreadId (), &gti) && IsWindow (gti.hwndActive);
-
       if (! bGUIThread)
         return;
 
@@ -758,8 +758,10 @@ SwitchToThread_Detour (void)
     ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld     );
   static bool is_aco =
     ( SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey );
+    static bool is_elex2 =
+    ( SK_GetCurrentGameID () == SK_GAME_ID::Elex2 );
 
-  if (! (is_mhw || is_aco))
+  if (! (is_mhw || is_aco || is_elex2))
   {
 #endif
     BOOL bRet =
@@ -905,6 +907,17 @@ SwitchToThread_Detour (void)
       SK_GetFramesDrawn ();
   }
 
+  else if (is_elex2)
+  {
+    static volatile LONG iters = 0L;
+
+    if ((InterlockedIncrement (&iters) % 13L) == 0L)
+      SK_DelayExecution (0.5, TRUE);
+
+    else if ((ReadAcquire (&iters) % 9L) != 0L)
+      SwitchToThread_Original ();
+  }
+
   else
   {
     bRet =
@@ -1008,6 +1021,11 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     ( game_id == SK_GAME_ID::Tales_of_Vesperia &&
             1 == dwMilliseconds );
 #endif
+
+  // Time wasted classifying the thread would be undesirable, just replace
+  //   with an immediate return to caller :)
+  if (dwMilliseconds == 0 && bWantThreadClassification)
+    return 1;
 
   DWORD dwTid =
     ( bWantThreadClassification ) ?

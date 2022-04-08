@@ -125,6 +125,9 @@ public:
 
     void update (ISteamUserStats* stats)
     {
+      if (stats == nullptr)
+        return;
+
       stats->GetAchievementAndUnlockTime ( name_.c_str (),
                                           &unlocked_,
                               (uint32_t *)&time_ );
@@ -132,6 +135,9 @@ public:
 
     void update_global (ISteamUserStats* stats)
     {
+      if (stats == nullptr)
+        return;
+
       // Reset to 0.0 on read failure
       if (! stats->GetAchievementAchievedPercent (
               name_.c_str (),
