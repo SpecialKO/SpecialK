@@ -1,4 +1,10 @@
-﻿22.4.8.3-NOCEGUI
+﻿22.4.9-NOCEGUI
+==============
+ + Added support for SwapChain-based MSAA when using Flip Model / HDR
+
+     (Chrono Cross is 8x MSAA by default, and works as intended now)
+
+22.4.8.3-NOCEGUI
 ================
  + Changed SK's Injection Success Event to not signal if SKIF has explicitly
      been configured not to stop injection.

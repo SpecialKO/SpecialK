@@ -409,12 +409,15 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
         if (pDev11.p != nullptr)
         {
+          // TODO: Pass this during wrapping
+          extern UINT uiOriginalBltSampleCount;
+
           texDesc                    = { };
           texDesc.Width              = swapDesc.BufferDesc.Width;
           texDesc.Height             = swapDesc.BufferDesc.Height;
           texDesc.Format             = swapDesc.BufferDesc.Format;
           texDesc.ArraySize          = 1;
-          texDesc.SampleDesc.Count   = 1;
+          texDesc.SampleDesc.Count   = uiOriginalBltSampleCount;
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
@@ -479,31 +482,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-  ///if (waitable_ && (! d3d12_))
-  ///{
-  ///  if (Fullscreen == TRUE)
-  ///  {
-  ///    SK_RunOnce (
-  ///      SK_ImGui_Warning ( L"Fullscreen Exclusive Mode is not Supported on D3D11 Waitable SwapChains.\r\n\r\n\t"
-  ///                         L">> Please Change In-Game Settings to Borderless Window Mode ASAP to Prevent Compat. Issues" )
-  ///    );
-  ///  }
-  ///
-  ///  fakeFullscreen_ = Fullscreen;
-  ///
-  ///  //////BOOL orig =
-  ///  //////  SK_Window_IsTopMost (hWnd_) ? TRUE : FALSE;
-  ///  //////
-  ///  //////if (orig != Fullscreen)
-  ///  //////  SK_Window_SetTopMost (Fullscreen, Fullscreen, hWnd_);
-  ///
-  ///  SK_GetCurrentRenderBackend ().fullscreen_exclusive = Fullscreen;
-  ///
-  ///  if (Fullscreen)
-  ///    return DXGI_ERROR_INVALID_CALL;
-  ///  return S_OK;
-  ///}
-
   return
     pReal->SetFullscreenState (Fullscreen, pTarget);
 }
@@ -512,19 +490,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
-  ///if (waitable_ && (! d3d12_))
-  ///{
-  ///  if (pFullscreen != nullptr)
-  ///     *pFullscreen  = fakeFullscreen_;
-  ///
-  ///  if (fakeFullscreen_)
-  ///  {
-  ///    pReal->GetContainingOutput (ppTarget);
-  ///  }
-  ///
-  ///  return S_OK;
-  ///}
-
   return
     pReal->GetFullscreenState (pFullscreen, ppTarget);
 }
@@ -536,21 +501,22 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
   HRESULT hr =
     pReal->GetDesc (pDesc);
 
-  ///if (SUCCEEDED (hr))
-  ///{
-  ///  ///if (lastRequested_ == DXGI_FORMAT_UNKNOWN)
-  ///  ///    lastRequested_ =  pDesc->BufferDesc.Format;
-  ///
-  ///  if (waitable_ && (! d3d12_))
-  ///  {
-  ///    pDesc->Windowed = (! fakeFullscreen_);
-  ///  }
-  ///
-  ///  //extern bool
-  ///  //    __SK_HDR_16BitSwap;
-  ///  //if (__SK_HDR_16BitSwap && pDesc->BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-  ///  //                          pDesc->BufferDesc.Format =  lastRequested_;
-  ///}
+  // Potentially override the Sample Count if behind the scenes we are
+  //   handling MSAA resolve for a Flip Model SwapChain
+  if (SUCCEEDED (hr))
+  {
+    std::scoped_lock lock (_backbufferLock);
+
+    if ( (! _backbuffers.empty ()) &&
+            _backbuffers [0].p != nullptr )
+    {
+      D3D11_TEXTURE2D_DESC        texDesc = { };
+      _backbuffers [0]->GetDesc (&texDesc);
+
+      pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
+      pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
+    }
+  }
 
   return hr;
 }
@@ -635,9 +601,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
 
   if (SUCCEEDED (hr))
   {
-    if (SUCCEEDED (hr))
-      SK_RealizeForegroundWindow (hWnd_);
-
     // D3D12 is already Flip Model and doesn't need this
     if (flip_model.isOverrideActive () && (! d3d12_))
     {
@@ -713,16 +676,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
 {
-  ///if (waitable_ && (! d3d12_))
-  ///{
-  ///  DXGI_SWAP_CHAIN_DESC swapDesc = { };
-  ///  pReal->GetDesc     (&swapDesc);
-  ///
-  ///  pReal->ResizeBuffers (0, pNewTargetParameters->Width, pNewTargetParameters->Height, pNewTargetParameters->Format, swapDesc.Flags);
-  ///
-  ///  return S_OK;
-  ///}
-
   HRESULT hr =
     pReal->ResizeTarget (pNewTargetParameters);
 
@@ -763,8 +716,30 @@ IWrapDXGISwapChain::GetDesc1 (DXGI_SWAP_CHAIN_DESC1 *pDesc)
 {
   assert (ver_ >= 1);
 
-  return
+  HRESULT hr =
     static_cast <IDXGISwapChain1 *>(pReal)->GetDesc1 (pDesc);
+
+  if (SUCCEEDED (hr))
+  {
+    // Potentially override the Sample Count if behind the scenes we are
+    //   handling MSAA resolve for a Flip Model SwapChain
+    if (SUCCEEDED (hr))
+    {
+      std::scoped_lock lock (_backbufferLock);
+
+      if ( (! _backbuffers.empty ()) &&
+              _backbuffers [0].p != nullptr )
+      {
+        D3D11_TEXTURE2D_DESC        texDesc = { };
+        _backbuffers [0]->GetDesc (&texDesc);
+
+        pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
+        pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
+      }
+    }
+  }
+
+  return hr;
 }
 
 HRESULT

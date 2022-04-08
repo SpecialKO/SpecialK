@@ -368,8 +368,8 @@ SK_HDR_SnapshotSwapchain (void)
 
     if (! pDevCtx) return;
 
-    SK_ComPtr <ID3D11Resource> pSrc = nullptr;
-    SK_ComPtr <ID3D11Resource> pDst = nullptr;
+    SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
+    SK_ComPtr <ID3D11Resource>  pDst = nullptr;
 
     if (pSwapChain != nullptr)
     {
@@ -384,7 +384,14 @@ SK_HDR_SnapshotSwapchain (void)
          )
       {
         hdr_base->pMainSrv->GetResource ( &pDst.p );
-                  pDevCtx->CopyResource (  pDst, pSrc );
+
+        D3D11_TEXTURE2D_DESC texDesc = { };
+        pSrc->GetDesc      (&texDesc);
+
+        if (texDesc.SampleDesc.Count > 1)
+          pDevCtx->ResolveSubresource ( pDst, 0, pSrc, 0, texDesc.Format );
+        else
+          pDevCtx->CopyResource       ( pDst,    pSrc );
       }
     }
 

@@ -4476,7 +4476,7 @@ D3D11Dev_CreateTexture2D_Impl (
       if ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ==
                                D3D11_BIND_DEPTH_STENCIL )
       {
-        bool bSwapChainSized = false;
+        bool bSwapChainResized = false;
 
         if (rb.swapchain != nullptr)
         {
@@ -4489,11 +4489,25 @@ D3D11Dev_CreateTexture2D_Impl (
           if (swapDesc.BufferDesc.Width  == pDesc->Width &&
               swapDesc.BufferDesc.Height == pDesc->Height)
           {
-            bSwapChainSized = true;
+            SK_ComPtr <ID3D11Texture2D>                              pBuffer0;
+            pSwapChain->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBuffer0.p);
+
+            if (pBuffer0 != nullptr)
+            {
+              D3D11_TEXTURE2D_DESC texDesc = { };
+              pBuffer0->GetDesc  (&texDesc);
+
+              // We have a mismatch, despite knowledge of the requested MSAA level
+              //   when the swapchain was wrapped.  Odd, but deal with it.
+              if (texDesc.SampleDesc.Count != uiOriginalBltSampleCount)
+                bSwapChainResized = true;
+            }
+            else
+              bSwapChainResized = true;
           }
         }
 
-        if (rb.swapchain == nullptr || bSwapChainSized)
+        if (rb.swapchain == nullptr || bSwapChainResized)
         {
           dll_log->Log (
             L"Flip Override [ Orig Depth/Stencil Sample Count: %d, New: %d ]",

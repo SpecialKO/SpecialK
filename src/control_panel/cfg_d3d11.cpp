@@ -1005,6 +1005,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
           static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
                   &swap_flag_count     );
 
+      extern UINT uiOriginalBltSampleCount;
+
       ImGui::BeginTooltip      ();
       ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
       ImGui::TextUnformatted   ("Framebuffer and Presentation Setup");
@@ -1025,7 +1027,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::TextUnformatted ("Refresh Rate:");
       ImGui::TextUnformatted   ("Swap Interval:");
       ImGui::TextUnformatted   ("Swap Effect:");
-      if  (swap_desc.SampleDesc.Count > 1)
+      if  (swap_desc.SampleDesc.Count > 1 || uiOriginalBltSampleCount != 0)
         ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
       {
@@ -1064,6 +1066,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%hs",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
+      else if (uiOriginalBltSampleCount != 0)
+        ImGui::Text          ("%u",                                         uiOriginalBltSampleCount);
       if (swap_desc.Flags != 0)
       {
         ImGui::Text          ("%hs",                                        swap_flags.c_str ());
@@ -1095,12 +1099,12 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       {
         bool _fullscreen = true;
 
-        SK_ComQIPtr <IDXGISwapChain4> pSwap3 (pSwapDXGI);
+        SK_ComQIPtr <IDXGISwapChain4> pSwap4 (pSwapDXGI);
 
-        if (pSwap3 != nullptr)
+        if (pSwap4 != nullptr)
         {
           DXGI_SWAP_CHAIN_FULLSCREEN_DESC full_desc = { };
-              pSwap3->GetFullscreenDesc (&full_desc);
+              pSwap4->GetFullscreenDesc (&full_desc);
 
           _fullscreen =
             (! full_desc.Windowed);
