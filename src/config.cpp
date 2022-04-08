@@ -68,6 +68,7 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
+__declspec (noinline)
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
@@ -75,7 +76,8 @@ SK_GetCurrentGameID (void)
   static SK_GAME_ID current_game =
          SK_GAME_ID::UNKNOWN_GAME;
 
-  static bool first_check = true;
+         bool first_check = false;
+  SK_RunOnce (first_check = true);
   if         (first_check)
   {
     auto constexpr hash_lower = [&](const wchar_t* const wstr) -> size_t
@@ -163,7 +165,6 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
       { hash_lower (L"Legend of Mana.exe"),                     SK_GAME_ID::LegendOfMana                 },
       { hash_lower (L"FarCry6.exe"),                            SK_GAME_ID::FarCry6                      },
-
       { hash_lower (L"Ryujinx.exe"),                            SK_GAME_ID::Ryujinx                      },
       { hash_lower (L"yuzu.exe"),                               SK_GAME_ID::yuzu                         },
       { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
@@ -562,6 +563,7 @@ sk::ParameterBool*        strict_compliance       = nullptr;
 sk::ParameterBool*        silent                  = nullptr;
 sk::ParameterFloat*       init_delay              = nullptr;
 sk::ParameterBool*        return_to_skif          = nullptr;
+sk::ParameterInt*         skif_autostop_behavior  = nullptr;
 sk::ParameterStringW*     version                 = nullptr;
                        // Version at last boot
 
@@ -1273,7 +1275,6 @@ auto DeclKeybind =
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
-
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
@@ -1425,6 +1426,10 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.raise_always,       L"Always boost process priority to Highest",                  dll_ini,         L"Scheduler.Boost",       L"AlwaysRaisePriority"),
     ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Highest in Background",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
     ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
+
+
+    // Control the behavior of SKIF rather than the other way around
+    ConfigEntry (skif_autostop_behavior,                 L"Control when SKIF auto-stops, 0=Never, 1=AtStart, 2=AtExit",platform_ini,    L"SKIF.System",           L"AutoStopBehavior"),
 
 
     // The one odd-ball Steam achievement setting that can be specified per-game
@@ -3843,6 +3848,8 @@ auto DeclKeybind =
   return_to_skif->load    (config.system.return_to_skif);
   version->load           (config.system.version);
 
+  skif_autostop_behavior->load (config.skif.auto_stop_behavior);
+
 
 
 
@@ -4762,6 +4769,8 @@ SK_SaveConfig ( std::wstring name,
   init_delay->store                            (config.system.global_inject_delay);
   return_to_skif->store                        (config.system.return_to_skif);
   version->store                               (SK_GetVersionStrW ());
+
+  skif_autostop_behavior->store                (config.skif.auto_stop_behavior);
 
 
   wchar_t wszFullName [ MAX_PATH + 2 ] = { };

@@ -2061,13 +2061,14 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
         SK_RunOnce (
           SK_ImGui_WarningWithTitle (
             L"The game's original SwapChain (sRGB) was incompatible with DXGI Flip Model"
-            L"\r\n\r\n\t>> Please Confirm Correct sRGB Bypass Behavior in Special K's Display Menu",
-            L"sRGB Gamma Correction Necessary"
+            L"\r\n\r\n\t>> Please Confirm the Correct sRGB Bypass Mode (e.g. brightness) is active using Special K's Display Menu",
+            L"sRGB Gamma Correction May Be Necessary"
           )
         );
       }
 
-      SK_DXGI_LinearizeSRGB (_pSwapChain);
+      if (config.render.dxgi.srgb_behavior >= 0)
+        SK_DXGI_LinearizeSRGB (_pSwapChain);
     }
 
 

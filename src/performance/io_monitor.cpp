@@ -169,8 +169,8 @@ typedef BOOL (WINAPI *GetSystemCpuSetInformation_pfn)(
 );
 
 static
-GetSystemCpuSetInformation_pfn
-GetSystemCpuSetInformation = nullptr;
+ GetSystemCpuSetInformation_pfn
+_GetSystemCpuSetInformation = nullptr;
 
 typedef enum _SYSTEM_INFORMATION_CLASS_SK {
   SystemBasicInformation                                = 0,
@@ -389,9 +389,9 @@ SK_MonitorCPU (LPVOID user_param)
                              "NtQuerySystemInformation" );
   }
 
-  if (GetSystemCpuSetInformation == nullptr)
+  if (_GetSystemCpuSetInformation == nullptr)
   {
-    GetSystemCpuSetInformation =
+    _GetSystemCpuSetInformation =
       (GetSystemCpuSetInformation_pfn)
         SK_GetProcAddress ( L"Kernel32.dll",
                              "GetSystemCpuSetInformation" );

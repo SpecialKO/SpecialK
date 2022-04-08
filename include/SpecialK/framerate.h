@@ -266,9 +266,9 @@ namespace SK
         LARGE_INTEGER _last_frame = { };
       } amortization;
 
-      SK_LazyGlobal <Stats> frame_history;
-      SK_LazyGlobal <Stats> frame_history2;
-            DeepFrameState  frame_history_snapshots;
+      SK_LazyGlobal <Stats>          frame_history;
+      SK_LazyGlobal <Stats>          frame_history2;
+      SK_LazyGlobal <DeepFrameState> frame_history_snapshots;
 
       static
       float         undershoot_percent;
@@ -369,11 +369,6 @@ namespace SK
     class Stats {
     public:
       Stats (void) noexcept {
-        LARGE_INTEGER               liQpcFreq = { };
-        QueryPerformanceFrequency (&liQpcFreq);
-
-        SK_QpcFreq       = liQpcFreq.QuadPart;
-        SK_QpcTicksPerMs = SK_QpcFreq / 1000LL;
       }
 
       std::vector <double>&

@@ -1,4 +1,29 @@
-﻿22.4.9-NOCEGUI
+﻿22.4.9.2-NOCEGUI
+================
+ + Fixed a rare race to initialize framerate limiter that could result in an
+     integer divide by zero.
+ + Set the default AutoStopBehavior for SKIF to Auto-Stop On First Frame
+
+     >> This option has lower compatibility than Stop When Game Exits, but
+          will result in far fewer arguments
+
+22.4.9.1-NOCEGUI
+================
+ + Added SKIF Auto-Stop Behavior Configuration to SK (belongs in SKIF, but whatever)
+
+     Refer to "Documents\My Mods\SpecialK\Global\platform.ini"
+
+       [SKIF.System]
+       AutoStopBehavior={0|1|2|...}
+
+         0: Auto-Stop Never
+         1: Auto-Stop when a game first starts
+         2: Auto-Stop when a game exits        [Default]
+
+     Anything else:  Stop whenever SK feels like it, including if the game crashes
+
+
+22.4.9-NOCEGUI
 ==============
  + Added support for SwapChain-based MSAA when using Flip Model / HDR
 

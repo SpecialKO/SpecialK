@@ -968,15 +968,10 @@ SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept
   return 1;
 }
 
-volatile LONG __sleep_init = FALSE;
-
 DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 {
-  if (ReadAcquire (&__sleep_init) == FALSE)
-    return SleepEx (dwMilliseconds, bAlertable);
-
   return
     SleepEx_Original != nullptr                   ?
     SleepEx_Original (dwMilliseconds, bAlertable) :
@@ -1013,8 +1008,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     ( sleepless_render ||
       sleepless_window );
 
-  static const auto game_id =
-        SK_GetCurrentGameID ();
+  auto game_id =
+    SK_GetCurrentGameID ();
 
 #ifdef _TVFIX
   bWantThreadClassification |=
@@ -1582,12 +1577,12 @@ void SK_Scheduler_Init (void)
       static_cast_p2p <void> (&Sleep_Original),
       static_cast_p2p <void> (&pfnSleep) );
 
-    SK_CreateDLLHook2 (      L"KernelBase.dll",
+    SK_CreateDLLHook2 (      L"Kernel32",
                               "SleepEx",
                                SleepEx_Detour,
       static_cast_p2p <void> (&SleepEx_Original) );
 
-    SK_CreateDLLHook2 (      L"KernelBase.dll",
+    SK_CreateDLLHook2 (      L"Kernel32",
                               "SwitchToThread",
                                SwitchToThread_Detour,
       static_cast_p2p <void> (&SwitchToThread_Original) );
@@ -1615,14 +1610,12 @@ void SK_Scheduler_Init (void)
         SK_GetProcAddress ( L"NtDll",
                              "NtQueryTimerResolution" )   );
 
-    if (0 == InterlockedCompareExchange (&__sleep_init, 1, 0))
-    {
-      pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
-              new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
-
+    SK_RunOnce (
+      pCommandProc->AddVariable ("Render.FrameRate.SleeplessRenderThread",
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_render)));
+    SK_RunOnce (
       pCommandProc->AddVariable ( "Render.FrameRate.SleeplessWindowThread",
-              new SK_IVarStub <bool> (&config.render.framerate.sleepless_window));
-    }
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_window)));
 
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =

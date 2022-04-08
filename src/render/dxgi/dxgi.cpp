@@ -622,6 +622,7 @@ bool  bAlwaysAllowFullscreen  = false;
 bool  bFlipMode               = false;
 bool  bWait                   = false;
 bool  bOriginallyFlip         = false;
+bool  bOriginallysRGB         = false;
 UINT uiOriginalBltSampleCount = 0UL;
 
 // Used for integrated GPU override
@@ -4438,11 +4439,13 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  // If forcing flip-model, kill multisampling (of primary framebuffer)
-  if (config.render.framerate.flip_discard)
+  // If forcing flip-model, we can't allow sRGB formats...
+  if ( config.render.framerate.flip_discard &&
+       SK_DXGI_IsFlipModelSwapChain (swap_desc) )
   {
     bFlipMode =
       dxgi_caps.present.flip_sequential;
+
     // Format overrides must be performed in some cases (sRGB)
     switch (NewFormat)
     {
@@ -4453,8 +4456,7 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
         rb.srgb_stripped = true;
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-      //NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
+        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;
@@ -4669,11 +4671,13 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  // If forcing flip-model, kill multisampling (of primary framebuffer)
-  if (config.render.framerate.flip_discard)
+  // If forcing flip-model, we can't allow sRGB formats...
+  if ( config.render.framerate.flip_discard &&
+       SK_DXGI_IsFlipModelSwapChain (swap_desc) )
   {
     bFlipMode =
       dxgi_caps.present.flip_sequential;
+
     // Format overrides must be performed in some cases (sRGB)
     switch (NewFormat)
     {
@@ -4684,8 +4688,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
         rb.srgb_stripped = true;
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
-        //NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;
@@ -5142,9 +5145,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     bOriginallyFlip = already_flip_model;
 
-    if (! bOriginallyFlip)
-      uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
-
     // If auto-update prompt is visible, don't go fullscreen.
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
                                  ReadAcquire (&__SK_TaskDialogActive) != 0 )
@@ -5245,6 +5245,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
         bFlipMode =
           dxgi_caps.present.flip_sequential;
 
+        uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
+
         pDesc->SampleDesc.Count   = 1;
         pDesc->SampleDesc.Quality = 0;
 
@@ -5258,19 +5260,20 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
             rb.srgb_stripped = true;
+            bOriginallysRGB  = true;
             [[fallthrough]];
           case DXGI_FORMAT_B8G8R8A8_UNORM:
           case DXGI_FORMAT_B8G8R8A8_TYPELESS:
             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
             break;
           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-          //pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            pDesc->BufferDesc.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
             rb.srgb_stripped = true;
+            bOriginallysRGB  = true;
             [[fallthrough]];
           case DXGI_FORMAT_R8G8B8A8_UNORM:
           case DXGI_FORMAT_R8G8B8A8_TYPELESS:

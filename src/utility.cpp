@@ -2066,9 +2066,12 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
       continue;
     }
 
+    static bool include_end =
+      SK_GetCurrentGameID () == SK_GAME_ID::EldenRing;
+
     // Do not search past the end of the module image!
-    if (align != 1 ? next_rgn >= end_addr
-                   : next_rgn >  end_addr)
+    if ((! include_end) ? next_rgn >= end_addr
+                        : next_rgn >  end_addr)
       break;
 
     while (it < next_rgn)
@@ -2889,9 +2892,11 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
+  extern bool __SKIF_SuppressExitNotify;
+              __SKIF_SuppressExitNotify = true;
+
   // This would make debugging very difficult otherwise :)
   if (SK_IsDebuggerPresent ())
-
     __debugbreak ();
 
   wchar_t wszShortPath [MAX_PATH + 2] = { };

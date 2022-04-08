@@ -67,9 +67,9 @@ SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
 // Internal use only
 //
-void SK_Inject_ReleaseProcess        (void);
-void SK_Inject_AcquireProcess        (void);
-void SK_Inject_BroadcastAttachNotify (void);
+void SK_Inject_ReleaseProcess           (void);
+void SK_Inject_AcquireProcess           (void);
+void SK_Inject_BroadcastInjectionNotify (void);
 
 
 #define MAX_INJECTED_PROCS        32

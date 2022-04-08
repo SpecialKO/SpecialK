@@ -52,8 +52,9 @@ extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution;
 extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
 
-int64_t                     SK_QpcFreq       = 0;
-int64_t                     SK_QpcTicksPerMs = 0;
+// Set these clocks to non-zero before init. to prevent division by zero races
+int64_t                     SK_QpcFreq        = 1;
+int64_t                     SK_QpcTicksPerMs  = 1;
 SK::Framerate::EventCounter SK::Framerate::events;
 
 float __target_fps    = 0.0;
@@ -2156,11 +2157,11 @@ SK::Framerate::Tick ( bool          wait,
     SK::Framerate::Stats*
       pContainers [] =
       {
-        pLimiter->frame_history_snapshots.mean.getPtr        (),
-        pLimiter->frame_history_snapshots.min.getPtr         (),
-        pLimiter->frame_history_snapshots.max.getPtr         (),
-        pLimiter->frame_history_snapshots.percentile0.getPtr (),
-        pLimiter->frame_history_snapshots.percentile1.getPtr ()
+        pLimiter->frame_history_snapshots->mean.getPtr        (),
+        pLimiter->frame_history_snapshots->min.getPtr         (),
+        pLimiter->frame_history_snapshots->max.getPtr         (),
+        pLimiter->frame_history_snapshots->percentile0.getPtr (),
+        pLimiter->frame_history_snapshots->percentile1.getPtr ()
       };
 
     auto stat_idx =

@@ -74,8 +74,30 @@ struct SK_ConfigSerializedKeybind : public SK_Keybind
 };
 
 
+namespace skif
+{
+  enum class AutoStopBehavior {
+    Never   = 0,
+    AtStart = 1,
+    AtExit  = 2
+  };
+}
+
+
 struct sk_config_t
 {
+  sk_config_t (void)
+  {
+    // This struct is one of the earliest non-static initalized
+    //   parts of the DLL, so important early init is best performed
+    //     in the constructor of sk_config_t
+    //
+    LARGE_INTEGER               liQpcFreq = { };
+    QueryPerformanceFrequency (&liQpcFreq);
+
+    SK_QpcFreq       = liQpcFreq.QuadPart;
+    SK_QpcTicksPerMs = SK_QpcFreq / 1000LL;
+  }
   struct whats_new_s {
     float  duration       = 20.0F;
   } version_banner;
@@ -877,10 +899,14 @@ struct sk_config_t
   } system;
 
   struct priority_scheduling_s {
-    bool    raise_always = false;
-    bool    raise_bg     = false;
-    bool    raise_fg     =  true;
+    bool    raise_always        = false;
+    bool    raise_bg            = false;
+    bool    raise_fg            =  true;
   } priority;
+
+  struct skif_s {
+    int     auto_stop_behavior  = 1; // 0=Never, 1=AtStart, 2=AtExit
+  } skif;
 };
 
 template <class T>

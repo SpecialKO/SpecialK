@@ -1027,7 +1027,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::TextUnformatted ("Refresh Rate:");
       ImGui::TextUnformatted   ("Swap Interval:");
       ImGui::TextUnformatted   ("Swap Effect:");
-      if  (swap_desc.SampleDesc.Count > 1 || uiOriginalBltSampleCount != 0)
+      if  (swap_desc.SampleDesc.Count > 1 || uiOriginalBltSampleCount > 1)
         ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
       {
@@ -1066,7 +1066,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::Text            ("%hs",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
-      else if (uiOriginalBltSampleCount != 0)
+      else if (uiOriginalBltSampleCount > 1)
         ImGui::Text          ("%u",                                         uiOriginalBltSampleCount);
       if (swap_desc.Flags != 0)
       {

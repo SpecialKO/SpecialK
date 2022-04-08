@@ -83,10 +83,10 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
 
   // Store object names only if we are logging stuff or if the
   //   D3D11 debug layer is active
-  if (kName.empty () || ( __SK_D3D11_DebugLayerActive == 0 &&
-                               config.system.log_level < 2 ))
-  {
-    return;
+  if (kName.empty () /*|| ( __SK_D3D11_DebugLayerActive == 0 &&
+                                 config.system.log_level < 2 )*/)
+  { // Ignore the comment above, 
+    return; // debug names are useful in SK's built-in debugger :)
   }
 
   SK_LOGi2 (
@@ -972,12 +972,38 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
       DXGI_FORMAT newFormat =
         desc.Format;
 
-      SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
-
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex (pResource);
       if (pTex != nullptr)
       {
         D3D11_TEXTURE2D_DESC  tex_desc = { };
         pTex->GetDesc       (&tex_desc);
+
+        // If the SwapChain was sRGB originally, and this RTV is
+        //   the SwapChain's backbuffer, create an sRGB view
+        //     (of the now linear SwapChain).
+        extern bool bOriginallysRGB;
+        if (        bOriginallysRGB && (! __SK_HDR_16BitSwap))
+        {                              // HDR handles the mismatch on its own
+          SK_ComPtr   <ID3D11Texture2D> pBackbuffer;
+          SK_ComQIPtr <IDXGISwapChain>  pSwapChain (
+            SK_GetCurrentRenderBackend ().swapchain);
+
+          if (pSwapChain.p != nullptr)
+          {
+            if ( SUCCEEDED (
+                   pSwapChain->GetBuffer ( 0, IID_ID3D11Texture2D,
+                   (void **)&pBackbuffer.p) )
+               )
+            {
+              if (pTex.IsEqualObject (pBackbuffer.p))
+              {
+                desc.Format     = DXGI_FORMAT_420_OPAQUE;
+                tex_desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+              }
+            }
+          }
+        }
 
         if (                        desc.Format      != DXGI_FORMAT_UNKNOWN &&
              DirectX::MakeTypeless (tex_desc.Format) !=

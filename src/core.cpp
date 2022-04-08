@@ -2254,6 +2254,8 @@ bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
+  SK_Inject_BroadcastInjectionNotify ();
+
   SK_DisableApplyQueuedHooks ();
 
   if (        __SK_DLL_TeardownEvent != nullptr)
@@ -2571,7 +2573,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     {
       // Notify anything that was waiting for injection into this game
       if (SK_IsInjected ())
-        SK_Inject_BroadcastAttachNotify ();
+        SK_Inject_BroadcastInjectionNotify ();
 
       wchar_t *wszDescription = nullptr;
 
@@ -2994,6 +2996,8 @@ SK_BackgroundRender_EndFrame (void)
         rb.fullscreen_exclusive;
   if (! rb.fullscreen_exclusive)
   {
+    static bool last_foreground = false;
+
     DWORD                           dwForegroundPid = 0x0;
     DWORD                           dwForegroundTid =
       GetWindowThreadProcessId (
@@ -3014,7 +3018,16 @@ SK_BackgroundRender_EndFrame (void)
           );
         }
       }
+
+      if (std::exchange (last_foreground, false) && config.window.always_on_top < 1)
+        SK_DeferCommand ("Window.TopMost false");
     }
+
+  else
+  {
+    if (! std::exchange (last_foreground, true))
+      SK_DeferCommand ("Window.TopMost true");
+  }
   }
 }
 

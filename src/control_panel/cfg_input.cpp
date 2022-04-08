@@ -36,8 +36,8 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
 extern int SK_ImGui_DrawGamepadStatusBar (void);
 
-SK::Framerate::Stats gamepad_stats;
-SK::Framerate::Stats gamepad_stats_filtered;
+SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats;
+SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
 
 void SK_ImGui_UpdateCursor (void)
 {
@@ -906,7 +906,7 @@ extern float SK_ImGui_PulseNav_Strength;
                                         times_ [0] = times_ [1];
                                         times_ [1] = nowTime.QuadPart;
 
-                    gamepad_stats_filtered.addSample ( 1000.0 *
+                    gamepad_stats_filtered->addSample ( 1000.0 *
                       static_cast <double> (times_ [0] - oldTime) /
                       static_cast <double> (SK_QpcFreq),
                         nowTime
@@ -917,7 +917,7 @@ extern float SK_ImGui_PulseNav_Strength;
                                       times [0] = times [1];
                                       times [1] = nowTime.QuadPart;
 
-                  gamepad_stats.addSample ( 1000.0 *
+                  gamepad_stats->addSample ( 1000.0 *
                     static_cast <double> (times [0] - oldTime) /
                     static_cast <double> (SK_QpcFreq),
                       nowTime
@@ -956,20 +956,20 @@ extern float SK_ImGui_PulseNav_Strength;
         {
           ImGui::BeginGroup( );
           ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats.calcNumSamples (),
-                               gamepad_stats.calcMin        (),
-                               gamepad_stats.calcMax        (),
-                               gamepad_stats.calcMean       () );
+                               gamepad_stats->calcNumSamples (),
+                               gamepad_stats->calcMin        (),
+                               gamepad_stats->calcMax        (),
+                               gamepad_stats->calcMean       () );
 
           ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats_filtered.calcNumSamples (),
-                               gamepad_stats_filtered.calcMin        (),
-                               gamepad_stats_filtered.calcMax        (),
-                               gamepad_stats_filtered.calcMean       () );
+                               gamepad_stats_filtered->calcNumSamples (),
+                               gamepad_stats_filtered->calcMin        (),
+                               gamepad_stats_filtered->calcMax        (),
+                               gamepad_stats_filtered->calcMean       () );
           ImGui::EndGroup  ( );
 
-          high_min_f = std::min (gamepad_stats_filtered.calcMin (), high_min_f);
-          high_min   = std::min (gamepad_stats.calcMin          (), high_min  );
+          high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
+          high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
         }
 
         ImGui::BeginGroup  ( );

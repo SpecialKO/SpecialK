@@ -341,18 +341,11 @@ public:
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    // Check for situation where sRGB is stripped and user has not
-    //   selected a bypass behavior -- they need to be warned.
-    if (rb.srgb_stripped && __SK_HDR_Bypass_sRGB < -1)
-    {
-      SK_RunOnce (
-        SK_ImGui_WarningWithTitle (
-          L"The game's original SwapChain (sRGB) was incompatible with HDR"
-          L"\r\n\r\n\t>> Please Confirm Correct sRGB Bypass Behavior in the HDR Widget",
-          L"sRGB Gamma Correction Necessary"
-        )
-      );
-    }
+
+    // Automatically handle sRGB -> Linear if the original SwapChain used it
+    extern bool             bOriginallysRGB;
+    if (rb.srgb_stripped || bOriginallysRGB)
+      __SK_HDR_Bypass_sRGB = 1;
 
 
     if ( __SK_HDR_10BitSwap ||

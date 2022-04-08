@@ -430,6 +430,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
+            SK_D3D11_SetDebugName ( backbuffer.p,
+                 SK_FormatStringW ( L"[SK] Flip Model Backbuffer %d", Buffer ) );
             SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
                           Buffer,
                                swapDesc.BufferDesc.Width,
@@ -482,8 +484,17 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-  return
+  HRESULT hr =
     pReal->SetFullscreenState (Fullscreen, pTarget);
+
+  if (SUCCEEDED (hr))
+  {
+    SK_DeferCommand ("Window.TopMost true");
+    if (config.window.always_on_top < 1)
+      SK_DeferCommand ("Window.TopMost false");
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -527,6 +538,10 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
+  SK_DeferCommand ("Window.TopMost true");
+  if (config.window.always_on_top < 1)
+    SK_DeferCommand ("Window.TopMost false");
+
   //
   // Fix a number of problems caused by RTSS
   //
@@ -680,7 +695,11 @@ IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
     pReal->ResizeTarget (pNewTargetParameters);
 
   if (SUCCEEDED (hr))
-    SK_RealizeForegroundWindow (hWnd_);
+  {
+    SK_DeferCommand ("Window.TopMost true");
+    if (config.window.always_on_top < 1)
+      SK_DeferCommand ("Window.TopMost false");
+  }
 
   return hr;
 }

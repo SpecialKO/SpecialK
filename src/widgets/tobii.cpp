@@ -414,6 +414,8 @@ public:
 
   void run (void) noexcept override
   {
+    return; // This stuff is no longer tested
+
            bool first = false;
     SK_RunOnce (first = true);
 
@@ -503,6 +505,8 @@ public:
 
   void draw (void) noexcept override
   {
+    return; // This stuff is no longer tested
+
     if (! ImGui::GetFont ())
       return;
 
