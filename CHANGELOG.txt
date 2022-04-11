@@ -1,5 +1,6 @@
-﻿22.4.11-NOCEGUI
-===============
+﻿22.4.11.1-NOCEGUI
+=================
+ + Fixed calling the DLL import version of GetSystemCpuSetInformation (...)
  + Improved HDR black point compensation for less grayscale banding near-black
 
 22.4.10.2-NOCEGUI

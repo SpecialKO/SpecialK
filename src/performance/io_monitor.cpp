@@ -471,7 +471,7 @@ SK_MonitorCPU (LPVOID user_param)
       cpu.booting  = false;
     }
 
-    if (GetSystemCpuSetInformation != nullptr)
+    if (_GetSystemCpuSetInformation != nullptr)
     {
       static ULONG ulCSIAlloc =
           ( sizeof (SYSTEM_CPU_SET_INFORMATION) * cpu.num_cpus );
@@ -484,8 +484,8 @@ SK_MonitorCPU (LPVOID user_param)
                      true
           );
 
-      if ( GetSystemCpuSetInformation ( pCSI, ulCSIAlloc, &ulCSIAlloc,
-                                          GetCurrentProcess (), 0x0 ) )
+      if ( _GetSystemCpuSetInformation ( pCSI, ulCSIAlloc, &ulCSIAlloc,
+                                           GetCurrentProcess (), 0x0 ) )
       {
         PSYSTEM_CPU_SET_INFORMATION             pCSIEnd =
           (PSYSTEM_CPU_SET_INFORMATION)((BYTE *)pCSI    + ulCSIAlloc);
