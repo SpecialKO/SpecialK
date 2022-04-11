@@ -2089,7 +2089,8 @@ DisplayModeMenu (bool windowed)
                   if ( config.render.framerate.rescan_.Numerator == dxgi_mode.RefreshRate.Numerator  &&
                        config.render.framerate.rescan_.Denom     == dxgi_mode.RefreshRate.Denominator )
                   {
-                    current_item = idx-2;
+                    current_item = idx;
+                    break;
                   }
 
                   ++idx;
@@ -2117,7 +2118,7 @@ DisplayModeMenu (bool windowed)
                 if ( ldRefresh < sk::narrow_cast <long double> (config.render.framerate.refresh_rate + 0.333f) &&
                      ldRefresh > sk::narrow_cast <long double> (config.render.framerate.refresh_rate - 0.333f) )
                 {
-                  current_item = lvl2_idx-2;
+                  current_item = lvl2_idx;
                   break;
                 }
 

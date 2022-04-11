@@ -1,4 +1,24 @@
-﻿22.4.10-NOCEGUI
+﻿22.4.11-NOCEGUI
+===============
+ + Improved HDR black point compensation for less grayscale banding near-black
+
+22.4.10.2-NOCEGUI
+=================
+ + Fixed OpenGL-IK displaying a black screen when flip model is enabled
+
+22.4.10.1-NOCEGUI
+=================
+ + Fixed a number of issues related to fullscren refresh rate overrides in D3D11
+ + Improved reliability of fullscreen mode transitions while using Flip Model
+
+  >> Special K is now a virus... according to Discord.
+
+    ] Uploads now have to be encrypted, or Discord deletes them and then replaces
+        the original message with something stupid about cooking.
+
+      * Password:  skummy   , as in that's a really scummy thing to do Discord.
+
+22.4.10-NOCEGUI
 ===============
  + Fixed a few Structured Exception Handling stack unwinds
  + Added skeleton implementation of D3D9-IK, non-functional, just enough to test

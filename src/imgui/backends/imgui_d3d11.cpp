@@ -725,9 +725,11 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
 
+#ifdef _ImGui_Stateblock
   SK_IMGUI_D3D11StateBlock
     sb             = { };
     sb.Capture (pDevCtx);
+#endif
 
   // pcmd->TextureId may not point to a valid object anymore, so we do this...
   auto orig_se =
@@ -841,7 +843,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   }
   catch (const SK_SEH_IgnoredException&)
   {
+#ifdef _ImGui_Stateblock
     sb.Apply (pDevCtx);
+#endif
   }
   SK_SEH_RemoveTranslator (orig_se);
 }

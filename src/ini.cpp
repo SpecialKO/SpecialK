@@ -1269,8 +1269,14 @@ iSK_INI::write (const wchar_t* fname)
 
       for ( auto& key_it : section.ordered_keys )
       {
+        if (key_it.empty ())
+          continue;
+
         const std::wstring& val =
           section.get_cvalue (key_it);
+
+        if (val.empty ())
+          continue;
 
         outbuf +=
           SK_FormatStringW (

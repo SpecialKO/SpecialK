@@ -81,7 +81,7 @@ RemoveSRGBCurve (float3 x)
     pow ( (x + 0.055f) / 1.055f, 2.4f );
 #else
   // This suffers the same problem as piecewise; x * x * x allows negative color.
-  return max (0.0, x * (x * (x * 0.305306011 + 0.682171111) + 0.012522878));
+  return x * (x * (x * 0.305306011 + 0.682171111) + 0.012522878);
 #endif
 }
 
@@ -1773,9 +1773,6 @@ float4 main (PS_INPUT input) : SV_TARGET
       );
   }
 
-  input.color.x -= ( hdrLuminance_Min /
-                     hdrLuminance_MaxLocal );
-
   bool bIsHDR10 = false;
 
   if (uiToneMapper >= TONEMAP_HDR10_to_scRGB)
@@ -1811,6 +1808,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                              sdrIsImplicitlysRGB ).rgb
                       );
 
+ 
 
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
@@ -1902,13 +1900,20 @@ float4 main (PS_INPUT input) : SV_TARGET
     /*length (hdr_color.rgb);// */
     Luminance (hdr_color.rgb);
 
+  float  length_color     =
+    length (hdr_color.rgb);
+
+  float3 normalized_color = length_color > 0.0 ?
+    normalize (hdr_color.rgb)                  : float3 (0.0f, 0.0f, 0.0f);
+
+  hdr_color.rgb += normalized_color * hdrLuminance_Min;
+
   hdr_color.rgb *= uiToneMapper != TONEMAP_HDR10_to_scRGB ?
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
 
-  hdr_color.rgb += ( hdrLuminance_Min /
-                     hdrLuminance_MaxLocal );
+  hdr_color.rgb -= normalized_color * hdrLuminance_Min;
 
   fLuma =
     Luminance (hdr_color.rgb);

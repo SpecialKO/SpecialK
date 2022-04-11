@@ -491,8 +491,8 @@ IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 
   HRESULT hr = S_OK;
 
-  if (    bFullscreen    != Fullscreen ||
-      (pOriginalTarget.p != pTarget    && pTarget != nullptr) )
+//if (    bFullscreen    != Fullscreen ||
+//    (pOriginalTarget.p != pTarget    && pTarget != nullptr) )
   {
     hr =
       pReal->SetFullscreenState (Fullscreen, pTarget);

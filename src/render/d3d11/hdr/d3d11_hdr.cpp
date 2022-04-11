@@ -490,7 +490,9 @@ SK_HDR_SnapshotSwapchain (void)
 
     if ( pRenderTargetView.p != nullptr )
     {
+#ifdef _ImGui_Stateblock
       SK_D3D11_CaptureStateBlock (pDevCtx, &snap_cache.sb);
+#endif
 
       D3D11_PRIMITIVE_TOPOLOGY       OrigPrimTop;
       SK_ComPtr <ID3D11VertexShader> pVS_Orig;
@@ -574,7 +576,9 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->OMSetBlendState        (pBlendState_Orig, fOrigBlendFactors, uiOrigBlendMask);
 
                               ++snap_cache.lHDRFrames;
+#ifdef _ImGui_Stateblock
       SK_D3D11_ApplyStateBlock (snap_cache.sb, pDevCtx);
+#endif
     }
   }
 }

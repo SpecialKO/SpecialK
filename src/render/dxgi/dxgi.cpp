@@ -3797,7 +3797,7 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
       hr;
   }
 
-  return DXGI_ERROR_DEVICE_REMOVED;
+  return DXGI_ERROR_NOT_FOUND;
 }
 
 
@@ -4011,29 +4011,34 @@ DXGIOutput_FindClosestMatchingMode_Override (
          mode_to_match.RefreshRate.Numerator  != sk::narrow_cast <UINT>
        (config.render.framerate.refresh_rate)) )
   {
-    dll_log->Log (
-      L"[   DXGI   ]  >> Refresh Override "
-      L"(Requested: %f, Using: %f)",
-        mode_to_match.RefreshRate.Denominator != 0 ?
-          static_cast <float> (mode_to_match.RefreshRate.Numerator) /
-          static_cast <float> (mode_to_match.RefreshRate.Denominator) :
-            std::numeric_limits <float>::quiet_NaN (),
-          static_cast <float> (config.render.framerate.rescan_.Numerator) /
-          static_cast <float> (config.render.framerate.rescan_.Denom) );
-
-    if (config.render.framerate.rescan_.Denom != 1)
+    if ( ( config.render.framerate.rescan_.Denom     > 0   &&
+           config.render.framerate.rescan_.Numerator > 0 ) &&
+         !( mode_to_match.RefreshRate.Numerator   == config.render.framerate.rescan_.Numerator &&
+            mode_to_match.RefreshRate.Denominator == config.render.framerate.rescan_.Denom ) )
     {
-            mode_to_match.RefreshRate.Numerator     =
-      config.render.framerate.rescan_.Numerator;
-              mode_to_match.RefreshRate.Denominator =
-        config.render.framerate.rescan_.Denom;
-    }
+      SK_LOGi0 ( L" >> Refresh Override (Requested: %f, Using: %f)",
+          mode_to_match.RefreshRate.Denominator != 0 ?
+            static_cast <float> (mode_to_match.RefreshRate.Numerator) /
+            static_cast <float> (mode_to_match.RefreshRate.Denominator) :
+              std::numeric_limits <float>::quiet_NaN (),
+            static_cast <float> (config.render.framerate.rescan_.Numerator) /
+            static_cast <float> (config.render.framerate.rescan_.Denom) 
+      );
 
-    else
-    {
-      mode_to_match.RefreshRate.Numerator = sk::narrow_cast <UINT> (
-        config.render.framerate.refresh_rate);
-      mode_to_match.RefreshRate.Denominator = 1;
+      if (config.render.framerate.rescan_.Denom != 1)
+      {
+              mode_to_match.RefreshRate.Numerator     =
+        config.render.framerate.rescan_.Numerator;
+                mode_to_match.RefreshRate.Denominator =
+          config.render.framerate.rescan_.Denom;
+      }
+
+      else
+      {
+        mode_to_match.RefreshRate.Numerator = sk::narrow_cast <UINT> (
+          config.render.framerate.refresh_rate);
+        mode_to_match.RefreshRate.Denominator = 1;
+      }
     }
   }
 
@@ -4189,6 +4194,9 @@ SK_DXGI_IsSwapChainReal (IDXGISwapChain* pSwapChain)
 
 static bool bSwapChainNeedsResize = false;
 static bool bRecycledSwapChains   = false;
+
+static LONG lLastRefreshDenom = 0;
+static LONG lLastRefreshNum   = 0;
 
 __declspec (noinline)
 HRESULT
@@ -4356,6 +4364,45 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       if (Fullscreen) { if (bHadBorders) SK_Window_RestoreBorders (0x0, 0x0); }
       else                               SK_Window_RemoveBorders  (        );
     }
+  }
+
+
+  SK_ComPtr <IDXGIOutput> pOutput = pTarget;
+  if (                    pOutput.p == nullptr)
+  {
+    This->GetContainingOutput (&pOutput.p);
+  }
+
+  if (pOutput.p != nullptr)
+  {
+    DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
+    SK_ComQIPtr <IDXGISwapChain1> 
+        pSwap1 (This);
+    if (pSwap1 != nullptr)
+        pSwap1->GetFullscreenDesc (&fullscreenDesc);
+
+    DXGI_MODE_DESC
+      modeDesc                         = { };
+      modeDesc.Width                   = sd.BufferDesc.Width;
+      modeDesc.Height                  = sd.BufferDesc.Height;
+      modeDesc.Format                  = sd.BufferDesc.Format;
+      modeDesc.Scaling                 = fullscreenDesc.Scaling;
+      modeDesc.ScanlineOrdering        = fullscreenDesc.ScanlineOrdering;
+      modeDesc.RefreshRate.Numerator   = lLastRefreshNum;
+      modeDesc.RefreshRate.Denominator = lLastRefreshDenom;
+
+    if (config.render.framerate.refresh_rate > 0)
+    {
+      modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+      modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+    }
+
+    SK_ComPtr <IUnknown> pUnkDev;
+    DXGI_MODE_DESC   matchedMode = { };
+    if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
+         &modeDesc, &matchedMode, nullptr )
+                   )                  )
+      This->ResizeTarget (&matchedMode);
   }
 
   BOOL                                      bFinalState = FALSE;
@@ -4819,10 +4866,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     //
     // Latency waitable hack begin
     //
-    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-    This->GetDesc       (&swapDesc);
-
-    if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
     {
       dll_log->Log (
         L"[   DXGI   ]  >> Ignoring ResizeTarget (...) on a Latency Waitable SwapChain."
@@ -4857,30 +4901,34 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
           config.render.framerate.refresh_rate) )
        )
     {
-      dll_log->Log (
-        L"[   DXGI   ]  >> Refresh Override "
-        L"(Requested: %f, Using: %f)",
-                             new_new_params.RefreshRate.Denominator != 0 ?
-        static_cast <float> (new_new_params.RefreshRate.Numerator)  /
-        static_cast <float> (new_new_params.RefreshRate.Denominator)     :
-          std::numeric_limits <float>::quiet_NaN (),
-        static_cast <float> (config.render.framerate.rescan_.Numerator) /
-        static_cast <float> (config.render.framerate.rescan_.Denom)
-      );
-
-      if (config.render.framerate.rescan_.Denom != 1)
+      if ( ( config.render.framerate.rescan_.Denom     > 0   &&
+             config.render.framerate.rescan_.Numerator > 0 ) &&
+         !( new_new_params.RefreshRate.Numerator   == config.render.framerate.rescan_.Numerator &&
+            new_new_params.RefreshRate.Denominator == config.render.framerate.rescan_.Denom ) )
       {
-             new_new_params.RefreshRate.Numerator   =
-        config.render.framerate.rescan_.Numerator;
-             new_new_params.RefreshRate.Denominator =
-        config.render.framerate.rescan_.Denom;
-      }
+        SK_LOGi0 ( L" >> Refresh Override (Requested: %f, Using: %f)",
+                               new_new_params.RefreshRate.Denominator != 0 ?
+          static_cast <float> (new_new_params.RefreshRate.Numerator)  /
+          static_cast <float> (new_new_params.RefreshRate.Denominator)     :
+            std::numeric_limits <float>::quiet_NaN (),
+          static_cast <float> (config.render.framerate.rescan_.Numerator) /
+          static_cast <float> (config.render.framerate.rescan_.Denom)
+        );
 
-      else
-      {
-        new_new_params.RefreshRate.Numerator   =
-          sk::narrow_cast <UINT> (std::ceilf (config.render.framerate.refresh_rate));
-        new_new_params.RefreshRate.Denominator = 1;
+        if (config.render.framerate.rescan_.Denom != 1)
+        {
+               new_new_params.RefreshRate.Numerator   =
+          config.render.framerate.rescan_.Numerator;
+               new_new_params.RefreshRate.Denominator =
+          config.render.framerate.rescan_.Denom;
+        }
+
+        else
+        {
+          new_new_params.RefreshRate.Numerator   =
+            sk::narrow_cast <UINT> (std::ceilf (config.render.framerate.refresh_rate));
+          new_new_params.RefreshRate.Denominator = 1;
+        }
       }
     }
 
@@ -4936,17 +4984,17 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   // Clamp the buffer dimensions if the user has a min/max preference
   const UINT
-    max_x = config.render.dxgi.res.max.x < new_new_params.Width  ?
-            config.render.dxgi.res.max.x : new_new_params.Width,
-    min_x = config.render.dxgi.res.min.x > new_new_params.Width  ?
-            config.render.dxgi.res.min.x : new_new_params.Width,
-    max_y = config.render.dxgi.res.max.y < new_new_params.Height ?
-            config.render.dxgi.res.max.y : new_new_params.Height,
-    min_y = config.render.dxgi.res.min.y > new_new_params.Height ?
-            config.render.dxgi.res.min.y : new_new_params.Height;
+    max_x = config.render.dxgi.res.max.x < pNewNewTargetParameters->Width  ?
+            config.render.dxgi.res.max.x : pNewNewTargetParameters->Width,
+    min_x = config.render.dxgi.res.min.x > pNewNewTargetParameters->Width  ?
+            config.render.dxgi.res.min.x : pNewNewTargetParameters->Width,
+    max_y = config.render.dxgi.res.max.y < pNewNewTargetParameters->Height ?
+            config.render.dxgi.res.max.y : pNewNewTargetParameters->Height,
+    min_y = config.render.dxgi.res.min.y > pNewNewTargetParameters->Height ?
+            config.render.dxgi.res.min.y : pNewNewTargetParameters->Height;
 
-  new_new_params.Width   =  std::max ( max_x , min_x );
-  new_new_params.Height  =  std::max ( max_y , min_y );
+  pNewNewTargetParameters->Width   =  std::max ( max_x , min_x );
+  pNewNewTargetParameters->Height  =  std::max ( max_y , min_y );
 
 
   pNewNewTargetParameters->Format =
@@ -4954,6 +5002,32 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   //ResetImGui_D3D12 (This);
   //ResetImGui_D3D11 (This);
+
+
+  SK_ComPtr <IDXGIOutput>     pOutput;
+  This->GetContainingOutput (&pOutput.p);
+
+  if (pOutput != nullptr)
+  {
+    DXGI_MODE_DESC                modeDescMatch = { };
+    if ( SUCCEEDED (
+      pOutput->FindClosestMatchingMode (
+                 &new_new_params,&modeDescMatch, nullptr )
+                   )
+       )
+    {
+      new_new_params = modeDescMatch;
+    }
+
+    // No match, better to remove the refresh rate and try again
+    else
+    {
+      SK_LOGi0 (L"Failed to find matching mode, removing refresh rate...");
+
+      new_new_params.RefreshRate.Denominator = 0;
+      new_new_params.RefreshRate.Numerator   = 0;
+    }
+  }
 
   static UINT           numModeChanges =  0 ;
   static DXGI_MODE_DESC lastModeSet    = { };
@@ -4968,10 +5042,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
          (bd.Format                  == pNewNewTargetParameters->Format  || pNewNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN) &&
                                           // TODO: How to find the current mode?
                                        (pNewNewTargetParameters->Scaling          == lastModeSet.Scaling          ||
-                                                                   numModeChanges == 0)                                             &&
+                                                                   numModeChanges == 0)                 &&
                                        (pNewNewTargetParameters->ScanlineOrdering == lastModeSet.ScanlineOrdering ||
-                                                                   numModeChanges == 0)                                             &&
-         (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                                             &&
+                                                                   numModeChanges == 0)                 &&
+         (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                           &&
          (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
     {
       DXGI_SKIP_CALL (ret, S_OK);
@@ -4986,7 +5060,12 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
 
   if (SUCCEEDED (ret))
   {
-    lastModeSet = *pNewNewTargetParameters,
+    if (                  new_new_params.RefreshRate.Denominator != 0 &&
+                          new_new_params.RefreshRate.Numerator   != 0)
+    { lLastRefreshNum   = new_new_params.RefreshRate.Numerator;
+      lLastRefreshDenom = new_new_params.RefreshRate.Denominator; }
+
+    lastModeSet = new_new_params,
                   ++numModeChanges;
 
     auto *pLimiter =
@@ -4996,11 +5075,11 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     // opportunity to re-sync the limiter's clock versus VBLANK.
     pLimiter->reset (true);
 
-    if ( pNewNewTargetParameters->Width  != 0 &&
-         pNewNewTargetParameters->Height != 0 )
+    if ( new_new_params.Width  != 0 &&
+         new_new_params.Height != 0 )
     {
-      SK_SetWindowResX (pNewNewTargetParameters->Width);
-      SK_SetWindowResY (pNewNewTargetParameters->Height);
+      SK_SetWindowResX (new_new_params.Width);
+      SK_SetWindowResY (new_new_params.Height);
     }
 
     bSwapChainNeedsResize = true;
@@ -5393,29 +5472,34 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
           )
         )
       {
-        SK_LOGi0 ( L" >> Refresh Override "
-                   L"(Requested: %f, Using: %f)",
-                    pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
-            static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
-            static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
-                        std::numeric_limits <float>::quiet_NaN (),
-            static_cast <float> (config.render.framerate.rescan_.Numerator) /
-            static_cast <float> (config.render.framerate.rescan_.Denom)
-                 );
-
-        if (config.render.framerate.rescan_.Denom != 1)
+        if ( ( config.render.framerate.rescan_.Denom     > 0   &&
+               config.render.framerate.rescan_.Numerator > 0 ) &&
+         !( pDesc->BufferDesc.RefreshRate.Numerator   == config.render.framerate.rescan_.Numerator &&
+            pDesc->BufferDesc.RefreshRate.Denominator == config.render.framerate.rescan_.Denom ) )
         {
-          pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-          pDesc->BufferDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
-        }
+          SK_LOGi0 ( L" >> Refresh Override (Requested: %f, Using: %f)",
+                      pDesc->BufferDesc.RefreshRate.Denominator != 0 ?
+              static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+              static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
+                          std::numeric_limits <float>::quiet_NaN (),
+              static_cast <float> (config.render.framerate.rescan_.Numerator) /
+              static_cast <float> (config.render.framerate.rescan_.Denom)
+                   );
 
-        else
-        {
-          pDesc->BufferDesc.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (
-              std::ceil (config.render.framerate.refresh_rate)
-            );
-          pDesc->BufferDesc.RefreshRate.Denominator = 1;
+          if (config.render.framerate.rescan_.Denom != 1)
+          {
+            pDesc->BufferDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+            pDesc->BufferDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+          }
+
+          else
+          {
+            pDesc->BufferDesc.RefreshRate.Numerator   =
+              sk::narrow_cast <UINT> (
+                std::ceil (config.render.framerate.refresh_rate)
+              );
+            pDesc->BufferDesc.RefreshRate.Denominator = 1;
+          }
         }
       }
 
@@ -5655,6 +5739,9 @@ SK_DXGI_CreateSwapChain_PostInit (
 
     extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                 SK_Inject_SetFocusWindow (hWndRoot);
+
+    if (config.window.always_on_top >= 1)
+      SK_DeferCommand ("Window.TopMost true");
 
     SK_Window_RepositionIfNeeded ();
 
