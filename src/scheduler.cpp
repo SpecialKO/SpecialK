@@ -968,10 +968,15 @@ SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept
   return 1;
 }
 
+volatile LONG __sleep_init = FALSE;
+
 DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 {
+  if (ReadAcquire (&__sleep_init) == FALSE)
+    return SleepEx (dwMilliseconds, bAlertable);
+
   return
     SleepEx_Original != nullptr                   ?
     SleepEx_Original (dwMilliseconds, bAlertable) :
@@ -1610,12 +1615,14 @@ void SK_Scheduler_Init (void)
         SK_GetProcAddress ( L"NtDll",
                              "NtQueryTimerResolution" )   );
 
-    SK_RunOnce (
-      pCommandProc->AddVariable ("Render.FrameRate.SleeplessRenderThread",
-              new SK_IVarStub <bool> (&config.render.framerate.sleepless_render)));
-    SK_RunOnce (
+    if (0 == InterlockedCompareExchange (&__sleep_init, 1, 0))
+    {
+      pCommandProc->AddVariable ( "Render.FrameRate.SleeplessRenderThread",
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_render));
+
       pCommandProc->AddVariable ( "Render.FrameRate.SleeplessWindowThread",
-              new SK_IVarStub <bool> (&config.render.framerate.sleepless_window)));
+              new SK_IVarStub <bool> (&config.render.framerate.sleepless_window));
+    }
 
 #ifdef NO_HOOK_QPC
     QueryPerformanceCounter_Original =

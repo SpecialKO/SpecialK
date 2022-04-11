@@ -364,11 +364,10 @@ SK_MMDev_GetLoudness (void)
                                            eConsole,
                                              &pDevice));
 
-    ThrowIfFailed (
-      pDevice->Activate (__uuidof (IAudioLoudness),
-                           CLSCTX_ALL,
-                             nullptr,
-                               IID_PPV_ARGS_Helper (&pLoudness.p)));
+    pDevice->Activate (__uuidof (IAudioLoudness),
+                         CLSCTX_ALL,
+                           nullptr,
+                             IID_PPV_ARGS_Helper (&pLoudness.p));
   }
 
   catch (const std::exception& e)
@@ -392,7 +391,6 @@ SK_MMDev_GetAutoGainControl (void)
   SK_IMMDeviceEnumerator   pDevEnum  = nullptr;
   SK_IMMDevice             pDevice   = nullptr;
 
-
   try
   {
     ThrowIfFailed (
@@ -403,11 +401,10 @@ SK_MMDev_GetAutoGainControl (void)
                                            eConsole,
                                              &pDevice.p));
 
-    ThrowIfFailed (
-      pDevice->Activate (__uuidof (IAudioAutoGainControl),
-                           CLSCTX_ALL,
-                             nullptr,
-                               IID_PPV_ARGS_Helper (&pAutoGain.p)));
+    pDevice->Activate (__uuidof (IAudioAutoGainControl),
+                         CLSCTX_ALL,
+                           nullptr,
+                             IID_PPV_ARGS_Helper (&pAutoGain.p));
   }
 
   catch (const std::exception& e)
@@ -416,8 +413,6 @@ SK_MMDev_GetAutoGainControl (void)
     //   silence this at log level 0!
     SK_LOG1 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
               ),L"  WASAPI  " );
-
-    pAutoGain = nullptr;
   }
 
   return pAutoGain;

@@ -2157,11 +2157,11 @@ SK::Framerate::Tick ( bool          wait,
     SK::Framerate::Stats*
       pContainers [] =
       {
-        pLimiter->frame_history_snapshots->mean.getPtr        (),
-        pLimiter->frame_history_snapshots->min.getPtr         (),
-        pLimiter->frame_history_snapshots->max.getPtr         (),
-        pLimiter->frame_history_snapshots->percentile0.getPtr (),
-        pLimiter->frame_history_snapshots->percentile1.getPtr ()
+        pLimiter->frame_history_snapshots.mean.getPtr        (),
+        pLimiter->frame_history_snapshots.min.getPtr         (),
+        pLimiter->frame_history_snapshots.max.getPtr         (),
+        pLimiter->frame_history_snapshots.percentile0.getPtr (),
+        pLimiter->frame_history_snapshots.percentile1.getPtr ()
       };
 
     auto stat_idx =

@@ -24,15 +24,12 @@
 
 SK_INCLUDE_START_CPP (COM_UTIL)
 
-///#ifndef __SK_SUBSYSTEM__
-///#define __SK_SUBSYSTEM__ L" COM Util "
-///#endif
-
 #define _WIN32_DCOM
 #include <Wbemidl.h>
 #include <objbase.h>
 #include <cstdlib>
 #include <atlcomcli.h>
+#include <comdef.h>
 
 #include <SpecialK/thread.h>
 #include <gsl/pointers>
@@ -1476,42 +1473,54 @@ typedef SK_ComQIPtr<IDispatch, &__uuidof(IDispatch)> CComDispatchDriver;
 
 
 #include <exception>
+#include <source_location>
 
 class SK_ComException : public
        std::exception
 {
 public:
   SK_ComException (
-    HRESULT          hr
-  ) noexcept : __hr (hr) { }
+    HRESULT                   hr,
+    std::source_location&& src_loc =
+      std::source_location::current ()
+  ) noexcept :          __hr (hr),
+              __src_loc (src_loc)
+  {
+    _com_error
+     com_desc (__hr);
+
+    snprintf (
+      what_str,
+       1023, "%hs (...): Failed on Line %d of %hs -- (HRESULT: %08x) -- \"%ws\"",
+             __src_loc.function_name (),
+                      __src_loc.line (), __src_loc.file_name (),
+                 (int)__hr, com_desc.ErrorMessage ()
+             );
+  }
 
   const char*
   what (void) const noexcept override
   {
-    static char
-      s_str [64] = { };
-
-    sprintf_s (
-      s_str, "Failure with HRESULT of %08X",
-                    (int)__hr
-              );
-    return
-      s_str;
+    return what_str;
   }
 
 private:
-  HRESULT
-    __hr;
+  std::source_location __src_loc;
+  HRESULT              __hr;
+  char                 what_str [1024] = { };
 };
 
-inline void
-ThrowIfFailed (HRESULT hr)
+#define ThrowIfFailed(hr) \
+ ThrowIfFailed_Impl ((hr), std::source_location::current ())
+
+static void
+ThrowIfFailed_Impl (HRESULT hr, std::source_location src_loc)
 {
   if (SUCCEEDED (hr))
     return;
 
   throw
-    SK_ComException (hr);
+    SK_ComException (hr, std::move (src_loc));
 }
 
 HRESULT

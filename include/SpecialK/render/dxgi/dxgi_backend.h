@@ -423,7 +423,7 @@ const char*
 SK_DXGI_DescribeSwapEffect (DXGI_SWAP_EFFECT swap_effect) noexcept;
 
 std::string
-SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags);
+SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines = nullptr);
 
 std::string
 SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,

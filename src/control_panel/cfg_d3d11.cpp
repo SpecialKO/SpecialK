@@ -978,10 +978,6 @@ SK_D3D11_ShowShaderModDlg (void)
 }
 
 
-extern std::string
-SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines = nullptr);
-
-
 void
 SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 {

@@ -1011,8 +1011,11 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
     }
   }
 
-  catch (const SK_ComException&)
+  catch (const SK_ComException& e)
   {
+    SK_LOGi0 (
+      L"ImGui Font: %hs",       e.what ()
+    );
   }
 }
 
@@ -1502,8 +1505,12 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     return true;
   }
 
-  catch (const SK_ComException&)
+  catch (const SK_ComException& e)
   {
+    SK_LOGi0 (
+      L"ImGui Backbuffer Resources: %hs",
+                                e.what () );
+
     ImGui_ImplDX11_InvalidateDeviceObjects ();
     return false;
   }
@@ -1837,7 +1844,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
     if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) || _Frame [0].pBackBuffer.p       == nullptr ||
                                                                      _Frame [0].pRenderTargetView.p == nullptr)
     {
-      //throw (SK_ComException (E_INVALIDARG));
+      throw (SK_ComException (E_FAIL));
     }
 
     else
@@ -1876,8 +1883,11 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
     }
   }
 
-  catch (const SK_ComException&)
+  catch (const SK_ComException& e)
   {
+    SK_LOGi0 (
+      L"D3D11 Render Context init: %hs", e.what ()
+    );
   };
 
   frames_.clear                          ();

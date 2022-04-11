@@ -1,4 +1,10 @@
-﻿22.4.9.2-NOCEGUI
+﻿22.4.10-NOCEGUI
+===============
+ + Fixed a few Structured Exception Handling stack unwinds
+ + Added skeleton implementation of D3D9-IK, non-functional, just enough to test
+     whether and where this will crash D3D9 games when finished.
+
+22.4.9.2-NOCEGUI
 ================
  + Fixed a rare race to initialize framerate limiter that could result in an
      integer divide by zero.

@@ -97,6 +97,30 @@ _make_blacklist_draw_max_verts ( uint32_t crc32c,
 bool SK_D3D11_KnownTargets::_mod_tool_wants = false;
 
 bool
+SK_D3D11_IsValidRTV (ID3D11RenderTargetView* pRTV)
+{
+  ID3D11Resource *pRes = nullptr;
+
+  __try {
+    D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+    pRTV->GetDesc               (&rtvDesc);
+    pRTV->GetResource           (&pRes);
+
+    if (pRes != nullptr)
+        pRes->Release ();
+  }
+
+  __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                   EXCEPTION_EXECUTE_HANDLER  :
+                                   EXCEPTION_CONTINUE_SEARCH)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool
 SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 {
   if (pTLS == nullptr)
@@ -554,24 +578,21 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
           if (it == nullptr)
             continue;
 
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );
-          try
+          if (! SK_D3D11_IsValidRTV (it))
+          {
+            desc.Format = DXGI_FORMAT_UNKNOWN;
+          }
+
+          else
           {
             it->GetDesc (&desc);
           }
-          catch (const SK_SEH_IgnoredException& e) {
-            UNREFERENCED_PARAMETER (e);
-            desc.Format = DXGI_FORMAT_UNKNOWN;
-          }
-          SK_SEH_RemoveTranslator (orig_se);
 
           if (desc.Format == DXGI_FORMAT_UNKNOWN)
+          {
+            invalid_views.emplace (it);
             continue;
+          }
 
           if ( desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
                desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS )
@@ -579,27 +600,16 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             SK_ComPtr <ID3D11Resource>  pRes = nullptr;
             SK_ComPtr <ID3D11Texture2D> pTex = nullptr;
 
-            orig_se =
-            SK_SEH_ApplyTranslator (
-              SK_FilteringStructuredExceptionTranslator (
-                EXCEPTION_ACCESS_VIOLATION
-              )
-            );
-            try {
-              it->GetResource (&pRes.p);
+            it->GetResource (&pRes.p);
 
-              if (pRes.p != nullptr)
-                  pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
+            if (pRes.p != nullptr)
+                pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
 
-              if (pTex.p == nullptr)
-                throw SK_SEH_IgnoredException ();
-            }
-            catch (const SK_SEH_IgnoredException&) {
+            if (pTex.p == nullptr)
+            {
               invalid_views.emplace (it);
-
               continue;
             }
-            SK_SEH_RemoveTranslator (orig_se);
 
             if ( pRes != nullptr &&
                  pTex != nullptr )
@@ -696,39 +706,30 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
         for ( auto& it : render_textures )
         {
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );// , Silent);
-          try
+          UINT size = sizeof (UINT);
+          UINT data = 0;
+
+          if (live_textures.contains (it))
           {
-            UINT size = sizeof (UINT);
-            UINT data = 0;
+            if (! SK_D3D11_IsValidRTV (it))
+              continue;
 
-            if (live_textures.contains (it))
+            if ( FAILED ( it->GetPrivateData (
+                            SKID_D3D11DeviceContextHandle, &size, &data ) ) )
             {
-              if ( FAILED ( it->GetPrivateData (
-                              SKID_D3D11DeviceContextHandle, &size, &data ) ) )
-              {
-                size = sizeof (UINT);
-                data =
-                  ( InterlockedIncrement (&idx_counter) + 1 );
+              size = sizeof (UINT);
+              data =
+                ( InterlockedIncrement (&idx_counter) + 1 );
 
-                it->SetPrivateData (
-                  SKID_D3D11DeviceContextHandle, size, &data
-                );
-              }
-
-              rt2.emplace_back (
-                std::make_pair (it, data)
+              it->SetPrivateData (
+                SKID_D3D11DeviceContextHandle, size, &data
               );
             }
+
+            rt2.emplace_back (
+              std::make_pair (it, data)
+            );
           }
-          catch (const SK_SEH_IgnoredException&)
-          {                                    }
-          SK_SEH_RemoveTranslator (orig_se);// , Verbose0);
         }
 
         // The underlying list is unsorted for speed, but that's not at all
@@ -781,62 +782,51 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           UINT rtv_idx = 0;
 
-          auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );// , Silent);
-          try
+          if (live_textures.count (it) != 0)
           {
-            if (live_textures.count (it) != 0)
+            if (! SK_D3D11_IsValidRTV (it))
             {
-              rtv_idx =
-                rt_indexes [it];
+              SK_LOG1 ( (L" >> RTV name lifetime shorter than object."),
+                         L"  D3D 11  " );
+              continue;
+            }
 
-              if (rtv_idx != std::numeric_limits <UINT>::max ())
+            rtv_idx =
+              rt_indexes [it];
+
+            if (rtv_idx != std::numeric_limits <UINT>::max ())
+            {
+              uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
+
+              if ( SUCCEEDED (
+                     it->GetPrivateData (
+                       WKPDID_D3DDebugObjectNameW, &uiDebugLen, wszDebugDesc )
+                              )                  && uiDebugLen > sizeof (wchar_t)
+                 )
               {
-                uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
-
-                if ( SUCCEEDED (
-                       it->GetPrivateData (
-                         WKPDID_D3DDebugObjectNameW, &uiDebugLen, wszDebugDesc )
-                                )                  && uiDebugLen > sizeof (wchar_t)
-                   )
-                {
-                  snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
-                  named = true;
-                }
-
-                else
-                {
-                  uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
-
-                  if ( SUCCEEDED (
-                       it->GetPrivateData (
-                         WKPDID_D3DDebugObjectName, &uiDebugLen, szDebugDesc )
-                                 )                && uiDebugLen > sizeof (char)
-                     )
-                  {
-                    snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
-                    named = true;
-                  }
-                }
+                snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
+                named = true;
               }
 
-              else { discard_views.emplace (it); }
-            }
-            else   { discard_views.emplace (it); }
-          }
+              else
+              {
+                uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
 
-          // Unity engine games recycle RTVs and there's a chance getting the debug name
-          //   will be invalidated by another thread
-          catch (const SK_SEH_IgnoredException&)
-          {
-            SK_LOG1 ( (L" >> RTV name lifetime shorter than object."),
-                       L"  D3D 11  " );
+                if ( SUCCEEDED (
+                     it->GetPrivateData (
+                       WKPDID_D3DDebugObjectName, &uiDebugLen, szDebugDesc )
+                               )                && uiDebugLen > sizeof (char)
+                   )
+                {
+                  snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
+                  named = true;
+                }
+              }
+            }
+
+            else { discard_views.emplace (it); }
           }
-          SK_SEH_RemoveTranslator (orig_se);// , Verbose0);
+          else   { discard_views.emplace (it); }
 
           if (! named)
           {

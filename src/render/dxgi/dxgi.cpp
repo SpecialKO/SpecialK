@@ -52,6 +52,15 @@ BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 
 using D3D12GetDebugInterface_pfn = HRESULT (WINAPI* )( _In_ REFIID riid, _COM_Outptr_opt_ void** ppvDebug );
 
+   auto _IsD3D12SwapChain = [](IDXGISwapChain *pSwapChain)
+-> bool
+   {
+     SK_ComPtr            <ID3D12Device>                pDev12;
+     return       pSwapChain != nullptr &&
+       SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pDev12.p))) &&
+                                                        pDev12.p != nullptr;
+   };
+
 // For querying the name of the monitor from the system registry when
 //   EDID and other more purpose-built driver functions fail to help.
 #pragma comment (lib, "SetupAPI.lib")
@@ -275,6 +284,8 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
 bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
+  SK_LOGi1 (L"ImGui_DX11Startup (%p)", pSwapChain);
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -286,6 +297,8 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev.p))) )
   {
+    SK_LOGi1 (L" -> GetDevice (D3D11) = %p", pD3D11Dev.p);
+
     assert ( pD3D11Dev.IsEqualObject ()   ||
          rb.getDevice <ID3D11Device> ().p == nullptr );
 
@@ -310,6 +323,8 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
     if ( pImmediateContext != nullptr )
     {
+      SK_LOGi1 (L" # D3D11 Immediate Context = %p", pImmediateContext.p);
+
       if (! (( rb.device    == nullptr || rb.device   == pD3D11Dev  ) ||
              ( rb.swapchain == nullptr || rb.swapchain== (IUnknown *)pSwapChain )) )
       {
@@ -330,6 +345,9 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
       if (_d3d11_rbk->init ( pSwapChain, pD3D11Dev, pImmediateContext))
       {
+        SK_LOGi1 (L" _d3d11_rbk->init (SwapChain, %p, %p) Succeeded",
+                                         pD3D11Dev.p,  pImmediateContext.p);
+
         SK_DXGI_UpdateSwapChain (pSwapChain);
 
         return true;
@@ -2386,7 +2404,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         _d3d12_rbk->release (This);
       }
 
-      if ( ret != S_OK && (! bOriginallyFlip) )
+      if ( ret != S_OK && (! bOriginallyFlip) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12 )
       {
         // This would recurse infinitely without the ghetto lock
         //
@@ -3081,6 +3099,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                          PresentSwapChain_pfn   DXGISwapChain_Present,
                          SK_DXGI_PresentSource  Source)
 {
+  if ( (Flags & DXGI_PRESENT_TEST) || (Flags & DXGI_PRESENT_DO_NOT_SEQUENCE) )
+    return SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
+
   // Backup and restore the RTV bindings Before / After Present for games that
   //   are using Flip Model but weren't originally designed to use it
   //
@@ -3107,7 +3128,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   HRESULT ret =
     SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
 
-  if (pDevCtx.p != nullptr)
+  if (pDevCtx.p != nullptr && SUCCEEDED (ret))
   {
     pDevCtx->OMSetRenderTargets (
       calc_count (&pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
@@ -4184,8 +4205,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                       Fullscreen ? L"{ Fullscreen }" :
                                    L"{ Windowed }",   (uintptr_t)pTarget );
 
-  SK_ComPtr <ID3D12Device> pDev12;
-
+  SK_ComPtr <ID3D12Device>        pDev12;
   This->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
   if (! pDev12.p)
@@ -4194,11 +4214,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     {
       if (Fullscreen != FALSE)
       {
-        ////////SK_RunOnce (
-        ////////  SK_ImGui_Warning ( L"Fullscreen Exclusive Mode is not Supported on Waitable SwapChains.\r\n\r\n\t"
-        ////////                     L">> Please Change In-Game Settings to Borderless Window Mode ASAP to Prevent Compat. Issues" )
-        ////////);
-
         SK_LOG_ONCE ( L" >> Ignoring SetFullscreenState (...) on a Latency Waitable SwapChain." );
 
         // Engine is broken, easier just to add a special-case for it because if we return this to
@@ -4304,7 +4319,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     if (SK_DXGI_IsFlipModelSwapChain (sd))
     {
       // Any Flip Model game already knows to do this stuff...
-      if (! bOriginallyFlip)
+      if ((! bOriginallyFlip) && (pDev12.p == nullptr))
       {
         HRESULT hr =
           This->Present (0, DXGI_PRESENT_TEST);
@@ -5139,6 +5154,13 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
   if (pDesc != nullptr)
   {
+    if (SK_GetCurrentGameID () == SK_GAME_ID::Elex2)
+    {
+      // Elex 2 needs this or its fullscreen options don't work
+      pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    }
+
+
     // Some behavior overrides need not apply if the game knows what flip model is
     bool already_flip_model =
       SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);

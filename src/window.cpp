@@ -4050,12 +4050,6 @@ PeekMessageA_Detour (
   SK_LOG_FIRST_CALL
 #endif
 
-  if (! GetQueueStatus (QS_ALLINPUT))
-  {
-    YieldProcessor ();
-    return FALSE;
-  }
-
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
                         PeekMessageA_Original;
@@ -4142,12 +4136,6 @@ PeekMessageW_Detour (
   SK_LOG_FIRST_CALL
 #endif
 
-  if (! GetQueueStatus (QS_ALLINPUT))
-  {
-    YieldProcessor ();
-    return FALSE;
-  }
-
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
                         PeekMessageW_Original;
@@ -4232,12 +4220,6 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
-  if (! GetQueueStatus (QS_ALLINPUT))
-  {
-    YieldProcessor ();
-    return FALSE;
-  }
-
   auto GetFunc = NtUserGetMessage != nullptr ?
                  NtUserGetMessage :
                        GetMessageA_Original;
@@ -4312,12 +4294,6 @@ WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
   SK_LOG_FIRST_CALL
-
-  if (! GetQueueStatus (QS_ALLINPUT))
-  {
-    YieldProcessor ();
-    return FALSE;
-  }
 
   auto GetFunc = NtUserGetMessage != nullptr ?
                  NtUserGetMessage :

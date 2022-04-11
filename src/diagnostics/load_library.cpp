@@ -684,6 +684,28 @@ SKX_SummarizeCaller ( LPVOID  lpRet,
 }
 
 
+bool
+SK_GetModuleHandleExW ( DWORD    dwFlags,
+                        LPCWSTR  lpModuleName,
+                        HMODULE* phModule )
+{
+  __try
+  {
+    GetModuleHandleExW (
+      dwFlags, lpModuleName,
+               phModule );
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_INVALID_HANDLE  ?
+                                    EXCEPTION_EXECUTE_HANDLER :
+                                    EXCEPTION_CONTINUE_SEARCH )
+  {
+    return false;
+  }
+
+  return true;
+}
+
 HMODULE
 WINAPI
 LoadLibrary_Marshal ( LPVOID   lpRet,
@@ -724,24 +746,11 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
   if (              compliant_path != nullptr &&
                    *compliant_path != L'\0' )
   {
-    auto orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator (
-        EXCEPTION_INVALID_HANDLE
-      )
-    );
-    try
-    {
-      GetModuleHandleExW ( GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                             compliant_path,
-                               &hModEarly );
-    }
-
-    catch (const SK_SEH_IgnoredException&)
-    {
-      SK_SetLastError (0);
-    }
-    SK_SEH_RemoveTranslator (orig_se);
+    if (! SK_GetModuleHandleExW (
+            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+              compliant_path,
+                &hModEarly      )
+       ) SK_SetLastError (0);
 
     if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
     {
@@ -750,7 +759,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     }
 
     HMODULE hMod = hModEarly;
-
+    
+#ifdef _DEBUG
     orig_se =
     SK_SEH_ApplyTranslator (
       SK_FilteringStructuredExceptionTranslator (
@@ -759,6 +769,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     );
     try
     {
+#endif
       // Avoid loader deadlock in Steam overlay by pre-loading this
       //   DLL behind the overlay's back.
       if (StrStrIW (compliant_path, L"rxcore"))
@@ -782,6 +793,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       else
         hMod =
           SK_LoadLibraryW (compliant_path);
+#ifdef _DEBUG
     }
     catch (const SK_SEH_IgnoredException&)
     {
@@ -795,6 +807,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
                         caller );
     }
     SK_SEH_RemoveTranslator (orig_se);
+#endif
 
 
     if (hModEarly != hMod)
@@ -984,25 +997,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   HMODULE hModEarly = nullptr;
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_INVALID_HANDLE
-    )
-  );
-  try
-  {
-    GetModuleHandleExW (
-      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-        compliant_path,
-          &hModEarly
-    );
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-    SK_SetLastError (0);
-  }
-  SK_SEH_RemoveTranslator (orig_se);
+  if (! SK_GetModuleHandleExW (
+        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+          compliant_path,
+            &hModEarly      )
+   ) SK_SetLastError (0);
 
   if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
   {
@@ -1013,6 +1012,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   HMODULE hMod = hModEarly;
 
+#ifdef _DEBUG
   orig_se =
   SK_SEH_ApplyTranslator (
     SK_FilteringStructuredExceptionTranslator (
@@ -1021,12 +1021,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   );
   try
   {
+#endif
     hMod =
       SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+#ifdef _DEBUG
   }
-  //__except ( ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION )  ?
-  //                     EXCEPTION_EXECUTE_HANDLER :
-  //                     EXCEPTION_CONTINUE_SEARCH )
   catch (const SK_SEH_IgnoredException&)
   {
     dll_log->Log ( L"[DLL Loader]  ** Crash Prevented **  DLL raised an exception during"
@@ -1034,7 +1033,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
                      wszSourceFunc, compliant_path );
   }
   SK_SEH_RemoveTranslator (orig_se);
-
+#endif
 
   if ( hModEarly != hMod && (! ((dwFlags & LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE) ||
                                 (dwFlags & LOAD_LIBRARY_AS_IMAGE_RESOURCE))) )
@@ -1625,6 +1624,92 @@ SK_BootModule (const wchar_t* wszModName)
 }
 
 void
+SK_WalkModules_StepImpl (       HMODULE       hMod,
+                                wchar_t      *wszModName,
+                                bool&         rehook,
+                                bool&         new_hooks,
+                                SK_ModuleEnum when )
+{
+  // Get the full path to the module's file.
+  if ( GetModuleFileNameW ( hMod,
+                              wszModName,
+                                MAX_PATH ) )
+  {
+    if (SK_LoadLibrary_IsPinnable (wszModName))
+         SK_LoadLibrary_PinModule (wszModName);
+
+    if (! rehook)
+    {
+      if ( (! third_party_dlls.overlays.rtss_hooks) &&
+            StrStrIW (wszModName, L"RTSSHooks") )
+      {
+                    // Hold a reference to this DLL so it is not unloaded prematurely
+        GetModuleHandleEx ( 0x0,
+                              wszModName,
+                                &third_party_dlls.overlays.rtss_hooks );
+
+        rehook = config.compatibility.rehook_loadlibrary;
+      }
+
+      else if ( (! third_party_dlls.overlays.steam_overlay) &&
+                 StrStrIW (wszModName, L"gameoverlayrenderer") )
+      {
+                    // Hold a reference to this DLL so it is not unloaded prematurely
+        GetModuleHandleEx ( 0x0,
+                              wszModName,
+                                &third_party_dlls.overlays.steam_overlay );
+
+        rehook = config.compatibility.rehook_loadlibrary;
+      }
+    }
+
+    if (when == SK_ModuleEnum::PostLoad)
+    {
+      SK_BootModule (wszModName);
+    }
+
+    if (! config.platform.silent)
+    {
+      if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
+           StrStrIW (wszModName, wszSteamAPIAltDLL) ||
+           StrStrIW (wszModName, wszSteamNativeDLL) ||
+           StrStrIW (wszModName, wszSteamClientDLL) ||
+           StrStrIW (wszModName, L"steamwrapper") )
+      {
+        if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld &&
+             SK_GetCurrentGameID () != SK_GAME_ID::JustCause3         )
+        {
+          BOOL
+          SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
+
+          if (SK_Steam_PreHookCore ())
+            new_hooks = true;
+
+          if (SK_HookSteamAPI () > 0)
+            new_hooks = true;
+        }
+
+        else
+        {
+          static volatile               LONG __init = 0;
+          if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
+          {
+            SK_Thread_Create ([](LPVOID) -> DWORD
+            {
+              SK_HookSteamAPI ();
+
+              SK_Thread_CloseSelf ();
+
+              return 0;
+            });
+          }
+        }
+      }
+    }
+  }
+}
+
+void
 SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum when)
 {
   bool rehook    = false;
@@ -1636,102 +1721,9 @@ SK_WalkModules (int cbNeeded, HANDLE /*hProc*/, HMODULE* hMods, SK_ModuleEnum wh
   {
     *wszModName = L'\0';
 
-    auto orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator (
-        EXCEPTION_ACCESS_VIOLATION
-      )
-    );
-    try
-    {
-      // Get the full path to the module's file.
-      if ( GetModuleFileNameW ( hMods [i],
-                                  wszModName,
-                                    MAX_PATH ) )
-      {
-        if (SK_LoadLibrary_IsPinnable (wszModName))
-             SK_LoadLibrary_PinModule (wszModName);
-
-        if (! rehook)
-        {
-          if ( (! third_party_dlls.overlays.rtss_hooks) &&
-                StrStrIW (wszModName, L"RTSSHooks") )
-          {
-                        // Hold a reference to this DLL so it is not unloaded prematurely
-            GetModuleHandleEx ( 0x0,
-                                  wszModName,
-                                    &third_party_dlls.overlays.rtss_hooks );
-
-            rehook = config.compatibility.rehook_loadlibrary;
-          }
-
-          else if ( (! third_party_dlls.overlays.steam_overlay) &&
-                     StrStrIW (wszModName, L"gameoverlayrenderer") )
-          {
-                        // Hold a reference to this DLL so it is not unloaded prematurely
-            GetModuleHandleEx ( 0x0,
-                                  wszModName,
-                                    &third_party_dlls.overlays.steam_overlay );
-
-            rehook = config.compatibility.rehook_loadlibrary;
-          }
-        }
-
-        if (when == SK_ModuleEnum::PostLoad)
-        {
-          SK_BootModule (wszModName);
-        }
-
-        if (! config.platform.silent)
-        {
-          if ( StrStrIW (wszModName, wszSteamAPIDLL)    ||
-               StrStrIW (wszModName, wszSteamAPIAltDLL) ||
-               StrStrIW (wszModName, wszSteamNativeDLL) ||
-               StrStrIW (wszModName, wszSteamClientDLL) ||
-               StrStrIW (wszModName, L"steamwrapper") )
-          {
-            if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld &&
-                 SK_GetCurrentGameID () != SK_GAME_ID::JustCause3         )
-            {
-              BOOL
-              SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);
-
-              if (SK_Steam_PreHookCore ())
-                new_hooks = true;
-
-              if (SK_HookSteamAPI () > 0)
-                new_hooks = true;
-            }
-
-            else
-            {
-              static volatile LONG __init = 0;
-
-              if (! InterlockedCompareExchange (&__init, TRUE, FALSE))
-              {
-                SK_Thread_Create ([](LPVOID) -> DWORD
-                {
-                  SK_HookSteamAPI ();
-
-                  SK_Thread_CloseSelf ();
-
-                  return 0;
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-
-    //__except ( (GetExceptionCode () == EXCEPTION_INVALID_HANDLE) ?
-    //                       EXCEPTION_EXECUTE_HANDLER :
-    //                       EXCEPTION_CONTINUE_SEARCH  )
-    catch (const SK_SEH_IgnoredException&)
-    {
-      // Sometimes a DLL will be unloaded in the middle of doing this... just ignore that.
-    }
-    SK_SEH_RemoveTranslator (orig_se);
+    SK_WalkModules_StepImpl ( hMods [i],
+                            wszModName, rehook,
+                                     new_hooks, when );
   }
 
   if (rehook)

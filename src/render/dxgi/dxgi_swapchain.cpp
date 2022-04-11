@@ -469,9 +469,10 @@ SK_DXGI_FixUpLatencyWaitFlag (
   pSwapChain->GetDesc (&desc);
 
   if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-                  ==  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT || (bCreation && config.render.framerate.swapchain_wait > 0) )
-            Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-  else      Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+                  ==  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT ||
+                (bCreation && config.render.framerate.swapchain_wait > 0) 
+     )       Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+  else       Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
   if (_NO_ALLOW_MODE_SWITCH)
             Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -484,14 +485,28 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-  HRESULT hr =
-    pReal->SetFullscreenState (Fullscreen, pTarget);
+  SK_ComPtr <IDXGIOutput> pOriginalTarget;
+  BOOL                    bFullscreen = FALSE;
+  GetFullscreenState    (&bFullscreen, &pOriginalTarget.p);
 
-  if (SUCCEEDED (hr))
+  HRESULT hr = S_OK;
+
+  if (    bFullscreen    != Fullscreen ||
+      (pOriginalTarget.p != pTarget    && pTarget != nullptr) )
   {
-    SK_DeferCommand ("Window.TopMost true");
-    if (config.window.always_on_top < 1)
-      SK_DeferCommand ("Window.TopMost false");
+    hr =
+      pReal->SetFullscreenState (Fullscreen, pTarget);
+
+    if (SUCCEEDED (hr))
+    {
+      // After SetFullscreenState, a buffer resize is non-optional
+      if (flip_model.active)
+        _stalebuffers = true;
+
+      SK_DeferCommand ("Window.TopMost true");
+      if (config.window.always_on_top < 1)
+        SK_DeferCommand ("Window.TopMost false");
+    }
   }
 
   return hr;
@@ -538,10 +553,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  SK_DeferCommand ("Window.TopMost true");
-  if (config.window.always_on_top < 1)
-    SK_DeferCommand ("Window.TopMost false");
-
   //
   // Fix a number of problems caused by RTSS
   //
@@ -577,18 +588,23 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   auto& rb =
       SK_GetCurrentRenderBackend ();
 
-  if (config.window.borderless && config.window.fullscreen && (! rb.fullscreen_exclusive))
+  if ( config.window.borderless &&
+       config.window.fullscreen && (! rb.fullscreen_exclusive) )
   {
     if ( rb.active_display >= 0 &&
          rb.active_display < rb._MAX_DISPLAYS )
     {
-      Width  = rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left;
-      Height = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+      Width  = rb.displays [rb.active_display].rect.right  -
+               rb.displays [rb.active_display].rect.left;
+      Height = rb.displays [rb.active_display].rect.bottom -
+               rb.displays [rb.active_display].rect.top;
 
-      if (origWidth != Width || origHeight != Height)
+      if ( origWidth  != Width ||
+           origHeight != Height )
       {
         SK_LOGi0 (
-          L" >> SwapChain Resolution Override (Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
+          L" >> SwapChain Resolution Override "
+          L"(Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
           origWidth, origHeight,
               Width,     Height );
       }
@@ -600,22 +616,61 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     Width  = config.window.res.override.x;
     Height = config.window.res.override.y;
 
-    if (origWidth != Width || origHeight != Height)
+    if ( origWidth  != Width ||
+         origHeight != Height )
     {
       SK_LOGi0 (
-        L" >> SwapChain Resolution Override (Requested: %dx%d), (Actual: %dx%d) [ User-Defined Resolution ]",
+        L" >> SwapChain Resolution Override "
+        L"(Requested: %dx%d), (Actual: %dx%d) [ User-Defined Resolution ]",
         origWidth, origHeight,
             Width,     Height );
     }
   }
 
 
-  HRESULT hr =
-    pReal->ResizeBuffers (BufferCount, Width, Height, NewFormat, SwapChainFlags);
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+  GetDesc            (&swapDesc);
 
+
+  HRESULT hr = S_OK;
+
+  if (! ((swapDesc.BufferDesc.Width  == Width       || Width       == 0)                   &&
+         (swapDesc.BufferDesc.Height == Height      || Height      == 0)                   &&
+         (swapDesc.BufferDesc.Format == NewFormat   || NewFormat   == DXGI_FORMAT_UNKNOWN) &&
+         (swapDesc.BufferCount       == BufferCount || BufferCount == 0)                   &&
+         (swapDesc.Flags             == SwapChainFlags))
+      || (_stalebuffers) )
+  {
+    hr =
+      pReal->ResizeBuffers (
+        BufferCount, Width, Height,
+          NewFormat, SwapChainFlags
+      );
+
+    if (SUCCEEDED (hr))
+    {
+      SK_DeferCommand ("Window.TopMost true");
+      if (config.window.always_on_top < 1)
+        SK_DeferCommand ("Window.TopMost false");
+    }
+  }
+
+  else
+  {
+    SK_LOGi0 (
+      L"Skipped Redundant ResizeBuffers Operation "
+      L"[(%dx%d) x %d Buffers, Format: %hs, Flags: %x]",
+             swapDesc.BufferDesc.Width, swapDesc.BufferDesc.Height,
+                                        swapDesc.BufferCount,
+                   SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
+                                        swapDesc.Flags
+    );
+  }
 
   if (SUCCEEDED (hr))
   {
+    _stalebuffers = false;
+
     // D3D12 is already Flip Model and doesn't need this
     if (flip_model.isOverrideActive () && (! d3d12_))
     {
@@ -623,7 +678,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
 
       if (! _backbuffers.empty ())
       {
-        SK_LOGi1 (L"ResizeBuffers [_backbuffers=%d]", _backbuffers.size ());
+        SK_LOGi1 ( L"ResizeBuffers [_backbuffers=%d]",
+                                    _backbuffers.size () );
 
         for ( auto &[slot, backbuffer] : _backbuffers )
         {

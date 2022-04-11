@@ -68,7 +68,6 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
-__declspec (noinline)
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
@@ -76,8 +75,7 @@ SK_GetCurrentGameID (void)
   static SK_GAME_ID current_game =
          SK_GAME_ID::UNKNOWN_GAME;
 
-         bool first_check = false;
-  SK_RunOnce (first_check = true);
+  static bool first_check = true;
   if         (first_check)
   {
     auto constexpr hash_lower = [&](const wchar_t* const wstr) -> size_t

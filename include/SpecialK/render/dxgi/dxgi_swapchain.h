@@ -276,6 +276,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
   std::mutex            _backbufferLock;
   std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
                         _backbuffers;
+  bool                  _stalebuffers   = false;
 
   UINT                  lastWidth       = 0;
   UINT                  lastHeight      = 0;
