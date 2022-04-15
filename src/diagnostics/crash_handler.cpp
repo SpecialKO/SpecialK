@@ -113,10 +113,13 @@ SK_Crash_PlaySound (void)
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
   __try {
-    SK_PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
-                     nullptr,
-                       SND_SYNC |
-                       SND_MEMORY );
+    if (0 == ReadAcquire (&__SK_DLL_Ending))
+    {
+      SK_PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
+                       nullptr,
+                         SND_SYNC |
+                         SND_MEMORY );
+    }
 
     ret = true;
   }
