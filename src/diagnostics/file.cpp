@@ -132,7 +132,9 @@ NtReadFile_Detour (
           // The first thread seen gets less special treatment
           if (dwDiskTids->empty ())
           {
-            if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+            static bool bFFXV =
+              (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV);
+            if (bFFXV)
               task->queuePriority (AVRT_PRIORITY_CRITICAL);
             else
               task->queuePriority (AVRT_PRIORITY_NORMAL);

@@ -5044,7 +5044,10 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_LOG4 ( ( L"Generating mipmaps for texture with crc32c: %x", top_crc32 ),
                 L" Tex Hash " );
 
-    if ((SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia))
+    static bool bToV =
+      (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia);
+
+    if (bToV)
     {
       SK_ScopedBool decl_tex_scope (
         SK_D3D11_DeclareTexInjectScope (pTLS)
@@ -7191,8 +7194,10 @@ D3D11Dev_CreateDeferredContext_Override (
   _In_            UINT                  ContextFlags,
   _Out_opt_       ID3D11DeviceContext **ppDeferredContext )
 {
-  bool silent =
+  static bool bACO =
     (SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey);
+
+  bool silent = bACO;
 
   if ((! silent) && SK_GetModuleName (SK_GetCallingDLL ()).find (L"TwitchNativeOverlay") != std::wstring::npos)
     silent = true;

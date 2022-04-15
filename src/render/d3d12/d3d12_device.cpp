@@ -398,7 +398,10 @@ _COM_Outptr_ void                              **ppPipelineState )
   {
     // Do not enable in other games for now, needs more testing
     //
-    if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+    static bool bEldenRing =
+      (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+
+    if (bEldenRing)
     {
       UINT uiDontCare = 0;
 
@@ -483,9 +486,11 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
                                       DxilContainerHashSize,
                                                  pHash );
 
+          static bool bEldenRing =
+            (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
           // Do not enable in other games for now, needs more testing
           //
-          if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+          if (bEldenRing)
           {
             if (     type == SK_D3D12_ShaderType::Pixel)
               _pixelShaders  [pPipelineState] = true;
@@ -554,7 +559,10 @@ _COM_Outptr_  void                            **ppPipelineState )
 
   // Do not enable in other games for now, needs more testing
   //
-  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  static bool bEldenRing =
+    (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+
+  if (bEldenRing)
   {
   if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
   {
@@ -598,7 +606,9 @@ D3D12Device_CreateCommandAllocator_Detour (
   REFIID                   riid,
   _COM_Outptr_  void      **ppCommandAllocator )
 {
-  if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
+  static bool bEldenRing =
+    (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+  if (bEldenRing)
   {
   if (riid == __uuidof (ID3D12CommandAllocator))
   {

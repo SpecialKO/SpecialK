@@ -224,6 +224,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       _Finish ();
   }
 
+
   SK_ComPtr <ID3D11Device> pDevice;
   pDevCtx->GetDevice     (&pDevice.p);
 

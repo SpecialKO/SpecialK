@@ -1799,8 +1799,10 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
 
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4 &&
-          GetActiveWindow () == SK_GetGameWindow () )
+  static bool bStarOcean4 =
+    (SK_GetCurrentGameID () == SK_GAME_ID::StarOcean4);
+
+  if (bStarOcean4 && GetActiveWindow () == SK_GetGameWindow ())
   {
     static const auto& io =
       ImGui::GetIO ();

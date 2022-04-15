@@ -502,6 +502,13 @@ DllMain ( HMODULE hModule,
                                                              FALSE )
          )
       {
+        // Stop injection on normal unload
+        if (SK_GetFramesDrawn () > 1)
+        { extern void
+          SK_Inject_BroadcastInjectionNotify (void);
+          SK_Inject_BroadcastInjectionNotify ();
+        }
+
         // If the DLL being unloaded is the source of a global hook, then
         //   shut that down before detaching the DLL.
         if (ReadAcquire (&__SK_HookContextOwner))
@@ -867,6 +874,21 @@ SK_dgVoodoo_CheckForInterop (void)
 
   return false;
 }
+
+#if 0
+class SK_ScopedAttach {
+public:
+  SK_ScopedAttach (void)
+  {
+    InterlockedIncrement (&__SK_DLL_Attached);
+  }
+
+  ~SK_ScopedAttach (void)
+  {
+    InterlockedDecrement (&__SK_DLL_Attached);
+  }
+};
+#endif
 
 BOOL
 __stdcall

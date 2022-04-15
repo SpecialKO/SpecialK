@@ -148,7 +148,10 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           {
             bool skip = false;
 
-            if ((SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia))
+            static bool bToV =
+              (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia);
+
+            if (bToV)
             {
               if ( StrStrIA (entry.name.c_str (), "E_")    == entry.name.c_str () ||
                    StrStrIA (entry.name.c_str (), "U_")    == entry.name.c_str () ||

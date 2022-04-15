@@ -1241,6 +1241,76 @@ private:
 };
 
 bool
+SK_PE32_MakeLargeAddressAwareCopy (void)
+{
+  if (! SK_PE32_IsLargeAddressAware ())
+  {
+    std::wstring dest =
+      std::wstring (L"LAA-") + SK_GetModuleName (SK_GetModuleHandle (nullptr));
+    std::wstring orig =        SK_GetModuleName (SK_GetModuleHandle (nullptr));
+
+    if (! CopyFile ( orig.c_str (),
+                     dest.c_str (), FALSE ))
+    {
+      return false;
+    }
+
+    if ( FILE *fLAA  = _wfopen (dest.c_str (), L"rb") ;
+               fLAA != nullptr )
+    {
+      size_t size =
+        static_cast <size_t> (
+          std::filesystem::file_size (dest)
+        );
+
+      std::vector <uint8_t> file;
+
+      file.resize (
+             size );
+
+      fread (&file [0],     1,
+              file.size (), fLAA);
+      fclose               (fLAA);
+
+      fLAA =
+        _wfopen (dest.c_str (), L"wb");
+
+      if (fLAA != nullptr)
+      {
+        uintptr_t         pImgBase = (uintptr_t)file.data ();
+        PIMAGE_NT_HEADERS pNtHdr   = nullptr;
+
+        pNtHdr   =
+          PIMAGE_NT_HEADERS (
+            pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
+          );
+
+        if (pNtHdr->FileHeader.Machine == IMAGE_FILE_MACHINE_I386)
+            pNtHdr->FileHeader.Characteristics |=
+                IMAGE_FILE_LARGE_ADDRESS_AWARE;
+
+        fwrite ( file.data (),
+                 file.size (), 1, fLAA);
+        fclose (                  fLAA);
+
+        if (std::filesystem::file_size (dest) ==
+            std::filesystem::file_size (orig))
+        {
+          SK_File_MoveNoFail ( orig                 .c_str (),
+               (std::wstring (L"LAUnaware-") + orig).c_str () );
+          SK_File_MoveNoFail ( dest.c_str (),
+                               orig.c_str () );
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
+bool
 SK_PE32_IsLargeAddressAware (void)
 {
 #ifdef _M_AMD64
@@ -1257,7 +1327,8 @@ SK_PE32_IsLargeAddressAware (void)
         pImgBase + PIMAGE_DOS_HEADER (pImgBase)->e_lfanew
       );
 
-    assert (pNtHdr->FileHeader.Machine == IMAGE_FILE_MACHINE_I386);
+    if (pNtHdr->FileHeader.Machine != IMAGE_FILE_MACHINE_I386)
+      return true;
 
     return
       ( pNtHdr->FileHeader.Characteristics &

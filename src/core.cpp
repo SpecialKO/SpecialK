@@ -634,6 +634,7 @@ extern void BasicInit (void);
       break;
 
     case SK_GAME_ID::DragonBallFighterZ:
+    {
       wchar_t      wszPath       [MAX_PATH + 2] = { };
       wchar_t      wszWorkingDir [MAX_PATH + 2] = { };
       wcscpy      (wszWorkingDir, SK_GetHostPath  ());
@@ -644,7 +645,12 @@ extern void BasicInit (void);
 
       SK_ShellExecuteW (nullptr, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
       ExitProcess      (0);
-      break;
+    } break;
+
+    case SK_GAME_ID::ChronoCross:
+    {
+      SK_CC_InitPlugin ();
+    } break;
 #endif
   }
 
@@ -2660,8 +2666,45 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       if (frames_drawn > 15)
       {
 #ifdef _WIN64
-        if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
-            SK_RunOnce (SK_ER_InitPlugin ());
+        static bool bEldenRing =
+          (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+
+        if (bEldenRing)
+          SK_RunOnce (SK_ER_InitPlugin ());
+#else
+        static bool bChronoCross =
+          (SK_GetCurrentGameID () == SK_GAME_ID::ChronoCross);
+
+        if (bChronoCross)
+        {
+          static auto base =
+            SK_Debug_GetImageBaseAddr ();
+
+          auto _ApplyPatch = [&]()->void
+          {
+            if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
+            {
+              SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
+
+              DWORD                                                           dwOldProt;
+              VirtualProtect (
+                      ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+              memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
+              VirtualProtect (
+                      ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
+
+              VirtualProtect (
+                      ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+              memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
+              VirtualProtect (
+                      ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
+
+              //83 46 14 02 to 83 46 14 01
+            }
+          };
+
+          SK_RunOnce (_ApplyPatch ());
+        }
 #endif
       }
     } break;

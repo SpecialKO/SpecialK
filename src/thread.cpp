@@ -494,7 +494,7 @@ SK_Thread_InitDebugExtras (void)
 
     InterlockedIncrementRelease (&_InitDebugExtrasOnce);
 
-    if (ReadAcquire (&__SK_Init) > 0)
+//    if (ReadAcquire (&__SK_Init) > 0)
     {
       SK_ApplyQueuedHooks ();
     }

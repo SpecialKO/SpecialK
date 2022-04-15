@@ -2594,6 +2594,30 @@ SK_ImGui_ControlPanel (void)
                                  SW_NORMAL );
         }
 
+        static bool bLAA =
+          SK_PE32_IsLargeAddressAware ();
+
+        if (! bLAA)
+        {
+          ImGui::Separator ();
+
+          if (ImGui::Selectable ("Apply Large Address Aware Patch to Game"))
+          {
+            if (SK_PE32_MakeLargeAddressAwareCopy ())
+              bLAA = true;
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Allows 32-bit games to use more than 2 GiB of RAM");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("The current game is -not- Large Address Aware");
+            ImGui::BulletText   ("Fully patching the game requires relaunching it");
+            ImGui::EndTooltip   ();
+          }
+        }
+
         static bool wrappable = true;
 
         if (SK_IsInjected () && wrappable)
@@ -3990,7 +4014,11 @@ SK_ImGui_ControlPanel (void)
     SK_PlugIn_ControlPanelWidget ();
 
 
-    switch (SK_GetCurrentGameID ())
+    static auto game_id =
+      SK_GetCurrentGameID ();
+
+    // TODO: Move this into SK_PlugIn_ControlPanelWidget
+    switch (game_id)
     {
       case SK_GAME_ID::GalGun_Double_Peace:
       {

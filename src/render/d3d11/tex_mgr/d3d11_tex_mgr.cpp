@@ -951,6 +951,22 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       SK_CreateDirectories (wszPath);
 
+      // Chrono Cross -HACK-, 4-bpc formats don't usually dump successfully
+      if ( img.GetMetadata   ().format == DXGI_FORMAT_B4G4R4A4_UNORM &&
+           img.GetImageCount ()        > 0 )
+      {
+        DirectX::ScratchImage tmp;
+
+        if (
+          SUCCEEDED (
+            DirectX::Compress (img.GetImages ()[0], DXGI_FORMAT_BC3_UNORM, 0x0, 0.0, tmp)
+                    )
+           )
+        {
+          img.InitializeFromImage (tmp.GetImages ()[0]);
+        }
+      }
+
       const HRESULT hr =
         DirectX::SaveToDDSFile ( img.GetImages   (), img.GetImageCount (),
                                  img.GetMetadata (), 0x00, wszOutName );
@@ -994,8 +1010,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
                       pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).data (),
                         pDesc->MipLevels, compressed ?
                                                "Yes" : "No",
-                        pDesc->Format ==
-     DirectX::MakeSRGB (pDesc->Format) ?       "Yes" : "No",
+       DirectX::IsSRGB (pDesc->Format)    ?    "Yes" : "No",
                           pDesc->BindFlags,
                             pDesc->Usage,
                               pDesc->CPUAccessFlags,

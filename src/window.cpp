@@ -3856,7 +3856,10 @@ GetSystemMetrics_Detour (_In_ int nIndex)
 
 
 #ifndef _REMOVE_DEPRECATED_CRAP
-  if (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU)
+  static bool bDotHack =
+    (SK_GetCurrentGameID () == SK_GAME_ID::DotHackGU);
+
+  if (bDotHack)
   {
     if (nIndex == SM_CYCAPTION)      return 0;
     if (nIndex == SM_CYMENU)         return 0;
@@ -5063,9 +5066,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
-        if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0 ||
-             SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-             SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+        static auto game_id =
+          SK_GetCurrentGameID ();
+
+        if ( game_id == SK_GAME_ID::Yakuza0       ||
+             game_id == SK_GAME_ID::YakuzaKiwami2 ||
+             game_id == SK_GAME_ID::YakuzaUnderflow )
         {
           SK_SelfDestruct     (   );
           SK_TerminateProcess (0x0);

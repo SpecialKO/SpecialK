@@ -170,7 +170,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
       { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    },
       { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         },
-      { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        }
+      { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        },
+      { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  }
     };
 
     first_check = false;
@@ -2199,6 +2200,15 @@ auto DeclKeybind =
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
       } break;
 
+      case SK_GAME_ID::ChronoCross:
+      {
+        extern bool SK_PE32_IsLargeAddressAware       (void);
+        extern bool SK_PE32_MakeLargeAddressAwareCopy (void);
+
+        if (! SK_PE32_IsLargeAddressAware ())
+              SK_PE32_MakeLargeAddressAwareCopy ();
+      } break;
+
 
 #ifdef _M_AMD64
       case SK_GAME_ID::GalGunReturns:
@@ -3918,15 +3928,17 @@ auto DeclKeybind =
   if (! migrate_platform_config.empty ())
     platform_ini->rename (migrate_platform_config.c_str ());
 
-
-  // Config opted-in to debugger wait
-  if (config.system.wait_for_debugger)
+  if (ReadAcquire (&__SK_DLL_Attached))
   {
-    if (     ! SK_IsDebuggerPresent ())
-    { while (! SK_IsDebuggerPresent ())
-               SK_SleepEx (50, TRUE);
+    // Config opted-in to debugger wait
+    if (config.system.wait_for_debugger)
+    {
+      if (     ! SK_IsDebuggerPresent ())
+      { while (! SK_IsDebuggerPresent ())
+                 SK_SleepEx (50, TRUE);
 
-      __debugbreak ();
+        __debugbreak ();
+      }
     }
   }
 

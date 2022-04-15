@@ -298,7 +298,7 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
   return E_NOINTERFACE;
 }
 
-void
+int
 IWrapDXGISwapChain::PresentBase (void)
 {
   // D3D12 is already Flip Model and doesn't need this
@@ -315,13 +315,16 @@ IWrapDXGISwapChain::PresentBase (void)
       {
         std::scoped_lock lock (_backbufferLock);
 
-        if (_backbuffers.contains (0) &&
-            _backbuffers          [0].p != nullptr)
-        {
-          SK_ComPtr               <ID3D11Texture2D>           pBackbuffer;
-          pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackbuffer.p);
+        SK_ComPtr               <ID3D11Texture2D>           pBackbuffer;
+        pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackbuffer.p);
 
-          if (pBackbuffer.p != nullptr)
+        if (pBackbuffer.p != nullptr)
+        {
+          D3D11_TEXTURE2D_DESC   bufferDesc = { };
+          pBackbuffer->GetDesc (&bufferDesc);
+
+          if (_backbuffers.contains (0) &&
+              _backbuffers          [0].p != nullptr)
           {
             D3D11_TEXTURE2D_DESC        texDesc = { };
             _backbuffers [0]->GetDesc (&texDesc);
@@ -331,27 +334,39 @@ IWrapDXGISwapChain::PresentBase (void)
             else
               pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
 
-            if (config.render.framerate.flip_discard)
-            {
-              SK_ComQIPtr <ID3D11DeviceContext1>
-                  pDevCtx1 (pDevCtx);
-              if (pDevCtx1.p != nullptr)
-              {
-                pDevCtx1->DiscardResource (_backbuffers [0].p);
-              }
-            }
+            ////if (config.render.framerate.flip_discard)
+            ////{
+            ////  SK_ComQIPtr <ID3D11DeviceContext1>
+            ////      pDevCtx1 (pDevCtx);
+            ////  if (pDevCtx1.p != nullptr)
+            ////  {
+            ////    pDevCtx1->DiscardResource (_backbuffers [0].p);
+            ////  }
+            ////}
+          }
+
+          else
+          {
+            return 0;
           }
         }
       }
     }
   }
+
+  return -1;
 }
 
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
-  PresentBase ();
+  if (0 == PresentBase ())
+  {
+    SyncInterval = 0;
+    Flags       |= DXGI_PRESENT_DO_NOT_SEQUENCE |
+                   DXGI_PRESENT_RESTART;
+  }
 
   return
     SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
@@ -421,12 +436,22 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
-          texDesc.BindFlags          = D3D11_BIND_RENDER_TARGET |
-                                       D3D11_BIND_SHADER_RESOURCE;
+          texDesc.BindFlags          = 0x0; // To be filled in below
+
+          // TODO: Pass this during wrapping
+          //   [Or use IDXGIResource::GetUsage (...)
+          if (swapDesc.BufferUsage & DXGI_USAGE_RENDER_TARGET_OUTPUT)
+              texDesc.BindFlags   |= D3D11_BIND_RENDER_TARGET;
+
+          if (swapDesc.BufferUsage & DXGI_USAGE_SHADER_INPUT)
+              texDesc.BindFlags   |= D3D11_BIND_SHADER_RESOURCE;
 
           // MSAA SwapChains can't use UA
           if (texDesc.SampleDesc.Count <= 1)
-              texDesc.BindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+          {
+            if (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
+                texDesc.BindFlags   |= D3D11_BIND_UNORDERED_ACCESS;
+          }
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
@@ -867,7 +892,12 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
   // Almost never used by anything, so log it if it happens.
   SK_LOG_ONCE (L"Present1 ({Wrapped SwapChain})");
 
-  PresentBase ();
+  if (0 == PresentBase ())
+  {
+    SyncInterval = 0;
+    PresentFlags |= DXGI_PRESENT_DO_NOT_SEQUENCE |
+                    DXGI_PRESENT_RESTART;
+  }
 
   return
     SK_DXGI_DispatchPresent1 ( (IDXGISwapChain1 *)pReal, SyncInterval, PresentFlags, pPresentParameters,

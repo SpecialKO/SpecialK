@@ -48,8 +48,7 @@ struct DECLSPEC_UUID("24430A12-6E3C-4706-AFFA-B3EEF2DF4102")
 IWrapDXGISwapChain : IDXGISwapChain4
 {
   IWrapDXGISwapChain ( ID3D11Device   *pDevice,
-                       IDXGISwapChain *pSwapChain ) :
-                                                      pReal (pSwapChain),
+                       IDXGISwapChain *pSwapChain ) : pReal (pSwapChain),
                                                       pDev  (pDevice),
                                                       ver_  (0)
   {
@@ -111,14 +110,19 @@ IWrapDXGISwapChain : IDXGISwapChain4
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
   }
 
-  IWrapDXGISwapChain ( ID3D11Device    *pDevice,
-                       IDXGISwapChain1 *pSwapChain ) :
-                                                       pReal (pSwapChain),
-                                                       pDev  (pDevice),
-                                                       ver_  (1)
+  IWrapDXGISwapChain ( ID3D11Device         *pDevice,
+                       IDXGISwapChain1      *pSwapChain ) :
+                       ///DXGI_SWAP_CHAIN_DESC *pOrigDesc,
+                       ///DXGI_SWAP_CHAIN_DESC *pOverrideDesc ) :
+    pReal (pSwapChain),
+    pDev  (pDevice),
+    ver_  (1)
   {
     if (! pSwapChain)
       return;
+
+    ///creation_desc.actual    = *pOverrideDesc;
+    ///creation_desc.requested = *pOrigDesc;
 
     DXGI_SWAP_CHAIN_DESC            sd = { };
     if (SUCCEEDED (pReal->GetDesc (&sd)))
@@ -283,8 +287,27 @@ IWrapDXGISwapChain : IDXGISwapChain4
   DXGI_FORMAT           lastFormat      = DXGI_FORMAT_UNKNOWN;
   UINT                  lastBufferCount = 0;
 
+  ///struct {
+  ///  DXGI_SWAP_CHAIN_DESC requested;
+  ///  DXGI_SWAP_CHAIN_DESC actual;
+  ///} creation_desc;
+  ///
+  ///bool wasOrignallysRGB (void)
+  ///{
+  ///  return
+  ///    DirectX::IsSRGB (creation_desc.requested.BufferDesc.Format);
+  ///}
+  ///
+  ///bool wasOriginallyFlip (void)
+  ///{
+  ///  return
+  ///    SK_DXGI_IsFlipModelSwapChain (creation_desc.requested);
+  ///}
+  ///
+  ///UINT uiOriginalBltSampleCount = 0UL;
+
   // Shared logic between Present (...) and Present1 (...)
-  void                  PresentBase (void);
+  int                     PresentBase (void);
 };
 
 

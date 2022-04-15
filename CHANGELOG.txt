@@ -1,4 +1,20 @@
-﻿22.4.11.1-NOCEGUI
+﻿22.4.15-NOCEGUI
+===============
+ + Added Large Address Aware patch functionality to Special K for 32-bit games
+     that are not Large Address Aware  (see the File Menu in affected games)
+ + Automatically apply Large Address Aware patch to Chrono Cross
+
+22.4.14-NOCEGUI
+===============
+ + Added Frame Pacing Fixes for Chrono Cross
+ + Added optional compressed fonts for Chrono Cross for users whose drivers
+     cannot run the game and report "Out of Memory"
+
+   *) See: https://sk-data.special-k.info/misc/SK_ChronoCross_FontFix.7z
+
+        SK_Res\...
+
+22.4.11.1-NOCEGUI
 =================
  + Fixed calling the DLL import version of GetSystemCpuSetInformation (...)
  + Improved HDR black point compensation for less grayscale banding near-black

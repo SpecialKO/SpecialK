@@ -29,6 +29,13 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
+//#define FRAME_TRACE
+#ifdef  FRAME_TRACE
+# define TraceAPI SK_LOG_FIRST_CALL
+#else
+# define TraceAPI 
+#endif
+
 #if (VER_PRODUCTBUILD < 10011)
 const GUID IID_ID3D11DeviceContext2 =
 { 0x420d5b32, 0xb90c, 0x4da4, { 0xbe, 0xf0, 0x35, 0x9f, 0x6a, 0x24, 0xa8, 0x3a } };
@@ -560,6 +567,8 @@ public:
   void STDMETHODCALLTYPE GetDevice (
     _Out_  ID3D11Device **ppDevice ) override
   {
+    TraceAPI
+
     return
       pReal->GetDevice (ppDevice);
   }
@@ -568,6 +577,8 @@ public:
                                              _Inout_                              UINT   *pDataSize,
                                              _Out_writes_bytes_opt_( *pDataSize ) void   *pData ) override
   {
+    TraceAPI
+
     return
       pReal->GetPrivateData (
                 guid, pDataSize,
@@ -580,6 +591,8 @@ public:
     _In_                                    UINT    DataSize,
     _In_reads_bytes_opt_( DataSize )  const void   *pData ) override
   {
+    TraceAPI
+
     return
       pReal->SetPrivateData (
                 guid,  DataSize,
@@ -591,6 +604,8 @@ public:
     _In_           REFGUID   guid,
     _In_opt_ const IUnknown *pData ) override
   {
+    TraceAPI
+
     return
       pReal->SetPrivateDataInterface (guid, pData);
   }
@@ -600,6 +615,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                       ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->VSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -611,6 +628,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot)  UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                     ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
   #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShaderResources_Impl (
@@ -630,6 +649,8 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    TraceAPI
+
     if (     ppClassInstances != nullptr && NumClassInstances > 256)
     {
       SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
@@ -731,6 +752,8 @@ public:
     _In_   UINT                      MapFlags,
     _Out_  D3D11_MAPPED_SUBRESOURCE *pMappedResource ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
       return
@@ -756,6 +779,8 @@ public:
     _In_ ID3D11Resource *pResource,
     _In_ UINT          Subresource ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_Unmap_Impl       (pReal,
@@ -771,6 +796,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                       ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->PSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -780,6 +807,8 @@ public:
   void STDMETHODCALLTYPE IASetInputLayout (
     _In_opt_  ID3D11InputLayout *pInputLayout ) override
   {
+    TraceAPI
+
     pReal->IASetInputLayout (pInputLayout);
   }
 
@@ -790,6 +819,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pStrides,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pOffsets ) override
   {
+    TraceAPI
+
     pReal->IASetVertexBuffers ( StartSlot,
                    NumBuffers,
               ppVertexBuffers,
@@ -803,6 +834,8 @@ public:
     _In_      DXGI_FORMAT   Format,
     _In_      UINT          Offset ) override
   {
+    TraceAPI
+
     pReal->IASetIndexBuffer (
                pIndexBuffer, Format, Offset
     );
@@ -860,6 +893,8 @@ public:
     _In_range_     ( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot ) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                         ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->GSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -871,6 +906,8 @@ public:
     _In_reads_opt_(NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                       UINT                       NumClassInstances ) override
   {
+    TraceAPI
+
     if (     ppClassInstances != nullptr && NumClassInstances > 256)
     {
       SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
@@ -892,6 +929,8 @@ public:
   void STDMETHODCALLTYPE IASetPrimitiveTopology (
     _In_  D3D11_PRIMITIVE_TOPOLOGY Topology ) override
   {
+    TraceAPI
+
     pReal->IASetPrimitiveTopology (Topology);
   }
 
@@ -900,6 +939,8 @@ public:
     _In_range_     ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot ) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShaderResources_Impl (
@@ -920,6 +961,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                       NumSamplers,
     _In_reads_opt_ (NumSamplers)                                          ID3D11SamplerState *const *ppSamplers ) override
   {
+    TraceAPI
+
     pReal->VSSetSamplers ( StartSlot,
              NumSamplers,
               ppSamplers
@@ -928,11 +971,15 @@ public:
 
   void STDMETHODCALLTYPE Begin (_In_ ID3D11Asynchronous *pAsync) override
   {
+    TraceAPI
+
     pReal->Begin (pAsync);
   }
 
   void STDMETHODCALLTYPE End (_In_  ID3D11Asynchronous *pAsync) override
   {
+    TraceAPI
+
     pReal->End (pAsync);
   }
 
@@ -942,6 +989,8 @@ public:
     _In_                                UINT                 DataSize,
     _In_                                UINT              GetDataFlags ) override
   {
+    TraceAPI
+
     return
       pReal->GetData ( pAsync,
                pData,
@@ -954,6 +1003,8 @@ public:
     _In_opt_ ID3D11Predicate *pPredicate,
     _In_     BOOL              PredicateValue ) override
   {
+    TraceAPI
+
     pReal->SetPredication (
              pPredicate,
               PredicateValue
@@ -965,6 +1016,8 @@ public:
     _In_range_     ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot ) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                      ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShaderResources_Impl (
@@ -985,6 +1038,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                       NumSamplers,
     _In_reads_opt_ (NumSamplers)                                          ID3D11SamplerState *const *ppSamplers ) override
   {
+    TraceAPI
+
     pReal->GSSetSamplers ( StartSlot,
              NumSamplers,
               ppSamplers
@@ -996,6 +1051,8 @@ public:
     _In_reads_opt_ (NumViews)                                  ID3D11RenderTargetView *const *ppRenderTargetViews,
     _In_opt_                                                   ID3D11DepthStencilView        *pDepthStencilView ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_OMSetRenderTargets_Impl (pReal,
@@ -1017,6 +1074,8 @@ public:
     _In_reads_opt_ (NumUAVs)                    ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
     _In_reads_opt_ (NumUAVs)              const UINT                             *pUAVInitialCounts ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (pReal,
@@ -1039,6 +1098,8 @@ public:
     _In_opt_ const FLOAT             BlendFactor [4],
     _In_           UINT              SampleMask ) override
   {
+    TraceAPI
+
     pReal->OMSetBlendState (
                pBlendState,
                 BlendFactor,
@@ -1050,6 +1111,8 @@ public:
     _In_opt_ ID3D11DepthStencilState *pDepthStencilState,
     _In_     UINT                           StencilRef ) override
   {
+    TraceAPI
+
     pReal->OMSetDepthStencilState (
                pDepthStencilState,
                      StencilRef
@@ -1061,6 +1124,8 @@ public:
     _In_reads_opt_ (NumBuffers)                    ID3D11Buffer *const *ppSOTargets,
     _In_reads_opt_ (NumBuffers)              const UINT                *pOffsets ) override
   {
+    TraceAPI
+
     pReal->SOSetTargets ( NumBuffers,
             ppSOTargets,
              pOffsets
@@ -1069,6 +1134,8 @@ public:
 
   void STDMETHODCALLTYPE DrawAuto (void) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
@@ -1083,6 +1150,8 @@ public:
     _In_ ID3D11Buffer           *pBufferForArgs,
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
@@ -1104,6 +1173,8 @@ public:
     _In_ ID3D11Buffer *pBufferForArgs,
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
@@ -1124,6 +1195,8 @@ public:
     _In_ UINT ThreadGroupCountY,
     _In_ UINT ThreadGroupCountZ ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
@@ -1145,6 +1218,8 @@ public:
     _In_ ID3D11Buffer           *pBufferForArgs,
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
@@ -1163,6 +1238,8 @@ public:
   void STDMETHODCALLTYPE RSSetState (
     _In_opt_ ID3D11RasterizerState *pRasterizerState ) override
   {
+    TraceAPI
+
     pReal->RSSetState (
      pRasterizerState
     );
@@ -1172,6 +1249,8 @@ public:
     _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT          NumViewports,
     _In_reads_opt_ (NumViewports)                                          const D3D11_VIEWPORT *pViewports ) override
   {
+    TraceAPI
+
     pReal->RSSetViewports (
              NumViewports,
                pViewports
@@ -1182,6 +1261,8 @@ public:
     _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT      NumRects,
     _In_reads_opt_ (NumRects)                                              const D3D11_RECT *pRects ) override
   {
+    TraceAPI
+
     pReal->RSSetScissorRects (NumRects, pRects);
   }
 
@@ -1195,6 +1276,8 @@ public:
     _In_           UINT            SrcSubresource,
     _In_opt_ const D3D11_BOX      *pSrcBox ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopySubresourceRegion_Impl (pReal,
@@ -1211,6 +1294,8 @@ public:
     _In_ ID3D11Resource *pDstResource,
     _In_ ID3D11Resource *pSrcResource ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopyResource_Impl (pReal,
@@ -1230,6 +1315,8 @@ public:
     _In_           UINT            SrcRowPitch,
     _In_           UINT            SrcDepthPitch ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_UpdateSubresource_Impl (pReal,
@@ -1250,6 +1337,8 @@ public:
     _In_ UINT                        DstAlignedByteOffset,
     _In_ ID3D11UnorderedAccessView *pSrcView ) override
   {
+    TraceAPI
+
     pReal->CopyStructureCount ( pDstBuffer,
                                  DstAlignedByteOffset,
                                 pSrcView
@@ -1260,6 +1349,8 @@ public:
     _In_       ID3D11RenderTargetView *pRenderTargetView,
     _In_ const FLOAT                   ColorRGBA [4] ) override
   {
+    TraceAPI
+
     pReal->ClearRenderTargetView (
                pRenderTargetView, ColorRGBA
     );
@@ -1269,6 +1360,8 @@ public:
     _In_       ID3D11UnorderedAccessView *pUnorderedAccessView,
     _In_ const UINT                       Values [4] ) override
   {
+    TraceAPI
+
     pReal->ClearUnorderedAccessViewUint (
                pUnorderedAccessView, Values
     );
@@ -1278,6 +1371,8 @@ public:
     _In_       ID3D11UnorderedAccessView *pUnorderedAccessView,
     _In_ const FLOAT                      Values [4] ) override
   {
+    TraceAPI
+
     pReal->ClearUnorderedAccessViewFloat (
                pUnorderedAccessView, Values
     );
@@ -1289,6 +1384,8 @@ public:
     _In_  FLOAT                   Depth,
     _In_  UINT8                   Stencil ) override
   {
+    TraceAPI
+
     return
       pReal->ClearDepthStencilView (
                  pDepthStencilView,
@@ -1301,6 +1398,8 @@ public:
   void STDMETHODCALLTYPE GenerateMips (
     _In_ ID3D11ShaderResourceView *pShaderResourceView ) override
   {
+    TraceAPI
+
     pReal->GenerateMips (pShaderResourceView);
   }
 
@@ -1308,12 +1407,16 @@ public:
     _In_ ID3D11Resource *pResource,
     FLOAT           MinLOD ) override
   {
+    TraceAPI
+
     pReal->SetResourceMinLOD (pResource, MinLOD);
   }
 
   FLOAT STDMETHODCALLTYPE GetResourceMinLOD (
     _In_  ID3D11Resource *pResource ) override
   {
+    TraceAPI
+
     return
       pReal->GetResourceMinLOD (pResource);
   }
@@ -1325,6 +1428,7 @@ public:
     _In_ UINT            SrcSubresource,
     _In_ DXGI_FORMAT     Format ) override
   {
+    TraceAPI
     SK_LOG_FIRST_CALL
 
     pReal->ResolveSubresource (pDstResource, DstSubresource, pSrcResource, SrcSubresource, Format);
@@ -1334,6 +1438,8 @@ public:
     _In_  ID3D11CommandList *pCommandList,
           BOOL               RestoreContextState ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
     SK_ComPtr <ID3D11DeviceContext>
@@ -1401,6 +1507,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
@@ -1421,6 +1529,8 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    TraceAPI
+
     if (     ppClassInstances != nullptr && NumClassInstances > 256)
     {
       SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
@@ -1445,6 +1555,8 @@ public:
     _In_range_ (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                      NumSamplers,
     _In_reads_opt_ (NumSamplers)                                      ID3D11SamplerState *const *ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->HSSetSamplers ( StartSlot,
                NumSamplers,
@@ -1457,6 +1569,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                       ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->HSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -1468,6 +1582,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
@@ -1488,6 +1604,8 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    TraceAPI
+
     if (     ppClassInstances != nullptr && NumClassInstances > 256)
     {
       SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
@@ -1523,6 +1641,8 @@ public:
     _In_range_ (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                 NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                   ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->DSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -1534,6 +1654,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                                          NumViews,
     _In_reads_opt_ (NumViews)                                                    ID3D11ShaderResourceView *const *ppShaderResourceViews ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShaderResources_Impl (
@@ -1554,6 +1676,8 @@ public:
     _In_reads_opt_(NumUAVs)                             ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
     _In_reads_opt_(NumUAVs)                       const UINT                             *pUAVInitialCounts ) override
   {
+    TraceAPI
+
     pReal->CSSetUnorderedAccessViews (
       StartSlot, NumUAVs,
         ppUnorderedAccessViews,
@@ -1566,6 +1690,8 @@ public:
     _In_reads_opt_ (NumClassInstances) ID3D11ClassInstance *const *ppClassInstances,
                                        UINT                       NumClassInstances ) override
   {
+    TraceAPI
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_SetShader_Impl   (pReal,
@@ -1584,6 +1710,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                      NumSamplers,
     _In_reads_opt_ (NumSamplers)                                          ID3D11SamplerState *const *ppSamplers ) override
   {
+    TraceAPI
+
     pReal->CSSetSamplers ( StartSlot,
              NumSamplers,
               ppSamplers
@@ -1595,6 +1723,8 @@ public:
     _In_range_     (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT                        NumBuffers,
     _In_reads_opt_ (NumBuffers)                                                       ID3D11Buffer *const *ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->CSSetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -1606,6 +1736,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT             NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                       ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->VSGetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -1617,6 +1749,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                         NumViews,
     _Out_writes_opt_ (NumViews)                                                    ID3D11ShaderResourceView **ppShaderResourceViews ) override
   {
+    TraceAPI
+
     pReal->PSGetShaderResources ( StartSlot,
                            NumViews,
               ppShaderResourceViews
@@ -1628,6 +1762,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance **ppClassInstances,
     _Inout_opt_                            UINT                 *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->PSGetShader (
            ppPixelShader,
@@ -1641,6 +1777,8 @@ public:
     _In_range_ (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                NumSamplers,
     _Out_writes_opt_ (NumSamplers)                                    ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->PSGetSamplers ( StartSlot,
                NumSamplers,
@@ -1653,6 +1791,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance **ppClassInstances,
     _Inout_opt_                            UINT               *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->VSGetShader (
           ppVertexShader,
@@ -1666,6 +1806,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot)  UINT                  NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                        ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     pReal->PSGetConstantBuffers ( StartSlot,
                      NumBuffers,
               ppConstantBuffers
@@ -1675,6 +1817,8 @@ public:
   void STDMETHODCALLTYPE IAGetInputLayout (
     _Out_  ID3D11InputLayout **ppInputLayout ) override
   {
+    TraceAPI
+
     pReal->IAGetInputLayout (ppInputLayout);
   }
 
@@ -1685,6 +1829,8 @@ public:
     _Out_writes_opt_ (NumBuffers)                                                UINT          *pStrides,
     _Out_writes_opt_ (NumBuffers)                                                UINT          *pOffsets ) override
   {
+    TraceAPI
+
     return
       pReal->IAGetVertexBuffers ( StartSlot,
                      NumBuffers,
@@ -1699,6 +1845,8 @@ public:
     _Out_opt_  DXGI_FORMAT   *Format,
     _Out_opt_  UINT          *Offset ) override
   {
+    TraceAPI
+
     return
       pReal->IAGetIndexBuffer (
                  pIndexBuffer, Format, Offset
@@ -1710,6 +1858,8 @@ public:
     _In_range_       ( 0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot ) UINT                  NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                         ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     return
       pReal->GSGetConstantBuffers ( StartSlot,
                        NumBuffers,
@@ -1722,6 +1872,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance  **ppClassInstances,
     _Inout_opt_                            UINT                  *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->GSGetShader (
         ppGeometryShader,
@@ -1732,6 +1884,8 @@ public:
   void STDMETHODCALLTYPE IAGetPrimitiveTopology (
     _Out_  D3D11_PRIMITIVE_TOPOLOGY *pTopology ) override
   {
+    TraceAPI
+
     return
       pReal->IAGetPrimitiveTopology (pTopology);
   }
@@ -1741,6 +1895,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                         NumViews,
     _Out_writes_opt_ (NumViews)                                                    ID3D11ShaderResourceView **ppShaderResourceViews ) override
   {
+    TraceAPI
+
     return
       pReal->VSGetShaderResources ( StartSlot,
                              NumViews,
@@ -1753,6 +1909,8 @@ public:
     _In_range_       ( 0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot ) UINT                   NumSamplers,
     _Out_writes_opt_ ( NumSamplers )                                          ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->VSGetSamplers ( StartSlot,
                NumSamplers,
@@ -1764,6 +1922,8 @@ public:
     _Out_opt_ ID3D11Predicate **ppPredicate,
     _Out_opt_ BOOL             *pPredicateValue ) override
   {
+    TraceAPI
+
     return
       pReal->GetPredication (
               ppPredicate,
@@ -1776,6 +1936,8 @@ public:
     _In_range_       ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot )  UINT NumViews,
     _Out_writes_opt_ (NumViews)  ID3D11ShaderResourceView **ppShaderResourceViews) override
   {
+    TraceAPI
+
     return
       pReal->GSGetShaderResources ( StartSlot,
                              NumViews,
@@ -1788,6 +1950,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                   NumSamplers,
     _Out_writes_opt_ (NumSamplers)                                          ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->GSGetSamplers ( StartSlot,
                NumSamplers,
@@ -1800,6 +1964,8 @@ public:
     _Out_writes_opt_ (NumViews)                                  ID3D11RenderTargetView **ppRenderTargetViews,
     _Out_opt_                                                    ID3D11DepthStencilView **ppDepthStencilView ) override
   {
+    TraceAPI
+
     pReal->OMGetRenderTargets (
                          NumViews,
               ppRenderTargetViews,
@@ -1815,6 +1981,8 @@ public:
     _In_range_       (0, D3D11_PS_CS_UAV_REGISTER_COUNT - UAVStartSlot) UINT                          NumUAVs,
     _Out_writes_opt_ (NumUAVs)                                          ID3D11UnorderedAccessView **ppUnorderedAccessViews ) override
   {
+    TraceAPI
+
     pReal->OMGetRenderTargetsAndUnorderedAccessViews ( NumRTVs,
               ppRenderTargetViews,
               ppDepthStencilView,
@@ -1829,6 +1997,8 @@ public:
     _Out_opt_ FLOAT              BlendFactor [4],
     _Out_opt_ UINT              *pSampleMask ) override
   {
+    TraceAPI
+
     return
       pReal->OMGetBlendState (
         ppBlendState,
@@ -1841,6 +2011,8 @@ public:
     _Out_opt_ ID3D11DepthStencilState **ppDepthStencilState,
     _Out_opt_ UINT                     *pStencilRef ) override
   {
+    TraceAPI
+
     return
       pReal->OMGetDepthStencilState (
         ppDepthStencilState,
@@ -1852,6 +2024,8 @@ public:
     _In_range_       ( 0, D3D11_SO_BUFFER_SLOT_COUNT ) UINT             NumBuffers,
     _Out_writes_opt_ (NumBuffers)                      ID3D11Buffer **ppSOTargets ) override
   {
+    TraceAPI
+
     return
       pReal->SOGetTargets (
         NumBuffers,
@@ -1862,6 +2036,8 @@ public:
   void STDMETHODCALLTYPE RSGetState (
     _Out_ ID3D11RasterizerState **ppRasterizerState ) override
   {
+    TraceAPI
+
     return
       pReal->RSGetState (ppRasterizerState);
   }
@@ -1870,6 +2046,8 @@ public:
     _Inout_ /*_range(0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE )*/   UINT *pNumViewports,
     _Out_writes_opt_(*pNumViewports)  D3D11_VIEWPORT *pViewports) override
   {
+    TraceAPI
+
     return
       pReal->RSGetViewports (pNumViewports, pViewports);
   }
@@ -1878,6 +2056,8 @@ public:
     _Inout_ /*_range(0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE )*/   UINT *pNumRects,
     _Out_writes_opt_ (*pNumRects)  D3D11_RECT *pRects) override
   {
+    TraceAPI
+
     return
       pReal->RSGetScissorRects (pNumRects, pRects);
   }
@@ -1887,6 +2067,8 @@ public:
     _In_range_       ( 0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot ) UINT                         NumViews,
     _Out_writes_opt_ (NumViews)                                                      ID3D11ShaderResourceView **ppShaderResourceViews ) override
   {
+    TraceAPI
+
     return
       pReal->HSGetShaderResources ( StartSlot,
                              NumViews,
@@ -1899,6 +2081,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance **ppClassInstances,
     _Inout_opt_                            UINT               *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->HSGetShader (
            ppHullShader,
@@ -1912,6 +2096,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                   NumSamplers,
     _Out_writes_opt_ (NumSamplers)                                          ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->HSGetSamplers ( StartSlot,
                NumSamplers,
@@ -1924,6 +2110,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT             NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                       ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     return
       pReal->HSGetConstantBuffers ( StartSlot,
                        NumBuffers,
@@ -1936,6 +2124,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                         NumViews,
     _Out_writes_opt_ (NumViews)                                                    ID3D11ShaderResourceView **ppShaderResourceViews ) override
   {
+    TraceAPI
+
     return
       pReal->DSGetShaderResources ( StartSlot,
                              NumViews,
@@ -1948,6 +2138,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance **ppClassInstances,
     _Inout_opt_                            UINT               *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->DSGetShader (
           ppDomainShader,
@@ -1961,6 +2153,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                   NumSamplers,
     _Out_writes_opt_ (NumSamplers)                                          ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->DSGetSamplers ( StartSlot,
                NumSamplers,
@@ -1973,6 +2167,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT             NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                       ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     return
       pReal->DSGetConstantBuffers ( StartSlot,
                        NumBuffers,
@@ -1985,6 +2181,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT - StartSlot) UINT                         NumViews,
     _Out_writes_opt_ (NumViews)                                                    ID3D11ShaderResourceView **ppShaderResourceViews ) override
   {
+    TraceAPI
+
     return
       pReal->CSGetShaderResources ( StartSlot,
                              NumViews,
@@ -1997,6 +2195,8 @@ public:
     _In_range_       (0, D3D11_PS_CS_UAV_REGISTER_COUNT - StartSlot) UINT                          NumUAVs,
     _Out_writes_opt_ (NumUAVs)                                       ID3D11UnorderedAccessView **ppUnorderedAccessViews ) override
   {
+    TraceAPI
+
     return
       pReal->CSGetUnorderedAccessViews ( StartSlot,
                NumUAVs,
@@ -2009,6 +2209,8 @@ public:
     _Out_writes_opt_ (*pNumClassInstances) ID3D11ClassInstance **ppClassInstances,
     _Inout_opt_                            UINT               *pNumClassInstances ) override
   {
+    TraceAPI
+
     return
       pReal->CSGetShader (
           ppComputeShader,
@@ -2022,6 +2224,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT - StartSlot) UINT                NumSamplers,
     _Out_writes_opt_ (NumSamplers)                                          ID3D11SamplerState **ppSamplers ) override
   {
+    TraceAPI
+
     return
       pReal->CSGetSamplers ( StartSlot,
                NumSamplers,
@@ -2034,6 +2238,8 @@ public:
     _In_range_       (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT - StartSlot) UINT             NumBuffers,
     _Out_writes_opt_ (NumBuffers)                                                       ID3D11Buffer **ppConstantBuffers ) override
   {
+    TraceAPI
+
     return
       pReal->CSGetConstantBuffers ( StartSlot,
                        NumBuffers,
@@ -2043,6 +2249,8 @@ public:
 
   void STDMETHODCALLTYPE ClearState (void) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
     SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
@@ -2052,6 +2260,8 @@ public:
 
   void STDMETHODCALLTYPE Flush (void) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
     return
@@ -2060,12 +2270,16 @@ public:
 
   D3D11_DEVICE_CONTEXT_TYPE STDMETHODCALLTYPE GetType (void) override
   {
+    TraceAPI
+
     return
       pReal->GetType ();
   }
 
   UINT STDMETHODCALLTYPE GetContextFlags (void) override
   {
+    TraceAPI
+
     return
       pReal->GetContextFlags ();
   }
@@ -2074,6 +2288,8 @@ public:
               BOOL                RestoreDeferredContextState,
     _Out_opt_ ID3D11CommandList **ppCommandList ) override
   {
+    TraceAPI
+
     SK_LOG_FIRST_CALL
 
     HRESULT hr =
@@ -2106,6 +2322,8 @@ public:
     _In_opt_  const D3D11_BOX      *pSrcBox,
     _In_            UINT            CopyFlags ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2120,6 +2338,8 @@ public:
     _In_           UINT            SrcDepthPitch,
     _In_           UINT            CopyFlags ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2128,6 +2348,8 @@ public:
   void STDMETHODCALLTYPE DiscardResource (
     _In_  ID3D11Resource *pResource ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2136,6 +2358,8 @@ public:
   void STDMETHODCALLTYPE DiscardView (
     _In_ ID3D11View *pResourceView ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2148,6 +2372,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2160,6 +2386,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2172,6 +2400,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2185,6 +2415,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2197,6 +2429,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2209,6 +2443,8 @@ public:
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pFirstConstant,
     _In_reads_opt_ (NumBuffers)                                             const UINT                *pNumConstants ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2221,6 +2457,8 @@ public:
     _Out_writes_opt_ (NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_ (NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2233,6 +2471,8 @@ public:
     _Out_writes_opt_ (NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_ (NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2245,6 +2485,8 @@ public:
     _Out_writes_opt_(NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_(NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2257,6 +2499,8 @@ public:
     _Out_writes_opt_ (NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_ (NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2269,6 +2513,8 @@ public:
     _Out_writes_opt_ (NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_ (NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2281,6 +2527,8 @@ public:
     _Out_writes_opt_ (NumBuffers)  UINT *pFirstConstant,
     _Out_writes_opt_ (NumBuffers)  UINT *pNumConstants) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2290,6 +2538,8 @@ public:
     _In_      ID3DDeviceContextState  *pState,
     _Out_opt_ ID3DDeviceContextState **ppPreviousState ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2302,6 +2552,8 @@ public:
     _In_reads_opt_ (NumRects) const D3D11_RECT *pRect,
     UINT        NumRects ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2312,6 +2564,8 @@ public:
     _In_reads_opt_ (NumRects) const D3D11_RECT *pRects,
     UINT        NumRects ) override
   {
+    TraceAPI
+
     assert (ver_ >= 1);
 
     return
@@ -2335,6 +2589,8 @@ public:
     _In_reads_opt_ (NumRanges)  const UINT         *pRangeTileCounts,
     _In_                              UINT           Flags ) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2348,6 +2604,8 @@ public:
     _In_  const D3D11_TILE_REGION_SIZE *pTileRegionSize,
     _In_  UINT Flags) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2361,6 +2619,8 @@ public:
     _In_  UINT64 BufferStartOffsetInBytes,
     _In_  UINT Flags) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2373,6 +2633,8 @@ public:
     _In_  const void *pSourceTileData,
     _In_  UINT Flags) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2382,6 +2644,8 @@ public:
     _In_  ID3D11Buffer *pTilePool,
     _In_  UINT64 NewSizeInBytes) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2391,6 +2655,8 @@ public:
     _In_opt_  ID3D11DeviceChild *pTiledResourceOrViewAccessBeforeBarrier,
     _In_opt_  ID3D11DeviceChild *pTiledResourceOrViewAccessAfterBarrier) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2398,6 +2664,8 @@ public:
   }
   BOOL STDMETHODCALLTYPE IsAnnotationEnabled (void) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2407,6 +2675,8 @@ public:
     _In_  LPCWSTR pLabel,
     INT     Data) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2416,6 +2686,8 @@ public:
     _In_  LPCWSTR pLabel,
           INT     Data) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2423,6 +2695,8 @@ public:
   }
   void STDMETHODCALLTYPE EndEvent (void) override
   {
+    TraceAPI
+
     assert (ver_ >= 2);
 
     return
@@ -2435,6 +2709,8 @@ public:
     D3D11_CONTEXT_TYPE ContextType,
     _In_opt_  HANDLE             hEvent) override
   {
+    TraceAPI
+
     assert (ver_ >= 3);
 
     return
@@ -2443,6 +2719,8 @@ public:
   void STDMETHODCALLTYPE SetHardwareProtectionState (
     _In_  BOOL HwProtectionEnable) override
   {
+    TraceAPI
+
     assert (ver_ >= 3);
 
     return
@@ -2451,6 +2729,8 @@ public:
   void STDMETHODCALLTYPE GetHardwareProtectionState (
     _Out_  BOOL *pHwProtectionEnable) override
   {
+    TraceAPI
+
     assert (ver_ >= 3);
 
     return
@@ -2463,6 +2743,8 @@ public:
     _In_  ID3D11Fence *pFence,
     _In_  UINT64       Value) override
   {
+    TraceAPI
+
     assert (ver_ >= 4);
 
     return
@@ -2472,6 +2754,8 @@ public:
     _In_  ID3D11Fence *pFence,
     _In_  UINT64       Value) override
   {
+    TraceAPI
+
     assert (ver_ >= 4);
 
     return

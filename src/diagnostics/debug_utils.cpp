@@ -3667,6 +3667,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                 "OutputDebugStringW",
                                  OutputDebugStringW_Detour,
         static_cast_p2p <void> (&OutputDebugStringW_Original) );
+
+      SK_CreateDLLHook2 (      L"kernel32",
+                                "IsDebuggerPresent",
+                                 IsDebuggerPresent_Detour,
+        static_cast_p2p <void> (&IsDebuggerPresent_Original) );
     }
 
      SK_InitUnicodeString =
@@ -3687,11 +3692,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                             "RtlReleasePebLock",
                              RtlReleasePebLock_Detour,
     static_cast_p2p <void> (&RtlReleasePebLock_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "IsDebuggerPresent",
-                               IsDebuggerPresent_Detour,
-      static_cast_p2p <void> (&IsDebuggerPresent_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32",
                           "TerminateThread",
@@ -3845,16 +3845,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     }
 #endif
 
-    SK_Thread_InitDebugExtras ();
-
-#ifdef _EXTENDED_DEBUG
-    if (true)//config.advanced_debug)
-    {
-      RtlAcquirePebLock_Detour ();
-      RtlReleasePebLock_Detour ();
-    }
-#endif
-
     // Only hook if we actually have a debugger present, because
     //   hooking this will be detected by many DRM / anti-debug as
     //    the smoking gun that there is a debugger.
@@ -3865,6 +3855,16 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                CloseHandle_Detour,
       static_cast_p2p <void> (&CloseHandle_Original) );
     }
+
+    SK_Thread_InitDebugExtras ();
+
+#ifdef _EXTENDED_DEBUG
+    if (true)//config.advanced_debug)
+    {
+      RtlAcquirePebLock_Detour ();
+      RtlReleasePebLock_Detour ();
+    }
+#endif
 
     InterlockedIncrementRelease (&__init);
   }

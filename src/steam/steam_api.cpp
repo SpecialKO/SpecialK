@@ -3054,7 +3054,10 @@ SteamAPI_PumpThread (LPVOID user)
     return false;
   };
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXV)
+  static auto game_id =
+    SK_GetCurrentGameID ();
+
+  if (game_id == SK_GAME_ID::FinalFantasyXV)
   {
     return
       _Terminate ();
@@ -3066,10 +3069,10 @@ SteamAPI_PumpThread (LPVOID user)
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
 
-  if ( SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld ||
-       SK_GetCurrentGameID () == SK_GAME_ID::JustCause3         ||
-       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2      ||
-       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow    ||
+  if ( game_id == SK_GAME_ID::MonsterHunterWorld ||
+       game_id == SK_GAME_ID::JustCause3         ||
+       game_id == SK_GAME_ID::YakuzaKiwami2      ||
+       game_id == SK_GAME_ID::YakuzaUnderflow    ||
        GetModuleHandleW (
          SK_RunLHIfBitness (64, L"kaldaien_api64.dll",
                                 L"kaldaien_api.dll" )

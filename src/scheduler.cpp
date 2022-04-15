@@ -1013,7 +1013,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     ( sleepless_render ||
       sleepless_window );
 
-  auto game_id =
+  static auto game_id =
     SK_GetCurrentGameID ();
 
 #ifdef _TVFIX
@@ -1568,11 +1568,13 @@ void SK_Scheduler_Init (void)
     }
     else
     {
+#if 0
       SK_CreateDLLHook2 (      L"kernel32",
                                 "QueryPerformanceCounter",
                                  QueryPerformanceCounter_Detour,
         static_cast_p2p <void> (&QueryPerformanceCounter_Original),
         static_cast_p2p <void> (&pfnQueryPerformanceCounter) );
+#endif
     }
 #endif
 

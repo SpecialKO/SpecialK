@@ -3446,6 +3446,9 @@
     <ClCompile Include="src\plugins\elex2.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\chrono_cross.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

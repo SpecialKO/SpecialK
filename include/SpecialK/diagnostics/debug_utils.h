@@ -512,7 +512,8 @@ using LdrFindEntryForAddress_pfn    = NTSTATUS (NTAPI *)(HMODULE,PLDR_DATA_TABLE
 //    * In other words, will addresses > 2 GiB crash?
 //
 //
-bool SK_PE32_IsLargeAddressAware (void);
+bool SK_PE32_IsLargeAddressAware       (void);
+bool SK_PE32_MakeLargeAddressAwareCopy (void);
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
 BOOL WINAPI SK_IsDebuggerPresent    (void) noexcept;

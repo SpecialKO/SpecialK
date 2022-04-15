@@ -673,11 +673,11 @@ SK_Yakuza0_PlugInInit (void)
       blur_shader0->Values[i] = 0.0f;
     }
 
-    if (  dof_shader0->Enable |
-          dof_shader1->Enable |
-          dof_shader2->Enable |
-          dof_shader3->Enable |
-          dof_shader4->Enable |
+    if (  dof_shader0->Enable ||
+          dof_shader1->Enable ||
+          dof_shader2->Enable ||
+          dof_shader3->Enable ||
+          dof_shader4->Enable ||
          blur_shader0->Enable )
     {
       InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);

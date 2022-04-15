@@ -1402,6 +1402,13 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
                         repeat_sequence > 2 ) /*&&
       (ExceptionInfo->ExceptionRecord->ExceptionCode != EXCEPTION_BREAKPOINT)*/ //)
   {
+    // Stop injection on crash
+    if (SK_GetFramesDrawn () > 1)
+    { extern void
+      SK_Inject_BroadcastInjectionNotify (void);
+      SK_Inject_BroadcastInjectionNotify ();
+    }
+
     if (! config.system.handle_crashes)
     {
       SK_TerminateProcess (0xdeadbeef);

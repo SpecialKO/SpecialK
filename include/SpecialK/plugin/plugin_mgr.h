@@ -166,6 +166,7 @@ SK_Persona4_EndFrame    ( SK_TLS* pTLS );
 
 void
 SK_Persona4_InitPlugin  ( void );
+void SK_CC_InitPlugin   ( void );
 #endif
 
 

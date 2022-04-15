@@ -1178,6 +1178,7 @@ enum class SK_GAME_ID
   EldenRing,                    // eldenring.exe
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
+  ChronoCross,                  // CHRONOCROSS.exe
   UNKNOWN_GAME               = 0xffff
 };
 
