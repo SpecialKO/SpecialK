@@ -1003,7 +1003,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       // Notify anything that was waiting for injection into this game,
       //   we didn't quite live that long :)
       if (SK_IsInjected ())
-        SK_RunOnce (SK_Inject_BroadcastInjectionNotify ());
+        SK_RunOnce (SK_Inject_BroadcastExitNotify ());
 
       SK_SelfDestruct     (   );
       SK_TerminateProcess (0x0);
@@ -1405,8 +1405,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     // Stop injection on crash
     if (SK_GetFramesDrawn () > 1)
     { extern void
-      SK_Inject_BroadcastInjectionNotify (void);
-      SK_Inject_BroadcastInjectionNotify ();
+      SK_Inject_BroadcastExitNotify (void);
+      SK_Inject_BroadcastExitNotify ();
     }
 
     if (! config.system.handle_crashes)

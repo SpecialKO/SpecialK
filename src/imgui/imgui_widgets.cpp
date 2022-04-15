@@ -1689,7 +1689,7 @@ static bool DataTypeApplyOpFromText (const char* buf, const char* initial_value_
 
   // Copy the value in an opaque buffer so we can compare at the end of the function if it changed at all.
   IM_ASSERT (data_type < ImGuiDataType_COUNT);
-  int data_backup[2];
+  int data_backup[3];
   IM_ASSERT (GDataTypeInfo[data_type].Size <= sizeof (data_backup));
   memcpy (data_backup, data_ptr, GDataTypeInfo[data_type].Size);
 

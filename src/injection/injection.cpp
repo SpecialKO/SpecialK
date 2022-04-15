@@ -2508,44 +2508,40 @@ SK_Inject_IsAdminSupported (void) noexcept
     ( bAdmin != FALSE );
 }
 
-bool __SKIF_SuppressExitNotify = false;
+static bool __SKIF_SuppressExitNotify = false;
+
+void SK_Inject_SuppressExitNotify (void)
+{
+  __SKIF_SuppressExitNotify = true;
+}
+
+void SK_Inject_BroadcastExitNotify (void)
+{
+  if (! (SK_GetFramesDrawn () > 0 && SK_IsInjected ()))
+    return;
+
+  if (__SKIF_SuppressExitNotify)
+    return;
+
+  SK_AutoHandle hInjectExitAck (
+    OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+               LR"(Local\SKIF_InjectExitAck)" )
+  );
+
+  if (hInjectExitAck.isValid ())
+  {
+    SetEvent (hInjectExitAck.m_h);
+  }
+}
 
 void SK_Inject_BroadcastInjectionNotify (void)
 {
-  // Since SKIF is going to ignore this setting, we'll implement it here ourselves.
-  static auto regKVDisableStopOnInjection =
-    SK_MakeRegKeyB ( LR"(SOFTWARE\Kaldaien\Special K\)",
-                        LR"(Disable Stop On Injection)" );
-
-  if (regKVDisableStopOnInjection.getData ())
+  if (! SK_IsInjected ())
     return;
 
-  
-  // -- Feature is actually enabled, allow the event to signal. --
-
-  switch ((skif::AutoStopBehavior)config.skif.auto_stop_behavior)
-  {
-    case skif::AutoStopBehavior::Never:
-      return;
-
-    case skif::AutoStopBehavior::AtExit:
-      if (__SKIF_SuppressExitNotify || (! ReadAcquire (&__SK_DLL_Ending)))
-      {
-        return;
-      } break;
-    case skif::AutoStopBehavior::AtStart:
-      if (ReadAcquire (&__SK_DLL_Ending))
-      {
-        return;
-      }break;
-
-    default:
-      // Ohnoes -- free pass to freak out!
-      break;
-  }
-
   SK_AutoHandle hInjectAck (
-    OpenEvent ( EVENT_ALL_ACCESS, FALSE, LR"(Local\SKIF_InjectAck)" )
+    OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+               LR"(Local\SKIF_InjectAck)" )
   );
 
   if (hInjectAck.isValid ())

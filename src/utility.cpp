@@ -2963,8 +2963,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
-  extern bool __SKIF_SuppressExitNotify;
-              __SKIF_SuppressExitNotify = true;
+  SK_Inject_SuppressExitNotify ();
 
   // This would make debugging very difficult otherwise :)
   if (SK_IsDebuggerPresent ())

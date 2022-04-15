@@ -2260,7 +2260,8 @@ bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
-  SK_Inject_BroadcastInjectionNotify ();
+  if (SK_IsInjected ())
+    SK_Inject_BroadcastExitNotify ();
 
   SK_DisableApplyQueuedHooks ();
 

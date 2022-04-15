@@ -609,8 +609,8 @@ extern mode_change_request_e request_mode_change;
 
 struct sk_hwnd_cache_s
 {      sk_hwnd_cache_s  (HWND window);
-  HWND    hwnd         = HWND_DESKTOP;
-  HWND    parent       = HWND_DESKTOP;
+  HWND    hwnd         = nullptr;
+  HWND    parent       = nullptr;
   struct
   { DWORD pid          = 0x0,
           tid          = 0x0;
@@ -829,7 +829,7 @@ public:
     wchar_t               gdi_name  [32]       =  { };
     wchar_t               path_name [128]      =  { };
     char                  full_name [128]      =  { };
-    HMONITOR              monitor              =   0;
+    HMONITOR              monitor              = nullptr;
     DISPLAYCONFIG_PATH_INFO                    
                           vidpn                =  { };
     struct native_res_s {                      
@@ -839,8 +839,8 @@ public:
     } native;
 
     struct nvapi_ctx_s {
-      NvPhysicalGpuHandle gpu_handle           =   0;
-      NvDisplayHandle     display_handle       =   0;
+      NvPhysicalGpuHandle gpu_handle           =   nullptr;
+      NvDisplayHandle     display_handle       =   nullptr;
       NvU32               display_id           =   0;
       NvU32               output_id            =   0;
     } nvapi;

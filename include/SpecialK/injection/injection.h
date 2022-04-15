@@ -69,6 +69,8 @@ SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 //
 void SK_Inject_ReleaseProcess           (void);
 void SK_Inject_AcquireProcess           (void);
+void SK_Inject_SuppressExitNotify       (void);
+void SK_Inject_BroadcastExitNotify      (void);
 void SK_Inject_BroadcastInjectionNotify (void);
 
 

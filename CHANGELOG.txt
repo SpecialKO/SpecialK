@@ -1,4 +1,9 @@
-﻿22.4.15-NOCEGUI
+﻿22.4.15.1-NOCEGUI
+=================
+ + Fixed Chrono Cross timing override not actually applying at game start
+ + Added an event when games exit for SKIF to use to stop injection
+
+22.4.15-NOCEGUI
 ===============
  + Added Large Address Aware patch functionality to Special K for 32-bit games
      that are not Large Address Aware  (see the File Menu in affected games)

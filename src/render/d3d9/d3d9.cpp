@@ -2943,7 +2943,7 @@ D3D9CreateVertexBuffer_Override
                                                  ppVertexBuffer,
                                                    pSharedHandle );
 
-  if (SUCCEEDED (hr) && ffxiii)
+  if (SUCCEEDED (hr) && ffxiii && ppVertexBuffer != nullptr)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock>
           scope_lock (*lock_vb);
@@ -6801,14 +6801,14 @@ SK_LiveVertexStreamView (bool& can_scroll)
   switch (filter_type)
   {
     case 2:
-      for (auto it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
+      for (auto& it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
       break;
     case 1:
-      for (auto it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
+      for (auto& it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
       break;
     case 0:
-      for (auto it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
-      for (auto it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
+      for (auto& it : _last_frame.vertex_buffers.immutable) if (it != nullptr) buffers.emplace_back (it);
+      for (auto& it : _last_frame.vertex_buffers.dynamic)   if (it != nullptr) buffers.emplace_back (it);
       break;
   };
 

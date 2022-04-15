@@ -2613,7 +2613,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::Text         ("Allows 32-bit games to use more than 2 GiB of RAM");
             ImGui::Separator    ();
             ImGui::BulletText   ("The current game is -not- Large Address Aware");
-            ImGui::BulletText   ("Fully patching the game requires relaunching it");
+            ImGui::BulletText   ("Fully patching the game requires re-launching it");
             ImGui::EndTooltip   ();
           }
         }

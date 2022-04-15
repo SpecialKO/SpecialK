@@ -674,6 +674,33 @@ SK_CC_InitPlugin (void)
       return;
     }
 
+    auto _RewriteClockCode = [&](void)
+ -> void
+    {
+      for ( auto patch : { &SK_CC_PlugIn.clock_tick0,
+                           &SK_CC_PlugIn.clock_tick1 } )
+      {
+        if (SK_CC_PlugIn.bUnlockFramerate)
+        {
+          auto pFlagAddr =
+             ((uint8_t *)patch->pAddr + 3);
+          patch->apply (&patch->replacement);
+
+          DWORD                                                 dwOldProt;
+          VirtualProtect (pFlagAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
+          if (patch == &SK_CC_PlugIn.clock_tick0)
+            *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag0;
+          else
+            *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag1;
+          VirtualProtect (pFlagAddr, 1, dwOldProt,             &dwOldProt);
+        }
+
+        else
+          patch->apply (&patch->original);
+      }
+    };
+
+
     for ( auto &[patch, name] :
         std::initializer_list <
           std::pair <cc_code_patch_s&, std::string> >
@@ -692,10 +719,9 @@ SK_CC_InitPlugin (void)
           patch.pAddr, 4
         );
       }
-
-      patch.apply ( SK_CC_PlugIn.bUnlockFramerate ?
-                              &patch.replacement : &patch.original );
     }
+
+    _RewriteClockCode ();
 
   //plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
     plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);

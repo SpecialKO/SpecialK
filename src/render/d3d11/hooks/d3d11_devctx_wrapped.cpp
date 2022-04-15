@@ -29,7 +29,7 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
-//#define FRAME_TRACE
+#define FRAME_TRACE
 #ifdef  FRAME_TRACE
 # define TraceAPI SK_LOG_FIRST_CALL
 #else

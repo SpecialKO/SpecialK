@@ -1190,26 +1190,16 @@ const uint32_t cache_tag    =
 
       if (pCachedTex != nullptr)
       {
-        if (pCachedTex != pTex)
-        {
-          SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
+        SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
-          bWrapped ?
-            pDevCtx->CopyResource (pDstResource,                pCachedResource)
-                   :
-            D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
+        bWrapped ?
+          pDevCtx->CopyResource (pDstResource,                pCachedResource)
+                 :
+          D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
 
-          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
-                        desc.Width, desc.Height, top_crc32c ),
-                      L"DX11TexMgr" );
-        }
-
-        else
-        {
-          SK_LOG0 ( ( L"Texture Cache Redundancy: (%lux%lu) -- %x",
-                          desc.Width, desc.Height, top_crc32c ),
-                        L"DX11TexMgr" );
-        }
+        SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                      desc.Width, desc.Height, top_crc32c ),
+                    L"DX11TexMgr" );
 
         textures->recordCacheHit (pCachedTex);
 
@@ -2109,7 +2099,7 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
   const auto& matches =
     SK_D3D11_BlacklistDrawcalls->equal_range (vtx_shader);
 
-  for ( auto it = matches.first; it != matches.second; ++it )
+  for ( auto& it = matches.first; it != matches.second; ++it )
   {
     if (it->second.if_meshes.have.less_than.vertices.first)
     {

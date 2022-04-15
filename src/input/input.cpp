@@ -722,7 +722,8 @@ NtUserGetRegisteredRawInputDevices_Detour (
   {
     for (auto& it : raw_devices)
     {
-      pRawInputDevices [idx++] = it;
+      if (idx < *puiNumDevices)
+        pRawInputDevices [idx++] = it;
     }
   }
 
@@ -3193,7 +3194,7 @@ BOOL
 WINAPI
 UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 {
-  for ( auto hook : __hooks._RealMouseHooks )
+  for ( auto& hook : __hooks._RealMouseHooks )
   {
     if (hook.second == hhk)
     {
@@ -3214,7 +3215,7 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
       UnhookWindowsHookEx_Original (hhk);
   }
 
-  for ( auto hook : __hooks._RealKeyboardHooks )
+  for ( auto& hook : __hooks._RealKeyboardHooks )
   {
     if (hook.second == hhk)
     {
@@ -3235,7 +3236,7 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
       UnhookWindowsHookEx_Original (hhk);
   }
 
-  for ( auto hook : __hooks._RealKeyboardHooks )
+  for ( auto& hook : __hooks._RealKeyboardHooks )
   {
     if (hook.second == hhk)
     {

@@ -2117,7 +2117,7 @@ SK_ImGui_PollGamepad (void)
       const float inv_analog     =
           ( 1.0f / analog_sensitivity );
 
-      const float analog_epsilon = 0.001f;
+      constexpr float analog_epsilon = 0.001f;
 
       //io.NavInputs [ImGuiNavInput_LStickUp]   = 0.0f;
       //io.NavInputs [ImGuiNavInput_LStickDown] = 0.0f;
