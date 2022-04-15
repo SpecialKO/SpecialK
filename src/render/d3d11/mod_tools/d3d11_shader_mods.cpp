@@ -99,20 +99,34 @@ bool SK_D3D11_KnownTargets::_mod_tool_wants = false;
 bool
 SK_D3D11_IsValidRTV (ID3D11RenderTargetView* pRTV)
 {
-  ID3D11Resource *pRes = nullptr;
+  if (pRTV == nullptr)
+    return false;
+
+  ID3D11Resource* pRes = nullptr;
 
   __try {
+    ID3D11RenderTargetView*                                     pUnkle = nullptr;
+    if (FAILED (pRTV->QueryInterface <ID3D11RenderTargetView> (&pUnkle)) ||
+                                                     nullptr == pUnkle)
+      return false;
+
     D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
-    pRTV->GetDesc               (&rtvDesc);
-    pRTV->GetResource           (&pRes);
+    pUnkle->GetDesc             (&rtvDesc);
+
+    if (rtvDesc.ViewDimension == D3D11_RTV_DIMENSION_UNKNOWN)
+    {
+      pUnkle->Release ();
+      return false;
+    }
+
+    pUnkle->GetResource (&pRes);
+    pUnkle->Release ();
 
     if (pRes != nullptr)
         pRes->Release ();
   }
 
-  __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                                   EXCEPTION_EXECUTE_HANDLER  :
-                                   EXCEPTION_CONTINUE_SEARCH)
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
     return false;
   }
@@ -575,7 +589,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         {
           D3D11_RENDER_TARGET_VIEW_DESC desc = { };
 
-          if (it == nullptr)
+          if (it == nullptr || invalid_views.contains (it))
             continue;
 
           if (! SK_D3D11_IsValidRTV (it))

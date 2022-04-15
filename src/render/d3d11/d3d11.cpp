@@ -4478,6 +4478,12 @@ D3D11Dev_CreateTexture2D_Impl (
 #endif
   }
 
+  SK_ComQIPtr <IDXGISwapChain>
+                   pSwapChain (
+                     rb.swapchain );
+  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+  pSwapChain->GetDesc (&swapDesc);
+
 
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
@@ -4496,12 +4502,6 @@ D3D11Dev_CreateTexture2D_Impl (
 
         if (rb.swapchain != nullptr)
         {
-          SK_ComQIPtr <IDXGISwapChain>
-                           pSwapChain (
-                             rb.swapchain );
-          DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-          pSwapChain->GetDesc (&swapDesc);
-
           if (swapDesc.BufferDesc.Width  == pDesc->Width &&
               swapDesc.BufferDesc.Height == pDesc->Height)
           {
@@ -4541,7 +4541,9 @@ D3D11Dev_CreateTexture2D_Impl (
        pDesc->Usage          != D3D11_USAGE_STAGING &&
        pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
                    ( pInitialData          == nullptr ||
-                     pInitialData->pSysMem == nullptr ) )
+                     pInitialData->pSysMem == nullptr ) ||
+     ( pDesc->SampleDesc.Count > 1 &&
+       pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ) )
   {
 
     static constexpr UINT _UnwantedFlags =
@@ -4564,7 +4566,8 @@ D3D11Dev_CreateTexture2D_Impl (
                   SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
-        if (pDesc->SampleDesc.Count == 1)
+        if ( pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
+             pDesc->SampleDesc.Count == 1 )
         {
           size_t bpp =
             DirectX::BitsPerPixel (pDesc->Format);
@@ -4621,21 +4624,13 @@ D3D11Dev_CreateTexture2D_Impl (
             if ( bpc == 8  && rgba &&
                  bpp == 32 )
             {
-              SK_ComQIPtr <IDXGISwapChain> pSwap (
-                rb.swapchain
-              );
-
-              DXGI_SWAP_CHAIN_DESC swap_desc = { };
-              if (pSwap != nullptr)
-                  pSwap->GetDesc (&swap_desc);
-
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
               static const bool bNier =
                 ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata );
               if (                                    (! bNier) ||
-                  ( pDesc->Width  == swap_desc.BufferDesc.Width &&
-                    pDesc->Height == swap_desc.BufferDesc.Height )
+                  ( pDesc->Width  == swapDesc.BufferDesc.Width &&
+                    pDesc->Height == swapDesc.BufferDesc.Height )
                  )
               {
                 if (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit)

@@ -803,7 +803,7 @@ struct SK_DXGI_sRGBCoDec {
           { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
         };
 
-        pDev->CreateInputLayout ( local_layout, 1,
+        pDev->CreateInputLayout ( local_layout, 0,
                                (const void *)(colorutil_vs_bytecode),
                                       sizeof (colorutil_vs_bytecode) /
                                       sizeof (colorutil_vs_bytecode [0]),

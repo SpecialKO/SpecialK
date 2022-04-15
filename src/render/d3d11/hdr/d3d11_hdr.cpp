@@ -239,7 +239,7 @@ struct SK_HDR_FIXUP
         { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
       };
 
-      pDev->CreateInputLayout ( local_layout, 1,
+      pDev->CreateInputLayout ( local_layout, 0,
                                   (void *)(colorutil_vs_bytecode),
                                     sizeof (colorutil_vs_bytecode) /
                                     sizeof (colorutil_vs_bytecode [0]),
@@ -264,7 +264,8 @@ struct SK_HDR_FIXUP
       SK_D3D11_SetDebugName (pSampler0,    L"SK HDR SamplerState");
       SK_D3D11_SetDebugName (pInputLayout, L"SK HDR InputLayout");
 
-      SK_D3D11_SetDebugName (pHDRTexture,  L"SK HDR OutputTex");
+    // This is about to exit scope anyway, don't give it a name
+    //SK_D3D11_SetDebugName (pHDRTexture,  L"SK HDR OutputTex");
       SK_D3D11_SetDebugName (pMainSrv,     L"SK HDR OutputSRV");
 
       SK_D3D11_SetDebugName (colorSpaceCBuffer, L"SK HDR ColorSpace CBuffer");
