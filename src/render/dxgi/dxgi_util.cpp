@@ -944,7 +944,9 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
   SK_ComPtr <ID3D11RenderTargetView> pRenderTargetView = nullptr;
 
   D3D11_RENDER_TARGET_VIEW_DESC rtdesc               = {                           };
-                                rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+                                rtdesc.ViewDimension = swapDesc.SampleDesc.Count == 1 ?
+                                                        D3D11_RTV_DIMENSION_TEXTURE2D :
+                                                        D3D11_RTV_DIMENSION_TEXTURE2DMS;
                                 rtdesc.Format        = DirectX::MakeSRGB (swapDesc.BufferDesc.Format);
 
   if ( SUCCEEDED (
@@ -1087,7 +1089,8 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
 	surface.desc.tex.MipLevels                 = 1;
 	surface.desc.tex.ArraySize                 = 1;
 	surface.desc.tex.Format                    = dstTexDesc.Format;
-	surface.desc.tex.SampleDesc.Count          = 1;
+	surface.desc.tex.SampleDesc.Count          = dstTexDesc.SampleDesc.Count;
+  surface.desc.tex.SampleDesc.Quality        = dstTexDesc.SampleDesc.Quality;
 	surface.desc.tex.Usage                     = D3D11_USAGE_DEFAULT;
 	surface.desc.tex.BindFlags                 = D3D11_BIND_RENDER_TARGET;
 	surface.desc.tex.CPUAccessFlags            = 0;
@@ -1098,18 +1101,23 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
 	surface.desc.tex2.MipLevels                = 1;
 	surface.desc.tex2.ArraySize                = 1;
 	surface.desc.tex2.Format                   = srcTexDesc.Format;
-	surface.desc.tex2.SampleDesc.Count         = 1;
+	surface.desc.tex2.SampleDesc.Count         = srcTexDesc.SampleDesc.Count;
+  surface.desc.tex2.SampleDesc.Quality       = srcTexDesc.SampleDesc.Quality;
 	surface.desc.tex2.Usage                    = D3D11_USAGE_DEFAULT;
 	surface.desc.tex2.BindFlags                = D3D11_BIND_SHADER_RESOURCE;
 	surface.desc.tex2.CPUAccessFlags           = 0;
 	surface.desc.tex2.MiscFlags                = 0;
 
   surface.desc.rtv.Format                    = surface.desc.tex.Format;
-	surface.desc.rtv.ViewDimension             = D3D11_RTV_DIMENSION_TEXTURE2D;
+	surface.desc.rtv.ViewDimension             = surface.desc.tex.SampleDesc.Count <= 1 ?
+                                                        D3D11_RTV_DIMENSION_TEXTURE2D :
+                                                        D3D11_RTV_DIMENSION_TEXTURE2DMS;
 	surface.desc.rtv.Texture2D.MipSlice        = 0;
 
   surface.desc.srv.Format                    = srcTexDesc.Format;
-  surface.desc.srv.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+  surface.desc.srv.ViewDimension             = surface.desc.tex.SampleDesc.Count <= 1 ?
+                                                        D3D11_SRV_DIMENSION_TEXTURE2D :
+                                                        D3D11_SRV_DIMENSION_TEXTURE2DMS;
 	surface.desc.srv.Texture2D.MostDetailedMip = 0;
 	surface.desc.srv.Texture2D.MipLevels       = 1;
 

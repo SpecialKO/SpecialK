@@ -4373,7 +4373,8 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     This->GetContainingOutput (&pOutput.p);
   }
 
-  if (pOutput.p != nullptr)
+  // Trigger mode switch if needed
+  if (pOutput.p != nullptr && Fullscreen)
   {
     DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
     SK_ComQIPtr <IDXGISwapChain1> 
@@ -4397,7 +4398,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
     }
 
-    SK_ComPtr <IUnknown> pUnkDev;
     DXGI_MODE_DESC   matchedMode = { };
     if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
          &modeDesc, &matchedMode, nullptr )

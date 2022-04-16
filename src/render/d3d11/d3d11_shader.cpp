@@ -509,7 +509,8 @@ SK_D3D11_ActivateSRVOnSlot ( shader_stage_s&            stage,
   D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = { };
                   pSRV->GetDesc (&srv_desc);
 
-  if ( D3D_SRV_DIMENSION_TEXTURE2D == srv_desc.ViewDimension )
+  if ( D3D_SRV_DIMENSION_TEXTURE2D      == srv_desc.ViewDimension ||
+       D3D_SRV_DIMENSION_TEXTURE2DMS    == srv_desc.ViewDimension )
   {
     pSRV->GetResource
       (&pRes);
@@ -809,7 +810,7 @@ SK_D3D11_SetShaderResources_Impl (
           break;
 
         auto* pSRV =
-          ppShaderResourceViews [i];
+          ppShaderResourceViews [i + StartSlot];
 
         if (pSRV != nullptr)
         {

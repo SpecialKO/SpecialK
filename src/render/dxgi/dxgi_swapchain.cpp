@@ -364,8 +364,6 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
   if (0 == PresentBase ())
   {
     SyncInterval = 0;
-    Flags       |= DXGI_PRESENT_DO_NOT_SEQUENCE |
-                   DXGI_PRESENT_RESTART;
   }
 
   return
@@ -619,19 +617,27 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     if ( rb.active_display >= 0 &&
          rb.active_display < rb._MAX_DISPLAYS )
     {
-      Width  = rb.displays [rb.active_display].rect.right  -
-               rb.displays [rb.active_display].rect.left;
-      Height = rb.displays [rb.active_display].rect.bottom -
-               rb.displays [rb.active_display].rect.top;
+      auto w =
+        rb.displays [rb.active_display].rect.right -
+        rb.displays [rb.active_display].rect.left,
+           h =
+        rb.displays [rb.active_display].rect.bottom -
+        rb.displays [rb.active_display].rect.top;
 
-      if ( origWidth  != Width ||
-           origHeight != Height )
+      if ( origWidth  != static_cast <UINT> (w) ||
+           origHeight != static_cast <UINT> (h) )
       {
-        SK_LOGi0 (
-          L" >> SwapChain Resolution Override "
-          L"(Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
-          origWidth, origHeight,
-              Width,     Height );
+        if (w != 0 && h != 0)
+        {
+          Width  = w;
+          Height = h;
+
+          SK_LOGi0 (
+            L" >> SwapChain Resolution Override "
+            L"(Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
+            origWidth, origHeight,
+                Width,     Height );
+        }
       }
     }
   }
@@ -895,8 +901,6 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
   if (0 == PresentBase ())
   {
     SyncInterval = 0;
-    PresentFlags |= DXGI_PRESENT_DO_NOT_SEQUENCE |
-                    DXGI_PRESENT_RESTART;
   }
 
   return

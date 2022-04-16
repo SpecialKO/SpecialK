@@ -5476,49 +5476,55 @@ SK_ImGui_StageNextFrame (void)
   }
 
 
-  for (auto& widget : widgets)
+  // Don't draw widgets on the first frame, stuff may not be
+  //   fully initialized yet...
+  if (SK_GetFramesDrawn () > 1)
   {
-    if (widget == nullptr)
-      continue;
-
-    if ( widget == SK_ImGui_Widgets->latency     ||
-         widget == SK_ImGui_Widgets->hdr_control ||
-         widget == SK_ImGui_Widgets->d3d11_pipeline )
+    for (auto& widget : widgets)
     {
-      if ( rb.api != SK_RenderAPI::D3D11 &&
-           rb.api != SK_RenderAPI::D3D12 ) continue;
-
-      if (widget == SK_ImGui_Widgets->latency && (! sk::NVAPI::nv_hardware))
+      if (widget == nullptr)
         continue;
+
+      if ( widget == SK_ImGui_Widgets->latency     ||
+           widget == SK_ImGui_Widgets->hdr_control ||
+           widget == SK_ImGui_Widgets->d3d11_pipeline )
+      {
+        if ( rb.api != SK_RenderAPI::D3D11 &&
+             rb.api != SK_RenderAPI::D3D12 ) continue;
+
+        if (widget == SK_ImGui_Widgets->latency && (! sk::NVAPI::nv_hardware))
+          continue;
+      }
+
+      if (widget->isActive ())
+          widget->run_base ();
+
+      else if (widget == SK_ImGui_Widgets->hdr_control ||
+               widget == SK_ImGui_Widgets->thread_profiler)
+      {
+        widget->setActive (true);
+      }
+
+      extern bool SK_Tobii_IsCursorVisible (void);
+
+      if ( widget->isVisible () ||
+           // Tobii widget needs to be drawn to show its cursor
+           ( widget == SK_ImGui_Widgets->tobii &&
+             SK_Tobii_IsCursorVisible ()         )
+         )
+      {
+        widget->draw_base ();
+      }
     }
+  
 
-    if (widget->isActive ())
-        widget->run_base ();
 
-    else if (widget == SK_ImGui_Widgets->hdr_control ||
-             widget == SK_ImGui_Widgets->thread_profiler)
+
+    if (! SK_GetStoreOverlayState (true))
     {
-      widget->setActive (true);
+      SK_DrawOSD     ();
+      SK_DrawConsole ();
     }
-
-    extern bool SK_Tobii_IsCursorVisible (void);
-
-    if ( widget->isVisible () ||
-         // Tobii widget needs to be drawn to show its cursor
-         ( widget == SK_ImGui_Widgets->tobii &&
-           SK_Tobii_IsCursorVisible ()         )
-       )
-    {
-      widget->draw_base ();
-    }
-  }
-
-
-
-  if (! SK_GetStoreOverlayState (true))
-  {
-    SK_DrawOSD     ();
-    SK_DrawConsole ();
   }
 
 
@@ -5807,7 +5813,8 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  SK_ImGui_ProcessWarnings ();
+  if (SK_GetFramesDrawn () > 1)
+    SK_ImGui_ProcessWarnings ();
 
 
   if (SK_ImGui_UnconfirmedDisplayChanges)

@@ -879,8 +879,8 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   {
     #ifndef NO_UNITY_HACKS
   if (   pDesc                != nullptr &&
-       ( pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D ||
-         pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DARRAY ) )
+       ( pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D   ||
+         pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS ) )
   {
     SK_ComQIPtr <ID3D11Texture2D> pTex2D (pResource);
 
@@ -4394,7 +4394,7 @@ D3D11Dev_CreateTexture2D_Impl (
     {
       SK_ReleaseAssert (!"Texture upload not cached because it happened on the wrong device");
     }
-
+  
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
@@ -4478,11 +4478,16 @@ D3D11Dev_CreateTexture2D_Impl (
 #endif
   }
 
-  SK_ComQIPtr <IDXGISwapChain>
+    SK_ComQIPtr <IDXGISwapChain>
                    pSwapChain (
                      rb.swapchain );
   DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  pSwapChain->GetDesc (&swapDesc);
+
+  if (pSwapChain != nullptr)
+      pSwapChain->GetDesc (&swapDesc);
+  else if (pDesc != nullptr &&
+          (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) != 0)
+    SK_LOGi0 (L"Render Target allocated while SK had no active SwapChain...");
 
 
   // Handle stuff like DSV textures created for SwapChains that had their
@@ -4541,11 +4546,8 @@ D3D11Dev_CreateTexture2D_Impl (
        pDesc->Usage          != D3D11_USAGE_STAGING &&
        pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
                    ( pInitialData          == nullptr ||
-                     pInitialData->pSysMem == nullptr ) ||
-     ( pDesc->SampleDesc.Count > 1 &&
-       pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ) )
+                     pInitialData->pSysMem == nullptr ) )
   {
-
     static constexpr UINT _UnwantedFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
@@ -4554,10 +4556,10 @@ D3D11Dev_CreateTexture2D_Impl (
 
     if ( ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
                                D3D11_BIND_RENDER_TARGET      ||
-          // UAVs also need special treatment for Compute Shader work
+          //// UAVs also need special treatment for Compute Shader work
            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
                                D3D11_BIND_UNORDERED_ACCESS ) &&
-           (pDesc->BindFlags & _UnwantedFlags)               == 0 )
+           (pDesc->BindFlags & _UnwantedFlags) == 0 )
     {
       if ( __SK_HDR_16BitSwap &&
              (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -4566,8 +4568,8 @@ D3D11Dev_CreateTexture2D_Impl (
                   SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
-        if ( pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
-             pDesc->SampleDesc.Count == 1 )
+        if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
+            pDesc->SampleDesc.Count == 1)
         {
           size_t bpp =
             DirectX::BitsPerPixel (pDesc->Format);
@@ -4741,11 +4743,11 @@ D3D11Dev_CreateTexture2D_Impl (
   bool injectable = false;
 
   cacheable = cacheable &&
-    (! (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
-                             D3D11_BIND_RENDER_TARGET ) )    != 0x0) &&
-       (pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE  |
-                             D3D11_BIND_UNORDERED_ACCESS ) ) != 0x0  &&
-       (pDesc->Usage     <   D3D11_USAGE_DYNAMIC); // Cancel out Staging
+   (!  (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
+                             D3D11_BIND_RENDER_TARGET ) )    != 0x0
+    )&&(pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE  |
+                             D3D11_BIND_UNORDERED_ACCESS ) ) != 0x0
+     &&(pDesc->Usage     <   D3D11_USAGE_DYNAMIC); // Cancel out Staging
                                                    //   They will be handled through a
                                                    //     different codepath.
 

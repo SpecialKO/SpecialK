@@ -1,4 +1,12 @@
-﻿22.4.15.1-NOCEGUI
+﻿22.4.15.2-NOCEGUI
+=================
+ + Fixed initialization races in some widgets if drawn on frame 0
+ + Fixed potential DXGI Do Not Sequence + Restart flags on first frame
+ + Avoid calling ResizeTarget (...) on redundant Fullscreen mode changes
+ + Added support for Multisample Resolve between UNORM and FP buffers
+ + Improved HDR support (pipeline remaster w/o MSAA) in Chrono Cross
+
+22.4.15.1-NOCEGUI
 =================
  + Fixed Chrono Cross timing override not actually applying at game start
  + Added an event when games exit for SKIF to use to stop injection
