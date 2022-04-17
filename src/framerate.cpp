@@ -1302,45 +1302,38 @@ SK::Framerate::Limiter::wait (void)
 
   if (NtSetTimerResolution_Original != nullptr)
   {
-    ULONG                    min,  max,        cur;
-    NtQueryTimerResolution (&min, &max,       &cur);
-    if                            (max    !=   cur)
-    {  SK_ReleaseAssert  ( STATUS_SUCCESS ==
-    NtSetTimerResolution_Original (max, TRUE, &cur)
-                         );
-
-     SK_LOGi0 ( L"Fixing Unexpected Deviation in "
-                L"Process Timer Resolution...    ");
-
-      auto _SetTimerResolution =
-      ( NtSetTimerResolution_Original != nullptr ) ?
-        NtSetTimerResolution_Original              :
-        NtSetTimerResolution;
-
+    ULONG                         min,  max,  cur;
+    if ( NtQueryTimerResolution (&min, &max, &cur) ==
+           STATUS_SUCCESS )
+    {
       double& dTimerRes =
         SK::Framerate::Limiter::timer_res_ms;
 
-      if ( NtQueryTimerResolution (&min, &max, &cur) ==
-             STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
-      {
-        dTimerRes =
-          static_cast <double> (cur) / 10000.0;
+      dTimerRes =
+        static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
+      if ( NtSetTimerResolution_Original != nullptr &&
+                                     max != cur )
+      {
+        SK_LOG1 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                     L"  Timing  " );
 
         if ( STATUS_SUCCESS ==
-              _SetTimerResolution (max, TRUE, &cur) )
+              NtSetTimerResolution_Original (max, TRUE, &cur) &&
+                                             max   ==    cur )
         {
+          SK_LOGi1 ( L"Fixing Unexpected Deviation in "
+                     L"Process Timer Resolution...    " );
+
           dTimerRes =
             static_cast <double> (cur) / 10000.0;
 
-          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+          SK_LOG1 ( ( L"New resolution....: %f ms", dTimerRes ),
                       L"  Timing  " );
         }
 
         else SK_ReleaseAssert (!
-          L"_SetTimerResolution (max, TRUE, &cur) != STATUS_SUCCESS"
+          L"NtSetTimerResolution (max, TRUE, &cur) != STATUS_SUCCESS"
         );
       }
     }
