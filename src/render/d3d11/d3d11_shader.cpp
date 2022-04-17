@@ -810,7 +810,7 @@ SK_D3D11_SetShaderResources_Impl (
           break;
 
         auto* pSRV =
-          ppShaderResourceViews [i + StartSlot];
+          ppShaderResourceViews [i];
 
         if (pSRV != nullptr)
         {

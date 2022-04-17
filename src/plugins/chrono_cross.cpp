@@ -47,18 +47,20 @@ struct {
   bool    bUnlockFramerate              = true;
   int     iTimeFlag0                    = 0x00;
   int     iTimeFlag1                    = 0x07;
+  int     iClockMultiplier              = 0x1A;
 
   struct {
     sk::ParameterBool* unlock_framerate = nullptr;
     sk::ParameterInt*  time_flag0       = nullptr;
     sk::ParameterInt*  time_flag1       = nullptr;
+    sk::ParameterInt*  clock_multiplier = nullptr;
   } ini;
 
   std::unordered_map <
     std::wstring, address_cache_s
   > addresses;
 
-  cc_code_patch_s clock_tick0, clock_tick1;
+  cc_code_patch_s clock_tick0, clock_tick1, clock_multi;
 } SK_CC_PlugIn;
 
 static auto
@@ -92,6 +94,29 @@ void
 __stdcall
 SK_CC_EndFrame (void)
 {
+  static DWORD dwLastMs =
+    SK_timeGetTime ();
+  
+  static ULONG64 ullLastChanged = 0;
+  
+  if (SK_CC_PlugIn.bUnlockFramerate)
+  {
+    if (std::exchange (dwLastMs, SK_timeGetTime ()) < SK_timeGetTime () - 80)
+    {
+      //SK_CC_PlugIn.clock_tick0.apply (&SK_CC_PlugIn.clock_tick0.original);
+      SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.original);
+    //SK_CC_PlugIn.clock_multi.apply (&SK_CC_PlugIn.clock_multi.original);
+
+      ullLastChanged = SK_GetFramesDrawn ();
+    }
+
+    else
+    {
+      //SK_CC_PlugIn.clock_tick0.apply (&SK_CC_PlugIn.clock_tick0.replacement);
+      SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.replacement);
+    //SK_CC_PlugIn.clock_multi.apply (&SK_CC_PlugIn.clock_multi.replacement);
+    }
+  }
 }
 
 bool
@@ -127,7 +152,8 @@ SK_CC_PlugInCfg (void)
    -> void
       {
         for ( auto patch : { &SK_CC_PlugIn.clock_tick0,
-                             &SK_CC_PlugIn.clock_tick1 } )
+                             &SK_CC_PlugIn.clock_tick1,
+                             &SK_CC_PlugIn.clock_multi } )
         {
           if (SK_CC_PlugIn.bUnlockFramerate)
           {
@@ -137,10 +163,12 @@ SK_CC_PlugInCfg (void)
 
             DWORD                                                 dwOldProt;
             VirtualProtect (pFlagAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
-            if (patch == &SK_CC_PlugIn.clock_tick0)
+            if (     patch == &SK_CC_PlugIn.clock_tick0)
               *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag0;
-            else
+            else if (patch == &SK_CC_PlugIn.clock_tick1)
               *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag1;
+            else
+              *pFlagAddr = (uint8_t)SK_CC_PlugIn.iClockMultiplier;
             VirtualProtect (pFlagAddr, 1, dwOldProt,             &dwOldProt);
           }
 
@@ -176,6 +204,7 @@ SK_CC_PlugInCfg (void)
 
       if (SK_CC_PlugIn.bUnlockFramerate)
       {     ImGui::SameLine ();
+        ImGui::BeginGroup   ();
         if (ImGui::InputInt ("t0", &SK_CC_PlugIn.iTimeFlag0))
         {
                       SK_CC_PlugIn.iTimeFlag0 =
@@ -194,353 +223,20 @@ SK_CC_PlugInCfg (void)
 
           _RewriteClockCode ();
         }
+        if (ImGui::InputInt ("mul", &SK_CC_PlugIn.iClockMultiplier))
+        {
+                      SK_CC_PlugIn.iClockMultiplier =
+          std::clamp (SK_CC_PlugIn.iClockMultiplier, 0, 127);
+
+          SK_CC_PlugIn.ini.clock_multiplier->store (SK_CC_PlugIn.iClockMultiplier);
+
+          _RewriteClockCode ();
+        }
+        ImGui::EndGroup ();
       }
 
       ImGui::TreePop     (  );
     }
-
-#if 0
-    if (ImGui::CollapsingHeader (ICON_FA_IMAGE "\tGraphics Settings", ImGuiTreeNodeFlags_DefaultOpen))
-    {
-      static bool show_hud = true;
-
-      ImGui::TreePush   ("");
-      ImGui::BeginGroup (  );
-      
-      if (ImGui::Checkbox ("Show HUD", &show_hud))
-      {
-        if (show_hud) SK_D3D12_ShowGameHUD ();
-        else          SK_D3D12_HideGameHUD ();
-      }
-
-      ImGui::SameLine ();
-
-      const auto Keybinding =
-      [] (SK_ConfigSerializedKeybind *binding, sk::ParameterStringW* param)
-   -> auto
-      {
-        if (! (binding != nullptr && param != nullptr))
-          return false;
-
-        std::string label =
-          SK_WideCharToUTF8 (binding->human_readable);
-
-        ImGui::PushID (binding->bind_name);
-
-        if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
-          ImGui::OpenPopup (        binding->bind_name);
-
-        std::wstring original_binding =
-                                binding->human_readable;
-
-        SK_ImGui_KeybindDialog (binding);
-
-        ImGui::PopID ();
-
-        if (original_binding != binding->human_readable)
-        {
-          param->store (binding->human_readable);
-
-          SK_SaveConfig ();
-
-          return true;
-        }
-
-        return false;
-      };
-
-      ImGui::BeginGroup ();
-        ImGui::Text     ("HUD Toggle:  "         );
-        ImGui::Text     ("HUD Free Screenshot:  ");
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-        Keybinding      (&config.render.keys.hud_toggle,
-                          config.render.keys.hud_toggle.param);
-        Keybinding      (&config.screenshots.game_hud_free_keybind,
-                          config.screenshots.game_hud_free_keybind.param);
-      ImGui::EndGroup   ();
-      ImGui::Separator  ();
-
-      auto currentFrame =
-            SK_GetFramesDrawn ();
-
-#pragma region "Advanced"
-      if ( //config.system.log_level > 0
-           ImGui::TreeNode ("Recently Used Shaders")
-         )
-      {
-        static auto constexpr _RECENT_USE_THRESHOLD = 30;
-        static auto constexpr _ACTIVE_THRESHOLD     = 300;
-
-        static constexpr GUID SKID_D3D12DisablePipelineState =
-          { 0x3d5298cb, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x70 } };
-
-        static constexpr GUID SKID_D3D12KnownVtxShaderDigest =
-          { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x00 } };
-
-        static constexpr GUID SKID_D3D12KnownPixShaderDigest =
-          { 0x4d5298ca, 0xd9f0,  0x6133, { 0xa1, 0x9d, 0xb1, 0xd5, 0x97, 0x92, 0x00, 0x01 } };
-
-        static auto constexpr   DxilContainerHashSize  = 16;
-        std::multimap <uint32_t, ID3D12PipelineState *> shaders;
-
-        extern
-          concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
-                                 _pixelShaders;
-        for ( auto &[ps, live] : _pixelShaders )
-        {
-          if (! live) continue;
-
-          UINT   size      = 8UL;
-          UINT64 lastFrame = 0ULL;
-
-          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
-
-        //if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
-
-                  size =  DxilContainerHashSize;
-          uint8_t digest [DxilContainerHashSize];
-
-          ps->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
-
-          shaders.emplace (
-            crc32c (0x0, digest, 16), ps
-          );
-        }
-
-        std::string name (" ", MAX_PATH + 1);
-
-        ImGui::BeginGroup ();
-        extern
-          concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool>
-                                 _pixelShaders;
-
-        for ( const auto &[bucket, dump] : shaders )
-        {
-          bool   disable = false;
-          UINT   size    = sizeof (bool);
-
-          if ( FAILED ( dump->GetPrivateData (
-                          SKID_D3D12DisablePipelineState, &size, &disable
-             )        )                    ) {             size=1;disable=false; }
-
-          bool enable =
-            (! disable);
-
-          ImGui::PushID ((int)(intptr_t)dump);
-
-          auto range =
-            shaders.equal_range (bucket);
-
-          if (ImGui::Checkbox (" Pixel::", &enable))
-          {
-            disable =
-              (! enable);
-
-            for ( auto it = range.first ; it != range.second ; ++it )
-            {
-              it->second->SetPrivateData (
-                SKID_D3D12DisablePipelineState, size, &disable
-              );
-            }
-          }
-          
-                  size =  DxilContainerHashSize;
-          uint8_t digest [DxilContainerHashSize];
-
-            dump->GetPrivateData ( SKID_D3D12KnownPixShaderDigest, &size, digest );
-
-            std::string out =
-              std::format ("{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}"
-                           "{:x}{:x}{:x}{:x}{:x}{:x}{:x}{:x}",
-                             digest[ 0],digest[ 1],digest[ 2],digest[ 3],
-                             digest[ 4],digest[ 5],digest[ 6],digest[ 7],
-                             digest[ 8],digest[ 9],digest[10],digest[11],
-                             digest[12],digest[13],digest[14],digest[15]);
-
-          if (ImGui::IsItemClicked (1))
-          {
-            SK_LOG0 ( ( L"%hs", out.c_str () ), L"   DXGI   " );
-          }
-
-          ImGui::SameLine ();
-          ImGui::Text     ("  %hs", out.c_str ());
-          ImGui::PopID    ();
-        }
-        ImGui::EndGroup   ();
-        //ImGui::SameLine   ();
-        //ImGui::BeginGroup ();
-        //
-        //for ( auto &[ps, live] : _vertexShaders )
-        //{
-        //  if (! live) continue;
-        //
-        //  UINT   size      = 8UL;
-        //  UINT64 lastFrame = 0ULL;
-        //
-        //  ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
-        //
-        //  if (currentFrame > lastFrame + _RECENT_USE_THRESHOLD) continue;
-        //
-        //  *name.data () = '\0';
-        //
-        //  if ( UINT                                               uiStrLen = MAX_PATH ;
-        //FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
-        //     ) ) { *name.data () = '\0'; }
-        //  
-        //  ImGui::PushID ((int)(intptr_t)ps);
-        //
-        //  if (ImGui::InputText (SK_FormatString ("  %08x", ps).c_str (),
-        //                                                  name.data  (), MAX_PATH))
-        //    SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
-        //
-        //  ImGui::PopID ();
-        //}
-        //ImGui::EndGroup ();
-
-        ImGui::Separator ();
-
-        ImGui::BeginGroup ();
-        extern
-          concurrency::concurrent_unordered_map <ID3D12PipelineState*, std::string>
-                                _latePSOBlobs;
-        for ( auto &[ps, str] : _latePSOBlobs )
-        {
-          bool   disable   = false;
-          UINT   size      = sizeof (UINT64);
-          UINT64 lastFrame = 0;
-
-          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
-
-          if (currentFrame > lastFrame + _ACTIVE_THRESHOLD) continue;
-
-          if ( FAILED ( ps->GetPrivateData (
-                          SKID_D3D12DisablePipelineState, &size, &disable
-             )        )                    ) {             size=1;disable=false; }
-
-          bool enable =
-            (! disable);
-
-          ImGui::PushID ((int)(intptr_t)ps);
-
-          if (ImGui::Checkbox (" Other::", &enable))
-          {
-            disable =
-              (! enable);
-
-            ps->SetPrivateData (SKID_D3D12DisablePipelineState, size, &disable);
-          }
-
-          ImGui::PopID  ();
-        }
-        ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
-
-        for ( auto &[ps, str] : _latePSOBlobs )
-        {
-          UINT   size      = sizeof (UINT64);
-          UINT64 lastFrame = 0;
-
-          ps->GetPrivateData (SKID_D3D12LastFrameUsed, &size, &lastFrame);
-
-          if (currentFrame > lastFrame + _ACTIVE_THRESHOLD) continue;
-
-          *name.data () = '\0';
-
-          ImGui::PushStyleColor ( ImGuiCol_Text,
-            currentFrame > lastFrame - _RECENT_USE_THRESHOLD   ?
-                                 ImColor (0.5f,0.5f,0.5f,1.0f) :
-                                 ImColor (1.0f,1.0f,1.0f,1.0f) );
-
-          if ( UINT                                               uiStrLen = MAX_PATH ;
-        FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
-             ) ) { *name.data () = '\0'; }
-
-          ImGui::PopStyleColor ();
-          
-          ImGui::PushID ((int)(intptr_t)ps);
-
-          if (ImGui::InputText (str.c_str (),             name.data (), MAX_PATH))
-            SK_D3D12_SetDebugName (ps, SK_UTF8ToWideChar (name));
-
-          ImGui::PopID  ();
-        }
-        ImGui::EndGroup ();
-        ImGui::TreePop  ();
-      }
-      ImGui::EndGroup   ();
-#pragma endregion
-
-      static std::error_code                    ec = { };
-      static std::filesystem::path pathPlayStation =
-        SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_ae7c1bb2.dds",
-                                   pathPlayStation_Old =
-        SK_Resource_GetRoot () / LR"(inject/textures)"
-          /  L"d3d12_sk0_crc32c_0041d76d.dds"; // Hash changed in 1.3.0, then changed back in 1.3.2
-
-      // Remove the old texture mod, since there's extra overhead until they all load
-      static bool had_old =
-        std::filesystem::exists (pathPlayStation_Old, ec) ?
-        std::filesystem::remove (pathPlayStation_Old, ec) : false;
-
-      static bool                   bPlayStation_AtStart =
-        std::filesystem::exists (pathPlayStation, ec),
-                                    bPlayStation =
-                                    bPlayStation_AtStart,
-                                    bFetching   = false;
-
-  if (ImGui::Checkbox ("Enable " ICON_FA_PLAYSTATION " Buttons", &bPlayStation))
-      {
-        if (! bFetching)
-        {
-          if (  std::filesystem::exists (pathPlayStation, ec))
-          { if (std::filesystem::remove (pathPlayStation, ec))
-                                            bPlayStation = false;
-          }
-
-          else
-          {
-            bFetching = true;
-
-            SK_Network_EnqueueDownload (
-                 sk_download_request_s (
-                   pathPlayStation.wstring (),
-                     R"(https://sk-data.special-k.info/addon/EldenRing/)"
-                               R"(buttons/d3d12_sk0_crc32c_ae7c1bb2.dds)",
-            []( const std::vector <uint8_t>&&,
-                const std::wstring_view )
-             -> bool
-                {
-                  bFetching    = false;
-                  bPlayStation = true;
-            
-                  return false;
-                }
-              ), true
-            );
-          }
-        }
-      }
-
-      if ( bFetching || bPlayStation_AtStart !=
-                        bPlayStation )
-      {
-        ImGui::SameLine ();
-
-        if (bFetching) ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading...");
-        else
-        {              ImGui::Bullet      ();
-                       ImGui::SameLine    ();
-                       ImGui::TextColored (ImVec4 (1.f,1.f,0.f,1.f), "Game Restart Required");
-        }
-      }
-
-      ImGui::TreePop     ( );
-    }
-#endif
 
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
@@ -576,62 +272,24 @@ SK_CC_InitConfig (void)
   if (! SK_CC_PlugIn.ini.time_flag1->load  (SK_CC_PlugIn.iTimeFlag1))
         SK_CC_PlugIn.ini.time_flag1->store (0x1);
 
+  SK_CC_PlugIn.ini.clock_multiplier =
+    _CreateConfigParameterInt ( L"ChronoCross.PlugIn",
+                                 L"ClockMultiplier", SK_CC_PlugIn.iClockMultiplier,
+                                                          L"Misc. Timing" );
+
+  if (! SK_CC_PlugIn.ini.clock_multiplier->load  (SK_CC_PlugIn.iClockMultiplier))
+        SK_CC_PlugIn.ini.clock_multiplier->store (0x1A);
+
   auto& addresses =
     SK_CC_PlugIn.addresses;
 
   addresses [L"CHRONO CROSS  1.0.0.0"].
    cached =
-        { { "clock_tick0", 0x007116F }, { "clock_tick1", 0x0071B16 } };
+        { { "clock_tick0", 0x007116F }, { "clock_tick1", 0x0071B16 },
+          { "clock_multi", 0x004FA5F } };
 
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
-
-#if 0
-  if (! addresses.contains (game_ver_str))
-  {
-    void* pBaseAddr =
-      SK_Debug_GetImageBaseAddr ();
-
-    const uint8_t pattern0 [] = { 0xC7, 0x43, 0x18, 0x02, 0x00,
-                                  0x00, 0x00, 0xc7, 0x43, 0x20 };
-    const uint8_t pattern1 [] = { 0x18, 0xC7, 0x43, 0x20, 0x89 };
-    const uint8_t pattern2 [] = { 0x7B, 0x18, 0xC7, 0x43, 0x20 };
-
-    auto
-      p0 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, pBaseAddr ) ) ),
-      p1 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p0 ) ) ),
-      p2 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p1 ) ) );
-
-    auto
-      p3 = (void *)( 1 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, pBaseAddr ) ) ),
-      p4 = (void *)( 1 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, p3 ) ) );
-
-    auto
-      p5 = (void *)( 2 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern2, 5, nullptr, p0 ) ) );
-
-    addresses [game_ver_str].
-     cached =
-          { { "clock_tick0", (uintptr_t)p0 - (uintptr_t)pBaseAddr },
-            { "clock_tick1", (uintptr_t)p1 - (uintptr_t)pBaseAddr },
-            { "clock_tick2", (uintptr_t)p2 - (uintptr_t)pBaseAddr },
-            { "clock_tick3", (uintptr_t)p3 - (uintptr_t)pBaseAddr },
-            { "clock_tick4", (uintptr_t)p4 - (uintptr_t)pBaseAddr },
-            { "clock_tick5", (uintptr_t)p5 - (uintptr_t)pBaseAddr } };
-
-    for ( const auto &[name, address] :
-                             addresses [game_ver_str].cached )
-    {
-      SK_LOG0 ( ( L"Uncached Address (%hs) => %ph", name.c_str (), address ),
-                  L"Elden Ring" );
-    }
-  }
-#endif
 
   auto& addr_cache =
     SK_CC_PlugIn.addresses [game_ver_str].cached;
@@ -640,12 +298,24 @@ SK_CC_InitConfig (void)
           std::initializer_list <
             std::pair <cc_code_patch_s&, std::string> >
               { { SK_CC_PlugIn.clock_tick0, "clock_tick0" },
-                { SK_CC_PlugIn.clock_tick1, "clock_tick1" } } )
+                { SK_CC_PlugIn.clock_tick1, "clock_tick1" },
+                { SK_CC_PlugIn.clock_multi, "clock_multi" } } )
   {
     record = {
       .pAddr       = (void *)addr_cache [name],
       .original    = code_bytes_t <4> {0   ,0   ,0,   0   },
       .replacement = code_bytes_t <4> {0x83,0x46,0x14,0x01} };
+  }
+
+  SK_CC_PlugIn.clock_multi.replacement.inst_bytes = code_bytes_t <4> {0x10,0x6B,0xC6,0x1A};
+
+  DWORD dwOriginal = 0x0;
+
+  if (*(uint8_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x731c7) == 0x75)
+  {
+    VirtualProtect ((void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x731c7), 2, PAGE_EXECUTE_READWRITE, &dwOriginal);
+    memcpy         ((void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x731c7), "\x90\x90", 2);
+    VirtualProtect ((void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x731c7), 2, dwOriginal, &dwOriginal);
   }
 }
 
@@ -678,7 +348,8 @@ SK_CC_InitPlugin (void)
  -> void
     {
       for ( auto patch : { &SK_CC_PlugIn.clock_tick0,
-                           &SK_CC_PlugIn.clock_tick1 } )
+                           &SK_CC_PlugIn.clock_tick1,
+                           &SK_CC_PlugIn.clock_multi } )
       {
         if (SK_CC_PlugIn.bUnlockFramerate)
         {
@@ -688,10 +359,12 @@ SK_CC_InitPlugin (void)
 
           DWORD                                                 dwOldProt;
           VirtualProtect (pFlagAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
-          if (patch == &SK_CC_PlugIn.clock_tick0)
+          if (     patch == &SK_CC_PlugIn.clock_tick0)
             *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag0;
-          else
+          else if (patch == &SK_CC_PlugIn.clock_tick1)
             *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag1;
+          else if (patch == &SK_CC_PlugIn.clock_multi)
+            *pFlagAddr = (uint8_t)SK_CC_PlugIn.iClockMultiplier;
           VirtualProtect (pFlagAddr, 1, dwOldProt,             &dwOldProt);
         }
 
@@ -705,7 +378,8 @@ SK_CC_InitPlugin (void)
         std::initializer_list <
           std::pair <cc_code_patch_s&, std::string> >
             { { SK_CC_PlugIn.clock_tick0, "clock_tick0" },
-              { SK_CC_PlugIn.clock_tick1, "clock_tick1" } } )
+              { SK_CC_PlugIn.clock_tick1, "clock_tick1" },
+              { SK_CC_PlugIn.clock_multi, "clock_multi" } } )
     {
       patch.pAddr = (void *)addr_cache [name];
 
@@ -723,7 +397,7 @@ SK_CC_InitPlugin (void)
 
     _RewriteClockCode ();
 
-  //plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
+    plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
     plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
 
     return;

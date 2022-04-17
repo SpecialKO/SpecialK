@@ -1,4 +1,8 @@
-﻿22.4.15.2-NOCEGUI
+﻿22.4.17-NOCEGUI
+===============
+ + Handle RTV/SRV destruction occurring while Render Mod Tools window is open
+
+22.4.15.2-NOCEGUI
 =================
  + Fixed initialization races in some widgets if drawn on frame 0
  + Fixed potential DXGI Do Not Sequence + Restart flags on first frame

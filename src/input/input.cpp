@@ -716,7 +716,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
     return std::numeric_limits <UINT>::max ();
   }
 
-  int idx = 0;
+  unsigned int idx = 0;
 
   if (pRawInputDevices != nullptr)
   {
@@ -730,7 +730,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
   else
   {
     idx +=
-      sk::narrow_cast <int> (raw_devices.size ());
+      sk::narrow_cast <unsigned int> (raw_devices.size ());
   }
 
   return idx;

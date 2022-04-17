@@ -1039,9 +1039,12 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
 
   if ( pSrcTex                     == pDstTex              ||
        srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
-       srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count )
+      (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
+       srcTexDesc.SampleDesc.Count != 1) )
   {
-    return false;
+    SK_ReleaseAssert (! L"Impossible BltCopy Requested");
+
+    //return false;
   }
 
   else if ( srcTexDesc.Width  != dstTexDesc.Width ||
@@ -1115,9 +1118,7 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
 	surface.desc.rtv.Texture2D.MipSlice        = 0;
 
   surface.desc.srv.Format                    = srcTexDesc.Format;
-  surface.desc.srv.ViewDimension             = surface.desc.tex.SampleDesc.Count <= 1 ?
-                                                        D3D11_SRV_DIMENSION_TEXTURE2D :
-                                                        D3D11_SRV_DIMENSION_TEXTURE2DMS;
+  surface.desc.srv.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
 	surface.desc.srv.Texture2D.MostDetailedMip = 0;
 	surface.desc.srv.Texture2D.MipLevels       = 1;
 
@@ -1233,8 +1234,8 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   ApplyStateblock (pDevCtx.p, &codec.sb);
 
   if (pDstTex != nullptr && surface.render.tex != nullptr)
-     D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
-//pDevCtx->CopyResource (pDstTex, surface.render.tex);
+     //D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
+    pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
   return true;
 }

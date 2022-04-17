@@ -585,7 +585,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       if (! ( rtl.rt_views.empty () ||
               rtl.max_rt_views   == 0 ) )
       {
-        for (auto& it : rtl.rt_views )
+        for ( auto it : rtl.rt_views )
         {
           D3D11_RENDER_TARGET_VIEW_DESC desc = { };
 
@@ -666,7 +666,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         }
       }
 
-      for (auto& it : invalid_views)
+      for ( auto it : invalid_views )
       {
         if (rtl.rt_views.count (it))
             rtl.rt_views.erase (it);
@@ -682,7 +682,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         const auto time_to_live =
           frames_drawn - zombie_threshold;
 
-        for (auto& it : render_textures)
+        for ( auto it : render_textures )
         {
           if ( render_lifetime.count (it) != 0 &&
                      render_lifetime [it].last_frame < time_to_live )
@@ -696,7 +696,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         {
           render_textures.clear ();
 
-          for (auto& it : render_lifetime)
+          for ( auto& it : render_lifetime )
             render_textures.push_back (it.first);
         }
 
@@ -718,7 +718,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
           rt2;
           rt2.reserve (render_textures.size ());
 
-        for ( auto& it : render_textures )
+        for ( auto it : render_textures )
         {
           UINT size = sizeof (UINT);
           UINT data = 0;
@@ -769,7 +769,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
         std::vector        < ID3D11RenderTargetView*       > rt1;
 
-        for (auto& it : rt2)
+        for ( auto& it : rt2 )
         {
           rt1.emplace_back       (it.first);
           rt_indexes [it.first] = it.second;
@@ -783,7 +783,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         std::vector <std::string> temp_list;
                                   temp_list.reserve (render_textures.size ());
 
-        for ( auto& it : render_textures )
+        for ( auto it : render_textures )
         {
           if (it == nullptr)
             continue;
