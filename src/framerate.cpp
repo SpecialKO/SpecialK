@@ -1302,16 +1302,10 @@ SK::Framerate::Limiter::wait (void)
 
   if (NtSetTimerResolution_Original != nullptr)
   {
-    ULONG                    min,  max,        cur;
-    NtQueryTimerResolution (&min, &max,       &cur);
-    if                            (max    !=   cur)
-    {  SK_ReleaseAssert  ( STATUS_SUCCESS ==
-    NtSetTimerResolution_Original (max, TRUE, &cur)
-                         );
-
-     SK_LOGi0 ( L"Fixing Unexpected Deviation in "
-                L"Process Timer Resolution...    ");
-
+    ULONG                    min,  max,   cur;
+    NtQueryTimerResolution (&min, &max,  &cur);
+    if                            (max != cur)
+    {
       auto _SetTimerResolution =
       ( NtSetTimerResolution_Original != nullptr ) ?
         NtSetTimerResolution_Original              :
@@ -1323,10 +1317,13 @@ SK::Framerate::Limiter::wait (void)
       if ( NtQueryTimerResolution (&min, &max, &cur) ==
              STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
       {
+        SK_LOGi1 ( L"Fixing Unexpected Deviation in "
+                   L"Process Timer Resolution...    " );
+
         dTimerRes =
           static_cast <double> (cur) / 10000.0;
 
-        SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
+        SK_LOG1 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                     L"  Timing  " );
 
         if ( STATUS_SUCCESS ==
@@ -1335,7 +1332,7 @@ SK::Framerate::Limiter::wait (void)
           dTimerRes =
             static_cast <double> (cur) / 10000.0;
 
-          SK_LOG0 ( ( L"New resolution....: %f ms", dTimerRes ),
+          SK_LOG1 ( ( L"New resolution....: %f ms", dTimerRes ),
                       L"  Timing  " );
         }
 
