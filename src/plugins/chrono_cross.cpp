@@ -48,12 +48,14 @@ struct {
   int     iTimeFlag0                    = 0x00;
   int     iTimeFlag1                    = 0x07;
   int     iClockMultiplier              = 0x1A;
+  float   fResolutionScale              = 1.0f;
 
   struct {
-    sk::ParameterBool* unlock_framerate = nullptr;
-    sk::ParameterInt*  time_flag0       = nullptr;
-    sk::ParameterInt*  time_flag1       = nullptr;
-    sk::ParameterInt*  clock_multiplier = nullptr;
+    sk::ParameterBool*  unlock_framerate = nullptr;
+    sk::ParameterInt*   time_flag0       = nullptr;
+    sk::ParameterInt*   time_flag1       = nullptr;
+    sk::ParameterInt*   clock_multiplier = nullptr;
+    sk::ParameterFloat* resolution_scale = nullptr;
   } ini;
 
   std::unordered_map <
@@ -62,6 +64,8 @@ struct {
 
   cc_code_patch_s clock_tick0, clock_tick1, clock_multi;
 } SK_CC_PlugIn;
+
+float __SK_CC_ResMultiplier = 1.0f;
 
 static auto
 SK_VirtualProtect =
@@ -90,31 +94,37 @@ cc_code_patch_s::apply (cc_code_patch_s::executable_code_s *pExec)
           pAddr, pExec->inst_bytes.size (), dwOldProtect);
 }
 
+static float fDelta  = 66.0f;
+static int   iFrames = 0;
+
 void
 __stdcall
 SK_CC_EndFrame (void)
 {
-  static DWORD dwLastMs =
-    SK_timeGetTime ();
-  
-  static ULONG64 ullLastChanged = 0;
-  
   if (SK_CC_PlugIn.bUnlockFramerate)
   {
-    if (std::exchange (dwLastMs, SK_timeGetTime ()) < SK_timeGetTime () - 80)
+    if ( SK_CC_PlugIn.iTimeFlag1 == 0 &&
+         SK_CC_PlugIn.iTimeFlag0 == 0 )
     {
-      //SK_CC_PlugIn.clock_tick0.apply (&SK_CC_PlugIn.clock_tick0.original);
-      SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.original);
-    //SK_CC_PlugIn.clock_multi.apply (&SK_CC_PlugIn.clock_multi.original);
+      static DWORD dwLastMs =
+        SK_timeGetTime ();
+  
+      static volatile ULONG64 ullLastChanged = 0;
+      
+      if (SK_CC_PlugIn.bUnlockFramerate)
+      {
+        if (std::exchange (dwLastMs, SK_timeGetTime ()) < SK_timeGetTime () - fDelta)
+        {
+          SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.original);
 
-      ullLastChanged = SK_GetFramesDrawn ();
-    }
+          InterlockedExchange (&ullLastChanged, SK_GetFramesDrawn ());
+        }
 
-    else
-    {
-      //SK_CC_PlugIn.clock_tick0.apply (&SK_CC_PlugIn.clock_tick0.replacement);
-      SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.replacement);
-    //SK_CC_PlugIn.clock_multi.apply (&SK_CC_PlugIn.clock_multi.replacement);
+        else if (ReadULong64Acquire (&ullLastChanged) < SK_GetFramesDrawn () - iFrames)
+        {
+          SK_CC_PlugIn.clock_tick1.apply (&SK_CC_PlugIn.clock_tick1.replacement);
+        }
+      }
     }
   }
 }
@@ -233,9 +243,58 @@ SK_CC_PlugInCfg (void)
           _RewriteClockCode ();
         }
         ImGui::EndGroup ();
+
+        if (SK_CC_PlugIn.iTimeFlag1 == 0 && config.system.log_level > 0)
+        {
+          ImGui::InputFloat ("Hitch Delta",  &fDelta);
+          ImGui::InputInt   ("Hitch Frames", &iFrames);
+        }
       }
 
       ImGui::TreePop     (  );
+    }
+
+    if ( ImGui::CollapsingHeader (
+           ICON_FA_IMAGE "\tGraphics Settings",
+                          ImGuiTreeNodeFlags_DefaultOpen )
+       )
+    {
+      static bool need_restart = false;
+
+      ImGui::TreePush     ("");
+
+      int resolution =
+        static_cast <int> (SK_CC_PlugIn.fResolutionScale);
+
+      ImGui::BeginGroup ();
+
+      ImGui::Text ("Internal Resolution: "); ImGui::SameLine ();
+
+      bool clicked  = false;
+           clicked |= ImGui::RadioButton (" 720p ",  &resolution, 1); ImGui::SameLine ();
+           clicked |= ImGui::RadioButton (" 1440p ", &resolution, 2); ImGui::SameLine ();
+           clicked |= ImGui::RadioButton (" 4K ",    &resolution, 4);
+
+      ImGui::EndGroup ();
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Some UI elements are misaligned if set above 720p... [ TURN MSAA OFF ]");
+
+      if (clicked)
+      {
+        SK_CC_PlugIn.fResolutionScale =
+          static_cast <float> (resolution);
+
+        SK_CC_PlugIn.ini.resolution_scale->store (
+           SK_CC_PlugIn.fResolutionScale
+        );
+
+        need_restart = true;
+      }
+
+      if (need_restart)
+        ImGui::BulletText ("Game Restart Required");
+      ImGui::TreePop      (  );
     }
 
     ImGui::PopStyleColor (3);
@@ -279,6 +338,17 @@ SK_CC_InitConfig (void)
 
   if (! SK_CC_PlugIn.ini.clock_multiplier->load  (SK_CC_PlugIn.iClockMultiplier))
         SK_CC_PlugIn.ini.clock_multiplier->store (0x1A);
+
+  SK_CC_PlugIn.ini.resolution_scale =
+    _CreateConfigParameterFloat ( L"ChronoCross.PlugIn",
+                                  L"ResolutionScale", SK_CC_PlugIn.fResolutionScale,
+                                                                  L"Resolution" );
+
+  if (! SK_CC_PlugIn.ini.resolution_scale->load  (SK_CC_PlugIn.fResolutionScale))
+        SK_CC_PlugIn.ini.resolution_scale->store (1.0f);
+
+  __SK_CC_ResMultiplier =
+    std::clamp (SK_CC_PlugIn.fResolutionScale, 1.0f, 4.0f);
 
   auto& addresses =
     SK_CC_PlugIn.addresses;
@@ -397,8 +467,8 @@ SK_CC_InitPlugin (void)
 
     _RewriteClockCode ();
 
-    plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
-    plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
+    plugin_mgr->begin_frame_fns.emplace (SK_CC_EndFrame );
+    plugin_mgr->config_fns.emplace      (SK_CC_PlugInCfg);
 
     return;
   }
@@ -407,3 +477,175 @@ SK_CC_InitPlugin (void)
     L"This version of Chrono Cross is not Compatible with Special K's Plug-In"
   );
 }
+
+
+
+
+
+
+
+
+
+// Garbage dump, need to hook these functions
+//
+#if 0
+  void STDMETHODCALLTYPE RSSetViewports (
+    _In_range_     (0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE) UINT          NumViewports,
+    _In_reads_opt_ (NumViewports)                                          const D3D11_VIEWPORT *pViewports ) override
+  {
+    TraceAPI
+
+#ifndef _M_AMD64
+    static auto game_id = SK_GetCurrentGameID ();
+
+    if (game_id == SK_GAME_ID::ChronoCross)
+    {
+      extern float
+          __SK_CC_ResMultiplier;
+      if (__SK_CC_ResMultiplier)
+      {
+        if (NumViewports == 1)
+        {
+          SK_ComPtr <ID3D11RenderTargetView> rtv;
+          OMGetRenderTargets            (1, &rtv, nullptr);
+
+          SK_ComPtr <ID3D11Texture2D> pTex;
+
+          if (rtv.p != nullptr)
+          {
+            SK_ComPtr <ID3D11Resource> pRes;
+            rtv->GetResource         (&pRes.p);
+
+            if (pRes.p != nullptr)
+              pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
+
+            if (pTex.p != nullptr)
+            {
+              D3D11_VIEWPORT vp = *pViewports;
+
+              D3D11_TEXTURE2D_DESC texDesc = { };
+              pTex->GetDesc      (&texDesc);
+
+              if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
+                   texDesc.Height == 2048 * __SK_CC_ResMultiplier )
+              {
+                static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
+                static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
+
+                float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
+                float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
+
+                vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
+                vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
+                vp.Width    = __SK_CC_ResMultiplier * vp.Width;
+                vp.Height   = __SK_CC_ResMultiplier * vp.Height;
+
+                vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
+                vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
+
+                vp.Width    = std::min (vp.Width,  32767.0f);
+                vp.Height   = std::min (vp.Height, 32767.0f);
+
+                pReal->RSSetViewports (1, &vp);
+
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+#endif
+
+    pReal->RSSetViewports (
+             NumViewports,
+               pViewports
+    );
+  }
+
+  void STDMETHODCALLTYPE CopySubresourceRegion (
+    _In_           ID3D11Resource *pDstResource,
+    _In_           UINT            DstSubresource,
+    _In_           UINT            DstX,
+    _In_           UINT            DstY,
+    _In_           UINT            DstZ,
+    _In_           ID3D11Resource *pSrcResource,
+    _In_           UINT            SrcSubresource,
+    _In_opt_ const D3D11_BOX      *pSrcBox ) override
+  {
+    TraceAPI
+
+#ifndef _M_AMD64
+    static auto game_id = SK_GetCurrentGameID ();
+
+    D3D11_BOX newBox = { };
+
+    if (game_id == SK_GAME_ID::ChronoCross)
+    {
+      extern float
+          __SK_CC_ResMultiplier;
+      if (__SK_CC_ResMultiplier > 1.0f)
+      {
+        SK_ComQIPtr <ID3D11Texture2D>
+          pSrcTex (pSrcResource),
+          pDstTex (pDstResource);
+
+        if ( pSrcTex.p != nullptr &&
+             pDstTex.p != nullptr )
+        {
+          D3D11_TEXTURE2D_DESC srcDesc = { },
+                               dstDesc = { };
+          pSrcTex->GetDesc   (&srcDesc);
+          pDstTex->GetDesc   (&dstDesc);
+
+          if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
+              dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
+          {
+            newBox = *pSrcBox;
+
+            static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
+            static float NewHeight = 1024 * __SK_CC_ResMultiplier;
+
+            float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
+            float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
+            float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
+            float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
+
+            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
+            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
+            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
+            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
+
+            DstX *= __SK_CC_ResMultiplier;
+            DstY *= __SK_CC_ResMultiplier;
+
+            pSrcBox = &newBox;
+          }
+
+          else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
+                                           pSrcBox->bottom > srcDesc.Height ))
+          {
+            SK_LOGi0 ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
+                         srcDesc.Width, srcDesc.Height,
+                           pSrcBox->left,  pSrcBox->top,
+                           pSrcBox->right, pSrcBox->bottom );
+
+            return;
+          }
+        }
+      }
+    }
+#endif
+
+#ifndef SK_D3D11_LAZY_WRAP
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+        SK_D3D11_CopySubresourceRegion_Impl (pReal,
+                 pDstResource, DstSubresource, DstX, DstY, DstZ,
+                 pSrcResource, SrcSubresource, pSrcBox, TRUE
+        );
+    else
+#endif
+      pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
+                                     pSrcResource, SrcSubresource, pSrcBox );
+  }
+#endif
