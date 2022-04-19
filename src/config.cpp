@@ -171,15 +171,16 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    },
       { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         },
       { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        },
-      { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  }
+      { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  },
+      { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     }
     };
 
     first_check = false;
 
-#ifdef _M_AMD64
     // For games that can't be matched using a single executable filename
     if (! _games.contains (hash_lower (SK_GetHostApp ())))
     {
+#ifdef _M_AMD64
       auto app_id =
         SK_Steam_GetAppID_NoAPI ();
 
@@ -253,10 +254,16 @@ SK_GetCurrentGameID (void)
           }
         }
       }
+      else 
+#endif
+      if (StrStrIW ( SK_GetHostApp (), L"Launcher" ))
+      {
+        current_game =
+          SK_GAME_ID::Launcher;
+      }
     }
 
     else
-#endif
     {
       current_game =
         _games [hash_lower (SK_GetHostApp ())];
@@ -813,7 +820,14 @@ struct {
 } apis;
 
 bool
-SK_LoadConfig (const std::wstring& name) {
+SK_LoadConfig (const std::wstring& name)
+{
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+  {
+    return
+      (config.system.silent = true);
+  }
+
   return
     SK_LoadConfigEx (name);
 }
@@ -2207,6 +2221,10 @@ auto DeclKeybind =
 
         if (! SK_PE32_IsLargeAddressAware ())
               SK_PE32_MakeLargeAddressAwareCopy ();
+      } break;
+
+      case SK_GAME_ID::Launcher:
+      {
       } break;
 
 
@@ -4164,6 +4182,10 @@ void
 SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
+  // Ignore this :)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+    return;
+
   SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
   SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ());
 

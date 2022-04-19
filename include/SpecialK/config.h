@@ -1179,6 +1179,7 @@ enum class SK_GAME_ID
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe
+  Launcher,                     // A generic launcher...
   UNKNOWN_GAME               = 0xffff
 };
 

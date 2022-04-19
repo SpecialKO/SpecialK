@@ -2960,6 +2960,70 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
 
 
+bool
+SK_CanRestartGame (void)
+{
+  static bool can_restart = true;
+
+  SK_RunOnce ([&]
+  {
+    if (! SK_IsInjected ())
+    {
+      wchar_t wszShortPath [MAX_PATH + 2] = { };
+      wchar_t wszFullname  [MAX_PATH + 2] = { };
+    
+      wcsncpy_s ( wszFullname, MAX_PATH,
+                  SK_GetModuleFullName ( SK_GetDLL () ).c_str (),
+                              _TRUNCATE );
+    
+      wchar_t                         wszCurDir
+                           [MAX_PATH + 2] = {  };
+      GetCurrentDirectoryW (MAX_PATH, wszCurDir);
+    
+      SK_Generate8Dot3 (wszCurDir);
+      SK_Generate8Dot3 (wszFullname);
+      wcsncpy_s        (wszShortPath, MAX_PATH, wszFullname, _TRUNCATE);
+    
+      if (SK_FileHasSpaces (wszFullname))
+        GetShortPathName   (wszFullname, wszShortPath, MAX_PATH  );
+    
+      if (SK_FileHasSpaces (wszShortPath))
+      {
+        if (SK_HasGlobalInjector ())
+        {
+          std::filesystem::path global_dll =
+            SK_FormatStringW (
+              SK_RunLHIfBitness (64, LR"(%ws/SpecialK64.dll)",
+                                     LR"(%ws/SpecialK32.dll)"),
+              SK_GetInstallPath () );
+    
+                    wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
+          GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
+        }
+        
+        if (SK_FileHasSpaces (wszShortPath))
+        {
+          std::filesystem::path global_dll =
+            SK_FormatStringW (
+              SK_RunLHIfBitness (64, LR"(%ws/SpecialK64.dll)",
+                                     LR"(%ws/SpecialK32.dll)"),
+              SK_GetInstallPath () );
+    
+                    wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
+          GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
+    
+          if (SK_FileHasSpaces (wszShortPath))
+          {
+            can_restart = false;
+          }
+        }
+      }
+    }
+  });
+
+  return can_restart;
+}
+
 void
 SK_RestartGame (const wchar_t* wszDLL)
 {
@@ -2978,6 +3042,11 @@ SK_RestartGame (const wchar_t* wszDLL)
               SK_GetModuleFullName ( SK_GetDLL () ).c_str (),
                           _TRUNCATE );
 
+  wchar_t                         wszCurDir
+                       [MAX_PATH + 2] = {  };
+  GetCurrentDirectoryW (MAX_PATH, wszCurDir);
+
+  SK_Generate8Dot3 (wszCurDir);
   SK_Generate8Dot3 (wszFullname);
   wcsncpy_s        (wszShortPath, MAX_PATH, wszFullname, _TRUNCATE);
 
@@ -2986,13 +3055,7 @@ SK_RestartGame (const wchar_t* wszDLL)
 
   if (SK_FileHasSpaces (wszShortPath))
   {
-    if (wszDLL != nullptr)
-    {
-      //SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
-      //return;
-    }
-
-    else if (SK_HasGlobalInjector ())
+    if (SK_HasGlobalInjector ())
     {
       std::filesystem::path global_dll =
         SK_FormatStringW (
@@ -3006,8 +3069,20 @@ SK_RestartGame (const wchar_t* wszDLL)
 
     if (SK_FileHasSpaces (wszShortPath))
     {
-      //SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
-      //return;
+      std::filesystem::path global_dll =
+        SK_FormatStringW (
+          SK_RunLHIfBitness (64, LR"(%ws/SpecialK64.dll)",
+                                 LR"(%ws/SpecialK32.dll)"),
+          SK_GetInstallPath () );
+
+                wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
+      GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
+
+      if (SK_FileHasSpaces (wszShortPath))
+      {
+        SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+        return;
+      }
     }
   }
 

@@ -773,8 +773,8 @@ SK::Framerate::Init (void)
       SK_LOG0 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                   L"  Timing  " );
 
-      if ( STATUS_SUCCESS ==
-            _SetTimerResolution (max, TRUE, &cur) )
+      if ( _SetTimerResolution (max, TRUE, &cur) ==
+             STATUS_SUCCESS )
       {
         dTimerRes =
           static_cast <double> (cur) / 10000.0;
@@ -1312,15 +1312,15 @@ SK::Framerate::Limiter::wait (void)
       dTimerRes =
         static_cast <double> (cur) / 10000.0;
 
-      if ( NtSetTimerResolution_Original != nullptr &&
-                                     max != cur )
+      if (max != cur)
       {
         SK_LOG1 ( ( L"Kernel resolution.: %f ms", dTimerRes ),
                     L"  Timing  " );
 
-        if ( STATUS_SUCCESS ==
-              NtSetTimerResolution_Original (max, TRUE, &cur) &&
-                                             max   ==    cur )
+        NTSTATUS status =
+          NtSetTimerResolution_Original (max, TRUE, &cur);
+        if (                             max   ==    cur &&
+                 status == STATUS_SUCCESS )
         {
           SK_LOGi1 ( L"Fixing Unexpected Deviation in "
                      L"Process Timer Resolution...    " );
@@ -1332,9 +1332,18 @@ SK::Framerate::Limiter::wait (void)
                       L"  Timing  " );
         }
 
-        else SK_ReleaseAssert (!
-          L"NtSetTimerResolution (max, TRUE, &cur) != STATUS_SUCCESS"
-        );
+        else
+        {
+          // This will fail repeatedly, only log it once.
+          SK_RunOnce ([&]
+          {
+            SK_ReleaseAssert (status == STATUS_SUCCESS || max == cur);
+            SK_LOGi0         (
+              L"NtSetTimerResolution (...) unexpected behavior -- NtStatus=%x, "
+              L"max=%d, cur=%d", status, max, cur
+            );
+          });
+        }
       }
     }
   }

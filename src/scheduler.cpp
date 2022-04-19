@@ -1003,6 +1003,21 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
+  static auto game_id =
+    SK_GetCurrentGameID ();
+
+  // TODO: Move into actual plug-in
+  if (game_id == SK_GAME_ID::ChronoCross)
+  {
+    if (dwMilliseconds == 0)
+    {
+      YieldProcessor ();
+      SwitchToThread ();
+
+      return 0;
+    }
+  }
+
   SK_TLS*                            pTLS = nullptr;
   SK_MMCS_ApplyPendingTaskPriority (&pTLS);
 
@@ -1012,9 +1027,6 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   bool bWantThreadClassification =
     ( sleepless_render ||
       sleepless_window );
-
-  static auto game_id =
-    SK_GetCurrentGameID ();
 
 #ifdef _TVFIX
   bWantThreadClassification |=
@@ -1031,7 +1043,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     ( bWantThreadClassification ) ?
         SK_Thread_GetCurrentId () : 0x0;
 
-#if 0
+#if 1
   BOOL bGUIThread    =
     sleepless_window ? (SK_Thread_GetTEB_FAST ()->Win32ThreadInfo                != nullptr)
                      : FALSE;

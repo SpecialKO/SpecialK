@@ -1,4 +1,10 @@
-﻿22.4.17-NOCEGUI
+﻿22.4.19.2-NOCEGUI
+=================
+ + Improved 60 FPS functionality for Chrono Cross
+ + Added 1440p / 4K resolution modes to Chrono Cross
+ + Added protection against launchers clobbering actual game INI files
+
+22.4.17-NOCEGUI
 ===============
  + Handle RTV/SRV destruction occurring while Render Mod Tools window is open
 

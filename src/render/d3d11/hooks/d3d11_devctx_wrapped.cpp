@@ -1251,12 +1251,14 @@ public:
   {
     TraceAPI
 
-#if 0
+#ifndef _M_AMD64
     static auto game_id = SK_GetCurrentGameID ();
 
     if (game_id == SK_GAME_ID::ChronoCross)
     {
-      //if (! SK_TLS_Bottom ()->imgui->drawing)
+      extern float
+          __SK_CC_ResMultiplier;
+      if (__SK_CC_ResMultiplier)
       {
         if (NumViewports == 1)
         {
@@ -1280,20 +1282,25 @@ public:
               D3D11_TEXTURE2D_DESC texDesc = { };
               pTex->GetDesc      (&texDesc);
 
-              if (texDesc.Width == 8192 && texDesc.Height == 4096)
+              if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
+                   texDesc.Height == 2048 * __SK_CC_ResMultiplier )
               {
-                static constexpr float NewWidth  = 8192.0f;
-                static constexpr float NewHeight = 4096.0f;
+                static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
+                static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
 
-                float left_ndc   = 2.0f * ( vp.TopLeftX              / 4096.0f) - 1.0f;
-                float top_ndc    = 2.0f * ( vp.TopLeftY              / 2048.0f) - 1.0f;
-                float right_ndc  = 2.0f * ((vp.TopLeftX + vp.Width)  / 4096.0f) - 1.0f;
-                float bottom_ndc = 2.0f * ((vp.TopLeftY + vp.Height) / 2048.0f) - 1.0f;
+                float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
+                float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
 
-                vp.TopLeftX = ((left_ndc   * NewWidth  + NewWidth)  / 2.0f);
-                vp.TopLeftY = ((top_ndc    * NewHeight + NewHeight) / 2.0f);
-                vp.Width    = ((right_ndc  * NewWidth  + NewWidth)  / 2.0f) - vp.TopLeftX;
-                vp.Height   = ((bottom_ndc * NewHeight + NewHeight) / 2.0f) - vp.TopLeftY;
+                vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
+                vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
+                vp.Width    = __SK_CC_ResMultiplier * vp.Width;
+                vp.Height   = __SK_CC_ResMultiplier * vp.Height;
+
+                vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
+                vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
+
+                vp.Width    = std::min (vp.Width,  32767.0f);
+                vp.Height   = std::min (vp.Height, 32767.0f);
 
                 pReal->RSSetViewports (1, &vp);
 
@@ -1333,96 +1340,62 @@ public:
   {
     TraceAPI
 
-#if 0
+#ifndef _M_AMD64
     static auto game_id = SK_GetCurrentGameID ();
 
     D3D11_BOX newBox = { };
 
-    if (game_id == SK_GAME_ID::ChronoCross/* && pSrcBox != nullptr*/)
+    if (game_id == SK_GAME_ID::ChronoCross)
     {
-      //if (! SK_TLS_Bottom ()->imgui->drawing)
+      extern float
+          __SK_CC_ResMultiplier;
+      if (__SK_CC_ResMultiplier > 1.0f)
       {
-        SK_ComPtr <ID3D11Texture2D> pTex;
-        pSrcResource->QueryInterface <ID3D11Texture2D> (&pTex.p);
+        SK_ComQIPtr <ID3D11Texture2D>
+          pSrcTex (pSrcResource),
+          pDstTex (pDstResource);
 
-        SK_ComPtr <ID3D11Texture2D> pDstTex;
-        pDstResource->QueryInterface <ID3D11Texture2D> (&pDstTex.p);
-
-        if (pTex.p != nullptr)
+        if ( pSrcTex.p != nullptr &&
+             pDstTex.p != nullptr )
         {
-          //D3D11_VIEWPORT vp = *pViewports;
+          D3D11_TEXTURE2D_DESC srcDesc = { },
+                               dstDesc = { };
+          pSrcTex->GetDesc   (&srcDesc);
+          pDstTex->GetDesc   (&dstDesc);
 
-          D3D11_TEXTURE2D_DESC texDesc = { };
-          pTex->GetDesc      (&texDesc);
-
-          D3D11_TEXTURE2D_DESC DstDesc = { };
-          pDstTex->GetDesc   (&DstDesc);
-
-          if (texDesc.Width == 8192 && texDesc.Height == 4096 && pSrcBox != nullptr)
+          if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
+              dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
           {
-            DstX = 0;
             newBox = *pSrcBox;
 
-            SK_LOGi0 ( L"texDesc={%dx%d}, Box={%d/%d::%d,%d}",
-                         texDesc.Width, texDesc.Height,
-                           pSrcBox->left, pSrcBox->top,
-                          pSrcBox->right, pSrcBox->bottom );
-            static constexpr float NewWidth  = 8192.0f;
-            static constexpr float NewHeight = 4096.0f;
+            static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
+            static float NewHeight = 1024 * __SK_CC_ResMultiplier;
 
             float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
             float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
             float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
             float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
 
-            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  / 2.0f));
-            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) / 2.0f));
-            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  / 2.0f));
-            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) / 2.0f));
+            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
+            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
+            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
+            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
+
+            DstX *= __SK_CC_ResMultiplier;
+            DstY *= __SK_CC_ResMultiplier;
 
             pSrcBox = &newBox;
-
-            SK_LOGi0 ( L"  ===>  Box={%d/%d::%d,%d}",
-                           pSrcBox->left, pSrcBox->top,
-                          pSrcBox->right, pSrcBox->bottom );
-
-            ////SK_LOGi0 ( L"  ===>  Viewport={%3.1f/%3.1f::%3.1f,%3.1f}",
-            ////           vp.TopLeftX,    vp.TopLeftY,
-            ////              vp.Width,      vp.Height );
-            ////
-            ////pReal->RSSetViewports (1, &vp);
-            ////
-            ////return;
           }
 
-          else if (DstDesc.Width == 8192 && DstDesc.Height == 4096)
+          else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
+                                           pSrcBox->bottom > srcDesc.Height ))
           {
+            SK_LOGi0 ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
+                         srcDesc.Width, srcDesc.Height,
+                           pSrcBox->left,  pSrcBox->top,
+                           pSrcBox->right, pSrcBox->bottom );
+
             return;
-            newBox = *pSrcBox;
-
-            SK_LOGi0 ( L"texDesc={%dx%d}, ZBox={%d/%d::%d,%d}",
-                         texDesc.Width, texDesc.Height,
-                           pSrcBox->left, pSrcBox->top,
-                          pSrcBox->right, pSrcBox->bottom );
-
-            static constexpr float NewWidth  = 8192.0f;
-            static constexpr float NewHeight = 4096.0f;
-
-            float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (pSrcBox->left,   0U, 4096U)) / 4096.0f ) - 1.0f;
-            float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (pSrcBox->top,    0U, 2048U)) / 2048.0f ) - 1.0f;
-            float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (pSrcBox->right,  0U, 4096U)) / 4096.0f ) - 1.0f;
-            float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (pSrcBox->bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
-
-            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  / 2.0f));
-            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) / 2.0f));
-            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  / 2.0f));
-            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) / 2.0f));
-
-            pSrcBox = &newBox;
-
-            SK_LOGi0 ( L"  ===>  Box={%d/%d::%d,%d}",
-                           pSrcBox->left, pSrcBox->top,
-                          pSrcBox->right, pSrcBox->bottom );
           }
         }
       }

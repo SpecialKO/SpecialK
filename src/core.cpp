@@ -1274,8 +1274,8 @@ bool
 __stdcall
 SK_HasGlobalInjector (void)
 {
-  static int last_test = 0;
-
+  static int
+      last_test = 0;
   if (last_test == 0)
   {
     wchar_t     wszBasePath [MAX_PATH + 2] = { };

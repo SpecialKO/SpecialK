@@ -1050,8 +1050,8 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   else if ( srcTexDesc.Width  != dstTexDesc.Width ||
             srcTexDesc.Height != dstTexDesc.Height )
   {
-    SK_ReleaseAssert (srcTexDesc.Width  == dstTexDesc.Width &&
-                      srcTexDesc.Height == dstTexDesc.Height);
+    ////////SK_ReleaseAssert (srcTexDesc.Width  == dstTexDesc.Width &&
+    ////////                  srcTexDesc.Height == dstTexDesc.Height);
     // TODO: This...
     //void CopySubresourceRegion (
     //  ID3D11Resource * pDstResource,

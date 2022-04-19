@@ -2250,9 +2250,6 @@
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\NT_Process.h">
       <Filter>Header Files\Backends\Render\PresentMon\ETW</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\popups\popup.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\render\gl\opengl_screenshot.h">
       <Filter>Header Files\Backends\Render\OpenGL</Filter>
     </ClInclude>
@@ -2921,6 +2918,9 @@
     </ClInclude>
     <ClInclude Include="include\shaders\epic_d3d11_vs.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\popups\popup.h">
+      <Filter>Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

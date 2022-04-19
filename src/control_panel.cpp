@@ -2653,10 +2653,11 @@ SK_ImGui_ControlPanel (void)
         //  SK_ShutdownCore (__SK_BootedCore);
         //}
 
-
         if ((! SK_IsInjected ()) || SK_Inject_IsHookActive ())
         {
-          if (ImGui::MenuItem ("Restart Game"))
+          extern bool
+              SK_CanRestartGame (void);
+          if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game"))
           {
             SK_ImGui_WantRestart = true;
             SK_ImGui_WantExit    = true;
@@ -2671,7 +2672,8 @@ SK_ImGui_ControlPanel (void)
 
         if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
         {
-          SK_ImGui_WantExit = true;
+          SK_ImGui_WantRestart = false;
+          SK_ImGui_WantExit    = true;
         }
 
         ImGui::EndMenu  ();

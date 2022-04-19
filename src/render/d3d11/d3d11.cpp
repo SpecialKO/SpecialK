@@ -4478,16 +4478,19 @@ D3D11Dev_CreateTexture2D_Impl (
 #else
     if (game_id == SK_GAME_ID::ChronoCross)
     {
-#if 0
-      if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
-          pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-                                                            (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
-                                                            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
+      extern float
+          __SK_CC_ResMultiplier;
+      if (__SK_CC_ResMultiplier)
       {
-        pDesc->Width  = 8192;
-        pDesc->Height = 4096;
+        if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
+            pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
+                                                              (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
+                                                              (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
+        {
+          pDesc->Width  = 4096 * __SK_CC_ResMultiplier;
+          pDesc->Height = 2048 * __SK_CC_ResMultiplier;
+        }
       }
-#endif
     }
 #endif
   }
