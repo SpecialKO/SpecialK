@@ -1006,20 +1006,18 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   static auto game_id =
     SK_GetCurrentGameID ();
 
+  SK_TLS*                            pTLS = nullptr;
+  SK_MMCS_ApplyPendingTaskPriority (&pTLS);
+
   // TODO: Move into actual plug-in
   if (game_id == SK_GAME_ID::ChronoCross)
   {
     if (dwMilliseconds == 0)
     {
-      YieldProcessor ();
-      SwitchToThread ();
-
-      return 0;
+      return
+        SwitchToThread ();
     }
   }
-
-  SK_TLS*                            pTLS = nullptr;
-  SK_MMCS_ApplyPendingTaskPriority (&pTLS);
 
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;

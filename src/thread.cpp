@@ -460,6 +460,8 @@ SK_Thread_InitDebugExtras (void)
     // Hook QPC and Sleep
     SK_Scheduler_Init ();
 
+    SK_HookCriticalSections ();
+
     // Only available in Windows 10
     //
     SK_SetThreadDescription =
