@@ -785,4 +785,6 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
+bool SK_Win32_IsDummyWindowClass (HWND hWnd);
+
 #endif /* __SK__WINDOW_H__ */

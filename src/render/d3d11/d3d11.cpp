@@ -2344,11 +2344,21 @@ const
 
 
 #ifndef _WIN64
-  static bool bPersona4 =
-    (SK_GetCurrentGameID () == SK_GAME_ID::Persona4);
+  static const auto game_id =
+    SK_GetCurrentGameID ();
 
-  if (bPersona4)
-    SK_Persona4_DrawHandler (pDevCtx, current_vs, current_ps);
+  switch (game_id)
+  {
+    case SK_GAME_ID::Persona4:
+      SK_Persona4_DrawHandler (pDevCtx, current_vs, current_ps);
+      break;
+    case SK_GAME_ID::ChronoCross:
+      SK_CC_DrawHandler       (pDevCtx, current_vs, current_ps);
+      break;
+
+    default:
+      break;
+  }
 #endif
 
 
@@ -4487,8 +4497,8 @@ D3D11Dev_CreateTexture2D_Impl (
                                                               (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
                                                               (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
         {
-          pDesc->Width  = 4096 * __SK_CC_ResMultiplier;
-          pDesc->Height = 2048 * __SK_CC_ResMultiplier;
+          pDesc->Width  = 4096 * static_cast <UINT> (__SK_CC_ResMultiplier);
+          pDesc->Height = 2048 * static_cast <UINT> (__SK_CC_ResMultiplier);
         }
       }
     }
@@ -6996,18 +7006,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     if ( ppSwapChain    != nullptr &&
          pSwapChainDesc != nullptr    )
     {
-      wchar_t wszClass [MAX_PATH + 2] = { };
-
-      RealGetWindowClassW (swap_chain_desc->OutputWindow, wszClass, MAX_PATH);
-
-      const bool
-       dummy_window = (
-        nullptr != StrStrIW (wszClass,L"Special K Dummy Window Class (Ex)")
-               ||  // RTSS
-        nullptr != StrStrIW (wszClass,L"RTSSWndClass")
-               ||  // Twitch
-        nullptr != StrStrIW (wszClass,L"CurseOverlayTemporaryDirect3D11Window")
-       );
+      const bool dummy_window =
+        SK_Win32_IsDummyWindowClass (swap_chain_desc->OutputWindow);
 
       if (! dummy_window)
       {
@@ -7025,6 +7025,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
         else
         {
+          wchar_t                          wszClass [128] = { };
+          RealGetWindowClassW (
+            swap_chain_desc->OutputWindow, wszClass, 127 );
+
           SK_LOG0 ( ( L"Installing Window Hooks for Window Class: '%ws'", wszClass ),
                       __SK_SUBSYSTEM__ );
 

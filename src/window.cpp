@@ -6049,8 +6049,52 @@ AdjustWindowRectExForDpi_Detour ( LPRECT lpRect,
                                         dpi );
 }
 
+bool
+SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
+{
+  if (! pWindowClass)
+    return false;
 
+  const bool dummy_window =
+    StrStrIW (pWindowClass->lpszClassName, L"Kiero DirectX Window")                  || // CyberEngine
+    StrStrIW (pWindowClass->lpszClassName, L"RTSSWndClass")                          || // RTSS
+    StrStrIW (pWindowClass->lpszClassName, L"Special K Dummy Window Class")          || // ... that's us!
+    StrStrIW (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass")                || // Epic Online Store Overlay
+    StrStrIW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window") || // Twitch
 
+    // F' it, there's a pattern here, just ignore all dummies.
+    StrStrIW (pWindowClass->lpszClassName, L"dummy");
+
+  return
+    dummy_window;
+}
+
+bool
+SK_Win32_IsDummyWindowClass (HWND hWndInstance)
+{
+  WNDCLASSEXW wnd_class          = {};
+  wchar_t     wszClassName [128] = {};
+  HINSTANCE   hInstance          =
+    reinterpret_cast <HINSTANCE> (
+#ifndef _WIN64
+      GetWindowLongW    (hWndInstance,  GWL_HINSTANCE)
+#else
+      GetWindowLongPtrW (hWndInstance, GWLP_HINSTANCE)
+#endif
+    );
+
+  if (RealGetWindowClassW (hWndInstance, wszClassName, 127) > 0)
+  {
+    wnd_class.cbSize = sizeof (WNDCLASSEXW);
+
+    if (GetClassInfoExW (hInstance, wszClassName, &wnd_class))
+    {
+      return SK_Win32_IsDummyWindowClass (&wnd_class);
+    }
+  }
+
+  return false; // Indeterminate
+}
 
 void
 SK_InstallWindowHook (HWND hWnd)
@@ -6060,8 +6104,7 @@ SK_InstallWindowHook (HWND hWnd)
   RealGetWindowClassW (hWnd, wszClass, _MaxClassLen - 1);
 
   const bool dummy_window =
-    nullptr != StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    nullptr != StrStrIW (wszClass, L"RTSSWndClass");
+    SK_Win32_IsDummyWindowClass (hWnd);
 
   if (dummy_window != false)
     return;

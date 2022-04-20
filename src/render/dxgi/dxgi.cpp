@@ -4119,27 +4119,19 @@ SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
   //
   //   => Anything ( 1x1 - 31x31 ) has no practical application.
   //
-  ////if (desc.BufferDesc.Height > 0 && desc.BufferDesc.Height < 32)
-  ////  return false;
-  ////
-  ////if (desc.BufferDesc.Width > 0  && desc.BufferDesc.Width  < 32)
-  ////  return false;
+#if 0
+  if (desc.BufferDesc.Height > 0 && desc.BufferDesc.Height < 32)
+    return false;
+  if (desc.BufferDesc.Width > 0  && desc.BufferDesc.Width  < 32)
+    return false;
+#endif
 
-  // CyberEngine Tweak Workaround
-  //if (desc.BufferDesc.Width == 100 && desc.BufferDesc.Height == 100 && desc.BufferDesc.RefreshRate.Numerator != 0)
-  //  return false;
+  bool dummy_window =
+    SK_Win32_IsDummyWindowClass (desc.OutputWindow);
 
-  wchar_t              wszClass [64] = { };
-  RealGetWindowClassW (
-    desc.OutputWindow, wszClass, 63);
-
-  const bool dummy_window =
-    StrStrIW (wszClass, L"Kiero DirectX Window")         || // CyberEngine
-    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass")                 ||
-    StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
-    // F' it, there's a pattern here, just ignore all dummies.
-    StrStrIW (wszClass, L"dummy");
+  wchar_t   wszClass [64] = { };
+  RealGetWindowClassW
+    ( desc.OutputWindow, wszClass, 63 );
 
   if (dummy_window)
     SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
@@ -4161,19 +4153,14 @@ SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) 
   RealGetWindowClassW (
          OutputWindow, wszClass, 63);
 
-  const bool dummy_window =
-    StrStrIW (wszClass, L"DX12")                         || // REFramework
-    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass")                 ||
-    StrStrIW (wszClass, L"EOSOVHDummyWindowClass")       || // Epic Online Store Overlay
-    // F' it, there's a pattern here, just ignore all dummies.
-    StrStrIW (wszClass, L"dummy");
+  bool dummy_window =
+    SK_Win32_IsDummyWindowClass (OutputWindow);
 
   if (dummy_window)
-    SK_LOGi0 ( L"Ignoring CreateSwapChainForHwnd using Window Class: %ws",
+    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
                  wszClass );
   else
-    SK_LOGi1 ( L"Typical CreateSwapChainForHwnd using Window Class: %ws",
+    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
                  wszClass );
 
   return
@@ -4938,7 +4925,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     {
       dll_log->Log (
         L"[   DXGI   ]  >> Scanline Override "
-        L"(Requested: %s, Using: %s)",
+        L"(Requested: %hs, Using: %hs)",
           SK_DXGI_DescribeScanlineOrder (
             pNewTargetParameters->ScanlineOrdering
           ),
@@ -4957,7 +4944,7 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     {
       dll_log->Log (
         L"[   DXGI   ]  >> Scaling Override "
-        L"(Requested: %s, Using: %s)",
+        L"(Requested: %hs, Using: %hs)",
           SK_DXGI_DescribeScalingMode (
             pNewTargetParameters->Scaling
           ),
@@ -5695,8 +5682,7 @@ SK_DXGI_CreateSwapChain_PostInit (
     RealGetWindowClassW (pDesc->OutputWindow, wszClass, MAX_PATH);
 
   bool dummy_window =
-    StrStrIW (wszClass, L"Special K Dummy Window Class") ||
-    StrStrIW (wszClass, L"RTSSWndClass");
+    SK_Win32_IsDummyWindowClass (pDesc->OutputWindow);
 
   if ( (! dummy_window) && pDesc != nullptr &&
        ( dwRenderThread == 0 ||
@@ -6615,6 +6601,11 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 
     if (pChain != nullptr)
         pChain->AddRef ();
+
+    else
+    {
+      (IDXGISwapChain1*)_recyclable_d3d11 [hWnd].begin ()->second->Release ();
+    }
   }
 
   else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )
@@ -6645,6 +6636,7 @@ SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnk
 
 #ifdef __PAIR_DEVICE_TO_CHAIN
   if      (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
+  else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
   else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
 #else
   _recyclables [hWnd] = pSwapChain;

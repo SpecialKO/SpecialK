@@ -4482,49 +4482,6 @@ SK_D3D9_HookDeviceAndSwapchain (
   return num_hooked;
 }
 
-
-bool
-SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
-{
-  if (! pWindowClass)
-    return false;
-
-  if ( StrStrIW (pWindowClass->lpszClassName, L"Special K Dummy Window") ||
-       StrStrIW (pWindowClass->lpszClassName, L"RTSSWndClass") )
-  {
-    return true;
-  }
-
-  return false;
-}
-
-bool
-SK_Win32_IsDummyWindowClass (HWND hWndInstance)
-{
-  WNDCLASSEXW wnd_class          = {};
-  wchar_t     wszClassName [128] = {};
-  HINSTANCE   hInstance          =
-    reinterpret_cast <HINSTANCE> (
-#ifndef _WIN64
-      GetWindowLongW    (hWndInstance,  GWL_HINSTANCE)
-#else
-      GetWindowLongPtrW (hWndInstance, GWLP_HINSTANCE)
-#endif
-    );
-
-  if (RealGetWindowClassW (hWndInstance, wszClassName, 127) > 0)
-  {
-    wnd_class.cbSize = sizeof (WNDCLASSEXW);
-
-    if (GetClassInfoExW (hInstance, wszClassName, &wnd_class))
-    {
-      return SK_Win32_IsDummyWindowClass (&wnd_class);
-    }
-  }
-
-  return false; // Indeterminate
-}
-
 bool
 SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 {
