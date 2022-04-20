@@ -167,6 +167,9 @@ SK_Persona4_EndFrame    ( SK_TLS* pTLS );
 void
 SK_Persona4_InitPlugin  ( void );
 void SK_CC_InitPlugin   ( void );
+void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
+                          uint32_t             current_vs,
+                          uint32_t             current_ps );
 #endif
 
 

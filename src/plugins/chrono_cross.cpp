@@ -450,6 +450,9 @@ SK_CC_InitPlugin (void)
     plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
     plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
 
+    //extern void SK_CC_SetupRenderHooks (void);
+    //            SK_CC_SetupRenderHooks ();
+
     return;
   }
 
@@ -629,3 +632,26 @@ SK_CC_InitPlugin (void)
                                      pSrcResource, SrcSubresource, pSrcBox );
   }
 #endif
+
+
+
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+
+ID3D11SamplerState* SK_CC_NearestSampler = nullptr;
+
+void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
+                          uint32_t             current_vs,
+                          uint32_t             current_ps )
+{
+  std::ignore = current_vs;
+
+  if ( SK_CC_NearestSampler != nullptr &&
+      ( current_ps == 0x13510faf ) )
+        //current_ps == 0xdd29fe33 ||
+        //current_vs == 0xade4246f )
+  {
+    pDevCtx->PSSetSamplers (
+      0, 1, &SK_CC_NearestSampler
+    );
+  }
+}

@@ -604,6 +604,39 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 
+#ifndef _M_AMD64
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ChronoCross)
+  {
+    if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
+    {
+      extern ID3D11SamplerState* SK_CC_NearestSampler;
+      const char*
+      SK_D3D11_FilterToStr (D3D11_FILTER filter) noexcept;
+
+      SK_LOGi0 (
+        L"CreateSamplerState - Filter: %hs, MaxAniso: %lu, MipLODBias: %f, MinLOD: %f, MaxLOD: %f, Comparison: %x, U:%x,V:%x,W:%x - %ws",
+               SK_D3D11_FilterToStr (new_desc.Filter), new_desc.MaxAnisotropy, new_desc.MipLODBias, new_desc.MinLOD, new_desc.MaxLOD,
+               new_desc.ComparisonFunc, new_desc.AddressU, new_desc.AddressV, new_desc.AddressW, SK_SummarizeCaller ().c_str () );
+       
+      new_desc.AddressU       = D3D11_TEXTURE_ADDRESS_MIRROR;
+      new_desc.AddressV       = D3D11_TEXTURE_ADDRESS_MIRROR;
+      new_desc.AddressW       = D3D11_TEXTURE_ADDRESS_MIRROR;
+      new_desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+
+      HRESULT hr =
+        D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+
+      if (SUCCEEDED (hr) && new_desc.Filter == D3D11_FILTER_MIN_MAG_MIP_POINT)
+      {
+        SK_CC_NearestSampler = *ppSamplerState;
+        SK_CC_NearestSampler->AddRef ();
+      }
+
+      return hr;
+    }
+  }
+#endif
+
   return
     D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }

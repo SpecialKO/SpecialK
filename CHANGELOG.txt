@@ -1,4 +1,8 @@
-﻿22.4.19.2-NOCEGUI
+﻿22.4.20-NOCEGUI
+===============
+ + Removed a few texture scaling artifacts in Chrono Cross
+
+22.4.19.2-NOCEGUI
 =================
  + Improved 60 FPS functionality for Chrono Cross
  + Added 1440p / 4K resolution modes to Chrono Cross

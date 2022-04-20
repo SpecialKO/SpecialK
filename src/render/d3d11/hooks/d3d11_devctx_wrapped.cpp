@@ -1299,8 +1299,8 @@ public:
                 vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
                 vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
 
-                vp.Width    = std::min (vp.Width,  32767.0f);
-                vp.Height   = std::min (vp.Height, 32767.0f);
+                vp.Width    = std::min (vp.Width,    32767.0f);
+                vp.Height   = std::min (vp.Height,   32767.0f);
 
                 pReal->RSSetViewports (1, &vp);
 
@@ -1381,8 +1381,8 @@ public:
             newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
             newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
 
-            DstX *= __SK_CC_ResMultiplier;
-            DstY *= __SK_CC_ResMultiplier;
+            DstX *= static_cast <UINT> (__SK_CC_ResMultiplier);
+            DstY *= static_cast <UINT> (__SK_CC_ResMultiplier);
 
             pSrcBox = &newBox;
           }
@@ -1611,6 +1611,8 @@ public:
           pSrcTex->GetDesc   (&texDesc);
           pDstTex->GetDesc   (&dstDesc);
 
+          // NOTE: This is failing on 8-bit surface remastering in
+          //         Unity Engine games
           if (texDesc.Format != dstDesc.Format)
           {
             extern bool SK_D3D11_BltCopySurface (
