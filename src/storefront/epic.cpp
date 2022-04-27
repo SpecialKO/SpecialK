@@ -636,6 +636,11 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
   SK_RunOnce (config.platform.reuse_overlay_pause = false);
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
 
+  if (! std::exchange (config.epic.warned_online, true))
+  {
+    SK_ImGui_Warning (L"Special K does not support EOS online games.");
+  }
+
   // Initialize various things on the first s.uccessful tick,
   //   this may happen multiple times until actual log-in...
   if ( epic->Platform () == nullptr ||
