@@ -454,6 +454,13 @@ struct {
   } screenshots;
 } steam;
 
+struct {
+  struct
+  {
+    sk::ParameterBool*    warned_online           = nullptr;
+  } system;
+} eos;
+
 struct
 {
   struct {
@@ -1482,6 +1489,8 @@ auto DeclKeybind =
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
     ConfigEntry (screenshots.include_osd_default,        L"Should a screenshot triggered BY Steam include SK's OSD?",  platform_ini,    L"Steam.Screenshots",     L"DefaultKeybindCapturesOSD"),
+
+    ConfigEntry (eos.system.warned_online,               L"Has user been told about EOS incompatibility?",             dll_ini,         L"Platform.System",       L"WarnedEOSIncompat"),
 
     // These are all system-wide for all Steam games
     ConfigEntry (platform.overlay.hdr_luminance,         L"Make the Steam Overlay visible in HDR mode!",               platform_ini,    L"Platform.Overlay",      L"Luminance_scRGB"),
@@ -3729,6 +3738,7 @@ auto DeclKeybind =
 
   platform.log.silent->load                   (config.platform.silent);
   steam.drm.spoof_BLoggedOn->load             (config.steam.spoof_BLoggedOn);
+  eos.system.warned_online->load              (config.epic.warned_online);
 
   // We may already know the AppID before loading the game's config.
   if (config.steam.appid == 0)
@@ -4751,6 +4761,7 @@ SK_SaveConfig ( std::wstring name,
   steam.social.online_status->store            (config.steam.online_status);
 
   steam.drm.spoof_BLoggedOn->store             (config.steam.spoof_BLoggedOn);
+  eos.system.warned_online->store              (config.epic.warned_online);
 
   platform.system.notify_corner->store         (
                     SK_Steam_PopupOriginToWStr (config.platform.notify_corner));

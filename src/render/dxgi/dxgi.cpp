@@ -6601,11 +6601,6 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 
     if (pChain != nullptr)
         pChain->AddRef ();
-
-    else
-    {
-      (IDXGISwapChain1*)_recyclable_d3d11 [hWnd].begin ()->second->Release ();
-    }
   }
 
   else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )

@@ -460,7 +460,11 @@ SK_Thread_InitDebugExtras (void)
     // Hook QPC and Sleep
     SK_Scheduler_Init ();
 
+    // Epic Online Services has code that doesn't work correctly if
+    //   a spinlock is used
+#if 0
     SK_HookCriticalSections ();
+#endif
 
     // Only available in Windows 10
     //

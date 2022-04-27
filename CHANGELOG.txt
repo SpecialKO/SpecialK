@@ -1,4 +1,8 @@
-﻿22.4.20-NOCEGUI
+﻿22.4.27-NOCEGUI
+===============
+ + Added warning message for EOS online games, since they do not work for some
+
+22.4.20-NOCEGUI
 ===============
  + Removed a few texture scaling artifacts in Chrono Cross
 
