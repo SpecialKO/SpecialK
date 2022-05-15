@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿22.5.15-NOCEGUI
 ===============
  + Removed EOS online warning; problem caused by incorrect critical section
@@ -5,6 +6,9 @@
  + Added Chrono Cross flicker fix when using unlocked framepacing
 
 22.4.27-NOCEGUI
+=======
+﻿22.4.27-NOCEGUI
+>>>>>>> 99f87a1a72269ceee6083cf5a3f9ab2aac4a3610
 ===============
  + Added warning message for EOS online games, since they do not work for some
 

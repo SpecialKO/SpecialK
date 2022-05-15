@@ -1,8 +1,13 @@
 ﻿#pragma once
 
 #define SK_YEAR 22
+<<<<<<< HEAD
 #define SK_MONTH 5
 #define SK_DATE  15
+=======
+#define SK_MONTH 4
+#define SK_DATE  27
+>>>>>>> 99f87a1a72269ceee6083cf5a3f9ab2aac4a3610
 #define SK_REV_N 0
 #define SK_REV   0
 
