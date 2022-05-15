@@ -766,8 +766,9 @@ struct sk_config_t
   } input;
 
   struct threads_s {
-    bool    enable_mem_alloc_trace = false;
-    bool    enable_file_io_trace   = false;
+    bool    enable_mem_alloc_trace   = false;
+    bool    enable_file_io_trace     = false;
+    bool    enable_dynamic_spinlocks = false;
   } threads;
 
   struct injection_s {

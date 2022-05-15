@@ -2230,6 +2230,8 @@ auto DeclKeybind =
 
         if (! SK_PE32_IsLargeAddressAware ())
               SK_PE32_MakeLargeAddressAwareCopy ();
+
+        config.threads.enable_dynamic_spinlocks = true;
       } break;
 
       case SK_GAME_ID::Launcher:

@@ -462,9 +462,11 @@ SK_Thread_InitDebugExtras (void)
 
     // Epic Online Services has code that doesn't work correctly if
     //   a spinlock is used
-#if 0
-    SK_HookCriticalSections ();
-#endif
+    if (config.threads.enable_dynamic_spinlocks)
+    { // Extremely helpful in Chrono Cross, but potentially breaking in
+      //   other games...
+      SK_HookCriticalSections ();
+    }
 
     // Only available in Windows 10
     //
