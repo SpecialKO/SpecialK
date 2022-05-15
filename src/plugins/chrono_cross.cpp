@@ -34,7 +34,7 @@ template <auto _N>
      boost::container::static_vector <uint8_t, _N>;
 
 struct cc_code_patch_s {
-  void* pAddr;
+  void* pAddr = nullptr;
 
   struct executable_code_s {
     code_bytes_t <4> inst_bytes;
@@ -46,8 +46,8 @@ struct cc_code_patch_s {
 struct {
   bool    bUnlockFramerate              = false;
   int     iTimeFlag0                    = 0x00;
-  int     iTimeFlag1                    = 0x07;
-  int     iClockMultiplier              = 0x08;
+  int     iTimeFlag1                    = 0x00;
+  int     iClockMultiplier              =   13;
   float   fResolutionScale              = 1.0f;
 
   struct {
@@ -58,36 +58,48 @@ struct {
     sk::ParameterFloat* resolution_scale = nullptr;
   } ini;
 
-  std::unordered_map <
-    std::wstring, address_cache_s
+  std::unordered_map < std::wstring,
+    address_cache_s
   > addresses;
 
-  cc_code_patch_s clock_tick0, clock_tick1, clock_multi;
+  cc_code_patch_s
+    clock_tick0, clock_check,
+    clock_tick1, clock_multi;
 } SK_CC_PlugIn;
 
 float __SK_CC_ResMultiplier = 1.0f;
 
-static auto
-SK_VirtualProtect =
-[]( LPVOID lpAddress,
-    SIZE_T dwSize,
-    DWORD  flNewProtect )
+DWORD
+SK_VirtualProtect (
+  LPVOID lpAddress,
+  SIZE_T dwSize,
+  DWORD  flNewProtect )
 {
   DWORD dwRet = 0x0;
 
-  VirtualProtect (
-    lpAddress,     dwSize,
-    flNewProtect, &dwRet);
+  if (
+    VirtualProtect (
+      lpAddress,     dwSize,
+      flNewProtect, &dwRet )
+     ) return        dwRet;
 
-  return dwRet;
+  return 0x0;
 };
 
 void
 cc_code_patch_s::apply (cc_code_patch_s::executable_code_s *pExec)
 {
+  if (pExec->inst_bytes.empty ())
+    return;
+
   DWORD dwOldProtect =
     SK_VirtualProtect (
           pAddr, pExec->inst_bytes.size (), PAGE_EXECUTE_READWRITE);
+
+  // Failed to change memory protection, DO NOT PATCH
+  if (dwOldProtect == 0x0)
+    return;
+
   memcpy (pAddr, pExec->inst_bytes.data (),
                  pExec->inst_bytes.size ());
     SK_VirtualProtect (
@@ -99,23 +111,39 @@ _RewriteClockCode (void)
 {
   for ( auto& patch : { &SK_CC_PlugIn.clock_tick0,
                         &SK_CC_PlugIn.clock_tick1,
-                        &SK_CC_PlugIn.clock_multi } )
+                        &SK_CC_PlugIn.clock_multi,
+                        &SK_CC_PlugIn.clock_check } )
   {
     if (SK_CC_PlugIn.bUnlockFramerate)
     {
-      auto pFlagAddr =
-         ((uint8_t *)patch->pAddr + 3);
       patch->apply (&patch->replacement);
 
-      DWORD                                                 dwOldProt;
-      VirtualProtect (pFlagAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
-      if (     patch == &SK_CC_PlugIn.clock_tick0)
-        *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag0;
-      else if (patch == &SK_CC_PlugIn.clock_tick1)
-        *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag1;
+      if (patch != &SK_CC_PlugIn.clock_check)
+      {
+        auto pFlagAddr =
+         ((uint8_t *)patch->pAddr + 3);
+
+        DWORD                                                 dwOldProt;
+        VirtualProtect (pFlagAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
+        if (     patch == &SK_CC_PlugIn.clock_tick0)
+          *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag0;
+        else if (patch == &SK_CC_PlugIn.clock_tick1)
+          *pFlagAddr = (uint8_t)SK_CC_PlugIn.iTimeFlag1;
+        else if (patch == &SK_CC_PlugIn.clock_multi)
+          *pFlagAddr = (uint8_t)SK_CC_PlugIn.iClockMultiplier;
+        VirtualProtect (pFlagAddr, 1, dwOldProt,             &dwOldProt);
+      }
+
       else
-        *pFlagAddr = (uint8_t)SK_CC_PlugIn.iClockMultiplier;
-      VirtualProtect (pFlagAddr, 1, dwOldProt,             &dwOldProt);
+      {
+        auto pCheckAddr =
+          (uint8_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x88D81);
+
+        DWORD                                                  dwOldProt;
+        VirtualProtect (pCheckAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
+                       *pCheckAddr = 0x74;
+        VirtualProtect (pCheckAddr, 1, dwOldProt,             &dwOldProt);
+      }
 
       *(uint8_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0xDE7DF0) = 1;
     }
@@ -286,7 +314,7 @@ SK_CC_PlugInCfg (void)
       ImGui::Text ("Internal Resolution: "); ImGui::SameLine ();
 
       bool clicked  = false;
-           clicked |= ImGui::RadioButton (" 720p ",  &resolution, 1); ImGui::SameLine ();
+           clicked |= ImGui::RadioButton (" 960p ",  &resolution, 1); ImGui::SameLine ();
            clicked |= ImGui::RadioButton (" 1440p ", &resolution, 2); ImGui::SameLine ();
            clicked |= ImGui::RadioButton (" 4K ",    &resolution, 4);
 
@@ -375,7 +403,7 @@ SK_CC_InitConfig (void)
   addresses [L"CHRONO CROSS  1.0.0.0"].
    cached =
         { { "clock_tick0", 0x007116F }, { "clock_tick1", 0x0071B16 },
-          { "clock_multi", 0x004FA5F } };
+          { "clock_multi", 0x004FA5F }, { "clock_check", 0x0088D7F } };
 
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
@@ -386,9 +414,10 @@ SK_CC_InitConfig (void)
   for ( auto &[record, name] :
           std::initializer_list <
             std::pair <cc_code_patch_s&, std::string> >
-              { { SK_CC_PlugIn.clock_tick0, "clock_tick0" },
-                { SK_CC_PlugIn.clock_tick1, "clock_tick1" },
-                { SK_CC_PlugIn.clock_multi, "clock_multi" } } )
+              { { SK_CC_PlugIn.clock_tick0,  "clock_tick0" },
+                { SK_CC_PlugIn.clock_tick1,  "clock_tick1" },
+                { SK_CC_PlugIn.clock_multi,  "clock_multi" },
+                { SK_CC_PlugIn.clock_check,  "clock_check" } } )
   {
     record = {
       .pAddr       = (void *)addr_cache [name],
@@ -397,6 +426,7 @@ SK_CC_InitConfig (void)
   }
 
   SK_CC_PlugIn.clock_multi.replacement.inst_bytes = code_bytes_t <4> {0x10,0x6B,0xC6,0x08};
+  SK_CC_PlugIn.clock_check.replacement.inst_bytes = code_bytes_t <4> {0x3B,0xC7,0x74,0x18};
 }
 
 void
