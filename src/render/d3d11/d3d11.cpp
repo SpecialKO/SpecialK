@@ -85,7 +85,7 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
   //   D3D11 debug layer is active
   if (kName.empty () /*|| ( __SK_D3D11_DebugLayerActive == 0 &&
                                  config.system.log_level < 2 )*/)
-  { // Ignore the comment above, 
+  { // Ignore the comment above,
     return; // debug names are useful in SK's built-in debugger :)
   }
 
@@ -4404,7 +4404,7 @@ D3D11Dev_CreateTexture2D_Impl (
     {
       SK_ReleaseAssert (!"Texture upload not cached because it happened on the wrong device");
     }
-  
+
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
@@ -6690,6 +6690,18 @@ SK_DXTex_CreateTexture ( _In_reads_(nimages) const DirectX::Image*       srcImag
 UINT
 SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
 {
+  if (config.render.dxgi.ignore_thread_flags)
+  {
+    if ( (uiOrigFlags & D3D11_CREATE_DEVICE_SINGLETHREADED) ||
+         (uiOrigFlags & D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS) )
+    {
+      uiOrigFlags &= ~D3D11_CREATE_DEVICE_SINGLETHREADED;
+      uiOrigFlags &= ~D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS;
+
+      SK_LOGi0 (L">> Removing Singlethreaded Device Flags");
+    }
+  }
+
   //UINT Flags =  (D3D11_CREATE_DEVICE_DEBUG | uiOrigFlags);
   //     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;
 

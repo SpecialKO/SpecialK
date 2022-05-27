@@ -1,4 +1,9 @@
-﻿22.5.15-NOCEGUI
+﻿22.5.27-NOCEGUI
+===============
+ + Updated compiler requirements in README
+ + Removed single-threaded limitations from Hatsune Miku DIVA Project Mega Mouthful+
+
+22.5.15-NOCEGUI
 ===============
  + Removed EOS online warning; problem caused by incorrect critical section
      initialization in EOSSDK

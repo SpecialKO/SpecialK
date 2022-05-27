@@ -172,7 +172,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         },
       { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        },
       { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  },
-      { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     }
+      { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     },
+      { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       }
     };
 
     first_check = false;
@@ -254,7 +255,7 @@ SK_GetCurrentGameID (void)
           }
         }
       }
-      else 
+      else
 #endif
       if (StrStrIW ( SK_GetHostApp (), L"Launcher" ))
       {
@@ -902,14 +903,14 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 
   auto ret =
     dynamic_cast <_Tp *> (
-      g_ParameterFactory->create_parameter <_Tp::value_type> (
+      g_ParameterFactory->create_parameter <_Tp>/*_Tp::value_type>*/ (
         wszDescription )
     );
 
   if (ret != nullptr)
       ret->register_to_ini (pINIFile, wszSection, wszKey);
 
-  return ret;
+  return (_Tp *)ret;
 };
 
 
@@ -2232,6 +2233,11 @@ auto DeclKeybind =
               SK_PE32_MakeLargeAddressAwareCopy ();
 
         config.threads.enable_dynamic_spinlocks = true;
+      } break;
+
+      case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
+      {
+        config.render.dxgi.ignore_thread_flags = true;
       } break;
 
       case SK_GAME_ID::Launcher:
@@ -3754,7 +3760,7 @@ auto DeclKeybind =
       // Non-Steam Games: Ignore this to prevent general weirdness.
       if ( ( static_cast <size_t>  (std::numeric_limits <int>::max () - 1) ) <=
              static_cast <AppId_t> (config.steam.appid) )
-          
+
       {   config.steam.appid        = 0;
           steam.system.appid->store ( 0 );
       }
@@ -4453,7 +4459,7 @@ SK_SaveConfig ( std::wstring name,
   window.override->store (
                        std::format ( L"{}x{}", config.window.res.override.x,
                                                config.window.res.override.y ) );
-                       
+
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
   display.force_10bpc_sdr->store              (config.render.output.force_10bpc);
@@ -4587,7 +4593,7 @@ SK_SaveConfig ( std::wstring name,
 
       render.dxgi.max_refresh->store              (config.render.dxgi.refresh.max);
       render.dxgi.min_refresh->store              (config.render.dxgi.refresh.min);
-                                                  
+
       render.dxgi.swapchain_wait->store           (config.render.framerate.swapchain_wait);
 
       switch (config.render.dxgi.scaling_mode)

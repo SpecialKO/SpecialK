@@ -320,8 +320,8 @@ SK_CC_PlugInCfg (void)
 
       ImGui::EndGroup ();
 
-      if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Some UI elements are misaligned if set above 720p... [ TURN MSAA OFF ]");
+      if (ImGui::IsItemHovered () && resolution != 1)
+          ImGui::SetTooltip ("Some UI elements are misaligned if set above 960p... [ TURN MSAA OFF ]");
 
       if (clicked)
       {

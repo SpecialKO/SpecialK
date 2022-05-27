@@ -474,12 +474,12 @@ struct sk_config_t
                false, false, false, 0,
             }, L"ToggleFCATBars"
           };
-        int   scanline_offset =    -1;
-        int   scanline_resync =   750;
-        int   scanline_error  =     1;
-        bool  adaptive_sync   =  true;
-        float delay_bias      =  0.0f;
-        bool  show_fcat_bars  = false; // Not INI-persistent
+        int   scanline_offset      =    -1;
+        int   scanline_resync      =   750;
+        int   scanline_error       =     1;
+        bool  adaptive_sync        =  true;
+        float delay_bias           =  0.0f;
+        bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;
         bool finish_before_present = false;
@@ -489,20 +489,20 @@ struct sk_config_t
       } latent_sync;
     } framerate;
     struct d3d9_s {
-      bool    force_d3d9ex       = false;
-      bool    force_impure       = false;
+      bool    force_d3d9ex         = false;
+      bool    force_impure         = false;
     } d3d9;
     struct dxgi_s {
-      int     adapter_override   = -1;
+      int     adapter_override     = -1;
       struct resolution_s {
         struct minimum_s {
-          unsigned int x         =  0;
-          unsigned int y         =  0;
+          unsigned int x           =  0;
+          unsigned int y           =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } min;
         struct maximum_s {
-          unsigned int x         =  0;
-          unsigned int y         =  0;
+          unsigned int x           =  0;
+          unsigned int y           =  0;
           bool isZero (void) noexcept { return x == 0 && y == 0; };
         } max;
       } res;
@@ -510,47 +510,48 @@ struct sk_config_t
         float min = 0.0f;
         float max = 0.0f;
       } refresh;
-      int     exception_mode     =    -1; // -1 = Don't Care
-      int     scaling_mode       =    -1; // -1 = Don't Care
-      int     scanline_order     =    -1; // -1 = Don't Care
-      int     msaa_samples       =    -1;
+      int     exception_mode       =    -1; // -1 = Don't Care
+      int     scaling_mode         =    -1; // -1 = Don't Care
+      int     scanline_order       =    -1; // -1 = Don't Care
+      int     msaa_samples         =    -1;
       // DXGI 1.1 (Ignored for now)
-      int     rotation           =    -1; // -1 = Don't Care
-      int     srgb_behavior      =    -2; // -2 = sRGB Not Encountered Yet
-                                          // -1 = Passthrough,
-                                          //  0 = Strip,
-                                          //  1 = Apply
-      bool    test_present       = false;
-      bool    full_state_cache   = false;
-      bool    debug_layer        = false;
-      bool    low_spec_mode      = false; // Disable D3D11 Render Mods
-      bool    allow_tearing      =  true;
-      bool    safe_fullscreen    = false;
-      bool    enhanced_depth     = false;
-      bool    deferred_isolation = false;
-      bool    present_test_skip  = false;
-      bool    hide_hdr_support   = false; // Games won't know HDR is supported
-      bool    use_factory_cache  =  true; // Fix performance issues in Resident Evil 8
-      bool    skip_mode_changes  = false; // Try to skip rendundant resolution changes
-      bool    temporary_dwm_hdr  = false; // Always turns HDR on and off for this game
+      int     rotation             =    -1; // -1 = Don't Care
+      int     srgb_behavior        =    -2; // -2 = sRGB Not Encountered Yet
+                                            // -1 = Passthrough,
+                                            //  0 = Strip,
+                                            //  1 = Apply
+      bool    test_present         = false;
+      bool    full_state_cache     = false;
+      bool    debug_layer          = false;
+      bool    low_spec_mode        = false; // Disable D3D11 Render Mods
+      bool    allow_tearing        =  true;
+      bool    safe_fullscreen      = false;
+      bool    enhanced_depth       = false;
+      bool    deferred_isolation   = false;
+      bool    present_test_skip    = false;
+      bool    hide_hdr_support     = false; // Games won't know HDR is supported
+      bool    use_factory_cache    =  true; // Fix performance issues in Resident Evil 8
+      bool    skip_mode_changes    = false; // Try to skip rendundant resolution changes
+      bool    temporary_dwm_hdr    = false; // Always turns HDR on and off for this game
+      bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
     } dxgi;
 
     struct {
-      bool    disable_fullscreen = true;
-      bool    enable_16bit_hdr   = false;
-      bool    enable_10bit_hdr   = false;
+      bool    disable_fullscreen   = true;
+      bool    enable_16bit_hdr     = false;
+      bool    enable_10bit_hdr     = false;
     } gl;
 
     struct osd_s {
-      ULONG64 _last_vidcap_frame = 0;
-      ULONG64 _last_normal_frame = 0;
-      float   hdr_luminance      = 4.375F; // 350 nits
+      ULONG64 _last_vidcap_frame   = 0;
+      ULONG64 _last_normal_frame   = 0;
+      float   hdr_luminance        = 4.375F; // 350 nits
       // Required by default for compatibility with Mirillis Action!
-      bool    draw_in_vidcap     = true;
+      bool    draw_in_vidcap       = true;
     } osd;
 
     // OSD Render Stats
-    bool      show               = false;
+    bool      show                 = false;
     struct keybinds_s {
       //BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
       SK_ConfigSerializedKeybind
@@ -1181,6 +1182,7 @@ enum class SK_GAME_ID
   TinyTinasWonderlands,         // Wonderlands.exe
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe
+  HatsuneMikuDIVAMegaMix,       // DivaMegaMix.exe
   Launcher,                     // A generic launcher...
   UNKNOWN_GAME               = 0xffff
 };

@@ -8,7 +8,7 @@ Special K&nbsp;&nbsp;<sub>*"Lovingly referred to as the Swiss Army Knife of PC g
 >
 > Most of Special K's build dependencies are included when you clone the repo, with one exception. You must have the June 2010 DirectX SDK installed to build Special K.
 > 
->> Special K requires Visual C++ 2017 or newer to compile due to language features not present in older compilers.
+>> Special K requires Visual C++ 2022 or newer to compile due to language features not present in older compilers.
 >
 ><br>**Platform Dependencies**
 >
