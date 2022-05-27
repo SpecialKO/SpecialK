@@ -32,7 +32,10 @@
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
 
+#ifndef __cpp_lib_format
 #define __cpp_lib_format
+#endif
+
 #include <format>
 
 using            callback_set = std::multiset <class CCallbackBase*>;

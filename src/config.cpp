@@ -32,7 +32,10 @@
 #include <filesystem>
 #include <optional>
 
+#ifndef __cpp_lib_format
 #define __cpp_lib_format
+#endif
+
 #include <format>
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
@@ -892,25 +895,28 @@ SK_GetConfigPath (void)
 
 
 
-template <typename _Tp>
+template <class _Tp>
 _Tp*
 SK_CreateINIParameter ( const wchar_t *wszDescription,
                         iSK_INI       *pINIFile,
                         const wchar_t *wszSection,
                         const wchar_t *wszKey )
 {
+  using value_type =
+   _Tp::value_type;
+
   static_assert (std::is_polymorphic <_Tp> ());
 
   auto ret =
     dynamic_cast <_Tp *> (
-      g_ParameterFactory->create_parameter <_Tp>/*_Tp::value_type>*/ (
-        wszDescription )
+      g_ParameterFactory->create_parameter <value_type> (
+          wszDescription )
     );
 
   if (ret != nullptr)
       ret->register_to_ini (pINIFile, wszSection, wszKey);
 
-  return (_Tp *)ret;
+  return ret;
 };
 
 
