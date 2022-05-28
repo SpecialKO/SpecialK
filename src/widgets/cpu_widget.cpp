@@ -592,6 +592,9 @@ SK_WR0_Init (void)
                     InstructionSet::ExtFamily (), InstructionSet::ExtModel (),
                     InstructionSet::Stepping  () ),
                L"CPU Driver" );
+    SK_LOG0 ( (L" >> Combined Model: %02xh",
+                    InstructionSet::Model () | (InstructionSet::ExtModel () << 8) ),
+               L"CPU Driver" );
   }
 
   return
@@ -629,7 +632,8 @@ SK_CPU_GetIntelMicroarch (void)
     {
       case 0x06:
       {
-        switch (InstructionSet::ExtModel ())
+        switch ( ( InstructionSet::ExtModel () << 8) |
+                      InstructionSet::Model () )
         {
           case 0x0F: // Intel Core 2 (65nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
@@ -902,8 +906,6 @@ SK_CPU_GetIntelMicroarch (void)
       {
         case SK_CPU_IntelMicroarch::Silvermont:
         case SK_CPU_IntelMicroarch::Airmont:
-        case SK_CPU_IntelMicroarch::KabyLake:
-        case SK_CPU_IntelMicroarch::ApolloLake:
         case SK_CPU_IntelMicroarch::IceLake:
           cpu.coefficients.energy =
             1.0e-6 * static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
@@ -912,6 +914,19 @@ SK_CPU_GetIntelMicroarch (void)
         default:
           cpu.coefficients.energy =
             1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
+
+          // Handle unexpected CPU architectures by assuming they follow IceLake, etc. above...
+          if (isinf (cpu.coefficients.energy))
+          {
+            SK_LOG0 ( (
+              L" >> Unexpected Intel CPU Energy Coefficient, "
+                L"assuming arch. (%x) conforms to Ice Lake", cpu.intel_arch ),
+                                                           L"CPU Driver"
+            );
+
+            cpu.coefficients.energy =
+              1.0e-6 * static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
+          }
           break;
       }
 
