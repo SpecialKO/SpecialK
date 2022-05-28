@@ -1,7 +1,11 @@
-﻿22.5.27-NOCEGUI
+﻿22.5.28-NOCEGUI
+===============
+ + Made D3D12 Feature Level 12_2 optional depending on user's installed WDK version
+
+22.5.27-NOCEGUI
 ===============
  + Updated compiler requirements in README
- + Removed single-threaded limitations from Hatsune Miku DIVA Project Mega Mouthful+
+ + Removed single-threaded limitations from Hatsune Miku Project DIVA Mega Mouthful+
 
 22.5.15-NOCEGUI
 ===============

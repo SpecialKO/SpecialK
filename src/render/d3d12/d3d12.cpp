@@ -107,11 +107,14 @@ HookD3D12 (LPVOID user)
       SK_ComPtr <ID3D12Device> pDevice;
 
       if ( D3D12CreateDevice_Import != nullptr &&
+// Requires Windows SDK 22000
+#if defined (NTDDI_WIN10_CO) && (WDK_NTDDI_VERSION >= NTDDI_WIN10_CO)
           (SUCCEEDED (
              D3D12CreateDevice_Import (
                nullptr,     D3D_FEATURE_LEVEL_12_2,
                  __uuidof (ID3D12Device), (void **)&pDevice.p )
-           ) || 
+           ) ||
+#endif
            SUCCEEDED (
              D3D12CreateDevice_Import (
                nullptr,     D3D_FEATURE_LEVEL_12_1,
