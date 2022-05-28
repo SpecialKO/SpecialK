@@ -586,9 +586,11 @@ SK_WR0_Init (void)
     SK_LOG0 ( (L"Installed CPU: %hs",
                     InstructionSet::Brand  ().c_str () ),
                L"CPU Driver" );
-    SK_LOG0 ( (L" >> Family: %02xh, Model: %02xh, Stepping: %02xh",
-                    InstructionSet::Family   (), InstructionSet::Model (),
-                    InstructionSet::Stepping () ),
+    SK_LOG0 ( (L" >> Family: %02xh, Model: %02xh, Stepping: %02xh, "
+          L"Extended Family: %04xh, Extended Model: %02xh",
+                    InstructionSet::Family    (), InstructionSet::Model    (),
+                    InstructionSet::ExtFamily (), InstructionSet::ExtModel (),
+                    InstructionSet::Stepping  () ),
                L"CPU Driver" );
   }
 
@@ -900,6 +902,8 @@ SK_CPU_GetIntelMicroarch (void)
       {
         case SK_CPU_IntelMicroarch::Silvermont:
         case SK_CPU_IntelMicroarch::Airmont:
+        case SK_CPU_IntelMicroarch::KabyLake:
+        case SK_CPU_IntelMicroarch::ApolloLake:
         case SK_CPU_IntelMicroarch::IceLake:
           cpu.coefficients.energy =
             1.0e-6 * static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
