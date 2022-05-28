@@ -594,12 +594,14 @@ class InstructionSet
 public:
   // Accessors
   //
-  static std::string Vendor (void)          { return CPU_Rep->vendor_;        }
-  static std::string Brand  (void)          { return CPU_Rep->brand_;         }
+  static std::string Vendor (void)          { return CPU_Rep->vendor_;          }
+  static std::string Brand  (void)          { return CPU_Rep->brand_;           }
 
-  static int  Family        (void) noexcept { return CPU_Rep->family_;        }
-  static int  Model         (void) noexcept { return CPU_Rep->model_;         }
-  static int  Stepping      (void) noexcept { return CPU_Rep->stepping_;      }
+  static int  Family        (void) noexcept { return CPU_Rep->family_;          }
+  static int  ExtFamily     (void) noexcept { return CPU_Rep->extended_family_; }
+  static int  Model         (void) noexcept { return CPU_Rep->model_;           }
+  static int  ExtModel      (void) noexcept { return CPU_Rep->extended_model_;  }
+  static int  Stepping      (void) noexcept { return CPU_Rep->stepping_;        }
 
   static bool SSE3          (void)          { return CPU_Rep->f_1_ECX_  [ 0]; }
   static bool PCLMULQDQ     (void)          { return CPU_Rep->f_1_ECX_  [ 1]; }
@@ -681,9 +683,10 @@ private:
   public:
     InstructionSet_Internal (void) : nIds_     { 0     }, nExIds_   { 0     },
                                      vendor_   (       ), brand_    (       ),
-                                     family_   { 0     }, model_    { 0     },
-                                     stepping_ { 0     },
-                                     isIntel_  { false }, isAMD_    { false },
+                                     family_   { 0     }, isIntel_  { false },
+                            extended_family_   { 0     }, isAMD_    { false },
+                                     model_    { 0     }, stepping_ { 0     },
+                            extended_model_    { 0     },
                                      f_1_ECX_  { 0     }, f_1_EDX_  { 0     },
                                      f_7_EBX_  { 0     }, f_7_ECX_  { 0     },
                                      f_81_ECX_ { 0     }, f_81_EDX_ { 0     }
@@ -725,6 +728,9 @@ private:
         stepping_ =  data_ [1][0]       & 0xF;
         model_    = (data_ [1][0] >> 4) & 0xF;
         family_   = (data_ [1][0] >> 8) & 0xF;
+
+        extended_model_  = (data_ [1][0] >> 16) & 0x0F;
+        extended_family_ = (data_ [1][0] >> 20) & 0xFF;
 
         // Load Bitset with Flags for Function 0x00000001
         //
@@ -780,6 +786,8 @@ private:
                      unsigned int      family_;
                      unsigned int      model_;
                      unsigned int      stepping_;
+                     unsigned int      extended_model_;
+                     unsigned int      extended_family_;
                              bool      isIntel_;
                              bool      isAMD_;
                       std::bitset <32> f_1_ECX_;

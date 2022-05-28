@@ -627,7 +627,7 @@ SK_CPU_GetIntelMicroarch (void)
     {
       case 0x06:
       {
-        switch (InstructionSet::Model ())
+        switch (InstructionSet::ExtModel ())
         {
           case 0x0F: // Intel Core 2 (65nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::Core;
@@ -799,7 +799,6 @@ SK_CPU_GetIntelMicroarch (void)
             }
             break;
 
-          case 0x0E:
           case 0x7E: // Intel Core i5, i7 10xxxx (14nm)
             cpu.intel_arch = SK_CPU_IntelMicroarch::IceLake;
             for (auto& core : cpu.cores) {
