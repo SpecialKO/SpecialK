@@ -1669,8 +1669,15 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_IsInjected    () &&
        PathFileExistsW (SK_GetBlacklistFilename ());
 
-    if (SK_GetCurrentGameID () == SK_GAME_ID::EasyAntiCheat)
-      blacklist = true;
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::EasyAntiCheat:
+        blacklist = true;
+        break;
+
+      default:
+        break;
+    }
 
     if (! blacklist)
     {
@@ -2659,54 +2666,57 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //
         //  (nb: Must be implemented asynchronously)
         //
-        SK_RunOnce (SK_Window_RepositionIfNeeded ());
-        SK_RunOnce (game_window.active |= (SK_GetForegroundWindow () == game_window.hWnd));
+        SK_RunOnce (       SK_Window_RepositionIfNeeded () );
+        SK_RunOnce (
+          game_window.active |= (SK_GetForegroundWindow () == game_window.hWnd)
+        );
       }
 
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
       if (frames_drawn > 15)
       {
-#ifdef _WIN64
-        static bool bEldenRing =
-          (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
-
-        if (bEldenRing)
-          SK_RunOnce (SK_ER_InitPlugin ());
-#else
-        static bool bChronoCross =
-          (SK_GetCurrentGameID () == SK_GAME_ID::ChronoCross);
-
-        if (bChronoCross)
+        static const auto game_id =
+              SK_GetCurrentGameID ();
+        
+        switch (game_id)
         {
-          static auto base =
-            SK_Debug_GetImageBaseAddr ();
-
-          auto _ApplyPatch = [&]()->void
+#ifdef _WIN64
+          case SK_GAME_ID::EldenRing:
+            SK_RunOnce (SK_ER_InitPlugin ());
+            break;
+#else
+          case SK_GAME_ID::ChronoCross:
           {
-            if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
+            static auto base =
+              SK_Debug_GetImageBaseAddr ();
+
+            auto _ApplyPatch = [&]()->void
             {
-              SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
+              if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
+              {
+                SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
 
-              DWORD                                                           dwOldProt;
-              VirtualProtect (
-                      ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-              memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
-              VirtualProtect (
-                      ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
+                DWORD                                                           dwOldProt;
+                VirtualProtect (
+                        ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+                memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
+                VirtualProtect (
+                        ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
 
-              VirtualProtect (
-                      ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-              memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
-              VirtualProtect (
-                      ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
+                VirtualProtect (
+                        ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+                memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
+                VirtualProtect (
+                        ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
 
-              //83 46 14 02 to 83 46 14 01
-            }
-          };
+                //83 46 14 02 to 83 46 14 01
+              }
+            };
 
-          SK_RunOnce (_ApplyPatch ());
-        }
+            SK_RunOnce (_ApplyPatch ());
+          } break;
 #endif
+        }
       }
     } break;
   }

@@ -494,7 +494,7 @@ public:
 
     if (riid == IID_ID3D11Device)
     {
-      SK_LOG_FIRST_CALL
+      TraceAPI
 
       GetDevice ((ID3D11Device **)ppvObj);
       return S_OK;
@@ -708,7 +708,7 @@ public:
     _In_  UINT StartIndexLocation,
     _In_  INT  BaseVertexLocation ) override
   {
-    SK_LOG_FIRST_CALL
+    TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -730,7 +730,7 @@ public:
     _In_  UINT VertexCount,
     _In_  UINT StartVertexLocation ) override
   {
-    SK_LOG_FIRST_CALL
+    TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -848,7 +848,7 @@ public:
     _In_ INT  BaseVertexLocation,
     _In_ UINT StartInstanceLocation ) override
   {
-    SK_LOG_FIRST_CALL
+    TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -867,7 +867,7 @@ public:
     _In_ UINT StartVertexLocation,
     _In_ UINT StartInstanceLocation ) override
   {
-    SK_LOG_FIRST_CALL
+    TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -1136,8 +1136,6 @@ public:
   {
     TraceAPI
 
-    SK_LOG_FIRST_CALL
-
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawAuto_Impl    (pReal, TRUE, dev_ctx_handle_);
@@ -1151,8 +1149,6 @@ public:
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -1175,8 +1171,6 @@ public:
   {
     TraceAPI
 
-    SK_LOG_FIRST_CALL
-
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_DrawInstancedIndirect_Impl (pReal,
@@ -1196,8 +1190,6 @@ public:
     _In_ UINT ThreadGroupCountZ ) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -1219,8 +1211,6 @@ public:
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
@@ -1252,64 +1242,71 @@ public:
     TraceAPI
 
 #ifndef _M_AMD64
-    static auto game_id = SK_GetCurrentGameID ();
+    static const auto game_id =
+          SK_GetCurrentGameID ();
 
-    if (game_id == SK_GAME_ID::ChronoCross)
+    switch (game_id)
     {
-      extern float
-          __SK_CC_ResMultiplier;
-      if (__SK_CC_ResMultiplier)
+      case SK_GAME_ID::ChronoCross:
       {
-        if (NumViewports == 1)
+        extern float
+            __SK_CC_ResMultiplier;
+        if (__SK_CC_ResMultiplier)
         {
-          SK_ComPtr <ID3D11RenderTargetView> rtv;
-          OMGetRenderTargets            (1, &rtv, nullptr);
-
-          SK_ComPtr <ID3D11Texture2D> pTex;
-
-          if (rtv.p != nullptr)
+          if (NumViewports == 1)
           {
-            SK_ComPtr <ID3D11Resource> pRes;
-            rtv->GetResource         (&pRes.p);
+            SK_ComPtr <ID3D11RenderTargetView> rtv;
+            OMGetRenderTargets            (1, &rtv, nullptr);
 
-            if (pRes.p != nullptr)
-              pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
+            SK_ComPtr <ID3D11Texture2D> pTex;
 
-            if (pTex.p != nullptr)
+            if (rtv.p != nullptr)
             {
-              D3D11_VIEWPORT vp = *pViewports;
+              SK_ComPtr <ID3D11Resource> pRes;
+              rtv->GetResource         (&pRes.p);
 
-              D3D11_TEXTURE2D_DESC texDesc = { };
-              pTex->GetDesc      (&texDesc);
+              if (pRes.p != nullptr)
+                pRes->QueryInterface <ID3D11Texture2D> (&pTex.p);
 
-              if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
-                   texDesc.Height == 2048 * __SK_CC_ResMultiplier )
+              if (pTex.p != nullptr)
               {
-                static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
-                static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
+                D3D11_VIEWPORT vp = *pViewports;
 
-                float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
-                float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
+                D3D11_TEXTURE2D_DESC texDesc = { };
+                pTex->GetDesc      (&texDesc);
 
-                vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
-                vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
-                vp.Width    = __SK_CC_ResMultiplier * vp.Width;
-                vp.Height   = __SK_CC_ResMultiplier * vp.Height;
+                if ( texDesc.Width  == 4096 * __SK_CC_ResMultiplier &&
+                     texDesc.Height == 2048 * __SK_CC_ResMultiplier )
+                {
+                  static float NewWidth  = 4096.0f * __SK_CC_ResMultiplier;
+                  static float NewHeight = 2048.0f * __SK_CC_ResMultiplier;
 
-                vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
-                vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
+                  float left_ndc = 2.0f * ( vp.TopLeftX / 4096.0f) - 1.0f;
+                  float top_ndc  = 2.0f * ( vp.TopLeftY / 2048.0f) - 1.0f;
 
-                vp.Width    = std::min (vp.Width,    32767.0f);
-                vp.Height   = std::min (vp.Height,   32767.0f);
+                  vp.TopLeftX = (left_ndc * NewWidth  + NewWidth)  / 2.0f;
+                  vp.TopLeftY = (top_ndc  * NewHeight + NewHeight) / 2.0f;
+                  vp.Width    = __SK_CC_ResMultiplier * vp.Width;
+                  vp.Height   = __SK_CC_ResMultiplier * vp.Height;
 
-                pReal->RSSetViewports (1, &vp);
+                  vp.TopLeftX = std::min (vp.TopLeftX, 32767.0f);
+                  vp.TopLeftY = std::min (vp.TopLeftY, 32767.0f);
 
-                return;
+                  vp.Width    = std::min (vp.Width,    32767.0f);
+                  vp.Height   = std::min (vp.Height,   32767.0f);
+
+                  pReal->RSSetViewports (1, &vp);
+
+                  return;
+                }
               }
             }
           }
         }
-      }
+      } break;
+
+      default:
+        break;
     }
 #endif
 
@@ -1341,64 +1338,71 @@ public:
     TraceAPI
 
 #ifndef _M_AMD64
-    static auto game_id = SK_GetCurrentGameID ();
+    static const auto game_id =
+          SK_GetCurrentGameID ();
 
     D3D11_BOX newBox = { };
 
-    if (game_id == SK_GAME_ID::ChronoCross)
+    switch (game_id)
     {
-      extern float
-          __SK_CC_ResMultiplier;
-      if (__SK_CC_ResMultiplier > 1.0f)
+      case SK_GAME_ID::ChronoCross:
       {
-        SK_ComQIPtr <ID3D11Texture2D>
-          pSrcTex (pSrcResource),
-          pDstTex (pDstResource);
-
-        if ( pSrcTex.p != nullptr &&
-             pDstTex.p != nullptr )
+        extern float
+            __SK_CC_ResMultiplier;
+        if (__SK_CC_ResMultiplier > 1.0f)
         {
-          D3D11_TEXTURE2D_DESC srcDesc = { },
-                               dstDesc = { };
-          pSrcTex->GetDesc   (&srcDesc);
-          pDstTex->GetDesc   (&dstDesc);
+          SK_ComQIPtr <ID3D11Texture2D>
+            pSrcTex (pSrcResource),
+            pDstTex (pDstResource);
 
-          if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
-              dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
+          if ( pSrcTex.p != nullptr &&
+               pDstTex.p != nullptr )
           {
-            newBox = *pSrcBox;
+            D3D11_TEXTURE2D_DESC srcDesc = { },
+                                 dstDesc = { };
+            pSrcTex->GetDesc   (&srcDesc);
+            pDstTex->GetDesc   (&dstDesc);
 
-            static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
-            static float NewHeight = 1024 * __SK_CC_ResMultiplier;
+            if (srcDesc.Width == __SK_CC_ResMultiplier * 4096 && srcDesc.Height == __SK_CC_ResMultiplier * 2048 && pSrcBox != nullptr &&
+                dstDesc.Width == __SK_CC_ResMultiplier * 4096 && dstDesc.Height == __SK_CC_ResMultiplier * 2048)
+            {
+              newBox = *pSrcBox;
 
-            float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
-            float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
-            float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
-            float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
+              static float NewWidth  = 2048 * __SK_CC_ResMultiplier;
+              static float NewHeight = 1024 * __SK_CC_ResMultiplier;
 
-            newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
-            newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
-            newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
-            newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
+              float left_ndc   = 2.0f * ( static_cast <float> (std::clamp (newBox.left,   0U, 4096U)) / 4096.0f ) - 1.0f;
+              float top_ndc    = 2.0f * ( static_cast <float> (std::clamp (newBox.top,    0U, 2048U)) / 2048.0f ) - 1.0f;
+              float right_ndc  = 2.0f * ( static_cast <float> (std::clamp (newBox.right,  0U, 4096U)) / 4096.0f ) - 1.0f;
+              float bottom_ndc = 2.0f * ( static_cast <float> (std::clamp (newBox.bottom, 0U, 2048U)) / 2048.0f ) - 1.0f;
 
-            DstX *= static_cast <UINT> (__SK_CC_ResMultiplier);
-            DstY *= static_cast <UINT> (__SK_CC_ResMultiplier);
+              newBox.left   = static_cast <UINT> (std::max (0.0f, (left_ndc   * NewWidth  + NewWidth)  ));
+              newBox.top    = static_cast <UINT> (std::max (0.0f, (top_ndc    * NewHeight + NewHeight) ));
+              newBox.right  = static_cast <UINT> (std::max (0.0f, (right_ndc  * NewWidth  + NewWidth)  ));
+              newBox.bottom = static_cast <UINT> (std::max (0.0f, (bottom_ndc * NewHeight + NewHeight) ));
 
-            pSrcBox = &newBox;
-          }
+              DstX *= static_cast <UINT> (__SK_CC_ResMultiplier);
+              DstY *= static_cast <UINT> (__SK_CC_ResMultiplier);
 
-          else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
-                                           pSrcBox->bottom > srcDesc.Height ))
-          {
-            SK_LOGi0 ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
-                         srcDesc.Width, srcDesc.Height,
-                           pSrcBox->left,  pSrcBox->top,
-                           pSrcBox->right, pSrcBox->bottom );
+              pSrcBox = &newBox;
+            }
 
-            return;
+            else if (pSrcBox != nullptr && ( pSrcBox->right  > srcDesc.Width ||
+                                             pSrcBox->bottom > srcDesc.Height ))
+            {
+              SK_LOGi0 ( L"xxxDesc={%dx%d}, Box={%d/%d::%d,%d}",
+                           srcDesc.Width, srcDesc.Height,
+                             pSrcBox->left,  pSrcBox->top,
+                             pSrcBox->right, pSrcBox->bottom );
+
+              return;
+            }
           }
         }
-      }
+      } break;
+
+      default:
+        break;
     }
 #endif
 
@@ -1592,7 +1596,6 @@ public:
     _In_ DXGI_FORMAT     Format ) override
   {
     TraceAPI
-    SK_LOG_FIRST_CALL
 
     extern bool
         __SK_HDR_16BitSwap;
@@ -1654,8 +1657,6 @@ public:
           BOOL               RestoreContextState ) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
     SK_ComPtr <ID3D11DeviceContext>
          pBuildContext (nullptr);
@@ -2466,8 +2467,6 @@ public:
   {
     TraceAPI
 
-    SK_LOG_FIRST_CALL
-
     SK_D3D11_QueueContextReset  (pReal, dev_ctx_handle_);
     pReal->ClearState           (                      );
     SK_D3D11_DispatchContextResetQueue (dev_ctx_handle_);
@@ -2476,8 +2475,6 @@ public:
   void STDMETHODCALLTYPE Flush (void) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
     return
       pReal->Flush ();
@@ -2504,8 +2501,6 @@ public:
     _Out_opt_ ID3D11CommandList **ppCommandList ) override
   {
     TraceAPI
-
-    SK_LOG_FIRST_CALL
 
     HRESULT hr =
       pReal->FinishCommandList (RestoreDeferredContextState, ppCommandList);

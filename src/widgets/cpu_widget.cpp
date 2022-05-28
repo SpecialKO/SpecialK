@@ -593,7 +593,7 @@ SK_WR0_Init (void)
                     InstructionSet::Stepping  () ),
                L"CPU Driver" );
     SK_LOG0 ( (L" >> Combined Model: %02xh",
-                    InstructionSet::Model () | (InstructionSet::ExtModel () << 8) ),
+                    InstructionSet::Model () | (InstructionSet::ExtModel () << 4) ),
                L"CPU Driver" );
   }
 
@@ -632,7 +632,7 @@ SK_CPU_GetIntelMicroarch (void)
     {
       case 0x06:
       {
-        switch ( ( InstructionSet::ExtModel () << 8) |
+        switch ( ( InstructionSet::ExtModel () << 4) |
                       InstructionSet::Model () )
         {
           case 0x0F: // Intel Core 2 (65nm)

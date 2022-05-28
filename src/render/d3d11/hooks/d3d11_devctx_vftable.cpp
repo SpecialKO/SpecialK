@@ -759,11 +759,13 @@ D3D11_RSSetScissorRects_Override (
   if (pRects == nullptr)
     return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
 
-  static auto game_id =
-    SK_GetCurrentGameID ();
+  static const auto game_id =
+        SK_GetCurrentGameID ();
 
 #ifdef _M_AMD64
-    if (game_id == SK_GAME_ID::GalGunReturns)
+  switch (game_id)
+  {
+    case SK_GAME_ID::GalGunReturns:
     {
       if (! config.window.res.override.isZero ())
       {
@@ -796,7 +798,69 @@ D3D11_RSSetScissorRects_Override (
             );
         }
       }
-    }
+    } break;
+
+    case SK_GAME_ID::ShinMegamiTensei3:
+    {
+      if (NumRects == 1)
+      {
+      //SK_LOGi0 ( L"Scissor Left: %d, Right: %d - Top: %d, Bottom: %d",
+      //               pRects->left, pRects->right, pRects->top, pRects->bottom );
+
+        if (pRects->right == 1280)
+        {
+          static auto& rb =
+            SK_GetCurrentRenderBackend ();
+        
+          SK_ComQIPtr <IDXGISwapChain>
+                   pSwapChain (
+                 rb.swapchain );
+          DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+        
+          if (pSwapChain != nullptr)
+          {   pSwapChain->GetDesc (&swapDesc);
+        
+            D3D11_RECT rectNew = *pRects;
+        
+            rectNew.right  = swapDesc.BufferDesc.Width;
+            rectNew.bottom = swapDesc.BufferDesc.Height;
+        
+            return
+              D3D11_RSSetScissorRects_Original (
+                This, NumRects, &rectNew
+              );
+          }
+        }
+
+        else
+        if (pRects->right == 1080 && pRects->bottom == 720)
+        {
+          D3D11_RECT rectNew = *pRects;
+
+            rectNew.right  *= 2;
+            rectNew.bottom *= 2;
+
+            return
+              D3D11_RSSetScissorRects_Original (
+                This, NumRects, &rectNew
+              );
+        }
+
+      //if (pRects->right == 512 && pRects->bottom == 512)
+      //{
+      //  D3D11_RECT rectNew = *pRects;
+      //
+      //    rectNew.right  = 8192;
+      //    rectNew.bottom = 8192;
+      //
+      //    return
+      //      D3D11_RSSetScissorRects_Original (
+      //        This, NumRects, &rectNew
+      //      );
+      //}
+      }
+    } break;
+  }
 #endif
 
   return
@@ -2055,11 +2119,13 @@ D3D11_RSSetViewports_Override (
     return D3D11_RSSetViewports_Original (
              This, NumViewports, pViewports );
 
-  static auto game_id =
-    SK_GetCurrentGameID ();
-
 #ifdef _M_AMD64
-    if (game_id == SK_GAME_ID::GalGunReturns)
+  static const auto game_id =
+        SK_GetCurrentGameID ();
+
+  switch (game_id)
+  {
+    case SK_GAME_ID::GalGunReturns:
     {
       if (! config.window.res.override.isZero ())
       {
@@ -2092,7 +2158,115 @@ D3D11_RSSetViewports_Override (
             );
         }
       }
+    } break;
+
+    case SK_GAME_ID::ShinMegamiTensei3:
+    {
+      if (NumViewports > 1)
+      {
+        SK_LOGi0 ( L"VP Width: %4.1f, Height: %4.1f - [%4.1f, %4.1f]",
+                       pViewports->Width,    pViewports->Height,
+                       pViewports->TopLeftX, pViewports->TopLeftY );
+      }
+
+    if (NumViewports        == 1 &&
+          pViewports->Width == 1280)
+    {
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+    
+      SK_ComQIPtr <IDXGISwapChain>
+               pSwapChain (
+             rb.swapchain );
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    
+      if (pSwapChain != nullptr)
+      {   pSwapChain->GetDesc (&swapDesc);
+    
+        D3D11_VIEWPORT vpNew = *pViewports;
+    
+        vpNew.Width  = static_cast <FLOAT> (swapDesc.BufferDesc.Width);
+        vpNew.Height = static_cast <FLOAT> (swapDesc.BufferDesc.Height);
+    
+        return
+          D3D11_RSSetViewports_Original (
+            This, NumViewports, &vpNew
+          );
+      }
     }
+    //
+    //else
+    //if (NumViewports        == 1 &&
+    //      pViewports->Width == 1920)
+    //{
+    //  static auto& rb =
+    //    SK_GetCurrentRenderBackend ();
+    //
+    //  SK_ComQIPtr <IDXGISwapChain>
+    //           pSwapChain (
+    //         rb.swapchain );
+    //  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    //
+    //  if (pSwapChain != nullptr)
+    //  {   pSwapChain->GetDesc (&swapDesc);
+    //
+    //    D3D11_VIEWPORT vpNew = *pViewports;
+    //
+    //    vpNew.Width  = static_cast <FLOAT> (swapDesc.BufferDesc.Width);
+    //    vpNew.Height = static_cast <FLOAT> (swapDesc.BufferDesc.Height);
+    //
+    //    return
+    //      D3D11_RSSetViewports_Original (
+    //        This, NumViewports, &vpNew
+    //      );
+    //  }
+    //}
+
+      else
+      if (NumViewports         ==   1  &&
+            pViewports->Width  == 1080 &&
+            pViewports->Height ==  720)
+      {
+        D3D11_VIEWPORT vpNew = *pViewports;
+      
+        vpNew.Width  *= 2;
+        vpNew.Height *= 2;
+      
+        return
+          D3D11_RSSetViewports_Original (
+            This, NumViewports, &vpNew
+          );
+      }
+
+      else
+      if (NumViewports == 1 && pViewports->Width == 512.0f)
+      {
+      //  D3D11_VIEWPORT vpNew = *pViewports;
+      //
+      //  vpNew.Width  = 8192.0f;
+      //  vpNew.Height = 8192.0f;
+      //
+      //  return
+      //    D3D11_RSSetViewports_Original (
+      //      This, NumViewports, &vpNew
+      //    );
+      }
+
+//      else
+//      if (NumViewports == 1 && pViewports->Width <= 640.0f)
+//      {
+//        D3D11_VIEWPORT vpNew = *pViewports;
+//
+//        vpNew.Width  *= 3.0f;
+//        vpNew.Height *= 3.0f;
+//
+//        return
+//          D3D11_RSSetViewports_Original (
+//            This, NumViewports, &vpNew
+//          );
+//      }
+    } break;
+  }
 #endif
 
   ///if (NumViewports == 0 && pViewports != nullptr)

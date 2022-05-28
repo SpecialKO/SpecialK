@@ -1183,6 +1183,7 @@ enum class SK_GAME_ID
   Elex2,                        // ELEX2.exe
   ChronoCross,                  // CHRONOCROSS.exe
   HatsuneMikuDIVAMegaMix,       // DivaMegaMix.exe
+  ShinMegamiTensei3,            // smt3hd.exe
   Launcher,                     // A generic launcher...
   UNKNOWN_GAME               = 0xffff
 };

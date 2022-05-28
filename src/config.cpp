@@ -176,7 +176,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        },
       { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  },
       { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     },
-      { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       }
+      { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
+      { hash_lower (L"smt3hd.exe"),                             SK_GAME_ID::ShinMegamiTensei3            }
     };
 
     first_check = false;

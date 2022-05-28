@@ -1,6 +1,6 @@
 ﻿22.5.28-NOCEGUI
 ===============
- + Made D3D12 Feature Level 12_2 optional depending on user's installed WDK version
+ + Made D3D12 Feature Level 12_2 optional depending on build environment's WDK version
 
 22.5.27-NOCEGUI
 ===============

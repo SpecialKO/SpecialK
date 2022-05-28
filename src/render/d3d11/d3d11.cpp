@@ -3512,54 +3512,57 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     ////}
 
 #ifdef _M_AMD64
-    static bool bVesperia =
-      SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia;
+    static const auto game_id =
+      SK_GetCurrentGameID ();
 
-    if (bVesperia)
+    switch (game_id)
     {
-      extern bool SK_TVFix_SharpenShadows (void);
-
-      if (    SK_TVFix_SharpenShadows   (       ) &&
-           (! SK_D3D11_IsDevCtxDeferred (pDevCtx)    )
-         )
+      case SK_GAME_ID::Tales_of_Vesperia:
       {
-        if (dev_idx == UINT_MAX)
+        extern bool SK_TVFix_SharpenShadows (void);
+
+        if (    SK_TVFix_SharpenShadows   (       ) &&
+             (! SK_D3D11_IsDevCtxDeferred (pDevCtx)    )
+           )
         {
-          dev_idx =
-            SK_D3D11_GetDeviceContextHandle (pDevCtx);
-        }
-
-        uint32_t ps_crc32 =
-          SK_D3D11_Shaders->pixel.current.shader [dev_idx];
-
-        if (ps_crc32 == 0x84da24a5)
-        {
-          SK_ComPtr <ID3D11ShaderResourceView>  pSRV = nullptr;
-          pDevCtx->PSGetShaderResources (0, 1, &pSRV.p);
-
-          if (pSRV != nullptr)
+          if (dev_idx == UINT_MAX)
           {
-            SK_ComPtr <ID3D11Resource> pRes;
-                   pSRV->GetResource (&pRes.p);
+            dev_idx =
+              SK_D3D11_GetDeviceContextHandle (pDevCtx);
+          }
 
-            SK_ComQIPtr <ID3D11Texture2D> pTex (pRes);
+          uint32_t ps_crc32 =
+            SK_D3D11_Shaders->pixel.current.shader [dev_idx];
 
-            if (pTex != nullptr)
+          if (ps_crc32 == 0x84da24a5)
+          {
+            SK_ComPtr <ID3D11ShaderResourceView>  pSRV = nullptr;
+            pDevCtx->PSGetShaderResources (0, 1, &pSRV.p);
+
+            if (pSRV != nullptr)
             {
-              D3D11_TEXTURE2D_DESC texDesc = { };
-              pTex->GetDesc      (&texDesc);
+              SK_ComPtr <ID3D11Resource> pRes;
+                     pSRV->GetResource (&pRes.p);
 
-              if (  texDesc.Width == texDesc.Height &&
-                  ( texDesc.Width == 64  ||
-                    texDesc.Width == 128 ||
-                    texDesc.Width == 256 ) )
+              SK_ComQIPtr <ID3D11Texture2D> pTex (pRes);
+
+              if (pTex != nullptr)
               {
-                return;
+                D3D11_TEXTURE2D_DESC texDesc = { };
+                pTex->GetDesc      (&texDesc);
+
+                if (  texDesc.Width == texDesc.Height &&
+                    ( texDesc.Width == 64  ||
+                      texDesc.Width == 128 ||
+                      texDesc.Width == 256 ) )
+                {
+                  return;
+                }
               }
             }
           }
         }
-      }
+      } break;
     }
 #endif
     // -------------------------------------------------------
@@ -4450,62 +4453,145 @@ D3D11Dev_CreateTexture2D_Impl (
         pDesc->CPUAccessFlags |= ( D3D11_CPU_ACCESS_WRITE |
                                    D3D11_CPU_ACCESS_READ );
 
-    static auto game_id =
+    static const auto game_id =
       SK_GetCurrentGameID ();
 
+    switch (game_id)
+    {
 #ifdef _M_AMD64
-    if (game_id == SK_GAME_ID::Tales_of_Vesperia)
-    {
-      extern void SK_TVFix_CreateTexture2D (
-        D3D11_TEXTURE2D_DESC    *pDesc
-      );
-
-      if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
-          SK_TVFix_CreateTexture2D (pDesc);
-    }
-
-    else if (game_id == SK_GAME_ID::GalGunReturns)
-    {
-      if (! config.window.res.override.isZero ())
+      case SK_GAME_ID::Tales_of_Vesperia:
       {
-        if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET ||
-            (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
-        {
-          if (pDesc->Width == 480  && pDesc->Height == 270)
-          {
-            pDesc->Width  = config.window.res.override.x / 4;
-            pDesc->Height = config.window.res.override.y / 4;
-          }
+        extern void SK_TVFix_CreateTexture2D (
+          D3D11_TEXTURE2D_DESC    *pDesc
+        );
 
-          if (pDesc->Width == 1920 && pDesc->Height == 1080)
+        if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
+            SK_TVFix_CreateTexture2D (pDesc);
+      } break;
+
+      case SK_GAME_ID::GalGunReturns:
+      {
+        if (! config.window.res.override.isZero ())
+        {
+          if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) == D3D11_BIND_RENDER_TARGET ||
+              (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) == D3D11_BIND_DEPTH_STENCIL)
           {
-            pDesc->Width  = config.window.res.override.x;
-            pDesc->Height = config.window.res.override.y;
+            if (pDesc->Width == 480  && pDesc->Height == 270)
+            {
+              pDesc->Width  = config.window.res.override.x / 4;
+              pDesc->Height = config.window.res.override.y / 4;
+            }
+
+            if (pDesc->Width == 1920 && pDesc->Height == 1080)
+            {
+              pDesc->Width  = config.window.res.override.x;
+              pDesc->Height = config.window.res.override.y;
+            }
           }
         }
-      }
-    }
+      } break;
+
+      case SK_GAME_ID::ShinMegamiTensei3:
+      {
+        //if (! DirectX::IsCompressed (pDesc->Format) )
+        if ( ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
+               (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) || 
+               (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) ) )
+        {
+          if ( pDesc->Width  == 1280 &&
+               pDesc->Height == 720 )
+          {
+            SK_ComQIPtr <IDXGISwapChain>
+                     pSwapChain (
+                   rb.swapchain );
+            DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+          
+            if (pSwapChain != nullptr)
+            {   pSwapChain->GetDesc (&swapDesc);
+          
+              pDesc->Width  = swapDesc.BufferDesc.Width;
+              pDesc->Height = swapDesc.BufferDesc.Height;
+            }
+          }
+          ////
+          ////else
+          ////if ( pDesc->Width  == 1920 &&
+          ////     pDesc->Height == 1080 )
+          ////{
+          ////  SK_ComQIPtr <IDXGISwapChain>
+          ////           pSwapChain (
+          ////         rb.swapchain );
+          ////  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+          ////
+          ////  if (pSwapChain != nullptr)
+          ////  {   pSwapChain->GetDesc (&swapDesc);
+          ////
+          ////    pDesc->Width  = swapDesc.BufferDesc.Width;
+          ////    pDesc->Height = swapDesc.BufferDesc.Height;
+          ////  }
+          ////}
+          ////
+          ////else
+          if ( pDesc->Width  == 1080 &&
+               pDesc->Height == 720 )
+          {
+            SK_ComQIPtr <IDXGISwapChain>
+                     pSwapChain (
+                   rb.swapchain );
+            DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+          
+            if (pSwapChain != nullptr)
+            {   pSwapChain->GetDesc (&swapDesc);
+          
+              pDesc->Width  *= 2;
+              pDesc->Height *= 2;
+            }
+          }
+
+          else
+          if ( pDesc->Width  == 512 &&
+               pDesc->Height == 512 )
+          {
+          //pDesc->Width  = 8192;
+          //pDesc->Height = 8192;
+          }
+
+          else if (pDesc->Width <= 640)
+          {
+            //pDesc->Width  *= 3;
+            //pDesc->Height *= 3;
+          }
+          
+          // 8x MSAA baby !!
+          if (pDesc->SampleDesc.Count == 2)
+          {   pDesc->SampleDesc.Count = 8;
+          }
+        }
+      } break;
 #else
-    if (game_id == SK_GAME_ID::ChronoCross)
-    {
-      extern float
-          __SK_CC_ResMultiplier;
-      if (__SK_CC_ResMultiplier)
+      case SK_GAME_ID::ChronoCross:
       {
-        if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
-            pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-                                                              (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
-                                                              (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
+        extern float
+            __SK_CC_ResMultiplier;
+        if (__SK_CC_ResMultiplier)
         {
-          pDesc->Width  = 4096 * static_cast <UINT> (__SK_CC_ResMultiplier);
-          pDesc->Height = 2048 * static_cast <UINT> (__SK_CC_ResMultiplier);
+          if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
+              pDesc->Width == 4096 && pDesc->Height == 2048 && ((pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
+                                                                (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) ||
+                                                                (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)))
+          {
+            pDesc->Width  = 4096 * static_cast <UINT> (__SK_CC_ResMultiplier);
+            pDesc->Height = 2048 * static_cast <UINT> (__SK_CC_ResMultiplier);
+          }
         }
-      }
-    }
+      } break;
 #endif
+      default:
+        break;
+    }
   }
 
-    SK_ComQIPtr <IDXGISwapChain>
+  SK_ComQIPtr <IDXGISwapChain>
                    pSwapChain (
                      rb.swapchain );
   DXGI_SWAP_CHAIN_DESC  swapDesc = { };
