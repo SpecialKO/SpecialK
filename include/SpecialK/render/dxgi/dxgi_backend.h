@@ -305,9 +305,9 @@ struct mem_info_t {
   int                          nodes                    = 0;//MAX_GPU_NODES;
 } extern dxgi_mem_info [NumBuffers];
 
-// Increased to 64 for Crysis... they're really going out of their way to make
-// sure stuff _can't_ run Crysis.
-static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 128;
+// Increased to 192 for Disgaea 5 (WTF?!)
+static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 192;
+extern           int SK_D3D11_AllocatedDevContexts;
 
 LONG
 SK_D3D11_GetDeviceContextHandle (ID3D11DeviceContext *pDevCtx);
@@ -340,7 +340,7 @@ namespace SK
 
     //extern HMODULE hModD3D10;
     static HMODULE hModD3D12 = nullptr;
-    static HMODULE hModD3D11 = nullptr;
+    extern HMODULE hModD3D11;
 
     HRESULT StartBudgetThread           (IDXGIAdapter** ppAdapter);
     HRESULT StartBudgetThread_NoAdapter (void);

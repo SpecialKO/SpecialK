@@ -1,4 +1,11 @@
-﻿22.5.28-NOCEGUI
+﻿22.5.29-NOCEGUI
+===============
+ + Improved compatibility with Disgaea 5 (uses more than 128 D3D11 device contexts)
+ + Fixed incorrect D3D11 Shader State Tracking introduced after 21.07.23
+ + Set D3D11 "Low Spec Mode" by default (new config files only) to minimize
+     state tracking performance overhead in high drawcall games
+
+22.5.28-NOCEGUI
 ===============
  + Made D3D12 Feature Level 12_2 optional depending on build environment's WDK version
 

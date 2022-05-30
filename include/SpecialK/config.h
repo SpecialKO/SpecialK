@@ -523,7 +523,7 @@ struct sk_config_t
       bool    test_present         = false;
       bool    full_state_cache     = false;
       bool    debug_layer          = false;
-      bool    low_spec_mode        = false; // Disable D3D11 Render Mods
+      bool    low_spec_mode        =  true; // Disable D3D11 Render Mods
       bool    allow_tearing        =  true;
       bool    safe_fullscreen      = false;
       bool    enhanced_depth       = false;
