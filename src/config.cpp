@@ -2244,8 +2244,20 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
       {
-        config.render.dxgi.ignore_thread_flags = true;
+        config.render.dxgi.ignore_thread_flags   =  true;
+        config.threads.enable_dynamic_spinlocks  =  true;
 
+        // Defaults for latency an framepacing; important
+        config.render.framerate.sleepless_render =  true;
+        config.render.framerate.sleepless_window =  true;
+        config.window.background_render          =  true;
+        config.window.borderless                 =  true;
+        config.window.fullscreen                 =  true;
+        config.render.framerate.target_fps       = 60.0f;
+        config.display.force_windowed            =  true;
+
+        // Now we patch the damn broken Windows 10 Version Check
+        //
         auto win_ver_check_addr =
           ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2c3201); // File Location: 0x2c2801
         auto win_ver_check_pattern = "\x48\x8B\xCF";
@@ -2253,7 +2265,7 @@ auto DeclKeybind =
         DWORD dwOrigProt =                                     PAGE_EXECUTE_READ;
         if (VirtualProtect ((LPVOID)(win_ver_check_addr-3), 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
         {
-          if ( 0 == 
+          if ( 0 ==
                  std::memcmp ( (LPCVOID)(win_ver_check_addr -  3),
                                (LPCVOID) win_ver_check_pattern, 3 ) )
           {

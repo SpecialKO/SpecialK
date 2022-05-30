@@ -1,4 +1,20 @@
-﻿22.5.30-NOCEGUI
+﻿22.5.31-NOCEGUI
+===============
+ + Enabled SK's dynamic spinlock feature in Hatsune Miku to minimize audio/render desync 
+ + Configured default settings for Hatsune Miku to minimize latency at 60 FPS w/o Latent Sync
+
+     * If you did not read the original thread for this game, reset your config
+
+    -- Thread explaining ideal configuration was deleted when Valve banned me.
+
+      Summary of information lost thanks to Valve:
+
+        > Setup 16-bit / 44.1 or 48 kHz Sample Rate in Windows
+        > Setup a 60 FPS limit (game's averages 60.5 - 64)
+        > Consider Latent Sync if your display is 60 Hz
+        > Mod for >60 FPS: https://sk-data.special-k.info/misc/DivaModLoader_HighRefresh.zip
+
+22.5.30-NOCEGUI
 ===============
  + Patched failure prone Windows (10+) version check code out of Hatsune Miku Project DIVA
    >> Game has been tested and works on Windows 8... might even work in 7 (SK will not! :P)
