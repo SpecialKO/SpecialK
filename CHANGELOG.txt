@@ -1,4 +1,9 @@
-﻿22.5.29-NOCEGUI
+﻿22.5.30-NOCEGUI
+===============
+ + Patched failure prone Windows (10+) version check code out of Hatsune Miku Project DIVA
+   >> Game has been tested and works on Windows 8... might even work in 7 (SK will not! :P)
+
+22.5.29-NOCEGUI
 ===============
  + Improved compatibility with Disgaea 5 (uses more than 128 D3D11 device contexts)
  + Fixed incorrect D3D11 Shader State Tracking introduced after 21.07.23
@@ -7,6 +12,7 @@
 
 22.5.28-NOCEGUI
 ===============
+ + Added Extended Model/Family to CPUID for Intel CPUs
  + Made D3D12 Feature Level 12_2 optional depending on build environment's WDK version
 
 22.5.27-NOCEGUI
@@ -171,7 +177,7 @@
 22.4.7-NOCEGUI
 ==============
  *** Portable Global Injection ***
-  
+
    Global Injection supports installing to arbitrary paths now, profiles and all
      supporting assets will be loaded relative to the directory that SpecialK32.dll
        and SpecialK64.dll are in.
@@ -276,7 +282,7 @@
  + Fixed HDR-related crash in Ghostwire: Tokyo (D3D12) from SwapChain readback
 
   >> This game has non-defeatable HDR settings, you can bypass the game's HDR:
-      
+
       [Render.DXGI]
       HideHDRSupport=true
 
@@ -371,7 +377,7 @@
 
     >> Set [SpecialK.System] GameOutput=false to opt-in
 
-       * Consult the Thread Widget to confirm 'Ez...' threads are being 
+       * Consult the Thread Widget to confirm 'Ez...' threads are being
            distributed to different CPU cores.
 
 22.3.4.3-NOCEGUI

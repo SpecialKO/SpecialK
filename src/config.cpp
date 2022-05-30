@@ -2245,6 +2245,23 @@ auto DeclKeybind =
       case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
       {
         config.render.dxgi.ignore_thread_flags = true;
+
+        auto win_ver_check_addr =
+          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2c3201); // File Location: 0x2c2801
+        auto win_ver_check_pattern = "\x48\x8B\xCF";
+
+        DWORD dwOrigProt =                                     PAGE_EXECUTE_READ;
+        if (VirtualProtect ((LPVOID)(win_ver_check_addr-3), 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          if ( 0 == 
+                 std::memcmp ( (LPCVOID)(win_ver_check_addr -  3),
+                               (LPCVOID) win_ver_check_pattern, 3 ) )
+          {
+            memcpy        (    (LPVOID) win_ver_check_addr,    "\x90\x90\x90\x90\x90", 5);
+            VirtualProtect(    (LPVOID)(win_ver_check_addr-3),                         8, dwOrigProt,
+                                                                                         &dwOrigProt);
+          }
+        }
       } break;
 
       case SK_GAME_ID::Launcher:
@@ -3976,11 +3993,13 @@ auto DeclKeybind =
     // Config opted-in to debugger wait
     if (config.system.wait_for_debugger)
     {
-      if (     ! SK_IsDebuggerPresent ())
-      { while (! SK_IsDebuggerPresent ())
+      static volatile bool                       bManualDebug = false;
+      if (      ! SK_IsDebuggerPresent ())
+      { while ((! SK_IsDebuggerPresent ()) && (! bManualDebug))
                  SK_SleepEx (50, TRUE);
 
-        __debugbreak ();
+        if (! bManualDebug)
+          __debugbreak ();
       }
     }
   }
