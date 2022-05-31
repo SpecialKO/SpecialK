@@ -150,6 +150,9 @@ void SK_YS8_InitPlugin     (void);
 void SK_ER_InitPlugin      (void);
 void SK_ELEX2_InitPlugin   (void);
 
+void __stdcall
+     SK_HatsuneMiku_BeginFrame (void);
+
 #else
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);

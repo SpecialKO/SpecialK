@@ -752,6 +752,18 @@ SK_Sekiro_PlugInCfg (void)
 }
 
 
+void SK_WinSock_GoOffline (void)
+{
+  SK_CreateDLLHook2 (L"Ws2_32.dll", "getnameinfo",
+                                     getnameinfo_Detour,              (void **)&getnameinfo_Original);
+  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSAWaitForMultipleEvents",
+                                     WSAWaitForMultipleEvents_Detour, (void **)&WSAWaitForMultipleEvents_Original);
+  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSASocketW",
+                                     WSASocketW_Detour,               (void **)&WSASocketW_Original);
+  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSAStartup",
+                                     WSAStartup_Detour,               (void **)&WSAStartup_Original);
+}
+
 void
 SK_Sekiro_InitPlugin (void)
 {
@@ -775,14 +787,6 @@ SK_Sekiro_InitPlugin (void)
         disable_netcode->store (true);
   }
 
-  SK_CreateDLLHook2 (L"Ws2_32.dll", "getnameinfo",
-                                     getnameinfo_Detour,              (void **)&getnameinfo_Original);
-  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSAWaitForMultipleEvents",
-                                     WSAWaitForMultipleEvents_Detour, (void **)&WSAWaitForMultipleEvents_Original);
-  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSASocketW",
-                                     WSASocketW_Detour,               (void **)&WSASocketW_Original);
-  SK_CreateDLLHook2 (L"Ws2_32.dll", "WSAStartup",
-                                     WSAStartup_Detour,               (void **)&WSAStartup_Original);
-
-  SK_ApplyQueuedHooks ();
+  SK_WinSock_GoOffline ();
+  SK_ApplyQueuedHooks  ();
 }

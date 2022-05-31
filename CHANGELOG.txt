@@ -1,4 +1,11 @@
-﻿22.5.31-NOCEGUI
+﻿22.6.1-NOCEGUI
+==============
+ + Separate High FPS mod for Hatsune Miku no longer required, just set SK's framerate limit
+     * Menus will be locked to 60 FPS or your limit (whichever is lowest) for proper gameplay
+ + Installing Special K locally for Hatsune Miku disables its stutter inducing network code
+     * This code is unrelated to leaderboards.
+
+22.5.31-NOCEGUI
 ===============
  + Enabled SK's dynamic spinlock feature in Hatsune Miku to minimize audio/render desync 
  + Configured default settings for Hatsune Miku to minimize latency at 60 FPS w/o Latent Sync

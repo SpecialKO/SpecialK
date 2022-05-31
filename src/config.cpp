@@ -71,6 +71,26 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
+
+using InternetFreeProxyInfoList_pfn = void (WINAPI *)(void *);
+      InternetFreeProxyInfoList_pfn
+      InternetFreeProxyInfoList_Original = nullptr;
+
+void
+WINAPI
+InternetFreeProxyInfoList_Detour (void* pDontCare)
+{
+  if (SK_GetCurrentGameID () != SK_GAME_ID::HatsuneMikuDIVAMegaMix)
+    InternetFreeProxyInfoList_Original (pDontCare);
+
+  else
+  {
+    MessageBox (NULL, L"Bye Bye", L"Heh", MB_OK);
+
+    TerminateThread (GetCurrentThread (), 0x0);
+  }
+}
+
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
@@ -2242,6 +2262,7 @@ auto DeclKeybind =
         config.threads.enable_dynamic_spinlocks = true;
       } break;
 
+#ifdef _M_AMD64
       case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
       {
         config.render.dxgi.ignore_thread_flags   =  true;
@@ -2272,9 +2293,20 @@ auto DeclKeybind =
             memcpy        (    (LPVOID) win_ver_check_addr,    "\x90\x90\x90\x90\x90", 5);
             VirtualProtect(    (LPVOID)(win_ver_check_addr-3),                         8, dwOrigProt,
                                                                                          &dwOrigProt);
+
+            plugin_mgr->begin_frame_fns.emplace (
+              SK_HatsuneMiku_BeginFrame
+            );
           }
         }
+
+        extern void SK_WinSock_GoOffline (void);
+
+        SK_MinHook_Init      ();
+        SK_WinSock_GoOffline ();
+        SK_ApplyQueuedHooks  ();
       } break;
+#endif
 
       case SK_GAME_ID::Launcher:
       {
