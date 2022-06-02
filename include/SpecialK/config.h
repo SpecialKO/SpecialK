@@ -910,6 +910,11 @@ struct sk_config_t
   struct skif_s {
     int     auto_stop_behavior  = 1; // 0=Never, 1=AtStart, 2=AtExit
   } skif;
+
+  struct network_s {
+    bool    disable_winsock     =  false;
+    bool    strict_blocking     =  false; // Block third-party modules from using Winsock?
+  } network;
 };
 
 template <class T>

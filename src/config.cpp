@@ -2272,10 +2272,6 @@ auto DeclKeybind =
         config.render.framerate.sleepless_render =  true;
         config.render.framerate.sleepless_window =  true;
         config.window.background_render          =  true;
-        config.window.borderless                 =  true;
-        config.window.fullscreen                 =  true;
-        config.render.framerate.target_fps       = 60.0f;
-        config.display.force_windowed            =  true;
 
         // Now we patch the damn broken Windows 10 Version Check
         //
@@ -2299,12 +2295,6 @@ auto DeclKeybind =
             );
           }
         }
-
-        extern void SK_WinSock_GoOffline (void);
-
-        SK_MinHook_Init      ();
-        SK_WinSock_GoOffline ();
-        SK_ApplyQueuedHooks  ();
       } break;
 #endif
 

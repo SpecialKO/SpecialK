@@ -1,4 +1,13 @@
-﻿22.6.1-NOCEGUI
+﻿22.6.2-NOCEGUI
+==============
+ + Removed most default config overrides for Hatsune Miku, including the default 60 FPS limit
+ + Hatsune Miku's framerate limiter is now completely disabled except in game menus,
+     whether or not Special K has a framerate limit set.
+
+   * VSYNC becomes the default framerate limiting mechanism; users are encouraged to turn
+       SK's framerate limiter on in the control panel (it will auto-match refresh rate).
+
+22.6.1-NOCEGUI
 ==============
  + Separate High FPS mod for Hatsune Miku no longer required, just set SK's framerate limit
      * Menus will be locked to 60 FPS or your limit (whichever is lowest) for proper gameplay

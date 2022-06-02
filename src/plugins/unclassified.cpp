@@ -1274,7 +1274,7 @@ SK_HatsuneMiku_BeginFrame (void)
 {
   // Skip a few frames before doing the pointer scan
   //
-  if (SK_GetFramesDrawn () < 500)
+  if (SK_GetFramesDrawn () < 333)
     return;
 
   extern float __target_fps;
@@ -1301,8 +1301,7 @@ SK_HatsuneMiku_BeginFrame (void)
     __target_fps =
       config.render.framerate.target_fps;
 
-    if (                                      __target_fps > 0.0f)
-      *puiGameLimit = static_cast <uint32_t> (__target_fps);
+    *puiGameLimit = 0;
   }
 }
 #endif
