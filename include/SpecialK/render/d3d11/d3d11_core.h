@@ -1434,7 +1434,7 @@ struct d3d11_shader_tracking_s
 {
   void clear (void)
   {
-    for ( UINT i = 0 ; i < SK_D3D11_MAX_DEV_CONTEXTS; ++ i )
+    for ( int i = 0 ; i < std::min ( SK_D3D11_AllocatedDevContexts + 1, SK_D3D11_MAX_DEV_CONTEXTS ); ++i )
     {
       active.set (i, false);
 

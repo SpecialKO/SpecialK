@@ -1702,6 +1702,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
       game_debug->init (L"logs/game_output.log", L"w");
       game_debug->lockless = true;
+
+
+      // Apply game netcode killswitch, intended to prevent stuttering in
+      //   some games that do weird stuff with network (e.g. telemetry)
+      if (config.network.disable_winsock)
+      {
+        extern void SK_WinSock_GoOffline (void);
+                    SK_WinSock_GoOffline (    );
+                    SK_ApplyQueuedHooks  (    );
+      }
     }
   }
 

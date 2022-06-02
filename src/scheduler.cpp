@@ -304,11 +304,14 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
           static_cast <double> ( end - now ) / dTicksPerMS )
                           );
 
-    GUITHREADINFO gti        = {                    };
-                  gti.cbSize = sizeof (GUITHREADINFO);
+    //GUITHREADINFO gti        = {                    };
+    //              gti.cbSize = sizeof (GUITHREADINFO);
 
-    BOOL bGUIThread    =
-      GetGUIThreadInfo (GetCurrentThreadId (), &gti) && IsWindow (gti.hwndActive);
+    BOOL bGUIThread =
+      SK_Thread_GetTEB_FAST ()->Win32ThreadInfo != nullptr;
+
+    //BOOL bGUIThread    =
+    //  GetGUIThreadInfo (GetCurrentThreadId (), &gti) && IsWindow (gti.hwndActive);
 
     if (dwMaxWait < 5000UL)
     {
@@ -1113,7 +1116,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         }
       }
 
-
+      YieldProcessor ( );
       return 0;
     }
 

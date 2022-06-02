@@ -200,8 +200,11 @@ WSAAPI WSAWaitForMultipleEvents_Detour (
 
   if (disable_network_code)
   {
-    return
-      WSA_WAIT_IO_COMPLETION;
+    if (config.network.strict_blocking || SK_GetCallingDLL () == GetModuleHandle (nullptr))
+    {
+      return
+        WSA_WAIT_IO_COMPLETION;
+    }
   }
 
   return
@@ -236,8 +239,11 @@ WSAAPI WSASocketW_Detour (
 
   if (disable_network_code)
   {
-    return
-      WSAENETDOWN;
+    if (config.network.strict_blocking || SK_GetCallingDLL () == GetModuleHandle (nullptr))
+    {
+      return
+        WSAENETDOWN;
+    }
   }
 
   return
@@ -254,7 +260,20 @@ WSAAPI WSAStartup_Detour (
 
   if (disable_network_code)
   {
-    return WSASYSNOTREADY;
+    if (config.network.strict_blocking                                                      ||
+        SK_GetCallingDLL () == GetModuleHandle (nullptr)                                    ||
+        SK_GetCallingDLL () == GetModuleHandle (SK_RunLHIfBitness (64, L"steamclient64.dll",
+                                                                       L"steamclient.dll")) ||
+        SK_GetCallingDLL () == GetModuleHandle (L"wininet.dll")                             ||
+        SK_GetCallingDLL () == GetModuleHandle (L"WinHTTP.dll"))
+    {
+      return WSASYSNOTREADY;
+    }
+
+    SK_LOGi0 (
+      L" * Third-Party Module (%ws) Starting WinSock [Allowed]",
+        SK_GetCallerName ().c_str ()
+    );
   }
 
   return
