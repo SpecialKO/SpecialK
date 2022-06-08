@@ -278,7 +278,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
   DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
 
   std::recursive_mutex  _backbufferLock;
-  std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
+  std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D1>>
                         _backbuffers;
   bool                  _stalebuffers   = false;
 

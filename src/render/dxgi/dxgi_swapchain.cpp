@@ -380,10 +380,30 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
   {
     SK_ReleaseAssert (Buffer == 0);
 
-    if (config.system.log_level > 0)
-      SK_ReleaseAssert (riid == IID_ID3D11Texture2D);
+    if ( riid != IID_ID3D11Texture2D  &&
+         riid != IID_ID3D11Texture2D1 &&
+         riid != IID_ID3D11Resource )
+    {
+      SK_RunOnce ([&]
+      {
+        wchar_t                wszGUID [41] = { };
+        StringFromGUID2 (riid, wszGUID, 40);
 
-    if (riid == IID_ID3D11Texture2D)
+        SK_LOGi0 ( L"IDXGISwapChain::GetBuffer (...) called with unexpected GUID: %ws",
+                     wszGUID );
+      });
+
+      if (config.system.log_level > 0)
+      {
+        SK_ReleaseAssert ( riid == IID_ID3D11Texture2D  ||
+                           riid == IID_ID3D11Texture2D1 ||
+                           riid == IID_ID3D11Resource );
+      }
+    }
+
+    if ( riid == IID_ID3D11Texture2D  ||
+         riid == IID_ID3D11Texture2D1 ||
+         riid == IID_ID3D11Resource )
     {
       SK_LOGi1 (L"GetBuffer (%d)", Buffer);
 
@@ -430,7 +450,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           texDesc.Height             = swapDesc.BufferDesc.Height;
           texDesc.Format             = swapDesc.BufferDesc.Format;
           texDesc.ArraySize          = 1;
-          texDesc.SampleDesc.Count   = uiOriginalBltSampleCount;
+          texDesc.SampleDesc.Count   = config.render.dxgi.msaa_samples > 0 ?
+                                           config.render.dxgi.msaa_samples : uiOriginalBltSampleCount;
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
@@ -453,7 +474,16 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
-            SK_D3D11_SetDebugName ( backbuffer.p,
+            SK_ComQIPtr <ID3D11Texture2D1>
+                  backbuffer_asTexture2D1 (backbuffer);
+
+            // Casting did not work, runtime does not implement this?
+            //
+            //   Just stuff the ID3D11Texture2D here instead
+            if (backbuffer_asTexture2D1.p == nullptr)
+                backbuffer_asTexture2D1 = (ID3D11Texture2D1 *)backbuffer.p;
+
+            SK_D3D11_SetDebugName ( backbuffer_asTexture2D1.p,
                  SK_FormatStringW ( L"[SK] Flip Model Backbuffer %d", Buffer ) );
             SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
                           Buffer,
@@ -462,11 +492,11 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
                                texDesc.SampleDesc.Count,
           SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
 
-            _backbuffers [Buffer] = backbuffer;
+            _backbuffers [Buffer] = backbuffer_asTexture2D1;
 
             *ppSurface =
-              backbuffer.p;
-              backbuffer.p->AddRef ();
+              backbuffer_asTexture2D1.p;
+              backbuffer_asTexture2D1.p->AddRef ();
 
             return S_OK;
           }
