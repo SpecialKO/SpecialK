@@ -1497,6 +1497,9 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
         pDesc = nullptr;
     }
 
+    if (tex2d_desc.SampleDesc.Count > 1)
+      rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+
     if (_P->pRenderTargetView == nullptr)
     {
       ThrowIfFailed (
