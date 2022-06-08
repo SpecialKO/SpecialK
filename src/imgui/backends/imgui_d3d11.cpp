@@ -1502,9 +1502,20 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
     if (_P->pRenderTargetView == nullptr)
     {
+      // Avoid calling the hook, because that would prevent sRGB correction
+      extern HRESULT
+      STDMETHODCALLTYPE
+      SK_D3D11Dev_CreateRenderTargetView_Finish (
+        _In_            ID3D11Device                   *pDev,
+        _In_            ID3D11Resource                 *pResource,
+        _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
+        _Out_opt_       ID3D11RenderTargetView        **ppRTView,
+                        BOOL                            bWrapped );
+
       ThrowIfFailed (
-        pDev->CreateRenderTargetView  ( _P->pBackBuffer, pDesc,
-                                       &_P->pRenderTargetView.p ));
+        SK_D3D11Dev_CreateRenderTargetView_Finish (
+                                  pDev, _P->pBackBuffer,         pDesc,
+                                       &_P->pRenderTargetView.p, FALSE ));
       SK_D3D11_SetDebugName (           _P->pRenderTargetView,
                                     L"ImGui RenderTargetView" );
     }
