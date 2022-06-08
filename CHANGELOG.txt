@@ -1,4 +1,12 @@
-﻿22.6.2-NOCEGUI
+﻿22.6.8-NOCEGUI
+==============
+ + Add support for ID3D11Resource and ID3D11Texture2D1 to SwapChain wrapper when DXGI Flip Model
+     is being forced on
+ + Added support for rendering ImGui into multisampled non-Flip SwapChain backbuffers
+ + Improved MSAA resolve for sRGB games when flip model is active
+ + Fixed various sRGB issues and removed confirmation dialog when forcing flip in an sRGB game
+
+22.6.2-NOCEGUI
 ==============
  + Removed most default config overrides for Hatsune Miku, including the default 60 FPS limit
  + Hatsune Miku's framerate limiter is now completely disabled except in game menus,

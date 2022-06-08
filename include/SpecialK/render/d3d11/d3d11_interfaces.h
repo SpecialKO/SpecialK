@@ -477,6 +477,15 @@ typedef void (WINAPI *D3D11_CopySubresourceRegion_pfn)(
   _In_opt_ const D3D11_BOX           *pSrcBox
 );
 
+typedef void (WINAPI *D3D11_ResolveSubresource_pfn)(
+  _In_ ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ UINT                 DstSubresource,
+  _In_ ID3D11Resource      *pSrcResource,
+  _In_ UINT                 SrcSubresource,
+  _In_ DXGI_FORMAT          Format
+);
+
 typedef void (WINAPI *D3D11_VSSetShaderResources_pfn)(
   _In_           ID3D11DeviceContext             *This,
   _In_           UINT                             StartSlot,

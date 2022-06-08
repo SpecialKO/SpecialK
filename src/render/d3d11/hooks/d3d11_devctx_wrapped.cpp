@@ -1597,59 +1597,17 @@ public:
   {
     TraceAPI
 
-    extern bool
-        __SK_HDR_16BitSwap;
-    if (__SK_HDR_16BitSwap)
-    {
-      if (Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
-      {
-        SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
-                                      pDstTex (pDstResource);
-        if ( pSrcTex.p != nullptr &&
-             pDstTex.p != nullptr )
-        {
-          D3D11_TEXTURE2D_DESC dstDesc = { };
-          D3D11_TEXTURE2D_DESC texDesc = { };
-
-          pSrcTex->GetDesc   (&texDesc);
-          pDstTex->GetDesc   (&dstDesc);
-
-          // NOTE: This is failing on 8-bit surface remastering in
-          //         Unity Engine games
-          if (texDesc.Format != dstDesc.Format)
-          {
-            extern bool SK_D3D11_BltCopySurface (
-              ID3D11Texture2D* pSrcTex,
-              ID3D11Texture2D* pDstTex );
-
-            texDesc.SampleDesc.Count = 1;
-
-            SK_ComPtr <ID3D11Device>  pDev;
-            pSrcResource->GetDevice (&pDev.p);
-
-            if (pDev.p != nullptr)
-            {
-              SK_ComPtr <ID3D11Texture2D> pTempTex;
-
-              if (SUCCEEDED (pDev->CreateTexture2D (&texDesc, nullptr, &pTempTex.p)))
-              {
-                pReal->ResolveSubresource (pTempTex, DstSubresource,
-                                           pSrcResource, SrcSubresource, texDesc.Format);
-                SK_D3D11_BltCopySurface (pTempTex, pDstTex);
-
-                return;
-              }
-            }
-
-            SK_LOGi0 (L"ResolveSubresource Failed on incompatible surfaces");
-
-            return;
-          }
-        }
-      }
-    }
-
-    pReal->ResolveSubresource (pDstResource, DstSubresource, pSrcResource, SrcSubresource, Format);
+#ifndef SK_D3D11_LAZY_WRAP
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+        SK_D3D11_ResolveSubresource_Impl ( pReal,
+                      pDstResource, DstSubresource,
+                      pSrcResource, SrcSubresource,
+                            Format, TRUE
+        );
+    else
+#endif
+    pReal->ResolveSubresource ( pDstResource, DstSubresource,
+                                pSrcResource, SrcSubresource, Format );
   }
 
   void STDMETHODCALLTYPE ExecuteCommandList (

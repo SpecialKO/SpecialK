@@ -423,7 +423,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
       if ( contains &&
              texDesc.Width  == swapDesc.BufferDesc.Width  &&
              texDesc.Height == swapDesc.BufferDesc.Height &&
-             texDesc.Format == swapDesc.BufferDesc.Format )
+             DirectX::MakeTypeless (            texDesc.Format) ==
+             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) )
       {
         auto backbuffer =
             _backbuffers [Buffer];
@@ -444,11 +445,13 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
         {
           // TODO: Pass this during wrapping
           extern UINT uiOriginalBltSampleCount;
+          extern bool bOriginallysRGB;
 
           texDesc                    = { };
           texDesc.Width              = swapDesc.BufferDesc.Width;
           texDesc.Height             = swapDesc.BufferDesc.Height;
-          texDesc.Format             = swapDesc.BufferDesc.Format;
+          texDesc.Format             = bOriginallysRGB ? DirectX::MakeSRGB (swapDesc.BufferDesc.Format)
+                                                       :                    swapDesc.BufferDesc.Format;
           texDesc.ArraySize          = 1;
           texDesc.SampleDesc.Count   = config.render.dxgi.msaa_samples > 0 ?
                                            config.render.dxgi.msaa_samples : uiOriginalBltSampleCount;

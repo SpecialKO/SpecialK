@@ -2073,6 +2073,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
     if (rb.srgb_stripped && (! hdr_mode))
     {
+#ifdef _USE_SRGB_WARNING
       if (config.render.dxgi.srgb_behavior < -1)
       {
         SK_RunOnce (
@@ -2083,6 +2084,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
           )
         );
       }
+#endif
 
       if (config.render.dxgi.srgb_behavior >= 0)
         SK_DXGI_LinearizeSRGB (_pSwapChain);

@@ -992,11 +992,26 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
         D3D11_TEXTURE2D_DESC  tex_desc = { };
         pTex->GetDesc       (&tex_desc);
 
+        // MSAA overrides may cause games to try and create single-sampled RTVs to
+        //   multi-sampled targets, so let's give them some assistance to fix this.
+        if (tex_desc.SampleDesc.Count > 1)
+        {
+          if (desc.ViewDimension != D3D11_RTV_DIMENSION_TEXTURE2DMS)
+          {
+            SK_RunOnce ([]{
+              SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
+            });
+          }
+          desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+        }
+        else
+          desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
         // If the SwapChain was sRGB originally, and this RTV is
         //   the SwapChain's backbuffer, create an sRGB view
         //     (of the now linear SwapChain).
         extern bool bOriginallysRGB;
-        if (        bOriginallysRGB && (! __SK_HDR_16BitSwap))
+        if (        bOriginallysRGB || __SK_HDR_16BitSwap)
         {                              // HDR handles the mismatch on its own
           SK_ComPtr   <ID3D11Texture2D> pBackbuffer;
           SK_ComQIPtr <IDXGISwapChain>  pSwapChain (
@@ -1011,22 +1026,26 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
             {
               if (pTex.IsEqualObject (pBackbuffer.p))
               {
-                desc.Format     = DXGI_FORMAT_420_OPAQUE;
-                tex_desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+                desc.Format = DXGI_FORMAT_420_OPAQUE;
+
+                if (bOriginallysRGB && (! __SK_HDR_16BitSwap))
+                  tex_desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+                else
+                  tex_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
               }
             }
           }
         }
 
-        if (                        desc.Format      != DXGI_FORMAT_UNKNOWN &&
-             DirectX::MakeTypeless (tex_desc.Format) !=
-             DirectX::MakeTypeless (desc.Format) )
+        if (                           (desc.Format  != DXGI_FORMAT_UNKNOWN || bOriginallysRGB) &&
+           ( DirectX::MakeTypeless (tex_desc.Format) !=
+             DirectX::MakeTypeless (desc.Format) )                          || bOriginallysRGB)
           desc.Format = tex_desc.Format;
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           desc.Format = newFormat;
 
-        if (pDesc != nullptr)
+        if (pDesc != nullptr || bOriginallysRGB)
         {
           const HRESULT hr =
             _Finish (&desc);
@@ -1654,6 +1673,96 @@ SK_D3D11_CopySubresourceRegion_Impl (
     }
   }
 #pragma endregion CacheStagingMappedResources
+}
+
+void
+STDMETHODCALLTYPE
+SK_D3D11_ResolveSubresource_Impl (
+  _In_ ID3D11DeviceContext *pDevCtx,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ UINT                 DstSubresource,
+  _In_ ID3D11Resource      *pSrcResource,
+  _In_ UINT                 SrcSubresource,
+  _In_ DXGI_FORMAT          Format,
+       BOOL                 bWrapped )
+{
+  SK_WRAP_AND_HOOK
+
+  const auto _Finish = [&](ID3D11Resource *dst_resource, ID3D11Resource *src_resource, DXGI_FORMAT fmt) ->
+  void
+  {
+    bWrapped ?
+      pDevCtx->ResolveSubresource ( dst_resource, DstSubresource,
+                                    src_resource, SrcSubresource,
+                                    fmt )
+             :
+      D3D11_ResolveSubresource_Original ( pDevCtx, dst_resource, DstSubresource,
+                                                   src_resource, SrcSubresource,
+                                                   fmt );
+  };
+
+  std::ignore = bMustNotIgnore;
+
+  extern bool
+      __SK_HDR_16BitSwap;
+  if (__SK_HDR_16BitSwap)
+  {
+    SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
+                                  pDstTex (pDstResource);
+    if ( pSrcTex.p != nullptr &&
+         pDstTex.p != nullptr )
+    {
+      D3D11_TEXTURE2D_DESC dstDesc = { };
+      D3D11_TEXTURE2D_DESC texDesc = { };
+
+      pSrcTex->GetDesc   (&texDesc);
+      pDstTex->GetDesc   (&dstDesc);
+
+      const bool
+        bInvolves16BitFormat =
+          (         Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+            texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+            dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT );
+
+      if (bInvolves16BitFormat)
+      {
+        // NOTE: This is failing on 8-bit surface remastering in
+        //         Unity Engine games
+        if ( texDesc.Format != dstDesc.Format &&
+           ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+             dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ) )
+        {
+          extern bool SK_D3D11_BltCopySurface (
+            ID3D11Texture2D* pSrcTex,
+            ID3D11Texture2D* pDstTex );
+
+          texDesc.SampleDesc.Count = 1;
+
+          SK_ComPtr <ID3D11Device>  pDev;
+          pSrcResource->GetDevice (&pDev.p);
+
+          if (pDev.p != nullptr)
+          {
+            SK_ComPtr <ID3D11Texture2D> pTempTex;
+
+            if (SUCCEEDED (pDev->CreateTexture2D (&texDesc, nullptr, &pTempTex.p)))
+            {
+              _Finish                 ( pTempTex, pSrcResource, texDesc.Format );
+              SK_D3D11_BltCopySurface ( pTempTex, pDstTex );
+
+              return;
+            }
+          }
+
+          SK_LOGi0 (L"ResolveSubresource Failed on incompatible surfaces");
+
+          return;
+        }
+      }
+    }
+  }
+
+  _Finish (pDstResource, pSrcResource, Format);
 }
 
 void
@@ -4625,6 +4734,8 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_LOGi0 (L"Render Target allocated while SK had no active SwapChain...");
 
 
+  // New versions of SK attempt to preserve MSAA, so this code is counter-productive
+#ifdef _REMOVE_MSAA
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
   extern bool
@@ -4674,6 +4785,7 @@ D3D11Dev_CreateTexture2D_Impl (
       }
     }
   }
+#endif
 
 
   //--- HDR Format Wars (or at least format re-training) ---
@@ -5983,6 +6095,12 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
                                           D3D11_ClearDepthStencilView_Override,
                                           D3D11_ClearDepthStencilView_Original,
                                           D3D11_ClearDepthStencilView_pfn );
+
+    DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   57,
+                          "ID3D11DeviceContext::ResolveSubresource",
+                                          D3D11_ResolveSubresource_Override,
+                                          D3D11_ResolveSubresource_Original,
+                                          D3D11_ResolveSubresource_pfn );
 
     DXGI_VIRTUAL_HOOK ( pHooks->ppImmediateContext,   58,
                           "ID3D11DeviceContext::ExecuteCommandList",

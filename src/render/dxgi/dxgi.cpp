@@ -5278,6 +5278,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     if (config.render.dxgi.msaa_samples > 0)
     {
+      SK_LOGi0 ( L">> MSAA Sample Count Override: %d", config.render.dxgi.msaa_samples );
+
       pDesc->SampleDesc.Count = config.render.dxgi.msaa_samples;
     }
 
@@ -5333,7 +5335,11 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
         bFlipMode =
           dxgi_caps.present.flip_sequential;
 
-        uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
+        // Allow manually enabling MSAA in a game while using Flip Model
+        if (config.render.dxgi.msaa_samples > 0)
+          uiOriginalBltSampleCount = config.render.dxgi.msaa_samples;
+        else;
+          uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
 
         pDesc->SampleDesc.Count   = 1;
         pDesc->SampleDesc.Quality = 0;

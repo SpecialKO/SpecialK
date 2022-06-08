@@ -442,6 +442,17 @@ SK_D3D11_UpdateSubresource_Impl (
   _In_           UINT                 SrcDepthPitch,
                  BOOL                 bWrapped );
 
+void
+STDMETHODCALLTYPE
+SK_D3D11_ResolveSubresource_Impl (
+    _In_ ID3D11DeviceContext *pDevCtx,
+    _In_ ID3D11Resource      *pDstResource,
+    _In_ UINT                 DstSubresource,
+    _In_ ID3D11Resource      *pSrcResource,
+    _In_ UINT                 SrcSubresource,
+    _In_ DXGI_FORMAT          Format,
+         BOOL                 bWrapped );
+
 HRESULT
 STDMETHODCALLTYPE
 SK_D3D11_Map_Impl (
@@ -1259,6 +1270,17 @@ D3D11_UpdateSubresource1_Override (
   _In_           UINT                  SrcRowPitch,
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags);
+
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_ResolveSubresource_Override (
+       ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ UINT                 DstSubresource,
+  _In_ ID3D11Resource      *pSrcResource,
+  _In_ UINT                 SrcSubresource,
+  _In_ DXGI_FORMAT          Format );
 #endif
 
 
@@ -2224,6 +2246,8 @@ extern D3D11_CopySubresourceRegion_pfn
        D3D11_CopySubresourceRegion_Original;
 extern D3D11_UpdateSubresource1_pfn
        D3D11_UpdateSubresource1_Original;
+extern D3D11_ResolveSubresource_pfn
+       D3D11_ResolveSubresource_Original;
 
 
 using D3D11On12CreateDevice_pfn =

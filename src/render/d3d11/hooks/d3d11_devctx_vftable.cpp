@@ -108,6 +108,7 @@ D3D11_GetData_pfn                                   D3D11_GetData_Original      
 D3D11_CopyResource_pfn                              D3D11_CopyResource_Original                              = nullptr;
 D3D11_CopySubresourceRegion_pfn                     D3D11_CopySubresourceRegion_Original                     = nullptr;
 D3D11_UpdateSubresource1_pfn                        D3D11_UpdateSubresource1_Original                        = nullptr;
+D3D11_ResolveSubresource_pfn                        D3D11_ResolveSubresource_Original                        = nullptr;
 
 //   0 QueryInterface
 //   1 AddRef
@@ -1743,6 +1744,36 @@ D3D11_CopySubresourceRegion_Override (
 #endif
 }
 
+__declspec (noinline)
+void
+STDMETHODCALLTYPE
+D3D11_ResolveSubresource_Override (
+       ID3D11DeviceContext *This,
+  _In_ ID3D11Resource      *pDstResource,
+  _In_ UINT                 DstSubresource,
+  _In_ ID3D11Resource      *pSrcResource,
+  _In_ UINT                 SrcSubresource,
+  _In_ DXGI_FORMAT          Format )
+{
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  {
+    SK_D3D11_ResolveSubresource_Impl ( This,
+      pDstResource, DstSubresource,
+      pSrcResource, SrcSubresource,
+      Format,
+        FALSE
+    );
+  }
+
+  else
+  {
+    D3D11_ResolveSubresource_Original (
+      This, pDstResource, DstSubresource,
+            pSrcResource, SrcSubresource,
+            Format
+    );
+  }
+}
 
 __declspec (noinline)
 void

@@ -2702,6 +2702,23 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         // Masked combinations are, of course, invalid :)
       }
     }
+
+    static const wchar_t* ClassToPrefix (const sk_shader_class& shader_class) noexcept
+    {
+      // nb: shader_class is a bitmask, we need indices
+      switch (shader_class)
+      {
+        case sk_shader_class::Vertex:   return L"vs";
+        default:
+        case sk_shader_class::Pixel:    return L"ps";
+        case sk_shader_class::Geometry: return L"gs";
+        case sk_shader_class::Hull:     return L"hs";
+        case sk_shader_class::Domain:   return L"ds";
+        case sk_shader_class::Compute:  return L"cs";
+
+        // Masked combinations are, of course, invalid :)
+      }
+    }
   } static shader_state [6];
 
   unsigned int& last_sel      =  shader_state [sk_shader_state_s::ClassToIdx (shader_type)].last_sel;
@@ -3306,6 +3323,37 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
          SK_D3D_Disassemble ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
                               repo->descs [pDevice][tracker->crc32c].bytecode.size (),
                                 D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pDisasm);
+
+        SK_ComPtr <ID3DBlob> pColorDisasm = nullptr;
+
+        if ( SUCCEEDED (
+               SK_D3D_Disassemble ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
+                                    repo->descs [pDevice][tracker->crc32c].bytecode.size (),
+                                       D3D_DISASM_ENABLE_COLOR_CODE |
+                                       D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pColorDisasm ) ) )
+        {
+          auto path =
+            SK_FormatStringW (
+              LR"(%ws\dump\shaders\%s_%8x.html)",
+                SK_D3D11_res_root->c_str (),
+                sk_shader_state_s::ClassToPrefix (shader_type),
+                  tracker->crc32c.load ()
+            );
+
+          SK_CreateDirectories (path.c_str ());
+
+          FILE *fShader =
+            _wfopen (path.c_str (), L"w");
+
+          if (fShader != nullptr)
+          {
+            fwrite (               pColorDisasm->GetBufferPointer (),
+              strlen ((const char*)pColorDisasm->GetBufferPointer ()),
+                 1, fShader);
+            fclose (fShader);
+          }
+        }
+
         if (SUCCEEDED (hr))
         {
          SK_D3D_Reflect     ( repo->descs [pDevice][tracker->crc32c].bytecode.data (),
@@ -4954,17 +5002,17 @@ struct SK_D3D11_CommandBase
 
     cp->AddCommand ( "D3D11.ShaderMods.Load",
         new (std::nothrow) ShaderMods::Load         () );
-    cp->AddCommand ( "D3D11.ShaderMods.Unload",               
+    cp->AddCommand ( "D3D11.ShaderMods.Unload",
         new (std::nothrow) ShaderMods::Unload       () );
     cp->AddCommand ( "D3D11.ShaderMods.ToggleConfig",
         new (std::nothrow) ShaderMods::ToggleConfig () );
     cp->AddCommand ( "D3D11.ShaderMods.Store",
         new (std::nothrow) ShaderMods::Store        () );
-    cp->AddCommand ( "D3D11.ShaderMods.Clear",      
+    cp->AddCommand ( "D3D11.ShaderMods.Clear",
         new (std::nothrow) ShaderMods::Clear        () );
-    cp->AddCommand ( "D3D11.ShaderMods.Set",        
+    cp->AddCommand ( "D3D11.ShaderMods.Set",
         new (std::nothrow) ShaderMods::Set          () );
-    cp->AddCommand ( "D3D11.ShaderMods.Unset",      
+    cp->AddCommand ( "D3D11.ShaderMods.Unset",
         new (std::nothrow) ShaderMods::Unset        () );
     cp->AddCommand ( "D3D11.ShaderMods.Toggle",
         new (std::nothrow) ShaderMods::Toggle       () );
