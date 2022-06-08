@@ -82,6 +82,8 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 bool
 iSK_INI::reload (const wchar_t *fname)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   if (fname == nullptr)
   {
     SK_ReleaseAssert (name.size  () > 0)
@@ -519,6 +521,8 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   SK_ReleaseAssert (data.size () > 0)
 
   SK_TLS* pTLS =
@@ -723,6 +727,8 @@ void
 __stdcall
 iSK_INI::import (const wchar_t* import_data)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -946,7 +952,7 @@ iSK_INISection::get_cvalue (const std::wstring& key) const
   if (it_key != keys.cend ())
     return (*it_key).second;
 
-  static
+  static const
     std::wstring
          invalid = L"Invalid";
   return invalid;
@@ -1121,6 +1127,8 @@ bool
 __stdcall
 iSK_INI::contains_section (const wchar_t* section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   return
     contains_section (std::wstring_view (section));
 }
@@ -1130,6 +1138,8 @@ bool
 __stdcall
 iSK_INI::contains_section (const std::wstring_view section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   return
     ( sections.find (section.data ()) !=
       sections.cend (               ) );
@@ -1140,6 +1150,8 @@ iSK_INISection*
 __stdcall
 iSK_INI::contains_section (const std::wstring& section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   const auto _sec =
     sections.find (section);
 
@@ -1154,6 +1166,8 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const wchar_t* section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   return
     get_section (std::wstring_view (section));
 }
@@ -1163,6 +1177,8 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const std::wstring_view section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   std::wstring wstr (section);
 
   bool try_emplace =
@@ -1186,6 +1202,8 @@ iSK_INISection&
 __stdcall
 iSK_INI::get_section (const std::wstring& section)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   bool try_emplace =
     ( sections.find (section) ==
       sections.cend (       ) );
@@ -1210,6 +1228,8 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
                          wchar_t const* const    _Format,
                                                  ... )
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   wchar_t wszFormatted [128] = { };
 
   va_list   _ArgList;
@@ -1245,6 +1265,8 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   if (fname == nullptr)
     fname = name.c_str ();
 
@@ -1386,6 +1408,8 @@ iSK_INI::_TSectionMap&
 __stdcall
 iSK_INI::get_sections (void)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   return sections;
 }
 
@@ -1428,6 +1452,8 @@ bool
 __stdcall
 iSK_INI::remove_section (const wchar_t* wszSection)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   return
     remove_section (std::wstring_view (wszSection));
 }
@@ -1437,6 +1463,8 @@ bool
 __stdcall
 iSK_INI::remove_section (const std::wstring_view wszSection)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   const std::wstring wstr (wszSection.data ());
 
   return
@@ -1448,6 +1476,8 @@ bool
 __stdcall
 iSK_INI::remove_section (const std::wstring& wszSection)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   const auto it =
     sections.find (wszSection);
 
@@ -1573,6 +1603,8 @@ __declspec(nothrow)
 bool
 iSK_INI::import_file (const wchar_t* fname)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   size_t len =
     wcslen (fname);
 
@@ -1742,6 +1774,8 @@ __declspec(nothrow)
 bool
 iSK_INI::rename (const wchar_t* fname)
 {
+  std::scoped_lock <std::recursive_mutex> auto_lock (lock);
+
   if (  fname  != nullptr &&
        *fname == L'\0' )
   {

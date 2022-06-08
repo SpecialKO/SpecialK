@@ -1,4 +1,10 @@
-﻿22.6.8-NOCEGUI
+﻿22.6.8.1-NOCEGUI
+================
+ + Fixed brightness of ImGui UI in sRGB
+ + Added sRGB framebuffer status when flip model override is active
+ + Added locking to INI file write/parse to prevent rare crashes when opening SK's control panel
+
+22.6.8-NOCEGUI
 ==============
  + Add support for ID3D11Resource and ID3D11Texture2D1 to SwapChain wrapper when DXGI Flip Model
      is being forced on

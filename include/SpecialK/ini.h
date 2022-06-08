@@ -21,6 +21,7 @@
 #ifndef __SK__INI_H__
 #define __SK__INI_H__
 
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -153,6 +154,9 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (bool,            remove_section)  (const std::wstring& section);
 
 protected:
+  std::recursive_mutex  lock;
+  std::recursive_mutex  section_lock;
+
 private:
   FILE*     fINI    = nullptr;
 
