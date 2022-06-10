@@ -1,4 +1,14 @@
-﻿22.6.8.1-NOCEGUI
+﻿22.6.9-NOCEGUI
+==============
+ + Added ACES Filmic + Perceptual Boost Tonemap Mode to HDR Widget
+
+    >> Increases perceptual brightness slightly, make sure to check the vs. Max Average Luminance
+         visualization to ensure clipping is not taking place -- maximum luminance target may need
+           to be lowered.
+
+ + Fixed white/black objects in some D3D11 games that use Multisampled RenderTargets
+
+22.6.8.1-NOCEGUI
 ================
  + Fixed brightness of ImGui UI in sRGB
  + Added sRGB framebuffer status when flip model override is active

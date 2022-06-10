@@ -32,7 +32,8 @@ enum {
   SK_HDR_TONEMAP_NONE              = 0,
   SK_HDR_TONEMAP_FILMIC            = 1,
   SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
-  SK_HDR_TONEMAP_HDR10_FILMIC      = 3
+//SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
+  SK_HDR_TONEMAP_PERCEPTUAL_BOOST  = 3
 };
 
 static auto
@@ -459,13 +460,13 @@ public:
     static SKTL_BidirectionalHashMap <int, std::wstring>
       __SK_HDR_ColorSpaceMap =
       {
-        { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)" },
-        { 2, L"HDR10 Passthrough (Native HDR)" }
+        { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)"       },
+        { 2, L"HDR10 Passthrough (Native HDR)"           }, { 3, L"      ACES Filmic (Perceptual Boost)" }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
       (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
-                    u8"HDR10 Passthrough (Native HDR)\0\0\0";
+                    u8"HDR10 Passthrough (Native HDR)\0"      u8"      ACES Filmic (Perceptual Boost)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
@@ -802,7 +803,8 @@ public:
           float fMidGray = __SK_HDR_user_sdr_Y - 100.0f;
 
           if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-               __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
+             //__SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
+               __SK_HDR_tonemap == SK_HDR_TONEMAP_PERCEPTUAL_BOOST )
           {
             if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -20.0f,
                                                                         (__SK_HDR_tonemap == 2) ?  2.5f :  20.0f,
@@ -1055,7 +1057,8 @@ public:
             }
 
             if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-                 __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
+               //__SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
+                 __SK_HDR_tonemap == SK_HDR_TONEMAP_PERCEPTUAL_BOOST )
             {
               float fSat =
                 __SK_HDR_Saturation * 100.0f;

@@ -61,7 +61,8 @@ float3 gain (float3 x, float k)
 #define TONEMAP_NONE                  0
 #define TONEMAP_ACES_FILMIC           1
 #define TONEMAP_HDR10_to_scRGB        2
-#define TONEMAP_HDR10_to_scRGB_FILMIC 3
+//#define TONEMAP_HDR10_to_scRGB_FILMIC 3
+#define TONEMAP_PERCEPTUAL_BOOST      3
 #define TONEMAP_COPYRESOURCE          255
 
 
@@ -1775,7 +1776,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 
   bool bIsHDR10 = false;
 
-  if (uiToneMapper >= TONEMAP_HDR10_to_scRGB)
+
+  if (uiToneMapper == TONEMAP_HDR10_to_scRGB)
        bIsHDR10 = true;
 
 
@@ -1890,6 +1892,16 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color.rgb =
       SK_ProcessColor4 (hdr_color, uiToneMapper).rgb;
   }
+
+
+  if (uiToneMapper == TONEMAP_PERCEPTUAL_BOOST)
+  {
+    hdr_color.rgb =
+      PQToLinear (
+        LinearToPQ (hdr_color.rgb, 40.0) * 1.0785, 40.0
+                 )                       / 1.0785;
+  }
+
 
   hdr_color.rgb =
     max ( 0.0, pow ( hdr_color.rgb,

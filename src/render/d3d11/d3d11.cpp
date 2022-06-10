@@ -977,7 +977,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
     pResource->GetType (&dim);
 
-    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && pDesc != nullptr)
     {
       if (pDesc != nullptr)
         desc = *pDesc;
@@ -994,18 +994,16 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
         // MSAA overrides may cause games to try and create single-sampled RTVs to
         //   multi-sampled targets, so let's give them some assistance to fix this.
-        if (tex_desc.SampleDesc.Count > 1)
+        if (tex_desc.SampleDesc.Count > 1 && desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
         {
-          if (desc.ViewDimension != D3D11_RTV_DIMENSION_TEXTURE2DMS)
-          {
-            SK_RunOnce ([]{
-              SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
-            });
-          }
+          SK_RunOnce ([]{
+            SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
+          });
+          
           desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
         }
-        else
-          desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        else if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
+                 desc.ViewDimension =  D3D11_RTV_DIMENSION_TEXTURE2D;
 
         // If the SwapChain was sRGB originally, and this RTV is
         //   the SwapChain's backbuffer, create an sRGB view
