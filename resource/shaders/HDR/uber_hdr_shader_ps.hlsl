@@ -13,8 +13,10 @@ cbuffer colorSpaceTransform : register (b0)
   //float  hdrExposure;
   float  currentTime;
   float  sdrLuminance_NonStd;
-  bool   sdrIsImplicitlysRGB;
+  uint   sdrIsImplicitlysRGB;
   uint   uiToneMapper;
+
+  float4 pqBoostParams;
 };
 
 struct PS_INPUT
@@ -61,8 +63,7 @@ float3 gain (float3 x, float k)
 #define TONEMAP_NONE                  0
 #define TONEMAP_ACES_FILMIC           1
 #define TONEMAP_HDR10_to_scRGB        2
-//#define TONEMAP_HDR10_to_scRGB_FILMIC 3
-#define TONEMAP_PERCEPTUAL_BOOST      3
+#define TONEMAP_HDR10_to_scRGB_FILMIC 3
 #define TONEMAP_COPYRESOURCE          255
 
 
@@ -1894,12 +1895,21 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 
 
-  if (uiToneMapper == TONEMAP_PERCEPTUAL_BOOST)
+  if (pqBoostParams.x > 0.1f)
   {
+    float
+      pb_params [4] = {
+        pqBoostParams.x,
+        pqBoostParams.y,
+        pqBoostParams.z,
+        pqBoostParams.w
+      };
+
     hdr_color.rgb =
       PQToLinear (
-        LinearToPQ (hdr_color.rgb, 40.0) * 1.0785, 40.0
-                 )                       / 1.0785;
+        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+                     pb_params [2], pb_params [1]
+                 ) / pb_params [3];
   }
 
 

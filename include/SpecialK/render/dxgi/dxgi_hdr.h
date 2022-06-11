@@ -81,6 +81,7 @@ struct SK_DXGI_HDRControl
     float    sdrLuminance_NonStd   = 100.0_Nits;
     BOOL     sdrIsImplicitlysRGB   =       TRUE;
     uint32_t uiToneMapper          =          0;
+    float    pqBoostParams [4]     =        { };
   };
 
   //const int x = sizeof (HDR_COLORSPACE_PARAMS);

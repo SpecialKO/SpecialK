@@ -32,8 +32,7 @@ enum {
   SK_HDR_TONEMAP_NONE              = 0,
   SK_HDR_TONEMAP_FILMIC            = 1,
   SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
-//SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
-  SK_HDR_TONEMAP_PERCEPTUAL_BOOST  = 3
+  SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
 };
 
 static auto
@@ -90,14 +89,18 @@ auto
 
 void SK_ImGui_DrawGamut (void);
 
-sk::ParameterBool* _SK_HDR_10BitSwapChain            = nullptr;
-sk::ParameterBool* _SK_HDR_16BitSwapChain            = nullptr;
-sk::ParameterBool* _SK_HDR_Promote10BitRGBATo16BitFP = nullptr;
-sk::ParameterBool* _SK_HDR_Promote11BitRGBTo16BitFP  = nullptr;
-sk::ParameterBool* _SK_HDR_Promote8BitRGBxTo16BitFP  = nullptr;
-sk::ParameterInt*  _SK_HDR_ActivePreset              = nullptr;
-sk::ParameterBool* _SK_HDR_FullRange                 = nullptr;
-sk::ParameterInt*  _SK_HDR_sRGBBypassBehavior        = nullptr;
+sk::ParameterBool*  _SK_HDR_10BitSwapChain            = nullptr;
+sk::ParameterBool*  _SK_HDR_16BitSwapChain            = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote10BitRGBATo16BitFP = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote11BitRGBTo16BitFP  = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote8BitRGBxTo16BitFP  = nullptr;
+sk::ParameterInt*   _SK_HDR_ActivePreset              = nullptr;
+sk::ParameterBool*  _SK_HDR_FullRange                 = nullptr;
+sk::ParameterInt*   _SK_HDR_sRGBBypassBehavior        = nullptr;
+sk::ParameterFloat* _SK_HDR_PerceptualBoost0          = nullptr;
+sk::ParameterFloat* _SK_HDR_PerceptualBoost1          = nullptr;
+sk::ParameterFloat* _SK_HDR_PerceptualBoost2          = nullptr;
+sk::ParameterFloat* _SK_HDR_PerceptualBoost3          = nullptr;
 
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
@@ -121,6 +124,15 @@ float __SK_HDR_UI_Luma          = 1.0f;
 float __SK_HDR_HorizCoverage    = 100.0f;
 float __SK_HDR_VertCoverage     = 100.0f;
 
+float __SK_HDR_PQBoost0 = -7.5f;
+float __SK_HDR_PQBoost1 = 10.0f;
+float __SK_HDR_PQBoost2 = 0.995f;
+float __SK_HDR_PQBoost3 = 1.005f;
+
+//float __SK_HDR_PQBoost0 = -8.5f;
+//float __SK_HDR_PQBoost1 = 9.0f;
+//float __SK_HDR_PQBoost2 = 1.08f;
+//float __SK_HDR_PQBoost3 = 1.09f;
 
 #define MAX_HDR_PRESETS 4
 
@@ -404,8 +416,8 @@ public:
 
     _SK_HDR_FullRange =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
-                                  L"AllowFullLuminance",  __SK_HDR_FullRange,
-                                  L"Slider will use full-range." );
+                                   L"AllowFullLuminance",  __SK_HDR_FullRange,
+                                   L"Slider will use full-range." );
 
     _SK_HDR_sRGBBypassBehavior =
       _CreateConfigParameterInt ( SK_HDR_SECTION,
@@ -414,8 +426,28 @@ public:
 
     _SK_HDR_ActivePreset =
       _CreateConfigParameterInt ( SK_HDR_SECTION,
-                                 L"Preset",               __SK_HDR_Preset,
-                                 L"Light Adaptation Preset" );
+                                  L"Preset",               __SK_HDR_Preset,
+                                  L"Light Adaptation Preset" );
+
+    _SK_HDR_PerceptualBoost0 =
+      _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                                    L"PerceptualBoost0",               __SK_HDR_PQBoost0,
+                                    L"Perceptual Boost Parameter 0" );
+
+    _SK_HDR_PerceptualBoost1 =
+      _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                                    L"PerceptualBoost1",               __SK_HDR_PQBoost1,
+                                    L"Perceptual Boost Parameter 1" );
+
+    _SK_HDR_PerceptualBoost2 =
+      _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                                    L"PerceptualBoost2",               __SK_HDR_PQBoost2,
+                                    L"Perceptual Boost Parameter 2" );
+
+    _SK_HDR_PerceptualBoost3 =
+      _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                                    L"PerceptualBoost3",               __SK_HDR_PQBoost3,
+                                    L"Perceptual Boost Parameter 3" );
 
 
     if ( __SK_HDR_Preset < 0 ||
@@ -461,12 +493,12 @@ public:
       __SK_HDR_ColorSpaceMap =
       {
         { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)"       },
-        { 2, L"HDR10 Passthrough (Native HDR)"           }, { 3, L"      ACES Filmic (Perceptual Boost)" }
+        { 2, L"HDR10 Passthrough (Native HDR)"           }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
       (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
-                    u8"HDR10 Passthrough (Native HDR)\0"      u8"      ACES Filmic (Perceptual Boost)\0\0";
+                    u8"HDR10 Passthrough (Native HDR)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
@@ -710,15 +742,42 @@ public:
 
           static float fSliderWidth = 0.0f;
           static float fWidth0      = 0.0f;
-           const float fWidth1      =
+                 float fWidth1      =
             ImGui::GetItemRectSize ().x;
 
-          ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
-                                  fSliderWidth - fWidth0 - fWidth1
-                                                         : -1.0f );
+          //float fCursorX = ImGui::GetCursorPosX ();
+
+          ImGui::SameLine ();
+
+          bool pboost = (__SK_HDR_PQBoost0 > 0.0f);
+
+          if (ImGui::Checkbox ("Perceptual Boost", &pboost))
+          {
+            if (pboost)
+            {
+              // Store negative values to turn off without losing user's preference
+              if (__SK_HDR_PQBoost0 == 0.0f)
+                  __SK_HDR_PQBoost0 =  8.50;
+              else
+                  __SK_HDR_PQBoost0 = -__SK_HDR_PQBoost0;
+            }
+            else
+              __SK_HDR_PQBoost0 = -__SK_HDR_PQBoost0;
+
+            _SK_HDR_PerceptualBoost0->store (__SK_HDR_PQBoost0);
+
+            SK_SaveConfig ();
+          }
+
+          fWidth1     =
+            fWidth1 + ImGui::GetItemRectSize ().x;
 
           bool bypass =
             ( __SK_HDR_Bypass_sRGB == 1 );
+
+          ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
+                                  fSliderWidth - fWidth0 - fWidth1 - ImGui::GetStyle ().ItemSpacing.x
+                                                         : -1.0f );
 
           if (ImGui::Checkbox ("Bypass sRGB Gamma", &bypass))
           {
@@ -803,8 +862,7 @@ public:
           float fMidGray = __SK_HDR_user_sdr_Y - 100.0f;
 
           if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-             //__SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
-               __SK_HDR_tonemap == SK_HDR_TONEMAP_PERCEPTUAL_BOOST )
+               __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
           {
             if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -20.0f,
                                                                         (__SK_HDR_tonemap == 2) ?  2.5f :  20.0f,
@@ -1007,6 +1065,30 @@ public:
 
               ImGui::PopStyleColor ();
 
+              if (__SK_HDR_PQBoost0 > 0.1f)
+              {
+                bool boost_changed = false;
+                
+                boost_changed |=
+                  ImGui::InputFloat ("Perceptual Boost 0:", &__SK_HDR_PQBoost0);
+                boost_changed |=
+                  ImGui::InputFloat ("1:", &__SK_HDR_PQBoost1);
+                boost_changed |=                                                              
+                  ImGui::InputFloat ("2:", &__SK_HDR_PQBoost2);
+                boost_changed |=                                                              
+                  ImGui::InputFloat ("3:", &__SK_HDR_PQBoost3);
+
+                if (boost_changed)
+                {
+                  _SK_HDR_PerceptualBoost0->store (__SK_HDR_PQBoost0);
+                  _SK_HDR_PerceptualBoost1->store (__SK_HDR_PQBoost1);
+                  _SK_HDR_PerceptualBoost2->store (__SK_HDR_PQBoost2);
+                  _SK_HDR_PerceptualBoost3->store (__SK_HDR_PQBoost3);
+
+                  SK_SaveConfig ();
+                }
+              }
+
               changed_once |= changed;
 
               if (changed_once)
@@ -1057,8 +1139,7 @@ public:
             }
 
             if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-               //__SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
-                 __SK_HDR_tonemap == SK_HDR_TONEMAP_PERCEPTUAL_BOOST )
+                 __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
             {
               float fSat =
                 __SK_HDR_Saturation * 100.0f;

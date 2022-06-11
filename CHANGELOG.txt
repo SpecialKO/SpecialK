@@ -1,4 +1,12 @@
-﻿22.6.9-NOCEGUI
+﻿22.6.11-NOCEGUI
+===============
+ + Made Perceptual Boost into a mode rather than a Tonemap (refer to the new checkbox in HDR widget)
+ + Extra tuning parameters have been added when PB is enabled.
+ 
+   >> The first two control overall brightness and the second two can scale things back if
+        mid-tone detail is being lost.
+
+22.6.9-NOCEGUI
 ==============
  + Added ACES Filmic + Perceptual Boost Tonemap Mode to HDR Widget
 
