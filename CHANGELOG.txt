@@ -1,4 +1,13 @@
-﻿22.6.12-NOCEGUI
+﻿22.6.12.1-NOCEGUI
+=================
+ + Changed SK's ResizeBuffers skip to issue unsynchronized Presents as many times as necessary to get
+     the SwapChain backbuffer index to wrap-around to 0 before the function returns.
+     
+     This reproduces the side-effects of a successful D3D12 IDXGISwapChain3::ResizeBuffers (...) call
+ 
+   -> Fixes compat. with The Quarry in D3D12
+
+22.6.12-NOCEGUI
 ===============
  + Added support for middle-gray contrast and color saturation adjustment to Passthrough tonemap mode
  + Added range tests to prevent NaN (black pixels that bleed through UI) during tonemapping

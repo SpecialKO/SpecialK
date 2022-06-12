@@ -1718,12 +1718,12 @@ SK_Matrix_Inverse3x3 ( float3x3 m )
 
 struct SK_ColorSpace
 {
-  float    xr, yr,
-           xg, yg,
-           xb, yb,
-           Xw, Yw, Zw;
+  float xr, yr,
+        xg, yg,
+        xb, yb,
+        Xw, Yw, Zw;
 
-  float    minY, maxLocalY, maxY;
+  float minY, maxLocalY, maxY;
 };
 
 #define D65 0.3127f, 0.329f

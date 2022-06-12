@@ -729,6 +729,33 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                    SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
                                         swapDesc.Flags
     );
+
+    // When skipping resize operations in D3D12, there's an important side-effect that
+    //   must be reproduced:
+    // 
+    //    * Current Buffer Index reverts to 0 on success
+    //
+    //  --> We need to make several unsynchronized Present calls until we advance back to
+    //        backbuffer index 0.
+    if (d3d12_)
+    {
+      int iUnsyncedPresents = 0;
+
+      while (SUCCEEDED (pReal->Present (0, 0)))
+      {
+        ++iUnsyncedPresents;
+
+        SK_ComQIPtr <IDXGISwapChain3>
+            pSwap3 (pReal);
+        if (pSwap3                               == nullptr
+         || pSwap3->GetCurrentBackBufferIndex () == 0) break;
+      }
+
+      SK_LOGi0 (
+        L"Issued %d unsync'd Presents to reset the SwapChain's current index to 0 "
+        L"(required D3D12 ResizeBuffers behavior)", iUnsyncedPresents
+      );
+    }
   }
 
   if (SUCCEEDED (hr))
