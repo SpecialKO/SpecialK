@@ -1146,7 +1146,7 @@ public:
               float fSat =
                 __SK_HDR_Saturation * 100.0f;
 
-              if (ImGui::SliderFloat ("Color Saturation", &fSat, 0.0f, 138.0f, "%.3f%%"))
+              if (ImGui::SliderFloat ("Color Saturation", &fSat, 0.0f, 140.0f, "%.3f%%"))
               {
                 __SK_HDR_Saturation =
                   std::max (0.0f, std::min (2.0f, fSat / 100.0f));
