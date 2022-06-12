@@ -862,7 +862,8 @@ public:
           float fMidGray = __SK_HDR_user_sdr_Y - 100.0f;
 
           if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-               __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
+               __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
+               __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
           {
             if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -20.0f,
                                                                         (__SK_HDR_tonemap == 2) ?  2.5f :  20.0f,
@@ -1070,13 +1071,13 @@ public:
                 bool boost_changed = false;
                 
                 boost_changed |=
-                  ImGui::InputFloat ("Perceptual Boost 0:", &__SK_HDR_PQBoost0);
+                  ImGui::SliderFloat ("Perceptual Boost 0", &__SK_HDR_PQBoost0, 3.0f, 20.0f);
                 boost_changed |=
-                  ImGui::InputFloat ("1:", &__SK_HDR_PQBoost1);
+                  ImGui::SliderFloat ("Perceptual Boost 1", &__SK_HDR_PQBoost1, 3.0f, 20.0f);
                 boost_changed |=                                                              
-                  ImGui::InputFloat ("2:", &__SK_HDR_PQBoost2);
+                  ImGui::SliderFloat ("Perceptual Boost 2", &__SK_HDR_PQBoost2, 0.5f, 1.5f);
                 boost_changed |=                                                              
-                  ImGui::InputFloat ("3:", &__SK_HDR_PQBoost3);
+                  ImGui::SliderFloat ("Perceptual Boost 3", &__SK_HDR_PQBoost3, 0.5f, 1.5f);
 
                 if (boost_changed)
                 {
@@ -1138,13 +1139,14 @@ public:
               }
             }
 
-            if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC ||
-                 __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC )
+            if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC       ||
+                 __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
+                 __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
             {
               float fSat =
                 __SK_HDR_Saturation * 100.0f;
 
-              if (ImGui::SliderFloat ("Color Saturation", &fSat, 0.0f, 125.0f, "%.3f%%"))
+              if (ImGui::SliderFloat ("Color Saturation", &fSat, 0.0f, 138.0f, "%.3f%%"))
               {
                 __SK_HDR_Saturation =
                   std::max (0.0f, std::min (2.0f, fSat / 100.0f));

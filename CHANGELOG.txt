@@ -1,4 +1,11 @@
-﻿22.6.11-NOCEGUI
+﻿22.6.12-NOCEGUI
+===============
+ + Added support for middle-gray contrast and color saturation adjustment to Passthrough tonemap mode
+ + Added range tests to prevent NaN (black pixels that bleed through UI) during tonemapping
+ + Added sliders to the HDR widget to make tuning Perceptual Boost easier
+ + Bumped the Color Saturation slider's maximum up to 140%
+
+22.6.11-NOCEGUI
 ===============
  + Made Perceptual Boost into a mode rather than a Tonemap (refer to the new checkbox in HDR widget)
  + Extra tuning parameters have been added when PB is enabled.
@@ -3722,7 +3729,7 @@ Recommended SwapChain Settings for HDR:
  + Added Shader Disassembly View (D3D11)
  + Added option to disable DebugBreak (...) in kernel32.dll
  + Added fix for incorrectly packed compressed DDS textures
- + Remove Malware detection, I have no intention to maintain that feature
+ + Remove Malware detection, I have no intention to maintain that featurez  
 
 
 0.8.12.3:
@@ -3777,3 +3784,6 @@ Recommended SwapChain Settings for HDR:
  + Fixed-up floating-point exception handling in Prey
 
 --------- (Initial GitLab Migration) ---------
+
+
+aGA2yjYz1234

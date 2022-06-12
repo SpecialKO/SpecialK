@@ -66,6 +66,7 @@ float3 gain (float3 x, float k)
 #define TONEMAP_HDR10_to_scRGB_FILMIC 3
 #define TONEMAP_COPYRESOURCE          255
 
+#define minmax(m0,m1,c) min (max ((c), (m0)), (m1))
 
 float3
 RemoveSRGBCurve (float3 x)
@@ -103,17 +104,31 @@ ApplySRGBCurve (float3 x)
                             1.055f * pow ( x, 1.0 / 2.4f ) - 0.55f );
 }
 
+float3 Clamp_scRGB (float3 c)
+{
+  return
+    clamp (c, 0.0f, 125.0f);
+}
+
+float Clamp_scRGB (float c)
+{
+  return
+    clamp (c, 0.0f, 125.0f);
+}
+
 //
 // Convert rgb to luminance with rgb in linear space with sRGB primaries and D65 white point
 //
-float Luminance(float3 linearRgb)
+float Luminance (float3 linearRgb)
 {
-    return dot(linearRgb, float3(0.2126729, 0.7151522, 0.0721750));
+  return
+    dot (linearRgb, float3 (0.2126729, 0.7151522, 0.0721750));
 }
 
-float Luminance(float4 linearRgba)
+float Luminance (float4 linearRgba)
 {
-    return Luminance(linearRgba.rgb);
+  return
+    Luminance (linearRgba.rgb);
 }
 
 //
@@ -121,19 +136,24 @@ float Luminance(float4 linearRgba)
 // Recommended workspace: ACEScg (linear)
 // Optimal range: [0.0, 2.0]
 //
-float3 Saturation(float3 c, float sat)
+float3 Saturation (float3 c, float sat)
 {
-    float luma = Luminance(c);
-    return luma.xxx + sat.xxx * (c - luma.xxx);
+  float luma =
+    Luminance (c);
+  
+  return
+    luma.xxx + sat.xxx * (c - luma.xxx);
 }
 
 //
 // Contrast (reacts better when applied in log)
 // Optimal range: [0.0, 2.0]
 //
-float3 Contrast(float3 c, float midpoint, float contrast)
+float3 Contrast (float3 c, float midpoint, float contrast)
 {
-    return (c - midpoint) * contrast + midpoint;
+  return
+    (c - midpoint) * contrast
+       + midpoint;
 }
 
 
@@ -143,47 +163,57 @@ float3 Contrast(float3 c, float midpoint, float contrast)
 
 // https://twitter.com/SebAaltonen/status/878250919879639040
 // madd_sat + madd
-float FastSign(float x)
+float FastSign (float x)
 {
-    return saturate(x * FLT_MAX + 0.5) * 2.0 - 1.0;
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
-float2 FastSign(float2 x)
+float2 FastSign (float2 x)
 {
-    return saturate(x * FLT_MAX + 0.5) * 2.0 - 1.0;
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
-float3 FastSign(float3 x)
+float3 FastSign (float3 x)
 {
-    return saturate(x * FLT_MAX + 0.5) * 2.0 - 1.0;
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
-float4 FastSign(float4 x)
+float4 FastSign (float4 x)
 {
-    return saturate(x * FLT_MAX + 0.5) * 2.0 - 1.0;
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-float PositivePow(float base, float power)
+float PositivePow (float base, float power)
 {
-    return pow(max(abs(base), float(FLT_EPSILON)), power);
+  return
+    pow ( max (abs (base), float (FLT_EPSILON)), power );
 }
 
-float2 PositivePow(float2 base, float2 power)
+float2 PositivePow (float2 base, float2 power)
 {
-    return pow(max(abs(base), float2(FLT_EPSILON, FLT_EPSILON)), power);
+  return
+    pow (max (abs (base), float2(FLT_EPSILON, FLT_EPSILON)), power );
 }
 
-float3 PositivePow(float3 base, float3 power)
+float3 PositivePow (float3 base, float3 power)
 {
-    return pow(max(abs(base), float3(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+  return
+    pow (max (abs (base), float3 ( FLT_EPSILON, FLT_EPSILON,
+                                   FLT_EPSILON )), power );
 }
 
-float4 PositivePow(float4 base, float4 power)
+float4 PositivePow (float4 base, float4 power)
 {
-    return pow(max(abs(base), float4(FLT_EPSILON, FLT_EPSILON, FLT_EPSILON, FLT_EPSILON)), power);
+  return
+    pow (max (abs (base), float4 ( FLT_EPSILON, FLT_EPSILON,
+                                   FLT_EPSILON, FLT_EPSILON )), power );
 }
 
 
@@ -192,34 +222,41 @@ float4 PositivePow(float4 base, float4 power)
 // negative values will creep in the result
 // Expected workspace: ACEScg (linear)
 //
-float3 LiftGammaGainHDR(float3 c, float3 lift, float3 invgamma, float3 gain)
+float3 LiftGammaGainHDR (float3 c, float3 lift, float3 invgamma, float3 gain)
 {
-    c = c * gain + lift;
-
-    // ACEScg will output negative values, as clamping to 0 will lose precious information we'll
-    // mirror the gamma function instead
-    return FastSign(c) * pow(abs(c), invgamma);
+  c =
+    (c * gain + lift);
+  
+  // ACEScg will output negative values, as clamping to 0 will lose precious information we'll
+  // mirror the gamma function instead
+  return
+    FastSign (c) * pow (abs (c), invgamma);
 }
 
 //
 // Lift, Gamma (pre-inverted), Gain tuned for LDR use
 // Input is linear RGB
 //
-float3 LiftGammaGainLDR(float3 c, float3 lift, float3 invgamma, float3 gain)
+float3 LiftGammaGainLDR (float3 c, float3 lift, float3 invgamma, float3 gain)
 {
-    c = saturate(PositivePow(saturate(c), invgamma));
-    return gain * c + lift * (1.0 - c);
+  c =
+    saturate (PositivePow (saturate (c), invgamma));
+
+  return
+    (gain * c + lift * (1.0 - c));
 }
 
-float3 HUEtoRGB(in float H)
+float3 HUEtoRGB (in float H)
 {
-  float R = abs(H * 6 - 3) - 1;
-  float G = 2 - abs(H * 6 - 2);
-  float B = 2 - abs(H * 6 - 4);
-  return saturate(float3(R,G,B));
+  float R =     abs (H * 6 - 3) - 1;
+  float G = 2 - abs (H * 6 - 2);
+  float B = 2 - abs (H * 6 - 4);
+
+  return
+    saturate (float3 (R,G,B));
 }
 
-float RGBtoHUE(in float3 rgb)
+float RGBtoHUE (in float3 rgb)
 {
 	float H;
 
@@ -238,7 +275,7 @@ float RGBtoHUE(in float3 rgb)
 	return H;
 }
 
-float3 HSVtoRGB(in float3 HSV)
+float3 HSVtoRGB (in float3 HSV)
 {
   float3 RGB =
     HUEtoRGB (HSV.x);
@@ -304,93 +341,106 @@ float rcp(float value)
 #endif
 
 #ifndef INTRINSIC_MINMAX3
-float Min3(float a, float b, float c)
+float Min3 (float a, float b, float c)
 {
-    return min(min(a, b), c);
+  return min (min (a, b), c);
 }
 
-float2 Min3(float2 a, float2 b, float2 c)
+float2 Min3 (float2 a, float2 b, float2 c)
 {
-    return min(min(a, b), c);
+  return min (min (a, b), c);
 }
 
-float3 Min3(float3 a, float3 b, float3 c)
+float3 Min3 (float3 a, float3 b, float3 c)
 {
-    return min(min(a, b), c);
+  return min (min (a, b), c);
 }
 
-float4 Min3(float4 a, float4 b, float4 c)
+float4 Min3 (float4 a, float4 b, float4 c)
 {
-    return min(min(a, b), c);
+  return min (min (a, b), c);
 }
 
-float Max3(float a, float b, float c)
+float Max3 (float a, float b, float c)
 {
-    return max(max(a, b), c);
+  return max (max (a, b), c);
 }
 
-float2 Max3(float2 a, float2 b, float2 c)
+float2 Max3 (float2 a, float2 b, float2 c)
 {
-    return max(max(a, b), c);
+  return max (max (a, b), c);
 }
 
-float3 Max3(float3 a, float3 b, float3 c)
+float3 Max3 (float3 a, float3 b, float3 c)
 {
-    return max(max(a, b), c);
+  return max (max (a, b), c);
 }
 
-float4 Max3(float4 a, float4 b, float4 c)
+float4 Max3 (float4 a, float4 b, float4 c)
 {
-    return max(max(a, b), c);
+  return max (max (a, b), c);
 }
 #endif // INTRINSIC_MINMAX3
 
 // NaN checker
 // /Gic isn't enabled on fxc so we can't rely on isnan() anymore
-bool IsNan(float x)
+bool IsNan (float x)
 {
-    // For some reason the following tests outputs "internal compiler error" randomly on desktop
-    // so we'll use a safer but slightly slower version instead :/
-    //return (x <= 0.0 || 0.0 <= x) ? false : true;
-    return (x < 0.0 || x > 0.0 || x == 0.0) ? false : true;
+  // For some reason the following tests outputs "internal compiler error" randomly on desktop
+  // so we'll use a safer but slightly slower version instead :/
+  //return (x <= 0.0 || 0.0 <= x) ? false : true;
+  return
+    (x < 0.0 || x > 0.0 || x == 0.0) ?
+                               false : true;
 }
 
-bool AnyIsNan(float2 x)
+bool AnyIsNan (float2 x)
 {
-    return IsNan(x.x) || IsNan(x.y);
+  return IsNan (x.x) ||
+         IsNan (x.y);
 }
 
-bool AnyIsNan(float3 x)
+bool AnyIsNan (float3 x)
 {
-    return IsNan(x.x) || IsNan(x.y) || IsNan(x.z);
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z);
 }
 
-bool AnyIsNan(float4 x)
+bool AnyIsNan (float4 x)
 {
-    return IsNan(x.x) || IsNan(x.y) || IsNan(x.z) || IsNan(x.w);
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z) ||
+         IsNan (x.w);
 }
 
 // Clamp HDR value within a safe range
-float3 SafeHDR(float3 c)
+float3 SafeHDR (float3 c)
 {
-    return min(c, float_MAX);
+  return
+    min (c, float_MAX);
 }
 
-float4 SafeHDR(float4 c)
+float4 SafeHDR (float4 c)
 {
-    return min(c, float_MAX);
+  return
+    min (c, float_MAX);
 }
 
 // Decode normals stored in _CameraDepthNormalsTexture
-float3 DecodeViewNormalStereo(float4 enc4)
+float3 DecodeViewNormalStereo (float4 enc4)
 {
-    float kScale = 1.7777;
-    float3 nn = enc4.xyz * float3(2.0 * kScale, 2.0 * kScale, 0) + float3(-kScale, -kScale, 1);
-    float g = 2.0 / dot(nn.xyz, nn.xyz);
-    float3 n;
-    n.xy = g * nn.xy;
-    n.z = g - 1.0;
-    return n;
+  float  kScale = 1.7777;
+  float3 nn     = enc4.xyz * float3 (2.0 * kScale, 2.0 * kScale, 0) + 
+                             float3 (     -kScale,      -kScale, 1);
+  float   g     = 2.0 / dot (nn.xyz, nn.xyz);  
+  float3  n;
+
+  n.xy = g * nn.xy;
+  n.z  = g - 1.0;
+
+  return n;
 }
 
 ///// Interleaved gradient function from Jimenez 2014
@@ -403,10 +453,12 @@ float3 DecodeViewNormalStereo(float4 enc4)
 ///}
 
 // Vertex manipulation
-float2 TransformTriangleVertexToUV(float2 vertex)
+float2 TransformTriangleVertexToUV (float2 vertex)
 {
-    float2 uv = (vertex + 1.0) * 0.5;
-    return uv;
+  float2 uv =
+    (vertex + 1.0) * 0.5;
+
+  return uv;
 }
 
 
@@ -414,37 +466,37 @@ float2 TransformTriangleVertexToUV(float2 vertex)
 #define LUT_SPACE_DECODE(x) LogCToLinear(x)
 
 #ifndef USE_PRECISE_LOGC
-    // Set to 1 to use more precise but more expensive log/linear conversions. I haven't found a proper
-    // use case for the high precision version yet so I'm leaving this to 0.
-    #define USE_PRECISE_LOGC 0
+  // Set to 1 to use more precise but more expensive log/linear conversions. I haven't found a proper
+  // use case for the high precision version yet so I'm leaving this to 0.
+  #define USE_PRECISE_LOGC 0
 #endif
 
 #ifndef TONEMAPPING_USE_FULL_ACES
-    // Set to 1 to use the full reference ACES tonemapper. This should only be used for research
-    // purposes as it's quite heavy and generally overkill.
-    #define TONEMAPPING_USE_FULL_ACES 1
+  // Set to 1 to use the full reference ACES tonemapper. This should only be used for research
+  // purposes as it's quite heavy and generally overkill.
+  #define TONEMAPPING_USE_FULL_ACES 1
 #endif
 
 #ifndef DEFAULT_MAX_PQ
-    // PQ ST.2048 max value
-    // 1.0 = 100nits, 100.0 = 10knits
-    #define DEFAULT_MAX_PQ 100.0
+  // PQ ST.2048 max value
+  // 1.0 = 100nits, 100.0 = 10knits
+  #define DEFAULT_MAX_PQ 100.0
 #endif
 
 #ifndef USE_VERY_FAST_SRGB
-    #if defined(SHADER_API_MOBILE)
-        #define USE_VERY_FAST_SRGB 1
-    #else
-        #define USE_VERY_FAST_SRGB 0
-    #endif
+  #if defined(SHADER_API_MOBILE)
+      #define USE_VERY_FAST_SRGB 1
+  #else
+      #define USE_VERY_FAST_SRGB 0
+  #endif
 #endif
 
 #ifndef USE_FAST_SRGB
-    #if defined(SHADER_API_CONSOLE)
-        #define USE_FAST_SRGB 1
-    #else
-        #define USE_FAST_SRGB 0
-    #endif
+  #if defined(SHADER_API_CONSOLE)
+      #define USE_FAST_SRGB 1
+  #else
+      #define USE_FAST_SRGB 0
+  #endif
 #endif
 
 //
@@ -454,64 +506,72 @@ float2 TransformTriangleVertexToUV(float2 vertex)
 //
 struct ParamsLogC
 {
-    float cut;
-    float a, b, c, d, e, f;
+  float cut;
+  float a, b, c, d, e, f;
 };
 
 static const ParamsLogC LogC =
 {
-    0.011361, // cut
-    5.555556, // a
-    0.047996, // b
-    0.244161, // c
-    0.386036, // d
-    5.301883, // e
-    0.092819  // f
+  0.011361, // cut
+  5.555556, // a
+  0.047996, // b
+  0.244161, // c
+  0.386036, // d
+  5.301883, // e
+  0.092819  // f
 };
 
-float LinearToLogC_Precise(float x)
+float LinearToLogC_Precise (float x)
 {
-    float o;
-    if (x > LogC.cut)
-        o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
-    else
-        o = LogC.e * x + LogC.f;
-    return o;
+  float o;
+  if (x > LogC.cut)
+      o = LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+  else
+      o = LogC.e * x + LogC.f;
+
+  return
+    Clamp_scRGB (o);
 }
 
-float3 LinearToLogC(float3 x)
+float3 LinearToLogC (float3 x)
 {
 #if USE_PRECISE_LOGC
-    return float3(
-        LinearToLogC_Precise(x.x),
-        LinearToLogC_Precise(x.y),
-        LinearToLogC_Precise(x.z)
-    );
+  return float3(
+      LinearToLogC_Precise(x.x),
+      LinearToLogC_Precise(x.y),
+      LinearToLogC_Precise(x.z)
+  );
 #else
-    return LogC.c * log10(LogC.a * x + LogC.b) + LogC.d;
+  return
+    Clamp_scRGB ((LogC.c * log10(LogC.a * x + LogC.b) + LogC.d));
 #endif
 }
 
-float LogCToLinear_Precise(float x)
+float LogCToLinear_Precise (float x)
 {
-    float o;
-    if (x > LogC.e * LogC.cut + LogC.f)
-        o = (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
-    else
-        o = (x - LogC.f) / LogC.e;
-    return o;
+  float o;
+
+  if (x > LogC.e * LogC.cut + LogC.f)
+      o = (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+  else
+      o = (x - LogC.f) / LogC.e;
+
+  return
+    Clamp_scRGB (o);
 }
 
-float3 LogCToLinear(float3 x)
+float3 LogCToLinear (float3 x)
 {
 #if USE_PRECISE_LOGC
-    return float3(
-        LogCToLinear_Precise(x.x),
-        LogCToLinear_Precise(x.y),
-        LogCToLinear_Precise(x.z)
-    );
+  return float3(
+      LogCToLinear_Precise(x.x),
+      LogCToLinear_Precise(x.y),
+      LogCToLinear_Precise(x.z)
+  );
 #else
-    return (pow(10.0, (x - LogC.d) / LogC.c) - LogC.b) / LogC.a;
+  return Clamp_scRGB (
+     (pow (10.0, (x - LogC.d) / LogC.c) -
+                      LogC.b) / LogC.a);
 #endif
 }
 
@@ -521,248 +581,304 @@ float3 LogCToLinear(float3 x)
 //
 struct ParamsPQ
 {
-    float N, M;
-    float C1, C2, C3;
+  float N, M;
+  float C1, C2, C3;
 };
 
 static const ParamsPQ PQ =
 {
-    2610.0 / 4096.0 / 4.0,   // N
-    2523.0 / 4096.0 * 128.0, // M
-    3424.0 / 4096.0,         // C1
-    2413.0 / 4096.0 * 32.0,  // C2
-    2392.0 / 4096.0 * 32.0,  // C3
+  2610.0 / 4096.0 / 4.0,   // N
+  2523.0 / 4096.0 * 128.0, // M
+  3424.0 / 4096.0,         // C1
+  2413.0 / 4096.0 * 32.0,  // C2
+  2392.0 / 4096.0 * 32.0,  // C3
 };
 
-float3 LinearToPQ(float3 x, float maxPQValue)
+float3 LinearToPQ (float3 x, float maxPQValue)
 {
-    x = PositivePow(x / maxPQValue, PQ.N);
-    float3 nd = (PQ.C1 + PQ.C2 * x) / (1.0 + PQ.C3 * x);
-    return PositivePow(nd, PQ.M);
+  x =
+    PositivePow ( x / maxPQValue,
+                         PQ.N );
+  
+  float3 nd =
+    (PQ.C1 + PQ.C2 * x) /
+      (1.0 + PQ.C3 * x);
+
+  return
+    Clamp_scRGB (PositivePow (nd, PQ.M));
 }
 
-float3 LinearToPQ(float3 x)
+float3 LinearToPQ (float3 x)
 {
-    return LinearToPQ(x, DEFAULT_MAX_PQ);
+  return
+    LinearToPQ (x, DEFAULT_MAX_PQ);
 }
 
-float3 PQToLinear(float3 x, float maxPQValue)
+float3 PQToLinear (float3 x, float maxPQValue)
 {
-    x = PositivePow(x, rcp(PQ.M));
-    float3 nd = max(x - PQ.C1, 0.0) / (PQ.C2 - (PQ.C3 * x));
-    return PositivePow(nd, rcp(PQ.N)) * maxPQValue;
+  x =
+    PositivePow (x, rcp (PQ.M));
+
+  float3 nd =
+    max (x - PQ.C1, 0.0) /
+            (PQ.C2 - (PQ.C3 * x));
+
+  return
+    Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
 }
 
-float3 PQToLinear(float3 x)
+float3 PQToLinear (float3 x)
 {
-    return PQToLinear(x, DEFAULT_MAX_PQ);
+  return
+    PQToLinear (x, DEFAULT_MAX_PQ);
 }
 
 //
 // sRGB transfer functions
 // Fast path ref: http://chilliant.blogspot.com.au/2012/08/srgb-approximations-for-hlsl.html?m=1
 //
-float SRGBToLinear(float c)
+float SRGBToLinear (float c)
 {
 #if USE_VERY_FAST_SRGB
-    return c * c;
+  return c * c;
 #elif USE_FAST_SRGB
-    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+  return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 #else
-    float linearRGBLo = c / 12.92;
-    float linearRGBHi = PositivePow((c + 0.055) / 1.055, 2.4);
-    float linearRGB = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
-    return linearRGB;
+  float linearRGBLo =               c  / 12.92;
+  float linearRGBHi = PositivePow ((c  + 0.055) / 1.055, 2.4);
+  float linearRGB   =              (c <= 0.04045) ?
+                                      linearRGBLo : linearRGBHi;
+  return                 Clamp_scRGB (linearRGB);
 #endif
 }
 
-float3 SRGBToLinear(float3 c)
+float3 SRGBToLinear (float3 c)
 {
 #if USE_VERY_FAST_SRGB
-    return c * c;
+  return c * c;
 #elif USE_FAST_SRGB
-    return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
+  return c * (c * (c * 0.305306011 + 0.682171111) + 0.012522878);
 #else
-    float3 linearRGBLo = c / 12.92;
-    float3 linearRGBHi = PositivePow((c + 0.055) / 1.055, float3(2.4, 2.4, 2.4));
-    float3 linearRGB = (c <= 0.04045) ? linearRGBLo : linearRGBHi;
-    return linearRGB;
+  float3 linearRGBLo =               c  / 12.92;
+  float3 linearRGBHi = PositivePow ((c  + 0.055) / 1.055, float3 (2.4, 2.4, 2.4));
+  float3 linearRGB   =              (c <= 0.04045) ?
+                                       linearRGBLo : linearRGBHi;
+  return                  Clamp_scRGB (linearRGB);
 #endif
 }
 
-float4 SRGBToLinear(float4 c)
+float4 SRGBToLinear (float4 c)
 {
-    return float4(SRGBToLinear(c.rgb), c.a);
+  return
+    float4 (
+      SRGBToLinear (c.rgb),
+                    c.a
+    );
 }
 
-float LinearToSRGB(float c)
+float LinearToSRGB (float c)
+{
+#if USE_VERY_FAST_SRGB
+  return sqrt(c);
+#elif USE_FAST_SRGB
+  return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
+#else
+  float sRGBLo =               c * 12.92;
+  float sRGBHi = (PositivePow (c, 1.0 / 2.4) * 1.055) - 0.055;
+  float sRGB   =              (c <= 0.0031308) ?
+                                        sRGBLo : sRGBHi;
+  return                   Clamp_scRGB (sRGB);
+#endif
+}
+
+float3 LinearToSRGB (float3 c)
 {
 #if USE_VERY_FAST_SRGB
     return sqrt(c);
 #elif USE_FAST_SRGB
     return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
 #else
-    float sRGBLo = c * 12.92;
-    float sRGBHi = (PositivePow(c, 1.0 / 2.4) * 1.055) - 0.055;
-    float sRGB = (c <= 0.0031308) ? sRGBLo : sRGBHi;
-    return sRGB;
+  float3 sRGBLo =  c * 12.92;
+  float3 sRGBHi = (PositivePow (c, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
+  float3 sRGB   = (c <= 0.0031308) ?
+                            sRGBLo : sRGBHi;
+  return       Clamp_scRGB (sRGB);
 #endif
 }
 
-float3 LinearToSRGB(float3 c)
+float4 LinearToSRGB (float4 c)
 {
-#if USE_VERY_FAST_SRGB
-    return sqrt(c);
-#elif USE_FAST_SRGB
-    return max(1.055 * PositivePow(c, 0.416666667) - 0.055, 0.0);
-#else
-    float3 sRGBLo = c * 12.92;
-    float3 sRGBHi = (PositivePow(c, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-    float3 sRGB = (c <= 0.0031308) ? sRGBLo : sRGBHi;
-    return sRGB;
-#endif
-}
-
-float4 LinearToSRGB(float4 c)
-{
-    return float4(LinearToSRGB(c.rgb), c.a);
+  return
+    float4 (
+      LinearToSRGB (c.rgb),
+                    c.a );
 }
 
 //
 // Quadratic color thresholding
 // curve = (threshold - knee, knee * 2, 0.25 / knee)
 //
-float4 QuadraticThreshold(float4 color, float threshold, float3 curve)
+float4 QuadraticThreshold (float4 color, float threshold, float3 curve)
 {
-    // Pixel brightness
-    float br = Max3(color.r, color.g, color.b);
-
-    // Under-threshold part: quadratic curve
-    float rq = clamp(br - curve.x, 0.0, curve.y);
-    rq = curve.z * rq * rq;
-
-    // Combine and apply the brightness response curve.
-    color *= max(rq, br - threshold) / max(br, EPSILON);
-
-    return color;
+  // Pixel brightness
+  float br =
+    Max3 (color.r, color.g, color.b);
+  
+  // Under-threshold part: quadratic curve
+  float rq =
+    clamp (br - curve.x, 0.0, curve.y);
+  
+  rq =
+    curve.z * rq * rq;
+  
+  // Combine and apply the brightness response curve.
+  color *= max (rq, br - threshold) /
+           max (    br,    EPSILON);
+  
+  return color;
 }
 
 //
 // Fast reversible tonemapper
 // http://gpuopen.com/optimized-reversible-tonemapper-for-resolve/
 //
-float3 FastTonemap(float3 c)
+float3 FastTonemap (float3 c)
 {
-    return c * rcp(Max3(c.r, c.g, c.b) + 1.0);
+  return
+    c * rcp ( Max3 (c.r, c.g, c.b) + 1.0 );
 }
 
-float4 FastTonemap(float4 c)
+float4 FastTonemap (float4 c)
 {
-    return float4(FastTonemap(c.rgb), c.a);
+  return
+    float4 ( FastTonemap (c.rgb),
+                          c.a );
 }
 
-float3 FastTonemap(float3 c, float w)
+float3 FastTonemap (float3 c, float w)
 {
-    return c * (w * rcp(Max3(c.r, c.g, c.b) + 1.0));
+  return
+    c * (w * rcp (
+          Max3 (c.r, c.g, c.b) + 1.0
+        )        );
 }
 
-float4 FastTonemap(float4 c, float w)
+float4 FastTonemap (float4 c, float w)
 {
-    return float4(FastTonemap(c.rgb, w), c.a);
+  return
+    float4 ( FastTonemap (c.rgb, w),
+                          c.a );
 }
 
-float3 FastTonemapInvert(float3 c)
+float3 FastTonemapInvert (float3 c)
 {
-    return c * rcp(1.0 - Max3(c.r, c.g, c.b));
+  return
+    c * rcp (1.0 - Max3 (c.r, c.g, c.b ) );
 }
 
-float4 FastTonemapInvert(float4 c)
+float4 FastTonemapInvert (float4 c)
 {
-    return float4(FastTonemapInvert(c.rgb), c.a);
+  return
+    float4 ( FastTonemapInvert (c.rgb),
+                                c.a );
 }
 
 //
 // Neutral tonemapping (Hable/Hejl/Frostbite)
 // Input is linear RGB
 //
-float3 NeutralCurve(float3 x, float a, float b, float c, float d, float e, float f)
+float3 NeutralCurve ( float3 x, float a, float b,
+                      float  c, float d, float e,
+                      float  f )
 {
-    return ((x * (a * x + c * b) + d * e) / (x * (a * x + b) + d * f)) - e / f;
+  return
+    ((x * (a * x + c * b) + d  *  e) /
+     (x * (a * x + b) + d * f)) - e  / f;
 }
 
-float3 NeutralTonemap(float3 x)
+float3 NeutralTonemap (float3 x)
 {
-    // Tonemap
-    float a = 0.2;
-    float b = 0.29;
-    float c = 0.24;
-    float d = 0.272;
-    float e = 0.02;
-    float f = 0.3;
-    float whiteLevel = 5.3;
-    float whiteClip = 1.0;
-
-    float3 whiteScale = (1.0).xxx / NeutralCurve(whiteLevel, a, b, c, d, e, f);
-    x = NeutralCurve(x * whiteScale, a, b, c, d, e, f);
-    x *= whiteScale;
-
-    // Post-curve white point adjustment
-    x /= whiteClip.xxx;
-
-    return x;
+  // Tonemap
+  float          a = 0.2;
+  float          b = 0.29;
+  float          c = 0.24;
+  float          d = 0.272;
+  float          e = 0.02;
+  float          f = 0.3;
+  float whiteLevel = 5.3;
+  float  whiteClip = 1.0;
+  
+  float3 whiteScale = (1.0).xxx / NeutralCurve (whiteLevel,     a, b, c, d, e, f);
+  x =                             NeutralCurve (x * whiteScale, a, b, c, d, e, f);
+  x *= whiteScale;
+  
+  // Post-curve white point adjustment
+  x /= whiteClip.xxx;
+  
+  return x;
 }
 
 //
 // Raw, unoptimized version of John Hable's artist-friendly tone curve
 // Input is linear RGB
 //
-float EvalCustomSegment(float x, float4 segmentA, float2 segmentB)
+float EvalCustomSegment (float x, float4 segmentA, float2 segmentB)
 {
-    const float kOffsetX = segmentA.x;
-    const float kOffsetY = segmentA.y;
-    const float kScaleX  = segmentA.z;
-    const float kScaleY  = segmentA.w;
-    const float kLnA     = segmentB.x;
-    const float kB       = segmentB.y;
+  const float kOffsetX = segmentA.x;
+  const float kOffsetY = segmentA.y;
+  const float kScaleX  = segmentA.z;
+  const float kScaleY  = segmentA.w;
+  const float kLnA     = segmentB.x;
+  const float kB       = segmentB.y;
+  
+  float x0 = (x - kOffsetX) * kScaleX;
+  float y0 =             (x0 > 0.0) ?
+    exp (kLnA + kB * log (x0))      : 0.0;
 
-    float x0 = (x - kOffsetX) * kScaleX;
-    float y0 = (x0 > 0.0) ? exp(kLnA + kB * log(x0)) : 0.0;
-    return y0 * kScaleY + kOffsetY;
+  return
+    (y0 * kScaleY + kOffsetY);
 }
 
-float EvalCustomCurve(float x, float3 curve, float4 toeSegmentA, float2 toeSegmentB, float4 midSegmentA, float2 midSegmentB, float4 shoSegmentA, float2 shoSegmentB)
+float EvalCustomCurve ( float x, float3 curve, float4 toeSegmentA, float2 toeSegmentB,
+                        float4    midSegmentA, float2 midSegmentB, float4 shoSegmentA,
+                        float2    shoSegmentB )
 {
-    float4 segmentA;
-    float2 segmentB;
-
-    if (x < curve.y)
-    {
-        segmentA = toeSegmentA;
-        segmentB = toeSegmentB;
-    }
-    else if (x < curve.z)
-    {
-        segmentA = midSegmentA;
-        segmentB = midSegmentB;
-    }
-    else
-    {
-        segmentA = shoSegmentA;
-        segmentB = shoSegmentB;
-    }
-
-    return EvalCustomSegment(x, segmentA, segmentB);
+  float4 segmentA;
+  float2 segmentB;
+  
+  if (x < curve.y)
+  {
+    segmentA = toeSegmentA;
+    segmentB = toeSegmentB;
+  }
+  else if (x < curve.z)
+  {
+    segmentA = midSegmentA;
+    segmentB = midSegmentB;
+  }
+  else
+  {
+    segmentA = shoSegmentA;
+    segmentB = shoSegmentB;
+  }
+  
+  return
+    EvalCustomSegment (x, segmentA, segmentB);
 }
 
 // curve: x: inverseWhitePoint, y: x0, z: x1
-float3 CustomTonemap(float3 x, float3 curve, float4 toeSegmentA, float2 toeSegmentB, float4 midSegmentA, float2 midSegmentB, float4 shoSegmentA, float2 shoSegmentB)
+float3 CustomTonemap ( float3 x, float3 curve, float4 toeSegmentA, float2 toeSegmentB,
+                                               float4 midSegmentA, float2 midSegmentB,
+                                               float4 shoSegmentA, float2 shoSegmentB )
 {
-    float3 normX = x * curve.x;
-    float3 ret;
-    ret.x = EvalCustomCurve(normX.x, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
-    ret.y = EvalCustomCurve(normX.y, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
-    ret.z = EvalCustomCurve(normX.z, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
-    return ret;
+  float3 normX = x * curve.x;
+  float3 ret;
+
+  ret.x = EvalCustomCurve(normX.x, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
+  ret.y = EvalCustomCurve(normX.y, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
+  ret.z = EvalCustomCurve(normX.z, curve, toeSegmentA, toeSegmentB, midSegmentA, midSegmentB, shoSegmentA, shoSegmentB);
+
+  return ret;
 }
 
 
@@ -830,89 +946,90 @@ float3 CustomTonemap(float3 x, float3 curve, float4 toeSegmentA, float2 toeSegme
 // See https://github.com/ampas/aces-dev/blob/master/transforms/ctl/README-MATRIX.md
 //
 static const float3x3 sRGB_2_AP0 = {
-    0.4397010, 0.3829780, 0.1773350,
-    0.0897923, 0.8134230, 0.0967616,
-    0.0175440, 0.1115440, 0.8707040
+  0.4397010, 0.3829780, 0.1773350,
+  0.0897923, 0.8134230, 0.0967616,
+  0.0175440, 0.1115440, 0.8707040
 };
 
 static const float3x3 sRGB_2_AP1 = {
-    0.61319, 0.33951, 0.04737,
-    0.07021, 0.91634, 0.01345,
-    0.02062, 0.10957, 0.86961
+  0.61319, 0.33951, 0.04737,
+  0.07021, 0.91634, 0.01345,
+  0.02062, 0.10957, 0.86961
 };
 
 static const float3x3 AP0_2_sRGB = {
-    2.52169, -1.13413, -0.38756,
-    -0.27648, 1.37272, -0.09624,
-    -0.01538, -0.15298, 1.16835,
+   2.52169, -1.13413, -0.38756,
+  -0.27648,  1.37272, -0.09624,
+  -0.01538, -0.15298,  1.16835,
 };
 
 static const float3x3 AP1_2_sRGB = {
-    1.70505, -0.62179, -0.08326,
-    -0.13026, 1.14080, -0.01055,
-    -0.02400, -0.12897, 1.15297,
+   1.70505, -0.62179, -0.08326,
+  -0.13026,  1.14080, -0.01055,
+  -0.02400, -0.12897,  1.15297,
 };
 
 static const float3x3 AP0_2_AP1_MAT = {
-     1.4514393161, -0.2365107469, -0.2149285693,
-    -0.0765537734,  1.1762296998, -0.0996759264,
-     0.0083161484, -0.0060324498,  0.9977163014
+   1.4514393161, -0.2365107469, -0.2149285693,
+  -0.0765537734,  1.1762296998, -0.0996759264,
+   0.0083161484, -0.0060324498,  0.9977163014
 };
 
 static const float3x3 AP1_2_AP0_MAT = {
-     0.6954522414, 0.1406786965, 0.1638690622,
-     0.0447945634, 0.8596711185, 0.0955343182,
-    -0.0055258826, 0.0040252103, 1.0015006723
+   0.6954522414, 0.1406786965, 0.1638690622,
+   0.0447945634, 0.8596711185, 0.0955343182,
+  -0.0055258826, 0.0040252103, 1.0015006723
 };
 
 static const float3x3 AP1_2_XYZ_MAT = {
-     0.6624541811, 0.1340042065, 0.1561876870,
-     0.2722287168, 0.6740817658, 0.0536895174,
-    -0.0055746495, 0.0040607335, 1.0103391003
+   0.6624541811, 0.1340042065, 0.1561876870,
+   0.2722287168, 0.6740817658, 0.0536895174,
+  -0.0055746495, 0.0040607335, 1.0103391003
 };
 
 static const float3x3 XYZ_2_AP1_MAT = {
-     1.6410233797, -0.3248032942, -0.2364246952,
-    -0.6636628587,  1.6153315917,  0.0167563477,
-     0.0117218943, -0.0082844420,  0.9883948585
+   1.6410233797, -0.3248032942, -0.2364246952,
+  -0.6636628587,  1.6153315917,  0.0167563477,
+   0.0117218943, -0.0082844420,  0.9883948585
 };
 
 static const float3x3 XYZ_2_REC709_MAT = {
-     3.2409699419, -1.5373831776, -0.4986107603,
-    -0.9692436363,  1.8759675015,  0.0415550574,
-     0.0556300797, -0.2039769589,  1.0569715142
+   3.2409699419, -1.5373831776, -0.4986107603,
+  -0.9692436363,  1.8759675015,  0.0415550574,
+   0.0556300797, -0.2039769589,  1.0569715142
 };
 
 static const float3x3 XYZ_2_REC2020_MAT = {
-     1.7166511880, -0.3556707838, -0.2533662814,
-    -0.6666843518,  1.6164812366,  0.0157685458,
-     0.0176398574, -0.0427706133,  0.9421031212
+   1.7166511880, -0.3556707838, -0.2533662814,
+  -0.6666843518,  1.6164812366,  0.0157685458,
+   0.0176398574, -0.0427706133,  0.9421031212
 };
 
 static const float3x3 XYZ_2_DCIP3_MAT = {
-     2.7253940305, -1.0180030062, -0.4401631952,
-    -0.7951680258,  1.6897320548,  0.0226471906,
-     0.0412418914, -0.0876390192,  1.1009293786
+   2.7253940305, -1.0180030062, -0.4401631952,
+  -0.7951680258,  1.6897320548,  0.0226471906,
+   0.0412418914, -0.0876390192,  1.1009293786
 };
 
-static const float3 AP1_RGB2Y = float3(0.272229, 0.674082, 0.0536895);
+static const float3 AP1_RGB2Y =
+  float3 (0.272229, 0.674082, 0.0536895);
 
 static const float3x3 RRT_SAT_MAT = {
-    0.9708890, 0.0269633, 0.00214758,
-    0.0108892, 0.9869630, 0.00214758,
-    0.0108892, 0.0269633, 0.96214800
+  0.9708890, 0.0269633, 0.00214758,
+  0.0108892, 0.9869630, 0.00214758,
+  0.0108892, 0.0269633, 0.96214800
 };
 
 static const float3x3 ODT_SAT_MAT = {
-    0.949056, 0.0471857, 0.00375827,
-    0.019056, 0.9771860, 0.00375827,
-    0.019056, 0.0471857, 0.93375800
+  0.949056, 0.0471857, 0.00375827,
+  0.019056, 0.9771860, 0.00375827,
+  0.019056, 0.0471857, 0.93375800
 };
 
 static const float3x3 D60_2_D65_CAT = {
-     0.98722400, -0.00611327, 0.0159533,
-    -0.00759836,  1.00186000, 0.0053302,
-     0.00307257, -0.00509595, 1.0816800
+   0.98722400, -0.00611327, 0.0159533,
+  -0.00759836,  1.00186000, 0.0053302,
+   0.00307257, -0.00509595, 1.0816800
 };
 
 //
@@ -921,10 +1038,12 @@ static const float3x3 D60_2_D65_CAT = {
 // converts Unity raw (sRGB primaries) to
 //          ACES2065-1 (AP0 w/ linear encoding)
 //
-float3 unity_to_ACES(float3 x)
+float3 unity_to_ACES (float3 x)
 {
-    x = mul(sRGB_2_AP0, x);
-    return x;
+  x =
+    mul (sRGB_2_AP0, x);
+
+  return x;
 }
 
 //
@@ -933,10 +1052,12 @@ float3 unity_to_ACES(float3 x)
 // converts ACES2065-1 (AP0 w/ linear encoding)
 //          Unity raw (sRGB primaries) to
 //
-float3 ACES_to_unity(float3 x)
+float3 ACES_to_unity (float3 x)
 {
-    x = mul(AP0_2_sRGB, x);
-    return x;
+  x =
+    mul (AP0_2_sRGB, x);
+
+  return x;
 }
 
 //
@@ -945,10 +1066,12 @@ float3 ACES_to_unity(float3 x)
 // converts Unity raw (sRGB primaries) to
 //          ACEScg (AP1 w/ linear encoding)
 //
-float3 unity_to_ACEScg(float3 x)
+float3 unity_to_ACEScg (float3 x)
 {
-    x = mul(sRGB_2_AP1, x);
-    return x;
+  x =
+    mul (sRGB_2_AP1, x);
+
+  return x;
 }
 
 //
@@ -957,10 +1080,12 @@ float3 unity_to_ACEScg(float3 x)
 // converts ACEScg (AP1 w/ linear encoding) to
 //          Unity raw (sRGB primaries)
 //
-float3 ACEScg_to_unity(float3 x)
+float3 ACEScg_to_unity (float3 x)
 {
-    x = mul(AP1_2_sRGB, x);
-    return x;
+  x =
+    mul (AP1_2_sRGB, x);
+
+  return x;
 }
 
 //
@@ -971,30 +1096,35 @@ float3 ACEScg_to_unity(float3 x)
 //
 // This transform follows the formulas from section 4.4 in S-2014-003
 //
-float ACES_to_ACEScc(float x)
+float ACES_to_ACEScc (float x)
 {
-    if (x <= 0.0)
-        return -0.35828683; // = (log2(pow(2.0, -15.0) * 0.5) + 9.72) / 17.52
-    else if (x < pow(2.0, -15.0))
-        return (log2(pow(2.0, -16.0) + x * 0.5) + 9.72) / 17.52;
-    else // (x >= pow(2.0, -15.0))
-        return (log2(x) + 9.72) / 17.52;
+  if (x <= 0.0)
+    return -0.35828683; // = (log2(pow(2.0, -15.0) * 0.5) + 9.72) / 17.52
+  else if (x < pow (2.0, -15.0))
+    return (log2 (pow (2.0, -16.0) + x * 0.5)
+                     + 9.72) / 17.52;
+  else // (x >= pow(2.0, -15.0))
+    return (log2 (x) + 9.72) / 17.52;
 }
 
-float3 ACES_to_ACEScc(float3 x)
+float3 ACES_to_ACEScc (float3 x)
 {
-    x = clamp(x, 0.0, float_MAX);
-
-    // x is clamped to [0, float_MAX], skip the <= 0 check
-    return (x < 0.00003051757) ? (log2(0.00001525878 + x * 0.5) + 9.72) / 17.52 : (log2(x) + 9.72) / 17.52;
-
-    /*
-    return float3(
-        ACES_to_ACEScc(x.r),
-        ACES_to_ACEScc(x.g),
-        ACES_to_ACEScc(x.b)
-    );
-    */
+  x =
+    clamp (x, 0.0, float_MAX);
+  
+  // x is clamped to [0, float_MAX], skip the <= 0 check
+  return
+      (x < 0.00003051757)                           ?
+    (log2 (0.00001525878 + x * 0.5) + 9.72) / 17.52 :
+                          (log2 (x) + 9.72) / 17.52;
+  
+  /*
+  return float3(
+      ACES_to_ACEScc(x.r),
+      ACES_to_ACEScc(x.g),
+      ACES_to_ACEScc(x.b)
+  );
+  */
 }
 
 //
@@ -1005,24 +1135,24 @@ float3 ACES_to_ACEScc(float3 x)
 //
 // This transform follows the formulas from section 4.4 in S-2014-003
 //
-float ACEScc_to_ACES(float x)
+float ACEScc_to_ACES (float x)
 {
-    // TODO: Optimize me
-    if (x < -0.3013698630) // (9.72 - 15) / 17.52
-        return (pow(2.0, x * 17.52 - 9.72) - pow(2.0, -16.0)) * 2.0;
-    else if (x < (log2(float_MAX) + 9.72) / 17.52)
-        return pow(2.0, x * 17.52 - 9.72);
-    else // (x >= (log2(float_MAX) + 9.72) / 17.52)
-        return float_MAX;
+  // TODO: Optimize me
+  if (x < -0.3013698630) // (9.72 - 15) / 17.52
+    return (pow(2.0, x * 17.52 - 9.72) - pow(2.0, -16.0)) * 2.0;
+  else if (x < (log2(float_MAX) + 9.72) / 17.52)
+    return pow(2.0, x * 17.52 - 9.72);
+  else // (x >= (log2(float_MAX) + 9.72) / 17.52)
+    return float_MAX;
 }
 
-float3 ACEScc_to_ACES(float3 x)
+float3 ACEScc_to_ACES (float3 x)
 {
-    return float3(
-        ACEScc_to_ACES(x.r),
-        ACEScc_to_ACES(x.g),
-        ACEScc_to_ACES(x.b)
-    );
+  return float3 (
+    ACEScc_to_ACES (x.r),
+    ACEScc_to_ACES (x.g),
+    ACEScc_to_ACES (x.b)
+  );
 }
 
 //
@@ -1031,9 +1161,10 @@ float3 ACEScc_to_ACES(float3 x)
 // converts ACES2065-1 (AP0 w/ linear encoding) to
 //          ACEScg (AP1 w/ linear encoding)
 //
-float3 ACES_to_ACEScg(float3 x)
+float3 ACES_to_ACEScg (float3 x)
 {
-    return mul(AP0_2_AP1_MAT, x);
+  return
+    mul (AP0_2_AP1_MAT, x);
 }
 
 //
@@ -1042,9 +1173,10 @@ float3 ACES_to_ACEScg(float3 x)
 // converts ACEScg (AP1 w/ linear encoding) to
 //          ACES2065-1 (AP0 w/ linear encoding)
 //
-float3 ACEScg_to_ACES(float3 x)
+float3 ACEScg_to_ACES (float3 x)
 {
-    return mul(AP1_2_AP0_MAT, x);
+  return
+    mul (AP1_2_AP0_MAT, x);
 }
 
 //
@@ -1053,83 +1185,94 @@ float3 ACEScg_to_ACES(float3 x)
 //   Input is ACES
 //   Output is OCES
 //
-float rgb_2_saturation(float3 rgb)
+float rgb_2_saturation (float3 rgb)
 {
-    const float TINY = 1e-4;
-    float mi = Min3(rgb.r, rgb.g, rgb.b);
-    float ma = Max3(rgb.r, rgb.g, rgb.b);
-    return (max(ma, TINY) - max(mi, TINY)) / max(ma, 1e-2);
+  static const float TINY = 1e-4;
+
+  float mi = Min3 (rgb.r, rgb.g, rgb.b);
+  float ma = Max3 (rgb.r, rgb.g, rgb.b);
+
+  return ( max (ma, TINY) -
+           max (mi, TINY) ) /
+           max (ma, 1e-2);
 }
 
-float rgb_2_yc(float3 rgb)
+float rgb_2_yc (float3 rgb)
 {
-    const float ycRadiusWeight = 1.75;
+  const float ycRadiusWeight = 1.75;
+  
+  // Converts RGB to a luminance proxy, here called YC
+  // YC is ~ Y + K * Chroma
+  // Constant YC is a cone-shaped surface in RGB space, with the tip on the
+  // neutral axis, towards white.
+  // YC is normalized: RGB 1 1 1 maps to YC = 1
+  //
+  // ycRadiusWeight defaults to 1.75, although can be overridden in function
+  // call to rgb_2_yc
+  // ycRadiusWeight = 1 -> YC for pure cyan, magenta, yellow == YC for neutral
+  // of same value
+  // ycRadiusWeight = 2 -> YC for pure red, green, blue  == YC for  neutral of
+  // same value.
+  
+  float r      = rgb.x;
+  float g      = rgb.y;
+  float b      = rgb.z;
+  float chroma = sqrt (b * (b - g) + g * (g - r) + r * (r - b));
 
-    // Converts RGB to a luminance proxy, here called YC
-    // YC is ~ Y + K * Chroma
-    // Constant YC is a cone-shaped surface in RGB space, with the tip on the
-    // neutral axis, towards white.
-    // YC is normalized: RGB 1 1 1 maps to YC = 1
-    //
-    // ycRadiusWeight defaults to 1.75, although can be overridden in function
-    // call to rgb_2_yc
-    // ycRadiusWeight = 1 -> YC for pure cyan, magenta, yellow == YC for neutral
-    // of same value
-    // ycRadiusWeight = 2 -> YC for pure red, green, blue  == YC for  neutral of
-    // same value.
-
-    float r = rgb.x;
-    float g = rgb.y;
-    float b = rgb.z;
-    float chroma = sqrt(b * (b - g) + g * (g - r) + r * (r - b));
-    return (b + g + r + ycRadiusWeight * chroma) / 3.0;
+  return
+    (b + g + r + ycRadiusWeight * chroma) / 3.0;
 }
 
-float rgb_2_hue(float3 rgb)
+float rgb_2_hue (float3 rgb)
 {
-    // Returns a geometric hue angle in degrees (0-360) based on RGB values.
-    // For neutral colors, hue is undefined and the function will return a quiet NaN value.
-    float hue;
-    if (rgb.x == rgb.y && rgb.y == rgb.z)
-        hue = 0.0; // RGB triplets where RGB are equal have an undefined hue
-    else
-        hue = (180.0 / PI) * atan2(sqrt(3.0) * (rgb.y - rgb.z), 2.0 * rgb.x - rgb.y - rgb.z);
-
-    if (hue < 0.0) hue = hue + 360.0;
-
-    return hue;
+  // Returns a geometric hue angle in degrees (0-360) based on RGB values.
+  // For neutral colors, hue is undefined and the function will return a quiet NaN value.
+  float hue;
+  if (rgb.x == rgb.y && rgb.y == rgb.z)
+    hue = 0.0; // RGB triplets where RGB are equal have an undefined hue
+  else
+    hue = (180.0 / PI) * atan2(sqrt(3.0) * (rgb.y - rgb.z), 2.0 * rgb.x - rgb.y - rgb.z);
+  
+  if (hue < 0.0)
+      hue = hue + 360.0;
+  
+  return hue;
 }
 
-float center_hue(float hue, float centerH)
+float center_hue (float hue, float centerH)
 {
-    float hueCentered = hue - centerH;
-    if (hueCentered < -180.0) hueCentered = hueCentered + 360.0;
-    else if (hueCentered > 180.0) hueCentered = hueCentered - 360.0;
-    return hueCentered;
+  float hueCentered = hue - centerH;
+
+  if (     hueCentered < -180.0) hueCentered = hueCentered + 360.0;
+  else if (hueCentered >  180.0) hueCentered = hueCentered - 360.0;
+
+  return hueCentered;
 }
 
-float sigmoid_shaper(float x)
+float sigmoid_shaper (float x)
 {
-    // Sigmoid function in the range 0 to 1 spanning -2 to +2.
-
-    float t = max(1.0 - abs(x / 2.0), 0.0);
-    float y = 1.0 + FastSign(x) * (1.0 - t * t);
-
-    return y / 2.0;
+  // Sigmoid function in the range 0 to 1 spanning -2 to +2.
+  
+  float t = max (1.0 - abs (x / 2.0), 0.0);
+  float y = 1.0 + FastSign (x) * (1.0 - t * t);
+  
+  return
+    y / 2.0;
 }
 
-float glow_fwd(float ycIn, float glowGainIn, float glowMid)
+float glow_fwd (float ycIn, float glowGainIn, float glowMid)
 {
-    float glowGainOut;
-
-    if (ycIn <= 2.0 / 3.0 * glowMid)
-        glowGainOut = glowGainIn;
-    else if (ycIn >= 2.0 * glowMid)
-        glowGainOut = 0.0;
-    else
-        glowGainOut = glowGainIn * (glowMid / ycIn - 1.0 / 2.0);
-
-    return glowGainOut;
+  float glowGainOut;
+  
+  if (ycIn <= 2.0 / 3.0 * glowMid)
+    glowGainOut = glowGainIn;
+  else if (ycIn >= 2.0 * glowMid)
+    glowGainOut = 0.0;
+  else
+    glowGainOut = glowGainIn * (glowMid / ycIn - 1.0 / 2.0);
+  
+  return
+    glowGainOut;
 }
 #endif
 
@@ -1180,11 +1323,11 @@ float glow_fwd(float ycIn, float glowGainIn, float glowMid)
 #define CBUFFER_END };
 
 #if UNITY_GATHER_SUPPORTED
-    #define FXAA_HLSL_5 1
-    #define SMAA_HLSL_4_1 1
+  #define FXAA_HLSL_5 1
+  #define SMAA_HLSL_4_1 1
 #else
-    #define FXAA_HLSL_4 1
-    #define SMAA_HLSL_4 1
+  #define FXAA_HLSL_4 1
+  #define SMAA_HLSL_4 1
 #endif
 
 
@@ -1192,43 +1335,55 @@ float glow_fwd(float ycIn, float glowGainIn, float glowMid)
 // 3D LUT grading
 // scaleOffset = (1 / lut_size, lut_size - 1)
 //
-float3 ApplyLut3D(TEXTURE3D_ARGS(tex, samplerTex), float3 uvw, float2 scaleOffset)
+float3 ApplyLut3D (TEXTURE3D_ARGS (tex, samplerTex), float3 uvw, float2 scaleOffset)
 {
-    uvw.xyz = uvw.xyz * scaleOffset.yyy * scaleOffset.xxx + scaleOffset.xxx * 0.5;
-    return SAMPLE_TEXTURE3D(tex, samplerTex, uvw).rgb;
+  uvw.xyz =
+    uvw.xyz * scaleOffset.yyy *
+              scaleOffset.xxx + scaleOffset.xxx * 0.5;
+  
+  return
+    SAMPLE_TEXTURE3D (tex, samplerTex, uvw).rgb;
 }
 
 //
 // 2D LUT grading
 // scaleOffset = (1 / lut_width, 1 / lut_height, lut_height - 1)
 //
-float3 ApplyLut2D(TEXTURE2D_ARGS(tex, samplerTex), float3 uvw, float3 scaleOffset)
+float3 ApplyLut2D (TEXTURE2D_ARGS (tex, samplerTex), float3 uvw, float3 scaleOffset)
 {
-    // Strip format where `height = sqrt(width)`
-    uvw.z *= scaleOffset.z;
-    float shift = floor(uvw.z);
-    uvw.xy = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
-    uvw.x += shift * scaleOffset.y;
-    uvw.xyz = lerp(
-        SAMPLE_TEXTURE2D(tex, samplerTex, uvw.xy).rgb,
-        SAMPLE_TEXTURE2D(tex, samplerTex, uvw.xy + float2(scaleOffset.y, 0.0)).rgb,
-        uvw.z - shift
-    );
-    return uvw;
+  // Strip format where `height = sqrt(width)`
+  uvw.z *= scaleOffset.z;
+
+  float shift =
+    floor (uvw.z);
+
+  uvw.xy   = uvw.xy * scaleOffset.z * scaleOffset.xy + scaleOffset.xy * 0.5;
+  uvw.x   += shift  * scaleOffset.y;
+  uvw.xyz  = lerp (
+    SAMPLE_TEXTURE2D (tex, samplerTex, uvw.xy).rgb,
+    SAMPLE_TEXTURE2D (tex, samplerTex, uvw.xy +
+                        float2 (scaleOffset.y, 0.0)).rgb,
+                                       uvw.z - shift );
+
+  return uvw;
 }
 
 //
 // Returns the default value for a given position on a 2D strip-format color lookup table
 // params = (lut_height, 0.5 / lut_width, 0.5 / lut_height, lut_height / lut_height - 1)
 //
-float3 GetLutStripValue(float2 uv, float4 params)
+float3 GetLutStripValue (float2 uv, float4 params)
 {
-    uv -= params.yz;
-    float3 color;
-    color.r = frac(uv.x * params.x);
-    color.b = uv.x - color.r / params.x;
-    color.g = uv.y;
-    return color * params.w;
+  uv -= params.yz;
+
+  float3 color;
+
+  color.r = frac (uv.x           * params.x);
+  color.b =       uv.x - color.r / params.x;
+  color.g =       uv.y;
+
+  return
+    color * params.w;
 }
 
 //
@@ -1236,41 +1391,47 @@ float3 GetLutStripValue(float2 uv, float4 params)
 // Recommended workspace: ACEScg (linear)
 //
 static const float3x3 LIN_2_LMS_MAT = {
-    3.90405e-1, 5.49941e-1, 8.92632e-3,
-    7.08416e-2, 9.63172e-1, 1.35775e-3,
-    2.31082e-2, 1.28021e-1, 9.36245e-1
+  3.90405e-1, 5.49941e-1, 8.92632e-3,
+  7.08416e-2, 9.63172e-1, 1.35775e-3,
+  2.31082e-2, 1.28021e-1, 9.36245e-1
 };
 
 static const float3x3 LMS_2_LIN_MAT = {
-    2.85847e+0, -1.62879e+0, -2.48910e-2,
-    -2.10182e-1,  1.15820e+0,  3.24281e-4,
-    -4.18120e-2, -1.18169e-1,  1.06867e+0
+   2.85847e+0, -1.62879e+0, -2.48910e-2,
+  -2.10182e-1,  1.15820e+0,  3.24281e-4,
+  -4.18120e-2, -1.18169e-1,  1.06867e+0
 };
 
-float3 WhiteBalance(float3 c, float3 balance)
+float3 WhiteBalance (float3 c, float3 balance)
 {
-    float3 lms = mul(LIN_2_LMS_MAT, c);
-    lms *= balance;
-    return mul(LMS_2_LIN_MAT, lms);
+  float3 lms  = mul (LIN_2_LMS_MAT, c);
+         lms *= balance;
+
+  return
+    mul (LMS_2_LIN_MAT, lms);
 }
 
 //
 // RGB / Full-range YCbCr conversions (ITU-R BT.601)
 //
-float3 RgbToYCbCr(float3 c)
+float3 RgbToYCbCr (float3 c)
 {
-    float Y  =  0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-    float Cb = -0.169 * c.r - 0.331 * c.g + 0.500 * c.b;
-    float Cr =  0.500 * c.r - 0.419 * c.g - 0.081 * c.b;
-    return float3(Y, Cb, Cr);
+  float Y  =  0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+  float Cb = -0.169 * c.r - 0.331 * c.g + 0.500 * c.b;
+  float Cr =  0.500 * c.r - 0.419 * c.g - 0.081 * c.b;
+
+  return
+    float3 (Y, Cb, Cr);
 }
 
-float3 YCbCrToRgb(float3 c)
+float3 YCbCrToRgb (float3 c)
 {
-    float R = c.x + 0.000 * c.y + 1.403 * c.z;
-    float G = c.x - 0.344 * c.y - 0.714 * c.z;
-    float B = c.x - 1.773 * c.y + 0.000 * c.z;
-    return float3(R, G, B);
+  float R = c.x + 0.000 * c.y + 1.403 * c.z;
+  float G = c.x - 0.344 * c.y - 0.714 * c.z;
+  float B = c.x - 1.773 * c.y + 0.000 * c.z;
+
+  return
+    float3 (R, G, B);
 }
 
 //
@@ -1280,53 +1441,65 @@ float3 YCbCrToRgb(float3 c)
 //  Sat [0.0, 1.0]
 //  Lum [0.0, float_MAX]
 //
-float3 RgbToHsv(float3 c)
+float3 RgbToHsv (float3 c)
 {
-    float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
-    float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
-    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
-    float d = q.x - min(q.w, q.y);
-    float e = EPSILON;
-    return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+  float4 K =       float4 (0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+  float4 p = lerp (float4 (c.bg, K.wz), float4 (c.gb, K.xy), step (c.b, c.g));
+  float4 q = lerp (float4 (p.xyw, c.r), float4 (c.r, p.yzx), step (p.x, c.r));
+  float  d = q.x - min (q.w, q.y);
+  float  e = EPSILON;
+
+  return
+    float3 (abs (q.z + (q.w - q.y) / (6.0 * d + e)),
+                                 d / (q.x + e), q.x);
 }
 
-float3 HsvToRgb(float3 c)
+float3 HsvToRgb (float3 c)
 {
-    float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-    float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
-    return c.z * lerp(K.xxx, saturate(p - K.xxx), c.y);
+  float4 K =
+    float4 ( 1.0, 2.0 / 3.0,
+                  1.0 / 3.0, 3.0 );
+
+  float3 p =
+    abs (frac (c.xxx + K.xyz) * 6.0 - K.www);
+
+  return
+    c.z * lerp (K.xxx, saturate (p - K.xxx), c.y);
 }
 
-float RotateHue(float value, float low, float hi)
+float RotateHue (float value, float low, float hi)
 {
-    return (value < low)
-            ? value + hi
-            : (value > hi)
-                ? value - hi
-                : value;
+  return (value < low)
+          ? value + hi
+          : (value > hi)
+              ? value - hi
+              : value;
 }
 
 //
 // Remaps Y/R/G/B values
 // curveTex has to be 128 pixels wide
 //
-float3 YrgbCurve(float3 c, TEXTURE2D_ARGS(curveTex, sampler_curveTex))
+float3 YrgbCurve (float3 c, TEXTURE2D_ARGS(curveTex, sampler_curveTex))
 {
-    const float kfloatPixel = (1.0 / 128.0) / 2.0;
+  const float kfloatPixel = (1.0 / 128.0) / 2.0;
 
-    // Y (master)
-    c += kfloatPixel.xxx;
-    float mr = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.r, 0.75)).a;
-    float mg = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.g, 0.75)).a;
-    float mb = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.b, 0.75)).a;
-    c = saturate(float3(mr, mg, mb));
+  // Y (master)
+  c += kfloatPixel.xxx;
+  float mr = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.r, 0.75)).a;
+  float mg = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.g, 0.75)).a;
+  float mb = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.b, 0.75)).a;
 
-    // RGB
-    c += kfloatPixel.xxx;
-    float r = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.r, 0.75)).r;
-    float g = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.g, 0.75)).g;
-    float b = SAMPLE_TEXTURE2D(curveTex, sampler_curveTex, float2(c.b, 0.75)).b;
-    return saturate(float3(r, g, b));
+  c = saturate (float3(mr, mg, mb));
+  
+  // RGB
+  c += kfloatPixel.xxx;
+  float r = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.r, 0.75)).r;
+  float g = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.g, 0.75)).g;
+  float b = SAMPLE_TEXTURE2D (curveTex, sampler_curveTex, float2 (c.b, 0.75)).b;
+  
+  return
+    saturate (float3 (r, g, b));
 }
 
 //
@@ -1334,12 +1507,13 @@ float3 YrgbCurve(float3 c, TEXTURE2D_ARGS(curveTex, sampler_curveTex))
 // Recommended workspace: ACEScg (linear)
 //      Input mixers should be in range [-2.0; 2.0]
 //
-float3 ChannelMixer(float3 c, float3 red, float3 green, float3 blue)
+float3 ChannelMixer (float3 c, float3 red, float3 green, float3 blue)
 {
-    return float3(
-        dot(c, red),
-        dot(c, green),
-        dot(c, blue)
+  return
+    float3 (
+      dot (c, red),
+      dot (c, green),
+      dot (c, blue)
     );
 }
 
@@ -1372,16 +1546,18 @@ SK_ProcessColor4 ( float4 color,
 
 
 // Apply the (approximate) sRGB curve to linear values
-float3 LinearToSRGBEst(float3 color)
+float3 LinearToSRGBEst (float3 color)
 {
-    return pow(abs(color), 1/2.2f);
+  return
+    pow (abs (color), 1/2.2f);
 }
 
 
 // (Approximate) sRGB to linear
-float3 SRGBToLinearEst(float3 srgb)
+float3 SRGBToLinearEst (float3 srgb)
 {
-    return pow(abs(srgb), 2.2f);
+  return
+    pow (abs (srgb), 2.2f);
 }
 
 
@@ -1392,69 +1568,82 @@ float3 SRGBToLinearEst(float3 srgb)
 // Color rotation matrix to rotate Rec.709 color primaries into Rec.2020
 static const float3x3 from709to2020 =
 {
-    { 0.6274040f, 0.3292820f, 0.0433136f },
-    { 0.0690970f, 0.9195400f, 0.0113612f },
-    { 0.0163916f, 0.0880132f, 0.8955950f }
+  { 0.6274040f, 0.3292820f, 0.0433136f },
+  { 0.0690970f, 0.9195400f, 0.0113612f },
+  { 0.0163916f, 0.0880132f, 0.8955950f }
 };
 
 
 // Apply the ST.2084 curve to normalized linear values and outputs normalized non-linear values
-float3 LinearToST2084(float3 normalizedLinearValue)
+float3 LinearToST2084 (float3 normalizedLinearValue)
 {
-    return pow((0.8359375f + 18.8515625f * pow(abs(normalizedLinearValue), 0.1593017578f)) / (1.0f + 18.6875f * pow(abs(normalizedLinearValue), 0.1593017578f)), 78.84375f);
+  return
+    pow (
+      (0.8359375f + 18.8515625f * pow (abs (normalizedLinearValue), 0.1593017578f)) /
+            (1.0f + 18.6875f    * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
+        );
 }
 
 
 // ST.2084 to linear, resulting in a linear normalized value
-float3 ST2084ToLinear(float3 ST2084)
+float3 ST2084ToLinear (float3 ST2084)
 {
-    return pow(max(pow(abs(ST2084), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f * pow(abs(ST2084), 1.0f / 78.84375f)), 1.0f / 0.1593017578f);
+  return
+    pow ( max (
+      pow ( abs (ST2084), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f *
+      pow ( abs (ST2084), 1.0f / 78.84375f)),
+                          1.0f / 0.1593017578f
+        );
 }
 
 
 // Reinhard tonemap operator
 // Reinhard et al. "Photographic tone reproduction for digital images." ACM Transactions on Graphics. 21. 2002.
 // http://www.cs.utah.edu/~reinhard/cdrom/tonemap.pdf
-float3 ToneMapReinhard(float3 color)
+float3 ToneMapReinhard (float3 color)
 {
-    return color / (1.0f + color);
+  return
+    color / (1.0f + color);
 }
 
 
 // ACES Filmic tonemap operator
 // https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
-float3 ToneMapACESFilmic(float3 x)
+float3 ToneMapACESFilmic (float3 x)
 {
-    float a = 2.51f;
-    float b = 0.03f;
-    float c = 2.43f;
-    float d = 0.59f;
-    float e = 0.14f;
-    return saturate((x*(a*x+b))/(x*(c*x+d)+e));
+  float a = 2.51f;
+  float b = 0.03f;
+  float c = 2.43f;
+  float d = 0.59f;
+  float e = 0.14f;
+
+  return
+    saturate ((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
 
 // sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
 static const float3x3 ACESInputMat =
 {
-    {0.59719, 0.35458, 0.04823},
-    {0.07600, 0.90834, 0.01566},
-    {0.02840, 0.13383, 0.83777}
+  {0.59719, 0.35458, 0.04823},
+  {0.07600, 0.90834, 0.01566},
+  {0.02840, 0.13383, 0.83777}
 };
 
 // ODT_SAT => XYZ => D60_2_D65 => sRGB
 static const float3x3 ACESOutputMat =
 {
-    { 1.60475, -0.53108, -0.07367},
-    {-0.10208,  1.10813, -0.00605},
-    {-0.00327, -0.07276,  1.07602}
+  { 1.60475, -0.53108, -0.07367},
+  {-0.10208,  1.10813, -0.00605},
+  {-0.00327, -0.07276,  1.07602}
 };
 
-float3 RRTAndODTFit(float3 v)
+float3 RRTAndODTFit (float3 v)
 {
-    float3 a = v * (v + 0.0245786f) - 0.000090537f;
-    float3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
-    return a / b;
+  float3 a = v * (v + 0.0245786f)    - 0.000090537f;
+  float3 b = v * (     0.983729f * v + 0.4329510f) + 0.238081f;
+
+  return ( a / b );
 }
 
 
@@ -1473,7 +1662,7 @@ float3 ACESFitted (float3 color, float input_color, float gamma)
   color.rgb = LogCToLinear (color.rgb);
 
   // Apply RRT and ODT
-  color.rgb = Saturation (                 color.rgb, hdrSaturation);
+//color.rgb = Saturation (                 color.rgb, hdrSaturation);
   color.rgb = RRTAndODTFit (               color.rgb);
   color.rgb = mul (         ACESOutputMat, color.rgb);
 
@@ -1854,6 +2043,24 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 
 
+  if (pqBoostParams.x > 0.1f)
+  {
+    float
+      pb_params [4] = {
+        pqBoostParams.x,
+        pqBoostParams.y,
+        pqBoostParams.z,
+        pqBoostParams.w
+      };
+
+    hdr_color.rgb =
+      PQToLinear (
+        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+                     pb_params [2], pb_params [1]
+                 ) / pb_params [3];
+  }
+
+
   if (uiToneMapper != TONEMAP_NONE)
   {
     if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
@@ -1869,9 +2076,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        max ( 0.0,
-             min ( 125.0, hdr_color.rgb )
-            );
+        Clamp_scRGB (hdr_color.rgb);
 
       if (input.color.y != 1.0)
       {
@@ -1892,24 +2097,6 @@ float4 main (PS_INPUT input) : SV_TARGET
   {
     hdr_color.rgb =
       SK_ProcessColor4 (hdr_color, uiToneMapper).rgb;
-  }
-
-
-  if (pqBoostParams.x > 0.1f)
-  {
-    float
-      pb_params [4] = {
-        pqBoostParams.x,
-        pqBoostParams.y,
-        pqBoostParams.z,
-        pqBoostParams.w
-      };
-
-    hdr_color.rgb =
-      PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
-                     pb_params [2], pb_params [1]
-                 ) / pb_params [3];
   }
 
 
@@ -1934,6 +2121,16 @@ float4 main (PS_INPUT input) : SV_TARGET
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
+
+  if (uiToneMapper == TONEMAP_NONE)
+  {
+    hdr_color.rgb = LinearToLogC (hdr_color.rgb);
+    hdr_color.rgb = Contrast (    hdr_color.rgb, 0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+    hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+  }
+
+  hdr_color.rgb =
+    Saturation (hdr_color.rgb, hdrSaturation);
 
   hdr_color.rgb -= normalized_color * hdrLuminance_Min;
 
@@ -2075,15 +2272,14 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       if (input.color.x > 1.0)
         hdr_color.rgb =
-          max (0.0, min (125.0, (hdr_color.rgb/* / input.color.xxx*/)));
+          Clamp_scRGB (hdr_color.rgb);
 
       // find brightest component
-      float lum = max (hdr_color.r, max (hdr_color.g, hdr_color.b));
+      float lum   = max  (hdr_color.r, max (hdr_color.g, hdr_color.b));
+	    float Scale = log2 (lum / ((_fSDRTarget / 80.0) * 0.18)) / 2.0f + 2.0f;
 
-	    float Scale = log2(lum / ((_fSDRTarget / 80.0) * 0.18)) / 2.0f + 2.0f;
-
-	    Scale = min(Scale, 7.0);
-	    Scale = max(Scale, 0.0);
+	    Scale = min (Scale, 7.0);
+	    Scale = max (Scale, 0.0);
 
 	    const float3 Colors[] =
 	    {
@@ -2098,12 +2294,18 @@ float4 main (PS_INPUT input) : SV_TARGET
 	    	{ 1.0f, 1.0f, 1.0f },
 	    	{ 1.0f, 1.0f, 1.0f }
 	    };
-	    int index = int(Scale);
+	    int index = int (Scale);
 
 
 	    float4 result;
-      result.rgb = lerp (Colors [index], Colors [index + 1], Scale - index) * min (Luminance (hdr_color.rgb) * 2.0F, 0.15F * hdrLuminance_MaxAvg / 80.0);
+
+      result.rgb =
+        lerp ( Colors [index    ],
+               Colors [index + 1], Scale - index) *
+         min (          Luminance (hdr_color.rgb) * 2.0F,
+                                            0.15F * hdrLuminance_MaxAvg / 80.0 );
 	    result.a = 1;
+
 	    return result;
     }
 
