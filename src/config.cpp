@@ -178,7 +178,7 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     },
       { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
       { hash_lower (L"smt3hd.exe"),                             SK_GAME_ID::ShinMegamiTensei3            },
-      { hash_lower (L"TheQuarry.exe"),                          SK_GAME_ID::TheQuarry                    }
+      { hash_lower (L"TheQuarry-Win64-Shipping.exe"),           SK_GAME_ID::TheQuarry                    }
     };
 
     first_check = false;

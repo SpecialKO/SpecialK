@@ -26,6 +26,7 @@
 
 #include <Windows.h>
 #include <avrt.h>
+#include <intsafe.h>
 
 namespace sk
 {
@@ -633,5 +634,89 @@ DWORD SK_Thread_GetMainId (void);
 void SK_Thread_RaiseNameException (THREADNAME_INFO* pTni);
 
 
+enum class WaitReason
+{
+  Executive,
+  FreePage,
+  PageIn,
+  PoolAllocation,
+  DelayExecution,
+  Suspended,
+  UserRequest,
+  WrExecutive,
+  WrFreePage,
+  WrPageIn,
+  WrPoolAllocation,
+  WrDelayExecution,
+  WrSuspended,
+  WrUserRequest,
+  WrEventPair,
+  WrQueue,
+  WrLpcReceive,
+  WrLpcReply,
+  WrVirtualMemory,
+  WrPageOut,
+  WrRendezvous,
+  Spare2,
+  Spare3,
+  Spare4,
+  Spare5,
+  Spare6,
+  WrKernel,
+  MaximumWaitReason,
+  NotWaiting = MaximumWaitReason
+};
+
+enum class ThreadState
+{
+  //Aborted          = 256,
+  //AbortRequested   = 128,
+  //Background       = 4,
+  //Running          = 0,
+  //Stopped          = 16,
+  //StopRequested    = 1,
+  //Suspended        = 64,
+  //SuspendRequested = 2,
+  //Unstarted        = 8,
+  //WaitSleepJoin    = 32
+  Running = 2,
+  Waiting = 5
+};
+
+struct SKWG_Thread_Entry
+{
+  HANDLE hThread = nullptr;
+  DWORD  dwTid   = 0UL;
+
+  struct runtimes_s
+  {
+    FILETIME created = { };
+    FILETIME exited  = { };
+    FILETIME user    = { };
+    FILETIME kernel  = { };
+
+    long double percent_user   = 0.0L;
+    long double percent_kernel = 0.0L;
+
+    struct
+    {
+      FILETIME user   = { };
+      FILETIME kernel = { };
+    } snapshot;
+  } runtimes;
+
+  // Last time percentage was non-zero; used to hide inactive threads
+  DWORD last_nonzero       = 0;
+  bool  exited             = false;
+
+  bool  power_throttle     = false;
+  DWORD orig_prio          = DWORD_MAX;
+
+  WaitReason  wait_reason  = WaitReason::NotWaiting;
+  ThreadState thread_state = ThreadState::Running;
+
+  bool         self_titled = false;
+  std::wstring name        = L"";
+};
 
 #endif /* __SK__THREAD_H__ */

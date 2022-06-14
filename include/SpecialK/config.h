@@ -1189,7 +1189,7 @@ enum class SK_GAME_ID
   ChronoCross,                  // CHRONOCROSS.exe
   HatsuneMikuDIVAMegaMix,       // DivaMegaMix.exe
   ShinMegamiTensei3,            // smt3hd.exe
-  TheQuarry,                    // TheQuarry.exe
+  TheQuarry,                    // TheQuarry-Win64-Shipping.exe
   Launcher,                     // A generic launcher...
   UNKNOWN_GAME               = 0xffff
 };

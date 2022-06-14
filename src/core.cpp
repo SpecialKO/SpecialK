@@ -2694,6 +2694,66 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           case SK_GAME_ID::EldenRing:
             SK_RunOnce (SK_ER_InitPlugin ());
             break;
+
+          case SK_GAME_ID::TheQuarry:
+          {
+            static bool finished0 = false;
+            static bool finished1 = false;
+            static bool finished2 = false;
+            static bool finished3 = false;
+
+            if (SK_GetFramesDrawn () > 30 && (! (finished0 && finished1 && finished2 && finished3)))
+            {
+              extern SK_LazyGlobal <std::map <DWORD, SKWG_Thread_Entry*>> SKWG_Threads;
+
+              for ( auto& it : *SKWG_Threads )
+              {
+                if (it.second         == nullptr ||
+                    it.second->exited == true)
+                {
+                  continue;
+                }
+
+                DWORD  dwTidSelf =
+                  SK_Thread_GetCurrentId ();
+
+                if ( it.second->dwTid == dwTidSelf )
+                {
+                  continue;
+                }
+
+                bool close = false;
+
+                if (it.second->hThread == INVALID_HANDLE_VALUE)
+                {
+                  close = true;
+
+                  it.second->hThread =
+                    OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
+                }
+
+                if ( (intptr_t)it.second->hThread > 0 )
+                {
+                  if ((! finished0) && StrStrIW (it.second->name.c_str (), L"AudioMixerRenderThread") != nullptr) {
+                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_TIME_CRITICAL); finished0 = true;      }
+                  if ((! finished1) && StrStrIW (it.second->name.c_str (), L"AudioThread")            != nullptr) {
+                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_HIGHEST);       finished1 = true;      }
+                  if ((! finished2) && StrStrIW (it.second->name.c_str (), L"libScePad") != nullptr)              {
+                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_ABOVE_NORMAL);  finished2 = true;      }
+                  else if
+                    ((! finished3) && StrStrIW (it.second->name.c_str (), L"libScePad") != nullptr)               {
+                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_ABOVE_NORMAL);  finished3 = true;      }
+
+                  if (close)
+                  {
+                    CloseHandle (
+                      std::exchange (it.second->hThread, INVALID_HANDLE_VALUE)
+                    );
+                  }
+                }
+              }
+            }
+          } break;
 #else
           case SK_GAME_ID::ChronoCross:
           {
