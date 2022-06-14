@@ -913,7 +913,7 @@ SK_CPU_GetIntelMicroarch (void)
 
         default:
           cpu.coefficients.energy =
-            1.0 / static_cast <double> (1ULL << sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL);
+            1.0 / pow(2, static_cast <double> (sk::narrow_cast <uint64_t> (eax >> 8ULL) & 0x1FULL));
 
           // Handle unexpected CPU architectures by assuming they follow IceLake, etc. above...
           if (isinf (cpu.coefficients.energy))
@@ -1424,7 +1424,7 @@ SK_CPU_UpdateCoreSensors (int core_idx)
         core.accum2.update (pmc, 1.0);
 
       core.clock_MHz =
-        (accum_result.value / (1000.0 * 1000.0)) / (accum_result.elapsed_ms / 1000.0);
+        accum_result.value / (accum_result.elapsed_ms / 1000.0);
     }
 
     if ( Rdmsr (SK_CPU_IntelMSR::IA32_THERM_STATUS, &eax, &edx) &&
