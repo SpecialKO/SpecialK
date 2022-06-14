@@ -1295,13 +1295,14 @@ D3D11_UpdateSubresource_Override (
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_UpdateSubresource_Impl ( This,
-                                        pDstResource,
-                                         DstSubresource,
-                                        pDstBox,
-                                        pSrcData, SrcRowPitch,
-                                                  SrcDepthPitch,
-                                        FALSE );
+    return
+      SK_D3D11_UpdateSubresource_Impl ( This,
+                                          pDstResource,
+                                           DstSubresource,
+                                          pDstBox,
+                                          pSrcData, SrcRowPitch,
+                                                    SrcDepthPitch,
+                                          FALSE );
   }
 
   D3D11_UpdateSubresource_Original (
@@ -1353,15 +1354,13 @@ D3D11_Unmap_Override (
 {
   if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, This)))
   {
-    SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
+    return
+      SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
   }
 
-  else
-  {
-    D3D11_Unmap_Original (
-      This, pResource, Subresource
-    );
-  }
+  D3D11_Unmap_Original (
+    This, pResource, Subresource
+  );
 }
 
 
@@ -1376,19 +1375,17 @@ D3D11_CopyResource_Override (
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_CopyResource_Impl ( This,
-      pDstResource,
-      pSrcResource,
-        FALSE
-    );
+    return
+      SK_D3D11_CopyResource_Impl ( This,
+        pDstResource,
+        pSrcResource,
+          FALSE
+      );
   }
 
-  else
-  {
-    D3D11_CopyResource_Original (
-      This, pDstResource, pSrcResource
-    );
-  }
+  D3D11_CopyResource_Original (
+    This, pDstResource, pSrcResource
+  );
 }
 
 __declspec (noinline)
@@ -1714,15 +1711,11 @@ D3D11_CopySubresourceRegion_Override (
 #endif
   }
 
-  else
-  {
-    return
-      D3D11_CopySubresourceRegion_Original (
-        This, pDstResource, DstSubresource,
-          DstX, DstY, DstZ, pSrcResource,
-            SrcSubresource, pSrcBox
-      );
-  }
+  D3D11_CopySubresourceRegion_Original (
+    This, pDstResource, DstSubresource,
+      DstX, DstY, DstZ, pSrcResource,
+        SrcSubresource, pSrcBox
+  );
 #else
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
@@ -1735,12 +1728,11 @@ D3D11_CopySubresourceRegion_Override (
       );
   }
 
-  return
-    D3D11_CopySubresourceRegion_Original (
-      This, pDstResource, DstSubresource,
-        DstX, DstY, DstZ, pSrcResource,
-          SrcSubresource, pSrcBox
-    );
+  D3D11_CopySubresourceRegion_Original (
+    This, pDstResource, DstSubresource,
+      DstX, DstY, DstZ, pSrcResource,
+        SrcSubresource, pSrcBox
+  );
 #endif
 }
 
@@ -1757,22 +1749,20 @@ D3D11_ResolveSubresource_Override (
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_ResolveSubresource_Impl ( This,
-      pDstResource, DstSubresource,
-      pSrcResource, SrcSubresource,
-      Format,
-        FALSE
-    );
+    return
+      SK_D3D11_ResolveSubresource_Impl ( This,
+        pDstResource, DstSubresource,
+        pSrcResource, SrcSubresource,
+        Format,
+          FALSE
+      );
   }
 
-  else
-  {
-    D3D11_ResolveSubresource_Original (
-      This, pDstResource, DstSubresource,
-            pSrcResource, SrcSubresource,
-            Format
-    );
-  }
+  D3D11_ResolveSubresource_Original (
+    This, pDstResource, DstSubresource,
+          pSrcResource, SrcSubresource,
+          Format
+  );
 }
 
 __declspec (noinline)
@@ -1784,15 +1774,13 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_DrawAuto_Impl ( This, FALSE );
+    return
+      SK_D3D11_DrawAuto_Impl ( This, FALSE );
   }
 
-  else
-  {
-    D3D11_DrawAuto_Original (
-      This
-    );
-  }
+  D3D11_DrawAuto_Original (
+    This
+  );
 }
 
 __declspec (noinline)
@@ -1896,19 +1884,17 @@ D3D11_DrawIndexedInstancedIndirect_Override (
 
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
-    SK_D3D11_DrawIndexedInstancedIndirect_Impl (
-          This, pBufferForArgs,
-      AlignedByteOffsetForArgs, FALSE
-    );
+    return
+      SK_D3D11_DrawIndexedInstancedIndirect_Impl (
+            This, pBufferForArgs,
+        AlignedByteOffsetForArgs, FALSE
+      );
   }
 
-  else
-  {
-    D3D11_DrawIndexedInstancedIndirect_Original (
-      This,       pBufferForArgs,
-        AlignedByteOffsetForArgs
-    );
-  }
+  D3D11_DrawIndexedInstancedIndirect_Original (
+    This,       pBufferForArgs,
+      AlignedByteOffsetForArgs
+  );
 }
 
 __declspec (noinline)

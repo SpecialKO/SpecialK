@@ -1080,11 +1080,14 @@ SK_D3D11_UpdateSubresource_Impl (
       pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
                                      pDstBox, pSrcData, SrcRowPitch,
                                        SrcDepthPitch )
-             :
-      D3D11_UpdateSubresource_Original ( pDevCtx, pDstResource, DstSubresource,
-                                           pDstBox, pSrcData, SrcRowPitch,
-                                             SrcDepthPitch );
+           :
+    D3D11_UpdateSubresource_Original ( pDevCtx, pDstResource, DstSubresource,
+                                         pDstBox, pSrcData, SrcRowPitch,
+                                           SrcDepthPitch );
   };
+
+  return
+    _Finish ();
 
   bool early_out =
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
@@ -1115,13 +1118,14 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-  // Not an optional param, but the D3D11 runtime doesn't crash if
-  //   NULL is passed and neither should we ...
-  if (pDstResource)
-      pDstResource->GetType  (&rdim);
 
   if (! early_out)
   {
+    // Not an optional param, but the D3D11 runtime doesn't crash if
+    //   NULL is passed and neither should we ...
+    if (pDstResource)
+        pDstResource->GetType (&rdim);
+
     early_out =
     (
       rdim !=

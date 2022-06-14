@@ -1,15 +1,11 @@
-﻿22.6.14.2-NOCEGUI
+﻿22.6.14.4-NOCEGUI
 =================
- + Fixed audio stutter in The Quarry due to wrong thread priorities
-
-22.6.14.1-NOCEGUI
-=================
- + Merged GitHub Pull Request #6 [ Corrected Intel CPU power and clock readings ]
-
- 22.6.14-NOCEGUI
-===============
  + Perceptual Boost HDR mode now works in D3D12 titles
  + Added HUD shader definitions for The Quarry for HUDless screenshots
+ + Fixed audio stutter in The Quarry due to wrong thread priorities
+ + Fixed multiple calls issued per-ID3D11DeviceContext::UpdateSubresource (...) when hooked and wrapped
+ + Added protection for games that change thread priority while an SK thread priority override is active
+ + Merged GitHub Pull Request #6 [ Corrected Intel CPU power and clock readings ]
 
 22.6.12.1-NOCEGUI
 =================
