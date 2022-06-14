@@ -1,4 +1,9 @@
-﻿22.6.12.1-NOCEGUI
+﻿22.6.14-NOCEGUI
+===============
+ + Perceptual Boost HDR mode now works in D3D12 titles
+ + Added HUD shader definitions for The Quarry for HUDless screenshots
+
+22.6.12.1-NOCEGUI
 =================
  + Changed SK's ResizeBuffers skip to issue unsynchronized Presents as many times as necessary to get
      the SwapChain backbuffer index to wrap-around to 0 before the function returns.

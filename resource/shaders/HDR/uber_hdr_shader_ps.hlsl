@@ -2042,25 +2042,6 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color.b = (float)rgb.b / scale_f;
   }
 
-
-  if (pqBoostParams.x > 0.1f)
-  {
-    float
-      pb_params [4] = {
-        pqBoostParams.x,
-        pqBoostParams.y,
-        pqBoostParams.z,
-        pqBoostParams.w
-      };
-
-    hdr_color.rgb =
-      PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
-                     pb_params [2], pb_params [1]
-                 ) / pb_params [3];
-  }
-
-
   if (uiToneMapper != TONEMAP_NONE)
   {
     if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
@@ -2105,6 +2086,52 @@ float4 main (PS_INPUT input) : SV_TARGET
                      input.color.yyy )
         );
 
+  if (pqBoostParams.x > 0.1f)
+  {
+    float
+      pb_params [4] = {
+        pqBoostParams.x,
+        pqBoostParams.y,
+        pqBoostParams.z,
+        pqBoostParams.w
+      };
+
+    float  old_luma  =
+      Luminance (hdr_color.rgb);
+
+    float3 new_color =
+      PQToLinear (
+        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+                     pb_params [2], pb_params [1]
+                 ) / pb_params [3];
+
+    if (old_luma < 0.001f)
+    { new_color *=
+        smoothstep ( 0.000075f,
+                     0.00075f,
+                       old_luma );
+      if (Luminance (new_color) < 0.001f)
+      { new_color *=
+          smoothstep ( 0.000075f,
+                       0.00075f, Luminance (new_color) );
+      }
+    }
+
+    hdr_color.rgb =
+    new_color;
+  }
+  
+  if (uiToneMapper == TONEMAP_NONE)
+  {
+    hdr_color.rgb = LinearToLogC (hdr_color.rgb);
+    hdr_color.rgb = Contrast (    hdr_color.rgb, 0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+    hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+  }
+
+  hdr_color.rgb =
+    Saturation (hdr_color.rgb, hdrSaturation);
+
+
   float fLuma =
     /*length (hdr_color.rgb);// */
     Luminance (hdr_color.rgb);
@@ -2121,16 +2148,6 @@ float4 main (PS_INPUT input) : SV_TARGET
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
-
-  if (uiToneMapper == TONEMAP_NONE)
-  {
-    hdr_color.rgb = LinearToLogC (hdr_color.rgb);
-    hdr_color.rgb = Contrast (    hdr_color.rgb, 0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-    hdr_color.rgb = LogCToLinear (hdr_color.rgb);
-  }
-
-  hdr_color.rgb =
-    Saturation (hdr_color.rgb, hdrSaturation);
 
   hdr_color.rgb -= normalized_color * hdrLuminance_Min;
 

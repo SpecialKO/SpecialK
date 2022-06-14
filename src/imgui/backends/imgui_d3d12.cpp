@@ -1483,7 +1483,7 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
   pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
   pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
   pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 12, &cbuffer_cspace, 0            );
+  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0            );
   pCommandList->OMSetBlendFactor                  ( kfBlendFactors                       );
   pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
@@ -1657,12 +1657,21 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
       cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
 
+      extern float                       __SK_HDR_PQBoost0;
+      extern float                       __SK_HDR_PQBoost1;
+      extern float                       __SK_HDR_PQBoost2;
+      extern float                       __SK_HDR_PQBoost3;
+      cbuffer_cspace.pqBoostParams [0] = __SK_HDR_PQBoost0;
+      cbuffer_cspace.pqBoostParams [1] = __SK_HDR_PQBoost1;
+      cbuffer_cspace.pqBoostParams [2] = __SK_HDR_PQBoost2;
+      cbuffer_cspace.pqBoostParams [3] = __SK_HDR_PQBoost3;
+
     static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
     pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
     pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
-    pCommandList->SetGraphicsRoot32BitConstants     ( 1, 12, &cbuffer_cspace, 0                      );
+    pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0                      );
 
     pCommandList->OMSetBlendFactor                  ( kfBlendFactors                                 );
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );

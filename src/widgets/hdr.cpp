@@ -982,12 +982,12 @@ public:
           ImGui::EndGroup  ();
           ImGui::Separator ();
 
+          const bool cfg_quality =
+            ImGui::CollapsingHeader ( "Performance / Quality",
+                                        ImGuiTreeNodeFlags_DefaultOpen );
+
           if (rb.api != SK_RenderAPI::D3D12)
           {
-            const bool cfg_quality =
-              ImGui::CollapsingHeader ( "Performance / Quality",
-                                          ImGuiTreeNodeFlags_DefaultOpen );
-
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
@@ -998,14 +998,17 @@ public:
               ImGui::BulletText      ("Remastering can eliminate banding not caused by texture compression (#1 enemy of HDR!)");
               ImGui::EndTooltip      ();
             }
+          }
 
-            if (cfg_quality)
+          if (cfg_quality)
+          {
+            static bool changed_once = false;
+                   bool changed      = false;
+
+            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
+
+            if (rb.api != SK_RenderAPI::D3D12)
             {
-              static bool changed_once = false;
-                     bool changed      = false;
-
-              ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
-
               const auto _SummarizeTargets =
               [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
               {
@@ -1063,50 +1066,50 @@ public:
                                         ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
                 ImGui::EndTooltip      ();
               }
+            }
 
-              ImGui::PopStyleColor ();
+            ImGui::PopStyleColor ();
 
-              if (__SK_HDR_PQBoost0 > 0.1f)
+            if (__SK_HDR_PQBoost0 > 0.1f)
+            {
+              bool boost_changed = false;
+              
+              boost_changed |=
+                ImGui::SliderFloat ("Perceptual Boost 0", &__SK_HDR_PQBoost0, 3.0f, 20.0f);
+              boost_changed |=
+                ImGui::SliderFloat ("Perceptual Boost 1", &__SK_HDR_PQBoost1, 3.0f, 20.0f);
+              boost_changed |=                                                              
+                ImGui::SliderFloat ("Perceptual Boost 2", &__SK_HDR_PQBoost2, 0.5f, 1.5f);
+              boost_changed |=                                                              
+                ImGui::SliderFloat ("Perceptual Boost 3", &__SK_HDR_PQBoost3, 0.5f, 1.5f);
+
+              if (boost_changed)
               {
-                bool boost_changed = false;
-                
-                boost_changed |=
-                  ImGui::SliderFloat ("Perceptual Boost 0", &__SK_HDR_PQBoost0, 3.0f, 20.0f);
-                boost_changed |=
-                  ImGui::SliderFloat ("Perceptual Boost 1", &__SK_HDR_PQBoost1, 3.0f, 20.0f);
-                boost_changed |=                                                              
-                  ImGui::SliderFloat ("Perceptual Boost 2", &__SK_HDR_PQBoost2, 0.5f, 1.5f);
-                boost_changed |=                                                              
-                  ImGui::SliderFloat ("Perceptual Boost 3", &__SK_HDR_PQBoost3, 0.5f, 1.5f);
+                _SK_HDR_PerceptualBoost0->store (__SK_HDR_PQBoost0);
+                _SK_HDR_PerceptualBoost1->store (__SK_HDR_PQBoost1);
+                _SK_HDR_PerceptualBoost2->store (__SK_HDR_PQBoost2);
+                _SK_HDR_PerceptualBoost3->store (__SK_HDR_PQBoost3);
 
-                if (boost_changed)
-                {
-                  _SK_HDR_PerceptualBoost0->store (__SK_HDR_PQBoost0);
-                  _SK_HDR_PerceptualBoost1->store (__SK_HDR_PQBoost1);
-                  _SK_HDR_PerceptualBoost2->store (__SK_HDR_PQBoost2);
-                  _SK_HDR_PerceptualBoost3->store (__SK_HDR_PQBoost3);
-
-                  SK_SaveConfig ();
-                }
+                SK_SaveConfig ();
               }
+            }
 
-              changed_once |= changed;
+            changed_once |= changed;
 
-              if (changed_once)
-              {
-                ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
-                ImGui::BulletText     ("Game Restart Required");
-                ImGui::PopStyleColor  ();
-              }
+            if (changed_once)
+            {
+              ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+              ImGui::BulletText     ("Game Restart Required");
+              ImGui::PopStyleColor  ();
+            }
 
-              if (changed)
-              {
-                _SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
-                _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
-                _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+            if (changed)
+            {
+              _SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
+              _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
+              _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
-                dll_ini->write ();
-              }
+              dll_ini->write ();
             }
           }
 
