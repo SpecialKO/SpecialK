@@ -2697,15 +2697,17 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
           case SK_GAME_ID::TheQuarry:
           {
-            static bool finished0 = false;
-            static bool finished1 = false;
-            static bool finished2 = false;
-            static bool finished3 = false;
+            static std::unordered_set <DWORD> tids_checked2;
+            static std::unordered_set <DWORD> tids_checked;
 
-            if (SK_GetFramesDrawn () > 30 && (! (finished0 && finished1 && finished2 && finished3)))
+            static ULONG64 last_scanned = 120;
+            static std::bitset <4> finished;
+
+            if ((frames_drawn > 90 && (! finished.all ()))
+              || frames_drawn > (last_scanned + 15) )
             {
-              extern SK_LazyGlobal <std::map <DWORD, SKWG_Thread_Entry*>> SKWG_Threads;
-
+              extern SK_LazyGlobal <std::map <DWORD, SKWG_Thread_Entry*>>
+                                SKWG_Threads;
               for ( auto& it : *SKWG_Threads )
               {
                 if (it.second         == nullptr ||
@@ -2714,44 +2716,44 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                   continue;
                 }
 
-                DWORD  dwTidSelf =
-                  SK_Thread_GetCurrentId ();
+                if (    tids_checked2.count    (it.second->dwTid) > 0) continue;
+                else if (tids_checked.count    (it.second->dwTid) > 0)
+                         tids_checked2.emplace (it.second->dwTid);
 
-                if ( it.second->dwTid == dwTidSelf )
+                CHandle hThread (
+                  OpenThread ( THREAD_SET_INFORMATION |
+                               THREAD_QUERY_INFORMATION, FALSE, it.second->dwTid )
+                                );
+
+                if ( (intptr_t)hThread.m_h > 0 )
                 {
-                  continue;
-                }
+                  auto& name =
+                    it.second->name;
 
-                bool close = false;
-
-                if (it.second->hThread == INVALID_HANDLE_VALUE)
-                {
-                  close = true;
-
-                  it.second->hThread =
-                    OpenThread (THREAD_ALL_ACCESS, FALSE, it.second->dwTid);
-                }
-
-                if ( (intptr_t)it.second->hThread > 0 )
-                {
-                  if ((! finished0) && StrStrIW (it.second->name.c_str (), L"AudioMixerRenderThread") != nullptr) {
-                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_TIME_CRITICAL); finished0 = true;      }
-                  if ((! finished1) && StrStrIW (it.second->name.c_str (), L"AudioThread")            != nullptr) {
-                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_HIGHEST);       finished1 = true;      }
-                  if ((! finished2) && StrStrIW (it.second->name.c_str (), L"libScePad") != nullptr)              {
-                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_ABOVE_NORMAL);  finished2 = true;      }
-                  else if
-                    ((! finished3) && StrStrIW (it.second->name.c_str (), L"libScePad") != nullptr)               {
-                    SetThreadPriority (it.second->hThread, THREAD_PRIORITY_ABOVE_NORMAL);  finished3 = true;      }
-
-                  if (close)
+                  if (StrStrIW (name.c_str (), L"AudioMixerRenderThread(") == nullptr &&
+                      StrStrIW (name.c_str (), L"AudioThread")             == nullptr &&
+                      StrStrIW (name.c_str (), L"libScePad")               == nullptr &&
+                      StrStrIW (name.c_str (), L"RenderThread")            == nullptr)
                   {
-                    CloseHandle (
-                      std::exchange (it.second->hThread, INVALID_HANDLE_VALUE)
-                    );
+                    tids_checked.emplace (it.second->dwTid);
+                    continue;
                   }
+
+                  if (StrStrIW (name.c_str (), L"AudioMixerRenderThread(") != nullptr &&
+                      GetThreadPriority (hThread) != THREAD_PRIORITY_TIME_CRITICAL)
+                    { SetThreadPriority (hThread,    THREAD_PRIORITY_TIME_CRITICAL); finished.set (0, true);/*tids_checked.emplace (it.second->dwTid);*/ }
+             else if (StrStrIW (name.c_str (), L"AudioThread") != nullptr)
+                    { SetThreadPriority (hThread, THREAD_PRIORITY_HIGHEST);          finished.set (1, true); tids_checked.emplace (it.second->dwTid); }
+             else if (StrStrIW (name.c_str (), L"libScePad")    != nullptr &&
+                      GetThreadPriority (hThread) != THREAD_PRIORITY_ABOVE_NORMAL)
+                    { SetThreadPriority (hThread,    THREAD_PRIORITY_ABOVE_NORMAL);  finished.set (2, true); tids_checked.emplace (it.second->dwTid); }
+             else if (StrStrIW (name.c_str (), L"RenderThread") != nullptr &&
+                      GetThreadPriority (hThread) != THREAD_PRIORITY_HIGHEST)
+                    { SetThreadPriority (hThread,    THREAD_PRIORITY_HIGHEST);       finished.set (3, true); tids_checked.emplace (it.second->dwTid); }
                 }
               }
+
+              last_scanned = frames_drawn;
             }
           } break;
 #else
