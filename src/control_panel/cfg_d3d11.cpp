@@ -934,7 +934,7 @@ SK::ControlPanel::D3D11::Draw (void)
     if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
          ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
     {
-      if (d3d11) ImGui::SameLine   ();
+      if (d3d11 && !SK_GL_OnD3D11) ImGui::SameLine   ();
       OSD::DrawVideoCaptureOptions ();
     }
 
