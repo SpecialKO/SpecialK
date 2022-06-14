@@ -71,26 +71,6 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
-
-using InternetFreeProxyInfoList_pfn = void (WINAPI *)(void *);
-      InternetFreeProxyInfoList_pfn
-      InternetFreeProxyInfoList_Original = nullptr;
-
-void
-WINAPI
-InternetFreeProxyInfoList_Detour (void* pDontCare)
-{
-  if (SK_GetCurrentGameID () != SK_GAME_ID::HatsuneMikuDIVAMegaMix)
-    InternetFreeProxyInfoList_Original (pDontCare);
-
-  else
-  {
-    MessageBox (NULL, L"Bye Bye", L"Heh", MB_OK);
-
-    TerminateThread (GetCurrentThread (), 0x0);
-  }
-}
-
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)
@@ -197,7 +177,8 @@ SK_GetCurrentGameID (void)
       { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  },
       { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     },
       { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
-      { hash_lower (L"smt3hd.exe"),                             SK_GAME_ID::ShinMegamiTensei3            }
+      { hash_lower (L"smt3hd.exe"),                             SK_GAME_ID::ShinMegamiTensei3            },
+      { hash_lower (L"TheQuarry.exe"),                          SK_GAME_ID::TheQuarry                    }
     };
 
     first_check = false;
@@ -2804,6 +2785,14 @@ auto DeclKeybind =
 
         SK_D3D11_DeclHUDShader_Vtx (0x2725bc3e); // Primary UI
         SK_D3D11_DeclHUDShader_Vtx (0xcdb10248); // Radar
+        break;
+
+      case SK_GAME_ID::TheQuarry:
+        config.threads.enable_dynamic_spinlocks = true;
+        config.network.disable_winsock          = true;
+
+        SK_D3D11_DeclHUDShader_Vtx (0x71532076);
+        SK_D3D11_DeclHUDShader_Vtx (0x90c7c88b);
         break;
 #endif
     }

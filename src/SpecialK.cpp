@@ -32,6 +32,9 @@
 #include <SpecialK/render/ddraw/ddraw_backend.h>
 #endif
 
+const  char*   SK_VersionStrA =    SK_VERSION_STR_A;
+const wchar_t* SK_VersionStrW = _L(SK_VERSION_STR_A);
+
 #pragma comment (lib, "Aux_ulib.lib")
 
 char _RTL_CONSTANT_STRING_type_check (const char    *s);

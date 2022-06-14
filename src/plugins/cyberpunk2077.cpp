@@ -23,7 +23,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/utility.h>
-#include <SpecialK/DLL_VERSION.H>
 
 #define CP2077_VERSION_NUM L"0.0.1"
 #define CP2077_VERSION_STR L"Cyberpunk 2077 Plug-In v " CP2077_VERSION_NUM
@@ -94,7 +93,8 @@ bool SK_CP2077_PlugInCfg (void)
 
 void SK_CP2077_InitPlugin (void)
 {
-  SK_SetPluginName (L"Special K v " SK_VERSION_STR_W L" // " CP2077_VERSION_STR);
+  SK_SetPluginName ( SK_FormatStringW ( L"Special K v %ws // " CP2077_VERSION_STR,
+                                          SK_VersionStrW ).c_str () );
 
   plugin_mgr->config_fns.emplace (SK_CP2077_PlugInCfg);
 

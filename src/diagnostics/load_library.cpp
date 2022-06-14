@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <SpecialK/DLL_VERSION.H>
 #include <SpecialK/storefront/epic.h> // Lazy EOS init
 
 __declspec (noinline)

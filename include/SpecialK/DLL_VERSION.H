@@ -2,14 +2,16 @@
 
 #define SK_YEAR 22
 #define SK_MONTH 6
-#define SK_DATE  12
-#define SK_REV_N 1
-#define SK_REV   1
+#define SK_DATE  14
+#define SK_REV_N 0
+#define SK_REV   0
 
+#ifndef _A2
 #define _A2(a)     #a
 #define  _A(a)  _A2(a)
 #define _L2(w)  L ## w
 #define  _L(w)   _L2(w)
+#endif
 
 #if (defined (SK_REV) && SK_REV_N > 0)
 #define SK_VERSION_STR_A    _A(SK_YEAR) "." _A(SK_MONTH) "." _A(SK_DATE) "." _A(SK_REV)

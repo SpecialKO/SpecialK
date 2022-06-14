@@ -327,6 +327,16 @@
 
 extern bool __SK_bypass;
 
+#ifndef _A2
+#define _A2(a)     #a
+#define  _A(a)  _A2(a)
+#define _L2(w)  L ## w
+#define  _L(w)   _L2(w)
+#endif
+
+extern const wchar_t* SK_VersionStrW;
+extern const char*    SK_VersionStrA;
+
 #ifndef  NT_SUCCESS
 # define NT_SUCCESS(Status)           (((NTSTATUS)(Status)) >= 0)
 # define STATUS_SUCCESS                ((NTSTATUS)0x00000000L)
