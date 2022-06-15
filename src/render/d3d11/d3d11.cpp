@@ -4869,7 +4869,7 @@ D3D11Dev_CreateTexture2D_Impl (
                 _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS );
 
             ////if (! rb.windows.unreal) // Needed for Trials of Mana, not wanted for The Quary
-              rgba = ( rgba || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
+              rgba = ( rgba /* || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS*/);
 
             // 8-bit RGB(x) -> 16-bit FP
             if ( bpc == 8  && rgba &&

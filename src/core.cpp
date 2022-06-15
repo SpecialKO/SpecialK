@@ -1471,14 +1471,45 @@ SK_EstablishRootPath (void)
 
   if (*SK_GetInstallPath () == L'\0')
   {
-    swprintf ( SKX_GetInstallPath (), LR"(%s\My Mods\SpecialK)",
-               SK_GetDocumentsDir ().c_str () );
+    bool bRegistryDefinedPath = false;
+
+    if ( CRegKey
+           hkInstallPath; ERROR_SUCCESS ==
+           hkInstallPath.Open ( HKEY_CURRENT_USER,
+                LR"(Software\Kaldaien\Special K)" )
+        )
+    {
+      wchar_t wszInstallPath [MAX_PATH + 2] = { };
+      ULONG   ulPathLen   =   MAX_PATH;
+
+      if ( ERROR_SUCCESS ==
+             hkInstallPath.QueryStringValue ( L"Path",
+            wszInstallPath,                  &ulPathLen )
+         )
+      {
+        bRegistryDefinedPath = true;
+
+        wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
+                        wszInstallPath,   _TRUNCATE );
+
+        // Couldn't create the directory, try something else
+        if (! SK_CreateDirectories (SKX_GetInstallPath ()))
+        {
+          bRegistryDefinedPath = false;
+        }
+      }
+    }
+
+    // Fallback to ol' trusty
+    if (! bRegistryDefinedPath)
+    {
+      swprintf ( SKX_GetInstallPath (), LR"(%s\My Mods\SpecialK)",
+                 SK_GetDocumentsDir ().c_str () );
+    }
   }
 
   // Store config profiles in a centralized location rather than
   //   relative to the game's executable
-  //
-  //   * Currently, this location is always Documents\My Mods\SpecialK\
   //
   if (config.system.central_repository)
   {
@@ -2584,6 +2615,155 @@ SK_ShutdownCore (const wchar_t* backend)
   return true;
 }
 
+
+using CreateFileW_pfn =
+  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+using CreateFileA_pfn =
+  HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+static
+CreateFileW_pfn
+CreateFileW_Original = nullptr;
+
+static
+CreateFileA_pfn
+CreateFileA_Original = nullptr;
+
+static
+HANDLE
+WINAPI
+CreateFileW_Detour ( LPCWSTR               lpFileName,
+                     DWORD                 dwDesiredAccess,
+                     DWORD                 dwShareMode,
+                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                     DWORD                 dwCreationDisposition,
+                     DWORD                 dwFlagsAndAttributes,
+                     HANDLE                hTemplateFile )
+{
+  if (StrStrIW (lpFileName, LR"(WindowsNoEditor)"))
+  {
+    static
+      concurrency::concurrent_unordered_map <std::wstring, HANDLE>
+        pinned_files;
+
+    if (StrStrIW (lpFileName, LR"(.pak)"))
+    {
+      if (pinned_files.count (lpFileName) != 0)
+      {
+        SK_RunOnce ([&]
+        {
+          SK_LOG0 ( ( L"!! Using already opened copy of %ws", lpFileName ), L"SK CORE" );
+        });
+
+        return
+          pinned_files [lpFileName];
+      }
+
+      HANDLE hRet =
+        CreateFileW_Original (
+          lpFileName, dwDesiredAccess, dwShareMode,
+            lpSecurityAttributes, dwCreationDisposition,
+              dwFlagsAndAttributes, hTemplateFile );
+
+
+      if (hRet != INVALID_HANDLE_VALUE)
+      {
+        // Try as you might, you're not closing this file, you're going to get
+        //   this handle back the next time you try to open and close a file for
+        //     tiny 50 byte reads.
+        //
+        //  ** For Future Reference, OPENING files on Windows takes longer than
+        //       reading them does when data is this small.
+        // 
+        //                  ( STOP IT!!!~ )
+        //
+        if (SetHandleInformation (hRet, HANDLE_FLAG_PROTECT_FROM_CLOSE,
+                                        HANDLE_FLAG_PROTECT_FROM_CLOSE))
+        {
+          pinned_files [lpFileName] = hRet;
+        }
+      }
+
+      return hRet;
+    }
+  }
+
+  return
+    CreateFileW_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition,
+          dwFlagsAndAttributes, hTemplateFile );
+}
+
+static
+HANDLE
+WINAPI
+CreateFileA_Detour ( LPCSTR                lpFileName,
+                     DWORD                 dwDesiredAccess,
+                     DWORD                 dwShareMode,
+                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                     DWORD                 dwCreationDisposition,
+                     DWORD                 dwFlagsAndAttributes,
+                     HANDLE                hTemplateFile )
+{
+  if (StrStrIA (lpFileName, R"(WindowsNoEditor)"))
+  {
+    static
+      concurrency::concurrent_unordered_map <std::string, HANDLE>
+        pinned_files;
+
+    if (StrStrIA (lpFileName, R"(.pak)"))
+    {
+      if (pinned_files.count (lpFileName) != 0)
+      {
+        SK_RunOnce ([&]
+        {
+          SK_LOG0 ( ( L"!! Using already opened copy of %hs", lpFileName ), L"SK CORE" );
+        });
+
+        return
+          pinned_files [lpFileName];
+      }
+
+      HANDLE hRet =
+        CreateFileA_Original (
+          lpFileName, dwDesiredAccess, dwShareMode,
+            lpSecurityAttributes, dwCreationDisposition,
+              dwFlagsAndAttributes, hTemplateFile );
+
+
+      if (hRet != INVALID_HANDLE_VALUE)
+      {
+        // Try as you might, you're not closing this file, you're going to get
+        //   this handle back the next time you try to open and close a file for
+        //     tiny 50 byte reads.
+        //
+        //  ** For Future Reference, OPENING files on Windows takes longer than
+        //       reading them does when data is this small.
+        // 
+        //                  ( STOP IT!!!~ )
+        //
+        if (SetHandleInformation (hRet, HANDLE_FLAG_PROTECT_FROM_CLOSE,
+                                        HANDLE_FLAG_PROTECT_FROM_CLOSE))
+        {
+          pinned_files [lpFileName] = hRet;
+        }
+      }
+
+      return hRet;
+    }
+  }
+
+  return
+    CreateFileA_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition,
+          dwFlagsAndAttributes, hTemplateFile );
+}
+
+
 void
 SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
@@ -2697,6 +2877,20 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
           case SK_GAME_ID::TheQuarry:
           {
+            SK_RunOnce ([]
+            { SK_CreateDLLHook2 (      L"kernel32",
+                                        "CreateFileW",
+                                         CreateFileW_Detour,
+                static_cast_p2p <void> (&CreateFileW_Original) );
+
+              SK_CreateDLLHook2 (      L"kernel32",
+                                        "CreateFileA",
+                                         CreateFileA_Detour,
+                static_cast_p2p <void> (&CreateFileA_Original) );
+
+              SK_ApplyQueuedHooks ();
+            });
+
             static std::unordered_set <DWORD> tids_checked2;
             static std::unordered_set <DWORD> tids_checked;
 

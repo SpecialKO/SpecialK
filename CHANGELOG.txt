@@ -1,4 +1,11 @@
-﻿22.6.14.4-NOCEGUI
+﻿22.6.15.1-NOCEGUI
+=================
+ + Fallback to Documents\My Mods\SpecialK if path is unreadable or
+     if it cannot be created.
+ + Special K now uses "HKCU\Software\Kaldaien\Special K\Path" to find
+     the shared centralized directory for profiles, plug-ins, etc.
+
+22.6.14.4-NOCEGUI
 =================
  + Perceptual Boost HDR mode now works in D3D12 titles
  + Added HUD shader definitions for The Quarry for HUDless screenshots
