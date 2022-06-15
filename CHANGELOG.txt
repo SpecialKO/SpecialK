@@ -1,4 +1,8 @@
-﻿22.6.15.2-NOCEGUI
+﻿22.6.15.3-NOCEGUI
+=================
+ + Standard logging is now silent when loaded via SKIF or RunDLL32, to prevent deadlock
+
+22.6.15.2-NOCEGUI
 =================
  + Prevent SKIF from recursively spawning driver install if not elevated to Admin
  + Merge pull request #4 from cathyjf   [ SK_LoadImportModule: Expand environment variables ]

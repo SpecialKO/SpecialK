@@ -163,6 +163,8 @@ SK_WinRing0_Unpack (void)
     
     if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
       SK_CreateDirectories (wszDestination);
+    else if (PathFileExistsW (SK_FormatStringW (LR"(%ws\WinRing0.dll)", wszDestination).c_str ()))
+      return;
 
     wcsncpy_s (  wszArchive,      MAX_PATH,
                  wszDestination, _TRUNCATE );
