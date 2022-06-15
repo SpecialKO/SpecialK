@@ -2789,7 +2789,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::TheQuarry:
         config.threads.enable_dynamic_spinlocks = true;
-        config.network.disable_winsock          = true;
 
         SK_D3D11_DeclHUDShader_Vtx (0x71532076);
         SK_D3D11_DeclHUDShader_Vtx (0x90c7c88b);

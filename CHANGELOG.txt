@@ -1,4 +1,9 @@
-﻿22.6.15.1-NOCEGUI
+﻿22.6.16-NOCEGUI
+===============
+ + Merge pull request #4 from cathyjf   [ SK_LoadImportModule: Expand environment variables ]
+ + Merge pull request #7 from WallSoGB  [ Fix "Show OSD in Video Capture" in OGL-IK         ]
+
+22.6.15.1-NOCEGUI
 =================
  + Fallback to Documents\My Mods\SpecialK if path is unreadable or
      if it cannot be created.
@@ -12,7 +17,7 @@
  + Fixed audio stutter in The Quarry due to wrong thread priorities
  + Fixed multiple calls issued per-ID3D11DeviceContext::UpdateSubresource (...) when hooked and wrapped
  + Added protection for games that change thread priority while an SK thread priority override is active
- + Merged GitHub Pull Request #6 [ Corrected Intel CPU power and clock readings ]
+ + Merge pull request #6 from WallSoGB  [ Corrected Intel CPU power and clock readings ]
 
 22.6.12.1-NOCEGUI
 =================
