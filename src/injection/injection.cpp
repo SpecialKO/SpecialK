@@ -454,9 +454,10 @@ SK_Inject_ReleaseProcess (void)
   __SK_InjectionHistory_crash  [local_record] = SK_Debug_IsCrashing        ();
 
 #ifdef _DEBUG
-  dll_log.Log (L"Injection Release (%u, %lu, %s)", (unsigned int)SK_GetCurrentRenderBackend ().api,
-                                                                 SK_GetFramesDrawn          (),
-                                                                 SK_Debug_IsCrashing        () ? L"Crash" : L"Normal" );
+  SK_LOG0 ( ( L"Injection Release (%u, %lu, %s)", (unsigned int)SK_GetCurrentRenderBackend ().api,
+                                                                SK_GetFramesDrawn          (),
+                                                                SK_Debug_IsCrashing        () ? L"Crash" : L"Normal" ),
+              L"Injection" );
 #endif
 
   //local_record.input.xinput  = SK_Input_

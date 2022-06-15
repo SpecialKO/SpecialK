@@ -167,8 +167,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log->Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                     wszArchive );
+    SK_LOG0 ( ( L" ** Cannot open archive file: %s",
+                                       wszArchive ),
+                L"7-Zip Arch" );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -196,8 +197,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log->Log ( L"[AutoUpdate] Extracting file ('%s')",
-                     file.name.c_str () );
+    SK_LOG0 ( ( L"Extracting file ('%s')",
+                     file.name.c_str () ),
+                L"7-Zip Arch" );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream->s, file.fileno,
@@ -205,8 +207,10 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log->Log ( L"[AutoUpdate] Failed to extract 7-zip file ('%s')",
-                       file.name.c_str () );
+      SK_LOG0 ( ( L"Failed to extract 7-zip file ('%s')",
+                     file.name.c_str () ),
+                  L"7-Zip Arch" );
+                  
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -288,8 +292,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log->Log ( L"[AutoUpdate] Failed to open file: '%s'",
-                       wszDestPath );
+      SK_LOG0 ( ( L"Failed to open file : '%s'",
+                     wszDestPath ),
+                  L"7-Zip Arch" );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -314,8 +319,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log->Log ( L"[AutoUpdate]  ** Cannot open archive file: %s",
-                     wszArchive );
+    SK_LOG0 ( ( L" ** Cannot open archive file: %s",
+                     wszArchive ),
+                L"7-Zip Arch" );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -330,8 +336,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log->Log ( L"[AutoUpdate] Extracting config file ('%s')",
-                     cfg_file.name.c_str () );
+    SK_LOG0 ( ( L"Extracting config file ('%s')",
+                     cfg_file.name.c_str () ),
+                L"7-Zip Arch" );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream->s, cfg_file.fileno,
@@ -339,8 +346,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log->Log ( L"[AutoUpdate] Failed to extract 7-zip config file ('%s')",
-                    cfg_file.name.c_str () );
+      SK_LOG0 ( ( L"Failed to extract 7-zip config file ('%s')",
+                     cfg_file.name.c_str () ),
+                  L"7-Zip Arch" );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -435,8 +443,9 @@ SK_Decompress7z ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log->Log ( L"[AutoUpdate] Failed to create file: '%s'",
-                       wszNewConfig );
+      SK_LOG0 ( ( L"Failed to create file: '%s'",
+                     wszNewConfig ),
+                  L"7-Zip Arch" );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -497,8 +506,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                          &thread_alloc,
                            &thread_tmp_alloc ) != SZ_OK )
   {
-    dll_log->Log ( L"[7ZIP-Unpak]  ** Cannot open archive file: %s",
-                     wszArchive );
+    SK_LOG0 ( ( L" ** Cannot open archive file: %s",
+                     wszArchive ),
+                L"7ZIP-Unpak" );
 
     SzArEx_Free (&arc, &thread_alloc);
 
@@ -515,8 +525,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     size_t   offset        = 0;
     size_t   decomp_size   = 0;
 
-    dll_log->Log ( L"[7ZIP-Unpak] Extracting file ('%s')",
-                     files [i].name.c_str () );
+    SK_LOG0 ( ( L"Extracting file ('%s')",
+                files [i].name.c_str () ),
+                L"7ZIP-Unpak" );
 
     if ( SZ_OK !=
            SzArEx_Extract ( &arc,          &look_stream->s, file.fileno,
@@ -524,8 +535,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
                             &offset,       &decomp_size,
                             &thread_alloc, &thread_tmp_alloc ) )
     {
-      dll_log->Log ( L"[7ZIP-Unpak] Failed to extract 7-zip file ('%s')",
-                       file.name.c_str () );
+      SK_LOG0 ( ( L"Failed to extract 7-zip file ('%s')",
+                                    file.name.c_str () ),
+                  L"7ZIP-Unpak" );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);
@@ -543,7 +555,7 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
     HANDLE hOutFile =
       CreateFileW ( wszDestPath,
                       GENERIC_WRITE,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                           nullptr,
                             CREATE_ALWAYS,
                               FILE_ATTRIBUTE_NORMAL |
@@ -565,8 +577,9 @@ SK_Decompress7zEx ( const wchar_t*            wszArchive,
 
     else
     {
-      dll_log->Log ( L"[7ZIP-Unpak] Failed to open file: '%s'",
-                       wszDestPath );
+      SK_LOG0 ( ( L"Failed to open file: '%s'",
+                                 wszDestPath ),
+                  L"7ZIP-Unpak" );
 
       File_Close  (&arc_stream.file);
       SzArEx_Free (&arc, &thread_alloc);

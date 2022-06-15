@@ -752,7 +752,7 @@ MessageProc ( const HWND&   hWnd,
         {
           case FAPPCOMMAND_KEY:
           {
-            dll_log->Log (L"WM_APPCOMMAND Keyboard Event");
+            OutputDebugStringW (L"WM_APPCOMMAND Keyboard Event");
 
             //if (SK_ImGui_WantKeyboardCapture ())
             //{
@@ -765,11 +765,11 @@ MessageProc ( const HWND&   hWnd,
           {
             if (SK_ImGui_WantMouseCapture ())
             {
-              dll_log->Log (L"Removed WM_APPCOMMAND Mouse Event");
+              OutputDebugStringW (L"Removed WM_APPCOMMAND Mouse Event");
               return true;
             }
 
-            dll_log->Log (L"WM_APPCOMMAND Mouse Event");
+            OutputDebugStringW (L"WM_APPCOMMAND Mouse Event");
 
             LPARAM dwPos = static_cast <LPARAM> (GetMessagePos ());
             LONG   lRet  = SK_ImGui_DeltaTestMouse (
@@ -778,7 +778,7 @@ MessageProc ( const HWND&   hWnd,
 
             if (lRet >= 0)
             {
-              dll_log->Log (L"Removed WM_APPCOMMAND Mouse Delta Failure");
+              OutputDebugStringW (L"Removed WM_APPCOMMAND Mouse Delta Failure");
               return true;
             }
           } break;
@@ -1409,12 +1409,14 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
                 if (arrival)
                 {
-                  dll_log->Log (L"[XInput_Hot]  (Input Device Connected)");
+                  SK_LOG0 ( ( L" (Input Device Connected)" ),
+                              L"XInput_Hot" );
                 }
 
                 else
                 {
-                  dll_log->Log (L"[XInput_Hot]  (Input Device Disconnected)");
+                  SK_LOG0 ( ( L" (Input Device Disconnected)" ),
+                              L"XInput_Hot" );
                 }
 
                 for ( auto slot : { 0, 1, 2, 3 } )

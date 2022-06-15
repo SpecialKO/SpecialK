@@ -53,7 +53,8 @@ ErrorMessage (errno_t        err,
 }
 
 #define TRY_FILE_IO(x,y,z) { (z) = ##x; if ((z) == nullptr) \
-dll_log->Log (L"[ SpecialK ] %ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str ()); }
+SK_LOG0 ( ( L"%ws", ErrorMessage (GetLastError (), #x, (y), __LINE__, __FUNCTION__, __FILE__).c_str () ), \
+            L" SpecialK " ); }
 
 BOOL
 SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
@@ -171,9 +172,10 @@ iSK_INI::reload (const wchar_t *fname)
     // UTF16-BE  (Somehow we are swapped)
     else if (*data.data () == 0xFFFE)
     {
-      dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
-                     L"file ('%s'), attempting to recover...",
-                       fname );
+      SK_LOG0 ( ( L"Encountered Byte - Swapped Unicode INI "
+                  L"file ('%s'), attempting to recover...",
+                                                   fname ),
+                  L"INI Parser" );
 
       wchar_t* wszSwapMe = data.data ();
 
@@ -234,9 +236,10 @@ iSK_INI::reload (const wchar_t *fname)
 
       if (0 == converted_size)
       {
-        dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI Encoded "
-                       L".ini file ('%s') to UTF-16, aborting!",
-                         fname );
+        SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI Encoded "
+                    L".ini file ('%s') to UTF-16, aborting!",
+                                                     fname ),
+                    L"INI Parser" );
 
         delete [] string;
                   string = nullptr;
@@ -254,8 +257,8 @@ iSK_INI::reload (const wchar_t *fname)
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                              data.data (),   converted_size );
 
-        //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
-                        //fname );
+        //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
+                        //fname ), L"INI Parser" );
       }
 
       delete [] string;
@@ -1619,9 +1622,10 @@ iSK_INI::import_file (const wchar_t* fname)
     // UTF16-BE  (Somehow we are swapped)
     else if (*wszImportData == 0xFFFE)
     {
-      dll_log->Log ( L"[INI Parser] Encountered Byte-Swapped Unicode INI "
-                     L"file ('%s'), attempting to recover...",
-                       fname );
+      SK_LOG0 ( ( L"Encountered Byte-Swapped Unicode INI "
+                  L"file ('%s'), attempting to recover...",
+                                                   fname ),
+                  L"INI Parser" );
 
       wchar_t* wszSwapMe = wszImportData;
 
@@ -1685,9 +1689,10 @@ iSK_INI::import_file (const wchar_t* fname)
       {
         if (real_size > 0)
         {
-          dll_log->Log ( L"[INI Parser] Could not convert UTF-8 / ANSI "
-                         L"Encoded .ini file ('%s') to UTF-16, aborting!",
-                           fname );
+          SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI "
+                      L"Encoded .ini file ('%s') to UTF-16, aborting!",
+                                                               fname ),
+                      L"INI Parser" );
         }
 
         if (        string != nullptr) {
@@ -1709,8 +1714,8 @@ iSK_INI::import_file (const wchar_t* fname)
           MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                                wszImportData, converted_size );
 
-          //dll_log->Log ( L"[INI Parser] Converted UTF-8 INI File: '%s'",
-          //wszImportName );
+          //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
+                                        //wszImportName ), L"INI Parser" );
 
           delete [] string;
                     string = nullptr;

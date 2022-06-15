@@ -464,6 +464,9 @@ SK_WR0_Deinit (void)
 bool
 SK_WR0_Init (void)
 {
+  bool log =
+    (! SK_GetHostAppUtil ()->isInjectionTool ());
+
   LONG init =
     ReadAcquire (&__SK_WR0_Init);
 
@@ -546,6 +549,14 @@ SK_WR0_Init (void)
   init =
     ReadAcquire (&__SK_WR0_Init);
 
+
+  if ( SK_IsRunDLLInvocation () ||
+       (! log) )
+  {
+    WriteRelease (&__SK_WR0_Init,  0);
+                            init = 0;
+  }
+
   if (hModWinRing0 != nullptr && init != 1)
   {
     if (DeinitializeOls != nullptr)
@@ -565,6 +576,9 @@ SK_WR0_Init (void)
     while (SK_FreeLibrary (hModToFree) != 0) {
       ;
     }
+
+    if (! log)
+      return true;
 
     return
       SK_WR0_Init ();
@@ -1125,9 +1139,9 @@ SK_CPU_AssertPowerUnit_Zen (int64_t core)
   {
     if (((eax >> 8UL) & 0x1FUL) != 16UL)
     {
-      dll_log->Log (
+      SK_LOG0 ( (
         L"Unexpected Energy Units for Model 17H: %lu",
-          (eax >> 8UL) & 0x1FUL
+          (eax >> 8UL) & 0x1FUL ), L"CPU Driver"
       );
     }
   }

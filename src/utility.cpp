@@ -2069,10 +2069,10 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
     if (! warned)
     {
-      dll_log->Log ( L"[ Sig Scan ] Module page walk resulted in end addr. out-of-range: %ph",
-                       end_addr );
-      dll_log->Log ( L"[ Sig Scan ]  >> Restricting to %ph",
-                       PAGE_WALK_LIMIT );
+      SK_LOG0 ( ( L"Module page walk resulted in end addr. out-of-range: %ph", end_addr ),
+                  L" Sig Scan " );
+      SK_LOG0 ( ( L" >> Restricting to %ph", PAGE_WALK_LIMIT ),
+                  L" Sig Scan " );
       warned = true;
     }
 
@@ -2749,8 +2749,11 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
 
   if (hFind != INVALID_HANDLE_VALUE)
   {
-    dll_log->LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ",
-                             SK_ConcealUserDir (std::wstring (wszPath).data ()) );
+    if (config.system.log_level >= 0)
+    {
+      dll_log->LogEx ( true, L"[Clean Mgr.] Cleaning temporary files in '%s'...    ",
+                               SK_ConcealUserDir (std::wstring (wszPath).data ()) );
+    }
 
     wchar_t wszFullPath [MAX_PATH + 2] = { };
 
@@ -2772,7 +2775,8 @@ SK_DeleteTemporaryFiles (const wchar_t* wszPath, const wchar_t* wszPattern)
       }
     } while (FindNextFileW (hFind, &fd) != 0);
 
-    dll_log->LogEx ( false, L"%zu files deleted\n", files);
+    if (config.system.log_level >= 0)
+      dll_log->LogEx ( false, L"%zu files deleted\n", files);
 
     FindClose (hFind);
   }
@@ -3347,6 +3351,9 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
     if (SK_IsAdmin ())
     {
+      SK_CreateDirectories (wszUserDLL);
+      SK_CreateDirectories (wszKernelSys);
+
       if (! ( PathFileExistsW (wszUserDLL) &&
               PathFileExistsW (wszKernelSys) ) )
       {
@@ -3583,36 +3590,33 @@ SK_WinRing0_Uninstall (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    if (! SK_IsRunDLLInvocation ())
+    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                        &sinfo,  &pinfo ))
     {
-      if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
-                          FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
-                          &sinfo,  &pinfo ))
-      {
-        DWORD dwWaitState = 1;
+      DWORD dwWaitState = 1;
 
-        do { if (   WAIT_OBJECT_0 ==
-                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-          {       dwWaitState  = WAIT_OBJECT_0;                }
-          else  { dwWaitState++; SK_Sleep (80);                }
-        } while ( dwWaitState < 50 &&
-                  dwWaitState != WAIT_OBJECT_0 );
+      do { if (   WAIT_OBJECT_0 ==
+               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+        {       dwWaitState  = WAIT_OBJECT_0;                }
+        else  { dwWaitState++; SK_Sleep (80);                }
+      } while ( dwWaitState < 50 &&
+                dwWaitState != WAIT_OBJECT_0 );
 
-        SK_CloseHandle (pinfo.hThread);
-        SK_CloseHandle (pinfo.hProcess);
+      SK_CloseHandle (pinfo.hThread);
+      SK_CloseHandle (pinfo.hProcess);
 
-        RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
-        GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                                 dwTime                         , wszTemp);
-        SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
-        RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
-        GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                                 dwTime+1                       , wszTemp);
-        SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
-        SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
+      RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
+      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                               dwTime                         , wszTemp);
+      SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
+      RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
+      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                               dwTime+1                       , wszTemp);
+      SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
+      SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
 
-        InterlockedExchange (&__SK_WR0_Init, 0L);
-      }
+      InterlockedExchange (&__SK_WR0_Init, 0L);
     }
   }
 }
@@ -3675,31 +3679,28 @@ SK_WinRing0_Install (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    if (! SK_IsRunDLLInvocation ())
+    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                        &sinfo,  &pinfo ))
     {
-      if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
-                          FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
-                          &sinfo,  &pinfo ))
-      {
-        DWORD dwWaitState = 1;
+      DWORD dwWaitState = 1;
 
-        do { if (   WAIT_OBJECT_0 ==
-                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-          {       dwWaitState  = WAIT_OBJECT_0;                }
-          else  { dwWaitState++; SK_Sleep (80);                }
-        } while ( dwWaitState < 50 &&
-                  dwWaitState != WAIT_OBJECT_0 );
+      do { if (   WAIT_OBJECT_0 ==
+               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+        {       dwWaitState  = WAIT_OBJECT_0;                }
+        else  { dwWaitState++; SK_Sleep (80);                }
+      } while ( dwWaitState < 50 &&
+                dwWaitState != WAIT_OBJECT_0 );
 
-        //SK_CloseHandle (pinfo.hThread);
-        //SK_CloseHandle (pinfo.hProcess);
-        //
-        //wchar_t wszTemp [MAX_PATH + 2] = { };
-        //
-        //GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
-        //                         SK_timeGetTime       (), wszTemp);
-        //SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
-        //SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
-      }
+      //SK_CloseHandle (pinfo.hThread);
+      //SK_CloseHandle (pinfo.hProcess);
+      //
+      //wchar_t wszTemp [MAX_PATH + 2] = { };
+      //
+      //GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
+      //                         SK_timeGetTime       (), wszTemp);
+      //SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
+      //SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
     }
   }
 }
@@ -4773,8 +4774,9 @@ SK_DescribeHRESULT (HRESULT hr)
     return L"E_UNEXPECTED";
 
   default:
-    dll_log->Log (L" *** Encountered unknown HRESULT: (0x%08X)",
-      (unsigned long)hr);
+    SK_LOG0 ( ( L" *** Encountered unknown HRESULT: (0x%08X)",
+                            (unsigned long)hr ),
+                L" SpecialK " );
     return L"UNKNOWN";
   }
 }

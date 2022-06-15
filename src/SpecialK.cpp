@@ -436,6 +436,8 @@ DllMain ( HMODULE hModule,
         if ( bRet )
           SK_DLL_SetAttached (true);
 
+        config.system.log_level = -1;
+
         return bRet;
       }
 

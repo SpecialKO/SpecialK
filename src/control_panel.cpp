@@ -2399,7 +2399,8 @@ SK_ImGui_ControlPanel (void)
 
   if (ImGui::GetFont () == nullptr)
   {
-    dll_log->Log (L"[   ImGui   ]  Fatal Error:  No Font Loaded!");
+    SK_LOG0 ( ( L" Fatal Error:  No Font Loaded!" ),
+                L"   ImGui   " );
     return false;
   }
 
