@@ -1979,16 +1979,21 @@ float4 main (PS_INPUT input) : SV_TARGET
                             ), 1.0f
            );
 
+  if (visualFunc.x == VISUALIZE_REC2020_GAMUT)
+  {
+    hdr_color =
+      input.uv.x * float4 (1.0f, 1.0f, 1.0f, 1.0f);
+  }
 
-    float4 over_range =
-      float4 (0.0f, 0.0f, 0.0f, 1.0f);
+  float4 over_range =
+    float4 (0.0f, 0.0f, 0.0f, 1.0f);
 
-    if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
-        over_range.r = hdr_color.r;
-    if (hdr_color.g <  0.0 || hdr_color.g > 1.0)
-       over_range.g = hdr_color.g;
-    if (hdr_color.b <  0.0 || hdr_color.b > 1.0)
-       over_range.b = hdr_color.b;
+  if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
+      over_range.r = hdr_color.r;
+  if (hdr_color.g <  0.0 || hdr_color.g > 1.0)
+     over_range.g = hdr_color.g;
+  if (hdr_color.b <  0.0 || hdr_color.b > 1.0)
+     over_range.b = hdr_color.b;
 
 
 
@@ -2154,7 +2159,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   fLuma =
     Luminance (hdr_color.rgb);
 
-  if (visualFunc.x >= VISUALIZE_REC709_GAMUT)
+  if (visualFunc.x >= VISUALIZE_REC709_GAMUT && visualFunc.x < VISUALIZE_REC2020_GAMUT)
   {
     int cs = visualFunc.x - VISUALIZE_REC709_GAMUT;
 
@@ -2249,6 +2254,53 @@ float4 main (PS_INPUT input) : SV_TARGET
       float4 (
         vDist, 1.0f
              );
+  }
+
+  if (visualFunc.x == VISUALIZE_REC2020_GAMUT)
+  {
+    float3 vColor =
+      float3 (0.0f, 0.0f, 0.0f);
+
+    if ( Luminance (float3 (hdr_color.r, 0.0f, 0.0f)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
+         Luminance (float3 (hdr_color.r, 0.0f, 0.0f)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
+    {
+      vColor.r = hdrLuminance_MaxLocal;
+    }
+
+    if ( Luminance (float3 (0.0f, hdr_color.g, 0.0f)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
+         Luminance (float3 (0.0f, hdr_color.g, 0.0f)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
+    {
+      vColor.g = hdrLuminance_MaxLocal;
+    }
+
+    if ( Luminance (float3 (0.0f, 0.0f, hdr_color.b)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
+         Luminance (float3 (0.0f, 0.0f, hdr_color.b)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
+    {
+      vColor.b = hdrLuminance_MaxLocal;
+    }
+
+    if (vColor.r == 0.0f && vColor.g == 0.0f && vColor.b == 0.0f)
+    {
+    //if (input.uv.y < 0.05f)
+    //{
+    //  if (input.uv.x % 2 == 1)
+    //       hdr_color.rgb = float3 (0.0f,    0.0f,     0.0f);
+    //  else hdr_color.rgb = float3 (hdrLuminance_Min * 4.0f,
+    //                               hdrLuminance_Min * 4.0f,
+    //                               hdrLuminance_Min * 4.0f);
+    //}
+    //
+    //else
+      {
+        hdr_color.rgb =
+          float3 ( min (hdrLuminance_MaxAvg / 4.0, hdr_color.r),
+                   min (hdrLuminance_MaxAvg / 4.0, hdr_color.g),
+                   min (hdrLuminance_MaxAvg / 4.0, hdr_color.b) );
+      }
+    }
+
+    else
+      hdr_color.rgb = vColor.rgb;
   }
 
   if (visualFunc.x >= VISUALIZE_AVG_LUMA && visualFunc.x <= VISUALIZE_EXPOSURE)

@@ -440,6 +440,10 @@ void SK_FetchBuiltinSounds (void)
       std::filesystem::path (SK_GetInstallPath ()) /
                         LR"(Assets\Shared\Sounds\)";
 
+  std::error_code                                      ec;
+  if (! std::filesystem::exists (SK_GetInstallPath (), ec))
+    return;
+
   static const std::filesystem::path
     predefined_sounds [] =
     {
@@ -454,7 +458,7 @@ void SK_FetchBuiltinSounds (void)
 
   for ( auto& sound : predefined_sounds )
   {
-    if (! std::filesystem::exists (sound))
+    if (! std::filesystem::exists (sound, ec))
     {
       incomplete_set = true;
       break;
@@ -507,6 +511,9 @@ void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
 {
+  if (SK_IsRunDLLInvocation ())
+    return;
+
   using finish_pfn   = void (WINAPI *)  (void);
   using callback_pfn = void (WINAPI *)(_Releases_exclusive_lock_ (init_mutex) finish_pfn);
 
@@ -3996,3 +4003,5 @@ SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
 SK_LazyGlobal <iSK_Logger> epic_log;
+
+

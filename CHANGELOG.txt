@@ -1,5 +1,6 @@
-﻿22.6.16-NOCEGUI
-===============
+﻿22.6.15.2-NOCEGUI
+=================
+ + Prevent SKIF from recursively spawning driver install if not elevated to Admin
  + Merge pull request #4 from cathyjf   [ SK_LoadImportModule: Expand environment variables ]
  + Merge pull request #7 from WallSoGB  [ Fix "Show OSD in Video Capture" in OGL-IK         ]
 

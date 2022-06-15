@@ -3353,8 +3353,9 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
         SK_WinRing0_Unpack ();
       }
 
-      if (SK_WR0_Init ())
-        return;
+      SK_WR0_Init ();
+
+      return;
     }
 
     SK_PathCombineW ( wszHostDLL, wszCurrentDir,
@@ -3538,6 +3539,9 @@ SK_WinRing0_Uninstall (void)
     return;
   }
 
+  if (SK_IsAdmin ())
+    return;
+
   std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
 
@@ -3579,33 +3583,36 @@ SK_WinRing0_Uninstall (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
-                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
-                        &sinfo,  &pinfo ))
+    if (! SK_IsRunDLLInvocation ())
     {
-      DWORD dwWaitState = 1;
+      if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                          FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                          &sinfo,  &pinfo ))
+      {
+        DWORD dwWaitState = 1;
 
-      do { if (   WAIT_OBJECT_0 ==
-               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-        {       dwWaitState  = WAIT_OBJECT_0;                }
-        else  { dwWaitState++; SK_Sleep (80);                }
-      } while ( dwWaitState < 50 &&
-                dwWaitState != WAIT_OBJECT_0 );
+        do { if (   WAIT_OBJECT_0 ==
+                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+          {       dwWaitState  = WAIT_OBJECT_0;                }
+          else  { dwWaitState++; SK_Sleep (80);                }
+        } while ( dwWaitState < 50 &&
+                  dwWaitState != WAIT_OBJECT_0 );
 
-      SK_CloseHandle (pinfo.hThread);
-      SK_CloseHandle (pinfo.hProcess);
+        SK_CloseHandle (pinfo.hThread);
+        SK_CloseHandle (pinfo.hProcess);
 
-      RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
-      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                               dwTime                         , wszTemp);
-      SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
-      RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
-      GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
-                               dwTime+1                       , wszTemp);
-      SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
-      SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
+        RtlSecureZeroMemory     (wszTemp, sizeof (wchar_t) * (MAX_PATH + 2));
+        GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                                 dwTime                         , wszTemp);
+        SK_File_MoveNoFail      (kernelmode_driver_path.c_str (), wszTemp);
+        RtlSecureZeroMemory     (wszTemp, sizeof(wchar_t) * (MAX_PATH + 2));
+        GetTempFileNameW        (path_to_driver.c_str         (), L"SKI",
+                                 dwTime+1                       , wszTemp);
+        SK_File_MoveNoFail      (installer_path.c_str         (), wszTemp);
+        SK_DeleteTemporaryFiles (path_to_driver.c_str         ()         );
 
-      InterlockedExchange (&__SK_WR0_Init, 0L);
+        InterlockedExchange (&__SK_WR0_Init, 0L);
+      }
     }
   }
 }
@@ -3668,28 +3675,31 @@ SK_WinRing0_Install (void)
     sinfo.wShowWindow = SW_HIDE;
     sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-    if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
-                        FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
-                        &sinfo,  &pinfo ))
+    if (! SK_IsRunDLLInvocation ())
     {
-      DWORD dwWaitState = 1;
+      if (CreateProcess ( nullptr, wszRunDLLCmd,                  nullptr, nullptr,
+                          FALSE, /*CREATE_NEW_PROCESS_GROUP*/0x0, nullptr, path_to_driver.c_str (),
+                          &sinfo,  &pinfo ))
+      {
+        DWORD dwWaitState = 1;
 
-      do { if (   WAIT_OBJECT_0 ==
-               SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
-        {       dwWaitState  = WAIT_OBJECT_0;                }
-        else  { dwWaitState++; SK_Sleep (80);                }
-      } while ( dwWaitState < 50 &&
-                dwWaitState != WAIT_OBJECT_0 );
+        do { if (   WAIT_OBJECT_0 ==
+                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
+          {       dwWaitState  = WAIT_OBJECT_0;                }
+          else  { dwWaitState++; SK_Sleep (80);                }
+        } while ( dwWaitState < 50 &&
+                  dwWaitState != WAIT_OBJECT_0 );
 
-      //SK_CloseHandle (pinfo.hThread);
-      //SK_CloseHandle (pinfo.hProcess);
-      //
-      //wchar_t wszTemp [MAX_PATH + 2] = { };
-      //
-      //GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
-      //                         SK_timeGetTime       (), wszTemp);
-      //SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
-      //SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
+        //SK_CloseHandle (pinfo.hThread);
+        //SK_CloseHandle (pinfo.hProcess);
+        //
+        //wchar_t wszTemp [MAX_PATH + 2] = { };
+        //
+        //GetTempFileNameW        (path_to_driver.c_str (), L"SKI",
+        //                         SK_timeGetTime       (), wszTemp);
+        //SK_File_MoveNoFail      (installer_path.c_str (), wszTemp);
+        //SK_DeleteTemporaryFiles (path_to_driver.c_str ()         );
+      }
     }
   }
 }
@@ -3733,12 +3743,15 @@ SK_ElevateToAdmin (void)
   sinfo.wShowWindow = SW_HIDE;
   sinfo.dwFlags     = STARTF_USESHOWWINDOW;
 
-  CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
-                  FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
-                  &sinfo,  &pinfo );
+  if (! SK_IsRunDLLInvocation ())
+  {
+    CreateProcess ( nullptr, wszRunDLLCmd,             nullptr, nullptr,
+                    FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
+                    &sinfo,  &pinfo );
 
-  SK_CloseHandle (pinfo.hThread);
-  SK_CloseHandle (pinfo.hProcess);
+    SK_CloseHandle (pinfo.hThread);
+    SK_CloseHandle (pinfo.hProcess);
+  }
 
   // Save config prior to comitting suicide
   SK_SelfDestruct     (    );
