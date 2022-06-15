@@ -1491,6 +1491,12 @@ SK_EstablishRootPath (void)
 
         wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
                         wszInstallPath,   _TRUNCATE );
+
+        // Couldn't create the directory, try something else
+        if (! SK_CreateDirectories (SKX_GetInstallPath ()))
+        {
+          bRegistryDefinedPath = false;
+        }
       }
     }
 

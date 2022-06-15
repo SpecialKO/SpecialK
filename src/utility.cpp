@@ -371,7 +371,8 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
       *iter = L'\0';
 
       if (GetFileAttributes (wszDirPath) == INVALID_FILE_ATTRIBUTES)
-        CreateDirectoryW (wszSubDir, nullptr);
+        if (! CreateDirectoryW (wszSubDir, nullptr))
+          return false;
 
       *iter = L'\\';
     }
@@ -379,7 +380,7 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 
   // The final subdirectory (FULL PATH)
   if (GetFileAttributes (wszDirPath) == INVALID_FILE_ATTRIBUTES)
-    CreateDirectoryW (wszSubDir, nullptr);
+    return CreateDirectoryW (wszSubDir, nullptr);
 
   return true;
 }
