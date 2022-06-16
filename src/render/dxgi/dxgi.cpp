@@ -9074,8 +9074,11 @@ SK_DXGI_IsTrackingBudget (void) noexcept
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 {
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0)
-    return E_ACCESSDENIED;
+  ////if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
+  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
+  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
+  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+  ////  return E_ACCESSDENIED;
 
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring

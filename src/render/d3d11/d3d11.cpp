@@ -841,7 +841,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
         // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
         if ( iver >= 3 )
         {
-          SK::DXGI::StartBudgetThread ( &pAdapter.p );
+          SK::DXGI::StartBudgetThread_NoAdapter ();
+        //SK::DXGI::StartBudgetThread ( &pAdapter.p );
         }
       }
     }

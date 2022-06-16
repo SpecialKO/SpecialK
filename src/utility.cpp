@@ -3094,7 +3094,7 @@ SK_RestartGame (const wchar_t* wszDLL)
   {
     wchar_t      wszRunDLLCmd [MAX_PATH * 4] = { };
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"RunDll32.exe %s,RunDLL_RestartGame %s %s",
+                 L"RunDll32.exe \"%ws\",RunDLL_RestartGame %s %s",
                    wszShortPath,
                      SK_GetFullyQualifiedApp (),
                      PathGetArgsW (GetCommandLineW ()) );
@@ -3318,8 +3318,8 @@ SK_COM_UAC_AdminShellExec ( const wchar_t* wszExecutable,
 
 void
 CALLBACK
-RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
-                  LPSTR lpszCmdLine, int       nCmdShow )
+RunDLL_WinRing0 ( HWND   hwnd,        HINSTANCE hInst,
+                  LPCSTR lpszCmdLine, int       nCmdShow )
 {
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);
@@ -3350,9 +3350,6 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
 
     if (SK_IsAdmin ())
     {
-      SK_CreateDirectories (wszUserDLL);
-      SK_CreateDirectories (wszKernelSys);
-
       if (! ( PathFileExistsW (wszUserDLL) &&
               PathFileExistsW (wszKernelSys) ) )
       {
@@ -3370,9 +3367,10 @@ RunDLL_WinRing0 ( HWND  hwnd,        HINSTANCE hInst,
                  );
     GetShortPathNameW (wszHostDLL, wszShortDLL, MAX_PATH);
 
-    lstrcatW    (wszCommand,                  wszShortDLL);
-    lstrcatW    (wszCommand,  L",RunDLL_WinRing0 Install");
-    PathAppendW (wszRunDLL32, L"RunDLL32.exe"            );
+    lstrcatW    (wszCommand,                          L"\"");
+    lstrcatW    (wszCommand,                    wszShortDLL);
+    lstrcatW    (wszCommand,  L"\",RunDLL_WinRing0 Install");
+    PathAppendW (wszRunDLL32, L"RunDLL32.exe"              );
 
     if ( SK_COM_UAC_AdminShellExec (
            wszRunDLL32,
@@ -3559,11 +3557,11 @@ SK_WinRing0_Uninstall (void)
   if (GetFileAttributesW (kernelmode_driver_path.c_str ()) == INVALID_FILE_ATTRIBUTES)
   {
     InterlockedExchange (&__SK_WR0_Init, 0L);
-    return;
+    //return;
   }
 
-  if (SK_IsAdmin ())
-    return;
+  //if (SK_IsAdmin ())
+  //  return;
 
   std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
@@ -3596,7 +3594,7 @@ SK_WinRing0_Uninstall (void)
       GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"RunDll32.exe %ws,RunDLL_WinRing0 Uninstall",
+                 L"RunDll32.exe \"%ws\",RunDLL_WinRing0 Uninstall",
                    wszShortPath );
 
     STARTUPINFOW        sinfo = { };
@@ -3657,9 +3655,8 @@ SK_WinRing0_Install (void)
 
   SK_WinRing0_Unpack ();
 
-  if ( SK_IsAdmin  () &&
-       SK_WR0_Init () ) return;
-    //return;
+  if ( SK_IsAdmin  () )
+       SK_WR0_Init ();
 
   const std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
@@ -3685,7 +3682,7 @@ SK_WinRing0_Install (void)
       GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"%s %s,RunDLL_WinRing0 Install",
+                 L"%s \"%ws\",RunDLL_WinRing0 Install",
                    wszRunDLL32, wszShortPath );
 
     STARTUPINFOW        sinfo = { };
@@ -3752,7 +3749,7 @@ SK_ElevateToAdmin (void)
   }
 
   swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-               L"RunDll32.exe %s,RunDLL_ElevateMe %s",
+               L"RunDll32.exe \"%ws\",RunDLL_ElevateMe %s",
                  wszShortPath,
                    SK_GetFullyQualifiedApp () );
 

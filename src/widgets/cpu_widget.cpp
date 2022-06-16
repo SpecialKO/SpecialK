@@ -472,8 +472,11 @@ SK_WR0_Init (void)
   LONG init =
     ReadAcquire (&__SK_WR0_Init);
 
-  if (init != 0) {
-    return (init == 1);
+  if (log)
+  {
+    if (init != 0) {
+      return (init == 1);
+    }
   }
 
   static std::wstring path_to_driver =
@@ -502,8 +505,7 @@ SK_WR0_Init (void)
 
   if (has_WinRing0)
   {
-    hModWinRing0 =
-      SK_GetModuleHandleW (path_to_driver.c_str ());
+    GetModuleHandleExW (0x0, path_to_driver.c_str (), &hModWinRing0);
 
     if (hModWinRing0 == nullptr) {
         hModWinRing0 = SK_LoadLibraryW (path_to_driver.c_str ());
@@ -572,15 +574,12 @@ SK_WR0_Init (void)
     Rdmsr               = Rdmsr_NOP;
     Rdpmc               = Rdpmc_NOP;
 
-    HMODULE hModToFree   = hModWinRing0;
-            hModWinRing0 = nullptr;
-
-    while (SK_FreeLibrary (hModToFree) != 0) {
-      ;
-    }
+    SK_FreeLibrary (
+      std::exchange (hModWinRing0, nullptr)
+    );
 
     if (! log)
-      return true;
+      return false;
 
     return
       SK_WR0_Init ();

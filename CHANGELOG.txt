@@ -1,4 +1,12 @@
-﻿22.6.15.3-NOCEGUI
+﻿22.6.16-NOCEGUI
+===============
+ + "Reset" now resets the active preset's perceptual parameters
+ + Perceptual Boost HDR mode is on by default for HDR preset #0
+ + Perceptual Boost parameters are now stored per-preset
+ + Fixed a problem with Yakuza engine games destroying DXGI adapters
+     SK is holding references to so the busted engine will not crash
+
+22.6.15.3-NOCEGUI
 =================
  + Standard logging is now silent when loaded via SKIF or RunDLL32, to prevent deadlock
 
