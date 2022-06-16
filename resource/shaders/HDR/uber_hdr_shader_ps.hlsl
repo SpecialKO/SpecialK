@@ -2261,42 +2261,19 @@ float4 main (PS_INPUT input) : SV_TARGET
     float3 vColor =
       float3 (0.0f, 0.0f, 0.0f);
 
-    if ( Luminance (float3 (hdr_color.r, 0.0f, 0.0f)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
-         Luminance (float3 (hdr_color.r, 0.0f, 0.0f)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
+    if ( Luminance (hdr_color.rgb) / (hdrLuminance_MaxLocal / 80.0f) >= (1.0f - input.uv.y) - 0.0125 &&
+         Luminance (hdr_color.rgb) / (hdrLuminance_MaxLocal / 80.0f) <= (1.0f - input.uv.y) + 0.0125 )
     {
-      vColor.r = hdrLuminance_MaxLocal;
+      vColor.rgb =
+        ( hdrLuminance_MaxAvg / 80.0f );
     }
 
-    if ( Luminance (float3 (0.0f, hdr_color.g, 0.0f)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
-         Luminance (float3 (0.0f, hdr_color.g, 0.0f)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
+    if (! all (vColor))
     {
-      vColor.g = hdrLuminance_MaxLocal;
-    }
-
-    if ( Luminance (float3 (0.0f, 0.0f, hdr_color.b)) >= (hdrLuminance_MaxLocal * -input.uv.y) - 0.05 &&
-         Luminance (float3 (0.0f, 0.0f, hdr_color.b)) <= (hdrLuminance_MaxLocal * -input.uv.y) + 0.05 )
-    {
-      vColor.b = hdrLuminance_MaxLocal;
-    }
-
-    if (vColor.r == 0.0f && vColor.g == 0.0f && vColor.b == 0.0f)
-    {
-    //if (input.uv.y < 0.05f)
-    //{
-    //  if (input.uv.x % 2 == 1)
-    //       hdr_color.rgb = float3 (0.0f,    0.0f,     0.0f);
-    //  else hdr_color.rgb = float3 (hdrLuminance_Min * 4.0f,
-    //                               hdrLuminance_Min * 4.0f,
-    //                               hdrLuminance_Min * 4.0f);
-    //}
-    //
-    //else
-      {
-        hdr_color.rgb =
-          float3 ( min (hdrLuminance_MaxAvg / 4.0, hdr_color.r),
-                   min (hdrLuminance_MaxAvg / 4.0, hdr_color.g),
-                   min (hdrLuminance_MaxAvg / 4.0, hdr_color.b) );
-      }
+      hdr_color.rgb =
+        float3 ( min (hdrLuminance_MaxLocal / 80.0f, hdr_color.r),
+                 min (hdrLuminance_MaxLocal / 80.0f, hdr_color.g),
+                 min (hdrLuminance_MaxLocal / 80.0f, hdr_color.b) );
     }
 
     else

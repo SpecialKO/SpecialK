@@ -123,7 +123,7 @@ float __SK_HDR_VertCoverage  = 100.0f;
 float __SK_HDR_PQBoost0      = -8.80582f;
 float __SK_HDR_PQBoost1      =   13.419f;
 float __SK_HDR_PQBoost2      =   1.0535f;
-float __SK_HDR_PQBoost3      =   0.7855f;
+float __SK_HDR_PQBoost3      =  0.80925f;
 
 
 
@@ -286,11 +286,11 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0, 228.98_Nits, 192.9_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,  173.8_Nits, 104.6_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0, 228.98_Nits, 192.9_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+         hdr_defaults [4] = { { "HDR Preset 0", 0, 173.8_Nits,  104.6_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
@@ -1087,34 +1087,47 @@ public:
 
             if (preset.pq_boost0 > 0.1f)
             {
-              bool boost_changed = false;
+              if (rb.api != SK_RenderAPI::D3D12) ImGui::SameLine ();
               
-              boost_changed |=
-                ImGui::SliderFloat ("Perceptual Boost 0", &preset.pq_boost0, 3.0f, 20.0f);
-              boost_changed |=
-                ImGui::SliderFloat ("Perceptual Boost 1", &preset.pq_boost1, 3.0f, 20.0f);
-              boost_changed |=                                                              
-                ImGui::SliderFloat ("Perceptual Boost 2", &preset.pq_boost2, 0.5f, 1.5f);
-              boost_changed |=                                                              
-                ImGui::SliderFloat ("Perceptual Boost 3", &preset.pq_boost3, 0.5f, 1.5f);
+              bool bExperimental =
+                ImGui::TreeNode ("Experimental");
 
-              if (boost_changed)
+              if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Default Values Should be Good; but tweak away if you must :)");
+
+              if (bExperimental)
               {
-                preset.cfg_pq_boost0->store (
-                    preset.pq_boost0 );
-                preset.cfg_pq_boost1->store (
-                    preset.pq_boost1 );
-                preset.cfg_pq_boost2->store (
-                    preset.pq_boost2 );
-                preset.cfg_pq_boost3->store (
-                    preset.pq_boost3 );
+                bool boost_changed = false;
+                
+                boost_changed |=
+                  ImGui::SliderFloat ("Perceptual Boost 0", &preset.pq_boost0, 3.0f, 20.0f);
+                boost_changed |=
+                  ImGui::SliderFloat ("Perceptual Boost 1", &preset.pq_boost1, 3.0f, 20.0f);
+                boost_changed |=                                                              
+                  ImGui::SliderFloat ("Perceptual Boost 2", &preset.pq_boost2, 0.5f, 1.5f);
+                boost_changed |=                                                              
+                  ImGui::SliderFloat ("Perceptual Boost 3", &preset.pq_boost3, 0.5f, 1.5f);
 
-                __SK_HDR_PQBoost0 = preset.pq_boost0;
-                __SK_HDR_PQBoost1 = preset.pq_boost1;
-                __SK_HDR_PQBoost2 = preset.pq_boost2;
-                __SK_HDR_PQBoost3 = preset.pq_boost3;
+                if (boost_changed)
+                {
+                  preset.cfg_pq_boost0->store (
+                      preset.pq_boost0 );
+                  preset.cfg_pq_boost1->store (
+                      preset.pq_boost1 );
+                  preset.cfg_pq_boost2->store (
+                      preset.pq_boost2 );
+                  preset.cfg_pq_boost3->store (
+                      preset.pq_boost3 );
 
-                SK_SaveConfig ();
+                  __SK_HDR_PQBoost0 = preset.pq_boost0;
+                  __SK_HDR_PQBoost1 = preset.pq_boost1;
+                  __SK_HDR_PQBoost2 = preset.pq_boost2;
+                  __SK_HDR_PQBoost3 = preset.pq_boost3;
+
+                  SK_SaveConfig ();
+                }
+
+                ImGui::TreePop ();
               }
             }
 
@@ -1214,8 +1227,8 @@ public:
 
             //ImGui::SameLine    ();
             ImGui::BeginGroup  ();
-            ImGui::SliderFloat ("Horz. (%) HDR Processing", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
-            ImGui::SliderFloat ("Vert. (%) HDR Processing", &__SK_HDR_VertCoverage,  0.0f, 100.f);
+            ImGui::SliderFloat ("X-Axis HDR/SDR Splitter", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
+            ImGui::SliderFloat ("Y-Axis HDR/SDR Splitter", &__SK_HDR_VertCoverage,  0.0f, 100.f);
             ImGui::EndGroup    ();
 
             ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0Luminance (vs EDID Max-Avg-Y)\0"
@@ -1228,7 +1241,8 @@ public:
                                                                                                  "16-Bit Quantization\0"
                                                                                                  "Gamut Overshoot (vs Rec.709)\0"
                                                                                                  "Gamut Overshoot (vs DCI-P3)\0"
-                                                                                                 "Gamut Overshoot (vs Rec.2020)\0\0");
+                                                                                                 "Tonemap Curve and Grayscale\0\0");
+                                                                                                 //"Gamut Overshoot (vs Rec.2020)\0\0");
             ImGui::EndGroup    ();
 
             ImGui::SameLine    ();

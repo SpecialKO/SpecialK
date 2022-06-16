@@ -1,4 +1,20 @@
-﻿22.6.17-NOCEGUI
+﻿22.6.17.1-NOCEGUI
+=================
+ + Hid the HDR Perceptual Boost sliders in an "Experimental" tab
+ + Added Tonemap Curve / Grayscale Visualization mode to HDR widget
+
+    >> The goal when tuning things using this new visualization is to
+         get the end-point as near as possible to the top-right.
+
+   ( SK comes pre-tuned (preset 0) for LG OLEDS - 800 nits (HGIG) clipping )
+
+     * LG OLEDs do not have valid EDID values for max/avg. luminance, so
+         it is not possible to correctly tune the tonemap curve yet.
+
+    >> A tool to find your display's -actual- HDR clipping points will be
+         added in a later build; this is more for TVs than monitors.
+
+22.6.17-NOCEGUI
 ===============
   + Merge pull request #8 from WallSoGB:
      "R and B color switch fix for D3D9 ImGUI when alpha is disabled"
