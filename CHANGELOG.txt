@@ -1,4 +1,10 @@
-﻿22.6.16-NOCEGUI
+﻿22.6.17-NOCEGUI
+===============
+  + Merge pull request #8 from WallSoGB:
+     "R and B color switch fix for D3D9 ImGUI when alpha is disabled"
+  + Improved WinRing0 Driver Management
+
+22.6.16-NOCEGUI
 ===============
  + "Reset" now resets the active preset's perceptual parameters
  + Perceptual Boost HDR mode is on by default for HDR preset #0
@@ -3827,6 +3833,3 @@ Recommended SwapChain Settings for HDR:
  + Fixed-up floating-point exception handling in Prey
 
 --------- (Initial GitLab Migration) ---------
-
-
-aGA2yjYz1234
