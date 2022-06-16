@@ -1,4 +1,60 @@
-﻿22.6.11-NOCEGUI
+﻿22.6.17-NOCEGUI
+===============
+  + Merge pull request #8 from WallSoGB:
+     "R and B color switch fix for D3D9 ImGUI when alpha is disabled"
+  + Improved WinRing0 Driver Management
+
+22.6.16-NOCEGUI
+===============
+ + "Reset" now resets the active preset's perceptual parameters
+ + Perceptual Boost HDR mode is on by default for HDR preset #0
+ + Perceptual Boost parameters are now stored per-preset
+ + Fixed a problem with Yakuza engine games destroying DXGI adapters
+     SK is holding references to so the busted engine will not crash
+
+22.6.15.3-NOCEGUI
+=================
+ + Standard logging is now silent when loaded via SKIF or RunDLL32, to prevent deadlock
+
+22.6.15.2-NOCEGUI
+=================
+ + Prevent SKIF from recursively spawning driver install if not elevated to Admin
+ + Merge pull request #4 from cathyjf   [ SK_LoadImportModule: Expand environment variables ]
+ + Merge pull request #7 from WallSoGB  [ Fix "Show OSD in Video Capture" in OGL-IK         ]
+
+22.6.15.1-NOCEGUI
+=================
+ + Fallback to Documents\My Mods\SpecialK if path is unreadable or
+     if it cannot be created.
+ + Special K now uses "HKCU\Software\Kaldaien\Special K\Path" to find
+     the shared centralized directory for profiles, plug-ins, etc.
+
+22.6.14.4-NOCEGUI
+=================
+ + Perceptual Boost HDR mode now works in D3D12 titles
+ + Added HUD shader definitions for The Quarry for HUDless screenshots
+ + Fixed audio stutter in The Quarry due to wrong thread priorities
+ + Fixed multiple calls issued per-ID3D11DeviceContext::UpdateSubresource (...) when hooked and wrapped
+ + Added protection for games that change thread priority while an SK thread priority override is active
+ + Merge pull request #6 from WallSoGB  [ Corrected Intel CPU power and clock readings ]
+
+22.6.12.1-NOCEGUI
+=================
+ + Changed SK's ResizeBuffers skip to issue unsynchronized Presents as many times as necessary to get
+     the SwapChain backbuffer index to wrap-around to 0 before the function returns.
+     
+     This reproduces the side-effects of a successful D3D12 IDXGISwapChain3::ResizeBuffers (...) call
+ 
+   -> Fixes compat. with The Quarry in D3D12
+
+22.6.12-NOCEGUI
+===============
+ + Added support for middle-gray contrast and color saturation adjustment to Passthrough tonemap mode
+ + Added range tests to prevent NaN (black pixels that bleed through UI) during tonemapping
+ + Added sliders to the HDR widget to make tuning Perceptual Boost easier
+ + Bumped the Color Saturation slider's maximum up to 140%
+
+22.6.11-NOCEGUI
 ===============
  + Made Perceptual Boost into a mode rather than a Tonemap (refer to the new checkbox in HDR widget)
  + Extra tuning parameters have been added when PB is enabled.
