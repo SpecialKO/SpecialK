@@ -195,9 +195,9 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
 
         vtx_dst->col = (
           0xFF000000U |
-          (sk::narrow_cast <UINT>((b * a) * 255U) << 16U) |
+          (sk::narrow_cast <UINT>((r * a) * 255U) << 16U) |
           (sk::narrow_cast <UINT>((g * a) * 255U) << 8U) |
-          (sk::narrow_cast <UINT>((r * a) * 255U))
+          (sk::narrow_cast <UINT>((b * a) * 255U))
         );
 
         //memcpy (
