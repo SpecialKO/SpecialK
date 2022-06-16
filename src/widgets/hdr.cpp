@@ -123,7 +123,7 @@ float __SK_HDR_VertCoverage  = 100.0f;
 float __SK_HDR_PQBoost0      = -8.80582f;
 float __SK_HDR_PQBoost1      =   13.419f;
 float __SK_HDR_PQBoost2      =   1.0535f;
-float __SK_HDR_PQBoost3      =    0.784f;
+float __SK_HDR_PQBoost3      =   0.7855f;
 
 
 
@@ -286,14 +286,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0, 226.0_Nits,  190.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1, 200.0_Nits,  100.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2, 80.0_Nits,    80.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3, 300.0_Nits,  150.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0, 226.0_Nits,  190.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1, 200.0_Nits,  100.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2, 80.0_Nits,    80.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3, 300.0_Nits,  150.0_Nits, 100.0_Nits, 1.0f, 1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0, 228.98_Nits, 192.9_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0, 228.98_Nits, 192.9_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -778,6 +778,11 @@ public:
             __SK_HDR_PQBoost0 = preset.pq_boost0;
 
             SK_SaveConfig ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("NOTE: When active, the luminance sliders (peak white / paper white) do not measure physical brightness.");
           }
 
           fWidth1     =

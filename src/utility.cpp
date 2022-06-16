@@ -3381,7 +3381,7 @@ RunDLL_WinRing0 ( HWND   hwnd,        HINSTANCE hInst,
       int tries = 0;
 
       do {
-        SK_Sleep (15UL);
+        SK_Sleep (5UL);
       } while ( tries++ < 16 &&
                   INVALID_FILE_ATTRIBUTES != GetFileAttributes (wszHostDLL) );
     }
@@ -3445,7 +3445,7 @@ RunDLL_WinRing0 ( HWND   hwnd,        HINSTANCE hInst,
                wszCurrentDir )
        )
     {
-      SK_Sleep (100UL);
+      SK_Sleep (50UL);
 
       if ( SK_COM_UAC_AdminShellExec (
              wszServiceCtl,
@@ -3554,14 +3554,12 @@ SK_WinRing0_Uninstall (void)
     SK_WR0_Deinit ();
   }
 
+  // SKIF checks for the service, not the file... so we can't bail-out here.
   if (GetFileAttributesW (kernelmode_driver_path.c_str ()) == INVALID_FILE_ATTRIBUTES)
   {
     InterlockedExchange (&__SK_WR0_Init, 0L);
     //return;
   }
-
-  //if (SK_IsAdmin ())
-  //  return;
 
   std::wstring src_dll =
     SK_GetModuleFullName (skModuleRegistry::Self ());
@@ -3613,9 +3611,9 @@ SK_WinRing0_Uninstall (void)
         DWORD dwWaitState = 1;
 
         do { if (   WAIT_OBJECT_0 ==
-                 SK_WaitForSingleObject (pinfo.hProcess, 100UL) )
+                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
           {       dwWaitState  = WAIT_OBJECT_0;                }
-          else  { dwWaitState++; SK_Sleep (40);                }
+          else  { dwWaitState++; SK_Sleep (1);                 }
         } while ( dwWaitState < 25 &&
                   dwWaitState != WAIT_OBJECT_0 );
 
@@ -3701,9 +3699,9 @@ SK_WinRing0_Install (void)
         DWORD dwWaitState = 1;
 
         do { if (   WAIT_OBJECT_0 ==
-                 SK_WaitForSingleObject (pinfo.hProcess, 100UL) )
+                 SK_WaitForSingleObject (pinfo.hProcess, 50UL) )
           {       dwWaitState  = WAIT_OBJECT_0;                }
-          else  { dwWaitState++; SK_Sleep (40);                }
+          else  { dwWaitState++; SK_Sleep (1);                 }
         } while ( dwWaitState < 25 &&
                   dwWaitState != WAIT_OBJECT_0 );
 
