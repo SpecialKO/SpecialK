@@ -1873,12 +1873,12 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
       {
         D3D11_BLEND_DESC
           blend                                        = {  };
-          blend.RenderTarget [0].BlendEnable           = TRUE;
+          blend.RenderTarget [0].BlendEnable           = FALSE;
           blend.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-          blend.RenderTarget [0].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
           blend.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
           blend.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-          blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_INV_SRC_ALPHA;
+          blend.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
           blend.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
           blend.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
                                                          D3D11_COLOR_WRITE_ENABLE_GREEN |

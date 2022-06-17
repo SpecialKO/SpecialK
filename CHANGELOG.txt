@@ -1,4 +1,8 @@
-﻿22.6.18-NOCEGUI
+﻿22.6.18.1-NOCEGUI
+=================
+ + Fixed accidental pre-multiplied alpha blending on HDR image process in D3D12
+
+22.6.18-NOCEGUI
 ===============
  + Fixed black-point compensation causing HDR full white to clip in HGIG
  + Fixed Steam Overlay HDR luminance control if D3D11 State Tracking is disabled
