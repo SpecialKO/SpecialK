@@ -124,9 +124,6 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
     (! bMustNotIgnore) ) || rb.api == SK_RenderAPI::D3D12; // Ignore D3D11On12 overlays
 
-  if (early_out)
-    return _Finish ();
-
   bool implicit_track = false;
 
   if ( rb.isHDRCapable ()  &&
@@ -138,6 +135,12 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       // Needed for Steam Overlay HDR fix
       implicit_track = true;
     }
+  }
+
+  if (early_out && (! implicit_track))
+  {
+    return
+      _Finish ();
   }
 
 
@@ -216,12 +219,15 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
   GetResources (&pCritical, &pShaderRepo);
 
-  // ImGui gets to pass-through without invoking the hook
-  if (! SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx))
-  {  pShaderRepo->tracked.deactivate (pDevCtx, dev_idx);
+  if (! implicit_track)
+  {
+    // ImGui gets to pass-through without invoking the hook
+    if (! SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx))
+    {  pShaderRepo->tracked.deactivate (pDevCtx, dev_idx);
 
-    return
-      _Finish ();
+      return
+        _Finish ();
+    }
   }
 
 

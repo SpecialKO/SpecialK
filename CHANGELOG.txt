@@ -1,4 +1,9 @@
-﻿22.6.17.1-NOCEGUI
+﻿22.6.18-NOCEGUI
+===============
+ + Fixed black-point compensation causing HDR full white to clip in HGIG
+ + Fixed Steam Overlay HDR luminance control if D3D11 State Tracking is disabled
+
+22.6.17.1-NOCEGUI
 =================
  + Hid the HDR Perceptual Boost sliders in an "Experimental" tab
  + Added Tonemap Curve / Grayscale Visualization mode to HDR widget
