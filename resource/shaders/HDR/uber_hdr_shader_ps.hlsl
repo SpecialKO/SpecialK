@@ -2141,20 +2141,10 @@ float4 main (PS_INPUT input) : SV_TARGET
     /*length (hdr_color.rgb);// */
     Luminance (hdr_color.rgb);
 
-  float  length_color     =
-    length (hdr_color.rgb);
-
-  float3 normalized_color = length_color > 0.0 ?
-    normalize (hdr_color.rgb)                  : float3 (0.0f, 0.0f, 0.0f);
-
-  hdr_color.rgb += normalized_color * hdrLuminance_Min;
-
   hdr_color.rgb *= uiToneMapper != TONEMAP_HDR10_to_scRGB ?
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
-
-  hdr_color.rgb -= normalized_color * hdrLuminance_Min;
 
   fLuma =
     Luminance (hdr_color.rgb);
