@@ -1,4 +1,9 @@
-﻿22.6.18.1-NOCEGUI
+﻿22.6.20-NOCEGUI
+===============
+ + Fixed Windows Version check in Project Diva's first patch
+ + Fixed >60 FPS mod for Project Diva
+
+22.6.18.1-NOCEGUI
 =================
  + Fixed accidental pre-multiplied alpha blending on HDR image process in D3D12
 

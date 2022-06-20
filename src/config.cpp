@@ -2254,10 +2254,16 @@ auto DeclKeybind =
         config.render.framerate.sleepless_window =  true;
         config.window.background_render          =  true;
 
+        // Fix bad stuff introduced in first patch
+        config.window.borderless                 =  true;
+        config.window.fullscreen                 =  true;
+        config.display.force_windowed            =  true;
+        config.window.always_on_top              =     0;
+
         // Now we patch the damn broken Windows 10 Version Check
         //
         auto win_ver_check_addr =
-          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2c3201); // File Location: 0x2c2801
+          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2c37b1);////0x2c3201); // File Location: 0x2c2801
         auto win_ver_check_pattern = "\x48\x8B\xCF";
 
         DWORD dwOrigProt =                                     PAGE_EXECUTE_READ;
