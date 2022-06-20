@@ -1,4 +1,10 @@
-﻿22.6.20-NOCEGUI
+﻿22.6.20.1-NOCEGUI
+=================
+ + Added HDR peak white clipping configuration for displays that do not have valid EDID
+
+    >> See the "Profile Display Capabilities" button in the HDR widget for more info
+
+22.6.20-NOCEGUI
 ===============
  + Fixed Windows Version check in Project Diva's first patch
  + Fixed >60 FPS mod for Project Diva

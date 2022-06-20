@@ -26,6 +26,7 @@
 #define SK_MISC_SECTION    L"SpecialK.Misc"
 
 extern iSK_INI*             dll_ini;
+iSK_INI*                    hdr_ini = nullptr;
 
 
 enum {
@@ -325,6 +326,199 @@ SK_HDR_KeyPress ( BOOL Control,
   return FALSE;
 }
 
+void
+SK_HDR_DisplayProfilerDialog (bool draw = true)
+{
+  static auto pINI =
+      SK_CreateINI (
+        (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
+      );
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+  
+  if (! draw)
+  {
+    static std::wstring last_path = L"";
+
+    if (! last_path._Equal (rb.displays [rb.active_display].path_name))
+    {
+      if (pINI->contains_section (rb.displays [rb.active_display].path_name))
+      {
+        auto& sec =
+          pINI->get_section (rb.displays [rb.active_display].path_name);
+
+        if (sec.contains_key (L"MaxLuminance"))
+        {
+          rb.display_gamut.maxLocalY =
+            std::max (80.0f, static_cast <float> (_wtof (sec.get_cvalue (L"MaxLuminance").c_str ())));
+          rb.display_gamut.maxY      =
+            rb.display_gamut.maxLocalY;
+
+          if (rb.display_gamut.maxAverageY > rb.display_gamut.maxY / 2)
+              rb.display_gamut.maxAverageY = rb.display_gamut.maxY / 2;
+
+          last_path = rb.displays [rb.active_display].path_name;
+        }
+      }
+    }
+
+    return;
+  }
+
+  const char* SK_ImGui_ControlPanelTitle (void);
+
+  static float fOrigHDRLuma  = __SK_HDR_Luma;
+  static int   iOrigVisual   = __SK_HDR_visualization;
+  static bool  bLastOpen     = false;
+  static bool  disable_alpha = config.imgui.render.disable_alpha;
+
+  bool bOpen =
+    ImGui::IsPopupOpen ("HDR Display Profiler");
+
+  if (bOpen)
+  {
+    auto pHDRWidget          =
+      ImGui::FindWindowByName ("DXGI_HDR##Widget_DXGI_HDR");
+    auto pControlPanelWindow =
+      ImGui::FindWindowByName (SK_ImGui_ControlPanelTitle ());
+
+    ImGui::SetNextWindowPos (ImVec2 (0.0f, 0.0f), ImGuiCond_Always);
+
+    if (! bLastOpen)
+    {
+      fOrigHDRLuma  =
+        std::exchange (__SK_HDR_Luma, rb.display_gamut.maxLocalY * 1.0_Nits);
+      iOrigVisual   =
+        std::exchange (__SK_HDR_visualization, 13);
+      disable_alpha =
+        std::exchange (config.imgui.render.disable_alpha, true);
+    }
+
+    if (pControlPanelWindow != nullptr) pControlPanelWindow->Hidden = true;
+    if (         pHDRWidget != nullptr)          pHDRWidget->Hidden = true;
+  }
+
+  else
+  {
+    if (bLastOpen)
+    { 
+      auto pHDRWidget          =
+        ImGui::FindWindowByName ("DXGI_HDR##Widget_DXGI_HDR");
+      auto pControlPanelWindow =
+        ImGui::FindWindowByName (SK_ImGui_ControlPanelTitle ());
+
+      if (pControlPanelWindow != nullptr) pControlPanelWindow->Hidden = false;
+      if (         pHDRWidget != nullptr)          pHDRWidget->Hidden = false;
+
+      config.imgui.render.disable_alpha =
+                          disable_alpha;
+
+      __SK_HDR_Luma          = std::min (rb.display_gamut.maxLocalY * 1.0_Nits, fOrigHDRLuma);
+      __SK_HDR_visualization = iOrigVisual;
+    }
+
+    else
+    {
+      iOrigVisual   = __SK_HDR_visualization;
+      fOrigHDRLuma  = __SK_HDR_Luma;
+      disable_alpha = config.imgui.render.disable_alpha;
+    }
+  }
+
+  bLastOpen = bOpen;
+
+  ImGui::PushStyleVar (ImGuiStyleVar_Alpha, 1.0f);
+
+  if (ImGui::BeginPopup ("HDR Display Profiler", ImGuiWindowFlags_AlwaysAutoResize |
+                                                 ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
+  {
+    float peak_nits =
+      std::min (10000.0f,
+        std::max (80.0f, __SK_HDR_Luma / 1.0_Nits)
+               );
+
+    if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f, 2000.0f,
+                (const char *)u8"Luminance Clipping Point: %.1f cd/m²" ))
+    {
+      __SK_HDR_Luma =
+        std::min (10000.0_Nits,
+          std::max (80.0_Nits, peak_nits * 1.0_Nits)
+                 );
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("For best results, Ctrl + Click and enter exact values until you find the smallest.");
+
+    int idx =
+      std::min (
+        std::max (12, __SK_HDR_visualization) - 12,
+             2 );
+
+    if (
+      ImGui::Combo ("Test Pattern##SK_HDR_PATTERN", &idx, "HDR Luminance Clip v0\0"
+                                                          "HDR Luminance Clip v1\0"
+                                                          "HDR Luminance Clip v2\0\0")
+       )
+    {
+      __SK_HDR_visualization =
+                         idx + 12;
+    }
+
+    ImGui::Separator ();
+
+    bool bEnd =
+      ImGui::Button ("Okay");
+    bool bSave =
+         bEnd;
+    bool bReset = false;
+    ImGui::SameLine ();
+    bEnd |=
+      ImGui::Button ("Cancel");
+
+    if ( pINI->get_section (rb.displays [rb.active_display].path_name).
+          contains_key     (L"MaxLuminance") )
+    {
+      ImGui::SameLine ();
+      bReset =
+        ImGui::Button ("Reset");
+      bEnd |= bReset;
+    }
+
+    if (bEnd)
+    {
+      if (bSave || bReset)
+      {
+        if (! bReset)
+        {
+          pINI->get_section (rb.displays [rb.active_display].path_name).
+              add_key_value (L"MaxLuminance", std::to_wstring (__SK_HDR_Luma / 1.0_Nits));
+        }
+
+        else
+        {
+          pINI->get_section (rb.displays [rb.active_display].path_name).
+                 remove_key (L"MaxLuminance");
+
+          __SK_HDR_Luma = 1499.0_Nits;
+        }
+
+        pINI->write ();
+
+        rb.display_gamut.maxLocalY   = __SK_HDR_Luma / 1.0_Nits;
+        rb.display_gamut.maxAverageY =
+          std::min ( rb.display_gamut.maxAverageY,
+                     rb.display_gamut.maxLocalY );
+      }
+
+      ImGui::CloseCurrentPopup ();
+    }
+
+    ImGui::EndPopup ();
+  }
+  ImGui::PopStyleVar ();
+}
+
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
@@ -415,6 +609,8 @@ public:
           rb.scanout.colorspace_override )
         );
       }
+
+      SK_HDR_DisplayProfilerDialog (false);
     }
 
     if (first_widget_run) first_widget_run = false;
@@ -534,6 +730,8 @@ public:
 
     static int sel = __SK_HDR_16BitSwap ? 2 :
                      __SK_HDR_10BitSwap ? 1 : 0;
+
+    SK_HDR_DisplayProfilerDialog ();
 
     //if (! rb.isHDRCapable ())
     //{
@@ -994,6 +1192,17 @@ public:
             preset.activate ();
           }
 
+          ImGui::SameLine ();
+
+          bool bProfile =
+            ImGui::Button ("Profile Display Capabilities");
+
+          if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Improve HDR results by validating luminance capabilities reported by Windows.");
+
+          if (bProfile)
+            ImGui::OpenPopup ("HDR Display Profiler");
+
           ImGui::EndGroup  ();
           ImGui::Separator ();
 
@@ -1241,7 +1450,10 @@ public:
                                                                                                  "16-Bit Quantization\0"
                                                                                                  "Gamut Overshoot (vs Rec.709)\0"
                                                                                                  "Gamut Overshoot (vs DCI-P3)\0"
-                                                                                                 "Tonemap Curve and Grayscale\0\0");
+                                                                                                 "Tonemap Curve and Grayscale\0"
+                                                                                                 "Maximum Local Clip Point v0\0"
+                                                                                                 "Maximum Local Clip Point v1\0"
+                                                                                                 "Maximum Local Clip Point v2\0\0");
                                                                                                  //"Gamut Overshoot (vs Rec.2020)\0\0");
             ImGui::EndGroup    ();
 

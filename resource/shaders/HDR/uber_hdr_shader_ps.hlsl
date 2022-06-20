@@ -58,7 +58,10 @@ float3 gain (float3 x, float k)
 #define VISUALIZE_16BIT_QUANTIZE 8
 #define VISUALIZE_REC709_GAMUT   9
 #define VISUALIZE_DCIP3_GAMUT    10
-#define VISUALIZE_REC2020_GAMUT  11
+#define VISUALIZE_GRAYSCALE      11
+#define VISUALIZE_MAX_LOCAL_CLIP 12
+#define VISUALIZE_MAX_AVG_CLIP   13
+#define VISUALIZE_MIN_AVG_CLIP   14
 
 #define TONEMAP_NONE                  0
 #define TONEMAP_ACES_FILMIC           1
@@ -1979,7 +1982,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                             ), 1.0f
            );
 
-  if (visualFunc.x == VISUALIZE_REC2020_GAMUT)
+  if (visualFunc.x == VISUALIZE_GRAYSCALE)
   {
     hdr_color =
       input.uv.x * float4 (1.0f, 1.0f, 1.0f, 1.0f);
@@ -2149,7 +2152,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   fLuma =
     Luminance (hdr_color.rgb);
 
-  if (visualFunc.x >= VISUALIZE_REC709_GAMUT && visualFunc.x < VISUALIZE_REC2020_GAMUT)
+  if (visualFunc.x >= VISUALIZE_REC709_GAMUT && visualFunc.x < VISUALIZE_GRAYSCALE)
   {
     int cs = visualFunc.x - VISUALIZE_REC709_GAMUT;
 
@@ -2246,7 +2249,7 @@ float4 main (PS_INPUT input) : SV_TARGET
              );
   }
 
-  if (visualFunc.x == VISUALIZE_REC2020_GAMUT)
+  if (visualFunc.x == VISUALIZE_GRAYSCALE)
   {
     float3 vColor =
       float3 (0.0f, 0.0f, 0.0f);
@@ -2268,6 +2271,84 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     else
       hdr_color.rgb = vColor.rgb;
+  }
+
+  if (visualFunc.x == VISUALIZE_MAX_LOCAL_CLIP)
+  { 
+    float  scale = 8.0f;
+    float2 uv3   = frac (1.0f * (scale * input.uv) + 0.5f) - 0.5f;
+    float      t = 0.01f;
+    
+    // thickness thick line
+    float d3 = 3.0 * scale * t;
+    
+    // background
+    hdr_color.rgb =
+      float3 (125.0f, 125.0f, 125.0f);
+    
+    if ( (input.uv.x > 0.333 && input.uv.x < 0.666) &&
+         (input.uv.y > 0.333 && input.uv.y < 0.666) )
+    {
+      if (abs (uv3.x) < d3)
+        hdr_color.rgb = float3 (input.color.x, input.color.x, input.color.x);
+      else
+        hdr_color.rgb = float3 (125.0, 125.0, 125.0);
+    }
+  }
+
+  if (visualFunc.x == VISUALIZE_MAX_AVG_CLIP)
+  {
+    float2 texDims;
+
+    texMainScene.GetDimensions (
+           texDims.x,
+           texDims.y
+    );
+
+    float2     uv = input.uv;
+    float2  scale =   float2 ( texDims.x / 10.0,
+                               texDims.y / 10.0 );
+                         
+    float2 size = texDims.xy / scale;
+    float total =
+        floor (uv.x * size.x) +
+        floor (uv.y * size.y);
+               
+    bool isEven =
+      fmod (total, 2.0f) == 0.0f;
+    
+    float4 color1 = float4 (input.color.x, input.color.x, input.color.x, 1.0);
+    float4 color2 = float4 (125.0,         125.0,                 125.0, 1.0);
+    
+    hdr_color   =
+         isEven ?
+         color1 : color2;
+  }
+
+  if (visualFunc.x == VISUALIZE_MIN_AVG_CLIP)
+  {
+    hdr_color =
+      float4 (0.0, 0.0, 0.0, 1.0);
+        
+    float2 uv = input.uv;
+    
+    if ( (uv.x > 0.45 && uv.x < 0.55) &&
+         (uv.y > 0.45 && uv.y < 0.55) )
+    {
+        if (uv.x > 0.46 && uv.x < 0.54 &&
+            uv.y > 0.46 && uv.y < 0.54)
+        {
+            if ( (uv.x > 0.495 && uv.x < 0.505) ||
+                 (uv.y > 0.495 && uv.y < 0.505) )
+              hdr_color = float4 (125.0, 125.0, 125.0, 1.0);
+            else
+              hdr_color =
+                float4 (input.color.x, input.color.x, input.color.x, 1.0);
+        }
+        else
+          hdr_color =
+            float4 (125.0, 125.0, 125.0, 1.0);
+    }
   }
 
   if (visualFunc.x >= VISUALIZE_AVG_LUMA && visualFunc.x <= VISUALIZE_EXPOSURE)
