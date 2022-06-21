@@ -1,8 +1,19 @@
-﻿22.6.20.1-NOCEGUI
+﻿22.6.20.2-NOCEGUI
+=================
+ + Added "Export" button to the HDR widget to export the currently selected preset for
+     use in other games.
+
+      >> Load exported presets using the "Reset" button.
+
+22.6.20.1-NOCEGUI
 =================
  + Added HDR peak white clipping configuration for displays that do not have valid EDID
 
-    >> See the "Profile Display Capabilities" button in the HDR widget for more info
+    >> See the "Profile Display Capabilities" button in the HDR widget for more info,
+         the goal is to find the smallest value that turns the test patterns pure white
+
+     Once saved, the new maximum luminance will be used for HDR range visualizations
+       (i.e. HDR vs. Max Local Luminance) to indicate when an image is too bright.
 
 22.6.20-NOCEGUI
 ===============

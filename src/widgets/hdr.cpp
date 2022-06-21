@@ -1157,6 +1157,11 @@ public:
           }
           ImGui::EndGroup  ();
 
+          static auto pGlobalIni =
+            SK_CreateINI (
+              (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
+            );
+
           //ImGui::Button     ("Save as Default"); ImGui::SameLine ();
           //ImGui::Button     ("Load Default");    ImGui::SameLine ();
 
@@ -1165,17 +1170,61 @@ public:
             auto& default_preset =
               hdr_defaults [__SK_HDR_Preset];
 
-            preset.cfg_nits->store         (default_preset.peak_white_nits);
-            preset.cfg_paperwhite->store   (default_preset.paper_white_nits);
-            preset.cfg_middlegray->store   (default_preset.middle_gray_nits);
-            preset.cfg_eotf->store         (default_preset.eotf);
-            preset.cfg_saturation->store   (default_preset.saturation);
-            preset.cfg_tonemap->store      (default_preset.colorspace.tonemap);
+            iSK_INISection*
+                  pSection = nullptr;
 
-            preset.cfg_pq_boost0->store    (default_preset.pq_boost0);
-            preset.cfg_pq_boost1->store    (default_preset.pq_boost1);
-            preset.cfg_pq_boost2->store    (default_preset.pq_boost2);
-            preset.cfg_pq_boost3->store    (default_preset.pq_boost3);
+            if (     pGlobalIni->contains_section (rb.displays [rb.active_display].path_name))
+              pSection = &pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_nits->store_str       (pSection->get_value (SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_nits->store           (default_preset.peak_white_nits);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"scRGBPaperWhite_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_paperwhite->store_str (pSection->get_value (SK_FormatStringW (L"scRGBPaperWhite_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_paperwhite->store     (default_preset.paper_white_nits);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"MiddleGray_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_middlegray->store_str (pSection->get_value (SK_FormatStringW (L"MiddleGray_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_middlegray->store     (default_preset.middle_gray_nits);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"scRGBGamma_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_eotf->store_str       (pSection->get_value (SK_FormatStringW (L"scRGBGamma_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_eotf->store           (default_preset.eotf);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"Saturation_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_saturation->store_str (pSection->get_value (SK_FormatStringW (L"Saturation_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_saturation->store     (default_preset.saturation);
+
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_tonemap->store_str    (pSection->get_value (SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_tonemap->store        (default_preset.colorspace.tonemap);
+                                                  
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"PerceptualBoost0_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_pq_boost0->store_str  (pSection->get_value (SK_FormatStringW (L"PerceptualBoost0_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_pq_boost0->store      (default_preset.pq_boost0);
+                                                  
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"PerceptualBoost1_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_pq_boost1->store_str  (pSection->get_value (SK_FormatStringW (L"PerceptualBoost1_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_pq_boost1->store      (default_preset.pq_boost1);
+                                                  
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"PerceptualBoost2_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_pq_boost2->store_str  (pSection->get_value (SK_FormatStringW (L"PerceptualBoost2_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_pq_boost2->store      (default_preset.pq_boost2);
+                                                  
+            if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"PerceptualBoost3_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_pq_boost3->store_str  (pSection->get_value (SK_FormatStringW (L"PerceptualBoost3_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_pq_boost3->store      (default_preset.pq_boost3);
 
             preset.cfg_nits->load         (preset.peak_white_nits);
             preset.cfg_paperwhite->load   (preset.paper_white_nits);
@@ -1190,6 +1239,52 @@ public:
             preset.cfg_pq_boost3->load    (preset.pq_boost3);
 
             preset.activate ();
+          }
+
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("Export"))
+          {
+            auto& sec =
+              pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+
+            sec.add_key_value (
+              SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset),
+                                                 std::to_wstring (preset.peak_white_nits) );
+            sec.add_key_value (
+              SK_FormatStringW (L"scRGBPaperWhite_[%lu]", __SK_HDR_Preset),
+                                                  std::to_wstring (preset.paper_white_nits) );
+            sec.add_key_value (
+              SK_FormatStringW (L"scRGBGamma_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.eotf) );
+            sec.add_key_value (
+              SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.colorspace.tonemap) );
+            sec.add_key_value (
+              SK_FormatStringW (L"Saturation_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.saturation) );
+            sec.add_key_value (
+              SK_FormatStringW (L"MiddleGray_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.middle_gray_nits) );
+            sec.add_key_value (
+              SK_FormatStringW (L"PerceptualBoost0_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.pq_boost0) );
+            sec.add_key_value (
+              SK_FormatStringW (L"PerceptualBoost1_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.pq_boost1) );
+            sec.add_key_value (
+              SK_FormatStringW (L"PerceptualBoost2_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.pq_boost2) );
+            sec.add_key_value (
+              SK_FormatStringW (L"PerceptualBoost3_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.pq_boost3) );
+
+            pGlobalIni->write ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Exporting a preset allows loading it in another game using the \"Reset\" button.");
           }
 
           ImGui::SameLine ();
