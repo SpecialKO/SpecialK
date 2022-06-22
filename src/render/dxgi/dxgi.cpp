@@ -888,7 +888,7 @@ SK_DXGI_RemoveDynamicRangeFromModes ( int&             first,
         //  * For swapchain buffers it is possible to
         //    compose in SDR using a FP16 chain.
         ///
-        //     -> Will not be automatically be calmped
+        //     -> Will not be automatically be clamped
         //          to sRGB range ; range-restrict the
         //            image unless you like pixels.
 
@@ -1603,6 +1603,9 @@ SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
     return E_NOINTERFACE;
   }
 
+  static constexpr FLOAT
+    fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black pixels matter
+
   UINT currentBuffer =
     0;// pSwap3->GetCurrentBackBufferIndex ();
 
@@ -1611,22 +1614,68 @@ SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
                        IID_PPV_ARGS (&pBackbuffer.p)
      )           )                  )
   {
+    ID3D11RenderTargetView* pRawRTV = nullptr;
+
+#ifdef __SK_NO_FLIP_MODEL
+    SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
+    SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+    rb.d3d11.immediate_ctx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                      &pOrigRTVs [0].p,
+                                      &pOrigDSV     .p );
+
+    for ( auto& rtv : pOrigRTVs )
+    {
+      if (rtv.p != nullptr)
+      {
+        SK_ComPtr   <ID3D11Resource> pResource;
+        SK_ComQIPtr <ID3D11Resource> pBackbufferRes
+                                    (pBackbuffer.p);
+
+        rtv->GetResource (
+          &pResource.p );
+        if (pResource.IsEqualObject (pBackbufferRes.p))
+        {
+          pRawRTV = rtv;
+          break;
+        }
+      }
+    }
+#endif
+
+    // NOTE: This will exist even if the system does not support HDR
+    if (                         pRawRTV   != nullptr || 
+        _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr )
+    {
+      if (pRawRTV == nullptr)
+          pRawRTV = _d3d11_rbk->frames_ [0].hdr.pRTV.p;
+
+      SK_ComQIPtr <ID3D11DeviceContext4>
+          pDevCtx4 (rb.d3d11.immediate_ctx);
+      if (pDevCtx4.p != nullptr)
+      {
+        pDevCtx4->ClearView (
+          pRawRTV, fClearColor,
+            nullptr, 0
+        );
+        
+        return S_OK;
+      }
+    }
+
     if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
                                       pBackbuffer, nullptr,
                                      &pBackbufferRTV.p       )
        )           )
     {
-      static constexpr FLOAT
-        fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
       rb.d3d11.immediate_ctx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
                                         &pOrigRTVs [0].p,
                                         &pOrigDSV     .p );
-      rb.d3d11.immediate_ctx->OMSetRenderTargets (1, &pBackbufferRTV.p, nullptr);
-      rb.d3d11.immediate_ctx->ClearRenderTargetView (
-        pBackbufferRTV.p, pColor != nullptr ?
+
+      rb.d3d11.immediate_ctx->OMSetRenderTargets    (1, &pBackbufferRTV.p, nullptr);
+      rb.d3d11.immediate_ctx->ClearRenderTargetView (    pBackbufferRTV.p,
+                          pColor != nullptr ?
                           pColor            :
                      fClearColor                    );
       rb.d3d11.immediate_ctx->OMSetRenderTargets (

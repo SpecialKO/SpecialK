@@ -170,11 +170,11 @@ D3D11Dev_CreateShaderResourceView_Override (
 
         if (! DirectX::IsDepthStencil (pDesc->Format))
         {
-          if (                         pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+          if (                         pDesc->Format  != DXGI_FORMAT_UNKNOWN && (
               ( DirectX::BitsPerPixel (pDesc->Format) !=
                 DirectX::BitsPerPixel (tex_desc.Format) ) ||
               ( DirectX::MakeTypeless (pDesc->Format) != // Handle cases such as BC3 -> BC7: Size = Same, Fmt != Same
-                DirectX::MakeTypeless (tex_desc.Format) )
+                DirectX::MakeTypeless (tex_desc.Format) ) )
              ) // Does not handle sRGB vs. non-sRGB, but generally the game
           {    //   won't render stuff correctly if injected textures change that.
             override  = true;
