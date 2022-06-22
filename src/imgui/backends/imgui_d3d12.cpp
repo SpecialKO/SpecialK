@@ -2149,7 +2149,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         param [1].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
         param [1].Constants.ShaderRegister            = 0;
         param [1].Constants.RegisterSpace             = 0;
-        param [1].Constants.Num32BitValues            = 12;// cbuffer colorSpaceTransform : register (b0)
+        param [1].Constants.Num32BitValues            = 16;// cbuffer colorSpaceTransform : register (b0)
         param [1].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
         param [2].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
