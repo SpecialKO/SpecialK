@@ -1,4 +1,11 @@
-﻿22.6.20.2-NOCEGUI
+﻿22.6.22-NOCEGUI
+===============
+ + Added new tooltips to the HDR Widget and Display Profiler to explain calibration
+ + Fixed incorrect number of 32-bit values in D3D12 Root Signature for HDR processing
+ + Re-implemented HDR color saturation slider in ACEScg colorspace
+ + Fixed D3D11 render state leaks (depth buffer / tessellation) in HDR image processing
+
+22.6.20.2-NOCEGUI
 =================
  + Added "Export" button to the HDR widget to export the currently selected preset for
      use in other games.

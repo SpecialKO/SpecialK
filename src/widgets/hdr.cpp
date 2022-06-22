@@ -121,10 +121,10 @@ float __SK_HDR_UI_Luma       = 1.0f;
 float __SK_HDR_HorizCoverage = 100.0f;
 float __SK_HDR_VertCoverage  = 100.0f;
 
-float __SK_HDR_PQBoost0      = -8.80582f;
-float __SK_HDR_PQBoost1      =   13.419f;
-float __SK_HDR_PQBoost2      =   1.0535f;
-float __SK_HDR_PQBoost3      =  0.80925f;
+float __SK_HDR_PQBoost0      = -7.0f;
+float __SK_HDR_PQBoost1      =  9.0f;
+float __SK_HDR_PQBoost2      =  1.1333f;
+float __SK_HDR_PQBoost3      =  0.666f;
 
 
 
@@ -287,14 +287,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,  173.8_Nits, 104.6_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0, 173.8_Nits,  104.6_Nits, 100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   95.5_Nits,  94.7_Nits, 103.83296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0, 173.8_Nits,  104.6_Nits,     100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -448,7 +448,14 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
     }
 
     if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("For best results, Ctrl + Click and enter exact values until you find the smallest.");
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("For Best Results");
+      ImGui::Separator    ();
+      ImGui::BulletText   ("Ctrl + Click and enter exact values until you find the smallest value that makes the pattern invisible.");
+      ImGui::BulletText   ("Consider saving the clipping point as 2/3 (LCD) or 1/2 (OLED) the value found above to minimize ABL and Local Dimming problems.");
+      ImGui::EndTooltip   ();
+    }
 
     int idx =
       std::min (
@@ -469,6 +476,15 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
 
     bool bEnd =
       ImGui::Button ("Okay");
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("Remember to re-calibrate SK HDR presets using the 'Tonemap Curve and Grayscale' HDR Visualization");
+      ImGui::Separator    ();
+      ImGui::BulletText   ("User-calibration should focus on the Max Luminance / Paper White / Middle-Gray Contrast");
+      ImGui::BulletText   ("A correctly configured HDR preset will show up as a curve from bottom-left to top-right");
+      ImGui::EndTooltip   ();
+    }
     bool bSave =
          bEnd;
     bool bReset = false;
@@ -1545,10 +1561,10 @@ public:
                                                                                                  "16-Bit Quantization\0"
                                                                                                  "Gamut Overshoot (vs Rec.709)\0"
                                                                                                  "Gamut Overshoot (vs DCI-P3)\0"
-                                                                                                 "Tonemap Curve and Grayscale\0"
-                                                                                                 "Maximum Local Clip Point v0\0"
-                                                                                                 "Maximum Local Clip Point v1\0"
-                                                                                                 "Maximum Local Clip Point v2\0\0");
+                                                                                                 "Tonemap Curve and Grayscale\0\0");
+                                                                                                  //"Maximum Local Clip Point v0\0"
+                                                                                                  //"Maximum Local Clip Point v1\0"
+                                                                                                  //"Maximum Local Clip Point v2\0\0");
                                                                                                  //"Gamut Overshoot (vs Rec.2020)\0\0");
             ImGui::EndGroup    ();
 
