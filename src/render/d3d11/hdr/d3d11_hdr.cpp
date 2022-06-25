@@ -28,9 +28,15 @@
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 #include <shaders/uber_hdr_shader_ps.h>
 #include <shaders/vs_colorutil.h>
+#include <shaders/cs_histogram.h>
+#include <shaders/hdr_merge_cs.h>
+#include <shaders/hdr_response_cs.h>
+
+bool __SK_HDR_v2_0 = false;
 
 struct SK_HDR_FIXUP
 {
@@ -55,6 +61,12 @@ struct SK_HDR_FIXUP
   ID3D11DepthStencilState*          pDSState = nullptr;
 
   ID3D11BlendState*              pBlendState = nullptr;
+
+  ID3D11Texture2D*             pLuminanceTex = nullptr;
+  ID3D11UnorderedAccessView*   pLuminanceUAV = nullptr;
+
+  ID3D11Texture2D*             pGamutTex     = nullptr;
+  ID3D11UnorderedAccessView*   pGamutUAV     = nullptr;
 
   enum SK_HDR_Type {
     None        = 0x000ul,
@@ -95,8 +107,11 @@ struct SK_HDR_FIXUP
       DXGI_FORMAT_R10G10B10A2_UNORM;
   }
 
-  SK::DXGI::ShaderBase <ID3D11PixelShader>  PixelShader_scRGB;
-  SK::DXGI::ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
+  SK::DXGI::ShaderBase <ID3D11PixelShader>   PixelShader_scRGB;
+  SK::DXGI::ShaderBase <ID3D11VertexShader>  VertexShaderHDR_Util;
+  SK::DXGI::ShaderBase <ID3D11ComputeShader> ComputeShaderHDR_Histogram;
+  SK::DXGI::ShaderBase <ID3D11ComputeShader> ComputeShaderHDR_Merge;
+  SK::DXGI::ShaderBase <ID3D11ComputeShader> ComputeShaderHDR_Response;
 
   void releaseResources (void)
   {
@@ -119,8 +134,17 @@ struct SK_HDR_FIXUP
 
     if (pInputLayout      != nullptr)  { pInputLayout->Release      ();       pInputLayout = nullptr; }
 
-    PixelShader_scRGB.releaseResources    ();
-    VertexShaderHDR_Util.releaseResources ();
+    if (pLuminanceTex     != nullptr)  { pLuminanceTex->Release     ();      pLuminanceTex = nullptr; }
+    if (pLuminanceUAV     != nullptr)  { pLuminanceUAV->Release     ();      pLuminanceUAV = nullptr; }
+
+    if (pGamutTex         != nullptr)  { pGamutTex->Release         ();          pGamutTex = nullptr; }
+    if (pGamutUAV         != nullptr)  { pGamutUAV->Release         ();          pGamutUAV = nullptr; }
+
+    PixelShader_scRGB.releaseResources          ();
+    VertexShaderHDR_Util.releaseResources       ();
+    ComputeShaderHDR_Histogram.releaseResources ();
+    ComputeShaderHDR_Merge.releaseResources     ();
+    ComputeShaderHDR_Response.releaseResources  ();
   }
 
   bool
@@ -146,7 +170,22 @@ struct SK_HDR_FIXUP
         pDev->CreateVertexShader ( colorutil_vs_bytecode,
                            sizeof (colorutil_vs_bytecode),
               nullptr, &VertexShaderHDR_Util.shader )
-                );
+                ) &&
+      SUCCEEDED (
+        pDev->CreateComputeShader ( hdr_histogram_cs_bytecode,
+                            sizeof (hdr_histogram_cs_bytecode),
+               nullptr, &ComputeShaderHDR_Histogram.shader )
+      )           &&
+      SUCCEEDED (
+        pDev->CreateComputeShader ( hdr_merge_cs_bytecode,
+                            sizeof (hdr_merge_cs_bytecode),
+               nullptr, &ComputeShaderHDR_Merge.shader )
+      )           &&
+      SUCCEEDED (
+        pDev->CreateComputeShader ( hdr_response_cs_bytecode,
+                            sizeof (hdr_response_cs_bytecode),
+               nullptr, &ComputeShaderHDR_Response.shader )
+      );
 
     return ret;
   }
@@ -173,6 +212,11 @@ struct SK_HDR_FIXUP
 
     if (pInputLayout     != nullptr)  { pInputLayout->Release     ();      pInputLayout = nullptr; }
 
+    if (pLuminanceTex    != nullptr)  { pLuminanceTex->Release    ();     pLuminanceTex = nullptr; }
+    if (pLuminanceUAV    != nullptr)  { pLuminanceUAV->Release    ();     pLuminanceUAV = nullptr; }
+
+    if (pGamutTex        != nullptr)  { pGamutTex->Release        ();         pGamutTex = nullptr; }
+    if (pGamutUAV        != nullptr)  { pGamutUAV->Release        ();         pGamutUAV = nullptr; }
 
     static auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -302,6 +346,45 @@ struct SK_HDR_FIXUP
       pDev->CreateRasterizerState ( &raster,
                                          &pRasterizerState );
 
+      D3D11_TEXTURE2D_DESC
+        texDesc                  = {  };
+        texDesc.Width            = 64;
+        texDesc.Height           = 64;
+        texDesc.Format           = DXGI_FORMAT_R32_FLOAT;
+        texDesc.BindFlags        = D3D11_BIND_UNORDERED_ACCESS;
+        texDesc.SampleDesc.Count = 1;
+        texDesc.MipLevels        = 1;
+        texDesc.ArraySize        = 1;
+
+      D3D11_UNORDERED_ACCESS_VIEW_DESC
+        uavDesc                    = {  };
+        uavDesc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+        uavDesc.Texture2D.MipSlice = 0;
+        uavDesc.Format             = DXGI_FORMAT_R32_FLOAT;
+
+      pDev->CreateTexture2D           (&texDesc, nullptr, &pLuminanceTex);
+      pDev->CreateUnorderedAccessView (                    pLuminanceTex,
+                                       &uavDesc,          &pLuminanceUAV);
+
+      texDesc                    = {  };
+      texDesc.Width              = 1024;
+      texDesc.Height             = 1024;
+      texDesc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      texDesc.BindFlags          = D3D11_BIND_UNORDERED_ACCESS |
+                                   D3D11_BIND_SHADER_RESOURCE;
+      texDesc.SampleDesc.Count   = 1;
+      texDesc.MipLevels          = 1;
+      texDesc.ArraySize          = 1;
+
+      uavDesc                    = {  };
+      uavDesc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+      uavDesc.Texture2D.MipSlice = 0;
+      uavDesc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+      pDev->CreateTexture2D           (&texDesc, nullptr, &pGamutTex);
+      pDev->CreateUnorderedAccessView (                    pGamutTex,
+                                       &uavDesc,          &pGamutUAV);
+
       SK_D3D11_SetDebugName (pSampler0,        L"SK HDR SamplerState");
       SK_D3D11_SetDebugName (pInputLayout,     L"SK HDR InputLayout");
       SK_D3D11_SetDebugName (pBlendState,      L"SK HDR BlendState");
@@ -314,11 +397,20 @@ struct SK_HDR_FIXUP
 
       SK_D3D11_SetDebugName (colorSpaceCBuffer, L"SK HDR ColorSpace CBuffer");
       SK_D3D11_SetDebugName (mainSceneCBuffer,  L"SK HDR MainScene CBuffer");
+
+      SK_D3D11_SetDebugName (pLuminanceTex,     L"SK HDR Luminance Tilemap");
+      SK_D3D11_SetDebugName (pLuminanceUAV,     L"SK HDR Luminance UAV");
+
+      SK_D3D11_SetDebugName (pGamutTex,         L"SK HDR Gamut Coverage Texture");
+      SK_D3D11_SetDebugName (pGamutUAV,         L"SK HDR Gamut Coverage UAV");
     }
   }
 };
 
 SK_LazyGlobal <SK_HDR_FIXUP> hdr_base;
+
+SK_ComPtr <ID3D11Texture2D> SK_HDR_GetGamutTex     (void) { return hdr_base->pGamutTex;     }
+SK_ComPtr <ID3D11Texture2D> SK_HDR_GetLuminanceTex (void) { return hdr_base->pLuminanceTex; }
 
 int   __SK_HDR_tonemap       = 1;
 int   __SK_HDR_visualization = 0;
@@ -408,7 +500,7 @@ SK_HDR_SnapshotSwapchain (void)
     SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
     SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
 
-    if (pDev != nullptr && pDevCtx == nullptr)
+    if (pDev != nullptr     &&      pDevCtx == nullptr)
     {   pDev->GetImmediateContext (&pDevCtx.p); }
 
     if (! pDevCtx) return;
@@ -421,7 +513,7 @@ SK_HDR_SnapshotSwapchain (void)
       pSwapChain->GetDesc (&swapDesc);
 
       if ( SUCCEEDED (
-             pSwapChain->GetBuffer    (
+             pSwapChain->GetBuffer   (
                0,
                  IID_ID3D11Texture2D,
                    (void **)&pSrc.p  )
@@ -545,10 +637,10 @@ SK_HDR_SnapshotSwapchain (void)
           _d3d11_rbk->frames_ [0].hdr.pRTV;
 
     if (              pRenderTargetView.p != nullptr                                 &&
-               swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          /*&&
+               swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          &&
          ( rb.scanout.dxgi_colorspace     == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
            rb.scanout.dwm_colorspace      == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
-           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 )*/ )
+           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
     {
 #ifdef _ImGui_Stateblock
       SK_D3D11_CaptureStateBlock (pDevCtx, &snap_cache.sb);
@@ -605,6 +697,7 @@ SK_HDR_SnapshotSwapchain (void)
             hdr_base->pMainSrv,
              hdr_base->pHUDSrv
           };
+          SK_ComPtr <ID3D11SamplerState>    samplers [D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT] = { };
         } ps;
 
         struct {
@@ -627,6 +720,7 @@ SK_HDR_SnapshotSwapchain (void)
       //                              rtdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
       pDevCtx->PSGetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, &resources.ps.original [0].p);
+      pDevCtx->PSGetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,        &resources.ps.samplers [0].p);
 
       pDevCtx->IAGetPrimitiveTopology (&primitive_assembly.topology);
       pDevCtx->IAGetInputLayout       (&primitive_assembly.pLayout.p);
@@ -695,10 +789,61 @@ SK_HDR_SnapshotSwapchain (void)
 
       pDevCtx->Draw (4, 0);
 
+      if (__SK_HDR_AdaptiveToneMap)
+      {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC
+          uav_desc                    = { };
+          uav_desc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+          uav_desc.Texture2D.MipSlice = 0;
+          uav_desc.Format             = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+        SK_ComPtr <ID3D11UnorderedAccessView>                pFramebufferUAV;
+        pDev->CreateUnorderedAccessView (pSrc.p, &uav_desc, &pFramebufferUAV.p);
+
+        if (pFramebufferUAV.p != nullptr)
+        {
+          static ID3D11ShaderResourceView* const
+            nul_srvs [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT] = { };
+          static ID3D11RenderTargetView* const
+            nul_rtvs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]       = { };
+          static ID3D11UnorderedAccessView* const
+            nul_uavs [D3D11_1_UAV_SLOT_COUNT]                       = { };
+
+          ID3D11UnorderedAccessView* uavs [] =
+          {         pFramebufferUAV.p,
+            hdr_base->pLuminanceUAV,
+                hdr_base->pGamutUAV
+          };
+
+          //pDevCtx->ClearUnorderedAccessViewFloat (hdr_base->pLuminanceUAV, std::array <FLOAT, 4> { 0.0f, 0.0f, 0.0f, 0.0f }.data ());
+
+          pDevCtx->OMSetRenderTargets                          (   D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,       nul_rtvs, nullptr);
+          //pDevCtx->OMSetRenderTargetsAndUnorderedAccessViews (0, nullptr,
+          //                                                       nullptr, 0, D3D11_1_UAV_SLOT_COUNT,           nul_uavs, nullptr);
+
+          pDevCtx->PSSetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nul_srvs);
+          pDevCtx->PSSetConstantBuffers      (0, 0,                                          nullptr   );
+          pDevCtx->CSSetConstantBuffers      (0, 1,                        &hdr_base->colorSpaceCBuffer);
+          pDevCtx->CSSetUnorderedAccessViews (0, 3, uavs,                                    nullptr   );
+          pDevCtx->CSSetShader               (hdr_base->ComputeShaderHDR_Histogram.shader,   nullptr, 0);
+          pDevCtx->Dispatch                 ( 32,
+                                              16, 1 );
+          pDevCtx->CSSetShader               (hdr_base->ComputeShaderHDR_Merge.shader,       nullptr, 0);
+          pDevCtx->Dispatch                 ( 1, 1, 1 );
+          pDevCtx->CSSetShader               (hdr_base->ComputeShaderHDR_Response.shader,    nullptr, 0);
+          pDevCtx->Dispatch                 ( 32,
+                                              16, 1 );
+          pDevCtx->CSSetUnorderedAccessViews (0, D3D11_1_UAV_SLOT_COUNT, nul_uavs,           nullptr   );
+          pDevCtx->CSSetConstantBuffers      (0,                      0,                     nullptr   );
+        }
+      }
+
       // -*- //
 
       pDevCtx->PSSetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,
                                       &resources.ps.original [0].p);
+      pDevCtx->PSSetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,
+                                      &resources.ps.samplers [0].p);
       pDevCtx->IASetPrimitiveTopology (primitive_assembly.topology);
       pDevCtx->IASetInputLayout       (primitive_assembly.pLayout);
       pDevCtx->IASetIndexBuffer       (index_buffer.pBuffer,
@@ -728,7 +873,7 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->RSSetState             (rasterizer.pState.p);
       pDevCtx->OMSetDepthStencilState (depth_stencil.pState.p,
                                        depth_stencil.uiRef);
-      pDevCtx->OMSetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &output.pRTVs->p,
+      pDevCtx->OMSetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &output.pRTVs [0].p,
                                        depth_stencil.pView.p);
       pDevCtx->OMSetBlendState        (output.pBlendState,
                                        output.fBlendFactors,

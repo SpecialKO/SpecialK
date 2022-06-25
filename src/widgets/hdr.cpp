@@ -98,6 +98,7 @@ sk::ParameterBool*  _SK_HDR_Promote8BitRGBxTo16BitFP  = nullptr;
 sk::ParameterInt*   _SK_HDR_ActivePreset              = nullptr;
 sk::ParameterBool*  _SK_HDR_FullRange                 = nullptr;
 sk::ParameterInt*   _SK_HDR_sRGBBypassBehavior        = nullptr;
+sk::ParameterBool*  _SK_HDR_AdaptiveToneMap           = nullptr;
 
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
@@ -108,23 +109,24 @@ SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_8bpc;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_10bpc;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
 
-float __SK_HDR_Luma          = 80.0_Nits;
-float __SK_HDR_Exp           = 1.0f;
-float __SK_HDR_Saturation    = 1.0f;
-extern float
-      __SK_HDR_user_sdr_Y;
-float __SK_HDR_MiddleLuma    = 100.0_Nits;
-int   __SK_HDR_Preset        = 0;
-bool  __SK_HDR_FullRange     = true;
-
-float __SK_HDR_UI_Luma       = 1.0f;
-float __SK_HDR_HorizCoverage = 100.0f;
-float __SK_HDR_VertCoverage  = 100.0f;
-
-float __SK_HDR_PQBoost0      = -7.0f;
-float __SK_HDR_PQBoost1      =  9.0f;
-float __SK_HDR_PQBoost2      =  1.1333f;
-float __SK_HDR_PQBoost3      =  0.666f;
+float __SK_HDR_Luma            = 80.0_Nits;
+float __SK_HDR_Exp             = 1.0f;
+float __SK_HDR_Saturation      = 1.0f;
+extern float                   
+      __SK_HDR_user_sdr_Y;     
+float __SK_HDR_MiddleLuma      = 100.0_Nits;
+int   __SK_HDR_Preset          = 0;
+bool  __SK_HDR_FullRange       = true;
+                               
+float __SK_HDR_UI_Luma         = 1.0f;
+float __SK_HDR_HorizCoverage   = 100.0f;
+float __SK_HDR_VertCoverage    = 100.0f;
+                               
+float __SK_HDR_PQBoost0        = -7.0f;
+float __SK_HDR_PQBoost1        =  9.0f;
+float __SK_HDR_PQBoost2        =  1.1333f;
+float __SK_HDR_PQBoost3        =  0.666f;
+bool  __SK_HDR_AdaptiveToneMap =  false;
 
 
 
@@ -287,11 +289,11 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   95.5_Nits,  94.7_Nits, 103.83296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0, 173.8_Nits,  104.6_Nits,     100.0_Nits, 1.0f, 1.075f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
@@ -339,8 +341,8 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   
   if (! draw)
   {
-    static std::wstring last_path = L"";
-
+    static std::wstring
+          last_path = L"";
     if (! last_path._Equal (rb.displays [rb.active_display].path_name))
     {
       if (pINI->contains_section (rb.displays [rb.active_display].path_name))
@@ -373,6 +375,13 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   static bool  bLastOpen     = false;
   static bool  disable_alpha = config.imgui.render.disable_alpha;
 
+  //
+  // We have to turn Adaptive Tonemapping Off while displaying the
+  //   test patterns; otherwise clipping would never occur.
+  //
+  static bool  bOrigAdaptive =
+           __SK_HDR_AdaptiveToneMap;
+
   bool bOpen =
     ImGui::IsPopupOpen ("HDR Display Profiler");
 
@@ -383,17 +392,25 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
     auto pControlPanelWindow =
       ImGui::FindWindowByName (SK_ImGui_ControlPanelTitle ());
 
-    ImGui::SetNextWindowPos (ImVec2 (0.0f, 0.0f), ImGuiCond_Always);
+    static ImVec2 vDialogPos =
+           ImVec2 (0.0f, 0.0f);
 
     if (! bLastOpen)
     {
+      bOrigAdaptive =
+        std::exchange (__SK_HDR_AdaptiveToneMap, false);
       fOrigHDRLuma  =
         std::exchange (__SK_HDR_Luma, rb.display_gamut.maxLocalY * 1.0_Nits);
       iOrigVisual   =
         std::exchange (__SK_HDR_visualization, 13);
       disable_alpha =
         std::exchange (config.imgui.render.disable_alpha, true);
+
+      vDialogPos =
+        ImGui::GetCursorScreenPos ();
     }
+
+    ImGui::SetNextWindowPos (vDialogPos, ImGuiCond_Always);
 
     if (pControlPanelWindow != nullptr) pControlPanelWindow->Hidden = true;
     if (         pHDRWidget != nullptr)          pHDRWidget->Hidden = true;
@@ -414,12 +431,14 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       config.imgui.render.disable_alpha =
                           disable_alpha;
 
-      __SK_HDR_Luma          = std::min (rb.display_gamut.maxLocalY * 1.0_Nits, fOrigHDRLuma);
-      __SK_HDR_visualization = iOrigVisual;
+      __SK_HDR_Luma            = std::min (rb.display_gamut.maxLocalY * 1.0_Nits, fOrigHDRLuma);
+      __SK_HDR_visualization   = iOrigVisual;
+      __SK_HDR_AdaptiveToneMap = bOrigAdaptive;
     }
 
     else
     {
+      bOrigAdaptive = __SK_HDR_AdaptiveToneMap;
       iOrigVisual   = __SK_HDR_visualization;
       fOrigHDRLuma  = __SK_HDR_Luma;
       disable_alpha = config.imgui.render.disable_alpha;
@@ -438,8 +457,10 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
         std::max (80.0f, __SK_HDR_Luma / 1.0_Nits)
                );
 
-    if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f, 2000.0f,
-                (const char *)u8"Luminance Clipping Point: %.1f cd/m²" ))
+    if ( ImGui::InputFloat (
+           "Luminance Clipping Point (cd/m²)###SK_HDR_LUMINANCE",
+             &peak_nits, 1.0f, 10.0f, 2, ImGuiInputTextFlags_CharsDecimal )
+       )
     {
       __SK_HDR_Luma =
         std::min (10000.0_Nits,
@@ -452,8 +473,11 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       ImGui::BeginTooltip ();
       ImGui::Text         ("For Best Results");
       ImGui::Separator    ();
-      ImGui::BulletText   ("Ctrl + Click and enter exact values until you find the smallest value that makes the pattern invisible.");
-      ImGui::BulletText   ("Consider saving the clipping point as 2/3 (LCD) or 1/2 (OLED) the value found above to minimize ABL and Local Dimming problems.");
+      ImGui::BulletText   ("Enter exact values until you find the smallest "
+                           "value that makes the pattern invisible.");
+      ImGui::BulletText   ("Consider saving the clipping point as 2/3 (LCD) "
+                           "or 1/2 (OLED) the value found above to minimize "
+                           "ABL and Local Dimming problems.");
       ImGui::EndTooltip   ();
     }
 
@@ -522,7 +546,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
         pINI->write ();
 
         rb.display_gamut.maxLocalY   = __SK_HDR_Luma / 1.0_Nits;
-        rb.display_gamut.maxAverageY =
+        rb.display_gamut.maxAverageY = // TODO: Actual Max Average
           std::min ( rb.display_gamut.maxAverageY,
                      rb.display_gamut.maxLocalY );
       }
@@ -556,17 +580,21 @@ public:
       SK_GetCommandProcessor ();
 
     try {
-      SK_IVarStub <int>* preset  = new SK_IVarStub <int>   (&__SK_HDR_Preset, this);
-      SK_IVarStub <int>* tonemap = new SK_IVarStub <int>   (&__SK_HDR_tonemap);
-      SK_IVarStub <int>* vis     = new SK_IVarStub <int>   (&__SK_HDR_visualization);
-      SK_IVarStub <float>* horz  = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
-      SK_IVarStub <float>* vert  = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
+      SK_IVarStub <int>*   preset      = new SK_IVarStub <int>   (&__SK_HDR_Preset, this);
+      SK_IVarStub <int>*   tonemap     = new SK_IVarStub <int>   (&__SK_HDR_tonemap);
+      SK_IVarStub <int>*   vis         = new SK_IVarStub <int>   (&__SK_HDR_visualization);
+      SK_IVarStub <float>* horz        = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
+      SK_IVarStub <float>* vert        = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
+      SK_IVarStub <bool>*  adaptive    = new SK_IVarStub <bool>  (&__SK_HDR_AdaptiveToneMap);
+      SK_IVarStub <int>*   bypass_srgb = new SK_IVarStub <int>   (&__SK_HDR_Bypass_sRGB);
 
-      pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange  (0, 3)         );
-      pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange     (0, 11)        );
-      pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange (0, 2)         );
-      pCommandProc->AddVariable ( "HDR.HorizontalSplit", &horz->setRange    (0.0f, 100.0f) );
-      pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange    (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange      (0, 3)         );
+      pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange         (0, 11)        );
+      pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange     (0, 2)         );
+      pCommandProc->AddVariable ( "HDR.HorizontalSplit", &horz->setRange        (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange        (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.AdaptiveToneMap", &adaptive->setRange    (false,  true) );
+      pCommandProc->AddVariable ( "HDR.Bypass_sRGB",     &bypass_srgb->setRange (   -1,     1) );
     }
 
     catch (...)
@@ -577,7 +605,8 @@ public:
 
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
   {
-    if (val != nullptr && var != nullptr && var->getValuePointer () == &__SK_HDR_Preset)
+    if ( val != nullptr &&
+         var != nullptr && var->getValuePointer () == &__SK_HDR_Preset )
     {
       __SK_HDR_Preset = *(int *)val;
 
@@ -665,6 +694,11 @@ public:
       _CreateConfigParameterInt ( SK_HDR_SECTION,
                                   L"sRGBBypassMode", __SK_HDR_Bypass_sRGB,
                                   L"sRGB Encoding is Implicit" );
+
+    _SK_HDR_AdaptiveToneMap =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"AdaptiveToneMap", __SK_HDR_AdaptiveToneMap,
+                                   L"HGIG Rules Apply" );
 
     _SK_HDR_ActivePreset =
       _CreateConfigParameterInt ( SK_HDR_SECTION,
@@ -1342,8 +1376,27 @@ public:
 
             ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
 
-            if (rb.api != SK_RenderAPI::D3D12)
+            if (SK_API_IsLayeredOnD3D11 (rb.api))
             {
+              if (ImGui::Checkbox ("Adaptive Tone Mapping",
+                                               &__SK_HDR_AdaptiveToneMap))
+              { _SK_HDR_AdaptiveToneMap->store (__SK_HDR_AdaptiveToneMap);
+                 SK_SaveConfig ();
+              }
+
+              if (ImGui::IsItemHovered ())
+              {   ImGui::BeginTooltip  ();
+                  ImGui::Text          ("Adhere to HGIG Design Guidelines");
+                  ImGui::Separator     ();
+                  ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 'Paper White'");
+                  ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
+                  ImGui::EndTooltip    ();
+              }
+
+              ImGui::SameLine          ();
+              ImGui::VerticalSeparator ();
+              ImGui::SameLine          ();
+
               const auto _SummarizeTargets =
               [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
               {
@@ -1405,9 +1458,11 @@ public:
 
             ImGui::PopStyleColor ();
 
-            if (preset.pq_boost0 > 0.1f)
-            {
-              if (rb.api != SK_RenderAPI::D3D12) ImGui::SameLine ();
+            if ( preset.pq_boost0 > 0.1f )
+            { 
+              ImGui::SameLine          ();
+              ImGui::VerticalSeparator ();
+              ImGui::SameLine          ();
               
               bool bExperimental =
                 ImGui::TreeNode ("Experimental");
@@ -1417,8 +1472,10 @@ public:
 
               if (bExperimental)
               {
+                ImGui::Separator ();
+
                 bool boost_changed = false;
-                
+
                 boost_changed |=
                   ImGui::SliderFloat ("Perceptual Boost 0", &preset.pq_boost0, 3.0f, 20.0f);
                 boost_changed |=

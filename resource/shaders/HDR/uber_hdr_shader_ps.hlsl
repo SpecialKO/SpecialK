@@ -1675,13 +1675,6 @@ float3 ToneMapACES (float3 hdr)
 
 float3 ACESFitted (float3 color, float input_color, float gamma)
 {
-  if (input_color != 0.0125f) 
-  {
-    color.rgb = LinearToLogC (color.rgb);
-    color.rgb = Contrast     (color.rgb, 0.18f * (0.1f * input_color / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-    color.rgb = LogCToLinear (color.rgb);
-  }
-
   color  = pow (color, float3 (0.82f, 0.82f, 0.82f));
   color *= 1.12f;
 
@@ -2094,6 +2087,14 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color.b = (float)rgb.b / scale_f;
   }
 
+
+  if (input.color.x != 0.0125f)
+  {
+    hdr_color.rgb = LinearToLogC (hdr_color.rgb);
+    hdr_color.rgb = Contrast     (hdr_color.rgb, 0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+    hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+  }
+
   if (uiToneMapper != TONEMAP_NONE)
   {
     if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
@@ -2133,6 +2134,9 @@ float4 main (PS_INPUT input) : SV_TARGET
       SK_ProcessColor4 (hdr_color, uiToneMapper).rgb;
   }
 
+  float fLuma =
+    /*length (hdr_color.rgb);// */
+    Luminance (hdr_color.rgb);
 
   hdr_color.rgb =
     max ( 0.0, pow ( hdr_color.rgb,
@@ -2173,10 +2177,6 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color.rgb =
     new_color;
   }
- 
-  float fLuma =
-    /*length (hdr_color.rgb);// */
-    Luminance (hdr_color.rgb);
 
   if (hdrSaturation != 1.0f || uiToneMapper == TONEMAP_ACES_FILMIC)
   {
@@ -2196,17 +2196,6 @@ float4 main (PS_INPUT input) : SV_TARGET
     (                            hdrPaperWhite +
       fLuma * (input.color.xxx - hdrPaperWhite) )         :
                                  hdrPaperWhite;
-
-
-  if (uiToneMapper == TONEMAP_NONE)
-  {
-    if (input.color.x != 0.0125f)
-    {
-      hdr_color.rgb = LinearToLogC (hdr_color.rgb);
-      hdr_color.rgb = Contrast     (hdr_color.rgb, 0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f, (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-      hdr_color.rgb = LogCToLinear (hdr_color.rgb);
-    }
-  }
 
   fLuma =
     Luminance (hdr_color.rgb);

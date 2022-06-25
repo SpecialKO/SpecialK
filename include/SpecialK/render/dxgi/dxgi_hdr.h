@@ -122,6 +122,7 @@ extern float __SK_HDR_user_sdr_Y;
 extern float __SK_HDR_MiddleLuma;
 extern int   __SK_HDR_Preset;
 extern bool  __SK_HDR_FullRange;
+extern bool  __SK_HDR_AdaptiveToneMap;
 
 extern float __SK_HDR_UI_Luma;
 extern float __SK_HDR_HorizCoverage;
