@@ -1,4 +1,16 @@
-﻿22.6.22-NOCEGUI
+﻿22.6.25-NOCEGUI
+===============
+ + Added optional 'Adaptive Tonemap' mode to handle scenes too bright for HGIG
+
+   >> This adds a Compute Shader stage that may use 1-2% extra GPU, so leave it
+        off if performance is already tight in a game.
+
+22.6.24-NOCEGUI
+===============
+ + Fixed HDR gamut clamp on scRGB Passthrough Mode
+ - ACES tonemap is currently broken, don't use it :)
+
+22.6.22-NOCEGUI
 ===============
  + Added new tooltips to the HDR Widget and Display Profiler to explain calibration
  + Fixed incorrect number of 32-bit values in D3D12 Root Signature for HDR processing
@@ -10,7 +22,7 @@
  + Added "Export" button to the HDR widget to export the currently selected preset for
      use in other games.
 
-      >> Load exported presets using the "Reset" button.
+    >> Load exported presets using the "Reset" button.
 
 22.6.20.1-NOCEGUI
 =================
@@ -26,6 +38,7 @@
 ===============
  + Fixed Windows Version check in Project Diva's first patch
  + Fixed >60 FPS mod for Project Diva
+
 
 22.6.18.1-NOCEGUI
 =================

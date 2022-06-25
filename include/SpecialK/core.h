@@ -99,10 +99,11 @@ typedef enum DLL_ROLE : unsigned
   DWORDALIGN = MAXDWORD
 } DLL_ROLE;
 
-bool SK_API_IsDXGIBased   (SK_RenderAPI api);
-bool SK_API_IsGDIBased    (SK_RenderAPI api);
-bool SK_API_IsDirect3D9   (SK_RenderAPI api);
-bool SK_API_IsPlugInBased (SK_RenderAPI api);
+bool SK_API_IsDXGIBased      (SK_RenderAPI api);
+bool SK_API_IsGDIBased       (SK_RenderAPI api);
+bool SK_API_IsDirect3D9      (SK_RenderAPI api);
+bool SK_API_IsPlugInBased    (SK_RenderAPI api);
+bool SK_API_IsLayeredOnD3D11 (SK_RenderAPI api);
 
 
 #ifdef SK_BUILD_DLL

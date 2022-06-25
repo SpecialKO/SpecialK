@@ -2922,6 +2922,9 @@
     <ClInclude Include="include\SpecialK\popups\popup.h">
       <Filter>Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="include\shaders\cs_histogram.h">
+      <Filter>Header Files\Backends\Render\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4475,9 +4478,6 @@
     <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
-    <FxCompile Include="resource\shaders\cs_histogram.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
@@ -4522,6 +4522,15 @@
     </FxCompile>
     <FxCompile Include="resource\shaders\epic_d3d11_vs.hlsl">
       <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\cs_histogram.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\hdr_merge_cs.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\hdr_response_cs.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

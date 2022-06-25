@@ -1585,8 +1585,14 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 }
 
 HRESULT
-SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
+SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
 {
+  if (! config.render.dxgi.clear_flipped_chain)
+    return S_OK;
+
+  if (pColor == nullptr)
+      pColor = config.render.dxgi.chain_clear_color;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1603,8 +1609,11 @@ SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
     return E_NOINTERFACE;
   }
 
-  static constexpr FLOAT
+  static constexpr float
     fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black pixels matter
+
+  if (pColor == nullptr)
+      pColor = fClearColor;
 
   UINT currentBuffer =
     0;// pSwap3->GetCurrentBackBufferIndex ();
@@ -1654,7 +1663,7 @@ SK_D3D11_ClearSwapchainBackbuffer (float *pColor = nullptr)
       if (pDevCtx4.p != nullptr)
       {
         pDevCtx4->ClearView (
-          pRawRTV, fClearColor,
+          pRawRTV, pColor,
             nullptr, 0
         );
         
@@ -5276,11 +5285,23 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     }
 
 
-    // Some behavior overrides need not apply if the game knows what flip model is
+    // Some behavior overrides are unneeded in Flip Model games
     bool already_flip_model =
       SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
     bOriginallyFlip = already_flip_model;
+
+    // These games may want the contents of the SwapChain
+    //    backbuffer to remain defined.
+    // 
+    //   * If SK's SwapChain wrapper is active, avoid
+    //       clearing backbuffers after Present (...)
+    //
+    if (/*(!bOriginallyFlip) ||*/pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+                             ||  pDesc->SwapEffect == DXGI_SWAP_EFFECT_SEQUENTIAL )
+    {
+      config.render.dxgi.clear_flipped_chain = false;
+    }
 
     // If auto-update prompt is visible, don't go fullscreen.
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
@@ -5292,13 +5313,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     _DescribeSwapChain (L"ORIGINAL");
 
     // Set things up to make the swap chain Alt+Enter friendly
-    //if (bAlwaysAllowFullscreen && pDesc->Windowed)
-    //{
     if (_NO_ALLOW_MODE_SWITCH)
-      pDesc->Flags                             &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-      //pDesc->BufferDesc.RefreshRate.Denominator = 0;
-      //pDesc->BufferDesc.RefreshRate.Numerator   = 0;
-    //}
+      pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 
     if (config.render.framerate.disable_flip)
@@ -5652,6 +5668,13 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
     pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
+  }
+
+
+  if (__SK_HDR_16BitSwap)
+  {
+    if (pDesc != nullptr)
+        pDesc->BufferUsage |= DXGI_USAGE_UNORDERED_ACCESS;
   }
 
 

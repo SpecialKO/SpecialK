@@ -219,6 +219,12 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   ImGui::EndChild  ();
 
 
+  extern SK_ComPtr <ID3D11Texture2D> SK_HDR_GetGamutTex     (void);
+  extern SK_ComPtr <ID3D11Texture2D> SK_HDR_GetLuminanceTex (void);
+
+  auto pHDRGamut     = SK_HDR_GetGamutTex     ();
+  auto pHDRLuminance = SK_HDR_GetLuminanceTex ();
+
   for (auto& it_ctx : *SK_D3D11_PerCtxResources )
   {
     int spins = 0;
@@ -244,6 +250,10 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
     InterlockedExchange (&it_ctx.writing_, 0);
   }
+
+
+  if (pHDRGamut.p     != nullptr) used_textures->insert (pHDRGamut);
+  if (pHDRLuminance.p != nullptr) used_textures->insert (pHDRLuminance);
 
 
   if (   list_dirty ||    refresh_interval > 0)
@@ -323,6 +333,36 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               texture_map [entry.crc32c] = entry;
           }
         }
+      }
+
+      if ( pHDRGamut.p != nullptr )
+      {
+        list_entry_s
+             entry        = {    };
+             entry.tag    = 0x6969;
+             entry.crc32c = 0x6969;
+             entry.pTex   = pHDRGamut.p;
+             entry.name   = "SK HDR Gamut";
+             pHDRGamut.p->GetDesc (&entry.desc);
+             pHDRGamut.p->GetDesc (&entry.orig_desc);
+             entry.size   = 8 * 1024 * 1024;
+
+        texture_map [entry.crc32c] = entry;
+      }
+      
+      if ( pHDRLuminance.p != nullptr )
+      {
+        list_entry_s
+             entry        = {    };
+             entry.tag    = 0x6868;
+             entry.crc32c = 0x6868;
+             entry.pTex   = pHDRLuminance.p;
+             entry.name   = "SK HDR Luminance";
+             pHDRLuminance.p->GetDesc (&entry.desc);
+             pHDRLuminance.p->GetDesc (&entry.orig_desc);
+             entry.size   = 8 * 1024 * 1024;
+
+        texture_map [entry.crc32c] = entry;
       }
 
       std::vector <list_entry_s> temp_list;
@@ -577,6 +617,17 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                                               &tex_size,
                                               &load_time, pTLS )
     );
+
+    if (! pTex.p)
+    {
+      switch (entry.tag)
+      {
+        case 0x6969: pTex = pHDRGamut.p;     break;
+        case 0x6868: pTex = pHDRLuminance.p; break;
+        default:
+          break;
+      }
+    }
 
     const bool staged = false;
 

@@ -725,7 +725,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
 
-#ifdef _ImGui_Stateblock
+#define _ImGui_Stateblock
+#ifdef  _ImGui_Stateblock
   SK_IMGUI_D3D11StateBlock
     sb             = { };
     sb.Capture (pDevCtx);
@@ -770,7 +771,11 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
                                                 0 );
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-  pDevCtx->GSSetShader            (nullptr, nullptr, 0);
+  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
+  {
+    pDevCtx->GSSetShader          (nullptr, nullptr, 0);
+  }
+
   if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
   {
     pDevCtx->HSSetShader          (nullptr, nullptr, 0);
@@ -779,7 +784,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
   pDevCtx->VSSetShader            (_P->pVertexShader, nullptr, 0);
   pDevCtx->VSSetConstantBuffers   (0, 1, &_P->pVertexConstantBuffer);
-
 
   pDevCtx->PSSetShader            (_P->pPixelShader, nullptr, 0);
   pDevCtx->PSSetSamplers          (0, 1, &_P->pFontSampler_clamp);
@@ -843,11 +847,13 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   }
   catch (const SK_SEH_IgnoredException&)
   {
-#ifdef _ImGui_Stateblock
-    sb.Apply (pDevCtx);
-#endif
+    // ...
   }
   SK_SEH_RemoveTranslator (orig_se);
+
+#ifdef _ImGui_Stateblock
+  sb.Apply (pDevCtx);
+#endif
 }
 
 #include <SpecialK/config.h>
