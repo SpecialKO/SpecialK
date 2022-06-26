@@ -1,9 +1,18 @@
-﻿22.6.25-NOCEGUI
+﻿22.6.26-NOCEGUI
+===============
+ + Added new experimental 128-bit color remastering option, cause why not?
+ + Optimized luminance analysis compute shaders, feel free to keep
+     adaptive tonemapping enabled
+ - ACES tonemap is currently broken, don't use it :)
+
+22.6.25-NOCEGUI
 ===============
  + Added optional 'Adaptive Tonemap' mode to handle scenes too bright for HGIG
 
    >> This adds a Compute Shader stage that may use 1-2% extra GPU, so leave it
         off if performance is already tight in a game.
+
+ - ACES tonemap is currently broken, don't use it :)
 
 22.6.24-NOCEGUI
 ===============

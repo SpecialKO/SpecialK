@@ -1,29 +1,10 @@
-#define NUM_HISTOGRAM_BINS          4096
+#define NUM_HISTOGRAM_BINS          384
 #define HISTOGRAM_WORKGROUP_SIZE_X ( 32 )
 #define HISTOGRAM_WORKGROUP_SIZE_Y ( 16 )
 
-cbuffer histogramDispatch
-{
-  struct {
-    uint width;
-    uint height;
-  } image;
-
-  struct {
-    float min;
-    float max;
-  } luminance;
-
-  // Gamut coverage counters
-  struct {
-    float4 minx, maxx;
-    float4 miny, maxy;
-    float4 minY, maxY;
-  } gamut_xyY;
-
-  float3x3 colorspaceMat_RGBtoxyY;
-  uint     numLocalWorkgroups;
-};
+#define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_MIN         1.175494351e-38 // Minimum representable positive floating-point number
+#define FLT_MAX         3.402823466e+38 // Maximum representable floating-point number
 
 cbuffer colorSpaceTransform : register (b0)
 {
@@ -170,38 +151,11 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace cs, float3 RGB )
                               XYZ.y );
 }
 
-float3
-SK_Triangle_Barycentric ( float3 pt,
-                          float3 vTriangle [3] )
-{
-  float3 v0 = vTriangle [2] - vTriangle [0],
-         v1 = vTriangle [1] - vTriangle [0],
-         v2 =            pt - vTriangle [0];
-
-  float d00 = dot (v0, v0);
-  float d01 = dot (v0, v1);
-  float d11 = dot (v1, v1);
-  float d20 = dot (v2, v0);
-  float d21 = dot (v2, v1);
-
-  float denom = d00 * d11 -
-                d01 * d01;
-
-  float u = (d11 * d20 - d01 * d21) / denom;
-  float v = (d00 * d21 - d01 * d20) / denom;
-
-  float w = 1.0f - u - v;
-
-  return
-    float3 ( u, v, w );
-}
-
 float
 transformRGBtoY (float3 rgb)
 {
   return
     dot (rgb, float3 (0.2126729, 0.7151522, 0.0721750));
-    //mul (rgb, colorspaceMat_RGBtoxyY).z;
 }
 
 float
@@ -211,34 +165,54 @@ transformRGBtoLogY (float3 rgb)
     log (transformRGBtoY (rgb));
 }
 
-float luminance_min = 0.0;
-float luminance_max = 4.0;
+uint
+computeBinIdxFromLogY (float logY)
+{
+  return uint (
+    float (NUM_HISTOGRAM_BINS) *
+      saturate ( (logY                      - hdrLuminance_Min) /
+                 (hdrLuminance_MaxLocal * 2 - hdrLuminance_Min)  )
+  );
+}
 
 uint
-computeBucketIdxFromRGB (float3 rgb)
+computeBinIdxFromRGB (float3 rgb)
 {
   float logY =
     transformRGBtoLogY (rgb);
 
-  return uint (
-    float (NUM_HISTOGRAM_BINS) *
-      saturate ( (logY          - luminance_min) /
-                 (luminance_max - luminance_min)  )
-  );
+  return
+    computeBinIdxFromLogY (logY);
 }
 
-RWTexture2D<float4> texBackbufferHDR;
-RWTexture2D<float>  texLuminance;
-RWTexture2D<float4> texGamutCoverage;
+struct tileData
+{
+  uint2 tileIdx;
+//uint2 pixelOffset;
 
-#if 0
-groupshared uint localHistogram [NUM_HISTOGRAM_BINS];
-  Buffer         localHistogramIn;
-RWBuffer <uint>  localHistogramOut;
-#endif
+  uint  minLuminance;
+  uint  maxLuminance;
+  uint  avgLuminance;
+  uint  blackPixelCount;
+  
+  //// Gamut coverage counters
+  //float minx, maxx, avgx;
+  //float miny, maxy, avgy;
 
-groupshared uint  accum  = 0;
-groupshared uint  pixels = 0;
+  uint  Histogram [NUM_HISTOGRAM_BINS];
+};
+
+RWTexture2D<float4>           texBackbufferHDR  : register (u0);
+RWTexture2D<float>            texLuminance      : register (u1);
+RWTexture2D<float4>           texGamutCoverage  : register (u2);
+RWStructuredBuffer <tileData> bufTiledHistogram : register (u3);
+
+groupshared uint              accum        = 0;
+groupshared uint              pixels       = 0;
+groupshared uint              image_width  = 0;
+groupshared uint              image_height = 0;
+
+#define tile_data bufTiledHistogram [tileIdxFlattened]
 
 [numthreads (HISTOGRAM_WORKGROUP_SIZE_X, HISTOGRAM_WORKGROUP_SIZE_Y, 1)]
 void
@@ -250,13 +224,16 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
     min ( HISTOGRAM_WORKGROUP_SIZE_Y,
           HISTOGRAM_WORKGROUP_SIZE_X );
 
-  uint image_width, image_height;
-
-  texBackbufferHDR.GetDimensions ( image_width,
-                                   image_height );
+  uint num_tiles = 0;
 
   if (! any (localIdx))
   {
+    texBackbufferHDR.GetDimensions ( image_width,
+                                     image_height );
+
+    num_tiles =      ( image_width * image_height ) /
+      ( HISTOGRAM_WORKGROUP_SIZE_X * HISTOGRAM_WORKGROUP_SIZE_Y );
+
 #if 0
     for (uint idx = 0; idx < NUM_HISTOGRAM_BINS; ++idx)
     {
@@ -277,6 +254,11 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
 #endif
   }
 
+  const uint
+    tileIdxFlattened =
+      groupIdx.x +
+      groupIdx.y * num_tiles;
+
   GroupMemoryBarrier ();
 
   if ( globalIdx.x < image_width &&
@@ -293,71 +275,63 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
       const uint x_origin = localIdx.x * x_advance + groupIdx.x * (x_advance * subdiv),
                  y_origin = localIdx.y * y_advance + groupIdx.y * (y_advance * subdiv);
 
-      for ( uint X = 0 ; X < x_advance ; ++X )
-      for ( uint Y = 0 ; Y < y_advance ; ++Y )
+                                                  //[unroll (8)]
+      for ( uint X = 0 ; X < x_advance ; X += 3 ) //[unroll (4)]
+      for ( uint Y = 0 ; Y < y_advance ; Y += 3 )
       {
         const uint2 pos =
-          uint2 (x_origin + X, y_origin + Y);
-
+          uint2 ( x_origin + X,
+                  y_origin + Y );
+        
         if ( pos.x < image_width &&
              pos.y < image_height )
         {
-          float3 pixelValue =
+          const float3 color =
             texBackbufferHDR [pos.xy].rgb;
-
-#if 0
-          uint bin =
-            computeBucketIdxFromRGB (pixelValue);
-
-          InterlockedAdd (localHistogram [bin], 1u);
-#endif
-          if ((uint)(1000.0 * dot (pixelValue, float3 (0.2126729, 0.7151522, 0.0721750))) > 0)
+        
+          const float Y =
+            transformRGBtoY (color);
+        
+          const uint bin =
+            computeBinIdxFromLogY (log (Y));
+        
+          if (Y < FLT_EPSILON)
+            InterlockedAdd (tile_data.blackPixelCount, 1u);
+        
+          InterlockedMin (tile_data.minLuminance, (uint)(Y * 1000.0));
+          InterlockedMax (tile_data.maxLuminance, (uint)(Y * 1000.0));
+          InterlockedAdd (tile_data.Histogram [bin], 1u);
+        
+          if ((uint)(1000.0 * Y) > 0)
           {
-            InterlockedAdd (pixels,               1u);
-            InterlockedAdd (accum, (uint)(1000.0 * dot (pixelValue, float3 (0.2126729, 0.7151522, 0.0721750))));
+            InterlockedAdd (pixels,                1u);
+            InterlockedAdd (accum, (uint)(1000.0 * Y));
           }
-
-#if 0
+        
+#if 0   
           float3 xyY =
-            SK_Color_xyY_from_RGB ( _sRGB, pixelValue / dot (pixelValue, float3 (0.2126729, 0.7151522, 0.0721750)) );
-
+            SK_Color_xyY_from_RGB ( _sRGB, color / dot (color, float3 (0.2126729, 0.7151522, 0.0721750)) );
+        
           //xyY.xy =
           //  saturate (xyY.xy);
-
+        
           texGamutCoverage [uint2 ( 1024 * xyY.z,
                                     1024 -  1024 * xyY.y )].rgba =
-            float4 (pixelValue.rgb, 1.0);
-
+            float4 (color.rgb, 1.0);
+        
           texBackbufferHDR [uint2 (image_width * xyY.z, image_height - image_height * xyY.y)/*pos.xy*/].rgba =
-            float4 (pixelValue.rgb, 1.0);
-#endif
+            float4 (color.rgb, 1.0);
+#endif  
         }
       }
     }
-
-    //float3 pixelValue =
-    //  texBackbufferHDR [globalIdx.xy].rgb;
-    //
-    //uint bin =
-    //  computeBucketIdxFromRGB (pixelValue);
-    //
-    //InterlockedAdd (localHistogram [bin], 1u);
   }
 
   GroupMemoryBarrier ();
 
+#if 1
   if (! any (localIdx))
   {
-  ////uint outputHistogramIdx = NUM_HISTOGRAM_BINS * tileIdx;
-  ////for ( uint idx = 0; idx < NUM_HISTOGRAM_BINS; ++idx )
-  ////{
-  ////  uint outIdx =
-  ////    idx + outputHistogramIdx;
-  ////
-  ////  localHistogramOut [outIdx] =
-  ////     localHistogram [   idx];
-  ////}
-
     float avg = 0.0f;
 
     if ( pixels > 0 &&
@@ -370,5 +344,19 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
 
     texLuminance [ uint2 ( groupIdx.x,
                            groupIdx.y ) ] = avg;
+
+    tile_data.avgLuminance = avg;
+
+    tile_data.tileIdx      = uint2 (groupIdx.x, groupIdx.y);
+  //tile_data.pixelOffset  = uint2 (0,0);
+  
+    //// Gamut coverage counters
+    ////
+    ////   TODO - Needs to be integer for atomics, but float for math
+    //tile_data.minx = 0.0f, tile_data.maxx = 0.0f, tile_data.avgx = 0.0f;
+    //tile_data.miny = 0.0f, tile_data.maxy = 0.0f, tile_data.avgy = 0.0f;
+
+    //bufTiledHistogram [tileIdxFlattened] = tile_data;
   }
+#endif
 }

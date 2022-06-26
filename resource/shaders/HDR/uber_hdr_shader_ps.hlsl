@@ -68,8 +68,118 @@ float3 gain (float3 x, float k)
 #define TONEMAP_HDR10_to_scRGB        2
 #define TONEMAP_HDR10_to_scRGB_FILMIC 3
 #define TONEMAP_COPYRESOURCE          255
+#define TONEMAP_REMOVE_INVALID_COLORS 256
 
 #define minmax(m0,m1,c) min (max ((c), (m0)), (m1))
+
+#define float_MAX        65504.0 // (2 - 2^-10) * 2^15
+#define float_MAX_MINUS1 65472.0 // (2 - 2^-9) * 2^15
+#define EPSILON          1.0e-4
+#define PI               3.14159265359
+#define TWO_PI           6.28318530718
+#define FOUR_PI          12.56637061436
+#define INV_PI           0.31830988618
+#define INV_TWO_PI       0.15915494309
+#define INV_FOUR_PI      0.07957747155
+#define float_PI         1.57079632679
+#define INV_float_PI     0.636619772367
+
+#define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
+#define FLT_MIN         1.175494351e-38 // Minimum representable positive floating-point number
+#define FLT_MAX         3.402823466e+38 // Maximum representable floating-point number
+
+// NaN checker
+// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
+bool IsNan (float x)
+{
+  return
+    (   x <= 0.0 ||
+      0.0 <= x ) ?
+           false : true;
+}
+
+bool AnyIsNan (float2 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y);
+}
+
+bool AnyIsNan (float3 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z);
+}
+
+bool AnyIsNan (float4 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z) ||
+         IsNan (x.w);
+}
+
+// Using pow often result to a warning like this
+// "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
+// PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
+float PositivePow (float base, float power)
+{
+  return
+    pow ( max (abs (base), float (FLT_EPSILON)), power );
+}
+
+float2 PositivePow (float2 base, float2 power)
+{
+  return
+    pow (max (abs (base), float2(FLT_EPSILON, FLT_EPSILON)), power );
+}
+
+float3 PositivePow (float3 base, float3 power)
+{
+  return
+    pow (max (abs (base), float3 ( FLT_EPSILON, FLT_EPSILON,
+                                   FLT_EPSILON )), power );
+}
+
+float4 PositivePow (float4 base, float4 power)
+{
+  return
+    pow (max (abs (base), float4 ( FLT_EPSILON, FLT_EPSILON,
+                                   FLT_EPSILON, FLT_EPSILON )), power );
+}
+
+// Clamp HDR value within a safe range
+float3 SafeHDR (float3 c)
+{
+  return
+    min (c, float_MAX);
+}
+
+float4 SafeHDR (float4 c)
+{
+  return
+    min (c, float_MAX);
+}
+
+float3 Clamp_scRGB (float3 c)
+{
+  c =
+    float3 ( (! IsNan (c.x)) ?
+                       c.x   : 0.0,
+             (! IsNan (c.y)) ?
+                       c.y   : 0.0,
+             (! IsNan (c.z)) ?
+                       c.z   : 0.0 );
+  return
+    clamp (c, 0.0f, 125.0f);
+}
+
+float Clamp_scRGB (float c)
+{
+  c = (!IsNan(c)) ? 
+              c   : 0.0f;
+  return min (c, 125.0f);
+}
 
 float3
 RemoveSRGBCurve (float3 x)
@@ -84,7 +194,7 @@ RemoveSRGBCurve (float3 x)
 #ifdef  ACCURATE_AND_NOISY
   return ( x < 0.04045f ) ?
           (x / 12.92f)    : // High-pass filter x or gamma will return negative!
-    pow ( (x + 0.055f) / 1.055f, 2.4f );
+    PositivePow ( (x + 0.055f) / 1.055f, 2.4f );
 #else
   // This suffers the same problem as piecewise; x * x * x allows negative color.
   return x * (x * (x * 0.305306011 + 0.682171111) + 0.012522878);
@@ -94,29 +204,17 @@ RemoveSRGBCurve (float3 x)
 float
 RemoveSRGBAlpha (float a)
 {
-  return  ( a < 0.04045f ) ?
-            a / 12.92f     :
-    pow ( ( a + 0.055f   ) / 1.055f,
-                              2.4f );
+  return        ( a < 0.04045f ) ?
+                  a / 12.92f     :
+  PositivePow ( ( a + 0.055f   ) / 1.055f,
+                                   2.4f );
 }
 
 float3
 ApplySRGBCurve (float3 x)
 {
   return ( x < 0.0031308f ? 12.92f * x :
-                            1.055f * pow ( x, 1.0 / 2.4f ) - 0.55f );
-}
-
-float3 Clamp_scRGB (float3 c)
-{
-  return
-    clamp (c, 0.0f, 125.0f);
-}
-
-float Clamp_scRGB (float c)
-{
-  return
-    clamp (c, 0.0f, 125.0f);
+                            1.055f * PositivePow ( x, 1.0 / 2.4f ) - 0.55f );
 }
 
 //
@@ -125,7 +223,7 @@ float Clamp_scRGB (float c)
 float Luminance (float3 linearRgb)
 {
   return
-    dot (linearRgb, float3 (0.2126729, 0.7151522, 0.0721750));
+    max (0.0f, dot (linearRgb, float3 (0.2126729, 0.7151522, 0.0721750)));
 }
 
 float Luminance (float4 linearRgba)
@@ -168,11 +266,6 @@ float3 Contrast (float3 c, float midpoint, float contrast)
        + midpoint;
 }
 
-
-#define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
-#define FLT_MIN         1.175494351e-38 // Minimum representable positive floating-point number
-#define FLT_MAX         3.402823466e+38 // Maximum representable floating-point number
-
 // https://twitter.com/SebAaltonen/status/878250919879639040
 // madd_sat + madd
 float FastSign (float x)
@@ -197,35 +290,6 @@ float4 FastSign (float4 x)
 {
   return
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-// Using pow often result to a warning like this
-// "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
-// PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
-float PositivePow (float base, float power)
-{
-  return
-    pow ( max (abs (base), float (FLT_EPSILON)), power );
-}
-
-float2 PositivePow (float2 base, float2 power)
-{
-  return
-    pow (max (abs (base), float2(FLT_EPSILON, FLT_EPSILON)), power );
-}
-
-float3 PositivePow (float3 base, float3 power)
-{
-  return
-    pow (max (abs (base), float3 ( FLT_EPSILON, FLT_EPSILON,
-                                   FLT_EPSILON )), power );
-}
-
-float4 PositivePow (float4 base, float4 power)
-{
-  return
-    pow (max (abs (base), float4 ( FLT_EPSILON, FLT_EPSILON,
-                                   FLT_EPSILON, FLT_EPSILON )), power );
 }
 
 
@@ -299,7 +363,7 @@ float3
 ApplyREC709Curve (float3 x)
 {
 	return ( x < 0.0181f ) ?
-    4.5f * x : 1.0993f * pow (x, 0.45f) - 0.0993f;
+    4.5f * x : 1.0993f * PositivePow (x, 0.45f) - 0.0993f;
 }
 
 float3
@@ -322,21 +386,6 @@ REC709toREC2020 (float3 RGB709)
 #if defined(SHADER_API_PSSL) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_SWITCH) || defined(SHADER_API_PSP2)
     #define SHADER_API_CONSOLE
 #endif
-
-// -----------------------------------------------------------------------------
-// Constants
-
-#define float_MAX        65504.0 // (2 - 2^-10) * 2^15
-#define float_MAX_MINUS1 65472.0 // (2 - 2^-9) * 2^15
-#define EPSILON         1.0e-4
-#define PI              3.14159265359
-#define TWO_PI          6.28318530718
-#define FOUR_PI         12.56637061436
-#define INV_PI          0.31830988618
-#define INV_TWO_PI      0.15915494309
-#define INV_FOUR_PI     0.07957747155
-#define float_PI         1.57079632679
-#define INV_float_PI     0.636619772367
 
 // -----------------------------------------------------------------------------
 // Compatibility functions
@@ -393,67 +442,6 @@ float4 Max3 (float4 a, float4 b, float4 c)
   return max (max (a, b), c);
 }
 #endif // INTRINSIC_MINMAX3
-
-// NaN checker
-// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
-bool IsNan (float x)
-{
-  // For some reason the following tests outputs "internal compiler error" randomly on desktop
-  // so we'll use a safer but slightly slower version instead :/
-  //return (x <= 0.0 || 0.0 <= x) ? false : true;
-  return
-    (x < 0.0 || x > 0.0 || x == 0.0) ?
-                               false : true;
-}
-
-bool AnyIsNan (float2 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y);
-}
-
-bool AnyIsNan (float3 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z);
-}
-
-bool AnyIsNan (float4 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z) ||
-         IsNan (x.w);
-}
-
-// Clamp HDR value within a safe range
-float3 SafeHDR (float3 c)
-{
-  return
-    min (c, float_MAX);
-}
-
-float4 SafeHDR (float4 c)
-{
-  return
-    min (c, float_MAX);
-}
-
-// Decode normals stored in _CameraDepthNormalsTexture
-float3 DecodeViewNormalStereo (float4 enc4)
-{
-  float  kScale = 1.7777;
-  float3 nn     = enc4.xyz * float3 (2.0 * kScale, 2.0 * kScale, 0) + 
-                             float3 (     -kScale,      -kScale, 1);
-  float   g     = 2.0 / dot (nn.xyz, nn.xyz);  
-  float3  n;
-
-  n.xy = g * nn.xy;
-  n.z  = g - 1.0;
-
-  return n;
-}
 
 ///// Interleaved gradient function from Jimenez 2014
 ///// http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
@@ -1121,6 +1109,9 @@ float ACES_to_ACEScc (float x)
 
 float3 ACES_to_ACEScc (float3 x)
 {
+  if (AnyIsNan (x))
+    x = 0.0f;
+
   x =
     clamp (x, 0.0, float_MAX);
   
@@ -1149,6 +1140,9 @@ float3 ACES_to_ACEScc (float3 x)
 //
 float ACEScc_to_ACES (float x)
 {
+  if (IsNan (x))
+    x = 0.0f;
+
   // TODO: Optimize me
   if (x < -0.3013698630) // (9.72 - 15) / 17.52
     return (pow(2.0, x * 17.52 - 9.72) - pow(2.0, -16.0)) * 2.0;
@@ -1160,6 +1154,9 @@ float ACEScc_to_ACES (float x)
 
 float3 ACEScc_to_ACES (float3 x)
 {
+  if (AnyIsNan (x))
+   x = float3 (0.0f, 0.0f, 0.0f);
+
   return float3 (
     ACEScc_to_ACES (x.r),
     ACEScc_to_ACES (x.g),
@@ -1541,6 +1538,10 @@ SK_ProcessColor4 ( float4 color,
                       int func,
                       int strip_srgb = 1 )
 {
+  if (AnyIsNan (color))
+                color =
+    float4 (0.0f, 0.0f, 0.0f, 1.0f);
+
   float4 out_color =
     float4 (
       (strip_srgb && func != sRGB_to_Linear) ?
@@ -1550,10 +1551,12 @@ SK_ProcessColor4 ( float4 color,
 
   // Straight Pass-Through
   if (func <= xRGB_to_Linear)
-      return out_color;
+    return     AnyIsNan (out_color) ?
+    float4 (0.0f, 0.0f, 0.0f, 1.0f) : out_color;
+                                
 
   return
-    float4 (0.0f, 0.0f, 0.0f, 0.0f);
+    float4 (0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 
@@ -1561,7 +1564,7 @@ SK_ProcessColor4 ( float4 color,
 float3 LinearToSRGBEst (float3 color)
 {
   return
-    pow (abs (color), 1/2.2f);
+    PositivePow (color, 1/2.2f);
 }
 
 
@@ -1569,7 +1572,7 @@ float3 LinearToSRGBEst (float3 color)
 float3 SRGBToLinearEst (float3 srgb)
 {
   return
-    pow (abs (srgb), 2.2f);
+    PositivePow (srgb, 2.2f);
 }
 
 
@@ -1590,9 +1593,9 @@ static const float3x3 from709to2020 =
 float3 LinearToST2084 (float3 normalizedLinearValue)
 {
   return
-    pow (
-      (0.8359375f + 18.8515625f * pow (abs (normalizedLinearValue), 0.1593017578f)) /
-            (1.0f + 18.6875f    * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
+    PositivePow (
+      (0.8359375f + 18.8515625f * PositivePow (normalizedLinearValue, 0.1593017578f)) /
+            (1.0f + 18.6875f    * PositivePow (normalizedLinearValue, 0.1593017578f)), 78.84375f
         );
 }
 
@@ -1601,11 +1604,11 @@ float3 LinearToST2084 (float3 normalizedLinearValue)
 float3 ST2084ToLinear (float3 ST2084)
 {
   return
-    pow ( max (
-      pow ( abs (ST2084), 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f *
-      pow ( abs (ST2084), 1.0f / 78.84375f)),
-                          1.0f / 0.1593017578f
-        );
+    PositivePow ( max (
+      PositivePow ( ST2084, 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f *
+      PositivePow ( ST2084, 1.0f / 78.84375f)),
+                            1.0f / 0.1593017578f
+                );
 }
 
 
@@ -1623,11 +1626,11 @@ float3 ToneMapReinhard (float3 color)
 // https://knarkowicz.wordpress.com/2016/01/06/aces-filmic-tone-mapping-curve/
 float3 ToneMapACESFilmic (float3 x)
 {
-  float a = 2.51f;
-  float b = 0.03f;
-  float c = 2.43f;
-  float d = 0.59f;
-  float e = 0.14f;
+  const float a = 2.51f;
+  const float b = 0.03f;
+  const float c = 2.43f;
+  const float d = 0.59f;
+  const float e = 0.14f;
 
   return
     saturate ((x * (a * x + b)) / (x * (c * x + d) + e));
@@ -1652,8 +1655,8 @@ static const float3x3 ACESOutputMat =
 
 float3 RRTAndODTFit (float3 v)
 {
-  float3 a = v * (v + 0.0245786f)    - 0.000090537f;
-  float3 b = v * (     0.983729f * v + 0.4329510f) + 0.238081f;
+  const float3 a = v * (v + 0.0245786f)    - 0.000090537f;
+  const float3 b = v * (     0.983729f * v + 0.4329510f) + 0.238081f;
 
   return ( a / b );
 }
@@ -1675,6 +1678,9 @@ float3 ToneMapACES (float3 hdr)
 
 float3 ACESFitted (float3 color, float input_color, float gamma)
 {
+  if (! any (color.rgb))
+    return 0.0f;
+
   color  = pow (color, float3 (0.82f, 0.82f, 0.82f));
   color *= 1.12f;
 
@@ -1966,15 +1972,18 @@ float3 REC2020toREC709 (float3 RGB2020)
 
 float3 RemoveREC2084Curve (float3 N)
 {
+  if (AnyIsNan (N))
+    return 0.0f;
+
   float  m1 = 2610.0 / 4096.0 / 4;
   float  m2 = 2523.0 / 4096.0 * 128;
   float  c1 = 3424.0 / 4096.0;
   float  c2 = 2413.0 / 4096.0 * 32;
   float  c3 = 2392.0 / 4096.0 * 32;
-  float3 Np = pow (N, 1 / m2);
+  float3 Np = PositivePow (N, 1 / m2);
 
   return
-    pow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1);
+    PositivePow (max (Np - c1, 0) / (c2 - c3 * Np), 1 / m1);
 }
 
 float3
@@ -1995,13 +2004,30 @@ XYZtosRGB (float3 color)
 
 float4 main (PS_INPUT input) : SV_TARGET
 {
-  if (uiToneMapper == TONEMAP_COPYRESOURCE)
+  switch (uiToneMapper)
   {
-    return
-      float4 (
+    case TONEMAP_COPYRESOURCE:
+      return
+        float4 (
+          texMainScene.Sample ( sampler0,
+                                  input.uv ).rgb, 1.0f );
+    case TONEMAP_REMOVE_INVALID_COLORS:
+    {
+      float4 color =
         texMainScene.Sample ( sampler0,
-                                input.uv ).rgb, 1.0f
-      );
+                                input.uv );
+
+      if (AnyIsNan (color))
+        return float4 (0.0f, 0.0f, 0.0f, 1.0f);
+
+      if (color.r < 0.0f) color.r = 0.0f;
+      if (color.g < 0.0f) color.g = 0.0f;
+      if (color.b < 0.0f) color.b = 0.0f;
+      if (color.a < 0.0f) color.a = 0.0f;
+
+      return
+        float4 (color.rgb, 1.0f);
+    } break;
   }
 
   bool bIsHDR10 = false;
@@ -2013,11 +2039,52 @@ float4 main (PS_INPUT input) : SV_TARGET
 
   float4 hdr_color =
     float4 (
-      max ( 0.0f,
         texMainScene.Sample ( sampler0,
-                                input.uv ).rgb
-                            ), 1.0f
-           );
+                                input.uv ).rgb, 1.0f );
+
+#ifdef DEBUG
+  if ( AnyIsNan ( hdr_color.rgb ) || hdr_color.r < 0.0f ||
+                                     hdr_color.g < 0.0f ||
+                                     hdr_color.b < 0.0f )
+  {
+    float fTime =
+      TWO_PI * (float)(currentTime % 3333) / 3333.3;
+
+    float4 vDist =
+      float4 ( sin (fTime),
+               sin (fTime * 2.0f),
+               cos (fTime), 1.0f );
+
+    vDist.rgb *=
+      ( hdrLuminance_MaxLocal / 80.0 );
+
+    if (! samples)
+    {
+      return
+        //vDist;
+    }
+  }
+#else
+  if ( AnyIsNan (hdr_color.rgba) )
+    return float4 (0.0f, 0.0f, 0.0f, 1.0f);
+
+  if (hdr_color.r < 0.0f||
+      hdr_color.g < 0.0f||
+      hdr_color.b < 0.0f||
+      hdr_color.a < 0.0f )
+  {if(hdr_color.r < 0.0f )
+      hdr_color.r = 0.0f;
+   if(hdr_color.g < 0.0f )
+      hdr_color.g = 0.0f;
+   if(hdr_color.b < 0.0f )
+      hdr_color.b = 0.0f;
+   if(hdr_color.a < 0.0f )
+      hdr_color.a = 0.0f;
+   if(!any(hdr_color.rgb))
+    return float4 (0.0f, 0.0f, 0.0f, 1.0f);}
+#endif
+
+
 
   if (visualFunc.x == VISUALIZE_GRAYSCALE)
   {
@@ -2026,7 +2093,8 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 
   float4 over_range =
-    float4 (0.0f, 0.0f, 0.0f, 1.0f);
+    float4 ( 0.0f, 0.0f,
+             0.0f, 1.0f );
 
   if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
       over_range.r = hdr_color.r;
@@ -2050,14 +2118,15 @@ float4 main (PS_INPUT input) : SV_TARGET
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
   {
-    return hdr_color * 3.75;
+    return
+      float4 (hdr_color.rgb * 3.75, 1.0f);
   }
 
 
   if (visualFunc.x == VISUALIZE_HIGHLIGHTS)
   {
     if (length (over_range.rgb) > 0.0)
-      return (normalize (over_range) * input.color.x);
+      return (float4 (float3 (normalize (over_range.rgb) * input.color.x), 1.0f));
 
     hdr_color.rgb =
       max (hdr_color.r, max (hdr_color.g, hdr_color.b));
@@ -2136,12 +2205,11 @@ float4 main (PS_INPUT input) : SV_TARGET
 
   float fLuma =
     /*length (hdr_color.rgb);// */
-    Luminance (hdr_color.rgb);
+    max (Luminance (hdr_color.rgb), 0.0f);
 
   hdr_color.rgb =
-    max ( 0.0, pow ( hdr_color.rgb,
-                     input.color.yyy )
-        );
+    PositivePow ( hdr_color.rgb,
+                input.color.yyy );
 
   if (pqBoostParams.x > 0.1f)
   {
@@ -2162,20 +2230,8 @@ float4 main (PS_INPUT input) : SV_TARGET
                      pb_params [2], pb_params [1]
                  ) / pb_params [3];
 
-    //if (old_luma < 0.001f)
-    //{ new_color *=
-    //    smoothstep ( 0.000075f,
-    //                 0.00075f,
-    //                   old_luma );
-    //  if (Luminance (new_color) < 0.001f)
-    //  { new_color *=
-    //      smoothstep ( 0.000075f,
-    //                   0.00075f, Luminance (new_color) );
-    //  }
-    //}
-
-    hdr_color.rgb =
-    new_color;
+    if (! AnyIsNan (new_color)) hdr_color.rgb =
+                                new_color;
   }
 
   if (hdrSaturation != 1.0f || uiToneMapper == TONEMAP_ACES_FILMIC)
@@ -2198,9 +2254,10 @@ float4 main (PS_INPUT input) : SV_TARGET
                                  hdrPaperWhite;
 
   fLuma =
-    Luminance (hdr_color.rgb);
+    max (Luminance (hdr_color.rgb), 0.0);
 
-  if (visualFunc.x >= VISUALIZE_REC709_GAMUT && visualFunc.x < VISUALIZE_GRAYSCALE)
+  if ( visualFunc.x >= VISUALIZE_REC709_GAMUT &&
+       visualFunc.x <  VISUALIZE_GRAYSCALE )
   {
     int cs = visualFunc.x - VISUALIZE_REC709_GAMUT;
 
@@ -2235,14 +2292,16 @@ float4 main (PS_INPUT input) : SV_TARGET
       fDistField.z = isnan (fDistField.z) ? 0 : fDistField.z;
 #else
     sqrt ( max ( vEpsilon3, float3 (
-      dot ( pow ( r - vColor_xyY, 2.0 ), vIdent3 ),
-      dot ( pow ( g - vColor_xyY, 2.0 ), vIdent3 ),
-      dot ( pow ( b - vColor_xyY, 2.0 ), vIdent3 )
+      dot ( PositivePow ( (r - vColor_xyY), 2.0 ), vIdent3 ),
+      dot ( PositivePow ( (g - vColor_xyY), 2.0 ), vIdent3 ),
+      dot ( PositivePow ( (b - vColor_xyY), 2.0 ), vIdent3 )
          )     )                   );
 #endif
 
     bool bContained =
-      SK_Triangle_ContainsPoint (vColor_xyY, vTriangle) && vColor_xyY.x != vColor_xyY.y;
+      SK_Triangle_ContainsPoint ( vColor_xyY,
+        vTriangle ) &&            vColor_xyY.x !=
+                                  vColor_xyY.y;
 
     if (bContained)
     {
@@ -2292,9 +2351,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
     return
-      float4 (
-        vDist, 1.0f
-             );
+      float4 (vDist, 1.0f);
   }
 
   if (visualFunc.x == VISUALIZE_GRAYSCALE)
@@ -2505,5 +2562,6 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 
 
-  return hdr_color;
+  return
+    float4 (hdr_color.rgb, 1.0f);
 }

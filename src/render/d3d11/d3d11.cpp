@@ -916,7 +916,8 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
         //pDesc = nullptr;
       }
 
-      if (texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+      if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+          (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
         ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
                                           texDesc.Format;
     }
@@ -1725,15 +1726,20 @@ SK_D3D11_ResolveSubresource_Impl (
         bInvolves16BitFormat =
           (         Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
             texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-            dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT );
+            dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||  (config.render.hdr.enable_32bpc &&
+                    Format == DXGI_FORMAT_R32G32B32A32_FLOAT)||  (config.render.hdr.enable_32bpc &&
+            texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT)||  (config.render.hdr.enable_32bpc &&
+            dstDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT) );
 
       if (bInvolves16BitFormat)
       {
         // NOTE: This is failing on 8-bit surface remastering in
         //         Unity Engine games
         if ( texDesc.Format != dstDesc.Format &&
-           ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-             dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ) )
+           ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT   ||
+             dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ) ||
+           ((texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ||
+           ((dstDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc))))
         {
           extern bool SK_D3D11_BltCopySurface (
             ID3D11Texture2D* pSrcTex,
@@ -1882,7 +1888,9 @@ SK_D3D11_CopyResource_Impl (
     pSrcTex->GetDesc (&src_desc);
     pDstTex->GetDesc (&dst_desc);
 
-    if (src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT && src_desc.Format != dst_desc.Format)
+    if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+          (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
+           src_desc.Format != dst_desc.Format)
     {
       extern bool SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex);
 
@@ -2489,6 +2497,11 @@ const
 #endif
 
 
+  if ( __SK_HDR_16BitSwap )
+  { 
+    //extern void SK_HDR_SanitizeFP16SwapChain (void);
+    //            SK_HDR_SanitizeFP16SwapChain (); 
+  }
 
   bool
   SK_D3D11_ShouldSkipHUD (void);
@@ -4818,6 +4831,10 @@ D3D11Dev_CreateTexture2D_Impl (
                   SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
+        auto hdr_fmt_override =
+          (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
+                                           : DXGI_FORMAT_R16G16B16A16_FLOAT;
+
         if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
             pDesc->SampleDesc.Count == 1)
         {
@@ -4852,11 +4869,11 @@ D3D11Dev_CreateTexture2D_Impl (
             if (config.system.log_level > 4)
             {
               dll_log->Log ( L"HDR Override [ Orig Fmt: %hs, New Fmt: %hs ]",
-                SK_DXGI_FormatToStr (pDesc->Format).                 data (),
-                SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
+                SK_DXGI_FormatToStr (pDesc->Format).   data (),
+                SK_DXGI_FormatToStr (hdr_fmt_override).data () );
             }
 
-            pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            pDesc->Format = hdr_fmt_override;
           }
 
           else
@@ -4867,14 +4884,14 @@ D3D11Dev_CreateTexture2D_Impl (
             // The HDR formats are RGB(A), they do not play nicely with BGR{A|x}
             bool rgba =
               ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
-                _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS );
+                _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS || _typeless == DXGI_FORMAT_R8G8_TYPELESS);
 
             ////if (! rb.windows.unreal) // Needed for Trials of Mana, not wanted for The Quary
-              rgba = ( rgba /* || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS*/);
+              rgba = ( rgba  || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
 
             // 8-bit RGB(x) -> 16-bit FP
-            if ( bpc == 8  && rgba &&
-                 bpp == 32 )
+            if ((bpc == 8  && rgba &&
+                 bpp == 32)|| _typeless == DXGI_FORMAT_R8G8_TYPELESS )
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
@@ -4890,15 +4907,18 @@ D3D11Dev_CreateTexture2D_Impl (
                   if (config.system.log_level > 4)
                   {
                     dll_log->Log ( L"HDR Override [ Orig Fmt: %hs, New Fmt: %hs ]",
-                      SK_DXGI_FormatToStr (pDesc->Format).                 data (),
-                      SK_DXGI_FormatToStr (DXGI_FORMAT_R16G16B16A16_FLOAT).data () );
+                      SK_DXGI_FormatToStr (pDesc->Format).   data (),
+                      SK_DXGI_FormatToStr (hdr_fmt_override).data () );
                   }
 
                   // 32-bit total -> 64-bit
                   InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
-                  pDesc->Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                  pDesc->Format = hdr_fmt_override;
+
+                  //if ( _typeless == DXGI_FORMAT_R8G8_TYPELESS )
+                  //  pDesc->Format = DXGI_FORMAT_R16G16_FLOAT;
                 }
 
                 InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->CandidatesSeen);

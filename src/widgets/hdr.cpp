@@ -1504,6 +1504,16 @@ public:
                   SK_SaveConfig ();
                 }
 
+                if ( ImGui::Checkbox (
+                       "Enable 128-bit HDR Remastering",
+                         &config.render.hdr.enable_32bpc
+                   )                 ) SK_SaveConfig ();
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::SetTooltip ("Requires a game restart, may not work, and may hurt performance... hurray!");
+                }
+
                 ImGui::TreePop ();
               }
             }
