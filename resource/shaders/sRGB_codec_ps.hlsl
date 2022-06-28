@@ -7,8 +7,8 @@ struct PS_INPUT
 {
   float4 pos      : SV_POSITION;
   float4 col      : COLOR0;
+  float2 coverage : COLOR1;
   float2 uv       : TEXCOORD0;
-  float2 coverage : TEXCOORD1;
 };
 
 cbuffer srgbTransform : register (b0)
@@ -40,12 +40,40 @@ ApplySRGBCurve (float3 x)
     1.055f * pow ( x, 1.0 / 2.4f ) - 0.55f );
 }
 
+// NaN checker
+// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
+bool IsNan (float x)
+{
+  return
+    (   x <= 0.0 ||
+      0.0 <= x ) ?
+           false : true;
+}
+
+bool AnyIsNan (float2 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y);
+}
+
+bool AnyIsNan (float3 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z);
+}
 
 float4 main (PS_INPUT input) : SV_TARGET
 {
   float4 vLinear =
     srgbFrameBuffer.Sample ( srgbSampler,
                                input.uv );
+
+  if (AnyIsNan (vLinear.rgb))
+  {
+    return
+      float4 (0.0f, 0.0f, 0.0f, 1.0f);
+  }
 
   if (passthrough)
     return vLinear;

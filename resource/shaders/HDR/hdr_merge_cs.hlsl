@@ -1,23 +1,4 @@
-#define NUM_HISTOGRAM_BINS          4096
-#define HISTOGRAM_WORKGROUP_SIZE_X ( 32 )
-#define HISTOGRAM_WORKGROUP_SIZE_Y ( 16 )
-
-struct tileData
-{
-  uint2 tileIdx;
-  uint2 pixelOffset;
-
-  uint  minLuminance;
-  uint  maxLuminance;
-  uint  avgLuminance;
-  uint  blackPixelCount;
-  
-  // Gamut coverage counters
-  float minx, maxx, avgx;
-  float miny, maxy, avgy;
-
-  uint  Histogram [NUM_HISTOGRAM_BINS];
-};
+#include "common_defs.hlsl"
 
 RWTexture2D             <float>    texLuminance     : register (u1);
 ConsumeStructuredBuffer <tileData> statisticsBuffer : register (u3);
@@ -30,8 +11,8 @@ LuminanceMerge ( uint3 globalIdx : SV_DispatchThreadID,
 {  
   float samples = 0.0f;
   float accum   = 0.0f;
-                                                            //[unroll (HISTOGRAM_WORKGROUP_SIZE_X)]
-  for ( uint x = 0 ; x < HISTOGRAM_WORKGROUP_SIZE_X ; ++x ) //[unroll (HISTOGRAM_WORKGROUP_SIZE_Y)]
+
+  for ( uint x = 0 ; x < HISTOGRAM_WORKGROUP_SIZE_X ; ++x )
   for ( uint y = 0 ; y < HISTOGRAM_WORKGROUP_SIZE_Y ; ++y )
   {
     const uint2 currentIdx = uint2 ( x,

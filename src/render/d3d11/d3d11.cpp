@@ -3817,7 +3817,7 @@ STDMETHODCALLTYPE
 SK_D3D11_DrawIndexed_Impl (
   _In_ ID3D11DeviceContext *pDevCtx,
   _In_ UINT                 IndexCount,
-    _In_ UINT                 StartIndexLocation,
+  _In_ UINT                 StartIndexLocation,
   _In_ INT                  BaseVertexLocation,
        BOOL                 bWrapped,
        UINT                 dev_idx )
@@ -4831,6 +4831,12 @@ D3D11Dev_CreateTexture2D_Impl (
                   SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
+        static const bool bTalesOfArise =
+          SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
+
+        if (bTalesOfArise && DirectX::MakeTypeless (pDesc->Format) == DXGI_FORMAT_R32G32B32A32_TYPELESS)
+                                                    pDesc->Format   = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
         auto hdr_fmt_override =
           (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
                                            : DXGI_FORMAT_R16G16B16A16_FLOAT;
@@ -4884,14 +4890,15 @@ D3D11Dev_CreateTexture2D_Impl (
             // The HDR formats are RGB(A), they do not play nicely with BGR{A|x}
             bool rgba =
               ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
-                _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS || _typeless == DXGI_FORMAT_R8G8_TYPELESS);
+                _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
+                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
 
             ////if (! rb.windows.unreal) // Needed for Trials of Mana, not wanted for The Quary
-              rgba = ( rgba  || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
+              rgba = ( rgba );// || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
 
             // 8-bit RGB(x) -> 16-bit FP
-            if ((bpc == 8  && rgba &&
-                 bpp == 32)|| _typeless == DXGI_FORMAT_R8G8_TYPELESS )
+            if (bpc == 8  && rgba &&
+                bpp == 32)
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
@@ -4915,10 +4922,10 @@ D3D11Dev_CreateTexture2D_Impl (
                   InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
-                  pDesc->Format = hdr_fmt_override;
-
-                  //if ( _typeless == DXGI_FORMAT_R8G8_TYPELESS )
-                  //  pDesc->Format = DXGI_FORMAT_R16G16_FLOAT;
+                  if (bTalesOfArise && _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+                    pDesc->Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+                  else
+                    pDesc->Format = hdr_fmt_override;
                 }
 
                 InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->CandidatesSeen);

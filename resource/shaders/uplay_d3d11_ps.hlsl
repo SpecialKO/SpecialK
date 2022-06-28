@@ -1,4 +1,7 @@
 #pragma warning ( disable : 3571 )
+
+#include "HDR/common_defs.hlsl"
+
 struct PS_INPUT
 {
   float4 pos : SV_POSITION;
@@ -8,13 +11,6 @@ struct PS_INPUT
 
 sampler   PS_QUAD_Sampler   : register (s0);
 Texture2D PS_QUAD_Texture2D : register (t0);
-
-float3 RemoveSRGBCurve(float3 x)
-{
-  /* Approximately pow(x, 2.2)*/
-  return x < 0.04045 ? x / 12.92 :
-                  pow((x + 0.055) / 1.055, 2.4);
-}
 
 float4 main (PS_INPUT input) : SV_Target
 {

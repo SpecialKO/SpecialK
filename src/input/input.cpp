@@ -1362,8 +1362,7 @@ SK_ImGui_WantGamepadCapture (void)
   auto _Return = [](BOOL bCapture) ->
   bool
   {
-    static BOOL lastCapture = -1;
-
+    static BOOL        lastCapture = -1;
     if (std::exchange (lastCapture, bCapture) != bCapture)
     {
       SK_Steam_ForceInputAppId ( bCapture ?

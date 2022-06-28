@@ -46,7 +46,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
                      DWORD                 dwFlagsAndAttributes,
                      HANDLE                hTemplateFile )
 {
-  if (StrStrIW (lpFileName, LR"(data\packed\)"))
+  if (StrStrIW (lpFileName, LR"(data\packed\)") || StrStrIW (lpFileName, L".pak"))
   {
     SK_LOG_FIRST_CALL
 
@@ -170,6 +170,17 @@ SK_ELEX2_InitConfig (void)
 
   if (! SK_ELEX2_PlugIn.ini.unfuck_file_io->load  (SK_ELEX2_PlugIn.bUnfuckFileAccess))
         SK_ELEX2_PlugIn.ini.unfuck_file_io->store (true);
+}
+
+void
+SK_UE_KeepFilesOpen (void)
+{
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateFileW",
+                             CreateFileW_Detour,
+    static_cast_p2p <void> (&CreateFileW_Original) );
+  
+  SK_ApplyQueuedHooks ();
 }
 
 void

@@ -28,14 +28,6 @@
 extern iSK_INI*             dll_ini;
 iSK_INI*                    hdr_ini = nullptr;
 
-
-enum {
-  SK_HDR_TONEMAP_NONE              = 0,
-  SK_HDR_TONEMAP_FILMIC            = 1,
-  SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
-  SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
-};
-
 static auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
