@@ -1,8 +1,7 @@
-#define NUM_HISTOGRAM_BINS          4096
-#define HISTOGRAM_WORKGROUP_SIZE_X ( 32 )
-#define HISTOGRAM_WORKGROUP_SIZE_Y ( 16 )
+#include "common_defs.hlsl"
 
-RWTexture2D<float> texLuminance : register (u1);
+RWTexture2D             <float>    texLuminance     : register (u1);
+ConsumeStructuredBuffer <tileData> statisticsBuffer : register (u3);
 
 [numthreads (1, 1, 1)]
 void
@@ -51,10 +50,10 @@ LuminanceMerge ( uint3 globalIdx : SV_DispatchThreadID,
     float old2 = texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 3, HISTOGRAM_WORKGROUP_SIZE_Y)];
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X, HISTOGRAM_WORKGROUP_SIZE_Y)] =
-      ( ( accum / samples ) + old0 + old1 + old2 ) / 4.0;
+      ( ( accum / samples ) * 8.0f + old0 * 4.0f + old1 * 2.0f + old2 * 1.0f) / 15.0;
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 1, HISTOGRAM_WORKGROUP_SIZE_Y)] =
-      ( ( accum / samples ) + old0 + old1 + old2 ) / 4.0;
+      ( ( accum / samples ) * 8.0f + old0 * 4.0f + old1 * 2.0f + old2 * 1.0f) / 15.0;
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 2, HISTOGRAM_WORKGROUP_SIZE_Y)] =
       old0;

@@ -2379,30 +2379,31 @@ static const GUID IID_SKD3D11RenderCtx =
 { 0xdec73284, 0xd747, 0x44cd, { 0x8e, 0x90, 0xf6, 0xfc, 0x58, 0x75, 0x45, 0x67 } };
 
 struct SK_D3D11_RenderCtx {
-  SK_ComPtr <ID3D11Device>                _pDevice          = nullptr;
-  SK_ComPtr <ID3D11DeviceContext>         _pDeviceCtx       = nullptr;
-  SK_ComPtr <IDXGISwapChain>              _pSwapChain       = nullptr;
+  SK_ComPtr <ID3D11Device>                  _pDevice          = nullptr;
+  SK_ComPtr <ID3D11DeviceContext>           _pDeviceCtx       = nullptr;
+  SK_ComPtr <IDXGISwapChain>                _pSwapChain       = nullptr;
 
   struct FrameCtx {
-    SK_D3D11_RenderCtx*                   pRoot             = nullptr;
+    SK_D3D11_RenderCtx*                     pRoot             = nullptr;  
 
     //struct FenceCtx : SK_ComPtr <ID3D12Fence> {
     //  HANDLE                              event             =       0;
     //  volatile UINT64                     value             =       0;
     //} fence;
 
-    SK_ComPtr <ID3D11Texture2D>           pRenderOutput     = nullptr;
-    UINT                                  iBufferIdx        =UINT_MAX;
+    SK_ComPtr <ID3D11Texture2D>             pRenderOutput     = nullptr;
+    UINT                                    iBufferIdx        =UINT_MAX;
 
     struct {
-      SK_ComPtr <ID3D11Texture2D>         pSwapChainCopy    = nullptr;
-      SK_ComPtr <ID3D11RenderTargetView>  pRTV              = nullptr;
-      D3D11_RECT                          scissor           = {     };
-      D3D11_VIEWPORT                      vp                = {     };
+      SK_ComPtr <ID3D11Texture2D>           pSwapChainCopy    = nullptr;
+      SK_ComPtr <ID3D11RenderTargetView>    pRTV              = nullptr;
+      SK_ComPtr <ID3D11UnorderedAccessView> pUAV              = nullptr;
+      D3D11_RECT                            scissor           = {     };
+      D3D11_VIEWPORT                        vp                = {     };
     } hdr;
 
     struct {
-      SK_ComPtr <ID3D11Texture2D>         pSwapChainCopy    = nullptr;
+      SK_ComPtr <ID3D11Texture2D>           pSwapChainCopy    = nullptr;
       // Copy of last scanned-out frame so that skipped frames never tear
     } latent_sync;
 

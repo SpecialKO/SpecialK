@@ -7,8 +7,8 @@ struct PS_INPUT
 {
   float4 pos      : SV_POSITION;
   float4 col      : COLOR0;
+  float2 coverage : COLOR1;
   float2 uv       : TEXCOORD0;
-  float2 coverage : TEXCOORD1;
 };
 
 struct VS_INPUT

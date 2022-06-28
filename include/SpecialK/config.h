@@ -570,6 +570,10 @@ struct sk_config_t
       bool    force_10bpc          = false; ///< D3D9/11/12
       bool    force_16bpc          = false; ///< UNUSED
     } output;
+
+    struct {
+      bool enable_32bpc            = false;
+    } hdr;
   } render;
 
   struct display_s {

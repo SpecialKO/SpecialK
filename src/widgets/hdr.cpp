@@ -28,14 +28,6 @@
 extern iSK_INI*             dll_ini;
 iSK_INI*                    hdr_ini = nullptr;
 
-
-enum {
-  SK_HDR_TONEMAP_NONE              = 0,
-  SK_HDR_TONEMAP_FILMIC            = 1,
-  SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
-  SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
-};
-
 static auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
 auto
@@ -1502,6 +1494,16 @@ public:
                   __SK_HDR_PQBoost3 = preset.pq_boost3;
 
                   SK_SaveConfig ();
+                }
+
+                if ( ImGui::Checkbox (
+                       "Enable 128-bit HDR Remastering",
+                         &config.render.hdr.enable_32bpc
+                   )                 ) SK_SaveConfig ();
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::SetTooltip ("Requires a game restart, may not work, and may hurt performance... hurray!");
                 }
 
                 ImGui::TreePop ();

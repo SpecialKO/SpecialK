@@ -1526,6 +1526,8 @@ ThrowIfFailed_Impl (HRESULT hr, std::source_location src_loc)
 HRESULT
 SK_SafeQueryInterface (IUnknown* pObj, REFIID riid, void** pUnk);
 
+template <typename _Tp, size_t n> using SK_ComPtrArray = std::array <SK_ComPtr <_Tp>, n>;
+
 
 //#endif /* __SK_COM_UTIL_H__ */
 SK_INCLUDE_END_CPP (COM_UTIL)

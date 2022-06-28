@@ -1229,6 +1229,7 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   pDevCtx->GSSetShader            (nullptr, nullptr,       0);
   pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
+  pDevCtx->SetPredication         (nullptr, FALSE);
   pDevCtx->Draw                   (4, 0);
 
   ApplyStateblock (pDevCtx.p, &codec.sb);

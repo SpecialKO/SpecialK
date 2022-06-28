@@ -661,6 +661,10 @@ struct {
     sk::ParameterBool*    draw_in_vidcap          = nullptr;
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } osd;
+
+  struct {
+    sk::ParameterBool*    enable_32bpc            = nullptr;
+  } hdr;
 } render;
 
 struct {
@@ -1347,6 +1351,8 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.low_latency_boost,        L"Reflex Boost (lower-latency power scaling)",                dll_ini,         L"NVIDIA.Reflex",         L"LowLatencyBoost"),
     ConfigEntry (nvidia.reflex.marker_optimization,      L"Train Reflex using Latency Markers for Optimization",       dll_ini,         L"NVIDIA.Reflex",         L"OptimizeByMarkers"),
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
+
+    ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
@@ -2997,6 +3003,8 @@ auto DeclKeybind =
   nvidia.reflex.marker_optimization->load    (config.nvidia.sleep.marker_optimization);
   nvidia.reflex.engagement_policy->load      (config.nvidia.sleep.enforcement_site);
 
+  render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
+
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
@@ -4619,6 +4627,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
+      render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
