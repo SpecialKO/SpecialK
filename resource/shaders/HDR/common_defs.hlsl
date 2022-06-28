@@ -1,4 +1,6 @@
-#define NUM_HISTOGRAM_BINS          384
+#pragma warning ( disable : 3577 )
+
+#define NUM_HISTOGRAM_BINS          128
 #define HISTOGRAM_WORKGROUP_SIZE_X ( 32 )
 #define HISTOGRAM_WORKGROUP_SIZE_Y ( 16 )
 
@@ -61,10 +63,18 @@ cbuffer colorSpaceTransform : register (b0)
 #define FLT_MIN         1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX         3.402823466e+38 // Maximum representable floating-point number
 
+bool IsFinite (float x)
+{
+  return
+    (! isinf (x));
+}
 // NaN checker
 // /Gic isn't enabled on fxc so we can't rely on isnan() anymore
 bool IsNan (float x)
 {
+  if (! IsFinite (x))
+    return true;
+
   return
     (   x <= 0.0 ||
       0.0 <= x ) ?

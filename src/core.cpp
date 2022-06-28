@@ -864,6 +864,9 @@ SK_InitFinishCallback (void)
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 
+  extern void SK_UE_KeepFilesOpen (void);
+              SK_UE_KeepFilesOpen ();
+
   SK_EnableApplyQueuedHooks ();
   SK_ApplyQueuedHooks       ();
 

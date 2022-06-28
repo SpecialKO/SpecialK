@@ -50,13 +50,13 @@ LuminanceMerge ( uint3 globalIdx : SV_DispatchThreadID,
     float old2 = texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 3, HISTOGRAM_WORKGROUP_SIZE_Y)];
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X, HISTOGRAM_WORKGROUP_SIZE_Y)] =
-      ( ( accum / samples ) * 8.0f + old0 * 4.0f + old1 * 2.0f + old2 * 1.0f) / 15.0;
+      ( accum / samples );
+
+    texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 2, HISTOGRAM_WORKGROUP_SIZE_Y)] =
+    texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 1, HISTOGRAM_WORKGROUP_SIZE_Y)];
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 1, HISTOGRAM_WORKGROUP_SIZE_Y)] =
       ( ( accum / samples ) * 8.0f + old0 * 4.0f + old1 * 2.0f + old2 * 1.0f) / 15.0;
-
-    texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 2, HISTOGRAM_WORKGROUP_SIZE_Y)] =
-      old0;
 
     texLuminance [uint2 (HISTOGRAM_WORKGROUP_SIZE_X + 3, HISTOGRAM_WORKGROUP_SIZE_Y)] =
       old1;

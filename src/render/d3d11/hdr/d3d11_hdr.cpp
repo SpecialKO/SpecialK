@@ -69,6 +69,7 @@ struct SK_HDR_FIXUP
 
   ID3D11Texture2D*             pGamutTex     = nullptr;
   ID3D11UnorderedAccessView*   pGamutUAV     = nullptr;
+  ID3D11ShaderResourceView*    pGamutSRV     = nullptr;
 
   enum SK_HDR_Type {
     None        = 0x000ul,
@@ -143,6 +144,7 @@ struct SK_HDR_FIXUP
 
     if (pGamutTex         != nullptr)  { pGamutTex->Release         ();          pGamutTex = nullptr; }
     if (pGamutUAV         != nullptr)  { pGamutUAV->Release         ();          pGamutUAV = nullptr; }
+    if (pGamutSRV         != nullptr)  { pGamutSRV->Release         ();          pGamutSRV = nullptr; }
 
     PixelShaderHDR_Uber.releaseResources        ();
     PixelShaderHDR_Basic.releaseResources       ();
@@ -228,6 +230,7 @@ struct SK_HDR_FIXUP
 
     if (pGamutTex        != nullptr)  { pGamutTex->Release        ();         pGamutTex = nullptr; }
     if (pGamutUAV        != nullptr)  { pGamutUAV->Release        ();         pGamutUAV = nullptr; }
+    if (pGamutSRV        != nullptr)  { pGamutSRV->Release        ();         pGamutSRV = nullptr; }
 
     static auto& rb =
       SK_GetCurrentRenderBackend ();
@@ -386,8 +389,8 @@ struct SK_HDR_FIXUP
                                        &uavDesc,          &pLuminanceUAV);
 
       texDesc                    = {  };
-      texDesc.Width              = 384;
-      texDesc.Height             = 384;
+      texDesc.Width              = 1024;
+      texDesc.Height             = 1024;
       texDesc.Format             = DXGI_FORMAT_B8G8R8X8_UNORM;
       texDesc.BindFlags          = D3D11_BIND_UNORDERED_ACCESS |
                                    D3D11_BIND_SHADER_RESOURCE;
@@ -403,6 +406,8 @@ struct SK_HDR_FIXUP
       pDev->CreateTexture2D           (&texDesc, nullptr, &pGamutTex);
       pDev->CreateUnorderedAccessView (                    pGamutTex,
                                        &uavDesc,          &pGamutUAV);
+      pDev->CreateShaderResourceView  (                    pGamutTex,
+                                                 nullptr, &pGamutSRV);
 
       SK_D3D11_SetDebugName (pSampler0,        L"SK HDR SamplerState");
       SK_D3D11_SetDebugName (pInputLayout,     L"SK HDR InputLayout");
@@ -423,14 +428,16 @@ struct SK_HDR_FIXUP
 
       SK_D3D11_SetDebugName (pGamutTex,         L"SK HDR Gamut Coverage Texture");
       SK_D3D11_SetDebugName (pGamutUAV,         L"SK HDR Gamut Coverage UAV");
+      SK_D3D11_SetDebugName (pGamutSRV,         L"SK HDR Gamut Coverage SRV");
     }
   }
 };
 
 SK_LazyGlobal <SK_HDR_FIXUP> hdr_base;
 
-SK_ComPtr <ID3D11Texture2D> SK_HDR_GetGamutTex     (void) { return hdr_base->pGamutTex;     }
-SK_ComPtr <ID3D11Texture2D> SK_HDR_GetLuminanceTex (void) { return hdr_base->pLuminanceTex; }
+SK_ComPtr <ID3D11Texture2D>          SK_HDR_GetGamutTex     (void) { return hdr_base->pGamutTex;     }
+SK_ComPtr <ID3D11ShaderResourceView> SK_HDR_GetGamutSRV     (void) { return hdr_base->pGamutSRV;     }
+SK_ComPtr <ID3D11Texture2D>          SK_HDR_GetLuminanceTex (void) { return hdr_base->pLuminanceTex; }
 
 int   __SK_HDR_tonemap       = 1;
 int   __SK_HDR_visualization = 0;
@@ -891,6 +898,12 @@ SK_HDR_SnapshotSwapchain (void)
             nul_rtvs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]            = { };
           static ID3D11Buffer* const
             nul_bufs [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+          pDevCtx->ClearUnorderedAccessViewFloat (
+            hdr_base->pGamutUAV,
+            std::array <FLOAT, 4> { 0.0F, 0.0F,
+                                    0.0F, 1.0F }.data ()
+          );
 
           ID3D11UnorderedAccessView* uavs [] =
           {         pFramebufferUAV.p,

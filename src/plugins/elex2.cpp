@@ -31,6 +31,80 @@ using CreateFileW_pfn =
   HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
                       DWORD,DWORD,HANDLE);
 
+using CreateFileA_pfn =
+  HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+static
+CreateFileA_pfn
+CreateFileA_Original = nullptr;
+
+static
+HANDLE
+WINAPI
+CreateFileA_Detour ( LPCSTR                lpFileName,
+                     DWORD                 dwDesiredAccess,
+                     DWORD                 dwShareMode,
+                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                     DWORD                 dwCreationDisposition,
+                     DWORD                 dwFlagsAndAttributes,
+                     HANDLE                hTemplateFile )
+{
+  if ( StrStrIA (lpFileName, R"(data\packed\)") ||
+       StrStrIA (lpFileName, ".pak") )
+  {
+    SK_LOG_FIRST_CALL
+
+    static
+      concurrency::concurrent_unordered_map <std::string, HANDLE>
+        pinned_files;
+
+    if (StrStrIA (lpFileName, R"(.pak)"))
+    {
+      if (pinned_files.count (lpFileName) != 0)
+      {
+        SK_LOGi1 (L"!! Using already opened copy of %hs", lpFileName);
+
+        return
+          pinned_files [lpFileName];
+      }
+
+      HANDLE hRet =
+        CreateFileA_Original (
+          lpFileName, dwDesiredAccess, dwShareMode,
+            lpSecurityAttributes, dwCreationDisposition,
+              dwFlagsAndAttributes, hTemplateFile );
+
+
+      if (hRet != INVALID_HANDLE_VALUE)
+      {
+        // Try as you might, you're not closing this file, you're going to get
+        //   this handle back the next time you try to open and close a file for
+        //     tiny 50 byte reads.
+        //
+        //  ** For Future Reference, OPENING files on Windows takes longer than
+        //       reading them does when data is this small.
+        // 
+        //                  ( STOP IT!!!~ )
+        //
+        if (SetHandleInformation (hRet, HANDLE_FLAG_PROTECT_FROM_CLOSE,
+                                        HANDLE_FLAG_PROTECT_FROM_CLOSE))
+        {
+          pinned_files [lpFileName] = hRet;
+        }
+      }
+
+      return hRet;
+    }
+  }
+
+  return
+    CreateFileA_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition,
+          dwFlagsAndAttributes, hTemplateFile );
+}
+
 static
 CreateFileW_pfn
 CreateFileW_Original = nullptr;
@@ -46,7 +120,8 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
                      DWORD                 dwFlagsAndAttributes,
                      HANDLE                hTemplateFile )
 {
-  if (StrStrIW (lpFileName, LR"(data\packed\)") || StrStrIW (lpFileName, L".pak"))
+  if ( StrStrIW (lpFileName, LR"(data\packed\)") ||
+       StrStrIW (lpFileName, L".pak") )
   {
     SK_LOG_FIRST_CALL
 
@@ -179,6 +254,11 @@ SK_UE_KeepFilesOpen (void)
                             "CreateFileW",
                              CreateFileW_Detour,
     static_cast_p2p <void> (&CreateFileW_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "CreateFileA",
+                             CreateFileA_Detour,
+    static_cast_p2p <void> (&CreateFileA_Original) );
   
   SK_ApplyQueuedHooks ();
 }

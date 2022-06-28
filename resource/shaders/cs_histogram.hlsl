@@ -1,5 +1,27 @@
 #include "HDR/common_defs.hlsl"
 
+#pragma warning (disable: 3205)
+
+#define ANALYZE_GAMUT
+#define GENERATE_HISTOGRAM
+
+RWTexture2D<float4>           texBackbufferHDR  : register (u0);
+RWTexture2D<float>            texLuminance      : register (u1);
+RWTexture2D<float4>           texGamutCoverage  : register (u2);
+RWStructuredBuffer <tileData> bufTiledHistogram : register (u3);
+
+groupshared struct {
+  uint accum;
+  uint pixels;
+} counter;
+
+groupshared struct {
+  uint width;
+  uint height;
+} image;
+
+#define tile_data bufTiledHistogram [tileIdxFlattened]
+
 uint
 computeBinIdxFromLogY (float logY)
 {
@@ -20,18 +42,6 @@ computeBinIdxFromRGB (float3 rgb)
     computeBinIdxFromLogY (logY);
 }
 
-RWTexture2D<float4>           texBackbufferHDR  : register (u0);
-RWTexture2D<float>            texLuminance      : register (u1);
-RWTexture2D<float4>           texGamutCoverage  : register (u2);
-RWStructuredBuffer <tileData> bufTiledHistogram : register (u3);
-
-groupshared uint              accum        = 0;
-groupshared uint              pixels       = 0;
-groupshared uint              image_width  = 0;
-groupshared uint              image_height = 0;
-
-#define tile_data bufTiledHistogram [tileIdxFlattened]
-
 [numthreads (HISTOGRAM_WORKGROUP_SIZE_X, HISTOGRAM_WORKGROUP_SIZE_Y, 1)]
 void
 LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
@@ -46,29 +56,19 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
 
   if (! any (localIdx))
   {
-    texBackbufferHDR.GetDimensions ( image_width,
-                                     image_height );
+    texBackbufferHDR.GetDimensions ( image.width,
+                                     image.height );
 
-    num_tiles =      ( image_width * image_height ) /
+    num_tiles =      ( image.width * image.height ) /
       ( HISTOGRAM_WORKGROUP_SIZE_X * HISTOGRAM_WORKGROUP_SIZE_Y );
 
-#if 0
-    for (uint idx = 0; idx < NUM_HISTOGRAM_BINS; ++idx)
-    {
-      localHistogram [idx] = 0;
-    }
-#endif
+    counter.accum  = 0;
+    counter.pixels = 0;
 
-    accum  = 0;
-    pixels = 0;
-
-#if 0
-    if (tileIdx == 0)
-    {
-      for ( uint x = 0 ; x < 1024 ; ++x )
-      for ( uint y = 0 ; y < 1024 ; ++y )
-        texGamutCoverage [uint2 (x, y)] = 0.0f;
-    }
+#ifdef SLOW_ANALYZE_GAMUT // Clear this using D3D11/12 API calls, dumbass.
+    for ( uint x = 0 ; x < 1024 ; ++x )
+    for ( uint y = 0 ; y < 1024 ; ++y )
+      texGamutCoverage [uint2 (x, y)] = 0.0f;
 #endif
   }
 
@@ -77,32 +77,46 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
       groupIdx.x +
       groupIdx.y * num_tiles;
 
-  GroupMemoryBarrier ();
+#ifdef GENERATE_HISTOGRAM
+  if (! any (localIdx))
+  {
+    for (uint idx = 0; idx < NUM_HISTOGRAM_BINS; ++idx)
+    {
+      tile_data.Histogram [idx] = 0;
+    }
+  }
+#endif
 
-  if ( globalIdx.x < image_width &&
-       globalIdx.y < image_height )
+  GroupMemoryBarrierWithGroupSync ();
+
+  if ( globalIdx.x < image.width &&
+       globalIdx.y < image.height )
   {
     if ( localIdx.x < subdiv &&
          localIdx.y < subdiv )
     {
-      const uint x_advance = (image_width  / subdiv) / HISTOGRAM_WORKGROUP_SIZE_X +
-                             (image_width  / subdiv) % HISTOGRAM_WORKGROUP_SIZE_X,
-                 y_advance = (image_height / subdiv) / HISTOGRAM_WORKGROUP_SIZE_Y +
-                             (image_height / subdiv) % HISTOGRAM_WORKGROUP_SIZE_Y;
+      const bool tick_tock =
+        ( ( ( currentTime % 3333 )
+                          / 3333.333f ) > 0.5f );
 
-      const uint x_origin = localIdx.x * x_advance + groupIdx.x * (x_advance * subdiv),
-                 y_origin = localIdx.y * y_advance + groupIdx.y * (y_advance * subdiv);
+      const uint2 advance =
+        uint2 ( (image.width  / subdiv) / HISTOGRAM_WORKGROUP_SIZE_X +
+                (image.width  / subdiv) % HISTOGRAM_WORKGROUP_SIZE_X, (image.height / subdiv) / HISTOGRAM_WORKGROUP_SIZE_Y +
+                                                                      (image.height / subdiv) % HISTOGRAM_WORKGROUP_SIZE_Y );
 
-                                                  //[unroll (8)]
-      for ( uint X = 0 ; X < x_advance ; X += 3 ) //[unroll (4)]
-      for ( uint Y = 0 ; Y < y_advance ; Y += 3 )
+      const uint2 origin =
+        uint2 ( localIdx.x * advance.x + groupIdx.x * (advance.x * subdiv) + ( tick_tock ? 1 : 0 ),
+                localIdx.y * advance.y + groupIdx.y * (advance.y * subdiv) + ( tick_tock ? 0 : 1 ) );
+
+      for ( uint X = 0 ; X < advance.x ; X += tick_tock ? 1 : 2 )
+      for ( uint Y = 0 ; Y < advance.y ; Y += tick_tock ? 2 : 1 )
       {
         const uint2 pos =
-          uint2 ( x_origin + X,
-                  y_origin + Y );
+          uint2 ( origin.x + X,
+                  origin.y + Y );
         
-        if ( pos.x < image_width &&
-             pos.y < image_height )
+        if ( pos.x < image.width &&
+             pos.y < image.height )
         {
           const float3 color =
             texBackbufferHDR [pos.xy].rgb;
@@ -115,30 +129,39 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
         
           if (Y < FLT_EPSILON)
             InterlockedAdd (tile_data.blackPixelCount, 1u);
-        
+          
           InterlockedMin (tile_data.minLuminance, (uint)(Y * 8192.0));
           InterlockedMax (tile_data.maxLuminance, (uint)(Y * 8192.0));
+
+#ifdef GENERATE_HISTOGRAM
           InterlockedAdd (tile_data.Histogram [bin], 1u);
+#endif
         
           if ((uint)(8192.0 * Y) > 0)
           {
-            InterlockedAdd (pixels,                1u);
-            InterlockedAdd (accum, (uint)(8192.0 * Y));
+            InterlockedAdd (counter.pixels,                1u);
+            InterlockedAdd (counter.accum, (uint)(8192.0 * Y));
           }
         
-#if 0   
+#ifdef  ANALYZE_GAMUT
           float3 xyY =
-            SK_Color_xyY_from_RGB ( _sRGB, color / dot (color, float3 (0.2126729, 0.7151522, 0.0721750)) );
+            SK_Color_xyY_from_RGB (
+                            _sRGB,
+               color / dot (
+                 color, float3 ( 0.2126729,
+                                 0.7151522,
+                                 0.0721750 )
+                           )      );
         
-          //xyY.xy =
-          //  saturate (xyY.xy);
-        
-          texGamutCoverage [uint2 ( 1024 * xyY.z,
-                                    1024 -  1024 * xyY.y )].rgba =
+          texGamutCoverage [ uint2 ( 1024 * xyY.z,
+                                     1024 -  1024 * xyY.y ) ].rgba =
             float4 (color.rgb, 1.0);
         
-          texBackbufferHDR [uint2 (image_width * xyY.z, image_height - image_height * xyY.y)/*pos.xy*/].rgba =
+#ifdef DISPLAY_GAMUT_ON_SCREEN
+          texBackbufferHDR [ uint2 ( image.width  * xyY.z,
+                      image.height - image.height * xyY.y ) ].rgba =
             float4 (color.rgb, 1.0);
+#endif
 #endif  
         }
       }
@@ -147,25 +170,22 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
 
   GroupMemoryBarrier ();
 
-#if 1
   if (! any (localIdx))
   {
     float avg = 0.0f;
 
-    if ( pixels > 0 &&
-         accum  > 0 )
+    if ( counter.pixels > 0 &&
+         counter.accum  > 0 )
     {
       avg =
-        (0.000122f * (float)accum)
-                   / (float)pixels;
+        (0.0001220703125f * counter.accum)
+                          / counter.pixels;
     }
 
-    texLuminance [ uint2 ( groupIdx.x,
-                           groupIdx.y ) ] = avg;
-
-    tile_data.avgLuminance = avg;
-
-    tile_data.tileIdx      = uint2 (groupIdx.x, groupIdx.y);
+    texLuminance [groupIdx.xy] = avg;
+    tile_data.avgLuminance     = avg;
+    
+    tile_data.tileIdx      = groupIdx.xy;
   //tile_data.pixelOffset  = uint2 (0,0);
   
     //// Gamut coverage counters
@@ -176,5 +196,4 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
 
     //bufTiledHistogram [tileIdxFlattened] = tile_data;
   }
-#endif
 }

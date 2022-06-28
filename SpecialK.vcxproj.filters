@@ -19,9 +19,6 @@
     <Filter Include="Source Files\Backends">
       <UniqueIdentifier>{c3aa99c1-1a7a-44b3-a85e-71e8399357a9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries">
-      <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Diagnostics">
       <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
     </Filter>
@@ -172,42 +169,6 @@
     <Filter Include="Header Files\Backends\Render\D3D9">
       <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\32-bit">
-      <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit">
-      <UniqueIdentifier>{54c2a8d6-b386-43aa-92e6-849317d4a280}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\CEGUI">
-      <UniqueIdentifier>{eda94dee-1ba8-4404-9489-34d672e6b308}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\CEGUI">
-      <UniqueIdentifier>{e278da9f-a8d1-475b-9399-dbf908c0fc29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\lzma">
-      <UniqueIdentifier>{8ba79158-f560-44b5-9d59-1f44839178cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\NvAPI">
-      <UniqueIdentifier>{58a66b12-45f0-47c7-a412-d5fdaed5c060}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\DirectXTex">
-      <UniqueIdentifier>{38d19e62-fa23-42d2-a4ba-36dceab33cf8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\MinHook %28Custom%29">
-      <UniqueIdentifier>{7c5b5cd7-b378-47c8-a049-c63a3eaa2098}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\MinHook %28Custom%29">
-      <UniqueIdentifier>{a694bb9a-30b1-483f-a342-23c52c5f4c41}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\lzma">
-      <UniqueIdentifier>{b09e4352-a370-482f-bd83-f2bfb5756a9b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\NvAPI">
-      <UniqueIdentifier>{c88be311-1093-4ace-9485-dfcf7463d0d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\32-bit\DirectXTex">
-      <UniqueIdentifier>{d4ee0829-8195-4ffc-89cf-502b0c3b1224}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries">
       <UniqueIdentifier>{39a97315-e7ef-410a-8cca-ac9d1af65679}</UniqueIdentifier>
     </Filter>
@@ -304,12 +265,6 @@
     <Filter Include="Header Files\External Libraries\glm\gsl">
       <UniqueIdentifier>{a32710b7-06e3-44a2-8bb4-13636eb9dc77}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Libraries\32-bit\Tobii">
-      <UniqueIdentifier>{e427e978-48f5-4c30-9701-5dfcf476a317}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Libraries\64-bit\Tobii">
-      <UniqueIdentifier>{810578f5-6ee0-4230-9c71-7b44f62e7e9c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\Boost">
       <UniqueIdentifier>{f271285d-ffd1-42c9-82c5-443c98fc4fc3}</UniqueIdentifier>
     </Filter>
@@ -357,6 +312,51 @@
     </Filter>
     <Filter Include="Header Files\Backends\Input\scePad">
       <UniqueIdentifier>{cb601a33-6e3a-4861-b13a-47671e146df6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries">
+      <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit">
+      <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\CEGUI">
+      <UniqueIdentifier>{eda94dee-1ba8-4404-9489-34d672e6b308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\MinHook %28Custom%29">
+      <UniqueIdentifier>{7c5b5cd7-b378-47c8-a049-c63a3eaa2098}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\lzma">
+      <UniqueIdentifier>{b09e4352-a370-482f-bd83-f2bfb5756a9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\NvAPI">
+      <UniqueIdentifier>{c88be311-1093-4ace-9485-dfcf7463d0d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\DirectXTex">
+      <UniqueIdentifier>{d4ee0829-8195-4ffc-89cf-502b0c3b1224}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\32-bit\Tobii">
+      <UniqueIdentifier>{e427e978-48f5-4c30-9701-5dfcf476a317}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit">
+      <UniqueIdentifier>{54c2a8d6-b386-43aa-92e6-849317d4a280}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\CEGUI">
+      <UniqueIdentifier>{e278da9f-a8d1-475b-9399-dbf908c0fc29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\lzma">
+      <UniqueIdentifier>{8ba79158-f560-44b5-9d59-1f44839178cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\NvAPI">
+      <UniqueIdentifier>{58a66b12-45f0-47c7-a412-d5fdaed5c060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\DirectXTex">
+      <UniqueIdentifier>{38d19e62-fa23-42d2-a4ba-36dceab33cf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\MinHook %28Custom%29">
+      <UniqueIdentifier>{a694bb9a-30b1-483f-a342-23c52c5f4c41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Libraries\64-bit\Tobii">
+      <UniqueIdentifier>{810578f5-6ee0-4230-9c71-7b44f62e7e9c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -2920,7 +2920,7 @@
       <Filter>Header Files\Backends\Render\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\popups\popup.h">
-      <Filter>Libraries</Filter>
+      <Filter>Resource Files\Libraries</Filter>
     </ClInclude>
     <ClInclude Include="include\shaders\cs_histogram.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
@@ -3650,10 +3650,10 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb">
-      <Filter>Libraries\64-bit\DirectXTex</Filter>
+      <Filter>Resource Files\Libraries\64-bit\DirectXTex</Filter>
     </None>
     <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
-      <Filter>Libraries\32-bit\DirectXTex</Filter>
+      <Filter>Resource Files\Libraries\32-bit\DirectXTex</Filter>
     </None>
     <None Include="depends\include\glm\gtx\associated_min_max.inl">
       <Filter>Header Files\External Libraries\glm</Filter>
@@ -4333,16 +4333,16 @@
     <None Include="@(NativeLibs)" />
     <None Include="SpecialK.ruleset" />
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
-      <Filter>Libraries\64-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.exp">
-      <Filter>Libraries\64-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.def">
-      <Filter>Libraries\32-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
-      <Filter>Libraries\32-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
     </None>
     <None Include="depends\include\EOS\eos_achievements_types_deprecated.inl">
       <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
@@ -4435,40 +4435,40 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="depends\lib\glew\Win32\glew.lib">
-      <Filter>Libraries\32-bit\CEGUI</Filter>
+      <Filter>Resource Files\Libraries\32-bit\CEGUI</Filter>
     </Library>
     <Library Include="depends\lib\glew\x64\glew.lib">
-      <Filter>Libraries\64-bit\CEGUI</Filter>
+      <Filter>Resource Files\Libraries\64-bit\CEGUI</Filter>
     </Library>
     <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Libraries\64-bit\MinHook %28Custom%29</Filter>
+      <Filter>Resource Files\Libraries\64-bit\MinHook %28Custom%29</Filter>
     </Library>
     <Library Include="depends\lib\lzma\x64\libzma.lib">
-      <Filter>Libraries\64-bit\lzma</Filter>
+      <Filter>Resource Files\Libraries\64-bit\lzma</Filter>
     </Library>
     <Library Include="depends\lib\nvapi\x64\nvapi64.lib">
-      <Filter>Libraries\64-bit\NvAPI</Filter>
+      <Filter>Resource Files\Libraries\64-bit\NvAPI</Filter>
     </Library>
     <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib">
-      <Filter>Libraries\64-bit\DirectXTex</Filter>
+      <Filter>Resource Files\Libraries\64-bit\DirectXTex</Filter>
     </Library>
     <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
-      <Filter>Libraries\32-bit\MinHook %28Custom%29</Filter>
+      <Filter>Resource Files\Libraries\32-bit\MinHook %28Custom%29</Filter>
     </Library>
     <Library Include="depends\lib\lzma\Win32\libzma.lib">
-      <Filter>Libraries\32-bit\lzma</Filter>
+      <Filter>Resource Files\Libraries\32-bit\lzma</Filter>
     </Library>
     <Library Include="depends\lib\nvapi\Win32\nvapi.lib">
-      <Filter>Libraries\32-bit\NvAPI</Filter>
+      <Filter>Resource Files\Libraries\32-bit\NvAPI</Filter>
     </Library>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
-      <Filter>Libraries\32-bit\DirectXTex</Filter>
+      <Filter>Resource Files\Libraries\32-bit\DirectXTex</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
-      <Filter>Libraries\32-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.lib">
-      <Filter>Libraries\64-bit\Tobii</Filter>
+      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
@@ -4530,6 +4530,12 @@
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\hdr_response_cs.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\common_defs.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\basic_hdr_shader_ps.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
   </ItemGroup>
