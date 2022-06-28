@@ -886,7 +886,8 @@ SK_HDR_SnapshotSwapchain (void)
                                         pHDRTexture );
 #endif
 
-      if (__SK_HDR_AdaptiveToneMap)
+      if ( __SK_HDR_AdaptiveToneMap && // SwapChain may not support UAVs...
+            _d3d11_rbk->frames_ [0].hdr.pUAV.p != nullptr )
       {
         SK_ComPtr <ID3D11UnorderedAccessView>
             pFramebufferUAV (_d3d11_rbk->frames_ [0].hdr.pUAV);

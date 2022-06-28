@@ -5611,7 +5611,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     // Option to force Flip Sequential for buggy systems
     if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
-      pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
     SK_LOGs0 ( L" DXGI 1.2 ",
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -5628,6 +5628,16 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     //
     if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
     {
+      if (__SK_HDR_16BitSwap)
+      {
+        SK_LOGs0 ( L"  SK HDR  ",
+                   L"  >> Adding Unordered Access View to SwapChain for"
+                   L" more advanced HDR processing." );
+
+        pDesc->BufferUsage |=
+          DXGI_USAGE_UNORDERED_ACCESS;
+      }
+
       pDesc->BufferDesc.Format =
         SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format, FALSE, TRUE);
 

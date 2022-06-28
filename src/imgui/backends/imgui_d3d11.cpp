@@ -1527,17 +1527,23 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
     if (_P->pUnorderedAccessView == nullptr)
     {
-      D3D11_UNORDERED_ACCESS_VIEW_DESC
-      uav_desc                    = { };
-      uav_desc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
-      uav_desc.Texture2D.MipSlice = 0;
-      uav_desc.Format             = rt_desc.Format;
+      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+      pSwapChain->GetDesc (&swapDesc);
 
-      ThrowIfFailed (
-        pDev->CreateUnorderedAccessView (_P->pBackBuffer, &uav_desc,
-                                        &_P->pUnorderedAccessView.p));
-      SK_D3D11_SetDebugName (            _P->pUnorderedAccessView,
-                                    L"ImGui [HDR] UnorderedAccessView" );
+      if (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
+      {
+        D3D11_UNORDERED_ACCESS_VIEW_DESC
+        uav_desc                    = { };
+        uav_desc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+        uav_desc.Texture2D.MipSlice = 0;
+        uav_desc.Format             = rt_desc.Format;
+
+        ThrowIfFailed (
+          pDev->CreateUnorderedAccessView (_P->pBackBuffer, &uav_desc,
+                                          &_P->pUnorderedAccessView.p));
+        SK_D3D11_SetDebugName (            _P->pUnorderedAccessView,
+                                      L"ImGui [HDR] UnorderedAccessView" );
+      }
     }
 
     return true;
@@ -1883,9 +1889,9 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
               L"D3D11BkEnd" );
 
     if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) ||
-                _Frame [0].pBackBuffer.p          == nullptr ||
-                _Frame [0].pRenderTargetView.p    == nullptr ||
-                _Frame [0].pUnorderedAccessView.p == nullptr)
+                _Frame [0].pBackBuffer.p          == nullptr  ||
+                _Frame [0].pRenderTargetView.p    == nullptr/*||
+                _Frame [0].pUnorderedAccessView.p == nullptr */)
     {
       throw (SK_ComException (E_FAIL));
     }
