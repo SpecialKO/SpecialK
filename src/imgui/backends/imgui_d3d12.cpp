@@ -1536,7 +1536,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
   pSwapChain->GetDesc1         (&swapDesc);
-  if ( _imgui_d3d12.RTVFormat != swapDesc.Format || swapIdx > frames_.size () )
+  if ((_imgui_d3d12.RTVFormat != swapDesc.Format &&
+       _imgui_d3d12.RTVFormat != DXGI_FORMAT_UNKNOWN) || swapIdx > frames_.size () )
   {
     static bool          once = false;
     if (! std::exchange (once, true))
@@ -2134,8 +2135,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       D3D12_DESCRIPTOR_RANGE
         srv_range                    = {};
         srv_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        srv_range.NumDescriptors     = 1;
-        srv_range.BaseShaderRegister = 0; // t0
+        srv_range.NumDescriptors     = 2;
+        srv_range.BaseShaderRegister = 0; // t0, t1 (texLastFrame0)
 
       D3D12_ROOT_PARAMETER
         param [3]                                     = { };

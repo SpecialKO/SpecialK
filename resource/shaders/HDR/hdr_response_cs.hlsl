@@ -10,57 +10,73 @@ LuminanceResponse ( uint3 globalIdx : SV_DispatchThreadID,
                     uint3 localIdx  : SV_GroupThreadID,
                     uint3 groupIdx  : SV_GroupID )
 {
-  uint                             image_width  = 0;
-  uint                             image_height = 0;
-  texBackbufferHDR.GetDimensions ( image_width,
-                                   image_height );
+  struct {
+    uint width;
+    uint height;
+  } image;
+
+  texBackbufferHDR.GetDimensions ( image.width,
+                                   image.height );
 
   float avg =
     texLuminance [ uint2 ( HISTOGRAM_WORKGROUP_SIZE_X,
                            HISTOGRAM_WORKGROUP_SIZE_Y ) ];
 
   const float fMax =
-    hdrLuminance_MaxLocal / 80.0f;// hdrPaperWhite;
+    (hdrLuminance_MaxLocal / 2.0f) / 80.0f;// hdrPaperWhite;
 
   uint subdiv =
     min ( HISTOGRAM_WORKGROUP_SIZE_Y,
           HISTOGRAM_WORKGROUP_SIZE_X );
 
-  if ( avg > fMax / 2.333f )
+  //if ( avg > fMax / 2.333f )
   {
     if ( localIdx.x < subdiv &&
          localIdx.y < subdiv )
     {
-      uint x_advance = (image_width  / subdiv) / HISTOGRAM_WORKGROUP_SIZE_X +
-                       (image_width  / subdiv) % HISTOGRAM_WORKGROUP_SIZE_X;
-      uint y_advance = (image_height / subdiv) / HISTOGRAM_WORKGROUP_SIZE_Y +
-                       (image_height / subdiv) % HISTOGRAM_WORKGROUP_SIZE_Y;
+      const uint2 advance =
+        uint2 ( (image.width  / subdiv) / HISTOGRAM_WORKGROUP_SIZE_X +
+                (image.width  / subdiv) % HISTOGRAM_WORKGROUP_SIZE_X,
+                (image.height / subdiv) / HISTOGRAM_WORKGROUP_SIZE_Y +
+                (image.height / subdiv) % HISTOGRAM_WORKGROUP_SIZE_Y );
 
-      uint x_origin = localIdx.x * x_advance + groupIdx.x * (x_advance * subdiv);
-      uint y_origin = localIdx.y * y_advance + groupIdx.y * (y_advance * subdiv);
+      const uint2 origin =
+        uint2 ( localIdx.x * advance.x + groupIdx.x * (advance.x * subdiv),
+                localIdx.y * advance.y + groupIdx.y * (advance.y * subdiv) );
 
-      float fMax_over_avg =
+      const float fMax_over_avg =
         fMax / avg;
 
-      for ( uint X = 0 ; X < x_advance ; ++X )
-      for ( uint Y = 0 ; Y < y_advance ; ++Y ) 
+      for ( uint X = 0 ; X < advance.x ; ++X )
+      for ( uint Y = 0 ; Y < advance.y ; ++Y ) 
       {
-        uint2 pos =
-          uint2 ( x_origin + X,
-                  y_origin + Y );
+        const uint2 pos =
+          uint2 ( origin.x + X,
+                  origin.y + Y );
 
-        if ( pos.x < image_width &&
-             pos.y < image_height )
+        if ( pos.x < image.width &&
+             pos.y < image.height )
         {
           float3 color =
-            ST2084ToLinear (
-              LinearToST2084 (texBackbufferHDR [pos].rgb / avg)
-                           ) * (fMax / 2.333f);
+            texBackbufferHDR [pos].rgb;
 
-          texBackbufferHDR [pos].rgba =
-            float4 ( color.r,
-                     color.g,
-                     color.b, 1.0 );
+          if (avg < fMax / 2.166f)
+          {
+            color *= (1.0f - smoothstep (0.2f * fMax, fMax / 2.166f, avg) * .05f);
+          }
+
+          else
+          {
+            color =
+              ST2084ToLinear (
+                LinearToST2084 ( color / avg )
+                             ) * (fMax / 2.166f);
+
+            texBackbufferHDR [pos].rgba =
+              float4 ( color.r,
+                       color.g,
+                       color.b, 1.0 );
+          }
         }
       }
     }

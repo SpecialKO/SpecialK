@@ -273,7 +273,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   UINT                  gameWidth_      = 0;
   UINT                  gameHeight_     = 0;
-  bool                  fakeFullscreen_ = false;
+  BOOL                  fakeFullscreen_ = FALSE;
+  bool                  notFaking_      = true;
   DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
   DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
 

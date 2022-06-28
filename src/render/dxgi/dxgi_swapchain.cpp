@@ -541,8 +541,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-  SK_ComPtr <IDXGIOutput> pOriginalTarget;
   BOOL                    bFullscreen = FALSE;
+  SK_ComPtr <IDXGIOutput>                pOriginalTarget;
   GetFullscreenState    (&bFullscreen, &pOriginalTarget.p);
 
   HRESULT hr = S_OK;
@@ -562,6 +562,15 @@ IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
       SK_DeferCommand ("Window.TopMost true");
       if (config.window.always_on_top < 1)
         SK_DeferCommand ("Window.TopMost false");
+
+      notFaking_ = true;
+    }
+
+    else
+    {
+      notFaking_      = false;
+      fakeFullscreen_ = bFullscreen;
+      return S_OK;
     }
   }
 
@@ -572,6 +581,22 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
+  // Fix for Unreal Engine craziness
+  if (! notFaking_)
+  {
+    if (pFullscreen != nullptr)
+       *pFullscreen  = fakeFullscreen_ ?
+                                  TRUE : FALSE;
+
+    BOOL                        bFullscreen = FALSE;
+    pReal->GetFullscreenState (&bFullscreen, ppTarget);
+
+    if (bFullscreen == fakeFullscreen_)
+      notFaking_ = true;
+
+    return S_OK;
+  }
+
   return
     pReal->GetFullscreenState (pFullscreen, ppTarget);
 }
@@ -597,6 +622,9 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
 
       pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
       pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
+
+      if (! notFaking_)
+        pDesc->Windowed = ~fakeFullscreen_;
     }
   }
 

@@ -534,6 +534,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
+  // @TODO
+  ///float fGPULoad =
+  ///  SK_GPU_GetGPULoad (0);
+  ///
+  ///ImGui::PushItemFlag (ImGuiItemFlags_Disabled, true);
+  ///ImGui::VSliderFloat ( "GPU", ImVec2 (font_size * 1.5f, -1.0f),
+  ///                     &fGPULoad,      0.0f, 100.0f,
+  ///                      "%5.3f%%" );
+  ///ImGui::PopItemFlag  ();
+  ///ImGui::SameLine     ();
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),

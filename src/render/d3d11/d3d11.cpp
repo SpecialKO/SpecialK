@@ -4834,8 +4834,8 @@ D3D11Dev_CreateTexture2D_Impl (
         static const bool bTalesOfArise =
           SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
 
-        if (bTalesOfArise && DirectX::MakeTypeless (pDesc->Format) == DXGI_FORMAT_R32G32B32A32_TYPELESS)
-                                                    pDesc->Format   = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        ////if (bTalesOfArise && DirectX::MakeTypeless (pDesc->Format) == DXGI_FORMAT_R32G32B32A32_TYPELESS)
+        ////                                            pDesc->Format   = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
         auto hdr_fmt_override =
           (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
@@ -4922,9 +4922,9 @@ D3D11Dev_CreateTexture2D_Impl (
                   InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
-                  if (bTalesOfArise && _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS)
-                    pDesc->Format = DXGI_FORMAT_R16G16B16A16_UNORM;
-                  else
+                  //if (bTalesOfArise && _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+                  //  pDesc->Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+                  //else
                     pDesc->Format = hdr_fmt_override;
                 }
 

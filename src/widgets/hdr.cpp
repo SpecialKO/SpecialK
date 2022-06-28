@@ -1450,12 +1450,18 @@ public:
 
             ImGui::PopStyleColor ();
 
-            if ( preset.pq_boost0 > 0.1f )
-            { 
-              ImGui::SameLine          ();
-              ImGui::VerticalSeparator ();
-              ImGui::SameLine          ();
+            if ( preset.pq_boost0 > 0.1f || __SK_HDR_AdaptiveToneMap )
+            {
+              if (SK_API_IsLayeredOnD3D11 (rb.api))
+              {
+                ImGui::SameLine          ();
+                ImGui::VerticalSeparator ();
+                ImGui::SameLine          ();
               
+                if (__SK_HDR_AdaptiveToneMap)
+                  ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Once);
+              }
+
               bool bExperimental =
                 ImGui::TreeNode ("Experimental");
 
@@ -1464,48 +1470,94 @@ public:
 
               if (bExperimental)
               {
-                ImGui::Separator ();
+                ImGui::Separator  ();
+                ImGui::BeginGroup ();
 
-                bool boost_changed = false;
-
-                boost_changed |=
-                  ImGui::SliderFloat ("Perceptual Boost 0", &preset.pq_boost0, 3.0f, 20.0f);
-                boost_changed |=
-                  ImGui::SliderFloat ("Perceptual Boost 1", &preset.pq_boost1, 3.0f, 20.0f);
-                boost_changed |=                                                              
-                  ImGui::SliderFloat ("Perceptual Boost 2", &preset.pq_boost2, 0.5f, 1.5f);
-                boost_changed |=                                                              
-                  ImGui::SliderFloat ("Perceptual Boost 3", &preset.pq_boost3, 0.5f, 1.5f);
-
-                if (boost_changed)
+                if (preset.pq_boost0 > 0.1f)
                 {
-                  preset.cfg_pq_boost0->store (
-                      preset.pq_boost0 );
-                  preset.cfg_pq_boost1->store (
-                      preset.pq_boost1 );
-                  preset.cfg_pq_boost2->store (
-                      preset.pq_boost2 );
-                  preset.cfg_pq_boost3->store (
-                      preset.pq_boost3 );
+                  bool boost_changed = false;
 
-                  __SK_HDR_PQBoost0 = preset.pq_boost0;
-                  __SK_HDR_PQBoost1 = preset.pq_boost1;
-                  __SK_HDR_PQBoost2 = preset.pq_boost2;
-                  __SK_HDR_PQBoost3 = preset.pq_boost3;
+                  boost_changed |=
+                    ImGui::SliderFloat ("Perceptual Boost 0", &preset.pq_boost0, 3.0f, 20.0f);
+                  boost_changed |=
+                    ImGui::SliderFloat ("Perceptual Boost 1", &preset.pq_boost1, 3.0f, 20.0f);
+                  boost_changed |=                                                              
+                    ImGui::SliderFloat ("Perceptual Boost 2", &preset.pq_boost2, 0.5f, 1.5f);
+                  boost_changed |=                                                              
+                    ImGui::SliderFloat ("Perceptual Boost 3", &preset.pq_boost3, 0.5f, 1.5f);
 
-                  SK_SaveConfig ();
+                  if (boost_changed)
+                  {
+                    preset.cfg_pq_boost0->store (
+                        preset.pq_boost0 );
+                    preset.cfg_pq_boost1->store (
+                        preset.pq_boost1 );
+                    preset.cfg_pq_boost2->store (
+                        preset.pq_boost2 );
+                    preset.cfg_pq_boost3->store (
+                        preset.pq_boost3 );
+
+                    __SK_HDR_PQBoost0 = preset.pq_boost0;
+                    __SK_HDR_PQBoost1 = preset.pq_boost1;
+                    __SK_HDR_PQBoost2 = preset.pq_boost2;
+                    __SK_HDR_PQBoost3 = preset.pq_boost3;
+
+                    SK_SaveConfig ();
+                  }
                 }
 
-                if ( ImGui::Checkbox (
-                       "Enable 128-bit HDR Remastering",
-                         &config.render.hdr.enable_32bpc
-                   )                 ) SK_SaveConfig ();
-
-                if (ImGui::IsItemHovered ())
+                if (SK_API_IsLayeredOnD3D11 (rb.api))
                 {
-                  ImGui::SetTooltip ("Requires a game restart, may not work, and may hurt performance... hurray!");
+                  if ( ImGui::Checkbox (
+                         "Enable 128-bit HDR Remastering",
+                           &config.render.hdr.enable_32bpc
+                     )                 ) SK_SaveConfig ();
+
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::SetTooltip ("Requires a game restart, may not work, and may hurt performance... hurray!");
+                  }
+
+                  if (! __SK_HDR_AdaptiveToneMap)
+                  {
+                    ImGui::SameLine (); ImGui::VerticalSeparator ();
+                    ImGui::SameLine ();
+                    ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
+                  }
                 }
 
+                ImGui::EndGroup ();
+                
+                if (SK_API_IsLayeredOnD3D11 (rb.api))
+                {
+                  ImGui::SameLine          ();
+                  ImGui::VerticalSeparator ();
+
+                  extern SK_ComPtr <ID3D11ShaderResourceView>
+                    SK_HDR_GetGamutSRV (void);
+
+                  auto pSrv =
+                    SK_HDR_GetGamutSRV ();
+
+                  if (pSrv.p != nullptr)
+                  {
+                    ImGui::SameLine      ();
+                    ImGui::BeginGroup    ();
+                    ImGui::Image         ( pSrv.p, ImVec2 ( std::min (256.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                                                            std::min (128.0f, ImGui::GetContentRegionAvail ().y       ) ),
+                                                   ImVec2 ( 0.0f, 0.0f),
+                                                   ImVec2 ( 1.0f, 1.0f), ImVec4 (1.0f, 1.0f, 1.0f, 1.0f),
+                                                                         ImVec4 (0.9f, 0.9f, 0.9f, 1.0f) );
+                    ImGui::SameLine      ();
+                    ImGui::PlotHistogram ("Luminance Histogram", nullptr, nullptr, 0, 0, nullptr, 1.0f, 1.0f,
+                                             ImVec2 ( std::min ( 64.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                                                      std::min (128.0f, ImGui::GetContentRegionAvail ().y) ) );
+                    if (ImGui::IsItemHovered ())
+                        ImGui::SetTooltip ("Feature Not Implemented Yet");
+
+                    ImGui::EndGroup      ();
+                  }
+                }
                 ImGui::TreePop ();
               }
             }

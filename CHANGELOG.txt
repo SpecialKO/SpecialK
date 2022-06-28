@@ -1,4 +1,11 @@
-﻿22.6.26-NOCEGUI
+﻿22.6.28-NOCEGUI
+===============
+ + Fixed / reduced HDR issues in Tales of Arise (turn off 11-bit Remastering)
+ + Semi-broken Adaptive Tonemap mode...
+ + Added color gamut visualizer to HDR widget (D3D11 only)
+ + Fixed issues with HDR in D3D12, crashing and missing widget options
+
+22.6.26-NOCEGUI
 ===============
  + Added new experimental 128-bit color remastering option, cause why not?
  + Optimized luminance analysis compute shaders, feel free to keep
