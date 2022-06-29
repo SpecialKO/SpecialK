@@ -3601,7 +3601,7 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -3801,7 +3801,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -3933,7 +3933,7 @@ SK_D3D11_DrawIndexed_Impl (
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -3991,7 +3991,7 @@ SK_D3D11_DrawIndexedInstanced_Impl (
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -4044,7 +4044,7 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -4101,7 +4101,7 @@ SK_D3D11_DrawInstanced_Impl (
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 
@@ -4153,7 +4153,7 @@ SK_D3D11_DrawInstancedIndirect_Impl (
 
   _Finish ();
 
-  if (draw_action == Override || __SK_HDR_16BitSwap)
+  if (draw_action == Override)
     SK_D3D11_PostDraw (dev_idx, pTLS);
 }
 

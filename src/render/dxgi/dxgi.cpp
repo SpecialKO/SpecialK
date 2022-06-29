@@ -8271,7 +8271,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if ( __SK_HDR_16BitSwap &&
          swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
-                      && ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
+                    && ( ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+                         ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 ) )
   {                      ColorSpace  = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
     SK_LOGs0 ( L" DXGI HDR ",
                L"Game tried to use the wrong color space (HDR10), using scRGB instead." );
@@ -8303,6 +8304,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
     }
   }
+
+  // In the failure case, just hide it from the game...
+  if (__SK_HDR_16BitSwap)
+    hr = S_OK;
 
   return hr;
 }

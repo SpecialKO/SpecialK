@@ -1,7 +1,9 @@
-﻿22.6.29-NOCEGUI
-===============
+﻿22.6.29.1-NOCEGUI
+=================
+ + Fixed HDR compatibility in Days Gone
  + Fixed an issue that prevented some Unreal Engine games (i.e. The Quarry)
      from starting
+ + Blacklisted Days Gone's launcher and error reporter utility
 
 22.6.28.1-NOCEGUI
 =================
