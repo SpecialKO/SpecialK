@@ -63,17 +63,28 @@ bool AnyIsNan (float3 x)
          IsNan (x.z);
 }
 
+bool AnyIsNan (float4 x)
+{
+  return IsNan (x.x) ||
+         IsNan (x.y) ||
+         IsNan (x.z) ||
+         IsNan (x.w);
+}
+
 float4 main (PS_INPUT input) : SV_TARGET
 {
   float4 vLinear =
     srgbFrameBuffer.Sample ( srgbSampler,
                                input.uv );
 
-  if (AnyIsNan (vLinear.rgb))
+  if (AnyIsNan (vLinear.rgba))
   {
     return
-      float4 (0.0f, 0.0f, 0.0f, 1.0f);
+      float4 (0.0f, 0.0f, 0.0f, 0.0f);
   }
+
+  vLinear.rgba =
+    clamp (vLinear.rgba, 0.0f, 125.0f);
 
   if (passthrough)
     return vLinear;

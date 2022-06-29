@@ -298,6 +298,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"nioh_launcher.exe"),
   SK_MakeUnicode (L"rottlauncher.exe"),
   SK_MakeUnicode (L"configtool.exe"),
+  SK_MakeUnicode (L"crs-uploader.exe"), // Days Gone Launcher thingy
 
   SK_MakeUnicode (L"coherentui_host.exe"),
   SK_MakeUnicode (L"activationui.exe"),

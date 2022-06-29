@@ -1,4 +1,16 @@
-﻿22.6.28-NOCEGUI
+﻿22.6.29.1-NOCEGUI
+=================
+ + Fixed HDR compatibility in Days Gone
+ + Fixed an issue that prevented some Unreal Engine games (i.e. The Quarry)
+     from starting
+ + Blacklisted Days Gone's launcher and error reporter utility
+
+22.6.28.1-NOCEGUI
+=================
+ + Fixed D3D11 games lacking support for Unordered Access Views on their
+     SwapChain from crashing in HDR
+
+22.6.28-NOCEGUI
 ===============
  + Fixed / reduced HDR issues in Tales of Arise (turn off 11-bit Remastering)
  + Semi-broken Adaptive Tonemap mode...

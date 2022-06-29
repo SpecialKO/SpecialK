@@ -1610,7 +1610,7 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
   }
 
   static constexpr float
-    fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black pixels matter
+    fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f }; // Black pixels matter
 
   if (pColor == nullptr)
       pColor = fClearColor;
@@ -1652,8 +1652,9 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
 #endif
 
     // NOTE: This will exist even if the system does not support HDR
-    if (                         pRawRTV   != nullptr || 
-        _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr )
+    if (                            pRawRTV   != nullptr ||
+         ( _d3d11_rbk->frames_.size () > 0 &&
+           _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr ) )
     {
       if (pRawRTV == nullptr)
           pRawRTV = _d3d11_rbk->frames_ [0].hdr.pRTV.p;
@@ -1749,7 +1750,7 @@ SK_D3D11_InsertBlackFrame (void)
       SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
 
       static constexpr FLOAT
-        fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
@@ -5611,7 +5612,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     // Option to force Flip Sequential for buggy systems
     if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
-      pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
     SK_LOGs0 ( L" DXGI 1.2 ",
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
@@ -5628,6 +5629,16 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     //
     if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
     {
+      if (__SK_HDR_16BitSwap)
+      {
+        SK_LOGs0 ( L"  SK HDR  ",
+                   L"  >> Adding Unordered Access View to SwapChain for"
+                   L" more advanced HDR processing." );
+
+        pDesc->BufferUsage |=
+          DXGI_USAGE_UNORDERED_ACCESS;
+      }
+
       pDesc->BufferDesc.Format =
         SK_DXGI_PickHDRFormat (pDesc->BufferDesc.Format, FALSE, TRUE);
 
@@ -8260,7 +8271,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if ( __SK_HDR_16BitSwap &&
          swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
-                      && ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
+                    && ( ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+                         ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 ) )
   {                      ColorSpace  = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
     SK_LOGs0 ( L" DXGI HDR ",
                L"Game tried to use the wrong color space (HDR10), using scRGB instead." );
@@ -8292,6 +8304,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
     }
   }
+
+  // In the failure case, just hide it from the game...
+  if (__SK_HDR_16BitSwap)
+    hr = S_OK;
 
   return hr;
 }

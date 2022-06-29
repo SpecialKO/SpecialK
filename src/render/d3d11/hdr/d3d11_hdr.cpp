@@ -391,7 +391,7 @@ struct SK_HDR_FIXUP
       texDesc                    = {  };
       texDesc.Width              = 1024;
       texDesc.Height             = 1024;
-      texDesc.Format             = DXGI_FORMAT_B8G8R8X8_UNORM;
+      texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
       texDesc.BindFlags          = D3D11_BIND_UNORDERED_ACCESS |
                                    D3D11_BIND_SHADER_RESOURCE;
       texDesc.SampleDesc.Count   = 1;
@@ -401,7 +401,7 @@ struct SK_HDR_FIXUP
       uavDesc                    = {  };
       uavDesc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
       uavDesc.Texture2D.MipSlice = 0;
-      uavDesc.Format             = DXGI_FORMAT_B8G8R8X8_UNORM;
+      uavDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
 
       pDev->CreateTexture2D           (&texDesc, nullptr, &pGamutTex);
       pDev->CreateUnorderedAccessView (                    pGamutTex,
@@ -462,12 +462,8 @@ SK_HDR_SanitizeFP16SwapChain (void)
 {
   if (! __SK_HDR_16BitSwap)
     return;
-}
 
-void
-SK_HDR_SnapshotSwapchain (void)
-{
-  static auto& rb =
+    static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -475,43 +471,6 @@ SK_HDR_SnapshotSwapchain (void)
 
   if (! hdr_display)
     return;
-
-  SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
-    rb.scanout.getEOTF ();
-
-  bool bEOTF_is_PQ =
-    (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
-
-  if (bEOTF_is_PQ)
-    return;
-
-
-  struct snapshot_cache_s {
-    ULONG64 lLastFrame = SK_GetFramesDrawn () - 1;
-    ULONG64 lHDRFrames =                        0;
-
-    SK_D3D11_Stateblock_Lite
-                 *sb                      = nullptr;
-
-    ID3D11Buffer *last_gpu_cbuffer_cspace = hdr_base->colorSpaceCBuffer;
-    ID3D11Buffer *last_gpu_cbuffer_luma   = hdr_base->mainSceneCBuffer;
-    uint32_t      last_hash_luma          = 0x0;
-    uint32_t      last_hash_cspace        = 0x0;
-  };
-
-  static
-    concurrency::concurrent_unordered_map <
-    IUnknown *,
-    snapshot_cache_s
-  > snapshot_cache;
-
-
-  auto& snap_cache =
-    snapshot_cache [rb.swapchain];
-
-  ULONG64 lThisFrame = SK_GetFramesDrawn ();
-  if     (lThisFrame == snap_cache.lLastFrame) { return; }
-  else               {  snap_cache.lLastFrame = lThisFrame; }
 
   auto& vs_hdr_util  = hdr_base->VertexShaderHDR_Util;
   auto& ps_hdr_uber  = hdr_base->PixelShaderHDR_Uber;
@@ -521,7 +480,7 @@ SK_HDR_SnapshotSwapchain (void)
        ps_hdr_uber.shader  == nullptr ||
        ps_hdr_basic.shader == nullptr )
   {
-    if (snap_cache.lHDRFrames++ > 2) hdr_base->reloadResources ();
+    return;
   }
 
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
@@ -542,61 +501,53 @@ SK_HDR_SnapshotSwapchain (void)
 
     if (! pDevCtx) return;
 
+    SK_ComPtr <ID3D11RenderTargetView>   pRTV;
+    SK_ComPtr <ID3D11ShaderResourceView> pSRV;
+
     SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
-    SK_ComPtr <ID3D11Resource>  pDst = nullptr;
+    SK_ComPtr <ID3D11Texture2D> pDst = nullptr;
 
     if (pSwapChain != nullptr)
     {
       pSwapChain->GetDesc (&swapDesc);
+      pDevCtx->OMGetRenderTargets (1, &pRTV.p, nullptr);
 
-      if ( SUCCEEDED (
-             pSwapChain->GetBuffer   (
-               0,
-                 IID_ID3D11Texture2D,
-                   (void **)&pSrc.p  )
-                     )
-         )
+      if (! pRTV.p)
+        return;
+
+      SK_ComPtr <ID3D11Resource> pOut;
+      pRTV->GetResource        (&pOut.p);
+      pOut->QueryInterface <ID3D11Texture2D> (&pDst.p);
+
+      if (! pDst.p)
+        return;
+
+      D3D11_TEXTURE2D_DESC    texDesc = { };
+      pDst->GetDesc         (&texDesc);
+      pDev->CreateTexture2D (&texDesc, nullptr, &pSrc.p);
+      
+      if (texDesc.SampleDesc.Count > 1)
+        pDevCtx->ResolveSubresource        (pSrc, 0, pDst, 0, texDesc.Format);
+      else
       {
-        hdr_base->pMainSrv->GetResource      (&pDst.p);
-
-        D3D11_TEXTURE2D_DESC texDesc = { };
-        pSrc->GetDesc      (&texDesc);
-
-        if (texDesc.SampleDesc.Count > 1)
-          pDevCtx->ResolveSubresource        (pDst, 0, pSrc, 0, texDesc.Format);
+        SK_ComQIPtr <ID3D11DeviceContext1>
+            pDevCtx1 (pDevCtx);
+        if (pDevCtx1.p != nullptr)
+          pDevCtx1->CopySubresourceRegion1 (pSrc, 0, 0, 0, 0,
+                                            pDst, 0, nullptr, D3D11_COPY_DISCARD);
         else
-        {
-          SK_ComQIPtr <ID3D11DeviceContext1>
-              pDevCtx1 (pDevCtx);
-          if (pDevCtx1.p != nullptr)
-            pDevCtx1->CopySubresourceRegion1 (pDst, 0, 0, 0, 0,
-                                              pSrc, 0, nullptr, D3D11_COPY_DISCARD);
-          else
-            pDevCtx->CopyResource            (pDst,    pSrc);
-        }
+          pDevCtx->CopyResource            (pSrc,    pDst);
       }
+
+      SK_ComQIPtr <ID3D11Resource>    pSrcRes (pSrc);
+      pDev->CreateShaderResourceView (pSrcRes.p, nullptr, &pSRV.p);
     }
 
     D3D11_MAPPED_SUBRESOURCE mapped_resource  = { };
     HDR_LUMINANCE            cbuffer_luma     = { };
     HDR_COLORSPACE_PARAMS    cbuffer_cspace   = { };
 
-    if (snap_cache.last_gpu_cbuffer_cspace != hdr_base->colorSpaceCBuffer) {
-        snap_cache.last_gpu_cbuffer_cspace =  hdr_base->colorSpaceCBuffer;
-        snap_cache.last_hash_cspace        = 0x0;
-    }
-
-    if (snap_cache.last_gpu_cbuffer_luma != hdr_base->mainSceneCBuffer) {
-        snap_cache.last_gpu_cbuffer_luma =  hdr_base->mainSceneCBuffer;
-        snap_cache.last_hash_luma        = 0x0;
-    }
-
     bool need_full_hdr_processing = false;
-
-    cbuffer_luma.luminance_scale [0] =  __SK_HDR_Luma;
-    cbuffer_luma.luminance_scale [1] =  __SK_HDR_Exp;
-    cbuffer_luma.luminance_scale [2] = (__SK_HDR_HorizCoverage / 100.0f) * 2.0f - 1.0f;
-    cbuffer_luma.luminance_scale [3] = (__SK_HDR_VertCoverage  / 100.0f) * 2.0f - 1.0f;
  
     need_full_hdr_processing |= 
       ( __SK_HDR_HorizCoverage != 100.0f ||
@@ -608,84 +559,45 @@ SK_HDR_SnapshotSwapchain (void)
       need_full_hdr_processing ? hdr_base->PixelShaderHDR_Uber.shader
                                : hdr_base->PixelShaderHDR_Basic.shader;
 
-    //uint32_t cb_hash_luma =
-    //  crc32c (0x0, (const void *) &cbuffer_luma, sizeof SK_HDR_FIXUP::HDR_LUMINANCE);
-    //
-    ////if (cb_hash_luma != snap_cache.last_hash_luma)
+    if ( SUCCEEDED (
+           pDevCtx->Map ( hdr_base->mainSceneCBuffer,
+                            0, D3D11_MAP_WRITE_DISCARD, 0,
+                               &mapped_resource )
+                   )
+       )
     {
-      if ( SUCCEEDED (
-             pDevCtx->Map ( hdr_base->mainSceneCBuffer,
-                              0, D3D11_MAP_WRITE_DISCARD, 0,
-                                 &mapped_resource )
-                     )
-         )
-      {
-        _ReadWriteBarrier ();
+      _ReadWriteBarrier ();
 
-        memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
-                 &cbuffer_luma, sizeof HDR_LUMINANCE );
+      memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+               &cbuffer_luma, sizeof HDR_LUMINANCE );
 
-        pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
+      pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
 
-      //snap_cache.last_hash_luma = cb_hash_luma;
-      }
-
-      else return;
+    //snap_cache.last_hash_luma = cb_hash_luma;
     }
 
-    cbuffer_cspace.uiToneMapper           =   __SK_HDR_tonemap;
-    cbuffer_cspace.hdrSaturation          =   __SK_HDR_Saturation;
-    cbuffer_cspace.hdrPaperWhite          =   __SK_HDR_PaperWhite;
-    cbuffer_cspace.sdrLuminance_NonStd    =   __SK_HDR_user_sdr_Y * 1.0_Nits;
-    cbuffer_cspace.sdrIsImplicitlysRGB    =   __SK_HDR_Bypass_sRGB != 1;
-    cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;
-    cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_visualization;
-    cbuffer_cspace.visualFunc [2]         = (uint32_t)__SK_HDR_visualization;
+    else return;
 
-    cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?
-                                    rb.working_gamut.maxAverageY != 0.0f ?
-                                    rb.working_gamut.maxAverageY         : rb.display_gamut.maxAverageY
-                                                                 :         rb.display_gamut.maxAverageY;
-    cbuffer_cspace.hdrLuminance_MaxLocal = __SK_HDR_tonemap == 2 ?
-                                    rb.working_gamut.maxLocalY != 0.0f ?
-                                    rb.working_gamut.maxLocalY         : rb.display_gamut.maxLocalY
-                                                                 :       rb.display_gamut.maxLocalY;
-    cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
-    cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
+    cbuffer_cspace.uiToneMapper           =   255; // Copy Resource
 
-    extern float                       __SK_HDR_PQBoost0;
-    extern float                       __SK_HDR_PQBoost1;
-    extern float                       __SK_HDR_PQBoost2;
-    extern float                       __SK_HDR_PQBoost3;
-    cbuffer_cspace.pqBoostParams [0] = __SK_HDR_PQBoost0;
-    cbuffer_cspace.pqBoostParams [1] = __SK_HDR_PQBoost1;
-    cbuffer_cspace.pqBoostParams [2] = __SK_HDR_PQBoost2;
-    cbuffer_cspace.pqBoostParams [3] = __SK_HDR_PQBoost3;
-
-    //uint32_t cb_hash_cspace =
-    //  crc32c (0x0, (const void *) &cbuffer_cspace, sizeof SK_HDR_FIXUP::HDR_COLORSPACE_PARAMS);
-    //
-    ////if (cb_hash_cspace != snap_cache.last_hash_cspace)
+    if ( SUCCEEDED (
+           pDevCtx->Map ( hdr_base->colorSpaceCBuffer,
+                            0, D3D11_MAP_WRITE_DISCARD, 0,
+                              &mapped_resource )
+                   )
+       )
     {
-      if ( SUCCEEDED (
-             pDevCtx->Map ( hdr_base->colorSpaceCBuffer,
-                              0, D3D11_MAP_WRITE_DISCARD, 0,
-                                &mapped_resource )
-                     )
-         )
-      {
-        _ReadWriteBarrier ();
+      _ReadWriteBarrier ();
 
-        memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
-                 &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
+      memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
+               &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
 
-        pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
+      pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
 
-      //snap_cache.last_hash_cspace = cb_hash_cspace;
-      }
-
-      else return;
+    //snap_cache.last_hash_cspace = cb_hash_cspace;
     }
+
+    else return;
 
 //#define _ImGui_Stateblock
 
@@ -789,28 +701,30 @@ SK_HDR_SnapshotSwapchain (void)
                                        0.0f, 1.0f
       };
 
-      pDevCtx->GetPredication         (&predication.pPredicate.p,                                     &predication.enable);
-      pDevCtx->OMGetBlendState        (&output.pBlendState.p,      output.fBlendFactors,              &output.uiBlendMask);
-      pDevCtx->OMGetRenderTargets     (   D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,                     &output.pRTVs [0].p,
-                                                                                                   &depth_stencil.pView.p);
-      pDevCtx->VSGetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &resources.cbuffers.vs [0].p);
-      pDevCtx->PSGetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &resources.cbuffers.ps [0].p);
+      resources.ps.hdr [0] = pSRV.p;
+
+      //pDevCtx->GetPredication         (&predication.pPredicate.p,                                     &predication.enable);
+      //pDevCtx->OMGetBlendState        (&output.pBlendState.p,      output.fBlendFactors,              &output.uiBlendMask);
+      //pDevCtx->OMGetRenderTargets     (   D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,                     &output.pRTVs [0].p,
+      //                                                                                             &depth_stencil.pView.p);
+      //pDevCtx->VSGetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &resources.cbuffers.vs [0].p);
+      //pDevCtx->PSGetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, &resources.cbuffers.ps [0].p);
                                       
-      pDevCtx->VSGetShader            (&shaders.pVS.p, nullptr, nullptr);
-      pDevCtx->PSGetShader            (&shaders.pPS.p, nullptr, nullptr);
+      //pDevCtx->VSGetShader            (&shaders.pVS.p, nullptr, nullptr);
+      //pDevCtx->PSGetShader            (&shaders.pPS.p, nullptr, nullptr);
 
-      pDevCtx->PSGetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, &resources.ps.original [0].p);
-      pDevCtx->PSGetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,        &resources.ps.samplers [0].p);
+      //pDevCtx->PSGetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, &resources.ps.original [0].p);
+      //pDevCtx->PSGetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,        &resources.ps.samplers [0].p);
 
-      pDevCtx->IAGetPrimitiveTopology (&primitive_assembly.topology);
-      pDevCtx->IAGetInputLayout       (&primitive_assembly.pLayout.p);
-      pDevCtx->IAGetIndexBuffer       (&index_buffer.pBuffer.p,
-                                       &index_buffer.format,
-                                       &index_buffer.offset);
-      pDevCtx->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
-                                       &vertex_buffers.pBuffers [0].p,
-                                       &vertex_buffers.strides  [0],
-                                       &vertex_buffers.offsets  [0]);
+      //pDevCtx->IAGetPrimitiveTopology (&primitive_assembly.topology);
+      //pDevCtx->IAGetInputLayout       (&primitive_assembly.pLayout.p);
+      //pDevCtx->IAGetIndexBuffer       (&index_buffer.pBuffer.p,
+      //                                 &index_buffer.format,
+      //                                 &index_buffer.offset);
+      //pDevCtx->IAGetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
+      //                                 &vertex_buffers.pBuffers [0].p,
+      //                                 &vertex_buffers.strides  [0],
+      //                                 &vertex_buffers.offsets  [0]);
       pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
       pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
                                              std::array <UINT,           1> { 0       }.data (),
@@ -827,12 +741,13 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->PSSetShader            (       pPixelShaderHDR,                       nullptr, 0);
       pDevCtx->PSSetConstantBuffers   (0, 1, &hdr_base->colorSpaceCBuffer);
 
-      pDevCtx->RSGetState             (&rasterizer.pState.p);
+      //pDevCtx->RSGetState             (&rasterizer.pState.p);
+      //pDevCtx->RSGetScissorRects      (&rasterizer.num_scissors,
+      //                                 &rasterizer.scissors [0]);
+      //pDevCtx->RSGetViewports         (&rasterizer.num_viewports,
+      //                                 &rasterizer.viewports [0]);
+      
       pDevCtx->RSSetState             (hdr_base->pRasterizerState);
-      pDevCtx->RSGetScissorRects      (&rasterizer.num_scissors,
-                                       &rasterizer.scissors [0]);
-      pDevCtx->RSGetViewports         (&rasterizer.num_viewports,
-                                       &rasterizer.viewports [0]);
       pDevCtx->RSSetScissorRects      (0, nullptr);
       pDevCtx->RSSetViewports         (1, &vp);
 
@@ -841,16 +756,16 @@ SK_HDR_SnapshotSwapchain (void)
           D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE
       );
 
-      pDevCtx->OMGetDepthStencilState ( &depth_stencil.pState.p,
-                                        &depth_stencil.uiRef );
+      //pDevCtx->OMGetDepthStencilState ( &depth_stencil.pState.p,
+      //                                  &depth_stencil.uiRef );
       pDevCtx->OMSetDepthStencilState (    hdr_base->pDSState,
                                          depth_stencil.uiRef );
 
-      pDevCtx->ClearRenderTargetView ( pRenderTargetView, std::array <FLOAT,4> { 0.0f, 0.0f, 0.0f, 1.0f }.data () );
+      ///pDevCtx->ClearRenderTargetView ( pRenderTargetView, std::array <FLOAT,4> { 0.0f, 0.0f, 0.0f, 1.0f }.data () );
 
-      pDevCtx->OMSetRenderTargets     ( 1,
-                                         &pRenderTargetView.p,
-                                            nullptr );
+    //pDevCtx->OMSetRenderTargets     ( 1,
+    //                                   &pRTV.p,//&pRenderTargetView.p,
+    //                                      nullptr );
 
       pDevCtx->PSSetShaderResources   (0, 2, &resources.ps.hdr [0].p);
       pDevCtx->PSSetSamplers          (0, 1, &hdr_base->pSampler0);
@@ -875,6 +790,312 @@ SK_HDR_SnapshotSwapchain (void)
       // -*- //
 
       pDevCtx->SetPredication         (nullptr, FALSE);
+      D3D11_Draw_Original             (pDevCtx, 4,       0);
+      pDevCtx->SetPredication         (predication.pPredicate, predication.enable);
+
+      // -*- //
+
+      //pDevCtx->PSSetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,
+      //                                &resources.ps.original [0].p);
+      //pDevCtx->PSSetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,
+      //                                &resources.ps.samplers [0].p);
+      //pDevCtx->IASetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
+      //                                &vertex_buffers.pBuffers [0].p,
+      //                                &vertex_buffers.strides  [0],
+      //                                &vertex_buffers.offsets  [0]);
+      //pDevCtx->IASetPrimitiveTopology (primitive_assembly.topology);
+      //pDevCtx->IASetInputLayout       (primitive_assembly.pLayout);
+      //pDevCtx->IASetIndexBuffer       (index_buffer.pBuffer,
+      //                                 index_buffer.format,
+      //                                 index_buffer.offset);
+      //
+      //pDevCtx->PSSetShader            (shaders.pPS, nullptr, 0);
+      //pDevCtx->VSSetShader            (shaders.pVS, nullptr, 0);
+      //
+      //if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
+      //{
+      //  pDevCtx->GSSetShader          (shaders.pGS, nullptr, 0);
+      //  pDevCtx->SOSetTargets         (D3D11_SO_BUFFER_SLOT_COUNT,
+      //                                 &output.pStreams [0].p, nullptr);
+      //
+      //  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+      //  {
+      //    pDevCtx->HSSetShader        (shaders.pHS, nullptr, 0);
+      //    pDevCtx->DSSetShader        (shaders.pDS, nullptr, 0);
+      //  }
+      //}
+      //pDevCtx->VSSetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
+      //                                                 &resources.cbuffers.vs [0].p);
+      //pDevCtx->PSSetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
+      //                                                 &resources.cbuffers.ps [0].p);
+      //pDevCtx->RSSetScissorRects      (rasterizer.num_scissors,  rasterizer.scissors);
+      //pDevCtx->RSSetViewports         (rasterizer.num_viewports, rasterizer.viewports);
+      //pDevCtx->RSSetState             (rasterizer.pState.p);
+      //pDevCtx->OMSetDepthStencilState (depth_stencil.pState.p,
+      //                                 depth_stencil.uiRef);
+      //pDevCtx->OMSetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &output.pRTVs [0].p,
+      //                                 depth_stencil.pView.p);
+      //pDevCtx->OMSetBlendState        (output.pBlendState,
+      //                                 output.fBlendFactors,
+      //                                 output.uiBlendMask);
+#ifdef _ImGui_Stateblock
+      SK_D3D11_ApplyStateBlock (snap_cache.sb, pDevCtx);
+#endif
+    }
+  }
+}
+
+void
+SK_HDR_SnapshotSwapchain (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  bool hdr_display =
+    (rb.isHDRCapable () && rb.isHDRActive ());
+
+  if (! hdr_display)
+    return;
+
+  SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
+    rb.scanout.getEOTF ();
+
+  bool bEOTF_is_PQ =
+    (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
+
+  if (bEOTF_is_PQ)
+    return;
+
+  auto& vs_hdr_util  = hdr_base->VertexShaderHDR_Util;
+  auto& ps_hdr_uber  = hdr_base->PixelShaderHDR_Uber;
+  auto& ps_hdr_basic = hdr_base->PixelShaderHDR_Basic;
+
+  if ( vs_hdr_util.shader  == nullptr ||
+       ps_hdr_uber.shader  == nullptr ||
+       ps_hdr_basic.shader == nullptr )
+  {
+    hdr_base->reloadResources ();
+  }
+
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+  if ( vs_hdr_util.shader  != nullptr &&
+       ps_hdr_uber.shader  != nullptr &&
+       ps_hdr_basic.shader != nullptr &&
+       hdr_base->pMainSrv  != nullptr )
+  {
+    auto pDev =
+      rb.getDevice <ID3D11Device> ();
+
+    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
+    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+    if (pDev != nullptr     &&      pDevCtx == nullptr)
+    {   pDev->GetImmediateContext (&pDevCtx.p); }
+
+    if (! pDevCtx) return;
+
+    SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
+    SK_ComPtr <ID3D11Resource>  pDst = nullptr;
+
+    if (pSwapChain != nullptr)
+    {
+      pSwapChain->GetDesc (&swapDesc);
+
+      if ( SUCCEEDED (
+             pSwapChain->GetBuffer   (
+               0,
+                 IID_ID3D11Texture2D,
+                   (void **)&pSrc.p  )
+                     )
+         )
+      {
+        hdr_base->pMainSrv->GetResource      (&pDst.p);
+
+        D3D11_TEXTURE2D_DESC texDesc = { };
+        pSrc->GetDesc      (&texDesc);
+
+        if (texDesc.SampleDesc.Count > 1)
+          pDevCtx->ResolveSubresource        (pDst, 0, pSrc, 0, texDesc.Format);
+        else
+        {
+          SK_ComQIPtr <ID3D11DeviceContext1>
+              pDevCtx1 (pDevCtx);
+          if (pDevCtx1.p != nullptr)
+            pDevCtx1->CopySubresourceRegion1 (pDst, 0, 0, 0, 0,
+                                              pSrc, 0, nullptr, D3D11_COPY_DISCARD);
+          else
+            pDevCtx->CopyResource            (pDst,    pSrc);
+        }
+      }
+    }
+
+    D3D11_MAPPED_SUBRESOURCE mapped_resource  = { };
+    HDR_LUMINANCE            cbuffer_luma     = { };
+    HDR_COLORSPACE_PARAMS    cbuffer_cspace   = { };
+
+    bool need_full_hdr_processing = false;
+
+    cbuffer_luma.luminance_scale [0] =  __SK_HDR_Luma;
+    cbuffer_luma.luminance_scale [1] =  __SK_HDR_Exp;
+    cbuffer_luma.luminance_scale [2] = (__SK_HDR_HorizCoverage / 100.0f) * 2.0f - 1.0f;
+    cbuffer_luma.luminance_scale [3] = (__SK_HDR_VertCoverage  / 100.0f) * 2.0f - 1.0f;
+ 
+    need_full_hdr_processing |= 
+      ( __SK_HDR_HorizCoverage != 100.0f ||
+        __SK_HDR_VertCoverage  != 100.0f ||
+        __SK_HDR_visualization != 0 ||
+        __SK_HDR_tonemap       != 0 );
+
+    auto pPixelShaderHDR =
+      need_full_hdr_processing ? hdr_base->PixelShaderHDR_Uber.shader
+                               : hdr_base->PixelShaderHDR_Basic.shader;
+
+    if ( SUCCEEDED (
+           pDevCtx->Map ( hdr_base->mainSceneCBuffer,
+                            0, D3D11_MAP_WRITE_DISCARD, 0,
+                               &mapped_resource )
+                   )
+       )
+    {
+      _ReadWriteBarrier ();
+
+      memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+               &cbuffer_luma, sizeof HDR_LUMINANCE );
+
+      pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
+    }
+
+    else return;
+
+    cbuffer_cspace.uiToneMapper           =   __SK_HDR_tonemap;
+    cbuffer_cspace.hdrSaturation          =   __SK_HDR_Saturation;
+    cbuffer_cspace.hdrPaperWhite          =   __SK_HDR_PaperWhite;
+    cbuffer_cspace.sdrLuminance_NonStd    =   __SK_HDR_user_sdr_Y * 1.0_Nits;
+    cbuffer_cspace.sdrIsImplicitlysRGB    =   __SK_HDR_Bypass_sRGB != 1;
+    cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;
+    cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_visualization;
+    cbuffer_cspace.visualFunc [2]         = (uint32_t)__SK_HDR_visualization;
+
+    cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?
+                                    rb.working_gamut.maxAverageY != 0.0f ?
+                                    rb.working_gamut.maxAverageY         : rb.display_gamut.maxAverageY
+                                                                 :         rb.display_gamut.maxAverageY;
+    cbuffer_cspace.hdrLuminance_MaxLocal = __SK_HDR_tonemap == 2 ?
+                                    rb.working_gamut.maxLocalY != 0.0f ?
+                                    rb.working_gamut.maxLocalY         : rb.display_gamut.maxLocalY
+                                                                 :       rb.display_gamut.maxLocalY;
+    cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
+    cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
+
+    extern float                       __SK_HDR_PQBoost0;
+    extern float                       __SK_HDR_PQBoost1;
+    extern float                       __SK_HDR_PQBoost2;
+    extern float                       __SK_HDR_PQBoost3;
+    cbuffer_cspace.pqBoostParams [0] = __SK_HDR_PQBoost0;
+    cbuffer_cspace.pqBoostParams [1] = __SK_HDR_PQBoost1;
+    cbuffer_cspace.pqBoostParams [2] = __SK_HDR_PQBoost2;
+    cbuffer_cspace.pqBoostParams [3] = __SK_HDR_PQBoost3;
+
+    if ( SUCCEEDED (
+           pDevCtx->Map ( hdr_base->colorSpaceCBuffer,
+                            0, D3D11_MAP_WRITE_DISCARD, 0,
+                              &mapped_resource )
+                   )
+       )
+    {
+      _ReadWriteBarrier ();
+
+      memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
+               &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
+
+      pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
+    }
+
+    else return;
+
+    SK_ComPtr <ID3D11RenderTargetView>  pRenderTargetView;
+    if (! _d3d11_rbk->frames_.empty ()) pRenderTargetView =
+          _d3d11_rbk->frames_ [0].hdr.pRTV;
+
+    if (              pRenderTargetView.p != nullptr                                 &&
+               swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          &&
+         ( rb.scanout.dxgi_colorspace     == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
+           rb.scanout.dwm_colorspace      == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
+           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
+    {
+      SK_ComQIPtr <ID3D11DeviceContext3> pDevCtx3 (pDevCtx);
+
+#ifdef _ImGui_Stateblock
+      SK_D3D11_CaptureStateBlock (pDevCtx, &snap_cache.sb);
+#endif
+      using d3d11_srv_t =
+           ID3D11ShaderResourceView;
+
+      struct {
+        struct {
+          SK_ComPtr <d3d11_srv_t>           hdr      [2] = {
+            hdr_base->pMainSrv,
+            hdr_base->pCopySrv
+             //hdr_base->pHUDSrv
+          };
+        } ps;
+      } resources;
+
+      const D3D11_VIEWPORT vp = {      0.0f, 0.0f,
+        static_cast <float> (swapDesc.BufferDesc.Width ),
+        static_cast <float> (swapDesc.BufferDesc.Height),
+                                       0.0f, 1.0f
+      };
+
+      if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
+      {
+        pDevCtx->GSSetShader          (nullptr,        nullptr,       0);
+        pDevCtx->SOSetTargets         (0,              nullptr, nullptr);
+
+        if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+        {
+          pDevCtx->HSSetShader        (nullptr,        nullptr,       0);
+          pDevCtx->DSSetShader        (nullptr,        nullptr,       0);
+        }
+      }
+
+      pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+      pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
+                                             std::array <UINT,           1> { 0       }.data (),
+                                             std::array <UINT,           1> { 0       }.data ());
+      pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
+      pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
+
+      pDevCtx->OMSetBlendState        (hdr_base->pBlendState, nullptr, 0xFFFFFFFFUL);
+
+      pDevCtx->VSSetShader            (       hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
+      pDevCtx->VSSetConstantBuffers   (0, 1, &hdr_base->mainSceneCBuffer);
+
+      pDevCtx->PSSetShader            (       pPixelShaderHDR,                       nullptr, 0);
+      pDevCtx->PSSetConstantBuffers   (0, 1, &hdr_base->colorSpaceCBuffer);
+
+      pDevCtx->RSSetState             (hdr_base->pRasterizerState);
+      pDevCtx->RSSetScissorRects      (0, nullptr);
+      pDevCtx->RSSetViewports         (1, &vp);
+
+      //SK_ReleaseAssert (
+      //  rasterizer.num_scissors <=
+      //    D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE
+      //);
+
+      pDevCtx->OMSetDepthStencilState ( hdr_base->pDSState,
+                                        0 );
+      pDevCtx->OMSetRenderTargets     ( 1,
+                                         &pRenderTargetView.p,
+                                            nullptr );
+
+      pDevCtx->PSSetShaderResources   (0, 2, &resources.ps.hdr [0].p);
+      pDevCtx->PSSetSamplers          (0, 1, &hdr_base->pSampler0);
+
+      // -*- //
+
+      pDevCtx->SetPredication         (nullptr, FALSE);
       pDevCtx->Draw                   (4,       0);
 
 #ifdef SK_HDR_NAN_MITIGATION
@@ -886,18 +1107,23 @@ SK_HDR_SnapshotSwapchain (void)
                                         pHDRTexture );
 #endif
 
-      if (__SK_HDR_AdaptiveToneMap)
+      if ( __SK_HDR_AdaptiveToneMap && // SwapChain may not support UAVs...
+            _d3d11_rbk->frames_ [0].hdr.pUAV.p != nullptr )
       {
         SK_ComPtr <ID3D11UnorderedAccessView>
             pFramebufferUAV (_d3d11_rbk->frames_ [0].hdr.pUAV);
         if (pFramebufferUAV.p != nullptr)
         {
+          static ID3D11UnorderedAccessView* const
+            nul_uavs [D3D11_PS_CS_UAV_REGISTER_COUNT]                    = { };
           static ID3D11ShaderResourceView* const
             nul_srvs [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]      = { };
           static ID3D11RenderTargetView* const                           
             nul_rtvs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]            = { };
           static ID3D11Buffer* const
             nul_bufs [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
+
+          pDevCtx->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, nul_uavs, nullptr);
 
           pDevCtx->ClearUnorderedAccessViewFloat (
             hdr_base->pGamutUAV,
@@ -910,10 +1136,6 @@ SK_HDR_SnapshotSwapchain (void)
             hdr_base->pLuminanceUAV,
                 hdr_base->pGamutUAV
           };
-          pDevCtx->CSGetConstantBuffers      (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
-                                                                           &resources.cbuffers.cs [0].p);
-
-          //pDevCtx->ClearUnorderedAccessViewFloat (hdr_base->pLuminanceUAV, std::array <FLOAT, 4> { 0.0f, 0.0f, 0.0f, 0.0f }.data ());
 
           pDevCtx->OMSetRenderTargets        (   D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,       nul_rtvs, nullptr);
           pDevCtx->PSSetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT, nul_srvs);
@@ -930,68 +1152,11 @@ SK_HDR_SnapshotSwapchain (void)
           pDevCtx->Dispatch                 ( 32,
                                               16, 1 );
 
-#define	D3D11_UAV_SLOT_COUNT	( 8 )
-          if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
-          pDevCtx->CSSetUnorderedAccessViews (0, D3D11_1_UAV_SLOT_COUNT, &resources.cs.uavs [0].p, nullptr);
-          else
-          pDevCtx->CSSetUnorderedAccessViews (0, D3D11_UAV_SLOT_COUNT,   &resources.cs.uavs [0].p, nullptr);
-          pDevCtx->CSSetConstantBuffers      (0,
-                    D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,   &resources.cbuffers.cs [0].p);
+          pDevCtx->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, nul_uavs, nullptr);
         }
       }
-
-      pDevCtx->SetPredication         (predication.pPredicate, predication.enable);
 
       // -*- //
-
-      pDevCtx->PSSetShaderResources   (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,
-                                      &resources.ps.original [0].p);
-      pDevCtx->PSSetSamplers          (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,
-                                      &resources.ps.samplers [0].p);
-      pDevCtx->IASetVertexBuffers     (0, D3D11_IA_VERTEX_INPUT_RESOURCE_SLOT_COUNT,
-                                      &vertex_buffers.pBuffers [0].p,
-                                      &vertex_buffers.strides  [0],
-                                      &vertex_buffers.offsets  [0]);
-      pDevCtx->IASetPrimitiveTopology (primitive_assembly.topology);
-      pDevCtx->IASetInputLayout       (primitive_assembly.pLayout);
-      pDevCtx->IASetIndexBuffer       (index_buffer.pBuffer,
-                                       index_buffer.format,
-                                       index_buffer.offset);
-
-      pDevCtx->PSSetShader            (shaders.pPS, nullptr, 0);
-      pDevCtx->VSSetShader            (shaders.pVS, nullptr, 0);
-
-      if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
-      {
-        pDevCtx->GSSetShader          (shaders.pGS, nullptr, 0);
-        pDevCtx->SOSetTargets         (D3D11_SO_BUFFER_SLOT_COUNT,
-                                       &output.pStreams [0].p, nullptr);
-
-        if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
-        {
-          pDevCtx->HSSetShader        (shaders.pHS, nullptr, 0);
-          pDevCtx->DSSetShader        (shaders.pDS, nullptr, 0);
-        }
-      }
-      pDevCtx->VSSetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
-                                                       &resources.cbuffers.vs [0].p);
-      pDevCtx->PSSetConstantBuffers   (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT,
-                                                       &resources.cbuffers.ps [0].p);
-      pDevCtx->RSSetScissorRects      (rasterizer.num_scissors,  rasterizer.scissors);
-      pDevCtx->RSSetViewports         (rasterizer.num_viewports, rasterizer.viewports);
-      pDevCtx->RSSetState             (rasterizer.pState.p);
-      pDevCtx->OMSetDepthStencilState (depth_stencil.pState.p,
-                                       depth_stencil.uiRef);
-      pDevCtx->OMSetRenderTargets     (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &output.pRTVs [0].p,
-                                       depth_stencil.pView.p);
-      pDevCtx->OMSetBlendState        (output.pBlendState,
-                                       output.fBlendFactors,
-                                       output.uiBlendMask);
-
-                              ++snap_cache.lHDRFrames;
-#ifdef _ImGui_Stateblock
-      SK_D3D11_ApplyStateBlock (snap_cache.sb, pDevCtx);
-#endif
     }
   }
 }

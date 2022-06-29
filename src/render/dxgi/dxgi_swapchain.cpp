@@ -547,6 +547,20 @@ IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 
   HRESULT hr = S_OK;
 
+  DXGI_SWAP_CHAIN_DESC
+                   swapDesc = { };
+  pReal->GetDesc (&swapDesc);
+
+  // XXX: There's duplicate logic in the hooked SwapChain functions
+  //  * Please unify...
+  if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+  {
+    notFaking_      = false;
+    fakeFullscreen_ = bFullscreen;
+
+    return S_OK;
+  }
+
 //if (    bFullscreen    != Fullscreen ||
 //    (pOriginalTarget.p != pTarget    && pTarget != nullptr) )
   {
@@ -585,8 +599,8 @@ IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarge
   if (! notFaking_)
   {
     if (pFullscreen != nullptr)
-       *pFullscreen  = fakeFullscreen_ ?
-                                  TRUE : FALSE;
+       *pFullscreen  = ( fakeFullscreen_ ?
+                                    TRUE : FALSE );
 
     BOOL                        bFullscreen = FALSE;
     pReal->GetFullscreenState (&bFullscreen, ppTarget);
@@ -624,7 +638,7 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
       pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
 
       if (! notFaking_)
-        pDesc->Windowed = ~fakeFullscreen_;
+        pDesc->Windowed = (fakeFullscreen_ != TRUE);
     }
   }
 
@@ -942,8 +956,22 @@ IWrapDXGISwapChain::GetFullscreenDesc (DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc)
 {
   assert (ver_ >= 1);
 
-  return
+  HRESULT hr =
     static_cast <IDXGISwapChain1 *>(pReal)->GetFullscreenDesc (pDesc);
+
+  // Fix for Unreal Engine craziness
+  if ((! notFaking_) && SUCCEEDED (hr))
+  {
+    if (  pDesc != nullptr)
+    { if (pDesc->Windowed != fakeFullscreen_)
+        notFaking_ = true;
+
+      pDesc->Windowed =
+        (! fakeFullscreen_);
+    }
+  }
+
+  return hr;
 }
 
 HRESULT
