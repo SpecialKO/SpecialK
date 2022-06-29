@@ -1610,7 +1610,7 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
   }
 
   static constexpr float
-    fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f }; // Black pixels matter
+    fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f }; // Black pixels matter
 
   if (pColor == nullptr)
       pColor = fClearColor;
@@ -1652,8 +1652,9 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
 #endif
 
     // NOTE: This will exist even if the system does not support HDR
-    if (                         pRawRTV   != nullptr || 
-        _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr )
+    if (                            pRawRTV   != nullptr ||
+         ( _d3d11_rbk->frames_.size () > 0 &&
+           _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr ) )
     {
       if (pRawRTV == nullptr)
           pRawRTV = _d3d11_rbk->frames_ [0].hdr.pRTV.p;
@@ -1749,7 +1750,7 @@ SK_D3D11_InsertBlackFrame (void)
       SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
 
       static constexpr FLOAT
-        fClearColor [] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];

@@ -1,6 +1,12 @@
-﻿22.6.28.1-NOCEGUI
+﻿22.6.29-NOCEGUI
+===============
+ + Fixed an issue that prevented some Unreal Engine games (i.e. The Quarry)
+     from starting
+
+22.6.28.1-NOCEGUI
 =================
- + Fixed D3D11 games lacking support for Unordered Access Views crashing in HDR
+ + Fixed D3D11 games lacking support for Unordered Access Views on their
+     SwapChain from crashing in HDR
 
 22.6.28-NOCEGUI
 ===============

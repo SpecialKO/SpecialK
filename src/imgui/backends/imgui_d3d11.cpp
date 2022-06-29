@@ -1530,7 +1530,8 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       DXGI_SWAP_CHAIN_DESC  swapDesc = { };
       pSwapChain->GetDesc (&swapDesc);
 
-      if (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
+      if ( (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
+                                == DXGI_USAGE_UNORDERED_ACCESS )
       {
         D3D11_UNORDERED_ACCESS_VIEW_DESC
         uav_desc                    = { };

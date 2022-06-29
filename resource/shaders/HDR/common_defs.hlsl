@@ -68,6 +68,33 @@ bool IsFinite (float x)
   return
     (! isinf (x));
 }
+bool IsNegative (float x)
+{
+  return
+    x < 0.0f;
+}
+
+bool AnyIsNegative (float2 x)
+{
+  return IsNegative (x.x) ||
+         IsNegative (x.y);
+}
+
+bool AnyIsNegative (float3 x)
+{
+  return IsNegative (x.x) ||
+         IsNegative (x.y) ||
+         IsNegative (x.z);
+}
+
+bool AnyIsNegative (float4 x)
+{
+  return IsNegative (x.x) ||
+         IsNegative (x.y) ||
+         IsNegative (x.z) ||
+         IsNegative (x.w);
+}
+
 // NaN checker
 // /Gic isn't enabled on fxc so we can't rely on isnan() anymore
 bool IsNan (float x)

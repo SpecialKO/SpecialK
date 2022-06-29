@@ -535,7 +535,7 @@ struct sk_config_t
       bool    temporary_dwm_hdr    = false; // Always turns HDR on and off for this game
       bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
       bool    clear_flipped_chain  =  true; // Clear buffers on present? (non-compliant)
-      float   chain_clear_color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
+      float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
     } dxgi;
 
     struct {
