@@ -3,6 +3,8 @@
 //
 #pragma warning ( disable : 3571 )
 
+#include "HDR/common_defs.hlsl"
+
 struct PS_INPUT
 {
   float4 pos      : SV_POSITION;
@@ -21,70 +23,22 @@ cbuffer srgbTransform : register (b0)
 sampler   srgbSampler     : register (s0);
 Texture2D srgbFrameBuffer : register (t0);
 
-// Dumbed down version that does not deal with values < 0,
-//   since it does not expect to be applied to buffers
-//     unclamped outside of [0,1].
-float3
-RemoveSRGBCurve (float3 x)
-{
-  return ( x < 0.04045f ) ?
-          (x / 12.92f)    :
-    pow ( (x + 0.055f) / 1.055f, 2.4f );
-}
-
-float3
-ApplySRGBCurve (float3 x)
-{
-  return ( x < 0.0031308f ?
-               12.92f * x :
-    1.055f * pow ( x, 1.0 / 2.4f ) - 0.55f );
-}
-
-// NaN checker
-// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
-bool IsNan (float x)
-{
-  return
-    (   x <= 0.0 ||
-      0.0 <= x ) ?
-           false : true;
-}
-
-bool AnyIsNan (float2 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y);
-}
-
-bool AnyIsNan (float3 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z);
-}
-
-bool AnyIsNan (float4 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z) ||
-         IsNan (x.w);
-}
-
 float4 main (PS_INPUT input) : SV_TARGET
 {
   float4 vLinear =
     srgbFrameBuffer.Sample ( srgbSampler,
                                input.uv );
 
-  if (AnyIsNan (vLinear.rgba))
+  if ( AnyIsNan      (vLinear.rgba) ||
+       AnyIsNegative (vLinear.rgba) )
   {
     return
       float4 (0.0f, 0.0f, 0.0f, 0.0f);
   }
 
   vLinear.rgba =
-    clamp (vLinear.rgba, 0.0f, 125.0f);
+    float4 ( clamp (vLinear.rgb, 0.0f, 125.0f),
+          saturate (vLinear.a) );
 
   if (passthrough)
     return vLinear;

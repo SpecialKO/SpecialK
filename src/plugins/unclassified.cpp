@@ -1305,3 +1305,68 @@ SK_HatsuneMiku_BeginFrame (void)
   }
 }
 #endif
+
+
+
+extern bool 
+SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
+                          ID3D11Texture2D *pDstTex );
+
+bool
+SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
+                                     UINT                 dev_idx )
+{
+  static bool bTalesOfArise =
+    SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
+
+  // Not needed for any other games yet...
+  if (! bTalesOfArise)
+    return false;
+
+  if (dev_idx == UINT_MAX)
+  {
+    dev_idx =
+      SK_D3D11_GetDeviceContextHandle (pDevCtx);
+  }
+
+  // This Pixel Shader is the source of all artifacts
+  if ( 0xeef0923 ==
+         SK_D3D11_Shaders->pixel.current.shader [dev_idx] )
+  {
+    SK_ComPtr <ID3D11RenderTargetView> pRTV;
+    pDevCtx->OMGetRenderTargets  ( 1, &pRTV.p, nullptr ); 
+    
+    if (pRTV.p != nullptr)
+    {
+      SK_ComPtr <ID3D11Texture2D>     pTexCopy;
+      SK_ComPtr <ID3D11Device>            pDev;
+      pDevCtx->GetDevice                (&pDev.p);
+      SK_ComPtr <ID3D11Resource>          pRes;
+      pRTV->GetResource                 (&pRes.p);
+      SK_ComQIPtr <ID3D11Texture2D> pTex (pRes.p);
+
+      if ( pRes.p != nullptr &&
+           pTex.p != nullptr &&
+           pDev.p != nullptr )
+      {
+        D3D11_TEXTURE2D_DESC    texDesc = { };
+        pTex->GetDesc         (&texDesc);
+        pDev->CreateTexture2D (&texDesc, nullptr,
+           &pTexCopy.p);
+        if (pTexCopy.p != nullptr)
+        {
+          pDevCtx->CopyResource (
+            pTexCopy.p, pTex.p
+          );
+  
+          return
+            SK_D3D11_BltCopySurface (
+              pTexCopy, pTex
+            );
+        }
+      }
+    }
+  }
+
+  return false;
+}

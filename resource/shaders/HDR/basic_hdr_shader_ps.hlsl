@@ -9,6 +9,7 @@
 #define DEBUG_NAN
 //#define UTIL_STRIP_NAN
 
+#pragma warning ( disable : 3570 )
 #pragma warning ( disable : 3571 )
 #pragma warning ( disable : 4000 )
 
@@ -65,9 +66,10 @@ SK_ProcessColor4 ( float4 color,
                       int strip_srgb = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
-  if (AnyIsNan (color))
+  if (AnyIsNan      (color) ||
+      AnyIsNegative (color))
                 color =
-    float4 (0.0f, 0.0f, 0.0f, 1.0f);
+    float4 (0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 
   float4 out_color =
@@ -83,12 +85,12 @@ SK_ProcessColor4 ( float4 color,
     return out_color;
 #else
     return     AnyIsNan (out_color) ?
-    float4 (0.0f, 0.0f, 0.0f, 1.0f) : out_color;
+    float4 (0.0f, 0.0f, 0.0f, 0.0f) : out_color;
 #endif
                                 
 
   return
-    float4 (0.0f, 0.0f, 0.0f, 1.0f);
+    float4 (0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 #ifdef INCLUDE_NAN_MITIGATION
@@ -110,129 +112,32 @@ float4 getNonNanSample (float4 color, float2 uv)
       float2 ( 1.0f / tex_dims.x,               0.0f)
     };
 
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv ).rgb, 1.0f );
+  color =
+    texLastFrame0.Sample ( sampler0, uv );
 
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
+  if ( (! AnyIsNan      (color)) &&
+       (! AnyIsNegative (color)) )
     return color;
 
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [0] ).rgb, 1.0f );
+  for ( uint i = 0 ; i < 8 ; ++i )
+  {
+    if ( AnyIsNan      (color) ||
+         AnyIsNegative (color) )
+      color =
+        texMainScene.Sample  ( sampler0, uv + uv_offset [i] );
 
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [0] ).rgb, 1.0f );
+    if ( AnyIsNan      (color) ||
+         AnyIsNegative (color) )
+      color =
+        texLastFrame0.Sample ( sampler0, uv + uv_offset [i] );
 
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [1] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [1] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [2] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [2] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [3] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [3] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [4] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [4] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [5] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [5] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [6] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [6] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texLastFrame0.Sample ( sampler0, uv + uv_offset [7] ).rgb, 1.0f );
-
-  if ( AnyIsNan      (color.rgb) ||
-       AnyIsNegative (color.rgb) )
-    color = float4 (
-      texMainScene.Sample  ( sampler0, uv + uv_offset [7] ).rgb, 1.0f );
-
-  if ( (! AnyIsNan      (color.rgb)) &&
-       (! AnyIsNegative (color.rgb)) )
-    return color;
+    if ( (! AnyIsNan      (color)) &&
+         (! AnyIsNegative (color)) )
+      return color;
+  }
 
   return
-    float4 (0.0f, 0.0f, 0.0f, 1.0f);
+    float4 (0.0f, 0.0f, 0.0f, 0.0f);
 }
 #endif
 
@@ -242,24 +147,17 @@ float4 main (PS_INPUT input) : SV_TARGET
   {
     case TONEMAP_COPYRESOURCE:
     {
-      float4 ret = //float4 (0.0f, 0.0f, 0.0f, 0.0f);
+      float4 ret =
         texMainScene.Sample ( sampler0,
-                                input.uv ).rgba;
+                                input.uv );
 
 #ifdef INCLUDE_NAN_MITIGATION
       // A UNORM RenderTarget would return this instead of NaN,
       //   and the game is expecting UNORM render targets :)
-    //if (AnyIsNan (ret.rgba) || AnyIsNegative (ret.rgba))
+      if (AnyIsNan (ret.rgba) || AnyIsNegative (ret.rgba))
       {
-        ret.x = isnan (ret.x) ? 0.0f : ret.x;
-        ret.y = isnan (ret.y) ? 0.0f : ret.y;
-        ret.z = isnan (ret.z) ? 0.0f : ret.z;
-        ret.w = isnan (ret.w) ? 0.0f : ret.w;
-
-        ret.x = (ret.x < 0.0f || ret.x > 125.0f) ? 0.0f : ret.x;
-        ret.y = (ret.y < 0.0f || ret.y > 125.0f) ? 0.0f : ret.y;
-        ret.z = (ret.z < 0.0f || ret.z > 125.0f) ? 0.0f : ret.z;
-        ret.w = (ret.w < 0.0f || ret.w > 125.0f) ? 0.0f : ret.w;
+        return
+          float4 (0.0f, 0.0f, 0.0f, 0.0f);
       }
 #endif
 
@@ -274,7 +172,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                                 input.uv );
 
       if (AnyIsNan (color))
-        return float4 (0.0f, 0.0f, 0.0f, 1.0f);
+        return float4 (0.0f, 0.0f, 0.0f, 0.0f);
 
       if (color.r < 0.0f) color.r = 0.0f;
       if (color.g < 0.0f) color.g = 0.0f;
@@ -282,7 +180,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       if (color.a < 0.0f) color.a = 0.0f;
 
       return
-        float4 (color.rgb, 1.0f);
+        color;
     } break;
 #endif
   }
@@ -294,21 +192,20 @@ float4 main (PS_INPUT input) : SV_TARGET
        bIsHDR10 = true;
 #endif
 
-
   float4 hdr_color =
-    float4 (
-        texMainScene.Sample ( sampler0,
-                                input.uv ).rgb, 1.0f );
+    texMainScene.Sample ( sampler0,
+                            input.uv );
 
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
-  if ( AnyIsNan      (hdr_color.rgb) ||
-       AnyIsNegative (hdr_color.rgb) )
+  if ( AnyIsNan      (hdr_color) ||
+       AnyIsNegative (hdr_color) )
   {
     hdr_color.rgba =
-      getNonNanSample (
-                   hdr_color.rgba, input.uv );
-    if ( AnyIsNan (hdr_color.rgb) )
+      getNonNanSample ( hdr_color, input.uv );
+
+    if ( AnyIsNan      (hdr_color) ||
+         AnyIsNegative (hdr_color) )
     {
       float fTime =
         TWO_PI * (float)(currentTime % 3333) / 3333.3;
@@ -326,9 +223,9 @@ float4 main (PS_INPUT input) : SV_TARGET
     }
   }
 #else
-  if ( AnyIsNan (hdr_color.rgba) )
-    hdr_color.rgba =
-      getNonNanSample (hdr_color.rgba, input.uv);
+  if ( AnyIsNan (hdr_color) )
+    hdr_color =
+      getNonNanSample (hdr_color, input.uv);
 
   if (hdr_color.r < 0.0f||
       hdr_color.g < 0.0f||
@@ -343,8 +240,8 @@ float4 main (PS_INPUT input) : SV_TARGET
    if(hdr_color.a < 0.0f )
       hdr_color.a = 0.0f;}
 
- if (! any (hdr_color.rgb))
-   return float4 (0.0f, 0.0f, 0.0f, 1.0f);
+ if (! any (hdr_color))
+   return float4 (0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 #endif
 
@@ -361,7 +258,7 @@ float4 main (PS_INPUT input) : SV_TARGET
              0.0f, 1.0f );
 
   if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
-      over_range.r = hdr_color.r;
+     over_range.r = hdr_color.r;
   if (hdr_color.g <  0.0 || hdr_color.g > 1.0)
      over_range.g = hdr_color.g;
   if (hdr_color.b <  0.0 || hdr_color.b > 1.0)
@@ -425,7 +322,8 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
   
-  if (input.color.x != 0.0125f)
+  if ( input.color.x < 0.0125f - FLT_MIN ||
+       input.color.x > 0.0125f + FLT_MIN )
   {
     hdr_color.rgb = LinearToLogC (hdr_color.rgb);
     hdr_color.rgb = Contrast     (hdr_color.rgb,
@@ -478,8 +376,8 @@ float4 main (PS_INPUT input) : SV_TARGET
   else
 #endif
   {
-    hdr_color.rgb =
-      SK_ProcessColor4 (hdr_color, uiToneMapper).rgb;
+    hdr_color =
+      SK_ProcessColor4 (hdr_color, uiToneMapper);
   }
 
   hdr_color.rgb =
@@ -496,9 +394,6 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float  old_luma  =
-      Luminance (hdr_color.rgb);
-
     float3 new_color =
       PQToLinear (
         LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
@@ -511,7 +406,8 @@ float4 main (PS_INPUT input) : SV_TARGET
       hdr_color.rgb = new_color;
   }
 
-  if (hdrSaturation != 1.0f || uiToneMapper == TONEMAP_ACES_FILMIC)
+  if ( hdrSaturation >= 1.0f + FLT_MIN ||
+       hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
   {
     float saturation =
       hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
@@ -526,18 +422,20 @@ float4 main (PS_INPUT input) : SV_TARGET
       );
   }
 
+  float3 vNormalColor =
+    normalize (hdr_color.rgb);
+
   float fLuma =
-    /*length (hdr_color.rgb);// */
-    max (Luminance (hdr_color.rgb), 0.0f);
+    max (Luminance (vNormalColor), 0.0f);
 
   hdr_color.rgb *=
 #ifdef INCLUDE_HDR10
     uiToneMapper != TONEMAP_HDR10_to_scRGB ?
 #endif
-    (                            hdrPaperWhite +
-      fLuma * (input.color.xxx - hdrPaperWhite) )
+    (                                               hdrPaperWhite +
+      ( fLuma * vNormalColor ) * (input.color.xxx - hdrPaperWhite) )
 #ifdef INCLUDE_HDR10
-                               : hdrPaperWhite
+                                           :        hdrPaperWhite
 #endif
     ;
 
@@ -859,6 +757,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 
   return
     float4 (
-      Clamp_scRGB (hdr_color.rgb), 1.0f
+      Clamp_scRGB (hdr_color.rgb),
+         saturate (hdr_color.a)
            );
 }
