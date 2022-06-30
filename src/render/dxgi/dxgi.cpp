@@ -5146,7 +5146,8 @@ SK_DXGI_CreateSwapChain_PreInit (
   _Inout_opt_ DXGI_SWAP_CHAIN_DESC            *pDesc,
   _Inout_opt_ DXGI_SWAP_CHAIN_DESC1           *pDesc1,
   _Inout_opt_ HWND&                            hWnd,
-  _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc )
+  _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+              bool                             bIsD3D12 )
 {
   if (config.display.monitor_handle != 0)
   {
@@ -5636,7 +5637,8 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     //
     if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
     {
-      if (__SK_HDR_16BitSwap)
+      // UAV binding of D3D12 SwapChains is not allowed
+      if (__SK_HDR_16BitSwap && (! bIsD3D12))
       {
         SK_LOGs0 ( L"  SK HDR  ",
                    L"  >> Adding Unordered Access View to SwapChain for"
@@ -5686,13 +5688,6 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
 
     pDesc->BufferDesc.Width   =  std::max ( max_x , min_x );
     pDesc->BufferDesc.Height  =  std::max ( max_y , min_y );
-  }
-
-
-  if (__SK_HDR_16BitSwap)
-  {
-    if (pDesc != nullptr)
-        pDesc->BufferUsage |= DXGI_USAGE_UNORDERED_ACCESS;
   }
 
 
@@ -6343,7 +6338,7 @@ DXGIFactory_CreateSwapChain_Override (
 
   SK_DXGI_CreateSwapChain_PreInit (
     &new_desc,              nullptr,
-     new_desc.OutputWindow, nullptr
+     new_desc.OutputWindow, nullptr, pDev12.p != nullptr
   );
 
 #ifdef  __NIER_HACK
@@ -6600,7 +6595,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
     }
   }
 
-  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWndInterop, nullptr);
+  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWndInterop, nullptr, false);
 
   if (pDesc != nullptr) pDesc = &new_desc1;
 
@@ -6887,7 +6882,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   SK_TLS_Bottom ()->render->d3d11->ctx_init_thread = true;
 
   SK_DXGI_CreateSwapChain_PreInit (
-    nullptr, &new_desc1, hWnd, pFullscreenDesc
+    nullptr, &new_desc1, hWnd, pFullscreenDesc, pDev12.p != nullptr
   );
 
   IDXGISwapChain1 *pTemp (nullptr);
@@ -7033,7 +7028,7 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
 
   SK_DXGI_CreateSwapChain_PreInit (
     nullptr, &new_desc1, hWnd,
-    nullptr
+    nullptr, false
   );
 
   DXGI_CALL ( ret,

@@ -1,4 +1,8 @@
-﻿22.6.30-NOCEGUI
+﻿22.6.30.1-NOCEGUI
+=================
+ + Removed Unordered Access View flag from D3D12 SwapChains when using HDR
+
+22.6.30-NOCEGUI
 ===============
  + Completely fixed HDR problems in Tales of Arise
  + Eliminated potential graphics memory leaks in sRGB and HDR games
