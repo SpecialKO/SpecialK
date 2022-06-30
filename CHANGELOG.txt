@@ -1,4 +1,9 @@
-﻿22.6.29.1-NOCEGUI
+﻿22.6.30-NOCEGUI
+===============
+ + Completely fixed HDR problems in Tales of Arise
+ + Eliminated potential graphics memory leaks in sRGB and HDR games
+
+22.6.29.1-NOCEGUI
 =================
  + Fixed HDR compatibility in Days Gone
  + Fixed an issue that prevented some Unreal Engine games (i.e. The Quarry)

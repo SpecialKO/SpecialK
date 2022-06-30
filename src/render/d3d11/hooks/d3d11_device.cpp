@@ -174,7 +174,8 @@ D3D11Dev_CreateShaderResourceView_Override (
               ( DirectX::BitsPerPixel (pDesc->Format) !=
                 DirectX::BitsPerPixel (tex_desc.Format) ) ||
               ( DirectX::MakeTypeless (pDesc->Format) != // Handle cases such as BC3 -> BC7: Size = Same, Fmt != Same
-                DirectX::MakeTypeless (tex_desc.Format) ) )
+                DirectX::MakeTypeless (tex_desc.Format) ) ||
+                DirectX::IsTypeless   (  pDesc->Format) ) && (! DirectX::IsTypeless (tex_desc.Format))
              ) // Does not handle sRGB vs. non-sRGB, but generally the game
           {    //   won't render stuff correctly if injected textures change that.
             override  = true;
@@ -239,11 +240,22 @@ D3D11Dev_CreateShaderResourceView_Override (
             SK_ReleaseAssert (!"Attempted to use a cached texture on the wrong device!");
         }
 
+        auto descCopy =
+          *pDesc;
+
+        // SRVs and RTVs cannot be typeless
+        if (DirectX::IsTypeless (newFormat) ||
+            DirectX::IsTypeless (descCopy.Format))
+        {
+          if (! DirectX::IsTypeless (tex_desc.Format))
+          {
+            override  = true;
+            newFormat = DXGI_FORMAT_UNKNOWN;
+          }
+        }
+
         if (override)
         {
-          auto descCopy =
-            *pDesc;
-
           descCopy.Format = newFormat;
 
           if (newMipLevels != pDesc->Texture2D.MipLevels)
@@ -253,9 +265,8 @@ D3D11Dev_CreateShaderResourceView_Override (
           }
 
           HRESULT hr =
-            D3D11Dev_CreateShaderResourceView_Original (
-              This,        pResource,
-                &descCopy, ppSRView                       );
+            D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
+                                                           &descCopy, ppSRView );
 
           if (SUCCEEDED (hr))
           {
@@ -266,10 +277,9 @@ D3D11Dev_CreateShaderResourceView_Override (
     }
   }
 
-  HRESULT hr =
+  return
     D3D11Dev_CreateShaderResourceView_Original ( This, pResource,
                                                    pDesc, ppSRView );
-  return  hr;
 }
 
 __declspec (noinline)

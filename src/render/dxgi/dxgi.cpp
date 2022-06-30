@@ -3158,8 +3158,13 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                          PresentSwapChain_pfn   DXGISwapChain_Present,
                          SK_DXGI_PresentSource  Source)
 {
-  if ( (Flags & DXGI_PRESENT_TEST) || (Flags & DXGI_PRESENT_DO_NOT_SEQUENCE) )
-    return SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
+  if ( (Flags & DXGI_PRESENT_TEST           ) ||
+       (Flags & DXGI_PRESENT_DO_NOT_SEQUENCE) )
+  {
+    return SK_DXGI_PresentBase ( This, SyncInterval,
+                                   Flags, Source,
+                                     DXGISwapChain_Present );
+  }
 
   // Backup and restore the RTV bindings Before / After Present for games that
   //   are using Flip Model but weren't originally designed to use it
@@ -3167,15 +3172,15 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   //     ( Flip Model unbinds these things during Present (...) )
   //
   SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
-  SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
+  SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = { };
   SK_ComPtr <ID3D11Device>           pDevice;
   SK_ComPtr <ID3D11DeviceContext>    pDevCtx;
 
   if (! bOriginallyFlip &&
-        SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void**)&pDevice.p)))
+        SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
   {
-    pDevice->GetImmediateContext (&pDevCtx.p);
-
+    pDevice->GetImmediateContext (
+       &pDevCtx.p );
     if (pDevCtx.p != nullptr)
     {
       pDevCtx->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
@@ -3185,12 +3190,14 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   }
 
   HRESULT ret =
-    SK_DXGI_PresentBase (This, SyncInterval, Flags, Source, DXGISwapChain_Present);
+    SK_DXGI_PresentBase ( This, SyncInterval,
+                            Flags, Source,
+                              DXGISwapChain_Present );
 
-  if (pDevCtx.p != nullptr && SUCCEEDED (ret))
+  if (SUCCEEDED (ret) && pDevCtx.p != nullptr)
   {
     pDevCtx->OMSetRenderTargets (
-      calc_count (&pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
+            D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
                   &pOrigRTVs [0].p,
                    pOrigDSV     .p
                                 );

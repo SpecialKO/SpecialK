@@ -146,4 +146,8 @@ enum {
 SK_DXGI_HDRControl*
 SK_HDR_GetControl (void);
 
+bool
+SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
+                                     UINT                 dev_idx );
+
 #endif /*__SK__DXGI_HDR_H__*/

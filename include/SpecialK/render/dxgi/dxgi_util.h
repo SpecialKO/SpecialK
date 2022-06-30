@@ -43,3 +43,5 @@ extern INT              __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;
+
+bool SK_D3D11_BltCopySurface (ID3D11Texture2D* pSrcTex, ID3D11Texture2D* pDstTex);

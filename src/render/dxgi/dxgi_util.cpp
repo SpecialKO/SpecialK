@@ -1066,7 +1066,8 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
     return false;
   }
 
-  SK_ReleaseAssert (dstTexDesc.MipLevels <= 1 && srcTexDesc.MipLevels == dstTexDesc.MipLevels);
+  SK_ReleaseAssert ( dstTexDesc.MipLevels <= 1 &&
+                     srcTexDesc.MipLevels == dstTexDesc.MipLevels );
 
   struct {
     struct {
@@ -1129,18 +1130,23 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
     return false;
   }
 
-  ID3D11Texture2D *pNewSrcTex =
-                      pSrcTex;
+  SK_ComPtr <ID3D11Texture2D>
+    pNewSrcTex =
+       pSrcTex;
 
   // A Temporary Copy May Be Needed
   if (! (srcTexDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE))
   {
-    if (FAILED (D3D11Dev_CreateTexture2D_Original (pDev, &surface.desc.tex2, nullptr, &surface.render.tex2.p)))
+    if ( FAILED ( D3D11Dev_CreateTexture2D_Original (
+                      pDev, &surface.desc.tex2, nullptr,
+                            &surface.render.tex2.p ) )
+       )
     {
       return false;
     }
 
-    pNewSrcTex = surface.render.tex2.p;
+    pNewSrcTex =
+      surface.render.tex2.p;
 
     //pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
     D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
@@ -1151,8 +1157,11 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
     }
   }
 
-  if (FAILED (D3D11Dev_CreateShaderResourceView_Original ( pDev, pNewSrcTex,
-                                                             &surface.desc.srv, &surface.source.srv.p )))
+  if ( FAILED (
+         D3D11Dev_CreateShaderResourceView_Original (
+             pDev, pNewSrcTex, &surface.desc.srv,
+                               &surface.source.srv.p ) )
+     )
   {
     return false;
   }
