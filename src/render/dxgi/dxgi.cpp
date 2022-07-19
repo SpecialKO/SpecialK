@@ -5202,7 +5202,7 @@ SK_DXGI_CreateSwapChain_PreInit (
       static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
       static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator) :
         std::numeric_limits <float>::quiet_NaN (), L" ",
-SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
+    SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     pDesc->BufferCount, L" ",
     wszMSAA,
     pDesc->Windowed ? L"Windowed" : L"Fullscreen",
@@ -5412,7 +5412,7 @@ SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
         // Allow manually enabling MSAA in a game while using Flip Model
         if (config.render.dxgi.msaa_samples > 0)
           uiOriginalBltSampleCount = config.render.dxgi.msaa_samples;
-        else;
+        else
           uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
 
         pDesc->SampleDesc.Count   = 1;
