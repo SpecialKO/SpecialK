@@ -39,9 +39,6 @@
 
 #include <DirectXTex/d3dx12.h>
 
-#define D3D12_RESOURCE_STATE_SHADER_RESOURCE \
-  (D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-
 // DirectX
 //#include <dxgi1_4.h>
 
@@ -1317,7 +1314,8 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
         if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_BUFFER &&
              dst_desc.Height    == 1                               && DstX == 0 && DstY    == 0
                                                                    && DstZ == 0 && pSrcBox == nullptr &&
-             dst_desc.Width     != src_desc.Width   *
+             // Is the destination buffer too small?
+             dst_desc.Width     <  src_desc.Width   *
                                    src_desc.Height  *
             DirectX::BitsPerPixel (src_desc.Format) / 8 )
         {
@@ -1522,6 +1520,16 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   if (! _pCommandQueue.p)
     return;
 
+  if (! SK_D3D12_HasDebugName (_pCommandQueue.p))
+  {
+    static UINT unique_d3d12_qid = 0UL;
+
+    SK_D3D12_SetDebugName (    _pCommandQueue.p,
+             SK_FormatStringW ( L"[Game] D3D12 SwapChain CmdQueue %d",
+                                  unique_d3d12_qid++ ).c_str ()
+                          );
+  }
+
   SK_ComPtr <ID3D12Device>
              pD3D12Device;
 
@@ -1611,10 +1619,14 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     );
   }
 
-  if ( __SK_HDR_16BitSwap &&
+  bool bHDR =
+    ( __SK_HDR_16BitSwap &&
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
+       stagingFrame.hdr.pSwapChainCopy.p->GetDesc ().Format == DXGI_FORMAT_R16G16B16A16_FLOAT &&
                         pHDRPipeline.p   != nullptr &&
-                        pHDRSignature.p  != nullptr )
+                        pHDRSignature.p  != nullptr );
+
+  if (bHDR)
   {
     SK_RunOnce (
       _InitCopyTextureRegionHook (pCommandList)
@@ -1710,9 +1722,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   // Queue-up Post-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame, rb);
 
-  transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                                                D3D12_RESOURCE_STATE_PRESENT,
-                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+  //if (! bHDR)
+    transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
+                                                                  D3D12_RESOURCE_STATE_PRESENT,
+                                                                  D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
   stagingFrame.exec_cmd_list ();
 
@@ -2114,10 +2127,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                  const std::wstring   kName;
         } _debugObjects [] =
           {
-            { frame.hdr.pSwapChainCopy.p, L"SK D3D12 HDR Buffer"   },
-            { frame.pCmdAllocator.p,      L"SK D3D12 CmdAllocator" },
-            { frame.pCmdList.p,           L"SK D3D12 CmdList"      },
-            { frame.fence.p,              L"SK D3D12 Fence"        }
+            { frame.pRenderOutput.p,      L"SK D3D12 SwapChain Buffer" },
+            { frame.hdr.pSwapChainCopy.p, L"SK D3D12 HDR Copy Buffer"  },
+            { frame.pCmdAllocator.p,      L"SK D3D12 CmdAllocator"     },
+            { frame.pCmdList.p,           L"SK D3D12 CmdList"          },
+            { frame.fence.p,              L"SK D3D12 Fence"            },
           };
 
         for ( auto& _obj : _debugObjects )
@@ -2304,6 +2318,96 @@ SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
 
 
 
+template <typename _T>
+HRESULT
+SK_D3D12_GET_OBJECT_NAME_N ( ID3D12Object *pObject,
+                             UINT         *pBytes,
+                             _T           *pName = nullptr );
+
+template <>
+HRESULT
+SK_D3D12_GET_OBJECT_NAME_N ( ID3D12Object *pObject,
+                             UINT         *pBytes,
+                             char         *pName )
+{
+  if ( (! pObject) ||
+       (! pBytes ) )
+    return E_POINTER;
+
+  return
+    pObject->GetPrivateData (
+      WKPDID_D3DDebugObjectName,
+        pBytes,
+          pName );
+}
+
+template <>
+HRESULT
+SK_D3D12_GET_OBJECT_NAME_N ( ID3D12Object *pObject,
+                             UINT         *pBytes,
+                             wchar_t      *pName )
+{
+  if ( (! pObject) ||
+       (! pBytes ) )
+    return E_POINTER;
+
+  return
+    pObject->GetPrivateData (
+      WKPDID_D3DDebugObjectNameW,
+        pBytes,
+          pName );
+}
+
+bool
+SK_D3D12_HasDebugName (ID3D12Object* pD3D12Obj)
+{
+  UINT uiNameLen = 0;
+
+  if ( FAILED ( pD3D12Obj->GetPrivateData (WKPDID_D3DDebugObjectNameW, &uiNameLen, nullptr) ) &&
+       FAILED ( pD3D12Obj->GetPrivateData (WKPDID_D3DDebugObjectName,  &uiNameLen, nullptr) ) )
+    return false;
+
+  return
+    ( uiNameLen > 0 );
+}
+
+template <typename _T>
+std::basic_string <_T>
+SK_D3D12_GetDebugName (ID3D12Object* pD3D12Obj)
+{
+  if (pD3D12Obj != nullptr)
+  {
+    UINT bufferLen = 0;
+
+    if ( SUCCEEDED (
+           SK_D3D12_GET_OBJECT_NAME_N <_T> ( pD3D12Obj,
+                   &bufferLen, nullptr )
+         )
+       )
+    {
+      if (bufferLen >= sizeof (_T))
+      {
+        std::basic_string <_T>
+          name (
+            bufferLen / sizeof (_T),
+                               (_T)0 );
+
+        if ( SUCCEEDED (
+               SK_D3D12_GET_OBJECT_NAME_N <_T> ( pD3D12Obj,
+                       &bufferLen, name.data () )
+             )
+           )
+        {
+          return name;
+        }
+      }
+    }
+  }
+
+  return
+    std::basic_string <_T> (0);
+}
+
 void
 SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                         const std::wstring&     kName )
@@ -2323,7 +2427,7 @@ SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                                         (utf8_copy).data ()
                             );
 
-    SK_LOGi2 (
+    SK_LOGi0 (
       L"Created D3D12 Object: %ws", kName.c_str ()
     );
 #else

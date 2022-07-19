@@ -109,6 +109,96 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
                           );
 }
 
+template <typename _T>
+HRESULT
+SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
+                             UINT              *pBytes,
+                             _T                *pName = nullptr );
+
+template <>
+HRESULT
+SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
+                             UINT              *pBytes,
+                             char              *pName )
+{
+  if ( (! pObject) ||
+       (! pBytes ) )
+    return E_POINTER;
+
+  return
+    pObject->GetPrivateData (
+      WKPDID_D3DDebugObjectName,
+        pBytes,
+          pName );
+}
+
+template <>
+HRESULT
+SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
+                             UINT              *pBytes,
+                             wchar_t           *pName )
+{
+  if ( (! pObject) ||
+       (! pBytes ) )
+    return E_POINTER;
+
+  return
+    pObject->GetPrivateData (
+      WKPDID_D3DDebugObjectNameW,
+        pBytes,
+          pName );
+}
+
+bool
+SK_D3D11_HasDebugName (ID3D11DeviceChild* pD3D11Obj)
+{
+  UINT uiNameLen = 0;
+
+  if ( FAILED ( pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectNameW, &uiNameLen, nullptr) ) &&
+       FAILED ( pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectName,  &uiNameLen, nullptr) ) )
+    return false;
+
+  return
+    ( uiNameLen > 0 );
+}
+
+template <typename _T>
+std::basic_string <_T>
+SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
+{
+  if (pD3D11Obj != nullptr)
+  {
+    UINT bufferLen = 0;
+
+    if ( SUCCEEDED (
+           SK_D3D11_GET_OBJECT_NAME_N <_T> ( pD3D11Obj,
+                   &bufferLen, nullptr )
+         )
+       )
+    {
+      if (bufferLen >= sizeof (_T))
+      {
+        std::basic_string <_T>
+          name (
+            bufferLen / sizeof (_T),
+                               (_T)0 );
+
+        if ( SUCCEEDED (
+               SK_D3D11_GET_OBJECT_NAME_N <_T> ( pD3D11Obj,
+                       &bufferLen, name.data () )
+             )
+           )
+        {
+          return name;
+        }
+      }
+    }
+  }
+
+  return
+    std::basic_string <_T> (0);
+}
+
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 

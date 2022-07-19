@@ -1,4 +1,8 @@
-﻿22.7.18-NOCEGUI
+﻿22.7.19-NOCEGUI
+===============
+ + Fixed HDR screenshots for D3D12 resolutions not aligned to 32-pixel bounds
+
+22.7.18-NOCEGUI
 ===============
  + Fixed potential unaligned memory load/store in D3D9/12 screenshot capture
  + Fixed MSAA sample count override in D3D11 BitBlt SwapChains

@@ -321,13 +321,13 @@ SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
 extern std::string
 SK_WideCharToUTF8 (const std::wstring& in);
 
-void
-SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
-                        const std::wstring&      kName );
+bool SK_D3D11_HasDebugName (       ID3D11DeviceChild* pDevChild );
+void SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
+                             const std::wstring&      kName );
 
-void
-SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
-                        const std::wstring&     kName );
+bool SK_D3D12_HasDebugName (       ID3D12Object* pD3D12Obj );
+void SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
+                             const std::wstring& kName );
 
 namespace SK
 {
