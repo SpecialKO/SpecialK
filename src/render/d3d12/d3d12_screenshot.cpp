@@ -24,6 +24,10 @@
 
 #include <../depends/include/DirectXTex/d3dx12.h>
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"D3D12SShot"
+#endif
+
 // Not Fully Implemented for D3D12
 bool SK_D3D12_EnableTracking      = false;
 bool SK_D3D12_EnableMMIOTracking  = false;
@@ -259,9 +263,8 @@ struct ShaderBase
       {
         warned_shaders.insert (wszShaderFile);
 
-        SK_LOG0 ( ( L"Shader Compile Failed: File '%ws' Is Not Valid!",
-                      wstr_file.c_str ()
-                  ),L"D3DCompile" );
+        SK_LOGs0 ( L"D3DCompile", L"Shader Compile Failed: File '%ws' Is Not Valid!",
+                      wstr_file.c_str () );
       }
 
       return false;
@@ -296,8 +299,8 @@ struct ShaderBase
       return result;
     }
 
-    SK_LOG0 ( (L"Cannot Compile Shader Because of Filesystem Issues"),
-               L"D3DCompile" );
+    SK_LOGs0 ( L"D3DCompile",
+            "Cannot Compile Shader Because of Filesystem Issues" );
 
     return  false;
   }
@@ -854,7 +857,7 @@ SK_D3D12_CaptureScreenshot (
   hr =
     pDevice->CreateCommittedResource (
       &readBackHeapProperties, D3D12_HEAP_FLAG_NONE,
-      &bufferDesc,             D3D12_RESOURCE_STATE_COPY_DEST,
+      &bufferDesc,             D3D12_RESOURCE_STATE_COMMON,
           nullptr,
       IID_PPV_ARGS (&pStagingCtx->pStagingBackbufferCopy.p)
     );
@@ -894,6 +897,7 @@ SK_D3D12_CaptureScreenshot (
   copyDest.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
    copySrc.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
 
+  // NOTE: This will pass through SK's hook, the aligned data size may be different than expected
   pStagingCtx->pCmdList->CopyTextureRegion ( &copyDest, 0, 0,
                                           0, &copySrc, nullptr );
 
@@ -913,6 +917,9 @@ SK_D3D12_CaptureScreenshot (
   if (FAILED (hr))
        return hr;
 
+  pStagingCtx->uiFenceVal =
+    SK_GetFramesDrawn ();
+
   // Signal the fence
   hr =
     pCmdQueue->Signal ( pStagingCtx->pFence,
@@ -930,27 +937,47 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
   auto ReadBack =
   [&]
   {
-    auto& pStaging =
-      getReadbackContext ()->pStagingBackbufferCopy;
+    auto pStagingCtx =
+      getReadbackContext ();
 
-    if (! pStaging)
+    auto& pStagingBuffer =
+      pStagingCtx->pStagingBackbufferCopy;
+
+    if (! pStagingBuffer)
       return false;
 
     SK_ComPtr <ID3D12Device> pDevice;
 
-    pStaging->GetDevice (
+    pStagingBuffer->GetDevice (
       IID_PPV_ARGS (&pDevice.p)
     );
 
     BYTE *pData = nullptr;
 
+    UINT64         uiFenceComplete =
+      pStagingCtx->uiFenceVal + 1;
+
+    if ( pStagingCtx->pFence->GetCompletedValue () <
+                     uiFenceComplete )
+    {
+      if (! Wait)
+        return false;
+
+      while ( pStagingCtx->pFence->GetCompletedValue () <
+                          uiFenceComplete )
+        SK_SleepEx (1UL, FALSE);
+    }
+
     HRESULT hr =
-      pStaging->Map (0, nullptr, reinterpret_cast <void **> (&pData));
+      pStagingBuffer->Map (0, nullptr, reinterpret_cast <void **> (&pData));
 
     if (FAILED (hr))
       return false;
 
-    SK_ReleaseAssert (framebuffer.PBufferSize == GetRequiredIntermediateSize (pStaging, 0, 1));
+    SK_ReleaseAssert (
+          framebuffer.PBufferSize ==
+      GetRequiredIntermediateSize (pStagingBuffer, 0, 1)
+    );
 
     D3D12_MEMCPY_DEST destData = {
       framebuffer.PixelBuffer.get (),
@@ -962,7 +989,7 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     UINT64                             totalResourceSize = 0ULL;
 
     const auto staging_desc =
-      pStaging->GetDesc ();
+      pStagingBuffer->GetDesc ();
 
     UINT64 RowSizeInBytes = 0ULL;
     UINT   NumRows        = 0U;
@@ -988,16 +1015,16 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
 
     if (RowSizeInBytes > (SIZE_T)-1)
     {
-      pStaging->Unmap (0, nullptr);
+      pStagingBuffer->Unmap (0, nullptr);
+
       return false;
     }
 
     MemcpySubresource ( &destData, &srcData,
            (SIZE_T)RowSizeInBytes,  NumRows, 1 );
 
-    SK_LOG0 ( ( L"Screenshot Readback Complete after %li frames",
-                 SK_GetFramesDrawn () - ulCommandIssuedOnFrame ),
-                L"D3D12SShot" );
+    SK_LOGi0 ( L"Screenshot Readback Complete after %li frames",
+                SK_GetFramesDrawn () - ulCommandIssuedOnFrame );
 
     *pWidth  = static_cast <UINT> (framebuffer.Width);
     *pHeight = static_cast <UINT> (framebuffer.Height);
@@ -1018,7 +1045,7 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
 
     size_t src_row_pitch =
-      ( layout.Footprint.RowPitch / framebuffer.Height ) + 
+      ( layout.Footprint.RowPitch / framebuffer.Height ) +
       ( layout.Footprint.RowPitch / framebuffer.Height ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
            dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
 
@@ -1036,7 +1063,7 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
       pDst += dst_row_pitch;
     }
 
-    pStaging->Unmap (0, nullptr);
+    pStagingBuffer->Unmap (0, nullptr);
 
     return true;
 
@@ -1541,7 +1568,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               continue;
             }
 
-            to_write.emplace_back (pop_off);
+            if (config.screenshots.png_compress)
+              to_write.emplace_back (pop_off);
 
             SK_D3D12_Screenshot::framebuffer_s* pFrameData =
               pop_off->getFinishedData ();
@@ -1554,7 +1582,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               using namespace DirectX;
 
               bool  skip_me = false;
-              Image raw_img = { };
+              Image raw_img = {   };
 
               ComputePitch (
                 pFrameData->NativeFormat,
@@ -1599,290 +1627,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 SK_CreateDirectories (wszAbsolutePathToScreenshot);
               }
 
-              // Not HDR and not importing to Steam,
-              //   we've got nothing left to do...
-              else
-              {
-                skip_me = true;
-              }
-
-              if (! skip_me)
-              {
-                ScratchImage
-                  un_srgb;
-                  un_srgb.InitializeFromImage (raw_img);
-
-                DirectX::TexMetadata
-                meta           = {           };
-                meta.width     = raw_img.width;
-                meta.height    = raw_img.height;
-                meta.depth     = 1;
-                meta.format    = raw_img.format;
-                meta.dimension = TEX_DIMENSION_TEXTURE2D;
-                meta.arraySize = 1;
-                meta.mipLevels = 1;
-
-                switch (pFrameData->AlphaMode)
-                {
-                  case DXGI_ALPHA_MODE_UNSPECIFIED:
-                    meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
-                    break;
-                  case DXGI_ALPHA_MODE_PREMULTIPLIED:
-                    meta.SetAlphaMode (TEX_ALPHA_MODE_PREMULTIPLIED);
-                    break;
-                  case DXGI_ALPHA_MODE_STRAIGHT:
-                    meta.SetAlphaMode (TEX_ALPHA_MODE_STRAIGHT);
-                    break;
-                  case DXGI_ALPHA_MODE_IGNORE:
-                    meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
-                    break;
-                }
-
-                meta.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
-
-                ScratchImage
-                  un_scrgb;
-                  un_scrgb.Initialize (meta);
-
-                static const XMVECTORF32 c_MaxNitsFor2084 =
-                  { 10000.0f, 10000.0f, 10000.0f, 1.f };
-
-                static const XMMATRIX c_from2020to709 =
-                {
-                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
-                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
-                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
-                  { 0.f,          0.f,         0.f,        1.f }
-                };
-
-                auto RemoveGamma_sRGB = [](XMVECTOR value) ->
-                void
-                {
-                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
-                                         value.m128_f32 [0] / 12.92f     :
-                                   pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
-                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
-                                         value.m128_f32 [1] / 12.92f     :
-                                   pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
-                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
-                                         value.m128_f32 [2] / 12.92f     :
-                                   pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
-                };
-
-                auto ApplyGamma_sRGB = [](XMVECTOR value) ->
-                void
-                {
-                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
-                                         value.m128_f32 [0] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
-                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
-                                         value.m128_f32 [1] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
-                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
-                                         value.m128_f32 [2] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
-                };
-
-                auto RemoveREC2084Curve = [](XMVECTOR N)
-                {
-                  static constexpr float m1 = 2610.0 / 4096.0 / 4;
-                  static constexpr float m2 = 2523.0 / 4096.0 * 128;
-                  static constexpr float c1 = 3424.0 / 4096.0;
-                  static constexpr float c2 = 2413.0 / 4096.0 * 32;
-                  static constexpr float c3 = 2392.0 / 4096.0 * 32;
-
-                  float Np [3] = { pow (N.m128_f32 [0], 1.0f / m2),
-                                   pow (N.m128_f32 [1], 1.0f / m2),
-                                   pow (N.m128_f32 [2], 1.0f / m2) };
-
-                  XMVECTOR ret;
-
-                  ret.m128_f32 [0] = pow (std::max (Np [0] - c1, 0.0f) / (c2 - c3 * Np [0]), 1.0f / m1);
-                  ret.m128_f32 [1] = pow (std::max (Np [1] - c1, 0.0f) / (c2 - c3 * Np [1]), 1.0f / m1);
-                  ret.m128_f32 [2] = pow (std::max (Np [2] - c1, 0.0f) / (c2 - c3 * Np [2]), 1.0f / m1);
-                  ret.m128_f32 [3] = 1.0f;
-
-                  return ret;
-                };
-
-                HRESULT hr = S_OK;
-
-                if ( un_srgb.GetImages  () &&
-                     hdr                   && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-                     rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
-                  TransformImage ( un_srgb.GetImages     (),
-                                   un_srgb.GetImageCount (),
-                                   un_srgb.GetMetadata   (),
-                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      XMVECTOR value  = RemoveREC2084Curve (inPixels [j]);
-                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-
-                      outPixels [j]   =                     value;
-                      outPixels [j].m128_f32 [0] *= 125.0f;
-                      outPixels [j].m128_f32 [1] *= 125.0f;
-                      outPixels [j].m128_f32 [2] *= 125.0f;
-                      outPixels [j].m128_f32 [3]  =   1.0f;
-                    }
-                  }, un_scrgb);
-
-                  std::swap (un_scrgb, un_srgb);
-                }
-
-                XMVECTOR maxLum = XMVectorZero ();
-
-                hr =              un_srgb.GetImages     () ?
-                  EvaluateImage ( un_srgb.GetImages     (),
-                                  un_srgb.GetImageCount (),
-                                  un_srgb.GetMetadata   (),
-                  [&](const XMVECTOR* pixels, size_t width, size_t y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      static const XMVECTORF32 s_luminance =
-                      //{ 0.3f, 0.59f, 0.11f, 0.f };
-                      { 0.2125862307855955516f,
-                        0.7151703037034108499f,
-                        0.07220049864333622685f };
-
-                      XMVECTOR v = *pixels++;
-                      RemoveGamma_sRGB          (v);
-                               v = XMVector3Dot (v, s_luminance);
-
-                      maxLum =
-                        XMVectorMax (v, maxLum);
-                    }
-                  })                                       : E_POINTER;
-
-#define _CHROMA_SCALE TRUE
-#ifndef _CHROMA_SCALE
-                  maxLum =
-                    XMVector3Length  (maxLum);
-#else
-                  maxLum =
-                    XMVectorMultiply (maxLum, maxLum);
-#endif
-
-                  hr =               un_srgb.GetImages     () ?
-                    TransformImage ( un_srgb.GetImages     (),
-                                     un_srgb.GetImageCount (),
-                                     un_srgb.GetMetadata   (),
-                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                    {
-                      UNREFERENCED_PARAMETER(y);
-
-                      for (size_t j = 0; j < width; ++j)
-                      {
-                        XMVECTOR value = inPixels [j];
-
-                        XMVECTOR scale =
-                          XMVectorDivide (
-                            XMVectorAdd (
-                              g_XMOne, XMVectorDivide ( value,
-                                                          maxLum
-                                                      )
-                                        ),
-                            XMVectorAdd (
-                              g_XMOne, value
-                                        )
-                          );
-
-                        XMVECTOR nvalue =
-                          XMVectorMultiply (value, scale);
-                                  value =
-                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                          RemoveGamma_sRGB (value);
-                        outPixels [j]   =   value;
-                      }
-                    }, un_scrgb)                             : E_POINTER;
-
-                std::swap (un_srgb, un_scrgb);
-
-                if (         un_srgb.GetImages ()) {
-                  Convert ( *un_srgb.GetImages (),
-                              DXGI_FORMAT_B8G8R8X8_UNORM,
-                                TEX_FILTER_DITHER,
-                                  TEX_THRESHOLD_DEFAULT,
-                                    un_scrgb );
-                }
-
-                // Copy to Clipboard
-                if (un_scrgb.GetImages ())
-                {
-                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
-                }
-
-                // Save to Disk
-                if (               un_scrgb.GetImages () &&
-                      SUCCEEDED (
-                  SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
-                                     GetWICCodec         (codec),
-                                      wszAbsolutePathToScreenshot )
-                               )
-                   )
-                {
-                  if ( config.steam.screenshots.enable_hook &&
-                          steam_ctx.Screenshots () != nullptr )
-                  {
-                    wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
-                    wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
-                                    rb.screenshot_mgr.getBasePath (),
-                                      _TRUNCATE );
-
-                    PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
-
-                    float aspect = (float)pFrameData->Height /
-                                   (float)pFrameData->Width;
-
-                    ScratchImage thumbnailImage;
-
-                    Resize ( *un_scrgb.GetImages (), 200,
-                               sk::narrow_cast <size_t> (200.0 * aspect),
-                                TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
-                              | TEX_FILTER_TRIANGLE,
-                                  thumbnailImage );
-
-                    if (               thumbnailImage.GetImages ()) {
-                      SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
-                                        GetWICCodec                (codec),
-                                          wszAbsolutePathToThumbnail );
-
-                      std::string ss_path (
-                        SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
-                      );
-
-                      std::string ss_thumb (
-                        SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
-                      );
-
-                      ScreenshotHandle screenshot =
-                        SK_SteamAPI_AddScreenshotToLibraryEx (
-                          ss_path.c_str    (),
-                            ss_thumb.c_str (),
-                              static_cast <int> (pFrameData->Width),
-                              static_cast <int> (pFrameData->Height),
-                                true );
-
-                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
-                                  screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
-                                    L"SteamSShot" );
-
-                      // Remove the temporary files...
-                      DeleteFileW (wszAbsolutePathToThumbnail);
-                    }
-                    DeleteFileW (wszAbsolutePathToScreenshot);
-                  }
-                }
-              }
-#if 0
               // Not HDR and not importing to Steam,
               //   we've got nothing left to do...
               else
@@ -1969,9 +1713,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 HRESULT hr = S_OK;
 
-                if ( un_srgb.GetImages () &&
-                     rb.isHDRCapable   () && rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-                {
+                if ( un_srgb.GetImageCount () == 1 &&
+                     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
                   TransformImage ( un_srgb.GetImages     (),
                                    un_srgb.GetImageCount (),
                                    un_srgb.GetMetadata   (),
@@ -1996,7 +1741,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 XMVECTOR maxLum = XMVectorZero ();
 
-                hr =              un_srgb.GetImages     () ?
+                hr =              un_srgb.GetImageCount () == 1 ?
                   EvaluateImage ( un_srgb.GetImages     (),
                                   un_srgb.GetImageCount (),
                                   un_srgb.GetMetadata   (),
@@ -2013,6 +1758,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         0.07220049864333622685f };
 
                       XMVECTOR v = *pixels++;
+                      RemoveGamma_sRGB          (v);
                                v = XMVector3Dot (v, s_luminance);
 
                       maxLum =
@@ -2020,12 +1766,16 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   })                                       : E_POINTER;
 
+#define _CHROMA_SCALE TRUE
+#ifndef _CHROMA_SCALE
+                  maxLum =
+                    XMVector3Length  (maxLum);
+#else
                   maxLum =
                     XMVectorMultiply (maxLum, maxLum);
+#endif
 
-                  ApplyGamma_sRGB (maxLum);
-
-                  hr =               un_srgb.GetImages     () ?
+                  hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
                                      un_srgb.GetImageCount (),
                                      un_srgb.GetMetadata   (),
@@ -2036,6 +1786,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
+
                         XMVECTOR scale =
                           XMVectorDivide (
                             XMVectorAdd (
@@ -2052,84 +1803,88 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           XMVectorMultiply (value, scale);
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                           ApplyGamma_sRGB (value);
                         outPixels [j]   =   value;
                       }
                     }, un_scrgb)                             : E_POINTER;
 
                 std::swap (un_srgb, un_scrgb);
 
-                if (         un_srgb.GetImages ()) {
-                  Convert ( *un_srgb.GetImages (),
+                if (         un_srgb.GetImageCount () == 1) {
+                  Convert ( *un_srgb.GetImages     (),
                               DXGI_FORMAT_B8G8R8X8_UNORM,
                                 TEX_FILTER_DITHER |
                                 TEX_FILTER_SRGB,
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }
-                if (               un_scrgb.GetImages () &&
+
+                if (un_scrgb.GetImageCount () == 1)
+                {
+                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
+                }
+
+                if (               un_scrgb.GetImageCount () == 1 &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
-                                     GetWICCodec         (WIC_CODEC_JPEG),
+                                     GetWICCodec         (codec),
                                       wszAbsolutePathToScreenshot )
                                )
                    )
                 {
-                  wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
-                  wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
-                                  rb.screenshot_mgr.getBasePath (),
-                                    _TRUNCATE );
+                  if ( config.steam.screenshots.enable_hook &&
+                          steam_ctx.Screenshots () != nullptr )
+                  {
+                    wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
+                    wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
+                                    rb.screenshot_mgr.getBasePath (),
+                                      _TRUNCATE );
 
-                  PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
+                    PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
 
-                  float aspect = (float)pFrameData->Height /
-                                 (float)pFrameData->Width;
+                    float aspect = (float)pFrameData->Height /
+                                   (float)pFrameData->Width;
 
-                  ScratchImage thumbnailImage;
+                    ScratchImage thumbnailImage;
 
-                  Resize ( *un_scrgb.GetImages (), 200,
-                             static_cast <size_t> (200.0 * aspect),
-                              TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
-                            | TEX_FILTER_TRIANGLE,
-                                thumbnailImage );
+                    Resize ( *un_scrgb.GetImages (), 200,
+                               sk::narrow_cast <size_t> (200.0 * aspect),
+                                TEX_FILTER_DITHER_DIFFUSION | TEX_FILTER_FORCE_WIC
+                              | TEX_FILTER_TRIANGLE,
+                                  thumbnailImage );
 
-                  if (               thumbnailImage.GetImages ()) {
-                    SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
-                                      GetWICCodec                (WIC_CODEC_JPEG),
-                                        wszAbsolutePathToThumbnail );
+                    if (               thumbnailImage.GetImages ()) {
+                      SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
+                                        GetWICCodec                (codec),
+                                          wszAbsolutePathToThumbnail );
 
-                    std::string ss_path (
-                      SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
-                    );
+                      std::string ss_path (
+                        SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
+                      );
 
-                    std::string ss_thumb (
-                      SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
-                    );
+                      std::string ss_thumb (
+                        SK_WideCharToUTF8 (wszAbsolutePathToThumbnail)
+                      );
 
-                    ScreenshotHandle screenshot =
-                      SK_SteamAPI_AddScreenshotToLibraryEx (
-                        ss_path.c_str    (),
-                          ss_thumb.c_str (),
-                            (UINT)pFrameData->Width,
-                            (UINT)pFrameData->Height,
-                              true );
+                      ScreenshotHandle screenshot =
+                        SK_SteamAPI_AddScreenshotToLibraryEx (
+                          ss_path.c_str    (),
+                            ss_thumb.c_str (),
+                              static_cast <int> (pFrameData->Width),
+                              static_cast <int> (pFrameData->Height),
+                                true );
 
-                    SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
-                                screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
-                                  L"SteamSShot" );
+                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
+                                  screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
+                                    L"SteamSShot" );
 
-                    // Remove the temporary files...
-                    DeleteFileW (wszAbsolutePathToThumbnail);
+                      // Remove the temporary files...
+                      DeleteFileW (wszAbsolutePathToThumbnail);
+                    }
+                    DeleteFileW (wszAbsolutePathToScreenshot);
                   }
-                  DeleteFileW (wszAbsolutePathToScreenshot);
                 }
+              }
 
-                if (! config.screenshots.png_compress)
-                {
-                  delete pop_off;
-                         pop_off = nullptr;
-                }
-#endif
               if (! config.screenshots.png_compress)
               {
                 delete pop_off;
@@ -2442,9 +2197,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       else
                       {
-                        SK_LOG0 ( ( L"Unable to write Screenshot, hr=%s",
-                                                       SK_DescribeHRESULT (hrSaveToWIC) ),
-                                    L"D3D12SShot" );
+                        SK_LOGi0 ( L"Unable to write Screenshot, hr=%s",
+                                                       SK_DescribeHRESULT (hrSaveToWIC) );
 
                         SK_ImGui_Warning ( L"Smart Screenshot Capture Failed.\n\n"
                                            L"\t\t\t\t>> More than likely this is a problem with MSAA or Windows 7\n\n"
