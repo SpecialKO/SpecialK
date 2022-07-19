@@ -457,6 +457,20 @@ SK_HDR_InitResources (void)
   hdr_base->reloadResources ();
 }
 
+//
+// Remove negative numbers, infinity and NAN from floating-point
+// RenderTargets because non-HDR shaders may operate assuming that
+// these things are all unsigned and normalized out of existence.
+// 
+//   FP blending is particularly problematic, a NAN value breaks
+//   the computation of both Src and Dst and will remain in the
+//   buffer as an invalid pixel no matter the blend equation.
+// 
+// Similar to the HDR snapshot function, but stateblock code is
+// very important here since this may be called upon to tidy-up
+// a RenderTarget in the middle of a frame rather than a post-
+// process step in SK's overlay rendering.
+//
 void
 SK_HDR_SanitizeFP16SwapChain (void)
 {

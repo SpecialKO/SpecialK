@@ -96,8 +96,8 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
          localIdx.y < subdiv )
     {
       const bool tick_tock =
-        ( ( ( currentTime % 3333 )
-                          / 3333.333f ) > 0.5f );
+        ( ( ( currentTime % 125 )
+                          / 125.0f ) > 0.5f );
 
       const uint2 advance =
         uint2 ( (image.width  / subdiv) / HISTOGRAM_WORKGROUP_SIZE_X +
@@ -108,8 +108,8 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
         uint2 ( localIdx.x * advance.x + groupIdx.x * (advance.x * subdiv) + ( tick_tock ? 1 : 0 ),
                 localIdx.y * advance.y + groupIdx.y * (advance.y * subdiv) + ( tick_tock ? 0 : 1 ) );
 
-      for ( uint X = 0 ; X < advance.x ; X += tick_tock ? 1 : 2 )
-      for ( uint Y = 0 ; Y < advance.y ; Y += tick_tock ? 2 : 1 )
+      for ( uint X = 0 ; X < advance.x ; X += tick_tock ? 2 : 3 )
+      for ( uint Y = 0 ; Y < advance.y ; Y += tick_tock ? 3 : 2 )
       {
         const uint2 pos =
           uint2 ( origin.x + X,

@@ -432,10 +432,10 @@ float4 main (PS_INPUT input) : SV_TARGET
 #ifdef INCLUDE_HDR10
     uiToneMapper != TONEMAP_HDR10_to_scRGB ?
 #endif
-    (                                               hdrPaperWhite +
-      ( fLuma * vNormalColor ) * (input.color.xxx - hdrPaperWhite) )
+    (                            hdrPaperWhite +
+      fLuma * (input.color.xxx - hdrPaperWhite) )
 #ifdef INCLUDE_HDR10
-                                           :        hdrPaperWhite
+                        :        hdrPaperWhite
 #endif
     ;
 

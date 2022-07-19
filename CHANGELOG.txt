@@ -1,4 +1,9 @@
-﻿22.6.30.1-NOCEGUI
+﻿22.7.18-NOCEGUI
+===============
+ + Fixed potential unaligned memory load/store in D3D9/12 screenshot capture
+ + Fixed MSAA sample count override in D3D11 BitBlt SwapChains
+
+22.6.30.1-NOCEGUI
 =================
  + Removed Unordered Access View flag from D3D12 SwapChains when using HDR
 

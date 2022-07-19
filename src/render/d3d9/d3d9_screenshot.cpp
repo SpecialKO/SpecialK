@@ -181,8 +181,8 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
   {
     if (ulCommandIssuedOnFrame < SK_GetFramesDrawn () - 2)
     {
-      //const size_t BytesPerPel =
-      //  SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
+      const size_t BytesPerPel =
+        SK_D3D9_BytesPerPixel (framebuffer.NativeFormat);
 
       D3DLOCKED_RECT finished_copy = { };
 
@@ -191,7 +191,9 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
                      )
          )
       {
-        framebuffer.PackedDstPitch = finished_copy.Pitch;
+        // Output (packed) row-size in bytes
+        framebuffer.PackedDstPitch =
+          BytesPerPel * framebuffer.Width;
 
         size_t allocSize =
           (framebuffer.Height + 1)
@@ -238,7 +240,7 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
           {
             for ( UINT i = 0; i < framebuffer.Height; ++i )
             {
-              memcpy ( pDst, pSrc, finished_copy.Pitch );
+              memcpy ( pDst, pSrc, framebuffer.PackedDstPitch );
 
               // Eliminate pre-multiplied alpha problems (the stupid way)
               for ( UINT j = 3 ; j < framebuffer.PackedDstPitch ; j += 4 )
@@ -246,12 +248,11 @@ SK_D3D9_Screenshot::getData ( UINT     *pWidth,
                 pDst [j] = 255UL;
               }
 
-              pSrc += finished_copy.Pitch;
-              pDst +=         framebuffer.PackedDstPitch;
+              // Input row-size (w/ alignment padding)
+              pSrc +=        finished_copy.Pitch;
+              pDst += framebuffer.PackedDstPitch;
             }
           }
-
-        //*pPitch = framebuffer.PackedDstPitch;
         }
 
         catch (const std::exception&)
