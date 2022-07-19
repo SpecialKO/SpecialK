@@ -781,7 +781,13 @@ SK_D3D12_CaptureScreenshot (
   const D3D12_RESOURCE_DESC desc =
      pSource->GetDesc ();
 
-  SK_ReleaseAssert (desc.MipLevels <= 1);
+  // Resource must be single-sampled with no mipmaps and be 64 KiB aligned.
+  //
+  SK_ReleaseAssert (desc.MipLevels          <= 1);
+  SK_ReleaseAssert (desc.SampleDesc.Count   == 1 &&
+                    desc.SampleDesc.Quality == 0);
+  SK_ReleaseAssert (desc.Alignment          == 0 ||
+                    desc.Alignment          == 65536);
 
   D3D12_PLACED_SUBRESOURCE_FOOTPRINT
          layout            = {  };
@@ -824,6 +830,13 @@ SK_D3D12_CaptureScreenshot (
     bufferDesc.MipLevels          = 1;
     bufferDesc.SampleDesc.Count   = 1;
     bufferDesc.SampleDesc.Quality = 0;
+
+  // The buffer is serialized and dimensions therefore useless...
+  //
+  // * We -need- the original 2D dimensions
+  //
+    pBackingStore->Width  = desc.Width;
+    pBackingStore->Height = desc.Height;
 
   DirectX::ComputePitch (
     pBackingStore->NativeFormat,
@@ -991,13 +1004,45 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     *ppData  =
       framebuffer.PixelBuffer.get ();
 
+    uint8_t* pSrc = *ppData;
+    uint8_t* pDst = *ppData;
+    
+    auto bitsPerPixel  =
+      DirectX::BitsPerPixel (framebuffer.NativeFormat);
+    auto bytesPerPixel = bitsPerPixel / 8;
+
+    // We can only deal with 10:10:10:2, 8:8:8:8, or 16:16:16:16
+    SK_ReleaseAssert ( bitsPerPixel == 32 ||
+                       bitsPerPixel == 64 );
+
+    SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
+
+    size_t src_row_pitch =
+      ( layout.Footprint.RowPitch / framebuffer.Height ) + 
+      ( layout.Footprint.RowPitch / framebuffer.Height ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+           dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
+
+    SK_ReleaseAssert ( src_row_pitch >=
+                       dst_row_pitch );
+
+    // Compact (in-place) the copied memory per-scanline
+    for ( UINT scanline = 0 ;
+               scanline < framebuffer.Height ;
+             ++scanline )
+    {
+      memcpy ( pDst, pSrc, dst_row_pitch );
+
+      pSrc += src_row_pitch;
+      pDst += dst_row_pitch;
+    }
+
     pStaging->Unmap (0, nullptr);
 
     return true;
 
 #ifdef FINISHED_D3D12
     const UINT   Subresource =
-      D3D11CalcSubresource ( 0, 0, 1 );
+      D3D12CalcSubresource ( 0, 0, 0, 1, 0);
 
     D3D11_MAPPED_SUBRESOURCE finished_copy = { };
 
