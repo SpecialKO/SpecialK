@@ -1186,40 +1186,42 @@ public:
       ImGui::SameLine ();
       if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
       ImGui::EndGroup ();
+      
+      if(SK_API_IsDXGIBased (SK_GetCurrentRenderBackend().api)){
+        SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
+            SK_GetCurrentRenderBackend ().swapchain.p
+          );
 
-      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
-          SK_GetCurrentRenderBackend ().swapchain.p
-        );
+        static UINT                  uiLastPresent = 0;
+        static DXGI_FRAME_STATISTICS frameStats    = { };
 
-      static UINT                  uiLastPresent = 0;
-      static DXGI_FRAME_STATISTICS frameStats    = { };
-
-      if (pLimiter->get_limit () > 0.0f)
-      {
-        if ( SUCCEEDED (
-               pSwap1->GetLastPresentCount (&uiLastPresent)
-                       )
-           )
+        if (pLimiter->get_limit () > 0.0f)
         {
           if ( SUCCEEDED (
-                 pSwap1->GetFrameStatistics (&frameStats)
+                pSwap1->GetLastPresentCount (&uiLastPresent)
                          )
              )
           {
+            if ( SUCCEEDED (
+                  pSwap1->GetFrameStatistics (&frameStats)
+                           )
+               )
+            {
+            }
           }
         }
+
+        UINT uiLatency = ( uiLastPresent - frameStats.PresentCount );
+
+        ImGui::Text ( "Present Latency: %i Frames", uiLatency );
+
+        ImGui::Separator ();
+
+        ImGui::Text ( "LastPresent: %i, PresentCount: %i", uiLastPresent, frameStats.PresentCount     );
+        ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
+                                                                          frameStats.SyncRefreshCount );
       }
-
-      UINT uiLatency = ( uiLastPresent - frameStats.PresentCount );
-
-      ImGui::Text ( "Present Latency: %i Frames", uiLatency );
-
-      ImGui::Separator ();
-
-      ImGui::Text ( "LastPresent: %i, PresentCount: %i", uiLastPresent, frameStats.PresentCount     );
-      ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
-                                                                        frameStats.SyncRefreshCount );
-
+      
       float fUndershoot =
         pLimiter->get_undershoot ();
 
