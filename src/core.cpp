@@ -2855,7 +2855,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
-
       if (game_window.WndProc_Original != nullptr)
       {
         // If user wants position / style overrides, kick them off on the first
@@ -2872,6 +2871,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
       if (frames_drawn > 15)
       {
+        SK_RunOnce (SK_Input_HookScePad ());
+
         static const auto game_id =
               SK_GetCurrentGameID ();
         
