@@ -61,7 +61,8 @@ public:
     return (
       S_FALSE != pImmediateCtx->GetData     (
               pPixelBufferFence, nullptr,
-                                     0, 0x0 )
+                                     0,
+             D3D11_ASYNC_GETDATA_DONOTFLUSH )
            );
   }
 

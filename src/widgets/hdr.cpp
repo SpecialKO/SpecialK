@@ -1524,6 +1524,14 @@ public:
                     ImGui::SameLine ();
                     ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
                   }
+
+#ifdef _DEBUG
+                  extern UINT filterFlags;
+                  ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+
+                  extern float fMaxNitsForDisplay;
+                  ImGui::InputFloat ("MaxNitsForDisplay", &fMaxNitsForDisplay);
+#endif
                 }
 
                 ImGui::EndGroup ();

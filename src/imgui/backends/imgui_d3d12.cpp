@@ -168,7 +168,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
               nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
         SK_D3D12_SetDebugName (       pHeap->Vb.p,
           L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
@@ -204,7 +204,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COMMON,
               nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
         SK_D3D12_SetDebugName (       pHeap->Ib.p,
           L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
@@ -520,7 +520,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommittedResource (
         &props, D3D12_HEAP_FLAG_NONE,
-        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+        &desc,  D3D12_RESOURCE_STATE_COMMON,
         nullptr, IID_PPV_ARGS (&uploadBuffer.p))
     ); SK_D3D12_SetDebugName (  uploadBuffer.p,
           L"ImGui D3D12 Texture Upload Buffer" );
@@ -562,7 +562,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       barrier.Transition.pResource   = pTexture;
       barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
       barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-      barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
+      barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
 
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateFence (

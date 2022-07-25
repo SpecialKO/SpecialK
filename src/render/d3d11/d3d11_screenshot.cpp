@@ -23,6 +23,9 @@
 
 #include <SpecialK/render/d3d11/d3d11_screenshot.h>
 
+#include <ranges>
+#include <valarray>
+
 
 extern void SK_Screenshot_PlaySound            (void);
 extern void SK_Steam_CatastropicScreenshotFail (void);
@@ -1091,6 +1094,13 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 }
 
 
+float fMaxNitsForDisplay = 6.0f;
+UINT filterFlags =
+  0x120000FF;
+  //DirectX::TEX_FILTER_DEFAULT |
+  //DirectX::TEX_FILTER_DITHER_DIFFUSION |
+  //DirectX::TEX_FILTER_SRGB_OUT;
+
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
                                     bool               wait   = false,
@@ -1400,9 +1410,77 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   std::swap (un_scrgb, un_srgb);
                 }
 
-                XMVECTOR maxLum = XMVectorZero ();
+#if 0
+                XMVECTOR maxLum = XMVectorZero (),
+                         minLum = g_XMInfinity;
 
+                FLOAT    maxY   = 0.0F;
+
+                static constexpr
+                  XMVECTORF32 mat_bt709_Lum =
+                    { 0.2125862307855955516f,
+                      0.7151703037034108499f,
+                      0.07220049864333622685f };
+
+                
+                const auto bin_count = 256;
+
+                const auto num_pixels = raw_img.width *
+                                        raw_img.height;
+                float      alpha      = std::floor (bin_count) / num_pixels;
+
+                std::vector <int>   bins  (bin_count);
+                std::vector <int>   bins2 (bin_count);
+
+                std::vector <float> lut  (bin_count);
+
+                auto lumaToBin = [](float fLuma)
+                {
+                  return
+                    std::max ( 0.0,
+                      std::min ( std::floor (bin_count), (fLuma / 10.0) * bin_count) );
+                };
+
+#if 1
                 hr =              un_srgb.GetImageCount () == 1 ?
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    std::ranges::for_each (
+                      std::valarray <XMVECTOR> (pixels, width),
+                                 [&](XMVECTOR&  pixel)
+                      {
+#if 1
+                        XMVECTOR vLuma =
+                            XMVector3Dot ( mat_bt709_Lum, pixel );
+#else
+                        XMVECTOR vLuma =
+                          XMVectorSplatY (XMColorSRGBToXYZ (pixel));
+#endif
+
+                        ////vLuma.m128_f32 [0] /= 80.0f;
+                        ////vLuma.m128_f32 [1] /= 80.0f;
+                        ////vLuma.m128_f32 [2] /= 80.0f;
+                        ////vLuma.m128_f32 [3] /= 80.0f;
+
+                        maxLum =
+                          XMVectorMax ( maxLum,
+                                          vLuma );
+
+                        minLum =
+                          XMVectorMin ( minLum,
+                                          vLuma );
+
+                        bins [ lumaToBin (vLuma.m128_f32 [0]) ] ++;
+                      }
+                    );
+
+                    UNREFERENCED_PARAMETER(y);
+                  })                                       : E_POINTER;
+#else
+                                hr =              un_srgb.GetImageCount () == 1 ?
                   EvaluateImage ( un_srgb.GetImages     (),
                                   un_srgb.GetImageCount (),
                                   un_srgb.GetMetadata   (),
@@ -1426,15 +1504,163 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         XMVectorMax (v, maxLum);
                     }
                   })                                       : E_POINTER;
-
-#define _CHROMA_SCALE TRUE
-#ifndef _CHROMA_SCALE
-                  maxLum =
-                    XMVector3Length  (maxLum);
-#else
-                  maxLum =
-                    XMVectorMultiply (maxLum, maxLum);
 #endif
+
+                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
+                                                                      maxLum.m128_f32 [0]), L"XXX" );
+
+                  SK_LOG0 ( (L"Mean Luminance: %f", ( maxLum.m128_f32 [0] +
+                                                      minLum.m128_f32 [0] ) / 2.0f), L"XXX" );
+
+                  //double dAccum = 0.0;
+                  //
+                  //for (auto i = 0 ; i < bin_count ; ++i)
+                  //{
+                  //  dAccum += bins [i] * sfactor * i;
+                  //}
+
+                  // Calculate the probability of each intensity
+                  double PrRk [bin_count];
+                  for (int i = 0; i < bin_count; i++)
+                  {
+                    PrRk [i] = (double)bins [i] / num_pixels;
+                  }
+
+                  auto cumhist = [](std::vector <int>& histogram,
+                                    std::vector <int>& cumhistogram)
+                  {
+                    cumhistogram [0] =
+                       histogram [0];
+
+                    for (int i = 1; i < histogram.size (); i++)
+                    {
+                      cumhistogram [i] =
+                         histogram [i] + cumhistogram [i-1];
+                    }
+                  };
+
+                  // Generate cumulative frequency histogram
+                  cumhist (bins, bins2);
+
+                  // Scale the histogram
+                  std::vector <int> scaled (bin_count);
+
+                  for (int i = 0; i < bin_count; i++)
+                  {
+                    scaled [i] =
+                      //cvRound((double)cumhistogram[i] * alpha);
+                      std::round ((double)bins2 [i] * alpha);
+                  }
+
+                  // Generate the equlized histogram
+                  std::vector <double> scaled2 (bin_count);
+                  for (int i = 0; i < bin_count; i++)
+                  {
+                    scaled2 [i] = 0.0;
+                  }
+                  for (int i = 0; i < 256; i++)
+                  {
+                    scaled2 [scaled [i]] += PrRk [i];
+                  }
+
+    //int final[256];
+    //for(int i = 0; i < 256; i++)
+    //    final[i] = cvRound(PsSk[i]*255);
+
+                  //SK_LOG0 ( (L"Histogram Mean: %f", ( dAccum / (double)un_srgb.GetPixelsSize () ) ), L"XXX" );
+
+                  //if (config.render.hdr.enable_32bpc)
+                  //{
+                    //maxLum =
+                    //  XMVector3Length  (maxLum);
+                  //} else {
+                  //  maxLum =
+                  //    XMVectorMultiply (maxLum, maxLum);
+                  //}
+
+                  static const XMVECTORF32 c_MaxNitsForDisplay =
+                    { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
+
+                  XMVECTOR scale =
+                    XMVectorDivide ( c_MaxNitsForDisplay, maxLum );
+
+                  hr =               un_srgb.GetImageCount () == 1 ?
+                    TransformImage ( un_srgb.GetImages     (),
+                                     un_srgb.GetImageCount (),
+                                     un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      //bins [ lumaToBin (vLuma.m128_f32 [0]) ] ++;
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value  = inPixels [j];
+                        XMVECTOR nvalue =
+                          XMVectorMultiply (value, scale);
+                      //          value =
+                      //  XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                        outPixels [j]   =   value;
+                      }
+                    }, un_scrgb)                             : E_POINTER;
+
+                std::swap (un_srgb, un_scrgb);
+#else
+                XMVECTOR maxLum = XMVectorZero          (),
+                         minLum = XMVectorSplatInfinity ();
+
+                hr =              un_srgb.GetImageCount () == 1 ?
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        static const XMVECTORF32 s_luminance =
+                        { 0.3f, 0.59f, 0.11f, 0.f };
+                      
+                        XMVECTOR vLuma =
+                          XMVectorSplatY (
+                            XMColorRGBToXYZ (*pixels++)
+                          );
+                        
+                        maxLum =
+                          XMVectorMax ( maxLum,
+                                          vLuma );
+
+                        minLum =
+                          XMVectorMin ( minLum,
+                                          vLuma );
+                      }
+                    })                                       : E_POINTER;
+
+                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
+                                                                      maxLum.m128_f32 [0]), L"XXX" );
+
+                  SK_LOG0 ( (L"Mean Luminance: %f", ( maxLum.m128_f32 [0] +
+                                                      minLum.m128_f32 [0] ) / 2.0f), L"XXX" );
+
+                //#define _CHROMA_SCALE TRUE
+                  #ifndef _CHROMA_SCALE
+                                    maxLum =
+                                      XMVector3Length  (maxLum);
+                  #else
+                                    maxLum =
+                                      XMVectorMultiply (maxLum, maxLum);
+                  #endif
+
+                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
+                                                                      maxLum.m128_f32 [0]), L"XXX" );
+
+                  SK_LOG0 ( (L"Mean Luminance: %f", ( maxLum.m128_f32 [0] +
+                                                      minLum.m128_f32 [0] ) / 2.0f), L"XXX" );
+
+                  const XMVECTORF32 c_MaxNitsForDisplay =
+                  { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1456,9 +1682,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                                       )
                                         ),
                             XMVectorAdd (
-                              g_XMOne, value
+                              g_XMOne, c_MaxNitsForDisplay
                                         )
                           );
+
+                        //scale =
+                        //  XMVectorDivide ( c_MaxNitsForDisplay, maxLum );
 
                         XMVECTOR nvalue =
                           XMVectorMultiply (value, scale);
@@ -1470,11 +1699,20 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 std::swap (un_srgb, un_scrgb);
 
+                //if (         un_srgb.GetImageCount () == 1) {
+                //  Convert ( *un_srgb.GetImages     (),
+                //              DXGI_FORMAT_B8G8R8X8_UNORM,
+                //                TEX_FILTER_DITHER |
+                //                TEX_FILTER_SRGB,
+                //                  TEX_THRESHOLD_DEFAULT,
+                //                    un_scrgb );
+                //}
+#endif
+
                 if (         un_srgb.GetImageCount () == 1) {
                   Convert ( *un_srgb.GetImages     (),
                               DXGI_FORMAT_B8G8R8X8_UNORM,
-                                TEX_FILTER_DITHER |
-                                TEX_FILTER_SRGB,
+                                filterFlags,
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }

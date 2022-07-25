@@ -8043,7 +8043,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
         (ID3D11Asynchronous *)ReadPointerAcquire (
             (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async),
                               &d3d11_shader_tracking_s::disjoint_query.last_results,
-                        sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT, 0x0
+                        sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT, D3D11_ASYNC_GETDATA_DONOTFLUSH
                                           );
 
       if (hr == S_OK)
@@ -8109,7 +8109,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
                (ID3D11Query *)ReadPointerAcquire
                  ((volatile PVOID *)&duration->start.async),
                                     &duration->start.last_results,
-                                      sizeof UINT64, 0x00
+                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH
                                          )
                        )
            )
@@ -8151,7 +8151,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
                (ID3D11Query *)ReadPointerAcquire
                     ((volatile PVOID *)&duration->end.async),
                                        &duration->end.last_results,
-                                         sizeof UINT64, 0x00
+                                         sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH
                                           )
                        )
            )

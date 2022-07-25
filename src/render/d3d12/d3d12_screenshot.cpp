@@ -838,8 +838,8 @@ SK_D3D12_CaptureScreenshot (
   //
   // * We -need- the original 2D dimensions
   //
-    pBackingStore->Width  = desc.Width;
-    pBackingStore->Height = desc.Height;
+  pBackingStore->Width  = desc.Width;
+  pBackingStore->Height = desc.Height;
 
   DirectX::ComputePitch (
     pBackingStore->NativeFormat,
@@ -864,6 +864,11 @@ SK_D3D12_CaptureScreenshot (
 
   if (FAILED (hr))
        return hr;
+
+  SK_D3D12_SetDebugName (
+    pStagingCtx->pStagingBackbufferCopy.p,
+    L"SK D3D12 Screenshot Backbuffer Copy"
+  );
 
   auto& d3d12_rbk =
     _d3d12_rbk.get ();
@@ -917,8 +922,15 @@ SK_D3D12_CaptureScreenshot (
   if (FAILED (hr))
        return hr;
 
-  pStagingCtx->uiFenceVal =
+  ULONG64 ulFenceFrame =
     SK_GetFramesDrawn ();
+
+  SK_D3D12_SetDebugName (              pStagingCtx->pFence,
+       SK_FormatStringW ( L"SK Screenshot Completion Fence (%lu)",
+                                                   ulFenceFrame ).c_str () );
+
+  pStagingCtx->uiFenceVal =
+               ulFenceFrame;
 
   // Signal the fence
   hr =
