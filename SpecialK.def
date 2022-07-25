@@ -19,10 +19,12 @@ EXPORTS
   D3DPERF_SetMarker        = D3DPERF_SetMarker         PRIVATE
   D3DPERF_SetOptions       = D3DPERF_SetOptions        PRIVATE
   D3DPERF_SetRegion        = D3DPERF_SetRegion         PRIVATE
-  Direct3D9EnableMaximizedWindowedModeShim
-                           = Direct3D9EnableMaximizedWindowedModeShim
+
   Direct3DCreate9          = Direct3DCreate9
   Direct3DCreate9Ex        = Direct3DCreate9Ex
+
+  Direct3DShaderValidatorCreate            = Direct3DShaderValidatorCreate            PRIVATE
+  Direct3D9EnableMaximizedWindowedModeShim = Direct3D9EnableMaximizedWindowedModeShim PRIVATE
 
   D3D9TestCooperativeLevel_Override      = D3D9TestCooperativeLevel_Override       PRIVATE
   D3D9SetSamplerState_Override           = D3D9SetSamplerState_Override            PRIVATE
@@ -105,6 +107,7 @@ EXPORTS
   CreateDXGIFactory                = CreateDXGIFactory
   CreateDXGIFactory1               = CreateDXGIFactory1
   CreateDXGIFactory2               = CreateDXGIFactory2
+  DXGIDisableVBlankVirtualization  = DXGIDisableVBlankVirtualization
   DXGIDeclareAdapterRemovalSupport = DXGIDeclareAdapterRemovalSupport
   DXGIGetDebugInterface1           = DXGIGetDebugInterface1
   DXGID3D10CreateDevice            = DXGID3D10CreateDevice           PRIVATE

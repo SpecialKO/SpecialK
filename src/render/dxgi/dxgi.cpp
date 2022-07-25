@@ -94,6 +94,9 @@ CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullp
 CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
 
+using DXGIDisableVBlankVirtualization_pfn =
+HRESULT (WINAPI *)(void);
+
 using DXGIDeclareAdapterRemovalSupport_pfn =
 HRESULT (WINAPI *)(void);
 
@@ -7563,9 +7566,56 @@ SK_D3D11_GetLocalDLL (void)
   return hModLocalD3D11;
 }
 
+DXGIDisableVBlankVirtualization_pfn
+                           DXGIDisableVBlankVirtualization_Import  = nullptr;
 DXGIDeclareAdapterRemovalSupport_pfn
                            DXGIDeclareAdapterRemovalSupport_Import = nullptr;
 DXGIGetDebugInterface1_pfn DXGIGetDebugInterface1_Import           = nullptr;
+
+HRESULT
+WINAPI
+DXGIDisableVBlankVirtualization (void)
+{
+  SK_LOG_FIRST_CALL
+
+  if (DXGIDisableVBlankVirtualization_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ())
+            WaitForInitDXGI ();
+  }
+
+  return DXGIDisableVBlankVirtualization_Import != nullptr ?
+         DXGIDisableVBlankVirtualization_Import ()         :
+         E_NOTIMPL;
+}
+
+// Special K Override (during app init)
+HRESULT WINAPI SK_DXGI_DisableVBlankVirtualization (void)
+{
+  if (DXGIDisableVBlankVirtualization_Import == nullptr)
+  {
+    SK_RunOnce (SK_BootDXGI ())
+            WaitForInitDXGI ();
+  }
+
+  if (DXGIDisableVBlankVirtualization_Import != nullptr)
+  {
+    SK_LOGi0 (L"  Disabling Windows 11 Dynamic Refresh Rate");
+  }
+
+  HRESULT hr =
+    DXGIDisableVBlankVirtualization_Import != nullptr ?
+    DXGIDisableVBlankVirtualization_Import ()         :
+    E_NOTIMPL;
+
+  if (DXGIDisableVBlankVirtualization_Import != nullptr)
+  {
+    if (FAILED (hr))
+      SK_LOGi0 (L" * Failed to Disable VBLANK Virtualization (hr=%x)", hr);
+  }
+
+  return hr;
+}
 
 HRESULT
 WINAPI
@@ -8023,6 +8073,9 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory1.target.addr = pfnCreateDXGIFactory1;
       LocalHook_CreateDXGIFactory2.target.addr = pfnCreateDXGIFactory2;
     }
+
+    DXGIDisableVBlankVirtualization_Import = (DXGIDisableVBlankVirtualization_pfn)
+    SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
 
     SK_ApplyQueuedHooks ();
 

@@ -490,5 +490,7 @@ SK_DXGI_IsFlipModelSwapChain (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
     SK_DXGI_IsFlipModelSwapEffect (desc.SwapEffect);
 };
 
+HRESULT WINAPI SK_DXGI_DisableVBlankVirtualization (void);
+
 
 #endif /* __SK__DXGI_BACKEND_H__ */

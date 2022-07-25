@@ -649,6 +649,7 @@ struct {
     sk::ParameterBool*    enable_factory_cache    = nullptr;
     sk::ParameterBool*    skip_redundant_modes    = nullptr;
     sk::ParameterBool*    temporary_dwm_hdr       = nullptr;
+    sk::ParameterBool*    disable_virtual_vbi     = nullptr;
   } dxgi;
 
   struct {
@@ -1406,6 +1407,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.enable_factory_cache,       L"Cache DXGI Factories to reduce display mode list overhead", dll_ini,         L"Render.DXGI",           L"UseFactoryCache"),
     ConfigEntry (render.dxgi.skip_redundant_modes,       L"Try to keep resolution setting changes to a minimum",       dll_ini,         L"Render.DXGI",           L"SkipRedundantModeChanges"),
     ConfigEntry (render.dxgi.temporary_dwm_hdr,          L"Temporarily Enable DWM-based HDR while the game runs",      dll_ini,         L"Render.DXGI",           L"TemporaryDesktopHDRMode"),
+    ConfigEntry (render.dxgi.disable_virtual_vbi,        L"Disable Dynamic Refresh Rate (VBLANK Virtualization)",      dll_ini,         L"Render.DXGI",           L"DisableVirtualizedBlanking"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -3229,6 +3231,7 @@ auto DeclKeybind =
   render.dxgi.low_spec_mode->load        (config.render.dxgi.low_spec_mode);
   render.dxgi.hide_hdr_support->load     (config.render.dxgi.hide_hdr_support);
   render.dxgi.temporary_dwm_hdr->load    (config.render.dxgi.temporary_dwm_hdr);
+  render.dxgi.disable_virtual_vbi->load  (config.render.dxgi.disable_virtual_vbi);
   render.dxgi.enable_factory_cache->load (config.render.dxgi.use_factory_cache);
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
 
@@ -4717,6 +4720,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
       render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
       render.dxgi.temporary_dwm_hdr->store    (config.render.dxgi.temporary_dwm_hdr);
+      render.dxgi.disable_virtual_vbi->store  (config.render.dxgi.disable_virtual_vbi);
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
     }

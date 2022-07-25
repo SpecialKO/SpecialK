@@ -861,6 +861,10 @@ SK_InitFinishCallback (void)
 
   SK_Console::getInstance ()->Start ();
 
+  // Disable Windows 11 Dynamic Refresh Rate
+  if (config.render.dxgi.disable_virtual_vbi)
+    SK_DXGI_DisableVBlankVirtualization ();
+
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 

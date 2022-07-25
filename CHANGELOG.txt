@@ -1,4 +1,23 @@
-﻿22.7.19-NOCEGUI
+﻿22.7.25-NOCEGUI
+===============
+ + Added DXGI 1.6 Dynamic Refresh Rate (VBLANK Virtualization) Bypass
+
+   >> This bypass is applied by default on Windows 11 systems
+
+    * Think of DRR as DPI Scaling for Refresh Rate
+     
+   Software has to declare itself Dynamic Refresh Aware effectively, or Windows
+     is going to hide VSYNC timing information from the software and give it a
+       fake, floaty VSYNC instead
+
+    The bypass can be turned off in SK's INI using the following new setting:
+
+      [Render.DXGI]
+      DisableVirtualizedBlanking=false
+
+  + Improved HDR -> SDR tonemap quality in Screenshots
+
+22.7.19-NOCEGUI
 ===============
  + Fixed HDR screenshots for D3D12 resolutions not aligned to 32-pixel bounds
 

@@ -170,6 +170,8 @@
 #include <crtdefs.h>
 #include <sys/stat.h>
 
+#define _XM_AVX_INTRINSICS_
+
 #include <../depends/include/glm/glm.hpp>
 #include <d3dcompiler.h>
 #include <d3d11shader.h>
