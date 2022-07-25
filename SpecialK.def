@@ -19,6 +19,8 @@ EXPORTS
   D3DPERF_SetMarker        = D3DPERF_SetMarker         PRIVATE
   D3DPERF_SetOptions       = D3DPERF_SetOptions        PRIVATE
   D3DPERF_SetRegion        = D3DPERF_SetRegion         PRIVATE
+  Direct3D9EnableMaximizedWindowedModeShim
+                           = Direct3D9EnableMaximizedWindowedModeShim
   Direct3DCreate9          = Direct3DCreate9
   Direct3DCreate9Ex        = Direct3DCreate9Ex
 

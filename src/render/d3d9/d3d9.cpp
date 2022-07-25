@@ -2001,6 +2001,12 @@ D3D9_STUB_VOID    (void,  D3DPERF_SetMarker, (D3DCOLOR color, LPCWSTR name),
 D3D9_STUB_VOID    (void,  D3DPERF_SetRegion, (D3DCOLOR color, LPCWSTR name),
                                                       (color,         name))
 
+// If this isn't exported, games will crash if 'Fullscreen Optimizations' are
+//   forcefully overriden by the end-user.
+D3D9_STUB_INT     (int,   Direct3D9EnableMaximizedWindowedModeShim, (BOOL mEnable),
+                                                                         (mEnable))
+
+
 
 int
 SK_D3D9_HookDeviceAndSwapchain (
