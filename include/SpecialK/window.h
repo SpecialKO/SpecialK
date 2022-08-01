@@ -488,6 +488,10 @@ bool
 __stdcall
 SK_IsGameWindowActive (void);
 
+bool
+__stdcall
+SK_IsGameWindowFocused (void);
+
 HWND
 WINAPI
 SK_GetForegroundWindow (void);

@@ -249,6 +249,7 @@ uint32_t __stdcall    SK_Steam_PiratesAhoy                      (void);
 
 using SteamAPI_Init_pfn                  = bool (S_CALLTYPE *    )(void);
 using SteamAPI_InitSafe_pfn              = bool (S_CALLTYPE *)(void);
+using SteamAPI_ManualDispatch_Init_pfn   = void (S_CALLTYPE *)(void);
 
 using SteamAPI_RestartAppIfNecessary_pfn = bool (S_CALLTYPE *)
     (uint32 unOwnAppID);
@@ -278,6 +279,7 @@ using SteamClient_pfn                   = ISteamClient* (S_CALLTYPE *)(void);
 
 using SteamAPI_InitSafe_pfn             = bool (S_CALLTYPE*)(void);
 using SteamAPI_Init_pfn                 = bool (S_CALLTYPE*)(void);
+using SteamAPI_ManualDispatch_Init_pfn  = void (S_CALLTYPE*)(void);
 
 using SteamAPI_GetSteamInstallPath_pfn  = const char* (S_CALLTYPE *)(void);
 
@@ -285,6 +287,7 @@ using SteamAPI_GetSteamInstallPath_pfn  = const char* (S_CALLTYPE *)(void);
 
 extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe_Original             ;
 extern "C" SteamAPI_Init_pfn                  SteamAPI_Init_Original                 ;
+extern "C" SteamAPI_ManualDispatch_Init_pfn   SteamAPI_ManualDispatch_Init_Original  ;
 
 extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks                  ;
 extern "C" SteamAPI_RunCallbacks_pfn          SteamAPI_RunCallbacks_Original         ;
@@ -300,6 +303,7 @@ extern "C" SteamAPI_UnregisterCallResult_pfn  SteamAPI_UnregisterCallResult     
 
 extern "C" SteamAPI_Init_pfn                  SteamAPI_Init                          ;
 extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe                      ;
+extern "C" SteamAPI_ManualDispatch_Init_pfn   SteamAPI_ManualDispatch_Init           ;
 
 extern "C" SteamAPI_RestartAppIfNecessary_pfn SteamAPI_RestartAppIfNecessary         ;
 extern "C" SteamAPI_IsSteamRunning_pfn        SteamAPI_IsSteamRunning                ;
@@ -318,9 +322,10 @@ extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath      
 //extern "C" GetControllerState_pfn             GetControllerState_Original;
 
 
-extern "C" bool S_CALLTYPE SteamAPI_InitSafe_Detour     (void);
-extern "C" bool S_CALLTYPE SteamAPI_Init_Detour         (void);
-extern "C" void S_CALLTYPE SteamAPI_RunCallbacks_Detour (void);
+extern "C" bool S_CALLTYPE SteamAPI_InitSafe_Detour            (void);
+extern "C" bool S_CALLTYPE SteamAPI_Init_Detour                (void);
+extern "C" void S_CALLTYPE SteamAPI_ManualDispatch_Init_Detour (void);
+extern "C" void S_CALLTYPE SteamAPI_RunCallbacks_Detour        (void);
 
 extern "C" void S_CALLTYPE SteamAPI_RegisterCallback_Detour   (class CCallbackBase *pCallback, int iCallback);
 extern "C" void S_CALLTYPE SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback);
@@ -329,8 +334,6 @@ extern "C" void S_CALLTYPE SteamAPI_UnregisterCallback_Detour (class CCallbackBa
 void SK_SteamAPI_InitManagers            (void);
 void SK_SteamAPI_DestroyManagers         (void);
 
-extern "C" bool S_CALLTYPE SteamAPI_InitSafe_Detour (void);
-extern "C" bool S_CALLTYPE SteamAPI_Init_Detour     (void);
 extern "C" void S_CALLTYPE SteamAPI_Shutdown_Detour (void);
 void                       SK_Steam_StartPump       (bool force = false);
 

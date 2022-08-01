@@ -6,7 +6,7 @@
 //#define INCLUDE_ACES
 //#define INCLUDE_HDR10
 #define INCLUDE_NAN_MITIGATION
-#define DEBUG_NAN
+//#define DEBUG_NAN
 //#define UTIL_STRIP_NAN
 
 #pragma warning ( disable : 3570 )
@@ -154,14 +154,13 @@ float4 main (PS_INPUT input) : SV_TARGET
 #ifdef INCLUDE_NAN_MITIGATION
       // A UNORM RenderTarget would return this instead of NaN,
       //   and the game is expecting UNORM render targets :)
-      if (AnyIsNan (ret.rgba) || AnyIsNegative (ret.rgba))
-      {
-        return
-          float4 (0.0f, 0.0f, 0.0f, 0.0f);
-      }
+      return
+        float4 ( isnan (ret.r) ? 0.0f : max (isinf (ret.r) ? 0.0f : ret.r, 0.0f),
+                 isnan (ret.g) ? 0.0f : max (isinf (ret.g) ? 0.0f : ret.g, 0.0f),
+                 isnan (ret.b) ? 0.0f : max (isinf (ret.b) ? 0.0f : ret.b, 0.0f),
+                 isnan (ret.a) ? 0.0f : max (isinf (ret.a) ? 0.0f : ret.a, 0.0f) );
+      
 #endif
-
-      return ret;
     } break;
 
 #ifdef UTIL_STRIP_NAN
@@ -171,13 +170,10 @@ float4 main (PS_INPUT input) : SV_TARGET
         texMainScene.Sample ( sampler0,
                                 input.uv );
 
-      if (AnyIsNan (color))
-        return float4 (0.0f, 0.0f, 0.0f, 0.0f);
-
-      if (color.r < 0.0f) color.r = 0.0f;
-      if (color.g < 0.0f) color.g = 0.0f;
-      if (color.b < 0.0f) color.b = 0.0f;
-      if (color.a < 0.0f) color.a = 0.0f;
+      color.r = isnan (color.r) ? 0.0f : max (isinf (color.r) ? 0.0f : color.r, 0.0f);
+      color.g = isnan (color.g) ? 0.0f : max (isinf (color.g) ? 0.0f : color.g, 0.0f);
+      color.b = isnan (color.b) ? 0.0f : max (isinf (color.b) ? 0.0f : color.b, 0.0f);
+      color.a = isnan (color.a) ? 0.0f : max (isinf (color.a) ? 0.0f : color.a, 0.0f);
 
       return
         color;
@@ -240,8 +236,8 @@ float4 main (PS_INPUT input) : SV_TARGET
    if(hdr_color.a < 0.0f )
       hdr_color.a = 0.0f;}
 
- if (! any (hdr_color))
-   return float4 (0.0f, 0.0f, 0.0f, 0.0f);
+ ///if (! any (hdr_color))
+ ///  return float4 (0.0f, 0.0f, 0.0f, 0.0f);
 #endif
 #endif
 

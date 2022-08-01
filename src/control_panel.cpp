@@ -4888,16 +4888,12 @@ SK_ImGui_ControlPanel (void)
     ImGui::Checkbox ("Copy Screenshots to Clipboard",    &config.screenshots.copy_to_clipboard);
     ImGui::Checkbox ("Play Sound on Screenshot Capture", &config.screenshots.play_sound       );
 
-    if (rb.api != SK_RenderAPI::D3D12)
-    {
-      png_changed =
-        ImGui::Checkbox (
-          rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
-                          "Keep Lossless .PNG Screenshots",
-                                      &config.screenshots.png_compress
-                        );
-    }
-    else { config.screenshots.png_compress = true; }
+    png_changed =
+      ImGui::Checkbox (
+        rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
+                        "Keep Lossless .PNG Screenshots",
+                                    &config.screenshots.png_compress
+                      );
 
     ImGui::EndGroup ();
 

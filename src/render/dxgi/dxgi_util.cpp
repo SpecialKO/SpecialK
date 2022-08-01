@@ -1239,13 +1239,15 @@ SK_D3D11_BltCopySurface (ID3D11Texture2D *pSrcTex, ID3D11Texture2D *pDstTex)
   pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
   pDevCtx->SetPredication         (nullptr, FALSE);
-  pDevCtx->Draw                   (4, 0);
+
+  D3D11_Draw_Original    (pDevCtx, 4, 0);
+//pDevCtx->Draw                   (4, 0);
 
   ApplyStateblock (pDevCtx.p, &codec.sb);
 
   if (pDstTex != nullptr && surface.render.tex != nullptr)
-     //D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
-    pDevCtx->CopyResource (pDstTex, surface.render.tex);
+    D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
+    //pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
   return true;
 }

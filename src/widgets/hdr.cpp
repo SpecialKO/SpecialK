@@ -616,10 +616,10 @@ public:
       SK_GetCurrentRenderBackend ();
 
 
-    // Automatically handle sRGB -> Linear if the original SwapChain used it
-    extern bool             bOriginallysRGB;
-    if (rb.srgb_stripped || bOriginallysRGB)
-      __SK_HDR_Bypass_sRGB = 1;
+    //// Automatically handle sRGB -> Linear if the original SwapChain used it
+    //extern bool             bOriginallysRGB;
+    //if (rb.srgb_stripped || bOriginallysRGB)
+    //  __SK_HDR_Bypass_sRGB = 1;
 
 
     if ( __SK_HDR_10BitSwap ||
@@ -1525,7 +1525,7 @@ public:
                     ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
                   }
 
-#ifdef _DEBUG
+#if 1
                   extern UINT filterFlags;
                   ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
 

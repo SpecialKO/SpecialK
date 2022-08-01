@@ -579,6 +579,9 @@ using D3D9Device_CreateOffscreenPlainSurface_pfn = HRESULT (STDMETHODCALLTYPE *)
   _Out_ IDirect3DSurface9 **ppSurface,
   _In_  HANDLE             *pSharedHandle );
 
+using D3D9Device_CreateVolumeTexture_pfn         = HRESULT (STDMETHODCALLTYPE *)(IDirect3DDevice9*, UINT, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DVolumeTexture9**, HANDLE*);
+using D3D9Device_CreateCubeTexture_pfn           = HRESULT (STDMETHODCALLTYPE *)(IDirect3DDevice9*, UINT, UINT,             DWORD, D3DFORMAT, D3DPOOL, IDirect3DCubeTexture9**,   HANDLE*);
+using D3D9Device_CreateIndexBuffer_pfn           = HRESULT (STDMETHODCALLTYPE *)(IDirect3DDevice9*, UINT,            DWORD,        D3DFORMAT, D3DPOOL, IDirect3DIndexBuffer9**,   HANDLE*);
 
 
 __declspec (noinline)

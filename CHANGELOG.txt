@@ -1,4 +1,32 @@
-﻿22.7.25-NOCEGUI
+﻿22.8.1.1-NOCEGUI
+================
+ + Fixed jittery text on latency analysis widget
+ + Fixed framepacing widget debug view crashing in non-DXGI graphics APIs
+ + Added automatic global injection delay for .NET software
+ + SteamAPI integration is auto-disabled in games that use Manual Callback Dispatch
+     in order to prevent deadlock (fixes Tererria / Lords of Xulima)
+
+22.8.1-NOCEGUI
+==============
+ + Split D3D9Ex override INI cfg into ForceD3D9Ex and EnableFlipEx (D3D9 Flip Model)
+ + Fixed SteamAPI process abort in Control during achievement user statistics fetch
+ + Added texture name to dumped texture metadata file for D3D11 engines that include
+     debug names in retail games (i.e. Unity)
+
+22.7.31-NOCEGUI
+===============
+ + Added D3D9 texture injection support for engines that use LockRect/UnlockRect
+ + Added D3D9 Managed Pool -> D3D9Ex Default Pool memory mgmt. to support D3D9Ex
+ + Fixed D3D9 texture dumping for certain DXT1-5 texture allocations
+
+22.7.29-NOCEGUI
+===============
+ + Added 10 second global injection delay to executables with "Launcher" in name
+     (Fixes Final Fantasy 8)
+ + Fixed screenshots in D3D12 software with third-party resolution overrides
+ + Fixed local injection as "dxgi.dll" if VBLANK Virtualization bypass is enabled
+
+22.7.25-NOCEGUI
 ===============
  + Added DXGI 1.6 Dynamic Refresh Rate (VBLANK Virtualization) Bypass
 

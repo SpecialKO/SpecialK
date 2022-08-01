@@ -1604,4 +1604,6 @@ using D3DKMTWaitForVerticalBlankEvent_pfn  = NTSTATUS (WINAPI *)(const D3DKMT_WA
 using D3DKMTGetScanLine_pfn                = NTSTATUS (WINAPI *)(D3DKMT_GETSCANLINE                      *unnamedParam1);
 using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SETSTABLEPOWERSTATE        *unnamedParam1);
 
+void SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
+
 #endif /* __SK__RENDER_BACKEND__H__ */

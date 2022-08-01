@@ -96,7 +96,10 @@ SK_D3D9_DeclTrampoline (D3D9Device,   SetPixelShader)
 SK_D3D9_DeclTrampoline (D3D9Device,   SetVertexShader)
 SK_D3D9_DeclTrampoline (D3D9Device,   SetScissorRect)
 SK_D3D9_DeclTrampoline (D3D9Device,   CreateTexture)
+SK_D3D9_DeclTrampoline (D3D9Device,   CreateVolumeTexture)
+SK_D3D9_DeclTrampoline (D3D9Device,   CreateCubeTexture)
 SK_D3D9_DeclTrampoline (D3D9Device,   CreateVertexBuffer)
+SK_D3D9_DeclTrampoline (D3D9Device,   CreateIndexBuffer)
 SK_D3D9_DeclTrampoline (D3D9Device,   SetStreamSource)
 SK_D3D9_DeclTrampoline (D3D9Device,   SetStreamSourceFreq)
 SK_D3D9_DeclTrampoline (D3D9Device,   SetFVF)
@@ -879,15 +882,27 @@ SK_D3DXGetImageInfoFromFileInMemory (
   UINT            SrcDataSize,
   D3DXIMAGE_INFO* pSrcInfo)
 {
+  HRESULT hr = E_FAIL;
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  bool bLoading =
+    tex_mgr.injector.beginLoad ();
+
   static auto
     _D3DXGetImageInfoFromFileInMemory =
     (D3DXGetImageInfoFromFileInMemory_pfn)SK_D3DX9_GetProcAddress
    ("D3DXGetImageInfoFromFileInMemory");
 
-  return
+  hr =
     ( _D3DXGetImageInfoFromFileInMemory != nullptr )
     ? _D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, pSrcInfo)
     : E_NOTIMPL;
+
+  tex_mgr.injector.endLoad (bLoading);
+
+  return hr;
 }
 
 HRESULT
@@ -898,20 +913,38 @@ SK_D3DXSaveTextureToFileW (
       LPDIRECT3DBASETEXTURE9 pSrcTexture,
 const PALETTEENTRY           *pSrcPalette )
 {
+  HRESULT hr = E_FAIL;
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  bool bLoading =
+    tex_mgr.injector.beginLoad ();
+
   static auto
     _D3DXSaveTextureToFileW =
     (D3DXSaveTextureToFileW_pfn)SK_D3DX9_GetProcAddress
    ("D3DXSaveTextureToFileW");
 
-  return
+  hr =
     ( _D3DXSaveTextureToFileW != nullptr )
     ? _D3DXSaveTextureToFileW ( pDestFile,   DestFormat,
                                 pSrcTexture, pSrcPalette )
     : E_NOTIMPL;
+
+  tex_mgr.injector.endLoad (bLoading);
+
+  return hr;
 }
 
 D3DXCreateTextureFromFileInMemoryEx_pfn
 D3DXCreateTextureFromFileInMemoryEx_Original = nullptr;
+
+D3DXCreateVolumeTextureFromFileInMemoryEx_pfn
+D3DXCreateVolumeTextureFromFileInMemoryEx_Original = nullptr;
+
+D3DXCreateCubeTextureFromFileInMemoryEx_pfn
+D3DXCreateCubeTextureFromFileInMemoryEx_Original = nullptr;
 
 HRESULT
 WINAPI
@@ -932,7 +965,23 @@ SK_D3DXCreateTextureFromFileInMemoryEx (
   _Out_opt_   PALETTEENTRY       *pPalette,
   _Out_       LPDIRECT3DTEXTURE9 *ppTexture )
 {
-  if (D3DXCreateTextureFromFileInMemoryEx_Original != nullptr) return
+  if (config.render.d3d9.force_d3d9ex)
+  {
+    if (Pool == D3DPOOL_MANAGED)
+    {   Pool  = D3DPOOL_DEFAULT;
+       Usage |= D3DUSAGE_DYNAMIC;
+    }
+  }
+
+  HRESULT hr = E_FAIL;
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  bool bLoading =
+    tex_mgr.injector.beginLoad ();
+
+  if (D3DXCreateTextureFromFileInMemoryEx_Original != nullptr) hr =
       D3DXCreateTextureFromFileInMemoryEx_Original (
         pDevice,
           pSrcData,         SrcDataSize,
@@ -942,26 +991,39 @@ SK_D3DXCreateTextureFromFileInMemoryEx (
                   pSrcInfo, pPalette,
                     ppTexture );
 
-  // Game does not use D3DX, but we do... load an unhooked proc
-  static auto
-       D3DXCreateTextureFromFileInMemoryEx_NotHooked =
-      (D3DXCreateTextureFromFileInMemoryEx_pfn)SK_D3DX9_GetProcAddress (
-      "D3DXCreateTextureFromFileInMemoryEx" );
+  else
+  {
+    // Game does not use D3DX, but we do... load an unhooked proc
+    static auto
+         D3DXCreateTextureFromFileInMemoryEx_NotHooked =
+        (D3DXCreateTextureFromFileInMemoryEx_pfn)SK_D3DX9_GetProcAddress (
+        "D3DXCreateTextureFromFileInMemoryEx" );
 
-  if ( D3DXCreateTextureFromFileInMemoryEx_NotHooked != nullptr ) return
-       D3DXCreateTextureFromFileInMemoryEx_NotHooked (
-         pDevice,
-           pSrcData,         SrcDataSize,
-             Width,          Height,    MipLevels,
-               Usage,        Format,    Pool,
-                 Filter,     MipFilter, ColorKey,
-                   pSrcInfo, pPalette,
-                     ppTexture );
+    if ( D3DXCreateTextureFromFileInMemoryEx_NotHooked != nullptr ) hr =
+         D3DXCreateTextureFromFileInMemoryEx_NotHooked (
+           pDevice,
+             pSrcData,         SrcDataSize,
+               Width,          Height,    MipLevels,
+                 Usage,        Format,    Pool,
+                   Filter,     MipFilter, ColorKey,
+                     pSrcInfo, pPalette,
+                       ppTexture );
 
-  // Uh oh
-  return
-    E_NOTIMPL;
+    // Uh oh
+    else
+      hr = E_NOTIMPL;
+  }
+
+  tex_mgr.injector.endLoad (bLoading);
+
+  return hr;
 }
+
+D3DXCreateTextureFromFileExW_pfn
+D3DXCreateTextureFromFileExW_Original = nullptr;
+
+D3DXCreateTextureFromFileExA_pfn
+D3DXCreateTextureFromFileExA_Original = nullptr;
 
 HMODULE
 SK_D3DX9_Unpack (void)
@@ -1378,39 +1440,6 @@ _HandleSwapChainException (const wchar_t* wszOrigin)
   return D3DERR_DEVICELOST;
 };
 
-
-__declspec (noinline)
-HRESULT
-WINAPI
-SK_D3D9_Present (IDirect3DDevice9 *This,
-                 _In_ const RECT             *pSourceRect,
-                 _In_ const RECT             *pDestRect,
-                 _In_       HWND              hDestWindowOverride,
-                 _In_ const RGNDATA          *pDirtyRegion)
-{
-  HRESULT
-    hr = S_OK;
-
-  auto orig_se =
-  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-  try           { hr = SK_D3D9_Trampoline (D3D9Device, Present)
-                                            ( This,
-                                                pSourceRect,
-                                                  pDestRect,
-                                                    hDestWindowOverride,
-                                                      pDirtyRegion );
-  }
-
-  catch (const SK_SEH_IgnoredException&)
-  {
-    hr =
-      _HandleSwapChainException (L"IDirect3DDevice9::Present");
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-
-  return hr;
-}
-
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -1438,6 +1467,39 @@ SK_D3D9_PresentEx (IDirect3DDevice9Ex *This,
   {
     hr =
       _HandleSwapChainException (L"IDirect3DDevice9Ex::PresentEx");
+  }
+  SK_SEH_RemoveTranslator (orig_se);
+
+  return hr;
+}
+
+__declspec (noinline)
+HRESULT
+WINAPI
+SK_D3D9_Present (IDirect3DDevice9 *This,
+                 _In_ const RECT             *pSourceRect,
+                 _In_ const RECT             *pDestRect,
+                 _In_       HWND              hDestWindowOverride,
+                 _In_ const RGNDATA          *pDirtyRegion)
+{
+  HRESULT
+    hr = S_OK;
+
+  auto orig_se =
+  SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+  try {
+    hr = SK_D3D9_Trampoline (D3D9Device, Present)
+                              ( This,
+                                  pSourceRect,
+                                    pDestRect,
+                                      hDestWindowOverride,
+                                        pDirtyRegion );
+  }
+
+  catch (const SK_SEH_IgnoredException&)
+  {
+    hr =
+      _HandleSwapChainException (L"IDirect3DDevice9::Present");
   }
   SK_SEH_RemoveTranslator (orig_se);
 
@@ -1553,6 +1615,23 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
                       SK_D3DKMT_WaitForVBlank ();
         }
       }
+    }
+
+    // Route Present through PresentEx to gain access to Force Immediate
+    //
+    //   ( This allows turning VSYNC on/off without resetting the device )
+    //
+    if ( config.render.d3d9.force_d3d9ex )
+    {
+      pDevEx             = static_cast <IDirect3DDevice9Ex *> (pDev);
+      dispatch->Type     = SK_D3D9_PresentType::Device9Ex_PresentEx;
+
+      D3DPRESENT_PARAMETERS              pparams = { };
+      pSwapChain->GetPresentParameters (&pparams);
+
+      // This silently fails in fullscreen
+      if (! pparams.Windowed)
+        dispatch->dwFlags |= D3DPRESENT_FORCEIMMEDIATE;
     }
 
 
@@ -1752,13 +1831,21 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
     if (trigger_reset == reset_stage_e::Clear)
     {
+      hr = CallFunc ();
+
+      if (hr == D3DERR_WASSTILLDRAWING)
+          hr = D3D_OK;
+
       hr =
-        SK_EndBufferSwap ( CallFunc (), pDev );
+        SK_EndBufferSwap ( hr, pDev );
     }
 
     else
     {
       hr = CallFunc ();
+
+      if (hr == D3DERR_WASSTILLDRAWING)
+          hr = D3D_OK;
 
       if (hr == D3D_OK)
         hr = D3DERR_DEVICELOST;
@@ -2184,7 +2271,6 @@ SK_D3D9_HookReset (IDirect3DDevice9 *pDev)
   //
 
   SK_ComQIPtr <IDirect3DDevice9Ex> pDevEx (pDev);
-//pDev->QueryInterface (IID_IDirect3DDevice9Ex, &pDevEx.p);
 
   if (pDevEx != nullptr)
   {
@@ -2317,16 +2403,24 @@ D3D9Reset_Pre ( IDirect3DDevice9      *This,
 
     if (tex_mgr.init)
     {
-      if (tex_mgr.injector.hasPendingLoads ())
-        tex_mgr.loadQueuedTextures ();
+      //if (tex_mgr.injector.hasPendingLoads ())
+          tex_mgr.loadQueuedTextures ();
 
-      tex_mgr.reset ();
+      static auto llLastFrame =
+        (ULONG64)-1;
+
+      //if (llLastFrame != SK_GetFramesDrawn ())
+      {
+        tex_mgr.reset ();
 
     //need_reset.textures = false;
 
-      tex_mgr.resetUsedTextures ( );
+        tex_mgr.resetUsedTextures ( );
 
     //need_reset.graphics = false;
+
+        llLastFrame = SK_GetFramesDrawn ();
+      }
     }
 
     known_objs->clear ();
@@ -2403,6 +2497,18 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
   }
 
 
+  SK_ComQIPtr <IDirect3DDevice9Ex> pDev9Ex (This);
+
+  bool bD3D9ExDevice = ( config.render.d3d9.force_d3d9ex &&
+                           pDev9Ex.p != nullptr );
+
+  if (bD3D9ExDevice)
+  {
+    return
+      D3D9ResetEx (pDev9Ex, pPresentationParameters, nullptr);
+  }
+
+
   SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
                  L"%s",
                  L"IDirect3DDevice9::Reset",
@@ -2437,7 +2543,41 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
 
   else
   {
-    D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
+    // Parameters passed were invalid... are SK overrides to blame?
+    if (hr == D3DERR_INVALIDCALL)
+    {
+      if ((! config.window.res.override.isZero ()) || config.render.framerate.refresh_rate > 0.0f)
+      {
+        // Maybe resolution is not supported in fullscreen?
+        if (pPresentationParameters->Windowed == FALSE)
+        {
+          pPresentationParameters->Windowed                   =    TRUE;
+          pPresentationParameters->FullScreen_RefreshRateInHz =       0;
+        }
+      }
+
+      if (pPresentationParameters->Windowed)
+          pPresentationParameters->FullScreen_RefreshRateInHz = 0;
+
+      if (config.render.framerate.present_interval != -1)
+      {
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+      }
+
+      D3D9_CALL (hr, D3D9Device_Reset_Original (This,
+                                                  pPresentationParameters));
+
+      if (SUCCEEDED (hr))
+      {
+        SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+        D3D9Reset_Post          (This, pPresentationParameters, nullptr);
+
+        return hr;
+      }
+    }
+
+    else
+      D3D9Reset_Pre ( This, pPresentationParameters, nullptr );
   }
 
   return hr;
@@ -2465,6 +2605,38 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
                                              pPresentationParameters,
                                                pFullscreenDisplayMode );
   }
+
+
+  D3DDISPLAYMODEEX _d3dex_implicit_mode = { };
+
+  if ( config.render.d3d9.force_d3d9ex &&
+       config.render.d3d9.enable_flipex )
+  {
+    pPresentationParameters->BackBufferCount     =       3;
+    pPresentationParameters->SwapEffect          = D3DSWAPEFFECT_FLIPEX;
+    pPresentationParameters->Flags              &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+    pPresentationParameters->Flags              &= ~D3DPRESENTFLAG_DEVICECLIP;
+    pPresentationParameters->MultiSampleType     = D3DMULTISAMPLE_NONE;
+    pPresentationParameters->MultiSampleQuality  = 0;
+
+    if (! pPresentationParameters->Windowed)
+    {
+      _d3dex_implicit_mode = {
+        sizeof (D3DDISPLAYMODEEX),
+
+        pPresentationParameters->BackBufferWidth,
+        pPresentationParameters->BackBufferHeight,
+        pPresentationParameters->FullScreen_RefreshRateInHz,
+        pPresentationParameters->BackBufferFormat,
+        D3DSCANLINEORDERING_UNKNOWN
+      };
+
+      SK_LOGi0 (L"Using Implicit D3D9Ex Fullscreen Mode");
+
+      pFullscreenDisplayMode = &_d3dex_implicit_mode;
+    }
+  }
+
 
 
   SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h,"
@@ -2504,6 +2676,40 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
 
   else
   {
+    // Parameters passed were invalid... are SK overrides to blame?
+    if (hr == D3DERR_INVALIDCALL)
+    {
+      if ((! config.window.res.override.isZero ()) || config.render.framerate.refresh_rate > 0.0f)
+      {
+        // Maybe resolution is not supported in fullscreen?
+        if (pPresentationParameters->Windowed == FALSE)
+        {
+          pPresentationParameters->Windowed                   =    TRUE;
+          pPresentationParameters->FullScreen_RefreshRateInHz =       0;
+        }
+      }
+
+      if (pPresentationParameters->Windowed)
+          pPresentationParameters->FullScreen_RefreshRateInHz = 0;
+
+      if (config.render.framerate.present_interval != -1)
+      {
+        pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+      }
+
+      D3D9_CALL (hr, D3D9ExDevice_ResetEx_Original ( This,
+                                                     pPresentationParameters,
+                                                       pFullscreenDisplayMode ));
+
+      if (SUCCEEDED (hr))
+      {
+        SK_SetPresentParamsD3D9 (This, pPresentationParameters);
+        D3D9Reset_Post          (This, pPresentationParameters, pFullscreenDisplayMode);
+
+        return hr;
+      }
+    }
+
     D3D9Reset_Pre ( This, pPresentationParameters, pFullscreenDisplayMode );
   }
 
@@ -2845,6 +3051,62 @@ D3D9SetScissorRect_Override ( IDirect3DDevice9 *This,
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
+D3D9CreateVolumeTexture_Override ( IDirect3DDevice9         *This,
+                                   UINT                      Width,
+                                   UINT                      Height,
+                                   UINT                      Depth,
+                                   UINT                      Levels,
+                                   DWORD                     Usage,
+                                   D3DFORMAT                 Format,
+                                   D3DPOOL                   Pool,
+                                   IDirect3DVolumeTexture9 **ppVolumeTexture,
+                                   HANDLE                   *pSharedHandle )
+{
+  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  {
+    SK_LOGi1 (L" >> Reassigning Managed Volume Texture to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  }
+
+  return
+    D3D9Device_CreateVolumeTexture_Original ( This,
+                                                Width, Height, Depth, Levels, Usage,
+                                                  Format, Pool, ppVolumeTexture,
+                                                    pSharedHandle );
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9CreateCubeTexture_Override ( IDirect3DDevice9       *This,
+                                 UINT                    EdgeLength,
+                                 UINT                    Levels,
+                                 DWORD                   Usage,
+                                 D3DFORMAT               Format,
+                                 D3DPOOL                 Pool,
+                                 IDirect3DCubeTexture9 **ppCubeTexture,
+                                 HANDLE                 *pSharedHandle )
+{
+  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  {
+    SK_LOGi1 (L" >> Reassigning Managed Cube Texture to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  }
+
+  return
+    D3D9Device_CreateCubeTexture_Original ( This,
+                                              EdgeLength, Levels, Usage,
+                                                Format, Pool, ppCubeTexture,
+                                                  pSharedHandle );
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
 D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
                              UINT                Width,
                              UINT                Height,
@@ -2855,6 +3117,32 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
                              IDirect3DTexture9 **ppTexture,
                              HANDLE             *pSharedHandle )
 {
+  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  {
+    SK_LOGi1 (L" >> Reassigning Managed 2D Texture to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  }
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  if (config.textures.d3d9_mod || tex_mgr.init)
+  {
+    if ( (Usage & D3DUSAGE_RENDERTARGET) !=
+                  D3DUSAGE_RENDERTARGET )
+    {
+      if ( Format >= D3DFMT_DXT1     && Format <= D3DFMT_DXT5 &&
+           Pool   == D3DPOOL_DEFAULT && ( (Usage & D3DUSAGE_DYNAMIC) !=
+                                                   D3DUSAGE_DYNAMIC ) )
+      {
+        // So we can dump this thing
+        Usage |= D3DUSAGE_DYNAMIC;
+      }
+    }
+  }
+
   return
     D3D9Device_CreateTexture_Original ( This,
                                           Width, Height, Levels,
@@ -2927,6 +3215,15 @@ D3D9CreateVertexBuffer_Override
   _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
   _In_  HANDLE                  *pSharedHandle )
 {
+  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  {
+    SK_LOGi1 (L" >> Reassigning Managed Vertex Buffer to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  //Usage |= D3DUSAGE_WRITEONLY;
+  }
+
   static bool ffxiii =
     SK_GetModuleHandle (L"ffxiiiimg.exe") != nullptr;
 
@@ -2995,6 +3292,32 @@ D3D9CreateVertexBuffer_Override
   }
 
   return hr;
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D9CreateIndexBuffer_Override ( IDirect3DDevice9         *This,
+                                 UINT                      Length,
+                                 DWORD                     Usage,
+                                 D3DFORMAT                 Format,
+                                 D3DPOOL                   Pool,
+                                 IDirect3DIndexBuffer9   **ppIndexBuffer,
+                                 HANDLE                   *pSharedHandle )
+{
+  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  {
+    SK_LOGi1 (L" >> Reassigning Managed Index Buffer to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  //Usage |= D3DUSAGE_WRITEONLY;
+  }
+
+  return
+    D3D9Device_CreateIndexBuffer_Original ( This,
+                                              Length, Usage, Format, Pool,
+                                                ppIndexBuffer, pSharedHandle );
 }
 
 __declspec (noinline)
@@ -3240,7 +3563,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
 
-  if ((! config.textures.d3d9_mod) || (! tex_mgr.init) || tex_mgr.injector.isInjectionThread ())
+  if ((! config.textures.d3d9_mod) && (! tex_mgr.init))
   {
     return
       D3D9Device_UpdateTexture_Original ( This,
@@ -3280,8 +3603,10 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
                                           pRealSource,
                                             pRealDest );
 
+  bool bCallerIsSteam = false;
+    //StrStrIW (SK_GetModuleName (SK_GetCallingDLL ()).c_str (), L"GameOverlayRenderer") != nullptr;
 
-  if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped)
+  if (SUCCEEDED (hr) && src_is_wrapped && dst_is_wrapped && (! bCallerIsSteam) && (! tex_mgr.injector.isInjectionThread ()))
   {
     auto* pSrc =
       static_cast <ISKTextureD3D9 *> (pSourceTexture);
@@ -3293,8 +3618,8 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
     LARGE_INTEGER                liNow;
     SK_QueryPerformanceCounter (&liNow);
 
-                                                                      // Rudimentary protection against video textures
-    if (pDestinationTexture && ((ISKTextureD3D9 *)pDestinationTexture)->tex_crc32c == 0x0)
+                               // Rudimentary protection against video textures
+    if (pDestinationTexture && pDst->tex_crc32c == 0x0)
     {
       pSrc->last_used.QuadPart = liNow.QuadPart;
       pDst->last_used.QuadPart = liNow.QuadPart;
@@ -3302,28 +3627,36 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
       pSrc->uses++;
       pDst->uses++;
 
-      Texture* pTex = nullptr;
+      Texture *pTex = nullptr;
 
       if (pSrc->tex_crc32c != 0x0)
       {
-        pTex =
-          new Texture ();
+        pTex = new Texture ();
 
-        pDst->tex_crc32c = pSrc->tex_crc32c;
-        pDst->tex_size   = pSrc->tex_size;
-        pTex->crc32c     = pSrc->tex_crc32c;
-        pTex->size       = pSrc->tex_size;
-        pTex->d3d9_tex   = pDst;
         pTex->refs++;
+        pTex->d3d9_tex = pDst;
         pTex->d3d9_tex->AddRef ();
 
-        tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
+        pTex->d3d9_tex->tex_crc32c = pSrc->tex_crc32c;
+        pTex->d3d9_tex->tex_size   = pSrc->tex_size;
+        pTex->crc32c               = pSrc->tex_crc32c;
+        pTex->size                 = pSrc->tex_size;
 
-        if (injected_textures.count (pDst->tex_crc32c) && injected_textures [pDst->tex_crc32c] != nullptr)
+        tex_mgr.addTexture (pSrc->tex_crc32c, pTex, /*SrcDataSize*/pSrc->tex_size);
+
+        //tex_mgr.addTexture (pDst->tex_crc32c, pTex, /*SrcDataSize*/pDst->tex_size);
+
+        bool bInjectable =
+          tex_mgr.isTextureInjectable (pDst->tex_crc32c);
+
+        if ((! bInjectable) || (injected_textures.count (pDst->tex_crc32c) && injected_textures [pDst->tex_crc32c] != nullptr))
         {
-          pDst->pTexOverride  = injected_textures   [pDst->tex_crc32c];
-          pDst->override_size = injected_sizes      [pDst->tex_crc32c];
-          pTex->load_time     = injected_load_times [pDst->tex_crc32c];
+          if (bInjectable)
+          {
+            pDst->pTexOverride  = injected_textures   [pDst->tex_crc32c];
+            pDst->override_size = injected_sizes      [pDst->tex_crc32c];
+            pTex->load_time     = injected_load_times [pDst->tex_crc32c];
+          }
 
           tex_mgr.refTextureEx (pTex);
         }
@@ -3537,6 +3870,8 @@ WINAPI
 SK_SetPresentParamsD3D9 ( IDirect3DDevice9      *pDevice,
                           D3DPRESENT_PARAMETERS *pparams )
 {
+  SK_LOG_FIRST_CALL
+
   D3DDISPLAYMODEEX  implict_mode_ex = { };
   D3DDISPLAYMODEEX *pImplicitModeEx = &implict_mode_ex;
 
@@ -3552,34 +3887,60 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
                             D3DPRESENT_PARAMETERS  *pparams,
                             D3DDISPLAYMODEEX      **ppFullscreenDisplayMode )
 {
+  SK_LOG_FIRST_CALL
+
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-
-////return pparams;
 
   bool bContextInit =
     SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex;
 
   if (! bContextInit)
   {
-    if ( pparams != nullptr && config.render.output.force_10bpc &&
+    if ( pDevice != nullptr &&
+         pparams != nullptr && config.render.output.force_10bpc &&
          pparams->BackBufferFormat != D3DFMT_A2R10G10B10 )
     {
+      SK_ComPtr <IDirect3D9> pD3D9;
+      pDevice->GetDirect3D (&pD3D9);
+
+      // Current Mode (relevant in -Windowed- mode only)
+      D3DDISPLAYMODE                dispMode = { };
+      pD3D9->GetAdapterDisplayMode (
+               D3DADAPTER_DEFAULT, &dispMode);
+
       static constexpr
         auto OverrideFormat (D3DFMT_A2R10G10B10);
 
-      SK_LOGi0 ( L" >> Overriding D3D9 SwapChain Format (original = %hs) "
-                                                        "override = %hs",
-                SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
-                SK_D3D9_FormatToStr (           OverrideFormat).c_str () );
+      // Fullscreen can change display modes
+      if ( ( config.render.d3d9.force_d3d9ex &&
+             config.render.d3d9.enable_flipex ) || (! pparams->Windowed))
+        dispMode.Format = OverrideFormat;
 
-      pparams->
-        BackBufferFormat =
-          OverrideFormat;
+      if (SUCCEEDED (
+      pD3D9->CheckDeviceType ( D3DADAPTER_DEFAULT,
+                               D3DDEVTYPE_HAL, dispMode.Format,
+                                               OverrideFormat, pparams->Windowed )))
+      {
+        SK_LOGi0 ( L" >> Overriding D3D9 SwapChain Format (original = %hs) "
+                                                          "override = %hs",
+                  SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
+                  SK_D3D9_FormatToStr (           OverrideFormat).c_str () );
+
+        pparams->
+          BackBufferFormat =
+            OverrideFormat;
+      }
     }
 
     if (pparams != nullptr)
     {
+      if (! config.window.res.override.isZero ())
+      {
+        pparams->BackBufferWidth  = config.window.res.override.x;
+        pparams->BackBufferHeight = config.window.res.override.y;
+      }
+
       if ( rb.api == SK_RenderAPI::D3D9   ||
            rb.api == SK_RenderAPI::D3D9Ex ||
            rb.api == SK_RenderAPI::Reserved )
@@ -3661,7 +4022,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
           if (pparams->FullScreen_RefreshRateInHz != 0)
           {
-            pparams->BackBufferCount        = std::max (pparams->BackBufferCount, 1U);
+            pparams->BackBufferCount        = std::min (D3DPRESENT_BACK_BUFFERS_MAX, std::max ((LONG)pparams->BackBufferCount, 1L));
             pparams->EnableAutoDepthStencil = true;
 
             pparams->Windowed               = FALSE;
@@ -3765,6 +4126,15 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
                                pparams->BackBufferWidth,
                                  pparams->BackBufferHeight );
             }
+
+            else
+            {
+              RECT                                 client_rect = { };
+              SK_GetClientRect (game_window.hWnd, &client_rect);
+
+              pparams->BackBufferWidth  = ( client_rect.right  - client_rect.left );
+              pparams->BackBufferHeight = ( client_rect.bottom - client_rect.top  );
+            }
           }
 
           //  <- @  [OVERRIDE Resolution]  @ ->
@@ -3801,21 +4171,21 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
         //    (    to figure out how the game is designed to behave vis-a-vis.  )
         //    (      resolution scaling if the window is resized.               )
         //
+        /* User wants an override, so let's get down to brass tacks... */
+        if (! config.window.res.override.isZero ())
+        {
+          pparams->BackBufferWidth  = config.window.res.override.x;
+          pparams->BackBufferHeight = config.window.res.override.y;
+        }
+
         if (pparams->BackBufferWidth != 0 && pparams->BackBufferHeight != 0)
         {
-          /* User wants an override, so let's get down to brass tacks... */
-          if (! config.window.res.override.isZero ())
-          {
-            pparams->BackBufferWidth  = config.window.res.override.x;
-            pparams->BackBufferHeight = config.window.res.override.y;
-          }
-
           /* If this is Zero, we need to actually create the render device / swapchain and
                then get the value Windows assigned us... */
           SK_SetWindowResX (pparams->BackBufferWidth);
           SK_SetWindowResY (pparams->BackBufferHeight);
         }
-
+        
         // Implicit Resolution
         //
         //
@@ -3824,7 +4194,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
           // If this is zero, we need to actually create the render device / swapchain and
           //   then get the value Windows assigned us...
           SK_SetWindowResX (client.right  - client.left);
-          SK_SetWindowResY (client.bottom - client.top);;
+          SK_SetWindowResY (client.bottom - client.top);
         }
 
         // Range Restrict to prevent D3DERR_INVALID_CALL
@@ -3867,6 +4237,44 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
 
   if (bContextInit || (! pDevice))
   {
+    if ( config.render.d3d9.force_d3d9ex &&
+         config.render.d3d9.enable_flipex )
+    { 
+      if (0x0 != (pparams->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER))
+          SK_ImGui_Warning (L"D3D9 Game is not Compatible With FlipEx (Lockable Backbuffer)");
+
+      pparams->Flags &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
+
+      if ( 0x0 == (pparams->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER) &&
+           0x0 == (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP) )
+      {
+        pparams->BackBufferCount                = std::max (3U, pparams->BackBufferCount);
+        pparams->PresentationInterval           = D3DPRESENT_INTERVAL_DEFAULT;
+        pparams->SwapEffect                     = D3DSWAPEFFECT_FLIPEX;
+        pparams->MultiSampleType                = D3DMULTISAMPLE_NONE;
+        pparams->MultiSampleQuality             = 0;
+    
+        if (pparams->Windowed)
+        {   pparams->FullScreen_RefreshRateInHz = 0;
+            pparams->PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
+        }
+        else
+        {
+          // We can't switch VSYNC on/off on the fly in fullscreen
+          if (config.render.framerate.present_interval == 0)
+            pparams->PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
+        }
+
+        rb.fullscreen_exclusive                 = (! pparams->Windowed);
+      }
+    
+      else
+      {
+        if (0x0 != (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP))
+          SK_ImGui_Warning (L"D3D9 Game is not Compatible With FlipEx (Device Clip)");
+      }
+    }
+
     return pparams;
   }
 
@@ -3899,43 +4307,63 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
        )           )
      )
   {
-    if (config.render.d3d9.force_d3d9ex)
+    if ( config.render.d3d9.force_d3d9ex &&
+         config.render.d3d9.enable_flipex )
     {
-      pparams->Windowed                   = TRUE;
+      if (0x0 != (pparams->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER))
+        SK_ImGui_Warning (L"D3D9 Game is not Compatible With FlipEx (Lockable Backbuffer)");
 
-      if (! config.render.output.force_10bpc)
-        pparams->BackBufferFormat         = D3DFMT_X8R8G8B8;
+      pparams->Flags &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
 
-      pparams->BackBufferCount            = 3;
-      pparams->PresentationInterval       = 1;
-      pparams->FullScreen_RefreshRateInHz = 0;
-      pparams->Flags                     &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
-      pparams->Flags                     &= ~D3DPRESENTFLAG_DEVICECLIP;
-      pparams->SwapEffect                 = D3DSWAPEFFECT_FLIPEX;
-      pparams->MultiSampleType            = D3DMULTISAMPLE_NONE;
-      pparams->MultiSampleQuality         = 0;
+      if ( (pparams->Flags & D3DPRESENTFLAG_LOCKABLE_BACKBUFFER) == 0x0 &&
+           (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP)          == 0x0 )
+      {
+        pparams->BackBufferCount                = std::max (3U, pparams->BackBufferCount);
+        pparams->PresentationInterval           = D3DPRESENT_INTERVAL_DEFAULT;
+        pparams->SwapEffect                     = D3DSWAPEFFECT_FLIPEX;
+        pparams->MultiSampleType                = D3DMULTISAMPLE_NONE;
+        pparams->MultiSampleQuality             = 0;
+    
+        if (pparams->Windowed)
+        {   pparams->FullScreen_RefreshRateInHz = 0;
+            pparams->PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
+        }
+        else
+        {
+          // We can't switch VSYNC on/off on the fly in fullscreen
+          if (config.render.framerate.present_interval == 0)
+            pparams->PresentationInterval       = D3DPRESENT_INTERVAL_IMMEDIATE;
+        }
 
-      rb.fullscreen_exclusive             = false;
+        // This is probably a bad idea: the mode hasn't been set yet.
+        rb.fullscreen_exclusive                 = (! pparams->Windowed);
+      }
+    
+      else
+      {
+        if (0x0 != (pparams->Flags & D3DPRESENTFLAG_DEVICECLIP))
+          SK_ImGui_Warning (L"D3D9 Game is not Compatible With FlipEx (Device Clip)");
+      }
     }
   }
 
-  if (! config.render.d3d9.force_d3d9ex)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven && pparams != nullptr)
   {
-    if (SK_GetCurrentGameID () == SK_GAME_ID::YS_Seven && pparams != nullptr)
-    {
-      SK_LOGs0 ( L"CompatHack",
-                 L"D3D9 Backbuffer using format %hs changed to %hs.",
-        SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
-        SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8          ).c_str () );
+    SK_LOGs0 ( L"CompatHack",
+               L"D3D9 Backbuffer using format %hs changed to %hs.",
+      SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
+      SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8          ).c_str () );
 
+    //if (! config.render.d3d9.force_d3d9ex)
+    {
       pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
       pparams->BackBufferCount        = 1;
       pparams->SwapEffect             = D3DSWAPEFFECT_COPY;
-      pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
-      pparams->MultiSampleQuality     = 0;
-      pparams->EnableAutoDepthStencil = true;
-      pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
     }
+    pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
+    pparams->MultiSampleQuality     = 0;
+    pparams->EnableAutoDepthStencil = true;
+    pparams->AutoDepthStencilFormat = D3DFMT_D24X8;
   }
 
   return pparams;
@@ -4155,6 +4583,28 @@ SK_D3D9_HookDeviceAndSwapchain (
       if (SK_D3D9_Trampoline (D3D9Device, CreateTexture)) ++num_hooked;
     }
 
+    if (! SK_D3D9_Trampoline (D3D9Device, CreateVolumeTexture))
+    {
+      D3D9_INTERCEPT ( &pDevice, 24,
+                          "IDirect3DDevice9::CreateVolumeTexture",
+                          D3D9CreateVolumeTexture_Override,
+                          D3D9Device_CreateVolumeTexture_Original,
+                          D3D9Device_CreateVolumeTexture_pfn );
+
+      if (SK_D3D9_Trampoline (D3D9Device, CreateVolumeTexture)) ++num_hooked;
+    }
+
+    if (! SK_D3D9_Trampoline (D3D9Device, CreateCubeTexture))
+    {
+      D3D9_INTERCEPT ( &pDevice, 25,
+                          "IDirect3DDevice9::CreateCubeTexture",
+                          D3D9CreateCubeTexture_Override,
+                          D3D9Device_CreateCubeTexture_Original,
+                          D3D9Device_CreateCubeTexture_pfn );
+
+      if (SK_D3D9_Trampoline (D3D9Device, CreateCubeTexture)) ++num_hooked;
+    }
+
     if (! SK_D3D9_Trampoline (D3D9Device, CreateVertexBuffer))
     {
       D3D9_INTERCEPT ( &pDevice, 26,
@@ -4164,6 +4614,17 @@ SK_D3D9_HookDeviceAndSwapchain (
                           D3D9Device_CreateVertexBuffer_pfn );
 
       if (SK_D3D9_Trampoline (D3D9Device, CreateVertexBuffer)) ++num_hooked;
+    }
+
+    if (! SK_D3D9_Trampoline (D3D9Device, CreateIndexBuffer))
+    {
+      D3D9_INTERCEPT ( &pDevice, 27,
+                          "IDirect3DDevice9::CreateIndexBuffer",
+                          D3D9CreateIndexBuffer_Override,
+                          D3D9Device_CreateIndexBuffer_Original,
+                          D3D9Device_CreateIndexBuffer_pfn );
+
+      if (SK_D3D9_Trampoline (D3D9Device, CreateIndexBuffer)) ++num_hooked;
     }
 
     if (! SK_D3D9_Trampoline (D3D9Device, CreateRenderTarget))
@@ -4645,6 +5106,9 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
   if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
   {
+    if (config.textures.d3d9_mod)
+      BehaviorFlags |= D3DCREATE_MULTITHREADED;
+
     if (config.display.force_fullscreen && hFocusWindow)
       pPresentationParameters->hDeviceWindow = hFocusWindow;
 
@@ -4722,6 +5186,8 @@ D3D9CreateDeviceEx_Override ( IDirect3D9Ex           *This,
 
     else
       SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
+
+    D3D9ResetEx (*ppReturnedDeviceInterface, pPresentationParameters, nullptr);
   }
 
 
@@ -5055,6 +5521,9 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
   if ( pPresentationParameters != nullptr &&
       (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters) ))
   {
+    if (config.textures.d3d9_mod)
+      BehaviorFlags |= D3DCREATE_MULTITHREADED;
+
     if (config.display.force_fullscreen   &&   hFocusWindow)
       pPresentationParameters->hDeviceWindow = hFocusWindow;
 
@@ -5156,9 +5625,11 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
 
     else
       SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
+
+/////D3D9Reset_Override (*ppReturnedDeviceInterface, pPresentationParameters);
   }
 
-
+#if 0
   SK_IndirectX_InteropCtx_D3D9& d3d9_d3d11_interop = 
     _interop_contexts [*ppReturnedDeviceInterface];
 
@@ -5411,6 +5882,7 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
       }
     }
   }
+#endif
 
   return ret;
 }
@@ -5430,8 +5902,9 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                               D3DPRESENT_PARAMETERS* pPresentationParameters,
                               IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
+  static concurrency::concurrent_unordered_map <HWND, IDirect3DDevice9Ex*> ex_devices_;
+
+
 
   // Many D3D11/12/GL games use D3D9 for HW video playback, we need to ignore these
   //
@@ -5440,20 +5913,18 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
      ( IsWindow (game_window.hWnd) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9   &&
                                       SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D9Ex &&
                                       SK_GetCurrentRenderBackend ().api != SK_RenderAPI::Reserved ) ||
-       pPresentationParameters == nullptr;
+    SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex;
 
-  if (pTLS->render->d3d9->ctx_init_thread_ex)
-  {   pTLS->render->d3d9->ctx_init_thread_ex = FALSE;
-      skip_device = true;
-  }
-
-  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu, %08" _L(PRIxPTR)
-          L"h, 0x%04X, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
-                 L"%s",
-                    L"IDirect3D9Ex::CreateDevice", (uintptr_t)This, Adapter, (DWORD)DeviceType,
-                      hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
-                        (uintptr_t)ppReturnedDeviceInterface,
-                          SK_SummarizeCaller ().c_str () );
+  SK_LOGi0 ( L"[!] %s (%08" _L(PRIxPTR) L"h, %lu, %lu,"
+                    L" %08" _L(PRIxPTR) L"h, 0x%04X,"
+                    L" %08" _L(PRIxPTR) L"h,"
+                    L" %08" _L(PRIxPTR) L"h) - "
+                L"%s",
+                L"IDirect3D9Ex::CreateDevice",
+                  (uintptr_t)This, Adapter, (DWORD)DeviceType,
+                    hFocusWindow, BehaviorFlags, (uintptr_t)pPresentationParameters,
+                      (uintptr_t)ppReturnedDeviceInterface,
+                        SK_SummarizeCaller ().c_str () );
 
   if (skip_device)
   {
@@ -5469,77 +5940,209 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
                                                      ppReturnedDeviceInterface );
   }
 
-  DeviceType = D3DDEVTYPE_HAL;
+  HRESULT ret = E_FAIL;
 
 
-  //if (hFocusWindow)
-  //  pPresentationParameters->hDeviceWindow = hFocusWindow;
-
-
-  SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
-
-  pPresentationParameters->Windowed                   = TRUE;
-  pPresentationParameters->BackBufferFormat           = D3DFMT_X8R8G8B8;
-  pPresentationParameters->BackBufferCount            = 3;
-  pPresentationParameters->PresentationInterval       = 1;
-  pPresentationParameters->FullScreen_RefreshRateInHz = 0;
-  pPresentationParameters->Flags                     &= ~D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
-  pPresentationParameters->Flags                     &= ~D3DPRESENTFLAG_DEVICECLIP;
-  pPresentationParameters->SwapEffect                 = D3DSWAPEFFECT_FLIPEX;
-  pPresentationParameters->MultiSampleType            = D3DMULTISAMPLE_NONE;
-  pPresentationParameters->MultiSampleQuality         = 0;
-
-  SK_D3D9_SetFPSTarget (pPresentationParameters);
-
-  HRESULT       ret = E_FAIL;
-    D3D9_CALL ( ret, D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This, Adapter,
-                                                        DeviceType,
-                                                          nullptr,
-                                                            BehaviorFlags,
-                                                              pPresentationParameters,
-                                                                nullptr,
-                                                                  (IDirect3DDevice9Ex **)ppReturnedDeviceInterface ) );
-
-  // Do not attempt to do vtable override stuff if this failed,
-  //   that will cause an immediate crash! Instead log some information that
-  //     might help diagnose the problem.
-  if (! SUCCEEDED (ret))
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
   {
-    SK_LOGi0 (L" SwapChain Settings : Res = (%u x %u), Format = %04i, "
-                         L"Count=%lu - "
-                         L"SwapEffect: 0x%02X, Flags: 0x%04X,"
-                         L"AutoDepthStencil: %s "
-                         L"PresentationInterval: %u\n",
-                 pPresentationParameters->BackBufferWidth,
-                 pPresentationParameters->BackBufferHeight,
-                 pPresentationParameters->BackBufferFormat,
-                 pPresentationParameters->BackBufferCount,
-                 pPresentationParameters->SwapEffect,
-                 pPresentationParameters->Flags,
-                 pPresentationParameters->EnableAutoDepthStencil ? L"true" :
-                                                                   L"false",
-                 pPresentationParameters->PresentationInterval );
+    if (config.textures.d3d9_mod)
+      BehaviorFlags |= D3DCREATE_MULTITHREADED;
 
-    if (! pPresentationParameters->Windowed)
+    if (config.display.force_fullscreen && hFocusWindow)
+      pPresentationParameters->hDeviceWindow = hFocusWindow;
+
+    auto desc_dcparams =
+      SK_FormatStringW (
+        L"Resolution:   (%dx%d @%d Hz)\n"
+        L"Backbuffers:  %d\n"
+        L"Format:       %hs\n"
+        L"Multisample:  (%d, %d)\n"
+        L"SwapEffect:   %hs\n"
+        L"SwapInterval: %x\n"
+        L"HWND:         %x\n"
+        L"Windowed:     %s\n"
+        L"DepthStencil: %hs (%s)\n"
+        L"Flags:        %hs",               pPresentationParameters->BackBufferWidth,
+                                            pPresentationParameters->BackBufferHeight,
+                                            pPresentationParameters->FullScreen_RefreshRateInHz,
+                                            pPresentationParameters->BackBufferCount,
+        SK_D3D9_FormatToStr                (pPresentationParameters->BackBufferFormat).c_str (),
+                                            pPresentationParameters->MultiSampleType,
+                                            pPresentationParameters->MultiSampleQuality,
+        SK_D3D9_SwapEffectToStr            (pPresentationParameters->SwapEffect).c_str (),
+                                            pPresentationParameters->PresentationInterval,
+                                            pPresentationParameters->hDeviceWindow,
+                                            pPresentationParameters->Windowed ?
+                                                                       L"Yes" : L"No",
+        SK_D3D9_FormatToStr                (pPresentationParameters->AutoDepthStencilFormat).c_str (),
+                                            pPresentationParameters->EnableAutoDepthStencil ?
+                                                                                     L"Yes" : L"No",
+        SK_D3D9_PresentParameterFlagsToStr (pPresentationParameters->Flags).c_str ()
+      );
+
+    SK_LOGi0 (
+      L" >> Device Creation Parameters (Before Overrides):\n%ws",
+        desc_dcparams.c_str ()
+    );
+
+    SK_D3D9_SetFPSTarget       (pPresentationParameters, nullptr);
+    SK_D3D9_FixUpBehaviorFlags (BehaviorFlags);
+    SK_SetPresentParamsD3D9    ( nullptr,
+                                   pPresentationParameters );
+
+    if (pPresentationParameters->Windowed)
+        pPresentationParameters->BackBufferFormat = D3DFMT_UNKNOWN;
+
+    if ((! pPresentationParameters->Windowed) && (! hFocusWindow))
     {
-      SK_LOGi0 ( L" Fullscreen Settings:  Refresh Rate: %u\n",
-                  pPresentationParameters->FullScreen_RefreshRateInHz );
-      SK_LOGi0 ( L" Multisample Settings: Type: %X, Quality: %u\n",
-                  pPresentationParameters->MultiSampleType,
-                  pPresentationParameters->MultiSampleQuality );
+      hFocusWindow = pPresentationParameters->hDeviceWindow;
+    
+      if (hFocusWindow == nullptr)
+      {
+        pPresentationParameters->Windowed = TRUE;
+      }
     }
 
+    desc_dcparams =
+      SK_FormatStringW (
+        L"Resolution:   (%dx%d @%d Hz)\n"
+        L"Backbuffers:  %d\n"
+        L"Format:       %hs\n"
+        L"Multisample:  (%d, %d)\n"
+        L"SwapEffect:   %hs\n"
+        L"SwapInterval: %x\n"
+        L"HWND:         %x\n"
+        L"Windowed:     %s\n"
+        L"DepthStencil: %hs (%s)\n"
+        L"Flags:        %hs",               pPresentationParameters->BackBufferWidth,
+                                            pPresentationParameters->BackBufferHeight,
+                                            pPresentationParameters->FullScreen_RefreshRateInHz,
+                                            pPresentationParameters->BackBufferCount,
+        SK_D3D9_FormatToStr                (pPresentationParameters->BackBufferFormat).c_str (),
+                                            pPresentationParameters->MultiSampleType,
+                                            pPresentationParameters->MultiSampleQuality,
+        SK_D3D9_SwapEffectToStr            (pPresentationParameters->SwapEffect).c_str (),
+                                            pPresentationParameters->PresentationInterval,
+                                            pPresentationParameters->hDeviceWindow,
+                                            pPresentationParameters->Windowed ?
+                                                                       L"Yes" : L"No",
+        SK_D3D9_FormatToStr                (pPresentationParameters->AutoDepthStencilFormat).c_str (),
+                                            pPresentationParameters->EnableAutoDepthStencil ?
+                                                                                     L"Yes" : L"No",
+        SK_D3D9_PresentParameterFlagsToStr (pPresentationParameters->Flags).c_str ()
+      );
+
+    SK_LOGi0 (
+      L" >> Device Creation Parameters (After Overrides):\n%ws",
+        desc_dcparams.c_str ()
+    );
+  }
+
+
+  IDirect3DDevice9Ex *pTemp = nullptr;
+
+  if (ex_devices_ [hFocusWindow] != nullptr)
+  {
+    SK_LOGi0 (
+      L" >> (FORCE D3D9Ex): Returning cached D3D9Ex device for HWND '%x'", hFocusWindow
+    );
+
+    *ppReturnedDeviceInterface =
+      ex_devices_ [hFocusWindow];
+
+    (*ppReturnedDeviceInterface)->AddRef ();
+
+    ex_devices_ [hFocusWindow]->ResetEx (pPresentationParameters, nullptr);
+
+    return S_OK;
+  }
+
+
+  D3DDISPLAYMODEEX dispModeEx = { };
+  auto           *pDispModeEx = &dispModeEx;
+  
+  if (pPresentationParameters->Windowed)
+                  pDispModeEx = nullptr;
+  else
+  {
+    pDispModeEx->Format           = pPresentationParameters->BackBufferFormat;
+    pDispModeEx->Width            = pPresentationParameters->BackBufferWidth;
+    pDispModeEx->Height           = pPresentationParameters->BackBufferHeight;
+    pDispModeEx->RefreshRate      = pPresentationParameters->FullScreen_RefreshRateInHz;
+    pDispModeEx->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+  }
+
+  SK_LOGi0 (L"BehaviorFlags=%x", BehaviorFlags);
+
+  D3D9_CALL ( ret, D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
+                                                      Adapter,
+                                                        DeviceType,
+                                                          hFocusWindow,
+                                                            BehaviorFlags,
+                                                              pPresentationParameters,
+                                                                pDispModeEx,
+                                                                  &pTemp ) );
+
+
+  // Ignore video swapchains
+  if (pPresentationParameters->Flags & D3DPRESENTFLAG_VIDEO)
+  {
+    SK_LOGs0 (            L"  D3D9Ex  ",
+               L" %% Ignoring D3D9Ex device created using a video-only "
+               L"SwapChain (%08" _L(PRIxPTR) L"h)", (uintptr_t)This
+             );
+    *ppReturnedDeviceInterface = pTemp;
     return ret;
   }
 
 
+  if (SUCCEEDED (ret))
+  {
+    SK_D3D9Ex_WrapDevice (pTemp, pPresentationParameters,(IDirect3DDevice9Ex **)ppReturnedDeviceInterface);
+  }
 
-  SK_SetPresentParamsD3D9        (*ppReturnedDeviceInterface, pPresentationParameters);
-  SK_D3D9_HookDeviceAndSwapchain (*ppReturnedDeviceInterface);
+  else
+  {
+    return ret;
+  }
 
 
-  SK_ImGUI_ResetD3D9   (nullptr);
-  //SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
+  if (! SK_D3D9_IsDummyD3D9Device (pPresentationParameters))
+  {
+    SK_SetPresentParamsD3D9       ( *ppReturnedDeviceInterface,
+                                       pPresentationParameters );
+    SK_D3D9_HookDeviceAndSwapchain ( *ppReturnedDeviceInterface );
+
+    SK_ComQIPtr <IWrapDirect3DDevice9> pWrappedDevice (*ppReturnedDeviceInterface);
+  //(*ppReturnedDeviceInterface)->QueryInterface (IID_IWrapDirect3DDevice9, &pWrappedDevice);
+
+    if (pWrappedDevice != nullptr)
+    {
+      SK_LOGi0 (L"Using (D3D9Ex) wrapper for SK_ImGUI_ResetD3D9!");
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface/*pWrappedDevice*/);
+    }
+
+    else
+      SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
+
+////D3D9ResetEx ((IDirect3DDevice9Ex *)*ppReturnedDeviceInterface, pPresentationParameters, nullptr);
+
+    // XXX: Is this unique to FlipEx, or D3D9Ex in general?  (1 SwapChain per-HWND)
+    if ( config.render.d3d9.force_d3d9ex /*&&
+         config.render.d3d9.enable_flipex*/ )
+    {
+      SK_ComQIPtr <IDirect3DDevice9Ex> pDev9Ex (
+        *ppReturnedDeviceInterface
+      );
+
+      if (pDev9Ex)
+      {   pDev9Ex.p->AddRef ();
+
+        ex_devices_ [hFocusWindow] =
+          pDev9Ex;
+      }
+    }
+  }
 
 
   return ret;
@@ -5835,15 +6438,18 @@ HookD3D9 (LPVOID user)
         {
           if (! LocalHook_D3D9CreateDevice.active)
           {
-            D3D9_INTERCEPT ( &pD3D9.p, 16,
-                            "IDirect3D9::CreateDevice",
-                              D3D9CreateDevice_Override,
-                              D3D9_CreateDevice_Original,
-                              D3D9_CreateDevice_pfn );
+            if (! config.render.d3d9.force_d3d9ex)
+            {
+              D3D9_INTERCEPT ( &pD3D9.p, 16,
+                              "IDirect3D9::CreateDevice",
+                                D3D9CreateDevice_Override,
+                                D3D9_CreateDevice_Original,
+                                D3D9_CreateDevice_pfn );
 
-            SK_Hook_TargetFromVFTable (
-              LocalHook_D3D9CreateDevice,
-                (void **)&pD3D9.p, 16 );
+              SK_Hook_TargetFromVFTable (
+                LocalHook_D3D9CreateDevice,
+                  (void **)&pD3D9.p, 16 );
+            }
           }
 
           SK_LOGi0 (L"  * Success");
@@ -5916,6 +6522,19 @@ HookD3D9 (LPVOID user)
           {
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
+              if (! LocalHook_D3D9CreateDevice.active)
+              {
+                D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
+                                 "IDirect3D9Ex::CreateDevice",
+                                  D3D9ExCreateDevice_Override,
+                                   D3D9_CreateDevice_Original,
+                                   D3D9_CreateDevice_pfn );
+
+                SK_Hook_TargetFromVFTable (
+                  LocalHook_D3D9CreateDevice,
+                    (void **)&pD3D9Ex.p, 16 );
+              }
+
               D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",
                                 D3D9CreateDeviceEx_Override,
@@ -6287,6 +6906,9 @@ SK_D3D9_DrawFileList (bool& can_scroll)
       {
         SK_D3D9_TriggerReset (false);
       }
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Not all games support this, and some may lockup... reloading individual textures is always safe");
     }
 
     ImGui::EndGroup ();
@@ -7608,7 +8230,7 @@ SK_D3D9_TextureModDlg (void)
           ImGui::Text ("%.3f ms",
                        pTex->load_time);
           ImGui::Text ("%lu",
-                       pTex->refs);
+                       pTex->refs.load ());
 
 
           //extern std::unordered_map <uint32_t, int32_t>            injected_refs;
@@ -8838,8 +9460,8 @@ SK_D3D9_EndFrame (void)
   {
     if (tex_mgr.init)
     {
-      //if (tex_mgr.injector.hasPendingLoads ())
-        tex_mgr.loadQueuedTextures ();
+      if (tex_mgr.injector.hasPendingLoads ())
+          tex_mgr.loadQueuedTextures ();
 
       tex_mgr.logUsedTextures ();
     }

@@ -1418,8 +1418,8 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
-    if (imgui_capture && SK_IsGameWindowActive ()) // If inactive, skip these tests
-    {
+    if (imgui_capture && game_window.active/*SK_IsGameWindowActive ()*/) // If inactive, skip these tests
+    {                    // Requires a very specific definition of "active" or the Continue Rendering feature will not work
       POINT                           ptCursor = SK_ImGui_Cursor.pos;
       SK_ImGui_Cursor.LocalToClient (&ptCursor);
 
@@ -1474,6 +1474,30 @@ SK_IsGameWindowActive (void)
 {
   return (
     game_window.active /*|| SK_GetForegroundWindow () == game_window.hWnd*/
+  );
+}
+
+bool
+__stdcall
+SK_IsGameWindowFocused (void)
+{
+  auto
+    hWndAtCenter = [&](void)
+ -> HWND
+    {
+      return
+        WindowFromPoint (
+                  POINT {                     game_window.actual.window.left +
+          (game_window.actual.window.right  - game_window.actual.window.left) / 2,
+                                              game_window.actual.window.top  +
+          (game_window.actual.window.bottom - game_window.actual.window.top)  / 2
+                        }
+                        );
+    };
+
+  return (
+    SK_IsGameWindowActive () && (SK_GetFocus () == game_window.hWnd ||
+                                hWndAtCenter () == game_window.hWnd )/*|| SK_GetForegroundWindow () == game_window.hWnd*/
   );
 }
 
@@ -3068,7 +3092,7 @@ SK_Proxy_KeyboardProc (
     if ( config.input.keyboard.override_alt_f4 &&
             config.input.keyboard.catch_alt_f4 )
     {
-      if (SK_IsGameWindowActive () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
+      if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;
@@ -3142,7 +3166,7 @@ SK_Proxy_LLKeyboardProc (
     if ( config.input.keyboard.override_alt_f4 &&
             config.input.keyboard.catch_alt_f4 )
     {
-      if (SK_IsGameWindowActive () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
+      if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;

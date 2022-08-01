@@ -1186,28 +1186,27 @@ public:
       ImGui::SameLine ();
       if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
       ImGui::EndGroup ();
-      
-      if(SK_API_IsDXGIBased (SK_GetCurrentRenderBackend().api)){
-        SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
-            SK_GetCurrentRenderBackend ().swapchain.p
-          );
 
-        static UINT                  uiLastPresent = 0;
-        static DXGI_FRAME_STATISTICS frameStats    = { };
+      // Will be NULL for D3D9 and non-Flip SwapChains
+      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
+          SK_GetCurrentRenderBackend ().swapchain.p
+        );
 
-        if (pLimiter->get_limit () > 0.0f)
+      static UINT                  uiLastPresent = 0;
+      static DXGI_FRAME_STATISTICS frameStats    = { };
+
+      if (pLimiter->get_limit () > 0.0f && pSwap1 != nullptr)
+      {
+        if ( SUCCEEDED (
+               pSwap1->GetLastPresentCount (&uiLastPresent)
+                       )
+           )
         {
           if ( SUCCEEDED (
-                pSwap1->GetLastPresentCount (&uiLastPresent)
+                 pSwap1->GetFrameStatistics (&frameStats)
                          )
              )
           {
-            if ( SUCCEEDED (
-                  pSwap1->GetFrameStatistics (&frameStats)
-                           )
-               )
-            {
-            }
           }
         }
 
@@ -1221,7 +1220,7 @@ public:
         ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
                                                                           frameStats.SyncRefreshCount );
       }
-      
+
       float fUndershoot =
         pLimiter->get_undershoot ();
 

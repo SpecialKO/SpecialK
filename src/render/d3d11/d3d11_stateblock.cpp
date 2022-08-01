@@ -27,229 +27,6 @@
 #endif
 #define __SK_SUBSYSTEM__ L"D3D11State"
 
-struct SK_D3D11_Stateblock_Lite : StateBlockDataStore
-{
-  void capture (ID3D11DeviceContext* pCtx)
-  {
-    if (pCtx == nullptr)
-      return;
-
-    SK_ComPtr <ID3D11Device>
-                      pDev;
-    pCtx->GetDevice (&pDev.p);
-
-    if ( pDev == nullptr )
-      return;
-
-    const D3D_FEATURE_LEVEL ft_lvl =
-      pDev->GetFeatureLevel ();
-
-    ScissorRectsCount = ViewportsCount =
-      D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
-
-    pCtx->RSGetScissorRects      (      &ScissorRectsCount, ScissorRects);
-    pCtx->RSGetViewports         (      &ViewportsCount,    Viewports);
-    pCtx->RSGetState             (      &RS);
-    pCtx->OMGetBlendState        (      &BlendState,         BlendFactor,
-                                                            &SampleMask);
-    pCtx->OMGetDepthStencilState (      &DepthStencilState, &StencilRef);
-  //pCtx->PSGetShaderResources   (0, 2, PSShaderResources);
-    pCtx->PSGetConstantBuffers   (0, 1, &PSConstantBuffer);
-    pCtx->PSGetSamplers          (0, 1, &PSSampler);
-
-    PSInstancesCount = VSInstancesCount = GSInstancesCount =
-    HSInstancesCount = DSInstancesCount  =
-      D3D11_SHADER_MAX_INTERFACES;// D3D11_SHADER_MAX_INSTANCES_PER_CLASS;
-
-    pCtx->PSGetShader            (&PS, PSInstances, &PSInstancesCount);
-    pCtx->VSGetShader            (&VS, VSInstances, &VSInstancesCount);
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-    {
-      pCtx->GSGetShader             (&GS, GSInstances, &GSInstancesCount);
-      GSInstancesCount =     calc_count ( GSInstances,  GSInstancesCount);
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      pCtx->HSGetShader            (&HS, HSInstances, &HSInstancesCount);
-      HSInstancesCount =     calc_count (HSInstances,  HSInstancesCount);
-
-      pCtx->DSGetShader            (&DS, DSInstances, &DSInstancesCount);
-      DSInstancesCount =     calc_count (DSInstances,  DSInstancesCount);
-    }
-
-    pCtx->VSGetConstantBuffers   (0, 1, &VSConstantBuffer);
-    pCtx->IAGetPrimitiveTopology (      &PrimitiveTopology);
-    pCtx->IAGetIndexBuffer       (      &IndexBuffer,  &IndexBufferFormat,
-                                                       &IndexBufferOffset);
-    pCtx->IAGetVertexBuffers     (0, 1, &VertexBuffer, &VertexBufferStride,
-                                                       &VertexBufferOffset);
-    pCtx->IAGetInputLayout       (      &InputLayout );
-    pCtx->OMGetRenderTargets     (1, &RenderTargetView, &DepthStencilView);
-
-    PSInstancesCount = calc_count (PSInstances, PSInstancesCount);
-    VSInstancesCount = calc_count (VSInstances, VSInstancesCount);
-  }
-
-  void apply (ID3D11DeviceContext* pCtx)
-  {
-    if (pCtx == nullptr)
-      return;
-
-    SK_ComPtr <ID3D11Device>
-                      pDev;
-    pCtx->GetDevice (&pDev.p);
-
-    if (pDev.p == nullptr)
-      return;
-
-    const D3D_FEATURE_LEVEL ft_lvl =
-      pDev->GetFeatureLevel ();
-
-    pCtx->RSSetScissorRects      (ScissorRectsCount, ScissorRects);
-    pCtx->RSSetViewports         (ViewportsCount,    Viewports);
-    pCtx->OMSetDepthStencilState (DepthStencilState, StencilRef);
-    pCtx->RSSetState             (RS);
-    pCtx->PSSetShader            (PS, PSInstances,   PSInstancesCount);
-    pCtx->VSSetShader            (VS, VSInstances,   VSInstancesCount);
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-      pCtx->GSSetShader          (GS, GSInstances,   GSInstancesCount);
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      pCtx->HSSetShader          (HS, HSInstances,   HSInstancesCount);
-      pCtx->DSSetShader          (DS, DSInstances,   DSInstancesCount);
-    }
-    pCtx->OMSetBlendState        (BlendState,        BlendFactor,
-                                                     SampleMask);
-    pCtx->IASetIndexBuffer       (IndexBuffer,       IndexBufferFormat,
-                                                     IndexBufferOffset);
-    pCtx->IASetInputLayout       (InputLayout);
-    pCtx->IASetPrimitiveTopology (PrimitiveTopology);
-    pCtx->PSSetShaderResources   (0, 1, std::array <ID3D11ShaderResourceView *, 1> { nullptr }.data ()/*PSShaderResources*/);
-    pCtx->PSSetConstantBuffers   (0, 1, &PSConstantBuffer);
-    pCtx->VSSetConstantBuffers   (0, 1, &VSConstantBuffer);
-    pCtx->PSSetSamplers          (0, 1, &PSSampler);
-    pCtx->IASetVertexBuffers     (0, 1, &VertexBuffer,    &VertexBufferStride,
-                                                          &VertexBufferOffset);
-    pCtx->OMSetRenderTargets     (1,    &RenderTargetView, DepthStencilView);
-
-    if (RS                != nullptr)                RS->Release ();
-    if (PS                != nullptr)                PS->Release ();
-    if (VS                != nullptr)                VS->Release ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0 &&
-        GS                != nullptr)                GS->Release ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
-        HS                != nullptr)                HS->Release ();
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0 &&
-        DS                != nullptr)                DS->Release ();
-    if (PSSampler         != nullptr)         PSSampler->Release ();
-    if (BlendState        != nullptr)        BlendState->Release ();
-    if (InputLayout       != nullptr)       InputLayout->Release ();
-    if (IndexBuffer       != nullptr)       IndexBuffer->Release ();
-    if (VertexBuffer      != nullptr)      VertexBuffer->Release ();
-  //if (PSShaderResources [0]) PSShaderResources [0]->Release ();
-  //if (PSShaderResources [1]) PSShaderResources [1]->Release ();
-    if (VSConstantBuffer  != nullptr)  VSConstantBuffer->Release ();
-    if (PSConstantBuffer  != nullptr)  PSConstantBuffer->Release ();
-    if (RenderTargetView  != nullptr)  RenderTargetView->Release ();
-    if (DepthStencilView  != nullptr)  DepthStencilView->Release ();
-    if (DepthStencilState != nullptr) DepthStencilState->Release ();
-
-    //
-    // Now balance the reference counts that D3D added even though we did not want them :P
-    //
-    for (UINT i = 0; i < VSInstancesCount; i++)
-    {
-      if (VSInstances [i] != nullptr)
-          VSInstances [i]->Release ();
-    }
-
-    for (UINT i = 0; i < PSInstancesCount; i++)
-    {
-      if (PSInstances [i] != nullptr)
-          PSInstances [i]->Release ();
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
-    {
-      for (UINT i = 0; i < GSInstancesCount; i++)
-      {
-        if (GSInstances [i] != nullptr)
-            GSInstances [i]->Release ();
-      }
-    }
-
-    if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
-    {
-      for (UINT i = 0; i < HSInstancesCount; i++)
-      {
-        if (HSInstances [i] != nullptr)
-            HSInstances [i]->Release ();
-      }
-
-      for (UINT i = 0; i < DSInstancesCount; i++)
-      {
-        if (DSInstances [i] != nullptr)
-            DSInstances [i]->Release ();
-      }
-    }
-  }
-};
-
-void
-SK_D3D11_CaptureStateBlock ( ID3D11DeviceContext*       pImmediateContext,
-                             SK_D3D11_Stateblock_Lite** pSB )
-{
-  if (pSB != nullptr)
-  {
-    if (*pSB == nullptr)
-    {
-      *pSB = new SK_D3D11_Stateblock_Lite ();
-    }
-
-    RtlSecureZeroMemory ( *pSB,
-                      sizeof (SK_D3D11_Stateblock_Lite) );
-
-    (*pSB)->capture (pImmediateContext);
-  }
-}
-
-void
-SK_D3D11_ApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                           ID3D11DeviceContext*      pDevCtx )
-{
-  if (pBlock != nullptr && pDevCtx != nullptr)
-      pBlock->apply (pDevCtx);
-}
-
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_CreateAndCaptureStateBlock (ID3D11DeviceContext* pImmediateContext)
-{
-  ///// Uses TLS to reduce dynamic memory pressure as much as possible
-  ///auto* sb =
-    //SK_TLS_Bottom ()->d3d11.getStateBlock ();
-  SK_D3D11_Stateblock_Lite* sb = new SK_D3D11_Stateblock_Lite ();
-
-  RtlSecureZeroMemory ( sb,
-                  sizeof (SK_D3D11_Stateblock_Lite) );
-
-  sb->capture (pImmediateContext);
-
-  return sb;
-}
-
-void
-SK_D3D11_ReleaseAndApplyStateBlock ( SK_D3D11_Stateblock_Lite* pBlock,
-                                     ID3D11DeviceContext*      pDevCtx )
-{
-  if (pBlock == nullptr)
-    return;
-
-         pBlock->apply (pDevCtx);
-  delete pBlock;
-}
-
 void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
   if (dc == nullptr)
@@ -262,6 +39,15 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   if ( pDev == nullptr )
     return;
 
+
+  SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
+  if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
+                               (void **)&pUnwrapped.p)))
+  {
+    dc = pUnwrapped.p;
+  }
+
+
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
   RtlSecureZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
@@ -272,7 +58,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   sb->OMBlendFactor [3] = 0.0f;
 
 
-  dc->VSGetShader          (&sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
+  D3D11_VSGetShader_Original (dc, &sb->VS, sb->VSInterfaces, &sb->VSInterfaceCount);
 
   dc->VSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->VSSamplers);
   dc->VSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->VSShaderResources);
@@ -280,7 +66,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
   {
-    dc->GSGetShader          (&sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
+    D3D11_GSGetShader_Original (dc, &sb->GS, sb->GSInterfaces, &sb->GSInterfaceCount);
 
     dc->GSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->GSSamplers);
     dc->GSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->GSShaderResources);
@@ -289,19 +75,19 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
-    dc->HSGetShader          (&sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
+    D3D11_HSGetShader_Original (dc, &sb->HS, sb->HSInterfaces, &sb->HSInterfaceCount);
 
     dc->HSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->HSSamplers);
     dc->HSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->HSShaderResources);
     dc->HSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->HSConstantBuffers);
 
-    dc->DSGetShader          (&sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
+    D3D11_DSGetShader_Original (dc, &sb->DS, sb->DSInterfaces, &sb->DSInterfaceCount);
     dc->DSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->DSSamplers);
     dc->DSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->DSShaderResources);
     dc->DSGetConstantBuffers (0, D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT, sb->DSConstantBuffers);
   }
 
-  dc->PSGetShader          (&sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
+  D3D11_PSGetShader_Original (dc, &sb->PS, sb->PSInterfaces, &sb->PSInterfaceCount);
 
   dc->PSGetSamplers        (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->PSSamplers);
   dc->PSGetShaderResources (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->PSShaderResources);
@@ -309,7 +95,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
-    dc->CSGetShader          (&sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
+    D3D11_CSGetShader_Original (dc, &sb->CS, sb->CSInterfaces, &sb->CSInterfaceCount);
 
     dc->CSGetSamplers             (0, D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT,             sb->CSSamplers);
     dc->CSGetShaderResources      (0, D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT,      sb->CSShaderResources);
@@ -332,7 +118,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->OMGetBlendState        (&sb->OMBlendState,         sb->OMBlendFactor, &sb->OMSampleMask);
   dc->OMGetDepthStencilState (&sb->OMDepthStencilState, &sb->OMDepthStencilRef);
 
-  dc->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView );
+  D3D11_OMGetRenderTargets_Original (dc, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, sb->OMRenderTargets, &sb->OMRenderTargetStencilView );
 
   sb->RSViewportCount    = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
 
@@ -363,9 +149,22 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   if (pDev.p == nullptr)
     return;
 
+  SK_ComPtr <ID3D11DeviceContext>        pUnwrapped;
+  if (SUCCEEDED (dc->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
+                               (void **)&pUnwrapped.p)))
+  {
+    dc = pUnwrapped.p;
+  }
+
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
-  dc->VSSetShader            (sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
+  // Start by unbinding all RTVs. If we left any bound, then SRVs to
+  //   the same surface might implicitly be replaced with a NULL binding
+  //     by the D3D11 API.
+  D3D11_OMSetRenderTargets_Original (dc, 0, nullptr, nullptr);
+
+
+  D3D11_VSSetShader_Original (dc, sb->VS, sb->VSInterfaces, sb->VSInterfaceCount);
 
   if (sb->VS != nullptr) sb->VS->Release ();
 
@@ -394,7 +193,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (VSShaderResourceCount > 0)
   {
-    dc->VSSetShaderResources (0, VSShaderResourceCount, sb->VSShaderResources);
+    D3D11_VSSetShaderResources_Original (dc, 0, VSShaderResourceCount, sb->VSShaderResources);
 
     for (UINT i = 0; i <         VSShaderResourceCount; i++)
     {
@@ -408,7 +207,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (VSConstantBufferCount > 0)
   {
-    dc->VSSetConstantBuffers (0, VSConstantBufferCount, sb->VSConstantBuffers);
+    D3D11_VSSetConstantBuffers_Original (dc, 0, VSConstantBufferCount, sb->VSConstantBuffers);
 
     for (UINT i = 0; i < VSConstantBufferCount; i++)
     {
@@ -420,7 +219,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_10_0)
   {
-    dc->GSSetShader       (sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
+    D3D11_GSSetShader_Original       (dc, sb->GS, sb->GSInterfaces, sb->GSInterfaceCount);
 
     if (sb->GS != nullptr) sb->GS->Release ();
 
@@ -449,7 +248,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
     if (GSShaderResourceCount > 0)
     {
-      dc->GSSetShaderResources (0, GSShaderResourceCount, sb->GSShaderResources);
+      D3D11_GSSetShaderResources_Original (dc, 0, GSShaderResourceCount, sb->GSShaderResources);
 
       for (UINT i = 0; i <         GSShaderResourceCount; i++)
       {
@@ -476,7 +275,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
-    dc->HSSetShader       (sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
+    D3D11_HSSetShader_Original       (dc, sb->HS, sb->HSInterfaces, sb->HSInterfaceCount);
 
     if (sb->HS != nullptr) sb->HS->Release ();
 
@@ -505,7 +304,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
     if (HSShaderResourceCount > 0)
     {
-      dc->HSSetShaderResources (0, HSShaderResourceCount, sb->HSShaderResources);
+      D3D11_HSSetShaderResources_Original (dc, 0, HSShaderResourceCount, sb->HSShaderResources);
 
       for (UINT i = 0; i <         HSShaderResourceCount; i++)
       {
@@ -529,7 +328,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
     }
 
 
-    dc->DSSetShader       (sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
+    D3D11_DSSetShader_Original       (dc, sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
 
     if (sb->DS != nullptr) sb->DS->Release ();
 
@@ -558,7 +357,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
     if (DSShaderResourceCount > 0)
     {
-      dc->DSSetShaderResources (0, DSShaderResourceCount, sb->DSShaderResources);
+      D3D11_DSSetShaderResources_Original (dc, 0, DSShaderResourceCount, sb->DSShaderResources);
 
       for (UINT i = 0; i <         DSShaderResourceCount; i++)
       {
@@ -583,7 +382,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   }
 
 
-  dc->PSSetShader       (sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
+  D3D11_PSSetShader_Original       (dc, sb->PS, sb->PSInterfaces, sb->PSInterfaceCount);
 
   if (sb->PS != nullptr) sb->PS->Release ();
 
@@ -598,7 +397,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (PSSamplerCount > 0)
   {
-    dc->PSSetSamplers (0, PSSamplerCount, sb->PSSamplers);
+    D3D11_PSSetSamplers_Original (dc, 0, PSSamplerCount, sb->PSSamplers);
 
     for (UINT i = 0; i <  PSSamplerCount; i++)
     {
@@ -612,7 +411,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (PSShaderResourceCount > 0)
   {
-    dc->PSSetShaderResources (0, PSShaderResourceCount, sb->PSShaderResources);
+    D3D11_PSSetShaderResources_Original (dc, 0, PSShaderResourceCount, sb->PSShaderResources);
 
     for (UINT i = 0; i <         PSShaderResourceCount; i++)
     {
@@ -626,7 +425,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (PSConstantBufferCount > 0)
   {
-    dc->PSSetConstantBuffers (0, PSConstantBufferCount, sb->PSConstantBuffers);
+    D3D11_PSSetConstantBuffers_Original (dc, 0, PSConstantBufferCount, sb->PSConstantBuffers);
 
     for (UINT i = 0; i <         PSConstantBufferCount; i++)
     {
@@ -638,7 +437,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (ft_lvl >= D3D_FEATURE_LEVEL_11_0)
   {
-    dc->CSSetShader            (sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
+    D3D11_CSSetShader_Original            (dc, sb->CS, sb->CSInterfaces, sb->CSInterfaceCount);
 
     if (sb->CS != nullptr)
       sb->CS->Release ();
@@ -668,7 +467,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
     if (CSShaderResourceCount > 0)
     {
-      dc->CSSetShaderResources (0, CSShaderResourceCount, sb->CSShaderResources);
+      D3D11_CSSetShaderResources_Original (dc, 0, CSShaderResourceCount, sb->CSShaderResources);
 
       for (UINT i = 0; i <         CSShaderResourceCount; i++)
       {
@@ -698,7 +497,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
         std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
         std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
 
-    dc->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
+    D3D11_CSSetUnorderedAccessViews_Original (dc, 0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
 
     for (auto& CSUnorderedAccessView : sb->CSUnorderedAccessViews)
     {
@@ -748,7 +547,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (                      OMRenderTargetCount > 0)
   {
-    dc->OMSetRenderTargets (OMRenderTargetCount, sb->OMRenderTargets,
+    D3D11_OMSetRenderTargets_Original (dc, OMRenderTargetCount, sb->OMRenderTargets,
                                                  sb->OMRenderTargetStencilView);
 
     for (UINT i = 0; i <    OMRenderTargetCount; i++)
@@ -761,8 +560,8 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   if (sb->OMRenderTargetStencilView != nullptr)
       sb->OMRenderTargetStencilView->Release ();
 
-  dc->RSSetViewports         (sb->RSViewportCount,     sb->RSViewports);
-  dc->RSSetScissorRects      (sb->RSScissorRectCount,  sb->RSScissorRects);
+  D3D11_RSSetViewports_Original         (dc, sb->RSViewportCount,     sb->RSViewports);
+  D3D11_RSSetScissorRects_Original      (dc, sb->RSScissorRectCount,  sb->RSScissorRects);
 
   dc->RSSetState             (sb->RSRasterizerState);
 
@@ -791,21 +590,4 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   if (sb->Predication != nullptr)
       sb->Predication->Release ();
-}
-
-// The struct is implemented here, so that's where we allocate it.
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_AllocStateBlock (size_t& size) noexcept
-{
-  size =
-    sizeof (                SK_D3D11_Stateblock_Lite );
-  return new (std::nothrow) SK_D3D11_Stateblock_Lite { };
-}
-
-void
-SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb) noexcept
-{
-  assert (sb != nullptr);
-
-  delete sb;
 }

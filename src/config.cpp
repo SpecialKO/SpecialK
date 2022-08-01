@@ -656,6 +656,7 @@ struct {
     sk::ParameterBool*    force_d3d9ex            = nullptr;
     sk::ParameterBool*    impure                  = nullptr;
     sk::ParameterBool*    enable_texture_mods     = nullptr;
+    sk::ParameterBool*    enable_flipex           = nullptr;
   } d3d9;
 
   struct {
@@ -840,8 +841,49 @@ struct {
 bool
 SK_LoadConfig (const std::wstring& name)
 {
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
-  {
+  ULARGE_INTEGER
+    useable  = { }, // Amount the current user's quota allows
+    capacity = { },
+    free     = { };
+
+  wchar_t                         wszStartupDir [MAX_PATH + 2] = { };
+  GetCurrentDirectoryW (MAX_PATH, wszStartupDir);
+
+  // Check Disk Space for non-Microsoft Store Games
+  const BOOL bDiskSpace = (nullptr == StrStrIW (wszStartupDir, L"WindowsApps")) &&
+    GetDiskFreeSpaceExW (
+      wszStartupDir,
+        &useable, &capacity, &free );
+
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::Launcher ||
+        (bDiskSpace && useable.QuadPart < 1024ull * 1024ull * 5ull) )
+  { if ( bDiskSpace && useable.QuadPart < 1024ull * 1024ull * 5ull )
+    {
+      UINT uiDriveNum =
+        PathGetDriveNumberW (wszStartupDir);
+
+      bool bRet =
+        SK_LoadConfigEx (name);
+
+      if (config.system.global_inject_delay < 0.05f)
+      {
+        SK_RunOnce (
+          SK_ImGui_WarningWithTitle (
+            SK_FormatStringW (
+              L"Special K Requires 5+ MiB of Free Storage on Drive %hc:\\ \t ( %ws )",
+                ('A' + (char)uiDriveNum), wszStartupDir ).c_str (),
+              L"Insufficient Storage"
+          )
+        );
+
+        config.system.global_inject_delay = 0.05f;
+      }
+
+      return bRet;
+    }
+
+    config.system.global_inject_delay = 0.25f;
+
     return
       (config.system.silent = true);
   }
@@ -1366,6 +1408,7 @@ auto DeclKeybind =
     ConfigEntry (render.d3d9.force_d3d9ex,               L"Force D3D9Ex Context",                                      dll_ini,         L"Render.D3D9",           L"ForceD3D9Ex"),
     ConfigEntry (render.d3d9.impure,                     L"Force PURE device off",                                     dll_ini,         L"Render.D3D9",           L"ForceImpure"),
     ConfigEntry (render.d3d9.enable_texture_mods,        L"Enable Texture Modding Support",                            dll_ini,         L"Render.D3D9",           L"EnableTextureMods"),
+    ConfigEntry (render.d3d9.enable_flipex,              L"Enable D3D9Ex FlipEx SwapEffect",                           dll_ini,         L"Render.D3D9",           L"EnableFlipEx"),
 
 
     // D3D10/11/12
@@ -3048,6 +3091,7 @@ auto DeclKeybind =
 
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
+  render.d3d9.enable_flipex->load       (config.render.d3d9.enable_flipex);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
   texture.d3d9.clamp_lod_bias->load     (config.textures.clamp_lod_bias);
 
@@ -3422,34 +3466,6 @@ auto DeclKeybind =
                                _In_ DWORD     dwFlags,
                                _In_ LPVOID    lParam );
 
-  static auto _ApplyResolutionOverride = [&](MONITORINFOEX& mi)
-  {
-    if (! config.display.resolution.override.isZero ())
-    {
-      DEVMODEW devmode              = {               };
-               devmode.dmSize       = sizeof (DEVMODEW);
-               devmode.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
-               devmode.dmPelsWidth  = config.display.resolution.override.x;
-               devmode.dmPelsHeight = config.display.resolution.override.y;
-
-      if ( DISP_CHANGE_SUCCESSFUL ==
-             SK_ChangeDisplaySettingsEx (
-                 mi.szDevice, &devmode,
-                 0, CDS_TEST, nullptr )
-         )
-      {
-        if ( DISP_CHANGE_SUCCESSFUL ==
-               SK_ChangeDisplaySettingsEx (
-                   mi.szDevice, &devmode,
-                 0, 0/*CDS_UPDATEREGISTRY*/, nullptr )
-           )
-        {
-          config.display.resolution.applied = true;
-        }
-      }
-    }
-  };
-
   if (! config.display.monitor_path_ccd.empty ())
   {
     static UINT32 uiNumPaths =  128;
@@ -3580,7 +3596,7 @@ auto DeclKeybind =
 
         found_exact = true;
 
-        _ApplyResolutionOverride (mi);
+        SK_Display_ApplyDesktopResolution (mi);
       }
     }
   }
@@ -3612,7 +3628,7 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
-              _ApplyResolutionOverride (mi);
+              SK_Display_ApplyDesktopResolution (mi);
 
               return FALSE;
             }
@@ -3625,7 +3641,7 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
-              _ApplyResolutionOverride (mi);
+              SK_Display_ApplyDesktopResolution (mi);
 
               return FALSE;
             }
@@ -3657,7 +3673,7 @@ auto DeclKeybind =
               config.display.monitor_handle = hMonitor;
               rb.next_monitor               = hMonitor;
 
-              _ApplyResolutionOverride (mi);
+              SK_Display_ApplyDesktopResolution (mi);
 
               return FALSE;
             }
@@ -4269,9 +4285,6 @@ SK_SaveConfig ( std::wstring name,
   if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
     return;
 
-  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
-  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ());
-
   if (name.empty ())
   {
     if (SK_IsInjected ())
@@ -4286,6 +4299,9 @@ SK_SaveConfig ( std::wstring name,
   if ( dll_ini == nullptr ||
        osd_ini == nullptr    )
     return;
+
+  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
+  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ());
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -4729,6 +4745,7 @@ SK_SaveConfig ( std::wstring name,
                              ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) )
     {
       render.d3d9.force_d3d9ex->store         (config.render.d3d9.force_d3d9ex);
+      render.d3d9.enable_flipex->store        (config.render.d3d9.enable_flipex);
       render.d3d9.enable_texture_mods->store  (config.textures.d3d9_mod);
     }
   }

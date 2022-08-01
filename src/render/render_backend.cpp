@@ -196,12 +196,15 @@ SK_BootD3D9 (void)
                               SK_LoadEarlyImports32 () );
     }
 
-    if (config.textures.d3d9_mod)
+    if ( config.textures.d3d9_mod ||
+         config.render.d3d9.force_d3d9ex )
     {
       tex_mgr.Hook ();
     }
 
     SK_HookD3D9    ();
+
+    SK_ApplyQueuedHooks ();
 
     InterlockedIncrementRelease (&__booted);
   }
@@ -3914,10 +3917,8 @@ SK_NV_AdaptiveSyncControl (void)
     {
       if (display.monitor == rb.monitor)
       {
-        NV_GET_ADAPTIVE_SYNC_DATA
-                     getAdaptiveSync       = {                           };
-        ZeroMemory (&getAdaptiveSync,  sizeof (NV_GET_ADAPTIVE_SYNC_DATA));
-                     getAdaptiveSync.version = NV_GET_ADAPTIVE_SYNC_DATA_VER;
+        static NV_GET_ADAPTIVE_SYNC_DATA
+                     getAdaptiveSync   = { };
 
         static DWORD lastChecked       = 0;
         static NvU64 lastFlipTimeStamp = 0;
@@ -3926,6 +3927,10 @@ SK_NV_AdaptiveSyncControl (void)
 
         if (SK_timeGetTime () > lastChecked + 333)
         {                       lastChecked = SK_timeGetTime ();
+
+          ZeroMemory (&getAdaptiveSync,  sizeof (NV_GET_ADAPTIVE_SYNC_DATA));
+                       getAdaptiveSync.version = NV_GET_ADAPTIVE_SYNC_DATA_VER;
+
           if ( NVAPI_OK ==
                  NvAPI_DISP_GetAdaptiveSyncData (
                    display.nvapi.display_id,
@@ -3978,13 +3983,14 @@ SK_NV_AdaptiveSyncControl (void)
                                                                      "Enabled" );
 
           if (getAdaptiveSync.maxFrameInterval != 0)
-            ImGui::Text   ( "%#06.2f Hz ",
+            ImGui::Text   ( "%#6.2f Hz ",
                              1000000.0 / static_cast <double> (getAdaptiveSync.maxFrameInterval) );
         }
-
-      //ImGui::Text       ( "%#06.2f Hz ", dFlipPrint);
         ImGui::Text       ( "" );
-        ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
+
+      //ImGui::Text       ( "%#6.2f Hz ", dFlipPrint);
+      //ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
+        
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
@@ -4107,11 +4113,6 @@ ChangeDisplaySettingsExA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (config.textures.d3d9_mod)
-  {
-    return DISP_CHANGE_SUCCESSFUL;
-  }
-
 
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
@@ -4196,10 +4197,6 @@ ChangeDisplaySettingsExW_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (config.textures.d3d9_mod)
-  {
-    return DISP_CHANGE_SUCCESSFUL;
-  }
 
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
@@ -4351,3 +4348,32 @@ SK_Render_InitializeSharedCVars (void)
 
   return pCommandProc;
 }
+
+void
+SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
+{
+  if (! config.display.resolution.override.isZero ())
+  {
+    DEVMODEW devmode              = {               };
+             devmode.dmSize       = sizeof (DEVMODEW);
+             devmode.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
+             devmode.dmPelsWidth  = config.display.resolution.override.x;
+             devmode.dmPelsHeight = config.display.resolution.override.y;
+
+    if ( DISP_CHANGE_SUCCESSFUL ==
+           SK_ChangeDisplaySettingsEx (
+               mi.szDevice, &devmode,
+               0, CDS_TEST, nullptr )
+       )
+    {
+      if ( DISP_CHANGE_SUCCESSFUL ==
+             SK_ChangeDisplaySettingsEx (
+                 mi.szDevice, &devmode,
+               0, 0/*CDS_UPDATEREGISTRY*/, nullptr )
+         )
+      {
+        config.display.resolution.applied = true;
+      }
+    }
+  }
+};

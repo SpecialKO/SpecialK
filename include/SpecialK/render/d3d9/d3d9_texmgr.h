@@ -102,7 +102,7 @@ public:
 
   ISKTextureD3D9* d3d9_tex;
   size_t          size;
-  int             refs;
+  std::atomic_int refs;
   float           load_time;
   uint32_t        crc32c;
   D3DPOOL         original_pool;
@@ -167,11 +167,12 @@ struct TexThreadStats {
     // Stream / Immediate
     wchar_t             wszFilename [MAX_PATH + 2] = { };
 
-    LPDIRECT3DTEXTURE9  pDest = nullptr;
-    LPDIRECT3DTEXTURE9  pSrc  = nullptr;
+    D3DPOOL             mem_pool    = D3DPOOL_DEFAULT;
+    LPDIRECT3DTEXTURE9  pDest       = nullptr;
+    LPDIRECT3DTEXTURE9  pSrc        = nullptr;
 
-    LARGE_INTEGER       start = { 0LL };
-    LARGE_INTEGER       end   = { 0LL };
+    LARGE_INTEGER       start       = { 0LL };
+    LARGE_INTEGER       end         = { 0LL };
   };
 
   class TexLoadRef
@@ -319,8 +320,8 @@ struct TexThreadStats {
 
       bool            hasPendingLoads    (void)              const;
 
-      void            beginLoad          (void);
-      void            endLoad            (void);
+      bool            beginLoad          (void); // Returns original status
+      void            endLoad            (bool bOrigState = false);
 
       bool            hasPendingStreams  (void)              const;
       bool            isStreaming        (uint32_t checksum) const;
@@ -657,11 +658,14 @@ public:
       SK_ReleaseAssert (finished        != nullptr &&
                         finished->pDest != nullptr);
 
-      // Remove the temporary reference we added earlier
-      finished->pDest->Release ();
+      if (finished->pDest != nullptr)
+      {
+        // Remove the temporary reference we added earlier
+        finished->pDest->Release ();
 
-      results_.push        (finished);
-      SetEvent             (events_.results_waiting);
+        results_.push      (finished);
+        SetEvent           (events_.results_waiting);
+      }
       InterlockedIncrement (&jobs_done_);
     }
 
@@ -873,6 +877,8 @@ public:
 
     if (ret == 0)
     {
+    //SK_ReleaseAssert (can_free);
+
       if ( pTex != nullptr &&
            pTex != this )
       {
@@ -904,7 +910,10 @@ public:
 
   /*** IDirect3DBaseTexture9 methods ***/
   STDMETHOD(GetDevice)(THIS_ IDirect3DDevice9** ppDevice)  override {
-    tex_log->Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
+    if (config.system.log_level > 1)
+    {
+      tex_log->Log (L"[ Tex. Mgr ] ISKTextureD3D9::GetDevice (%ph)", ppDevice);
+    }
 
     if (pTex == nullptr)
       return E_FAIL;
@@ -977,7 +986,10 @@ public:
     pTex->PreLoad ();
   }
   STDMETHOD_(D3DRESOURCETYPE, GetType)(THIS)  override {
-    tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetType ()" );
+    if (config.system.log_level > 1)
+    {
+      tex_log->Log ( L"[ Tex. Mgr ] ISKTextureD3D9::GetType ()" );
+    }
 
     if (pTex == nullptr)
       return D3DRTYPE_TEXTURE;
@@ -1169,6 +1181,80 @@ typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileInMemoryEx_pfn)
   _Inout_opt_ D3DXIMAGE_INFO     *pSrcInfo,
   _Out_opt_   PALETTEENTRY       *pPalette,
   _Out_       LPDIRECT3DTEXTURE9 *ppTexture
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileExW_pfn)
+(
+  _In_    LPDIRECT3DDEVICE9  pDevice,
+  _In_    LPCWSTR            pSrcFile,
+  _In_    UINT               Width,
+  _In_    UINT               Height,
+  _In_    UINT               MipLevels,
+  _In_    DWORD              Usage,
+  _In_    D3DFORMAT          Format,
+  _In_    D3DPOOL            Pool,
+  _In_    DWORD              Filter,
+  _In_    DWORD              MipFilter,
+  _In_    D3DCOLOR           ColorKey,
+  _Inout_ D3DXIMAGE_INFO     *pSrcInfo,
+  _Out_   PALETTEENTRY       *pPalette,
+  _Out_   LPDIRECT3DTEXTURE9 *ppTexture
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateVolumeTextureFromFileInMemoryEx_pfn)
+(
+  _In_    LPDIRECT3DDEVICE9        pDevice,
+  _In_    LPCVOID                  pSrcData,
+  _In_    UINT                     SrcDataSize,
+  _In_    UINT                     Width,
+  _In_    UINT                     Height,
+  _In_    UINT                     Depth,
+  _In_    UINT                     MipLevels,
+  _In_    DWORD                    Usage,
+  _In_    D3DFORMAT                Format,
+  _In_    D3DPOOL                  Pool,
+  _In_    DWORD                    Filter,
+  _In_    DWORD                    MipFilter,
+  _In_    D3DCOLOR                 ColorKey,
+  _Inout_ D3DXIMAGE_INFO           *pSrcInfo,
+  _Out_   PALETTEENTRY             *pPalette,
+  _Out_   LPDIRECT3DVOLUMETEXTURE9 *ppVolumeTexture
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateCubeTextureFromFileInMemoryEx_pfn)
+(
+  _In_    LPDIRECT3DDEVICE9      pDevice,
+  _In_    LPCVOID                pSrcData,
+  _In_    UINT                   SrcDataSize,
+  _In_    UINT                   Size,
+  _In_    UINT                   MipLevels,
+  _In_    DWORD                  Usage,
+  _In_    D3DFORMAT              Format,
+  _In_    D3DPOOL                Pool,
+  _In_    DWORD                  Filter,
+  _In_    DWORD                  MipFilter,
+  _In_    D3DCOLOR               ColorKey,
+  _Inout_ D3DXIMAGE_INFO         *pSrcInfo,
+  _Out_   PALETTEENTRY           *pPalette,
+  _Out_   LPDIRECT3DCUBETEXTURE9 *ppCubeTexture
+);
+
+typedef HRESULT (STDMETHODCALLTYPE *D3DXCreateTextureFromFileExA_pfn)
+(
+  _In_    LPDIRECT3DDEVICE9  pDevice,
+  _In_    LPCSTR             pSrcFile,
+  _In_    UINT               Width,
+  _In_    UINT               Height,
+  _In_    UINT               MipLevels,
+  _In_    DWORD              Usage,
+  _In_    D3DFORMAT          Format,
+  _In_    D3DPOOL            Pool,
+  _In_    DWORD              Filter,
+  _In_    DWORD              MipFilter,
+  _In_    D3DCOLOR           ColorKey,
+  _Inout_ D3DXIMAGE_INFO     *pSrcInfo,
+  _Out_   PALETTEENTRY       *pPalette,
+  _Out_   LPDIRECT3DTEXTURE9 *ppTexture
 );
 
 typedef HRESULT (STDMETHODCALLTYPE *D3DXSaveTextureToFile_pfn)(

@@ -1713,7 +1713,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( SK_IsGameWindowActive (    ) )
+  if ( SK_IsGameWindowActive(    ) )
   {
     bool Alt =
       (SK_GetAsyncKeyState (VK_MENU)    ) != 0;
@@ -2535,8 +2535,10 @@ SK_ImGui_User_NewFrame (void)
                          WindowFromPoint (cursor_pos) :
                                                nullptr;
 
-  if (                           hWndFromPt == game_window.hWnd ||
-      IsChild (game_window.hWnd, hWndFromPt))
+  if (      0 != game_window.hWnd  &&
+       IsWindow (game_window.hWnd) &&
+       (IsChild (game_window.hWnd,    hWndFromPt)
+              || game_window.hWnd  == hWndFromPt) )
   {
     io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0;
     io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0;
@@ -2571,11 +2573,18 @@ SK_ImGui_User_NewFrame (void)
     }
   }
 
-  if (SK_IsGameWindowActive ())
+  bool bFocused =
+    SK_IsGameWindowFocused (),
+       bActive  =
+    SK_IsGameWindowActive  ();
+
+  if (bActive)
   { if (new_input) for ( UINT                 i = 7 ; i < 255 ; ++i )
                                  io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
   } else { RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
            RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
+
+  SK_ImGui_PollGamepad ();
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
@@ -2583,8 +2592,6 @@ SK_ImGui_User_NewFrame (void)
   io.KeyAlt    = (io.KeysDown [VK_MENU])    != 0;
 
   io.KeySuper  = false;
-
-  SK_ImGui_PollGamepad ();
 
   if (nav_usable)
   {
@@ -2674,7 +2681,7 @@ SK_ImGui_User_NewFrame (void)
   __SK_EnableSetCursor = false;
 
 
-  if (SK_IsGameWindowActive ())
+  if (bActive)
   {
     if (                           hWndFromPt == game_window.hWnd ||
         IsChild (game_window.hWnd, hWndFromPt))
@@ -2687,15 +2694,18 @@ SK_ImGui_User_NewFrame (void)
     }
   }
 
-  if (config.input.keyboard.catch_alt_f4)
+  if (bFocused)
   {
-    if ( io.KeyAlt                     &&
-         io.KeysDown         [VK_F4  ] &&
-     ( ( io.KeysDownDuration [VK_MENU] > 0.0f ) ^
-       ( io.KeysDownDuration [VK_F4  ] > 0.0f ) ) )
+    if (config.input.keyboard.catch_alt_f4)
     {
-      extern bool SK_ImGui_WantExit;
-                  SK_ImGui_WantExit = true;
+      if ( io.KeyAlt                     &&
+           io.KeysDown         [VK_F4  ] &&
+       ( ( io.KeysDownDuration [VK_MENU] > 0.0f ) ^
+         ( io.KeysDownDuration [VK_F4  ] > 0.0f ) ) )
+      {
+        extern bool SK_ImGui_WantExit;
+                    SK_ImGui_WantExit = true;
+      }
     }
   }
 

@@ -749,6 +749,8 @@ SK::Framerate::Init (void)
   // Implicitly applies queued hooks
   SK_Scheduler_Init ();
 
+  pCommandProc->AddVariable ( "PresentInterval",
+      new SK_IVarStub <int> (&config.render.framerate.present_interval));
   pCommandProc->AddVariable ( "MaxDeltaTime",
       new SK_IVarStub <int> (&config.render.framerate.max_delta_time));
 

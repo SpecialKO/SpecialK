@@ -184,6 +184,10 @@ extern "C" {
   SteamAPI_InitSafe                    = nullptr,
   SteamAPI_InitSafe_Original           = nullptr;
 
+  SteamAPI_ManualDispatch_Init_pfn
+  SteamAPI_ManualDispatch_Init         = nullptr,
+  SteamAPI_ManualDispatch_Init_Original= nullptr;
+
   SteamAPI_RunCallbacks_pfn
   SteamAPI_RunCallbacks                = nullptr,
   SteamAPI_RunCallbacks_Original       = nullptr;
@@ -1265,6 +1269,10 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
       steam_log->Log ( L" * (%-28s) Installed Auth Session Ticket Response Callback",
                       caller.c_str () );
       break;
+    case IPCFailure_t::k_iCallback:
+      steam_log->Log ( L" * (%-28s) Installed IPC Failure Callback",
+                      caller.c_str () );
+      break;
     default:
     {
       steam_log->Log ( L" * (%-28s) Installed Callback (Class=%hs, Id=%li)",
@@ -1405,6 +1413,10 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
       steam_log->Log ( L" * (%-28s) Uninstalled Auth Session Ticket Response Callback",
                       caller.c_str () );
       break;
+    case IPCFailure_t::k_iCallback:
+      steam_log->Log ( L" * (%-28s) Uninstalled IPC Failure Callback",
+                      caller.c_str () );
+      break;
     default:
     {
       steam_log->Log ( L" * (%-28s) Uninstalled Callback (Class=%hs, Id=%li)",
@@ -1515,11 +1527,23 @@ SK_Steam_SetNotifyCorner (void)
   // 4 == Don't Care
   if (config.platform.notify_corner != 4)
   {
-    if (steam_ctx.Utils ())
+    auto pSteamUtils =
+      steam_ctx.Utils ();
+
+    if (pSteamUtils != nullptr)
     {
-      steam_ctx.Utils ()->SetOverlayNotificationPosition (
-        static_cast <ENotificationPosition> (config.platform.notify_corner)
-      );
+      // This is a very high overhead API call, and the
+      //   chances of the Steam overlay enabling itself
+      //     later are almost nil.
+      static bool bEnabled =
+        pSteamUtils->IsOverlayEnabled ();
+
+      if (bEnabled)
+      {
+        pSteamUtils->SetOverlayNotificationPosition (
+          static_cast <ENotificationPosition> (config.platform.notify_corner)
+        );
+      }
     }
   }
 }
@@ -1824,41 +1848,6 @@ public:
     auto user_id =
       user->GetSteamID ().ConvertToUint64 ();
 
-
-#if 1
-    //if (has_global_data)
-    {
-      for (auto& it : *UserStatsReceived_callbacks)
-      {
-        if (it.second && SK_IsAddressExecutable (it.first, true))
-        {
-          if (pParam->m_eResult != k_EResultOK)
-          {
-            if ( user_id ==
-                 pParam->m_steamIDUser.ConvertToUint64 () )
-            {
-              steam_log->Log (
-                L"Got UserStatsReceived Failure for Current Player, m_eResult=%x",
-                  pParam->m_eResult
-              );
-            }
-          }
-
-          if (pParam->m_eResult                        == k_EResultOK &&
-              pParam->m_steamIDUser.ConvertToUint64 () == user_id)
-          {
-            static bool          once = false;
-            if (! std::exchange (once, true))
-            {
-              TryCallback ((class CCallbackBase*)it.first, pParam);
-            }
-          }
-        }
-      }
-    }
-#endif
-
-
     if (pParam->m_eResult == k_EResultOK)
     {
       if ( pParam->m_steamIDUser.ConvertToUint64 () ==
@@ -1946,7 +1935,7 @@ public:
   void TryCallback (CCallbackBase* pCallback, UserStatsReceived_t* pParam)
   {
     __try {
-      if (SK_ValidatePointer (pParam, true))
+      if (SK_ValidatePointer (pParam, true) && SK_IsAddressExecutable (&pCallback, true))
               pCallback->Run (pParam);
     }
     __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
@@ -2715,23 +2704,15 @@ void TryRunCallbacksSEH (void)
     if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Original ();
   }
-  __finally {
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                    EXCEPTION_EXECUTE_HANDLER  :
+                                    EXCEPTION_CONTINUE_SEARCH ) {
   }
 }
 
 void TryRunCallbacks (void)
 {
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_BasicStructuredExceptionTranslator
-  );
-  try {
-    TryRunCallbacksSEH ();
-  }
-  catch (const SK_SEH_IgnoredException&)
-  {
-  }
-  SK_SEH_RemoveTranslator (orig_se);
+  TryRunCallbacksSEH ();
 }
 
 
@@ -2842,13 +2823,10 @@ SteamAPI_RunCallbacks_Detour (void)
 {
   if (ReadAcquire (&__SK_DLL_Ending))
   {
-    if (SteamAPI_RunCallbacks_Original != nullptr)
-        TryRunCallbacks ();
+    TryRunCallbacks ();
+
     return;
   }
-
-  static bool first   =  true;
-  static bool failure = false;
 
   if (SK_Steam_ShouldThrottleCallbacks ())
   {
@@ -2861,96 +2839,15 @@ SteamAPI_RunCallbacks_Detour (void)
   if (pTLS != nullptr)
     InterlockedIncrement64 (&pTLS->steam->callback_count);
 
-  if ( (! failure) && steam_achievements == nullptr )
+  if (! ReadAcquire (&__SK_DLL_Ending))
   {
-    // Handle situations where Steam was initialized earlier than
-    //   expected...
-    void SK_SteamAPI_InitManagers (void);
-         SK_SteamAPI_InitManagers (    );
-
-    strncpy_s ( steam_ctx.var_strings.popup_origin, 16,
-                  SK_Steam_PopupOriginToStr (
-                    config.platform.achievements.popup.origin
-                  ), _TRUNCATE
-              );
-
-    strncpy_s ( steam_ctx.var_strings.notify_corner, 16,
-                  SK_Steam_PopupOriginToStr (
-                    config.platform.notify_corner
-                  ), _TRUNCATE
-              );
-
-    if (! steam_ctx.UserStats ())
-    {
-      if (SteamAPI_InitSafe_Original != nullptr)
-          SteamAPI_InitSafe_Detour ();
-    }
-  }
-
-  static bool fetch_stats = config.platform.achievements.pull_global_stats;// ||
-                         // config.platform.achievements.pull_friend_stats;
-
-  if (fetch_stats)
-  {
-    auto orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator (
-        EXCEPTION_ACCESS_VIOLATION
-      )
-    );
-    try
-    {
-      if (ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) > 24)
+    static std::atomic_bool
+        try_me = true;
+    if (try_me)
+    { __try
       {
         SK_Steam_SetNotifyCorner ();
 
-        ISteamUserStats* pStats =
-          steam_ctx.UserStats ();
-
-        if (! pStats)
-        {
-          failure = true;
-        }
-
-        if (pStats && (steam_achievements != nullptr))
-        {
-          steam_achievements->requestStats            ();
-          pStats->RequestGlobalAchievementPercentages ();
-        }
-
-        TryRunCallbacks ();
-
-        fetch_stats = false;
-      }
-
-      else
-        TryRunCallbacks ();
-    }
-
-    catch (const SK_SEH_IgnoredException&)
-    {
-      fetch_stats = false;
-      failure     = true;
-      steam_log->Log (L" Caught a Structured Exception while running Steam"
-                      L" Callbacks!");
-    }
-    SK_SEH_RemoveTranslator (orig_se);
-
-    return;
-  }
-
-  if (! ReadAcquire (&__SK_DLL_Ending))
-  {
-    static bool try_me = true;
-
-    auto orig_se =
-    SK_SEH_ApplyTranslator (
-      SK_FilteringStructuredExceptionTranslator(EXCEPTION_ACCESS_VIOLATION)
-    );
-    try
-    {
-      if (try_me)
-      {
         DWORD dwNow = SK_timeGetTime ();
 
         static DWORD
@@ -2971,17 +2868,23 @@ SteamAPI_RunCallbacks_Detour (void)
           dwLastOnlineStateCheck = dwNow;
         }
       }
+
+      __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+                                        EXCEPTION_EXECUTE_HANDLER  :
+                                        EXCEPTION_CONTINUE_SEARCH )
+      {
+        // Log the failure, then stop running any custom SK callback logic
+        steam_log->Log (
+          L"Swallowed Structured Exception In SteamAPI_RunCallbacks (...) Hook!"
+        );
+
+        try_me = false;
+      }
     }
-
-    catch (const SK_SEH_IgnoredException&)
-    {
-      try_me = false;
-    }
-    SK_SEH_RemoveTranslator (orig_se);
-
-
-    TryRunCallbacks ();
   }
+
+  // No matter what happens, always run the -actual- callbacks
+  TryRunCallbacks ();
 }
 
 
@@ -3020,7 +2923,7 @@ SK::SteamAPI::Shutdown (void)
 
 void SK::SteamAPI::Pump (void)
 {
-    if (steam_ctx.UserStats ())
+  if (steam_ctx.UserStats ())
   {
     if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Detour ();
@@ -3737,6 +3640,40 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
 
 
 
+void
+S_CALLTYPE
+SteamAPI_ManualDispatch_Init_Detour (void)
+{
+  if (SteamAPI_ManualDispatch_Init_Original != nullptr)
+      SteamAPI_ManualDispatch_Init_Original ();
+
+  if (steam_log.getPtr () != nullptr && (! steam_log->silent))
+  {   steam_log->Log (
+      L"Disabling SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
+  }
+
+  // Platform integration must be disabled,
+  //   Special K does not support this.
+  config.platform.silent = true;
+
+  SK_GetDLLConfig ()->get_section (L"Steam.Log").
+                        get_value (L"Silent").
+                           assign (L"true");
+  SK_GetDLLConfig ()->write ();
+
+  InterlockedExchange (&__SK_DLL_Ending, 1);
+
+  SK_RestartGame ();
+
+  MessageBoxW ( 0,
+    L"Special K Does not Support SteamAPI Integration in this game",
+    L"Please Restart Game", MB_ICONWARNING | MB_OK | MB_TASKMODAL | MB_SETFOREGROUND | MB_TOPMOST );
+
+  TerminateProcess (
+    GetCurrentProcess (), 0x0
+  );
+}
+
 bool
 S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
@@ -3951,6 +3888,11 @@ SteamAPI_Init_Detour (void)
                            SK::SteamAPI::AppID () );
 
       SK_Steam_StartPump (config.steam.force_load_steamapi);
+
+      // Handle situations where Steam was initialized earlier than
+      //   expected...
+      void SK_SteamAPI_InitManagers (void); SK_RunOnce (
+           SK_SteamAPI_InitManagers (    ));
     }
   }
 
@@ -4129,6 +4071,16 @@ SK_HookSteamAPI (void)
                      SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
     );
 
+    // New part of SteamAPI, don't try to hook unless the DLL exports it
+    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ManualDispatch_Init",
+                          SteamAPI_ManualDispatch_Init_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
+    }
+
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_InitSafe",
                         SteamAPI_InitSafe_Detour,
@@ -4215,6 +4167,9 @@ SK_HookSteamAPI (void)
       SK_Thread_Create (SteamAPI_Delay_Init);
     }
 
+    if (hooks > 0)
+      SK_ApplyQueuedHooks ();
+
     InterlockedIncrementRelease (&__SteamAPI_hook);
   }
 
@@ -4263,30 +4218,58 @@ SK_SteamAPI_InitManagers (void)
     ISteamUserStats* stats =
       steam_ctx.UserStats ();
 
-    if (stats != nullptr && ((! user_manager) || (! steam_achievements)))
+    if ( stats != nullptr && ( (! user_manager) ||
+                               (! steam_achievements) ) )
     {
-      has_global_data = false;
-      next_friend     = 0;
-
-          stats->RequestCurrentStats ();
-      if (stats->GetNumAchievements  ())
+      if (! steam_achievements)
       {
-        steam_log->Log (L" Creating Achievement Manager...");
+        has_global_data = false;
+        next_friend     = 0;
 
-        steam_achievements = std::make_unique <SK_Steam_AchievementManager> (
-          config.platform.achievements.sound_file.c_str     ()
-        );
+            stats->RequestCurrentStats ();
+                       TryRunCallbacks ();
+        if (stats->GetNumAchievements  ())
+        {
+          steam_log->Log (L" Creating Achievement Manager...");
+
+          steam_achievements =
+            std::make_unique <SK_Steam_AchievementManager> (
+              config.platform.achievements.sound_file.c_str ()
+            );
+
+          steam_achievements->requestStats ();
+                           TryRunCallbacks ();
+             steam_achievements->pullStats ();
+                           TryRunCallbacks ();
+        }
       }
 
       steam_log->LogEx (false, L"\n");
 
-      user_manager = std::make_unique <SK_Steam_UserManager> ();
+      if (! user_manager)
+      {     user_manager = std::make_unique <SK_Steam_UserManager> ();
+
+        strncpy_s ( steam_ctx.var_strings.popup_origin, 16,
+              SK_Steam_PopupOriginToStr (
+                config.platform.achievements.popup.origin
+              ), _TRUNCATE );
+
+        strncpy_s ( steam_ctx.var_strings.notify_corner, 16,
+                      SK_Steam_PopupOriginToStr (
+                        config.platform.notify_corner
+                      ), _TRUNCATE );
+
+        SK_Steam_SetNotifyCorner ();
+      }
     }
 
     if (! __SK_Steam_IgnoreOverlayActivation)
     {
       if (steam_ctx.Utils () && (! overlay_manager))
-        overlay_manager      = std::make_unique <SK_Steam_OverlayManager> ();
+      {
+        overlay_manager =
+          std::make_unique <SK_Steam_OverlayManager> ();
+      }
     }
 
     // Failed, try again later...

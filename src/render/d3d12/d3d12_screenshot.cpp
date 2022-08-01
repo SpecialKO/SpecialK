@@ -834,13 +834,6 @@ SK_D3D12_CaptureScreenshot (
     bufferDesc.SampleDesc.Count   = 1;
     bufferDesc.SampleDesc.Quality = 0;
 
-  // The buffer is serialized and dimensions therefore useless...
-  //
-  // * We -need- the original 2D dimensions
-  //
-  pBackingStore->Width  = desc.Width;
-  pBackingStore->Height = desc.Height;
-
   DirectX::ComputePitch (
     pBackingStore->NativeFormat,
       static_cast <size_t> (pBackingStore->Width),
@@ -857,7 +850,7 @@ SK_D3D12_CaptureScreenshot (
   hr =
     pDevice->CreateCommittedResource (
       &readBackHeapProperties, D3D12_HEAP_FLAG_NONE,
-      &bufferDesc,             D3D12_RESOURCE_STATE_COMMON,
+      &bufferDesc,             D3D12_RESOURCE_STATE_COPY_DEST,
           nullptr,
       IID_PPV_ARGS (&pStagingCtx->pStagingBackbufferCopy.p)
     );
@@ -1057,9 +1050,9 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
 
     size_t src_row_pitch =
-      ( layout.Footprint.RowPitch / framebuffer.Height ) +
-      ( layout.Footprint.RowPitch / framebuffer.Height ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
-           dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
+      ( layout.Footprint.RowPitch / (size_t)std::max (1ui64, framebuffer.Height) ) +
+      ( layout.Footprint.RowPitch / (size_t)std::max (1ui64, framebuffer.Height) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+           dst_row_pitch = ( bytesPerPixel * (size_t)framebuffer.Width );
 
     SK_ReleaseAssert ( src_row_pitch >=
                        dst_row_pitch );
@@ -1437,6 +1430,9 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
   return false;
 }
 
+extern UINT  filterFlags;
+extern float fMaxNitsForDisplay;
+
 void
 SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
                                     bool               wait   = false,
@@ -1751,7 +1747,11 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   std::swap (un_scrgb, un_srgb);
                 }
 
-                XMVECTOR maxLum = XMVectorZero ();
+                XMVECTOR maxLum = XMVectorZero          (),
+                         minLum = XMVectorSplatInfinity ();
+
+                float lumTotal = 0.0f;
+                float N        = 0.0f;
 
                 hr =              un_srgb.GetImageCount () == 1 ?
                   EvaluateImage ( un_srgb.GetImages     (),
@@ -1759,33 +1759,57 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                   un_srgb.GetMetadata   (),
                   [&](const XMVECTOR* pixels, size_t width, size_t y)
                   {
-                    UNREFERENCED_PARAMETER(y);
+                      UNREFERENCED_PARAMETER(y);
 
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      static const XMVECTORF32 s_luminance =
-                      //{ 0.3f, 0.59f, 0.11f, 0.f };
-                      { 0.2125862307855955516f,
-                        0.7151703037034108499f,
-                        0.07220049864333622685f };
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        static const XMVECTORF32 s_luminance =
+                        { 0.3f, 0.59f, 0.11f, 0.f };
+                      
+                        XMVECTOR vLuma =
+                          XMVectorSplatY (
+                            XMColorRGBToXYZ (*pixels++)
+                          );
+                        
+                        maxLum =
+                          XMVectorMax ( maxLum,
+                                          vLuma );
 
-                      XMVECTOR v = *pixels++;
-                      RemoveGamma_sRGB          (v);
-                               v = XMVector3Dot (v, s_luminance);
+                        minLum =
+                          XMVectorMin ( minLum,
+                                          vLuma );
 
-                      maxLum =
-                        XMVectorMax (v, maxLum);
-                    }
-                  })                                       : E_POINTER;
+                        lumTotal +=
+                          logf ( std::max (0.000001f, 0.000001f + vLuma.m128_f32 [0]) ),
+                        ++N;
+                      }
+                    })                                       : E_POINTER;
 
-#define _CHROMA_SCALE TRUE
-#ifndef _CHROMA_SCALE
-                  maxLum =
-                    XMVector3Length  (maxLum);
-#else
-                  maxLum =
-                    XMVectorMultiply (maxLum, maxLum);
-#endif
+                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
+                                                                      maxLum.m128_f32 [0]), L"XXX" );
+
+                  float fExposure = fMaxNitsForDisplay;
+                  float fLogAvg   = expf ( ( 1.0f / N ) * lumTotal );
+
+                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", ( maxLum.m128_f32 [0] +
+                                                                                  minLum.m128_f32 [0] ) / 2.0f,
+                                                                                  expf ( (1.0f / N) * lumTotal ) ), L"XXX");
+
+                  // For scenes below exposure threshold, limit the key to 1 so that brightening does not occur... the image is already LDR
+                  fLogAvg =
+                    std::max (fMaxNitsForDisplay, fLogAvg);
+
+                //#define _CHROMA_SCALE TRUE
+                  #ifndef _CHROMA_SCALE
+                                    maxLum =
+                                      XMVector3Length  (maxLum);
+                  #else
+                                    maxLum =
+                                      XMVectorMultiply (maxLum, maxLum);
+                  #endif
+
+                  const XMVECTORF32 c_MaxNitsForDisplay =
+                  { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1798,21 +1822,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
-
                         XMVECTOR scale =
-                          XMVectorDivide (
-                            XMVectorAdd (
-                              g_XMOne, XMVectorDivide ( value,
-                                                          maxLum
-                                                      )
-                                        ),
-                            XMVectorAdd (
-                              g_XMOne, value
-                                        )
-                          );
+                          XMVectorReplicate (fExposure / fLogAvg);
 
                         XMVECTOR nvalue =
-                          XMVectorMultiply (value, scale);
+                          XMVectorDivide (                      XMVectorMultiply (value, scale),
+                                          XMVectorAdd (g_XMOne, XMVectorMultiply (value, scale) ) );
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         outPixels [j]   =   value;
@@ -1824,8 +1839,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 if (         un_srgb.GetImageCount () == 1) {
                   Convert ( *un_srgb.GetImages     (),
                               DXGI_FORMAT_B8G8R8X8_UNORM,
-                                TEX_FILTER_DITHER |
-                                TEX_FILTER_SRGB,
+                                filterFlags,
                                   TEX_THRESHOLD_DEFAULT,
                                     un_scrgb );
                 }

@@ -571,26 +571,12 @@ ImGui_ImplDX9_NewFrame (void)
   auto& io =
     ImGui::GetIO ();
 
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   if (! g_FontTexture)
     ImGui_ImplDX9_CreateDeviceObjects ();
 
   static HMODULE hModTBFix =
     SK_GetModuleHandle (L"tbfix.dll");
 
-  // Setup display size (every frame to accommodate for window resizing)
-  RECT                               rect = { };
-  GetClientRect (rb.windows.device, &rect);
-
-  if ( (rect.right  - rect.left) > 0 &&
-       (rect.bottom - rect.top)  > 0    )
-  {
-    io.DisplayFramebufferScale =
-      ImVec2 ( static_cast <float> (rect.right  - rect.left),
-               static_cast <float> (rect.bottom - rect.top ) );
-  }
 
 //dll_log.Log (L"Window Width: %lu, Height: %lu", rect.right  - rect.left, rect.bottom - rect.top);
 
@@ -621,6 +607,7 @@ ImGui_ImplDX9_NewFrame (void)
 
       else
       {
+        RECT                              rect = { };
         GetClientRect (pp.hDeviceWindow, &rect);
 
         if ( (rect.right  - rect.left) > 0 &&

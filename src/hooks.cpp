@@ -316,9 +316,8 @@ SK_Hook_CacheTarget (       sk_hook_cache_record_s &cache,
 
         if (! val._Equal (ver_str))
         {
-          ini->get_section    (hook_cfg.name.c_str ()).set_name (L"HookCache.Invalid");
-          ini->remove_section (hook_cfg.name.c_str ());
-          ini->write          ();
+          ini->get_section (hook_cfg.name.c_str ()).set_name (L"Invalid.Section.DoNotFlush");
+          ini->write       ();
 
           val = ver_str;
         }

@@ -833,25 +833,6 @@ SK_D3D9_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 }
 
 
-
-extern SK_D3D11_Stateblock_Lite*
-SK_D3D11_AllocStateBlock (size_t& size);
-
-extern void
-SK_D3D11_FreeStateBlock (SK_D3D11_Stateblock_Lite* sb);
-
-SK_D3D11_Stateblock_Lite*
-SK_D3D11_ThreadContext::getStateBlock (void)
-{
-  if (stateBlock == nullptr)
-  {
-    stateBlock =
-      SK_D3D11_AllocStateBlock (stateBlockSize);
-  }
-
-  return stateBlock;
-}
-
 size_t
 SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
@@ -865,23 +846,11 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
             freed += screenshot.reserve;
                      screenshot.buffer = nullptr;
     }
-  }
-
-  if (stateBlockSize > 0)
-  {
-    if (stateBlock != nullptr)
-    {
-      SK_D3D11_FreeStateBlock (stateBlock);
-                               stateBlock = nullptr;
-
-      freed += stateBlockSize;
-               stateBlockSize = 0;
-    }
 
     else
     {
-      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, stateBlockSize);
-      stateBlockSize = 0;
+      SK_TLS_LogLeak (__FUNCTIONW__, __FILEW__, __LINE__, screenshot.reserve);
+      screenshot.reserve = 0;
     }
   }
 

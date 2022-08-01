@@ -58,8 +58,8 @@ enum class SK_D3D11DrawType
 
 struct SK_D3D11_ContextResources
 {
-  //std::unordered_set <ID3D11Texture2D*> used_textures;
-  //std::unordered_set <IUnknown*       > temp_resources;
+//std::unordered_set <ID3D11Texture2D*> used_textures;
+//std::unordered_set <IUnknown*       > temp_resources;
   std::unordered_set <SK_ComPtr <ID3D11Texture2D> > used_textures;
   std::unordered_set <SK_ComPtr <IUnknown       > > temp_resources;
 

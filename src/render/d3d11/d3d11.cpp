@@ -199,6 +199,20 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
     std::basic_string <_T> (0);
 }
 
+std::wstring
+SK_D3D11_GetDebugNameW (ID3D11DeviceChild* pD3D11Obj)
+{
+  return
+    SK_D3D11_GetDebugName <wchar_t> (pD3D11Obj);
+}
+
+std::string
+SK_D3D11_GetDebugNameA (ID3D11DeviceChild* pD3D11Obj)
+{
+  return
+    SK_D3D11_GetDebugName <char> (pD3D11Obj);
+}
+
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
@@ -675,7 +689,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
-  const LONG RESOLVE_MAX = 64;
+  const LONG RESOLVE_MAX = 16;
 
   static std::pair <ID3D11DeviceContext*, LONG>
     last_resolve [RESOLVE_MAX];
@@ -3535,10 +3549,21 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComPtr <ID3D11Device> pDevice;
-
   if ((! bWrapped) && pDevCtx != rb.d3d11.immediate_ctx)
   {
+    if ( rb.d3d11.immediate_ctx == nullptr ||
+         rb.device.p            == nullptr )
+    {
+      if (config.system.log_level > 0)
+      {
+        SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
+      }
+
+      return true;
+    }
+
+    SK_ComPtr <ID3D11Device>
+                         pDevice;
     pDevCtx->GetDevice (&pDevice.p);
 
     // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
@@ -3560,6 +3585,10 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   //
   if (rb.api != SK_RenderAPI::D3D11)
   {
+    SK_ComPtr <ID3D11Device>
+                         pDevice;
+    pDevCtx->GetDevice (&pDevice.p);
+
     SK_ComPtr <IUnknown> pD3D11On12Device;
     if (pDevice)
         pDevice->QueryInterface (
@@ -3933,6 +3962,78 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
   if (draw_action == Skipped)
     return;
 
+///////////#ifndef _WIN64
+///////////  static const auto game_id =
+///////////    SK_GetCurrentGameID ();
+///////////
+///////////  switch (game_id)
+///////////  {
+///////////    case SK_GAME_ID::Persona4:
+///////////    {
+///////////      if (dev_idx == UINT_MAX)
+///////////          dev_idx = SK_D3D11_GetDeviceContextHandle (pDevCtx);
+///////////
+///////////      uint32_t current_ps =
+///////////        SK_D3D11_Shaders->pixel.current.shader [dev_idx];
+///////////
+///////////      if ( current_ps == 0xa5705f0c )
+///////////      {
+///////////        SK_ComPtr <ID3D11RenderTargetView>   pRTV;
+///////////        SK_ComPtr <ID3D11DepthStencilView>   pDSV;
+///////////        SK_ComPtr <ID3D11ShaderResourceView> pSRV;
+///////////
+///////////        pDevCtx->OMGetRenderTargets ( 1,    &pRTV.p,
+///////////                                            &pDSV.p );
+///////////        pDevCtx->PSGetShaderResources( 0,1, &pSRV.p );
+///////////
+///////////        if (! pRTV.p)
+///////////          return;
+///////////
+///////////        SK_ComPtr <ID3D11Resource>          pOutRes;
+///////////        pSRV->GetResource                 (&pOutRes.p);
+///////////
+///////////        SK_ComPtr <ID3D11Resource>          pInRes;
+///////////        pRTV->GetResource                 (&pInRes.p);
+///////////
+///////////        if (! (pOutRes.p && pInRes.p))
+///////////          return;
+///////////
+///////////        SK_ComQIPtr <ID3D11Texture2D> pOutTex (pOutRes.p);
+///////////        SK_ComQIPtr <ID3D11Texture2D> pInTex  (pInRes .p);
+///////////
+///////////        if (pOutTex.p != nullptr && pInTex.p != nullptr)
+///////////        {
+///////////          auto flag_result =
+///////////            SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
+///////////
+///////////          SK_ScopedBool auto_bool (flag_result.first);
+///////////                                  *flag_result.first = flag_result.second;
+///////////
+///////////          _Finish ();
+///////////
+///////////          bool
+///////////          SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
+///////////                                    ID3D11Texture2D *pDstTex );
+///////////          
+///////////          SK_D3D11_BltCopySurface ( pOutTex.p,
+///////////                                     pInTex.p );
+///////////          //
+///////////          //SK_ComPtr <ID3D11Resource>          pBlurRes;
+///////////          //SK_Persona4_pBlurRTV->GetResource (&pBlurRes.p);
+///////////          //
+///////////          //SK_ComQIPtr <ID3D11Texture2D> pBlurTex (pBlurRes.p);
+///////////          //
+///////////          ////SK_D3D11_BltCopySurface (   pInTex.p,
+///////////          ////                          pBlurTex.p );
+///////////        }
+///////////
+///////////      //SK_Persona4_pDevCtx  = pDevCtx;
+///////////      //SK_Persona4_pBlurRTV = pRTV.p;
+///////////      }
+///////////    } break;
+///////////  }
+///////////#endif
+
   _Finish ();
 
   if (draw_action == Override)
@@ -3960,12 +4061,6 @@ SK_D3D11_DrawIndexed_Impl (
                :
         D3D11_DrawIndexed_Original ( pDevCtx,            IndexCount,
                                      StartIndexLocation, BaseVertexLocation );
-
-      if (dev_idx == UINT_MAX)
-      {
-        dev_idx =
-          SK_D3D11_GetDeviceContextHandle (pDevCtx);
-      }
 
       SK_D3D11_SanitizeFP16RenderTargets ( pDevCtx,
                                             dev_idx );

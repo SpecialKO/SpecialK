@@ -991,7 +991,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
           auto    pDesc   =   &desc;
 
           fprintf ( fMetaData,
-                  "Dumped Name:    %ws.dds\n"
+                  "Filename:       %ws\n"
+                  "Object:         %ws\n"
                   "Texture:        %08x\n"
                   "Dimensions:     (%ux%u)\n"
                   "Format:         %03u (%hs)\n"
@@ -1004,7 +1005,9 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
                   "CPUAccessFlags: 0x%02x\n"
                   "Misc:           0x%02x\n"
                   "ArraySize:      %02u",
-                  wszOutName,
+                  wszOutName, SK_D3D11_HasDebugName  (pTex)          ?
+                              SK_D3D11_GetDebugNameW (pTex).c_str () :
+                              L"<Unknown>",
                     crc32c,
                       pDesc->Width, pDesc->Height,
                       pDesc->Format, SK_DXGI_FormatToStr (pDesc->Format).data (),

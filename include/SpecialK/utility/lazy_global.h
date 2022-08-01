@@ -72,6 +72,12 @@ public:
     static_assert ( std::is_reference_v <T> != true,
                     "SK_LazyGlobal does not support reference types" );
 
+    auto pRet =
+      pDeferredObject.get ();
+
+    if (     pRet != nullptr)
+      return pRet;
+
     const volatile ULONG lock_val =
       InterlockedCompareExchange (&_initlock, Reserved, Uninitialized);
 

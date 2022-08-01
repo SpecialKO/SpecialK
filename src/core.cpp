@@ -1578,8 +1578,17 @@ SK_StartupCore (const wchar_t* backend, void* callback)
  {
   InstructionSet::deferredInit ();
 
+  // .NET Applications might be inside of managed code, so perform
+  //   initialization on a deferred native thread unless WaitForDebugger
+  //     is configured.
+  const static auto
+    _NeedImplicitDelay =
+     [&]()
+      { return (! config.system.wait_for_debugger) &&
+              SK_GetModuleHandleW (L"MSCOREE.dll") != nullptr; };
+
   // If Global Injection Delay, block initialization thread until the delay period ends
-  if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
+  if (SK_IsInjected () && (config.system.global_inject_delay > 0.0f || _NeedImplicitDelay ()))
   {
     struct packaged_params_s {
       std::wstring backend  = L""; // Persistent copy
@@ -1604,7 +1613,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
         DWORD dwMilliseconds =
-          sk::narrow_cast <DWORD> (config.system.global_inject_delay * 1000.0f);
+          std::max (1UL, sk::narrow_cast <DWORD> (config.system.global_inject_delay * 1000.0f));
 
         SK_SleepEx (dwMilliseconds, FALSE);
 

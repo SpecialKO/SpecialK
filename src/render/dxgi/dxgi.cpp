@@ -3870,7 +3870,7 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
 }
 
 
-[[deprecated]]
+//[[deprecated]]
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
@@ -7592,12 +7592,6 @@ DXGIDisableVBlankVirtualization (void)
 // Special K Override (during app init)
 HRESULT WINAPI SK_DXGI_DisableVBlankVirtualization (void)
 {
-  if (DXGIDisableVBlankVirtualization_Import == nullptr)
-  {
-    SK_RunOnce (SK_BootDXGI ())
-            WaitForInitDXGI ();
-  }
-
   if (DXGIDisableVBlankVirtualization_Import != nullptr)
   {
     SK_LOGi0 (L"  Disabling Windows 11 Dynamic Refresh Rate");
@@ -7986,6 +7980,9 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory.target.addr  = CreateDXGIFactory_Import;
       LocalHook_CreateDXGIFactory1.target.addr = CreateDXGIFactory1_Import;
       LocalHook_CreateDXGIFactory2.target.addr = CreateDXGIFactory2_Import;
+
+      DXGIDisableVBlankVirtualization_Import = (DXGIDisableVBlankVirtualization_pfn)
+      SK_GetProcAddress             (hBackend, "DXGIDisableVBlankVirtualization");
     }
 
     else
@@ -8072,10 +8069,10 @@ SK_HookDXGI (void)
       LocalHook_CreateDXGIFactory.target.addr  = pfnCreateDXGIFactory;
       LocalHook_CreateDXGIFactory1.target.addr = pfnCreateDXGIFactory1;
       LocalHook_CreateDXGIFactory2.target.addr = pfnCreateDXGIFactory2;
-    }
 
-    DXGIDisableVBlankVirtualization_Import = (DXGIDisableVBlankVirtualization_pfn)
-    SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
+      DXGIDisableVBlankVirtualization_Import = (DXGIDisableVBlankVirtualization_pfn)
+      SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
+    }
 
     SK_ApplyQueuedHooks ();
 

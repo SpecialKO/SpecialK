@@ -194,50 +194,54 @@ D3D11Dev_CreateShaderResourceView_Override (
           auto& cache_desc =
             textures->Textures_2D [(ID3D11Texture2D *)pResource];
 
-          SK_ComPtr <ID3D11Device> pCacheDevice;
-          cache_desc.texture->GetDevice (&pCacheDevice.p);
-
-          if (pCacheDevice.IsEqualObject (This))
+          // Texture may have been removed (i.e. dynamic update in Witcher 3)
+          if (cache_desc.texture != nullptr)
           {
-            newFormat =
-              cache_desc.desc.Format;
+            SK_ComPtr <ID3D11Device>        pCacheDevice;
+            cache_desc.texture->GetDevice (&pCacheDevice.p);
 
-            newMipLevels =
-              pDesc->Texture2D.MipLevels;
-
-            if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-                 DirectX::MakeTypeless (pDesc->Format) !=
-                 DirectX::MakeTypeless (newFormat    )  )
+            if (pCacheDevice.IsEqualObject (This))
             {
-              if (DirectX::IsSRGB (pDesc->Format))
-                newFormat = DirectX::MakeSRGB (newFormat);
+              newFormat =
+                cache_desc.desc.Format;
 
-              override = true;
+              newMipLevels =
+                pDesc->Texture2D.MipLevels;
 
-              SK_LOG1 ( ( L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
-                            cache_desc.crc32c,
-                       SK_DXGI_FormatToStr (pDesc->Format).data      (),
-                                SK_DXGI_FormatToStr (newFormat).data () ),
-                          L"DX11TexMgr" );
+              if (pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+                  DirectX::MakeTypeless (pDesc->Format) !=
+                  DirectX::MakeTypeless (newFormat))
+              {
+                if (DirectX::IsSRGB (pDesc->Format))
+                  newFormat = DirectX::MakeSRGB (newFormat);
+
+                override = true;
+
+                SK_LOG1 ((L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
+                          cache_desc.crc32c,
+                          SK_DXGI_FormatToStr (pDesc->Format).data (),
+                          SK_DXGI_FormatToStr (newFormat).data ()),
+                         L"DX11TexMgr");
+              }
+
+              if (config.textures.d3d11.generate_mips &&
+                  cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels)
+              {
+                override = true;
+                newMipLevels = cache_desc.desc.MipLevels;
+
+                SK_LOG1 ((L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
+                          cache_desc.crc32c,
+                          pDesc->Texture2D.MipLevels,
+                          newMipLevels),
+                         L"DX11TexMgr");
+              }
             }
 
-            if ( config.textures.d3d11.generate_mips &&
-                 cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels )
-            {
-              override     = true;
-              newMipLevels = cache_desc.desc.MipLevels;
-
-              SK_LOG1 ( ( L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
-                            cache_desc.crc32c,
-                              pDesc->Texture2D.MipLevels,
-                                 newMipLevels ),
-                          L"DX11TexMgr" );
-            }
+            else if (config.system.log_level > 0)
+              // TODO: Texture cache needs to be per-device
+              SK_ReleaseAssert (!"Attempted to use a cached texture on the wrong device!");
           }
-
-          else if (config.system.log_level > 0)
-            // TODO: Texture cache needs to be per-device
-            SK_ReleaseAssert (!"Attempted to use a cached texture on the wrong device!");
         }
 
         auto descCopy =

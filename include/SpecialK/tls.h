@@ -393,8 +393,6 @@ class SK_DDraw_ThreadContext : public SK_TLS_RenderContext
 {
 };
 
-struct SK_D3D11_Stateblock_Lite;
-
 class SK_D3D11_ThreadContext : public SK_TLS_DynamicContext,
                                public SK_TLS_RenderContext
 {
@@ -419,9 +417,6 @@ public:
   UINT                               StencilRefOrig           = 0;
   UINT                               StencilRefNew            = 0;
 
-  SK_D3D11_Stateblock_Lite*          stateBlock               = nullptr;
-  size_t                             stateBlockSize           = 0;
-
   SK_ComPtr <ID3D11Buffer>           pOriginalCBuffers [6]
         [D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT]
                                                               = { };
@@ -436,8 +431,6 @@ public:
   } screenshot;
 
   uint8_t* allocScreenshotMemory (size_t bytesNeeded);
-
-  SK_D3D11_Stateblock_Lite* getStateBlock (void);
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
@@ -800,6 +793,17 @@ public:
       uint8_t* data          = nullptr;
       size_t   data_len      = 0;
       uint32_t data_age      = 0;
+
+      struct heap_s {
+        HANDLE primary       = INVALID_HANDLE_VALUE;
+        HANDLE temporary     = INVALID_HANDLE_VALUE;
+
+        ~heap_s (void)
+        {
+          if (primary   != INVALID_HANDLE_VALUE) HeapDestroy (std::exchange (primary,   INVALID_HANDLE_VALUE));
+          if (temporary != INVALID_HANDLE_VALUE) HeapDestroy (std::exchange (temporary, INVALID_HANDLE_VALUE));
+        }
+      } heap;
     } streaming_memory;
 
     IUnknown* refcount_obj     = nullptr; // Object to expect a reference count change on

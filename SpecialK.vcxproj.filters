@@ -19,6 +19,9 @@
     <Filter Include="Source Files\Backends">
       <UniqueIdentifier>{c3aa99c1-1a7a-44b3-a85e-71e8399357a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files\Diagnostics">
       <UniqueIdentifier>{05e53788-2b5b-4da9-8e0a-749b8481056a}</UniqueIdentifier>
     </Filter>
@@ -85,20 +88,11 @@
     <Filter Include="Header Files\Backends\Input\XInput">
       <UniqueIdentifier>{34308ae9-cbef-4d8c-b596-f740b220f76b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Backends\Input\RawInput">
-      <UniqueIdentifier>{69eae58e-4683-42c0-a93f-213a266d09d9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Input\DirectInput">
       <UniqueIdentifier>{bc817c0b-4958-4d2e-9fb5-2e83c3fabca7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Backends\Input\HID">
-      <UniqueIdentifier>{15deb719-305e-4e72-a7a4-c37c34097ab4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Input\Steam">
       <UniqueIdentifier>{8d08864c-0c07-458d-a724-91ea7713e931}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Backends\Input\WinMM">
-      <UniqueIdentifier>{4b8d1c1f-caf6-47c3-8888-ad495da6cb19}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\Backends\Injection">
       <UniqueIdentifier>{4eb8f52c-c0bb-4370-b45b-c551d28f52bb}</UniqueIdentifier>
@@ -124,9 +118,6 @@
     <Filter Include="Source Files\Backends\Render\DDraw">
       <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\DXGI\D3D11">
-      <UniqueIdentifier>{cd668061-d1a5-4e3e-8f77-436f770fac97}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Control Panel">
       <UniqueIdentifier>{1d99dc0a-9961-4f90-84bd-cad61eebd693}</UniqueIdentifier>
     </Filter>
@@ -139,14 +130,8 @@
     <Filter Include="Source Files\Backends\Input">
       <UniqueIdentifier>{254711e3-28ff-4fbd-8175-fa18b5b6a352}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\HID">
-      <UniqueIdentifier>{9e3f4015-6b36-4bfd-b248-98f9ecc51663}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\DirectInput">
       <UniqueIdentifier>{0745912d-ee2d-464e-af70-a696b08bb85a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Input\RawInput">
-      <UniqueIdentifier>{7255c8a8-67ce-4ca2-b845-fa7a2139307d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Backends\Input\Steam">
       <UniqueIdentifier>{7ccfea9f-6e79-4034-a8ff-03925a9c532f}</UniqueIdentifier>
@@ -168,6 +153,42 @@
     </Filter>
     <Filter Include="Header Files\Backends\Render\D3D9">
       <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit">
+      <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit">
+      <UniqueIdentifier>{54c2a8d6-b386-43aa-92e6-849317d4a280}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\CEGUI">
+      <UniqueIdentifier>{eda94dee-1ba8-4404-9489-34d672e6b308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\CEGUI">
+      <UniqueIdentifier>{e278da9f-a8d1-475b-9399-dbf908c0fc29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\lzma">
+      <UniqueIdentifier>{8ba79158-f560-44b5-9d59-1f44839178cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\NvAPI">
+      <UniqueIdentifier>{58a66b12-45f0-47c7-a412-d5fdaed5c060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\DirectXTex">
+      <UniqueIdentifier>{38d19e62-fa23-42d2-a4ba-36dceab33cf8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\MinHook %28Custom%29">
+      <UniqueIdentifier>{7c5b5cd7-b378-47c8-a049-c63a3eaa2098}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\MinHook %28Custom%29">
+      <UniqueIdentifier>{a694bb9a-30b1-483f-a342-23c52c5f4c41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\lzma">
+      <UniqueIdentifier>{b09e4352-a370-482f-bd83-f2bfb5756a9b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\NvAPI">
+      <UniqueIdentifier>{c88be311-1093-4ace-9485-dfcf7463d0d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\DirectXTex">
+      <UniqueIdentifier>{d4ee0829-8195-4ffc-89cf-502b0c3b1224}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\External Libraries">
       <UniqueIdentifier>{39a97315-e7ef-410a-8cca-ac9d1af65679}</UniqueIdentifier>
@@ -205,9 +226,6 @@
     <Filter Include="Header Files\Other Stuff">
       <UniqueIdentifier>{4113857f-eff4-4144-9fa3-a91a5e16d0be}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Input\WinMM">
-      <UniqueIdentifier>{1a89460b-1056-41e2-8e1b-7ec8c75ae883}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Plugins">
       <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
     </Filter>
@@ -223,26 +241,11 @@
     <Filter Include="Header Files\Backends\Render\Shaders">
       <UniqueIdentifier>{acbb52fe-3c5a-4cb0-9116-449ea5e2bc52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\DXGI\D3D12">
-      <UniqueIdentifier>{265671c5-9f3c-406c-943f-ce5e7971715e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Render\D3D11">
       <UniqueIdentifier>{49beef88-4a22-4df2-b26b-81176366e626}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Backends\Render\DXGI\D3D12">
-      <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\XInput">
       <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\Mod Tools">
-      <UniqueIdentifier>{02b10c01-d721-4472-8d6e-929220554785}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\HDR">
-      <UniqueIdentifier>{6f961191-bc5f-4963-b633-6904ee5de7d6}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Backends\Render\DXGI\D3D11\Textures">
-      <UniqueIdentifier>{c18f8665-c686-454e-a3b5-c12bedf9b429}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\External Libraries\ImGui\Fonts">
       <UniqueIdentifier>{4638ae06-c287-46bf-95a1-479672e60d24}</UniqueIdentifier>
@@ -259,11 +262,14 @@
     <Filter Include="Source Files\ImGui\Backends">
       <UniqueIdentifier>{ad396826-c477-4a64-abd3-b701ff898f4b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\HDR">
-      <UniqueIdentifier>{e6230cbd-a442-439f-bce0-e5ce28092c92}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\glm\gsl">
       <UniqueIdentifier>{a32710b7-06e3-44a2-8bb4-13636eb9dc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\32-bit\Tobii">
+      <UniqueIdentifier>{e427e978-48f5-4c30-9701-5dfcf476a317}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries\64-bit\Tobii">
+      <UniqueIdentifier>{810578f5-6ee0-4230-9c71-7b44f62e7e9c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\External Libraries\Boost">
       <UniqueIdentifier>{f271285d-ffd1-42c9-82c5-443c98fc4fc3}</UniqueIdentifier>
@@ -313,50 +319,23 @@
     <Filter Include="Header Files\Backends\Input\scePad">
       <UniqueIdentifier>{cb601a33-6e3a-4861-b13a-47671e146df6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries">
-      <UniqueIdentifier>{6476d756-0c99-46ec-bc6c-4f9695d477e5}</UniqueIdentifier>
+    <Filter Include="Source Files\Backends\Render\D3D11">
+      <UniqueIdentifier>{cd668061-d1a5-4e3e-8f77-436f770fac97}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit">
-      <UniqueIdentifier>{1e45d49a-394f-4a90-9e05-01d4e9eb122b}</UniqueIdentifier>
+    <Filter Include="Source Files\Backends\Render\D3D11\Mod Tools">
+      <UniqueIdentifier>{02b10c01-d721-4472-8d6e-929220554785}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\CEGUI">
-      <UniqueIdentifier>{eda94dee-1ba8-4404-9489-34d672e6b308}</UniqueIdentifier>
+    <Filter Include="Source Files\Backends\Render\D3D11\HDR">
+      <UniqueIdentifier>{6f961191-bc5f-4963-b633-6904ee5de7d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\MinHook %28Custom%29">
-      <UniqueIdentifier>{7c5b5cd7-b378-47c8-a049-c63a3eaa2098}</UniqueIdentifier>
+    <Filter Include="Source Files\Backends\Render\D3D11\Textures">
+      <UniqueIdentifier>{c18f8665-c686-454e-a3b5-c12bedf9b429}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\lzma">
-      <UniqueIdentifier>{b09e4352-a370-482f-bd83-f2bfb5756a9b}</UniqueIdentifier>
+    <Filter Include="Source Files\Backends\Render\D3D12">
+      <UniqueIdentifier>{265671c5-9f3c-406c-943f-ce5e7971715e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\NvAPI">
-      <UniqueIdentifier>{c88be311-1093-4ace-9485-dfcf7463d0d1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\DirectXTex">
-      <UniqueIdentifier>{d4ee0829-8195-4ffc-89cf-502b0c3b1224}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\32-bit\Tobii">
-      <UniqueIdentifier>{e427e978-48f5-4c30-9701-5dfcf476a317}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit">
-      <UniqueIdentifier>{54c2a8d6-b386-43aa-92e6-849317d4a280}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\CEGUI">
-      <UniqueIdentifier>{e278da9f-a8d1-475b-9399-dbf908c0fc29}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\lzma">
-      <UniqueIdentifier>{8ba79158-f560-44b5-9d59-1f44839178cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\NvAPI">
-      <UniqueIdentifier>{58a66b12-45f0-47c7-a412-d5fdaed5c060}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\DirectXTex">
-      <UniqueIdentifier>{38d19e62-fa23-42d2-a4ba-36dceab33cf8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\MinHook %28Custom%29">
-      <UniqueIdentifier>{a694bb9a-30b1-483f-a342-23c52c5f4c41}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Resource Files\Libraries\64-bit\Tobii">
-      <UniqueIdentifier>{810578f5-6ee0-4230-9c71-7b44f62e7e9c}</UniqueIdentifier>
+    <Filter Include="Header Files\Backends\Render\D3D12">
+      <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -2188,10 +2167,10 @@
       <Filter>Header Files\Backends\Render\DXGI</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_interfaces.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_screenshot.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\d3d11.h">
       <Filter>Header Files\Control Panel</Filter>
@@ -2905,22 +2884,22 @@
       <Filter>Header Files\Backends\Input\scePad</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_device.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_pipeline_library.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_command_queue.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d12\d3d12_dxil_shader.h">
-      <Filter>Header Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Header Files\Backends\Render\D3D12</Filter>
     </ClInclude>
     <ClInclude Include="include\shaders\epic_d3d11_vs.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\popups\popup.h">
-      <Filter>Resource Files\Libraries</Filter>
+      <Filter>Libraries</Filter>
     </ClInclude>
     <ClInclude Include="include\shaders\cs_histogram.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
@@ -3050,9 +3029,6 @@
     <ClCompile Include="src\imgui\EULA.cpp">
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
-      <Filter>Source Files\Backends\Render\D3D9</Filter>
-    </ClCompile>
     <ClCompile Include="src\control_panel\cfg_compatibility.cpp">
       <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
@@ -3153,10 +3129,10 @@
       <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_dev_ctx.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\diagnostics\memory.cpp">
       <Filter>Source Files\Diagnostics</Filter>
@@ -3240,22 +3216,22 @@
       <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_utility.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_vftable.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_devctx_wrapped.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hooks\d3d11_device.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_state_tracker.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp">
       <Filter>Source Files\Backends\Render\DXGI</Filter>
@@ -3294,61 +3270,58 @@
       <Filter>Source Files\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\utility\pipeline_stats.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\win32_isolation.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_shader.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\ac_valhalla.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_d3d12.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_d3d11.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_stats.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\cyberpunk2077.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d11on12_shader_restitution.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\mod_tools\d3d11_texture_mods.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\Mod Tools</Filter>
+      <Filter>Source Files\Backends\Render\D3D11\Mod Tools</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\mod_tools\d3d11_shader_mods.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\Mod Tools</Filter>
+      <Filter>Source Files\Backends\Render\D3D11\Mod Tools</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\hdr\d3d11_hdr.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\HDR</Filter>
+      <Filter>Source Files\Backends\Render\D3D11\HDR</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\d3d11_stateblock.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11</Filter>
-    </ClCompile>
-    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_resampler.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
+      <Filter>Source Files\Backends\Render\D3D11\Textures</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d11\tex_mgr\d3d11_tex_mgr.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D11\Textures</Filter>
+      <Filter>Source Files\Backends\Render\D3D11\Textures</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\latency.cpp">
       <Filter>Source Files\ImGui\Widgets</Filter>
@@ -3435,22 +3408,28 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_device.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\steam\steam_tier0.cpp">
       <Filter>Source Files\Storefronts\Steam</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
-      <Filter>Source Files\Backends\Render\DXGI\D3D12</Filter>
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\elex2.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\chrono_cross.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d9\d3d9_texmgr.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
+      <Filter>Source Files\Backends\Render\D3D11\Textures</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -3650,10 +3629,10 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="depends\lib\DirectXTex\x64\DirectXTex.pdb">
-      <Filter>Resource Files\Libraries\64-bit\DirectXTex</Filter>
+      <Filter>Libraries\64-bit\DirectXTex</Filter>
     </None>
     <None Include="depends\lib\DirectXTex\Win32\DirectXTex.pdb">
-      <Filter>Resource Files\Libraries\32-bit\DirectXTex</Filter>
+      <Filter>Libraries\32-bit\DirectXTex</Filter>
     </None>
     <None Include="depends\include\glm\gtx\associated_min_max.inl">
       <Filter>Header Files\External Libraries\glm</Filter>
@@ -4333,16 +4312,16 @@
     <None Include="@(NativeLibs)" />
     <None Include="SpecialK.ruleset" />
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
-      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
+      <Filter>Libraries\64-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.exp">
-      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
+      <Filter>Libraries\64-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.def">
-      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
+      <Filter>Libraries\32-bit\Tobii</Filter>
     </None>
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
-      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
+      <Filter>Libraries\32-bit\Tobii</Filter>
     </None>
     <None Include="depends\include\EOS\eos_achievements_types_deprecated.inl">
       <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
@@ -4435,49 +4414,43 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="depends\lib\glew\Win32\glew.lib">
-      <Filter>Resource Files\Libraries\32-bit\CEGUI</Filter>
+      <Filter>Libraries\32-bit\CEGUI</Filter>
     </Library>
     <Library Include="depends\lib\glew\x64\glew.lib">
-      <Filter>Resource Files\Libraries\64-bit\CEGUI</Filter>
+      <Filter>Libraries\64-bit\CEGUI</Filter>
     </Library>
     <Library Include="depends\lib\MinHook\x64\libMinHook64.lib">
-      <Filter>Resource Files\Libraries\64-bit\MinHook %28Custom%29</Filter>
+      <Filter>Libraries\64-bit\MinHook %28Custom%29</Filter>
     </Library>
     <Library Include="depends\lib\lzma\x64\libzma.lib">
-      <Filter>Resource Files\Libraries\64-bit\lzma</Filter>
+      <Filter>Libraries\64-bit\lzma</Filter>
     </Library>
     <Library Include="depends\lib\nvapi\x64\nvapi64.lib">
-      <Filter>Resource Files\Libraries\64-bit\NvAPI</Filter>
+      <Filter>Libraries\64-bit\NvAPI</Filter>
     </Library>
     <Library Include="depends\lib\DirectXTex\x64\DirectXTex.lib">
-      <Filter>Resource Files\Libraries\64-bit\DirectXTex</Filter>
+      <Filter>Libraries\64-bit\DirectXTex</Filter>
     </Library>
     <Library Include="depends\lib\MinHook\Win32\libMinHook.lib">
-      <Filter>Resource Files\Libraries\32-bit\MinHook %28Custom%29</Filter>
+      <Filter>Libraries\32-bit\MinHook %28Custom%29</Filter>
     </Library>
     <Library Include="depends\lib\lzma\Win32\libzma.lib">
-      <Filter>Resource Files\Libraries\32-bit\lzma</Filter>
+      <Filter>Libraries\32-bit\lzma</Filter>
     </Library>
     <Library Include="depends\lib\nvapi\Win32\nvapi.lib">
-      <Filter>Resource Files\Libraries\32-bit\NvAPI</Filter>
+      <Filter>Libraries\32-bit\NvAPI</Filter>
     </Library>
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
-      <Filter>Resource Files\Libraries\32-bit\DirectXTex</Filter>
+      <Filter>Libraries\32-bit\DirectXTex</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
-      <Filter>Resource Files\Libraries\32-bit\Tobii</Filter>
+      <Filter>Libraries\32-bit\Tobii</Filter>
     </Library>
     <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.lib">
-      <Filter>Resource Files\Libraries\64-bit\Tobii</Filter>
+      <Filter>Libraries\64-bit\Tobii</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="resource\shaders\HDR\scRGB\Rec709_Linear_16bit-fp.hlsl">
-      <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
-    <FxCompile Include="resource\shaders\HDR\HDR10\Rec2020_PQ_10bit-fixed.hlsl">
-      <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
     <FxCompile Include="resource\shaders\HDR\vs_colorutil.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
@@ -4530,9 +4503,6 @@
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\hdr_response_cs.hlsl">
-      <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
-    <FxCompile Include="resource\shaders\HDR\common_defs.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\basic_hdr_shader_ps.hlsl">

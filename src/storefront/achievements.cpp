@@ -622,15 +622,15 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
           {
             std::ignore = file;
 
-            if (config.system.log_level > 0)
-            { steam_log->Log ( L"%hs",
-                 std::string ( data.data (),
-                               data.data () + data.size ()
-                             ).c_str () );
-            }
-
             if (! data.empty ())
             {
+              if (config.system.log_level > 0)
+              { steam_log->Log ( L"%hs",
+                   std::string ( data.data (),
+                                 data.data () + data.size ()
+                               ).c_str () );
+              }
+
               try {
                 nlohmann::json jsonAchieved =
                   std::move (
@@ -686,6 +686,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
       []( const std::vector <uint8_t>&& data,
           const std::wstring_view       file )
       {
+        if (data.empty ())
+          return true;
+
         std::ignore = file;
 
         try {
@@ -717,6 +720,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
               []( const std::vector <uint8_t>&& data,
                   const std::wstring_view       file )
               {
+                if (data.empty ())
+                  return true;
+
                 auto steam_friends =
                  steam_ctx.Friends ();
 
@@ -976,6 +982,9 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
         []( const std::vector <uint8_t>&& data,
             const std::wstring_view       file )
         {
+          if (data.empty ())
+            return true;
+
           std::ignore = file;
 
           try

@@ -1265,6 +1265,11 @@ iSK_INI::write (const wchar_t* fname)
     if ( (! section.name.empty         ()) &&
          (! section.ordered_keys.empty ()) )
     {
+      // Special value to defer the removal of sections until
+      //   INI write, rather than while the INI is in use.
+      if (section.name._Equal (L"Invalid.Section.DoNotFlush"))
+        continue;
+
       outbuf +=
         SK_FormatStringW (
           L"[%ws]\n", section.name.c_str ()
