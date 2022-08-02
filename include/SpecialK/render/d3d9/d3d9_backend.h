@@ -339,6 +339,15 @@ using D3D9_CreateDevice_pfn = HRESULT (STDMETHODCALLTYPE *)(
            D3DPRESENT_PARAMETERS  *pPresentationParameters,
            IDirect3DDevice9      **ppReturnedDeviceInterface);
 
+using D3D9Ex_CreateDevice_pfn = HRESULT (STDMETHODCALLTYPE *)(
+           IDirect3D9Ex           *This,
+           UINT                    Adapter,
+           D3DDEVTYPE              DeviceType,
+           HWND                    hFocusWindow,
+           DWORD                   BehaviorFlags,
+           D3DPRESENT_PARAMETERS  *pPresentationParameters,
+           IDirect3DDevice9      **ppReturnedDeviceInterface);
+
 using D3D9Ex_CreateDeviceEx_pfn = HRESULT (STDMETHODCALLTYPE *)(
            IDirect3D9Ex           *This,
            UINT                    Adapter,

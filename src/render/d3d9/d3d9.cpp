@@ -72,6 +72,7 @@ Direct3DCreate9Ex_pfn
 Direct3DCreate9Ex_Import = nullptr;
 
 SK_D3D9_DeclTrampoline (D3D9,         CreateDevice)
+SK_D3D9_DeclTrampoline (D3D9Ex,       CreateDevice)
 SK_D3D9_DeclTrampoline (D3D9Ex,       CreateDeviceEx)
 
 SK_D3D9_DeclTrampoline (D3D9Device,   Present)
@@ -5483,6 +5484,32 @@ D3D9CreateDevice_Override ( IDirect3D9*            This,
                             D3DPRESENT_PARAMETERS* pPresentationParameters,
                             IDirect3DDevice9**     ppReturnedDeviceInterface )
 {
+  if (config.render.d3d9.force_d3d9ex)
+  {
+    static IDirect3D9Ex*
+        pD3D9Ex  = nullptr;
+    if (pD3D9Ex == nullptr)
+      Direct3DCreate9Ex (D3D_SDK_VERSION, &pD3D9Ex);
+
+    if (pD3D9Ex != nullptr)
+    {
+      HRESULT
+      WINAPI
+      D3D9ExCreateDevice_Override ( IDirect3D9*            This,
+                                    UINT                   Adapter,
+                                    D3DDEVTYPE             DeviceType,
+                                    HWND                   hFocusWindow,
+                                    DWORD                  BehaviorFlags,
+                                    D3DPRESENT_PARAMETERS* pPresentationParameters,
+                                    IDirect3DDevice9**     ppReturnedDeviceInterface );
+
+      return
+        D3D9ExCreateDevice_Override ( (IDirect3D9*)pD3D9Ex, Adapter, DeviceType,
+                                        hFocusWindow, BehaviorFlags, pPresentationParameters,
+                                          ppReturnedDeviceInterface );
+    }
+  }
+
   // Many D3D11/12/GL games use D3D9 for HW video playback, we need to ignore these
   //
   bool skip_device =
@@ -6438,18 +6465,15 @@ HookD3D9 (LPVOID user)
         {
           if (! LocalHook_D3D9CreateDevice.active)
           {
-            if (! config.render.d3d9.force_d3d9ex)
-            {
-              D3D9_INTERCEPT ( &pD3D9.p, 16,
-                              "IDirect3D9::CreateDevice",
-                                D3D9CreateDevice_Override,
-                                D3D9_CreateDevice_Original,
-                                D3D9_CreateDevice_pfn );
+            D3D9_INTERCEPT ( &pD3D9.p, 16,
+                            "IDirect3D9::CreateDevice",
+                              D3D9CreateDevice_Override,
+                              D3D9_CreateDevice_Original,
+                              D3D9_CreateDevice_pfn );
 
-              SK_Hook_TargetFromVFTable (
-                LocalHook_D3D9CreateDevice,
-                  (void **)&pD3D9.p, 16 );
-            }
+            SK_Hook_TargetFromVFTable (
+              LocalHook_D3D9CreateDevice,
+                (void **)&pD3D9.p, 16 );
           }
 
           SK_LOGi0 (L"  * Success");
@@ -6522,18 +6546,11 @@ HookD3D9 (LPVOID user)
           {
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
-              if (! LocalHook_D3D9CreateDevice.active)
-              {
-                D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
-                                 "IDirect3D9Ex::CreateDevice",
-                                  D3D9ExCreateDevice_Override,
-                                   D3D9_CreateDevice_Original,
-                                   D3D9_CreateDevice_pfn );
-
-                SK_Hook_TargetFromVFTable (
-                  LocalHook_D3D9CreateDevice,
-                    (void **)&pD3D9Ex.p, 16 );
-              }
+              //D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
+              //                 "IDirect3D9Ex::CreateDevice",
+              //                  D3D9ExCreateDevice_Override,
+              //                  D3D9Ex_CreateDevice_Original,
+              //                  D3D9Ex_CreateDevice_pfn );
 
               D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",

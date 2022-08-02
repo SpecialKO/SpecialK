@@ -447,7 +447,9 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  pTLS->texture_management.injection_thread = TRUE;
+  BOOL bTexInject =
+    pTLS->texture_management.injection_thread;
+    pTLS->texture_management.injection_thread = TRUE;
 
   // Build texture atlas
   ImGuiIO& io (
@@ -469,7 +471,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
                                             &g_FontTexture,
                                               nullptr ) < 0 )
   {
-    pTLS->texture_management.injection_thread = FALSE;
+    pTLS->texture_management.injection_thread = bTexInject;
     return false;
   }
 
@@ -477,7 +479,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   if ( g_FontTexture->LockRect ( 0,       &tex_locked_rect,
                                  nullptr, 0 ) != D3D_OK )
   {
-    pTLS->texture_management.injection_thread = FALSE;
+    pTLS->texture_management.injection_thread = bTexInject;
     return false;
   }
 
@@ -504,7 +506,7 @@ ImGui_ImplDX9_CreateFontsTexture (void)
   io.Fonts->TexID =
     static_cast <void *> (g_FontTexture);
 
-  pTLS->texture_management.injection_thread = FALSE;
+  pTLS->texture_management.injection_thread = bTexInject;
 
   return true;
 }
