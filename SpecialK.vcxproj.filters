@@ -3119,9 +3119,6 @@
     <ClCompile Include="src\tls.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
-      <Filter>Source Files\ImGui\Backends</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
       <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
@@ -3430,6 +3427,9 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d11\utility\d3d11_tex_util.cpp">
       <Filter>Source Files\Backends\Render\D3D11\Textures</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_d3d9.cpp">
+      <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
