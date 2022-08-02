@@ -1,4 +1,8 @@
-﻿22.8.2-D3D9-IK
+﻿22.8.2.1-D3D9-IK
+================
+ + Fixed D3D11On12 overlay compatibility (e.g. Steam/EGS/RTSS)
+
+22.8.2-D3D9-IK
 ==============
  + Added automatic Large Address Aware .exe patch when 32-bit non-LAA games crash
  + Fixed rare issue with control panel sliding to the left when scaling is active

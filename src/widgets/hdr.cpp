@@ -1723,7 +1723,9 @@ public:
                  swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM ||
                  rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 ) )
           {
-            ImGui::BulletText ("HDR May Not be Working Correctly Until you Restart the Game...");
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f));
+            ImGui::BulletText     ("HDR May Not be Working Correctly Until you Restart the Game...");
+            ImGui::PopStyleColor  ();
           }
 
           ImGui::TreePop ();
