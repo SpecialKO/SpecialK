@@ -3604,17 +3604,11 @@ SK_ImGui_ControlPanel (void)
     last_height = io.DisplaySize.y;
   }
 
-
-  ImGui::SetNextWindowSizeConstraints (
-    ImVec2 (250, 150), ImVec2 ( 0.9f * io.DisplaySize.x,
-                                0.9f * io.DisplaySize.y )
-                                      );
-
          const char* szTitle = SK_ImGui_ControlPanelTitle ();
   static       int     title_len
              = int (
   static_cast <float>
-   (ImGui::CalcTextSize (szTitle).x)
+   (ImGui::CalcTextSize (szTitle, nullptr, true).x)
           * 1.075f );
 
   static bool first_frame = true;
@@ -3655,8 +3649,19 @@ SK_ImGui_ControlPanel (void)
 
   ImGuiStyle orig = style;
 
-  style.WindowMinSize.x = title_len * 1.075f * io.FontGlobalScale;
-  style.WindowMinSize.y = 200;
+  static float       fMinX      = 0.0f;
+  static float       fLastScale = 0.0f;
+  if (std::exchange (fLastScale, io.FontGlobalScale)
+                              != io.FontGlobalScale)
+  {
+    fMinX =
+      title_len * io.FontGlobalScale;
+  }
+
+  ImGui::SetNextWindowSizeConstraints (
+    ImVec2 (fMinX + io.FontGlobalScale * style.ItemSpacing.x * 1.5f,
+                      200.0f), ImVec2 ( 0.9f * io.DisplaySize.x,
+                                        0.9f * io.DisplaySize.y ) );
 
   if (nav_usable)
   {
@@ -3673,7 +3678,8 @@ SK_ImGui_ControlPanel (void)
 
   ImGui::Begin (
     szTitle, &open,
-      ImGuiWindowFlags_AlwaysAutoResize |
+      ImGuiWindowFlags_AlwaysAutoResize       | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_AlwaysUseWindowPadding |
       ( config.imgui.use_mac_style_menu ? 0x00 :
                                           ImGuiWindowFlags_MenuBar )
   );
