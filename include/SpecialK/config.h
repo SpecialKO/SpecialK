@@ -1102,6 +1102,8 @@ extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 enum class SK_GAME_ID
 {
+  Launcher,                     // A generic launcher...
+
   Tyranny,                      // Tyranny.exe
   TidesOfNumenera,              // TidesOfNumenera.exe
   MassEffect_Andromeda,         // MassEffectAndromeda.exe
@@ -1199,7 +1201,8 @@ enum class SK_GAME_ID
   HatsuneMikuDIVAMegaMix,       // DivaMegaMix.exe
   ShinMegamiTensei3,            // smt3hd.exe
   TheQuarry,                    // TheQuarry-Win64-Shipping.exe
-  Launcher,                     // A generic launcher...
+  GenshinImpact,                // GenshinImpact.exe
+
   UNKNOWN_GAME               = 0xffff
 };
 

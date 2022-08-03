@@ -920,8 +920,9 @@ void BasicInit (void)
   SK::Diagnostics::Debugger::Allow (true);
 
   if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init   (    );
-  SK::Diagnostics::CrashHandler::InitSyms (    );
+    SK::Diagnostics::CrashHandler::Init     ();
+  else
+    SK::Diagnostics::CrashHandler::InitSyms ();
 
   SK::EOS::Init (false);
 

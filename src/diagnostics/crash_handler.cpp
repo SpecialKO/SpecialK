@@ -280,6 +280,7 @@ CrashHandler::Init (void)
           }
 
           Reinstall ();
+          InitSyms  ();
 
           InterlockedIncrement (&init);
 

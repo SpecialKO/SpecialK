@@ -31,6 +31,7 @@
 #include <SpecialK/storefront/epic.h>
 #include <filesystem>
 #include <optional>
+#include <valarray>
 
 #ifndef __cpp_lib_format
 #define __cpp_lib_format
@@ -81,110 +82,145 @@ SK_GetCurrentGameID (void)
   static bool first_check = true;
   if         (first_check)
   {
-    auto constexpr hash_lower = [&](const wchar_t* const wstr) -> size_t
-          { return hash_string                          (wstr, true); };
+    struct constexpr_game_s
+    {
+      size_t     hash;
+      SK_GAME_ID id;
 
-    static std::unordered_map <size_t, SK_GAME_ID> _games = {
-      { hash_lower (L"Tyranny.exe"),                            SK_GAME_ID::Tyranny                      },
-      { hash_lower (L"TidesOfNumenera.exe"),                    SK_GAME_ID::TidesOfNumenera              },
-      { hash_lower (L"MassEffectAndromeda.exe"),                SK_GAME_ID::MassEffect_Andromeda         },
-      { hash_lower (L"MadMax.exe"),                             SK_GAME_ID::MadMax                       },
-      { hash_lower (L"Dreamfall Chapters.exe"),                 SK_GAME_ID::Dreamfall_Chapters           },
-      { hash_lower (L"TheWitness.exe"),                         SK_GAME_ID::TheWitness                   },
-      { hash_lower (L"Obduction-Win64-Shipping.exe"),           SK_GAME_ID::Obduction                    },
-      { hash_lower (L"witcher3.exe"),                           SK_GAME_ID::TheWitcher3                  },
-      { hash_lower (L"re7.exe"),                                SK_GAME_ID::ResidentEvil7                },
-      { hash_lower (L"DDDA.exe"),                               SK_GAME_ID::DragonsDogma                 },
-      { hash_lower (L"eqgame.exe"),                             SK_GAME_ID::EverQuest                    },
-      { hash_lower (L"GE2RB.exe"),                              SK_GAME_ID::GodEater2RageBurst           },
-      { hash_lower (L"ge3.exe"),                                SK_GAME_ID::GodEater3                    },
-      { hash_lower (L"WatchDogs2.exe"),                         SK_GAME_ID::WatchDogs2                   },
-      { hash_lower (L"NieRAutomata.exe"),                       SK_GAME_ID::NieRAutomata                 },
-      { hash_lower (L"Warframe.x64.exe"),                       SK_GAME_ID::Warframe_x64                 },
-      { hash_lower (L"LEGOLCUR_DX11.exe"),                      SK_GAME_ID::LEGOCityUndercover           },
-      { hash_lower (L"Sacred.exe"),                             SK_GAME_ID::Sacred                       },
-      { hash_lower (L"sacred2.exe"),                            SK_GAME_ID::Sacred2                      },
-      { hash_lower (L"FF9.exe"),                                SK_GAME_ID::FinalFantasy9                },
-      { hash_lower (L"FinchGame.exe"),                          SK_GAME_ID::EdithFinch                   },
-      { hash_lower (L"FFX.exe"),                                SK_GAME_ID::FinalFantasyX_X2             },
-      { hash_lower (L"FFX-2.exe"),                              SK_GAME_ID::FinalFantasyX_X2             },
-      { hash_lower (L"FFX&X-2_Will.exe"),                       SK_GAME_ID::FinalFantasyX_X2             },
-      { hash_lower (L"DP.exe"),                                 SK_GAME_ID::DeadlyPremonition            },
-      { hash_lower (L"GG2Game.exe"),                            SK_GAME_ID::GalGun_Double_Peace          },
-      { hash_lower (L"Ys7.exe"),                                SK_GAME_ID::YS_Seven                     },
-      { hash_lower (L"TOS.exe"),                                SK_GAME_ID::Tales_of_Symphonia           },
-      { hash_lower (L"Tales of Zestiria.exe"),                  SK_GAME_ID::Tales_of_Zestiria            },
-      { hash_lower (L"TOV_DE.exe"),                             SK_GAME_ID::Tales_of_Vesperia            },
-      { hash_lower (L"Tales of Arise.exe"),                     SK_GAME_ID::Tales_of_Arise               },
-      { hash_lower (L"Life is Strange - Before the Storm.exe"), SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
-      { hash_lower (L"EoCApp.exe"),                             SK_GAME_ID::DivinityOriginalSin          },
-      { hash_lower (L"Hob.exe"),                                SK_GAME_ID::Hob                          },
-      { hash_lower (L"DukeForever.exe"),                        SK_GAME_ID::DukeNukemForever             },
-      { hash_lower (L"BLUE_REFLECTION.exe"),                    SK_GAME_ID::BlueReflection               },
-      { hash_lower (L"Zero Escape.exe"),                        SK_GAME_ID::ZeroEscape                   },
-      { hash_lower (L"hackGU.exe"),                             SK_GAME_ID::DotHackGU                    },
-      { hash_lower (L"WOFF.exe"),                               SK_GAME_ID::WorldOfFinalFantasy          },
-      { hash_lower (L"StarOceanTheLastHope.exe"),               SK_GAME_ID::StarOcean4                   },
-      { hash_lower (L"LEGOMARVEL2_DX11.exe"),                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
-      { hash_lower (L"okami.exe"),                              SK_GAME_ID::Okami                        },
-      { hash_lower (L"DuckTales.exe"),                          SK_GAME_ID::DuckTalesRemastered          },
-      { hash_lower (L"mafia3.exe"),                             SK_GAME_ID::Mafia3                       },
-      { hash_lower (L"Owlboy.exe"),                             SK_GAME_ID::Owlboy                       },
-      { hash_lower (L"DarkSoulsIII.exe"),                       SK_GAME_ID::DarkSouls3                   },
-      { hash_lower (L"Fallout4.exe"),                           SK_GAME_ID::Fallout4                     },
-      { hash_lower (L"dis1_st.exe"),                            SK_GAME_ID::DisgaeaPC                    },
-      { hash_lower (L"Secret_of_Mana.exe"),                     SK_GAME_ID::SecretOfMana                 },
-      { hash_lower (L"DBFighterZ.exe"),                         SK_GAME_ID::DragonBallFighterZ           },
-      { hash_lower (L"Nino2.exe"),                              SK_GAME_ID::NiNoKuni2                    },
-      { hash_lower (L"FarCry5.exe"),                            SK_GAME_ID::FarCry5                      },
-      { hash_lower (L"Chrono Trigger.exe"),                     SK_GAME_ID::ChronoTrigger                },
-      { hash_lower (L"ys8.exe"),                                SK_GAME_ID::Ys_Eight                     },
-      { hash_lower (L"PillarsOfEternityII.exe"),                SK_GAME_ID::PillarsOfEternity2           },
-      { hash_lower (L"Yakuza0.exe"),                            SK_GAME_ID::Yakuza0                      },
-      { hash_lower (L"YakuzaKiwami.exe"),                       SK_GAME_ID::YakuzaKiwami                 },
-      { hash_lower (L"YakuzaKiwami2.exe"),                      SK_GAME_ID::YakuzaKiwami2                },
-      { hash_lower (L"MonsterHunterWorld.exe"),                 SK_GAME_ID::MonsterHunterWorld           },
-      { hash_lower (L"Shenmue.exe"),                            SK_GAME_ID::Shenmue                      },
-      { hash_lower (L"Shenmue2.exe"),                           SK_GAME_ID::Shenmue                      },
-      { hash_lower (L"SteamLauncher.exe"),                      SK_GAME_ID::Shenmue                      }, // Bad idea
-      { hash_lower (L"DRAGON QUEST XI.exe"),                    SK_GAME_ID::DragonQuestXI                },
-      { hash_lower (L"ACOdyssey.exe"),                          SK_GAME_ID::AssassinsCreed_Odyssey       },
-      { hash_lower (L"ACOrigins.exe"),                          SK_GAME_ID::AssassinsCreed_Odyssey       },
-      { hash_lower (L"JustCause3.exe"),                         SK_GAME_ID::JustCause3                   },
-      { hash_lower (L"ed8.exe"),                                SK_GAME_ID::TrailsOfColdSteel            },
-      { hash_lower (L"sekiro.exe"),                             SK_GAME_ID::Sekiro                       },
-      { hash_lower (L"Octopath_Traveler-Win64-Shipping.exe"),   SK_GAME_ID::OctopathTraveler             },
-      { hash_lower (L"SonicMania.exe"),                         SK_GAME_ID::SonicMania                   },
-      { hash_lower (L"P4G.exe"),                                SK_GAME_ID::Persona4                     },
-      { hash_lower (L"HorizonZeroDawn.exe"),                    SK_GAME_ID::HorizonZeroDawn              },
-      { hash_lower (L"bg3.exe"),                                SK_GAME_ID::BaldursGate3                 },
-      { hash_lower (L"Cyberpunk2077.exe"),                      SK_GAME_ID::Cyberpunk2077                },
-      { hash_lower (L"Atelier_Ryza_2.exe"),                     SK_GAME_ID::AtelierRyza2                 },
-      { hash_lower (L"nioh2.exe"),                              SK_GAME_ID::Nioh2                        },
-      { hash_lower (L"HuniePop 2 - Double Date.exe"),           SK_GAME_ID::HuniePop2                    },
-      { hash_lower (L"NieR Replicant ver.1.22474487139.exe"),   SK_GAME_ID::NieR_Sqrt_1_5                },
-      { hash_lower (L"re8.exe"),                                SK_GAME_ID::ResidentEvil8                },
-      { hash_lower (L"Legend of Mana.exe"),                     SK_GAME_ID::LegendOfMana                 },
-      { hash_lower (L"FarCry6.exe"),                            SK_GAME_ID::FarCry6                      },
-      { hash_lower (L"Ryujinx.exe"),                            SK_GAME_ID::Ryujinx                      },
-      { hash_lower (L"yuzu.exe"),                               SK_GAME_ID::yuzu                         },
-      { hash_lower (L"ForzaHorizon5.exe"),                      SK_GAME_ID::ForzaHorizon5                },
-      { hash_lower (L"HaloInfinite.exe"),                       SK_GAME_ID::HaloInfinite                 },
-      { hash_lower (L"start_protected_game.exe"),               SK_GAME_ID::EasyAntiCheat                },
-      { hash_lower (L"eldenring.exe"),                          SK_GAME_ID::EldenRing                    },
-      { hash_lower (L"wonderlands.exe"),                        SK_GAME_ID::TinyTinasWonderlands         },
-      { hash_lower (L"ELEX2.exe"),                              SK_GAME_ID::Elex2                        },
-      { hash_lower (L"CHRONOCROSS.exe"),                        SK_GAME_ID::ChronoCross                  },
-      { hash_lower (L"CHRONOCROSS_LAUNCHER.exe"),               SK_GAME_ID::Launcher                     },
-      { hash_lower (L"DivaMegaMix.exe"),                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
-      { hash_lower (L"smt3hd.exe"),                             SK_GAME_ID::ShinMegamiTensei3            },
-      { hash_lower (L"TheQuarry-Win64-Shipping.exe"),           SK_GAME_ID::TheQuarry                    }
+      constexpr constexpr_game_s ( const wchar_t* name,
+                                       SK_GAME_ID game_id )
+      {
+        hash = hash_lower (name);
+        id   = game_id;
+      }
+
+      static constexpr
+      SK_GAME_ID get ( const std::initializer_list <constexpr_game_s>& games,
+                                                              size_t _hashval )
+      {
+        for (const auto& game : games)
+        {
+          if (game.hash == _hashval)
+            return game.id;
+        }
+
+        return
+          SK_GAME_ID::UNKNOWN_GAME;
+      }
+
+      using list_type =
+        std::initializer_list <constexpr_game_s>;
     };
 
-    first_check = false;
+    static constexpr
+      constexpr_game_s::list_type
+        _games =
+        {
+          { L"Tyranny.exe",                            SK_GAME_ID::Tyranny                      },
+          { L"TidesOfNumenera.exe",                    SK_GAME_ID::TidesOfNumenera              },
+          { L"MassEffectAndromeda.exe",                SK_GAME_ID::MassEffect_Andromeda         },
+          { L"MadMax.exe",                             SK_GAME_ID::MadMax                       },
+          { L"Dreamfall Chapters.exe",                 SK_GAME_ID::Dreamfall_Chapters           },
+          { L"TheWitness.exe",                         SK_GAME_ID::TheWitness                   },
+          { L"Obduction-Win64-Shipping.exe",           SK_GAME_ID::Obduction                    },
+          { L"witcher3.exe",                           SK_GAME_ID::TheWitcher3                  },
+          { L"re7.exe",                                SK_GAME_ID::ResidentEvil7                },
+          { L"DDDA.exe",                               SK_GAME_ID::DragonsDogma                 },
+          { L"eqgame.exe",                             SK_GAME_ID::EverQuest                    },
+          { L"GE2RB.exe",                              SK_GAME_ID::GodEater2RageBurst           },
+          { L"ge3.exe",                                SK_GAME_ID::GodEater3                    },
+          { L"WatchDogs2.exe",                         SK_GAME_ID::WatchDogs2                   },
+          { L"NieRAutomata.exe",                       SK_GAME_ID::NieRAutomata                 },
+          { L"Warframe.x64.exe",                       SK_GAME_ID::Warframe_x64                 },
+          { L"LEGOLCUR_DX11.exe",                      SK_GAME_ID::LEGOCityUndercover           },
+          { L"Sacred.exe",                             SK_GAME_ID::Sacred                       },
+          { L"sacred2.exe",                            SK_GAME_ID::Sacred2                      },
+          { L"FF9.exe",                                SK_GAME_ID::FinalFantasy9                },
+          { L"FinchGame.exe",                          SK_GAME_ID::EdithFinch                   },
+          { L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             },
+          { L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             },
+          { L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             },
+          { L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            },
+          { L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          },
+          { L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     },
+          { L"TOS.exe",                                SK_GAME_ID::Tales_of_Symphonia           },
+          { L"Tales of Zestiria.exe",                  SK_GAME_ID::Tales_of_Zestiria            },
+          { L"TOV_DE.exe",                             SK_GAME_ID::Tales_of_Vesperia            },
+          { L"Tales of Arise.exe",                     SK_GAME_ID::Tales_of_Arise               },
+          { L"Life is Strange - Before the Storm.exe", SK_GAME_ID::LifeIsStrange_BeforeTheStorm },
+          { L"EoCApp.exe",                             SK_GAME_ID::DivinityOriginalSin          },
+          { L"Hob.exe",                                SK_GAME_ID::Hob                          },
+          { L"DukeForever.exe",                        SK_GAME_ID::DukeNukemForever             },
+          { L"BLUE_REFLECTION.exe",                    SK_GAME_ID::BlueReflection               },
+          { L"Zero Escape.exe",                        SK_GAME_ID::ZeroEscape                   },
+          { L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    },
+          { L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          },
+          { L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   },
+          { L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
+          { L"okami.exe",                              SK_GAME_ID::Okami                        },
+          { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },
+          { L"mafia3.exe",                             SK_GAME_ID::Mafia3                       },
+          { L"Owlboy.exe",                             SK_GAME_ID::Owlboy                       },
+          { L"DarkSoulsIII.exe",                       SK_GAME_ID::DarkSouls3                   },
+          { L"Fallout4.exe",                           SK_GAME_ID::Fallout4                     },
+          { L"dis1_st.exe",                            SK_GAME_ID::DisgaeaPC                    },
+          { L"Secret_of_Mana.exe",                     SK_GAME_ID::SecretOfMana                 },
+          { L"DBFighterZ.exe",                         SK_GAME_ID::DragonBallFighterZ           },
+          { L"Nino2.exe",                              SK_GAME_ID::NiNoKuni2                    },
+          { L"FarCry5.exe",                            SK_GAME_ID::FarCry5                      },
+          { L"Chrono Trigger.exe",                     SK_GAME_ID::ChronoTrigger                },
+          { L"ys8.exe",                                SK_GAME_ID::Ys_Eight                     },
+          { L"PillarsOfEternityII.exe",                SK_GAME_ID::PillarsOfEternity2           },
+          { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
+          { L"YakuzaKiwami.exe",                       SK_GAME_ID::YakuzaKiwami                 },
+          { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
+          { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
+          { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
+          { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
+          { L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      }, // Bad idea
+          { L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                },
+          { L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+          { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
+          { L"JustCause3.exe",                         SK_GAME_ID::JustCause3                   },
+          { L"ed8.exe",                                SK_GAME_ID::TrailsOfColdSteel            },
+          { L"sekiro.exe",                             SK_GAME_ID::Sekiro                       },
+          { L"Octopath_Traveler-Win64-Shipping.exe",   SK_GAME_ID::OctopathTraveler             },
+          { L"SonicMania.exe",                         SK_GAME_ID::SonicMania                   },
+          { L"P4G.exe",                                SK_GAME_ID::Persona4                     },
+          { L"HorizonZeroDawn.exe",                    SK_GAME_ID::HorizonZeroDawn              },
+          { L"bg3.exe",                                SK_GAME_ID::BaldursGate3                 },
+          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
+          { L"Atelier_Ryza_2.exe",                     SK_GAME_ID::AtelierRyza2                 },
+          { L"nioh2.exe",                              SK_GAME_ID::Nioh2                        },
+          { L"HuniePop 2 - Double Date.exe",           SK_GAME_ID::HuniePop2                    },
+          { L"NieR Replicant ver.1.22474487139.exe",   SK_GAME_ID::NieR_Sqrt_1_5                },
+          { L"re8.exe",                                SK_GAME_ID::ResidentEvil8                },
+          { L"Legend of Mana.exe",                     SK_GAME_ID::LegendOfMana                 },
+          { L"FarCry6.exe",                            SK_GAME_ID::FarCry6                      },
+          { L"Ryujinx.exe",                            SK_GAME_ID::Ryujinx                      },
+          { L"yuzu.exe",                               SK_GAME_ID::yuzu                         },
+          { L"ForzaHorizon5.exe",                      SK_GAME_ID::ForzaHorizon5                },
+          { L"HaloInfinite.exe",                       SK_GAME_ID::HaloInfinite                 },
+          { L"start_protected_game.exe",               SK_GAME_ID::EasyAntiCheat                },
+          { L"eldenring.exe",                          SK_GAME_ID::EldenRing                    },
+          { L"wonderlands.exe",                        SK_GAME_ID::TinyTinasWonderlands         },
+          { L"ELEX2.exe",                              SK_GAME_ID::Elex2                        },
+          { L"CHRONOCROSS.exe",                        SK_GAME_ID::ChronoCross                  },
+          { L"CHRONOCROSS_LAUNCHER.exe",               SK_GAME_ID::Launcher                     },
+          { L"DivaMegaMix.exe",                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
+          { L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
+          { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
+          { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                }
+        };
+
+    first_check  = false;
+    current_game =
+      constexpr_game_s::get (
+               _games, hash_lower (SK_GetHostApp ())
+                            );
 
     // For games that can't be matched using a single executable filename
-    if (! _games.contains (hash_lower (SK_GetHostApp ())))
+    if (current_game == SK_GAME_ID::UNKNOWN_GAME)
     {
 #ifdef _M_AMD64
       auto app_id =
@@ -271,9 +307,6 @@ SK_GetCurrentGameID (void)
 
     else
     {
-      current_game =
-        _games [hash_lower (SK_GetHostApp ())];
-
       if (current_game == SK_GAME_ID::EasyAntiCheat)
       {
         std::error_code                               ec;
@@ -2297,6 +2330,12 @@ auto DeclKeybind =
       } break;
 
 #ifdef _M_AMD64
+      case SK_GAME_ID::GenshinImpact:
+      {
+        // Game requires sRGB Passthrough for proper SDR color
+        config.render.dxgi.srgb_behavior = -1;
+      } break;
+
       case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
       {
         config.render.dxgi.ignore_thread_flags   =  true;

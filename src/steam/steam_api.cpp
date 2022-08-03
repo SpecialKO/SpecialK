@@ -682,6 +682,7 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
     }
   }
 
+#if 0
   if (SK_GetProcAddress (SK_GetModuleHandle (wszSteamLib), "SteamUser"))
   {
     SK_CreateDLLHook2 (     wszSteamLib,
@@ -697,6 +698,7 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
                                SteamUtils_Detour,
       static_cast_p2p <void> (&SteamUtils_Original) );
   }
+#endif
 
   if ( SK_GetProcAddress (
          SK_Modules->LoadLibraryLL (wszSteamLib),
@@ -4051,130 +4053,146 @@ SK_RecursiveFileSearchEx (
 int
 SK_HookSteamAPI (void)
 {
-  int hooks = 0;
-
-  const wchar_t* wszSteamAPI =
-    SK_Steam_GetDLLPath ();
-
-  SK_RunOnce ( SK::SteamAPI::steam_size =
-               SK_File_GetSize (wszSteamAPI) );
+  static int hooks = 0;
 
   if (config.platform.silent)
     return hooks;
+
+  static const wchar_t* wszSteamAPI =
+    SK_Steam_GetDLLPath ();
 
   if (! SK_GetModuleHandle (wszSteamAPI))
     return hooks;
 
   if (! InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
-    steam_log->Log ( L"%s was loaded, hooking...",
-                     SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
-    );
-
-    // New part of SteamAPI, don't try to hook unless the DLL exports it
-    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_ManualDispatch_Init",
-                          SteamAPI_ManualDispatch_Init_Detour,
-                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
-                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
-    }
+      SK_RunOnce ( SK::SteamAPI::steam_size =
+                    SK_File_GetSize (wszSteamAPI) );
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_InitSafe",
-                        SteamAPI_InitSafe_Detour,
-                        static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
-                        static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
+      steam_log->Log ( L"%s was loaded, hooking...",
+                       SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
+      );
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_Init",
-                        SteamAPI_Init_Detour,
-                        static_cast_p2p <void> (&SteamAPI_Init_Original),
-                        static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_RegisterCallback",
-                        SteamAPI_RegisterCallback_Detour,
-                        static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
-                        static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_UnregisterCallback",
-                        SteamAPI_UnregisterCallback_Detour,
-                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
-                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
-
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_RunCallbacks",
-                        SteamAPI_RunCallbacks_Detour,
-                        static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
-                        static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
-
-
-    // Older DLLs will not have this, and we should avoid printing an error in the log
-    if (SK_GetProcAddress (wszSteamAPI,
-                             "SteamAPI_ISteamController_GetDigitalActionData") != nullptr)
-    {
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_ISteamController_GetDigitalActionData",
-                          SteamAPI_ISteamController_GetDigitalActionData_Detour,
-                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
-                                                                                           ++hooks;
+      // New part of SteamAPI, don't try to hook unless the DLL exports it
+      if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
+      {
+        SK_CreateDLLHook2 ( wszSteamAPI,
+                           "SteamAPI_ManualDispatch_Init",
+                            SteamAPI_ManualDispatch_Init_Detour,
+                            static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
+                            static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
+      }
 
       SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_ISteamController_GetAnalogActionData",
-                          SteamAPI_ISteamController_GetAnalogActionData_Detour,
-                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
-                                                                                           ++hooks;
-    }
+                         "SteamAPI_InitSafe",
+                          SteamAPI_InitSafe_Detour,
+                          static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+                          static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
 
-    //
-    // Do not queue these up (by calling CreateDLLHook2),
-    //   they will be installed only upon the game successfully
-    //     calling one of the SteamAPI initialization functions.
-    //
-    SK_CreateDLLHook  ( wszSteamAPI,
-                       "SteamAPI_Shutdown",
-                        SteamAPI_Shutdown_Detour,
-                        static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
-                        static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_Init",
+                          SteamAPI_Init_Detour,
+                          static_cast_p2p <void> (&SteamAPI_Init_Original),
+                          static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
 
-    std::unordered_set <std::wstring>      matches;
-    std::unordered_set <std::wstring_view> pattern = {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_RegisterCallback",
+                          SteamAPI_RegisterCallback_Detour,
+                          static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
+                          static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
+
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_UnregisterCallback",
+                          SteamAPI_UnregisterCallback_Detour,
+                          static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
+                          static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
+
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_RunCallbacks",
+                          SteamAPI_RunCallbacks_Detour,
+                          static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
+                          static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
+
+
+      // Older DLLs will not have this, and we should avoid printing an error in the log
+      if (SK_GetProcAddress (wszSteamAPI,
+                               "SteamAPI_ISteamController_GetDigitalActionData") != nullptr)
+      {
+        SK_CreateDLLHook2 ( wszSteamAPI,
+                           "SteamAPI_ISteamController_GetDigitalActionData",
+                            SteamAPI_ISteamController_GetDigitalActionData_Detour,
+                            static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
+                                                                                             ++hooks;
+
+        SK_CreateDLLHook2 ( wszSteamAPI,
+                           "SteamAPI_ISteamController_GetAnalogActionData",
+                            SteamAPI_ISteamController_GetAnalogActionData_Detour,
+                            static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
+                                                                                             ++hooks;
+      }
+
+      //
+      // Do not queue these up (by calling CreateDLLHook2),
+      //   they will be installed only upon the game successfully
+      //     calling one of the SteamAPI initialization functions.
+      //
+      SK_CreateDLLHook  ( wszSteamAPI,
+                         "SteamAPI_Shutdown",
+                          SteamAPI_Shutdown_Detour,
+                          static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
+                          static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
+
+      std::unordered_set <std::wstring>      matches;
+      std::unordered_set <std::wstring_view> pattern = {
 #ifdef _M_AMD64
-      L"steam_api64",
+        L"steam_api64",
 #else /* _M_IX86 */
-      L"steam_api",
+        L"steam_api",
 #endif
-      L"csteamworks",
-      L"steamwrapper",
-      L"steamnative"
-    };
+        L"csteamworks",
+        L"steamwrapper",
+        L"steamnative"
+      };
 
-    if ( config.steam.force_load_steamapi ||
-         config.steam.init_delay      > 0 ||
-           (! ( matches =
-                  SK_RecursiveFileSearchEx (
-                    SK_GetHostPath (), L".dll", pattern,
-                       { {wszSteamAPI,           false},
-                         {config.steam.dll_path, false} }
-                  )
-              ).empty ()
-           )
-        )
-    {
-      SK_Thread_Create (SteamAPI_Delay_Init);
-    }
+      if (hooks > 0)
+        SK_ApplyQueuedHooks ();
 
-    if (hooks > 0)
-      SK_ApplyQueuedHooks ();
+      InterlockedIncrementRelease (&__SteamAPI_hook);
 
-    InterlockedIncrementRelease (&__SteamAPI_hook);
+      if ( config.steam.force_load_steamapi ||
+           config.steam.init_delay      > 0 ||
+             (! ( matches =
+                    SK_RecursiveFileSearchEx (
+                      SK_GetHostPath (), L".dll", pattern,
+                         { {wszSteamAPI,           false},
+                           {config.steam.dll_path, false} }
+                    )
+                ).empty ()
+             )
+          )
+      {
+#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
+        SK_Thread_Create    (SteamAPI_Delay_Init);
+        SK_Thread_CloseSelf ();
+        return 0;
+#else
+        return
+          SteamAPI_Delay_Init (nullptr);
+#endif
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] SteamAPI Hook Context");
   }
 
+#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
   else
     SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
+#endif
 
   return hooks;
 }
