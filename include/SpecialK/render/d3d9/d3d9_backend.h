@@ -825,4 +825,25 @@ SK_D3D9_GetNominalPresentInterval =
   };
 
 
+
+
+#define MAX_D3D9ON12_QUEUES 2
+
+typedef struct _D3D9ON12_ARGS
+{
+  BOOL     Enable9On12;
+  IUnknown *pD3D12Device;
+  IUnknown *ppD3D12Queues [MAX_D3D9ON12_QUEUES];
+  UINT     NumQueues;
+  UINT     NodeMask;
+} D3D9ON12_ARGS;
+
+using Direct3DCreate9On12Ex_pfn =
+  HRESULT (WINAPI *)( UINT           SDKVersion,
+                      D3D9ON12_ARGS* pOverrideList,
+                      UINT           NumOverrideEntries,
+                      IDirect3D9Ex** ppOutputInterface );
+
+extern Direct3DCreate9On12Ex_pfn Direct3DCreate9On12Ex;
+
 #endif /* __SK__D3D9_BACKEND_H__ */

@@ -1010,7 +1010,7 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
 
       // For HDR Retrofit, engine may be really stubbornly
       //   insisting this is some other format.
-      if ((pDesc->Format != texDesc.Format &&
+      if ((pDesc->Format != texDesc.Format      &&
            pDesc->Format != DXGI_FORMAT_UNKNOWN &&
            DirectX::BitsPerColor (texDesc.Format) !=
            DirectX::BitsPerColor ( pDesc->Format)) ||
@@ -1026,6 +1026,43 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
           (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
         ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
                                           texDesc.Format;
+
+      // Only backbuffers can be casted if they are already a fully-typed format
+      else if (! DirectX::IsTypeless (texDesc.Format))
+      {
+        bool _bOriginallysRGB = false;
+        UINT _size            = sizeof (bool);
+
+        pTex2D->GetPrivateData
+         (SKID_DXGI_SwapChainBackbufferIsSRGB, &_size,
+           &_bOriginallysRGB);
+        if (_bOriginallysRGB)
+        {
+          if (     config.render.dxgi.srgb_behavior  < 0)
+            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DXGI_FORMAT_UNKNOWN;
+          else if (config.render.dxgi.srgb_behavior == 0)
+            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DirectX::MakeTypelessUNORM (DirectX::MakeTypeless (pDesc->Format));
+          else
+            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DirectX::MakeTypelessUNORM (DirectX::MakeTypeless (pDesc->Format));
+        }
+
+        ret =
+          bWrapped ?
+            pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
+                     :
+            D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
+                                                       pDesc, ppRTView );
+
+        // Failed, so it's probably not a SwapChain backbuffer :)
+        if (FAILED (ret))
+        {
+          ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                            texDesc.Format;
+        }
+
+        else
+          return ret;
+      }
     }
   }
 #endif
@@ -1857,66 +1894,66 @@ SK_D3D11_ResolveSubresource_Impl (
 
   std::ignore = bMustNotIgnore;
 
-  extern bool
-      __SK_HDR_16BitSwap;
-  if (__SK_HDR_16BitSwap)
+  SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
+                                pDstTex (pDstResource);
+  if ( pSrcTex.p != nullptr &&
+       pDstTex.p != nullptr )
   {
-    SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
-                                  pDstTex (pDstResource);
-    if ( pSrcTex.p != nullptr &&
-         pDstTex.p != nullptr )
+    D3D11_TEXTURE2D_DESC dstDesc = { };
+    D3D11_TEXTURE2D_DESC texDesc = { };
+
+    pSrcTex->GetDesc   (&texDesc);
+    pDstTex->GetDesc   (&dstDesc);
+
+    SK_ComPtr <ID3D11Device>  pDev;
+    pSrcResource->GetDevice (&pDev.p);
+
+    if (pDev.p != nullptr)
     {
-      D3D11_TEXTURE2D_DESC dstDesc = { };
-      D3D11_TEXTURE2D_DESC texDesc = { };
+      SK_ComPtr <ID3D11Texture2D> pTempTex;
 
-      pSrcTex->GetDesc   (&texDesc);
-      pDstTex->GetDesc   (&dstDesc);
-
-      const bool
-        bInvolves16BitFormat =
-          (         Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-            texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-            dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||  (config.render.hdr.enable_32bpc &&
-                    Format == DXGI_FORMAT_R32G32B32A32_FLOAT)||  (config.render.hdr.enable_32bpc &&
-            texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT)||  (config.render.hdr.enable_32bpc &&
-            dstDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT) );
-
-      if (bInvolves16BitFormat)
+#if 0
+      // Attempt to handle size mismatch
+      if ( ( texDesc.Width  != dstDesc.Width ||
+             texDesc.Height != dstDesc.Height ) &&
+             texDesc.Format == dstDesc.Format )
       {
-        // NOTE: This is failing on 8-bit surface remastering in
-        //         Unity Engine games
-        if ( texDesc.Format != dstDesc.Format &&
-           ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT   ||
-             dstDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ) ||
-           ((texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ||
-           ((dstDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc))))
+        D3D11_TEXTURE2D_DESC copyDesc =
+          (texDesc.Width + texDesc.Height) <
+          (dstDesc.Width + dstDesc.Height) ? texDesc
+                                           : dstDesc;
+
+        copyDesc.SampleDesc =
+         texDesc.SampleDesc;
+
+        if (SUCCEEDED (pDev->CreateTexture2D (&copyDesc, nullptr, &pTempTex.p)))
         {
-          extern bool SK_D3D11_BltCopySurface (
-            ID3D11Texture2D* pSrcTex,
-            ID3D11Texture2D* pDstTex );
-
-          texDesc.SampleDesc.Count = 1;
-
-          SK_ComPtr <ID3D11Device>  pDev;
-          pSrcResource->GetDevice (&pDev.p);
-
-          if (pDev.p != nullptr)
-          {
-            SK_ComPtr <ID3D11Texture2D> pTempTex;
-
-            if (SUCCEEDED (pDev->CreateTexture2D (&texDesc, nullptr, &pTempTex.p)))
-            {
-              _Finish                 ( pTempTex, pSrcResource, texDesc.Format );
-              SK_D3D11_BltCopySurface ( pTempTex, pDstTex );
-
-              return;
-            }
-          }
-
-          SK_LOGi0 (L"ResolveSubresource Failed on incompatible surfaces");
+          SK_D3D11_BltCopySurface ( pSrcTex, pTempTex );
+          _Finish                 ( pDstTex, pTempTex, Format );
 
           return;
         }
+      }
+#endif
+
+      if (DirectX::MakeTypeless (dstDesc.Format) != DirectX::MakeTypeless (Format) ||
+          DirectX::MakeTypeless (dstDesc.Format) != DirectX::MakeTypeless (texDesc.Format))
+      {
+        SK_ScopedBool decl_tex_scope (
+          SK_D3D11_DeclareTexInjectScope ()
+        );
+
+                                               dstDesc.Format = Format;
+        if (SUCCEEDED (pDev->CreateTexture2D (&dstDesc, nullptr, &pTempTex.p)))
+        {
+          _Finish                 ( pTempTex, pSrcTex, Format );
+      if (SK_D3D11_BltCopySurface ( pTempTex, pDstTex ))
+          return;
+        }
+        
+        SK_LOGi0 (L"ResolveSubresource Failed on incompatible surfaces");
+
+        return;
       }
     }
   }
@@ -5033,9 +5070,15 @@ D3D11Dev_CreateTexture2D_Impl (
   }
 #endif
 
+  if (pTLS == nullptr)
+      pTLS = SK_TLS_Bottom ();
+
+  bool bIgnoreThisUpload =
+    SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
 
   //--- HDR Format Wars (or at least format re-training) ---
-  if ( pDesc                 != nullptr             &&
+  if (                   bIgnoreThisUpload == false &&
+       pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&
        pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
                    ( pInitialData          == nullptr ||
@@ -5165,9 +5208,6 @@ D3D11Dev_CreateTexture2D_Impl (
   }
   //---
 
-  if (pTLS == nullptr) pTLS = SK_TLS_Bottom ();
-  bool  bIgnoreThisUpload = SK_D3D11_IsTexInjectThread (pTLS) ||
-                                                        pTLS->imgui->drawing;
   if (! bIgnoreThisUpload) bIgnoreThisUpload = (! (SK_D3D11_cache_textures ||
                                                    SK_D3D11_dump_textures  ||
                                                    SK_D3D11_inject_textures));
@@ -5196,6 +5236,7 @@ D3D11Dev_CreateTexture2D_Impl (
       D3D11Dev_CreateTexture2D_Original (This, pDesc,
                                          pInitialData, ppTexture2D);
   }
+  //// -----------
 
   SK_D3D11_Resampler_ProcessFinished (This, pDevCtx, pTLS);
 

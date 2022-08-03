@@ -1,4 +1,14 @@
-﻿22.8.2.1-D3D9-IK
+﻿22.8.3-D3D9-IK
+==============
+ + Fixed The Witness for SDR users with MSAA enabled
+ + Fixed MSAA in many Unity engine games when flip model is enabled
+ + Re-introduced sRGB warning because Genshin Impact is broken and does not handle
+     input/output colorspace correctly
+
+    >> Other Unity engine games will start banding in sRGB mode as a result of this,
+         so set them to 'Strip' and leave Genshin Impact on 'Passthrough'
+
+22.8.2.1-D3D9-IK
 ================
  + Fixed D3D11On12 overlay compatibility (e.g. Steam/EGS/RTSS)
 

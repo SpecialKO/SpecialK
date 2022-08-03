@@ -1597,17 +1597,17 @@ public:
   {
     TraceAPI
 
-#ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+//#ifndef SK_D3D11_LAZY_WRAP
+//  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_ResolveSubresource_Impl ( pReal,
                       pDstResource, DstSubresource,
                       pSrcResource, SrcSubresource,
                             Format, TRUE
         );
-    else
-#endif
-    pReal->ResolveSubresource ( pDstResource, DstSubresource,
-                                pSrcResource, SrcSubresource, Format );
+//    else
+//#endif
+//    pReal->ResolveSubresource ( pDstResource, DstSubresource,
+//                                pSrcResource, SrcSubresource, Format );
   }
 
   void STDMETHODCALLTYPE ExecuteCommandList (

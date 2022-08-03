@@ -1747,8 +1747,8 @@ D3D11_ResolveSubresource_Override (
   _In_ UINT                 SrcSubresource,
   _In_ DXGI_FORMAT          Format )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
-  {
+//if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+//{
     return
       SK_D3D11_ResolveSubresource_Impl ( This,
         pDstResource, DstSubresource,
@@ -1756,13 +1756,13 @@ D3D11_ResolveSubresource_Override (
         Format,
           FALSE
       );
-  }
-
-  D3D11_ResolveSubresource_Original (
-    This, pDstResource, DstSubresource,
-          pSrcResource, SrcSubresource,
-          Format
-  );
+//}
+//
+//D3D11_ResolveSubresource_Original (
+//  This, pDstResource, DstSubresource,
+//        pSrcResource, SrcSubresource,
+//        Format
+//);
 }
 
 __declspec (noinline)

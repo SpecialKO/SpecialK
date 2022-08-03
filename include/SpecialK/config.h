@@ -492,6 +492,7 @@ struct sk_config_t
       bool    force_d3d9ex         = false;
       bool    force_impure         = false;
       bool    enable_flipex        = false;
+      bool    use_d3d9on12         = false;
     } d3d9;
     struct dxgi_s {
       int     adapter_override     = -1;
@@ -635,8 +636,8 @@ struct sk_config_t
       bool    vibrate_on_miss      = false;
     } cache;
 
-    bool highlight_debug_tex       = false;
-    bool on_demand_dump            = true;
+    bool highlight_debug_tex       =  true;
+    bool on_demand_dump            = false;
     bool d3d9_mod                  = false; // Causing compat issues in some D3D9Ex games ATM
     bool dump_on_load              = false;
     bool clamp_lod_bias            = false;

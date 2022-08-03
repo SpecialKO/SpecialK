@@ -71,6 +71,9 @@ Direct3DCreate9_Import   = nullptr;
 Direct3DCreate9Ex_pfn
 Direct3DCreate9Ex_Import = nullptr;
 
+Direct3DCreate9On12Ex_pfn
+Direct3DCreate9On12Ex    = nullptr;
+
 SK_D3D9_DeclTrampoline (D3D9,         CreateDevice)
 SK_D3D9_DeclTrampoline (D3D9Ex,       CreateDevice)
 SK_D3D9_DeclTrampoline (D3D9Ex,       CreateDeviceEx)
@@ -3063,7 +3066,10 @@ D3D9CreateVolumeTexture_Override ( IDirect3DDevice9         *This,
                                    IDirect3DVolumeTexture9 **ppVolumeTexture,
                                    HANDLE                   *pSharedHandle )
 {
-  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (This);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
     SK_LOGi1 (L" >> Reassigning Managed Volume Texture to 'Default' Pool (D3D9Ex Override)");
 
@@ -3090,7 +3096,10 @@ D3D9CreateCubeTexture_Override ( IDirect3DDevice9       *This,
                                  IDirect3DCubeTexture9 **ppCubeTexture,
                                  HANDLE                 *pSharedHandle )
 {
-  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (This);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
     SK_LOGi1 (L" >> Reassigning Managed Cube Texture to 'Default' Pool (D3D9Ex Override)");
 
@@ -3118,32 +3127,6 @@ D3D9CreateTexture_Override ( IDirect3DDevice9   *This,
                              IDirect3DTexture9 **ppTexture,
                              HANDLE             *pSharedHandle )
 {
-  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
-  {
-    SK_LOGi1 (L" >> Reassigning Managed 2D Texture to 'Default' Pool (D3D9Ex Override)");
-
-    Pool   =  D3DPOOL_DEFAULT;
-    Usage |= D3DUSAGE_DYNAMIC;
-  }
-
-  SK::D3D9::TextureManager& tex_mgr =
-    SK_D3D9_GetTextureManager ();
-
-  if (config.textures.d3d9_mod || tex_mgr.init)
-  {
-    if ( (Usage & D3DUSAGE_RENDERTARGET) !=
-                  D3DUSAGE_RENDERTARGET )
-    {
-      if ( Format >= D3DFMT_DXT1     && Format <= D3DFMT_DXT5 &&
-           Pool   == D3DPOOL_DEFAULT && ( (Usage & D3DUSAGE_DYNAMIC) !=
-                                                   D3DUSAGE_DYNAMIC ) )
-      {
-        // So we can dump this thing
-        Usage |= D3DUSAGE_DYNAMIC;
-      }
-    }
-  }
-
   return
     D3D9Device_CreateTexture_Original ( This,
                                           Width, Height, Levels,
@@ -3216,7 +3199,10 @@ D3D9CreateVertexBuffer_Override
   _Out_ IDirect3DVertexBuffer9 **ppVertexBuffer,
   _In_  HANDLE                  *pSharedHandle )
 {
-  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (This);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
     SK_LOGi1 (L" >> Reassigning Managed Vertex Buffer to 'Default' Pool (D3D9Ex Override)");
 
@@ -3306,7 +3292,10 @@ D3D9CreateIndexBuffer_Override ( IDirect3DDevice9         *This,
                                  IDirect3DIndexBuffer9   **ppIndexBuffer,
                                  HANDLE                   *pSharedHandle )
 {
-  if (config.render.d3d9.force_d3d9ex && Pool == D3DPOOL_MANAGED)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (This);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
     SK_LOGi1 (L" >> Reassigning Managed Index Buffer to 'Default' Pool (D3D9Ex Override)");
 
@@ -4355,11 +4344,11 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
       SK_D3D9_FormatToStr (pparams->BackBufferFormat).c_str (),
       SK_D3D9_FormatToStr (D3DFMT_X8R8G8B8          ).c_str () );
 
-    //if (! config.render.d3d9.force_d3d9ex)
+    pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
+    if (! config.render.d3d9.force_d3d9ex)
     {
-      pparams->BackBufferFormat       = D3DFMT_X8R8G8B8;
-      pparams->BackBufferCount        = 1;
-      pparams->SwapEffect             = D3DSWAPEFFECT_COPY;
+      pparams->BackBufferCount      = 1;
+      pparams->SwapEffect           = D3DSWAPEFFECT_COPY;
     }
     pparams->MultiSampleType        = D3DMULTISAMPLE_NONE;
     pparams->MultiSampleQuality     = 0;
@@ -4974,8 +4963,8 @@ SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 }
 
 
-//#define WRAP_D3D9_DEVICE
-//#define WRAP_D3D9EX_DEVICE
+#define WRAP_D3D9_DEVICE
+#define WRAP_D3D9EX_DEVICE
 
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,
@@ -6152,7 +6141,7 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
     else
       SK_ImGUI_ResetD3D9 (*ppReturnedDeviceInterface);
 
-////D3D9ResetEx ((IDirect3DDevice9Ex *)*ppReturnedDeviceInterface, pPresentationParameters, nullptr);
+    D3D9ResetEx ((IDirect3DDevice9Ex *)*ppReturnedDeviceInterface, pPresentationParameters, nullptr);
 
     // XXX: Is this unique to FlipEx, or D3D9Ex in general?  (1 SwapChain per-HWND)
     if ( config.render.d3d9.force_d3d9ex /*&&
@@ -6213,7 +6202,7 @@ Direct3DCreate9 (UINT SDKVersion)
   IDirect3D9*   d3d9    = nullptr;
   IDirect3D9Ex* pD3D9Ex = nullptr;
 
-  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (SDKVersion, &pD3D9Ex)))
+  if ((! force_d3d9ex) || FAILED (Direct3DCreate9Ex (D3D_SDK_VERSION/*SDKVersion*/, &pD3D9Ex)))
   {
     if (Direct3DCreate9_Import != nullptr)
     {
@@ -6225,7 +6214,7 @@ Direct3DCreate9 (UINT SDKVersion)
                          SK_SummarizeCaller ().c_str () );
       }
 
-      d3d9 = Direct3DCreate9_Import (SDKVersion);
+      d3d9 = Direct3DCreate9_Import (D3D_SDK_VERSION/*SDKVersion*/);
     }
   }
 
@@ -6238,7 +6227,7 @@ Direct3DCreate9 (UINT SDKVersion)
 
   if (d3d9 == nullptr && Direct3DCreate9_Import != nullptr)
   {
-    d3d9 = Direct3DCreate9_Import (SDKVersion);
+    d3d9 = Direct3DCreate9_Import (D3D_SDK_VERSION/*SDKVersion*/);
   }
 
   return d3d9;
@@ -6249,6 +6238,18 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
+  if (Direct3DCreate9On12Ex != nullptr)
+  {
+    SK_LOGi0 (L" >> Using D3D9On12");
+
+    D3D9ON12_ARGS args             = {  };
+                  args.Enable9On12 = TRUE;
+    
+    return
+      Direct3DCreate9On12Ex (D3D_SDK_VERSION, &args, 1, ppD3D);
+  }
+
+
   WaitForInit_D3D9Ex  ();
 
   if (! SK_TLS_Bottom ()->render->d3d9->ctx_init_thread_ex)
@@ -6267,7 +6268,7 @@ Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 
   if (Direct3DCreate9Ex_Import)
   {
-    D3D9_CALL (hr, Direct3DCreate9Ex_Import (SDKVersion, &d3d9ex));
+    D3D9_CALL (hr, Direct3DCreate9Ex_Import (D3D_SDK_VERSION/*SDKVersion*/, &d3d9ex));
 
     if (SUCCEEDED (hr) && d3d9ex != nullptr)
     {
@@ -6504,11 +6505,34 @@ HookD3D9 (LPVOID user)
         pTLS->render->d3d9->ctx_init_thread    = FALSE;
         pTLS->render->d3d9->ctx_init_thread_ex = TRUE;
 
-        hr = (config.apis.d3d9ex.hook &&
-          Direct3DCreate9Ex_Import != nullptr) ?
-          Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
-                           :
-                      E_NOINTERFACE;
+
+        if (config.render.d3d9.use_d3d9on12)
+        {
+          std::filesystem::path system_d3d9 =
+            std::filesystem::path (SK_GetSystemDirectory ()) / L"d3d9.dll";
+
+          Direct3DCreate9On12Ex = (Direct3DCreate9On12Ex_pfn)
+            SK_GetProcAddress (system_d3d9.c_str (), "Direct3DCreate9On12Ex");
+        }
+
+
+        if (Direct3DCreate9On12Ex != nullptr)
+        {
+          D3D9ON12_ARGS args             = {  };
+                        args.Enable9On12 = TRUE;
+
+          hr =
+            Direct3DCreate9On12Ex (D3D_SDK_VERSION, &args, 1, &pD3D9Ex.p);
+        }
+
+        else
+        {
+          hr = (config.apis.d3d9ex.hook &&
+            Direct3DCreate9Ex_Import != nullptr) ?
+            Direct3DCreate9Ex_Import (D3D_SDK_VERSION, &pD3D9Ex.p)
+                             :
+                        E_NOINTERFACE;
+        }
 
         hwnd = nullptr;
 
@@ -6546,11 +6570,11 @@ HookD3D9 (LPVOID user)
           {
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
-              //D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
-              //                 "IDirect3D9Ex::CreateDevice",
-              //                  D3D9ExCreateDevice_Override,
-              //                  D3D9Ex_CreateDevice_Original,
-              //                  D3D9Ex_CreateDevice_pfn );
+              D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
+                               "IDirect3D9Ex::CreateDevice",
+                                D3D9ExCreateDevice_Override,
+                                D3D9Ex_CreateDevice_Original,
+                                D3D9Ex_CreateDevice_pfn );
 
               D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",
@@ -8715,10 +8739,34 @@ SK_D3D9_UsageToStr (DWORD dwUsage)
     usage += "Depth/Stencil ";
 
   if (dwUsage & D3DUSAGE_DYNAMIC)
-    usage += "Dynamic";
+    usage += "Dynamic ";
+
+  if (dwUsage & D3DUSAGE_AUTOGENMIPMAP)
+    usage += "Auto-Gen Mipmaps ";
+
+  if (dwUsage & D3DUSAGE_DMAP)
+    usage += "Displacement Map ";
+
+  if (dwUsage & D3DUSAGE_WRITEONLY)
+    usage += "Write-Only ";
+
+  if (dwUsage & D3DUSAGE_SOFTWAREPROCESSING)
+    usage += "Software Processing ";
+
+  if (dwUsage & D3DUSAGE_DONOTCLIP)
+    usage += "Do Not Clip ";
+
+  if (dwUsage & D3DUSAGE_POINTS)
+    usage += "Points ";
+
+  if (dwUsage & D3DUSAGE_RTPATCHES)
+    usage += "RT Patches ";
+
+  if (dwUsage & D3DUSAGE_NPATCHES)
+    usage += "N Patches ";
 
   if (usage.empty ())
-    usage = "Don't Care";
+    usage = "None ";
 
   return usage;
 }
@@ -9153,7 +9201,7 @@ SK_D3D9_FormatToStr (D3DFORMAT Format, bool include_ordinal)
 /* -- D3D9Ex only */
   }
 
-  return std::string ("UNKNOWN?!");
+  return SK_FormatString ("UNKNOWN?! (%d)", Format);
 }
 
 const char*

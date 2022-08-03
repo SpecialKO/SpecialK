@@ -512,6 +512,52 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
                            IDirect3DTexture9 **ppTexture,
                            HANDLE             *pSharedHandle)
 {
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (This);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
+  {
+    SK_LOGi1 (L" >> Reassigning Managed 2D Texture to 'Default' Pool (D3D9Ex Override)");
+
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
+  }
+
+  if (config.system.log_level > 1)
+  {
+    char  szSymbol [1024] = { };
+    ULONG ulLen  =  1024;
+
+    ulLen =
+      SK_GetSymbolNameFromModuleAddr ( SK_GetCallingDLL (),
+                              (uintptr_t)_ReturnAddress (),
+                                           szSymbol,
+                                             ulLen );
+
+    SK_LOGi0 ( L"CreateTexture (Usage=%hs, Format=%hs, Pool=%hs) [%hs]",
+               SK_D3D9_UsageToStr  (Usage).c_str  (),
+               SK_D3D9_FormatToStr (Format).c_str (),
+               SK_D3D9_PoolToStr   (Pool), szSymbol );
+  }
+
+  SK::D3D9::TextureManager& tex_mgr =
+    SK_D3D9_GetTextureManager ();
+
+  if (config.textures.d3d9_mod || tex_mgr.init)
+  {
+    if ( (Usage & D3DUSAGE_RENDERTARGET) !=
+                  D3DUSAGE_RENDERTARGET )
+    {
+      if ( Format >= D3DFMT_DXT1     && Format <= D3DFMT_DXT5 &&
+           Pool   == D3DPOOL_DEFAULT && ( (Usage & D3DUSAGE_DYNAMIC) !=
+                                                   D3DUSAGE_DYNAMIC ) )
+      {
+        // So we can dump this thing
+        Usage |= D3DUSAGE_DYNAMIC;
+      }
+    }
+  }
+
 #if 0
   if (Usage == D3DUSAGE_RENDERTARGET)
   dll_log->Log (L" [!] IDirect3DDevice9::CreateTexture (%lu, %lu, %lu, %lu, "
@@ -543,9 +589,6 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
                                        ppTexture,
                                          pSharedHandle );
 
-  SK::D3D9::TextureManager& tex_mgr =
-    SK_D3D9_GetTextureManager ();
-
   if (SUCCEEDED (result) && (! tex_mgr.injector.isInjectionThread ()) && ppTexture != nullptr)
   {
     //if (config.textures.log) {
@@ -557,14 +600,13 @@ D3D9CreateTexture_Detour (IDirect3DDevice9    *This,
     //                     SK_D3D9_PoolToStr   (Pool) );
     //}
 
-    if ( ( Usage & D3DUSAGE_RENDERTARGET ) == D3DUSAGE_RENDERTARGET   ||
-         ( Usage & D3DUSAGE_DEPTHSTENCIL ) == D3DUSAGE_DEPTHSTENCIL /*||
-         ( Usage & D3DUSAGE_DYNAMIC      ) */ )
+    if ( ( Usage & D3DUSAGE_RENDERTARGET ) == D3DUSAGE_RENDERTARGET ||
+         ( Usage & D3DUSAGE_DEPTHSTENCIL ) == D3DUSAGE_DEPTHSTENCIL )
     {
       tex_mgr.trackRenderTarget (*ppTexture);
     }
 
-    else //Format != 0)//Pool != D3DPOOL_MANAGED)
+    else
     {
       ISKTextureD3D9* dontcare;
       if (FAILED ((*ppTexture)->QueryInterface (IID_SKTextureD3D9, (void **)&dontcare)))
@@ -1619,17 +1661,17 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   _Out_   LPDIRECT3DTEXTURE9 *ppTexture
 )
 {
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (pDevice);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
+  {
+    Pool  =  D3DPOOL_DEFAULT;
+    Usage = D3DUSAGE_DYNAMIC;
+  }
+
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
-
-  if (config.render.d3d9.force_d3d9ex)
-  {
-    if (Pool == D3DPOOL_MANAGED)
-    {
-      Pool   = D3DPOOL_DEFAULT;
-      Usage |= D3DUSAGE_DYNAMIC;
-    }
-  }
 
   // Injection would recurse slightly and cause impossible to diagnose reference counting problems
   //   with texture caching if we did not check for this!
@@ -1694,8 +1736,13 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
     Usage = D3DUSAGE_DYNAMIC;
 
 
+  bool bLoading =
+    tex_mgr.injector.beginLoad ();
+
   D3DXIMAGE_INFO info = { };
   SK_D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info);
+
+  tex_mgr.injector.endLoad     (bLoading);
 
 #if 0
   D3DFORMAT fmt_real = info.Format;
@@ -1803,6 +1850,9 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
   bool will_replace = (load_op != nullptr || resample);
 
+  bLoading =
+    tex_mgr.injector.beginLoad ();
+
   hr =
     SK_D3DXCreateTextureFromFileInMemoryEx ( pDevice,
                                                pSrcData,         SrcDataSize,
@@ -1811,6 +1861,8 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
                                                      Filter,     MipFilter, ColorKey,
                                                        pSrcInfo, pPalette,
                                                          ppTexture );
+
+  tex_mgr.injector.endLoad (bLoading);
 
 
   if (SUCCEEDED (hr))
@@ -1994,14 +2046,14 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
   {
     D3DXIMAGE_INFO info_ = { };
 
-    bool bLoading =
+    bLoading =
       tex_mgr.injector.beginLoad ();
 
     SK_D3DXGetImageInfoFromFileInMemory (pSrcData, SrcDataSize, &info_);
 
     tex_mgr.dumpTexture (info_.Format, checksum, *ppTexture);
 
-    tex_mgr.injector.endLoad   (bLoading);
+    tex_mgr.injector.endLoad     (bLoading);
   }
 
   return hr;
@@ -2027,12 +2079,13 @@ D3DXCreateTextureFromFileExA_Detour (
   _Out_   LPDIRECT3DTEXTURE9 *ppTexture
 )
 {
-  if (config.render.d3d9.force_d3d9ex)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (pDevice);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
-    if (Pool ==  D3DPOOL_MANAGED)
-    {   Pool  =  D3DPOOL_DEFAULT;
-       Usage |= D3DUSAGE_DYNAMIC;
-    }
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
   }
 
   return
@@ -2068,13 +2121,13 @@ D3DXCreateTextureFromFileExW_Detour (
   _Out_   LPDIRECT3DTEXTURE9 *ppTexture
 )
 {
-  if (config.render.d3d9.force_d3d9ex)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (pDevice);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
-    if (Pool == D3DPOOL_MANAGED)
-    {
-      Pool   = D3DPOOL_DEFAULT;
-      Usage |= D3DUSAGE_DYNAMIC;
-    }
+    Pool   =  D3DPOOL_DEFAULT;
+    Usage |= D3DUSAGE_DYNAMIC;
   }
 
   return
@@ -2112,13 +2165,13 @@ D3DXCreateVolumeTextureFromFileInMemoryEx_Detour (
   _Out_   LPDIRECT3DVOLUMETEXTURE9 *ppVolumeTexture
 )
 {
-  if (config.render.d3d9.force_d3d9ex)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (pDevice);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
-    if (Pool == D3DPOOL_MANAGED)
-    {
-      Pool   =  D3DPOOL_DEFAULT;
-      Usage |= D3DUSAGE_DYNAMIC;
-    }
+    Pool  =  D3DPOOL_DEFAULT;
+    Usage = D3DUSAGE_DYNAMIC;
   }
 
   return
@@ -2151,13 +2204,13 @@ D3DXCreateCubeTextureFromFileInMemoryEx_Detour (
   _Out_   LPDIRECT3DCUBETEXTURE9 *ppCubeTexture
 )
 {
-  if (config.render.d3d9.force_d3d9ex)
+  SK_ComQIPtr <IDirect3DDevice9Ex>
+       pDev9Ex (pDevice);
+  if ( pDev9Ex.p != nullptr &&
+            Pool == D3DPOOL_MANAGED )
   {
-    if (Pool == D3DPOOL_MANAGED)
-    {
-      Pool   =  D3DPOOL_DEFAULT;
-      Usage |= D3DUSAGE_DYNAMIC;
-    }
+    Pool  =  D3DPOOL_DEFAULT;
+    Usage = D3DUSAGE_DYNAMIC;
   }
 
   return

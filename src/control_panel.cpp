@@ -1688,6 +1688,9 @@ DisplayModeMenu (bool windowed)
       {
         config.render.dxgi.srgb_behavior = srgb_mode - 1;
 
+        if (srgb_mode > 0)
+          SK_RunOnce (SK_ImGui_Warning (L"Game Restart Required for Strip / Apply to Fully Take Effect"));
+
         SK_SaveConfig ();
       }
     }

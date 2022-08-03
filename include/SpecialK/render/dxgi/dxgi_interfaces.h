@@ -35,6 +35,8 @@
 interface IDXGISwapChain;
 interface IDXGISwapChain1;
 
+static const GUID SKID_DXGI_SwapChainBackbufferIsSRGB =
+{ 0x8ea4b32a, 0x4150, 0xc421, { 0xea, 0xd, 0x88, 0xd3, 0xe9, 0x89, 0xa2, 0xf2 } };
 
 typedef HRESULT (STDMETHODCALLTYPE *PresentSwapChain_pfn)(
                                        IDXGISwapChain *This,

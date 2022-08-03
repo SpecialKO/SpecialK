@@ -176,7 +176,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDeviceCaps(D3DCAPS9 *pCaps)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayMode(UINT iSwapChain, D3DDISPLAYMODE *pMode)
 {
-#if 1
+#if 0
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -212,7 +212,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 {
   SK_LOG_FIRST_CALL
 
-#if 1
+#if 0
   IDirect3DSwapChain9* pTemp = nullptr;
 
   HRESULT hr = pReal->CreateAdditionalSwapChain (pPresentationParameters, &pTemp);
@@ -231,7 +231,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateAdditionalSwapChain(D3DPRE
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSwapChain(UINT iSwapChain, IDirect3DSwapChain9 **ppSwapChain)
 {
-#if 1
+#if 0
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -268,9 +268,12 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Reset(D3DPRESENT_PARAMETERS *pPr
 
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect, const RECT *pDestRect, HWND hDestWindowOverride, const RGNDATA *pDirtyRegion)
 {
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain;
+  pReal->GetSwapChain (0,        &pSwapChain.p);
+
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_,
+    pReal,               pSwapChain.p,//implicit_swapchain_,
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
     0x00,
@@ -284,7 +287,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::Present(const RECT *pSourceRect,
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetBackBuffer(UINT iSwapChain, UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, IDirect3DSurface9 **ppBackBuffer)
 {
-#if 1
+#if 0
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -330,14 +333,25 @@ void STDMETHODCALLTYPE IWrapDirect3DDevice9::GetGammaRamp(UINT iSwapChain, D3DGA
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateTexture(UINT Width, UINT Height, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DTexture9 **ppTexture, HANDLE *pSharedHandle)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->CreateTexture(Width, Height, Levels, Usage, Format, Pool, ppTexture, pSharedHandle);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateVolumeTexture(UINT Width, UINT Height, UINT Depth, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DVolumeTexture9 **ppVolumeTexture, HANDLE *pSharedHandle)
 {
-  return pReal->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    pReal->CreateVolumeTexture(Width, Height, Depth, Levels, Usage, Format, Pool, ppVolumeTexture, pSharedHandle);
+
+  if (FAILED (hr)) { SK_LOGi0 (L"IWrapDirect3DDevice9::CreateVolumeTexture (...) Failed with HRESULT=%x", hr); }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateCubeTexture(UINT EdgeLength, UINT Levels, DWORD Usage, D3DFORMAT Format, D3DPOOL Pool, IDirect3DCubeTexture9 **ppCubeTexture, HANDLE *pSharedHandle)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->CreateCubeTexture(EdgeLength, Levels, Usage, Format, Pool, ppCubeTexture, pSharedHandle);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateVertexBuffer(UINT Length, DWORD Usage, DWORD FVF, D3DPOOL Pool, IDirect3DVertexBuffer9 **ppVertexBuffer, HANDLE *pSharedHandle)
@@ -350,27 +364,49 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateIndexBuffer(UINT Length, D
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateRenderTarget(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->CreateRenderTarget(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateDepthStencilSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->CreateDepthStencilSurface(Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::UpdateSurface(IDirect3DSurface9 *pSourceSurface, const RECT *pSourceRect, IDirect3DSurface9 *pDestinationSurface, const POINT *pDestPoint)
 {
-  return pReal->UpdateSurface(pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    pReal->UpdateSurface(pSourceSurface, pSourceRect, pDestinationSurface, pDestPoint);
+
+  if (FAILED (hr)) { SK_LOGi0 (L"IWrapDirect3DDevice9::UpdateSurface (...) Failed with HRESULT=%x", hr); }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::UpdateTexture(IDirect3DBaseTexture9 *pSourceTexture, IDirect3DBaseTexture9 *pDestinationTexture)
 {
-  return pReal->UpdateTexture(pSourceTexture, pDestinationTexture);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    pReal->UpdateTexture(pSourceTexture, pDestinationTexture);
+
+  if (FAILED (hr)) { SK_LOGi0 (L"IWrapDirect3DDevice9::UpdateTexture (...) Failed with HRESULT=%x", hr); }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetRenderTargetData(IDirect3DSurface9 *pRenderTarget, IDirect3DSurface9 *pDestSurface)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->GetRenderTargetData(pRenderTarget, pDestSurface);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetFrontBufferData(UINT iSwapChain, IDirect3DSurface9 *pDestSurface)
 {
-#if 1
+  SK_LOG_FIRST_CALL
+
+#if 0
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())
@@ -388,7 +424,14 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetFrontBufferData(UINT iSwapCha
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::StretchRect(IDirect3DSurface9 *pSourceSurface, const RECT *pSourceRect, IDirect3DSurface9 *pDestSurface, const RECT *pDestRect, D3DTEXTUREFILTERTYPE Filter)
 {
-  return pReal->StretchRect(pSourceSurface, pSourceRect, pDestSurface, pDestRect, Filter);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    pReal->StretchRect(pSourceSurface, pSourceRect, pDestSurface, pDestRect, Filter);
+
+  if (FAILED (hr)) { SK_LOGi0 (L"IWrapDirect3DDevice9::StretchRect (...) Failed with HRESULT=%x", hr); }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ColorFill(IDirect3DSurface9 *pSurface, const RECT *pRect, D3DCOLOR color)
 {
@@ -396,7 +439,14 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ColorFill(IDirect3DSurface9 *pSu
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateOffscreenPlainSurface(UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle)
 {
-  return pReal->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    pReal->CreateOffscreenPlainSurface(Width, Height, Format, Pool, ppSurface, pSharedHandle);
+
+  if (FAILED (hr)) { SK_LOGi0 (L"IWrapDirect3DDevice9::CreateOffscreenPlainSurface (...) Failed with HRESULT=%x", hr); }
+
+  return hr;
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetRenderTarget(DWORD RenderTargetIndex, IDirect3DSurface9 *pRenderTarget)
 {
@@ -532,6 +582,8 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetSamplerState(DWORD Sampler, D
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ValidateDevice(DWORD *pNumPasses)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->ValidateDevice(pNumPasses);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetPaletteEntries(UINT PaletteNumber, const PALETTEENTRY *pEntries)
@@ -560,6 +612,8 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetScissorRect(RECT *pRect)
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetSoftwareVertexProcessing(BOOL bSoftware)
 {
+  SK_LOG_FIRST_CALL
+
   return pReal->SetSoftwareVertexProcessing(bSoftware);
 }
 BOOL STDMETHODCALLTYPE IWrapDirect3DDevice9::GetSoftwareVertexProcessing()
@@ -745,9 +799,12 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::PresentEx(const RECT *pSourceRec
 {
   assert (d3d9ex_);
 
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain;
+  pReal->GetSwapChain (0,        &pSwapChain.p);
+
   sk_d3d9_swap_dispatch_s dispatch =
   {
-    pReal,               implicit_swapchain_,
+    pReal,               pSwapChain.p,//implicit_swapchain_,
     pSourceRect,         pDestRect,
     hDestWindowOverride, pDirtyRegion,
     dwFlags,
@@ -774,6 +831,8 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::SetGPUThreadPriority(INT Priorit
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::WaitForVBlank(UINT iSwapChain)
 {
+  SK_LOG_FIRST_CALL
+
 #if 0
   if (iSwapChain > 0)
   {
@@ -814,24 +873,32 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CheckDeviceState(HWND hDestinati
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateRenderTargetEx(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Lockable, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle, DWORD Usage)
 {
+  SK_LOG_FIRST_CALL
+
   assert (d3d9ex_);
 
   return static_cast<IDirect3DDevice9Ex *>(pReal)->CreateRenderTargetEx(Width, Height, Format, MultiSample, MultisampleQuality, Lockable, ppSurface, pSharedHandle, Usage);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateOffscreenPlainSurfaceEx(UINT Width, UINT Height, D3DFORMAT Format, D3DPOOL Pool, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle, DWORD Usage)
 {
+  SK_LOG_FIRST_CALL
+
   assert (d3d9ex_);
 
   return static_cast<IDirect3DDevice9Ex *>(pReal)->CreateOffscreenPlainSurfaceEx(Width, Height, Format, Pool, ppSurface, pSharedHandle, Usage);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::CreateDepthStencilSurfaceEx(UINT Width, UINT Height, D3DFORMAT Format, D3DMULTISAMPLE_TYPE MultiSample, DWORD MultisampleQuality, BOOL Discard, IDirect3DSurface9 **ppSurface, HANDLE *pSharedHandle, DWORD Usage)
 {
+  SK_LOG_FIRST_CALL
+
   assert (d3d9ex_);
 
   return static_cast<IDirect3DDevice9Ex *>(pReal)->CreateDepthStencilSurfaceEx(Width, Height, Format, MultiSample, MultisampleQuality, Discard, ppSurface, pSharedHandle, Usage);
 }
 HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::ResetEx(D3DPRESENT_PARAMETERS *pPresentationParameters, D3DDISPLAYMODEEX *pFullscreenDisplayMode)
 {
+  SK_LOG_FIRST_CALL
+
   assert (d3d9ex_);
 
   HRESULT hr =
@@ -844,7 +911,7 @@ HRESULT STDMETHODCALLTYPE IWrapDirect3DDevice9::GetDisplayModeEx(UINT iSwapChain
 {
   assert (d3d9ex_);
 
-#if 1
+#if 0
   if (iSwapChain > 0)
   {
     if (iSwapChain < GetNumberOfSwapChains ())

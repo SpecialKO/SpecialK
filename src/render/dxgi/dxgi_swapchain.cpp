@@ -447,11 +447,19 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           extern UINT uiOriginalBltSampleCount;
           extern bool bOriginallysRGB;
 
+          constexpr UINT size =
+                 sizeof (bool);
+
           texDesc                    = { };
           texDesc.Width              = swapDesc.BufferDesc.Width;
           texDesc.Height             = swapDesc.BufferDesc.Height;
-          texDesc.Format             = bOriginallysRGB ? DirectX::MakeSRGB (swapDesc.BufferDesc.Format)
-                                                       :                    swapDesc.BufferDesc.Format;
+          texDesc.Format             = swapDesc.BufferDesc.Format;
+
+          if (bOriginallysRGB && config.render.dxgi.srgb_behavior == 0)
+            texDesc.Format           = DirectX::MakeSRGB     (swapDesc.BufferDesc.Format);
+          else if (bOriginallysRGB && config.render.dxgi.srgb_behavior == 1)
+            texDesc.Format           = DirectX::MakeSRGB     (swapDesc.BufferDesc.Format);
+
           texDesc.ArraySize          = 1;
           texDesc.SampleDesc.Count   = config.render.dxgi.msaa_samples > 0 ?
                                            config.render.dxgi.msaa_samples : uiOriginalBltSampleCount;
@@ -477,6 +485,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
+            backbuffer->SetPrivateData (
+              SKID_DXGI_SwapChainBackbufferIsSRGB, size,
+                                 &bOriginallysRGB);
+
             SK_ComQIPtr <ID3D11Texture2D1>
                   backbuffer_asTexture2D1 (backbuffer);
 
@@ -492,7 +504,7 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
                           Buffer,
                                swapDesc.BufferDesc.Width,
                                swapDesc.BufferDesc.Height,
-                               texDesc.SampleDesc.Count,
+                                texDesc.SampleDesc.Count,
           SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
 
             _backbuffers [Buffer] = backbuffer_asTexture2D1;
