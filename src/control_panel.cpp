@@ -1688,10 +1688,20 @@ DisplayModeMenu (bool windowed)
       {
         config.render.dxgi.srgb_behavior = srgb_mode - 1;
 
-        if (srgb_mode > 0)
-          SK_RunOnce (SK_ImGui_Warning (L"Game Restart Required for Strip / Apply to Fully Take Effect"));
-
         SK_SaveConfig ();
+
+        // Trigger the game to resize the SwapChain so we can change its format and colorspace
+        //
+        PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
+          MAKELPARAM (game_window.actual.client.right -
+                      game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                        game_window.actual.client.top )
+                    );
+        PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
+          MAKELPARAM (game_window.actual.client.right -
+                      game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                        game_window.actual.client.top )
+                    );
       }
     }
   }

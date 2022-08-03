@@ -996,9 +996,7 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   try
   {
     #ifndef NO_UNITY_HACKS
-  if (   pDesc                != nullptr &&
-       ( pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D   ||
-         pDesc->ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS ) )
+  if (pDesc != nullptr)
   {
     SK_ComQIPtr <ID3D11Texture2D>
         pTex2D (pResource);
@@ -1010,42 +1008,14 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
 
       // For HDR Retrofit, engine may be really stubbornly
       //   insisting this is some other format.
-      if ((pDesc->Format != texDesc.Format      &&
-           pDesc->Format != DXGI_FORMAT_UNKNOWN &&
-           DirectX::BitsPerColor (texDesc.Format) !=
-           DirectX::BitsPerColor ( pDesc->Format)) ||
-           DirectX::IsTypeless   ( pDesc->Format))
-      {
-        if (! DirectX::IsTypeless (texDesc.Format))
-        ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
-                                          texDesc.Format;
-        //pDesc = nullptr;
-      }
-
       if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
           (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
         ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
                                           texDesc.Format;
 
       // Only backbuffers can be casted if they are already a fully-typed format
-      else if (! DirectX::IsTypeless (texDesc.Format))
+      if (! DirectX::IsTypeless (texDesc.Format))
       {
-        bool _bOriginallysRGB = false;
-        UINT _size            = sizeof (bool);
-
-        pTex2D->GetPrivateData
-         (SKID_DXGI_SwapChainBackbufferIsSRGB, &_size,
-           &_bOriginallysRGB);
-        if (_bOriginallysRGB)
-        {
-          if (     config.render.dxgi.srgb_behavior  < 0)
-            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DXGI_FORMAT_UNKNOWN;
-          else if (config.render.dxgi.srgb_behavior == 0)
-            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DirectX::MakeTypelessUNORM (DirectX::MakeTypeless (pDesc->Format));
-          else
-            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format = DirectX::MakeTypelessUNORM (DirectX::MakeTypeless (pDesc->Format));
-        }
-
         ret =
           bWrapped ?
             pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
@@ -1117,12 +1087,13 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   // Unity throws around NULL for pResource
   if (pResource != nullptr)
   {
-    D3D11_RENDER_TARGET_VIEW_DESC desc = { };
+    D3D11_RENDER_TARGET_VIEW_DESC desc = { .Format        = DXGI_FORMAT_UNKNOWN,
+                                           .ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D };
     D3D11_RESOURCE_DIMENSION      dim  = { };
 
     pResource->GetType (&dim);
 
-    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && pDesc != nullptr)
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
       if (pDesc != nullptr)
         desc = *pDesc;
@@ -1189,26 +1160,69 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
           }
         }
 
-        if (                           (desc.Format  != DXGI_FORMAT_UNKNOWN || bOriginallysRGB) &&
-           ( DirectX::MakeTypeless (tex_desc.Format) !=
-             DirectX::MakeTypeless (desc.Format) )                          || bOriginallysRGB)
+        DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+        UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+
+        pTex->GetPrivateData (
+          SKID_DXGI_SwapChainBackbufferFormat,
+                                &sizeOfFormat,
+                             &swapChainFormat );
+
+        if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
         {
-          if (! DirectX::IsTypeless (tex_desc.Format))
-                       desc.Format = tex_desc.Format;
+          if (                        desc.Format  == DXGI_FORMAT_UNKNOWN ||
+               DirectX::IsTypeless   (desc.Format)                        ||
+               DirectX::MakeTypeless (desc.Format) !=
+               DirectX::MakeTypeless (swapChainFormat) )
+          {
+            tex_desc.Format = swapChainFormat;
+            desc.Format     = swapChainFormat;
+          }
+        }
+
+        if (desc.Format == DXGI_FORMAT_UNKNOWN)
+        {
+          auto typeless =
+            DirectX::MakeTypeless (tex_desc.Format);
+
+          auto float_type =
+            DirectX::MakeTypelessFLOAT (typeless),
+               UNORM_type =
+            DirectX::MakeTypelessUNORM (typeless);
+
+          desc.Format =
+            DirectX::IsTypeless (float_type) ? UNORM_type
+                                             : float_type;
         }
 
         if ( SK_D3D11_OverrideDepthStencil (newFormat) )
           desc.Format = newFormat;
 
-        if (DirectX::IsTypeless (desc.Format))
+        if ( DirectX::IsTypeless (desc.Format) ||
+                                  desc.Format == DXGI_FORMAT_UNKNOWN )
         {
+          if (DirectX::IsTypeless (desc.Format))
+          {
+            auto typeless =
+              DirectX::MakeTypeless (desc.Format);
+
+            auto float_type =
+              DirectX::MakeTypelessFLOAT (typeless),
+                 UNORM_type =
+              DirectX::MakeTypelessUNORM (typeless);
+
+            desc.Format =
+              DirectX::IsTypeless (float_type) ? UNORM_type
+                                               : float_type;
+          }
+
           // We can't use Format Unknown if the base texture is typeless...
           SK_ReleaseAssert (! DirectX::IsTypeless (tex_desc.Format));
 
-          desc.Format = DXGI_FORMAT_UNKNOWN;
+          //desc.Format = DXGI_FORMAT_UNKNOWN;
         }
 
-        if (pDesc != nullptr || bOriginallysRGB)
+        if (pDesc != nullptr || swapChainFormat != DXGI_FORMAT_UNKNOWN)
         {
           const HRESULT hr =
             _Finish (&desc);

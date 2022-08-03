@@ -263,6 +263,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
   struct {
     bool                active          = false;
     bool                native          = false;
+    int                 last_srgb_mode  =    -2;
 
     bool                isOverrideActive (void)
     {

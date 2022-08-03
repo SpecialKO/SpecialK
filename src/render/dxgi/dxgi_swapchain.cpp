@@ -329,8 +329,13 @@ IWrapDXGISwapChain::PresentBase (void)
             D3D11_TEXTURE2D_DESC        texDesc = { };
             _backbuffers [0]->GetDesc (&texDesc);
 
+            // XXX: What about sRGB?
+            auto typed_format =
+              DirectX::MakeTypelessUNORM (
+              DirectX::MakeTypelessFLOAT (texDesc.Format));
+
             if (texDesc.SampleDesc.Count > 1)
-              pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, texDesc.Format);
+              pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, typed_format);
             else
               pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
 
@@ -424,7 +429,9 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
              texDesc.Width  == swapDesc.BufferDesc.Width  &&
              texDesc.Height == swapDesc.BufferDesc.Height &&
              DirectX::MakeTypeless (            texDesc.Format) ==
-             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) )
+             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) &&
+             std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) == 
+                                                       config.render.dxgi.srgb_behavior )
       {
         auto backbuffer =
             _backbuffers [Buffer];
@@ -448,17 +455,37 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           extern bool bOriginallysRGB;
 
           constexpr UINT size =
-                 sizeof (bool);
+                 sizeof (DXGI_FORMAT);
 
           texDesc                    = { };
           texDesc.Width              = swapDesc.BufferDesc.Width;
           texDesc.Height             = swapDesc.BufferDesc.Height;
-          texDesc.Format             = swapDesc.BufferDesc.Format;
 
-          if (bOriginallysRGB && config.render.dxgi.srgb_behavior == 0)
-            texDesc.Format           = DirectX::MakeSRGB     (swapDesc.BufferDesc.Format);
-          else if (bOriginallysRGB && config.render.dxgi.srgb_behavior == 1)
-            texDesc.Format           = DirectX::MakeSRGB     (swapDesc.BufferDesc.Format);
+          auto typeless =
+            DirectX::MakeTypeless (swapDesc.BufferDesc.Format);
+
+          auto scrgb_hdr =
+            swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+          // sRGB is being turned off for Flip Model
+          if (bOriginallysRGB && (! scrgb_hdr))
+          {
+            texDesc.Format = 
+              config.render.dxgi.srgb_behavior == 0 ?
+                DirectX::MakeSRGB (DirectX::MakeTypelessUNORM (typeless))
+              :                    DirectX::MakeTypelessUNORM (typeless);
+          }
+
+          // HDR Override: Firm override to a typed format is safe
+          else if (scrgb_hdr)
+          {
+            texDesc.Format = swapDesc.BufferDesc.Format;
+          }
+
+          // No Overrides: SRV/RTVs on the -real- SwapChain would be type castable,
+          //                 we need to simulate that
+          else
+            texDesc.Format = typeless;
 
           texDesc.ArraySize          = 1;
           texDesc.SampleDesc.Count   = config.render.dxgi.msaa_samples > 0 ?
@@ -486,11 +513,15 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
             backbuffer->SetPrivateData (
-              SKID_DXGI_SwapChainBackbufferIsSRGB, size,
-                                 &bOriginallysRGB);
+              SKID_DXGI_SwapChainBackbufferFormat, size,
+                                 &swapDesc.BufferDesc.Format);
 
             SK_ComQIPtr <ID3D11Texture2D1>
                   backbuffer_asTexture2D1 (backbuffer);
+
+            backbuffer_asTexture2D1->SetPrivateData (
+              SKID_DXGI_SwapChainBackbufferFormat, size,
+                                 &swapDesc.BufferDesc.Format);
 
             // Casting did not work, runtime does not implement this?
             //

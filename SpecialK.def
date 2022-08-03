@@ -23,6 +23,8 @@ EXPORTS
   Direct3DCreate9          = Direct3DCreate9
   Direct3DCreate9Ex        = Direct3DCreate9Ex
 
+  DebugSetMute                             = DebugSetMute                             PRIVATE
+  Direct3DShaderValidatorCreate9           = Direct3DShaderValidatorCreate9           PRIVATE
   Direct3DShaderValidatorCreate            = Direct3DShaderValidatorCreate            PRIVATE
   Direct3D9EnableMaximizedWindowedModeShim = Direct3D9EnableMaximizedWindowedModeShim PRIVATE
 

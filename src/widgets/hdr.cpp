@@ -859,6 +859,9 @@ public:
           rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
                                                               : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;//DXGI_COLOR_SPACE_CUSTOM
 
+          pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                                           DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+
           // Trigger the game to resize the SwapChain so we can change its format and colorspace
           //
           PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,

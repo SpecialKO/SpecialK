@@ -1,4 +1,10 @@
-﻿22.8.3-D3D9-IK
+﻿22.8.3.1-D3D9-IK
+================
+ + Improved Steam Overlay compatibility with D3D9Ex overrides
+ + Fixed D3DX9_43 texture hooks calling into SK's texture manager uninitialized
+ + Removed sRGB warning from Genshin Impact (auto-applies Passthrough)
+
+22.8.3-D3D9-IK
 ==============
  + Fixed The Witness for SDR users with MSAA enabled
  + Fixed MSAA in many Unity engine games when flip model is enabled

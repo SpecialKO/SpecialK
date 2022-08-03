@@ -148,12 +148,71 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
-  if ( pDesc != nullptr && pResource != nullptr )
+  if ( pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;
     pResource->GetType       (&dim);
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      D3D11_SHADER_RESOURCE_VIEW_DESC desc = { .Format        = DXGI_FORMAT_UNKNOWN,
+                                               .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D };
+
+      if (pDesc != nullptr)
+        desc = *pDesc;
+
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex (pResource);
+      if (pTex != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC texDesc = { };
+        pTex->GetDesc      (&texDesc);
+
+        if (texDesc.SampleDesc.Count > 1)
+        {
+          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+          else                                                          desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+        }
+
+        else
+        {
+          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+          else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        }
+
+        DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+        UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+
+        pTex->GetPrivateData (
+          SKID_DXGI_SwapChainBackbufferFormat,
+                                &sizeOfFormat,
+                             &swapChainFormat );
+
+        if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+        {
+          if ( desc.Format == DXGI_FORMAT_UNKNOWN ||
+               DirectX::MakeTypeless (desc.Format) !=
+               DirectX::MakeTypeless (swapChainFormat) )
+          {
+            desc.Format =
+              swapChainFormat;
+
+            if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+            {
+              const HRESULT hr =
+                D3D11Dev_CreateShaderResourceView_Original (
+                  This, pResource,
+                    &desc, ppSRView );
+
+              if (SUCCEEDED (hr))
+                return hr;
+            }
+          }
+        }
+      }
+    }
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && pDesc != nullptr)
     {
       DXGI_FORMAT newFormat    = pDesc->Format;
       UINT        newMipLevels = pDesc->Texture2D.MipLevels;
