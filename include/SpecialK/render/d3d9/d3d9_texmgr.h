@@ -399,6 +399,8 @@ public:
 
   public:
     bool                                                     init            = false;
+    DWORD                                                    thread_id       = 0x0;
+    ULONG64                                                  last_frame      = 0ULL;
   };
 
 

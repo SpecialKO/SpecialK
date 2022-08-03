@@ -2078,6 +2078,10 @@ D3D9ExDevice_PresentEx ( IDirect3DDevice9Ex *This,
 
 D3D9_STUB_VOIDP   (void*, Direct3DShaderValidatorCreate, (void),
                                                          (    ))
+D3D9_STUB_VOIDP   (void*, Direct3DShaderValidatorCreate9,(void),
+                                                         (    ))
+D3D9_STUB_VOIDP   (void*, DebugSetMute,                  (void),
+                                                         (    ))
 
 D3D9_STUB_INT     (int,   D3DPERF_BeginEvent, (D3DCOLOR color, LPCWSTR name),
                                                        (color,         name))
@@ -2204,8 +2208,12 @@ D3D9BeginScene_Override (IDirect3DDevice9 *This)
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
 
-  if (tex_mgr.init)
+  if ( tex_mgr.init &&
+       tex_mgr.thread_id == SK_Thread_GetCurrentId () &&
+       tex_mgr.last_frame < SK_GetFramesDrawn      () )
   {
+    tex_mgr.last_frame = SK_GetFramesDrawn ();
+
     if (tex_mgr.injector.hasPendingLoads ())
         tex_mgr.loadQueuedTextures ();
   }
@@ -2226,20 +2234,26 @@ D3D9EndScene_Override (IDirect3DDevice9 *This)
   SK::D3D9::TextureManager& tex_mgr =
     SK_D3D9_GetTextureManager ();
 
-  //dll_log.Log (L"[   D3D9   ] [!] %s (%ph) - "
-    //L"[Calling Thread: 0x%04x]",
-    //L"IDirect3DDevice9::EndScene", This,
-    //SK_Thread_GetCurrentId ()
-  //);
+#if 0
+  dll_log->Log (L"[   D3D9   ] [!] %s (%ph) - "
+    L"[Calling Thread: 0x%04x]",
+    L"IDirect3DDevice9::EndScene", This,
+    SK_Thread_GetCurrentId ()
+  );
+#endif
 
   SK_D3D9_EndScene ();
 
   HRESULT hr = D3D9Device_EndScene_Original (This);
 
-  if (tex_mgr.init)
+  if ( tex_mgr.init && // Ys 7 is doing stuff on multiple threads...
+       tex_mgr.thread_id == SK_Thread_GetCurrentId () &&
+       tex_mgr.last_frame < SK_GetFramesDrawn      () )
   {
+    tex_mgr.last_frame = SK_GetFramesDrawn ();
+
     if (tex_mgr.injector.hasPendingLoads ())
-      tex_mgr.loadQueuedTextures ();
+        tex_mgr.loadQueuedTextures ();
   }
 
   return hr;
@@ -4963,8 +4977,8 @@ SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 }
 
 
-#define WRAP_D3D9_DEVICE
-#define WRAP_D3D9EX_DEVICE
+/////#define WRAP_D3D9_DEVICE
+/////#define WRAP_D3D9EX_DEVICE
 
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,
@@ -6090,7 +6104,22 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
 
   SK_LOGi0 (L"BehaviorFlags=%x", BehaviorFlags);
 
-  D3D9_CALL ( ret, D3D9Ex_CreateDeviceEx_Original ( (IDirect3D9Ex *)This,
+  static SK_ComPtr <IDirect3D9Ex>        pD3D9Ex;
+  if (                                   pD3D9Ex == nullptr)
+    Direct3DCreate9Ex (D3D_SDK_VERSION, &pD3D9Ex.p);
+
+  if (pD3D9Ex == nullptr)
+  {
+    MessageBoxW (
+      nullptr,
+        L"Special K's D3D9Ex Translation Layer Is Unsupported By This Game",
+        L"Fatal D3D9-IK Error", MB_ICONERROR | MB_APPLMODAL
+    );
+
+    return E_FAIL;
+  }
+
+  D3D9_CALL ( ret, D3D9Ex_CreateDeviceEx_Original ( pD3D9Ex,
                                                       Adapter,
                                                         DeviceType,
                                                           hFocusWindow,
@@ -6144,8 +6173,8 @@ D3D9ExCreateDevice_Override ( IDirect3D9*            This,
     D3D9ResetEx ((IDirect3DDevice9Ex *)*ppReturnedDeviceInterface, pPresentationParameters, nullptr);
 
     // XXX: Is this unique to FlipEx, or D3D9Ex in general?  (1 SwapChain per-HWND)
-    if ( config.render.d3d9.force_d3d9ex /*&&
-         config.render.d3d9.enable_flipex*/ )
+    if ( config.render.d3d9.force_d3d9ex &&
+         config.render.d3d9.enable_flipex )
     {
       SK_ComQIPtr <IDirect3DDevice9Ex> pDev9Ex (
         *ppReturnedDeviceInterface
@@ -6466,15 +6495,18 @@ HookD3D9 (LPVOID user)
         {
           if (! LocalHook_D3D9CreateDevice.active)
           {
-            D3D9_INTERCEPT ( &pD3D9.p, 16,
-                            "IDirect3D9::CreateDevice",
-                              D3D9CreateDevice_Override,
-                              D3D9_CreateDevice_Original,
-                              D3D9_CreateDevice_pfn );
+            if (! config.render.d3d9.force_d3d9ex)
+            {
+              D3D9_INTERCEPT ( &pD3D9.p, 16,
+                              "IDirect3D9::CreateDevice",
+                                D3D9CreateDevice_Override,
+                                D3D9_CreateDevice_Original,
+                                D3D9_CreateDevice_pfn );
 
-            SK_Hook_TargetFromVFTable (
-              LocalHook_D3D9CreateDevice,
-                (void **)&pD3D9.p, 16 );
+              SK_Hook_TargetFromVFTable (
+                LocalHook_D3D9CreateDevice,
+                  (void **)&pD3D9.p, 16 );
+            }
           }
 
           SK_LOGi0 (L"  * Success");
@@ -6570,11 +6602,18 @@ HookD3D9 (LPVOID user)
           {
             if (! LocalHook_D3D9CreateDeviceEx.active)
             {
-              D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
-                               "IDirect3D9Ex::CreateDevice",
-                                D3D9ExCreateDevice_Override,
-                                D3D9Ex_CreateDevice_Original,
-                                D3D9Ex_CreateDevice_pfn );
+              if (config.render.d3d9.force_d3d9ex)
+              {
+                D3D9_INTERCEPT ( &pD3D9Ex.p, 16,
+                                 "IDirect3D9Ex::CreateDevice",
+                                  D3D9ExCreateDevice_Override,
+                                  D3D9Ex_CreateDevice_Original,
+                                  D3D9Ex_CreateDevice_pfn );
+
+                SK_Hook_TargetFromVFTable (
+                  LocalHook_D3D9CreateDevice,
+                    (void **)&pD3D9Ex.p, 16 );
+              }
 
               D3D9_INTERCEPT ( &pD3D9Ex.p, 20,
                                "IDirect3D9Ex::CreateDeviceEx",

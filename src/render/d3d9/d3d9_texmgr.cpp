@@ -454,14 +454,13 @@ D3D9SetTexture_Detour (
                                 pSKTex->pTexOverride == nullptr )
     {
       if (tex_mgr.injector.hasPendingLoads ())
-      {
-        tex_mgr.loadQueuedTextures ();
+      {         tex_mgr.loadQueuedTextures ();
       }
 
       else
       {
-        //SwitchToThread ();
-        YieldProcessor ();
+        SwitchToThread ();
+        //YieldProcessor ();
         break;
       }
     }
@@ -2088,6 +2087,16 @@ D3DXCreateTextureFromFileExA_Detour (
     Usage |= D3DUSAGE_DYNAMIC;
   }
 
+//Width     = D3DX_DEFAULT;
+//Height    = D3DX_DEFAULT;
+//MipLevels = D3DX_DEFAULT;
+//Usage     = 0x0;
+//Format    = D3DFMT_UNKNOWN;
+//Pool      = D3DPOOL_DEFAULT;
+//Filter    = D3DX_DEFAULT;
+//MipFilter = D3DX_DEFAULT;
+//ColorKey  = 0x0;
+
   return
     D3DXCreateTextureFromFileExA_Original (
       pDevice, pSrcFile,
@@ -2129,6 +2138,16 @@ D3DXCreateTextureFromFileExW_Detour (
     Pool   =  D3DPOOL_DEFAULT;
     Usage |= D3DUSAGE_DYNAMIC;
   }
+
+//Width     = D3DX_DEFAULT;
+//Height    = D3DX_DEFAULT;
+//MipLevels = D3DX_DEFAULT;
+//Usage     = 0x0;
+//Format    = D3DFMT_UNKNOWN;
+//Pool      = D3DPOOL_DEFAULT;
+//Filter    = D3DX_DEFAULT;
+//MipFilter = D3DX_DEFAULT;
+//ColorKey  = 0x0;
 
   return
     D3DXCreateTextureFromFileExW_Original (
@@ -2174,6 +2193,17 @@ D3DXCreateVolumeTextureFromFileInMemoryEx_Detour (
     Usage = D3DUSAGE_DYNAMIC;
   }
 
+//Width     = D3DX_DEFAULT;
+//Height    = D3DX_DEFAULT;
+//Depth     = D3DX_DEFAULT;
+//MipLevels = D3DX_DEFAULT;
+//Usage     = 0x0;
+//Format    = D3DFMT_UNKNOWN;
+//Pool      = D3DPOOL_DEFAULT;
+//Filter    = D3DX_DEFAULT;
+//MipFilter = D3DX_DEFAULT;
+//ColorKey  = 0x0;
+
   return
     D3DXCreateVolumeTextureFromFileInMemoryEx_Original (
       pDevice, pSrcData, SrcDataSize,
@@ -2212,6 +2242,15 @@ D3DXCreateCubeTextureFromFileInMemoryEx_Detour (
     Pool  =  D3DPOOL_DEFAULT;
     Usage = D3DUSAGE_DYNAMIC;
   }
+
+//Size      = D3DX_DEFAULT;
+//MipLevels = D3DX_DEFAULT;
+//Usage     = 0x0;
+//Format    = D3DFMT_UNKNOWN;
+//Pool      = D3DPOOL_DEFAULT;
+//Filter    = D3DX_DEFAULT;
+//MipFilter = D3DX_DEFAULT;
+//ColorKey  = 0x0;
 
   return
     D3DXCreateCubeTextureFromFileInMemoryEx_Original (
@@ -2457,6 +2496,11 @@ SK::D3D9::TextureManager::removeTexture (ISKTextureD3D9* pTexD3D9)
 void
 SK::D3D9::TextureManager::addTexture (uint32_t checksum, Texture* pTex, size_t size)
 {
+  // D3D9Ex override hooks a few D3DX functions, which might
+  //   call into this while it is not initialized
+  if (! init)
+    return;
+
   SK_ReleaseAssert (pTex != nullptr);
 
   pTex->size = size;
@@ -2611,6 +2655,8 @@ SK::D3D9::TextureManager::Init (void)
   //injector.textures_in_flight.reserve (32);
   tracked_rt->pixel_shaders.reserve    (32);
   tracked_rt->vertex_shaders.reserve   (32);
+
+  thread_id = SK_Thread_GetCurrentId ();
 
   injector.init ();
 
