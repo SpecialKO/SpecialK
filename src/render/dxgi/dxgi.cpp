@@ -6517,7 +6517,7 @@ DXGIFactory_CreateSwapChain_Override (
       SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
                                                ppSwapChain, orig_desc->BufferDesc.Format);
 
-      if (   nullptr != pOrigDesc) 
+if (   nullptr != pOrigDesc) 
         pTemp->GetDesc (pOrigDesc);
     }
 

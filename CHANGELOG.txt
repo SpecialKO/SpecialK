@@ -1,4 +1,17 @@
-﻿22.8.4.1-D3D9-IK
+﻿22.8.4.2-D3D9-IK
+================
+ + Cleaned up D3D11 texture mod UI slightly and include additional sources
+     (i.e. SRV + Resource) for deducing texture and RenderTarget debug names
+ + Fixed potential crash dumping D3D11 textures w/ engine-assigned debug names
+ + Optimized MSAA and copies between surfaces with incompatible direct copy
+     formats (e.g. for HDR MSAA Resolve from FP16 to R8G8B8A8).
+
+    VRAM usage may increase slightly, but framerate increases significantly :)
+
+      *) This only affects HDR users, and only D3D11 performance
+           (and primarily games with MSAA support).
+
+22.8.4.1-D3D9-IK
 ================
  + HDR can now be turned on/off without restarting D3D11 games(*)!
      (*): ...usually

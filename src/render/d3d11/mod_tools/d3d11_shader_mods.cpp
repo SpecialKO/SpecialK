@@ -482,27 +482,31 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     static bool uncollapsed_tex = true;
     static bool uncollapsed_rtv = true;
 
-    float scale = (uncollapsed_tex ? 1.0f * (uncollapsed_rtv ? 0.5f : 1.0f) : -1.0f);
+    float scale = (uncollapsed_tex ? 1.0f * (uncollapsed_rtv ? 0.75f : 1.0f) : -1.0f);
 
     ImGui::BeginChild     ( ImGui::GetID ("Live_Texture_View_Panel"),
                             ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
-                   ( ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y ) *
+                   ( ImGui::GetWindowContentRegionMax ().y/*- ImGui::GetWindowContentRegionMin ().y*/) *
                                    scale - (scale == 1.0f ? font_size_multiline * 1.666f : 0.0f) ),
                               true,
-                                ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
+                                ImGuiWindowFlags_AlwaysAutoResize |
+                                ImGuiWindowFlags_NavFlattened );
 
     uncollapsed_tex =
       ImGui::CollapsingHeader ( "Live Texture View",
-                                config.textures.d3d11.cache ? ImGuiTreeNodeFlags_DefaultOpen :
-                                                              0x0 );
+                                /*ImGuiTreeNodeFlags_AllowItemOverlap |*/
+                                        ( config.textures.d3d11.cache ?
+                                       ImGuiTreeNodeFlags_DefaultOpen : 0x0 ) );
 
     if (! config.textures.d3d11.cache)
     {
-      ImGui::SameLine    ();
-      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f), "\t(Unavailable because Texture Caching is not enabled!)");
+      ImGui::SameLine    ( 2.5f);
+      ImGui::TextColored ( ImColor::HSV (0.15f, 1.0f, 1.0f),
+                            "\t(Unavailable because Texture Caching is not enabled!)" );
     }
 
-    uncollapsed_tex = uncollapsed_tex && config.textures.d3d11.cache;
+    uncollapsed_tex =
+      uncollapsed_tex && config.textures.d3d11.cache;
 
     if (uncollapsed_tex)
     {
@@ -522,7 +526,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     ImGui::EndChild ();
 
-    scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.5f : 1.0f)) : -1.0f);
+    scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.25f : 1.0f)) : -1.0f);
 
     ImGui::BeginChild     ( ImGui::GetID ("Live_RenderTarget_View_Panel"),
                             ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
@@ -709,6 +713,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       static volatile
         LONG idx_counter = 0;
 
+      static size_t
+        list_max_text_len = 7;
+
       if (list_dirty)
       {
             sel = std::numeric_limits <size_t>::max ();
@@ -783,6 +790,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         std::vector <std::string> temp_list;
                                   temp_list.reserve (render_textures.size ());
 
+        list_max_text_len = 7;
+
         for ( auto it : render_textures )
         {
           if (it == nullptr)
@@ -820,6 +829,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               {
                 snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
                 named = true;
+
+                list_max_text_len =
+                  std::max ( list_max_text_len,
+                               (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
               }
 
               else
@@ -834,6 +847,49 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 {
                   snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
                   named = true;
+
+                  list_max_text_len =
+                    std::max ( list_max_text_len,
+                                 (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
+                }
+
+                else
+                {
+                  SK_ComPtr <ID3D11Resource> pResource;
+                  it->GetResource (         &pResource);
+
+                  if ( SUCCEEDED (
+                     pResource->GetPrivateData (
+                       WKPDID_D3DDebugObjectNameW, &uiDebugLen, wszDebugDesc )
+                                 )               && uiDebugLen > sizeof (wchar_t)
+                     )
+                  {
+                    snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
+                    named = true;
+
+                    list_max_text_len =
+                      std::max ( list_max_text_len,
+                                   (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
+                  }
+
+                  else
+                  {
+                    uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
+
+                    if ( SUCCEEDED (
+                         pResource->GetPrivateData (
+                           WKPDID_D3DDebugObjectName, &uiDebugLen, szDebugDesc )
+                                   )                && uiDebugLen > sizeof (char)
+                       )
+                    {
+                      snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
+                      named = true;
+
+                      list_max_text_len =
+                        std::max ( list_max_text_len,
+                                     (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
+                    }
+                  }
                 }
               }
             }
@@ -937,8 +993,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
       ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
+      const float text_spacing = 2.5f * ImGui::GetStyle ().ItemInnerSpacing.x +
+                                        ImGui::GetStyle ().ScrollbarSize;
+
       ImGui::BeginChild ( ImGui::GetID ("RenderTargetViewList"),
-                          ImVec2 ( font_size * 7.0f, -1.0f),
+                          ImVec2 ( io.FontGlobalScale * list_max_text_len +
+                                   io.FontGlobalScale * text_spacing, -1.0f),
                             true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
       if (! render_textures.empty ())

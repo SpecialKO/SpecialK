@@ -529,6 +529,23 @@ SK_D3D11_ActivateSRVOnSlot ( shader_stage_s&            stage,
         pTex =
           static_cast <ID3D11Texture2D *> (pRes);
 
+        // If underlying texture has no name, maybe this SRV has one?
+        if (SK_D3D11_EnableTracking) // Could be expensive, only do
+        {                            //   if the user has mod tools open
+          if ((! SK_D3D11_HasDebugName (pTex)) &&
+                 SK_D3D11_HasDebugName (pSRV))
+          {
+            std::wstring wide_name =
+              SK_D3D11_GetDebugNameW (pSRV);
+
+            if (wide_name.empty ())
+                wide_name = SK_UTF8ToWideChar (
+                              SK_D3D11_GetDebugNameA (pSRV) );
+
+            SK_D3D11_SetDebugName (pTex, wide_name);
+          }
+        }
+
         int spins = 0;
 
         while ( 0 !=
@@ -3071,11 +3088,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   bool& hovering = shader_state [sk_shader_state_s::ClassToIdx (shader_type)].hovering;
   bool& focused  = shader_state [sk_shader_state_s::ClassToIdx (shader_type)].focused;
 
-  const float text_spacing = 3.0f * ImGui::GetStyle ().ItemSpacing.x +
+  const float text_spacing = 2.5f * ImGui::GetStyle ().ItemSpacing.x +
                                     ImGui::GetStyle ().ScrollbarSize;
 
   ImGui::BeginChild ( ImGui::GetID (GetShaderWord (shader_type)),
-                      ImVec2 ( list->max_name_len + text_spacing, std::max (font_size * 15.0f, list->last_ht)),
+                      ImVec2 ( list->max_name_len * io.FontGlobalScale +
+                                     text_spacing * io.FontGlobalScale, std::max (font_size * 15.0f, list->last_ht)),
                         true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (hovering || focused)

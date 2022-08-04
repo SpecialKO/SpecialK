@@ -512,16 +512,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
-            backbuffer->SetPrivateData (
-              SKID_DXGI_SwapChainBackbufferFormat, size,
-                                 &swapDesc.BufferDesc.Format);
-
             SK_ComQIPtr <ID3D11Texture2D1>
                   backbuffer_asTexture2D1 (backbuffer);
-
-            backbuffer_asTexture2D1->SetPrivateData (
-              SKID_DXGI_SwapChainBackbufferFormat, size,
-                                 &swapDesc.BufferDesc.Format);
 
             // Casting did not work, runtime does not implement this?
             //
@@ -529,20 +521,39 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
             if (backbuffer_asTexture2D1.p == nullptr)
                 backbuffer_asTexture2D1 = (ID3D11Texture2D1 *)backbuffer.p;
 
+            backbuffer_asTexture2D1->SetPrivateData (
+              SKID_DXGI_SwapChainBackbufferFormat, size,
+                                 &swapDesc.BufferDesc.Format);
+
             SK_D3D11_SetDebugName ( backbuffer_asTexture2D1.p,
                  SK_FormatStringW ( L"[SK] Flip Model Backbuffer %d", Buffer ) );
             SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
-                          Buffer,
-                               swapDesc.BufferDesc.Width,
-                               swapDesc.BufferDesc.Height,
-                                texDesc.SampleDesc.Count,
-          SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
+                          Buffer, swapDesc.BufferDesc.Width,
+                                  swapDesc.BufferDesc.Height,
+                                   texDesc.SampleDesc.Count,
+             SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
+
+            SK_ComPtr <ID3D11Texture2D> pOldBuffer;
+            if (_backbuffers.contains (Buffer) &&
+                _backbuffers [Buffer].p != nullptr)
+            {
+              pOldBuffer =
+                _backbuffers [Buffer];
+            }
 
             _backbuffers [Buffer] = backbuffer_asTexture2D1;
 
+#define _SEMIPERMANENT_SWAPCHAIN
+#ifdef  _SEMIPERMANENT_SWAPCHAIN
+            // Keep an extra reference for thread-safety
+            backbuffer_asTexture2D1.p->AddRef ();
+#endif
+
             *ppSurface =
               backbuffer_asTexture2D1.p;
-              backbuffer_asTexture2D1.p->AddRef ();
+
+            if (pOldBuffer != nullptr)
+              pOldBuffer.p->Release ();
 
             return S_OK;
           }

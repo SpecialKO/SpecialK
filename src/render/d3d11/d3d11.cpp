@@ -96,16 +96,16 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
   );
 
   D3D_SET_OBJECT_NAME_N_W ( pDevChild,
-                   static_cast <UINT> ( kName.size () ),
-                                        kName.data ()
+                   static_cast <UINT> ( kName.length () ),
+                                        kName.data   ()
                           );
 
   std::string utf8_copy =
     SK_WideCharToUTF8 (kName);
 
   D3D_SET_OBJECT_NAME_N_A ( pDevChild,
-                 static_cast <UINT> ( (utf8_copy).size () ),
-                                      (utf8_copy).data ()
+                 static_cast <UINT> ( (utf8_copy).length () ),
+                                      (utf8_copy).data   ()
                           );
 }
 
@@ -196,7 +196,7 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
   }
 
   return
-    std::basic_string <_T> (0);
+    std::basic_string <_T> (reinterpret_cast <_T *> (L""));
 }
 
 std::wstring
@@ -1976,9 +1976,47 @@ SK_D3D11_ResolveSubresource_Impl (
           SK_D3D11_DeclareTexInjectScope ()
         );
 
-                                               dstDesc.Format = Format;
-        if (SUCCEEDED (pDev->CreateTexture2D (&dstDesc, nullptr, &pTempTex.p)))
+        bool bSurrogate = false;
+
+        UINT size =
+             sizeof (void *);
+
+        if ( SUCCEEDED (
+               pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                           &size, &pTempTex.p )
+             )
+           )
         {
+          D3D11_TEXTURE2D_DESC surrogateDesc = { };
+          pTempTex->GetDesc  (&surrogateDesc);
+
+          if ( DirectX::MakeTypeless (surrogateDesc.Format) ==
+               DirectX::MakeTypeless (Format) )
+          {
+            bSurrogate = true;
+
+            SK_LOGi2 (L"ResolveSubresource using existing surrogate resolve buffer.");
+          }
+
+          else
+          {
+            SK_LOGi2 (L"ResolveSubresource cannot use existing surrogate resolve buffer.");
+            pTempTex.Release ();
+          }
+        }
+
+        dstDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+        dstDesc.Format     = DirectX::MakeTypeless (Format);
+
+        if (                                           nullptr != pTempTex.p ||
+            SUCCEEDED (pDev->CreateTexture2D (&dstDesc, nullptr, &pTempTex.p)))
+        {
+          if (! bSurrogate)
+          {
+            pDstTex->SetPrivateDataInterface ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                                 pTempTex.p );
+          }
+
           _Finish                 ( pTempTex, pSrcTex, Format );
       if (SK_D3D11_BltCopySurface ( pTempTex, pDstTex ))
           return;
@@ -2105,46 +2143,50 @@ SK_D3D11_CopyResource_Impl (
     D3D11_TEXTURE2D_DESC dst_desc = { };
     D3D11_TEXTURE2D_DESC src_desc = { };
 
-    pSrcTex->GetDesc (&src_desc);
-    pDstTex->GetDesc (&dst_desc);
-
-    if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-          (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
-           src_desc.Format != dst_desc.Format)
+    if ( pSrcTex != nullptr &&
+         pDstTex != nullptr )
     {
-      if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+      pSrcTex->GetDesc (&src_desc);
+      pDstTex->GetDesc (&dst_desc);
+
+      if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+            (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
+             src_desc.Format != dst_desc.Format)
       {
-        if (config.system.log_level > 0)
+        if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
         {
-          static bool          warned_once = false;
-          if (! std::exchange (warned_once, true))
+          if (config.system.log_level > 0)
           {
-            SK_ImGui_Warning (
-              SK_FormatStringW (
-                L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
-                  SK_DXGI_FormatToStr (src_desc.Format).data (),
-                  SK_DXGI_FormatToStr (dst_desc.Format).data ()
-              ).c_str ()
-            );
+            static bool          warned_once = false;
+            if (! std::exchange (warned_once, true))
+            {
+              SK_ImGui_Warning (
+                SK_FormatStringW (
+                  L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
+                    SK_DXGI_FormatToStr (src_desc.Format).data (),
+                    SK_DXGI_FormatToStr (dst_desc.Format).data ()
+                ).c_str ()
+              );
+            }
           }
         }
-      }
 
-      else
-      {
-        if (config.system.log_level > 0)
+        else
         {
-          static bool          warned_once = false;
-          if (! std::exchange (warned_once, true))
+          if (config.system.log_level > 0)
           {
-            SK_ImGui_Warning (
-              L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
-            );
+            static bool          warned_once = false;
+            if (! std::exchange (warned_once, true))
+            {
+              SK_ImGui_Warning (
+                L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
+              );
+            }
           }
         }
-      }
 
-      return;
+        return;
+      }
     }
   }
 
@@ -4859,14 +4901,14 @@ D3D11Dev_CreateTexture2D_Impl (
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
 
+  // Only from devices belonging to the game, no wrappers or Ansel
+  SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
+
   if (rb.device.p == nullptr)
   {
     // Better late than never
     if (! pDevCtx)
     {
-      // Only from devices belonging to the game, no wrappers or Ansel
-      SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
       if (pSwapChain.p != nullptr)
       {
         SK_ComPtr <ID3D11Device> pSwapDev;
@@ -4948,10 +4990,7 @@ D3D11Dev_CreateTexture2D_Impl (
           if ( pDesc->Width  == 1280 &&
                pDesc->Height == 720 )
           {
-            SK_ComQIPtr <IDXGISwapChain>
-                     pSwapChain (
-                   rb.swapchain );
-            DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+            DXGI_SWAP_CHAIN_DESC swapDesc = { };
           
             if (pSwapChain != nullptr)
             {   pSwapChain->GetDesc (&swapDesc);
@@ -4982,10 +5021,7 @@ D3D11Dev_CreateTexture2D_Impl (
           if ( pDesc->Width  == 1080 &&
                pDesc->Height == 720 )
           {
-            SK_ComQIPtr <IDXGISwapChain>
-                     pSwapChain (
-                   rb.swapchain );
-            DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+            DXGI_SWAP_CHAIN_DESC swapDesc = { };
           
             if (pSwapChain != nullptr)
             {   pSwapChain->GetDesc (&swapDesc);
@@ -5037,17 +5073,6 @@ D3D11Dev_CreateTexture2D_Impl (
         break;
     }
   }
-
-  SK_ComQIPtr <IDXGISwapChain>
-                   pSwapChain (
-                     rb.swapchain );
-  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-
-  if (pSwapChain != nullptr)
-      pSwapChain->GetDesc (&swapDesc);
-  else if (pDesc != nullptr &&
-          (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) != 0)
-    SK_LOGi0 (L"Render Target allocated while SK had no active SwapChain...");
 
 
   // New versions of SK attempt to preserve MSAA, so this code is counter-productive
@@ -5146,6 +5171,17 @@ D3D11Dev_CreateTexture2D_Impl (
         auto hdr_fmt_override =
           (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
                                            : DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+        DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+        if (pDesc->SampleDesc.Count > 1)
+        {
+          // Check if this is a SwapChain backbuffer
+          if (pSwapChain != nullptr)
+              pSwapChain->GetDesc (&swapDesc);
+          else if ((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) != 0)
+            SK_LOGi0 (L"MSAA Render Target allocated while SK had no active SwapChain...");
+        } 
 
         if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
             pDesc->SampleDesc.Count == 1)

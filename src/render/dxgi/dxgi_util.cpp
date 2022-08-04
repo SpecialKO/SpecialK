@@ -1165,8 +1165,50 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 	surface.desc.srv.Texture2D.MostDetailedMip = 0;
 	surface.desc.srv.Texture2D.MipLevels       = 1;
 
-  if ( FAILED (D3D11Dev_CreateTexture2D_Original        (pDev,                     &surface.desc.tex,
-                                                                                             nullptr, &surface.render.tex.p))
+  UINT size =
+     sizeof (void *);
+
+  // TODO: Use another GUID for src/dst Blt Copy
+  if ( SUCCEEDED (
+         pSrcTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                     &size, &surface.render.tex.p )
+       )
+     )
+  {
+    D3D11_TEXTURE2D_DESC          surrogateDesc = { };
+    surface.render.tex->GetDesc (&surrogateDesc);
+
+    if (!(surrogateDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
+          surface.render.tex.p == pSrcTex                     ||
+          surface.render.tex.p == pDstTex                     ||
+          DirectX::MakeTypeless (surrogateDesc.Format) !=
+          DirectX::MakeTypeless (surface.desc.tex.Format) )
+    {
+      surface.render.tex.Release ();
+    }
+  }
+
+  // A temporary texture is needed (but we'll stash it for potential reuse)
+  if (surface.render.tex.p == nullptr)
+  {
+    surface.desc.tex.BindFlags |=
+      D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    if ( SUCCEEDED (
+           D3D11Dev_CreateTexture2D_Original ( pDev, &surface.desc.tex,
+                                               nullptr, &surface.render.tex.p ) 
+         )
+       )
+    {
+      SK_D3D11_SetDebugName ( surface.render.tex,
+        L"[SK] D3D11 BltCopy I/O Stage" );
+
+      pSrcTex->SetPrivateDataInterface (
+        SKID_D3D11_SurrogateMultisampleResolveBuffer, surface.render.tex.p );
+    }
+  }
+
+  if ( surface.render.tex.p == nullptr
     || FAILED (D3D11Dev_CreateRenderTargetView_Original (pDev, surface.render.tex, &surface.desc.rtv, &surface.render.rtv.p)) )
   {
     return false;
@@ -1176,27 +1218,58 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pNewSrcTex =
        pSrcTex;
 
-  // A Temporary Copy May Be Needed
+
+  // A Temporary Copy May Be Needed (as above)
   if (! (srcTexDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE))
   {
-    if ( FAILED ( D3D11Dev_CreateTexture2D_Original (
-                      pDev, &surface.desc.tex2, nullptr,
-                            &surface.render.tex2.p ) )
+    // TODO: Use another GUID for src/dst Blt Copy
+    if ( SUCCEEDED (
+           pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                       &size, &surface.render.tex2.p )
+         )
        )
     {
-      return false;
+      D3D11_TEXTURE2D_DESC           surrogateDesc = { };
+      surface.render.tex2->GetDesc (&surrogateDesc);
+
+      if (!(surrogateDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) ||
+            surface.render.tex2.p == pSrcTex                      ||
+            surface.render.tex2.p == pDstTex                      ||
+            DirectX::MakeTypeless (surrogateDesc.Format) !=
+            DirectX::MakeTypeless (surface.desc.tex2.Format) )
+      {
+        surface.render.tex2.Release ();
+      }
+    }
+
+    surface.desc.tex2.BindFlags |=
+       D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    if ( surface.render.tex2.p == nullptr &&
+          SUCCEEDED (
+            D3D11Dev_CreateTexture2D_Original ( pDev,    &surface.desc.tex2,
+                                                nullptr, &surface.render.tex2.p ) 
+          )
+       )
+    {
+      // Beware of possible cyclic references
+      //
+      SK_D3D11_SetDebugName ( surface.render.tex2,
+        L"[SK] D3D11 BltCopy SrcTex (SRV-COPY)" );
+
+      pDstTex->SetPrivateDataInterface (
+        SKID_D3D11_SurrogateMultisampleResolveBuffer, surface.render.tex2.p );
     }
 
     pNewSrcTex =
       surface.render.tex2.p;
 
+    if (pNewSrcTex == nullptr)
+      return false;
+    
+    // Do not call the function directly or it could recurse through this hook
     //pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
     D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
-
-    if (config.system.log_level > 0)
-    {
-      SK_D3D11_SetDebugName (pNewSrcTex,       L"[SK] D3D11 BltCopy SrcTex (SRV-COPY)");
-    }
   }
 
   if ( FAILED (
@@ -1210,7 +1283,6 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   if (config.system.log_level > 0)
   {
-    SK_D3D11_SetDebugName (surface.render.tex, L"[SK] D3D11 BltCopy I/O Stage");
     SK_D3D11_SetDebugName (surface.render.rtv, L"[SK] D3D11 BltCopy RTV (Dst)");
     SK_D3D11_SetDebugName (surface.source.srv, L"[SK] D3D11 BltCopy SRV (Src)");
   }

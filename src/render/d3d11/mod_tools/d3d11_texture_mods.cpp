@@ -60,8 +60,6 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
   std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
-  ImGui::PushID ("Texture2D_D3D11");
-
   const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
   static float last_ht    = 256.0f;
@@ -98,27 +96,23 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   static              size_t        non_mipped           = 0ULL; // Num Non-mimpapped textures loaded
 
 
-  ImGui::Text      ("Current list represents %5.2f MiB of texture memory",
-                       (double)total_texture_memory / (double)(1024 * 1024));
-  ImGui::SameLine  ( );
+  ImGui::SameLine ();
+  ImGui::Text     ("\tCurrent list represents %5.2f MiB of texture memory",
+                      (double)total_texture_memory / (1024.0 * 1024.0) );
 
-  ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth () * 0.33f);
-  ImGui::SliderInt     ("Frames Between Texture Refreshes", &refresh_interval, 0, 120);
-  ImGui::PopItemWidth  ();
-
-  ImGui::BeginChild ( ImGui::GetID ("ToolHeadings"), ImVec2 (font_size * 66.0f, font_size * 2.5f), false,
-                        ImGuiWindowFlags_AlwaysUseWindowPadding | ImGuiWindowFlags_NavFlattened );
+  ImGui::PushID     ("Texture2D_D3D11");
+  ImGui::BeginGroup ();
 
   if (InterlockedCompareExchange (&SK_D3D11_LiveTexturesDirty, FALSE, TRUE))
   {
     texture_map.clear   ();
     list_contents.clear ();
 
-    last_ht             =  0.0f;
-    last_width          =  0.0f;
-    lod                 =  0;
+    last_ht    =  0.0f;
+    last_width =  0.0f;
+    lod        =  0;
 
-    list_dirty          = true;
+    list_dirty = true;
   }
 
   if (ImGui::Button ("  Refresh Textures  "))
@@ -206,17 +200,24 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     SK_D3D11_ReloadAllTextures ();
   }
 
-  ImGui::SameLine ();
+//ImGui::SameLine ();
   ImGui::Checkbox ("Highlight Selected Texture in Game##D3D11_HighlightSelectedTexture",
                                        &config.textures.d3d11.highlight_debug);
   ImGui::SameLine ();
 
-  static bool hide_inactive = true;
+  static bool hide_inactive = false;
 
   ImGui::Checkbox  ("Hide Inactive Textures##D3D11_HideInactiveTextures",
                                                   &hide_inactive);
+
+  ImGui::SameLine  ();
+
+  ImGui::PushItemWidth (font_size * slen);
+  ImGui::SliderInt     ("Frames Between List Refreshes", &refresh_interval, 0, 120);
+  ImGui::PopItemWidth  ();
+
   ImGui::Separator ();
-  ImGui::EndChild  ();
+  ImGui::EndGroup  ();
 
 
   extern SK_ComPtr <ID3D11Texture2D> SK_HDR_GetGamutTex     (void);
@@ -433,11 +434,12 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
-  const float text_spacing = 3.0f * ImGui::GetStyle ().ItemSpacing.x +
+  const float text_spacing = 2.5f * ImGui::GetStyle ().ItemInnerSpacing.x +
                                     ImGui::GetStyle ().ScrollbarSize;
 
   ImGui::BeginChild ( ImGui::GetID ("D3D11_TexHashes_CRC32C"),
-                      ImVec2 ( text_spacing + max_name_len, std::max (font_size * 15.0f, last_ht)),
+                      ImVec2 ( io.FontGlobalScale * text_spacing +
+                               io.FontGlobalScale * max_name_len, std::max (font_size * 15.0f, last_ht)),
                         true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
   if (ImGui::IsWindowHovered ())
@@ -601,7 +603,6 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   last_ht    = std::max (last_ht,    16.0f);
   last_width = std::max (last_width, 16.0f);
 
-  if (debug_tex_id != 0x00 && texture_map.count ((uint32_t)debug_tex_id) > 0)
   {
     list_entry_s& entry =
       texture_map [(uint32_t)debug_tex_id];
@@ -611,12 +612,15 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     float                load_time = 0.0f;
 
     SK_ComPtr <ID3D11Texture2D> pTex;
-    pTex.Attach (
-      textures->getTexture2D ( (uint32_t)entry.tag,
-                                              &tex_desc,
-                                              &tex_size,
-                                              &load_time, pTLS )
-    );
+    if (debug_tex_id != 0x0 && texture_map.count ((uint32_t)debug_tex_id) > 0)
+    {
+      pTex.Attach (
+        textures->getTexture2D ( (uint32_t)entry.tag,
+                                                &tex_desc,
+                                                &tex_size,
+                                                &load_time, pTLS )
+      );
+    }
 
     if (! pTex.p)
     {
@@ -635,172 +639,175 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       // Get the REAL format, not the one the engine knows about through texture cache
       pTex->GetDesc (&tex_desc);
+    }
 
-      if (lod_list_dirty)
+    if (lod_list_dirty)
+    {
+      const UINT w = tex_desc.Width;
+      const UINT h = tex_desc.Height;
+
+      char* pszLODList = lod_list;
+
+      for ( UINT i = 0 ; i < tex_desc.MipLevels ; i++ )
       {
-        const UINT w = tex_desc.Width;
-        const UINT h = tex_desc.Height;
+        size_t len =
+          sprintf ( pszLODList, "LOD%u: (%ux%u)", i,
+                      std::max (1U, w >> i),
+                      std::max (1U, h >> i) );
 
-        char* pszLODList = lod_list;
-
-        for ( UINT i = 0 ; i < tex_desc.MipLevels ; i++ )
-        {
-          size_t len =
-            sprintf ( pszLODList, "LOD%u: (%ux%u)", i,
-                        std::max (1U, w >> i),
-                        std::max (1U, h >> i) );
-
-          pszLODList += (len + 1);
-        }
-
-        *pszLODList = '\0';
-
-        lod_list_dirty = false;
+        pszLODList += (len + 1);
       }
 
+      *pszLODList = '\0';
 
-      SK_ComPtr <ID3D11ShaderResourceView> pSRV  = nullptr;
-      D3D11_SHADER_RESOURCE_VIEW_DESC   srv_desc = {     };
+      lod_list_dirty = false;
+    }
 
-      srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-      srv_desc.Format                    = tex_desc.Format;
 
-      // Typeless compressed types need to assume a type, or they won't render :P
-      switch (srv_desc.Format)
-      {
-        case DXGI_FORMAT_BC1_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
-          break;
-        case DXGI_FORMAT_BC2_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
-          break;
-        case DXGI_FORMAT_BC3_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
-          break;
-        case DXGI_FORMAT_BC4_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
-          break;
-        case DXGI_FORMAT_BC5_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
-          break;
-        case DXGI_FORMAT_BC6H_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
-          break;
-        case DXGI_FORMAT_BC7_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
-          break;
+    SK_ComPtr <ID3D11ShaderResourceView> pSRV  = nullptr;
+    D3D11_SHADER_RESOURCE_VIEW_DESC   srv_desc = {     };
 
-        case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-          break;
-        case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-          break;
+    srv_desc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srv_desc.Format                    = tex_desc.Format;
 
-        case DXGI_FORMAT_R8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8_UNORM;
-          break;
-        case DXGI_FORMAT_R8G8_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
-          break;
+    // Typeless compressed types need to assume a type, or they won't render :P
+    switch (srv_desc.Format)
+    {
+      case DXGI_FORMAT_BC1_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC1_UNORM;
+        break;
+      case DXGI_FORMAT_BC2_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC2_UNORM;
+        break;
+      case DXGI_FORMAT_BC3_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC3_UNORM;
+        break;
+      case DXGI_FORMAT_BC4_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC4_UNORM;
+        break;
+      case DXGI_FORMAT_BC5_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC5_UNORM;
+        break;
+      case DXGI_FORMAT_BC6H_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC6H_SF16;
+        break;
+      case DXGI_FORMAT_BC7_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_BC7_UNORM;
+        break;
 
-        case DXGI_FORMAT_R16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16_FLOAT;
-          break;
-        case DXGI_FORMAT_R16G16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16G16_FLOAT;
-          break;
-        case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-          break;
+      case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+        break;
+      case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        break;
 
-        case DXGI_FORMAT_R32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32B32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
-          break;
-        case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-          srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-          break;
-      };
+      case DXGI_FORMAT_R8_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R8_UNORM;
+        break;
+      case DXGI_FORMAT_R8G8_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R8G8_UNORM;
+        break;
 
-      srv_desc.Texture2D.MipLevels       = (UINT)-1;
-      srv_desc.Texture2D.MostDetailedMip =        tex_desc.MipLevels;
+      case DXGI_FORMAT_R16_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R16_FLOAT;
+        break;
+      case DXGI_FORMAT_R16G16_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R16G16_FLOAT;
+        break;
+      case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        break;
 
-      auto pDev =
-        rb.getDevice <ID3D11Device> ();
+      case DXGI_FORMAT_R32_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R32_FLOAT;
+        break;
+      case DXGI_FORMAT_R32G32_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
+        break;
+      case DXGI_FORMAT_R32G32B32_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        break;
+      case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+        srv_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        break;
+    };
 
-      if (pDev != nullptr)
-      {
+    srv_desc.Texture2D.MipLevels       = (UINT)-1;
+    srv_desc.Texture2D.MostDetailedMip =        tex_desc.MipLevels;
+
+    auto pDev =
+      rb.getDevice <ID3D11Device> ();
+
+    if (pDev != nullptr)
+    {
 #if 0
-        ImVec4 border_color = config.textures.highlight_debug_tex ?
-                                ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
-                                  (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
-                                                                        ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+      ImVec4 border_color = config.textures.highlight_debug_tex ?
+                              ImVec4 (0.3f, 0.3f, 0.3f, 1.0f) :
+                                (__remap_textures && has_alternate) ? ImVec4 (0.5f,  0.5f,  0.5f, 1.0f) :
+                                                                      ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
 #else
-        const ImVec4 border_color = entry.injected ? ImVec4 (0.3f,  0.3f,  1.0f, 1.0f) :
-                                                     ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
+      const ImVec4 border_color = entry.injected ? ImVec4 (0.3f,  0.3f,  1.0f, 1.0f) :
+                                                   ImVec4 (0.3f,  1.0f,  0.3f, 1.0f);
 #endif
 
-        ImGui::PushStyleColor (ImGuiCol_Border, border_color);
+      ImGui::PushStyleColor (ImGuiCol_Border, border_color);
 
-        const float scale_factor = 1.0f;
+      const float scale_factor = 1.0f;
 
-        const float content_avail_y =
-          ( ImGui::GetWindowContentRegionMax ().y -
-            ImGui::GetWindowContentRegionMin ().y ) / scale_factor;
-        const float content_avail_x =
-          ( ImGui::GetWindowContentRegionMax ().x -
-            ImGui::GetWindowContentRegionMin ().x ) / scale_factor;
+      const float content_avail_y =
+        ( ImGui::GetWindowContentRegionMax ().y -
+          ImGui::GetWindowContentRegionMin ().y ) / scale_factor;
+      const float content_avail_x =
+        ( ImGui::GetWindowContentRegionMax ().x -
+          ImGui::GetWindowContentRegionMin ().x ) / scale_factor;
 
-            float effective_width  = 0.0f;
-            float effective_height = 0.0f;
+          float effective_width  = 0.0f;
+          float effective_height = 0.0f;
 
-        const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
-                                                      ImGui::GetStyle ().ItemInnerSpacing.y;
+      const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y   +
+                                                    ImGui::GetStyle ().ItemInnerSpacing.y;
 
-        effective_height =
-          std::max (std::min ((float)(tex_desc.Height >> lod), 256.0f),
-                    std::min ((float)(tex_desc.Height >> lod),
-             (content_avail_y - font_size_multiline * 11.0f - 24.0f)));
-        effective_width  =
-          std::min (      (float)(tex_desc.Width  >> lod), (effective_height*
-         (std::max (1.0f, (float)(tex_desc.Width  >> lod)) /
-          std::max (1.0f, (float)(tex_desc.Height >> lod)))));
+      effective_height =
+        std::max (std::min ((float)(tex_desc.Height >> lod), 256.0f),
+                  std::min ((float)(tex_desc.Height >> lod),
+           (content_avail_y - font_size_multiline * 11.0f - 24.0f)));
+      effective_width  =
+        std::min (      (float)(tex_desc.Width  >> lod), (effective_height*
+       (std::max (1.0f, (float)(tex_desc.Width  >> lod)) /
+        std::max (1.0f, (float)(tex_desc.Height >> lod)))));
 
-        if (effective_width > (content_avail_x - font_size * 28.0f))
-        {
-          effective_width   = std::max (std::min ((float)(tex_desc.Width >> lod), 256.0f),
-                                                    (content_avail_x - font_size * 28.0f));
-          effective_height  =  effective_width * (std::max (1.0f, (float)(tex_desc.Height >> lod))
-                                                / std::max (1.0f, (float)(tex_desc.Width  >> lod)) );
-        }
+      if (effective_width > (content_avail_x - font_size * 28.0f))
+      {
+        effective_width   = std::max (std::min ((float)(tex_desc.Width >> lod), 256.0f),
+                                                  (content_avail_x - font_size * 28.0f));
+        effective_height  =  effective_width * (std::max (1.0f, (float)(tex_desc.Height >> lod))
+                                              / std::max (1.0f, (float)(tex_desc.Width  >> lod)) );
+      }
 
-        ImGui::BeginGroup     ();
-        ImGui::BeginChild     ( ImGui::GetID ("Texture_Select_D3D11"),
-                                ImVec2 ( -1.0f, -1.0f ),
-                                  true,
-                                    ImGuiWindowFlags_AlwaysAutoResize |
-                                    ImGuiWindowFlags_NoScrollbar      |
-                                    ImGuiWindowFlags_NavFlattened );
+      ImGui::BeginGroup     ();
+      ImGui::BeginChild     ( ImGui::GetID ("Texture_Select_D3D11"),
+                              ImVec2 ( -1.0f, -1.0f ),
+                                true,
+                                  ImGuiWindowFlags_AlwaysAutoResize |
+                                  ImGuiWindowFlags_NoScrollbar      |
+                                  ImGuiWindowFlags_NavFlattened );
 
-        //if ((! config.textures.highlight_debug_tex) && has_alternate)
-        //{
-        //  if (ImGui::IsItemHovered ())
-        //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
-        //
-        //  // Allow the user to toggle texture override by clicking the frame
-        //  if (ImGui::IsItemClicked ())
-        //    __remap_textures = false;
-        //}
+      //if ((! config.textures.highlight_debug_tex) && has_alternate)
+      //{
+      //  if (ImGui::IsItemHovered ())
+      //    ImGui::SetTooltip ("Click me to make this texture the visible version.");
+      //
+      //  // Allow the user to toggle texture override by clicking the frame
+      //  if (ImGui::IsItemClicked ())
+      //    __remap_textures = false;
+      //}
 
-        last_width  = effective_width  + font_size * 28.0f;
+      last_width  = effective_width  + font_size * 28.0f;
 
-        // Unsigned -> Signed so we can easily spot underflows
+      // Unsigned -> Signed so we can easily spot underflows
+      if (pTex != nullptr)
+      {
         LONG refs =
           pTex.p->AddRef  () - 1;
           pTex.p->Release ();
@@ -838,8 +845,9 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                                    tex_size / (1024.0f * 1024.0f) );
         ImGui::Text            ( "%.3f ms",
                                    load_time );
-        ImGui::Text            ( "%li",
-                                   ReadAcquire (&textures->Textures_2D [pTex].hits) );
+        ImGui::Text            ( "%li", pTex != nullptr ?
+                                   ReadAcquire (&textures->Textures_2D [pTex].hits)
+                                                        : 0 );
         ImGui::Text            ( "%li", refs      );
         ImGui::PopStyleColor   (                  );
         ImGui::EndGroup        (                  );
@@ -927,9 +935,9 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
         }
 
         if (! entry.injected)
-          ImGui::PushStyleColor  (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.95f, 0.95f, 0.05f, 1.0f));
         else
-           ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.05f, 0.95f, 0.95f, 1.0f));
+          ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.05f, 0.95f, 0.95f, 1.0f));
 
         srv_desc.Texture2D.MipLevels       = 1;
         srv_desc.Texture2D.MostDetailedMip = lod;
@@ -990,12 +998,15 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
             dwLastUnhovered = SK::ControlPanel::current_time;
         }
         ImGui::PopStyleColor   ();
-        ImGui::EndChild        ();
-        ImGui::EndGroup        ();
-        last_ht =
-        ImGui::GetItemRectSize ().y;
-        ImGui::PopStyleColor   ();
       }
+
+      ImGui::EndChild          ();
+      ImGui::EndGroup          ();
+
+      last_ht =
+        ImGui::GetItemRectSize ().y;
+
+      ImGui::PopStyleColor     ();
     }
   }
   ImGui::EndGroup      ( );
