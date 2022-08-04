@@ -58,8 +58,9 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
                                  L"Filename=%s\n\n",
                                    import_name,
                                      role,
-                                       order == 0 ? L"Early" :
-                                                    L"PlugIn",
+                                       order == 0 ? L"Early"  :
+                                       order == 1 ? L"PlugIn" :
+                                                    L"Lazy",
                                          path );
 
     ini->import (wszImportRecord);
@@ -101,10 +102,12 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
 
   if (ini->contains_section (import_name))
   {
-    if (ini->get_section (import_name).get_value (L"When") == L"Early")
+    if (     ini->get_section (import_name).get_value (L"When") == L"Early")
       order = 0;
-    else
+    else if (ini->get_section (import_name).get_value (L"When") == L"PlugIn")
       order = 1;
+    else
+      order = 2;
   }
   else
     order = default_order;
@@ -112,7 +115,7 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   ImGui::SameLine ();
 
   changed |=
-    ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0\0");
+    ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0Lazy\0\0");
 
   if (ImGui::IsItemHovered ())
   {
@@ -121,6 +124,7 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
     ImGui::Separator    ();
     ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
     ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
+    ImGui::BulletText   ("Lazy plug-ins have undefined load order, but may allow ReShade to load as a plug-in in some stubborn games.");
     ImGui::EndTooltip   ();
   }
 
