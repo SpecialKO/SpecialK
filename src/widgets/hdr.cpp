@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <imgui/font_awesome.h>
 
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
@@ -902,20 +903,71 @@ public:
       ImGui::TextColored (ImColor::HSV (0.05f, 0.95f, 0.95f), "HDR Unsupported on Current Monitor / Desktop (!!)");
     }
 
-    if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
-           SixteenBitSwap_Original != __SK_HDR_16BitSwap) )
+    ///if ( ( TenBitSwap_Original     != __SK_HDR_10BitSwap ||
+    ///       SixteenBitSwap_Original != __SK_HDR_16BitSwap) )
+    ///{
+    ///  // HDR mode selected, but it's not active. Game probably needs a restart
+    ///  if (rb.isHDRActive () != (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
+    ///  {
+    ///    ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+    ///    ImGui::BulletText     ("Game Restart Required  (Pressing Alt+Enter a few times may also work)");
+    ///    ImGui::PopStyleColor  ();
+    ///  }
+    ///}
+
+    bool bHDRActive = false;
+
+    SK_ComQIPtr <IDXGISwapChain>
+      pSwap (rb.swapchain);
+
+    if (pSwap != nullptr)
     {
-      // HDR mode selected, but it's not active. Game probably needs a restart
-      if (rb.isHDRActive () != (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
+      DXGI_SWAP_CHAIN_DESC swapDesc = { };
+      pSwap->GetDesc     (&swapDesc);
+
+      auto _PrintHDRModeChangeWarning = [&](void)
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
-        ImGui::BulletText     ("Game Restart Required");
-        ImGui::PopStyleColor  ();
+        ImGui::BeginGroup     ();
+        ImGui::SameLine       ();
+        ImGui::TextColored    (ImVec4 (1.f, 1.f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+        ImGui::SameLine       ();
+        ImGui::TextColored    (ImColor::HSV (.17f,1.f, .9f), "HDR %s Active",
+                                                __SK_HDR_16BitSwap ?
+                                                             "Not" : "Still");
+        ImGui::TextColored    (ImColor::HSV (.3f, .8f, .9f), "  Try pressing Alt + Enter a few times to fix this");
+        ImGui::EndGroup       ();
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("A complete game restart may be necessary in some cases");
+      };
+
+      if (__SK_HDR_16BitSwap)
+      {
+        if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT ||
+             rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+        {
+          _PrintHDRModeChangeWarning ();
+        }
+
+        else
+        {
+          bHDRActive = true;
+        }
+      }
+
+      // The 10-bit case isn't handled by SK anymore, only scRGB (16-bit HDR)
+      else if (! __SK_HDR_10BitSwap)
+      { // HDR is still active
+        if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+        {
+        //bHDRActive = true;
+          _PrintHDRModeChangeWarning ();
+        }
       }
     }
 
-    if ( __SK_HDR_10BitSwap ||
-         __SK_HDR_16BitSwap    )
+    if ( bHDRActive )//__SK_HDR_10BitSwap ||
+                     //__SK_HDR_16BitSwap    )
     {
       SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
 

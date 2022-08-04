@@ -4843,6 +4843,16 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
 
     if (SUCCEEDED (ret))
       bSwapChainNeedsResize = false;
+
+    // Apply scRGB colorspace immediately, 16bpc formats can be either this
+    //   or regular Rec709 and Rec709 is washed out after making this switch
+    if (__SK_HDR_16BitSwap && NewFormat == DXGI_FORMAT_R16G16B16A16_FLOAT)
+    {
+      SK_ComQIPtr <IDXGISwapChain4>
+          pSwap4 (This);
+      if (pSwap4 != nullptr)
+          pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+    }
   }
 
   if (FAILED (ret))
@@ -4883,7 +4893,7 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-  assert (pNewTargetParameters != nullptr);
+  SK_ReleaseAssert (pNewTargetParameters != nullptr);
 
   DXGI_SWAP_CHAIN_DESC sd = { };
   This->GetDesc      (&sd);
@@ -5104,6 +5114,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
          (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                           &&
          (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
     {
+      *((DXGI_MODE_DESC *)pNewTargetParameters) = new_new_params;
+
       DXGI_SKIP_CALL (ret, S_OK);
       return          ret;
     }
@@ -5139,6 +5151,8 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
     }
 
     bSwapChainNeedsResize = true;
+
+    *((DXGI_MODE_DESC *)pNewTargetParameters) = new_new_params;
   }
 
   return ret;
@@ -6123,13 +6137,16 @@ auto _PushInitialDWMColorSpace = [](IDXGISwapChain* pSwapChain, SK_RenderBackend
 IWrapDXGISwapChain*
 SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain  *pSwapChain,
-                        IDXGISwapChain **ppDest )
+                        IDXGISwapChain **ppDest,
+                        DXGI_FORMAT      original_format )
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <ID3D11Device>       pDev11    (pDevice);
   SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
+
+  IWrapDXGISwapChain* ret = nullptr;
 
   if (config.apis.dxgi.d3d12.hook && pCmdQueue.p != nullptr)
   {
@@ -6143,41 +6160,42 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    *ppDest =
+    ret =
       new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
-    rb.swapchain           = *ppDest;
+    rb.swapchain           = ret;
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
 
-    _PushInitialDWMColorSpace (pSwapChain, rb);
-
     _d3d12_rbk->init (
-      (IDXGISwapChain3*)*ppDest,
+      (IDXGISwapChain3 *)ret,
         rb.d3d12.command_queue.p
     );
-
-    return
-      (IWrapDXGISwapChain *)*ppDest;
   }
 
   else if ( pDev11 != nullptr )
   {
-    *ppDest =
+    ret =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                (uintptr_t)pSwapChain
     );
-
-    rb.swapchain = *ppDest;
-    _PushInitialDWMColorSpace (pSwapChain, rb);
-
-    return (IWrapDXGISwapChain *)*ppDest;
   }
 
-  return nullptr;
+  if (ret != nullptr)
+  {
+    rb.swapchain = ret;
+    _PushInitialDWMColorSpace (pSwapChain, rb);
+    
+    if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+      ret->lastNonHDRFormat = original_format;
+
+    *ppDest = (IDXGISwapChain *)ret;
+  }
+
+  return ret;
 }
 
 #include <SpecialK\render\d3d12\d3d12_interfaces.h>
@@ -6185,13 +6203,16 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 IWrapDXGISwapChain*
 SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1  *pSwapChain,
-                         IDXGISwapChain1 **ppDest )
+                         IDXGISwapChain1 **ppDest,
+                         DXGI_FORMAT       original_format )
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <ID3D11Device>       pDev11    (pDevice);
   SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
+
+  IWrapDXGISwapChain* ret = nullptr;
 
   if (config.apis.dxgi.d3d12.hook && pCmdQueue.p != nullptr)
   {
@@ -6205,41 +6226,41 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    *ppDest = // TODO: Put these in a list somewhere for proper destruction
+    ret = // TODO: Put these in a list somewhere for proper destruction
       new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
-    rb.swapchain           = *ppDest;
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
 
-    _PushInitialDWMColorSpace (pSwapChain, rb);
-
     _d3d12_rbk->init (
-      (IDXGISwapChain3*)*ppDest,
+      (IDXGISwapChain3 *)ret,
         rb.d3d12.command_queue.p
     );
-
-    return
-      (IWrapDXGISwapChain *)*ppDest;
   }
 
   else if ( pDev11 != nullptr )
   {
-    *ppDest =
+    ret =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                (uintptr_t)pSwapChain
     );
-
-    rb.swapchain = *ppDest;
-    _PushInitialDWMColorSpace (pSwapChain, rb);
-
-    return (IWrapDXGISwapChain *)*ppDest;
   }
 
-  return nullptr;
+  if (ret != nullptr)
+  {
+    rb.swapchain = ret;
+    _PushInitialDWMColorSpace (pSwapChain, rb);
+    
+    if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+      ret->lastNonHDRFormat = original_format;
+
+    *ppDest = (IDXGISwapChain1 *)ret;
+  }
+
+  return ret;
 }
 
 #include <d3d12.h>
@@ -6255,6 +6276,9 @@ DXGIFactory_CreateSwapChain_Override (
 {
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr);
+
+  auto *pOrigDesc =
+    (DXGI_SWAP_CHAIN_DESC *)pDesc;
 
   // WTF? Just ignore ReShade, it's insane.
   if (! ppSwapChain)
@@ -6433,6 +6457,9 @@ DXGIFactory_CreateSwapChain_Override (
 
           bRecycledSwapChains = true;
 
+          if (            nullptr != pOrigDesc) 
+            pSwapToRecycle->GetDesc (pOrigDesc);
+
           return S_OK;
         }
       }
@@ -6488,7 +6515,10 @@ DXGIFactory_CreateSwapChain_Override (
 
       SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
       SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
-                                               ppSwapChain);
+                                               ppSwapChain, orig_desc->BufferDesc.Format);
+
+      if (   nullptr != pOrigDesc) 
+        pTemp->GetDesc (pOrigDesc);
     }
 
 #ifdef  __NIER_HACK
@@ -6523,7 +6553,7 @@ DXGIFactory_CreateSwapChain_Override (
 
     SK_DXGI_CreateSwapChain_PostInit (pDevice, &origDescCopy, &pTemp);
     SK_DXGI_WrapSwapChain            (pDevice,                 pTemp,
-                                               ppSwapChain);
+                                               ppSwapChain, orig_desc->BufferDesc.Format);
   }
 
   return ret;
@@ -6646,7 +6676,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
             SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWndInterop, &new_desc1,
                                                         nullptr,     &pTemp);
             SK_DXGI_WrapSwapChain1            (pDevice,               pTemp,
-                                                        ppSwapChain);
+                                                        ppSwapChain, orig_desc->Format);
           }
 
 
@@ -6809,6 +6839,12 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
+  auto *pOrigDesc =
+    (DXGI_SWAP_CHAIN_DESC1 *)pDesc;
+
+  auto *pOrigFullscreenDesc =
+    (DXGI_SWAP_CHAIN_FULLSCREEN_DESC *)pFullscreenDesc;
+
   std::wstring iname = SK_UTF8ToWideChar (
     SK_GetDXGIFactoryInterface (This)
    );
@@ -6954,8 +6990,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
       }
 
-      SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
-        SK_DXGI_WrapSwapChain1          (pDevice,                                          pTemp, ppSwapChain);
+      SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, pOrigDesc, pOrigFullscreenDesc, &pTemp);
+        SK_DXGI_WrapSwapChain1          (pDevice,                                        pTemp,
+                                        ppSwapChain,    orig_desc1.Format);
+
+      if (    nullptr != pOrigDesc) 
+        pTemp->GetDesc1 (pOrigDesc);
+      if (             nullptr != pOrigFullscreenDesc)
+        pTemp->GetFullscreenDesc (pOrigFullscreenDesc);
     }
 
     // Cache Flip Model Chains
@@ -6975,6 +7017,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       }
     }
 
+
+
     return ret;
   }
 
@@ -6986,7 +7030,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   if (pTemp != nullptr)
   {
     SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &orig_desc1, &orig_fullscreen_desc, &pTemp);
-      SK_DXGI_WrapSwapChain1          (pDevice,                                            pTemp, ppSwapChain);
+      SK_DXGI_WrapSwapChain1          (pDevice,                                            pTemp,
+                                      ppSwapChain, orig_desc1.Format);
   }
 
   return ret;
@@ -7001,6 +7046,10 @@ _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
 _In_opt_       IDXGIOutput            *pRestrictToOutput,
 _Outptr_       IDXGISwapChain1       **ppSwapChain )
 {
+  //
+  // This code is out of date, but SK is not expected to handle Composition SwapChains anyway
+  //
+
   std::wstring iname =
     SK_UTF8ToWideChar (
       SK_GetDXGIFactoryInterface (This)
@@ -7045,7 +7094,8 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
     if (pTemp != nullptr)
     {
       SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, &new_desc1, &new_fullscreen_desc, &pTemp);
-        SK_DXGI_WrapSwapChain1          (pDevice,                                          pTemp, ppSwapChain);
+        SK_DXGI_WrapSwapChain1          (pDevice,                                          pTemp,
+                                        ppSwapChain, new_desc1.Format);
     }
 
     return ret;
@@ -8173,9 +8223,21 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   if (SUCCEEDED (hr) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
+    DXGI_SWAP_CHAIN_DESC swapDesc = { };
+    This->GetDesc      (&swapDesc);
+
+    // HDR requires Fullscreen Exclusive or DXGI Flip Model
+    SK_ReleaseAssert (
+      SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
+                                    swapDesc.Windowed == FALSE );
+
     if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
     {
-      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+      if ( SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
+                                         swapDesc.Windowed == FALSE )
+      {
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+      }
     }
   }
 
@@ -8339,6 +8401,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   {
     rb.scanout.dxgi_colorspace = ColorSpace;
 
+    // Assume SDR (sRGB)
+    rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+
     // HDR
     if (
       ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
@@ -8346,14 +8411,13 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
       ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
     {
-      rb.setHDRCapable (true);
-      rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
-    }
-
-    // SDR (sRGB)
-    else
-    {
-      rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+      // scRGB (Gamma 1.0 & Primaries 709) requires 16-bpc FP color
+      if ( ColorSpace                 != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
+           swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      {
+        rb.setHDRCapable (true);
+        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+      }
     }
   }
 

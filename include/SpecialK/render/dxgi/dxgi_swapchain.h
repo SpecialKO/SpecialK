@@ -60,6 +60,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       hWnd_     = sd.OutputWindow;
       waitable_ = sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+      
+      if (sd.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+              lastNonHDRFormat  = sd.BufferDesc.Format;
     }
 
     IUnknown *pPromotion = nullptr;
@@ -129,6 +132,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       hWnd_     = sd.OutputWindow;
       waitable_ = sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+
+      if (sd.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+              lastNonHDRFormat  = sd.BufferDesc.Format;
     }
 
     IUnknown *pPromotion = nullptr;
@@ -277,6 +283,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
   BOOL                  fakeFullscreen_ = FALSE;
   bool                  notFaking_      = true;
   DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
+  DXGI_FORMAT           lastNonHDRFormat= DXGI_FORMAT_UNKNOWN;
   DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
 
   std::recursive_mutex  _backbufferLock;

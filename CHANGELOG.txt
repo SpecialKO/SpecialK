@@ -1,4 +1,11 @@
-﻿22.8.4-D3D9-IK
+﻿22.8.4.1-D3D9-IK
+================
+ + HDR can now be turned on/off without restarting D3D11 games(*)!
+     (*): ...usually
+ + Added 'Lazy' load order as an option to Plug-Ins in the control panel, this is
+     not a new feature but the config UI has never shown it before...
+
+22.8.4-D3D9-IK
 ==============
  + For games that use SteamAPI Manual Callback Dispatch (i.e. new Unity games),
      Special K will load its own SteamAPI DLL that ships in the Plug-Ins directory

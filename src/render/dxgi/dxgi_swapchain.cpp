@@ -712,12 +712,29 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     else
       SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
-    extern bool
-        __SK_HDR_16BitSwap;
-    if (__SK_HDR_16BitSwap && swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+
+    //
+    // Make note of pre-HDR override formats so user can turn HDR on/off even
+    //   if the game always calls ResizeBuffers (...) using the current format
+    //
+    if ( NewFormat != DXGI_FORMAT_UNKNOWN &&
+         NewFormat != DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if (NewFormat != DXGI_FORMAT_UNKNOWN)
-          NewFormat  = swapDesc.BufferDesc.Format;
+      lastNonHDRFormat   = NewFormat;
+    }
+
+    else if (NewFormat == DXGI_FORMAT_UNKNOWN)
+    {
+      if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+        lastNonHDRFormat = NewFormat;
+    }
+
+    extern bool
+          __SK_HDR_16BitSwap;
+    if (! __SK_HDR_16BitSwap)
+    {
+      if (lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
+        NewFormat = lastNonHDRFormat;
     }
   }
 
@@ -755,6 +772,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
             L"(Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
             origWidth, origHeight,
                 Width,     Height );
+
+          _stalebuffers = true;
         }
       }
     }
@@ -773,6 +792,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
         L"(Requested: %dx%d), (Actual: %dx%d) [ User-Defined Resolution ]",
         origWidth, origHeight,
             Width,     Height );
+
+      _stalebuffers = true;
     }
   }
 

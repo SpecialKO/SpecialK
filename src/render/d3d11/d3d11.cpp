@@ -987,6 +987,9 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
 
   HRESULT ret = E_UNEXPECTED;
 
+  D3D11_RESOURCE_DIMENSION res_dim = { };
+  pResource->GetType     (&res_dim);
+
   auto orig_se =
   SK_SEH_ApplyTranslator (
     SK_FilteringStructuredExceptionTranslator (
@@ -995,46 +998,59 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   );
   try
   {
-    #ifndef NO_UNITY_HACKS
-  if (pDesc != nullptr)
-  {
-    SK_ComQIPtr <ID3D11Texture2D>
-        pTex2D (pResource);
-    if (pTex2D.p != nullptr)
+#ifndef NO_UNITY_HACKS
+    if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      D3D11_TEXTURE2D_DESC
-                        texDesc = { };
-      pTex2D->GetDesc (&texDesc);
-
-      // For HDR Retrofit, engine may be really stubbornly
-      //   insisting this is some other format.
-      if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-          (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
-        ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
-                                          texDesc.Format;
-
-      // Only backbuffers can be casted if they are already a fully-typed format
-      if (! DirectX::IsTypeless (texDesc.Format))
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex2D (pResource);
+      if (pTex2D.p != nullptr)
       {
-        ret =
-          bWrapped ?
-            pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
-                     :
-            D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
-                                                       pDesc, ppRTView );
+        D3D11_TEXTURE2D_DESC
+                          texDesc = { };
+        pTex2D->GetDesc (&texDesc);
 
-        // Failed, so it's probably not a SwapChain backbuffer :)
-        if (FAILED (ret))
+        if (pDesc != nullptr)
         {
-          ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
-                                            texDesc.Format;
+          // For HDR Retrofit, engine may be really stubbornly
+          //   insisting this is some other format.
+          if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+              (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
+            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                              texDesc.Format;
+
+          SK_ReleaseAssert ( (! DirectX::IsSRGB (pDesc->Format)) ||
+                                DirectX::IsTypeless (texDesc.Format) );
+
+          // Only backbuffers can be casted if they are already a fully-typed format
+          if (! DirectX::IsTypeless (texDesc.Format))
+          {
+            ret =
+              bWrapped ?
+                pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
+                         :
+                D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
+                                                           pDesc, ppRTView );
+
+            // Failed, so it's probably not a SwapChain backbuffer :)
+            if (FAILED (ret))
+            {
+              ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                                texDesc.Format;
+            }
+
+            else
+              return ret;
+          }
         }
 
-        else
-          return ret;
+        if (DirectX::IsTypeless (texDesc.Format))
+          SK_ReleaseAssert ( pDesc         != nullptr             &&
+                             pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+                             DirectX::MakeSRGB (DirectX::MakeTypeless (pDesc->Format)) ==
+                                                   DirectX::MakeSRGB (texDesc.Format) );
       }
     }
-  }
+
 #endif
 
     ret =
@@ -1216,10 +1232,13 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                                                : float_type;
           }
 
-          // We can't use Format Unknown if the base texture is typeless...
-          SK_ReleaseAssert (! DirectX::IsTypeless (tex_desc.Format));
+          if (DirectX::IsTypeless (desc.Format))
+          {
+            // We can't use Format Unknown if the base texture is typeless...
+            SK_ReleaseAssert (! DirectX::IsTypeless (tex_desc.Format));
 
-          //desc.Format = DXGI_FORMAT_UNKNOWN;
+            desc.Format = DXGI_FORMAT_UNKNOWN;
+          }
         }
 
         if (pDesc != nullptr || swapChainFormat != DXGI_FORMAT_UNKNOWN)
