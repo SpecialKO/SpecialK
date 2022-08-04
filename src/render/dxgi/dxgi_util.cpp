@@ -1101,8 +1101,9 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     return false;
   }
 
+  // Must be zero or one, or the input/output surface is incompatible
   SK_ReleaseAssert ( dstTexDesc.MipLevels <= 1 &&
-                     srcTexDesc.MipLevels == dstTexDesc.MipLevels );
+                     srcTexDesc.MipLevels <= 1 );
 
   struct {
     struct {
