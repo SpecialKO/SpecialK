@@ -1,4 +1,10 @@
-﻿22.8.3.1-D3D9-IK
+﻿22.8.4-D3D9-IK
+==============
+ + For games that use SteamAPI Manual Callback Dispatch (i.e. new Unity games),
+     Special K will load its own SteamAPI DLL that ships in the Plug-Ins directory
+       and isolate itself to prevent Steamworks features from failing to work.
+
+22.8.3.1-D3D9-IK
 ================
  + Improved Steam Overlay compatibility with D3D9Ex overrides
  + Fixed D3DX9_43 texture hooks calling into SK's texture manager uninitialized

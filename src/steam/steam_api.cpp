@@ -3651,17 +3651,40 @@ SteamAPI_ManualDispatch_Init_Detour (void)
 
   if (steam_log.getPtr () != nullptr && (! steam_log->silent))
   {   steam_log->Log (
-      L"Disabling SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
+      L"Disabling Direct SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
+
+    std::filesystem::path steam_path (
+      SK_GetInstallPath ()
+    );
+    
+    steam_path /= LR"(PlugIns\ThirdParty\Steamworks)";
+    steam_path /= SK_RunLHIfBitness (32, L"steam_api.dll",
+                                         L"steam_api64.dll");
+
+    config.platform.silent =
+      !( PathFileExistsW ( steam_path.c_str () ));
+
+    if (! config.platform.silent )
+    {     config.steam.auto_inject         = true;
+          config.steam.auto_pump_callbacks = true;
+          config.steam.force_load_steamapi = true;
+          config.steam.init_delay          =    1;
+          config.steam.dll_path            = 
+                            steam_path.wstring ();
+    }else
+    {
+      // Platform integration must be disabled,
+      //   Special K does not support this.
+      config.steam.dll_path  = L"";
+
+      SK_GetDLLConfig ()->get_section (L"Steam.Log").
+                            get_value (L"Silent").
+                               assign (L"true");
+    }
+
+    SK_SaveConfig   ();
+    SK_GetDLLConfig ()->write ();
   }
-
-  // Platform integration must be disabled,
-  //   Special K does not support this.
-  config.platform.silent = true;
-
-  SK_GetDLLConfig ()->get_section (L"Steam.Log").
-                        get_value (L"Silent").
-                           assign (L"true");
-  SK_GetDLLConfig ()->write ();
 
   InterlockedExchange (&__SK_DLL_Ending, 1);
 
