@@ -852,6 +852,8 @@ struct {
   sk::ParameterBool*      rehook_loadlibrary      = nullptr;
   sk::ParameterBool*      disable_nv_bloat        = nullptr;
   sk::ParameterBool*      using_wine              = nullptr;
+  sk::ParameterBool*      allow_dxdiagn           = nullptr;
+  sk::ParameterBool*      auto_large_address      = nullptr; // 32-bit only
 } compatibility;
 
 struct {
@@ -1340,6 +1342,10 @@ auto DeclKeybind =
     ConfigEntry (compatibility.disable_nv_bloat,         L"Disable All NVIDIA BloatWare (GeForce Experience)",         dll_ini,         L"Compatibility.General", L"DisableBloatWare_NVIDIA"),
     ConfigEntry (compatibility.rehook_loadlibrary,       L"Rehook LoadLibrary When RTSS/Steam/ReShade hook it",        dll_ini,         L"Compatibility.General", L"RehookLoadLibrary"),
     ConfigEntry (compatibility.using_wine,               L"Disable Functionality Not Compatible With WINE",            dll_ini,         L"Compatibility.General", L"UsingWINE"),
+    ConfigEntry (compatibility.allow_dxdiagn,            L"Disable Unnecessary DxDiagnostic BLOAT in Some Games",      dll_ini,         L"Compatibility.General", L"AllowDxDiagn"),
+#ifdef _M_IX86
+    ConfigEntry (compatibility.auto_large_address,       L"Opt-in for Automatic Large Address Aware Patch on Crash",   dll_ini,         L"Compatibility.General", L"AutoLargeAddressPatch"),
+#endif
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -2947,6 +2953,11 @@ auto DeclKeybind =
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load         (config.compatibility.using_wine);
+  compatibility.allow_dxdiagn->load      (config.compatibility.allow_dxdiagn);
+
+#ifdef _M_IX86
+  compatibility.auto_large_address->load (config.compatibility.auto_large_address_patch);
+#endif
 
   // Automagicly flag as using WINE in certain scenarios (e.g. DxVk on Windows)
   SK_RunOnce (
@@ -4357,6 +4368,11 @@ SK_SaveConfig ( std::wstring name,
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->store             (config.compatibility.using_wine);
+  compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
+
+#ifdef _M_IX86
+  compatibility.auto_large_address->store     (config.compatibility.auto_large_address_patch);
+#endif
 
   monitoring.memory.show->set_value           (config.mem.show);
 //mem_reserve->store                          (config.mem.reserve);

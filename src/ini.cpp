@@ -1283,13 +1283,11 @@ iSK_INI::write (const wchar_t* fname)
         const std::wstring& val =
           section.get_cvalue (key_it);
 
-        if (val.empty ())
-          continue;
-
         outbuf +=
-          SK_FormatStringW (
-            L"%ws=%ws\n", key_it.c_str (),
-                             val.c_str () );
+          val.empty ()
+           ? SK_FormatStringW ( L"%ws=\n",    key_it.c_str () )
+           : SK_FormatStringW ( L"%ws=%ws\n", key_it.c_str (),
+                                                 val.c_str () );
       }
 
       outbuf += L"\n";

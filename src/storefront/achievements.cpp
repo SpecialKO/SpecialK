@@ -73,14 +73,14 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
 
     if (platform_ini->contains_section (L"Platform.Achievements"))
     {
-      iSK_INISection& sec =
+      const iSK_INISection& sec =
         platform_ini->get_section (L"Platform.Achievements");
 
       if (sec.contains_key (L"SoundFile"))
       {
-        wcsncpy_s ( wszFileName,   MAX_PATH,
-                    sec.get_value (L"SoundFile").c_str (),
-                                   _TRUNCATE );
+        wcsncpy_s ( wszFileName,    MAX_PATH,
+                    sec.get_cvalue (L"SoundFile").c_str (),
+                                    _TRUNCATE );
       }
     }
   }
