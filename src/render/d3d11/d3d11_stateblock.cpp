@@ -50,7 +50,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
   const D3D_FEATURE_LEVEL ft_lvl = pDev->GetFeatureLevel ();
 
-  RtlSecureZeroMemory (sb, sizeof D3DX11_STATE_BLOCK);
+  *sb = { };
 
   sb->OMBlendFactor [0] = 0.0f;
   sb->OMBlendFactor [1] = 0.0f;

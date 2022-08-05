@@ -37,9 +37,9 @@
 //
 ///////////////////////////////////////////////////////
 
-#define SK_SCEPAD_READ(type)  SK_ScePad_Backend->markRead   (type);
-#define SK_SCEPAD_WRITE(type) SK_ScePad_Backend->markWrite  (type);
-#define SK_SCEPAD_VIEW(slot)  SK_ScePad_Backend->markViewed ((sk_input_dev_type)(1 << slot));
+#define SK_SCEPAD_READ(backend,type)  (backend)->markRead   (type);
+#define SK_SCEPAD_WRITE(backend,type) (backend)->markWrite  (type);
+#define SK_SCEPAD_VIEW(backend,slot)  (backend)->markViewed ((sk_input_dev_type)(1 << slot));
 
 struct SK_SceInputContext
 {
@@ -196,8 +196,11 @@ SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
 {
   SK_LOG_FIRST_CALL;
 
+  static auto& scePad =
+    SK_ScePad_Backend;
+
   for (int i = 0 ; i < count ; ++i)
-    SK_SCEPAD_READ (sk_input_dev_type::Gamepad);
+    SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
 
   SK_ScePadData                surrogate = { };
   SK_ScePadReadState (handle, &surrogate);
@@ -250,7 +253,10 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
   static result_map_t
     last_result;
 
-  SK_SCEPAD_READ (sk_input_dev_type::Gamepad);
+  static auto& scePad =
+    SK_ScePad_Backend;
+
+  SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
 
   bool bToggleNav = false,
        bToggleVis = false;
@@ -459,7 +465,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
       );
 
     if (result == SK_SCE_ERROR_OK)
-      SK_SCEPAD_VIEW (0); // TODO: Decode Handle Value
+      SK_SCEPAD_VIEW (scePad, 0); // TODO: Decode Handle Value
   }
 
   else

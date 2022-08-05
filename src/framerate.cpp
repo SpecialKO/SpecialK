@@ -1788,8 +1788,10 @@ SK::Framerate::Limiter::wait (void)
           SK_SleepEx (1, FALSE);
       }
 
-      time_ =
-        SK_QueryPerf ().QuadPart;
+      if (++time_ % 3 < 2)
+        YieldProcessor ();
+      else  time_ =
+          SK_QueryPerf ().QuadPart;
     }
 
     wait_time.endBusy ();
@@ -2390,7 +2392,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     {
       if (datum.when.QuadPart >= 0)
       {
-        if (_disreal (datum.val))
+        if (isnormal (datum.val))
         {
           kWriteBuffer.second.emplace_back (datum.val);
         }

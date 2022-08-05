@@ -4347,16 +4347,19 @@ SymLoadModule (
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-          if ( SymLoadModule_Imp (
-                 hProcess, hFile, ImageName,
-                   ModuleName,    BaseOfDll,
-                                  SizeOfDll  )
-             )
+          bool bLoaded = false;
           {
-            _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
+            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+            bLoaded =
+              SymLoadModule_Imp (
+                   hProcess, hFile, ImageName,
+                     ModuleName,    BaseOfDll,
+                                    SizeOfDll  );
           }
+
+          if (bLoaded)
+            _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
         }
 
         loaded = 1;
@@ -4400,16 +4403,19 @@ SymLoadModule64 (
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-          if ( SymLoadModule64_Imp (
-                 hProcess, hFile, ImageName,
-                   ModuleName,    BaseOfDll,
-                                  SizeOfDll  )
-             )
+          bool bLoaded = false;
           {
-            _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
+            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+            bLoaded =
+              SymLoadModule64_Imp (
+                   hProcess, hFile, ImageName,
+                     ModuleName,    BaseOfDll,
+                                    SizeOfDll  );
           }
+
+          if (bLoaded)
+            _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
         }
 
         loaded = 1;

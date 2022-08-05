@@ -171,10 +171,12 @@ SK::ControlPanel::Steam::Draw (void)
     auto* pRemote =
       steam_ctx.RemoteStorage ();// SK_SteamAPI_RemoteStorage ();
 
-    bool app_has_cloud_storage =
-      ( pRemote != nullptr ? ReadAcquire64 (&SK_SteamAPI_CallbackRunCount)    &&
-        pRemote->IsCloudEnabledForAccount () && pRemote->IsCloudEnabledForApp ()
-                           : false );
+    static BOOL app_has_cloud_storage = -1 /* Unknown */;
+
+    if (app_has_cloud_storage == -1 && pRemote != nullptr)
+        app_has_cloud_storage = ReadAcquire64 (&SK_SteamAPI_CallbackRunCount) > 0 &&
+                                             pRemote->IsCloudEnabledForAccount () &&
+                                             pRemote->IsCloudEnabledForApp     ();
 
     struct sk_steam_cloud_entry_s {
       std::string filename;
@@ -188,10 +190,12 @@ SK::ControlPanel::Steam::Draw (void)
     static std::vector <sk_steam_cloud_entry_s> files;
 
     // Empty
-    if ( files.size () == 1 && files [0].size == 0 )
-      app_has_cloud_storage = false;
+    if ( app_has_cloud_storage != -1 &&
+                  files.size () == 1 &&
+                  files[0].size == 0 )
+      app_has_cloud_storage = 0 /* No */;
 
-    else if (app_has_cloud_storage && files.empty ( ))
+    else if (app_has_cloud_storage == 1 /* Yes */ && files.empty ())
     {
       const int32_t num_files =
         pRemote->GetFileCount ();
@@ -212,7 +216,7 @@ SK::ControlPanel::Steam::Draw (void)
       }
 
       if (files.empty ())
-        files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
+          files.emplace_back (sk_steam_cloud_entry_s { "No Files", "", 0L, 0LL, false });
     }
 
 
@@ -264,7 +268,7 @@ SK::ControlPanel::Steam::Draw (void)
     }
 #endif
 
-    if (app_has_cloud_storage && ImGui::CollapsingHeader ("Cloud Storage"))
+    if (app_has_cloud_storage == 1 && ImGui::CollapsingHeader ("Cloud Storage"))
     {
       bool dirty = false;
 

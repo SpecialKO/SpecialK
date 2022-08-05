@@ -1,4 +1,12 @@
-﻿22.8.4.2-D3D9-IK
+﻿22.8.4.3-D3D9-IK
+================
+ + Added support for mouse cursor auto-hide when using 'Block Mouse Input to Game'
+ + Fixed incorrect mouse activation behavior when background render is enabled and
+     the game window is activated by clicking on SK's UI
+ + Remove spurious calls to glClampColor (...) to clamp vertex/fragment colors,
+     that feature is deprecated in GL3 core profiles
+
+22.8.4.2-D3D9-IK
 ================
  + Cleaned up D3D11 texture mod UI slightly and include additional sources
      (i.e. SRV + Resource) for deducing texture and RenderTarget debug names

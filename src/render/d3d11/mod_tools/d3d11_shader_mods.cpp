@@ -676,36 +676,36 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
             rtl.rt_views.erase (it);
       }
 
-   constexpr ULONG64      zombie_threshold = 4;//120;
-      static ULONG64 last_zombie_pass      = frames_drawn;
-
-      if (last_zombie_pass <= frames_drawn - zombie_threshold / 2)
-      {
-        bool newly_dead = false;
-
-        const auto time_to_live =
-          frames_drawn - zombie_threshold;
-
-        for ( auto it : render_textures )
-        {
-          if ( render_lifetime.count (it) != 0 &&
-                     render_lifetime [it].last_frame < time_to_live )
-          {
-            render_lifetime.erase (it);
-            newly_dead = true;
-          }
-        }
-
-        if (newly_dead)
-        {
-          render_textures.clear ();
-
-          for ( auto& it : render_lifetime )
-            render_textures.push_back (it.first);
-        }
-
-        last_zombie_pass = frames_drawn;
-      }
+   ///////constexpr ULONG64      zombie_threshold = 4;//120;
+   ///////   static ULONG64 last_zombie_pass      = frames_drawn;
+   ///////
+   ///////   if (last_zombie_pass <= frames_drawn - zombie_threshold / 2)
+   ///////   {
+   ///////     bool newly_dead = false;
+   ///////
+   ///////     const auto time_to_live =
+   ///////       frames_drawn - zombie_threshold;
+   ///////
+   ///////     for ( auto it : render_textures )
+   ///////     {
+   ///////       if ( render_lifetime.count (it) != 0 &&
+   ///////                  render_lifetime [it].last_frame < time_to_live )
+   ///////       {
+   ///////         render_lifetime.erase (it);
+   ///////         newly_dead = true;
+   ///////       }
+   ///////     }
+   ///////
+   ///////     if (newly_dead)
+   ///////     {
+   ///////       render_textures.clear ();
+   ///////
+   ///////       for ( auto& it : render_lifetime )
+   ///////         render_textures.push_back (it.first);
+   ///////     }
+   ///////
+   ///////     last_zombie_pass = frames_drawn;
+   ///////   }
 
 
       std::unordered_set <ID3D11RenderTargetView *> discard_views;
@@ -787,8 +787,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         static char
           szDesc [128] = { };
 
-        std::vector <std::string> temp_list;
-                                  temp_list.reserve (render_textures.size ());
+        static std::vector <std::string> temp_list;
+                                         temp_list.reserve (render_textures.size ());
+                                         temp_list.clear   ();
 
         list_max_text_len = 7;
 
@@ -829,10 +830,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               {
                 snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
                 named = true;
-
-                list_max_text_len =
-                  std::max ( list_max_text_len,
-                               (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
               }
 
               else
@@ -847,14 +844,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 {
                   snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
                   named = true;
-
-                  list_max_text_len =
-                    std::max ( list_max_text_len,
-                                 (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
                 }
 
                 else
                 {
+                  uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
+
                   SK_ComPtr <ID3D11Resource> pResource;
                   it->GetResource (         &pResource);
 
@@ -866,10 +861,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                   {
                     snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
                     named = true;
-
-                    list_max_text_len =
-                      std::max ( list_max_text_len,
-                                   (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
                   }
 
                   else
@@ -884,10 +875,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                     {
                       snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
                       named = true;
-
-                      list_max_text_len =
-                        std::max ( list_max_text_len,
-                                     (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
                     }
                   }
                 }
@@ -904,6 +891,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                        (discard_views.count (it) == 0) ? rtv_idx :
                              ReadAcquire (&idx_counter), rtv_idx );
           }
+
+          list_max_text_len =
+            std::max ( list_max_text_len,
+                         (size_t)ImGui::CalcTextSize (szDesc, nullptr, true).x );
 
           temp_list.emplace_back (szDesc);
 
@@ -925,7 +916,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       {
         can_scroll = false;
 
-        if (!render_textures.empty ())
+        if (! render_textures.empty ())
         {
           if (! focused)//hovered)
           {
@@ -1235,7 +1226,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                             ImGuiWindowFlags_AlwaysAutoResize );
 
                 SK_D3D11_TempResources->push_back (pSRV.p);
-                SK_D3D11_TempResources->push_back (rt_view.p);
 
                 ImGui::Image             ( pSRV.p,
                                              ImVec2 (effective_width, effective_height),

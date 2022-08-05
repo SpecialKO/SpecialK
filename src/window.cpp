@@ -5261,8 +5261,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
+          game_window.active = true;
+
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
+
           return MA_ACTIVATEANDEAT;
         }
       }
@@ -5275,6 +5278,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                    L"Window Mgr" );
+
           return MA_ACTIVATE;
         }
       }
@@ -5351,8 +5355,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                     SK_WantBackgroundRender ()
                 )
             {
-              game_window.DefWindowProc ( hWnd, uMsg,
-                                            wParam, lParam );
+              //game_window.DefWindowProc ( hWnd, uMsg,
+              //                              wParam, lParam );
+
               SK_COMPAT_SafeCallProc (&game_window,
                 hWnd, uMsg, TRUE, 0
               );

@@ -2164,7 +2164,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     extern bool
     ImGui_DX11Startup ( IDXGISwapChain* pSwapChain );
 
-    if (ImGui_DX11Startup             ( _pSwapChain                  ))
+    if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain ))
     {
       // Queue-up Pre-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);

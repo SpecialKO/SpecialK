@@ -3898,7 +3898,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
                                    current_frame ) )
     {
       gamepad.attached =
-        SK_XInput_PollController (gamepad.slot);
+        SK_XInput_WasLastPollSuccessful (gamepad.slot);
     }
 
     if (battery.last_checked < BatteryStateTTL || (! gamepad.attached))

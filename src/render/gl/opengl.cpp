@@ -2528,8 +2528,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
         if (glClampColor != nullptr)
         {
-          glClampColor (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE);
-          glClampColor (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
+        //glClampColor (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE); // Deprecated in Core
+        //glClampColor (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE); // Deprecated in Core
           glClampColor (GL_CLAMP_READ_COLOR_ARB,     GL_FALSE);
         }
 
@@ -2569,8 +2569,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       glBindFramebuffer (GL_FRAMEBUFFER,          original_fbo);
       if (glClampColor != nullptr)
       {
-        glClampColor    (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE);
-        glClampColor    (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE);
+      //glClampColor    (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE); // Deprecated in core
+      //glClampColor    (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE); // Deprecated in core
         glClampColor    (GL_CLAMP_READ_COLOR_ARB,     GL_FALSE);
       }
       glFlush           (                                     );

@@ -2529,16 +2529,21 @@ SK_ImGui_User_NewFrame (void)
   //
   POINT              cursor_pos = { };
   SK_GetCursorPos  (&cursor_pos);
+  POINT              local_pos  = cursor_pos;
+
+  HWND hWndTop =
+    WindowFromPoint (cursor_pos);
+
+  MapWindowPoints (HWND_DESKTOP, hWndTop, &local_pos, 1);
 
   HWND hWndFromPt =
-    PtInRect (&game_window.actual.window, cursor_pos) ?
-                         WindowFromPoint (cursor_pos) :
-                                               nullptr;
+    ChildWindowFromPointEx ( hWndTop, local_pos, CWP_SKIPINVISIBLE |
+                                                 CWP_SKIPTRANSPARENT );
 
   if (      0 != game_window.hWnd  &&
        IsWindow (game_window.hWnd) &&
-       (IsChild (game_window.hWnd,    hWndFromPt)
-              || game_window.hWnd  == hWndFromPt) )
+                (game_window.hWnd == hWndFromPt ||
+        IsChild (game_window.hWnd,   hWndFromPt)) )
   {
     io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0;
     io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0;
@@ -2572,6 +2577,10 @@ SK_ImGui_User_NewFrame (void)
       io.MousePos.y = static_cast <float> (SK_ImGui_Cursor.pos.y);
     }
   }
+
+  // Cursor stops being treated as idle when it's not in the game window :)
+  else
+    SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
 
   bool bFocused =
     SK_IsGameWindowFocused (),
@@ -2623,8 +2632,9 @@ SK_ImGui_User_NewFrame (void)
     SK_ImGui_Cursor.idle = false;
 
   else
-    SK_ImGui_Cursor.idle = (! SK_ImGui_WantMouseCapture ());
-
+    SK_ImGui_Cursor.idle = ( (! SK_ImGui_WantMouseCapture ()) || config.input.mouse.disabled_to_game );
+                                                              // Disabled to game is a form of capture,
+                                                              //   but it is exempt from idle cursor logic
 
   if (config.input.cursor.manage)
   {
@@ -2683,8 +2693,7 @@ SK_ImGui_User_NewFrame (void)
 
   if (bActive)
   {
-    if (                           hWndFromPt == game_window.hWnd ||
-        IsChild (game_window.hWnd, hWndFromPt))
+    if (hWndFromPt != 0)
     {
       io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
       io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;

@@ -1005,8 +1005,10 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
                   "CPUAccessFlags: 0x%02x\n"
                   "Misc:           0x%02x\n"
                   "ArraySize:      %02u",
-                  wszOutName, SK_D3D11_HasDebugName  (pTex)          ?
-                              SK_D3D11_GetDebugNameW (pTex).c_str () :
+                  wszOutName, SK_D3D11_HasDebugName  (pTex)           ?
+                              SK_D3D11_GetDebugNameW (pTex) .empty () ?
+           SK_UTF8ToWideChar (SK_D3D11_GetDebugNameA (pTex)).c_str () :
+                              SK_D3D11_GetDebugNameW (pTex) .c_str () :
                               L"<Unknown>",
                     crc32c,
                       pDesc->Width, pDesc->Height,

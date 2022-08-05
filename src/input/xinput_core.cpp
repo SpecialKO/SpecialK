@@ -2466,6 +2466,17 @@ SK_XInput_UpdateSlotForUI ( BOOL  success,
 }
 
 
+bool _lastXInputPollState [XUSER_MAX_COUNT] = { false, false, false, false };
+
+// Return the last polling status; when actual gamepad state is not needed
+bool
+WINAPI
+SK_XInput_WasLastPollSuccessful ( INT iJoyID )
+{
+  return
+    iJoyID >= 0 && iJoyID <= XUSER_MAX_COUNT && _lastXInputPollState [iJoyID];
+}
+
 bool
 WINAPI
 SK_XInput_PollController ( INT           iJoyID,
@@ -2527,7 +2538,7 @@ SK_XInput_PollController ( INT           iJoyID,
 
 
 
-  if (iJoyID == -1)
+  if (iJoyID == -1) // Uh, how?
     return true;
 
   if (iJoyID < 0 || iJoyID >= XUSER_MAX_COUNT)
@@ -2575,7 +2586,7 @@ SK_XInput_PollController ( INT           iJoyID,
   {
     SK_XInput_UpdateSlotForUI (FALSE, iJoyID, 0);
 
-    return false;
+    return (_lastXInputPollState [iJoyID] = false);
   }
 
   WriteULongRelease (&last_poll [iJoyID], 0); // Feel free to poll this controller again immediately,
@@ -2592,7 +2603,7 @@ SK_XInput_PollController ( INT           iJoyID,
   if (pState != nullptr)
     memcpy (pState, &xstate, sizeof (XINPUT_STATE));
 
-  return true;
+  return (_lastXInputPollState [iJoyID] = true);
 }
 
 

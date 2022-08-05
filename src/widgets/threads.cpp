@@ -633,8 +633,6 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
       if (cs_dbghelp != nullptr)
       {
-        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
         SK_SymLoadModule ( hProc,
                              nullptr,
                               pszShortName,
@@ -820,8 +818,6 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
 
         if (cs_dbghelp != nullptr)
         {
-          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
           SK_SymLoadModule ( hProc,
                                nullptr,
                                 pszShortName,

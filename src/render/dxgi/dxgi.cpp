@@ -1675,10 +1675,10 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
       }
     }
 
-    if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
-                                      pBackbuffer, nullptr,
-                                     &pBackbufferRTV.p       )
-       )           )
+    else if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
+                                           pBackbuffer, nullptr,
+                                          &pBackbufferRTV.p       )
+            )           )
     {
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
@@ -2414,12 +2414,15 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
        const DXGI_PRESENT_PARAMETERS         *pPresentParameters      = nullptr
 )
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   auto _Present = [&](UINT _SyncInterval,
                       UINT _Flags) ->
   HRESULT
   {
     BOOL bFullscreen =
-      SK_GetCurrentRenderBackend ().fullscreen_exclusive;
+      rb.fullscreen_exclusive;
 
     // Only works in Windowed +
     //  ... needs a special SwapChain creation flag and Flip Model
@@ -2578,9 +2581,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         This->Present (_SyncInterval, _Flags)
       );
     };
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   //
   // Early-out for games that use testing to minimize blocking

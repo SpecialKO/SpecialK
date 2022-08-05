@@ -528,8 +528,8 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Separator ();
 
       bool connected [XUSER_MAX_COUNT] = {
-        SK_XInput_PollController (0), SK_XInput_PollController (1),
-        SK_XInput_PollController (2), SK_XInput_PollController (3)
+        SK_XInput_WasLastPollSuccessful (0), SK_XInput_WasLastPollSuccessful (1),
+        SK_XInput_WasLastPollSuccessful (2), SK_XInput_WasLastPollSuccessful (3)
       };
 
       if (config.input.gamepad.hook_xinput)

@@ -747,6 +747,11 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
       if (lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
         NewFormat = lastNonHDRFormat;
     }
+
+    else
+    {
+      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    }
   }
 
 

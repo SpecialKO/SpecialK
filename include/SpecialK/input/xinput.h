@@ -199,6 +199,10 @@ SK_XInput_Enable          ( BOOL bEnable = TRUE );
 
 bool
 WINAPI
+SK_XInput_WasLastPollSuccessful ( INT iJoyID );
+
+bool
+WINAPI
 SK_XInput_PollController  ( INT           iJoyID,
                             XINPUT_STATE* pState = nullptr );
 

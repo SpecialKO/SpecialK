@@ -314,8 +314,6 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     if (cs_dbghelp != nullptr)
     {
-      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
       SK_SymLoadModule ( GetCurrentProcess (),
                            nullptr,
                             pszShortName,

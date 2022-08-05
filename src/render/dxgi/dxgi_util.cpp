@@ -1211,6 +1211,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   if ( surface.render.tex.p == nullptr
     || FAILED (D3D11Dev_CreateRenderTargetView_Original (pDev, surface.render.tex, &surface.desc.rtv, &surface.render.rtv.p)) )
   {
+    SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: surface.render.tex.p == nullptr" );
+
     return false;
   }
 
@@ -1222,6 +1224,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   // A Temporary Copy May Be Needed (as above)
   if (! (srcTexDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE))
   {
+    size = sizeof (void *);
+
     // TODO: Use another GUID for src/dst Blt Copy
     if ( SUCCEEDED (
            pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
@@ -1264,8 +1268,9 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pNewSrcTex =
       surface.render.tex2.p;
 
-    if (pNewSrcTex == nullptr)
+    if (pNewSrcTex == nullptr) { SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: pNewSrcTex == nullptr" );
       return false;
+    }
     
     // Do not call the function directly or it could recurse through this hook
     //pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
@@ -1278,6 +1283,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                &surface.source.srv.p ) )
      )
   {
+    SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateSRV Failed" );
+
     return false;
   }
 

@@ -37,21 +37,6 @@
 #include <limits>
 #include <forward_list>
 
-static constexpr auto
-  _disreal =
-  [](double            double_val     ) noexcept ->bool
-  { return (  _dclass (double_val     ) == FP_NORMAL ); };
-
-static constexpr auto
-  _ldisreal =
-  [](long double       long_double_val) noexcept ->bool
-  { return ( _ldclass (long_double_val) == FP_NORMAL ); };
-
-static constexpr auto
-  _fdisreal =
-  [](float             float_val      ) noexcept ->bool
-  { return ( _fdclass (float_val      ) == FP_NORMAL ); };
-
 float SK_Framerate_GetPercentileByIdx (int idx);
 
 using QueryPerformanceCounter_pfn   = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept;
@@ -471,11 +456,11 @@ namespace SK
         double mean         = 0.0;
         int    samples_used =  0 ;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _disreal (datum.val))
+            if (datum.val > 0.0 && isnormal (datum.val))
             {
               ++samples_used;
               mean += datum.val;
@@ -572,11 +557,11 @@ namespace SK
         double sd2          = 0.0;
         int    samples_used = 0;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _disreal (datum.val))
+            if (datum.val > 0.0 && isnormal (datum.val))
             {
               sd2 += (datum.val - mean) *
                      (datum.val - mean);
@@ -592,11 +577,11 @@ namespace SK
       {
         double min = INFINITY;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _disreal (datum.val))
+            if (datum.val > 0.0 && isnormal (datum.val))
             {
               if (datum.val < min)
                 min = datum.val;
@@ -611,11 +596,11 @@ namespace SK
       {
         double max = -INFINITY;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
-            if (datum.val > 0.0 && _disreal (datum.val))
+            if (datum.val > 0.0 && isnormal (datum.val))
             {
               if (datum.val > max)
                 max = datum.val;
@@ -631,7 +616,7 @@ namespace SK
         int  hitches   = 0;
         bool last_late = false;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {
@@ -656,7 +641,7 @@ namespace SK
       {
         int samples_used = 0;
 
-        for ( const auto datum : data )
+        for ( const auto& datum : data )
         {
           if (datum.when.QuadPart >= start.QuadPart)
           {

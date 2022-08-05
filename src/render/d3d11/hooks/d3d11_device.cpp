@@ -168,44 +168,49 @@ D3D11Dev_CreateShaderResourceView_Override (
         D3D11_TEXTURE2D_DESC texDesc = { };
         pTex->GetDesc      (&texDesc);
 
-        if (texDesc.SampleDesc.Count > 1)
+        // SK only overrides the format of RenderTargets, anything else is not our fault.
+        if ( (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
+             (texDesc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) )
         {
-          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
-          else                                                          desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
-        }
-
-        else
-        {
-          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-          else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        }
-
-        DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
-        UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
-
-        pTex->GetPrivateData (
-          SKID_DXGI_SwapChainBackbufferFormat,
-                                &sizeOfFormat,
-                             &swapChainFormat );
-
-        if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
-        {
-          if ( desc.Format == DXGI_FORMAT_UNKNOWN ||
-               DirectX::MakeTypeless (desc.Format) !=
-               DirectX::MakeTypeless (swapChainFormat) )
+          if (texDesc.SampleDesc.Count > 1)
           {
-            desc.Format =
-              swapChainFormat;
+            if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+            else                                                          desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+          }
 
-            if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+          else
+          {
+            if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+            else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+          }
+
+          DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+          UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+
+          pTex->GetPrivateData (
+            SKID_DXGI_SwapChainBackbufferFormat,
+                                  &sizeOfFormat,
+                               &swapChainFormat );
+
+          if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+          {
+            if ( desc.Format == DXGI_FORMAT_UNKNOWN ||
+                 DirectX::MakeTypeless (desc.Format) !=
+                 DirectX::MakeTypeless (swapChainFormat) )
             {
-              const HRESULT hr =
-                D3D11Dev_CreateShaderResourceView_Original (
-                  This, pResource,
-                    &desc, ppSRView );
+              desc.Format =
+                swapChainFormat;
 
-              if (SUCCEEDED (hr))
-                return hr;
+              if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+              {
+                const HRESULT hr =
+                  D3D11Dev_CreateShaderResourceView_Original (
+                    This, pResource,
+                      &desc, ppSRView );
+
+                if (SUCCEEDED (hr))
+                  return hr;
+              }
             }
           }
         }

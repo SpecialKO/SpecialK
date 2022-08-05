@@ -556,8 +556,8 @@ SK_D3D11_ActivateSRVOnSlot ( shader_stage_s&            stage,
         {
           if ( ++spins > 0x1000 )
           {
-            SK_Sleep (1);
-            spins  =  0;
+            YieldProcessor ();
+            spins     =     0;
           }
         }
 

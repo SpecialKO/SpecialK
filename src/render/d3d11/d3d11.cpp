@@ -121,7 +121,7 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
                              UINT              *pBytes,
                              char              *pName )
 {
-  if ( (! pObject) ||
+  if ( (! pObject) &&
        (! pBytes ) )
     return E_POINTER;
 
@@ -138,7 +138,7 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
                              UINT              *pBytes,
                              wchar_t           *pName )
 {
-  if ( (! pObject) ||
+  if ( (! pObject) &&
        (! pBytes ) )
     return E_POINTER;
 
@@ -154,9 +154,19 @@ SK_D3D11_HasDebugName (ID3D11DeviceChild* pD3D11Obj)
 {
   UINT uiNameLen = 0;
 
-  if ( FAILED ( pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectNameW, &uiNameLen, nullptr) ) &&
-       FAILED ( pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectName,  &uiNameLen, nullptr) ) )
-    return false;
+  HRESULT hr =
+    pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectNameW, &uiNameLen, nullptr);
+
+  if (FAILED (hr) && hr != DXGI_ERROR_MORE_DATA)
+  {
+    uiNameLen = 0;
+
+    hr =
+      pD3D11Obj->GetPrivateData (WKPDID_D3DDebugObjectName, &uiNameLen, nullptr);
+
+    if (FAILED (hr) && hr != DXGI_ERROR_MORE_DATA)
+      return false;
+  }
 
   return
     ( uiNameLen > 0 );
@@ -170,11 +180,11 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
   {
     UINT bufferLen = 0;
 
-    if ( SUCCEEDED (
-           SK_D3D11_GET_OBJECT_NAME_N <_T> ( pD3D11Obj,
-                   &bufferLen, nullptr )
-         )
-       )
+    HRESULT hr =
+      SK_D3D11_GET_OBJECT_NAME_N <_T> ( pD3D11Obj,
+                  &bufferLen, nullptr );
+
+    if (SUCCEEDED (hr) || bufferLen > 0)
     {
       if (bufferLen >= sizeof (_T))
       {
@@ -185,7 +195,7 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
 
         if ( SUCCEEDED (
                SK_D3D11_GET_OBJECT_NAME_N <_T> ( pD3D11Obj,
-                       &bufferLen, name.data () )
+                      &bufferLen, name.data () )
              )
            )
         {
