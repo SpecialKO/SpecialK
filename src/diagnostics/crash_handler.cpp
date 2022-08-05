@@ -506,13 +506,16 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   if (crash_handled)
   {
 #ifdef _M_IX86
-    if (! SK_PE32_IsLargeAddressAware ())
-    {     SK_PE32_MakeLargeAddressAwareCopy ();
+    if (config.compatibility.auto_large_address_patch)
+    {
+      if (! SK_PE32_IsLargeAddressAware ())
+      {     SK_PE32_MakeLargeAddressAwareCopy ();
 
-      SK_MessageBox ( L"Applied 32-bit LAA (Large Address Aware) Patch in Response to Crash",
-                        L"[Special K Patch]", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK );
+        SK_MessageBox ( L"Applied 32-bit LAA (Large Address Aware) Patch in Response to Crash",
+                          L"[Special K Patch]", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK );
 
-      SK_RestartGame ();
+        SK_RestartGame ();
+      }
     }
 #endif
     const wchar_t* desc = L"";

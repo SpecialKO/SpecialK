@@ -4977,8 +4977,8 @@ SK_D3D9_IsDummyD3D9Device (D3DPRESENT_PARAMETERS *pPresentationParameters)
 }
 
 
-/////#define WRAP_D3D9_DEVICE
-/////#define WRAP_D3D9EX_DEVICE
+//#define WRAP_D3D9_DEVICE
+//#define WRAP_D3D9EX_DEVICE
 
 IWrapDirect3DDevice9*
 SK_D3D9_WrapDevice ( IUnknown               *pDevice,

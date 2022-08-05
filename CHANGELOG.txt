@@ -1,4 +1,18 @@
-﻿22.8.4.3-D3D9-IK
+﻿22.8.5-D3D9-IK
+==============
+ + Added option to disable DxDiagn.dll from loading into games.
+    $ DxDiag probes all available versions of DirectX and leads to problems
+        (especially in 32-bit software!)
+ + Added option to disable Large Address Aware auto-patching on affected 32-bit games
+
+    [Compatibility.General]
+    AllowDxDiagn=false
+    AutoLargeAddressPatch=true
+
+ + Corrected 'SoundFile' option in Global\platform.ini and local INI files not loading
+     because it was blank and the INI parser was accidentally set to remove blank keys
+
+22.8.4.3-D3D9-IK
 ================
  + Added support for mouse cursor auto-hide when using 'Block Mouse Input to Game'
  + Fixed incorrect mouse activation behavior when background render is enabled and
