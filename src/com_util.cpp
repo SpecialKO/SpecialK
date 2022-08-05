@@ -49,6 +49,8 @@ DEFINE_GUID(CLSID_DirectInputDevice8, 0x25E609E5,0xB259,0x11CF,0xBF,0xC7,0x44,0x
 
 DEFINE_GUID(CLSID_DirectDraw,         0xD7B70EE0,0x4340,0x11CF,0xB0,0x63,0x00,0x20,0xAF,0xC2,0xCD,0x35);
 
+DEFINE_GUID(CLSID_DxDiagProvider,     0xA65B8071,0x3BFE,0x4213,0x9A,0x5B,0x49,0x1D,0xA4,0x46,0x1C,0xA7);
+
 
 CoCreateInstance_pfn   CoCreateInstance_Original   = nullptr;
 CoCreateInstanceEx_pfn CoCreateInstanceEx_Original = nullptr;
@@ -103,6 +105,19 @@ CoCreateInstance_Detour (
   {
     //extern void SK_BootDDraw (void);
     //SK_BootDDraw ();
+  }
+
+  if (rclsid == CLSID_DxDiagProvider)
+  {
+    if (! config.compatibility.allow_dxdiagn)
+    {
+      SK_LOGs0 ( L"DXDiagKill",
+        L" >> Game tried to use IDxDiagProvider, but it has been "
+        L"blocked for maximum compatibility."
+      );
+
+      return E_NOINTERFACE;
+    }
   }
 
   return CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv);
@@ -330,32 +345,35 @@ extern "C++"
 bool
 SK_WMI_Init (void)
 {
-  const wchar_t* wszCOMBase  = L"combase.dll";
-                 hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
-
-  if (hModCOMBase == nullptr)
+  static bool          once = false;
+  if (! std::exchange (once, true))
   {
-    wszCOMBase  = L"ole32.dll";
-    hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
-  }
+    const wchar_t* wszCOMBase  = L"combase.dll";
+                   hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
+
+    if (hModCOMBase == nullptr)
+    {
+      wszCOMBase  = L"ole32.dll";
+      hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
+    }
 
 #if 0
-  CoCreateInstance_Original =
-    (CoCreateInstance_pfn)SK_GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
-  CoCreateInstanceEx_Original =
-    (CoCreateInstanceEx_pfn)SK_GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
+    CoCreateInstance_Original =
+      (CoCreateInstance_pfn)SK_GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
+    CoCreateInstanceEx_Original =
+      (CoCreateInstanceEx_pfn)SK_GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
 #else
-  SK_CreateDLLHook2 (      wszCOMBase,
-                            "CoCreateInstance",
-                             CoCreateInstance_Detour,
-    static_cast_p2p <void> (&CoCreateInstance_Original) );
+    SK_CreateDLLHook2 (      wszCOMBase,
+                              "CoCreateInstance",
+                               CoCreateInstance_Detour,
+      static_cast_p2p <void> (&CoCreateInstance_Original) );
 
-  SK_CreateDLLHook2 (      wszCOMBase,
-                            "CoCreateInstanceEx",
-                             CoCreateInstanceEx_Detour,
-    static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
+    SK_CreateDLLHook2 (      wszCOMBase,
+                              "CoCreateInstanceEx",
+                               CoCreateInstanceEx_Detour,
+      static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
 #endif
-
+  }
 
   COM::base.wmi.Lock ();
 
@@ -364,7 +382,6 @@ SK_WMI_Init (void)
     COM::base.wmi.Unlock ();
     return true;
   }
-
 
   if ( InterlockedCompareExchangePointer (&COM::base.wmi.hServerThread, nullptr, INVALID_HANDLE_VALUE)
                                                                               == INVALID_HANDLE_VALUE )
@@ -394,9 +411,7 @@ SK_WMI_Init (void)
   }
 
   else
-  {
     SK_WMI_WaitForInit ();
-  }
 
   COM::base.wmi.Unlock ();
 

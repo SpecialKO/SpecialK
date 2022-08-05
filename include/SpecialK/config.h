@@ -832,12 +832,14 @@ struct sk_config_t
   } dpi;
 
   struct compatibility_s {
-    bool     rehook_loadlibrary     = false;
-    bool     disable_nv_bloat       = false;
-    bool     init_while_suspended   =  true;
-    bool     impersonate_debugger   = false; // Can disable games' crash handlers
-    bool     disable_debug_features = false;
-    bool     using_wine             = false;
+    bool     rehook_loadlibrary       = false;
+    bool     disable_nv_bloat         = false;
+    bool     init_while_suspended     =  true;
+    bool     impersonate_debugger     = false; // Can disable games' crash handlers
+    bool     disable_debug_features   = false;
+    bool     using_wine               = false;
+    bool     allow_dxdiagn            = false;
+    bool     auto_large_address_patch =  true;
   } compatibility;
 
   struct apis_s {

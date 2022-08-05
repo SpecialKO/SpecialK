@@ -204,15 +204,6 @@ SK_StartPerfMonThreads (void)
         SK_Thread_CreateEx ( pThunk )
       );
 
-      // Most WMI stuff will be replaced with NtDll in the future
-      //   -- for now, CPU monitoring is the only thing that has abandoned
-      //        WMI
-      //
-      if (pThunk != SK_MonitorCPU)
-      {
-        SK_RunOnce (SK_WMI_Init ());
-      }
-
       if (ReadPointerAcquire (phThread) != INVALID_HANDLE_VALUE)
       {
         dll_log->LogEx (false, L"tid=0x%04x\n",
@@ -995,6 +986,10 @@ void BasicInit (void)
 
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
+
+  // This installs hooks for COM's CoCreateInstance, used for various old DirectX
+  //   features in addition to Special K's WMI monitoring services
+  SK_WMI_Init ();
 }
 
 DWORD
