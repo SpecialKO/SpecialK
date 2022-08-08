@@ -155,8 +155,11 @@ D3D11Dev_CreateShaderResourceView_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      D3D11_SHADER_RESOURCE_VIEW_DESC desc = { .Format        = DXGI_FORMAT_UNKNOWN,
-                                               .ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D };
+      D3D11_SHADER_RESOURCE_VIEW_DESC desc =
+      {                .Format          = DXGI_FORMAT_UNKNOWN,
+                       .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
+        .Texture2D = { .MostDetailedMip = (UINT)-1 }
+      };
 
       if (pDesc != nullptr)
         desc = *pDesc;
@@ -169,8 +172,7 @@ D3D11Dev_CreateShaderResourceView_Override (
         pTex->GetDesc      (&texDesc);
 
         // SK only overrides the format of RenderTargets, anything else is not our fault.
-        if ( (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
-             (texDesc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) )
+        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
         {
           if (texDesc.SampleDesc.Count > 1)
           {
@@ -184,35 +186,63 @@ D3D11Dev_CreateShaderResourceView_Override (
             else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
           }
 
-          DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
-          UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
-
-          pTex->GetPrivateData (
-            SKID_DXGI_SwapChainBackbufferFormat,
-                                  &sizeOfFormat,
-                               &swapChainFormat );
-
-          if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+          //if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, texDesc.Format))
           {
-            if ( desc.Format == DXGI_FORMAT_UNKNOWN ||
-                 DirectX::MakeTypeless (desc.Format) !=
-                 DirectX::MakeTypeless (swapChainFormat) )
+            DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+            UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+
+            pTex->GetPrivateData (
+              SKID_DXGI_SwapChainBackbufferFormat,
+                                    &sizeOfFormat,
+                                 &swapChainFormat );
+
+            if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
             {
-              desc.Format =
-                swapChainFormat;
+              // Unsure how to handle arrays of SwapChain backbuffers... I don't think D3D11 supports that
+              SK_ReleaseAssert ( desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DARRAY &&
+                                 desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY );
 
-              if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+              if ( desc.Format == DXGI_FORMAT_UNKNOWN  ||
+                   DirectX::IsTypeless   (desc.Format) || // This is never valid, game might ask for typeless if it's using the same format as our backbuffer
+                   DirectX::MakeTypeless (desc.Format) !=
+                   DirectX::MakeTypeless (swapChainFormat) )
               {
-                const HRESULT hr =
-                  D3D11Dev_CreateShaderResourceView_Original (
-                    This, pResource,
-                      &desc, ppSRView );
+                SK_LOGi4 (
+                  L"SRV Format Override (Requested=%hs), (Returned=%hs) - [SwapChain]",
+                    SK_DXGI_FormatToStr (    desc.Format).data (),
+                    SK_DXGI_FormatToStr (swapChainFormat).data () );
 
-                if (SUCCEEDED (hr))
-                  return hr;
+                desc.Format =
+                  swapChainFormat;
+              }
+            }
+
+            // Not a SwapChain Backbuffer, so probably had its format changed for remastering
+            else
+            {
+              if ( desc.Format == DXGI_FORMAT_UNKNOWN  ||
+                   DirectX::IsTypeless   (desc.Format) ||
+                   DirectX::MakeTypeless (desc.Format) !=
+                   DirectX::MakeTypeless (texDesc.Format) )
+              {
+                SK_LOGi4 (
+                  L"SRV Format Override (Requested=%hs), (Returned=%hs) - Non-SwapChain Override",
+                    SK_DXGI_FormatToStr (   desc.Format).data (),
+                    SK_DXGI_FormatToStr (texDesc.Format).data () );
+
+                desc.Format =
+                  texDesc.Format;
               }
             }
           }
+
+          const HRESULT hr =
+            D3D11Dev_CreateShaderResourceView_Original (
+              This, pResource,
+                &desc, ppSRView );
+
+          if (SUCCEEDED (hr))
+            return hr;
         }
       }
     }

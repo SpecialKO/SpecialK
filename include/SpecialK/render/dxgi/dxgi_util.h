@@ -44,4 +44,17 @@ bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;
 
+// Check if SK is responsible for this resource having a different
+//   format than the underlying software initially requested/expects
+HRESULT
+SK_D3D11_CheckResourceFormatManipulation ( ID3D11Resource* pRes,
+                                           DXGI_FORMAT     expected = DXGI_FORMAT_UNKNOWN );
+
+void
+SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
+                                         DXGI_FORMAT     original );
+
+bool
+SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
+
 bool SK_D3D11_BltCopySurface (ID3D11Texture2D* pSrcTex, ID3D11Texture2D* pDstTex);

@@ -6201,6 +6201,9 @@ IDirect3D9*
 STDMETHODCALLTYPE
 Direct3DCreate9 (UINT SDKVersion)
 {
+  if (SK_COMPAT_IgnoreDxDiagnCall ())
+    return nullptr;
+
   WaitForInit_D3D9    ();
 
   if (! SK_TLS_Bottom ()->render->d3d9->ctx_init_thread)
@@ -6267,6 +6270,9 @@ __declspec (noinline)
 STDMETHODCALLTYPE
 Direct3DCreate9Ex (_In_ UINT SDKVersion, _Out_ IDirect3D9Ex **ppD3D)
 {
+  if (SK_COMPAT_IgnoreDxDiagnCall ())
+    return E_NOTIMPL;
+
   if (Direct3DCreate9On12Ex != nullptr)
   {
     SK_LOGi0 (L" >> Using D3D9On12");

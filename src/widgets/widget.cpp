@@ -870,6 +870,8 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
                                             BOOL Alt,
                                             BYTE vkCode )
 {
+  SK_ReleaseAssert (vkCode != 0x0);
+
   BOOL dispatched = FALSE;
 
   const auto uiMaskedKeyCode =
@@ -947,6 +949,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
   for ( auto keybind : special_keys )
   {
+    // Skip unbound keys!
+    if (keybind->vKey == 0)
+      continue;
+
     // Exact key tests are undesirable here, allow extra keys to be pressed
     if ( vkCode == keybind->vKey && ((! keybind->ctrl)  || Control) &&
                                     ((! keybind->alt)   || Alt)     &&

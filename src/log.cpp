@@ -586,6 +586,9 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+    return pLog;
+
   if (wszName != nullptr)
   {
     pLog->init   (wszName, L"wtc+,ccs=UTF-8");

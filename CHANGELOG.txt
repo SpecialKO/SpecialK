@@ -1,8 +1,45 @@
-﻿22.8.5-D3D9-IK
+﻿22.8.8-D3D9-IK
+==============
+ + Fixed MSAA while HDR remastering is enabled in many Unity engine games
+ + Fixed resolution mismatches in Disgaea 5 leading to black screens at startup
+
+22.8.7-D3D9-IK
+==============
+ + sRGB Passthrough (for SDR users) is automated now, Passthrough/Strip is the correct
+     setting in 99.9% of cases. The warning has been removed and the option is pending
+       removal.
+
+    >> For HDR, this cannot be automated and the sRGB Bypass option in the calibration
+         widget will remain, even after SDR Passthrough/Strip/Apply options are removed.
+
+
+ + Added experimental D3D11 Debug Layer integration in the D3D11 | Advanced (Debug) tab
+
+    - Unreal Engine games are not compatible with this, and you must force the layer on
+        using dxcpl if you want to use it in SK.
+
+     @ This is a developer-centric feature, if you don't know what the Debug Layer is,
+         then turning it on is probably going to utterly destroy performance for you :)
+
+22.8.6-D3D9-IK
+==============
+ + Still more sRGB and MSAA optimization for D3D11 games :)
+    >> sRGB Passthrough / Strip / Apply work as designed and usually apply immediately
+ + Fixed gamma regression in SDR mode in The Witness
+
+22.8.5.2-D3D9-IK
+================
+ + Fixed issue in EOS integration w/ repeating screenshots triggered when callbacks
+     for achievements that are already unlocked are sent by Epic
+ + Improved sRGB compatibility in Flip Model, removed some forms of MSAA support
+ + Removed assertion when games try to set HDR metadata in windowed mode and are not
+     natively DXGI Flip Model.
+
+22.8.5-D3D9-IK
 ==============
  + Added option to disable DxDiagn.dll from loading into games.
     $ DxDiag probes all available versions of DirectX and leads to problems
-        (especially in 32-bit software!)
+        (especially in 32-bit software)
  + Added option to disable Large Address Aware auto-patching on affected 32-bit games
 
     [Compatibility.General]

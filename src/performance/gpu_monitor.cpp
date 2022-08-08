@@ -293,147 +293,154 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].nv_gpuid = __nv_gpus [i].first;
 
         NvAPI_Status
-              status =
+              status = NVAPI_OK;
+
+        if (stats.gpus [i].amortization.phase0 % 2 == 0)
+        {
           NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
 
-        if (status == NVAPI_OK)
-        {
-          stats.gpus [i].loads_percent.gpu =
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage;
-          stats.gpus [i].loads_percent.fb =
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage;
-          stats.gpus [i].loads_percent.vid =
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
-          stats.gpus [i].loads_percent.bus =
-            psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
-        }
-
-        else
-        {
-          stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
-          stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
-          stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
-          stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
-        }
-
-        NV_GPU_THERMAL_SETTINGS
-          thermal         = {                         };
-          thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
-
-
-        // This is needed to fix some problems with Mirilis Action injecting itself
-        //   and immediately breaking NvAPI.
-        if (stats.gpus [i].temps_c.supported)
-        {
-          status =
-            NvAPI_GPU_GetThermalSettings ( gpu,
-                                             NVAPI_THERMAL_TARGET_ALL,
-                                               &thermal );
-
-          if (status != NVAPI_OK)
-                stats.gpus [i].temps_c.supported = false;
-        } if (! stats.gpus [i].temps_c.supported)
-              status  = NVAPI_ERROR;
-
-
-        if (status == NVAPI_OK)
-        {
-          for (NvU32 j = 0; j < std::min (3UL, thermal.count); j++)
+          if (status == NVAPI_OK)
           {
-#ifdef SMOOTH_GPU_UPDATES
-            if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
-              stats.gpus [i].temps_c.gpu = (stats.gpus[i].temps_c.gpu + thermal.sensor [j].currentTemp) / 2;
-#else
-            if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
-              stats.gpus [i].temps_c.gpu =
-                      static_cast <float> (thermal.sensor [j].currentTemp);
-            if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_MEMORY)
-              stats.gpus [i].temps_c.ram = thermal.sensor [j].currentTemp;
-            if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_POWER_SUPPLY)
-              stats.gpus [i].temps_c.psu = thermal.sensor [j].currentTemp;
-            if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_BOARD)
-              stats.gpus [i].temps_c.pcb = thermal.sensor [j].currentTemp;
-#endif
+            stats.gpus [i].loads_percent.gpu =
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage;
+            stats.gpus [i].loads_percent.fb =
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage;
+            stats.gpus [i].loads_percent.vid =
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
+            stats.gpus [i].loads_percent.bus =
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
           }
+
+          else
+          {
+            stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
+            stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
+            stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+            stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
+          }
+
+          NV_GPU_THERMAL_SETTINGS
+            thermal         = {                         };
+            thermal.version = NV_GPU_THERMAL_SETTINGS_VER;
+
+
+          // This is needed to fix some problems with Mirilis Action injecting itself
+          //   and immediately breaking NvAPI.
+          if (stats.gpus [i].temps_c.supported)
+          {
+            status =
+              NvAPI_GPU_GetThermalSettings ( gpu,
+                                               NVAPI_THERMAL_TARGET_ALL,
+                                                 &thermal );
+
+            if (status != NVAPI_OK)
+                  stats.gpus [i].temps_c.supported = false;
+          } if (! stats.gpus [i].temps_c.supported)
+                status  = NVAPI_ERROR;
+
+
+          if (status == NVAPI_OK)
+          {
+            for (NvU32 j = 0; j < std::min (3UL, thermal.count); j++)
+            {
+#ifdef SMOOTH_GPU_UPDATES
+              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
+                stats.gpus [i].temps_c.gpu = (stats.gpus[i].temps_c.gpu + thermal.sensor [j].currentTemp) / 2;
+#else
+              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
+                stats.gpus [i].temps_c.gpu =
+                        static_cast <float> (thermal.sensor [j].currentTemp);
+              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_MEMORY)
+                stats.gpus [i].temps_c.ram = thermal.sensor [j].currentTemp;
+              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_POWER_SUPPLY)
+                stats.gpus [i].temps_c.psu = thermal.sensor [j].currentTemp;
+              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_BOARD)
+                stats.gpus [i].temps_c.pcb = thermal.sensor [j].currentTemp;
+#endif
+            }
+          }
+
+          else
+            stats.gpus [i].temps_c.supported = false;
         }
 
-        else
-          stats.gpus [i].temps_c.supported = false;
 
-
-        NvU32                                                          pcie_lanes = 0;
-        if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
-                                    stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
-
-        NV_PCIE_INFO
-           pcieinfo         = {              };
-           pcieinfo.version = NV_PCIE_INFO_VER;
-
-        if (            NvAPI_GPU_GetPCIEInfo != nullptr &&
-            NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
+        if (stats.gpus [i].amortization.phase0 % 3 == 0)
         {
-          stats.gpus [i].hwinfo.pcie_gen           =
-            pcieinfo.info [0].unknown5;               //states [pstate].pciLinkRate;
-          stats.gpus [i].hwinfo.pcie_lanes         =
-            pcieinfo.info [0].unknown6;              //pstates [pstate].pciLinkWidth;
-          stats.gpus [i].hwinfo.pcie_transfer_rate =
-            pcieinfo.info [0].unknown0;              //pstates [pstate].pciLinkTransferRate;
-        }
+          NvU32                                                          pcie_lanes = 0;
+          if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
+                                      stats.gpus [i].hwinfo.pcie_lanes = pcie_lanes;
 
-        else {
-          stats.gpus [i].hwinfo.pcie_gen           = stats0.gpus [i].hwinfo.pcie_gen;
-          stats.gpus [i].hwinfo.pcie_lanes         = stats0.gpus [i].hwinfo.pcie_lanes;
-          stats.gpus [i].hwinfo.pcie_transfer_rate = stats0.gpus [i].hwinfo.pcie_transfer_rate;
-        }
+          NV_PCIE_INFO
+             pcieinfo         = {              };
+             pcieinfo.version = NV_PCIE_INFO_VER;
 
-        NvU32 mem_width = 0,
-              mem_loc   = 0,
-              mem_type  = 0;
+          if (            NvAPI_GPU_GetPCIEInfo != nullptr &&
+              NVAPI_OK == NvAPI_GPU_GetPCIEInfo (gpu, &pcieinfo))
+          {
+            stats.gpus [i].hwinfo.pcie_gen           =
+              pcieinfo.info [0].unknown5;               //states [pstate].pciLinkRate;
+            stats.gpus [i].hwinfo.pcie_lanes         =
+              pcieinfo.info [0].unknown6;              //pstates [pstate].pciLinkWidth;
+            stats.gpus [i].hwinfo.pcie_transfer_rate =
+              pcieinfo.info [0].unknown0;              //pstates [pstate].pciLinkTransferRate;
+          }
 
-        if (            NvAPI_GPU_GetFBWidthAndLocation != nullptr &&
-            NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
-                         stats.gpus [i].hwinfo.mem_bus_width = mem_width;
+          else {
+            stats.gpus [i].hwinfo.pcie_gen           = stats0.gpus [i].hwinfo.pcie_gen;
+            stats.gpus [i].hwinfo.pcie_lanes         = stats0.gpus [i].hwinfo.pcie_lanes;
+            stats.gpus [i].hwinfo.pcie_transfer_rate = stats0.gpus [i].hwinfo.pcie_transfer_rate;
+          }
 
-        else stats.gpus [i].hwinfo.mem_bus_width =
-            stats0.gpus [i].hwinfo.mem_bus_width;
+          NvU32 mem_width = 0,
+                mem_loc   = 0,
+                mem_type  = 0;
+
+          if (            NvAPI_GPU_GetFBWidthAndLocation != nullptr &&
+              NVAPI_OK == NvAPI_GPU_GetFBWidthAndLocation (gpu, &mem_width, &mem_loc))
+                           stats.gpus [i].hwinfo.mem_bus_width = mem_width;
+
+          else stats.gpus [i].hwinfo.mem_bus_width =
+              stats0.gpus [i].hwinfo.mem_bus_width;
 
 
-        if (            NvAPI_GPU_GetRamType != nullptr &&
-            NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
-                   stats.gpus [i].hwinfo.mem_type = mem_type;
+          if (            NvAPI_GPU_GetRamType != nullptr &&
+              NVAPI_OK == NvAPI_GPU_GetRamType (gpu, &mem_type))
+                     stats.gpus [i].hwinfo.mem_type = mem_type;
 
-        else stats.gpus [i].hwinfo.mem_type =
-            stats0.gpus [i].hwinfo.mem_type;
+          else stats.gpus [i].hwinfo.mem_type =
+              stats0.gpus [i].hwinfo.mem_type;
 
-        NV_DISPLAY_DRIVER_MEMORY_INFO
-          meminfo         = {                               };
-          meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
+          NV_DISPLAY_DRIVER_MEMORY_INFO
+            meminfo         = {                               };
+            meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
 
-        if (NVAPI_OK == NvAPI_GPU_GetMemoryInfo (gpu, &meminfo))
-        {
-          int64_t local =
-            (meminfo.availableDedicatedVideoMemory) -
-            (meminfo.curAvailableDedicatedVideoMemory);
+          if (NVAPI_OK == NvAPI_GPU_GetMemoryInfo (gpu, &meminfo))
+          {
+            int64_t local =
+              (meminfo.availableDedicatedVideoMemory) -
+              (meminfo.curAvailableDedicatedVideoMemory);
 
-          stats.gpus [i].memory_B.local    = local                        * 1024LL;
-          stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
+            stats.gpus [i].memory_B.local    = local                        * 1024LL;
+            stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
 
-          stats.gpus [i].memory_B.total =
-            ((meminfo.dedicatedVideoMemory) -
-             (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
+            stats.gpus [i].memory_B.total =
+              ((meminfo.dedicatedVideoMemory) -
+               (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
 
-          // Compute Non-Local
-          stats.gpus [i].memory_B.nonlocal =
-           ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
-        }
+            // Compute Non-Local
+            stats.gpus [i].memory_B.nonlocal =
+             ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
+          }
 
-        else
-        {
-          stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
-          stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;
+          else
+          {
+            stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
+            stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;
 
-          stats.gpus [i].memory_B.total    = stats0.gpus [i].memory_B.total;
-          stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
+            stats.gpus [i].memory_B.total    = stats0.gpus [i].memory_B.total;
+            stats.gpus [i].memory_B.nonlocal = stats0.gpus [i].memory_B.nonlocal;
+          }
         }
 
       //SwitchToThreadMinPageFaults ();

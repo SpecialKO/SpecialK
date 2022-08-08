@@ -95,6 +95,17 @@ SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
     L"Created D3D11 Object: %ws", kName.c_str ()
   );
 
+  //
+  // D3D has separate Private Data GUIDs for Wide and ANSI names,
+  //   and various parts of the debug layer use one or the other.
+  //
+  //  * D3D11 mostly uses ANSI, but it is best to just store
+  //      all possible text encodings and cover all bases.
+  //
+
+  D3D_SET_OBJECT_NAME_N_A (pDevChild, 0, nullptr);
+  D3D_SET_OBJECT_NAME_N_W (pDevChild, 0, nullptr);
+
   D3D_SET_OBJECT_NAME_N_W ( pDevChild,
                    static_cast <UINT> ( kName.length () ),
                                         kName.data   ()
@@ -969,9 +980,12 @@ SK_D3D11_RemoveUndesirableFlags (UINT* Flags) noexcept
   const UINT original =
     *Flags;
 
-  // The Steam overlay behaves strangely when this is present
-  *Flags =
-    ( original & ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY );
+  if (! config.render.dxgi.debug_layer)
+  {
+    // The Steam overlay behaves strangely when this is present
+    *Flags =
+      ( original & ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY );
+  }
 
   return
     original;
@@ -1000,89 +1014,62 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
   D3D11_RESOURCE_DIMENSION res_dim = { };
   pResource->GetType     (&res_dim);
 
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try
-  {
 #ifndef NO_UNITY_HACKS
-    if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  {
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex2D (pResource);
+    if (pTex2D.p != nullptr)
     {
-      SK_ComQIPtr <ID3D11Texture2D>
-          pTex2D (pResource);
-      if (pTex2D.p != nullptr)
+      D3D11_TEXTURE2D_DESC
+                        texDesc = { };
+      pTex2D->GetDesc (&texDesc);
+
+      if (pDesc != nullptr)
       {
-        D3D11_TEXTURE2D_DESC
-                          texDesc = { };
-        pTex2D->GetDesc (&texDesc);
+        // For HDR Retrofit, engine may be really stubbornly
+        //   insisting this is some other format.
+        if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+            (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
+          ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                            texDesc.Format;
 
-        if (pDesc != nullptr)
+        // Only backbuffers can be casted if they are already a fully-typed format
+        ret =
+          bWrapped ?
+            pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
+                     :
+            D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
+                                                       pDesc, ppRTView );
+
+        // Failed, so it's probably not a SwapChain backbuffer :)
+        if (FAILED (ret))
         {
-          // For HDR Retrofit, engine may be really stubbornly
-          //   insisting this is some other format.
-          if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-              (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
-            ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
-                                              texDesc.Format;
-
-          SK_ReleaseAssert ( (! DirectX::IsSRGB (pDesc->Format)) ||
-                                DirectX::IsTypeless (texDesc.Format) );
-
-          // Only backbuffers can be casted if they are already a fully-typed format
-          if (! DirectX::IsTypeless (texDesc.Format))
-          {
-            ret =
-              bWrapped ?
-                pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
-                         :
-                D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
-                                                           pDesc, ppRTView );
-
-            // Failed, so it's probably not a SwapChain backbuffer :)
-            if (FAILED (ret))
-            {
-              ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
-                                                texDesc.Format;
-            }
-
-            else
-              return ret;
-          }
+          //((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+          //                                  texDesc.Format;
         }
 
-        if (DirectX::IsTypeless (texDesc.Format))
-          SK_ReleaseAssert ( pDesc         != nullptr             &&
-                             pDesc->Format != DXGI_FORMAT_UNKNOWN &&
-                             DirectX::MakeSRGB (DirectX::MakeTypeless (pDesc->Format)) ==
-                                                   DirectX::MakeSRGB (texDesc.Format) );
+        else
+          return ret;
       }
+
+      if (DirectX::IsTypeless (texDesc.Format))
+        SK_ReleaseAssert ( pDesc         != nullptr             &&
+                           pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+                        (! DirectX::IsTypeless (pDesc->Format)) &&
+                           DirectX::MakeSRGB (DirectX::MakeTypeless (pDesc->Format)) ==
+                                                 DirectX::MakeSRGB (texDesc.Format) );
     }
+  }
 
 #endif
 
-    ret =
-      bWrapped ?
-        pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
-                 :
-        D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
-                                                   pDesc, ppRTView );
-  }
-
-  catch (const SK_SEH_IgnoredException&)
-  {
-    ret =
-      bWrapped ?
-        pDev->CreateRenderTargetView ( pResource, nullptr, ppRTView )
-                 :
-        D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
-                                                   nullptr, ppRTView );
-  }
-  SK_SEH_RemoveTranslator (orig_se);
-
-  return ret;
+  return
+    bWrapped ?
+      pDev->CreateRenderTargetView ( pResource, pDesc, ppRTView )
+               :
+      D3D11Dev_CreateRenderTargetView_Original ( pDev,  pResource,
+                                                 pDesc, ppRTView );
 }
 
 HRESULT
@@ -1109,7 +1096,6 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   ///if (bWrapped)
   ///  return _Finish (pDesc);
 
-
   // Unity throws around NULL for pResource
   if (pResource != nullptr)
   {
@@ -1134,130 +1120,108 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
         D3D11_TEXTURE2D_DESC  tex_desc = { };
         pTex->GetDesc       (&tex_desc);
 
-        if (DirectX::IsTypeless (desc.Format))
+        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
         {
-          newFormat =
-            tex_desc.Format;
-        }
-
-        // MSAA overrides may cause games to try and create single-sampled RTVs to
-        //   multi-sampled targets, so let's give them some assistance to fix this.
-        if (tex_desc.SampleDesc.Count > 1)
-        {
-          if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
+          //if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, tex_desc.Format))
           {
-            SK_RunOnce ([]{
-              SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
-            });
-            
-            desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
-          }
-        }
-        else if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
-                 desc.ViewDimension =  D3D11_RTV_DIMENSION_TEXTURE2D;
-
-        // If the SwapChain was sRGB originally, and this RTV is
-        //   the SwapChain's backbuffer, create an sRGB view
-        //     (of the now linear SwapChain).
-        extern bool bOriginallysRGB;
-        if (        bOriginallysRGB || __SK_HDR_16BitSwap)
-        {                              // HDR handles the mismatch on its own
-          SK_ComPtr   <ID3D11Texture2D> pBackbuffer;
-          SK_ComQIPtr <IDXGISwapChain>  pSwapChain (
-            SK_GetCurrentRenderBackend ().swapchain);
-
-          if (pSwapChain.p != nullptr)
-          {
-            if ( SUCCEEDED (
-                   pSwapChain->GetBuffer ( 0, IID_ID3D11Texture2D,
-                   (void **)&pBackbuffer.p) )
-               )
+            if (DirectX::IsTypeless (desc.Format))
             {
-              if (pTex.IsEqualObject (pBackbuffer.p))
-              {
-                desc.Format = DXGI_FORMAT_420_OPAQUE;
+              newFormat =
+                tex_desc.Format;
+            }
 
-                if (bOriginallysRGB && (! __SK_HDR_16BitSwap))
-                  tex_desc.Format = DirectX::MakeSRGB (tex_desc.Format);
-                else
-                  tex_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            // MSAA overrides may cause games to try and create single-sampled RTVs to
+            //   multi-sampled targets, so let's give them some assistance to fix this.
+            if (tex_desc.SampleDesc.Count > 1)
+            {
+              SK_RunOnce ([]{
+                SK_LOGi0 (L"Multisampled SwapChain Backbuffer RTV Created");
+              });
+
+              if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
+              {
+                // This actually won't work if the game uses a depth buffer, since it also
+                //   must be multi-sampled.
+                // 
+                //  * In future, SetPrivateDataInterface (...) a multisampled intermediate
+                //      buffer the game can use and we'll do resolve for it.
+                SK_RunOnce ([]{
+                  SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
+                });
+                
+                desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
               }
             }
+
+            else if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
+                     desc.ViewDimension =  D3D11_RTV_DIMENSION_TEXTURE2D;
+
+            // If the SwapChain was sRGB originally, and this RTV is
+            //   the SwapChain's backbuffer, create an sRGB view
+            //  (of the now typeless SwapChain buffers SK manages).
+            UINT        size = sizeof (DXGI_FORMAT);
+            DXGI_FORMAT internalSwapChainFormat;
+
+            // Is this a surface managed by SK's SwapChain wrapper?
+            if ( SUCCEEDED ( pResource->GetPrivateData (
+                               SKID_DXGI_SwapChainBackbufferFormat, &size,
+                                 &internalSwapChainFormat ) ) )
+            { // Yep
+              //extern bool
+              //    bOriginallysRGB;
+              //if (bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
+              //  //desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+              //} // Game expects sRGB
+
+              if (                 __SK_HDR_16BitSwap) {
+                desc.Format =                                DXGI_FORMAT_R16G16B16A16_FLOAT;
+                SK_ReleaseAssert (internalSwapChainFormat == DXGI_FORMAT_R16G16B16A16_FLOAT);
+              } // Who cares what game expects, SK is going 16bpc HDR(!!)
+
+              else
+              {
+                if (                    pDesc != nullptr && (
+                                         desc.Format  == DXGI_FORMAT_UNKNOWN ||
+                    DirectX::IsTypeless (desc.Format)) /* Add Check for Bitness */)
+                {
+                  desc.Format = internalSwapChainFormat;
+                } // Game expects UNORM or sRGB, SK has Typeless internally, it'll work.
+
+                else if (DirectX::MakeTypeless (desc.Format) != tex_desc.Format ||
+                                               pDesc == nullptr)
+                {
+                  if (pDesc != nullptr)
+                  {
+                    SK_RunOnce ([]{
+                      SK_ImGui_Warning (L"Incompatible SwapChain RTV Format Requested");
+                    });
+                  }
+
+                  desc.Format = internalSwapChainFormat;
+                } // Give it the wrong type anyway or stuff will blow-up!
+              }
+            }
+
+            if ( SK_D3D11_OverrideDepthStencil (newFormat))
+              desc.Format = newFormat;
           }
         }
 
-        DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
-        UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+        if (DirectX::IsTypeless (desc.Format))
+          desc.Format = DirectX::MakeTypelessUNORM (
+                        DirectX::MakeTypelessFLOAT (desc.Format));
 
-        pTex->GetPrivateData (
-          SKID_DXGI_SwapChainBackbufferFormat,
-                                &sizeOfFormat,
-                             &swapChainFormat );
-
-        if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
-        {
-          if (                        desc.Format  == DXGI_FORMAT_UNKNOWN ||
-               DirectX::IsTypeless   (desc.Format)                        ||
-               DirectX::MakeTypeless (desc.Format) !=
-               DirectX::MakeTypeless (swapChainFormat) )
-          {
-            tex_desc.Format = swapChainFormat;
-            desc.Format     = swapChainFormat;
-          }
-        }
-
-        if (desc.Format == DXGI_FORMAT_UNKNOWN)
-        {
-          auto typeless =
-            DirectX::MakeTypeless (tex_desc.Format);
-
-          auto float_type =
-            DirectX::MakeTypelessFLOAT (typeless),
-               UNORM_type =
-            DirectX::MakeTypelessUNORM (typeless);
-
-          desc.Format =
-            DirectX::IsTypeless (float_type) ? UNORM_type
-                                             : float_type;
-        }
-
-        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
-          desc.Format = newFormat;
-
-        if ( DirectX::IsTypeless (desc.Format) ||
-                                  desc.Format == DXGI_FORMAT_UNKNOWN )
-        {
-          if (DirectX::IsTypeless (desc.Format))
-          {
-            auto typeless =
-              DirectX::MakeTypeless (desc.Format);
-
-            auto float_type =
-              DirectX::MakeTypelessFLOAT (typeless),
-                 UNORM_type =
-              DirectX::MakeTypelessUNORM (typeless);
-
-            desc.Format =
-              DirectX::IsTypeless (float_type) ? UNORM_type
-                                               : float_type;
-          }
-
-          if (DirectX::IsTypeless (desc.Format))
-          {
-            // We can't use Format Unknown if the base texture is typeless...
-            SK_ReleaseAssert (! DirectX::IsTypeless (tex_desc.Format));
-
-            desc.Format = DXGI_FORMAT_UNKNOWN;
-          }
-        }
-
-        if (pDesc != nullptr || swapChainFormat != DXGI_FORMAT_UNKNOWN)
+        try
         {
           const HRESULT hr =
             _Finish (&desc);
 
           if (SUCCEEDED (hr))
             return hr;
+        }
+        catch (...)
+        {
+          return S_OK;
         }
       }
     }
@@ -1615,6 +1579,19 @@ const uint32_t cache_tag    =
     _Finish ();
 }
 
+bool
+SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
+{
+  if (                        src  ==                        dst ||
+      (DirectX::MakeTypeless (src) == DirectX::MakeTypeless (dst)
+                                   && DirectX::IsTypeless   (dst)))
+  {
+    return true;
+  }
+
+  return false;
+};
+
 void
 STDMETHODCALLTYPE
 SK_D3D11_CopySubresourceRegion_Impl (
@@ -1683,27 +1660,29 @@ SK_D3D11_CopySubresourceRegion_Impl (
       pSrcTex->GetDesc (&srcDesc);
       pDstTex->GetDesc (&dstDesc);
 
-      if ( DirectX::MakeTypeless (srcDesc.Format) !=
-           DirectX::MakeTypeless (dstDesc.Format) &&
-           __SK_HDR_16BitSwap )
+      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+           FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
       {
-        SK_RunOnce ([&]
+        if (! SK_D3D11_IsDirectCopyCompatible (srcDesc.Format, dstDesc.Format))
         {
-          SK_LOGi0 (
-            L"CopySubresourceRegion (...) called using incompatible"
-            L" formats (src=%hs), (dst=%hs), attempting to fix with BltSurfaceCopy",
-              SK_DXGI_FormatToStr (srcDesc.Format).data (),
-              SK_DXGI_FormatToStr (dstDesc.Format).data () );
-        });
+          SK_RunOnce ([&]
+          {
+            SK_LOGi0 (
+              L"CopySubresourceRegion (...) called using incompatible"
+              L" formats (src=%hs), (dst=%hs), attempting to fix with BltSurfaceCopy",
+                SK_DXGI_FormatToStr (srcDesc.Format).data (),
+                SK_DXGI_FormatToStr (dstDesc.Format).data () );
+          });
 
-        // NOTE: This does not replicate the actual -sub- region part of the
-        //         API and will probably break things if it's ever relied on.
+          // NOTE: This does not replicate the actual -sub- region part of the
+          //         API and will probably break things if it's ever relied on.
 
-        extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
-                                              ID3D11Texture2D* pDstTex );
+          extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
+                                                ID3D11Texture2D* pDstTex );
 
-        if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-          return;
+          if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+            return;
+        }
       }
     }
   }
@@ -1979,62 +1958,82 @@ SK_D3D11_ResolveSubresource_Impl (
       }
 #endif
 
-      if (DirectX::MakeTypeless (dstDesc.Format) != DirectX::MakeTypeless (Format) ||
-          DirectX::MakeTypeless (dstDesc.Format) != DirectX::MakeTypeless (texDesc.Format))
+      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format))
+        || FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, texDesc.Format)) )
       {
-        SK_ScopedBool decl_tex_scope (
-          SK_D3D11_DeclareTexInjectScope ()
-        );
-
-        bool bSurrogate = false;
-
-        UINT size =
-             sizeof (void *);
-
-        if ( SUCCEEDED (
-               pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
-                                           &size, &pTempTex.p )
-             )
-           )
-        {
-          D3D11_TEXTURE2D_DESC surrogateDesc = { };
-          pTempTex->GetDesc  (&surrogateDesc);
-
-          if ( DirectX::MakeTypeless (surrogateDesc.Format) ==
-               DirectX::MakeTypeless (Format) )
-          {
-            bSurrogate = true;
-
-            SK_LOGi2 (L"ResolveSubresource using existing surrogate resolve buffer.");
-          }
-
-          else
-          {
-            SK_LOGi2 (L"ResolveSubresource cannot use existing surrogate resolve buffer.");
-            pTempTex.Release ();
-          }
+        // Deduce FP / UNORM Resolve Format when game thinks the resources have a
+        //   different format than SK has assigned them...
+        if (       ! DirectX::IsTypeless (dstDesc.Format)) {
+          Format = dstDesc.Format;
+        } else if (! DirectX::IsTypeless (texDesc.Format)) {
+          Format = texDesc.Format;
+        } else {
+          Format = DirectX::MakeTypelessUNORM (
+                   DirectX::MakeTypelessFLOAT (dstDesc.Format));
         }
 
-        dstDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-        dstDesc.Format     = DirectX::MakeTypeless (Format);
-
-        if (                                           nullptr != pTempTex.p ||
-            SUCCEEDED (pDev->CreateTexture2D (&dstDesc, nullptr, &pTempTex.p)))
+        // Handle the case where ResolveSubresource (...) cannot work with
+        //   the existing two surfaces (extra proxy surface(s) will be used)
+        if (! SK_D3D11_IsDirectCopyCompatible (texDesc.Format, dstDesc.Format))
         {
-          if (! bSurrogate)
+          SK_ScopedBool decl_tex_scope (
+            SK_D3D11_DeclareTexInjectScope ()
+          );
+
+          bool bSurrogate = false;
+
+          UINT size =
+               sizeof (void *);
+
+          if ( SUCCEEDED (
+                 pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                             &size, &pTempTex.p )
+               )
+             )
           {
-            pDstTex->SetPrivateDataInterface ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
-                                                 pTempTex.p );
+            D3D11_TEXTURE2D_DESC surrogateDesc = { };
+            pTempTex->GetDesc  (&surrogateDesc);
+
+            if ( DirectX::MakeTypeless (surrogateDesc.Format) ==
+                 DirectX::MakeTypeless (Format) )
+            {
+              bSurrogate = true;
+
+              SK_LOGi2 (L"ResolveSubresource using existing surrogate resolve buffer.");
+            }
+
+            else
+            {
+              SK_LOGi2 (L"ResolveSubresource cannot use existing surrogate resolve buffer.");
+              pTempTex.Release ();
+            }
           }
 
-          _Finish                 ( pTempTex, pSrcTex, Format );
-      if (SK_D3D11_BltCopySurface ( pTempTex, pDstTex ))
+          dstDesc.BindFlags |= D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+          dstDesc.Format     = DirectX::MakeTypeless (Format);
+
+          if (                                           nullptr != pTempTex.p ||
+              SUCCEEDED (
+                D3D11Dev_CreateTexture2D_Original (pDev,&dstDesc, nullptr, &pTempTex.p)))
+              //pDev->CreateTexture2D (&dstDesc, nullptr, &pTempTex.p)))
+          {
+            if (! bSurrogate)
+            {
+              pDstTex->SetPrivateDataInterface ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+                                                   pTempTex.p );
+            }
+
+            _Finish                     ( pTempTex, pSrcTex, Format );
+            if (SK_D3D11_BltCopySurface ( pTempTex, pDstTex ))
+              return;
+          }
+          
+          SK_LOGi0 (
+            L"ResolveSubresource Failed on Incompatible SK Manipulated Surfaces"
+          );
+
           return;
         }
-        
-        SK_LOGi0 (L"ResolveSubresource Failed on incompatible surfaces");
-
-        return;
       }
     }
   }
@@ -2159,43 +2158,48 @@ SK_D3D11_CopyResource_Impl (
       pSrcTex->GetDesc (&src_desc);
       pDstTex->GetDesc (&dst_desc);
 
-      if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-            (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
-             src_desc.Format != dst_desc.Format)
+      //if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+      //      (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
+      //       src_desc.Format != dst_desc.Format)
+      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, src_desc.Format)) ||
+           FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dst_desc.Format)) )
       {
-        if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+        if (! SK_D3D11_IsDirectCopyCompatible (src_desc.Format, dst_desc.Format))
         {
-          if (config.system.log_level > 0)
+          if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
           {
-            static bool          warned_once = false;
-            if (! std::exchange (warned_once, true))
+            if (config.system.log_level > 0)
             {
-              SK_ImGui_Warning (
-                SK_FormatStringW (
-                  L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
-                    SK_DXGI_FormatToStr (src_desc.Format).data (),
-                    SK_DXGI_FormatToStr (dst_desc.Format).data ()
-                ).c_str ()
-              );
+              static bool          warned_once = false;
+              if (! std::exchange (warned_once, true))
+              {
+                SK_ImGui_Warning (
+                  SK_FormatStringW (
+                    L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
+                      SK_DXGI_FormatToStr (src_desc.Format).data (),
+                      SK_DXGI_FormatToStr (dst_desc.Format).data ()
+                  ).c_str ()
+                );
+              }
             }
           }
-        }
 
-        else
-        {
-          if (config.system.log_level > 0)
+          else
           {
-            static bool          warned_once = false;
-            if (! std::exchange (warned_once, true))
+            if (config.system.log_level > 0)
             {
-              SK_ImGui_Warning (
-                L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
-              );
+              static bool          warned_once = false;
+              if (! std::exchange (warned_once, true))
+              {
+                SK_ImGui_Warning (
+                  L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
+                );
+              }
             }
           }
-        }
 
-        return;
+          return;
+        }
       }
     }
   }
@@ -2334,19 +2338,6 @@ SK_D3D11_ClearResidualDrawState (UINT& d_idx, SK_TLS* pTLS = SK_TLS_Bottom ())
   //  pTLS_d3d11.pOrigBlendState = nullptr;
   //}
 
-  if (pTLS_d3d11.pRTVOrig != nullptr)
-  {
-    ID3D11RenderTargetView* pRTVOrig =
-      pTLS_d3d11.pRTVOrig;
-
-    if (pDevCtx != nullptr)
-    {
-      pDevCtx->OMSetRenderTargets (1, &pRTVOrig, nullptr);
-    }
-
-    pTLS_d3d11.pRTVOrig = nullptr;
-  }
-
   if (pTLS_d3d11.pDSVOrig != nullptr)
   {
     ID3D11DepthStencilView *pDSVOrig =
@@ -2360,15 +2351,7 @@ SK_D3D11_ClearResidualDrawState (UINT& d_idx, SK_TLS* pTLS = SK_TLS_Bottom ())
       pDevCtx->OMGetRenderTargets ( 8, &pRTV [0].p,
                                        &pDSV    .p );
 
-      const UINT OMRenderTargetCount =
-        calc_count (&pRTV [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
-
-      pDevCtx->OMSetRenderTargets (OMRenderTargetCount, &pRTV [0].p, pDSVOrig);
-
-      for (UINT i = 0; i < OMRenderTargetCount; i++)
-      {
-        pRTV [i] = nullptr;
-      }
+      pDevCtx->OMSetRenderTargets ( 8, &pRTV [0].p, pDSVOrig );
 
       pTLS_d3d11.pDSVOrig = nullptr;
     }
@@ -3676,7 +3659,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     if ( rb.d3d11.immediate_ctx == nullptr ||
          rb.device.p            == nullptr )
     {
-      if (config.system.log_level > 0)
+      if (config.system.log_level > 2)
       {
         SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
       }
@@ -3692,7 +3675,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
     if (rb.device.p != pDevice.p)
     {
-      if (config.system.log_level > 0)
+      if (config.system.log_level > 2)
       {
         SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
       }
@@ -4891,15 +4874,18 @@ D3D11Dev_CreateTexture2D_Impl (
       This->QueryInterface (IID_ID3D11On12Device, (void **)&pD3D11On12Device.p);
 
                                        // Ansel would deadlock us while calling QueryInterface in getDevice <...>
+#if 1
   if (pD3D11On12Device.p != nullptr || (rb.api != SK_RenderAPI::D3D11 && rb.api != SK_RenderAPI::Reserved))
   {
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
+#endif
 
   auto rb_device =
     rb.getDevice <ID3D11Device> ();
 
+#if 1
   if (rb_device.p != nullptr && (! rb_device.IsEqualObject (This)))
   {
     if (config.system.log_level > 0)
@@ -4910,6 +4896,7 @@ D3D11Dev_CreateTexture2D_Impl (
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
+#endif
 
   // Only from devices belonging to the game, no wrappers or Ansel
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
@@ -4992,74 +4979,6 @@ D3D11Dev_CreateTexture2D_Impl (
 
       case SK_GAME_ID::ShinMegamiTensei3:
       {
-        //if (! DirectX::IsCompressed (pDesc->Format) )
-        if ( ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ||
-               (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET) || 
-               (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) ) )
-        {
-          if ( pDesc->Width  == 1280 &&
-               pDesc->Height == 720 )
-          {
-            DXGI_SWAP_CHAIN_DESC swapDesc = { };
-          
-            if (pSwapChain != nullptr)
-            {   pSwapChain->GetDesc (&swapDesc);
-          
-              pDesc->Width  = swapDesc.BufferDesc.Width;
-              pDesc->Height = swapDesc.BufferDesc.Height;
-            }
-          }
-          ////
-          ////else
-          ////if ( pDesc->Width  == 1920 &&
-          ////     pDesc->Height == 1080 )
-          ////{
-          ////  SK_ComQIPtr <IDXGISwapChain>
-          ////           pSwapChain (
-          ////         rb.swapchain );
-          ////  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-          ////
-          ////  if (pSwapChain != nullptr)
-          ////  {   pSwapChain->GetDesc (&swapDesc);
-          ////
-          ////    pDesc->Width  = swapDesc.BufferDesc.Width;
-          ////    pDesc->Height = swapDesc.BufferDesc.Height;
-          ////  }
-          ////}
-          ////
-          ////else
-          if ( pDesc->Width  == 1080 &&
-               pDesc->Height == 720 )
-          {
-            DXGI_SWAP_CHAIN_DESC swapDesc = { };
-          
-            if (pSwapChain != nullptr)
-            {   pSwapChain->GetDesc (&swapDesc);
-          
-              pDesc->Width  *= 2;
-              pDesc->Height *= 2;
-            }
-          }
-
-          else
-          if ( pDesc->Width  == 512 &&
-               pDesc->Height == 512 )
-          {
-          //pDesc->Width  = 8192;
-          //pDesc->Height = 8192;
-          }
-
-          else if (pDesc->Width <= 640)
-          {
-            //pDesc->Width  *= 3;
-            //pDesc->Height *= 3;
-          }
-          
-          // 8x MSAA baby !!
-          if (pDesc->SampleDesc.Count == 2)
-          {   pDesc->SampleDesc.Count = 8;
-          }
-        }
       } break;
 #else
       case SK_GAME_ID::ChronoCross:
@@ -5145,7 +5064,12 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
 
   //--- HDR Format Wars (or at least format re-training) ---
-  if (                   bIgnoreThisUpload == false &&
+  DXGI_SWAP_CHAIN_DESC      swapDesc = { };
+  if (pSwapChain != nullptr)
+      pSwapChain->GetDesc (&swapDesc);
+
+  if (                           __SK_HDR_16BitSwap &&
+                         bIgnoreThisUpload == false &&
        pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&
        pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
@@ -5162,14 +5086,21 @@ D3D11Dev_CreateTexture2D_Impl (
                                D3D11_BIND_RENDER_TARGET      ||
           //// UAVs also need special treatment for Compute Shader work
            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
-                               D3D11_BIND_UNORDERED_ACCESS ) &&
-           (pDesc->BindFlags & _UnwantedFlags) == 0 )
+                               D3D11_BIND_UNORDERED_ACCESS   ||
+#if 1
+          ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
+                               D3D11_BIND_SHADER_RESOURCE &&
+                pDesc->Width == swapDesc.BufferDesc.Width &&
+               pDesc->Height == swapDesc.BufferDesc.Height//&&
+             /*pDesc->Format == swapDesc.BufferDesc.Format*/) && 
+#endif
+           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+       )
     {
-      if ( __SK_HDR_16BitSwap &&
-             (! ( DirectX::IsVideo        (pDesc->Format) ||
-                  DirectX::IsCompressed   (pDesc->Format) ||
-                  DirectX::IsDepthStencil (pDesc->Format) ||
-                  SK_DXGI_IsFormatInteger (pDesc->Format) ) )
+      if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
+                DirectX::IsCompressed   (pDesc->Format) ||
+                DirectX::IsDepthStencil (pDesc->Format) ||
+                SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
         static const bool bTalesOfArise =
@@ -5182,7 +5113,8 @@ D3D11Dev_CreateTexture2D_Impl (
           (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
                                            : DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-        DXGI_SWAP_CHAIN_DESC swapDesc = { };
+        auto origDesc =
+               *pDesc;
 
         if (pDesc->SampleDesc.Count > 1)
         {
@@ -5193,9 +5125,11 @@ D3D11Dev_CreateTexture2D_Impl (
             SK_LOGi0 (L"MSAA Render Target allocated while SK had no active SwapChain...");
         } 
 
-        if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
-            pDesc->SampleDesc.Count == 1)
+        //if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
+        //    pDesc->SampleDesc.Count == 1)
         {
+          bool bManipulated = false;
+
           size_t bpp =
             DirectX::BitsPerPixel (pDesc->Format);
           size_t bpc =
@@ -5232,6 +5166,7 @@ D3D11Dev_CreateTexture2D_Impl (
             }
 
             pDesc->Format = hdr_fmt_override;
+            bManipulated  = true;
           }
 
           else
@@ -5275,10 +5210,35 @@ D3D11Dev_CreateTexture2D_Impl (
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
                   pDesc->Format = hdr_fmt_override;
+                  bManipulated  = true;
                 }
 
                 InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->CandidatesSeen);
               }
+            }
+          }
+
+          if (bManipulated)
+          {
+            HRESULT hr =
+              D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
+                                                    pInitialData, ppTexture2D );
+
+            if (FAILED (hr))
+            {
+              SK_LOGi0 (L"HDR Format Override On RenderTarget Creation Failed");
+
+              // Try again with the original format
+              return
+                D3D11Dev_CreateTexture2D_Original ( This,            &origDesc,
+                                                      pInitialData, ppTexture2D );
+            }
+
+            else
+            {
+              SK_D3D11_FlagResourceFormatManipulated (*ppTexture2D, origDesc.Format);
+
+              return hr;
             }
           }
         }
@@ -7161,6 +7121,9 @@ SK_D3D11_QuickHook (void)
   if (! config.apis.dxgi.d3d11.hook)
     return;
 
+  if (config.render.dxgi.debug_layer)
+    return;
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
@@ -7397,38 +7360,38 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-    bool bEOSOverlay = false;
+  std::ignore = DriverType;
+  std::ignore = SDKVersion;
+  std::ignore = Software;
 
-#ifdef _M_AMD64
-  if ( SK_GetCallingDLL () ==
-       SK_GetModuleHandle ( L"EOSOVH-Win64-Shipping.dll" )
-     ) bEOSOverlay = true;
-#else
-    if ( SK_GetCallingDLL () ==
-       SK_GetModuleHandle ( L"EOSOVH-Win32-Shipping.dll" )
-     ) bEOSOverlay = true;
-#endif
+  bool bEOSOverlay =
+    SK_COMPAT_IgnoreEOSOVHCall ();
 
   if ((! bEOSOverlay) || config.system.log_level > 0)
   {
     DXGI_LOG_CALL_1 (L"D3D11CreateDeviceAndSwapChain", L"Flags=0x%x", Flags );
   }
 
-  if (bEOSOverlay || (pSwapChainDesc != nullptr && ! SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
+  if (! config.render.dxgi.debug_layer)
   {
-    return
-      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                               DriverType,
-                                                 Software,
-                                                   Flags,
-                                                     pFeatureLevels,
-                                                       FeatureLevels,
-                                                         SDKVersion,
-                                                           pSwapChainDesc,
-                                                             ppSwapChain,
-                                                               ppDevice,
-                                                                 pFeatureLevel,
-                                                                   ppImmediateContext );
+    if (bEOSOverlay || (pSwapChainDesc != nullptr && ! SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
+    {
+      return
+        D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                                 pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
+                                                                     : DriverType,
+                                                   pAdapter == nullptr ? nullptr
+                                                                       : Software,
+                                                     Flags,
+                                                       pFeatureLevels,
+                                                         FeatureLevels,
+                                                           D3D11_SDK_VERSION /*SDKVersion*/,
+                                                             pSwapChainDesc,
+                                                               ppSwapChain,
+                                                                 ppDevice,
+                                                                   pFeatureLevel,
+                                                                     ppImmediateContext );
+    }
   }
 
   Flags =
@@ -7465,7 +7428,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                  );
 
   // Optionally Enable Debug Layer
-  if (ReadAcquire (&__d3d11_ready) != 0)
+//if (ReadAcquire (&__d3d11_ready) != 0)
   {
     if (config.render.dxgi.debug_layer && ((Flags & D3D11_CREATE_DEVICE_DEBUG)
                                                  != D3D11_CREATE_DEVICE_DEBUG))
@@ -7605,12 +7568,14 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   DXGI_CALL (res,
     D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                             DriverType,
-                                               Software,
+                                             pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
+                                                                 : DriverType,
+                                               pAdapter == nullptr ? nullptr
+                                                                   : Software,
                                                  Flags,
                                                    pFeatureLevels,
                                                      FeatureLevels,
-                                                       SDKVersion,
+                                                       D3D11_SDK_VERSION /*SDKVersion*/,
                                                          swap_chain_desc,
                                                            ppSwapChain,
                                                              &ret_device,
@@ -7725,6 +7690,21 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (ppDevice != nullptr && SUCCEEDED (res))
   {
+    SK_ComQIPtr <ID3D11Debug>
+        pDebug (*ppDevice);
+    if (pDebug != nullptr)
+    {
+      SK_ComQIPtr <ID3D11InfoQueue>
+          pInfoQueue (pDebug);
+      if (pInfoQueue != nullptr)
+      {
+        pInfoQueue->SetMuteDebugOutput (                                   FALSE);
+        pInfoQueue->SetBreakOnSeverity (D3D11_MESSAGE_SEVERITY_CORRUPTION, FALSE);
+
+        pInfoQueue.Detach ();
+      }
+    }
+
     D3D11_FEATURE_DATA_D3D11_OPTIONS options;
     (*ppDevice)->CheckFeatureSupport ( D3D11_FEATURE_D3D11_OPTIONS,
                                          &options, sizeof (options) );
@@ -7751,6 +7731,19 @@ D3D11CreateDevice_Detour (
   _Out_opt_                           D3D_FEATURE_LEVEL    *pFeatureLevel,
   _Out_opt_                           ID3D11DeviceContext **ppImmediateContext)
 {
+  std::ignore = DriverType;
+  std::ignore = SDKVersion;
+  std::ignore = Software;
+
+  if (! config.render.dxgi.debug_layer)
+  {
+    if (SK_COMPAT_IgnoreDxDiagnCall ())
+      return E_NOTIMPL;
+
+    if (SK_COMPAT_IgnoreNvCameraCall ())
+      return E_NOTIMPL;
+  }
+
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
 
@@ -7760,9 +7753,8 @@ D3D11CreateDevice_Detour (
   auto& pTLS_d3d11 =
     pTLS->render->d3d11.get ();
 
-
   // Optionally Enable Debug Layer
-  if (ReadAcquire (&__d3d11_ready) != 0)
+//if (ReadAcquire (&__d3d11_ready) != 0)
   {
     if (config.render.dxgi.debug_layer && ((Flags & D3D11_CREATE_DEVICE_DEBUG)
                                                  != D3D11_CREATE_DEVICE_DEBUG))
@@ -7776,20 +7768,27 @@ D3D11CreateDevice_Detour (
 
   // Ignore Ansel
   const bool bAnsel =
-    StrStrIW (SK_GetModuleName (SK_GetCallingDLL ()).c_str (), L"NvCamera");
+    SK_COMPAT_IgnoreNvCameraCall ();
 
-  if (pTLS_d3d11.skip_d3d11_create_device != FALSE || bAnsel)
+  if (! config.render.dxgi.debug_layer)
   {
-    HRESULT hr =
-      D3D11CreateDevice_Import ( pAdapter, DriverType, Software, Flags,
-                                   pFeatureLevels, FeatureLevels, SDKVersion,
-                                     ppDevice, pFeatureLevel,
-                                       ppImmediateContext );
+    if (pTLS_d3d11.skip_d3d11_create_device != FALSE || bAnsel)
+    {
+      HRESULT hr =
+        D3D11CreateDevice_Import ( pAdapter,
+                                   pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
+                                                       : DriverType,
+                                     pAdapter == nullptr ? nullptr
+                                                         : Software, Flags,
+                                       pFeatureLevels, FeatureLevels, D3D11_SDK_VERSION,//SDKVersion,
+                                         ppDevice, pFeatureLevel,
+                                           ppImmediateContext );
 
-    if (! bAnsel)
-      pTLS->render->d3d11->skip_d3d11_create_device = FALSE;
+      if (! bAnsel)
+        pTLS->render->d3d11->skip_d3d11_create_device = FALSE;
 
-    return hr;
+      return hr;
+    }
   }
 
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
@@ -7803,10 +7802,32 @@ D3D11CreateDevice_Detour (
   }
 
   HRESULT hr =
-    D3D11CreateDeviceAndSwapChain_Detour ( pAdapter, DriverType, Software, Flags,
-                                             pFeatureLevels, FeatureLevels, SDKVersion,
-                                               nullptr, nullptr, ppDevice, pFeatureLevel,
-                                                 ppImmediateContext );
+    D3D11CreateDeviceAndSwapChain_Detour ( pAdapter,
+                                             pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
+                                                                 : DriverType,
+                                             pAdapter == nullptr ? nullptr
+                                                                 : Software, Flags,
+                                               pFeatureLevels, FeatureLevels, D3D11_SDK_VERSION,//SDKVersion,
+                                                 nullptr, nullptr, ppDevice, pFeatureLevel,
+                                                   ppImmediateContext );
+
+  if (SUCCEEDED (hr) && ppDevice != nullptr)
+  {
+    SK_ComQIPtr <ID3D11Debug>
+        pDebug (*ppDevice);
+    if (pDebug != nullptr)
+    {
+      SK_ComQIPtr <ID3D11InfoQueue>
+          pInfoQueue (pDebug);
+      if (pInfoQueue != nullptr)
+      {
+        pInfoQueue->SetMuteDebugOutput (                                   FALSE);
+        pInfoQueue->SetBreakOnSeverity (D3D11_MESSAGE_SEVERITY_CORRUPTION, FALSE);
+
+        pInfoQueue.Detach ();
+      }
+    }
+  }
 
   return hr;
 }

@@ -3174,10 +3174,11 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   //
   //     ( Flip Model unbinds these things during Present (...) )
   //
-  SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
-  SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = { };
-  SK_ComPtr <ID3D11Device>           pDevice;
-  SK_ComPtr <ID3D11DeviceContext>    pDevCtx;
+  SK_ComPtr      <ID3D11DepthStencilView> pOrigDSV;
+  SK_ComPtrArray <ID3D11RenderTargetView, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT>
+                                          pOrigRTVs;
+  SK_ComPtr      <ID3D11Device>           pDevice;
+  SK_ComPtr      <ID3D11DeviceContext>    pDevCtx;
 
   if (! bOriginallyFlip &&
         SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
@@ -3199,11 +3200,14 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
   if (SUCCEEDED (ret) && pDevCtx.p != nullptr)
   {
-    pDevCtx->OMSetRenderTargets (
-            D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
-                  &pOrigRTVs [0].p,
-                   pOrigDSV     .p
-                                );
+    if (calc_count (&pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT))
+    {
+      pDevCtx->OMSetRenderTargets (
+              D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                    &pOrigRTVs [0].p,
+                     pOrigDSV     .p
+                                  );
+    }
   }
 
   return ret;
@@ -4134,9 +4138,17 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
 
   HRESULT     ret = E_UNEXPECTED;
-  DXGI_CALL ( ret, FindClosestMatchingMode_Original (
-                     This, pModeToMatch, pClosestMatch,
-                                         pConcernedDevice ) );
+
+  if (pModeToMatch->RefreshRate.Denominator == 0)
+  {
+    ret = S_OK;
+    if (pClosestMatch != nullptr)
+       *pClosestMatch = *pModeToMatch;
+  }
+  else
+    DXGI_CALL ( ret, FindClosestMatchingMode_Original (
+                       This, pModeToMatch, pClosestMatch,
+                                           pConcernedDevice ) );
 
   if (SUCCEEDED (ret))
   {
@@ -4693,6 +4705,20 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   NewFormat      =        /*NewFormat == DXGI_FORMAT_UNKNOWN   ? DXGI_FORMAT_UNKNOWN*/
     SK_DXGI_PickHDRFormat ( NewFormat, swap_desc.Windowed,
         SK_DXGI_IsFlipModelSwapEffect (swap_desc.SwapEffect) );
+
+  if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
+  {
+    if ( DirectX::MakeTypeless (NewFormat) ==
+         DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) )
+    {
+      SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
+                 L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",
+                   SK_DXGI_FormatToStr (NewFormat).data () );
+  
+      NewFormat =
+        DXGI_FORMAT_R10G10B10A2_UNORM;
+    }
+  }
 
   if (       config.render.framerate.buffer_count != -1           &&
        (UINT)config.render.framerate.buffer_count !=  BufferCount &&
@@ -7701,6 +7727,12 @@ HRESULT
 WINAPI CreateDXGIFactory (REFIID   riid,
                     _Out_ void   **ppFactory)
 {
+  if (SK_COMPAT_IgnoreDxDiagnCall ())
+    return E_NOTIMPL;
+
+  if (SK_COMPAT_IgnoreNvCameraCall ())
+    return E_NOTIMPL;
+
   // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
@@ -7763,6 +7795,12 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
+  if (SK_COMPAT_IgnoreDxDiagnCall ())
+    return E_NOTIMPL;
+
+  if (SK_COMPAT_IgnoreNvCameraCall ())
+    return E_NOTIMPL;
+
   // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
@@ -7851,8 +7889,11 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
                            REFIID   riid,
                      _Out_ void   **ppFactory)
 {
-  static auto current_game =
-    SK_GetCurrentGameID ();
+  if (SK_COMPAT_IgnoreDxDiagnCall ())
+    return E_NOTIMPL;
+
+  if (SK_COMPAT_IgnoreNvCameraCall ())
+    return E_NOTIMPL;
 
   if (config.render.dxgi.debug_layer)
     Flags |= 0x1;
@@ -8216,17 +8257,20 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
-  HRESULT hr = __SK_HDR_16BitSwap ? S_OK :
-    IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+  This->GetDesc      (&swapDesc);
+
+  HRESULT hr =
+    ( SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
+                                    swapDesc.Windowed == FALSE ) && __SK_HDR_16BitSwap
+         ?
+    S_OK : IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
 
   //SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
   if (SUCCEEDED (hr) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
-    DXGI_SWAP_CHAIN_DESC swapDesc = { };
-    This->GetDesc      (&swapDesc);
-
-    // HDR requires Fullscreen Exclusive or DXGI Flip Model
+    // HDR requires Fullscreen Exclusive or DXGI Flip Model, this should never succeed
     SK_ReleaseAssert (
       SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
                                     swapDesc.Windowed == FALSE );
@@ -8368,20 +8412,37 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
+  pSwapChain3->GetDesc (&swapDesc);
+
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
                            ColorSpace != rb.scanout.colorspace_override )
   {
-    SK_LOGi0 ( L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
-                   DXGIColorSpaceToStr (      ColorSpace),
-                   DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)
-                                   rb.scanout.colorspace_override)
-    );
+    // HDR10 requires additional checks
+    if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM)
+    {
+      ColorSpace = rb.scanout.colorspace_override;
+    }
 
-    ColorSpace = (DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override;
+    else
+    {
+      // Do not apply scRGB in HDR10
+      if (rb.scanout.colorspace_override !=
+            DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
+      {
+        ColorSpace = rb.scanout.colorspace_override;
+      }
+    }
+
+    if (ColorSpace == rb.scanout.colorspace_override)
+    {
+      SK_LOGi0 (
+        L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
+          DXGIColorSpaceToStr (      ColorSpace),
+          DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override)
+      );
+    }
   }
-
-  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
-  pSwapChain3->GetDesc (&swapDesc);
 
   if ( __SK_HDR_16BitSwap &&
          swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT
@@ -9093,9 +9154,10 @@ HookDXGI (LPVOID user)
         nullptr,
           D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
-              0x0,
+              config.render.dxgi.debug_layer ?
+                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
                 levels,
-                  _ARRAYSIZE(levels),
+                  _ARRAYSIZE (levels),
                     D3D11_SDK_VERSION, &desc,
                       &pSwapChain.p,
                         &pDevice.p,
@@ -9117,12 +9179,6 @@ HookDXGI (LPVOID user)
          SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
          SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
     {
-      //if (config.render.dxgi.deferred_isolation)
-      //{
-        //    pDevice->CreateDeferredContext (0x0, &pDeferredContext);
-        //d3d11_hook_ctx.ppImmediateContext = &pDeferredContext;
-      //}
-
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
       //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
@@ -9979,6 +10035,9 @@ SK_DXGI_QuickHook (void)
     return;
 
   if (config.steam.preload_overlay)
+    return;
+
+  if (config.render.dxgi.debug_layer)
     return;
 
   extern BOOL

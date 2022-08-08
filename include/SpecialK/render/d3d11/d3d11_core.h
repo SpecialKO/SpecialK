@@ -2520,6 +2520,8 @@ struct D3DX11_STATE_BLOCK
   ID3D11Buffer*              SOBuffers              [4];
   ID3D11Predicate*           Predication;
   BOOL                       PredicationValue;
+
+  ID3DDeviceContextState*    DeviceContext;
 };
 
 

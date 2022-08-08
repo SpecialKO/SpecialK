@@ -135,6 +135,9 @@ void
 CALLBACK
 SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  if (! vkCode)
+    return;
+
   if (! SK_GetFramesDrawn ())
     return;
 

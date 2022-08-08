@@ -1399,6 +1399,9 @@ static constexpr const DWORD REASON_DISABLED = 0x4;
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
+  if (! game_window.active)
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 
