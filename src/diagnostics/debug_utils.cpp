@@ -4354,21 +4354,19 @@ SymLoadModule (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
         SK_SymSetOpts ();
 
+        // Double lock-checked
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          bool bLoaded = false;
-          {
-            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-            bLoaded =
-              SymLoadModule_Imp (
-                   hProcess, hFile, ImageName,
-                     ModuleName,    BaseOfDll,
-                                    SizeOfDll  );
-          }
+          bool bLoaded =
+            SymLoadModule_Imp (
+                 hProcess, hFile, ImageName,
+                   ModuleName,    BaseOfDll,
+                                  SizeOfDll  );
 
           if (bLoaded)
             _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
@@ -4410,21 +4408,19 @@ SymLoadModule64 (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
         SK_SymSetOpts ();
 
+        // Double lock-checked
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          bool bLoaded = false;
-          {
-            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-            bLoaded =
-              SymLoadModule64_Imp (
-                   hProcess, hFile, ImageName,
-                     ModuleName,    BaseOfDll,
-                                    SizeOfDll  );
-          }
+          bool bLoaded =
+            SymLoadModule64_Imp (
+                 hProcess, hFile, ImageName,
+                   ModuleName,    BaseOfDll,
+                                  SizeOfDll  );
 
           if (bLoaded)
             _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
