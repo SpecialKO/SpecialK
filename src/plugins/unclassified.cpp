@@ -1279,11 +1279,18 @@ SK_HatsuneMiku_BeginFrame (void)
 
   extern float __target_fps;
 
+  // 1.00: 0x14B2A78
+  // 1.01: 0x14ACA68
+  // 1.02: 0x14ABBB8
   static uint32_t* puiGameLimit =
-        (uint32_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x14ACA68);//0x14B2A78);
+        (uint32_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x14ABBB8);
 
-  static auto menu_flag_addr = // Pointer at DivaMegaMix.exe+114EFF8h, Offset=780h
-      *(uintptr_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1148fc8/*114EFF8*/) + 0x780;
+  // Pointer at DivaMegaMix.exe+, Offset=780h
+  // 1.00: 0x114EFF8
+  // 1.01: 0x1148FC8
+  // 1.02: 0x11481E8
+  static auto menu_flag_addr =
+      *(uintptr_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x11481E8) + 0x780;
 
   // Menu is Active, 60 FPS (or lower) framerate cap is required
   if ((*(uint8_t *)menu_flag_addr) & 0x1)
