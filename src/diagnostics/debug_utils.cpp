@@ -189,14 +189,25 @@ using SetThreadPriority_pfn = BOOL (WINAPI *)(HANDLE, int);
       SetThreadPriority_pfn
       SetThreadPriority_Original = nullptr;
 
-using LdrLockLoaderLock_pfn   = NTSTATUS (WINAPI *)(ULONG Flags, ULONG *pState, ULONG_PTR ppCookie);
-using LdrUnlockLoaderLock_pfn = NTSTATUS (WINAPI *)(ULONG Flags,                ULONG       Cookie);
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID           0
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED     1
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_NOT_ACQUIRED 2
+
+#define LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS   0x00000001
+#define LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY          0x00000002
+ 
+#define LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS 0x00000001
+
+using LdrLockLoaderLock_pfn   = NTSTATUS (WINAPI *)(ULONG Flags, ULONG *State, ULONG_PTR *Cookie);
+using LdrUnlockLoaderLock_pfn = NTSTATUS (WINAPI *)(ULONG Flags,               ULONG_PTR  Cookie);
+
+#define _EXPLICIT_LOCK
 
 NTSTATUS
 WINAPI
-SK_Module_LockLoader ( ULONG *pCookie,
-                       ULONG   Flags = 0x0,
-                       ULONG *pState = nullptr )
+SK_Module_LockLoader ( ULONG_PTR *pCookie,
+                       ULONG       Flags = 0x0,
+                       ULONG     *pState = nullptr )
 {
   // The lock must not be acquired until DllMain (...) returns!
   if (ReadAcquire (&__SK_DLL_Refs) < 1)
@@ -219,12 +230,12 @@ SK_Module_LockLoader ( ULONG *pCookie,
   if (LdrLockLoaderLock == nullptr)
     return (NTSTATUS)-1;
 
-  ULONG Cookie = 0;
+  ULONG_PTR Cookie = 0;
 
-  SK_ReleaseAssert (! ((Flags & 0x02) && pState == nullptr));
+  SK_ReleaseAssert (! ((Flags & LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY) && pState == nullptr));
 
   NTSTATUS ret    =
-    LdrLockLoaderLock (Flags, pState, (ULONG_PTR)&Cookie);
+    LdrLockLoaderLock (Flags, pState, &Cookie);
 
   if (pCookie != nullptr && ret == STATUS_SUCCESS)
      *pCookie  = Cookie;
@@ -235,8 +246,8 @@ SK_Module_LockLoader ( ULONG *pCookie,
 
 NTSTATUS
 WINAPI
-SK_Module_UnlockLoader ( ULONG Flags,
-                         ULONG Cookie )
+SK_Module_UnlockLoader ( ULONG     Flags,
+                         ULONG_PTR Cookie )
 {
 #ifndef _EXPLICIT_LOCK
   UNREFERENCED_PARAMETER (Cookie);
@@ -280,7 +291,7 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
     return FALSE;
 
   PLDR_DATA_TABLE_ENTRY__SK pLdrEntry  = { };
-  ULONG                      ldrCookie = 0;
+  ULONG_PTR                  ldrCookie = 0;
   SK_Module_LockLoader     (&ldrCookie);
 
   if ( NT_SUCCESS (
@@ -4330,6 +4341,52 @@ SK_LazyGlobal <
   concurrency::concurrent_unordered_set <DWORD64>
 > _SK_DbgHelp_LoadedModules;
 
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_set <DWORD64>
+> _SK_DbgHelp_FailedModules;
+
+NTSTATUS
+WINAPI
+SK_NtLdr_LockLoaderLock (ULONG Flags, ULONG* State, ULONG_PTR* Cookie)
+{
+  // The lock must not be acquired until DllMain (...) returns!
+  if (ReadAcquire (&__SK_DLL_Refs) < 1)
+    return STATUS_SUCCESS; // No-Op
+
+  static LdrLockLoaderLock_pfn LdrLockLoaderLock =
+        (LdrLockLoaderLock_pfn)SK_GetProcAddress   (L"NtDll.dll",
+        "LdrLockLoaderLock");
+
+  if (! LdrLockLoaderLock)
+    return ERROR_NOT_FOUND;
+
+  return
+    LdrLockLoaderLock (Flags, State, Cookie);
+}
+
+NTSTATUS
+WINAPI
+SK_NtLdr_UnlockLoaderLock (ULONG Flags, ULONG_PTR Cookie)
+{
+  static LdrUnlockLoaderLock_pfn LdrUnlockLoaderLock =
+        (LdrUnlockLoaderLock_pfn)SK_GetProcAddress (L"NtDll.dll",
+        "LdrUnlockLoaderLock");
+
+  if (! LdrUnlockLoaderLock)
+    return ERROR_NOT_FOUND;
+
+  NTSTATUS UnlockLoaderStatus =
+    LdrUnlockLoaderLock (Flags, Cookie);
+
+  // Check for Loader Unlock Failure...
+  if (ReadAcquire (&__SK_DLL_Refs) >= 1 && Cookie != 0)
+  {
+    SK_ReleaseAssert (UnlockLoaderStatus == STATUS_SUCCESS);
+  }
+
+  return UnlockLoaderStatus;
+}
+
 DWORD
 IMAGEAPI
 SymLoadModule (
@@ -4354,24 +4411,36 @@ SymLoadModule (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
         SK_SymSetOpts ();
 
+        // Double lock-checked
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          bool bLoaded = false;
+          // Ansel calls LoadLibrary from DllMain, it would deadlock us in here
+          ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+          ULONG_PTR ldrCookie = 0x0;
+
+          if ( STATUS_SUCCESS ==
+                 SK_NtLdr_LockLoaderLock ( LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY,
+                   &ldrState, &ldrCookie ) &&
+                    ldrState  ==
+                 LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED )
           {
-            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-            bLoaded =
-              SymLoadModule_Imp (
-                   hProcess, hFile, ImageName,
-                     ModuleName,    BaseOfDll,
-                                    SizeOfDll  );
-          }
-
-          if (bLoaded)
             _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
+
+            if (! SymLoadModule_Imp (
+                    hProcess, hFile, ImageName,
+                      ModuleName,    BaseOfDll,
+                                     SizeOfDll  ) )
+            {
+              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            }
+
+            SK_NtLdr_UnlockLoaderLock (0x0, ldrCookie);
+          }
         }
 
         loaded = 1;
@@ -4410,24 +4479,36 @@ SymLoadModule64 (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
         SK_SymSetOpts ();
 
+        // Double lock-checked
         if (_SK_DbgHelp_LoadedModules->find (BaseOfDll) ==
             _SK_DbgHelp_LoadedModules->cend (         ))
         {
-          bool bLoaded = false;
+          // Ansel calls LoadLibrary from DllMain, it would deadlock us in here
+          ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+          ULONG_PTR ldrCookie = 0x0;
+
+          if ( STATUS_SUCCESS ==
+                 SK_NtLdr_LockLoaderLock ( LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY,
+                   &ldrState, &ldrCookie ) &&
+                    ldrState  ==
+                 LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED )
           {
-            std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
-            bLoaded =
-              SymLoadModule64_Imp (
-                   hProcess, hFile, ImageName,
-                     ModuleName,    BaseOfDll,
-                                    SizeOfDll  );
-          }
-
-          if (bLoaded)
             _SK_DbgHelp_LoadedModules->insert (BaseOfDll);
+
+            if (! SymLoadModule64_Imp (
+                     hProcess, hFile, ImageName,
+                       ModuleName,    BaseOfDll,
+                                      SizeOfDll  ))
+            {
+              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
+            }
+
+            SK_NtLdr_UnlockLoaderLock (0x0, ldrCookie);
+          }
         }
 
         loaded = 1;
