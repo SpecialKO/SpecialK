@@ -250,6 +250,8 @@ CrashHandler::Init (void)
 
   if (FALSE == InterlockedCompareExchange (&init, TRUE, FALSE))
   {
+    InitSyms ();
+
     SK_Thread_CreateEx (
       [](LPVOID) ->
         DWORD
@@ -280,7 +282,6 @@ CrashHandler::Init (void)
           }
 
           Reinstall ();
-          InitSyms  ();
 
           InterlockedIncrement (&init);
 

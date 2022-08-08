@@ -1353,7 +1353,7 @@ DebugProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookDebug, nCode, wParam, lParam
     );
 }
 
@@ -1365,7 +1365,7 @@ ShellProc ( _In_ int    nCode,
 {
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookShell, nCode, wParam, lParam
     );
 }
 
@@ -1379,7 +1379,7 @@ CBTProc ( _In_ int    nCode,
   {
     return
       CallNextHookEx (
-        0, nCode, wParam, lParam
+        hHookCBT, nCode, wParam, lParam
       );
   }
 
@@ -1404,7 +1404,7 @@ CBTProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookCBT, nCode, wParam, lParam
     );
 }
 

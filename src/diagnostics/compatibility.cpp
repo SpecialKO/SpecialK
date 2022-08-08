@@ -1031,3 +1031,27 @@ SK_COMPAT_IsFrapsPresent (void)
 
   return false;
 }
+
+bool SK_COMPAT_IgnoreDxDiagnCall (LPCVOID pReturn)
+{
+  return
+    (! config.compatibility.allow_dxdiagn) &&
+    (! _wcsicmp (SK_GetCallerName (pReturn).c_str (),
+                                L"dxdiagn.dll"));
+}
+
+bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn)
+{
+  return
+    ( config.nvidia.bugs.bypass_ansel) &&
+    ( StrStrIW (SK_GetCallerName (pReturn).c_str (),
+                                L"NvCamera"));
+}
+
+bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
+{
+  return
+    (! _wcsicmp ( SK_GetCallerName (pReturn).c_str (),
+       SK_RunLHIfBitness ( 32, L"EOSOVH-Win32-Shipping.dll",
+                               L"EOSOVH-Win64-Shipping.dll" ) ) );
+}

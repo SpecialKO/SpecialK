@@ -406,8 +406,6 @@ public:
   SK_ComPtr <ID3D11DepthStencilState>pDepthStencilStateNew;
   SK_ComPtr <ID3D11DepthStencilView> pDSVOrig;
 
-  SK_ComPtr <ID3D11RenderTargetView> pRTVOrig;
-
   SK_ComPtr <ID3D11BlendState>       pOrigBlendState;
 
   UINT                               uiOrigBlendMask          = 0x0;

@@ -44,4 +44,8 @@ bool SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally = null
 bool SK_COMPAT_IsFrapsPresent (void);
 void SK_COMPAT_UnloadFraps    (void);
 
-  #endif /* __SK_COMPATIBILITY_H__ */
+bool SK_COMPAT_IgnoreDxDiagnCall  (LPCVOID pReturn = _ReturnAddress ());
+bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn = _ReturnAddress ());
+bool SK_COMPAT_IgnoreEOSOVHCall   (LPCVOID pReturn = _ReturnAddress ());
+
+#endif /* __SK_COMPATIBILITY_H__ */
