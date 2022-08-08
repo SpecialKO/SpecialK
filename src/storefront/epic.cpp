@@ -486,10 +486,21 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
             auto pAchievement =
               eos_achievements->getAchievement (Data->AchievementId);
 
-            if (pAchievement != nullptr)
-              epic_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
-                                 pAchievement->text_.unlocked.human_name.c_str (),
-                                 pAchievement->text_.unlocked.desc      .c_str () );
+            if (pAchievement != nullptr && Data->UnlockTime != pAchievement->time_)
+            {
+              // This callback gets sent for achievements that are already unlocked...
+              if (! pAchievement->unlocked_)
+              {
+                epic_log->Log ( L" Achievement: '%ws' (%ws) - Unlocked!",
+                                   pAchievement->text_.unlocked.human_name.c_str (),
+                                   pAchievement->text_.unlocked.desc      .c_str () );
+
+                SK_EOS_Achievements_RefreshPlayerStats ();
+
+                eos_achievements->unlock (Data->AchievementId);
+              }
+            }
+
             else
             {
               epic_log->Log (
@@ -497,10 +508,6 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
                   Data->AchievementId
               );
             }
-
-            SK_EOS_Achievements_RefreshPlayerStats ();
-
-            eos_achievements->unlock (Data->AchievementId);
           }
         });
       }
