@@ -692,7 +692,7 @@ struct SK_DXGI_sRGBCoDec {
     BOOL passthrough = FALSE;
     BOOL apply       = FALSE;
     BOOL strip       = FALSE;
-    BOOL padding     = FALSE;
+    BOOL no_alpha    = FALSE;
   };
 
   struct device_instance_s
@@ -1049,6 +1049,26 @@ SK_DXGI_IsFormatCastable ( DXGI_FORMAT inFormat,
        DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_R8G8B8A8_TYPELESS )
     return true;
 
+  /////if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8X8_TYPELESS &&
+  /////     DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_R8G8B8A8_TYPELESS )
+  /////  return true;
+  /////
+  /////if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8X8_TYPELESS &&
+  /////     DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_B8G8R8A8_TYPELESS )
+  /////  return true;
+  /////
+  /////if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_R8G8B8A8_TYPELESS &&
+  /////     DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_B8G8R8X8_TYPELESS )
+  /////  return true;
+  /////
+  /////if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8A8_TYPELESS &&
+  /////     DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_B8G8R8X8_TYPELESS )
+  /////  return true;
+  /////
+  /////if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8A8_TYPELESS &&
+  /////     DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_B8G8R8X8_TYPELESS )
+  /////  return true;
+
   return false;
 }
 
@@ -1338,7 +1358,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       return false;
     }
     
-    pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
+    ////pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
+    D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
   }
 
   if ( FAILED (
@@ -1371,7 +1392,14 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     SK_DXGI_sRGBCoDec::params_cbuffer_s
       codec_params = { .passthrough = 1,
                        .apply       = FALSE,
-                       .strip       = FALSE };
+                       .strip       = FALSE,
+                       .no_alpha    =
+                         (! DirectX::HasAlpha (srcTexDesc.Format)) };
+
+    if (! DirectX::HasAlpha (srcTexDesc.Format))
+    {
+      SK_LOGi0 (L"Source Of Blt Has No Alpha Channel");
+    }
 
     _ReadWriteBarrier ();
 
@@ -1431,7 +1459,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   ApplyStateblock (pDevCtx.p, &codec.sb);
 
   if (pDstTex != nullptr && surface.render.tex != nullptr)
-    pDevCtx->CopyResource (pDstTex, surface.render.tex);
+    D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
+////  pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
   return true;
 }
@@ -1475,4 +1504,28 @@ SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
 
   pRes->SetPrivateData ( SKID_D3D11_ResourceFormatOverride,
                            formatSize, (const void *)&original );
+}
+
+bool
+SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTURE2D_DESC* pDstDesc)
+{
+  if (pSrcDesc == nullptr || pDstDesc == nullptr)
+    return false;
+
+  if (pSrcDesc->Width  != pDstDesc->Width ||
+      pSrcDesc->Height != pDstDesc->Height)
+  {
+    return false;
+  }
+  
+  if (DirectX::MakeTypeless (pSrcDesc->Format) !=
+      DirectX::MakeTypeless (pDstDesc->Format))
+  {
+    return false;
+  }
+  
+  if (pSrcDesc->SampleDesc.Count != pDstDesc->SampleDesc.Count)
+    return false;
+
+  return true;
 }

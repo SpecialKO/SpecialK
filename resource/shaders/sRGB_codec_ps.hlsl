@@ -18,6 +18,7 @@ cbuffer srgbTransform : register (b0)
   bool passthrough;
   bool apply;
   bool strip;
+  bool no_alpha;
 };
 
 sampler   srgbSampler     : register (s0);
@@ -33,7 +34,7 @@ float4 main (PS_INPUT input) : SV_TARGET
        AnyIsNegative (vLinear.rgba) )
   {
     return
-      float4 (0.0f, 0.0f, 0.0f, 0.0f);
+      float4 (0.0f, 0.0f, 0.0f, 1.0f);
   }
 
   vLinear.rgba =
@@ -49,6 +50,9 @@ float4 main (PS_INPUT input) : SV_TARGET
   else if (apply)
     vLinear.rgb =
       ApplySRGBCurve (vLinear.rgb);
+
+  if (no_alpha)
+    vLinear.a = 1.0;
 
   return
     float4 ( vLinear );

@@ -1122,7 +1122,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
         if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
         {
-          //if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, tex_desc.Format))
+          if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, tex_desc.Format))
           {
             if (DirectX::IsTypeless (desc.Format))
             {
@@ -1205,23 +1205,16 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
             if ( SK_D3D11_OverrideDepthStencil (newFormat))
               desc.Format = newFormat;
           }
-        }
 
-        if (DirectX::IsTypeless (desc.Format))
-          desc.Format = DirectX::MakeTypelessUNORM (
-                        DirectX::MakeTypelessFLOAT (desc.Format));
+          if (DirectX::IsTypeless (desc.Format))
+            desc.Format = DirectX::MakeTypelessUNORM (
+                          DirectX::MakeTypelessFLOAT (desc.Format));
 
-        try
-        {
           const HRESULT hr =
             _Finish (&desc);
 
           if (SUCCEEDED (hr))
             return hr;
-        }
-        catch (...)
-        {
-          return S_OK;
         }
       }
     }
@@ -1588,6 +1581,12 @@ SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
   {
     return true;
   }
+
+  SK_LOGi1 (
+    L"Formats %hs and %hs are considered non-copyable by SK_D3D11_IsDirectCopyCompatible (...)",
+      SK_DXGI_FormatToStr (src).data (),
+      SK_DXGI_FormatToStr (dst).data ()
+  );
 
   return false;
 };
@@ -2054,6 +2053,43 @@ SK_D3D11_CopyResource_Impl (
   const auto _Finish = [&](void) ->
   void
   {
+    D3D11_RESOURCE_DIMENSION
+      dim_dst = D3D11_RESOURCE_DIMENSION_UNKNOWN,
+      dim_src = D3D11_RESOURCE_DIMENSION_UNKNOWN;
+
+    pDstResource->GetType (&dim_dst);
+    pSrcResource->GetType (&dim_src);
+
+    if (dim_dst == D3D11_RESOURCE_DIMENSION_TEXTURE2D &&
+        dim_src == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
+      SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
+
+      if (pSrcTex.p != nullptr &&
+          pDstTex.p != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC srcDesc = { };
+        D3D11_TEXTURE2D_DESC dstDesc = { };
+
+        pSrcTex->GetDesc (&srcDesc);
+        pDstTex->GetDesc (&dstDesc);
+
+        bool bSupportsDirectCopy =
+          SK_D3D11_AreTexturesDirectCopyable (&srcDesc, &dstDesc);
+
+        // If does not support direct copy and one of the textures is a SwapChain backbuffer
+        //   that Special K has manipulated ... (format, or resolution, then):
+        if ( (! bSupportsDirectCopy) )
+             //FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+             //FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
+        {
+          if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+            return;
+        }
+      }
+    }
+
     bWrapped ?
       pDevCtx->CopyResource (pDstResource, pSrcResource)
              :
@@ -2139,74 +2175,7 @@ SK_D3D11_CopyResource_Impl (
     }
   }
 
-
-  // What if we're trying to copy to a dest texture that needs format changed to R16G16B16A16 (HDR?)
-  //
-  //   Needs a stretchrect type of deal, suggest user override fmt.
-  //
-  if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-  {
-    SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
-    SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
-
-    D3D11_TEXTURE2D_DESC dst_desc = { };
-    D3D11_TEXTURE2D_DESC src_desc = { };
-
-    if ( pSrcTex != nullptr &&
-         pDstTex != nullptr )
-    {
-      pSrcTex->GetDesc (&src_desc);
-      pDstTex->GetDesc (&dst_desc);
-
-      //if ( ( src_desc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-      //      (src_desc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) ) &&
-      //       src_desc.Format != dst_desc.Format)
-      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, src_desc.Format)) ||
-           FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dst_desc.Format)) )
-      {
-        if (! SK_D3D11_IsDirectCopyCompatible (src_desc.Format, dst_desc.Format))
-        {
-          if (! SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-          {
-            if (config.system.log_level > 0)
-            {
-              static bool          warned_once = false;
-              if (! std::exchange (warned_once, true))
-              {
-                SK_ImGui_Warning (
-                  SK_FormatStringW (
-                    L"HDR Format Mismatch During CopyResource: Src=%hs, Dst=%hs",
-                      SK_DXGI_FormatToStr (src_desc.Format).data (),
-                      SK_DXGI_FormatToStr (dst_desc.Format).data ()
-                  ).c_str ()
-                );
-              }
-            }
-          }
-
-          else
-          {
-            if (config.system.log_level > 0)
-            {
-              static bool          warned_once = false;
-              if (! std::exchange (warned_once, true))
-              {
-                SK_ImGui_Warning (
-                  L"HDR Format Mismatch Corrected using SK_D3D11_BltCopySurface (!!)"
-                );
-              }
-            }
-          }
-
-          return;
-        }
-      }
-    }
-  }
-
-
   _Finish ();
-
 
   if (res_dim != D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     return;

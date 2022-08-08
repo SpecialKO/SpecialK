@@ -207,7 +207,7 @@ D3D11Dev_CreateShaderResourceView_Override (
                    DirectX::MakeTypeless (desc.Format) !=
                    DirectX::MakeTypeless (swapChainFormat) )
               {
-                SK_LOGi4 (
+                SK_LOGi0 (
                   L"SRV Format Override (Requested=%hs), (Returned=%hs) - [SwapChain]",
                     SK_DXGI_FormatToStr (    desc.Format).data (),
                     SK_DXGI_FormatToStr (swapChainFormat).data () );
@@ -225,7 +225,7 @@ D3D11Dev_CreateShaderResourceView_Override (
                    DirectX::MakeTypeless (desc.Format) !=
                    DirectX::MakeTypeless (texDesc.Format) )
               {
-                SK_LOGi4 (
+                SK_LOGi0 (
                   L"SRV Format Override (Requested=%hs), (Returned=%hs) - Non-SwapChain Override",
                     SK_DXGI_FormatToStr (   desc.Format).data (),
                     SK_DXGI_FormatToStr (texDesc.Format).data () );
@@ -822,6 +822,10 @@ D3D11Dev_CreateRenderTargetView_Override (
     SK_D3D11Dev_CreateRenderTargetView_Impl ( This,
                                                 pResource, pDesc,
                                                   ppRTView, FALSE );
+//  return
+//    D3D11_CreateRenderTargetView_Original ( This,
+//                                              pResource, pDesc,
+//                                                ppRTView );
 }
 
 __declspec (noinline)

@@ -57,4 +57,6 @@ SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
 bool
 SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
 
+bool SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC *pSrc, D3D11_TEXTURE2D_DESC *pDst);
+
 bool SK_D3D11_BltCopySurface (ID3D11Texture2D* pSrcTex, ID3D11Texture2D* pDstTex);

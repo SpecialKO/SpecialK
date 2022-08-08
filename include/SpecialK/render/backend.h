@@ -1136,9 +1136,12 @@ public:
             {
               SK_ComPtr <Q> pRet = nullptr;
 
-              if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+              if (device.p != nullptr)
               {
-                return pRet;
+                if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+                {
+                  return pRet;
+                }
               }
 
               return nullptr;

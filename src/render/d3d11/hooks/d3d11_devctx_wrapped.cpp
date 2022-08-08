@@ -1425,49 +1425,6 @@ public:
   {
     TraceAPI
 
-    D3D11_RESOURCE_DIMENSION
-      dim_dst = D3D11_RESOURCE_DIMENSION_UNKNOWN,
-      dim_src = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-
-    pDstResource->GetType (&dim_dst);
-    pSrcResource->GetType (&dim_src);
-
-    if (dim_dst == D3D11_RESOURCE_DIMENSION_TEXTURE2D &&
-        dim_src == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-    {
-      SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
-      SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
-
-      if (pSrcTex.p != nullptr &&
-          pDstTex.p != nullptr)
-      {
-        D3D11_TEXTURE2D_DESC srcDesc = { };
-        D3D11_TEXTURE2D_DESC dstDesc = { };
-
-        pSrcTex->GetDesc (&srcDesc);
-        pDstTex->GetDesc (&dstDesc);
-
-        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
-             FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
-        {
-          if (srcDesc.Width            != dstDesc.Width  ||
-              srcDesc.Height           != dstDesc.Height ||
-              DirectX::MakeTypeless      (srcDesc.Format) !=
-              DirectX::MakeTypeless      (dstDesc.Format) ||
-              srcDesc.SampleDesc.Count != dstDesc.SampleDesc.Count)
-          {
-            extern bool SK_D3D11_BltCopySurface (
-                    ID3D11Texture2D* pSrcTex,
-                    ID3D11Texture2D* pDstTex
-            );
-
-            if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-              return;
-          }
-        }
-      }
-    }
-
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopyResource_Impl (pReal,

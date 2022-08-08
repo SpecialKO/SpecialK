@@ -4008,7 +4008,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
     }
 
     ret =
-      ResizeTarget_Original (This, pNewNewTargetParameters);
+      This->ResizeTarget (pNewNewTargetParameters);
 
     if (FAILED (ret))
     {
@@ -4138,17 +4138,9 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
 
   HRESULT     ret = E_UNEXPECTED;
-
-  if (pModeToMatch->RefreshRate.Denominator == 0)
-  {
-    ret = S_OK;
-    if (pClosestMatch != nullptr)
-       *pClosestMatch = *pModeToMatch;
-  }
-  else
-    DXGI_CALL ( ret, FindClosestMatchingMode_Original (
-                       This, pModeToMatch, pClosestMatch,
-                                           pConcernedDevice ) );
+  DXGI_CALL ( ret, FindClosestMatchingMode_Original (
+                     This, pModeToMatch, pClosestMatch,
+                                         pConcernedDevice ) );
 
   if (SUCCEEDED (ret))
   {
@@ -4434,48 +4426,50 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     }
   }
 
-
-  SK_ComPtr <IDXGIOutput> pOutput = pTarget;
-  if (                    pOutput.p == nullptr)
-  {
-    This->GetContainingOutput (&pOutput.p);
-  }
-
-  // Trigger mode switch if needed
-  if (pOutput.p != nullptr && Fullscreen)
-  {
-    DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
-    SK_ComQIPtr <IDXGISwapChain1> 
-        pSwap1 (This);
-    if (pSwap1 != nullptr)
-        pSwap1->GetFullscreenDesc (&fullscreenDesc);
-
-    DXGI_MODE_DESC
-      modeDesc                         = { };
-      modeDesc.Width                   = sd.BufferDesc.Width;
-      modeDesc.Height                  = sd.BufferDesc.Height;
-      modeDesc.Format                  = sd.BufferDesc.Format;
-      modeDesc.Scaling                 = fullscreenDesc.Scaling;
-      modeDesc.ScanlineOrdering        = fullscreenDesc.ScanlineOrdering;
-      modeDesc.RefreshRate.Numerator   = lLastRefreshNum;
-      modeDesc.RefreshRate.Denominator = lLastRefreshDenom;
-
-    if (config.render.framerate.refresh_rate > 0)
-    {
-      modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-      modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
-    }
-
-    DXGI_MODE_DESC   matchedMode = { };
-    if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
-         &modeDesc, &matchedMode, nullptr )
-                   )                  )
-      This->ResizeTarget (&matchedMode);
-  }
-
   BOOL                                      bFinalState = FALSE;
   if (SUCCEEDED (This->GetFullscreenState (&bFinalState, nullptr)))
                   rb.fullscreen_exclusive = bFinalState;
+
+  // Trigger mode switch if needed
+  if (SUCCEEDED (ret) && bFinalState == TRUE && (sd.Windowed == Fullscreen))
+  {
+    SK_ComPtr <IDXGIOutput> pOutput = pTarget;
+    if (                    pOutput.p == nullptr)
+    {
+      This->GetContainingOutput (&pOutput.p);
+    }
+
+    if (pOutput.p != nullptr)
+    {
+      DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
+      SK_ComQIPtr <IDXGISwapChain1> 
+          pSwap1 (This);
+      if (pSwap1 != nullptr)
+          pSwap1->GetFullscreenDesc (&fullscreenDesc);
+
+      DXGI_MODE_DESC
+        modeDesc                         = { };
+        modeDesc.Width                   = sd.BufferDesc.Width;
+        modeDesc.Height                  = sd.BufferDesc.Height;
+        modeDesc.Format                  = sd.BufferDesc.Format;
+        modeDesc.Scaling                 = DXGI_MODE_SCALING_UNSPECIFIED;
+        modeDesc.ScanlineOrdering        = fullscreenDesc.ScanlineOrdering;
+        modeDesc.RefreshRate.Numerator   = lLastRefreshNum;
+        modeDesc.RefreshRate.Denominator = lLastRefreshDenom;
+
+      if (config.render.framerate.refresh_rate > 0)
+      {
+        modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
+        modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
+      }
+
+      DXGI_MODE_DESC   matchedMode = { };
+      if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
+           &modeDesc, &matchedMode, nullptr )
+                     )                  )
+        This->ResizeTarget (&matchedMode);
+    }
+  }
 
   return ret;
 }
@@ -6407,7 +6401,7 @@ DXGIFactory_CreateSwapChain_Override (
       DXGI_SWAP_CHAIN_DESC      recycle_desc = { };
       pSwapToRecycle->GetDesc (&recycle_desc);
 
-      if (recycle_desc.OutputWindow == new_desc.OutputWindow)
+      if (recycle_desc.OutputWindow == new_desc.OutputWindow || IsChild (recycle_desc.OutputWindow, new_desc.OutputWindow))
       {
         SK_ComPtr <ID3D11Device>       pOriginalD3D11Dev;
         SK_ComPtr <ID3D12CommandQueue> pOriginalD3D12Queue;
