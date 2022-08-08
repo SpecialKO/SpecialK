@@ -1867,6 +1867,19 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
   __except (EXCEPTION_EXECUTE_HANDLER) { };
 }
 
+bool
+SK_Debug_CheckDebugFlagInPEB (void)
+{
+  if ( 0 !=
+         ((SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock)->BeingDebugged )
+  {
+    SK_Debug_FlagAsDebugging ();
+    return true;
+  }
+
+  return false;
+}
+
 void NTAPI
 RtlAcquirePebLock_Detour (void)
 {
@@ -2490,18 +2503,18 @@ IsDebuggerPresent_Detour (void)
 //  return TRUE;
 //#endif
 
-  ///if (SK_GetFramesDrawn () > 0)
-  ///{
-  ///  RtlAcquirePebLock_Original ();
-  ///
-  ///  // Low-level construct that IsDebuggerPresent actually looks at,
-  ///  //   we want this to be accurate but want to misreport lookups to
-  ///  //     the calling application in order to bypass most anti-debug.
-  ///  ((SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock)->BeingDebugged =
-  ///    bRealDebug;
-  ///
-  ///  RtlReleasePebLock_Original ();
-  ///}
+  if (SK_GetFramesDrawn () > 0 && RtlAcquirePebLock_Original != nullptr)
+  {
+    RtlAcquirePebLock_Original ();
+  
+    // Low-level construct that IsDebuggerPresent actually looks at,
+    //   we want this to be accurate but want to misreport lookups to
+    //     the calling application in order to bypass most anti-debug.
+    ((SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock)->BeingDebugged =
+      bRealDebug;
+  
+    RtlReleasePebLock_Original ();
+  }
 
   if (config.compatibility.impersonate_debugger)
     return TRUE;
@@ -3682,7 +3695,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     // Workaround Steamworks Anti-Debug
     //
 #ifdef _EXTENDED_DEBUG
-//#if 1
     SK_CreateDLLHook2 (    L"NtDll",
                             "RtlAcquirePebLock",
                              RtlAcquirePebLock_Detour,

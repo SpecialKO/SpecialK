@@ -123,6 +123,33 @@ CoCreateInstance_Detour (
   return CoCreateInstance_Original (rclsid, pUnkOuter, dwClsContext, riid, ppv);
 }
 
+using DxDiagn_DllGetClassObject_pfn = HRESULT (WINAPI *)(REFCLSID, REFIID, LPVOID);
+      DxDiagn_DllGetClassObject_pfn
+      DxDiagn_DllGetClassObject_Original = nullptr;
+
+HRESULT
+WINAPI
+DxDiagn_DllGetClassObject_Detour (
+  REFCLSID rclsid,
+  REFIID   riid,
+  LPVOID   *ppv )
+{
+  //if (rclsid == CLSID_DxDiagProvider)
+  {
+    if (! config.compatibility.allow_dxdiagn)
+    {
+      SK_LOGs0 ( L"DXDiagKill",
+        L" >> Game tried to use IDxDiagProvider, but it has been "
+        L"blocked for maximum compatibility."
+      );
+
+      return E_NOINTERFACE;
+    }
+  }
+
+  return DxDiagn_DllGetClassObject_Original (rclsid, riid, ppv);
+}
+
 
 extern
 HRESULT
@@ -357,12 +384,6 @@ SK_WMI_Init (void)
       hModCOMBase = SK_Modules->LoadLibrary (wszCOMBase);
     }
 
-#if 0
-    CoCreateInstance_Original =
-      (CoCreateInstance_pfn)SK_GetProcAddress   (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstance");
-    CoCreateInstanceEx_Original =
-      (CoCreateInstanceEx_pfn)SK_GetProcAddress (SK_GetModuleHandleW (L"ole32.dll"), "CoCreateInstanceEx");
-#else
     SK_CreateDLLHook2 (      wszCOMBase,
                               "CoCreateInstance",
                                CoCreateInstance_Detour,
@@ -372,7 +393,13 @@ SK_WMI_Init (void)
                               "CoCreateInstanceEx",
                                CoCreateInstanceEx_Detour,
       static_cast_p2p <void> (&CoCreateInstanceEx_Original) );
-#endif
+
+    if (SK_GetModuleHandle (L"dxdiagn.dll") != nullptr) {
+      SK_CreateDLLHook2 (   L"dxdiagn.dll",
+                                        "DllGetClassObject",
+                                 DxDiagn_DllGetClassObject_Detour,
+        static_cast_p2p <void> (&DxDiagn_DllGetClassObject_Original) );
+    }
   }
 
   COM::base.wmi.Lock ();
@@ -404,7 +431,7 @@ SK_WMI_Init (void)
               return
                 SK_WMI_ServerThread (nullptr);
             },
-          nullptr,
+          L"[SK] WMI Server Thread",
         nullptr
       )
     );
