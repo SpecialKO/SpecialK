@@ -28,6 +28,7 @@
 
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 #define FRAME_TRACE
 #ifdef  FRAME_TRACE
@@ -1446,19 +1447,23 @@ public:
         pSrcTex->GetDesc (&srcDesc);
         pDstTex->GetDesc (&dstDesc);
 
-        if (srcDesc.Width            != dstDesc.Width  ||
-            srcDesc.Height           != dstDesc.Height ||
-            DirectX::MakeTypeless      (srcDesc.Format) !=
-            DirectX::MakeTypeless      (dstDesc.Format) ||
-            srcDesc.SampleDesc.Count != dstDesc.SampleDesc.Count)
+        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+             FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
         {
-          extern bool SK_D3D11_BltCopySurface (
-                  ID3D11Texture2D* pSrcTex,
-                  ID3D11Texture2D* pDstTex
-          );
+          if (srcDesc.Width            != dstDesc.Width  ||
+              srcDesc.Height           != dstDesc.Height ||
+              DirectX::MakeTypeless      (srcDesc.Format) !=
+              DirectX::MakeTypeless      (dstDesc.Format) ||
+              srcDesc.SampleDesc.Count != dstDesc.SampleDesc.Count)
+          {
+            extern bool SK_D3D11_BltCopySurface (
+                    ID3D11Texture2D* pSrcTex,
+                    ID3D11Texture2D* pDstTex
+            );
 
-          if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-            return;
+            if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+              return;
+          }
         }
       }
     }

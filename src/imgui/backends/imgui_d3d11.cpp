@@ -728,13 +728,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
 
-//#define _ImGui_Stateblock
-//#ifdef  _ImGui_Stateblock
-//  SK_IMGUI_D3D11StateBlock
-//    sb             = { };
-//    sb.Capture (pDevCtx);
-//#endif
-
   // pcmd->TextureId may not point to a valid object anymore, so we do this...
   auto orig_se =
     SK_SEH_ApplyTranslator(
@@ -744,116 +737,110 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     );
   try
   {
-  SK_ComPtr <ID3D11Device> pDev;
-  pDevCtx->GetDevice     (&pDev.p);
+    SK_ComPtr <ID3D11Device> pDev;
+    pDevCtx->GetDevice     (&pDev.p);
 
-  pDevCtx->OMSetRenderTargets ( 1,
-                                 &_P->pRenderTargetView.p,
-                                    nullptr );
+    pDevCtx->OMSetRenderTargets ( 1,
+                                   &_P->pRenderTargetView.p,
+                                      nullptr );
 
-  // Setup viewport
-  D3D11_VIEWPORT vp = { };
+    // Setup viewport
+    D3D11_VIEWPORT vp = { };
 
-  vp.Height   = io.DisplaySize.y;
-  vp.Width    = io.DisplaySize.x;
-  vp.MinDepth = 0.0f;
-  vp.MaxDepth = 1.0f;
-  vp.TopLeftX = vp.TopLeftY = 0.0f;
+    vp.Height   = io.DisplaySize.y;
+    vp.Width    = io.DisplaySize.x;
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    vp.TopLeftX = vp.TopLeftY = 0.0f;
 
-  pDevCtx->RSSetViewports (1, &vp);
+    pDevCtx->RSSetViewports (1, &vp);
 
-  // Bind shader and vertex buffers
-  unsigned int stride = sizeof (ImDrawVert);
-  unsigned int offset = 0;
+    // Bind shader and vertex buffers
+    unsigned int stride = sizeof (ImDrawVert);
+    unsigned int offset = 0;
 
-  pDevCtx->IASetInputLayout       (_P->pInputLayout);
-  pDevCtx->IASetVertexBuffers     (0, 1, &_P->pVB, &stride, &offset);
-  pDevCtx->IASetIndexBuffer       (_P->pIB, sizeof (ImDrawIdx) == 2 ?
-                                              DXGI_FORMAT_R16_UINT  :
-                                              DXGI_FORMAT_R32_UINT,
-                                                0 );
-  pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    pDevCtx->IASetInputLayout       (_P->pInputLayout);
+    pDevCtx->IASetVertexBuffers     (0, 1, &_P->pVB, &stride, &offset);
+    pDevCtx->IASetIndexBuffer       (_P->pIB, sizeof (ImDrawIdx) == 2 ?
+                                                DXGI_FORMAT_R16_UINT  :
+                                                DXGI_FORMAT_R32_UINT,
+                                                  0 );
+    pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
-  {
-    pDevCtx->GSSetShader          (nullptr, nullptr, 0);
-  }
-
-  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
-  {
-    pDevCtx->HSSetShader          (nullptr, nullptr, 0);
-    pDevCtx->DSSetShader          (nullptr, nullptr, 0);
-  }
-
-  pDevCtx->VSSetShader            (_P->pVertexShader, nullptr, 0);
-  pDevCtx->VSSetConstantBuffers   (0, 1, &_P->pVertexConstantBuffer);
-
-  pDevCtx->PSSetShader            (_P->pPixelShader, nullptr, 0);
-  pDevCtx->PSSetSamplers          (0, 1, &_P->pFontSampler_clamp);
-  pDevCtx->PSSetConstantBuffers   (0, 1, &_P->pPixelConstantBuffer);
-
-  // Setup render state
-  pDevCtx->OMSetBlendState        (_P->pBlendState, nullptr, 0xffffffff);
-  pDevCtx->OMSetDepthStencilState (_P->pDepthStencilState,        0);
-  pDevCtx->RSSetState             (_P->pRasterizerState);
-
-  // Render command lists
-  int vtx_offset = 0;
-  int idx_offset = 0;
-
-  for (int n = 0; n < draw_data->CmdListsCount; n++)
-  {
-    const ImDrawList* cmd_list =
-      draw_data->CmdLists [n];
-
-    for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
     {
-      const ImDrawCmd* pcmd =
-        &cmd_list->CmdBuffer [cmd_i];
-
-      if (pcmd->UserCallback)
-          pcmd->UserCallback (cmd_list, pcmd);
-
-      else
-      {
-        const D3D11_RECT r = {
-          static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
-          static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
-        };
-
-        extern ID3D11ShaderResourceView*
-          SK_HDR_GetUnderlayResourceView (void);
-
-        ID3D11ShaderResourceView* views [2] =
-        {
-           *(ID3D11ShaderResourceView **)&pcmd->TextureId,
-           SK_HDR_GetUnderlayResourceView ()
-        };
-
-        pDevCtx->PSSetSamplers        (0, 1, &_P->pFontSampler_wrap);
-        pDevCtx->PSSetShaderResources (0, 2, views);
-        pDevCtx->RSSetScissorRects    (1, &r);
-
-        pDevCtx->DrawIndexed          (pcmd->ElemCount, idx_offset, vtx_offset);
-      }
-
-      pDevCtx->PSSetShaderResources   (0, 2, std::array <ID3D11ShaderResourceView *, 2> { nullptr, nullptr }.data ());
-
-      idx_offset += pcmd->ElemCount;
+      pDevCtx->GSSetShader          (nullptr, nullptr, 0);
     }
 
-    vtx_offset += cmd_list->VtxBuffer.Size;
-  }
+    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pDevCtx->HSSetShader          (nullptr, nullptr, 0);
+      pDevCtx->DSSetShader          (nullptr, nullptr, 0);
+    }
+
+    pDevCtx->VSSetShader            (_P->pVertexShader, nullptr, 0);
+    pDevCtx->VSSetConstantBuffers   (0, 1, &_P->pVertexConstantBuffer);
+
+    pDevCtx->PSSetShader            (_P->pPixelShader, nullptr, 0);
+    pDevCtx->PSSetSamplers          (0, 1, &_P->pFontSampler_clamp);
+    pDevCtx->PSSetConstantBuffers   (0, 1, &_P->pPixelConstantBuffer);
+
+    // Setup render state
+    pDevCtx->OMSetBlendState        (_P->pBlendState, nullptr, 0xffffffff);
+    pDevCtx->OMSetDepthStencilState (_P->pDepthStencilState,        0);
+    pDevCtx->RSSetState             (_P->pRasterizerState);
+
+    // Render command lists
+    int vtx_offset = 0;
+    int idx_offset = 0;
+
+    for (int n = 0; n < draw_data->CmdListsCount; n++)
+    {
+      const ImDrawList* cmd_list =
+        draw_data->CmdLists [n];
+
+      for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
+      {
+        const ImDrawCmd* pcmd =
+          &cmd_list->CmdBuffer [cmd_i];
+
+        if (pcmd->UserCallback)
+            pcmd->UserCallback (cmd_list, pcmd);
+
+        else
+        {
+          const D3D11_RECT r = {
+            static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
+            static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
+          };
+
+          extern ID3D11ShaderResourceView*
+            SK_HDR_GetUnderlayResourceView (void);
+
+          ID3D11ShaderResourceView* views [2] =
+          {
+             *(ID3D11ShaderResourceView **)&pcmd->TextureId,
+             SK_HDR_GetUnderlayResourceView ()
+          };
+
+          pDevCtx->PSSetSamplers        (0, 1, &_P->pFontSampler_wrap);
+          pDevCtx->PSSetShaderResources (0, 2, views);
+          pDevCtx->RSSetScissorRects    (1, &r);
+
+          pDevCtx->DrawIndexed          (pcmd->ElemCount, idx_offset, vtx_offset);
+        }
+
+        idx_offset += pcmd->ElemCount;
+      }
+
+      vtx_offset += cmd_list->VtxBuffer.Size;
+    }
   }
   catch (const SK_SEH_IgnoredException&)
   {
     // ...
   }
   SK_SEH_RemoveTranslator (orig_se);
-
-//#ifdef _ImGui_Stateblock
-//  sb.Apply (pDevCtx);
-//#endif
 }
 
 #include <SpecialK/config.h>
@@ -1464,42 +1451,57 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                                L"ImGui BackBuffer");
     }
 
-    D3D11_RENDER_TARGET_VIEW_DESC      rt_desc = { };
-    D3D11_RENDER_TARGET_VIEW_DESC       *pDesc = &rt_desc;
-    D3D11_TEXTURE2D_DESC            tex2d_desc = { };
+    D3D11_RENDER_TARGET_VIEW_DESC       rt_desc = { };
+    D3D11_RENDER_TARGET_VIEW_DESC        *pDesc = &rt_desc;
+    D3D11_TEXTURE2D_DESC             tex2d_desc = { };
     _P->pBackBuffer->GetDesc       (&tex2d_desc);
 
+    UINT sizeSwapChainFormat =
+         sizeof (DXGI_FORMAT);
+
+    _P->pBackBuffer.p->GetPrivateData (
+      SKID_DXGI_SwapChainBackbufferFormat,
+                     &sizeSwapChainFormat,
+                       &tex2d_desc.Format );
+
     // SRGB Correction for UIs
-    switch (tex2d_desc.Format)
+    switch (DirectX::MakeTypeless (tex2d_desc.Format))
     {
-      case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
       case DXGI_FORMAT_R8G8B8A8_TYPELESS:
       {
         rt_desc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 
-      case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
       case DXGI_FORMAT_B8G8R8A8_TYPELESS:
       {
         rt_desc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 
-      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+      case DXGI_FORMAT_R16G16B16A16_TYPELESS:
       {
         rt_desc.Format        = DXGI_FORMAT_R16G16B16A16_FLOAT;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 
-      case DXGI_FORMAT_R10G10B10A2_UNORM:
+      case DXGI_FORMAT_R10G10B10A2_TYPELESS:
       {
         rt_desc.Format        = DXGI_FORMAT_R10G10B10A2_UNORM;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 
       default:
-        pDesc = nullptr;
+      {
+        SK_LOGi0 (
+          L"Unexpected SwapChain Format Encountered (%hs)",
+            SK_DXGI_FormatToStr (tex2d_desc.Format).data ()
+        );
+        rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        rt_desc.Format        =
+          DirectX::MakeTypelessUNORM (
+          DirectX::MakeTypelessFLOAT (tex2d_desc.Format));
+      } break;
     }
 
     if (tex2d_desc.SampleDesc.Count > 1)
@@ -1507,20 +1509,9 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
     if (_P->pRenderTargetView == nullptr)
     {
-      // Avoid calling the hook, because that would prevent sRGB correction
-      extern HRESULT
-      STDMETHODCALLTYPE
-      SK_D3D11Dev_CreateRenderTargetView_Finish (
-        _In_            ID3D11Device                   *pDev,
-        _In_            ID3D11Resource                 *pResource,
-        _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
-        _Out_opt_       ID3D11RenderTargetView        **ppRTView,
-                        BOOL                            bWrapped );
-
       ThrowIfFailed (
-        SK_D3D11Dev_CreateRenderTargetView_Finish (
-                                  pDev, _P->pBackBuffer,         pDesc,
-                                       &_P->pRenderTargetView.p, FALSE ));
+        pDev->CreateRenderTargetView (  _P->pBackBuffer,         pDesc,
+                                       &_P->pRenderTargetView.p ));
       SK_D3D11_SetDebugName (           _P->pRenderTargetView,
                                     L"ImGui RenderTargetView" );
     }
@@ -1674,7 +1665,13 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 #ifdef RESET_FONT
     if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
     if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
-    if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0); ImGui::GetIO ().Fonts->TexID = nullptr; }
+    if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0);
+    
+      // Rarely, during application shutdown, ImGui may not be fully initialized.
+      auto pFonts  = ImGui::GetIO ().Fonts;
+      if ( pFonts != nullptr )
+           pFonts->TexID = nullptr;
+    }
 #endif
 
 #ifdef RESET_VTX_IDX_BUFFERS
@@ -1992,6 +1989,7 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
                                         swapDesc.OutputWindow),
             L"D3D11BkEnd" );
 
+#ifdef REFERENCE_COUNT_FIXUP
     // Release residual references that should have been released following SwapChain Present
     //
     extern bool
@@ -2002,6 +2000,7 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
       if (_pDeviceCtx.p != nullptr)
           _pDeviceCtx->OMSetRenderTargets (0, nullptr, nullptr);
     }
+#endif
 
     SK_ReleaseAssert ( pSwapChain   == nullptr ||
                       _pSwapChain.p == nullptr ||
@@ -2121,7 +2120,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
     if (rb.srgb_stripped && (! hdr_mode))
     {
-#define _USE_SRGB_WARNING
+//#define _USE_SRGB_WARNING
 #ifdef _USE_SRGB_WARNING
       if (config.render.dxgi.srgb_behavior < -1)
       {

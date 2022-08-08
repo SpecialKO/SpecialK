@@ -1198,7 +1198,7 @@ ActivateWindow ( HWND hWnd,
       }
     }
 
-    if (config.window.unconfine_cursor)
+    if (config.window.unconfine_cursor || (! game_window.active))
     {
       SK_LOG4 ( ( L"Unconfined Mouse Cursor" ),
                   L"Window Mgr" );
@@ -1681,23 +1681,22 @@ ClipCursor_Detour (const RECT *lpRect)
       SK_ClipCursor (nullptr);
   }
 
-  if (! (config.window.confine_cursor || config.window.unconfine_cursor))
-  { // Expand clip rects while SK's UI is open so the mouse works as expected :)
-    if ( SK_ImGui_Active () )
-    {
-      SK_LOG1 ( ( L"Ignoring Clip Rectangle Set While SK's UI is Active" ),
-                  L"Input Mgr." );
-
-      SK_Input_SaveClipRect (&game_window.cursor_clip  );
-      SK_ClipCursor         (&game_window.actual.window);
-
-      return TRUE;
-    }
-  }
-
-  if ( SK_IsGameWindowActive () )//&&
-         //(! wm_dispatch->moving_windows.count (game_window.hWnd) ) )
+  if ( SK_IsGameWindowActive () )
   {
+    if (! (config.window.confine_cursor || config.window.unconfine_cursor))
+    { // Expand clip rects while SK's UI is open so the mouse works as expected :)
+      if ( SK_ImGui_Active () )
+      {
+        SK_LOG1 ( ( L"Ignoring Clip Rectangle Set While SK's UI is Active" ),
+                    L"Input Mgr." );
+
+        SK_Input_SaveClipRect (&game_window.cursor_clip  );
+        SK_ClipCursor         (&game_window.actual.window);
+
+        return TRUE;
+      }
+    }
+
     return
       SK_ClipCursor (&game_window.cursor_clip);
   }
@@ -5261,8 +5260,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
         {
-          game_window.active = true;
-
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
 
@@ -5355,8 +5352,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                     SK_WantBackgroundRender ()
                 )
             {
-              //game_window.DefWindowProc ( hWnd, uMsg,
-              //                              wParam, lParam );
+              game_window.DefWindowProc ( hWnd, uMsg,
+                                            wParam, lParam );
 
               SK_COMPAT_SafeCallProc (&game_window,
                 hWnd, uMsg, TRUE, 0

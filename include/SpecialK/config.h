@@ -669,7 +669,7 @@ struct sk_config_t
     //bool    fix_10bit_gsync     = false;
       bool    kill_hdr            = false;
       bool    snuffed_ansel       = false;
-      bool    bypass_ansel        = false;
+      bool    bypass_ansel        =  true;
     } bugs;
     struct sleep_s {
       UINT    frame_interval_us   =      0;
@@ -1128,6 +1128,7 @@ enum class SK_GAME_ID
   FinalFantasy9,                // FF9.exe
   EdithFinch,                   // FinchGame.exe
   FinalFantasyX_X2,             // FFX.exe / FFX-2.exe / FFX&X-2_Will.exe
+  FinalFantasy13,               // ffxiiiimg.exe / FFXiiiLauncher.exe
   DeadlyPremonition,            // DP.exe DPLauncher.exe
   GalGun_Double_Peace,          // GG2Game.exe
   YS_Seven,                     // Ys7.exe
@@ -1204,6 +1205,7 @@ enum class SK_GAME_ID
   ShinMegamiTensei3,            // smt3hd.exe
   TheQuarry,                    // TheQuarry-Win64-Shipping.exe
   GenshinImpact,                // GenshinImpact.exe
+  PathOfExile,                  // PathOfExileSteam.exe
 
   UNKNOWN_GAME               = 0xffff
 };

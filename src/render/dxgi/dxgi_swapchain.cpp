@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
@@ -470,10 +471,12 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           // sRGB is being turned off for Flip Model
           if (bOriginallysRGB && (! scrgb_hdr))
           {
-            texDesc.Format = 
-              config.render.dxgi.srgb_behavior == 0 ?
-                DirectX::MakeSRGB (DirectX::MakeTypelessUNORM (typeless))
-              :                    DirectX::MakeTypelessUNORM (typeless);
+            if (config.render.dxgi.srgb_behavior >= 1)
+              texDesc.Format =
+                  DirectX::MakeSRGB (DirectX::MakeTypelessUNORM (typeless));
+            else
+              texDesc.Format = typeless;
+
           }
 
           // HDR Override: Firm override to a typed format is safe
@@ -525,6 +528,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
               SKID_DXGI_SwapChainBackbufferFormat, size,
                                  &swapDesc.BufferDesc.Format);
 
+            SK_D3D11_FlagResourceFormatManipulated (
+              backbuffer_asTexture2D1, swapDesc.BufferDesc.Format
+            );
+
             SK_D3D11_SetDebugName ( backbuffer_asTexture2D1.p,
                  SK_FormatStringW ( L"[SK] Flip Model Backbuffer %d", Buffer ) );
             SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
@@ -552,8 +559,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
             *ppSurface =
               backbuffer_asTexture2D1.p;
 
+#ifdef  _SEMIPERMANENT_SWAPCHAIN
             if (pOldBuffer != nullptr)
               pOldBuffer.p->Release ();
+#endif
 
             return S_OK;
           }
@@ -736,9 +745,11 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
 
     else if (NewFormat == DXGI_FORMAT_UNKNOWN)
     {
-      if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
-        lastNonHDRFormat = NewFormat;
+      // This is wrong... why was it here?
+      ////if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+      ////  lastNonHDRFormat = NewFormat;
     }
+
 
     extern bool
           __SK_HDR_16BitSwap;
@@ -825,7 +836,7 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
          (swapDesc.BufferDesc.Format == NewFormat   || NewFormat   == DXGI_FORMAT_UNKNOWN) &&
          (swapDesc.BufferCount       == BufferCount || BufferCount == 0)                   &&
          (swapDesc.Flags             == SwapChainFlags))
-      || (_stalebuffers) )
+      || (_stalebuffers))
   {
     hr =
       pReal->ResizeBuffers (
@@ -863,9 +874,16 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     {
       int iUnsyncedPresents = 0;
 
-      while (SUCCEEDED (pReal->Present (0, 0)))
+      HRESULT hrUnsynced =
+        pReal->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
+
+      while ( SUCCEEDED (hrUnsynced) ||
+                         hrUnsynced == DXGI_ERROR_WAS_STILL_DRAWING )
       {
         ++iUnsyncedPresents;
+
+        hrUnsynced =
+          pReal->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
 
         SK_ComQIPtr <IDXGISwapChain3>
             pSwap3 (pReal);
@@ -1265,6 +1283,11 @@ STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
 {
   assert (ver_ >= 3);
+
+  // Don't let the game do this if SK's HDR overrides are active
+  extern bool __SK_HDR_16BitSwap;
+  if (        __SK_HDR_16BitSwap)
+    ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
 
   return
     SK_DXGISwap3_SetColorSpace1_Impl (

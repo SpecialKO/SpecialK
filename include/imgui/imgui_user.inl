@@ -788,56 +788,56 @@ MessageProc ( const HWND&   hWnd,
 
 
 
-    case WM_MOUSEACTIVATE:
-    {
-      ActivateWindow (((HWND)wParam == hWnd));
-
-      if ((! window_active) && SK_WantBackgroundRender ())
-      {
-        if (GetFocus () == game_window.hWnd)
-          return true;
-      }
-    } break;
-
-
-    case WM_ACTIVATEAPP:
-    case WM_ACTIVATE:
-    case WM_NCACTIVATE:
-    {
-      if (hWnd == game_window.hWnd || hWnd == game_window.child)
-      {
-        if ( msg == WM_NCACTIVATE ||
-             msg == WM_ACTIVATEAPP )
-        {
-          ActivateWindow (wParam != 0x00);
-        }
-
-        else if (msg == WM_ACTIVATE)
-        {
-          switch (LOWORD (wParam))
-          {
-            case WA_ACTIVE:
-            case WA_CLICKACTIVE:
-            default: // Unknown
-            {
-              ActivateWindow ((HWND)lParam != game_window.hWnd);
-            } break;
-
-            case WA_INACTIVE:
-            {
-              ActivateWindow ( lParam == 0 ||
-                         (HWND)lParam == game_window.hWnd );
-            } break;
-          }
-        }
-      }
-
-      if ((! window_active) && SK_WantBackgroundRender ())
-      {
-        if (GetFocus () == game_window.hWnd)
-          return true;
-      }
-    } break;
+    ////case WM_MOUSEACTIVATE:
+    ////{
+    ////  ActivateWindow (((HWND)wParam == hWnd));
+    ////
+    ////  if ((! window_active) && SK_WantBackgroundRender ())
+    ////  {
+    ////    if (GetFocus () == game_window.hWnd)
+    ////      return true;
+    ////  }
+    ////} break;
+    ////
+    ////
+    ////case WM_ACTIVATEAPP:
+    ////case WM_ACTIVATE:
+    ////case WM_NCACTIVATE:
+    ////{
+    ////  if (hWnd == game_window.hWnd || hWnd == game_window.child)
+    ////  {
+    ////    if ( msg == WM_NCACTIVATE ||
+    ////         msg == WM_ACTIVATEAPP )
+    ////    {
+    ////      ActivateWindow (wParam != 0x00);
+    ////    }
+    ////
+    ////    else if (msg == WM_ACTIVATE)
+    ////    {
+    ////      switch (LOWORD (wParam))
+    ////      {
+    ////        case WA_ACTIVE:
+    ////        case WA_CLICKACTIVE:
+    ////        default: // Unknown
+    ////        {
+    ////          ActivateWindow ((HWND)lParam != game_window.hWnd);
+    ////        } break;
+    ////
+    ////        case WA_INACTIVE:
+    ////        {
+    ////          ActivateWindow ( lParam == 0 ||
+    ////                     (HWND)lParam == game_window.hWnd );
+    ////        } break;
+    ////      }
+    ////    }
+    ////  }
+    ////
+    ////  if ((! window_active) && SK_WantBackgroundRender ())
+    ////  {
+    ////    if (GetFocus () == game_window.hWnd)
+    ////      return true;
+    ////  }
+    ////} break;
 
 
     case WM_LBUTTONDOWN:

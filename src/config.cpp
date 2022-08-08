@@ -140,6 +140,8 @@ SK_GetCurrentGameID (void)
           { L"FFX.exe",                                SK_GAME_ID::FinalFantasyX_X2             },
           { L"FFX-2.exe",                              SK_GAME_ID::FinalFantasyX_X2             },
           { L"FFX&X-2_Will.exe",                       SK_GAME_ID::FinalFantasyX_X2             },
+          { L"ffxiiiimg.exe",                          SK_GAME_ID::FinalFantasy13               },
+          { L"FFXiiiLauncher.exe",                     SK_GAME_ID::Launcher                     },
           { L"DP.exe",                                 SK_GAME_ID::DeadlyPremonition            },
           { L"GG2Game.exe",                            SK_GAME_ID::GalGun_Double_Peace          },
           { L"Ys7.exe",                                SK_GAME_ID::YS_Seven                     },
@@ -177,7 +179,7 @@ SK_GetCurrentGameID (void)
           { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
           { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
           { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
-          { L"SteamLauncher.exe",                      SK_GAME_ID::Shenmue                      }, // Bad idea
+          { L"SteamLauncher.exe",                      SK_GAME_ID::Launcher                     },
           { L"DRAGON QUEST XI.exe",                    SK_GAME_ID::DragonQuestXI                },
           { L"ACOdyssey.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
           { L"ACOrigins.exe",                          SK_GAME_ID::AssassinsCreed_Odyssey       },
@@ -210,7 +212,8 @@ SK_GetCurrentGameID (void)
           { L"DivaMegaMix.exe",                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
           { L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
-          { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                }
+          { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
+          { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  }
         };
 
     first_check  = false;
@@ -302,6 +305,8 @@ SK_GetCurrentGameID (void)
       {
         current_game =
           SK_GAME_ID::Launcher;
+
+        config.system.silent = true;
       }
     }
 
@@ -2335,11 +2340,25 @@ auto DeclKeybind =
         config.threads.enable_dynamic_spinlocks = true;
       } break;
 
+      case SK_GAME_ID::FinalFantasy13:
+      {
+        config.compatibility.allow_dxdiagn            = false;
+        config.compatibility.auto_large_address_patch = false;
+      } break;
+
 #ifdef _M_AMD64
       case SK_GAME_ID::GenshinImpact:
       {
         // Game requires sRGB Passthrough for proper SDR color
         config.render.dxgi.srgb_behavior = -1;
+      } break;
+
+      case SK_GAME_ID::PathOfExile:
+      {
+        // Last remaining game that requires an override, its engine
+        //   freaks the hell out of the SwapChain has a _TYPELESS
+        //     format even though all API calls are successful.
+        config.render.dxgi.srgb_behavior = 1;
       } break;
 
       case SK_GAME_ID::HatsuneMikuDIVAMegaMix:
@@ -2385,6 +2404,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Launcher:
       {
+        config.system.silent = true;
       } break;
 
 
@@ -4101,13 +4121,28 @@ auto DeclKeybind =
     // Config opted-in to debugger wait
     if (config.system.wait_for_debugger)
     {
-      static volatile bool                       bManualDebug = false;
-      if (      ! SK_IsDebuggerPresent ())
-      { while ((! SK_IsDebuggerPresent ()) && (! bManualDebug))
-                 SK_SleepEx (50, TRUE);
+      SK_ApplyQueuedHooks ();
 
-        if (! bManualDebug)
-          __debugbreak ();
+      extern void NTAPI RtlAcquirePebLock_Detour (void);
+      extern void NTAPI RtlReleasePebLock_Detour (void);
+      extern bool   SK_Debug_CheckDebugFlagInPEB (void);
+
+      if (      ! SK_IsDebuggerPresent ())
+      { while ((! SK_IsDebuggerPresent ()))
+        {
+          bool  _break = false;
+
+          RtlAcquirePebLock_Detour ();
+                SK_SleepEx (50, TRUE);
+                _break =
+                  SK_Debug_CheckDebugFlagInPEB ();
+          RtlReleasePebLock_Detour ();
+
+          if (_break)
+            break;
+        }
+
+        __debugbreak ();
       }
     }
   }

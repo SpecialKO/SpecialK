@@ -502,7 +502,7 @@ void
 __stdcall
 SK_InitCore (std::wstring, void* callback)
 {
-  if (SK_IsRunDLLInvocation ())
+  if (SK_IsRunDLLInvocation () || SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
     return;
 
   using finish_pfn   = void (WINAPI *)  (void);
@@ -915,6 +915,10 @@ void BasicInit (void)
   else
     SK::Diagnostics::CrashHandler::InitSyms ();
 
+  // This installs hooks for COM's CoCreateInstance, used for various old DirectX
+  //   features in addition to Special K's WMI monitoring services
+  SK_WMI_Init ();
+
   SK::EOS::Init (false);
 
   //// Do this from the startup thread [these functions queue, but don't apply]
@@ -986,10 +990,6 @@ void BasicInit (void)
 
   if (SK_COMPAT_IsFrapsPresent ())
       SK_COMPAT_UnloadFraps ();
-
-  // This installs hooks for COM's CoCreateInstance, used for various old DirectX
-  //   features in addition to Special K's WMI monitoring services
-  SK_WMI_Init ();
 }
 
 DWORD

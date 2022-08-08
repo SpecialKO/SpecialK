@@ -1034,6 +1034,25 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 
 
 bool
+SK_DXGI_IsFormatCastable ( DXGI_FORMAT inFormat,
+                           DXGI_FORMAT outFormat )
+{
+  if ( DirectX::MakeTypeless (inFormat) ==
+       DirectX::MakeTypeless (outFormat) )
+    return true;
+
+  if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8A8_TYPELESS &&
+       DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_R8G8B8A8_TYPELESS )
+    return true;
+
+  if ( DirectX::MakeTypeless (inFormat)  == DXGI_FORMAT_B8G8R8A8_TYPELESS &&
+       DirectX::MakeTypeless (outFormat) == DXGI_FORMAT_R8G8B8A8_TYPELESS )
+    return true;
+
+  return false;
+}
+
+bool
 SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                           ID3D11Texture2D *pDstTex )
 {
@@ -1044,6 +1063,13 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   if (! pDevCtx)
     return false;
+
+  SK_ComPtr <ID3D11DeviceContext>             pUnwrapped;
+  if (SUCCEEDED (pDevCtx->QueryInterface (IID_IUnwrappedD3D11DeviceContext,
+                                    (void **)&pUnwrapped.p)))
+  {
+    pDevCtx = pUnwrapped.p;
+  }
 
   auto& codec        = srgb_codec->devices_ [pDev];
   auto& vs_hdr_util  = codec.VertexShader_Util;
@@ -1063,28 +1089,23 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pSrcTex->GetDesc (&srcTexDesc);
     pDstTex->GetDesc (&dstTexDesc);
 
-  UINT dev_idx =
-    SK_D3D11_GetDeviceContextHandle (pDevCtx);
-  
-  auto flag_result =
-    SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
-  
-  SK_ScopedBool auto_bool (flag_result.first);
-                          *flag_result.first = flag_result.second;
-
-  if ( pSrcTex                     == pDstTex              ||
+  if ( DirectX::IsCompressed (srcTexDesc.Format)           ||
+       DirectX::IsCompressed (dstTexDesc.Format)           ||
+       pSrcTex                     == pDstTex              ||
        srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
   {
-    SK_ReleaseAssert (! L"Impossible BltCopy Requested");
+    //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
-    //return false;
+    return false;
   }
 
   else if ( srcTexDesc.Width  != dstTexDesc.Width ||
             srcTexDesc.Height != dstTexDesc.Height )
   {
+    //SK_ReleaseAssert (! L"BltCopy Skipped Because Of Resolution Mismatch");
+
     ////////SK_ReleaseAssert (srcTexDesc.Width  == dstTexDesc.Width &&
     ////////                  srcTexDesc.Height == dstTexDesc.Height);
     // TODO: This...
@@ -1098,12 +1119,29 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     //  UINT            SrcSubresource,
     //  const D3D11_BOX * pSrcBox);
 
-    return false;
+    //return false;
   }
 
+  UINT dev_idx =
+    SK_D3D11_GetDeviceContextHandle (pDevCtx);
+
+  auto flag_result =
+    SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
+ 
+  SK_ScopedBool auto_bool (flag_result.first);
+                          *flag_result.first = flag_result.second;
+
   // Must be zero or one, or the input/output surface is incompatible
-  SK_ReleaseAssert ( dstTexDesc.MipLevels <= 1 &&
-                     srcTexDesc.MipLevels <= 1 );
+  if (dstTexDesc.MipLevels > 1 || srcTexDesc.MipLevels > 1)
+  {
+    ///SK_ReleaseAssert ( dstTexDesc.MipLevels <= 1 &&
+    ///                   srcTexDesc.MipLevels <= 1 );
+    SK_RunOnce ([&] {
+      SK_LOGi0 (
+        L" *** SK_D3D11_BltCopySurface (...) from src w/ %d mip levels to dst w/ %d",
+           srcTexDesc.MipLevels, dstTexDesc.MipLevels );
+    })
+  }
 
   struct {
     struct {
@@ -1168,29 +1206,46 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   UINT size =
      sizeof (void *);
 
-  // TODO: Use another GUID for src/dst Blt Copy
-  if ( SUCCEEDED (
-         pSrcTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
-                                     &size, &surface.render.tex.p )
-       )
-     )
+  if ( srcTexDesc.Width  == dstTexDesc.Width &&
+       srcTexDesc.Height == dstTexDesc.Height )
   {
-    D3D11_TEXTURE2D_DESC          surrogateDesc = { };
-    surface.render.tex->GetDesc (&surrogateDesc);
-
-    if (!(surrogateDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
-          surface.render.tex.p == pSrcTex                     ||
-          surface.render.tex.p == pDstTex                     ||
-          DirectX::MakeTypeless (surrogateDesc.Format) !=
-          DirectX::MakeTypeless (surface.desc.tex.Format) )
+    // TODO: Use another GUID for src/dst Blt Copy
+    if ( SUCCEEDED (
+           pSrcTex->GetPrivateData ( SKID_D3D11_CachedBltCopySrc,
+                                       &size, &surface.render.tex.p )
+         )
+       )
     {
-      surface.render.tex.Release ();
+      D3D11_TEXTURE2D_DESC          surrogateDesc = { };
+      surface.render.tex->GetDesc (&surrogateDesc);
+
+      if (!(surrogateDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
+            surface.render.tex.p           == pSrcTex                     ||
+            surface.render.tex.p           == pDstTex                     ||
+            surrogateDesc.Width            != dstTexDesc.Width            ||
+            surrogateDesc.Height           != dstTexDesc.Height           ||
+            surrogateDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count ||
+          (!SK_DXGI_IsFormatCastable (surrogateDesc.Format,
+                                      surface.desc.tex.Format)))
+      {
+        SK_LOGi0 (
+          L"SK_D3D11_BltCopySurface Released Existing Proxy Surface Because Format Or Resolution Was Incompatible (%hs <--> %hs, (%dx%d) <--> (%dx%d))",
+            SK_DXGI_FormatToStr (surrogateDesc.Format).data (), SK_DXGI_FormatToStr (surface.desc.tex.Format).data (),
+                                 surrogateDesc.Width,    surrogateDesc.Height,
+                              surface.desc.tex.Width, surface.desc.tex.Height
+        );
+
+        surface.render.tex.Release ();
+      }
     }
   }
 
   // A temporary texture is needed (but we'll stash it for potential reuse)
   if (surface.render.tex.p == nullptr)
   {
+    surface.desc.tex.Format =
+      DirectX::MakeTypeless (surface.desc.tex.Format);
+
     surface.desc.tex.BindFlags |=
       D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
@@ -1204,14 +1259,15 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
         L"[SK] D3D11 BltCopy I/O Stage" );
 
       pSrcTex->SetPrivateDataInterface (
-        SKID_D3D11_SurrogateMultisampleResolveBuffer, surface.render.tex.p );
+        SKID_D3D11_CachedBltCopySrc, surface.render.tex.p );
     }
   }
 
   if ( surface.render.tex.p == nullptr
     || FAILED (D3D11Dev_CreateRenderTargetView_Original (pDev, surface.render.tex, &surface.desc.rtv, &surface.render.rtv.p)) )
   {
-    SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: surface.render.tex.p == nullptr" );
+    if (surface.render.tex.p == nullptr) SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: surface.render.tex.p == nullptr" );
+    else                                 SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateRTV Failed" );
 
     return false;
   }
@@ -1226,9 +1282,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   {
     size = sizeof (void *);
 
-    // TODO: Use another GUID for src/dst Blt Copy
     if ( SUCCEEDED (
-           pDstTex->GetPrivateData ( SKID_D3D11_SurrogateMultisampleResolveBuffer,
+           pDstTex->GetPrivateData ( SKID_D3D11_CachedBltCopyDst,
                                        &size, &surface.render.tex2.p )
          )
        )
@@ -1239,15 +1294,27 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       if (!(surrogateDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) ||
             surface.render.tex2.p == pSrcTex                      ||
             surface.render.tex2.p == pDstTex                      ||
-            DirectX::MakeTypeless (surrogateDesc.Format) !=
-            DirectX::MakeTypeless (surface.desc.tex2.Format) )
+            surrogateDesc.Width   != surface.desc.tex2.Width      ||
+            surrogateDesc.Height  != surface.desc.tex2.Height     ||
+            (! SK_DXGI_IsFormatCastable (surrogateDesc.Format,
+                                         surface.desc.tex2.Format)))
       {
         surface.render.tex2.Release ();
+
+        SK_LOGi0 (
+          L"SK_D3D11_BltCopySurface Released Existing Proxy Surface Because Format Or Resolution Was Incompatible (%hs <--> %hs, (%dx%d) <--> (%dx%d))",
+              SK_DXGI_FormatToStr (surrogateDesc.Format).data (), SK_DXGI_FormatToStr (surface.desc.tex2.Format).data (),
+                                   surrogateDesc.Width,     surrogateDesc.Height,
+                               surface.desc.tex2.Width, surface.desc.tex2.Height
+        );
       }
     }
 
     surface.desc.tex2.BindFlags |=
        D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+    surface.desc.tex2.Format =
+      DirectX::MakeTypeless (surface.desc.tex2.Format);
 
     if ( surface.render.tex2.p == nullptr &&
           SUCCEEDED (
@@ -1256,25 +1323,22 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
           )
        )
     {
-      // Beware of possible cyclic references
-      //
       SK_D3D11_SetDebugName ( surface.render.tex2,
         L"[SK] D3D11 BltCopy SrcTex (SRV-COPY)" );
 
       pDstTex->SetPrivateDataInterface (
-        SKID_D3D11_SurrogateMultisampleResolveBuffer, surface.render.tex2.p );
+        SKID_D3D11_CachedBltCopyDst, surface.render.tex2.p);
     }
 
     pNewSrcTex =
       surface.render.tex2.p;
 
-    if (pNewSrcTex == nullptr) { SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: pNewSrcTex == nullptr" );
+    if (pNewSrcTex == nullptr) {
+      SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: pNewSrcTex == nullptr" );
       return false;
     }
     
-    // Do not call the function directly or it could recurse through this hook
-    //pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
-    D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
+    pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
   }
 
   if ( FAILED (
@@ -1362,14 +1426,53 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   pDevCtx->SetPredication         (nullptr, FALSE);
 
-  D3D11_Draw_Original    (pDevCtx, 4, 0);
-//pDevCtx->Draw                   (4, 0);
+  pDevCtx->Draw                   (4, 0);
 
   ApplyStateblock (pDevCtx.p, &codec.sb);
 
   if (pDstTex != nullptr && surface.render.tex != nullptr)
-    D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
-    //pDevCtx->CopyResource (pDstTex, surface.render.tex);
+    pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
   return true;
+}
+
+// Check if SK is responsible for this resource having a different
+//   format than the underlying software initially requested/expects
+HRESULT
+SK_D3D11_CheckResourceFormatManipulation ( ID3D11Resource* pRes,
+                                           DXGI_FORMAT     expected )
+{
+  if (pRes == nullptr)
+    return E_POINTER;
+
+  DXGI_FORMAT overrideFormat = DXGI_FORMAT_UNKNOWN;
+  UINT        formatSize     = sizeof (DXGI_FORMAT);
+
+  if ( SUCCEEDED (
+         pRes->GetPrivateData ( SKID_D3D11_ResourceFormatOverride,
+                                  &formatSize, &overrideFormat ) ) )
+  {
+    return
+      ( overrideFormat != expected ) ?
+                  E_UNSUPPORTED_TYPE : S_OK;
+  }
+
+  return
+    S_OK;
+}
+
+void
+SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
+                                         DXGI_FORMAT     original )
+{
+  SK_ReleaseAssert (original != DXGI_FORMAT_UNKNOWN);
+
+  if (pRes == nullptr)
+    return;
+
+  UINT formatSize =
+    sizeof (DXGI_FORMAT);
+
+  pRes->SetPrivateData ( SKID_D3D11_ResourceFormatOverride,
+                           formatSize, (const void *)&original );
 }
