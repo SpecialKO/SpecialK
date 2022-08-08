@@ -3,12 +3,14 @@
 #pragma warning (disable: 3205)
 
 #define ANALYZE_GAMUT
-#define GENERATE_HISTOGRAM
+//#define GENERATE_HISTOGRAM
 
 RWTexture2D<float4>           texBackbufferHDR  : register (u0);
 RWTexture2D<float>            texLuminance      : register (u1);
 RWTexture2D<float4>           texGamutCoverage  : register (u2);
+#ifdef GENERATE_HISTOGRAM
 RWStructuredBuffer <tileData> bufTiledHistogram : register (u3);
+#endif
 
 groupshared struct {
   uint accum;
@@ -124,6 +126,7 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
           const float Y =
             transformRGBtoY (color);
         
+#ifdef GENERATE_HISTOGRAM
           const uint bin =
             computeBinIdxFromLogY (log (Y));
         
@@ -133,7 +136,6 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
           InterlockedMin (tile_data.minLuminance, (uint)(Y * 8192.0));
           InterlockedMax (tile_data.maxLuminance, (uint)(Y * 8192.0));
 
-#ifdef GENERATE_HISTOGRAM
           InterlockedAdd (tile_data.Histogram [bin], 1u);
 #endif
         
@@ -183,9 +185,12 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
     }
 
     texLuminance [groupIdx.xy] = avg;
+
+#ifdef GENERATE_HISTOGRAM
     tile_data.avgLuminance     = avg;
     
     tile_data.tileIdx      = groupIdx.xy;
+#endif
   //tile_data.pixelOffset  = uint2 (0,0);
   
     //// Gamut coverage counters
