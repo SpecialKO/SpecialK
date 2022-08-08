@@ -858,7 +858,7 @@ public:
         if (pSwapChain)
         {
           rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
-                                                              : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;//DXGI_COLOR_SPACE_CUSTOM
+                                                              : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
           pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
                                                            DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
@@ -966,8 +966,7 @@ public:
       }
     }
 
-    if ( bHDRActive )//__SK_HDR_10BitSwap ||
-                     //__SK_HDR_16BitSwap    )
+    if ( bHDRActive )
     {
       SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
 
