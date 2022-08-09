@@ -234,6 +234,27 @@ SK_D3D11_GetDebugNameA (ID3D11DeviceChild* pD3D11Obj)
     SK_D3D11_GetDebugName <char> (pD3D11Obj);
 }
 
+std::string
+SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj)
+{
+  auto wide_name =
+    SK_D3D11_GetDebugName <wchar_t> (pD3D11Obj);
+
+  if (wide_name.empty ())
+  {
+    auto name =
+      SK_D3D11_GetDebugName <char> (pD3D11Obj);
+
+    if (! name.empty ())
+      return name;
+
+    return "Unnamed";
+  }
+
+  return
+    SK_WideCharToUTF8 (wide_name);
+}
+
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
@@ -1117,12 +1138,19 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
           pTex (pResource);
       if (pTex != nullptr)
       {
-        D3D11_TEXTURE2D_DESC  tex_desc = { };
-        pTex->GetDesc       (&tex_desc);
-
-        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
+        // Ys 8 crashes if this nonsense isn't here
+        bool bInvalidType =
+          (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format));
+          
+        if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
         {
-          if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, tex_desc.Format))
+          D3D11_TEXTURE2D_DESC  tex_desc = { };
+          pTex->GetDesc       (&tex_desc);
+
+          if (                                                            bInvalidType ||
+               (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (tex_desc.Format)) &&
+                (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               tex_desc.Format)))
+             )
           {
             if (DirectX::IsTypeless (desc.Format))
             {
@@ -1204,17 +1232,44 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
             if ( SK_D3D11_OverrideDepthStencil (newFormat))
               desc.Format = newFormat;
+
+            bool bErrorCorrection = false;
+
+            // If we got this far, the problem wasn't created by Special K, however...
+            //   Special K can still try to fix it.
+            //
+            //  * Dear Esther tries to use an R24X8_TYPELESS view of its depth buffer,
+            //      for example, and is broken (without SK). It can't hurt to try and fix :)
+            if (DirectX::IsTypeless (desc.Format))
+            {
+              auto typedFormat =
+                DirectX::MakeTypelessUNORM   (
+                  DirectX::MakeTypelessFLOAT (desc.Format));
+
+              SK_LOGi0 (
+                L"-!- Game tried to create a Typeless RTV (%hs) of a"
+                L" surface ('%hs') not directly managed by Special K",
+                          SK_DXGI_FormatToStr (desc.Format).data (),
+                          SK_D3D11_GetDebugNameUTF8 (pTex).c_str () );
+              SK_LOGi0 (
+                L"<?> Attempting to fix game's mistake by converting to %hs",
+                          SK_DXGI_FormatToStr (typedFormat).data () );
+
+              desc.Format      = typedFormat;
+              bErrorCorrection = true;
+            }
+
+            const HRESULT hr =
+              _Finish (&desc);
+
+            if (SUCCEEDED (hr))
+            {
+              if (bErrorCorrection)
+                SK_LOGi0 (L"==> [ Success ]");
+
+              return hr;
+            }
           }
-
-          if (DirectX::IsTypeless (desc.Format))
-            desc.Format = DirectX::MakeTypelessUNORM (
-                          DirectX::MakeTypelessFLOAT (desc.Format));
-
-          const HRESULT hr =
-            _Finish (&desc);
-
-          if (SUCCEEDED (hr))
-            return hr;
         }
       }
     }
@@ -2022,8 +2077,21 @@ SK_D3D11_ResolveSubresource_Impl (
                                                    pTempTex.p );
             }
 
-            _Finish                     ( pTempTex, pSrcTex, Format );
-            if (SK_D3D11_BltCopySurface ( pTempTex, pDstTex ))
+            bool bSuccess = false;
+
+            _Finish                   ( pTempTex, pSrcTex, Format );
+            bSuccess =
+              SK_D3D11_BltCopySurface ( pTempTex, pDstTex );
+
+            SK_ComQIPtr <ID3D11DeviceContext1>
+                pDevCtx1 (pDevCtx);
+            if (pDevCtx1 != nullptr)
+            {
+                pDevCtx1->DiscardResource     (pTempTex);
+                pTempTex->SetEvictionPriority (DXGI_RESOURCE_PRIORITY_LOW);
+            }
+
+            if (bSuccess)
               return;
           }
           
@@ -2084,6 +2152,16 @@ SK_D3D11_CopyResource_Impl (
              //FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
              //FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
         {
+          if ( srcDesc.Width  != dstDesc.Width ||
+               srcDesc.Height != dstDesc.Height )
+          {
+            SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
+                       L" during ID3D11DeviceContext::CopyResources (...)" );
+            SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
+                         srcDesc.Width, srcDesc.Height,
+                         dstDesc.Width, dstDesc.Height );
+          }
+
           if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
             return;
         }

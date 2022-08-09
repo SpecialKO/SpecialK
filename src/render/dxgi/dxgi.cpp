@@ -644,6 +644,7 @@ bool  bFlipMode               = false;
 bool  bWait                   = false;
 bool  bOriginallyFlip         = false;
 bool  bOriginallysRGB         = false;
+bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of Centered/Stretched
 UINT uiOriginalBltSampleCount = 0UL;
 
 // Used for integrated GPU override
@@ -3180,16 +3181,16 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   SK_ComPtr      <ID3D11Device>           pDevice;
   SK_ComPtr      <ID3D11DeviceContext>    pDevCtx;
 
+  D3DX11_STATE_BLOCK d3d11_sb = { };
+
   if (! bOriginallyFlip &&
-        SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
+          SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
   {
     pDevice->GetImmediateContext (
        &pDevCtx.p );
-    if (pDevCtx.p != nullptr)
+    if (pDevCtx != nullptr)
     {
-      pDevCtx->OMGetRenderTargets ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
-                                    &pOrigRTVs [0].p,
-                                    &pOrigDSV     .p );
+      CreateStateblock (pDevCtx, &d3d11_sb);
     }
   }
 
@@ -3198,16 +3199,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                             Flags, Source,
                               DXGISwapChain_Present );
 
-  if (SUCCEEDED (ret) && pDevCtx.p != nullptr)
+  if (pDevCtx != nullptr)
   {
-    if (calc_count (&pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT))
-    {
-      pDevCtx->OMSetRenderTargets (
-              D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
-                    &pOrigRTVs [0].p,
-                     pOrigDSV     .p
-                                  );
-    }
+    ApplyStateblock (pDevCtx, &d3d11_sb);
   }
 
   return ret;
@@ -3502,7 +3496,7 @@ auto
         str +=                    "Interlaced";
       if ( 0x0 != ( Flags & DXGI_ENUM_MODES_SCALING    ) )
         str += ( str.empty () ?    "Stretched"
-                              : " & Stetched" );
+                              : " & Stretched" );
     } return     str;
   };
 
@@ -3600,6 +3594,10 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     Flags &= ~DXGI_ENUM_MODES_INTERLACED;
   else if (config.render.dxgi.scanline_order != -1)
     Flags |=  DXGI_ENUM_MODES_INTERLACED;
+
+  // Game would be missing resolutions
+  if (bMisusingDXGIScaling)
+    Flags &= ~DXGI_ENUM_MODES_SCALING;
 
   HRESULT hr =
     GetDisplayModeList_Original (
@@ -3839,9 +3837,9 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
       }
 
       if ( config.render.dxgi.scaling_mode != -1                         &&
-                mode_to_match.Scaling != config.render.dxgi.scaling_mode &&
+                mode_to_match.Scaling != config.render.dxgi.scaling_mode/*&&
                       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
-                       DXGI_MODE_SCALING_CENTERED )
+                       DXGI_MODE_SCALING_CENTERED*/ )
       {
         mode_to_match.Scaling =
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
@@ -4116,9 +4114,10 @@ DXGIOutput_FindClosestMatchingMode_Override (
   }
 
   if ( config.render.dxgi.scaling_mode != -1 &&
-       mode_to_match.Scaling           != config.render.dxgi.scaling_mode &&
+       mode_to_match.Scaling           != config.render.dxgi.scaling_mode /*&&
                        (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
-                        DXGI_MODE_SCALING_CENTERED )
+                        DXGI_MODE_SCALING_CENTERED*/ )
+             // nb: What purpose did removing centered scaling override serve?
   {
     dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
                    L"(Requested: %hs, Using: %hs)",
@@ -4132,6 +4131,23 @@ DXGIOutput_FindClosestMatchingMode_Override (
 
     mode_to_match.Scaling =
       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
+  }
+
+  if ( bMisusingDXGIScaling && mode_to_match.Scaling != DXGI_MODE_SCALING_UNSPECIFIED )
+  {
+    dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
+                   L"(Requested: %hs, Using: %hs) "
+                   L" [ Because Developer Misunderstands This API ]", // Game's Developer
+                     SK_DXGI_DescribeScalingMode (
+                       mode_to_match.Scaling
+                     ),
+                       SK_DXGI_DescribeScalingMode (
+                         DXGI_MODE_SCALING_UNSPECIFIED
+                       )
+                 );
+
+    mode_to_match.Scaling =
+      DXGI_MODE_SCALING_UNSPECIFIED;
   }
 
   pModeToMatch = &mode_to_match;
@@ -4452,7 +4468,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
         modeDesc.Width                   = sd.BufferDesc.Width;
         modeDesc.Height                  = sd.BufferDesc.Height;
         modeDesc.Format                  = sd.BufferDesc.Format;
-        modeDesc.Scaling                 = DXGI_MODE_SCALING_UNSPECIFIED;
+        modeDesc.Scaling                 = sd.BufferDesc.Scaling;//DXGI_MODE_SCALING_UNSPECIFIED;
         modeDesc.ScanlineOrdering        = fullscreenDesc.ScanlineOrdering;
         modeDesc.RefreshRate.Numerator   = lLastRefreshNum;
         modeDesc.RefreshRate.Denominator = lLastRefreshDenom;
@@ -5184,6 +5200,7 @@ SK_DXGI_CreateSwapChain_PreInit (
   _Inout_opt_ DXGI_SWAP_CHAIN_DESC1           *pDesc1,
   _Inout_opt_ HWND&                            hWnd,
   _Inout_opt_ DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
+  _In_opt_    IUnknown                        *pDevice,
               bool                             bIsD3D12 )
 {
   if (config.display.monitor_handle != 0)
@@ -5357,6 +5374,75 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
 
     _DescribeSwapChain (L"ORIGINAL");
+
+    #if 0
+    bool bScalingIsProblematic = false;
+
+    SK_ComQIPtr <IDXGIDevice>  pDevDXGI (pDevice);
+    SK_ComPtr   <IDXGIAdapter> pAdapter;
+
+    if (           pDevDXGI != nullptr &&
+        SUCCEEDED (pDevDXGI->GetAdapter (&pAdapter.p)))
+    {
+      SK_ComPtr <IDXGIOutput> pOutput;
+
+      for ( UINT                   idx = 0                                ;
+            pAdapter->EnumOutputs (idx, &pOutput) != DXGI_ERROR_NOT_FOUND ;
+                                 ++idx )
+      {
+        DXGI_OUTPUT_DESC   outputDesc = { };
+        pOutput->GetDesc (&outputDesc);
+
+        RECT                                 rectWindow = { };
+        GetWindowRect (pDesc->OutputWindow, &rectWindow);
+
+        if ( PtInRect (
+               &outputDesc.DesktopCoordinates,
+                POINT {
+                  rectWindow.left + (rectWindow.right  - rectWindow.left) / 2,
+                  rectWindow.top  + (rectWindow.bottom - rectWindow.top ) / 2
+                      } 
+             )
+           )
+        {
+          auto modeDesc =
+            pDesc->BufferDesc;
+
+          modeDesc.Width  = 
+            outputDesc.DesktopCoordinates.right  -
+            outputDesc.DesktopCoordinates.left;
+          modeDesc.Height =
+            outputDesc.DesktopCoordinates.bottom -
+            outputDesc.DesktopCoordinates.top;
+
+          bScalingIsProblematic =
+            SK_DXGI_IsScalingPreventingRequestedResolution (
+              &pDesc->BufferDesc, pOutput, pDevice
+            );
+
+          break;
+        }
+      }
+    }
+#else
+    std::ignore = pDevice;
+
+    bool bScalingIsProblematic =
+      pDesc->BufferDesc.Scaling != DXGI_MODE_SCALING_UNSPECIFIED;
+#endif
+
+    if (bScalingIsProblematic)
+    {
+      bMisusingDXGIScaling = true;
+
+      SK_LOGi0 (
+        L" >> Removing Scaling Mode (%hs) Because It Prevents Native Resolution",
+          SK_DXGI_DescribeScalingMode (pDesc->BufferDesc.Scaling)
+      );
+
+      pDesc->BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    }
+
 
     // Set things up to make the swap chain Alt+Enter friendly
     if (_NO_ALLOW_MODE_SWITCH)
@@ -5742,6 +5828,14 @@ SK_DXGI_CreateSwapChain_PreInit (
                         = pDesc->SampleDesc.Count;
     pDesc1->SampleDesc.Quality
                         = pDesc->SampleDesc.Quality;
+
+    if (pFullscreenDesc != nullptr)
+    {
+      pFullscreenDesc->Scaling          = pDesc->BufferDesc.Scaling;
+      pFullscreenDesc->ScanlineOrdering = pDesc->BufferDesc.ScanlineOrdering;
+      pFullscreenDesc->RefreshRate      = pDesc->BufferDesc.RefreshRate;
+      pFullscreenDesc->Windowed         = pDesc->Windowed;
+    }
   }
 
   _DescribeSwapChain (L"SPECIAL K OVERRIDES APPLIED");
@@ -6385,7 +6479,7 @@ DXGIFactory_CreateSwapChain_Override (
 
   SK_DXGI_CreateSwapChain_PreInit (
     &new_desc,              nullptr,
-     new_desc.OutputWindow, nullptr, pDev12.p != nullptr
+     new_desc.OutputWindow, nullptr, pDevice, pDev12.p != nullptr
   );
 
 #ifdef  __NIER_HACK
@@ -6648,7 +6742,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
     }
   }
 
-  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWndInterop, nullptr, false);
+  SK_DXGI_CreateSwapChain_PreInit (nullptr, &new_desc1, hWndInterop, nullptr, pDevice, false);
 
   if (pDesc != nullptr) pDesc = &new_desc1;
 
@@ -6941,7 +7035,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   SK_TLS_Bottom ()->render->d3d11->ctx_init_thread = true;
 
   SK_DXGI_CreateSwapChain_PreInit (
-    nullptr, &new_desc1, hWnd, pFullscreenDesc, pDev12.p != nullptr
+    nullptr, &new_desc1, hWnd, pFullscreenDesc, pDevice, pDev12.p != nullptr
   );
 
   IDXGISwapChain1 *pTemp (nullptr);
@@ -7100,7 +7194,7 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
 
   SK_DXGI_CreateSwapChain_PreInit (
     nullptr, &new_desc1, hWnd,
-    nullptr, false
+    nullptr, pDevice, false
   );
 
   DXGI_CALL ( ret,
@@ -10084,4 +10178,45 @@ SK_DXGI_QuickHook (void)
 
   //  SK_Thread_SpinUntilAtomicMin (&quick_hooked, 2);
   //}
+}
+
+
+// Returns true if the selected mode scaling would cause an exact match to be ignored
+bool
+SK_DXGI_IsScalingPreventingRequestedResolution ( DXGI_MODE_DESC *pDesc,
+                                                 IDXGIOutput    *pOutput,
+                                                 IUnknown       *pDevice )
+{
+  if (pOutput == nullptr, pDesc)
+    return false; // Hell if I know, pass valid parameters next time!
+
+  if (pDesc->Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+    return false;
+
+  auto desc_no_scaling         = *pDesc;
+       desc_no_scaling.Scaling =  DXGI_MODE_SCALING_UNSPECIFIED;
+
+  DXGI_MODE_DESC matchedMode_NoScaling = { },
+                 matchedMode           = { };
+
+  if ( SUCCEEDED (
+         pOutput->FindClosestMatchingMode (
+           &desc_no_scaling, &matchedMode_NoScaling, pDevice )
+       ) &&
+       SUCCEEDED (
+         pOutput->FindClosestMatchingMode (
+           pDesc,            &matchedMode,           pDevice )
+       )
+     )
+  {
+    bool prevented =
+      ( matchedMode_NoScaling.Width  != matchedMode.Width ||
+        matchedMode_NoScaling.Height != matchedMode.Height );
+
+    ::bMisusingDXGIScaling |= prevented;
+
+    return prevented;
+  }
+
+  return false;
 }

@@ -121,7 +121,8 @@ struct ShaderBase
   /////    SUCCEEDED (hrCompile);
   /////}
 
-  bool compileShaderString ( const char*    szShaderString,
+  bool compileShaderString ( ID3D11Device*  pDev,
+                             const char*    szShaderString,
                              const wchar_t* wszShaderName,
                              const char*    szEntryPoint,
                              const char*    szShaderModel,
@@ -173,8 +174,6 @@ struct ShaderBase
     HRESULT hrCompile =
       DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
 
-    SK_ComQIPtr <ID3D11Device> pDev (SK_GetCurrentRenderBackend ().device);
-
     if ( pDev != nullptr &&
          std::type_index ( typeid (    _ShaderType   ) ) ==
          std::type_index ( typeid (ID3D11VertexShader) ) )
@@ -213,7 +212,8 @@ struct ShaderBase
       SUCCEEDED (hrCompile);
   }
 
-  bool compileShaderFile ( const wchar_t* wszShaderFile,
+  bool compileShaderFile ( ID3D11Device*  pDev,
+                           const wchar_t* wszShaderFile,
                            const    char* szEntryPoint,
                            const    char* szShaderModel,
                                     bool  recompile =
@@ -268,7 +268,8 @@ struct ShaderBase
       fclose (fShader);
 
       const bool result =
-        compileShaderString ( data.get (), wstr_file.c_str (),
+        compileShaderString ( pDev,
+                              data.get (), wstr_file.c_str (),
                                 szEntryPoint, szShaderModel,
                                   recompile,  error_log );
 
@@ -403,11 +404,11 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
               if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
               {
-                D3DX11_STATE_BLOCK
+                SK_IMGUI_D3D11StateBlock
                   sblock = { };
                 auto* sb = &sblock;
 
-                CreateStateblock (pImmediateCtx, sb);
+                sb->Capture (pImmediateCtx);
 
                 DXGI_SWAP_CHAIN_DESC swapDesc = { };
                 D3D11_TEXTURE2D_DESC desc     = { };
@@ -424,15 +425,17 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                 desc.BindFlags        = D3D11_BIND_SHADER_RESOURCE;
                 desc.CPUAccessFlags   = 0;
 
-                static ShaderBase <ID3D11PixelShader>  PixelShader_HDR10toscRGB;
-                static ShaderBase <ID3D11VertexShader> VertexShaderHDR_Util;
+                static concurrency::concurrent_unordered_map <ID3D11Device*, ShaderBase <ID3D11PixelShader>>  PixelShader_HDR10toscRGB;
+                static concurrency::concurrent_unordered_map <ID3D11Device*, ShaderBase <ID3D11VertexShader>> VertexShaderHDR_Util;
 
               //static std::wstring debug_shader_dir = SK_GetConfigPath ();
 
-                static bool compiled = true;
+                bool compiled = true;
 
-                SK_RunOnce ( compiled =
-                  PixelShader_HDR10toscRGB.compileShaderString (
+                if (! PixelShader_HDR10toscRGB.count (pDev))
+                {
+                  compiled =
+                  PixelShader_HDR10toscRGB [pDev].compileShaderString ( pDev,
                     "#pragma warning ( disable : 3571 )                  \n\
                     struct PS_INPUT                                      \n\
                     {                                                    \n\
@@ -478,11 +481,13 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                                                                          \n\
                       return                                             \n\
                         float4 (hdr10_color.rgb, 1.0);                   \n\
-                    }", L"HDR10->scRGB Color Transform", "main", "ps_5_0", true )
-                );
+                    }", L"HDR10->scRGB Color Transform", "main", "ps_5_0", true);
+                };
 
-                SK_RunOnce ( compiled &=
-                  VertexShaderHDR_Util.compileShaderString (
+                if (! VertexShaderHDR_Util.count (pDev))
+                { 
+                  compiled = compiled &&
+                  VertexShaderHDR_Util [pDev].compileShaderString (pDev,
                     "cbuffer vertexBuffer : register (b0)       \n\
                     {                                           \n\
                       float4 Luminance;                         \n\
@@ -522,10 +527,11 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                       return                                    \n\
                         output;                                 \n\
                     }", L"HDR Color Utility Vertex Shader",
-                         "main", "vs_5_0", true )
-                );
+                         "main", "vs_5_0", true );
+                }
 
-                if (compiled)
+                if (     VertexShaderHDR_Util.count (pDev) &&
+                     PixelShader_HDR10toscRGB.count (pDev) && compiled )
                 {
                   SK_ComPtr <ID3D11Texture2D>          pHDR10Texture = nullptr;
                   SK_ComPtr <ID3D11ShaderResourceView> pHDR10Srv     = nullptr;
@@ -550,8 +556,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
                   static const FLOAT                      fBlendFactor [4] =
                                                       { 0.0f, 0.0f, 0.0f, 1.0f };
-                  pImmediateCtx->VSSetShader          (VertexShaderHDR_Util.shader,     nullptr, 0);
-                  pImmediateCtx->PSSetShader          (PixelShader_HDR10toscRGB.shader, nullptr, 0);
+                  pImmediateCtx->VSSetShader          (VertexShaderHDR_Util     [pDev].shader, nullptr, 0);
+                  pImmediateCtx->PSSetShader          (PixelShader_HDR10toscRGB [pDev].shader, nullptr, 0);
                   pImmediateCtx->GSSetShader          (nullptr,                         nullptr, 0);
 
                   if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
@@ -563,13 +569,11 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   pImmediateCtx->PSSetShaderResources (0, 1, pResources);
                   pImmediateCtx->OMSetRenderTargets   (1, &pRenderTargetView.p, nullptr);
 
-                  static bool run_once = false;
-
                   static D3D11_RASTERIZER_DESC    raster_desc = { };
                   static D3D11_DEPTH_STENCIL_DESC depth_desc  = { };
                   static D3D11_BLEND_DESC         blend_desc  = { };
 
-                  if (! run_once)
+                  SK_RunOnce ([&]
                   {
                     raster_desc.FillMode        = D3D11_FILL_SOLID;
                     raster_desc.CullMode        = D3D11_CULL_NONE;
@@ -595,9 +599,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                     blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
                     blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
                     blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-                  }
-
-                  SK_RunOnce (run_once = true);
+                  });
 
                   SK_ComPtr <ID3D11RasterizerState>                     pRasterizerState;
                   pDev->CreateRasterizerState           (&raster_desc, &pRasterizerState);
@@ -626,7 +628,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   hdr10_to_scRGB           = true;
                   framebuffer.NativeFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-                  ApplyStateblock (pImmediateCtx, sb);
+                  sb->Apply (pImmediateCtx);
                 }
               }
             }

@@ -171,8 +171,12 @@ D3D11Dev_CreateShaderResourceView_Override (
         D3D11_TEXTURE2D_DESC texDesc = { };
         pTex->GetDesc      (&texDesc);
 
+        // Ys 8 crashes if this nonsense isn't here
+        bool bInvalidType =
+          (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format));
+
         // SK only overrides the format of RenderTargets, anything else is not our fault.
-        if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
+        if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
         {
           if (texDesc.SampleDesc.Count > 1)
           {
@@ -186,7 +190,10 @@ D3D11Dev_CreateShaderResourceView_Override (
             else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
           }
 
-          //if (! SK_D3D11_IsDirectCopyCompatible (desc.Format, texDesc.Format))
+          if (                                                            bInvalidType ||
+               (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format)) &&
+                (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               texDesc.Format)))
+             )
           {
             DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
             UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
@@ -202,47 +209,66 @@ D3D11Dev_CreateShaderResourceView_Override (
               SK_ReleaseAssert ( desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DARRAY &&
                                  desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY );
 
-              if ( desc.Format == DXGI_FORMAT_UNKNOWN  ||
-                   DirectX::IsTypeless   (desc.Format) || // This is never valid, game might ask for typeless if it's using the same format as our backbuffer
-                   DirectX::MakeTypeless (desc.Format) !=
-                   DirectX::MakeTypeless (swapChainFormat) )
-              {
-                SK_LOGi0 (
-                  L"SRV Format Override (Requested=%hs), (Returned=%hs) - [SwapChain]",
-                    SK_DXGI_FormatToStr (    desc.Format).data (),
-                    SK_DXGI_FormatToStr (swapChainFormat).data () );
+              SK_LOGi1 (
+                L"SRV Format Override (Requested=%hs), (Returned=%hs) - [SwapChain]",
+                  SK_DXGI_FormatToStr (    desc.Format).data (),
+                  SK_DXGI_FormatToStr (swapChainFormat).data () );
 
-                desc.Format =
-                  swapChainFormat;
-              }
+              desc.Format =
+                swapChainFormat;
             }
 
             // Not a SwapChain Backbuffer, so probably had its format changed for remastering
             else
             {
-              if ( desc.Format == DXGI_FORMAT_UNKNOWN  ||
-                   DirectX::IsTypeless   (desc.Format) ||
-                   DirectX::MakeTypeless (desc.Format) !=
-                   DirectX::MakeTypeless (texDesc.Format) )
-              {
-                SK_LOGi0 (
-                  L"SRV Format Override (Requested=%hs), (Returned=%hs) - Non-SwapChain Override",
-                    SK_DXGI_FormatToStr (   desc.Format).data (),
-                    SK_DXGI_FormatToStr (texDesc.Format).data () );
+              SK_LOGi1 (
+                L"SRV Format Override (Requested=%hs), (Returned=%hs) - Non-SwapChain Override",
+                  SK_DXGI_FormatToStr (   desc.Format).data (),
+                  SK_DXGI_FormatToStr (texDesc.Format).data () );
 
-                desc.Format =
-                  texDesc.Format;
-              }
+              desc.Format =
+                texDesc.Format;
+            }
+
+            bool bErrorCorrection = false;
+
+            // If we got this far, the problem wasn't created by Special K, however...
+            //   Special K can still try to fix it.
+            //
+            //  * Dear Esther tries to use an R24X8_TYPELESS view of its depth buffer,
+            //      for example, and is broken (without SK). It can't hurt to try and fix :)
+            if (DirectX::IsTypeless (desc.Format))
+            {
+              auto typedFormat =
+                DirectX::MakeTypelessUNORM   (
+                  DirectX::MakeTypelessFLOAT (desc.Format));
+
+              SK_LOGi0 (
+                L"-!- Game tried to create a Typeless SRV (%hs) of a"
+                  L" surface ('%hs') not directly managed by Special K",
+                          SK_DXGI_FormatToStr (desc.Format).data (),
+                          SK_D3D11_GetDebugNameUTF8 (pTex).c_str () );
+              SK_LOGi0 (
+                L"<?> Attempting to fix game's mistake by converting to %hs",
+                          SK_DXGI_FormatToStr (typedFormat).data () );
+
+              desc.Format      = typedFormat;
+              bErrorCorrection = true;
+            }
+
+            const HRESULT hr =
+              D3D11Dev_CreateShaderResourceView_Original (
+                This, pResource,
+                  &desc, ppSRView );
+
+            if (SUCCEEDED (hr))
+            {
+              if (bErrorCorrection)
+                SK_LOGi0 (L"==> [ Success ]");
+
+              return hr;
             }
           }
-
-          const HRESULT hr =
-            D3D11Dev_CreateShaderResourceView_Original (
-              This, pResource,
-                &desc, ppSRView );
-
-          if (SUCCEEDED (hr))
-            return hr;
         }
       }
     }

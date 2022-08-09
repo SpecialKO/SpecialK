@@ -740,6 +740,9 @@ struct SK_DXGI_sRGBCoDec {
 
   void releaseResources (ID3D11Device *pDev)
   {
+    if (pDev == nullptr)
+      return;
+
     auto device =
       devices_.find (pDev);
 
@@ -752,6 +755,9 @@ struct SK_DXGI_sRGBCoDec {
   bool
   recompileShaders (ID3D11Device *pDev)
   {
+    if (pDev == nullptr)
+      return false;
+
     auto& device =
       devices_ [pDev];
 
@@ -878,9 +884,21 @@ SK_LazyGlobal <SK_DXGI_sRGBCoDec> srgb_codec;
 void
 SK_DXGI_ReleaseSRGBLinearizer (void)
 {
-  srgb_codec->releaseResources (
-    SK_GetCurrentRenderBackend ().getDevice <ID3D11Device> ()
-  );
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.device != nullptr)
+  {
+    auto pDev =
+      rb.getDevice <ID3D11Device> ();
+
+    if (pDev.p != nullptr)
+    {
+      srgb_codec->releaseResources (
+        pDev.p
+      );
+    }
+  }
 }
 
 bool
@@ -981,7 +999,14 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
   {
     SK_D3D11_SetDebugName (pRenderTargetView, L"sRGBLinearizer Single-Use RTV");
 
-    CreateStateblock (pDevCtx.p, &codec.sb);
+#if 0
+    SK_IMGUI_D3D11StateBlock
+      sb;
+      sb.Capture (pDevCtx);
+#else
+    D3DX11_STATE_BLOCK stateBlock = { };
+    CreateStateblock (pDevCtx, &stateBlock);
+#endif
 
     const D3D11_VIEWPORT vp = {                    0.0f, 0.0f,
       static_cast <float> (swap_desc.BufferDesc.Width ),
@@ -1023,7 +1048,8 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 
     pDevCtx->Draw                   (4, 0);
 
-    ApplyStateblock (pDevCtx.p, &codec.sb);
+    ApplyStateblock (pDevCtx, &stateBlock);
+    //sb.Apply (pDevCtx.p);
 
     return true;
   }
@@ -1111,7 +1137,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   if ( DirectX::IsCompressed (srcTexDesc.Format)           ||
        DirectX::IsCompressed (dstTexDesc.Format)           ||
-       pSrcTex                     == pDstTex              ||
+       SK_ComPtr <ID3D11Texture2D> (pSrcTex).IsEqualObject (pDstTex)              ||
        srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
@@ -1119,27 +1145,6 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
     return false;
-  }
-
-  else if ( srcTexDesc.Width  != dstTexDesc.Width ||
-            srcTexDesc.Height != dstTexDesc.Height )
-  {
-    //SK_ReleaseAssert (! L"BltCopy Skipped Because Of Resolution Mismatch");
-
-    ////////SK_ReleaseAssert (srcTexDesc.Width  == dstTexDesc.Width &&
-    ////////                  srcTexDesc.Height == dstTexDesc.Height);
-    // TODO: This...
-    //void CopySubresourceRegion (
-    //  ID3D11Resource * pDstResource,
-    //  UINT            DstSubresource,
-    //  UINT            DstX,
-    //  UINT            DstY,
-    //  UINT            DstZ,
-    //  ID3D11Resource * pSrcResource,
-    //  UINT            SrcSubresource,
-    //  const D3D11_BOX * pSrcBox);
-
-    //return false;
   }
 
   UINT dev_idx =
@@ -1240,8 +1245,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       surface.render.tex->GetDesc (&surrogateDesc);
 
       if (!(surrogateDesc.BindFlags & D3D11_BIND_RENDER_TARGET) ||
-            surface.render.tex.p           == pSrcTex                     ||
-            surface.render.tex.p           == pDstTex                     ||
+            SK_ComPtr <ID3D11Texture2D> (surface.render.tex.p).IsEqualObject (pSrcTex)                     ||
+            SK_ComPtr <ID3D11Texture2D> (surface.render.tex.p).IsEqualObject (pDstTex)                     ||
             surrogateDesc.Width            != dstTexDesc.Width            ||
             surrogateDesc.Height           != dstTexDesc.Height           ||
             surrogateDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count ||
@@ -1275,6 +1280,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
          )
        )
     {
+      surface.render.tex->SetEvictionPriority (DXGI_RESOURCE_PRIORITY_LOW);
+
       SK_D3D11_SetDebugName ( surface.render.tex,
         L"[SK] D3D11 BltCopy I/O Stage" );
 
@@ -1312,8 +1319,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       surface.render.tex2->GetDesc (&surrogateDesc);
 
       if (!(surrogateDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) ||
-            surface.render.tex2.p == pSrcTex                      ||
-            surface.render.tex2.p == pDstTex                      ||
+            SK_ComPtr <ID3D11Texture2D> (surface.render.tex2.p).IsEqualObject (pSrcTex) ||
+            SK_ComPtr <ID3D11Texture2D> (surface.render.tex2.p).IsEqualObject (pDstTex) ||
             surrogateDesc.Width   != surface.desc.tex2.Width      ||
             surrogateDesc.Height  != surface.desc.tex2.Height     ||
             (! SK_DXGI_IsFormatCastable (surrogateDesc.Format,
@@ -1331,7 +1338,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     }
 
     surface.desc.tex2.BindFlags |=
-       D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+       D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
     surface.desc.tex2.Format =
       DirectX::MakeTypeless (surface.desc.tex2.Format);
@@ -1343,6 +1350,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
           )
        )
     {
+      surface.render.tex2->SetEvictionPriority (DXGI_RESOURCE_PRIORITY_LOW);
+
       SK_D3D11_SetDebugName ( surface.render.tex2,
         L"[SK] D3D11 BltCopy SrcTex (SRV-COPY)" );
 
@@ -1357,7 +1366,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: pNewSrcTex == nullptr" );
       return false;
     }
-    
+
     ////pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
     D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
   }
@@ -1412,7 +1421,14 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   else
     return false;
 
-  CreateStateblock (pDevCtx.p, &codec.sb);
+#if 0
+    SK_IMGUI_D3D11StateBlock
+      sb;
+      sb.Capture (pDevCtx);
+#else
+    D3DX11_STATE_BLOCK stateBlock = { };
+    CreateStateblock (pDevCtx, &stateBlock);
+#endif
 
   const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
     static_cast <float> (dstTexDesc.Width ),
@@ -1452,15 +1468,25 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   pDevCtx->GSSetShader            (nullptr, nullptr,       0);
   pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
-  pDevCtx->SetPredication         (nullptr, FALSE);
-
   pDevCtx->Draw                   (4, 0);
 
-  ApplyStateblock (pDevCtx.p, &codec.sb);
+  SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
 
   if (pDstTex != nullptr && surface.render.tex != nullptr)
+  {
     D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
+
+    if (pDevCtx1 != nullptr)
+        pDevCtx1->DiscardResource (surface.render.tex);
+  }
+
+  if (pDevCtx1 != nullptr && pNewSrcTex != pSrcTex)
+      pDevCtx1->DiscardResource (pNewSrcTex);
+
 ////  pDevCtx->CopyResource (pDstTex, surface.render.tex);
+
+  ApplyStateblock (pDevCtx, &stateBlock);
+  //sb.Apply (pDevCtx.p);
 
   return true;
 }

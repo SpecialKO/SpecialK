@@ -25,9 +25,8 @@ SK_ICommandProcessor*
 __stdcall
 SK_GetCommandProcessor (void) noexcept
 {
-  static SK_LazyGlobal <SK_ICommandProcessor>
-         command;
-  return command.getPtr ();
+  static SK_ICommandProcessor command;
+  return                     &command;
 }
 
 

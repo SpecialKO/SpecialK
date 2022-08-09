@@ -482,7 +482,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     static bool uncollapsed_tex = true;
     static bool uncollapsed_rtv = true;
 
-    float scale = (uncollapsed_tex ? 1.0f * (uncollapsed_rtv ? 0.5f : 1.0f) : -1.0f);
+    float scale = (uncollapsed_tex ? 1.0f * (uncollapsed_rtv ? 0.75f : 1.0f) : -1.0f);
 
     ImGui::BeginChild     ( ImGui::GetID ("Live_Texture_View_Panel"),
                             ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
@@ -523,7 +523,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     ImGui::EndChild ();
 
-    scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.5f : 1.0f)) : -1.0f);
+    scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.25f : 1.0f)) : -1.0f);
 
     ImGui::BeginChild     ( ImGui::GetID ("Live_RenderTarget_View_Panel"),
                             ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :

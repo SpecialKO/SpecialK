@@ -316,6 +316,17 @@ IWrapDXGISwapChain::PresentBase (void)
       {
         std::scoped_lock lock (_backbufferLock);
 
+        std::pair <BOOL*, BOOL>
+          SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
+
+        auto flag_result =
+          SK_ImGui_FlagDrawing_OnD3D11Ctx (
+            SK_D3D11_GetDeviceContextHandle (pDevCtx)
+          );
+
+        SK_ScopedBool auto_bool2 (flag_result.first);
+                                 *flag_result.first = flag_result.second;
+
         SK_ComPtr               <ID3D11Texture2D>           pBackbuffer;
         pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackbuffer.p);
 
@@ -340,15 +351,15 @@ IWrapDXGISwapChain::PresentBase (void)
             else
               pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
 
-            ////if (config.render.framerate.flip_discard)
-            ////{
-            ////  SK_ComQIPtr <ID3D11DeviceContext1>
-            ////      pDevCtx1 (pDevCtx);
-            ////  if (pDevCtx1.p != nullptr)
-            ////  {
-            ////    pDevCtx1->DiscardResource (_backbuffers [0].p);
-            ////  }
-            ////}
+            if (config.render.framerate.flip_discard)
+            {
+              SK_ComQIPtr <ID3D11DeviceContext1>
+                  pDevCtx1 (pDevCtx);
+              if (pDevCtx1.p != nullptr)
+              {
+                pDevCtx1->DiscardResource (_backbuffers [0].p);
+              }
+            }
           }
 
           else

@@ -1,4 +1,11 @@
-﻿22.8.8-D3D9-IK
+﻿22.8.9-D3D-IK
+=============
+ + Improved compatibility with recent ReShade releases
+ + Added logging/fix if games try to create typeless Shader Resource Views for
+     Depth/Stencil surfaces that Special K is not managing
+ + Fixed black screens and missing visual effects in Final Fantasy XIV and YS IX
+
+22.8.8-D3D9-IK
 ==============
  + Fixed MSAA while HDR remastering is enabled in many Unity engine games
  + Fixed resolution mismatches in Disgaea 5 leading to black screens at startup

@@ -290,9 +290,10 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
   if (! LdrFindEntryForAddress)
     return FALSE;
 
+  ULONG                      ldrLockState = 0x0;
   PLDR_DATA_TABLE_ENTRY__SK pLdrEntry  = { };
   ULONG_PTR                  ldrCookie = 0;
-  SK_Module_LockLoader     (&ldrCookie);
+  SK_Module_LockLoader     (&ldrCookie, LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY, &ldrLockState);
 
   if ( NT_SUCCESS (
          LdrFindEntryForAddress ( (HMODULE)lpProcAddr,
