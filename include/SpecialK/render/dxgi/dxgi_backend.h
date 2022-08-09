@@ -492,5 +492,11 @@ SK_DXGI_IsFlipModelSwapChain (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
 
 HRESULT WINAPI SK_DXGI_DisableVBlankVirtualization (void);
 
+// Returns true if the selected mode scaling would cause an exact match to be ignored
+bool
+SK_DXGI_IsScalingPreventingRequestedResolution ( DXGI_MODE_DESC *pDesc,
+                                                 IDXGIOutput    *pOutput,
+                                                 IUnknown       *pDevice );
+
 
 #endif /* __SK__DXGI_BACKEND_H__ */

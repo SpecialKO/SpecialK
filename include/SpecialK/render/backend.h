@@ -1134,11 +1134,11 @@ public:
             ||   riid == IID_ID3D11Device
             ||   riid == IID_ID3D12Device      )
             {
-              SK_ComPtr <Q> pRet = nullptr;
+              Q* pRet = nullptr;
 
               if (device.p != nullptr)
               {
-                if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet.p)))
+                if (SUCCEEDED (SK_SafeQueryInterface (device, riid, (void **)&pRet)))
                 {
                   return pRet;
                 }

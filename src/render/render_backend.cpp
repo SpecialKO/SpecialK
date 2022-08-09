@@ -78,13 +78,12 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
   return dRefresh;
 }
 
-SK_LazyGlobal <SK_RenderBackend> __SK_RBkEnd;
-
 SK_RenderBackend&
 __stdcall
 SK_GetCurrentRenderBackend (void) noexcept
 {
-  return __SK_RBkEnd.get ();
+  static SK_RenderBackend __SK_RBkEnd;
+  return                  __SK_RBkEnd;
 }
 
 void
@@ -848,6 +847,9 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
     SK_LOG1 ( ( L"API: %x", api ),
                __SK_SUBSYSTEM__ );
 
+    SK_HDR_ReleaseResources       ();
+    SK_DXGI_ReleaseSRGBLinearizer ();
+
 ///#define _USE_FLUSH
 
     // Flushing at shutdown may cause deadlocks
@@ -886,9 +888,6 @@ SK_RenderBackend_V2::releaseOwnedResources (void)
 
       adapter.d3dkmt = 0;
     }
-
-    SK_HDR_ReleaseResources       ();
-    SK_DXGI_ReleaseSRGBLinearizer ();
   }
 
   catch (const SK_SEH_IgnoredException &)
