@@ -1097,6 +1097,24 @@ D3D11_UpdateSubresource1_Override (
   _In_           UINT                  SrcDepthPitch,
   _In_           UINT                  CopyFlags)
 {
+#if 0
+  if (pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualDevice;
+    pDstResource->GetDevice (&pActualDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualDevice.IsEqualObject (pParentDevice)))
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Update Subresource (Version=1) Belonging to a Different Device"
+      );
+      return;
+    }
+  }
+#endif
+
   SK_LOG_FIRST_CALL
 
   bool early_out = false;
@@ -1293,6 +1311,25 @@ D3D11_UpdateSubresource_Override (
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch)
 {
+#if 0
+  if (pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualDevice;
+    pDstResource->GetDevice (&pActualDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualDevice.IsEqualObject (pParentDevice)))
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Update Subresource Belonging to a Different Device"
+      );
+      return;
+    }
+  }
+#endif
+
+
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
     return
@@ -1326,6 +1363,24 @@ D3D11_Map_Override (
      _In_ UINT                      MapFlags,
 _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualDevice;
+    pResource->GetDevice    (&pActualDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualDevice.IsEqualObject (pParentDevice)))
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Map Resource Belonging to a Different Device"
+      );
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
   if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))//(SK_D3D11_IsDevCtxDeferred (This)))
   {
     return
@@ -1352,6 +1407,24 @@ D3D11_Unmap_Override (
   _In_ ID3D11Resource      *pResource,
   _In_ UINT                 Subresource )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualDevice;
+    pResource->GetDevice    (&pActualDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualDevice.IsEqualObject (pParentDevice)))
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Unmap Resource Belonging to a Different Device"
+      );
+      return;
+    }
+  }
+#endif
+
   if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, This)))
   {
     return
@@ -1373,6 +1446,28 @@ D3D11_CopyResource_Override (
   _In_ ID3D11Resource      *pDstResource,
   _In_ ID3D11Resource      *pSrcResource )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pSrcResource != nullptr && pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualSrcDevice;
+    SK_ComPtr <ID3D11Device>  pActualDstDevice;
+    pSrcResource->GetDevice (&pActualSrcDevice.p);
+    pDstResource->GetDevice (&pActualDstDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualSrcDevice.IsEqualObject (pParentDevice) &&
+           pActualDstDevice.IsEqualObject (pParentDevice))
+        )
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Copy Src/Dst Resource Belonging to a Different Device"
+      );
+      return;
+    }
+  }
+#endif
+
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
     return
@@ -1402,6 +1497,28 @@ D3D11_CopySubresourceRegion_Override (
   _In_           UINT                 SrcSubresource,
   _In_opt_ const D3D11_BOX           *pSrcBox )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pSrcResource != nullptr && pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualSrcDevice;
+    SK_ComPtr <ID3D11Device>  pActualDstDevice;
+    pSrcResource->GetDevice (&pActualSrcDevice.p);
+    pDstResource->GetDevice (&pActualDstDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualSrcDevice.IsEqualObject (pParentDevice) &&
+           pActualDstDevice.IsEqualObject (pParentDevice))
+        )
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Copy Src/Dst Resource Belonging to a Different Device"
+      );
+      return;
+    }
+  }
+#endif
+
 #if 0
   // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcResource == nullptr)
@@ -1747,6 +1864,28 @@ D3D11_ResolveSubresource_Override (
   _In_ UINT                 SrcSubresource,
   _In_ DXGI_FORMAT          Format )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pSrcResource != nullptr && pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pParentDevice;
+    SK_ComPtr <ID3D11Device>  pActualSrcDevice;
+    SK_ComPtr <ID3D11Device>  pActualDstDevice;
+    pSrcResource->GetDevice (&pActualSrcDevice.p);
+    pDstResource->GetDevice (&pActualDstDevice.p);
+    This->GetDevice         (&pParentDevice.p);
+
+    if (! (pActualSrcDevice.IsEqualObject (pParentDevice) &&
+           pActualDstDevice.IsEqualObject (pParentDevice))
+        )
+    {
+      SK_LOGi0 (
+        L"Device Context Hook Trying to Copy Src/Dst Resource Belonging to a Different Device"
+      );
+      //return;
+    }
+  }
+#endif
+
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
   {
     return

@@ -984,21 +984,12 @@ StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
       if ( hModCaller != SK_GetDLL ()  &&
            hModCaller != hModSteamOverlay )
       {
-        auto orig_se =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION)
-          );
-        try {
-          SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
-                          SK_GetModuleFullName (hModule).c_str (),
-                                                lpProcName,
-                            SK_SummarizeCaller (       ).c_str () ),
-                       L"DLL_Loader" );
-        }
 
-        catch (const SK_SEH_IgnoredException&) {
-        }
-        SK_SEH_RemoveTranslator (orig_se);
+        SK_LOG3 ( ( LR"(GetProcAddress ([%ws], "%hs")  -  %ws)",
+                        SK_GetModuleFullName (hModule).c_str (),
+                                              lpProcName,
+                          SK_SummarizeCaller (       ).c_str () ),
+                     L"DLL_Loader" );
       }
     }
   }

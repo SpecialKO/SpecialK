@@ -488,14 +488,19 @@ SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
-  if (ReadAcquire (&__SK_DLL_Attached))
+  if (config.compatibility.init_on_separate_thread)
   {
-    const SK_TLS *pTLS =
-      SK_TLS_Bottom ();
+    if (ReadAcquire (&__SK_DLL_Attached))
+    {
+      const SK_TLS* pTLS =
+        SK_TLS_Bottom ();
 
-    if (pTLS)
-      return (! pTLS->debug.in_DllMain);
+      if (pTLS)
+        return (!pTLS->debug.in_DllMain);
+    }
   }
+  else
+    return true;
 
   // If we have no TLS, assume it's because we're in DLL main
   return false;//return true;

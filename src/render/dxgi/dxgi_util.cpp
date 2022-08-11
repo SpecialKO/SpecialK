@@ -686,6 +686,7 @@ SK_DXGI_FormatToStr (DXGI_FORMAT fmt) noexcept
 
 #include <shaders/sRGB_codec_ps.h>
 #include <shaders/vs_colorutil.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 struct SK_DXGI_sRGBCoDec {
   struct params_cbuffer_s {
@@ -699,6 +700,7 @@ struct SK_DXGI_sRGBCoDec {
   {
     ID3D11InputLayout*            pInputLayout = nullptr;
     ID3D11Buffer*                  pSRGBParams = nullptr;
+    ID3D11Buffer*                  pVSUtilLuma = nullptr;
 
     ID3D11SamplerState*               pSampler = nullptr;
 
@@ -710,6 +712,8 @@ struct SK_DXGI_sRGBCoDec {
 
     ID3D11BlendState*              pBlendState = nullptr;
 
+    D3D11_FEATURE_DATA_D3D11_OPTIONS FeatureOpts
+                                               = { };
     D3DX11_STATE_BLOCK                      sb = { };
 
     static constexpr FLOAT    fBlendFactor [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -727,6 +731,7 @@ struct SK_DXGI_sRGBCoDec {
       if (pRasterState   != nullptr) { pRasterState->Release   (); pRasterState   = nullptr; }
       if (pDSState       != nullptr) { pDSState->Release       ();     pDSState   = nullptr; }
 
+      if (pVSUtilLuma    != nullptr) { pVSUtilLuma->Release    (); pVSUtilLuma    = nullptr; }
       if (pSRGBParams    != nullptr) { pSRGBParams->Release    (); pSRGBParams    = nullptr; }
       if (pBlendState    != nullptr) { pBlendState->Release    (); pBlendState    = nullptr; }
       if (pInputLayout   != nullptr) { pInputLayout->Release   (); pInputLayout   = nullptr; }
@@ -789,6 +794,14 @@ struct SK_DXGI_sRGBCoDec {
       if ( device.pBackbufferSrv == nullptr &&
                       pSwapChain != nullptr )
       {
+        if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
+        {
+          pDev->CheckFeatureSupport (
+             D3D11_FEATURE_D3D11_OPTIONS, &device.FeatureOpts, 
+               sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
+          );
+        }
+
         SK_ScopedBool decl_tex_scope (
           SK_D3D11_DeclareTexInjectScope ()
         );
@@ -863,6 +876,23 @@ struct SK_DXGI_sRGBCoDec {
 
       SK_D3D11_SetDebugName (device.pBlendState, L"sRGBLinearizer BlendState");
 
+      D3D11_DEPTH_STENCIL_DESC
+        depth                          = {  };
+
+        depth.DepthEnable              = FALSE;
+        depth.StencilEnable            = FALSE;
+        depth.DepthWriteMask           = D3D11_DEPTH_WRITE_MASK_ZERO;
+        depth.DepthFunc                = D3D11_COMPARISON_ALWAYS;
+        depth.FrontFace.StencilFailOp  = depth.FrontFace.StencilDepthFailOp =
+                                         depth.FrontFace.StencilPassOp      =
+                                         D3D11_STENCIL_OP_KEEP;
+        depth.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
+        depth.BackFace                 = depth.FrontFace;
+
+      pDev->CreateDepthStencilState   ( &depth, &device.pDSState );
+
+      SK_D3D11_SetDebugName (device.pDSState, L"sRGBLinearizer DepthStencilState");
+
       D3D11_BUFFER_DESC
         buffer_desc                   = { };
 
@@ -875,6 +905,18 @@ struct SK_DXGI_sRGBCoDec {
       pDev->CreateBuffer (&buffer_desc, nullptr, &device.pSRGBParams);
 
       SK_D3D11_SetDebugName (device.pSRGBParams, L"sRGBLinearizer CBuffer");
+
+        buffer_desc                   = { };
+
+        buffer_desc.ByteWidth         = sizeof (HDR_LUMINANCE);
+        buffer_desc.Usage             = D3D11_USAGE_DYNAMIC;
+        buffer_desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
+        buffer_desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
+        buffer_desc.MiscFlags         = 0;
+
+      pDev->CreateBuffer (&buffer_desc, nullptr, &device.pVSUtilLuma);
+
+      SK_D3D11_SetDebugName (device.pSRGBParams, L"VS Colorutil CBuffer");
     }
   }
 };
@@ -961,6 +1003,26 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
         mapped_resource = { };
 
   if ( SUCCEEDED (
+         pDevCtx->Map ( codec.pVSUtilLuma,
+                          0, D3D11_MAP_WRITE_DISCARD, 0,
+                             &mapped_resource )
+                 )
+     )
+  {
+    HDR_LUMINANCE luma = { };
+
+    _ReadWriteBarrier ();
+
+    memcpy ( static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+           &luma, sizeof (HDR_LUMINANCE) );
+
+    pDevCtx->Unmap (codec.pVSUtilLuma, 0);
+  }
+
+  else
+    return false;
+
+  if ( SUCCEEDED (
          pDevCtx->Map ( codec.pSRGBParams,
                           0, D3D11_MAP_WRITE_DISCARD, 0,
                              &mapped_resource )
@@ -1023,28 +1085,32 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 
     pDevCtx->OMSetBlendState        (        codec.pBlendState,
                                              codec.fBlendFactor,   0xFFFFFFFFU);
-    pDevCtx->OMSetDepthStencilState (nullptr, 0);
+    pDevCtx->OMSetDepthStencilState (        codec.pDSState,       0);
     pDevCtx->OMSetRenderTargets     (1,
                                        &pRenderTargetView.p,
                                          nullptr);
 
     pDevCtx->VSSetShader            (        codec.VertexShader_Util.shader,       nullptr, 0);
+    pDevCtx->VSSetConstantBuffers   (0, 1,  &codec.pVSUtilLuma   );
     pDevCtx->PSSetShader            (        codec.PixelShader_sRGB_NoMore.shader, nullptr, 0);
-    pDevCtx->PSSetConstantBuffers   (0, 1,  &codec.pSRGBParams         );
+    pDevCtx->PSSetConstantBuffers   (0, 1,  &codec.pSRGBParams   );
     pDevCtx->PSSetShaderResources   (0, 1,  &codec.pBackbufferSrv);
-    pDevCtx->PSSetSamplers          (0, 1,  &codec.pSampler            );
+    pDevCtx->PSSetSamplers          (0, 1,  &codec.pSampler      );
 
-    pDevCtx->RSSetViewports         (1,           &vp);
-    pDevCtx->RSSetScissorRects      (0,       nullptr);
-    pDevCtx->RSSetState             (nullptr         );
+    pDevCtx->RSSetState             (codec.pRasterState);
+    pDevCtx->RSSetScissorRects      (0,         nullptr);
+    pDevCtx->RSSetViewports         (1,             &vp);
 
-    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
     {
-      pDevCtx->HSSetShader          (nullptr, nullptr,       0);
-      pDevCtx->DSSetShader          (nullptr, nullptr,       0);
+      if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+      {
+        pDevCtx->HSSetShader        (nullptr, nullptr,       0);
+        pDevCtx->DSSetShader        (nullptr, nullptr,       0);
+      }
+      pDevCtx->GSSetShader          (nullptr, nullptr,       0);
+      pDevCtx->SOSetTargets         (0,       nullptr, nullptr);
     }
-    pDevCtx->GSSetShader            (nullptr, nullptr,       0);
-    pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
     pDevCtx->Draw                   (4, 0);
 
@@ -1156,6 +1222,10 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   SK_ScopedBool auto_bool (flag_result.first);
                           *flag_result.first = flag_result.second;
 
+  SK_ScopedBool decl_tex_scope (
+    SK_D3D11_DeclareTexInjectScope ()
+  );
+
   // Must be zero or one, or the input/output surface is incompatible
   if (dstTexDesc.MipLevels > 1 || srcTexDesc.MipLevels > 1)
   {
@@ -1195,7 +1265,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 	surface.desc.tex.SampleDesc.Count          = dstTexDesc.SampleDesc.Count;
   surface.desc.tex.SampleDesc.Quality        = dstTexDesc.SampleDesc.Quality;
 	surface.desc.tex.Usage                     = D3D11_USAGE_DEFAULT;
-	surface.desc.tex.BindFlags                 = D3D11_BIND_RENDER_TARGET;
+	surface.desc.tex.BindFlags                 = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	surface.desc.tex.CPUAccessFlags            = 0;
 	surface.desc.tex.MiscFlags                 = 0;
 
@@ -1207,7 +1277,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 	surface.desc.tex2.SampleDesc.Count         = srcTexDesc.SampleDesc.Count;
   surface.desc.tex2.SampleDesc.Quality       = srcTexDesc.SampleDesc.Quality;
 	surface.desc.tex2.Usage                    = D3D11_USAGE_DEFAULT;
-	surface.desc.tex2.BindFlags                = D3D11_BIND_SHADER_RESOURCE;
+	surface.desc.tex2.BindFlags                = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	surface.desc.tex2.CPUAccessFlags           = 0;
 	surface.desc.tex2.MiscFlags                = 0;
 
@@ -1275,8 +1345,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 
     if ( SUCCEEDED (
-           D3D11Dev_CreateTexture2D_Original ( pDev, &surface.desc.tex,
-                                               nullptr, &surface.render.tex.p ) 
+           pDev->CreateTexture2D ( &surface.desc.tex,
+                                     nullptr, &surface.render.tex.p )
          )
        )
     {
@@ -1291,7 +1361,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   }
 
   if ( surface.render.tex.p == nullptr
-    || FAILED (D3D11Dev_CreateRenderTargetView_Original (pDev, surface.render.tex, &surface.desc.rtv, &surface.render.rtv.p)) )
+    || FAILED (pDev->CreateRenderTargetView (surface.render.tex, &surface.desc.rtv, &surface.render.rtv.p)) )
   {
     if (surface.render.tex.p == nullptr) SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: surface.render.tex.p == nullptr" );
     else                                 SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateRTV Failed" );
@@ -1345,8 +1415,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
     if ( surface.render.tex2.p == nullptr &&
           SUCCEEDED (
-            D3D11Dev_CreateTexture2D_Original ( pDev,    &surface.desc.tex2,
-                                                nullptr, &surface.render.tex2.p ) 
+            pDev->CreateTexture2D ( &surface.desc.tex2,
+                                       nullptr, &surface.render.tex2.p ) 
           )
        )
     {
@@ -1367,14 +1437,13 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       return false;
     }
 
-    ////pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
-    D3D11_CopyResource_Original (pDevCtx, pNewSrcTex, pSrcTex);
+    pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
   }
 
   if ( FAILED (
-         D3D11Dev_CreateShaderResourceView_Original (
-             pDev, pNewSrcTex, &surface.desc.srv,
-                               &surface.source.srv.p ) )
+         pDev->CreateShaderResourceView (
+             pNewSrcTex, &surface.desc.srv,
+                         &surface.source.srv.p ) )
      )
   {
     SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateSRV Failed" );
@@ -1390,6 +1459,26 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   D3D11_MAPPED_SUBRESOURCE
         mapped_resource = { };
+
+  if ( SUCCEEDED (
+         pDevCtx->Map ( codec.pVSUtilLuma,
+                          0, D3D11_MAP_WRITE_DISCARD, 0,
+                             &mapped_resource )
+                 )
+     )
+  {
+    HDR_LUMINANCE luma = { };
+
+    _ReadWriteBarrier ();
+
+    memcpy ( static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+           &luma, sizeof (HDR_LUMINANCE) );
+
+    pDevCtx->Unmap (codec.pVSUtilLuma, 0);
+  }
+
+  else
+    return false;
 
   if ( SUCCEEDED (
          pDevCtx->Map ( codec.pSRGBParams,
@@ -1443,47 +1532,52 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   pDevCtx->IASetInputLayout       (        codec.pInputLayout     );
   pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-  pDevCtx->OMSetBlendState        (nullptr,
-                                   nullptr, 0xFFFFFFFFU);
-  pDevCtx->OMSetDepthStencilState (nullptr, 0);
+  pDevCtx->OMSetBlendState        (        codec.pBlendState,
+                                           codec.fBlendFactor,   0xFFFFFFFFU);
+  pDevCtx->OMSetDepthStencilState (        codec.pDSState,       0);
   pDevCtx->OMSetRenderTargets     (1,
                                      &surface.render.rtv.p,
                                        nullptr);
 
   pDevCtx->VSSetShader            (        codec.VertexShader_Util.shader,       nullptr, 0);
+  pDevCtx->VSSetConstantBuffers   (0, 1,  &codec.pVSUtilLuma   );
   pDevCtx->PSSetShader            (        codec.PixelShader_sRGB_NoMore.shader, nullptr, 0);
   pDevCtx->PSSetConstantBuffers   (0, 1,  &codec.pSRGBParams   );
   pDevCtx->PSSetShaderResources   (0, 1,  &surface.source.srv.p);
   pDevCtx->PSSetSamplers          (0, 1,  &codec.pSampler      );
 
-  pDevCtx->RSSetState             (nullptr         );
-  pDevCtx->RSSetViewports         (1,           &vp);
-  pDevCtx->RSSetScissorRects      (0,       nullptr);
+  pDevCtx->RSSetState             (codec.pRasterState);
+  pDevCtx->RSSetScissorRects      (0,         nullptr);
+  pDevCtx->RSSetViewports         (1,             &vp);
 
-  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+  if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
   {
-    pDevCtx->HSSetShader          (nullptr, nullptr,       0);
-    pDevCtx->DSSetShader          (nullptr, nullptr,       0);
+    if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
+    {
+      pDevCtx->HSSetShader        (nullptr, nullptr,       0);
+      pDevCtx->DSSetShader        (nullptr, nullptr,       0);
+    }
+    pDevCtx->GSSetShader          (nullptr, nullptr,       0);
+    pDevCtx->SOSetTargets         (0,       nullptr, nullptr);
   }
-  pDevCtx->GSSetShader            (nullptr, nullptr,       0);
-  pDevCtx->SOSetTargets           (0,       nullptr, nullptr);
 
   pDevCtx->Draw                   (4, 0);
 
   SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
 
+  bool bUseDiscard =
+    (pDevCtx1.p != nullptr && codec.FeatureOpts.DiscardAPIsSeenByDriver);
+
   if (pDstTex != nullptr && surface.render.tex != nullptr)
   {
-    D3D11_CopyResource_Original (pDevCtx, pDstTex, surface.render.tex);
+    pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
-    if (pDevCtx1 != nullptr)
+    if (pDevCtx1 != nullptr && bUseDiscard)
         pDevCtx1->DiscardResource (surface.render.tex);
   }
 
-  if (pDevCtx1 != nullptr && pNewSrcTex != pSrcTex)
+  if (pDevCtx1 != nullptr && bUseDiscard)
       pDevCtx1->DiscardResource (pNewSrcTex);
-
-////  pDevCtx->CopyResource (pDstTex, surface.render.tex);
 
   ApplyStateblock (pDevCtx, &stateBlock);
   //sb.Apply (pDevCtx.p);

@@ -2271,7 +2271,7 @@ public:
       if (tent.exited && (! show_exited_threads))
         return false;
 
-      const DWORD IDLE_PERIOD = 1500UL;
+      static constexpr DWORD IDLE_PERIOD = 1500UL;
 
       if (! hide_inactive)
         return true;
@@ -2389,51 +2389,53 @@ public:
         ImGui::Text ("%hs", SK_WideCharToUTF8 (it.second->name).c_str ());
       else
       {
-        NTSTATUS  ntStatus;
-        DWORD_PTR pdwStartAddress;
+        static NtQueryInformationThread_pfn
+               NtQueryInformationThread =
+              (NtQueryInformationThread_pfn)SK_GetProcAddress ( L"NtDll",
+              "NtQueryInformationThread" );
 
-        static NtQueryInformationThread_pfn NtQueryInformationThread =
-          (NtQueryInformationThread_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"NtDll"),
-                                                                                 "NtQueryInformationThread" );
+        DWORD_PTR pdwStartAddress
+                          = NULL;
+        HANDLE    hThread = it.second->hThread;
+        NTSTATUS ntStatus =
+          NtQueryInformationThread (
+            hThread, ThreadQuerySetWin32StartAddress,
+              &pdwStartAddress, sizeof (DWORD_PTR), nullptr
+          );
 
-        HANDLE hThread = it.second->hThread;
-
-        ntStatus =
-          NtQueryInformationThread (  hThread, ThreadQuerySetWin32StartAddress,
-                                     &pdwStartAddress, sizeof (DWORD_PTR), nullptr );
-
-        char  thread_name [MAX_THREAD_NAME_LEN] = { };
-        char  szSymbol    [256]                 = { };
-        ULONG ulLen                             = 191;
-
-        SK::Diagnostics::CrashHandler::InitSyms ();
-
-        ulLen = SK_GetSymbolNameFromModuleAddr (
-                SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
-        reinterpret_cast <uintptr_t> ((LPCVOID)pdwStartAddress),
-                      szSymbol,
-                        ulLen );
-
-        if (ulLen > 0)
+        if (STATUS_SUCCESS == ntStatus)
         {
-          snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s+%s",
-                       SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
-                                                               szSymbol );
-        }
+          char  thread_name [MAX_THREAD_NAME_LEN] = { };
+          char  szSymbol    [256]                 = { };
+          ULONG ulLen                             = 191;
 
-        else {
-          snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s",
-                       SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ) );
-        }
+          SK::Diagnostics::CrashHandler::InitSyms ();
 
-        SK_TLS* pTLS =
-          SK_TLS_BottomEx (it.second->dwTid);
+          ulLen = SK_GetSymbolNameFromModuleAddr (
+                  SK_GetModuleFromAddr ((LPCVOID)pdwStartAddress),
+          reinterpret_cast <uintptr_t> ((LPCVOID)pdwStartAddress),
+                        szSymbol,
+                          ulLen );
 
-        if (pTLS != nullptr)
-          wcsncpy_s ( pTLS->debug.name,               MAX_THREAD_NAME_LEN-1,
-                      SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE );
+          if (ulLen > 0)
+          {
+            snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s+%s",
+                         SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
+                                                                 szSymbol );
+          }
 
-        {
+          else {
+            snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s",
+                         SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ) );
+          }
+
+          SK_TLS* pTLS =
+            SK_TLS_BottomEx (it.second->dwTid);
+
+          if (pTLS != nullptr)
+            wcsncpy_s ( pTLS->debug.name,               MAX_THREAD_NAME_LEN-1,
+                        SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE );
+
           if (_SK_ThreadNames->find (it.second->dwTid) == _SK_ThreadNames->cend ())
           {
             _SK_ThreadNames [it.second->dwTid] =
@@ -2693,8 +2695,8 @@ public:
     //
     //   Waiting I/O is a status that frequently comes and goes, but we don't
     //     want the widget rapidly resizing itself, so we need a grace period.
-    static DWORD dwLastWaiting = 0;
-    const  DWORD WAIT_GRACE    = 666UL;
+    constexpr DWORD WAIT_GRACE    = 666UL;
+    static    DWORD dwLastWaiting = 0;
 
     ImGui::BeginGroup ();
     for (auto& it : *SKWG_Ordered_Threads)

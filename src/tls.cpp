@@ -725,7 +725,7 @@ SK_Steam_ThreadContext::Cleanup (SK_TLS_CleanupReason_e reason)
 int
 SK_Win32_ThreadContext::getThreadPriority (bool nocache)
 {
-  const DWORD _RefreshInterval = 30000UL;
+  constexpr DWORD _RefreshInterval = 30000UL;
 
   if (nocache)
   {

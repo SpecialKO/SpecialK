@@ -362,26 +362,27 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     return;
 
   if ( nullptr ==
-         ReadPointerAcquire ((const volatile PVOID *)&disjoint_query.async)
+         disjoint_query.async
            && timers.empty () )
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
     };
 
-    ID3D11Query                                    *pQuery = nullptr;
-    if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
+    SK_ComPtr <ID3D11Query>                         pQuery;
+    if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery.p)))
     {
       SK_ComPtr <ID3D11DeviceContext> pImmediateContext;
       pDev->GetImmediateContext     (&pImmediateContext.p);
 
-      InterlockedExchangePointer ((/*volatile */PVOID *)&disjoint_query.async, pQuery);
-      pImmediateContext->Begin                                                (pQuery);
-      InterlockedExchange (&disjoint_query.active, TRUE);
+      disjoint_query.async  =   pQuery;
+      pImmediateContext->Begin (pQuery);
+
+      disjoint_query.active = true;
     }
   }
 
-  if (ReadAcquire (&disjoint_query.active) == TRUE)
+  if (disjoint_query.active)
   {
     // Start a new query
     D3D11_QUERY_DESC query_desc {
@@ -390,15 +391,13 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 
     duration_s duration;
 
-    ID3D11Query                                    *pQuery = nullptr;
+    SK_ComPtr <ID3D11Query>                         pQuery;
     if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
     {
-      // We'll strip this when the query finishes
-      pDevContext->AddRef ();
+      duration.start.dev_ctx = pDevContext;
+      duration.start.async   = pQuery;
+      pDevContext->End (       pQuery);
 
-      InterlockedExchangePointer ((/*volatile */PVOID *)&duration.start.dev_ctx, pDevContext);
-      InterlockedExchangePointer ((/*volatile */PVOID *)&duration.start.async,   pQuery);
-      pDevContext->End                                                          (pQuery);
       timers.emplace_back (duration);
     }
   }
@@ -475,7 +474,7 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     rb.getDevice <ID3D11Device> ();
 
   if ( dev     != nullptr &&
-       pDevCtx != nullptr && ReadAcquire (&disjoint_query.active) != 0 )
+       pDevCtx != nullptr && disjoint_query.active )
   {
     D3D11_QUERY_DESC query_desc {
       D3D11_QUERY_TIMESTAMP, 0x00
@@ -484,15 +483,12 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
     duration_s& duration =
       timers.back ();
 
-    ID3D11Query* pQuery = nullptr;
-    if ( SUCCEEDED ( dev->CreateQuery (&query_desc, &pQuery ) ) )
+    SK_ComPtr <ID3D11Query>                          pQuery;
+    if ( SUCCEEDED ( dev->CreateQuery (&query_desc, &pQuery.p ) ) )
     {
-      InterlockedExchangePointer (
-        (PVOID *) (&duration.end.dev_ctx), pDevCtx
-      );                                   pDevCtx->AddRef ();
-      InterlockedExchangePointer (
-        (PVOID *) (&duration.end.async),   pQuery
-      );                     pDevCtx->End (pQuery);
+      duration.end.dev_ctx = pDevCtx;
+      duration.end.async   = pQuery;
+      pDevCtx->End (         pQuery);
     }
   }
 }

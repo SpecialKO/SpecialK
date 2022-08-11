@@ -859,6 +859,7 @@ struct {
   sk::ParameterBool*      using_wine              = nullptr;
   sk::ParameterBool*      allow_dxdiagn           = nullptr;
   sk::ParameterBool*      auto_large_address      = nullptr; // 32-bit only
+  sk::ParameterBool*      async_init              = nullptr;
 } compatibility;
 
 struct {
@@ -1351,6 +1352,7 @@ auto DeclKeybind =
 #ifdef _M_IX86
     ConfigEntry (compatibility.auto_large_address,       L"Opt-in for Automatic Large Address Aware Patch on Crash",   dll_ini,         L"Compatibility.General", L"AutoLargeAddressPatch"),
 #endif
+    ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -2972,6 +2974,7 @@ auto DeclKeybind =
   //
   // Load Parameters
   //
+  compatibility.async_init->load         (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load         (config.compatibility.using_wine);
@@ -4402,6 +4405,7 @@ SK_SaveConfig ( std::wstring name,
     config.apis.last_known = SK_RenderAPI::OpenGL;
 
 
+  compatibility.async_init->store             (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->store             (config.compatibility.using_wine);

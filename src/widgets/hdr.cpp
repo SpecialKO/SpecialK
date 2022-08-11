@@ -1579,7 +1579,7 @@ public:
                     ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
                   }
 
-#if 1
+#if 0
                   extern UINT filterFlags;
                   ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
 
@@ -1596,27 +1596,39 @@ public:
                   ImGui::VerticalSeparator ();
 
                   extern SK_ComPtr <ID3D11ShaderResourceView>
-                    SK_HDR_GetGamutSRV (void);
+                    SK_HDR_GetGamutSRV     (void);
+                  extern SK_ComPtr <ID3D11ShaderResourceView>
+                    SK_HDR_GetLuminanceSRV (void);
 
-                  auto pSrv =
-                    SK_HDR_GetGamutSRV ();
+                  auto pSrv0 = SK_HDR_GetGamutSRV ();
+                  auto pSrv1 = SK_HDR_GetLuminanceSRV ();
 
-                  if (pSrv.p != nullptr)
+                  if (pSrv0.p != nullptr)
                   {
                     ImGui::SameLine      ();
                     ImGui::BeginGroup    ();
-                    ImGui::Image         ( pSrv.p, ImVec2 ( std::min (256.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
-                                                            std::min (128.0f, ImGui::GetContentRegionAvail ().y       ) ),
-                                                   ImVec2 ( 0.0f, 0.0f),
-                                                   ImVec2 ( 1.0f, 1.0f), ImVec4 (1.0f, 1.0f, 1.0f, 1.0f),
-                                                                         ImVec4 (0.9f, 0.9f, 0.9f, 1.0f) );
+                    ImGui::Image         ( pSrv0.p, ImVec2 ( std::min (256.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                                                             std::min (128.0f, ImGui::GetContentRegionAvail ().y       ) ),
+                                                    ImVec2 ( 0.0f, 0.0f),
+                                                    ImVec2 ( 1.0f, 1.0f), ImVec4 (1.0f, 1.0f, 1.0f, 1.0f),
+                                                                          ImVec4 (0.9f, 0.9f, 0.9f, 1.0f) );
                     ImGui::SameLine      ();
-                    ImGui::PlotHistogram ("Luminance Histogram", nullptr, nullptr, 0, 0, nullptr, 1.0f, 1.0f,
-                                             ImVec2 ( std::min ( 64.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
-                                                      std::min (128.0f, ImGui::GetContentRegionAvail ().y) ) );
-                    if (ImGui::IsItemHovered ())
-                        ImGui::SetTooltip ("Feature Not Implemented Yet");
-
+                    ImGui::Image         ( pSrv1.p, ImVec2 ( std::min (128.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                                                             std::min (128.0f, ImGui::GetContentRegionAvail ().y       ) ),
+                                                    ImVec2 ( 0.00f, 0.00f),
+                                                    ImVec2 ( 0.19f, 0.15f), ImVec4 (1.0f, 1.0f, 1.0f, 1.0f),
+                                                                            ImVec4 (0.9f, 0.9f, 0.9f, 1.0f) );
+                    ImGui::SameLine      ();
+                    ImGui::Image         ( pSrv1.p, ImVec2 ( std::min (64.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                                                             std::min (16.0f, ImGui::GetContentRegionAvail ().y       ) ),
+                                                    ImVec2 ( 0.50f, 0.235f),
+                                                    ImVec2 ( 0.55f, 0.255f), ImVec4 (1.0f, 1.0f, 1.0f, 1.0f),
+                                                                             ImVec4 (0.9f, 0.9f, 0.9f, 1.0f) );
+                    ///ImGui::PlotHistogram ("Luminance Histogram", nullptr, nullptr, 0, 0, nullptr, 1.0f, 1.0f,
+                    ///                         ImVec2 ( std::min ( 64.0f, ImGui::GetContentRegionAvail ().x / 2.0f),
+                    ///                                  std::min (128.0f, ImGui::GetContentRegionAvail ().y) ) );
+                    ///if (ImGui::IsItemHovered ())
+                    ///    ImGui::SetTooltip ("Feature Not Implemented Yet");
                     ImGui::EndGroup      ();
                   }
                 }
@@ -1944,7 +1956,8 @@ SK_ImGui_DrawGamut (void)
 #define D65 0.3127f, 0.329f
 
   static HMONITOR                       hMonLast = nullptr;
-  static glm::vec3                      r, g, b, w;
+  static glm::vec3                      r (0.0f), g (0.0f),
+                                        b (0.0f), w (0.0f);
   static std::vector <color_triangle_s> color_spaces;
   static              color_triangle_s _NativeGamut (
                                        "NativeGamut",

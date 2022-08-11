@@ -148,6 +148,21 @@ D3D11Dev_CreateShaderResourceView_Override (
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create SRV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
   if ( pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;
@@ -173,7 +188,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
         // Ys 8 crashes if this nonsense isn't here
         bool bInvalidType =
-          (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format));
+          (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format, false));
 
         // SK only overrides the format of RenderTargets, anything else is not our fault.
         if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
@@ -191,7 +206,7 @@ D3D11Dev_CreateShaderResourceView_Override (
           }
 
           if (                                                            bInvalidType ||
-               (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format)) &&
+               (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format, false)) &&
                 (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               texDesc.Format)))
              )
           {
@@ -234,10 +249,7 @@ D3D11Dev_CreateShaderResourceView_Override (
 
             // If we got this far, the problem wasn't created by Special K, however...
             //   Special K can still try to fix it.
-            //
-            //  * Dear Esther tries to use an R24X8_TYPELESS view of its depth buffer,
-            //      for example, and is broken (without SK). It can't hurt to try and fix :)
-            if (DirectX::IsTypeless (desc.Format))
+            if (DirectX::IsTypeless (desc.Format, false))
             {
               auto typedFormat =
                 DirectX::MakeTypelessUNORM   (
@@ -295,7 +307,9 @@ D3D11Dev_CreateShaderResourceView_Override (
                 DirectX::BitsPerPixel (tex_desc.Format) ) ||
               ( DirectX::MakeTypeless (pDesc->Format) != // Handle cases such as BC3 -> BC7: Size = Same, Fmt != Same
                 DirectX::MakeTypeless (tex_desc.Format) ) ||
-                DirectX::IsTypeless   (  pDesc->Format) ) && (! DirectX::IsTypeless (tex_desc.Format))
+                DirectX::IsTypeless   (pDesc->Format,
+                                                 false) ) && (! DirectX::IsTypeless (tex_desc.Format, false) &&
+                                                             (! DirectX::IsVideo    (tex_desc.Format)))
              ) // Does not handle sRGB vs. non-sRGB, but generally the game
           {    //   won't render stuff correctly if injected textures change that.
             override  = true;
@@ -368,8 +382,8 @@ D3D11Dev_CreateShaderResourceView_Override (
           *pDesc;
 
         // SRVs and RTVs cannot be typeless
-        if (DirectX::IsTypeless (newFormat) ||
-            DirectX::IsTypeless (descCopy.Format))
+        if (DirectX::IsTypeless (newFormat,       false) ||
+            DirectX::IsTypeless (descCopy.Format, false))
         {
           if (! DirectX::IsTypeless (tex_desc.Format))
           {
@@ -415,6 +429,21 @@ D3D11Dev_CreateDepthStencilView_Override (
   _In_opt_  const D3D11_DEPTH_STENCIL_VIEW_DESC *pDesc,
   _Out_opt_       ID3D11DepthStencilView        **ppDepthStencilView )
 {
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create DSV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
   HRESULT hr =
     E_UNEXPECTED;
 
@@ -478,6 +507,21 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
   _Out_opt_       ID3D11UnorderedAccessView       **ppUAView )
 {
+#if 0
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create UAV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
   if ( pDesc     != nullptr &&
        pResource != nullptr )
   {
@@ -844,14 +888,25 @@ D3D11Dev_CreateRenderTargetView_Override (
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
   _Out_opt_       ID3D11RenderTargetView        **ppRTView )
 {
+#if 0
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create RTV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
   return
     SK_D3D11Dev_CreateRenderTargetView_Impl ( This,
                                                 pResource, pDesc,
                                                   ppRTView, FALSE );
-//  return
-//    D3D11_CreateRenderTargetView_Original ( This,
-//                                              pResource, pDesc,
-//                                                ppRTView );
 }
 
 __declspec (noinline)

@@ -3007,7 +3007,7 @@ SteamAPI_PumpThread (LPVOID user)
     //   If after 30 seconds the game has not called SteamAPI_RunCallbacks
     //     frequently enough, switch the thread to auto-pump mode.
 
-    const UINT TEST_PERIOD = 180;
+    constexpr UINT TEST_PERIOD = 180;
 
     LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 

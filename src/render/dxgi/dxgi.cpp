@@ -7581,7 +7581,7 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   static auto current_game =
     SK_GetCurrentGameID ();
 
-  HRESULT ret;
+  HRESULT ret = E_UNEXPECTED;
 
   // More generically, anything using the RE engine needs this.
   static bool silent =
@@ -8253,13 +8253,13 @@ SK_HookDXGI (void)
       SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
     }
 
-    SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks   ();
 
     if (config.apis.dxgi.d3d11.hook)
     {
       SK_D3D11_InitTextures ();
       SK_D3D11_Init         ();
-    }
+    } 
 
     SK_ICommandProcessor *pCommandProc = nullptr;
 
@@ -9196,7 +9196,7 @@ HookDXGI (LPVOID user)
     D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
                                                D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
 
-    D3D_FEATURE_LEVEL            featureLevel;
+    D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_1_0_CORE;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
     SK_ComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 //    ID3D11DeviceContext           *pDeferredContext  = nullptr;

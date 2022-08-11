@@ -306,7 +306,7 @@ struct mem_info_t {
 } extern dxgi_mem_info [NumBuffers];
 
 // Increased to 192 for Disgaea 5 (WTF?!)
-static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 192;
+static constexpr int SK_D3D11_MAX_DEV_CONTEXTS = 256;
 extern           int SK_D3D11_AllocatedDevContexts;
 
 LONG

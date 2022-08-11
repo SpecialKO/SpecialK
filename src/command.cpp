@@ -34,7 +34,7 @@ template <>
 str_hash_compare <std::string, std::less <> >::size_type
 str_hash_compare <std::string, std::less <> >::hash_string (const std::string& _Keyval) const
 {
-  const bool case_insensitive = true;
+  constexpr bool case_insensitive = true;
 
   size_type   __h    = 0;
   const size_type   __len  = _Keyval.size ();
@@ -334,7 +334,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         if (command_args_len > 0)
         {
           auto* bool_var = (SK_IVarStub <bool>*) var;
-          bool  bool_val;
+          bool  bool_val = false;
 
           /* False */
           if (! (0 != _stricmp (cmd_args.c_str (), "false") &&

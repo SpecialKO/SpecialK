@@ -1789,17 +1789,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   CreateStateblock (_pDeviceCtx, sb);
 
-
-  static const UINT
-  minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
-  { std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-    std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-    std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max (),
-    std::numeric_limits <UINT>::max (), std::numeric_limits <UINT>::max () };
-
   _pDeviceCtx->OMSetRenderTargetsAndUnorderedAccessViews (0, nullptr, nullptr, 0, 0, nullptr, nullptr);
-  _pDeviceCtx->CSSetUnorderedAccessViews                 (0, 0,       nullptr, minus_one);
-
 
   // Not necessarily having anything to do with HDR, this is a placeholder for now.
   _pDeviceCtx->OMSetRenderTargets (1, &_d3d11_rbk->frames_ [0].hdr.pRTV.p,    nullptr);

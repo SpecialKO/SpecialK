@@ -250,7 +250,7 @@ public:
 
     ver_ = 0;
 
-    IUnknown *pPromotion;
+    IUnknown *pPromotion = nullptr;
 
     if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
          SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
@@ -631,7 +631,7 @@ public:
   {
     TraceAPI
 
-  #ifndef SK_D3D11_LAZY_WRAP
+#ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
           SK_D3D11_SetShaderResources_Impl (
            SK_D3D11_ShaderType::Pixel,
@@ -1408,15 +1408,15 @@ public:
 #endif
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+//if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopySubresourceRegion_Impl (pReal,
                  pDstResource, DstSubresource, DstX, DstY, DstZ,
                  pSrcResource, SrcSubresource, pSrcBox, TRUE
         );
-    else
+//  else
 #endif
-      pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
-                                     pSrcResource, SrcSubresource, pSrcBox );
+//    pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
+//                                   pSrcResource, SrcSubresource, pSrcBox );
   }
 
   void STDMETHODCALLTYPE CopyResource (
@@ -1426,14 +1426,14 @@ public:
     TraceAPI
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+//if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopyResource_Impl (pReal,
                  pDstResource,
                  pSrcResource, TRUE
         );
-    else
+    //else
 #endif
-      pReal->CopyResource (pDstResource, pSrcResource);
+      //pReal->CopyResource (pDstResource, pSrcResource);
   }
 
   void STDMETHODCALLTYPE UpdateSubresource (
@@ -1456,9 +1456,9 @@ public:
                        SrcRowPitch,
                        SrcDepthPitch, TRUE
         );
-    else
+      else
 #endif
-      pReal->UpdateSubresource (pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
+        pReal->UpdateSubresource (pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
   }
 
   void STDMETHODCALLTYPE CopyStructureCount (
@@ -1559,17 +1559,17 @@ public:
   {
     TraceAPI
 
-  #ifndef SK_D3D11_LAZY_WRAP
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
+#ifndef SK_D3D11_LAZY_WRAP
+//if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_ResolveSubresource_Impl ( pReal,
                       pDstResource, DstSubresource,
                       pSrcResource, SrcSubresource,
                             Format, TRUE
         );
-      else
+//else
   #endif
-      pReal->ResolveSubresource ( pDstResource, DstSubresource,
-                                  pSrcResource, SrcSubresource, Format );
+//pReal->ResolveSubresource ( pDstResource, DstSubresource,
+//                            pSrcResource, SrcSubresource, Format );
   }
 
   void STDMETHODCALLTYPE ExecuteCommandList (

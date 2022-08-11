@@ -186,7 +186,10 @@ SK_BootD3D9 (void)
       tex_mgr.Init ();
     }
 
-    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>");
+    dll_log->Log (
+      L"[API Detect]  <!> [ Bootstrapping Direct3D 9 (d3d9.dll) ] <!>\t(Initialization tid=%x)",
+             SK_GetCurrentThreadId ()
+    );
 
     if (SK_GetDLLRole () == DLL_ROLE::D3D9)
     {
@@ -238,7 +241,10 @@ SK_BootD3D8 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>");
+    dll_log->Log (
+      L"[API Detect]  <!> [ Bootstrapping Direct3D 8 (d3d8.dll) ] <!>\t(Initialization tid=%x)",
+             SK_GetCurrentThreadId ()
+    );
 
     if (SK_GetDLLRole () == DLL_ROLE::D3D8)
     {
@@ -287,7 +293,10 @@ SK_BootDDraw (void)
 
   if (! InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE))
   {
-    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>");
+    dll_log->Log (
+      L"[API Detect]  <!> [ Bootstrapping DirectDraw (ddraw.dll) ] <!>\t(Initialization tid=%x)",
+             SK_GetCurrentThreadId ()
+    );
 
     if (SK_GetDLLRole () == DLL_ROLE::DDraw)
     {
@@ -358,7 +367,10 @@ SK_BootDXGI (void)
     if (pTLS)
         pTLS->render->d3d11->ctx_init_thread = true;
 
-    dll_log->Log (L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>");
+    dll_log->Log (
+      L"[API Detect]  <!> [    Bootstrapping DXGI (dxgi.dll)    ] <!>\t(Initialization tid=%x)",
+             SK_GetCurrentThreadId ()
+    );
 
     if (SK_GetDLLRole () & DLL_ROLE::DXGI)
     {
@@ -385,6 +397,12 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
+  if (! config.compatibility.init_on_separate_thread)
+  {
+    config.compatibility.init_on_separate_thread = true;
+    return;
+  }
+
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
@@ -409,7 +427,13 @@ SK_BootOpenGL (void)
     if (pTLS)
         pTLS->render->gl->ctx_init_thread = true;
 
-    dll_log->Log (L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>");
+    dll_log->Log (
+      L"[API Detect]  <!> [ Bootstrapping OpenGL (OpenGL32.dll) ] <!>\t(Initialization tid=%x)",
+             SK_GetCurrentThreadId ()
+    );
+
+
+
 
     if (SK_GetDLLRole () == DLL_ROLE::OpenGL)
     {
@@ -3227,7 +3251,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         {
           NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
           NvU32               nvGpuCount                             =   0;
-          NvDisplayHandle     nvDisplayHandle;
+          NvDisplayHandle     nvDisplayHandle                        =   0;
           NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
           NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
 

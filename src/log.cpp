@@ -33,7 +33,7 @@ SK_Timestamp (wchar_t* const out)
   if (out == nullptr)
     return 0;
 
-  SYSTEMTIME stLogTime;
+  SYSTEMTIME stLogTime = { };
 
   // Check for Windows 8 / Server 2012
   static bool __hasSystemTimePrecise =
@@ -606,6 +606,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
   wchar_t wszSummary [256] = { };
   char    szSymbol   [256] = { };
   ULONG   ulLen            = 191;
+
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
   ulLen = SK_GetSymbolNameFromModuleAddr (
               SK_GetCallingDLL (lpReturnAddr),

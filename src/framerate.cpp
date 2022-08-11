@@ -1423,8 +1423,8 @@ SK::Framerate::Limiter::wait (void)
 
   if (normal)
   {
-    double missed_frames,
-           missing_time =
+    double missed_frames = 0.0,
+           missing_time  =
       static_cast <double> ( time_ - next_ ) /
       static_cast <double> ( ticks_per_frame );
 

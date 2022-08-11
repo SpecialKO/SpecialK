@@ -1046,6 +1046,23 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
                         texDesc = { };
       pTex2D->GetDesc (&texDesc);
 
+      ///D3D11_RENDER_TARGET_VIEW_DESC desc = { };
+      ///
+      ///if (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN)
+      ///{
+      ///  desc.Format             = texDesc.Format;
+      ///  desc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
+      ///  desc.Texture2D.MipSlice = 0;
+      ///
+      ///  if (DirectX::IsTypeless (texDesc.Format))
+      ///  {
+      ///    desc.Format = DirectX::MakeTypelessUNORM (
+      ///                  DirectX::MakeTypelessFLOAT (texDesc.Format));
+      ///  }
+      ///
+      ///  pDesc = &desc;
+      ///}
+
       if (pDesc != nullptr)
       {
         // For HDR Retrofit, engine may be really stubbornly
@@ -1662,9 +1679,56 @@ SK_D3D11_CopySubresourceRegion_Impl (
 {
   SK_WRAP_AND_HOOK
 
+  D3D11_RESOURCE_DIMENSION res_dim = { };
+  pSrcResource->GetType  (&res_dim);
+
   const auto _Finish = [&](void) ->
   void
   {
+    if (! SK_D3D11_IsTexInjectThread ())
+    {
+      if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+      {
+        SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
+                                      pDstTex (pDstResource);
+
+        if ( pSrcTex.p != nullptr &&
+             pDstTex.p != nullptr )
+        {
+          D3D11_TEXTURE2D_DESC srcDesc = { },
+                               dstDesc = { };
+
+          pSrcTex->GetDesc (&srcDesc);
+          pDstTex->GetDesc (&dstDesc);
+
+        //if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+        //     FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
+          {
+            if (! SK_D3D11_IsDirectCopyCompatible (srcDesc.Format, dstDesc.Format))
+            {
+              SK_RunOnce ([&]
+              {
+                SK_LOGi0 (
+                  L"CopySubresourceRegion (...) called using incompatible"
+                  L" formats (src=%hs), (dst=%hs), attempting to fix with BltSurfaceCopy",
+                    SK_DXGI_FormatToStr (srcDesc.Format).data (),
+                    SK_DXGI_FormatToStr (dstDesc.Format).data () );
+              });
+
+              // NOTE: This does not replicate the actual -sub- region part of the
+              //         API and will probably break things if it's ever relied on.
+
+              extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
+                                                    ID3D11Texture2D* pDstTex );
+
+              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+                return;
+            }
+          }
+        }
+      }
+    }
+
     bWrapped ?
       pDevCtx->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
                                        pSrcResource, SrcSubresource, pSrcBox )
@@ -1695,52 +1759,6 @@ SK_D3D11_CopySubresourceRegion_Impl (
     return
       _Finish ();
   }
-
-
-  D3D11_RESOURCE_DIMENSION res_dim = { };
-  pSrcResource->GetType  (&res_dim);
-
-  if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
-  {
-    SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
-                                  pDstTex (pDstResource);
-
-    if ( pSrcTex.p != nullptr &&
-         pDstTex.p != nullptr )
-    {
-      D3D11_TEXTURE2D_DESC srcDesc = { },
-                           dstDesc = { };
-
-      pSrcTex->GetDesc (&srcDesc);
-      pDstTex->GetDesc (&dstDesc);
-
-      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
-           FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
-      {
-        if (! SK_D3D11_IsDirectCopyCompatible (srcDesc.Format, dstDesc.Format))
-        {
-          SK_RunOnce ([&]
-          {
-            SK_LOGi0 (
-              L"CopySubresourceRegion (...) called using incompatible"
-              L" formats (src=%hs), (dst=%hs), attempting to fix with BltSurfaceCopy",
-                SK_DXGI_FormatToStr (srcDesc.Format).data (),
-                SK_DXGI_FormatToStr (dstDesc.Format).data () );
-          });
-
-          // NOTE: This does not replicate the actual -sub- region part of the
-          //         API and will probably break things if it's ever relied on.
-
-          extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
-                                                ID3D11Texture2D* pDstTex );
-
-          if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-            return;
-        }
-      }
-    }
-  }
-
 
   if (SK_D3D11_EnableMMIOTracking)
   {
@@ -2012,8 +2030,8 @@ SK_D3D11_ResolveSubresource_Impl (
       }
 #endif
 
-      if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format))
-        || FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, texDesc.Format)) )
+      //if ( FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format))
+      //  || FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, texDesc.Format)) )
       {
         // Deduce FP / UNORM Resolve Format when game thinks the resources have a
         //   different format than SK has assigned them...
@@ -2082,13 +2100,16 @@ SK_D3D11_ResolveSubresource_Impl (
             _Finish                   ( pTempTex, pSrcTex, Format );
             bSuccess =
               SK_D3D11_BltCopySurface ( pTempTex, pDstTex );
+            
+            pTempTex->SetEvictionPriority (
+                   DXGI_RESOURCE_PRIORITY_LOW );
 
-            SK_ComQIPtr <ID3D11DeviceContext1>
-                pDevCtx1 (pDevCtx);
-            if (pDevCtx1 != nullptr)
+            if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
             {
-                pDevCtx1->DiscardResource     (pTempTex);
-                pTempTex->SetEvictionPriority (DXGI_RESOURCE_PRIORITY_LOW);
+              SK_ComQIPtr <ID3D11DeviceContext1>
+                  pDevCtx1 (pDevCtx);
+              if (pDevCtx1 != nullptr)
+                  pDevCtx1->DiscardResource (pTempTex);
             }
 
             if (bSuccess)
@@ -2120,50 +2141,65 @@ SK_D3D11_CopyResource_Impl (
 
   const auto _Finish = [&](void) ->
   void
-  {
-    D3D11_RESOURCE_DIMENSION
-      dim_dst = D3D11_RESOURCE_DIMENSION_UNKNOWN,
-      dim_src = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-
-    pDstResource->GetType (&dim_dst);
-    pSrcResource->GetType (&dim_src);
-
-    if (dim_dst == D3D11_RESOURCE_DIMENSION_TEXTURE2D &&
-        dim_src == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  { 
+    if (! SK_D3D11_IsTexInjectThread ())
     {
-      SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
-      SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
+      D3D11_RESOURCE_DIMENSION
+        dim_dst = D3D11_RESOURCE_DIMENSION_UNKNOWN,
+        dim_src = D3D11_RESOURCE_DIMENSION_UNKNOWN;
 
-      if (pSrcTex.p != nullptr &&
-          pDstTex.p != nullptr)
+      pDstResource->GetType (&dim_dst);
+      pSrcResource->GetType (&dim_src);
+
+      if (dim_dst == D3D11_RESOURCE_DIMENSION_TEXTURE2D &&
+          dim_src == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
       {
-        D3D11_TEXTURE2D_DESC srcDesc = { };
-        D3D11_TEXTURE2D_DESC dstDesc = { };
+        SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource);
+        SK_ComQIPtr <ID3D11Texture2D> pDstTex (pDstResource);
 
-        pSrcTex->GetDesc (&srcDesc);
-        pDstTex->GetDesc (&dstDesc);
-
-        bool bSupportsDirectCopy =
-          SK_D3D11_AreTexturesDirectCopyable (&srcDesc, &dstDesc);
-
-        // If does not support direct copy and one of the textures is a SwapChain backbuffer
-        //   that Special K has manipulated ... (format, or resolution, then):
-        if ( (! bSupportsDirectCopy) )
-             //FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
-             //FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
+        if (pSrcTex.p != nullptr &&
+            pDstTex.p != nullptr)
         {
-          if ( srcDesc.Width  != dstDesc.Width ||
-               srcDesc.Height != dstDesc.Height )
-          {
-            SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
-                       L" during ID3D11DeviceContext::CopyResources (...)" );
-            SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
-                         srcDesc.Width, srcDesc.Height,
-                         dstDesc.Width, dstDesc.Height );
-          }
+          D3D11_TEXTURE2D_DESC srcDesc = { };
+          D3D11_TEXTURE2D_DESC dstDesc = { };
 
-          if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-            return;
+          pSrcTex->GetDesc (&srcDesc);
+          pDstTex->GetDesc (&dstDesc);
+
+          bool bSupportsDirectCopy =
+            SK_D3D11_AreTexturesDirectCopyable (&srcDesc, &dstDesc);
+
+
+
+
+
+
+
+
+
+
+          // If does not support direct copy and one of the textures is a SwapChain backbuffer
+          //   that Special K has manipulated ... (format, or resolution, then):
+          if ( (! bSupportsDirectCopy) ||
+               FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
+               FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
+          {
+            extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
+                                                  ID3D11Texture2D* pDstTex );
+
+            if ( srcDesc.Width  != dstDesc.Width ||
+                 srcDesc.Height != dstDesc.Height )
+            {
+              SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
+                         L" during ID3D11DeviceContext::CopyResources (...)" );
+              SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
+                           srcDesc.Width, srcDesc.Height,
+                           dstDesc.Width, dstDesc.Height );
+            }
+
+            if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+              return;
+          }
         }
       }
     }
@@ -3711,7 +3747,11 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
         SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
       }
 
-      return true;
+      if (SK_GetFramesDrawn () > 0)
+        return true;
+
+      if (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED)
+        rb.d3d11.immediate_ctx = pDevCtx;
     }
 
     SK_ComPtr <ID3D11Device>
@@ -3727,7 +3767,10 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
         SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
       }
 
-      return true;
+      if (SK_GetFramesDrawn () > 0)
+        return true;
+
+      rb.device.p = pDevice.p;
     }
   }
 
@@ -5129,8 +5172,8 @@ D3D11Dev_CreateTexture2D_Impl (
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    if ( ( (pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
-                               D3D11_BIND_RENDER_TARGET      ||
+    if ( (((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
+                               D3D11_BIND_RENDER_TARGET)     ||
           //// UAVs also need special treatment for Compute Shader work
            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
                                D3D11_BIND_UNORDERED_ACCESS   ||
@@ -5225,14 +5268,12 @@ D3D11Dev_CreateTexture2D_Impl (
             bool rgba =
               ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
                 _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
-                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
-
-            ////if (! rb.windows.unreal) // Needed for Trials of Mana, not wanted for The Quary
-              rgba = ( rgba );// || _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
+                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );//||
+                //_typeless == DXGI_FORMAT_R8G8_TYPELESS       ||
+                //_typeless == DXGI_FORMAT_R8_TYPELESS );
 
             // 8-bit RGB(x) -> 16-bit FP
-            if (bpc == 8  && rgba &&
-                bpp == 32)
+            if (rgba)
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
@@ -5256,7 +5297,12 @@ D3D11Dev_CreateTexture2D_Impl (
                   InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
 
-                  pDesc->Format = hdr_fmt_override;
+                  //if (     _typeless == DXGI_FORMAT_R8G8_TYPELESS)
+                  //  pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
+                  //else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
+                  //  pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
+                  //else
+                    pDesc->Format = hdr_fmt_override;
                   bManipulated  = true;
                 }
 
@@ -7419,6 +7465,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     DXGI_LOG_CALL_1 (L"D3D11CreateDeviceAndSwapChain", L"Flags=0x%x", Flags );
   }
 
+  if (SK_COMPAT_IgnoreNvCameraCall ())
+    return E_NOTIMPL;
+
   if (! config.render.dxgi.debug_layer)
   {
     if (bEOSOverlay || (pSwapChainDesc != nullptr && ! SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
@@ -7432,7 +7481,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                      Flags,
                                                        pFeatureLevels,
                                                          FeatureLevels,
-                                                           D3D11_SDK_VERSION /*SDKVersion*/,
+                                                           SDKVersion,
                                                              pSwapChainDesc,
                                                                ppSwapChain,
                                                                  ppDevice,
@@ -7461,9 +7510,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   auto swap_chain_desc =
     swap_chain_override.get ();
 
+  SK_D3D11_Init ();
+
   WaitForInitD3D11 ();
 
-  SK_D3D11_Init ();
 
   dll_log->LogEx ( true,
                      L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %hs\n",
@@ -7622,7 +7672,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                  Flags,
                                                    pFeatureLevels,
                                                      FeatureLevels,
-                                                       D3D11_SDK_VERSION /*SDKVersion*/,
+                                                       SDKVersion,
                                                          swap_chain_desc,
                                                            ppSwapChain,
                                                              &ret_device,
@@ -7705,6 +7755,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
         (*wrapped_immediates)[*ppDevice] =
         (*wrapped_contexts)[pImmediate];
+      }
+
+      else
+      {
+        SK_LOGi0 (L"Game Did Not Request Immediate Context...?!");
       }
 #endif
     }
@@ -7827,7 +7882,7 @@ D3D11CreateDevice_Detour (
                                                        : DriverType,
                                      pAdapter == nullptr ? nullptr
                                                          : Software, Flags,
-                                       pFeatureLevels, FeatureLevels, D3D11_SDK_VERSION,//SDKVersion,
+                                       pFeatureLevels, FeatureLevels, SDKVersion,
                                          ppDevice, pFeatureLevel,
                                            ppImmediateContext );
 
@@ -7840,13 +7895,14 @@ D3D11CreateDevice_Detour (
 
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
 
-  {
-    SK_ScopedBool auto_bool_skip (
-      &pTLS->render->d3d11->skip_d3d11_create_device
-    ); pTLS->render->d3d11->skip_d3d11_create_device = TRUE;
-
+  SK_ScopedBool auto_bool_skip (
+    &pTLS->render->d3d11->skip_d3d11_create_device
+  );
+  
+  SK_RunOnce ([&] {
     SK_D3D11_Init ();
-  }
+    pTLS->render->d3d11->skip_d3d11_create_device = TRUE;
+  });
 
   HRESULT hr =
     D3D11CreateDeviceAndSwapChain_Detour ( pAdapter,
@@ -7854,7 +7910,7 @@ D3D11CreateDevice_Detour (
                                                                  : DriverType,
                                              pAdapter == nullptr ? nullptr
                                                                  : Software, Flags,
-                                               pFeatureLevels, FeatureLevels, D3D11_SDK_VERSION,//SDKVersion,
+                                               pFeatureLevels, FeatureLevels, SDKVersion,
                                                  nullptr, nullptr, ppDevice, pFeatureLevel,
                                                    ppImmediateContext );
 
@@ -8305,39 +8361,26 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
 
   // End the Query and probe results (when the pipeline has drained)
   if ( pDevCtx != nullptr && (! disjoint_done) &&
-       ReadPointerAcquire (
-         (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async
-                          )
+       d3d11_shader_tracking_s::disjoint_query.async
      )
   {
-    if (ReadAcquire (&d3d11_shader_tracking_s::disjoint_query.active) != FALSE)
+    if (d3d11_shader_tracking_s::disjoint_query.active)
     {
-      pDevCtx->End (
-        (ID3D11Asynchronous  *)ReadPointerAcquire (
-             (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async)
-                   );
-      InterlockedExchange ( &d3d11_shader_tracking_s::disjoint_query.active,
-                              FALSE );
+      pDevCtx->End (d3d11_shader_tracking_s::disjoint_query.async);
+                    d3d11_shader_tracking_s::disjoint_query.active = false;
     }
 
     else
     {
-      HRESULT const hr = pDevCtx->GetData (
-        (ID3D11Asynchronous *)ReadPointerAcquire (
-            (volatile PVOID *)&d3d11_shader_tracking_s::disjoint_query.async),
-                              &d3d11_shader_tracking_s::disjoint_query.last_results,
-                        sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT, D3D11_ASYNC_GETDATA_DONOTFLUSH
-                                          );
+      HRESULT const hr =
+        pDevCtx->GetData (d3d11_shader_tracking_s::disjoint_query.async,
+                         &d3d11_shader_tracking_s::disjoint_query.last_results,
+                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
+                          D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
       if (hr == S_OK)
       {
-        ((ID3D11Asynchronous *)ReadPointerAcquire (
-          (volatile PVOID*)&d3d11_shader_tracking_s::disjoint_query.async)
-        )->Release ();
-
-        InterlockedExchangePointer (
-          (void **)&d3d11_shader_tracking_s::disjoint_query.async, nullptr
-        );
+        d3d11_shader_tracking_s::disjoint_query.async = nullptr;
 
         // Check for failure, if so, toss out the results.
         if (FALSE == d3d11_shader_tracking_s::disjoint_query.last_results.Disjoint)
@@ -8350,11 +8393,11 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
           {
             for (auto& it : tracker->timers)
             {
-              SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
-              SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
+              it.start.async = nullptr;
+              it.end.async   = nullptr;
 
-              SK_COM_ValidateRelease ((IUnknown **)&it.start.dev_ctx);
-              SK_COM_ValidateRelease ((IUnknown **)&it.end.dev_ctx);
+              it.start.dev_ctx = nullptr;
+              it.end.dev_ctx   = nullptr;
             }
 
             tracker->timers.clear ();
@@ -8382,23 +8425,17 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
          bool                                &success   ) ->
       UINT64
       {
-        ID3D11DeviceContext* dev_ctx =
-          (ID3D11DeviceContext *)ReadPointerAcquire (
-            (volatile PVOID *)&duration->start.dev_ctx
-          );
+        auto dev_ctx =
+          duration->start.dev_ctx;
 
         if (             dev_ctx != nullptr &&
-             SUCCEEDED ( dev_ctx->GetData (
-               (ID3D11Query *)ReadPointerAcquire
-                 ((volatile PVOID *)&duration->start.async),
-                                    &duration->start.last_results,
-                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH
-                                         )
-                       )
+             SUCCEEDED ( dev_ctx->GetData (duration->start.async,
+                                          &duration->start.last_results,
+                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH) )
            )
         {
-          SK_COM_ValidateRelease ((IUnknown **)&duration->start.async);
-          SK_COM_ValidateRelease ((IUnknown **)&duration->start.dev_ctx);
+          duration->start.async   = nullptr;
+          duration->start.dev_ctx = nullptr;
 
           success = true;
 
@@ -8417,30 +8454,23 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
          bool                                &success ) ->
       UINT64
       {
-        if ( (ID3D11Query *)ReadPointerAcquire (
-               (volatile PVOID *)&duration->end.async
-                                               ) == nullptr )
+        if (duration->end.async == nullptr)
         {
           return duration->start.last_results;
         }
 
-        ID3D11DeviceContext* dev_ctx =
-          (ID3D11DeviceContext *)ReadPointerAcquire (
-               (volatile PVOID *)&duration->end.dev_ctx
-          );
+        auto dev_ctx =
+          duration->end.dev_ctx;
 
         if (             dev_ctx != nullptr &&
-             SUCCEEDED ( dev_ctx->GetData (
-               (ID3D11Query *)ReadPointerAcquire
-                    ((volatile PVOID *)&duration->end.async),
-                                       &duration->end.last_results,
-                                         sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH
-                                          )
+             SUCCEEDED ( dev_ctx->GetData (duration->end.async,
+                                          &duration->end.last_results,
+                                           sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH)
                        )
            )
         {
-          SK_COM_ValidateRelease ((IUnknown **)&duration->end.async);
-          SK_COM_ValidateRelease ((IUnknown **)&duration->end.dev_ctx);
+          duration->end.async   = nullptr;
+          duration->end.dev_ctx = nullptr;
 
           success = true;
 
@@ -8510,11 +8540,11 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
           //   we're going to leak!
           else
           {
-            SK_COM_ValidateRelease ((IUnknown **)&it.end.async);
-            SK_COM_ValidateRelease ((IUnknown **)&it.end.dev_ctx);
+            it.end.async   = nullptr;
+            it.end.dev_ctx = nullptr;
 
-            SK_COM_ValidateRelease ((IUnknown **)&it.start.async);
-            SK_COM_ValidateRelease ((IUnknown **)&it.start.dev_ctx);
+            it.start.async   = nullptr;
+            it.start.dev_ctx = nullptr;
           }
         }
 

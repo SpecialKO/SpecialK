@@ -3254,12 +3254,11 @@ D3D9CreateVertexBuffer_Override
 
     if (Length >= 10240)
     {
-      static bool hooked = false;
+      *ppVertexBuffer = nullptr;
 
-      if (! hooked)
+      static bool          hooked = false;
+      if (! std::exchange (hooked,  true))
       {
-        hooked = true;
-
         D3D9_INTERCEPT ( ppVertexBuffer, 11,
                          "IDirect3DVertexBuffer9::Lock",
                           D3D9VertexBuffer_Lock_Override,
@@ -3582,7 +3581,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
   bool src_is_wrapped = false;
   bool dst_is_wrapped = false;
 
-  void* dontcare;
+  void* dontcare   = nullptr;
   if (pSourceTexture != nullptr &&
       pSourceTexture->QueryInterface (IID_SKTextureD3D9, &dontcare) == S_OK)
   {

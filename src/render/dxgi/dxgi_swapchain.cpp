@@ -346,10 +346,22 @@ IWrapDXGISwapChain::PresentBase (void)
               DirectX::MakeTypelessUNORM (
               DirectX::MakeTypelessFLOAT (texDesc.Format));
 
-            if (texDesc.SampleDesc.Count > 1)
-              pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, typed_format);
+            if ( texDesc.Width  == bufferDesc.Width &&
+                 texDesc.Height == bufferDesc.Height )
+            {
+              if (texDesc.SampleDesc.Count > 1)
+                pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, typed_format);
+              else
+                pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
+            }
+
             else
-              pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
+            {
+              SK_D3D11_BltCopySurface (
+                _backbuffers [0],
+                pBackbuffer
+              );
+            }
 
             if (config.render.framerate.flip_discard)
             {
@@ -357,7 +369,18 @@ IWrapDXGISwapChain::PresentBase (void)
                   pDevCtx1 (pDevCtx);
               if (pDevCtx1.p != nullptr)
               {
-                pDevCtx1->DiscardResource (_backbuffers [0].p);
+                D3D11_FEATURE_DATA_D3D11_OPTIONS FeatureOpts = { };
+
+                if (pD3D11Dev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
+                {
+                  pD3D11Dev->CheckFeatureSupport (
+                     D3D11_FEATURE_D3D11_OPTIONS, &FeatureOpts, 
+                       sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
+                  );
+                }
+
+                //if (FeatureOpts.DiscardAPIsSeenByDriver)
+                //  pDevCtx1->DiscardResource (_backbuffers [0].p);
               }
             }
           }
@@ -418,9 +441,11 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
       }
     }
 
-    if ( riid == IID_ID3D11Texture2D  ||
-         riid == IID_ID3D11Texture2D1 ||
-         riid == IID_ID3D11Resource )
+    SK_ComPtr <IUnknown>                       pUnk;
+    pReal->GetBuffer (Buffer, riid, (void **) &pUnk.p);
+
+    SK_ComQIPtr <ID3D11Resource> pBuffer11 (pUnk);
+    if (                         pBuffer11 != nullptr)
     {
       SK_LOGi1 (L"GetBuffer (%d)", Buffer);
 
@@ -445,15 +470,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
              std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) == 
                                                        config.render.dxgi.srgb_behavior )
       {
-        auto backbuffer =
-            _backbuffers [Buffer];
-
-        *ppSurface =
-          backbuffer.p;
-          backbuffer.p->AddRef ();
-
-        return S_OK;
+        return
+          _backbuffers [Buffer]->QueryInterface (riid, ppSurface);
       }
+
 
       else
       {
@@ -526,24 +546,15 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
-            SK_ComQIPtr <ID3D11Texture2D1>
-                  backbuffer_asTexture2D1 (backbuffer);
-
-            // Casting did not work, runtime does not implement this?
-            //
-            //   Just stuff the ID3D11Texture2D here instead
-            if (backbuffer_asTexture2D1.p == nullptr)
-                backbuffer_asTexture2D1 = (ID3D11Texture2D1 *)backbuffer.p;
-
-            backbuffer_asTexture2D1->SetPrivateData (
+            backbuffer->SetPrivateData (
               SKID_DXGI_SwapChainBackbufferFormat, size,
                                  &swapDesc.BufferDesc.Format);
 
             SK_D3D11_FlagResourceFormatManipulated (
-              backbuffer_asTexture2D1, swapDesc.BufferDesc.Format
+              backbuffer, swapDesc.BufferDesc.Format
             );
 
-            SK_D3D11_SetDebugName ( backbuffer_asTexture2D1.p,
+            SK_D3D11_SetDebugName ( backbuffer.p,
                  SK_FormatStringW ( L"[SK] Flip Model Backbuffer %d", Buffer ) );
             SK_LOGi1 (L"_backbuffers [%d] = New ( %dx%d [Samples: %d] %hs )",
                           Buffer, swapDesc.BufferDesc.Width,
@@ -551,31 +562,18 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
                                    texDesc.SampleDesc.Count,
              SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ());
 
-            SK_ComPtr <ID3D11Texture2D> pOldBuffer;
-            if (_backbuffers.contains (Buffer) &&
-                _backbuffers [Buffer].p != nullptr)
-            {
-              pOldBuffer =
-                _backbuffers [Buffer];
-            }
+            if (_backbuffers [Buffer].p != nullptr)
+                _backbuffers [Buffer].p->Release ();
 
-            _backbuffers [Buffer] = backbuffer_asTexture2D1;
+            std::swap (
+               backbuffer,
+              _backbuffers [Buffer]
+            );
 
-#define _SEMIPERMANENT_SWAPCHAIN
-#ifdef  _SEMIPERMANENT_SWAPCHAIN
-            // Keep an extra reference for thread-safety
-            backbuffer_asTexture2D1.p->AddRef ();
-#endif
+            _backbuffers [Buffer].p->AddRef ();
 
-            *ppSurface =
-              backbuffer_asTexture2D1.p;
-
-#ifdef  _SEMIPERMANENT_SWAPCHAIN
-            if (pOldBuffer != nullptr)
-              pOldBuffer.p->Release ();
-#endif
-
-            return S_OK;
+            return
+              _backbuffers [Buffer]->QueryInterface (riid, ppSurface);
           }
         }
       }

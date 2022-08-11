@@ -1317,10 +1317,6 @@ DXGI_FORMAT DirectX::MakeTypelessUNORM(DXGI_FORMAT fmt)
     case DXGI_FORMAT_BC7_TYPELESS:
         return DXGI_FORMAT_BC7_UNORM;
 
-    // Special K Modification
-    case DXGI_FORMAT_R24G8_TYPELESS:
-        return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-
     default:
         return fmt;
     }
@@ -1355,10 +1351,6 @@ DXGI_FORMAT DirectX::MakeTypelessFLOAT(DXGI_FORMAT fmt)
 
     case DXGI_FORMAT_R16_TYPELESS:
         return DXGI_FORMAT_R16_FLOAT;
-
-    // Special K Modification
-    case DXGI_FORMAT_R32G8X24_TYPELESS:
-      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 
     default:
         return fmt;

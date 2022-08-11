@@ -142,8 +142,8 @@ SK_Thread_RaiseNameException (THREADNAME_INFO* pTni)
   {
     __try
     {
-      const DWORD argc = sizeof (*pTni) /
-                           sizeof (ULONG_PTR);
+      constexpr DWORD argc = sizeof (*pTni) /
+                             sizeof (ULONG_PTR);
 
       SK_RaiseException ( MAGIC_THREAD_EXCEPTION,
                             SK_EXCEPTION_CONTINUABLE,
@@ -368,8 +368,8 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
     info.dwThreadID      = (DWORD)GetThreadId (hThread);
     info.dwFlags         =       0x0;
 
-    const DWORD argc = sizeof (info) /
-                       sizeof (ULONG_PTR);
+    constexpr DWORD argc = sizeof (info) /
+                           sizeof (ULONG_PTR);
 
     pTLS->debug.naming = true;
 

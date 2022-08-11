@@ -1424,22 +1424,22 @@ struct SK_DisjointTimerQueryD3D11
 {
   // Always issue this from the immediate context
 
-  volatile ID3D11Query* async  = nullptr;
-  volatile LONG         active = FALSE;
+  SK_ComPtr <ID3D11Query> async  = nullptr;
+  bool                    active = false;
 
   D3D11_QUERY_DATA_TIMESTAMP_DISJOINT
-                  last_results = { };
+                  last_results   = { };
 };
 
 struct SK_TimerQueryD3D11
 {
-  volatile ID3D11Query*         async        = nullptr;
-  volatile LONG                 active       = FALSE;
+  SK_ComPtr <ID3D11Query> async  = nullptr;
+  bool                    active = false;
 
   // Required per-query to support timing the execution of commands batched
   //   using deferred render contexts.
-  volatile ID3D11DeviceContext* dev_ctx      = nullptr;
-           UINT64               last_results = {     };
+  SK_ComPtr <ID3D11DeviceContext> dev_ctx      = nullptr;
+             UINT64               last_results = {     };
 };
 
 #define _MAX_VIEWS 128
@@ -2501,7 +2501,7 @@ struct D3DX11_STATE_BLOCK
   DXGI_FORMAT                IAIndexBufferFormat        = DXGI_FORMAT_UNKNOWN;
   UINT                       IAIndexBufferOffset        = 0;
   ID3D11InputLayout*         IAInputLayout              = nullptr;
-  D3D11_PRIMITIVE_TOPOLOGY   IAPrimitiveTopology        = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+  D3D11_PRIMITIVE_TOPOLOGY   IAPrimitiveTopology        = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
   ID3D11RenderTargetView*    OMRenderTargets        [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = { };
   UINT                       OMRenderTargetCount   = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;

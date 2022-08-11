@@ -149,6 +149,10 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   dc->IAGetInputLayout       (&sb->IAInputLayout);
   dc->IAGetPrimitiveTopology (&sb->IAPrimitiveTopology);
 
+  // Set a sane default if none exists already, or we'll get spam from the debug layer
+  if (sb->IAPrimitiveTopology == D3D_PRIMITIVE_TOPOLOGY_UNDEFINED)
+      sb->IAPrimitiveTopology =  D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
 
   dc->OMGetBlendState        (&sb->OMBlendState,         sb->OMBlendFactor, &sb->OMSampleMask);
   dc->OMGetDepthStencilState (&sb->OMDepthStencilState, &sb->OMDepthStencilRef);

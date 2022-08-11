@@ -353,7 +353,8 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
 
             DWORD dwContentLength     = 0;
             DWORD dwContentLength_Len = sizeof (DWORD);
-            DWORD dwSizeAvailable;
+
+            DWORD dwSizeAvailable     = 0;
 
             HttpQueryInfo ( hInetHTTPGetReq,
                              HTTP_QUERY_STATUS_CODE |

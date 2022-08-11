@@ -1,5 +1,42 @@
-﻿22.8.9-D3D-IK
-=============
+﻿22.8.11-D3D9-IK
+===============
+ + HDR toggle in OpenGL is real-time now in all gamers and does not require Alt+Enter
+ + Additional mouse input tweaks for emulators to prevent cursor auto-hide when cursor
+     is not even in the game window.
+
+22.8.10.2-D3D9-IK
+=================
+ + Alt menus no longer blocked while SK's control panel is open
+ + No longer display Alt+F4 confirmation dialog in SK's control panel when closing
+     child dialog boxes in emulators :)
+ + Improved support for switching between detached and single-window mode in Yuzu
+ + Removed assertion message when an application's root window changes
+
+22.8.10.1-D3D9-IK
+=================
+ + Added luminance tilemap output from adaptive tonemapper to HDR widget
+ + Fixed shadowmap issues in certain games introduced in 22.8.9.1
+ + Fixed shader profiler timer query reference leak in D3D11 render mod tools
+
+22.8.10-D3D9-IK
+===============
+ + Added new initialization option for Global Injection to hook D3D synchronously,
+     this allows Global Injection to work ~the same as Local in some games that
+       otherwise wouldn't be compatible with ReShade and SK simultaneously.
+
+    [Compatibility.General]
+    AsyncInit=false
+
+  This also affects D3D9, and may allow D3D9Ex + FlipEx in some games using Global.
+
+ + More ReShade compatibility work; early load-order should no longer crash
+ + Fixed HDR in Crash Bandicoot so that it does not require 8-bit remastering
+
+22.8.9.1-D3D9-IK
+================
+ + Merge pull request #21 from Braasileiro/megamixplus-1.02,
+    * Updated framerate unlock and Windows version check bypass for Project Diva 1.02
+
  + Improved compatibility with recent ReShade releases
  + Added logging/fix if games try to create typeless Shader Resource Views for
      Depth/Stencil surfaces that Special K is not managing

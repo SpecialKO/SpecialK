@@ -574,14 +574,15 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       //render_textures.reserve (128);
       //render_textures.clear   ();
 
-      const UINT dev_idx =
-        SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+      //const UINT dev_idx =
+      //  SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
 
       std::set <ID3D11RenderTargetView*> invalid_views;
 
-      //for (auto& rtl : *SK_D3D11_RenderTargets )
-      auto& rtl =
-        SK_D3D11_RenderTargets [dev_idx];
+      for (auto& rtl : *SK_D3D11_RenderTargets )
+      {
+      //auto& rtl =
+      //  SK_D3D11_RenderTargets [dev_idx];
 
       if (! ( rtl.rt_views.empty () ||
               rtl.max_rt_views   == 0 ) )
@@ -672,6 +673,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
         if (rtl.rt_views.count (it))
             rtl.rt_views.erase (it);
       }
+    }
 
    constexpr ULONG64      zombie_threshold = 4;//120;
       static ULONG64 last_zombie_pass      = frames_drawn;

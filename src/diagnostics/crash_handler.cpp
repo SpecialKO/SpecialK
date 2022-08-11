@@ -1615,6 +1615,8 @@ ULONG
 SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
                                  gsl::span <char> pszOut, ULONG     ulLen )
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
   ULONG ret = 0;
 
   if ( dbghelp_callers.find (hMod) ==

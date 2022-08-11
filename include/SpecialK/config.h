@@ -840,6 +840,7 @@ struct sk_config_t
     bool     using_wine               = false;
     bool     allow_dxdiagn            = false;
     bool     auto_large_address_patch =  true;
+    bool     init_on_separate_thread  =  true;
   } compatibility;
 
   struct apis_s {

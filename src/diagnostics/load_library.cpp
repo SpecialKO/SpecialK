@@ -1374,7 +1374,7 @@ _SK_SummarizeModule ( LPVOID   base_addr,  size_t      mod_size,
                       szSymbol, SK_StripUserNameFromPathW (wszModName) );
   }
 
-  else
+  else if (GetModuleHandle (wszModName))
 #endif
   {
     wchar_t     wszModNameCopy [MAX_PATH + 2] = { };
@@ -1890,9 +1890,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       {
         if (pLogger != nullptr )
         {   pLogger->close ();
-
-          delete
-            std::exchange (pLogger, nullptr);
         }
       };
 

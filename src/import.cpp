@@ -150,11 +150,12 @@ SK_LoadImportModule (import_s& import)
   // in the user-supplied path.
   if (import.hLibrary == nullptr)
   {
-    wchar_t wszExpandedPath [MAX_PATH + 2];
-    const DWORD nExpandedPathSize = ExpandEnvironmentStrings(
-      import.filename->get_value_str ().c_str (),
-      wszExpandedPath, MAX_PATH
-    );
+          wchar_t wszExpandedPath [MAX_PATH + 2] = { };
+    const DWORD     nExpandedPathSize            =
+      ExpandEnvironmentStrings (
+        import.filename->get_value_str ().c_str (),
+                  wszExpandedPath, MAX_PATH );
+
     if (nExpandedPathSize != 0)
     {
       if (nExpandedPathSize <= MAX_PATH)
@@ -163,6 +164,7 @@ SK_LoadImportModule (import_s& import)
           wszExpandedPath
         );
       }
+
       else
       {
         // There's no guarantee that the length of the fully-expanded path will fit within
@@ -170,18 +172,24 @@ SK_LoadImportModule (import_s& import)
         // memory on the heap for the long path and then call `ExpandEnvironmentStrings` again.
         // The use of `std::make_unique` ensures that this heap-allocated memory will be freed
         // when the `wszLongExpandedPath` object goes out of scope.
-        auto wszLongExpandedPath{
-          std::make_unique <wchar_t[]> (static_cast <size_t> (nExpandedPathSize) + 2)
+        auto wszLongExpandedPath {
+          std::make_unique <wchar_t []> (
+            static_cast <size_t> (nExpandedPathSize) + 2
+          )
         };
-        const DWORD nLongPathSize = ExpandEnvironmentStrings(
-          import.filename->get_value_str ().c_str (),
-          wszLongExpandedPath.get (), nExpandedPathSize
-        );
+
+        const DWORD nLongPathSize =
+          ExpandEnvironmentStrings (
+            import.filename->get_value_str ().c_str (),
+              wszLongExpandedPath.get (),
+                    nExpandedPathSize );
+
         if (nLongPathSize != 0)
         {
-          import.hLibrary = SK_Modules->LoadLibrary(
-            wszLongExpandedPath.get ()
-          );
+          import.hLibrary =
+            SK_Modules->LoadLibrary (
+              wszLongExpandedPath.get ()
+            );
         }
       }
     }

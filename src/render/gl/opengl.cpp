@@ -61,7 +61,8 @@ SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 struct SK_GL_Context {
 };
 
-bool SK_GL_OnD3D11 = false;
+bool SK_GL_OnD3D11       = false;
+bool SK_GL_OnD3D11_Reset = false;
 
 unsigned int SK_GL_SwapHook = 0;
 volatile LONG __gl_ready = FALSE;
@@ -2352,6 +2353,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     }
 
 
+    if (SK_GL_OnD3D11 && std::exchange (SK_GL_OnD3D11_Reset, false))
+                                         dx_gl_interop.stale = true;
+
     if (SK_GL_OnD3D11 && (std::exchange (dx_gl_interop.stale, false) || pSwapChain == nullptr))
     {
       glFinish ();
@@ -2464,7 +2468,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       tex_desc.SampleDesc.Quality = 0;
       tex_desc.Usage              = D3D11_USAGE_DEFAULT;
       tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
-                                    D3D11_BIND_SHADER_RESOURCE;
+                                    D3D11_BIND_SHADER_RESOURCE |
+                                    D3D11_BIND_UNORDERED_ACCESS;
       tex_desc.CPUAccessFlags     = 0;
       tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
 
