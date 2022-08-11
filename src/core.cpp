@@ -1002,11 +1002,14 @@ DllThread (LPVOID user)
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
   SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
 
-  auto* params =
-    static_cast <init_params_s *> (user);
-
-  SK_InitCore ( params->backend,
-                params->callback );
+  if (config.compatibility.init_on_separate_thread)
+  {
+    auto* params =
+      static_cast <init_params_s *> (user);
+    
+    SK_InitCore ( params->backend,
+                  params->callback );
+  }
 
   AppId64_t appid (
     SK_Steam_GetAppID_NoAPI ()
@@ -1962,6 +1965,44 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
 #ifndef _THREADED_BASIC_INIT
     BasicInit ();
+
+    bool gl = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
+       dxgi = false, d3d8   = false, ddraw = false, glide = false;
+
+    SK_TestRenderImports (
+      SK_GetModuleHandle (nullptr),
+        &gl, &vulkan,
+          &d3d9, &dxgi, &d3d11, &d3d12,
+            &d3d8, &ddraw, &glide );
+
+    dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
+    d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
+    d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
+    d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
+    gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
+    gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
+    gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
+
+    if ( ( dxgi || d3d11 || d3d12 ||
+           d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
+                             || config.apis.dxgi.d3d12.hook ) )
+    {
+      SK_DXGI_QuickHook ();
+    }
+
+    if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+    {
+      SK_D3D9_QuickHook ();
+    }
+
+    if (! config.compatibility.init_on_separate_thread)
+    {
+      auto* params =
+        static_cast <init_params_s *> (&init_);
+
+      SK_InitCore ( params->backend,
+                    params->callback );
+    }
 #endif
 
     SK_EnumLoadedModules (SK_ModuleEnum::PreLoad);
@@ -2070,35 +2111,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     SK_RunOnce (SK_Widget_InitHDR ());
 
     SK_ImGui_Widgets->hdr_control->run ();
-
-    bool gl   = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
-         dxgi = false, d3d8   = false, ddraw = false, glide = false;
-
-    SK_TestRenderImports (
-      SK_GetModuleHandle (nullptr),
-        &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11, &d3d12,
-            &d3d8, &ddraw, &glide );
-
-    dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
-    d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
-    d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
-    d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
-    gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
-
-    if ( ( dxgi || d3d11 || d3d12 ||
-           d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
-                             || config.apis.dxgi.d3d12.hook ) )
-    {
-      SK_DXGI_QuickHook ();
-    }
-
-    if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
-    {
-      SK_D3D9_QuickHook ();
-    }
 
     if (config.steam.preload_overlay)
     {
@@ -2213,7 +2225,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
                             L"Special K Dummy Window Class",
                             L"Special K Dummy Window",
                             //IsWindow (hWndParent) ? WS_CHILD : WS_CLIPSIBLINGS,
-                                    WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                                      WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                                               rect.left,               rect.top,
                                  rect.right - rect.left, rect.bottom - rect.top,
                         HWND_DESKTOP/*hWndParent*/, nullptr,
@@ -3711,8 +3723,8 @@ SK_SetDLLRole (DLL_ROLE role)
 
 DWORD SK_GetParentProcessId (void) // By Napalm @ NetCore2K
 {
-  ULONG_PTR pbi    [6];
-  ULONG     ulSize = 0;
+  ULONG_PTR pbi [6] = { };
+  ULONG     ulSize  =  0 ;
 
   LONG (WINAPI *NtQueryInformationProcess)(HANDLE ProcessHandle,      ULONG ProcessInformationClass,
                                            PVOID  ProcessInformation, ULONG ProcessInformationLength,

@@ -1539,6 +1539,8 @@ ClipCursor_Detour (const RECT *lpRect)
 {
   SK_LOG_FIRST_CALL
 
+  SK_LOGi4 (L"ClipCursor (...) - Frame=%d", SK_GetFramesDrawn ());
+
   RECT _rect = { };
 
   if (lpRect != nullptr)
@@ -1630,13 +1632,16 @@ ClipCursor_Detour (const RECT *lpRect)
     {
       if (lpRect != nullptr)
       {
-        // If confining, and the game provides a rectangle small enough to satisfy confinement,
-        //   then allow it to happen.
-        if ( PtInRect (&game_window.actual.window, POINT { _rect.left,  _rect.top    }) &&
-             PtInRect (&game_window.actual.window, POINT { _rect.right, _rect.bottom }) )
+        if (! SK_ImGui_Active ()) // Never narrow the clip rect while SK's UI is active
         {
+          // If confining, and the game provides a rectangle small enough to satisfy confinement,
+          //   then allow it to happen.
+          if ( PtInRect (&game_window.actual.window, POINT { _rect.left,  _rect.top    }) &&
+               PtInRect (&game_window.actual.window, POINT { _rect.right, _rect.bottom }) )
+          {
             return
               SK_ClipCursor (&_rect);
+          }
         }
       }
 
@@ -4890,8 +4895,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //   so update the name immediately.
     rb.assignOutputFromHWND (game_window.hWnd);
 
-    DWORD dwFocus;
-    DWORD dwForeground;
+    DWORD dwFocus        = 0x0;
+    DWORD dwForeground   = 0x0;
 
     HWND  hWndFocus      = SK_GetFocus            ();
     HWND  hWndForeground = SK_GetForegroundWindow ();
@@ -4938,6 +4943,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   {
     if (uMsg == WM_DISPLAYCHANGE)
     {
+      // Trigger IndirectX Device Context Reset
+      extern bool SK_GL_OnD3D11_Reset;
+                  SK_GL_OnD3D11_Reset = true;
+
       rb.stale_display_info = true;
       rb.queueUpdateOutputs ();
     }
@@ -6123,6 +6132,16 @@ SK_InstallWindowHook (HWND hWnd)
   //
   if (dwWindowPid != GetCurrentProcessId ())
     return;
+
+
+  // Game's window still exists, so, uh... ignore this?
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+  {
+    game_window.parent =
+      GetAncestor (hWnd, GA_PARENT);
+
+    return;
+  }
 
 
   SK_ReleaseAssert (game_window.hWnd == 0 || game_window.hWnd == GetAncestor (hWnd, GA_ROOT));

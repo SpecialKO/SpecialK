@@ -1400,7 +1400,7 @@ bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   if (! game_window.active)
-    return false;
+    return true;
 
   if (! SK_GImDefaultContext ())
     return false;
@@ -1420,18 +1420,36 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
+  }
 
-    if (imgui_capture && game_window.active/*SK_IsGameWindowActive ()*/) // If inactive, skip these tests
-    {                    // Requires a very specific definition of "active" or the Continue Rendering feature will not work
-      POINT                           ptCursor = SK_ImGui_Cursor.pos;
-      SK_ImGui_Cursor.LocalToClient (&ptCursor);
+  if (! imgui_capture)
+  {                    // Requires a very specific definition of "active" or the Continue Rendering feature will not work
+    bool bHit = false;
 
-      imgui_capture =
-        ChildWindowFromPointEx (game_window.child != nullptr ? game_window.child :
-                                                               game_window.hWnd,
-                                      ptCursor, CWP_SKIPDISABLED | CWP_SKIPTRANSPARENT | CWP_SKIPINVISIBLE) ==
-                               (game_window.child != nullptr ? game_window.child :
-                                                               game_window.hWnd);
+    POINT                  cursor_pos = { };
+    SK_GetCursorPos      (&cursor_pos);
+
+    if (PtInRect (&game_window.actual.window,
+                           cursor_pos))
+    {
+      if (WindowFromPoint (cursor_pos) != game_window.hWnd)
+      {
+        POINT                              client_pos = cursor_pos;
+        ScreenToClient (game_window.hWnd, &client_pos);
+
+        if ( ChildWindowFromPointEx (
+                        game_window.hWnd,  client_pos, 0x0 ) == game_window.hWnd )
+        {
+          //bHit = true;
+        }
+      }
+
+      else bHit = true;
+    }
+
+    if (! bHit)
+    {
+      imgui_capture = true;
     }
   }
 
@@ -1475,9 +1493,35 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  return (
-    game_window.active /*|| SK_GetForegroundWindow () == game_window.hWnd*/
-  );
+  bool bActive =
+    game_window.active;
+
+  if (! bActive)
+  {
+    static auto &rb =
+      SK_GetCurrentRenderBackend ();
+
+    if ( rb.windows.device.hwnd != 0 &&
+         rb.windows.device.hwnd != game_window.hWnd )
+    {
+      SK_ReleaseAssert (game_window.hWnd == rb.windows.focus.hwnd);
+
+      HWND hWndForeground =
+        SK_GetForegroundWindow ();
+
+      bActive =
+        hWndForeground == rb.windows.device.hwnd ||
+        hWndForeground == rb.windows.device.parent;
+
+      if (bActive && (! game_window.active))
+      {
+        game_window.active = true;
+        BringWindowToTop (hWndForeground);
+      }
+    }
+  }
+
+  return bActive;
 }
 
 bool
@@ -3695,8 +3739,12 @@ char SK_KeyMap_LeftHand_Arrow (char key)
 void
 SK_Input_Init (void)
 {
-  static bool                      once = false;
-  SK_ReleaseAssert (std::exchange (once, true) == false);
+  // -- Async Init = OFF option may invoke this twice
+  //SK_ReleaseAssert (std::exchange (once, true) == false);
+
+  static bool        once = false;
+  if (std::exchange (once, true))
+    return;
 
   SK_ImGui_InputLanguage_s::keybd_layout =
     GetKeyboardLayout (0);

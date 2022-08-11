@@ -1294,14 +1294,17 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       //   trigger Special K's popup window,
       case SC_CLOSE:
       {
-        //SK_LOG0 ( (L"ImGui Examined SysCmd (SC_CLOSE)"), L"Window Mgr" );
-
-        SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
-
-        if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
+        if (hWnd == game_window.hWnd || IsChild (hWnd, game_window.hWnd))
         {
-          SK_ImGui_WantExit = true;
-          return 1;
+          //SK_LOG0 ( (L"ImGui Examined SysCmd (SC_CLOSE)"), L"Window Mgr" );
+
+          SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
+
+          if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
+          {
+            SK_ImGui_WantExit = true;
+            return 1;
+          }
         }
 
         return 0;
@@ -1311,20 +1314,23 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       {
         //SK_LOG0 ( (L"ImGui Examined SysCmd (SC_KEYMENU)"), L"Window Mgr" );
 
-        // Disable ALT application menu
-        if (lParam == 0x00 || lParam == 0x20)
+        if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
         {
-          return 1;
-        }
-
-        else if (lParam == 0x05/*VK_F4*/) // DOES NOT USE Virtual Key Codes!
-        {
-          SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
-
-          if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
+          // Disable ALT application menu
+          if (lParam == 0x00 || lParam == 0x20)
           {
-            SK_ImGui_WantExit = true;
             return 1;
+          }
+
+          else if (lParam == 0x05/*VK_F4*/) // DOES NOT USE Virtual Key Codes!
+          {
+            SK_ImGui_WantExit |= config.input.keyboard.catch_alt_f4;
+
+            if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
+            {
+              SK_ImGui_WantExit = true;
+              return 1;
+            }
           }
         }
 
@@ -2527,30 +2533,31 @@ SK_ImGui_User_NewFrame (void)
 
   // Hacky solution for missed messages causing no change in cursor pos
   //
-  POINT              cursor_pos = { };
-  SK_GetCursorPos  (&cursor_pos);
-  POINT              local_pos  = cursor_pos;
+  POINT                  cursor_pos = { };
+  SK_GetCursorPos      (&cursor_pos);
 
-  HWND hWndTop =
-    WindowFromPoint (cursor_pos);
+  bool bHitTest = false;
 
-  MapWindowPoints (HWND_DESKTOP, hWndTop, &local_pos, 1);
-
-  HWND hWndFromPt =
-    ChildWindowFromPointEx ( hWndTop, local_pos, CWP_SKIPINVISIBLE |
-                                                 CWP_SKIPTRANSPARENT );
-
-  if (      0 != game_window.hWnd  &&
-       IsWindow (game_window.hWnd) &&
-                (game_window.hWnd == hWndFromPt ||
-        IsChild (game_window.hWnd,   hWndFromPt)) )
+  if (PtInRect (&game_window.actual.window,
+                         cursor_pos))
   {
-    io.MouseDown [0] |= ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0;
-    io.MouseDown [1] |= ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0;
-    io.MouseDown [2] |= ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0;
-    io.MouseDown [3] |= ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0;
-    io.MouseDown [4] |= ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0;
+    if (WindowFromPoint (cursor_pos) != game_window.hWnd)
+    {
+      POINT                              client_pos = cursor_pos;
+      ScreenToClient (game_window.hWnd, &client_pos);
 
+      if ( ChildWindowFromPointEx (
+                      game_window.hWnd,  client_pos, CWP_SKIPDISABLED | CWP_SKIPINVISIBLE | CWP_SKIPTRANSPARENT ) == game_window.hWnd )
+      {
+         bHitTest = true;
+      }
+    }
+
+    else bHitTest = true;
+  }
+
+  if (bHitTest)
+  {
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 
     if ( cursor_pos.x != last_x ||
@@ -2587,9 +2594,14 @@ SK_ImGui_User_NewFrame (void)
        bActive  =
     SK_IsGameWindowActive  ();
 
-  if (bActive)
-  { if (new_input) for ( UINT                 i = 7 ; i < 255 ; ++i )
-                                 io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+  if (bActive || bHitTest)
+  { if (new_input && bActive) for ( UINT                 i = 7 ; i < 255 ; ++i )
+                                    io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+    io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) < 0);
+    io.MouseDown [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) < 0);
+    io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) < 0);
+    io.MouseDown [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) < 0);
+    io.MouseDown [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) < 0);
   } else { RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
            RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
 
@@ -2690,19 +2702,6 @@ SK_ImGui_User_NewFrame (void)
 
   __SK_EnableSetCursor = false;
 
-
-  if (bActive)
-  {
-    if (hWndFromPt != 0)
-    {
-      io.MouseDown [0] = (SK_GetAsyncKeyState (VK_LBUTTON)  & 0x8000) != 0;
-      io.MouseDown [1] = (SK_GetAsyncKeyState (VK_RBUTTON)  & 0x8000) != 0;
-      io.MouseDown [2] = (SK_GetAsyncKeyState (VK_MBUTTON)  & 0x8000) != 0;
-      io.MouseDown [3] = (SK_GetAsyncKeyState (VK_XBUTTON1) & 0x8000) != 0;
-      io.MouseDown [4] = (SK_GetAsyncKeyState (VK_XBUTTON2) & 0x8000) != 0;
-    }
-  }
-
   if (bFocused)
   {
     if (config.input.keyboard.catch_alt_f4)
@@ -2725,6 +2724,9 @@ SK_ImGui_User_NewFrame (void)
   {
     last_x = SK_ImGui_Cursor.pos.x;
     last_y = SK_ImGui_Cursor.pos.y;
+
+    if (bHitTest && io.MouseDown [0])
+      game_window.active = true;
   }
 }
 

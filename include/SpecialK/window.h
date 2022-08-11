@@ -791,4 +791,7 @@ bool
 
 bool SK_Win32_IsDummyWindowClass (HWND hWnd);
 
+bool WINAPI SK_IsRectZero     (_In_ const    RECT *lpRect);
+bool WINAPI SK_IsRectInfinite (_In_ const tagRECT *lpRect);
+
 #endif /* __SK__WINDOW_H__ */
