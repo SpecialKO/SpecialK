@@ -41,6 +41,13 @@ D3D12Device_CreateShaderResourceView_pfn = void
                       D3D12_CPU_DESCRIPTOR_HANDLE);
 
 using
+D3D12Device_CreateUnorderedAccessView_pfn = void
+(STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Resource*,
+                      ID3D12Resource*,
+                const D3D12_UNORDERED_ACCESS_VIEW_DESC*,
+                      D3D12_CPU_DESCRIPTOR_HANDLE);
+
+using
 D3D12Device_CreateRenderTargetView_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Resource*,
                 const D3D12_RENDER_TARGET_VIEW_DESC*,

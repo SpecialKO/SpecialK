@@ -1422,37 +1422,6 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
       imgui_capture = true;
   }
 
-  if (! imgui_capture)
-  {                    // Requires a very specific definition of "active" or the Continue Rendering feature will not work
-    bool bHit = false;
-
-    POINT                  cursor_pos = { };
-    SK_GetCursorPos      (&cursor_pos);
-
-    if (PtInRect (&game_window.actual.window,
-                           cursor_pos))
-    {
-      if (WindowFromPoint (cursor_pos) != game_window.hWnd)
-      {
-        POINT                              client_pos = cursor_pos;
-        ScreenToClient (game_window.hWnd, &client_pos);
-
-        if ( ChildWindowFromPointEx (
-                        game_window.hWnd,  client_pos, 0x0 ) == game_window.hWnd )
-        {
-          //bHit = true;
-        }
-      }
-
-      else bHit = true;
-    }
-
-    if (! bHit)
-    {
-      imgui_capture = true;
-    }
-  }
-
   return imgui_capture;
 }
 

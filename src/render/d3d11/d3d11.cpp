@@ -8420,7 +8420,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
          bool                                &success   ) ->
       UINT64
       {
-        auto dev_ctx =
+        auto& dev_ctx =
           duration->start.dev_ctx;
 
         if (             dev_ctx != nullptr &&
@@ -8454,7 +8454,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
           return duration->start.last_results;
         }
 
-        auto dev_ctx =
+        auto& dev_ctx =
           duration->end.dev_ctx;
 
         if (             dev_ctx != nullptr &&

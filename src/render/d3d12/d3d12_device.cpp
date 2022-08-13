@@ -50,6 +50,8 @@ D3D12Device2_CreatePipelineState_pfn
 D3D12Device2_CreatePipelineState_Original        = nullptr;
 D3D12Device_CreateShaderResourceView_pfn
 D3D12Device_CreateShaderResourceView_Original    = nullptr;
+D3D12Device_CreateUnorderedAccessView_pfn
+D3D12Device_CreateUnorderedAccessView_Original   = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
@@ -732,8 +734,10 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 {
   // HDR Fix-Ups
   if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
-       pDesc     != nullptr && pDesc->ViewDimension ==
-                                D3D12_SRV_DIMENSION_TEXTURE2D )
+       pDesc     != nullptr && ( pDesc->ViewDimension ==
+                                   D3D12_SRV_DIMENSION_TEXTURE2D ||
+                                 pDesc->ViewDimension ==
+                                   D3D12_SRV_DIMENSION_TEXTURE2DARRAY ) )
   {
     // Handle explicitly defined SRVs, they might expect the SwapChain to be RGBA8
     if (pDesc->Format != 0x0)
@@ -751,6 +755,26 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 
             auto fixed_desc = *pDesc;
                  fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+          return
+            D3D12Device_CreateShaderResourceView_Original ( This,
+               pResource, &fixed_desc,
+                 DestDescriptor
+            );
+        }
+      }
+
+      // Spider-Man needs the opposite of the fix above.
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
+          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      {
+        if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+        {
+          SK_LOG_FIRST_CALL
+
+            auto fixed_desc = *pDesc;
+                 fixed_desc.Format = desc.Format;
 
           return
             D3D12Device_CreateShaderResourceView_Original ( This,
@@ -779,8 +803,10 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 {
   // HDR Fix-Ups
   if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
-       pDesc     != nullptr && pDesc->ViewDimension ==
-                                D3D12_RTV_DIMENSION_TEXTURE2D )
+       pDesc     != nullptr && ( pDesc->ViewDimension ==
+                                   D3D12_RTV_DIMENSION_TEXTURE2D ||
+                                 pDesc->ViewDimension ==
+                                   D3D12_RTV_DIMENSION_TEXTURE2DARRAY ) )
   {
     auto desc =
       pResource->GetDesc ();
@@ -803,11 +829,97 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
           );
       }
     }
+
+    // Spider-Man needs the opposite of the fix above.
+    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+         desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
+        pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+    {
+      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+      {
+        SK_LOG_FIRST_CALL
+
+          auto fixed_desc = *pDesc;
+               fixed_desc.Format = desc.Format;
+
+        return
+          D3D12Device_CreateRenderTargetView_Original ( This,
+             pResource, &fixed_desc,
+               DestDescriptor
+          );
+      }
+    }
   }
 
   return
     D3D12Device_CreateRenderTargetView_Original ( This,
        pResource, pDesc,
+         DestDescriptor
+    );
+}
+
+void
+STDMETHODCALLTYPE
+D3D12Device_CreateUnorderedAccessView_Detour (
+                ID3D12Device                     *This,
+_In_opt_        ID3D12Resource                   *pResource,
+_In_opt_        ID3D12Resource                   *pCounterResource,
+_In_opt_  const D3D12_UNORDERED_ACCESS_VIEW_DESC *pDesc,
+_In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
+{
+  // HDR Fix-Ups
+  if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
+       pDesc     != nullptr && ( pDesc->ViewDimension ==
+                                   D3D12_UAV_DIMENSION_TEXTURE2D ||
+                                 pDesc->ViewDimension ==
+                                   D3D12_UAV_DIMENSION_TEXTURE2DARRAY ) )
+  {
+    auto desc =
+      pResource->GetDesc ();
+
+    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+         desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
+    {
+      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+           DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
+      {
+        SK_LOG_FIRST_CALL
+
+        auto fixed_desc = *pDesc;
+             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+        return
+          D3D12Device_CreateUnorderedAccessView_Original ( This,
+            pResource, pCounterResource, &fixed_desc,
+              DestDescriptor
+          );
+      }
+    }
+
+    // Spider-Man needs the opposite of the fix above.
+    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+         desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
+        pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+    {
+      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+      {
+        SK_LOG_FIRST_CALL
+
+          auto fixed_desc = *pDesc;
+               fixed_desc.Format = desc.Format;
+
+        return
+          D3D12Device_CreateUnorderedAccessView_Original ( This,
+            pResource, pCounterResource, &fixed_desc,
+              DestDescriptor
+          );
+      }
+    }
+  }
+
+  return
+    D3D12Device_CreateUnorderedAccessView_Original ( This,
+       pResource, pCounterResource, pDesc,
          DestDescriptor
     );
 }
@@ -1673,6 +1785,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
                            *(void ***)*(&pDev12), 18,
                             D3D12Device_CreateShaderResourceView_Detour,
                   (void **)&D3D12Device_CreateShaderResourceView_Original );
+
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateUnorderedAccessView",
+                           *(void ***)*(&pDev12), 19,
+                            D3D12Device_CreateUnorderedAccessView_Detour,
+                  (void **)&D3D12Device_CreateUnorderedAccessView_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateRenderTargetView",
                            *(void ***)*(&pDev12), 20,

@@ -7125,9 +7125,13 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
             {
               if (IsWindowVisible (hWndAbove) && hWndTopLevelOnGameMonitor.count (hWndAbove))
               {
-                wchar_t                    wszWindowTitle [128] = { };
-                GetWindowTextW (hWndAbove, wszWindowTitle, 128);
-                if (                       wszWindowTitle [0] != L'\0')
+                wchar_t wszWindowTitle [128] = { };
+
+                // NOTE: GetWindowText calls SendMessage, which will deadlock Unity engine games
+                if (config.system.log_level > 0)
+                  GetWindowTextW (hWndAbove, wszWindowTitle, 128);
+
+                if (config.system.log_level <= 0 || wszWindowTitle [0] != L'\0')
                 {
                   bGameIsTopMostOnMonitor = FALSE;
 

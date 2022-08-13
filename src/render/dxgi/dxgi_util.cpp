@@ -1210,6 +1210,11 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
   {
+    // This isn't so much a fix as it is masking a different problem...
+    //
+    //  * Figure out why the software is trying to copy a mipmapped resource that
+    //     requires format conversion DirectX cannot provide.
+    //
     SK_ReleaseAssert (
        srcTexDesc.MipLevels != dstTexDesc.MipLevels ||
        srcTexDesc.MipLevels == 1 );

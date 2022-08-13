@@ -1,4 +1,17 @@
-﻿22.8.13-D3D9-IK
+﻿22.8.14-D3D9-IK
+===============
+ + Added configurable debug layer settings (i.e. mute/break-on error) for D3D11 games
+ + Fixed compatibility with Spider-Man Remastered when Special K HDR is enabled
+
+22.8.13.2-D3D9-IK
+=================
+ + Fixed D3D9 window hooks not being installed correctly
+
+22.8.13.1-D3D9-IK
+=================
+ + Fixed potential deadlock in Unity engine games when window focus changes
+
+22.8.13-D3D9-IK
 ===============
  + Fixed mouse input not being blocked when render in background is enabled
  + Fixed character portraits not displaying in Pillars of Eternity 2
