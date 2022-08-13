@@ -1721,6 +1721,7 @@ struct SK_IndirectX_InteropCtx
     SK_ComPtr <ID3D11Device>               pDevice;
     SK_ComPtr <ID3D11DeviceContext>        pDevCtx;
     HANDLE                                 hInteropDevice = nullptr;
+    D3D_FEATURE_LEVEL                      featureLevel;
 
     struct staging_s {
       SK_ComPtr <ID3D11SamplerState>       colorSampler;
@@ -2255,6 +2256,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                   DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT );
             }
 
+            dx_gl_interop.d3d11.featureLevel = featureLevel;
+
             dx_gl_interop.d3d11.hInteropDevice =
               wglDXOpenDeviceNV (dx_gl_interop.d3d11.pDevice);
           }
@@ -2408,7 +2411,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         desc1.Width              = w;
         desc1.Height             = h;
         desc1.BufferUsage        = DXGI_USAGE_RENDER_TARGET_OUTPUT |
-                                   DXGI_USAGE_BACK_BUFFER;
+                                   DXGI_USAGE_SHADER_INPUT         |
+                                   DXGI_USAGE_BACK_BUFFER          |
+        ( dx_gl_interop.d3d11.featureLevel >= D3D_FEATURE_LEVEL_11_0  ?
+                                   DXGI_USAGE_UNORDERED_ACCESS        : 0x0 );
         desc1.BufferCount        = _DXBackBuffers;
         desc1.AlphaMode          = DXGI_ALPHA_MODE_IGNORE;
         desc1.Scaling            = DXGI_SCALING_NONE;
@@ -2532,16 +2538,14 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LOG0 ( ( L"FBO Status: %x", framebufferStatus ), L"  GLDX11  " );
 
         if (glClampColor != nullptr)
-        {
-        //glClampColor (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE); // Deprecated in Core
-        //glClampColor (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE); // Deprecated in Core
-          glClampColor (GL_CLAMP_READ_COLOR_ARB,     GL_FALSE);
-        }
+            glClampColor (GL_CLAMP_READ_COLOR, GL_FALSE);
 
         bool fallback = false;
 
         if (dx_gl_interop.gl.fullscreen)
         {
+          glGetError ();
+
           UINT halfX = (w - dx_gl_interop.gl.width);
           UINT halfY = (h - dx_gl_interop.gl.height);
 
@@ -2561,6 +2565,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
         if (fallback || (! dx_gl_interop.gl.fullscreen))
         {
+          glGetError ();
+
           glBlitFramebuffer ( 0,0, w,h,
                               0,0, w,h, GL_COLOR_BUFFER_BIT, GL_NEAREST );
         }
@@ -2571,14 +2577,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LOG0 ( ( L"glBlitFramebuffer Error: %x", err ), L"  GLDX11  " );
       }
 
-      glBindFramebuffer (GL_FRAMEBUFFER,          original_fbo);
+      glBindFramebuffer (GL_FRAMEBUFFER,  original_fbo);
       if (glClampColor != nullptr)
-      {
-      //glClampColor    (GL_CLAMP_VERTEX_COLOR_ARB,   GL_FALSE); // Deprecated in core
-      //glClampColor    (GL_CLAMP_FRAGMENT_COLOR_ARB, GL_FALSE); // Deprecated in core
-        glClampColor    (GL_CLAMP_READ_COLOR_ARB,     GL_FALSE);
-      }
-      glFlush           (                                     );
+          glClampColor  (GL_CLAMP_READ_COLOR, GL_FALSE);
+      glFlush           (                             );
 
       wglDXUnlockObjectsNV ( dx_gl_interop.d3d11.hInteropDevice, 1,
                             &dx_gl_interop.d3d11.staging.hColorBuffer );
@@ -4034,6 +4036,8 @@ glFramebufferTexture_SK ( GLenum target,
   gl_framebuffer_texture (target, attachment, texture, level);
 }
 
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
+
 __declspec (noinline)
 void
 WINAPI
@@ -4042,10 +4046,11 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
                                GLuint texture,
                                GLint  level )
 {
-  extern bool __SK_HDR_16BitSwap;
-  if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
+  extern bool
+       __SK_HDR_16BitSwap;
+  if ( __SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr )
   {
-    dll_log->Log (L"glNamedFramebufferTexture (...)");
+    SK_LOGi1 (L"glNamedFramebufferTexture (...)");
 
     static GLuint                                      maxAttachments = 0;
     glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, (GLint *)&maxAttachments);
@@ -4059,30 +4064,99 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
       glBindTexture            (GL_TEXTURE_2D, texture);
       glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &textureFmt);
 
-      dll_log->Log (L" -> Format: %x", textureFmt);
+      GLint                                                       immutable = GL_FALSE;
+      glGetTexParameteriv (texture, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
-      bool rgb =
-        (  textureFmt == GL_RGB   || textureFmt == GL_RGB8 );
-      if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
-           textureFmt == GL_RGBA  || textureFmt == GL_RGB )
+      GLint                                                           texWidth, texHeight;
+      glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
+      glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+
+      glGetError ();
+
+      if (immutable == GL_FALSE)
       {
-        GLint                                                       immutable = GL_FALSE;
-        glGetTexParameteriv (texture, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
-
-        if (immutable == GL_FALSE)
+        bool rgb =
+          (  textureFmt == GL_RGB   || textureFmt == GL_RGB8 );
+        if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
+             textureFmt == GL_RGBA  || textureFmt == GL_RGB )
         {
-          GLint                                                           texWidth, texHeight;
-          glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
-          glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+          InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->CandidatesSeen);
 
-          dll_log->Log (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
+          if (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit)
+          {
+           //glBindTexture    (GL_TEXTURE_2D,       0);
+           //glDeleteTextures (1,            &texture);
+           //glBindTexture    (GL_TEXTURE_2D, texture);
+           //glTexStorage2D   (GL_TEXTURE_2D, 1, rgb ?
+           //                              GL_RGB16F : GL_RGBA16F, texWidth, texHeight);
 
-          glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB16F : GL_RGBA16F, texWidth, texHeight, 0,
-                                          rgb ? GL_RGB    : GL_RGBA, GL_FLOAT, nullptr);
+            glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB16F : GL_RGBA16F, texWidth, texHeight, 0,
+                                            rgb ? GL_RGB    : GL_RGBA, GL_FLOAT, nullptr);
+
+            if (glGetError () == GL_NO_ERROR)
+            {
+              InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * texWidth * texHeight);
+              InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
+
+              SK_LOGi1 (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
+            }
+          }
         }
+
+        else if ( textureFmt == GL_R11F_G11F_B10F ||
+                  textureFmt == GL_RGB10_A2 )
+        {
+          if (textureFmt == GL_R11F_G11F_B10F)
+          {
+            InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->CandidatesSeen);
+
+            if (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit)
+            {
+             //glBindTexture    (GL_TEXTURE_2D,       0);
+             //glDeleteTextures (1,            &texture);
+             //glBindTexture    (GL_TEXTURE_2D, texture);
+             //glTexStorage2D   (GL_TEXTURE_2D, 1, GL_RGB16F, texWidth, texHeight);
+              glTexImage2D     (GL_TEXTURE_2D, 0, GL_RGB16F, texWidth, texHeight, 0,
+                                                  GL_RGB,    GL_FLOAT, nullptr);
+
+              if (glGetError () == GL_NO_ERROR)
+              {
+                InterlockedAdd64     (&SK_HDR_RenderTargets_11bpc->BytesAllocated, 4LL * texWidth * texHeight);
+                InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded);
+
+                SK_LOGi1 (L"GL_R11F_G11F_B10F replaced with GL_RGB{A}16F");
+              }
+            }
+          }
+
+          else if (textureFmt == GL_RGB10_A2)
+          {
+            InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->CandidatesSeen);
+
+            if (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit)
+            {
+            //glBindTexture    (GL_TEXTURE_2D,       0);
+            //glDeleteTextures (1,            &texture);
+            //glBindTexture    (GL_TEXTURE_2D, texture);
+            //glTexStorage2D   (GL_TEXTURE_2D, 1, GL_RGBA16F, texWidth, texHeight);
+              glTexImage2D     (GL_TEXTURE_2D, 0, GL_RGBA16F, texWidth, texHeight, 0,
+                                                  GL_RGBA,    GL_FLOAT, nullptr);
+
+              if (glGetError () == GL_NO_ERROR)
+              {
+                InterlockedAdd64     (&SK_HDR_RenderTargets_10bpc->BytesAllocated, 4LL * texWidth * texHeight);
+                InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded);
+
+                SK_LOGi1 (L"GL_RGB10_A2 replaced with GL_RGBA16F");
+              }
+            }
+          }
+        }
+
+        glBindTexture (GL_TEXTURE_2D, boundTex2D);
       }
 
-      glBindTexture (GL_TEXTURE_2D, boundTex2D);
+      else SK_LOGi1 (L" -> Format: %x", textureFmt);
     }
   }
 
