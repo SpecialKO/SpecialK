@@ -2541,13 +2541,22 @@ SK_ImGui_User_NewFrame (void)
   if (PtInRect (&game_window.actual.window,
                          cursor_pos))
   {
-    if (WindowFromPoint (cursor_pos) != game_window.hWnd)
-    {
-      POINT                              client_pos = cursor_pos;
-      ScreenToClient (game_window.hWnd, &client_pos);
+    HWND hWndTop =
+        WindowFromPoint (cursor_pos);
 
-      if ( ChildWindowFromPointEx (
-                      game_window.hWnd,  client_pos, CWP_SKIPDISABLED | CWP_SKIPINVISIBLE | CWP_SKIPTRANSPARENT ) == game_window.hWnd )
+    if ( hWndTop != game_window.hWnd )
+    {
+      POINT                     client_pos = cursor_pos;
+      ScreenToClient (hWndTop, &client_pos);
+
+      HWND hWndChild =
+        ChildWindowFromPointEx (
+                      hWndTop,  client_pos, CWP_SKIPDISABLED  |
+                                            CWP_SKIPINVISIBLE |
+                                            CWP_SKIPTRANSPARENT 
+                               );
+
+      if (hWndChild == game_window.hWnd)
       {
          bHitTest = true;
       }
@@ -2726,7 +2735,18 @@ SK_ImGui_User_NewFrame (void)
     last_y = SK_ImGui_Cursor.pos.y;
 
     if (bHitTest && io.MouseDown [0])
-      game_window.active = true;
+    {
+      if (! std::exchange (game_window.active, true))
+      {
+        POINT             ptCursor = { };
+        SK_GetCursorPos (&ptCursor);
+
+        if ( game_window.hWnd ==
+               WindowFromPoint ( cursor_pos ) )
+          SK_Window_SetTopMost ( false, true,
+                                   game_window.hWnd );
+      }
+    }
   }
 }
 

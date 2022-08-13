@@ -1501,8 +1501,9 @@ SK_IsGameWindowActive (void)
     static auto &rb =
       SK_GetCurrentRenderBackend ();
 
-    if ( rb.windows.device.hwnd != 0 &&
-         rb.windows.device.hwnd != game_window.hWnd )
+    if ( rb.windows.device.hwnd   != 0 &&
+         rb.windows.device.hwnd   != game_window.hWnd &&
+         rb.windows.device.parent != 0 )
     {
       SK_ReleaseAssert (game_window.hWnd == rb.windows.focus.hwnd);
 
@@ -1515,8 +1516,18 @@ SK_IsGameWindowActive (void)
 
       if (bActive && (! game_window.active))
       {
-        game_window.active = true;
-        BringWindowToTop (hWndForeground);
+        SK_Window_SetTopMost (false, true,  hWndForeground);
+        SK_Window_SetTopMost (false, false, game_window.hWnd);
+        SK_Window_SetTopMost (false, true,  hWndForeground);
+
+        //bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
+        //     SK_Window_OnFocusChange (hWndForeground, game_window.hWnd);
+
+        DWORD                                      dwPid = 0x0;
+        GetWindowThreadProcessId (hWndForeground, &dwPid);
+
+        if (GetProcessId (GetCurrentProcess ()) == dwPid)
+          game_window.active = true;
       }
     }
   }
