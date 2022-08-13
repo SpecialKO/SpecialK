@@ -991,10 +991,192 @@ SK::ControlPanel::D3D11::Draw (void)
                     ImGuiWindowFlags_NavFlattened
           );
 
+          static D3D11_MESSAGE_ID _debug_id;
+
+          static std::vector <D3D11_MESSAGE_ID> allow_ids;
+          static std::vector <D3D11_MESSAGE_ID> deny_ids;
+          static std::vector <D3D11_MESSAGE_ID> break_ids;
+
+          static iSK_INI *debug_ini = nullptr;
+
           SK_ComQIPtr <ID3D11InfoQueue>
               pInfoQueueD3D11 (rb.device);
           if (pInfoQueueD3D11.p != nullptr)
           {
+            static bool        once = false;
+            if (std::exchange (once, true) == false)
+            {
+              debug_ini =
+                SK_CreateINI (
+                  SK_FormatStringW ( LR"(%ws\%ws)",
+                    SK_GetConfigPath (), L"d3d11_debug.ini" ).c_str ()
+                );
+
+              debug_ini->parse ();
+
+              if (debug_ini->contains_section (L"Messages.Filter"))
+              {
+                auto& sec =
+                  debug_ini->get_section (L"Messages.Filter");
+
+                for ( auto& kvp : sec.keys )
+                {
+                  D3D11_MESSAGE_ID id = (D3D11_MESSAGE_ID)
+                    _wtoi (kvp.first.c_str ());
+
+                  if (     kvp.second == L"Allow")
+                  {
+                    allow_ids.push_back (id);
+                  }
+
+                  else if (kvp.second == L"Deny")
+                  {
+                    deny_ids.push_back (id);
+                  }
+                }
+
+                D3D11_INFO_QUEUE_FILTER filter = { };
+
+                filter.AllowList.NumIDs  = (UINT)allow_ids.size ();
+                filter.AllowList.pIDList =       allow_ids.data ();
+
+                filter.DenyList.NumIDs   = (UINT)deny_ids.size ();
+                filter.DenyList.pIDList  =       deny_ids.data ();
+
+                pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
+                pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
+              }
+
+              if (debug_ini->contains_section (L"Messages.Break"))
+              {
+                auto& sec =
+                  debug_ini->get_section (L"Messages.Break");
+
+                for ( auto& kvp : sec.keys )
+                {
+                  if (kvp.second == L"Enable")
+                  {
+                    break_ids.push_back ((D3D11_MESSAGE_ID)_wtoi (kvp.first.c_str ()));
+                  }
+                }
+
+                for ( auto& msg_id : break_ids )
+                {
+                  pInfoQueueD3D11->SetBreakOnID (msg_id, TRUE);
+                }
+              }
+            }
+
+            if (ImGui::BeginPopup ("D3D11_Debug_MessageMenu"))
+            {
+              ImGui::Text ("Debug Message Configuration");
+
+              ImGui::TreePush   ();
+
+              bool deny =
+                std::find (deny_ids.begin (), deny_ids.end (), _debug_id) != deny_ids.end ();
+
+              bool break_ =
+                std::find (break_ids.begin (), break_ids.end (), _debug_id) != break_ids.end ();
+
+              if (ImGui::Checkbox ("Mute this message", &deny))
+              {
+                auto& sec =
+                  debug_ini->get_section (L"Messages.Filter");
+
+                if (deny)
+                  sec.add_key_value (SK_FormatStringW (L"%d", _debug_id).c_str (), L"Deny");
+                else
+                  sec.add_key_value (SK_FormatStringW (L"%d", _debug_id).c_str (), L"Allow");
+
+                if (deny)
+                {
+                  auto deny_id =
+                    std::find (deny_ids.begin (), deny_ids.end (), _debug_id);
+
+                  if (deny_id == deny_ids.end ())
+                  {
+                    deny_ids.push_back (_debug_id);
+                  }
+
+                  auto allow_id =
+                    std::find (allow_ids.begin (), allow_ids.end (), _debug_id);
+
+                  if (allow_id != allow_ids.end ())
+                  {
+                    allow_ids.erase (allow_id);
+                  }
+                }
+
+                else
+                {
+                  auto allow_id =
+                    std::find (allow_ids.begin (), allow_ids.end (), _debug_id);
+
+                  if (allow_id == allow_ids.end ())
+                  {
+                    allow_ids.push_back (_debug_id);
+                  }
+
+                  auto deny_id =
+                    std::find (deny_ids.begin (), deny_ids.end (), _debug_id);
+
+                  if (deny_id != deny_ids.end ())
+                  {
+                    deny_ids.erase (deny_id);
+                  }
+                }
+
+                debug_ini->write ();
+
+                D3D11_INFO_QUEUE_FILTER filter = { };
+
+                filter.AllowList.NumIDs  = (UINT)allow_ids.size ();
+                filter.AllowList.pIDList =       allow_ids.data ();
+
+                filter.DenyList.NumIDs   = (UINT)deny_ids.size ();
+                filter.DenyList.pIDList  =       deny_ids.data ();
+
+                pInfoQueueD3D11->ClearRetrievalFilter ();
+                pInfoQueueD3D11->ClearStorageFilter   ();
+
+                pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
+                pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
+              }
+
+              if (ImGui::Checkbox ("Break on this message", &break_))
+              {
+                auto& sec =
+                  debug_ini->get_section (L"Messages.Break");
+
+                if (break_)
+                  sec.add_key_value (SK_FormatStringW (L"%d", _debug_id).c_str (), L"Enable");
+                else
+                  sec.add_key_value (SK_FormatStringW (L"%d", _debug_id).c_str (), L"Disable");
+
+                auto break_id_ =
+                  std::find (break_ids.begin (), break_ids.end (), _debug_id);
+
+                if (break_id_ == break_ids.end ())
+                {
+                  if (break_)
+                    break_ids.push_back (_debug_id);
+                }
+
+                else if (! break_)
+                {
+                  break_ids.erase (break_id_);
+                }
+
+                debug_ini->write ();
+
+                pInfoQueueD3D11->SetBreakOnID (_debug_id, break_);
+              }
+
+              ImGui::TreePop    ();
+              ImGui::EndPopup   ();
+            }
+
             SK_ComPtr                     <IDXGIInfoQueue>           pInfoQueueDXGI;
             SK_DXGI_GetDebugInterface (IID_IDXGIInfoQueue, (void **)&pInfoQueueDXGI.p);
             SK_ComPtr                     <IDXGIDebug>               pDXGIDebug;
@@ -1035,7 +1217,8 @@ SK::ControlPanel::D3D11::Draw (void)
             if (bClearLog)
               debug_messages.clear ();
 
-            SK_RunOnce ([&]
+            static bool        once_again = false;
+            if (std::exchange (once_again, true) == false)
             {
               pInfoQueueD3D11->AddApplicationMessage (
                 D3D11_MESSAGE_SEVERITY_MESSAGE,
@@ -1051,7 +1234,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
               pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
               pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
-            });
+            }
 
             pInfoQueueD3D11->SetMuteDebugOutput (
                               _pauseDebugOutput );
@@ -1236,7 +1419,17 @@ SK::ControlPanel::D3D11::Draw (void)
               if (! _pauseDebugOutput)
                 ImGui::SetScrollHereY (1.0f);
 
-              if (ImGui::IsItemHovered ())
+              if (ImGui::IsItemClicked (1))
+              {
+                if (debug_message.Type == SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11)
+                {
+                  _debug_id = (D3D11_MESSAGE_ID)message_id;
+
+                  ImGui::OpenPopup ("D3D11_Debug_MessageMenu");
+                }
+              }
+
+              else if (ImGui::IsItemHovered ())
               {
                 ImGui::BeginTooltip ();
                 ImGui::Text         ("Message ID: %d", message_id);

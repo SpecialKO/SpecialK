@@ -2544,25 +2544,30 @@ SK_ImGui_User_NewFrame (void)
     HWND hWndTop =
         WindowFromPoint (cursor_pos);
 
+    bHitTest = true;
+
     if ( hWndTop != game_window.hWnd )
     {
-      POINT                     client_pos = cursor_pos;
-      ScreenToClient (hWndTop, &client_pos);
+      bHitTest =
+        IsChild (game_window.hWnd, hWndTop);
 
-      HWND hWndChild =
-        ChildWindowFromPointEx (
-                      hWndTop,  client_pos, CWP_SKIPDISABLED  |
-                                            CWP_SKIPINVISIBLE |
-                                            CWP_SKIPTRANSPARENT 
-                               );
-
-      if (hWndChild == game_window.hWnd)
+      if (! bHitTest)
       {
-         bHitTest = true;
+        POINT                     client_pos = cursor_pos;
+        ScreenToClient (hWndTop, &client_pos);
+
+        HWND hWndChild =
+          ChildWindowFromPointEx (
+                        hWndTop,  client_pos, CWP_SKIPINVISIBLE |
+                                              CWP_SKIPTRANSPARENT
+                                 );
+
+        if (hWndChild == game_window.hWnd)
+        {
+           bHitTest = true;
+        }
       }
     }
-
-    else bHitTest = true;
   }
 
   if (bHitTest)

@@ -1771,8 +1771,6 @@ SK::Framerate::Limiter::wait (void)
 
     while (time_ < next_)
     {
-      YieldProcessor ();
-
       // SK's Multimedia Class Scheduling Task for this thread prevents
       //   CPU starvation, but if the service is turned off, implement
       //     a fail-safe for very low framerate limits.
@@ -1788,7 +1786,7 @@ SK::Framerate::Limiter::wait (void)
           SK_SleepEx (1, FALSE);
       }
 
-      if (++time_ % 3 < 2)
+      if (++time_ % 5 < 3)
         YieldProcessor ();
       else  time_ =
           SK_QueryPerf ().QuadPart;

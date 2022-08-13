@@ -6140,7 +6140,7 @@ SK_InstallWindowHook (HWND hWnd)
     game_window.parent =
       GetAncestor (hWnd, GA_PARENT);
 
-    return;
+    //return;
   }
 
 
@@ -6364,7 +6364,6 @@ SK_InstallWindowHook (HWND hWnd)
       //   attributes as needed.
       ClipCursor (&cursor_clip);
     }
-
 
     gsl::not_null <SK_ICommandProcessor*> cmd (
       SK_GetCommandProcessor ()
