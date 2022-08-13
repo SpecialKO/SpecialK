@@ -1443,7 +1443,7 @@ SK_D3D11_UpdateSubresource_Impl (
       const auto transient_desc =
         _StripTransientProperties (desc);
 
-const uint32_t cache_tag    =
+      const uint32_t cache_tag    =
         safe_crc32c (top_crc32c, (uint8_t *)(&transient_desc), sizeof (D3D11_TEXTURE2D_DESC));
 
       SK_ScopedBool decl_tex_scope (
@@ -2169,15 +2169,6 @@ SK_D3D11_CopyResource_Impl (
           bool bSupportsDirectCopy =
             SK_D3D11_AreTexturesDirectCopyable (&srcDesc, &dstDesc);
 
-
-
-
-
-
-
-
-
-
           // If does not support direct copy and one of the textures is a SwapChain backbuffer
           //   that Special K has manipulated ... (format, or resolution, then):
           if ( (! bSupportsDirectCopy) ||
@@ -2197,8 +2188,12 @@ SK_D3D11_CopyResource_Impl (
                            dstDesc.Width, dstDesc.Height );
             }
 
-            if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-              return;
+            if ( srcDesc.MipLevels == dstDesc.MipLevels &&
+                 srcDesc.MipLevels == 1 )
+            {
+              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+                return;
+            }
           }
         }
       }

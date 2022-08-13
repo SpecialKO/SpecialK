@@ -1,6 +1,11 @@
-﻿22.8.11-D3D9-IK
+﻿22.8.13-D3D9-IK
 ===============
- + HDR toggle in OpenGL is real-time now in all gamers and does not require Alt+Enter
+ + Fixed mouse input not being blocked when render in background is enabled
+ + Fixed character portraits not displaying in Pillars of Eternity 2
+
+22.8.11-D3D9-IK
+===============
+ + HDR toggle in OpenGL is real-time now in all games and does not require Alt+Enter
  + Additional mouse input tweaks for emulators to prevent cursor auto-hide when cursor
      is not even in the game window.
 

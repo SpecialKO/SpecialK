@@ -1205,9 +1205,15 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
        DirectX::IsCompressed (dstTexDesc.Format)           ||
        SK_ComPtr <ID3D11Texture2D> (pSrcTex).IsEqualObject (pDstTex)              ||
        srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
+       srcTexDesc.MipLevels != dstTexDesc.MipLevels        ||
+       srcTexDesc.MipLevels != 1                           || // Can't handle mipmap copies for now
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
   {
+    SK_ReleaseAssert (
+       srcTexDesc.MipLevels != dstTexDesc.MipLevels ||
+       srcTexDesc.MipLevels == 1 );
+
     //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
     return false;
