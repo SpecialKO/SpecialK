@@ -5009,9 +5009,12 @@ D3D11Dev_CreateTexture2D_Impl (
     }
   }
 
+  // As of 8/15/2022, this is no longer necessary
+#if 0
   // Compat hack needed in all Unity games
   if (rb.windows.unity)
     config.textures.cache.ignore_nonmipped = true;
+#endif
 
 
   static auto& textures =
