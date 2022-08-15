@@ -1649,8 +1649,12 @@ bool
 SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
 {
   if (                        src  ==                        dst ||
+                                  DirectX::MakeSRGB (src) == dst ||
+                                  DirectX::MakeSRGB (dst) == src ||
       (DirectX::MakeTypeless (src) == DirectX::MakeTypeless (dst)
-                                   && DirectX::IsTypeless   (dst)))
+                                   &&
+      (DirectX::IsTypeless   (src) || DirectX::IsTypeless   (dst)))
+     )
   {
     return true;
   }
@@ -2189,12 +2193,13 @@ SK_D3D11_CopyResource_Impl (
                            dstDesc.Width, dstDesc.Height );
             }
 
-            if ( srcDesc.MipLevels == dstDesc.MipLevels &&
-                 srcDesc.MipLevels == 1 )
+            if (srcDesc.MipLevels == dstDesc.MipLevels)
             {
               if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
                 return;
             }
+
+            else SK_ReleaseAssert (srcDesc.MipLevels == dstDesc.MipLevels);
           }
         }
       }

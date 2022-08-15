@@ -1012,8 +1012,6 @@ SK::ControlPanel::D3D11::Draw (void)
                     SK_GetConfigPath (), L"d3d11_debug.ini" ).c_str ()
                 );
 
-              debug_ini->parse ();
-
               if (debug_ini->contains_section (L"Messages.Filter"))
               {
                 auto& sec =

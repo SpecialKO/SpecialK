@@ -1,4 +1,24 @@
-﻿22.8.15-D3D9-IK
+﻿22.8.15.2-D3D9-IK
+=================
+ + Added conditional device input blocking:
+
+    ( Enabled / Disabled (Always) / Disabled (in Background) )
+
+    Keyboard input defaults to Disabled (in Background) for new INI files generated;
+      for existing INI files, preference will be assigned Enabled or Disabled (Always).
+
+ + Added mipmap support to SK_D3D11_BltCopySurface (format conversion (HDR<-->SDR))
+     * This properly fixes character portraits in Pillars of Eternity 2
+
+22.8.15.1-D3D9-IK
+=================
+ + Fixed rare crash in ImGui when opening control panel at the same time as game
+     polls cursor position
+ + Improved handling of cursor clipping and window activation when game window is
+     in the background
+ + Removed texture caching auto-disable in Unity engine games
+
+22.8.15-D3D9-IK
 ===============
  + Worked-around bug in Martha is Dead that causes crashing at startup
  + Re-enabled texture injection in games using D3D11 UpdateSubresource (...)

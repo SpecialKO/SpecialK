@@ -1206,7 +1206,6 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
        SK_ComPtr <ID3D11Texture2D> (pSrcTex).IsEqualObject (pDstTex)              ||
        srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
        srcTexDesc.MipLevels != dstTexDesc.MipLevels        ||
-       srcTexDesc.MipLevels != 1                           || // Can't handle mipmap copies for now
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
   {
@@ -1216,8 +1215,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     //     requires format conversion DirectX cannot provide.
     //
     SK_ReleaseAssert (
-       srcTexDesc.MipLevels != dstTexDesc.MipLevels ||
-       srcTexDesc.MipLevels == 1 );
+         srcTexDesc.MipLevels == dstTexDesc.MipLevels
+    );
 
     //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
@@ -1270,7 +1269,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   surface.desc.tex.Width                     = dstTexDesc.Width;
 	surface.desc.tex.Height                    = dstTexDesc.Height;
-	surface.desc.tex.MipLevels                 = 1;
+	surface.desc.tex.MipLevels                 = dstTexDesc.MipLevels;//1;
 	surface.desc.tex.ArraySize                 = 1;
 	surface.desc.tex.Format                    = dstTexDesc.Format;
 	surface.desc.tex.SampleDesc.Count          = dstTexDesc.SampleDesc.Count;
@@ -1282,7 +1281,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   surface.desc.tex2.Width                    = srcTexDesc.Width;
 	surface.desc.tex2.Height                   = srcTexDesc.Height;
-	surface.desc.tex2.MipLevels                = 1;
+	surface.desc.tex2.MipLevels                = srcTexDesc.MipLevels;//1;
 	surface.desc.tex2.ArraySize                = 1;
 	surface.desc.tex2.Format                   = srcTexDesc.Format;
 	surface.desc.tex2.SampleDesc.Count         = srcTexDesc.SampleDesc.Count;
@@ -1531,36 +1530,36 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 #endif
 
   const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
-    static_cast <float> (dstTexDesc.Width ),
+    static_cast <float> (dstTexDesc.Width),
     static_cast <float> (dstTexDesc.Height),
                                        0.0f, 1.0f
   };
-
+  
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
                                          std::array <UINT,           1> { 0       }.data (),
                                          std::array <UINT,           1> { 0       }.data ());
   pDevCtx->IASetInputLayout       (        codec.pInputLayout     );
   pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
-
+  
   pDevCtx->OMSetBlendState        (        codec.pBlendState,
                                            codec.fBlendFactor,   0xFFFFFFFFU);
   pDevCtx->OMSetDepthStencilState (        codec.pDSState,       0);
   pDevCtx->OMSetRenderTargets     (1,
                                      &surface.render.rtv.p,
                                        nullptr);
-
+  
   pDevCtx->VSSetShader            (        codec.VertexShader_Util.shader,       nullptr, 0);
   pDevCtx->VSSetConstantBuffers   (0, 1,  &codec.pVSUtilLuma   );
   pDevCtx->PSSetShader            (        codec.PixelShader_sRGB_NoMore.shader, nullptr, 0);
   pDevCtx->PSSetConstantBuffers   (0, 1,  &codec.pSRGBParams   );
   pDevCtx->PSSetShaderResources   (0, 1,  &surface.source.srv.p);
   pDevCtx->PSSetSamplers          (0, 1,  &codec.pSampler      );
-
+  
   pDevCtx->RSSetState             (codec.pRasterState);
   pDevCtx->RSSetScissorRects      (0,         nullptr);
   pDevCtx->RSSetViewports         (1,             &vp);
-
+  
   if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
   {
     if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
@@ -1571,25 +1570,89 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pDevCtx->GSSetShader          (nullptr, nullptr,       0);
     pDevCtx->SOSetTargets         (0,       nullptr, nullptr);
   }
-
+  
   pDevCtx->Draw                   (4, 0);
-
+  
   SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
-
+  
   bool bUseDiscard =
     (pDevCtx1.p != nullptr && codec.FeatureOpts.DiscardAPIsSeenByDriver);
 
+  // If there are any mipmaps, copy them first...
+  if (dstTexDesc.MipLevels > 1)
+  {
+    for ( UINT i = 1 ; i < dstTexDesc.MipLevels ; ++i )
+    {
+      const D3D11_VIEWPORT vp_sub = {         0.0f, 0.0f,
+        std::max (
+           static_cast <float> (dstTexDesc.Width  >> i), 1.0f),
+        std::max (
+           static_cast <float> (dstTexDesc.Height >> i), 1.0f),
+                                              0.0f, 1.0f
+      };
+
+      D3D11_RENDER_TARGET_VIEW_DESC   rtv_dst = {};
+      D3D11_SHADER_RESOURCE_VIEW_DESC srv_src = {};
+
+      surface.source.srv->GetDesc   (&srv_src);
+      surface.render.rtv->GetDesc   (&rtv_dst);
+
+      srv_src.Texture2D.MostDetailedMip = i;
+      srv_src.Texture2D.MipLevels       = 1;
+      rtv_dst.Texture2D.MipSlice        = i;
+
+      SK_ComPtr <ID3D11ShaderResourceView> pSrvMipLod;
+      SK_ComPtr <ID3D11RenderTargetView>   pRtvMipLod;
+
+      SK_ComPtr <ID3D11Resource> pSrcRes;
+      SK_ComPtr <ID3D11Resource> pDstRes;
+
+      surface.source.srv->GetResource (&pSrcRes.p);
+      surface.render.rtv->GetResource (&pDstRes.p);
+
+      pDev->CreateShaderResourceView ( pSrcRes.p,
+                                         &srv_src,
+                                           &pSrvMipLod );
+
+      pDev->CreateRenderTargetView ( pDstRes.p,
+                                       &rtv_dst,
+                                         &pRtvMipLod );
+      
+      if ( pSrvMipLod != nullptr &&
+           pRtvMipLod != nullptr )
+      {
+        pDevCtx->OMSetRenderTargets ( 1,
+                                        &pRtvMipLod.p,
+                                          nullptr );
+
+        pDevCtx->PSSetShaderResources ( 0, 1,
+                                          &pSrvMipLod.p );
+
+        pDevCtx->RSSetViewports (1, &vp_sub);
+        pDevCtx->Draw           (4, 0);
+
+        if (pDstTex != nullptr && surface.render.tex != nullptr)
+        {
+          pDevCtx->CopySubresourceRegion ( pDstTex, i, 0, 0, 0,
+                                            surface.render.tex, i,
+                                              nullptr );
+        }
+      }
+    }
+  }
+  
   if (pDstTex != nullptr && surface.render.tex != nullptr)
   {
-    pDevCtx->CopyResource (pDstTex, surface.render.tex);
-
+    // Copy the top-level
+    pDevCtx->CopySubresourceRegion (pDstTex, 0, 0, 0, 0, surface.render.tex, 0, nullptr);
+  
     if (pDevCtx1 != nullptr && bUseDiscard)
         pDevCtx1->DiscardResource (surface.render.tex);
   }
-
+  
   if (pDevCtx1 != nullptr && bUseDiscard)
       pDevCtx1->DiscardResource (pNewSrcTex);
-
+  
   ApplyStateblock (pDevCtx, &stateBlock);
   //sb.Apply (pDevCtx.p);
 
@@ -1649,11 +1712,10 @@ SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTUR
     return false;
   }
   
-  if (DirectX::MakeTypeless (pSrcDesc->Format) !=
-      DirectX::MakeTypeless (pDstDesc->Format))
-  {
+  extern
+   bool SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
+  if (! SK_D3D11_IsDirectCopyCompatible (pSrcDesc->Format, pDstDesc->Format))
     return false;
-  }
   
   if (pSrcDesc->SampleDesc.Count != pDstDesc->SampleDesc.Count)
     return false;
