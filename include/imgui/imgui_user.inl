@@ -2711,8 +2711,23 @@ SK_ImGui_User_NewFrame (void)
   else
     io.MouseDrawCursor = false;
 
+  
+  if (bActive)
+  {
+    if (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ())
+      SK_ClipCursor (config.window.confine_cursor ?
+                      &game_window.actual.window  : nullptr);
+    else if (config.window.unconfine_cursor)
+      SK_ClipCursor (nullptr);
+    else if (config.window.confine_cursor)
+      SK_ClipCursor (&game_window.actual.window);
+    else
+      SK_ClipCursor (&game_window.cursor_clip);
+  }
+
 
   ImGui::NewFrame ();
+
 
   __SK_EnableSetCursor = false;
 
@@ -2739,17 +2754,26 @@ SK_ImGui_User_NewFrame (void)
     last_x = SK_ImGui_Cursor.pos.x;
     last_y = SK_ImGui_Cursor.pos.y;
 
-    if (bHitTest && io.MouseDown [0])
+    // Certain features (i.e. Render in Background) would swallow mouse events
+    //   involved in window activation, so we need to activate the window.
+    if (bHitTest && io.MouseDown [0] && SK_ImGui_WantMouseCapture ())
     {
-      if (! std::exchange (game_window.active, true))
+      if (! game_window.active)
       {
         POINT             ptCursor = { };
         SK_GetCursorPos (&ptCursor);
 
         if ( game_window.hWnd ==
                WindowFromPoint ( cursor_pos ) )
-          SK_Window_SetTopMost ( false, true,
-                                   game_window.hWnd );
+        {
+          game_window.active = true;
+
+          SetWindowPos ( game_window.hWnd, SK_GetForegroundWindow (),
+                           0, 0,
+                           0, 0,
+                             SWP_NOMOVE | SWP_NOSIZE |
+                             SWP_ASYNCWINDOWPOS );
+        }
       }
     }
   }

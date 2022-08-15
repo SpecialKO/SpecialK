@@ -3191,7 +3191,7 @@ SK_Window_RepositionIfNeeded (void)
 
   SetEvent (hRepoSignal);
 
-  SK_LOG4 ( ( L"Reposition" ), L"WindowMgr" );
+  SK_LOG4 ( ( L"Reposition" ), L"Window Mgr" );
 
   SK_RunOnce (
     SK_Thread_CreateEx (

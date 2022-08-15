@@ -1399,9 +1399,6 @@ static constexpr const DWORD REASON_DISABLED = 0x4;
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
-  if (! game_window.active)
-    return true;
-
   if (! SK_GImDefaultContext ())
     return false;
 
@@ -1465,6 +1462,7 @@ SK_IsGameWindowActive (void)
   bool bActive =
     game_window.active;
 
+#if 0
   if (! bActive)
   {
     static auto &rb =
@@ -1485,21 +1483,15 @@ SK_IsGameWindowActive (void)
 
       if (bActive && (! game_window.active))
       {
-        SK_Window_SetTopMost (false, true,  hWndForeground);
-        SK_Window_SetTopMost (false, false, game_window.hWnd);
-        SK_Window_SetTopMost (false, true,  hWndForeground);
-
-        //bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-        //     SK_Window_OnFocusChange (hWndForeground, game_window.hWnd);
-
-        DWORD                                      dwPid = 0x0;
-        GetWindowThreadProcessId (hWndForeground, &dwPid);
-
-        if (GetProcessId (GetCurrentProcess ()) == dwPid)
-          game_window.active = true;
+        SetWindowPos ( hWndForeground, game_window.hWnd,
+                         0, 0,
+                         0, 0,
+                           SWP_NOMOVE | SWP_NOSIZE |
+                           SWP_ASYNCWINDOWPOS );
       }
     }
   }
+#endif
 
   return bActive;
 }
