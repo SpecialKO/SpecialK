@@ -250,12 +250,12 @@ CrashHandler::Init (void)
 
   if (FALSE == InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    InitSyms ();
-
     SK_Thread_CreateEx (
       [](LPVOID) ->
         DWORD
         {
+          InitSyms ();
+
           SetThreadPriority           (
                         SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
 
