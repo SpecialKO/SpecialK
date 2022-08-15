@@ -156,9 +156,9 @@ struct SK_GL_KnownArrayObjects
 { } extern SK_GL_Arrays;
 #endif
 
-void
+DWORD
 WINAPI
-SK_HookGL (void);
+SK_HookGL (LPVOID);
 
 extern HGLRC WINAPI SK_GL_GetCurrentContext (void);
 extern HDC   WINAPI SK_GL_GetCurrentDC      (void);

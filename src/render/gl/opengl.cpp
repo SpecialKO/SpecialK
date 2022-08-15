@@ -3357,12 +3357,16 @@ SK::OpenGL::getPipelineStatsDesc (void)
 static volatile LONG
  __SK_GL_initialized = FALSE;
 
-void
+DWORD
 WINAPI
-SK_HookGL (void)
+SK_HookGL (LPVOID)
 {
   if (! config.apis.OpenGL.hook)
-    return;
+  {
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }
 
   SK_TLS* pTLS =
    SK_TLS_Bottom ();
@@ -3962,6 +3966,10 @@ SK_HookGL (void)
   }
 
   SK_Thread_SpinUntilAtomicMin (&__SK_GL_initialized, 2);
+
+  SK_Thread_CloseSelf ();
+
+  return 0;
 }
 
 

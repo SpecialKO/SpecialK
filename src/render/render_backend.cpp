@@ -442,7 +442,7 @@ SK_BootOpenGL (void)
                               SK_LoadEarlyImports32 () );
     }
 
-    SK_HookGL ();
+    SK_Thread_CreateEx (SK_HookGL, L"[SK] OpenGL Hook Crawler");
 
     InterlockedIncrementRelease (&__booted);
   }
