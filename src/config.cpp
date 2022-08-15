@@ -213,7 +213,8 @@ SK_GetCurrentGameID (void)
           { L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
-          { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  }
+          { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
+          { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     }
         };
 
     first_check  = false;
@@ -2922,6 +2923,9 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader_Vtx (0x90c7c88b);
         break;
 #endif
+      case SK_GAME_ID::Disgaea5:
+        config.render.framerate.flip_discard = false;
+        break;
     }
   }
 

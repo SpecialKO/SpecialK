@@ -1207,6 +1207,7 @@ enum class SK_GAME_ID
   TheQuarry,                    // TheQuarry-Win64-Shipping.exe
   GenshinImpact,                // GenshinImpact.exe
   PathOfExile,                  // PathOfExileSteam.exe
+  Disgaea5,                     // Disgaea5.exe
 
   UNKNOWN_GAME               = 0xffff
 };
