@@ -1350,10 +1350,9 @@ DebugProc ( _In_ int    nCode,
             _In_ WPARAM wParam,
             _In_ LPARAM lParam )
 {
-
   return
     CallNextHookEx (
-      hHookDebug, nCode, wParam, lParam
+      0, nCode, wParam, lParam
     );
 }
 
@@ -1365,7 +1364,7 @@ ShellProc ( _In_ int    nCode,
 {
   return
     CallNextHookEx (
-      hHookShell, nCode, wParam, lParam
+      0, nCode, wParam, lParam
     );
 }
 
@@ -1379,7 +1378,7 @@ CBTProc ( _In_ int    nCode,
   {
     return
       CallNextHookEx (
-        hHookCBT, nCode, wParam, lParam
+        0, nCode, wParam, lParam
       );
   }
 
@@ -1404,7 +1403,7 @@ CBTProc ( _In_ int    nCode,
 
   return
     CallNextHookEx (
-      hHookCBT, nCode, wParam, lParam
+      0, nCode, wParam, lParam
     );
 }
 
@@ -1549,9 +1548,9 @@ SKX_RemoveCBTHook (void)
 
     if (hHookDebug != nullptr && UnhookWindowsHookEx (hHookDebug))
         hHookDebug  = nullptr;
-  }
 
-  dwHookPID = 0x0;
+    dwHookPID = 0x0;
+  }
 }
 
 bool

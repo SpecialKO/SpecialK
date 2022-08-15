@@ -1481,17 +1481,35 @@ SK_EstablishRootPath (void)
 
   if (*SK_GetInstallPath () == L'\0')
   {
-    bool bRegistryDefinedPath = false;
+    bool bEnvironmentDefinedPath = false;
+    bool bRegistryDefinedPath    = false;
+
+    wchar_t wszInstallPath [MAX_PATH + 2] = { };
+    ULONG   ulPathLen   =   MAX_PATH;
+
+    if ( GetEnvironmentVariableW (
+           L"SPECIALK_PATH", wszInstallPath, ulPathLen
+         ) != 0
+       )
+    {
+      bEnvironmentDefinedPath = true;
+
+      wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
+                      wszInstallPath,   _TRUNCATE );
+
+      // Couldn't create the directory, try something else
+      if (! SK_CreateDirectoriesEx (SKX_GetInstallPath (), false))
+      {
+        bEnvironmentDefinedPath = false;
+      }
+    }
 
     if ( CRegKey
-           hkInstallPath; ERROR_SUCCESS ==
+           hkInstallPath; (! bEnvironmentDefinedPath) && ERROR_SUCCESS ==
            hkInstallPath.Open ( HKEY_CURRENT_USER,
                 LR"(Software\Kaldaien\Special K)" )
         )
     {
-      wchar_t wszInstallPath [MAX_PATH + 2] = { };
-      ULONG   ulPathLen   =   MAX_PATH;
-
       if ( ERROR_SUCCESS ==
              hkInstallPath.QueryStringValue ( L"Path",
             wszInstallPath,                  &ulPathLen )
@@ -1503,7 +1521,7 @@ SK_EstablishRootPath (void)
                         wszInstallPath,   _TRUNCATE );
 
         // Couldn't create the directory, try something else
-        if (! SK_CreateDirectories (SKX_GetInstallPath ()))
+        if (! SK_CreateDirectoriesEx (SKX_GetInstallPath (), false))
         {
           bRegistryDefinedPath = false;
         }
@@ -1511,7 +1529,7 @@ SK_EstablishRootPath (void)
     }
 
     // Fallback to ol' trusty
-    if (! bRegistryDefinedPath)
+    if (! (bRegistryDefinedPath || bEnvironmentDefinedPath))
     {
       swprintf ( SKX_GetInstallPath (), LR"(%s\My Mods\SpecialK)",
                  SK_GetDocumentsDir ().c_str () );
@@ -1679,8 +1697,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     config.system.central_repository = true;
   }
 
-  SK_EstablishRootPath ();
-  SK_CreateDirectories (SK_GetConfigPath ());
+  SK_EstablishRootPath   ();
+  SK_CreateDirectoriesEx (SK_GetConfigPath (), false);
 
   ///SK_Config_CreateSymLinks ();
 

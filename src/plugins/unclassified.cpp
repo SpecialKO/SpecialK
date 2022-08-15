@@ -1323,13 +1323,6 @@ bool
 SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
                                      UINT                 dev_idx )
 {
-  static bool bTalesOfArise =
-    SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
-
-  // Not needed for any other games yet...
-  if (! bTalesOfArise)
-    return false;
-
   if (dev_idx == UINT_MAX)
   {
     dev_idx =

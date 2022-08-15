@@ -1889,8 +1889,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       void
       {
         if (pLogger != nullptr )
-        {   pLogger->close ();
-        }
+          std::exchange (pLogger, nullptr)->close ();
       };
 
       // Doing a full enumeration is slow as hell, spawn a worker thread for this

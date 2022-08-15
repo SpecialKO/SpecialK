@@ -631,14 +631,23 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
       PathStripPathA (pszShortName);
 
-      if (cs_dbghelp != nullptr)
+      if ( dbghelp_callers.find (hModSource) ==
+           dbghelp_callers.cend (          ) && cs_dbghelp != nullptr )
       {
-        SK_SymLoadModule ( hProc,
-                             nullptr,
-                              pszShortName,
-                                nullptr,
-                                  BaseAddr,
-                                    mod_info.SizeOfImage );
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+        if ( dbghelp_callers.find (hModSource) ==
+             dbghelp_callers.cend (          )  )
+        {
+          SK_SymLoadModule ( hProc,
+                               nullptr,
+                                pszShortName,
+                                  nullptr,
+                                    BaseAddr,
+                                      mod_info.SizeOfImage );
+
+          dbghelp_callers.insert (hModSource);
+        }
       }
 
       SYMBOL_INFO_PACKAGE
@@ -816,14 +825,23 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
         PathStripPathA (pszShortName);
 
 
-        if (cs_dbghelp != nullptr)
+        if ( dbghelp_callers.find (hModSource) ==
+             dbghelp_callers.cend (          ) && cs_dbghelp != nullptr )
         {
-          SK_SymLoadModule ( hProc,
-                               nullptr,
-                                pszShortName,
-                                  nullptr,
-                                    BaseAddr,
-                                      mod_info.SizeOfImage );
+          std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+          if ( dbghelp_callers.find (hModSource) ==
+               dbghelp_callers.cend (          )  )
+          {
+            SK_SymLoadModule ( hProc,
+                                 nullptr,
+                                  pszShortName,
+                                    nullptr,
+                                      BaseAddr,
+                                        mod_info.SizeOfImage );
+
+            dbghelp_callers.insert (hModSource);
+          }
         }
 
         SYMBOL_INFO_PACKAGE sip = { };

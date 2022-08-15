@@ -53,9 +53,14 @@ SK_SymSetOpts_Once (void)
 {
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+                      SYMOPT_UNDNAME              | /*SYMOPT_DEFERRED_LOADS |*/
                       SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
-                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS);
+                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS );
+  //
+  // Avoid deferred loads, they have the potential to deadlock if other threads are
+  //   calling LoadLibrary (...) at the same time as symbols in a deferred module
+  //     are used for the first time.
+  //
 }
 void
 SK_SymSetOpts (void)
@@ -339,12 +344,24 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
 
   PathStripPathA (pszShortName);
 
-  SK_SymLoadModule ( hProc,
-                       nullptr,
-                         pszShortName,
+  if ( dbghelp_callers.find (hMod) ==
+       dbghelp_callers.cend (    ) && cs_dbghelp != nullptr )
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    if ( dbghelp_callers.find (hMod) ==
+         dbghelp_callers.cend (    )  )
+    {
+      SK_SymLoadModule ( hProc,
                            nullptr,
-                             BaseAddr,
-                               mod_info.SizeOfImage );
+                             pszShortName,
+                               nullptr,
+                                 BaseAddr,
+                                   mod_info.SizeOfImage );
+
+      dbghelp_callers.insert (hMod);
+    }
+  }
 
   SYMBOL_INFO_PACKAGE sip                 = {                };
                       sip.si.SizeOfStruct = sizeof SYMBOL_INFO;
@@ -849,13 +866,24 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
 
       PathStripPathA (pszShortName);
 
+      if ( dbghelp_callers.find (hModSource) ==
+           dbghelp_callers.cend (          ) && cs_dbghelp != nullptr )
+      {
+        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-      SK_SymLoadModule ( hProc,
-                           nullptr,
-                            pszShortName,
-                              nullptr,
-                                BaseAddr,
-                                  mod_info.SizeOfImage );
+        if ( dbghelp_callers.find (hModSource) ==
+             dbghelp_callers.cend (          )  )
+        {
+          SK_SymLoadModule ( hProc,
+                               nullptr,
+                                pszShortName,
+                                  nullptr,
+                                    BaseAddr,
+                                      mod_info.SizeOfImage );
+
+          dbghelp_callers.insert (hModSource);
+        }
+      }
 
       SYMBOL_INFO_PACKAGE sip = { };
 
@@ -1485,7 +1513,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           lstrcatW (wszDestPath, wszOutDir);
           lstrcatW (wszDestPath, fd.cFileName);
 
-          SK_CreateDirectories (wszDestPath);
+          SK_CreateDirectoriesEx (wszDestPath, false);
 
           if (! StrStrIW (wszOrigPath, L"installer.log"))
           {
@@ -1615,8 +1643,6 @@ ULONG
 SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
                                  gsl::span <char> pszOut, ULONG     ulLen )
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
   ULONG ret = 0;
 
   if ( dbghelp_callers.find (hMod) ==
@@ -1642,15 +1668,21 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
 
     PathStripPathA (pszShortName);
 
-    if (! SymLoadModule64 ( GetCurrentProcess (),
-                              nullptr,
-                                pszShortName,
-                                  nullptr,
-                                    BaseAddr,
-                                      mod_info.SizeOfImage )
-       ) return 0;
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-    dbghelp_callers.insert (hMod);
+    if ( dbghelp_callers.find (hMod) ==
+         dbghelp_callers.cend (    )  )
+    {
+      if (! SymLoadModule64 ( GetCurrentProcess (),
+                                nullptr,
+                                  pszShortName,
+                                    nullptr,
+                                      BaseAddr,
+                                        mod_info.SizeOfImage )
+         ) return 0;
+
+      dbghelp_callers.insert (hMod);
+    }
   }
 
   HANDLE hProc =
