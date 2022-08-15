@@ -4403,8 +4403,6 @@ SymLoadModule (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
         SK_SymSetOpts ();
 
         // Double lock-checked
@@ -4471,8 +4469,6 @@ SymLoadModule64 (
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
       {
-        std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
-
         SK_SymSetOpts ();
 
         // Double lock-checked

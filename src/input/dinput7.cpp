@@ -764,7 +764,7 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
       ///////////////////////SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
 
       bool disabled_to_game =
-        ( config.input.gamepad.disabled_to_game ||
+        ( config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
           SK_ImGui_WantGamepadCapture ()           );
 
       if (disabled_to_game)

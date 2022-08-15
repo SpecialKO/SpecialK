@@ -1304,14 +1304,14 @@ extern BOOL
 __stdcall
 SK_IsConsoleVisible (void);
 
-
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
   if (! SK_GImDefaultContext ())
     return false;
 
-  bool imgui_capture = false;
+  bool imgui_capture =
+    config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;
 
   static const auto& io =
     ImGui::GetIO ();
@@ -1321,12 +1321,12 @@ SK_ImGui_WantKeyboardCapture (void)
     if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
       imgui_capture = true;
 
-    if (config.input.keyboard.disabled_to_game)
-      imgui_capture = true;
-
     if (SK_IsConsoleVisible ())
       imgui_capture = true;
   }
+
+  if ((! SK_IsGameWindowActive ()) && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+    imgui_capture = true;
 
   return
     imgui_capture;
@@ -1338,7 +1338,8 @@ SK_ImGui_WantTextCapture (void)
   if (! SK_GImDefaultContext ())
     return false;
 
-  bool imgui_capture = false;
+  bool imgui_capture =
+    config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;
 
   static const auto& io =
     ImGui::GetIO ();
@@ -1347,10 +1348,10 @@ SK_ImGui_WantTextCapture (void)
   {
     if (io.WantTextInput)
       imgui_capture = true;
-
-    if (config.input.keyboard.disabled_to_game)
-      imgui_capture = true;
   }
+
+  if ((! SK_IsGameWindowActive ()) && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+    imgui_capture = true;
 
   return
     imgui_capture;
@@ -1373,7 +1374,7 @@ SK_ImGui_WantGamepadCapture (void)
   };
 
   bool imgui_capture =
-    config.input.gamepad.disabled_to_game;
+    config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled;
 
   if (SK_GImDefaultContext ())
   {
@@ -1388,6 +1389,9 @@ SK_ImGui_WantGamepadCapture (void)
     if (SK_ImGui_GamepadComboDialogActive)
       imgui_capture = true;
   }
+
+  if ((! SK_IsGameWindowActive ()) && config.input.gamepad.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+    imgui_capture = true;
 
   return
     _Return (imgui_capture);
@@ -1412,12 +1416,15 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     if (config.input.ui.capture_mouse || io.WantCaptureMouse)
       imgui_capture = true;
 
-    else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game)
+    else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled)
       imgui_capture = true;
 
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
   }
+
+  if ((! SK_IsGameWindowActive ()) && config.input.mouse.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+    imgui_capture = true;
 
   return imgui_capture;
 }

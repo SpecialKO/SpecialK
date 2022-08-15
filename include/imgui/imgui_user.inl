@@ -1524,7 +1524,7 @@ SK_ImGui_FilterXInput (
   _Out_ XINPUT_STATE *pState )
 {
   bool disable =
-    config.input.gamepad.disabled_to_game ||
+    config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
       ( SK_ImGui_WantGamepadCapture ()   &&
         dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
 
@@ -1549,7 +1549,7 @@ SK_ImGui_FilterXInputKeystroke (
   _Out_ XINPUT_KEYSTROKE *pKeystroke )
 {
   bool disable =
-    config.input.gamepad.disabled_to_game ||
+    config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
       ( SK_ImGui_WantGamepadCapture ()   &&
         dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
 
@@ -2658,7 +2658,7 @@ SK_ImGui_User_NewFrame (void)
     SK_ImGui_Cursor.idle = false;
 
   else
-    SK_ImGui_Cursor.idle = ( (! SK_ImGui_WantMouseCapture ()) || config.input.mouse.disabled_to_game );
+    SK_ImGui_Cursor.idle = ( (! SK_ImGui_WantMouseCapture ()) || config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled );
                                                               // Disabled to game is a form of capture,
                                                               //   but it is exempt from idle cursor logic
 

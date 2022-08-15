@@ -101,7 +101,10 @@ sk::ParameterInt::set_value (int val)
 void
 sk::ParameterInt::set_value_str (const wchar_t *str)
 {
-  value = _wtoi (str);
+  // Handle expected non-integer values if INI variable types change
+  if      (! _wcsicmp (str, L"true"))  value = 1;
+  else if (! _wcsicmp (str, L"false")) value = 0;
+  else                                 value = _wtoi (str);
 }
 
 void
@@ -167,7 +170,10 @@ sk::ParameterInt64::set_value (int64_t val)
 void
 sk::ParameterInt64::set_value_str (const wchar_t* str)
 {
-  value = _wtoll (str);
+  // Handle expected non-integer values if INI variable types change
+  if      (! _wcsicmp (str, L"true"))  value = 1;
+  else if (! _wcsicmp (str, L"false")) value = 0;
+  else                                 value = _wtoll (str);
 }
 
 void

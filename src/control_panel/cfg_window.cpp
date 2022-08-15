@@ -408,7 +408,7 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::Separator    ();
           ImGui::BulletText   ("Most Games will Continue Rendering");
           ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
-          ImGui::BulletText   ("Keyboard/Mouse Input is Blocked, but not Gamepad Input");
+          ImGui::BulletText   ("See \"Input Management | Enable / Disable Devices\" to Configure Background Behavior");
           ImGui::EndTooltip   ();
         }
       }

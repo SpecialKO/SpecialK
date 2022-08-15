@@ -590,4 +590,10 @@ SK_keybd_event (
 
 int WINAPI SK_ShowCursor (BOOL bShow);
 
+enum SK_InputEnablement {
+  Enabled              = 0,
+  Disabled             = 1,
+  DisabledInBackground = 2
+};
+
 #endif /* __SK__INPUT_H__ */

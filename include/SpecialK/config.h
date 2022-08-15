@@ -702,7 +702,7 @@ struct sk_config_t
 
     struct gamepad_s {
       int     predefined_layout   = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
-      bool    disabled_to_game    = false;
+      int     disabled_to_game    = 0;    //0 = Never, 1 = Always, 2 = In Background
       bool    disable_ps4_hid     = false;
       bool    rehook_xinput       = false;
       bool    haptic_ui           = true;
@@ -740,9 +740,9 @@ struct sk_config_t
 
     struct keyboard_s {
       bool    block_windows_key   = false;
-      bool    catch_alt_f4        = true;
+      bool    catch_alt_f4        =  true;
       bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
-      bool    disabled_to_game    = false;
+      int     disabled_to_game    =     2; //0 = Never, 1 = Always, 2 = In Background
     } keyboard;
 
     struct mouse_s {
@@ -765,7 +765,7 @@ struct sk_config_t
       bool    fix_synaptics       = false;
       // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
       bool    add_relative_motion = true;
-      bool    disabled_to_game    = false;
+      int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
       bool    ignore_small_clips  = false; // Ignore mouse clipping rects < 75% the
                                           //   dimensions of the client window, so
                                           //     that UI input works.

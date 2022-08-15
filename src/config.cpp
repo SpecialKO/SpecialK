@@ -753,12 +753,12 @@ struct {
   {
     sk::ParameterBool*    catch_alt_f4            = nullptr;
     sk::ParameterBool*    bypass_alt_f4           = nullptr;
-    sk::ParameterBool*    disabled_to_game        = nullptr;
+    sk::ParameterInt*     disabled_to_game        = nullptr;
   } keyboard;
 
   struct
   {
-    sk::ParameterBool*    disabled_to_game        = nullptr;
+    sk::ParameterInt*     disabled_to_game        = nullptr;
   } mouse;
 
   struct {
@@ -807,7 +807,7 @@ struct {
     } steam;
 
     sk::ParameterBool*    native_ps4              = nullptr;
-    sk::ParameterBool*    disabled_to_game        = nullptr;
+    sk::ParameterInt*     disabled_to_game        = nullptr;
   } gamepad;
 } input;
 

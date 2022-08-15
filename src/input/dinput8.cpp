@@ -1205,7 +1205,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       if (SUCCEEDED (hr))
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
-      if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
+      if (disabled_to_game || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
 
       else
@@ -1228,7 +1228,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       if (SUCCEEDED (hr))
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
-      if (disabled_to_game || (! SK_IsGameWindowActive ()) || FAILED (hr))
+      if (disabled_to_game || FAILED (hr))
         RtlSecureZeroMemory (lpvData, cbData);
 
       else

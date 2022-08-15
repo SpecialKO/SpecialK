@@ -1197,9 +1197,14 @@ extern float SK_ImGui_PulseNav_Strength;
     if (devices)
     {
       ImGui::TreePush  ("");
-      ImGui::Checkbox  ("Disable Mouse Input to Game",    &config.input.mouse.disabled_to_game);
-      ImGui::SameLine  ();
-      ImGui::Checkbox  ("Disable Keyboard Input to Game", &config.input.keyboard.disabled_to_game);
+      ImGui::Combo     ("Mouse Input", &config.input.mouse.disabled_to_game,
+                        "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+    //ImGui::SameLine  ();
+      ImGui::Combo     ("Keyboard Input", &config.input.keyboard.disabled_to_game,
+                        "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+
+      if (ImGui::IsItemHovered () && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+        ImGui::SetTooltip ("Most games block keyboard input in the background to begin with...");
 
       if (/*config.input.gamepad.hook_dinput7 ||*/ config.input.gamepad.hook_dinput8 ||
           /*config.input.gamepad.hook_hid     ||*/ config.input.gamepad.hook_xinput)
@@ -1210,8 +1215,10 @@ extern float SK_ImGui_PulseNav_Strength;
         //     SK_RawInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
         //       SK_XInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 )
         {
-          ImGui::SameLine  ();
-          ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
+        //ImGui::SameLine  ();
+          ImGui::Combo     ("Gamepad Input", &config.input.gamepad.disabled_to_game,
+                            "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+        //ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
         }
       }
 #if 0
