@@ -27,6 +27,7 @@
 #define __SK_SUBSYSTEM__ L"D3D 11 HDR"
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
@@ -243,6 +244,12 @@ struct SK_HDR_FIXUP
 
     SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
     SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+
+    // These things aren't updated atomically, apparently :)
+    //
+    //   Skip reload if device and SwapChain are not consistent
+    if (! SK_D3D11_EnsureMatchingDevices (pSwapChain.p, pDev.p))
+      return;
 
     if (pDev != nullptr)
     {
@@ -764,16 +771,27 @@ SK_HDR_SnapshotSwapchain (void)
        ps_hdr_basic.shader != nullptr &&
        hdr_base->pMainSrv  != nullptr )
   {
-    auto pDev =
-      rb.getDevice <ID3D11Device> ();
-
     SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+    SK_ComPtr   <ID3D11Device>        pDev;
+    SK_ComPtr   <ID3D11DeviceContext> pDevCtx;
+
+    if (pSwapChain.p != nullptr)
+        pSwapChain->GetDevice (IID_ID3D11Device, (void **)&pDev.p);
 
     if (pDev != nullptr     &&      pDevCtx == nullptr)
     {   pDev->GetImmediateContext (&pDevCtx.p); }
 
-    if (! pDevCtx) return;
+    if (! pDevCtx)
+      return;
+
+    SK_ComPtr <ID3D11Device>        pShaderDevice;
+    vs_hdr_util.shader->GetDevice (&pShaderDevice.p);
+
+    if (! (pShaderDevice.p           == pDev.p ||
+           pShaderDevice.IsEqualObject (pDev)) )
+    {
+      return;
+    }
 
     SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
     SK_ComPtr <ID3D11Resource>  pDst = nullptr;

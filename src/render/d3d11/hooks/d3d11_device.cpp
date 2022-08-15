@@ -163,6 +163,14 @@ D3D11Dev_CreateShaderResourceView_Override (
   }
 #endif
 
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+
+    This = pResourceDev;
+  }
+
   if ( pResource != nullptr )
   {
     D3D11_RESOURCE_DIMENSION   dim;
@@ -444,6 +452,14 @@ D3D11Dev_CreateDepthStencilView_Override (
   }
 #endif
 
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+
+    This = pResourceDev;
+  }
+
   HRESULT hr =
     E_UNEXPECTED;
 
@@ -521,6 +537,14 @@ D3D11Dev_CreateUnorderedAccessView_Override (
     }
   }
 #endif
+
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+
+    This = pResourceDev;
+  }
 
   if ( pDesc     != nullptr &&
        pResource != nullptr )

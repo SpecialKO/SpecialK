@@ -31,6 +31,7 @@
 
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -1589,7 +1590,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 }
 
 HRESULT
-SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
+SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pColor = nullptr)
 {
   if (! config.render.dxgi.clear_flipped_chain)
     return S_OK;
@@ -1597,18 +1598,24 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
   if (pColor == nullptr)
       pColor = config.render.dxgi.chain_clear_color;
 
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   SK_ComPtr <ID3D11Texture2D>         pBackbuffer;
   SK_ComPtr <ID3D11RenderTargetView>  pBackbufferRTV;
 
-  SK_ComQIPtr <IDXGISwapChain3> pSwap3  (rb.swapchain);
-  SK_ComQIPtr <ID3D11Device>    pDevice (rb.device);
+  SK_ComQIPtr <IDXGISwapChain3>     pSwap3  (pSwapChain);
+  SK_ComPtr   <ID3D11Device>        pDev;
+  SK_ComPtr   <ID3D11DeviceContext> pDevCtx;
 
-  if (                          pSwap3.p == nullptr ||
-                               pDevice.p == nullptr ||
-                  rb.d3d11.immediate_ctx == nullptr )
+  if (pSwapChain != nullptr)
+      pSwapChain->GetDevice (IID_ID3D11Device, (void **)&pDev.p);
+  else
+    return E_NOTIMPL;
+
+  if (pDev.p != nullptr)
+      pDev->GetImmediateContext (&pDevCtx.p);
+
+  if (  pSwap3.p == nullptr ||
+          pDev.p == nullptr ||
+       pDevCtx.p == nullptr )
   {
     return E_NOINTERFACE;
   }
@@ -1657,14 +1664,16 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
 
     // NOTE: This will exist even if the system does not support HDR
     if (                            pRawRTV   != nullptr ||
-         ( _d3d11_rbk->frames_.size () > 0 &&
-           _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr ) )
+         ( _d3d11_rbk->frames_.size () > 0               &&
+           _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr &&
+           SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV, pDev.p) )
+       )
     {
       if (pRawRTV == nullptr)
           pRawRTV = _d3d11_rbk->frames_ [0].hdr.pRTV.p;
 
       SK_ComQIPtr <ID3D11DeviceContext4>
-          pDevCtx4 (rb.d3d11.immediate_ctx);
+          pDevCtx4 (pDevCtx);
       if (pDevCtx4.p != nullptr)
       {
         pDevCtx4->ClearView (
@@ -1676,26 +1685,25 @@ SK_D3D11_ClearSwapchainBackbuffer (const float *pColor = nullptr)
       }
     }
 
-    else if ( SUCCEEDED ( pDevice->CreateRenderTargetView (
-                                           pBackbuffer, nullptr,
-                                          &pBackbufferRTV.p       )
+    else if ( SUCCEEDED ( pDev->CreateRenderTargetView (
+                                        pBackbuffer, nullptr,
+                                       &pBackbufferRTV.p       )
             )           )
     {
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
-      rb.d3d11.immediate_ctx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                     pDevCtx->OMGetRenderTargets (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
                                         &pOrigRTVs [0].p,
                                         &pOrigDSV     .p );
 
-      rb.d3d11.immediate_ctx->OMSetRenderTargets    (1, &pBackbufferRTV.p, nullptr);
-      rb.d3d11.immediate_ctx->ClearRenderTargetView (    pBackbufferRTV.p,
+      pDevCtx->OMSetRenderTargets    (1, &pBackbufferRTV.p, nullptr);
+      pDevCtx->ClearRenderTargetView (    pBackbufferRTV.p,
                           pColor != nullptr ?
                           pColor            :
                      fClearColor                    );
-      rb.d3d11.immediate_ctx->OMSetRenderTargets (
-        calc_count (                    &pOrigRTVs [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT),
-                                        &pOrigRTVs [0].p,
-                                         pOrigDSV     .p );
+      pDevCtx->OMSetRenderTargets    ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
+                                       &pOrigRTVs [0].p,
+                                        pOrigDSV     .p );
 
       return S_OK;
     }
@@ -1924,7 +1932,7 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     }
 
     else
-      SK_D3D11_ClearSwapchainBackbuffer ();
+      SK_D3D11_ClearSwapchainBackbuffer (pSwap);
 
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
     SK_D3D11_TexCacheCheckpoint (                                   );

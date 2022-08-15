@@ -1214,9 +1214,17 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     //  * Figure out why the software is trying to copy a mipmapped resource that
     //     requires format conversion DirectX cannot provide.
     //
-    SK_ReleaseAssert (
-         srcTexDesc.MipLevels == dstTexDesc.MipLevels
-    );
+    //SK_ReleaseAssert (
+    //     srcTexDesc.MipLevels == dstTexDesc.MipLevels
+    //);
+
+    if (srcTexDesc.MipLevels != dstTexDesc.MipLevels)
+    {
+      SK_LOGi0 (
+        L"Mipmap Mismatch on Blt Copy, src=%hs, dst=%hs", SK_DXGI_FormatToStr (srcTexDesc.Format).data (),
+                                                          SK_DXGI_FormatToStr (dstTexDesc.Format).data ()
+      );
+    }
 
     //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
@@ -1721,4 +1729,33 @@ SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTUR
     return false;
 
   return true;
+}
+
+
+bool
+SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *pDevice)
+{
+  if (pDeviceChild == nullptr || pDevice == nullptr)
+    return false;
+
+  SK_ComPtr <ID3D11Device>  pParentDevice;
+  pDeviceChild->GetDevice (&pParentDevice);
+
+  return
+    pParentDevice.p      ==      pDevice ||
+    pParentDevice.IsEqualObject (pDevice);
+}
+
+bool
+SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevice)
+{
+  if (pSwapChain == nullptr || pDevice == nullptr)
+    return false;
+
+  SK_ComPtr <ID3D11Device>                             pSwapChainDevice;
+  pSwapChain->GetDevice   (IID_ID3D11Device, (void **)&pSwapChainDevice);
+
+  return
+    pSwapChainDevice.p      ==      pDevice ||
+    pSwapChainDevice.IsEqualObject (pDevice);
 }

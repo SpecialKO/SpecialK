@@ -1119,6 +1119,14 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   _Out_opt_       ID3D11RenderTargetView        **ppRTView,
                   BOOL                            bWrapped )
 {
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, pDev))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+
+    pDev = pResourceDev;
+  }
+
   auto _Finish =
   [&](const D3D11_RENDER_TARGET_VIEW_DESC* pDesc_) ->
   HRESULT
@@ -1657,6 +1665,66 @@ SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
      )
   {
     return true;
+  }
+
+  auto typeless_src =
+    DirectX::MakeTypeless (src);
+
+  auto typeless_dst =
+    DirectX::MakeTypeless (dst);
+
+  if ( typeless_src == DXGI_FORMAT_R32G32B32A32_TYPELESS ||
+       typeless_dst == DXGI_FORMAT_R32G32B32A32_TYPELESS )
+  {
+    DXGI_FORMAT other_format =
+      DirectX::MakeTypeless (
+        (typeless_src == DXGI_FORMAT_R32G32B32A32_TYPELESS ?
+                                              typeless_dst :
+                                              typeless_src));
+    if (other_format == DXGI_FORMAT_BC2_TYPELESS ||
+        other_format == DXGI_FORMAT_BC3_TYPELESS ||
+        other_format == DXGI_FORMAT_BC5_TYPELESS ||
+        other_format == DXGI_FORMAT_BC6H_TYPELESS ||
+        other_format == DXGI_FORMAT_BC7_TYPELESS)
+      return true;
+  }
+
+  if ( typeless_src == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
+       typeless_dst == DXGI_FORMAT_R16G16B16A16_TYPELESS )
+  {
+    DXGI_FORMAT other_format =
+      DirectX::MakeTypeless (
+        (typeless_src == DXGI_FORMAT_R16G16B16A16_TYPELESS ?
+                                              typeless_dst :
+                                              typeless_src));
+    if (other_format == DXGI_FORMAT_BC1_TYPELESS ||
+        other_format == DXGI_FORMAT_BC4_TYPELESS)
+      return true;
+  }
+
+  if ( typeless_src == DXGI_FORMAT_R32G32_TYPELESS ||
+       typeless_dst == DXGI_FORMAT_R32G32_TYPELESS )
+  {
+    DXGI_FORMAT other_format =
+      DirectX::MakeTypeless (
+        (typeless_src == DXGI_FORMAT_R32G32_TYPELESS ?
+                                        typeless_dst :
+                                        typeless_src));
+    if (other_format == DXGI_FORMAT_BC1_TYPELESS ||
+        other_format == DXGI_FORMAT_BC4_TYPELESS)
+      return true;
+  }
+
+  if ( typeless_src == DXGI_FORMAT_R32_TYPELESS ||
+       typeless_dst == DXGI_FORMAT_R32_TYPELESS )
+  {
+    DXGI_FORMAT other_format =
+      DirectX::MakeTypeless (
+        (typeless_src == DXGI_FORMAT_R32_TYPELESS ?
+                                     typeless_dst :
+                                     typeless_src));
+    if (other_format == DXGI_FORMAT_R9G9B9E5_SHAREDEXP)
+      return true;
   }
 
   SK_LOGi1 (
@@ -5483,10 +5551,10 @@ D3D11Dev_CreateTexture2D_Impl (
   if (config.textures.d3d11.cache && (! cacheable))
   {
     SK_LOG1 ( ( L"Impossible to cache texture (Code Origin: '%s') -- Misc Flags: %x, MipLevels: %lu, "
-                L"ArraySize: %lu, CPUAccess: %x, BindFlags: %x, Usage: %x, pInitialData: %08"
+                L"ArraySize: %lu, CPUAccess: %x, BindFlags: %hs, Usage: %hs, pInitialData: %08"
                 _L(PRIxPTR) L" (%08" _L(PRIxPTR) L")",
                   SK_GetModuleName (SK_GetCallingDLL (lpCallerAddr)).c_str (), pDesc->MiscFlags, pDesc->MipLevels, pDesc->ArraySize,
-                    pDesc->CPUAccessFlags, pDesc->BindFlags, pDesc->Usage, (uintptr_t)pInitialData,
+                    pDesc->CPUAccessFlags, SK_D3D11_DescribeBindFlags (pDesc->BindFlags).c_str (), SK_D3D11_DescribeUsage (pDesc->Usage), (uintptr_t)pInitialData,
                       pInitialData ? (uintptr_t)pInitialData->pSysMem : (uintptr_t)nullptr
               ),
               L"DX11TexMgr" );

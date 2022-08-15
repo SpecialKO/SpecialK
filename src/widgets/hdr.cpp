@@ -815,6 +815,12 @@ public:
 
       if (ImGui::RadioButton ("None###SK_HDR_NONE", &sel, 0))
       {
+        // Insert games that need specific settings here...
+        if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
+        {
+          config.render.framerate.flip_discard = false;
+        }
+
         changed = true;
 
         __SK_HDR_10BitSwap = false;
@@ -829,6 +835,13 @@ public:
 
       if (ImGui::RadioButton ("scRGB HDR###SK_HDR_scRGB", &sel, 2))
       {
+        // Insert games that need specific settings here...
+        if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
+        {
+                                                   SK_HDR_RenderTargets_8bpc->PromoteTo16Bit = true;
+          _SK_HDR_Promote8BitRGBxTo16BitFP->store (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
+        }
+
         changed = true;
 
         __SK_HDR_16BitSwap = true;

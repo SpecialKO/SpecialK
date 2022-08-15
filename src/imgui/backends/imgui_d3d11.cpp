@@ -13,6 +13,7 @@
 #include <imgui/backends/imgui_d3d11.h>
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
@@ -211,6 +212,52 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
+
+  // Are our resources on the same device as the SwapChain we're trying to draw into...?
+  if (! SK_D3D11_EnsureMatchingDevices (_P->pRenderTargetView, pDevice))
+  {
+    // No, so let's tear it all down and start over :)
+    _d3d11_rbk->release (pSwapChain);
+
+    SK_ComPtr <ID3D11Device> pDev;
+    if (pSwapChain.p != nullptr)
+        pSwapChain->GetDevice (IID_ID3D11Device, (void **)&pDev.p);
+
+    pDevCtx = nullptr;
+
+    if (pDev != nullptr)
+        pDev->GetImmediateContext (&pDevCtx.p);
+
+    if ( pSwapChain != nullptr &&
+               pDev != nullptr &&
+            pDevCtx != nullptr )
+    {
+      if (_d3d11_rbk->init (pSwapChain, pDev, pDevCtx))
+      {
+        rb.device              = pDev;
+        rb.d3d11.immediate_ctx = pDevCtx;
+      }
+
+      else
+        pDevCtx = nullptr;
+    }
+
+    if (pDevCtx == nullptr)
+    {
+      SK_RunOnce ([]{
+        SK_LOGi0 (L"ImGui_ImplDX11_RenderDrawData (...) aborted; no working render context available.");
+      });
+      
+      return;
+    }
+
+#define _SKIP_FULL_FRAME
+#ifdef _SKIP_FULL_FRAME
+    SK_LOGi0 (L"ImGui_ImplDX11_RenderDrawData (...) skipped because devices do not match");
+
+    return;
+#endif
+  }
 
   // This thread and all commands coming from it are currently related to the
   //   UI, we don't want to track the majority of our own state changes
@@ -729,6 +776,9 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                            _In_ INT                   BaseVertexLocation,
                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed )
 {
+  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
+    return E_NOT_VALID_STATE;
+
   auto* _P =
     &_Frame [g_frameIndex % g_numFramesInSwapChain];
 
@@ -771,6 +821,9 @@ SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
                           _In_ UINT                 StartVertexLocation,
                           _In_ D3D11_Draw_pfn       pfnD3D11Draw )
 {
+  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
+    return E_NOT_VALID_STATE;
+
   auto* _P =
     &_Frame [g_frameIndex % g_numFramesInSwapChain];
 
@@ -809,6 +862,9 @@ SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
                                    _In_ uint32_t             crc32,
                                    _In_ D3D11_Draw_pfn       pfnD3D11Draw )
 {
+  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
+    return E_NOT_VALID_STATE;
+
   UNREFERENCED_PARAMETER (crc32);
 
   auto* _P =
@@ -861,6 +917,9 @@ SK_D3D11_Inject_EpicHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
                           _In_ INT                   BaseVertexLocation,
                           _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed )
 {
+  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
+    return E_NOT_VALID_STATE;
+
   auto* _P =
     &_Frame [g_frameIndex % g_numFramesInSwapChain];
 
@@ -1795,6 +1854,9 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   _pDeviceCtx->OMSetRenderTargets (1, &_d3d11_rbk->frames_ [0].hdr.pRTV.p,    nullptr);
   _pDeviceCtx->OMSetBlendState    (    _d3d11_rbk->pGenericBlend, nullptr, 0xffffffff);
 
+  if (! SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV.p, _d3d11_rbk->_pDevice) &&
+        SK_D3D11_EnsureMatchingDevices (pSwapChain,                         _d3d11_rbk->_pDevice))
+    return;
 
   D3D11_TEXTURE2D_DESC                             tex2d_desc = { };
   _d3d11_rbk->frames_ [0].pRenderOutput->GetDesc (&tex2d_desc);
