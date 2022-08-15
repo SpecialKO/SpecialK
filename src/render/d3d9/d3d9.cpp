@@ -1043,8 +1043,8 @@ SK_D3DX9_Unpack (void)
   wcsncpy_s (  wszDestination, MAX_PATH,
            SK_GetHostPath (), _TRUNCATE  );
   
-  if (GetFileAttributesW (wszDestination) == INVALID_FILE_ATTRIBUTES)
-    SK_CreateDirectories (wszDestination);
+  if (GetFileAttributesW (  wszDestination  ) == INVALID_FILE_ATTRIBUTES)
+    SK_CreateDirectoriesEx (wszDestination, false);
 
   wcsncpy_s (  wszArchive,      MAX_PATH,
                wszDestination, _TRUNCATE );

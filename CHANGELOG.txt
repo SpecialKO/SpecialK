@@ -1,4 +1,18 @@
-﻿22.8.15.2-D3D9-IK
+﻿22.8.16-D3D9-IK
+===============
+ + Fixed potential deadlocks during debug symbol load
+ + Fixed incorrect texture cache eviction rules for uncompressed textures (Unity fix)
+ + Added support for SPECIALK_PATH environment variable to define the install path
+     (i.e. profile directories) for Global Injection
+   >> Takes precedent over the registry key (HKCU\Software\Kaldaien\SpecialK\Path).
+
+22.8.15.3-D3D9-IK
+=================
+ + Added checks to make sure (D3D11) resource views are created using the same device
+     as their resource.
+ + Eliminated mipmap-related assertion failure when starting Genshin Impact
+
+22.8.15.2-D3D9-IK
 =================
  + Added conditional device input blocking:
 

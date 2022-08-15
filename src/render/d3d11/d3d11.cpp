@@ -1405,8 +1405,10 @@ SK_D3D11_UpdateSubresource_Impl (
         const bool skip =
           ( (desc.Usage == D3D11_USAGE_STAGING    && (! SK_D3D11_IsStagingCacheable (rdim, pDstResource))) ||
              desc.Usage == D3D11_USAGE_DYNAMIC    ||
-             SK_D3D11_IsTextureUncacheable (pTex) ||
-            (! DirectX::IsCompressed (desc.Format)) );
+             SK_D3D11_IsTextureUncacheable (pTex)/*||
+            (! DirectX::IsCompressed (desc.Format))*/);
+            // Do NOT skip uncompressed textures, or it will fail to evict cached textures when
+            //   their contents are invalidated
 
         if (skip)
         {
@@ -1497,7 +1499,7 @@ SK_D3D11_UpdateSubresource_Impl (
         }
 
         if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
-        _Finish ();
+          _Finish ();
 
         const auto end     = SK_QueryPerf ().QuadPart;
               auto elapsed = end - start;
@@ -1779,6 +1781,17 @@ SK_D3D11_CopySubresourceRegion_Impl (
           {
             if (! SK_D3D11_IsDirectCopyCompatible (srcDesc.Format, dstDesc.Format))
             {
+              // Only support copying the top-level at the moment
+              SK_ReleaseAssert ( DstSubresource == 0 &&
+                                 SrcSubresource == 0 );
+
+              // No dimension mismatches allowed
+              SK_ReleaseAssert ( pSrcBox == nullptr ||
+                                (pSrcBox->left   == 0             &&
+                                 pSrcBox->top    == 0             &&
+                                 pSrcBox->right  == srcDesc.Width &&
+                                 pSrcBox->bottom == srcDesc.Height) );
+
               SK_RunOnce ([&]
               {
                 SK_LOGi0 (
@@ -4326,8 +4339,13 @@ SK_D3D11_DrawIndexed_Impl (
         D3D11_DrawIndexed_Original ( pDevCtx,            IndexCount,
                                      StartIndexLocation, BaseVertexLocation );
 
-      SK_D3D11_SanitizeFP16RenderTargets ( pDevCtx,
-                                            dev_idx );
+      static bool bTalesOfArise =
+        SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
+
+      // Not needed for any other games yet...
+      if (bTalesOfArise)
+        SK_D3D11_SanitizeFP16RenderTargets ( pDevCtx,
+                                              dev_idx );
     };
 
   bool early_out =
@@ -4339,14 +4357,16 @@ SK_D3D11_DrawIndexed_Impl (
     return _Finish ();
   }
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static auto& shaders =
+    SK_D3D11_Shaders.get ();
+
   //-----------------------------------------
 #ifdef _M_AMD64
   static bool bIsShenmue =
     (SK_GetCurrentGameID () == SK_GAME_ID::Shenmue);
-
-  static bool bIsShenmueOrDQXI =
-    bIsShenmue ||
-      (SK_GetCurrentGameID () == SK_GAME_ID::DragonQuestXI);
 
   if (bIsShenmue)
   {
@@ -4364,15 +4384,12 @@ SK_D3D11_DrawIndexed_Impl (
     }
 
     if (SK_D3D11_DrawCallFilter ( IndexCount, IndexCount,
-        SK_D3D11_Shaders->vertex.current.shader [dev_idx]) )
+        shaders.vertex.current.shader [dev_idx]) )
     {
       return;
     }
   }
   //------
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   // Render-state tracking needs to be forced-on for the
   //   Steam Overlay HDR fix to work.
@@ -4389,7 +4406,7 @@ SK_D3D11_DrawIndexed_Impl (
     }
 
     if ( UPLAY_OVERLAY_PS_CRC32C ==
-           SK_D3D11_Shaders->pixel.current.shader [dev_idx] )
+           shaders.pixel.current.shader [dev_idx] )
     {
       if ( SUCCEEDED (
              SK_D3D11_Inject_uPlayHDR ( pDevCtx, IndexCount,
@@ -4404,7 +4421,7 @@ SK_D3D11_DrawIndexed_Impl (
     }
     
     else if ( EPIC_OVERLAY_VS_CRC32C ==
-                SK_D3D11_Shaders->vertex.current.shader [dev_idx] )
+                shaders.vertex.current.shader [dev_idx] )
     {
       if ( SUCCEEDED (
              SK_D3D11_Inject_EpicHDR ( pDevCtx, IndexCount,
@@ -5026,14 +5043,14 @@ D3D11Dev_CreateTexture2D_Impl (
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <ID3D11Device>        pDev    (This);
-  SK_ComQIPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+  SK_ComPtr   <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
   SK_ComPtr <IUnknown>                                      pD3D11On12Device;
   if (This != nullptr)
       This->QueryInterface (IID_ID3D11On12Device, (void **)&pD3D11On12Device.p);
 
                                        // Ansel would deadlock us while calling QueryInterface in getDevice <...>
-#if 1
+#if 0
   if (pD3D11On12Device.p != nullptr || (rb.api != SK_RenderAPI::D3D11 && rb.api != SK_RenderAPI::Reserved))
   {
     return
@@ -5082,11 +5099,15 @@ D3D11Dev_CreateTexture2D_Impl (
     }
   }
 
-  // As of 8/15/2022, this is no longer necessary
-#if 0
+#define UNITY_NOMIPMAP_HACK
+#ifdef UNITY_NOMIPMAP_HACK
   // Compat hack needed in all Unity games
-  if (rb.windows.unity)
-    config.textures.cache.ignore_nonmipped = true;
+  //if (rb.windows.unity)
+  //{
+  //  if (! std::exchange (config.textures.cache.ignore_nonmipped, true))
+  //    SK_ImGui_Warning ( L"Unity Engine detected, please restart game "
+  //                       L"to avoid garbled textures." );
+  //}
 #endif
 
 
@@ -5223,7 +5244,7 @@ D3D11Dev_CreateTexture2D_Impl (
       pTLS = SK_TLS_Bottom ();
 
   bool bIgnoreThisUpload =
-    SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
+    false;// SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
 
   //--- HDR Format Wars (or at least format re-training) ---
   DXGI_SWAP_CHAIN_DESC      swapDesc = { };
@@ -5416,8 +5437,8 @@ D3D11Dev_CreateTexture2D_Impl (
                                                    SK_D3D11_dump_textures  ||
                                                    SK_D3D11_inject_textures));
 
-  if (! ( pDev    != nullptr &&
-          pDevCtx != nullptr ) )
+  if ( pDev    == nullptr ||
+       pDevCtx == nullptr )
   {
     assert (false);
 
@@ -5427,14 +5448,15 @@ D3D11Dev_CreateTexture2D_Impl (
   }
   //// -----------
 
-  if (  bIgnoreThisUpload)
+  if (bIgnoreThisUpload)
   {
     return
       D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
                                             pInitialData, ppTexture2D );
   }
 
-  if (pDesc == nullptr || ppTexture2D == nullptr)
+  if ( pDesc      == nullptr ||
+      ppTexture2D == nullptr )
   {
     return
       D3D11Dev_CreateTexture2D_Original (This, pDesc,
@@ -5492,8 +5514,8 @@ D3D11Dev_CreateTexture2D_Impl (
   bool injectable = false;
 
   cacheable = cacheable &&
-   (!  (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
-                             D3D11_BIND_RENDER_TARGET ) )    != 0x0
+   (   (pDesc->BindFlags & ( D3D11_BIND_DEPTH_STENCIL |
+                             D3D11_BIND_RENDER_TARGET ) )    == 0x0
     )&&(pDesc->BindFlags & ( D3D11_BIND_SHADER_RESOURCE  |
                              D3D11_BIND_UNORDERED_ACCESS ) ) != 0x0
      &&(pDesc->Usage     <   D3D11_USAGE_DYNAMIC); // Cancel out Staging

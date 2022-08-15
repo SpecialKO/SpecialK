@@ -242,7 +242,7 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
     capacity = { },
     free     = { };
 
-  SK_CreateDirectories (getBasePath ());
+  SK_CreateDirectoriesEx (getBasePath (), false);
 
   const BOOL bRet =
     GetDiskFreeSpaceExW (

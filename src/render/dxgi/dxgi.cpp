@@ -46,6 +46,7 @@
 #include <math.h>
 
 #include <CoreWindow.h>
+#include <VersionHelpers.h>
 
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 
@@ -9199,7 +9200,7 @@ HookDXGI (LPVOID user)
       return 0;
     }
 
-    dll_log->Log (L"[   DXGI   ]   Installing DXGI Hooks");
+    dll_log->Log (L"[   DXGI   ]   Installing Deferred DXGI / D3D11 / D3D12 Hooks");
 
     D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
                                                D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
@@ -9223,10 +9224,13 @@ HookDXGI (LPVOID user)
     desc.BufferDesc.Width            = 2;
     desc.BufferDesc.Height           = 2;
     desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount                 = 1;
+    desc.BufferCount                 = IsWindows8Point1OrGreater () ? 2 : 1;
     desc.OutputWindow                = SK_Win32_CreateDummyWindow ();
     desc.Windowed                    = TRUE;
-    desc.SwapEffect                  = DXGI_SWAP_EFFECT_DISCARD;
+    desc.SwapEffect                  = IsWindows10OrGreater () ? DXGI_SWAP_EFFECT_FLIP_DISCARD
+                                                               : IsWindows8Point1OrGreater ()
+                                                               ? DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+                                                               : DXGI_SWAP_EFFECT_DISCARD;
 
     extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
