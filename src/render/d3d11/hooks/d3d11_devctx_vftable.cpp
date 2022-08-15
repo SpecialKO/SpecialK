@@ -1329,26 +1329,38 @@ D3D11_UpdateSubresource_Override (
   }
 #endif
 
+  if (pDstResource == nullptr)
+    return;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  // Hack for Martha is Dead
+  __try
   {
-    return
-      SK_D3D11_UpdateSubresource_Impl ( This,
-                                          pDstResource,
-                                           DstSubresource,
-                                          pDstBox,
-                                          pSrcData, SrcRowPitch,
-                                                    SrcDepthPitch,
-                                          FALSE );
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+    {
+      return
+        SK_D3D11_UpdateSubresource_Impl ( This,
+                                            pDstResource,
+                                             DstSubresource,
+                                            pDstBox,
+                                            pSrcData, SrcRowPitch,
+                                                      SrcDepthPitch,
+                                            FALSE );
+    }
+
+    D3D11_UpdateSubresource_Original (
+      This,
+        pDstResource,
+         DstSubresource, pDstBox,
+                         pSrcData, SrcRowPitch,
+                                   SrcDepthPitch
+    );
   }
 
-  D3D11_UpdateSubresource_Original (
-    This,
-      pDstResource,
-       DstSubresource, pDstBox,
-                       pSrcData, SrcRowPitch,
-                                 SrcDepthPitch
-  );
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
+            EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+  {
+    SK_LOGi0 (L"Access Violation during ID3D11DeviceContext::UpdateSubresource (...)");
+  }
 }
 
 

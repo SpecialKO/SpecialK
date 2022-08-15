@@ -1,4 +1,10 @@
-﻿22.8.14-D3D9-IK
+﻿22.8.15-D3D9-IK
+===============
+ + Worked-around bug in Martha is Dead that causes crashing at startup
+ + Re-enabled texture injection in games using D3D11 UpdateSubresource (...)
+     (i.e. NieR: Replicant)
+
+22.8.14-D3D9-IK
 ===============
  + Added configurable debug layer settings (i.e. mute/break-on error) for D3D11 games
  + Fixed compatibility with Spider-Man Remastered when Special K HDR is enabled

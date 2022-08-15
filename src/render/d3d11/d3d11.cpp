@@ -1323,8 +1323,8 @@ SK_D3D11_UpdateSubresource_Impl (
                                            SrcDepthPitch );
   };
 
-  return
-    _Finish ();
+  //return
+  //  _Finish ();
 
   bool early_out =
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
@@ -1488,6 +1488,7 @@ SK_D3D11_UpdateSubresource_Impl (
           SK_D3D11_MarkTextureUncacheable (pTex);
         }
 
+        if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
         _Finish ();
 
         const auto end     = SK_QueryPerf ().QuadPart;
@@ -1633,9 +1634,9 @@ SK_D3D11_UpdateSubresource_Impl (
               textures->Textures_2D [pTex].injected = true;
             }
           }
-        }
 
-        return;
+          return;
+        }
       }
     }
   }
