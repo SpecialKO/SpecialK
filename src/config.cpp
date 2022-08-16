@@ -4001,13 +4001,31 @@ auto DeclKeybind =
   {
     if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
     {
+      std::filesystem::path steam_plugin (
+        SK_GetInstallPath ()
+      );
+
+      steam_plugin /= LR"(PlugIns\ThirdParty\Steamworks)";
+      steam_plugin /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
+                                             L"steam_api_sk64.dll");
+
+      HMODULE hModSteam =
+        GetModuleHandleW (
+          SK_RunLHIfBitness (32, L"steam_api.dll",
+                                 L"steam_api64.dll"));
+
+      std::wstring wszModPath =
+        SK_GetModuleFullName (hModSteam);
+
       // Setup sane initial values
-      config.steam.dll_path = SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                                      L"steam_api.dll" );
+      config.steam.dll_path = hModSteam != 0 &&
+        PathFileExistsW (wszModPath.c_str ()) ?
+                         wszModPath           : steam_plugin.wstring ();
     }
   }
 
-  steam.system.dll_path->load                 (config.steam.dll_path);
+  if (! steam.system.dll_path->empty ())
+    steam.system.dll_path->load (config.steam.dll_path);
 
 
   bool global_override = false;

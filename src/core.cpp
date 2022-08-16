@@ -1986,37 +1986,37 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 #ifndef _THREADED_BASIC_INIT
     BasicInit ();
 
-    bool gl = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
-       dxgi = false, d3d8   = false, ddraw = false, glide = false;
-
-    SK_TestRenderImports (
-      SK_GetModuleHandle (nullptr),
-        &gl, &vulkan,
-          &d3d9, &dxgi, &d3d11, &d3d12,
-            &d3d8, &ddraw, &glide );
-
-    dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
-    d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
-    d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
-    d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
-    gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
-
-    if ( ( dxgi || d3d11 || d3d12 ||
-           d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
-                             || config.apis.dxgi.d3d12.hook ) )
-    {
-      SK_DXGI_QuickHook ();
-    }
-
-    if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
-    {
-      SK_D3D9_QuickHook ();
-    }
-
     if (! config.compatibility.init_on_separate_thread)
     {
+      bool gl = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
+         dxgi = false, d3d8   = false, ddraw = false, glide = false;
+
+      SK_TestRenderImports (
+        SK_GetModuleHandle (nullptr),
+          &gl, &vulkan,
+            &d3d9, &dxgi, &d3d11, &d3d12,
+              &d3d8, &ddraw, &glide );
+
+      dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
+      d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
+      d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
+      d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
+      gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
+      gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
+      gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
+
+      if ( ( dxgi || d3d11 || d3d12 ||
+             d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
+                               || config.apis.dxgi.d3d12.hook ) )
+      {
+        SK_DXGI_QuickHook ();
+      }
+
+      if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+      {
+        SK_D3D9_QuickHook ();
+      }
+
       auto* params =
         static_cast <init_params_s *> (&init_);
 
@@ -2135,6 +2135,35 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     if (config.steam.preload_overlay)
     {
       SK_Steam_LoadOverlayEarly ();
+    }
+
+    bool gl = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
+       dxgi = false, d3d8   = false, ddraw = false, glide = false;
+
+    SK_TestRenderImports (
+      SK_GetModuleHandle (nullptr),
+        &gl, &vulkan,
+          &d3d9, &dxgi, &d3d11, &d3d12,
+            &d3d8, &ddraw, &glide );
+
+    dxgi  |= SK_GetModuleHandle (L"dxgi.dll")     != nullptr;
+    d3d11 |= SK_GetModuleHandle (L"d3d11.dll")    != nullptr;
+    d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
+    d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
+    gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
+    gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
+    gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
+
+    if ( ( dxgi || d3d11 || d3d12 ||
+           d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
+                             || config.apis.dxgi.d3d12.hook ) )
+    {
+      SK_DXGI_QuickHook ();
+    }
+
+    if (d3d9 && (config.apis.d3d9.hook || config.apis.d3d9ex.hook))
+    {
+      SK_D3D9_QuickHook ();
     }
 
     InterlockedExchangePointer (

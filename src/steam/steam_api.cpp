@@ -533,7 +533,7 @@ bool
 SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
                       size_t   max_size = MAX_PATH )
 {
-  if (max_size == 0)
+  if (max_size == 0 || config.platform.silent)
     return false;
 
   const wchar_t* wszSteamLib =
@@ -546,7 +546,7 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   if (*dll_file != L'\0')
   {
     // Already have a working DLL
-    if (SK_Modules->LoadLibrary (dll_file))
+    if (GetModuleHandleW (dll_file))
     {
       wcsncpy_s (
         wszDestBuf,
@@ -3652,39 +3652,41 @@ SteamAPI_ManualDispatch_Init_Detour (void)
   if (steam_log.getPtr () != nullptr && (! steam_log->silent))
   {   steam_log->Log (
       L"Disabling Direct SteamAPI Integration  [ Manual Callback Dispatch Req. ]" );
-
-    std::filesystem::path steam_path (
-      SK_GetInstallPath ()
-    );
-    
-    steam_path /= LR"(PlugIns\ThirdParty\Steamworks)";
-    steam_path /= SK_RunLHIfBitness (32, L"steam_api.dll",
-                                         L"steam_api64.dll");
-
-    config.platform.silent =
-      !( PathFileExistsW ( steam_path.c_str () ));
-
-    if (! config.platform.silent )
-    {     config.steam.auto_inject         = true;
-          config.steam.auto_pump_callbacks = true;
-          config.steam.force_load_steamapi = true;
-          config.steam.init_delay          =    1;
-          config.steam.dll_path            = 
-                            steam_path.wstring ();
-    }else
-    {
-      // Platform integration must be disabled,
-      //   Special K does not support this.
-      config.steam.dll_path  = L"";
-
-      SK_GetDLLConfig ()->get_section (L"Steam.Log").
-                            get_value (L"Silent").
-                               assign (L"true");
-    }
-
-    SK_SaveConfig   ();
-    SK_GetDLLConfig ()->write ();
   }
+
+  std::filesystem::path steam_path (
+    SK_GetInstallPath ()
+  );
+
+  steam_path /= LR"(PlugIns\ThirdParty\Steamworks)";
+  steam_path /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
+                                       L"steam_api_sk64.dll");
+
+  config.platform.silent =
+    !( PathFileExistsW ( steam_path.c_str () ));
+
+  if (! config.platform.silent) {
+        config.steam.auto_inject         = true;
+        config.steam.auto_pump_callbacks = true;
+        config.steam.force_load_steamapi = true;
+        config.steam.init_delay          =    1;
+        config.steam.dll_path            =
+                          steam_path.wstring ();
+  }else
+  {
+    // Platform integration must be disabled,
+    //   Special K does not support this.
+    config.steam.dll_path            = L"";
+    config.steam.auto_inject         = false;
+    config.steam.force_load_steamapi = false;
+
+    SK_GetDLLConfig ()->get_section (L"Steam.Log").
+                          get_value (L"Silent").
+                             assign (L"true");
+  }
+
+  SK_SaveConfig   ();
+  SK_GetDLLConfig ()->write ();
 
   InterlockedExchange (&__SK_DLL_Ending, 1);
 
@@ -3727,12 +3729,8 @@ SteamAPI_InitSafe_Detour (void)
     if ( 1 ==
              InterlockedIncrement (&__SK_Steam_init) )
     {
-      const wchar_t* steam_dll_str =
-        SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                L"steam_api.dll"    );
-
       HMODULE hSteamAPI =
-        SK_Modules->LoadLibraryLL (steam_dll_str);
+        SK_Modules->LoadLibraryLL (SK_Steam_GetDLLPath ());
 
       SK_SteamAPI_ContextInit (hSteamAPI);
 
@@ -3896,12 +3894,8 @@ SteamAPI_Init_Detour (void)
   {
     if (1 == InterlockedIncrement (&__SK_Steam_init))
     {
-      static const wchar_t* steam_dll_str =
-        SK_RunLHIfBitness ( 64, L"steam_api64.dll",
-                                L"steam_api.dll" );
-
       HMODULE hSteamAPI =
-        SK_GetModuleHandleW (steam_dll_str);
+        SK_GetModuleHandleW (SK_Steam_GetDLLPath ());
 
       SK_SteamAPI_ContextInit (hSteamAPI);
 
@@ -6032,9 +6026,9 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
     if (hModExplicit == skModuleRegistry::INVALID_MODULE)
     {
       static const wchar_t* wszSteamDLL =
-        SK_RunLHIfBitness (                          64,
-          LR"(PlugIns\ThirdParty\Steamworks\steam_api64.dll)",
-          LR"(PlugIns\ThirdParty\Steamworks\steam_api.dll)"
+        SK_RunLHIfBitness (                             64,
+          LR"(PlugIns\ThirdParty\Steamworks\steam_api_sk64.dll)",
+          LR"(PlugIns\ThirdParty\Steamworks\steam_api_sk.dll)"
         );
 
       if (! SK_GetModuleHandle (wszSteamDLL))

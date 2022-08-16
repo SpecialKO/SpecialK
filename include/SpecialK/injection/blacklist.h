@@ -319,6 +319,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"displayhdrcompliancetests.exe"),
   SK_MakeUnicode (L"scriptedsandbox64.exe"),
   SK_MakeUnicode (L"crashreportclient.exe"),
+  SK_MakeUnicode (L"crs-handler.exe"),
 
 
   // Early-out for most CEF-based apps;

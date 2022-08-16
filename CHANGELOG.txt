@@ -1,6 +1,14 @@
-﻿22.8.16.4-D3D9-IK
+﻿22.8.17-D3D9-IK
+===============
+ + Changed SK's Plug-In based SteamAPI DLLs to use steam_api_sk{64}.dll instead
+     of the traditional steam_api{64}.dll to avoid collisions with software that
+       loads SteamAPI DLLs using incomplete paths.
+ + Fixed API auto-detect prioritization issues introduced in 22.8.7
+
+22.8.16.4-D3D9-IK
 =================
  + Fixed various issues with local installs of ReShade
+ + Clear DXGI/D3D11 hook cache when installing plug-ins from control panel
  + Disabled crash sound when games crash -after- SK's DLL has cleanly unloaded
 
 22.8.16.3-D3D9-IK
