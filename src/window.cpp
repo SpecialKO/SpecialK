@@ -5208,6 +5208,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                     SK_Inject_SetFocusWindow (0);
+
+        SK_ImGui_WantExit = true;
       }
       break;
 

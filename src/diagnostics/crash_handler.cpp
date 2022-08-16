@@ -118,7 +118,8 @@ SK_Crash_PlaySound (void)
   // Rare WinMM (SDL/DOSBox) crashes may prevent this from working, so...
   //   don't create another top-level exception.
   __try {
-    if (0 == ReadAcquire (&__SK_DLL_Ending))
+    extern bool SK_ImGui_WantExit;          // Mute crash sound while exiting
+    if (0 == ReadAcquire (&__SK_DLL_Ending) && (! SK_ImGui_WantExit))
     {
       SK_PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
                        nullptr,

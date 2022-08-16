@@ -1,4 +1,9 @@
-﻿22.8.16.3-D3D9-IK
+﻿22.8.16.4-D3D9-IK
+=================
+ + Fixed various issues with local installs of ReShade
+ + Disabled crash sound when games crash -after- SK's DLL has cleanly unloaded
+
+22.8.16.3-D3D9-IK
 =================
  + Improved ReShade Plug-In support, Unreal and most other engines work reliably
      w/ Lazy load order when using Global Injection.
