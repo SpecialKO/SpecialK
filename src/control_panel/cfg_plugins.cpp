@@ -276,6 +276,12 @@ SK::ControlPanel::PlugIns::Draw (void)
             );
           }
         }
+
+        // Remove hook cache records when setting up a plug-in
+        dll_ini->get_section (L"DXGI.Hooks").set_name  (L"Invalid.Section.DoNotFlush");
+        dll_ini->get_section (L"D3D11.Hooks").set_name (L"Invalid.Section.DoNotFlush");
+
+        dll_ini->write ();
       }
     }
 
