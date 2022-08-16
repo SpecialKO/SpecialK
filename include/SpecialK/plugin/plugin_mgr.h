@@ -236,6 +236,24 @@ _CreateConfigParameterInt64 ( const wchar_t* wszSection,
                               const wchar_t* wszOldSectionName = nullptr,
                               const wchar_t* wszOldKeyName     = nullptr );
 
+enum class SK_Import_LoadOrder {
+  Early  = 0,
+  PlugIn = 1,
+  Lazy   = 2
+};
+
+bool
+SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
+                                const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path );
+
+void
+SK_ImGui_PlugInDisclaimer     ( void );
+
+bool
+SK_ImGui_PlugInSelector       ( iSK_INI* ini, const std::string& name, const wchar_t* path,
+                                const wchar_t* import_name, bool& enable, SK_Import_LoadOrder& order,
+                                SK_Import_LoadOrder default_order = SK_Import_LoadOrder::PlugIn );
+
 #endif /* __SK__Plugin__Manager_H__ */
 
 

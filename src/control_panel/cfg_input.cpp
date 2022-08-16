@@ -1096,6 +1096,7 @@ extern float SK_ImGui_PulseNav_Strength;
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("More Reliable (currently the only supported input API)");
 #endif
+#if 0
       bool non_relative = (! config.input.mouse.add_relative_motion);
 
       ImGui::Checkbox ("Fix Jittery Mouse (in menus)", &non_relative);
@@ -1110,6 +1111,7 @@ extern float SK_ImGui_PulseNav_Strength;
       }
 
       config.input.mouse.add_relative_motion = (! non_relative);
+#endif
 
       ImGui::Checkbox ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
 
@@ -1126,7 +1128,9 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop       ();
       ImGui::EndGroup      ();
 
-      ImGui::SameLine ();
+      ImGui::SameLine          ();
+      ImGui::VerticalSeparator ();
+      ImGui::SameLine          ();
 
       ImGui::BeginGroup    ();
       ImGui::Text          ("Mouse Input Capture");

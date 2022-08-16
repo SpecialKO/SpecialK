@@ -484,17 +484,6 @@ struct {
 } far_ao;
 
 bool                      SK_FAR_PlugInCfg         (void);
-extern bool
-SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
-                                const wchar_t* role, int order, const wchar_t* path );
-
-extern void
-SK_ImGui_PlugInDisclaimer     ( void );
-
-extern bool
-SK_ImGui_PlugInSelector       ( iSK_INI* ini, const std::string& name, const wchar_t* path,
-                                const wchar_t* import_name, bool& enable, int& order,
-                                int default_order = 1 );
 
 HRESULT
 WINAPI
@@ -2541,7 +2530,8 @@ SK_FAR_PlugInCfg (void)
       }
 
       ImGui::TreePush      ("");
-      static int  load_order     = 0;
+      static SK_Import_LoadOrder
+                  load_order     = SK_Import_LoadOrder::Early;
              bool enabled        =
         SK_GetDLLConfig ()->contains_section (L"Import.ReShade64_Custom");
              bool plugin_changed =
@@ -2551,7 +2541,7 @@ SK_FAR_PlugInCfg (void)
                                         L"Import.ReShade64_Custom",
                                           enabled,
                                             load_order,
-                                              1 );
+                                              SK_Import_LoadOrder::PlugIn );
 
       if (enabled)
         SK_ImGui_PlugInDisclaimer ();

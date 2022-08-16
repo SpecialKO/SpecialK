@@ -1247,8 +1247,6 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
     SK_ComPtr <ID3D11Device>       pDev11  = nullptr;
     SK_ComPtr <ID3D12Device>       pDev12  = nullptr;
 
-    extern bool SK_GL_OnD3D11;
-
     if (device != nullptr)
     {
       if (SUCCEEDED (device->QueryInterface <IDirect3DDevice9Ex> (&pDev9Ex)))
@@ -3775,25 +3773,52 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;
 
-  if (sk::NVAPI::nv_hardware && device.p != nullptr)
+  if (device.p    != nullptr &&
+      swapchain.p != nullptr)
   {
-    NV_LATENCY_MARKER_PARAMS
-      markerParams            = {                          };
-      markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
-      markerParams.markerType = marker;
-      markerParams.frameID    = static_cast <NvU64> (
-           ReadULong64Acquire (&frames_drawn)       );
+    // Avert your eyes... time to check if Device and SwapChain are consistent
+    //
+    auto pDev11 = getDevice <ID3D11Device> ();
+    auto pDev12 = getDevice <ID3D12Device> ();
 
-    ret =
-      NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
-  }
+    if (! (pDev11 || pDev12))
+      return false; // Uh... what?
 
-  if ( marker == RENDERSUBMIT_END /*||
-       marker == RENDERSUBMIT_START*/ )
-  {
-    latency.submitQueuedFrame (
-      SK_ComQIPtr <IDXGISwapChain1> (swapchain)
-    );
+    SK_ComQIPtr <IDXGISwapChain> pSwapChain (swapchain.p);
+
+    if (pSwapChain.p != nullptr)
+    {
+      SK_ComPtr                  <ID3D11Device>           pSwapDev11;
+      pSwapChain->GetDevice ( IID_ID3D11Device, (void **)&pSwapDev11.p );
+      SK_ComPtr                  <ID3D12Device>           pSwapDev12;
+      pSwapChain->GetDevice ( IID_ID3D12Device, (void **)&pSwapDev12.p );
+      if (! (pDev11.p != nullptr && pDev11.IsEqualObject (pSwapDev11.p)) ||
+            (pDev12.p != nullptr && pDev12.IsEqualObject (pSwapDev12.p)))
+      {
+        return false; // Nope, let's get the hell out of here!
+      }
+    }
+
+    if (sk::NVAPI::nv_hardware)
+    {
+      NV_LATENCY_MARKER_PARAMS
+        markerParams            = {                          };
+        markerParams.version    = NV_LATENCY_MARKER_PARAMS_VER;
+        markerParams.markerType = marker;
+        markerParams.frameID    = static_cast <NvU64> (
+             ReadULong64Acquire (&frames_drawn)       );
+
+      ret =
+        NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
+    }
+
+    if ( marker == RENDERSUBMIT_END /*||
+         marker == RENDERSUBMIT_START*/ )
+    {
+      latency.submitQueuedFrame (
+        SK_ComQIPtr <IDXGISwapChain1> (pSwapChain)
+      );
+    }
   }
 
   return
@@ -4120,8 +4145,6 @@ using ChangeDisplaySettingsExW_pfn = LONG (WINAPI *)(
   _In_ LPVOID    lParam
   );
 ChangeDisplaySettingsExW_pfn ChangeDisplaySettingsExW_Original = nullptr;
-
-extern bool SK_GL_OnD3D11;
 
 void SK_GL_SetVirtualDisplayMode (HWND hWnd, bool Fullscreen, UINT Width, UINT Height);
 

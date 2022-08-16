@@ -4944,8 +4944,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     if (uMsg == WM_DISPLAYCHANGE)
     {
       // Trigger IndirectX Device Context Reset
-      extern bool SK_GL_OnD3D11_Reset;
-                  SK_GL_OnD3D11_Reset = true;
+      SK_GL_OnD3D11_Reset = true;
 
       rb.stale_display_info = true;
       rb.queueUpdateOutputs ();

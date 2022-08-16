@@ -1609,4 +1609,8 @@ using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SE
 
 void SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
 
+// Move this to a more formal presentation manager
+extern bool SK_GL_OnD3D11;
+extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal
+
 #endif /* __SK__RENDER_BACKEND__H__ */

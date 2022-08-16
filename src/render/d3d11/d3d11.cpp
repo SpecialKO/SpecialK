@@ -3869,11 +3869,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
         SK_ReleaseAssert (!"Hooked command ignored while render backend is uninitialized");
       }
 
-      if (SK_GetFramesDrawn () > 0)
-        return true;
-
-      if (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED)
-        rb.d3d11.immediate_ctx = pDevCtx;
+      return true;
     }
 
     SK_ComPtr <ID3D11Device>
@@ -3889,10 +3885,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
         SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
       }
 
-      if (SK_GetFramesDrawn () > 0)
-        return true;
-
-      rb.device.p = pDevice.p;
+      return true;
     }
   }
 
@@ -5082,15 +5075,12 @@ D3D11Dev_CreateTexture2D_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_ComQIPtr <ID3D11Device>        pDev    (This);
-  SK_ComPtr   <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
-
   SK_ComPtr <IUnknown>                                      pD3D11On12Device;
   if (This != nullptr)
       This->QueryInterface (IID_ID3D11On12Device, (void **)&pD3D11On12Device.p);
 
-                                       // Ansel would deadlock us while calling QueryInterface in getDevice <...>
-#if 0
+                                    // Ansel would deadlock us while calling QueryInterface in getDevice <...>
+#if 1
   if (pD3D11On12Device.p != nullptr || (rb.api != SK_RenderAPI::D3D11 && rb.api != SK_RenderAPI::Reserved))
   {
     return
@@ -5113,6 +5103,9 @@ D3D11Dev_CreateTexture2D_Impl (
       D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
   }
 #endif
+
+  SK_ComQIPtr <ID3D11Device>        pDev    (This);
+  SK_ComPtr   <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
 
   // Only from devices belonging to the game, no wrappers or Ansel
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
@@ -5138,18 +5131,6 @@ D3D11Dev_CreateTexture2D_Impl (
       }
     }
   }
-
-#define UNITY_NOMIPMAP_HACK
-#ifdef UNITY_NOMIPMAP_HACK
-  // Compat hack needed in all Unity games
-  //if (rb.windows.unity)
-  //{
-  //  if (! std::exchange (config.textures.cache.ignore_nonmipped, true))
-  //    SK_ImGui_Warning ( L"Unity Engine detected, please restart game "
-  //                       L"to avoid garbled textures." );
-  //}
-#endif
-
 
   static auto& textures =
     SK_D3D11_Textures;
@@ -5404,6 +5385,8 @@ D3D11Dev_CreateTexture2D_Impl (
                 _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );//||
                 //_typeless == DXGI_FORMAT_R8G8_TYPELESS       ||
                 //_typeless == DXGI_FORMAT_R8_TYPELESS );
+
+            //@TODO: Should R8G8 and R8 also be considered for FP16 upgrade?
 
             // 8-bit RGB(x) -> 16-bit FP
             if (rgba)

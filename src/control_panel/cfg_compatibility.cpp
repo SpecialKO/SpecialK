@@ -211,6 +211,14 @@ SK::ControlPanel::Compatibility::Draw (void)
         config.apis.d3d8.hook       = false; config.apis.ddraw.hook      = false;
 #endif
         // The active API will be re-enabled immediately
+
+        // ... except for Indirect K, these presentation redirects need extra attention
+        if (SK_GL_OnD3D11)
+        { // TODO: Add an actual way of opting-in/out of OpenGL-IK to control panel
+          config.apis.dxgi.d3d11.hook  = true;
+          config.apis.OpenGL.hook      = true;
+          config.apis.OpenGL.translate = true;
+        }
       }
 
       if (ImGui::IsItemHovered ())

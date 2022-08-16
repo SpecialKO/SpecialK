@@ -279,6 +279,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
 
   SK_MakeUnicode (L"launcher.exe"),
   SK_MakeUnicode (L"launchpad.exe"),
+  SK_MakeUnicode (L"launcher_epic.exe"), // Genshin Impact
   SK_MakeUnicode (L"fallout4launcher.exe"),
   SK_MakeUnicode (L"skyrimselauncher.exe"),
   SK_MakeUnicode (L"modlauncher.exe"),
@@ -317,6 +318,7 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"launchtm.exe"),
   SK_MakeUnicode (L"displayhdrcompliancetests.exe"),
   SK_MakeUnicode (L"scriptedsandbox64.exe"),
+  SK_MakeUnicode (L"crashreportclient.exe"),
 
 
   // Early-out for most CEF-based apps;

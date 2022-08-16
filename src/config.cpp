@@ -4413,8 +4413,7 @@ SK_SaveConfig ( std::wstring name,
     SK_GetCurrentRenderBackend ();
 
   // Temp hack to handle GLDX11
-  extern bool SK_GL_OnD3D11;
-  if (        SK_GL_OnD3D11)
+  if (SK_GL_OnD3D11)
     config.apis.last_known = SK_RenderAPI::OpenGL;
 
 

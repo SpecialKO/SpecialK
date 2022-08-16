@@ -27,10 +27,8 @@
 extern iSK_INI* dll_ini;
 
 using namespace SK::ControlPanel;
-
-
 bool
-SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, int order, const wchar_t* path)
+SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path)
 {
   if (! ini)
     return false;
@@ -58,9 +56,9 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
                                  L"Filename=%s\n\n",
                                    import_name,
                                      role,
-                                       order == 0 ? L"Early"  :
-                                       order == 1 ? L"PlugIn" :
-                                                    L"Lazy",
+      order == SK_Import_LoadOrder::Early  ? L"Early"  :
+      order == SK_Import_LoadOrder::PlugIn ? L"PlugIn" :
+                                             L"Lazy",
                                          path );
 
     ini->import (wszImportRecord);
@@ -82,7 +80,7 @@ SK_ImGui_PlugInDisclaimer (void)
 }
 
 bool
-SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, int& order, int default_order = 1)
+SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, SK_Import_LoadOrder& order, SK_Import_LoadOrder default_order)
 {
   if (! ini)
     return false;
@@ -103,24 +101,33 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   if (ini->contains_section (import_name))
   {
     if (     ini->get_section (import_name).get_value (L"When") == L"Early")
-      order = 0;
+      order = SK_Import_LoadOrder::Early;
     else if (ini->get_section (import_name).get_value (L"When") == L"PlugIn")
-      order = 1;
+      order = SK_Import_LoadOrder::PlugIn;
     else
-      order = 2;
+      order = SK_Import_LoadOrder::Lazy;
   }
   else
     order = default_order;
 
   ImGui::SameLine ();
 
+  int iOrder =
+    static_cast <int> (order);
+
   changed |=
-    ImGui::Combo (hash_load.c_str (), &order, "Early\0Plug-In\0Lazy\0\0");
+    ImGui::Combo (hash_load.c_str (), &iOrder, "Early\0Plug-In\0Lazy\0\0");
+
+  if (changed)
+    order = static_cast <SK_Import_LoadOrder> (iOrder);
 
   if (ImGui::IsItemHovered ())
   {
     ImGui::BeginTooltip ();
-    ImGui::Text         ("Plug-In Load Order is Suggested by Default.");
+    if (! SK_IsInjected ())
+      ImGui::Text       ("Plug-In Load Order is Suggested by Default.");
+    else
+      ImGui::Text       ("Lazy Load Order is Suggested by Default.");
     ImGui::Separator    ();
     ImGui::BulletText   ("If a plug-in does not show up or the game crashes, try loading it early.");
     ImGui::BulletText   ("Early plug-ins handle rendering before Special K; ReShade will apply its effects to Special K's UI if loaded early.");
@@ -138,6 +145,9 @@ SK::ControlPanel::PlugIns::Draw (void)
   if (ImGui::CollapsingHeader ("Plug-Ins"))
   {
     ImGui::TreePush ("");
+
+    static bool bUnity =
+      SK_GetCurrentRenderBackend ().windows.unity;
 
     wchar_t imp_path_reshade    [MAX_PATH + 2] = { };
     wchar_t imp_name_reshade    [64]           = { };
@@ -191,8 +201,8 @@ SK::ControlPanel::PlugIns::Draw (void)
     bool reshade_official   = dll_ini->contains_section (imp_name_reshade);
     bool reshade_unofficial = dll_ini->contains_section (imp_name_reshade_ex);
 
-    static int order    = 0;
-    static int order_ex = 1;
+    static SK_Import_LoadOrder order    = SK_Import_LoadOrder::Early;
+    static SK_Import_LoadOrder order_ex = SK_Import_LoadOrder::PlugIn;
 
     bool changed = false;
 
@@ -204,7 +214,10 @@ SK::ControlPanel::PlugIns::Draw (void)
     {
       ImGui::TreePush    ("");
       changed |=
-          SK_ImGui_PlugInSelector (dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order, 1);
+          SK_ImGui_PlugInSelector (
+            dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
+              SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
+                                 SK_Import_LoadOrder::PlugIn );
       ImGui::TreePop     (  );
     }
     ImGui::PopStyleColor ( 3);
@@ -231,7 +244,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       {
         ImGui::TreePush    ("");
         changed |=
-            SK_ImGui_PlugInSelector (dll_ini, "ReShade (Custom)", imp_path_reshade_ex, imp_name_reshade_ex, reshade_unofficial, order_ex, 1);
+            SK_ImGui_PlugInSelector (dll_ini, "ReShade (Deprecated!!)", imp_path_reshade_ex, imp_name_reshade_ex, reshade_unofficial, order_ex);
         ImGui::TreePop     (  );
       }
       ImGui::PopStyleColor ( 3);
@@ -249,6 +262,24 @@ SK::ControlPanel::PlugIns::Draw (void)
 
       SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   );
       SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex);
+
+      if (reshade_official)
+      {
+        // Non-Unity engines benefit from a small (0 ms) injection delay
+        if (config.system.global_inject_delay < 0.001)
+        {   config.system.global_inject_delay = 0.001;
+
+          if (bUnity)
+          {
+            SK_RunOnce ([]
+            {
+              SK_ImGui_Warning (
+                L"NOTE: This is unlikely to work in a Unity Engine game, a local version of ReShade may be necessary."
+              );
+            });
+          }
+        }
+      }
     }
 
     ImGui::TreePop ();

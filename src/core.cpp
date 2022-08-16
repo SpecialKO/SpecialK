@@ -911,9 +911,8 @@ void BasicInit (void)
   SK::Diagnostics::Debugger::Allow (true);
 
   if (config.system.handle_crashes)
-    SK::Diagnostics::CrashHandler::Init     ();
-  else
-    SK::Diagnostics::CrashHandler::InitSyms ();
+    SK::Diagnostics::CrashHandler::Init   ();
+  SK::Diagnostics::CrashHandler::InitSyms ();
 
   // This installs hooks for COM's CoCreateInstance, used for various old DirectX
   //   features in addition to Special K's WMI monitoring services

@@ -35,8 +35,6 @@ extern float __target_fps;
 extern float fSwapWaitFract;
 extern float fSwapWaitRatio;
 
-extern bool SK_GL_OnD3D11;
-
 const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
@@ -252,12 +250,16 @@ SK::ControlPanel::D3D11::Draw (void)
   bool d3d12 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
 
+  // Is the underlying graphics API actually something else?
+  bool indirect =
+    (SK_GL_OnD3D11);
+
   if (                                 (d3d11 &&
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||
                                        (d3d12 &&
        ImGui::CollapsingHeader ("Direct3D 12 Settings", ImGuiTreeNodeFlags_DefaultOpen)) )
   {
-    if (d3d11)
+    if (d3d11 && (! indirect))
     {
       ImGui::SameLine ();
       ImGui::TextUnformatted ("     State Tracking:  ");
@@ -314,7 +316,8 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::PopStyleColor ();
     }
 
-    else
+    // D3D12
+    else if (! indirect)
     {
       auto currentFrame =
         SK_GetFramesDrawn ();
@@ -562,19 +565,26 @@ SK::ControlPanel::D3D11::Draw (void)
 
       ImGui::BeginGroup ();
 
-      if (! d3d12)
-        ImGui::Checkbox   ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
-      else
-        ImGui::Checkbox   ("Force Flip Discard in D3D12", &config.render.framerate.flip_discard);
-
-      if (ImGui::IsItemHovered ())
+      if (! indirect)
       {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("High-Performance Windowed Rendering");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Makes Windowed Mode Perform Same as Fullscreen Exclusive");
-        ImGui::EndTooltip   ();
+        if (d3d12)
+          ImGui::Checkbox   ("Force Flip Discard in D3D12", &config.render.framerate.flip_discard);
+        else
+        {
+          ImGui::Checkbox   ("Use Flip Model Presentation", &config.render.framerate.flip_discard);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("High-Performance Windowed Rendering");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Makes Windowed Mode Perform Same as Fullscreen Exclusive");
+            ImGui::EndTooltip   ();
+          }
+        }
       }
+
+      else ImGui::Spacing ();
 
       if (config.render.framerate.flip_discard)
       {
@@ -743,7 +753,7 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::TreePop  ();
     }
 
-    if (d3d11 && ImGui::CollapsingHeader ("Texture Management"))
+    if (d3d11 && (! indirect) && ImGui::CollapsingHeader ("Texture Management"))
     {
       ImGui::TreePush ("");
       ImGui::Checkbox ("Enable Texture Caching", &config.textures.d3d11.cache);
@@ -853,7 +863,7 @@ SK::ControlPanel::D3D11::Draw (void)
       //ImGui::SameLine (); ImGui::BulletText ("Requires restart");
       //ImGui::PopStyleColor  ();
 
-      if (config.textures.d3d11.cache)
+      if (config.textures.d3d11.cache && (! indirect))
       {
         ImGui::SameLine ();
         ImGui::Spacing  ();
@@ -918,15 +928,15 @@ SK::ControlPanel::D3D11::Draw (void)
 
     if (d3d11)
     {
-      if ((! SK_GL_OnD3D11) && ImGui::Button (" Render Mod Tools "))
+      if ((! indirect) && ImGui::Button (" Render Mod Tools "))
       {
         show_shader_mod_dlg = (!show_shader_mod_dlg);
       }
 
-      if (! SK_GL_OnD3D11) ImGui::SameLine ();
-      if (! SK_GL_OnD3D11) ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
+      if (! indirect) ImGui::SameLine ();
+      if (! indirect) ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
 
-      if (! SK_GL_OnD3D11) if (ImGui::IsItemHovered ())
+      if (! indirect) if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
     }
 
@@ -934,29 +944,37 @@ SK::ControlPanel::D3D11::Draw (void)
     if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
          ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
     {
-      if (d3d11 && !SK_GL_OnD3D11) ImGui::SameLine   ();
+      if (d3d11 && !indirect) ImGui::SameLine ();
       OSD::DrawVideoCaptureOptions ();
     }
 
     if (d3d11) ImGui::SameLine ();
 
     const bool advanced =
-      d3d11 && ImGui::TreeNode ("Advanced (Debug)###Advanced_NVD3D11");
+      d3d11 && ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11");
 
     if (advanced)
     {
       ImGui::TreePop               ();
       ImGui::Separator             ();
 
-      ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Requires application restart");
-
-      if (sk::NVAPI::nv_hardware)
+      // Indirect K has no D3D11 depth buffer...
+      if (! indirect)
       {
-        ImGui::SameLine              ();
-        SK_ImGui_NV_DepthBoundsD3D11 ();
+#ifdef _SUPPORT_ENHANCED_DEPTH
+        ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Requires application restart");
+#endif
+
+        if (sk::NVAPI::nv_hardware)
+        {
+#ifdef _SUPPORT_ENHANCED_DEPTH
+          ImGui::SameLine              ();
+#endif
+          SK_ImGui_NV_DepthBoundsD3D11 ();
+        }
       }
 
       ImGui::Checkbox ( "Enable D3D11 Debug Layer",
