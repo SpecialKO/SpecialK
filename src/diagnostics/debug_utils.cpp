@@ -3508,6 +3508,8 @@ RaiseException_Detour (
           _ReturnAddress (), wszCallerName
         );
 
+        SK_StripUserNameFromPathW (wszCallerName);
+
         SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   "
                     L"[ Calling Module:  %s ]", dwExceptionCode,
                         SK_ExceptionFlagsToStr (dwExceptionFlags),
