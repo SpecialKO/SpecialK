@@ -1410,104 +1410,104 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   }, un_scrgb);
 
                   std::swap (un_scrgb, un_srgb);
-                }
 
-                XMVECTOR maxLum = XMVectorZero          (),
-                         minLum = XMVectorSplatInfinity ();
+                  XMVECTOR maxLum = XMVectorZero          (),
+                           minLum = XMVectorSplatInfinity ();
 
-                float lumTotal = 0.0f;
-                float N        = 0.0f;
+                  float lumTotal = 0.0f;
+                  float N        = 0.0f;
 
-                hr =              un_srgb.GetImageCount () == 1 ?
-                  EvaluateImage ( un_srgb.GetImages     (),
-                                  un_srgb.GetImageCount (),
-                                  un_srgb.GetMetadata   (),
-                  [&](const XMVECTOR* pixels, size_t width, size_t y)
-                  {
-                      UNREFERENCED_PARAMETER(y);
-
-                      for (size_t j = 0; j < width; ++j)
-                      {
-                        static const XMVECTORF32 s_luminance =
-                        { 0.3f, 0.59f, 0.11f, 0.f };
-                      
-                        XMVECTOR vLuma =
-                          XMVectorSplatY (
-                            XMColorRGBToXYZ (*pixels++)
-                          );
-                        
-                        maxLum =
-                          XMVectorMax ( maxLum,
-                                          vLuma );
-
-                        minLum =
-                          XMVectorMin ( minLum,
-                                          vLuma );
-
-                        lumTotal +=
-                          logf ( std::max (0.000001f, 0.000001f + vLuma.m128_f32 [0]) ),
-                        ++N;
-                      }
-                    })                                       : E_POINTER;
-
-                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
-                                                                      maxLum.m128_f32 [0]), L"XXX" );
-
-                  float fExposure = fMaxNitsForDisplay;
-                  float fLogAvg   = expf ( ( 1.0f / N ) * lumTotal );
-
-                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", ( maxLum.m128_f32 [0] +
-                                                                                  minLum.m128_f32 [0] ) / 2.0f,
-                                                                                  expf ( (1.0f / N) * lumTotal ) ), L"XXX");
-
-                  // For scenes below exposure threshold, limit the key to 1 so that brightening does not occur... the image is already LDR
-                  fLogAvg =
-                    std::max (fMaxNitsForDisplay, fLogAvg);
-
-                //#define _CHROMA_SCALE TRUE
-                  #ifndef _CHROMA_SCALE
-                                    maxLum =
-                                      XMVector3Length  (maxLum);
-                  #else
-                                    maxLum =
-                                      XMVectorMultiply (maxLum, maxLum);
-                  #endif
-
-                  const XMVECTORF32 c_MaxNitsForDisplay =
-                  { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
-
-                  hr =               un_srgb.GetImageCount () == 1 ?
-                    TransformImage ( un_srgb.GetImages     (),
-                                     un_srgb.GetImageCount (),
-                                     un_srgb.GetMetadata   (),
-                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                  hr =              un_srgb.GetImageCount () == 1 ?
+                    EvaluateImage ( un_srgb.GetImages     (),
+                                    un_srgb.GetImageCount (),
+                                    un_srgb.GetMetadata   (),
+                    [&](const XMVECTOR* pixels, size_t width, size_t y)
                     {
-                      UNREFERENCED_PARAMETER(y);
+                        UNREFERENCED_PARAMETER(y);
 
-                      for (size_t j = 0; j < width; ++j)
+                        for (size_t j = 0; j < width; ++j)
+                        {
+                          static const XMVECTORF32 s_luminance =
+                          { 0.3f, 0.59f, 0.11f, 0.f };
+                        
+                          XMVECTOR vLuma =
+                            XMVectorSplatY (
+                              XMColorRGBToXYZ (*pixels++)
+                            );
+                          
+                          maxLum =
+                            XMVectorMax ( maxLum,
+                                            vLuma );
+
+                          minLum =
+                            XMVectorMin ( minLum,
+                                            vLuma );
+
+                          lumTotal +=
+                            logf ( std::max (0.000001f, 0.000001f + vLuma.m128_f32 [0]) ),
+                          ++N;
+                        }
+                      })                                       : E_POINTER;
+
+                    SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
+                                                                        maxLum.m128_f32 [0]), L"XXX" );
+
+                    float fExposure = fMaxNitsForDisplay;
+                    float fLogAvg   = expf ( ( 1.0f / N ) * lumTotal );
+
+                    SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", ( maxLum.m128_f32 [0] +
+                                                                                    minLum.m128_f32 [0] ) / 2.0f,
+                                                                                    expf ( (1.0f / N) * lumTotal ) ), L"XXX");
+
+                    // For scenes below exposure threshold, limit the key to 1 so that brightening does not occur... the image is already LDR
+                    fLogAvg =
+                      std::max (fMaxNitsForDisplay, fLogAvg);
+
+                  //#define _CHROMA_SCALE TRUE
+                    #ifndef _CHROMA_SCALE
+                                      maxLum =
+                                        XMVector3Length  (maxLum);
+                    #else
+                                      maxLum =
+                                        XMVectorMultiply (maxLum, maxLum);
+                    #endif
+
+                    const XMVECTORF32 c_MaxNitsForDisplay =
+                    { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
+
+                    hr =               un_srgb.GetImageCount () == 1 ?
+                      TransformImage ( un_srgb.GetImages     (),
+                                       un_srgb.GetImageCount (),
+                                       un_srgb.GetMetadata   (),
+                      [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
                       {
-                        XMVECTOR value = inPixels [j];
-                        XMVECTOR scale =
-                          XMVectorReplicate (fExposure / fLogAvg);
+                        UNREFERENCED_PARAMETER(y);
 
-                        XMVECTOR nvalue =
-                          XMVectorDivide (                      XMVectorMultiply (value, scale),
-                                          XMVectorAdd (g_XMOne, XMVectorMultiply (value, scale) ) );
-                                  value =
-                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                        outPixels [j]   =   value;
-                      }
-                    }, un_scrgb)                             : E_POINTER;
+                        for (size_t j = 0; j < width; ++j)
+                        {
+                          XMVECTOR value = inPixels [j];
+                          XMVECTOR scale =
+                            XMVectorReplicate (fExposure / fLogAvg);
+
+                          XMVECTOR nvalue =
+                            XMVectorDivide (                      XMVectorMultiply (value, scale),
+                                            XMVectorAdd (g_XMOne, XMVectorMultiply (value, scale) ) );
+                                    value =
+                            XMVectorSelect   (value, nvalue, g_XMSelect1110);
+                          outPixels [j]   =   value;
+                        }
+                      }, un_scrgb)                             : E_POINTER;
+
+                  if (         un_scrgb.GetImageCount () == 1) {
+                    Convert ( *un_scrgb.GetImages     (),
+                                DXGI_FORMAT_B8G8R8X8_UNORM,
+                                  filterFlags,
+                                    TEX_THRESHOLD_DEFAULT,
+                                      un_srgb );
+                  }
+                }
 
                 std::swap (un_srgb, un_scrgb);
-
-                if (         un_srgb.GetImageCount () == 1) {
-                  Convert ( *un_srgb.GetImages     (),
-                              DXGI_FORMAT_B8G8R8X8_UNORM,
-                                filterFlags,
-                                  TEX_THRESHOLD_DEFAULT,
-                                    un_scrgb );
-                }
 
                 if (un_scrgb.GetImageCount () == 1)
                 {
