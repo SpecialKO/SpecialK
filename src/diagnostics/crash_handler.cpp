@@ -529,9 +529,12 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
       if (! SK_PE32_IsLargeAddressAware ())
       {     SK_PE32_MakeLargeAddressAwareCopy ();
 
-        SK_MessageBox ( L"Applied 32-bit LAA (Large Address Aware) Patch in Response to Crash",
-                          L"[Special K Patch]", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK );
+        // Turn this off to prevent a deathloop of unsuccessful patches in games with launchers :)
+        config.compatibility.auto_large_address_patch = false;
 
+        SK_SaveConfig  ();
+        SK_MessageBox  ( L"Applied 32-bit LAA (Large Address Aware) Patch in Response to Crash",
+                           L"[Special K Patch]", MB_ICONEXCLAMATION | MB_APPLMODAL | MB_OK );
         SK_RestartGame ();
       }
     }
