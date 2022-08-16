@@ -1281,6 +1281,16 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
             SK_DontInject ();
         }
 
+        else if (config.apis.OpenGL.hook && gl)
+        {
+          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
+          {
+            return SK_DontInject ();
+          }
+
+          SK_SetDLLRole (DLL_ROLE::OpenGL);
+        }
+
         else if ( ( config.apis.dxgi.d3d11.hook ||
                     config.apis.dxgi.d3d12.hook    )
                                                 && (dxgi || d3d11 || d3d12))
@@ -1298,16 +1308,6 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
           //
           //else
             SK_SetDLLRole (DLL_ROLE::DXGI);
-        }
-
-        else if (config.apis.OpenGL.hook && gl)
-        {
-          if (SK_TryLocalWrapperFirst ({ L"OpenGL32.dll" }))
-          {
-            return SK_DontInject ();
-          }
-
-          SK_SetDLLRole (DLL_ROLE::OpenGL);
         }
 
         else if (config.apis.d3d9.hook && d3d9)
