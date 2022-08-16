@@ -1119,6 +1119,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   _Out_opt_       ID3D11RenderTargetView        **ppRTView,
                   BOOL                            bWrapped )
 {
+#if 0
   if (! SK_D3D11_EnsureMatchingDevices (pResource, pDev))
   {
     SK_ComPtr <ID3D11Device> pResourceDev;
@@ -1126,6 +1127,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
     pDev = pResourceDev;
   }
+#endif
 
   auto _Finish =
   [&](const D3D11_RENDER_TARGET_VIEW_DESC* pDesc_) ->
@@ -7332,6 +7334,14 @@ SK_D3D11_QuickHook (void)
 
   if (config.render.dxgi.debug_layer)
     return;
+
+  if ( PathFileExistsW (L"dxgi.dll") ||
+       PathFileExistsW (L"d3d11.dll") )
+  {
+    SK_LOGi0 (L" # D3D11 QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
+
+    return;
+  }
 
   static volatile LONG hooked = FALSE;
 

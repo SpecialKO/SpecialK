@@ -214,10 +214,14 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     SK_TLS_Bottom ();
 
   // Are our resources on the same device as the SwapChain we're trying to draw into...?
-  if (! SK_D3D11_EnsureMatchingDevices (_P->pRenderTargetView, pDevice))
+  if (! (SK_D3D11_EnsureMatchingDevices (pSwapChain, pDevice) &&
+         SK_D3D11_EnsureMatchingDevices (pDevCtx,    pDevice)))
   {
-    // No, so let's tear it all down and start over :)
-    _d3d11_rbk->release (pSwapChain);
+    if (pSwapChain != nullptr)
+    {
+      // No, so let's tear it all down and start over :)
+      _d3d11_rbk->release (pSwapChain);
+    }
 
     SK_ComPtr <ID3D11Device> pDev;
     if (pSwapChain.p != nullptr)
@@ -1842,8 +1846,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV.p, _d3d11_rbk->_pDevice) &&
-        SK_D3D11_EnsureMatchingDevices (pSwapChain,                         _d3d11_rbk->_pDevice))
+  if (!SK_D3D11_EnsureMatchingDevices (pSwapChain, _d3d11_rbk->_pDevice))
     return;
 
   D3DX11_STATE_BLOCK

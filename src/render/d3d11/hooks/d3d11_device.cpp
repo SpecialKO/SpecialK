@@ -163,16 +163,18 @@ D3D11Dev_CreateShaderResourceView_Override (
   }
 #endif
 
-  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
-  {
-    SK_ComPtr <ID3D11Device> pResourceDev;
-    pResource->GetDevice   (&pResourceDev);
-
-    This = pResourceDev;
-  }
-
   if ( pResource != nullptr )
   {
+#if 0
+    if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+    {
+      SK_ComPtr <ID3D11Device> pResourceDev;
+      pResource->GetDevice   (&pResourceDev);
+    
+      This = pResourceDev;
+    }
+#endif
+
     D3D11_RESOURCE_DIMENSION   dim;
     pResource->GetType       (&dim);
 
@@ -452,13 +454,15 @@ D3D11Dev_CreateDepthStencilView_Override (
   }
 #endif
 
+#if 0
   if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
   {
     SK_ComPtr <ID3D11Device> pResourceDev;
     pResource->GetDevice   (&pResourceDev);
-
+  
     This = pResourceDev;
   }
+#endif
 
   HRESULT hr =
     E_UNEXPECTED;
@@ -538,13 +542,15 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   }
 #endif
 
+#if 0
   if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
   {
     SK_ComPtr <ID3D11Device> pResourceDev;
     pResource->GetDevice   (&pResourceDev);
-
+  
     This = pResourceDev;
   }
+#endif
 
   if ( pDesc     != nullptr &&
        pResource != nullptr )
@@ -924,6 +930,16 @@ D3D11Dev_CreateRenderTargetView_Override (
                 L"Belonging to a Different Device");
       return DXGI_ERROR_DEVICE_RESET;
     }
+  }
+#endif
+
+#if 0
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+  
+    This = pResourceDev;
   }
 #endif
 

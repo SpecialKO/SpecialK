@@ -3182,8 +3182,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   SK_ComPtr      <ID3D11Device>           pDevice;
   SK_ComPtr      <ID3D11DeviceContext>    pDevCtx;
 
-  D3DX11_STATE_BLOCK d3d11_sb = { };
-
   if (! bOriginallyFlip &&
           SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
   {
@@ -3191,7 +3189,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
        &pDevCtx.p );
     if (pDevCtx != nullptr)
     {
-      CreateStateblock (pDevCtx, &d3d11_sb);
+      pDevCtx->OMGetRenderTargets (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &pOrigRTVs [0].p, &pOrigDSV.p);
     }
   }
 
@@ -3202,7 +3200,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
 
   if (pDevCtx != nullptr)
   {
-    ApplyStateblock (pDevCtx, &d3d11_sb);
+    pDevCtx->OMSetRenderTargets (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &pOrigRTVs [0].p, pOrigDSV.p);
   }
 
   return ret;
@@ -10143,6 +10141,14 @@ SK_DXGI_QuickHook (void)
 
   if (config.render.dxgi.debug_layer)
     return;
+
+  if ( PathFileExistsW (L"dxgi.dll") ||
+       PathFileExistsW (L"d3d11.dll") )
+  {
+    SK_LOGi0 (L" # DXGI QuickHook disabled because a local dxgi.dll or d3d11.dll is present...");
+
+    return;
+  }
 
   extern BOOL
       __SK_DisableQuickHook;
