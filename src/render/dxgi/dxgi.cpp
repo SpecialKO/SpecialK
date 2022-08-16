@@ -5361,11 +5361,13 @@ SK_DXGI_CreateSwapChain_PreInit (
     //   * If SK's SwapChain wrapper is active, avoid
     //       clearing backbuffers after Present (...)
     //
+#if 0  // This is a user-defined preference now; useful for wrong aspect ratio rendering
     if (/*(!bOriginallyFlip) ||*/pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
                              ||  pDesc->SwapEffect == DXGI_SWAP_EFFECT_SEQUENTIAL )
     {
       config.render.dxgi.clear_flipped_chain = false;
     }
+#endif
 
     // If auto-update prompt is visible, don't go fullscreen.
     if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
@@ -5781,6 +5783,14 @@ SK_DXGI_CreateSwapChain_PreInit (
                    L"  >> Disabling SwapChain-based MSAA for Flip Model compliance." );
 
         pDesc->SampleDesc.Count = 1;
+      }
+
+      if (! bIsD3D12)
+      {
+        if (config.render.dxgi.clear_flipped_chain)
+          SK_LOGi0 (L"  >> Will Clear SwapChain Backbuffer After Present");
+        else
+          SK_LOGi0 (L"  >> Will Not Clear SwapChain Backbuffer After Present");
       }
     }
 

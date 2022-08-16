@@ -1,4 +1,9 @@
-﻿22.8.16.1-D3D9-IK
+﻿22.8.16.2-D3D9-IK
+=================
+ + Cleaned up Input Management control panel section
+ + Fixed incorrect gamma on SDR thumbnails and HDR->SDR tonemapped screenshots
+
+22.8.16.1-D3D9-IK
 =================
  + Fixed SDR screenshot (lossy / Steam Import) brightness in D3D11/D3D12
  + Large Address Aware patch only applies once now and then turns itself off

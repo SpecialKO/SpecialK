@@ -1487,18 +1487,24 @@ SK_D3D11_UpdateSubresource_Impl (
                                                pTLS )
       );
 
-      if (pCachedTex != nullptr && textures->Textures_2D [pCachedTex].injected)
+      if (pCachedTex != nullptr)
       {
-        SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
+        if (textures->Textures_2D [pCachedTex].injected)
+        {
+          SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
-        bWrapped ?
-          pDevCtx->CopyResource (pDstResource,                pCachedResource)
-                 :
-          D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
+          bWrapped ?
+            pDevCtx->CopyResource (pDstResource,                pCachedResource)
+                   :
+            D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
       
-        SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
-                      desc.Width, desc.Height, top_crc32c ),
-                    L"DX11TexMgr" );
+          SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
+                        desc.Width, desc.Height, top_crc32c ),
+                      L"DX11TexMgr" );
+        }
+
+        else
+          _Finish ();
 
         textures->recordCacheHit (pCachedTex);
 
@@ -1507,17 +1513,26 @@ SK_D3D11_UpdateSubresource_Impl (
       
       else
       {
-        if (pCachedTex.p == pTex && desc.Usage != D3D11_USAGE_STAGING)
-        {
-          SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                         SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_MarkTextureUncacheable (pCachedTex);
-          SK_D3D11_RemoveTexFromCache     (pCachedTex, true);
+        bool bCached =
+          SK_D3D11_TextureIsCached (pTex);
 
-          // This is going to keep happening and reduce the number of actually cacheable textures
-          //   unless this auto-disable is applied.
-          if (SK_GetCurrentRenderBackend ().windows.unity)
-            config.textures.cache.ignore_nonmipped = true;
+        if (bCached)
+        {
+          if (! SK_D3D11_IsTextureUncacheable (pTex))
+          {
+            SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
+                           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+            SK_D3D11_MarkTextureUncacheable (pTex);
+            SK_D3D11_RemoveTexFromCache     (pTex, true);
+
+            // This is going to keep happening and reduce the number of actually cacheable textures
+            //   unless this auto-disable is applied.
+            if (SK_GetCurrentRenderBackend ().windows.unity)
+            {
+              config.textures.cache.ignore_nonmipped = true;
+                        cache_opts.ignore_non_mipped = true; // Push this change through immediately
+            }
+          }
         }
 
         if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
@@ -1653,17 +1668,20 @@ SK_D3D11_UpdateSubresource_Impl (
               }
             }
 
-            SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
-                          desc.Width, desc.Height, top_crc32c ),
-                        L"DX11TexMgr" );
-
-            textures->CacheMisses_2D++;
-            textures->refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c,
-                                     L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
-
-            if (injected)
+            if (! bCached)
             {
-              textures->Textures_2D [pTex].injected = true;
+              SK_LOG1 ( ( L"New Cacheable Texture: (%lux%lu) -- %x",
+                            desc.Width, desc.Height, top_crc32c ),
+                          L"DX11TexMgr" );
+
+              textures->CacheMisses_2D++;
+              textures->refTexture2D (pTex, &desc, cache_tag, size, elapsed, top_crc32c,
+                                       L"", nullptr, (HMODULE)(intptr_t)-1/*SK_GetCallingDLL ()*/, pTLS);
+
+              if (injected)
+              {
+                textures->Textures_2D [pTex].injected = true;
+              }
             }
           }
 
