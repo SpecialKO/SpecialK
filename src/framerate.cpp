@@ -1337,7 +1337,7 @@ SK::Framerate::Limiter::wait (void)
         else
         {
           // This will fail repeatedly, only log it once.
-          SK_RunOnce ([&]
+          SK_RunOnce (
           {
             SK_ReleaseAssert (status == STATUS_SUCCESS || max == cur);
             SK_LOGi0         (

@@ -141,11 +141,10 @@ void
 SK_XInput_NotifyDeviceArrival (void)
 {
   SK_RunOnce (
+  {
     SK_XInputHot_NotifyEvent =
-              SK_CreateEvent (nullptr, TRUE, TRUE, nullptr)
-  );
+              SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
 
-  SK_RunOnce (
     SK_XInputHot_ReconnectThread =
     SK_Thread_CreateEx ([](LPVOID user)->
       DWORD
@@ -346,8 +345,8 @@ SK_XInput_NotifyDeviceArrival (void)
 
         return 0;
       }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
-    )
-  );
+    );
+  })
 }
 
 

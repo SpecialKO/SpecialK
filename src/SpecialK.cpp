@@ -984,10 +984,12 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
     {
       SK_TLS_Acquire ();
 
-      SK_RunOnce (SK_EstablishRootPath ());
-      SK_RunOnce (SK_LoadConfigEx      (L"SpecialK", false));
+      SK_RunOnce ({
+        SK_EstablishRootPath ();
+        SK_LoadConfigEx      (L"SpecialK", false);
 
-      SK_RunOnce (SK_GetFullyQualifiedApp ());
+        SK_GetFullyQualifiedApp ();
+      });
     };
 
     auto SK_Inject_ProcessBlacklist = [&](void) ->

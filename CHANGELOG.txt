@@ -1,4 +1,16 @@
-﻿22.8.16.2-D3D9-IK
+﻿22.8.16.3-D3D9-IK
+=================
+ + Improved ReShade Plug-In support, Unreal and most other engines work reliably
+     w/ Lazy load order when using Global Injection.
+
+   >> Unity almost never works loading ReShade this way... big surprise.
+
+ + Clicking "Disable All But the Active API" in Compatibility | Render Backends
+     will no longer disable OpenGL when a game is using OpenGL-IK (D3D11).
+ + Blacklisted CrashReportClient.exe so SK will no longer render an overlay on
+     top of fancy Unreal Engine crash dialogs :)
+
+22.8.16.2-D3D9-IK
 =================
  + Cleaned up Input Management control panel section
  + Fixed incorrect gamma on SDR thumbnails and HDR->SDR tonemapped screenshots

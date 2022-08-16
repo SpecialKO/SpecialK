@@ -1115,17 +1115,17 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     SK_CreateDirectories (osd_config.c_str ());
 
-    SK_RunOnce (    osd_ini         =
-      SK_CreateINI (osd_config.c_str ()));
-
-    SK_RunOnce (    input_ini         =
-      SK_CreateINI (input_config.c_str ()));
-
-    SK_RunOnce (    platform_ini    =
-      SK_CreateINI (platform_config.c_str ()));
-
-    SK_RunOnce (    macro_ini       =
-      SK_CreateINI (macro_config.c_str ()));
+    SK_RunOnce (
+    {
+      osd_ini         =
+        SK_CreateINI (osd_config.c_str ());
+      input_ini       =
+        SK_CreateINI (input_config.c_str ());
+      platform_ini    =
+        SK_CreateINI (platform_config.c_str ());
+      macro_ini       =
+        SK_CreateINI (macro_config.c_str ());
+    });
 
 
     osd_ini->reload      ();

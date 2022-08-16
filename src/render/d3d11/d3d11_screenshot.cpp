@@ -573,33 +573,30 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   static D3D11_DEPTH_STENCIL_DESC depth_desc  = { };
                   static D3D11_BLEND_DESC         blend_desc  = { };
 
-                  SK_RunOnce ([&]
-                  {
-                    raster_desc.FillMode        = D3D11_FILL_SOLID;
-                    raster_desc.CullMode        = D3D11_CULL_NONE;
-                    raster_desc.ScissorEnable   = FALSE;
-                    raster_desc.DepthClipEnable = TRUE;
+                  raster_desc.FillMode        = D3D11_FILL_SOLID;
+                  raster_desc.CullMode        = D3D11_CULL_NONE;
+                  raster_desc.ScissorEnable   = FALSE;
+                  raster_desc.DepthClipEnable = TRUE;
 
-                    depth_desc.DepthEnable      = FALSE;
-                    depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
-                    depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
-                    depth_desc.StencilEnable    = FALSE;
-                    depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
-                                                         depth_desc.FrontFace.StencilPassOp      =
-                                                       D3D11_STENCIL_OP_KEEP;
-                    depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-                    depth_desc.BackFace              = depth_desc.FrontFace;
+                  depth_desc.DepthEnable      = FALSE;
+                  depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
+                  depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
+                  depth_desc.StencilEnable    = FALSE;
+                  depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
+                                                       depth_desc.FrontFace.StencilPassOp      =
+                                                     D3D11_STENCIL_OP_KEEP;
+                  depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+                  depth_desc.BackFace              = depth_desc.FrontFace;
 
-                    blend_desc.AlphaToCoverageEnable                  = FALSE;
-                    blend_desc.RenderTarget [0].BlendEnable           = TRUE;
-                    blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-                    blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
-                    blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-                    blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-                    blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
-                    blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-                    blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-                  });
+                  blend_desc.AlphaToCoverageEnable                  = FALSE;
+                  blend_desc.RenderTarget [0].BlendEnable           = TRUE;
+                  blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+                  blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+                  blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+                  blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+                  blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+                  blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+                  blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
                   SK_ComPtr <ID3D11RasterizerState>                     pRasterizerState;
                   pDev->CreateRasterizerState           (&raster_desc, &pRasterizerState);

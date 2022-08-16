@@ -1249,11 +1249,11 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   {
     ///SK_ReleaseAssert ( dstTexDesc.MipLevels <= 1 &&
     ///                   srcTexDesc.MipLevels <= 1 );
-    SK_RunOnce ([&] {
+    SK_RunOnce (
       SK_LOGi0 (
         L" *** SK_D3D11_BltCopySurface (...) from src w/ %d mip levels to dst w/ %d",
-           srcTexDesc.MipLevels, dstTexDesc.MipLevels );
-    })
+           srcTexDesc.MipLevels, dstTexDesc.MipLevels )
+    )
   }
 
   struct {

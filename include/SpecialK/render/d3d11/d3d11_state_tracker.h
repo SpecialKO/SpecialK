@@ -529,12 +529,11 @@ SK_D3D11_CreateShader_Impl (
         static std::string steam_ps_scRGB =
           __SK_MakeSteamPS (false, true, config.platform.overlay_hdr_luminance);
 
-        SK_RunOnce ([&]
-        {
-          SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f nits>",
-                         config.platform.overlay_hdr_luminance * 80.0 ),
-                      L"SteamRange" );
-        });
+        SK_RunOnce (
+           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f nits>",
+                          config.platform.overlay_hdr_luminance * 80.0 ),
+                       L"SteamRange" )
+        );
 
         static ID3D10Blob* steam_blob_scRGB =
         __SK_MakeSteamPS_Bytecode (false, true, config.platform.overlay_hdr_luminance);
@@ -552,7 +551,7 @@ SK_D3D11_CreateShader_Impl (
         static std::string steam_ps_PQ =
           __SK_MakeSteamPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);
 
-        SK_RunOnce ([&]
+        SK_RunOnce (
         {
           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f nits>",
                              config.platform.overlay_hdr_luminance ),

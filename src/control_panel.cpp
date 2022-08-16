@@ -5446,12 +5446,15 @@ SK_ImGui_StageNextFrame (void)
   extern void SK_Widget_InitVolumeControl  (void);
   extern void SK_Widget_InitGPUMonitor     (void);
   extern void SK_Widget_InitTobii          (void);
-  SK_RunOnce (SK_Widget_InitThreadProfiler (    ));
-  SK_RunOnce (SK_Widget_InitFramePacing    (    ));
-  SK_RunOnce (SK_Widget_InitLatency        (    ));
-  SK_RunOnce (SK_Widget_InitVolumeControl  (    ));
-  SK_RunOnce (SK_Widget_InitTobii          (    ));
-  SK_RunOnce (SK_Widget_InitGPUMonitor     (    ));
+  SK_RunOnce (
+  {
+    SK_Widget_InitThreadProfiler ();
+    SK_Widget_InitFramePacing    ();
+    SK_Widget_InitLatency        ();
+    SK_Widget_InitVolumeControl  ();
+    SK_Widget_InitTobii          ();
+    SK_Widget_InitGPUMonitor     ();
+  });
 
   static bool init_widgets = true;
   static auto widgets =

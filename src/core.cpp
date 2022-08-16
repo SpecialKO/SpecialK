@@ -1875,8 +1875,11 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
-  SK_RunOnce (SK_Display_HookModeChangeAPIs ());
-  SK_RunOnce (SK_ApplyQueuedHooks           ());
+  SK_RunOnce (
+  {
+    SK_Display_HookModeChangeAPIs ();
+    SK_ApplyQueuedHooks           ();
+  });
 
   dll_log->LogEx (false,
     L"----------------------------------------------------------------------"
@@ -2697,10 +2700,9 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     {
       if (pinned_files.count (lpFileName) != 0)
       {
-        SK_RunOnce ([&]
-        {
-          SK_LOG0 ( ( L"!! Using already opened copy of %ws", lpFileName ), L"SK CORE" );
-        });
+        SK_RunOnce (
+          SK_LOG0 ( ( L"!! Using already opened copy of %ws", lpFileName ), L"SK CORE" )
+        );
 
         return
           pinned_files [lpFileName];
@@ -2763,10 +2765,9 @@ CreateFileA_Detour ( LPCSTR                lpFileName,
     {
       if (pinned_files.count (lpFileName) != 0)
       {
-        SK_RunOnce ([&]
-        {
-          SK_LOG0 ( ( L"!! Using already opened copy of %hs", lpFileName ), L"SK CORE" );
-        });
+        SK_RunOnce (
+          SK_LOG0 ( ( L"!! Using already opened copy of %hs", lpFileName ), L"SK CORE" )
+        );
 
         return
           pinned_files [lpFileName];
@@ -2900,10 +2901,13 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //
         //  (nb: Must be implemented asynchronously)
         //
-        SK_RunOnce (       SK_Window_RepositionIfNeeded () );
         SK_RunOnce (
-          game_window.active |= (SK_GetForegroundWindow () == game_window.hWnd)
-        );
+        {
+          SK_Window_RepositionIfNeeded ();
+
+          game_window.active |=
+            (SK_GetForegroundWindow () == game_window.hWnd);
+        })
       }
 
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
@@ -2923,7 +2927,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
           case SK_GAME_ID::TheQuarry:
           {
-            SK_RunOnce ([]
+            SK_RunOnce (
             { SK_CreateDLLHook2 (      L"kernel32",
                                         "CreateFileW",
                                          CreateFileW_Detour,

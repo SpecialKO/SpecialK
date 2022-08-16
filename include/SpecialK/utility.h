@@ -326,11 +326,11 @@ SK_GetBitness (void)
 // Avoid the C++ stdlib and use CPU interlocked instructions instead, so this
 //   is safe to use even by parts of the DLL that run before the CRT initializes
 #define SK_RunOnce(x)    { static volatile LONG __once = TRUE; \
-               if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { (x); } }
+               if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { x; } }
 static inline auto
         SK_RunOnceEx =
               [](auto x){ static std::once_flag the_wuncler;
-                            std::call_once (    the_wuncler, [&]{ (x); }); };
+                            std::call_once (    the_wuncler, [&]{ (x)(); }); };
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == ThirtyTwoBit  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == SixtyFourBit  ? (x) :  0; }

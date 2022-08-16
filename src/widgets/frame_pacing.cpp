@@ -125,11 +125,14 @@ struct SK_ImGui_FramePercentiles
     static auto* cp =
       SK_GetCommandProcessor ();
 
-    SK_RunOnce (cp->AddVariable ("FramePacing.DisplayPercentiles",    SK_CreateVar (SK_IVariable::Boolean, &display)));
-    SK_RunOnce (cp->AddVariable ("FramePacing.PercentilesAboveGraph", SK_CreateVar (SK_IVariable::Boolean, &display_above)));
-    SK_RunOnce (cp->AddVariable ("FramePacing.ShortTermPercentiles",  SK_CreateVar (SK_IVariable::Boolean, &display_most_recent)));
-    SK_RunOnce (cp->AddVariable ("FramePacing.Percentile[0].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile0.cutoff)));
-    SK_RunOnce (cp->AddVariable ("FramePacing.Percentile[1].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile1.cutoff)));
+    SK_RunOnce (
+    {
+      cp->AddVariable ("FramePacing.DisplayPercentiles",    SK_CreateVar (SK_IVariable::Boolean, &display));
+      cp->AddVariable ("FramePacing.PercentilesAboveGraph", SK_CreateVar (SK_IVariable::Boolean, &display_above));
+      cp->AddVariable ("FramePacing.ShortTermPercentiles",  SK_CreateVar (SK_IVariable::Boolean, &display_most_recent));
+      cp->AddVariable ("FramePacing.Percentile[0].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile0.cutoff));
+      cp->AddVariable ("FramePacing.Percentile[1].Cutoff",  SK_CreateVar (SK_IVariable::Float,   &percentile1.cutoff));
+    });
   }
 
   void store_percentile_cfg (void)

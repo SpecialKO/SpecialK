@@ -2969,7 +2969,8 @@ SK_CanRestartGame (void)
 {
   static bool can_restart = true;
 
-  SK_RunOnce ([&]
+  static volatile LONG               __once = FALSE;
+  if (! InterlockedCompareExchange (&__once, TRUE, FALSE))
   {
     if (! SK_IsInjected ())
     {
@@ -3023,7 +3024,7 @@ SK_CanRestartGame (void)
         }
       }
     }
-  });
+  }
 
   return can_restart;
 }
@@ -4473,9 +4474,11 @@ void
 SK_HostAppUtil::init (void)
 
 {
-  SK_RunOnce (SKIF     = (StrStrIW ( SK_GetHostApp (), L"SKIF"     ) != nullptr));
-  SK_RunOnce (SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr));
-  SK_RunOnce (RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr));
+  SK_RunOnce ({
+    SKIF     = (StrStrIW ( SK_GetHostApp (), L"SKIF"     ) != nullptr);
+    SKIM     = (StrStrIW ( SK_GetHostApp (), L"SKIM"     ) != nullptr);
+    RunDll32 = (StrStrIW ( SK_GetHostApp (), L"RunDLL32" ) != nullptr);
+  });
 }
 
 void

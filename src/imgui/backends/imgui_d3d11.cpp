@@ -244,9 +244,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     if (pDevCtx == nullptr)
     {
-      SK_RunOnce ([]{
-        SK_LOGi0 (L"ImGui_ImplDX11_RenderDrawData (...) aborted; no working render context available.");
-      });
+      SK_RunOnce (
+        SK_LOGi0 (L"ImGui_ImplDX11_RenderDrawData (...) aborted; no working render context available.")
+      );
       
       return;
     }

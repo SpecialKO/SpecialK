@@ -1999,8 +1999,10 @@ D3D12CreateDevice_Detour (
         //  (IUnknown *)*ppDevice;
       //}
 
-      SK_RunOnce (SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice));
-      SK_RunOnce (SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice));
+      SK_RunOnce ({
+        SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
+        SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
+      });
     }
   }
 

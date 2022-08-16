@@ -271,12 +271,9 @@ SK::ControlPanel::PlugIns::Draw (void)
 
           if (bUnity)
           {
-            SK_RunOnce ([]
-            {
-              SK_ImGui_Warning (
-                L"NOTE: This is unlikely to work in a Unity Engine game, a local version of ReShade may be necessary."
-              );
-            });
+            SK_ImGui_Warning (
+              L"NOTE: This is unlikely to work in a Unity Engine game, a local version of ReShade may be necessary."
+            );
           }
         }
       }

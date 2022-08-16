@@ -6220,8 +6220,10 @@ void SK_DXGI_HookPresent1    (IDXGISwapChain1 *pSwapChain1);
 void
 SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
 {
-  SK_RunOnce (SK_DXGI_HookFactory (pFactory));
-  SK_RunOnce (SK_ApplyQueuedHooks (        ));
+  SK_RunOnce ({
+    SK_DXGI_HookFactory (pFactory);
+    SK_ApplyQueuedHooks (        );
+  });
 }
 
 void

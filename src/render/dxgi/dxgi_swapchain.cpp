@@ -424,7 +424,7 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
          riid != IID_ID3D11Texture2D1 &&
          riid != IID_ID3D11Resource )
     {
-      SK_RunOnce ([&]
+      SK_RunOnce (
       {
         wchar_t                wszGUID [41] = { };
         StringFromGUID2 (riid, wszGUID, 40);

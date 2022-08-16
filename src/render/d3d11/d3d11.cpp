@@ -1187,9 +1187,9 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
             //   multi-sampled targets, so let's give them some assistance to fix this.
             if (tex_desc.SampleDesc.Count > 1)
             {
-              SK_RunOnce ([]{
-                SK_LOGi0 (L"Multisampled SwapChain Backbuffer RTV Created");
-              });
+              SK_RunOnce (
+                SK_LOGi0 (L"Multisampled SwapChain Backbuffer RTV Created")
+              );
 
               if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
               {
@@ -1198,9 +1198,9 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                 // 
                 //  * In future, SetPrivateDataInterface (...) a multisampled intermediate
                 //      buffer the game can use and we'll do resolve for it.
-                SK_RunOnce ([]{
-                  SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...");
-                });
+                SK_RunOnce (
+                  SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...")
+                );
                 
                 desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
               }
@@ -1245,9 +1245,9 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                 {
                   if (pDesc != nullptr)
                   {
-                    SK_RunOnce ([]{
-                      SK_ImGui_Warning (L"Incompatible SwapChain RTV Format Requested");
-                    });
+                    SK_RunOnce (
+                      SK_ImGui_Warning (L"Incompatible SwapChain RTV Format Requested")
+                    );
                   }
 
                   desc.Format = internalSwapChainFormat;
@@ -1832,14 +1832,13 @@ SK_D3D11_CopySubresourceRegion_Impl (
                                  pSrcBox->right  == srcDesc.Width &&
                                  pSrcBox->bottom == srcDesc.Height) );
 
-              SK_RunOnce ([&]
-              {
+              SK_RunOnce (
                 SK_LOGi0 (
                   L"CopySubresourceRegion (...) called using incompatible"
                   L" formats (src=%hs), (dst=%hs), attempting to fix with BltSurfaceCopy",
                     SK_DXGI_FormatToStr (srcDesc.Format).data (),
-                    SK_DXGI_FormatToStr (dstDesc.Format).data () );
-              });
+                    SK_DXGI_FormatToStr (dstDesc.Format).data () )
+              );
 
               // NOTE: This does not replicate the actual -sub- region part of the
               //         API and will probably break things if it's ever relied on.
@@ -8016,7 +8015,7 @@ D3D11CreateDevice_Detour (
     &pTLS->render->d3d11->skip_d3d11_create_device
   );
   
-  SK_RunOnce ([&] {
+  SK_RunOnce ({
     SK_D3D11_Init ();
     pTLS->render->d3d11->skip_d3d11_create_device = TRUE;
   });

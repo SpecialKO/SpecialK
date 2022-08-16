@@ -215,17 +215,14 @@ struct {
       dwOrigProtect = 0x0;
 
     SK_RunOnce (
+    {
       VirtualProtect ( pTick, sizeof (float),
-                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
-    );
-    SK_RunOnce (
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect );
       VirtualProtect ( pStep, sizeof (float),
-                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
-    );
-    SK_RunOnce (
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect );
       VirtualProtect ( pStepNPC, sizeof (float),
-                         PAGE_EXECUTE_READWRITE, &dwOrigProtect )
-    );
+                         PAGE_EXECUTE_READWRITE, &dwOrigProtect );
+    });
 
     *pStep    = player.paused ? 0.0f : _dt;
     *pStepNPC = npc.paused    ? 0.0f : _dt;

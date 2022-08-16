@@ -3213,12 +3213,15 @@ SK_Window_RepositionIfNeeded (void)
         SK_Window_WaitForAsyncSetWindowLong ();
 
         ////// Force a sane set of window styles initially
-        SK_RunOnce (SK_SetWindowStyle (
-          SK_GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)
-        ));
-        SK_RunOnce (SK_SetWindowStyleEx (
-          SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE)
-        ));
+        SK_RunOnce (
+        {
+          SK_SetWindowStyle (
+            SK_GetWindowLongPtrW (game_window.hWnd, GWL_STYLE)
+          );
+          SK_SetWindowStyleEx (
+            SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE)
+          );
+        })
       }
 
       static constexpr DWORD _WorkSignal = WAIT_OBJECT_0 + 1;
