@@ -2356,6 +2356,11 @@ auto DeclKeybind =
       {
         // Game requires sRGB Passthrough for proper SDR color
         config.render.dxgi.srgb_behavior = -1;
+
+        // Game has a funny IAT with DLL dependencies it does not need
+        config.apis.OpenGL.hook          = false;
+        config.apis.d3d9.hook            = false;
+        config.apis.d3d9ex.hook          = false;
       } break;
 
       case SK_GAME_ID::PathOfExile:

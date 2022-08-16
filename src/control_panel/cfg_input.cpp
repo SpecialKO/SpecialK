@@ -413,18 +413,40 @@ SK::ControlPanel::Input::Draw (void)
 
     if (ImGui::CollapsingHeader ("Mouse Cursor"))
     {
+      auto _CursorBoundaryWidget = [&]()
+      {
+        ImGui::BeginGroup             ();
+        ImGui::VerticalSeparator      ();
+        ImGui::SameLine               ();
+        SK_ImGui_CursorBoundaryConfig ();
+        ImGui::EndGroup               ();
+      };
+
       ImGui::TreePush ("");
       ImGui::BeginGroup ();
-      ImGui::Checkbox   ( "Hide When Not Moved", &config.input.cursor.manage        );
+      ImGui::BeginGroup ();
+
+      bool bIdleHideChange =
+      ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage        );
+      
+      if ( bIdleHideChange )
+        SK_ImGui_Cursor.force = sk_cursor_state::None;
+
+      ImVec2 vCursorWidgetPos (0.0f, 0.0f);
 
       if (config.input.cursor.manage) {
         ImGui::TreePush ("");
         ImGui::Checkbox ( "or Key Pressed",
                                                  &config.input.cursor.keys_activate );
         ImGui::TreePop  ();
+        ImGui::SameLine ();
+
+        vCursorWidgetPos =
+          ImGui::GetCursorPos ();
       }
 
       ImGui::EndGroup   ();
+      ImGui::BeginGroup ();
 
       if (config.input.cursor.manage)
       {
@@ -449,28 +471,63 @@ SK::ControlPanel::Input::Draw (void)
         }
 
         ImGui::PopStyleColor (4);
+
+        ImGui::SetCursorPos   (vCursorWidgetPos);
+        _CursorBoundaryWidget ();
       }
 
 #if 1
       if (! config.input.cursor.manage)
       {
-        if (! SK_Window_IsCursorActive ())
+        if (SK_ImGui_Cursor.force == sk_cursor_state::None)
         {
-          if (ImGui::Button (" Force Mouse Cursor Visible "))
+          if (! SK_InputUtil_IsHWCursorVisible ())
           {
-            SK_Window_ActivateCursor (true);
+            if (ImGui::Button (" Force Mouse Cursor Visible "))
+            {
+              SK_ImGui_Cursor.force = sk_cursor_state::Visible;
+            }
+          }
+
+          else
+          {
+            if (ImGui::Button (" Force Mouse Cursor Hidden "))
+            {
+              SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip (
+                "May not work in some games, auto-hide (0.0 seconds) may help..."
+              );
+            }
           }
         }
 
         else
         {
-          if (ImGui::Button (" Force Mouse Cursor Hidden "))
+          constexpr auto stop_hiding_label  = " Stop Forcing Cursor Hidden ";
+          constexpr auto stop_showing_label = " Stop Forcing Cursor Visible ";
+
+          if ( ImGui::Button ( SK_ImGui_Cursor.force ==
+                                     sk_cursor_state::Hidden ?
+                                           stop_hiding_label :
+                                           stop_showing_label ) )
           {
-            SK_Window_DeactivateCursor (true);
+            SK_ImGui_Cursor.force = sk_cursor_state::None;
           }
         }
       }
 #endif
+      ImGui::EndGroup ();
+      ImGui::EndGroup ();
+
+      if (! config.input.cursor.manage)
+      {
+        ImGui::SameLine       ();
+        _CursorBoundaryWidget ();
+      }
 
       ImGui::TreePop ();
     }
@@ -504,7 +561,8 @@ SK::ControlPanel::Input::Draw (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Re-installs input hooks if third-party hooks are detected.");
+          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                              "Re-installs input hooks if third-party hooks are detected.");
           ImGui::Separator ();
           ImGui::BulletText ("This may improve compatibility with x360ce, but will require a game restart.");
           ImGui::EndTooltip ();
@@ -516,7 +574,8 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevents double input processing in games that support XInput and native PS4.");
+          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                              "Prevents double input processing in games that support XInput and native PS4.");
           ImGui::Separator   ();
           ImGui::BulletText  ("This option requires restarting the game.");
         ImGui::EndTooltip    ();
@@ -570,7 +629,8 @@ SK::ControlPanel::Input::Draw (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f), "Substitute Real Controllers With Virtual Ones Until Connected.");
+          ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                               "Substitute Real Controllers With Virtual Ones Until Connected.");
           ImGui::Separator    ();
           ImGui::BulletText   ("Useful for games that do not normally support hot-plugging");
           ImGui::BulletText   ("Improves performance in games that poll disconnected controllers");
@@ -983,7 +1043,7 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop       ( );
     }
 
-    if (ImGui::CollapsingHeader ("Low-Level Mouse Settings", ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Low-Level Mouse Settings"))//, ImGuiTreeNodeFlags_DefaultOpen))
     {
       static bool  deadzone_hovered = false;
              float float_thresh     = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
@@ -1019,7 +1079,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       ImGui::TreePush      ("");
 
-      ImGui::BeginGroup    ();
+      ImGui::BeginGroup    (  );
       ImGui::Text          ("Mouse Problems?");
       ImGui::TreePush      ("");
 
@@ -1192,16 +1252,17 @@ extern float SK_ImGui_PulseNav_Strength;
     }
 
     const bool devices =
-      ImGui::CollapsingHeader ("Enable / Disable Devices");
+      ImGui::CollapsingHeader ("Enable / Disable Devices", ImGuiTreeNodeFlags_DefaultOpen);
 
     if (devices)
     {
-      ImGui::TreePush  ("");
-      ImGui::Combo     ("Mouse Input", &config.input.mouse.disabled_to_game,
-                        "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
-    //ImGui::SameLine  ();
-      ImGui::Combo     ("Keyboard Input", &config.input.keyboard.disabled_to_game,
-                        "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+      ImGui::TreePush     ("");
+      ImGui::BeginGroup   (  );
+      ImGui::BeginGroup   (  );
+      ImGui::Combo        ("Mouse Input", &config.input.mouse.disabled_to_game,
+                           "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+      ImGui::Combo        ("Keyboard Input", &config.input.keyboard.disabled_to_game,
+                           "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
 
       if (ImGui::IsItemHovered () && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
         ImGui::SetTooltip ("Most games block keyboard input in the background to begin with...");
@@ -1214,13 +1275,44 @@ extern float SK_ImGui_PulseNav_Strength;
         //          SK_HID_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
         //     SK_RawInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
         //       SK_XInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 )
-        {
-        //ImGui::SameLine  ();
-          ImGui::Combo     ("Gamepad Input", &config.input.gamepad.disabled_to_game,
-                            "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
-        //ImGui::Checkbox  ("Disable Gamepad Input to Game",  &config.input.gamepad.disabled_to_game);
-        }
+        ImGui::Combo      ("Gamepad Input", &config.input.gamepad.disabled_to_game,
+                           "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+
+        if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Does not apply to Steam Input; Steam tracks the game window itself.");
       }
+      ImGui::EndGroup     (  );
+
+      ImGui::SameLine          ();
+      ImGui::VerticalSeparator ();
+      ImGui::SameLine          ();
+
+      ImGui::BeginGroup   (  );
+      ImGui::PushStyleColor
+                          (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.f));
+      ImGui::PushItemWidth(
+        ImGui::GetFont ()->CalcTextSizeA (
+          1.0f, FLT_MAX, 0.0f, "If \"Continue Rendering\" and Gamepad Input are Enabled, TTT"
+        ).x
+      );
+      ImGui::TextWrapped  ("If \"Continue Rendering\" and Gamepad Input are Enabled, "
+                           "you can continue playing this game using your Gamepad(s) "
+                           "while other applications use your Keyboard & Mouse.");
+      ImGui::PopItemWidth (  );
+      ImGui::PopStyleColor(  );
+      ImGui::EndGroup     (  );
+      ImGui::Separator    (  );
+      ImGui::EndGroup     (  );
+      ImGui::BeginGroup   (  );
+      ImGui::TextColored  (ImVec4 (.666f, 1.f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
+      ImGui::SameLine     (  );
+      ImGui::PushStyleColor
+                          (ImGuiCol_Text, ImVec4 (0.825f, 0.825f, 0.825f, 1.f));
+      ImGui::TextUnformatted
+                          ("These settings work best in conjunction with "
+                           "\"Continue Rendering\" (refer to Window Management)");
+      ImGui::PopStyleColor(  );
+      ImGui::EndGroup     (  );
 #if 0
       ImGui::Separator ();
 
@@ -1603,4 +1695,59 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
   }
 
   return 0;
+}
+
+void
+SK_ImGui_CursorBoundaryConfig (void)
+{
+  ImGui::Text     ("Cursor Boundaries");
+  ImGui::TreePush ("");
+  
+  int  ovr     = 0;
+  bool changed = false;
+  
+  if (config.window.confine_cursor)
+    ovr = 1;
+  if (config.window.unconfine_cursor)
+    ovr = 2;
+  
+  changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
+  changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
+  
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip ();
+    ImGui::Text         ("Prevents Mouse Cursor from Leaving the Game Window");
+    ImGui::Separator    ();
+    ImGui::BulletText   ("This window-lock will be disengaged when you press Alt + Tab");
+    ImGui::EndTooltip   ();
+  }
+  
+  changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
+  
+  if (ImGui::IsItemHovered ())
+    ImGui::SetTooltip ("Prevent Game from Restricting Cursor to Window");
+  
+  if (changed)
+  {
+    switch (ovr)
+    {
+      case 0:
+        config.window.confine_cursor   = 0;
+        config.window.unconfine_cursor = 0;
+        break;
+      case 1:
+        config.window.confine_cursor   = 1;
+        config.window.unconfine_cursor = 0;
+        break;
+      case 2:
+        config.window.confine_cursor   = 0;
+        config.window.unconfine_cursor = 1;
+        break;
+    }
+  
+    SK_ImGui_AdjustCursor ();
+  }
+  
+  ImGui::TreePop ();
 }

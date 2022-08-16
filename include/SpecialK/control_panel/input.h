@@ -33,4 +33,6 @@ namespace SK
   };
 };
 
+extern void SK_ImGui_CursorBoundaryConfig (void);
+
 #endif /* __SK__CPL_INPUT_H__ */

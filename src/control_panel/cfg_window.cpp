@@ -415,56 +415,7 @@ SK::ControlPanel::Window::Draw (void)
 
       ImGui::TreePop ();
 
-      ImGui::Text     ("Cursor Boundaries");
-      ImGui::TreePush ("");
-
-      int  ovr     = 0;
-      bool changed = false;
-
-      if (config.window.confine_cursor)
-        ovr = 1;
-      if (config.window.unconfine_cursor)
-        ovr = 2;
-
-      changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
-      changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Prevents Mouse Cursor from Leaving the Game Window");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("This window-lock will be disengaged when you press Alt + Tab");
-        ImGui::EndTooltip   ();
-      }
-
-      changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Prevent Game from Restricting Cursor to Window");
-
-      if (changed)
-      {
-        switch (ovr)
-        {
-          case 0:
-            config.window.confine_cursor   = 0;
-            config.window.unconfine_cursor = 0;
-            break;
-          case 1:
-            config.window.confine_cursor   = 1;
-            config.window.unconfine_cursor = 0;
-            break;
-          case 2:
-            config.window.confine_cursor   = 0;
-            config.window.unconfine_cursor = 1;
-            break;
-        }
-
-        SK_ImGui_AdjustCursor ();
-      }
-
-      ImGui::TreePop ();
+      SK_ImGui_CursorBoundaryConfig ();
 
       ImGui::Checkbox ("Disable Screensaver", &config.window.disable_screensaver);
 

@@ -615,9 +615,6 @@ ImGui_UniversalMouseDispatch ( UINT msg, WPARAM wParam, LPARAM lParam )
 bool
 SK_ImGui_WantMouseWarpFiltering (void)
 {
-  extern bool
-  SK_InputUtil_IsHWCursorVisible (void);
-
   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
        ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
   {
@@ -2662,12 +2659,12 @@ SK_ImGui_User_NewFrame (void)
                                                               // Disabled to game is a form of capture,
                                                               //   but it is exempt from idle cursor logic
 
-  if (config.input.cursor.manage)
-  {
-    extern bool SK_Window_IsCursorActive       (void);
-    extern bool SK_InputUtil_IsHWCursorVisible (void);
+  const bool bManageCursor =
+    (config.input.cursor.manage || SK_ImGui_Cursor.force != sk_cursor_state::None);
 
-    if (SK_Window_IsCursorActive ())
+  if (bManageCursor)
+  {
+    if (SK_Window_IsCursorActive () && SK_ImGui_Cursor.force != sk_cursor_state::Hidden)
     {
       if (! SK_InputUtil_IsHWCursorVisible ())
       {
@@ -2678,7 +2675,7 @@ SK_ImGui_User_NewFrame (void)
       }
     }
 
-    else
+    else if (config.input.cursor.manage || SK_ImGui_Cursor.force == sk_cursor_state::Hidden)
     {
       if (SK_InputUtil_IsHWCursorVisible ())
       {
@@ -2700,9 +2697,6 @@ SK_ImGui_User_NewFrame (void)
       extern HCURSOR ImGui_DesiredCursor (void);
       SK_SetCursor  (ImGui_DesiredCursor ());
     }
-
-    extern bool
-    SK_InputUtil_IsHWCursorVisible (void);
 
     io.MouseDrawCursor =
       (! SK_InputUtil_IsHWCursorVisible ());
