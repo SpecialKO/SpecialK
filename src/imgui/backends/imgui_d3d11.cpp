@@ -1842,6 +1842,10 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (! SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV.p, _d3d11_rbk->_pDevice) &&
+        SK_D3D11_EnsureMatchingDevices (pSwapChain,                         _d3d11_rbk->_pDevice))
+    return;
+
   D3DX11_STATE_BLOCK
               sblock = { };
   auto* sb = &sblock;
@@ -1853,10 +1857,6 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   // Not necessarily having anything to do with HDR, this is a placeholder for now.
   _pDeviceCtx->OMSetRenderTargets (1, &_d3d11_rbk->frames_ [0].hdr.pRTV.p,    nullptr);
   _pDeviceCtx->OMSetBlendState    (    _d3d11_rbk->pGenericBlend, nullptr, 0xffffffff);
-
-  if (! SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV.p, _d3d11_rbk->_pDevice) &&
-        SK_D3D11_EnsureMatchingDevices (pSwapChain,                         _d3d11_rbk->_pDevice))
-    return;
 
   D3D11_TEXTURE2D_DESC                             tex2d_desc = { };
   _d3d11_rbk->frames_ [0].pRenderOutput->GetDesc (&tex2d_desc);

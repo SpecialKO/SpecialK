@@ -1331,6 +1331,23 @@ SK_D3D11_UpdateSubresource_Impl (
                                            SrcDepthPitch );
   };
 
+  if (pDstResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device>  pResourceDevice;
+    pDstResource->GetDevice (&pResourceDevice.p);
+    if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, pResourceDevice))
+    {
+      if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
+      {
+        pResourceDevice->GetImmediateContext (&pDevCtx);
+        _Finish ();                            pDevCtx->Release ();
+      }
+
+      else
+        return;
+    }
+  }
+
   //return
   //  _Finish ();
 
@@ -1470,7 +1487,7 @@ SK_D3D11_UpdateSubresource_Impl (
                                                pTLS )
       );
 
-      if (pCachedTex != nullptr)
+      if (pCachedTex != nullptr && textures->Textures_2D [pCachedTex].injected)
       {
         SK_ComQIPtr <ID3D11Resource> pCachedResource (pCachedTex);
 
@@ -1478,7 +1495,7 @@ SK_D3D11_UpdateSubresource_Impl (
           pDevCtx->CopyResource (pDstResource,                pCachedResource)
                  :
           D3D11_CopyResource_Original (pDevCtx, pDstResource, pCachedResource);
-
+      
         SK_LOG1 ( ( L"Texture Cache Hit (Slow Path): (%lux%lu) -- %x",
                       desc.Width, desc.Height, top_crc32c ),
                     L"DX11TexMgr" );
@@ -1487,15 +1504,20 @@ SK_D3D11_UpdateSubresource_Impl (
 
         return;
       }
-
+      
       else
       {
-        if (SK_D3D11_TextureIsCached (pTex))
+        if (pCachedTex.p == pTex && desc.Usage != D3D11_USAGE_STAGING)
         {
           SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
                          SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
-          SK_D3D11_RemoveTexFromCache     (pTex, true);
-          SK_D3D11_MarkTextureUncacheable (pTex);
+          SK_D3D11_MarkTextureUncacheable (pCachedTex);
+          SK_D3D11_RemoveTexFromCache     (pCachedTex, true);
+
+          // This is going to keep happening and reduce the number of actually cacheable textures
+          //   unless this auto-disable is applied.
+          if (SK_GetCurrentRenderBackend ().windows.unity)
+            config.textures.cache.ignore_nonmipped = true;
         }
 
         if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
@@ -5244,7 +5266,7 @@ D3D11Dev_CreateTexture2D_Impl (
       pTLS = SK_TLS_Bottom ();
 
   bool bIgnoreThisUpload =
-    false;// SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
+    SK_D3D11_IsTexInjectThread (pTLS) || pTLS->imgui->drawing;
 
   //--- HDR Format Wars (or at least format re-training) ---
   DXGI_SWAP_CHAIN_DESC      swapDesc = { };

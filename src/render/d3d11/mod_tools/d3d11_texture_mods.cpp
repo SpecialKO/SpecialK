@@ -914,6 +914,12 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           ImGui::TextColored (ImColor::HSV (0.25f, 1.0f, 1.0f), "Staged textures cannot be re-injected yet.");
         }
 
+        if (SK_D3D11_IsTextureUncacheable (pTex))
+        {
+          ImGui::SameLine ();
+          ImGui::TextColored (ImColor::HSV (0.05f, 1.0f, 1.0f), "Texture may not be re-injectable.");
+        }
+
         if (entry.injected)
         {
           if ( ImGui::Button ("  Reload Texture  ###ReloadTexture") )

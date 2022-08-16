@@ -1621,19 +1621,13 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
     return E_NOINTERFACE;
   }
 
-  static constexpr float
-    fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f }; // Black pixels matter
-
-  if (pColor == nullptr)
-      pColor = fClearColor;
-
   UINT currentBuffer =
     0;// pSwap3->GetCurrentBackBufferIndex ();
 
   if ( SUCCEEDED ( pSwap3->GetBuffer (
                      currentBuffer,
                        IID_PPV_ARGS (&pBackbuffer.p)
-     )           )                  )
+     )           )                   )
   {
     ID3D11RenderTargetView* pRawRTV = nullptr;
 
@@ -1686,7 +1680,8 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
       }
     }
 
-    else if ( SUCCEEDED ( pDev->CreateRenderTargetView (
+    else if ( SK_D3D11_EnsureMatchingDevices (pSwapChain, pDev) &&
+              SUCCEEDED ( pDev->CreateRenderTargetView (
                                         pBackbuffer, nullptr,
                                        &pBackbufferRTV.p       )
             )           )
@@ -1698,10 +1693,7 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
                                         &pOrigDSV     .p );
 
       pDevCtx->OMSetRenderTargets    (1, &pBackbufferRTV.p, nullptr);
-      pDevCtx->ClearRenderTargetView (    pBackbufferRTV.p,
-                          pColor != nullptr ?
-                          pColor            :
-                     fClearColor                    );
+      pDevCtx->ClearRenderTargetView (    pBackbufferRTV.p,  pColor);
       pDevCtx->OMSetRenderTargets    ( D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
                                        &pOrigRTVs [0].p,
                                         pOrigDSV     .p );

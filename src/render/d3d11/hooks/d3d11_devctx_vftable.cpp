@@ -26,6 +26,7 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/utility/d3d11_texture.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 D3D11Dev_CreateRasterizerState_pfn                  D3D11Dev_CreateRasterizerState_Original                  = nullptr;
 D3D11Dev_CreateSamplerState_pfn                     D3D11Dev_CreateSamplerState_Original                     = nullptr;
@@ -1352,12 +1353,12 @@ D3D11_UpdateSubresource_Override (
         pDstResource,
          DstSubresource, pDstBox,
                          pSrcData, SrcRowPitch,
-                                   SrcDepthPitch
-    );
+                                   SrcDepthPitch );
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-            EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
+                                    EXCEPTION_EXECUTE_HANDLER  :
+                                    EXCEPTION_CONTINUE_SEARCH )
   {
     SK_LOGi0 (L"Access Violation during ID3D11DeviceContext::UpdateSubresource (...)");
   }

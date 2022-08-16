@@ -538,7 +538,7 @@ struct sk_config_t
       bool    disable_virtual_vbi  =  true; // Disable Windows 11 Dynamic Refresh Rate
       bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
       bool    clear_flipped_chain  =  true; // Clear buffers on present? (non-compliant)
-      float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+      float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
     } dxgi;
 
     struct {

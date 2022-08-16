@@ -1832,14 +1832,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           outPixels [j]   =   value;
                         }
                       }, un_scrgb)                             : E_POINTER;
+                }
 
-                  if (         un_scrgb.GetImageCount () == 1) {
-                    Convert ( *un_scrgb.GetImages     (),
-                                DXGI_FORMAT_B8G8R8X8_UNORM,
-                                  filterFlags,
-                                    TEX_THRESHOLD_DEFAULT,
-                                      un_srgb );
-                  }
+                if (         un_scrgb.GetImageCount () == 1) {
+                  Convert ( *un_scrgb.GetImages     (),
+                              DXGI_FORMAT_B8G8R8X8_UNORM,
+                                filterFlags,
+                                  TEX_THRESHOLD_DEFAULT,
+                                    un_srgb );
                 }
 
                 std::swap (un_srgb, un_scrgb);

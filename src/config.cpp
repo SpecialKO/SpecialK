@@ -689,6 +689,7 @@ struct {
     sk::ParameterBool*    skip_redundant_modes    = nullptr;
     sk::ParameterBool*    temporary_dwm_hdr       = nullptr;
     sk::ParameterBool*    disable_virtual_vbi     = nullptr;
+    sk::ParameterBool*    clear_buffers_after_flip= nullptr;
   } dxgi;
 
   struct {
@@ -1500,6 +1501,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.skip_redundant_modes,       L"Try to keep resolution setting changes to a minimum",       dll_ini,         L"Render.DXGI",           L"SkipRedundantModeChanges"),
     ConfigEntry (render.dxgi.temporary_dwm_hdr,          L"Temporarily Enable DWM-based HDR while the game runs",      dll_ini,         L"Render.DXGI",           L"TemporaryDesktopHDRMode"),
     ConfigEntry (render.dxgi.disable_virtual_vbi,        L"Disable Dynamic Refresh Rate (VBLANK Virtualization)",      dll_ini,         L"Render.DXGI",           L"DisableVirtualizedBlanking"),
+    ConfigEntry (render.dxgi.clear_buffers_after_flip,   L"Clear the SwapChain Backbuffer every frame",                dll_ini,         L"Render.DXGI",           L"ClearFlipModelBackbuffers"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -3358,6 +3360,8 @@ auto DeclKeybind =
   render.dxgi.hide_hdr_support->load     (config.render.dxgi.hide_hdr_support);
   render.dxgi.temporary_dwm_hdr->load    (config.render.dxgi.temporary_dwm_hdr);
   render.dxgi.disable_virtual_vbi->load  (config.render.dxgi.disable_virtual_vbi);
+  render.dxgi.clear_buffers_after_flip->
+                                    load (config.render.dxgi.clear_flipped_chain);
   render.dxgi.enable_factory_cache->load (config.render.dxgi.use_factory_cache);
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
 
@@ -4840,6 +4844,8 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
       render.dxgi.temporary_dwm_hdr->store    (config.render.dxgi.temporary_dwm_hdr);
       render.dxgi.disable_virtual_vbi->store  (config.render.dxgi.disable_virtual_vbi);
+      render.dxgi.clear_buffers_after_flip->
+                                        store (config.render.dxgi.clear_flipped_chain);
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
     }
