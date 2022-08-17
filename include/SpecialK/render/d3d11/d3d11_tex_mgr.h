@@ -175,11 +175,82 @@ BOOL SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture );
 BOOL SK_D3D11_IsTextureUncacheable   ( ID3D11Texture2D *pTexture );
 
 
+struct lod_hash_table_s
+{
+  lod_hash_table_s (void) noexcept (false)
+  {
+    mutex =
+      std::make_shared <SK_Thread_HybridSpinlock> (120);
+  }
+
+  lod_hash_table_s  (const lod_hash_table_s &) = default;
+
+  ~lod_hash_table_s (void)                     = default;
+
+  void              reserve     (size_t   resrv ) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
+  bool              contains    (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.contains); return entries.find    (crc32c) !=
+                                                                                                                                                                          entries.cend    (      ); };
+  void              erase       (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
+  ID3D11Texture2D*& operator [] (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
+
+  bool              contains    (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.contains); return reventries.find    (pTex) !=
+                                                                                                                                                                                reventries.cend    (    ); };
+  void              erase       (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.erase);           reventries.erase   (pTex); };
+  uint32_t&         operator [] (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.index);    return reventries         [pTex]; };
+
+  void              touch       (ID3D11Texture2D *pTex);
+
+  std::unordered_map < uint32_t,
+                       ID3D11Texture2D * > entries;
+  std::unordered_map < ID3D11Texture2D *,
+                       uint32_t         >  reventries;
+  concurrency::concurrent_unordered_map
+                     < ID3D11Texture2D *,
+                       ULONG64          >  last_frame;
+  std::shared_ptr
+               <SK_Thread_HybridSpinlock>  mutex;
+
+  struct {
+    volatile LONG reserve  = 0L;
+    volatile LONG contains = 0L;
+    volatile LONG erase    = 0L;
+    volatile LONG index    = 0L;
+  } contention_score;
+};
+
+struct fmt_hash_matrix_s
+{
+  fmt_hash_matrix_s (void)
+  {
+    map.resize (20);
+
+    map.at ( 1).reserve  ( 256); // Only      1x1
+    map.at ( 2).reserve  ( 512); // Up to     2x2
+    map.at ( 3).reserve  ( 512); // Up to     4x4
+    map.at ( 4).reserve  ( 512); // Up to     8x8
+    map.at ( 5).reserve  (1024); // Up to    16x16
+    map.at ( 6).reserve  ( 512); // Up to    32x32
+    map.at ( 7).reserve  ( 256); // Up to    64x64
+    map.at ( 8).reserve  ( 256); // Up to   128x128
+    map.at ( 9).reserve  (1280); // Up to   256x256
+    map.at (10).reserve  (2048); // Up to   512x512
+    map.at (11).reserve  (4096); // Up to  1024x1024
+    map.at (12).reserve  (4096); // Up to  2048x2048
+    map.at (13).reserve  (1024); // Up to  4096x4096
+    map.at (14).reserve  (  16); // Up to  8192x8192
+    map.at (15).reserve  (   8); // Up to 16384x16384
+    map.at (16).reserve  (   4); // Up to 32768x32768
+    map.at (17).reserve  (   2); // Up to 65536x65536
+  }
+
+  std::vector <lod_hash_table_s> map;
+};
 
 // Actually more of a cache manager at the moment...
 class SK_D3D11_TexMgr {
 public:
   SK_D3D11_TexMgr (void) {
+    HashMap_Fmt.resize  (200);
     HashMap_2D.resize   (20);
     Blacklist_2D.resize (20);
 
@@ -262,49 +333,7 @@ public:
     ID3D11Texture2D *
   >      TexRefs_2D;
 
-  struct lod_hash_table_s
-  {
-    lod_hash_table_s (void) noexcept (false)
-    {
-      mutex =
-        std::make_shared <SK_Thread_HybridSpinlock> (120);
-    }
-
-    lod_hash_table_s (const SK_D3D11_TexMgr::lod_hash_table_s &) = default;
-
-    ~lod_hash_table_s (void)                                     = default;
-
-    void              reserve     (size_t   resrv ) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.reserve);         entries.reserve (resrv ); };
-    bool              contains    (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.contains); return entries.find    (crc32c) !=
-                                                                                                                                                                            entries.cend    (      ); };
-    void              erase       (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.erase);           entries.erase   (crc32c); };
-    ID3D11Texture2D*& operator [] (uint32_t crc32c) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.index);    return entries         [crc32c]; };
-
-    bool              contains    (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.contains); return reventries.find    (pTex) !=
-                                                                                                                                                                                  reventries.cend    (    ); };
-    void              erase       (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.erase);           reventries.erase   (pTex); };
-    uint32_t&         operator [] (ID3D11Texture2D *pTex) { std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*mutex); InterlockedIncrement (&contention_score.index);    return reventries         [pTex]; };
-
-    void              touch       (ID3D11Texture2D *pTex);
-
-    std::unordered_map < uint32_t,
-                         ID3D11Texture2D * > entries;
-    std::unordered_map < ID3D11Texture2D *,
-                         uint32_t         >  reventries;
-    concurrency::concurrent_unordered_map
-                       < ID3D11Texture2D *,
-                         ULONG64          >  last_frame;
-    std::shared_ptr
-                 <SK_Thread_HybridSpinlock>  mutex;
-
-    struct {
-      volatile LONG reserve  = 0L;
-      volatile LONG contains = 0L;
-      volatile LONG erase    = 0L;
-      volatile LONG index    = 0L;
-    } contention_score;
-  };
-
+  std::vector        < fmt_hash_matrix_s  >   HashMap_Fmt;
   std::vector        < lod_hash_table_s   >   HashMap_2D;
   std::vector        < std::unordered_set <
                         uint32_t          >

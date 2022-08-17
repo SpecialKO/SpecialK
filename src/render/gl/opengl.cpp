@@ -1340,7 +1340,7 @@ wglDeleteContext (HGLRC hglrc)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_gl_ctx);
 
-    for ( auto it : __gl_shared_contexts.get () )
+    for ( auto& it : __gl_shared_contexts.get () )
     {
       if (it.first == hglrc)
       {

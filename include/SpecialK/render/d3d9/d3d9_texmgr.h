@@ -735,8 +735,8 @@ public:
       if ( sm_tex)  sm_tex->getFinished  (sm_loads);
       if (lrg_tex) lrg_tex->getFinished (lrg_loads);
 
-      for ( auto&& load : lrg_loads ) results.emplace_back (load);
-      for ( auto&& load :  sm_loads ) results.emplace_back (load);
+      for ( auto& load : lrg_loads ) results.emplace_back (load);
+      for ( auto& load :  sm_loads ) results.emplace_back (load);
 
       return;
     }

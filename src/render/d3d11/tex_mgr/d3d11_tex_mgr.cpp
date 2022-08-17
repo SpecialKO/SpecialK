@@ -1752,7 +1752,8 @@ SK_D3D11_TexMgr::isTexture2D ( uint32_t              crc32,
   }
 
   return
-    HashMap_2D [pDesc->MipLevels].contains (crc32);
+    HashMap_Fmt [pDesc->Format].map [pDesc->MipLevels].contains (crc32);
+    //HashMap_2D [pDesc->MipLevels].contains (crc32);
 }
 
 void
@@ -2305,7 +2306,8 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
 
   if (isTexture2D (tag, pDesc))
   {
-    ID3D11Texture2D*    it =     HashMap_2D [pDesc->MipLevels][tag];
+    ID3D11Texture2D*    it =     HashMap_Fmt [pDesc->Format].map [pDesc->MipLevels][tag];
+  //ID3D11Texture2D*    it =     HashMap_2D [pDesc->MipLevels][tag];
     tex2D_descriptor_s& desc2d (Textures_2D [it]);
 
     // We use a lockless concurrent hashmap, which makes removal
@@ -2366,10 +2368,14 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
                     L"DX11TexMgr" );
       }
 
-      HashMap_2D   [pDesc->MipLevels].erase (
-        HashMap_2D [pDesc->MipLevels][tag]  );
-      HashMap_2D   [pDesc->MipLevels].erase (
-                                      tag   );
+      HashMap_Fmt   [pDesc->Format].map [pDesc->MipLevels].erase (
+        HashMap_Fmt [pDesc->Format].map [pDesc->MipLevels][tag]  );
+      HashMap_Fmt   [pDesc->Format].map [pDesc->MipLevels].erase (
+                                                           tag   );
+    //HashMap_2D   [pDesc->MipLevels].erase (
+    //  HashMap_2D [pDesc->MipLevels][tag]  );
+    //HashMap_2D   [pDesc->MipLevels].erase (
+    //                                tag   );
       Textures_2D  [it].crc32c = 0x00;
     }
   }
@@ -2415,11 +2421,13 @@ SK_D3D11_TextureIsCachedEx (ID3D11Texture2D* pTex, bool touch = false)
   if ( SK_D3D11_SafeGetTexDesc (pTex, &tex_desc)   &&
                                        tex_desc.MipLevels <  20 )
   {
-    if (textures->HashMap_2D [tex_desc.MipLevels].contains (pTex))
+    if (textures->HashMap_Fmt [tex_desc.Format].map [tex_desc.MipLevels].contains (pTex))
+    //if (textures->HashMap_2D [tex_desc.MipLevels].contains (pTex))
     {
       if (touch && (! SK_D3D11_IsTexInjectThread ()))
       {
-        textures->HashMap_2D [tex_desc.MipLevels].touch (pTex);
+        textures->HashMap_Fmt [tex_desc.Format].map [tex_desc.MipLevels].touch (pTex);
+        //textures->HashMap_2D [tex_desc.MipLevels].touch (pTex);
       }
 
       return
@@ -2547,8 +2555,10 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
     }
     else
     {
-      textures->HashMap_2D [desc.MipLevels].erase ( tag);
-      textures->HashMap_2D [desc.MipLevels].erase (pTex);
+      textures->HashMap_Fmt [desc.Format].map [desc.MipLevels].erase ( tag);
+      textures->HashMap_Fmt [desc.Format].map [desc.MipLevels].erase (pTex);
+    //textures->HashMap_2D [desc.MipLevels].erase ( tag);
+    //textures->HashMap_2D [desc.MipLevels].erase (pTex);
     }
 
     InterlockedExchange (&SK_D3D11_LiveTexturesDirty, TRUE);
@@ -2563,11 +2573,13 @@ SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
 void
 SK_D3D11_TexMgr::updateDebugNames (void)
 {
-  for (auto it : HashMap_2D)
+  //for (auto it : HashMap_2D)
+  for (auto& it0 : HashMap_Fmt)
+  for (auto& it  : it0.map)
   {
     std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
 
-    for (auto it2 : it.entries)
+    for (auto& it2 : it.entries)
     {
       if (it2.second == nullptr)
         continue;
@@ -2714,7 +2726,8 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
       (! (texDesc = Textures_2D [pTex]).discard) )
   {
     // If we are updating once per-frame, then remove the freaking texture :)
-    if (HashMap_2D [texDesc.orig_desc.MipLevels].contains (texDesc.tag))
+    if (HashMap_Fmt [texDesc.orig_desc.Format].map [texDesc.orig_desc.MipLevels].contains (texDesc.tag))
+    //if (HashMap_2D [texDesc.orig_desc.MipLevels].contains (texDesc.tag))
     {
       if (texDesc.last_frame > SK_GetFramesDrawn () - 3)
       {
@@ -2800,14 +2813,18 @@ SK_D3D11_TexMgr::refTexture2D ( ID3D11Texture2D*      pTex,
   // Hold a reference ourselves so that the game cannot free it
   pTex->AddRef ();
 
-  HashMap_2D [desc2d.orig_desc.MipLevels][tag]  = pTex;
-  HashMap_2D [desc2d.orig_desc.MipLevels][pTex] = tag;
+  HashMap_Fmt [desc2d.orig_desc.Format].map [desc2d.orig_desc.MipLevels][tag]  = pTex;
+  HashMap_Fmt [desc2d.orig_desc.Format].map [desc2d.orig_desc.MipLevels][pTex] = tag;
+//HashMap_2D [desc2d.orig_desc.MipLevels][tag]  = pTex;
+//HashMap_2D [desc2d.orig_desc.MipLevels][pTex] = tag;
 
   // Also insert into the hashmap for the number of mipmaps in the MODIFIED texture
   if (desc2d.orig_desc.MipLevels != desc2d.desc.MipLevels)
   {
-    HashMap_2D [desc2d.desc.MipLevels][tag]  = pTex;
-    HashMap_2D [desc2d.desc.MipLevels][pTex] = tag;
+    HashMap_Fmt [desc2d.desc.Format].map [desc2d.desc.MipLevels][tag]  = pTex;
+    HashMap_Fmt [desc2d.desc.Format].map [desc2d.desc.MipLevels][pTex] = tag;
+  //HashMap_2D [desc2d.desc.MipLevels][tag]  = pTex;
+  //HashMap_2D [desc2d.desc.MipLevels][pTex] = tag;
   }
 
   Textures_2D.insert            (std::make_pair (pTex, desc2d));
@@ -3561,7 +3578,7 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 //       first usage incurs the expense of an update.
 //
 void
-SK_D3D11_TexMgr::lod_hash_table_s::touch (ID3D11Texture2D *pTex)
+lod_hash_table_s::touch (ID3D11Texture2D *pTex)
 {
   static volatile
     ID3D11Texture2D *last_tex   = nullptr;

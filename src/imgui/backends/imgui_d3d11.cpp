@@ -1873,22 +1873,6 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     vp.TopLeftX = 0.0f;
     vp.TopLeftY = 0.0f;
 
-  auto DrawSteamPopups = [&](void) ->
-  void
-  {
-    if (SK_Steam_DrawOSD ())
-    {
-#if 0
-      if ((uintptr_t)cegD3D11 > 1)
-      {
-              cegD3D11->beginRendering ();
-        CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-              cegD3D11->endRendering   ();
-      }
-#endif
-    }
-  };
-
   _pDeviceCtx->RSSetViewports (1, &vp);
   {
     bool hudless  =
@@ -1932,8 +1916,6 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     {
       //if (! hudless)
       //{
-        DrawSteamPopups ();
-
         // Last-ditch effort to get the HDR post-process done before the UI.
         void SK_HDR_SnapshotSwapchain (void);
              SK_HDR_SnapshotSwapchain (    );
@@ -1950,11 +1932,6 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
       extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                    SK_ImGui_DrawFrame (       0x00,          nullptr );
-    }
-
-    if ((! hdr_mode))// && hudless)
-    {
-      DrawSteamPopups ();
     }
   }
 

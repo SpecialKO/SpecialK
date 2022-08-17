@@ -53,7 +53,7 @@ SK_SymSetOpts_Once (void)
 {
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+                      SYMOPT_UNDNAME              |// SYMOPT_DEFERRED_LOADS    |
                       SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
                       SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS );
   //
@@ -982,7 +982,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
                                  nullptr, nullptr );
   } while (ret != FALSE);
 
-  for (auto stack_entry : stack_entries)
+  for (auto& stack_entry : stack_entries)
   {
     if (stack_entry.line_number == 0)
     {

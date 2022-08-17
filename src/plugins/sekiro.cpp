@@ -638,7 +638,7 @@ SK_Sekiro_PlugInCfg (void)
               combo_str += "Don't Care";
               combo_str += '\0';
 
-              for ( auto mode : modes )
+              for ( auto& mode : modes )
               {
                 if (/*mode.Format == swapDesc.BufferDesc.Format &&*/
                       mode.Width  == swapDesc.BufferDesc.Width  &&

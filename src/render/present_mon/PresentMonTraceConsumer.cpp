@@ -1471,15 +1471,15 @@ PMTraceConsumer::CompletePresent (std::shared_ptr<PresentEvent> p)
   }
 
   // Complete all other presents that were riding along with this one (i.e. this one came from DWM)
-  for ( auto p2 : p->DependentPresents )
-  { if ((!   p2->IsLost))
+  for ( auto& p2 : p->DependentPresents )
+  { if ((!    p2->IsLost))
     {
     //DebugModifyPresent (
-    //      *p2       );
-             p2->ScreenTime = p->ScreenTime;
-             p2->FinalState = p->FinalState;
+    //       *p2       );
+              p2->ScreenTime = p->ScreenTime;
+              p2->FinalState = p->FinalState;
            CompletePresent (
-             p2            );
+              p2            );
     }
     // The only place a lost present could still exist outside of mLostPresentEvents is the dependents list.
     // A lost present has already been added to mLostPresentEvents, we should never modify it.

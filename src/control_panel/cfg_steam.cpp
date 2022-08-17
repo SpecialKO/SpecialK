@@ -289,7 +289,7 @@ SK::ControlPanel::Steam::Draw (void)
                                      0.1f * font.size_multiline ),
                               true,
                                 ImGuiWindowFlags_AlwaysAutoResize );
-      for ( auto it : files )
+      for ( auto& it : files )
       {
         ImGui::PushID   (it.filename.c_str ());
 

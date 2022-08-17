@@ -145,7 +145,7 @@ sk_hook_target_s::deserialize_ini (const std::wstring& serial_data)
                                 hModLib, &mod_info,
                                   sizeof (MODULEINFO) ) )
   {
-    if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
+    //if (SK_LoadLibrary_PinModule <wchar_t> (wszPath))
     {
        wcscpy_s (module_path, MAX_PATH, wszPath);
       _wcslwr_s (module_path, MAX_PATH);

@@ -3332,7 +3332,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   UINT        enum_count = idx;
   static UINT last_count = idx;
 
-  for ( auto disp : displays )
+  for ( auto& disp : displays )
   {
     // Clear out any old entries that might be wrong now
     disp.primary = false;
