@@ -473,6 +473,9 @@ SK_Steam_KickStart   (const wchar_t* szLibPath = nullptr);
 void
 SK_Steam_KillPump (void);
 
+const wchar_t*
+SK_Steam_GetDLLPath (void);
+
 void
 SK_Steam_SetNotifyCorner (void);
 

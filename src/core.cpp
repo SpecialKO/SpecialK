@@ -956,35 +956,39 @@ void BasicInit (void)
     //
     SK_Steam_InitCommandConsoleVariables  ();
 
-    extern const wchar_t*
-      SK_Steam_GetDLLPath (void);
-
-    ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
-    /////   a number of general-purpose benefits (such as battery charge monitoring).
-    bool kick_start = config.steam.force_load_steamapi;
-
-    if (kick_start || (! SK_Steam_TestImports (SK_GetModuleHandle (nullptr))))
+    // Non-Steam games have non-zero (negative) AppIDs, but cannot use SteamAPI
+    if (SK::SteamAPI::AppID () + config.steam.appid > 0)
     {
-      // Implicitly kick-start anything in SteamApps\common that does not import
-      //   SteamAPI...
-      if ((! kick_start) && config.steam.auto_inject)
+      extern const wchar_t*
+        SK_Steam_GetDLLPath (void);
+
+      ///// Lazy-load SteamAPI into a process that doesn't use it; this brings
+      /////   a number of general-purpose benefits (such as battery charge monitoring).
+      bool kick_start = config.steam.force_load_steamapi;
+
+      if (kick_start || (! SK_Steam_TestImports (SK_GetModuleHandle (nullptr))))
       {
-        if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+        // Implicitly kick-start anything in SteamApps\common that does not import
+        //   SteamAPI...
+        if ((! kick_start) && config.steam.auto_inject)
         {
-          // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
-          //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
-          //     the game won't be happy about that!
-          kick_start =
-            (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
-                  config.steam.force_load_steamapi;
+          if (StrStrIW (SK_GetHostPath (), LR"(SteamApps\common)") != nullptr)
+          {
+            // Only do this if the game doesn't have a copy of the DLL lying around somewhere,
+            //   because if we init Special K's SteamAPI DLL, the game's will fail to init and
+            //     the game won't be happy about that!
+            kick_start =
+              (! SK_Modules->LoadLibrary (SK_Steam_GetDLLPath ())) ||
+                    config.steam.force_load_steamapi;
+          }
         }
+
+        if (kick_start)
+          SK_Steam_KickStart (SK_Steam_GetDLLPath ());
       }
 
-      if (kick_start)
-        SK_Steam_KickStart (SK_Steam_GetDLLPath ());
+      SK_Steam_PreHookCore ();
     }
-
-    SK_Steam_PreHookCore ();
   }
 
   if (SK_COMPAT_IsFrapsPresent ())
@@ -2381,6 +2385,27 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
     UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 }
 
+void
+SK_Log_CleanupLogs (void)
+{
+  if (steam_log->lines <= 2)
+      steam_log->lines =  0;
+
+  if (epic_log->lines < 2)
+      epic_log->lines = 0;
+
+  if (game_debug->lines < 2)
+      game_debug->lines = 0;
+
+  if (budget_log->lines < 2)
+      budget_log->lines = 0;
+
+  budget_log->close ();
+  game_debug->close ();
+  epic_log->close   ();
+  steam_log->close  ();
+}
+
 bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
@@ -2669,6 +2694,12 @@ SK_ShutdownCore (const wchar_t* backend)
     SleepEx_Original        = nullptr;
 
     // ... Many, many more...
+
+    dll_log->LogEx             (true, L"[ SpecialK ] Closing secondary logs...                    ");
+
+    dwTime = SK_timeGetTime    ();
+    SK_Log_CleanupLogs         ();
+    dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
   }
 
 

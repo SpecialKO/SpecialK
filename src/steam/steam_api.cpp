@@ -561,76 +561,88 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   std::wstring& cfg_path =
     config.steam.dll_path;
 
-  if (                               (!cfg_path.empty ()) &&
-      GetFileAttributesW             ( cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
-  { if (SK_Modules->LoadLibrary       (cfg_path.c_str ()))
-    { wcsncpy_s (wszDestBuf, max_size, cfg_path.c_str (), _TRUNCATE);
-      wcsncpy_s (dll_file,   max_size, cfg_path.c_str (), _TRUNCATE);
+  //
+  // This will load, hook and initialize SteamAPI... it should
+  //   only be done if the user (or Steam client) has assigned
+  //     the game an AppID.
+  //
+  //  Otherwise it will create a lot of idle steamclient{64}.dll
+  //    threads for no reason.
+  //
+  if (SK::SteamAPI::AppID () + config.steam.appid > 0)
+  {  // NOTE: non-Steam games are assigned negative AppIDs,
+     //         and cannot initialize SteamAPI.
+    if (                               (!cfg_path.empty ()) &&
+        GetFileAttributesW             ( cfg_path.c_str ()) != INVALID_FILE_ATTRIBUTES )
+    { if (SK_Modules->LoadLibrary       (cfg_path.c_str ()))
+      { wcsncpy_s (wszDestBuf, max_size, cfg_path.c_str (), _TRUNCATE);
+        wcsncpy_s (dll_file,   max_size, cfg_path.c_str (), _TRUNCATE);
+        return true;
+      }
+    }
+
+    cfg_path.resize (0);
+
+    wchar_t      wszExecutablePath [MAX_PATH + 2] = { };
+    wcsncpy_s   (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+    PathAppendW (wszExecutablePath, wszSteamLib);
+
+    // The simplest case:  * DLL is in the same directory as the executable.
+    //
+    if (SK_Modules->LoadLibrary         (wszExecutablePath))
+    {   wcsncpy_s (dll_file,   max_size, wszExecutablePath, _TRUNCATE);
+        wcsncpy_s (wszDestBuf, max_size, dll_file,          _TRUNCATE);
+        cfg_path.assign                 (dll_file);
+
       return true;
     }
-  }
 
-  cfg_path.resize (0);
-
-  wchar_t      wszExecutablePath [MAX_PATH + 2] = { };
-  wcsncpy_s   (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
-  PathAppendW (wszExecutablePath, wszSteamLib);
-
-  // The simplest case:  * DLL is in the same directory as the executable.
-  //
-  if (SK_Modules->LoadLibrary         (wszExecutablePath))
-  {   wcsncpy_s (dll_file,   max_size, wszExecutablePath, _TRUNCATE);
-      wcsncpy_s (wszDestBuf, max_size, dll_file,          _TRUNCATE);
-      cfg_path.assign                 (dll_file);
-
-    return true;
-  }
-
-  wcsncpy_s (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
-  lstrcatW  (wszExecutablePath, L".");
-
-  // Moonwalk to find the game's absolute root directory, rather than
-  //   whatever subdirectory the executable might be in.
-  while (PathRemoveFileSpecW           (wszExecutablePath))
-  { if  (StrStrIW                      (wszExecutablePath, LR"(SteamApps\common\)"))
-  {      wcsncpy_s (dll_file, max_size, wszExecutablePath, _TRUNCATE);
-                             lstrcatW  (wszExecutablePath, L".");
-  } else break;
-  }
-
-  // Try the DLL we went back to the root of the install dir-tree for first.
-  if (                                     *dll_file != L'\0')
-  { wcsncpy_s (wszExecutablePath, MAX_PATH, dll_file, _TRUNCATE); }
-
-  // Then get the base install directory from Steam (if we can).
-  else if (config.steam.appid != 0)
-  { wcsncpy_s ( wszExecutablePath, MAX_PATH,
-               SK_Steam_FindInstallPath (config.steam.appid).c_str (),
-               _TRUNCATE );
-  }
-
-  // Finally, give up and hope the DLL is relative to the executable.
-  else
     wcsncpy_s (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+    lstrcatW  (wszExecutablePath, L".");
 
-  if (StrStrIW (wszExecutablePath, LR"(SteamApps\common\)"))
-  {
-    static wchar_t
-      wszFullSteamDllPath [MAX_PATH + 2] = { };
+    // Moonwalk to find the game's absolute root directory, rather than
+    //   whatever subdirectory the executable might be in.
+    while (PathRemoveFileSpecW           (wszExecutablePath))
+    { if  (StrStrIW                      (wszExecutablePath, LR"(SteamApps\common\)"))
+    {      wcsncpy_s (dll_file, max_size, wszExecutablePath, _TRUNCATE);
+                               lstrcatW  (wszExecutablePath, L".");
+    } else break;
+    }
 
-    std::wstring recursed (
-      _SK_RecursiveFileSearch ( wszExecutablePath,
-                                wszSteamLib        )
-    );
+    // Try the DLL we went back to the root of the install dir-tree for first.
+    if (                                     *dll_file != L'\0')
+    { wcsncpy_s (wszExecutablePath, MAX_PATH, dll_file, _TRUNCATE); }
 
-    wcsncpy_s (dll_file,             MAX_PATH, recursed.c_str (), _TRUNCATE);
-    wcsncpy_s ( wszFullSteamDllPath, MAX_PATH, dll_file,          _TRUNCATE);
+    // Then get the base install directory from Steam (if we can).
+    else if (config.steam.appid != 0)
+    { wcsncpy_s ( wszExecutablePath, MAX_PATH,
+                 SK_Steam_FindInstallPath (config.steam.appid).c_str (),
+                 _TRUNCATE );
+    }
+
+    // Finally, give up and hope the DLL is relative to the executable.
+    else
+      wcsncpy_s (wszExecutablePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
+
+    if (StrStrIW (wszExecutablePath, LR"(SteamApps\common\)"))
+    {
+      static wchar_t
+        wszFullSteamDllPath [MAX_PATH + 2] = { };
+
+      std::wstring recursed (
+        _SK_RecursiveFileSearch ( wszExecutablePath,
+                                  wszSteamLib        )
+      );
+
+      wcsncpy_s (dll_file,             MAX_PATH, recursed.c_str (), _TRUNCATE);
+      wcsncpy_s ( wszFullSteamDllPath, MAX_PATH, dll_file,          _TRUNCATE);
 
 
-    if (SK_Modules->LoadLibrary             (wszFullSteamDllPath))
-    { wcsncpy_s       (wszDestBuf, max_size, wszFullSteamDllPath, _TRUNCATE);
-      cfg_path.assign (wszDestBuf);
-      return true;
+      if (SK_Modules->LoadLibrary             (wszFullSteamDllPath))
+      { wcsncpy_s       (wszDestBuf, max_size, wszFullSteamDllPath, _TRUNCATE);
+        cfg_path.assign (wszDestBuf);
+        return true;
+      }
     }
   }
 
@@ -3946,7 +3958,11 @@ SK_SteamAPI_TakeScreenshot (void)
 void
 SK_Steam_InitCommandConsoleVariables (void)
 {
-  steam_log->init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
+  if (SK::SteamAPI::AppID () + config.steam.appid > 0)
+    steam_log->init (L"logs/steam_api.log", L"wt+,ccs=UTF-8");
+  else // Not a Steam game, but stuff may still be printed...
+    steam_log->init (L"logs/platform.log",  L"wt+,ccs=UTF-8");
+
   steam_log->silent = config.platform.silent;
 
   SK_ICommandProcessor* cmd = nullptr;
