@@ -112,7 +112,7 @@ interface iSK_Logger : public IUnknown
 
   FILE*            fLog        = nullptr;
   std::wstring     name;
-  bool             silent      = false;
+  bool             silent      =  true;
   bool             initialized = false;
   int              lines       =   0;
   CRITICAL_SECTION log_mutex   = {   };

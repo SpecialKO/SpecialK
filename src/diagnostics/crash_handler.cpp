@@ -53,7 +53,7 @@ SK_SymSetOpts_Once (void)
 {
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
   SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                      SYMOPT_UNDNAME              | /*SYMOPT_DEFERRED_LOADS |*/
+                      SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
                       SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
                       SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS );
   //
@@ -262,8 +262,7 @@ CrashHandler::Init (void)
         {
           InitSyms ();
 
-          SetThreadPriority           (
-                        SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST    );
+          SetThreadPriority (SK_GetCurrentThread (), THREAD_PRIORITY_LOWEST);
 
           HRSRC   default_sound =
             FindResource (SK_GetDLL (), MAKEINTRESOURCE (IDR_CRASH), L"WAVE");
@@ -303,11 +302,11 @@ CrashHandler::Init (void)
 void
 CrashHandler::Shutdown (void)
 {
-//SK_SymCleanup (GetCurrentProcess ());
+  SymCleanup (GetCurrentProcess ());
 
   // Strip the blank line and cause empty-file deletion to happen
-  if (crash_log->lines == 1)
-      crash_log->lines =  0;
+  if (crash_log->lines <= 4)
+      crash_log->lines  = 0;
 
   crash_log->close ();
 }
@@ -1768,11 +1767,10 @@ SK_BypassSteamCrashHandler (void)
 {
   if (! config.platform.silent)
   {
-    const wchar_t* wszSteamDLL =
-      SK_RunLHIfBitness (64, L"steam_api64.dll",
-                             L"steam_api.dll");
+    const wchar_t *wszSteamDLL =
+      SK_Steam_GetDLLPath ();
 
-    if (SK_File_GetSize (wszSteamDLL) > 0)
+    if (PathFileExistsW (wszSteamDLL) && SK::SteamAPI::AppID () > 0)
     {
       if (SK_Modules->LoadLibraryLL (wszSteamDLL))
       {
@@ -1807,16 +1805,14 @@ CrashHandler::InitSyms (void)
         nullptr,
           FALSE );
 
-    SK_RunOnce (SK_SymSetOpts ());
-
     SymRefreshModuleList (SK_GetCurrentProcess ());
 
     Init ();
 
-    ///if (config.system.handle_crashes)
-    ///{
-    ///  if (! config.platform.silent)
-    ///    SK_BypassSteamCrashHandler ();
-    ///}
+    //if (config.system.handle_crashes)
+    //{
+    //  if (! config.platform.silent)
+    //    SK_BypassSteamCrashHandler ();
+    //}
   }
 }

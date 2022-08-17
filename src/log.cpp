@@ -586,13 +586,13 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
-    return pLog;
-
-  if (wszName != nullptr)
+  if (SK_GetCurrentGameID () != SK_GAME_ID::Launcher)
   {
-    pLog->init   (wszName, L"wtc+,ccs=UTF-8");
-    pLog->silent = false;
+    if (wszName != nullptr)
+    {
+      pLog->init   (wszName, L"wtc+,ccs=UTF-8");
+      pLog->silent = false;
+    }
   }
 
   return pLog;
@@ -616,7 +616,9 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
                   ulLen );
 
   std::wstring caller =
-    SK_GetCallerName (lpReturnAddr);
+    SK_GetCallerName (lpReturnAddr) + L"\0";
+
+  SK_StripUserNameFromPathW (caller.data ());
 
   if (ulLen > 0)
   {
@@ -625,16 +627,17 @@ SK_SummarizeCaller (LPVOID lpReturnAddr)
 
            caller.c_str               (),
              szSymbol,
- (unsigned int)SK_Thread_GetCurrentId ()
+               SK_Thread_GetCurrentId ()
     );
   }
 
-  else {
+  else
+  {
     swprintf_s ( wszSummary, 255,
                    L"[ %-58s, tid=0x%04x ]",
 
            caller.c_str             (),
-(unsigned int)SK_Thread_GetCurrentId()
+             SK_Thread_GetCurrentId ()
     );
   }
 
