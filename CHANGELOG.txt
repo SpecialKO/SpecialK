@@ -1,4 +1,11 @@
-﻿22.8.17-D3D9-IK
+﻿22.8.17.1-D3D9-IK
+=================
+ + Switched debug symbol loader back to deferred to speed up init
+ + Empty crash/steam/debug out/eos logs are deleted at exit
+ + steam_api.log is renamed platform.log in non-Steam games
+ + Added extra checks to avoid loading SteamAPI DLL in non-Steam games
+
+22.8.17-D3D9-IK
 ===============
  + Changed SK's Plug-In based SteamAPI DLLs to use steam_api_sk{64}.dll instead
      of the traditional steam_api{64}.dll to avoid collisions with software that
