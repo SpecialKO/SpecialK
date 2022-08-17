@@ -606,6 +606,9 @@ BOOL
 WINAPI
 FreeLibrary_Detour (HMODULE hLibModule)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return TRUE;
+
 #ifdef _M_AMD64
   if ( SK_GetCallingDLL () == SK_GetModuleHandle (L"gameoverlayrenderer64.dll") )
 #else /* _M_IX86 */
@@ -825,6 +828,9 @@ HMODULE
 WINAPI
 LoadLibraryA_Detour (LPCSTR lpFileName)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return nullptr;
+
   std::wstring wFileName;
 
   // Stupidity for idTechLauncher
@@ -844,6 +850,9 @@ HMODULE
 WINAPI
 LoadLibraryW_Detour (LPCWSTR lpFileName)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return nullptr;
+
   return
     LoadLibrary_Marshal (
        _ReturnAddress (),
@@ -856,6 +865,9 @@ HMODULE
 WINAPI
 LoadPackagedLibrary_Detour (LPCWSTR lpLibFileName, DWORD Reserved)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return nullptr;
+
 #if 1
   return
     LoadPackagedLibrary_Original (lpLibFileName, Reserved);
@@ -1048,6 +1060,9 @@ LoadLibraryExA_Detour (
   _Reserved_ HANDLE hFile,
   _In_       DWORD  dwFlags )
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return nullptr;
+
   std::wstring wszFileName;
 
   if (lpFileName != nullptr)
@@ -1070,6 +1085,9 @@ LoadLibraryExW_Detour (
   _Reserved_ HANDLE  hFile,
   _In_       DWORD   dwFlags )
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return nullptr;
+
   return
     LoadLibraryEx_Marshal (
       _ReturnAddress (),

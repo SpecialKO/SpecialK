@@ -5256,7 +5256,9 @@ SK_IsHandleValid (HANDLE hHandle)
 	auto dwInfo = 0UL;
 
   return
-	  ( 0 == GetHandleInformation (hHandle, &dwInfo) );
+	  ( 0 != GetHandleInformation (
+             hHandle, &dwInfo ) &&
+                     !(dwInfo & HANDLE_FLAG_PROTECT_FROM_CLOSE) );
 }
 
 BOOL

@@ -105,13 +105,14 @@ SK_Denuvo_UsedByGame (bool retest)
           file.user   = usr_id;
           file.ft_key = fd.ftLastWriteTime;
 
-          HANDLE hFile =
+          SK_AutoHandle hFile (
             CreateFileW ( file.path.c_str (), GENERIC_READ,
                                                 FILE_SHARE_READ,
                                                   nullptr,
                                                     OPEN_EXISTING,
                                                       0,
-                                                        nullptr );
+                                                        nullptr )
+          );
 
           if (hFile != INVALID_HANDLE_VALUE)
           {
@@ -126,8 +127,6 @@ SK_Denuvo_UsedByGame (bool retest)
             denuvo_files->emplace_back (file);
 
             ++files;
-
-            SK_CloseHandle (hFile);
           }
 
           LARGE_INTEGER fsize;

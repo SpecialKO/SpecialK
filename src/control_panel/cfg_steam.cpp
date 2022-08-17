@@ -387,19 +387,24 @@ SK::ControlPanel::Steam::Draw (void)
 
         ImGui::SameLine          ();
 
+        bool retest = false;
+
         ImGui::BeginGroup        ();
         for ( const auto& it : denuvo_files.get () )
         {
-          const size_t found =
-            it.path.find_last_of (L'\\');
-
-          ImGui::PushID (_wtol (&it.path.c_str ()[found + 1]));
-
-          if (ImGui::Button      ("  Delete Me  "))
+          if (ImGui::Button      (SK_FormatString ("  Delete Me  ###%ws", it.path.c_str ()).c_str ()))
           {
-            DeleteFileW (it.path.c_str ());
+            if (DeleteFileW (it.path.c_str ()))
+              retest = true;
 
-            SK_Denuvo_UsedByGame (true); // Re-Test
+            else
+            {
+              SK_ImGui_Warning (
+                SK_FormatStringW (
+                  L"Could not delete file: '%ws'", it.path.c_str ()
+                ).c_str ()
+              );
+            }
           }
 
           if (ImGui::IsItemHovered ())
@@ -413,12 +418,13 @@ SK::ControlPanel::Steam::Draw (void)
           }
 
           ImGui::TextUnformatted ( "" );
-
-          ImGui::PopID           ();
         }
         ImGui::EndGroup          ();
 
         ImGui::TreePop  ();
+
+        if (retest)
+          SK_Denuvo_UsedByGame (true); // Re-Test
       }
 
       else
