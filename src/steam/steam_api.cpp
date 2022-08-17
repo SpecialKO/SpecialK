@@ -2393,50 +2393,32 @@ public:
                       pParam->m_rgchAchievementName );
     }
 
-#ifdef _HAS_CEGUI_REPLACEMENT
-    if ( config.cegui.enable                     &&
-         config.platform.achievements.popup.show &&
-         config.cegui.frames_drawn > 0           &&
-                       achievement != nullptr    )
+    if ( config.platform.achievements.popup.show
+                      && achievement != nullptr )
     {
-      CEGUI::System* pSys =
-        CEGUI::System::getDllSingletonPtr ();
+      if (platform_popup_cs != nullptr)
+          platform_popup_cs->lock ();
 
-      if ( pSys                 != nullptr &&
-           pSys->getRenderer () != nullptr )
+      SK_AchievementPopup popup = { };
+
+      // Little bit of sanity goes a long way
+      if (achievement->progress_.current ==
+          achievement->progress_.max)
       {
-        if (platform_popup_cs != nullptr)
-            platform_popup_cs->lock ();
-
-        try
-        {
-          SK_AchievementPopup popup = { };
-
-          // Little bit of sanity goes a long way
-          if (achievement->progress_.current ==
-              achievement->progress_.max)
-          {
-            // It's implicit
-            achievement->unlocked_ = true;
-          }
-
-          popup.window      = nullptr;
-          popup.final_pos   = false;
-          popup.time        = SK_timeGetTime ();
-          popup.achievement = achievement;
-
-          popups.push_back (popup);
-        }
-
-        catch (const CEGUI::GenericException&)
-        {
-        }
-
-        if (platform_popup_cs != nullptr)
-            platform_popup_cs->unlock ();
+        // It's implicit
+        achievement->unlocked_ = true;
       }
+
+      popup.window      = nullptr;
+      popup.final_pos   = false;
+      popup.time        = SK_timeGetTime ();
+      popup.achievement = achievement;
+
+      popups.push_back (popup);
+
+      if (platform_popup_cs != nullptr)
+          platform_popup_cs->unlock ();
     }
-#endif
   }
 
   void requestStats (void)

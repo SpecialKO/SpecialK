@@ -1,4 +1,13 @@
-﻿22.8.17.1-D3D9-IK
+﻿22.8.17.2-D3D9-IK
+=================
+ + Partial re-implementation of achievement unlock popups
+
+     >> Duration is the only setting currently implemented, and achievement icons
+          are only loaded in D3D9/D3D11/GL at the moment.
+
+ + Optimized D3D11 texture cache for games with many small textures
+
+22.8.17.1-D3D9-IK
 =================
  + Switched debug symbol loader back to deferred to speed up init
  + Empty crash/steam/debug out/eos logs are deleted at exit

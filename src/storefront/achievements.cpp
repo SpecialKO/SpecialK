@@ -24,6 +24,8 @@
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/resource.h>
 
+#include <imgui/font_awesome.h>
+
 //#define _HAS_CEGUI_REPLACEMENT
 #ifdef __CPP20
 #define __cpp_lib_format
@@ -564,7 +566,7 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
     std::error_code                                      ec = { };
     if ( std::filesystem::exists          (friend_stats, ec) &&
          std::filesystem::file_time_type::clock::now ( ) -
-         std::filesystem::last_write_time (friend_stats, ec) > 8h )
+         std::filesystem::last_write_time (friend_stats, ec) < 8h )
     {
       try {
         nlohmann::json jsonFriends =
@@ -1262,6 +1264,7 @@ SK_AchievementManager::clearPopups (void)
   {
     if (platform_popup_cs != nullptr)
         platform_popup_cs->unlock ();
+
     return;
   }
 
@@ -1340,12 +1343,11 @@ SK_Achievement_RarityToName (float percent)
 int
 SK_AchievementManager::drawPopups (void)
 {
-////if (! ( config.cegui.enable &&
-////        config.cegui.frames_drawn > 0))
-////{
-////  return 0;
-////}
-
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
 
   int drawn = 0;
 
@@ -1356,6 +1358,7 @@ SK_AchievementManager::drawPopups (void)
   {
     if (platform_popup_cs != nullptr)
         platform_popup_cs->unlock ();
+
     return drawn;
   }
 
@@ -1445,26 +1448,104 @@ SK_AchievementManager::drawPopups (void)
 
   while (it != popups.cend ())
   {
-    if (SK_timeGetTime () < (*it).time + POPUP_DURATION_MS)
+    if (it->time == 0)
+        it->time = SK_timeGetTime ();
+
+    if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS))
     {
       float percent_of_lifetime =
-        ( static_cast <float> ((*it).time + POPUP_DURATION_MS - SK_timeGetTime ()) /
-          static_cast <float> (             POPUP_DURATION_MS)                     );
+        ( static_cast <float> (it->time + POPUP_DURATION_MS - SK_timeGetTime ()) /
+          static_cast <float> (           POPUP_DURATION_MS)                     );
 
-      //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-      CEGUI::Window* win = (*it).window;
+      ImGuiWindow* win = it->window;
 
       if (win == nullptr)
       {
         win     = createPopupWindow (&*it);
         created = true;
+
+        auto icon_filename =
+          achievements_path /
+            SK_FormatStringW ( L"%ws_%hs.jpg",
+              it->achievement->unlocked_ ? L"Unlocked"
+                                         : L"Locked",
+              it->achievement->name_.c_str () );
+
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        if ( ( static_cast <int> (rb.api) &
+               static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+        {
+          DirectX::TexMetadata  metadata = {};
+          DirectX::ScratchImage image    = {};
+
+          if ( SUCCEEDED (
+                 DirectX::LoadFromWICFile (
+                   icon_filename.c_str (),
+                     0x0, &metadata, image )
+               )
+             )
+          {
+            if ( ( static_cast <int> (rb.api) &
+                   static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+            {
+              SK_ComPtr <ID3D11Resource> pIconTex;
+
+              auto pDev =
+                rb.getDevice <ID3D11Device> ();
+
+              if ( SUCCEEDED (
+                     DirectX::CreateTexture (
+                       pDev, image.GetImages     (),
+                             image.GetImageCount (),
+                               metadata, &pIconTex.p ) )
+                 )
+              {
+                SK_ComPtr <ID3D11ShaderResourceView> pSRV;
+
+                pDev->CreateShaderResourceView (
+                  pIconTex.p, nullptr, &pSRV.p );
+
+                if (pSRV != nullptr)
+                {
+                  it->icon_texture =
+                    pSRV;
+                    pSRV.p->AddRef ();
+                }
+              }
+            }
+          }
+        }
+
+        else if ( ( static_cast <int> (rb.api) &
+                    static_cast <int> (SK_RenderAPI::D3D9) ) != 0x0 )
+        {
+          auto pDev =
+            rb.getDevice <IDirect3DDevice9> ();
+
+          using D3DXCreateTextureFromFileW_pfn =
+            HRESULT (WINAPI *)(LPDIRECT3DDEVICE9,LPCWSTR,LPDIRECT3DTEXTURE9*);
+
+           static
+           D3DXCreateTextureFromFileW_pfn
+          _D3DXCreateTextureFromFileW =
+          (D3DXCreateTextureFromFileW_pfn)SK_GetProcAddress (L"D3DX9_43.DLL",
+          "D3DXCreateTextureFromFileW");
+
+           if (_D3DXCreateTextureFromFileW != nullptr)
+               _D3DXCreateTextureFromFileW ( pDev, icon_filename.c_str (),
+                                               (IDirect3DTexture9 **)&it->icon_texture );
+        }
+
+        ImGui::OpenPopup (it->achievement->name_.c_str ());
       }
 
       const float win_ht =
         256.0f;//win->getPixelSize ().d_height;
 
-      const float win_wd =
-        512.0f;//win->getPixelSize ().d_width;
+      //const float win_wd =
+      //  512.0f;//win->getPixelSize ().d_width;
 
       ImVec2 win_pos (x_pos, y_pos);
 
@@ -1486,21 +1567,21 @@ SK_AchievementManager::drawPopups (void)
         win_pos   = ImVec2 (x_pos, y_pos);
       }
 
-      float right_x = win_pos.x * d_scale * full_wd +
-                      win_pos.x * d_offset          +
-                      win_wd;
+      //float right_x = win_pos.x * d_scale * full_wd +
+      //                win_pos.x * d_offset          +
+      //                win_wd;
 
       // Window is off-screen horizontally AND vertically
-      if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
-      {
-        // Since we're not going to draw this, treat it as a new
-        //   popup until it first becomes visible.
-        (*it).time =
-          SK_timeGetTime ();
-      //win->hide        ();
-      }
-
-      else
+      //if ( inset != 0.0f && (right_x > full_wd || right_x < win_wd0)  )
+      //{
+      //  // Since we're not going to draw this, treat it as a new
+      //  //   popup until it first becomes visible.
+      //  it->time =
+      //    SK_timeGetTime ();
+      ////win->hide        ();
+      //}
+      //
+      //else
       {
         if (config.platform.achievements.popup.animate)
         {
@@ -1535,30 +1616,80 @@ SK_AchievementManager::drawPopups (void)
           it->final_pos   = true;
         }
 
-///////win->show        ();
-///////win->setPosition (win_pos);
+        const char *szPopupName =
+          it->achievement->name_.c_str ();
+
+        if (ImGui::IsPopupOpen (szPopupName))
+        {
+          auto text =
+            it->achievement->unlocked_ ? &it->achievement->text_.unlocked
+                                       : &it->achievement->text_.locked;
+          ImGui::BeginPopup    (szPopupName,
+                                ImGuiWindowFlags_AlwaysAutoResize |
+                                ImGuiWindowFlags_NoCollapse       |
+                                ImGuiWindowFlags_NoInputs);
+
+          if (it->icon_texture != nullptr)
+          {
+            ImGui::Image (it->icon_texture, ImVec2 (64, 64));
+          }
+
+          else
+          {
+            ImGui::BeginChildFrame
+              (ImGui::GetID ("###SpecialK_AchievementFrame"), ImVec2 (64, 64), 0x0);
+            ImGui::EndChildFrame( );
+          }
+
+          ImGui::SameLine      (  );
+          ImGui::BeginGroup    (  );
+          ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+                 SK_WideCharToUTF8 (text->human_name).c_str ());
+          ImGui::TreePush      ("");
+          ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f));
+          ImGui::TextWrapped   (SK_WideCharToUTF8 (text->desc).c_str ());
+          ImGui::PopStyleColor (  );
+          ImGui::SameLine      (  );
+          ImGui::Spacing       (  );
+          ImGui::TreePop       (  );
+          ImGui::EndGroup      (  );
+          ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
+                                  it->achievement->unlocked_ ?
+                                ICON_FA_UNLOCK : ICON_FA_LOCK);
+          ImGui::SameLine      (  );
+          if (it->achievement->unlocked_)
+            ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
+                                ":  %s", _ctime64 (&it->achievement->time_));
+          else
+            ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
+          ImGui::SetWindowPos  (
+            ImVec2 (io.DisplaySize.x - ImGui::GetWindowSize ().x - io.DisplaySize.x * 0.025f,
+                    io.DisplaySize.y - ImGui::GetWindowSize ().y - io.DisplaySize.y * 0.025f),
+                      ImGuiCond_Always
+          );
+          ImGui::EndPopup      (  );
+        }
       }
 
       y_pos += y_dir * 256.0f/*win->getSize().d_height*/;
 
       ++it;
-      //} else {
-      //it = popups.erase (it);
-      //}
     }
 
     else
     {
-      //if (SK_PopupManager::getInstance ()->isPopup ((*it).window)) {
-////////////////////////////////////////////CEGUI::Window* win = (*it).window;
-////////////////////////////////////////////
-////////////////////////////////////////////CEGUI::WindowManager::getDllSingleton ().destroyWindow (win);
+      ImGui::BeginPopup        (it->achievement->name_.c_str ());
+      ImGui::CloseCurrentPopup ();
+      ImGui::EndPopup          ();
+
+      if (it->icon_texture != nullptr)
+      {
+        std::exchange (
+            it->icon_texture, nullptr)->Release ();
+      }
 
       removed = true;
-      //SK_PopupManager::getInstance ()->destroyPopup ((*it).window);
-      //}
-
-      it = popups.erase (it);
+      it      = popups.erase (it);
     }
   }
 
@@ -1566,8 +1697,7 @@ SK_AchievementManager::drawPopups (void)
   //   this prevents flicker.
   if (removed || created || take_screenshot > 0)
   {
-    SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f, true);
-    //CEGUI::System::getDllSingleton   ().renderAllGUIContexts ();
+    SK_TextOverlayManager::getInstance ()->drawAllOverlays  (0.0f, 0.0f, true);
   }
 
   // Popup is in the final location, so now is when screenshots
@@ -1593,7 +1723,7 @@ SK_AchievementManager::drawPopups (void)
 }
 
 
-CEGUI::Window*
+ImGuiWindow*
 SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 {
 ////if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
@@ -1708,7 +1838,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
   // Icon width and height
   uint32 w = 0,
-    h = 0;
+         h = 0;
 
   if (icon_idx != 0)
   {
@@ -1817,6 +1947,8 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
   return achv_popup;
 #else
-  return nullptr;
+  ImGuiWindow *pRet = (ImGuiWindow *)1;
+
+  return pRet;
 #endif
 }

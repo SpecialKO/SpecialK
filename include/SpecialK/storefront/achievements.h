@@ -90,10 +90,7 @@ struct SK_Achievement
   bool        hidden_         = false;
 };
 
-namespace CEGUI
-{
-  class Window;
-};
+struct ImGuiWindow;
 
 class SK_AchievementManager
 {
@@ -169,13 +166,14 @@ public:
 protected:
   struct SK_AchievementPopup
   {
-    CEGUI::Window* window;
-    DWORD          time;
-    bool           final_pos; // When the animation is finished, this will be set.
-    Achievement*   achievement;
+    IUnknown*    icon_texture; // Native graphics API texture handle (e.g. SRV)
+    ImGuiWindow* window;
+    DWORD        time;
+    bool         final_pos;    // When the animation is finished, this will be set.
+    Achievement* achievement;
   };
 
-  CEGUI::Window* createPopupWindow (SK_AchievementPopup* popup);
+  ImGuiWindow* createPopupWindow (SK_AchievementPopup* popup);
 
   struct SK_AchievementStorage
   {
