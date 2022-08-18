@@ -127,8 +127,11 @@ SK_D3D11_Map_Impl (
           pTex->SetPrivateData (SKID_D3D11Texture2D_DISCARD, sizeof (bool), &it->second.discard);
 
           SK_D3D11_RemoveTexFromCache (pTex, true);
+#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
           textures->HashMap_Fmt [it->second.orig_desc.Format].map [it->second.orig_desc.MipLevels].erase (it->second.tag);
-        //textures->HashMap_2D [it->second.orig_desc.MipLevels].erase (it->second.tag);
+#else
+          textures->HashMap_2D [it->second.orig_desc.MipLevels].erase (it->second.tag);
+#endif
 
           SK_LOG4 ( ( L"Removing discarded texture from cache (it has been memory-mapped as discard)." ),
                       L"DX11TexMgr" );

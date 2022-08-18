@@ -279,18 +279,20 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
     {
       texture_map.reserve (textures->HashMap_2D.size ());
 
+#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
       if (! textures->HashMap_Fmt.empty ())
             textures->updateDebugNames  ();
 
       for (auto& it0 : textures->HashMap_Fmt){
       // Relatively immutable textures
       for (auto& it  : it0.map)
-
-      ///if (! textures->HashMap_2D.empty ())
-      ///      textures->updateDebugNames ();
-      ///
-      ///// Relatively immutable textures
-      ///for (auto& it : textures->HashMap_2D)
+#else
+      if (! textures->HashMap_2D.empty ())
+            textures->updateDebugNames ();
+      
+      // Relatively immutable textures
+      for (auto& it : textures->HashMap_2D){
+#endif
       {
         std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
 

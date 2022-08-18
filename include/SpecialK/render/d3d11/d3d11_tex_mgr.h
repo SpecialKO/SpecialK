@@ -218,6 +218,7 @@ struct lod_hash_table_s
   } contention_score;
 };
 
+#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
 struct fmt_hash_matrix_s
 {
   fmt_hash_matrix_s (void)
@@ -245,12 +246,15 @@ struct fmt_hash_matrix_s
 
   std::vector <lod_hash_table_s> map;
 };
+#endif
 
 // Actually more of a cache manager at the moment...
 class SK_D3D11_TexMgr {
 public:
   SK_D3D11_TexMgr (void) {
+#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
     HashMap_Fmt.resize  (200);
+#endif
     HashMap_2D.resize   (20);
     Blacklist_2D.resize (20);
 
@@ -333,7 +337,9 @@ public:
     ID3D11Texture2D *
   >      TexRefs_2D;
 
+#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
   std::vector        < fmt_hash_matrix_s  >   HashMap_Fmt;
+#endif
   std::vector        < lod_hash_table_s   >   HashMap_2D;
   std::vector        < std::unordered_set <
                         uint32_t          >
