@@ -1,4 +1,10 @@
-﻿22.8.17.2-D3D9-IK
+﻿22.8.18-D3D9-IK
+===============
+ + Fixed memory leak in achievement icon loader
+ + Added Global / Friend unlock % to achievement popups
+ + Centered description and established consistent aspect ratio for achievements
+
+22.8.17.2-D3D9-IK
 =================
  + Partial re-implementation of achievement unlock popups
 
