@@ -1343,12 +1343,6 @@ SK_Achievement_RarityToName (float percent)
 int
 SK_AchievementManager::drawPopups (void)
 {
-  static const auto
-    achievements_path =
-      std::filesystem::path (
-           SK_GetConfigPath () )
-     / LR"(SK_Res/Achievements)";
-
   int drawn = 0;
 
   if (platform_popup_cs != nullptr)
@@ -1446,8 +1440,15 @@ SK_AchievementManager::drawPopups (void)
 
   static int take_screenshot = 0;
 
+  std::unordered_set <std::string> displayed;
+
   while (it != popups.cend ())
   {
+    if (displayed.contains (it->achievement->name_))
+    {
+      ++it; continue;
+    }
+
     if (it->time == 0)
         it->time = SK_timeGetTime ();
 
@@ -1463,80 +1464,6 @@ SK_AchievementManager::drawPopups (void)
       {
         win     = createPopupWindow (&*it);
         created = true;
-
-        auto icon_filename =
-          achievements_path /
-            SK_FormatStringW ( L"%ws_%hs.jpg",
-              it->achievement->unlocked_ ? L"Unlocked"
-                                         : L"Locked",
-              it->achievement->name_.c_str () );
-
-        static auto& rb =
-          SK_GetCurrentRenderBackend ();
-
-        if ( ( static_cast <int> (rb.api) &
-               static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
-        {
-          DirectX::TexMetadata  metadata = {};
-          DirectX::ScratchImage image    = {};
-
-          if ( SUCCEEDED (
-                 DirectX::LoadFromWICFile (
-                   icon_filename.c_str (),
-                     0x0, &metadata, image )
-               )
-             )
-          {
-            if ( ( static_cast <int> (rb.api) &
-                   static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
-            {
-              SK_ComPtr <ID3D11Resource> pIconTex;
-
-              auto pDev =
-                rb.getDevice <ID3D11Device> ();
-
-              if ( SUCCEEDED (
-                     DirectX::CreateTexture (
-                       pDev, image.GetImages     (),
-                             image.GetImageCount (),
-                               metadata, &pIconTex.p ) )
-                 )
-              {
-                SK_ComPtr <ID3D11ShaderResourceView> pSRV;
-
-                pDev->CreateShaderResourceView (
-                  pIconTex.p, nullptr, &pSRV.p );
-
-                if (pSRV != nullptr)
-                {
-                  it->icon_texture =
-                    pSRV;
-                    pSRV.p->AddRef ();
-                }
-              }
-            }
-          }
-        }
-
-        else if ( ( static_cast <int> (rb.api) &
-                    static_cast <int> (SK_RenderAPI::D3D9) ) != 0x0 )
-        {
-          auto pDev =
-            rb.getDevice <IDirect3DDevice9> ();
-
-          using D3DXCreateTextureFromFileW_pfn =
-            HRESULT (WINAPI *)(LPDIRECT3DDEVICE9,LPCWSTR,LPDIRECT3DTEXTURE9*);
-
-           static
-           D3DXCreateTextureFromFileW_pfn
-          _D3DXCreateTextureFromFileW =
-          (D3DXCreateTextureFromFileW_pfn)SK_GetProcAddress (L"D3DX9_43.DLL",
-          "D3DXCreateTextureFromFileW");
-
-           if (_D3DXCreateTextureFromFileW != nullptr)
-               _D3DXCreateTextureFromFileW ( pDev, icon_filename.c_str (),
-                                               (IDirect3DTexture9 **)&it->icon_texture );
-        }
 
         ImGui::OpenPopup (it->achievement->name_.c_str ());
       }
@@ -1621,6 +1548,18 @@ SK_AchievementManager::drawPopups (void)
 
         if (ImGui::IsPopupOpen (szPopupName))
         {
+          DWORD dwNow = SK_GetCurrentMS ();
+
+          const ImVec4 rare_border_color =
+            ImColor::HSV ( 0.133333f,
+                             std::min ( static_cast <float>(0.161616f +  (dwNow % 250) / 250.0f -
+                                                                 floor ( (dwNow % 250) / 250.0f) ), 1.0f),
+                                 std::min ( static_cast <float>(0.333 +  (dwNow % 500) / 500.0f -
+                                                                 floor ( (dwNow % 500) / 500.0f) ), 1.0f) );
+
+          if (it->achievement->global_percent_ < 10.0f)
+            ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
+
           auto text =
             it->achievement->unlocked_ ? &it->achievement->text_.unlocked
                                        : &it->achievement->text_.locked;
@@ -1629,35 +1568,69 @@ SK_AchievementManager::drawPopups (void)
                                 ImGuiWindowFlags_NoCollapse       |
                                 ImGuiWindowFlags_NoInputs);
 
+          float fTopY = ImGui::GetCursorPosY ();
+
           if (it->icon_texture != nullptr)
           {
-            ImGui::Image (it->icon_texture, ImVec2 (64, 64));
+            ImGui::Image (it->icon_texture, ImVec2 (128, 128));
           }
 
           else
           {
+            ImGui::PushID      (it->window);
             ImGui::BeginChildFrame
-              (ImGui::GetID ("###SpecialK_AchievementFrame"), ImVec2 (64, 64), 0x0);
+              (ImGui::GetID    ("###SpecialK_AchievementFrame"), ImVec2 (128, 128), 0x0);
             ImGui::EndChildFrame( );
+            ImGui::PopID       (  );
           }
 
+          std::string
+            text_desc = SK_WideCharToUTF8 (text->desc);
+
           ImGui::SameLine      (  );
+          ImGui::PushID        (it->window);
+          ImGui::BeginChild    ("###SpecialK_AchievementText", ImVec2 (313.0f, 128.0f));
+          float fLeftX =
+            ImGui::GetCursorPosX( );
           ImGui::BeginGroup    (  );
           ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
                  SK_WideCharToUTF8 (text->human_name).c_str ());
-          ImGui::TreePush      ("");
           ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f));
-          ImGui::TextWrapped   (SK_WideCharToUTF8 (text->desc).c_str ());
+          auto size =
+            ImGui::CalcTextSize(text_desc.c_str (), nullptr, false, 313.0f);
+          ImGui::SetCursorPosY ( fTopY  + (128.0f - size.y) / 2.0f );
+          ImGui::SetCursorPosX ( fLeftX + (313.0f - size.x) / 2.0f );
+          ImGui::TextWrapped   (text_desc.c_str ());
           ImGui::PopStyleColor (  );
-          ImGui::SameLine      (  );
-          ImGui::Spacing       (  );
-          ImGui::TreePop       (  );
           ImGui::EndGroup      (  );
+          ImGui::EndChild      (  );
+          ImGui::PopID         (  );
+          
+          ImGui::BeginGroup    (  );
+          ImGui::TextUnformatted ("Global: ");
+          if (it->achievement->friends_.possible > 0)
+          ImGui::TextUnformatted ("Friends: ");
+          ImGui::EndGroup      (  );
+          ImGui::SameLine      (  );
+          ImGui::BeginGroup    (  );
+          ImGui::Text          ("%6.2f%%", it->achievement->global_percent_);
+          if (it->achievement->friends_.possible > 0)
+          ImGui::Text          ("%6.2f%%",
+               100.0 * ( (double)          it->achievement->friends_.unlocked /
+                         (double)std::max (it->achievement->friends_.possible, 1) ));
+          ImGui::EndGroup      (  );
+          
+          float height =
+            ImGui::GetFontSize () * ( it->achievement->friends_.possible > 0 ? 2.0f
+                                                                             : 1.0f );
+
+          ImGui::SameLine      (  );
+          ImGui::SetCursorPosY (ImGui::GetCursorPosY () + height / 2.0f - ImGui::GetFontSize () / 2.0f);
           ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
                                   it->achievement->unlocked_ ?
                                 ICON_FA_UNLOCK : ICON_FA_LOCK);
           ImGui::SameLine      (  );
-          if (it->achievement->unlocked_)
+          if (it->achievement->unlocked_ && it->achievement->time_ > 0)
             ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
                                 ":  %s", _ctime64 (&it->achievement->time_));
           else
@@ -1668,16 +1641,21 @@ SK_AchievementManager::drawPopups (void)
                       ImGuiCond_Always
           );
           ImGui::EndPopup      (  );
+
+          if (it->achievement->global_percent_ < 10.0f)
+            ImGui::PopStyleColor( );
         }
       }
 
       y_pos += y_dir * 256.0f/*win->getSize().d_height*/;
 
-      ++it;
+      displayed.emplace        (it->achievement->name_);
+                              ++it;
     }
 
     else
     {
+      displayed.emplace        (it->achievement->name_);
       ImGui::BeginPopup        (it->achievement->name_.c_str ());
       ImGui::CloseCurrentPopup ();
       ImGui::EndPopup          ();
@@ -1726,31 +1704,19 @@ SK_AchievementManager::drawPopups (void)
 ImGuiWindow*
 SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 {
-////if (! (config.cegui.enable && config.cegui.frames_drawn > 0)) return nullptr;
-
   if (popup->achievement == nullptr)
     return nullptr;
 
-  auto log =
-    ( SK::EOS::UserID () != nullptr ) ?
-                   epic_log.getPtr () : steam_log.getPtr ();
+  //auto log =
+  //  ( SK::EOS::UserID () != nullptr ) ?
+  //                 epic_log.getPtr () : steam_log.getPtr ();
 
-  char     szPopupName [32] = { };
-  sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
+  //char     szPopupName [32] = { };
+  //sprintf (szPopupName, "Achievement_%i", lifetime_popups++);
 
-  Achievement*   achievement = popup->achievement;
+  Achievement* achievement = popup->achievement;
 
 #ifdef _HAS_CEGUI_REPLACEMENT
-  CEGUI::System* pSys =
-    CEGUI::System::getDllSingletonPtr ();
-
-  extern CEGUI::Window* SK_achv_popup;
-
-  popup->window              = SK_achv_popup->clone (true);
-  CEGUI::Window* achv_popup  = popup->window;
-
-  assert (achievement != nullptr);
-
   achv_popup->setName (szPopupName);
 
   CEGUI::Window* achv_title  = achv_popup->getChild ("Title");
@@ -1828,6 +1794,8 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
   achv_unlock->setText (szUnlockTime);
 #endif
 
+  // OLD code that used client-side SteamAPI to get icons
+#if 0
   auto pUserStats = steam_ctx.UserStats ();
   auto pUtils     = steam_ctx.Utils     ();
 
@@ -1877,54 +1845,88 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
       }
     }
   }
-
-  if (achievement->icons_.achieved != nullptr)
-  {
-#ifdef _HAS_CEGUI_REPLACEMENT
-    bool exists =
-      CEGUI::ImageManager::getDllSingleton ().isDefined (achievement->name_.c_str ());
-
-    CEGUI::Image& img =
-      ( exists ?
-          CEGUI::ImageManager::getDllSingleton ().get    (              achievement->name_.c_str ()) :
-          CEGUI::ImageManager::getDllSingleton ().create ("BasicImage", achievement->name_.c_str ()) );
-
-    if (! exists) try
-    {
-      /* StaticImage */
-      CEGUI::Texture& Tex =
-        pSys->getRenderer ()->createTexture (achievement->name_.c_str ());
-
-      Tex.loadFromMemory ( achievement->icons_.achieved,
-                             CEGUI::Sizef ( static_cast <float> (w),
-                                            static_cast <float> (h) ),
-                             CEGUI::Texture::PF_RGBA );
-
-      ((CEGUI::BasicImage &)img).setTexture (&Tex);
-
-      const CEGUI::Rectf rect (CEGUI::Vector2f (0.0f, 0.0f), Tex.getOriginalDataSize ());
-
-      ((CEGUI::BasicImage &)img).setArea       (rect);
-      ((CEGUI::BasicImage &)img).setAutoScaled (CEGUI::ASM_Both);
-    }
-
-    catch (const CEGUI::GenericException&)
-    {
-    }
-
-    try
-    {
-      CEGUI::Window* staticImage =
-        achv_popup->getChild ("Icon");
-
-      staticImage->setProperty ( "Image",
-                                   achievement->name_.c_str () );
-    }
-
-    catch (const CEGUI::GenericException&)
-    {
-    }
 #endif
+  // ^^^^^^^^
+  // New code uses SK_Res\Achievements\...
+
+  static const auto
+    achievements_path =
+      std::filesystem::path (
+           SK_GetConfigPath () )
+     / LR"(SK_Res/Achievements)";
+
+  auto icon_filename =
+    achievements_path /
+      SK_FormatStringW ( L"%ws_%hs.jpg",
+            achievement->unlocked_ ? L"Unlocked"
+                                   : L"Locked",
+            achievement->name_.c_str () );
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ( ( static_cast <int> (rb.api) &
+         static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+  {
+    DirectX::TexMetadata  metadata = {};
+    DirectX::ScratchImage image    = {};
+
+    if ( SUCCEEDED (
+           DirectX::LoadFromWICFile (
+             icon_filename.c_str (),
+               0x0, &metadata, image )
+         )
+       )
+    {
+      if ( ( static_cast <int> (rb.api) &
+             static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+      {
+        SK_ComPtr <ID3D11Resource> pIconTex;
+
+        auto pDev =
+          rb.getDevice <ID3D11Device> ();
+
+        if ( SUCCEEDED (
+               DirectX::CreateTexture (
+                 pDev, image.GetImages     (),
+                       image.GetImageCount (),
+                         metadata, &pIconTex.p ) )
+           )
+        {
+          SK_ComPtr <ID3D11ShaderResourceView> pSRV;
+
+          pDev->CreateShaderResourceView (
+            pIconTex.p, nullptr, &pSRV.p );
+
+          if (pSRV != nullptr)
+          {
+            popup->icon_texture =
+              pSRV;
+              pSRV.p->AddRef ();
+          }
+        }
+      }
+    }
+  }
+
+  else if ( ( static_cast <int> (rb.api) &
+              static_cast <int> (SK_RenderAPI::D3D9) ) != 0x0 )
+  {
+    auto pDev =
+      rb.getDevice <IDirect3DDevice9> ();
+
+    using D3DXCreateTextureFromFileW_pfn =
+      HRESULT (WINAPI *)(LPDIRECT3DDEVICE9,LPCWSTR,LPDIRECT3DTEXTURE9*);
+
+     static
+     D3DXCreateTextureFromFileW_pfn
+    _D3DXCreateTextureFromFileW =
+    (D3DXCreateTextureFromFileW_pfn)SK_GetProcAddress (L"D3DX9_43.DLL",
+    "D3DXCreateTextureFromFileW");
+
+     if (_D3DXCreateTextureFromFileW != nullptr)
+         _D3DXCreateTextureFromFileW ( pDev, icon_filename.c_str (),
+                                         (IDirect3DTexture9 **)&popup->icon_texture );
   }
 
 #ifdef _HAS_CEGUI_REPLACEMENT
@@ -1939,16 +1941,10 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
       );
     }
   }
-
-  CEGUI::System::getDllSingleton ().
-    getDefaultGUIContext ().
-           getRootWindow ()->
-                addChild (popup->window);
-
-  return achv_popup;
 #else
-  ImGuiWindow *pRet = (ImGuiWindow *)1;
+  popup->window =
+    (ImGuiWindow *)1;
 
-  return pRet;
+  return popup->window;
 #endif
 }
