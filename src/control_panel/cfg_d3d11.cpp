@@ -661,8 +661,19 @@ SK::ControlPanel::D3D11::Draw (void)
       }
 
       ImGui::EndGroup   ();
+
       ImGui::SameLine   ();
+      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::SameLine   ();
+      
+      ImGui::VerticalSeparator ();
+
+      ImGui::SameLine   ();
+      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::SameLine   ();
+
       ImGui::BeginGroup ();
+      ImGui::PushItemWidth (100.0f);
 
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
@@ -736,6 +747,7 @@ SK::ControlPanel::D3D11::Draw (void)
           }
         }
       }
+      ImGui::PopItemWidth ();
       ImGui::EndGroup ();
 
       const bool changed =
