@@ -109,7 +109,7 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
     const ImDrawList* cmd_list          = draw_data->CmdLists [n];
     const ImDrawIdx*  idx_buffer_offset = nullptr;
 
-    if (config.imgui.render.disable_alpha)
+    if (config.imgui.render.disable_alpha && false)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
       {
