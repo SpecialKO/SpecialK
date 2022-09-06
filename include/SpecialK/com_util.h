@@ -1340,6 +1340,9 @@ inline bool SK_ComPtrBase<T>::IsEqualObject (_Inout_opt_ IUnknown* pOther)
   if (p == nullptr || pOther == nullptr)
     return false; // One is NULL the other is not
 
+  if (pOther == p)
+    return true;
+
   SK_ComPtr <IUnknown> punk1;
   SK_ComPtr <IUnknown> punk2;
 

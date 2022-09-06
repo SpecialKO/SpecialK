@@ -3792,8 +3792,8 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
       pSwapChain->GetDevice ( IID_ID3D11Device, (void **)&pSwapDev11.p );
       SK_ComPtr                  <ID3D12Device>           pSwapDev12;
       pSwapChain->GetDevice ( IID_ID3D12Device, (void **)&pSwapDev12.p );
-      if (! (pDev11.p != nullptr && pDev11.IsEqualObject (pSwapDev11.p)) ||
-            (pDev12.p != nullptr && pDev12.IsEqualObject (pSwapDev12.p)))
+      if (! ((pDev11.p != nullptr && pDev11.IsEqualObject (pSwapDev11.p)) ||
+             (pDev12.p != nullptr && pDev12.IsEqualObject (pSwapDev12.p))))
       {
         return false; // Nope, let's get the hell out of here!
       }
