@@ -8114,15 +8114,12 @@ SK_HookDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
-////#ifdef _WIN64
-////    if (! config.apis.dxgi.d3d11.hook)
-////      config.apis.dxgi.d3d12.hook = false;
-////#endif
-
     // Serves as both D3D11 and DXGI
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
 
+    static HMODULE hModSLInterposer =
+      SK_Modules->LoadLibraryLL (L"sl.interposer.dll");
 
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ?
@@ -8177,6 +8174,16 @@ SK_HookDXGI (void)
 
     else
     {
+      if (hModSLInterposer != SK_Modules->INVALID_MODULE)
+      {
+        SK_MessageBox (
+          L"Special K is not compatible with this game because it uses NVIDIA "
+          L"Streamline Interposer\r\n\r\n\t >> You must use Local Injection",
+            L"Special K Incompatibility",
+              MB_ICONERROR | MB_OK
+        );
+      }
+
       LPVOID pfnCreateDXGIFactory    = nullptr;
       LPVOID pfnCreateDXGIFactory1   = nullptr;
       LPVOID pfnCreateDXGIFactory2   = nullptr;

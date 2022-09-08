@@ -1,4 +1,13 @@
-﻿22.8.18-D3D9-IK
+﻿22.9.8-D3D9-IK
+==============
+ + Added error if Global Injection is attempted in software using NVIDIA Streamline
+ + Silenced API call tracing for NtSetTimerResolution (...) when log level < 1
+
+22.9.6-D3D9-IK
+==============
+ + Fixed Reflex latency statistics in D3D12
+
+22.8.18-D3D9-IK
 ===============
  + Fixed memory leak in achievement icon loader
  + Added Global / Friend unlock % to achievement popups

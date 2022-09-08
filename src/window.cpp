@@ -45,7 +45,7 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 #define SK_WINDOW_LOG_CALL1() if (config.system.log_level >= 1) SK_LOG_CALL ("Window Mgr")
 #define SK_WINDOW_LOG_CALL2() if (config.system.log_level >= 2) SK_LOG_CALL ("Window Mgr")
 #define SK_WINDOW_LOG_CALL3() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
-#define SK_WINDOW_LOG_CALL4() if (config.system.log_level >= 3) SK_LOG_CALL ("Window Mgr")
+#define SK_WINDOW_LOG_CALL4() if (config.system.log_level >= 4) SK_LOG_CALL ("Window Mgr")
 
 #ifdef SK_LOG_LEVEL_UNTESTED
 # define SK_WINDOW_LOG_CALL_UNTESTED() SK_LOG_CALL ("Window Mgr");

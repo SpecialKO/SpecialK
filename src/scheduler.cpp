@@ -1479,10 +1479,11 @@ NtSetTimerResolution_Detour
     (*pSetCount)++;
   }
 
-  bool bPrint = true;
+  bool bPrint =
+    (config.system.log_level > 0);
 
   // RTSS is going to spam us to death with this, just make note of it once
-  if (SK_GetCallerName ().find (L"RTSSHooks") != std::wstring::npos)
+  if (bPrint && SK_GetCallerName ().find (L"RTSSHooks") != std::wstring::npos)
   {
                 bPrint = false;
     SK_RunOnce (bPrint = true);
