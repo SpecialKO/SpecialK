@@ -5276,7 +5276,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
 
-          return MA_ACTIVATEANDEAT;
+          if (! SK_ImGui_WantMouseCapture ())
+            return MA_ACTIVATE;       // We don't want it, and the game doesn't expect it
+          else
+            return MA_ACTIVATEANDEAT; // We want it, game doesn't need it
         }
       }
 

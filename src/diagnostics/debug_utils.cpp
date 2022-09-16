@@ -488,7 +488,7 @@ SteamAPI_ISteamInput_GetDigitalActionData_override (ISteamController *This, Cont
   static ControllerDigitalActionData_t
     neutralized = { false, false };
 
-  if (SK_ImGui_WantGamepadCapture ())
+  if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.steam.disabled_to_game)
     return neutralized;
 
   SK_STEAM_READ (sk_input_dev_type::Gamepad);
@@ -503,7 +503,7 @@ SteamAPI_ISteamInput_GetAnalogActionData_override (ISteamController *This, Contr
   static ControllerAnalogActionData_t
     neutralized = { k_EControllerSourceMode_None, 0.0f, 0.0f, false };
 
-  if (SK_ImGui_WantGamepadCapture ())
+  if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.steam.disabled_to_game)
     return neutralized;
 
   SK_STEAM_READ (sk_input_dev_type::Gamepad);

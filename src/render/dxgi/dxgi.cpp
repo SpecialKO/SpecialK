@@ -8178,7 +8178,7 @@ SK_HookDXGI (void)
       {
         SK_MessageBox (
           L"Special K is not compatible with this game because it uses NVIDIA "
-          L"Streamline Interposer\r\n\r\n\t >> You must use Local Injection",
+          L"Streamline Interposer\r\n\r\n\t >> You must use Local Injection (dxgi.dll)",
             L"Special K Incompatibility",
               MB_ICONERROR | MB_OK
         );

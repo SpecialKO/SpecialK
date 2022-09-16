@@ -1332,6 +1332,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (! rb.displays [rb.active_display].primary)
   {
+    // XXX: 9/9/22, Need to fix re-enumeration of displays after doing this so the drop-down menu text is correct
+    //
     if (ImGui::Button ("Make Primary Display"))
     {
       struct monitor_s {

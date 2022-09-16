@@ -1,4 +1,9 @@
-﻿22.9.8-D3D9-IK
+﻿22.9.15
+=======
+ + Added MyDockFinder to injection blacklist to keep SK's OSD out of the Windows shell
+ + Added option to disable Steam Input
+
+22.9.8-D3D9-IK
 ==============
  + Added error if Global Injection is attempted in software using NVIDIA Streamline
  + Silenced API call tracing for NtSetTimerResolution (...) when log level < 1

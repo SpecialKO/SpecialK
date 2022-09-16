@@ -806,6 +806,7 @@ struct {
 
     struct {
       sk::ParameterInt*   ui_slot                 = nullptr;
+      sk::ParameterBool*  disable                 = nullptr;
     } steam;
 
     sk::ParameterBool*    native_ps4              = nullptr;
@@ -1316,6 +1317,7 @@ auto DeclKeybind =
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
     ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
+    ConfigEntry (input.gamepad.steam.disable,            L"Disable Steam Input Always (only works for flat API)",      dll_ini,         L"Input.Steam",           L"Disable"),
 
     // Thread Monitoring
     //////////////////////////////////////////////////////////////////////////
@@ -3485,6 +3487,7 @@ auto DeclKeybind =
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
+  input.gamepad.steam.disable->load    (config.input.gamepad.steam.disabled_to_game);
 
 
   threads.enable_mem_alloc_trace->load (config.threads.enable_mem_alloc_trace);
@@ -4550,6 +4553,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.placeholders->store    (placeholder_mask);
   input.gamepad.xinput.ui_slot->store         (config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->store          (config.input.gamepad.steam.ui_slot);
+  input.gamepad.steam.disable->store          (config.input.gamepad.steam.disabled_to_game);
 
   std::wstring xinput_assign;
 

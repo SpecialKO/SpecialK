@@ -234,6 +234,7 @@ static constexpr UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"wallpaper64.exe"),
 #endif
 
+  SK_MakeUnicode (L"xvasynth.exe"),
   SK_MakeUnicode (L"streaming_client.exe"),
   SK_MakeUnicode (L"firaxisbugreporter.exe"),
   SK_MakeUnicode (L"writeminidump.exe"),
@@ -306,6 +307,11 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"zossteamstarter.exe"),
   SK_MakeUnicode (L"eac.exe"),
   SK_MakeUnicode (L"ealink.exe"),
+
+  SK_MakeUnicode (L"dock.exe"),
+  SK_MakeUnicode (L"dock_64.exe"),
+  SK_MakeUnicode (L"dockmod.exe"),
+  SK_MakeUnicode (L"dockmod64.exe"),
 
   SK_MakeUnicode (L"crashpad_handler.exe"),
   SK_MakeUnicode (L"clang-tidy.exe"),

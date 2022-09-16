@@ -734,7 +734,8 @@ struct sk_config_t
       struct steam_s
       {
         unsigned
-        int   ui_slot             =    0;
+        int   ui_slot             =     0;
+        bool  disabled_to_game    = false;
       } steam;
     } gamepad;
 
