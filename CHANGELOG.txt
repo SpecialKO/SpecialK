@@ -1,5 +1,7 @@
 ﻿22.9.16
 =======
+ + Merge pull request #24 from Aemony/D3D9-IK
+    * Added separation between swapchain mgnt sections
  + Added Soul Hackers 2 HUD vertex shaders to built-in HUD database
 
 22.9.15
