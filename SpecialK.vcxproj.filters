@@ -3429,7 +3429,7 @@
       <Filter>Source Files\Backends\Render\D3D9</Filter>
     </ClCompile>
     <ClCompile Include="src\input\input.cpp">
-      <Filter>Source Files\Backends\Input\XInput</Filter>
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -214,7 +214,8 @@ SK_GetCurrentGameID (void)
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
-          { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     }
+          { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     },
+          { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 }
         };
 
     first_check  = false;
@@ -2934,6 +2935,12 @@ auto DeclKeybind =
 #endif
       case SK_GAME_ID::Disgaea5:
         config.render.framerate.flip_discard = false;
+        break;
+
+      case SK_GAME_ID::SoulHackers2:
+        SK_D3D11_DeclHUDShader_Vtx (0x10e0c21c);
+        SK_D3D11_DeclHUDShader_Vtx (0xb70aff71);
+        SK_D3D11_DeclHUDShader_Vtx (0xd7fb1989);
         break;
     }
   }

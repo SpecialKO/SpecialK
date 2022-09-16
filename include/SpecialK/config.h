@@ -1209,6 +1209,7 @@ enum class SK_GAME_ID
   GenshinImpact,                // GenshinImpact.exe
   PathOfExile,                  // PathOfExileSteam.exe
   Disgaea5,                     // Disgaea5.exe
+  SoulHackers2,                 // SOUL HACKERS2.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -1,4 +1,8 @@
-﻿22.9.15
+﻿22.9.16
+=======
+ + Added Soul Hackers 2 HUD vertex shaders to built-in HUD database
+
+22.9.15
 =======
  + Added MyDockFinder to injection blacklist to keep SK's OSD out of the Windows shell
  + Added option to disable Steam Input
