@@ -1,4 +1,9 @@
-﻿22.9.16
+﻿22.9.17
+=======
+ + Disabled ImGui assertions if log level < 1 to avoid achievement popup issues
+     while SK's control panel is visible
+
+22.9.16
 =======
  + Merge pull request #24 from Aemony/D3D9-IK
     * Added separation between swapchain mgnt sections

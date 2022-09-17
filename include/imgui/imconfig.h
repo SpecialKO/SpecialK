@@ -8,7 +8,8 @@
 
 //---- Define assertion handler. Defaults to calling assert().
 //#define IM_ASSERT(_EXPR)  MyAssert(_EXPR)
-#define IM_ASSERT(_EXPR)  SK_ReleaseAssert(_EXPR)
+// Turn off ImGui assertions unless debugging, because ImGui popup + control panel = buggy
+#define IM_ASSERT(_EXPR)  if (config.system.log_level > 0) SK_ReleaseAssert(_EXPR)
 //(void)0
 
 
