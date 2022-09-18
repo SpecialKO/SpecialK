@@ -1,4 +1,9 @@
-﻿22.9.17
+﻿22.9.18
+=======
+ + Stabilized NV hardware stats (load %, temp., clocks) that are not sampled every
+     polling interval
+
+22.9.17
 =======
  + Disabled ImGui assertions if log level < 1 to avoid achievement popup issues
      while SK's control panel is visible

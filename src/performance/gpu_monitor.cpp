@@ -364,6 +364,21 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].temps_c.supported = false;
         }
 
+        // Reuse last sampled values
+        //
+        else
+        {
+          stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
+          stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
+          stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+          stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
+
+          stats.gpus [i].temps_c.gpu = stats0.gpus [i].temps_c.gpu;
+          stats.gpus [i].temps_c.ram = stats0.gpus [i].temps_c.ram;
+          stats.gpus [i].temps_c.psu = stats0.gpus [i].temps_c.psu;
+          stats.gpus [i].temps_c.pcb = stats0.gpus [i].temps_c.pcb;
+        }
+
 
         if (stats.gpus [i].amortization.phase0 % 3 == 0)
         {
@@ -443,6 +458,21 @@ SK_GPUPollingThread (LPVOID user)
           }
         }
 
+        // Reuse last sampled values
+        //
+        else
+        {
+          stats.gpus [i].hwinfo.pcie_gen           = stats0.gpus [i].hwinfo.pcie_gen;
+          stats.gpus [i].hwinfo.pcie_lanes         = stats0.gpus [i].hwinfo.pcie_lanes;
+          stats.gpus [i].hwinfo.pcie_transfer_rate = stats0.gpus [i].hwinfo.pcie_transfer_rate;
+
+          stats.gpus [i].memory_B.local            = stats0.gpus [i].memory_B.local;
+          stats.gpus [i].memory_B.capacity         = stats0.gpus [i].memory_B.capacity;
+
+          stats.gpus [i].memory_B.total            = stats0.gpus [i].memory_B.total;
+          stats.gpus [i].memory_B.nonlocal         = stats0.gpus [i].memory_B.nonlocal;
+        }
+
       //SwitchToThreadMinPageFaults ();
 
         if (stats.gpus [i].amortization.phase0++ % 3 == 0)
@@ -469,6 +499,8 @@ SK_GPUPollingThread (LPVOID user)
           }
         }
 
+        // Reuse last sampled values
+        //
         else
         {
           stats.gpus [i].clocks_kHz.gpu = stats0.gpus [i].clocks_kHz.gpu;
@@ -494,6 +526,8 @@ SK_GPUPollingThread (LPVOID user)
           }
         }
 
+        // Reuse last sampled values
+        //
         else
         {
           stats.gpus [i].fans_rpm.gpu       = stats0.gpus [i].fans_rpm.gpu;
