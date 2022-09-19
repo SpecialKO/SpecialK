@@ -47,6 +47,7 @@ SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveF
 
     pPixelBufferFence.p             = moveFrom.pPixelBufferFence.p;
     ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
+    bPlaySound                      = moveFrom.bPlaySound;
 
     framebuffer.Width               = moveFrom.framebuffer.Width;
     framebuffer.Height              = moveFrom.framebuffer.Height;
@@ -289,8 +290,10 @@ struct ShaderBase
   }
 };
 
-SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice) : pDev (pDevice)
+SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound = true) : pDev (pDevice)
 {
+  bPlaySound = allow_sound;
+
   SK_ScopedBool decl_tex_scope (
     SK_D3D11_DeclareTexInjectScope ()
   );
@@ -700,7 +703,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
             pImmediateCtx->End (pPixelBufferFence);
 
-            SK_Screenshot_PlaySound ();
+            if (bPlaySound)
+              SK_Screenshot_PlaySound ();
 
             return;
           }
@@ -1048,7 +1052,8 @@ SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 
 bool
 SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
-                              SK_ScreenshotStage::EndOfFrame )
+                              SK_ScreenshotStage::EndOfFrame,
+                              bool               allow_sound = true )
 {
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -1086,6 +1091,13 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
       InterlockedIncrement (
         &enqueued_screenshots.stages [stage]
       );
+
+      if (allow_sound)
+      {
+        InterlockedIncrement (
+          &enqueued_sounds.stages [stage]
+        );
+      }
 
       return true;
     }
@@ -1159,9 +1171,15 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             {
               if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
               {
+                bool allow_sound =
+                  ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
+
+                if ( allow_sound )
+                  InterlockedDecrement (&enqueued_sounds.stages [stage]);
+
                 screenshot_queue->push (
                   new SK_D3D11_Screenshot (
-                    pDev
+                    pDev, allow_sound
                   )
                 );
               }

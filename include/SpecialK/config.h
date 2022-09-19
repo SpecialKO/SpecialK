@@ -309,7 +309,7 @@ struct sk_config_t
 
       bool      take_screenshot       = false;
       bool      play_sound            =  true;
-      bool      pull_friend_stats     = false;
+      bool      pull_friend_stats     =  true;
       bool      pull_global_stats     =  true; // N/A for EOS
     } achievements;
 

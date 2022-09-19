@@ -73,6 +73,8 @@ struct SK_ScreenshotQueue
 
 extern SK_ScreenshotQueue
  enqueued_screenshots;
+extern SK_ScreenshotQueue
+ enqueued_sounds;
 
 class                    SK_RenderBackend_V2;
 using SK_RenderBackend = SK_RenderBackend_V2;

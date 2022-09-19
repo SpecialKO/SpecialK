@@ -38,6 +38,7 @@ SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom
     pSurfScreenshot.p               = moveFrom.pSurfScreenshot.p;
 
     ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
+    bPlaySound                      = moveFrom.bPlaySound;
 
     framebuffer.Width               = moveFrom.framebuffer.Width;
     framebuffer.Height              = moveFrom.framebuffer.Height;
@@ -69,10 +70,12 @@ SK_D3D9_Screenshot& SK_D3D9_Screenshot::operator= (SK_D3D9_Screenshot&& moveFrom
   return *this;
 }
 
-SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice) : pDev (pDevice)
+SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice, bool allow_sound) : pDev (pDevice)
 {
   if (pDev != nullptr)
   {
+    bPlaySound = allow_sound;
+
     if (SK_GetCurrentRenderBackend ().swapchain != nullptr)
         SK_GetCurrentRenderBackend ().swapchain->QueryInterface <IDirect3DSwapChain9> (&pSwapChain);
 
@@ -119,7 +122,8 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDev
           {
             outstanding_screenshots.emplace (pSurfScreenshot);
 
-            SK_Screenshot_PlaySound ();
+            if (bPlaySound)
+              SK_Screenshot_PlaySound ();
 
             return;
           }
@@ -317,7 +321,8 @@ static SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D9_Screenshot *>> scre
 
 bool
 SK_D3D9_CaptureScreenshot  ( SK_ScreenshotStage when =
-                              SK_ScreenshotStage::EndOfFrame )
+                              SK_ScreenshotStage::EndOfFrame,
+                             bool               allow_sound = true )
 {
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -348,6 +353,13 @@ SK_D3D9_CaptureScreenshot  ( SK_ScreenshotStage when =
       InterlockedIncrement (
         &enqueued_screenshots.stages [stage]
       );
+
+      if (allow_sound)
+      {
+        InterlockedIncrement (
+          &enqueued_sounds.stages [stage]
+        );
+      }
 
       return true;
     }
@@ -417,8 +429,14 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
 
               if (pDev != nullptr)
               {
+                bool allow_sound =
+                  ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
+
+                if ( allow_sound )
+                  InterlockedDecrement (&enqueued_sounds.stages [stage]);
+
                 screenshot_queue->push (
-                  new SK_D3D9_Screenshot (pDev)
+                  new SK_D3D9_Screenshot (pDev, allow_sound)
                 );
               }
             }

@@ -42,7 +42,7 @@ class SK_D3D11_Screenshot
 {
 public:
   explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
-  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice);
+  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound);
 
           ~SK_D3D11_Screenshot (void) {
             dispose ();
@@ -143,6 +143,7 @@ protected:
   SK_ComPtr <ID3D11Query>         pPixelBufferFence      = nullptr;
   ULONG64                         ulCommandIssuedOnFrame = 0;
 
+  bool                            bPlaySound             =    true;
   framebuffer_s                   framebuffer            = {     };
 };
 

@@ -35,6 +35,7 @@ SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
 
 SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0 };
+SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0 };
 
 void SK_Screenshot_PlaySound (void)
 {

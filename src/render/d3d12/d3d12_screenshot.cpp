@@ -69,7 +69,6 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
 
       rTo.pBackingStore              = rFrom.pBackingStore;
 
-
       rFrom.pBackbufferSurface.p     = nullptr;
       rFrom.pStagingBackbufferCopy.p = nullptr;
 
@@ -86,6 +85,7 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
     auto&& fromBuffer =
        moveFrom.framebuffer;
 
+    bPlaySound                      = moveFrom.bPlaySound;
     ulCommandIssuedOnFrame          = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
 
     framebuffer.Width               = std::exchange (fromBuffer.Width,                0);
@@ -314,8 +314,11 @@ struct ShaderBase
 
 SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
                                            const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
-                                           const SK_ComPtr <IDXGISwapChain3>&    pSwapChain )
+                                           const SK_ComPtr <IDXGISwapChain3>&    pSwapChain,
+                                                 bool                            allow_sound )
 {
+  bPlaySound = allow_sound;
+
   readback_ctx.pBackingStore = &framebuffer;
 
   //SK_ScopedBool decl_tex_scope (
@@ -663,7 +666,9 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
 
     if (SUCCEEDED (hr))
     {
-      SK_Screenshot_PlaySound ();
+      if (bPlaySound)
+        SK_Screenshot_PlaySound ();
+
       return;
     }
   }
@@ -1384,7 +1389,8 @@ SK_D3D12_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 
 bool
 SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
-                              SK_ScreenshotStage::EndOfFrame )
+                              SK_ScreenshotStage::EndOfFrame,
+                              bool               allow_sound = true )
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1422,6 +1428,13 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
       InterlockedIncrement (
         &enqueued_screenshots.stages [stage]
       );
+
+      if (allow_sound)
+      {
+        InterlockedIncrement (
+          &enqueued_sounds.stages [stage]
+        );
+      }
 
       return true;
     }
@@ -1496,10 +1509,17 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
               if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
               {
+                bool allow_sound =
+                  ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
+
+                if ( allow_sound )
+                  InterlockedDecrement (&enqueued_sounds.stages [stage]);
+
                 screenshot_queue->push (
                   new SK_D3D12_Screenshot (
                     pDev, rb.d3d12.command_queue, (IDXGISwapChain3 *)
-                          rb.swapchain.p
+                          rb.swapchain.p,
+                            allow_sound
                   )
                 );
               }

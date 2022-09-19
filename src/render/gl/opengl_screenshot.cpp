@@ -39,6 +39,7 @@ SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom)
     pixel_buffer_fence              = moveFrom.pixel_buffer_fence;
 
     ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
+    bPlaySound                      = moveFrom.bPlaySound;
 
     framebuffer.Width               = moveFrom.framebuffer.Width;
     framebuffer.Height              = moveFrom.framebuffer.Height;
@@ -71,8 +72,10 @@ SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom)
   return *this;
 }
 
-SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
+SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound) : hglrc (hDevice)
 {
+  bPlaySound = allow_sound;
+
   auto& io =
     ImGui::GetIO ();
 
@@ -178,7 +181,8 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice) : hglrc (hDevice)
 
     ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
 
-    SK_Screenshot_PlaySound ();
+    if (bPlaySound)
+      SK_Screenshot_PlaySound ();
 
     return;
   }
@@ -371,7 +375,8 @@ static SK_LazyGlobal <concurrency::concurrent_queue <SK_GL_Screenshot *>> screen
 
 bool
 SK_GL_CaptureScreenshot  ( SK_ScreenshotStage when =
-                              SK_ScreenshotStage::EndOfFrame )
+                              SK_ScreenshotStage::EndOfFrame,
+                           bool               allow_sound = true )
 {
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -402,6 +407,13 @@ SK_GL_CaptureScreenshot  ( SK_ScreenshotStage when =
       InterlockedIncrement (
         &enqueued_screenshots.stages [stage]
       );
+
+      if (allow_sound)
+      {
+        InterlockedIncrement (
+          &enqueued_sounds.stages [stage]
+        );
+      }
 
       return true;
     }
@@ -468,9 +480,15 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           {
             if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
             {
+              bool allow_sound =
+                ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
+
+              if ( allow_sound )
+                InterlockedDecrement (&enqueued_sounds.stages [stage]);
+
               screenshot_queue->push (
                 new SK_GL_Screenshot (
-                  hglrc
+                  hglrc, allow_sound
                 )
               );
             }

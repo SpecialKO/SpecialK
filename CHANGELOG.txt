@@ -1,6 +1,13 @@
-﻿22.9.18
+﻿22.9.19
 =======
- + Stabilized NV hardware stats (load %, temp., clocks) that are not sampled every
+ + Re-enabled friend achievement unlock statistic fetch by default
+ + Fixed achievement unlock-triggered screenshots snapping twice
+ + Disabled screenshot sound for achievement unlocks
+     >> The Steam overlay may still play a sound
+
+22.9.18
+=======
+ + Stabalized NV hardware stats (load %, temp., clocks) that are not sampled every
      polling interval
 
 22.9.17

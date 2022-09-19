@@ -38,7 +38,8 @@ class SK_GL_Screenshot
 {
 public:
   explicit SK_GL_Screenshot (SK_GL_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
-  explicit SK_GL_Screenshot (const HGLRC        hDevice);
+  explicit SK_GL_Screenshot (const HGLRC        hDevice,
+                                   bool         allow_sound);
 
           ~SK_GL_Screenshot (void) {
             dispose ();
@@ -139,6 +140,7 @@ protected:
   GLsync                          pixel_buffer_fence     = nullptr;
   ULONG64                         ulCommandIssuedOnFrame = 0;
 
+  bool                            bPlaySound             =    true;
   framebuffer_s                   framebuffer            = {     };
 };
 

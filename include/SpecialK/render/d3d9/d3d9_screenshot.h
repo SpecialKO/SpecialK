@@ -36,7 +36,8 @@ class SK_D3D9_Screenshot
 {
 public:
   explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
-  explicit SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice);
+  explicit SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice,
+                                     bool                          allow_sound);
           ~SK_D3D9_Screenshot (void) {
             dispose ();
           }
@@ -122,6 +123,7 @@ protected:
   SK_ComPtr <IDirect3DSurface9>   pBackbufferSurface     = nullptr;
   SK_ComPtr <IDirect3DSurface9>   pSurfScreenshot        = nullptr;
   ULONG64                         ulCommandIssuedOnFrame = 0;
+  bool                            bPlaySound             =    true;
   framebuffer_s                   framebuffer            = {     };
 };
 

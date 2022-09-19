@@ -734,16 +734,16 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
 
 
 extern bool
-SK_D3D11_CaptureScreenshot (SK_ScreenshotStage when);
+SK_D3D11_CaptureScreenshot (SK_ScreenshotStage when, bool allow_sound);
 
 extern bool
-SK_D3D12_CaptureScreenshot (SK_ScreenshotStage when);
+SK_D3D12_CaptureScreenshot (SK_ScreenshotStage when, bool allow_sound);
 
 extern bool
-SK_D3D9_CaptureScreenshot (SK_ScreenshotStage when);
+SK_D3D9_CaptureScreenshot  (SK_ScreenshotStage when, bool allow_sound);
 
 extern bool
-SK_GL_CaptureScreenshot (SK_ScreenshotStage when);
+SK_GL_CaptureScreenshot    (SK_ScreenshotStage when, bool allow_sound);
 
 SK_Steam_ScreenshotManager::~SK_Steam_ScreenshotManager (void)
 {
@@ -767,7 +767,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   {
     SK_D3D11_CaptureScreenshot (
       config.screenshots.show_osd_by_default ?
-              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD, true
     );
 
     return;
@@ -777,7 +777,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   {
     SK_D3D12_CaptureScreenshot (
       config.screenshots.show_osd_by_default ?
-              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD, true
     );
 
     return;
@@ -787,7 +787,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   {
     SK_GL_CaptureScreenshot (
       config.screenshots.show_osd_by_default ?
-              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD, true
     );
 
     return;
@@ -797,7 +797,7 @@ SK_Steam_ScreenshotManager::OnScreenshotRequest ( ScreenshotRequested_t *pParam 
   {
     SK_D3D9_CaptureScreenshot (
             config.screenshots.show_osd_by_default ?
-              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD
+              SK_ScreenshotStage::EndOfFrame : SK_ScreenshotStage::BeforeOSD, true
     );
 
     return;
@@ -2355,15 +2355,9 @@ public:
         // If the user wants a screenshot, but no popups (why?!), this is when
         //   the screenshot needs to be taken.
         if (       config.platform.achievements.take_screenshot )
-        {  if ( (! config.platform.achievements.popup.show) ||
-#ifdef _HAS_CEGUI_REPLACEMENT
-                (! config.cegui.enable)                  ||
-#else
-                   true                                  ||
-#endif
-                (  SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12 ) )
+        {  if ( (! config.platform.achievements.popup.show) )
            {
-             SK::SteamAPI::TakeScreenshot ();
+             SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame, false);
            }
         }
 
@@ -3574,7 +3568,7 @@ SK::SteamAPI::GetOverlayState (bool real)
 
 bool
 __stdcall
-SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
+SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when, bool allow_sound)
 {
   steam_log->LogEx (true, L"  >> Triggering Screenshot: ");
 
@@ -3584,28 +3578,28 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when)
        static_cast <int> (SK_RenderAPI::D3D11) )
   {
     captured =
-      SK_D3D11_CaptureScreenshot (when);
+      SK_D3D11_CaptureScreenshot (when, allow_sound);
   }
 
   else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D12) )
   {
     captured =
-      SK_D3D12_CaptureScreenshot (when);
+      SK_D3D12_CaptureScreenshot (when, allow_sound);
   }
 
   else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::OpenGL) )
   {
     captured =
-      SK_GL_CaptureScreenshot (when);
+      SK_GL_CaptureScreenshot (when, allow_sound);
   }
 
   else if ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
             static_cast <int> (SK_RenderAPI::D3D9) )
   {
     captured =
-      SK_D3D9_CaptureScreenshot (when);
+      SK_D3D9_CaptureScreenshot (when, allow_sound);
   }
 
   if (captured)

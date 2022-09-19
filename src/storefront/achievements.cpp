@@ -1687,7 +1687,7 @@ SK_AchievementManager::drawPopups (void)
 
     if (! take_screenshot)
     {
-      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame);
+      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::EndOfFrame, false);
       take_screenshot = -1;
     }
   }

@@ -56,7 +56,8 @@ public:
   explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
   explicit SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
                                  const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
-                                 const SK_ComPtr <IDXGISwapChain3>&    pSwapChain );
+                                 const SK_ComPtr <IDXGISwapChain3>&    pSwapChain,
+                                       bool                            allow_sound );
 
           ~SK_D3D12_Screenshot (void) {
             dispose ();
@@ -152,6 +153,7 @@ public:
 protected:
   ULONG64                                 ulCommandIssuedOnFrame = 0;
 
+  bool                                    bPlaySound             =    true;
   readback_ctx_s                          readback_ctx           = {     };
   framebuffer_s                           framebuffer            = {     };
 
