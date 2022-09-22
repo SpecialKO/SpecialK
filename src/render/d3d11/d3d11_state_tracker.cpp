@@ -574,7 +574,9 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
     process =
      ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 )
                ||
-       SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx);
+       SK_D3D11_ShouldTrackRenderOp (pDevCtx, dev_idx)
+               ||
+      SK_Screenshot_IsCapturingHUDless ();
   }
 
   return

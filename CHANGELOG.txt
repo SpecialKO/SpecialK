@@ -1,4 +1,8 @@
-﻿22.9.19
+﻿22.9.22
+=======
+ + Fixed HUDless screenshots if D3D11 state tracking is disabled
+
+22.9.19
 =======
  + Re-enabled friend achievement unlock statistic fetch by default
  + Fixed achievement unlock-triggered screenshots snapping twice
