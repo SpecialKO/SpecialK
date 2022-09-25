@@ -293,6 +293,10 @@ SK_SpawnPresentMonWorker (void)
   if (config.compatibility.using_wine)
     return;
 
+  // Workaround for Windows 11 22H2 performance issues
+  if (! config.render.framerate.enable_etw_tracing)
+    return;
+
   SK_RunOnce (
     __SK_ETW_PresentMon_Thread =
       SK_Thread_CreateEx ( [](LPVOID) -> DWORD

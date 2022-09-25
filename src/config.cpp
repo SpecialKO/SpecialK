@@ -649,6 +649,7 @@ struct {
     sk::ParameterInt*     enforcement_policy      = nullptr;
     sk::ParameterBool*    drop_late_frames        = nullptr;
     sk::ParameterBool*    auto_low_latency        = nullptr;
+    sk::ParameterBool*    enable_etw_tracing      = nullptr;
 
     struct
     {
@@ -1426,6 +1427,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.rescan_ratio,          L"Fullscreen Rational Scan Rate (precise refresh rate)",      dll_ini,         L"Render.FrameRate",      L"RescanRatio"),
 
     ConfigEntry (render.framerate.enforcement_policy,    L"Place Framerate Limiter Wait Before/After Present, etc.",   dll_ini,         L"Render.FrameRate",      L"LimitEnforcementPolicy"),
+    ConfigEntry (render.framerate.enable_etw_tracing,    L"Use ETW tracing (PresentMon) for extra latency/flip info",  dll_ini,         L"Render.FrameRate",      L"EnableETWTracing"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
@@ -3185,6 +3187,7 @@ auto DeclKeybind =
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
 
   render.framerate.enforcement_policy->load (config.render.framerate.enforcement_policy);
+  render.framerate.enable_etw_tracing->load (config.render.framerate.enable_etw_tracing);
 
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
@@ -4750,6 +4753,7 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.present_interval->store      (config.render.framerate.present_interval);
     render.framerate.sync_interval_clamp->store   (config.render.framerate.sync_interval_clamp);
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
+    render.framerate.enable_etw_tracing->store    (config.render.framerate.enable_etw_tracing);
 
     render.framerate.latent_sync.offset->store    (config.render.framerate.latent_sync.scanline_offset);
     render.framerate.latent_sync.resync->store    (config.render.framerate.latent_sync.scanline_resync);

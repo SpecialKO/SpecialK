@@ -1,5 +1,10 @@
-﻿22.9.22
+﻿22.9.25 (HOTFIX)
 =======
+ + Added option to disable PresentMon to address Windows 11 22H2 performance
+
+    [Render.FrameRate]
+    EnableETWTracing=false
+
  + Fixed HUDless screenshots if D3D11 state tracking is disabled
 
 22.9.19
