@@ -4541,15 +4541,55 @@ SK_ImGui_ControlPanel (void)
           ImGui::Separator  ();
           if (__target_fps > 0.0f)
           {
+            ImGui::PushItemWidth (ImGui::GetWindowWidth () * 0.3f);
             ImGui::BeginGroup ();
-
+            
             bool bLowLatency =
                 ( config.render.framerate.enforcement_policy == 2);
 
-            if (ImGui::Checkbox ("Low Latency Mode", &bLowLatency))
+            enum class limiter_mode_e {
+              Normal     = 0,
+              LowLatency = 1,
+              LatentSync = 2
+            };
+
+            // Present Interval 0 = Latent Sync; Low Latency mode unsupported
+            //
+            int mode = static_cast <int>
+             (config.render.framerate.present_interval == 0 ? limiter_mode_e::LatentSync
+                                                            :
+                                                bLowLatency ? limiter_mode_e::LowLatency
+                                                            : limiter_mode_e::Normal);
+
+            if (
+              ImGui::Combo ( "Mode",
+                             &mode, "Normal\0"
+                                    "Low-Latency (VRR Optimized)\0"
+                                    "Latent Sync (VSYNC -Off-)\0\0" )
+               )
             {
-              if (bLowLatency) config.render.framerate.enforcement_policy = 2;
-              else             config.render.framerate.enforcement_policy = 4;
+              switch ((limiter_mode_e)mode)
+              {
+                default:
+                case limiter_mode_e::Normal:
+                  config.render.framerate.enforcement_policy = 4;
+
+                  if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
+                      config.render.framerate.present_interval  = 1;
+                  break;
+
+                case limiter_mode_e::LowLatency:
+                  config.render.framerate.enforcement_policy = 2;
+
+                  if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
+                      config.render.framerate.present_interval  = 1;
+                  break;
+
+                case limiter_mode_e::LatentSync:
+                  config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
+                  config.render.framerate.enforcement_policy = 4;
+                  break;
+              }
 
               _ResetLimiter ();
             }
@@ -4557,16 +4597,36 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip ();
-              ImGui::Text         ("Reduces Input Latency");
+              ImGui::Text         ("Latency Settings");
               ImGui::Separator    ();
-              ImGui::BulletText   ("This mode is ideal for users with G-Sync / VRR displays");
-              ImGui::BulletText   ("Latency reduction can be quite profound, but comes with potential minor stutter");
-              ImGui::Separator    ();
-              ImGui::BulletText   ("The default mode has some latency benefits, but was designed to fix stutter on fixed-refresh displays");
+              ImGui::BeginGroup   ();
+              ImGui::BulletText   ("Normal Mode:\t");
+              ImGui::BulletText   ("Low-Latency:\t");
+              ImGui::BulletText   ("Latent Sync:\t");
+              ImGui::EndGroup     ();
+              ImGui::SameLine     ();
+              ImGui::BeginGroup   ();
+              ImGui::TextUnformatted
+                                  ("Prioritizes Minimum Stutter");
+              ImGui::TextUnformatted
+                                  ("Ideal for G-Sync / VRR displays; VRR will compensate for potential stutter");
+              ImGui::TextUnformatted
+                                  ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
+              ImGui::EndGroup     ();
+              if (config.render.framerate.present_interval == 0)
+              {
+                ImGui::Separator    ();
+                ImGui::TextColored  (ImVec4 (.666f, 1.f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
+                ImGui::SameLine     (  );
+                ImGui::PushStyleColor
+                          (ImGuiCol_Text, ImVec4 (0.825f, 0.825f, 0.825f, 1.f));
+                ImGui::TextUnformatted
+                                    ("Right-click the Framerate Limit slider to "
+                                     "configure Latent Sync");
+                ImGui::PopStyleColor(  );
+              }
               ImGui::EndTooltip   ();
             }
-
-            //ImGui::SliderInt ("Limit Enforcement Site", &__SK_FramerateLimitApplicationSite, 0, 4);
 
             if ( rb.api == SK_RenderAPI::D3D11 ||
                  rb.api == SK_RenderAPI::D3D12 )
@@ -4580,8 +4640,11 @@ SK_ImGui_ControlPanel (void)
               }
             }
 
-            ImGui::EndGroup   ();
-            ImGui::SameLine   (0.0f, 20.0f);
+            ImGui::EndGroup     ();
+            ImGui::PopItemWidth ();
+            ImGui::SameLine     (0.0f, 20.0f);
+            ImGui::VerticalSeparator ();
+            ImGui::SameLine     (0.0f, 20.0f);
           }
 
           ImGui::BeginGroup ();
@@ -4665,57 +4728,61 @@ SK_ImGui_ControlPanel (void)
             ImGui::EndGroup   ();
           }
 
-          typedef enum _D3DKMT_SCHEDULINGPRIORITYCLASS {
-            D3DKMT_SCHEDULINGPRIORITYCLASS_IDLE,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_BELOW_NORMAL,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_NORMAL,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_ABOVE_NORMAL,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_HIGH,
-            D3DKMT_SCHEDULINGPRIORITYCLASS_REALTIME // Mortals are not authorized to use this :)
-          } D3DKMT_SCHEDULINGPRIORITYCLASS;
-
-          using D3DKMTSetProcessSchedulingPriorityClass_pfn = NTSTATUS (WINAPI*)(HANDLE, D3DKMT_SCHEDULINGPRIORITYCLASS );
-          using D3DKMTGetProcessSchedulingPriorityClass_pfn = NTSTATUS (WINAPI*)(HANDLE, D3DKMT_SCHEDULINGPRIORITYCLASS*);
-
-          static D3DKMTSetProcessSchedulingPriorityClass_pfn
-                 D3DKMTSetProcessSchedulingPriorityClass =
-                (D3DKMTSetProcessSchedulingPriorityClass_pfn)SK_GetProcAddress ( L"Gdi32.dll",
-                "D3DKMTSetProcessSchedulingPriorityClass");
-
-          static D3DKMTGetProcessSchedulingPriorityClass_pfn
-                 D3DKMTGetProcessSchedulingPriorityClass =
-                (D3DKMTGetProcessSchedulingPriorityClass_pfn)SK_GetProcAddress ( L"Gdi32.dll",
-                "D3DKMTGetProcessSchedulingPriorityClass");
-
-          D3DKMT_SCHEDULINGPRIORITYCLASS                                       sched_class;
-            D3DKMTGetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), &sched_class);
-
-          static std::string
-              sched_drop_down;
-          if (sched_drop_down.empty ())
+          // Only show these for debug purposes, normal users never need to see
+          if (config.system.log_level > 0)
           {
-            sched_drop_down += "Idle";
-            sched_drop_down += '\0';
+            typedef enum _D3DKMT_SCHEDULINGPRIORITYCLASS {
+              D3DKMT_SCHEDULINGPRIORITYCLASS_IDLE,
+              D3DKMT_SCHEDULINGPRIORITYCLASS_BELOW_NORMAL,
+              D3DKMT_SCHEDULINGPRIORITYCLASS_NORMAL,
+              D3DKMT_SCHEDULINGPRIORITYCLASS_ABOVE_NORMAL,
+              D3DKMT_SCHEDULINGPRIORITYCLASS_HIGH,
+              D3DKMT_SCHEDULINGPRIORITYCLASS_REALTIME // Mortals are not authorized to use this :)
+            } D3DKMT_SCHEDULINGPRIORITYCLASS;
 
-            sched_drop_down += "Below Normal";
-            sched_drop_down += '\0';
+            using D3DKMTSetProcessSchedulingPriorityClass_pfn = NTSTATUS (WINAPI*)(HANDLE, D3DKMT_SCHEDULINGPRIORITYCLASS );
+            using D3DKMTGetProcessSchedulingPriorityClass_pfn = NTSTATUS (WINAPI*)(HANDLE, D3DKMT_SCHEDULINGPRIORITYCLASS*);
 
-            sched_drop_down += "Normal";
-            sched_drop_down += '\0';
+            static D3DKMTSetProcessSchedulingPriorityClass_pfn
+                   D3DKMTSetProcessSchedulingPriorityClass =
+                  (D3DKMTSetProcessSchedulingPriorityClass_pfn)SK_GetProcAddress ( L"Gdi32.dll",
+                  "D3DKMTSetProcessSchedulingPriorityClass");
 
-            sched_drop_down += "Above Normal";
-            sched_drop_down += '\0';
+            static D3DKMTGetProcessSchedulingPriorityClass_pfn
+                   D3DKMTGetProcessSchedulingPriorityClass =
+                  (D3DKMTGetProcessSchedulingPriorityClass_pfn)SK_GetProcAddress ( L"Gdi32.dll",
+                  "D3DKMTGetProcessSchedulingPriorityClass");
 
-            sched_drop_down += "High";
-            sched_drop_down += '\0';
-            sched_drop_down += '\0';
-          }
+            D3DKMT_SCHEDULINGPRIORITYCLASS                                       sched_class;
+              D3DKMTGetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), &sched_class);
 
-          if (config.render.framerate.present_interval == 0)
-          {
-            if (ImGui::Combo ("D3DKMT Process Priority Class", (int *)&sched_class, sched_drop_down.data ()))
+            static std::string
+                sched_drop_down;
+            if (sched_drop_down.empty ())
             {
-              D3DKMTSetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), sched_class);
+              sched_drop_down += "Idle";
+              sched_drop_down += '\0';
+
+              sched_drop_down += "Below Normal";
+              sched_drop_down += '\0';
+
+              sched_drop_down += "Normal";
+              sched_drop_down += '\0';
+
+              sched_drop_down += "Above Normal";
+              sched_drop_down += '\0';
+
+              sched_drop_down += "High";
+              sched_drop_down += '\0';
+              sched_drop_down += '\0';
+            }
+
+            if (config.render.framerate.present_interval == 0)
+            {
+              if (ImGui::Combo ("D3DKMT Process Priority Class", (int *)&sched_class, sched_drop_down.data ()))
+              {
+                D3DKMTSetProcessSchedulingPriorityClass (SK_GetCurrentProcess (), sched_class);
+              }
             }
           }
 

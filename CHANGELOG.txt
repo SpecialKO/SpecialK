@@ -1,4 +1,10 @@
-﻿22.9.25 (HOTFIX)
+﻿22.9.26
+=======
+ + Fixed PresentMon performance in Windows 11 22H2 without disabling it
+ + Replaced 'Low-Latency' checkbox with 'Mode' option in control panel's
+     'Framerate Limiter | Advanced' section
+
+22.9.25 (HOTFIX)
 =======
  + Added option to disable PresentMon to address Windows 11 22H2 performance
 
