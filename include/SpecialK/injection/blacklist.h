@@ -219,6 +219,9 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"identity_helper.exe"),
   SK_MakeUnicode (L"yourphoneserver.exe"), // Injects into UWP app that later suspends itself
   SK_MakeUnicode (L"razer synapse service.exe"),
+  SK_MakeUnicode (L"InitSetting.exe"),
+  SK_MakeUnicode (L"Updater.exe"),
+  SK_MakeUnicode (L"StandaloneUpdater.exe"),
 };
 
 static constexpr UNICODE_STRING __graylist [] = {
@@ -242,6 +245,18 @@ static constexpr UNICODE_STRING __graylist [] = {
   SK_MakeUnicode (L"supporttool.exe"),
   SK_MakeUnicode (L"ism2.exe"),
   SK_MakeUnicode (L"msmpeng.exe"),
+  
+  /* external modkits; can be expanded for general case */
+  SK_MakeUnicode (L"DMCVTrainer.exe"),
+  SK_MakeUnicode (L"NAIOM-GUI.exe"),
+  SK_MakeUnicode (L"S4Studio.exe"),
+  SK_MakeUnicode (L"DS4Windows.exe"),
+  SK_MakeUnicode (L"Modmanager.exe"),
+  SK_MakeUnicode (L"PalMod.exe"),
+  SK_MakeUnicode (L"NAMH.exe"),
+  SK_MakeUnicode (L"KKManager.exe"),
+  SK_MakeUnicode (L"Reloaded-II.exe"),
+  SK_MakeUnicode (L"Reloaded-II32.exe"),
 };
 
 static constexpr UNICODE_STRING __blacklist [] = {
