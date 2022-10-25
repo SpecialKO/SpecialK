@@ -1441,7 +1441,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::Persona5)
   {
-  if (rguid != GUID_SysMouse    && rguid != GUID_SysKeyboard &&
+  if (rguid != GUID_SysMouse    && rguid != GUID_SysKeyboard
     /*rguid != GUID_SysMouseEm2 && rguid != GUID_SysKeyboardEm2*/
                                 && rguid != GUID_Joystick)
     return E_FAIL;
