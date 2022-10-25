@@ -1449,12 +1449,10 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
 
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
-  const wchar_t* wszDevice = (rguid == GUID_SysKeyboard ||
-                              rguid == GUID_SysKeyboardEm2) ? L"Default System Keyboard" :
-                                (rguid == GUID_SysMouse ||
-                                 rguid == GUID_SysMouseEm2) ? L"Default System Mouse"    :
-                                  (rguid == GUID_Joystick)  ? L"Gamepad / Joystick"      :
-                                                              L"Other Device";
+  const wchar_t* wszDevice = (rguid == GUID_SysKeyboard)   ? L"Default System Keyboard" :
+                                (rguid == GUID_SysMouse)   ? L"Default System Mouse"    :
+                                  (rguid == GUID_Joystick) ? L"Gamepad / Joystick"      :
+                                                             L"Other Device";
 
   static auto& _devices_w =
                devices8_w.get ();
