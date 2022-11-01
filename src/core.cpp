@@ -2105,11 +2105,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::YakuzaUnderflow:
         SK_Yakuza0_PlugInInit ();
         break;
-#else
+#endif
+
+      // May be 32-bit or 64-bit depending on which patch user is running
       case SK_GAME_ID::Persona4:
         SK_Persona4_InitPlugin ();
         break;
-#endif
 
 #ifdef _M_AMD64
       case SK_GAME_ID::NieR_Sqrt_1_5:
