@@ -663,17 +663,17 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::EndGroup   ();
 
       ImGui::SameLine   ();
-      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::ItemSize   (ImVec2(50.0f * config.imgui.scale, 0.0f));
       ImGui::SameLine   ();
       
       ImGui::VerticalSeparator ();
 
       ImGui::SameLine   ();
-      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::ItemSize   (ImVec2(50.0f * config.imgui.scale, 0.0f));
       ImGui::SameLine   ();
 
       ImGui::BeginGroup ();
-      ImGui::PushItemWidth (100.0f);
+      ImGui::PushItemWidth (100.0f * config.imgui.scale);
 
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
