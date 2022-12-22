@@ -532,15 +532,15 @@ iSK_INI::parse (void)
   if (pTLS == nullptr)
     return;
 
-  if (data.size () > 0)
+  size_t len = 0;
+
+  
+  if ( data.size () > 0 &&
+        ( len =
+      wcsnlen (&data [bom_size], data.size ()) ) > 0 )
   {
     std::wstring temp_name;
                  temp_name.reserve (32);
-
-    size_t len =
-      lstrlenW (&data [bom_size]);
-
-    SK_ReleaseAssert (len > 0)
 
     // We don't want CrLf, just Lf
     bool strip_cr = false;
@@ -587,7 +587,7 @@ iSK_INI::parse (void)
                         reinterpret_cast <uintptr_t> (wszDataEnd) );
 
       len =
-        lstrlenW (&data [bom_size]);
+        wcsnlen (&data [bom_size], data.size ());
     }
 
     else
