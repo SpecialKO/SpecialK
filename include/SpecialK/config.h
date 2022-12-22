@@ -1179,6 +1179,7 @@ enum class SK_GAME_ID
   OctopathTraveler,             // Octopath_Traveler-Win64-Shipping.exe
   SonicMania,                   // SonicMania.exe
   Persona4,                     // P4G.exe
+  Persona5,                     // P5R.exe
   HorizonZeroDawn,              // HorizonZeroDawn.exe
   BaldursGate3,                 // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe

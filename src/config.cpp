@@ -189,6 +189,7 @@ SK_GetCurrentGameID (void)
           { L"Octopath_Traveler-Win64-Shipping.exe",   SK_GAME_ID::OctopathTraveler             },
           { L"SonicMania.exe",                         SK_GAME_ID::SonicMania                   },
           { L"P4G.exe",                                SK_GAME_ID::Persona4                     },
+          { L"P5R.exe",                                SK_GAME_ID::Persona5                     },
           { L"HorizonZeroDawn.exe",                    SK_GAME_ID::HorizonZeroDawn              },
           { L"bg3.exe",                                SK_GAME_ID::BaldursGate3                 },
           { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },

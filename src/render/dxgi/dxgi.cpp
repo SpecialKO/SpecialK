@@ -4928,6 +4928,10 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::Persona5 ) { SK_LOG_ONCE (L"ResizeTarget ignored...");
+    return S_OK;
+  }
+
   SK_ReleaseAssert (pNewTargetParameters != nullptr);
 
   DXGI_SWAP_CHAIN_DESC sd = { };
