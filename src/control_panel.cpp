@@ -5463,6 +5463,16 @@ SK_ImGui_StageNextFrame (void)
   auto& io =
     ImGui::GetIO ();
 
+  ImGuiStyle& style =
+    ImGui::GetStyle();
+
+  static float orgWindowBg = style.Colors[ImGuiCol_WindowBg].w;
+
+  if (config.imgui.render.disable_alpha)
+    style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+  else
+    style.Colors[ImGuiCol_WindowBg].w = orgWindowBg;
+
   ///SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
   ///
   ///if (pSwapChain != nullptr)

@@ -355,7 +355,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     const ImDrawList* cmd_list =
       draw_data->CmdLists [n];
 
-    if (config.imgui.render.disable_alpha)
+#if 0
+    if (config.imgui.render.disable_alpha && false)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
       {
@@ -382,6 +383,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
           (ImVec4)ImColor (color);
       }
     }
+#endif
   }
 
   for (int n = 0; n < draw_data->CmdListsCount; n++)

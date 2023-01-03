@@ -109,6 +109,7 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
     const ImDrawList* cmd_list          = draw_data->CmdLists [n];
     const ImDrawIdx*  idx_buffer_offset = nullptr;
 
+#if 0
     if (config.imgui.render.disable_alpha)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
@@ -141,6 +142,7 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
           color;
       }
     }
+#endif
 
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
     glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof (ImDrawVert),

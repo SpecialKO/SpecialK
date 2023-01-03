@@ -176,7 +176,8 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
       memcpy (
         &vtx_dst->col, &u32_color, sizeof (uint32_t)); // RGBA --> ARGB for DirectX9
 
-      if (config.imgui.render.disable_alpha)
+#if 0
+      if (config.imgui.render.disable_alpha && false)
       {
         ImU32 u32_dst =
           vtx_dst->col;////ImColor (ImVec4 (vtx_dst->col [0], vtx_dst->col [1], vtx_dst->col [2], vtx_dst->col [3]));
@@ -203,6 +204,7 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
         //memcpy (
         //  vtx_dst->col, &((unsigned int)im_color), sizeof (uint32_t));
       }
+#endif
 
       vtx_dst->uv  [0] = vtx_src->uv.x;
       vtx_dst->uv  [1] = vtx_src->uv.y;
