@@ -2316,6 +2316,18 @@ SK_File_GetSize (const wchar_t* wszFile)
                                GetFileExInfoStandard,
                                  &file_attrib_data ) )
   {
+    if ( file_attrib_data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT )
+    {
+      // If the target at wszFile is a symlink, the GetFileAttributesEx
+      // function always returns a file size of zero. To get the size of the
+      // file pointed to by the symlink, we can use _wstat64 instead.
+      struct _stat64 buffer;
+      if ( _wstat64( wszFile, &buffer ) != 0 )
+      {
+        return 0ULL;
+      }
+      return buffer.st_size;
+    }
     return ULARGE_INTEGER { file_attrib_data.nFileSizeLow,
                             file_attrib_data.nFileSizeHigh }.QuadPart;
   }
