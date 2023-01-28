@@ -631,6 +631,8 @@ SK_InstallOSD (void)
     SK_SetOSDScale (config.osd.scale);
     SK_SetOSDPos   (config.osd.pos_x, config.osd.pos_y);
     SK_SetOSDColor (config.osd.red,   config.osd.green, config.osd.blue);
+    ImGui::GetIO ().FontGlobalScale = SK_ImGui::SanitizeFontGlobalScale (
+      config.imgui.scale);
   }
 }
 

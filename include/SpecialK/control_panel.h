@@ -60,6 +60,9 @@ void SK_ImGui_AdjustCursor       (void);
 //
 namespace SK_ImGui
 {
+  float
+  SanitizeFontGlobalScale (float scale);
+
   bool
   VerticalToggleButton (const char *text, bool *v);
 
