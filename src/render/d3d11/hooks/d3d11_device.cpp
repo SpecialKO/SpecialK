@@ -183,7 +183,7 @@ D3D11Dev_CreateShaderResourceView_Override (
       D3D11_SHADER_RESOURCE_VIEW_DESC desc =
       {                .Format          = DXGI_FORMAT_UNKNOWN,
                        .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
-        .Texture2D = { .MostDetailedMip = (UINT)-1 }
+        .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
       };
 
       if (pDesc != nullptr)
@@ -195,6 +195,13 @@ D3D11Dev_CreateShaderResourceView_Override (
       {
         D3D11_TEXTURE2D_DESC texDesc = { };
         pTex->GetDesc      (&texDesc);
+
+        // Fix-up SRV's created using NULL desc's on Typeless SwapChain Backbuffers
+        if (DirectX::IsTypeless (texDesc.Format) && pDesc == nullptr)
+        {
+          pDesc       = &desc;
+          desc.Format = DirectX::MakeTypelessUNORM (texDesc.Format);
+        }
 
         // Ys 8 crashes if this nonsense isn't here
         bool bInvalidType =
