@@ -176,6 +176,13 @@ bool SK_ImGui_WantRestart = false;
 // Special K Extensions to ImGui
 namespace SK_ImGui
 {
+
+  float
+  SanitizeFontGlobalScale (float scale)
+  {
+    return std::max (1.0f, std::min (5.0f, scale));
+  }
+
   bool
   VerticalToggleButton (const char *text, bool *v)
   {
@@ -3624,7 +3631,7 @@ SK_ImGui_ControlPanel (void)
              = int (
   static_cast <float>
    (ImGui::CalcTextSize (szTitle, nullptr, true).x)
-          * 1.075f );
+          * 1.075f / io.FontGlobalScale );
 
   static bool first_frame = true;
   bool        open        = true;
@@ -3637,10 +3644,7 @@ SK_ImGui_ControlPanel (void)
       ImGuiConfigFlags_NavEnableSetMousePos;
 
     // Range-restrict for sanity!
-    config.imgui.scale =
-           std::max (1.0f,
-           std::min (5.0f,
-    config.imgui.scale));
+    config.imgui.scale = SK_ImGui::SanitizeFontGlobalScale (config.imgui.scale);
 
     io.FontGlobalScale =
     config.imgui.scale;
@@ -4013,8 +4017,7 @@ SK_ImGui_ControlPanel (void)
       {
         // ImGui does not perform strict parameter validation,
         //   and values out of range for this can be catastrophic.
-        config.imgui.scale =
-          std::max (1.0f, std::min (5.0f, config.imgui.scale));
+        config.imgui.scale = SK_ImGui::SanitizeFontGlobalScale (config.imgui.scale);
         io.FontGlobalScale = config.imgui.scale;
       }
 
