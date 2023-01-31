@@ -2397,8 +2397,9 @@ auto DeclKeybind =
         // 1.00: 0x2C3201
         // 1.01: 0x2C37B1, File Location: 0x2C2801
         // 1.02: 0x2C3681, File Location: 0x2C26D0
+        // 1.03: 0x2C36C1, File Location: 0x2C26F0
         auto win_ver_check_addr =
-          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2C3681);
+          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2C36C1);
         auto win_ver_check_pattern = "\x48\x8B\xCF";
 
         DWORD dwOrigProt =                                     PAGE_EXECUTE_READ;
