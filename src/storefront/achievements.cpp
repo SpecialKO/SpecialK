@@ -1438,6 +1438,9 @@ SK_AchievementManager::drawPopups (void)
   float x_pos (x_origin + x_off * x_dir);
   float y_pos (y_origin + y_off * y_dir);
 
+  float x_offset = 0.0f;
+  float y_offset = 0.0f;
+
   static int take_screenshot = 0;
 
   std::unordered_set <std::string> displayed;
@@ -1454,9 +1457,11 @@ SK_AchievementManager::drawPopups (void)
 
     if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS))
     {
+#if 0 // Only used for animated popups
       float percent_of_lifetime =
         ( static_cast <float> (it->time + POPUP_DURATION_MS - SK_timeGetTime ()) /
           static_cast <float> (           POPUP_DURATION_MS)                     );
+#endif
 
       ImGuiWindow* win = it->window;
 
@@ -1510,6 +1515,7 @@ SK_AchievementManager::drawPopups (void)
       //
       //else
       {
+#if 0
         if (config.platform.achievements.popup.animate)
         {
           float percent = y_origin * 0.01f;// +y_off)
@@ -1538,6 +1544,7 @@ SK_AchievementManager::drawPopups (void)
         }
 
         else if (! it->final_pos)
+#endif
         {
           take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
           it->final_pos   = true;
@@ -1566,7 +1573,7 @@ SK_AchievementManager::drawPopups (void)
           ImGui::BeginPopup    (szPopupName,
                                 ImGuiWindowFlags_AlwaysAutoResize |
                                 ImGuiWindowFlags_NoCollapse       |
-                                ImGuiWindowFlags_NoInputs);
+                                ImGuiWindowFlags_NoInputs         );
 
           float fTopY = ImGui::GetCursorPosY ();
 
@@ -1635,9 +1642,34 @@ SK_AchievementManager::drawPopups (void)
                                 ":  %s", _ctime64 (&it->achievement->time_));
           else
             ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
+
+          float x_loc = 0.0f;
+          float y_loc = 0.0f;
+
+          switch (config.platform.achievements.popup.origin)
+          {
+            default:
+            case 0: // Top-Left
+              x_loc =        inset;                                x_dir = 1.0f;
+              y_loc =        inset;                                y_dir = 1.0f;
+              break;
+            case 1: // Top-Right
+              x_loc = io.DisplaySize.x - inset - ImGui::GetWindowSize ().x;    x_dir = -1.0f;
+              y_loc =                    inset;                                y_dir =  1.0f;
+              break;
+            case 2: // Bottom-Left
+              x_loc =                    inset;                                x_dir =  1.0f;
+              y_loc = io.DisplaySize.y - inset - ImGui::GetWindowSize ().y;    y_dir = -1.0f;
+              break;
+            case 3: // Bottom-Right
+              x_loc = io.DisplaySize.x - inset - ImGui::GetWindowSize ().x;    x_dir = -1.0f;
+              y_loc = io.DisplaySize.y - inset - ImGui::GetWindowSize ().y;    y_dir = -1.0f;
+              break;
+          }
+
           ImGui::SetWindowPos  (
-            ImVec2 (io.DisplaySize.x - ImGui::GetWindowSize ().x - io.DisplaySize.x * 0.025f,
-                    io.DisplaySize.y - ImGui::GetWindowSize ().y - io.DisplaySize.y * 0.025f),
+            ImVec2 (x_loc + x_offset + io.DisplaySize.x * 0.025f * x_dir,
+                    y_loc + y_offset + io.DisplaySize.y * 0.025f * y_dir),
                       ImGuiCond_Always
           );
           ImGui::EndPopup      (  );
@@ -1647,9 +1679,21 @@ SK_AchievementManager::drawPopups (void)
         }
       }
 
+      y_offset += y_dir * ImGui::GetWindowSize ().y;
+
+      if (fabs (y_offset) > io.DisplaySize.y)
+      {
+        y_offset  = 0.0f;
+        x_offset += x_dir * ImGui::GetWindowSize ().x;
+      }
+
       y_pos += y_dir * 256.0f/*win->getSize().d_height*/;
 
+#if 0
       displayed.emplace        (it->achievement->name_);
+#else
+      break;
+#endif
                               ++it;
     }
 

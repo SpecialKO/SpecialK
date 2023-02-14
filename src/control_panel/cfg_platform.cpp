@@ -218,13 +218,18 @@ SK::ControlPanel::Platform::Draw (void)
 
             ImGui::Text          ("Draw Mode:");                              ImGui::SameLine ();
 
+            // Animated popups are not supported in ImGui
+            //
+            if (mode > 1) mode = 1;
+
             changed |=
               ImGui::RadioButton ("Disabled ##AchievementPopup",   &mode, 0); ImGui::SameLine ();
-            changed |=
-              ImGui::RadioButton ("Stationary ##AchievementPopup", &mode, 1); ImGui::SameLine ();
             ImGui::BeginGroup    ( );
             changed |=
-              ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
+              ImGui::RadioButton ("Stationary ##AchievementPopup", &mode, 1); ImGui::SameLine ();
+
+            //changed |=
+            //  ImGui::RadioButton ("Animated ##AchievementPopup",   &mode, 2);
 
               ImGui::SameLine    ( );
               ImGui::Combo       ( "##PopupLoc",         &config.platform.achievements.popup.origin,
