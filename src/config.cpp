@@ -721,6 +721,7 @@ struct {
   sk::ParameterBool*      save_resolution         = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
+  sk::ParameterBool*      aspect_ratio_stretch    = nullptr;
 } display;
 
 struct {
@@ -1408,6 +1409,7 @@ auto DeclKeybind =
     ConfigEntry (display.force_fullscreen,               L"Force Fullscreen Mode",                                     dll_ini,         L"Display.Output",        L"ForceFullscreen"),
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
+    ConfigEntry (display.aspect_ratio_stretch,           L"Fill monitor background (eg. black bars) in windowed mode", dll_ini,         L"Display.Output",        L"AspectRatioStretch"),
     ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
 
 
@@ -2393,12 +2395,12 @@ auto DeclKeybind =
         config.display.force_windowed            =  true;
         config.window.always_on_top              =     0;
 
-        // Now we patch the damn broken Windows 10 Version Check
         // 1.00: 0x2C3201
         // 1.01: 0x2C37B1, File Location: 0x2C2801
         // 1.02: 0x2C3681, File Location: 0x2C26D0
+        // 1.03: 0x2C36C1, File Location: 0x2C26F0
         auto win_ver_check_addr =
-          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2C3681);
+          ((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x2C36C1);
         auto win_ver_check_pattern = "\x48\x8B\xCF";
 
         DWORD dwOrigProt =                                     PAGE_EXECUTE_READ;
@@ -3089,6 +3091,7 @@ auto DeclKeybind =
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
   display.force_10bpc_sdr->load             (config.render.output.force_10bpc);
+  display.aspect_ratio_stretch->load        (config.display.aspect_ratio_stretch);
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
   display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
   display.save_resolution->load             (config.display.resolution.save);
@@ -4688,6 +4691,7 @@ SK_SaveConfig ( std::wstring name,
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
   display.force_10bpc_sdr->store              (config.render.output.force_10bpc);
+  display.aspect_ratio_stretch->store         (config.display.aspect_ratio_stretch);
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
   display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
   display.save_resolution->store              (config.display.resolution.save);

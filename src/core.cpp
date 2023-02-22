@@ -3490,6 +3490,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   rb.frame_delta.markFrame ();
 
+  if (config.display.aspect_ratio_stretch)
+  {
+    extern void SK_Win32_CreateBackgroundWindow (void);
+
+    SK_RunOnce (
+      SK_Win32_CreateBackgroundWindow ()
+    );
+  }
 
   // Invoke any plug-in's frame end callback
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )

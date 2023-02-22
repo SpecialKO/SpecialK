@@ -540,6 +540,7 @@ struct sk_config_t
       bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
       bool    clear_flipped_chain  =  true; // Clear buffers on present? (non-compliant)
       float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
+      bool    suppress_resize_fail =  true; // Workaround EOS Overlay bug in D3D12
     } dxgi;
 
     struct {
@@ -589,6 +590,7 @@ struct sk_config_t
     float     refresh_rate         =  0.0F; // TODO
     bool      force_fullscreen     = false;
     bool      force_windowed       = false;
+    bool      aspect_ratio_stretch = false;
     bool      confirm_mode_changes = true;
     bool      save_monitor_prefs   = true;
     struct resolution_s {

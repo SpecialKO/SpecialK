@@ -1675,7 +1675,7 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
           pRawRTV, pColor,
             nullptr, 0
         );
-        
+
         return S_OK;
       }
     }
@@ -1755,7 +1755,7 @@ SK_D3D11_InsertBlackFrame (void)
       SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
 
       static constexpr FLOAT
-        fClearColor [] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        fClearColor [] = { 0.05f, 0.0f, 0.0f, 1.0f };
 
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
@@ -2381,7 +2381,7 @@ SK_DXGI_GetPresentStatusMap (void)
 
 std::string
 SK_DXGI_DescribePresentStatus (HRESULT hrPresentStatus)
-{ 
+{
   static const auto& map =
     SK_DXGI_GetPresentStatusMap ();
 
@@ -4092,7 +4092,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
             static_cast <float> (mode_to_match.RefreshRate.Denominator) :
               std::numeric_limits <float>::quiet_NaN (),
             static_cast <float> (config.render.framerate.rescan_.Numerator) /
-            static_cast <float> (config.render.framerate.rescan_.Denom) 
+            static_cast <float> (config.render.framerate.rescan_.Denom)
       );
 
       if (config.render.framerate.rescan_.Denom != 1)
@@ -4457,7 +4457,7 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
     if (pOutput.p != nullptr)
     {
       DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
-      SK_ComQIPtr <IDXGISwapChain1> 
+      SK_ComQIPtr <IDXGISwapChain1>
           pSwap1 (This);
       if (pSwap1 != nullptr)
           pSwap1->GetFullscreenDesc (&fullscreenDesc);
@@ -4723,7 +4723,7 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
       SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
                  L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",
                    SK_DXGI_FormatToStr (NewFormat).data () );
-  
+
       NewFormat =
         DXGI_FORMAT_R10G10B10A2_UNORM;
     }
@@ -4879,6 +4879,17 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     if (SUCCEEDED (ret))
       bSwapChainNeedsResize = false;
 
+
+    // EOS Overlay May Be Broken in D3D12 Games
+    if (FAILED (ret) && config.render.dxgi.suppress_resize_fail)
+    {
+      SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
+                  ret );
+
+      ret = S_OK;
+    }
+
+
     // Apply scRGB colorspace immediately, 16bpc formats can be either this
     //   or regular Rec709 and Rec709 is washed out after making this switch
     if (__SK_HDR_16BitSwap && NewFormat == DXGI_FORMAT_R16G16B16A16_FLOAT)
@@ -4928,10 +4939,6 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-  if ( SK_GetCurrentGameID () == SK_GAME_ID::Persona5 ) { SK_LOG_ONCE (L"ResizeTarget ignored...");
-    return S_OK;
-  }
-
   SK_ReleaseAssert (pNewTargetParameters != nullptr);
 
   DXGI_SWAP_CHAIN_DESC sd = { };
@@ -5359,7 +5366,7 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     // These games may want the contents of the SwapChain
     //    backbuffer to remain defined.
-    // 
+    //
     //   * If SK's SwapChain wrapper is active, avoid
     //       clearing backbuffers after Present (...)
     //
@@ -5406,14 +5413,14 @@ SK_DXGI_CreateSwapChain_PreInit (
                 POINT {
                   rectWindow.left + (rectWindow.right  - rectWindow.left) / 2,
                   rectWindow.top  + (rectWindow.bottom - rectWindow.top ) / 2
-                      } 
+                      }
              )
            )
         {
           auto modeDesc =
             pDesc->BufferDesc;
 
-          modeDesc.Width  = 
+          modeDesc.Width  =
             outputDesc.DesktopCoordinates.right  -
             outputDesc.DesktopCoordinates.left;
           modeDesc.Height =
@@ -5564,7 +5571,7 @@ SK_DXGI_CreateSwapChain_PreInit (
             break;
           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-            
+
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
@@ -6317,7 +6324,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   {
     rb.swapchain = ret;
     _PushInitialDWMColorSpace (pSwapChain, rb);
-    
+
     if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       ret->lastNonHDRFormat = original_format;
 
@@ -6382,7 +6389,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   {
     rb.swapchain = ret;
     _PushInitialDWMColorSpace (pSwapChain, rb);
-    
+
     if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
       ret->lastNonHDRFormat = original_format;
 
@@ -6586,7 +6593,7 @@ DXGIFactory_CreateSwapChain_Override (
 
           bRecycledSwapChains = true;
 
-          if (            nullptr != pOrigDesc) 
+          if (            nullptr != pOrigDesc)
             pSwapToRecycle->GetDesc (pOrigDesc);
 
           return S_OK;
@@ -6646,7 +6653,7 @@ DXGIFactory_CreateSwapChain_Override (
       SK_DXGI_WrapSwapChain            (pDevice,             pTemp,
                                                ppSwapChain, orig_desc->BufferDesc.Format);
 
-if (   nullptr != pOrigDesc) 
+if (   nullptr != pOrigDesc)
         pTemp->GetDesc (pOrigDesc);
     }
 
@@ -7123,7 +7130,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         SK_DXGI_WrapSwapChain1          (pDevice,                                        pTemp,
                                         ppSwapChain,    orig_desc1.Format);
 
-      if (    nullptr != pOrigDesc) 
+      if (    nullptr != pOrigDesc)
         pTemp->GetDesc1 (pOrigDesc);
       if (             nullptr != pOrigFullscreenDesc)
         pTemp->GetFullscreenDesc (pOrigFullscreenDesc);
@@ -8122,8 +8129,11 @@ SK_HookDXGI (void)
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
 
+//#define __SK_STREAMLINE_COMPATIBLE
+#ifndef __SK_STREAMLINE_COMPATIBLE
     static HMODULE hModSLInterposer =
       SK_Modules->LoadLibraryLL (L"sl.interposer.dll");
+#endif
 
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ?
@@ -8178,15 +8188,7 @@ SK_HookDXGI (void)
 
     else
     {
-      if (hModSLInterposer != SK_Modules->INVALID_MODULE)
-      {
-        SK_MessageBox (
-          L"Special K is not compatible with this game because it uses NVIDIA "
-          L"Streamline Interposer\r\n\r\n\t >> You must use Local Injection (dxgi.dll)",
-            L"Special K Incompatibility",
-              MB_ICONERROR | MB_OK
-        );
-      }
+      SK_COMPAT_CheckStreamlineSupport ();
 
       LPVOID pfnCreateDXGIFactory    = nullptr;
       LPVOID pfnCreateDXGIFactory1   = nullptr;
@@ -8281,7 +8283,7 @@ SK_HookDXGI (void)
     {
       SK_D3D11_InitTextures ();
       SK_D3D11_Init         ();
-    } 
+    }
 
     SK_ICommandProcessor *pCommandProc = nullptr;
 
@@ -9135,7 +9137,7 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
-    SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
+  SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
   //   not normal :)

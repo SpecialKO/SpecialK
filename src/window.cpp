@@ -7049,6 +7049,189 @@ SK_SetWindowPos ( HWND hWnd,
     SetWindowPos (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
+static HWND SK_Win32_BackgroundHWND;
+void        SK_Win32_BringBackgroundWindowToTop (void);
+
+
+LRESULT
+CALLBACK
+SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+  switch (msg)
+  {
+    case WM_CLOSE:
+      //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
+      break;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+    case WM_ACTIVATE:
+    case WM_ACTIVATEAPP:
+    case WM_MOUSEACTIVATE:
+    case WM_DISPLAYCHANGE:
+    case WM_SETCURSOR:
+      SK_Win32_BringBackgroundWindowToTop ();
+    default:
+      return DefWindowProcW (hwnd, msg, wParam, lParam);
+  }
+
+  return 0;
+}
+
+void
+SK_Win32_BringBackgroundWindowToTop (void)
+{
+  if (! config.display.aspect_ratio_stretch)
+    return;
+
+  HMONITOR hMonitor =
+    MonitorFromWindow (SK_GetGameWindow (), MONITOR_DEFAULTTONEAREST);
+
+  MONITORINFO mi = { .cbSize = sizeof (MONITORINFO) };
+
+  RECT                                     wndRect = { };
+  GetWindowRect (SK_Win32_BackgroundHWND, &wndRect);
+
+  if (GetMonitorInfo (hMonitor, &mi))
+  {
+    HWND hWndGame =
+      SK_GetGameWindow ();
+
+    if (                                      hWndGame != 0 &&
+              IsWindow (                      hWndGame)   //&&
+        //(GetNextWindow (hWnd, GW_HWNDPREV) != hWndGame ||
+        //   ! EqualRect (&wndRect, &mi.rcMonitor))
+       )
+    {
+      SK_RunOnce ( // Only do this for D3D software
+        SK_SetWindowLongPtrW ( hWndGame, GWL_EXSTYLE,
+        (SK_GetWindowLongPtrW (hWndGame, GWL_EXSTYLE) | WS_EX_NOREDIRECTIONBITMAP) )
+      );
+
+      HWND hWndAfter = hWndGame;
+
+      SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
+                          mi.rcMonitor.left,
+                          mi.rcMonitor.top,
+                            mi.rcMonitor.right  - mi.rcMonitor.left,
+                            mi.rcMonitor.bottom - mi.rcMonitor.top,
+      (hWndAfter != hWndGame) ? SWP_NOREPOSITION
+                              : 0x0
+                              | SWP_NOSENDCHANGING | SWP_NOACTIVATE |
+      
+      ( config.display.aspect_ratio_stretch ? SWP_SHOWWINDOW
+                                            : SWP_HIDEWINDOW ) );
+
+      // Unreal Engine has bad window management during startup videos,
+      //   so we need to raise the game above this secondary window.
+      SK_RunOnce (
+        BringWindowToTop (hWndGame)
+      );
+    }
+  }
+}
+
+void
+SK_Win32_CreateBackgroundWindow (void)
+{
+  if (! config.display.aspect_ratio_stretch)
+    return;
+
+  static bool once = false;
+
+  if (std::exchange (once, true))
+  {
+    return;
+  }
+
+  WNDCLASSEXW wc  = { };
+
+  wc.cbSize        = sizeof (WNDCLASSEXW);
+  wc.lpfnWndProc   = SK_Win32_BackgroundWndProc;
+  wc.hInstance     = SK_GetModuleHandle (nullptr);
+  wc.hCursor       = LoadCursor         (nullptr, IDC_ARROW);
+  wc.hbrBackground = (HBRUSH)GetStockObject (BLACK_BRUSH);
+  wc.lpszClassName = L"SK_AspectRatioWindow";
+
+  if (! RegisterClassExW (&wc))
+  {
+    MessageBoxW (NULL, L"Window Registration Failed!", L"Error!",
+      MB_ICONEXCLAMATION | MB_OK);
+
+    return;
+  }
+
+  SK_Thread_CreateEx ([](LPVOID) -> DWORD
+  { 
+    SK_Win32_BackgroundHWND =
+      CreateWindowExW ( WS_EX_NOACTIVATE,
+          L"SK_AspectRatioWindow",
+          L"Special K Aspect Ratio Background",
+            SK_BORDERLESS,
+            CW_USEDEFAULT, CW_USEDEFAULT,
+                        0,             0,
+                            nullptr,  nullptr,
+        SK_GetModuleHandle (nullptr), nullptr
+      );
+
+    if (SK_Win32_BackgroundHWND == nullptr)
+    {
+      MessageBoxW (NULL, L"Window Creation Failed!", L"Error!",
+        MB_ICONEXCLAMATION | MB_OK);
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }
+
+    ShowWindow   (SK_Win32_BackgroundHWND, SW_SHOW);
+    UpdateWindow (SK_Win32_BackgroundHWND);
+
+    // Wakes up a lot, to do nothing...
+    SK_Thread_ScopedPriority priority (
+      THREAD_PRIORITY_BELOW_NORMAL
+    );
+
+    // When all possible events that require resizing the window and changing
+    //   its Z-Order are identified, the spurious wake behavior will be removed
+
+    do
+    {
+      if ( WAIT_OBJECT_0 ==
+             MsgWaitForMultipleObjects (0, nullptr, FALSE, 250UL, QS_ALLINPUT) )
+      {
+        MSG                   msg = { };
+        while (PeekMessageW (&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+        {
+          TranslateMessage (&msg);
+          DispatchMessageW (&msg);
+        }
+      }
+
+      static bool virtual_fullscreen = false;
+
+      if ( std::exchange (virtual_fullscreen, config.display.aspect_ratio_stretch) !=
+                                              config.display.aspect_ratio_stretch  ||
+                                              config.display.aspect_ratio_stretch )
+      {
+        SK_Win32_BringBackgroundWindowToTop ();
+
+        static bool last_state = false;
+
+        if ( std::exchange (last_state, config.display.aspect_ratio_stretch) !=
+                                        config.display.aspect_ratio_stretch )
+        {
+          ShowWindow ( SK_Win32_BackgroundHWND,
+            config.display.aspect_ratio_stretch ? SW_SHOWNA
+                                                : SW_HIDE );
+        }
+      }
+    } while (true);
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  }, L"[SK] Aspect Ratio Window");
+}
 
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 {
@@ -7193,6 +7376,10 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
       extern void SK_Inject_SetFocusWindow (HWND);
                   SK_Inject_SetFocusWindow (game_window.hWnd);
     }
+
+    // Misnomer; brings a secondary window up the Z-Order to just below
+    //   the game window.
+    SK_Win32_BringBackgroundWindowToTop ();
   }
 
   return true;

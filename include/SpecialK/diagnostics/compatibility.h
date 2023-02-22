@@ -40,9 +40,10 @@ HRESULT SK_COMPAT_FixNahimicDeadlock (void);
 
 bool SK_COMPAT_IsSystemDllInstalled (const wchar_t* wszDll, bool* locally = nullptr);
 
-
 bool SK_COMPAT_IsFrapsPresent (void);
 void SK_COMPAT_UnloadFraps    (void);
+
+bool SK_COMPAT_CheckStreamlineSupport (void);
 
 bool SK_COMPAT_IgnoreDxDiagnCall  (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn = _ReturnAddress ());

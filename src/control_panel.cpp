@@ -1573,6 +1573,193 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Changes to Resolution on 'Active Monitor' will apply to future launches of this game");
 
+  if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
+  {
+    if (config.display.aspect_ratio_stretch)
+      config.window.background_render = true; // Required for this to work reliably
+
+    config.window.center =
+      config.display.aspect_ratio_stretch;
+
+    if (config.display.aspect_ratio_stretch)
+    {
+      config.window.borderless = true;
+      config.window.fullscreen = false;
+    }
+
+    else
+    {
+      config.window.res.override.x = 0;
+      config.window.res.override.y = 0;
+    }
+
+    if ( config.display.aspect_ratio_stretch &&
+         config.window.res.override.isZero () )
+    {
+      config.window.borderless = true;
+      config.window.center     = true;
+    }
+
+    SK_SaveConfig ();
+  }
+
+  if (ImGui::IsItemHovered ())
+  {
+    ImGui::BeginTooltip ();
+    ImGui::Text         ("Fills the game's monitor with a background wherever"
+                         " the game's window does not cover");
+    ImGui::Separator    ();
+    ImGui::BulletText   ("For best results, use the game's internal Windowed"
+                         " mode option (not Borderless / Borderless Fullscreen)");
+    ImGui::EndTooltip   ();
+  }
+
+  if (config.display.aspect_ratio_stretch)
+  {
+    ImGui::SameLine ();
+
+    float fVirtualAspect =
+      (float)config.window.res.override.x /
+      (float)config.window.res.override.y;
+
+    float fNativeAspect =
+      (float)(rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left) /
+      (float)(rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top);
+
+    struct {
+      float fAspect;
+      int   idx;
+    } aspect_ratios [] = {
+      { 1.25f, 0 }, // 5:4
+      { 1.33f, 1 }, // 4:3
+      { 1.5f,  2 }, // 3:2
+      { 1.6f,  3 }, // 16:10
+      { 1.7f,  4 }, // 16:9
+      { 2.3f,  5 }  // 21:9
+    };
+
+    int iVirtualAspect = 6; // Custom
+    int iNativeAspect  = 4;
+
+    for ( auto& aspect : aspect_ratios )
+    {
+      if ( fVirtualAspect < aspect.fAspect + 0.04f &&
+           fVirtualAspect > aspect.fAspect - 0.04f )
+      {
+        iVirtualAspect = aspect.idx;
+      }
+
+      if ( fNativeAspect < aspect.fAspect + 0.04f &&
+           fNativeAspect > aspect.fAspect - 0.04f )
+      {
+        iNativeAspect = aspect.idx;
+      }
+    }
+
+    if (ImGui::Combo ("", &iVirtualAspect, " 5:4\0 4:3\0 3:2\0 16:10\0 16:9\0 21:9\0 Custom\0\0"))
+    {
+      switch (iVirtualAspect)
+      {
+        case 0:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(5.0f * (config.window.res.override.y / 4.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(4.0f * (config.window.res.override.x / 5.0f));
+          }
+          break;
+        case 1:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(4.0f * (config.window.res.override.y / 3.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(3.0f * (config.window.res.override.x / 4.0f));
+          }
+          break;
+        case 2:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(3.0f * (config.window.res.override.y / 2.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(2.0f * (config.window.res.override.x / 3.0f));
+          }
+          break;
+        case 3:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 10.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(10.0f * (config.window.res.override.x / 16.0f));
+          }
+          break;
+        case 4:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 9.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 16.0f));
+          }
+          break;
+        case 5:
+          if (iNativeAspect >= iVirtualAspect)
+          {
+            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.x = (int)(21.0f * (config.window.res.override.y / 9.0f));
+          }
+          else
+          {
+            config.window.res.override.x = rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 21.0f));
+          }
+          break;
+        case 6:
+          config.window.res.override.x = 0;
+          config.window.res.override.y = 0;
+          break;
+      }
+
+      if (! config.window.res.override.isZero ())
+      {
+        // Trigger the game to resize the SwapChain so we can change its aspect ratio
+        //
+        PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
+          MAKELPARAM (config.window.res.override.x, config.window.res.override.y)
+                    );
+        PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
+          MAKELPARAM (config.window.res.override.x, config.window.res.override.y)
+                    );
+
+        extern void SK_Win32_BringBackgroundWindowToTop (void);
+                    SK_Win32_BringBackgroundWindowToTop ();
+      }
+
+      SK_ImGui_AdjustCursor ();
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
+  }
+
   static std::set <SK_ConfigSerializedKeybind *>
     keybinds = {
       &config.monitors.monitor_primary_keybind,

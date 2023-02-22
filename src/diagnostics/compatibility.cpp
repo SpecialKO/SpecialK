@@ -1055,3 +1055,53 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
        SK_RunLHIfBitness ( 32, L"EOSOVH-Win32-Shipping.dll",
                                L"EOSOVH-Win64-Shipping.dll" ) ) );
 }
+
+bool
+SK_COMPAT_CheckStreamlineSupport (void)
+{
+  static const int _MaxTestCount = 5;
+
+  static int  iTestCount  = 0;
+  static bool bCompatible = true;
+
+  // Handle possible late injection
+  if (SK_IsInjected () && iTestCount++ < _MaxTestCount)
+  {
+    HMODULE hModSLInterposer =
+      SK_Modules->LoadLibraryLL (L"sl.interposer.dll");
+
+    if (hModSLInterposer != SK_Modules->INVALID_MODULE)
+    {
+      std::wstring module_path = SK_GetModuleFullName (hModSLInterposer);
+      std::wstring ver_str     = SK_GetDLLVersionStr  (module_path.c_str ());
+
+      if (! SK_GetProcAddress (module_path.c_str (), "skFixedVersion"))
+      {
+        std::wstring msg =
+          L"Special K may not be compatible with this game because it uses "
+          L"NVIDIA Streamline Interposer"
+          L"\r\n\r\n\t"
+
+          L">> You should try Local Injection (dxgi.dll)"
+          L"\r\n\r\n---------------------\r\n\r\n";
+
+        msg += module_path;
+        msg += L"\r\n\r\n @ ";
+        msg += ver_str;
+
+        msg += L"\r\n\r\n---------------------\r\n\r\n"
+          L" * Check the Wiki or Discord for help replacing the Interposer.";
+
+        iTestCount  = _MaxTestCount;
+        bCompatible = false;
+
+        SK_MessageBox (
+          msg.c_str (), L"Special K Incompatibility",
+            MB_ICONERROR | MB_OK
+        );
+      }
+    }
+  }
+
+  return bCompatible;
+}
