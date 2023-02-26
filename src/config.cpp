@@ -5404,7 +5404,8 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
   const wchar_t* wszPath =
     StrStrIW ( wszExe, LR"(SteamApps\common\)" );
 
-  if (wszPath != nullptr)
+  // Only proceed if we actually have an install path
+  if (wszPath != nullptr && wcslen(SK_GetInstallPath()) > 0)
   {
     std::wstring wszRelPath
     (
