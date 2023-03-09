@@ -939,6 +939,13 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 
       ExitProcess   (0x00);
     }
+
+    if (config.window.background_render)
+    {
+      config.window.background_render = false;
+
+      SK_ImGui_Warning (L"\"Continue Rendering\" mode has been disabled because game is using Fullscreen Exclusive.");
+    }
   }
 }
 
@@ -1077,12 +1084,15 @@ SK_COMPAT_CheckStreamlineSupport (void)
 
       if (! SK_GetProcAddress (module_path.c_str (), "skFixedVersion"))
       {
+        bCompatible = false;
+        iTestCount  = _MaxTestCount;
+
         std::wstring msg =
           L"Special K may not be compatible with this game because it uses "
-          L"NVIDIA Streamline Interposer"
-          L"\r\n\r\n\t"
+          L"NVIDIA Streamline Interposer."
+          L"\r\n\r\n   "
 
-          L">> You should try Local Injection (dxgi.dll)"
+          L">> You must use Local Injection (dxgi.dll) or replace the Interposer."
           L"\r\n\r\n---------------------\r\n\r\n";
 
         msg += module_path;
@@ -1091,9 +1101,6 @@ SK_COMPAT_CheckStreamlineSupport (void)
 
         msg += L"\r\n\r\n---------------------\r\n\r\n"
           L" * Check the Wiki or Discord for help replacing the Interposer.";
-
-        iTestCount  = _MaxTestCount;
-        bCompatible = false;
 
         SK_MessageBox (
           msg.c_str (), L"Special K Incompatibility",

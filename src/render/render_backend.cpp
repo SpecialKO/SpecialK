@@ -330,6 +330,8 @@ SK_BootDXGI (void)
   if (SK_GetFramesDrawn () > 0)
     return;
 
+  SK_COMPAT_CheckStreamlineSupport ();
+
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
 
@@ -1967,7 +1969,7 @@ SK_Display_DisableDPIScaling (void)
 
     if ((! bWasAppCompatAware) && SK_Display_IsDPIAwarenessUsingAppCompat ())
     {
-      SK_RestartGame ();
+      SK_RestartGame (nullptr, L"A one-time game restart is required to fix DPI Scaling issues in this game.");
     }
   }
 
