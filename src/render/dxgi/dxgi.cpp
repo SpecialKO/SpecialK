@@ -3095,6 +3095,22 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         {
           if (     _IsBackendD3D12 (rb.api)) SK_D3D12_PostPresent (pDev12.p, This, hr);
           else if (_IsBackendD3D11 (rb.api)) SK_D3D11_PostPresent (pDev.p,   This, hr);
+
+          if (config.render.framerate.swapchain_wait > 0)
+          {
+            SK_AutoHandle               hWaitHandle (rb.getSwapWaitHandle ());
+            if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
+            {
+              if (pLimiter->get_limit () > 0.0)
+              {
+                // Wait on the SwapChain for up to a frame to try and
+                //   shrink the queue without a full-on stutter.
+                SK_WaitForSingleObject (
+                  hWaitHandle.m_h, (DWORD)pLimiter->get_ms_to_next_tick ()
+                );
+              }
+            }
+          }
         }
       };
 
@@ -4481,8 +4497,10 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       DXGI_MODE_DESC   matchedMode = { };
       if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
            &modeDesc, &matchedMode, nullptr )
-                     )                  )
+                     )                  ) {
+                             matchedMode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
         This->ResizeTarget (&matchedMode);
+      }
     }
   }
 
@@ -5128,6 +5146,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                    )
        )
     {
+      // Game will take whatever it can get
+      if (new_new_params.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
+        modeDescMatch.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+
       new_new_params = modeDescMatch;
     }
 
