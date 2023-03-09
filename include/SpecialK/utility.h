@@ -192,7 +192,8 @@ bool           SK_GetUserProfileDir         (wchar_t*       buf, uint32_t* pdwLe
 bool           SK_IsTrue                    (const wchar_t* string);
 bool           SK_IsAdmin                   (void);
 void           SK_ElevateToAdmin            (void); // Needs DOS 8.3 filename support
-void           SK_RestartGame               (const wchar_t* wszDLL = nullptr);
+void           SK_RestartGame               (const wchar_t* wszDLL     = nullptr,
+                                             const wchar_t* wszFailMsg = nullptr);
 int            SK_MessageBox                (std::wstring caption,
                                              std::wstring title,
                                              uint32_t     flags);

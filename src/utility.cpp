@@ -3030,10 +3030,8 @@ SK_CanRestartGame (void)
 }
 
 void
-SK_RestartGame (const wchar_t* wszDLL)
+SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
 {
-  SK_Inject_SuppressExitNotify ();
-
   // This would make debugging very difficult otherwise :)
   if (SK_IsDebuggerPresent ())
     __debugbreak ();
@@ -3085,11 +3083,16 @@ SK_RestartGame (const wchar_t* wszDLL)
 
       if (SK_FileHasSpaces (wszShortPath))
       {
-        SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+        if (wszFailMsg == nullptr)
+          SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+        else
+          SK_ImGui_Warning (wszFailMsg);
         return;
       }
     }
   }
+
+  SK_Inject_SuppressExitNotify ();
 
   if (! SK_IsSuperSpecialK ())
   {
@@ -3435,8 +3438,8 @@ RunDLL_WinRing0 ( HWND   hwnd,        HINSTANCE hInst,
     SK_PathCombineW ( wszKernelSys, wszCurrentDir,
                                L"WinRing0x64.sys" ); // 64-bit Drivers Only
 
-    auto wszCommand0 = L"stop WinRing0_1_2_0";
-    auto wszCommand1 = L"delete WinRing0_1_2_0";
+    auto wszCommand0 = L"stop SK_WinRing0";
+    auto wszCommand1 = L"delete SK_WinRing0";
 
     PathAppendW (wszServiceCtl, L"sc.exe");
 
