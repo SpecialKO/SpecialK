@@ -2531,3 +2531,14 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
 
   wait_time.endBusy ();
 }
+
+double
+SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
+{
+  return
+    std::max ( 0.0,
+                 static_cast <double> (next - SK_QueryPerf ().QuadPart) /
+                 static_cast <double> (SK_QpcTicksPerMs) +
+                (static_cast <double> (ticks_per_frame) /
+                 static_cast <double> (SK_QpcTicksPerMs)) * (std::max (1.0f, ticks) - 1.0f) );
+}

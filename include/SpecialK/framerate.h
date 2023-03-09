@@ -142,7 +142,10 @@ namespace SK
                                               //  whether a wait would have occurred.
 
       void        set_limit           (double target);
-      double      get_limit           (void) noexcept { return fps; };
+      double      get_limit           (void) noexcept { return fps;  };
+
+      LONG64      get_next_tick       (void) noexcept { return next; };
+      double      get_ms_to_next_tick (float ticks = 1.0f) noexcept;
 
       double      effective_frametime (void);
 
