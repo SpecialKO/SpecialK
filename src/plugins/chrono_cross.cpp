@@ -25,6 +25,8 @@
 #include <imgui/font_awesome.h>
 #include <algorithm>
 
+bool SK_CC_FullSupport = true;
+
 struct address_cache_s {
   std::unordered_map <std::string, uintptr_t> cached;
 };
@@ -137,7 +139,7 @@ _RewriteClockCode (void)
       else
       {
         auto pCheckAddr =
-          (uint8_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x88D81);
+          (uint8_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x88D81/*0x1a5ef2*/);
 
         DWORD                                                  dwOldProt;
         VirtualProtect (pCheckAddr, 1, PAGE_EXECUTE_READWRITE,&dwOldProt);
@@ -163,7 +165,14 @@ void
 __stdcall
 SK_CC_EndFrame (void)
 {
-  if (SK_CC_PlugIn.bUnlockFramerate)
+  if (SK_CC_PlugIn.fResolutionScale != 1.0f)
+  {
+    // Need state tracking to fix misaligned samplers
+    extern bool SK_D3D11_EnableTracking;
+                SK_D3D11_EnableTracking = true;
+  }
+
+  if (SK_CC_FullSupport && SK_CC_PlugIn.bUnlockFramerate)
   {
     //if (SK_GetCurrentRenderBackend ().frame_delta.getDeltaTime () > 0)
     //{
@@ -224,7 +233,7 @@ SK_CC_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
     ImGui::TreePush       ("");
 
-    if ( ImGui::CollapsingHeader (
+    if ( SK_CC_FullSupport && ImGui::CollapsingHeader (
            ICON_FA_TACHOMETER_ALT "\tPerformance Settings",
                           ImGuiTreeNodeFlags_DefaultOpen )
        )
@@ -295,6 +304,17 @@ SK_CC_PlugInCfg (void)
       }
 
       ImGui::TreePop     (  );
+    }
+
+    else
+    {
+      if (! SK_CC_FullSupport)
+      {
+        ImGui::BulletText (
+          "Portions of the Plug-In are not Compatible with this "
+          "version of Chrono Cross."
+        );
+      }
     }
 
     if ( ImGui::CollapsingHeader (
@@ -477,18 +497,17 @@ SK_CC_InitPlugin (void)
 
     _RewriteClockCode ();
 
-    plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
-    plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
-
     //extern void SK_CC_SetupRenderHooks (void);
     //            SK_CC_SetupRenderHooks ();
-
-    return;
   }
 
-  SK_ImGui_Warning (
-    L"This version of Chrono Cross is not Compatible with Special K's Plug-In"
-  );
+  else
+  {
+    SK_CC_FullSupport = false;
+  }
+
+  plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame );
+  plugin_mgr->config_fns.emplace    (SK_CC_PlugInCfg);
 }
 
 

@@ -1281,14 +1281,14 @@ SK_HatsuneMiku_BeginFrame (void)
 
   // 1.00: 0x14B2A78
   // 1.01: 0x14ACA68
-  // 1.02: 0x14ABBB8
+  // 1.02, 1.03: 0x14ABBB8
   static uint32_t* puiGameLimit =
         (uint32_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x14ABBB8);
 
-  // Pointer at DivaMegaMix.exe+, Offset=780h
+  // Pointer at DivaMegaMix.exe, Offset=780h
   // 1.00: 0x114EFF8
   // 1.01: 0x1148FC8
-  // 1.02: 0x11481E8
+  // 1.02, 1.03: 0x11481E8
   static auto menu_flag_addr =
       *(uintptr_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x11481E8) + 0x780;
 
