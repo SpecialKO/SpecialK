@@ -455,6 +455,7 @@ DllMain ( HMODULE hModule,
       ////if (dll_isolation_lvl >= 3)                  return EarlyOut (FALSE);
 
       SK_TLS_Acquire ();
+      SK_EstablishRootPath ();
 
       if (dll_isolation_lvl >  0)                  return EarlyOut (TRUE);
 
