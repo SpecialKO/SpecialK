@@ -204,6 +204,7 @@ static constexpr UNICODE_STRING __bluelist [] = {
   SK_MakeUnicode (L"vrserver.exe"),
   SK_MakeUnicode (L"jusched.exe"),
   SK_MakeUnicode (L"systemsettings.exe"),
+  SK_MakeUnicode (L"systemsettingsbroker.exe"),
   SK_MakeUnicode (L"nvcplui.exe"),
   SK_MakeUnicode (L"perfwatson2.exe"),
   SK_MakeUnicode (L"dataexchangehost.exe"),
@@ -301,6 +302,13 @@ static constexpr UNICODE_STRING __blacklist [] = {
   SK_MakeUnicode (L"rottlauncher.exe"),
   SK_MakeUnicode (L"configtool.exe"),
   SK_MakeUnicode (L"crs-uploader.exe"), // Days Gone Launcher thingy
+
+  SK_MakeUnicode (L"LauncherPatcher.exe"),      // GTA IV (32-bit)
+  SK_MakeUnicode (L"RockstarService.exe"),      //  ...
+  SK_MakeUnicode (L"RockstarSteamHelper.exe"),  //  ...
+  SK_MakeUnicode (L"RockstarErrorHandler.exe"), // 64-bit even in 32-bit games
+
+  SK_MakeUnicode (L"t2gp.exe"), // 2K Launcher
 
   SK_MakeUnicode (L"coherentui_host.exe"),
   SK_MakeUnicode (L"activationui.exe"),

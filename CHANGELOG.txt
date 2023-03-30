@@ -1,4 +1,34 @@
-﻿22.9.26
+﻿23.3.xx
+=======
+ + Fixed missing PresentMon info in windowed mode D3D9 (NOT D3D9Ex) games
+ + Fixed MGS V compatability when it requests non-0 DXGI SwapChain buffers
+
+ + "Continue Rendering" Window Management mode is disabled automatically if a
+     DXGI-based (D3D10/11/12) game attempts to use Fullscreen Exclusive
+
+ + Changed message on DPI Scaling AppCompat Fix when games cannot be restarted
+     automatically:
+
+   "A one-time game restart is required to fix DPI Scaling issues in this game"
+
+ + Added "Aspect Ratio Stretch" mode to the Display menu in SK's Control Panel.
+ 
+    * Run (borderless windowed) games at custom aspect ratios properly centered
+        with letter/pillar-boxing without changing display modes.
+
+ + Improved HDR -> SDR screenshot tonemapping in D3D11 and D3D12 games
+ + Added NVIDIA Streamline workarounds, including an optional replacement
+     Interposer DLL compatible with Global Injection and HDR.
+
+       (see: Wiki Compatibility; note some new DLSS features may not work.)
+
+ + Added HDR gamut expansion feature to increase saturation on HDR highlights
+ + Renamed "DWM Tearing" to simply "Tearing" in SwapChain settings, since it
+     has nothing to do with the DWM and requires Flip Model bypass the DWM.
+ + Updated Chrono Cross and Hatsune Miku Project Diva plug-ins for new patches.
+ + Implemented achievement popup location setting and removed animated option.
+
+22.9.26
 =======
  + Fixed PresentMon performance in Windows 11 22H2 without disabling it
  + Replaced 'Low-Latency' checkbox with 'Mode' option in control panel's
