@@ -6433,6 +6433,19 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   else                                                                          ignore_proc = true;// target_proc = wnd_proc;
 
 
+  // CAPCOM games have stupid DLC anti-piracy that we need to work around.
+  if (! _wcsicmp (wszClassName, L"via"))
+  {
+    SK_GetCurrentRenderBackend ().windows.reframework = true;
+    config.window.dont_hook_wndproc                   = true;
+
+    if (! config.platform.silent)
+    {
+      config.platform.silent                          = true;
+      SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
+    }
+  }
+
   // In case we cannot hook the target, try the other...
   WNDPROC
     alt_proc = ( target_proc == class_proc ? wnd_proc :

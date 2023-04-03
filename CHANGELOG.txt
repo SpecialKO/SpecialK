@@ -1,5 +1,8 @@
 ﻿23.3.xx
 =======
+ + Automatically disable Window Proc hooks and SteamAPI integration in CRAPCOM
+     games to avoid angering their abhorrent DLC anti-piracy
+
  + Fixed missing PresentMon info in windowed mode D3D9 (NOT D3D9Ex) games
  + Fixed MGS V compatability when it requests non-0 DXGI SwapChain buffers
 

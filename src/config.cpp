@@ -2526,17 +2526,6 @@ auto DeclKeybind =
         config.window.borderless                  =   true;
         config.window.fullscreen                  =   true;
         config.input.keyboard.override_alt_f4     =   true;
-
-        HMONITOR hMonitor =
-          MonitorFromWindow ( HWND_DESKTOP,
-                                MONITOR_DEFAULTTOPRIMARY );
-
-        MONITORINFO mi   = {         };
-        mi.cbSize        = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
-        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
       }
       break;
 
@@ -2665,26 +2654,7 @@ auto DeclKeybind =
         config.steam.auto_pump_callbacks         = false;
         config.window.borderless                 =  true;
         config.window.fullscreen                 =  true;
-        config.window.offset.x.absolute          =    -1;
-        config.window.offset.y.absolute          =    -1;
         config.window.center                     = false;
-
-        HMONITOR hMonitor =
-          MonitorFromWindow ( HWND_DESKTOP,
-                                MONITOR_DEFAULTTOPRIMARY );
-
-        MONITORINFO mi   = {         };
-        mi.cbSize        = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
-        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
-
-        config.render.dxgi.res.min.x = config.window.res.override.x;
-        config.render.dxgi.res.min.y = config.window.res.override.y;
-
-        config.render.dxgi.res.max.x = config.window.res.override.x;
-        config.render.dxgi.res.max.y = config.window.res.override.y;
 
         config.render.framerate.buffer_count      =     3;
         config.render.framerate.target_fps        =    60;
