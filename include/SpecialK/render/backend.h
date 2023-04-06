@@ -299,6 +299,43 @@ struct SK_WDDM_CAPS {
   void init (void);
 };
 
+typedef struct _D3DKMT_MULTIPLANE_OVERLAY_CAPS
+{
+  union
+  {
+    struct
+    {
+      UINT Rotation                        : 1;    // Full rotation
+      UINT RotationWithoutIndependentFlip  : 1;    // Rotation, but without simultaneous IndependentFlip support
+      UINT VerticalFlip                    : 1;    // Can flip the data vertically
+      UINT HorizontalFlip                  : 1;    // Can flip the data horizontally
+      UINT StretchRGB                      : 1;    // Supports stretching RGB formats
+      UINT StretchYUV                      : 1;    // Supports stretching YUV formats
+      UINT BilinearFilter                  : 1;    // Blinear filtering
+      UINT HighFilter                      : 1;    // Better than bilinear filtering
+      UINT Shared                          : 1;    // MPO resources are shared across VidPnSources
+      UINT Immediate                       : 1;    // Immediate flip support
+      UINT Plane0ForVirtualModeOnly        : 1;    // Stretching plane 0 will also stretch the HW cursor and should only be used for virtual mode support
+      UINT Version3DDISupport              : 1;    // Driver supports the 2.2 MPO DDIs
+      UINT Reserved                        : 20;
+    };
+    UINT Value;
+  };
+} D3DKMT_MULTIPLANE_OVERLAY_CAPS;
+
+typedef struct _D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS
+{
+  D3DKMT_HANDLE                          hAdapter;             // in: adapter handle
+  D3DDDI_VIDEO_PRESENT_SOURCE_ID         VidPnSourceId;        // in
+  UINT                                   MaxPlanes;            // out: Total number of planes currently supported
+  UINT                                   MaxRGBPlanes;         // out: Number of RGB planes currently supported
+  UINT                                   MaxYUVPlanes;         // out: Number of YUV planes currently supported
+  D3DKMT_MULTIPLANE_OVERLAY_CAPS         OverlayCaps;          // out: Overlay capabilities
+  float                                  MaxStretchFactor;     // out
+  float                                  MaxShrinkFactor;      // out
+} D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS;
+
+
 typedef enum _KMTQUERYADAPTERINFOTYPE
 {
   KMTQAITYPE_UMDRIVERPRIVATE                          =  0,
@@ -664,94 +701,6 @@ const char*
 HDRModeToStr (NV_HDR_MODE mode);
 
 
-#if 0
-class SK_AutoDC
-{
-public:
-    SK_AutoDC  (void) = default;
-    SK_AutoDC  (                 HWND   hWnd,  HDC   hDC)
-                      noexcept : hWnd_ (hWnd), hDC_ (hDC)
-                               {               };
-   ~SK_AutoDC  (void) noexcept {  release ();  };
-
-  HDC  hDC     (void) const noexcept { return hDC_;  };
-  HWND hWnd    (void) const noexcept { return hWnd_; };
-
-  bool release (void) noexcept
-  {
-    if (          (hWnd_||hDC_) &&
-        ReleaseDC (hWnd_, hDC_) != 0)
-    {
-      hWnd_ = nullptr;
-      hDC_  = nullptr;
-    }
-
-    return ( hWnd_ == nullptr &&
-             hDC_  == nullptr );
-  }
-
-  SK_AutoDC            (const SK_AutoDC&          ) = delete;
-  SK_AutoDC& operator= (const SK_AutoDC&          ) = delete;
-  SK_AutoDC            (      SK_AutoDC&& moveFrom) noexcept
-  {                    *this = std::move (moveFrom); }
-  SK_AutoDC& operator= (      SK_AutoDC&& moveFrom)
-  {
-    if (this != &moveFrom)
-    {
-      release ();
-
-      hWnd_ = std::exchange (moveFrom.hWnd_, nullptr);
-      hDC_  = std::exchange (moveFrom.hDC_,  nullptr);
-    }
-
-    return *this;
-  }
-
-private:
-  HWND hWnd_ = nullptr;
-  HDC  hDC_  = nullptr;
-};
-
-class SK_RenderDevice
-{
-public:
-  SK_ComPtr <IUnknown> getDeviceD3D (void) const { return d3d_device;        }
-  HDC                  getDeviceGL  (void) const { return  gl_device.hDC (); }
-
-protected:
-  union {
-    SK_ComPtr <IUnknown> d3d_device;
-    SK_AutoDC             gl_device;
-  };
-};
-
-class SK_SwapChain
-{
-public:
-  SK_ComPtr <IUnknown> getSwapChainD3D (void) const { return d3d_swapchain; }
-
-protected:
-  union {
-    SK_ComPtr <IUnknown> d3d_swapchain;
-  };
-};
-
-class SK_RenderContext
-{
-public:
-  SK_RenderDevice device;
-  SK_SwapChain    swapchain;
-};
-
-class SK_RenderContextIndirect : public SK_RenderContext
-{
-public:
-  SK_RenderDevice presentation_device;
-  SK_SwapChain    presentation_swapchain;
-};
-#endif
-
-
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
 public:
@@ -816,6 +765,7 @@ public:
     SK_ColorSpace         gamut;
     DXGI_COLOR_SPACE_TYPE colorspace           = DXGI_COLOR_SPACE_CUSTOM;
     bool                  primary              = false;
+    uint32_t              mpo_planes           =     0;
                                                
     struct {                                   
       bool                enabled              = false;
@@ -1088,6 +1038,7 @@ public:
     //   to flag the game and start disabling features!
     bool                  unity                = false;
     bool                  unreal               = false;
+    bool                  capcom               = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);
@@ -1145,14 +1096,8 @@ public:
               }
 
               return nullptr;
-              //return
-              //  SK_ComQIPtr <Q> (device);
             }
 
-////#ifdef __SK__LOG_H__
-////            else
-////              SK_LOG0 ( ( L"getDevice Called with Unknown Render Device Class" ), L"COM Helper" );
-////#endif
             else MessageBeep (0xFFFFFFFF);
 
             ///static_assert ( riid == __uuidof (IDirect3DDevice9)   ||
@@ -1185,8 +1130,6 @@ public:
   //   This is the thread that handles SwapChain Presentation;
   //     nothing else can safely be inferred about this thread.
   //
-  //concurrency::concurrent_unordered_map <DWORD, ULONG64>
-  //                         present_history;
   volatile DWORD    /*primary_*/thread  =  0;
   volatile DWORD           last_thread  =  0;
   volatile ULONG64         most_frames  =  0;
@@ -1275,233 +1218,6 @@ SK_GetFramesDrawn (void) noexcept
   return
     ReadULong64Acquire (&SK_RenderBackend::frames_drawn);
 }
-
-typedef enum
-  _SK_SCANOUT_COLOR_FORMAT
-  { SK_COLOR_FORMAT_RGB        = 0x1,
-    SK_COLOR_FORMAT_YCbCr420   = 0x2,
-    SK_COLOR_FORMAT_YCbCr422   = 0x4,
-    SK_COLOR_FORMAT_YCbCr424   = 0x8,
-  } SK_SCANOUT_COLOR_FORMAT;
-
-typedef enum
-  _SK_SCANOUT_COLORIMETRY
-  { SK_COLORIMETRY_RGB         = 0x001, // PC-RGB (Duh)
-    SK_COLORIMETRY_YCC601      = 0x002, // ITU601
-    SK_COLORIMETRY_YCC709      = 0x004, // ITU709
-    SK_COLORIMETRY_XVYCC601    = 0x008,
-    SK_COLORIMETRY_XVYCC709    = 0x010,
-    SK_COLORIMETRY_SYCC601     = 0x020,
-    SK_COLORIMETRY_ADOBEYCC601 = 0x030,
-    SK_COLORIMETRY_ADOBERGB    = 0x040,
-    SK_COLORIMETRY_BT2020RGB   = 0x080,
-    SK_COLORIMETRY_BT2020YCC   = 0x100,
-    SK_COLORIMETRY_BT2020cYCC  = 0x200,
-
-    SK_COLORIMETRY_DEFAULT     = 0x0FE,
-    SK_COLORIMETRY_AUTO        = 0x0FF
-  } SK_SCANOUT_COLORIMETRY;
-
-typedef enum
-  _SK_SCANOUT_DYNAMIC_RANGE
-  { SK_DYNAMIC_RANGE_VESA      = 0x0,
-    SK_DYNAMIC_RANGE_CEA       = 0x1,
-
-    SK_DYNAMIC_RANGE_AUTO      = 0xFF
-  } SK_SCANOUT_DYNAMIC_RANGE;
-
-typedef enum
-  _SK_SCANOUT_BPC
-  { SK_BPC_DEFAULT             = 0x00,
-    SK_BPC_6                   = 0x01,
-    SK_BPC_8                   = 0x02,
-    SK_BPC_10                  = 0x04,
-    SK_BPC_12                  = 0x08,
-    SK_BPC_16                  = 0x10,
-  } SK_SCANOUT_BPC;
-
-typedef enum
-  _SK_SCANOUT_QUALITY_POLICY
-  { SK_QUALITY_POLICY_USER         = 0x0,
-    SK_QUALITY_POLICY_BEST_QUALITY = 0x1,
-    SK_QUALITY_POLICY_DEFAULT      = SK_QUALITY_POLICY_BEST_QUALITY,
-    SK_QUALITY_POLICY_UNKNOWN      = 0xFF,
-  } SK_SCANOUT_QUALITY_POLICY;
-
-class SK_SignalTransport
-{
-public:
-  uint32_t                      version;
-
-  SK_SCANOUT_COLOR_FORMAT   colorFormat;
-  SK_SCANOUT_DYNAMIC_RANGE dynamicRange;
-  SK_SCANOUT_COLORIMETRY    colorimetry;
-  SK_SCANOUT_BPC                    bpc;
-
-  uint32_t isDp                             : 1;
-  uint32_t isInternalDp                     : 1;
-  uint32_t isColorCtrlSupported             : 1;
-  uint32_t is6BPCSupported                  : 1;
-  uint32_t is8BPCSupported                  : 1;
-  uint32_t is10BPCSupported                 : 1;
-  uint32_t is12BPCSupported                 : 1;
-  uint32_t is16BPCSupported                 : 1;
-  uint32_t isYCrCb420Supported              : 1;
-  uint32_t isYCrCb422Supported              : 1;
-  uint32_t isYCrCb444Supported              : 1;
-  uint32_t isRgb444SupportedOnCurrentMode   : 1;
-  uint32_t isYCbCr444SupportedOnCurrentMode : 1;
-  uint32_t isYCbCr422SupportedOnCurrentMode : 1;
-  uint32_t isYCbCr420SupportedOnCurrentMode : 1;
-  uint32_t is6BPCSupportedOnCurrentMode     : 1;
-  uint32_t is8BPCSupportedOnCurrentMode     : 1;
-  uint32_t is10BPCSupportedOnCurrentMode    : 1;
-  uint32_t is12BPCSupportedOnCurrentMode    : 1;
-  uint32_t is16BPCSupportedOnCurrentMode    : 1;
-  uint32_t isMonxvYCC601Capable             : 1;
-  uint32_t isMonxvYCC709Capable             : 1;
-  uint32_t isMonsYCC601Capable              : 1;
-  uint32_t isMonAdobeYCC601Capable          : 1;
-  uint32_t isMonAdobeRGBCapable             : 1;
-  uint32_t isMonBT2020RGBCapable            : 1;
-  uint32_t isMonBT2020YCCCapable            : 1;
-  uint32_t isMonBT2020cYCCCapable           : 1;
-  uint32_t isUInt32_tA28ByteTypeYet         : 4;
-};
-
-typedef enum
-  _SK_DP_LINK_RATE
-  {
-    SK_DP_LINK_1_62GBPS =    6,
-    SK_DP_LINK_2_70GBPS = 0x0A,
-    SK_DP_LINK_5_40GBPS = 0x14,
-    SK_DP_LINK_8_10GBPS = 0x1E
-  } SK_DP_LINK_RATE;
-
-typedef enum
-  _SK_DP_LANE_COUNT
-  {
-    SK_DP_1_LANE = 1,
-    SK_DP_2_LANE = 2,
-    SK_DP_4_LANE = 4,
-  } SK_DP_LANE_COUNT;
-
-class SK_Signal_DisplayPort : public SK_SignalTransport
-{
-public:
-  // DisplayPort Configuration Data v. (?)
-  uint32_t cfg_data_ver;
-
-  struct {
-    NV_DP_LINK_RATE max;
-    NV_DP_LINK_RATE cur;
-  } LinkRate;
-
-  struct {
-    NV_DP_LANE_COUNT max;
-    NV_DP_LANE_COUNT cur;
-  } LaneCount;
-};
-
-class SK_Signal_HDMI : public SK_SignalTransport
-{
-public:
-  uint32_t isGpuHDMICapable        :  1;
-  uint32_t isMonUnderscanCapable   :  1;
-  uint32_t isMonBasicAudioCapable  :  1;
-  uint32_t isMonYCbCr444Capable    :  1;
-  uint32_t isMonYCbCr422Capable    :  1;
-  uint32_t isMonxvYCC601Capable    :  1;
-  uint32_t isMonxvYCC709Capable    :  1;
-  uint32_t isMonHDMI               :  1;
-  uint32_t isMonsYCC601Capable     :  1;
-  uint32_t isMonAdobeYCC601Capable :  1;
-  uint32_t isMonAdobeRGBCapable    :  1;
-  uint32_t isAnyoneMissing21Bits   : 21; //!< Padding, because HDMI is uninteresting.
-
-  uint32_t EDID_861_Extn_rev;
- };
-
-
-typedef struct
-  _SK_MONITOR_CAPS_VCDB
-  {
-    uint8_t quantizationRangeYcc         : 1;
-    uint8_t quantizationRangeRgb         : 1;
-    uint8_t scanInfoPreferredVideoFormat : 2;
-    uint8_t scanInfoITVideoFormats       : 2;
-    uint8_t scanInfoCEVideoFormats       : 2;
-  } SK_MONITOR_CAPS_VCDB;
-
-
-///! See NvAPI_DISP_GetMonitorCapabilities().
-typedef struct
-  _SK_MONITOR_CAPS_VSDB
-  {
-    // byte 1
-    uint8_t sourcePhysicalAddressB         : 4; //!< Byte  1
-    uint8_t sourcePhysicalAddressA         : 4; //!< Byte  1
-    // byte 2
-    uint8_t sourcePhysicalAddressD         : 4; //!< Byte  2
-    uint8_t sourcePhysicalAddressC         : 4; //!< Byte  2
-    // byte 3
-    uint8_t supportDualDviOperation        : 1; //!< Byte  3
-    uint8_t reserved6                      : 2; //!< Byte  3
-    uint8_t supportDeepColorYCbCr444       : 1; //!< Byte  3
-    uint8_t supportDeepColor30bits         : 1; //!< Byte  3
-    uint8_t supportDeepColor36bits         : 1; //!< Byte  3
-    uint8_t supportDeepColor48bits         : 1; //!< Byte  3
-    uint8_t supportAI                      : 1; //!< Byte  3
-    // byte 4
-    uint8_t maxTmdsClock;                       //!< Byte  4
-    // byte 5
-    uint8_t cnc0SupportGraphicsTextContent : 1; //!< Byte  5
-    uint8_t cnc1SupportPhotoContent        : 1; //!< Byte  5
-    uint8_t cnc2SupportCinemaContent       : 1; //!< Byte  5
-    uint8_t cnc3SupportGameContent         : 1; //!< Byte  5
-    uint8_t reserved8                      : 1; //!< Byte  5
-    uint8_t hasVicEntries                  : 1; //!< Byte  5
-    uint8_t hasInterlacedLatencyField      : 1; //!< Byte  5
-    uint8_t hasLatencyField                : 1; //!< Byte  5
-    // byte 6
-    uint8_t videoLatency;                       //!< Byte  6
-    // byte 7
-    uint8_t audioLatency;                       //!< Byte  7
-    // byte 8
-    uint8_t interlacedVideoLatency;             //!< Byte  8
-    // byte 9
-    uint8_t interlacedAudioLatency;             //!< Byte  9
-    // byte 10
-    uint8_t reserved13                     : 7; //!< Byte 10
-    uint8_t has3dEntries                   : 1; //!< Byte 10
-    // byte 11
-    uint8_t hdmi3dLength                   : 5; //!< Byte 11
-    uint8_t hdmiVicLength                  : 3; //!< Byte 11
-
-    // Remaining bytes
-    uint8_t hdmi_vic [ 7];  ///!< Keeping maximum length for 3 bits
-    uint8_t hdmi_3d  [31];  ///!< Keeping maximum length for 5 bits
-  } SK_MONITOR_CAPS_VSDB;
-
-
-//! See NvAPI_DISP_GetMonitorCapabilities().
-typedef struct
-  _SK_MONITOR_CAPABILITIES
-  {
-  //uint32_t version;
-  //uint16_t size;
-  //
-    uint32_t infoType;
-    uint32_t connectorType;    //!< Out:      [ VGA, TV, DVI, HDMI, DP ]
-    uint8_t  bIsValidInfo : 1; //!< Boolean: Returns invalid if requested
-                               //!>            info is not present such as
-                               //!>               VCDB not present
-    union
-    {
-      SK_MONITOR_CAPS_VSDB vsdb;
-      SK_MONITOR_CAPS_VCDB vcdb;
-    } data = { };
-  } SK_MONITOR_CAPABILITIES;
 
 
 // Compute the overlay area of two rectangles, A and B.

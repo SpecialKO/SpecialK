@@ -487,6 +487,10 @@ using  D3DKMTOpenAdapterFromGdiDisplayName_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPEN
 static D3DKMTOpenAdapterFromGdiDisplayName_pfn
        D3DKMTOpenAdapterFromGdiDisplayName = nullptr;
 
+using  D3DKMTGetMultiPlaneOverlayCaps_pfn = NTSTATUS (WINAPI *)(D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS* unnamedParam1);
+static D3DKMTGetMultiPlaneOverlayCaps_pfn
+       D3DKMTGetMultiPlaneOverlayCaps = nullptr;
+
 extern HRESULT SK_D3DKMT_CloseAdapter (struct _D3DKMT_CLOSEADAPTER *pCloseAdapter);
 
 void
@@ -2661,6 +2665,29 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
         adapter.VidPnSourceId = 0;
         adapter.luid.HighPart = 0;
         adapter.luid.LowPart  = 0;
+      }
+
+      if (adapter.d3dkmt != 0)
+      {
+        if (D3DKMTGetMultiPlaneOverlayCaps == nullptr)
+            D3DKMTGetMultiPlaneOverlayCaps =
+           (D3DKMTGetMultiPlaneOverlayCaps_pfn)SK_GetProcAddress (L"gdi32.dll",
+           "D3DKMTGetMultiPlaneOverlayCaps");
+
+        display.mpo_planes = 0;
+
+        if (D3DKMTGetMultiPlaneOverlayCaps != nullptr)
+        {
+          D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS caps = {};
+
+          caps.hAdapter      = openAdapter.hAdapter;
+          caps.VidPnSourceId = adapter.VidPnSourceId;
+
+          if (D3DKMTGetMultiPlaneOverlayCaps (&caps) == (NTSTATUS)0x00000000L) // STATUS_SUCCESS
+          {
+            display.mpo_planes = caps.MaxPlanes;
+          }
+        }
       }
     }
 

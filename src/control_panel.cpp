@@ -1482,6 +1482,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   bool bDPIAwareBefore =
        bDPIAware;
 
+  ImGui::BeginGroup ();
+
   if (ImGui::Checkbox ("Ignore DPI Scaling",      &bDPIAware))
   {
     config.dpi.disable_scaling                  = (bDPIAware);
@@ -1573,6 +1575,31 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("Changes to Resolution on 'Active Monitor' will apply to future launches of this game");
 
+  ImGui::EndGroup   ();
+  ImGui::SameLine   ();
+  ImGui::BeginGroup ();
+  
+  int mpo_planes =
+    rb.displays [rb.active_display].mpo_planes;
+
+  ImGui::VerticalSeparator ();
+  ImGui::SameLine          ();
+
+  ImGui::Text        ("MPO Planes: ");
+  ImGui::SameLine ();
+
+  if (mpo_planes <= 1)
+  {
+    ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Unsupported " ICON_FA_EXCLAMATION_TRIANGLE );
+  }
+
+  else
+  {
+    ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", mpo_planes );
+  }
+
+  ImGui::EndGroup   ();
+
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
   {
     if (config.display.aspect_ratio_stretch)
@@ -1611,6 +1638,17 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     ImGui::Separator    ();
     ImGui::BulletText   ("For best results, use the game's internal Windowed"
                          " mode option (not Borderless / Borderless Fullscreen)");
+
+    if (mpo_planes <= 1)
+    {
+      ImGui::Separator   ();
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                         "  " ICON_FA_EXCLAMATION_TRIANGLE );
+      ImGui::SameLine    (                                 );
+      ImGui::Text        ( " Multiplane Overlays are Unsupported,"
+                           " performance and latency will suffer if this is used." );
+    }
+
     ImGui::EndTooltip   ();
   }
 

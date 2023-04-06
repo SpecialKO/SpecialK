@@ -1,5 +1,7 @@
-﻿23.3.xx
+﻿23.4.xx
 =======
+ + Added Multiplane Overlay plane count to Display menu.
+
  + Automatically disable Window Proc hooks and SteamAPI integration in CRAPCOM
      games to avoid angering their abhorrent DLC anti-piracy
 
