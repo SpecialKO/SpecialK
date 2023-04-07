@@ -195,6 +195,13 @@ SK_GetDLLName (void)
 INT
 SK_KeepAway (void)
 {
+  enum {
+    Unlisted    = 0,
+    Graylisted  = 1,
+    Blacklisted = 2,
+    Bluelisted  = 3
+  };
+
   wchar_t             wszDllFullName [MAX_PATH + 2] = { };
   GetModuleFileName ( skModuleRegistry::Self (),
                       wszDllFullName, MAX_PATH    );
@@ -204,7 +211,7 @@ SK_KeepAway (void)
                 ) == nullptr
      )
   {
-    return 0;
+    return Unlisted;
   }
 
   HMODULE hMod =
@@ -215,58 +222,88 @@ SK_KeepAway (void)
                        wszAppFullName, MAX_PATH       );
   if ( StrStrIW (      wszAppFullName, L"rundll32"    )            )
   {
-    return 0;
+    return Unlisted;
   }
+
+  wchar_t  wszAppShortName                 [MAX_PATH + 2] = { };
+  wcsncpy (wszAppShortName, wszAppFullName, MAX_PATH);
+
+  PathStripPath (wszAppShortName);
 
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
 
-  // No NtDll? We probably don't want to be here :)
-  if (! GetModuleHandle (L"NtDll"))
-    return 1;
+  static constexpr auto _MaxModules = 1024;
 
-  auto LdrGetDllHandle =
-      (LdrGetDllHandle_pfn)SK_GetProcAddress ( L"NtDll",
-      "LdrGetDllHandle"                      );
+  static HMODULE hMods       [_MaxModules] = { };
+  static size_t  hashed_mods [_MaxModules] = { };
+  static size_t  hashed_self               = hash_lower (wszAppShortName);
+  DWORD          cbNeeded                  =   0;
+  unsigned int   i                         =   0;
 
-  auto _TestUndesirableDll = [&](auto& list, INT stage) ->
+  if ( EnumProcessModulesEx ( GetCurrentProcess (), hMods,
+                                            sizeof (hMods), &cbNeeded, LIST_MODULES_ALL ) )
+  {
+    cbNeeded =
+      std::min ((DWORD)(_MaxModules * sizeof (HMODULE)), cbNeeded);
+
+    for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
+    {
+      if (hMods [i] != nullptr)
+      {
+        wchar_t     wszModuleName [MAX_PATH + 2] = { };
+        wcsncpy_s ( wszModuleName,
+                 SK_GetModuleName (hMods [i]).c_str (),
+                                   MAX_PATH );
+
+        PathStripPathW (              wszModuleName);
+        hashed_mods [i] = hash_lower (wszModuleName);
+      }
+    }
+  }
+
+  auto _TestUndesirableDll = [&]
+   (const std::initializer_list <constexpr_module_s>& list,
+                                                  INT list_type) ->
   INT
   {
-    for ( auto& unwanted_dll : list )
-    {
-      HANDLE hMod = nullptr;
+    if (constexpr_module_s::get (list, hashed_self))
+      return list_type;
 
-      if ( NT_SUCCESS (
-             LdrGetDllHandle (nullptr, nullptr, &unwanted_dll, &hMod)
-           )    &&    hMod != nullptr )
+    for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
+    {
+      if (hashed_mods [i] != 0)
       {
-        return stage;
+        if (constexpr_module_s::get (list, hashed_mods [i]))
+        {
+          return list_type;
+        }
       }
     }
 
-    return 0;
+    return Unlisted;
   };
 
-  INT ret =
-    _TestUndesirableDll ( __bluelist,  3 );
+  INT status =
+    _TestUndesirableDll ( __blacklist, Blacklisted );
 
-  if (ret == 0)
-      ret =
-    _TestUndesirableDll ( __graylist,  1 );
+  if (status == Unlisted)
+      status =
+    _TestUndesirableDll ( __graylist,  Graylisted );
 
-  if (ret == 0)
-      ret =
-    _TestUndesirableDll ( __blacklist, 2 );
+  if (status == Unlisted)
+      status =
+    _TestUndesirableDll ( __bluelist,  Bluelisted );
 
-
-  if (ret == 0)
+  if ( status ==   Unlisted ||
+       status == Bluelisted )
   {
     wchar_t wszPackageName [PACKAGE_FULL_NAME_MAX_LENGTH] = { };
     UINT32  uiLen                                         =  0;
     LONG    rc                                            =
       GetCurrentPackageFullName (&uiLen, wszPackageName);
 
-    if (rc != APPMODEL_ERROR_NO_PACKAGE)
+    if (rc != APPMODEL_ERROR_NO_PACKAGE || status == Bluelisted)
     {
       // Epic's Overlay Loads This
       //
@@ -293,15 +330,28 @@ SK_KeepAway (void)
         // Look for tells that this is a game, if none exist, ignore the UWP trash app
         if (! ( GetModuleHandle (L"hid.dll"      ) ||
                 GetModuleHandle (L"dsound.dll"   ) ||
-                GetModuleHandle (L"XInput1_4.dll"))) return 1;
+                GetModuleHandle (L"XInput1_4.dll"))) return Graylisted;
+      }
+
+      if (status == Bluelisted)
+      {
+        const auto full_app =
+          SK_GetFullyQualifiedApp ();
+
+        // Potential second-chance for explicitly whitelisted apps
+        if ( SK_Inject_TestWhitelists (full_app) &&
+          (! SK_Inject_TestBlacklists (full_app)))
+        {
+          status = Unlisted;
+        }
       }
     }
   }
 
-  if (ret != 0)
+  if (status != Unlisted)
     SK_GetHostAppUtil ()->setBlacklisted (true);
 
-  return ret;
+  return status;
 }
 
 // Ideally, we want to keep the TLS data stores around so that built-in
@@ -449,7 +499,7 @@ DllMain ( HMODULE hModule,
       if (SK_GetHostAppUtil ()->isBlacklisted ())
       {
         //OutputDebugStringW (L"Special K Disabled For Blacklisted App");
-        return TRUE;
+        return EarlyOut (TRUE);
       }
 
       ////if (dll_isolation_lvl >= 3)                  return EarlyOut (FALSE);

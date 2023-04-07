@@ -1,5 +1,6 @@
 ﻿23.4.xx
 =======
+ + Exempt explicitly whitelisted games from internal libcef.dll blacklist
  + No longer return processes that are not running in SKX_GetInjectedPIDs (...)
  + Made ieframe.dll pinned (not unloadable) to workaround Steam crash.
  + Added Multiplane Overlay plane count to Display menu.

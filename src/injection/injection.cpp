@@ -1276,25 +1276,10 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement  (&injected_procs);
 
-          // One of the reasons for blacklisting is processes that
-          //   suspend themselves while our DLL is loaded, so we need a
-          //     finite wait time.
-          DWORD dwTimeout =
-            ( SK_GetHostAppUtil ()->isBlacklisted () ) ?
-                                                   0UL : INFINITE;
-
-          if (dwTimeout !=  0UL && GetModuleLoadCount (g_hModule_CBT) > 1)
-              dwTimeout = 250UL;
-
+          const DWORD dwTimeout   = INFINITE;
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
                                  FALSE, dwTimeout );
-
-          if (! SK_GetHostAppUtil ()->isInjectionTool ())
-          {
-            //if (GetModuleLoadCount (g_hModule_CBT) > 2)
-            //           FreeLibrary (g_hModule_CBT);
-          }
 
           // Is Process Actively Using Special K (?)
           if ( dwWaitState      == WAIT_OBJECT_0 &&
@@ -1307,6 +1292,14 @@ SK_Inject_SpawnUnloadListener (void)
             WaitForSingleObject (
               __SK_DLL_TeardownEvent, dwTimeout
             );
+          }
+
+          if (! SK_GetHostAppUtil ()->isInjectionTool ())
+          {
+            // Executables with child processes might inherit
+            if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
+                     GetModuleLoadCount (g_hModule_CBT) > 1)
+                            FreeLibrary (g_hModule_CBT);
           }
 
           // All clear, one less process to worry about
@@ -2463,6 +2456,9 @@ SK_Inject_TestUserWhitelist (const wchar_t* wszExecutable)
 bool
 SK_Inject_TestWhitelists (const wchar_t* wszExecutable)
 {
+  if (StrStrNIW (wszExecutable, L"SteamApps", MAX_PATH) != nullptr)
+    return true;
+
   // Sort of a temporary hack for important games that I support that are
   //   sold on alternative stores to Steam.
   if (     StrStrNIW (wszExecutable, L"ffxv",      MAX_PATH) != nullptr)
