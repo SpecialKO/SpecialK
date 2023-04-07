@@ -1,6 +1,7 @@
 ﻿23.4.xx
 =======
- + Made ieframe.dll pinned (not unloadable) to workaround new Steam crash.
+ + No longer return processes that are not running in SKX_GetInjectedPIDs (...)
+ + Made ieframe.dll pinned (not unloadable) to workaround Steam crash.
  + Added Multiplane Overlay plane count to Display menu.
 
  + Automatically disable Window Proc hooks and SteamAPI integration in CRAPCOM

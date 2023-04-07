@@ -2259,23 +2259,36 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
   DWORD*  pdwListIter = pdwList;
   SSIZE_T i           = 0;
 
-  SK_Inject_ValidateProcesses ();
-
   for (const
        volatile LONG& hooked_pid : g_sHookedPIDs)
   {
-    if (ReadAcquire (&hooked_pid) != 0)
+    auto pid =
+      ReadAcquire (&hooked_pid);
+
+    if (pid != 0)
     {
       if (i < (SSIZE_T)capacity - 1)
       {
         if (pdwListIter != nullptr)
         {
-          *pdwListIter = ReadAcquire (&hooked_pid);
-           pdwListIter++;
+          SK_AutoHandle hProc (
+            OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
+                            ReadAcquire (&pid) )
+                        );
+
+          if (hProc.isValid ())
+          {
+            DWORD                           dwExitCode = 0;
+            if (GetExitCodeProcess (hProc, &dwExitCode) &&
+                                            dwExitCode == STILL_ACTIVE)
+            {
+              *pdwListIter = pid;
+               pdwListIter++;
+               ++i;
+            }
+          }
         }
       }
-
-      ++i;
     }
   }
 
