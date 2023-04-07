@@ -5267,6 +5267,19 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
           SK_LoadLibraryW (L"WINHTTP.dll")
         };
 
+//#define PIN_MODULES
+//#ifdef  PIN_MODULES
+        for (auto module : hModules)
+        {
+          if (module != 0)
+          {
+            SK_LoadLibrary_PinModule (
+              SK_GetModuleName (module).c_str ()
+            );
+          }
+        }
+//#endif
+
         HANDLE hWaitObjects [] = {
           __SK_DLL_TeardownEvent,
           override_ctx.signal.m_h
@@ -5322,11 +5335,13 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
           } while (dwWaitState != WAIT_OBJECT_0);
         }
 
-        for (auto module : hModules)
-        {
-          if (              module != 0)
-            SK_FreeLibrary (module);
-        }
+//#ifndef PIN_MODULES
+//        for (auto module : hModules)
+//        {
+//          if (              module != 0)
+//            SK_FreeLibrary (module);
+//        }
+//#endif
 
         SK_Thread_CloseSelf ();
 
