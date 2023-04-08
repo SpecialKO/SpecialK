@@ -12,6 +12,7 @@
   nlohmann-json |  2013 - 2022  -  Niels Lohmann
   dear ImGui    |  2014 - 2019  -  Omar Cornut and
                 |               -    ImGui contributors
+  filebrowser   |  2019 - 2022  -  Zhuang Guan
   Vulkan        |  2015 - 2016  -  The Khronos Group Inc.
   DirectX Tex   |  2017 - 2019  -  Microsoft Corp
   fontawesome   |  2021         -  RStudio, PBC.

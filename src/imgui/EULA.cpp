@@ -238,6 +238,11 @@ SK_ImGui_DrawEULA (LPVOID reserved)
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FONTAWESOME).c_str ());
     }
 
+    if (ImGui::CollapsingHeader ("imgui-filebrowser"))
+    {
+      ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_FILEBROWSER).c_str ());
+    }
+
     if (ImGui::CollapsingHeader ("nlohmann-json"))
     {
       ImGui::TextWrapped ("%s", SK_GetLicenseText (IDR_LICENSE_NLOHMANN_JSON).c_str ());
