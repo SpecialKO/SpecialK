@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/control_panel/plugins.h>
+#include <imgui/imfilebrowser.h>
 
 #include <filesystem>
 
@@ -218,6 +219,7 @@ SK::ControlPanel::PlugIns::Draw (void)
             dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
               SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
                                  SK_Import_LoadOrder::PlugIn );
+
       ImGui::TreePop     (  );
     }
     ImGui::PopStyleColor ( 3);
@@ -249,6 +251,153 @@ SK::ControlPanel::PlugIns::Draw (void)
       }
       ImGui::PopStyleColor ( 3);
     }
+
+    struct import_s {
+      wchar_t             path     [MAX_PATH + 2] = { };
+      wchar_t             ini_name [64]           = L"Import.";
+      std::string         label                   = "";
+      SK_Import_LoadOrder order                   = SK_Import_LoadOrder::PlugIn;
+      bool                enabled                 = true;
+      bool                loaded                  = false;
+    };
+
+    static ImGui::FileBrowser                          fileDialog (ImGuiFileBrowserFlags_MultipleSelection);
+    static std::unordered_map <std::wstring, import_s> plugins;
+    static bool                                        plugins_init = false;
+
+    if (! std::exchange (plugins_init, true))
+    {
+      auto& sections =
+        dll_ini->get_sections ();
+
+      for (auto &[name, section] : sections)
+      {
+        if (StrStrIW (name.c_str (), L"Import."))
+        {
+          if (! ( name._Equal (imp_name_reshade) ||
+                  name._Equal (imp_name_reshade_ex) ))
+          {
+            import_s import;
+
+            if (     section.get_value (L"When") == L"Early")
+              import.order = SK_Import_LoadOrder::Early;
+            else if (section.get_value (L"When") == L"Lazy")
+              import.order = SK_Import_LoadOrder::Lazy;
+            else
+              import.order = SK_Import_LoadOrder::PlugIn;
+
+            wcsncpy_s (import.path,     section.get_value (L"Filename").c_str (), MAX_PATH);
+            wcsncpy_s (import.ini_name, name.c_str (),                                  64);
+
+            import.label =
+              SK_WideCharToUTF8 (
+                wcsrchr (import.ini_name, L'.') + 1
+              );
+
+            import.loaded =
+              SK_GetModuleHandleW (import.path) != nullptr;
+
+            plugins.emplace (
+              std::make_pair (import.ini_name, import)
+            );
+          }
+        }
+      }
+    }
+
+    if (ImGui::Button ("Add Plug-In"))
+    {
+      fileDialog.Open ();
+    }
+
+    fileDialog.SetTitle       ("Select a Plug-In DLL");
+    fileDialog.SetTypeFilters (      { ".dll" }      );
+
+    fileDialog.Display ();
+
+    if (fileDialog.HasSelected ())
+    {
+      const auto &selections =
+        fileDialog.GetMultiSelected ();
+
+      for ( const auto& selected : selections )
+      {
+        import_s   import;
+        wcsncpy_s (import.path, selected.c_str (), MAX_PATH);
+
+        PathStripPathW       (import.path);
+        PathRemoveExtensionW (import.path);
+
+        import.label =
+          SK_WideCharToUTF8 (import.path);
+
+        wcscat_s  (import.ini_name, 64, import.path);
+        wcsncpy_s (import.path,       selected.c_str (), MAX_PATH);
+
+        plugins.emplace (
+          std::make_pair (import.ini_name, import)
+        );
+
+        SK_ImGui_SavePlugInPreference ( dll_ini,
+                                            import.enabled, import.ini_name,
+                             L"ThirdParty", import.order,   import.path );
+      }
+
+      fileDialog.ClearSelected ();
+    }
+
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+
+    for ( auto& [name, import] : plugins )
+    {
+      bool clicked =
+        SK_ImGui_PlugInSelector (
+          dll_ini, import.label, import.path, import.ini_name, import.enabled, import.order);
+
+      if (clicked)
+      {
+        SK_ImGui_SavePlugInPreference ( dll_ini,
+                                          import.enabled, import.ini_name,
+                           L"ThirdParty", import.order,   import.path );
+      }
+    }
+
+    ImGui::EndGroup ();
+
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+
+    for ( auto& [name, import] : plugins )
+    {
+      ImGui::PushID (import.label.c_str ());
+
+      if (! import.loaded)
+      {
+        if (ImGui::Button ("Load DLL"))
+        {
+          if (SK_LoadLibraryW (import.path) != nullptr)
+          {
+            import.loaded = true;
+          }
+        }
+      }
+
+      else
+      {
+        if (ImGui::Button ("Unload DLL (Risky)"))
+        {
+          if ( SK_FreeLibrary (
+                 SK_GetModuleHandleW (import.path) )
+             )
+          {
+            import.loaded = false;
+          }
+        }
+      }
+      ImGui::PopID ();
+    }
+    ImGui::EndGroup  ();
 
     SK_ImGui_PlugInDisclaimer ();
 
