@@ -83,6 +83,8 @@ SK_ImGui_PlugInDisclaimer (void)
 bool
 SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, SK_Import_LoadOrder& order, SK_Import_LoadOrder default_order)
 {
+  static float max_name_width = 0.0f;
+
   if (! ini)
     return false;
 
@@ -90,8 +92,16 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   std::string hash_load  = "Load Order##";
               hash_load += name;
 
+  float cursor_x =
+    ImGui::GetCursorPosX ();
+
   bool changed =
     ImGui::Checkbox (hash_name.c_str (), &enable);
+
+  ImGui::SameLine ();
+
+  max_name_width =
+    std::max (max_name_width, ImGui::GetCursorPosX () - cursor_x);
 
   if (ImGui::IsItemHovered ())
   {
@@ -111,7 +121,8 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   else
     order = default_order;
 
-  ImGui::SameLine ();
+  ImGui::SameLine      ();
+  ImGui::SetCursorPosX (cursor_x + max_name_width);
 
   int iOrder =
     static_cast <int> (order);
@@ -256,6 +267,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       wchar_t             path     [MAX_PATH + 2] = { };
       wchar_t             ini_name [64]           = L"Import.";
       std::string         label                   = "";
+      std::string         version                 = "";
       SK_Import_LoadOrder order                   = SK_Import_LoadOrder::PlugIn;
       bool                enabled                 = true;
       bool                loaded                  = false;
@@ -297,6 +309,16 @@ SK::ControlPanel::PlugIns::Draw (void)
             import.loaded =
               SK_GetModuleHandleW (import.path) != nullptr;
 
+            auto wide_ver_str =
+              SK_GetDLLVersionStr (import.path);
+
+            // If DLL has no version, GetDLLVersionStr returns N/A
+            if (! wide_ver_str._Equal (L"N/A"))
+            {
+              import.version =
+                SK_WideCharToUTF8 (wide_ver_str);
+            }
+
             plugins.emplace (
               std::make_pair (import.ini_name, import)
             );
@@ -304,6 +326,8 @@ SK::ControlPanel::PlugIns::Draw (void)
         }
       }
     }
+
+    ImGui::Separator ();
 
     if (ImGui::Button ("Add Plug-In"))
     {
@@ -334,6 +358,16 @@ SK::ControlPanel::PlugIns::Draw (void)
         wcscat_s  (import.ini_name, 64, import.path);
         wcsncpy_s (import.path,       selected.c_str (), MAX_PATH);
 
+        auto wide_ver_str =
+          SK_GetDLLVersionStr (import.path);
+
+        // If DLL has no version, GetDLLVersionStr returns N/A
+        if (! wide_ver_str._Equal (L"N/A"))
+        {
+          import.version =
+            SK_WideCharToUTF8 (wide_ver_str);
+        }
+
         plugins.emplace (
           std::make_pair (import.ini_name, import)
         );
@@ -351,9 +385,18 @@ SK::ControlPanel::PlugIns::Draw (void)
 
     for ( auto& [name, import] : plugins )
     {
+      ImGui::BeginGroup ();
+
       bool clicked =
-        SK_ImGui_PlugInSelector (
-          dll_ini, import.label, import.path, import.ini_name, import.enabled, import.order);
+        SK_ImGui_PlugInSelector ( dll_ini,
+                                      import.label,    import.path,
+                                      import.ini_name, import.enabled,
+                                      import.order );
+
+      ImGui::EndGroup ();
+
+      if (ImGui::IsItemHovered () && (! import.version.empty ()))
+        ImGui::SetTooltip ( "%hs",      import.version.c_str () );
 
       if (clicked)
       {

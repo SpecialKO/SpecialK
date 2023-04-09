@@ -501,12 +501,51 @@ inline void ImGui::FileBrowser::Display()
 
     // browse files in a child window
 
-    float reserveHeight = GetFrameHeightWithSpacing();
+      float reserveHeight = GetFrameHeightWithSpacing();
+
+      BeginGroup (  );
+      ImGui::Separator ();
+      Text       ("");
+      Text       (" Quick Links");
+      Text       ("");
+      TreePush   ("");
+
+      if (Button (" " ICON_FA_WRENCH  " SK Config")  )
+      {
+        SetPwd (SK_GetConfigPath ());
+      }
+      if (Button (" " ICON_FA_PLUG   "  SK Plug-Ins"))
+      {
+        SetPwd (
+          SK_FormatString ( R"(%ws\PlugIns\ThirdParty\)",
+                                SK_GetInstallPath () )
+        );
+      };
+      if (Button (    ICON_FA_GAMEPAD " Game Folder"))
+      {
+        wchar_t    wszFullApp              [MAX_PATH + 2] = { };
+        wcsncpy_s (wszFullApp,
+                SK_GetFullyQualifiedApp (), MAX_PATH);
+
+        PathRemoveFileSpecW (wszFullApp);
+
+        SetPwd (
+          wszFullApp
+        );
+      };
+    //if (Button (" " ICON_FA_SD_CARD "  Game Saves")) { };
+      TreePop    (  );
+      EndGroup   (  );
+
+      SameLine ();
+
     std::filesystem::path newPwd; bool setNewPwd = false;
     if(!(flags_ & ImGuiFileBrowserFlags_SelectDirectory) &&
-       (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
+        (flags_ & ImGuiFileBrowserFlags_EnterNewFilename))
         reserveHeight += GetFrameHeightWithSpacing();
     {
+        SameLine   ();
+
         BeginChild("ch", ImVec2(0, -reserveHeight), true,
             (flags_ & ImGuiFileBrowserFlags_NoModal) ?
                 ImGuiWindowFlags_AlwaysHorizontalScrollbar : 0);
@@ -550,7 +589,7 @@ inline void ImGui::FileBrowser::Display()
                 }
                 else if(rsc.name != "..")
                 {
-                    if((rsc.isDir && (flags_ & ImGuiFileBrowserFlags_SelectDirectory)) ||
+                    if(( rsc.isDir &&  (flags_ & ImGuiFileBrowserFlags_SelectDirectory)) ||
                        (!rsc.isDir && !(flags_ & ImGuiFileBrowserFlags_SelectDirectory)))
                     {
                         if(multiSelect)
