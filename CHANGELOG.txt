@@ -1,9 +1,11 @@
-﻿23.4.xx
+﻿23.4.10
 =======
+ + Merge pull request #58 from Nustat0/D3D9-IK
+    * Fix dgVoodoo plugin detection for local ddraw/d3d8
+ + Merge pull request #52 from cathyjf/fix-get-file-size-for-symlinks
+    * Fix SK_File_GetSize for symlinks
+
  + Added Plug-In file selector to the Control Panel's Plug-Ins section
- + Exempt explicitly whitelisted games from internal libcef.dll blacklist
- + No longer return processes that are not running in SKX_GetInjectedPIDs (...)
- + Made ieframe.dll pinned (not unloadable) to workaround Steam crash.
  + Added Multiplane Overlay plane count to Display menu.
 
  + Automatically disable Window Proc hooks and SteamAPI integration in CRAPCOM
@@ -36,6 +38,10 @@
      has nothing to do with the DWM and requires Flip Model bypass the DWM.
  + Updated Chrono Cross and Hatsune Miku Project Diva plug-ins for new patches.
  + Implemented achievement popup location setting and removed animated option.
+
+ + Made ieframe.dll pinned (not unloadable) to workaround Steam crash.
+ + Exempt explicitly whitelisted games from internal libcef.dll blacklist
+ + No longer return processes that are not running in SKX_GetInjectedPIDs (...)
 
 22.9.26
 =======
