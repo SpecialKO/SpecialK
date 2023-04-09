@@ -1653,7 +1653,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
       cbuffer_cspace.uiToneMapper          =   __SK_HDR_tonemap;
       cbuffer_cspace.hdrSaturation         =   __SK_HDR_Saturation;
-      cbuffer_cspace.hdrPaperWhite         =   __SK_HDR_PaperWhite;
+      cbuffer_cspace.hdrGamutExpansion     =   __SK_HDR_Gamut;
       cbuffer_cspace.sdrLuminance_NonStd   =   __SK_HDR_user_sdr_Y * 1.0_Nits;
       cbuffer_cspace.sdrIsImplicitlysRGB   =   __SK_HDR_Bypass_sRGB != 1;
       cbuffer_cspace.visualFunc [0]        = (uint32_t)__SK_HDR_visualization;

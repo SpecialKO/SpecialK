@@ -868,7 +868,8 @@ SK_HDR_SnapshotSwapchain (void)
 
     cbuffer_cspace.uiToneMapper           =   __SK_HDR_tonemap;
     cbuffer_cspace.hdrSaturation          =   __SK_HDR_Saturation;
-    cbuffer_cspace.hdrPaperWhite          =   __SK_HDR_PaperWhite;
+    cbuffer_cspace.hdrGamutExpansion      =   __SK_HDR_Gamut;
+  //cbuffer_cspace.hdrPaperWhite          =   __SK_HDR_PaperWhite;
     cbuffer_cspace.sdrLuminance_NonStd    =   __SK_HDR_user_sdr_Y * 1.0_Nits;
     cbuffer_cspace.sdrIsImplicitlysRGB    =   __SK_HDR_Bypass_sRGB != 1;
     cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;

@@ -76,7 +76,7 @@ struct SK_DXGI_HDRControl
     float    hdrLuminance_MaxAvg   = 300.0_Nits;
     float    hdrLuminance_MaxLocal = 750.0_Nits;
     float    hdrLuminance_Min      =   0.0_Nits; // lol
-    float    hdrPaperWhite         = 250.0_Nits;
+    float    hdrGamutExpansion     = 0.015f;
     float    currentTime           =       0.0f;
     float    sdrLuminance_NonStd   = 100.0_Nits;
     BOOL     sdrIsImplicitlysRGB   =       TRUE;
@@ -118,6 +118,7 @@ extern bool __SK_HDR_16BitSwap;
 extern float __SK_HDR_Luma;
 extern float __SK_HDR_Exp;
 extern float __SK_HDR_Saturation;
+extern float __SK_HDR_Gamut;
 extern float __SK_HDR_user_sdr_Y;
 extern float __SK_HDR_MiddleLuma;
 extern int   __SK_HDR_Preset;

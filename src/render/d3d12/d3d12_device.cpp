@@ -62,6 +62,8 @@ D3D12Device_CreatePlacedResource_pfn
 D3D12Device_CreatePlacedResource_Original        = nullptr;
 D3D12Device_CreateCommandAllocator_pfn
 D3D12Device_CreateCommandAllocator_Original      = nullptr;
+D3D12Device_CheckFeatureSupport_pfn
+D3D12Device_CheckFeatureSupport_Original         = nullptr;
 
 concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
@@ -227,6 +229,9 @@ void
 SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
                                    ID3D12PipelineState *pPipelineState )
 {
+  if (! pPipelineState)
+    return;
+
   std::ignore = pDevice;
 
   static const uint8_t empty [DxilContainerHashSize] = { };
@@ -260,14 +265,15 @@ SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
           SK_ComPtr <ID3D12PipelineState> pPipelineState;
           if (_pendingPSOBlobs.try_pop (  pPipelineState))
           {
-            SK_ComPtr <ID3DBlob>             pBlob;
-            pPipelineState->GetCachedBlob  (&pBlob.p);
-
-            _latePSOBlobs [pPipelineState] =
-              SK_FormatString ( "%08x",
-                      crc32c ( 0x0, pBlob->GetBufferPointer (),
-                                    pBlob->GetBufferSize    () )
-                              );
+            SK_ComPtr <ID3DBlob>                           pBlob;
+            if (SUCCEEDED (pPipelineState->GetCachedBlob (&pBlob.p)))
+            {
+              _latePSOBlobs [pPipelineState] =
+                SK_FormatString ( "%08x",
+                        crc32c ( 0x0, pBlob->GetBufferPointer (),
+                                      pBlob->GetBufferSize    () )
+                                );
+            }
           }
         }
       }
@@ -745,11 +751,24 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
       auto desc =
         pResource->GetDesc ();
 
-      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-           desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      if (pDesc->Format == DXGI_FORMAT_R16G16B16A16_TYPELESS)
       {
-        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-             DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
+        auto fixed_desc = *pDesc;
+             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+        return
+          D3D12Device_CreateShaderResourceView_Original ( This,
+             pResource, &fixed_desc,
+               DestDescriptor
+          );
+      }
+
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+           desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS))
+      {
+        //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+        //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
         {
           SK_LOG_FIRST_CALL
 
@@ -812,10 +831,11 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
       pResource->GetDesc ();
 
     if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-         desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
+        (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS))
     {
-      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-           DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
+      //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+      //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
       {
         SK_LOG_FIRST_CALL
 
@@ -867,6 +887,20 @@ _In_opt_        ID3D12Resource                   *pCounterResource,
 _In_opt_  const D3D12_UNORDERED_ACCESS_VIEW_DESC *pDesc,
 _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 {
+  if (pDesc != nullptr && pDesc->Format == DXGI_FORMAT_R16G16B16A16_TYPELESS)
+  {
+    auto desc = *pDesc;
+
+    desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+    return
+      D3D12Device_CreateUnorderedAccessView_Original ( This,
+        pResource, pCounterResource, &desc,
+          DestDescriptor
+      );
+  }
+
+
   // HDR Fix-Ups
   if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
@@ -1762,6 +1796,49 @@ _COM_Outptr_opt_ void                  **ppvResource )
         pOptimizedClearValue, riid, ppvResource );
 }
 
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device_CheckFeatureSupport_Detour (
+          ID3D12Device   *This,
+          D3D12_FEATURE    Feature,
+  _Inout_ void           *pFeatureSupportData,
+          UINT             FeatureSupportDataSize )
+{
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    D3D12Device_CheckFeatureSupport_Original ( This,
+      Feature, pFeatureSupportData, FeatureSupportDataSize );
+
+#ifdef SK_VRS_DEBUG
+  if (SUCCEEDED (hr) && Feature == D3D12_FEATURE_FEATURE_LEVELS)
+  {
+    auto pFeatureLevels =
+      static_cast <D3D12_FEATURE_DATA_FEATURE_LEVELS *> (pFeatureSupportData);
+
+    pFeatureLevels->MaxSupportedFeatureLevel = D3D_FEATURE_LEVEL_12_1;
+  }
+
+  if (SUCCEEDED (hr) && Feature == D3D12_FEATURE_D3D12_OPTIONS6)
+  {
+    SK_ReleaseAssert (
+      FeatureSupportDataSize == sizeof (D3D12_FEATURE_DATA_D3D12_OPTIONS6)
+    );
+
+    SK_LOGi0 (L"CheckFeatureSupport (Variable Rate Shading)");
+
+    auto pVRSCaps =
+      static_cast <D3D12_FEATURE_DATA_D3D12_OPTIONS6 *> (pFeatureSupportData);
+
+    pVRSCaps->VariableShadingRateTier = D3D12_VARIABLE_SHADING_RATE_TIER_NOT_SUPPORTED;
+  }
+
+  SK_LOGi0 (L"CheckFeatureSupport (%d)", Feature);
+#endif
+
+  return hr;
+
+}
 
 void
 _InstallDeviceHooksImpl (ID3D12Device* pDev12)
@@ -1780,6 +1857,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
                             *(void ***)*(&pDev12), 10,
                              D3D12Device_CreateGraphicsPipelineState_Detour,
                    (void **)&D3D12Device_CreateGraphicsPipelineState_Original );
+
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CheckFeatureSupport",
+                            *(void ***)*(&pDev12), 13,
+                             D3D12Device_CheckFeatureSupport_Detour,
+                   (void **)&D3D12Device_CheckFeatureSupport_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateShaderResourceView",
                            *(void ***)*(&pDev12), 18,
@@ -1924,6 +2006,36 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // 73 CreateShaderCacheSession
   // 74 ShaderCacheControl
   // 75 CreateCommandQueue1
+
+
+  //
+  // Extra hooks are needed to handle SwapChain backbuffer copies between
+  //   mismatched formats when using HDR override.
+  //
+  //if (__SK_HDR_16BitSwap)
+  {
+    SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList;
+
+    try {
+      ThrowIfFailed (
+        pDev12->CreateCommandAllocator (
+          D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&pCmdAllocator.p)));
+      ThrowIfFailed (
+        pDev12->CreateCommandList ( 0,
+          D3D12_COMMAND_LIST_TYPE_DIRECT,                pCmdAllocator.p,
+                                 nullptr, IID_PPV_ARGS (&pCmdList.p)));
+                                                         pCmdList->Close ();
+
+      extern void
+        _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList);
+        _InitCopyTextureRegionHook (pCmdList);
+    }
+
+    catch (const SK_ComException& e) {
+      SK_LOGi0 ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ );
+    }
+  }
 }
 void
 SK_D3D12_InstallDeviceHooks (ID3D12Device *pDev12)

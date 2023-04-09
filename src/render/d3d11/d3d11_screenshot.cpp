@@ -1107,9 +1107,7 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 }
 
 
-      // NOTE: This is now Reinhard key alpha
-float fMaxNitsForDisplay = 4.25f;
-UINT  filterFlags =
+UINT filterFlags =
   0x100000FF;
 
 void
@@ -1371,34 +1369,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   { 0.f,          0.f,         0.f,        1.f }
                 };
 
-                auto RemoveGamma_sRGB = [](XMVECTOR value) ->
-                void
-                {
-                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.04045f ) ?
-                                         value.m128_f32 [0] / 12.92f     :
-                                   pow ((value.m128_f32 [0] + 0.055f) / 1.055f, 2.4f);
-                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.04045f ) ?
-                                         value.m128_f32 [1] / 12.92f     :
-                                   pow ((value.m128_f32 [1] + 0.055f) / 1.055f, 2.4f);
-                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.04045f ) ?
-                                         value.m128_f32 [2] / 12.92f     :
-                                   pow ((value.m128_f32 [2] + 0.055f) / 1.055f, 2.4f);
-                };
-
-                auto ApplyGamma_sRGB = [](XMVECTOR value) ->
-                void
-                {
-                  value.m128_f32 [0] = ( value.m128_f32 [0] < 0.0031308f ) ?
-                                         value.m128_f32 [0] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [0], 1.0f / 2.4f) - 0.055f;
-                  value.m128_f32 [1] = ( value.m128_f32 [1] < 0.0031308f ) ?
-                                         value.m128_f32 [1] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [1], 1.0f / 2.4f) - 0.055f;
-                  value.m128_f32 [2] = ( value.m128_f32 [2] < 0.0031308f ) ?
-                                         value.m128_f32 [2] * 12.92f      :
-                           1.055f * pow (value.m128_f32 [2], 1.0f / 2.4f) - 0.055f;
-                };
-
                 HRESULT hr = S_OK;
 
                 if ( un_srgb.GetImageCount () == 1 &&
@@ -1417,8 +1387,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       XMVECTOR value  = inPixels [j];
                       XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
                                 value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-
-                      ApplyGamma_sRGB (value);
+                                value = XMColorRGBToSRGB   (value);
 
                       outPixels [j]   =                     value;
                     }
@@ -1431,7 +1400,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                      hdr )
                 {
                   XMVECTOR maxLum = XMVectorZero          (),
-                           minLum = XMVectorSplatInfinity ();
+                           minLum = XMVectorSplatInfinity (),
+                           colLum = XMVectorZero          ();
 
                   float lumTotal = 0.0f;
                   float N        = 0.0f;
@@ -1445,54 +1415,38 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       UNREFERENCED_PARAMETER(y);
 
                       for (size_t j = 0; j < width; ++j)
-                      {
+                      {                      
                         static const XMVECTORF32 s_luminance =
-                        { 0.3f, 0.59f, 0.11f, 0.f };
-                      
-                        XMVECTOR vLuma =
-                          XMVectorSplatY (
-                            XMColorRGBToXYZ (*pixels++)
-                          );
-                        
+                          { 0.3f, 0.59f, 0.11f, 0.f };
+
+                        XMVECTOR v = *pixels++;
+
+                        colLum =
+                          XMVectorMax (v, colLum);
+
+                        v = XMVector3Dot (v, s_luminance);
+
                         maxLum =
-                          XMVectorMax ( maxLum,
-                                          vLuma );
+                          XMVectorMax (v, maxLum);
 
                         minLum =
-                          XMVectorMin ( minLum,
-                                          vLuma );
+                          XMVectorMin (v, minLum);
 
                         lumTotal +=
-                          logf ( std::max (0.000001f, 0.000001f + vLuma.m128_f32 [0]) ),
+                          logf ( std::max (0.000001f, 0.000001f + v.m128_f32 [0]) ),
                         ++N;
                       }
                     })                                       : E_POINTER;
 
-                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0],
-                                                                      maxLum.m128_f32 [0]), L"XXX" );
+                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
+                                                                      maxLum.m128_f32 [0] * 80.0f), L"D3D11SShot" );
 
-                  float fExposure = fMaxNitsForDisplay;
-                  float fLogAvg   = expf ( ( 1.0f / N ) * lumTotal );
+                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
+                                                                                          minLum.m128_f32 [0] ) / 2.0f,
+                                                                                  80.0f * expf ( (1.0f / N) * lumTotal ) ), L"D3D11SShot");
 
-                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", ( maxLum.m128_f32 [0] +
-                                                                                  minLum.m128_f32 [0] ) / 2.0f,
-                                                                                  expf ( (1.0f / N) * lumTotal ) ), L"XXX");
-
-                  // For scenes below exposure threshold, limit the key to 1 so that brightening does not occur... the image is already LDR
-                  fLogAvg =
-                    std::max (fMaxNitsForDisplay, fLogAvg);
-
-                  //#define _CHROMA_SCALE TRUE
-                  #ifndef _CHROMA_SCALE
-                                    maxLum =
-                                      XMVector3Length  (maxLum);
-                  #else
-                                    maxLum =
-                                      XMVectorMultiply (maxLum, maxLum);
-                  #endif
-
-                  const XMVECTORF32 c_MaxNitsForDisplay =
-                  { fMaxNitsForDisplay, fMaxNitsForDisplay, fMaxNitsForDisplay, 1.f };
+                  static const XMVECTORF32 c_SdrPower =
+                  { 0.725f, 0.725f, 0.725f, 1.f };
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1506,14 +1460,26 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       {
                         XMVECTOR value = inPixels [j];
                         XMVECTOR scale =
-                          XMVectorReplicate (fExposure / fLogAvg);
+                          XMVectorDivide (
+                            XMVectorAdd (
+                              g_XMOne,
+                                XMVectorDivide (
+                                  value,
+                                    colLum
+                                )
+                            ),
+                            XMVectorAdd ( g_XMOne,
+                                            value
+                                        )
+                          );
 
                         XMVECTOR nvalue =
-                          XMVectorDivide (                      XMVectorMultiply (value, scale),
-                                          XMVectorAdd (g_XMOne, XMVectorMultiply (value, scale) ) );
+                          XMVectorMultiply (value, scale);
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                        outPixels [j]   =   value;
+
+                        outPixels [j] =
+                          XMVectorPow (value, c_SdrPower);
                       }
                     }, un_scrgb)                             : E_POINTER;
 
@@ -1739,50 +1705,50 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                     Image raw_img = { };
 
-                    uint8_t* pDst =
-                      pFrameData->PixelBuffer.get ();
+                    ////uint8_t* pDst =
+                    ////  pFrameData->PixelBuffer.get ();
 
-                    for (UINT i = 0; i < pFrameData->Height; ++i)
-                    {
-                      // Eliminate pre-multiplied alpha problems (the stupid way)
-                      switch (pFrameData->NativeFormat)
-                      {
-                        case DXGI_FORMAT_B8G8R8A8_UNORM:
-                        case DXGI_FORMAT_R8G8B8A8_UNORM:
-                        {
-                          for ( UINT j = 3                          ;
-                                     j < pFrameData->PackedDstPitch ;
-                                     j += 4 )
-                          {    pDst [j] = 255UL;        }
-                        } break;
-
-                        case DXGI_FORMAT_R10G10B10A2_UNORM:
-                        {
-                          for ( UINT j = 3                          ;
-                                     j < pFrameData->PackedDstPitch ;
-                                     j += 4 )
-                          {    pDst [j]  |=  0x3;       }
-                        } break;
-
-                        case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                        {
-                          for ( UINT j  = 0                          ;
-                                     j < pFrameData->PackedDstPitch  ;
-                                     j += 8 )
-                          {
-                            glm::vec4 color =
-                              glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
-
-                            color.a = 1.0f;
-
-                            *((uint64*)& (pDst[j])) =
-                              glm::packHalf4x16 (color);
-                          }
-                        } break;
-                      }
-
-                      pDst += pFrameData->PackedDstPitch;
-                    }
+                    ////for (UINT i = 0; i < pFrameData->Height; ++i)
+                    ////{
+                    ////  // Eliminate pre-multiplied alpha problems (the stupid way)
+                    ////  switch (pFrameData->NativeFormat)
+                    ////  {
+                    ////    case DXGI_FORMAT_B8G8R8A8_UNORM:
+                    ////    case DXGI_FORMAT_R8G8B8A8_UNORM:
+                    ////    {
+                    ////      for ( UINT j = 3                          ;
+                    ////                 j < pFrameData->PackedDstPitch ;
+                    ////                 j += 4 )
+                    ////      {    pDst [j] = 255UL;        }
+                    ////    } break;
+                    ////
+                    ////    case DXGI_FORMAT_R10G10B10A2_UNORM:
+                    ////    {
+                    ////      for ( UINT j = 3                          ;
+                    ////                 j < pFrameData->PackedDstPitch ;
+                    ////                 j += 4 )
+                    ////      {    pDst [j]  |=  0x3;       }
+                    ////    } break;
+                    ////
+                    ////    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+                    ////    {
+                    ////      for ( UINT j  = 0                          ;
+                    ////                 j < pFrameData->PackedDstPitch  ;
+                    ////                 j += 8 )
+                    ////      {
+                    ////        glm::vec4 color =
+                    ////          glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
+                    ////
+                    ////        color.a = 1.0f;
+                    ////
+                    ////        *((uint64*)& (pDst[j])) =
+                    ////          glm::packHalf4x16 (color);
+                    ////      }
+                    ////    } break;
+                    ////  }
+                    ////
+                    ////  pDst += pFrameData->PackedDstPitch;
+                    ////}
 
                     ComputePitch ( pFrameData->NativeFormat,
                                      pFrameData->Width,
@@ -1796,7 +1762,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     raw_img.height = pFrameData->Height;
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-                    if (config.screenshots.copy_to_clipboard)
+                    if (config.screenshots.copy_to_clipboard && (! hdr))
                     {
                       ScratchImage
                         clipboard;
@@ -1808,8 +1774,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                                       TEX_THRESHOLD_DEFAULT,
                                                         clipboard ) ) )
                       {
-                        if (! hdr)
-                          rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
+                        rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
                       }
                     }
 

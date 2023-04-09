@@ -105,6 +105,7 @@ SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
 float __SK_HDR_Luma            = 80.0_Nits;
 float __SK_HDR_Exp             = 1.0f;
 float __SK_HDR_Saturation      = 1.0f;
+float __SK_HDR_Gamut           = 0.01f;
 extern float                   
       __SK_HDR_user_sdr_Y;     
 float __SK_HDR_MiddleLuma      = 100.0_Nits;
@@ -134,6 +135,7 @@ struct SK_HDR_Preset_s {
   float        middle_gray_nits = 100.0_Nits;
   float        eotf             = 0.0f;
   float        saturation       = 1.0f;
+  float        gamut            = 0.01f;
 
   struct {
     int tonemap = SK_HDR_TONEMAP_FILMIC;
@@ -150,6 +152,7 @@ struct SK_HDR_Preset_s {
   sk::ParameterFloat*   cfg_paperwhite   = nullptr;
   sk::ParameterFloat*   cfg_eotf         = nullptr;
   sk::ParameterFloat*   cfg_saturation   = nullptr;
+  sk::ParameterFloat*   cfg_gamut        = nullptr;
   sk::ParameterFloat*   cfg_middlegray   = nullptr;
   sk::ParameterInt*     cfg_tonemap      = nullptr;
 
@@ -177,6 +180,7 @@ struct SK_HDR_Preset_s {
     __SK_HDR_user_sdr_Y    = middle_gray_nits / 1.0_Nits;
     __SK_HDR_Exp           = eotf;
     __SK_HDR_Saturation    = saturation;
+    __SK_HDR_Gamut         = gamut;
     __SK_HDR_tonemap       = colorspace.tonemap;
     __SK_HDR_PQBoost0      = pq_boost0;
     __SK_HDR_PQBoost1      = pq_boost1;
@@ -199,6 +203,7 @@ struct SK_HDR_Preset_s {
           {
             cfg_nits,       cfg_paperwhite, cfg_eotf,
             cfg_saturation, cfg_middlegray, cfg_tonemap,
+            cfg_gamut,
             cfg_pq_boost0,  cfg_pq_boost1,
             cfg_pq_boost2,  cfg_pq_boost3
           }
@@ -238,6 +243,14 @@ struct SK_HDR_Preset_s {
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
                  SK_FormatStringW (L"Saturation_[%lu]", preset_idx).c_str (),
                    saturation,     L"Saturation Coefficient" );
+
+      cfg_gamut =
+        _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                 SK_FormatStringW (L"GamutExpansion_[%lu]", preset_idx).c_str (),
+                   gamut,          L"Gamut Expansion Coefficient" );
+
+      if (gamut == 1.0f) // Fix-Up for old default values
+          gamut =  0.01f;
 
       cfg_middlegray =
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
@@ -282,14 +295,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.033f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f,   1.0f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -740,12 +753,12 @@ public:
     static SKTL_BidirectionalHashMap <int, std::wstring>
       __SK_HDR_ColorSpaceMap =
       {
-        { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)"       },
+        { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)\t\t[Broken, Do Not Use]"       },
         { 2, L"HDR10 Passthrough (Native HDR)"           }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\0"
+      (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\t\t[Broken, Do Not Use]\0"
                     u8"HDR10 Passthrough (Native HDR)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
@@ -1149,32 +1162,32 @@ public:
             ImGui::SameLine   (0.0f, 135.0f); ImGui::Spacing ();
           }
 
-          float fWhite = __SK_HDR_PaperWhite / 1.0_Nits;
-
-          if (
-            ImGui::SliderFloat ("###PaperWhite", &fWhite, 80.0f, std::min ( rb.display_gamut.maxLocalY, __SK_HDR_Luma / 1.0_Nits ),
-                   (const char *)u8"Paper White Luminance: %.1f cd/m²")
-             )
-          {
-            __SK_HDR_PaperWhite =
-              fWhite * 1.0_Nits;
-
-            preset.paper_white_nits = __SK_HDR_PaperWhite;
-            preset.cfg_paperwhite->store (preset.paper_white_nits);
-          }
-
-          fSliderWidth = ImGui::GetItemRectSize ().x;
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip    (  );
-            ImGui::TextUnformatted ("Controls mid-tone luminance");
-            ImGui::Separator       (  );
-            ImGui::BulletText      ("Keep below 1/2 Peak White for ideal Dynamic Range / Saturation");
-            ImGui::BulletText      ("Higher values will bring out shadow detail, but may wash out game HUDs");
-            ImGui::BulletText      ("Lower values may correct over-exposure in some washed out SDR games (i.e. NieR: Automata)");
-            ImGui::EndTooltip      (  );
-          }
+          //////float fWhite = __SK_HDR_PaperWhite / 1.0_Nits;
+          //////
+          //////if (
+          //////  ImGui::SliderFloat ("###PaperWhite", &fWhite, 80.0f, std::min ( rb.display_gamut.maxLocalY, __SK_HDR_Luma / 1.0_Nits ),
+          //////         (const char *)u8"Paper White Luminance: %.1f cd/m²")
+          //////   )
+          //////{
+          //////  __SK_HDR_PaperWhite =
+          //////    fWhite * 1.0_Nits;
+          //////
+          //////  preset.paper_white_nits = __SK_HDR_PaperWhite;
+          //////  preset.cfg_paperwhite->store (preset.paper_white_nits);
+          //////}
+          //////
+          //////fSliderWidth = ImGui::GetItemRectSize ().x;
+          //////
+          //////if (ImGui::IsItemHovered ())
+          //////{
+          //////  ImGui::BeginTooltip    (  );
+          //////  ImGui::TextUnformatted ("Controls mid-tone luminance");
+          //////  ImGui::Separator       (  );
+          //////  ImGui::BulletText      ("Keep below 1/2 Peak White for ideal Dynamic Range / Saturation");
+          //////  ImGui::BulletText      ("Higher values will bring out shadow detail, but may wash out game HUDs");
+          //////  ImGui::BulletText      ("Lower values may correct over-exposure in some washed out SDR games (i.e. NieR: Automata)");
+          //////  ImGui::EndTooltip      (  );
+          //////}
 
           float fMidGray = __SK_HDR_user_sdr_Y - 100.0f;
 
@@ -1182,8 +1195,8 @@ public:
                __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
                __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
           {
-            if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -20.0f,
-                                                                        (__SK_HDR_tonemap == 2) ?  2.5f :  20.0f,
+            if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -5.0f,
+                                                                        (__SK_HDR_tonemap == 2) ?  2.5f :  5.0f,
                               (const char *)u8"Middle Gray Contrast: %+.3f%%"))// %.3f cd/m²"))
             {
               __SK_HDR_user_sdr_Y =
@@ -1205,6 +1218,28 @@ public:
           }
           else
             ImGui::BulletText ("Middle-Gray Contrast Unsupported by Current Tonemap");
+
+          float fGamut =
+            __SK_HDR_Gamut * 100.0f;
+
+          if (ImGui::SliderFloat ( "###SK_HDR_GAMUT_EXPANSION", &fGamut, 0.0f, 10.0f,
+                                   "Gamut Expansion: +%.3f%%"))
+          {
+            __SK_HDR_Gamut =
+              std::max (0.0f, std::min (1.0f, fGamut / 100.0f));
+
+            preset.gamut           = __SK_HDR_Gamut;
+            preset.cfg_gamut->store (__SK_HDR_Gamut);
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    (  );
+            ImGui::TextUnformatted ("Increases Color Saturation on HDR Highlights");
+            ImGui::Separator       (  );
+            ImGui::BulletText      ("Effect is subtle and should be preferable to the traditional Saturation adjustment");
+            ImGui::EndTooltip      (  );
+          }
 
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1311,6 +1346,11 @@ public:
             else preset.cfg_saturation->store     (default_preset.saturation);
 
             if (pSection != nullptr &&
+                pSection->contains_key (                                SK_FormatStringW (L"GamutExpansion_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_gamut->store_str      (pSection->get_value (SK_FormatStringW (L"GamutExpansion_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_gamut->store          (default_preset.gamut);
+
+            if (pSection != nullptr &&
                 pSection->contains_key (                                SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)))
                  preset.cfg_tonemap->store_str    (pSection->get_value (SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)));
             else preset.cfg_tonemap->store        (default_preset.colorspace.tonemap);
@@ -1340,6 +1380,7 @@ public:
             preset.cfg_middlegray->load   (preset.middle_gray_nits);
             preset.cfg_eotf->load         (preset.eotf);
             preset.cfg_saturation->load   (preset.saturation);
+            preset.cfg_gamut->load        (preset.gamut);
             preset.cfg_tonemap->load      (preset.colorspace.tonemap);
 
             preset.cfg_pq_boost0->load    (preset.pq_boost0);
@@ -1372,6 +1413,9 @@ public:
             sec.add_key_value (
               SK_FormatStringW (L"Saturation_[%lu]", __SK_HDR_Preset),
                                              std::to_wstring (preset.saturation) );
+            sec.add_key_value (
+              SK_FormatStringW (L"GamutExpansion_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.gamut) );
             sec.add_key_value (
               SK_FormatStringW (L"MiddleGray_[%lu]", __SK_HDR_Preset),
                                              std::to_wstring (preset.middle_gray_nits) );
@@ -1591,15 +1635,12 @@ public:
                     ImGui::SameLine ();
                     ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
                   }
+                }
 
 #if 0
-                  extern UINT filterFlags;
-                  ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
-
-                  extern float fMaxNitsForDisplay;
-                  ImGui::InputFloat ("MaxNitsForDisplay", &fMaxNitsForDisplay);
+                extern UINT filterFlags;
+                ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
 #endif
-                }
 
                 ImGui::EndGroup ();
                 
@@ -1701,7 +1742,7 @@ public:
               float fSat =
                 __SK_HDR_Saturation * 100.0f;
 
-              if (ImGui::SliderFloat ("Color Saturation", &fSat, 0.0f, 133.0f, "%.3f%%"))
+              if (ImGui::SliderFloat ("Saturation", &fSat, 0.0f, 125.0f, "%.3f%%"))
               {
                 __SK_HDR_Saturation =
                   std::max (0.0f, std::min (2.0f, fSat / 100.0f));

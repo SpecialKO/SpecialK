@@ -418,7 +418,10 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
   // D3D12 is already Flip Model and doesn't need this
   if (flip_model.isOverrideActive () && (! d3d12_))
   {
-    SK_ReleaseAssert (Buffer == 0);
+    // MGS V Compatibility
+    Buffer = 0;
+
+    //SK_ReleaseAssert (Buffer == 0);
 
     if ( riid != IID_ID3D11Texture2D  &&
          riid != IID_ID3D11Texture2D1 &&

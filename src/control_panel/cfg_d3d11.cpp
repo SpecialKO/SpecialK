@@ -644,7 +644,7 @@ SK::ControlPanel::D3D11::Draw (void)
         if (SK_DXGI_SupportsTearing ())
         {
           bool tearing_pref = config.render.dxgi.allow_tearing;
-          if (ImGui::Checkbox ("Enable DWM Tearing", &tearing_pref))
+          if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
           {
             config.render.dxgi.allow_tearing = tearing_pref;
 

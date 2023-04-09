@@ -7596,7 +7596,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (! config.render.dxgi.debug_layer)
   {
-    if (bEOSOverlay || (pSwapChainDesc != nullptr && ! SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
+    if ( StrStrIW (SK_GetCallerName ().c_str (), L"d3d11.dll") || bEOSOverlay || (pSwapChainDesc != nullptr && !SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
     {
       return
         D3D11CreateDeviceAndSwapChain_Import ( pAdapter,

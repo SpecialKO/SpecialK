@@ -31,9 +31,6 @@
     <Filter Include="Source Files\OSD">
       <UniqueIdentifier>{71d75f35-e2d8-4f4e-bd93-ce5bd9c9edf9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Stats">
-      <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Utility">
       <UniqueIdentifier>{62e65d77-0345-4c92-8a5c-8d7f951b04fc}</UniqueIdentifier>
     </Filter>
@@ -337,6 +334,9 @@
     <Filter Include="Header Files\Backends\Render\D3D12">
       <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Plugins\Stats">
+      <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -361,10 +361,10 @@
       <Filter>Header Files\External Libraries\DirectXTex</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\adl.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\nvapi.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\framerate.h">
       <Filter>Header Files\Utility</Filter>
@@ -511,10 +511,10 @@
       <Filter>Header Files\Backends\Render</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\performance\gpu_monitor.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\performance\io_monitor.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
@@ -655,16 +655,16 @@
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\memory.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\network.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\cpu.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\file.h">
-      <Filter>Header Files\Stats</Filter>
+      <Filter>Header Files\Plugins\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\input.h">
       <Filter>Header Files\Config</Filter>
@@ -2904,6 +2904,9 @@
     <ClInclude Include="include\shaders\cs_histogram.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="include\imgui\imfilebrowser.h">
+      <Filter>Header Files\External Libraries\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4409,6 +4412,9 @@
       <Filter>Resource Files\Licenses</Filter>
     </Text>
     <Text Include="resource\licenses\nlohmann-json.txt">
+      <Filter>Resource Files\Licenses</Filter>
+    </Text>
+    <Text Include="resource\licenses\imgui-filebrowser.txt">
       <Filter>Resource Files\Licenses</Filter>
     </Text>
   </ItemGroup>

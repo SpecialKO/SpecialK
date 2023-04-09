@@ -947,6 +947,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <Text Include="resource\licenses\fontawesome.txt" />
     <Text Include="resource\licenses\FreeType2.txt" />
     <Text Include="resource\licenses\GLM_0_9_4_5.txt" />
+    <Text Include="resource\licenses\imgui-filebrowser.txt" />
     <Text Include="resource\licenses\ImGui.txt" />
     <Text Include="resource\licenses\MinHook.txt" />
     <Text Include="resource\licenses\nlohmann-json.txt" />
@@ -1672,6 +1673,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\imgui\fa_regular_400.ttf.h" />
     <ClInclude Include="include\imgui\fa_solid_900.ttf.h" />
     <ClInclude Include="include\imgui\font_awesome.h" />
+    <ClInclude Include="include\imgui\imfilebrowser.h" />
     <ClInclude Include="include\json\json.hpp" />
     <ClInclude Include="include\shaders\cs_histogram.h" />
     <ClInclude Include="include\shaders\epic_d3d11_vs.h" />

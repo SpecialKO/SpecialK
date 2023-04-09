@@ -272,6 +272,8 @@ float4 main (PS_INPUT input) : SV_TARGET
                              sdrIsImplicitlysRGB ).rgb
                       );
 
+  ///hdr_color.rgb =
+  ///  sRGB_to_ACES (hdr_color.rgb);
  
 #ifdef INCLUDE_SPLITTER
   if ( input.coverage.x < input.uv.x ||
@@ -418,6 +420,13 @@ float4 main (PS_INPUT input) : SV_TARGET
       );
   }
 
+  if (hdrGamutExpansion > 0.0f)
+  {
+    hdr_color.rgb =
+      expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+  }
+
+#if 0
   float3 vNormalColor =
     normalize (hdr_color.rgb);
 
@@ -428,12 +437,18 @@ float4 main (PS_INPUT input) : SV_TARGET
 #ifdef INCLUDE_HDR10
     uiToneMapper != TONEMAP_HDR10_to_scRGB ?
 #endif
-    (                            hdrPaperWhite +
-      fLuma * (input.color.xxx - hdrPaperWhite) )
+    (                          //hdrPaperWhite +
+      fLuma * (input.color.xxx/*-hdrPaperWhite*/))
 #ifdef INCLUDE_HDR10
                         :        hdrPaperWhite
 #endif
     ;
+#else
+  hdr_color.rgb *=
+    input.color.xxx;
+
+  float fLuma = 0.0f;
+#endif
 
 #ifdef INCLUDE_VISUALIZATIONS
   fLuma =
