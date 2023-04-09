@@ -941,10 +941,14 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
     }
 
     if (config.window.background_render)
-    {
-      config.window.background_render = false;
+    {   config.window.background_render = false;
 
       SK_ImGui_Warning (L"\"Continue Rendering\" mode has been disabled because game is using Fullscreen Exclusive.");
+    }
+
+    // If this were left on, it would cause problems in some games like Dying Light
+    if (config.window.fullscreen)
+    {   config.window.fullscreen = false;
     }
   }
 }
@@ -1092,7 +1096,7 @@ SK_COMPAT_CheckStreamlineSupport (void)
           L"NVIDIA Streamline Interposer."
           L"\r\n\r\n   "
 
-          L">> You must use Local Injection (dxgi.dll) or replace the Interposer."
+          L">> Try Local Injection (dxgi.dll) or replace the Interposer."
           L"\r\n\r\n---------------------\r\n\r\n";
 
         msg += module_path;
@@ -1102,10 +1106,19 @@ SK_COMPAT_CheckStreamlineSupport (void)
         msg += L"\r\n\r\n---------------------\r\n\r\n"
           L" * Check the Wiki or Discord for help replacing the Interposer.";
 
-        SK_MessageBox (
-          msg.c_str (), L"Special K Incompatibility",
-            MB_ICONERROR | MB_OK
-        );
+        DWORD dwRet =
+          SK_MessageBox (
+            msg.c_str (), L"Special K Incompatibility",
+              MB_ICONERROR | MB_OKCANCEL
+          );
+
+        if (dwRet == IDOK)
+        {
+          SK_Util_OpenURI (
+            LR"(https://wiki.special-k.info/Compatibility/Streamline)",
+              SW_SHOWNORMAL
+          );
+        }
       }
     }
   }

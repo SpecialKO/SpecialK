@@ -1296,19 +1296,29 @@ SK_Inject_SpawnUnloadListener (void)
 
           if (! SK_GetHostAppUtil ()->isInjectionTool ())
           {
-            // Executables with child processes might inherit
-            if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
-                     GetModuleLoadCount (g_hModule_CBT) > 1)
-                            FreeLibrary (g_hModule_CBT);
+            // This might crash Windows Explorer since it's the thing that
+            //   is actually injecting our DLL in the first place.
+            if (! GetModuleHandle (L"explorer.exe"))
+            {
+              // Executables with child processes might inherit
+              if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
+                       GetModuleLoadCount (g_hModule_CBT) > 1)
+              {
+                FreeLibrary (g_hModule_CBT);
+              }
+            }
           }
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
         }
 
-        FreeLibraryAndExitThread (g_hModule_CBT, 0x0);
+        auto this_module =
+          g_hModule_CBT;
 
         InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
+
+        FreeLibraryAndExitThread (this_module, 0x0);
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
