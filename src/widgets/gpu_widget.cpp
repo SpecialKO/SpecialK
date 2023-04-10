@@ -302,6 +302,9 @@ public:
 
     char szAvg  [512] = { };
 
+    auto item_inner_spacing =
+      ImGui::GetStyle ().ItemInnerSpacing;
+
     if (gpu_load_prefs.enable)
     {
       snprintf
@@ -317,6 +320,8 @@ public:
         std::min ( (float)gpu_load.getUpdates  (),
                    (float)gpu_load.getCapacity () );
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_LoadPercent",
                            gpu_load.getValues     ().data (),
           static_cast <int> (samples),
@@ -328,6 +333,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (0.0f,   &gpu_load_prefs),
                                               _MaxVal (100.0f, &gpu_load_prefs) );
+
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%4.1f%%", gpu_load.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
 
     if (gpu_temp_prefs.enable)
@@ -345,6 +358,8 @@ public:
         std::min ( (float)gpu_temp_c.getUpdates  (),
                    (float)gpu_temp_c.getCapacity () );
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_TempC",
                            gpu_temp_c.getValues     ().data (),
           static_cast <int> (samples),
@@ -356,6 +371,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (50.0f, &gpu_temp_prefs),
                                               _MaxVal (94.0f, &gpu_temp_prefs) );
+      
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%4.1f°", gpu_temp_c.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
 
 
@@ -382,6 +405,8 @@ public:
       max_rpm =
         std::max ( max_rpm, fan_rpm.getMax () > 0 ? fan_rpm.getMax () : max_rpm );
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_FanSpeed_Hz",
                            fan_rpm.getValues     ().data (),
           static_cast <int> (samples),
@@ -393,6 +418,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                          4, _MinVal (min_rpm, &gpu_fan_prefs),
                                             _MaxVal (max_rpm, &gpu_fan_prefs), 0.0f, true );
+
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%4.1f", fan_rpm.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
 
     if (core_clock_prefs.enable)
@@ -417,6 +450,8 @@ public:
       min_clock = std::min (min_clock, core_clock_ghz.getMin () > 0 ?
                                        core_clock_ghz.getMin ()     : min_clock);
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_CoreClock",
                            core_clock_ghz.getValues ().data (),
           static_cast <int> (samples),
@@ -428,6 +463,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (min_clock, &core_clock_prefs),
                                               _MaxVal (max_clock, &core_clock_prefs) );
+
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%5.3f", core_clock_ghz.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
 
     if (vram_clock_prefs.enable)
@@ -452,6 +495,8 @@ public:
       min_vram_clock = std::min (min_vram_clock, vram_clock_ghz.getMin () > 0 ?
                                                  vram_clock_ghz.getMin ()     : min_vram_clock);
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_VRAMClock",
                            vram_clock_ghz.getValues ().data (),
           static_cast <int> (samples),
@@ -463,6 +508,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (min_vram_clock, &vram_clock_prefs),
                                               _MaxVal (max_vram_clock, &vram_clock_prefs) );
+
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%5.3f", vram_clock_ghz.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
 
     // TODO: Add a parameter to data history to control this
@@ -491,6 +544,8 @@ public:
       if (capacity_in_mib <= 0.0f)
         capacity_in_mib = 4096.0f; // Just take a wild guess, lol
 
+      float fx = ImGui::GetCursorPosX ();
+
       ImGui::PlotLinesC ( "###GPU_VRAMUsage",
                            vram_used_mib.getValues ().data (),
           static_cast <int> (samples),
@@ -502,6 +557,14 @@ public:
                                          ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
                                            4, _MinVal (0.0f,            &vram_used_prefs),
                                               _MaxVal (capacity_in_mib, &vram_used_prefs) );
+
+      float fy = ImGui::GetCursorPosY ();
+
+      ImGui::SameLine      (  );
+      ImGui::SetCursorPosX (fx                      + item_inner_spacing.x);
+      ImGui::SetCursorPosY (ImGui::GetCursorPosY () + item_inner_spacing.y);
+      ImGui::Text ("%6.1f", vram_used_mib.getLastValue ());
+      ImGui::SetCursorPosY (fy);
     }
   }
 

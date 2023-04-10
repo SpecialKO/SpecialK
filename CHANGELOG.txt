@@ -1,6 +1,7 @@
 ﻿23.4.11
 =======
- + Remove Windows.UI.dll from auto-exclusion during injection
+ + Added current values (top-left) to GPU monitoring widget graphs
+ + Removed Windows.UI.dll from auto-exclusion during global injection
 
 23.4.10.2
 =========
