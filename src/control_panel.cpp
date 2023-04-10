@@ -5687,25 +5687,16 @@ SK_ImGui_StageNextFrame (void)
     SK_LOG0 ( (L"No Render API"), L"Overlay" );
     return;
   }
+  auto& io    = ImGui::GetIO    ();
+  auto& style = ImGui::GetStyle ();
 
-  auto& io =
-    ImGui::GetIO ();
+  static float orgWindowBg =
+    style.Colors [ImGuiCol_WindowBg].w;
 
-  ///SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-  ///
-  ///if (pSwapChain != nullptr)
-  ///{
-  ///  DXGI_SWAP_CHAIN_DESC  desc = {};
-  ///  pSwapChain->GetDesc (&desc);
-  ///
-  ///  // scRGB
-  ///  if ( rb.isHDRCapable ()   &&
-  ///      (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR)
-  ///                            &&
-  ///      desc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
-  ///  {
-  ///  }
-  ///}
+  if (config.imgui.render.disable_alpha)
+    style.Colors [ImGuiCol_WindowBg].w = 1.0f;
+  else
+    style.Colors [ImGuiCol_WindowBg].w = orgWindowBg;
 
   extern volatile
                LONG __SK_ScreenShot_CapturingHUDless;

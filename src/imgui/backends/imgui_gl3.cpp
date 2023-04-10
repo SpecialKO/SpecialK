@@ -109,39 +109,6 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
     const ImDrawList* cmd_list          = draw_data->CmdLists [n];
     const ImDrawIdx*  idx_buffer_offset = nullptr;
 
-    if (config.imgui.render.disable_alpha)
-    {
-      for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
-      {
-        SK_ReleaseAssert (cmd_list->VtxBuffer.Data [i].col.x < 1.0 &&
-                          cmd_list->VtxBuffer.Data [i].col.y < 1.0 &&
-                          cmd_list->VtxBuffer.Data [i].col.z < 1.0 &&
-                          cmd_list->VtxBuffer.Data [i].col.w < 1.0 );
-        ImColor color (
-          cmd_list->VtxBuffer.Data [i].col
-        );
-
-        uint8_t alpha = ((((unsigned int)color & 0xFF000000U) >> 24U) & 0xFFU);
-
-        // Boost alpha for visibility
-        if (alpha < 93 && alpha != 0)
-          alpha += (93  - alpha) / 2;
-
-        float a = ((float)                                     alpha / 255.0f);
-        float r = ((float)(((unsigned int)color & 0xFF0000U) >> 16U) / 255.0f);
-        float g = ((float)(((unsigned int)color & 0x00FF00U) >>  8U) / 255.0f);
-        float b = ((float)(((unsigned int)color & 0x0000FFU)       ) / 255.0f);
-
-        color =                    0xFF000000U  |
-                ((UINT)((r * a) * 255U) << 16U) |
-                ((UINT)((g * a) * 255U) <<  8U) |
-                ((UINT)((b * a) * 255U)       );
-
-        cmd_list->VtxBuffer.Data[i].col =
-          color;
-      }
-    }
-
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
     glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof (ImDrawVert),
                                        (const GLvoid *)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
