@@ -660,20 +660,23 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
+      const float ui_scale =
+        config.imgui.scale;
+
       ImGui::EndGroup   ();
 
       ImGui::SameLine   ();
-      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::ItemSize   (ImVec2 (50.0f * ui_scale, 0.0f));
       ImGui::SameLine   ();
       
       ImGui::VerticalSeparator ();
 
       ImGui::SameLine   ();
-      ImGui::ItemSize   (ImVec2(50.0f, 0.0f));
+      ImGui::ItemSize   (ImVec2 (50.0f * ui_scale, 0.0f));
       ImGui::SameLine   ();
 
       ImGui::BeginGroup ();
-      ImGui::PushItemWidth (100.0f);
+      ImGui::PushItemWidth (100.0f * ui_scale);
 
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 

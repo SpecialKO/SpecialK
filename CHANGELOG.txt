@@ -1,4 +1,9 @@
-﻿23.4.10.1
+﻿23.4.10.2
+=========
+ + Fixed SwapChain settings in Control Panel not UI-scaling correctly
+ + Added tip on configuring the OSD's Startup Banner, to the banner...
+
+23.4.10.1
 =========
  + Fixed potential creation of 'Profiles' directory at the root of disks
  + Merged fix for 'Disable Transparency' option in UI settings
