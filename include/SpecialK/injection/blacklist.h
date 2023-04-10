@@ -57,10 +57,6 @@ typedef NTSTATUS (NTAPI *LdrGetDllHandleByName_pfn)(
 //      its presence in this list.
 //
 static constexpr constexpr_module_s::list_type __bluelist = {
-  // Various Windows UI processes, not games... so early-out.
-  L"Windows.UI.Xaml.dll",
-  L"Windows.UI.dll",
-
   // Early-out for most CEF-based apps;
   //   Stuff like Spotify otherwise appears to
   //     be a game since it uses D3D shaders

@@ -1,4 +1,8 @@
-﻿23.4.10.2
+﻿23.4.11
+=======
+ + Remove Windows.UI.dll from auto-exclusion during injection
+
+23.4.10.2
 =========
  + Fixed SwapChain settings in Control Panel not UI-scaling correctly
  + Added tip on configuring the OSD's Startup Banner, to the banner...

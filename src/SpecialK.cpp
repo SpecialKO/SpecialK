@@ -233,34 +233,8 @@ SK_KeepAway (void)
   // If user-interactive, check against an internal blacklist
   #include <SpecialK/injection/blacklist.h>
 
-  static constexpr auto _MaxModules = 1024;
-
-  static HMODULE hMods       [_MaxModules] = { };
-  static size_t  hashed_mods [_MaxModules] = { };
-  static size_t  hashed_self               = hash_lower (wszAppShortName);
-  DWORD          cbNeeded                  =   0;
-  unsigned int   i                         =   0;
-
-  if ( EnumProcessModulesEx ( GetCurrentProcess (), hMods,
-                                            sizeof (hMods), &cbNeeded, LIST_MODULES_ALL ) )
-  {
-    cbNeeded =
-      std::min ((DWORD)(_MaxModules * sizeof (HMODULE)), cbNeeded);
-
-    for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
-    {
-      if (hMods [i] != nullptr)
-      {
-        wchar_t     wszModuleName [MAX_PATH + 2] = { };
-        wcsncpy_s ( wszModuleName,
-                 SK_GetModuleName (hMods [i]).c_str (),
-                                   MAX_PATH );
-
-        PathStripPathW (              wszModuleName);
-        hashed_mods [i] = hash_lower (wszModuleName);
-      }
-    }
-  }
+  static size_t hashed_self =
+    hash_lower (wszAppShortName);
 
   auto _TestUndesirableDll = [&]
    (const std::initializer_list <constexpr_module_s>& list,
@@ -270,13 +244,44 @@ SK_KeepAway (void)
     if (constexpr_module_s::get (list, hashed_self))
       return list_type;
 
-    for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
+    // Run through all modules for this list
+    if (list_type == Bluelisted)
     {
-      if (hashed_mods [i] != 0)
+      static constexpr auto       _MaxModules  = 1024;
+      static HMODULE hMods       [_MaxModules] = {  };
+      static size_t  hashed_mods [_MaxModules] = {  };
+      DWORD          cbNeeded                  =    0;
+      unsigned int   i                         =    0;
+
+      if ( EnumProcessModulesEx ( GetCurrentProcess (), hMods,
+                                                sizeof (hMods), &cbNeeded, LIST_MODULES_ALL ) )
       {
-        if (constexpr_module_s::get (list, hashed_mods [i]))
+        cbNeeded =
+          std::min ((DWORD)(_MaxModules * sizeof (HMODULE)), cbNeeded);
+
+        for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
         {
-          return list_type;
+          if (hMods [i] != nullptr)
+          {
+            wchar_t     wszModuleName [MAX_PATH + 2] = { };
+            wcsncpy_s ( wszModuleName,
+                     SK_GetModuleName (hMods [i]).c_str (),
+                                       MAX_PATH );
+
+            PathStripPathW (              wszModuleName);
+            hashed_mods [i] = hash_lower (wszModuleName);
+          }
+        }
+
+        for (i = 0; i < (cbNeeded / sizeof (HMODULE)); i++)
+        {
+          if (hashed_mods [i] != 0)
+          {
+            if (constexpr_module_s::get (list, hashed_mods [i]))
+            {
+              return list_type;
+            }
+          }
         }
       }
     }
