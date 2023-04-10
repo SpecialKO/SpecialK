@@ -498,13 +498,13 @@ DllMain ( HMODULE hModule,
       // Will be implicitly set in call to SK_KeepAway
       if (SK_GetHostAppUtil ()->isBlacklisted ())
       {
-        //OutputDebugStringW (L"Special K Disabled For Blacklisted App");
+#ifdef DEBUG
+        OutputDebugStringW (L"Special K Disabled For Blacklisted App");
+#endif
         return EarlyOut (TRUE);
       }
 
-      ////if (dll_isolation_lvl >= 3)                  return EarlyOut (FALSE);
-
-      SK_TLS_Acquire ();
+      SK_TLS_Acquire       ();
       SK_EstablishRootPath ();
 
       if (dll_isolation_lvl >  0)                  return EarlyOut (TRUE);

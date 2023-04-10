@@ -1,5 +1,6 @@
 ﻿23.4.10.1
 =========
+ + Fixed potential creation of 'Profiles' directory at the root of disks
  + Merged fix for 'Disable Transparency' option in UI settings
  + Merged fix for building with newer Visual Studio toolchains
 
