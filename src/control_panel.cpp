@@ -6010,6 +6010,14 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextUnformatted (  "to open Special K's configuration menu. " );
 
+    ImGui::SameLine (); ImGui::Spacing           ();
+    ImGui::SameLine (); ImGui::VerticalSeparator ();
+    ImGui::SameLine (); ImGui::Spacing           ();
+    ImGui::SameLine ();
+    ImGui::TextColored  (ImVec4 (0.999f, 0.666f, 0.333f, 1.f), ICON_FA_INFO_CIRCLE);
+    ImGui::SameLine ();
+    ImGui::TextUnformatted ("Configure this Startup Banner in OSD Settings.");
+
     ImGui::End             ( );
     ImGui::PopStyleColor   (2);
   }

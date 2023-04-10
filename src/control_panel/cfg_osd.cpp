@@ -100,7 +100,10 @@ SK::ControlPanel::OSD::Draw (void)
   static const ImGuiIO& io =
     ImGui::GetIO ();
 
-  if (ImGui::CollapsingHeader ("On Screen Display (OSD)"))
+  bool bOSDIsOpen =
+    ImGui::CollapsingHeader ("On Screen Display (OSD)");
+
+  if (bOSDIsOpen)
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
@@ -108,8 +111,26 @@ SK::ControlPanel::OSD::Draw (void)
     ImGui::TreePush       ("");
 
     ImGui::Checkbox ("Display OSD", &config.osd.show);
+
+    bool show_banner =
+      config.version_banner.duration > 0.0f;
+
     ImGui::SameLine ();
-    ImGui::SliderFloat ("Show Startup Banner", &config.version_banner.duration, 0.0f, 30.0f, "%3.1f Seconds");
+    ImGui::Checkbox ("Show Startup Banner", &show_banner);
+
+    if (show_banner && config.version_banner.duration <= 0.0f)
+                       config.version_banner.duration = 15.0f;
+
+    if (show_banner)
+    {
+      ImGui::SameLine ();
+      ImGui::SliderFloat ( "##Show Startup Banner",
+                         &config.version_banner.duration,
+                                                    0.0f, 30.0f,
+                           "%3.1f Seconds" );
+    }
+    else
+      config.version_banner.duration = 0.0f;
 
     if (config.osd.show && ImGui::CollapsingHeader ("Basic Monitoring", ImGuiTreeNodeFlags_DefaultOpen))
     {
