@@ -27,6 +27,7 @@
 #include <Windows.h>
 #include <avrt.h>
 #include <intsafe.h>
+#include <string>
 
 namespace sk
 {

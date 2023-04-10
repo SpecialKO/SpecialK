@@ -1,4 +1,9 @@
-﻿23.4.10
+﻿23.4.10.1
+=========
+ + Merged fix for 'Disable Transparency' option in UI settings
+ + Merged fix for building with newer Visual Studio toolchains
+
+23.4.10
 =======
  + Merge pull request #58 from Nustat0/D3D9-IK
     * Fix dgVoodoo plugin detection for local ddraw/d3d8
