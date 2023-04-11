@@ -2046,50 +2046,50 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                     Image raw_img = { };
 
-                    ////////uint8_t* pDst =
-                    ////////  pFrameData->PixelBuffer.get ();
+                    uint8_t* pDst =
+                      pFrameData->PixelBuffer.get ();
 
-                    ////////for (UINT i = 0; i < pFrameData->Height; ++i)
-                    ////////{
-                    ////////  // Eliminate pre-multiplied alpha problems (the stupid way)
-                    ////////  switch (pFrameData->NativeFormat)
-                    ////////  {
-                    ////////    case DXGI_FORMAT_B8G8R8A8_UNORM:
-                    ////////    case DXGI_FORMAT_R8G8B8A8_UNORM:
-                    ////////    {
-                    ////////      for ( UINT j = 3                          ;
-                    ////////                 j < pFrameData->PackedDstPitch ;
-                    ////////                 j += 4 )
-                    ////////      {    pDst [j] = 255UL;        }
-                    ////////    } break;
-                    ////////
-                    ////////    case DXGI_FORMAT_R10G10B10A2_UNORM:
-                    ////////    {
-                    ////////      for ( UINT j = 3                          ;
-                    ////////                 j < pFrameData->PackedDstPitch ;
-                    ////////                 j += 4 )
-                    ////////      {    pDst [j]  |=  0x3;       }
-                    ////////    } break;
-                    ////////
-                    ////////    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                    ////////    {
-                    ////////      for ( UINT j  = 0                          ;
-                    ////////                 j < pFrameData->PackedDstPitch  ;
-                    ////////                 j += 8 )
-                    ////////      {
-                    ////////        glm::vec4 color =
-                    ////////          glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
-                    ////////
-                    ////////        color.a = 1.0f;
-                    ////////
-                    ////////        *((uint64*)& (pDst[j])) =
-                    ////////          glm::packHalf4x16 (color);
-                    ////////      }
-                    ////////    } break;
-                    ////////  }
-                    ////////
-                    ////////  pDst += pFrameData->PackedDstPitch;
-                    ////////}
+                    for (UINT i = 0; i < pFrameData->Height; ++i)
+                    {
+                      // Eliminate pre-multiplied alpha problems (the stupid way)
+                      switch (pFrameData->NativeFormat)
+                      {
+                        case DXGI_FORMAT_B8G8R8A8_UNORM:
+                        case DXGI_FORMAT_R8G8B8A8_UNORM:
+                        {
+                          for ( UINT j = 3                          ;
+                                     j < pFrameData->PackedDstPitch ;
+                                     j += 4 )
+                          {    pDst [j] = 255UL;        }
+                        } break;
+
+                      //case DXGI_FORMAT_R10G10B10A2_UNORM:
+                      //{
+                      //  for ( UINT j = 3                          ;
+                      //             j < pFrameData->PackedDstPitch ;
+                      //             j += 4 )
+                      //  {    pDst [j]  |=  0x3;       }
+                      //} break;
+
+                        case DXGI_FORMAT_R16G16B16A16_FLOAT:
+                        {
+                          for ( UINT j  = 0                          ;
+                                     j < pFrameData->PackedDstPitch  ;
+                                     j += 8 )
+                          {
+                            glm::vec4 color =
+                              glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
+
+                            color.a = 1.0f;
+
+                            *((uint64*)& (pDst[j])) =
+                              glm::packHalf4x16 (color);
+                          }
+                        } break;
+                      }
+
+                      pDst += pFrameData->PackedDstPitch;
+                    }
 
                     ComputePitch ( pFrameData->NativeFormat,
              static_cast <size_t> (pFrameData->Width),

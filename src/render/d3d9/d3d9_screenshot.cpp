@@ -960,13 +960,13 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                           {    pDst [j] = 255UL;        }
                         } break;
 
-                        case DXGI_FORMAT_R10G10B10A2_UNORM:
-                        {
-                          for ( UINT j = 3                          ;
-                                     j < pFrameData->PackedDstPitch ;
-                                     j += 4 )
-                          {    pDst [j]  |=  0x3;       }
-                        } break;
+                      //case DXGI_FORMAT_R10G10B10A2_UNORM:
+                      //{
+                      //  for ( UINT j = 3                          ;
+                      //             j < pFrameData->PackedDstPitch ;
+                      //             j += 4 )
+                      //  {    pDst [j]  |=  0x3;       }
+                      //} break;
 
                         case DXGI_FORMAT_R16G16B16A16_FLOAT:
                         {
