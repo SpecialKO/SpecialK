@@ -422,12 +422,6 @@ float4 main (PS_INPUT input) : SV_TARGET
       );
   }
 
-  if (hdrGamutExpansion > 0.0f)
-  {
-    hdr_color.rgb =
-      expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
-  }
-
 #if 0
   float3 vNormalColor =
     normalize (hdr_color.rgb);
@@ -850,6 +844,12 @@ float4 main (PS_INPUT input) : SV_TARGET
     color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
     color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
     color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
+  }
+
+  if (hdrGamutExpansion > 0.0f)
+  {
+    color_out.rgb =
+      expandGamut (color_out.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
   }
 
   return color_out;
