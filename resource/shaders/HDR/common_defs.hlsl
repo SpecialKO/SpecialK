@@ -153,7 +153,8 @@ float3 Clamp_scRGB (float3 c)
              (! IsNan (c.z)) ?
                        c.z   : 0.0 );
   return
-    clamp (c, 0.0f, 125.0f);
+    clamp (c, -125.0f + FLT_EPSILON,
+               125.0f - FLT_EPSILON);
 }
 
 float Clamp_scRGB (float c)
@@ -1885,7 +1886,7 @@ float3 expandGamut( float3 vHDRColor, float fExpandGamut = 1.0f )
     const float3x3 sRGB_2_AP1 = mul(XYZ_2_AP1_MAT, mul(D65_2_D60_CAT, sRGB_2_XYZ_MAT));
     const float3x3 AP1_2_sRGB = mul(XYZ_2_sRGB_MAT, mul(D60_2_D65_CAT, AP1_2_XYZ_MAT));
 
-        const float3 AP1_RGB2Y =
+    const float3 AP1_RGB2Y =
     {
         0.2722287168, //AP1_2_XYZ_MAT[0][1],
         0.6740817658, //AP1_2_XYZ_MAT[1][1],

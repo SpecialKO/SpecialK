@@ -4514,5 +4514,8 @@
     <FxCompile Include="resource\shaders\HDR\basic_hdr_shader_ps.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\common_defs.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

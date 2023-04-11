@@ -1,4 +1,8 @@
-﻿23.4.11
+﻿23.4.11.1
+=========
+ + Improved HDR near-black and out-of-gamut color processing
+
+23.4.11
 =======
  + Added current values (top-left) to GPU monitoring widget graphs
  + Removed Windows.UI.dll from auto-exclusion during global injection

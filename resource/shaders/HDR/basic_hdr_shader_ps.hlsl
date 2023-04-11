@@ -192,6 +192,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                             input.uv );
 
+  float4 orig_color = hdr_color;
+
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
   if ( AnyIsNan      (hdr_color) ||
@@ -829,9 +831,26 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
 
-  return
+  float4 color_out =
     float4 (
       Clamp_scRGB (hdr_color.rgb),
          saturate (hdr_color.a)
            );
+
+#if 0
+  if ((orig_color.r == 0.0 && color_out.r > FLT_EPSILON) ||
+      (orig_color.g == 0.0 && color_out.g > FLT_EPSILON) ||
+      (orig_color.b == 0.0 && color_out.b > 0.0))
+  {
+    color_out.rgba = float4 (125.0f, 125.0f, 125.0f, 1.0f);
+  }
+  else
+#endif
+  {
+    color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
+    color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
+    color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
+  }
+
+  return color_out;
 }
