@@ -1,5 +1,8 @@
-﻿23.4.11.2
-=========
+﻿23.4.12
+=======
+ + Fixed incorrect CPU load % on Windows 11 as a result of invalid
+     idle time accumulation in SystemProcessorPerformanceInformation
+
  + Amended 'Disable Transparency' changes so that HDR display profiling
      is not broken by 10k nits transparency blending
 

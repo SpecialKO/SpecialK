@@ -602,6 +602,7 @@ SK_TLS_ScratchMemoryLocal::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 
   freed += query [0].NtInfo.reclaim ();
   freed += query [1].NtInfo.reclaim ();
+  freed += query [2].NtInfo.reclaim ();
 
   return freed;
 }

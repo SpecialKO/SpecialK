@@ -197,13 +197,17 @@ public:
     {
       SK_PollGPU ();
 
-      core_clock_ghz.addValue ( SK_GPU_GetClockRateInkHz    (0) / 0.001_GHz);
-      vram_clock_ghz.addValue ( SK_GPU_GetMemClockRateInkHz (0) / 0.001_GHz);
-      gpu_load.addValue       ( SK_GPU_GetGPULoad           (0)    );
-      gpu_temp_c.addValue     ( SK_GPU_GetTempInC           (0)    );
-      vram_used_mib.addValue  ( SK_GPU_GetVRAMUsed          (0) / 1.0_MiB);
+      static bool        once = false;
+      if (std::exchange (once, true))
+      {
+        core_clock_ghz.addValue ( SK_GPU_GetClockRateInkHz    (0) / 0.001_GHz);
+        vram_clock_ghz.addValue ( SK_GPU_GetMemClockRateInkHz (0) / 0.001_GHz);
+        gpu_load.addValue       ( SK_GPU_GetGPULoad           (0)    );
+        gpu_temp_c.addValue     ( SK_GPU_GetTempInC           (0)    );
+        vram_used_mib.addValue  ( SK_GPU_GetVRAMUsed          (0) / 1.0_MiB);
     //vram_shared.addValue    (        SK_GPU_GetVRAMShared (0));
-      fan_rpm.addValue        ( (float)SK_GPU_GetFanSpeedRPM(0));
+        fan_rpm.addValue        ( (float)SK_GPU_GetFanSpeedRPM(0));
+      }
 
       last_update = SK::ControlPanel::current_time;
     }

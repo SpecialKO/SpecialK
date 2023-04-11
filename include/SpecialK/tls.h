@@ -323,7 +323,7 @@ class SK_TLS_ScratchMemoryLocal : public SK_TLS_DynamicContext
 public:
   SK_TLS_ScratchMemoryLocal (void) = default;
 
-  SK_NtQuerySystemInformation query [2] = { };
+  SK_NtQuerySystemInformation query [3] = { };
 
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };

@@ -354,6 +354,16 @@ typedef enum _SYSTEM_INFORMATION_CLASS_SK {
   MaxSystemInfoClass                                    = 177,
 } SYSTEM_INFORMATION_CLASS_SK;
 
+typedef struct _SYSTEM_PROCESSOR_IDLE_INFORMATION_SK {
+  LARGE_INTEGER IdleTime;
+  LARGE_INTEGER KernelTime;
+  LARGE_INTEGER UserTime;
+  LARGE_INTEGER Reserved1[2];
+  ULONG Reserved2;
+} SYSTEM_PROCESSOR_IDLE_INFORMATION__SK,
+*PSYSTEM_PROCESSOR_IDLE_INFORMATION__SK;
+
+
 typedef NTSTATUS (WINAPI *NtQuerySystemInformation_SK_pfn)(
   _In_      SYSTEM_INFORMATION_CLASS_SK SystemInformationClass,
   _Inout_   PVOID                       SystemInformation,
@@ -420,6 +430,9 @@ SK_MonitorCPU (LPVOID user_param)
   static ULONG ulAllocatedPerfBytes =
       cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK);
 
+  static ULONG ulAllocatedIdleBytes =
+      cpu.num_cpus * sizeof (SYSTEM_PROCESSOR_IDLE_INFORMATION__SK);
+
   HANDLE wait_objs [] = {
     *const_cast <const volatile HANDLE*> (&cpu.hShutdownSignal),
                                         __SK_DLL_TeardownEvent };
@@ -451,6 +464,10 @@ SK_MonitorCPU (LPVOID user_param)
          )
        )
     {
+      // Windows 11 idle times in SystemProcessorPerformanceInformation are wrong,
+      //   the only known way to get accurate values is through SystemProcessorIdleInformation
+      bool needs_idle_fixup = false;
+
       const int count =
         ( ulAllocatedPerfBytes / sizeof (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK) );
 
@@ -461,10 +478,36 @@ SK_MonitorCPU (LPVOID user_param)
 
       cpu.beginNewAggregate ();
       {
+        PSYSTEM_PROCESSOR_IDLE_INFORMATION__SK pIdle =
+          (PSYSTEM_PROCESSOR_IDLE_INFORMATION__SK)
+            pTLS->local_scratch->query [2].NtInfo.alloc
+            (
+               (size_t)ulAllocatedIdleBytes,
+                       true
+            );
+
+        if ( NT_SUCCESS (
+               NtQuerySystemInformation_SK ( SystemProcessorIdleInformation, pIdle,
+                                             ulAllocatedIdleBytes,
+                                            &ulAllocatedIdleBytes )
+             )
+           )
+        {
+          needs_idle_fixup = true;
+        }
+
         for ( unsigned int i = 0;        pCPU  <  pEndCPU ;
-                                       ++pCPU ) {
+                                       ++pCPU )
+        {
+          if (needs_idle_fixup)
+          {
+            pCPU->IdleTime.QuadPart =
+              pIdle [i].IdleTime.QuadPart;
+          }
+
           cpu.cpus [i++].recordNewData (*pCPU);
-          cpu.addToAggregate         (  *pCPU);  }
+          cpu.addToAggregate         (  *pCPU);
+        }
       }
       cpu.endAggregateTally ();
 
