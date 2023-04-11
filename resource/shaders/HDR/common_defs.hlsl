@@ -153,8 +153,8 @@ float3 Clamp_scRGB (float3 c)
              (! IsNan (c.z)) ?
                        c.z   : 0.0 );
   return
-    clamp (c, -125.0f + FLT_EPSILON,
-               125.0f - FLT_EPSILON);
+    clamp (c, 0.0f,
+            125.0f - FLT_EPSILON);
 }
 
 float Clamp_scRGB (float c)
