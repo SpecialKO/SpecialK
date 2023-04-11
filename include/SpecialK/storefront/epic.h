@@ -55,6 +55,7 @@ namespace SK
     LONGLONG          GetTicksRetired (void);
 
     float __stdcall PercentOfAchievementsUnlocked (void);
+    int   __stdcall NumberOfAchievementsUnlocked  (void);
 
 
     // The state that we are explicitly telling the game
@@ -170,6 +171,7 @@ bool __stdcall        SK_IsEpicOverlayActive                    (void);
 //bool __stdcall        SK_EpicOverlay_GoToURL                   (const char* szURL, bool bUseWindowsShellIfOverlayFails = false);
 
 float __stdcall       SK_EOS_PercentOfAchievementsUnlocked      (void);
+int   __stdcall       SK_EOS_NumberOfAchievementsUnlocked       (void);
 
 void                  SK_EOS_LogAllAchievements                 (void);
 void                  SK_UnlockEpicAchievement                  (uint32_t idx);

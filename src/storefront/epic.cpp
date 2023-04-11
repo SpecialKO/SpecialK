@@ -356,6 +356,20 @@ SK::EOS::PercentOfAchievementsUnlocked (void)
   return SK_EOS_PercentOfAchievementsUnlocked ();
 }
 
+int
+__stdcall
+SK_EOS_NumberOfAchievementsUnlocked (void)
+{
+  return eos_achievements->getNumberOfAchievementsUnlocked ();
+}
+
+int
+__stdcall
+SK::EOS::NumberOfAchievementsUnlocked (void)
+{
+  return SK_EOS_NumberOfAchievementsUnlocked ();
+}
+
 void
 SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound)
 {
@@ -512,9 +526,10 @@ SK_EOS_Achievements_RefreshPlayerStats (void)
         });
       }
 
+      eos_achievements->total_unlocked   = unlock_count;
       eos_achievements->percent_unlocked =
         static_cast <float> (
-          static_cast <double> (unlock_count) /
+          static_cast <double> (eos_achievements->total_unlocked) /
           static_cast <double> (SK_EOS_GetNumPossibleAchievements ())
         );
     }

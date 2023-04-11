@@ -2507,8 +2507,9 @@ public:
           unlocked++;
       }
 
+      total_unlocked   = unlocked;
       percent_unlocked =
-        ( static_cast <float> (unlocked) /
+        ( static_cast <float> (total_unlocked) /
           static_cast <float> (stats->GetNumAchievements ()) );
     }
   }
@@ -4744,6 +4745,23 @@ __stdcall
 SK::SteamAPI::PercentOfAchievementsUnlocked (void)
 {
   return SK_SteamAPI_PercentOfAchievementsUnlocked ();
+}
+
+int
+__stdcall
+SK_SteamAPI_NumberOfAchievementsUnlocked (void)
+{
+  if (steam_achievements != nullptr)
+    return steam_achievements->getNumberOfAchievementsUnlocked ();
+
+  return 0;
+}
+
+int
+__stdcall
+SK::SteamAPI::NumberOfAchievementsUnlocked (void)
+{
+  return SK_SteamAPI_NumberOfAchievementsUnlocked ();
 }
 
 ISteamUtils*

@@ -1,4 +1,8 @@
-﻿23.4.12
+﻿23.4.12.1
+=========
+ + Fixed achievement unlock ratios for games with > 50 achievements
+
+23.4.12
 =======
  + Fixed incorrect CPU load % on Windows 11 as a result of invalid
      idle time accumulation in SystemProcessorPerformanceInformation

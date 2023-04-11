@@ -1212,6 +1212,12 @@ SK_AchievementManager::getPercentOfAchievementsUnlocked (void) const
   return percent_unlocked;
 }
 
+int
+SK_AchievementManager::getNumberOfAchievementsUnlocked (void) const
+{
+  return total_unlocked;
+}
+
 SK_AchievementManager::Achievement*
 SK_AchievementManager::getAchievement (const char* szName) const
 {

@@ -150,6 +150,7 @@ public:
   };
 
   float getPercentOfAchievementsUnlocked (void) const;
+  int   getNumberOfAchievementsUnlocked  (void) const;
 
   void             loadSound       (const wchar_t* wszUnlockSound);
 
@@ -162,6 +163,7 @@ public:
 
   // Make protected once Epic enumerates achievements
   float percent_unlocked = 0.0f;
+  int   total_unlocked   =    0;
 
 protected:
   struct SK_AchievementPopup

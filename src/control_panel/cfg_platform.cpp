@@ -70,12 +70,15 @@ SK::ControlPanel::Platform::Draw (void)
         const float  ratio            = bEpic ? SK::EOS::PercentOfAchievementsUnlocked      ()
                                               : SK::SteamAPI::PercentOfAchievementsUnlocked ();
 
+        const int    unlock_count     = bEpic ? SK::EOS::NumberOfAchievementsUnlocked      ()
+                                              : SK::SteamAPI::NumberOfAchievementsUnlocked ();
+
         const size_t num_achievements = bEpic ? SK_EOS_GetNumPossibleAchievements           ()
                                               : SK_SteamAPI_GetNumPossibleAchievements      ();
 
         snprintf ( szProgress, 127, "%.2f%% of Achievements Unlocked (%u/%u)",
-                     100.0 * ratio,  sk::narrow_cast <uint32_t> ((ratio * sk::narrow_cast <float> (num_achievements))),
-                                     sk::narrow_cast <uint32_t> (                                  num_achievements) );
+                     100.0 * ratio,  sk::narrow_cast <uint32_t> (unlock_count),
+                                     sk::narrow_cast <uint32_t> (num_achievements) );
 
         ImGui::PushStyleColor ( ImGuiCol_PlotHistogram, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f) );
         ImGui::ProgressBar    ( ratio,
