@@ -355,6 +355,34 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     const ImDrawList* cmd_list =
       draw_data->CmdLists [n];
 
+    if (config.imgui.render.strip_alpha)
+    {
+      for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
+      {
+        ImU32 color =
+          ImColor (cmd_list->VtxBuffer.Data [i].col);
+
+        uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha < 93 && alpha != 0)
+          alpha += (93  - alpha) / 2;
+
+        float a = ((float)                       alpha / 255.0f);
+        float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+
+        color =                    0xFF000000U  |
+                ((UINT)((r * a) * 255U) << 16U) |
+                ((UINT)((g * a) * 255U) <<  8U) |
+                ((UINT)((b * a) * 255U)       );
+
+        cmd_list->VtxBuffer.Data[i].col =
+          (ImVec4)ImColor (color);
+      }
+    }
+
     memcpy (idx_dst,   cmd_list->IdxBuffer.Data,
                        cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
             idx_dst += cmd_list->IdxBuffer.Size;

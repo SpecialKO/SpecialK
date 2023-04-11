@@ -1,4 +1,9 @@
-﻿23.4.11.1
+﻿23.4.11.2
+=========
+ + Amended 'Disable Transparency' changes so that HDR display profiling
+     is not broken by 10k nits transparency blending
+
+23.4.11.1
 =========
  + Improved HDR near-black and out-of-gamut color processing
 

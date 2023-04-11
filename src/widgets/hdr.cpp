@@ -379,7 +379,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   static float fOrigHDRLuma  = __SK_HDR_Luma;
   static int   iOrigVisual   = __SK_HDR_visualization;
   static bool  bLastOpen     = false;
-  static bool  disable_alpha = config.imgui.render.disable_alpha;
+  static bool  strip_alpha   = config.imgui.render.strip_alpha;
 
   //
   // We have to turn Adaptive Tonemapping Off while displaying the
@@ -409,8 +409,8 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
         std::exchange (__SK_HDR_Luma, rb.display_gamut.maxLocalY * 1.0_Nits);
       iOrigVisual   =
         std::exchange (__SK_HDR_visualization, 13);
-      disable_alpha =
-        std::exchange (config.imgui.render.disable_alpha, true);
+      strip_alpha =
+        std::exchange (config.imgui.render.strip_alpha, true);
 
       vDialogPos =
         ImGui::GetCursorScreenPos ();
@@ -434,8 +434,8 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       if (pControlPanelWindow != nullptr) pControlPanelWindow->Hidden = false;
       if (         pHDRWidget != nullptr)          pHDRWidget->Hidden = false;
 
-      config.imgui.render.disable_alpha =
-                          disable_alpha;
+      config.imgui.render.strip_alpha =
+                          strip_alpha;
 
       __SK_HDR_Luma            = std::min (rb.display_gamut.maxLocalY * 1.0_Nits, fOrigHDRLuma);
       __SK_HDR_visualization   = iOrigVisual;
@@ -447,7 +447,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       bOrigAdaptive = __SK_HDR_AdaptiveToneMap;
       iOrigVisual   = __SK_HDR_visualization;
       fOrigHDRLuma  = __SK_HDR_Luma;
-      disable_alpha = config.imgui.render.disable_alpha;
+      strip_alpha   = config.imgui.render.strip_alpha;
     }
   }
 

@@ -252,7 +252,8 @@ struct sk_config_t
     // Per-game (mostly compatibility) settings
     struct render_s
     {
-      bool  disable_alpha      = false;
+      bool  strip_alpha        = false; // Alpha is forcefully stripped
+      bool  disable_alpha      = false; // Window backgrounds are opaque
       bool  antialias_lines    = true;
       bool  antialias_contours = true;
     } render;

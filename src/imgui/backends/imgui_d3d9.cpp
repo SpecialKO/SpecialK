@@ -176,6 +176,31 @@ ImGui_ImplDX9_RenderDrawData (ImDrawData* draw_data)
       memcpy (
         &vtx_dst->col, &u32_color, sizeof (uint32_t)); // RGBA --> ARGB for DirectX9
 
+      if (config.imgui.render.strip_alpha)
+      {
+        ImU32 u32_dst =
+          vtx_dst->col;
+
+        uint8_t alpha =
+          (((u32_dst & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha <   93 && alpha != 0)
+            alpha += (93 - alpha) / 2;
+
+        const float a = ((float)                         alpha / 255.0f);
+        const float r = ((float)((u32_dst & 0xFF0000U) >> 16U) / 255.0f);
+        const float g = ((float)((u32_dst & 0x00FF00U) >>  8U) / 255.0f);
+        const float b = ((float)((u32_dst & 0x0000FFU)       ) / 255.0f);
+
+        vtx_dst->col = (
+          0xFF000000U |
+          (sk::narrow_cast <UINT>((r * a) * 255U) << 16U) |
+          (sk::narrow_cast <UINT>((g * a) * 255U) << 8U) |
+          (sk::narrow_cast <UINT>((b * a) * 255U))
+        );
+      }
+
       vtx_dst->uv  [0] = vtx_src->uv.x;
       vtx_dst->uv  [1] = vtx_src->uv.y;
       vtx_dst++;

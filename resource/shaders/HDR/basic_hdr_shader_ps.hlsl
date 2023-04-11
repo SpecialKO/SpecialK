@@ -25,6 +25,7 @@ sampler   sampler0      : register (s0);
 Texture2D texMainScene  : register (t0);
 Texture2D texLastFrame0 : register (t1);
 
+#define VISUALIZE_NONE           0
 #define VISUALIZE_AVG_LUMA       1
 #define VISUALIZE_LOCAL_LUMA     2
 //#define VISUALIZE_HDR400_LUMA   4
@@ -447,6 +448,15 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 #ifdef INCLUDE_VISUALIZATIONS
+  if (visualFunc.x != VISUALIZE_NONE) // Expand Gamut before visualization
+  {
+    if (hdrGamutExpansion > 0.0f)
+    {
+      hdr_color.rgb =
+        expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+    }
+  }
+
   fLuma =
     max (Luminance (hdr_color.rgb), 0.0);
 
@@ -824,32 +834,27 @@ float4 main (PS_INPUT input) : SV_TARGET
       float4 (hdr_color.rgb, 1.0f);
   }
 #endif
-
+    
   float4 color_out =
     float4 (
       Clamp_scRGB (hdr_color.rgb),
          saturate (hdr_color.a)
            );
 
-#if 0
-  if ((orig_color.r == 0.0 && color_out.r > FLT_EPSILON) ||
-      (orig_color.g == 0.0 && color_out.g > FLT_EPSILON) ||
-      (orig_color.b == 0.0 && color_out.b > 0.0))
-  {
-    color_out.rgba = float4 (125.0f, 125.0f, 125.0f, 1.0f);
-  }
-  else
+  // Extra clipping and gamut expansion logic for regular display output
+#ifdef INCLUDE_TEST_PATTERNS
+  if (visualFunc.x == VISUALIZE_NONE)
 #endif
   {
     color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
     color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
     color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
-  }
 
-  if (hdrGamutExpansion > 0.0f)
-  {
-    color_out.rgb =
-      expandGamut (color_out.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+    if (hdrGamutExpansion > 0.0f)
+    {
+      hdr_color.rgb =
+        expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+    }
   }
 
   return color_out;
