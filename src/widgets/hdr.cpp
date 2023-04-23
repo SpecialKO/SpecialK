@@ -295,11 +295,11 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.925f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.925f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
                               { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
                               { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
                               { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
