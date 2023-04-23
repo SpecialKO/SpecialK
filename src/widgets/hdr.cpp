@@ -103,8 +103,8 @@ SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_10bpc;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
 
 float __SK_HDR_Luma            = 80.0_Nits;
-float __SK_HDR_Exp             = 1.0f;
-float __SK_HDR_Saturation      = 1.0f;
+float __SK_HDR_Exp             =  1.0f;
+float __SK_HDR_Saturation      =  1.0f;
 float __SK_HDR_Gamut           = 0.01f;
 extern float                   
       __SK_HDR_user_sdr_Y;     
@@ -112,14 +112,14 @@ float __SK_HDR_MiddleLuma      = 100.0_Nits;
 int   __SK_HDR_Preset          = 0;
 bool  __SK_HDR_FullRange       = true;
                                
-float __SK_HDR_UI_Luma         = 1.0f;
+float __SK_HDR_UI_Luma         =   1.0f;
 float __SK_HDR_HorizCoverage   = 100.0f;
 float __SK_HDR_VertCoverage    = 100.0f;
                                
-float __SK_HDR_PQBoost0        = -7.0f;
-float __SK_HDR_PQBoost1        =  9.0f;
-float __SK_HDR_PQBoost2        =  1.1333f;
-float __SK_HDR_PQBoost3        =  0.666f;
+float __SK_HDR_PQBoost0        = -30.0f;
+float __SK_HDR_PQBoost1        =  11.5f;
+float __SK_HDR_PQBoost2        =   1.5f;
+float __SK_HDR_PQBoost3        =   1.0f;
 bool  __SK_HDR_AdaptiveToneMap =  false;
 
 
@@ -295,14 +295,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   89.7_Nits,  85.8_Nits, 101.33296_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits,     100.0_Nits, 1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.925f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.925f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -511,7 +511,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       ImGui::BeginTooltip ();
       ImGui::Text         ("Remember to re-calibrate SK HDR presets using the 'Tonemap Curve and Grayscale' HDR Visualization");
       ImGui::Separator    ();
-      ImGui::BulletText   ("User-calibration should focus on the Max Luminance / Paper White / Middle-Gray Contrast");
+      ImGui::BulletText   ("User-calibration should focus on the Max Luminance / Middle-Gray Contrast");
       ImGui::BulletText   ("A correctly configured HDR preset will show up as a curve from bottom-left to top-right");
       ImGui::EndTooltip   ();
     }
@@ -1102,7 +1102,8 @@ public:
 
           if (ImGui::IsItemHovered ())
           {
-            ImGui::SetTooltip ("NOTE: When active, the luminance sliders (peak white / paper white) do not measure physical brightness.");
+            ImGui::SetTooltip ("NOTE: When active, the luminance slider does not measure physical brightness.\r\n\r\n\t"
+                               ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
           }
 
           fWidth1     =
@@ -1136,10 +1137,40 @@ public:
 
           if ( __SK_HDR_tonemap != SK_HDR_TONEMAP_HDR10_PASSTHROUGH )
           {
-            if (ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
+            bool bSliderChanged = false;
+
+            if ( ! pboost )
+              bSliderChanged =
+                ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
                                           __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
                                                               :  rb.display_gamut.maxAverageY,
-                (const char *)u8"Peak White Luminance: %.1f cd/m²" ))
+                (const char *)u8"Peak White Luminance: %.1f cd/m²" );
+
+            else
+            {
+              peak_nits /= 80.0f;
+
+              bSliderChanged =
+                ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 0.5f,
+                                          __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY   / 80.0f
+                                                              :  rb.display_gamut.maxAverageY / 80.0f,
+                (const char *)u8"Brightness Scale: %.1fx" );
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip ();
+                ImGui::TextUnformatted ("Use the Tonemap Curve HDR Visualization to confirm unclipped dynamic range.");
+                ImGui::Separator    ();
+                ImGui::BulletText   ("Older versions (pre-23.4.23) referred to this as Peak White Luminance.");
+                ImGui::BulletText   ("A value of 1.0x for Brightness Scale is equivalent to 80.0 Peak White Luminance.");
+                ImGui::EndTooltip   ();
+              }
+
+              if (bSliderChanged)
+                peak_nits *= 80.0f;
+            }
+
+            if (bSliderChanged)
             {
               __SK_HDR_Luma = peak_nits * 1.0_Nits;
 
@@ -1271,8 +1302,18 @@ public:
           ImGui::BeginGroup ();
           for ( const auto& it : hdr_presets )
           {
-            ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
-                          it.peak_white_nits / 1.0_Nits );
+            // Perceptual Boost
+            if (it.pq_boost0 > 0.0f)
+            {
+              ImGui::Text ( (const char *)u8"Brightness: %.1fx",
+                            it.peak_white_nits );
+            }
+
+            else
+            {
+              ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
+                            it.peak_white_nits / 1.0_Nits );
+            }
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
