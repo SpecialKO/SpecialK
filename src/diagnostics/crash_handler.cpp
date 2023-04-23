@@ -1094,7 +1094,8 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     {
       log_entry.append (
         SK_FormatStringW (
-          L"<+> Aggregate CPU Load: %lu%%", ReadAcquire (&SK_WMI_CPUStats->cpus [SK_WMI_CPUStats->num_cpus].percent_load)
+          L"<+> Aggregate CPU Load: %lu%%", ReadAcquire (&SK_WMI_CPUStats->cpus [SK_WMI_CPUStats->num_cpus].
+          )
         )
       );
 

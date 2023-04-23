@@ -7120,11 +7120,6 @@ SK_Win32_BringBackgroundWindowToTop (void)
         //   ! EqualRect (&wndRect, &mi.rcMonitor))
        )
     {
-      SK_RunOnce ( // Only do this for D3D software
-        SK_SetWindowLongPtrW ( hWndGame, GWL_EXSTYLE,
-        (SK_GetWindowLongPtrW (hWndGame, GWL_EXSTYLE) | WS_EX_NOREDIRECTIONBITMAP) )
-      );
-
       HWND hWndAfter = hWndGame;
 
       SK_SetWindowPos ( SK_Win32_BackgroundHWND, hWndGame,
