@@ -951,19 +951,21 @@ SK_ImGui_DrawFCAT (void)
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
 
-  ImVec2 xy0, xy1;
-  ImVec2 xy2, xy3;
-  ImVec2 xy4, xy5;
-  ImVec2 xy6, xy7;
+  ImVec2  xy0, xy1;
+  ImVec2  xy2, xy3;
+  ImVec2  xy4, xy5;
+  ImVec2  xy6, xy7;
+  ImVec2  xy8, xy9;
+  ImVec2 xy10, xy11;
 
   static auto& io =
     ImGui::GetIO ();
 
-  xy0 = ImVec2 ( io.DisplaySize.x - io.DisplaySize.x * 0.01f, 0.0f             );
-  xy1 = ImVec2 ( io.DisplaySize.x - io.DisplaySize.x * 0.01f, io.DisplaySize.y );
+  xy0 = ImVec2 ( io.DisplaySize.x/* - io.DisplaySize.x * 0.01f*/, 0.0f             );
+  xy1 = ImVec2 ( io.DisplaySize.x/* - io.DisplaySize.x * 0.01f*/, io.DisplaySize.y );
 
-  xy2 = ImVec2 ( io.DisplaySize.x * 0.01f,                    io.DisplaySize.y );
-  xy3 = ImVec2 ( io.DisplaySize.x * 0.01f,                    0.0f             );
+  xy2 = ImVec2 ( /*io.DisplaySize.x * 0.01f*/0.0f,                    io.DisplaySize.y );
+  xy3 = ImVec2 ( /*io.DisplaySize.x * 0.01f*/0.0f,                    0.0f             );
 
   xy4 = ImVec2 ( io.DisplaySize.x / 2.0f - (io.DisplaySize.x * 0.125f), io.DisplaySize.y );
   xy5 = ImVec2 ( io.DisplaySize.x / 2.0f - (io.DisplaySize.x * 0.125f), 0.0f             );
@@ -971,12 +973,20 @@ SK_ImGui_DrawFCAT (void)
   xy6 = ImVec2 ( io.DisplaySize.x / 2.0f + (io.DisplaySize.x * 0.125f), 0.0f             );
   xy7 = ImVec2 ( io.DisplaySize.x / 2.0f + (io.DisplaySize.x * 0.125f), io.DisplaySize.y );
 
-  draw_list->PushClipRectFullScreen (                                                       );
-  draw_list->AddRect                ( xy0, xy1, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-  draw_list->AddRect                ( xy2, xy3, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-  draw_list->AddRect                ( xy4, xy5, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-  draw_list->AddRect                ( xy6, xy7, col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
-  draw_list->PopClipRect            (                                                       );
+  xy8 = ImVec2 ( 0.0f,             io.DisplaySize.y/* - io.DisplaySize.y * 0.01f*/);
+  xy9 = ImVec2 ( io.DisplaySize.x, io.DisplaySize.y/* - io.DisplaySize.y * 0.01f*/);
+
+  xy10 =ImVec2 ( 0.0f,                               0.0f/*io.DisplaySize.y * 0.01f*/);
+  xy11 =ImVec2 ( io.DisplaySize.x,                   0.0f/*io.DisplaySize.y * 0.01f*/);
+
+  draw_list->PushClipRectFullScreen (                                                         );
+  draw_list->AddRect                (  xy0, xy1,  col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
+  draw_list->AddRect                (  xy2, xy3,  col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
+//draw_list->AddRect                (  xy4, xy5,  col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
+//draw_list->AddRect                (  xy6, xy7,  col32, 0.0f, 0x00, io.DisplaySize.x * 0.01f );
+  draw_list->AddRect                (  xy8, xy9,  col32, 0.0f, 0x00, io.DisplaySize.y * 0.01f );
+  draw_list->AddRect                ( xy10, xy11, col32, 0.0f, 0x00, io.DisplaySize.y * 0.01f );
+  draw_list->PopClipRect            (                                                         );
 
   ImGui::End ();
 }

@@ -1,6 +1,9 @@
-﻿23.4.23.1
-=========
+﻿23.4.24
+=======
+ + Added horizontal tear bars to Latent Sync for Steam Deck's derpy display
  + Raised SDR->HDR gamma for profile 0 to 0.933 (from 0.925)
+ + Added peak luminance estimate when using profile 0's Perceptual Boost
+ + Lowered the slider range for Perceptual Boost to ~285 - 2000 nits
 
 23.4.23
 =======
