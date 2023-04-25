@@ -1,4 +1,11 @@
-﻿23.4.25
+﻿23.4.26
+=======
+ + Removed streaming_client.exe (Steam streaming) from internal blacklist.
+
+   >> Using SK for streamed games requires placing SpecialK.dxgi in the
+        same directory as streaming_client.exe.
+
+23.4.25
 =======
  + Renamed HDR Presets 2 and 3 to scRGB Native and HDR10 Native
      >> Use these for HDR native games; ignore luminance slider

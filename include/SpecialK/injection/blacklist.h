@@ -102,7 +102,10 @@ static constexpr constexpr_module_s::list_type __graylist = {
 #endif
 
   L"xvasynth.exe",
-  L"streaming_client.exe",
+//L"streaming_client.exe", // Don't blacklist, SK will never auto-activate.
+                           //
+                           //  To actually use in streaming_client.exe you
+                           //  must place SpecialK.dxgi in the same dir.
   L"firaxisbugreporter.exe",
   L"writeminidump.exe",
   L"crashreporter.exe",
