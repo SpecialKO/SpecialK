@@ -295,14 +295,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   }, -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "HDR Preset 2", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR Preset 3", 3,  300.0_Nits, 150.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_FILMIC },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.933f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f, 0.01f, { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -1481,18 +1481,50 @@ public:
           ImGui::BeginGroup ();
           for ( const auto& it : hdr_presets )
           {
-            // Perceptual Boost
-            if (it.pq_boost0 > 0.0f)
+            const auto tonemap_mode =
+              it.cfg_tonemap->get_value ();
+
+            if ( tonemap_mode == SK_HDR_TONEMAP_FILMIC       ||
+                 tonemap_mode == SK_HDR_TONEMAP_HDR10_FILMIC ||
+                 tonemap_mode == SK_HDR_TONEMAP_NONE )
             {
-              ImGui::Text ( (const char *)u8"Brightness: %.2fx",
-                            it.peak_white_nits );
+              // scRGB Native Mode
+              if (it.cfg_nits->get_value () == 1.0f && it.preset_idx == 2)
+              {
+                if (__SK_HDR_Preset == it.preset_idx && __SK_HDR_Bypass_sRGB != 1)
+                {
+                  ImGui::BeginGroup      ();
+                  ImGui::TextColored     (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
+                  ImGui::SameLine        ();
+                  ImGui::TextUnformatted (" Try Bypass sRGB");
+                  ImGui::EndGroup        ();
+
+                  if (ImGui::IsItemHovered ())
+                    ImGui::SetTooltip ("Bypass sRGB Gamma may be necessary scRGB-native games are too dim.");
+                }
+                else
+                  ImGui::Text ("-");
+              }
+
+              else
+              {
+                // Perceptual Boost
+                if (it.pq_boost0 > 0.0f)
+                {
+                  ImGui::Text ( (const char *)u8"Brightness: %.2fx",
+                                it.peak_white_nits );
+                }
+
+                else
+                {
+                  ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
+                                it.peak_white_nits / 1.0_Nits );
+                }
+              }
             }
 
             else
-            {
-              ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
-                            it.peak_white_nits / 1.0_Nits );
-            }
+              ImGui::Text ("-");
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();
@@ -1506,8 +1538,26 @@ public:
           //}
           for ( const auto& it : hdr_presets )
           {
-            ImGui::Text ( (const char *)u8"Middle Gray: %+5.1f%%",// cd/m²",
-                          (it.middle_gray_nits / 1.0_Nits) - 100.0 );
+            const auto tonemap_mode =
+              it.cfg_tonemap->get_value ();
+
+            if ( tonemap_mode == SK_HDR_TONEMAP_FILMIC       ||
+                 tonemap_mode == SK_HDR_TONEMAP_HDR10_FILMIC ||
+                 tonemap_mode == SK_HDR_TONEMAP_NONE )
+            {
+              // scRGB Native Mode
+              if (it.cfg_nits->get_value () == 1.0f && it.preset_idx == 2)
+                ImGui::Text ("-");
+
+              else
+              {
+                ImGui::Text ( (const char *)u8"Middle Gray: %+5.1f%%",// cd/m²",
+                              (it.middle_gray_nits / 1.0_Nits) - 100.0 );
+              }
+            }
+
+            else
+              ImGui::Text ("-");
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   (); ImGui::Spacing ();

@@ -1,4 +1,10 @@
-﻿23.4.24
+﻿23.4.25
+=======
+ + Renamed HDR Presets 2 and 3 to scRGB Native and HDR10 Native
+     >> Use these for HDR native games; ignore luminance slider
+ + Disabled color saturation and gamma control in HDR10 mode
+
+23.4.24
 =======
  + Added horizontal tear bars to Latent Sync for Steam Deck's derpy display
  + Raised SDR->HDR gamma for profile 0 to 0.933 (from 0.925)

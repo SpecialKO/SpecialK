@@ -323,14 +323,19 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
   
-  if ( input.color.x < 0.0125f - FLT_MIN ||
-       input.color.x > 0.0125f + FLT_MIN )
+#ifdef INCLUDE_HDR10
+  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
+#endif
   {
-    hdr_color.rgb = LinearToLogC (hdr_color.rgb);
-    hdr_color.rgb = Contrast     (hdr_color.rgb,
-            0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
-                     (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-    hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+    if ( input.color.x < 0.0125f - FLT_MIN ||
+         input.color.x > 0.0125f + FLT_MIN )
+    {
+      hdr_color.rgb = LinearToLogC (hdr_color.rgb);
+      hdr_color.rgb = Contrast     (hdr_color.rgb,
+              0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
+                       (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+      hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+    }
   }
 
 #if defined (INCLUDE_ACES) || defined (INCLUDE_HDR10)
@@ -381,9 +386,14 @@ float4 main (PS_INPUT input) : SV_TARGET
       SK_ProcessColor4 (hdr_color, uiToneMapper);
   }
 
-  hdr_color.rgb =
-    PositivePow ( hdr_color.rgb,
-                input.color.yyy );
+#ifdef INCLUDE_HDR10
+  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
+#endif
+  {
+    hdr_color.rgb =
+      PositivePow ( hdr_color.rgb,
+                  input.color.yyy );
+  }
 
   if (pqBoostParams.x > 0.1f)
   {
@@ -407,20 +417,25 @@ float4 main (PS_INPUT input) : SV_TARGET
       hdr_color.rgb = new_color;
   }
 
-  if ( hdrSaturation >= 1.0f + FLT_MIN ||
-       hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
+#ifdef INCLUDE_HDR10
+  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
+#endif
   {
-    float saturation =
-      hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
+    if ( hdrSaturation >= 1.0f + FLT_MIN ||
+         hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
+    {
+      float saturation =
+        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
 
-    // sRGB primaries <--> ACEScg  (* not sRGB gamma)
-    hdr_color.rgb =
-      ACEScg_to_sRGB (
-        Saturation (
-          sRGB_to_ACEScg (hdr_color.rgb),
-            saturation
-        )
-      );
+      // sRGB primaries <--> ACEScg  (* not sRGB gamma)
+      hdr_color.rgb =
+        ACEScg_to_sRGB (
+          Saturation (
+            sRGB_to_ACEScg (hdr_color.rgb),
+              saturation
+          )
+        );
+    }
   }
 
 #if 0
