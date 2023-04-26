@@ -3201,6 +3201,30 @@ SK_ImGui_ControlPanel (void)
             ImGui::EndTooltip ();
           }
         }
+
+        bool bDisable =
+          ( config.apis.NvAPI.disable_hdr &&
+            config.render.dxgi.hide_hdr_support );
+
+        static bool bOriginal = bDisable;
+
+        if (ImGui::Checkbox ("Disable Game's Native HDR", &bDisable))
+        {
+          config.apis.NvAPI.disable_hdr       = bDisable;
+          config.render.dxgi.hide_hdr_support = bDisable;
+
+          SK_SaveConfig ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Use if game does not have a user setting to turn HDR off...");
+        }
+
+        if (bOriginal != bDisable)
+        {
+          ImGui::BulletText ("Game Restart Required");
+        }
       };
 
       if ( rb.displays [rb.active_display].hdr.supported ||

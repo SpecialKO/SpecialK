@@ -1453,6 +1453,8 @@ public:
 
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
+          ImGui::VerticalSeparator ();
+          ImGui::SameLine   ();
           ImGui::BeginGroup ();
           ImGui::BeginGroup ();
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
@@ -1500,7 +1502,7 @@ public:
                   ImGui::EndGroup        ();
 
                   if (ImGui::IsItemHovered ())
-                    ImGui::SetTooltip ("Bypass sRGB Gamma may be necessary scRGB-native games are too dim.");
+                    ImGui::SetTooltip ("Bypass sRGB Gamma may be necessary if scRGB-native games are too dim.");
                 }
                 else
                   ImGui::Text ("-");

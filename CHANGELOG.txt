@@ -1,5 +1,9 @@
 ﻿23.4.26
 =======
+ + Added button to HDR menu to disable a game's native HDR
+
+     >> Intended for games that force HDR on; requires game restart.
+
  + Removed streaming_client.exe (Steam streaming) from internal blacklist.
 
    >> Using SK for streamed games requires placing SpecialK.dxgi in the
