@@ -1,4 +1,9 @@
-﻿23.4.26
+﻿23.4.27
+=======
+ + Added SteamAPI workaround for CRAPCOM anti-piracy shenanigans in
+     Megaman Battle Network Legacy Collection (no more dimming screen).
+
+23.4.26
 =======
  + Added button to HDR menu to disable a game's native HDR
 

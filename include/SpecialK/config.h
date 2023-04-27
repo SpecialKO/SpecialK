@@ -1215,6 +1215,7 @@ enum class SK_GAME_ID
   PathOfExile,                  // PathOfExileSteam.exe
   Disgaea5,                     // Disgaea5.exe
   SoulHackers2,                 // SOUL HACKERS2.exe
+  MegaManBattleNetwork,         // MMBN_LC2.exe, MMBN_LC1.exe
 
   UNKNOWN_GAME               = 0xffff
 };

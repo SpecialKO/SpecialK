@@ -216,7 +216,9 @@ SK_GetCurrentGameID (void)
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
           { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     },
-          { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 }
+          { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 },
+          { L"MMBN_LC1.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
+          { L"MMBN_LC2.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
         };
 
     first_check  = false;
@@ -2807,6 +2809,7 @@ auto DeclKeybind =
               config.steam.dll_path            =
                                    L"kaldaien_api64.dll";
         }else config.steam.dll_path            =     L"";
+        steam.system.dll_path->store (config.steam.dll_path);
       } break;
 
       // Nintendo Switch Emulators ( OpenGL / Vulkan )
@@ -2916,6 +2919,34 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader_Vtx (0x10e0c21c);
         SK_D3D11_DeclHUDShader_Vtx (0xb70aff71);
         SK_D3D11_DeclHUDShader_Vtx (0xd7fb1989);
+        break;
+
+      case SK_GAME_ID::MegaManBattleNetwork:
+        config.compatibility.init_on_separate_thread = false;
+        config.display.force_windowed                = true;
+        config.window.dont_hook_wndproc              = true;
+        
+        config.platform.silent =
+          !( PathFileExistsW ( L"steam_api64.dll" )
+          && CopyFile        ( L"steam_api64.dll",
+                            L"kaldaien_api64.dll", FALSE )
+           );
+
+        if (! config.platform.silent )
+        {     config.steam.auto_inject         =    true;
+              config.steam.auto_pump_callbacks =    true;
+              config.steam.force_load_steamapi =    true;
+              config.steam.preload_client      =    true;
+              config.steam.preload_overlay     =    true;
+              config.steam.init_delay          =       1;
+              config.platform.achievements.
+                            pull_friend_stats  =    true;
+              config.platform.silent           =   false;
+              config.steam.dll_path            =
+                                   L"kaldaien_api64.dll";
+        }else config.steam.dll_path            =     L"";
+
+        steam.system.dll_path->store (config.steam.dll_path);
         break;
     }
   }
