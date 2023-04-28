@@ -1,4 +1,8 @@
-﻿23.4.27
+﻿23.4.28
+=======
+ + Added check if Microsoft's GLOn12 layer is active before using OpenGL-IK
+
+23.4.27
 =======
  + Added SteamAPI workaround for CRAPCOM anti-piracy shenanigans in
      Megaman Battle Network Legacy Collection (no more dimming screen).
@@ -133,8 +137,8 @@
 
 22.9.18
 =======
- + Stabalized NV hardware stats (load %, temp., clocks) that are not sampled every
-     polling interval
+ + Stabalized NV hardware stats (load %, temp., clocks) that are not sampled
+     every polling interval
 
 22.9.17
 =======
@@ -171,8 +175,8 @@
 =================
  + Partial re-implementation of achievement unlock popups
 
-     >> Duration is the only setting currently implemented, and achievement icons
-          are only loaded in D3D9/D3D11/GL at the moment.
+     >> Duration is the only setting currently implemented, and achievement
+           icons are only loaded in D3D9/D3D11/GL at the moment.
 
  + Optimized D3D11 texture cache for games with many small textures
 

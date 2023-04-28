@@ -2145,7 +2145,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (dx_gl_interop.d3d11.pDevice == nullptr)
     {
-      if (config.apis.dxgi.d3d11.hook)
+      static bool glon12 =
+        StrStrIA (
+          (const char *)glGetString (GL_RENDERER), "D3D12"
+        );
+
+      if (config.apis.dxgi.d3d11.hook && (! glon12))
       {
         extern void
         WINAPI SK_HookDXGI (void);
