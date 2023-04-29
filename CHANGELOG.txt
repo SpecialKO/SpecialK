@@ -1,4 +1,9 @@
-﻿23.4.28
+﻿23.4.29
+=======
+ + Added internal list of executables that acquire multiple references
+     to SK's DLL during injection shutdown.
+
+23.4.28
 =======
  + Added check if Microsoft's GLOn12 layer is active before using OpenGL-IK
 
