@@ -1301,7 +1301,9 @@ SK_Inject_SpawnUnloadListener (void)
             if (! GetModuleHandle (L"explorer.exe"))
             {
               // List of processes that acquire multiple DLL references
-              for ( auto& dll : { L"notepad.exe" } )
+              for ( auto& dll : { L"notepad.exe",
+                                  L"epicwebhelper.exe",
+                                  L"steamwebhelper.exe" } )
               {
                 if (GetModuleHandle (dll))
                 {
