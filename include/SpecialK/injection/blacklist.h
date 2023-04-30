@@ -186,6 +186,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"steamless.exe", // Steam DRM workaround needed to mod some games
 
+  L"zfgamebrowser.exe", // Genshin Impact Launcher
+
   L"coherentui_host.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",
