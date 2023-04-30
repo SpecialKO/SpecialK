@@ -1302,6 +1302,7 @@ SK_Inject_SpawnUnloadListener (void)
             {
               // List of processes that acquire multiple DLL references
               for ( auto& dll : { L"notepad.exe",
+                                  L"mspaint.exe",
                                   L"epicwebhelper.exe",
                                   L"steamwebhelper.exe" } )
               {
