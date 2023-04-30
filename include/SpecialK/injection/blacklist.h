@@ -178,6 +178,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"RockstarSteamHelper.exe",  //  ...
   L"RockstarErrorHandler.exe", // 64-bit even in 32-bit games
 
+  L"easteamproxy.exe", // Stupid EA bullcrap
+
   L"t2gp.exe", // 2K Launcher
 
   L"coherentui_host.exe",
