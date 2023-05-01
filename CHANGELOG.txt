@@ -1,10 +1,21 @@
-﻿23.4.30
-=======
+﻿23.5.1
+======
+ + Disable GeForce Experience Overlay for SKIF the first time SK is injected
+
+     >> Game has to be run as Admin for this to happen automatically
+
+      * To do manually (from an Admin command prompt):
+
+         rundll32 SpecialK64.dll,RunDLL_DisableGFEForSKIF
+
+23.4.30.4
+=========
  + Disable warning about "Continue Rendering" if a game tries to engage
      Fullscreen Exclusive and SK is overriding it to Borderless Fullscreen.
  + Blacklisted processes no longer signal SKIF's OnExit event when exiting
  + Added EASteamProxy.exe to internal injection blacklist
  + Added Link2EA.exe to internal injection blacklist (EA, stop dammit!)
+ + Added dsx.exe to internal injection blacklist
 
 23.4.29
 =======

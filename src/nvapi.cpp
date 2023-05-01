@@ -81,10 +81,13 @@ L"Error Calling NVAPI Function", MB_OK | MB_ICONASTERISK | MB_SETFOREGROUND \
 #endif
 
 #define NVAPI_SET_DWORD(x,y,z) (x).version = NVDRS_SETTING_VER;       \
+                               (x).settingLocation =                  \
+                                 NVDRS_DEFAULT_PROFILE_LOCATION;      \
                                (x).settingId = (y); (x).settingType = \
                                  NVDRS_DWORD_TYPE;                    \
                                (x).u32CurrentValue = (z);             \
-                               (x).isCurrentPredefined = 0;
+                               (x).isCurrentPredefined = 0;           \
+                               (x).isPredefinedValid = 0;
 
 
 std::wstring
@@ -1319,6 +1322,10 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
     }
 
+    // Admin privileges are required to do this...
+    if (SK_IsAdmin ())
+      SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
+
   // SK_CreateDLLHook2 ( L"nvapi64.dll",
   //                      "nvapi_QueryInterface",
   //                       NvAPI_QueryInterface_Detour,
@@ -2306,6 +2313,134 @@ BOOL SK_NvAPI_SetFastSync (BOOL bEnable)
   NVAPI_CALL (DRS_DestroySession (hSession));
 
   return bRet;
+}
+
+
+BOOL SK_NvAPI_AllowGFEOverlay (bool bAllow, wchar_t *wszAppName, wchar_t *wszExecutable)
+{
+  if (! nv_hardware)
+    return -2;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)wszExecutable,
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, wszAppName);
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)wszAppName,
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          wszExecutable);
+      lstrcpyW ((wchar_t *)app.userFriendlyName, wszAppName);
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession),                 ret);
+    }
+  }
+
+  NVDRS_SETTING gfe_overlay_val                 = {               };
+                gfe_overlay_val.version         = NVDRS_SETTING_VER;
+
+#define GFE_OVERLAY_ID       0x809D5F60
+#define GFE_OVERLAY_ALLOW    0x0
+#define GFE_OVERLAY_DISALLOW 0x10000000
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, GFE_OVERLAY_ID, &gfe_overlay_val));
+  NVAPI_SET_DWORD (gfe_overlay_val,                  GFE_OVERLAY_ID,
+                                            bAllow ? GFE_OVERLAY_ALLOW
+                                                   : GFE_OVERLAY_DISALLOW);
+  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile,                 &gfe_overlay_val));
+  NVAPI_VERBOSE ();
+
+  BOOL bRet =
+   ( gfe_overlay_val.u32CurrentValue == GFE_OVERLAY_ALLOW )
+                                      ? TRUE
+                                      : FALSE;
+
+  NVAPI_CALL (DRS_SaveSettings   (hSession));
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return bRet;
+}
+
+void
+CALLBACK
+RunDLL_DisableGFEForSKIF ( HWND   hwnd,        HINSTANCE hInst,
+                          LPCSTR lpszCmdLine, int       nCmdShow )
+{
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (hwnd);
+  UNREFERENCED_PARAMETER (nCmdShow);
+
+  if (SK_IsAdmin ())
+  {
+    if (NVAPI::InitializeLibrary (L"SKIF"))
+    {
+      SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
+    }
+  }
+
+  else
+  {
+    if (! StrStrIA (lpszCmdLine, "silent"))
+    {
+      MessageBox (
+        NULL, L"This command must be run as admin.",
+           L"Disable GFE For SKIF Failed", MB_OK
+      );
+    }
+  }
 }
 
 
