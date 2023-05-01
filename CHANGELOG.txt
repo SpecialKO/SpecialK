@@ -1,4 +1,10 @@
-﻿23.5.1
+﻿23.5.1.1
+========
+ + Added [Scheduler.Boost] DenyForeignChange option to prevent Game Mode from
+     lowering process priority when certain combinations of scheduler boost
+       are active.
+
+23.5.1
 ======
  + Disable GeForce Experience Overlay for SKIF the first time SK is injected
 

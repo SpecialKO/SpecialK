@@ -1068,7 +1068,7 @@ ActivateWindow ( HWND hWnd,
 
         bool success = false;
 
-        if (_GPU != GPU || _dwProcess != dwProcess)
+        if (_GPU != GPU || _dwProcess != dwProcess || config.priority.deny_foreign_change)
         {
           if (SetPriorityClass (GetCurrentProcess (), _dwProcess))
           {                               dwProcess = _dwProcess;

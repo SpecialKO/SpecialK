@@ -922,6 +922,7 @@ struct sk_config_t
     bool    raise_always        = false;
     bool    raise_bg            = false;
     bool    raise_fg            =  true;
+    bool    deny_foreign_change =  true;
   } priority;
 
   struct skif_s {
