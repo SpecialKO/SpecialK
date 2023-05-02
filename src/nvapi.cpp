@@ -2423,22 +2423,27 @@ RunDLL_DisableGFEForSKIF ( HWND   hwnd,        HINSTANCE hInst,
   UNREFERENCED_PARAMETER (hwnd);
   UNREFERENCED_PARAMETER (nCmdShow);
 
-  if (SK_IsAdmin ())
+  if (NVAPI::InitializeLibrary (L"SKIF"))
   {
-    if (NVAPI::InitializeLibrary (L"SKIF"))
-    {
-      SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
-    }
-  }
+    app_name      = L"SKIF.exe";
+    friendly_name = L"SKIF";
 
-  else
-  {
-    if (! StrStrIA (lpszCmdLine, "silent"))
+    SK_NvAPI_SetVRREnablement (FALSE);
+
+    if (SK_IsAdmin ())
     {
-      MessageBox (
-        NULL, L"This command must be run as admin.",
-           L"Disable GFE For SKIF Failed", MB_OK
-      );
+      SK_NvAPI_AllowGFEOverlay  (false, L"SKIF", L"SKIF.exe");
+    }
+
+    else
+    {
+      if (! StrStrIA (lpszCmdLine, "silent"))
+      {
+        MessageBox (
+          NULL, L"This command must be run as admin.",
+             L"Disable GFE For SKIF Failed", MB_OK
+        );
+      }
     }
   }
 }
