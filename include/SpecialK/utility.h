@@ -218,6 +218,7 @@ __cdecl        SK_FormatStringViewW         (std::wstring_view& out, wchar_t con
 
 void           SK_StripTrailingSlashesW     (wchar_t *wszInOut);
 void           SK_StripTrailingSlashesA     (char    *szInOut);
+void           SK_StripTrailingSpacesW      (wchar_t *wszInOut);
 void           SK_FixSlashesW               (wchar_t *wszInOut);
 void           SK_FixSlashesA               (char    *szInOut);
 void           SK_StripLeadingSlashesW      (wchar_t *wszInOut);

@@ -251,7 +251,21 @@ SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
       getBasePath (),
         &useable, &capacity, &free );
 
-  SK_ReleaseAssert (bRet);
+  if (! bRet)
+  {
+    SK_ImGui_Warning (
+      SK_FormatStringW (
+        L"GetDiskFreeSpaceExW (%ws) Failed\r\n\r\n"
+        L"\t>> Reason: %ws",
+          getBasePath (),
+          _com_error (
+            HRESULT_FROM_WIN32 (GetLastError ())
+          ).ErrorMessage ()
+      ).c_str ()
+    );
+
+    return false;
+  }
 
   // Don't take screenshots if the storage for one single screenshot is > 85% of remaining space
   if (static_cast <double> (bytes_needed) > static_cast <double> (useable.QuadPart) * .85)

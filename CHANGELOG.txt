@@ -1,4 +1,8 @@
-﻿23.5.2
+﻿23.5.3
+======
+ + Fixed user-readable config profile path for game names with trailing spaces
+
+23.5.2
 ======
  + RunDLL_DisableGFEForSKIF also disables VRR for SKIF
 

@@ -4062,6 +4062,42 @@ SK_StripTrailingSlashesW (wchar_t* wszInOut)
 }
 
 void
+SK_StripTrailingSpacesW (wchar_t* wszInOut)
+{
+  auto IsSpace = [](wchar_t a) -> bool {
+    return (a == L' ');
+  };
+
+  wchar_t* wszNextUnique = CharNextW (wszInOut);
+  wchar_t* wszNext       = wszInOut;
+
+  while (*wszNext != L'\0')
+  {
+    if (*wszNextUnique == L'\0')
+    {
+      *CharNextW (wszNext) = L'\0';
+      break;
+    }
+
+    if (IsSpace (*wszNext))
+    {
+      if (IsSpace (*wszNextUnique))
+      {
+        wszNextUnique =
+          CharNextW (wszNextUnique);
+
+        continue;
+      }
+    }
+
+    wszNext = CharNextW (wszNext);
+   *wszNext = *wszNextUnique;
+    wszNextUnique =
+      CharNextW (wszNextUnique);
+  }
+}
+
+void
 SK_FixSlashesW (wchar_t* wszInOut)
 {
   if (wszInOut == nullptr)

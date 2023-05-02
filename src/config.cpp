@@ -5918,8 +5918,16 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
       path.replace (pos, host_app.length (), L"\0");
     }
 
-    std::erase_if ( name,      [](wchar_t tval) {
-      return invalid_file_chars.contains (tval);} );
+    //
+    // This doesn't correctly truncate strings, do not use it.
+    //
+    //std::erase_if ( name,      [](wchar_t tval) {
+    //  return invalid_file_chars.contains (tval);} );
+    for ( auto ch : std::exchange (name, L"") )
+    {
+      if (! invalid_file_chars.contains (ch))
+        name += ch;
+    }
 
     path =
       SK_FormatStringW ( LR"(%s\%s\)",
@@ -5983,8 +5991,16 @@ SK_AppCache_Manager::getConfigPathForAppID (AppId64_t uiAppID) const
       path.replace (pos, host_app.length (), L"\0");
     }
 
-    std::erase_if ( name,      [](wchar_t tval) {
-      return invalid_file_chars.contains (tval);} );
+    //
+    // This doesn't correctly truncate strings, do not use it.
+    //
+    //std::erase_if ( name,      [](wchar_t tval) {
+    //  return invalid_file_chars.contains (tval);} );
+    for ( auto ch : std::exchange (name, L"") )
+    {
+      if (! invalid_file_chars.contains (ch))
+        name += ch;
+    }
 
     path =
       SK_FormatStringW ( LR"(%s\%s\)",
