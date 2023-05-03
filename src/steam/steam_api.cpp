@@ -3377,6 +3377,24 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
   return steam_libs;
 }
 
+std::string _StripSpaces (const std::string& input)
+{
+  // Create a copy of the input string
+  std::string result = input;
+
+  // Remove leading spaces
+  result.erase(result.begin(), std::find_if(result.begin(), result.end(), [](char ch) {
+      return !std::isspace(ch, std::locale::classic());
+  }));
+
+  // Remove trailing spaces
+  result.erase(std::find_if(result.rbegin(), result.rend(), [](char ch) {
+      return !std::isspace(ch, std::locale::classic());
+  }).base(), result.end());
+
+  return result;
+}
+
 std::string
 SK_UseManifestToGetAppName (AppId64_t appid)
 {
@@ -3392,7 +3410,8 @@ SK_UseManifestToGetAppName (AppId64_t appid)
 
     if (! app_name.empty ())
     {
-      return app_name;
+      return // Strip Spaces because EA keeps adding them to their game names
+        _StripSpaces (app_name);
     }
   }
 

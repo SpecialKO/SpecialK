@@ -1,4 +1,11 @@
-﻿23.5.2
+﻿23.5.3
+======
+ + Remove leading and trailing spaces from config profile directory names if
+     the Steam manifest uses them in the game name...
+
+       (i.e. " Dead Space" and "Star Wars: Jedi Fallen Order™ ")
+
+23.5.2
 ======
  + RunDLL_DisableGFEForSKIF also disables VRR for SKIF
 
