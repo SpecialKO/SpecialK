@@ -3841,36 +3841,39 @@ SK_ImGui_ControlPanel (void)
       auto effective_power_mode =
         SK_Power_GetCurrentEffectiveMode ();
 
-      if (effective_power_mode != EffectivePowerModeNone)
+      if (SK_IsGameWindowActive ())
       {
-        ImGui::SameLine          ();
-        ImGui::VerticalSeparator ();
-        ImGui::SameLine          ();
-        ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
-
-        if (effective_power_mode != EffectivePowerModeGameMode)
+        if (effective_power_mode != EffectivePowerModeNone)
         {
-          ImGui::SameLine ();
-          ImGui::Spacing  ();
-          ImGui::SameLine ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+          ImGui::SameLine          ();
+          ImGui::VerticalSeparator ();
+          ImGui::SameLine          ();
+          ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
 
-          if (ImGui::IsItemHovered ())
+          if (effective_power_mode != EffectivePowerModeGameMode)
           {
-            ImGui::SetTooltip (
-              "For best performance:\r\n\t"
-              "Set 'Remember this is a game' in Windows Game Bar settings,"
-              " and restart the game."
-            );
-          }
-        }
+            ImGui::SameLine ();
+            ImGui::Spacing  ();
+            ImGui::SameLine ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
 
-        else
-        {
-          ImGui::SameLine ();
-          ImGui::Spacing  ();
-          ImGui::SameLine ();
-          ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip (
+                "For best performance:\r\n\t"
+                "Set 'Remember this is a game' in Windows Game Bar settings,"
+                " and restart the game."
+              );
+            }
+          }
+
+          else
+          {
+            ImGui::SameLine ();
+            ImGui::Spacing  ();
+            ImGui::SameLine ();
+            ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+          }
         }
       }
     };
