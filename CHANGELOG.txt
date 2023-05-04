@@ -1,4 +1,10 @@
-﻿23.5.4.2
+﻿23.5.5
+======
+ + Only display Effective Power Mode in control panel if game is foreground
+ + Clicking the Aspect Ratio Stretch background will activate the game window
+ + Prevent Aspect Ratio Stretch background window from becoming foreground
+
+23.5.4.2
 ========
  + Do not attempt to register for Effective Power Mode change notifications
      on WINE, since it will just crash the game and complain about a stub.
