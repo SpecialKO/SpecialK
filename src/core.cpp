@@ -856,6 +856,8 @@ SK_InitFinishCallback (void)
   if (config.render.dxgi.disable_virtual_vbi)
     SK_DXGI_DisableVBlankVirtualization ();
 
+  SK_Power_InitEffectiveModeCallbacks ();
+
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 
