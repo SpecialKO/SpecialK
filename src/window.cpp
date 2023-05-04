@@ -7095,6 +7095,11 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       SK_Win32_BringBackgroundWindowToTop ();
       BringWindowToTop (SK_GetGameWindow ());
     case WM_SETCURSOR:
+      if (game_window.active)
+      {
+        SetCursor (NULL);
+        return TRUE;
+      }
     case WM_KILLFOCUS:
     default:
       return DefWindowProcW (hwnd, msg, wParam, lParam);

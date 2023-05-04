@@ -1,4 +1,13 @@
-﻿23.5.4
+﻿23.5.4.1
+========
+ + Added Effective Power Mode to SK's Control Panel.
+
+    >> If it does not say Game Mode (while the game is in the foreground),
+         then check the Windows Game Bar with the game is running...
+
+      * Ensure the Game Bar has 'Remember this is a Game' checked.
+
+23.5.4
 ======
  + Fixed aspect ratio stretch background window stealing focus from the game
      window when Aspect Ratio Stretch is enabled.

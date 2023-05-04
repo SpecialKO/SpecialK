@@ -3837,6 +3837,36 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop ();
         ImGui::EndMenu ();
       }
+
+      ImGui::SameLine          ();
+      ImGui::VerticalSeparator ();
+      ImGui::SameLine          ();
+      SK_RunOnce (                                               SK_Power_InitEffectiveModeCallbacks ());
+      ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
+
+      if (SK_Power_GetCurrentEffectiveMode () != EffectivePowerModeGameMode)
+      {
+        ImGui::SameLine ();
+        ImGui::Spacing  ();
+        ImGui::SameLine ();
+        ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "For best performance, ensure this game is set to "
+            "'Remember this is a Game' in the Windows Game Bar"
+          );
+        }
+      }
+
+      else
+      {
+        ImGui::SameLine ();
+        ImGui::Spacing  ();
+        ImGui::SameLine ();
+        ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+      }
     };
 
   if (config.imgui.use_mac_style_menu)
@@ -6746,4 +6776,94 @@ SK_Display_UpdateOutputTopology (void)
     SK_GetCurrentRenderBackend ();
 
   rb.updateOutputTopology ();
+}
+
+
+SK_AutoHandle                      SK_Power_EffectiveMode_Notification;
+std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = EffectivePowerModeBalanced;
+
+VOID
+WINAPI
+SK_Power_EffectiveModeCallback (
+  _In_     EFFECTIVE_POWER_MODE  Mode,
+  _In_opt_ VOID                 *Context )
+{
+  UNREFERENCED_PARAMETER (Context);
+
+  SK_Power_EffectiveMode.store (Mode);
+};
+
+EFFECTIVE_POWER_MODE
+SK_Power_GetCurrentEffectiveMode (void)
+{
+  return
+    SK_Power_EffectiveMode.load ();
+}
+
+const char*
+SK_Power_GetCurrentEffectiveModeStr (void)
+{
+  switch (SK_Power_GetCurrentEffectiveMode ())
+  {
+    case EffectivePowerModeBatterySaver:
+      return "Battery Saver";
+
+    case EffectivePowerModeBetterBattery:
+      return "Better Battery";
+
+    case EffectivePowerModeBalanced:
+      return "Balanced";
+
+    case EffectivePowerModeHighPerformance:
+      return "High Performance";
+
+    case EffectivePowerModeMaxPerformance:
+      return "Max Performance";
+
+    case EffectivePowerModeGameMode:
+      return "Game Mode";
+
+    case EffectivePowerModeMixedReality:
+      return "Mixed Reality";
+
+    default:
+      return "Unknown Mode";
+  }
+}
+
+bool
+SK_Power_InitEffectiveModeCallbacks (void)
+{
+  using PowerRegisterForEffectivePowerModeNotifications_pfn =
+    HRESULT (WINAPI *)( ULONG                          Version,
+                        EFFECTIVE_POWER_MODE_CALLBACK *Callback,
+                        VOID                          *Context,
+                        VOID                         **RegistrationHandle );
+
+  static PowerRegisterForEffectivePowerModeNotifications_pfn
+      SK_PowerRegisterForEffectivePowerModeNotifications =
+        (PowerRegisterForEffectivePowerModeNotifications_pfn)GetProcAddress (LoadLibraryEx (L"powrprof.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+        "PowerRegisterForEffectivePowerModeNotifications");
+
+  using PowerUnregisterFromEffectivePowerModeNotifications_pfn =
+    HRESULT (WINAPI *)(VOID *RegistrationHandle);
+
+  static PowerUnregisterFromEffectivePowerModeNotifications_pfn
+      SK_PowerUnregisterFromEffectivePowerModeNotifications =
+        (PowerUnregisterFromEffectivePowerModeNotifications_pfn)GetProcAddress (LoadLibraryEx (L"powrprof.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+        "PowerUnregisterFromEffectivePowerModeNotifications");
+
+  if (SK_PowerRegisterForEffectivePowerModeNotifications      != nullptr)
+  {
+    if (SK_PowerUnregisterFromEffectivePowerModeNotifications != nullptr)
+    {
+      SK_PowerRegisterForEffectivePowerModeNotifications ( EFFECTIVE_POWER_MODE_V2,
+                                                        SK_Power_EffectiveModeCallback, NULL,
+                                                       &SK_Power_EffectiveMode_Notification.m_h );
+
+      return true;
+    }
+  }
+
+  return false;
 }
