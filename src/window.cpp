@@ -5206,6 +5206,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         game_window.hWnd   =    0;
         game_window.active = true; // The headless chicken appears very active...
 
+        SK_Win32_DestroyBackgroundWindow ();
+
         extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                     SK_Inject_SetFocusWindow (0);
 
@@ -7087,23 +7089,28 @@ LRESULT
 CALLBACK
 SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+  auto hWndGame =
+    SK_GetGameWindow ();
+
   switch (msg)
   {
     case WM_CLOSE:
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
-    case WM_SETFOCUS:
-      SetFocus         (SK_GetGameWindow ());
+    case WM_LBUTTONDOWN: // Window is not activatable, swallow mouse clicks and activate the game instead.
+      BringWindowToTop    (hWndGame);
+      SetForegroundWindow (hWndGame);
+      SetFocus            (hWndGame);
+      return 0;
       break;
-    case WM_ACTIVATE:
-    case WM_ACTIVATEAPP:
-    case WM_MOUSEACTIVATE:
-      SetFocus         (SK_GetGameWindow ());
-      return DefWindowProcW (hwnd, msg, wParam, lParam);
+    case WM_SETFOCUS:
+      SetFocus            (hWndGame);
+      return 0;
       break;
     case WM_DISPLAYCHANGE:
       SK_Win32_BringBackgroundWindowToTop ();
-      BringWindowToTop (SK_GetGameWindow ());
+      BringWindowToTop    (hWndGame);
+      SetFocus            (hWndGame);
     case WM_SETCURSOR:
       if (game_window.active)
       {

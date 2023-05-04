@@ -1503,20 +1503,27 @@ SK_IsGameWindowActive (void)
   }
 #endif
 
+  // Background Window (Aspect Ratio Stretch) is Foreground...
+  //   we don't want that, make the GAME the foreground.
   if (bActive && ! game_window.active)
   {
-    SetWindowPos ( SK_Win32_BackgroundHWND, game_window.hWnd,
-                         0, 0,
-                         0, 0,
-                           SWP_NOMOVE | SWP_NOSIZE |
-                           /*SWP_ASYNCWINDOWPOS*/0x0);
+    // This only activates the window if performed on the same thread as the
+    //   game's window, so don't do this if called from a different thread.
+    if (GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr))
+    {
+      game_window.active = true;
 
-    BringWindowToTop    (game_window.hWnd);
-    SetFocus            (game_window.hWnd);
-    SetActiveWindow     (game_window.hWnd);
-    SetForegroundWindow (game_window.hWnd);
+      BringWindowToTop    (game_window.hWnd);
 
-    game_window.active = true;
+      SetWindowPos ( SK_Win32_BackgroundHWND, game_window.hWnd,
+                           0, 0,
+                           0, 0,
+                             SWP_NOMOVE     | SWP_NOSIZE |
+                             SWP_NOACTIVATE );
+
+      SetForegroundWindow (game_window.hWnd);
+      SetFocus            (game_window.hWnd);
+    }
   }
 
   return bActive;
