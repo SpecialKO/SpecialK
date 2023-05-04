@@ -173,10 +173,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"crs-uploader.exe", // Days Gone Launcher thingy
   L"dndbrowserhelper64.exe",
 
-  L"LauncherPatcher.exe",      // GTA IV (32-bit)
-  L"RockstarService.exe",      //  ...
-  L"RockstarSteamHelper.exe",  //  ...
-  L"RockstarErrorHandler.exe", // 64-bit even in 32-bit games
+  L"launcherpatcher.exe",      // GTA IV (32-bit)
+  L"rockstarservice.exe",      //  ...
+  L"rockstarsteamhelper.exe",  //  ...
+  L"rockstarerrorhandler.exe", // 64-bit even in 32-bit games
 
   L"easteamproxy.exe", // Stupid EA bullcrap
   L"link2ea.exe",      // More stupid EA stuff
