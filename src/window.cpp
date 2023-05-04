@@ -7067,9 +7067,21 @@ SK_SetWindowPos ( HWND hWnd,
     SetWindowPos (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
-HWND SK_Win32_BackgroundHWND;
+HWND SK_Win32_BackgroundHWND = HWND_DESKTOP;
 void SK_Win32_BringBackgroundWindowToTop (void);
 
+
+void
+SK_Win32_DestroyBackgroundWindow (void)
+{
+  if (SK_Win32_BackgroundHWND != HWND_DESKTOP)
+  {
+    if (   IsWindow (SK_Win32_BackgroundHWND))
+      DestroyWindow (SK_Win32_BackgroundHWND);
+
+    SK_Win32_BackgroundHWND = HWND_DESKTOP;
+  }
+}
 
 LRESULT
 CALLBACK
@@ -7078,8 +7090,6 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
   switch (msg)
   {
     case WM_CLOSE:
-      if (! IsWindow (SK_GetGameWindow ()))
-       DestroyWindow (hwnd);
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
     case WM_SETFOCUS:
@@ -7112,6 +7122,9 @@ void
 SK_Win32_BringBackgroundWindowToTop (void)
 {
   if (! config.display.aspect_ratio_stretch)
+    return;
+
+  if (SK_Win32_BackgroundHWND == HWND_DESKTOP)
     return;
 
   HMONITOR hMonitor =

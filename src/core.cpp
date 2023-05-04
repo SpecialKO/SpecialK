@@ -2447,6 +2447,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
+  SK_Win32_DestroyBackgroundWindow (); // Destroy the aspect ratio stretch window
+
   if (config.render.dxgi.temporary_dwm_hdr)
   {
     for ( auto pHDROutput : SK_GetCurrentRenderBackend ().hdr_enabled_displays )

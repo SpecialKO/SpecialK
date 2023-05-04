@@ -789,7 +789,8 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
-bool SK_Win32_IsDummyWindowClass (HWND hWnd);
+bool SK_Win32_IsDummyWindowClass      (HWND hWnd);
+void SK_Win32_DestroyBackgroundWindow (void);
 
 bool WINAPI SK_IsRectZero     (_In_ const    RECT *lpRect);
 bool WINAPI SK_IsRectInfinite (_In_ const tagRECT *lpRect);
