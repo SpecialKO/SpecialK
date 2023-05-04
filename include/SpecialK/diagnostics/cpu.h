@@ -38,4 +38,31 @@ struct SK_FPU_ControlWord {
 SK_FPU_ControlWord SK_FPU_SetPrecision   (UINT precision);
 SK_FPU_ControlWord SK_FPU_SetControlWord (UINT mask, SK_FPU_ControlWord *pNewControl);
 
+typedef enum EFFECTIVE_POWER_MODE {
+  EffectivePowerModeNone = -1,
+
+  EffectivePowerModeBatterySaver,
+  EffectivePowerModeBetterBattery,
+  EffectivePowerModeBalanced,
+  EffectivePowerModeHighPerformance,
+  EffectivePowerModeMaxPerformance, // EFFECTIVE_POWER_MODE_V1
+  EffectivePowerModeGameMode,
+  EffectivePowerModeMixedReality,   // EFFECTIVE_POWER_MODE_V2
+} EFFECTIVE_POWER_MODE;
+
+extern std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode;
+
+#define EFFECTIVE_POWER_MODE_V1 (0x00000001)
+#define EFFECTIVE_POWER_MODE_V2 (0x00000002)
+
+typedef VOID WINAPI EFFECTIVE_POWER_MODE_CALLBACK (
+    _In_     EFFECTIVE_POWER_MODE  Mode,
+    _In_opt_ VOID                 *Context
+);
+
+EFFECTIVE_POWER_MODE SK_Power_GetCurrentEffectiveMode    (void);
+const char*          SK_Power_GetCurrentEffectiveModeStr (void);
+bool                 SK_Power_InitEffectiveModeCallbacks (void);
+bool                 SK_Power_StopEffectiveModeCallbacks (void);
+
 #endif /* __SK__CPU_H__ */

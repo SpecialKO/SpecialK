@@ -2580,6 +2580,8 @@ SK_ShutdownCore (const wchar_t* backend)
     }
   }
 
+  SK_Power_StopEffectiveModeCallbacks ();
+
   SK::DXGI::ShutdownBudgetThread ();
 
   dll_log->LogEx    (true, L"[ GPU Stat ] Shutting down Performance Monitor Thread...  ");

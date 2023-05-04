@@ -543,3 +543,134 @@ SK_FPU_SetPrecision (UINT precision)
   return
     SK_FPU_SetControlWord (_MCW_PC, &cw_to_set);
 };
+
+
+std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = EffectivePowerModeNone;
+
+VOID
+WINAPI
+SK_Power_EffectiveModeCallback (
+  _In_     EFFECTIVE_POWER_MODE  Mode,
+  _In_opt_ VOID                 *Context )
+{
+  UNREFERENCED_PARAMETER (Context);
+
+  SK_Power_EffectiveMode.store (Mode);
+};
+
+EFFECTIVE_POWER_MODE
+SK_Power_GetCurrentEffectiveMode (void)
+{
+  return
+    SK_Power_EffectiveMode.load ();
+}
+
+const char*
+SK_Power_GetCurrentEffectiveModeStr (void)
+{
+  switch (SK_Power_GetCurrentEffectiveMode ())
+  {
+    case EffectivePowerModeBatterySaver:
+      return "Battery Saver";
+
+    case EffectivePowerModeBetterBattery:
+      return "Better Battery";
+
+    case EffectivePowerModeBalanced:
+      return "Balanced";
+
+    case EffectivePowerModeHighPerformance:
+      return "High Performance";
+
+    case EffectivePowerModeMaxPerformance:
+      return "Max Performance";
+
+    case EffectivePowerModeGameMode:
+      return "Game Mode";
+
+    case EffectivePowerModeMixedReality:
+      return "Mixed Reality";
+
+    default:
+      return "Unknown Mode";
+  }
+}
+
+void* SK_Power_EffectiveMode_Notification = nullptr;
+
+using PowerUnregisterFromEffectivePowerModeNotifications_pfn =
+  HRESULT (WINAPI *)(VOID *RegistrationHandle);
+
+   PowerUnregisterFromEffectivePowerModeNotifications_pfn
+SK_PowerUnregisterFromEffectivePowerModeNotifications = nullptr;
+
+bool
+SK_Power_StopEffectiveModeCallbacks (void)
+{
+  // WINE will no doubt complain that these are stubs and crash...
+  if (config.compatibility.using_wine)
+    return false;
+
+  // Already shutdown
+  if (SK_Power_EffectiveMode_Notification == nullptr)
+    return true;
+
+  if (SK_PowerUnregisterFromEffectivePowerModeNotifications != nullptr)
+  {
+    HRESULT hr =
+      SK_PowerUnregisterFromEffectivePowerModeNotifications (SK_Power_EffectiveMode_Notification);
+
+    if (SUCCEEDED (hr))
+    {
+      SK_Power_EffectiveMode_Notification = nullptr;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+SK_Power_InitEffectiveModeCallbacks (void)
+{
+  // WINE will no doubt complain that these are stubs and crash...
+  if (config.compatibility.using_wine)
+    return false;
+
+  // Already initialized
+  if (SK_Power_EffectiveMode_Notification != nullptr)
+    return true;
+
+  using PowerRegisterForEffectivePowerModeNotifications_pfn =
+    HRESULT (WINAPI *)( ULONG                          Version,
+                        EFFECTIVE_POWER_MODE_CALLBACK *Callback,
+                        VOID                          *Context,
+                        VOID                         **RegistrationHandle );
+
+  static PowerRegisterForEffectivePowerModeNotifications_pfn
+      SK_PowerRegisterForEffectivePowerModeNotifications =
+        (PowerRegisterForEffectivePowerModeNotifications_pfn)GetProcAddress (LoadLibraryEx (L"powrprof.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+        "PowerRegisterForEffectivePowerModeNotifications");
+
+  if (SK_PowerRegisterForEffectivePowerModeNotifications      != nullptr)
+  {
+    SK_PowerUnregisterFromEffectivePowerModeNotifications =
+      (PowerUnregisterFromEffectivePowerModeNotifications_pfn)GetProcAddress (LoadLibraryEx (L"powrprof.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+      "PowerUnregisterFromEffectivePowerModeNotifications");
+
+    if (SK_PowerUnregisterFromEffectivePowerModeNotifications != nullptr)
+    {
+      HRESULT hr =
+        SK_PowerRegisterForEffectivePowerModeNotifications ( EFFECTIVE_POWER_MODE_V2,
+                                                          SK_Power_EffectiveModeCallback, nullptr,
+                                                         &SK_Power_EffectiveMode_Notification );
+
+      if (SUCCEEDED (hr))
+      {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
