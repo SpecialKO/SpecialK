@@ -4716,7 +4716,7 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
     
     static concurrency::concurrent_queue <HWND> hwnd_queue;
     static SK_AutoHandle                        hwnd_signal (
-      CreateEvent (nullptr, FALSE, FALSE, nullptr);
+      CreateEvent (nullptr, FALSE, FALSE, nullptr)
     );
 
     hwnd_queue.push (hWndForeground);
