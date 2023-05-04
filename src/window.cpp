@@ -7067,8 +7067,8 @@ SK_SetWindowPos ( HWND hWnd,
     SetWindowPos (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
-static HWND SK_Win32_BackgroundHWND;
-void        SK_Win32_BringBackgroundWindowToTop (void);
+HWND SK_Win32_BackgroundHWND;
+void SK_Win32_BringBackgroundWindowToTop (void);
 
 
 LRESULT
@@ -7081,13 +7081,20 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
     case WM_SETFOCUS:
-    case WM_KILLFOCUS:
+      SK_Win32_BringBackgroundWindowToTop ();
+      BringWindowToTop (SK_GetGameWindow ());
+      SetFocus         (SK_GetGameWindow ());
+      return 0;
     case WM_ACTIVATE:
     case WM_ACTIVATEAPP:
     case WM_MOUSEACTIVATE:
     case WM_DISPLAYCHANGE:
-    case WM_SETCURSOR:
       SK_Win32_BringBackgroundWindowToTop ();
+      BringWindowToTop (SK_GetGameWindow ());
+      SetFocus         (SK_GetGameWindow ());
+      game_window.active = true;
+    case WM_SETCURSOR:
+    case WM_KILLFOCUS:
     default:
       return DefWindowProcW (hwnd, msg, wParam, lParam);
   }

@@ -1466,8 +1466,11 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
+  extern HWND SK_Win32_BackgroundHWND;
+
   bool bActive =
-    game_window.active;
+    game_window.active || (                        0 != SK_Win32_BackgroundHWND &&
+                           SK_GetForegroundWindow () == SK_Win32_BackgroundHWND );
 
 #if 0
   if (! bActive)
@@ -1499,6 +1502,22 @@ SK_IsGameWindowActive (void)
     }
   }
 #endif
+
+  if (bActive && ! game_window.active)
+  {
+    SetWindowPos ( SK_Win32_BackgroundHWND, game_window.hWnd,
+                         0, 0,
+                         0, 0,
+                           SWP_NOMOVE | SWP_NOSIZE |
+                           /*SWP_ASYNCWINDOWPOS*/0x0);
+
+    BringWindowToTop    (game_window.hWnd);
+    SetFocus            (game_window.hWnd);
+    SetActiveWindow     (game_window.hWnd);
+    SetForegroundWindow (game_window.hWnd);
+
+    game_window.active = true;
+  }
 
   return bActive;
 }

@@ -1,4 +1,9 @@
-﻿23.5.3
+﻿23.5.4
+======
+ + Fixed aspect ratio stretch background window stealing focus from the game
+     window when Aspect Ratio Stretch is enabled.
+
+23.5.3
 ======
  + Remove leading and trailing spaces from config profile directory names if
      the Steam manifest uses them in the game name...
