@@ -61,7 +61,7 @@ typedef VOID WINAPI EFFECTIVE_POWER_MODE_CALLBACK (
 );
 
 EFFECTIVE_POWER_MODE SK_Power_GetCurrentEffectiveMode    (void);
-const char*          SK_Power_GetCurrentEffectiveModeStr (void);
+const char*          SK_Power_GetEffectiveModeStr        (EFFECTIVE_POWER_MODE mode);
 bool                 SK_Power_InitEffectiveModeCallbacks (void);
 bool                 SK_Power_StopEffectiveModeCallbacks (void);
 

@@ -3848,7 +3848,8 @@ SK_ImGui_ControlPanel (void)
           ImGui::SameLine          ();
           ImGui::VerticalSeparator ();
           ImGui::SameLine          ();
-          ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
+          ImGui::Text              ("\tEffective Power Mode:\t %hs",
+                                    SK_Power_GetEffectiveModeStr (effective_power_mode));
 
           if (effective_power_mode != EffectivePowerModeGameMode)
           {

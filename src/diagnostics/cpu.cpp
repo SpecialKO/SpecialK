@@ -566,9 +566,9 @@ SK_Power_GetCurrentEffectiveMode (void)
 }
 
 const char*
-SK_Power_GetCurrentEffectiveModeStr (void)
+SK_Power_GetEffectiveModeStr (EFFECTIVE_POWER_MODE mode)
 {
-  switch (SK_Power_GetCurrentEffectiveMode ())
+  switch (mode)
   {
     case EffectivePowerModeBatterySaver:
       return "Battery Saver";
