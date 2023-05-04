@@ -3854,8 +3854,9 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip (
-            "For best performance, ensure this game is set to "
-            "'Remember this is a Game' in the Windows Game Bar"
+            "For best performance:\r\n\t"
+            "Set 'Remember this is a game' in Windows Game Bar settings,"
+            " and restart the game."
           );
         }
       }
