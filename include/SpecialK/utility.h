@@ -1200,6 +1200,8 @@ namespace SK
 };
 
 typedef enum EFFECTIVE_POWER_MODE {
+  EffectivePowerModeNone = -1,
+
   EffectivePowerModeBatterySaver,
   EffectivePowerModeBetterBattery,
   EffectivePowerModeBalanced,

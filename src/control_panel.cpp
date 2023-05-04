@@ -3838,35 +3838,41 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndMenu ();
       }
 
-      ImGui::SameLine          ();
-      ImGui::VerticalSeparator ();
-      ImGui::SameLine          ();
-      SK_RunOnce (                                               SK_Power_InitEffectiveModeCallbacks ());
-      ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
+      auto effective_power_mode =
+        SK_Power_GetCurrentEffectiveMode ();
 
-      if (SK_Power_GetCurrentEffectiveMode () != EffectivePowerModeGameMode)
+      if (effective_power_mode != EffectivePowerModeNone)
       {
-        ImGui::SameLine ();
-        ImGui::Spacing  ();
-        ImGui::SameLine ();
-        ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+        ImGui::SameLine          ();
+        ImGui::VerticalSeparator ();
+        ImGui::SameLine          ();
+        SK_RunOnce (                                               SK_Power_InitEffectiveModeCallbacks ());
+        ImGui::Text              ("\tEffective Power Mode:\t %hs", SK_Power_GetCurrentEffectiveModeStr ());
 
-        if (ImGui::IsItemHovered ())
+        if (effective_power_mode != EffectivePowerModeGameMode)
         {
-          ImGui::SetTooltip (
-            "For best performance:\r\n\t"
-            "Set 'Remember this is a game' in Windows Game Bar settings,"
-            " and restart the game."
-          );
-        }
-      }
+          ImGui::SameLine ();
+          ImGui::Spacing  ();
+          ImGui::SameLine ();
+          ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
 
-      else
-      {
-        ImGui::SameLine ();
-        ImGui::Spacing  ();
-        ImGui::SameLine ();
-        ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "For best performance:\r\n\t"
+              "Set 'Remember this is a game' in Windows Game Bar settings,"
+              " and restart the game."
+            );
+          }
+        }
+
+        else
+        {
+          ImGui::SameLine ();
+          ImGui::Spacing  ();
+          ImGui::SameLine ();
+          ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+        }
       }
     };
 
@@ -6780,8 +6786,7 @@ SK_Display_UpdateOutputTopology (void)
 }
 
 
-SK_AutoHandle                      SK_Power_EffectiveMode_Notification;
-std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = EffectivePowerModeBalanced;
+std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = EffectivePowerModeNone;
 
 VOID
 WINAPI
@@ -6835,6 +6840,10 @@ SK_Power_GetCurrentEffectiveModeStr (void)
 bool
 SK_Power_InitEffectiveModeCallbacks (void)
 {
+  // WINE will no doubt complain that these are stubs and crash...
+  if (config.compatibility.using_wine)
+    return false;
+
   using PowerRegisterForEffectivePowerModeNotifications_pfn =
     HRESULT (WINAPI *)( ULONG                          Version,
                         EFFECTIVE_POWER_MODE_CALLBACK *Callback,
@@ -6858,9 +6867,19 @@ SK_Power_InitEffectiveModeCallbacks (void)
   {
     if (SK_PowerUnregisterFromEffectivePowerModeNotifications != nullptr)
     {
-      SK_PowerRegisterForEffectivePowerModeNotifications ( EFFECTIVE_POWER_MODE_V2,
-                                                        SK_Power_EffectiveModeCallback, NULL,
-                                                       &SK_Power_EffectiveMode_Notification.m_h );
+      static void* SK_Power_EffectiveMode_Notification = nullptr;
+
+      HRESULT hr =
+        SK_PowerRegisterForEffectivePowerModeNotifications ( EFFECTIVE_POWER_MODE_V2,
+                                                          SK_Power_EffectiveModeCallback, nullptr,
+                                                         &SK_Power_EffectiveMode_Notification );
+
+      if (SUCCEEDED (hr))
+      {
+        std::atexit ([] {
+          SK_PowerUnregisterFromEffectivePowerModeNotifications (SK_Power_EffectiveMode_Notification);
+        });
+      }
 
       return true;
     }

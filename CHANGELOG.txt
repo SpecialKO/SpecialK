@@ -1,4 +1,9 @@
-﻿23.5.4.1
+﻿23.5.4.2
+========
+ + Do not attempt to register for Effective Power Mode change notifications
+     on WINE, since it will just crash the game and complain about a stub.
+
+23.5.4.1
 ========
  + Added Effective Power Mode to SK's Control Panel.
 
