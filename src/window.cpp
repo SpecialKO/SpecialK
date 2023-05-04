@@ -2681,12 +2681,15 @@ SK_SetWindowLongPtrA (
       {
         args_s args;
 
-        while (dispatch->queued.try_pop (args))
+        while (! dispatch->queued.empty ())
         {
-          if (SetWindowLongPtrA_Original != nullptr)
-              SetWindowLongPtrA_Original (args.hWnd, args.nIndex, args.dwNewLong);
-          else
-              SetWindowLongPtrA          (args.hWnd, args.nIndex, args.dwNewLong);
+          if (dispatch->queued.try_pop (args))
+          {
+            if (SetWindowLongPtrA_Original != nullptr)
+                SetWindowLongPtrA_Original (args.hWnd, args.nIndex, args.dwNewLong);
+            else
+                SetWindowLongPtrA          (args.hWnd, args.nIndex, args.dwNewLong);
+          }
         }
       }
 
@@ -2782,12 +2785,15 @@ SK_SetWindowLongPtrW (
       {
         args_s args;
 
-        while (dispatch->queued.try_pop (args))
+        while (! dispatch->queued.empty ())
         {
-          if (SetWindowLongPtrW_Original != nullptr)
-              SetWindowLongPtrW_Original (args.hWnd, args.nIndex, args.dwNewLong);
-          else
-              SetWindowLongPtrW          (args.hWnd, args.nIndex, args.dwNewLong);
+          if (dispatch->queued.try_pop (args))
+          {
+            if (SetWindowLongPtrW_Original != nullptr)
+                SetWindowLongPtrW_Original (args.hWnd, args.nIndex, args.dwNewLong);
+            else
+                SetWindowLongPtrW          (args.hWnd, args.nIndex, args.dwNewLong);
+          }
         }
       }
 
@@ -4707,22 +4713,47 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 #else
   if (dwOrigThreadId != SK_GetCurrentThreadId ())
   {
-    SK_Thread_Create ([](LPVOID lpHwnd) ->
-    DWORD
+    
+    static concurrency::concurrent_queue <HWND> hwnd_queue;
+    static SK_AutoHandle                        hwnd_signal (
+      CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    );
+
+    hwnd_queue.push (hWndForeground);
+    SetEvent        (hwnd_signal);
+
+    SK_RunOnce (
     {
-      RealizeForegroundWindow_Impl ((HWND)lpHwnd);
+      SK_Thread_CreateEx ([](LPVOID) ->
+      DWORD
+      {
+        HANDLE hSignals [] = {
+          __SK_DLL_TeardownEvent,
+           hwnd_signal
+        };
 
-      SK_Thread_CloseSelf ();
+        DWORD dwWait = 0;
 
-      return 0;
-    }, (LPVOID)hWndForeground);
+        while ( (dwWait = WaitForMultipleObjects (
+                            2, hSignals, FALSE, INFINITE )
+                ) != WAIT_OBJECT_0 )
+        {
+          HWND hWnd;
 
-    //
-    // Rather than spawn this same thread over and over, you need to design
-    //   a window that can handle WM_USER messages and dispatch this crap.
-    //
-    //  --> Same goes for SetWindowLong, which is not thread-safe in Unity.
-    //
+          while (! hwnd_queue.empty ())
+          {
+            if (hwnd_queue.try_pop (hWnd))
+            {
+              RealizeForegroundWindow_Impl (hWnd);
+            }
+          }
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] RealizeForegroundWindow", (LPVOID)hWndForeground);
+    });
   }
 #endif
   else
@@ -7098,31 +7129,26 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
     case WM_LBUTTONDOWN: // Window is not activatable, swallow mouse clicks and activate the game instead.
-      BringWindowToTop    (hWndGame);
-      SetForegroundWindow (hWndGame);
-      SetFocus            (hWndGame);
-      return 0;
-      break;
-    case WM_SETFOCUS:
-      SetFocus            (hWndGame);
+      SK_RealizeForegroundWindow (hWndGame);
       return 0;
       break;
     case WM_DISPLAYCHANGE:
-      SK_Win32_BringBackgroundWindowToTop ();
-      BringWindowToTop    (hWndGame);
-      SetFocus            (hWndGame);
+      if (game_window.active)
+      {
+        SK_Win32_BringBackgroundWindowToTop ();
+        SK_RealizeForegroundWindow  (hWndGame);
+      }
+      break;
     case WM_SETCURSOR:
       if (game_window.active)
       {
         SetCursor (NULL);
         return TRUE;
       }
-    case WM_KILLFOCUS:
-    default:
-      return DefWindowProcW (hwnd, msg, wParam, lParam);
   }
 
-  return 0;
+  return
+    DefWindowProcW (hwnd, msg, wParam, lParam);
 }
 
 void

@@ -2014,41 +2014,44 @@ public:
                       {
                         SK_WaitForSingleObject (hRecoveryEvent, INFINITE);
 
-                        suspend_params_s            suspend_me = { };
-                        while (pWaitQueue->try_pop (suspend_me))
+                        while (! pWaitQueue->empty ())
                         {
-                          // Two threads are always invalid for suspension:
-                          //
-                          //  1. The watchdog thread (this one)
-                          //  2. The kernel data collection thread
-                          //
-                          if ( suspend_me.dwTid == SK_Thread_GetCurrentId () ||
-                               suspend_me.dwTid == pDataCollector->dwProducerTid )
+                          suspend_params_s            suspend_me = { };
+                          if (   pWaitQueue->try_pop (suspend_me))
                           {
-                            continue;
-                          }
+                            // Two threads are always invalid for suspension:
+                            //
+                            //  1. The watchdog thread (this one)
+                            //  2. The kernel data collection thread
+                            //
+                            if ( suspend_me.dwTid == SK_Thread_GetCurrentId () ||
+                                 suspend_me.dwTid == pDataCollector->dwProducerTid )
+                            {
+                              continue;
+                            }
 
-                          SK_AutoHandle hThread__ (
-                            OpenThread ( THREAD_SUSPEND_RESUME,
-                                           FALSE,
-                                             suspend_me.dwTid )
-                          );
-
-                          if (SuspendThread (hThread__) != -1)
-                          {
-                            CONTEXT                           threadCtx = { };
-                            GetThreadContext (hThread__.m_h, &threadCtx);
-
-                            suspend_me.time_requested  =
-                              SK_GetCurrentMS   ();
-                            suspend_me.frame_requested =
-                              SK_GetFramesDrawn ();
-                            suspend_me.hThread         =
-                              hThread__.Detach  ();
-
-                            suspended_threads.emplace_back (
-                              suspend_me
+                            SK_AutoHandle hThread__ (
+                              OpenThread ( THREAD_SUSPEND_RESUME,
+                                             FALSE,
+                                               suspend_me.dwTid )
                             );
+
+                            if (SuspendThread (hThread__) != -1)
+                            {
+                              CONTEXT                           threadCtx = { };
+                              GetThreadContext (hThread__.m_h, &threadCtx);
+
+                              suspend_me.time_requested  =
+                                SK_GetCurrentMS   ();
+                              suspend_me.frame_requested =
+                                SK_GetFramesDrawn ();
+                              suspend_me.hThread         =
+                                hThread__.Detach  ();
+
+                              suspended_threads.emplace_back (
+                                suspend_me
+                              );
+                            }
                           }
                         }
 

@@ -4451,9 +4451,12 @@ SK_DeferCommands (const char** szCommands, int count)
           {
             std::string cmd;
 
-            while (cmds.try_pop (cmd))
+            while (! cmds.empty ())
             {
-              SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
+              if (cmds.try_pop (cmd))
+              {
+                SK_GetCommandProcessor ()->ProcessCommandLine (cmd.c_str ());
+              }
             }
           }
 

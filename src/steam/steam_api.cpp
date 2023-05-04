@@ -5349,22 +5349,25 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
               if (SK_GetFramesDrawn () > 0)
               {
-                AppId64_t                            appid;
-                while (override_ctx.app_ids.try_pop (appid))
+                while (! override_ctx.app_ids.empty ())
                 {
-                  if (! ReadAcquire (&__SK_DLL_Ending))
+                  AppId64_t                         appid;
+                  if (override_ctx.app_ids.try_pop (appid))
                   {
-                    SK_RunOnce (
-                      std::atexit ([]{
-                        SK_Steam_ForceInputAppId (0);
-                      })
-                    );
+                    if (! ReadAcquire (&__SK_DLL_Ending))
+                    {
+                      SK_RunOnce (
+                        std::atexit ([]{
+                          SK_Steam_ForceInputAppId (0);
+                        })
+                      );
 
-                    ShellExecuteW ( 0, L"OPEN",
-                         std::format (
-                           LR"(steam://forceinputappid/{})", appid ).c_str (),
-                             nullptr, nullptr, SW_HIDE
-                    );
+                      ShellExecuteW ( 0, L"OPEN",
+                           std::format (
+                             LR"(steam://forceinputappid/{})", appid ).c_str (),
+                               nullptr, nullptr, SW_HIDE
+                      );
+                    }
                   }
                 }
               }
