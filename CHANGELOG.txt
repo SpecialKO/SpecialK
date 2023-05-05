@@ -1,4 +1,8 @@
-﻿23.5.6
+﻿23.5.6.1
+========
+ + Added compat hacks to non-Steam version of Path of Exile as well
+
+23.5.6
 ======
  + Changed HDR widget to store profiled display data using monitor GUID instead
      of the full GDI device path (since parts of it are not invariant).
@@ -7,7 +11,9 @@
   * Old INI Key Name:
    DISPLAY#GSMC0A0#5&2dafe0a1&5&UID45314#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
 
-     >> Old Global\hdr.ini files will have invalid entries, consider deleting.
+     >> Old Global\hdr.ini files will have invalid entries; consider deleting.
+
+         @ Re-run "Profile Display Capabilities" after deleting...
 
 23.5.5
 ======

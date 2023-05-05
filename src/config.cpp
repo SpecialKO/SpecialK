@@ -215,6 +215,7 @@ SK_GetCurrentGameID (void)
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
+          { L"PathOfExile.exe",                        SK_GAME_ID::PathOfExile                  },
           { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     },
           { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 },
           { L"MMBN_LC1.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
