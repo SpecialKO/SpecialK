@@ -1519,10 +1519,9 @@ SK_IsGameWindowActive (void)
                            0, 0,
                            0, 0,
                              SWP_NOMOVE     | SWP_NOSIZE |
-                             SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS );
+                             SWP_NOACTIVATE );
 
       SetForegroundWindow (game_window.hWnd);
-      SetActiveWindow     (game_window.hWnd);
       SetFocus            (game_window.hWnd);
     }
   }

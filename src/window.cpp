@@ -4713,7 +4713,6 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 #else
   if (dwOrigThreadId != SK_GetCurrentThreadId ())
   {
-    
     static concurrency::concurrent_queue <HWND> hwnd_queue;
     static SK_AutoHandle                        hwnd_signal (
       CreateEvent (nullptr, FALSE, FALSE, nullptr)
@@ -4744,6 +4743,8 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
           {
             if (hwnd_queue.try_pop (hWnd))
             {
+              //SK_ImGui_Warning (L"RealizeForegroundWindow");
+
               RealizeForegroundWindow_Impl (hWnd);
             }
           }
@@ -7128,10 +7129,25 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_CLOSE:
       //DestroyWindow (hwnd); // Alt+F4 should be handled by game's main window
       break;
+    case WM_SETFOCUS:
+    case WM_KILLFOCUS:
+      return 0;
+
+    case WM_LBUTTONDBLCLK:
+    case WM_LBUTTONUP:
     case WM_LBUTTONDOWN: // Window is not activatable, swallow mouse clicks and activate the game instead.
+      game_window.active = true;
+      BringWindowToTop           (hwnd);
       SK_RealizeForegroundWindow (hWndGame);
       return 0;
+
+    case WM_ACTIVATE:
+    case WM_MOUSEACTIVATE:
+    case WM_ACTIVATEAPP:
+      //SK_RunOnce (SK_ImGui_Warning (L"Activated Aspect Ratio Background Window"));
+      return 0;
       break;
+
     case WM_DISPLAYCHANGE:
       if (game_window.active)
       {

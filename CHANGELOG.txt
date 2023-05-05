@@ -1,4 +1,15 @@
-﻿23.5.5
+﻿23.5.6
+======
+ + Changed HDR widget to store profiled display data using monitor GUID instead
+     of the full GDI device path (since parts of it are not invariant).
+
+  * New INI Key Name:            GSMC0A0.{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+  * Old INI Key Name:
+   DISPLAY#GSMC0A0#5&2dafe0a1&5&UID45314#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+
+     >> Old Global\hdr.ini files will have invalid entries, consider deleting.
+
+23.5.5
 ======
  + Only display Effective Power Mode in control panel if game is foreground
  + Clicking the Aspect Ratio Stretch background will activate the game window
