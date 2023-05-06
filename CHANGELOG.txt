@@ -1,5 +1,6 @@
-﻿23.5.6.2
+﻿23.5.6.3
 ========
+ + Disable SK's internal debugger in Honkai: Star Rail to workaround anti-cheat
  + Added compat hacks to non-Steam version of Path of Exile as well
  + Export/Reset Profiles in HDR widget also store their INI values as
      described in 23.5.6

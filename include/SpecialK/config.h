@@ -1217,6 +1217,7 @@ enum class SK_GAME_ID
   Disgaea5,                     // Disgaea5.exe
   SoulHackers2,                 // SOUL HACKERS2.exe
   MegaManBattleNetwork,         // MMBN_LC2.exe, MMBN_LC1.exe
+  HonkaiStarRail,               // StarRail.exe
 
   UNKNOWN_GAME               = 0xffff
 };

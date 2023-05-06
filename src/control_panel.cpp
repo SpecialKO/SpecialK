@@ -3863,7 +3863,7 @@ SK_ImGui_ControlPanel (void)
               ImGui::SetTooltip (
                 "For best performance:\r\n\t"
                 "Set 'Remember this is a game' in Windows Game Bar settings,"
-                " and restart the game."
+                "  ensure that Windows Game Mode is On, and restart the game."
               );
             }
           }

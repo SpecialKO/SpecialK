@@ -220,6 +220,7 @@ SK_GetCurrentGameID (void)
           { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 },
           { L"MMBN_LC1.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
           { L"MMBN_LC2.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
+          { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               }
         };
 
     first_check  = false;
@@ -2950,6 +2951,12 @@ auto DeclKeybind =
         }else config.steam.dll_path            =     L"";
 
         steam.system.dll_path->store (config.steam.dll_path);
+        break;
+
+      case SK_GAME_ID::HonkaiStarRail:
+        // Work-around anti-cheat
+        config.compatibility.disable_debug_features =  true;
+        config.system.handle_crashes                = false;
         break;
     }
   }
