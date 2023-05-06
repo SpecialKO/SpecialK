@@ -922,6 +922,7 @@ struct sk_config_t
     bool    raise_always        = false;
     bool    raise_bg            = false;
     bool    raise_fg            =  true;
+    bool    deny_foreign_change =  true;
   } priority;
 
   struct skif_s {
@@ -1216,6 +1217,7 @@ enum class SK_GAME_ID
   Disgaea5,                     // Disgaea5.exe
   SoulHackers2,                 // SOUL HACKERS2.exe
   MegaManBattleNetwork,         // MMBN_LC2.exe, MMBN_LC1.exe
+  HonkaiStarRail,               // StarRail.exe
 
   UNKNOWN_GAME               = 0xffff
 };

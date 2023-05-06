@@ -856,6 +856,8 @@ SK_InitFinishCallback (void)
   if (config.render.dxgi.disable_virtual_vbi)
     SK_DXGI_DisableVBlankVirtualization ();
 
+  SK_Power_InitEffectiveModeCallbacks ();
+
   // SEH to handle Wine Stub functions
   SK_SEH_InitFinishCallback ();
 
@@ -2445,6 +2447,8 @@ SK_ShutdownCore (const wchar_t* backend)
 
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
+  SK_Win32_DestroyBackgroundWindow (); // Destroy the aspect ratio stretch window
+
   if (config.render.dxgi.temporary_dwm_hdr)
   {
     for ( auto pHDROutput : SK_GetCurrentRenderBackend ().hdr_enabled_displays )
@@ -2575,6 +2579,8 @@ SK_ShutdownCore (const wchar_t* backend)
       }
     }
   }
+
+  SK_Power_StopEffectiveModeCallbacks ();
 
   SK::DXGI::ShutdownBudgetThread ();
 

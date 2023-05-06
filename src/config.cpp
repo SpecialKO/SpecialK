@@ -215,10 +215,12 @@ SK_GetCurrentGameID (void)
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
+          { L"PathOfExile.exe",                        SK_GAME_ID::PathOfExile                  },
           { L"Disgaea5.exe",                           SK_GAME_ID::Disgaea5                     },
           { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 },
           { L"MMBN_LC1.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
           { L"MMBN_LC2.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
+          { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               }
         };
 
     first_check  = false;
@@ -854,6 +856,7 @@ struct {
     sk::ParameterBool*    raise_always            = nullptr;
     sk::ParameterBool*    raise_in_fg             = nullptr;
     sk::ParameterBool*    raise_in_bg             = nullptr;
+    sk::ParameterBool*    deny_foreign_change     = nullptr;
   } priority;
 } scheduling;
 
@@ -1567,6 +1570,7 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.raise_always,       L"Always boost process priority to Highest",                  dll_ini,         L"Scheduler.Boost",       L"AlwaysRaisePriority"),
     ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Highest in Background",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
     ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
+    ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
 
 
     // Control the behavior of SKIF rather than the other way around
@@ -2948,6 +2952,12 @@ auto DeclKeybind =
 
         steam.system.dll_path->store (config.steam.dll_path);
         break;
+
+      case SK_GAME_ID::HonkaiStarRail:
+        // Work-around anti-cheat
+        config.compatibility.disable_debug_features =  true;
+        config.system.handle_crashes                = false;
+        break;
     }
   }
 
@@ -3184,9 +3194,10 @@ auto DeclKeybind =
     }
   }
 
-  scheduling.priority.raise_always->load (config.priority.raise_always);
-  scheduling.priority.raise_in_bg->load  (config.priority.raise_bg);
-  scheduling.priority.raise_in_fg->load  (config.priority.raise_fg);
+  scheduling.priority.raise_always->load        (config.priority.raise_always);
+  scheduling.priority.raise_in_bg->load         (config.priority.raise_bg);
+  scheduling.priority.raise_in_fg->load         (config.priority.raise_fg);
+  scheduling.priority.deny_foreign_change->load (config.priority.deny_foreign_change);
 
   if (config.priority.raise_always)
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
@@ -4729,9 +4740,10 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.prerender_limit->store   (config.render.framerate.pre_render_limit);
     render.framerate.buffer_count->store      (config.render.framerate.buffer_count);
 
-    scheduling.priority.raise_always->store   (config.priority.raise_always);
-    scheduling.priority.raise_in_bg->store    (config.priority.raise_bg);
-    scheduling.priority.raise_in_fg->store    (config.priority.raise_fg);
+    scheduling.priority.raise_always->store        (config.priority.raise_always);
+    scheduling.priority.raise_in_bg->store         (config.priority.raise_bg);
+    scheduling.priority.raise_in_fg->store         (config.priority.raise_fg);
+    scheduling.priority.deny_foreign_change->store (config.priority.deny_foreign_change);
 
     if (render.framerate.rescan_ratio != nullptr)
     {

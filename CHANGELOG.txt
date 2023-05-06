@@ -1,4 +1,90 @@
-﻿23.4.28
+﻿23.5.6.3
+========
+ + Disable SK's internal debugger in Honkai: Star Rail to workaround anti-cheat
+ + Added compat hacks to non-Steam version of Path of Exile as well
+ + Export/Reset Profiles in HDR widget also store their INI values as
+     described in 23.5.6
+
+23.5.6
+======
+ + Changed HDR widget to store profiled display data using monitor GUID instead
+     of the full GDI device path (since parts of it are not invariant).
+
+  * New INI Key Name:            GSMC0A0.{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+  * Old INI Key Name:
+   DISPLAY#GSMC0A0#5&2dafe0a1&5&UID45314#{e6f07b5f-ee97-4a90-b076-33f57bf4eaa7}
+
+     >> Old Global\hdr.ini files will have invalid entries; consider deleting.
+
+         @ Re-run "Profile Display Capabilities" after deleting...
+
+23.5.5
+======
+ + Only display Effective Power Mode in control panel if game is foreground
+ + Clicking the Aspect Ratio Stretch background will activate the game window
+ + Prevent Aspect Ratio Stretch background window from becoming foreground
+
+23.5.4.2
+========
+ + Do not attempt to register for Effective Power Mode change notifications
+     on WINE, since it will just crash the game and complain about a stub.
+
+23.5.4.1
+========
+ + Added Effective Power Mode to SK's Control Panel.
+
+    >> If it does not say Game Mode (while the game is in the foreground),
+         then check the Windows Game Bar with the game is running...
+
+      * Ensure the Game Bar has 'Remember this is a Game' checked.
+
+23.5.4
+======
+ + Fixed aspect ratio stretch background window stealing focus from the game
+     window when Aspect Ratio Stretch is enabled.
+
+23.5.3
+======
+ + Remove leading and trailing spaces from config profile directory names if
+     the Steam manifest uses them in the game name...
+
+       (i.e. " Dead Space" and "Star Wars: Jedi Fallen Order™ ")
+
+23.5.2
+======
+ + RunDLL_DisableGFEForSKIF also disables VRR for SKIF
+
+23.5.1.1
+========
+ + Added [Scheduler.Boost] DenyForeignChange option to prevent Game Mode from
+     lowering process priority when certain combinations of scheduler boost
+       are active.
+
+23.5.1
+======
+ + Disable GeForce Experience Overlay for SKIF the first time SK is injected
+
+     >> Game has to be run as Admin for this to happen automatically
+
+      * To do manually (from an Admin command prompt):
+
+         rundll32 SpecialK64.dll,RunDLL_DisableGFEForSKIF
+
+23.4.30.4
+=========
+ + Disable warning about "Continue Rendering" if a game tries to engage
+     Fullscreen Exclusive and SK is overriding it to Borderless Fullscreen.
+ + Blacklisted processes no longer signal SKIF's OnExit event when exiting
+ + Added EASteamProxy.exe to internal injection blacklist
+ + Added Link2EA.exe to internal injection blacklist (EA, stop dammit!)
+ + Added dsx.exe to internal injection blacklist
+
+23.4.29
+=======
+ + Added internal list of executables that acquire multiple references
+     to SK's DLL during injection shutdown.
+
+23.4.28
 =======
  + Added check if Microsoft's GLOn12 layer is active before using OpenGL-IK
 

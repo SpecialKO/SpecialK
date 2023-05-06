@@ -1310,11 +1310,23 @@ SK_Inject_SpawnUnloadListener (void)
             //   is actually injecting our DLL in the first place.
             if (! GetModuleHandle (L"explorer.exe"))
             {
-              // Executables with child processes might inherit
-              if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
-                       GetModuleLoadCount (g_hModule_CBT) > 1)
+              // List of processes that acquire multiple DLL references
+              for ( auto& dll : { L"notepad.exe",
+                                  L"mspaint.exe",
+                                  L"epicwebhelper.exe",
+                                  L"steamwebhelper.exe" } )
               {
-                FreeLibrary (g_hModule_CBT);
+                if (GetModuleHandle (dll))
+                {
+                  // Executables with child processes might inherit
+                  if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
+                           GetModuleLoadCount (g_hModule_CBT) > 1)
+                  {
+                    FreeLibrary (g_hModule_CBT);
+                  }
+
+                  break;
+                }
               }
             }
           }

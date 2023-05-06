@@ -229,6 +229,8 @@ BOOL           SK_NvAPI_SetVRREnablement   (BOOL bEnable);
 BOOL           SK_NvAPI_GetFastSync        (void);
 BOOL           SK_NvAPI_SetFastSync        (BOOL bEnable);
 
+BOOL           SK_NvAPI_AllowGFEOverlay    (bool bAllow, wchar_t *wszAppName, wchar_t *wszExecutable);
+
 void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
 void __stdcall SK_NvAPI_SetAppName         (const wchar_t* wszAppName);
 

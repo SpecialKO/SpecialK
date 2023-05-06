@@ -480,9 +480,11 @@ DllMain ( HMODULE hModule,
       {
         if (bRet)
         {
-          SK_DLL_SetAttached        ( false );
-          DisableThreadLibraryCalls (hModule);
-          CreateTeardownEvent       (       );
+          // This is not the process SKIF is looking for :)
+          SK_Inject_SuppressExitNotify (       );
+          SK_DLL_SetAttached           ( false );
+          DisableThreadLibraryCalls    (hModule);
+          CreateTeardownEvent          (       );
         }
 
         return bRet;

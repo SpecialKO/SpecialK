@@ -4331,8 +4331,6 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
-
   // Dummy init swapchains (i.e. 1x1 pixel) should not have
   //   override parameters applied or it's usually fatal.
   bool no_override = (! SK_DXGI_IsSwapChainReal (This));
@@ -4379,6 +4377,8 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
       pTarget    = nullptr;
     }
   }
+
+  SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
 
   extern bool SK_Window_HasBorder      (HWND hWnd);
   extern void SK_Window_RemoveBorders  (void);

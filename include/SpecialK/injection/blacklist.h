@@ -173,12 +173,21 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"crs-uploader.exe", // Days Gone Launcher thingy
   L"dndbrowserhelper64.exe",
 
-  L"LauncherPatcher.exe",      // GTA IV (32-bit)
-  L"RockstarService.exe",      //  ...
-  L"RockstarSteamHelper.exe",  //  ...
-  L"RockstarErrorHandler.exe", // 64-bit even in 32-bit games
+  L"launcherpatcher.exe",      // GTA IV (32-bit)
+  L"rockstarservice.exe",      //  ...
+  L"rockstarsteamhelper.exe",  //  ...
+  L"rockstarerrorhandler.exe", // 64-bit even in 32-bit games
 
-  L"t2gp.exe", // 2K Launcher
+  L"easteamproxy.exe", // Stupid EA bullcrap
+  L"link2ea.exe",      // More stupid EA stuff
+
+  L"t2gp.exe",            // 2K Launcher
+  L"launcher_helper.exe", // More 2K crap
+
+  L"steamless.exe", // Steam DRM workaround needed to mod some games
+
+  L"zfgamebrowser.exe", // Genshin Impact Launcher
+  L"dsx.exe",           // Dual Sense X
 
   L"coherentui_host.exe",
   L"activationui.exe",

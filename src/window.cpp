@@ -1068,7 +1068,7 @@ ActivateWindow ( HWND hWnd,
 
         bool success = false;
 
-        if (_GPU != GPU || _dwProcess != dwProcess)
+        if (_GPU != GPU || _dwProcess != dwProcess || config.priority.deny_foreign_change)
         {
           if (SetPriorityClass (GetCurrentProcess (), _dwProcess))
           {                               dwProcess = _dwProcess;
@@ -2681,12 +2681,15 @@ SK_SetWindowLongPtrA (
       {
         args_s args;
 
-        while (dispatch->queued.try_pop (args))
+        while (! dispatch->queued.empty ())
         {
-          if (SetWindowLongPtrA_Original != nullptr)
-              SetWindowLongPtrA_Original (args.hWnd, args.nIndex, args.dwNewLong);
-          else
-              SetWindowLongPtrA          (args.hWnd, args.nIndex, args.dwNewLong);
+          if (dispatch->queued.try_pop (args))
+          {
+            if (SetWindowLongPtrA_Original != nullptr)
+                SetWindowLongPtrA_Original (args.hWnd, args.nIndex, args.dwNewLong);
+            else
+                SetWindowLongPtrA          (args.hWnd, args.nIndex, args.dwNewLong);
+          }
         }
       }
 
@@ -2782,12 +2785,15 @@ SK_SetWindowLongPtrW (
       {
         args_s args;
 
-        while (dispatch->queued.try_pop (args))
+        while (! dispatch->queued.empty ())
         {
-          if (SetWindowLongPtrW_Original != nullptr)
-              SetWindowLongPtrW_Original (args.hWnd, args.nIndex, args.dwNewLong);
-          else
-              SetWindowLongPtrW          (args.hWnd, args.nIndex, args.dwNewLong);
+          if (dispatch->queued.try_pop (args))
+          {
+            if (SetWindowLongPtrW_Original != nullptr)
+                SetWindowLongPtrW_Original (args.hWnd, args.nIndex, args.dwNewLong);
+            else
+                SetWindowLongPtrW          (args.hWnd, args.nIndex, args.dwNewLong);
+          }
         }
       }
 
@@ -4707,22 +4713,48 @@ SK_RealizeForegroundWindow (HWND hWndForeground)
 #else
   if (dwOrigThreadId != SK_GetCurrentThreadId ())
   {
-    SK_Thread_Create ([](LPVOID lpHwnd) ->
-    DWORD
+    static concurrency::concurrent_queue <HWND> hwnd_queue;
+    static SK_AutoHandle                        hwnd_signal (
+      CreateEvent (nullptr, FALSE, FALSE, nullptr)
+    );
+
+    hwnd_queue.push (hWndForeground);
+    SetEvent        (hwnd_signal);
+
+    SK_RunOnce (
     {
-      RealizeForegroundWindow_Impl ((HWND)lpHwnd);
+      SK_Thread_CreateEx ([](LPVOID) ->
+      DWORD
+      {
+        HANDLE hSignals [] = {
+          __SK_DLL_TeardownEvent,
+           hwnd_signal
+        };
 
-      SK_Thread_CloseSelf ();
+        DWORD dwWait = 0;
 
-      return 0;
-    }, (LPVOID)hWndForeground);
+        while ( (dwWait = WaitForMultipleObjects (
+                            2, hSignals, FALSE, INFINITE )
+                ) != WAIT_OBJECT_0 )
+        {
+          HWND hWnd;
 
-    //
-    // Rather than spawn this same thread over and over, you need to design
-    //   a window that can handle WM_USER messages and dispatch this crap.
-    //
-    //  --> Same goes for SetWindowLong, which is not thread-safe in Unity.
-    //
+          while (! hwnd_queue.empty ())
+          {
+            if (hwnd_queue.try_pop (hWnd))
+            {
+              //SK_ImGui_Warning (L"RealizeForegroundWindow");
+
+              RealizeForegroundWindow_Impl (hWnd);
+            }
+          }
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] RealizeForegroundWindow", (LPVOID)hWndForeground);
+    });
   }
 #endif
   else
@@ -5205,6 +5237,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                     __SK_SUBSYSTEM__ );
         game_window.hWnd   =    0;
         game_window.active = true; // The headless chicken appears very active...
+
+        SK_Win32_DestroyBackgroundWindow ();
 
         extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                     SK_Inject_SetFocusWindow (0);
@@ -7067,14 +7101,29 @@ SK_SetWindowPos ( HWND hWnd,
     SetWindowPos (hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
-static HWND SK_Win32_BackgroundHWND;
-void        SK_Win32_BringBackgroundWindowToTop (void);
+HWND SK_Win32_BackgroundHWND = HWND_DESKTOP;
+void SK_Win32_BringBackgroundWindowToTop (void);
 
+
+void
+SK_Win32_DestroyBackgroundWindow (void)
+{
+  if (SK_Win32_BackgroundHWND != HWND_DESKTOP)
+  {
+    if (   IsWindow (SK_Win32_BackgroundHWND))
+      DestroyWindow (SK_Win32_BackgroundHWND);
+
+    SK_Win32_BackgroundHWND = HWND_DESKTOP;
+  }
+}
 
 LRESULT
 CALLBACK
 SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+  auto hWndGame =
+    SK_GetGameWindow ();
+
   switch (msg)
   {
     case WM_CLOSE:
@@ -7082,23 +7131,49 @@ SK_Win32_BackgroundWndProc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       break;
     case WM_SETFOCUS:
     case WM_KILLFOCUS:
+      return 0;
+
+    case WM_LBUTTONDBLCLK:
+    case WM_LBUTTONUP:
+    case WM_LBUTTONDOWN: // Window is not activatable, swallow mouse clicks and activate the game instead.
+      game_window.active = true;
+      BringWindowToTop           (hwnd);
+      SK_RealizeForegroundWindow (hWndGame);
+      return 0;
+
     case WM_ACTIVATE:
-    case WM_ACTIVATEAPP:
     case WM_MOUSEACTIVATE:
+    case WM_ACTIVATEAPP:
+      //SK_RunOnce (SK_ImGui_Warning (L"Activated Aspect Ratio Background Window"));
+      return 0;
+      break;
+
     case WM_DISPLAYCHANGE:
+      if (game_window.active)
+      {
+        SK_Win32_BringBackgroundWindowToTop ();
+        SK_RealizeForegroundWindow  (hWndGame);
+      }
+      break;
     case WM_SETCURSOR:
-      SK_Win32_BringBackgroundWindowToTop ();
-    default:
-      return DefWindowProcW (hwnd, msg, wParam, lParam);
+      if (game_window.active)
+      {
+        SetCursor (NULL);
+        return TRUE;
+      }
   }
 
-  return 0;
+  return
+    DefWindowProcW (hwnd, msg, wParam, lParam);
 }
 
 void
 SK_Win32_BringBackgroundWindowToTop (void)
 {
   if (! config.display.aspect_ratio_stretch)
+    return;
+
+  if (SK_Win32_BackgroundHWND == HWND_DESKTOP)
     return;
 
   HMONITOR hMonitor =

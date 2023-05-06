@@ -3837,6 +3837,46 @@ SK_ImGui_ControlPanel (void)
         ImGui::TreePop ();
         ImGui::EndMenu ();
       }
+
+      auto effective_power_mode =
+        SK_Power_GetCurrentEffectiveMode ();
+
+      if (SK_IsGameWindowActive ())
+      {
+        if (effective_power_mode != EffectivePowerModeNone)
+        {
+          ImGui::SameLine          ();
+          ImGui::VerticalSeparator ();
+          ImGui::SameLine          ();
+          ImGui::Text              ("\tEffective Power Mode:\t %hs",
+                                    SK_Power_GetEffectiveModeStr (effective_power_mode));
+
+          if (effective_power_mode != EffectivePowerModeGameMode)
+          {
+            ImGui::SameLine ();
+            ImGui::Spacing  ();
+            ImGui::SameLine ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip (
+                "For best performance:\r\n\t"
+                "Set 'Remember this is a game' in Windows Game Bar settings,"
+                "  ensure that Windows Game Mode is On, and restart the game."
+              );
+            }
+          }
+
+          else
+          {
+            ImGui::SameLine ();
+            ImGui::Spacing  ();
+            ImGui::SameLine ();
+            ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), ICON_FA_TACHOMETER_ALT);
+          }
+        }
+      }
     };
 
   if (config.imgui.use_mac_style_menu)

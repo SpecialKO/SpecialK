@@ -467,6 +467,56 @@ float3 PQToLinear (float3 x)
 }
 
 
+std::wstring
+SK_Display_GetDeviceNameAndGUID (const wchar_t *wszPathName)
+{
+  const wchar_t *wszGUID =
+    wcsrchr (wszPathName, L'{');
+
+  if (wszGUID != nullptr)
+  {
+    const wchar_t *wszName =
+      StrStrIW (wszPathName, L"#");
+
+    if (wszName != nullptr)
+    {
+      std::wstring name_and_guid =
+                wszName+1;
+
+      auto end =
+        name_and_guid.find (L"#");
+
+      if (end != std::wstring::npos)
+      {
+        return
+          (name_and_guid.substr (0, end) + L".") + wszGUID;
+      }
+    }
+  }
+
+  return L"UNKNOWN.{INVALID-GUID}";
+}
+
+bool
+SK_Display_ComparePathNameGUIDs ( const wchar_t *wszPathName0,
+                                  const wchar_t *wszPathName1 )
+{
+  const wchar_t *wszGUID0 =
+    wcsrchr (wszPathName0, L'{');
+
+  const wchar_t *wszGUID1 =
+    wcsrchr (wszPathName1, L'{');
+
+  if ( wszGUID0 != nullptr &&
+       wszGUID1 != nullptr )
+  {
+    return
+      ! _wcsicmp (wszGUID0, wszGUID1);
+  }
+
+  return false;
+}
+
 void
 SK_HDR_DisplayProfilerDialog (bool draw = true)
 {
@@ -484,10 +534,13 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
           last_path = L"";
     if (! last_path._Equal (rb.displays [rb.active_display].path_name))
     {
-      if (pINI->contains_section (rb.displays [rb.active_display].path_name))
+      auto guid =
+        SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+      if (pINI->contains_section (guid))
       {
         auto& sec =
-          pINI->get_section (rb.displays [rb.active_display].path_name);
+          pINI->get_section (guid);
 
         if (sec.contains_key (L"MaxLuminance"))
         {
@@ -655,7 +708,10 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
     bEnd |=
       ImGui::Button ("Cancel");
 
-    if ( pINI->get_section (rb.displays [rb.active_display].path_name).
+    auto guid =
+      SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+    if ( pINI->get_section (guid).
           contains_key     (L"MaxLuminance") )
     {
       ImGui::SameLine ();
@@ -670,13 +726,13 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
       {
         if (! bReset)
         {
-          pINI->get_section (rb.displays [rb.active_display].path_name).
+          pINI->get_section (guid).
               add_key_value (L"MaxLuminance", std::to_wstring (__SK_HDR_Luma / 1.0_Nits));
         }
 
         else
         {
-          pINI->get_section (rb.displays [rb.active_display].path_name).
+          pINI->get_section (guid).
                  remove_key (L"MaxLuminance");
 
           __SK_HDR_Luma = 1499.0_Nits;
@@ -1093,11 +1149,13 @@ public:
         ImGui::TextColored    (ImColor::HSV (.17f,1.f, .9f), "HDR %s Active",
                                                 __SK_HDR_16BitSwap ?
                                                              "Not" : "Still");
-        ImGui::TextColored    (ImColor::HSV (.3f, .8f, .9f), "  Try pressing Alt + Enter a few times to fix this");
+        ImGui::TextColored    (ImColor::HSV (.30f, .8f, .9f), "  Try pressing Alt + Enter a few times to fix this");
+        ImGui::TextColored    (ImColor::HSV (.30f, .8f, .9f), "  ");
+        ImGui::SameLine       ();
+        ImGui::Bullet         ();
+        ImGui::SameLine       ();
+        ImGui::TextColored    (ImColor::HSV (.15f, .8f, .9f), "A game restart may be necessary...");
         ImGui::EndGroup       ();
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("A complete game restart may be necessary in some cases");
       };
 
       if (__SK_HDR_16BitSwap)
@@ -1589,8 +1647,11 @@ public:
             iSK_INISection*
                   pSection = nullptr;
 
-            if (     pGlobalIni->contains_section (rb.displays [rb.active_display].path_name))
-              pSection = &pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+            auto guid =
+              SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+            if (     pGlobalIni->contains_section (guid))
+              pSection = &pGlobalIni->get_section (guid);
 
             if (pSection != nullptr &&
                 pSection->contains_key (                                SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset)))
@@ -1667,8 +1728,11 @@ public:
 
           if (ImGui::Button ("Export"))
           {
+            auto guid =
+              SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
             auto& sec =
-              pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+              pGlobalIni->get_section (guid);
 
             sec.add_key_value (
               SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset),
