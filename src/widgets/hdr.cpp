@@ -1647,8 +1647,11 @@ public:
             iSK_INISection*
                   pSection = nullptr;
 
-            if (     pGlobalIni->contains_section (rb.displays [rb.active_display].path_name))
-              pSection = &pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+            auto guid =
+              SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+            if (     pGlobalIni->contains_section (guid))
+              pSection = &pGlobalIni->get_section (guid);
 
             if (pSection != nullptr &&
                 pSection->contains_key (                                SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset)))
@@ -1725,8 +1728,11 @@ public:
 
           if (ImGui::Button ("Export"))
           {
+            auto guid =
+              SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
             auto& sec =
-              pGlobalIni->get_section (rb.displays [rb.active_display].path_name);
+              pGlobalIni->get_section (guid);
 
             sec.add_key_value (
               SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset),

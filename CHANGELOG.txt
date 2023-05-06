@@ -1,6 +1,8 @@
-﻿23.5.6.1
+﻿23.5.6.2
 ========
  + Added compat hacks to non-Steam version of Path of Exile as well
+ + Export/Reset Profiles in HDR widget also store their INI values as
+     described in 23.5.6
 
 23.5.6
 ======
