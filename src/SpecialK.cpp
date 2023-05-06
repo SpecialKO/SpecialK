@@ -303,10 +303,20 @@ SK_KeepAway (void)
   if ( status ==   Unlisted ||
        status == Bluelisted )
   {
+    // GetCurrentPackageFullName (Windows 8+)
+    using GetCurrentPackageFullName_pfn =
+      LONG (WINAPI *)(IN OUT UINT32*, OUT OPTIONAL PWSTR);
+
+    static GetCurrentPackageFullName_pfn
+      SK_GetCurrentPackageFullName =
+          (GetCurrentPackageFullName_pfn)GetProcAddress (LoadLibraryEx (L"kernel32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+          "GetCurrentPackageFullName");
+
     wchar_t wszPackageName [PACKAGE_FULL_NAME_MAX_LENGTH] = { };
     UINT32  uiLen                                         =  0;
-    LONG    rc                                            =
-      GetCurrentPackageFullName (&uiLen, wszPackageName);
+    LONG    rc                                            =  0;
+    if (   SK_GetCurrentPackageFullName != nullptr)
+      rc = SK_GetCurrentPackageFullName (&uiLen, wszPackageName);
 
     if (rc != APPMODEL_ERROR_NO_PACKAGE || status == Bluelisted)
     {

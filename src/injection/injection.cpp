@@ -566,14 +566,24 @@ SK_Inject_AcquireProcess (void)
 
       wcsncpy_s (&__SK_InjectionHistory_name [local_record * MAX_PATH], MAX_PATH,
                                          wszHostFullName,             _TRUNCATE);
+      
+      // GetCurrentPackageFullName (Windows 8+)
+      using GetCurrentPackageFullName_pfn =
+        LONG (WINAPI *)(IN OUT UINT32*, OUT OPTIONAL PWSTR);
+
+      static GetCurrentPackageFullName_pfn
+        SK_GetCurrentPackageFullName =
+            (GetCurrentPackageFullName_pfn)GetProcAddress (LoadLibraryEx (L"kernel32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+            "GetCurrentPackageFullName");
 
       wchar_t                                wszPackageName [PACKAGE_FULL_NAME_MAX_LENGTH] = { };
-      UINT32                          uiLen                                                =  0 ;
-      if (GetCurrentPackageFullName (&uiLen, wszPackageName) != APPMODEL_ERROR_NO_PACKAGE)
+      UINT32                             uiLen                                             =  0 ;
+      if (SK_GetCurrentPackageFullName != nullptr &&
+          SK_GetCurrentPackageFullName (&uiLen, wszPackageName) != APPMODEL_ERROR_NO_PACKAGE)
       {
         wcsncpy_s (&__SK_InjectionHistory_UwpPackage [
                                               local_record * PACKAGE_FULL_NAME_MAX_LENGTH],
-                                      uiLen, wszPackageName,                    _TRUNCATE);
+                                         uiLen, wszPackageName,                 _TRUNCATE);
       }
 
       // Hold a reference so that removing the CBT hook doesn't crash the software
