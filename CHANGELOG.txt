@@ -1,4 +1,15 @@
-﻿23.5.6.3
+﻿23.5.7
+======
+ + Merge pull request #63 from Aemony/D3D9-IK
+    * Restores Windows 7 compatibility (just don't ask for support)
+
+ + Merge pull request #59 from SpecialKO/Aemony-patch-1
+    * Added build.bat to automate build process further
+
+ + Merge pull request #34 from Trass3r/D3D9-IK
+    * Add Continuous Integration
+
+23.5.6.3
 ========
  + Disable SK's internal debugger in Honkai: Star Rail to workaround anti-cheat
  + Added compat hacks to non-Steam version of Path of Exile as well
