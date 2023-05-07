@@ -337,6 +337,9 @@
     <Filter Include="Header Files\Plugins\Stats">
       <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\Tobii">
+      <UniqueIdentifier>{3ed5eb19-e630-4601-8755-13c12f7d0de1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2906,6 +2909,18 @@
     </ClInclude>
     <ClInclude Include="include\imgui\imfilebrowser.h">
       <Filter>Header Files\External Libraries\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii.h">
+      <Filter>Header Files\External Libraries\Tobii</Filter>
+    </ClInclude>
+    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_engine.h">
+      <Filter>Header Files\External Libraries\Tobii</Filter>
+    </ClInclude>
+    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_streams.h">
+      <Filter>Header Files\External Libraries\Tobii</Filter>
+    </ClInclude>
+    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_wearable.h">
+      <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
