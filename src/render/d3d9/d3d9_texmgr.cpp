@@ -25,7 +25,6 @@
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
 
 #include <d3d9.h>
-#include <d3dx9tex.h>
 
 #define __SK_SUBSYSTEM__ L" D3D9 Tex "
 
