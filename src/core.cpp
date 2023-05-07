@@ -3790,6 +3790,17 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 #endif
 
 
+  // Catch sneaky games that change their TopMost status unrelated to window
+  //   activation state...
+  if ( config.window.always_on_top == 0 &&
+                   SK_Window_IsTopMost (game_window.hWnd) )
+  {
+    SK_LOG0 ( ( L"Game Window was TopMost, removing..." ), L"WindowMgr" );
+
+    SK_DeferCommand ("Window.TopMost 0");
+  }
+
+
   return hr;
 }
 

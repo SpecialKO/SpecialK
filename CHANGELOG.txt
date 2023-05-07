@@ -1,4 +1,11 @@
-﻿23.5.7
+﻿23.5.8
+======
+ + Changed the "Prevent Always-On-Top" option to check the state once per-frame
+     and remove a game window's Always-On-Top state if needed.
+
+       (The old behavior only did this following window (de)activation).
+
+23.5.7
 ======
  + Merge pull request #63 from Aemony/D3D9-IK
     * Restores Windows 7 compatibility (just don't ask for support)
