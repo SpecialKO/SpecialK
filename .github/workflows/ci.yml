@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config: [Release]
+        platform: [Win32, x64]
+    steps:
+    - uses: actions/checkout@v3
+    - uses: Trass3r/setup-cpp@master
+    - uses: microsoft/setup-msbuild@v1.1
+    - uses: hendrikmuhs/ccache-action@main
+      with:
+        key: ${{ matrix.config }}-${{ matrix.platform }}
+        max-size: 1G
+        verbose: 1
+    - name: build
+      run: |
+        msbuild SpecialK.sln -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}" -m
+    - uses: actions/upload-artifact@v3
+      with:
+        name: build-${{ matrix.configuration }}
+        path: |
+          ${env:USERPROFILE}/Documents/My Mods/SpecialK/*

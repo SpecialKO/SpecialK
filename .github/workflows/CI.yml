@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: D3D9-IK
+    branches: main
   pull_request:
-    branches: D3D9-IK
+    branches: main
 
 jobs:
   build:
@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config: [Debug, Release, 'Release - AVX2']
+        config: [Release]
         platform: [Win32, x64]
     steps:
     - uses: actions/checkout@v3
