@@ -2834,7 +2834,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <None Include="include\SpecialK\commands\mem.inl" />
     <None Include="include\SpecialK\commands\update.inl" />
     <None Include="LICENSE" />
-    <None Include="packages.config" />
     <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

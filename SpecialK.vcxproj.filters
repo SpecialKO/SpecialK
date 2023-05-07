@@ -4247,9 +4247,6 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
-    <None Include="packages.config">
-      <Filter>Tobii</Filter>
-    </None>
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
