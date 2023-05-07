@@ -19,12 +19,6 @@ jobs:
 
     - uses: microsoft/setup-msbuild@v1.1
 
-    - uses: hendrikmuhs/ccache-action@main
-      with:
-        key: ${{ matrix.config }}-${{ matrix.platform }}
-        max-size: 1G
-        verbose: 1
-
     - name: Build the Special K source code
       run: |
         msbuild SpecialK.sln -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}" -m
