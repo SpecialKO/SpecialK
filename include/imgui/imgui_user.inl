@@ -2538,8 +2538,28 @@ SK_ImGui_User_NewFrame (void)
   if (PtInRect (&game_window.actual.window,
                          cursor_pos))
   {
-    HWND hWndTop =
-        WindowFromPoint (cursor_pos);
+    struct {
+      HWND  hWndTop;
+      POINT cursor_pos;
+    } static last;
+
+    HWND hWndTop = last.hWndTop;
+
+    if (cursor_pos.x != last.cursor_pos.x ||
+        cursor_pos.y != last.cursor_pos.y)
+    {
+      if (SK_GetForegroundWindow () != game_window.hWnd)
+      {
+        last.hWndTop =
+          WindowFromPoint (cursor_pos);
+      }
+      else
+        last.hWndTop    = game_window.hWnd;
+        last.cursor_pos =  cursor_pos;
+    }
+
+    hWndTop =
+      last.hWndTop;
 
     bHitTest = true;
 
@@ -2562,6 +2582,7 @@ SK_ImGui_User_NewFrame (void)
         if (hWndChild == game_window.hWnd)
         {
            bHitTest = true;
+
         }
       }
     }
@@ -2601,7 +2622,7 @@ SK_ImGui_User_NewFrame (void)
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
 
   bool bFocused =
-    SK_IsGameWindowFocused (),
+    SK_IsGameWindowActive  (),//SK_IsGameWindowFocused (),
        bActive  =
     SK_IsGameWindowActive  ();
 
