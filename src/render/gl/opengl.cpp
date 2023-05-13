@@ -2522,8 +2522,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       wglDXLockObjectsNV   ( dx_gl_interop.d3d11.hInteropDevice, 1,
                             &dx_gl_interop.d3d11.staging.hColorBuffer );
 
+      GLint                                   original_scissor;
       GLint                                   original_fbo;
       glGetIntegerv (GL_FRAMEBUFFER_BINDING, &original_fbo);
+      glGetIntegerv (GL_SCISSOR_TEST,        &original_scissor);
 
       glBindFramebuffer         (GL_FRAMEBUFFER,  dx_gl_interop.gl.fbo);
       glFramebufferRenderbuffer (GL_FRAMEBUFFER,  GL_COLOR_ATTACHMENT0,
@@ -2531,6 +2533,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       glBindFramebuffer (GL_READ_FRAMEBUFFER, 0);
       glBindFramebuffer (GL_DRAW_FRAMEBUFFER, dx_gl_interop.gl.fbo);
+
+      glDisable         (GL_SCISSOR_TEST);
 
       GLint w = static_cast <GLint> (dx_gl_interop.output.viewport.Width),
             h = static_cast <GLint> (dx_gl_interop.output.viewport.Height);
@@ -2586,6 +2590,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (glClampColor != nullptr)
           glClampColor  (GL_CLAMP_READ_COLOR, GL_FALSE);
       glFlush           (                             );
+
+      if (original_scissor == GL_TRUE)
+        glEnable (GL_SCISSOR_TEST);
 
       wglDXUnlockObjectsNV ( dx_gl_interop.d3d11.hInteropDevice, 1,
                             &dx_gl_interop.d3d11.staging.hColorBuffer );

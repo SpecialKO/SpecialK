@@ -1,4 +1,8 @@
-﻿23.5.8
+﻿23.5.13
+=======
+ + Disable OpenGL Scissor Test during glBlitFramebuffer for OpenGL-IK
+
+23.5.8
 ======
  + Changed the "Prevent Always-On-Top" option to check the state once per-frame
      and remove a game window's Always-On-Top state if needed.
@@ -21,7 +25,7 @@
  + Disable SK's internal debugger in Honkai: Star Rail to workaround anti-cheat
  + Added compat hacks to non-Steam version of Path of Exile as well
  + Export/Reset Profiles in HDR widget also store their INI values as
-     described in 23.5.6
+     described in 23.5.6'
 
 23.5.6
 ======
