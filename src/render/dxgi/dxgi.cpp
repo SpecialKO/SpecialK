@@ -4908,14 +4908,30 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
     }
 
 
+    static bool
+      was_hdr = false;
+
     // Apply scRGB colorspace immediately, 16bpc formats can be either this
     //   or regular Rec709 and Rec709 is washed out after making this switch
     if (__SK_HDR_16BitSwap && NewFormat == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
       SK_ComQIPtr <IDXGISwapChain4>
           pSwap4 (This);
-      if (pSwap4 != nullptr)
+      if (pSwap4 != nullptr) {
           pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+          was_hdr = true;
+      }
+    }
+
+    if (!__SK_HDR_16BitSwap && NewFormat != DXGI_FORMAT_R16G16B16A16_FLOAT)
+    {
+      if (std::exchange (was_hdr, false))
+      {
+        SK_ComQIPtr <IDXGISwapChain4>
+            pSwap4 (This);
+        if (pSwap4 != nullptr)
+            pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+      }
     }
   }
 
