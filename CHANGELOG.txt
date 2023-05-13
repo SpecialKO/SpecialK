@@ -1,5 +1,6 @@
-﻿23.5.13
-=======
+﻿23.5.13.1
+=========
+ + Add extra Wallpaper Engine executables to blacklist
  + Disable OpenGL Scissor Test during glBlitFramebuffer for OpenGL-IK
 
 23.5.8
