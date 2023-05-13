@@ -1,3 +1,5 @@
+[![Builds](https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml/badge.svg)](https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml)
+
 Special K&nbsp;&nbsp;<sub>*"Lovingly referred to as the Swiss Army Knife of PC gaming, Special K does a bit of everything. It is best known for fixing and enhancing graphics, its many detailed performance analysis and correction mods, and a constantly growing palette of tools that solve a wide variety of issues affecting PC games."*</sub><hr>
 >**Contents of Repository**
 >
@@ -6,14 +8,14 @@ Special K&nbsp;&nbsp;<sub>*"Lovingly referred to as the Swiss Army Knife of PC g
 >
 ><br>**Build Dependencies**
 >
-> Most of Special K's build dependencies are included when you clone the repo, with one exception. You must have the June 2010 DirectX SDK installed to build Special K.
+> All of Special K's build dependencies are included when you clone the repo beginning with 23.5.7. Older versions have an additional dependency on the June 2010 DirectX SDK.
 > 
 >> Special K requires Visual C++ 2022 or newer to compile due to language features not present in older compilers.
 >
 ><br>**Platform Dependencies**
 >
-> Special K will not run on anything older than Windows 8.1, do not even bother trying. Happily, it does run in WINE and is compatible with DXVK.
-> >Windows 7 has to sit this one out and think about all the terrible things it has done; seriously, **#NoMoreWindows7**<br>
+> Special K is not supported on anything older than Windows 8.1, though (as of 23.5.7) still builds and runs (massively feature-reduced) on Windows 7 (Platform Update).
+> > It does run in WINE and is compatible with DXVK, but must be configured with `UsingWINE=true` in its per-game INI file to work on Linux.<br>
 >
 ><br>**Miscellaneous**
 >
