@@ -2416,8 +2416,49 @@ BOOL SK_NvAPI_AllowGFEOverlay (bool bAllow, wchar_t *wszAppName, wchar_t *wszExe
 
 void
 CALLBACK
+RunDLL_RestartNVIDIADriver ( HWND   hwnd,        HINSTANCE hInst,
+                             LPCSTR lpszCmdLine, int       nCmdShow )
+{
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (hwnd);
+  UNREFERENCED_PARAMETER (nCmdShow);
+
+  if (SK_IsAdmin ())
+  {
+#ifndef _WIN64
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi.dll");
+#else
+    HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi64.dll");
+#endif
+
+#define __NvAPI_RestartDisplayDriver                      0xB4B26B65
+    typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
+    typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
+    NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
+      (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
+    NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
+      (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+
+    if (NvAPI_RestartDisplayDriver != nullptr)
+        NvAPI_RestartDisplayDriver ();
+  }
+  
+  else
+  {
+    if (! StrStrIA (lpszCmdLine, "silent"))
+    {
+      MessageBox (
+        NULL, L"This command must be run as admin.",
+           L"Restart NVIDIA Driver Failed", MB_OK
+      );
+    }
+  }
+}
+
+void
+CALLBACK
 RunDLL_DisableGFEForSKIF ( HWND   hwnd,        HINSTANCE hInst,
-                          LPCSTR lpszCmdLine, int       nCmdShow )
+                           LPCSTR lpszCmdLine, int       nCmdShow )
 {
   UNREFERENCED_PARAMETER (hInst);
   UNREFERENCED_PARAMETER (hwnd);

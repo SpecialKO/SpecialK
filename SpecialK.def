@@ -647,6 +647,7 @@ RunDLL_RestartGame           = RunDLL_RestartGame             PRIVATE
 RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 RunDLL_WinRing0              = RunDLL_WinRing0                PRIVATE
 RunDLL_DisableGFEForSKIF     = RunDLL_DisableGFEForSKIF       PRIVATE
+RunDLL_RestartNVIDIADriver   = RunDLL_RestartNVIDIADriver     PRIVATE
 
 
 SKX_InstallCBTHook           = SKX_InstallCBTHook
