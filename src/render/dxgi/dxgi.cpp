@@ -8146,6 +8146,41 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
 
 using finish_pfn = void (WINAPI *)(void);
 
+
+
+#include "vulkan/vulkan.h"
+#include "vulkan/vulkan_win32.h"
+
+PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR_Original = nullptr;
+
+VkResult
+SK_VK_CreateSwapchainKHR (
+            VkDevice                   device,
+      const VkSwapchainCreateInfoKHR*  pCreateInfo,
+      const VkAllocationCallbacks*     pAllocator,
+    VkSwapchainKHR*                    pSwapchain )
+{
+  VkSurfaceFullScreenExclusiveInfoEXT
+    fse_info                     = { };
+    fse_info.sType               = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+    fse_info.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
+
+  const void *pNext =     pCreateInfo->pNext;
+  auto _CreateInfoCopy = *pCreateInfo;
+
+         fse_info.pNext = (void *)pNext;
+  _CreateInfoCopy.pNext =     &fse_info;
+
+  SK_LOGi0 (
+    L"Disabling Fullscreen Exclusive", L" VulkanIK "
+  );
+
+  return
+    vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
+}
+
+
+
 void
 WINAPI
 SK_HookDXGI (void)
@@ -8163,6 +8198,21 @@ SK_HookDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
+    if (config.apis.Vulkan.hook)
+    {
+      //
+      // DXGI / VK Interop Setup
+      //
+      if (GetModuleHandle (L"vulkan-1.dll") != nullptr)
+      {
+        SK_CreateDLLHook2 (L"vulkan-1.dll",
+                                  "vkCreateSwapchainKHR",
+                               SK_VK_CreateSwapchainKHR,
+          static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
+      };
+    }
+
+
     // Serves as both D3D11 and DXGI
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
