@@ -1219,6 +1219,27 @@ SK_Render_GetAPIName (SK_RenderAPI api)
     L"Unknown API";
 }
 
+bool
+SK_Render_IsVulkanInteropSwapChain (IUnknown *swapchain)
+{
+  uint32_t  bVkInterop     = 0;
+  UINT     uiVkInteropSize = 4;
+
+  SK_ComQIPtr <IDXGISwapChain>
+                   pSwapChain (swapchain);
+
+  if ( pSwapChain.p != nullptr && SUCCEEDED (
+       pSwapChain->GetPrivateData ( SKID_DXGI_VK_InteropSwapChain,
+                                           &uiVkInteropSize,
+                                            &bVkInterop ) )
+     )
+  {
+    return true;
+  }
+
+  return false;
+}
+
 
 void
 SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
@@ -1303,20 +1324,28 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 
           else
           {
-            SK_ComPtr <IUnknown> pTest = nullptr;
+            if (SK_Render_IsVulkanInteropSwapChain (swapchain))
+            {
+              wcsncpy (name, L"Vulkan-IK", 10);
+            }
 
-            if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
-              wcsncpy (name, L"D3D11.4", 8); // Creators Update
-            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
-              wcsncpy (name, L"D3D11.4", 8);
-            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
-              wcsncpy (name, L"D3D11.3", 8);
-            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
-              wcsncpy (name, L"D3D11.2", 8);
-            } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
-              wcsncpy (name, L"D3D11.1", 8);
-            } else {
-              wcsncpy (name, L"D3D11 ", 8);
+            else
+            {
+              SK_ComPtr <IUnknown> pTest = nullptr;
+
+              if (       SUCCEEDED (device->QueryInterface (IID_ID3D11Device5, (void **)&pTest))) {
+                wcsncpy (name, L"D3D11.4", 8); // Creators Update
+              } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device4, (void **)&pTest))) {
+                wcsncpy (name, L"D3D11.4", 8);
+              } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device3, (void **)&pTest))) {
+                wcsncpy (name, L"D3D11.3", 8);
+              } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device2, (void **)&pTest))) {
+                wcsncpy (name, L"D3D11.2", 8);
+              } else if (SUCCEEDED (device->QueryInterface (IID_ID3D11Device1, (void **)&pTest))) {
+                wcsncpy (name, L"D3D11.1", 8);
+              } else {
+                wcsncpy (name, L"D3D11 ", 8);
+              }
             }
           }
         }

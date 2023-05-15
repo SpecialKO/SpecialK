@@ -50,6 +50,11 @@ static const GUID SKID_D3D11_SurrogateMultisampleResolveBuffer =
 static const GUID SKID_DXGI_SwapChainBackbufferFormat =
 { 0x8ea4b32a, 0x4150, 0xc421, { 0xea, 0xd, 0x88, 0xd3, 0xe9, 0x89, 0xa2, 0xf2 } };
 
+static const GUID SKID_DXGI_VK_InteropSwapChain =
+{ 0x22c246b, 0x322a, 0x4694, { 0x87, 0xaa, 0x7b, 0xcf, 0xfb, 0xac, 0x5e, 0xce } };
+
+
+
 typedef HRESULT (STDMETHODCALLTYPE *PresentSwapChain_pfn)(
                                        IDXGISwapChain *This,
                                        UINT            SyncInterval,
