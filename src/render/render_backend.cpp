@@ -497,10 +497,7 @@ _SK_HookVulkan (void)
   {
     if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
     {
-      // For interop, we need to enable background rendering...
-      config.window.background_render     = true;
       config.render.gl.disable_fullscreen = true;
-      config.window.dont_hook_wndproc     = true; // Not sure why this is supposedly needed...?
 
       //
       // DXGI / VK Interop Setup
@@ -515,7 +512,7 @@ _SK_HookVulkan (void)
 
 void
 SK_BootVulkan (void)
-{  
+{
   static volatile ULONG __booted = FALSE;
 
   if (InterlockedCompareExchange (&__booted, TRUE, FALSE))

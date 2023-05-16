@@ -1,4 +1,9 @@
-﻿23.5.16
+﻿23.5.16.1
+=========
+ + Promote NV's Vulkan/DXGI Layered SwapChain to 10-bpc in SDR
+ + Disabled assertion if game window changes, unless log level >= 1
+
+23.5.16
 =======
  + Fixed NV Vulkan/DXGI SwapChain cleanup that could cause games to freeze
  + Renamed "Maximum Frame Interval" to "Minimum Refresh" in Reflex widget

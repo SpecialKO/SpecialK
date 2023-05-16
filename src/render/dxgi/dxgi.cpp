@@ -379,6 +379,11 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
   TenBitSwap     = __SK_HDR_10BitSwap;
   SixteenBitSwap = __SK_HDR_16BitSwap;
 
+  // Hack to prevent NV's Vulkan/DXGI Interop SwapChain from destroying itself
+  //   if HDR is not enabled.
+  if (GetModuleHandle (L"vulkan-1.dll"))
+    TenBitSwap = true;
+
   DXGI_FORMAT fmt_new = fmt_orig;
 
   // We cannot set colorspaces in windowed BitBlt, however ...
