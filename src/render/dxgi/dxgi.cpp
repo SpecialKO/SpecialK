@@ -382,7 +382,10 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
   // Hack to prevent NV's Vulkan/DXGI Interop SwapChain from destroying itself
   //   if HDR is not enabled.
   if (GetModuleHandle (L"vulkan-1.dll"))
-    TenBitSwap = true;
+  {
+    TenBitSwap                       = true;
+    config.render.output.force_10bpc = true;
+  }
 
   DXGI_FORMAT fmt_new = fmt_orig;
 
@@ -424,10 +427,13 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
         {
           fmt_new = DXGI_FORMAT_R10G10B10A2_UNORM;
 
-          //DXGI_COLOR_SPACE_TYPE orig_space =
-          //  rb.scanout.colorspace_override;
-            rb.scanout.colorspace_override =
-            DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+          if (__SK_HDR_10BitSwap) // Only set colorspace on explicit HDR format
+          {
+            //DXGI_COLOR_SPACE_TYPE orig_space =
+            //  rb.scanout.colorspace_override;
+              rb.scanout.colorspace_override =
+              DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+          }
         }
       }
 
