@@ -6185,7 +6185,8 @@ SK_InstallWindowHook (HWND hWnd)
   }
 
 
-  SK_ReleaseAssert (game_window.hWnd == 0 || game_window.hWnd == GetAncestor (hWnd, GA_ROOT));
+  if (config.system.log_level > 0)
+    SK_ReleaseAssert (game_window.hWnd == 0 || game_window.hWnd == GetAncestor (hWnd, GA_ROOT));
 
 
   if (SK_IsAddressExecutable (game_window.WndProc_Original, true))
