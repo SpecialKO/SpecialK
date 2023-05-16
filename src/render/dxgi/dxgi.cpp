@@ -6662,8 +6662,12 @@ DXGIFactory_CreateSwapChain_Override (
 
     SK_ReleaseAssert (pDesc->OutputWindow == rb.windows.getDevice ());
 
+    rb.d3d11.clearState ();
+
     _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
     _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+    rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
 
@@ -6827,8 +6831,12 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
           static auto& rb =
             SK_GetCurrentRenderBackend ();
 
+          rb.d3d11.clearState ();
+
           _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
           _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+          rb.d3d11.clearState ();
 
           rb.releaseOwnedResources ();
 
@@ -6893,7 +6901,12 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 #ifdef __PAIR_DEVICE_TO_CHAIN
   if ( pDev11.p != nullptr && _recyclable_d3d11.count (hWnd) )
   {
-    SK_ReleaseAssert (_recyclable_d3d11 [hWnd].count (pDevice) > 0);
+    // This is expected during NVIDIA DXGI/Vulkan interop, don't
+    //   show this assertion unless debugging.
+    if (config.system.log_level > 0)
+    {
+      SK_ReleaseAssert (_recyclable_d3d11 [hWnd].count (pDevice) > 0);
+    }
 
     pChain = (IDXGISwapChain1 *)_recyclable_d3d11 [hWnd][pDevice];
 
@@ -6903,6 +6916,8 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
 
   else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )
   {
+    // This one is -VERY- unexpected, since D3D12 games should handle
+    //   cleanup for Flip Model correctly...
     SK_ReleaseAssert (_recyclable_d3d12 [hWnd].count (pDevice) > 0);
 
     pChain = (IDXGISwapChain1 *)_recyclable_d3d12 [hWnd][pDevice];
@@ -7139,8 +7154,12 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
     SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
 
+    rb.d3d11.clearState ();
+
     _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
     _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
+
+    rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
 
@@ -8146,41 +8165,6 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
 
 using finish_pfn = void (WINAPI *)(void);
 
-
-
-#include "vulkan/vulkan.h"
-#include "vulkan/vulkan_win32.h"
-
-PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR_Original = nullptr;
-
-VkResult
-SK_VK_CreateSwapchainKHR (
-            VkDevice                   device,
-      const VkSwapchainCreateInfoKHR*  pCreateInfo,
-      const VkAllocationCallbacks*     pAllocator,
-    VkSwapchainKHR*                    pSwapchain )
-{
-  VkSurfaceFullScreenExclusiveInfoEXT
-    fse_info                     = { };
-    fse_info.sType               = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
-    fse_info.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
-
-  const void *pNext =     pCreateInfo->pNext;
-  auto _CreateInfoCopy = *pCreateInfo;
-
-         fse_info.pNext = (void *)pNext;
-  _CreateInfoCopy.pNext =     &fse_info;
-
-  SK_LOGi0 (
-    L"Disabling Fullscreen Exclusive", L" VulkanIK "
-  );
-
-  return
-    vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
-}
-
-
-
 void
 WINAPI
 SK_HookDXGI (void)
@@ -8198,21 +8182,6 @@ SK_HookDXGI (void)
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
-    if (config.apis.Vulkan.hook)
-    {
-      //
-      // DXGI / VK Interop Setup
-      //
-      if (GetModuleHandle (L"vulkan-1.dll") != nullptr)
-      {
-        SK_CreateDLLHook2 (L"vulkan-1.dll",
-                                  "vkCreateSwapchainKHR",
-                               SK_VK_CreateSwapchainKHR,
-          static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
-      };
-    }
-
-
     // Serves as both D3D11 and DXGI
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );

@@ -454,26 +454,81 @@ SK_BootOpenGL (void)
 }
 
 
+#include "vulkan/vulkan.h"
+#include "vulkan/vulkan_win32.h"
+
+PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR_Original = nullptr;
+
+VkResult
+SK_VK_CreateSwapchainKHR (
+            VkDevice                   device,
+      const VkSwapchainCreateInfoKHR*  pCreateInfo,
+      const VkAllocationCallbacks*     pAllocator,
+    VkSwapchainKHR*                    pSwapchain )
+{
+  VkSurfaceFullScreenExclusiveInfoEXT
+    fse_info                     = { };
+    fse_info.sType               = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+    fse_info.fullScreenExclusive = VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
+
+  const void *pNext =     pCreateInfo->pNext;
+  auto _CreateInfoCopy = *pCreateInfo;
+
+         fse_info.pNext = (void *)pNext;
+  _CreateInfoCopy.pNext =     &fse_info;
+
+  SK_LOG0 (
+    ( L"Disabling Fullscreen Exclusive" ), L" VulkanIK "
+  );
+
+  return
+    vkCreateSwapchainKHR_Original (device, &_CreateInfoCopy, pAllocator, pSwapchain);
+}
+
+void
+_SK_HookVulkan (void)
+{
+  if (! config.apis.Vulkan.hook)
+    return;
+
+  static volatile LONG hooked = FALSE;
+
+  if (SK_LoadLibraryW (L"vulkan-1.dll") != nullptr)
+  {
+    if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
+    {
+      // For interop, we need to enable background rendering...
+      config.window.background_render     = true;
+      config.render.gl.disable_fullscreen = true;
+      config.window.dont_hook_wndproc     = true; // Not sure why this is supposedly needed...?
+
+      //
+      // DXGI / VK Interop Setup
+      //
+          SK_CreateDLLHook (L"vulkan-1.dll",
+                             "vkCreateSwapchainKHR",
+                          SK_VK_CreateSwapchainKHR,
+     static_cast_p2p <void> (&vkCreateSwapchainKHR_Original));
+    }
+  }
+}
+
 void
 SK_BootVulkan (void)
-{
-//#ifdef _M_AMD64
-//  static volatile ULONG __booted = FALSE;
-//
-//  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
-//    return;
-//
-//  // Establish the minimal set of APIs necessary to work as vulkan-1.dll
-//  if (SK_GetDLLRole () == DLL_ROLE::Vulkan)
-//    config.apis.Vulkan.hook = true;
-//
-//  if (! config.apis.Vulkan.hook)
-//    return;
-//
-//  dll_log.Log (L"[API Detect]  <!> [ Bootstrapping Vulkan 1.x (vulkan-1.dll) ] <!>");
-//
-//  SK_HookVulkan ();
-//#endif
+{  
+  static volatile ULONG __booted = FALSE;
+
+  if (InterlockedCompareExchange (&__booted, TRUE, FALSE))
+    return;
+
+  // Establish the minimal set of APIs necessary to work as vulkan-1.dll
+  if (SK_GetDLLRole () == DLL_ROLE::Vulkan)
+    config.apis.Vulkan.hook = true;
+
+  if (! config.apis.Vulkan.hook)
+    return;
+
+  _SK_HookVulkan ();
 }
 
 typedef struct _D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME {
@@ -4072,7 +4127,8 @@ SK_NV_AdaptiveSyncControl (void)
           ImGui::Text     ("Frame Splitting:");
 
           if (getAdaptiveSync.maxFrameInterval != 0)
-            ImGui::Text   ("Max Frame Interval:");
+            ImGui::Text   ("Minimum Refresh:");
+                           
         }
         ImGui::Text       ("");
       //ImGui::Text       ("Effective Refresh:");

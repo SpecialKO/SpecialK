@@ -1063,6 +1063,17 @@ public:
     SK_ComPtr <ID3D11Device>        device        = nullptr;
                ID3D11DeviceContext* immediate_ctx = nullptr;
     SK_ComPtr <ID3D11DeviceContext> deferred_ctx  = nullptr;
+
+    // Call to forcefully unbind Flip Model resources, as required
+    // during SwapChain cleanup.
+    void clearState (void)
+    {
+      if (immediate_ctx != nullptr)
+      {
+        immediate_ctx->Flush      ();
+        immediate_ctx->ClearState ();
+      }
+    }
   } d3d11;
 
   struct d3d12_s

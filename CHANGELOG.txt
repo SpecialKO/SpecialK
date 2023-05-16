@@ -1,4 +1,9 @@
-﻿23.5.13.1
+﻿23.5.16
+=======
+ + Fixed NV Vulkan/DXGI SwapChain cleanup that could cause games to freeze
+ + Renamed "Maximum Frame Interval" to "Minimum Refresh" in Reflex widget
+
+23.5.13.1
 =========
  + Add extra Wallpaper Engine executables to blacklist
  + Disable OpenGL Scissor Test during glBlitFramebuffer for OpenGL-IK
