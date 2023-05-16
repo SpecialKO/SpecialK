@@ -779,6 +779,24 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
+      else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
+      {
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.");
+
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+        hMod = nullptr;
+      }
+
+      else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
+      {
+        dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.");
+
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+        hMod = nullptr;
+      }
+
       else if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
       {
         dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
@@ -984,6 +1002,24 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
   {
     dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
+
+    SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+    return nullptr;
+  }
+
+  else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
+  {
+    dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.");
+
+    SK_SetLastError (ERROR_MOD_NOT_FOUND);
+
+    return nullptr;
+  }
+
+  else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
+  {
+    dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.");
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 

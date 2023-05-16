@@ -1,5 +1,6 @@
-﻿23.5.16.2
+﻿23.5.16.3
 =========
+ + Prevent NV's Vulkan/DXGI Layered SwapChain from loading Ansel
  + Disable HDR widget if 10-bpc SDR is active
  + Promote NV's Vulkan/DXGI Layered SwapChain to 10-bpc in SDR
  + Disabled assertion if game window changes, unless log level >= 1
