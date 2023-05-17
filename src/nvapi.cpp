@@ -1551,6 +1551,9 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
   {
     NVDRS_PROFILE custom_profile = { };
 
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
@@ -1979,6 +1982,9 @@ BOOL SK_NvAPI_GetVRREnablement (void)
   {
     NVDRS_PROFILE custom_profile = {   };
 
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
@@ -2070,6 +2076,9 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -2168,11 +2177,17 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
                                                   &app ),
                 ret );
 
+  if (ret != NVAPI_OK && ret != NVAPI_EXECUTABLE_NOT_FOUND)
+    SK_MessageBox (SK_FormatStringW (L"FindApplicationByName Returned %d", ret), L"NVAPI Debug", MB_OK);
+
   // If no executable exists anywhere by this name, create a profile for it
   //   and then add the executable to it.
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -2183,6 +2198,9 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
     NVAPI_SILENT ()
     {
       NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+
+      if (ret != NVAPI_OK)
+        SK_MessageBox (SK_FormatStringW (L"CreateProfile Returned %d", ret), L"NVAPI Debug", MB_OK);
     }
     NVAPI_VERBOSE ()
 
@@ -2194,6 +2212,9 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
                                                 &hProfile),
                       ret );
     }
+
+    if (ret != NVAPI_OK)
+        SK_MessageBox (SK_FormatStringW (L"DRS_FindProfileByName (2) Returned %d", ret), L"NVAPI Debug", MB_OK);
 
     if (ret == NVAPI_OK)
     {
@@ -2350,6 +2371,9 @@ BOOL SK_NvAPI_GetFastSync (void)
   {
     NVDRS_PROFILE custom_profile = {   };
 
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
@@ -2439,6 +2463,9 @@ BOOL SK_NvAPI_SetFastSync (BOOL bEnable)
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -2534,6 +2561,9 @@ BOOL SK_NvAPI_AllowGFEOverlay (bool bAllow, wchar_t *wszAppName, wchar_t *wszExe
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, wszAppName);
@@ -2810,6 +2840,9 @@ SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
   {
     NVDRS_PROFILE custom_profile = {   };
 
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
@@ -2935,6 +2968,9 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
   if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
   {
     NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     custom_profile.isPredefined  = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
@@ -3167,6 +3203,9 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
   {
     NVDRS_PROFILE custom_profile = { };
 
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
     custom_profile.isPredefined = FALSE;
     lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
     custom_profile.version = NVDRS_PROFILE_VER;
@@ -3358,6 +3397,9 @@ SK_NvAPI_AddLauncherToProf (void)
   {
     NVDRS_PROFILE custom_profile = { };
     custom_profile.isPredefined  = FALSE;
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
 
     lstrcpyW (
       (wchar_t *)custom_profile.profileName,
