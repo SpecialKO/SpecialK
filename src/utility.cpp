@@ -3093,14 +3093,16 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
                 wcsncpy_s ( wszFullname, MAX_PATH, global_dll.c_str (), _TRUNCATE );
       GetShortPathName    ( wszFullname, wszShortPath,                   MAX_PATH );
 
-      if (SK_FileHasSpaces (wszShortPath))
-      {
-        if (wszFailMsg == nullptr)
-          SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
-        else
-          SK_ImGui_Warning (wszFailMsg);
-        return;
-      }
+      //if (SK_FileHasSpaces (wszShortPath))
+      // 
+      //{
+      //  if (wszFailMsg == nullptr)
+      //    SK_ImGui_Warning (L"Could not restart due to missing DOS 8.3 filename support");
+      //  else
+      //    SK_ImGui_Warning (wszFailMsg);
+      //  return;
+      //}
+      UNREFERENCED_PARAMETER (wszFailMsg);
     }
   }
 

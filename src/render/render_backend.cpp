@@ -1387,7 +1387,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
                   wcsncpy (name, L"Vulkan-IK", 10);
                   break;
                 case SK_DXGI_VK_INTEROP_TYPE_NV:
-                  wcsncpy (name, L"Vulkan", 7);
+                  wcsncpy (name, L"Vulkan", 8);
                   break;
                 default:
                   wcsncpy (name, L"Interop??", 10);

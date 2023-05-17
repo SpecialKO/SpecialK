@@ -2213,11 +2213,18 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
     }
   }
 
-  // Turn these off if using DXGI layered present
-  config.apis.d3d9.hook   = !bEnable;
-  config.apis.d3d9ex.hook = !bEnable;
+  bool bRestartRequired = false;
 
-  SK_SaveConfig ();
+  if (config.apis.d3d9.hook != !bEnable)
+  {
+    // Turn these off if using DXGI layered present
+    config.apis.d3d9.hook   = !bEnable;
+    config.apis.d3d9ex.hook = !bEnable;
+
+    SK_SaveConfig ();
+
+    bRestartRequired = true;
+  }
 
   NVDRS_SETTING ogl_dx_present_debug_val         = {               };
                 ogl_dx_present_debug_val.version = NVDRS_SETTING_VER;
@@ -2229,10 +2236,18 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
   NVAPI_SILENT  ();
   NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_PRESENT_DEBUG_ID,   &ogl_dx_present_debug_val));
   NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_LAYERED_PRESENT_ID, &ogl_dx_present_layer_val));
-  NVAPI_SET_DWORD (ogl_dx_present_layer_val,         OGL_DX_LAYERED_PRESENT_ID,
-                                           bEnable ? OGL_DX_LAYERED_PRESENT_DXGI
-                                                   : OGL_DX_LAYERED_PRESENT_NATIVE);
-  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_layer_val));
+
+  DWORD dwLayeredPresent =
+    bEnable ? OGL_DX_LAYERED_PRESENT_DXGI
+            : OGL_DX_LAYERED_PRESENT_NATIVE;
+
+  if (ogl_dx_present_layer_val.u32CurrentValue != dwLayeredPresent)
+  {
+    NVAPI_SET_DWORD (ogl_dx_present_layer_val,         OGL_DX_LAYERED_PRESENT_ID, dwLayeredPresent);
+    NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_layer_val));
+
+    bRestartRequired = true;
+  }
 
   if (! SK_IsAdmin ())
   {
@@ -2254,6 +2269,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
           );
 
         SK_ElevateToAdmin (wszCommand.c_str ());
+        bRestartRequired = true;
       }
     }
 
@@ -2275,6 +2291,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
           );
 
         SK_ElevateToAdmin (wszCommand.c_str ());
+        bRestartRequired = true;
       }
     }
   }
@@ -2294,6 +2311,9 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 
   NVAPI_CALL (DRS_SaveSettings   (hSession));
   NVAPI_CALL (DRS_DestroySession (hSession));
+
+  if (bRestartRequired)
+    SK_RestartGame ();
 
   return true;
 }
