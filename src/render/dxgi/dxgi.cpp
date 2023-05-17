@@ -7209,6 +7209,20 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     {
       if (pDev11.p != nullptr)
       {
+        //
+        // Detect NVIDIA's Interop SwapChain
+        //
+        if ( SK_GetModuleHandle (L"vulkan-1.dll") &&
+             SK_GetCallerName ().find (L"nvoglv") != std::wstring::npos )
+        {
+          UINT                                 uiFlagAsInterop = SK_DXGI_VK_INTEROP_TYPE_NV;
+          (*ppSwapChain)->SetPrivateData (
+            SKID_DXGI_VK_InteropSwapChain, 4, &uiFlagAsInterop
+          );
+
+          SK_LOGi0 (L"Detected a Vulkan/DXGI Interop SwapChain");
+        }
+
         SK_DXGI_MakeCachedSwapChainForHwnd
              ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
       }

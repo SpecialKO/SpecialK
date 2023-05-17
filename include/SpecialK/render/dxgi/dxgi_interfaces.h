@@ -53,6 +53,13 @@ static const GUID SKID_DXGI_SwapChainBackbufferFormat =
 static const GUID SKID_DXGI_VK_InteropSwapChain =
 { 0x22c246b, 0x322a, 0x4694, { 0x87, 0xaa, 0x7b, 0xcf, 0xfb, 0xac, 0x5e, 0xce } };
 
+enum
+{
+  SK_DXGI_VK_INTEROP_TYPE_NONE,
+  SK_DXGI_VK_INTEROP_TYPE_IK, ///< Vulkan-IK
+  SK_DXGI_VK_INTEROP_TYPE_NV  ///< NVIDIA's DXGI Layer
+};
+
 
 
 typedef HRESULT (STDMETHODCALLTYPE *PresentSwapChain_pfn)(

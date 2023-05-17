@@ -1271,8 +1271,8 @@ SK_Render_GetAPIName (SK_RenderAPI api)
     L"Unknown API";
 }
 
-bool
-SK_Render_IsVulkanInteropSwapChain (IUnknown *swapchain)
+uint32_t
+SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain)
 {
   uint32_t  bVkInterop     = 0;
   UINT     uiVkInteropSize = 4;
@@ -1286,10 +1286,10 @@ SK_Render_IsVulkanInteropSwapChain (IUnknown *swapchain)
                                             &bVkInterop ) )
      )
   {
-    return true;
+    return bVkInterop;
   }
 
-  return false;
+  return 0;
 }
 
 
@@ -1376,9 +1376,23 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 
           else
           {
-            if (SK_Render_IsVulkanInteropSwapChain (swapchain))
+            auto uiVkLayerType =
+              SK_Render_GetVulkanInteropSwapChainType (swapchain);
+
+            if (uiVkLayerType != SK_DXGI_VK_INTEROP_TYPE_NONE)
             {
-              wcsncpy (name, L"Vulkan-IK", 10);
+              switch (uiVkLayerType)
+              {
+                case SK_DXGI_VK_INTEROP_TYPE_IK:
+                  wcsncpy (name, L"Vulkan-IK", 10);
+                  break;
+                case SK_DXGI_VK_INTEROP_TYPE_NV:
+                  wcsncpy (name, L"Vulkan", 7);
+                  break;
+                default:
+                  wcsncpy (name, L"Interop??", 10);
+                  break;
+              }
             }
 
             else
