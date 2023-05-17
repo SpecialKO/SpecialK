@@ -1,4 +1,8 @@
-﻿23.5.17
+﻿23.5.17.1
+=========
+ + Fixed parsing executable names with spaces in RunDLL_NvAPI_SetDWORD
+
+23.5.17
 =======
  + Added INI option to enable DXVK + DXGI Layered Present (RTX Remix)
  

@@ -2629,15 +2629,20 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
 
   int vals =
     sscanf (
-      lpszCmdLine, "%x %x %s",
-        &dwSettingID, &dwSettingVal, szExecutable
+      lpszCmdLine, "%x %x ",
+        &dwSettingID, &dwSettingVal
     );
 
-  if (vals != 3)
+  if (vals != 2)
   {
     printf ("Arguments: <HexID> <HexValue> <ExecutableName.exe>");
     return;
   }
+
+  // sscanf doesn't like strings with spaces, so we'll do it ourself :)
+  strncpy ( szExecutable,
+    StrStrIA (StrStrIA (lpszCmdLine, " ") + 1,
+                                     " ") + 1, MAX_PATH );
 
   std::wstring executable_name =
     SK_UTF8ToWideChar (szExecutable);
