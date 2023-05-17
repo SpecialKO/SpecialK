@@ -8214,7 +8214,7 @@ SK_HookDXGI (void)
 //#define __SK_STREAMLINE_COMPATIBLE
 #ifndef __SK_STREAMLINE_COMPATIBLE
     static HMODULE hModSLInterposer =
-      SK_Modules->LoadLibraryLL (L"sl.interposer.dll");
+      SK_GetModuleHandle (L"sl.interposer.dll");
 #endif
 
     HMODULE hBackend =
