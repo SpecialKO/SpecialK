@@ -1,5 +1,6 @@
-﻿23.5.17.2
+﻿23.5.17.3
 =========
+ + Workaround SteamAPI crash if DLL is too old to implement ISteamScreenshots
  + Renamed EnableRTXRemix setting to EnableVulkanBridge
            --------------            ------------------
  + Eliminate an unnecessary extra game restart when first enabling RTX Remix

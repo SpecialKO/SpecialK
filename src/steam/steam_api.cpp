@@ -5742,8 +5742,8 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   {
     steam_log->Log (L" SteamClient (...) Failed?!");
     return false;
-  } else
-    client_->SetWarningMessageHook ( &SK_SteamAPI_DebugText );
+  } //else
+    //client_->SetWarningMessageHook ( &SK_SteamAPI_DebugText );
 
 
   hSteamPipe = SteamAPI_GetHSteamPipe ();
@@ -5945,6 +5945,15 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 
     steam_log->Log ( L" >> ISteamScreenshots NOT FOUND for version %hs <<",
                       "STEAMSCREENSHOTS_INTERFACE_VERSION001" );
+
+    steam_log->Log ( L" ** DLL is too old, disabling SteamAPI integration!");
+
+    config.platform.silent = true;
+
+    SK_SaveConfig  ();
+    SK_RestartGame ();
+
+    return false;
   }
 
   // This crashes Dark Souls 3, so... do this

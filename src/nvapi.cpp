@@ -2133,8 +2133,6 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
 
 BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 {
-  //MessageBox (NULL, SK_FormatStringW (L"bEnable=%d, nv_hardware=%d", bEnable, nv_hardware).c_str (), L"Test", MB_OK);
-
 #define OGL_DX_PRESENT_DEBUG_ID       0x20324987
 #define DISABLE_FULLSCREEN_OPT        0x00000001
 #define ENABLE_RTX_REMIX              0x00080000
