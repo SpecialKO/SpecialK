@@ -2287,8 +2287,17 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
                   
           );
 
-        SK_ElevateToAdmin (wszCommand.c_str ());
-        bRestartRequired = true;
+        if ( IDOK ==
+               SK_MessageBox ( L"Special K's Vulkan Bridge Will Be Enabled\r\n\r\tA game restart is required.",
+                               L"NVIDIA Vulkan/DXGI Layer Setup", MB_OKCANCEL | MB_ICONINFORMATION )
+           )
+        {
+          SK_ElevateToAdmin (wszCommand.c_str ());
+          bRestartRequired = true;
+        }
+
+        else
+          return FALSE;
       }
     }
 
@@ -2309,8 +2318,17 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
                   
           );
 
-        SK_ElevateToAdmin (wszCommand.c_str ());
-        bRestartRequired = true;
+        if ( IDOK ==
+               SK_MessageBox ( L"Special K's Vulkan Bridge Will Be Disabled\r\n\r\tA game restart is required.",
+                               L"NVIDIA Vulkan/DXGI Layer Setup", MB_OKCANCEL | MB_ICONINFORMATION )
+           )
+        {
+          SK_ElevateToAdmin (wszCommand.c_str ());
+          bRestartRequired = true;
+        }
+
+        else
+          return TRUE;
       }
     }
   }

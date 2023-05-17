@@ -1201,6 +1201,8 @@ enum class SK_GAME_ID
   FarCry6,                      // FarCry6.exe
   Ryujinx,                      // Ryujinx.exe
   yuzu,                         // yuzu.exe
+  cemu,                         // cemu.exe
+  RPCS3,                        // rpcs3.exe
   ForzaHorizon5,                // ForzaHorizon5.exe
   HaloInfinite,                 // HaloInfinite.exe
   FinalFantasy7Remake,          // ff7remake*.exe

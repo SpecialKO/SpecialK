@@ -202,6 +202,8 @@ SK_GetCurrentGameID (void)
           { L"FarCry6.exe",                            SK_GAME_ID::FarCry6                      },
           { L"Ryujinx.exe",                            SK_GAME_ID::Ryujinx                      },
           { L"yuzu.exe",                               SK_GAME_ID::yuzu                         },
+          { L"cemu.exe",                               SK_GAME_ID::cemu                         },
+          { L"rpcs3.exe",                              SK_GAME_ID::RPCS3                        },
           { L"ForzaHorizon5.exe",                      SK_GAME_ID::ForzaHorizon5                },
           { L"HaloInfinite.exe",                       SK_GAME_ID::HaloInfinite                 },
           { L"start_protected_game.exe",               SK_GAME_ID::EasyAntiCheat                },
@@ -2821,6 +2823,8 @@ auto DeclKeybind =
       // Nintendo Switch Emulators ( OpenGL / Vulkan )
       case SK_GAME_ID::yuzu:
       case SK_GAME_ID::Ryujinx:
+      case SK_GAME_ID::cemu:  // Wii U
+      case SK_GAME_ID::RPCS3: // PS3
       {
         config.steam.appid                = 0;
         config.platform.silent            = true;

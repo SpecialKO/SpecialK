@@ -1,5 +1,19 @@
-﻿23.5.17.4
+﻿23.5.17.5
 =========
+              -[ Vulkan no longer sucks on Windows! ]-
+
+ VulkanBridge grants high-performance Borderless Window mode (w/ G-SYNC),
+   HDR, Latent Sync, Multiplane Overlays, etc. to NVIDIA GPU owners.
+
+  (*) All of those features are normally D3D exclusive.
+
+                                  (NVIDIA Driver Version 526.98+ Required)
+
+ + Enabled VulkanBridge by default in cemu and RPCS3
+
+23.5.17.4
+=========
+ + Enable VulkanBridge by default in Ryujinx and Yuzu
  + RunDLL_NvAPI_SetDWORD will create new NV driver profiles if necessary
  + Workaround SteamAPI crash if DLL is too old to implement ISteamScreenshots
  + Renamed EnableRTXRemix setting to EnableVulkanBridge
