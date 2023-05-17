@@ -2733,6 +2733,62 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
 
     // If no executable exists anywhere by this name, create a profile for it
     //   and then add the executable to it.
+    if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+    {
+      if ( IDYES == SK_MessageBox (
+                  SK_FormatStringW ( L"Create New Driver Profile for \"%ws\"?",
+                                       app_name.c_str ()
+                                   ).c_str (),
+                                     L"NVIDIA Driver Profile Does Not Exist",
+                         MB_YESNO | MB_ICONQUESTION )
+         )
+      {
+        NVDRS_PROFILE custom_profile = {   };
+
+        if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+            friendly_name = app_name;
+
+        custom_profile.isPredefined  = FALSE;
+        lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+        custom_profile.version = NVDRS_PROFILE_VER;
+
+        // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+        //   raise a fuss if it happens.
+        NVAPI_SILENT ()
+        {
+          NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+        }
+        NVAPI_VERBOSE ()
+
+        // Add the application name to the profile, if a profile already exists
+        if (ret == NVAPI_PROFILE_NAME_IN_USE)
+        {
+          NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                                  (NvU16 *)friendly_name.c_str (),
+                                                    &hProfile),
+                          ret );
+        }
+
+        if (ret == NVAPI_OK)
+        {
+          RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+          lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+          lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+          app.version      = NVDRS_APPLICATION_VER;
+          app.isPredefined = FALSE;
+          app.isMetro      = FALSE;
+
+          NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+          NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+        }
+      }
+
+      else
+        return;
+    }
+
     if (ret == NVAPI_OK)
     {
       NVDRS_SETTING setting         = {               };

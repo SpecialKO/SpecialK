@@ -1,5 +1,6 @@
-﻿23.5.17.3
+﻿23.5.17.4
 =========
+ + RunDLL_NvAPI_SetDWORD will create new NV driver profiles if necessary
  + Workaround SteamAPI crash if DLL is too old to implement ISteamScreenshots
  + Renamed EnableRTXRemix setting to EnableVulkanBridge
            --------------            ------------------
