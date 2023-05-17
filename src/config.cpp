@@ -2840,7 +2840,8 @@ auto DeclKeybind =
         apis.Vulkan.hook->store (config.apis.Vulkan.    hook);
         apis.last_known->store  ((int)config.apis.last_known);
 
-        config.apis.NvAPI.vulkan_bridge = 1;
+        config.apis.NvAPI.vulkan_bridge   = 1;
+        config.system.global_inject_delay = 0.05f;
       } break;
 
       case SK_GAME_ID::HaloInfinite:
