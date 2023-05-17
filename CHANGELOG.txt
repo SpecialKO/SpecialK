@@ -1,4 +1,8 @@
-﻿23.5.17.5
+﻿23.5.17.6
+=========
+ + Fixed potential deadlock in Yuzu at start during Streamline Interposer check
+
+23.5.17.5
 =========
               -[ Vulkan no longer sucks on Windows! ]-
 

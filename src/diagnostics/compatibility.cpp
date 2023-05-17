@@ -1079,7 +1079,7 @@ SK_COMPAT_CheckStreamlineSupport (void)
   if (SK_IsInjected () && iTestCount++ < _MaxTestCount)
   {
     HMODULE hModSLInterposer =
-      SK_Modules->LoadLibraryLL (L"sl.interposer.dll");
+      SK_GetModuleHandleW (L"sl.interposer.dll");
 
     if (hModSLInterposer != SK_Modules->INVALID_MODULE)
     {
