@@ -2205,7 +2205,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
               nullptr,//pAdapter [0].p,
                 D3D_DRIVER_TYPE_HARDWARE,
                   nullptr,
-                    0x0,
+                    D3D11_CREATE_DEVICE_SINGLETHREADED |
+                    D3D11_CREATE_DEVICE_PREVENT_INTERNAL_THREADING_OPTIMIZATIONS,
                       levels,
           _ARRAYSIZE (levels),
                           D3D11_SDK_VERSION,
