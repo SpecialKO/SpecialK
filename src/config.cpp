@@ -2822,20 +2822,21 @@ auto DeclKeybind =
       case SK_GAME_ID::yuzu:
       case SK_GAME_ID::Ryujinx:
       {
-        // Any application that creates multiple windows needs this set
-        config.window.borderless          = true;
-
         config.steam.appid                = 0;
         config.platform.silent            = true;
         config.apis.d3d9.hook             = false;
         config.apis.d3d9ex.hook           = false;
         config.apis.OpenGL.hook           = true;
+        config.apis.Vulkan.hook           = true;
         config.apis.last_known            = SK_RenderAPI::OpenGL;
 
         apis.d3d9.hook->store   (config.apis.d3d9.      hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.    hook);
         apis.OpenGL.hook->store (config.apis.OpenGL.    hook);
+        apis.Vulkan.hook->store (config.apis.Vulkan.    hook);
         apis.last_known->store  ((int)config.apis.last_known);
+
+        config.apis.NvAPI.vulkan_bridge = 1;
       } break;
 
       case SK_GAME_ID::HaloInfinite:
