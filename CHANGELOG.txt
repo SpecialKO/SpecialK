@@ -1,5 +1,8 @@
-﻿23.5.17.1
+﻿23.5.17.2
 =========
+ + Renamed EnableRTXRemix setting to EnableVulkanBridge
+           --------------            ------------------
+ + Eliminate an unnecessary extra game restart when first enabling RTX Remix
  + Fixed parsing executable names with spaces in RunDLL_NvAPI_SetDWORD
 
 23.5.17

@@ -229,7 +229,7 @@ BOOL           SK_NvAPI_SetVRREnablement   (BOOL bEnable);
 BOOL           SK_NvAPI_GetFastSync        (void);
 BOOL           SK_NvAPI_SetFastSync        (BOOL bEnable);
 
-BOOL           SK_NvAPI_EnableRTXRemix     (BOOL bEnable);
+BOOL           SK_NvAPI_EnableVulkanBridge (BOOL bEnable);
 
 BOOL           SK_NvAPI_AllowGFEOverlay    (bool bAllow, wchar_t *wszAppName, wchar_t *wszExecutable);
 

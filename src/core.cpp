@@ -265,9 +265,9 @@ SK_LoadGPUVendorAPIs (void)
 
   if (nvapi_init)
   {
-    if (config.apis.NvAPI.rtx_remix != -1)
+    if (config.apis.NvAPI.vulkan_bridge != -1)
     {
-      SK_NvAPI_EnableRTXRemix (config.apis.NvAPI.rtx_remix);
+      SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
     }
 
     const int num_sli_gpus =

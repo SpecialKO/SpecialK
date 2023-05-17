@@ -880,12 +880,12 @@ struct sk_config_t
       OpenGL;
 
     struct NvAPI_s {
-      bool         enable       = true;
-      bool         gsync_status = true;
-      bool         disable_hdr  = false;
-      int          rtx_remix    =   -1;
-      std::wstring bpc_enum     = L"NV_BPC_DEFAULT";
-      std::wstring col_fmt_enum = L"NV_COLOR_FORMAT_AUTO";
+      bool         enable        = true;
+      bool         gsync_status  = true;
+      bool         disable_hdr   = false;
+      int          vulkan_bridge = -1;
+      std::wstring bpc_enum      = L"NV_BPC_DEFAULT";
+      std::wstring col_fmt_enum  = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;
 
     struct ADL_s {

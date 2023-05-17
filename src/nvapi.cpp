@@ -2131,7 +2131,7 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
   return bRet;
 }
 
-BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
+BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 {
   //MessageBox (NULL, SK_FormatStringW (L"bEnable=%d, nv_hardware=%d", bEnable, nv_hardware).c_str (), L"Test", MB_OK);
 
@@ -2227,7 +2227,12 @@ BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
 
   // These settings may not exist, and getting back a value of 0 is okay...
   NVAPI_SILENT  ();
-  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_PRESENT_DEBUG_ID, &ogl_dx_present_debug_val));
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_PRESENT_DEBUG_ID,   &ogl_dx_present_debug_val));
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_LAYERED_PRESENT_ID, &ogl_dx_present_layer_val));
+  NVAPI_SET_DWORD (ogl_dx_present_layer_val,         OGL_DX_LAYERED_PRESENT_ID,
+                                           bEnable ? OGL_DX_LAYERED_PRESENT_DXGI
+                                                   : OGL_DX_LAYERED_PRESENT_NATIVE);
+  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_layer_val));
 
   if (! SK_IsAdmin ())
   {
@@ -2236,6 +2241,9 @@ BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
       if ((ogl_dx_present_debug_val.u32CurrentValue & (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
                                                    != (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
       {
+        NVAPI_CALL (DRS_SaveSettings   (hSession));
+        NVAPI_CALL (DRS_DestroySession (hSession));
+
         std::wstring wszCommand =
           SK_FormatStringW (
             L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
@@ -2254,6 +2262,9 @@ BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
       if ((ogl_dx_present_debug_val.u32CurrentValue & ENABLE_RTX_REMIX)
                                                    == ENABLE_RTX_REMIX)
       {
+        NVAPI_CALL (DRS_SaveSettings   (hSession));
+        NVAPI_CALL (DRS_DestroySession (hSession));
+
         std::wstring wszCommand =
           SK_FormatStringW (
             L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
@@ -2268,20 +2279,17 @@ BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
     }
   }
 
-  NVAPI_SET_DWORD (ogl_dx_present_debug_val,         OGL_DX_PRESENT_DEBUG_ID,
-                                           bEnable ? ogl_dx_present_debug_val.u32CurrentValue |
-                                                      DISABLE_FULLSCREEN_OPT |
-                                                      ENABLE_RTX_REMIX
-                                                   : ogl_dx_present_debug_val.u32CurrentValue &
-                                                    (~ENABLE_RTX_REMIX));
-  
-  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_LAYERED_PRESENT_ID, &ogl_dx_present_layer_val));
-  NVAPI_SET_DWORD (ogl_dx_present_layer_val,         OGL_DX_LAYERED_PRESENT_ID,
-                                           bEnable ? OGL_DX_LAYERED_PRESENT_DXGI
-                                                   : OGL_DX_LAYERED_PRESENT_NATIVE);
-
-  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_debug_val));
-  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_layer_val));
+  // Highly unlikely that we'll ever reach this point... don't run games as admin! :P
+  if (SK_IsAdmin ())
+  {
+    NVAPI_SET_DWORD (ogl_dx_present_debug_val,         OGL_DX_PRESENT_DEBUG_ID,
+                                             bEnable ? ogl_dx_present_debug_val.u32CurrentValue |
+                                                        DISABLE_FULLSCREEN_OPT |
+                                                        ENABLE_RTX_REMIX
+                                                     : ogl_dx_present_debug_val.u32CurrentValue &
+                                                      (~ENABLE_RTX_REMIX));
+    NVAPI_CALL   (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_debug_val));
+  }
   NVAPI_VERBOSE ();
 
   NVAPI_CALL (DRS_SaveSettings   (hSession));
