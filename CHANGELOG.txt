@@ -1,4 +1,23 @@
-﻿23.5.16.3
+﻿23.5.17
+=======
+ + Added INI option to enable DXVK + DXGI Layered Present (RTX Remix)
+ 
+     [NVIDIA.API]
+     EnableRTXRemix :: 0=Disable, 1=Enable, -1=Don't Care
+
+    * The game will restart itself to apply these changes.
+
+ + Added RunDLL_NvAPI_SetDWORD to apply NVIDIA Profile Settings:
+
+     Example:  (Setup RTX Remix for Dragon's Dogma (ddda.exe))
+
+                                                     
+       rundll32 SpecialK64.dll,RunDLL_NvAPI_SetDWORD 0x20324987 0x80001 ddda.exe
+                                                     {Setting}  {Value} {EXE}
+
+     NOTE: Some settings (i.e. the one above) require Admin privileges to set.
+
+23.5.16.3
 =========
  + Prevent NV's Vulkan/DXGI Layered SwapChain from loading Ansel
  + Disable HDR widget if 10-bpc SDR is active

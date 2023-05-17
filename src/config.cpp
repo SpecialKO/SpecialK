@@ -589,6 +589,7 @@ struct {
   struct {
     sk::ParameterBool*    disable                 = nullptr;
     sk::ParameterBool*    disable_hdr             = nullptr;
+    sk::ParameterInt*     rtx_remix               = nullptr;
   } api;
 
   struct
@@ -1541,6 +1542,7 @@ auto DeclKeybind =
 
     ConfigEntry (nvidia.api.disable,                     L"Disable NvAPI",                                             dll_ini,         L"NVIDIA.API",            L"Disable"),
     ConfigEntry (nvidia.api.disable_hdr,                 L"Prevent Game from Using NvAPI HDR Features",                dll_ini,         L"NVIDIA.API",            L"DisableHDR"),
+    ConfigEntry (nvidia.api.rtx_remix,                   L"Enable/Disable RTX Remix (DXGI Layer)",                     dll_ini,         L"NVIDIA.API",            L"EnableRTXRemix"),
     ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
@@ -3092,6 +3094,7 @@ auto DeclKeybind =
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
 
   nvidia.api.disable_hdr->load    (config.apis.NvAPI.disable_hdr);
+  nvidia.api.rtx_remix->load      (config.apis.NvAPI.rtx_remix);
   nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
 
@@ -4542,6 +4545,7 @@ SK_SaveConfig ( std::wstring name,
 #endif
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);
+  nvidia.api.rtx_remix->store                 (config.apis.NvAPI.rtx_remix);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
 

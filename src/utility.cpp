@@ -3736,8 +3736,11 @@ SK_WinRing0_Install (void)
 }
 
 void
-SK_ElevateToAdmin (void)
+SK_ElevateToAdmin (const wchar_t *wszCommand)
 {
+  if (wszCommand == nullptr)
+      wszCommand = SK_GetFullyQualifiedApp ();
+
   wchar_t wszRunDLLCmd [MAX_PATH * 4] = { };
   wchar_t wszShortPath [MAX_PATH + 2] = { };
   wchar_t wszFullname  [MAX_PATH + 2] = { };
@@ -3759,13 +3762,13 @@ SK_ElevateToAdmin (void)
     /////                L"the mod.",
     /////                  L"Cannot Elevate To Admin Because of Bad File system Policy.",
     /////                    MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
-    return;//ExitProcess   (0x00);
+    //return;//ExitProcess   (0x00);
   }
 
   swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-               L"RunDll32.exe \"%ws\",RunDLL_ElevateMe %s",
+               L"RunDll32.exe \"%ws\",RunDLL_ElevateMe %ws",
                  wszShortPath,
-                   SK_GetFullyQualifiedApp () );
+                   wszCommand );
 
   STARTUPINFOW        sinfo = { };
   PROCESS_INFORMATION pinfo = { };

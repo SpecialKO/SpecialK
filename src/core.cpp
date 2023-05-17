@@ -265,6 +265,11 @@ SK_LoadGPUVendorAPIs (void)
 
   if (nvapi_init)
   {
+    if (config.apis.NvAPI.rtx_remix != -1)
+    {
+      SK_NvAPI_EnableRTXRemix (config.apis.NvAPI.rtx_remix);
+    }
+
     const int num_sli_gpus =
       sk::NVAPI::CountSLIGPUs ();
 

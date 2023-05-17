@@ -648,6 +648,7 @@ RunDLL_InjectionManager      = RunDLL_InjectionManager        PRIVATE
 RunDLL_WinRing0              = RunDLL_WinRing0                PRIVATE
 RunDLL_DisableGFEForSKIF     = RunDLL_DisableGFEForSKIF       PRIVATE
 RunDLL_RestartNVIDIADriver   = RunDLL_RestartNVIDIADriver     PRIVATE
+RunDLL_NvAPI_SetDWORD        = RunDLL_NvAPI_SetDWORD          PRIVATE
 
 
 SKX_InstallCBTHook           = SKX_InstallCBTHook

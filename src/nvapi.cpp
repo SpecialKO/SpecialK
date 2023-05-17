@@ -2131,6 +2131,165 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
   return bRet;
 }
 
+BOOL SK_NvAPI_EnableRTXRemix (BOOL bEnable)
+{
+  //MessageBox (NULL, SK_FormatStringW (L"bEnable=%d, nv_hardware=%d", bEnable, nv_hardware).c_str (), L"Test", MB_OK);
+
+#define OGL_DX_PRESENT_DEBUG_ID       0x20324987
+#define DISABLE_FULLSCREEN_OPT        0x00000001
+#define ENABLE_RTX_REMIX              0x00080000
+
+#define OGL_DX_LAYERED_PRESENT_ID     0x20D690F8
+#define OGL_DX_LAYERED_PRESENT_AUTO   0x00000000
+#define OGL_DX_LAYERED_PRESENT_DXGI   0x00000001
+#define OGL_DX_LAYERED_PRESENT_NATIVE 0x00000002
+
+  if (! nv_hardware)
+    return -2;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession),                 ret);
+    }
+  }
+
+  // Turn these off if using DXGI layered present
+  config.apis.d3d9.hook   = !bEnable;
+  config.apis.d3d9ex.hook = !bEnable;
+
+  SK_SaveConfig ();
+
+  NVDRS_SETTING ogl_dx_present_debug_val         = {               };
+                ogl_dx_present_debug_val.version = NVDRS_SETTING_VER;
+
+  NVDRS_SETTING ogl_dx_present_layer_val         = {               };
+                ogl_dx_present_layer_val.version = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_PRESENT_DEBUG_ID, &ogl_dx_present_debug_val));
+
+  if (! SK_IsAdmin ())
+  {
+    if (bEnable)
+    {
+      if ((ogl_dx_present_debug_val.u32CurrentValue & (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
+                                                   != (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
+      {
+        std::wstring wszCommand =
+          SK_FormatStringW (
+            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
+              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue | DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX,
+                  app_name.c_str ()
+                  
+          );
+
+        SK_ElevateToAdmin (wszCommand.c_str ());
+      }
+    }
+
+    else
+    {
+      if ((ogl_dx_present_debug_val.u32CurrentValue & ENABLE_RTX_REMIX)
+                                                   == ENABLE_RTX_REMIX)
+      {
+        std::wstring wszCommand =
+          SK_FormatStringW (
+            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
+              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue & ~ENABLE_RTX_REMIX,
+                  app_name.c_str ()
+                  
+          );
+
+        SK_ElevateToAdmin (wszCommand.c_str ());
+      }
+    }
+  }
+
+  NVAPI_SET_DWORD (ogl_dx_present_debug_val,         OGL_DX_PRESENT_DEBUG_ID,
+                                           bEnable ? ogl_dx_present_debug_val.u32CurrentValue |
+                                                      DISABLE_FULLSCREEN_OPT |
+                                                      ENABLE_RTX_REMIX
+                                                   : ogl_dx_present_debug_val.u32CurrentValue &
+                                                    (~ENABLE_RTX_REMIX));
+  
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, OGL_DX_LAYERED_PRESENT_ID, &ogl_dx_present_layer_val));
+  NVAPI_SET_DWORD (ogl_dx_present_layer_val,         OGL_DX_LAYERED_PRESENT_ID,
+                                           bEnable ? OGL_DX_LAYERED_PRESENT_DXGI
+                                                   : OGL_DX_LAYERED_PRESENT_NATIVE);
+
+  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_debug_val));
+  NVAPI_CALL    (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_layer_val));
+  NVAPI_VERBOSE ();
+
+  NVAPI_CALL (DRS_SaveSettings   (hSession));
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return true;
+}
+
 BOOL SK_NvAPI_GetFastSync (void)
 {
   if (! nv_hardware)
@@ -2453,6 +2612,93 @@ RunDLL_RestartNVIDIADriver ( HWND   hwnd,        HINSTANCE hInst,
       );
     }
   }
+}
+
+void
+CALLBACK
+RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
+                        LPCSTR lpszCmdLine, int       nCmdShow )
+{
+  UNREFERENCED_PARAMETER (hInst);
+  UNREFERENCED_PARAMETER (hwnd);
+  UNREFERENCED_PARAMETER (nCmdShow);
+
+  char  szExecutable [MAX_PATH + 1] = { };
+  DWORD dwSettingID                 = 0x0,
+        dwSettingVal                = 0x0;
+
+  int vals =
+    sscanf (
+      lpszCmdLine, "%x %x %s",
+        &dwSettingID, &dwSettingVal, szExecutable
+    );
+
+  if (vals != 3)
+  {
+    printf ("Arguments: <HexID> <HexValue> <ExecutableName.exe>");
+    return;
+  }
+
+  std::wstring executable_name =
+    SK_UTF8ToWideChar (szExecutable);
+
+  if (NVAPI::InitializeLibrary (executable_name.c_str ()))
+  {
+    app_name      = executable_name;
+    friendly_name = executable_name;
+
+    NvAPI_Status       ret       = NVAPI_ERROR;
+    NvDRSSessionHandle hSession  = { };
+
+    NVAPI_CALL (DRS_CreateSession (&hSession));
+    NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+                 NvDRSProfileHandle hProfile       = { };
+    std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+      std::make_unique <NVDRS_APPLICATION> ();
+    NVDRS_APPLICATION&                     app     =
+                                          *app_ptr;
+
+    NVAPI_SILENT ();
+
+    app.version = NVDRS_APPLICATION_VER;
+    ret         = NVAPI_ERROR;
+
+    NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                                (NvU16 *)app_name.c_str (),
+                                                  &hProfile,
+                                                    &app ),
+                  ret );
+
+    // If no executable exists anywhere by this name, create a profile for it
+    //   and then add the executable to it.
+    if (ret == NVAPI_OK)
+    {
+      NVDRS_SETTING setting         = {               };
+                    setting.version = NVDRS_SETTING_VER;
+
+      NVAPI_CALL    (DRS_GetSetting   (hSession, hProfile, dwSettingID, &setting));
+      NVAPI_SET_DWORD (setting,                            dwSettingID, dwSettingVal);
+      NVAPI_CALL    (DRS_SetSetting   (hSession, hProfile,              &setting));
+
+      if (ret != NVAPI_OK)
+      {
+        printf ("NvAPI_DRS_SetSetting (...) Failed: %x", ret);
+      }
+
+      NVAPI_CALL    (DRS_SaveSettings (hSession));
+    }
+
+    else
+    {
+      printf ("Unable to find Application Profile for %ws", app_name.c_str ());
+    }
+
+    NVAPI_CALL (DRS_DestroySession (hSession));
+  }
+
+  else
+    printf ("NVAPI Failed to Initialize!");
 }
 
 void

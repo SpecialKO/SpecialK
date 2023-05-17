@@ -883,6 +883,7 @@ struct sk_config_t
       bool         enable       = true;
       bool         gsync_status = true;
       bool         disable_hdr  = false;
+      int          rtx_remix    =   -1;
       std::wstring bpc_enum     = L"NV_BPC_DEFAULT";
       std::wstring col_fmt_enum = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;
