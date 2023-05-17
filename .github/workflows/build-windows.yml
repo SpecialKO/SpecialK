@@ -34,5 +34,5 @@ jobs:
       with:
         name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}
         path: |
-          ~\Documents\My Mods\SpecialK\*.dll
+          ~\Documents\My Mods\SpecialK\*
         if-no-files-found: error
