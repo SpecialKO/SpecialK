@@ -4051,7 +4051,7 @@ glFramebufferTexture_SK ( GLenum target,
   extern bool __SK_HDR_16BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
-    dll_log->Log (L"glFramebufferTexture (...)");
+    SK_LOGi1 (L"glFramebufferTexture (...)");
   }
 
   gl_framebuffer_texture (target, attachment, texture, level);
@@ -4197,7 +4197,7 @@ glFramebufferTexture2D_SK ( GLenum target,
   extern bool __SK_HDR_16BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
-    dll_log->Log (L"glFramebufferTexture2D (...)");
+    SK_LOGi1 (L"glFramebufferTexture2D (...)");
 
     if (textarget == GL_TEXTURE_2D)
     {
@@ -4213,7 +4213,7 @@ glFramebufferTexture2D_SK ( GLenum target,
         glBindTexture            (GL_TEXTURE_2D, texture);
         glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &textureFmt);
 
-        dll_log->Log (L" -> Format: %x", textureFmt);
+        SK_LOGi1 (L" -> Format: %x", textureFmt);
 
         bool rgb =
           (  textureFmt == GL_RGB   || textureFmt == GL_RGB8 );
@@ -4229,7 +4229,7 @@ glFramebufferTexture2D_SK ( GLenum target,
             glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
             glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
 
-            dll_log->Log (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
+            SK_LOGi1 (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
 
             glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB16F : GL_RGBA16F, texWidth, texHeight, 0,
                                             rgb ? GL_RGB    : GL_RGBA, GL_FLOAT, nullptr);
