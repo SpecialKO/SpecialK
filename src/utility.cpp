@@ -1993,6 +1993,61 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
   return ret;
 }
 
+std::wstring
+__stdcall
+SK_GetDLLProductName (const wchar_t* wszDLL)
+{
+  UINT     cbTranslatedBytes = 0,
+           cbProductBytes    = 0;
+
+  uint8_t cbData [16384] = { };
+  size_t dwSize = 16383;
+
+  wchar_t* wszProductName = nullptr; // Will point somewhere in cbData
+
+  struct LANGANDCODEPAGE {
+    WORD wLanguage;
+    WORD wCodePage;
+  } *lpTranslate = nullptr;
+
+  BOOL bRet =
+    SK_GetFileVersionInfoExW ( FILE_VER_GET_NEUTRAL |
+                               FILE_VER_GET_PREFETCHED,
+                                 wszDLL,
+                                   0x00,
+                static_cast <DWORD> (dwSize),
+                                       cbData );
+
+  if (! bRet)
+    return L"N/A";
+
+  if ( SK_VerQueryValueW ( cbData,
+                             TEXT ("\\VarFileInfo\\Translation"),
+                 static_cast_p2p <void> (&lpTranslate),
+                                         &cbTranslatedBytes ) && cbTranslatedBytes &&
+                                                                 lpTranslate )
+  {
+    wchar_t        wszPropName [64] = { };
+    _snwprintf_s ( wszPropName, 63,
+                    LR"(\StringFileInfo\%04x%04x\ProductName)",
+                      lpTranslate   [0].wLanguage,
+                        lpTranslate [0].wCodePage );
+
+    SK_VerQueryValueW ( cbData,
+                          wszPropName,
+              static_cast_p2p <void> (&wszProductName),
+                                      &cbProductBytes );
+  }
+
+  if ( cbTranslatedBytes == 0 ||
+         (cbProductBytes == 0) )
+  {
+    return L"  ";
+  }
+
+  return wszProductName;
+}
+
 
 
 LPVOID __SK_base_img_addr = nullptr;

@@ -892,6 +892,10 @@ struct {
 #endif
       OpenGL;
 
+  struct {
+    sk::ParameterInt*     enable                  = nullptr;
+  }   dxvk9;
+
   sk::ParameterInt*       last_known              = nullptr;
 } apis;
 
@@ -1379,6 +1383,7 @@ auto DeclKeybind =
 
     ConfigEntry (apis.d3d9.hook,                         L"Enable Direct3D 9 Hooking",                                 dll_ini,         L"API.Hook",              L"d3d9"),
     ConfigEntry (apis.d3d9ex.hook,                       L"Enable Direct3D 9Ex Hooking",                               dll_ini,         L"API.Hook",              L"d3d9ex"),
+    ConfigEntry (apis.dxvk9.enable,                      L"Enable Native DXVK (D3D9)",                                 dll_ini,         L"API.Hook",              L"dxvk9"),
     ConfigEntry (apis.d3d11.hook,                        L"Enable Direct3D 11 Hooking",                                dll_ini,         L"API.Hook",              L"d3d11"),
 
 #ifdef _M_AMD64
@@ -2841,7 +2846,6 @@ auto DeclKeybind =
         apis.last_known->store  ((int)config.apis.last_known);
 
         config.apis.NvAPI.vulkan_bridge   = 1;
-        config.system.global_inject_delay = 0.05f;
       } break;
 
       case SK_GAME_ID::HaloInfinite:
@@ -2977,6 +2981,8 @@ auto DeclKeybind =
   apis.ddraw.hook->load  (config.apis.ddraw.hook);
   apis.d3d8.hook->load   (config.apis.d3d8.hook);
 #endif
+
+  apis.dxvk9.enable->load (config.apis.d3d9.native_dxvk);
 
   if (! apis.d3d9.hook->load (config.apis.d3d9.hook))
     config.apis.d3d9.hook = true;
@@ -4543,6 +4549,7 @@ SK_SaveConfig ( std::wstring name,
 #endif
   apis.d3d9.hook->store                       (config.apis.d3d9.hook);
   apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
+  apis.dxvk9.enable->store                    (config.apis.d3d9.native_dxvk);
   apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
   apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
 #ifdef _M_AMD64

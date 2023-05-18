@@ -284,6 +284,8 @@ FARPROC WINAPI SK_GetProcAddress            (const wchar_t* wszModule, const cha
 
 std::wstring
      __stdcall SK_GetDLLVersionStr          (const wchar_t* wszName);
+std::wstring
+     __stdcall SK_GetDLLProductName         (const wchar_t* wszDLL);
 bool __stdcall SK_Assert_SameDLLVersion     (const wchar_t* wszTestFile0,
                                              const wchar_t* wszTestFile1);
 

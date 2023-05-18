@@ -1,4 +1,9 @@
-﻿23.5.17.6
+﻿23.5.18
+=======
+ + For NVIDIA GPU users, if DXVK (D3D9) is detected, a prompt to enable native
+     Vulkan support will be presented when first launching a game.
+
+23.5.17.6
 =========
  + Fixed potential deadlock in Yuzu at start during Streamline Interposer check
 

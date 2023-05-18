@@ -2199,7 +2199,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
     {
       NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
 
-      if (ret != NVAPI_OK)
+      if (ret != NVAPI_OK && ret != NVAPI_PROFILE_NAME_IN_USE)
         SK_MessageBox (SK_FormatStringW (L"CreateProfile Returned %d", ret), L"NVAPI Debug", MB_OK);
     }
     NVAPI_VERBOSE ()

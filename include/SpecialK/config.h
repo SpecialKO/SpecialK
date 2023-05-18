@@ -861,8 +861,9 @@ struct sk_config_t
 #endif
 
     struct d3d9_s {
-      bool   hook       = true;
-      bool   translated = false;
+      bool   hook        =  true;
+      bool   translated  = false;
+      int    native_dxvk =    -1;
     } d3d9,
       d3d9ex;
 

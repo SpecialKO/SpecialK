@@ -5238,12 +5238,15 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         game_window.hWnd   =    0;
         game_window.active = true; // The headless chicken appears very active...
 
-        SK_Win32_DestroyBackgroundWindow ();
+        if (GetAncestor (hWnd, GA_ROOT) == game_window.hWnd)
+        {
+          SK_Win32_DestroyBackgroundWindow ();
 
-        extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-                    SK_Inject_SetFocusWindow (0);
+          extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+                      SK_Inject_SetFocusWindow (0);
 
-        SK_ImGui_WantExit = true;
+          SK_ImGui_WantExit = true;
+        }
       }
       break;
 
@@ -6116,6 +6119,9 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
 
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (pWindowClass->lpszClassName, L"dummy");
+
+  if (StrStrIW (pWindowClass->lpszClassName, L"Qt"))
+    return false;
 
   return
     dummy_window;

@@ -133,6 +133,70 @@ SK_InitRenderBackends (void)
 //////////////////////////////////////////////////////////////////////////
 #define D3D9_TEXTURE_MOD
 
+bool
+__stdcall
+SK_DXVK_CheckForInterop (void)
+{
+  HMODULE hModD3D9 =
+    SK_GetModuleHandle (L"d3d9.dll");
+
+  if (hModD3D9 == 0)
+  {
+    wchar_t     wszDllPath [MAX_PATH] = { };
+    PathAppend (wszDllPath, SK_GetHostPath ());
+    PathAppend (wszDllPath, L"d3d9.dll");
+
+    if (PathFileExistsW (wszDllPath))
+    {
+      hModD3D9 =
+        SK_LoadLibraryW (wszDllPath);
+    }
+  }
+
+  if (hModD3D9 != 0)
+  {
+    std::wstring str_d3d9ver =
+      SK_GetDLLProductName (
+        SK_GetModuleFullName (hModD3D9).c_str ()
+                          );
+
+    if (str_d3d9ver.find (L"DXVK") != std::wstring::npos)
+    {
+      if ( config.apis.d3d9.native_dxvk == -1                &&
+             sk::NVAPI::InitializeLibrary (SK_GetHostApp ()) &&
+             sk::NVAPI::nv_hardware
+         )
+      {
+        if ( IDYES == 
+               SK_MessageBox ( L"Enable native DXVK support?",
+                               L"DXVK (D3D9) Detected", MB_YESNO ) )
+        {
+          config.apis.d3d9.hook           = false;
+          config.apis.d3d9ex.hook         = false;
+          config.apis.d3d9.native_dxvk    = 1;
+          config.apis.NvAPI.vulkan_bridge = 1;
+
+          SK_SaveConfig ();
+
+          SK_NvAPI_EnableVulkanBridge (TRUE);
+          SK_RestartGame              (    );
+        }
+
+        else
+        {
+          config.apis.d3d9.native_dxvk    = 0;
+
+          SK_SaveConfig ();
+        }
+      }
+
+      return true;
+    }
+  }
+
+  return false;
+}
+
 void
 SK_BootD3D9 (void)
 {
@@ -173,6 +237,9 @@ SK_BootD3D9 (void)
 
   if (InterlockedCompareExchangeAcquire (&__booted, TRUE, FALSE) == FALSE)
   {
+    // Offer to enable native Vulkan support
+    SK_DXVK_CheckForInterop ();
+
     if (pTLS != nullptr)
         pTLS->render->d3d9->ctx_init_thread = true;
 
