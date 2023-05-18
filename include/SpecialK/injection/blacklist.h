@@ -189,6 +189,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"launcherpatcher.exe",      // GTA IV (32-bit)
   L"rockstarservice.exe",      //  ...
   L"rockstarsteamhelper.exe",  //  ...
+  L"gta4Browser.exe",          //  (no idea what this is, but ignore it)
   L"rockstarerrorhandler.exe", // 64-bit even in 32-bit games
 
   L"easteamproxy.exe", // Stupid EA bullcrap
