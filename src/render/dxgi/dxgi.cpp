@@ -7163,7 +7163,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
+    if (config.system.log_level > 0)
+      SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
 
     rb.d3d11.clearState ();
 

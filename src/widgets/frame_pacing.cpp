@@ -286,12 +286,25 @@ extern bool StopTraceSession   (void);
 
 HANDLE __SK_ETW_PresentMon_Thread = INVALID_HANDLE_VALUE;
 
+char          SK_PresentDebugStr [2][256] = { "", "" };
+volatile LONG SK_PresentIdx               =          0;
+
 void
 SK_SpawnPresentMonWorker (void)
 {
   // Wine doesn't support this...
   if (config.compatibility.using_wine)
     return;
+
+  // User Permissions do not permit PresentMon
+  if (! config.render.framerate.supports_etw_trace)
+  {
+    strcpy ( SK_PresentDebugStr [0],
+               "Presentation Model Unknown  (Full SK Install is Required)"
+    );
+
+    return;
+  }
 
   // Workaround for Windows 11 22H2 performance issues
   if (! config.render.framerate.enable_etw_tracing)
@@ -339,9 +352,6 @@ SK_ETW_EndTracing (void)
   return
     (PresentMon_ETW <= 0L);
 }
-
-char          SK_PresentDebugStr [2][256] = { "", "" };
-volatile LONG SK_PresentIdx               =          0;
 
 extern void SK_ImGui_DrawFramePercentiles (void);
 

@@ -3220,6 +3220,22 @@ auto DeclKeybind =
   render.framerate.enforcement_policy->load (config.render.framerate.enforcement_policy);
   render.framerate.enable_etw_tracing->load (config.render.framerate.enable_etw_tracing);
 
+  // Check for PresentMon ETW Trace Permissions if Enabled
+  if (config.render.framerate.enable_etw_tracing)
+  {
+    static BOOL  pfuAccessToken = FALSE;
+    static BYTE  pfuSID [SECURITY_MAX_SID_SIZE];
+    static DWORD pfuSize = sizeof (pfuSID);
+
+    SK_RunOnce (CreateWellKnownSid   (WELL_KNOWN_SID_TYPE::WinBuiltinPerfLoggingUsersSid, NULL, &pfuSID, &pfuSize));
+    SK_RunOnce (CheckTokenMembership (NULL, &pfuSID, &pfuAccessToken));
+
+    if (pfuAccessToken)
+    {
+      config.render.framerate.supports_etw_trace = true;
+    }
+  }
+
   render.d3d9.force_d3d9ex->load        (config.render.d3d9.force_d3d9ex);
   render.d3d9.impure->load              (config.render.d3d9.force_impure);
   render.d3d9.enable_flipex->load       (config.render.d3d9.enable_flipex);

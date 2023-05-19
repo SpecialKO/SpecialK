@@ -1,4 +1,8 @@
-﻿23.5.18
+﻿23.5.19
+=======
+ + Add check for PresentMon user permissions before attempting to enable
+
+23.5.18
 =======
  + For NVIDIA GPU users, if DXVK (D3D9) is detected, a prompt to enable native
      Vulkan support will be presented when first launching a game.
