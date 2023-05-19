@@ -914,10 +914,13 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   // EOS Overlay May Be Broken in D3D12 Games
   if (FAILED (hr) && config.render.dxgi.suppress_resize_fail)
   {
-    SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
-                hr );
+    if (hr != DXGI_ERROR_DEVICE_REMOVED)
+    {
+      SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
+                  hr );
 
-    hr = S_OK;
+      hr = S_OK;
+    }
   }
 
 
