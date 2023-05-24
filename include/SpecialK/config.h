@@ -1165,6 +1165,7 @@ enum class SK_GAME_ID
   DisgaeaPC,                    // dis1_st.exe
   SecretOfMana,                 // Secret_of_Mana.exe
   FinalFantasyXV,               // ffxv*.exe
+  FinalFantasyXIV,              // ffxiv_dx11.exe
   DragonBallFighterZ,           // DBFighterZ.exe
   NiNoKuni2,                    // Nino2.exe
   FarCry5,                      // FarCry5.exe

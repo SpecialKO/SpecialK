@@ -353,7 +353,7 @@ SK::ControlPanel::Window::Draw (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Intelligently Raises and Lowers the Game Windows for Optimum Multitasking");
+        ImGui::Text         ("Intelligently Raises and Lowers the Game Window for Optimum Multitasking");
         ImGui::Separator    ();
         ImGui::BulletText   ("Improves framepacing when KB&M input is given to other applications");
         ImGui::BulletText   ("Enables G-Sync / FreeSync / VRR in overlapping multi-monitor scenarios");

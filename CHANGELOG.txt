@@ -1,4 +1,9 @@
-﻿23.5.24
+﻿23.5.25
+=======
+ + All D3D9 games running in DXVK will be forced into windowed mode
+ + FFXIV is forced into windowed mode by default
+
+23.5.24
 =======
  + NOP all calls to ChangeDisplaySettings{Ex}(A|W) when forcing windowed mode
 

@@ -222,7 +222,8 @@ SK_GetCurrentGameID (void)
           { L"SOUL HACKERS2.exe",                      SK_GAME_ID::SoulHackers2                 },
           { L"MMBN_LC1.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
           { L"MMBN_LC2.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
-          { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               }
+          { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               },
+          { L"ffxiv_dx11.exe",                         SK_GAME_ID::FinalFantasyXIV              },
         };
 
     first_check  = false;
@@ -2969,6 +2970,12 @@ auto DeclKeybind =
         // Work-around anti-cheat
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
+        break;
+
+      case SK_GAME_ID::FinalFantasyXIV:
+        config.display.force_windowed = true;
+        config.window.borderless      = true;
+        config.window.fullscreen      = true;
         break;
     }
   }
