@@ -4351,6 +4351,9 @@ ChangeDisplaySettingsExA_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  if (config.display.force_windowed)
+    return DISP_CHANGE_SUCCESSFUL;
+
 
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
@@ -4434,6 +4437,10 @@ ChangeDisplaySettingsExW_Detour (
   _In_ LPVOID    lParam)
 {
   SK_LOG_FIRST_CALL
+
+
+  if (config.display.force_windowed)
+    return DISP_CHANGE_SUCCESSFUL;
 
 
   // NOP this sucker, we have borderless flip model in GL!

@@ -1,4 +1,8 @@
-﻿23.5.19
+﻿23.5.24
+=======
+ + NOP all calls to ChangeDisplaySettings{Ex}(A|W) when forcing windowed mode
+
+23.5.19
 =======
  + Add check for PresentMon user permissions before attempting to enable
 
