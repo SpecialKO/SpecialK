@@ -173,6 +173,7 @@ SK_DXVK_CheckForInterop (void)
         {
           config.apis.d3d9.hook           = false;
           config.apis.d3d9ex.hook         = false;
+          config.display.force_windowed   = true;
           config.apis.d3d9.native_dxvk    = 1;
           config.apis.NvAPI.vulkan_bridge = 1;
 
