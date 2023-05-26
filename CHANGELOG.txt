@@ -1,5 +1,6 @@
-﻿23.5.25
+﻿23.5.26
 =======
+ + Add "Num Plus" (for Numberpad +) as a possible keybinding
  + All D3D9 games running in DXVK will be forced into windowed mode
  + FFXIV is forced into windowed mode by default
 

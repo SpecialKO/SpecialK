@@ -5293,33 +5293,33 @@ SK_Keybind::parse (void)
 
       switch (i)
       {
-        case VK_F1:     wcscat (name, L"F1");           break;
-        case VK_F2:     wcscat (name, L"F2");           break;
-        case VK_F3:     wcscat (name, L"F3");           break;
-        case VK_F4:     wcscat (name, L"F4");           break;
-        case VK_F5:     wcscat (name, L"F5");           break;
-        case VK_F6:     wcscat (name, L"F6");           break;
-        case VK_F7:     wcscat (name, L"F7");           break;
-        case VK_F8:     wcscat (name, L"F8");           break;
-        case VK_F9:     wcscat (name, L"F9");           break;
-        case VK_F10:    wcscat (name, L"F10");          break;
-        case VK_F11:    wcscat (name, L"F11");          break;
-        case VK_F12:    wcscat (name, L"F12");          break;
-        case VK_F13:    wcscat (name, L"F13");          break;
-        case VK_F14:    wcscat (name, L"F14");          break;
-        case VK_F15:    wcscat (name, L"F15");          break;
-        case VK_F16:    wcscat (name, L"F16");          break;
-        case VK_F17:    wcscat (name, L"F17");          break;
-        case VK_F18:    wcscat (name, L"F18");          break;
-        case VK_F19:    wcscat (name, L"F19");          break;
-        case VK_F20:    wcscat (name, L"F20");          break;
-        case VK_F21:    wcscat (name, L"F21");          break;
-        case VK_F22:    wcscat (name, L"F22");          break;
-        case VK_F23:    wcscat (name, L"F23");          break;
-        case VK_F24:    wcscat (name, L"F24");          break;
-        case VK_PRINT:  wcscat (name, L"Print Screen"); break;
-        case VK_SCROLL: wcscat (name, L"Scroll Lock");  break;
-        case VK_PAUSE:  wcscat (name, L"Pause Break");  break;
+        case VK_F1:          wcscat (name, L"F1");           break;
+        case VK_F2:          wcscat (name, L"F2");           break;
+        case VK_F3:          wcscat (name, L"F3");           break;
+        case VK_F4:          wcscat (name, L"F4");           break;
+        case VK_F5:          wcscat (name, L"F5");           break;
+        case VK_F6:          wcscat (name, L"F6");           break;
+        case VK_F7:          wcscat (name, L"F7");           break;
+        case VK_F8:          wcscat (name, L"F8");           break;
+        case VK_F9:          wcscat (name, L"F9");           break;
+        case VK_F10:         wcscat (name, L"F10");          break;
+        case VK_F11:         wcscat (name, L"F11");          break;
+        case VK_F12:         wcscat (name, L"F12");          break;
+        case VK_F13:         wcscat (name, L"F13");          break;
+        case VK_F14:         wcscat (name, L"F14");          break;
+        case VK_F15:         wcscat (name, L"F15");          break;
+        case VK_F16:         wcscat (name, L"F16");          break;
+        case VK_F17:         wcscat (name, L"F17");          break;
+        case VK_F18:         wcscat (name, L"F18");          break;
+        case VK_F19:         wcscat (name, L"F19");          break;
+        case VK_F20:         wcscat (name, L"F20");          break;
+        case VK_F21:         wcscat (name, L"F21");          break;
+        case VK_F22:         wcscat (name, L"F22");          break;
+        case VK_F23:         wcscat (name, L"F23");          break;
+        case VK_F24:         wcscat (name, L"F24");          break;
+        case VK_PRINT:       wcscat (name, L"Print Screen"); break;
+        case VK_SCROLL:      wcscat (name, L"Scroll Lock");  break;
+        case VK_PAUSE:       wcscat (name, L"Pause Break");  break;
 
         default:
         {
@@ -5354,7 +5354,8 @@ SK_Keybind::parse (void)
            i != VK_SHIFT    && i != VK_OEM_PLUS && i != VK_OEM_MINUS &&
            i != VK_LSHIFT   && i != VK_RSHIFT   &&
            i != VK_LCONTROL && i != VK_RCONTROL &&
-           i != VK_LMENU    && i != VK_RMENU )
+           i != VK_LMENU    && i != VK_RMENU    && i != VK_ADD // Num Plus
+         )
       {
         _PushHumanToVirtual (name, sk::narrow_cast <BYTE> (i));
         _PushVirtualToHuman (      sk::narrow_cast <BYTE> (i), name);
@@ -5387,6 +5388,9 @@ SK_Keybind::parse (void)
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
+
+    _PushHumanToVirtual (L"Num Plus", sk::narrow_cast <BYTE> (VK_ADD));
+    _PushVirtualToHuman (             sk::narrow_cast <BYTE> (VK_ADD), L"Num Plus");
 
     init = true;
   }
