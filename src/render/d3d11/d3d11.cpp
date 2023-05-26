@@ -1247,9 +1247,26 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                 {
                   if (pDesc != nullptr)
                   {
-                    SK_RunOnce (
-                      SK_ImGui_Warning (L"Incompatible SwapChain RTV Format Requested")
-                    );
+                    if ( DirectX::IsSRGB       (                       desc.Format) &&
+                         DirectX::MakeTypeless (                       desc.Format) !=
+                         DirectX::MakeTypeless (DirectX::MakeSRGB (tex_desc.Format))
+                           &&  DXGI_FORMAT_R10G10B10A2_TYPELESS == tex_desc.Format )
+                    {
+                      SK_RunOnce (
+                        SK_ImGui_Warning (L"10-bit SDR is not possible in this game because it uses sRGB gamma.")
+                      );
+                    }
+
+                    else
+                    {
+                      SK_RunOnce (
+                        SK_ImGui_Warning (
+                          SK_FormatStringW (L"Incompatible SwapChain RTV Format Requested: %hs = %hs ??",
+                                           SK_DXGI_FormatToStr (    desc.Format).data (),
+                                           SK_DXGI_FormatToStr (tex_desc.Format).data ()).c_str ()
+                                         )
+                                 );
+                    }
                   }
 
                   desc.Format = internalSwapChainFormat;
