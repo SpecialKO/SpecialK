@@ -797,7 +797,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
-      else if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
+      else if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
       {
         dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
 
@@ -999,7 +999,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
                          (wchar_t *)lpFileName;
   }
 
-  if (/*config.compat.disable_dxdiag && */ StrStrIW (compliant_path, L"dxdiagn.dll"))
+  if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
   {
     dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
 
