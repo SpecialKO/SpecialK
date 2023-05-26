@@ -454,8 +454,19 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
       {
         if (command_args_len > 0)
         {
-          //          float original_val = ((SK_IVarStub <float>*) var)->getValue ();
-          auto float_val = (float)strtof (cmd_args.c_str (), nullptr);
+          float float_val    = 0.0f;
+          float original_val =
+            ((SK_IVarStub <float>*) var)->getValue ();
+
+          /* Increment */
+          if (     0 == _stricmp (cmd_args.c_str (), "++"))
+            float_val = original_val + 1.0f;
+          /* Decrement */
+          else if (0 == _stricmp (cmd_args.c_str (), "--"))
+            float_val = original_val - 1.0f;
+          /* Assign */
+          else
+            float_val = (float)strtof (cmd_args.c_str (), nullptr);
 
           ((SK_IVarStub <float>*) var)->setValue (float_val);
         }
