@@ -1,4 +1,9 @@
-﻿23.5.26.1
+﻿23.5.27
+=======
+ + Increased the minimum size of the Audio Session Selector pop-up in
+     the Volume Management section of the control panel for low-res users
+
+23.5.26.1
 =========
  + Add support for ++ and -- to floating-point cvars
 

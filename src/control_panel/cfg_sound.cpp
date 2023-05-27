@@ -59,10 +59,12 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
   bool changed = false;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2 (io.DisplaySize.x * 0.25f,
-                                                io.DisplaySize.y * 0.15f),
-                                        ImVec2 (io.DisplaySize.x * 0.75f,
-                                                io.DisplaySize.y * 0.666f) );
+  static const float fMinX = 400.0f;
+  static const float fMinY = 175.0f;
+
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (fMinX, fMinY),
+                                        ImVec2 (std::max (io.DisplaySize.x * 0.75f, fMinX),
+                                                std::max (io.DisplaySize.y * 0.666f,fMinY)) );
 
   if (ImGui::BeginPopupModal ("Audio Session Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                                  ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
