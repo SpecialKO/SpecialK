@@ -1,5 +1,6 @@
 ﻿23.5.27
 =======
+ + Auto-close Audio Session Selector pop-up if there are no sessions
  + Increased the minimum size of the Audio Session Selector pop-up in
      the Volume Management section of the control panel for low-res users
 

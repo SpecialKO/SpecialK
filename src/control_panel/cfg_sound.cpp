@@ -198,6 +198,9 @@ SK_ImGui_SelectAudioSessionDlg (void)
       }
     }
 
+    if (count == 0)
+      ImGui::CloseCurrentPopup ();
+
     ImGui::PopItemWidth ();
     ImGui::EndPopup     ();
   }
