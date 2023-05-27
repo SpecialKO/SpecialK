@@ -2847,6 +2847,24 @@ auto DeclKeybind =
         apis.last_known->store  ((int)config.apis.last_known);
 
         config.apis.NvAPI.vulkan_bridge   = 1;
+
+        if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu && (! SK_IsInjected ()))
+        {
+          static SK_AutoHandle hHookTeardown (
+            OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+                SK_RunLHIfBitness (32, LR"(Local\SK_GlobalHookTeardown32)",
+                                       LR"(Local\SK_GlobalHookTeardown64)") )
+                                      );
+
+          if (! hHookTeardown.m_h)
+          {
+            SK_MessageBox ( L"Please Manually Start Special K Injection",
+                            L"Yuzu requires Special K's Injection Service",
+                              MB_OK | MB_ICONASTERISK );
+
+            SK_SelfDestruct ();
+          }
+        }
       } break;
 
       case SK_GAME_ID::HaloInfinite:

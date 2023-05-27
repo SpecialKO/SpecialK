@@ -1,6 +1,7 @@
-﻿23.5.27.1
+﻿23.5.27.2
 =========
  + Add 5 frame delay before centering mouse cursor over exit confirmation
+ + Add error when launching Yuzu without SK's injection service running
 
 23.5.27
 =======
