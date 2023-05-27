@@ -781,7 +781,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"graphics-hook"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -790,7 +792,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -799,7 +803,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -808,7 +814,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"RTSSVkLayer"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -817,7 +825,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -826,7 +836,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
       {
-        dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.");
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -835,7 +847,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       else if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
       {
-        dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
+        SK_RunOnce (
+          dll_log->Log (L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)")
+        );
 
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
         hMod = nullptr;
@@ -1037,7 +1051,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   
   if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"graphics-hook"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1046,7 +1062,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1055,7 +1073,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1064,7 +1084,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"RTSSVkLayer"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1073,7 +1095,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if ((! config.compatibility.allow_dxdiagn) && StrStrIW (compliant_path, L"dxdiagn.dll"))
   {
-    dll_log->Log ( L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)" );
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling DxDiagn because it is slow as hell (!!)")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1082,7 +1106,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvCamera"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling NvCamera because it's unstable.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
@@ -1091,7 +1117,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   else if (config.nvidia.bugs.bypass_ansel && StrStrIW (compliant_path, L"NvTelemetry"))
   {
-    dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.");
+    SK_RunOnce (
+      dll_log->Log (L"[DLL Loader]  ** Disabling NvTelemetry because it's unstable.")
+    );
 
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
