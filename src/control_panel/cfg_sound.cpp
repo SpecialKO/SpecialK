@@ -60,7 +60,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
   bool changed = false;
 
   static const float fMinX = 400.0f;
-  static const float fMinY = 175.0f;
+  static const float fMinY = 150.0f;
 
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (fMinX, fMinY),
                                         ImVec2 (std::max (io.DisplaySize.x * 0.75f, fMinX),

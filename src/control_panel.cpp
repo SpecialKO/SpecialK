@@ -6310,11 +6310,24 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
 
+    static bool
+        center_mouse = false;
+    if (center_mouse)
+    {
+      if ( static int frames = 0;
+                    ++frames > 5 )
+      {
+        ImGui::GetIO ().MousePos = ImGui::GetCursorScreenPos ();
+        ImGui::GetIO ().WantSetMousePos = true;
+
+        center_mouse = false;
+        frames       = 0;
+      }
+    }
 
     if (ImGui::IsWindowAppearing ())
     {
-      ImGui::GetIO ().MousePos        = ImGui::GetCursorScreenPos ();
-      ImGui::GetIO ().WantSetMousePos = true;
+      center_mouse = true;
     }
 
     if (ImGui::Button  ("Okay"))

@@ -1,4 +1,8 @@
-﻿23.5.27
+﻿23.5.27.1
+=========
+ + Add 5 frame delay before centering mouse cursor over exit confirmation
+
+23.5.27
 =======
  + Auto-close Audio Session Selector pop-up if there are no sessions
  + Increased the minimum size of the Audio Session Selector pop-up in
