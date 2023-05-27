@@ -772,6 +772,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       if (StrStrIW (compliant_path, L"rxcore"))
         SK_LoadLibraryW (L"xinput1_4.dll");
 
+      bool bVulkanLayerDisabled = false;
+
       // Windows Defender likes to deadlock in the Steam Overlay
       if (StrStrIW (compliant_path, L"Windows Defender"))
       {
@@ -779,45 +781,47 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
-      else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"graphics-hook"))
+      else if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
       {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
-        );
+        if (StrStrIW (compliant_path, L"graphics-hook"))
+        {
+          SK_RunOnce (
+            dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
+          );
 
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+          bVulkanLayerDisabled = true;
+        }
 
-        hMod = nullptr;
+        else if (StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
+        {
+          SK_RunOnce (
+            dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+          );
+
+          bVulkanLayerDisabled = true;
+        }
+
+        else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
+        {
+          SK_RunOnce (
+            dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+          );
+
+          bVulkanLayerDisabled = true;
+        }
+
+        else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
+        {
+          SK_RunOnce (
+            dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+          );
+
+          bVulkanLayerDisabled = true;
+        }
       }
 
-      else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
+      if (bVulkanLayerDisabled)
       {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-        );
-
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-        hMod = nullptr;
-      }
-
-      else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
-      {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-        );
-
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-        hMod = nullptr;
-      }
-
-      else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"RTSSVkLayer"))
-      {
-        SK_RunOnce (
-          dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
-        );
-
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
         hMod = nullptr;
@@ -1049,45 +1053,49 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
                          (wchar_t *)lpFileName;
   }
   
-  if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"graphics-hook"))
+  bool bVulkanLayerDisabled = false;
+
+  if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
   {
-    SK_RunOnce (
-      dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
-    );
+    if (StrStrIW (compliant_path, L"graphics-hook"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
+      );
 
-    SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      bVulkanLayerDisabled = true;
+    }
 
-    return nullptr;
+    else if (StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+      );
+
+      bVulkanLayerDisabled = true;
+    }
+
+    else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+      );
+
+      bVulkanLayerDisabled = true;
+    }
+
+    else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
+    {
+      SK_RunOnce (
+        dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+      );
+
+      bVulkanLayerDisabled = true;
+    }
   }
 
-  else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
+  if (bVulkanLayerDisabled)
   {
-    SK_RunOnce (
-      dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-    );
-
-    SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-    return nullptr;
-  }
-
-  else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
-  {
-    SK_RunOnce (
-      dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-    );
-
-    SK_SetLastError (ERROR_MOD_NOT_FOUND);
-
-    return nullptr;
-  }
-
-  else if (config.apis.NvAPI.vulkan_bridge == 1 && StrStrIW (compliant_path, L"RTSSVkLayer"))
-  {
-    SK_RunOnce (
-      dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
-    );
-
     SK_SetLastError (ERROR_MOD_NOT_FOUND);
 
     return nullptr;
