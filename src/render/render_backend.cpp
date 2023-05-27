@@ -171,11 +171,12 @@ SK_DXVK_CheckForInterop (void)
                SK_MessageBox ( L"Enable native DXVK support?",
                                L"DXVK (D3D9) Detected", MB_YESNO ) )
         {
-          config.apis.d3d9.hook           = false;
-          config.apis.d3d9ex.hook         = false;
-          config.display.force_windowed   = true;
-          config.apis.d3d9.native_dxvk    = 1;
-          config.apis.NvAPI.vulkan_bridge = 1;
+          config.apis.d3d9.hook                        = false;
+          config.apis.d3d9ex.hook                      = false;
+          config.display.force_windowed                = true;
+          config.apis.d3d9.native_dxvk                 = 1;
+          config.apis.NvAPI.vulkan_bridge              = 1;
+          config.compatibility.init_on_separate_thread = false;
 
           SK_SaveConfig ();
 
@@ -185,7 +186,8 @@ SK_DXVK_CheckForInterop (void)
 
         else
         {
-          config.apis.d3d9.native_dxvk    = 0;
+          config.compatibility.init_on_separate_thread = true;
+          config.apis.d3d9.native_dxvk                 = 0;
 
           SK_SaveConfig ();
         }

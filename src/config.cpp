@@ -2846,7 +2846,8 @@ auto DeclKeybind =
         apis.Vulkan.hook->store (config.apis.Vulkan.    hook);
         apis.last_known->store  ((int)config.apis.last_known);
 
-        config.apis.NvAPI.vulkan_bridge   = 1;
+        config.apis.NvAPI.vulkan_bridge              = 1;
+        config.compatibility.init_on_separate_thread = false;
 
         if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu && (! SK_IsInjected ()))
         {
