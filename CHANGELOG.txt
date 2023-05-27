@@ -1,4 +1,10 @@
-﻿23.5.27.3
+﻿23.5.28
+=======
+ + Improved global injection compatibility with Yuzu
+ + Disabled AsyncInit for games using Vulkan Bridge to ensure that third-party
+     layer disablement code works as intended
+
+23.5.27.3
 =========
  + Automatically disable OBS's Vulkan layer if SK's Vulkan Bridge is active
  + Automatically disable Steam's Vulkan layer if SK's Vulkan Bridge is active

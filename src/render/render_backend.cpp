@@ -469,11 +469,11 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
-  if (! config.compatibility.init_on_separate_thread)
-  {
-    config.compatibility.init_on_separate_thread = true;
-    return;
-  }
+  //if (! config.compatibility.init_on_separate_thread)
+  //{
+  //  config.compatibility.init_on_separate_thread = true;
+  //  return;
+  //}
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
