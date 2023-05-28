@@ -1,4 +1,9 @@
-﻿23.5.28.1
+﻿23.5.28.2
+=========
+ + Steam Overlay's Vulkan layer cannot be disabled -- its D3D11 Overlay will
+     not cleanup resources correctly on NVIDIA's DXGI Layer and will deadlock.
+
+23.5.28.1
 =========
  + Replaced AsyncInit workaround with Env. Variables to disable Vk layers
 
