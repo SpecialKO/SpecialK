@@ -801,23 +801,23 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
           bVulkanLayerDisabled = true;
         }
 
-        else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
-        {
-          SK_RunOnce (
-            dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-          );
+        //else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
+        //{
+        //  SK_RunOnce (
+        //    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+        //  );
+        //
+        //  bVulkanLayerDisabled = true;
+        //}
 
-          bVulkanLayerDisabled = true;
-        }
-
-        else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
-        {
-          SK_RunOnce (
-            dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
-          );
-
-          bVulkanLayerDisabled = true;
-        }
+        //else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
+        //{
+        //  SK_RunOnce (
+        //    dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+        //  );
+        //
+        //  bVulkanLayerDisabled = true;
+        //}
       }
 
       if (bVulkanLayerDisabled)
@@ -1075,23 +1075,23 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
       bVulkanLayerDisabled = true;
     }
 
-    else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
-    {
-      SK_RunOnce (
-        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-      );
-
-      bVulkanLayerDisabled = true;
-    }
-
-    else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
-    {
-      SK_RunOnce (
-        dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
-      );
-
-      bVulkanLayerDisabled = true;
-    }
+    //else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
+    //{
+    //  SK_RunOnce (
+    //    dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
+    //  );
+    //
+    //  bVulkanLayerDisabled = true;
+    //}
+    //
+    //else if (StrStrIW (compliant_path, L"RTSSVkLayer"))
+    //{
+    //  SK_RunOnce (
+    //    dll_log->Log (L"[DLL Loader]  ** Disabling RTSS's Vulkan Layer because VulkanBridge is active.")
+    //  );
+    //
+    //  bVulkanLayerDisabled = true;
+    //}
   }
 
   if (bVulkanLayerDisabled)
