@@ -1408,67 +1408,88 @@ SK_TestImports (          HMODULE  hMod,
                                      reinterpret_cast <uintptr_t>
       (    start + pImgDir->Size )                                               );
 
-    for (   pImpDesc = start ;
-            pImpDesc < end   ;
-          ++pImpDesc )
+    static bool bValidIAT = true;
+
+    if (bValidIAT && SK_ValidatePointer (pImpDesc, true))
     {
-      __try
-      {
-        if ( pImpDesc->Characteristics == 0  )
-          break;
-
-        if ( pImpDesc->ForwarderChain != DWORD_MAX ||
-             pImpDesc->Name           == 0x0 )
-        {
-          continue;
-        }
-      }
-
-      __except (EXCEPTION_EXECUTE_HANDLER)
-      {
-        continue;
-      };
-
-
-      const auto* szImport =
-        reinterpret_cast <const char *> (
-          pImgBase + (pImpDesc++)->Name
-        );
-
-      //dll_log->Log (L"%hs", szImport);
-
-      size_t hashed_str =
-        hash_string_utf8 (szImport, true);
-
-
-      for (i = 0; i < nCount; i++)
+      for (   pImpDesc = start ;
+              pImpDesc < end   ;
+            ++pImpDesc )
       {
         __try
         {
-          if ( (! pTests [i].used)
-               && hashes [i] == hashed_str )
+          if (SK_ValidatePointer (pImpDesc, true))
           {
-            if ((! StrStrIA (szImport, "D3DPERF_BeginEvent")) &&
-                (! StrStrIA (szImport, "D3DPERF_EndEvent")))
-            {
-              pTests [i].used = true;
+            if ( pImpDesc->Characteristics == 0  )
+              break;
 
-              ++hits;
-              ++important_imports;
-            }
-
-            else
+            if ( pImpDesc->ForwarderChain != DWORD_MAX ||
+                 pImpDesc->Name           == 0x0 )
             {
-              --hits;
-              --important_imports;
+              continue;
             }
           }
-        }
-        __except (EXCEPTION_EXECUTE_HANDLER) { };
-      }
 
-      if (hits == nCount)
-        break;
+          else
+            continue;
+        }
+
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+          continue;
+        };
+
+
+        const auto* szImport =
+          reinterpret_cast <const char *> (
+            pImgBase + (pImpDesc++)->Name
+          );
+
+        //dll_log->Log (L"%hs", szImport);
+
+        size_t hashed_str =
+          hash_string_utf8 (szImport, true);
+
+
+        for (i = 0; i < nCount; i++)
+        {
+          __try
+          {
+            if ( (! pTests [i].used)
+                 && hashes [i] == hashed_str )
+            {
+              if ((! StrStrIA (szImport, "D3DPERF_BeginEvent")) &&
+                  (! StrStrIA (szImport, "D3DPERF_EndEvent")))
+              {
+                pTests [i].used = true;
+
+                ++hits;
+                ++important_imports;
+              }
+
+              else
+              {
+                --hits;
+                --important_imports;
+              }
+            }
+          }
+          __except (EXCEPTION_EXECUTE_HANDLER) { };
+        }
+
+        if (hits == nCount)
+          break;
+      }
+    }
+
+    else
+    {
+      bValidIAT = false;
+
+      SK_RunOnce (
+        SK_LOGs0 ( L"RenderBoot",
+                   L"Executable's IAT appears to have been stripped..." )
+      );
     }
   }
   __except (EXCEPTION_EXECUTE_HANDLER) { };
