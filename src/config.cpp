@@ -2848,7 +2848,8 @@ auto DeclKeybind =
 
         config.window.always_on_top                  = 0;
         config.apis.NvAPI.vulkan_bridge              = 1;
-        config.compatibility.init_on_separate_thread = false;
+
+        SK_Vulkan_DisableThirdPartyLayers ();
 
         if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu && (! SK_IsInjected ()))
         {
@@ -3162,6 +3163,11 @@ auto DeclKeybind =
     {
       ;
     }
+  }
+
+  if (config.apis.NvAPI.vulkan_bridge)
+  {
+    SK_Vulkan_DisableThirdPartyLayers ();
   }
 
   render.framerate.target_fps->load         (config.render.framerate.target_fps);

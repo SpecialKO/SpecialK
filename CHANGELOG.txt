@@ -1,4 +1,8 @@
-﻿23.5.28
+﻿23.5.28.1
+=========
+ + Replaced AsyncInit workaround with Env. Variables to disable Vk layers
+
+23.5.28
 =======
  + Improved global injection compatibility with Yuzu
  + Disabled AsyncInit for games using Vulkan Bridge to ensure that third-party

@@ -176,7 +176,6 @@ SK_DXVK_CheckForInterop (void)
           config.display.force_windowed                = true;
           config.apis.d3d9.native_dxvk                 = 1;
           config.apis.NvAPI.vulkan_bridge              = 1;
-          config.compatibility.init_on_separate_thread = false;
 
           SK_SaveConfig ();
 
@@ -186,7 +185,6 @@ SK_DXVK_CheckForInterop (void)
 
         else
         {
-          config.compatibility.init_on_separate_thread = true;
           config.apis.d3d9.native_dxvk                 = 0;
 
           SK_SaveConfig ();
@@ -469,11 +467,11 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
-  //if (! config.compatibility.init_on_separate_thread)
-  //{
-  //  config.compatibility.init_on_separate_thread = true;
-  //  return;
-  //}
+  if (! config.compatibility.init_on_separate_thread)
+  {
+    config.compatibility.init_on_separate_thread = true;
+    return;
+  }
 
   SK_TLS *pTLS =
     SK_TLS_Bottom ();
@@ -4625,3 +4623,12 @@ SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
     }
   }
 };
+
+void
+SK_Vulkan_DisableThirdPartyLayers (void)
+{
+  SetEnvironmentVariableW (L"DISABLE_VK_LAYER_VALVE_steam_fossilize_1", L"1");
+  SetEnvironmentVariableW (L"DISABLE_VK_LAYER_VALVE_steam_overlay_1",   L"1");
+  SetEnvironmentVariableW (L"DISABLE_VULKAN_OBS_CAPTURE",               L"1");
+  SetEnvironmentVariableW (L"DISABLE_RTSS_LAYER",                       L"1");
+}
