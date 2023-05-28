@@ -4615,6 +4615,49 @@ GetForegroundWindow_Detour (void)
     SK_GetForegroundWindow ();
 }
 
+typedef BOOL (WINAPI *BringWindowToTop_pfn)(HWND);
+                      BringWindowToTop_pfn
+                      BringWindowToTop_Original = nullptr;
+
+BOOL
+WINAPI
+BringWindowToTop_Detour (HWND hWnd)
+{
+  SK_LOG_FIRST_CALL;
+
+  DWORD                            dwPid = 0x0;
+  GetWindowThreadProcessId (hWnd, &dwPid);
+
+  if (GetCurrentProcessId () == dwPid)
+  {
+    return
+      BringWindowToTop_Original (hWnd);
+  }
+
+  return false;
+}
+
+typedef BOOL (WINAPI *SetForegroundWindow_pfn)(HWND);
+                      SetForegroundWindow_pfn
+                      SetForegroundWindow_Original = nullptr;
+
+BOOL
+WINAPI
+SetForegroundWindow_Detour (HWND hWnd)
+{
+  SK_LOG_FIRST_CALL;
+
+  DWORD                            dwPid = 0x0;
+  GetWindowThreadProcessId (hWnd, &dwPid);
+
+  if (GetCurrentProcessId () == dwPid)
+  {
+    return
+      SetForegroundWindow_Original (hWnd);
+  }
+
+  return FALSE;
+}
 
 void
 RealizeForegroundWindow_Impl (HWND hWndForeground)
@@ -6772,6 +6815,16 @@ SK_HookWinAPI (void)
        static_cast_p2p <void> (&GetForegroundWindow_Original) );
 
     SK_CreateDLLHook2 (       L"user32",
+                               "SetForegroundWindow",
+                                SetForegroundWindow_Detour,
+       static_cast_p2p <void> (&SetForegroundWindow_Original) );
+
+    SK_CreateDLLHook2 (       L"user32",
+                               "BringWindowToTop",
+                                BringWindowToTop_Detour,
+       static_cast_p2p <void> (&BringWindowToTop_Original) );
+
+    SK_CreateDLLHook2 (       L"user32",
                                "GetActiveWindow",
                                 GetActiveWindow_Detour,
        static_cast_p2p <void> (&GetActiveWindow_Original) );
@@ -7463,7 +7516,11 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
     if (hWndNewTop != nullptr)
     {
     //dll_log->Log (L"SK_Window_OnFocusChange: BringWindowToTop (hWndNewTop)");
-      BringWindowToTop (hWndNewTop);
+      DWORD                                  dwPidOfTop = 0x0;
+      GetWindowThreadProcessId (hWndNewTop, &dwPidOfTop);
+
+      if (dwPidOfTop == GetCurrentProcessId ())
+        BringWindowToTop (hWndNewTop);
     }
 
     if (bTopMost)

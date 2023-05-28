@@ -1,4 +1,8 @@
-﻿23.5.28.2
+﻿23.5.28.3
+=========
+ + Various fixes for games with splash screens that are Win32 dialogs
+
+23.5.28.2
 =========
  + Steam Overlay's Vulkan layer cannot be disabled -- its D3D11 Overlay will
      not cleanup resources correctly on NVIDIA's DXGI Layer and will deadlock.

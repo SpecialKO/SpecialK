@@ -2968,6 +2968,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     {
       if (game_window.WndProc_Original != nullptr)
       {
+        // Activate the game window one time
+        //   (workaround wonkiness from splash screens, etc.)
+        SK_RunOnce (SetForegroundWindow (game_window.hWnd));
+
         // If user wants position / style overrides, kick them off on the first
         //   frame after a window procedure has been established.
         //
