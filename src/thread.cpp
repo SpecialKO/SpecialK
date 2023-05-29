@@ -107,7 +107,7 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
 {
   bool bRet = false;
 
-  if (SK_SetThreadDescription != nullptr)
+  if (SK_SetThreadDescription != nullptr && pTni->szName != nullptr)
   {
     DWORD dwTid =
       ( pTni->dwThreadID == -1 ) ?

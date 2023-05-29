@@ -1,5 +1,6 @@
-﻿23.5.29.1
+﻿23.5.29.2
 =========
+ + Fixed deadlock in games that raise Thread Name exceptions without a string
  + Fixed HDR gamut expansion not applying
 
 23.5.29
