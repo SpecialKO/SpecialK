@@ -8469,9 +8469,12 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   if (SUCCEEDED (hr) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
     // HDR requires Fullscreen Exclusive or DXGI Flip Model, this should never succeed
-    SK_ReleaseAssert (
-      SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
-                                    swapDesc.Windowed == FALSE );
+    if (config.system.log_level > 0)
+    {
+      SK_ReleaseAssert (
+        SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
+                                      swapDesc.Windowed == FALSE );
+    }
 
     if (Size == sizeof (DXGI_HDR_METADATA_HDR10))
     {
