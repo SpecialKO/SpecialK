@@ -1,4 +1,12 @@
-﻿23.5.29.2
+﻿23.5.30
+=======
+ + Merge pull request #64 from WallSoGB/SilentCrashHandler
+    * Silent crash handler + Y-m-d for crash timestamps
+
+ + Fixed hook address caching not respecting Enable{Local|Global}Cache setting
+ + Removed Unicode formatting direction characters from locale timestamps
+
+23.5.29.2
 =========
  + Fixed deadlock in games that raise Thread Name exceptions without a string
  + Fixed HDR gamut expansion not applying
