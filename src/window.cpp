@@ -4625,6 +4625,8 @@ BringWindowToTop_Detour (HWND hWnd)
 {
   SK_LOG_FIRST_CALL;
 
+  // This breaks alt-tab and window activation in some cases
+#if 0
   DWORD                            dwPid = 0x0;
   GetWindowThreadProcessId (hWnd, &dwPid);
 
@@ -4634,7 +4636,11 @@ BringWindowToTop_Detour (HWND hWnd)
       BringWindowToTop_Original (hWnd);
   }
 
-  return false;
+  return FALSE;
+#else
+  return
+    BringWindowToTop_Original (hWnd);
+#endif
 }
 
 typedef BOOL (WINAPI *SetForegroundWindow_pfn)(HWND);
@@ -4647,6 +4653,8 @@ SetForegroundWindow_Detour (HWND hWnd)
 {
   SK_LOG_FIRST_CALL;
 
+  // This breaks alt-tab and window activation in some cases
+#if 0
   DWORD                            dwPid = 0x0;
   GetWindowThreadProcessId (hWnd, &dwPid);
 
@@ -4657,6 +4665,10 @@ SetForegroundWindow_Detour (HWND hWnd)
   }
 
   return FALSE;
+#else
+  return
+    SetForegroundWindow_Original (hWnd);
+#endif
 }
 
 void
@@ -7516,11 +7528,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
     if (hWndNewTop != nullptr)
     {
     //dll_log->Log (L"SK_Window_OnFocusChange: BringWindowToTop (hWndNewTop)");
-      DWORD                                  dwPidOfTop = 0x0;
-      GetWindowThreadProcessId (hWndNewTop, &dwPidOfTop);
-
-      if (dwPidOfTop == GetCurrentProcessId ())
-        BringWindowToTop (hWndNewTop);
+      BringWindowToTop (hWndNewTop);
     }
 
     if (bTopMost)

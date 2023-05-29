@@ -1,5 +1,6 @@
 ﻿23.5.30.1
 =========
+ + Revert SetForegroundWindow / BringWindowToTop changes from 23.5.28.3
  + Updated internal fonts to Font Awesome Free v6.2.1
 
 23.5.30
