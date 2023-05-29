@@ -1194,9 +1194,9 @@ SK_Version_GetLastCheckTime_WStr (void)
   wchar_t wszFileTime [48] = { };
   wchar_t wszDateTime [48] = { };
 
-  GetDateFormat ( LOCALE_USER_DEFAULT, DATE_AUTOLAYOUT,
-                    &stModified, nullptr, wszFileTime, 47 );
-  GetTimeFormat ( LOCALE_USER_DEFAULT, TIME_NOSECONDS,
+  GetDateFormatEx ( LOCALE_NAME_USER_DEFAULT, DATE_SHORTDATE,
+                    &stModified, nullptr, wszFileTime, 47, nullptr );
+  GetTimeFormatEx ( LOCALE_NAME_USER_DEFAULT, TIME_NOSECONDS,
                     &stModified, nullptr, wszDateTime, 47 );
 
   *cached_time =

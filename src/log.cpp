@@ -75,8 +75,8 @@ SK_Timestamp (wchar_t* const out)
   wchar_t date [48] = { };
   wchar_t time [48] = { };
 
-  GetDateFormat (LOCALE_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 47);
-  GetTimeFormat (LOCALE_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 47);
+  GetDateFormatEx (LOCALE_NAME_INVARIANT, DATE_SHORTDATE,    &stLogTime, nullptr, date, 47, nullptr);
+  GetTimeFormatEx (LOCALE_NAME_INVARIANT, TIME_NOTIMEMARKER, &stLogTime, nullptr, time, 47);
 
   out [0] = L'\0';
 
