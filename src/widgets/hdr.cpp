@@ -2136,7 +2136,7 @@ public:
                                                                                                  "16-Bit Quantization\0"
                                                                                                  "Gamut Overshoot (vs Rec.709)\0"
                                                                                                  "Gamut Overshoot (vs DCI-P3)\0"
-                                                                                                 "Tonemap Curve and Grayscale\0\0");
+                                                                                                 "Tonemap Curve and Grayscale\0\0", 13);
                                                                                                   //"Maximum Local Clip Point v0\0"
                                                                                                   //"Maximum Local Clip Point v1\0"
                                                                                                   //"Maximum Local Clip Point v2\0\0");

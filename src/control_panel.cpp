@@ -1255,12 +1255,21 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                                                                                NV_DITHER_BITS_8;
     static NV_DITHER_MODE   mode = NV_DITHER_MODE_TEMPORAL;
 
+    SK_RunOnce (dirty = true);
+
     if (dirty)
     {
-      bits = rb.displays [rb.active_display].bpc ==  6 ? NV_DITHER_BITS_6  :
-             rb.displays [rb.active_display].bpc ==  8 ? NV_DITHER_BITS_8  :
-             rb.displays [rb.active_display].bpc == 10 ? NV_DITHER_BITS_10 :
-                                                         NV_DITHER_BITS_8;
+      NV_GPU_DITHER_CONTROL_V1
+        dither_ctl         = {                        };
+        dither_ctl.version = NV_GPU_DITHER_CONTROL_VER1;
+
+      if ( NVAPI_OK ==
+           NvAPI_Disp_GetDitherControl (rb.displays [rb.active_display].nvapi.display_id, &dither_ctl) )
+      {
+        state = dither_ctl.state;
+        bits  = dither_ctl.bits;
+        mode  = dither_ctl.mode;
+      }
     }
 
     auto state_orig = state;
@@ -1270,7 +1279,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     {
       if ( NVAPI_OK !=
            NvAPI_Disp_SetDitherControl ( rb.displays [rb.active_display].nvapi.gpu_handle,
-                                         rb.displays [rb.active_display].nvapi.output_id, state, bits, mode ) )
+                                         rb.displays [rb.active_display].nvapi.display_id, state, bits, mode ) )
       {
         state = state_orig;
       }
@@ -1287,7 +1296,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       {
         if ( NVAPI_OK !=
              NvAPI_Disp_SetDitherControl ( rb.displays [rb.active_display].nvapi.gpu_handle,
-                                           rb.displays [rb.active_display].nvapi.output_id, state, bits, mode ) )
+                                           rb.displays [rb.active_display].nvapi.display_id, state, bits, mode ) )
         {
           bits = bits_orig;
         }
@@ -1301,7 +1310,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       {
         if ( NVAPI_OK !=
              NvAPI_Disp_SetDitherControl ( rb.displays [rb.active_display].nvapi.gpu_handle,
-                                           rb.displays [rb.active_display].nvapi.output_id, state, bits, mode ) )
+                                           rb.displays [rb.active_display].nvapi.display_id, state, bits, mode ) )
         {
           mode = mode_orig;
         }
@@ -1314,11 +1323,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     NV_GPU_DITHER_CONTROL_V1
       dither_ctl         = {                        };
       dither_ctl.version = NV_GPU_DITHER_CONTROL_VER1;
-      dither_ctl.size    = sizeof (NV_GPU_DITHER_CONTROL_V1);
 
     if ( NVAPI_OK ==
-         NvAPI_Disp_GetDitherControl ( //rb.displays [rb.active_display].nvapi.gpu_handle,
-                                       rb.displays [rb.active_display].nvapi.display_id,
+         NvAPI_Disp_GetDitherControl ( rb.displays [rb.active_display].nvapi.display_id,
                                       &dither_ctl ) )
     {
       ImGui::Text ( "Dithering: %s, Bits: %s, Mode: %s",

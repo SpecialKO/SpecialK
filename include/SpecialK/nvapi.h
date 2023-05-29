@@ -106,10 +106,13 @@ typedef enum _NV_DITHER_MODE
 typedef struct _NV_GPU_DITHER_CONTROL_V1
 {
   NvU32         version;
-  NvU16            size;
   NV_DITHER_STATE state;
   NV_DITHER_BITS   bits;
   NV_DITHER_MODE   mode;
+  struct {
+    NvU32          bits;
+    NvU32          mode;
+  } caps;
 } NV_GPU_DITHER_CONTROL_V1;
 
 #define NV_GPU_DITHER_CONTROL_VER1  MAKE_NVAPI_VERSION(NV_GPU_DITHER_CONTROL_V1, 1)
@@ -122,8 +125,7 @@ using NvAPI_Disp_SetDitherControl_pfn =
                                 NV_DITHER_MODE      mode );
 
 using NvAPI_Disp_GetDitherControl_pfn =
-      NvAPI_Status (__cdecl *)( //NvPhysicalGpuHandle       hPhysicalGpu,
-                                NvU32                     output_id,
+      NvAPI_Status (__cdecl *)( NvU32                     output_id,
                                 NV_GPU_DITHER_CONTROL_V1* ditherControl );
 
 #include <Unknwn.h>

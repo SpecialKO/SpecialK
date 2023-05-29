@@ -2968,22 +2968,25 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     {
       if (game_window.WndProc_Original != nullptr)
       {
-        // Activate the game window one time
-        //   (workaround wonkiness from splash screens, etc.)
-        SK_RunOnce (SetForegroundWindow (game_window.hWnd));
-
-        // If user wants position / style overrides, kick them off on the first
-        //   frame after a window procedure has been established.
-        //
-        //  (nb: Must be implemented asynchronously)
-        //
-        SK_RunOnce (
+        if (game_window.hWnd != 0)
         {
-          SK_Window_RepositionIfNeeded ();
+          // Activate the game window one time
+          //   (workaround wonkiness from splash screens, etc.)
+          SK_RunOnce (SetForegroundWindow (game_window.hWnd));
 
-          game_window.active |=
-            (SK_GetForegroundWindow () == game_window.hWnd);
-        })
+          // If user wants position / style overrides, kick them off on the first
+          //   frame after a window procedure has been established.
+          //
+          //  (nb: Must be implemented asynchronously)
+          //
+          SK_RunOnce (
+          {
+            SK_Window_RepositionIfNeeded ();
+
+            game_window.active |=
+              (SK_GetForegroundWindow () == game_window.hWnd);
+          })
+        }
       }
 
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)

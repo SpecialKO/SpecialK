@@ -1,4 +1,16 @@
-﻿23.5.28.3
+﻿23.5.29
+=======
+ + Fixed incorrect structure size on NV_GPU_DITHER_CONTROL_V1, which was
+     causing the dithering setting on NVIDIA GPUs to read as "Default".
+
+     >> HDR users should test the dithering setting using the HDR widget's
+          HDR Visualization: "Tonemap Curve and Grayscale".
+
+        ( 10-bit Temporal is ideal for HDR on 12-bpc displays )
+
+ + Increased HDR visualization list size so Grayscale shows without scrolling
+
+23.5.28.3
 =========
  + Various fixes for games with splash screens that are Win32 dialogs
 
