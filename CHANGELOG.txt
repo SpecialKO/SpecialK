@@ -1,4 +1,8 @@
-﻿23.5.29
+﻿23.5.29.1
+=========
+ + Fixed HDR gamut expansion not applying
+
+23.5.29
 =======
  + Fixed incorrect structure size on NV_GPU_DITHER_CONTROL_V1, which was
      causing the dithering setting on NVIDIA GPUs to read as "Default".

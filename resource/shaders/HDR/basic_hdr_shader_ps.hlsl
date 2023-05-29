@@ -867,8 +867,10 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     if (hdrGamutExpansion > 0.0f)
     {
-      hdr_color.rgb =
-        expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+      color_out.rgb =
+        Clamp_scRGB (
+          expandGamut (color_out.rgb, hdrGamutExpansion)
+        );
     }
   }
 
