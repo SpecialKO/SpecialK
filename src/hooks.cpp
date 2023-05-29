@@ -545,12 +545,25 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
         else
           *(it.pEnable) = (! _wcsicmp (it.kName.data (), L"Global"));
 
+        //
+        // Games that need hook cache unconditionally
+        //
+        switch (SK_GetCurrentGameID ())
+        {
+          case SK_GAME_ID::NiNoKuni2:
+            *(it.pEnable) = true;
+            break;
+        };
+
         cfg_sec.add_key_value ( key_name.data (),
                                   *(it.pEnable) ? L"true" :
                                                   L"false" );
+
         //ini->write (ini->get_filename ());
       }
     }
+
+    cfg_sec.add_key_value ( L"RunOnce", L"true" );
   }
 
   return ret;
