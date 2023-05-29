@@ -1602,10 +1602,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       FindClose (hFind);
     }
 
-    crash_log->silent = true;
     crash_log->lines++;
 
-    //if (! (crash_log.initialized && crash_log.silent))
+    if (! config.system.silent_crash )
     {
       if (! crash_sound->play ())
       {
