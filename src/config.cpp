@@ -2256,10 +2256,6 @@ auto DeclKeybind =
       case SK_GAME_ID::NiNoKuni2:
         config.window.treat_fg_as_active      = true;
         config.window.background_render       = true;
-
-        // SwapChain creation will be missed unless we initialize synchronously
-        config.compatibility.
-                      init_on_separate_thread = false;
         config.nvidia.bugs.kill_hdr           = true; // No deadlock please
 
         // Evaluate deferred command lists for state tracking
