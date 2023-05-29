@@ -622,6 +622,7 @@ sk::ParameterBool*        debug_output            = nullptr;
 sk::ParameterBool*        debug_wait              = nullptr;
 sk::ParameterBool*        game_output             = nullptr;
 sk::ParameterBool*        handle_crashes          = nullptr;
+sk::ParameterBool*        silent_crash            = nullptr;
 sk::ParameterBool*        crash_suppression       = nullptr;
 sk::ParameterBool*        prefer_fahrenheit       = nullptr;
 sk::ParameterBool*        ignore_rtss_delay       = nullptr;
@@ -1410,6 +1411,7 @@ auto DeclKeybind =
     ConfigEntry (trace_libraries,                        L"Trace DLL Loading (needed for dynamic API detection)",      dll_ini,         L"SpecialK.System",       L"TraceLoadLibrary"),
     ConfigEntry (log_level,                              L"Log Verbosity (0=General, 5=Insane Debug)",                 dll_ini,         L"SpecialK.System",       L"LogLevel"),
     ConfigEntry (handle_crashes,                         L"Use Custom Crash Handler",                                  dll_ini,         L"SpecialK.System",       L"UseCrashHandler"),
+    ConfigEntry (silent_crash,                           L"Disable Crash Sound",                                       dll_ini,         L"SpecialK.System",       L"NoCrashSound"),
     ConfigEntry (crash_suppression,                      L"Try to Recover from Exceptions that Would Cause a Crash",   dll_ini,         L"SpecialK.System",       L"EnableCrashSuppression"),
     ConfigEntry (debug_wait,                             L"Halt Special K Initialization Until Debugger is Attached",  dll_ini,         L"SpecialK.System",       L"WaitForDebugger"),
     ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
@@ -4166,6 +4168,7 @@ auto DeclKeybind =
   prefer_fahrenheit->load (config.system.prefer_fahrenheit);
   ignore_rtss_delay->load (config.system.ignore_rtss_delay);
   handle_crashes->load    (config.system.handle_crashes);
+  silent_crash->load      (config.system.silent_crash);
   crash_suppression->load (config.system.suppress_crashes);
   debug_wait->load        (config.system.wait_for_debugger);
   debug_output->load      (config.system.display_debug_out);
@@ -5121,6 +5124,8 @@ SK_SaveConfig ( std::wstring name,
     handle_crashes->store                      (config.system.handle_crashes);
     crash_suppression->store                   (config.system.suppress_crashes);
   }
+
+  silent_crash->store(config.system.silent_crash);
 
   game_output->store                           (config.system.game_output);
 

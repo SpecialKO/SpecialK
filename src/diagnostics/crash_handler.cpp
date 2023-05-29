@@ -1494,7 +1494,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       localtime_s (&now_tm, &now);
 
       static const wchar_t* wszTimestamp =
-        L"%m-%d-%Y__%H'%M'%S\\";
+        L"%Y-%m-%d__%H'%M'%S\\";
 
       wcsftime (wszTime, MAX_PATH, wszTimestamp, &now_tm);
       lstrcatW (wszOutDir, wszTime);
@@ -1602,10 +1602,9 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
       FindClose (hFind);
     }
 
-    crash_log->silent = true;
     crash_log->lines++;
 
-    //if (! (crash_log.initialized && crash_log.silent))
+    if (! config.system.silent_crash )
     {
       if (! crash_sound->play ())
       {
