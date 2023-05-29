@@ -1518,7 +1518,7 @@ SK_TestImports (          HMODULE  hMod,
     __except (EXCEPTION_EXECUTE_HANDLER)
     {
       SK_LOGs0 ( L"RenderBoot",
-                 L"Exception Code % x Encountered Examining "
+                 L"Exception Code %x Encountered Examining "
                  L"pre-Loaded Render Import DLL (idx = [%li / %li])",
                    GetExceptionCode (), i, nCount );
       return;
