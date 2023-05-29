@@ -1,4 +1,8 @@
-﻿23.5.30
+﻿23.5.30.1
+=========
+ + Updated internal fonts to Font Awesome Free v6.2.1
+
+23.5.30
 =======
  + Merge pull request #64 from WallSoGB/SilentCrashHandler
     * Silent crash handler + Y-m-d for crash timestamps
