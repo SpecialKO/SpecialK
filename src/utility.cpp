@@ -1658,31 +1658,7 @@ SK_Path_wcsstr (const wchar_t* wszStr, const wchar_t* wszSubStr)
 #endif
 }
 
-
-//#define NO_SECUR32_IMPORT
-//#define NO_VERSION_IMPORT
-
-#ifndef NO_VERSION_IMPORT
 #pragma comment (lib, "version.lib")
-#endif
-
-static HMODULE hModVersion = nullptr;
-
-__forceinline
-bool
-SK_Import_VersionDLL (void)
-{
-  if (hModVersion == nullptr)
-  {
-  //if(!(hModVersion = SK_GetModuleHandle      (L"Version.dll")))
-         hModVersion = SK_LoadLibraryW (L"Version.dll");
-         // Do not use skModuleRegistry
-  }
-  //Api-ms-win-core-version-l1-1-0.dll");
-
-  return
-    ( hModVersion != nullptr );
-}
 
 BOOL
 WINAPI
@@ -1692,25 +1668,8 @@ SK_VerQueryValueW (
   _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID* lplpBuffer,
   _Out_                                                                       PUINT  puLen )
 {
-#ifdef NO_VERSION_IMPORT
-  SK_Import_VersionDLL ();
-
-  using VerQueryValueW_pfn = BOOL (WINAPI *)(
-    _In_                                                                      LPCVOID  pBlock,
-    _In_                                                                      LPCWSTR  lpSubBlock,
-    _Outptr_result_buffer_ (_Inexpressible_ ("buffer can be PWSTR or DWORD*")) LPVOID* lplpBuffer,
-    _Out_                                                                       PUINT  puLen );
-
-  static auto imp_VerQueryValueW =
-    (VerQueryValueW_pfn)
-       SK_GetProcAddress (hModVersion, "VerQueryValueW");
-
-  return
-    imp_VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
-#else
   return
     VerQueryValueW ( pBlock, lpSubBlock, lplpBuffer, puLen );
-#endif
 }
 
 BOOL
@@ -1721,29 +1680,9 @@ SK_GetFileVersionInfoExW (_In_                      DWORD   dwFlags,
                           _In_                      DWORD   dwLen,
                           _Out_writes_bytes_(dwLen) LPVOID  lpData)
 {
-#ifdef NO_VERSION_IMPORT
-  SK_Import_VersionDLL ();
-
-  using GetFileVersionInfoExW_pfn = BOOL (WINAPI *)(
-    _In_                      DWORD   dwFlags,
-    _In_                      LPCWSTR lpwstrFilename,
-    _Reserved_                DWORD   dwHandle,
-    _In_                      DWORD   dwLen,
-    _Out_writes_bytes_(dwLen) LPVOID  lpData
-  );
-
-  static auto imp_GetFileVersionInfoExW =
-    (GetFileVersionInfoExW_pfn)
-       SK_GetProcAddress (hModVersion, "GetFileVersionInfoExW");
-
-  return
-    imp_GetFileVersionInfoExW ( dwFlags, lpwstrFilename,
-                                dwHandle, dwLen, lpData );
-#else
   return
     GetFileVersionInfoExW ( dwFlags, lpwstrFilename,
                             dwHandle, dwLen, lpData );
-#endif
 }
 
 DWORD
@@ -1752,27 +1691,9 @@ SK_GetFileVersionInfoSizeExW ( _In_  DWORD   dwFlags,
                                _In_  LPCWSTR lpwstrFilename,
                                _Out_ LPDWORD lpdwHandle )
 {
-#ifdef NO_VERSION_IMPORT
-  SK_Import_VersionDLL ();
-
-  using GetFileVersionInfoSizeExW_pfn = DWORD (WINAPI *)(
-    _In_  DWORD   dwFlags,
-    _In_  LPCWSTR lpwstrFilename,
-    _Out_ LPDWORD lpdwHandle
-  );
-
-  static auto imp_GetFileVersionInfoSizeExW =
-    (GetFileVersionInfoSizeExW_pfn)
-       SK_GetProcAddress (hModVersion, "GetFileVersionInfoSizeExW");
-
-  return
-    imp_GetFileVersionInfoSizeExW ( dwFlags, lpwstrFilename,
-                                    lpdwHandle );
-#else
   return
     GetFileVersionInfoSizeExW ( dwFlags, lpwstrFilename,
                                 lpdwHandle );
-#endif
 }
 
 bool
@@ -4208,32 +4129,7 @@ SK_GetUserNameExA (
   _Out_writes_to_opt_(*nSize,*nSize) LPSTR                 lpNameBuffer,
   _Inout_                            PULONG                nSize )
 {
-// Turns out this isn't a good idea, since we might need the import during DllMain
-#ifdef NO_SECUR32_IMPORT
-  using GetUserNameExA =
-    BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT, LPSTR, PULONG);
-
-  static auto      hModSecur32 =
-    SK_LoadLibraryW (L"Secur32.dll");
-
-  if (hModSecur32 != nullptr)
-  {
-    static auto
-      _GetUserNameExA =
-      (GetUserNameExA)SK_GetProcAddress ( hModSecur32,
-      "GetUserNameExA");
-
-    if (_GetUserNameExA != nullptr)
-    {
-      return
-        _GetUserNameExA (NameFormat, lpNameBuffer, nSize);
-    }
-  }
-
-  return FALSE;
-#else
   return GetUserNameExA (NameFormat, lpNameBuffer, nSize);
-#endif
 }
 
 _Success_(return != 0)
@@ -4244,32 +4140,7 @@ SK_GetUserNameExW (
     _Out_writes_to_opt_(*nSize,*nSize) LPWSTR               lpNameBuffer,
     _Inout_                            PULONG               nSize )
 {
-// Turns out this isn't a good idea, since we might need the import during DllMain
-#ifdef NO_SECUR32_IMPORT
-  using GetUserNameExW =
-    BOOLEAN (WINAPI *)(EXTENDED_NAME_FORMAT, LPWSTR, PULONG);
-
-  static auto      hModSecur32 =
-    SK_LoadLibraryW (L"Secur32.dll");
-
-  if (hModSecur32 != nullptr)
-  {
-    static auto
-      _GetUserNameExW =
-      (GetUserNameExW)SK_GetProcAddress ( hModSecur32,
-      "GetUserNameExW");
-
-    if (_GetUserNameExW != nullptr)
-    {
-      return
-        _GetUserNameExW (NameFormat, lpNameBuffer, nSize);
-    }
-  }
-
-  return FALSE;
-#else
   return GetUserNameExW (NameFormat, lpNameBuffer, nSize);
-#endif
 }
 
 // Doesn't need to be this complicated; it's a string function, might as well optimize it.
