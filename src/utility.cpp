@@ -412,30 +412,12 @@ SK_IsTrue (const wchar_t* string)
 {
   const wchar_t* pstr = string;
 
-  if ( std::wstring (string).length () == 1 &&
-                                 *pstr == L'1' )
+  if ( wcslen (pstr) == 1 &&
+              *pstr  == L'1' )
     return true;
 
-  if (std::wstring (string).length () != 4)
-    return false;
-
-  if (towlower (*pstr) != L't')
-    return false;
-
-  pstr = CharNextW (pstr);
-
-  if (towlower (*pstr) != L'r')
-    return false;
-
-  pstr = CharNextW (pstr);
-
-  if (towlower (*pstr) != L'u')
-    return false;
-
-  pstr = CharNextW (pstr);
-
   return
-    towlower (*pstr) != L'e';
+    (! _wcsicmp (pstr, L"true"));
 }
 
 time_t
