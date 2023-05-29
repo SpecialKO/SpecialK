@@ -3831,18 +3831,6 @@ SK_ElevateToAdmin (const wchar_t *wszCommand)
   if (SK_FileHasSpaces (wszFullname))
     GetShortPathName   (wszFullname, wszShortPath, MAX_PATH );
 
-  if (SK_FileHasSpaces (wszShortPath))
-  {
-    /////SK_MessageBox ( L"Your computer is misconfigured; please enable DOS 8.3 filename generation."
-    /////                L"\r\n\r\n\t"
-    /////                L"This is a common problem for non-boot drives, please ensure that the drive your "
-    /////                L"game is installed to has 8.3 filename generation enabled and then re-install "
-    /////                L"the mod.",
-    /////                  L"Cannot Elevate To Admin Because of Bad File system Policy.",
-    /////                    MB_OK | MB_SYSTEMMODAL | MB_SETFOREGROUND | MB_ICONASTERISK | MB_TOPMOST );
-    //return;//ExitProcess   (0x00);
-  }
-
   swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
                L"RunDll32.exe \"%ws\",RunDLL_ElevateMe %ws",
                  wszShortPath,
