@@ -467,6 +467,13 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu)
+  {
+    static bool          once = false;
+    if (! std::exchange (once, true))
+      return;
+  }
+
   if (! config.compatibility.init_on_separate_thread)
   {
     config.compatibility.init_on_separate_thread = true;

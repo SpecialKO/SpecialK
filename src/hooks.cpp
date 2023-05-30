@@ -551,6 +551,10 @@ SK_Hook_IsCacheEnabled ( const wchar_t *wszSecName,
 
         //ini->write (ini->get_filename ());
       }
+
+      // Don't use hook caching in this emulator
+      if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu)
+        *(it.pEnable) = false;
     }
 
     cfg_sec.add_key_value ( L"RunOnce", L"true" );
