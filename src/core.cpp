@@ -1603,6 +1603,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 {
  try
  {
+  if ( SK_GetProcAddress ( L"NtDll",
+                            "wine_get_version" ) != nullptr )
+  {
+    config.compatibility.using_wine = true;
+  }
+
   InstructionSet::deferredInit ();
 
   // .NET Applications might be inside of managed code, so perform

@@ -1,4 +1,9 @@
-﻿23.5.30.2
+﻿23.5.31
+=======
+ + Improved automatic detection of WINE to disable low-level Windows-specific
+     features of SK that have no purpose on other platforms and crash WINE.
+
+23.5.30.2
 =========
  + Disable hook caching in Yuzu so HDR works in Vulkan
 
