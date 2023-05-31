@@ -1,4 +1,8 @@
-﻿23.5.31
+﻿23.6.1
+======
+ + Eliminate overly aggressive framepacing defaults in NieR: Automata
+
+23.5.31
 =======
  + Improved automatic detection of WINE to disable low-level Windows-specific
      features of SK that have no purpose on other platforms and crash WINE.

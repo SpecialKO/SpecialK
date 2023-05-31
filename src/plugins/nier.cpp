@@ -1796,11 +1796,7 @@ SK_FAR_InitPlugin (void)
       config.render.framerate.target_fps = 60.0;
                             __target_fps = 60.0;
 
-      config.render.framerate.buffer_count     = 4;
-      config.render.framerate.pre_render_limit = 5;
       config.render.framerate.swapchain_wait   = 1;
-      config.render.framerate.max_delta_time   = 2;
-
       config.render.framerate.sleepless_render = true;
       config.render.framerate.sleepless_window = true;
     }
