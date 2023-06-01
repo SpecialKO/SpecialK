@@ -570,6 +570,7 @@ inline void ImGui::FileBrowser::Display()
             bool selected = selectedFilenames_.find(rsc.name)
                          != selectedFilenames_.end();
 
+            ImGui::TextColored (rsc.icon.color, rsc.icon.text.c_str ());
             ImGui::SameLine    ();
 
             if(Selectable(rsc.showName.c_str(), selected,
@@ -911,11 +912,9 @@ inline void ImGui::FileBrowser::UpdateFileRecords()
         rcd.extension = p.path().filename().extension();
 
         rcd.icon.text =
-          (rcd.isDir ?     ICON_FA_FOLDER
-                     : " " ICON_FA_FILE);
+          (rcd.isDir ? ICON_FA_FOLDER         : " " ICON_FA_FILE);
         rcd.icon.color =
-          (rcd.isDir ? ImColor (255, 207, 72)
-                     : ImColor (255, 255, 255));
+          (rcd.isDir ? ImColor (255, 207, 72) : ImColor (255, 255, 255));
         rcd.showName = u8StrToStr(p.path().filename().u8string());
         fileRecords_.push_back(rcd);
     }
