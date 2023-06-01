@@ -120,6 +120,10 @@ namespace ImGui
         {
             bool                  isDir = false;
             std::filesystem::path name;
+            struct {
+              ImColor             color;
+              std::string         text;
+            }                     icon;
             std::string           showName;
             std::filesystem::path extension;
         };
@@ -566,6 +570,8 @@ inline void ImGui::FileBrowser::Display()
             bool selected = selectedFilenames_.find(rsc.name)
                          != selectedFilenames_.end();
 
+            ImGui::SameLine    ();
+
             if(Selectable(rsc.showName.c_str(), selected,
                           ImGuiSelectableFlags_DontClosePopups))
             {
@@ -877,7 +883,7 @@ inline std::string ImGui::FileBrowser::ToLower(const std::string &s)
 
 inline void ImGui::FileBrowser::UpdateFileRecords()
 {
-    fileRecords_ = { FileRecord{ true, "..", ICON_FA_FOLDER " ..", "" } };
+    fileRecords_ = { FileRecord{ true, "..", { ImColor (255, 207, 72), ICON_FA_FOLDER }, " ..", "" } };
 
     for(auto &p : std::filesystem::directory_iterator(pwd_))
     {
@@ -904,8 +910,13 @@ inline void ImGui::FileBrowser::UpdateFileRecords()
 
         rcd.extension = p.path().filename().extension();
 
-        rcd.showName = (rcd.isDir ? ICON_FA_FOLDER " " : " " ICON_FA_FILE " ") +
-                       u8StrToStr(p.path().filename().u8string());
+        rcd.icon.text =
+          (rcd.isDir ?     ICON_FA_FOLDER
+                     : " " ICON_FA_FILE);
+        rcd.icon.color =
+          (rcd.isDir ? ImColor (255, 207, 72)
+                     : ImColor (255, 255, 255));
+        rcd.showName = u8StrToStr(p.path().filename().u8string());
         fileRecords_.push_back(rcd);
     }
 

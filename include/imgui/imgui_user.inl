@@ -54,7 +54,6 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
   return &ranges [0];
 }
 
-#include <../imgui/fa_regular_400.ttf.h>
 #include <../imgui/fa_brands_400.ttf.h>
 #include <../imgui/fa_solid_900.ttf.h>
 
@@ -166,9 +165,6 @@ SK_ImGui_LoadFonts (void)
     };
 
     auto      awesome_fonts = {
-      std::make_tuple (
-        FONT_ICON_FILE_NAME_FAR, fa_regular_400_ttf,
-                     _ARRAYSIZE (fa_regular_400_ttf) ),
       std::make_tuple (
         FONT_ICON_FILE_NAME_FAS, fa_solid_900_ttf,
                      _ARRAYSIZE (fa_solid_900_ttf) ),

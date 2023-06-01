@@ -1,4 +1,9 @@
-﻿23.6.1
+﻿23.6.2
+======
+ + Removed "regular" Font Awesome Icons in favor of solid
+ + Added a splash of color to the Plug-In file selector dialog
+
+23.6.1
 ======
  + Eliminate overly aggressive framepacing defaults in NieR: Automata
 
