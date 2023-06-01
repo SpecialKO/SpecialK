@@ -1225,6 +1225,7 @@ enum class SK_GAME_ID
   SoulHackers2,                 // SOUL HACKERS2.exe
   MegaManBattleNetwork,         // MMBN_LC2.exe, MMBN_LC1.exe
   HonkaiStarRail,               // StarRail.exe
+  NoMansSky,                    // NMS.exe
 
   UNKNOWN_GAME               = 0xffff
 };

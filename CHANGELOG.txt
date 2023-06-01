@@ -1,4 +1,8 @@
-﻿23.6.2
+﻿23.6.2.1
+========
+ + Enable Vulkan Bridge in No Man's Sky by default
+
+23.6.2
 ======
  + Removed "regular" Font Awesome Icons in favor of solid
  + Added a splash of color to the Plug-In file selector dialog
