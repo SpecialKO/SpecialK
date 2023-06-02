@@ -3010,6 +3010,17 @@ auto DeclKeybind =
 
       case SK_GAME_ID::DiabloIV:
         config.window.treat_fg_as_active = true; // Game mixes up foreground w/ focus
+
+        SK_MessageBox (
+          L"Unfortunately, you had Special K's overlay active while launching Diablo IV.\r\n\r\n"
+          L"Blizzard is going to allow you to continue playing as if nothing unusual is "
+          L"happening, and then ban your account at some unknown point in the future.\r\n"
+          L"\r\n\r\n\r\n"
+          L"To avoid having your money stolen by Blizzard:\r\n\r\n"
+          L"Immediately screenshot this error message, exit the game and submit a support ticket to Blizard.\r\n"
+          L"\r\n\r\n\thttps://us.battle.net/support/en/help/product/services/316/322/solution",
+          L"You Are About To Be Banned By Blizzard!", MB_ICONWARNING
+        );
         break;
     }
   }

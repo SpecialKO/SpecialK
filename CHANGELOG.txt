@@ -1,4 +1,8 @@
-﻿23.6.2.1
+﻿23.6.2.2
+========
+ + Add warning message when launching Diablo IV
+
+23.6.2.1
 ========
  + Prevent Bethesda games from turning off legacy input APIs during
      RawInput device registration (fixes Fallout New Vegas issues)
