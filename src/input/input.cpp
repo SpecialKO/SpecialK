@@ -805,6 +805,9 @@ NtUserRegisterRawInputDevices_Detour (
         /*pDevices [i].dwFlags     |=  RIDEV_NOHOTKEYS;*/ }
 #endif
 
+      pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
+      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+
 #ifdef _ALLOW_LEGACY_MOUSE
       if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
           pDevices [i].usUsage     ==  HID_USAGE_GENERIC_MOUSE)

@@ -224,7 +224,8 @@ SK_GetCurrentGameID (void)
           { L"MMBN_LC2.exe",                           SK_GAME_ID::MegaManBattleNetwork         },
           { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               },
           { L"ffxiv_dx11.exe",                         SK_GAME_ID::FinalFantasyXIV              },
-          { L"NMS.exe",                                SK_GAME_ID::NoMansSky                    }
+          { L"NMS.exe",                                SK_GAME_ID::NoMansSky                    },
+          { L"Diablo IV.exe",                          SK_GAME_ID::DiabloIV                     }
         };
 
     first_check  = false;
@@ -3005,6 +3006,10 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NoMansSky:
         config.apis.NvAPI.vulkan_bridge = 1;
+        break;
+
+      case SK_GAME_ID::DiabloIV:
+        config.window.treat_fg_as_active = true; // Game mixes up foreground w/ focus
         break;
     }
   }
