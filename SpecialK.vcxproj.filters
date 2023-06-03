@@ -4346,9 +4346,6 @@
     <ResourceCompile Include="depends\include\lzma\7zVersion.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-    <ResourceCompile Include="SpecialK.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Media Include="resource\crash.wav">

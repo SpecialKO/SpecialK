@@ -2309,7 +2309,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
   <ItemGroup>
     <ResourceCompile Include="depends\include\lzma\7zVersion.rc" />
     <ResourceCompile Include="resource\Resource.rc" />
-    <ResourceCompile Include="SpecialK.rc" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="resource\crash.wav" />
