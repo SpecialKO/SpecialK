@@ -1217,6 +1217,8 @@ SK::EOS::AppName (void)
               if (std::fstream mancpn (wszManifestPath, std::fstream::in);
                                mancpn.is_open ())
               {
+                bool executable = false;
+
                 char                     szLine [512] = { };
                 while (! mancpn.getline (szLine, 511).eof ())
                 {
@@ -1236,7 +1238,13 @@ SK::EOS::AppName (void)
                     continue;
                   }
 
-                  if (*szDisplayName != '\0' && *szEpicApp != '\0')
+                  else if (StrStrIA (szLine, "\"LaunchExecutable\"") != nullptr)
+                  {
+                    executable = true;
+                    continue;
+                  }
+
+                  if (*szDisplayName != '\0' && *szEpicApp != '\0' && executable)
                   {
                     app_cache_mgr->addAppToCache (
                         SK_GetFullyQualifiedApp (),

@@ -1,9 +1,15 @@
-﻿23.6.3.1
+﻿23.6.4
+======
+ + Fixed wrong Epic Game Store application name detection for games with DLC
+
+23.6.3.2
+========
+ + Return SCE_ERROR_BUSY instead of SCE_ERROR_OK when filtering libScePad input
+
+23.6.3.1
 ========
  + Fixed Steam Input breaking gamepad input in non-Steam games when
      opening SK's control panel.
-
-       >> Yes, seriously... :sigh:
 
 23.6.3
 ======
