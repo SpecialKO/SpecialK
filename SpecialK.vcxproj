@@ -614,7 +614,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
   <ItemGroup>
     <Text Include="CHANGELOG.txt" />
     <Text Include="depends\include\glm\CMakeLists.txt" />
-    <Text Include="LICENSE.txt" />
     <Text Include="resource\licenses\7zip.txt" />
     <Text Include="resource\licenses\ADL.txt" />
     <Text Include="resource\licenses\DirectXTex.txt" />
@@ -1328,6 +1327,10 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\steamapi\steam_api.h" />
     <ClInclude Include="depends\include\steamapi\steam_api_flat.h" />
     <ClInclude Include="depends\include\steamapi\steam_gameserver.h" />
+    <ClInclude Include="depends\include\tobii\tobii.h" />
+    <ClInclude Include="depends\include\tobii\tobii_engine.h" />
+    <ClInclude Include="depends\include\tobii\tobii_streams.h" />
+    <ClInclude Include="depends\include\tobii\tobii_wearable.h" />
     <ClInclude Include="depends\include\vulkan\vk_platform.h" />
     <ClInclude Include="depends\include\vulkan\vulkan.h" />
     <ClInclude Include="depends\include\WinRing0\dll\OpenLibSys.h" />
@@ -1489,10 +1492,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\stb\rect_pack.h" />
     <ClInclude Include="include\stb\textedit.h" />
     <ClInclude Include="include\stb\truetype.h" />
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii.h" />
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_engine.h" />
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_streams.h" />
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_wearable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adl.cpp">
@@ -2278,6 +2277,10 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </None>
+    <None Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.def" />
+    <None Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.exp" />
+    <None Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.def" />
+    <None Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.exp" />
     <None Include="include\gsl\gsl" />
     <None Include="include\gsl\gsl_algorithm" />
     <None Include="include\gsl\gsl_assert" />
@@ -2292,22 +2295,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <None Include="include\SpecialK\commands\mem.inl" />
     <None Include="include\SpecialK\commands\update.inl" />
     <None Include="LICENSE" />
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.def">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </None>
     <None Include="README.md" />
     <None Include="resource\cursors\ovr_horz.cur" />
     <None Include="resource\cursors\ovr_ptr.cur" />
@@ -2317,9 +2304,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     </None>
     <None Include="SpecialK.ruleset" />
     <None Include="src\imgui\LICENSE" />
-    <None Include="Tobii\API-Reference.pdf" />
-    <None Include="Tobii\SDK-License_en.pdf" />
-    <None Include="Tobii\SDK-License_zh.pdf" />
     <None Include="SpecialK.def" />
   </ItemGroup>
   <ItemGroup>
@@ -2371,14 +2355,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </Library>
-    <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </Library>
-    <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </Library>
+    <Library Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.lib" />
+    <Library Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.lib" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="resource\shaders\cs_histogram.hlsl">

@@ -145,9 +145,6 @@
     <Filter Include="Resource Files\Shaders\HDR">
       <UniqueIdentifier>{ff3a579f-6b54-4b41-be2b-40f55a33d374}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Tobii">
-      <UniqueIdentifier>{5c1eb938-d54a-4f55-a3cd-8db762fba7c3}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Render\D3D9">
       <UniqueIdentifier>{6edf9f50-6c38-41f8-9392-801c33c99713}</UniqueIdentifier>
     </Filter>
@@ -2907,16 +2904,16 @@
     <ClInclude Include="include\imgui\imfilebrowser.h">
       <Filter>Header Files\External Libraries\ImGui</Filter>
     </ClInclude>
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii.h">
+    <ClInclude Include="depends\include\tobii\tobii.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_engine.h">
+    <ClInclude Include="depends\include\tobii\tobii_engine.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_streams.h">
+    <ClInclude Include="depends\include\tobii\tobii_streams.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
-    <ClInclude Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\tobii\tobii_wearable.h">
+    <ClInclude Include="depends\include\tobii\tobii_wearable.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
   </ItemGroup>
@@ -3463,15 +3460,6 @@
     </None>
     <None Include="include\gsl\gsl_assert">
       <Filter>Header Files\External Libraries\glm\gsl</Filter>
-    </None>
-    <None Include="Tobii\SDK-License_zh.pdf">
-      <Filter>Tobii</Filter>
-    </None>
-    <None Include="Tobii\SDK-License_en.pdf">
-      <Filter>Tobii</Filter>
-    </None>
-    <None Include="Tobii\API-Reference.pdf">
-      <Filter>Tobii</Filter>
     </None>
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
@@ -4323,18 +4311,6 @@
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />
     <None Include="SpecialK.ruleset" />
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.def">
-      <Filter>Libraries\64-bit\Tobii</Filter>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.exp">
-      <Filter>Libraries\64-bit\Tobii</Filter>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.def">
-      <Filter>Libraries\32-bit\Tobii</Filter>
-    </None>
-    <None Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.exp">
-      <Filter>Libraries\32-bit\Tobii</Filter>
-    </None>
     <None Include="depends\include\EOS\eos_achievements_types_deprecated.inl">
       <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </None>
@@ -4349,6 +4325,18 @@
     </None>
     <None Include="resource\cursors\ovr_ptr.cur">
       <Filter>Resource Files\Cursors</Filter>
+    </None>
+    <None Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.def">
+      <Filter>Libraries\32-bit\Tobii</Filter>
+    </None>
+    <None Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.exp">
+      <Filter>Libraries\32-bit\Tobii</Filter>
+    </None>
+    <None Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.def">
+      <Filter>Libraries\64-bit\Tobii</Filter>
+    </None>
+    <None Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.exp">
+      <Filter>Libraries\64-bit\Tobii</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -4370,9 +4358,6 @@
   <ItemGroup>
     <Text Include="depends\include\glm\CMakeLists.txt">
       <Filter>Header Files\External Libraries\glm</Filter>
-    </Text>
-    <Text Include="LICENSE.txt">
-      <Filter>Tobii</Filter>
     </Text>
     <Text Include="CHANGELOG.txt" />
     <Text Include="resource\licenses\ADL.txt">
@@ -4458,10 +4443,10 @@
     <Library Include="depends\lib\DirectXTex\Win32\DirectXTex.lib">
       <Filter>Libraries\32-bit\DirectXTex</Filter>
     </Library>
-    <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x86\tobii_stream_engine_sk32.lib">
+    <Library Include="depends\lib\tobii\Win32\tobii_stream_engine_sk32.lib">
       <Filter>Libraries\32-bit\Tobii</Filter>
     </Library>
-    <Library Include="packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\lib\x64\tobii_stream_engine_sk64.lib">
+    <Library Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.lib">
       <Filter>Libraries\64-bit\Tobii</Filter>
     </Library>
   </ItemGroup>
