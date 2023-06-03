@@ -841,10 +841,20 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   GetDesc            (&swapDesc);
 
 
+  // Expand 0x0 to window dimensions for the redundancy check
+  if (Width == 0 && Height == 0)
+  {
+    RECT                   rcClient = { };
+    GetClientRect (hWnd_, &rcClient);
+
+    Width  = rcClient.right  - rcClient.left;
+    Height = rcClient.bottom - rcClient.top;
+  }
+
   HRESULT hr = S_OK;
 
-  if (! ((swapDesc.BufferDesc.Width  == Width       || Width       == 0)                   &&
-         (swapDesc.BufferDesc.Height == Height      || Height      == 0)                   &&
+  if (! ((swapDesc.BufferDesc.Width  == Width)                                             &&
+         (swapDesc.BufferDesc.Height == Height)                                            &&
          (swapDesc.BufferDesc.Format == NewFormat   || NewFormat   == DXGI_FORMAT_UNKNOWN) &&
          (swapDesc.BufferCount       == BufferCount || BufferCount == 0)                   &&
          (swapDesc.Flags             == SwapChainFlags))
