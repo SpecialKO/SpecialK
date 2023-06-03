@@ -818,6 +818,16 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     }
   }
 
+  // Expand 0x0 to window dimensions for the redundancy check
+  if (Width == 0 || Height == 0)
+  {
+    RECT                   rcClient = { };
+    GetClientRect (hWnd_, &rcClient);
+
+    if (Width  == 0) Width  = rcClient.right  - rcClient.left;
+    if (Height == 0) Height = rcClient.bottom - rcClient.top;
+  }
+
   if (! config.window.res.override.isZero ())
   {
     Width  = config.window.res.override.x;
@@ -840,16 +850,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
   GetDesc            (&swapDesc);
 
-
-  // Expand 0x0 to window dimensions for the redundancy check
-  if (Width == 0 && Height == 0)
-  {
-    RECT                   rcClient = { };
-    GetClientRect (hWnd_, &rcClient);
-
-    Width  = rcClient.right  - rcClient.left;
-    Height = rcClient.bottom - rcClient.top;
-  }
 
   HRESULT hr = S_OK;
 
@@ -1247,6 +1247,12 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 {
+  if (config.render.framerate.pre_render_limit != -1)
+  {
+    SK_LOG0 ( ( L"IDXGISwapChain2::SetMaximumFrameLatency (%d)", MaxLatency ),
+                L"   DXGI   " );
+  }
+
   assert (ver_ >= 2);
 
   return
