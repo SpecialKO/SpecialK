@@ -1,5 +1,8 @@
 ﻿23.6.5
 ======
+ + Removed warning when games try to use OpenGL Fullscreen Exclusive; SK can
+     now completely bypass it with OpenGL-IK.
+
  + Implemented SK_D3D11_CopySubresourceRegion helper for HDR <--> SDR copies
      when the subresource region requires scissor/clipping.
 

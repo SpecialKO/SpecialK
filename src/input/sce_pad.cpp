@@ -202,7 +202,7 @@ SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
   for (int i = 0 ; i < count ; ++i)
     SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
 
-  SK_ScePadData                surrogate = { };
+  SK_ScePadData                surrogate = { }; SK_ScePadResult ret =
   SK_ScePadReadState (handle, &surrogate);
 
   if (! SK_ImGui_WantGamepadCapture ())
@@ -210,7 +210,7 @@ SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
       sceinput_ctx.scePad.
                    scePadRead_Original (handle, iData, count);
 
-  return SK_SCE_ERROR_OK;
+  return ret;
 }
 
 extern bool

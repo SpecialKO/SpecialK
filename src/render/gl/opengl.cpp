@@ -1952,40 +1952,14 @@ SK_GL_SetVirtualDisplayMode (HWND hWnd, bool Fullscreen, UINT Width, UINT Height
   SK_LOGi1 (
     L"SK_GL_SetVirtualDisplayMode (%x, %s, %lu, %lu)", hWnd, Fullscreen ? L"Fullscreen"
                                                                         : L"Windowed", Width, Height);
-
-  //    hWnd  = hwndLast;
-  //if (hWnd != 0)
-  //{
-    if (Fullscreen)
-    {
-      if (SK_GL_OnD3D11)
-      {
-        SK_RunOnce (
-          SK_ImGui_Warning (
-            SK_FormatStringW ( L"%hs\tGame is using Fullscreen APIs.\r\n\r\n\r\n\t"
-            L" For Best Results:\r\n\r\n\t\t%hs\t"
-            L"Set Game to Windowed Mode and Configure SK's Borderless Options.",
-                               ICON_FA_FROWN, ICON_FA_STAR
-                   ).c_str()));
-      }
-
-    //  if (Width == 0 && Height == 0)
-    //  {
-    //    Width  = _interop_contexts [hWnd].output.viewport.Width;
-    //    Height = _interop_contexts [hWnd].output.viewport.Height;
-    //  }
-
-      RECT rect = { };
-      GetClientRect (game_window.hWnd, &rect);
-      PostMessage (  game_window.hWnd, WM_DISPLAYCHANGE, 32, MAKELPARAM (rect.right - rect.left, rect.bottom - rect.top/*Width, Height*/));
-      //Width  = rect.right  - rect.left;
-      //Height = rect.bottom - rect.top;
-    }
-    //
-    //_interop_contexts [hWnd].gl.fullscreen = false;// Fullscreen;
-    //_interop_contexts [hWnd].gl.width      = Width;
-    //_interop_contexts [hWnd].gl.height     = Height;
-  //}
+  if (Fullscreen)
+  {
+    RECT                              rect = { };
+    GetClientRect (game_window.hWnd, &rect);
+    PostMessage (  game_window.hWnd, WM_DISPLAYCHANGE,
+                                 32, MAKELPARAM ( rect.right  - rect.left,
+                                                  rect.bottom - rect.top ) );
+  }
 }
 
 HRESULT
