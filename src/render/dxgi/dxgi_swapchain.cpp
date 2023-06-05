@@ -726,13 +726,13 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
+  DXGI_SWAP_CHAIN_DESC swapDesc = { };
+  GetDesc            (&swapDesc);
+
   //
   // Fix a number of problems caused by RTSS
   //
   {
-    DXGI_SWAP_CHAIN_DESC swapDesc = { };
-    pReal->GetDesc     (&swapDesc);
-
     // We can't add or remove this flag, or the API call will fail. So fix it (!!) :)
     if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
       SwapChainFlags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
@@ -778,6 +778,12 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
   }
 
 
+  RECT                   rcClient = { };
+  GetClientRect (hWnd_, &rcClient);
+
+  // Expand 0x0 to window dimensions for the redundancy check
+  if (Width  == 0) Width  = rcClient.right  - rcClient.left;
+  if (Height == 0) Height = rcClient.bottom - rcClient.top;
 
   auto origWidth  = Width;
   auto origHeight = Height;
@@ -798,14 +804,14 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
         rb.displays [rb.active_display].rect.bottom -
         rb.displays [rb.active_display].rect.top;
 
-      if ( origWidth  != static_cast <UINT> (w) ||
-           origHeight != static_cast <UINT> (h) )
+      Width  = w;
+      Height = h;
+
+      if ( swapDesc.BufferDesc.Width  != static_cast <UINT> (w) ||
+           swapDesc.BufferDesc.Height != static_cast <UINT> (h) )
       {
         if (w != 0 && h != 0)
         {
-          Width  = w;
-          Height = h;
-
           SK_LOGi0 (
             L" >> SwapChain Resolution Override "
             L"(Requested: %dx%d), (Actual: %dx%d) [ Borderless Fullscreen ]",
@@ -816,16 +822,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
         }
       }
     }
-  }
-
-  // Expand 0x0 to window dimensions for the redundancy check
-  if (Width == 0 || Height == 0)
-  {
-    RECT                   rcClient = { };
-    GetClientRect (hWnd_, &rcClient);
-
-    if (Width  == 0) Width  = rcClient.right  - rcClient.left;
-    if (Height == 0) Height = rcClient.bottom - rcClient.top;
   }
 
   if (! config.window.res.override.isZero ())
@@ -845,10 +841,6 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
       _stalebuffers = true;
     }
   }
-
-
-  DXGI_SWAP_CHAIN_DESC swapDesc = { };
-  GetDesc            (&swapDesc);
 
 
   HRESULT hr = S_OK;
@@ -1247,12 +1239,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 {
-  if (config.render.framerate.pre_render_limit != -1)
-  {
-    SK_LOG0 ( ( L"IDXGISwapChain2::SetMaximumFrameLatency (%d)", MaxLatency ),
-                L"   DXGI   " );
-  }
-
   assert (ver_ >= 2);
 
   return

@@ -2533,6 +2533,11 @@ DisplayModeMenu (bool windowed)
       }
     }
 
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("Your game should be set to Windowed mode in its graphics settings if you intend to override this mode.");
+    }
+
     ImGui::Separator ();
 
     SK_Display_ResolutionSelectUI ();

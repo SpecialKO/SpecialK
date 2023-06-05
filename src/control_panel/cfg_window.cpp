@@ -57,10 +57,14 @@ SK::ControlPanel::Window::Draw (void)
       {
         if (! config.window.fullscreen)
         {
+          ImGui::BeginTooltip ();
           if (borderless)
-            ImGui::SetTooltip ("Add/Restore Window Borders");
+            ImGui::TextUnformatted ("Add/Restore Window Borders");
           else
-            ImGui::SetTooltip ("Remove Window Borders");
+            ImGui::TextUnformatted ("Remove Window Borders");
+          ImGui::Separator  ();
+          ImGui::BulletText ("Game needs to be set to its Regular Windowed mode for these overrides to work correctly.");
+          ImGui::EndTooltip ();
         }
 
         else

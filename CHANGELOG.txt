@@ -1,5 +1,7 @@
 ﻿23.6.4
 ======
+ + Add tooltips explaining to set a game to its Windowed mode (not Borderless)
+     if using SK's Borderless / Borderless Fullscreen overrides.
  + Fixed wrong Epic Game Store application name detection for games with DLC
 
 23.6.3.2
