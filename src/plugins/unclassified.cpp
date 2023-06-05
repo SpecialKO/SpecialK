@@ -1314,10 +1314,7 @@ SK_HatsuneMiku_BeginFrame (void)
 #endif
 
 
-
-extern bool 
-SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
-                          ID3D11Texture2D *pDstTex );
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 bool
 SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,

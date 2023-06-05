@@ -1,4 +1,11 @@
-﻿23.6.4
+﻿23.6.5
+======
+ + Implemented SK_D3D11_CopySubresourceRegion helper for HDR <--> SDR copies
+     when the subresource region requires scissor/clipping.
+
+       (Gets rid of a rare assertion in HDR games)
+
+23.6.4
 ======
  + Add tooltips explaining to set a game to its Windowed mode (not Borderless)
      if using SK's Borderless / Borderless Fullscreen overrides.

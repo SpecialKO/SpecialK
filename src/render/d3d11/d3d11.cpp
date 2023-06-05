@@ -1846,10 +1846,12 @@ SK_D3D11_CopySubresourceRegion_Impl (
 
               // No dimension mismatches allowed
               SK_ReleaseAssert ( pSrcBox == nullptr ||
-                                (pSrcBox->left   == 0             &&
-                                 pSrcBox->top    == 0             &&
-                                 pSrcBox->right  == srcDesc.Width &&
-                                 pSrcBox->bottom == srcDesc.Height) );
+                                // We can scissor this to implement the copy,
+                                // but only if the dimensions are sane...
+                                (pSrcBox->left   >= 0             &&
+                                 pSrcBox->top    >= 0             &&
+                                 pSrcBox->right  <= srcDesc.Width &&
+                                 pSrcBox->bottom <= srcDesc.Height) );
 
               SK_RunOnce (
                 SK_LOGi0 (
@@ -1862,10 +1864,7 @@ SK_D3D11_CopySubresourceRegion_Impl (
               // NOTE: This does not replicate the actual -sub- region part of the
               //         API and will probably break things if it's ever relied on.
 
-              extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
-                                                    ID3D11Texture2D* pDstTex );
-
-              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex, pSrcBox))
                 return;
             }
           }
@@ -2319,9 +2318,6 @@ SK_D3D11_CopyResource_Impl (
                FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
                FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
           {
-            extern bool SK_D3D11_BltCopySurface ( ID3D11Texture2D* pSrcTex,
-                                                  ID3D11Texture2D* pDstTex );
-
             if ( srcDesc.Width  != dstDesc.Width ||
                  srcDesc.Height != dstDesc.Height )
             {

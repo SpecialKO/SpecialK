@@ -1166,7 +1166,8 @@ SK_DXGI_IsFormatCastable ( DXGI_FORMAT inFormat,
 
 bool
 SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
-                          ID3D11Texture2D *pDstTex )
+                          ID3D11Texture2D *pDstTex,
+            _In_opt_ const D3D11_BOX      *pSrcBox )
 {
   SK_ComPtr <ID3D11DeviceContext> pDevCtx;
   SK_ComPtr <ID3D11Device>        pDev;
@@ -1577,6 +1578,19 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     }
     pDevCtx->GSSetShader          (nullptr, nullptr,       0);
     pDevCtx->SOSetTargets         (0,       nullptr, nullptr);
+  }
+
+  // Implement partial copies using scissor
+  //
+  if (pSrcBox != nullptr)
+  {
+    D3D11_RECT scissor_rect = {};
+    scissor_rect.left   = pSrcBox->left;
+    scissor_rect.right  = pSrcBox->right;
+    scissor_rect.top    = pSrcBox->top;
+    scissor_rect.bottom = pSrcBox->bottom;
+
+    pDevCtx->RSSetScissorRects (1, &scissor_rect);
   }
   
   pDevCtx->Draw                   (4, 0);

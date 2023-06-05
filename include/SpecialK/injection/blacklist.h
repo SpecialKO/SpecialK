@@ -203,6 +203,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"zfgamebrowser.exe", // Genshin Impact Launcher
   L"dsx.exe",           // Dual Sense X
 
+  L"beamng.drive.exe",  // BeamNG's 32-bit launcher
+
   L"coherentui_host.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",
