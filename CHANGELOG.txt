@@ -1,4 +1,9 @@
-﻿23.6.5
+﻿23.6.7
+======
+ + Handle edge-case preventing OpenGL Fullscreen Exclusive bypass if the game
+     called ChangeDisplaySettingsExA instead of ChangeDisplaySettingsExW
+
+23.6.5
 ======
  + Removed warning when games try to use OpenGL Fullscreen Exclusive; SK can
      now completely bypass it with OpenGL-IK.

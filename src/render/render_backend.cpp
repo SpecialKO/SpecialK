@@ -4374,6 +4374,9 @@ ChangeDisplaySettingsExA_Detour (
 
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
+
+    if (SK_GL_OnD3D11)
+      return DISP_CHANGE_SUCCESSFUL;
   }
 
   static bool called = false;
@@ -4463,7 +4466,8 @@ ChangeDisplaySettingsExW_Detour (
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
 
-    //return DISP_CHANGE_SUCCESSFUL;
+    if (SK_GL_OnD3D11)
+      return DISP_CHANGE_SUCCESSFUL;
   }
 
   DEVMODEW dev_mode        = { };
