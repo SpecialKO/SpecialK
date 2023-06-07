@@ -225,7 +225,9 @@ SK_GetCurrentGameID (void)
           { L"StarRail.exe",                           SK_GAME_ID::HonkaiStarRail               },
           { L"ffxiv_dx11.exe",                         SK_GAME_ID::FinalFantasyXIV              },
           { L"NMS.exe",                                SK_GAME_ID::NoMansSky                    },
-          { L"Diablo IV.exe",                          SK_GAME_ID::DiabloIV                     }
+          { L"Diablo IV.exe",                          SK_GAME_ID::DiabloIV                     },
+          { L"CoDSP.exe",                              SK_GAME_ID::CallOfDuty                   },
+          { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   }
         };
 
     first_check  = false;
@@ -3021,6 +3023,13 @@ auto DeclKeybind =
           L"\r\n\r\n\thttps://us.battle.net/support/en/help/product/services/316/322/solution",
           L"You Are About To Be Banned By Blizzard!", MB_ICONWARNING
         );
+        break;
+
+      case SK_GAME_ID::CallOfDuty:
+        // Disable D3D9 and D3D12 for OpenGL-IK to take precedence
+        config.apis.d3d9.hook       = false;
+        config.apis.d3d9ex.hook     = false;
+        config.apis.dxgi.d3d12.hook = false;
         break;
     }
   }

@@ -1,5 +1,6 @@
 ﻿23.6.7
 ======
+ + Disable D3D9 hooking in Call of Duty to make it use OpenGL-IK
  + Handle edge-case preventing OpenGL Fullscreen Exclusive bypass if the game
      called ChangeDisplaySettingsExA instead of ChangeDisplaySettingsExW
 

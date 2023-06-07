@@ -1227,6 +1227,7 @@ enum class SK_GAME_ID
   HonkaiStarRail,               // StarRail.exe
   NoMansSky,                    // NMS.exe
   DiabloIV,                     // Diablo IV.exe
+  CallOfDuty,                   // CoDSP.exe, CoDMP.exe (???)
 
   UNKNOWN_GAME               = 0xffff
 };
