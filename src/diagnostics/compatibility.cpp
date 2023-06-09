@@ -1070,6 +1070,10 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
+  // HDR support will be lost, but Streamline won't puke on SK w/ an injection delay
+  if (SK_IsInjected () && config.system.global_inject_delay > 1.0f)
+    return true;
+
   static const int _MaxTestCount = 5;
 
   static int  iTestCount  = 0;

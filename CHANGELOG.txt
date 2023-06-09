@@ -1,4 +1,12 @@
-﻿23.6.7
+﻿23.6.9
+======
+ + If user has a 1 second global injection delay configured, Streamline warning
+     will now be disabled without requiring interposer replacement.
+
+     >> SK's HDR is not compatible with Streamline, but for non-HDR users this
+          could be an acceptable compromise.
+
+23.6.7
 ======
  + Disable D3D9 hooking in Call of Duty to make it use OpenGL-IK
  + Handle edge-case preventing OpenGL Fullscreen Exclusive bypass if the game
