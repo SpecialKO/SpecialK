@@ -381,7 +381,7 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
 
   // Hack to prevent NV's Vulkan/DXGI Interop SwapChain from destroying itself
   //   if HDR is not enabled.
-  if (GetModuleHandle (L"vulkan-1.dll"))
+  if (GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
   {
     TenBitSwap                       = true;
     config.render.output.force_10bpc = true;

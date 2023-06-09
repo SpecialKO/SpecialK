@@ -1,4 +1,9 @@
-﻿23.6.9
+﻿23.6.9.1
+========
+ + Fixed bug where forced 10-bpc would be enabled for games with vulkan-1.dll
+     loaded, but Vulkan Bridge disabled.
+
+23.6.9
 ======
  + If user has a 1 second global injection delay configured, Streamline warning
      will now be disabled without requiring interposer replacement.
