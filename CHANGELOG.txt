@@ -1,4 +1,8 @@
-﻿23.6.9.1
+﻿23.6.9.2
+========
+ + Stop logging IDXGIFactory::EnumAdapters1 (...) if a game spams it every frame
+
+23.6.9.1
 ========
  + Fixed bug where forced 10-bpc would be enabled for games with vulkan-1.dll
      loaded, but Vulkan Bridge disabled.
