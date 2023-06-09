@@ -3013,6 +3013,7 @@ auto DeclKeybind =
       case SK_GAME_ID::DiabloIV:
         config.compatibility.disable_debug_features = true;
         config.window.dont_hook_wndproc             = true;
+        config.system.global_inject_delay           = 0.001f;
 
         //if (SK_IsInjected ())
         //{

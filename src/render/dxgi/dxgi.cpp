@@ -7691,10 +7691,17 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
 
   HRESULT ret = E_UNEXPECTED;
 
+  static int calls = 0;
+
   // More generically, anything using the RE engine needs this.
   static bool silent =
     (current_game == SK_GAME_ID::ResidentEvil8 ||
      current_game == SK_GAME_ID::MonsterHunterStories2);
+
+  if (++calls > 15 && std::exchange (silent, true) == false)
+  {
+    SK_LOGi0 (L"Excessive calls to EnumAdapters1, will not log future calls.");
+  }
 
   if (! silent)
   {
