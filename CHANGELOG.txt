@@ -1,4 +1,15 @@
-﻿23.6.10
+﻿23.6.11
+=======
+ + The "Enable Tearing" SwapChain flag now controls the game's use of tearing
+     as well...
+
+    >> It will turn a game's VSYNC off setting into vendor-independent FastSync.
+
+    This also allows for a gimped form of Latent Sync:
+
+     * 1 frame higher latency with "Enable Tearing" disabled, but... NO tearing :)
+
+23.6.10
 =======
  + Special K's HDR is disabled at application start in Diablo IV because it
      would freeze up at the game's splash screen otherwise.

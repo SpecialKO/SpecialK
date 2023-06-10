@@ -2595,6 +2595,18 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       );
     };
 
+  if (! config.render.dxgi.allow_tearing)
+  {
+    if (Flags & DXGI_PRESENT_ALLOW_TEARING)
+    {
+      SK_RunOnce (
+        SK_LOGi0 (L"Removed Tearing From DXGI Present Call")
+      );
+
+      Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+    }
+  }
+
   //
   // Early-out for games that use testing to minimize blocking
   //
