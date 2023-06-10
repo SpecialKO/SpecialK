@@ -1,4 +1,22 @@
-﻿23.6.9.2
+﻿23.6.10
+=======
+ + Special K's HDR is disabled at application start in Diablo IV because it
+     would freeze up at the game's splash screen otherwise.
+
+ + Added console variable to enable SK's HDR:
+
+     HDR.Enable {true|false}
+
+       (This performs the same action as clicking scRGB on the HDR widget)
+
+     You can assign a keybind to turn HDR on/off like so (add to SK's INI):
+
+       [Macro.HDR]
+       Ctrl+Shift+H=HDR.Enable toggle
+
+     Keep in mind, in most games after doing this you need to press Alt+Enter
+
+23.6.9.2
 ========
  + Stop logging IDXGIFactory::EnumAdapters1 (...) if a game spams it every frame
 

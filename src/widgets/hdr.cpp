@@ -782,7 +782,9 @@ public:
       SK_IVarStub <float>* vert        = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
       SK_IVarStub <bool>*  adaptive    = new SK_IVarStub <bool>  (&__SK_HDR_AdaptiveToneMap);
       SK_IVarStub <int>*   bypass_srgb = new SK_IVarStub <int>   (&__SK_HDR_Bypass_sRGB);
+      SK_IVarStub <bool>*  enable      = new SK_IVarStub <bool>  (&__SK_HDR_16BitSwap, this);
 
+      pCommandProc->AddVariable ( "HDR.Enable",          enable                                );
       pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange      (0, 3)         );
       pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange         (0, 11)        );
       pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange     (0, 2)         );
@@ -801,11 +803,25 @@ public:
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override
   {
     if ( val != nullptr &&
-         var != nullptr && var->getValuePointer () == &__SK_HDR_Preset )
+         var != nullptr )
     {
-      __SK_HDR_Preset = *(int *)val;
+      if ( var->getValuePointer () == &__SK_HDR_Preset )
+      {
+        __SK_HDR_Preset = *(int *)val;
 
-      hdr_presets [__SK_HDR_Preset].activate ();
+        hdr_presets [__SK_HDR_Preset].activate ();
+      }
+
+      if ( var->getValuePointer () == &__SK_HDR_16BitSwap )
+      {
+        __SK_HDR_16BitSwap = *(bool *)val;
+
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+                                                            : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+      }
     }
 
     return true;
@@ -864,6 +880,10 @@ public:
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                   L"Use16BitSwapChain",  __SK_HDR_16BitSwap,
                                   L"16-bit SwapChain" );
+
+    // Must start OFF, user can turn on later.
+    if (SK_GetCurrentGameID () == SK_GAME_ID::DiabloIV)
+      __SK_HDR_16BitSwap = false;
 
 
     _SK_HDR_Promote8BitRGBxTo16BitFP =
@@ -973,8 +993,8 @@ public:
     static bool TenBitSwap_Original     = __SK_HDR_10BitSwap;
     static bool SixteenBitSwap_Original = __SK_HDR_16BitSwap;
 
-    static int sel = __SK_HDR_16BitSwap ? 2 :
-                     __SK_HDR_10BitSwap ? 1 : 0;
+    int sel = __SK_HDR_16BitSwap ? 2 :
+              __SK_HDR_10BitSwap ? 1 : 0;
 
     SK_HDR_DisplayProfilerDialog ();
 
