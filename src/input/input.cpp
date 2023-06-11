@@ -1419,7 +1419,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     if (config.input.ui.capture_mouse || io.WantCaptureMouse)
       imgui_capture = true;
 
-    else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled && SK_GetForegroundWindow () == SK_GetGameWindow ())
+    else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled)
       imgui_capture = true;
 
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
