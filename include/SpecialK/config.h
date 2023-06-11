@@ -365,7 +365,7 @@ struct sk_config_t
       SK_Keybind {
         "Increase Volume 10%", L"Ctrl+Shift+Insert",
          true, true, false, VK_INSERT
-      }, L"VolumePlus5%"
+      }, L"VolumePlus10%"
     };
 
     SK_ConfigSerializedKeybind
@@ -373,7 +373,7 @@ struct sk_config_t
       SK_Keybind {
         "Decrease Volume 10%", L"Ctrl+Shift+Delete",
          true, true, false, VK_DELETE
-      }, L"VolumeMinus5%"
+      }, L"VolumeMinus10%"
     };
   } sound;
 

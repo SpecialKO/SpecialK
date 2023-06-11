@@ -399,54 +399,6 @@ SK_ImGui_VolumeManager (void)
     ImGui::PopItemWidth ();
   }
   ImGui::EndGroup   ();
-  ImGui::SameLine   ();
-  ImGui::BeginGroup ();
-  static std::set <SK_ConfigSerializedKeybind *>
-    keybinds = {
-      &config.sound.game_mute_keybind,
-      &config.sound.game_volume_up_keybind,
-      &config.sound.game_volume_down_keybind
-    };
-
-  if (ImGui::BeginMenu ("Volume Keybinds###VolumeMenu"))
-  {
-    const auto Keybinding =
-    [] (SK_ConfigSerializedKeybind *binding) ->
-    auto
-    {
-      if (binding == nullptr)
-        return false;
-
-      std::string label =
-        SK_WideCharToUTF8      (binding->human_readable);
-
-      ImGui::PushID            (binding->bind_name);
-
-      binding->assigning =
-        SK_ImGui_KeybindSelect (binding, label.c_str ());
-
-      ImGui::PopID             ();
-
-      return true;
-    };
-
-    ImGui::BeginGroup ();
-    for ( auto& keybind : keybinds )
-    {
-      ImGui::Text ( "%s:  ",
-                      keybind->bind_name );
-    }
-    ImGui::EndGroup   ();
-    ImGui::SameLine   ();
-    ImGui::BeginGroup ();
-    for ( auto& keybind : keybinds )
-    {
-      Keybinding  (   keybind );
-    }
-    ImGui::EndGroup   ();
-    ImGui::EndMenu    ();
-  }
-  ImGui::EndGroup   ();
   ImGui::Columns    (1);
 
   ImGui::PopStyleColor (3);
@@ -590,6 +542,55 @@ SK_ImGui_VolumeManager (void)
           }
         }
       }
+
+      ImGui::SameLine ();
+
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+          &config.sound.game_mute_keybind,
+          &config.sound.game_volume_up_keybind,
+          &config.sound.game_volume_down_keybind
+        };
+
+      if (ImGui::BeginMenu ("Volume Keybinds###VolumeMenu"))
+      {
+        const auto Keybinding =
+        [] (SK_ConfigSerializedKeybind *binding) ->
+        auto
+        {
+          if (binding == nullptr)
+            return false;
+
+          std::string label =
+            SK_WideCharToUTF8      (binding->human_readable);
+
+          ImGui::PushID            (binding->bind_name);
+
+          binding->assigning =
+            SK_ImGui_KeybindSelect (binding, label.c_str ());
+
+          ImGui::PopID             ();
+
+          return true;
+        };
+
+        ImGui::BeginGroup ();
+        for ( auto& keybind : keybinds )
+        {
+          ImGui::Text ( "%s:  ",
+                          keybind->bind_name );
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& keybind : keybinds )
+        {
+          Keybinding  (   keybind );
+        }
+        ImGui::EndGroup   ();
+        ImGui::EndMenu    ();
+      }
+      ImGui::EndGroup   ();
 
       const char* szMuteButtonTitle =
         ( master_mute ? "  Unmute  ###MasterMute" :
