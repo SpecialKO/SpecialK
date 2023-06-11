@@ -1,11 +1,15 @@
-﻿23.6.12.1
+﻿23.6.12.2
 =========
- + Added command console variables for sound volume and mute
+ + Fixed mouse activation of game window not working when blocking Mouse Input.
+
+23.6.12.1
+=========
+ + Added command console variables for sound volume/mute (applies only to game)
 
      Sound.Volume [0.0-100.0]
      Sound.Mute   {true|false}
 
-    Intended use is keyboard macros (i.e. Ctrl+Shift+Up=Sound.Volume ++)
+    Intended use is keyboard macros (i.e. Ctrl+Shift+Insert=Sound.Volume ++)
 
 23.6.12
 =======

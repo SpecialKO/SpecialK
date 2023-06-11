@@ -662,6 +662,7 @@ struct {
     sk::ParameterInt*     override_cpu_count      = nullptr;
     sk::ParameterInt*     enforcement_policy      = nullptr;
     sk::ParameterBool*    drop_late_frames        = nullptr;
+    sk::ParameterBool*    auto_low_latency        = nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
 
     struct
@@ -1464,6 +1465,8 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
                                                          L"refresh rate with VSYNC enabled (similar to NV Fast Sync).",dll_ini,         L"Render.DXGI",           L"DropLateFrames"),
+    ConfigEntry (render.framerate.auto_low_latency,      L"If G-Sync is seen supported, automatically change limiter"
+                                                         L" mode to low-latency.",                                     dll_ini,         L"Render.DXGI",           L"AutoLowLatency"),
 
     ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
     ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
@@ -3319,6 +3322,7 @@ auto DeclKeybind =
   render.framerate.flip_sequential->load (config.render.framerate.flip_sequential);
 
   render.framerate.drop_late_frames->load (config.render.framerate.drop_late_flips);
+  render.framerate.auto_low_latency->load (config.render.framerate.auto_low_latency);
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
@@ -4881,6 +4885,8 @@ SK_SaveConfig ( std::wstring name,
       nvidia.sli.num_gpus->store                    (config.nvidia.sli.num_gpus);
       nvidia.sli.override->store                    (config.nvidia.sli.override);
     }
+
+    render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||

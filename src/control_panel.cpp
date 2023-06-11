@@ -4253,6 +4253,12 @@ SK_ImGui_ControlPanel (void)
         if (rb.gsync_state.active)
         {
           strcat (szGSyncStatus, "Active");
+
+          // Opt-in to Auto-Low Latency the first time this is seen
+          if (config.render.framerate.auto_low_latency) {
+              config.render.framerate.enforcement_policy = 2;
+              config.render.framerate.auto_low_latency   = false;
+          }
         }
         else
           strcat (szGSyncStatus, "Inactive");
@@ -4888,7 +4894,7 @@ SK_ImGui_ControlPanel (void)
 
                 case limiter_mode_e::LatentSync:
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
-                  config.render.framerate.enforcement_policy = -std::abs (config.render.framerate.enforcement_policy);
+                  config.render.framerate.enforcement_policy = 4;
                   break;
               }
 
@@ -5533,7 +5539,10 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.MouseDown [0] = true;
 
-        if (SK_ImGui_WantMouseCapture ())
+        // Only capture mouse clicks when the window is in the foreground, failure to let
+        //   left-clicks passthrough would prevent activating the game window.
+        if ( SK_ImGui_WantMouseCapture () && game_window.active &&
+                SK_GetForegroundWindow () == game_window.hWnd )
           return 1;
       }
       break;
