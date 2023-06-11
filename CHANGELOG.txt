@@ -1,4 +1,8 @@
-﻿23.6.11.3
+﻿23.6.12
+=======
+ + Changing Latent Sync on/off will restore original limiter mode preference
+
+23.6.11.3
 =========
  + Removed auto-low latency mode
 

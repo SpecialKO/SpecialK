@@ -1808,8 +1808,8 @@ SK::Framerate::Limiter::wait (void)
   if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
   {
     // Disable Low-Latency Mode when using Latent Sync
-    if (config.render.framerate.enforcement_policy != 4)
-    {   config.render.framerate.enforcement_policy  = 4; }
+    if (config.render.framerate.enforcement_policy > 0)
+    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy; }
 
     static D3DKMTGetScanLine_pfn
            D3DKMTGetScanLine =
@@ -1969,6 +1969,12 @@ SK::Framerate::Limiter::wait (void)
     }
   }
 
+  else
+  {
+    // Latent Sync -was- on, but now it's off and we need to restore original preference
+    if (config.render.framerate.enforcement_policy < 0)
+    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy; }
+  }
 
   if (! std::exchange (lazy_init, true))
   {

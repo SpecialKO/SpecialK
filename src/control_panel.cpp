@@ -4888,7 +4888,7 @@ SK_ImGui_ControlPanel (void)
 
                 case limiter_mode_e::LatentSync:
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
-                  config.render.framerate.enforcement_policy = 4;
+                  config.render.framerate.enforcement_policy = -std::abs (config.render.framerate.enforcement_policy);
                   break;
               }
 
