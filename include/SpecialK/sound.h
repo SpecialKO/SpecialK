@@ -41,6 +41,7 @@ using SK_IAudioSessionControl    = SK_ComPtr <IAudioSessionControl>;
 using SK_IAudioSessionControl2   = SK_ComPtr <IAudioSessionControl2>;
 using SK_IAudioSessionManager2   = SK_ComPtr <IAudioSessionManager2>;
 
+bool                      __stdcall SK_WASAPI_Init                    (void);
 void                      __stdcall SK_SetGameMute                    (bool bMute);
 BOOL                      __stdcall SK_IsGameMuted                    (void);
 SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (void);

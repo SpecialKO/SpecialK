@@ -2972,6 +2972,11 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
+      static bool
+            bSoundInit = false;
+      if (! bSoundInit)
+            bSoundInit = SK_WASAPI_Init ();
+
       if (game_window.WndProc_Original != nullptr)
       {
         if (game_window.hWnd != 0)

@@ -1,4 +1,13 @@
-﻿23.6.12
+﻿23.6.12.1
+=========
+ + Added command console variables for sound volume and mute
+
+     Sound.Volume [0.0-100.0]
+     Sound.Mute   {true|false}
+
+    Intended use is keyboard macros (i.e. Ctrl+Shift+Up=Sound.Volume ++)
+
+23.6.12
 =======
  + Changing Latent Sync on/off will restore original limiter mode preference
 

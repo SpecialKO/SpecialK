@@ -618,6 +618,67 @@ SK_IsGameMuted (void)
     bMuted;
 }
 
+bool
+__stdcall
+SK_WASAPI_Init (void)
+{
+  auto pVolumeCtl =
+    SK_WASAPI_GetVolumeControl ();
+
+  if (pVolumeCtl == nullptr)
+    return false;
+
+  static float volume = 100.0f;
+  static bool  mute   = SK_IsGameMuted ();
+
+  static bool        once = false;
+  if (std::exchange (once, true))
+    return true;
+
+  pVolumeCtl->GetMasterVolume (&volume);
+                                volume *= 100.0f;
+
+  auto cmd =
+    SK_GetCommandProcessor ();
+
+  class SoundListener : public SK_IVariableListener
+  {
+  public:
+    virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+    {
+      if (val != nullptr && var != nullptr )
+      {
+        auto pVolumeCtl =
+          SK_WASAPI_GetVolumeControl ();
+
+        if (pVolumeCtl != nullptr && var->getValuePointer () == &volume)
+        {
+          volume = *(float *)val;
+
+          volume =
+            std::clamp (volume, 0.0f, 100.0f);
+
+          pVolumeCtl->SetMasterVolume (volume / 100.0f, nullptr);
+        }
+
+        else if (var->getValuePointer () == &mute)
+        {
+          mute = *(bool *)val;
+
+          SK_SetGameMute (mute);
+        }
+      }
+
+      return true;
+    }
+  } static sound_control;
+
+  cmd->AddVariable ("Sound.Volume", SK_CreateVar (SK_IVariable::Float,   &volume, &sound_control));
+  cmd->AddVariable ("Sound.Mute",   SK_CreateVar (SK_IVariable::Boolean, &mute,   &sound_control));
+
+  return true;
+}
+
 
 
 #include <SpecialK/sound.h>
