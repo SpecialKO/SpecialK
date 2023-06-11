@@ -1,4 +1,8 @@
-﻿23.6.12.2
+﻿23.6.12.3
+=========
+ + Added keybinds to Volume Management section of SK's control panel.
+
+23.6.12.2
 =========
  + Fixed mouse activation of game window not working when blocking Mouse Input.
 

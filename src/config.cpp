@@ -1290,6 +1290,10 @@ auto DeclKeybind =
     Keybind ( &config.render.framerate.latent_sync.
                                toggle_fcat_bars_keybind, L"Toggle FCAT Tearing Visualizer",                            osd_ini,         L"LatentSync.Control"),
 
+    Keybind ( &config.sound.game_mute_keybind,           L"Toggle Mute for the Game",                                  osd_ini,         L"Sound.Mixing"),
+    Keybind ( &config.sound.game_volume_up_keybind,      L"Toggle Mute for the Game",                                  osd_ini,         L"Sound.Mixing"),
+    Keybind ( &config.sound.game_volume_down_keybind,    L"Toggle Mute for the Game",                                  osd_ini,         L"Sound.Mixing"),
+
 
     // Input
     //////////////////////////////////////////////////////////////////////////
@@ -4115,6 +4119,10 @@ auto DeclKeybind =
   LoadKeybind (&config.render.framerate.latent_sync.tearline_move_down_keybind);
   LoadKeybind (&config.render.framerate.latent_sync.timing_resync_keybind);
   LoadKeybind (&config.render.framerate.latent_sync.toggle_fcat_bars_keybind);
+
+  LoadKeybind (&config.sound.game_mute_keybind);
+  LoadKeybind (&config.sound.game_volume_up_keybind);
+  LoadKeybind (&config.sound.game_volume_down_keybind);
 
 
   if (config.steam.dll_path.empty ())

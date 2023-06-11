@@ -351,6 +351,32 @@ struct sk_config_t
     bool        present               = false;  // Is the overlay detected?
   } rtss;
 
+  struct sound_s {
+    SK_ConfigSerializedKeybind
+         game_mute_keybind = {
+      SK_Keybind {
+        "Mute the Game", L"Ctrl+Shift+Home",
+         true, true, false, VK_HOME
+      }, L"MuteGame"
+    };
+
+    SK_ConfigSerializedKeybind
+         game_volume_up_keybind = {
+      SK_Keybind {
+        "Increase Volume 10%", L"Ctrl+Shift+Insert",
+         true, true, false, VK_INSERT
+      }, L"VolumePlus5%"
+    };
+
+    SK_ConfigSerializedKeybind
+         game_volume_down_keybind = {
+      SK_Keybind {
+        "Decrease Volume 10%", L"Ctrl+Shift+Delete",
+         true, true, false, VK_DELETE
+      }, L"VolumeMinus5%"
+    };
+  } sound;
+
   struct screenshots_s {
     bool        png_compress          =  true;
     bool        show_osd_by_default   =  true;
