@@ -4253,12 +4253,6 @@ SK_ImGui_ControlPanel (void)
         if (rb.gsync_state.active)
         {
           strcat (szGSyncStatus, "Active");
-
-          // Opt-in to Auto-Low Latency the first time this is seen
-          if (config.render.framerate.auto_low_latency) {
-              config.render.framerate.enforcement_policy = 2;
-              config.render.framerate.auto_low_latency   = false;
-          }
         }
         else
           strcat (szGSyncStatus, "Inactive");

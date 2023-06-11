@@ -445,7 +445,6 @@ struct sk_config_t
       bool    sleepless_window    = false;
       bool    enable_mmcss        =  true;
       int     enforcement_policy  =     4; // Refer to framerate.cpp
-      bool    auto_low_latency    =  true; // VRR users have the limiter default to low-latency
       bool    enable_etw_tracing  =  true;
       bool    supports_etw_trace  =  false;// Not stored in config file
       struct latent_sync_s {
