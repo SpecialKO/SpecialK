@@ -2857,7 +2857,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
           {
             display.mpo_planes = caps.MaxRGBPlanes; // Don't care about YUV planes, this is a game!
 
-            if (display.mpo_planes <= 1)
+            if (config.display.warn_no_mpo_planes && display.mpo_planes <= 1)
             {
               SK_RunOnce (
                 SK_ImGui_Warning (L"MPOs are not active, consider restarting your driver.")

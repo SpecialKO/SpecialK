@@ -1,6 +1,7 @@
 ﻿23.6.11.2
 =========
  + Fixed Latent Sync's Delay Bias setting applying to other limiter modes.
+ + Fixed MPO warning showing up even if user did not have it enabled.
 
 23.6.11.1
 =========
