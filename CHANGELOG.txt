@@ -1,4 +1,14 @@
-﻿23.6.11
+﻿23.6.11.1
+=========
+ + Multiplane Overlay support in-game only counts RGB planes now.
+ + Added INI option to warn if MPO support is broken.
+
+     [Display.Monitor]
+     WarnIfNoOverlayPlanes={true|false} (default: false)
+
+    * If you want this feature, you should set it in master_SpecialK.ini
+
+23.6.11
 =======
  + The "Enable Tearing" SwapChain flag now controls the game's use of tearing
      as well...

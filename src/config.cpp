@@ -731,6 +731,7 @@ struct {
   sk::ParameterBool*      force_windowed          = nullptr;
   sk::ParameterBool*      confirm_mode_changes    = nullptr;
   sk::ParameterBool*      save_monitor_prefs      = nullptr;
+  sk::ParameterBool*      warn_no_mpo_planes      = nullptr;
   sk::ParameterBool*      save_resolution         = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
@@ -1228,6 +1229,7 @@ auto DeclKeybind =
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
     ConfigEntry (display.save_resolution,                L"Remember Monitor Resolution for the Current Game" ,         dll_ini,         L"Display.Monitor",       L"RememberResolution"),
     ConfigEntry (display.override_resolution,            L"Apply Resolution Override for the Current Game",            dll_ini,         L"Display.Monitor",       L"ResolutionForMonitor"),
+    ConfigEntry (display.warn_no_mpo_planes,             L"Warn user if Multiplane Overlays support is missing",       dll_ini,         L"Display.Monitor",       L"WarnIfNoOverlayPlanes"),
 
     // Performance Monitoring  (Global Settings)
     //////////////////////////////////////////////////////////////////////////
@@ -3173,6 +3175,7 @@ auto DeclKeybind =
   display.confirm_mode_changes->load        (config.display.confirm_mode_changes);
   display.save_monitor_prefs->load          (config.display.save_monitor_prefs);
   display.save_resolution->load             (config.display.resolution.save);
+  display.warn_no_mpo_planes->load          (config.display.warn_no_mpo_planes);
 
   if (config.display.resolution.save)
   {
@@ -4798,6 +4801,7 @@ SK_SaveConfig ( std::wstring name,
   display.confirm_mode_changes->store         (config.display.confirm_mode_changes);
   display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
   display.save_resolution->store              (config.display.resolution.save);
+  display.warn_no_mpo_planes->store           (config.display.warn_no_mpo_planes);
 
   if ((! config.display.resolution.override.isZero ()) || config.display.resolution.save)
   {

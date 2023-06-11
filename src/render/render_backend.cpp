@@ -2855,7 +2855,14 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 
           if (D3DKMTGetMultiPlaneOverlayCaps (&caps) == (NTSTATUS)0x00000000L) // STATUS_SUCCESS
           {
-            display.mpo_planes = caps.MaxPlanes;
+            display.mpo_planes = caps.MaxRGBPlanes; // Don't care about YUV planes, this is a game!
+
+            if (display.mpo_planes <= 1)
+            {
+              SK_RunOnce (
+                SK_ImGui_Warning (L"MPOs are not active, consider restarting your driver.")
+              );
+            }
           }
         }
       }

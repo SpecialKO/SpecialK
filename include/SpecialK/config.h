@@ -595,6 +595,7 @@ struct sk_config_t
     bool      aspect_ratio_stretch = false;
     bool      confirm_mode_changes = true;
     bool      save_monitor_prefs   = true;
+    bool      warn_no_mpo_planes   = false;
     struct resolution_s {
       bool           save          = true;
       bool           applied       = false;
