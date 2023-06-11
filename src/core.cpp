@@ -3740,15 +3740,20 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   extern LONGLONG __SK_LatentSyncPostDelay;
   if (            __SK_LatentSyncPostDelay > 1LL)
   {
-    SK_AutoHandle hTimer (
-      INVALID_HANDLE_VALUE
-    );
+    // Only apply this if Latent Sync is enabled
+    if ( config.render.framerate.present_interval == 0 &&
+         config.render.framerate.target_fps        > 0.0f )
+    {
+      SK_AutoHandle hTimer (
+        INVALID_HANDLE_VALUE
+      );
 
-    extern void
-    SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
-    SK_Framerate_WaitUntilQPC (
-      qpcTimeOfSwap.QuadPart + __SK_LatentSyncPostDelay,
-                  hTimer.m_h  );
+      extern void
+      SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+      SK_Framerate_WaitUntilQPC (
+        qpcTimeOfSwap.QuadPart + __SK_LatentSyncPostDelay,
+                    hTimer.m_h  );
+    }
   }
 
 

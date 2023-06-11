@@ -1,4 +1,8 @@
-﻿23.6.11.1
+﻿23.6.11.2
+=========
+ + Fixed Latent Sync's Delay Bias setting applying to other limiter modes.
+
+23.6.11.1
 =========
  + Multiplane Overlay support in-game only counts RGB planes now.
  + Added INI option to warn if MPO support is broken.
