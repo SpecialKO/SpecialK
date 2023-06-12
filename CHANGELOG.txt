@@ -1,5 +1,4 @@
-﻿
-23.6.13.1
+﻿23.6.13.1
 =========
  + Fixed not being able to disable SK's Reflex in games that aren't native Reflex
 

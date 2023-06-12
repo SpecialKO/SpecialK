@@ -4125,6 +4125,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   if (SK_timeGetTime () - dwLastPing > 100)
   {
     setLatencyMarkerNV (PC_LATENCY_PING);
+    
+    dwLastPing =
+      SK_timeGetTime ();
   }
 
   if (site == config.nvidia.sleep.enforcement_site)
