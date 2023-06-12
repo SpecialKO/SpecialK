@@ -1,6 +1,7 @@
 ﻿23.6.12.3
 =========
  + Added keybinds to Volume Management section of SK's control panel.
+ + Fixed Allow Tearing not respecting system default value.
 
 23.6.12.2
 =========

@@ -3312,21 +3312,16 @@ auto DeclKeybind =
   //
   render.framerate.max_delta_time->load   (config.render.framerate.max_delta_time);
 
-
   if (render.framerate.flip_discard->load (config.render.framerate.flip_discard) && config.render.framerate.flip_discard)
   {
     config.render.framerate.disable_flip = false;
-
-    if (render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing))
-    {
-      //if (config.render.dxgi.allow_tearing) config.render.framerate.flip_discard = true;
-    }
   }
 
-  render.framerate.flip_sequential->load (config.render.framerate.flip_sequential);
+  render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing);
+  render.framerate.flip_sequential->load   (config.render.framerate.flip_sequential);
 
-  render.framerate.drop_late_frames->load (config.render.framerate.drop_late_flips);
-  render.framerate.auto_low_latency->load (config.render.framerate.auto_low_latency);
+  render.framerate.drop_late_frames->load  (config.render.framerate.drop_late_flips);
+  render.framerate.auto_low_latency->load  (config.render.framerate.auto_low_latency);
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
