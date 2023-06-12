@@ -710,6 +710,7 @@ struct sk_config_t
       bool    low_latency_boost   =  false;
       bool    marker_optimization =  false;
       bool    enable              =  false;
+      bool    native              =  false;
     } sleep;
   } nvidia;
 

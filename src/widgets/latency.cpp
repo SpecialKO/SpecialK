@@ -426,44 +426,51 @@ SK_ImGui_DrawConfig_Latency ()
     reflex_mode = 0;
   }
 
-  if ( ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
-                         "Off\0Low Latency\0"
-                              "Low Latency + Boost\0"
-                              "Nothing But Boost\0\0" )
-     )
+  if (config.nvidia.sleep.native)
   {
-    switch (reflex_mode)
-    {
-      case 0:
-        config.nvidia.sleep.enable            = false;
-        config.nvidia.sleep.low_latency       = false;
-        config.nvidia.sleep.low_latency_boost = false;
-        break;
-
-      case 1:
-        config.nvidia.sleep.enable            = true;
-        config.nvidia.sleep.low_latency       = true;
-        config.nvidia.sleep.low_latency_boost = false;
-        break;
-
-      case 2:
-        config.nvidia.sleep.enable            = true;
-        config.nvidia.sleep.low_latency       = true;
-        config.nvidia.sleep.low_latency_boost = true;
-        break;
-
-      case 3:
-        config.nvidia.sleep.enable            =  true;
-        config.nvidia.sleep.low_latency       = false;
-        config.nvidia.sleep.low_latency_boost =  true;
-        break;
-    }
-
-    rb.driverSleepNV (config.nvidia.sleep.enforcement_site);
+    ImGui::BulletText ("Game is using native Reflex, expect all data here to be incorrect.");
   }
 
-  if (ImGui::IsItemHovered ()) {
-    ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
+  else
+  {
+    if ( ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
+                           "Off\0Low Latency\0"
+                                "Low Latency + Boost\0"
+                                "Nothing But Boost\0\0" )
+       )
+    {
+      switch (reflex_mode)
+      {
+        case 0:
+          config.nvidia.sleep.enable            = false;
+          config.nvidia.sleep.low_latency       = false;
+          config.nvidia.sleep.low_latency_boost = false;
+          break;
+
+        case 1:
+          config.nvidia.sleep.enable            = true;
+          config.nvidia.sleep.low_latency       = true;
+          config.nvidia.sleep.low_latency_boost = false;
+          break;
+
+        case 2:
+          config.nvidia.sleep.enable            = true;
+          config.nvidia.sleep.low_latency       = true;
+          config.nvidia.sleep.low_latency_boost = true;
+          break;
+
+        case 3:
+          config.nvidia.sleep.enable            =  true;
+          config.nvidia.sleep.low_latency       = false;
+          config.nvidia.sleep.low_latency_boost =  true;
+          break;
+      }
+
+      rb.driverSleepNV (config.nvidia.sleep.enforcement_site);
+    }
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
   }
 
   if (config.nvidia.sleep.enable && config.nvidia.sleep.low_latency)

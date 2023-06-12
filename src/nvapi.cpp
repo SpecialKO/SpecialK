@@ -41,7 +41,6 @@ NvAPI_Disp_ColorControl_pfn       NvAPI_Disp_ColorControl_Original       = nullp
 NvAPI_GPU_GetRamType_pfn            NvAPI_GPU_GetRamType            = nullptr;
 NvAPI_GPU_GetFBWidthAndLocation_pfn NvAPI_GPU_GetFBWidthAndLocation = nullptr;
 NvAPI_GPU_GetPCIEInfo_pfn           NvAPI_GPU_GetPCIEInfo           = nullptr;
-NvAPI_GetPhysicalGPUFromGPUID_pfn   NvAPI_GetPhysicalGPUFromGPUID   = nullptr;
 NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU   = nullptr;
 NvAPI_Disp_SetDitherControl_pfn     NvAPI_Disp_SetDitherControl     = nullptr;
 NvAPI_Disp_GetDitherControl_pfn     NvAPI_Disp_GetDitherControl     = nullptr;
@@ -261,7 +260,7 @@ sk::NVAPI::EnumGPUs_DXGI (void)
     meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER_2;
     // ^^^ V3 is for Windows 10+ only, we don't even care about eviction stats.
 
-    NVAPI_CALL (GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo));
+    ////NVAPI_CALL (GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo));
 
     MultiByteToWideChar (CP_OEMCP, 0, name, -1, adapterDesc.Description, 64);
 
@@ -1262,8 +1261,6 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158u);
     NvAPI_GPU_GetPCIEInfo =
       (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface           (0xE3795199u);
-    NvAPI_GetPhysicalGPUFromGPUID =
-      (NvAPI_GetPhysicalGPUFromGPUID_pfn)NvAPI_QueryInterface   (0x5380AD1Au);
     NvAPI_GetGPUIDFromPhysicalGPU =
       (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
 

@@ -3973,6 +3973,22 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
+using  NvAPI_QueryInterface_pfn       = void*                (*)(unsigned int ordinal);
+using  NvAPI_D3D_SetLatencyMarker_pfn = NvAPI_Status (__cdecl *)(__in IUnknown *pDev, __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
+static NvAPI_D3D_SetLatencyMarker_pfn
+       NvAPI_D3D_SetLatencyMarker_Original = nullptr;
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
+                                    __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+{
+  // Game is using Reflex, so we should stop adding our own markers...
+  config.nvidia.sleep.native = true;
+
+  return
+    NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
+}
+
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
@@ -3982,6 +3998,44 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
   if (device.p    != nullptr &&
       swapchain.p != nullptr)
   {
+    static bool          init = false;
+    if (! std::exchange (init, true))
+    {
+#ifdef _WIN64
+      HMODULE hLib =
+        SK_Modules->LoadLibraryLL (L"nvapi64.dll");
+
+      if (hLib)
+      {
+        GetModuleHandleEx (
+          GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi64.dll", &hLib
+        );
+#else
+      HMODULE hLib =
+        SK_Modules->LoadLibraryLL (L"nvapi.dll");
+
+      if (hLib)
+      {
+        GetModuleHandleEx (
+          GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib
+        );
+#endif
+
+        static auto NvAPI_QueryInterface =
+          reinterpret_cast <NvAPI_QueryInterface_pfn> (
+            SK_GetProcAddress (hLib, "nvapi_QueryInterface")
+          );
+
+        // Hook SetLatencyMarker so we know if a game is natively using Reflex.
+        //
+        SK_CreateFuncHook (      L"NvAPI_D3D_SetLatencyMarker",
+                                   NvAPI_QueryInterface (3650636805),
+                                   NvAPI_D3D_SetLatencyMarker_Detour,
+          static_cast_p2p <void> (&NvAPI_D3D_SetLatencyMarker_Original) );
+        MH_EnableHook (            NvAPI_QueryInterface (3650636805));
+      }
+    }
+
     // Avert your eyes... time to check if Device and SwapChain are consistent
     //
     auto pDev11 = getDevice <ID3D11Device> ();
@@ -4015,7 +4069,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
              ReadULong64Acquire (&frames_drawn)       );
 
       ret =
-        NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
+        NvAPI_D3D_SetLatencyMarker_Original (device.p, &markerParams);
     }
 
     if ( marker == RENDERSUBMIT_END /*||
@@ -4057,8 +4111,21 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   if (! device.p)
     return;
 
+  // Game has native Reflex, we should bail out.
+  if (config.nvidia.sleep.native)
+    return;
+
   if (site == 2)
     setLatencyMarkerNV (INPUT_SAMPLE);
+
+  static DWORD dwLastPing =
+    SK_timeGetTime ();
+
+  // Ping at random intervals between 100 and 300 ms, as-per NVAPI docs...
+  if (SK_timeGetTime () - dwLastPing > 100)
+  {
+    setLatencyMarkerNV (PC_LATENCY_PING);
+  }
 
   if (site == config.nvidia.sleep.enforcement_site)
   {

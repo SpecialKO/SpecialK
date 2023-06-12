@@ -1,4 +1,12 @@
-﻿23.6.12.3
+﻿23.6.13
+=======
+ + Added detection for games that are natively using Reflex, so users cannot
+     enable SK's implementation of Reflex at the same time.
+ + Added PCL (PC Latency) ping event every 100 ms to enable PC latency readings
+     on the GeForce Experience overlay.
+ + Updated NvAPI to R525
+
+23.6.12.3
 =========
  + Added keybinds to Volume Management section of SK's control panel.
  + Fixed Allow Tearing not respecting system default value.

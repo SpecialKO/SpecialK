@@ -158,7 +158,6 @@ typedef NvAPI_Status (__cdecl *NvAPI_D3D_GetObjectHandleForResource_pfn)
 extern NvAPI_GPU_GetRamType_pfn                 NvAPI_GPU_GetRamType;
 extern NvAPI_GPU_GetFBWidthAndLocation_pfn      NvAPI_GPU_GetFBWidthAndLocation;
 extern NvAPI_GPU_GetPCIEInfo_pfn                NvAPI_GPU_GetPCIEInfo;
-extern NvAPI_GetPhysicalGPUFromGPUID_pfn        NvAPI_GetPhysicalGPUFromGPUID;
 extern NvAPI_GetGPUIDFromPhysicalGPU_pfn        NvAPI_GetGPUIDFromPhysicalGPU;
 extern NvAPI_D3D_IsGSyncCapable_pfn             _NvAPI_D3D_IsGSyncCapable;
 extern NvAPI_D3D_IsGSyncActive_pfn              _NvAPI_D3D_IsGSyncActive;
