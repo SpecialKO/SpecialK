@@ -93,7 +93,26 @@
 #define NV_EXTN_OP_VPRS_EVAL_ATTRIB_AT_SAMPLE              51
 #define NV_EXTN_OP_VPRS_EVAL_ATTRIB_SNAPPED                52
 
-
+// HitObject API
+#define NV_EXTN_OP_HIT_OBJECT_TRACE_RAY                    67
+#define NV_EXTN_OP_HIT_OBJECT_MAKE_HIT                     68
+#define NV_EXTN_OP_HIT_OBJECT_MAKE_HIT_WITH_RECORD_INDEX   69
+#define NV_EXTN_OP_HIT_OBJECT_MAKE_MISS                    70
+#define NV_EXTN_OP_HIT_OBJECT_REORDER_THREAD               71
+#define NV_EXTN_OP_HIT_OBJECT_INVOKE                       72
+#define NV_EXTN_OP_HIT_OBJECT_IS_MISS                      73
+#define NV_EXTN_OP_HIT_OBJECT_GET_INSTANCE_ID              74
+#define NV_EXTN_OP_HIT_OBJECT_GET_INSTANCE_INDEX           75
+#define NV_EXTN_OP_HIT_OBJECT_GET_PRIMITIVE_INDEX          76
+#define NV_EXTN_OP_HIT_OBJECT_GET_GEOMETRY_INDEX           77
+#define NV_EXTN_OP_HIT_OBJECT_GET_HIT_KIND                 78
+#define NV_EXTN_OP_HIT_OBJECT_GET_RAY_DESC                 79
+#define NV_EXTN_OP_HIT_OBJECT_GET_ATTRIBUTES               80
+#define NV_EXTN_OP_HIT_OBJECT_GET_SHADER_TABLE_INDEX       81
+#define NV_EXTN_OP_HIT_OBJECT_LOAD_LOCAL_ROOT_TABLE_CONSTANT  82
+#define NV_EXTN_OP_HIT_OBJECT_IS_HIT                       83
+#define NV_EXTN_OP_HIT_OBJECT_IS_NOP                       84
+#define NV_EXTN_OP_HIT_OBJECT_MAKE_NOP                     85
 
 //----------------------------------------------------------------------------//
 //-------------------- GET_SPECIAL subOpCode constants -----------------------//

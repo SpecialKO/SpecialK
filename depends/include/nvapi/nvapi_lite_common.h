@@ -88,6 +88,7 @@ typedef unsigned short   NvU16;
 typedef unsigned char    NvU8;
 typedef signed   char    NvS8;
 typedef float            NvF32;
+typedef double           NvF64;
 
 /*!
  * Macro to convert NvU32 to NvF32.
@@ -140,6 +141,7 @@ NV_DECLARE_HANDLE(NvAudioHandle);                  //!< NVIDIA HD Audio Device
 NV_DECLARE_HANDLE(Nv3DVPContextHandle);            //!< A handle for a 3D Vision Pro (3DVP) context
 NV_DECLARE_HANDLE(Nv3DVPTransceiverHandle);        //!< A handle for a 3DVP RF transceiver
 NV_DECLARE_HANDLE(Nv3DVPGlassesHandle);            //!< A handle for a pair of 3DVP RF shutter glasses
+NV_DECLARE_HANDLE(NvPcfClientHandle);              //!< A handle for NVPCF clients
 
 typedef void* StereoHandle;                        //!< A stereo handle, that corresponds to the device interface
 
@@ -147,6 +149,7 @@ NV_DECLARE_HANDLE(NvSourceHandle);                 //!< Unique source handle on 
 NV_DECLARE_HANDLE(NvTargetHandle);                 //!< Unique target handle on the system
 NV_DECLARE_HANDLE(NVDX_SwapChainHandle);           //!< DirectX SwapChain objects
 static const NVDX_SwapChainHandle NVDX_SWAPCHAIN_NONE = 0;
+NV_DECLARE_HANDLE(NvPresentBarrierClientHandle);   //!< PresentBarrier client object
 //! @}
 
 //! \ingroup nvapihandles
@@ -366,7 +369,7 @@ typedef enum _NvAPI_Status
     NVAPI_FIRMWARE_REVISION_NOT_SUPPORTED       = -200,    //!< The device's firmware is not supported.
     NVAPI_LICENSE_CALLER_AUTHENTICATION_FAILED  = -201,    //!< The caller is not authorized to modify the License.
     NVAPI_D3D_DEVICE_NOT_REGISTERED             = -202,    //!< The user tried to use a deferred context without registering the device first  
-    NVAPI_RESOURCE_NOT_ACQUIRED                 = -203,    //!< Head or SourceId was not reserved for the VR Display before doing the Modeset.
+    NVAPI_RESOURCE_NOT_ACQUIRED                 = -203,    //!< Head or SourceId was not reserved for the VR Display before doing the Modeset or the dedicated display.
     NVAPI_TIMING_NOT_SUPPORTED                  = -204,    //!< Provided timing is not supported.
     NVAPI_HDCP_ENCRYPTION_FAILED                = -205,    //!< HDCP Encryption Failed for the device. Would be applicable when the device is HDCP Capable.
     NVAPI_PCLK_LIMITATION_FAILED                = -206,    //!< Provided mode is over sink device pclk limitation.
@@ -395,6 +398,17 @@ typedef enum _NvAPI_Status
     NVAPI_NO_VULKAN                             = -229,    //!< OpenGL does not export Vulkan fake extensions
     NVAPI_REQUEST_PENDING                       = -230,    //!< A request for NvTOPPs telemetry CData has already been made and is pending a response.
     NVAPI_RESOURCE_IN_USE                       = -231,    //!< Operation cannot be performed because the resource is in use.
+    NVAPI_INVALID_IMAGE                         = -232,    //!< Device kernel image is invalid
+    NVAPI_INVALID_PTX                           = -233,    //!< PTX JIT compilation failed
+    NVAPI_NVLINK_UNCORRECTABLE                  = -234,    //!< Uncorrectable NVLink error was detected during the execution
+    NVAPI_JIT_COMPILER_NOT_FOUND                = -235,    //!< PTX JIT compiler library was not found.
+    NVAPI_INVALID_SOURCE                        = -236,    //!< Device kernel source is invalid.
+    NVAPI_ILLEGAL_INSTRUCTION                   = -237,    //!< While executing a kernel, the device encountered an illegal instruction.
+    NVAPI_INVALID_PC                            = -238,    //!< While executing a kernel, the device program counter wrapped its address space
+    NVAPI_LAUNCH_FAILED                         = -239,    //!< An exception occurred on the device while executing a kernel
+    NVAPI_NOT_PERMITTED                         = -240,    //!< Attempted operation is not permitted.
+    NVAPI_CALLBACK_ALREADY_REGISTERED           = -241,    //!< The callback function has already been registered.
+    NVAPI_CALLBACK_NOT_FOUND                    = -242,    //!< The callback function is not found or not registered.
 } NvAPI_Status;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -486,6 +500,7 @@ typedef NV_DISPLAY_DRIVER_MEMORY_INFO_V3 NV_DISPLAY_DRIVER_MEMORY_INFO;
 //!   DESCRIPTION: This function retrieves the available driver memory footprint for the specified GPU. 
 //!                If the GPU is in TCC Mode, only dedicatedVideoMemory will be returned in pMemoryInfo (NV_DISPLAY_DRIVER_MEMORY_INFO).
 //!
+//! \deprecated  Do not use this function - it is deprecated in release 520. Instead, use NvAPI_GPU_GetMemoryInfoEx.
 //! SUPPORTED OS:  Windows 7 and higher
 //!
 //!
@@ -503,7 +518,64 @@ typedef NV_DISPLAY_DRIVER_MEMORY_INFO_V3 NV_DISPLAY_DRIVER_MEMORY_INFO;
 //!
 //!  \ingroup  driverapi
 ///////////////////////////////////////////////////////////////////////////////
+__nvapi_deprecated_function("Do not use this function - it is deprecated in release 520. Instead, use NvAPI_GPU_GetMemoryInfoEx.")
 NVAPI_INTERFACE NvAPI_GPU_GetMemoryInfo(NvPhysicalGpuHandle hPhysicalGpu, NV_DISPLAY_DRIVER_MEMORY_INFO *pMemoryInfo);
+
+
+//! \ingroup driverapi
+//! Used in NvAPI_GPU_GetMemoryInfoEx().
+typedef struct
+{
+    NvU32   version;                           //!< Structure version
+    NvU64   dedicatedVideoMemory;              //!< Size(in bytes) of the physical framebuffer.
+    NvU64   availableDedicatedVideoMemory;     //!< Size(in bytes) of the available physical framebuffer for allocating video memory surfaces.
+    NvU64   systemVideoMemory;                 //!< Size(in bytes) of system memory the driver allocates at load time.
+    NvU64   sharedSystemMemory;                //!< Size(in bytes) of shared system memory that driver is allowed to commit for surfaces across all allocations.
+    NvU64   curAvailableDedicatedVideoMemory;  //!< Size(in bytes) of the current available physical framebuffer for allocating video memory surfaces.
+    NvU64   dedicatedVideoMemoryEvictionsSize; //!< Size(in bytes) of the total size of memory released as a result of the evictions.
+    NvU64   dedicatedVideoMemoryEvictionCount; //!< Indicates the number of eviction events that caused an allocation to be removed from dedicated video memory to free GPU
+                                               //!< video memory to make room for other allocations.
+    NvU64 dedicatedVideoMemoryPromotionsSize;  //!< Size(in bytes) of the total size of memory allocated as a result of the promotions.
+    NvU64 dedicatedVideoMemoryPromotionCount;  //!< Indicates the number of promotion events that caused an allocation to be promoted to dedicated video memory 
+} NV_GPU_MEMORY_INFO_EX_V1;
+
+//! \ingroup driverapi
+typedef NV_GPU_MEMORY_INFO_EX_V1 NV_GPU_MEMORY_INFO_EX;
+
+//! \ingroup driverapi
+//! Macro for constructing the version field of NV_GPU_MEMORY_INFO_EX_V1
+#define NV_GPU_MEMORY_INFO_EX_VER_1  MAKE_NVAPI_VERSION(NV_GPU_MEMORY_INFO_EX_V1,1)
+
+//! \ingroup driverapi
+#define NV_GPU_MEMORY_INFO_EX_VER    NV_GPU_MEMORY_INFO_EX_VER_1
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_GPU_GetMemoryInfoEx
+//
+//!   DESCRIPTION: This function retrieves the available driver memory footprint for the specified GPU. 
+//!                If the GPU is in TCC Mode, only dedicatedVideoMemory will be returned in pMemoryInfo (NV_GPU_MEMORY_INFO_EX).
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! TCC_SUPPORTED
+//!
+//! \since Release: 520
+//!
+//!  \param [in]   hPhysicalGpu  Handle of the physical GPU for which the memory information is to be extracted.
+//!  \param [out]  pMemoryInfo   The memory footprint available in the driver. See NV_GPU_MEMORY_INFO_EX.
+//!
+//!  \retval       NVAPI_INVALID_ARGUMENT             pMemoryInfo is NULL.
+//!  \retval       NVAPI_OK                           Call successful.
+//!  \retval       NVAPI_NVIDIA_DEVICE_NOT_FOUND      No NVIDIA GPU driving a display was found.
+//!  \retval       NVAPI_INCOMPATIBLE_STRUCT_VERSION  NV_GPU_MEMORY_INFO_EX structure version mismatch.
+//!
+//!  \ingroup  driverapi
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_GPU_GetMemoryInfoEx(NvPhysicalGpuHandle hPhysicalGpu, NV_GPU_MEMORY_INFO_EX *pMemoryInfo);
 ///////////////////////////////////////////////////////////////////////////////
 //
 // FUNCTION NAME: NvAPI_EnumPhysicalGPUs
