@@ -4208,11 +4208,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       }
     }
 
-    if (config.nvidia.sleep.enable)
-    {
-      if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
-        valid = false;
-    }
+    if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
+      valid = false;
 
     WriteULong64Release (&_frames_drawn,
       ReadULong64Acquire (&frames_drawn));

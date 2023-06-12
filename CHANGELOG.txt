@@ -1,4 +1,9 @@
-﻿23.6.13
+﻿
+23.6.13.1
+=========
+ + Fixed not being able to disable SK's Reflex in games that aren't native Reflex
+
+23.6.13
 =======
  + Added detection for games that are natively using Reflex, so users cannot
      enable SK's implementation of Reflex at the same time.
