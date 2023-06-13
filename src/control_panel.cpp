@@ -4871,8 +4871,8 @@ SK_ImGui_ControlPanel (void)
             if (
               ImGui::Combo ( "Mode",
                              &mode, "Normal\0"
-                                    "Low-Latency (VRR Optimized)\0"
-                                    "Latent Sync (VSYNC -Off-)\0\0" )
+                                    "Low-Latency\t(VRR Optimized)\0"
+                                    "Latent Sync\t(VSYNC -Off-)\0\0" )
                )
             {
               switch ((limiter_mode_e)mode)

@@ -426,29 +426,29 @@ SK_GPUPollingThread (LPVOID user)
           else stats.gpus [i].hwinfo.mem_type =
               stats0.gpus [i].hwinfo.mem_type;
 
-          NV_DISPLAY_DRIVER_MEMORY_INFO
-            meminfo         = {                               };
-            meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER;
+          NV_GPU_MEMORY_INFO_EX
+            meminfo         = {                         };
+            meminfo.version = NV_GPU_MEMORY_INFO_EX_VER_1;
 
-          //if (NVAPI_OK == NvAPI_GPU_GetMemoryInfo (gpu, &meminfo))
-          //{
-          //  int64_t local =
-          //    (meminfo.availableDedicatedVideoMemory) -
-          //    (meminfo.curAvailableDedicatedVideoMemory);
-          //
-          //  stats.gpus [i].memory_B.local    = local                        * 1024LL;
-          //  stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
-          //
-          //  stats.gpus [i].memory_B.total =
-          //    ((meminfo.dedicatedVideoMemory) -
-          //     (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
-          //
-          //  // Compute Non-Local
-          //  stats.gpus [i].memory_B.nonlocal =
-          //   ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
-          //}
-          //
-          //else
+          if (NVAPI_OK == NvAPI_GPU_GetMemoryInfoEx (gpu, &meminfo))
+          {
+            int64_t local =
+              (meminfo.availableDedicatedVideoMemory) -
+              (meminfo.curAvailableDedicatedVideoMemory);
+          
+            stats.gpus [i].memory_B.local    = local                        * 1024LL;
+            stats.gpus [i].memory_B.capacity = meminfo.dedicatedVideoMemory * 1024LL;
+          
+            stats.gpus [i].memory_B.total =
+              ((meminfo.dedicatedVideoMemory) -
+               (meminfo.curAvailableDedicatedVideoMemory)) * 1024LL;
+          
+            // Compute Non-Local
+            stats.gpus [i].memory_B.nonlocal =
+             ( stats.gpus [i].memory_B.total - stats.gpus [i].memory_B.local );
+          }
+
+          else
           {
             stats.gpus [i].memory_B.local    = stats0.gpus [i].memory_B.local;
             stats.gpus [i].memory_B.capacity = stats0.gpus [i].memory_B.capacity;

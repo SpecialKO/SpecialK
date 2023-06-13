@@ -256,11 +256,11 @@ sk::NVAPI::EnumGPUs_DXGI (void)
 
     NVAPI_CALL (GPU_GetFullName (_nv_dxgi_gpus [i], name));
 
-    NV_DISPLAY_DRIVER_MEMORY_INFO meminfo;
-    meminfo.version = NV_DISPLAY_DRIVER_MEMORY_INFO_VER_2;
-    // ^^^ V3 is for Windows 10+ only, we don't even care about eviction stats.
+    NV_GPU_MEMORY_INFO_EX
+      meminfo;
+      meminfo.version = NV_GPU_MEMORY_INFO_EX_VER_1;
 
-    ////NVAPI_CALL (GPU_GetMemoryInfo (_nv_dxgi_gpus [i], &meminfo));
+    NvAPI_GPU_GetMemoryInfoEx (_nv_dxgi_gpus [i], &meminfo);
 
     MultiByteToWideChar (CP_OEMCP, 0, name, -1, adapterDesc.Description, 64);
 

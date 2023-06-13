@@ -1,4 +1,9 @@
-﻿23.6.13.1
+﻿23.6.13.2
+=========
+ + Replaced deprecated NvAPI calls w/ new ones (only available in Windows 10+)
+    >> Hopefully you have upgraded to 10, because NVIDIA does not support 8 :)
+
+23.6.13.1
 =========
  + Fixed not being able to disable SK's Reflex in games that aren't native Reflex
 
