@@ -3970,11 +3970,15 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
   return pOutput;
 }
 
+#include <reflex/pclstats.h>
+PCLSTATS_DEFINE ();
+
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
 using  NvAPI_QueryInterface_pfn       = void*                (*)(unsigned int ordinal);
-using  NvAPI_D3D_SetLatencyMarker_pfn = NvAPI_Status (__cdecl *)(__in IUnknown *pDev, __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
+using  NvAPI_D3D_SetLatencyMarker_pfn = NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
+                                                                 __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
 static NvAPI_D3D_SetLatencyMarker_pfn
        NvAPI_D3D_SetLatencyMarker_Original = nullptr;
 
@@ -3985,12 +3989,14 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   // Game is using Reflex, so we should stop adding our own markers...
   config.nvidia.sleep.native = true;
 
+  SK_RunOnce (
+    SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
+                L"  Reflex  " )
+  );
+
   return
     NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
 }
-
-#include <reflex/pclstats.h>
-PCLSTATS_DEFINE ();
 
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)

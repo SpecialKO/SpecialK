@@ -3837,7 +3837,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   if ( config.window.always_on_top == 0 &&
                    SK_Window_IsTopMost (game_window.hWnd) )
   {
-    SK_LOG0 ( ( L"Game Window was TopMost, removing..." ), L"WindowMgr" );
+    SK_LOG0 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
 
     SK_DeferCommand ("Window.TopMost 0");
   }

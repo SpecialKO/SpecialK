@@ -498,7 +498,10 @@ SK_ImGui_DrawConfig_Latency ()
   //           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
   //}
 
-    ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.sleep.marker_optimization);
+    if (config.nvidia.sleep.low_latency_boost)
+    {
+      ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.sleep.marker_optimization);
+    }
   }
   ImGui::EndGroup   ();
 }

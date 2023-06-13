@@ -403,24 +403,50 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::Text ( ICON_FA_MOUSE " %5.2f ms\t" ICON_FA_DESKTOP " %5.2f ms",
                     latency_avg.getInput (),    latency_avg.getDisplay () );
 
-      ImGui::Checkbox ("Adaptive Sync", &config.render.framerate.latent_sync.adaptive_sync);
+      ImGui::SameLine ();
+      ImGui::VerticalSeparator 
+                      ();
+      ImGui::SameLine ();
+      ImGui::Checkbox ("Allow Tearing", &config.render.dxgi.allow_tearing);
 
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Allows visible tearing if framerate dips below TargetFPS");
-
-      if ( (! config.render.framerate.latent_sync.adaptive_sync) &&
-              config.render.framerate.target_fps > rb.getActiveRefreshRate () + 3.0 )
       {
-        ImGui::SameLine        ();
-        ImGui::TextColored     (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
-        ImGui::SameLine        ();
-        ImGui::TextUnformatted ("Required for 2x / 4x Scan");
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Enabling tearing produces the lowest possible input latency");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
+        ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
+        ImGui::EndTooltip   ();
       }
 
-      ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
+      if (config.render.dxgi.allow_tearing)
+      {
+        ImGui::Separator ();
+        ImGui::Checkbox  ("Adaptive Sync", &config.render.framerate.latent_sync.adaptive_sync);
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Allows visible tearing if framerate dips below TargetFPS");
+
+        if ( (! config.render.framerate.latent_sync.adaptive_sync) &&
+                config.render.framerate.target_fps > rb.getActiveRefreshRate () + 3.0 )
+        {
+          ImGui::SameLine        ();
+          ImGui::TextColored     (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted ("Required for 2x / 4x Scan");
+        }
+
+        ImGui::SameLine ();
+        ImGui::Spacing  ();
+        ImGui::SameLine ();
+
+        ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+
+        ImGui::Separator ();
+      }
 
       bAdvanced =
         ImGui::TreeNode ("Advanced");
@@ -477,7 +503,8 @@ SK_ImGui_LatentSyncConfig (void)
         SK_ReleaseAssert (llVSync0 == llVSync1);
       }
 
-      if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
+      if (                   config.render.dxgi.allow_tearing &&
+           ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu") )
       {
         const auto Keybinding =
         [] (SK_ConfigSerializedKeybind *binding) ->
