@@ -412,7 +412,7 @@ SK_ImGui_LatentSyncConfig (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Enabling tearing produces the lowest possible input latency");
+        ImGui::Text         ("Enabling Tearing Produces the Lowest Possible Input Latency");
         ImGui::Separator    ();
         ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
@@ -425,7 +425,7 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::Checkbox  ("Adaptive Sync", &config.render.framerate.latent_sync.adaptive_sync);
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Allows visible tearing if framerate dips below TargetFPS");
+          ImGui::SetTooltip ("Favor visible tearing instead of stutter if framerate dips below TargetFPS");
 
         if ( (! config.render.framerate.latent_sync.adaptive_sync) &&
                 config.render.framerate.target_fps > rb.getActiveRefreshRate () + 3.0 )
@@ -444,6 +444,46 @@ SK_ImGui_LatentSyncConfig (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+
+        if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
+        {
+          const auto Keybinding =
+          [] (SK_ConfigSerializedKeybind *binding) ->
+          auto
+          {
+            if (binding == nullptr)
+              return false;
+
+            std::string label =
+              SK_WideCharToUTF8      (binding->human_readable);
+
+            ImGui::PushID            (binding->bind_name);
+
+            binding->assigning =
+              SK_ImGui_KeybindSelect (binding, label.c_str ());
+
+            ImGui::PopID             ();
+
+            return true;
+          };
+
+          ImGui::BeginGroup ();
+          for ( auto& keybind : timing_keybinds )
+          {
+            ImGui::Text ( "%s:  ",
+                            keybind->bind_name );
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& keybind : timing_keybinds )
+          {
+            Keybinding  (   keybind );
+          }
+          ImGui::EndGroup   ();
+
+          ImGui::EndMenu    ();
+        }
 
         ImGui::Separator ();
       }
@@ -501,47 +541,6 @@ SK_ImGui_LatentSyncConfig (void)
            pDisplay->signal.timing.vsync_freq.Numerator;
 
         SK_ReleaseAssert (llVSync0 == llVSync1);
-      }
-
-      if (                   config.render.dxgi.allow_tearing &&
-           ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu") )
-      {
-        const auto Keybinding =
-        [] (SK_ConfigSerializedKeybind *binding) ->
-        auto
-        {
-          if (binding == nullptr)
-            return false;
-
-          std::string label =
-            SK_WideCharToUTF8      (binding->human_readable);
-
-          ImGui::PushID            (binding->bind_name);
-
-          binding->assigning =
-            SK_ImGui_KeybindSelect (binding, label.c_str ());
-
-          ImGui::PopID             ();
-
-          return true;
-        };
-
-        ImGui::BeginGroup ();
-        for ( auto& keybind : timing_keybinds )
-        {
-          ImGui::Text ( "%s:  ",
-                          keybind->bind_name );
-        }
-        ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
-        for ( auto& keybind : timing_keybinds )
-        {
-          Keybinding  (   keybind );
-        }
-        ImGui::EndGroup   ();
-
-        ImGui::EndMenu    ();
       }
 
       ImGui::TreePop  ( );

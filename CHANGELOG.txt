@@ -1,5 +1,6 @@
 ﻿23.6.14
 =======
+ + Reworded Adaptive Sync option in Latent Sync control panel
  + Added "Enable Tearing" checkbox to Latent Sync control panel
 
 23.6.13.3
