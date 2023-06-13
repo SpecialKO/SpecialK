@@ -52,6 +52,7 @@ TRACELOGGING_DECLARE_PROVIDER(g_hPCLStatsComponentProvider);
     DWORD  g_PCLStatsIdThread = 0; \
     DWORD PCLStatsPingThreadProc(LPVOID lpThreadParameter) \
     { \
+        (void)lpThreadParameter; \
         DWORD minPingInterval = 100 /*ms*/; \
         DWORD maxPingInterval = 300 /*ms*/; \
         while (WAIT_TIMEOUT == WaitForSingleObject(g_PCLStatsQuitEvent, minPingInterval + (rand() % (maxPingInterval - minPingInterval)))) \
