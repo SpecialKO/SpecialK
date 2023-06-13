@@ -25,6 +25,7 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <reflex/pclstats.h>
 
 #include <SpecialK/storefront/epic.h>
 
@@ -2474,6 +2475,18 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_ChangeDisplaySettingsEx (
       nullptr, nullptr,
         0, CDS_RESET, nullptr  );
+  }
+
+  if (sk::NVAPI::nv_hardware)
+  {
+    dll_log->LogEx  (true, L"[  Reflex  ] Shutting down PCL Stats...                   ");
+
+    DWORD dwTime =
+       SK_timeGetTime ();
+
+    PCLSTATS_SHUTDOWN ();
+
+    dll_log->LogEx  (false, L"done! (%4u ms)\n",            SK_timeGetTime () - dwTime);
   }
 
   dll_log->LogEx    (true, L"[ ETWTrace ] Shutting down ETW Trace Providers...         ");

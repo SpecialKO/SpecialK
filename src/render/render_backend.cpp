@@ -3989,6 +3989,9 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
 }
 
+#include <reflex/pclstats.h>
+PCLSTATS_DEFINE ();
+
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
@@ -4033,6 +4036,9 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
                                    NvAPI_D3D_SetLatencyMarker_Detour,
           static_cast_p2p <void> (&NvAPI_D3D_SetLatencyMarker_Original) );
         MH_EnableHook (            NvAPI_QueryInterface (3650636805));
+
+        PCLSTATS_SET_ID_THREAD ((DWORD)-1);
+        PCLSTATS_INIT          (        0);
       }
     }
 
@@ -4340,6 +4346,13 @@ SK_NV_AdaptiveSyncControl (void)
                              "Enable Frame Splitting" );
         }
 
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        if (ImGui::Button ("Trigger Reflex Flash"))
+        {
+          rb.setLatencyMarkerNV (TRIGGER_FLASH);
+        }
         ImGui::EndGroup   ();
 
         if (toggle_sync || toggle_split)
