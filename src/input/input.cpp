@@ -1310,6 +1310,10 @@ SK_IsConsoleVisible (void);
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
+  // Allow keyboard input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 
@@ -1338,6 +1342,10 @@ SK_ImGui_WantKeyboardCapture (void)
 bool
 SK_ImGui_WantTextCapture (void)
 {
+  // Allow keyboard input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 
@@ -1406,6 +1414,10 @@ static constexpr const DWORD REASON_DISABLED = 0x4;
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
+  // Allow mouse input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 

@@ -1,4 +1,9 @@
-﻿23.6.15
+﻿23.6.15.1
+=========
+ + Enable mouse/keyboard input while Steam overlay is active, even if the
+     user is blocking mouse/keyboard to the game.
+
+23.6.15
 =======
  + Removed Reflex Input trigger mode
  + Removed Latent Sync "Adaptive Sync" option, the tearing option replaces it.
