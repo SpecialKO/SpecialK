@@ -1,4 +1,9 @@
-﻿23.6.14.1
+﻿23.6.14.2
+=========
+ + Allow user-requested Reflex flashes even in Reflex-native games
+ + Handle PCL ping before Reflex simulation start marker
+
+23.6.14.1
 =========
  + Added minimum render thread priority:
 

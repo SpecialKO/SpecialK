@@ -4043,7 +4043,7 @@ SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 
   static bool init = false;
 
-  if (marker.markerType == PRESENT_END)
+  if (marker.markerType == SIMULATION_START)
   {
     if (! std::exchange (init, true))
     {
@@ -4114,7 +4114,8 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
       }
     }
 
-    if (sk::NVAPI::nv_hardware && (! config.nvidia.sleep.native))
+    // Only do this if game is not Reflex native, or if the marker is a flash
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.sleep.native) || marker == TRIGGER_FLASH))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -4125,7 +4126,8 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 
       SK_PCL_Heartbeat (markerParams);
 
-      // SetLatencyMarker is hooked on the final marker of the first frame
+      // SetLatencyMarker is hooked on the simulation marker of the first frame,
+      //   we may have gotten here out-of-order.
       ret = NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
             NvAPI_D3D_SetLatencyMarker_Original (device.p, &markerParams);
     }
