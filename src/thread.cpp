@@ -192,9 +192,7 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
         *_SK_ThreadNames;
 
     SK_TLS *pTLS =
-      SK_TLS_Bottom ();//= ( ReadAcquire (&__SK_DLL_Attached) ||
-                       // (! ReadAcquire (&__SK_DLL_Ending)))  ?
-                       //                     SK_TLS_Bottom () : nullptr;
+      SK_TLS_Bottom ();
 
     DWORD               dwTid  = SK_Thread_GetCurrentId ();
     __make_self_titled (dwTid);
