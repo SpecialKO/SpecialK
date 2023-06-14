@@ -80,7 +80,8 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
     wchar_t                                          *wszThreadName = nullptr;
     if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
     {
-      if (*wszThreadName != L'\0') // Empty strings are not useful :)
+      if ( wszThreadName != nullptr &&
+          *wszThreadName != L'\0' ) // Empty strings are not useful :)
       {
         auto& names =
           _SK_ThreadNames.get ();
