@@ -1298,6 +1298,8 @@ extern NtSetTimerResolution_pfn
 void
 SK::Framerate::Limiter::wait (void)
 {
+  SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_TIME_CRITICAL);
+
   // Don't limit under certain circumstances or exiting / alt+tabbing takes
   //   longer than it should.
   if (ReadAcquire (&__SK_DLL_Ending) != 0)

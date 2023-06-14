@@ -2985,6 +2985,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
+      // Adjust render thread priority if user wants it
+      if (SK_Thread_GetCurrentPriority () < config.priority.minimum_render_prio)
+          SK_Thread_SetCurrentPriority (    config.priority.minimum_render_prio);
+
       static bool
             bSoundInit = false;
       if (! bSoundInit)

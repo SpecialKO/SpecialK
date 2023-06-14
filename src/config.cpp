@@ -867,6 +867,7 @@ struct {
     sk::ParameterBool*    raise_in_fg             = nullptr;
     sk::ParameterBool*    raise_in_bg             = nullptr;
     sk::ParameterBool*    deny_foreign_change     = nullptr;
+    sk::ParameterInt*     min_render_priority     = nullptr;
   } priority;
 } scheduling;
 
@@ -1593,6 +1594,7 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Highest in Background",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
     ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
     ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
+    ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
 
 
     // Control the behavior of SKIF rather than the other way around
@@ -3277,6 +3279,7 @@ auto DeclKeybind =
   scheduling.priority.raise_in_bg->load         (config.priority.raise_bg);
   scheduling.priority.raise_in_fg->load         (config.priority.raise_fg);
   scheduling.priority.deny_foreign_change->load (config.priority.deny_foreign_change);
+  scheduling.priority.min_render_priority->load (config.priority.minimum_render_prio);
 
   if (config.priority.raise_always)
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
@@ -4842,6 +4845,7 @@ SK_SaveConfig ( std::wstring name,
     scheduling.priority.raise_in_bg->store         (config.priority.raise_bg);
     scheduling.priority.raise_in_fg->store         (config.priority.raise_fg);
     scheduling.priority.deny_foreign_change->store (config.priority.deny_foreign_change);
+    scheduling.priority.min_render_priority->store (config.priority.minimum_render_prio);
 
     if (render.framerate.rescan_ratio != nullptr)
     {
