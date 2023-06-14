@@ -404,8 +404,12 @@ SK_ImGui_LatentSyncConfig (void)
                     latency_avg.getInput (),    latency_avg.getDisplay () );
 
       ImGui::SameLine ();
+      ImGui::Spacing  ();
+      ImGui::SameLine ();
       ImGui::VerticalSeparator 
                       ();
+      ImGui::SameLine ();
+      ImGui::Spacing  ();
       ImGui::SameLine ();
       ImGui::Checkbox ("Allow Tearing", &config.render.dxgi.allow_tearing);
 
@@ -419,9 +423,10 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
+      ImGui::Separator ();
+
       if (config.render.dxgi.allow_tearing)
       {
-        ImGui::Separator ();
         ImGui::Checkbox  ("Adaptive Sync", &config.render.framerate.latent_sync.adaptive_sync);
 
         if (ImGui::IsItemHovered ())
