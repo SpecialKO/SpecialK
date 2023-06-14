@@ -4051,7 +4051,7 @@ SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 
       PCLSTATS_SET_ID_THREAD ((DWORD)-1);
       PCLSTATS_INIT          (        0);
-      
+
       g_PCLStatsEnable = true;
     }
 
@@ -4395,6 +4395,8 @@ SK_NV_AdaptiveSyncControl (void)
         {
           rb.setLatencyMarkerNV (TRIGGER_FLASH);
         }
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Requires the GeForce Experience overlay and a Reflex Latency Analysis capable display");
         ImGui::EndGroup   ();
 
         if (toggle_sync || toggle_split)
