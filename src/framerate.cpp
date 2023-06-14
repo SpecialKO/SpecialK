@@ -427,24 +427,6 @@ SK_ImGui_LatentSyncConfig (void)
 
       if (config.render.dxgi.allow_tearing)
       {
-        ImGui::Checkbox  ("Adaptive Sync", &config.render.framerate.latent_sync.adaptive_sync);
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Favor visible tearing instead of stutter if framerate dips below TargetFPS");
-
-        if ( (! config.render.framerate.latent_sync.adaptive_sync) &&
-                config.render.framerate.target_fps > rb.getActiveRefreshRate () + 3.0 )
-        {
-          ImGui::SameLine        ();
-          ImGui::TextColored     (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
-          ImGui::SameLine        ();
-          ImGui::TextUnformatted ("Required for 2x / 4x Scan");
-        }
-
-        ImGui::SameLine ();
-        ImGui::Spacing  ();
-        ImGui::SameLine ();
-
         ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
 
         if (ImGui::IsItemHovered ())
@@ -516,7 +498,6 @@ SK_ImGui_LatentSyncConfig (void)
         }
 
         ImGui::InputFloat ("Retire Stats",  &__SK_LatentSync_SwapSecs, 0.1f, 1.0f, "After %.3f Seconds");
-        ImGui::InputInt   ("Adapt Margin",  &__SK_LatentSync_Adaptive);
 
         if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::OpenGL)
         {
@@ -770,9 +751,6 @@ SK::Framerate::Init (void)
 
   pCommandProc->AddVariable ( "LatentSync.ResyncRate",
           new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
-
-  pCommandProc->AddVariable ( "LatentSync.AdaptiveSync",
-          new SK_IVarStub <bool> (&config.render.framerate.latent_sync.adaptive_sync));
 
   pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
           new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
@@ -1771,32 +1749,6 @@ SK::Framerate::Limiter::wait (void)
 
       next_ -=
         (__SK_LatentSyncSwapTime / 2);
-
-      // If Adaptive Sync is Disabled, Late Frames Must Wait For Next VBLANK
-      //
-      if (      pDisplay->signal.timing.vsync_freq.Numerator > 0     &&
-          config.render.framerate.latent_sync.adaptive_sync == false &&
-                                    SK_QueryPerf ().QuadPart > next_ +
-                                        ticks_per_scanline  * __SK_LatentSync_Adaptive
-                                                            && next_ >
-                                    SK_QueryPerf ().QuadPart - ticks_per_refresh * 3
-         )
-      {
-        LONGLONG llNext =
-                   next_;
-
-        while (llNext < SK_QueryPerf ().QuadPart)
-               llNext += ticks_per_refresh;
-
-        const DWORD dwTimeToWait =
-          sk::narrow_cast <DWORD> (
-            ( llNext - SK_QueryPerf ().QuadPart ) / SK_QpcTicksPerMs );
-
-        if (          dwTimeToWait > 1)
-          SK_SleepEx (dwTimeToWait - 1, FALSE);
-
-        next_ = llNext;
-      }
     }
 
 

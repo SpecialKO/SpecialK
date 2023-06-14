@@ -478,13 +478,11 @@ SK_ImGui_DrawConfig_Latency ()
 
   if (config.nvidia.sleep.enable && config.nvidia.sleep.low_latency)
   {
-    ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.sleep.enforcement_site,
-                     "End-of-Frame\0Start-of-Frame\0Input Hook\0\0" );
+    config.nvidia.sleep.enforcement_site =
+      std::clamp (config.nvidia.sleep.enforcement_site, 0, 1);
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("Input Polling Reflex Triggers are Experimental; only supports gamepad input currently");
-    }
+    ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.sleep.enforcement_site,
+                     "End-of-Frame\0Start-of-Frame\0" );
 
   //bool unlimited =
   //  config.nvidia.sleep.frame_interval_us == 0;

@@ -3219,7 +3219,6 @@ auto DeclKeybind =
   render.framerate.latent_sync.offset->load   (config.render.framerate.latent_sync.scanline_offset);
   render.framerate.latent_sync.resync->load   (config.render.framerate.latent_sync.scanline_resync);
   render.framerate.latent_sync.error->load    (config.render.framerate.latent_sync.scanline_error);
-  render.framerate.latent_sync.adaptive->load (config.render.framerate.latent_sync.adaptive_sync);
   render.framerate.latent_sync.bias->load     (config.render.framerate.latent_sync.delay_bias);
 
 
@@ -4878,7 +4877,6 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.latent_sync.offset->store    (config.render.framerate.latent_sync.scanline_offset);
     render.framerate.latent_sync.resync->store    (config.render.framerate.latent_sync.scanline_resync);
     render.framerate.latent_sync.error->store     (config.render.framerate.latent_sync.scanline_error);
-    render.framerate.latent_sync.adaptive->store  (config.render.framerate.latent_sync.adaptive_sync);
     render.framerate.latent_sync.bias->store      (config.render.framerate.latent_sync.delay_bias);
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);

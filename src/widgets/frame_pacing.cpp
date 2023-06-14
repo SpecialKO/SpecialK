@@ -578,20 +578,24 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ///                      std::end   (fLatencyHistory) )
   ///                      );
 
-  ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
-  ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
-                                            "###Floating_LatencyHistogram",
-                           SK_RenderBackend_V2::latency.stats.History,
-             IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History),
-                               SK_GetFramesDrawn () % 120,
-                                 "",
-                                   0,
-                           SK_RenderBackend_V2::latency.stats.ScaleMs,
-                                      border_dims );
-  ImGui::PopStyleColor  ();
+  //if ( config.render.framerate.present_interval != 0 ||
+  //     config.render.framerate.target_fps       <= 0.0f )
+  {
+    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
+    ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
+                                              "###Floating_LatencyHistogram",
+                             SK_RenderBackend_V2::latency.stats.History,
+               IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History),
+                                 SK_GetFramesDrawn () % 120,
+                                   "",
+                                     0,
+                             SK_RenderBackend_V2::latency.stats.ScaleMs,
+                                        border_dims );
+    ImGui::PopStyleColor  ();
 
-  ImGui::SameLine ();
-  ImGui::SetCursorPosX (fX);
+    ImGui::SameLine ();
+    ImGui::SetCursorPosX (fX);
+  }
 
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
                                         "###Floating_FramePacing",

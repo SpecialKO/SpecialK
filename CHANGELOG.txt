@@ -1,5 +1,7 @@
 ﻿23.6.15
 =======
+ + Removed Reflex Input trigger mode
+ + Removed Latent Sync "Adaptive Sync" option, the tearing option replaces it.
  + Added support for names assigned before SK initialized to the thread widget
 
 23.6.14.3

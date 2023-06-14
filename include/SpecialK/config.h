@@ -506,7 +506,6 @@ struct sk_config_t
         int   scanline_offset      =    -1;
         int   scanline_resync      =   750;
         int   scanline_error       =     1;
-        bool  adaptive_sync        =  true;
         float delay_bias           =  0.0f;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
