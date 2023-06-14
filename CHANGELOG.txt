@@ -1,4 +1,11 @@
-﻿23.6.14.2
+﻿23.6.15
+=======
+ + Fixed Thread Widget not showing correct names for re-named threads
+ + Changed default minimum render thread priority to Above Normal (1)
+
+     >> This used to be the default behavior in SK before it was configurable
+
+23.6.14.2
 =========
  + Allow user-requested Reflex flashes even in Reflex-native games
  + Handle PCL ping before Reflex simulation start marker

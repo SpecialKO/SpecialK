@@ -955,7 +955,7 @@ struct sk_config_t
     bool    raise_bg            = false;
     bool    raise_fg            =  true;
     bool    deny_foreign_change =  true;
-    int     minimum_render_prio = THREAD_PRIORITY_NORMAL;
+    int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
   } priority;
 
   struct skif_s {
