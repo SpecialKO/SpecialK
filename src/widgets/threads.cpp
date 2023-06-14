@@ -2397,8 +2397,14 @@ public:
 
       if (! it.second->self_titled)
       {
-        it.second->name        = SK_Thread_GetName       (it.second->dwTid);
-        it.second->self_titled = SK_Thread_HasCustomName (it.second->dwTid);
+        auto& thread_name = SK_Thread_GetName       (it.second->dwTid);
+        auto  self_titled = SK_Thread_HasCustomName (it.second->dwTid);
+
+        if (! thread_name.empty ())
+        {
+          it.second->name        = thread_name;
+          it.second->self_titled = self_titled;
+        }
       }
 
       if (it.second->self_titled)
