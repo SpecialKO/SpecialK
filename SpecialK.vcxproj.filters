@@ -3443,6 +3443,9 @@
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
+    <ClCompile Include="src\render\reflex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
