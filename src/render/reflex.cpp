@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <SpecialK/nvapi.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -225,6 +226,11 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
 
   if (! device.p)
+    return;
+
+  // Native Reflex games may only call NvAPI_D3D_SetSleepMode once, we can wait
+  //   a few frames to determine if the game is Reflex-native.
+  if (SK_GetFramesDrawn () < 15)
     return;
 
   // Game has native Reflex, we should bail out.
