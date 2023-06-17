@@ -1,4 +1,9 @@
-﻿23.6.15.2
+﻿23.6.17
+=======
+ + Removed MMCSS check-box from framerate limiter advanced section
+ + Added render thread priority to framerate limiter advanced section
+
+23.6.15.2
 =========
  + Give games 15 frames to call a Reflex API function before SK decides whether
      to initialize its own Reflex implementation or not.

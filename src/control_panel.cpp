@@ -4993,6 +4993,43 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndGroup   ();
           ImGui::SameLine   (0.0f, 20.0f);
           ImGui::BeginGroup ();
+
+          int min_render_prio = 3;
+
+          switch (config.priority.minimum_render_prio)
+          {
+            case THREAD_PRIORITY_IDLE:          min_render_prio = 0; break;
+            case THREAD_PRIORITY_LOWEST:        min_render_prio = 1; break;
+            case THREAD_PRIORITY_BELOW_NORMAL:  min_render_prio = 2; break;
+            case THREAD_PRIORITY_NORMAL:        min_render_prio = 3; break;
+            default:
+            case THREAD_PRIORITY_ABOVE_NORMAL:  min_render_prio = 4; break;
+            case THREAD_PRIORITY_HIGHEST:       min_render_prio = 5; break;
+            case THREAD_PRIORITY_TIME_CRITICAL: min_render_prio = 6; break;
+          }
+
+          if (ImGui::Combo ( "Render Thread Priority", &min_render_prio,
+                             "Idle\0Lowest\0Below Normal\0Normal\0"
+                             "Above Normal\0Highest\0Time Critical\0\0" ))
+          {
+            switch (min_render_prio)
+            {
+              case 0:  config.priority.minimum_render_prio = THREAD_PRIORITY_IDLE;          break;
+              case 1:  config.priority.minimum_render_prio = THREAD_PRIORITY_LOWEST;        break;
+              case 2:  config.priority.minimum_render_prio = THREAD_PRIORITY_BELOW_NORMAL;  break;
+              case 3:  config.priority.minimum_render_prio = THREAD_PRIORITY_NORMAL;        break;
+              default:
+              case 4:  config.priority.minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;  break;
+              case 5:  config.priority.minimum_render_prio = THREAD_PRIORITY_HIGHEST;       break;
+              case 6:  config.priority.minimum_render_prio = THREAD_PRIORITY_TIME_CRITICAL; break;
+            }
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Raising priority is instant, but lowering thread priority requires a game restart.");
+          }
+#if 0
           if ( ImGui::Checkbox ( "Use Multimedia Class Scheduling",
                                    &config.render.framerate.enable_mmcss ) )
           {
@@ -5007,6 +5044,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::BulletText   ("Keep this option enabled unless troubleshooting something");
             ImGui::EndTooltip   ();
           }
+#endif
 
           bool spoof =
             ( config.render.framerate.override_num_cpus != -1 );
