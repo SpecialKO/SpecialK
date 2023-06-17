@@ -5008,9 +5008,16 @@ SK_ImGui_ControlPanel (void)
             case THREAD_PRIORITY_TIME_CRITICAL: min_render_prio = 6; break;
           }
 
-          if (ImGui::Combo ( "Render Thread Priority", &min_render_prio,
-                             "Idle\0Lowest\0Below Normal\0Normal\0"
-                             "Above Normal\0Highest\0Time Critical\0\0" ))
+          ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth ());
+
+          if (ImGui::Combo ( "###Render Thread Priority", &min_render_prio,
+                                "Render Thread:\tIdle\0"
+                                "Render Thread:\tLowest\0"
+                                "Render Thread:\tBelow Normal\0"
+                                "Render Thread:\tNormal\0"
+                                "Render Thread:\tAbove Normal\0"
+                                "Render Thread:\tHighest\0"
+                                "Render Thread:\tTime Critical\0\0" ))
           {
             switch (min_render_prio)
             {
@@ -5025,10 +5032,7 @@ SK_ImGui_ControlPanel (void)
             }
           }
 
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Raising priority is instant, but lowering thread priority requires a game restart.");
-          }
+          ImGui::PopItemWidth ();
 #if 0
           if ( ImGui::Checkbox ( "Use Multimedia Class Scheduling",
                                    &config.render.framerate.enable_mmcss ) )
