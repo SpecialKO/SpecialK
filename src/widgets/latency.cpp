@@ -431,7 +431,7 @@ SK_ImGui_DrawConfig_Latency ()
     ImGui::Bullet   ();
     ImGui::SameLine ();
     ImGui::TextColored ( ImColor::HSV (0.1f, 1.f, 1.f),
-                           "Game is using native Reflex, data shown here may be incorrect." );
+                           "Game is using native Reflex, data shown here may not update every frame." );
   }
 
   else

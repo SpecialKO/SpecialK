@@ -40,7 +40,7 @@ static NvAPI_D3D_SetLatencyMarker_pfn
        NvAPI_D3D_SetLatencyMarker_Original = nullptr;
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
-DWORD SK_Reflex_LastInputFrameId = 0;
+NvU64 SK_Reflex_LastInputFrameId = 0ULL;
 
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
