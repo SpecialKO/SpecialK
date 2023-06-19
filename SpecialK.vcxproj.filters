@@ -3444,7 +3444,7 @@
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
     <ClCompile Include="src\render\reflex.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Backends\Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

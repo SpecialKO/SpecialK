@@ -2841,7 +2841,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       auto priority =
         SK_Thread_GetCurrentPriority ();
 
-      static int _last_priority = priority;
+      static int _last_priority = config.priority.minimum_render_prio;
 
       // Adjust render thread priority if user wants it
       if (       priority <  config.priority.minimum_render_prio ||

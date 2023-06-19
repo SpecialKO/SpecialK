@@ -39,18 +39,24 @@ using  NvAPI_D3D_SetLatencyMarker_pfn = NvAPI_Status (__cdecl *)(__in IUnknown  
 static NvAPI_D3D_SetLatencyMarker_pfn
        NvAPI_D3D_SetLatencyMarker_Original = nullptr;
 
+// Keep track of the last input marker, so we can trigger flashes correctly.
+DWORD SK_Reflex_LastInputFrameId = 0;
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
   // Shutdown our own Reflex implementation
-  if (! std::exchange (config.nvidia.sleep.native, true))
+  if (! std::exchange (config.nvidia.reflex.native, true))
   {
     PCLSTATS_SHUTDOWN ();
 
     SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
                 L"  Reflex  " );
   }
+
+  if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
+    SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
 
   return
     NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
@@ -95,7 +101,7 @@ SK_NvAPI_HookReflex (void)
 void
 SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 {
-  if (config.nvidia.sleep.native)
+  if (config.nvidia.reflex.native)
     return;
 
   static bool init = false;
@@ -172,7 +178,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.sleep.native) || marker == TRIGGER_FLASH))
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -180,6 +186,13 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
         markerParams.markerType = marker;
         markerParams.frameID    = static_cast <NvU64> (
              ReadULong64Acquire (&frames_drawn)       );
+
+      // Triggered input flash, in a Reflex-native game
+      if (config.nvidia.reflex.native && marker == TRIGGER_FLASH)
+      {
+        markerParams.frameID =
+          SK_Reflex_LastInputFrameId;
+      }
 
       SK_PCL_Heartbeat (markerParams);
 
@@ -189,8 +202,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
             NvAPI_D3D_SetLatencyMarker_Original (device.p, &markerParams);
     }
 
-    if ( marker == RENDERSUBMIT_END /*||
-         marker == RENDERSUBMIT_START*/ )
+    if (marker == RENDERSUBMIT_END)
     {
       latency.submitQueuedFrame (
         SK_ComQIPtr <IDXGISwapChain1> (pSwapChain)
@@ -234,13 +246,13 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
 
   // Game has native Reflex, we should bail out.
-  if (config.nvidia.sleep.native)
+  if (config.nvidia.reflex.native)
     return;
 
   if (site == 2)
     setLatencyMarkerNV (INPUT_SAMPLE);
 
-  if (site == config.nvidia.sleep.enforcement_site)
+  if (site == config.nvidia.reflex.enforcement_site)
   {
     static bool
       valid = true;
@@ -248,28 +260,28 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     if (! valid)
       return;
 
-    if (config.nvidia.sleep.frame_interval_us != 0)
+    if (config.nvidia.reflex.frame_interval_us != 0)
     {
       ////extern float __target_fps;
       ////
       ////if (__target_fps > 0.0)
-      ////  config.nvidia.sleep.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
+      ////  config.nvidia.reflex.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
       ////else
-      config.nvidia.sleep.frame_interval_us = 0;
+      config.nvidia.reflex.frame_interval_us = 0;
     }
 
     NV_SET_SLEEP_MODE_PARAMS
       sleepParams = {                          };
       sleepParams.version               = NV_SET_SLEEP_MODE_PARAMS_VER;
-      sleepParams.bLowLatencyBoost      = config.nvidia.sleep.low_latency_boost;
-      sleepParams.bLowLatencyMode       = config.nvidia.sleep.low_latency;
-      sleepParams.minimumIntervalUs     = config.nvidia.sleep.frame_interval_us;
-      sleepParams.bUseMarkersToOptimize = config.nvidia.sleep.marker_optimization;
+      sleepParams.bLowLatencyBoost      = config.nvidia.reflex.low_latency_boost;
+      sleepParams.bLowLatencyMode       = config.nvidia.reflex.low_latency;
+      sleepParams.minimumIntervalUs     = config.nvidia.reflex.frame_interval_us;
+      sleepParams.bUseMarkersToOptimize = config.nvidia.reflex.marker_optimization;
 
     static NV_SET_SLEEP_MODE_PARAMS
       lastParams = { 1, true, true, 69, 0, { 0 } };
 
-    if (! config.nvidia.sleep.enable)
+    if (! config.nvidia.reflex.enable)
     {
       sleepParams.bLowLatencyBoost      = false;
       sleepParams.bLowLatencyMode       = false;
@@ -308,13 +320,13 @@ SK_RenderBackend_V2::driverSleepNV (int site)
         //       )
         //   )
         //{
-        //  config.nvidia.sleep.low_latency = getParams.bLowLatencyMode;
+        //  config.nvidia.reflex.low_latency = getParams.bLowLatencyMode;
         //
-        //  if (! config.nvidia.sleep.low_latency)
-        //        config.nvidia.sleep.low_latency_boost = false;
+        //  if (! config.nvidia.reflex.low_latency)
+        //        config.nvidia.reflex.low_latency_boost = false;
         //
         //  lastParams.bLowLatencyMode  = getParams.bLowLatencyMode;
-        //  lastParams.bLowLatencyBoost = config.nvidia.sleep.low_latency_boost;
+        //  lastParams.bLowLatencyBoost = config.nvidia.reflex.low_latency_boost;
         //}
 
         lastParams = sleepParams;

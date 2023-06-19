@@ -702,7 +702,7 @@ struct sk_config_t
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
     } bugs;
-    struct sleep_s {
+    struct reflex_s {
       UINT    frame_interval_us   =      0;
       int     enforcement_site    =      1;
       bool    low_latency         =  false;
@@ -710,7 +710,7 @@ struct sk_config_t
       bool    marker_optimization =  false;
       bool    enable              =  false;
       bool    native              =  false;
-    } sleep;
+    } reflex;
   } nvidia;
 
   struct input_s {

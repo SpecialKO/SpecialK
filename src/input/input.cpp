@@ -3891,10 +3891,7 @@ SK_Input_SetLatencyMarker (void) noexcept
   static volatile DWORD64  ulLastFrame  = 0;
   if (ReadULong64Acquire (&ulLastFrame) < ulFramesDrawn)
   {
-    if (config.nvidia.sleep.enforcement_site == 2)
-      rb.driverSleepNV (2);
-    else
-      rb.setLatencyMarkerNV (INPUT_SAMPLE);
+    rb.setLatencyMarkerNV (INPUT_SAMPLE);
 
     WriteULong64Release (&ulLastFrame, ulFramesDrawn);
   }

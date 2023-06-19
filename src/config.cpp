@@ -2749,10 +2749,10 @@ auto DeclKeybind =
 
         // Disable GPU power saving mode using Reflex, otherwise game stutters
         //
-        config.nvidia.sleep.enable                   =  true;
-        config.nvidia.sleep.enforcement_site         =     2;
-        config.nvidia.sleep.low_latency              =  true;
-        config.nvidia.sleep.low_latency_boost        =  true;
+        config.nvidia.reflex.enable                   =  true;
+        config.nvidia.reflex.enforcement_site         =     2;
+        config.nvidia.reflex.low_latency              =  true;
+        config.nvidia.reflex.low_latency_boost        =  true;
       } break;
 
 
@@ -2798,10 +2798,10 @@ auto DeclKeybind =
         config.input.keyboard.catch_alt_f4           =  true;
         config.input.keyboard.override_alt_f4        =  true;
 
-        config.nvidia.sleep.enable                   =  true;
-        config.nvidia.sleep.enforcement_site         =     2;
-        config.nvidia.sleep.low_latency              =  true;
-        config.nvidia.sleep.low_latency_boost        =  true;
+        config.nvidia.reflex.enable                   =  true;
+        config.nvidia.reflex.enforcement_site         =     2;
+        config.nvidia.reflex.low_latency              =  true;
+        config.nvidia.reflex.low_latency_boost        =  true;
 
         config.system.suppress_crashes               =  true;
 
@@ -3236,11 +3236,11 @@ auto DeclKeybind =
   nvidia.sli.num_gpus->load                  (config.nvidia.sli.num_gpus);
   nvidia.sli.override->load                  (config.nvidia.sli.override);
 
-  nvidia.reflex.enable->load                 (config.nvidia.sleep.enable);
-  nvidia.reflex.low_latency->load            (config.nvidia.sleep.low_latency);
-  nvidia.reflex.low_latency_boost->load      (config.nvidia.sleep.low_latency_boost);
-  nvidia.reflex.marker_optimization->load    (config.nvidia.sleep.marker_optimization);
-  nvidia.reflex.engagement_policy->load      (config.nvidia.sleep.enforcement_site);
+  nvidia.reflex.enable->load                 (config.nvidia.reflex.enable);
+  nvidia.reflex.low_latency->load            (config.nvidia.reflex.low_latency);
+  nvidia.reflex.low_latency_boost->load      (config.nvidia.reflex.low_latency_boost);
+  nvidia.reflex.marker_optimization->load    (config.nvidia.reflex.marker_optimization);
+  nvidia.reflex.engagement_policy->load      (config.nvidia.reflex.enforcement_site);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -4897,11 +4897,11 @@ SK_SaveConfig ( std::wstring name,
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
     {
-      nvidia.reflex.enable->store                 (config.nvidia.sleep.enable);
-      nvidia.reflex.low_latency->store            (config.nvidia.sleep.low_latency);
-      nvidia.reflex.low_latency_boost->store      (config.nvidia.sleep.low_latency_boost);
-      nvidia.reflex.engagement_policy->store      (config.nvidia.sleep.enforcement_site);
-      nvidia.reflex.marker_optimization->store    (config.nvidia.sleep.marker_optimization);
+      nvidia.reflex.enable->store                 (config.nvidia.reflex.enable);
+      nvidia.reflex.low_latency->store            (config.nvidia.reflex.low_latency);
+      nvidia.reflex.low_latency_boost->store      (config.nvidia.reflex.low_latency_boost);
+      nvidia.reflex.engagement_policy->store      (config.nvidia.reflex.enforcement_site);
+      nvidia.reflex.marker_optimization->store    (config.nvidia.reflex.marker_optimization);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

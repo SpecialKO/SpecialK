@@ -2564,8 +2564,8 @@ SK_NV_LatencyControlPanel (void)
     ImGui::Separator  ();
     ImGui::Text       ("NVIDIA Driver Black Magic");
 
-    if ((! rb.displays [rb.active_display].primary) && config.nvidia.sleep.low_latency
-                                                    && config.nvidia.sleep.enable)
+    if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
+                                                    && config.nvidia.reflex.enable)
     {
       ImGui::SameLine    (                                 );
       ImGui::BeginGroup  (                                 );
@@ -5011,13 +5011,13 @@ SK_ImGui_ControlPanel (void)
           ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth ());
 
           if (ImGui::Combo ( "###Render Thread Priority", &min_render_prio,
-                                "Render Thread:\tIdle\0"
-                                "Render Thread:\tLowest\0"
-                                "Render Thread:\tBelow Normal\0"
-                                "Render Thread:\tNormal\0"
-                                "Render Thread:\tAbove Normal\0"
-                                "Render Thread:\tHighest\0"
-                                "Render Thread:\tTime Critical\0\0" ))
+                                "Render Priority:\tIdle\0"
+                                "Render Priority:\tLowest\0"
+                                "Render Priority:\tBelow Normal\0"
+                                "Render Priority:\tNormal\0"
+                                "Render Priority:\tAbove Normal\0"
+                                "Render Priority:\tHighest\0"
+                                "Render Priority:\tTime Critical\0\0" ))
           {
             switch (min_render_prio)
             {

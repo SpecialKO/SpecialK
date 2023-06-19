@@ -408,14 +408,14 @@ SK_ImGui_DrawConfig_Latency ()
 
   int reflex_mode = 0;
 
-  if (config.nvidia.sleep.enable)
+  if (config.nvidia.reflex.enable)
   {
-    if (       config.nvidia.sleep.low_latency_boost)
-    { if (     config.nvidia.sleep.low_latency)
+    if (       config.nvidia.reflex.low_latency_boost)
+    { if (     config.nvidia.reflex.low_latency)
       reflex_mode = 2;
       else
       reflex_mode = 3;
-    } else if (config.nvidia.sleep.low_latency) {
+    } else if (config.nvidia.reflex.low_latency) {
       reflex_mode = 1;
     } else {
       reflex_mode = 0;
@@ -426,7 +426,7 @@ SK_ImGui_DrawConfig_Latency ()
     reflex_mode = 0;
   }
 
-  if (config.nvidia.sleep.native)
+  if (config.nvidia.reflex.native)
   {
     ImGui::Bullet   ();
     ImGui::SameLine ();
@@ -445,60 +445,60 @@ SK_ImGui_DrawConfig_Latency ()
       switch (reflex_mode)
       {
         case 0:
-          config.nvidia.sleep.enable            = false;
-          config.nvidia.sleep.low_latency       = false;
-          config.nvidia.sleep.low_latency_boost = false;
+          config.nvidia.reflex.enable            = false;
+          config.nvidia.reflex.low_latency       = false;
+          config.nvidia.reflex.low_latency_boost = false;
           break;
 
         case 1:
-          config.nvidia.sleep.enable            = true;
-          config.nvidia.sleep.low_latency       = true;
-          config.nvidia.sleep.low_latency_boost = false;
+          config.nvidia.reflex.enable            = true;
+          config.nvidia.reflex.low_latency       = true;
+          config.nvidia.reflex.low_latency_boost = false;
           break;
 
         case 2:
-          config.nvidia.sleep.enable            = true;
-          config.nvidia.sleep.low_latency       = true;
-          config.nvidia.sleep.low_latency_boost = true;
+          config.nvidia.reflex.enable            = true;
+          config.nvidia.reflex.low_latency       = true;
+          config.nvidia.reflex.low_latency_boost = true;
           break;
 
         case 3:
-          config.nvidia.sleep.enable            =  true;
-          config.nvidia.sleep.low_latency       = false;
-          config.nvidia.sleep.low_latency_boost =  true;
+          config.nvidia.reflex.enable            =  true;
+          config.nvidia.reflex.low_latency       = false;
+          config.nvidia.reflex.low_latency_boost =  true;
           break;
       }
 
-      rb.driverSleepNV (config.nvidia.sleep.enforcement_site);
+      rb.driverSleepNV (config.nvidia.reflex.enforcement_site);
     }
 
     if (ImGui::IsItemHovered ())
       ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
   }
 
-  if (config.nvidia.sleep.enable && config.nvidia.sleep.low_latency)
+  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency)
   {
-    config.nvidia.sleep.enforcement_site =
-      std::clamp (config.nvidia.sleep.enforcement_site, 0, 1);
+    config.nvidia.reflex.enforcement_site =
+      std::clamp (config.nvidia.reflex.enforcement_site, 0, 1);
 
-    ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.sleep.enforcement_site,
+    ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.reflex.enforcement_site,
                      "End-of-Frame\0Start-of-Frame\0" );
 
   //bool unlimited =
-  //  config.nvidia.sleep.frame_interval_us == 0;
+  //  config.nvidia.reflex.frame_interval_us == 0;
   //
   //if (ImGui::Checkbox ("Use Unlimited Reflex FPS", &unlimited))
   //{
   //  extern float __target_fps;
   //
-  //  if (unlimited) config.nvidia.sleep.frame_interval_us = 0;
-  //  else           config.nvidia.sleep.frame_interval_us =
+  //  if (unlimited) config.nvidia.reflex.frame_interval_us = 0;
+  //  else           config.nvidia.reflex.frame_interval_us =
   //           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
   //}
 
-    if (config.nvidia.sleep.low_latency_boost)
+    if (config.nvidia.reflex.low_latency_boost)
     {
-      ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.sleep.marker_optimization);
+      ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
     }
   }
   ImGui::EndGroup   ();
