@@ -1,4 +1,9 @@
-﻿23.6.21.2
+﻿23.6.22
+=======
+ + Improved Reflex override restore if game initializes Reflex before SK has
+     the appropriate NvAPI functions hooked.
+
+23.6.21.2
 =========
  + A game's native Reflex setup (i.e. Low Latency or Low Latency + Boost) is
      restored when turning off SK's override.

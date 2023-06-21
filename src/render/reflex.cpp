@@ -50,10 +50,20 @@ NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
+//
+// NOTE: All hooks currently assume a game only has one D3D device, and that it is the
+//       same one as SK's Render Backend is using.
+//
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
+#ifdef _DEBUG
+  // Naive test, proper test for equality would involve QueryInterface
+  SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
+#endif
+
   // Shutdown our own Reflex implementation
   if (! std::exchange (config.nvidia.reflex.native, true))
   {
@@ -281,7 +291,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
 
   static bool
-    lastOverride = false;
+    lastOverride = true;
 
   // Game has native Reflex, we should bail out (unles overriding it).
   if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
@@ -290,6 +300,24 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     if (std::exchange (lastOverride, config.nvidia.reflex.override) !=
                                      config.nvidia.reflex.override)
     {
+      // Uninitialized? => Game may have done this before we had a hook
+      if (SK_Reflex_NativeSleepModeParams.version == 0)
+      {
+        NV_GET_SLEEP_STATUS_PARAMS
+          sleepStatusParams         = {                            };
+          sleepStatusParams.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
+
+        if ( NVAPI_OK ==
+               NvAPI_D3D_GetSleepStatus (device.p, &sleepStatusParams)
+           )
+        {
+          SK_Reflex_NativeSleepModeParams.bLowLatencyMode =
+            sleepStatusParams.bLowLatencyMode;
+          SK_Reflex_NativeSleepModeParams.version         =
+            NV_SET_SLEEP_MODE_PARAMS_VER;
+        }
+      }
+
       NvAPI_D3D_SetSleepMode_Original (
                device.p, &SK_Reflex_NativeSleepModeParams );
     }
