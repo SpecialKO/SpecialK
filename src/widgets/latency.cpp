@@ -513,7 +513,7 @@ SK_ImGui_DrawConfig_Latency ()
   //}
   }
   
-  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency_boost)
+  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency_boost && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override))
   {
     ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
   }

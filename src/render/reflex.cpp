@@ -328,7 +328,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize )
     {
       if ( NVAPI_OK !=
-             NvAPI_D3D_SetSleepMode (
+             NvAPI_D3D_SetSleepMode_Original (
                device.p, &sleepParams
              )
          ) valid = false;
