@@ -48,7 +48,7 @@ static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = null
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64 SK_Reflex_LastInputFrameId = 0ULL;
 
-static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 300;
+static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 150;
 
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
