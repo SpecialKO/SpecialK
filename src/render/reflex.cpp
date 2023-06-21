@@ -48,6 +48,8 @@ static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = null
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64 SK_Reflex_LastInputFrameId = 0ULL;
 
+static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 300;
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
@@ -175,6 +177,9 @@ SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
+  if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
+    return true;
+
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;
 
@@ -269,7 +274,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
   // Native Reflex games may only call NvAPI_D3D_SetSleepMode once, we can wait
   //   a few frames to determine if the game is Reflex-native.
-  if (SK_GetFramesDrawn () < 15)
+  if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return;
 
   // Game has native Reflex, we should bail out (unles overriding it).
@@ -281,6 +286,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
   if (site == config.nvidia.reflex.enforcement_site)
   {
+    static bool
+      lastOverride = false;
+
     static bool
       valid = true;
 
@@ -325,7 +333,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     if ( lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost  ||
          lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode   ||
          lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs ||
-         lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize )
+         lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize ||
+         lastOverride                     != config.nvidia.reflex.override )
     {
       if ( NVAPI_OK !=
              NvAPI_D3D_SetSleepMode_Original (
@@ -335,28 +344,11 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
       else
       {
-        //NV_GET_SLEEP_STATUS_PARAMS
-        //  getParams         = {                            };
-        //  getParams.version = NV_GET_SLEEP_STATUS_PARAMS_VER;
+        lastOverride = config.nvidia.reflex.override;
+        lastParams   = sleepParams;
 
-        //NvAPI_D3D_Sleep (device.p);
-        //
-        //if ( NVAPI_OK ==
-        //       NvAPI_D3D_GetSleepStatus (
-        //         device.p, &getParams
-        //       )
-        //   )
-        //{
-        //  config.nvidia.reflex.low_latency = getParams.bLowLatencyMode;
-        //
-        //  if (! config.nvidia.reflex.low_latency)
-        //        config.nvidia.reflex.low_latency_boost = false;
-        //
-        //  lastParams.bLowLatencyMode  = getParams.bLowLatencyMode;
-        //  lastParams.bLowLatencyBoost = config.nvidia.reflex.low_latency_boost;
-        //}
-
-        lastParams = sleepParams;
+        WriteULong64Release (&_frames_drawn,
+          ReadULong64Acquire (&frames_drawn));
       }
     }
 
@@ -374,9 +366,6 @@ SK_RenderBackend_V2::driverSleepNV (int site)
                     __SK_SUBSYSTEM__ );
       }
     }
-
-    WriteULong64Release (&_frames_drawn,
-      ReadULong64Acquire (&frames_drawn));
   }
 };
 

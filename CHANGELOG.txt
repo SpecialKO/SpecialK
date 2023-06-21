@@ -1,4 +1,11 @@
-﻿23.6.21
+﻿23.6.21.1
+=========
+ + Changed minimum number of frames before determining if a game is Reflex
+     native to 300 (because Unreal Engine).
+ + Changing the override state of Reflex without changing modes will now
+     apply immediately.
+
+23.6.21
 =======
  + Added option to override a game's native Reflex implementation
 
