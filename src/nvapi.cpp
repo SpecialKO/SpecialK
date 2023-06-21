@@ -1096,7 +1096,7 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
     void* pAddr =
       NvAPI_QueryInterface_Original (ordinal);
 
-    dll_log->Log ( L"NvAPI Ordinal: %lu [%p]  --  %s", ordinal,
+    dll_log->Log ( L"[  NvAPI   ] NvAPI Ordinal: %lu [%p]  --  %s", ordinal,
                      pAddr, SK_SummarizeCaller ().c_str ()    );
 
     return
@@ -1323,10 +1323,14 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     if (SK_IsAdmin ())
       SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
 
-  // SK_CreateDLLHook2 ( L"nvapi64.dll",
-  //                      "nvapi_QueryInterface",
-  //                       NvAPI_QueryInterface_Detour,
-  //static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+//#define NVAPI_ORDINAL_TEST
+#ifdef NVAPI_ORDINAL_TEST
+   SK_CreateDLLHook2 ( L"nvapi64.dll",
+                        "nvapi_QueryInterface",
+                         NvAPI_QueryInterface_Detour,
+  static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+   SK_ApplyQueuedHooks ();
+#endif
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();

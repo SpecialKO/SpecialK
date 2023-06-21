@@ -612,6 +612,7 @@ struct {
     sk::ParameterBool*    low_latency_boost       = nullptr;
     sk::ParameterBool*    marker_optimization     = nullptr;
     sk::ParameterInt*     engagement_policy       = nullptr;
+    sk::ParameterBool*    override_native         = nullptr;
   } reflex;
 } nvidia;
 
@@ -1478,6 +1479,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.low_latency_boost,        L"Reflex Boost (lower-latency power scaling)",                dll_ini,         L"NVIDIA.Reflex",         L"LowLatencyBoost"),
     ConfigEntry (nvidia.reflex.marker_optimization,      L"Train Reflex using Latency Markers for Optimization",       dll_ini,         L"NVIDIA.Reflex",         L"OptimizeByMarkers"),
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
+    ConfigEntry (nvidia.reflex.override_native,          L"Use SK's Reflex Mode options instead of the game's",        dll_ini,         L"NVIDIA.Reflex",         L"OverrideNativeMode"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3241,6 +3243,7 @@ auto DeclKeybind =
   nvidia.reflex.low_latency_boost->load      (config.nvidia.reflex.low_latency_boost);
   nvidia.reflex.marker_optimization->load    (config.nvidia.reflex.marker_optimization);
   nvidia.reflex.engagement_policy->load      (config.nvidia.reflex.enforcement_site);
+  nvidia.reflex.override_native->load        (config.nvidia.reflex.override);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -4902,6 +4905,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.low_latency_boost->store      (config.nvidia.reflex.low_latency_boost);
       nvidia.reflex.engagement_policy->store      (config.nvidia.reflex.enforcement_site);
       nvidia.reflex.marker_optimization->store    (config.nvidia.reflex.marker_optimization);
+      nvidia.reflex.override_native->store        (config.nvidia.reflex.override);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

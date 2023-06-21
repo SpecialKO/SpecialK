@@ -1,4 +1,12 @@
-﻿23.6.17
+﻿23.6.21
+=======
+ + Added option to override a game's native Reflex implementation
+
+     >> Low Latency + Boost w/ Latency Marker Optimization can significantly
+          reduce latency in native Reflex games with the bare minimal Reflex
+            integration (nearly all of them).
+
+23.6.17
 =======
  + Removed MMCSS check-box from framerate limiter advanced section
  + Added render thread priority to framerate limiter advanced section

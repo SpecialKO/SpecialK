@@ -426,15 +426,31 @@ SK_ImGui_DrawConfig_Latency ()
     reflex_mode = 0;
   }
 
+  bool show_mode_select = true;
+
   if (config.nvidia.reflex.native)
   {
     ImGui::Bullet   ();
     ImGui::SameLine ();
     ImGui::TextColored ( ImColor::HSV (0.1f, 1.f, 1.f),
                            "Game is using native Reflex, data shown here may not update every frame." );
+
+    ImGui::Checkbox ( "Override Game's Reflex Mode",
+                        &config.nvidia.reflex.override );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("This may allow you to reduce latency even more in native Reflex games");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("Minimum Latency: Low Latency + Boost w/ Latency Marker Trained Optimization");
+      ImGui::EndTooltip      ();
+    }
+
+    show_mode_select = config.nvidia.reflex.override;
   }
 
-  else
+  if (show_mode_select)
   {
     if ( ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
                            "Off\0Low Latency\0"
@@ -476,7 +492,7 @@ SK_ImGui_DrawConfig_Latency ()
       ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
   }
 
-  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency)
+  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency && (! config.nvidia.reflex.native))
   {
     config.nvidia.reflex.enforcement_site =
       std::clamp (config.nvidia.reflex.enforcement_site, 0, 1);
@@ -495,11 +511,11 @@ SK_ImGui_DrawConfig_Latency ()
   //  else           config.nvidia.reflex.frame_interval_us =
   //           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
   //}
-
-    if (config.nvidia.reflex.low_latency_boost)
-    {
-      ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
-    }
+  }
+  
+  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency_boost)
+  {
+    ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
   }
   ImGui::EndGroup   ();
 }

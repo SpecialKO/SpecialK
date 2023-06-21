@@ -710,6 +710,7 @@ struct sk_config_t
       bool    marker_optimization =  false;
       bool    enable              =  false;
       bool    native              =  false;
+      bool    override            =  false;
     } reflex;
   } nvidia;
 

@@ -33,11 +33,17 @@ PCLSTATS_DEFINE ();
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
-using  NvAPI_QueryInterface_pfn       = void*                (*)(unsigned int ordinal);
-using  NvAPI_D3D_SetLatencyMarker_pfn = NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
-                                                                 __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
-static NvAPI_D3D_SetLatencyMarker_pfn
-       NvAPI_D3D_SetLatencyMarker_Original = nullptr;
+using  NvAPI_QueryInterface_pfn       =
+  void*                (*)(unsigned int ordinal);
+using  NvAPI_D3D_SetLatencyMarker_pfn =
+  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
+                           __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams);
+using  NvAPI_D3D_SetSleepMode_pfn     =
+  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
+                           __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams);
+
+static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
+static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64 SK_Reflex_LastInputFrameId = 0ULL;
@@ -60,6 +66,17 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
 
   return
     NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
+}
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
+                                __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
+{
+  if (config.nvidia.reflex.override)
+    return NVAPI_OK;
+
+  return
+    NvAPI_D3D_SetSleepMode_Original (pDev, pSetSleepModeParams);
 }
 
 void
@@ -86,6 +103,8 @@ SK_NvAPI_HookReflex (void)
         );
 
       static auto constexpr D3D_SET_LATENCY_MARKER = 3650636805;
+      static auto constexpr D3D_SET_SLEEP_MODE     = 2887559648;
+      static auto constexpr D3D_SLEEP              = 2234307026;
 
       // Hook SetLatencyMarker so we know if a game is natively using Reflex.
       //
@@ -93,7 +112,15 @@ SK_NvAPI_HookReflex (void)
                                  NvAPI_QueryInterface (D3D_SET_LATENCY_MARKER),
                                  NvAPI_D3D_SetLatencyMarker_Detour,
         static_cast_p2p <void> (&NvAPI_D3D_SetLatencyMarker_Original) );
-      MH_EnableHook (            NvAPI_QueryInterface (D3D_SET_LATENCY_MARKER));
+      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SET_LATENCY_MARKER));
+
+      SK_CreateFuncHook (      L"NvAPI_D3D_SetSleepMode",
+                                 NvAPI_QueryInterface (D3D_SET_SLEEP_MODE),
+                                 NvAPI_D3D_SetSleepMode_Detour,
+        static_cast_p2p <void> (&NvAPI_D3D_SetSleepMode_Original) );
+      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SET_SLEEP_MODE));
+
+      SK_ApplyQueuedHooks ();
     }
   }
 }
@@ -245,11 +272,11 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   if (SK_GetFramesDrawn () < 15)
     return;
 
-  // Game has native Reflex, we should bail out.
-  if (config.nvidia.reflex.native)
+  // Game has native Reflex, we should bail out (unles overriding it).
+  if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
     return;
 
-  if (site == 2)
+  if (site == 2 && (! config.nvidia.reflex.native))
     setLatencyMarkerNV (INPUT_SAMPLE);
 
   if (site == config.nvidia.reflex.enforcement_site)
@@ -333,18 +360,23 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       }
     }
 
-    if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
-      valid = false;
+    // Our own implementation
+    //
+    if (! config.nvidia.reflex.native)
+    {
+      if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
+        valid = false;
+
+      if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
+                         api == SK_RenderAPI::D3D12 ))
+      {
+        SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State" ),
+                    __SK_SUBSYSTEM__ );
+      }
+    }
 
     WriteULong64Release (&_frames_drawn,
       ReadULong64Acquire (&frames_drawn));
-
-    if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
-                       api == SK_RenderAPI::D3D12 ))
-    {
-      SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State" ),
-                  __SK_SUBSYSTEM__ );
-    }
   }
 };
 
