@@ -277,18 +277,21 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return;
 
+  static bool
+    lastOverride = false;
+
   // Game has native Reflex, we should bail out (unles overriding it).
   if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
+  {
+    lastOverride = config.nvidia.reflex.override;
     return;
+  }
 
   if (site == 2 && (! config.nvidia.reflex.native))
     setLatencyMarkerNV (INPUT_SAMPLE);
 
   if (site == config.nvidia.reflex.enforcement_site)
   {
-    static bool
-      lastOverride = false;
-
     static bool
       valid = true;
 
