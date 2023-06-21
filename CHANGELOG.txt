@@ -1,4 +1,9 @@
-﻿23.6.21.1
+﻿23.6.21.2
+=========
+ + A game's native Reflex setup (i.e. Low Latency or Low Latency + Boost) is
+     restored when turning off SK's override.
+
+23.6.21.1
 =========
  + Changed minimum number of frames before determining if a game is Reflex
      native to 150 (because Unreal Engine).

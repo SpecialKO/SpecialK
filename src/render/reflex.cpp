@@ -46,9 +46,9 @@ static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = null
 static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
-NvU64 SK_Reflex_LastInputFrameId = 0ULL;
-
-static constexpr auto SK_Reflex_MinimumFramesBeforeNative = 150;
+NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
+static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
+NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
@@ -74,6 +74,9 @@ NVAPI_INTERFACE
 NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
                                 __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
+  if (pSetSleepModeParams != nullptr)
+    SK_Reflex_NativeSleepModeParams = *pSetSleepModeParams;
+
   if (config.nvidia.reflex.override)
     return NVAPI_OK;
 
@@ -283,7 +286,14 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   // Game has native Reflex, we should bail out (unles overriding it).
   if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
   {
-    lastOverride = config.nvidia.reflex.override;
+    // Restore game's original Sleep mode when turning override off...
+    if (std::exchange (lastOverride, config.nvidia.reflex.override) !=
+                                     config.nvidia.reflex.override)
+    {
+      NvAPI_D3D_SetSleepMode_Original (
+               device.p, &SK_Reflex_NativeSleepModeParams );
+    }
+
     return;
   }
 
