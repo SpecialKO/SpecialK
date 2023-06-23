@@ -303,6 +303,7 @@
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntelJCCErratum>true</IntelJCCErratum>
+      <DebugInformationFormat>None</DebugInformationFormat>
     </ClCompile>
     <Lib />
     <Lib />
