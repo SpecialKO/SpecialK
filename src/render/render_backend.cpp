@@ -1404,8 +1404,23 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 
       else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
       {
-        api  = SK_RenderAPI::D3D12;
-        wcsncpy (name, L"D3D12 ", 8);
+        // Establish the API used this frame (and handle possible translation layers)
+        //
+        switch (SK_GetDLLRole ())
+        {
+          case DLL_ROLE::D3D8:
+            api = SK_RenderAPI::D3D8On12;
+            wcscpy (name, L"D3D8");
+            break;
+          case DLL_ROLE::DDraw:
+            api = SK_RenderAPI::DDrawOn12;
+            wcscpy (name, L"DDraw");
+            break;
+          default:
+            api = SK_RenderAPI::D3D12;
+            wcsncpy (name, L"D3D12 ", 8);
+            break;
+        }
       }
 
       else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
