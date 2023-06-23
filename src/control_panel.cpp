@@ -4022,7 +4022,7 @@ SK_ImGui_ControlPanel (void)
           char szAPIName [32] = {             };
     snprintf ( szAPIName, 32, "%ws",  rb.name );
 
-    // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
+    // Translation layers (D3D8->11 / D3D8->12 / DDraw->11 / DDraw->12 / D3D11On12)
     auto api_mask = static_cast <int> (rb.api);
 
     bool translated_d3d9 =
