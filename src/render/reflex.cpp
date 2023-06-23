@@ -53,15 +53,15 @@ NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 //
 
 NVAPI_INTERFACE
-NvAPI_D3D_SetLatencyMarker_Stub ( __in IUnknown                 *pDev,
-                                  __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
+NvAPI_D3D_SetLatencyMarker_Stub ( __in IUnknown*,
+                                  __in NV_LATENCY_MARKER_PARAMS* )
 {
   return NVAPI_NOT_SUPPORTED;
 }
 
 NVAPI_INTERFACE
-NvAPI_D3D_SetSleepMode_Stub ( __in IUnknown                 *pDev,
-                              __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
+NvAPI_D3D_SetSleepMode_Stub ( __in IUnknown*,
+                              __in NV_SET_SLEEP_MODE_PARAMS* )
 {
   return NVAPI_NOT_SUPPORTED;
 }
