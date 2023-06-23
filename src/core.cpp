@@ -3901,8 +3901,11 @@ SK_API_IsDXGIBased (SK_RenderAPI api)
     case SK_RenderAPI::D3D11:
     case SK_RenderAPI::D3D12:
     case SK_RenderAPI::D3D8On11:
+    case SK_RenderAPI::D3D8On12:
     case SK_RenderAPI::DDrawOn11:
+    case SK_RenderAPI::DDrawOn12:
     case SK_RenderAPI::GlideOn11:
+    case SK_RenderAPI::GlideOn12:
       return true;
     default:
       return false;
@@ -3959,9 +3962,13 @@ SK_API_IsPlugInBased (SK_RenderAPI api)
   {
     case SK_RenderAPI::DDraw:
     case SK_RenderAPI::DDrawOn11:
+    case SK_RenderAPI::DDrawOn12:
     case SK_RenderAPI::D3D8:
+    case SK_RenderAPI::D3D8On11:
+    case SK_RenderAPI::D3D8On12:
     case SK_RenderAPI::Glide:
     case SK_RenderAPI::GlideOn11:
+    case SK_RenderAPI::GlideOn12:
       return true;
     default:
       return false;
