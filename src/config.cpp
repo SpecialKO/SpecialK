@@ -894,9 +894,8 @@ struct {
       ddraw, d3d8,
 #endif
       d3d9,  d3d9ex,
-      d3d11,
+      d3d11, d3d12,
 #ifdef _M_AMD64
-      d3d12,
       Vulkan,
 #endif
       OpenGL;
@@ -1399,9 +1398,9 @@ auto DeclKeybind =
     ConfigEntry (apis.d3d9ex.hook,                       L"Enable Direct3D 9Ex Hooking",                               dll_ini,         L"API.Hook",              L"d3d9ex"),
     ConfigEntry (apis.dxvk9.enable,                      L"Enable Native DXVK (D3D9)",                                 dll_ini,         L"API.Hook",              L"dxvk9"),
     ConfigEntry (apis.d3d11.hook,                        L"Enable Direct3D 11 Hooking",                                dll_ini,         L"API.Hook",              L"d3d11"),
+    ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),  
 
 #ifdef _M_AMD64
-    ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),
     ConfigEntry (apis.Vulkan.hook,                       L"Enable Vulkan Hooking",                                     dll_ini,         L"API.Hook",              L"Vulkan"),
 #endif
 
@@ -3061,16 +3060,12 @@ auto DeclKeybind =
   if (! apis.d3d11.hook->load  (config.apis.dxgi.d3d11.hook))
     config.apis.dxgi.d3d11.hook = true;
 
-#ifdef _M_AMD64
   if (apis.d3d12.hook->load (config.apis.dxgi.d3d12.hook))
   {
     // We need to enable D3D11 hooking for D3D12 to work reliably
     if (config.apis.dxgi.d3d12.hook)
         config.apis.dxgi.d3d11.hook = true;
   }
-#else
-  config.apis.dxgi.d3d12.hook = false;
-#endif
 
   if (! apis.OpenGL.hook->load (config.apis.OpenGL.hook))
     config.apis.OpenGL.hook = true;
@@ -4636,9 +4631,9 @@ SK_SaveConfig ( std::wstring name,
   apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
   apis.dxvk9.enable->store                    (config.apis.d3d9.native_dxvk);
   apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
+  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
   apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
 #ifdef _M_AMD64
-  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
   apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
 
@@ -6499,10 +6494,10 @@ SK_Render_GetAPIHookMask (void)
   if (config.apis.d3d9.hook)       mask |= static_cast <int> (SK_RenderAPI::D3D9);
   if (config.apis.d3d9ex.hook)     mask |= static_cast <int> (SK_RenderAPI::D3D9Ex);
   if (config.apis.dxgi.d3d11.hook) mask |= static_cast <int> (SK_RenderAPI::D3D11);
+  if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
   if (config.apis.OpenGL.hook)     mask |= static_cast <int> (SK_RenderAPI::OpenGL);
 #ifdef _M_AMD64
   if (config.apis.Vulkan.hook)     mask |= static_cast <int> (SK_RenderAPI::Vulkan);
-  if (config.apis.dxgi.d3d12.hook) mask |= static_cast <int> (SK_RenderAPI::D3D12);
 #endif
 
   return
