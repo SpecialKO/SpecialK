@@ -2808,6 +2808,23 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
             break;
         }
       }
+      else
+      {
+        // Establish the API used this frame (and handle translation layers)
+        //
+        switch (SK_GetDLLRole ())
+        {
+          case DLL_ROLE::D3D8:
+            rb.api = SK_RenderAPI::D3D8On12;
+            break;
+          case DLL_ROLE::DDraw:
+            rb.api = SK_RenderAPI::DDrawOn12;
+            break;
+          default:
+            rb.api = SK_RenderAPI::D3D12;
+            break;
+        }
+      }
     }
 
 
