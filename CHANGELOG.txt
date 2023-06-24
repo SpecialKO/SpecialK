@@ -1,4 +1,9 @@
-﻿23.6.24.1
+﻿23.6.24.2
+=========
+ + Fixed potential double-shutdown of Reflex PCL thread
+ + Only apply the NoWrap hack for Streamline to Global Injection
+
+23.6.24.1
 =========
  + Fixed compatibility with NVIDIA Streamline in D3D11/12 games by not wrapping
      the DXGI SwapChain.
