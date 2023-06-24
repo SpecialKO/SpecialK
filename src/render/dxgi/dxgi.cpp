@@ -6340,8 +6340,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  bool bDontWrap =                       SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -6411,8 +6412,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
-  bool bDontWrap =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  bool bDontWrap =                       SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
