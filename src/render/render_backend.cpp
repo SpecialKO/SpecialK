@@ -109,9 +109,9 @@ SK_InitRenderBackends (void)
     //
     pCommandProcessor->AddVariable (              "RenderHooks.D3D11",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d11.hook));
-#ifdef _M_AMD64
     pCommandProcessor->AddVariable (              "RenderHooks.D3D12",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d12.hook));
+#ifdef _M_AMD64
     pCommandProcessor->AddVariable (         "RenderHooks.Vulkan",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.Vulkan.hook));
 #else /* _M_IX86 */
