@@ -1,4 +1,15 @@
-﻿23.6.24
+﻿23.6.24.1
+=========
+ + Fixed compatibility with NVIDIA Streamline in D3D11/12 games by not wrapping
+     the DXGI SwapChain.
+
+    * It is assumed they are all Flip Model anyway, and do not need wrapping.
+
+     >> HDR is still hit-or-miss; DLSS3 Frame Gen is not compatible with SK HDR
+
+   (HDR users should consider replacing the Streamline Interposer DLL still...)
+
+23.6.24
 =======
  + Optimized post-processing passes to use a single triangle
 
