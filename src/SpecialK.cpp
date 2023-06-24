@@ -849,12 +849,12 @@ _SKM_AutoBootLastKnownAPI (SK_RenderAPI last_known)
     // Bitness:  32-Bit  (Add:  DDraw, D3D8 and Glide)
 
     { SK_RenderAPI::D3D8,
-        { DLL_ROLE::DXGI,           config.apis.d3d8.hook } },
+        { DLL_ROLE::D3D8,           config.apis.d3d8.hook } },
     { SK_RenderAPI::D3D8On11,
-        { DLL_ROLE::DXGI,     config.apis.d3d8.hook   &&
+        { DLL_ROLE::D3D8,     config.apis.d3d8.hook   &&
                               config.apis.dxgi.d3d11.hook } },
     { SK_RenderAPI::D3D8On12,
-        { DLL_ROLE::DXGI,     config.apis.d3d8.hook   &&
+        { DLL_ROLE::D3D8,     config.apis.d3d8.hook   &&
                               config.apis.dxgi.d3d12.hook } },
 
     { SK_RenderAPI::Glide,
