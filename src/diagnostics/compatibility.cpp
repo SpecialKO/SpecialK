@@ -519,9 +519,7 @@ SK_Bypass_CRT (LPVOID)
       if (SK_GetDLLRole () & DLL_ROLE::DXGI)
       {
         config.apis.dxgi.d3d11.hook = true;
-#ifdef _M_AMD64
         config.apis.dxgi.d3d12.hook = true;
-#endif
       }
 
       if (SK_GetDLLRole () & DLL_ROLE::D3D9)
