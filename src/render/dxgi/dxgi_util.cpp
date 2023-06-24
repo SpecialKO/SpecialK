@@ -1112,7 +1112,7 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
       pDevCtx->SOSetTargets         (0,       nullptr, nullptr);
     }
 
-    pDevCtx->Draw                   (4, 0);
+    pDevCtx->Draw                   (3, 0);
 
     ApplyStateblock (pDevCtx, &stateBlock);
     //sb.Apply (pDevCtx.p);
@@ -1593,7 +1593,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pDevCtx->RSSetScissorRects (1, &scissor_rect);
   }
   
-  pDevCtx->Draw                   (4, 0);
+  pDevCtx->Draw                   (3, 0);
   
   SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
   
@@ -1651,7 +1651,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                           &pSrvMipLod.p );
 
         pDevCtx->RSSetViewports (1, &vp_sub);
-        pDevCtx->Draw           (4, 0);
+        pDevCtx->Draw           (3, 0);
 
         if (pDstTex != nullptr && surface.render.tex != nullptr)
         {

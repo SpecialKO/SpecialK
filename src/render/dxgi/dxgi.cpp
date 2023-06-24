@@ -6357,6 +6357,10 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
+  bool bDontWrap =                       SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -6378,7 +6382,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     ret =
-      new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
+               new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
     rb.swapchain           = ret;
     rb.setDevice            (pDev12.p);
@@ -6393,7 +6398,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   else if ( pDev11 != nullptr )
   {
     ret =
-      new IWrapDXGISwapChain (pDev11.p, pSwapChain);
+      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
+               new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
@@ -6423,6 +6429,10 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
+  bool bDontWrap =                       SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -6444,7 +6454,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     ret = // TODO: Put these in a list somewhere for proper destruction
-      new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
+               new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
@@ -6458,7 +6469,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   else if ( pDev11 != nullptr )
   {
     ret =
-      new IWrapDXGISwapChain (pDev11.p, pSwapChain);
+      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
+               new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",

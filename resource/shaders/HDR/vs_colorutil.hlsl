@@ -21,13 +21,13 @@ PS_INPUT main ( VS_INPUT input )
   PS_INPUT
     output;
 
-    output.uv  = float2 (input.vI  & 1,
-                         input.vI >> 1);
+    output.uv  = float2 (input.vI << 1 & 2,
+                         input.vI      & 2);
     output.col = float4 (Luminance.rgb,1);
     output.pos =
-      float4 ( ( output.uv.x - 0.5f ) * 2,
-              -( output.uv.y - 0.5f ) * 2,
-                               0.0f,
+      float4 (   output.uv.x * 2.0f - 1.0f,
+               -(output.uv.y * 2.0f - 1.0f),
+                               1.0f,
                                1.0f );
 
     output.coverage =

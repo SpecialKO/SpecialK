@@ -205,6 +205,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"beamng.drive.exe",  // BeamNG's 32-bit launcher
 
+  L"setup_redlauncher.exe", // The Witcher 3's Launcher
+
   L"coherentui_host.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",

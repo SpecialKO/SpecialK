@@ -28,7 +28,6 @@
 #define __SK_SUBSYSTEM__ L"  Reflex  "
 
 #include <reflex/pclstats.h>
-PCLSTATS_DEFINE ();
 
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
@@ -42,9 +41,6 @@ using  NvAPI_D3D_SetSleepMode_pfn     =
   NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
                            __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams);
 
-static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
-static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
-
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
@@ -54,6 +50,23 @@ NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 // NOTE: All hooks currently assume a game only has one D3D device, and that it is the
 //       same one as SK's Render Backend is using.
 //
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetLatencyMarker_Stub ( __in IUnknown*,
+                                  __in NV_LATENCY_MARKER_PARAMS* )
+{
+  return NVAPI_NOT_SUPPORTED;
+}
+
+NVAPI_INTERFACE
+NvAPI_D3D_SetSleepMode_Stub ( __in IUnknown*,
+                              __in NV_SET_SLEEP_MODE_PARAMS* )
+{
+  return NVAPI_NOT_SUPPORTED;
+}
+
+static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = NvAPI_D3D_SetLatencyMarker_Stub;
+static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = NvAPI_D3D_SetSleepMode_Stub;
 
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,

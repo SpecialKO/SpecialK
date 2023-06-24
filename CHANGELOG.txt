@@ -1,4 +1,33 @@
-﻿23.6.22
+﻿23.6.24.3
+=========
+ + Added warning text if a user tries to enable HDR in a Streamline game
+
+23.6.24.2
+=========
+ + Fixed potential double-shutdown of Reflex PCL thread
+ + Only apply the NoWrap hack for Streamline to Global Injection
+
+23.6.24.1
+=========
+ + Fixed compatibility with NVIDIA Streamline in D3D11/12 games by not wrapping
+     the DXGI SwapChain.
+
+    * It is assumed they are all Flip Model anyway, and do not need wrapping.
+
+     >> HDR is still hit-or-miss; DLSS3 Frame Gen is not compatible with SK HDR
+
+   (HDR users should consider replacing the Streamline Interposer DLL still...)
+
+23.6.24
+=======
+ + Optimized post-processing passes to use a single triangle
+
+23.6.23
+=======
+ + Replaced NvAPI Reflex hooks with a stub if NvAPI does not initialize
+     correctly.
+
+23.6.22
 =======
  + Improved Reflex override restore if game initializes Reflex before SK has
      the appropriate NvAPI functions hooked.

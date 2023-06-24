@@ -1533,7 +1533,7 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
   pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr    );
   pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
   pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
-  pCommandList->DrawInstanced                     ( 4, 1, 0, 0                                        );
+  pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                        );
   pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
 }
 
@@ -1727,7 +1727,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr );
     pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                        );
     pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
-    pCommandList->DrawInstanced                     ( 4, 1, 0, 0                                     );
+    pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                     );
     pCommandList->ResourceBarrier                   ( 1,  stagingFrame.hdr.barriers.copy_end         );
   }
 
