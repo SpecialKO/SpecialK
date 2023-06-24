@@ -1118,17 +1118,32 @@ public:
       }
     }
 
-    if (rb.isHDRCapable () && rb.isHDRActive ())
+    static bool bStreamline =
+      SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+
+    if (bStreamline)
+    {
+      ImGui::BeginTooltip ();
+      {
+        ImGui::TextColored (ImColor::HSV (.15f, .8f, .9f), "%s", "WARNING: This game uses Streamline, and HDR may not work!");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("For best compatibility with Streamline + HDR, delete the game's sl.interposer.dll");
+        ImGui::BulletText  ("A 0.01 Global Injection delay may also work, but DLSS3 Frame Gen is not compatible with HDR.");
+      }
+      ImGui::EndTooltip ();
+    }
+
+    else if (rb.isHDRCapable () && rb.isHDRActive ())
     {
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
         {
           ImGui::TextUnformatted ("For best image quality, ensure your desktop is using 10-bit color");
-          ImGui::Separator ();
-          ImGui::BulletText ("Either RGB Full-Range or YCbCr-4:4:4 will work");
-          ImGui::EndTooltip ();
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Either RGB Full-Range or YCbCr-4:4:4 will work");
         }
+        ImGui::EndTooltip ();
       }
     }
 

@@ -1,4 +1,8 @@
-﻿23.6.24.2
+﻿23.6.24.3
+=========
+ + Added warning text if a user tries to enable HDR in a Streamline game
+
+23.6.24.2
 =========
  + Fixed potential double-shutdown of Reflex PCL thread
  + Only apply the NoWrap hack for Streamline to Global Injection
