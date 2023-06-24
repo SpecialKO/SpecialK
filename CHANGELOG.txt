@@ -1,4 +1,8 @@
-﻿23.6.23
+﻿23.6.24
+=======
+ + Optimized post-processing passes to use a single triangle
+
+23.6.23
 =======
  + Replaced NvAPI Reflex hooks with a stub if NvAPI does not initialize
      correctly.

@@ -722,7 +722,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
       // -*- //
 
       pDevCtx->SetPredication         (nullptr, FALSE);
-      D3D11_Draw_Original             (pDevCtx, 4,  0);
+      D3D11_Draw_Original             (pDevCtx, 3,  0);
 
       // -*- //
 
@@ -992,7 +992,7 @@ SK_HDR_SnapshotSwapchain (void)
       // -*- //
 
       pDevCtx->SetPredication         (nullptr, FALSE);
-      pDevCtx->Draw                   (4,       0);
+      pDevCtx->Draw                   (3,       0);
 
 #ifdef SK_HDR_NAN_MITIGATION
       SK_ComPtr <ID3D11Resource>        pHDRTexture;
