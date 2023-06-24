@@ -28,7 +28,6 @@
 #define __SK_SUBSYSTEM__ L"  Reflex  "
 
 #include <reflex/pclstats.h>
-PCLSTATS_DEFINE ();
 
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;

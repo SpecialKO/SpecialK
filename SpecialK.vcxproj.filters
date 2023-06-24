@@ -337,6 +337,9 @@
     <Filter Include="Header Files\External Libraries\Tobii">
       <UniqueIdentifier>{3ed5eb19-e630-4601-8755-13c12f7d0de1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Render\Reflex">
+      <UniqueIdentifier>{543a78fa-0eae-472c-83bc-bbdde9275e31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3443,8 +3446,11 @@
     <ClCompile Include="src\input\input.cpp">
       <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\render\reflex.cpp">
-      <Filter>Source Files\Backends\Render</Filter>
+    <ClCompile Include="src\render\reflex\reflex.cpp">
+      <Filter>Source Files\Backends\Render\Reflex</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\reflex\pclstats.cpp">
+      <Filter>Source Files\Backends\Render\Reflex</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
