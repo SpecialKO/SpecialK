@@ -1121,7 +1121,7 @@ public:
     static bool bStreamline =
       SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
 
-    if (bStreamline)
+    if (bStreamline && ImGui::IsItemHovered ())
     {
       ImGui::BeginTooltip ();
       {
@@ -1133,18 +1133,15 @@ public:
       ImGui::EndTooltip ();
     }
 
-    else if (rb.isHDRCapable () && rb.isHDRActive ())
+    else if (rb.isHDRCapable () && rb.isHDRActive () && ImGui::IsItemHovered ())
     {
-      if (ImGui::IsItemHovered ())
+      ImGui::BeginTooltip ();
       {
-        ImGui::BeginTooltip ();
-        {
-          ImGui::TextUnformatted ("For best image quality, ensure your desktop is using 10-bit color");
-          ImGui::Separator       ();
-          ImGui::BulletText      ("Either RGB Full-Range or YCbCr-4:4:4 will work");
-        }
-        ImGui::EndTooltip ();
+        ImGui::TextUnformatted ("For best image quality, ensure your desktop is using 10-bit color");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Either RGB Full-Range or YCbCr-4:4:4 will work");
       }
+      ImGui::EndTooltip ();
     }
 
     if (! rb.isHDRCapable ())
