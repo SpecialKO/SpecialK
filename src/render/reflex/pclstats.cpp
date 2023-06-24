@@ -131,7 +131,7 @@ PCLSTATS_INIT (UINT flags)
       CreateEventW (nullptr, 1, 0, nullptr);
   }
 
-  if (g_PCLStatsQuitEvent)
+  if (g_PCLStatsQuitEvent != nullptr)
   {
     TraceLoggingRegisterEx (g_hPCLStatsComponentProvider,  PCLStatsComponentProviderCb, nullptr);
     TraceLoggingWrite      (g_hPCLStatsComponentProvider, "PCLStatsInit");
@@ -149,22 +149,25 @@ PCLSTATS_INIT (UINT flags)
 
 void PCLSTATS_SHUTDOWN (void)
 {
-  if (g_PCLStatsPingThread != nullptr)
+  auto PCLStatsPingThread = g_PCLStatsPingThread;
+  auto PCLStatsQuitEvent  = g_PCLStatsQuitEvent;
+
+  if (std::exchange (g_PCLStatsPingThread, nullptr) != nullptr)
   {
-    if (g_PCLStatsQuitEvent != nullptr)
+    if (PCLStatsQuitEvent != nullptr)
     {
-      SetEvent (g_PCLStatsQuitEvent);
+      SetEvent (PCLStatsQuitEvent);
     }
 
-    WaitForSingleObject (               g_PCLStatsPingThread, 1000);
-    CloseHandle         (std::exchange (g_PCLStatsPingThread, nullptr));
+    WaitForSingleObject (PCLStatsPingThread, 1000);
+    CloseHandle         (PCLStatsPingThread);
   }
 
   TraceLoggingWrite      (g_hPCLStatsComponentProvider, "PCLStatsShutdown");
   TraceLoggingUnregister (g_hPCLStatsComponentProvider);
 
-  if (g_PCLStatsQuitEvent)
+  if (std::exchange (g_PCLStatsQuitEvent, nullptr) != nullptr)
   {
-    CloseHandle (std::exchange (g_PCLStatsQuitEvent, nullptr));
+    CloseHandle (PCLStatsQuitEvent);
   }
 }
