@@ -4030,7 +4030,7 @@ SK_ImGui_ControlPanel (void)
           char szAPIName [32] = {             };
     snprintf ( szAPIName, 32, "%ws",  rb.name );
 
-    // Translation layers (D3D8->11 / DDraw->11 / D3D11On12)
+    // Translation layers (D3D8->11 / D3D8->12 / DDraw->11 / DDraw->12 / D3D11On12)
     auto api_mask = static_cast <int> (rb.api);
 
     bool translated_d3d9 =
@@ -4047,6 +4047,13 @@ SK_ImGui_ControlPanel (void)
     {
       if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→11");
       else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
+    }
+
+    else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D12)) &&
+                    (api_mask != static_cast <int> (SK_RenderAPI::D3D12)  || translated_d3d9))
+    {
+      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→12");
+      else                  strncpy  (szAPIName, (const char *)u8"D3D9→12", 32);
     }
 
     lstrcatA ( szAPIName,

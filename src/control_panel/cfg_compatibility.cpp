@@ -64,24 +64,25 @@ SK::ControlPanel::Compatibility::Draw (void)
             config.apis.d3d9.hook       = true;
             break;
 
-#ifdef _M_AMD64
           case SK_RenderAPI::D3D12:
             config.apis.dxgi.d3d12.hook = true;
-            [[fallthrough]]; // Shared logic, both are needed
-#endif
           case SK_RenderAPI::D3D11:
-            config.apis.dxgi.d3d11.hook = true;
+            config.apis.dxgi.d3d11.hook = true; // Shared logic, both are needed
             break;
 
 #ifdef _M_IX86
+          case SK_RenderAPI::DDrawOn12:
+            config.apis.dxgi.d3d12.hook = true;
           case SK_RenderAPI::DDrawOn11:
-            config.apis.ddraw.hook       = true;
-            config.apis.dxgi.d3d11.hook  = true;
+            config.apis.dxgi.d3d11.hook = true; // Shared logic, both are needed
+            config.apis.ddraw.hook      = true;
             break;
 
+          case SK_RenderAPI::D3D8On12:
+            config.apis.dxgi.d3d12.hook = true;
           case SK_RenderAPI::D3D8On11:
-            config.apis.d3d8.hook        = true;
-            config.apis.dxgi.d3d11.hook  = true;
+            config.apis.dxgi.d3d11.hook = true; // Shared logic, both are needed
+            config.apis.d3d8.hook       = true;
             break;
 #endif
 
@@ -145,10 +146,7 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::NextColumn (   );
 
       ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook);
-
-#ifdef _M_AMD64
       ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook, config.apis.dxgi.d3d11.hook);
-#endif
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
@@ -203,10 +201,10 @@ SK::ControlPanel::Compatibility::Draw (void)
       if (ImGui::Button (" Disable All But the Active API "))
       {
         config.apis.d3d9ex.hook     = false; config.apis.d3d9.hook       = false;
-        config.apis.dxgi.d3d11.hook = false;
+        config.apis.dxgi.d3d11.hook = false; config.apis.dxgi.d3d12.hook = false;
         config.apis.OpenGL.hook     = false;
 #ifdef _M_AMD64
-        config.apis.dxgi.d3d12.hook = false; config.apis.Vulkan.hook     = false;
+        config.apis.Vulkan.hook     = false;
 #else
         config.apis.d3d8.hook       = false; config.apis.ddraw.hook      = false;
 #endif

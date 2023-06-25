@@ -1728,22 +1728,21 @@ SK_Inject_EnableCentralizedConfig (void)
 
 #ifndef _M_AMD64
   case SK_RenderAPI::D3D8On11:
+  case SK_RenderAPI::D3D8On12:
     SK_SaveConfig (L"d3d8");
     break;
 
   case SK_RenderAPI::DDrawOn11:
+  case SK_RenderAPI::DDrawOn12:
     SK_SaveConfig (L"ddraw");
     break;
 #endif
 
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
-#ifdef _M_AMD64
     case SK_RenderAPI::D3D12:
-#endif
-    {
       SK_SaveConfig (L"dxgi");
-    } break;
+      break;
 
     case SK_RenderAPI::OpenGL:
       SK_SaveConfig (L"OpenGL32");
@@ -1921,22 +1920,21 @@ SK_Inject_SwitchToRenderWrapper (void)
 
 #ifndef _M_AMD64
     case SK_RenderAPI::D3D8On11:
+    case SK_RenderAPI::D3D8On12:
       lstrcatW (wszOut, L"\\d3d8.dll");
       break;
 
     case SK_RenderAPI::DDrawOn11:
+    case SK_RenderAPI::DDrawOn12:
       lstrcatW (wszOut, L"\\ddraw.dll");
       break;
 #endif
 
     case SK_RenderAPI::D3D10:
     case SK_RenderAPI::D3D11:
-#ifdef _M_AMD64
     case SK_RenderAPI::D3D12:
-#endif
-    {
       lstrcatW (wszOut, L"\\dxgi.dll");
-    } break;
+      break;
 
     case SK_RenderAPI::OpenGL:
       lstrcatW (wszOut, L"\\OpenGL32.dll");

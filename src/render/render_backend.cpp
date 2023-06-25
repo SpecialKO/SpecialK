@@ -106,9 +106,9 @@ SK_InitRenderBackends (void)
     //
     pCommandProcessor->AddVariable (              "RenderHooks.D3D11",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d11.hook));
-#ifdef _M_AMD64
     pCommandProcessor->AddVariable (              "RenderHooks.D3D12",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.dxgi.d3d12.hook));
+#ifdef _M_AMD64
     pCommandProcessor->AddVariable (         "RenderHooks.Vulkan",
         SK_CreateVar (SK_IVariable::Boolean, &config.apis.Vulkan.hook));
 #else /* _M_IX86 */
@@ -406,13 +406,11 @@ SK_BootDXGI (void)
     return;
   }
 
-#ifdef _M_AMD64
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
   if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
     config.apis.dxgi.d3d11.hook = true;
-#endif
 
   if (! ( config.apis.dxgi.d3d11.hook ||
           config.apis.dxgi.d3d12.hook ))
@@ -1401,8 +1399,23 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
 
       else if (SUCCEEDED (device->QueryInterface <ID3D12Device> (&pDev12)))
       {
-        api  = SK_RenderAPI::D3D12;
-        wcsncpy (name, L"D3D12 ", 8);
+        // Establish the API used this frame (and handle possible translation layers)
+        //
+        switch (SK_GetDLLRole ())
+        {
+          case DLL_ROLE::D3D8:
+            api = SK_RenderAPI::D3D8On12;
+            wcscpy (name, L"D3D8");
+            break;
+          case DLL_ROLE::DDraw:
+            api = SK_RenderAPI::DDrawOn12;
+            wcscpy (name, L"DDraw");
+            break;
+          default:
+            api = SK_RenderAPI::D3D12;
+            wcsncpy (name, L"D3D12 ", 8);
+            break;
+        }
       }
 
       else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))

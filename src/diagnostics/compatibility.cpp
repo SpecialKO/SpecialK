@@ -349,11 +349,13 @@ SK_Bypass_CRT (LPVOID)
     {
       case SK_RenderAPI::D3D8:
       case SK_RenderAPI::D3D8On11:
+      case SK_RenderAPI::D3D8On12:
         wszAPI = L"d3d8";
         SK_SetDLLRole (DLL_ROLE::D3D8);
         break;
       case SK_RenderAPI::DDraw:
       case SK_RenderAPI::DDrawOn11:
+      case SK_RenderAPI::DDrawOn12:
         wszAPI = L"ddraw";
         SK_SetDLLRole (DLL_ROLE::DDraw);
         break;
@@ -395,9 +397,7 @@ SK_Bypass_CRT (LPVOID)
 #endif
                                            { 2, L"Direct3D9{Ex}"    },
                                            { 3, L"Direct3D11"       },
-#ifdef _M_AMD64
                                            { 4, L"Direct3D12"       },
-#endif
                                            { 5, L"OpenGL"           },
 #ifdef _M_AMD64
                                            { 6, L"Vulkan"           }
@@ -499,11 +499,11 @@ SK_Bypass_CRT (LPVOID)
   config.apis.d3d9.hook       = false;
   config.apis.d3d9ex.hook     = false;
   config.apis.dxgi.d3d11.hook = false;
+  config.apis.dxgi.d3d12.hook = false;
 
   config.apis.OpenGL.hook     = false;
 
 #ifdef _M_AMD64
-  config.apis.dxgi.d3d12.hook = false;
   config.apis.Vulkan.hook     = false;
 #else /* _M_IX86 */
   config.apis.d3d8.hook       = false;
@@ -517,9 +517,7 @@ SK_Bypass_CRT (LPVOID)
       if (SK_GetDLLRole () & DLL_ROLE::DXGI)
       {
         config.apis.dxgi.d3d11.hook = true;
-#ifdef _M_AMD64
         config.apis.dxgi.d3d12.hook = true;
-#endif
       }
 
       if (SK_GetDLLRole () & DLL_ROLE::D3D9)
@@ -538,12 +536,14 @@ SK_Bypass_CRT (LPVOID)
       {
         config.apis.d3d8.hook       = true;
         config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = true;
       }
 
       if (SK_GetDLLRole () & DLL_ROLE::DDraw)
       {
         config.apis.ddraw.hook      = true;
         config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = true;
       }
 #else
 #endif
@@ -578,6 +578,7 @@ SK_Bypass_CRT (LPVOID)
         config.apis.d3d9ex.hook     = true;
 
         config.apis.dxgi.d3d11.hook = true;
+        config.apis.dxgi.d3d12.hook = true;
 
         config.apis.OpenGL.hook     = true;
 
@@ -586,7 +587,6 @@ SK_Bypass_CRT (LPVOID)
         config.apis.ddraw.hook      = true;
 #else /* _M_AMD64 */
         config.apis.Vulkan.hook     = true;
-        config.apis.dxgi.d3d12.hook = true;
 #endif
 
         if (nButtonPressed == BUTTON_INSTALL)
@@ -667,7 +667,6 @@ SK_Bypass_CRT (LPVOID)
         }
         break;
 
-#ifdef _M_AMD64
       case 4:
         config.apis.dxgi.d3d11.hook = true; // Required by D3D12 code :P
         config.apis.dxgi.d3d12.hook = true;
@@ -695,7 +694,6 @@ SK_Bypass_CRT (LPVOID)
             }
         }
         break;
-#endif
 
       case 5:
         config.apis.OpenGL.hook = true;
@@ -734,6 +732,7 @@ SK_Bypass_CRT (LPVOID)
 #ifdef _M_IX86
       case 7:
         config.apis.dxgi.d3d11.hook = true;  // D3D8 on D3D11 (not native D3D8)
+        config.apis.dxgi.d3d12.hook = true;  // D3D8 on D3D12 (not native D3D8)
         config.apis.d3d8.hook       = true;
 
         if (has_dgvoodoo || dgVooodoo_Nag ())
@@ -765,6 +764,7 @@ SK_Bypass_CRT (LPVOID)
 
       case 8:
         config.apis.dxgi.d3d11.hook = true;  // DDraw on D3D11 (not native DDraw)
+        config.apis.dxgi.d3d12.hook = true;  // DDraw on D3D12 (not native DDraw)
         config.apis.ddraw.hook      = true;
 
         if (nButtonPressed == BUTTON_INSTALL)
