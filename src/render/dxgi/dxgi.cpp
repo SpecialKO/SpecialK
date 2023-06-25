@@ -95,6 +95,8 @@ CreateDXGIFactory_pfn             CreateDXGIFactory_Import               = nullp
 CreateDXGIFactory1_pfn            CreateDXGIFactory1_Import              = nullptr;
 CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullptr;
 
+extern bool bSwapChainNeedsResize;
+extern bool bRecycledSwapChains;
 
 using DXGIDisableVBlankVirtualization_pfn =
 HRESULT (WINAPI *)(void);
@@ -225,9 +227,6 @@ sk_hook_cache_array local_dxgi_records =
 #define SK_LOG_ONCE(x) { static bool logged = false; if (! logged) \
                        { dll_log->Log ((x)); logged = true; } }
 
-extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
-
-extern          HWND hWndUpdateDlg;
 extern volatile LONG __SK_TaskDialogActive;
 
 void __stdcall SK_D3D11_ResetTexCache (void);
@@ -367,8 +366,8 @@ static volatile ULONG __gui_reset_dxgi   = TRUE;
 static volatile ULONG __osd_frames_drawn = 0;
 
 DXGI_FORMAT
-SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
-                                              BOOL bFlipModel = FALSE )
+SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
+                                              BOOL bFlipModel )
 {
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -951,22 +950,7 @@ SK_DXGI_RemoveDynamicRangeFromModes ( int&             first,
 } // We inserted DXGI_FORMAT_UNKNOWN for incompatible entries, but the
   //   list of descs needs to shrink after we finish inserting UNKNOWN.
 
-struct dxgi_caps_t {
-  struct {
-    bool latency_control = false;
-    bool enqueue_event   = false;
-  } device;
-
-  struct {
-    bool flip_sequential = false;
-    bool flip_discard    = false;
-    bool waitable        = false;
-  } present;
-
-  struct {
-    BOOL allow_tearing   = FALSE;
-  } swapchain;
-} dxgi_caps;
+dxgi_caps_t dxgi_caps;
 
 BOOL
 SK_DXGI_SupportsTearing (void)
@@ -1427,7 +1411,7 @@ const char*
 DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 
 void
-SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr)
+SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
 {
   if (This != nullptr)
   {
@@ -4237,81 +4221,6 @@ DXGISwap_GetFullscreenState_Override ( IDXGISwapChain  *This,
     GetFullscreenState_Original (This, pFullscreen, ppTarget);
 }
 
-// Classifies a swapchain as dummy (used by some libraries during init) or
-//   real (potentially used to do actual rendering).
-bool
-SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
-{
-  // 0x0 is implicitly sized to match its HWND's client rect,
-  //
-  //   => Anything ( 1x1 - 31x31 ) has no practical application.
-  //
-#if 0
-  if (desc.BufferDesc.Height > 0 && desc.BufferDesc.Height < 32)
-    return false;
-  if (desc.BufferDesc.Width > 0  && desc.BufferDesc.Width  < 32)
-    return false;
-#endif
-
-  bool dummy_window =
-    SK_Win32_IsDummyWindowClass (desc.OutputWindow);
-
-  wchar_t   wszClass [64] = { };
-  RealGetWindowClassW
-    ( desc.OutputWindow, wszClass, 63 );
-
-  if (dummy_window)
-    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
-                 wszClass );
-  else
-    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
-                 wszClass );
-
-  return
-    (! dummy_window);
-}
-
-bool
-SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) noexcept
-{
-  (void)desc;
-
-  wchar_t              wszClass [64] = { };
-  RealGetWindowClassW (
-         OutputWindow, wszClass, 63);
-
-  bool dummy_window =
-    SK_Win32_IsDummyWindowClass (OutputWindow);
-
-  if (dummy_window)
-    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
-                 wszClass );
-  else
-    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
-                 wszClass );
-
-  return
-    (! dummy_window);
-}
-
-bool
-SK_DXGI_IsSwapChainReal (IDXGISwapChain* pSwapChain)
-{
-  if (! pSwapChain)
-    return false;
-
-  DXGI_SWAP_CHAIN_DESC       desc = { };
-       pSwapChain->GetDesc (&desc);
-  return
-    SK_DXGI_IsSwapChainReal (desc);
-}
-
-static bool bSwapChainNeedsResize = false;
-static bool bRecycledSwapChains   = false;
-
-static LONG lLastRefreshDenom = 0;
-static LONG lLastRefreshNum   = 0;
-
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -4319,217 +4228,16 @@ DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                                        BOOL            Fullscreen,
                                        IDXGIOutput    *pTarget )
 {
-  DXGI_SWAP_CHAIN_DESC sd = { };
-  This->GetDesc      (&sd);
-
   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
-                     L"%s, %08" _L(PRIxPTR) L"h",
-                      Fullscreen ? L"{ Fullscreen }" :
-                                   L"{ Windowed }",   (uintptr_t)pTarget );
+                   L"%s, %08" _L(PRIxPTR) L"h",
+                    Fullscreen ? L"{ Fullscreen }" :
+                                 L"{ Windowed }",   (uintptr_t)pTarget );
 
-  SK_ComPtr <ID3D12Device>        pDev12;
-  This->GetDevice (IID_PPV_ARGS (&pDev12.p));
-
-  if (! pDev12.p)
-  {
-    if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    {
-      if (Fullscreen != FALSE)
-      {
-        SK_LOG_ONCE ( L" >> Ignoring SetFullscreenState (...) on a Latency Waitable SwapChain." );
-
-        // Engine is broken, easier just to add a special-case for it because if we return this to
-        //   Unreal, that engine breaks in an even weirder way.
-        if (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight)
-          return DXGI_STATUS_MODE_CHANGED;
-
-        return DXGI_ERROR_INVALID_CALL;
-      }
-
-      // If we're latency-waitable, then we're already in windowed mode... nothing to do here.
-      return S_OK;
-    }
-  }
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  // Dummy init swapchains (i.e. 1x1 pixel) should not have
-  //   override parameters applied or it's usually fatal.
-  bool no_override = (! SK_DXGI_IsSwapChainReal (This));
-
-
-  // If auto-update prompt is visible, don't go fullscreen.
-  if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
-                               ReadAcquire (&__SK_TaskDialogActive) != 0 )
-  {
-    Fullscreen = FALSE;
-    pTarget    = nullptr;
-  }
-
-  if (! no_override)
-  {
-    if (config.display.force_fullscreen && Fullscreen == FALSE)
-    {
-      dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-                     L"(Requested: Windowed, Using: Fullscreen)" );
-      Fullscreen = TRUE;
-    }
-
-    else if (config.display.force_windowed && Fullscreen != FALSE)
-    {
-      Fullscreen = FALSE;
-      pTarget    = nullptr;
-      dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-                     L"(Requested: Fullscreen, Using: Windowed)" );
-    }
-
-    else if (request_mode_change == mode_change_request_e::Fullscreen &&
-                 Fullscreen == FALSE)
-    {
-      dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-               L"User Initiated Fulllscreen Switch" );
-      Fullscreen = TRUE;
-    }
-    else if (request_mode_change == mode_change_request_e::Windowed &&
-                      Fullscreen != FALSE)
-    {
-      dll_log->Log ( L"[   DXGI   ]  >> Display Override "
-               L"User Initiated Windowed Switch" );
-      Fullscreen = FALSE;
-      pTarget    = nullptr;
-    }
-  }
-
-  SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
-
-  extern bool SK_Window_HasBorder      (HWND hWnd);
-  extern void SK_Window_RemoveBorders  (void);
-  extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
-
-  BOOL bOrigFullscreen = rb.fullscreen_exclusive;
-  BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
-
-  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed)
-  {
-    // Does not work correctly when recycling swapchains
-    if ((! bRecycledSwapChains) || config.display.force_windowed)
-    {
-      SK_ComPtr <IDXGIOutput>                                            pOutput;
-      BOOL                                      _OriginalFullscreen;
-      if (SUCCEEDED (This->GetFullscreenState (&_OriginalFullscreen,    &pOutput.p)))
-      { bool  mode_change =      (Fullscreen != _OriginalFullscreen) || (pOutput.p != pTarget && pTarget != nullptr);
-        if (! mode_change)
-        {
-          SK_LOGi0 ( L"Redundant Fullscreen Mode Change Ignored  ( %s )",
-                                 Fullscreen ?
-                              L"Fullscreen" : L"Windowed" );
-          return S_OK;
-        }
-      }
-    }
-  }
-
-  // D3D12's Fullscreen Optimization forgets to remove borders from time to time (lol)
-  if (Fullscreen) SK_Window_RemoveBorders ();
-
-  HRESULT    ret = E_UNEXPECTED;
-  DXGI_CALL (ret, SetFullscreenState_Original (This, Fullscreen, pTarget))
-
-  if ( SUCCEEDED (ret) )
-  {
-    if (SK_DXGI_IsFlipModelSwapChain (sd))
-    {
-      // Any Flip Model game already knows to do this stuff...
-      if ((! bOriginallyFlip) && (pDev12.p == nullptr))
-      {
-        HRESULT hr =
-          This->Present (0, DXGI_PRESENT_TEST);
-
-        if ( FAILED (hr) || hr == DXGI_STATUS_MODE_CHANGE_IN_PROGRESS )
-        {
-          bSwapChainNeedsResize = true;
-
-          UINT _Flags =
-            SK_DXGI_FixUpLatencyWaitFlag (This, sd.Flags);
-
-          if (sd.Windowed == Fullscreen && FAILED (This->ResizeBuffers (sd.BufferCount, sd.BufferDesc.Width, sd.BufferDesc.Height, sd.BufferDesc.Format, _Flags)))
-          {
-            rb.fullscreen_exclusive = bOrigFullscreen;
-            return DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
-          }
-
-          bSwapChainNeedsResize = false;
-        }
-      }
-
-      else
-        bSwapChainNeedsResize = true;
-    }
-  }
-
-  // Mode change failed, and we removed borders prematurely... add them back!
-  else
-  {
-    rb.fullscreen_exclusive = bOrigFullscreen;
-
-    if (config.render.dxgi.skip_mode_changes)
-    {
-      if (Fullscreen) { if (bHadBorders) SK_Window_RestoreBorders (0x0, 0x0); }
-      else                               SK_Window_RemoveBorders  (        );
-    }
-  }
-
-  BOOL                                      bFinalState = FALSE;
-  if (SUCCEEDED (This->GetFullscreenState (&bFinalState, nullptr)))
-                  rb.fullscreen_exclusive = bFinalState;
-
-  // Trigger mode switch if needed
-  if (SUCCEEDED (ret) && bFinalState == TRUE && (sd.Windowed == Fullscreen))
-  {
-    SK_ComPtr <IDXGIOutput> pOutput = pTarget;
-    if (                    pOutput.p == nullptr)
-    {
-      This->GetContainingOutput (&pOutput.p);
-    }
-
-    if (pOutput.p != nullptr)
-    {
-      DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = { };
-      SK_ComQIPtr <IDXGISwapChain1>
-          pSwap1 (This);
-      if (pSwap1 != nullptr)
-          pSwap1->GetFullscreenDesc (&fullscreenDesc);
-
-      DXGI_MODE_DESC
-        modeDesc                         = { };
-        modeDesc.Width                   = sd.BufferDesc.Width;
-        modeDesc.Height                  = sd.BufferDesc.Height;
-        modeDesc.Format                  = sd.BufferDesc.Format;
-        modeDesc.Scaling                 = sd.BufferDesc.Scaling;//DXGI_MODE_SCALING_UNSPECIFIED;
-        modeDesc.ScanlineOrdering        = fullscreenDesc.ScanlineOrdering;
-        modeDesc.RefreshRate.Numerator   = lLastRefreshNum;
-        modeDesc.RefreshRate.Denominator = lLastRefreshDenom;
-
-      if (config.render.framerate.refresh_rate > 0)
-      {
-        modeDesc.RefreshRate.Numerator   = config.render.framerate.rescan_.Numerator;
-        modeDesc.RefreshRate.Denominator = config.render.framerate.rescan_.Denom;
-      }
-
-      DXGI_MODE_DESC   matchedMode = { };
-      if ( SUCCEEDED ( pOutput->FindClosestMatchingMode (
-           &modeDesc, &matchedMode, nullptr )
-                     )                  ) {
-                             matchedMode.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-        This->ResizeTarget (&matchedMode);
-      }
-    }
-  }
-
-  return ret;
+  return
+    SK_DXGI_SwapChain_SetFullscreenState_Impl (
+      This, Fullscreen, pTarget, FALSE
+    );
 }
-
 
 __declspec (noinline)
 HRESULT
@@ -4740,257 +4448,17 @@ DXGISwap_ResizeBuffers_Override (IDXGISwapChain* This,
   _In_ DXGI_FORMAT     NewFormat,
   _In_ UINT            SwapChainFlags)
 {
-  DXGI_SWAP_CHAIN_DESC swap_desc = { };
-  This->GetDesc      (&swap_desc);
-
   DXGI_LOG_CALL_I5 ( L"    IDXGISwapChain", L"ResizeBuffers         ",
-                     L"%u,%u,%u,%hs,0x%08X",
-                     BufferCount,
-                       Width, Height,
-    SK_DXGI_FormatToStr (NewFormat).data (),
-                           SwapChainFlags );
+                   L"%u,%u,%u,%hs,0x%08X",
+                   BufferCount,
+                     Width, Height,
+  SK_DXGI_FormatToStr (NewFormat).data (),
+                         SwapChainFlags );
 
-  SwapChainFlags =
-    SK_DXGI_FixUpLatencyWaitFlag (This, SwapChainFlags);
-  NewFormat      =        /*NewFormat == DXGI_FORMAT_UNKNOWN   ? DXGI_FORMAT_UNKNOWN*/
-    SK_DXGI_PickHDRFormat ( NewFormat, swap_desc.Windowed,
-        SK_DXGI_IsFlipModelSwapEffect (swap_desc.SwapEffect) );
-
-  if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
-  {
-    if ( DirectX::MakeTypeless (NewFormat) ==
-         DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) )
-    {
-      SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
-                 L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",
-                   SK_DXGI_FormatToStr (NewFormat).data () );
-
-      NewFormat =
-        DXGI_FORMAT_R10G10B10A2_UNORM;
-    }
-  }
-
-  if (       config.render.framerate.buffer_count != -1           &&
-       (UINT)config.render.framerate.buffer_count !=  BufferCount &&
-       BufferCount                                !=  0           &&
-
-           config.render.framerate.buffer_count   >   0           &&
-           config.render.framerate.buffer_count   <   16 )
-  {
-    BufferCount =
-      config.render.framerate.buffer_count;
-
-    dll_log->Log ( L"[   DXGI   ]  >> Buffer Count Override: %lu buffers",
-                                      BufferCount );
-  }
-
-  // Fix-up BufferCount and Flags in Flip Model
-  if (SK_DXGI_IsFlipModelSwapEffect (swap_desc.SwapEffect))
-  {
-    if (! dxgi_caps.swapchain.allow_tearing)
-    {
-      if (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-      {
-        SK_ComPtr <IDXGIFactory5> pFactory5;
-        if ( SUCCEEDED (
-               CreateDXGIFactory_Import (IID_IDXGIFactory5, (void **)&pFactory5.p)
-             )
-           )
-        {
-          const HRESULT hr =
-            pFactory5->CheckFeatureSupport (
-              DXGI_FEATURE_PRESENT_ALLOW_TEARING,
-                &dxgi_caps.swapchain.allow_tearing,
-                  sizeof (dxgi_caps.swapchain.allow_tearing)
-            );
-
-          dxgi_caps.swapchain.allow_tearing =
-            SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
-        }
-
-        if (! dxgi_caps.swapchain.allow_tearing)
-        {
-          SK_ReleaseAssert ( 0 ==
-            (SwapChainFlags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-                           );
-
-          SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        }
-      }
-    }
-
-    else
-    {
-      // Can't add or remove this after the SwapChain is created,
-      //   all calls must have the flag set or clear before & after.
-      if (swap_desc.Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-      {
-        SwapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-        dll_log->Log ( L"[ DXGI 1.5 ]  >> Tearing Option:  Enable" );
-      }
-    }
-
-    if (BufferCount != 0 || swap_desc.BufferCount < 2)
-    {
-      BufferCount =
-        std::min (16ui32,
-         std::max (2ui32, BufferCount)
-                 );
-    }
-  }
-
-  if (_NO_ALLOW_MODE_SWITCH)
-    SwapChainFlags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-  if (! config.window.res.override.isZero ())
-  {
-    Width  = config.window.res.override.x;
-    Height = config.window.res.override.y;
-  }
-
-  // Clamp the buffer dimensions if the user has a min/max preference
-  const UINT
-    max_x = config.render.dxgi.res.max.x < Width  ?
-            config.render.dxgi.res.max.x : Width,
-    min_x = config.render.dxgi.res.min.x > Width  ?
-            config.render.dxgi.res.min.x : Width,
-    max_y = config.render.dxgi.res.max.y < Height ?
-            config.render.dxgi.res.max.y : Height,
-    min_y = config.render.dxgi.res.min.y > Height ?
-            config.render.dxgi.res.min.y : Height;
-
-  Width   =  std::max ( max_x , min_x );
-  Height  =  std::max ( max_y , min_y );
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  // If forcing flip-model, we can't allow sRGB formats...
-  if ( config.render.framerate.flip_discard &&
-       SK_DXGI_IsFlipModelSwapChain (swap_desc) )
-  {
-    bFlipMode =
-      dxgi_caps.present.flip_sequential;
-
-    // Format overrides must be performed in some cases (sRGB)
-    switch (NewFormat)
-    {
-      case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
-        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override "
-                       L"Required to Enable Flip Model" );
-        rb.srgb_stripped = true;
-        break;
-      case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-        dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
-                       L"Required to Enable Flip Model" );
-        rb.srgb_stripped = true;
-        break;
-    }
-  }
-
-  bool skippable = false;
-
-  if (config.render.dxgi.skip_mode_changes)
-  {
-    if ( (swap_desc.BufferCount       == BufferCount    || BufferCount    == 0)                   &&
-         (swap_desc.BufferDesc.Width  == Width          || Width          == 0)                   &&
-         (swap_desc.BufferDesc.Height == Height         || Height         == 0)                   &&
-         (swap_desc.BufferDesc.Format == NewFormat      || NewFormat      == DXGI_FORMAT_UNKNOWN) &&
-         (swap_desc.Flags             == SwapChainFlags || SwapChainFlags == 0x0) )
-    {
-      skippable =
-        (! bSwapChainNeedsResize);
-    }
-  }
-
-  HRESULT ret = S_OK;
-
-
-  if (! skippable)
-  {
-    ResetImGui_D3D12 (This);
-    ResetImGui_D3D11 (This);
-
-    ret =
-      ResizeBuffers_Original ( This, BufferCount, Width, Height,
-                                 NewFormat, SwapChainFlags );
-
-    if (SUCCEEDED (ret))
-      bSwapChainNeedsResize = false;
-
-
-    // EOS Overlay May Be Broken in D3D12 Games
-    if (FAILED (ret) && config.render.dxgi.suppress_resize_fail)
-    {
-      if (ret != DXGI_ERROR_DEVICE_REMOVED)
-      {
-        SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
-                    ret );
-
-        ret = S_OK;
-      }
-    }
-
-
-    static bool
-      was_hdr = false;
-
-    // Apply scRGB colorspace immediately, 16bpc formats can be either this
-    //   or regular Rec709 and Rec709 is washed out after making this switch
-    if (__SK_HDR_16BitSwap && NewFormat == DXGI_FORMAT_R16G16B16A16_FLOAT)
-    {
-      SK_ComQIPtr <IDXGISwapChain4>
-          pSwap4 (This);
-      if (pSwap4 != nullptr) {
-          pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
-          was_hdr = true;
-      }
-    }
-
-    if (!__SK_HDR_16BitSwap && NewFormat != DXGI_FORMAT_R16G16B16A16_FLOAT)
-    {
-      if (std::exchange (was_hdr, false))
-      {
-        SK_ComQIPtr <IDXGISwapChain4>
-            pSwap4 (This);
-        if (pSwap4 != nullptr)
-            pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
-      }
-    }
-  }
-
-  if (FAILED (ret))
-  {
-    ResetImGui_D3D12 (This);
-    ResetImGui_D3D11 (This);
-
-    ret =
-      ResizeBuffers_Original ( This, BufferCount, Width, Height,
-                                   NewFormat, SwapChainFlags );
-
-    if (SK_IsDebuggerPresent ())
-    {
-      SK_DXGI_OutputDebugString ( "IDXGISwapChain::ResizeBuffers (...) failed, look alive...",
-                                    DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR );
-
-      SK_ComPtr <IDXGIDevice>         pDevice;
-      This->GetDevice (IID_PPV_ARGS (&pDevice.p));
-
-      SK_DXGI_ReportLiveObjects ( nullptr != rb.device ?
-                                             rb.device : pDevice.p );
-    }
-  }
-
-
-  if (! skippable)
-  { DXGI_CALL      (ret, ret); }
-  else
-  { DXGI_SKIP_CALL (ret, ret); }
-
-
-  return ret;
+  return
+    SK_DXGI_SwapChain_ResizeBuffers_Impl (
+      This, BufferCount, Width, Height, NewFormat, SwapChainFlags, FALSE
+    );
 }
 
 __declspec (noinline)
@@ -4999,11 +4467,6 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-  SK_ReleaseAssert (pNewTargetParameters != nullptr);
-
-  DXGI_SWAP_CHAIN_DESC sd = { };
-  This->GetDesc      (&sd);
-
   DXGI_LOG_CALL_I6 (
     L"    IDXGISwapChain", L"ResizeTarget         ",
       L"{ (%ux%u@%3.1f Hz),"
@@ -5019,253 +4482,10 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                            pNewTargetParameters->ScanlineOrdering
   );
 
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
-  {
-    SK_ComQIPtr <IDXGISwapChain3>
-                          pSwap3 (This);
-    if (       nullptr != pSwap3) SK_DXGI_UpdateColorSpace
-                         (pSwap3);
-  }
-
-  SK_ComPtr <ID3D12Device>               pDev12;
-  This->GetDevice        (IID_PPV_ARGS (&pDev12.p));
-
-  if (pDev12.p == nullptr)
-  {
-    //
-    // Latency waitable hack begin
-    //
-    if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    {
-      dll_log->Log (
-        L"[   DXGI   ]  >> Ignoring ResizeTarget (...) on a Latency Waitable SwapChain."
-      );
-
-      return
-        S_OK;
-    }
-    /// Latency Waitable Hack End
-  }
-
-  HRESULT ret =
-    E_UNEXPECTED;
-
-  DXGI_MODE_DESC new_new_params =
-      *pNewTargetParameters;
-
-  // I don't remember why borderless is included here :)
-  if ( config.window.borderless ||
-       ( config.render.dxgi.scaling_mode != -1 &&
-          pNewTargetParameters->Scaling  !=
-            (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-                                ||
-       ( config.render.framerate.refresh_rate          > 0.0f &&
-           pNewTargetParameters->RefreshRate.Numerator != sk::narrow_cast <UINT> (
-         config.render.framerate.refresh_rate) )
-    )
-  {
-    if (  config.render.framerate.rescan_.Denom !=  1   ||
-        ( config.render.framerate.refresh_rate   > 0.0f &&
-          new_new_params.RefreshRate.Numerator  != sk::narrow_cast <UINT> (
-          config.render.framerate.refresh_rate) )
-       )
-    {
-      if ( ( config.render.framerate.rescan_.Denom     > 0   &&
-             config.render.framerate.rescan_.Numerator > 0 ) &&
-         !( new_new_params.RefreshRate.Numerator   == config.render.framerate.rescan_.Numerator &&
-            new_new_params.RefreshRate.Denominator == config.render.framerate.rescan_.Denom ) )
-      {
-        SK_LOGi0 ( L" >> Refresh Override (Requested: %f, Using: %f)",
-                               new_new_params.RefreshRate.Denominator != 0 ?
-          static_cast <float> (new_new_params.RefreshRate.Numerator)  /
-          static_cast <float> (new_new_params.RefreshRate.Denominator)     :
-            std::numeric_limits <float>::quiet_NaN (),
-          static_cast <float> (config.render.framerate.rescan_.Numerator) /
-          static_cast <float> (config.render.framerate.rescan_.Denom)
-        );
-
-        if (config.render.framerate.rescan_.Denom != 1)
-        {
-               new_new_params.RefreshRate.Numerator   =
-          config.render.framerate.rescan_.Numerator;
-               new_new_params.RefreshRate.Denominator =
-          config.render.framerate.rescan_.Denom;
-        }
-
-        else
-        {
-          new_new_params.RefreshRate.Numerator   =
-            sk::narrow_cast <UINT> (std::ceilf (config.render.framerate.refresh_rate));
-          new_new_params.RefreshRate.Denominator = 1;
-        }
-      }
-    }
-
-    if ( config.render.dxgi.scanline_order        != -1 &&
-          pNewTargetParameters->ScanlineOrdering  !=
-            (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
-    {
-      dll_log->Log (
-        L"[   DXGI   ]  >> Scanline Override "
-        L"(Requested: %hs, Using: %hs)",
-          SK_DXGI_DescribeScanlineOrder (
-            pNewTargetParameters->ScanlineOrdering
-          ),
-            SK_DXGI_DescribeScanlineOrder (
-              (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order
-            )
-      );
-
-      new_new_params.ScanlineOrdering =
-        (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
-    }
-
-    if ( config.render.dxgi.scaling_mode != -1 &&
-          pNewTargetParameters->Scaling  !=
-            (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
-    {
-      dll_log->Log (
-        L"[   DXGI   ]  >> Scaling Override "
-        L"(Requested: %hs, Using: %hs)",
-          SK_DXGI_DescribeScalingMode (
-            pNewTargetParameters->Scaling
-          ),
-            SK_DXGI_DescribeScalingMode (
-              (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode
-            )
-      );
-
-      new_new_params.Scaling =
-        (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
-    }
-  }
-
-  if (! config.window.res.override.isZero ())
-  {
-    new_new_params.Width  = config.window.res.override.x;
-    new_new_params.Height = config.window.res.override.y;
-  }
-
-
-  DXGI_MODE_DESC* pNewNewTargetParameters =
-    &new_new_params;
-
-
-  // Clamp the buffer dimensions if the user has a min/max preference
-  const UINT
-    max_x = config.render.dxgi.res.max.x < pNewNewTargetParameters->Width  ?
-            config.render.dxgi.res.max.x : pNewNewTargetParameters->Width,
-    min_x = config.render.dxgi.res.min.x > pNewNewTargetParameters->Width  ?
-            config.render.dxgi.res.min.x : pNewNewTargetParameters->Width,
-    max_y = config.render.dxgi.res.max.y < pNewNewTargetParameters->Height ?
-            config.render.dxgi.res.max.y : pNewNewTargetParameters->Height,
-    min_y = config.render.dxgi.res.min.y > pNewNewTargetParameters->Height ?
-            config.render.dxgi.res.min.y : pNewNewTargetParameters->Height;
-
-  pNewNewTargetParameters->Width   =  std::max ( max_x , min_x );
-  pNewNewTargetParameters->Height  =  std::max ( max_y , min_y );
-
-
-  pNewNewTargetParameters->Format =
-    SK_DXGI_PickHDRFormat (pNewNewTargetParameters->Format, FALSE, TRUE);
-
-  //ResetImGui_D3D12 (This);
-  //ResetImGui_D3D11 (This);
-
-
-  SK_ComPtr <IDXGIOutput>     pOutput;
-  This->GetContainingOutput (&pOutput.p);
-
-  if (pOutput != nullptr)
-  {
-    DXGI_MODE_DESC                modeDescMatch = { };
-    if ( SUCCEEDED (
-      pOutput->FindClosestMatchingMode (
-                 &new_new_params,&modeDescMatch, nullptr )
-                   )
-       )
-    {
-      // Game will take whatever it can get
-      if (new_new_params.Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
-        modeDescMatch.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-      new_new_params = modeDescMatch;
-    }
-
-    // No match, better to remove the refresh rate and try again
-    else
-    {
-      SK_LOGi0 (L"Failed to find matching mode, removing refresh rate...");
-
-      new_new_params.RefreshRate.Denominator = 0;
-      new_new_params.RefreshRate.Numerator   = 0;
-    }
-  }
-
-  static UINT           numModeChanges =  0 ;
-  static DXGI_MODE_DESC lastModeSet    = { };
-
-  if (config.render.dxgi.skip_mode_changes)
-  {
-    auto bd =
-         sd.BufferDesc;
-
-    if ( (bd.Width                   == pNewNewTargetParameters->Width   || pNewNewTargetParameters->Width  == 0)                   &&
-         (bd.Height                  == pNewNewTargetParameters->Height  || pNewNewTargetParameters->Height == 0)                   &&
-         (bd.Format                  == pNewNewTargetParameters->Format  || pNewNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN) &&
-                                          // TODO: How to find the current mode?
-                                       (pNewNewTargetParameters->Scaling          == lastModeSet.Scaling          ||
-                                                                   numModeChanges == 0)                 &&
-                                       (pNewNewTargetParameters->ScanlineOrdering == lastModeSet.ScanlineOrdering ||
-                                                                   numModeChanges == 0)                 &&
-         (bd.RefreshRate.Numerator   == pNewNewTargetParameters->RefreshRate.Numerator)                           &&
-         (bd.RefreshRate.Denominator == pNewNewTargetParameters->RefreshRate.Denominator) )
-    {
-      *((DXGI_MODE_DESC *)pNewTargetParameters) = new_new_params;
-
-      DXGI_SKIP_CALL (ret, S_OK);
-      return          ret;
-    }
-  }
-
-
-  DXGI_CALL ( ret,
-                ResizeTarget_Original (This, pNewNewTargetParameters)
-            );
-
-  if (SUCCEEDED (ret))
-  {
-    if (                  new_new_params.RefreshRate.Denominator != 0 &&
-                          new_new_params.RefreshRate.Numerator   != 0)
-    { lLastRefreshNum   = new_new_params.RefreshRate.Numerator;
-      lLastRefreshDenom = new_new_params.RefreshRate.Denominator; }
-
-    lastModeSet = new_new_params,
-                  ++numModeChanges;
-
-    auto *pLimiter =
-      SK::Framerate::GetLimiter (This);
-
-    // Since this may incur an output device change, it's best to take this
-    // opportunity to re-sync the limiter's clock versus VBLANK.
-    pLimiter->reset (true);
-
-    if ( new_new_params.Width  != 0 &&
-         new_new_params.Height != 0 )
-    {
-      SK_SetWindowResX (new_new_params.Width);
-      SK_SetWindowResY (new_new_params.Height);
-    }
-
-    bSwapChainNeedsResize = true;
-
-    *((DXGI_MODE_DESC *)pNewTargetParameters) = new_new_params;
-  }
-
-  return ret;
+  return
+    SK_DXGI_SwapChain_ResizeTarget_Impl (
+      This, pNewTargetParameters, FALSE
+    );
 }
 
 void
@@ -5441,13 +4661,6 @@ SK_DXGI_CreateSwapChain_PreInit (
       config.render.dxgi.clear_flipped_chain = false;
     }
 #endif
-
-    // If auto-update prompt is visible, don't go fullscreen.
-    if ( hWndUpdateDlg != static_cast <HWND> (INVALID_HANDLE_VALUE)   ||
-                                 ReadAcquire (&__SK_TaskDialogActive) != 0 )
-    {
-      pDesc->Windowed = true;
-    }
 
     _DescribeSwapChain (L"ORIGINAL");
 
@@ -6032,8 +5245,11 @@ SK_DXGI_CreateSwapChain_PostInit (
     extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                 SK_Inject_SetFocusWindow (hWndRoot);
 
-    if (config.window.always_on_top >= 1)
-      SK_DeferCommand ("Window.TopMost true");
+    if (pDesc->Windowed != FALSE)
+    {
+      //if (config.window.always_on_top >= 1)
+      //  SK_DeferCommand ("Window.TopMost true");
+    }
 
     SK_Window_RepositionIfNeeded ();
 
@@ -6395,8 +5611,15 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     rb.swapchain = ret;
     _PushInitialDWMColorSpace (pSwapChain, rb);
 
+    using state_cache_s = IWrapDXGISwapChain::state_cache_s;
+          state_cache_s state_cache;
+
+    SK_DXGI_GetPrivateData <state_cache_s> (ret, &state_cache);
+
     if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
-      ret->lastNonHDRFormat = original_format;
+      state_cache.lastNonHDRFormat = original_format;
+
+    SK_DXGI_SetPrivateData <state_cache_s> (ret, &state_cache);
 
     *ppDest = (IDXGISwapChain *)ret;
   }
@@ -6466,8 +5689,15 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     rb.swapchain = ret;
     _PushInitialDWMColorSpace (pSwapChain, rb);
 
+    using state_cache_s = IWrapDXGISwapChain::state_cache_s;
+          state_cache_s state_cache;
+
+    SK_DXGI_GetPrivateData <state_cache_s> (ret, &state_cache);
+
     if (original_format != DXGI_FORMAT_R16G16B16A16_FLOAT)
-      ret->lastNonHDRFormat = original_format;
+      state_cache.lastNonHDRFormat = original_format;
+
+    SK_DXGI_SetPrivateData <state_cache_s> (ret, &state_cache);
 
     *ppDest = (IDXGISwapChain1 *)ret;
   }

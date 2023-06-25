@@ -33,7 +33,7 @@ constexpr BOOL SK_DXGI_IsFormatBC6Or7 (DXGI_FORMAT fmt)
           fmt <= DXGI_FORMAT_BC7_UNORM_SRGB   );
 }
 
-extern bool __stdcall SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt);
+extern bool __stdcall SK_DXGI_IsFormatCompressed (DXGI_FORMAT fmt) noexcept;
 extern bool           SK_DXGI_IsFormatSRGB       (DXGI_FORMAT fmt);
 extern DXGI_FORMAT    SK_DXGI_MakeFormatSRGB     (DXGI_FORMAT fmt);
 
@@ -55,11 +55,50 @@ SK_D3D11_FlagResourceFormatManipulated ( ID3D11Resource* pRes,
                                          DXGI_FORMAT     original );
 
 bool
-SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
+SK_D3D11_IsDirectCopyCompatible ( DXGI_FORMAT src,
+                                  DXGI_FORMAT dst );
 
-bool SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC *pSrc, D3D11_TEXTURE2D_DESC *pDst);
+bool SK_D3D11_AreTexturesDirectCopyable ( D3D11_TEXTURE2D_DESC *pSrc,
+                                          D3D11_TEXTURE2D_DESC *pDst );
 
-bool SK_D3D11_BltCopySurface (ID3D11Texture2D* pSrcTex, ID3D11Texture2D* pDstTex, const D3D11_BOX *pSrcBox = nullptr);
+bool SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
+                               ID3D11Texture2D *pDstTex,
+                         const D3D11_BOX       *pSrcBox = nullptr );
 
-bool SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *pDevice);
-bool SK_D3D11_EnsureMatchingDevices (IDXGISwapChain      *pSwapChain, ID3D11Device *pDevice);
+bool SK_D3D11_EnsureMatchingDevices ( ID3D11DeviceChild *pDeviceChild,
+                                      ID3D11Device      *pDevice );
+
+bool SK_D3D11_EnsureMatchingDevices ( IDXGISwapChain *pSwapChain,
+                                      ID3D11Device   *pDevice );
+
+bool SK_DXGI_IsSwapChainReal  (const DXGI_SWAP_CHAIN_DESC   &desc)        noexcept;
+bool SK_DXGI_IsSwapChainReal  (      IDXGISwapChain         *pSwapChain)  noexcept;
+bool SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1  &desc,
+                                     HWND                   OutputWindow) noexcept;
+
+DXGI_FORMAT
+SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed  = FALSE,
+                                              BOOL bFlipModel = FALSE );
+
+HRESULT
+SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
+                   const GUID        &kName,
+                         UINT        uiMaxBytes,
+                         void        *pPrivateData );
+
+HRESULT
+SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
+                      const GUID     &kName,
+                            UINT     uiNumBytes,
+                            void     *pPrivateData );
+
+
+template <typename _T>
+HRESULT
+SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
+                         _T          *pPrivateData );
+
+template <typename _T>
+HRESULT
+SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
+                            _T       *pPrivateData );

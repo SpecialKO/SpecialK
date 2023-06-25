@@ -1773,3 +1773,131 @@ SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevic
     pSwapChainDevice.p      ==      pDevice ||
     pSwapChainDevice.IsEqualObject (pDevice);
 }
+
+
+// Classifies a swapchain as dummy (used by some libraries during init) or
+//   real (potentially used to do actual rendering).
+bool
+SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept
+{
+  // 0x0 is implicitly sized to match its HWND's client rect,
+  //
+  //   => Anything ( 1x1 - 31x31 ) has no practical application.
+  //
+#if 0
+  if (desc.BufferDesc.Height > 0 && desc.BufferDesc.Height < 32)
+    return false;
+  if (desc.BufferDesc.Width > 0  && desc.BufferDesc.Width  < 32)
+    return false;
+#endif
+
+  bool dummy_window =
+    SK_Win32_IsDummyWindowClass (desc.OutputWindow);
+
+  wchar_t   wszClass [64] = { };
+  RealGetWindowClassW
+    ( desc.OutputWindow, wszClass, 63 );
+
+  if (dummy_window)
+    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
+                 wszClass );
+  else
+    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
+                 wszClass );
+
+  return
+    (! dummy_window);
+}
+
+bool
+SK_DXGI_IsSwapChainReal1 (const DXGI_SWAP_CHAIN_DESC1& desc, HWND OutputWindow) noexcept
+{
+  (void)desc;
+
+  wchar_t              wszClass [64] = { };
+  RealGetWindowClassW (
+         OutputWindow, wszClass, 63);
+
+  bool dummy_window =
+    SK_Win32_IsDummyWindowClass (OutputWindow);
+
+  if (dummy_window)
+    SK_LOGi0 ( L"Ignoring SwapChain associated with Window Class: %ws",
+                 wszClass );
+  else
+    SK_LOGi1 ( L"Typical SwapChain Associated with Window Class: %ws",
+                 wszClass );
+
+  return
+    (! dummy_window);
+}
+
+bool
+SK_DXGI_IsSwapChainReal (IDXGISwapChain *pSwapChain) noexcept
+{
+  if (! pSwapChain)
+    return false;
+
+  DXGI_SWAP_CHAIN_DESC       desc = { };
+       pSwapChain->GetDesc (&desc);
+  return
+    SK_DXGI_IsSwapChainReal (desc);
+}
+
+#include <SpecialK/render/dxgi/dxgi_swapchain.h>
+
+HRESULT
+SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
+                   const GUID        &kName,
+                         UINT        uiMaxBytes,
+                         void        *pPrivateData )
+{
+  UINT size = 0;
+
+  if (SUCCEEDED (pObject->GetPrivateData (kName, &size, nullptr)))
+  {
+    if (size <= uiMaxBytes)
+    {
+      return
+        pObject->GetPrivateData (kName, &size, pPrivateData);
+    }
+
+    return
+      DXGI_ERROR_MORE_DATA;
+  }
+
+  return
+    DXGI_ERROR_NOT_FOUND;
+}
+
+HRESULT
+SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
+                      const GUID     &kName,
+                            UINT     uiNumBytes,
+                            void     *pPrivateData )
+{
+  return
+    SUCCEEDED (pObject->SetPrivateData (kName, uiNumBytes, pPrivateData));
+}
+
+template <>
+HRESULT
+SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
+   IWrapDXGISwapChain::state_cache_s *pPrivateData )
+{
+  return
+    SK_DXGI_GetPrivateData ( pObject, SKID_DXGI_SwapChain_StateCache,
+      sizeof (IWrapDXGISwapChain::state_cache_s),
+                             pPrivateData );
+}
+
+template <>
+HRESULT
+SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
+   IWrapDXGISwapChain::state_cache_s *pPrivateData )
+{
+  return
+    SK_DXGI_SetPrivateData ( pObject, SKID_DXGI_SwapChain_StateCache,
+      sizeof (IWrapDXGISwapChain::state_cache_s),
+                             pPrivateData );
+}

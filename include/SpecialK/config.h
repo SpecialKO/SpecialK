@@ -561,7 +561,7 @@ struct sk_config_t
       bool    present_test_skip    = false;
       bool    hide_hdr_support     = false; // Games won't know HDR is supported
       bool    use_factory_cache    =  true; // Fix performance issues in Resident Evil 8
-      bool    skip_mode_changes    = false; // Try to skip rendundant resolution changes
+      bool    skip_mode_changes    =  true; // Try to skip rendundant resolution changes
       bool    temporary_dwm_hdr    = false; // Always turns HDR on and off for this game
       bool    disable_virtual_vbi  =  true; // Disable Windows 11 Dynamic Refresh Rate
       bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
