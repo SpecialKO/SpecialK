@@ -1,4 +1,8 @@
-﻿23.6.25
+﻿23.6.26
+=======
+ + Re-enabled ExitProcess hook to handle games that crash at exit
+
+23.6.25
 =======
  + Fixed Fullscreen Exclusive incompatibilities in many games
  + Enabled Rendundant DXGI Mode Change elimination by default

@@ -309,6 +309,7 @@ SK_AvRevertMmThreadCharacteristics (
 );
 
 extern DWORD SK_GetRenderThreadID (void);
+extern DWORD SK_GetMainThreadID   (void);
 
 extern volatile LONG __SK_MMCS_PendingChanges;
 
