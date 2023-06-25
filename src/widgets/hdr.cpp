@@ -1123,14 +1123,21 @@ public:
 
     if (bStreamline && ImGui::IsItemHovered ())
     {
-      ImGui::BeginTooltip ();
+      ImGui::BeginTooltip      ( );
       {
-        ImGui::TextColored (ImColor::HSV (.15f, .8f, .9f), "%s", "WARNING: This game uses Streamline, and HDR may not work!");
-        ImGui::Separator   ();
-        ImGui::BulletText  ("For best compatibility with Streamline + HDR, delete the game's sl.interposer.dll");
-        ImGui::BulletText  ("A 0.01 Global Injection delay may also work, but DLSS3 Frame Gen is not compatible with HDR.");
+        ImGui::TextColored     ( ImVec4 (1.f, 1.f, 0.0f, 1.f), "%s",
+                                   ICON_FA_EXCLAMATION_TRIANGLE " WARNING: " );
+        ImGui::SameLine        ( );
+        ImGui::TextColored     ( ImColor::HSV (.15f, .8f, .9f), "%s",
+                                   "This game uses NVIDIA Streamline, and HDR may not work!" );
+        ImGui::Separator       ( );
+        ImGui::BulletText      ( "If HDR causes the game to freeze or crash, "
+                                 "you may need to replace or delete sl.interposer.dll" );
+        ImGui::BulletText      ( "DLSS 3 Frame Generation is NOT compatible with scRGB HDR" );
+        ImGui::Separator       ( );
+        ImGui::TextUnformatted ( "See the Streamline section of Special K's Wiki for more." );
       }
-      ImGui::EndTooltip ();
+      ImGui::EndTooltip        ( );
     }
 
     else if (rb.isHDRCapable () && rb.isHDRActive () && ImGui::IsItemHovered ())
