@@ -1112,6 +1112,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
            )
         {
           SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
+
+          if (config.display.resolution.save)
+          {
+            config.display.refresh_rate =
+              static_cast <float> (refresh.modes [refresh.idx].dmDisplayFrequency);
+          }
+
+          config.display.resolution.applied = true;
         }
       }
     }
@@ -6764,6 +6772,8 @@ SK_ImGui_Toggle (void)
          SK_Input_SaveClipRect    ();
          SK_ClipCursor            (&game_window.actual.window);
       }
+      else
+        SK_Input_SaveClipRect     ();
     }
     else SK_Input_RestoreClipRect ();
   }

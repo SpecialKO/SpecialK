@@ -1,4 +1,14 @@
-﻿23.6.26
+﻿23.6.26.1
+=========
+ + Added per-game refresh setting to complement existing per-game resolution
+
+     [Display.Monitor]
+     RefreshRateForMonitor= (Current implementation rounds to nearest integer)
+
+   >> This refresh rate will be applied when a game starts, and restored when
+        the game exits. It uses the Refresh setting from the Display menu.
+
+23.6.26
 =======
  + Re-enabled ExitProcess hook to handle games that crash at exit
 

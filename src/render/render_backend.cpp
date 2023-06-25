@@ -4144,13 +4144,25 @@ SK_Render_InitializeSharedCVars (void)
 void
 SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
 {
-  if (! config.display.resolution.override.isZero ())
+  if ((! config.display.resolution.override.isZero ()) ||
+         config.display.refresh_rate > 0.0f)
   {
     DEVMODEW devmode              = {               };
              devmode.dmSize       = sizeof (DEVMODEW);
-             devmode.dmFields     = DM_PELSWIDTH | DM_PELSHEIGHT;
-             devmode.dmPelsWidth  = config.display.resolution.override.x;
-             devmode.dmPelsHeight = config.display.resolution.override.y;
+
+    if (! config.display.resolution.override.isZero ())
+    {
+      devmode.dmFields     |= DM_PELSWIDTH | DM_PELSHEIGHT;
+      devmode.dmPelsWidth   = config.display.resolution.override.x;
+      devmode.dmPelsHeight  = config.display.resolution.override.y;
+    }
+
+    if (config.display.refresh_rate > 0.0f)
+    {
+      devmode.dmFields           |= DM_DISPLAYFREQUENCY;
+      devmode.dmDisplayFrequency  =
+        static_cast <DWORD> (std::ceilf (config.display.refresh_rate));
+    }
 
     if ( DISP_CHANGE_SUCCESSFUL ==
            SK_ChangeDisplaySettingsEx (

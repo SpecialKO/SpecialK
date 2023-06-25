@@ -735,6 +735,7 @@ struct {
   sk::ParameterBool*      warn_no_mpo_planes      = nullptr;
   sk::ParameterBool*      save_resolution         = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
+  sk::ParameterFloat*     override_refresh        = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
   sk::ParameterBool*      aspect_ratio_stretch    = nullptr;
 } display;
@@ -1231,6 +1232,7 @@ auto DeclKeybind =
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
     ConfigEntry (display.save_resolution,                L"Remember Monitor Resolution for the Current Game" ,         dll_ini,         L"Display.Monitor",       L"RememberResolution"),
     ConfigEntry (display.override_resolution,            L"Apply Resolution Override for the Current Game",            dll_ini,         L"Display.Monitor",       L"ResolutionForMonitor"),
+    ConfigEntry (display.override_refresh,               L"Apply Refresh Override for the Current Game",               dll_ini,         L"Display.Monitor",       L"RefreshRateForMonitor"),
     ConfigEntry (display.warn_no_mpo_planes,             L"Warn user if Multiplane Overlays support is missing",       dll_ini,         L"Display.Monitor",       L"WarnIfNoOverlayPlanes"),
 
     // Performance Monitoring  (Global Settings)
@@ -3198,6 +3200,8 @@ auto DeclKeybind =
     {
       ;
     }
+
+    display.override_refresh->load (config.display.refresh_rate);
   }
 
   if (config.apis.NvAPI.vulkan_bridge)
@@ -3870,7 +3874,8 @@ auto DeclKeybind =
     // No preference established, so handle should be null
     else if ( config.display.monitor_idx   == 0 )
     {         config.display.monitor_handle = 0;
-      if ( !  config.display.resolution.override.isZero () )
+      if ( (! config.display.resolution.override.isZero ()) ||
+              config.display.refresh_rate > 0.0f )
       {
         EnumDisplayMonitors ( nullptr,
                               nullptr,
@@ -4819,11 +4824,13 @@ SK_SaveConfig ( std::wstring name,
                        std::format ( L"{}x{}", config.display.resolution.override.x,
                                                config.display.resolution.override.y )
       );
+      display.override_refresh->store         (config.display.refresh_rate);
     }
 
     else
     {
       display.override_resolution->store (L"0x0");
+      display.override_refresh->store    (  0.0f);
     }
   }
 

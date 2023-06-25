@@ -614,7 +614,7 @@ struct sk_config_t
     int       monitor_idx          =     0;
     HMONITOR  monitor_handle       =     0;
     int       monitor_default      = MONITOR_DEFAULTTONEAREST;
-    float     refresh_rate         =  0.0F; // TODO
+    float     refresh_rate         =  0.0F;
     bool      force_fullscreen     = false;
     bool      force_windowed       = false;
     bool      aspect_ratio_stretch = false;
