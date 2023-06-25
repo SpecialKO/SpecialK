@@ -207,6 +207,33 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                   _In_ DXGI_MODE_DESC *pNewTargetParameters,
                        BOOL            bApplyOverrides = FALSE );
 
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_SwapChain_ResizeBuffers_Impl (
+  _In_ IDXGISwapChain *pSwapChain,
+  _In_ UINT            BufferCount,
+  _In_ UINT            Width,
+  _In_ UINT            Height,
+  _In_ DXGI_FORMAT     NewFormat,
+  _In_ UINT            SwapChainFlags,
+       BOOL            bWrapped );
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_SwapChain_ResizeTarget_Impl (
+  _In_       IDXGISwapChain *pSwapChain,
+  _In_ const DXGI_MODE_DESC *pNewTargetParameters,
+             BOOL            bWrapped );
+
+HRESULT
+STDMETHODCALLTYPE
+SK_DXGI_SwapChain_SetFullscreenState_Impl (
+  _In_       IDXGISwapChain *pSwapChain,
+  _In_       BOOL            Fullscreen,
+  _In_opt_   IDXGIOutput    *pTarget,
+             BOOL            bWrapped );
+
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -497,6 +524,30 @@ bool
 SK_DXGI_IsScalingPreventingRequestedResolution ( DXGI_MODE_DESC *pDesc,
                                                  IDXGIOutput    *pOutput,
                                                  IUnknown       *pDevice );
+
+void
+SK_DXGI_UpdateColorSpace ( IDXGISwapChain3   *This,
+                           DXGI_OUTPUT_DESC1 *outDesc = nullptr );
+
+
+struct dxgi_caps_t {
+  struct {
+    bool latency_control = false;
+    bool enqueue_event   = false;
+  } device;
+
+  struct {
+    bool flip_sequential = false;
+    bool flip_discard    = false;
+    bool waitable        = false;
+  } present;
+
+  struct {
+    BOOL allow_tearing   = FALSE;
+  } swapchain;
+};
+
+extern dxgi_caps_t dxgi_caps;
 
 
 #endif /* __SK__DXGI_BACKEND_H__ */

@@ -1,4 +1,14 @@
-﻿23.6.24.3
+﻿23.6.25
+=======
+ + Fixed Fullscreen Exclusive incompatibilities in many games
+ + Enabled Rendundant DXGI Mode Change elimination by default
+ + Enabled Fullscreen Exclusive in NieR: Automata
+
+   >> If you intend to run games in Fullscreen Exclusive (why?), be sure to
+        reset a game's INI first because the redundant mode change setting
+          has a different default value now.
+
+23.6.24.3
 =========
  + Added warning text if a user tries to enable HDR in a Streamline game
 

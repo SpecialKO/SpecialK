@@ -44,9 +44,6 @@ volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
 SK_WDDM_CAPS SK_WDDM_SupportedCaps;
 
 extern void
-SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc = nullptr);
-
-extern void
 SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
 
 bool SK_Display_IsDPIAwarenessUsingAppCompat (void);
