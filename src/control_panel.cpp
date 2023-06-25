@@ -4041,6 +4041,13 @@ SK_ImGui_ControlPanel (void)
       else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
     }
 
+    else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D12)) &&
+                    (api_mask != static_cast <int> (SK_RenderAPI::D3D12)  || translated_d3d9))
+    {
+      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→12");
+      else                  strncpy  (szAPIName, (const char *)u8"D3D9→12", 32);
+    }
+
     lstrcatA ( szAPIName,
                  SK_GetBitness () == 32 ? "           [ 32-bit ]" :
                                           "           [ 64-bit ]" );
