@@ -397,9 +397,7 @@ SK_Bypass_CRT (LPVOID)
 #endif
                                            { 2, L"Direct3D9{Ex}"    },
                                            { 3, L"Direct3D11"       },
-#ifdef _M_AMD64
                                            { 4, L"Direct3D12"       },
-#endif
                                            { 5, L"OpenGL"           },
 #ifdef _M_AMD64
                                            { 6, L"Vulkan"           }
