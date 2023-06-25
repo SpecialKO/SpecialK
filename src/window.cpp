@@ -5306,6 +5306,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       SK_Inject_SetFocusWindow (0);
 
           SK_ImGui_WantExit = true;
+
+          if (config.compatibility.shutdown_on_window_close)
+            SK_SelfDestruct ();
         }
       }
       break;

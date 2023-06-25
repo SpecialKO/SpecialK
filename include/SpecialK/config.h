@@ -875,6 +875,7 @@ struct sk_config_t
     bool     allow_dxdiagn            = false;
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
+    bool     shutdown_on_window_close = false;
   } compatibility;
 
   struct apis_s {

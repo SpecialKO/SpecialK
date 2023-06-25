@@ -3022,9 +3022,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DiabloIV:
-        config.compatibility.disable_debug_features = true;
-        config.window.dont_hook_wndproc             = true;
-        config.system.global_inject_delay           = 0.001f;
+        config.window.dont_hook_wndproc = true;
         break;
 
       case SK_GAME_ID::CallOfDuty:
