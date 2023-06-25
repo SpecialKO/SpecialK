@@ -406,13 +406,11 @@ SK_BootDXGI (void)
     return;
   }
 
-#ifdef _M_AMD64
   //
   // TEMP HACK: D3D11 must be enabled to hook D3D12...
   //
   if (config.apis.dxgi.d3d12.hook && (! config.apis.dxgi.d3d11.hook))
     config.apis.dxgi.d3d11.hook = true;
-#endif
 
   if (! ( config.apis.dxgi.d3d11.hook ||
           config.apis.dxgi.d3d12.hook ))
