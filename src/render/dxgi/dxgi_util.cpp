@@ -1877,7 +1877,7 @@ SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                             void     *pPrivateData )
 {
   return
-    SUCCEEDED (pObject->SetPrivateData (kName, uiNumBytes, pPrivateData));
+    pObject->SetPrivateData (kName, uiNumBytes, pPrivateData);
 }
 
 template <>

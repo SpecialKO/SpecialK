@@ -1399,6 +1399,9 @@ void
 WINAPI
 ExitProcess_Detour (UINT uExitCode)
 {
+  SK_LOG0 ( ( L"Software Is Ending With Exit Code (%x)",
+                    uExitCode ), __SK_SUBSYSTEM__ );
+
   // Since many, many games don't shutdown cleanly, let's unload ourself.
   SK_SelfDestruct ();
 
@@ -3709,11 +3712,18 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                              RtlReleasePebLock_Detour,
     static_cast_p2p <void> (&RtlReleasePebLock_Original) );
 
-    SK_CreateDLLHook2 (      L"kernel32",
-                          "TerminateThread",
-                           TerminateThread_Detour,
-  static_cast_p2p <void> (&TerminateThread_Original) );
+    SK_CreateDLLHook2 (    L"kernel32",
+                            "TerminateThread",
+                             TerminateThread_Detour,
+    static_cast_p2p <void> (&TerminateThread_Original) );
 #endif
+
+    // This is hooked so that we can catch and cleanly unload
+    //   if a game crashes during exit.
+    SK_CreateDLLHook2 (    L"kernel32",
+                            "ExitProcess",
+                             ExitProcess_Detour,
+    static_cast_p2p <void> (&ExitProcess_Original) );
 
 #ifdef _EXTENDED_DEBUG
     if (true)//config.compatibility.advanced_debug)
@@ -3803,11 +3813,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                   "RtlExitUserThread",
                                    RtlExitUserThread_Detour,
           static_cast_p2p <void> (&RtlExitUserThread_Original) );
-
-        SK_CreateDLLHook2 (      L"kernel32",
-                                  "ExitProcess",
-                                   ExitProcess_Detour,
-          static_cast_p2p <void> (&ExitProcess_Original) );
       }
 
       SK_CreateDLLHook2 (      L"kernel32",

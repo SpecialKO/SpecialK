@@ -1034,5 +1034,46 @@ SK_GetRenderThreadID (void)
     ReadULongAcquire (&rb.thread);
 }
 
+DWORD
+SK_GetMainThreadID (void)
+{
+  SK_AutoHandle hThreadSnapshot (
+    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+  );
+
+  if (! hThreadSnapshot.isValid ())
+  {
+    return
+      static_cast <DWORD> (-1);
+  }
+
+  THREADENTRY32
+    tent        = { };
+    tent.dwSize = sizeof (THREADENTRY32);
+
+  DWORD tid = 0;
+  DWORD pid = GetCurrentProcessId ();
+
+  if (Thread32First (hThreadSnapshot, &tent))
+  {
+    while (! tid)
+    {
+      if (! Thread32Next (hThreadSnapshot, &tent))
+        break;
+
+      if (GetLastError () == ERROR_NO_MORE_FILES)
+        break;
+
+      if (tent.th32OwnerProcessID == pid)
+        tid = tent.th32ThreadID;
+    }
+  }
+
+  if (tid == 0)
+    return -1;
+
+  return tid;
+}
+
 
 volatile LONG __SK_MMCS_PendingChanges = 0;
