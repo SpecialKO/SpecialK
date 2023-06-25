@@ -120,22 +120,22 @@ SK_DLL_GetBootstraps (void)
     __dll_bootstraps.get () =
     {
       { DLL_ROLE::DXGI,       { { L"dxgi.dll",
-                                  L"d3d11.dll"    },   SK::DXGI::Startup,
-                                                       SK::DXGI::Shutdown } },
+                                  L"d3d11.dll"    }, SK::DXGI::Startup,
+                                                     SK::DXGI::Shutdown   } },
       { DLL_ROLE::D3D11_CASE, { { L"dxgi.dll",
-                                  L"d3d11.dll"    },   SK::DXGI::Startup,
-                                                       SK::DXGI::Shutdown } },
-      { DLL_ROLE::D3D9,       { { L"d3d9.dll"     },   SK::D3D9::Startup,
-                                                       SK::D3D9::Shutdown } },
+                                  L"d3d11.dll"    }, SK::DXGI::Startup,
+                                                     SK::DXGI::Shutdown   } },
+      { DLL_ROLE::D3D9,       { { L"d3d9.dll"     }, SK::D3D9::Startup,
+                                                     SK::D3D9::Shutdown   } },
       { DLL_ROLE::OpenGL,     { { L"OpenGL32.dll" }, SK::OpenGL::Startup,
                                                      SK::OpenGL::Shutdown } },
-      { DLL_ROLE::DInput8,    { { L"dinput8.dll"  },    SK::DI8::Startup,
-                                                        SK::DI8::Shutdown } },
+      { DLL_ROLE::DInput8,    { { L"dinput8.dll"  }, SK::DI8::Startup,
+                                                     SK::DI8::Shutdown    } },
       #ifndef _M_AMD64
-      { DLL_ROLE::D3D8,       { { L"d3d8.dll"     },   SK::D3D8::Startup,
-                                                       SK::D3D8::Shutdown } },
-      { DLL_ROLE::DDraw,      { { L"ddraw.dll"    },  SK::DDraw::Startup,
-                                                      SK::DDraw::Shutdown } },
+      { DLL_ROLE::D3D8,       { { L"d3d8.dll"     }, SK::D3D8::Startup,
+                                                     SK::D3D8::Shutdown   } },
+      { DLL_ROLE::DDraw,      { { L"ddraw.dll"    }, SK::DDraw::Startup,
+                                                     SK::DDraw::Shutdown  } },
       #endif
     };
   }
