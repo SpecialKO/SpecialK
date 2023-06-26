@@ -580,6 +580,13 @@ struct {
 } rtss;
 
 struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
+  } overlay;
+} reshade;
+
+struct {
   sk::ParameterBool*      per_monitor_aware       = nullptr;
   sk::ParameterBool*      per_monitor_all_threads = nullptr;
   sk::ParameterBool*      disable                 = nullptr;
@@ -1226,6 +1233,7 @@ auto DeclKeybind =
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (reshade.overlay.hdr_luminance,          L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),

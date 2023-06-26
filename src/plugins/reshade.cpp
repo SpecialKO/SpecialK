@@ -75,3 +75,43 @@ SK_ReShade_GetDLL (void)
   return
     hModReShade;
 };
+
+void
+SK_ReShade_LoadIfPresent (void)
+{
+  const wchar_t *wszDLL =
+    SK_RunLHIfBitness (64, L"ReShade64.dll",
+                           L"ReShade32.dll");
+
+  if (PathFileExistsW (wszDLL))
+  {
+    if (! PathFileExistsW (L"ReShade.ini"))
+    {
+      FILE *fINI =
+        fopen ("ReShade.ini", "w+");
+
+      if (fINI != nullptr)
+      {
+        fputs (R"(
+[GENERAL]
+EffectSearchPaths=.\,.\reshade-shaders\Shaders
+TextureSearchPaths=.\,.\reshade-shaders\Textures
+PresetPath=.\ReShadePreset.ini
+
+[OVERLAY]
+NoFontScaling=1
+
+[STYLE]
+EditorFont=ProggyClean.ttf
+EditorFontSize=13
+EditorStyleIndex=0
+Font=ProggyClean.ttf
+FontSize=13
+StyleIndex=2)", fINI);
+        fclose (fINI);
+      }
+    }
+
+    LoadLibraryW (wszDLL);
+  }
+}

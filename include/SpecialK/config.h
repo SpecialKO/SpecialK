@@ -351,6 +351,11 @@ struct sk_config_t
     bool        present               = false;  // Is the overlay detected?
   } rtss;
 
+  struct reshade_s {
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
+  } reshade;
+
   struct sound_s {
     SK_ConfigSerializedKeybind
          game_mute_keybind = {

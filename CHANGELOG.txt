@@ -1,5 +1,15 @@
 ﻿23.6.26.3
 =========
+ + Automatically load ReShade{32|64}.dll if it is in a game's directory, and
+     create the necessary INI for version 5.x to load this way.
+
+     >> This is equivalent to manually adding it as a Lazy plug-in
+
+ + Added ReShade luminance control for its menus when used in native HDR games.
+
+     >> This fixes Rec 2020 / Rec 709 colorspace mismatches in HDR10 games and
+          80 nits brightness in scRGB games, so ReShade's UI works correctly.
+
  + Hook ExitProcess and TerminateProcess even if debug features are turned off.
 
 23.6.26.2
