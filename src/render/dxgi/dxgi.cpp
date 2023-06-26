@@ -2391,7 +2391,9 @@ SK_DXGI_DescribePresentStatus (HRESULT hrPresentStatus)
 auto _IsBackendD3D11 = [](const SK_RenderAPI& api) { return ( static_cast <int> (api) &
                                                               static_cast <int> (SK_RenderAPI::D3D11) ) ==
                                                               static_cast <int> (SK_RenderAPI::D3D11); };
-auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return               api == SK_RenderAPI::D3D12;  };
+auto _IsBackendD3D12 = [](const SK_RenderAPI& api) { return ( static_cast <int> (api) &
+                                                              static_cast <int> (SK_RenderAPI::D3D12) ) ==
+                                                              static_cast <int> (SK_RenderAPI::D3D12); };
 
 volatile LONG lResetD3D11 = 0;
 volatile LONG lResetD3D12 = 0;
