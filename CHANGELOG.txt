@@ -1,4 +1,9 @@
-﻿23.6.26.3
+﻿23.6.26.4
+=========
+ + Fixed black screens in D3D11 when Special K and ReShade are used together
+ + Fixed ReShade disabling HDR in D3D11 games
+
+23.6.26.3
 =========
  + Automatically load ReShade{32|64}.dll if it is in a game's directory, and
      create the necessary INI for version 5.x to load this way.

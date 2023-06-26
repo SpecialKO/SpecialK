@@ -834,8 +834,8 @@ SK_D3D11_Inject_ReShadeHDR ( _In_ ID3D11DeviceContext           *pDevCtx,
   if (__SK_HDR_16BitSwap)
     return E_NOTIMPL;
 
-  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
-    return E_NOT_VALID_STATE;
+  //if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
+  //  return E_NOT_VALID_STATE;
 
   auto* _P =
     &_Frame [g_frameIndex % g_numFramesInSwapChain];
