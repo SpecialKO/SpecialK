@@ -36,6 +36,7 @@
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
@@ -5621,6 +5622,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
       L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                (uintptr_t)pSwapChain
     );
+
+    // Stash the pointer to this device so that we can test equality on wrapped devices
+    pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pDev11.p);
   }
 
   if (ret != nullptr)
@@ -5699,6 +5703,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
       L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
                (uintptr_t)pSwapChain
     );
+
+    // Stash the pointer to this device so that we can test equality on wrapped devices
+    pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pDev11.p);
   }
 
   if (ret != nullptr)
