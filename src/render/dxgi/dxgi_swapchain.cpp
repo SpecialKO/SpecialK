@@ -1801,6 +1801,9 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     }
   }
 
+  else
+    skippable = false;
+
   HRESULT ret = S_OK;
 
   if (! skippable)
