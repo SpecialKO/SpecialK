@@ -1056,6 +1056,9 @@ DllThread (LPVOID user)
       WriteULongRelease   (                       &dwInitThreadId,
                               0                    );
 
+      // Implicitly load ReShade (ReShade{32|64}.dll) if it exists
+      SK_ReShade_LoadIfPresent  ();
+
       // Load user-defined DLLs (Lazy)
       SK_RunLHIfBitness ( 64, SK_LoadLazyImports64 (),
                               SK_LoadLazyImports32 () );

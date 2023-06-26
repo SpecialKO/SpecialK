@@ -3640,6 +3640,22 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
   if (config.compatibility.disable_debug_features)
   {
     SK_MinHook_Init ();
+  }
+
+  // This is hooked so that we can catch and cleanly unload
+  //   if a game crashes during exit.
+  SK_CreateDLLHook2 (    L"kernel32",
+                          "ExitProcess",
+                           ExitProcess_Detour,
+  static_cast_p2p <void> (&ExitProcess_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                          "TerminateProcess",
+                           TerminateProcess_Detour,
+  static_cast_p2p <void> (&TerminateProcess_Original) );
+  
+  if (config.compatibility.disable_debug_features)
+  {
     return false;
   }
 
@@ -3657,13 +3673,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     static bool          basic_init = false;
     if (! std::exchange (basic_init, true))
     {
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "TerminateProcess",
-                                 TerminateProcess_Detour,
-        static_cast_p2p <void> (&TerminateProcess_Original) );
-
-
-
       SK_CreateDLLHook2 (       L"kernel32",
                                 "SetThreadPriority",
                                  SetThreadPriority_Detour,
@@ -3717,13 +3726,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                              TerminateThread_Detour,
     static_cast_p2p <void> (&TerminateThread_Original) );
 #endif
-
-    // This is hooked so that we can catch and cleanly unload
-    //   if a game crashes during exit.
-    SK_CreateDLLHook2 (    L"kernel32",
-                            "ExitProcess",
-                             ExitProcess_Detour,
-    static_cast_p2p <void> (&ExitProcess_Original) );
 
 #ifdef _EXTENDED_DEBUG
     if (true)//config.compatibility.advanced_debug)

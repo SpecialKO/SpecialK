@@ -284,6 +284,15 @@ extern HRESULT
                             _In_ INT                   BaseVertexLocation,
                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
 
+extern HRESULT
+  SK_D3D11_Inject_ReShadeHDR ( _In_ ID3D11DeviceContext           *pDevCtx,
+                               _In_ UINT                           IndexCountPerInstance,
+                               _In_ UINT                           InstanceCount,
+                               _In_ UINT                           StartIndexLocation,
+                               _In_ INT                            BaseVertexLocation,
+                               _In_ UINT                           StartInstanceLocation,
+                               _In_ D3D11_DrawIndexedInstanced_pfn pfnD3D11DrawIndexedInstanced );
+
 extern bool SK_D3D11_ShowShaderModDlg (void);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
@@ -1356,14 +1365,21 @@ SK_D3D11_UpdateSubresource_Impl (
     pDstResource->GetDevice (&pResourceDevice.p);
     if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, pResourceDevice))
     {
-      if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
-      {
-        pResourceDevice->GetImmediateContext (&pDevCtx);
-        _Finish ();                            pDevCtx->Release ();
-      }
+      SK_RunOnce (
+        SK_LOGi0 (L"UpdateSubresource (...) called on a resource belonging "
+                  L"to a different device")
+      );
 
-      else
-        return;
+      if (bWrapped)
+      {
+        if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
+        {
+          pResourceDevice->GetImmediateContext (&pDevCtx);
+          _Finish ();                            pDevCtx->Release ();
+
+          return;
+        }
+      }
     }
   }
 
@@ -4443,8 +4459,9 @@ SK_D3D11_DrawIndexed_Impl (
   if ( rb.isHDRCapable ()  &&
        rb.isHDRActive  () )
   {
-#define EPIC_OVERLAY_VS_CRC32C  0xa7ee5199
-#define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
+#define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
+#define UPLAY_OVERLAY_PS_CRC32C   0x35ae281c
+#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
 
     if (dev_idx == UINT_MAX)
     {
@@ -4466,19 +4483,25 @@ SK_D3D11_DrawIndexed_Impl (
         return;
       }
     }
-    
-    else if ( EPIC_OVERLAY_VS_CRC32C ==
-                shaders.vertex.current.shader [dev_idx] )
+
+    else
     {
-      if ( SUCCEEDED (
-             SK_D3D11_Inject_EpicHDR ( pDevCtx, IndexCount,
-                                         StartIndexLocation,
-                                           BaseVertexLocation,
-                                             D3D11_DrawIndexed_Original )
-           )
-         )
+      switch (shaders.vertex.current.shader [dev_idx])
       {
-        return;
+        case EPIC_OVERLAY_VS_CRC32C:
+          if ( SUCCEEDED (
+                 SK_D3D11_Inject_EpicHDR ( pDevCtx, IndexCount,
+                                             StartIndexLocation,
+                                               BaseVertexLocation,
+                                                 D3D11_DrawIndexed_Original )
+               )
+             )
+          {
+            return;
+          }
+          break;
+        default:
+          break;
       }
     }
   }
@@ -4538,6 +4561,43 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   {
     return
       _Finish ();
+  }
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  //------
+
+  // Render-state tracking needs to be forced-on for the
+  //   ReShade Overlay HDR fix to work.
+  if ( rb.isHDRCapable ()  &&
+       rb.isHDRActive  () )
+  {
+#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
+
+    if (dev_idx == UINT_MAX)
+    {
+      dev_idx =
+        SK_D3D11_GetDeviceContextHandle (pDevCtx);
+    }
+
+    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
+    {
+      case RESHADE_OVERLAY_VS_CRC32C:
+        if ( SUCCEEDED (
+               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
+                                              InstanceCount, StartIndexLocation,
+                                                BaseVertexLocation, StartInstanceLocation,
+                                                  D3D11_DrawIndexedInstanced_Original )
+             )
+           )
+        {
+          return;
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))

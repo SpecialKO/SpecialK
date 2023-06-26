@@ -30,4 +30,7 @@ HMODULE
 __stdcall
 SK_ReShade_GetDLL (void);
 
+void
+SK_ReShade_LoadIfPresent (void);
+
 #endif /* __SK__RESHADE_H__ */

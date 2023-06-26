@@ -787,11 +787,15 @@ SK_HDR_SnapshotSwapchain (void)
     SK_ComPtr <ID3D11Device>        pShaderDevice;
     vs_hdr_util.shader->GetDevice (&pShaderDevice.p);
 
+    // XXX: This fails when combined with ReShade,
+    //        no equivalence test that passes is currently known...
+#if 0
     if (! (pShaderDevice.p           == pDev.p ||
            pShaderDevice.IsEqualObject (pDev)) )
     {
       return;
     }
+#endif
 
     SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
     SK_ComPtr <ID3D11Resource>  pDst = nullptr;

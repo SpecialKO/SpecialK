@@ -1070,7 +1070,7 @@ SK_GetMainThreadID (void)
   }
 
   if (tid == 0)
-    return -1;
+    return static_cast <DWORD> (-1);
 
   return tid;
 }

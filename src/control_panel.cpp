@@ -1112,6 +1112,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
            )
         {
           SK_ImGui_ConfirmDisplaySettings (&dirty, display_name, dm_orig);
+
+          if (config.display.resolution.save)
+          {
+            config.display.refresh_rate =
+              static_cast <float> (refresh.modes [refresh.idx].dmDisplayFrequency);
+          }
+
+          config.display.resolution.applied = true;
         }
       }
     }
@@ -3043,6 +3051,23 @@ SK_ImGui_ControlPanel (void)
           {
             config.discord.overlay_luminance =
                                     discord_nits * 1.0_Nits;
+
+            SK_SaveConfig ();
+          }
+        }
+
+        if (config.reshade.present)
+        {
+          float reshade_nits =
+            config.reshade.overlay_luminance / 1.0_Nits;
+
+          if ( ImGui::SliderFloat ( "ReShade Overlay Luminance###RESHADE_LUMINANCE",
+                                     &reshade_nits,
+                                      80.0f, rb.display_gamut.maxAverageY,
+                                        (const char *)u8"%.1f cd/m²" ) )
+          {
+            config.reshade.overlay_luminance =
+                                   reshade_nits * 1.0_Nits;
 
             SK_SaveConfig ();
           }
@@ -6771,6 +6796,8 @@ SK_ImGui_Toggle (void)
          SK_Input_SaveClipRect    ();
          SK_ClipCursor            (&game_window.actual.window);
       }
+      else
+        SK_Input_SaveClipRect     ();
     }
     else SK_Input_RestoreClipRect ();
   }

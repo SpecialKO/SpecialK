@@ -351,6 +351,11 @@ struct sk_config_t
     bool        present               = false;  // Is the overlay detected?
   } rtss;
 
+  struct reshade_s {
+    float       overlay_luminance     = 4.375F; // 350 nits
+    bool        present               = false;  // Is the overlay detected?
+  } reshade;
+
   struct sound_s {
     SK_ConfigSerializedKeybind
          game_mute_keybind = {
@@ -614,7 +619,7 @@ struct sk_config_t
     int       monitor_idx          =     0;
     HMONITOR  monitor_handle       =     0;
     int       monitor_default      = MONITOR_DEFAULTTONEAREST;
-    float     refresh_rate         =  0.0F; // TODO
+    float     refresh_rate         =  0.0F;
     bool      force_fullscreen     = false;
     bool      force_windowed       = false;
     bool      aspect_ratio_stretch = false;
@@ -875,6 +880,7 @@ struct sk_config_t
     bool     allow_dxdiagn            = false;
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
+    bool     shutdown_on_window_close = false;
   } compatibility;
 
   struct apis_s {

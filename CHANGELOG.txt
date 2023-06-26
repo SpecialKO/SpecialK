@@ -1,4 +1,38 @@
-﻿23.6.26
+﻿23.6.26.4
+=========
+ + Fixed black screens in D3D11 when Special K and ReShade are used together
+ + Fixed ReShade disabling HDR in D3D11 games
+
+23.6.26.3
+=========
+ + Automatically load ReShade{32|64}.dll if it is in a game's directory, and
+     create the necessary INI for version 5.x to load this way.
+
+     >> This is equivalent to manually adding it as a Lazy plug-in
+
+ + Added ReShade luminance control for its menus when used in native HDR games.
+
+     >> This fixes Rec 2020 / Rec 709 colorspace mismatches in HDR10 games and
+          80 nits brightness in scRGB games, so ReShade's UI works correctly.
+
+ + Hook ExitProcess and TerminateProcess even if debug features are turned off.
+
+23.6.26.2
+=========
+ + Merge pull request #71 from Nustat0/dgvoodoo-d3d12
+    * Enabled 32-bit D3D12 for use with dgVoodoo. 
+
+23.6.26.1
+=========
+ + Added per-game refresh setting to complement existing per-game resolution
+
+     [Display.Monitor]
+     RefreshRateForMonitor= (Current implementation rounds to nearest integer)
+
+   >> This refresh rate will be applied when a game starts, and restored when
+        the game exits. It uses the Refresh setting from the Display menu.
+
+23.6.26
 =======
  + Re-enabled ExitProcess hook to handle games that crash at exit
 
@@ -613,6 +647,7 @@
 
 23.4.10
 =======
+ + Merge pull request #71 from Nustat0/D3D12 x32 #71
  + Merge pull request #58 from Nustat0/D3D9-IK
     * Fix dgVoodoo plugin detection for local ddraw/d3d8
  + Merge pull request #52 from cathyjf/fix-get-file-size-for-symlinks

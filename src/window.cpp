@@ -1518,6 +1518,8 @@ SK_Input_SaveClipRect (RECT *pSave)
   {
     if (GetClipCursor (     &__SK_BackupClipRectStorage))
       __SK_BackedClipRect = &__SK_BackupClipRectStorage;
+    else
+      __SK_BackedClipRect = nullptr;
   }
 
   return __SK_BackupClipRectStorage;
@@ -1529,6 +1531,9 @@ SK_Input_RestoreClipRect (void)
   if (               __SK_BackedClipRect != nullptr &&
       SK_ClipCursor (__SK_BackedClipRect))
                      __SK_BackedClipRect = nullptr;
+  // No backing store, this means we should unrestrict the cursor
+  else
+      SK_ClipCursor (nullptr);
 
   return __SK_BackupClipRectStorage;
 }
@@ -5301,6 +5306,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       SK_Inject_SetFocusWindow (0);
 
           SK_ImGui_WantExit = true;
+
+          if (config.compatibility.shutdown_on_window_close)
+            SK_SelfDestruct ();
         }
       }
       break;

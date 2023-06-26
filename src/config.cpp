@@ -580,6 +580,13 @@ struct {
 } rtss;
 
 struct {
+  struct
+  {
+    sk::ParameterFloat*   hdr_luminance           = nullptr;
+  } overlay;
+} reshade;
+
+struct {
   sk::ParameterBool*      per_monitor_aware       = nullptr;
   sk::ParameterBool*      per_monitor_all_threads = nullptr;
   sk::ParameterBool*      disable                 = nullptr;
@@ -735,6 +742,7 @@ struct {
   sk::ParameterBool*      warn_no_mpo_planes      = nullptr;
   sk::ParameterBool*      save_resolution         = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
+  sk::ParameterFloat*     override_refresh        = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
   sk::ParameterBool*      aspect_ratio_stretch    = nullptr;
 } display;
@@ -1225,11 +1233,13 @@ auto DeclKeybind =
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (reshade.overlay.hdr_luminance,          L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
     ConfigEntry (display.save_resolution,                L"Remember Monitor Resolution for the Current Game" ,         dll_ini,         L"Display.Monitor",       L"RememberResolution"),
     ConfigEntry (display.override_resolution,            L"Apply Resolution Override for the Current Game",            dll_ini,         L"Display.Monitor",       L"ResolutionForMonitor"),
+    ConfigEntry (display.override_refresh,               L"Apply Refresh Override for the Current Game",               dll_ini,         L"Display.Monitor",       L"RefreshRateForMonitor"),
     ConfigEntry (display.warn_no_mpo_planes,             L"Warn user if Multiplane Overlays support is missing",       dll_ini,         L"Display.Monitor",       L"WarnIfNoOverlayPlanes"),
 
     // Performance Monitoring  (Global Settings)
@@ -3020,9 +3030,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DiabloIV:
-        config.compatibility.disable_debug_features = true;
-        config.window.dont_hook_wndproc             = true;
-        config.system.global_inject_delay           = 0.001f;
+        config.window.dont_hook_wndproc = true;
         break;
 
       case SK_GAME_ID::CallOfDuty:
@@ -3193,6 +3201,8 @@ auto DeclKeybind =
     {
       ;
     }
+
+    display.override_refresh->load (config.display.refresh_rate);
   }
 
   if (config.apis.NvAPI.vulkan_bridge)
@@ -3865,7 +3875,8 @@ auto DeclKeybind =
     // No preference established, so handle should be null
     else if ( config.display.monitor_idx   == 0 )
     {         config.display.monitor_handle = 0;
-      if ( !  config.display.resolution.override.isZero () )
+      if ( (! config.display.resolution.override.isZero ()) ||
+              config.display.refresh_rate > 0.0f )
       {
         EnumDisplayMonitors ( nullptr,
                               nullptr,
@@ -4814,11 +4825,13 @@ SK_SaveConfig ( std::wstring name,
                        std::format ( L"{}x{}", config.display.resolution.override.x,
                                                config.display.resolution.override.y )
       );
+      display.override_refresh->store         (config.display.refresh_rate);
     }
 
     else
     {
       display.override_resolution->store (L"0x0");
+      display.override_refresh->store    (  0.0f);
     }
   }
 
