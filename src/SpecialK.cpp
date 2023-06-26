@@ -1317,6 +1317,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
           d3d9  = false;
           d3d11 = true;
+          d3d12 = true;
         }
 
 #ifndef _M_AMD64
