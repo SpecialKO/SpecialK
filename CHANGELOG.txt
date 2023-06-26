@@ -1,5 +1,11 @@
-﻿23.6.26.4
+﻿23.6.27.1
 =========
+ + Fixed SkipRedundantModeChanges=false always skipping SwapChain resizes (!)
+ + Added extra detection for wrapped D3D11 devices (i.e. ReShade) when checking
+     device-resource ownership during device context hooks.
+
+23.6.27
+=======
  + Fixed black screens in D3D11 when Special K and ReShade are used together
  + Fixed ReShade disabling HDR in D3D11 games
 
