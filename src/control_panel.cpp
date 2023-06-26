@@ -4060,8 +4060,8 @@ SK_ImGui_ControlPanel (void)
       {
         strncpy  (szAPIName, (const char *) u8"D3D9→12", 32);
       }
-      else if (api_mask == static_cast <int> (SK_RenderAPI::DDrawOn12  ||
-               api_mask == static_cast <int> (SK_RenderAPI::D3D8On12   ||
+      else if (api_mask == static_cast <int> (SK_RenderAPI::DDrawOn12) ||
+               api_mask == static_cast <int> (SK_RenderAPI::D3D8On12)  ||
                api_mask == static_cast <int> (SK_RenderAPI::GlideOn12)
       {
         lstrcatA (szAPIName, (const char *) u8"→12");
