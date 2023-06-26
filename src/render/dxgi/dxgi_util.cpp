@@ -29,6 +29,7 @@
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
 #include <concurrent_unordered_map.h>
 
@@ -1745,6 +1746,36 @@ SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTUR
   return true;
 }
 
+bool
+SK_D3D11_CheckForMatchingDevicesUsingPrivateData ( ID3D11Device *pDevice0,
+                                                   ID3D11Device *pDevice1 )
+{
+  bool matching = false;
+
+  uintptr_t  ptr0 = 0,
+             ptr1 = 0;
+  UINT      size0 = sizeof (uintptr_t),
+            size1 = sizeof (uintptr_t);
+
+  pDevice0->GetPrivateData (SKID_D3D11DeviceBasePtr, &size0, &ptr0);
+  pDevice1->GetPrivateData (SKID_D3D11DeviceBasePtr, &size1, &ptr1);
+
+  matching =
+    ( ptr0 == ptr1 ) && ptr0 != 0;
+
+  return matching;
+}
+
+bool
+SK_D3D11_EnsureMatchingDevices (ID3D11Device *pDevice0, ID3D11Device *pDevice1)
+{
+  if (pDevice0 == nullptr || pDevice1 == nullptr)
+    return false;
+
+  return
+    ( pDevice0 == pDevice1 ) ||
+      SK_D3D11_CheckForMatchingDevicesUsingPrivateData (pDevice0, pDevice1);
+}
 
 bool
 SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *pDevice)
@@ -1756,8 +1787,10 @@ SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *p
   pDeviceChild->GetDevice (&pParentDevice);
 
   return
-    pParentDevice.p      ==      pDevice ||
-    pParentDevice.IsEqualObject (pDevice);
+    pParentDevice.p      ==      pDevice  ||
+    pParentDevice.IsEqualObject (pDevice) ||
+      SK_D3D11_CheckForMatchingDevicesUsingPrivateData (
+                pParentDevice.p, pDevice );
 }
 
 bool
@@ -1770,8 +1803,10 @@ SK_D3D11_EnsureMatchingDevices (IDXGISwapChain *pSwapChain, ID3D11Device *pDevic
   pSwapChain->GetDevice   (IID_ID3D11Device, (void **)&pSwapChainDevice);
 
   return
-    pSwapChainDevice.p      ==      pDevice ||
-    pSwapChainDevice.IsEqualObject (pDevice);
+    pSwapChainDevice.p      ==      pDevice  ||
+    pSwapChainDevice.IsEqualObject (pDevice) ||
+      SK_D3D11_CheckForMatchingDevicesUsingPrivateData (
+                pSwapChainDevice.p, pDevice );
 }
 
 

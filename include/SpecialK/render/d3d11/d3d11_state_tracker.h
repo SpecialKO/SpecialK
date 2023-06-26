@@ -39,6 +39,16 @@ static constexpr GUID SKID_D3D11DeviceContextOrigin =
 // {5C5298CA-0F9D-5022-A19D-A2E69792AE03}
 { 0x5c5298ca, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x03 } };
 
+// The device context a command list was built using
+static constexpr GUID SKID_D3D11DeviceBasePtr =
+// {DF92B6F4-997C-42D5-A509-B1BD987B3D7B}
+{ 0xdf92b6f4, 0x997c, 0x42d5, { 0xa5, 0x9, 0xb1, 0xbd, 0x98, 0x7b, 0x3d, 0x7b } };
+
+// ReShade's wrapper GUID
+static constexpr GUID SKID_ReShade_D3D11Device =
+// {72299288-2C68-4AD8-945D-2BFB5AA9C609}
+  { 0x72299288, 0x2C68,  0x4AD8, { 0x94, 0x5D, 0x2B, 0xFB, 0x5A, 0xA9, 0xC6, 0x09 } };
+
 enum class SK_D3D11DispatchType
 {
   Standard,

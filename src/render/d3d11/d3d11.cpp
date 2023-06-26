@@ -3910,12 +3910,15 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
     //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
     if (rb.device.p != pDevice.p)
     {
-      if (config.system.log_level > 2)
+      if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDevice.p))
       {
-        SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
-      }
+        if (config.system.log_level > 2)
+        {
+          SK_ReleaseAssert (!"Hooked command ignored because it happened on the wrong device");
+        }
 
-      return true;
+        return true;
+      }
     }
   }
 
@@ -7882,6 +7885,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (SUCCEEDED (res) && ppDevice != nullptr)
   {
+    // Stash the pointer to this device so that we can test equality on wrapped devices
+    ret_device->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), ret_device);
+
     if ( ppSwapChain    != nullptr &&
          pSwapChainDesc != nullptr    )
     {

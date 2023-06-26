@@ -65,6 +65,9 @@ bool SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                ID3D11Texture2D *pDstTex,
                          const D3D11_BOX       *pSrcBox = nullptr );
 
+bool SK_D3D11_EnsureMatchingDevices ( ID3D11Device *pDevice0,
+                                      ID3D11Device *pDevice1 );
+
 bool SK_D3D11_EnsureMatchingDevices ( ID3D11DeviceChild *pDeviceChild,
                                       ID3D11Device      *pDevice );
 
