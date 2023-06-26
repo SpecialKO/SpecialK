@@ -2428,8 +2428,7 @@ bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
-  if (SK_IsInjected ())
-    SK_Inject_BroadcastExitNotify ();
+  SK_Inject_BroadcastExitNotify ();
 
   SK_DisableApplyQueuedHooks ();
 
@@ -2769,8 +2768,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     case 0:
     {
       // Notify anything that was waiting for injection into this game
-      if (SK_IsInjected ())
-        SK_Inject_BroadcastInjectionNotify ();
+      SK_Inject_BroadcastInjectionNotify ();
 
       wchar_t *wszDescription = nullptr;
 

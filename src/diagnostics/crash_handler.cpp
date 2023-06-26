@@ -1051,8 +1051,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     {
       // Notify anything that was waiting for injection into this game,
       //   we didn't quite live that long :)
-      if (SK_IsInjected ())
-        SK_RunOnce (SK_Inject_BroadcastExitNotify ());
+      SK_RunOnce (SK_Inject_BroadcastExitNotify ());
 
       SK_SelfDestruct     (   );
       SK_TerminateProcess (0x0);
