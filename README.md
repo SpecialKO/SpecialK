@@ -1,6 +1,23 @@
-[![Builds](https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml/badge.svg)](https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml)
+<br>
+<p align="center">
+&nbsp;&nbsp;<img src="https://img.shields.io/github/license/SpecialKO/SpecialK" alt="License">
+&nbsp;<img src="https://img.shields.io/github/languages/top/SpecialKO/SpecialK" alt="Primary Language">
+&nbsp;<img src="https://img.shields.io/tokei/lines/github/SpecialKO/SpecialK" alt="Lines of Code">
+</p>
+<p align="center">
+&nbsp;<a href="https://github.com/SpecialKO/SpecialK/releases/latest"><img src="https://img.shields.io/github/v/release/SpecialKO/SpecialK" alt="Release"></a>
+&nbsp;<img src="https://img.shields.io/github/commits-since/SpecialKO/SpecialK/latest/main" alt="Commits">
+&nbsp;<img src="https://img.shields.io/github/last-commit/SpecialKO/SpecialK" alt="Last Commit">
+</p>
+<p align="center">
+<a href="https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml"><img src="https://github.com/SpecialKO/SpecialK/actions/workflows/build-windows.yml/badge.svg" alt="Builds"></a>&nbsp;
+<a href="https://discord.gg/SpecialK"><img alt="Discord" src="https://img.shields.io/discord/778539700981071872?logo=discord&label=Discord"></a>
+</p>
 
-Special K&nbsp;&nbsp;<sub>*"Lovingly referred to as the Swiss Army Knife of PC gaming, Special K does a bit of everything. It is best known for fixing and enhancing graphics, its many detailed performance analysis and correction mods, and a constantly growing palette of tools that solve a wide variety of issues affecting PC games."*</sub><hr>
+Special K&nbsp;&nbsp;<sub>*"Lovingly referred to as the Swiss Army Knife of PC gaming, Special K does a bit of everything. It is best known for fixing and enhancing graphics, its many detailed performance analysis and correction mods, and a constantly growing palette of tools that solve a wide variety of issues affecting PC games."*</sub>
+
+<hr>
+
 >**Contents of Repository**
 >
 >This repository contains source code for Special K's code injection payload (`SpecialK(32|64).dll`).
