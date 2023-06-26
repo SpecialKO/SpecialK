@@ -1,4 +1,8 @@
-﻿23.6.27.1
+﻿23.6.27.2
+=========
+ + Added support for SKIF's new signal-based Minimize on Inject feature
+
+23.6.27.1
 =========
  + Fixed SkipRedundantModeChanges=false always skipping SwapChain resizes (!)
  + Added extra detection for wrapped D3D11 devices (i.e. ReShade) when checking

@@ -2554,12 +2554,44 @@ void SK_Inject_SuppressExitNotify (void)
   __SKIF_SuppressExitNotify = true;
 }
 
+void SK_Inject_WakeUpSKIF (void)
+{
+  HWND hWndExisting =
+        FindWindow (L"SK_Injection_Frontend", nullptr);
+
+  if (hWndExisting != nullptr && IsWindow (hWndExisting))
+  {
+    DWORD                                    dwPid = 0x0;
+    GetWindowThreadProcessId (hWndExisting, &dwPid);
+  
+    if ( dwPid != 0x0 &&
+         dwPid != GetCurrentProcessId () )
+    {
+      PostMessage (hWndExisting, WM_NULL, 0x0, 0x0);
+    }
+  }
+}
+
 void SK_Inject_BroadcastExitNotify (void)
 {
-  if (! (SK_GetFramesDrawn () > 0 && SK_IsInjected ()))
+  if (__SKIF_SuppressExitNotify || SK_GetFramesDrawn () == 0)
     return;
 
-  if (__SKIF_SuppressExitNotify)
+  // A new signal (23.6.28+) that is broadcast even for local injection
+  SK_AutoHandle hInjectExitAckEx (
+    OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+               LR"(Local\SKIF_InjectExitAckEx)" )
+  );
+
+  if (hInjectExitAckEx.isValid ())
+  {
+    SetEvent (hInjectExitAckEx.m_h);
+  }
+
+  SK_Inject_WakeUpSKIF ();
+
+  // The signal below is only for global injection
+  if (! SK_IsInjected ())
     return;
 
   SK_AutoHandle hInjectExitAck (
@@ -2575,6 +2607,20 @@ void SK_Inject_BroadcastExitNotify (void)
 
 void SK_Inject_BroadcastInjectionNotify (void)
 {
+  // A new signal (23.6.28+) that is broadcast even for local injection
+  SK_AutoHandle hInjectAckEx (
+    OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+               LR"(Local\SKIF_InjectAckEx)" )
+  );
+
+  if (hInjectAckEx.isValid ())
+  {
+    SetEvent (hInjectAckEx.m_h);
+  }
+
+  SK_Inject_WakeUpSKIF ();
+
+  // The original signal below denotes successful global injection
   if (! SK_IsInjected ())
     return;
 
