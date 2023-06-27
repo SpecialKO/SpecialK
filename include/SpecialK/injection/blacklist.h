@@ -207,6 +207,9 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"setup_redlauncher.exe", // The Witcher 3's Launcher
 
+  L"cefsharp.browsersubprocess.exe", // Baldur's Gate 3
+  L"larilauncher.exe",
+
   L"coherentui_host.exe",
   L"activationui.exe",
   L"zossteamstarter.exe",

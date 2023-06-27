@@ -1,6 +1,7 @@
 ﻿23.6.27.4
 =========
  + Fixed libScePad hooks on disconnected controllers disabling XInput
+ + Blacklisted CefSharp.BrowserSubprocess and LariLauncher (Baldur's Gate 3)
 
 23.6.27.3
 =========
