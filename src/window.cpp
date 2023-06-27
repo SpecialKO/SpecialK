@@ -7143,11 +7143,21 @@ BOOL
 WINAPI
 SK_SetCursorPos (int X, int Y)
 {
-  if (SetCursorPos_Original != nullptr)
-    return SetCursorPos_Original (X, Y);
+  BOOL bRet = FALSE;
 
-  return
-    SetCursorPos (X, Y);
+  if (SetCursorPos_Original != nullptr)
+    bRet = SetCursorPos_Original (X, Y);
+
+  else
+    bRet = SetCursorPos (X, Y);
+
+  if (bRet)
+  {
+    SK_ImGui_Cursor.pos = { X, Y };
+    SK_ImGui_Cursor.ScreenToLocal (&SK_ImGui_Cursor.pos);
+  }
+
+  return bRet;
 }
 
 UINT

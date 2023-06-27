@@ -1071,20 +1071,34 @@ sk_imgui_cursor_s SK_ImGui_Cursor;
 HCURSOR GetGameCursor (void);
 
 bool
+SK_ImGui_IsAnythingHovered (void)
+{
+  return
+    ImGui::IsAnyItemActive  () ||
+    ImGui::IsAnyItemFocused () ||
+    ImGui::IsAnyItemHovered () ||
+    ImGui::IsWindowHovered  (
+               ImGuiHoveredFlags_AnyWindow                    |
+               ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
+               ImGuiHoveredFlags_AllowWhenBlockedByPopup
+                            );
+}
+
+bool
 SK_ImGui_IsMouseRelevantEx (void)
 {
-  // SK_ImGui_Visible is the full-blown config UI;
-  //   but we also have floating widgets that may capture mouse
-  //     input.
-  return config.input.mouse.disabled_to_game || (SK_ImGui_Active () ||
-         ImGui::IsWindowHovered (
-                    ImGuiHoveredFlags_AnyWindow                    |
-                    ImGuiHoveredFlags_AllowWhenBlockedByActiveItem |
-                    ImGuiHoveredFlags_AllowWhenBlockedByPopup
-                                )                                  ||
-         ImGui::IsAnyItemActive  () || ImGui::IsAnyItemFocused ()  ||
-         ImGui::IsAnyItemHovered ());
-      // ^^^ These are our floating widgets
+  bool relevant =
+    config.input.mouse.disabled_to_game || SK_ImGui_Active ();
+
+  if (! relevant)
+  {
+    // SK_ImGui_Active () returns true for the full-blown config UI;
+    //   we also have floating widgets that may capture mouse input.
+    relevant =
+      SK_ImGui_IsAnythingHovered ();
+  }
+
+  return relevant;
 }
 
 bool
@@ -1428,7 +1442,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     static const auto& io =
       ImGui::GetIO ();
 
-    if (config.input.ui.capture_mouse || io.WantCaptureMouse)
+    if (io.WantCaptureMouse || (config.input.ui.capture_mouse && SK_ImGui_Active ()))
       imgui_capture = true;
 
     else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled)
@@ -2020,8 +2034,6 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 
   else if (! SK_ImGui_WantMouseCapture ())
   {
-    SK_ImGui_Cursor.pos = SK_ImGui_Cursor.orig_pos;
-
     return
       SK_SetCursorPos (x, y);
   }

@@ -956,8 +956,6 @@ public:
       // Deactivating, but we might want to hide this event from the game...
       if (pParam->m_bActive == 0)
       {
-        extern bool SK_ImGui_Visible;
-
         // Undo the event the game is about to receive.
         if (SK_ImGui_Visible) SK::SteamAPI::SetOverlayState (true);
       }

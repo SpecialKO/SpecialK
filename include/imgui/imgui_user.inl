@@ -27,7 +27,6 @@ volatile LONG
 
 #include <SpecialK/control_panel.h>
 
-extern bool IMGUI_API SK_ImGui_Visible;
 extern bool           SK_ImGui_IsMouseRelevant (void);
 
 extern HWND           SK_GetParentWindow    (HWND);

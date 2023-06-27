@@ -149,8 +149,6 @@ public:
       // Deactivating, but we might want to hide this event from the game...
       if (Data->bIsVisible == 0)
       {
-        extern bool SK_ImGui_Visible;
-
         // Undo the event the game is about to receive.
         if (SK_ImGui_Visible) SK::EOS::SetOverlayState (true);
       }
