@@ -1,4 +1,12 @@
-﻿23.6.27.2
+﻿23.6.27.4
+=========
+ + Fixed libScePad hooks on disconnected controllers disabling XInput
+
+23.6.27.3
+=========
+ + Fixed SKIF's new signal not being set when used in local injection
+
+23.6.27.2
 =========
  + Added support for SKIF's new signal-based Minimize on Inject feature
 

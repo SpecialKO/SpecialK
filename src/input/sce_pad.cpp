@@ -200,7 +200,10 @@ SK_ScePadRead (SK_ScePadHandle handle, SK_ScePadData *iData, int count)
     SK_ScePad_Backend;
 
   for (int i = 0 ; i < count ; ++i)
-    SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
+  {
+    if (iData != nullptr && iData->connected)
+      SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
+  }
 
   SK_ScePadData                surrogate = { }; SK_ScePadResult ret =
   SK_ScePadReadState (handle, &surrogate);
@@ -256,8 +259,6 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
   static auto& scePad =
     SK_ScePad_Backend;
 
-  SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
-
   bool bToggleNav = false,
        bToggleVis = false;
 
@@ -271,6 +272,8 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
     sceinput_ctx.scePad.
                  scePadReadState_Original (handle, iData);
 
+  if (iData != nullptr && iData->connected)
+    SK_SCEPAD_READ (scePad, sk_input_dev_type::Gamepad);
 
   static volatile ULONG64 ullLastChordFrame  = 0ULL;
   static volatile ULONG64 ullFirstChordFrame = 1ULL;
@@ -777,8 +780,6 @@ SK_Input_HookScePad (void)
       pCtx->scePadRead_Detour                     = SK_ScePadRead;
       pCtx->scePadReadState_Detour                = SK_ScePadReadState;
       pCtx->scePadResetOrientation_Detour         = SK_ScePadResetOrientation;
-      pCtx->scePadSetAngularVelocity\
-DeadbandState_Detour                              = SK_ScePadSetAngularVelocityDeadbandState;
       pCtx->scePadSetAngularVelocity\
 DeadbandState_Detour                              = SK_ScePadSetAngularVelocityDeadbandState;
       pCtx->scePadSetMotionSensorState_Detour     = SK_ScePadSetMotionSensorState;
