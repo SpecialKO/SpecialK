@@ -573,7 +573,7 @@ struct sk_config_t
       bool    clear_flipped_chain  =  true; // Clear buffers on present? (non-compliant)
       float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
       bool    suppress_resize_fail =  true; // Workaround EOS Overlay bug in D3D12
-      float   warn_if_vram_exceeds = 100.f; // Warn if VRAM usage exceeds % of available
+      float   warn_if_vram_exceeds =  95.f; // Warn if VRAM usage exceeds % of available
     } dxgi;
 
     struct {

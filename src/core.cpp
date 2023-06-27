@@ -3635,21 +3635,28 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  if (SK_GPU_GetVRAMUsed     (0) > 0 &&
-      SK_GPU_GetVRAMCapacity (0) > 0)
+  if (SK_GPU_GetVRAMUsed   (0) > 0 &&
+      SK_GPU_GetVRAMBudget (0) > 0 && config.render.dxgi.warn_if_vram_exceeds > 0.0f)
   {
-    double percent_used =
-      static_cast <double> (SK_GPU_GetVRAMUsed     (0)) /
-      static_cast <double> (SK_GPU_GetVRAMCapacity (0));
+    double percent_used = 100.0 *
+      ( static_cast <double> (SK_GPU_GetVRAMUsed   (0)) /
+        static_cast <double> (SK_GPU_GetVRAMBudget (0)) );
 
-    if (100.0 * percent_used > config.render.dxgi.warn_if_vram_exceeds)
+    if (percent_used > config.render.dxgi.warn_if_vram_exceeds)
     {
-      SK_RunOnce ([&]{
+      static bool          once = false;
+      if (! std::exchange (once, true))
+      {
+        std::wstring used     =
+          SK_File_SizeToString (SK_GPU_GetVRAMUsed   (0)).data ();
+        std::wstring capacity =
+          SK_File_SizeToString (SK_GPU_GetVRAMBudget (0)).data ();
+
         SK_ImGui_Warning (
-          SK_FormatStringW ( L"VRAM Usage Exceeds %f%% of Available VRAM!",
-                    100.0 * percent_used).c_str ()
-        );
-      }());
+          SK_FormatStringW ( L"VRAM Usage (%ls) Exceeds %5.2f%% of Available (%ls)!",
+                                   used.c_str (), percent_used,
+                               capacity.c_str () ).c_str () );
+      }
     }
   }
 

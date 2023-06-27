@@ -1186,6 +1186,10 @@ SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
 
 using SK_RenderBackend = SK_RenderBackend_V2;
 
+SK_RenderBackend&
+__stdcall
+SK_GetCurrentRenderBackend (void) noexcept;
+
 void
 __stdcall
 SK_InitRenderBackends (void);
@@ -1338,15 +1342,5 @@ void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during appl
 // Move this to a more formal presentation manager
 extern bool SK_GL_OnD3D11;
 extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal
-
-extern SK_LazyGlobal <SK_RenderBackend> __SK_RBkEnd;
-
-inline
-SK_RenderBackend&
-SK_GetCurrentRenderBackend (void) noexcept
-{
-  return
-    __SK_RBkEnd.get ();
-}
 
 #endif /* __SK__RENDER_BACKEND__H__ */

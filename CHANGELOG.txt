@@ -3,9 +3,11 @@
  + Added warning if VRAM used exceeds a configurable % of -available- VRAM
 
      [Render.DXGI]
-     WarnIfUsedVRAMPercentExceeds= (Some % value; 100 by default)
+     WarnIfUsedVRAMPercentExceeds= (Some % value; 95 by default)
 
    This is also configurable in the D3D11/D3D12 section of the control panel
+
+     >> Set to 0.0 to disable the warning.
 
 23.6.27.4
 =========

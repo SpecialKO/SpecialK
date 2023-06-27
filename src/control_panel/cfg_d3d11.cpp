@@ -1479,12 +1479,12 @@ SK::ControlPanel::D3D11::Draw (void)
           ImGui::BulletText ("Game Restart Required");
         }
       }
-
-      ImGui::SliderFloat (
-        "Warn if Used VRAM Exceeds", &config.render.dxgi.warn_if_vram_exceeds,
-                              25.0f, 125.0f, "%4.2f%%"
-      );
     }
+
+    ImGui::SliderFloat (
+      "Warn if Used VRAM Exceeds", &config.render.dxgi.warn_if_vram_exceeds,
+                            25.0f, 125.0f, "%4.2f%%"
+    );
 
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
