@@ -1,4 +1,11 @@
-﻿23.6.28
+﻿23.6.28.1
+=========
+ + Added VRAM usage gauge to the control panel for OpenGL/Vulkan/D3D11/D3D12
+ + VRAM quotas are now configurable by right-clicking the VRAM gauge
+ + VRAM quota warnings can be reset so users can try changing game settings,
+     or the quota itself and test for VRAM shortages using the new settings.
+
+23.6.28
 =======
  + Added warning if VRAM used exceeds a configurable % of -available- VRAM
 

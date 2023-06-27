@@ -69,6 +69,27 @@ namespace SK_ImGui
   // Should return true when clicked, this is not consistent with
   //   the rest of the ImGui API.
   bool BatteryMeter (void);
+
+  // Allows typing values into the slider without immediately applying them
+  static inline bool
+  SliderFloatDeferred (
+    const char* label, float* v, float* temp, float v_min, float v_max,
+    const char* format = "%.3f", float power = 1.0F
+  )
+  {
+    if (v == nullptr || temp == nullptr)
+      return false;
+  
+    bool ret =
+      ImGui::SliderFloat (label, temp, v_min, v_max, format, power);
+  
+    if (! (ImGui::IsItemFocused () || ImGui::IsItemActive ()))
+    {
+      *v = *temp;
+    }
+  
+    return ret;
+  }
 };
 
 struct show_eula_s {
