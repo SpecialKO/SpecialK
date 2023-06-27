@@ -2367,6 +2367,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::BaldursGate3:
         config.compatibility.impersonate_debugger = true;
+        config.apis.NvAPI.vulkan_bridge           = 1;
         break;
 
       case SK_GAME_ID::Persona4:
