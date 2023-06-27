@@ -712,6 +712,7 @@ struct {
     sk::ParameterBool*    temporary_dwm_hdr       = nullptr;
     sk::ParameterBool*    disable_virtual_vbi     = nullptr;
     sk::ParameterBool*    clear_buffers_after_flip= nullptr;
+    sk::ParameterFloat*   warn_if_vram_exceeds    = nullptr;
   } dxgi;
 
   struct {
@@ -1544,6 +1545,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.temporary_dwm_hdr,          L"Temporarily Enable DWM-based HDR while the game runs",      dll_ini,         L"Render.DXGI",           L"TemporaryDesktopHDRMode"),
     ConfigEntry (render.dxgi.disable_virtual_vbi,        L"Disable Dynamic Refresh Rate (VBLANK Virtualization)",      dll_ini,         L"Render.DXGI",           L"DisableVirtualizedBlanking"),
     ConfigEntry (render.dxgi.clear_buffers_after_flip,   L"Clear the SwapChain Backbuffer every frame",                dll_ini,         L"Render.DXGI",           L"ClearFlipModelBackbuffers"),
+    ConfigEntry (render.dxgi.warn_if_vram_exceeds,       L"Warn if VRAM used exceeds this % of available VRAM",        dll_ini,         L"Render.DXGI",           L"WarnIfUsedVRAMPercentExceeds"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -3494,6 +3496,7 @@ auto DeclKeybind =
                                     load (config.render.dxgi.clear_flipped_chain);
   render.dxgi.enable_factory_cache->load (config.render.dxgi.use_factory_cache);
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
+  render.dxgi.warn_if_vram_exceeds->load (config.render.dxgi.warn_if_vram_exceeds);
 
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load       (config.textures.d3d11.precise_hash);
@@ -5011,6 +5014,7 @@ SK_SaveConfig ( std::wstring name,
                                         store (config.render.dxgi.clear_flipped_chain);
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
+      render.dxgi.warn_if_vram_exceeds->store (config.render.dxgi.warn_if_vram_exceeds);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

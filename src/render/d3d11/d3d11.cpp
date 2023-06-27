@@ -3873,18 +3873,11 @@ bool
 SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
                                    ID3D11DeviceContext* pDevCtx )
 {
-         const bool  bDeferred  =   SK_D3D11_IsDevCtxDeferred (pDevCtx);
-  static const bool& bIsolation = config.render.dxgi.deferred_isolation;
-
-  if (  (  bDeferred  && (! bIsolation) ) ||
-      ( (! bDeferred) && (  bWrapped  )
-                      && (! bIsolation) )
-     )
+  if (! config.render.dxgi.deferred_isolation)
   {
-    return
-      true;
+    if (bWrapped || SK_D3D11_IsDevCtxDeferred (pDevCtx))
+      return true;
   }
-
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

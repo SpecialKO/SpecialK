@@ -75,13 +75,7 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
   return dRefresh;
 }
 
-SK_RenderBackend&
-__stdcall
-SK_GetCurrentRenderBackend (void) noexcept
-{
-  static SK_RenderBackend __SK_RBkEnd;
-  return                  __SK_RBkEnd;
-}
+SK_LazyGlobal <SK_RenderBackend> __SK_RBkEnd;
 
 void
 __stdcall

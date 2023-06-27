@@ -3635,6 +3635,25 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
+  if (SK_GPU_GetVRAMUsed     (0) > 0 &&
+      SK_GPU_GetVRAMCapacity (0) > 0)
+  {
+    double percent_used =
+      static_cast <double> (SK_GPU_GetVRAMUsed     (0)) /
+      static_cast <double> (SK_GPU_GetVRAMCapacity (0));
+
+    if (100.0 * percent_used > config.render.dxgi.warn_if_vram_exceeds)
+    {
+      SK_RunOnce ([&]{
+        SK_ImGui_Warning (
+          SK_FormatStringW ( L"VRAM Usage Exceeds %f%% of Available VRAM!",
+                    100.0 * percent_used).c_str ()
+        );
+      }());
+    }
+  }
+
+
   return hr;
 }
 

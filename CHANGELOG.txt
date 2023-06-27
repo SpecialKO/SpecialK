@@ -1,4 +1,13 @@
-﻿23.6.27.4
+﻿23.6.28
+=======
+ + Added warning if VRAM used exceeds a configurable % of -available- VRAM
+
+     [Render.DXGI]
+     WarnIfUsedVRAMPercentExceeds= (Some % value; 100 by default)
+
+   This is also configurable in the D3D11/D3D12 section of the control panel
+
+23.6.27.4
 =========
  + Fixed libScePad hooks on disconnected controllers disabling XInput
  + Blacklisted CefSharp.BrowserSubprocess and LariLauncher (Baldur's Gate 3)
