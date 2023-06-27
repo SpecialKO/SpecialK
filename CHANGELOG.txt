@@ -2,6 +2,8 @@
 =========
  + Fixed libScePad hooks on disconnected controllers disabling XInput
  + Blacklisted CefSharp.BrowserSubprocess and LariLauncher (Baldur's Gate 3)
+ + Enable Vulkan Bridge in Baldur's Gate 3 by default
+ + Removed unused INI options: "Ignore RTSS Delay" and "Adaptive Sync"
 
 23.6.27.3
 =========

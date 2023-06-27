@@ -637,7 +637,6 @@ sk::ParameterBool*        handle_crashes          = nullptr;
 sk::ParameterBool*        silent_crash            = nullptr;
 sk::ParameterBool*        crash_suppression       = nullptr;
 sk::ParameterBool*        prefer_fahrenheit       = nullptr;
-sk::ParameterBool*        ignore_rtss_delay       = nullptr;
 sk::ParameterInt*         log_level               = nullptr;
 sk::ParameterBool*        trace_libraries         = nullptr;
 sk::ParameterBool*        strict_compliance       = nullptr;
@@ -684,7 +683,6 @@ struct {
       sk::ParameterInt*   resync                  = nullptr;
       sk::ParameterInt*   error                   = nullptr;
       sk::ParameterFloat* bias                    = nullptr;
-      sk::ParameterBool*  adaptive                = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1437,7 +1435,6 @@ auto DeclKeybind =
     ConfigEntry (debug_wait,                             L"Halt Special K Initialization Until Debugger is Attached",  dll_ini,         L"SpecialK.System",       L"WaitForDebugger"),
     ConfigEntry (debug_output,                           L"Print Application's Debug Output in real-time",             dll_ini,         L"SpecialK.System",       L"DebugOutput"),
     ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
-    ConfigEntry (ignore_rtss_delay,                      L"Ignore RTSS Delay Incompatibilities",                       dll_ini,         L"SpecialK.System",       L"IgnoreRTSSHookDelay"),
     ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
     ConfigEntry (return_to_skif,                         L"At Application Exit, make SKIF the new Foreground Window",  dll_ini,         L"SpecialK.System",       L"ReturnToSKIF"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
@@ -1474,7 +1471,6 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
-    ConfigEntry (render.framerate.latent_sync.adaptive,  L"Allow tearing if framerate is below target FPS",            dll_ini,         L"FrameRate.LatentSync",  L"AdaptiveSync"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
@@ -4205,7 +4201,6 @@ auto DeclKeybind =
   strict_compliance->load (config.system.strict_compliance);
   log_level->load         (config.system.log_level);
   prefer_fahrenheit->load (config.system.prefer_fahrenheit);
-  ignore_rtss_delay->load (config.system.ignore_rtss_delay);
   handle_crashes->load    (config.system.handle_crashes);
   silent_crash->load      (config.system.silent_crash);
   crash_suppression->load (config.system.suppress_crashes);
@@ -5157,8 +5152,6 @@ SK_SaveConfig ( std::wstring name,
 
   nvidia.api.disable->store                    (! config.apis.NvAPI.enable);
   amd.adl.disable->store                       (! config.apis.ADL.enable);
-
-  ignore_rtss_delay->store                     (config.system.ignore_rtss_delay);
 
 
   // Don't store this setting at shutdown  (it may have been turned off automatically)
