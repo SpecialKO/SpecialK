@@ -6417,8 +6417,12 @@ SK_D3D11_Init (void)
         {
           InterlockedIncrementRelease (&SK_D3D11_initialized);
 
-          success =
-            ( MH_OK == SK_ApplyQueuedHooks () );
+          bool  bEnable = SK_EnableApplyQueuedHooks  ();
+          {
+            success =
+              ( MH_OK == SK_ApplyQueuedHooks () );
+          }
+          if (! bEnable)  SK_DisableApplyQueuedHooks ();
         }
       }
 

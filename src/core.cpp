@@ -25,6 +25,7 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <imgui/font_awesome.h>
 #include <reflex/pclstats.h>
 
@@ -3636,47 +3637,61 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
-  if ( SK_GPU_GetVRAMUsed   (0) > 0 &&
-       SK_GPU_GetVRAMBudget (0) > 0 &&
-       config.render.dxgi.warn_if_vram_exceeds > 0.0f )
+  if (SK_DXGI_IsTrackingBudget ())
   {
-    double percent_used = 100.0 *
-      ( static_cast <double> (SK_GPU_GetVRAMUsed   (0)) /
-        static_cast <double> (SK_GPU_GetVRAMBudget (0)) );
+    constexpr auto    _BudgetPollingIntervalMs = 250UL;
+    static DWORD dwLastBudgetPoll              = 0UL;
 
-    if (percent_used > config.render.dxgi.warn_if_vram_exceeds)
+    if ( SK::ControlPanel::current_time - dwLastBudgetPoll >
+                                               _BudgetPollingIntervalMs )
     {
-      if (! std::exchange (config.render.dxgi.warned_low_vram, true))
+      dwLastBudgetPoll = SK::ControlPanel::current_time;
+
+      SK_DXGI_SignalBudgetThread ();
+    }
+
+    if ( SK_GPU_GetVRAMUsed   (0) > 0 &&
+         SK_GPU_GetVRAMBudget (0) > 0 &&
+         config.render.dxgi.warn_if_vram_exceeds > 0.0f )
+    {
+      double percent_used = 100.0 *
+        ( static_cast <double> (SK_GPU_GetVRAMUsed   (0)) /
+          static_cast <double> (SK_GPU_GetVRAMBudget (0)) );
+
+      if (percent_used > config.render.dxgi.warn_if_vram_exceeds)
       {
-        std::wstring used     =
-          SK_File_SizeToStringF (SK_GPU_GetVRAMUsed   (0), 0, 2).data (),
-                     capacity =
-          SK_File_SizeToStringF (SK_GPU_GetVRAMBudget (0), 0, 2).data (),
-                     quota    =
-          SK_File_SizeToStringF (
-              (uint64_t)(0.01 * config.render.dxgi.warn_if_vram_exceeds
-                              * SK_GPU_GetVRAMBudget (0)), 0, 2).data (),
-                     overage  =
-          SK_File_SizeToStringF (SK_GPU_GetVRAMUsed   (0) -
-              (uint64_t)(0.01 * config.render.dxgi.warn_if_vram_exceeds
-                              * SK_GPU_GetVRAMBudget (0)), 0, 2).data ();
+        if (! std::exchange (config.render.dxgi.warned_low_vram, true))
+        {
+          std::wstring used     =
+            SK_File_SizeToStringF (SK_GPU_GetVRAMUsed   (0), 0, 2).data (),
+                       capacity =
+            SK_File_SizeToStringF (SK_GPU_GetVRAMBudget (0), 0, 2).data (),
+                       quota    =
+            SK_File_SizeToStringF (
+                (uint64_t)(0.01 * config.render.dxgi.warn_if_vram_exceeds
+                                * SK_GPU_GetVRAMBudget (0)), 0, 2).data (),
+                       overage  =
+            SK_File_SizeToStringF (SK_GPU_GetVRAMUsed   (0) -
+                (uint64_t)(0.01 * config.render.dxgi.warn_if_vram_exceeds
+                                * SK_GPU_GetVRAMBudget (0)), 0, 2).data ();
 
-        double percent_over   =
-               percent_used - config.render.dxgi.warn_if_vram_exceeds;
+          double percent_over   =
+                 percent_used - config.render.dxgi.warn_if_vram_exceeds;
 
-        SK_ImGui_WarningWithTitle (
-          SK_FormatStringW ( L"VRAM Used:\t%ls\r\n\t"
-                             L"VRAM Quota:\t%0.1f%% of Available; %ls"
-                             L"\r\n\r\n\t\t %ls "
-                             L"Over Budget by %0.1f%%  (%ls)\r\n\r\n "
-                             L" Configure VRAM Quotas by Right-Clicking the"
-                             L" VRAM Gauge.",
-                                   used.c_str (),
-                               config.render.dxgi.warn_if_vram_exceeds,
-                                  quota.c_str (), L"*", percent_over,
-                                overage.c_str ()
-                           ).c_str (), L"Insufficient VRAM"
-                         );
+          SK_ImGui_WarningWithTitle (
+            SK_FormatStringW ( L"VRAM Used:\t%ls\r\n\t"
+                               L"VRAM Quota:\t%0.1f%% of Available; %ls"
+                               L"\r\n\r\n\t\t %ls "
+                               L"Over Budget by %0.1f%%  (%ls)\r\n\r\n "
+                               L" Configure VRAM Quotas by Right-Clicking the"
+                               L" VRAM Gauge.",
+                                     used.c_str (),
+                                 config.render.dxgi.warn_if_vram_exceeds,
+                                    quota.c_str (), L"*", percent_over,
+                                  overage.c_str ()
+                             ).c_str (), L"Insufficient VRAM"
+                           );
+        }
       }
     }
   }

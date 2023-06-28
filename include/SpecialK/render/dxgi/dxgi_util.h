@@ -105,3 +105,6 @@ template <typename _T>
 HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                             _T       *pPrivateData );
+
+void        SK_DXGI_SignalBudgetThread (void);
+bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;

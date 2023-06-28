@@ -8498,8 +8498,7 @@ SK_DXGI_InitHooksBeforePlugIn (void)
 
   if (SK_Import_GetNumberOfPlugIns () > 0)
   {
-    bool  bEnable = SK_DisableApplyQueuedHooks ();
-    if (! bEnable)  SK_EnableApplyQueuedHooks  ();
+    bool  bEnable = SK_EnableApplyQueuedHooks ();
     {
       SK_ApplyQueuedHooks ();
     }
@@ -8682,7 +8681,11 @@ HookDXGI (LPVOID user)
       if (pSwapChain1 != nullptr)
         SK_DXGI_HookPresent1 (pSwapChain1);
 
-      SK_ApplyQueuedHooks        ();
+      bool  bEnable = SK_EnableApplyQueuedHooks  ();
+      {
+        SK_ApplyQueuedHooks ();
+      }
+      if (! bEnable)  SK_DisableApplyQueuedHooks ();
 
 
       extern volatile LONG          SK_D3D11_initialized;

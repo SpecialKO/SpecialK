@@ -1,4 +1,9 @@
-﻿23.6.28.1
+﻿23.6.28.2
+=========
+ + Poll DXGI Budget statistics once every 250 ms if the GPU widget or GPU text
+     overlay are not active.
+
+23.6.28.1
 =========
  + Added VRAM usage gauge to the control panel for OpenGL/Vulkan/D3D11/D3D12
  + VRAM quotas are now configurable by right-clicking the VRAM gauge

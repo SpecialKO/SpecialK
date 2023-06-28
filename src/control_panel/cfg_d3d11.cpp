@@ -83,10 +83,6 @@ SK_ImGui_NV_DepthBoundsD3D11 (void)
   }
 }
 
-extern bool
-WINAPI
-SK_DXGI_IsTrackingBudget (void);
-
 SK_LazyGlobal <SK_D3D11_TexCacheResidency_s> SK_D3D11_TexCacheResidency;
 
 void
@@ -1558,7 +1554,7 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       float x_pos =
         ImGui::GetCursorPosX ();
-      ImGui::PushStyleColor  (ImGuiCol_PlotHistogram, ImColor (0.25f, 0.25f, 0.25f, 1.0f));
+      ImGui::PushStyleColor  (ImGuiCol_PlotHistogram, ImColor (0.3f, 0.3f, 0.3f, 1.0f));
       ImGui::ProgressBar     (
         static_cast <float>
           ( static_cast <double> (vram_quota) /
