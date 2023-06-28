@@ -194,9 +194,11 @@ SK_ImGui_DrawGraph_Latency ()
       ImColor (1.f, 1.f, 1.f), "Input Age"
     );
     }
-    ImGui::EndGroup   ();
-    ImGui::SameLine   (0.0f, 10.0f);
-    ImGui::BeginGroup ();
+    ImGui::EndGroup          ();
+    ImGui::SameLine          ();
+    ImGui::VerticalSeparator ();
+    ImGui::SameLine          (0.0f, 10.0f);
+    ImGui::BeginGroup        ();
     ////for (auto* pStage : stages)
     ////{
     ////  ImGui::TextColored (
@@ -266,6 +268,9 @@ SK_ImGui_DrawGraph_Latency ()
         ImGui::GetTextLineHeightWithSpacing () / 2.0f;
     }
     ImGui::EndGroup   ();
+
+    ImGui::SameLine          ();
+    ImGui::VerticalSeparator ();
   }
 
   ImGui::SameLine   (0, 10.0f);
@@ -518,6 +523,7 @@ SK_ImGui_DrawConfig_Latency ()
     ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
   }
   ImGui::EndGroup   ();
+  ImGui::Separator  ();
 }
 
 class SKWG_Latency : public SK_Widget

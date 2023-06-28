@@ -1,4 +1,9 @@
-﻿23.6.28.2
+﻿23.6.28.3
+=========
+ + Lowered HDR profile 0's default gamma to 0.92 to improve shadow detail
+ + Added button to close hovered widgets if the control panel is open
+
+23.6.28.2
 =========
  + Poll DXGI Budget statistics once every 250 ms if the GPU widget or GPU text
      overlay are not active.

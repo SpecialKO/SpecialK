@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/widgets/widget.h>
+#include <imgui/font_awesome.h>
 
 
 extern iSK_INI* osd_ini;
@@ -557,6 +558,20 @@ SK_Widget::draw_base (void)
                           nullptr, flags );
 
   ImGui::SetWindowFontScale (SK_ImGui_Widgets->scale);
+
+  if (SK_ImGui_Active ())
+  {
+    if (ImGui::IsWindowHovered ())
+    {
+      ImGui::PushID (hashed_name);
+      if (ImGui::Button (ICON_FA_WINDOW_CLOSE))
+      {
+        setVisible (false);
+      }
+      ImGui::PopID    ();
+      ImGui::SameLine ();
+    }
+  }
 
   static SK_Widget*
        focus_widget = nullptr;

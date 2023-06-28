@@ -1564,7 +1564,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       ImGui::SetTooltip ("Changes to 'Active Monitor' using this menu (not keybinds) will be remembered");
   }
 
-  if (ImGui::Checkbox ("Remember Display Resolution", &config.display.resolution.save))
+  if (ImGui::Checkbox ("Remember Display Mode", &config.display.resolution.save))
   {
     if (config.display.resolution.save)
     {
@@ -1588,7 +1588,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   }
 
   if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Changes to Resolution on 'Active Monitor' will apply to future launches of this game");
+      ImGui::SetTooltip ("Changes to Resolution or Refresh on 'Active Monitor'"
+                         " will apply to future launches of this game");
 
   ImGui::EndGroup   ();
   ImGui::SameLine   ();
@@ -2570,7 +2571,7 @@ SK_NV_LatencyControlPanel (void)
                                   rb.api == SK_RenderAPI::D3D12 ))
   {
     ImGui::Separator  ();
-    ImGui::Text       ("NVIDIA Driver Black Magic");
+    ImGui::Text       ("NVIDIA Latency Management");
 
     if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
                                                     && config.nvidia.reflex.enable)
