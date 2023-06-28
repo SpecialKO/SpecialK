@@ -61,7 +61,7 @@ struct sk_sensor_prefs_s
 class SKWG_GPU_Monitor : public SK_Widget
 {
 public:
-  SKWG_GPU_Monitor (void) noexcept : SK_Widget ("GPUMonitor")
+  SKWG_GPU_Monitor (void) noexcept : SK_Widget ("GPU Monitor")
   {
     SK_ImGui_Widgets->gpu_monitor = this;
 

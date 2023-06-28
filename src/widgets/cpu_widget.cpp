@@ -1566,7 +1566,7 @@ public:
   }
 
 public:
-  SKWG_CPU_Monitor (void) : SK_Widget ("CPUMonitor")
+  SKWG_CPU_Monitor (void) : SK_Widget ("CPU Monitor")
   {
     SK_ImGui_Widgets->cpu_monitor = this;
 

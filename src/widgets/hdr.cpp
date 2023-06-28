@@ -580,7 +580,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   if (bOpen)
   {
     auto pHDRWidget          =
-      ImGui::FindWindowByName ("DXGI_HDR##Widget_DXGI_HDR");
+      ImGui::FindWindowByName ("HDR Configuration##Widget_DXGI_HDR");
     auto pControlPanelWindow =
       ImGui::FindWindowByName (SK_ImGui_ControlPanelTitle ());
 
@@ -613,7 +613,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
     if (bLastOpen)
     { 
       auto pHDRWidget          =
-        ImGui::FindWindowByName ("DXGI_HDR##Widget_DXGI_HDR");
+        ImGui::FindWindowByName ("HDR Configuration##Widget_DXGI_HDR");
       auto pControlPanelWindow =
         ImGui::FindWindowByName (SK_ImGui_ControlPanelTitle ());
 
@@ -762,7 +762,7 @@ extern iSK_INI* osd_ini;
 class SKWG_HDR_Control : public SK_Widget, SK_IVariableListener
 {
 public:
-  SKWG_HDR_Control (void) : SK_Widget ("DXGI_HDR")
+  SKWG_HDR_Control (void) : SK_Widget ("HDR Configuration")
   {
     SK_ImGui_Widgets->hdr_control = this;
 

@@ -1010,7 +1010,7 @@ float fExtraData = 0.0f;
 class SKWG_FramePacing : public SK_Widget
 {
 public:
-  SKWG_FramePacing (void) : SK_Widget ("FramePacing")
+  SKWG_FramePacing (void) : SK_Widget ("Frame Pacing")
   {
     SK_ImGui_Widgets->frame_pacing = this;
 

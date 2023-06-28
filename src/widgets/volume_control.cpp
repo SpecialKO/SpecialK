@@ -28,7 +28,7 @@ extern void SK_ImGui_VolumeManager (void);
 class SKWG_VolumeControl : public SK_Widget
 {
 public:
-  SKWG_VolumeControl (void) noexcept : SK_Widget ("VolumeControl")
+  SKWG_VolumeControl (void) noexcept : SK_Widget ("Volume Control")
   {
     SK_ImGui_Widgets->volume_control = this;
 
