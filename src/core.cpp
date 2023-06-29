@@ -709,7 +709,7 @@ WaitForInit (void)
     }
 
     for (int i = 0; i < _SpinMax && (ReadPointerAcquire (&hInitThread) != INVALID_HANDLE_VALUE); i++)
-      ;
+      YieldProcessor ();
 
     HANDLE hWait =
       ReadPointerAcquire (&hInitThread);

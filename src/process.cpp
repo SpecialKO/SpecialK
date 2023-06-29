@@ -277,7 +277,7 @@ struct SK_NtDllContext
     while ( lockCheck != 0 && lockCheck != dwTid )
     {
       if (_SpinCount++ < 17)
-        ;
+        YieldProcessor ();
       else
       {
         SK_SleepEx (1, FALSE);

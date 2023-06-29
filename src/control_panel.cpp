@@ -4280,6 +4280,38 @@ SK_ImGui_ControlPanel (void)
     {
       char szGSyncStatus [128] = { };
 
+      if (rb.api == SK_RenderAPI::OpenGL ||
+          rb.api == SK_RenderAPI::D3D12)
+      {
+        if (! rb.gsync_state.disabled)
+        {
+          if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.supportVRR &&
+              rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.currentlyCapableOfVRR)
+          {
+            rb.gsync_state.capable = true;
+
+            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip ||
+                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip          ||
+                rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
+            {
+              if (rb.present_interval < 2)
+                rb.gsync_state.active = true;
+              else
+                rb.gsync_state.active = false;
+            }
+            else
+            {
+              if (rb.present_mode != SK_PresentMode::Unknown)
+                rb.gsync_state.capable = false;
+              else
+                rb.gsync_state.maybe_active = true;
+            }
+          }
+          else
+              rb.gsync_state.capable = false;
+        }
+      }
+
       if (rb.gsync_state.capable)
       {
         strcat (szGSyncStatus, "    Supported + ");
@@ -4293,23 +4325,18 @@ SK_ImGui_ControlPanel (void)
               config.render.framerate.auto_low_latency   = false;
           }
         }
-        else
+        else if (! rb.gsync_state.maybe_active)
           strcat (szGSyncStatus, "Inactive");
+        else
+          strcat (szGSyncStatus, "Unknown");
       }
 
       else
       {
-        if (! rb.gsync_state.disabled)
-        {
-          strcat ( szGSyncStatus, ( rb.api == SK_RenderAPI::OpenGL ||
-                                    rb.api == SK_RenderAPI::D3D12 ) ?
-                                    "   Unknown in API" : "   Unsupported" );
-        }
-
+        if (rb.gsync_state.disabled)
+          strcat (szGSyncStatus, "   Disabled in this Game");
         else
-        {
-          strcat ( szGSyncStatus, "   Disabled in this Game");
-        }
+          strcat (szGSyncStatus, "   Unsupported");
       }
 
       ImGui::MenuItem (" G-Sync Status   ", szGSyncStatus, nullptr, true);
@@ -4320,10 +4347,9 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
 
-      if (! rb.gsync_state.disabled)
+      if (rb.gsync_state.maybe_active)
       {
-        if ( (rb.api == SK_RenderAPI::OpenGL ||
-              rb.api == SK_RenderAPI::D3D12) && ImGui::IsItemHovered () )
+        if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip (
             "The NVIDIA driver API does not report this status in OpenGL or D3D12."

@@ -41,7 +41,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Date: Nov 4, 2022 
+// Date: Apr 4, 2023 
 // File: nvapi.h
 //
 // NvAPI provides an interface to NVIDIA devices. This file contains the 
@@ -7696,6 +7696,8 @@ typedef enum
     // hdmi related caps
     NV_MONITOR_CAPS_TYPE_HDMI_VSDB = 0x1000,
     NV_MONITOR_CAPS_TYPE_HDMI_VCDB = 0x1001,
+    // backend caps
+    NV_MONITOR_CAPS_TYPE_GENERIC   = 0x1002,
 } NV_MONITOR_CAPS_TYPE;
 
 
@@ -7763,7 +7765,8 @@ typedef struct _NV_MONITOR_CAPS_GENERIC
     NvU8    supportULMB                  : 1;  //!< monitor supports ULMB with variable refresh rate. Valid for NV_MONITOR_CAPS_TYPE_GENERIC only.
     NvU8    isTrueGsync                  : 1;  //!< whether the monitor is actually GSYNC or adaptive sync monitor : 0 for adaptive sync.
     NvU8    isRLACapable                 : 1;  //!< whether monitor supports RLA
-    NvU8    reserved                     : 4;
+    NvU8    currentlyCapableOfVRR        : 1;  //!< monitor currently supports VRR on applied display settings. Valid for NV_MONITOR_CAPS_TYPE_GENERIC only.
+    NvU8    reserved                     : 3;
 } NV_MONITOR_CAPS_GENERIC;
 
 //! See NvAPI_DISP_GetMonitorCapabilities().
@@ -8172,7 +8175,7 @@ NVAPI_INTERFACE NvAPI_DISP_GetDisplayConfig(__inout NvU32 *pathInfoCount, __out_
 //!
 //! \param [in]      pathInfoCount   Number of supplied elements in pathInfo
 //! \param [in]      pathInfo        Array of path information
-//! \param [in]      flags           A bitwise OR of supported flags from NV_DISPLAYCONFIG_FLAGS. 
+//! \param [in]      flags           A bitwise OR of supported flags from NV_DISPLAYCONFIG_FLAGS.
 //!
 //! \retval ::NVAPI_OK - completed request
 //! \retval ::NVAPI_API_NOT_INTIALIZED - NVAPI not initialized
@@ -8514,6 +8517,133 @@ NVAPI_INTERFACE NvAPI_DISP_AcquireDedicatedDisplay(__in NvU32 displayId, __inout
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_DISP_ReleaseDedicatedDisplay(__in NvU32 displayId);
 #endif // defined(__cplusplus)
+
+
+#if defined (_WINNT_)
+
+//! \ingroup dispcontrol
+
+typedef struct _NV_DISPLAY_ID_INFO_DATA_V1
+{
+    NvU32  version;      //!< [in]  Structure version
+    LUID   adapterId;    //!< [out] Locally unique ID (LUID) of the display adapter on which the given display is present.
+    NvU32  targetId;     //!< [out] The target identifier of the given display. This is also called AdapterRelativeId.
+    NvU32  reserved[4];  //!<       Reserved for future use.
+} NV_DISPLAY_ID_INFO_DATA_V1;
+
+#define NV_DISPLAY_ID_INFO_DATA_VER1  MAKE_NVAPI_VERSION(NV_DISPLAY_ID_INFO_DATA_V1,1)
+#define NV_DISPLAY_ID_INFO_DATA_VER   NV_DISPLAY_ID_INFO_DATA_VER1
+
+typedef NV_DISPLAY_ID_INFO_DATA_V1 NV_DISPLAY_ID_INFO_DATA;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_Disp_GetDisplayIdInfo
+//
+//! DESCRIPTION: This API returns information related to the given displayId.
+//!              It returns adapterId and targetId (AdapterRelativeId) corresponding to the given displayId.
+//!              If the displayId is part of a display grid (Mosaic/Surround), then every displayId that is part of the same display grid
+//!              outputs the same (adapterId, targetId) pair, and no other displayId outputs this pair.
+//!              Otherwise, the (adapterId, targetId) pair is unique to this displayId.
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \since Release: 530
+//!
+//! \param [in]    displayId             DisplayId of the display.
+//! \param [inout] pDisplayIdInfoData    Pointer to the NV_DISPLAY_ID_INFO_DATA structure.
+//!
+//! \return     This API can return any of the error codes enumerated in #NvAPI_Status.
+//!
+//! \ingroup dispcontrol
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_Disp_GetDisplayIdInfo(__in NvU32 displayId, __inout NV_DISPLAY_ID_INFO_DATA* pDisplayIdInfoData);
+
+#endif
+
+
+//! \ingroup dispcontrol
+
+#if defined (_WINNT_)
+
+typedef struct _NV_TARGET_INFO_DATA_V1
+{
+    NvU32  version;                          //!< [in]  Structure version
+    LUID   adapterId;                        //!< [in]  Locally unique ID (LUID) of the display adapter on which the target is present.
+    NvU32  targetId;                         //!< [in]  The target identifier. This is also called AdapterRelativeId.
+    NvU32  displayId[NVAPI_MAX_DISPLAYS];    //!< [out] An array of displayIds corresponding to the input adapterId and targetId.
+                                             //!<       If the input (targetId, adapterId) pair is a display grid (Mosaic/Surround),
+                                             //!<       then the output contains the displayId of every display that is part of the display grid.
+                                             //!<       Otherwise, it contains exactly one displayId.
+                                             //!<       These displayId values are unique to this (targetId, adapterId) pair.
+    NvU32  displayIdCount;                   //!< [out] The number of displays returned in displayId array.
+    NvU32  reserved[4];                      //!<       Reserved for future use.
+} NV_TARGET_INFO_DATA_V1;
+
+#define NV_TARGET_INFO_DATA_VER1  MAKE_NVAPI_VERSION(NV_TARGET_INFO_DATA_V1,1)
+#define NV_TARGET_INFO_DATA_VER   NV_TARGET_INFO_DATA_VER1
+
+typedef NV_TARGET_INFO_DATA_V1 NV_TARGET_INFO_DATA;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_Disp_GetDisplayIdsFromTarget
+//
+//! DESCRIPTION: This API returns displayId(s) corresponding to the given target.
+//!              If the input (targetId, adapterId) pair is a display grid (Mosaic/Surround), then the output contains the displayId of every display
+//!              that is part of the display grid. Otherwise, it contains exactly one displayId.
+//!              These displayId values are unique to this (targetId, adapterId) pair.
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \since Release: 530
+//!
+//! \param [inout] pTargetInfoData       Pointer to the NV_TARGET_INFO_DATA structure.
+//!
+//! \return     This API can return any of the error codes enumerated in #NvAPI_Status.
+//!
+//! \ingroup dispcontrol
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_Disp_GetDisplayIdsFromTarget(__inout NV_TARGET_INFO_DATA* pTargetInfoData);
+
+#endif
+
+
+//! \ingroup dispcontrol
+
+typedef struct _NV_GET_VRR_INFO_V1
+{
+    NvU32               version;                          //!< [in]  Structure version
+    NvU32               bIsVRREnabled : 1;                //!< [out] Set if VRR Mode is currently enabled on given display.
+    NvU32               reserved      :31;                //!<       Reserved for future use.
+    NvU32               reservedEx[4];                    //!<       Reserved for future use
+} NV_GET_VRR_INFO_V1;
+
+#define NV_GET_VRR_INFO_VER1  MAKE_NVAPI_VERSION(NV_GET_VRR_INFO_V1,1)
+#define NV_GET_VRR_INFO_VER   NV_GET_VRR_INFO_VER1
+
+typedef NV_GET_VRR_INFO_V1 NV_GET_VRR_INFO;
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_Disp_GetVRRInfo
+//
+//! DESCRIPTION: This API returns Variable Refresh Rate(VRR) information for the given display ID.
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \since Release: 525
+//!
+//! \param [inout] pVrrInfo       Pointer to the NV_GET_VRR_INFO structure.
+//!
+//! \return     This API can return any of the error codes enumerated in #NvAPI_Status.
+//!
+//! \ingroup dispcontrol
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_Disp_GetVRRInfo(__in NvU32 displayId, __inout NV_GET_VRR_INFO *pVrrInfo);
 
 
 
@@ -9599,14 +9729,28 @@ typedef struct _NV_GSYNC_CAPABILITIES_V2
     NvU32   extendedRevision;               //!< FPGA minor revision
 } NV_GSYNC_CAPABILITIES_V2;
 
-typedef NV_GSYNC_CAPABILITIES_V2 NV_GSYNC_CAPABILITIES;
+typedef struct _NV_GSYNC_CAPABILITIES_V3
+{
+    NvU32   version;                        //!< Version of the structure
+    NvU32   boardId;                        //!< Board ID
+    NvU32   revision;                       //!< FPGA major revision
+    NvU32   capFlags;                       //!< Capabilities of the Sync board. Reserved for future use
+    NvU32   extendedRevision;               //!< FPGA minor revision
+    NvU32   bIsMulDivSupported : 1;         //!< Indicates if multiplication/division of the frequency of house sync signal is supported.
+    NvU32   reserved           : 31;        //!< Reserved for future use
+    NvU32   maxMulDivValue;                 //!< This parameter returns the maximum possible value that can be programmed 
+                                            //!< for multiplying / dividing house sync. Only valid if bIsMulDivSupported is set to 1.
+} NV_GSYNC_CAPABILITIES_V3;
+
+typedef NV_GSYNC_CAPABILITIES_V3 NV_GSYNC_CAPABILITIES;
 
 
 //! \ingroup gsyncapi
 //! Macro for constructing the version field of NV_GSYNC_CAPABILITIES.
 #define NV_GSYNC_CAPABILITIES_VER1  MAKE_NVAPI_VERSION(NV_GSYNC_CAPABILITIES_V1,1)
 #define NV_GSYNC_CAPABILITIES_VER2  MAKE_NVAPI_VERSION(NV_GSYNC_CAPABILITIES_V2,2)
-#define NV_GSYNC_CAPABILITIES_VER NV_GSYNC_CAPABILITIES_VER2
+#define NV_GSYNC_CAPABILITIES_VER3  MAKE_NVAPI_VERSION(NV_GSYNC_CAPABILITIES_V3,3)
+#define NV_GSYNC_CAPABILITIES_VER NV_GSYNC_CAPABILITIES_VER3
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -9787,7 +9931,7 @@ typedef struct _NV_GSYNC_DELAY
 #define NV_GSYNC_DELAY_VER  MAKE_NVAPI_VERSION(NV_GSYNC_DELAY,1)
 
 //! Used in NvAPI_GSync_GetControlParameters() and NvAPI_GSync_SetControlParameters().
-typedef struct _NV_GSYNC_CONTROL_PARAMS
+typedef struct _NV_GSYNC_CONTROL_PARAMS_V1
 {
     NvU32                       version;            //!< Version of the structure
     NVAPI_GSYNC_POLARITY        polarity;           //!< Leading edge / Falling edge / both
@@ -9800,9 +9944,39 @@ typedef struct _NV_GSYNC_CONTROL_PARAMS
     NvU32                       reserved:30;        //!< should be set zero
 	NV_GSYNC_DELAY              syncSkew;           //!< The time delay between the frame sync signal and the GPUs signal. 
     NV_GSYNC_DELAY              startupDelay;       //!< Sync start delay for master. 
-} NV_GSYNC_CONTROL_PARAMS;
+} NV_GSYNC_CONTROL_PARAMS_V1;
 
-#define NV_GSYNC_CONTROL_PARAMS_VER  MAKE_NVAPI_VERSION(NV_GSYNC_CONTROL_PARAMS,1)
+//! Used in NV_GSYNC_CONTROL_PARAMS.
+typedef enum _NVAPI_GSYNC_MULTIPLY_DIVIDE_MODE
+{
+    NVAPI_GSYNC_UNDEFINED_MODE = 0,
+    NVAPI_GSYNC_MULTIPLY_MODE  = 1,
+    NVAPI_GSYNC_DIVIDE_MODE    = 2,
+} NVAPI_GSYNC_MULTIPLY_DIVIDE_MODE;
+
+typedef struct _NV_GSYNC_CONTROL_PARAMS_V2
+{
+    NvU32                              version;                //!< Version of the structure
+    NVAPI_GSYNC_POLARITY               polarity;               //!< Leading edge / Falling edge / both
+    NVAPI_GSYNC_VIDEO_MODE             vmode;                  //!< None, TTL, NTSCPALSECAM, HDTV
+    NvU32                              interval;               //!< Number of pulses to wait between framelock signal generation
+    NVAPI_GSYNC_SYNC_SOURCE            source;                 //!< VSync/House sync
+    NvU32                              interlaceMode:1;        //!< interlace mode for a Sync device
+    NvU32                              syncSourceIsOutput:1;   //!< Set this to make house sync as an output; valid only when NV_GSYNC_CONTROL_PARAMS::source is NVAPI_GSYNC_SYNC_SOURCE_VSYNC on P2061 boards. 
+                                                               //!< syncSourceIsOutput should always be NVAPI_GSYNC_SYNC_SOURCE_HOUSESYNC i.e. 0 on P2060 boards or when NV_GSYNC_CONTROL_PARAMS::source is set to NVAPI_GSYNC_SYNC_SOURCE_HOUSESYNC.
+    NvU32                              reserved:30;            //!< should be set zero
+	NV_GSYNC_DELAY                     syncSkew;               //!< The time delay between the frame sync signal and the GPUs signal. 
+    NV_GSYNC_DELAY                     startupDelay;           //!< Sync start delay for master. 
+    NVAPI_GSYNC_MULTIPLY_DIVIDE_MODE   multiplyDivideMode;     //!< Indicates multiplier/divider mode for the housesync signal.
+                                                               //!< While setting multiplyDivideMode, source needs to be set as NVAPI_GSYNC_SYNC_SOURCE_HOUSESYNC.
+    NvU8                               multiplyDivideValue;    //!< Indicates the multiplier/divider value for the housesync signal. Only supported if bIsMulDivSupported field of the structure NV_GSYNC_CAPABILITIES is set to 1.
+                                                               //!< The maximum supported value for this field can be obtained from maxMulDivValue field of the structure NV_GSYNC_CAPABILITIES.
+} NV_GSYNC_CONTROL_PARAMS_V2;
+
+typedef NV_GSYNC_CONTROL_PARAMS_V2 NV_GSYNC_CONTROL_PARAMS;
+#define NV_GSYNC_CONTROL_PARAMS_VER1  MAKE_NVAPI_VERSION(NV_GSYNC_CONTROL_PARAMS_V1,1)
+#define NV_GSYNC_CONTROL_PARAMS_VER2  MAKE_NVAPI_VERSION(NV_GSYNC_CONTROL_PARAMS_V2,2)
+#define NV_GSYNC_CONTROL_PARAMS_VER   NV_GSYNC_CONTROL_PARAMS_VER2
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -10833,6 +11007,41 @@ NVAPI_INTERFACE NvAPI_D3D9_BindSwapBarrier(IDirect3DDevice9 *pDevice,
                                            NvU32 group, 
                                            NvU32 barrier); 
 #endif //if defined(_D3D9_H_)
+
+//! \ingroup dx
+typedef enum
+{
+    NVAPI_VSYNC_DEFAULT,                    //!< Fall back to the default settings
+    NVAPI_VSYNC_OFF,                        //!< Force vertical sync off when performance is more important than image quality and for benchmarking" 
+    NVAPI_VSYNC_ON,                         //!< Force vertical sync on when image quality is more important than performance
+    NVAPI_VSYNC_ADAPTIVE,                   //!< Select adaptive to turn vertical sync on or off based on the frame rate. 
+                                            //!  Vertical sync will only be on for frame rates above the monitor refresh rate.
+    NVAPI_VSYNC_ADAPTIVE_HALF_REFRESH_RATE  //!<
+
+} NVAPI_VSYNC_MODE;
+
+
+#if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D_SetVerticalSyncMode
+//
+//!   DESCRIPTION: This API set the vertical sync mode for the given device context.
+//!
+//! \param [in]    pDevice    The caller provides the device and can be either IDirect3DDevice9 or ID3D10Device or ID3D10Device1 or ID3D11Device.
+//! \param [in]    vsyncMode  The caller specifies the NVAPI_VSYNC_MODE to be set.
+//!
+//! SUPPORTED OS:  Windows Vista
+//!
+//!
+//! RETURN STATUS: This API can return any of the error codes enumerated in #NvAPI_Status. 
+//!                If there are return error codes with specific meaning for this API, they are listed below.
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_D3D_SetVerticalSyncMode(__in IUnknown *pDevice, __in NVAPI_VSYNC_MODE vsyncMode); 
+
+#endif //if defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__)
 
 #if defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__)
 ///////////////////////////////////////////////////////////////////////////////
@@ -16845,7 +17054,9 @@ typedef struct _NV_GET_SLEEP_STATUS_PARAMS
 {
     NvU32  version;                                       //!< (IN) Structure version
     NvBool bLowLatencyMode;                               //!< (OUT) Is low latency mode enabled?
-    NvU8   rsvd[128];                                     //!< (IN) Reserved. Must be set to 0s.
+    NvBool bFsVrr;                                        //!< (OUT) Is fullscreen VRR enabled?
+    NvBool bCplVsyncOn;                                   //!< (OUT) Is Control Panel overriding VSYNC ON?
+    NvU8   rsvd[126];                                     //!< (IN) Reserved. Must be set to 0s.
 } NV_GET_SLEEP_STATUS_PARAMS_V1;
 
 typedef NV_GET_SLEEP_STATUS_PARAMS_V1            NV_GET_SLEEP_STATUS_PARAMS;
@@ -16857,12 +17068,14 @@ typedef NV_GET_SLEEP_STATUS_PARAMS_V1            NV_GET_SLEEP_STATUS_PARAMS;
 //
 // FUNCTION NAME: NvAPI_D3D_GetSleepStatus
 //
-//!   DESCRIPTION: This function can be used to get the latest sleep status.
+//!   DESCRIPTION: This function can be used to get the latest sleep status:
 //!   bLowLatencyMode indicates whether low latency mode is currently
 //!   enabled in the driver.
 //!   Note that it may not always reflect the previously requested sleep mode,
 //!   as the feature may not be available on the platform, or the setting has
 //!   been overridden by the control panel, for example.
+//!   bFsVrr indicates fullscreen GSYNC or GSYNC Compatible mode.
+//!   bCplVsyncOn indicates Control Panel VSYNC ON override.
 //!
 //! \since Release: 455
 //! \param [in] pDev                          The target device.
@@ -16963,6 +17176,47 @@ NVAPI_INTERFACE NvAPI_D3D_SetSleepMode(__in IUnknown *pDev, __in NV_SET_SLEEP_MO
 //! \ingroup dx
 ///////////////////////////////////////////////////////////////////////////////
 NVAPI_INTERFACE NvAPI_D3D_Sleep(__in IUnknown *pDev);
+#endif //defined(__cplusplus) && (defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__))
+
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//! Used to send Reflex Sync data to UMD
+//! \ingroup dx
+typedef struct _NV_SET_REFLEX_SYNC_PARAMS
+{
+    NvU32  version;                                       //!< (IN) Structure version
+    NvU32  bEnable:1;                                     //!< (IN) Enable Reflex Sync
+    NvU32  bDisable:1;                                    //!< (IN) Disable Reflex Sync
+    NvU32  flagsRsvd:30;                                  //!< (IN) Reserved flag bits. Must be set to 0s.
+    NvU32  vblankIntervalUs;                              //!< (IN) Interval between VBLANKs in microseconds. (0 means N/A)
+    NvS32  timeInQueueUs;                                 //!< (IN) Amount of time in the completed frame queue. Can be negative. (0 means N/A)
+    NvU32  timeInQueueUsTarget;                           //!< (IN) Target amount of time in the completed frame queue. (0 means N/A)
+    NvU8   rsvd[28];                                      //!< (IN) Reserved. Must be set to 0s.
+} NV_SET_REFLEX_SYNC_PARAMS_V1;
+
+typedef NV_SET_REFLEX_SYNC_PARAMS_V1            NV_SET_REFLEX_SYNC_PARAMS;
+#define NV_SET_REFLEX_SYNC_PARAMS_VER1          MAKE_NVAPI_VERSION(NV_SET_REFLEX_SYNC_PARAMS_V1, 1)
+#define NV_SET_REFLEX_SYNC_PARAMS_VER           NV_SET_REFLEX_SYNC_PARAMS_VER1
+
+#if defined(__cplusplus) && (defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__))
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D_SetReflexSync
+//
+//!   DESCRIPTION: This function can be used to enable/disable Reflex Sync,
+//!   and to pass in essential data for the Reflex Sync operation.
+//!
+//! \since Release: 530
+//! \param [in] pDev                          The target device.
+//! \param [in] pSetReflexSyncParams          Reflex Sync params.
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \return This API can return any of the error codes enumerated in #NvAPI_Status.
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_D3D_SetReflexSync(__in IUnknown *pDev, __in NV_SET_REFLEX_SYNC_PARAMS *pSetReflexSyncParams);
 #endif //defined(__cplusplus) && (defined(_D3D9_H_) || defined(__d3d10_h__) || defined(__d3d10_1_h__) || defined(__d3d11_h__) || defined(__d3d12_h__))
 
 //! SUPPORTED OS:  Windows 7 and higher
@@ -17449,10 +17703,10 @@ typedef enum _NVAPI_D3D12_RAYTRACING_CAPS_TYPE
 //!
 //! \since Release: 520
 //!
-//! \param [in]     pDevice                      Pointer to the device on which caps should be queried from. Pointer to the device from which ray tracing caps should be queried. Device to query ray tracing caps from.
-//! \param [in]     type                         Raytracing caps type requested.
-//! \param [out]    pData                        Memory to write raytracing caps to.
-//! \param [in]     dataSize                     Size in bytes of the memory pointed to by pData, must match the size of the raytracing caps type requested.
+//! \param [in]     pDevice     Pointer to the device on which raytracing caps should be queried from.
+//! \param [in]     type        Raytracing caps type requested. (ex: NVAPI_D3D12_RAYTRACING_CAPS_TYPE_THREAD_REORDERING)
+//! \param [out]    pData       Pointer to memory that receives caps. (ex: NVAPI_D3D12_RAYTRACING_THREAD_REORDERING_CAPS*)
+//! \param [in]     dataSize    Size in bytes to return to pData. Must match the size of the caps data requested. (ex: sizeof(NVAPI_D3D12_RAYTRACING_THREAD_REORDERING_CAPS))
 //!
 //! \return This API can return any of the error codes enumerated in #NvAPI_Status.
 //!         If there are return error codes with specific meaning for this API, they are listed below.
@@ -18190,6 +18444,185 @@ typedef enum _NVAPI_RAY_FLAGS_EX
 } NVAPI_RAY_FLAG_EX;
 
 #endif // defined(__cplusplus) && defined(__d3d12_h__) && defined(__ID3D12GraphicsCommandList4_INTERFACE_DEFINED__)
+
+
+//! \ingroup DX
+typedef enum _NV_D3D12_WORKSTATION_FEATURE_TYPE
+{
+    NV_D3D12_WORKSTATION_FEATURE_TYPE_PRESENT_BARRIER = 1,       // PresentBarrier feature
+    NV_D3D12_WORKSTATION_FEATURE_TYPE_RDMA_BAR1_SUPPORT = 2,     // RDMA heap supported via Bar1 carveout
+} NV_D3D12_WORKSTATION_FEATURE_TYPE;
+
+// parameter structure for NV_D3D12_WORKSTATION_FEATURE_TYPE_RDMA_BAR1_AVAILABLE related information
+typedef struct _NV_D3D12_WORKSTATION_FEATURE_RDMA_PROPERTIES
+{
+    NvU64 rdmaHeapSize;     // maximum available Bar1 heap size for RDMA allocations
+} NV_D3D12_WORKSTATION_FEATURE_RDMA_PROPERTIES;
+
+// parameter structure for querying workstation feature information
+typedef struct _NV_D3D12_WORKSTATION_FEATURE_PROPERTIES
+{
+    NvU32 version;                                              //!< (IN) Structure version
+    NV_D3D12_WORKSTATION_FEATURE_TYPE   workstationFeatureType; //!< (IN) the type of workstation feature to be queried
+    NvBool                              supported;              //!< (OUT) boolean returning if feature is supported
+    union
+    {
+        NV_D3D12_WORKSTATION_FEATURE_RDMA_PROPERTIES  rdmaInfo;       //!< (OUT) RDMA feature related information, returned only if
+                                                                      //!<       workstationFeatureType is NV_D3D12_WORKSTATION_FEATURE_TYPE_RDMA_BAR1_SUPPORT
+    };
+} NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_V1;
+
+#define NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_VER1 MAKE_NVAPI_VERSION(NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_V1,1)
+#define NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_VER  NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_VER1
+#define NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS      NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS_V1
+
+
+#if defined(__cplusplus) && defined(__d3d12_h__)
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_QueryWorkstationFeatureProperties
+//
+//!   DESCRIPTION: This API returns information about the properties of specific workstation features on the specified device.
+//!
+//! \since Release: 530
+//!
+//! \param [in]     pDevice                         The ID3D12Device device which is queried for feature properties
+//! \param [inout]  pWorkstationFeatureProperties   Pointer to a structure containing workstation feature query information.
+//!
+//! \return ::NVAPI_OK                     the call succeeded
+//! \return ::NVAPI_ERROR                  the call failed
+//! \return ::NVAPI_NO_IMPLEMENTATION      the API is not implemented
+//! \return ::NVAPI_INVALID_POINTER        an invalid pointer was passed as an argument
+//! \retval ::NVAPI_API_NOT_INITIALIZED    NvAPI not initialized
+//!
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_D3D12_QueryWorkstationFeatureProperties(__in ID3D12Device *pDevice, __inout NVAPI_D3D12_WORKSTATION_FEATURE_PROPERTIES_PARAMS *pWorkstationFeatureProperties);
+#endif // defined(__cplusplus) && defined(__d3d12_h__)
+
+
+#if defined (__cplusplus) && defined(__d3d12_h__)
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// FUNCTION NAME: NvAPI_D3D12_CreateCommittedRDMABuffer
+//
+//! \since Release: 530
+//
+//! \code
+//!   DESCRIPTION: NvAPI_D3D12_CreateCommittedRDMABuffer is a wrapper of ID3D12Device::CreateCommittedResource 
+//!                which allows to allocate linear memory which can be used for remote direct memory access (RDMA) from other devices.
+//!                It creates an implicit D3D12 heap of the requested size, allocates the resource and returns an RDMA address for remote direct memory access.
+//!                The created memory will reside on the specified device local memory and won't be cpu accessible.
+//!
+//!         \param [in]        pDevice                A pointer to a D3D12 device.
+//!         \param [in]        size                   Size in bytes of the linear buffer to be allocated for the resource.
+//!         \param [in]        heapCreationNodeMask   This mask indicates the node where the resource should be created.
+//!         \param [in]        heapVisibleNodeMask    This mask indicates on which nodes the resource is accessible.
+//!         \param [in]        riidResource           The globally unique identifier (GUID) for the resource interface.
+//!         \param [out]       ppvResource            A pointer to memory that receives the requested interface pointer to the created resource object. 
+//!         \param [out]       ppRDMAAddress          A pointer to memory that receives the Bar1 memory region for remote direct memory access.
+
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \return  This API can return any of the error codes enumerated in
+//!          #NvAPI_Status.
+//!
+//! \endcode
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_D3D12_CreateCommittedRDMABuffer(
+        __in  ID3D12Device* pDevice,
+        __in  NvU64 size,
+        __in  NvU32 heapCreationNodeMask,
+        __in  NvU32 heapVisibleNodeMask,
+        __in  REFIID riidResource,
+        __out void **ppvResource,
+        __out void **ppRDMAAddress);
+
+#endif //defined(__cplusplus) && defined(__d3d12_h__)
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+#if defined(__cplusplus) && defined(__d3d12_h__)
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// NVAPI DIRECT TYPE NAME: INvAPI_DirectD3D12GraphicsCommandList
+//
+///////////////////////////////////////////////////////////////////////////////
+class INvAPI_DirectD3D12GraphicsCommandList
+{
+public:
+    virtual bool IsValid() const = 0;
+    virtual ID3D12GraphicsCommandList* GetID3D12GraphicsCommandList() const = 0;
+
+    void DispatchGraphics(NvU32 numDispatches);
+    void SetMarker(void* pMarkerData, NvU32 markerSize);
+};
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// NVAPI DIRECT FUNCTION NAME: NvAPI_DirectD3D12GraphicsCommandList_Create
+//
+//!   DESCRIPTION: Create the NvAPI_DirectD3D12GraphicsCommandList handle.
+//!                This function must be called after ID3D12Device::CreateCommandList.
+//!
+//! \param [in]         pDXD3D12GraphicsCommandList             The ID3D12GraphicsCommandList
+//! \param [out]        ppReturnD3D12GraphicsCommandList        The corresponding NvAPI_DirectD3D12GraphicsCommandList handle
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \return This API can return any of the error codes enumerated in #NvAPI_Status. 
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_DirectD3D12GraphicsCommandList_Create(__in  ID3D12GraphicsCommandList              *pDXD3D12GraphicsCommandList, 
+                                                            __out INvAPI_DirectD3D12GraphicsCommandList **ppReturnD3D12GraphicsCommandList);
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// NVAPI DIRECT FUNCTION NAME: NvAPI_DirectD3D12GraphicsCommandList_Release
+//
+//!   DESCRIPTION: release the NvAPI_DirectD3D12GraphicsCommandList handle.
+//!
+//! \param [in]         pD3D12GraphicsCommandList               The NvAPI_DirectD3D12GraphicsCommandList handle to release
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \return This API can return any of the error codes enumerated in #NvAPI_Status. 
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_DirectD3D12GraphicsCommandList_Release(__in INvAPI_DirectD3D12GraphicsCommandList *pD3D12GraphicsCommandList);
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+// NVAPI DIRECT FUNCTION NAME: NvAPI_DirectD3D12GraphicsCommandList_Reset
+//
+//!   DESCRIPTION: reset the NvAPI_DirectD3D12GraphicsCommandList handle.
+//!                This function must be called after ID3D12GraphicsCommandList::Reset() and before any other NvAPI_Direct 
+//!                function calls such as dispatchGraphics() etc.
+//!
+//! \param [in]         pD3D12GraphicsCommandList               The NvAPI_DirectD3D12GraphicsCommandList handle to reset
+//! SUPPORTED OS:  Windows 10 and higher
+//!
+//!
+//! \return This API can return any of the error codes enumerated in #NvAPI_Status. 
+//!
+//! \ingroup dx
+///////////////////////////////////////////////////////////////////////////////
+NVAPI_INTERFACE NvAPI_DirectD3D12GraphicsCommandList_Reset(__in INvAPI_DirectD3D12GraphicsCommandList *pD3D12GraphicsCommandList);
+#endif
+
+
+
+/////////////////////////////////////////////////////////////////////////
+// Video Input Output (VIO) API
+/////////////////////////////////////////////////////////////////////////
 
 
 

@@ -454,14 +454,16 @@ typedef struct _D3DKMT_CLOSEADAPTER {
 #define D3DKMT_MAX_PRESENT_HISTORY_SCATTERBLTS 12
 
 typedef enum _D3DKMT_PRESENT_MODEL {
-  D3DKMT_PM_UNINITIALIZED           = 0,
-  D3DKMT_PM_REDIRECTED_GDI          = 1,
-  D3DKMT_PM_REDIRECTED_FLIP         = 2,
-  D3DKMT_PM_REDIRECTED_BLT          = 3,
-  D3DKMT_PM_REDIRECTED_VISTABLT     = 4,
-  D3DKMT_PM_SCREENCAPTUREFENCE      = 5,
-  D3DKMT_PM_REDIRECTED_GDI_SYSMEM   = 6,
-  D3DKMT_PM_REDIRECTED_COMPOSITION  = 7
+  D3DKMT_PM_UNINITIALIZED          = 0,
+  D3DKMT_PM_REDIRECTED_GDI         = 1,
+  D3DKMT_PM_REDIRECTED_FLIP        = 2,
+  D3DKMT_PM_REDIRECTED_BLT         = 3,
+  D3DKMT_PM_REDIRECTED_VISTABLT    = 4,
+  D3DKMT_PM_SCREENCAPTUREFENCE     = 5,
+  D3DKMT_PM_REDIRECTED_GDI_SYSMEM  = 6,
+  D3DKMT_PM_REDIRECTED_COMPOSITION = 7,
+  D3DKMT_PM_SURFACECOMPLETE        = 8,
+  D3DKMT_PM_FLIPMANAGER            = 9,
 } D3DKMT_PRESENT_MODEL;
 
 typedef enum D3DDDI_FLIPINTERVAL_TYPE {
@@ -700,6 +702,24 @@ struct SK_ColorSpace {
 const char*
 HDRModeToStr (NV_HDR_MODE mode);
 
+enum class PresentMode
+{
+  Unknown,
+  Hardware_Legacy_Flip,
+  Hardware_Legacy_Copy_To_Front_Buffer,
+  /* Not detected:
+  Hardware_Direct_Flip,
+  */
+  Hardware_Independent_Flip,
+  Composed_Flip,
+  Composed_Copy_GPU_GDI,
+  Composed_Copy_CPU_GDI,
+  Composed_Composition_Atlas,
+  Hardware_Composed_Independent_Flip,
+};
+
+using SK_PresentMode =
+         PresentMode;
 
 class SK_RenderBackend_V2 : public SK_RenderBackend_V1
 {
@@ -756,6 +776,7 @@ public:
   bool                    driver_based_hdr     = false;
   SK_ColorSpace           display_gamut;       // EDID
   SK_ColorSpace           working_gamut;       // Metadata range
+  SK_PresentMode          present_mode         = SK_PresentMode::Unknown;
 
   struct output_s {
     UINT                  idx                  =   0;
@@ -793,6 +814,8 @@ public:
       NvDisplayHandle     display_handle       =   nullptr;
       NvU32               display_id           =   0;
       NvU32               output_id            =   0;
+      NV_MONITOR_CAPABILITIES
+                          monitor_caps         = { };
     } nvapi;
 
     struct signal_info_s {
@@ -1126,6 +1149,7 @@ public:
     BOOL  capable      = FALSE;
     BOOL  active       = FALSE;
     BOOL  disabled     = FALSE;
+    BOOL  maybe_active = FALSE; // If PresentMon isn't working...
     DWORD last_checked = 0;
   } gsync_state;
 

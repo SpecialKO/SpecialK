@@ -159,6 +159,8 @@ UpdateConsole ( uint32_t           processId,
         ( displayN->PresentMode == PresentMode::Hardware_Independent_Flip            ) ||
         ( displayN->PresentMode == PresentMode::Hardware_Composed_Independent_Flip   );
 
+      rb.present_mode = displayN->PresentMode;
+
       SK_FormatStringView (
           present_debug_view,
             " " ICON_FA_LINK "  %8ws    %s%s    ",

@@ -538,15 +538,17 @@ SK_NV_AdaptiveSyncControl (void)
         }
 
         ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
-        if (ImGui::Button ("Trigger Reflex Flash"))
+
+        if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.isRLACapable)
         {
-          rb.setLatencyMarkerNV (TRIGGER_FLASH);
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          if (ImGui::Button ("Trigger Reflex Flash"))
+          {
+            rb.setLatencyMarkerNV (TRIGGER_FLASH);
+          }
+          ImGui::EndGroup   ();
         }
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Requires the GeForce Experience overlay and a Reflex Latency Analysis capable display");
-        ImGui::EndGroup   ();
 
         if (toggle_sync || toggle_split)
         {

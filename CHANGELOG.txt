@@ -1,4 +1,15 @@
-﻿23.6.28.3
+﻿23.6.29.1
+=========
+ + Implemented G-Sync Status detection for D3D12, Vulkan and OpenGL
+     >> Requires working PresentMon (i.e. full install of Special K)
+ + Hide Reflex Latency Flash button if attached display doesn't support RLA
+
+23.6.29
+=======
+ + Removed restrictions on "Continue Rendering" in Fullscreen Exclusive mode
+ + Fixed haptic UI continuing to rumble sometimes after control panel is closed
+
+23.6.28.3
 =========
  + Lowered HDR profile 0's default gamma to 0.92 to improve shadow detail
  + Added button/titlebar to close widgets if the control panel is open

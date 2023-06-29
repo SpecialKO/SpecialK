@@ -840,6 +840,8 @@ SK_PollGPU (void)
 
   while (pSensors == nullptr)
   {
+    YieldProcessor ();
+
     static int spins = 0;
     if (     ++spins > 16)
     {          spins = 0; return; }

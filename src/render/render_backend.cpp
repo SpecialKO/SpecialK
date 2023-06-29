@@ -648,6 +648,14 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   if ( last_checked < (dwTimeNow - 666UL) )
   {    last_checked =  dwTimeNow;
+    auto& display =
+      rb.displays [rb.active_display];
+
+    display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+    display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+    NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                      &display.nvapi.monitor_caps);
 
     bool success = false;
 
@@ -3354,6 +3362,12 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.nvapi.gpu_handle     = nvGpuHandles [0];
             display.nvapi.display_id     = nvDisplayId;
             display.nvapi.output_id      = nvOutputId;
+
+            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+            NvAPI_DISP_GetMonitorCapabilities (nvDisplayId,
+                                                &display.nvapi.monitor_caps);
           }
         }
 

@@ -27,12 +27,14 @@
 #include <string>
 #include <set>
 #include <unordered_set>
+#include <concurrent_unordered_set.h>
 #include <concurrent_unordered_map.h>
 #include <filesystem>
 #include <intsafe.h>
 
 #include <SpecialK/render/backend.h>
 #include <SpecialK/window.h>
+#include <SpecialK/core.h>
 
 struct SK_Keybind
 {

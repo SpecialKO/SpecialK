@@ -267,7 +267,7 @@ EnterSpinLock (VOID)
 
     // Prevent the loop from being too busy.
     if (spinCount++ < 17)
-        ;
+      YieldProcessor ();
     else
     {
       MicroSleep ();
