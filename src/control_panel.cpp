@@ -4273,6 +4273,10 @@ SK_ImGui_ControlPanel (void)
 
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
+      // Changing this requires a full game restart, so cache it once
+      static bool disabled =
+        rb.gsync_state.disabled;
+
       char szGSyncStatus [128] = { };
 
       if (rb.api == SK_RenderAPI::OpenGL ||
@@ -4281,7 +4285,7 @@ SK_ImGui_ControlPanel (void)
       {
         rb.gsync_state.maybe_active = false;
 
-        if (! rb.gsync_state.disabled)
+        if (! disabled)
         {
           auto& display =
             rb.displays [rb.active_display];
@@ -4301,6 +4305,8 @@ SK_ImGui_ControlPanel (void)
                                               &display.nvapi.monitor_caps);
           }
 
+          rb.gsync_state.capable = false;
+
           if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.supportVRR &&
               rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.currentlyCapableOfVRR)
           {
@@ -4311,10 +4317,8 @@ SK_ImGui_ControlPanel (void)
                 rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
                 rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
             {
-              if (rb.present_interval < 2)
-                rb.gsync_state.active = true;
-              else
-                rb.gsync_state.active = false;
+              rb.gsync_state.active =
+                (rb.present_interval < 2);
             }
             else
             {
@@ -4329,8 +4333,6 @@ SK_ImGui_ControlPanel (void)
                 rb.gsync_state.maybe_active = true;
             }
           }
-          else
-              rb.gsync_state.capable = false;
         }
       }
 
@@ -4355,7 +4357,7 @@ SK_ImGui_ControlPanel (void)
 
       else
       {
-        if (rb.gsync_state.disabled)
+        if (disabled)
           strcat (szGSyncStatus, "   Disabled in this Game");
         else
           strcat (szGSyncStatus, "   Unsupported");
@@ -4712,11 +4714,11 @@ SK_ImGui_ControlPanel (void)
               {
                 config.render.framerate.present_interval = 1;
 
-                if (rb.gsync_state.disabled)
-                {
-                  SK_NvAPI_SetVRREnablement (TRUE);
-                  rb.gsync_state.disabled = false;
-                }
+                //if (rb.gsync_state.disabled)
+                //{
+                //  SK_NvAPI_SetVRREnablement (TRUE);
+                //  rb.gsync_state.disabled = false;
+                //}
               }
 
               else
