@@ -436,6 +436,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
       L"  | ST2084 Gamma... |  %s\n"
       L"  | HDR Gamma...... |  %s\n"
       L"  | SDR Gamma...... |  %s\n"
+      L"  | Dolby Vision... |  %s\n"
+      L"  | HDR10+......... |  %s\n"
+      L"  | HDR10+ Gaming.. |  %s\n"
       L"  |  ?  4:4:4 10bpc |  %s\n"
       L"  |  ?  4:4:4 12bpc |  %s\n"
       L"  | YUV 4:2:2 12bpc |  %s\n"
@@ -451,6 +454,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
+               pHdrCapabilities->isDolbyVisionSupported                         ? L"Yes" : L"No",
+               pHdrCapabilities->isHdr10PlusSupported                           ? L"Yes" : L"No",
+               pHdrCapabilities->isHdr10PlusGamingSupported                     ? L"Yes" : L"No",
               (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1) ? L"Yes" : L"No",
               (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No",
                pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No");
