@@ -920,7 +920,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
 {
   if (Fullscreen)
   {
-    if (/*rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM || */SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
+    if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
       ShowCursor  (TRUE);
       ShowWindow  ( SK_GetForegroundWindow (), SW_HIDE );
@@ -940,6 +940,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
       ExitProcess   (0x00);
     }
 
+#if 0
     if (config.window.background_render)
     {   config.window.background_render = false;
 
@@ -950,6 +951,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
     if (config.window.fullscreen)
     {   config.window.fullscreen = false;
     }
+#endif
   }
 }
 
