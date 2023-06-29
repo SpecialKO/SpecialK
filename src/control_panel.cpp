@@ -2697,15 +2697,10 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
 
-
-      // TEMP HACK: NvAPI does not support G-Sync Status in D3D12
-      if (rb.api != SK_RenderAPI::D3D12)
+      if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
       {
-        if (config.apis.NvAPI.enable && sk::NVAPI::nv_hardware)
-        {
-          //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
-          ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
-        }
+        //ImGui::TextWrapped ("%hs", SK_NvAPI_GetGPUInfoStr ().c_str ());
+        ImGui::MenuItem    ("Display G-Sync Status",     "", &config.apis.NvAPI.gsync_status);
       }
 
       ImGui::MenuItem  ("Display Playtime in Title",     "", &config.platform.show_playtime);
@@ -4281,17 +4276,39 @@ SK_ImGui_ControlPanel (void)
       char szGSyncStatus [128] = { };
 
       if (rb.api == SK_RenderAPI::OpenGL ||
-          rb.api == SK_RenderAPI::D3D12)
+          rb.api == SK_RenderAPI::D3D12  ||
+          rb.api == SK_RenderAPI::Vulkan)
       {
+        rb.gsync_state.maybe_active = false;
+
         if (! rb.gsync_state.disabled)
         {
+          auto& display =
+            rb.displays [rb.active_display];
+
+          static int   last_display  = rb.active_display;
+          static DWORD dwLastChecked = 0;
+
+          if (std::exchange (last_display, rb.active_display) !=
+                                           rb.active_display  ||
+              dwLastChecked < SK::ControlPanel::current_time - 666UL)
+          {   dwLastChecked = SK::ControlPanel::current_time;
+
+            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+            NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                              &display.nvapi.monitor_caps);
+          }
+
           if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.supportVRR &&
               rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.currentlyCapableOfVRR)
           {
             rb.gsync_state.capable = true;
 
-            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip ||
-                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip          ||
+            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
+                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
+                rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
                 rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
             {
               if (rb.present_interval < 2)
@@ -4301,9 +4318,14 @@ SK_ImGui_ControlPanel (void)
             }
             else
             {
-              if (rb.present_mode != SK_PresentMode::Unknown)
-                rb.gsync_state.capable = false;
-              else
+              if (rb.present_mode == SK_PresentMode::Composed_Flip         ||
+                  rb.present_mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+                  rb.present_mode == SK_PresentMode::Composed_Copy_CPU_GDI)
+              {
+                rb.gsync_state.active = false;
+              }
+
+              if (rb.present_mode == SK_PresentMode::Unknown)
                 rb.gsync_state.maybe_active = true;
             }
           }
@@ -4352,7 +4374,7 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip (
-            "The NVIDIA driver API does not report this status in OpenGL or D3D12."
+            "The NVIDIA driver API does not report this status in OpenGL, D3D12 or Vulkan."
           );
         }
       }

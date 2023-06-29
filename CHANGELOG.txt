@@ -1,4 +1,8 @@
-﻿23.6.29.1
+﻿23.6.29.2
+=========
+ + Improved consistency of D3D12 G-Sync indicator vs. D3D11
+
+23.6.29.1
 =========
  + Implemented G-Sync Status detection for D3D12, Vulkan and OpenGL
      >> Requires working PresentMon (i.e. full install of Special K)
