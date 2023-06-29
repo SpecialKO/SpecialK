@@ -1839,6 +1839,7 @@ if (api_bridge)
     SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
 
 
+  static bool last_haptic = false;
 
   if (SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
   {
@@ -1895,6 +1896,16 @@ if (api_bridge)
     }
 
     nav_id = g.NavId;
+
+    last_haptic = true;
+  }
+
+  else if (std::exchange (last_haptic, false))
+  {
+    // Clear haptics on the first frame after they're no longer relevant
+    SK_XInput_PulseController (
+      config.input.gamepad.xinput.ui_slot, 0.0f, 0.0f
+    );
   }
 
   last_state = state;
