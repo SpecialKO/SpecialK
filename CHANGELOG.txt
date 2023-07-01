@@ -1,4 +1,9 @@
-﻿23.6.29.2
+﻿23.6.30
+=======
+ + Suppress warnings in Hatsune Miku Project Diva Megamix+ when it attempts
+     to create an R8_UNORM RenderTargetView of the SwapChain backbuffer.
+
+23.6.29.2
 =========
  + Improved consistency of D3D12 G-Sync indicator vs. D3D11
 

@@ -1268,13 +1268,16 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
                     else
                     {
-                      SK_RunOnce (
-                        SK_ImGui_Warning (
-                          SK_FormatStringW (L"Incompatible SwapChain RTV Format Requested: %hs = %hs ??",
-                                           SK_DXGI_FormatToStr (    desc.Format).data (),
-                                           SK_DXGI_FormatToStr (tex_desc.Format).data ()).c_str ()
-                                         )
-                                 );
+                      if (! config.render.dxgi.suppress_rtv_mismatch)
+                      {
+                        SK_RunOnce (
+                          SK_ImGui_Warning (
+                            SK_FormatStringW (L"Incompatible SwapChain RTV Format Requested: %hs = %hs ??",
+                                             SK_DXGI_FormatToStr (    desc.Format).data (),
+                                             SK_DXGI_FormatToStr (tex_desc.Format).data ()).c_str ()
+                                           )
+                                   );
+                      }
                     }
                   }
 

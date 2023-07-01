@@ -2425,6 +2425,10 @@ auto DeclKeybind =
         config.render.dxgi.ignore_thread_flags   =  true;
         config.threads.enable_dynamic_spinlocks  =  true;
 
+        // Game tries to get an R8_UNORM view of the SwapChain,
+        //   this would normally trigger a warning in SK.
+        config.render.dxgi.suppress_rtv_mismatch =  true;
+
         // Defaults for latency an framepacing; important
         config.render.framerate.sleepless_render =  true;
         config.render.framerate.sleepless_window =  true;
