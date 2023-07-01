@@ -4290,28 +4290,46 @@ SK_ImGui_ControlPanel (void)
           auto& display =
             rb.displays [rb.active_display];
 
-          static int   last_display  = rb.active_display;
-          static DWORD dwLastChecked = 0;
+          display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+          display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-          if (std::exchange (last_display, rb.active_display) !=
-                                           rb.active_display  ||
-              dwLastChecked < SK::ControlPanel::current_time - 666UL)
-          {   dwLastChecked = SK::ControlPanel::current_time;
+          SK_RunOnce (NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                        &display.nvapi.monitor_caps));
 
-            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
-            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-
-            NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                              &display.nvapi.monitor_caps);
-          }
-
-          rb.gsync_state.capable = false;
-
-          if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.supportVRR &&
-              rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.currentlyCapableOfVRR)
+          static HANDLE hVRRThread =
+          SK_Thread_CreateEx ([](LPVOID)->
+          DWORD
           {
-            rb.gsync_state.capable = !rb.gsync_state.disabled.globally;
+            SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
+            do
+            {
+              auto& display =
+                rb.displays [rb.active_display];
+
+              NV_GET_VRR_INFO vrr_info            = {       NV_GET_VRR_INFO_VER };
+              display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+              display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+              NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+              NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                &display.nvapi.monitor_caps);
+
+              display.nvapi.vrr_enabled =
+                vrr_info.bIsVRREnabled;
+            } while ( WAIT_OBJECT_0 !=
+                      WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) );
+
+            SK_Thread_CloseSelf ();
+
+            return 0;
+          }, L"[SK] VRR Status Monitor");
+
+          rb.gsync_state.capable = display.nvapi.vrr_enabled;
+          rb.gsync_state.active  = false;
+
+          if (rb.gsync_state.capable)
+          {
             if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
                 rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
                 rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
@@ -4332,6 +4350,17 @@ SK_ImGui_ControlPanel (void)
               if (rb.present_mode == SK_PresentMode::Unknown)
                 rb.gsync_state.maybe_active = true;
             }
+          }
+
+          else
+          {
+            display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+                  NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                    &display.nvapi.monitor_caps);
+
+            rb.gsync_state.capable = display.nvapi.monitor_caps.data.caps.supportVRR &&
+                                     display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR;
           }
         }
       }
@@ -4723,7 +4752,7 @@ SK_ImGui_ControlPanel (void)
 
               else
               {
-                if (! (rb.gsync_state.disabled.globally || rb.gsync_state.disabled.for_app))
+                if (! (rb.gsync_state.disabled.for_app))
                 {
                   ///rb.gsync_state.disabled = true;
                   ///SK_NvAPI_SetVRREnablement (FALSE);

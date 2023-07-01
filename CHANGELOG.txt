@@ -1,4 +1,10 @@
-﻿23.7.1
+﻿23.7.1.1
+========
+ + Report Supported + Inactive for VRR status instead of Unsupported when VRR
+     is not engaged because the game is not in the foreground (D3D12).
+ + Fixed premature CloseHandle (...) when logging loaded DLLs
+
+23.7.1
 ======
  + Distinguish between NVCPL disabling G-Sync completely, and application
      profiles disabling it, because some new R530 NvAPI functions do not...

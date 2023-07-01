@@ -816,6 +816,7 @@ public:
       NvU32               output_id            =   0;
       NV_MONITOR_CAPABILITIES
                           monitor_caps         = { };
+      BOOL                vrr_enabled          =  -1;
     } nvapi;
 
     struct signal_info_s {
@@ -1149,7 +1150,6 @@ public:
     BOOL   capable      = FALSE;
     BOOL   active       = FALSE;
     struct {
-      bool globally     = false;
       bool for_app      = false;
     } disabled;
     BOOL   maybe_active = FALSE; // If PresentMon isn't working...

@@ -3371,8 +3371,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
                                               &display.nvapi.monitor_caps);
 
-            gsync_state.disabled.globally =
-              !vrr_info.bIsVRREnabled;
+            display.nvapi.vrr_enabled = vrr_info.bIsVRREnabled;
           }
         }
 
