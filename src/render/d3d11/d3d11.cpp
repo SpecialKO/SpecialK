@@ -7672,7 +7672,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (! config.render.dxgi.debug_layer)
   {
-    if ( StrStrIW (SK_GetCallerName ().c_str (), L"d3d11.dll") || bEOSOverlay || (pSwapChainDesc != nullptr && !SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
+    if (bEOSOverlay || (pSwapChainDesc != nullptr && !SK_DXGI_IsSwapChainReal (*pSwapChainDesc)))
     {
       return
         D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
@@ -8054,12 +8054,6 @@ D3D11CreateDevice_Detour (
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
 
-  SK_TLS *pTLS =
-    SK_TLS_Bottom ();
-
-  auto& pTLS_d3d11 =
-    pTLS->render->d3d11.get ();
-
   // Optionally Enable Debug Layer
 //if (ReadAcquire (&__d3d11_ready) != 0)
   {
@@ -8073,40 +8067,10 @@ D3D11CreateDevice_Detour (
     }
   }
 
-  // Ignore Ansel
-  const bool bAnsel =
-    SK_COMPAT_IgnoreNvCameraCall ();
-
-  if (! config.render.dxgi.debug_layer)
-  {
-    if (pTLS_d3d11.skip_d3d11_create_device != FALSE || bAnsel)
-    {
-      HRESULT hr =
-        D3D11CreateDevice_Import ( pAdapter,
-                                   pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
-                                                       : DriverType,
-                                     pAdapter == nullptr ? nullptr
-                                                         : Software, Flags,
-                                       pFeatureLevels, FeatureLevels, SDKVersion,
-                                         ppDevice, pFeatureLevel,
-                                           ppImmediateContext );
-
-      if (! bAnsel)
-        pTLS->render->d3d11->skip_d3d11_create_device = FALSE;
-
-      return hr;
-    }
-  }
-
   DXGI_LOG_CALL_1 (L"D3D11CreateDevice            ", L"Flags=0x%x", Flags);
-
-  SK_ScopedBool auto_bool_skip (
-    &pTLS->render->d3d11->skip_d3d11_create_device
-  );
   
   SK_RunOnce ({
     SK_D3D11_Init ();
-    pTLS->render->d3d11->skip_d3d11_create_device = TRUE;
   });
 
   HRESULT hr =
