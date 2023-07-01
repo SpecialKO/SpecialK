@@ -632,7 +632,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     rb.surface.nvapi = nullptr;
   };
 
-  SK_RunOnce (disabled = (! SK_NvAPI_GetVRREnablement ()));
+  SK_RunOnce (disabled.for_app = (! SK_NvAPI_GetVRREnablement ()));
 
   if (! ((force || config.apis.NvAPI.gsync_status) &&
                            sk::NVAPI::nv_hardware) )
@@ -3363,11 +3363,16 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.nvapi.display_id     = nvDisplayId;
             display.nvapi.output_id      = nvOutputId;
 
-            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+            NV_GET_VRR_INFO vrr_info            = { NV_GET_VRR_INFO_VER         };
+            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER };
             display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-            NvAPI_DISP_GetMonitorCapabilities (nvDisplayId,
-                                                &display.nvapi.monitor_caps);
+            NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+            NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                              &display.nvapi.monitor_caps);
+
+            gsync_state.disabled.globally =
+              !vrr_info.bIsVRREnabled;
           }
         }
 

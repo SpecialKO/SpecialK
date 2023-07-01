@@ -1146,11 +1146,14 @@ public:
   struct gsync_s
   { void update (bool force = false);
 
-    BOOL  capable      = FALSE;
-    BOOL  active       = FALSE;
-    BOOL  disabled     = FALSE;
-    BOOL  maybe_active = FALSE; // If PresentMon isn't working...
-    DWORD last_checked = 0;
+    BOOL   capable      = FALSE;
+    BOOL   active       = FALSE;
+    struct {
+      bool globally     = false;
+      bool for_app      = false;
+    } disabled;
+    BOOL   maybe_active = FALSE; // If PresentMon isn't working...
+    DWORD  last_checked = 0;
   } gsync_state;
 
 

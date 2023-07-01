@@ -1,4 +1,9 @@
-﻿23.6.30
+﻿23.7.1
+======
+ + Distinguish between NVCPL disabling G-Sync completely, and application
+     profiles disabling it, because some new R530 NvAPI functions do not...
+
+23.6.30
 =======
  + Suppress warnings in Hatsune Miku Project Diva Megamix+ when it attempts
      to create an R8_UNORM RenderTargetView of the SwapChain backbuffer.

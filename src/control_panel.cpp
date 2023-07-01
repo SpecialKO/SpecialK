@@ -2607,7 +2607,7 @@ SK_NV_GSYNCControlPanel ()
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    SK_RunOnce (rb.gsync_state.disabled = !SK_NvAPI_GetVRREnablement ());
+    SK_RunOnce (rb.gsync_state.disabled.for_app = !SK_NvAPI_GetVRREnablement ());
 
     if (ImGui::BeginPopup ("G-Sync Control Panel"))
     {
@@ -2619,12 +2619,12 @@ SK_NV_GSYNCControlPanel ()
              SK_NvAPI_GetFastSync ();
 
       bool bEnableGSync =
-        (! rb.gsync_state.disabled);
+        (! rb.gsync_state.disabled.for_app);
 
       if (ImGui::Checkbox ("Enable G-Sync in this Game", &bEnableGSync))
       { SK_NvAPI_SetVRREnablement                        (bEnableGSync);
 
-        rb.gsync_state.disabled =
+        rb.gsync_state.disabled.for_app =
           (! bEnableGSync);
 
         ImGui::CloseCurrentPopup ();
@@ -4275,7 +4275,7 @@ SK_ImGui_ControlPanel (void)
     {
       // Changing this requires a full game restart, so cache it once
       static bool disabled =
-        rb.gsync_state.disabled;
+        rb.gsync_state.disabled.for_app;
 
       char szGSyncStatus [128] = { };
 
@@ -4310,7 +4310,7 @@ SK_ImGui_ControlPanel (void)
           if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.supportVRR &&
               rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.currentlyCapableOfVRR)
           {
-            rb.gsync_state.capable = true;
+            rb.gsync_state.capable = !rb.gsync_state.disabled.globally;
 
             if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
                 rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
@@ -4723,7 +4723,7 @@ SK_ImGui_ControlPanel (void)
 
               else
               {
-                if (! rb.gsync_state.disabled)
+                if (! (rb.gsync_state.disabled.globally || rb.gsync_state.disabled.for_app))
                 {
                   ///rb.gsync_state.disabled = true;
                   ///SK_NvAPI_SetVRREnablement (FALSE);
