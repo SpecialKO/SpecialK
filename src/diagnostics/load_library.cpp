@@ -2107,9 +2107,6 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
         CleanupLog (pLogger);
       }
 
-      if (pWorkingSet != nullptr && pWorkingSet->proc != nullptr)
-                SK_SafeCloseHandle (pWorkingSet->proc);
-
       delete
         std::exchange (pWorkingSet, nullptr);
 
