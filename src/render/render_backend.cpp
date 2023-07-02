@@ -627,7 +627,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   auto _EvaluateAutoLowLatency = [&]()
   {
     // Opt-in to Auto-Low Latency the first time this is seen
-    if (capable && active && config.render.framerate.auto_low_latency)
+    if (capable && active && config.render.framerate.auto_low_latency &&
+                             config.render.framerate.present_interval != 0)
     {
       config.nvidia.reflex.enable                 = true;
       config.nvidia.reflex.low_latency            = true;
@@ -646,10 +647,10 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       extern float __target_fps;
       if (__target_fps == 0.0f || __target_fps > dVRROptimalFPS)
       {
-        SK_ImGui_WarningWithTitle (
-          SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
-                            L"Auto Low-Latency (VRR) Mode Activated"
-        );
+        //SK_ImGui_WarningWithTitle (
+        //  SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
+        //                    L"Auto Low-Latency (VRR) Mode Activated"
+        //);
     
         config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
         __target_fps                       = static_cast <float> (dVRROptimalFPS);
