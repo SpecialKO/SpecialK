@@ -36,6 +36,10 @@ SK_ImGui_DrawGraph_Latency ()
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  // We don't support NvLL
+  if (rb.api == SK_RenderAPI::Vulkan)
+    return;
+
   ImGui::BeginGroup ();
 
   NV_LATENCY_RESULT_PARAMS

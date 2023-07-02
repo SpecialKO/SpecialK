@@ -633,7 +633,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       config.nvidia.reflex.enable                 = true;
       config.nvidia.reflex.low_latency            = true;
       config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
-    //config.render.framerate.enforcement_policy  = 2;
       config.render.framerate.auto_low_latency    = false;
       // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
     

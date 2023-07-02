@@ -4931,8 +4931,12 @@ SK_ImGui_ControlPanel (void)
               ImGui::BeginGroup   ();
               ImGui::TextUnformatted
                                   ("Prioritizes Minimum Stutter");
-              ImGui::TextUnformatted
-                                  ("Ideal for G-Sync / VRR displays; VRR will compensate for potential stutter");
+              if (sk::NVAPI::nv_hardware)
+                ImGui::TextUnformatted
+                                  ("NVIDIA users should use Reflex Low Latency mode instead");
+              else
+                ImGui::TextUnformatted
+                                  ("Ideal for VRR displays; VRR will compensate for potential stutter");
               ImGui::TextUnformatted
                                   ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
               ImGui::EndGroup     ();
@@ -4975,7 +4979,6 @@ SK_ImGui_ControlPanel (void)
                 ImGui::BeginTooltip    ();
                 ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
                 ImGui::Separator       ();
-              //ImGui::BulletText      ("Limiter mode will be set to VRR Optimized");
                 ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
                 ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
                 ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
