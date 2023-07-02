@@ -1,4 +1,10 @@
-﻿23.7.1.3
+﻿23.7.2
+======
+ + Auto Low-Latency Mode uses Normal framerate limiter mode now
+    >> The API needed to check for VRR is NVIDIA-only, and so is Reflex.
+       As such, it's more sensible to leverage Reflex + SK's Normal Mode.
+
+23.7.1.3
 ========
  + Added option for Auto Low-Latency Mode under Framerate Limiter | Advanced
  + Enhanced Auto Low-Latency Mode (VRR optimization) to do the following:

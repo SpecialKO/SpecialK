@@ -632,7 +632,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       config.nvidia.reflex.enable                 = true;
       config.nvidia.reflex.low_latency            = true;
       config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
-      config.render.framerate.enforcement_policy  = 2;
+    //config.render.framerate.enforcement_policy  = 2;
       config.render.framerate.auto_low_latency    = false;
       // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
     
@@ -647,7 +647,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       if (__target_fps == 0.0f || __target_fps > dVRROptimalFPS)
       {
         SK_ImGui_WarningWithTitle (
-          SK_FormatStringW (L"Framerate Limit Set to %.2f Hz For Optimal VRR", dVRROptimalFPS).c_str (),
+          SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
                             L"Auto Low-Latency (VRR) Mode Activated"
         );
     

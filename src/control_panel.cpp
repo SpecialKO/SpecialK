@@ -4975,7 +4975,7 @@ SK_ImGui_ControlPanel (void)
                 ImGui::BeginTooltip    ();
                 ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
                 ImGui::Separator       ();
-                ImGui::BulletText      ("Limiter mode will be set to VRR Optimized");
+              //ImGui::BulletText      ("Limiter mode will be set to VRR Optimized");
                 ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
                 ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
                 ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
