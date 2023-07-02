@@ -1405,13 +1405,10 @@ ExitProcess_Detour (UINT uExitCode)
   // Since many, many games don't shutdown cleanly, let's unload ourself.
   SK_SelfDestruct ();
 
-  if (ExitProcess_Original != nullptr)
-  {
-    return SK_ExitProcess (uExitCode);
-  }
+  auto jmpTerminateProcess =
+    SK_Hook_GetTrampoline (TerminateProcess);
 
-  else
-    ExitProcess (uExitCode);
+  jmpTerminateProcess (GetCurrentProcess (), uExitCode);
 }
 
 using RtlExitUserProcess_pfn = int (WINAPI*)(NTSTATUS);

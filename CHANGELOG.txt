@@ -1,4 +1,9 @@
-﻿23.7.2
+﻿23.7.2.1
+========
+ + Removed VRR activation message from auto low-latency
+ + Bypassed Hatsune Miku Project Diva hanging at shutdown when it crashes.
+
+23.7.2
 ======
  + Auto Low-Latency Mode uses Normal framerate limiter mode now
     >> The API needed to check for VRR is NVIDIA-only, and so is Reflex.
