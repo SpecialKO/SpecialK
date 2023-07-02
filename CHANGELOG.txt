@@ -1,4 +1,14 @@
-﻿23.7.1.2
+﻿23.7.1.3
+========
+ + Added option for Auto Low-Latency Mode under Framerate Limiter | Advanced
+ + Enhanced Auto Low-Latency Mode (VRR optimization) to do the following:
+
+    1. Set Framerate Limiter to 95% Refresh (if it is Off or > 95%)
+    2. Activate without opening the control panel
+    3. Enable Reflex and turn on Low Latency mode
+    4. Prevent games from using 1/2, 1/3 or 1/4 Refresh VSYNC
+
+23.7.1.2
 ========
  + Fixed missing D3D11CreateDevice (...) hook execution when D3D11 debug
      layer is not turned on.

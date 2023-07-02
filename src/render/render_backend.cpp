@@ -621,6 +621,139 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  auto& display =
+    rb.displays [rb.active_display];
+
+  auto _EvaluateAutoLowLatency = [&]()
+  {
+    // Opt-in to Auto-Low Latency the first time this is seen
+    if (capable && active && config.render.framerate.auto_low_latency)
+    {
+      config.nvidia.reflex.enable                 = true;
+      config.nvidia.reflex.low_latency            = true;
+      config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
+      config.render.framerate.enforcement_policy  = 2;
+      config.render.framerate.auto_low_latency    = false;
+      // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
+    
+      double dRefreshRate =
+        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+    
+      double dVRROptimalFPS =
+        dRefreshRate * 0.95;
+    
+      extern float __target_fps;
+      if (__target_fps == 0.0f || __target_fps > dVRROptimalFPS)
+      {
+        SK_ImGui_WarningWithTitle (
+          SK_FormatStringW (L"Framerate Limit Set to %.2f Hz For Optimal VRR", dVRROptimalFPS).c_str (),
+                            L"Auto Low-Latency (VRR) Mode Activated"
+        );
+    
+        config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
+        __target_fps                       = static_cast <float> (dVRROptimalFPS);
+      }
+    }
+  };
+
+  SK_RunOnce (disabled.for_app = (! SK_NvAPI_GetVRREnablement ()));
+
+  //
+  // All non-D3D9 or D3D11 APIs
+  //
+
+  if (rb.api != SK_RenderAPI::D3D11  &&
+      rb.api != SK_RenderAPI::D3D9Ex &&
+      rb.api != SK_RenderAPI::D3D9)
+  {
+    maybe_active = false;
+
+    if (! disabled.for_app)
+    {
+      display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
+      display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+      SK_RunOnce (NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                    &display.nvapi.monitor_caps));
+
+      static HANDLE hVRRThread =
+      SK_Thread_CreateEx ([](LPVOID)->
+      DWORD
+      {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
+
+        do
+        {
+          auto& display =
+            rb.displays [rb.active_display];
+
+          NV_GET_VRR_INFO vrr_info            = {       NV_GET_VRR_INFO_VER };
+          display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+          display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+
+          NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+          NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                            &display.nvapi.monitor_caps);
+
+          display.nvapi.vrr_enabled =
+            vrr_info.bIsVRREnabled;
+
+          rb.gsync_state.capable = display.nvapi.vrr_enabled;
+          rb.gsync_state.active  = false;
+
+          if (rb.gsync_state.capable)
+          {
+            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
+                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
+                rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
+                rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
+            {
+              rb.gsync_state.active =
+                (rb.present_interval < 2);
+            }
+            else
+            {
+              if (rb.present_mode == SK_PresentMode::Composed_Flip         ||
+                  rb.present_mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+                  rb.present_mode == SK_PresentMode::Composed_Copy_CPU_GDI)
+              {
+                rb.gsync_state.active = false;
+              }
+
+              if (rb.present_mode == SK_PresentMode::Unknown)
+                rb.gsync_state.maybe_active = true;
+            }
+          }
+
+          else
+          {
+            display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+                  NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                    &display.nvapi.monitor_caps);
+
+            rb.gsync_state.capable = display.nvapi.monitor_caps.data.caps.supportVRR &&
+                                     display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR;
+          }
+        } while ( WAIT_OBJECT_0 !=
+                  WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) );
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] VRR Status Monitor");
+    }
+
+    return
+      _EvaluateAutoLowLatency ();
+  }
+
+
+  //
+  // D3D9 or D3D11
+  //
+
   // DO NOT hold onto this. NVAPI does not explain how NVDX handles work, but
   //   we can generally assume their lifetime is only as long as the D3D resource
   //     they identify.
@@ -630,9 +763,9 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     rb.surface.dxgi  = nullptr;
     rb.surface.d3d9  = nullptr;
     rb.surface.nvapi = nullptr;
-  };
 
-  SK_RunOnce (disabled.for_app = (! SK_NvAPI_GetVRREnablement ()));
+    _EvaluateAutoLowLatency ();
+  };
 
   if (! ((force || config.apis.NvAPI.gsync_status) &&
                            sk::NVAPI::nv_hardware) )
@@ -648,9 +781,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   if ( last_checked < (dwTimeNow - 666UL) )
   {    last_checked =  dwTimeNow;
-    auto& display =
-      rb.displays [rb.active_display];
-
     display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
     display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 

@@ -2930,6 +2930,15 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           } break;
 #endif
         }
+
+        if (rb.api != SK_RenderAPI::D3D11  &&
+            rb.api != SK_RenderAPI::D3D9Ex &&
+            rb.api != SK_RenderAPI::D3D9)
+        {
+          rb.gsync_state.update ();
+        }
+
+        SK_RunOnce (rb.gsync_state.update (true));
       }
     } break;
   }

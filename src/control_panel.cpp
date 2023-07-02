@@ -4273,97 +4273,7 @@ SK_ImGui_ControlPanel (void)
 
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
     {
-      // Changing this requires a full game restart, so cache it once
-      static bool disabled =
-        rb.gsync_state.disabled.for_app;
-
       char szGSyncStatus [128] = { };
-
-      if (rb.api == SK_RenderAPI::OpenGL ||
-          rb.api == SK_RenderAPI::D3D12  ||
-          rb.api == SK_RenderAPI::Vulkan)
-      {
-        rb.gsync_state.maybe_active = false;
-
-        if (! disabled)
-        {
-          auto& display =
-            rb.displays [rb.active_display];
-
-          display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
-          display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-
-          SK_RunOnce (NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                        &display.nvapi.monitor_caps));
-
-          static HANDLE hVRRThread =
-          SK_Thread_CreateEx ([](LPVOID)->
-          DWORD
-          {
-            SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
-
-            do
-            {
-              auto& display =
-                rb.displays [rb.active_display];
-
-              NV_GET_VRR_INFO vrr_info            = {       NV_GET_VRR_INFO_VER };
-              display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
-              display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-
-              NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
-              NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                &display.nvapi.monitor_caps);
-
-              display.nvapi.vrr_enabled =
-                vrr_info.bIsVRREnabled;
-            } while ( WAIT_OBJECT_0 !=
-                      WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) );
-
-            SK_Thread_CloseSelf ();
-
-            return 0;
-          }, L"[SK] VRR Status Monitor");
-
-          rb.gsync_state.capable = display.nvapi.vrr_enabled;
-          rb.gsync_state.active  = false;
-
-          if (rb.gsync_state.capable)
-          {
-            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
-                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
-                rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
-                rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
-            {
-              rb.gsync_state.active =
-                (rb.present_interval < 2);
-            }
-            else
-            {
-              if (rb.present_mode == SK_PresentMode::Composed_Flip         ||
-                  rb.present_mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
-                  rb.present_mode == SK_PresentMode::Composed_Copy_CPU_GDI)
-              {
-                rb.gsync_state.active = false;
-              }
-
-              if (rb.present_mode == SK_PresentMode::Unknown)
-                rb.gsync_state.maybe_active = true;
-            }
-          }
-
-          else
-          {
-            display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
-            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-                  NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                    &display.nvapi.monitor_caps);
-
-            rb.gsync_state.capable = display.nvapi.monitor_caps.data.caps.supportVRR &&
-                                     display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR;
-          }
-        }
-      }
 
       if (rb.gsync_state.capable)
       {
@@ -4371,12 +4281,6 @@ SK_ImGui_ControlPanel (void)
         if (rb.gsync_state.active)
         {
           strcat (szGSyncStatus, "Active");
-
-          // Opt-in to Auto-Low Latency the first time this is seen
-          if (config.render.framerate.auto_low_latency) {
-              config.render.framerate.enforcement_policy = 2;
-              config.render.framerate.auto_low_latency   = false;
-          }
         }
         else if (! rb.gsync_state.maybe_active)
           strcat (szGSyncStatus, "Inactive");
@@ -4386,7 +4290,7 @@ SK_ImGui_ControlPanel (void)
 
       else
       {
-        if (disabled)
+        if (rb.gsync_state.disabled.for_app)
           strcat (szGSyncStatus, "   Disabled in this Game");
         else
           strcat (szGSyncStatus, "   Unsupported");
@@ -4675,7 +4579,7 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
           {
-            static double dVRRBias = 6.8;
+            static double dVRRBias = 5.0;
             static bool   bVRRBias = false;
 
             static auto lastRefresh = 0.0;
@@ -5056,6 +4960,30 @@ SK_ImGui_ControlPanel (void)
               if (ImGui::IsItemHovered ())
               {
                 ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
+              }
+
+              ImGui::SameLine          ();
+              ImGui::VerticalSeparator ();
+              ImGui::SameLine          ();
+            }
+
+            if (sk::NVAPI::nv_hardware)
+            {
+              ImGui::Checkbox ("Auto VRR Mode", &config.render.framerate.auto_low_latency);
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("The Framerate Limiter Self-Optimizes When VRR is Detected");
+                ImGui::Separator       ();
+                ImGui::BulletText      ("Limiter mode will be set to VRR Optimized");
+                ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
+                ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
+                ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
+                ImGui::Separator       ();
+                ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
+                ImGui::SameLine        ();
+                ImGui::TextUnformatted ("This option turns itself off after optimizing the framerate limiter");
+                ImGui::EndTooltip      ();
               }
             }
 
