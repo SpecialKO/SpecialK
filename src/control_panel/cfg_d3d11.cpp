@@ -1578,7 +1578,25 @@ SK::ControlPanel::D3D11::Draw (void)
     ImGui::OpenPopupOnItemClick ("DXGI_VRAM_BUDGET", 1);
 
     if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Right-click to Configure VRAM Quotas or Reset Warnings");
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Right-click to Configure VRAM Quotas or Reset Warnings");
+      ImGui::Separator       ();
+      ImGui::TreePush        ("");
+      ImGui::TextUnformatted ("The statistics shown are graphics memory actively used by the GAME (Resident VRAM) vs. VRAM the driver can dedicate to the GAME (VRAM Budget).\r\n\r\n");
+      ImGui::BulletText      ("This differs significantly from all current monitoring tools...\r\n\r\n");
+      ImGui::TreePush        ("");
+      ImGui::TextUnformatted ("MSI Afterburner, for example, can measure system-wide graphics memory allocation or per-process allocation depending on how it is configured,");
+      ImGui::TextUnformatted ("but is incapable of measuring Resident VRAM, nor does it know anything about per-process limits on VRAM (Budgets).\r\n\r\n");
+      ImGui::TreePop         ();
+      ImGui::TextUnformatted ("Correctly measuring a game's VRAM requirements involves knowledge of VRAM Residency and per-process VRAM Budgets!\r\n");
+      ImGui::TextUnformatted ("Budgets change dynamically in WDDM 2.0+ when there is demand by other applications for VRAM that reduces the amount available to the game.\r\n\r\n");
+      ImGui::BulletText      ("Special K's VRAM gauge adjusts to changing VRAM Budgets in real-time to correctly assess VRAM availability.");
+      ImGui::TreePop         ();
+      ImGui::Separator       ();
+      ImGui::TextUnformatted ("VRAM statistics for game sessions are summarized at exit in logs/dxgi_budget.log");
+      ImGui::EndTooltip      ();
+    }
 
     if (ImGui::BeginPopup ("DXGI_VRAM_BUDGET"))
     {
