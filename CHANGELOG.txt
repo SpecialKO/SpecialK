@@ -1,5 +1,7 @@
-﻿23.7.3.4
-========
+﻿23.7.4
+======
+ + Added option to show VRAM gauge underneath framepacing widget, right-click
+     the framepacing widget to access this setting.
  + Added command console variable Display.RefreshRate to change the refresh
      rate of the monitor the game's window is on using keyboard macros.
 

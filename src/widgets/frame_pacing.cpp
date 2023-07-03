@@ -37,6 +37,7 @@ SK_ImGui
 
 
 static bool has_battery   = false;
+static bool has_vram      = false;
 static bool debug_limiter = false;
 
 struct SK_ImGui_FramePercentiles
@@ -60,57 +61,60 @@ struct SK_ImGui_FramePercentiles
   {
     assert (osd_ini != nullptr);
 
-    percentile_cfg.display =
-      dynamic_cast <sk::ParameterBool *> (
-        SK_Widget_ParameterFactory->create_parameter <bool> (
-          L"Show Statistics"
-        )
+    SK_RunOnce (
+    {
+      percentile_cfg.display =
+        dynamic_cast <sk::ParameterBool *> (
+          SK_Widget_ParameterFactory->create_parameter <bool> (
+            L"Show Statistics"
+          )
+        );
+
+      percentile_cfg.display_above =
+        dynamic_cast <sk::ParameterBool *> (
+          SK_Widget_ParameterFactory->create_parameter <bool> (
+            L"Draw Statistics Above Line Graph"
+          )
+        );
+
+      percentile_cfg.display_most_recent =
+        dynamic_cast <sk::ParameterBool *> (
+          SK_Widget_ParameterFactory->create_parameter <bool> (
+            L"Limit sample dataset to the past ~30 seconds at most."
+          )
+        );
+
+      percentile_cfg.percentile0_cutoff =
+        dynamic_cast <sk::ParameterFloat *> (
+          SK_Widget_ParameterFactory->create_parameter <float> (
+            L"Boundary that defines the percentile being profiled."
+          )
+        );
+
+      percentile_cfg.percentile1_cutoff =
+        dynamic_cast <sk::ParameterFloat *> (
+          SK_Widget_ParameterFactory->create_parameter <float> (
+            L"Boundary that defines the percentile being profiled."
+          )
+        );
+
+      percentile_cfg.display->register_to_ini ( osd_ini,
+        L"Widget.FramePacing", L"DisplayPercentiles"
       );
 
-    percentile_cfg.display_above =
-      dynamic_cast <sk::ParameterBool *> (
-        SK_Widget_ParameterFactory->create_parameter <bool> (
-          L"Draw Statistics Above Line Graph"
-        )
+      percentile_cfg.display_above->register_to_ini ( osd_ini,
+        L"Widget.FramePacing", L"PercentilesAboveGraph"
       );
-
-    percentile_cfg.display_most_recent =
-      dynamic_cast <sk::ParameterBool *> (
-        SK_Widget_ParameterFactory->create_parameter <bool> (
-          L"Limit sample dataset to the past ~30 seconds at most."
-        )
+      percentile_cfg.display_most_recent->register_to_ini ( osd_ini,
+        L"Widget.FramePacing", L"ShortTermPercentiles"
       );
-
-    percentile_cfg.percentile0_cutoff =
-      dynamic_cast <sk::ParameterFloat *> (
-        SK_Widget_ParameterFactory->create_parameter <float> (
-          L"Boundary that defines the percentile being profiled."
-        )
+      percentile_cfg.percentile0_cutoff->register_to_ini ( osd_ini,
+        L"Widget.FramePacing", L"Percentile[0].Cutoff"
       );
-
-    percentile_cfg.percentile1_cutoff =
-      dynamic_cast <sk::ParameterFloat *> (
-        SK_Widget_ParameterFactory->create_parameter <float> (
-          L"Boundary that defines the percentile being profiled."
-        )
+      percentile_cfg.percentile1_cutoff->register_to_ini ( osd_ini,
+        L"Widget.FramePacing", L"Percentile[1].Cutoff"
       );
-
-    percentile_cfg.display->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayPercentiles"
-    );
-
-    percentile_cfg.display_above->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"PercentilesAboveGraph"
-    );
-    percentile_cfg.display_most_recent->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"ShortTermPercentiles"
-    );
-    percentile_cfg.percentile0_cutoff->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"Percentile[0].Cutoff"
-    );
-    percentile_cfg.percentile1_cutoff->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"Percentile[1].Cutoff"
-    );
+    });
 
     percentile_cfg.display->load             (display);
     percentile_cfg.display_above->load       (display_above);
@@ -1018,11 +1022,39 @@ public:
     setDockingPoint (DockAnchor::SouthEast).setVisible (false);
 
     SK_FramePercentiles->load_percentile_cfg ();
+
+    meter_cfg.display_battery =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Display Battery Info (When running on battery)"
+        )
+      );
+
+    meter_cfg.display_vram =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Draw VRAM Gauge below Framepacing Widget"
+        )
+      );
+
+    meter_cfg.display_vram->register_to_ini ( osd_ini,
+      L"Widget.FramePacing", L"DisplayVRAMGauge"
+    );
+
+    meter_cfg.display_battery->register_to_ini ( osd_ini,
+      L"Widget.FramePacing", L"DisplayBatteryInfo"
+    );
+
+    meter_cfg.display_vram->load    (display_vram);
+    meter_cfg.display_battery->load (display_battery);
   };
 
   void load (iSK_INI* cfg) override
   {
     SK_Widget::load (cfg);
+
+    meter_cfg.display_vram->load    (display_vram);
+    meter_cfg.display_battery->load (display_battery);
 
     SK_FramePercentiles->load_percentile_cfg ();
   }
@@ -1033,6 +1065,9 @@ public:
       return;
 
     SK_Widget::save (cfg);
+
+    meter_cfg.display_vram->store    (display_vram);
+    meter_cfg.display_battery->store (display_battery);
 
     SK_FramePercentiles->store_percentile_cfg ();
 
@@ -1086,7 +1121,8 @@ public:
     static auto& percentile0 = SK_FramePercentiles->percentile0;
     static auto& percentile1 = SK_FramePercentiles->percentile1;
 
-    if (has_battery)            extra_line_space += 1.16F;
+    if (has_battery)            extra_line_space += 1.0F;
+    if (has_vram)               extra_line_space += 1.0F;
     if (SK_FramePercentiles->display)
     {
       if (percentile0.has_data) extra_line_space += 1.16F;
@@ -1094,7 +1130,11 @@ public:
     }
 
     // If configuring ...
-    if (state__ != 0) extra_line_space += (1.16F * 5.5F);
+    if (state__ != 0) extra_line_space += (1.16F * 9.5F);
+
+    // Make room for control panel's title bar
+    if (SK_ImGui_Visible)
+      extra_line_space += 1.0F;
 
     ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
              new_size.y += fExtraData;
@@ -1134,8 +1174,16 @@ public:
 
     SK_ImGui_DrawGraph_FramePacing ();
 
-    has_battery =
+    has_battery = display_battery &&
       SK_ImGui::BatteryMeter ();
+    has_vram    = display_vram;
+
+    if (has_vram)
+    {
+      extern void
+      SK_ImGui_DrawVRAMGauge (void);
+      SK_ImGui_DrawVRAMGauge ();
+    }
     ImGui::EndGroup   ();
 
     auto* pLimiter = debug_limiter ?
@@ -1286,6 +1334,14 @@ public:
     ImGui::Separator ();
 
     bool changed = false;
+
+    changed |= ImGui::Checkbox ("Show VRAM Gauge",    &display_vram);
+    changed |= ImGui::Checkbox ("Show Battery State", &display_battery);
+
+    if (changed)
+      save (osd_ini);
+
+         changed = false;
     bool display = SK_FramePercentiles->display;
 
         changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
@@ -1341,6 +1397,13 @@ public:
     }
   }
 
+  bool display_vram    = false;
+  bool display_battery = true;
+
+  struct {
+    sk::ParameterBool* display_vram    = nullptr;
+    sk::ParameterBool* display_battery = nullptr;
+  } meter_cfg;
   //sk::ParameterInt* samples_max;
 };
 
