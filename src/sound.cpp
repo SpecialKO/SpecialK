@@ -322,6 +322,15 @@ SK_WASAPI_SetLatency (SK_WASAPI_AudioLatency latency)
     ThrowIfFailed (
       pAudioClient->Start ());
 
+    // We need to keep this alive after setting it, we can destroy it if changing it.
+    static SK_IAudioClient3
+        pPersistentClient  = nullptr;
+    if (pPersistentClient != nullptr)
+        pPersistentClient.Release ();
+
+    pPersistentClient =
+      pAudioClient.Detach ();
+
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * latency.frames) * 1000.0),
