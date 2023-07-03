@@ -5035,9 +5035,6 @@ SK_ImGui_ControlPanel (void)
 
               if (ImGui::BeginPopup ("AutoVRRConfig"))
               {
-                ImGui::TextUnformatted ("Auto VRR Mode");
-                ImGui::Separator       ();
-
                 bool vrr_changed = false;
 
                 vrr_changed |=
@@ -5055,8 +5052,6 @@ SK_ImGui_ControlPanel (void)
                 // Turn on Auto-Low Latency after making any changes
                 if (vrr_changed)
                   config.render.framerate.auto_low_latency = config.render.framerate.auto_low_latency_opt;
-
-                ImGui::EndPopup ();
               }
             }
 

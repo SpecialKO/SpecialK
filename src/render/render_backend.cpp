@@ -4353,7 +4353,7 @@ SK_Render_InitializeSharedCVars (void)
   return pCommandProc;
 }
 
-void
+bool
 SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
 {
   if ((! config.display.resolution.override.isZero ()) ||
@@ -4389,9 +4389,12 @@ SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
          )
       {
         config.display.resolution.applied = true;
+        return true;
       }
     }
   }
+
+  return false;
 };
 
 void

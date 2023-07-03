@@ -1,4 +1,9 @@
-﻿23.7.3.3
+﻿23.7.3.4
+========
+ + Added command console variable Display.RefreshRate to change the refresh
+     rate of the monitor the game's window is on using keyboard macros.
+
+23.7.3.3
 ========
  + Added Auto VRR Mode default policy to its right-click menu;
      initial default policy is enable.

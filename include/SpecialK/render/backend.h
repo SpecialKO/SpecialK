@@ -1429,7 +1429,7 @@ using D3DKMTWaitForVerticalBlankEvent_pfn  = NTSTATUS (WINAPI *)(const D3DKMT_WA
 using D3DKMTGetScanLine_pfn                = NTSTATUS (WINAPI *)(D3DKMT_GETSCANLINE                      *unnamedParam1);
 using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SETSTABLEPOWERSTATE        *unnamedParam1);
 
-void SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
+bool SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
 
 // Disables Vulkan layers (i.e. if using DXGI interop, prefer software hook the D3D11 SwapChain and not Vulkan)
 void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during application startup

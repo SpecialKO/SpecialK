@@ -3930,6 +3930,46 @@ auto DeclKeybind =
     }
   }
 
+  auto cmd =
+    SK_GetCommandProcessor ();
+
+  class DisplayListener : public SK_IVariableListener
+  {
+  public:
+    virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+    {
+      if (val != nullptr && var != nullptr )
+      {
+        if (var->getValuePointer () == &config.display.refresh_rate)
+        {
+          float refresh = *(float *)val;
+
+          refresh =
+            std::clamp (refresh, 0.0f, 1000.0f);
+
+          MONITORINFOEXW
+            mi = { };
+            mi.cbSize = sizeof (MONITORINFOEXW);
+
+          if (GetMonitorInfoW (rb.monitor, &mi))
+          {
+            float original =
+              std::exchange (config.display.refresh_rate, refresh);
+
+            if (SK_Display_ApplyDesktopResolution (mi))
+              return true;
+
+            // Oh no!
+            config.display.refresh_rate = original;
+          }
+        }
+      }
+
+      return true;
+    }
+  } static display_control;
+
+  cmd->AddVariable ("Display.Refresh", SK_CreateVar (SK_IVariable::Float, &config.display.refresh_rate, &display_control));
 
   if (((sk::iParameter *)window.override)->load ())
   {
