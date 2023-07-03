@@ -21,6 +21,11 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"  WASAPI  "
+
 const IID IID_IAudioClient3 = __uuidof(IAudioClient3);
 
 SK_IAudioClient3
@@ -117,7 +122,7 @@ SK_GetAudioMeterInfo (void)
     SK_WASAPI_GetAudioMeterInfo ();
 }
 
-SK_WASAPI_LatencyPeriod
+SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetCurrentLatency (void)
 {
@@ -137,7 +142,8 @@ SK_WASAPI_GetCurrentLatency (void)
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * currentPeriodInFrames) * 1000.0),
-                                                                                   currentPeriodInFrames
+                                                                                   currentPeriodInFrames,
+                                                        pFormat->nSamplesPerSec
     };
   }
 
@@ -151,7 +157,7 @@ SK_WASAPI_GetCurrentLatency (void)
     { 0.0f, 0 };
 }
 
-SK_WASAPI_LatencyPeriod
+SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetDefaultLatency (void)
 {
@@ -183,7 +189,8 @@ SK_WASAPI_GetDefaultLatency (void)
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * defaultPeriodInFrames) * 1000.0),
-                                                                                   defaultPeriodInFrames
+                                                                                   defaultPeriodInFrames,
+                                                        pFormat->nSamplesPerSec
     };
   }
 
@@ -198,7 +205,7 @@ SK_WASAPI_GetDefaultLatency (void)
 }
 
 
-SK_WASAPI_LatencyPeriod
+SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetMinimumLatency (void)
 {
@@ -230,7 +237,8 @@ SK_WASAPI_GetMinimumLatency (void)
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * minPeriodInFrames) * 1000.0),
-                                                                                   minPeriodInFrames
+                                                                                   minPeriodInFrames,
+                                                        pFormat->nSamplesPerSec
     };
   }
 
@@ -244,7 +252,7 @@ SK_WASAPI_GetMinimumLatency (void)
     { 0.0f, 0 };
 }
 
-SK_WASAPI_LatencyPeriod
+SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetMaximumLatency (void)
 {
@@ -276,7 +284,8 @@ SK_WASAPI_GetMaximumLatency (void)
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * maxPeriodInFrames) * 1000.0),
-                                                                                   maxPeriodInFrames
+                                                                                   maxPeriodInFrames,
+                                                        pFormat->nSamplesPerSec
     };
   }
 
@@ -290,9 +299,9 @@ SK_WASAPI_GetMaximumLatency (void)
     { 0.0f, 0 };
 }
 
-SK_WASAPI_LatencyPeriod
+SK_WASAPI_AudioLatency
 __stdcall
-SK_WASAPI_SetLatency (SK_WASAPI_LatencyPeriod latency)
+SK_WASAPI_SetLatency (SK_WASAPI_AudioLatency latency)
 {
   auto pAudioClient =
     SK_WASAPI_GetAudioClient ();
@@ -316,7 +325,8 @@ SK_WASAPI_SetLatency (SK_WASAPI_LatencyPeriod latency)
     return
     {
       static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * latency.frames) * 1000.0),
-                                                                                   latency.frames
+                                                                                   latency.frames,
+                                                        pFormat->nSamplesPerSec
     };
   }
 
@@ -406,7 +416,7 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
       AudioSessionState state;
 
-if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
+      if (SUCCEEDED (pSessionCtl2->GetState (&state)) && state == AudioSessionStateActive)
       {
         if ( unique_procs.count (dwProcess) == 0  && ( max_count == 0 || (count != nullptr && *count < max_count ) ) )
         {
@@ -932,18 +942,27 @@ SK_WASAPI_Init (void)
   cmd->AddVariable ("Sound.Volume", SK_CreateVar (SK_IVariable::Float,   &volume, &sound_control));
   cmd->AddVariable ("Sound.Mute",   SK_CreateVar (SK_IVariable::Boolean, &mute,   &sound_control));
 
+  auto cur_lat = SK_WASAPI_GetCurrentLatency ();
+  auto min_lat = SK_WASAPI_GetMinimumLatency ();
+
+  SK_LOGi0 (
+    L"Current Audio Mixing Latency: %.1f ms @ %d kHz", cur_lat.milliseconds,
+                                                       cur_lat.samples_per_sec / 1000UL
+  );
+  SK_LOGi0 (
+    L"Minimum Audio Mixing Latency: %.1f ms @ %d kHz", min_lat.milliseconds,
+                                                       min_lat.samples_per_sec / 1000UL
+  );
+
   if (config.sound.minimize_latency)
   {
-    auto cur_lat = SK_WASAPI_GetCurrentLatency ();
-    auto min_lat = SK_WASAPI_GetMinimumLatency ();
-
     if (cur_lat.frames       != 0 && min_lat.frames != 0 &&
         cur_lat.milliseconds !=      min_lat.milliseconds)
     {
       auto latency =
         SK_WASAPI_SetLatency (min_lat);
 
-      SK_LOG0 ( ( L"Shared Mixing Latency Changed from %.2f ms to %.2f ms",
+      SK_LOG0 ( ( L"Shared Mixing Latency Changed from %.1f ms to %.1f ms",
                     cur_lat.milliseconds, latency.milliseconds
               ),L"  WASAPI  " );
     }

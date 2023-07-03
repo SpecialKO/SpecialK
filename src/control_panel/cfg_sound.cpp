@@ -607,8 +607,70 @@ SK_ImGui_VolumeManager (void)
             ImGui::TextUnformatted ("Hold Ctrl for faster +/- adjustment.");
             ImGui::EndTooltip      ();
           }
+
+          ImGui::SameLine ();
         }
       }
+
+      ImGui::VerticalSeparator ();
+      ImGui::SameLine          ();
+      ImGui::BeginGroup        ();
+
+      auto min_lat = SK_WASAPI_GetMinimumLatency ();
+      auto cur_lat = SK_WASAPI_GetCurrentLatency ();
+
+      if (min_lat.frames > 0 && cur_lat.frames > 0)
+      {
+        if (min_lat.frames != cur_lat.frames)
+        {
+          auto default_latency =
+            SK_WASAPI_GetDefaultLatency ();
+
+          ImGui::SameLine ();
+          if (ImGui::Button ("Minimize Latency"))
+          {
+            auto latency =
+              SK_WASAPI_SetLatency (min_lat);
+
+            if (latency.frames != 0 && latency.milliseconds != 0.0f)
+            {
+              SK_ImGui_WarningWithTitle (
+                SK_FormatStringW (
+                  L"Latency changed from %.1f ms to %.1f ms",
+                    cur_lat.milliseconds, latency.milliseconds).c_str (),
+                  L"Audio Latency Changed"
+              );
+
+              config.sound.minimize_latency = true;
+            }
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::BulletText   ("Current Latency: %.1f ms", cur_lat        .milliseconds);
+            ImGui::BulletText   ("Minimum Latency: %.1f ms", min_lat        .milliseconds);
+            ImGui::BulletText   ("Default Latency: %.1f ms", default_latency.milliseconds);
+            ImGui::Separator    ();
+            ImGui::Text         ("SK will remember to always minimize latency in this game.");
+            ImGui::EndTooltip   ();
+          }
+        }
+
+        else
+          ImGui::Text ( "Latency:\t%.1f ms @ %d kHz",
+                          cur_lat.milliseconds,
+                          cur_lat.samples_per_sec / 1000UL );
+      }
+
+      float fPosY =
+        ImGui::GetCursorPosY ();
+
+      ImGui::Separator ();
+      ImGui::EndGroup  ();
+
+      ImGui::SetCursorPosY (fPosY);
+      ImGui::Spacing ();
 
       const char* szMuteButtonTitle =
         ( master_mute ? "  Unmute  ###MasterMute" :
@@ -649,46 +711,6 @@ SK_ImGui_VolumeManager (void)
                                             0.5f + master_vol * 0.5f),
                              "(%03.1f%%)  ",
                                master_vol * 100.0 );
-
-      auto min_lat = SK_WASAPI_GetMinimumLatency ();
-      auto cur_lat = SK_WASAPI_GetCurrentLatency ();
-
-      if (min_lat.frames > 0 && cur_lat.frames > 0 &&
-          min_lat.frames     != cur_lat.frames)
-      {
-        auto default_latency =
-          SK_WASAPI_GetDefaultLatency ();
-
-        ImGui::SameLine ();
-        if (ImGui::Button ("Minimize Latency"))
-        {
-          auto latency =
-            SK_WASAPI_SetLatency (min_lat);
-
-          if (latency.frames != 0 && latency.milliseconds != 0.0f)
-          {
-            SK_ImGui_WarningWithTitle (
-              SK_FormatStringW (
-                L"Latency changed from %.2f ms to %.2f ms",
-                  cur_lat.milliseconds, latency.milliseconds).c_str (),
-                L"Audio Latency Changed"
-            );
-
-            config.sound.minimize_latency = true;
-          }
-        }
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip ();
-          ImGui::BulletText   ("Current Latency: %.2f ms", cur_lat        .milliseconds);
-          ImGui::BulletText   ("Minimum Latency: %.2f ms", min_lat        .milliseconds);
-          ImGui::BulletText   ("Default Latency: %.2f ms", default_latency.milliseconds);
-          ImGui::Separator    ();
-          ImGui::Text         ("SK will remember to always minimize latency in this game.");
-          ImGui::EndTooltip   ();
-        }
-      }
 
       ImGui::PopStyleColor (5);
       ImGui::Separator     ( );

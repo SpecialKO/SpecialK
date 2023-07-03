@@ -646,16 +646,17 @@ private:
     SK_IAudioAutoGainControl           auto_gain_;
 };
 
-struct SK_WASAPI_LatencyPeriod
+struct SK_WASAPI_AudioLatency
 {
   float    milliseconds;
   uint32_t frames;
+  uint32_t samples_per_sec;
 };
 
-SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetCurrentLatency (void);
-SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetDefaultLatency (void);
-SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetMinimumLatency (void);
-SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetMaximumLatency (void);
-SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_LatencyPeriod latency);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetCurrentLatency (void);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (void);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (void);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (void);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency);
 
 #endif /* __SK__SOUND_H__ */
