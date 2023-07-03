@@ -40,6 +40,7 @@ using SK_IAudioSessionEnumerator = SK_ComPtr <IAudioSessionEnumerator>;
 using SK_IAudioSessionControl    = SK_ComPtr <IAudioSessionControl>;
 using SK_IAudioSessionControl2   = SK_ComPtr <IAudioSessionControl2>;
 using SK_IAudioSessionManager2   = SK_ComPtr <IAudioSessionManager2>;
+using SK_IAudioClient3           = SK_ComPtr <IAudioClient3>;
 
 bool                      __stdcall SK_WASAPI_Init                    (void);
 void                      __stdcall SK_SetGameMute                    (bool bMute);
@@ -48,6 +49,7 @@ SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
 SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
 SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
 void                      __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
+SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (void);
 
 const char*               __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
@@ -644,6 +646,16 @@ private:
     SK_IAudioAutoGainControl           auto_gain_;
 };
 
+struct SK_WASAPI_LatencyPeriod
+{
+  float    milliseconds;
+  uint32_t frames;
+};
 
+SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetCurrentLatency (void);
+SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetDefaultLatency (void);
+SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetMinimumLatency (void);
+SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_GetMaximumLatency (void);
+SK_WASAPI_LatencyPeriod __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_LatencyPeriod latency);
 
 #endif /* __SK__SOUND_H__ */

@@ -21,6 +21,48 @@
 
 #include <SpecialK/stdafx.h>
 
+const IID IID_IAudioClient3 = __uuidof(IAudioClient3);
+
+SK_IAudioClient3
+__stdcall
+SK_WASAPI_GetAudioClient (void)
+{
+  SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
+  SK_IMMDevice              pDevice    = nullptr;
+
+  try
+  {
+    ThrowIfFailed (
+      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+    if (pDevEnum == nullptr)
+      return nullptr;
+
+    ThrowIfFailed (
+      pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                           eConsole,
+                                             &pDevice));
+
+    if (pDevice == nullptr)
+      return nullptr;
+
+    SK_ComPtr <IAudioClient3> pAudioClient;
+
+    ThrowIfFailed (
+      pDevice->Activate (IID_IAudioClient3, CLSCTX_ALL, nullptr, IID_PPV_ARGS_Helper (&pAudioClient.p)));
+
+    return pAudioClient;
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+
+    return nullptr;
+  }
+}
+
 SK_IAudioMeterInformation
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (void)
@@ -75,6 +117,219 @@ SK_GetAudioMeterInfo (void)
     SK_WASAPI_GetAudioMeterInfo ();
 }
 
+SK_WASAPI_LatencyPeriod
+__stdcall
+SK_WASAPI_GetCurrentLatency (void)
+{
+  auto pAudioClient =
+    SK_WASAPI_GetAudioClient ();
+
+  if (! pAudioClient.p)
+    return { 0.0f, 0 };
+
+  try
+  {
+    WAVEFORMATEX                                      *pFormat;
+    UINT32                                                       currentPeriodInFrames;
+    ThrowIfFailed (
+      pAudioClient->GetCurrentSharedModeEnginePeriod (&pFormat, &currentPeriodInFrames));
+
+    return
+    {
+      static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * currentPeriodInFrames) * 1000.0),
+                                                                                   currentPeriodInFrames
+    };
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+  }
+
+  return
+    { 0.0f, 0 };
+}
+
+SK_WASAPI_LatencyPeriod
+__stdcall
+SK_WASAPI_GetDefaultLatency (void)
+{
+  auto pAudioClient =
+    SK_WASAPI_GetAudioClient ();
+
+  if (! pAudioClient.p)
+    return { 0.0f, 0 };
+
+  try
+  {
+    WAVEFORMATEX *pFormat;
+
+    ThrowIfFailed (
+      pAudioClient->GetMixFormat (&pFormat));
+
+    UINT32 defaultPeriodInFrames;
+    UINT32 fundamentalPeriodInFrames;
+    UINT32 minPeriodInFrames;
+    UINT32 maxPeriodInFrames;
+
+    ThrowIfFailed (
+      pAudioClient->GetSharedModeEnginePeriod ( pFormat,
+                                                  &defaultPeriodInFrames,
+                                              &fundamentalPeriodInFrames,
+                                                      &minPeriodInFrames,
+                                                      &maxPeriodInFrames ));
+
+    return
+    {
+      static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * defaultPeriodInFrames) * 1000.0),
+                                                                                   defaultPeriodInFrames
+    };
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+  }
+
+  return
+    { 0.0f, 0 };
+}
+
+
+SK_WASAPI_LatencyPeriod
+__stdcall
+SK_WASAPI_GetMinimumLatency (void)
+{
+  auto pAudioClient =
+    SK_WASAPI_GetAudioClient ();
+
+  if (! pAudioClient.p)
+    return { 0.0f, 0 };
+
+  try
+  {
+    WAVEFORMATEX *pFormat;
+
+    ThrowIfFailed (
+      pAudioClient->GetMixFormat (&pFormat));
+
+    UINT32 defaultPeriodInFrames;
+    UINT32 fundamentalPeriodInFrames;
+    UINT32 minPeriodInFrames;
+    UINT32 maxPeriodInFrames;
+
+    ThrowIfFailed (
+      pAudioClient->GetSharedModeEnginePeriod ( pFormat,
+                                                  &defaultPeriodInFrames,
+                                              &fundamentalPeriodInFrames,
+                                                      &minPeriodInFrames,
+                                                      &maxPeriodInFrames ));
+
+    return
+    {
+      static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * minPeriodInFrames) * 1000.0),
+                                                                                   minPeriodInFrames
+    };
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+  }
+
+  return
+    { 0.0f, 0 };
+}
+
+SK_WASAPI_LatencyPeriod
+__stdcall
+SK_WASAPI_GetMaximumLatency (void)
+{
+  auto pAudioClient =
+    SK_WASAPI_GetAudioClient ();
+
+  if (! pAudioClient.p)
+    return { 0.0f, 0 };
+
+  try
+  {
+    WAVEFORMATEX *pFormat;
+
+    ThrowIfFailed (
+      pAudioClient->GetMixFormat (&pFormat));
+
+    UINT32 defaultPeriodInFrames;
+    UINT32 fundamentalPeriodInFrames;
+    UINT32 minPeriodInFrames;
+    UINT32 maxPeriodInFrames;
+
+    ThrowIfFailed (
+      pAudioClient->GetSharedModeEnginePeriod ( pFormat,
+                                                  &defaultPeriodInFrames,
+                                              &fundamentalPeriodInFrames,
+                                                      &minPeriodInFrames,
+                                                      &maxPeriodInFrames ));
+
+    return
+    {
+      static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * maxPeriodInFrames) * 1000.0),
+                                                                                   maxPeriodInFrames
+    };
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+  }
+
+  return
+    { 0.0f, 0 };
+}
+
+SK_WASAPI_LatencyPeriod
+__stdcall
+SK_WASAPI_SetLatency (SK_WASAPI_LatencyPeriod latency)
+{
+  auto pAudioClient =
+    SK_WASAPI_GetAudioClient ();
+
+  if (! pAudioClient.p)
+    return { 0.0f, 0 };
+
+  try
+  {
+    WAVEFORMATEX *pFormat;
+
+    ThrowIfFailed (
+      pAudioClient->GetMixFormat (&pFormat));
+
+    ThrowIfFailed (
+      pAudioClient->InitializeSharedAudioStream (0, latency.frames, pFormat, nullptr));
+
+    ThrowIfFailed (
+      pAudioClient->Start ());
+
+    return
+    {
+      static_cast <float> ((1.0 / static_cast <double> (pFormat->nSamplesPerSec) * latency.frames) * 1000.0),
+                                                                                   latency.frames
+    };
+  }
+
+  catch (const std::exception& e)
+  {
+    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+              ),L"  WASAPI  " );
+  }
+
+  return
+    { 0.0f, 0 };
+}
+
 void
 __stdcall
 SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
@@ -109,7 +364,8 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
                                              &pDevice));
 
     ThrowIfFailed (
-      pDevice->Activate (
+  
+    pDevice->Activate (
                 __uuidof (IAudioSessionManager2),
                   CLSCTX_ALL,
                     nullptr,
@@ -675,6 +931,23 @@ SK_WASAPI_Init (void)
 
   cmd->AddVariable ("Sound.Volume", SK_CreateVar (SK_IVariable::Float,   &volume, &sound_control));
   cmd->AddVariable ("Sound.Mute",   SK_CreateVar (SK_IVariable::Boolean, &mute,   &sound_control));
+
+  if (config.sound.minimize_latency)
+  {
+    auto cur_lat = SK_WASAPI_GetCurrentLatency ();
+    auto min_lat = SK_WASAPI_GetMinimumLatency ();
+
+    if (cur_lat.frames       != 0 && min_lat.frames != 0 &&
+        cur_lat.milliseconds !=      min_lat.milliseconds)
+    {
+      auto latency =
+        SK_WASAPI_SetLatency (min_lat);
+
+      SK_LOG0 ( ( L"Shared Mixing Latency Changed from %.2f ms to %.2f ms",
+                    cur_lat.milliseconds, latency.milliseconds
+              ),L"  WASAPI  " );
+    }
+  }
 
   return true;
 }

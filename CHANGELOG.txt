@@ -1,4 +1,24 @@
-﻿23.7.2.1
+﻿23.7.3
+======
+ + Added a lengthy technical explanation of SK's VRAM guage to its tooltip
+ + Added msedgewebview2.exe to internal injection blacklist
+ + Renamed "Volume Management" to "Audio Management"
+ + Added Audio Latency Minimization:
+
+  >> The Audio Management section of the control panel has a new button to
+       set the game's latency to the lowest supported by your hardware driver
+         if the current latency is higher than minimum.
+
+   * This latency reduction will be applied to the game every time it starts.
+
+  You can manually enable this feature by setting:
+
+    [Sound.Mixing]
+    MinimizeLatency=true
+
+  If you want this as a global policy, add it to Global\master_SpecialK.ini
+
+23.7.2.1
 ========
  + Removed VRR activation message from auto low-latency
  + Bypassed Hatsune Miku Project Diva hanging at shutdown when it crashes.

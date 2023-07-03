@@ -382,6 +382,8 @@ struct sk_config_t
          true, true, false, VK_DELETE
       }, L"VolumeMinus10%"
     };
+
+    bool        minimize_latency      = false;
   } sound;
 
   struct screenshots_s {

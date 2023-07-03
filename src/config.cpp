@@ -593,6 +593,10 @@ struct {
 } dpi;
 
 struct {
+  sk::ParameterBool*      minimize_latency        = nullptr;
+} sound;
+
+struct {
   struct {
     sk::ParameterBool*    override                = nullptr;
     sk::ParameterStringW* compatibility           = nullptr;
@@ -1604,6 +1608,8 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
     ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
+
+    ConfigEntry (sound.minimize_latency,                 L"Minimize Audio Latency while Game is Running",              dll_ini,         L"Sound.Mixing",          L"MinimizeLatency"),
 
 
     // Control the behavior of SKIF rather than the other way around
@@ -3997,6 +4003,8 @@ auto DeclKeybind =
   dpi.per_monitor_aware->load       (config.dpi.per_monitor.aware);
   dpi.per_monitor_all_threads->load (config.dpi.per_monitor.aware_on_all_threads);
 
+  sound.minimize_latency->load      (config.sound.minimize_latency);
+
   platform.achievements.play_sound->load         (config.platform.achievements.play_sound);
   platform.achievements.sound_file->load         (config.platform.achievements.sound_file);
   platform.achievements.take_screenshot->load    (config.platform.achievements.take_screenshot);
@@ -5080,6 +5088,8 @@ SK_SaveConfig ( std::wstring name,
   dpi.disable->store                              (config.dpi.disable_scaling);
   dpi.per_monitor_aware->store                    (config.dpi.per_monitor.aware);
   dpi.per_monitor_all_threads->store              (config.dpi.per_monitor.aware_on_all_threads);
+
+  sound.minimize_latency->store                   (config.sound.minimize_latency);
 
 
   platform.achievements.sound_file->store         (config.platform.achievements.sound_file);
