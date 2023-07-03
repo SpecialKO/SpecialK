@@ -613,6 +613,10 @@ using  D3DKMTGetMultiPlaneOverlayCaps_pfn = NTSTATUS (WINAPI *)(D3DKMT_GET_MULTI
 static D3DKMTGetMultiPlaneOverlayCaps_pfn
        D3DKMTGetMultiPlaneOverlayCaps = nullptr;
 
+using  D3DKMTOpenAdapterFromLuid_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMLUID *unnamedParam1);
+static D3DKMTOpenAdapterFromLuid_pfn
+       D3DKMTOpenAdapterFromLuid = nullptr;
+
 extern HRESULT SK_D3DKMT_CloseAdapter (struct _D3DKMT_CLOSEADAPTER *pCloseAdapter);
 
 void
@@ -635,6 +639,20 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
       config.render.framerate.auto_low_latency    = false;
       // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
+
+      // Use the Low-Latency Limiter mode, even though it might cause stutter.
+      if (config.render.framerate.auto_low_latency_ex)
+      {
+        config.nvidia.reflex.low_latency_boost     = true;
+        config.nvidia.reflex.marker_optimization   = true;
+        config.render.framerate.enforcement_policy = 2;
+      }
+      else
+      {
+        config.nvidia.reflex.low_latency_boost     = false;
+        config.nvidia.reflex.marker_optimization   = false;
+        config.render.framerate.enforcement_policy = 4;
+      }
     
       double dRefreshRate =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
@@ -2996,6 +3014,39 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
               );
             }
           }
+        }
+
+        D3DKMT_QUERYADAPTERINFO
+               queryAdapterInfo                       = { };
+               queryAdapterInfo.AdapterHandle         = adapter.d3dkmt;
+               queryAdapterInfo.Type                  = KMTQAITYPE_DRIVERVERSION;
+               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps.version;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_DRIVERVERSION);
+
+               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_3_0_CAPS;
+               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._3_0;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_3_0_CAPS);
+
+        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+
+               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_9_CAPS;
+               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._2_9;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_9_CAPS);
+
+        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+
+               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_7_CAPS;
+               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._2_7;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_7_CAPS);
+
+        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+
+        // For Windows 10, just fill-in WDDM 2.9 values using what's available.
+        if (display.wddm_caps.version < KMT_DRIVERVERSION_WDDM_2_9)
+        {
+          display.wddm_caps._2_9.HwSchEnabled      = display.wddm_caps._2_7.HwSchEnabled;
+          display.wddm_caps._2_9.HwSchSupportState = display.wddm_caps._2_7.HwSchSupported ? DXGK_FEATURE_SUPPORT_STABLE
+                                                                                           : DXGK_FEATURE_SUPPORT_EXPERIMENTAL;
         }
       }
     }

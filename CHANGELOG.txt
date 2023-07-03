@@ -1,4 +1,12 @@
-﻿23.7.3.1
+﻿23.7.3.2
+========
+ + Added "Ultra Low Latency" option to Auto VRR Mode (NVIDIA only)
+
+  >> Right-click the Auto VRR Mode option in Framerate Limiter | Advanced
+
+   * This is a globally stored preference.
+
+23.7.3.1
 ========
  + Changed the IAudioClient3 instance used to set mixing latency to keep-alive,
      rather than destroying the COM object when it goes out of scope.
@@ -7,7 +15,7 @@
 
 23.7.3
 ======
- + Added a lengthy technical explanation of SK's VRAM guage to its tooltip
+ + Added a lengthy technical explanation of SK's VRAM gauge to its tooltip
  + Added msedgewebview2.exe to internal injection blacklist
  + Renamed "Volume Management" to "Audio Management"
  + Added Audio Latency Minimization:

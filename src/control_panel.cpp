@@ -1591,30 +1591,67 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       ImGui::SetTooltip ("Changes to Resolution or Refresh on 'Active Monitor'"
                          " will apply to future launches of this game");
 
-  ImGui::EndGroup   ();
-  ImGui::SameLine   ();
-  ImGui::BeginGroup ();
-  
-  int mpo_planes =
-    rb.displays [rb.active_display].mpo_planes;
-
+  ImGui::EndGroup    ();
+  ImGui::SameLine    ();
   ImGui::VerticalSeparator ();
-  ImGui::SameLine          ();
+  ImGui::SameLine    ();
+  ImGui::BeginGroup  ();
 
+  auto &display =
+    rb.displays [rb.active_display];
+
+  ImGui::Separator   ();
+  ImGui::BeginGroup  ();
   ImGui::Text        ("MPO Planes: ");
-  ImGui::SameLine ();
+  ImGui::Text        ("HW Scheduling: ");
+  ImGui::Text        ("HW Flip Queue: ");
+  ImGui::EndGroup    ();
+  ImGui::SameLine    ();
+  ImGui::BeginGroup  ();
 
-  if (mpo_planes <= 1)
+  if (display.mpo_planes <= 1)
   {
     ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Unsupported " ICON_FA_EXCLAMATION_TRIANGLE );
   }
 
   else
   {
-    ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", mpo_planes );
+    ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", display.mpo_planes );
   }
 
-  ImGui::EndGroup   ();
+  auto _PrintEnabled      = [](UINT enabled)
+  {
+    if (enabled != 0)
+      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
+    else
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
+  };
+  auto _PrintSupportState = [](UINT state)
+  {
+    switch (state)
+    {
+      default:
+      case DXGK_FEATURE_SUPPORT_ALWAYS_OFF:   ImGui::Text ("(Always Off)");   break;
+      case DXGK_FEATURE_SUPPORT_EXPERIMENTAL: ImGui::Text ("(Experimental)"); break;
+      case DXGK_FEATURE_SUPPORT_STABLE:       ImGui::Text ("(Stable)");       break;
+      case DXGK_FEATURE_SUPPORT_ALWAYS_ON:    ImGui::Text ("(Always On)");    break;
+    };
+  };
+
+  auto _PrintWDDMCapability = [&](UINT Enabled, UINT SupportState)
+  {
+    _PrintEnabled      (Enabled);      ImGui::SameLine ();
+    _PrintSupportState (SupportState);
+  };
+
+  _PrintWDDMCapability (display.wddm_caps._2_9.HwSchEnabled,
+                        display.wddm_caps._2_9.HwSchSupportState);
+
+  _PrintWDDMCapability (display.wddm_caps._3_0.HwFlipQueueEnabled,
+                        display.wddm_caps._3_0.HwFlipQueueSupportState);
+
+  ImGui::EndGroup    ();
+  ImGui::EndGroup    ();
 
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
   {
@@ -1655,7 +1692,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     ImGui::BulletText   ("For best results, use the game's internal Windowed"
                          " mode option (not Borderless / Borderless Fullscreen)");
 
-    if (mpo_planes <= 1)
+    if (display.mpo_planes <= 1)
     {
       ImGui::Separator   ();
       ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
@@ -1677,8 +1714,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       (float)config.window.res.override.y;
 
     float fNativeAspect =
-      (float)(rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left) /
-      (float)(rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top);
+      (float)(display.rect.right  - display.rect.left) /
+      (float)(display.rect.bottom - display.rect.top);
 
     struct {
       float fAspect;
@@ -1717,72 +1754,72 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         case 0:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(5.0f * (config.window.res.override.y / 4.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right - display.rect.left;
             config.window.res.override.y = (int)(4.0f * (config.window.res.override.x / 5.0f));
           }
           break;
         case 1:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(4.0f * (config.window.res.override.y / 3.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right - display.rect.left;
             config.window.res.override.y = (int)(3.0f * (config.window.res.override.x / 4.0f));
           }
           break;
         case 2:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(3.0f * (config.window.res.override.y / 2.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right - display.rect.left;
             config.window.res.override.y = (int)(2.0f * (config.window.res.override.x / 3.0f));
           }
           break;
         case 3:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 10.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right - display.rect.left;
             config.window.res.override.y = (int)(10.0f * (config.window.res.override.x / 16.0f));
           }
           break;
         case 4:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(16.0f * (config.window.res.override.y / 9.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right - display.rect.left;
             config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 16.0f));
           }
           break;
         case 5:
           if (iNativeAspect >= iVirtualAspect)
           {
-            config.window.res.override.y = rb.displays [rb.active_display].rect.bottom - rb.displays [rb.active_display].rect.top;
+            config.window.res.override.y = display.rect.bottom - display.rect.top;
             config.window.res.override.x = (int)(21.0f * (config.window.res.override.y / 9.0f));
           }
           else
           {
-            config.window.res.override.x = rb.displays [rb.active_display].rect.right  - rb.displays [rb.active_display].rect.left;
+            config.window.res.override.x = display.rect.right  - display.rect.left;
             config.window.res.override.y = (int)(9.0f * (config.window.res.override.x / 21.0f));
           }
           break;
@@ -4931,12 +4968,8 @@ SK_ImGui_ControlPanel (void)
               ImGui::BeginGroup   ();
               ImGui::TextUnformatted
                                   ("Prioritizes Minimum Stutter");
-              if (sk::NVAPI::nv_hardware)
-                ImGui::TextUnformatted
-                                  ("NVIDIA users should use Reflex Low Latency mode instead");
-              else
-                ImGui::TextUnformatted
-                                  ("Ideal for VRR displays; VRR will compensate for potential stutter");
+              ImGui::TextUnformatted
+                                  ("Ideal for VRR displays; VRR should compensate for potential stutter");
               ImGui::TextUnformatted
                                   ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
               ImGui::EndGroup     ();
@@ -4981,12 +5014,40 @@ SK_ImGui_ControlPanel (void)
                 ImGui::Separator       ();
                 ImGui::BulletText      ("Limit will be set lower than refresh to remove 1 frame of latency");
                 ImGui::BulletText      ("Games will be prevented from using 1/2, 1/3 or 1/4 Refresh VSYNC");
-                ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
+                if (config.render.framerate.auto_low_latency_ex)
+                {
+                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency + Boost mode");
+                  ImGui::BulletText    ("Framerate limiter mode will be set to VRR Optimized");
+                }
+                else
+                  ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
+                ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
+                ImGui::SameLine        ();
+                ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");
                 ImGui::Separator       ();
                 ImGui::TextColored     (ImVec4 (.6f, .6f, 1.f, 1.f), ICON_FA_INFO_CIRCLE);
                 ImGui::SameLine        ();
                 ImGui::TextUnformatted ("This option turns itself off after optimizing the framerate limiter");
                 ImGui::EndTooltip      ();
+              }
+
+              ImGui::OpenPopupOnItemClick ("AutoVRRConfig");
+
+              if (ImGui::BeginPopup ("AutoVRRConfig"))
+              {
+                bool vrr_changed = false;
+
+                vrr_changed |=
+                  ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency_ex);
+
+                if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
+
+                // Turn on Auto-Low Latency after making any changes
+                if (vrr_changed)
+                  config.render.framerate.auto_low_latency = true;
+
+                ImGui::EndPopup ();
               }
             }
 
