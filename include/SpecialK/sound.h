@@ -322,6 +322,8 @@ public:
   virtual
   ~SK_WASAPI_SessionManager (void) noexcept (false)
   {
+    Deactivate ();
+
     if (session_mgr_ != nullptr)
       session_mgr_->UnregisterSessionNotification (this);
   }
@@ -332,6 +334,7 @@ public:
     endpoint_vol_ = nullptr;
     auto_gain_    = nullptr;
     loudness_     = nullptr;
+    audio_client_ = nullptr;
   }
 
   void Activate (void)
@@ -440,6 +443,7 @@ public:
     endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
     auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
     loudness_.    Attach (SK_MMDev_GetLoudness              ().Detach ());
+    audio_client_.Attach (SK_WASAPI_GetAudioClient          ().Detach ());
   }
 
   // IUnknown
@@ -644,6 +648,7 @@ private:
     SK_IAudioEndpointVolume            endpoint_vol_;
     SK_IAudioLoudness                  loudness_;
     SK_IAudioAutoGainControl           auto_gain_;
+    SK_IAudioClient3                   audio_client_;
 };
 
 struct SK_WASAPI_AudioLatency

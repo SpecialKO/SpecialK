@@ -35,7 +35,9 @@ SK_WASAPI_GetAudioClient (void)
   static SK_IAudioClient3 pCachedClient = nullptr;
   static DWORD            dwLastUpdate  = 0;
 
-  if (SK::ControlPanel::current_time > dwLastUpdate + 1500UL)
+  // TODO: Stash this in the session manager SK already has, and keep it
+  //         around persistently
+  if (SK::ControlPanel::current_time > dwLastUpdate + 2500UL)
   {
     dwLastUpdate = SK::ControlPanel::current_time;
 

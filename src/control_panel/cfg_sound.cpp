@@ -620,14 +620,14 @@ SK_ImGui_VolumeManager (void)
       static auto min_lat = SK_WASAPI_GetMinimumLatency ();
 
       static DWORD last_update0 = SK::ControlPanel::current_time;
-      static DWORD last_update1 = SK::ControlPanel::current_time + 2500UL;
+      static DWORD last_update1 = SK::ControlPanel::current_time + 3333UL;
 
-      if (last_update0 < SK::ControlPanel::current_time - 2500UL)
+      if (last_update0 < SK::ControlPanel::current_time - 3333UL)
       {   last_update0 = SK::ControlPanel::current_time;
         cur_lat = SK_WASAPI_GetCurrentLatency ();
       }
 
-      if (last_update1 < SK::ControlPanel::current_time - 5000UL)
+      if (last_update1 < SK::ControlPanel::current_time - 6666UL)
       {   last_update1 = SK::ControlPanel::current_time;
         min_lat = SK_WASAPI_GetMinimumLatency ();
       }
