@@ -616,16 +616,26 @@ SK_ImGui_VolumeManager (void)
       ImGui::SameLine          ();
       ImGui::BeginGroup        ();
 
-      auto min_lat = SK_WASAPI_GetMinimumLatency ();
-      auto cur_lat = SK_WASAPI_GetCurrentLatency ();
+      static auto cur_lat = SK_WASAPI_GetCurrentLatency ();
+      static auto min_lat = SK_WASAPI_GetMinimumLatency ();
+
+      static DWORD last_update0 = SK::ControlPanel::current_time;
+      static DWORD last_update1 = SK::ControlPanel::current_time + 2500UL;
+
+      if (last_update0 < SK::ControlPanel::current_time - 2500UL)
+      {   last_update0 = SK::ControlPanel::current_time;
+        cur_lat = SK_WASAPI_GetCurrentLatency ();
+      }
+
+      if (last_update1 < SK::ControlPanel::current_time - 5000UL)
+      {   last_update1 = SK::ControlPanel::current_time;
+        min_lat = SK_WASAPI_GetMinimumLatency ();
+      }
 
       if (min_lat.frames > 0 && cur_lat.frames > 0)
       {
         if (min_lat.frames != cur_lat.frames)
         {
-          auto default_latency =
-            SK_WASAPI_GetDefaultLatency ();
-
           ImGui::SameLine ();
           if (ImGui::Button ("Minimize Latency"))
           {
@@ -647,6 +657,9 @@ SK_ImGui_VolumeManager (void)
 
           if (ImGui::IsItemHovered ())
           {
+            auto default_latency =
+              SK_WASAPI_GetDefaultLatency ();
+
             ImGui::BeginTooltip ();
             ImGui::BulletText   ("Current Latency: %.1f ms", cur_lat        .milliseconds);
             ImGui::BulletText   ("Minimum Latency: %.1f ms", min_lat        .milliseconds);

@@ -32,40 +32,52 @@ SK_IAudioClient3
 __stdcall
 SK_WASAPI_GetAudioClient (void)
 {
-  SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
-  SK_IMMDevice              pDevice    = nullptr;
+  static SK_IAudioClient3 pCachedClient = nullptr;
+  static DWORD            dwLastUpdate  = 0;
 
-  try
+  if (SK::ControlPanel::current_time > dwLastUpdate + 1500UL)
   {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    dwLastUpdate = SK::ControlPanel::current_time;
 
-    if (pDevEnum == nullptr)
+    SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
+    SK_IMMDevice              pDevice    = nullptr;
+
+    try
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+
+      if (pDevEnum == nullptr)
+        return nullptr;
+
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                             eConsole,
+                                               &pDevice));
+
+      if (pDevice == nullptr)
+        return nullptr;
+
+      SK_ComPtr <IAudioClient3> pAudioClient;
+
+      ThrowIfFailed (
+        pDevice->Activate (IID_IAudioClient3, CLSCTX_ALL, nullptr, IID_PPV_ARGS_Helper (&pAudioClient.p)));
+
+      pCachedClient =
+        pAudioClient;
+    }
+
+    catch (const std::exception& e)
+    {
+      SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
+
       return nullptr;
-
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                           eConsole,
-                                             &pDevice));
-
-    if (pDevice == nullptr)
-      return nullptr;
-
-    SK_ComPtr <IAudioClient3> pAudioClient;
-
-    ThrowIfFailed (
-      pDevice->Activate (IID_IAudioClient3, CLSCTX_ALL, nullptr, IID_PPV_ARGS_Helper (&pAudioClient.p)));
-
-    return pAudioClient;
+    }
   }
 
-  catch (const std::exception& e)
-  {
-    SK_LOG0 ( ( L"%ws (...) Failed: %hs", __FUNCTIONW__, e.what ()
-              ),L"  WASAPI  " );
-
-    return nullptr;
-  }
+  return
+    pCachedClient;
 }
 
 SK_IAudioMeterInformation
