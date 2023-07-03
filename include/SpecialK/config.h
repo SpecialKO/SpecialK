@@ -482,6 +482,7 @@ struct sk_config_t
       int     enforcement_policy  =     4; // Refer to framerate.cpp
       bool    auto_low_latency    =  true; // VRR users have the limiter default to low-latency
       bool    auto_low_latency_ex = false; // VRR auto-optimization goes further (potential stutter)
+      bool    auto_low_latency_opt=  true; // Opt-In for Auto Low Latency as default policy
       bool    enable_etw_tracing  =  true;
       bool    supports_etw_trace  = false;// Not stored in config file
       struct latent_sync_s {

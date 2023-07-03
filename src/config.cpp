@@ -675,6 +675,7 @@ struct {
     sk::ParameterBool*    drop_late_frames        = nullptr;
     sk::ParameterBool*    auto_low_latency        = nullptr;
     sk::ParameterBool*    auto_low_latency_ex     = nullptr;
+    sk::ParameterBool*    auto_low_latency_optin  = nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
 
     struct
@@ -1485,6 +1486,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.auto_low_latency,      L"If G-Sync is seen supported, automatically optimize the"
                                                          L"limiter for low-latency.",                                  dll_ini,         L"Render.DXGI",           L"AutoLowLatency"),
     ConfigEntry (render.framerate.auto_low_latency_ex,   L"Auto Low-Latency Mode may add stutter to get lower latency",input_ini,       L"Input.AutoLowLatency",  L"UltraLowLatency"),
+    ConfigEntry (render.framerate.auto_low_latency_optin,L"Global policy applied when starting a game the first time", input_ini,       L"Input.AutoLowLatency",  L"DefaultPolicy"),
 
     ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
     ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
@@ -3342,9 +3344,16 @@ auto DeclKeybind =
   render.framerate.flip_sequential->load   (config.render.framerate.flip_sequential);
 
   render.framerate.drop_late_frames->load  (config.render.framerate.drop_late_flips);
+  render.framerate.auto_low_latency_optin->
+                                     load  (config.render.framerate.auto_low_latency_opt);
+
+  bool auto_low_latency_preset =
   render.framerate.auto_low_latency->load  (config.render.framerate.auto_low_latency);
   render.framerate.auto_low_latency_ex->
                                      load  (config.render.framerate.auto_low_latency_ex);
+
+  if (! auto_low_latency_preset)
+    config.render.framerate.auto_low_latency = config.render.framerate.auto_low_latency_opt;
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
@@ -4919,6 +4928,7 @@ SK_SaveConfig ( std::wstring name,
 
     render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency);
     render.framerate.auto_low_latency_ex->store   (config.render.framerate.auto_low_latency_ex);
+    render.framerate.auto_low_latency_optin->store(config.render.framerate.auto_low_latency_opt);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||

@@ -1,4 +1,9 @@
-﻿23.7.3.2
+﻿23.7.3.3
+========
+ + Added Auto VRR Mode default policy to its right-click menu;
+     initial default policy is enable.
+
+23.7.3.2
 ========
  + Added "Ultra Low Latency" option to Auto VRR Mode (NVIDIA only)
 
