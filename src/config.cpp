@@ -3930,12 +3930,19 @@ auto DeclKeybind =
     }
   }
 
-  auto cmd =
-    SK_GetCommandProcessor ();
-
   class DisplayListener : public SK_IVariableListener
   {
   public:
+    DisplayListener (void)
+    {
+      auto cmd =
+        SK_GetCommandProcessor ();
+
+      cmd->AddVariable ( "Display.RefreshRate",
+        SK_CreateVar (SK_IVariable::Float, &config.display.refresh_rate, this)
+      );
+    }
+
     virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
     {
       if (val != nullptr && var != nullptr )
@@ -3950,6 +3957,13 @@ auto DeclKeybind =
           MONITORINFOEXW
             mi = { };
             mi.cbSize = sizeof (MONITORINFOEXW);
+
+          // Remove any overrides
+          if (refresh == 0.0f)
+          {
+            config.display.refresh_rate = 0.0f;
+            return true;
+          }
 
           if (GetMonitorInfoW (rb.monitor, &mi))
           {
@@ -3968,8 +3982,6 @@ auto DeclKeybind =
       return true;
     }
   } static display_control;
-
-  cmd->AddVariable ("Display.Refresh", SK_CreateVar (SK_IVariable::Float, &config.display.refresh_rate, &display_control));
 
   if (((sk::iParameter *)window.override)->load ())
   {

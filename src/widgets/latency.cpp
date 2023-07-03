@@ -37,7 +37,8 @@ SK_ImGui_DrawGraph_Latency ()
     SK_GetCurrentRenderBackend ();
 
   // We don't support NvLL
-  if (rb.api == SK_RenderAPI::Vulkan)
+  if (                                         rb.api        == SK_RenderAPI::Vulkan ||
+      SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE )
     return;
 
   ImGui::BeginGroup ();

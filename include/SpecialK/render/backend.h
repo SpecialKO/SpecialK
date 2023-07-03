@@ -1431,6 +1431,9 @@ using D3DKMTSetStablePowerState_pfn        = NTSTATUS (WINAPI *)(const D3DKMT_SE
 
 bool SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
 
+uint32_t
+SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain);
+
 // Disables Vulkan layers (i.e. if using DXGI interop, prefer software hook the D3D11 SwapChain and not Vulkan)
 void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during application startup
 
