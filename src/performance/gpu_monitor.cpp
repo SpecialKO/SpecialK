@@ -55,19 +55,23 @@ extern BOOL ADL_init;
 HRESULT
 SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)
 {
-  if (! D3DKMTQueryAdapterInfo)
-        D3DKMTQueryAdapterInfo =
+  using  D3DKMTQueryAdapterInfo_pfn = NTSTATUS (WINAPI *)(D3DKMT_QUERYADAPTERINFO *unnamedParam1);
+  static D3DKMTQueryAdapterInfo_pfn
+        _D3DKMTQueryAdapterInfo = nullptr;
+
+  if (!_D3DKMTQueryAdapterInfo)
+       _D3DKMTQueryAdapterInfo = (D3DKMTQueryAdapterInfo_pfn)
         SK_GetProcAddress (
           SK_LoadLibraryW ( L"gdi32.dll" ),
             "D3DKMTQueryAdapterInfo"
                           );
 
-  if (D3DKMTQueryAdapterInfo != nullptr)
+  if (_D3DKMTQueryAdapterInfo != nullptr)
   {
     return
        reinterpret_cast <
          PFND3DKMT_QUERYADAPTERINFO                    > (
-             D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
+            _D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
   }
 
   return E_FAIL;
