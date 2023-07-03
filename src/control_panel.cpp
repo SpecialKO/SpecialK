@@ -2607,6 +2607,11 @@ SK_NV_LatencyControlPanel (void)
   if (sk::NVAPI::nv_hardware && ( rb.api == SK_RenderAPI::D3D11 ||
                                   rb.api == SK_RenderAPI::D3D12 ))
   {
+    // We don't support NvLL
+    if (                                         rb.api        == SK_RenderAPI::Vulkan ||
+        SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE )
+      return;
+
     ImGui::Separator  ();
     ImGui::Text       ("NVIDIA Latency Management");
 
