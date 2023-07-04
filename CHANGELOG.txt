@@ -1,4 +1,9 @@
-﻿23.7.4
+﻿23.7.4.1
+========
+ + Added Minimum Available VRAM and Maximum VRAM Load% statistics to end-game
+     memory statistics in logs/dxgi_budget.log
+
+23.7.4
 ======
  + Added option to show VRAM gauge underneath framepacing widget, right-click
      the framepacing widget to access this setting.

@@ -315,6 +315,9 @@ struct memory_stats_t {
   uint64_t min_over_budget   = UINT64_MAX;
   uint64_t max_over_budget   = 0;
 
+  int64_t  min_availability  = INT64_MAX;
+  double   max_load_percent  = 0.0;
+
   uint64_t budget_changes    = 0;
 } extern dxgi_mem_stats [MAX_GPU_NODES];
 

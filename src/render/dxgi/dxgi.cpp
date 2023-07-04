@@ -9307,6 +9307,18 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                                 dxgi_mem_stats [i].min_budget,
                                 dxgi_mem_stats [i].max_budget );
 
+        int64_t available =
+          dxgi_mem_info [buffer].local [i].Budget -
+          dxgi_mem_info [buffer].local [i].CurrentUsage;
+
+        dxgi_mem_stats [i].min_availability =
+          std::min (dxgi_mem_stats [i].min_availability, available);
+
+        dxgi_mem_stats [i].max_load_percent =
+          std::max (dxgi_mem_stats [i].max_load_percent,
+            static_cast <double> (dxgi_mem_info [buffer].local [i].CurrentUsage) /
+            static_cast <double> (dxgi_mem_info [buffer].local [i].Budget) * 100.0);
+
         if ( dxgi_mem_info [buffer].local [i].CurrentUsage >
              dxgi_mem_info [buffer].local [i].Budget)
         {
@@ -9468,6 +9480,9 @@ SK::DXGI::ShutdownBudgetThread ( void )
         if ( dxgi_mem_stats [i].min_over_budget == UINT64_MAX )
              dxgi_mem_stats [i].min_over_budget =  0ULL;
 
+        if ( dxgi_mem_stats [i].min_availability == INT64_MAX )
+             dxgi_mem_stats [i].min_availability = dxgi_mem_info->local [i].Budget;
+
         budget_log->LogEx ( true,
                              L" GPU%i: Min Budget:        %05llu MiB\n",
                                           i,
@@ -9482,6 +9497,15 @@ SK::DXGI::ShutdownBudgetThread ( void )
         budget_log->LogEx ( true,
                              L"       Max Usage:         %05llu MiB\n",
                                dxgi_mem_stats [i].max_usage  >> 20ULL );
+        budget_log->LogEx ( true,
+                             L"====================================\n");
+        budget_log->LogEx ( true,
+                             L"  Minimum Available:      %05lli MiB\n",
+                               dxgi_mem_stats [i].min_availability
+                                                  / (1024LL * 1024LL) );
+        budget_log->LogEx ( true,
+                             L"  Maximum Load:           %#8.2f%%\n",
+                               dxgi_mem_stats [i].max_load_percent    );
 
         /*
         SK_BLogEx (params, true, L"       Min Reserve:       %05u MiB\n",
@@ -9494,11 +9518,19 @@ SK::DXGI::ShutdownBudgetThread ( void )
         mem_stats [i].max_avail_reserve >> 20ULL);
         */
 
-        budget_log->LogEx ( true,  L"------------------------------------\n" );
-        budget_log->LogEx ( true,  L" Minimum Over Budget:     %05llu MiB\n",
+        budget_log->LogEx ( true,  L"====================================\n" );
+        if ( dxgi_mem_stats [i].min_over_budget == 0 &&
+             dxgi_mem_stats [i].max_over_budget == 0 )
+        {
+          budget_log->LogEx ( true,L"         No Budget Deficits        \n"  );
+        }
+        else
+        {
+          budget_log->LogEx ( true,L" Minimum Over Budget:     %05llu MiB\n",
                                 dxgi_mem_stats [i].min_over_budget >> 20ULL  );
-        budget_log->LogEx ( true,  L" Maximum Over Budget:     %05llu MiB\n",
+          budget_log->LogEx ( true,L" Maximum Over Budget:     %05llu MiB\n",
                                 dxgi_mem_stats [i].max_over_budget >> 20ULL  );
+        }
         budget_log->LogEx ( true,  L"------------------------------------\n" );
         budget_log->LogEx ( false, L"\n"                                     );
       }
