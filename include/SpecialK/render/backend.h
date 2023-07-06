@@ -50,7 +50,6 @@ typedef D3DKMT_HANDLE *PD3DKMT_HANDLE;
 #include <SpecialK/render/screenshot.h>
 #include <SpecialK/utility.h>
 
-#pragma pack (push,1)
 typedef UINT D3DDDI_VIDEO_PRESENT_SOURCE_ID;
 
 typedef UINT32          D3DKMT_HANDLE;
@@ -670,7 +669,6 @@ typedef struct _D3DKMT_DEVICEPRESENT_QUEUE_STATE {
   D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
   BOOLEAN                        bQueuedPresentLimitReached;
 } D3DKMT_DEVICEPRESENT_QUEUE_STATE;
-#pragma pack (pop)
 
 HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
 
@@ -821,7 +819,7 @@ public:
 
     struct {
       D3DKMT_ADAPTER_PERFDATA data             = { };
-      LONG64                  sampled_frame    =  0;
+      ULONG64                 sampled_frame    =  0;
     } perf;
 
     struct {
@@ -1256,6 +1254,7 @@ public:
   const output_s* getContainingOutput  (const RECT& rkRect);
   bool            assignOutputFromHWND (HWND hWndContainer);
 
+  bool isReflexSupported  (void);
   bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);
   bool getLatencyReportNV (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams);
   void driverSleepNV      (int site);

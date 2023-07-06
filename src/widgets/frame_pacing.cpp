@@ -448,25 +448,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
   if (SK_ImGui_DrawGamepadStatusBar () > 0)
     extra_status_line = 1;
 
-  //extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
-  //
-  //D3DKMT_QUERYADAPTERINFO
-  //       queryAdapterInfo                       = { };
-  //       queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-  //       queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-  //       queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
-  //       queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
-  //
-  //if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-  //{
-  //  memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-  //                std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-  //                                     sizeof (D3DKMT_ADAPTER_PERFDATA)) );
-  //
-  //  rb.adapter.perf.sampled_frame =
-  //                    SK_GetFramesDrawn ();
-  //}
-
 #if 0
   if (rb.adapter.d3dkmt != 0)
   {
@@ -475,15 +456,19 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
       extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
 
+      D3DKMT_ADAPTER_PERFDATA perf_data = { };
+
       D3DKMT_QUERYADAPTERINFO
              queryAdapterInfo                       = { };
              queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
              queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-             queryAdapterInfo.PrivateDriverData     = &rb.adapter.perf.data;
+             queryAdapterInfo.PrivateDriverData     = &perf_data;
              queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
 
       if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
       {
+        perf_data.Power = (rb.adapter.perf.data.Power + perf_data.Power) / 2;
+
         memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
                       std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
                                            sizeof (D3DKMT_ADAPTER_PERFDATA)) );

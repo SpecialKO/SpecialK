@@ -201,6 +201,14 @@ SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 }
 
 bool
+SK_RenderBackend_V2::isReflexSupported (void)
+{
+  return 
+    sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
+    SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
+}
+
+bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)

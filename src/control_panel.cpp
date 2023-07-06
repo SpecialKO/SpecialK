@@ -2604,14 +2604,8 @@ SK_NV_LatencyControlPanel (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (sk::NVAPI::nv_hardware && ( rb.api == SK_RenderAPI::D3D11 ||
-                                  rb.api == SK_RenderAPI::D3D12 ))
+  if (rb.isReflexSupported ())
   {
-    // We don't support NvLL
-    if (                                         rb.api        == SK_RenderAPI::Vulkan ||
-        SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE )
-      return;
-
     ImGui::Separator  ();
     ImGui::Text       ("NVIDIA Latency Management");
 
@@ -5358,7 +5352,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::SameLine ();
       }
 
-      if (sk::NVAPI::nv_hardware)
+      if (rb.isReflexSupported ())
       {
         if (ImGui::Checkbox ("Latency Analysis###ReflexLatency", &latency))
         {

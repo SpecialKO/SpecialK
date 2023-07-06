@@ -40,9 +40,6 @@
 #include <SpecialK/resource.h> // Unpack shader compiler
 
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
-
-SK_WDDM_CAPS SK_WDDM_SupportedCaps;
-
 extern void
 SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
 
@@ -618,6 +615,61 @@ static D3DKMTOpenAdapterFromLuid_pfn
        D3DKMTOpenAdapterFromLuid = nullptr;
 
 extern HRESULT SK_D3DKMT_CloseAdapter (struct _D3DKMT_CLOSEADAPTER *pCloseAdapter);
+
+HRESULT
+SK_D3DKMT_OpenAdapterFromDXGI (IUnknown *pDevice, D3DKMT_HANDLE *pHandle)
+{
+  if (! (pDevice && pHandle))
+    return E_POINTER;
+
+  SK_ComQIPtr <IDXGIDevice>
+      pDXGIDevice (pDevice);
+  if (pDXGIDevice.p != nullptr)
+  {
+    SK_ComPtr <IDXGIAdapter>  pAdapter;
+    pDXGIDevice->GetAdapter (&pAdapter.p);
+
+    if (pAdapter.p != nullptr)
+    {
+      DXGI_ADAPTER_DESC                  adapter_desc = { };
+      if (SUCCEEDED (pAdapter->GetDesc (&adapter_desc)))
+      {
+        if (D3DKMTOpenAdapterFromLuid == nullptr)
+            D3DKMTOpenAdapterFromLuid = (D3DKMTOpenAdapterFromLuid_pfn)
+          SK_GetProcAddress ( L"gdi32.dll",
+           "D3DKMTOpenAdapterFromLuid" );
+
+        if (D3DKMTOpenAdapterFromLuid)
+        {
+          D3DKMT_OPENADAPTERFROMLUID oaLuid =
+                 { adapter_desc.AdapterLuid };
+
+          if (NT_SUCCESS (D3DKMTOpenAdapterFromLuid (&oaLuid)))
+          {
+            *pHandle = oaLuid.hAdapter;
+
+            return S_OK;
+          }
+
+          return
+            E_NOTFOUND;
+        }
+
+        return
+          E_NOTIMPL;
+      }
+
+      return
+        E_UNEXPECTED;
+    }
+
+    return
+      E_ACCESSDENIED;
+  }
+
+  return
+    E_NOINTERFACE;
+}
 
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
@@ -2882,6 +2934,43 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
   }
 }
 
+void
+SK_WDDM_CAPS::init (D3DKMT_HANDLE hAdapter)
+{
+  D3DKMT_QUERYADAPTERINFO
+         queryAdapterInfo                       = { };
+         queryAdapterInfo.AdapterHandle         = hAdapter;
+         queryAdapterInfo.Type                  = KMTQAITYPE_DRIVERVERSION;
+         queryAdapterInfo.PrivateDriverData     = &version;
+         queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_DRIVERVERSION);
+  
+         queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_3_0_CAPS;
+         queryAdapterInfo.PrivateDriverData     = &_3_0;
+         queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_3_0_CAPS);
+  
+  SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+  
+         queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_9_CAPS;
+         queryAdapterInfo.PrivateDriverData     = &_2_9;
+         queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_9_CAPS);
+  
+  SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+  
+         queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_7_CAPS;
+         queryAdapterInfo.PrivateDriverData     = &_2_7;
+         queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_7_CAPS);
+  
+  SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
+
+  // For Windows 10, just fill-in WDDM 2.9 values using what's available.
+  if (version < KMT_DRIVERVERSION_WDDM_2_9)
+  {
+    _2_9.HwSchEnabled      = _2_7.HwSchEnabled;
+    _2_9.HwSchSupportState = _2_7.HwSchSupported ? DXGK_FEATURE_SUPPORT_STABLE
+                                                 : DXGK_FEATURE_SUPPORT_EXPERIMENTAL;
+  }
+}
+
 extern void
 SK_Display_ResolutionSelectUI (bool bMarkDirty);
 
@@ -3016,38 +3105,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
           }
         }
 
-        D3DKMT_QUERYADAPTERINFO
-               queryAdapterInfo                       = { };
-               queryAdapterInfo.AdapterHandle         = adapter.d3dkmt;
-               queryAdapterInfo.Type                  = KMTQAITYPE_DRIVERVERSION;
-               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps.version;
-               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_DRIVERVERSION);
-
-               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_3_0_CAPS;
-               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._3_0;
-               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_3_0_CAPS);
-
-        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-
-               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_9_CAPS;
-               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._2_9;
-               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_9_CAPS);
-
-        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-
-               queryAdapterInfo.Type                  = KMTQAITYPE_WDDM_2_7_CAPS;
-               queryAdapterInfo.PrivateDriverData     = &display.wddm_caps._2_7;
-               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_WDDM_2_7_CAPS);
-
-        SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-
-        // For Windows 10, just fill-in WDDM 2.9 values using what's available.
-        if (display.wddm_caps.version < KMT_DRIVERVERSION_WDDM_2_9)
-        {
-          display.wddm_caps._2_9.HwSchEnabled      = display.wddm_caps._2_7.HwSchEnabled;
-          display.wddm_caps._2_9.HwSchSupportState = display.wddm_caps._2_7.HwSchSupported ? DXGK_FEATURE_SUPPORT_STABLE
-                                                                                           : DXGK_FEATURE_SUPPORT_EXPERIMENTAL;
-        }
+        display.wddm_caps.init (adapter.d3dkmt);
       }
     }
 

@@ -36,9 +36,7 @@ SK_ImGui_DrawGraph_Latency ()
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  // We don't support NvLL
-  if (                                         rb.api        == SK_RenderAPI::Vulkan ||
-      SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE )
+  if (! rb.isReflexSupported ())
     return;
 
   ImGui::BeginGroup ();
@@ -414,6 +412,9 @@ SK_ImGui_DrawConfig_Latency ()
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (! rb.isReflexSupported ())
+    return;
+
   ImGui::BeginGroup ();
 
   int reflex_mode = 0;
@@ -579,6 +580,10 @@ public:
     if (ImGui::GetFont () == nullptr) {
       return;
     }
+
+    // Prevent showing this widget if conditions are not met
+    if (! SK_GetCurrentRenderBackend ().isReflexSupported ())
+      setVisible (false);
 
     static const auto& io =
       ImGui::GetIO ();
