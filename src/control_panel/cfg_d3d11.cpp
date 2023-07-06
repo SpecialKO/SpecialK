@@ -681,8 +681,6 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
-      else ImGui::Spacing ();
-
       if (config.render.framerate.flip_discard)
       {
         bool waitable_ = config.render.framerate.swapchain_wait > 0;
