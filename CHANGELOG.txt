@@ -1,4 +1,15 @@
-﻿23.7.4.1
+﻿23.7.5
+======
+ + Bypass ReShade 5.x's ReShade.ini file check when loading plug-ins
+ + Changed plug-in loader to set ReShade's base path for config and logs to
+     comply with SK's own conventions:
+     
+       (i.e. per-game data in SpecialK/Profiles/<game>/... if globally injected)
+
+ + Hide Reflex Latency Analysis-related stuff on DXGI/Vulkan Interop SwapChains
+ + Stop drawing HDR widget if it is turned on but HDR is not supported
+
+23.7.4.1
 ========
  + Added Minimum Available VRAM and Maximum VRAM Load% statistics to end-game
      memory statistics in logs/dxgi_budget.log

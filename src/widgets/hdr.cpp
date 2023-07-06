@@ -972,7 +972,10 @@ public:
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
+    {
+      setVisible (false); // Stop showing the widget
       return;
+    }
 
     const auto& io =
       ImGui::GetIO ();
