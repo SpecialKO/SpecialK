@@ -1676,11 +1676,9 @@ public:
         auto& stat_cpu =
           cpu_stats.cpus [pwi [i-1].Number];
 
-        cpu_records [i].addValue(
-          static_cast  <float>   (
-                     ReadAcquire ( &stat_cpu.percent_load )
-                                 )
-                                 );
+        cpu_records [i].addValue (
+          stat_cpu.getPercentLoad ()
+        );
 
         stat_cpu.CurrentMhz =
           pwi [i-1].CurrentMhz;
@@ -1688,11 +1686,9 @@ public:
           pwi [i-1].MaxMhz;
       }
 
-      cpu_records [0].addValue   (
-          static_cast  <float>   (
-                     ReadAcquire ( &cpu_stats.cpus [64].percent_load )
-                                 )
-                                 );
+      cpu_records [0].addValue (
+        cpu_stats.cpus [64].getPercentLoad ()
+      );
 
       last_update =
         SK::ControlPanel::current_time;
@@ -2076,7 +2072,7 @@ public:
                 ( szAvg,
                     511,
                       "CPU%lu:\n\n"
-                      "          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                      "          min: %4.1f%%, max: %4.1f%%, avg: %4.1f%%\n",
                         i-1,
                           cpu_records [i].getMin (), cpu_records [i].getMax (),
                           cpu_records [i].getAvg () );
@@ -2088,7 +2084,7 @@ public:
                 ( szAvg,
                     511,
                       "%s\t\t\n\n"
-                      "          min: %3.0f%%, max: %3.0f%%, avg: %3.0f%%\n",
+                      "          min: %4.1f%%, max: %4.1f%%, avg: %4.1f%%\n",
                         InstructionSet::Brand ().c_str (),
                         cpu_records [i].getMin (), cpu_records [i].getMax (),
                         cpu_records [i].getAvg () );
@@ -2352,7 +2348,7 @@ public:
                 ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.57194F,                                             0.5f,  0.5f, 1.f));
               ImGui::TextUnformatted ((const char *)u8"〇");
               ImGui::SameLine        ( ); ImGui::Spacing ( ); ImGui::SameLine ();
-              ImGui::Text            ("%02.0f%%", cpu_records [j].getAvg ());
+              ImGui::Text            ("%04.1f%%", cpu_records [j].getAvg ());
               ImGui::PopStyleColor   ( );
 
               if (parked_since > 0)

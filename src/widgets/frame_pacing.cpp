@@ -1096,17 +1096,20 @@ SK_ImGui_DrawGraph_FramePacing (void)
       SK_StartPerfMonThreads                   (    );
     });
 
-    LONG lCPULoad = 0;
+    float fCPULoadPercent = 0.0f;
 
-    for (unsigned int i = 0; i < SK_WMI_CPUStats->num_cpus; ++i)
+    static cpu_perf_t::cpu_stat_s prev_sample = { };
+    static cpu_perf_t::cpu_stat_s new_sample  = { };
+
+    if (SK_WMI_CPUStats->cpus [64].update_time >= new_sample.update_time)
     {
-      lCPULoad +=
-        SK_WMI_CPUStats->cpus [i].percent_load;
+      prev_sample = new_sample;
+      new_sample  = SK_WMI_CPUStats->cpus [64];
     }
 
-    float fCPULoadPercent =
-      static_cast <float> (lCPULoad) /
-      static_cast <float> (SK_WMI_CPUStats->num_cpus);
+    fCPULoadPercent =
+      ( std::max (0.0f, prev_sample.getPercentLoad ()) +
+        std::max (0.0f, new_sample. getPercentLoad ()) ) / 2.0f;
 
     ImRect frame_bb
       ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1,

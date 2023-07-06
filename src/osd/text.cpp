@@ -1262,10 +1262,10 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
 
     OSD_C_PRINTF "\n  Total  : %#3li%%  -  (Kernel: %#3li%%   "
                    "User: %#3li%%   Interrupt: %#3li%%)\n",
-        ReadNoFence (      &cpus [64].percent_load     ),
-          ReadNoFence (    &cpus [64].percent_kernel   ),
-            ReadNoFence (  &cpus [64].percent_user     ),
-              ReadNoFence (&cpus [64].percent_interrupt)
+        static_cast <long> (      cpus [64].getPercentLoad      ()),
+          static_cast <long> (    cpus [64].getPercentKernel    ()),
+            static_cast <long> (  cpus [64].getPercentUser      ()),
+              static_cast <long> (cpus [64].getPercentInterrupt ())
     OSD_END
 
     static const int digits = (num_cpus / 11 > 0 ? 2 : 1);
@@ -1277,10 +1277,10 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%  -  (Kernel: %#3li%%   "
                      "User: %#3li%%   Interrupt: %#3li%%)\n",
           digits, i, 4-digits, "",
-            ReadAcquire (      &cpus [i].percent_load     ),
-              ReadAcquire (    &cpus [i].percent_kernel   ),
-                ReadAcquire (  &cpus [i].percent_user     ),
-                  ReadAcquire (&cpus [i].percent_interrupt)
+            static_cast <long> (      cpus [i].getPercentLoad      ()),
+              static_cast <long> (    cpus [i].getPercentKernel    ()),
+                static_cast <long> (  cpus [i].getPercentUser      ()),
+                  static_cast <long> (cpus [i].getPercentInterrupt ())
         OSD_END
       }
 
@@ -1288,7 +1288,7 @@ static_cast <double> (                         gpu_stats->gpus [i].loads_percent
       {
         OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%\n",
           digits, i, 4-digits, "",
-            ReadAcquire (&cpus [i].percent_load)
+            static_cast <long> (cpus [i].getPercentLoad ())
         OSD_END
       }
     }

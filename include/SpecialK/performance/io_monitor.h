@@ -96,6 +96,7 @@ typedef struct _SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK {
 struct cpu_perf_t : WMI_refresh_thread_t
 {
   struct cpu_stat_s {
+    // Measured in thousandths of one percent
     volatile LONG percent_load      = 0;
     volatile LONG percent_idle      = 0;
     volatile LONG percent_kernel    = 0;
@@ -155,30 +156,36 @@ struct cpu_perf_t : WMI_refresh_thread_t
           );
 
       InterlockedExchange (
-        &percent_load,      static_cast < LONG > (rational_cpu_load)
+        &percent_load,      static_cast < LONG > (rational_cpu_load * 1000.0)
       );
       InterlockedExchange (
-        &percent_idle,      100 - ReadAcquire (&percent_load)
+        &percent_idle,      1000*100 - ReadAcquire (&percent_load)
       );
 
       InterlockedExchange (
         &percent_kernel,    static_cast < LONG >
                           ((static_cast <double> (dt_cpu.KernelTime.QuadPart)/
-                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load)
+                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load * 1000.0)
       );
       InterlockedExchange (
         &percent_user  ,    static_cast < LONG >
                           ((static_cast <double> ( dt_cpu.UserTime.QuadPart )/
-                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load)
+                            static_cast <double> ( total_delta_run.QuadPart )) * rational_cpu_load * 1000.0)
       );
       InterlockedExchange (
         &percent_interrupt, static_cast < LONG >
                           ((static_cast <double> ( dt_cpu.InterruptTime.QuadPart )/
-                            static_cast <double> (    total_delta_run.QuadPart   )) * rational_cpu_load)
+                            static_cast <double> (    total_delta_run.QuadPart   )) * rational_cpu_load * 1000.0)
       );
 
       return total_delta_all;
     };
+
+    float getPercentLoad      (void) const noexcept { return static_cast <float> (ReadAcquire (&percent_load))      / 1000.0f; }
+    float getPercentIdle      (void) const noexcept { return static_cast <float> (ReadAcquire (&percent_idle))      / 1000.0f; }
+    float getPercentUser      (void) const noexcept { return static_cast <float> (ReadAcquire (&percent_user))      / 1000.0f; }
+    float getPercentKernel    (void) const noexcept { return static_cast <float> (ReadAcquire (&percent_kernel))    / 1000.0f; }
+    float getPercentInterrupt (void) const noexcept { return static_cast <float> (ReadAcquire (&percent_interrupt)) / 1000.0f; }
 
     LARGE_INTEGER
     recordNewData (const SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION__SK& new_perf_count )
