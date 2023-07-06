@@ -1520,26 +1520,29 @@ SK_EstablishRootPath (void)
       }
     }
 
-    if ( CRegKey
-           hkInstallPath; (! bEnvironmentDefinedPath) && ERROR_SUCCESS ==
-           hkInstallPath.Open ( HKEY_CURRENT_USER,
-                LR"(Software\Kaldaien\Special K)" )
-        )
+    if (! bEnvironmentDefinedPath)
     {
-      if ( ERROR_SUCCESS ==
-             hkInstallPath.QueryStringValue ( L"Path",
-            wszInstallPath,                  &ulPathLen )
-         )
+      if ( CRegKey
+             hkInstallPath; (! bEnvironmentDefinedPath) && ERROR_SUCCESS ==
+             hkInstallPath.Open ( HKEY_CURRENT_USER,
+                  LR"(Software\Kaldaien\Special K)" )
+          )
       {
-        bRegistryDefinedPath = true;
-
-        wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
-                        wszInstallPath,   _TRUNCATE );
-
-        // Couldn't create the directory, try something else
-        if (! SK_CreateDirectoriesEx (SKX_GetInstallPath (), false))
+        if ( ERROR_SUCCESS ==
+               hkInstallPath.QueryStringValue ( L"Path",
+              wszInstallPath,                  &ulPathLen )
+           )
         {
-          bRegistryDefinedPath = false;
+          bRegistryDefinedPath = true;
+
+          wcsncpy_s ( SKX_GetInstallPath (), MAX_PATH,
+                          wszInstallPath,   _TRUNCATE );
+
+          // Couldn't create the directory, try something else
+          if (! SK_CreateDirectoriesEx (SKX_GetInstallPath (), false))
+          {
+            bRegistryDefinedPath = false;
+          }
         }
       }
     }
