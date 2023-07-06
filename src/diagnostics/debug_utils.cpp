@@ -3941,26 +3941,20 @@ BOOL
 WINAPI
 SK_IsDebuggerPresent (void) noexcept
 {
-  __try {
-    if (IsDebuggerPresent_Original == nullptr)
-    {
-      if (ReadAcquire (&__SK_DLL_Attached))
-        SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
-    }
-
-    if (bRealDebug)
-      return TRUE;
-
-    if (     IsDebuggerPresent_Original != nullptr )
-      return IsDebuggerPresent_Original ();
-
-    return
-      IsDebuggerPresent ();
+  if (IsDebuggerPresent_Original == nullptr)
+  {
+    if (ReadAcquire (&__SK_DLL_Attached))
+      SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
   }
-
-  __finally {
-    return FALSE;
-  }
+  
+  if (bRealDebug)
+    return TRUE;
+  
+  if (     IsDebuggerPresent_Original != nullptr )
+    return IsDebuggerPresent_Original ();
+  
+  return
+    IsDebuggerPresent ();
 }
 
 

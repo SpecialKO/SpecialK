@@ -1215,6 +1215,21 @@ GetModuleLoadCount (HMODULE hDll)
   return 0;
 } //GetModuleLoadCount
 
+void
+SK_FreeLibraryAndExitThread (HMODULE hModToFree, DWORD dwExitCode)
+{
+  __try
+  {
+    FreeLibraryAndExitThread (hModToFree, dwExitCode);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    if (IsDebuggerPresent ())
+      __debugbreak ();
+  }
+}
+
          HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
 volatile HMODULE  g_hModule_CBT     = 0;
 volatile LONG     g_sOnce           = 0;
@@ -1313,6 +1328,7 @@ SK_Inject_SpawnUnloadListener (void)
               // List of processes that acquire multiple DLL references
               for ( auto& dll : { L"notepad.exe",
                                   L"mspaint.exe",
+                                  L"msedgewebview2.exe",
                                   L"epicwebhelper.exe",
                                   L"steamwebhelper.exe" } )
               {
@@ -1322,7 +1338,7 @@ SK_Inject_SpawnUnloadListener (void)
                   if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
                            GetModuleLoadCount (g_hModule_CBT) > 1)
                   {
-                    FreeLibrary (g_hModule_CBT);
+                    SK_FreeLibrary (g_hModule_CBT);
                   }
 
                   break;
@@ -1330,6 +1346,8 @@ SK_Inject_SpawnUnloadListener (void)
               }
             }
           }
+
+          hHookTeardown.Close ();
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);
@@ -1340,7 +1358,7 @@ SK_Inject_SpawnUnloadListener (void)
 
         InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
-        FreeLibraryAndExitThread (this_module, 0x0);
+        SK_FreeLibraryAndExitThread (this_module, 0x0);
 
         return 0;
       }, nullptr, CREATE_SUSPENDED, nullptr
