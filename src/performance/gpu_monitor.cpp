@@ -55,23 +55,19 @@ extern BOOL ADL_init;
 HRESULT
 SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)
 {
-  using  D3DKMTQueryAdapterInfo_pfn = NTSTATUS (WINAPI *)(D3DKMT_QUERYADAPTERINFO *unnamedParam1);
-  static D3DKMTQueryAdapterInfo_pfn
-        _D3DKMTQueryAdapterInfo = nullptr;
+  if (! D3DKMTQueryAdapterInfo)
+        D3DKMTQueryAdapterInfo =
+         SK_GetProcAddress (
+           SK_LoadLibraryW ( L"gdi32.dll" ),
+             "D3DKMTQueryAdapterInfo"
+                           );
 
-  if (!_D3DKMTQueryAdapterInfo)
-       _D3DKMTQueryAdapterInfo = (D3DKMTQueryAdapterInfo_pfn)
-        SK_GetProcAddress (
-          SK_LoadLibraryW ( L"gdi32.dll" ),
-            "D3DKMTQueryAdapterInfo"
-                          );
-
-  if (_D3DKMTQueryAdapterInfo != nullptr)
+  if (D3DKMTQueryAdapterInfo != nullptr)
   {
     return
        reinterpret_cast <
          PFND3DKMT_QUERYADAPTERINFO                    > (
-            _D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
+            D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
   }
 
   return E_FAIL;
@@ -95,7 +91,7 @@ SK_D3DKMT_QueryAdapterPerfData ( HDC                      hDC,
   NTSTATUS result =
         reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (D3DKMTOpenAdapterFromHdc)(&oa);
 
-  if (SUCCEEDED (result))
+  if (NT_SUCCESS (result))
   {
     D3DKMT_QUERYADAPTERINFO
       queryAdapterInfo                       = { };
@@ -116,17 +112,17 @@ SK_D3DKMT_CloseAdapter (D3DKMT_CLOSEADAPTER *pCloseAdapter)
 {
   if (! D3DKMTCloseAdapter)
         D3DKMTCloseAdapter =
-        SK_GetProcAddress (
-          SK_LoadLibraryW ( L"gdi32.dll" ),
-            "D3DKMTCloseAdapter"
-                          );
+         SK_GetProcAddress (
+           SK_LoadLibraryW ( L"gdi32.dll" ),
+             "D3DKMTCloseAdapter"
+                           );
 
   if (D3DKMTCloseAdapter != nullptr)
   {
     return
        reinterpret_cast <
          PFND3DKMT_CLOSEADAPTER> (
-             D3DKMTCloseAdapter) (pCloseAdapter);
+            D3DKMTCloseAdapter) (pCloseAdapter);
   }
 
   return E_FAIL;
