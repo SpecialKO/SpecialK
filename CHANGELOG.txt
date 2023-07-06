@@ -1,6 +1,11 @@
-﻿23.7.5.1
+﻿23.7.5.2
 ========
- + 
+ + CPU load % counters changed to include fractions of percents
+ + Added the ability to turn Reflex's Nothing but Boost option on in Vulkan
+ + Removed various meaningless options from the Direct3D 11 settings in Vulkan
+
+23.7.5.1
+========
  + Fixed potential crash due to NVAPI_Disp_GetVRRInfo (...) thread (un)safety
  + Added CPU/GPU Load% meters to Framepacing Graph, they can be turned off by
      right-clicking the framepacing widget.

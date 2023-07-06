@@ -341,6 +341,9 @@ SK::ControlPanel::D3D11::Draw (void)
   if (show_shader_mod_dlg)
       show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
   bool d3d11 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
   bool d3d12 =
@@ -348,7 +351,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
   // Is the underlying graphics API actually something else?
   bool indirect =
-    (SK_GL_OnD3D11);
+    ( SK_GL_OnD3D11 || SK_DXGI_VK_INTEROP_TYPE_NONE !=
+                  SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) );
 
   if (                                 (d3d11 &&
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||
@@ -642,9 +646,6 @@ SK::ControlPanel::D3D11::Draw (void)
     {
       auto _ResetLimiter = [&](void) -> void
       {
-        static auto& rb =
-          SK_GetCurrentRenderBackend ();
-
         auto *pLimiter =
           SK::Framerate::GetLimiter (rb.swapchain.p, false);
 
@@ -686,7 +687,7 @@ SK::ControlPanel::D3D11::Draw (void)
       {
         bool waitable_ = config.render.framerate.swapchain_wait > 0;
 
-        if (! d3d12)
+        if (! (d3d12 || indirect))
         {
           if (ImGui::Checkbox ("Waitable SwapChain", &waitable_))
           {
@@ -718,7 +719,7 @@ SK::ControlPanel::D3D11::Draw (void)
           {
             ImGui::BeginTooltip ();
             ImGui::Text         ("Reduces Input Latency in SK's Framerate Limiter");
-            if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+            if (rb.api != SK_RenderAPI::D3D12)
             {
               ImGui::Separator  ();
               ImGui::BulletText ("Fullscreen Exclusive will not work while enabled");
@@ -795,7 +796,7 @@ SK::ControlPanel::D3D11::Draw (void)
       config.render.framerate.present_interval =
         std::max (-1, std::min (4, config.render.framerate.present_interval));
 
-      if (! d3d12)
+      if (! (d3d12 || indirect))
       {
         if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
@@ -822,7 +823,7 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = -1;
 
-      if (! d3d12)
+      if (! (d3d12 || indirect))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {
@@ -836,7 +837,7 @@ SK::ControlPanel::D3D11::Draw (void)
                                                                         config.render.framerate.buffer_count + 1 );
 
             SK_ComQIPtr <IDXGISwapChain>
-                pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+                pSwapChain (rb.swapchain);
             if (pSwapChain != nullptr)
             {
               SK_DXGI_UpdateLatencies (pSwapChain);
@@ -1059,10 +1060,10 @@ SK::ControlPanel::D3D11::Draw (void)
       OSD::DrawVideoCaptureOptions ();
     }
 
-    if (d3d11) ImGui::SameLine ();
+    if (d3d11 && (! indirect)) ImGui::SameLine ();
 
     const bool advanced =
-      d3d11 && ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11");
+      d3d11 && (! indirect) && ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11");
 
     if (advanced)
     {
@@ -1093,9 +1094,6 @@ SK::ControlPanel::D3D11::Draw (void)
       
       if (config.render.dxgi.debug_layer)
       {
-        static auto& rb =
-          SK_GetCurrentRenderBackend ();
-
         SK_ComQIPtr <ID3D11Debug>
             pDebugD3D11 (rb.device);
         if (pDebugD3D11 != nullptr)

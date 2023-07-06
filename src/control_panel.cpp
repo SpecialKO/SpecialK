@@ -2604,35 +2604,32 @@ SK_NV_LatencyControlPanel (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.isReflexSupported ())
+  ImGui::Separator  ();
+  ImGui::Text       ("NVIDIA Latency Management");
+
+  if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
+                                                  && config.nvidia.reflex.enable)
   {
-    ImGui::Separator  ();
-    ImGui::Text       ("NVIDIA Latency Management");
+    ImGui::SameLine    (                                 );
+    ImGui::BeginGroup  (                                 );
+    ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                       "  " ICON_FA_EXCLAMATION_TRIANGLE );
+    ImGui::SameLine    (                                 );
+    ImGui::Text        ( " Reflex Latency modes do not"
+                         " work correctly on Secondary"
+                         " monitors."                    );
+    ImGui::EndGroup    (                                 );
 
-    if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
-                                                    && config.nvidia.reflex.enable)
-    {
-      ImGui::SameLine    (                                 );
-      ImGui::BeginGroup  (                                 );
-      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
-                         "  " ICON_FA_EXCLAMATION_TRIANGLE );
-      ImGui::SameLine    (                                 );
-      ImGui::Text        ( " Reflex Latency modes do not"
-                           " work correctly on Secondary"
-                           " monitors."                    );
-      ImGui::EndGroup    (                                 );
-
-      if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
-    }
-
-    ImGui::TreePush   ();
-
-    SK_ImGui_DrawConfig_Latency ();
-    SK_ImGui_DrawGraph_Latency  ();
-
-    ImGui::TreePop    ();
+    if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
   }
+
+  ImGui::TreePush   ();
+
+  SK_ImGui_DrawConfig_Latency ();
+  SK_ImGui_DrawGraph_Latency  ();
+
+  ImGui::TreePop    ();
 }
 
 void
