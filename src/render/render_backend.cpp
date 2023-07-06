@@ -3602,15 +3602,20 @@ SK_RenderBackend_V2::updateOutputTopology (void)
             display.nvapi.display_id     = nvDisplayId;
             display.nvapi.output_id      = nvOutputId;
 
-            NV_GET_VRR_INFO vrr_info            = { NV_GET_VRR_INFO_VER         };
-            display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER };
-            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+            NV_GET_VRR_INFO         vrr_info     = { NV_GET_VRR_INFO_VER         };
+            NV_MONITOR_CAPABILITIES monitor_caps = { NV_MONITOR_CAPABILITIES_VER };
+                                    monitor_caps.
+                                        infoType =   NV_MONITOR_CAPS_TYPE_GENERIC;
 
-            NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
-            NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                              &display.nvapi.monitor_caps);
+            // This doesn't appear to be threadsafe... only initialize it once.
+            if (display.nvapi.monitor_caps.version == 0)
+            {
+              NvAPI_Disp_GetVRRInfo             (nvDisplayId, &vrr_info);
+              NvAPI_DISP_GetMonitorCapabilities (nvDisplayId, &monitor_caps);
 
-            display.nvapi.vrr_enabled = vrr_info.bIsVRREnabled;
+              display.nvapi.monitor_caps = monitor_caps;
+              display.nvapi.vrr_enabled  = vrr_info.bIsVRREnabled;
+            }
           }
         }
 
