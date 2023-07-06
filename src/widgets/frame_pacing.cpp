@@ -357,7 +357,472 @@ SK_ETW_EndTracing (void)
     (PresentMon_ETW <= 0L);
 }
 
+float fExtraData = 0.0f;
+
+class SKWG_FramePacing : public SK_Widget
+{
+public:
+  SKWG_FramePacing (void) : SK_Widget ("Frame Pacing")
+  {
+    SK_ImGui_Widgets->frame_pacing = this;
+
+    setResizable    (                false).setAutoFit (true ).setMovable (false).
+    setDockingPoint (DockAnchor::SouthEast).setVisible (false);
+
+    SK_FramePercentiles->load_percentile_cfg ();
+
+    meter_cfg.display_battery =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Display Battery Info (When running on battery)"
+        )
+      );
+
+    meter_cfg.display_vram =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Draw VRAM Gauge below Framepacing Widget"
+        )
+      );
+
+    meter_cfg.display_load =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Draw CPU/GPU Load on the side of Framepacing Widget"
+        )
+      );
+
+    meter_cfg.display_vram->register_to_ini ( osd_ini,
+      L"Widget.FramePacing", L"DisplayVRAMGauge"
+    );
+
+    meter_cfg.display_load->register_to_ini ( osd_ini,
+      L"Widget.FramePacing", L"DisplayProcessorLoad"
+    );
+
+    meter_cfg.display_battery->register_to_ini ( osd_ini,
+      L"Widget.FramePacing", L"DisplayBatteryInfo"
+    );
+
+    meter_cfg.display_vram->load    (display_vram);
+    meter_cfg.display_load->load    (display_load);
+    meter_cfg.display_battery->load (display_battery);
+  };
+
+  void load (iSK_INI* cfg) override
+  {
+    SK_Widget::load (cfg);
+
+    meter_cfg.display_vram->load    (display_vram);
+    meter_cfg.display_load->load    (display_load);
+    meter_cfg.display_battery->load (display_battery);
+
+    SK_FramePercentiles->load_percentile_cfg ();
+  }
+
+  void save (iSK_INI* cfg) override
+  {
+    if (cfg == nullptr)
+      return;
+
+    SK_Widget::save (cfg);
+
+    meter_cfg.display_vram->store    (display_vram);
+    meter_cfg.display_load->store    (display_load);
+    meter_cfg.display_battery->store (display_battery);
+
+    SK_FramePercentiles->store_percentile_cfg ();
+
+    cfg->write ();
+  }
+
+  void run (void) override
+  {
+    static auto* cp =
+      SK_GetCommandProcessor ();
+
+    static volatile LONG init = 0;
+
+    if (0 == InterlockedCompareExchange (&init, 1, 0))
+    {
+      //auto *display_framerate_percentiles_above =
+      //  SK_CreateVar (
+      //    SK_IVariable::Boolean,
+      //      &SK_FramePercentiles->display_above,
+      //        nullptr );
+      //
+      //SK_RunOnce (
+      //  cp->AddVariable (
+      //    "Framepacing.DisplayLessDynamicPercentiles",
+      //      display_framerate_percentiles
+      //  )
+      //);
+
+
+      auto *display_framerate_percentiles =
+        SK_CreateVar (
+          SK_IVariable::Boolean,
+            &SK_FramePercentiles->display,
+              nullptr );
+
+      SK_RunOnce (
+        cp->AddVariable (
+          "Framepacing.DisplayPercentiles",
+            display_framerate_percentiles
+        ) );
+    }
+
+    if (ImGui::GetFont () == nullptr)
+      return;
+
+    const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
+    const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+
+    float extra_line_space = 0.0F;
+
+    static auto& percentile0 = SK_FramePercentiles->percentile0;
+    static auto& percentile1 = SK_FramePercentiles->percentile1;
+
+    if (has_battery)            extra_line_space += 1.0F;
+    if (has_vram)               extra_line_space += 1.0F;
+    if (SK_FramePercentiles->display)
+    {
+      if (percentile0.has_data) extra_line_space += 1.16F;
+      if (percentile1.has_data) extra_line_space += 1.16F;
+    }
+
+    // If configuring ...
+    if (state__ != 0) extra_line_space += (1.16F * 9.5F);
+
+    // Make room for control panel's title bar
+    if (SK_ImGui_Visible)
+      extra_line_space += 1.0F;
+
+    ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
+             new_size.y += fExtraData;
+
+    if (extra_status_line > 0)
+             new_size.y += ImGui::GetFont ()->FontSize + ImGui::GetStyle ().ItemSpacing.y;
+
+    setSize (new_size);
+
+    if (isVisible ())// && state__ == 0)
+    {
+      ImGui::SetNextWindowSize (new_size, ImGuiCond_Always);
+    }
+  }
+
+  void draw (void) override
+  {
+    if (ImGui::GetFont () == nullptr)
+      return;
+
+    static const auto& io =
+      ImGui::GetIO ();
+
+    static bool move = true;
+
+    if (move)
+    {
+      ImGui::SetWindowPos (
+        ImVec2 ( io.DisplaySize.x - getSize ().x,
+                 io.DisplaySize.y - getSize ().y )
+      );
+
+      move = false;
+    }
+
+    ImGui::BeginGroup ();
+
+    SK_ImGui_DrawGraph_FramePacing ();
+
+    has_battery = display_battery &&
+      SK_ImGui::BatteryMeter ();
+    has_vram    = display_vram;
+
+    if (has_vram)
+    {
+      extern void
+      SK_ImGui_DrawVRAMGauge (void);
+      SK_ImGui_DrawVRAMGauge ();
+    }
+    ImGui::EndGroup   ();
+
+    auto* pLimiter = debug_limiter ?
+      SK::Framerate::GetLimiter (
+       SK_GetCurrentRenderBackend ( ).swapchain.p,
+        false                   )  : nullptr;
+
+    if (pLimiter != nullptr)
+    {
+      ImGui::BeginGroup ();
+
+      SK::Framerate::Limiter::snapshot_s snapshot =
+                            pLimiter->getSnapshot ();
+
+      struct {
+        DWORD  dwLastSnap =   0;
+        double dLastMS    = 0.0;
+        double dLastFPS   = 0.0;
+
+        void update (SK::Framerate::Limiter::snapshot_s& snapshot)
+        {
+          static constexpr DWORD UPDATE_INTERVAL = 225UL;
+
+          DWORD dwNow =
+            SK::ControlPanel::current_time;
+
+          if (dwLastSnap < dwNow - UPDATE_INTERVAL)
+          {
+            dLastMS    =          snapshot.effective_ms;
+            dLastFPS   = 1000.0 / snapshot.effective_ms;
+            dwLastSnap = dwNow;
+          }
+        }
+      } static effective_snapshot;
+
+      effective_snapshot.update (snapshot);
+
+      ImGui::BeginGroup ();
+      ImGui::Text ("MS:");
+      ImGui::Text ("FPS:");
+      ImGui::Text ("EffectiveMS:");
+      ImGui::Text ("Clock Ticks per-Frame:");
+      ImGui::Separator ();
+      ImGui::Text ("Limiter Time=");
+      ImGui::Text ("Limiter Start=");
+      ImGui::Text ("Limiter Next=");
+      ImGui::Text ("Limiter Last=");
+      ImGui::Text ("Limiter Freq=");
+      ImGui::Separator ();
+      ImGui::Text ("Limited Frames:");
+      ImGui::Separator  ();
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      ImGui::Text ("%f ms",  snapshot.ms);
+      ImGui::Text ("%f fps", snapshot.fps);
+      ImGui::Text ("%f ms        (%#06.1f fps)",
+                   effective_snapshot.dLastMS,
+                   effective_snapshot.dLastFPS);
+      ImGui::Text ("%llu",   snapshot.ticks_per_frame);
+      ImGui::Separator ();
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.time));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.start));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.next));
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.last));
+      ImGui::Text ("%llu", SK_QpcFreq);
+      ImGui::Separator ();
+      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
+      //ImGui::SameLine  ();
+      //ImGui::ProgressBar (
+      //  static_cast <float> (
+      //    static_cast <double> (pLimiter->frames_of_fame.frames_measured.count ()) /
+      //    static_cast <double> (ReadAcquire64 (&snapshot.frames))
+      //  )
+      //);
+      ImGui::EndGroup  ();
+
+      if (ImGui::Button ("Reset"))        *snapshot.pRestart     = true;
+      ImGui::SameLine ();
+      if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
+      ImGui::EndGroup ();
+
+      // Will be NULL for D3D9 and non-Flip SwapChains
+      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
+          SK_GetCurrentRenderBackend ().swapchain.p
+        );
+
+      static UINT                  uiLastPresent = 0;
+      static DXGI_FRAME_STATISTICS frameStats    = { };
+
+      if (pLimiter->get_limit () > 0.0f && pSwap1 != nullptr)
+      {
+        if ( SUCCEEDED (
+               pSwap1->GetLastPresentCount (&uiLastPresent)
+                       )
+           )
+        {
+          if ( SUCCEEDED (
+                 pSwap1->GetFrameStatistics (&frameStats)
+                         )
+             )
+          {
+          }
+        }
+
+        UINT uiLatency = ( uiLastPresent - frameStats.PresentCount );
+
+        ImGui::Text ( "Present Latency: %i Frames", uiLatency );
+
+        ImGui::Separator ();
+
+        ImGui::Text ( "LastPresent: %i, PresentCount: %i", uiLastPresent, frameStats.PresentCount     );
+        ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
+                                                                          frameStats.SyncRefreshCount );
+      }
+
+      float fUndershoot =
+        pLimiter->get_undershoot ();
+
+      if (ImGui::InputFloat ("Undershoot %", &fUndershoot, 0.1f, 0.1f))
+      {
+        pLimiter->set_undershoot (fUndershoot);
+        pLimiter->reset          (true);
+      }
+
+      fExtraData = ImGui::GetItemRectSize ().y;
+    } else
+      fExtraData = 0.0f;
+  }
+
+
+  void config_base (void) override
+  {
+    SK_Widget::config_base ();
+
+    auto *pLimiter =
+      SK::Framerate::GetLimiter (
+        SK_GetCurrentRenderBackend ().swapchain.p,
+        false
+      );
+
+    if (pLimiter == nullptr)
+      return;
+
+    auto& snapshots =
+      pLimiter->frame_history_snapshots;
+
+    ImGui::Separator ();
+
+    bool changed = false;
+
+    changed |= ImGui::Checkbox ("Show VRAM Gauge",    &display_vram);
+    changed |= ImGui::Checkbox ("Show CPU/GPU Load",  &display_load);
+    changed |= ImGui::Checkbox ("Show Battery State", &display_battery);
+
+    if (changed)
+      save (osd_ini);
+
+         changed = false;
+    bool display = SK_FramePercentiles->display;
+
+        changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
+    if (changed)
+    {
+      SK_FramePercentiles->toggleDisplay ();
+    }
+
+    if (SK_FramePercentiles->display)
+    {
+      changed |= ImGui::Checkbox ("Draw Percentiles Above Graph",         &SK_FramePercentiles->display_above);
+      changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles->display_most_recent);
+
+      ImGui::Separator ();
+      ImGui::TreePush  ();
+
+      if ( ImGui::SliderFloat (
+             "Percentile Class 0 Cutoff",
+               &SK_FramePercentiles->percentile0.cutoff,
+                 0.1f, 99.99f, "%3.1f%%" )
+         )
+      {
+        snapshots.reset (); changed = true;
+      }
+
+      if ( ImGui::SliderFloat (
+             "Percentile Class 1 Cutoff",
+               &SK_FramePercentiles->percentile1.cutoff,
+                 0.1f, 99.99f, "%3.1f%%" )
+         )
+      {
+        snapshots.reset (); changed = true;
+      }
+
+      ImGui::TreePop ();
+    }
+
+    if (changed)
+      SK_FramePercentiles->store_percentile_cfg ();
+
+    ImGui::Checkbox ("Framerate Limiter Debug", &debug_limiter);
+  }
+
+  void OnConfig (ConfigEvent event) noexcept override
+  {
+    switch (event)
+    {
+      case SK_Widget::ConfigEvent::LoadComplete:
+        break;
+
+      case SK_Widget::ConfigEvent::SaveStart:
+        break;
+    }
+  }
+
+  bool display_vram    = false;
+  bool display_load    = true;
+  bool display_battery = true;
+
+  struct {
+    sk::ParameterBool* display_vram    = nullptr;
+    sk::ParameterBool* display_load    = nullptr;
+    sk::ParameterBool* display_battery = nullptr;
+  } meter_cfg;
+  //sk::ParameterInt* samples_max;
+};
+
+SK_LazyGlobal <SKWG_FramePacing> __frame_pacing__;
+
+void SK_Widget_InitFramePacing (void)
+{
+  SK_RunOnce (__frame_pacing__.get ());
+}
+
+
+
 extern void SK_ImGui_DrawFramePercentiles (void);
+
+using namespace ImGui;
+using namespace std;
+
+enum ValueBarFlags_ {
+    ValueBarFlags_None = 0,
+    ValueBarFlags_Vertical = 1 << 0,
+};
+using ValueBarFlags = int;
+
+// Similar to `ImGui::ProgressBar`, but with a horizontal/vertical switch.
+// The value text doesn't follow the value like `ImGui::ProgressBar`.
+// Here it's simply displayed in the middle of the bar.
+// Horizontal labels are placed to the right of the rect.
+// Vertical labels are placed below the rect.
+void ValueBar(const char *label, const float value, const ImVec2 &size, const float min_value = 0, const float max_value = 1, const ValueBarFlags flags = ValueBarFlags_None) {
+    const bool is_h = !(flags & ValueBarFlags_Vertical);
+    const auto &style = GetStyle();
+    const auto &draw_list = GetWindowDrawList();
+    const auto &cursor_pos = GetCursorScreenPos();
+    const float fraction = (value - min_value) / max_value;
+    const float frame_height = GetFrameHeight();
+    const auto &label_size = strlen(label) > 0 ? ImVec2{CalcTextSize(label).x, frame_height} : ImVec2{0, 0};
+    const auto &rect_size = is_h ? ImVec2{CalcItemWidth(), frame_height} : ImVec2{GetFontSize() * 2, size.y - label_size.y};
+    const auto &rect_start = cursor_pos + ImVec2{is_h ? 0 : max(0.0f, (label_size.x - rect_size.x) / 2), 0};
+
+    draw_list->AddRectFilled(rect_start, rect_start + rect_size, GetColorU32(ImGuiCol_FrameBg), style.FrameRounding);
+    draw_list->AddRectFilled(
+        rect_start + ImVec2{0, is_h ? 0 : (1 - fraction) * rect_size.y},
+        rect_start + rect_size * ImVec2{is_h ? fraction : 1, 1},
+        GetColorU32(ImGuiCol_PlotHistogram),
+        style.FrameRounding, is_h ? ImDrawCornerFlags_Left : ImDrawCornerFlags_Bot
+    );
+    const string value_text = is_h ? format("{:.2f}", value) : format("{:.1f}", value);
+    draw_list->AddText(rect_start + (rect_size - CalcTextSize(value_text.c_str())) / 2, GetColorU32(ImGuiCol_Text), value_text.c_str());
+    if (label) {
+        draw_list->AddText(
+            rect_start + ImVec2{is_h ? rect_size.x + style.ItemInnerSpacing.x : (rect_size.x - label_size.x) / 2, style.FramePadding.y + (is_h ? 0 : rect_size.y)},
+            GetColorU32(ImGuiCol_Text), label);
+    }
+}
 
 void
 SK_ImGui_DrawGraph_FramePacing (void)
@@ -448,10 +913,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
   if (SK_ImGui_DrawGamepadStatusBar () > 0)
     extra_status_line = 1;
 
-#if 0
-  if (rb.adapter.d3dkmt != 0)
+  bool bDrawProcessorLoad =
+    ((SKWG_FramePacing *)SK_ImGui_Widgets->frame_pacing)->display_load;
+
+  if (rb.adapter.d3dkmt != 0 && bDrawProcessorLoad)
   {
-    if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 20)
+    if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
     {   rb.adapter.perf.sampled_frame = 0;
 
       extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
@@ -467,8 +934,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
       if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
       {
-        perf_data.Power = (rb.adapter.perf.data.Power + perf_data.Power) / 2;
-
         memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
                       std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
                                            sizeof (D3DKMT_ADAPTER_PERFDATA)) );
@@ -478,13 +943,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
       }
     }
   }
-
-  if (rb.adapter.perf.sampled_frame != 0)
-  {
-    ImGui::SameLine ();
-    ImGui::Text ("\tPower Draw: %4.1f%%", static_cast <double> (rb.adapter.perf.data.Power) / 10.0);
-  }
-#endif
 
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
@@ -555,12 +1013,20 @@ SK_ImGui_DrawGraph_FramePacing (void)
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                              1.0f,   1.0f ) );
 
+  const float fCPUSize = ImGui::CalcTextSize ("CPU.").x;
+  const float fGPUSize = ImGui::CalcTextSize ("GPU.").x;
+
+  float fGaugeSizes =
+          bDrawProcessorLoad ? fCPUSize + fGPUSize
+                             : 0.0f;
+
   const ImVec2 border_dims (
-    std::max (500.0f, ImGui::GetContentRegionAvailWidth ()),
+    std::max (500.0f - fGaugeSizes, ImGui::GetContentRegionAvailWidth () - fGaugeSizes),
       font_size * 7.0f
   );
 
   float fX = ImGui::GetCursorPosX ();
+  float fY = ImGui::GetCursorPosY ();
 
   ///float fMax = std::max ( 99.0f,
   ///  *std::max_element ( std::begin (fLatencyHistory),
@@ -570,6 +1036,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   //if ( config.render.framerate.present_interval != 0 ||
   //     config.render.framerate.target_fps       <= 0.0f )
   {
+    ImGui::PushStyleVar   (ImGuiStyleVar_FrameRounding, 0.0f);
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
     ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                               "###Floating_LatencyHistogram",
@@ -606,6 +1073,65 @@ SK_ImGui_DrawGraph_FramePacing (void)
     SK_FramePercentiles->toggleDisplay ();
   }
 
+  if (bDrawProcessorLoad)
+  {
+    ImGui::SameLine     (0.0f, 0.0f);
+
+    auto window_pos = ImGui::GetWindowPos (),
+         cursor_pos = ImGui::GetCursorPos ();
+
+    float fGPULoadPercent =
+      SK_GPU_GetGPULoad (0);
+
+    // AMD and Intel systems might return 0.0f...
+    if (fGPULoadPercent == 0.0f)
+    {
+      // Use D3DKMT instead
+      fGPULoadPercent =
+        static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
+    }
+
+    SK_RunOnce ({
+      SK_ImGui_Widgets->cpu_monitor->setActive (true);
+      SK_StartPerfMonThreads                   (    );
+    });
+
+    LONG lCPULoad = 0;
+
+    for (unsigned int i = 0; i < SK_WMI_CPUStats->num_cpus; ++i)
+    {
+      lCPULoad +=
+        SK_WMI_CPUStats->cpus [i].percent_load;
+    }
+
+    float fCPULoadPercent =
+      static_cast <float> (lCPULoad) /
+      static_cast <float> (SK_WMI_CPUStats->num_cpus);
+
+    ImRect frame_bb
+      ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1,
+        window_pos.x + cursor_pos.x - 1 +
+            fGPUSize + fCPUSize,         window_pos.y + cursor_pos.y +
+                                                    font_size * 7.0f - 1 );
+
+    ImGui::BeginGroup     ();
+    ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
+    ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
+    ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
+    ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
+    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
+    ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+    ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
+    ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+    ImGui::PopStyleColor  (4);
+    ImGui::EndGroup       ();
+
+    ImGui::SetCursorPos   (ImVec2 (fX, fY + font_size * 7.0f + ImGui::GetStyle ().ItemSpacing.y));
+  }
+
+  ImGui::PopStyleVar ();
+
 
   //SK_RenderBackend& rb =
   //  SK_GetCurrentRenderBackend ();
@@ -629,7 +1155,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   //      ImGui::TextColored (ImColor::HSV (0.226537f, 0.75f, 0.27f), "Inactive");
   //    }
   //  }
-  //}
+  //} 
 
 
   if (! SK_FramePercentiles->display_above)
@@ -992,409 +1518,4 @@ SK_ImGui_DrawFCAT (void)
   draw_list->PopClipRect            (                                                         );
 
   ImGui::End ();
-}
-
-float fExtraData = 0.0f;
-
-class SKWG_FramePacing : public SK_Widget
-{
-public:
-  SKWG_FramePacing (void) : SK_Widget ("Frame Pacing")
-  {
-    SK_ImGui_Widgets->frame_pacing = this;
-
-    setResizable    (                false).setAutoFit (true ).setMovable (false).
-    setDockingPoint (DockAnchor::SouthEast).setVisible (false);
-
-    SK_FramePercentiles->load_percentile_cfg ();
-
-    meter_cfg.display_battery =
-      dynamic_cast <sk::ParameterBool *> (
-        SK_Widget_ParameterFactory->create_parameter <bool> (
-          L"Display Battery Info (When running on battery)"
-        )
-      );
-
-    meter_cfg.display_vram =
-      dynamic_cast <sk::ParameterBool *> (
-        SK_Widget_ParameterFactory->create_parameter <bool> (
-          L"Draw VRAM Gauge below Framepacing Widget"
-        )
-      );
-
-    meter_cfg.display_vram->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayVRAMGauge"
-    );
-
-    meter_cfg.display_battery->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayBatteryInfo"
-    );
-
-    meter_cfg.display_vram->load    (display_vram);
-    meter_cfg.display_battery->load (display_battery);
-  };
-
-  void load (iSK_INI* cfg) override
-  {
-    SK_Widget::load (cfg);
-
-    meter_cfg.display_vram->load    (display_vram);
-    meter_cfg.display_battery->load (display_battery);
-
-    SK_FramePercentiles->load_percentile_cfg ();
-  }
-
-  void save (iSK_INI* cfg) override
-  {
-    if (cfg == nullptr)
-      return;
-
-    SK_Widget::save (cfg);
-
-    meter_cfg.display_vram->store    (display_vram);
-    meter_cfg.display_battery->store (display_battery);
-
-    SK_FramePercentiles->store_percentile_cfg ();
-
-    cfg->write ();
-  }
-
-  void run (void) override
-  {
-    static auto* cp =
-      SK_GetCommandProcessor ();
-
-    static volatile LONG init = 0;
-
-    if (0 == InterlockedCompareExchange (&init, 1, 0))
-    {
-      //auto *display_framerate_percentiles_above =
-      //  SK_CreateVar (
-      //    SK_IVariable::Boolean,
-      //      &SK_FramePercentiles->display_above,
-      //        nullptr );
-      //
-      //SK_RunOnce (
-      //  cp->AddVariable (
-      //    "Framepacing.DisplayLessDynamicPercentiles",
-      //      display_framerate_percentiles
-      //  )
-      //);
-
-
-      auto *display_framerate_percentiles =
-        SK_CreateVar (
-          SK_IVariable::Boolean,
-            &SK_FramePercentiles->display,
-              nullptr );
-
-      SK_RunOnce (
-        cp->AddVariable (
-          "Framepacing.DisplayPercentiles",
-            display_framerate_percentiles
-        ) );
-    }
-
-    if (ImGui::GetFont () == nullptr)
-      return;
-
-    const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
-    const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
-
-    float extra_line_space = 0.0F;
-
-    static auto& percentile0 = SK_FramePercentiles->percentile0;
-    static auto& percentile1 = SK_FramePercentiles->percentile1;
-
-    if (has_battery)            extra_line_space += 1.0F;
-    if (has_vram)               extra_line_space += 1.0F;
-    if (SK_FramePercentiles->display)
-    {
-      if (percentile0.has_data) extra_line_space += 1.16F;
-      if (percentile1.has_data) extra_line_space += 1.16F;
-    }
-
-    // If configuring ...
-    if (state__ != 0) extra_line_space += (1.16F * 9.5F);
-
-    // Make room for control panel's title bar
-    if (SK_ImGui_Visible)
-      extra_line_space += 1.0F;
-
-    ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
-             new_size.y += fExtraData;
-
-    if (extra_status_line > 0)
-             new_size.y += ImGui::GetFont ()->FontSize + ImGui::GetStyle ().ItemSpacing.y;
-
-    setSize (new_size);
-
-    if (isVisible ())// && state__ == 0)
-    {
-      ImGui::SetNextWindowSize (new_size, ImGuiCond_Always);
-    }
-  }
-
-  void draw (void) override
-  {
-    if (ImGui::GetFont () == nullptr)
-      return;
-
-    static const auto& io =
-      ImGui::GetIO ();
-
-    static bool move = true;
-
-    if (move)
-    {
-      ImGui::SetWindowPos (
-        ImVec2 ( io.DisplaySize.x - getSize ().x,
-                 io.DisplaySize.y - getSize ().y )
-      );
-
-      move = false;
-    }
-
-    ImGui::BeginGroup ();
-
-    SK_ImGui_DrawGraph_FramePacing ();
-
-    has_battery = display_battery &&
-      SK_ImGui::BatteryMeter ();
-    has_vram    = display_vram;
-
-    if (has_vram)
-    {
-      extern void
-      SK_ImGui_DrawVRAMGauge (void);
-      SK_ImGui_DrawVRAMGauge ();
-    }
-    ImGui::EndGroup   ();
-
-    auto* pLimiter = debug_limiter ?
-      SK::Framerate::GetLimiter (
-       SK_GetCurrentRenderBackend ( ).swapchain.p,
-        false                   )  : nullptr;
-
-    if (pLimiter != nullptr)
-    {
-      ImGui::BeginGroup ();
-
-      SK::Framerate::Limiter::snapshot_s snapshot =
-                            pLimiter->getSnapshot ();
-
-      struct {
-        DWORD  dwLastSnap =   0;
-        double dLastMS    = 0.0;
-        double dLastFPS   = 0.0;
-
-        void update (SK::Framerate::Limiter::snapshot_s& snapshot)
-        {
-          static constexpr DWORD UPDATE_INTERVAL = 225UL;
-
-          DWORD dwNow =
-            SK::ControlPanel::current_time;
-
-          if (dwLastSnap < dwNow - UPDATE_INTERVAL)
-          {
-            dLastMS    =          snapshot.effective_ms;
-            dLastFPS   = 1000.0 / snapshot.effective_ms;
-            dwLastSnap = dwNow;
-          }
-        }
-      } static effective_snapshot;
-
-      effective_snapshot.update (snapshot);
-
-      ImGui::BeginGroup ();
-      ImGui::Text ("MS:");
-      ImGui::Text ("FPS:");
-      ImGui::Text ("EffectiveMS:");
-      ImGui::Text ("Clock Ticks per-Frame:");
-      ImGui::Separator ();
-      ImGui::Text ("Limiter Time=");
-      ImGui::Text ("Limiter Start=");
-      ImGui::Text ("Limiter Next=");
-      ImGui::Text ("Limiter Last=");
-      ImGui::Text ("Limiter Freq=");
-      ImGui::Separator ();
-      ImGui::Text ("Limited Frames:");
-      ImGui::Separator  ();
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      ImGui::Text ("%f ms",  snapshot.ms);
-      ImGui::Text ("%f fps", snapshot.fps);
-      ImGui::Text ("%f ms        (%#06.1f fps)",
-                   effective_snapshot.dLastMS,
-                   effective_snapshot.dLastFPS);
-      ImGui::Text ("%llu",   snapshot.ticks_per_frame);
-      ImGui::Separator ();
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.time));
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.start));
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.next));
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.last));
-      ImGui::Text ("%llu", SK_QpcFreq);
-      ImGui::Separator ();
-      ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
-      //ImGui::SameLine  ();
-      //ImGui::ProgressBar (
-      //  static_cast <float> (
-      //    static_cast <double> (pLimiter->frames_of_fame.frames_measured.count ()) /
-      //    static_cast <double> (ReadAcquire64 (&snapshot.frames))
-      //  )
-      //);
-      ImGui::EndGroup  ();
-
-      if (ImGui::Button ("Reset"))        *snapshot.pRestart     = true;
-      ImGui::SameLine ();
-      if (ImGui::Button ("Full Restart")) *snapshot.pFullRestart = true;
-      ImGui::EndGroup ();
-
-      // Will be NULL for D3D9 and non-Flip SwapChains
-      SK_ComQIPtr <IDXGISwapChain1> pSwap1 (
-          SK_GetCurrentRenderBackend ().swapchain.p
-        );
-
-      static UINT                  uiLastPresent = 0;
-      static DXGI_FRAME_STATISTICS frameStats    = { };
-
-      if (pLimiter->get_limit () > 0.0f && pSwap1 != nullptr)
-      {
-        if ( SUCCEEDED (
-               pSwap1->GetLastPresentCount (&uiLastPresent)
-                       )
-           )
-        {
-          if ( SUCCEEDED (
-                 pSwap1->GetFrameStatistics (&frameStats)
-                         )
-             )
-          {
-          }
-        }
-
-        UINT uiLatency = ( uiLastPresent - frameStats.PresentCount );
-
-        ImGui::Text ( "Present Latency: %i Frames", uiLatency );
-
-        ImGui::Separator ();
-
-        ImGui::Text ( "LastPresent: %i, PresentCount: %i", uiLastPresent, frameStats.PresentCount     );
-        ImGui::Text ( "PresentRefreshCount: %i, SyncRefreshCount: %i",    frameStats.PresentRefreshCount,
-                                                                          frameStats.SyncRefreshCount );
-      }
-
-      float fUndershoot =
-        pLimiter->get_undershoot ();
-
-      if (ImGui::InputFloat ("Undershoot %", &fUndershoot, 0.1f, 0.1f))
-      {
-        pLimiter->set_undershoot (fUndershoot);
-        pLimiter->reset          (true);
-      }
-
-      fExtraData = ImGui::GetItemRectSize ().y;
-    } else
-      fExtraData = 0.0f;
-  }
-
-
-  void config_base (void) override
-  {
-    SK_Widget::config_base ();
-
-    auto *pLimiter =
-      SK::Framerate::GetLimiter (
-        SK_GetCurrentRenderBackend ().swapchain.p,
-        false
-      );
-
-    if (pLimiter == nullptr)
-      return;
-
-    auto& snapshots =
-      pLimiter->frame_history_snapshots;
-
-    ImGui::Separator ();
-
-    bool changed = false;
-
-    changed |= ImGui::Checkbox ("Show VRAM Gauge",    &display_vram);
-    changed |= ImGui::Checkbox ("Show Battery State", &display_battery);
-
-    if (changed)
-      save (osd_ini);
-
-         changed = false;
-    bool display = SK_FramePercentiles->display;
-
-        changed |= ImGui::Checkbox  ("Show Percentile Analysis", &display);
-    if (changed)
-    {
-      SK_FramePercentiles->toggleDisplay ();
-    }
-
-    if (SK_FramePercentiles->display)
-    {
-      changed |= ImGui::Checkbox ("Draw Percentiles Above Graph",         &SK_FramePercentiles->display_above);
-      changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles->display_most_recent);
-
-      ImGui::Separator ();
-      ImGui::TreePush  ();
-
-      if ( ImGui::SliderFloat (
-             "Percentile Class 0 Cutoff",
-               &SK_FramePercentiles->percentile0.cutoff,
-                 0.1f, 99.99f, "%3.1f%%" )
-         )
-      {
-        snapshots.reset (); changed = true;
-      }
-
-      if ( ImGui::SliderFloat (
-             "Percentile Class 1 Cutoff",
-               &SK_FramePercentiles->percentile1.cutoff,
-                 0.1f, 99.99f, "%3.1f%%" )
-         )
-      {
-        snapshots.reset (); changed = true;
-      }
-
-      ImGui::TreePop ();
-    }
-
-    if (changed)
-      SK_FramePercentiles->store_percentile_cfg ();
-
-    ImGui::Checkbox ("Framerate Limiter Debug", &debug_limiter);
-  }
-
-  void OnConfig (ConfigEvent event) noexcept override
-  {
-    switch (event)
-    {
-      case SK_Widget::ConfigEvent::LoadComplete:
-        break;
-
-      case SK_Widget::ConfigEvent::SaveStart:
-        break;
-    }
-  }
-
-  bool display_vram    = false;
-  bool display_battery = true;
-
-  struct {
-    sk::ParameterBool* display_vram    = nullptr;
-    sk::ParameterBool* display_battery = nullptr;
-  } meter_cfg;
-  //sk::ParameterInt* samples_max;
-};
-
-SK_LazyGlobal <SKWG_FramePacing> __frame_pacing__;
-
-void SK_Widget_InitFramePacing (void)
-{
-  SK_RunOnce (__frame_pacing__.get ());
 }

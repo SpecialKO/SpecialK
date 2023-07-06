@@ -2422,6 +2422,9 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                           float  min_color_val,       float  max_color_val,
                           float  avg,                 bool   inverse )
 {
+  // Disable frame rounding or it will produce artifacts on graphs
+  ImGui::PushStyleVar (ImGuiStyleVar_FrameRounding, 0.0f);
+
   SK_ImGuiPlotArrayGetterData data =
     SK_ImGuiPlotArrayGetterData (values, stride);
 
@@ -2434,6 +2437,8 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
                       avg,
                         inverse
           );
+
+  ImGui::PopStyleVar ();
 }
 
 
