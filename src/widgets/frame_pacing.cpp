@@ -357,6 +357,7 @@ SK_ETW_EndTracing (void)
     (PresentMon_ETW <= 0L);
 }
 
+float fMinimumHeight = 0.0f;
 float fExtraData = 0.0f;
 
 class SKWG_FramePacing : public SK_Widget
@@ -445,20 +446,6 @@ public:
 
     if (0 == InterlockedCompareExchange (&init, 1, 0))
     {
-      //auto *display_framerate_percentiles_above =
-      //  SK_CreateVar (
-      //    SK_IVariable::Boolean,
-      //      &SK_FramePercentiles->display_above,
-      //        nullptr );
-      //
-      //SK_RunOnce (
-      //  cp->AddVariable (
-      //    "Framepacing.DisplayLessDynamicPercentiles",
-      //      display_framerate_percentiles
-      //  )
-      //);
-
-
       auto *display_framerate_percentiles =
         SK_CreateVar (
           SK_IVariable::Boolean,
@@ -476,33 +463,21 @@ public:
       return;
 
     const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
-    const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
+  //const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     float extra_line_space = 0.0F;
 
-    static auto& percentile0 = SK_FramePercentiles->percentile0;
-    static auto& percentile1 = SK_FramePercentiles->percentile1;
-
-    if (has_battery)            extra_line_space += 1.0F;
-    if (has_vram)               extra_line_space += 1.0F;
-    if (SK_FramePercentiles->display)
-    {
-      if (percentile0.has_data) extra_line_space += 1.16F;
-      if (percentile1.has_data) extra_line_space += 1.16F;
-    }
-
     // If configuring ...
-    if (state__ != 0) extra_line_space += (1.16F * 9.5F);
+    if (state__ != 0) extra_line_space += 40.0F;
 
     // Make room for control panel's title bar
     if (SK_ImGui_Visible)
-      extra_line_space += 1.0F;
+      extra_line_space += font_size + ImGui::GetStyle ().ItemSpacing.y +
+                                      ImGui::GetStyle ().ItemInnerSpacing.y;
 
-    ImVec2   new_size (font_size * 35.0F, font_size_multiline * (5.44F + extra_line_space));
+    ImVec2   new_size (font_size * 35.0F, fMinimumHeight + ImGui::GetStyle ().ItemSpacing.y      * 2.0F +
+                                                           ImGui::GetStyle ().ItemInnerSpacing.y * 2.0F + extra_line_space);
              new_size.y += fExtraData;
-
-    if (extra_status_line > 0)
-             new_size.y += ImGui::GetFont ()->FontSize + ImGui::GetStyle ().ItemSpacing.y;
 
     setSize (new_size);
 
@@ -547,6 +522,8 @@ public:
       SK_ImGui_DrawVRAMGauge ();
     }
     ImGui::EndGroup   ();
+
+    fMinimumHeight = ImGui::GetItemRectSize ().y;
 
     auto* pLimiter = debug_limiter ?
       SK::Framerate::GetLimiter (
@@ -1075,10 +1052,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (bDrawProcessorLoad)
   {
-    static const DWORD _UpdateFrequencyInMsec = 500;
+    static const DWORD _UpdateFrequencyInMsec = 75;
     static       DWORD dwLastUpdatedGPU =
       SK::ControlPanel::current_time;
-
 
     if (dwLastUpdatedGPU < SK::ControlPanel::current_time - _UpdateFrequencyInMsec)
     {   dwLastUpdatedGPU = SK::ControlPanel::current_time;
@@ -1089,6 +1065,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
     auto window_pos = ImGui::GetWindowPos (),
          cursor_pos = ImGui::GetCursorPos ();
+    auto scroll_y   = ImGui::GetScrollY ();
 
     float fGPULoadPercent =
       SK_GPU_GetGPULoad (0);
@@ -1122,7 +1099,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
         std::max (0.0f, new_sample. getPercentLoad ()) ) / 2.0f;
 
     ImRect frame_bb
-      ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1,
+      ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1 - scroll_y,
         window_pos.x + cursor_pos.x - 1 +
             fGPUSize + fCPUSize,         window_pos.y + cursor_pos.y +
                                                     font_size * 7.0f - 1 );
