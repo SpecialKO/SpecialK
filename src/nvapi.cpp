@@ -45,6 +45,25 @@ NvAPI_GetGPUIDFromPhysicalGPU_pfn   NvAPI_GetGPUIDFromPhysicalGPU   = nullptr;
 NvAPI_Disp_SetDitherControl_pfn     NvAPI_Disp_SetDitherControl     = nullptr;
 NvAPI_Disp_GetDitherControl_pfn     NvAPI_Disp_GetDitherControl     = nullptr;
 
+struct NVAPI_ThreadSafety {
+  struct {
+    SK_Thread_HybridSpinlock Init;
+    SK_Thread_HybridSpinlock QueryInterface;
+    SK_Thread_HybridSpinlock DISP_GetMonitorCapabilities;
+    SK_Thread_HybridSpinlock Disp_ColorControl;
+    SK_Thread_HybridSpinlock Disp_HdrColorControl;
+    SK_Thread_HybridSpinlock Disp_GetHdrCapabilities;
+    SK_Thread_HybridSpinlock Disp_GetVRRInfo;
+    SK_Thread_HybridSpinlock DISP_GetAdaptiveSyncData;
+    SK_Thread_HybridSpinlock DISP_SetAdaptiveSyncData;
+    SK_Thread_HybridSpinlock D3D_IsGSyncCapable;
+    SK_Thread_HybridSpinlock D3D_IsGSyncActive;
+  } locks;
+};
+
+SK_LazyGlobal <NVAPI_ThreadSafety> SK_NvAPI_Threading;
+
+
 using namespace sk;
 using namespace sk::NVAPI;
 
@@ -407,6 +426,9 @@ __cdecl
 NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                          NV_HDR_CAPABILITIES *pHdrCapabilities )
 {
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
+
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_LIBRARY_NOT_FOUND;
 
@@ -490,6 +512,9 @@ __cdecl
 NvAPI_Disp_ColorControl_Override ( NvU32          displayId,
                                    NV_COLOR_DATA *pColorData )
 {
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_ColorControl);
+
   SK_LOG_CALL (SK_FormatStringW (L"NvAPI_Disp_ColorControl (%lu, ...)", displayId).c_str ());
 
   return
@@ -558,6 +583,9 @@ __cdecl
 NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                       NV_HDR_COLOR_DATA *pHdrColorData )
 {
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
+
   if (config.apis.NvAPI.disable_hdr)
     return NVAPI_LIBRARY_NOT_FOUND;
 
@@ -1093,6 +1121,11 @@ using NvAPI_QueryInterface_pfn = void* (*)(unsigned int ordinal);
 void*
 NvAPI_QueryInterface_Detour (unsigned int ordinal)
 {
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.QueryInterface);
+
+//#define NVAPI_ORDINAL_TEST
+#ifdef NVAPI_ORDINAL_TEST
   static
     threadsafe_unordered_set <unsigned int>
       logged_ordinals;
@@ -1108,9 +1141,74 @@ NvAPI_QueryInterface_Detour (unsigned int ordinal)
     return
       pAddr;
   }
+#endif
 
   return
     NvAPI_QueryInterface_Original (ordinal);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_Disp_GetVRRInfo (__in NvU32 displayId, __inout NV_GET_VRR_INFO *pVrrInfo)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo);
+
+  return
+    NvAPI_Disp_GetVRRInfo (displayId, pVrrInfo);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_DISP_GetAdaptiveSyncData (__in NvU32 displayId, __inout NV_GET_ADAPTIVE_SYNC_DATA *pAdaptiveSyncData)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.DISP_GetAdaptiveSyncData);
+
+  return
+    NvAPI_DISP_GetAdaptiveSyncData (displayId, pAdaptiveSyncData);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_DISP_SetAdaptiveSyncData    (__in NvU32 displayId, __in NV_SET_ADAPTIVE_SYNC_DATA *pAdaptiveSyncData)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.DISP_SetAdaptiveSyncData);
+
+  return
+    NvAPI_DISP_SetAdaptiveSyncData (displayId, pAdaptiveSyncData);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_DISP_GetMonitorCapabilities (__in NvU32 displayId, __inout NV_MONITOR_CAPABILITIES *pMonitorCapabilities)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.DISP_GetMonitorCapabilities);
+
+  return
+    NvAPI_DISP_GetMonitorCapabilities (displayId, pMonitorCapabilities);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_D3D_IsGSyncCapable (__in IUnknown          *pDeviceOrContext,
+                             __in NVDX_ObjectHandle   primarySurface,
+                             __out BOOL             *pIsGsyncCapable)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.D3D_IsGSyncCapable);
+
+  return
+    NvAPI_D3D_IsGSyncCapable (pDeviceOrContext, primarySurface, pIsGsyncCapable);
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_D3D_IsGSyncActive (__in IUnknown          *pDeviceOrContext,
+                            __in NVDX_ObjectHandle   primarySurface,
+                           __out BOOL              *pIsGsyncActive)
+{
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
+
+  return
+    NvAPI_D3D_IsGSyncActive (pDeviceOrContext, primarySurface, pIsGsyncActive);
 }
 
 
@@ -1200,6 +1298,9 @@ extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 BOOL
 NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 {
+    std::lock_guard
+         lock (SK_NvAPI_Threading->locks.Init);
+
   // It's silly to call this more than once, but not necessarily
   //  an error... just ignore repeated calls.
   if (bLibInit == TRUE)
@@ -1329,14 +1430,12 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     if (SK_IsAdmin ())
       SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
 
-//#define NVAPI_ORDINAL_TEST
-#ifdef NVAPI_ORDINAL_TEST
    SK_CreateDLLHook2 ( L"nvapi64.dll",
                         "nvapi_QueryInterface",
                          NvAPI_QueryInterface_Detour,
   static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+
    SK_ApplyQueuedHooks ();
-#endif
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
@@ -1364,6 +1463,9 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
 bool SK_NvAPI_InitializeHDR (void)
 {
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
+
   if (nv_hardware && NvAPI_Disp_GetHdrCapabilities_Original != nullptr)
   {
     NV_HDR_CAPABILITIES

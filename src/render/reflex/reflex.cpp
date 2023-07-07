@@ -458,7 +458,7 @@ SK_NV_AdaptiveSyncControl (void)
                        getAdaptiveSync.version = NV_GET_ADAPTIVE_SYNC_DATA_VER;
 
           if ( NVAPI_OK ==
-                 NvAPI_DISP_GetAdaptiveSyncData (
+                 SK_NvAPI_DISP_GetAdaptiveSyncData (
                    display.nvapi.display_id,
                            &getAdaptiveSync )
              )
@@ -572,7 +572,7 @@ SK_NV_AdaptiveSyncControl (void)
             toggle_split ? !getAdaptiveSync.bDisableFrameSplitting :
                             getAdaptiveSync.bDisableFrameSplitting;
 
-          NvAPI_DISP_SetAdaptiveSyncData (
+          SK_NvAPI_DISP_SetAdaptiveSyncData (
             display.nvapi.display_id,
                     &setAdaptiveSync
           );

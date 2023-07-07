@@ -744,8 +744,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
       display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-      SK_RunOnce (NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                    &display.nvapi.monitor_caps));
+      SK_RunOnce (SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                       &display.nvapi.monitor_caps));
 
       static HANDLE hVRRThread =
       SK_Thread_CreateEx ([](LPVOID)->
@@ -762,9 +762,9 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
           display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-          NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
-          NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                            &display.nvapi.monitor_caps);
+          SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+          SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                               &display.nvapi.monitor_caps);
 
           display.nvapi.vrr_enabled =
             vrr_info.bIsVRREnabled;
@@ -798,13 +798,17 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
           else
           {
-            display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
-            display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-                  NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                    &display.nvapi.monitor_caps);
+            auto &monitor_caps =
+              display.nvapi.monitor_caps;
 
-            rb.gsync_state.capable = display.nvapi.monitor_caps.data.caps.supportVRR &&
-                                     display.nvapi.monitor_caps.data.caps.currentlyCapableOfVRR;
+            monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
+            monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
+               SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                    &monitor_caps);
+
+            rb.gsync_state.capable =
+              monitor_caps.data.caps.supportVRR &&
+              monitor_caps.data.caps.currentlyCapableOfVRR;
           }
         } while ( WAIT_OBJECT_0 !=
                   WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) );
@@ -854,8 +858,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
     display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-    NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                      &display.nvapi.monitor_caps);
+    SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                         &display.nvapi.monitor_caps);
 
     bool success = false;
 
@@ -869,10 +873,10 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         _ClearTemporarySurfaces ();
     }
 
-    if ( NVAPI_OK == NvAPI_D3D_IsGSyncCapable ( rb.device,
-                                                rb.surface.nvapi, &capable))
+    if ( NVAPI_OK == SK_NvAPI_D3D_IsGSyncCapable ( rb.device,
+                                                   rb.surface.nvapi, &capable))
     {
-      NvAPI_D3D_IsGSyncActive ( rb.device,      rb.surface.nvapi, &active);
+      SK_NvAPI_D3D_IsGSyncActive ( rb.device,      rb.surface.nvapi, &active);
 
       success      = true;
     }
@@ -3607,15 +3611,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                                     monitor_caps.
                                         infoType =   NV_MONITOR_CAPS_TYPE_GENERIC;
 
-            // This doesn't appear to be threadsafe... only initialize it once.
-            if (display.nvapi.monitor_caps.version == 0)
-            {
-              NvAPI_Disp_GetVRRInfo             (nvDisplayId, &vrr_info);
-              NvAPI_DISP_GetMonitorCapabilities (nvDisplayId, &monitor_caps);
+            SK_NvAPI_Disp_GetVRRInfo             (nvDisplayId, &vrr_info);
+            SK_NvAPI_DISP_GetMonitorCapabilities (nvDisplayId, &monitor_caps);
 
-              display.nvapi.monitor_caps = monitor_caps;
-              display.nvapi.vrr_enabled  = vrr_info.bIsVRREnabled;
-            }
+            display.nvapi.monitor_caps = monitor_caps;
+            display.nvapi.vrr_enabled  = vrr_info.bIsVRREnabled;
           }
         }
 
