@@ -2581,10 +2581,13 @@ void SK_Inject_WakeUpSKIF (void)
   }
 }
 
-void SK_Inject_BroadcastExitNotify (void)
+void SK_Inject_BroadcastExitNotify (bool force)
 {
-  if (__SKIF_SuppressExitNotify || SK_GetFramesDrawn () == 0)
-    return;
+  if (! force)
+  {
+    if (__SKIF_SuppressExitNotify || SK_GetFramesDrawn ())
+      return;
+  }
 
   // A new signal (23.6.28+) that is broadcast even for local injection
   SK_AutoHandle hInjectExitAckEx (
@@ -2599,9 +2602,12 @@ void SK_Inject_BroadcastExitNotify (void)
 
   SK_Inject_WakeUpSKIF ();
 
-  // The signal below is only for global injection
-  if (! SK_IsInjected ())
-    return;
+  if (! force)
+  {
+    // The signal below is only for global injection
+    if (! SK_IsInjected ())
+      return;
+  }
 
   SK_AutoHandle hInjectExitAck (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE,
@@ -2614,7 +2620,7 @@ void SK_Inject_BroadcastExitNotify (void)
   }
 }
 
-void SK_Inject_BroadcastInjectionNotify (void)
+void SK_Inject_BroadcastInjectionNotify (bool force)
 {
   // A new signal (23.6.28+) that is broadcast even for local injection
   SK_AutoHandle hInjectAckEx (
@@ -2629,9 +2635,12 @@ void SK_Inject_BroadcastInjectionNotify (void)
 
   SK_Inject_WakeUpSKIF ();
 
-  // The original signal below denotes successful global injection
-  if (! SK_IsInjected ())
-    return;
+  if (! force)
+  {
+    // The original signal below denotes successful global injection
+    if (! SK_IsInjected ())
+      return;
+  }
 
   SK_AutoHandle hInjectAck (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE,

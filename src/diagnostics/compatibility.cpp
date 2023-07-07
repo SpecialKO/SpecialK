@@ -872,6 +872,13 @@ SK_Bypass_CRT (LPVOID)
     }
   }
 
+  if (nButtonPressed == BUTTON_INSTALL)
+  {
+    // Wake SKIF up and simulate a successful game launch (as global injection)
+    SK_Inject_BroadcastInjectionNotify (true);
+    SK_Inject_BroadcastExitNotify      (true);
+  }
+
   if (temp_dll.empty ())
     SK_RestartGame (nullptr);
   else

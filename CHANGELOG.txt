@@ -1,4 +1,10 @@
-﻿23.7.5.2
+﻿23.7.7
+======
+ + Added extra thread-safety measures to NvAPI display management functions
+ + Simulate successful inject/exit when (un)installing local DLL using the
+     compatibility menu
+
+23.7.5.2
 ========
  + CPU load % counters changed to include fractions of percents
  + Added the ability to turn Reflex's Nothing but Boost option on in Vulkan
