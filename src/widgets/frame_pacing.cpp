@@ -1075,6 +1075,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (bDrawProcessorLoad)
   {
+    static const DWORD _UpdateFrequencyInMsec = 500;
+    static       DWORD dwLastUpdatedGPU =
+      SK::ControlPanel::current_time;
+
+
+    if (dwLastUpdatedGPU < SK::ControlPanel::current_time - _UpdateFrequencyInMsec)
+    {   dwLastUpdatedGPU = SK::ControlPanel::current_time;
+      SK_PollGPU ();
+    }
+
     ImGui::SameLine     (0.0f, 0.0f);
 
     auto window_pos = ImGui::GetWindowPos (),

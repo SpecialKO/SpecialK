@@ -1,4 +1,13 @@
-﻿23.7.7
+﻿23.7.7.2
+========
+ + Poll GPU statistics while framepacing widget is visible, instead of only
+     GPU widget / text OSD.
+
+23.7.7.1
+========
+ + Fix exit notification check for number of frames drawn; broken by 23.7.7
+
+23.7.7
 ======
  + Added extra thread-safety measures to NvAPI display management functions
  + Simulate successful inject/exit when (un)installing local DLL using the
