@@ -28,6 +28,8 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/font_awesome.h>
 
+#include <SpecialK/adl.h>
+
 
 namespace
 SK_ImGui
@@ -989,13 +991,36 @@ SK_ImGui_DrawGraph_FramePacing (void)
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                              1.0f,   1.0f ) );
+  float fGPULoadPercent = 0.0f;
 
   const float fCPUSize = ImGui::CalcTextSize ("CPU.").x;
   const float fGPUSize = ImGui::CalcTextSize ("GPU.").x;
 
-  float fGaugeSizes =
-          bDrawProcessorLoad ? fCPUSize + fGPUSize
-                             : 0.0f;
+  float fGaugeSizes = 0.0f;
+
+  if (bDrawProcessorLoad)
+  {
+    fGaugeSizes = fCPUSize;
+
+    fGPULoadPercent =
+      SK_GPU_GetGPULoad (0);
+
+    // Intel systems might return 0.0f...
+    if (fGPULoadPercent == 0.0f)
+    {
+      // If AMD systems return 0.0f, it's because ADL is buggy and D3DKMT will
+      //   not be any less buggy!
+      if (! ADL_init)
+      {
+        // Use D3DKMT instead
+        fGPULoadPercent =
+          static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
+      }
+    }
+
+    if (fGPULoadPercent > 0.0f)
+      fGaugeSizes += fGPUSize;
+  }
 
   const ImVec2 border_dims (
     std::max (500.0f - fGaugeSizes, ImGui::GetContentRegionAvailWidth () - fGaugeSizes),
@@ -1067,17 +1092,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
          cursor_pos = ImGui::GetCursorPos ();
     auto scroll_y   = ImGui::GetScrollY ();
 
-    float fGPULoadPercent =
-      SK_GPU_GetGPULoad (0);
-
-    // AMD and Intel systems might return 0.0f...
-    if (fGPULoadPercent == 0.0f)
-    {
-      // Use D3DKMT instead
-      fGPULoadPercent =
-        static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
-    }
-
     SK_RunOnce ({
       SK_ImGui_Widgets->cpu_monitor->setActive (true);
       SK_StartPerfMonThreads                   (    );
@@ -1101,7 +1115,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImRect frame_bb
       ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1 - scroll_y,
         window_pos.x + cursor_pos.x - 1 +
-            fGPUSize + fCPUSize,         window_pos.y + cursor_pos.y +
+            fGaugeSizes,                 window_pos.y + cursor_pos.y +
                                                     font_size * 7.0f - 1 );
 
     ImGui::BeginGroup     ();
@@ -1110,8 +1124,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
     ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
-    ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
-    ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+    // AMD's drivers might not be giving us valid data
+    if (             fGPULoadPercent > 0.0f)
+    {
+      ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+      ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+    }
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
     ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
     ImGui::PopStyleColor  (4);

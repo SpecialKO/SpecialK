@@ -1,4 +1,9 @@
-﻿23.7.7.3
+﻿23.7.7.4
+========
+ + Remove AMD GPU statistics from framepacing widget if user's system has a
+     broken version of ADL
+
+23.7.7.3
 ========
  + Don't show partial Reflex config options in D3D9 or on non-NVIDIA GPUs
  + Improved framepacing widget size calculation to eliminate scrollbar
