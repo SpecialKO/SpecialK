@@ -468,7 +468,7 @@ public:
     float extra_line_space = 0.0F;
 
     // If configuring ...
-    if (state__ != 0) extra_line_space += 40.0F;
+    if (state__ != 0) extra_line_space += 300.0F;
 
     // Make room for control panel's title bar
     if (SK_ImGui_Visible)
