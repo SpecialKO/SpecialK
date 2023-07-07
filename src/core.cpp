@@ -3981,6 +3981,7 @@ SK_API_IsDXGIBased (SK_RenderAPI api)
     case SK_RenderAPI::DDrawOn12:
     case SK_RenderAPI::GlideOn11:
     case SK_RenderAPI::GlideOn12:
+    case SK_RenderAPI::GLOn11:
       return true;
     default:
       return false;
@@ -3996,6 +3997,7 @@ SK_API_IsLayeredOnD3D11 (SK_RenderAPI api)
     case SK_RenderAPI::D3D8On11:
     case SK_RenderAPI::DDrawOn11:
     case SK_RenderAPI::GlideOn11:
+    case SK_RenderAPI::GLOn11:
       return true;
     default:
       return

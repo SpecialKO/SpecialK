@@ -2604,6 +2604,9 @@ SK_NV_LatencyControlPanel (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
+    return;
+
   ImGui::Separator  ();
   ImGui::Text       ("NVIDIA Latency Management");
 

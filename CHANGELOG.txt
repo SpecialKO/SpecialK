@@ -1,4 +1,10 @@
-﻿23.7.7.2
+﻿23.7.7.3
+========
+ + Don't show partial Reflex config options in D3D9 or on non-NVIDIA GPUs
+ + Improved framepacing widget size calculation to eliminate scrollbar
+ + Increase GPU polling frequency when framepacing widget is visible
+
+23.7.7.2
 ========
  + Poll GPU statistics while framepacing widget is visible, instead of only
      GPU widget / text OSD.

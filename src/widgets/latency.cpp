@@ -415,6 +415,9 @@ SK_ImGui_DrawConfig_Latency ()
   bool bFullReflexSupport =
     rb.isReflexSupported ();
 
+  if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
+    return;
+
   ImGui::BeginGroup ();
 
   int reflex_mode = 0;
