@@ -2585,7 +2585,7 @@ void SK_Inject_BroadcastExitNotify (bool force)
 {
   if (! force)
   {
-    if (__SKIF_SuppressExitNotify || SK_GetFramesDrawn ())
+    if (__SKIF_SuppressExitNotify || SK_GetFramesDrawn () == 0)
       return;
   }
 
