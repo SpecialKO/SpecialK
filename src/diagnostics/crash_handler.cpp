@@ -1453,8 +1453,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
   {
     // Stop injection on crash
     if (SK_GetFramesDrawn () > 1)
-    { extern void
-      SK_Inject_BroadcastExitNotify (void);
+    { 
       SK_Inject_BroadcastExitNotify ();
     }
 

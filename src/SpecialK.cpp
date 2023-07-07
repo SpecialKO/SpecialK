@@ -577,8 +577,7 @@ DllMain ( HMODULE hModule,
       {
         // Stop injection on normal unload
         if (SK_GetFramesDrawn () > 1)
-        { extern void
-          SK_Inject_BroadcastInjectionNotify (void);
+        {
           SK_Inject_BroadcastInjectionNotify ();
         }
 
