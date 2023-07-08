@@ -321,6 +321,8 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
             stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
             stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
+
+            bHadPercentage = true;
           }
 
           NV_GPU_THERMAL_SETTINGS
@@ -381,6 +383,8 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].temps_c.ram = stats0.gpus [i].temps_c.ram;
           stats.gpus [i].temps_c.psu = stats0.gpus [i].temps_c.psu;
           stats.gpus [i].temps_c.pcb = stats0.gpus [i].temps_c.pcb;
+
+          bHadPercentage = true;
         }
 
 
