@@ -122,7 +122,7 @@
     <OutDir>$(USERPROFILE)\Documents\My Mods\SpecialK\</OutDir>
     <IncludePath>$(SolutionDir)include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)\depends\include;$(SolutionDir)\depends\build\x64;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)include\SpecialK;$(WindowsSdk_71A_IncludePath);$(UniversalCRT_IncludePath);C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\um;C:\Program Files (x86)\Windows Kits\10\Include\10.0.18323.0\ucrt;$(SolutionDir)packages\Tobii.StreamEngine.Native.2.2.2.363\build\native\include\</IncludePath>
     <LibraryPath>$(LibraryPath);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(SolutionDir)\depends\lib;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;$(WindowsSdk_71A_LibraryPath_x64)</LibraryPath>
-    <CodeAnalysisRuleSet>SpecialK-kitandkabootle.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>SpecialK.ruleset</CodeAnalysisRuleSet>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>true</EnableExperimentalCppCoreCheck>
     <LinkIncremental>false</LinkIncremental>
@@ -1421,6 +1421,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_screenshot.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h" />
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_backend.h" />
+    <ClInclude Include="include\SpecialK\render\d3dkmt\d3dkmt.h" />
     <ClInclude Include="include\SpecialK\render\ddraw\ddraw_backend.h" />
     <ClInclude Include="include\SpecialK\diagnostics\compatibility.h" />
     <ClInclude Include="include\SpecialK\diagnostics\crash_handler.h" />
@@ -1715,6 +1716,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\d3d9\d3d9_screenshot.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\render\d3dkmt\d3dkmt.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

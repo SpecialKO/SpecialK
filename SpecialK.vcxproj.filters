@@ -340,6 +340,12 @@
     <Filter Include="Source Files\Backends\Render\Reflex">
       <UniqueIdentifier>{543a78fa-0eae-472c-83bc-bbdde9275e31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Backends\Render\D3DKMT">
+      <UniqueIdentifier>{b11bdf8c-44c4-41ca-b30c-fafdcdca514f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\D3DKMT">
+      <UniqueIdentifier>{49b30fc4-7397-4336-be2d-8b4e4a8bc8da}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2919,6 +2925,9 @@
     <ClInclude Include="depends\include\tobii\tobii_wearable.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\d3dkmt\d3dkmt.h">
+      <Filter>Header Files\Backends\Render\D3DKMT</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3451,6 +3460,9 @@
     </ClCompile>
     <ClCompile Include="src\render\reflex\pclstats.cpp">
       <Filter>Source Files\Backends\Render\Reflex</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3dkmt\d3dkmt.cpp">
+      <Filter>Source Files\Backends\Render\D3DKMT</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
