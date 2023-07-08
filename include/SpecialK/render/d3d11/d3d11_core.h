@@ -2265,67 +2265,23 @@ using D3D11On12CreateDevice_pfn =
 extern "C" SK_API D3D11On12CreateDevice_pfn extern D3D11On12CreateDevice;
 
 
-#define SK_D3D11_DeclKMT(x) extern "C" __declspec (dllexport) extern \
-                                          FARPROC (x)
+#define SK_D3D11_Decl(x) extern "C" __declspec (dllexport) extern \
+                                       FARPROC (x)
 
-SK_D3D11_DeclKMT (D3D11CreateDeviceForD3D12);
-SK_D3D11_DeclKMT (CreateDirect3D11DeviceFromDXGIDevice);
-SK_D3D11_DeclKMT (CreateDirect3D11SurfaceFromDXGISurface);
-//SK_D3D11_DeclKMT (D3D11On12CreateDevice);
-SK_D3D11_DeclKMT (D3DKMTCloseAdapter);
-SK_D3D11_DeclKMT (D3DKMTDestroyAllocation);
-SK_D3D11_DeclKMT (D3DKMTDestroyContext);
-SK_D3D11_DeclKMT (D3DKMTDestroyDevice);
-SK_D3D11_DeclKMT (D3DKMTDestroySynchronizationObject);
-SK_D3D11_DeclKMT (D3DKMTQueryAdapterInfo);
-SK_D3D11_DeclKMT (D3DKMTSetDisplayPrivateDriverFormat);
-SK_D3D11_DeclKMT (D3DKMTSignalSynchronizationObject);
-SK_D3D11_DeclKMT (D3DKMTUnlock);
-SK_D3D11_DeclKMT (D3DKMTWaitForSynchronizationObject);
-SK_D3D11_DeclKMT (EnableFeatureLevelUpgrade);
-SK_D3D11_DeclKMT (OpenAdapter10);
-SK_D3D11_DeclKMT (OpenAdapter10_2);
-SK_D3D11_DeclKMT (D3D11CoreCreateLayeredDevice);
-SK_D3D11_DeclKMT (D3D11CoreGetLayeredDeviceSize);
-SK_D3D11_DeclKMT (D3D11CoreRegisterLayers);
-SK_D3D11_DeclKMT (D3DKMTCreateAllocation);
-SK_D3D11_DeclKMT (D3DKMTCreateContext);
-SK_D3D11_DeclKMT (D3DKMTCreateDevice);
-SK_D3D11_DeclKMT (D3DKMTCreateSynchronizationObject);
-SK_D3D11_DeclKMT (D3DKMTEscape);
-SK_D3D11_DeclKMT (D3DKMTGetContextSchedulingPriority);
-SK_D3D11_DeclKMT (D3DKMTGetDeviceState);
-SK_D3D11_DeclKMT (D3DKMTGetDisplayModeList);
-SK_D3D11_DeclKMT (D3DKMTGetMultisampleMethodList);
-SK_D3D11_DeclKMT (D3DKMTGetRuntimeData);
-SK_D3D11_DeclKMT (D3DKMTGetSharedPrimaryHandle);
-SK_D3D11_DeclKMT (D3DKMTLock);
-SK_D3D11_DeclKMT (D3DKMTOpenAdapterFromHdc);
-SK_D3D11_DeclKMT (D3DKMTOpenResource);
-SK_D3D11_DeclKMT (D3DKMTPresent);
-SK_D3D11_DeclKMT (D3DKMTQueryAllocationResidency);
-SK_D3D11_DeclKMT (D3DKMTQueryResourceInfo);
-SK_D3D11_DeclKMT (D3DKMTRender);
-SK_D3D11_DeclKMT (D3DKMTSetAllocationPriority);
-SK_D3D11_DeclKMT (D3DKMTSetContextSchedulingPriority);
-SK_D3D11_DeclKMT (D3DKMTSetDisplayMode);
-SK_D3D11_DeclKMT (D3DKMTSetGammaRamp);
-SK_D3D11_DeclKMT (D3DKMTSetVidPnSourceOwner);
-SK_D3D11_DeclKMT (D3DKMTWaitForVerticalBlankEvent);
-SK_D3D11_DeclKMT (D3DPerformance_BeginEvent);
-SK_D3D11_DeclKMT (D3DPerformance_EndEvent);
-SK_D3D11_DeclKMT (D3DPerformance_GetStatus);
-SK_D3D11_DeclKMT (D3DPerformance_SetMarker);
-
-
-
-
-
-
-
-
-
-
+SK_D3D11_Decl (D3D11CreateDeviceForD3D12);
+SK_D3D11_Decl (CreateDirect3D11DeviceFromDXGIDevice);
+SK_D3D11_Decl (CreateDirect3D11SurfaceFromDXGISurface);
+//SK_D3D11_Decl (D3D11On12CreateDevice);
+SK_D3D11_Decl (EnableFeatureLevelUpgrade);
+SK_D3D11_Decl (OpenAdapter10);
+SK_D3D11_Decl (OpenAdapter10_2);
+SK_D3D11_Decl (D3D11CoreCreateLayeredDevice);
+SK_D3D11_Decl (D3D11CoreGetLayeredDeviceSize);
+SK_D3D11_Decl (D3D11CoreRegisterLayers);
+SK_D3D11_Decl (D3DPerformance_BeginEvent);
+SK_D3D11_Decl (D3DPerformance_EndEvent);
+SK_D3D11_Decl (D3DPerformance_GetStatus);
+SK_D3D11_Decl (D3DPerformance_SetMarker);
 
 
 

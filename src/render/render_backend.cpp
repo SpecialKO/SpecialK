@@ -595,82 +595,6 @@ SK_BootVulkan (void)
   _SK_HookVulkan ();
 }
 
-typedef struct _D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME {
-  WCHAR                          DeviceName [32];
-  D3DKMT_HANDLE                  hAdapter;
-  LUID                           AdapterLuid;
-  D3DDDI_VIDEO_PRESENT_SOURCE_ID VidPnSourceId;
-} D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME;
-
-using  D3DKMTOpenAdapterFromGdiDisplayName_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME* unnamedParam1);
-static D3DKMTOpenAdapterFromGdiDisplayName_pfn
-       D3DKMTOpenAdapterFromGdiDisplayName = nullptr;
-
-using  D3DKMTGetMultiPlaneOverlayCaps_pfn = NTSTATUS (WINAPI *)(D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS* unnamedParam1);
-static D3DKMTGetMultiPlaneOverlayCaps_pfn
-       D3DKMTGetMultiPlaneOverlayCaps = nullptr;
-
-using  D3DKMTOpenAdapterFromLuid_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMLUID *unnamedParam1);
-static D3DKMTOpenAdapterFromLuid_pfn
-       D3DKMTOpenAdapterFromLuid = nullptr;
-
-extern HRESULT SK_D3DKMT_CloseAdapter (struct _D3DKMT_CLOSEADAPTER *pCloseAdapter);
-
-HRESULT
-SK_D3DKMT_OpenAdapterFromDXGI (IUnknown *pDevice, D3DKMT_HANDLE *pHandle)
-{
-  if (! (pDevice && pHandle))
-    return E_POINTER;
-
-  SK_ComQIPtr <IDXGIDevice>
-      pDXGIDevice (pDevice);
-  if (pDXGIDevice.p != nullptr)
-  {
-    SK_ComPtr <IDXGIAdapter>  pAdapter;
-    pDXGIDevice->GetAdapter (&pAdapter.p);
-
-    if (pAdapter.p != nullptr)
-    {
-      DXGI_ADAPTER_DESC                  adapter_desc = { };
-      if (SUCCEEDED (pAdapter->GetDesc (&adapter_desc)))
-      {
-        if (D3DKMTOpenAdapterFromLuid == nullptr)
-            D3DKMTOpenAdapterFromLuid = (D3DKMTOpenAdapterFromLuid_pfn)
-          SK_GetProcAddress ( L"gdi32.dll",
-           "D3DKMTOpenAdapterFromLuid" );
-
-        if (D3DKMTOpenAdapterFromLuid)
-        {
-          D3DKMT_OPENADAPTERFROMLUID oaLuid =
-                 { adapter_desc.AdapterLuid };
-
-          if (NT_SUCCESS (D3DKMTOpenAdapterFromLuid (&oaLuid)))
-          {
-            *pHandle = oaLuid.hAdapter;
-
-            return S_OK;
-          }
-
-          return
-            E_NOTFOUND;
-        }
-
-        return
-          E_NOTIMPL;
-      }
-
-      return
-        E_UNEXPECTED;
-    }
-
-    return
-      E_ACCESSDENIED;
-  }
-
-  return
-    E_NOINTERFACE;
-}
-
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
 {
@@ -3025,8 +2949,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
     auto& display = *pOutput;
 
     if (D3DKMTOpenAdapterFromGdiDisplayName == nullptr)
-        D3DKMTOpenAdapterFromGdiDisplayName =
-       (D3DKMTOpenAdapterFromGdiDisplayName_pfn)SK_GetProcAddress (L"gdi32.dll",
+        D3DKMTOpenAdapterFromGdiDisplayName = SK_GetProcAddress (L"gdi32.dll",
        "D3DKMTOpenAdapterFromGdiDisplayName");
 
     if (D3DKMTOpenAdapterFromGdiDisplayName != nullptr)
@@ -3056,9 +2979,11 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
                       display.gdi_name,  _TRUNCATE );
 
       if ( STATUS_SUCCESS ==
-             D3DKMTOpenAdapterFromGdiDisplayName (&openAdapter) )
+             ((D3DKMTOpenAdapterFromGdiDisplayName_pfn)
+               D3DKMTOpenAdapterFromGdiDisplayName)(&openAdapter) )
       {
-        SK_LOG1 ( (L"D3DKMTOpenAdapterFromGdiDisplayName successful for %ws, VidPnSourceId=%lu", display.gdi_name, openAdapter.VidPnSourceId ),
+        SK_LOG1 ( (L"D3DKMTOpenAdapterFromGdiDisplayName successful for %ws, VidPnSourceId=%lu",
+                   display.gdi_name, openAdapter.VidPnSourceId ),
                    __SK_SUBSYSTEM__ );
 
         adapter.d3dkmt        = openAdapter.hAdapter;
@@ -3083,8 +3008,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
       if (adapter.d3dkmt != 0)
       {
         if (D3DKMTGetMultiPlaneOverlayCaps == nullptr)
-            D3DKMTGetMultiPlaneOverlayCaps =
-           (D3DKMTGetMultiPlaneOverlayCaps_pfn)SK_GetProcAddress (L"gdi32.dll",
+            D3DKMTGetMultiPlaneOverlayCaps = SK_GetProcAddress (L"gdi32.dll",
            "D3DKMTGetMultiPlaneOverlayCaps");
 
         display.mpo_planes = 0;
@@ -3096,7 +3020,8 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
           caps.hAdapter      = openAdapter.hAdapter;
           caps.VidPnSourceId = adapter.VidPnSourceId;
 
-          if (D3DKMTGetMultiPlaneOverlayCaps (&caps) == (NTSTATUS)0x00000000L) // STATUS_SUCCESS
+          if ( ((D3DKMTGetMultiPlaneOverlayCaps_pfn)
+                 D3DKMTGetMultiPlaneOverlayCaps)(&caps) == STATUS_SUCCESS )
           {
             display.mpo_planes = caps.MaxRGBPlanes; // Don't care about YUV planes, this is a game!
 
@@ -3198,43 +3123,6 @@ sizeof (output_s));
 const char*
 SK_RenderBackend_V2::output_s::signal_info_s::timing_s::video_standard_s::toStr (void)
 {
-  typedef enum _D3DKMDT_VIDEO_SIGNAL_STANDARD
-  {
-    D3DKMDT_VSS_UNINITIALIZED,
-    D3DKMDT_VSS_VESA_DMT,
-    D3DKMDT_VSS_VESA_GTF,
-    D3DKMDT_VSS_VESA_CVT,
-    D3DKMDT_VSS_IBM,
-    D3DKMDT_VSS_APPLE,
-    D3DKMDT_VSS_NTSC_M,
-    D3DKMDT_VSS_NTSC_J,
-    D3DKMDT_VSS_NTSC_443,
-    D3DKMDT_VSS_PAL_B,
-    D3DKMDT_VSS_PAL_B1,
-    D3DKMDT_VSS_PAL_G,
-    D3DKMDT_VSS_PAL_H,
-    D3DKMDT_VSS_PAL_I,
-    D3DKMDT_VSS_PAL_D,
-    D3DKMDT_VSS_PAL_N,
-    D3DKMDT_VSS_PAL_NC,
-    D3DKMDT_VSS_SECAM_B,
-    D3DKMDT_VSS_SECAM_D,
-    D3DKMDT_VSS_SECAM_G,
-    D3DKMDT_VSS_SECAM_H,
-    D3DKMDT_VSS_SECAM_K,
-    D3DKMDT_VSS_SECAM_K1,
-    D3DKMDT_VSS_SECAM_L,
-    D3DKMDT_VSS_SECAM_L1,
-    D3DKMDT_VSS_EIA_861,
-    D3DKMDT_VSS_EIA_861A,
-    D3DKMDT_VSS_EIA_861B,
-    D3DKMDT_VSS_PAL_K,
-    D3DKMDT_VSS_PAL_K1,
-    D3DKMDT_VSS_PAL_L,
-    D3DKMDT_VSS_PAL_M,
-    D3DKMDT_VSS_OTHER
-  } D3DKMDT_VIDEO_SIGNAL_STANDARD;
-
   static std::unordered_map
     < D3DKMDT_VIDEO_SIGNAL_STANDARD, const char * >
   standard_names =

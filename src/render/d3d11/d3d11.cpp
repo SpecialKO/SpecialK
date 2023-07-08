@@ -6314,6 +6314,7 @@ SK_D3D11_Init (void)
     D3DKMTGetSharedPrimaryHandle           = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTGetSharedPrimaryHandle");
     D3DKMTLock                             = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTLock");
     D3DKMTOpenAdapterFromHdc               = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTOpenAdapterFromHdc");
+    D3DKMTOpenAdapterFromLuid              = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTOpenAdapterFromLuid");
     D3DKMTOpenResource                     = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTOpenResource");
     D3DKMTPresent                          = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTPresent");
     D3DKMTQueryAllocationResidency         = SK_GetProcAddress (L"gdi32.dll",        "D3DKMTQueryAllocationResidency");

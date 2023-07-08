@@ -55,84 +55,6 @@ extern BOOL ADL_init;
 
 #define D3DKMT_SENSORS 1
 
-HRESULT
-SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)
-{
-  if (! D3DKMTQueryAdapterInfo)
-        D3DKMTQueryAdapterInfo =
-         SK_GetProcAddress (
-           SK_LoadLibraryW ( L"gdi32.dll" ),
-             "D3DKMTQueryAdapterInfo"
-                           );
-
-  if (D3DKMTQueryAdapterInfo != nullptr)
-  {
-    return
-       reinterpret_cast <
-         PFND3DKMT_QUERYADAPTERINFO                    > (
-            D3DKMTQueryAdapterInfo) (pQueryAdapterInfo);
-  }
-
-  return E_FAIL;
-}
-
-HRESULT
-SK_D3DKMT_QueryAdapterPerfData ( HDC                      hDC,
-                                 D3DKMT_ADAPTER_PERFDATA *pAdapterPerfData )
-{
-  D3DKMT_OPENADAPTERFROMHDC oa     = { };
-                            oa.hDc = hDC;
-
-  if (! D3DKMTOpenAdapterFromHdc)
-  {     D3DKMTOpenAdapterFromHdc =
-        SK_GetProcAddress (
-          SK_LoadLibraryW ( L"gdi32.dll" ),
-            "D3DKMTOpenAdapterFromHdc"
-                          );
-  }
-
-  NTSTATUS result =
-        reinterpret_cast <PFND3DKMT_OPENADAPTERFROMHDC> (D3DKMTOpenAdapterFromHdc)(&oa);
-
-  if (NT_SUCCESS (result))
-  {
-    D3DKMT_QUERYADAPTERINFO
-      queryAdapterInfo                       = { };
-      queryAdapterInfo.AdapterHandle         = oa.hAdapter;
-      queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-      queryAdapterInfo.PrivateDriverData     =          pAdapterPerfData;
-      queryAdapterInfo.PrivateDriverDataSize = sizeof (*pAdapterPerfData);
-
-    result =
-      SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo);
-  }
-
-  return result;
-}
-
-HRESULT
-SK_D3DKMT_CloseAdapter (D3DKMT_CLOSEADAPTER *pCloseAdapter)
-{
-  if (! D3DKMTCloseAdapter)
-        D3DKMTCloseAdapter =
-         SK_GetProcAddress (
-           SK_LoadLibraryW ( L"gdi32.dll" ),
-             "D3DKMTCloseAdapter"
-                           );
-
-  if (D3DKMTCloseAdapter != nullptr)
-  {
-    return
-       reinterpret_cast <
-         PFND3DKMT_CLOSEADAPTER> (
-            D3DKMTCloseAdapter) (pCloseAdapter);
-  }
-
-  return E_FAIL;
-}
-
-
-
 static SK_AutoHandle hPollEvent;
 static SK_AutoHandle hShutdownEvent;
 static SK_AutoHandle hPollThread;
@@ -736,8 +658,20 @@ SK_GPUPollingThread (LPVOID user)
       static HQUERY   query   = nullptr;
       static HCOUNTER counter = nullptr;
 
-      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 5)
+      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 15)
       {
+        SK_RunOnce ({
+          extern HRESULT
+            ModifyPrivilege ( IN LPCTSTR szPrivilege,
+                              IN BOOL     fEnable );
+
+          ModifyPrivilege (SE_DEBUG_NAME,               TRUE);
+          ModifyPrivilege (SE_IMPERSONATE_NAME,         TRUE);
+          ModifyPrivilege (SE_PROF_SINGLE_PROCESS_NAME, TRUE);
+          ModifyPrivilege (SE_SYSTEM_PROFILE_NAME,      TRUE);
+          ModifyPrivilege (SE_CREATE_TOKEN_NAME,        TRUE);
+        });
+
         if (query == nullptr)
         {
           status =
@@ -746,14 +680,25 @@ SK_GPUPollingThread (LPVOID user)
 
         if (query != nullptr)
         {
-          status =
-            PdhAddCounter (query,
-              SK_FormatStringW (
+          const auto counter_path =
+            SK_FormatStringW (
                 LR"(\GPU Engine(*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage)",
-              //LR"(\GPU Engine(pid_%d_luid_0x%08X_0x%08X_phys_0_eng_0_engtype_3D)\Utilization Percentage)",
-                  //GetProcessId (SK_GetCurrentProcess ()),
-                    rb.adapter.luid.HighPart, rb.adapter.luid.LowPart
-              ).c_str (), 0, &counter);
+                      rb.adapter.luid.HighPart,
+                      rb.adapter.luid.LowPart );
+
+          status =
+            PdhAddCounter (query, counter_path.c_str (), 0, &counter);
+
+          if ( ERROR_SUCCESS !=
+                 PdhCollectQueryData (query)
+             )
+          {
+            PdhRemoveCounter (counter);
+            PdhCloseQuery    (query);
+
+            counter = nullptr;
+            query   = nullptr;
+          }
         }
       }
 
@@ -767,7 +712,9 @@ SK_GPUPollingThread (LPVOID user)
           PDH_FMT_COUNTERVALUE counterValue = { };
 
           status =
-            PdhGetFormattedCounterValue (counter, PDH_FMT_DOUBLE, nullptr, &counterValue);
+            PdhGetFormattedCounterValue (
+              counter, PDH_FMT_DOUBLE, nullptr, &counterValue
+            );
 
           stats.gpus [0].loads_percent.gpu =
             static_cast <uint32_t> (counterValue.doubleValue);
@@ -778,9 +725,6 @@ SK_GPUPollingThread (LPVOID user)
 
       static D3DKMT_ADAPTER_PERFDATA
                      adapterPerfData = { };
-
-      static DWORD
-        dwLastUpdate = 0;
 
       if (rb.adapter.d3dkmt != 0)
       {
@@ -874,7 +818,8 @@ SK_GPUPollingThread (LPVOID user)
               rb.adapter.perf.engine_3d.Frequency / 1000
             );
 
-          stats.gpus [i].volts_mV.core      = rb.adapter.perf.engine_3d.Voltage;
+          stats.gpus [i].volts_mV.core      =
+                         static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
           stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
         }
       }
@@ -925,23 +870,6 @@ SK_EndGPUPolling (void)
 void
 SK_PollGPU (void)
 {
-  // Limited support for D3DKMT sensor readings if no NVAPI or ADL
-#ifndef D3DKMT_SENSORS
-  if (! nvapi_init)
-  {
-    if (! ADL_init)
-    {
-      gpu_sensors_t* pSensors =
-        (gpu_sensors_t *)ReadPointerAcquire ((volatile PVOID *)&gpu_stats);
-
-      if (pSensors != nullptr)
-          pSensors->num_gpus = 0;
-
-      return;
-    }
-  }
-#endif
-
   static volatile ULONG              init       (FALSE);
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {

@@ -901,10 +901,9 @@ SK_Framerate_WaitForVBlank (void)
 
   if (rb.adapter.d3dkmt != 0)
   {
-    static D3DKMTWaitForVerticalBlankEvent_pfn
-           D3DKMTWaitForVerticalBlankEvent =
-          (D3DKMTWaitForVerticalBlankEvent_pfn)SK_GetProcAddress (L"gdi32.dll",
-          "D3DKMTWaitForVerticalBlankEvent");
+    if (D3DKMTWaitForVerticalBlankEvent == nullptr)
+        D3DKMTWaitForVerticalBlankEvent = SK_GetProcAddress (L"gdi32.dll",
+       "D3DKMTWaitForVerticalBlankEvent");
 
     if (D3DKMTWaitForVerticalBlankEvent != nullptr)
     {
@@ -914,16 +913,16 @@ SK_Framerate_WaitForVBlank (void)
              waitForVerticalBlankEvent.VidPnSourceId = rb.adapter.VidPnSourceId;
 
       if ( STATUS_SUCCESS ==
-             D3DKMTWaitForVerticalBlankEvent (&waitForVerticalBlankEvent) )
+           ((D3DKMTWaitForVerticalBlankEvent_pfn)
+             D3DKMTWaitForVerticalBlankEvent)(&waitForVerticalBlankEvent) )
       {
         return true;
       }
     }
 
-    static D3DKMTGetScanLine_pfn
-           D3DKMTGetScanLine =
-          (D3DKMTGetScanLine_pfn)SK_GetProcAddress (L"gdi32.dll",
-          "D3DKMTGetScanLine");
+    if (D3DKMTGetScanLine == nullptr)
+        D3DKMTGetScanLine = SK_GetProcAddress (L"gdi32.dll",
+       "D3DKMTGetScanLine");
 
     D3DKMT_GETSCANLINE
       getScanLine               = { };
@@ -946,7 +945,8 @@ SK_Framerate_WaitForVBlank (void)
       // Has been modified to wait for the END of VBLANK
       //
       while ( STATUS_SUCCESS ==
-                D3DKMTGetScanLine (&getScanLine) )
+                ((D3DKMTGetScanLine_pfn)
+                  D3DKMTGetScanLine)(&getScanLine) )
       {
         if (! getScanLine.InVerticalBlank)
         {
@@ -1050,10 +1050,9 @@ SK_Framerate_WaitForVBlank (void)
 void
 SK_Framerate_WaitForVBlank2 (void)
 {
-  static D3DKMTWaitForVerticalBlankEvent_pfn
-         D3DKMTWaitForVerticalBlankEvent =
-        (D3DKMTWaitForVerticalBlankEvent_pfn)SK_GetProcAddress (L"gdi32.dll",
-        "D3DKMTWaitForVerticalBlankEvent");
+  if (D3DKMTWaitForVerticalBlankEvent == nullptr)
+      D3DKMTWaitForVerticalBlankEvent = SK_GetProcAddress (L"gdi32.dll",
+     "D3DKMTWaitForVerticalBlankEvent");
 
   if (D3DKMTWaitForVerticalBlankEvent != nullptr)
   {
@@ -1066,7 +1065,8 @@ SK_Framerate_WaitForVBlank2 (void)
            waitForVerticalBlankEvent.VidPnSourceId = rb.adapter.VidPnSourceId;
 
     if ( STATUS_SUCCESS ==
-           D3DKMTWaitForVerticalBlankEvent (&waitForVerticalBlankEvent) )
+           ((D3DKMTWaitForVerticalBlankEvent_pfn)
+             D3DKMTWaitForVerticalBlankEvent)(&waitForVerticalBlankEvent) )
     {
       return;
     }
@@ -1796,10 +1796,9 @@ SK::Framerate::Limiter::wait (void)
     if (config.render.framerate.enforcement_policy > 0)
     {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy; }
 
-    static D3DKMTGetScanLine_pfn
-           D3DKMTGetScanLine =
-          (D3DKMTGetScanLine_pfn)SK_GetProcAddress (L"gdi32.dll",
-          "D3DKMTGetScanLine");
+    if (D3DKMTGetScanLine == nullptr)
+        D3DKMTGetScanLine = SK_GetProcAddress (L"gdi32.dll",
+       "D3DKMTGetScanLine");
 
     bool bSync = false;
 
@@ -1867,7 +1866,8 @@ SK::Framerate::Limiter::wait (void)
                 SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_HIGHEST);
 
                 if ( STATUS_SUCCESS ==
-                       D3DKMTGetScanLine (&getScanLine) && getScanLine.InVerticalBlank)
+                       ((D3DKMTGetScanLine_pfn)
+                         D3DKMTGetScanLine)(&getScanLine) && getScanLine.InVerticalBlank)
                 {
                   qpc_t1 =
                     SK_QueryPerf ();
@@ -1876,7 +1876,8 @@ SK::Framerate::Limiter::wait (void)
                     getScanLine.ScanLine;
 
                   if ( STATUS_SUCCESS ==
-                         D3DKMTGetScanLine (&getScanLine) && getScanLine.InVerticalBlank)
+                         ((D3DKMTGetScanLine_pfn)
+                           D3DKMTGetScanLine)(&getScanLine) && getScanLine.InVerticalBlank)
                   {
                     auto tReturn =
                       SK_QueryPerf ().QuadPart;
