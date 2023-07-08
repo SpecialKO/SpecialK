@@ -165,7 +165,9 @@ SK_GPUPollingThread (LPVOID user)
                   SK_DXGI_SignalBudgetThread (    );
     }
 
-    bool bHadPercentage = false;
+    static bool bHadFanRPM     = false;
+    static bool bHadVoltage    = false;
+           bool bHadPercentage = false;
 
     if (nvapi_init && gpu_count != 0)
     {
@@ -445,12 +447,16 @@ SK_GPUPollingThread (LPVOID user)
           {
             stats.gpus [i].fans_rpm.gpu       = tach;
             stats.gpus [i].fans_rpm.supported = true;
+
+            bHadFanRPM = true;
           }
 
           else
           {
-            stats.gpus [i].fans_rpm.gpu       = stats0.gpus [i].fans_rpm.gpu;
-            stats.gpus [i].fans_rpm.supported = stats0.gpus [i].fans_rpm.supported;
+            stats.gpus [i].fans_rpm.gpu       = 0;
+            stats.gpus [i].fans_rpm.supported = false;
+
+            bHadFanRPM = false;
           }
         }
 
@@ -527,6 +533,9 @@ SK_GPUPollingThread (LPVOID user)
                         stats.gpus [i].volts_mV.ov =   over  / 1000.0f;
                       else if (under > 0)
                         stats.gpus [i].volts_mV.ov = -(under / 1000.0f);
+
+                      bHadVoltage = true;
+
                       break;
                     }
                   }
@@ -575,6 +584,9 @@ SK_GPUPollingThread (LPVOID user)
 
                       stats.gpus [i].volts_mV.over  = true;
                     }
+
+                    bHadVoltage = true;
+
                     break;
                   }
                 }
@@ -626,6 +638,8 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].volts_mV.over      = false;
         stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
 
+        bHadVoltage = stats.gpus [i].volts_mV.core != 0;
+
         ADLTemperature temp       = {                     };
                        temp.iSize = sizeof (ADLTemperature);
 
@@ -640,7 +654,12 @@ SK_GPUPollingThread (LPVOID user)
         ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);
 
         stats.gpus [i].fans_rpm.gpu       = fanspeed.iFanSpeed;
-        stats.gpus [i].fans_rpm.supported = true;
+        stats.gpus [i].fans_rpm.supported = fanspeed.iFanSpeed != 0;
+
+        if (fanspeed.iFanSpeed != 0)
+          bHadFanRPM = true;
+        else
+          bHadFanRPM = false;
       }
 
       if (stats.gpus [0].loads_percent.gpu != 0)
@@ -826,11 +845,11 @@ SK_GPUPollingThread (LPVOID user)
     // Add data that might be missing from NVAPI
     //
 
-    if (stats.gpus [0].fans_rpm.gpu == 0)
+    if (! bHadFanRPM)
     {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
         stats.gpus [0].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
     }
-    if (stats.gpus [0].volts_mV.core == 0.0f)
+    if (! bHadVoltage)
     {   stats.gpus [0].volts_mV.core      =
                        static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
         stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
