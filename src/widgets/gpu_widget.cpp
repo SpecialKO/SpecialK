@@ -65,6 +65,8 @@ public:
   {
     SK_ImGui_Widgets->gpu_monitor = this;
 
+    setMinSize (ImVec2 (450.0f, 50.0f));
+
     setAutoFit (true).setDockingPoint (DockAnchor::West).
     setBorder  (true);
   };
