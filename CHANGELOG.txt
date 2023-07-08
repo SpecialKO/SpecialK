@@ -1,4 +1,9 @@
-﻿23.7.8.4
+﻿23.7.8.5
+========
+ + Increased default minimum horizontal size on GPU widget (450 pixels)
+ + Fixed border on CPU/GPU load meter not sizing correctly when scrolling down
+
+23.7.8.4
 ========
  + Favor D3DKMT collected GPU temperature over ADL or NVAPI when available.
  + Change GPU load % to include fractional percentages for data collected from

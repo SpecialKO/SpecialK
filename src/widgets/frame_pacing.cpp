@@ -1088,9 +1088,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1 - scroll_y,
         window_pos.x + cursor_pos.x - 1 +
             fGaugeSizes,                 window_pos.y + cursor_pos.y +
-                                                    font_size * 7.0f - 1 );
+                                                    font_size * 7.0f - 1 - scroll_y );
 
-    ImGui::BeginGroup     ();
+    ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph
     ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
     ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
     ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
