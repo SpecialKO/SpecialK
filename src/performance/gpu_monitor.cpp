@@ -736,7 +736,7 @@ SK_GPUPollingThread (LPVOID user)
       static HQUERY   query   = nullptr;
       static HCOUNTER counter = nullptr;
 
-      if (counter == nullptr && rb.adapter.luid.LowPart != 0)
+      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 5)
       {
         if (query == nullptr)
         {
@@ -873,6 +873,9 @@ SK_GPUPollingThread (LPVOID user)
             static_cast <uint32_t> (
               rb.adapter.perf.engine_3d.Frequency / 1000
             );
+
+          stats.gpus [i].volts_mV.core      = rb.adapter.perf.engine_3d.Voltage;
+          stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
         }
       }
     }
