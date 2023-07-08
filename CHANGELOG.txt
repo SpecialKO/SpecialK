@@ -1,4 +1,9 @@
-﻿23.7.8.1
+﻿23.7.8.2
+========
+ + Add 15 frame delay before attempting to initialize Pdh counters, so they
+     have actual data.
+
+23.7.8.1
 ========
  + Add luid to Pdh counter name:
  
