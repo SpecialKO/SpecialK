@@ -1,4 +1,10 @@
-﻿23.7.8.3
+﻿23.7.8.4
+========
+ + Favor D3DKMT collected GPU temperature over ADL or NVAPI when available.
+ + Change GPU load % to include fractional percentages for data collected from
+     APIs that support it.
+
+23.7.8.3
 ========
  + On NVIDIA GPUs that no longer report voltage or fan RPM, use D3DKMT to
      get this data.

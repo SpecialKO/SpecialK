@@ -38,6 +38,7 @@ struct gpu_sensors_t
     //
     struct
     {
+      // In thousandths of a percent
       uint32_t gpu = 0; // GPU
 
       // NVIDIA ONLY

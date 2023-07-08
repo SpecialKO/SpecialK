@@ -228,13 +228,13 @@ SK_GPUPollingThread (LPVOID user)
           if (status == NVAPI_OK)
           {
             stats.gpus [i].loads_percent.gpu =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage;
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000;
             stats.gpus [i].loads_percent.fb =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage;
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000;
             stats.gpus [i].loads_percent.vid =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000;
             stats.gpus [i].loads_percent.bus =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
+              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000;
 
             bHadPercentage = true;
           }
@@ -623,7 +623,7 @@ SK_GPUPollingThread (LPVOID user)
 
         ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
 
-        stats.gpus [i].loads_percent.gpu = activity.iActivityPercent;
+        stats.gpus [i].loads_percent.gpu = activity.iActivityPercent * 1000;
         stats.gpus [i].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
         stats.gpus [i].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
 
@@ -808,10 +808,11 @@ SK_GPUPollingThread (LPVOID user)
               counter, PDH_FMT_DOUBLE, nullptr, &counterValue
             );
 
+          // Clamp to 0.1% minimum load and apply smoothing between updates, because Pdh's load%
+          //   counter has very high variance and we want to avoid 0.0%
           stats.gpus [0].loads_percent.gpu =
-            static_cast <uint32_t> (counterValue.doubleValue);
-          stats0.gpus [0].loads_percent.gpu =
-            static_cast <uint32_t> (counterValue.doubleValue);
+            ( stats0.gpus [0].loads_percent.gpu +
+              static_cast <uint32_t> (std::max (100.0, counterValue.doubleValue * 1000.0)) ) / 2;
         }
       }
 
@@ -830,10 +831,20 @@ SK_GPUPollingThread (LPVOID user)
             rb.adapter.perf.data.MemoryFrequency / 1000
           );
 
+        // Smooth clock frequency changes
+        stats.gpus [i].clocks_kHz.ram =
+         ( stats.gpus [i].clocks_kHz.ram +
+          stats0.gpus [i].clocks_kHz.ram ) / 2;
+
         stats.gpus [i].clocks_kHz.gpu     =
           static_cast <uint32_t> (
             rb.adapter.perf.engine_3d.Frequency / 1000
           );
+
+        // Smooth clock frequency changes
+        stats.gpus [i].clocks_kHz.gpu =
+         ( stats.gpus [i].clocks_kHz.gpu +
+          stats0.gpus [i].clocks_kHz.gpu ) / 2;
 
         stats.gpus [i].volts_mV.core      =
                        static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
@@ -853,6 +864,13 @@ SK_GPUPollingThread (LPVOID user)
     {   stats.gpus [0].volts_mV.core      =
                        static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
         stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
+    }
+
+    // Favor D3DKMT Temperature Measurement if it is providing non-zero data
+    if ((rb.adapter.perf.data.Temperature) / 10.0f > 0.1f)
+    {
+      stats.gpus [0].temps_c.gpu =
+        static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
     }
 
     InterlockedExchangePointer (
@@ -1012,8 +1030,8 @@ SK_GPU_GetMemoryLoad (int gpu)
   const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
-  return (gpu > -1 && gpu < pDataView->num_gpus)                    ?
-       static_cast <float> (pDataView->gpus [gpu].loads_percent.fb) :
+  return (gpu > -1 && gpu < pDataView->num_gpus)                              ?
+       static_cast <float> (pDataView->gpus [gpu].loads_percent.fb) / 1000.0f :
                                     0.0f;
 }
 
@@ -1023,8 +1041,8 @@ __stdcall SK_GPU_GetGPULoad (int gpu)
   const gpu_sensors_t* pDataView =
     SK_GPU_CurrentSensorData ();
 
-  return (gpu > -1 && gpu < pDataView->num_gpus)                     ?
-       static_cast <float> (pDataView->gpus [gpu].loads_percent.gpu) :
+  return (gpu > -1 && gpu < pDataView->num_gpus)                               ?
+       static_cast <float> (pDataView->gpus [gpu].loads_percent.gpu) / 1000.0f :
                                     0.0f;
 }
 
