@@ -647,29 +647,102 @@ SK_GPUPollingThread (LPVOID user)
         bHadPercentage = true;
     }
 
+    static auto &rb =
+      SK_GetCurrentRenderBackend ();
+
+    static D3DKMT_ADAPTER_PERFDATA
+                   adapterPerfData = { };
+
+    if (rb.adapter.d3dkmt != 0)
+    {
+      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
+      {   rb.adapter.perf.sampled_frame = 0;
+        D3DKMT_ADAPTER_PERFDATA perf_data = { };
+        D3DKMT_NODE_PERFDATA    node_data = { };
+
+        D3DKMT_QUERYADAPTERINFO
+               queryAdapterInfo                       = { };
+               queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+               queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+               queryAdapterInfo.PrivateDriverData     = &perf_data;
+               queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+
+        // General adapter perf data
+        //
+        if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+        {
+          memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+                        std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                             sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+
+          rb.adapter.perf.sampled_frame =
+                            SK_GetFramesDrawn ();
+        }
+
+        static UINT32 Engine3DNodeOrdinal  = 0;
+        static UINT32 Engine3DAdapterIndex = 0;
+
+        SK_RunOnce (
+        {
+          const UINT NodeCount = 32;
+
+          // NOTE: The proper way to get the node count is using
+          //         D3DKMT_QUERYSTATISTICS_PROCESS_ADAPTER_INFORMATION
+          for ( UINT i = 0 ; i < NodeCount ; ++i )
+          {
+            D3DKMT_NODEMETADATA metaData = { MAKEWORD (i, 0) };
+
+            queryAdapterInfo.Type                  = KMTQAITYPE_NODEMETADATA;
+            queryAdapterInfo.PrivateDriverData     = &metaData;
+            queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODEMETADATA);
+
+            if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+            {
+              if (metaData.NodeData.EngineType == DXGK_ENGINE_TYPE_3D)
+              {
+                Engine3DNodeOrdinal  = i;
+                Engine3DAdapterIndex = 0;
+                break;
+              }
+            }
+          }
+        });
+
+        node_data.NodeOrdinal = Engine3DNodeOrdinal;
+
+        queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+        queryAdapterInfo.Type                  = KMTQAITYPE_NODEPERFDATA;
+        queryAdapterInfo.PrivateDriverData     = &node_data;
+        queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODE_PERFDATA);
+
+        // 3D Engine-specific (i.e. GPU clock / voltage)
+        //
+        if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+        {
+          memcpy ( &rb.adapter.perf.engine_3d, queryAdapterInfo.PrivateDriverData,
+                             std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                             sizeof (D3DKMT_NODE_PERFDATA)) );
+        }
+      }
+    }
+
     // Fallback to Performance Data Helper because ADL or NVAPI were no help
     if (! bHadPercentage)
     {
-      static auto &rb =
-        SK_GetCurrentRenderBackend ();
-
       PDH_STATUS status;
 
       static HQUERY   query   = nullptr;
       static HCOUNTER counter = nullptr;
 
-      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 15)
+      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 30)
       {
         SK_RunOnce ({
           extern HRESULT
             ModifyPrivilege ( IN LPCTSTR szPrivilege,
                               IN BOOL     fEnable );
 
-          ModifyPrivilege (SE_DEBUG_NAME,               TRUE);
-          ModifyPrivilege (SE_IMPERSONATE_NAME,         TRUE);
-          ModifyPrivilege (SE_PROF_SINGLE_PROCESS_NAME, TRUE);
-          ModifyPrivilege (SE_SYSTEM_PROFILE_NAME,      TRUE);
-          ModifyPrivilege (SE_CREATE_TOKEN_NAME,        TRUE);
+          ModifyPrivilege (SE_SYSTEM_PROFILE_NAME, TRUE);
+          ModifyPrivilege (SE_CREATE_TOKEN_NAME,   TRUE);
         });
 
         if (query == nullptr)
@@ -723,106 +796,44 @@ SK_GPUPollingThread (LPVOID user)
         }
       }
 
-      static D3DKMT_ADAPTER_PERFDATA
-                     adapterPerfData = { };
+      stats.num_gpus = 1;
 
-      if (rb.adapter.d3dkmt != 0)
+      for (int i = 0; i < stats.num_gpus; i++)
       {
-        if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
-        {   rb.adapter.perf.sampled_frame = 0;
-          D3DKMT_ADAPTER_PERFDATA perf_data = { };
-          D3DKMT_NODE_PERFDATA    node_data = { };
+        stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
+            static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
 
-          D3DKMT_QUERYADAPTERINFO
-                 queryAdapterInfo                       = { };
-                 queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-                 queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-                 queryAdapterInfo.PrivateDriverData     = &perf_data;
-                 queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
+        stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
+        stats.gpus [i].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
 
-          // General adapter perf data
-          //
-          if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-          {
-            memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-                          std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                               sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+        stats.gpus [i].clocks_kHz.ram     =
+          static_cast <uint32_t> (
+            rb.adapter.perf.data.MemoryFrequency / 1000
+          );
 
-            rb.adapter.perf.sampled_frame =
-                              SK_GetFramesDrawn ();
-          }
+        stats.gpus [i].clocks_kHz.gpu     =
+          static_cast <uint32_t> (
+            rb.adapter.perf.engine_3d.Frequency / 1000
+          );
 
-          static UINT32 Engine3DNodeOrdinal  = 0;
-          static UINT32 Engine3DAdapterIndex = 0;
-
-          SK_RunOnce (
-          {
-            const UINT NodeCount = 32;
-
-            // NOTE: The proper way to get the node count is using
-            //         D3DKMT_QUERYSTATISTICS_PROCESS_ADAPTER_INFORMATION
-            for ( UINT i = 0 ; i < NodeCount ; ++i )
-            {
-              D3DKMT_NODEMETADATA metaData = { MAKEWORD (i, 0) };
-
-              queryAdapterInfo.Type                  = KMTQAITYPE_NODEMETADATA;
-              queryAdapterInfo.PrivateDriverData     = &metaData;
-              queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODEMETADATA);
-
-              if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-              {
-                if (metaData.NodeData.EngineType == DXGK_ENGINE_TYPE_3D)
-                {
-                  Engine3DNodeOrdinal  = i;
-                  Engine3DAdapterIndex = 0;
-                  break;
-                }
-              }
-            }
-          });
-
-          node_data.NodeOrdinal = Engine3DNodeOrdinal;
-
-          queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-          queryAdapterInfo.Type                  = KMTQAITYPE_NODEPERFDATA;
-          queryAdapterInfo.PrivateDriverData     = &node_data;
-          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODE_PERFDATA);
-
-          // 3D Engine-specific (i.e. GPU clock / voltage)
-          //
-          if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-          {
-            memcpy ( &rb.adapter.perf.engine_3d, queryAdapterInfo.PrivateDriverData,
-                               std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                               sizeof (D3DKMT_NODE_PERFDATA)) );
-          }
-        }
-
-        stats.num_gpus = 1;
-
-        for (int i = 0; i < stats.num_gpus; i++)
-        {
-          stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
-              static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
-
-          stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-          stats.gpus [i].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
-
-          stats.gpus [i].clocks_kHz.ram     =
-            static_cast <uint32_t> (
-              rb.adapter.perf.data.MemoryFrequency / 1000
-            );
-
-          stats.gpus [i].clocks_kHz.gpu     =
-            static_cast <uint32_t> (
-              rb.adapter.perf.engine_3d.Frequency / 1000
-            );
-
-          stats.gpus [i].volts_mV.core      =
-                         static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
-          stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
-        }
+        stats.gpus [i].volts_mV.core      =
+                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
+        stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
       }
+    }
+
+    //
+    // Add data that might be missing from NVAPI
+    //
+
+    if (stats.gpus [0].fans_rpm.gpu == 0)
+    {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
+        stats.gpus [0].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
+    }
+    if (stats.gpus [0].volts_mV.core == 0.0f)
+    {   stats.gpus [0].volts_mV.core      =
+                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
+        stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
     }
 
     InterlockedExchangePointer (

@@ -2349,8 +2349,14 @@ SK_D3D11_CopyResource_Impl (
 
             if (srcDesc.MipLevels == dstDesc.MipLevels)
             {
-              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-                return;
+              // TODO: Add config parameter to handle games that try to copy resources
+              //         with incompatible dimensions (i.e. Total War Warhammer III)
+              //if ( srcDesc.Width  == dstDesc.Width &&
+              //     srcDesc.Height == dstDesc.Height )
+              {
+                if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+                  return;
+              }
             }
 
             else SK_ReleaseAssert (srcDesc.MipLevels == dstDesc.MipLevels);
