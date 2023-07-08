@@ -1,4 +1,12 @@
-﻿23.7.8
+﻿23.7.8.1
+========
+ + Add luid to Pdh counter name:
+ 
+     "\GPU Engine(*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage"
+
+   to correctly handle GPU load% on systems with multiple GPUs.
+
+23.7.8
 ======
  + Added Pdh / D3DKMT fallback paths to collect GPU statistics if ADL or NVAPI
      are unavailable (i.e. Intel GPUs) or not working

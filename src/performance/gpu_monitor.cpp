@@ -321,8 +321,6 @@ SK_GPUPollingThread (LPVOID user)
             stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
             stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
             stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
-
-            bHadPercentage = true;
           }
 
           NV_GPU_THERMAL_SETTINGS
@@ -738,7 +736,7 @@ SK_GPUPollingThread (LPVOID user)
       static HQUERY   query   = nullptr;
       static HCOUNTER counter = nullptr;
 
-      if (counter == nullptr)
+      if (counter == nullptr && rb.adapter.luid.LowPart != 0)
       {
         if (query == nullptr)
         {
@@ -751,9 +749,9 @@ SK_GPUPollingThread (LPVOID user)
           status =
             PdhAddCounter (query,
               SK_FormatStringW (
-                LR"(\GPU Engine(*engtype_3D)\Utilization Percentage)",
+                LR"(\GPU Engine(*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage)",
               //LR"(\GPU Engine(pid_%d_luid_0x%08X_0x%08X_phys_0_eng_0_engtype_3D)\Utilization Percentage)",
-                  GetProcessId (SK_GetCurrentProcess ()),
+                  //GetProcessId (SK_GetCurrentProcess ()),
                     rb.adapter.luid.HighPart, rb.adapter.luid.LowPart
               ).c_str (), 0, &counter);
         }
