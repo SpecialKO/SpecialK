@@ -23,6 +23,9 @@
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
+#include <Pdh.h>
+
+#pragma comment (lib, "pdh.lib")
 
 // D3DKMT stuff
 #include <SpecialK/render/d3d11/d3d11_core.h>
@@ -207,10 +210,7 @@ SK_GPUPollingThread (LPVOID user)
     SK_RunOnce (assert (NvAPI_GetPhysicalGPUFromGPUID != nullptr));
 #endif
 
-    if (NVAPI_OK != NvAPI_EnumPhysicalGPUs (gpus, &gpu_count))
-    {
-      return 0;
-    }
+    NvAPI_EnumPhysicalGPUs (gpus, &gpu_count);
   }
 
   while (true)
@@ -243,7 +243,9 @@ SK_GPUPollingThread (LPVOID user)
                   SK_DXGI_SignalBudgetThread (    );
     }
 
-    if (nvapi_init)
+    bool bHadPercentage = false;
+
+    if (nvapi_init && gpu_count != 0)
     {
       stats.num_gpus =
         std::min (gpu_count, static_cast <NvU32> (NVAPI_MAX_PHYSICAL_GPUS));
@@ -309,6 +311,8 @@ SK_GPUPollingThread (LPVOID user)
               psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage;
             stats.gpus [i].loads_percent.bus =
               psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage;
+
+            bHadPercentage = true;
           }
 
           else
@@ -714,55 +718,161 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].fans_rpm.gpu       = fanspeed.iFanSpeed;
         stats.gpus [i].fans_rpm.supported = true;
       }
+
+      if (stats.gpus [0].loads_percent.gpu != 0)
+        bHadPercentage = true;
     }
 
-    else
+    // Fallback to Performance Data Helper because ADL or NVAPI were no help
+    if (! bHadPercentage)
     {
+      static auto &rb =
+        SK_GetCurrentRenderBackend ();
+
+      PDH_STATUS status;
+
+      static HQUERY   query   = nullptr;
+      static HCOUNTER counter = nullptr;
+
+      if (counter == nullptr)
+      {
+        if (query == nullptr)
+        {
+          status =
+            PdhOpenQuery (nullptr, 0, &query);
+        }
+
+        if (query != nullptr)
+        {
+          status =
+            PdhAddCounter (query,
+              SK_FormatStringW (
+                LR"(\GPU Engine(*engtype_3D)\Utilization Percentage)",
+              //LR"(\GPU Engine(pid_%d_luid_0x%08X_0x%08X_phys_0_eng_0_engtype_3D)\Utilization Percentage)",
+                  GetProcessId (SK_GetCurrentProcess ()),
+                    rb.adapter.luid.HighPart, rb.adapter.luid.LowPart
+              ).c_str (), 0, &counter);
+        }
+      }
+
+      if (counter != nullptr)
+      {
+        status =
+          PdhCollectQueryData (query);
+
+        if (status == ERROR_SUCCESS)
+        {
+          PDH_FMT_COUNTERVALUE counterValue = { };
+
+          status =
+            PdhGetFormattedCounterValue (counter, PDH_FMT_DOUBLE, nullptr, &counterValue);
+
+          stats.gpus [0].loads_percent.gpu =
+            static_cast <uint32_t> (counterValue.doubleValue);
+          stats0.gpus [0].loads_percent.gpu =
+            static_cast <uint32_t> (counterValue.doubleValue);
+        }
+      }
+
       static D3DKMT_ADAPTER_PERFDATA
                      adapterPerfData = { };
 
       static DWORD
         dwLastUpdate = 0;
 
-      if (dwLastUpdate < (SK_timeGetTime () - 250))
-      {   dwLastUpdate =  SK_timeGetTime ();
-        auto hDC =
-           GetDC (NULL);
-
-        // Really should be using the adapter LUID version, but to make this
-        //   work in GL ... avoid for now.
-        SK_D3DKMT_QueryAdapterPerfData (hDC,
-                      &adapterPerfData );
-
-        ReleaseDC (nullptr, hDC);
-      }
-
-      stats.num_gpus = 1;
-
-      for (int i = 0; i < stats.num_gpus; i++)
+      if (rb.adapter.d3dkmt != 0)
       {
-        stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
-            static_cast <float> (adapterPerfData.Temperature) / 10.0f;
+        if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
+        {   rb.adapter.perf.sampled_frame = 0;
+          D3DKMT_ADAPTER_PERFDATA perf_data = { };
+          D3DKMT_NODE_PERFDATA    node_data = { };
 
-        stats.gpus [i].fans_rpm.supported = (adapterPerfData.FanRPM != 0);
-        stats.gpus [i].fans_rpm.gpu       =  adapterPerfData.FanRPM;
+          D3DKMT_QUERYADAPTERINFO
+                 queryAdapterInfo                       = { };
+                 queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+                 queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
+                 queryAdapterInfo.PrivateDriverData     = &perf_data;
+                 queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
 
-        stats.gpus [i].clocks_kHz.ram     =
-          static_cast <uint32_t> (
-            adapterPerfData.MemoryFrequency / 1000
-          );
+          // General adapter perf data
+          //
+          if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+          {
+            memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
+                          std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                               sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+
+            rb.adapter.perf.sampled_frame =
+                              SK_GetFramesDrawn ();
+          }
+
+          static UINT32 Engine3DNodeOrdinal  = 0;
+          static UINT32 Engine3DAdapterIndex = 0;
+
+          SK_RunOnce (
+          {
+            const UINT NodeCount = 32;
+
+            // NOTE: The proper way to get the node count is using
+            //         D3DKMT_QUERYSTATISTICS_PROCESS_ADAPTER_INFORMATION
+            for ( UINT i = 0 ; i < NodeCount ; ++i )
+            {
+              D3DKMT_NODEMETADATA metaData = { MAKEWORD (i, 0) };
+
+              queryAdapterInfo.Type                  = KMTQAITYPE_NODEMETADATA;
+              queryAdapterInfo.PrivateDriverData     = &metaData;
+              queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODEMETADATA);
+
+              if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+              {
+                if (metaData.NodeData.EngineType == DXGK_ENGINE_TYPE_3D)
+                {
+                  Engine3DNodeOrdinal  = i;
+                  Engine3DAdapterIndex = 0;
+                  break;
+                }
+              }
+            }
+          });
+
+          node_data.NodeOrdinal = Engine3DNodeOrdinal;
+
+          queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+          queryAdapterInfo.Type                  = KMTQAITYPE_NODEPERFDATA;
+          queryAdapterInfo.PrivateDriverData     = &node_data;
+          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODE_PERFDATA);
+
+          // 3D Engine-specific (i.e. GPU clock / voltage)
+          //
+          if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+          {
+            memcpy ( &rb.adapter.perf.engine_3d, queryAdapterInfo.PrivateDriverData,
+                               std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                               sizeof (D3DKMT_NODE_PERFDATA)) );
+          }
+        }
+
+        stats.num_gpus = 1;
+
+        for (int i = 0; i < stats.num_gpus; i++)
+        {
+          stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
+              static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
+
+          stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
+          stats.gpus [i].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
+
+          stats.gpus [i].clocks_kHz.ram     =
+            static_cast <uint32_t> (
+              rb.adapter.perf.data.MemoryFrequency / 1000
+            );
+
+          stats.gpus [i].clocks_kHz.gpu     =
+            static_cast <uint32_t> (
+              rb.adapter.perf.engine_3d.Frequency / 1000
+            );
+        }
       }
-
-#if 0
-      ImGui::Text ( "GPUTemp: %3.1fC (%u RPM)",
-                                     static_cast <double> (adapterPerfData.Temperature) / 10.0,
-                                                           adapterPerfData.FanRPM              );
-      ImGui::Text ( "VRAM:    %7.2f MHz",
-                                     static_cast <double> (adapterPerfData.MemoryFrequency) / 1000000.0
-                                                                                               );
-      ImGui::Text ( "Power:   %3.1f%%",
-                                     static_cast <double> (adapterPerfData.Power)       / 10.0 );
-#endif
     }
 
     InterlockedExchangePointer (

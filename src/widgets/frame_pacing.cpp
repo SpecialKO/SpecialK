@@ -895,34 +895,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
   bool bDrawProcessorLoad =
     ((SKWG_FramePacing *)SK_ImGui_Widgets->frame_pacing)->display_load;
 
-  if (rb.adapter.d3dkmt != 0 && bDrawProcessorLoad)
-  {
-    if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
-    {   rb.adapter.perf.sampled_frame = 0;
-
-      extern HRESULT SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo);
-
-      D3DKMT_ADAPTER_PERFDATA perf_data = { };
-
-      D3DKMT_QUERYADAPTERINFO
-             queryAdapterInfo                       = { };
-             queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-             queryAdapterInfo.Type                  = KMTQAITYPE_ADAPTERPERFDATA;
-             queryAdapterInfo.PrivateDriverData     = &perf_data;
-             queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_ADAPTER_PERFDATA);
-
-      if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
-      {
-        memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-                      std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                           sizeof (D3DKMT_ADAPTER_PERFDATA)) );
-
-        rb.adapter.perf.sampled_frame =
-                          SK_GetFramesDrawn ();
-      }
-    }
-  }
-
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
@@ -1002,6 +974,15 @@ SK_ImGui_DrawGraph_FramePacing (void)
   {
     fGaugeSizes = fCPUSize;
 
+    static const DWORD _UpdateFrequencyInMsec = 75;
+    static       DWORD dwLastUpdatedGPU =
+      SK::ControlPanel::current_time;
+
+    if (dwLastUpdatedGPU < SK::ControlPanel::current_time - _UpdateFrequencyInMsec)
+    {   dwLastUpdatedGPU = SK::ControlPanel::current_time;
+      SK_PollGPU ();
+    }
+
     fGPULoadPercent =
       SK_GPU_GetGPULoad (0);
 
@@ -1013,8 +994,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
       if (! ADL_init)
       {
         // Use D3DKMT instead
-        fGPULoadPercent =
-          static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
+        ////fGPULoadPercent =
+        ////  static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
       }
     }
 
@@ -1077,15 +1058,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (bDrawProcessorLoad)
   {
-    static const DWORD _UpdateFrequencyInMsec = 75;
-    static       DWORD dwLastUpdatedGPU =
-      SK::ControlPanel::current_time;
-
-    if (dwLastUpdatedGPU < SK::ControlPanel::current_time - _UpdateFrequencyInMsec)
-    {   dwLastUpdatedGPU = SK::ControlPanel::current_time;
-      SK_PollGPU ();
-    }
-
     ImGui::SameLine     (0.0f, 0.0f);
 
     auto window_pos = ImGui::GetWindowPos (),

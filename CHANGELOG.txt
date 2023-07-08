@@ -1,4 +1,9 @@
-﻿23.7.7.4
+﻿23.7.8
+======
+ + Added Pdh / D3DKMT fallback paths to collect GPU statistics if ADL or NVAPI
+     are unavailable (i.e. Intel GPUs) or not working
+
+23.7.7.4
 ========
  + Remove AMD GPU statistics from framepacing widget if user's system has a
      broken version of ADL

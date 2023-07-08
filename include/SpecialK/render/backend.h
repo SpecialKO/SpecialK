@@ -65,6 +65,72 @@ typedef struct _D3DKMT_OPENADAPTERFROMHDC
 
 typedef _Check_return_ NTSTATUS(APIENTRY *PFND3DKMT_OPENADAPTERFROMHDC)(_Inout_ D3DKMT_OPENADAPTERFROMHDC*);
 
+#define DXGK_MAX_METADATA_NAME_LENGTH 32
+typedef enum
+{
+  DXGK_ENGINE_TYPE_OTHER,
+  DXGK_ENGINE_TYPE_3D,
+  DXGK_ENGINE_TYPE_VIDEO_DECODE,
+  DXGK_ENGINE_TYPE_VIDEO_ENCODE,
+  DXGK_ENGINE_TYPE_VIDEO_PROCESSING,
+  DXGK_ENGINE_TYPE_SCENE_ASSEMBLY,
+  DXGK_ENGINE_TYPE_COPY,
+  DXGK_ENGINE_TYPE_OVERLAY,
+  DXGK_ENGINE_TYPE_CRYPTO,
+  DXGK_ENGINE_TYPE_MAX
+} DXGK_ENGINE_TYPE;
+
+typedef struct _DXGK_NODEMETADATA_FLAGS
+{
+  union
+  {
+    struct
+    {
+      UINT ContextSchedulingSupported :  1;
+    
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_5)
+
+      UINT RingBufferFenceRelease     :  1;
+      UINT SupportTrackedWorkload     :  1;
+      UINT Reserved                   : 13;
+
+      UINT MaxInFlightHwQueueBuffers  : 16;
+
+#else
+
+      UINT Reserved                   : 31;
+
+#endif // !(DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_5)
+
+    };
+    
+    UINT32 Value;
+  };
+} DXGK_NODEMETADATA_FLAGS;
+
+typedef struct _DXGK_NODEMETADATA
+{
+  DXGK_ENGINE_TYPE EngineType;
+  WCHAR            FriendlyName [DXGK_MAX_METADATA_NAME_LENGTH];
+  
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_2)
+  DXGK_NODEMETADATA_FLAGS Flags;
+#else
+  UINT32           Reserved;
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_2)
+
+#if (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+  BOOLEAN          GpuMmuSupported;        
+  BOOLEAN          IoMmuSupported;        
+#endif // (DXGKDDI_INTERFACE_VERSION >= DXGKDDI_INTERFACE_VERSION_WDDM2_0)
+} DXGK_NODEMETADATA;
+
+typedef struct _D3DKMT_NODEMETADATA
+{
+  _In_  UINT              NodeOrdinalAndAdapterIndex; // WDDMv2: High word is physical adapter index, low word is node ordinal
+  _Out_ DXGK_NODEMETADATA NodeData;
+} D3DKMT_NODEMETADATA;
+
 // Represents performance data collected per engine from an adapter on an interval basis.
 typedef struct _D3DKMT_NODE_PERFDATA
 {
@@ -819,6 +885,7 @@ public:
 
     struct {
       D3DKMT_ADAPTER_PERFDATA data             = { };
+      D3DKMT_NODE_PERFDATA    engine_3d        = { };
       ULONG64                 sampled_frame    =  0;
     } perf;
 
