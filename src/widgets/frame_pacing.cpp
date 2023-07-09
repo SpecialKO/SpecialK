@@ -30,6 +30,15 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 
 #include <SpecialK/adl.h>
 
+#include <Pdh.h>
+#include <PdhMsg.h>
+
+#pragma comment (lib, "pdh.lib")
+
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"Frame Pace"
 
 namespace
 SK_ImGui
@@ -101,20 +110,20 @@ struct SK_ImGui_FramePercentiles
         );
 
       percentile_cfg.display->register_to_ini ( osd_ini,
-        L"Widget.FramePacing", L"DisplayPercentiles"
+        L"Widget.Frame Pacing", L"DisplayPercentiles"
       );
 
       percentile_cfg.display_above->register_to_ini ( osd_ini,
-        L"Widget.FramePacing", L"PercentilesAboveGraph"
+        L"Widget.Frame Pacing", L"PercentilesAboveGraph"
       );
       percentile_cfg.display_most_recent->register_to_ini ( osd_ini,
-        L"Widget.FramePacing", L"ShortTermPercentiles"
+        L"Widget.Frame Pacing", L"ShortTermPercentiles"
       );
       percentile_cfg.percentile0_cutoff->register_to_ini ( osd_ini,
-        L"Widget.FramePacing", L"Percentile[0].Cutoff"
+        L"Widget.Frame Pacing", L"Percentile[0].Cutoff"
       );
       percentile_cfg.percentile1_cutoff->register_to_ini ( osd_ini,
-        L"Widget.FramePacing", L"Percentile[1].Cutoff"
+        L"Widget.Frame Pacing", L"Percentile[1].Cutoff"
       );
     });
 
@@ -395,20 +404,32 @@ public:
         )
       );
 
+    meter_cfg.display_disk =
+      dynamic_cast <sk::ParameterBool *> (
+        SK_Widget_ParameterFactory->create_parameter <bool> (
+          L"Draw Disk Activity on the side of Framepacing Widget"
+        )
+      );
+
     meter_cfg.display_vram->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayVRAMGauge"
+      L"Widget.Frame Pacing", L"DisplayVRAMGauge"
+    );
+
+    meter_cfg.display_disk->register_to_ini ( osd_ini,
+      L"Widget.Frame Pacing", L"DisplayDiskActivity"
     );
 
     meter_cfg.display_load->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayProcessorLoad"
+      L"Widget.Frame Pacing", L"DisplayProcessorLoad"
     );
 
     meter_cfg.display_battery->register_to_ini ( osd_ini,
-      L"Widget.FramePacing", L"DisplayBatteryInfo"
+      L"Widget.Frame Pacing", L"DisplayBatteryInfo"
     );
 
     meter_cfg.display_vram->load    (display_vram);
     meter_cfg.display_load->load    (display_load);
+    meter_cfg.display_disk->load    (display_disk);
     meter_cfg.display_battery->load (display_battery);
   };
 
@@ -418,6 +439,7 @@ public:
 
     meter_cfg.display_vram->load    (display_vram);
     meter_cfg.display_load->load    (display_load);
+    meter_cfg.display_disk->load    (display_disk);
     meter_cfg.display_battery->load (display_battery);
 
     SK_FramePercentiles->load_percentile_cfg ();
@@ -434,6 +456,7 @@ public:
 
     meter_cfg.display_vram->store    (display_vram);
     meter_cfg.display_load->store    (display_load);
+    meter_cfg.display_disk->store    (display_disk);
     meter_cfg.display_battery->store (display_battery);
 
     SK_FramePercentiles->store_percentile_cfg ();
@@ -682,6 +705,7 @@ public:
 
     changed |= ImGui::Checkbox ("Show VRAM Gauge",    &display_vram);
     changed |= ImGui::Checkbox ("Show CPU/GPU Load",  &display_load);
+    changed |= ImGui::Checkbox ("Show Disk Activity", &display_disk);
     changed |= ImGui::Checkbox ("Show Battery State", &display_battery);
 
     if (changed)
@@ -745,11 +769,13 @@ public:
 
   bool display_vram    = false;
   bool display_load    = true;
+  bool display_disk    = false;
   bool display_battery = true;
 
   struct {
     sk::ParameterBool* display_vram    = nullptr;
     sk::ParameterBool* display_load    = nullptr;
+    sk::ParameterBool* display_disk    = nullptr;
     sk::ParameterBool* display_battery = nullptr;
   } meter_cfg;
   //sk::ParameterInt* samples_max;
@@ -899,6 +925,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
   bool bDrawProcessorLoad =
     ((SKWG_FramePacing *)SK_ImGui_Widgets->frame_pacing)->display_load;
 
+  bool bDrawDisk =
+    ((SKWG_FramePacing *)SK_ImGui_Widgets->frame_pacing)->display_disk;
+
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
@@ -953,24 +982,90 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
-  // @TODO
-  ///float fGPULoad =
-  ///  SK_GPU_GetGPULoad (0);
-  ///
-  ///ImGui::PushItemFlag (ImGuiItemFlags_Disabled, true);
-  ///ImGui::VSliderFloat ( "GPU", ImVec2 (font_size * 1.5f, -1.0f),
-  ///                     &fGPULoad,      0.0f, 100.0f,
-  ///                      "%5.3f%%" );
-  ///ImGui::PopItemFlag  ();
-  ///ImGui::SameLine     ();
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
                                              1.0f,   1.0f ) );
+
+  struct counter_enum_s {
+    wchar_t *Buffer = nullptr;
+    DWORD    Size   = 0;
+
+    ~counter_enum_s (void)
+    {
+      std::free (
+        std::exchange (Buffer, nullptr)
+      );
+    }
+  } CounterList,
+   InstanceList;
+
+  struct disk_s {
+    HQUERY   query   = nullptr;
+    HCOUNTER counter = nullptr;
+  } static disk;
+
+  SK_RunOnce (
+  {
+    auto drive_num =
+      PathGetDriveNumberW (SK_GetHostPath ());
+
+    PDH_STATUS status = ERROR_SUCCESS;
+
+    wchar_t *pTemp = nullptr;
+
+    status =
+      PdhEnumObjectItems ( nullptr, nullptr, L"PhysicalDisk",
+          CounterList.Buffer,  &CounterList.Size,
+         InstanceList.Buffer, &InstanceList.Size,
+          PERF_DETAIL_WIZARD, 0
+      );
+
+    if (status == PDH_MORE_DATA)
+    {
+      CounterList.Buffer  = (wchar_t *)malloc (CounterList.Size  * sizeof (wchar_t));
+      InstanceList.Buffer = (wchar_t *)malloc (InstanceList.Size * sizeof (wchar_t));
+
+      status =
+        PdhEnumObjectItems ( nullptr, nullptr, L"PhysicalDisk",
+            CounterList.Buffer, &CounterList.Size,
+           InstanceList.Buffer, &InstanceList.Size,
+            PERF_DETAIL_WIZARD, 0
+        );
+
+      if (status == ERROR_SUCCESS)
+      {
+        for (pTemp = InstanceList.Buffer; *pTemp != 0; pTemp += wcslen(pTemp) + 1)
+        {
+          if (StrStrIW (pTemp, SK_FormatStringW (L" %wc:", L'A' + drive_num).c_str ()))
+          {
+            status =
+              PdhOpenQuery (nullptr, 0, &disk.query);
+
+            if (status == ERROR_SUCCESS)
+            {
+              const auto counter_path =
+                SK_FormatStringW (
+                  LR"(\PhysicalDisk(%ws)\%% Disk Time)",
+                    pTemp
+                );
+
+              status =
+                PdhAddCounter (disk.query, counter_path.c_str (), 0, &disk.counter);
+
+              SK_LOGi0 (L"%ws", counter_path.c_str ());
+            }
+          }
+        }
+      }
+    }
+  });
+
   float fGPULoadPercent = 0.0f;
 
-  const float fCPUSize = ImGui::CalcTextSize ("CPU.").x;
-  const float fGPUSize = ImGui::CalcTextSize ("GPU.").x;
+  static const float fCPUSize  = ImGui::CalcTextSize ("CPU.").x;
+  static const float fGPUSize  = ImGui::CalcTextSize ("GPU.").x;
+  static const float fDISKSize = ImGui::CalcTextSize ("DISK.").x;
 
   float fGaugeSizes = 0.0f;
 
@@ -990,22 +1085,12 @@ SK_ImGui_DrawGraph_FramePacing (void)
     fGPULoadPercent =
       SK_GPU_GetGPULoad (0);
 
-    // Intel systems might return 0.0f...
-    if (fGPULoadPercent == 0.0f)
-    {
-      // If AMD systems return 0.0f, it's because ADL is buggy and D3DKMT will
-      //   not be any less buggy!
-      if (! ADL_init)
-      {
-        // Use D3DKMT instead
-        ////fGPULoadPercent =
-        ////  static_cast <float> (rb.adapter.perf.data.Power) / 10.0f;
-      }
-    }
-
     if (fGPULoadPercent > 0.0f)
       fGaugeSizes += fGPUSize;
   }
+
+  if (bDrawDisk)
+    fGaugeSizes += fDISKSize;
 
   const ImVec2 border_dims (
     std::max (500.0f - fGaugeSizes, ImGui::GetContentRegionAvailWidth () - fGaugeSizes),
@@ -1060,7 +1145,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     SK_FramePercentiles->toggleDisplay ();
   }
 
-  if (bDrawProcessorLoad)
+  if (bDrawProcessorLoad || bDrawDisk)
   {
     ImGui::SameLine     (0.0f, 0.0f);
 
@@ -1068,10 +1153,13 @@ SK_ImGui_DrawGraph_FramePacing (void)
          cursor_pos = ImGui::GetCursorPos ();
     auto scroll_y   = ImGui::GetScrollY ();
 
-    SK_RunOnce ({
-      SK_ImGui_Widgets->cpu_monitor->setActive (true);
-      SK_StartPerfMonThreads                   (    );
-    });
+    if (bDrawProcessorLoad)
+    {
+      SK_RunOnce ({
+        SK_ImGui_Widgets->cpu_monitor->setActive (true);
+        SK_StartPerfMonThreads                   (    );
+      });
+    }
 
     float fCPULoadPercent = 0.0f;
 
@@ -1100,15 +1188,50 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
     ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
-    // AMD's drivers might not be giving us valid data
-    if (             fGPULoadPercent > 0.0f)
+    if (bDrawProcessorLoad)
     {
-      ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
-      ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+      if (               fGPULoadPercent > 0.0f)
+      {
+        ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+        ImGui::SetCursorPos (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+      }
+      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
+      ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+      ImGui::PopStyleColor  ();
+      ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fCPUSize, fY));
     }
-    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
-    ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
-    ImGui::PopStyleColor  (4);
+
+    if (bDrawDisk)
+    {
+      PDH_FMT_COUNTERVALUE counterValue = { };
+
+      static float  fLastDisk    = 0.0f;
+      static DWORD dwLastSampled = SK::ControlPanel::current_time;
+
+      counterValue.doubleValue = fLastDisk;
+
+      if (dwLastSampled < SK::ControlPanel::current_time - 150)
+      {
+        if ( ERROR_SUCCESS == PdhCollectQueryData         (disk.query) &&
+             ERROR_SUCCESS == PdhGetFormattedCounterValue (disk.counter, PDH_FMT_DOUBLE, nullptr, &counterValue) )
+        {
+          dwLastSampled =
+            SK::ControlPanel::current_time;
+        }
+
+        else
+          counterValue.doubleValue = fLastDisk;
+      }
+
+      float     fDisk = (static_cast <float> (3 * std::min (counterValue.doubleValue, 100.0)) + fLastDisk) / 4.0f;
+            fLastDisk = fDisk;
+
+      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fDisk) / 100.0f * 0.278f, .88f, .75f));
+      ValueBar ("DISK", fDisk, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+      ImGui::PopStyleColor  ();
+    }
+
+    ImGui::PopStyleColor  (3);
     ImGui::EndGroup       ();
 
     ImGui::SetCursorPos   (ImVec2 (fX, fY + font_size * 7.0f + ImGui::GetStyle ().ItemSpacing.y));
@@ -1117,82 +1240,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PopStyleVar ();
 
 
-  //SK_RenderBackend& rb =
-  //  SK_GetCurrentRenderBackend ();
-  //
-  //if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
-  //{
-  //  if (rb.gsync_state.capable)
-  //  {
-  //    ImGui::SameLine ();
-  //    ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.36f), "G-Sync: ");
-  //    ImGui::SameLine ();
-  //
-  //    if (rb.gsync_state.active)
-  //    {
-  //      ImGui::TextColored (ImColor::HSV (0.226537f, 1.0f, 0.45f), "Active");
-  //    }
-  //
-  //
-  //        else
-  //    {
-  //      ImGui::TextColored (ImColor::HSV (0.226537f, 0.75f, 0.27f), "Inactive");
-  //    }
-  //  }
-  //} 
-
 
   if (! SK_FramePercentiles->display_above)
         SK_ImGui_DrawFramePercentiles ();
-
-
-#if 0
-  DWM_TIMING_INFO dwmTiming        = {                      };
-                  dwmTiming.cbSize = sizeof (DWM_TIMING_INFO);
-
-  HRESULT hr =
-    SK_DWM_GetCompositionTimingInfo (&dwmTiming);
-
-  if ( SUCCEEDED (hr) )
-  {
-    ImGui::Text ( "Refresh Rate: %6.2f Hz",
-                    static_cast <double> (dwmTiming.rateRefresh.uiNumerator) /
-                    static_cast <double> (dwmTiming.rateRefresh.uiDenominator)
-                );
-
-    LONGLONG llPerfFreq =
-      SK_GetPerfFreq ().QuadPart;
-
-    LONGLONG qpcAtNextVBlank =
-         dwmTiming.qpcVBlank;
-    double   dMsToNextVBlank =
-      1000.0 *
-        ( static_cast <double> ( qpcAtNextVBlank - SK_QueryPerf ().QuadPart ) /
-          static_cast <double> ( llPerfFreq ) );
-
-    extern LONG64 __SK_VBlankLatency_QPCycles;
-
-    static double uS =
-      static_cast <double> ( llPerfFreq ) / ( 1000.0 * 1000.0 );
-
-    ImGui::Text ( "ToNextVBlank:  %f ms", dMsToNextVBlank );
-    ImGui::Text ( "VBlankLatency: %f us", __SK_VBlankLatency_QPCycles * uS );
-  }
-#endif
-  //
-  //  ImGui::Text ( "Composition Rate: %f",
-  //                  static_cast <double> (dwmTiming.rateCompose.uiNumerator) /
-  //                  static_cast <double> (dwmTiming.rateCompose.uiDenominator)
-  //              );
-  //
-  //  ImGui::Text ( "DWM Refreshes (%llu), D3D Refreshes (%lu)", dwmTiming.cRefresh, dwmTiming.cDXRefresh );
-  //  ImGui::Text ( "D3D Presents (%lu)",                                            dwmTiming.cDXPresent );
-  //
-  //  ImGui::Text ( "DWM Glitches (%llu)",                                           dwmTiming.cFramesLate );
-  //  ImGui::Text ( "DWM Queue Length (%lu)",                                        dwmTiming.cFramesOutstanding );
-  //  ImGui::Text ( "D3D Queue Length (%lu)", dwmTiming.cDXPresentSubmitted -
-  //                                          dwmTiming.cDXPresentConfirmed );
-  //}
 }
 
 void

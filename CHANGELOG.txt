@@ -1,4 +1,11 @@
-﻿23.7.9.3
+﻿23.7.9.4
+========
+ + Right-align current sensor readings in GPU widget
+ + Added optional disk activity meter to framepacing widget
+ + Renamed framepacing widget preference INI section in osd.ini
+ + Improved GPU load % smoothing when using Pdh instead of ADL or NvAPI
+
+23.7.9.3
 ========
  + Fixed Reflex settings not applying when new D3D11 SwapChains / Devices
      are created (i.e. for NVIDIA's Vulkan/DXGI Layered Present).
