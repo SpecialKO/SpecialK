@@ -1,4 +1,8 @@
-﻿23.7.9.1
+﻿23.7.9.2
+========
+ + Fixed incorrect DLL used to hook nvapi_QueryInterface in 32-bit builds.
+
+23.7.9.1
 ========
  + Fixed potential problems if PdhGetFormattedCounterValue (...) fails between
      GPU state polling intervals.

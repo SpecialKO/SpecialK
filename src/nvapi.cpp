@@ -1430,7 +1430,8 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     if (SK_IsAdmin ())
       SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
 
-   SK_CreateDLLHook2 ( L"nvapi64.dll",
+   SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
+                                              L"nvapi.dll"),
                         "nvapi_QueryInterface",
                          NvAPI_QueryInterface_Detour,
   static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
