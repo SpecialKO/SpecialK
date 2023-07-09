@@ -593,6 +593,7 @@ public:
 
     if (! InterlockedCompareExchange (&init, 1, 0))
     {
+      setMinSize (ImVec2 (50.0f, 50.0f));
     }
 
     if (ImGui::GetFont () == nullptr) {

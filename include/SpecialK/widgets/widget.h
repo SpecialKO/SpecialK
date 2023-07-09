@@ -241,7 +241,7 @@ protected:
   float       nits           = 80.0f;
 
   ImVec2      min_size       = ImVec2 ( 375.0,  240.0);
-  ImVec2      max_size       = ImVec2 (1024.0, 1024.0);
+  ImVec2      max_size       = ImVec2 (2048.0, 2048.0);
   ImVec2      size           = ImVec2 ( 375.0,  240.0); // Values (-1,1) are scaled to resolution
   ImVec2      pos            = ImVec2 (   0.0,    0.0); // Values (-∞,1] and [1,∞) are absolute
 

@@ -393,12 +393,19 @@ SK_Widget::draw_base (void)
     setVisible (visible).setAutoFit      (autofit      ).setResizable (resizable).
     setMovable (movable).setClickThrough (click_through);
 
-    ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
-                                       std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
-    ImGui::SetNextWindowPos  (pos);
+    if (visible)
+    {
+      ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
+                                         std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
+      ImGui::SetNextWindowPos  (pos);
+    }
 
     initialized.emplace (this);
   }
+
+
+  if (! visible)
+    return;
 
 
   int flags = ImGuiWindowFlags_NoTitleBar      |   ImGuiWindowFlags_NoCollapse         |
@@ -451,12 +458,9 @@ SK_Widget::draw_base (void)
                )               );
     }
 
-    if (autofit)
-    {
-      ImGui::SetNextWindowSizeConstraints (
-        min_size, max_size
-      );
-    }
+    ImGui::SetNextWindowSizeConstraints (
+      min_size, max_size
+    );
   }
 
 

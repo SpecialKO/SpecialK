@@ -1,4 +1,8 @@
-﻿23.7.8.7
+﻿23.7.9
+======
+ + Improved auto-sizing of all widgets
+
+23.7.8.7
 ========
  + Apply smoothing to GPU load% and temperature
  + Increased minimum width of D3D11 pipeline stats window

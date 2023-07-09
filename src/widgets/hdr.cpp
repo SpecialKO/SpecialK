@@ -981,17 +981,11 @@ public:
       ImGui::GetIO ();
 
     const ImVec2 v2Min (
-      io.DisplaySize.x / 6.0f,
-      io.DisplaySize.y / 4.0f
-    );
-
-    const ImVec2 v2Max (
-      io.DisplaySize.x / 4.0f,
-      io.DisplaySize.y / 3.0f
+      1340.0f, 440.0f
     );
 
     setMinSize (v2Min);
-    setMaxSize (v2Max);
+    setMaxSize (ImVec2 (io.DisplaySize.x, io.DisplaySize.y));
 
     static bool TenBitSwap_Original     = __SK_HDR_10BitSwap;
     static bool SixteenBitSwap_Original = __SK_HDR_16BitSwap;

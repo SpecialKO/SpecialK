@@ -428,6 +428,8 @@ public:
     if (cfg == nullptr)
       return;
 
+    setMinSize (ImVec2 (0.0f, 0.0f));
+
     SK_Widget::save (cfg);
 
     meter_cfg.display_vram->store    (display_vram);
@@ -459,6 +461,8 @@ public:
           "Framepacing.DisplayPercentiles",
             display_framerate_percentiles
         ) );
+
+      setMinSize (ImVec2 (0.0f, 0.0f));
     }
 
     if (ImGui::GetFont () == nullptr)
