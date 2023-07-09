@@ -2777,6 +2777,9 @@ public:
       dwLastSnap = dwNow;
     }
     }
+
+    // No maximum size
+    setMaxSize (ImGui::GetIO ().DisplaySize);
   }
 
 

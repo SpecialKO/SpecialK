@@ -2398,6 +2398,9 @@ public:
 
     show_mode_buttons =
       true;// (SK_ImGui_Visible || ImGui::IsWindowHovered ());
+
+    // No maximum size
+    setMaxSize (ImGui::GetIO ().DisplaySize);
   }
 
 

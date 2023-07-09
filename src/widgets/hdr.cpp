@@ -981,7 +981,7 @@ public:
       ImGui::GetIO ();
 
     const ImVec2 v2Min (
-      1340.0f, 440.0f
+      1340.0f, 140.0f
     );
 
     setMinSize (v2Min);

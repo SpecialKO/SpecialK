@@ -55,6 +55,9 @@ public:
   void draw (void) noexcept override
   {
     SK_ImGui_VolumeManager ();
+
+    // No maximum size
+    setMaxSize (ImGui::GetIO ().DisplaySize);
   }
 
   void OnConfig (ConfigEvent event) noexcept override
