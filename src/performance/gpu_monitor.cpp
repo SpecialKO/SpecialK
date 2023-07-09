@@ -228,13 +228,13 @@ SK_GPUPollingThread (LPVOID user)
           if (status == NVAPI_OK)
           {
             stats.gpus [i].loads_percent.gpu =
-              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 2;
+              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
             stats.gpus [i].loads_percent.fb =
-              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000 + stats0.gpus [i].loads_percent.fb)   / 2;
+              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000 + stats0.gpus [i].loads_percent.fb)   / 4;
             stats.gpus [i].loads_percent.vid =
-              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 2;
+              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 4;
             stats.gpus [i].loads_percent.bus =
-              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 2;
+              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 4;
 
             bHadPercentage = true;
           }
@@ -631,7 +631,7 @@ SK_GPUPollingThread (LPVOID user)
 
           ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
 
-          stats.gpus [0].loads_percent.gpu = ((activity.iActivityPercent * 1000) + stats0.gpus [0].loads_percent.gpu) / 2;
+          stats.gpus [0].loads_percent.gpu = ((3 * activity.iActivityPercent * 1000) + stats0.gpus [0].loads_percent.gpu) / 4;
           stats.gpus [0].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
           stats.gpus [0].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
 
@@ -663,15 +663,11 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [0].fans_rpm.gpu       = fanspeed.iFanSpeed;
           stats.gpus [0].fans_rpm.supported = fanspeed.iFanSpeed != 0;
 
-          if (fanspeed.iFanSpeed != 0)
-            bHadFanRPM = true;
-          else
-            bHadFanRPM = false;
+          bHadFanRPM =
+            (fanspeed.iFanSpeed != 0);
 
-          if (activity.iActivityPercent != 0)
-            bHadPercentage = true;
-          else
-            bHadPercentage = false;
+          bHadPercentage =
+            (activity.iActivityPercent != 0);
 
           break;
         }
@@ -786,7 +782,8 @@ SK_GPUPollingThread (LPVOID user)
         {
           const auto counter_path =
             SK_FormatStringW (
-                LR"(\GPU Engine(*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage)",
+                LR"(\GPU Engine(pid_%d*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage)",
+                  GetProcessId (SK_GetCurrentProcess ()),
                       rb.adapter.luid.HighPart,
                       rb.adapter.luid.LowPart );
 
@@ -806,13 +803,16 @@ SK_GPUPollingThread (LPVOID user)
         }
       }
 
-      if (counter != nullptr)
+      static DWORD              dwLastSampled = SK::ControlPanel::current_time;
+      if (counter != nullptr && dwLastSampled < SK::ControlPanel::current_time - 50UL)
       {
         status =
           PdhCollectQueryData (query);
 
         if (status == ERROR_SUCCESS)
         {
+          dwLastSampled = SK::ControlPanel::current_time;
+
           PDH_FMT_COUNTERVALUE counterValue = { };
 
           status =
@@ -822,14 +822,20 @@ SK_GPUPollingThread (LPVOID user)
 
           if (status == ERROR_SUCCESS)
           {
-            // Clamp to 0.1% minimum load and apply smoothing between updates, because Pdh's load%
+            // Clamp to 0.01% minimum load and apply smoothing between updates, because Pdh's load%
             //   counter has very high variance and we want to avoid 0.0%
              stats.gpus [0].loads_percent.gpu =
-              (static_cast <uint32_t> (std::max (100.0, counterValue.doubleValue * 1000.0)) + stats0.gpus [0].loads_percent.gpu) / 2;
+              (static_cast <uint32_t> (3.0 * std::max (10.0, counterValue.doubleValue * 1000.0)) + stats0.gpus [0].loads_percent.gpu) / 4;
             stats0.gpus [0].loads_percent.gpu =
              stats.gpus [0].loads_percent.gpu;
           }
         }
+      }
+
+      else
+      {
+         stats.gpus [0].loads_percent.gpu =
+        stats0.gpus [0].loads_percent.gpu;
       }
 
       stats.num_gpus = 1;
@@ -841,7 +847,7 @@ SK_GPUPollingThread (LPVOID user)
 
         stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
         stats.gpus [i].fans_rpm.gpu       =
-          std::max (0UL, (                   rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 2UL);
+          std::max (0UL, (               3 * rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 4UL);
 
         stats0.gpus [i].fans_rpm.gpu =
          stats.gpus [i].fans_rpm.gpu;
@@ -851,11 +857,6 @@ SK_GPUPollingThread (LPVOID user)
             rb.adapter.perf.data.MemoryFrequency / 1000
           );
 
-        // Smooth clock frequency changes
-        stats.gpus [i].clocks_kHz.ram =
-         ( stats.gpus [i].clocks_kHz.ram +
-          stats0.gpus [i].clocks_kHz.ram ) / 2;
-
         stats0.gpus [i].clocks_kHz.ram =
          stats.gpus [i].clocks_kHz.ram;
 
@@ -863,11 +864,6 @@ SK_GPUPollingThread (LPVOID user)
           static_cast <uint32_t> (
             rb.adapter.perf.engine_3d.Frequency / 1000
           );
-
-        // Smooth clock frequency changes
-        stats.gpus [i].clocks_kHz.gpu =
-         ( stats.gpus [i].clocks_kHz.gpu +
-          stats0.gpus [i].clocks_kHz.gpu ) / 2;
 
         stats0.gpus [i].clocks_kHz.gpu =
          stats.gpus [i].clocks_kHz.gpu;
@@ -884,11 +880,11 @@ SK_GPUPollingThread (LPVOID user)
 
     if (! bHadFanRPM)
     {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-        stats.gpus [0].fans_rpm.gpu       = (rb.adapter.perf.data.FanRPM + stats0.gpus [0].fans_rpm.gpu) / 2;
+        stats.gpus [0].fans_rpm.gpu       = (rb.adapter.perf.data.FanRPM * 3 + stats0.gpus [0].fans_rpm.gpu) / 4;
     }
     if (! bHadVoltage)
     {   stats.gpus [0].volts_mV.core      =
-                      (static_cast <float> (rb.adapter.perf.engine_3d.Voltage) + stats0.gpus [0].volts_mV.core) / 2.0f;
+                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
         stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
     }
 
@@ -896,7 +892,7 @@ SK_GPUPollingThread (LPVOID user)
     if ((rb.adapter.perf.data.Temperature) / 10.0f > 0.1f)
     {
       stats.gpus [0].temps_c.gpu =
-        ((static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f) + stats0.gpus [0].temps_c.gpu) / 2.0f;
+        ((static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f) * 3.0f + stats0.gpus [0].temps_c.gpu) / 4.0f;
     }
 
     InterlockedExchangePointer (
