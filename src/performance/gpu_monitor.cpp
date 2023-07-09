@@ -824,7 +824,8 @@ SK_GPUPollingThread (LPVOID user)
             static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
 
         stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-        stats.gpus [i].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
+        stats.gpus [i].fans_rpm.gpu       =
+          std::max (0UL, (                   rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 2UL);
 
         stats.gpus [i].clocks_kHz.ram     =
           static_cast <uint32_t> (
