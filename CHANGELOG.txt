@@ -1,4 +1,9 @@
-﻿23.7.9
+﻿23.7.9.1
+========
+ + Fixed potential problems if PdhGetFormattedCounterValue (...) fails between
+     GPU state polling intervals.
+
+23.7.9
 ======
  + Improved auto-sizing of all widgets
 

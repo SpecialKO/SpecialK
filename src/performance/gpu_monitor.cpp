@@ -609,61 +609,73 @@ SK_GPUPollingThread (LPVOID user)
       //dll_log.Log (L"[DisplayLib] AMD GPUs: %i", stats.num_gpus);
       for (int i = 0; i < stats.num_gpus; i++)
       {
-        AdapterInfo* pAdapter = SK_ADL_GetActiveAdapter (i);
+        AdapterInfo* pAdapter =
+          SK_ADL_GetActiveAdapter (i);
 
-        if (pAdapter->iAdapterIndex >= ADL_MAX_ADAPTERS || pAdapter->iAdapterIndex < 0)
+        static auto &rb =
+          SK_GetCurrentRenderBackend ();
+
+        if (StrStrIW (rb.displays [rb.active_display].gdi_name, SK_UTF8ToWideChar (pAdapter->strDisplayName).c_str ()))
         {
-          dll_log->Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
+          stats.num_gpus = 1;
+
+          if (pAdapter->iAdapterIndex >= ADL_MAX_ADAPTERS || pAdapter->iAdapterIndex < 0)
+          {
+            dll_log->Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
+            break;
+          }
+          
+          ADLPMActivity activity       = {                  };
+
+          activity.iSize = sizeof (ADLPMActivity);
+
+          ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
+
+          stats.gpus [0].loads_percent.gpu = ((activity.iActivityPercent * 1000) + stats0.gpus [0].loads_percent.gpu) / 2;
+          stats.gpus [0].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
+          stats.gpus [0].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
+
+          stats.gpus [0].clocks_kHz.gpu    = activity.iEngineClock * 10UL;
+          stats.gpus [0].clocks_kHz.ram    = activity.iMemoryClock * 10UL;
+
+          // This rarely reads right on AMD's drivers and I don't have AMD hardware anymore, so ...
+          //   disable it for now :)
+          stats.gpus [0].volts_mV.supported = false;//true;
+
+          stats.gpus [0].volts_mV.over      = false;
+          stats.gpus [0].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
+
+          bHadVoltage = stats.gpus [0].volts_mV.core != 0;
+
+          ADLTemperature temp       = {                     };
+                         temp.iSize = sizeof (ADLTemperature);
+
+          ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
+
+          stats.gpus [0].temps_c.gpu = static_cast <float> (temp.iTemperature) / 1000.0f;
+
+          ADLFanSpeedValue fanspeed            = {                           };
+                           fanspeed.iSize      = sizeof (ADLFanSpeedValue);
+                           fanspeed.iSpeedType = ADL_DL_FANCTRL_SPEED_TYPE_RPM;
+
+          ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);
+
+          stats.gpus [0].fans_rpm.gpu       = fanspeed.iFanSpeed;
+          stats.gpus [0].fans_rpm.supported = fanspeed.iFanSpeed != 0;
+
+          if (fanspeed.iFanSpeed != 0)
+            bHadFanRPM = true;
+          else
+            bHadFanRPM = false;
+
+          if (activity.iActivityPercent != 0)
+            bHadPercentage = true;
+          else
+            bHadPercentage = false;
+
           break;
         }
-
-        ADLPMActivity activity       = {                  };
-
-        activity.iSize = sizeof (ADLPMActivity);
-
-        ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
-
-        stats.gpus [i].loads_percent.gpu = ((activity.iActivityPercent * 1000) + stats0.gpus [i].loads_percent.gpu) / 2;
-        stats.gpus [i].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
-        stats.gpus [i].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
-
-        stats.gpus [i].clocks_kHz.gpu    = activity.iEngineClock * 10UL;
-        stats.gpus [i].clocks_kHz.ram    = activity.iMemoryClock * 10UL;
-
-        // This rarely reads right on AMD's drivers and I don't have AMD hardware anymore, so ...
-        //   disable it for now :)
-        stats.gpus [i].volts_mV.supported = false;//true;
-
-
-        stats.gpus [i].volts_mV.over      = false;
-        stats.gpus [i].volts_mV.core      = static_cast <float> (activity.iVddc); // mV?
-
-        bHadVoltage = stats.gpus [i].volts_mV.core != 0;
-
-        ADLTemperature temp       = {                     };
-                       temp.iSize = sizeof (ADLTemperature);
-
-        ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
-
-        stats.gpus [i].temps_c.gpu = static_cast <float> (temp.iTemperature) / 1000.0f;
-
-        ADLFanSpeedValue fanspeed            = {                           };
-                         fanspeed.iSize      = sizeof (ADLFanSpeedValue);
-                         fanspeed.iSpeedType = ADL_DL_FANCTRL_SPEED_TYPE_RPM;
-
-        ADL_Overdrive5_FanSpeed_Get (pAdapter->iAdapterIndex, 0, &fanspeed);
-
-        stats.gpus [i].fans_rpm.gpu       = fanspeed.iFanSpeed;
-        stats.gpus [i].fans_rpm.supported = fanspeed.iFanSpeed != 0;
-
-        if (fanspeed.iFanSpeed != 0)
-          bHadFanRPM = true;
-        else
-          bHadFanRPM = false;
       }
-
-      if (stats.gpus [0].loads_percent.gpu != 0)
-        bHadPercentage = true;
     }
 
     static auto &rb =
@@ -808,11 +820,15 @@ SK_GPUPollingThread (LPVOID user)
               counter, PDH_FMT_DOUBLE, nullptr, &counterValue
             );
 
-          // Clamp to 0.1% minimum load and apply smoothing between updates, because Pdh's load%
-          //   counter has very high variance and we want to avoid 0.0%
-          stats.gpus [0].loads_percent.gpu =
-            ( stats0.gpus [0].loads_percent.gpu +
-              static_cast <uint32_t> (std::max (100.0, counterValue.doubleValue * 1000.0)) ) / 2;
+          if (status == ERROR_SUCCESS)
+          {
+            // Clamp to 0.1% minimum load and apply smoothing between updates, because Pdh's load%
+            //   counter has very high variance and we want to avoid 0.0%
+             stats.gpus [0].loads_percent.gpu =
+              (static_cast <uint32_t> (std::max (100.0, counterValue.doubleValue * 1000.0)) + stats0.gpus [0].loads_percent.gpu) / 2;
+            stats0.gpus [0].loads_percent.gpu =
+             stats.gpus [0].loads_percent.gpu;
+          }
         }
       }
 
@@ -827,6 +843,9 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].fans_rpm.gpu       =
           std::max (0UL, (                   rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 2UL);
 
+        stats0.gpus [i].fans_rpm.gpu =
+         stats.gpus [i].fans_rpm.gpu;
+
         stats.gpus [i].clocks_kHz.ram     =
           static_cast <uint32_t> (
             rb.adapter.perf.data.MemoryFrequency / 1000
@@ -837,6 +856,9 @@ SK_GPUPollingThread (LPVOID user)
          ( stats.gpus [i].clocks_kHz.ram +
           stats0.gpus [i].clocks_kHz.ram ) / 2;
 
+        stats0.gpus [i].clocks_kHz.ram =
+         stats.gpus [i].clocks_kHz.ram;
+
         stats.gpus [i].clocks_kHz.gpu     =
           static_cast <uint32_t> (
             rb.adapter.perf.engine_3d.Frequency / 1000
@@ -846,6 +868,9 @@ SK_GPUPollingThread (LPVOID user)
         stats.gpus [i].clocks_kHz.gpu =
          ( stats.gpus [i].clocks_kHz.gpu +
           stats0.gpus [i].clocks_kHz.gpu ) / 2;
+
+        stats0.gpus [i].clocks_kHz.gpu =
+         stats.gpus [i].clocks_kHz.gpu;
 
         stats.gpus [i].volts_mV.core      =
                        static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
