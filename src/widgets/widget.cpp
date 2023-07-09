@@ -450,6 +450,13 @@ SK_Widget::draw_base (void)
                  std::max ( size.y, min_size.y ) )
                )               );
     }
+
+    if (autofit)
+    {
+      ImGui::SetNextWindowSizeConstraints (
+        min_size, max_size
+      );
+    }
   }
 
 

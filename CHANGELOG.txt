@@ -1,4 +1,10 @@
-﻿23.7.8.6
+﻿23.7.8.7
+========
+ + Apply smoothing to GPU load% and temperature
+ + Increased minimum width of D3D11 pipeline stats window
+ + Enforce minimum width on GPU widget when auto-sizing
+
+23.7.8.6
 ========
  + Smooth Fan RPM updates to avoid 0.0 for a single sensor sample interval
  + Change GPU widget to only hide fan graph when average RPM is 0, not

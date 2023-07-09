@@ -65,8 +65,6 @@ public:
   {
     SK_ImGui_Widgets->gpu_monitor = this;
 
-    setMinSize (ImVec2 (450.0f, 50.0f));
-
     setAutoFit (true).setDockingPoint (DockAnchor::West).
     setBorder  (true);
   };
@@ -74,6 +72,15 @@ public:
   void load (iSK_INI* cfg) noexcept override
   {
     SK_Widget::load (cfg);
+
+    setMinSize (
+      ImVec2 (std::max (450.0f, getMinSize ().x),
+              std::max (50.0f,  getMinSize ().y))
+    ).
+    setMaxSize (
+      ImVec2 (std::max (450.0f, getMaxSize ().x),
+              std::max (50.0f,  getMaxSize ().y))
+    );
   }
 
   void save (iSK_INI* cfg) noexcept override

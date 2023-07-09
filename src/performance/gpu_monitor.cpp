@@ -228,13 +228,13 @@ SK_GPUPollingThread (LPVOID user)
           if (status == NVAPI_OK)
           {
             stats.gpus [i].loads_percent.gpu =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000;
+              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 2;
             stats.gpus [i].loads_percent.fb =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000;
+              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000 + stats0.gpus [i].loads_percent.fb)   / 2;
             stats.gpus [i].loads_percent.vid =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000;
+              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 2;
             stats.gpus [i].loads_percent.bus =
-              psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000;
+              (psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 2;
 
             bHadPercentage = true;
           }
@@ -623,7 +623,7 @@ SK_GPUPollingThread (LPVOID user)
 
         ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
 
-        stats.gpus [i].loads_percent.gpu = activity.iActivityPercent * 1000;
+        stats.gpus [i].loads_percent.gpu = ((activity.iActivityPercent * 1000) + stats0.gpus [i].loads_percent.gpu) / 2;
         stats.gpus [i].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
         stats.gpus [i].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
 
@@ -859,11 +859,11 @@ SK_GPUPollingThread (LPVOID user)
 
     if (! bHadFanRPM)
     {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-        stats.gpus [0].fans_rpm.gpu       =  rb.adapter.perf.data.FanRPM;
+        stats.gpus [0].fans_rpm.gpu       = (rb.adapter.perf.data.FanRPM + stats0.gpus [0].fans_rpm.gpu) / 2;
     }
     if (! bHadVoltage)
     {   stats.gpus [0].volts_mV.core      =
-                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
+                      (static_cast <float> (rb.adapter.perf.engine_3d.Voltage) + stats0.gpus [0].volts_mV.core) / 2.0f;
         stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
     }
 
@@ -871,7 +871,7 @@ SK_GPUPollingThread (LPVOID user)
     if ((rb.adapter.perf.data.Temperature) / 10.0f > 0.1f)
     {
       stats.gpus [0].temps_c.gpu =
-        static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
+        ((static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f) + stats0.gpus [0].temps_c.gpu) / 2.0f;
     }
 
     InterlockedExchangePointer (

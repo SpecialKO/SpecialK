@@ -38,6 +38,20 @@ public:
     setAutoFit (true).setDockingPoint (DockAnchor::West);
   };
 
+  void load (iSK_INI* cfg) noexcept override
+  {
+    SK_Widget::load (cfg);
+
+    setMinSize (
+      ImVec2 (std::max (875.0f, getMinSize ().x),
+              std::max (200.0f, getMinSize ().y))
+    ).
+    setMaxSize (
+      ImVec2 (std::max (875.0f, getMaxSize ().x),
+              std::max (200.0f, getMaxSize ().y))
+    );
+  }
+
   void run (void) override
   {
     if (! ( static_cast <int> (SK_GetCurrentRenderBackend ().api) &
