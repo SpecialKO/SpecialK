@@ -391,7 +391,7 @@ public:
     static float min_rpm =  std::numeric_limits <float>::infinity ();
     static float max_rpm = -std::numeric_limits <float>::infinity ();
 
-    if (fan_rpm.getMin () > 0.0f && gpu_fan_prefs.enable)
+    if (fan_rpm.getAvg () > 0.0f && gpu_fan_prefs.enable)
     {
       snprintf
         ( szAvg,
