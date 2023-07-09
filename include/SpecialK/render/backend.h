@@ -593,8 +593,8 @@ public:
   } gsync_state;
 
 
-  SK_ScreenshotManager
-     screenshot_mgr;
+  SK_LazyGlobal <SK_ScreenshotManager>
+                    screenshot_mgr;
 
 
   //

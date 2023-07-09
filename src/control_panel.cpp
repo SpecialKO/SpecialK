@@ -3137,10 +3137,10 @@ SK_ImGui_ControlPanel (void)
             ImGui::Checkbox ( "Keep Full-Range JPEG-XR HDR Screenshots (.JXR)",
                                 &config.screenshots.png_compress );
 
-        if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
+        if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
           const SK_ScreenshotManager::screenshot_repository_s& repo =
-            rb.screenshot_mgr.getRepoStats (hdr_changed);
+            rb.screenshot_mgr->getRepoStats (hdr_changed);
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("");
@@ -3155,7 +3155,7 @@ SK_ImGui_ControlPanel (void)
           {
             SK_ShellExecuteW ( nullptr,
               L"explore",
-                rb.screenshot_mgr.getBasePath (),
+                rb.screenshot_mgr->getBasePath (),
                   nullptr, nullptr,
                         SW_NORMAL
             );
@@ -5411,7 +5411,7 @@ SK_ImGui_ControlPanel (void)
     {
       if (ImGui::Checkbox ("Enable Steam Screenshot Hook", &config.steam.screenshots.enable_hook))
       {
-        rb.screenshot_mgr.init ();
+        rb.screenshot_mgr->init ();
       }
 
       if (ImGui::IsItemHovered ())
@@ -5503,10 +5503,10 @@ SK_ImGui_ControlPanel (void)
     {Keybinding(keybind,  keybind->param);}
     ImGui::EndGroup   ();
 
-    if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
+    if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
     {
       const SK_ScreenshotManager::screenshot_repository_s& repo =
-        rb.screenshot_mgr.getRepoStats (png_changed);
+        rb.screenshot_mgr->getRepoStats (png_changed);
 
       ImGui::BeginGroup (  );
       ImGui::Separator  (  );
@@ -5529,7 +5529,7 @@ SK_ImGui_ControlPanel (void)
       {
         SK_ShellExecuteW ( nullptr,
           L"explore",
-            rb.screenshot_mgr.getBasePath (),
+            rb.screenshot_mgr->getBasePath (),
               nullptr, nullptr,
                     SW_NORMAL
         );

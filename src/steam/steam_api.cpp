@@ -895,7 +895,7 @@ void
 SK_Steam_ScreenshotManager::init (void) noexcept
 {
   __try {
-    SK_GetCurrentRenderBackend ().screenshot_mgr.getRepoStats (true);
+    SK_GetCurrentRenderBackend ().screenshot_mgr->getRepoStats (true);
 
     auto pScreenshots =
       steam_ctx.Screenshots ();

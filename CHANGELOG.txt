@@ -1,4 +1,13 @@
-﻿23.7.9.4
+﻿23.7.9.5
+========
+ + Added User-Defined Screenshot Path; Manually edit Global\osd.ini
+
+    [Screenshot.System]
+    OverridePath=
+
+   * Path must exist, or Special K will use the default per-profile path
+
+23.7.9.4
 ========
  + Right-align current sensor readings in GPU widget
  + Added optional disk activity meter to framepacing widget

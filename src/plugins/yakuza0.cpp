@@ -1218,12 +1218,12 @@ SK_Yakuza0_PlugInCfg (void)
         static auto& rb =
           SK_GetCurrentRenderBackend ();
 
-        if ( rb.screenshot_mgr.getRepoStats ().files > 0 )
+        if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
           ImGui::SameLine ();
 
           const SK_ScreenshotManager::screenshot_repository_s& repo =
-            rb.screenshot_mgr.getRepoStats (png_changed);
+            rb.screenshot_mgr->getRepoStats (png_changed);
 
           ImGui::BeginGroup ();
           ImGui::TreePush   ();
@@ -1245,7 +1245,7 @@ SK_Yakuza0_PlugInCfg (void)
             SK_ShellExecuteW (
               nullptr,
                 L"explore",
-                  rb.screenshot_mgr.getBasePath (),
+                  rb.screenshot_mgr->getBasePath (),
                   nullptr, nullptr,
                     SW_NORMAL
             );

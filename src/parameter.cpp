@@ -552,7 +552,7 @@ sk::ParameterStringW::load (std::wstring& ref)
     iParameter::load ();
 
   if (bRet)
-    ref = get_value ();
+    ref.assign (get_value ());
 
   return bRet;
 }

@@ -556,6 +556,7 @@ struct {
   sk::ParameterBool*      keep_png_copy           = nullptr;
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
+  sk::ParameterStringW*   override_path           = nullptr;
 } screenshots;
 
 struct {
@@ -1286,6 +1287,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggeirng Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
     ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
+    ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
@@ -1614,7 +1616,6 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
 
     ConfigEntry (sound.minimize_latency,                 L"Minimize Audio Latency while Game is Running",              dll_ini,         L"Sound.Mixing",          L"MinimizeLatency"),
-
 
     // Control the behavior of SKIF rather than the other way around
     ConfigEntry (skif_autostop_behavior,                 L"Control when SKIF auto-stops, 0=Never, 1=AtStart, 2=AtExit",platform_ini,    L"SKIF.System",           L"AutoStopBehavior"),
@@ -4187,6 +4188,7 @@ auto DeclKeybind =
   screenshots.keep_png_copy->load             (config.screenshots.png_compress);
   screenshots.play_sound->load                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
+  screenshots.override_path->load             (config.screenshots.override_path);
 
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
@@ -5225,6 +5227,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.keep_png_copy->store             (config.screenshots.png_compress);
   screenshots.play_sound->store                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
+  screenshots.override_path->store             (config.screenshots.override_path);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);

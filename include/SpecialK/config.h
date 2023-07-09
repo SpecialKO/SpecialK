@@ -383,14 +383,15 @@ struct sk_config_t
       }, L"VolumeMinus10%"
     };
 
-    bool        minimize_latency      = false;
+    bool         minimize_latency      = false;
   } sound;
 
   struct screenshots_s {
-    bool        png_compress          =  true;
-    bool        show_osd_by_default   =  true;
-    bool        play_sound            =  true;
-    bool        copy_to_clipboard     =  true;
+    bool         png_compress          =  true;
+    bool         show_osd_by_default   =  true;
+    bool         play_sound            =  true;
+    bool         copy_to_clipboard     =  true;
+    std::wstring override_path         =   L"";
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {

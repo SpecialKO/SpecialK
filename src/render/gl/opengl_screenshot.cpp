@@ -478,7 +478,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           if ( SK_ScreenshotQueue::pooled.capture_bytes.load  () <
                SK_ScreenshotQueue::maximum.capture_bytes.load () )
           {
-            if (SK_GetCurrentRenderBackend ().screenshot_mgr.checkDiskSpace (20ULL * 1024ULL * 1024ULL))
+            if (SK_GetCurrentRenderBackend ().screenshot_mgr->checkDiskSpace (20ULL * 1024ULL * 1024ULL))
             {
               bool allow_sound =
                 ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
@@ -601,7 +601,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
               wchar_t       wszAbsolutePathToScreenshot [ MAX_PATH + 2 ] = { };
               wcsncpy_s   ( wszAbsolutePathToScreenshot,  MAX_PATH,
-                              rb.screenshot_mgr.getBasePath (),
+                              rb.screenshot_mgr->getBasePath (),
                                 _TRUNCATE );
 
               if ( config.steam.screenshots.enable_hook &&
@@ -815,7 +815,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
                 if (un_scrgb.GetImages ())
                 {
-                  rb.screenshot_mgr.copyToClipboard (*un_scrgb.GetImages ());
+                  rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages ());
                 }
 
                 if (               un_scrgb.GetImages () &&
@@ -831,7 +831,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                   {
                     wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };
                     wcsncpy_s   ( wszAbsolutePathToThumbnail,  MAX_PATH,
-                                    rb.screenshot_mgr.getBasePath (),
+                                    rb.screenshot_mgr->getBasePath (),
                                       _TRUNCATE );
 
                     PathAppendW (wszAbsolutePathToThumbnail, L"SK_SteamThumbnailImport.jpg");
@@ -982,7 +982,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
                   wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
                   wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
-                                  rb.screenshot_mgr.getBasePath (),
+                                  rb.screenshot_mgr->getBasePath (),
                                     _TRUNCATE );
 
                   bool hdr =
@@ -1082,7 +1082,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                                                         clipboard ) ) )
                       {
                         if (! hdr)
-                          rb.screenshot_mgr.copyToClipboard (*clipboard.GetImages ());
+                          rb.screenshot_mgr->copyToClipboard (*clipboard.GetImages ());
                       }
                     }
 
@@ -1109,7 +1109,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                       if (SUCCEEDED (hrSaveToWIC))
                       {
                         // Refresh
-                        rb.screenshot_mgr.getRepoStats (true);
+                        rb.screenshot_mgr->getRepoStats (true);
                       }
 
                       else

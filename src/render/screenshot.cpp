@@ -30,6 +30,10 @@
 
 #include <filesystem>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"Screenshot"
 
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
@@ -129,6 +133,8 @@ SK_ScreenshotManager::init (void) noexcept
   };
 }
 
+#include <filesystem>
+
 const wchar_t*
 SK_ScreenshotManager::getBasePath (void) const
 {
@@ -137,6 +143,31 @@ SK_ScreenshotManager::getBasePath (void) const
 
   if (*wszAbsolutePathToScreenshots != L'\0')
     return wszAbsolutePathToScreenshots;
+
+  if (! config.screenshots.override_path.empty ())
+  {
+    std::error_code                                                ec;
+    if (std::filesystem::exists (config.screenshots.override_path, ec))
+    {
+      const wchar_t *wszName =
+        std::filesystem::path (SK_GetConfigPath ()).parent_path ().c_str ();
+
+      while (StrStrIW (wszName, LR"(\)") != nullptr)
+                       wszName = StrStrIW (wszName, LR"(\)") + 1;
+
+      auto override_path =
+        std::filesystem::path (config.screenshots.override_path);
+
+      override_path /= wszName;
+
+      wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH,
+                     override_path.c_str (),       _TRUNCATE );
+      wcscat       ( wszAbsolutePathToScreenshots, L"\\"     );
+      SK_LOGi0 ( L"@ Using Custom Screenshot Path: %ws",
+                     wszAbsolutePathToScreenshots );
+      return         wszAbsolutePathToScreenshots;
+    }
+  }
 
   wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH,
                  SK_GetConfigPath (),          _TRUNCATE        );
