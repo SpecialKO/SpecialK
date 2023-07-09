@@ -1,6 +1,7 @@
 ﻿23.7.9.3
 ========
- + Fixed Reflex settings not applying at game start if Low Latency + Boost is set
+ + Fixed Reflex settings not applying when new D3D11 SwapChains / Devices
+     are created (i.e. for NVIDIA's Vulkan/DXGI Layered Present).
 
 23.7.9.2
 ========

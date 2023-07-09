@@ -378,6 +378,10 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     static NV_SET_SLEEP_MODE_PARAMS
       lastParams = { 1, true, true, 69, 0, { 0 } };
 
+    static IUnknown
+      *lastSwapChain = nullptr,
+      *lastDevice    = nullptr;
+
     if (! config.nvidia.reflex.enable)
     {
       sleepParams.bLowLatencyBoost      = false;
@@ -392,10 +396,12 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          ReadULong64Acquire  (&frames_drawn) )
       return;
 
-    if ( lastParams.version               != sleepParams.version           ||
-         lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost  ||
-         lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode   ||
-         lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs ||
+    if ( lastParams.version               != sleepParams.version               ||
+         lastSwapChain                    != swapchain.p                       ||
+         lastDevice                       != device.p                          ||
+         lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost      ||
+         lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode       ||
+         lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs     ||
          lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize ||
          lastOverride                     != config.nvidia.reflex.override )
     {
@@ -407,8 +413,12 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
       else
       {
-        lastOverride = config.nvidia.reflex.override;
-        lastParams   = sleepParams;
+        SK_LOGi1 (L"Reflex Sleep Mode Set...");
+
+        lastOverride  = config.nvidia.reflex.override;
+        lastParams    = sleepParams;
+        lastSwapChain = swapchain.p;
+        lastDevice    = device.p;
 
         WriteULong64Release (&_frames_drawn,
           ReadULong64Acquire (&frames_drawn));
