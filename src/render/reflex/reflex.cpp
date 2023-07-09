@@ -392,7 +392,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          ReadULong64Acquire  (&frames_drawn) )
       return;
 
-    if ( lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost  ||
+    if ( lastParams.version               != sleepParams.version           ||
+         lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost  ||
          lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode   ||
          lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs ||
          lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize ||

@@ -1,4 +1,8 @@
-﻿23.7.9.2
+﻿23.7.9.3
+========
+ + Fixed Reflex settings not applying at game start if Low Latency + Boost is set
+
+23.7.9.2
 ========
  + Fixed incorrect DLL used to hook nvapi_QueryInterface in 32-bit builds.
 
