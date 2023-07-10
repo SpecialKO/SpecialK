@@ -633,6 +633,8 @@ public:
   std::string parseEDIDForName      (uint8_t* edid, size_t length);
   POINT       parseEDIDForNativeRes (uint8_t* edid, size_t length);
 
+  bool resetTemporaryDisplayChanges (void);
+
   bool update_outputs = false;
 };
 #pragma pack(pop)

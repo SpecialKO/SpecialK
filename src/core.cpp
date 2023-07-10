@@ -2468,21 +2468,10 @@ SK_ShutdownCore (const wchar_t* backend)
 
   SK_Win32_DestroyBackgroundWindow (); // Destroy the aspect ratio stretch window
 
-  if (config.render.dxgi.temporary_dwm_hdr)
-  {
-    for ( auto pHDROutput : SK_GetCurrentRenderBackend ().hdr_enabled_displays )
-    {
-      extern void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput);
-                  SK_Display_DisableHDR (pHDROutput);
-    }
-  }
+  auto &rb =
+    SK_GetCurrentRenderBackend ();
 
-  if (config.display.resolution.applied)
-  {
-    SK_ChangeDisplaySettingsEx (
-      nullptr, nullptr,
-        0, CDS_RESET, nullptr  );
-  }
+  rb.resetTemporaryDisplayChanges ();
 
   if (sk::NVAPI::nv_hardware)
   {

@@ -5307,6 +5307,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
           SK_ImGui_WantExit = true;
 
+          // Even if we don't exit SK in response to this message, resetting
+          //   temporary display mode changes would be a good idea.
+          rb.resetTemporaryDisplayChanges ();
+
           if (config.compatibility.shutdown_on_window_close)
             SK_SelfDestruct ();
         }

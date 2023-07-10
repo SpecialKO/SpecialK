@@ -4359,3 +4359,25 @@ SK_Vulkan_DisableThirdPartyLayers (void)
 //SetEnvironmentVariableW (L"SteamNoOverlayUIDrawing",                  L"1");
 //SetEnvironmentVariableW (L"DISABLE_RTSS_LAYER",                       L"1");
 }
+
+bool
+SK_RenderBackend_V2::resetTemporaryDisplayChanges (void)
+{
+  if (config.render.dxgi.temporary_dwm_hdr)
+  {
+    for ( auto pHDROutput : hdr_enabled_displays )
+    {
+      SK_Display_DisableHDR (pHDROutput);
+    }
+  }
+
+  if (config.display.resolution.applied)
+  {
+    return 
+      SK_ChangeDisplaySettingsEx (
+        nullptr, nullptr,
+          0, CDS_RESET, nullptr  ) == DISP_CHANGE_SUCCESSFUL;
+  }
+
+  return false;
+}

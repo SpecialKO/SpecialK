@@ -1,4 +1,9 @@
-﻿23.7.10.2
+﻿23.7.10.3
+=========
+ + Added code to reset temporary display mode overrides when a game's active
+     window is destroyed to cleanup for games that use non-standard exit.
+
+23.7.10.2
 =========
  + Rate-limit GPU stats thread to 150 ms to lower D3DKMT overhead
 
