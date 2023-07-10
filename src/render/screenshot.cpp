@@ -149,16 +149,35 @@ SK_ScreenshotManager::getBasePath (void) const
     std::error_code                                                ec;
     if (std::filesystem::exists (config.screenshots.override_path, ec))
     {
-      const wchar_t *wszName =
-        std::filesystem::path (SK_GetConfigPath ()).parent_path ().c_str ();
+      auto path_to_app =
+        SK_GetFullyQualifiedApp ();
 
-      while (StrStrIW (wszName, LR"(\)") != nullptr)
-                       wszName = StrStrIW (wszName, LR"(\)") + 1;
+      std::wstring profile_path =
+        std::wstring (LR"(\)") + SK_GetHostApp () + std::wstring (LR"(\XXX)");
+
+      if (! SK_IsInjected ())
+      {
+        if (app_cache_mgr->loadAppCacheForExe       (path_to_app))
+        {
+          auto path =
+            app_cache_mgr->getConfigPathFromAppPath (path_to_app);
+
+          if (! path._Equal (SK_GetNaiveConfigPath ()))
+            profile_path = path;
+        }
+      }
+
+      else
+        profile_path = SK_GetConfigPath ();
+
+      const wchar_t *wszProfileName =
+        std::filesystem::path (profile_path).parent_path ().c_str ();
+
+      while (StrStrIW (wszProfileName, LR"(\)") != nullptr)
+                       wszProfileName = StrStrIW (wszProfileName, LR"(\)") + 1;
 
       auto override_path =
-        std::filesystem::path (config.screenshots.override_path);
-
-      override_path /= wszName;
+        std::filesystem::path (config.screenshots.override_path) / wszProfileName;
 
       wcsncpy_s    ( wszAbsolutePathToScreenshots, MAX_PATH,
                      override_path.c_str (),       _TRUNCATE );
