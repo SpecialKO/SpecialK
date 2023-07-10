@@ -27,9 +27,6 @@
 
 #pragma comment (lib, "pdh.lib")
 
-// D3DKMT stuff
-#include <SpecialK/render/d3d11/d3d11_core.h>
-
 static constexpr int GPU_SENSOR_BUFFERS = 3;
 
 //
@@ -44,20 +41,9 @@ volatile LONG           gpu_sensor_frame  =  0;
 volatile gpu_sensors_t* gpu_stats         = nullptr;
          // ^^^ ptr to front
 
-//#define PCIE_WORKS
-
-extern BOOL ADL_init;
-
-#define NVAPI_GPU_UTILIZATION_DOMAIN_GPU 0
-#define NVAPI_GPU_UTILIZATION_DOMAIN_FB  1
-#define NVAPI_GPU_UTILIZATION_DOMAIN_VID 2
-#define NVAPI_GPU_UTILIZATION_DOMAIN_BUS 3
-
-#define D3DKMT_SENSORS 1
-
-static SK_AutoHandle hPollEvent;
-static SK_AutoHandle hShutdownEvent;
-static SK_AutoHandle hPollThread;
+SK_LazyGlobal <SK_AutoHandle> hPollEvent;
+SK_LazyGlobal <SK_AutoHandle> hShutdownEvent;
+SK_LazyGlobal <SK_AutoHandle> hPollThread;
 
 void
 SK_GPU_InitSensorData (void)
@@ -65,13 +51,9 @@ SK_GPU_InitSensorData (void)
   if (gpu_stats_buffers == nullptr)
       gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
 
-  // Num GPUs will be 0 unless NVAPI, ADL or D3DKMT is supported.
-#ifndef D3DKMT_SENSORS
-  if ( nvapi_init || ADL_init )
-#endif
+  for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
   {
-    for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
-    { gpu_stats_buffers [i].num_gpus = 1; }
+    gpu_stats_buffers [i].num_gpus = 1;
   }
 
   InterlockedExchangePointer (
@@ -99,8 +81,8 @@ SK_GPUPollingThread (LPVOID user)
   std::ignore = user;
 
   const HANDLE hEvents [2] = {
-    hPollEvent,
-    hShutdownEvent
+        hPollEvent.get (),
+    hShutdownEvent.get ()
   };
 
   SetCurrentThreadDescription  (L"[SK] GPU Performance Monitor");
@@ -158,12 +140,7 @@ SK_GPUPollingThread (LPVOID user)
     gpu_sensors_t& stats =
                gpu_stats_buffers [idx];
 
-    // Don't do this every frame
-    if ((ReadAcquire (&gpu_sensor_frame) % (GPU_SENSOR_BUFFERS * 2)) == 0)
-    {
-      extern void SK_DXGI_SignalBudgetThread (void);
-                  SK_DXGI_SignalBudgetThread (    );
-    }
+    SK_DXGI_SignalBudgetThread ();
 
     static bool bHadFanRPM     = false;
     static bool bHadVoltage    = false;
@@ -227,14 +204,24 @@ SK_GPUPollingThread (LPVOID user)
 
           if (status == NVAPI_OK)
           {
+            static constexpr auto NVAPI_GPU_UTILIZATION_DOMAIN_GPU = 0;
+            static constexpr auto NVAPI_GPU_UTILIZATION_DOMAIN_FB  = 1;
+            static constexpr auto NVAPI_GPU_UTILIZATION_DOMAIN_VID = 2;
+            static constexpr auto NVAPI_GPU_UTILIZATION_DOMAIN_BUS = 3;
+
+            auto &gpu_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU];
+            auto &fb_  = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB];
+            auto &vid_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID];
+            auto &bus_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS];
+
             stats.gpus [i].loads_percent.gpu =
-              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_GPU].percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
+              (3 * gpu_.percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
             stats.gpus [i].loads_percent.fb =
-              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_FB].percentage * 1000 + stats0.gpus [i].loads_percent.fb)   / 4;
+              (3 *  fb_.percentage * 1000 + stats0.gpus [i].loads_percent.fb)  / 4;
             stats.gpus [i].loads_percent.vid =
-              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID].percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 4;
+              (3 * vid_.percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 4;
             stats.gpus [i].loads_percent.bus =
-              (3 * psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS].percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 4;
+              (3 * bus_.percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 4;
 
             bHadPercentage = true;
           }
@@ -271,10 +258,6 @@ SK_GPUPollingThread (LPVOID user)
           {
             for (NvU32 j = 0; j < std::min (3UL, thermal.count); j++)
             {
-#ifdef SMOOTH_GPU_UPDATES
-              if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
-                stats.gpus [i].temps_c.gpu = (stats.gpus[i].temps_c.gpu + thermal.sensor [j].currentTemp) / 2;
-#else
               if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_GPU)
                 stats.gpus [i].temps_c.gpu =
                         static_cast <float> (thermal.sensor [j].currentTemp);
@@ -284,7 +267,6 @@ SK_GPUPollingThread (LPVOID user)
                 stats.gpus [i].temps_c.psu = thermal.sensor [j].currentTemp;
               if (thermal.sensor [j].target == NVAPI_THERMAL_TARGET_BOARD)
                 stats.gpus [i].temps_c.pcb = thermal.sensor [j].currentTemp;
-#endif
             }
           }
 
@@ -604,6 +586,9 @@ SK_GPUPollingThread (LPVOID user)
 
     else if (ADL_init == ADL_TRUE)
     {
+      static auto &rb =
+        SK_GetCurrentRenderBackend ();
+
       stats.num_gpus = SK_ADL_CountActiveGPUs ();
 
       //dll_log.Log (L"[DisplayLib] AMD GPUs: %i", stats.num_gpus);
@@ -612,26 +597,36 @@ SK_GPUPollingThread (LPVOID user)
         AdapterInfo* pAdapter =
           SK_ADL_GetActiveAdapter (i);
 
-        static auto &rb =
-          SK_GetCurrentRenderBackend ();
+        if ( pAdapter           == nullptr   ||
+             pAdapter->iExist   == ADL_FALSE ||
+             pAdapter->iPresent == ADL_FALSE )
+        {
+          continue;
+        }
 
-        if (StrStrIW (rb.displays [rb.active_display].gdi_name, SK_UTF8ToWideChar (pAdapter->strDisplayName).c_str ()))
+        if ( StrStrIW ( rb.displays [rb.active_display].gdi_name,
+                     SK_UTF8ToWideChar (pAdapter->strDisplayName).c_str () )
+           )
         {
           stats.num_gpus = 1;
 
-          if (pAdapter->iAdapterIndex >= ADL_MAX_ADAPTERS || pAdapter->iAdapterIndex < 0)
+          if ( pAdapter->iAdapterIndex >= ADL_MAX_ADAPTERS ||
+               pAdapter->iAdapterIndex < 0 )
           {
-            dll_log->Log (L"[DisplayLib] INVALID ADL ADAPTER: %i", pAdapter->iAdapterIndex);
+            dll_log->Log ( L"[DisplayLib] INVALID ADL ADAPTER: %i",
+                             pAdapter->iAdapterIndex );
+
             break;
           }
           
-          ADLPMActivity activity       = {                  };
-
-          activity.iSize = sizeof (ADLPMActivity);
+          ADLPMActivity activity       = {                    };
+                        activity.iSize = sizeof (ADLPMActivity);
 
           ADL_Overdrive5_CurrentActivity_Get (pAdapter->iAdapterIndex, &activity);
 
-          stats.gpus [0].loads_percent.gpu = ((3 * activity.iActivityPercent * 1000) + stats0.gpus [0].loads_percent.gpu) / 4;
+          stats.gpus [0].loads_percent.gpu =
+                                      ( (3 * activity.iActivityPercent * 1000) +
+                                         stats0.gpus [0].loads_percent.gpu ) / 4;
           stats.gpus [0].hwinfo.pcie_gen   = activity.iCurrentBusSpeed;
           stats.gpus [0].hwinfo.pcie_lanes = activity.iCurrentBusLanes;
 
@@ -652,7 +647,8 @@ SK_GPUPollingThread (LPVOID user)
 
           ADL_Overdrive5_Temperature_Get (pAdapter->iAdapterIndex, 0, &temp);
 
-          stats.gpus [0].temps_c.gpu = static_cast <float> (temp.iTemperature) / 1000.0f;
+          stats.gpus [0].temps_c.gpu =
+            static_cast <float> (temp.iTemperature) / 1000.0f;
 
           ADLFanSpeedValue fanspeed            = {                           };
                            fanspeed.iSize      = sizeof (ADLFanSpeedValue);
@@ -698,9 +694,10 @@ SK_GPUPollingThread (LPVOID user)
         //
         if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
         {
-          memcpy ( &rb.adapter.perf.data, queryAdapterInfo.PrivateDriverData,
-                        std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                             sizeof (D3DKMT_ADAPTER_PERFDATA)) );
+          memcpy ( &rb.adapter.perf.data,
+                                     queryAdapterInfo.PrivateDriverData,
+                   std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                   sizeof (D3DKMT_ADAPTER_PERFDATA)) );
 
           rb.adapter.perf.sampled_frame =
                             SK_GetFramesDrawn ();
@@ -711,7 +708,7 @@ SK_GPUPollingThread (LPVOID user)
 
         SK_RunOnce (
         {
-          const UINT NodeCount = 32;
+          const UINT NodeCount = 64;
 
           // NOTE: The proper way to get the node count is using
           //         D3DKMT_QUERYSTATISTICS_PROCESS_ADAPTER_INFORMATION
@@ -746,9 +743,10 @@ SK_GPUPollingThread (LPVOID user)
         //
         if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
         {
-          memcpy ( &rb.adapter.perf.engine_3d, queryAdapterInfo.PrivateDriverData,
-                             std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                             sizeof (D3DKMT_NODE_PERFDATA)) );
+          memcpy ( &rb.adapter.perf.engine_3d,
+                                     queryAdapterInfo.PrivateDriverData,
+                   std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                   sizeof (D3DKMT_NODE_PERFDATA)) );
         }
       }
     }
@@ -761,7 +759,8 @@ SK_GPUPollingThread (LPVOID user)
       static HQUERY   query   = nullptr;
       static HCOUNTER counter = nullptr;
 
-      if (counter == nullptr && rb.adapter.luid.LowPart != 0 && SK_GetFramesDrawn () > 30)
+      if ( counter == nullptr && rb.adapter.luid.LowPart != 0
+                              &&    SK_GetFramesDrawn () > 30 )
       {
         SK_RunOnce ({
           extern HRESULT
@@ -782,15 +781,18 @@ SK_GPUPollingThread (LPVOID user)
         {
           const auto counter_path =
             SK_FormatStringW (
-                LR"(\GPU Engine(pid_%d*luid_0x%08X_0x%08X*engtype_3D)\Utilization Percentage)",
+                LR"(\GPU Engine(pid_%d*luid_0x%08X_0x%08X*engtype_3D))"
+                LR"(\Utilization Percentage)",
                   GetProcessId (SK_GetCurrentProcess ()),
                       rb.adapter.luid.HighPart,
                       rb.adapter.luid.LowPart );
 
           status =
-            PdhAddCounter (query, counter_path.c_str (), 0, &counter);
+            PdhAddCounter ( query, counter_path.c_str (),
+                                0, &counter );
 
-          if ( ERROR_SUCCESS !=
+          if ( status != ERROR_SUCCESS ||
+                         ERROR_SUCCESS !=
                  PdhCollectQueryData (query)
              )
           {
@@ -803,29 +805,41 @@ SK_GPUPollingThread (LPVOID user)
         }
       }
 
-      static DWORD              dwLastSampled = SK::ControlPanel::current_time;
-      if (counter != nullptr && dwLastSampled < SK::ControlPanel::current_time - 50UL)
+      auto current_time =
+        SK::ControlPanel::current_time;
+
+      static DWORD              dwLastSampled = current_time;
+      if (counter != nullptr && dwLastSampled < current_time - 50UL)
       {
         status =
           PdhCollectQueryData (query);
 
         if (status == ERROR_SUCCESS)
         {
-          dwLastSampled = SK::ControlPanel::current_time;
+          dwLastSampled = current_time;
 
-          PDH_FMT_COUNTERVALUE counterValue = { };
+          PDH_FMT_COUNTERVALUE
+                  counterValue = { };
 
           status =
             PdhGetFormattedCounterValue (
-              counter, PDH_FMT_DOUBLE, nullptr, &counterValue
+              counter, PDH_FMT_DOUBLE,
+              nullptr, &counterValue
             );
 
           if (status == ERROR_SUCCESS)
           {
-            // Clamp to 0.01% minimum load and apply smoothing between updates, because Pdh's load%
-            //   counter has very high variance and we want to avoid 0.0%
+            // Clamp to 0.01% minimum load and apply smoothing between updates,
+            //   because Pdh's load% counter has very high variance and we want
+            //     to avoid 0.0%
+            auto weighted_load =
+              static_cast <uint32_t> (
+                3.0 * std::max (10.0, counterValue.doubleValue * 1000.0)
+              );
+
              stats.gpus [0].loads_percent.gpu =
-              (static_cast <uint32_t> (3.0 * std::max (10.0, counterValue.doubleValue * 1000.0)) + stats0.gpus [0].loads_percent.gpu) / 4;
+                 ( weighted_load +
+            stats0.gpus [0].loads_percent.gpu ) / 4;
             stats0.gpus [0].loads_percent.gpu =
              stats.gpus [0].loads_percent.gpu;
           }
@@ -900,7 +914,7 @@ SK_GPUPollingThread (LPVOID user)
                &gpu_stats_buffers [idx]
     );
 
-    ResetEvent (hPollEvent);
+    ResetEvent (hPollEvent->m_h);
   }
 
   InterlockedExchangePointer (
@@ -915,25 +929,25 @@ SK_GPUPollingThread (LPVOID user)
 void
 SK_EndGPUPolling (void)
 {
-  if (hShutdownEvent != nullptr && hPollThread != nullptr)
+  if ( hShutdownEvent->isValid () &&
+          hPollThread->isValid () )
   {
-    if (SignalObjectAndWait (hShutdownEvent, hPollThread, 125UL, FALSE) != WAIT_OBJECT_0)
+    if ( WAIT_OBJECT_0 !=
+           SignalObjectAndWait (*hShutdownEvent, *hPollThread, 125UL, FALSE) )
     {
-      SK_TerminateThread (hPollThread, 0x00);
-      SK_CloseHandle      (hPollThread); // Thread cleans itself up normally
+      SK_TerminateThread (*hPollThread, 0x00);
+      SK_CloseHandle     (*hPollThread); // Thread cleans itself up normally
     }
 
-    hPollEvent.Close     ();
-    hShutdownEvent.Close ();
-    hPollThread.Close    ();
+    hPollEvent->Close     ();
+    hShutdownEvent->Close ();
+    hPollThread->Close    ();
   }
 
   if (ReadAcquire (&__SK_DLL_Ending))
   {
-    gpu_sensors_t* to_delete = nullptr;
-    std::swap     (to_delete, gpu_stats_buffers);
-
-    delete to_delete;
+    delete
+      std::exchange (gpu_stats_buffers, nullptr);
   }
 }
 
@@ -943,9 +957,9 @@ SK_PollGPU (void)
   static volatile ULONG              init       (FALSE);
   if (! InterlockedCompareExchange (&init, TRUE, FALSE))
   {
-    hShutdownEvent.Attach (SK_CreateEvent     (nullptr, TRUE, FALSE, nullptr));
-    hPollEvent.Attach     (SK_CreateEvent     (nullptr, TRUE,  TRUE, nullptr));
-    hPollThread.Attach    (SK_Thread_CreateEx ( SK_GPUPollingThread ));
+    hShutdownEvent->Attach (SK_CreateEvent     (nullptr, TRUE, FALSE, nullptr));
+    hPollEvent->Attach     (SK_CreateEvent     (nullptr, TRUE,  TRUE, nullptr));
+    hPollThread->Attach    (SK_Thread_CreateEx ( SK_GPUPollingThread ));
   }
 
   gpu_sensors_t* pSensors =
@@ -974,20 +988,20 @@ SK_PollGPU (void)
   const double dt =
     (update_ul.QuadPart - pSensors->last_update.QuadPart) * 1.0e-7;
 
-  if ( dt > config.gpu.interval && hPollEvent != nullptr )
+  if ( dt > config.gpu.interval && hPollEvent->isValid ())
   {
     if ( WAIT_TIMEOUT ==
-           SK_WaitForSingleObject (hPollEvent, 0)
+           SK_WaitForSingleObject (hPollEvent->m_h, 0)
        )
     {
       if ( WAIT_OBJECT_0 !=
-             SK_WaitForSingleObject (hShutdownEvent, 0) )
+             SK_WaitForSingleObject (hShutdownEvent->m_h, 0))
       {
         pSensors->last_update.QuadPart =
                     update_ul.QuadPart;
 
-        if (        hPollEvent != nullptr)
-          SetEvent (hPollEvent);
+        if (        hPollEvent->isValid ())
+          SetEvent (hPollEvent->m_h);
       }
     }
   }

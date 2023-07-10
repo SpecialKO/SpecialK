@@ -674,7 +674,8 @@ void SK_BootDXGI   (void);
 void SK_BootOpenGL (void);
 void SK_BootVulkan (void);
 
-BOOL SK_DXGI_SupportsTearing (void);
+BOOL SK_DXGI_SupportsTearing    (void);
+void SK_DXGI_SignalBudgetThread (void);
 
 
 _Return_type_success_ (nullptr)
