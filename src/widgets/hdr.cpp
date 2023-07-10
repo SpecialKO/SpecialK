@@ -980,8 +980,10 @@ public:
     const auto& io =
       ImGui::GetIO ();
 
+    
     const ImVec2 v2Min (
-      1340.0f, 140.0f
+      rb.isHDRActive () ? 1340.0f : 150.0f,
+      rb.isHDRActive () ?  140.0f :  50.0f
     );
 
     setMinSize (v2Min);

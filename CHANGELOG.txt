@@ -1,4 +1,9 @@
-﻿23.7.10
+﻿23.7.10.1
+=========
+ + Fixed awkward HDR widget minimum size when HDR is not active
+ + Cleaned up GPU stats thread code
+
+23.7.10
 =======
  + Reset various framepacing statistics when games create new SwapChains,
      or more likely when NVIDIA's DXGI/Vulkan interop does (i.e. resize).
