@@ -1,4 +1,8 @@
-﻿23.7.10.1
+﻿23.7.10.2
+=========
+ + Rate-limit GPU stats thread to 150 ms to lower D3DKMT overhead
+
+23.7.10.1
 =========
  + Fixed awkward HDR widget minimum size when HDR is not active
  + Cleaned up GPU stats thread code

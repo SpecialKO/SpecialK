@@ -119,12 +119,23 @@ SK_GPUPollingThread (LPVOID user)
 
   while (true)
   {
+    static DWORD dwLastPoll = SK::ControlPanel::current_time;
+
     DWORD dwWait =
       WaitForMultipleObjectsEx ( 2, hEvents, FALSE,
                                    INFINITE, FALSE );
 
     if (     dwWait == WAIT_OBJECT_0 + 1) break;
     else if (dwWait != WAIT_OBJECT_0    ) break;
+
+    if (SK::ControlPanel::current_time < dwLastPoll + 150UL)
+    {
+      SK_Sleep (dwLastPoll + 150 - SK::ControlPanel::current_time);
+    }
+
+    SK_LOG2 ((L"GPU Perf Poll: %d ms apart", SK::ControlPanel::current_time - dwLastPoll), L"   DXGI   ");
+
+    dwLastPoll = SK::ControlPanel::current_time;
 
     static LONG idx =
       ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
@@ -678,7 +689,7 @@ SK_GPUPollingThread (LPVOID user)
 
     if (rb.adapter.d3dkmt != 0)
     {
-      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn ())
+      if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 1)
       {   rb.adapter.perf.sampled_frame = 0;
         D3DKMT_ADAPTER_PERFDATA perf_data = { };
         D3DKMT_NODE_PERFDATA    node_data = { };
@@ -732,21 +743,27 @@ SK_GPUPollingThread (LPVOID user)
           }
         });
 
-        node_data.NodeOrdinal = Engine3DNodeOrdinal;
-
-        queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
-        queryAdapterInfo.Type                  = KMTQAITYPE_NODEPERFDATA;
-        queryAdapterInfo.PrivateDriverData     = &node_data;
-        queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODE_PERFDATA);
-
-        // 3D Engine-specific (i.e. GPU clock / voltage)
-        //
-        if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+        // Update this less frequently
+        static UINT64
+               numEngineQueries = 0;
+        if ((++numEngineQueries % 2) == 0)
         {
-          memcpy ( &rb.adapter.perf.engine_3d,
-                                     queryAdapterInfo.PrivateDriverData,
-                   std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
-                                   sizeof (D3DKMT_NODE_PERFDATA)) );
+          node_data.NodeOrdinal = Engine3DNodeOrdinal;
+
+          queryAdapterInfo.AdapterHandle         = rb.adapter.d3dkmt;
+          queryAdapterInfo.Type                  = KMTQAITYPE_NODEPERFDATA;
+          queryAdapterInfo.PrivateDriverData     = &node_data;
+          queryAdapterInfo.PrivateDriverDataSize = sizeof (D3DKMT_NODE_PERFDATA);
+
+          // 3D Engine-specific (i.e. GPU clock / voltage)
+          //
+          if (SUCCEEDED (SK_D3DKMT_QueryAdapterInfo (&queryAdapterInfo)))
+          {
+            memcpy ( &rb.adapter.perf.engine_3d,
+                                       queryAdapterInfo.PrivateDriverData,
+                     std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
+                                     sizeof (D3DKMT_NODE_PERFDATA)) );
+          }
         }
       }
     }
