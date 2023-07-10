@@ -239,6 +239,27 @@ SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo)
 SK_RenderBackend::latency_monitor_s SK_RenderBackend::latency;
 
 void
+SK_RenderBackend::latency_monitor_s::reset (void)
+{
+  stale = true;
+
+  counters.frameStats0 = { };
+  counters.frameStats1 = { };
+  counters.lastFrame   =   0;
+  counters.lastPresent =   0;
+
+  delays.PresentQueue  = 0;
+  delays.SyncDelay     = 0;
+  delays.TotalMs       = 0.0F;
+
+  stats.AverageMs      =  0.0F;
+  stats.MaxMs          =  0.0F;
+  stats.ScaleMs        = 99.0F;
+
+  std::fill_n (stats.History, ARRAYSIZE (stats.History), 0.0F);
+}
+
+void
 SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapChain)
 {
   if (pSwapChain == nullptr)
@@ -849,6 +870,29 @@ SK_ImGui_DrawGraph_FramePacing (void)
 #endif
 
 
+  auto pLimiter =
+    SK::Framerate::GetLimiter (
+      SK_GetCurrentRenderBackend ().swapchain.p,
+      false
+    );
+
+  static ULONG64    ullResetFrame = 0;
+  static SK::Framerate::Limiter
+                    *pLastLimiter = nullptr;
+  if (std::exchange (pLastLimiter, pLimiter) != pLimiter || SK_GetFramesDrawn () == ullResetFrame)
+  {
+    // Finish the reset after 2 frames
+    if (ullResetFrame != SK_GetFramesDrawn ())
+        ullResetFrame  = SK_GetFramesDrawn () + 2;
+    else
+    {
+      // The underlying framerate limiter changed, clear the old data...
+      SK_ImGui_Frames->reset ();
+
+      SK_RenderBackend_V2::latency.reset ();
+    }
+  }
+
   float sum = 0.0f;
 
   float min = FLT_MAX;
@@ -931,7 +975,10 @@ SK_ImGui_DrawGraph_FramePacing (void)
   if (SK_FramePercentiles->display_above)
       SK_ImGui_DrawFramePercentiles ();
 
-  if (! SK_RenderBackend_V2::latency.stale)
+  bool valid_latency =
+    (! SK_RenderBackend_V2::latency.stale);
+
+  if (valid_latency)
   {
     SK_RenderBackend_V2::latency.stats.MaxMs =
       *std::max_element ( std::begin (SK_RenderBackend_V2::latency.stats.History),
@@ -947,6 +994,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
         std::end   ( SK_RenderBackend_V2::latency.stats.History ), 0.0f )
       / std::size  ( SK_RenderBackend_V2::latency.stats.History );
 
+    if ( SK_RenderBackend_V2::latency.stats.MaxMs     > 1000.0 ||
+         SK_RenderBackend_V2::latency.stats.AverageMs > 1000.0 )
+    {
+      // We have invalid data, stop displaying latency stats until resolved
+      valid_latency = false;
+    }
+  }
+
+  if (valid_latency)
+  {
     snprintf
       ( szAvg,
           511, (const char *)
@@ -982,39 +1039,35 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
-  ImGui::PushStyleColor ( ImGuiCol_PlotLines,
-                             ImColor::HSV ( 0.31f - 0.31f *
-                     std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                             1.0f,   1.0f ) );
-
-  struct counter_enum_s {
-    wchar_t *Buffer = nullptr;
-    DWORD    Size   = 0;
-
-    ~counter_enum_s (void)
-    {
-      std::free (
-        std::exchange (Buffer, nullptr)
-      );
-    }
-  } CounterList,
-   InstanceList;
-
   struct disk_s {
     HQUERY   query   = nullptr;
     HCOUNTER counter = nullptr;
+
+    struct counter_enum_s {
+      wchar_t *Buffer = nullptr;
+      DWORD    Size   = 0;
+
+      ~counter_enum_s (void)
+      {
+        if (Buffer != nullptr)
+        {
+          std::free (
+            std::exchange (Buffer, nullptr)
+          );
+        }
+      }
+    };
   } static disk;
 
   SK_RunOnce (
   {
-    auto drive_num =
+    disk_s::counter_enum_s CounterList;
+    disk_s::counter_enum_s InstanceList;
+
+    const auto drive_num =
       PathGetDriveNumberW (SK_GetHostPath ());
 
-    PDH_STATUS status = ERROR_SUCCESS;
-
-    wchar_t *pTemp = nullptr;
-
-    status =
+    PDH_STATUS status =
       PdhEnumObjectItems ( nullptr, nullptr, L"PhysicalDisk",
           CounterList.Buffer,  &CounterList.Size,
          InstanceList.Buffer, &InstanceList.Size,
@@ -1035,9 +1088,14 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
       if (status == ERROR_SUCCESS)
       {
-        for (pTemp = InstanceList.Buffer; *pTemp != 0; pTemp += wcslen(pTemp) + 1)
+        const auto physical_name =
+          SK_FormatStringW (L" %wc:", L'A' + drive_num);
+
+        for ( wchar_t *pInstance  = InstanceList.Buffer;
+                      *pInstance != 0;
+                       pInstance += wcslen (pInstance) + 1 )
         {
-          if (StrStrIW (pTemp, SK_FormatStringW (L" %wc:", L'A' + drive_num).c_str ()))
+          if (StrStrIW (pInstance, physical_name.c_str ()))
           {
             status =
               PdhOpenQuery (nullptr, 0, &disk.query);
@@ -1047,13 +1105,19 @@ SK_ImGui_DrawGraph_FramePacing (void)
               const auto counter_path =
                 SK_FormatStringW (
                   LR"(\PhysicalDisk(%ws)\%% Disk Time)",
-                    pTemp
+                    pInstance
                 );
 
               status =
-                PdhAddCounter (disk.query, counter_path.c_str (), 0, &disk.counter);
+                PdhAddCounter ( disk.query, counter_path.c_str (),
+                                   0, &disk.counter );
 
-              SK_LOGi0 (L"%ws", counter_path.c_str ());
+              SK_LOGi1 (
+                L"Using Disk Activity Counter: %ws",
+                                      counter_path.c_str ()
+              );
+
+              break;
             }
           }
         }
@@ -1093,37 +1157,36 @@ SK_ImGui_DrawGraph_FramePacing (void)
     fGaugeSizes += fDISKSize;
 
   const ImVec2 border_dims (
-    std::max (500.0f - fGaugeSizes, ImGui::GetContentRegionAvailWidth () - fGaugeSizes),
+    std::max (                               500.0f - fGaugeSizes,
+               ImGui::GetContentRegionAvailWidth () - fGaugeSizes ),
       font_size * 7.0f
   );
 
-  float fX = ImGui::GetCursorPosX ();
-  float fY = ImGui::GetCursorPosY ();
+  float fX = ImGui::GetCursorPosX (),
+        fY = ImGui::GetCursorPosY ();
 
-  ///float fMax = std::max ( 99.0f,
-  ///  *std::max_element ( std::begin (fLatencyHistory),
-  ///                      std::end   (fLatencyHistory) )
-  ///                      );
+  ImGui::PushStyleColor ( ImGuiCol_PlotLines,
+                             ImColor::HSV ( 0.31f - 0.31f *
+                     std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
+                                             1.0f,   1.0f ) );
 
-  //if ( config.render.framerate.present_interval != 0 ||
-  //     config.render.framerate.target_fps       <= 0.0f )
-  {
-    ImGui::PushStyleVar   (ImGuiStyleVar_FrameRounding, 0.0f);
-    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
-    ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
-                                              "###Floating_LatencyHistogram",
-                             SK_RenderBackend_V2::latency.stats.History,
-               IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History),
-                                 SK_GetFramesDrawn () % 120,
-                                   "",
-                                     0,
-                             SK_RenderBackend_V2::latency.stats.ScaleMs,
-                                        border_dims );
-    ImGui::PopStyleColor  ();
+  ImGui::PushStyleVar   (ImGuiStyleVar_FrameRounding, 0.0f);
+  ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
+  ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
+                                            "###Floating_LatencyHistogram",
+                           SK_RenderBackend_V2::latency.stats.History,
+                                          valid_latency ?
+             IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History)
+                                                        : 0,
+                               SK_GetFramesDrawn () % 120,
+                                 "",
+                                   0,
+                           SK_RenderBackend_V2::latency.stats.ScaleMs,
+                                      border_dims );
+  ImGui::PopStyleColor  ();
 
-    ImGui::SameLine ();
-    ImGui::SetCursorPosX (fX);
-  }
+  ImGui::SameLine ();
+  ImGui::SetCursorPosX (fX);
 
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
                                         "###Floating_FramePacing",
@@ -1277,6 +1340,22 @@ SK_ImGui_DrawFramePercentiles (void)
   auto frame_history =
     pLimiter->frame_history.getPtr ();
 
+  static ULONG64    ullResetFrame = 0;
+  static SK::Framerate::Limiter
+                    *pLastLimiter = nullptr;
+  if (std::exchange (pLastLimiter, pLimiter) != pLimiter || SK_GetFramesDrawn () == ullResetFrame)
+  {
+    // Finish the reset after 2 frames
+    if (ullResetFrame != SK_GetFramesDrawn ())
+        ullResetFrame  = SK_GetFramesDrawn () + 2;
+    else
+    {
+      // (re)Initialize our counters if the underlying framerate limiter changes
+      frame_history->reset ();
+           snapshots.reset ();
+    }
+  }
+
   long double data_timespan = ( show_immediate ?
             frame_history->calcDataTimespan () :
            snapshots.mean->calcDataTimespan () );
@@ -1286,24 +1365,17 @@ SK_ImGui_DrawFramePercentiles (void)
   ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
   ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
 
-  ////if ( SK_FramePercentiles->percentile0.last_calculated !=
-  ////     SK_GetFramesDrawn ()
-  ////   )
-  {
-   //const long double   SAMPLE_SECONDS = 5.0L;
+  percentile0.computeFPS (                             show_immediate ?
+    frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
+      snapshots.percentile0->calcMean                   (all_samples) );
 
-    percentile0.computeFPS (                             show_immediate ?
-      frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
-        snapshots.percentile0->calcMean                   (all_samples) );
+  percentile1.computeFPS (                             show_immediate ?
+    frame_history->calcPercentile   (percentile1.cutoff, all_samples) :
+      snapshots.percentile1->calcMean                   (all_samples) );
 
-    percentile1.computeFPS (                             show_immediate ?
-      frame_history->calcPercentile   (percentile1.cutoff, all_samples) :
-        snapshots.percentile1->calcMean                   (all_samples) );
-
-    mean.computeFPS ( show_immediate          ?
-        frame_history->calcMean (all_samples) :
-       snapshots.mean->calcMean (all_samples) );
-  }
+  mean.computeFPS ( show_immediate          ?
+      frame_history->calcMean (all_samples) :
+     snapshots.mean->calcMean (all_samples) );
 
   if ( std::isnormal (percentile0.computed_fps) ||
         (! show_immediate)
@@ -1339,8 +1411,6 @@ SK_ImGui_DrawFramePercentiles (void)
 
     if (data_timespan > 0.0)
     {
-    //ImGui::Text ("Sample Size");
-
       ImGui::PushStyleColor  (ImGuiCol_Text, white_color);
            if (data_timespan > 60.0 * 60.0)  ImGui::Text ("%7.3f", data_timespan / (60.0 * 60.0));
       else if (data_timespan > 60.0)         ImGui::Text ("%6.2f", data_timespan / (60.0       ));

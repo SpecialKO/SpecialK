@@ -279,7 +279,7 @@ namespace SK
       ULONGLONG     ticks_to_undershoot = 0ULL;
 
       // Don't align timing perfectly on a VBlank interval, because DWM composition is
-      //   asynchronous to our present queue and we want to arrive with work to submit
+      //   asynchronous to our present queue and we want to arrive with a frame to flip
       //     before VBlank begins, not _after_.
 
       volatile
@@ -381,6 +381,12 @@ namespace SK
 
       uint64_t samples    = 0ULL;
       double   last_delta = 0.0;
+
+      void reset (void)
+      {
+        samples    = 0ULL;
+        last_delta =  0.0;
+      }
 
       bool addSample (double sample, LARGE_INTEGER time) noexcept
       {
@@ -533,13 +539,6 @@ namespace SK
                      sampled_lows = sortAndCacheFrametimeHistory ();
         const size_t samples_used = sampled_lows.size            ();
 
-        ////  Severity  Code    Description
-        ////  Warning   C26467    Converting from floating point to unsigned
-        ////                      integral types results in non-portable code
-        ////                      if the double/float has a negative value.
-        ////
-        ////// Use gsl::narrow_cast or gsl::narrow instead to guard against
-        ////// undefined behavior and potential data loss
         const size_t end_sample_idx =
           sk::narrow_cast <size_t> (
             std::round ((float)samples_used / 1000.0f)

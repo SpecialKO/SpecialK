@@ -458,6 +458,7 @@ public:
     } stats;
     
     void submitQueuedFrame (IDXGISwapChain1 *pSwapChain);
+    void reset             (void);
   } static latency;
 
 

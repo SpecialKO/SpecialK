@@ -507,8 +507,13 @@ public:
 
   void   reset     (void) noexcept
   {
+    last_val      = 0;
     values_offset = 0;
     updates       = 0;
+
+    std::fill_n (values.begin (), max_samples, (_T)0);
+
+    cached_stats.reset ();
   }
 
 protected:
@@ -566,6 +571,14 @@ protected:
         max       = 0,
         avg       = 0;
     int last_calc = 0;
+
+    void reset (void)
+    {
+            min = 0;
+            max = 0;
+            avg = 0;
+      last_calc = 0;
+    }
   } cached_stats;
 };
 
