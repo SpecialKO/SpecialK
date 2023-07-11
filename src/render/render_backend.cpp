@@ -665,12 +665,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
     if (! disabled.for_app)
     {
-      display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
-      display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-
-      SK_RunOnce (SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                       &display.nvapi.monitor_caps));
-
       static HANDLE hVRRThread =
       SK_Thread_CreateEx ([](LPVOID)->
       DWORD
