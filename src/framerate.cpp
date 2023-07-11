@@ -86,6 +86,9 @@ LONGLONG __SK_LatentSync_FrameInterval =   0LL;
 float    __SK_LatentSync_SwapSecs      =  3.3f;
 int      __SK_LatentSync_Adaptive      =    15;
 
+#define SK_YieldProcessor YieldProcessor
+//#define SK_YieldProcessor (void)
+
 struct {
 #define _MAX_WAIT_SAMPLES 120
   LONGLONG busy          = 0LL;
@@ -957,7 +960,7 @@ SK_Framerate_WaitForVBlank (void)
             stage_two = true;
           }
 
-          YieldProcessor ();
+          SK_YieldProcessor ();
 
           max_visible_scanline =
             std::max (max_visible_scanline, getScanLine.ScanLine);
@@ -1131,7 +1134,7 @@ struct qpc_interval_s {
       getNextBegin (qpcNow);
 
     while (SK_QueryPerf ().QuadPart < qpcNext)
-      YieldProcessor ();
+      SK_YieldProcessor ();
   }
 
   void waitForEnd (void) noexcept
@@ -1143,7 +1146,7 @@ struct qpc_interval_s {
       getNextEnd (qpcNow);
 
     while (SK_QueryPerf ().QuadPart < qpcNext)
-      YieldProcessor ();
+      SK_YieldProcessor ();
   }
 } __VBlank;
 
@@ -1276,7 +1279,9 @@ extern NtSetTimerResolution_pfn
 void
 SK::Framerate::Limiter::wait (void)
 {
-  SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_TIME_CRITICAL);
+  // This is actually counter-productive in testing... when the thread priority
+  //   is lowered after this goes out of scope it may reschedule the thread.
+  //SK_Thread_ScopedPriority prio_scope (THREAD_PRIORITY_TIME_CRITICAL);
 
   // Don't limit under certain circumstances or exiting / alt+tabbing takes
   //   longer than it should.
@@ -1772,7 +1777,7 @@ SK::Framerate::Limiter::wait (void)
       }
 
       if (++time_ % 5 < 3)
-        YieldProcessor ();
+        SK_YieldProcessor ();
       else  time_ =
           SK_QueryPerf ().QuadPart;
     }
@@ -1938,7 +1943,7 @@ SK::Framerate::Limiter::wait (void)
                       SK_SleepEx (dwRemainingTimeInMs - 1, FALSE);
 
                     while (SK_QueryPerf ().QuadPart < qpc_t1.QuadPart + llFractionOfRemainingTime)
-                         YieldProcessor ();
+                      SK_YieldProcessor ();
                   }
                 }
               }
@@ -2500,7 +2505,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
           wait_time.beginBusy ();
 
           while ( SK_QueryPerf ().QuadPart < qpcResidualInner )
-            YieldProcessor ();
+            SK_YieldProcessor ();
 
           wait_time.endBusy ();
 
@@ -2519,7 +2524,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   wait_time.beginBusy ();
 
   while ( SK_QueryPerf ().QuadPart < qpcResidualOuter )
-    YieldProcessor ();
+    SK_YieldProcessor ();
 
   wait_time.endBusy ();
 }

@@ -1,4 +1,10 @@
-﻿23.7.10.3
+﻿23.7.11
+=======
+ + Optimized VRR checks; redundant NvAPI_DISP_GetMonitorCapabilities calls
+ + Removed scoped thread priority boost on framerate limiter wait, because
+     when the function returns it could cause the thread to be rescheduled
+
+23.7.10.3
 =========
  + Added code to reset temporary display mode overrides when a game's active
      window is destroyed to cleanup for games that use non-standard exit.
