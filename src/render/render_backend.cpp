@@ -725,11 +725,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
             auto &monitor_caps =
               display.nvapi.monitor_caps;
 
-            monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
-            monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-               SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                                    &monitor_caps);
-
             rb.gsync_state.capable =
               monitor_caps.data.caps.supportVRR &&
               monitor_caps.data.caps.currentlyCapableOfVRR;
@@ -779,12 +774,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   if ( last_checked < (dwTimeNow - 666UL) )
   {    last_checked =  dwTimeNow;
-    display.nvapi.monitor_caps          = { NV_MONITOR_CAPABILITIES_VER1 };
-    display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
-
-    SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                         &display.nvapi.monitor_caps);
-
     bool success = false;
 
     if ( rb.device        == nullptr  ||

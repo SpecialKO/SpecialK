@@ -119,23 +119,24 @@ SK_GPUPollingThread (LPVOID user)
 
   while (true)
   {
-    static DWORD dwLastPoll = SK::ControlPanel::current_time;
+    static DWORD dwLastPoll =
+      SK_timeGetTime ();
 
-    DWORD dwWait =
+    DWORD dwNow  =
+      SK_timeGetTime (),
+          dwWait =
       WaitForMultipleObjectsEx ( 2, hEvents, FALSE,
                                    INFINITE, FALSE );
 
     if (     dwWait == WAIT_OBJECT_0 + 1) break;
     else if (dwWait != WAIT_OBJECT_0    ) break;
 
-    if (SK::ControlPanel::current_time < dwLastPoll + 150UL)
-    {
-      SK_Sleep (dwLastPoll + 150 - SK::ControlPanel::current_time);
-    }
+    if (dwNow < dwLastPoll + 150)
+      SK_Sleep (dwLastPoll + 150 - dwNow);
 
-    SK_LOG2 ((L"GPU Perf Poll: %d ms apart", SK::ControlPanel::current_time - dwLastPoll), L"   DXGI   ");
+    SK_LOG2 ((L"GPU Perf Poll: %d ms apart", dwNow - dwLastPoll), L" GPU Perf ");
 
-    dwLastPoll = SK::ControlPanel::current_time;
+    dwLastPoll = dwNow;
 
     static LONG idx =
       ( InterlockedIncrement (&gpu_sensor_frame) % GPU_SENSOR_BUFFERS );
@@ -690,7 +691,7 @@ SK_GPUPollingThread (LPVOID user)
     if (rb.adapter.d3dkmt != 0)
     {
       if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 1)
-      {   rb.adapter.perf.sampled_frame = 0;
+      {
         D3DKMT_ADAPTER_PERFDATA perf_data = { };
         D3DKMT_NODE_PERFDATA    node_data = { };
 
@@ -823,7 +824,7 @@ SK_GPUPollingThread (LPVOID user)
       }
 
       auto current_time =
-        SK::ControlPanel::current_time;
+        SK_timeGetTime ();
 
       static DWORD              dwLastSampled = current_time;
       if (counter != nullptr && dwLastSampled < current_time - 50UL)
