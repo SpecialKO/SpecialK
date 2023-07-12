@@ -938,6 +938,10 @@ struct sk_config_t
       bool   enable            = true;
     } ADL;
 
+    struct D3DKMT_s {
+      bool   enable_perfdata  = true;
+    } D3DKMT;
+
     SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
   } apis;
 

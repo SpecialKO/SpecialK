@@ -634,6 +634,12 @@ struct {
   } adl;
 } amd;
 
+struct {
+  struct {
+    sk::ParameterBool*    disable_perfdata        = nullptr;
+  } d3dkmt;
+} microsoft;
+
 sk::ParameterFloat*       mem_reserve             = nullptr;
 sk::ParameterBool*        debug_output            = nullptr;
 sk::ParameterBool*        debug_wait              = nullptr;
@@ -1592,6 +1598,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.sli.override,                    L"Override Driver Defaults",                                  dll_ini,         L"NVIDIA.SLI",            L"Override"),
 
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
+    ConfigEntry (microsoft.d3dkmt.disable_perfdata,      L"Disable Microsoft's D3DKMT Performance Data",               dll_ini,         L"Microsoft.D3DKMT",      L"DisablePerfData"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -3191,6 +3198,9 @@ auto DeclKeybind =
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
+
+  if (microsoft.d3dkmt.disable_perfdata->load (config.apis.D3DKMT.enable_perfdata));
+     config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
@@ -5240,6 +5250,7 @@ SK_SaveConfig ( std::wstring name,
 
   nvidia.api.disable->store                    (! config.apis.NvAPI.enable);
   amd.adl.disable->store                       (! config.apis.ADL.enable);
+  microsoft.d3dkmt.disable_perfdata->store     (! config.apis.D3DKMT.enable_perfdata);
 
 
   // Don't store this setting at shutdown  (it may have been turned off automatically)

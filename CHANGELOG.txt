@@ -1,5 +1,11 @@
 ﻿23.7.12.3
 =========
+ + Add option to disable D3DKMT perfdata, since on some systems it causes driver
+     performance issues.
+
+      [Microsoft.D3DKMT]
+      DisablePerfData={true|false}
+
  + Only run GPU stats code for the text OSD if the text OSD is actually visible
 
 23.7.12.2

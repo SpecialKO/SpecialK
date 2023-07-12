@@ -778,7 +778,7 @@ SK_GPUPollingThread (LPVOID user)
 
     // There's some weird D3DKMT overhead occasionally, so if nothing is using these stats,
     //   don't collect them.
-    if (rb.adapter.d3dkmt != 0 && ((config.gpu.show && config.osd.show) || SK_ImGui_Widgets->gpu_monitor->isActive ()))
+    if (rb.adapter.d3dkmt != 0 && config.apis.D3DKMT.enable_perfdata && ((config.gpu.show && config.osd.show) || SK_ImGui_Widgets->gpu_monitor->isActive ()))
     {
       if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 1)
       {
@@ -968,37 +968,40 @@ SK_GPUPollingThread (LPVOID user)
 
       stats.num_gpus = 1;
 
-      for (int i = 0; i < stats.num_gpus; i++)
+      if (config.apis.D3DKMT.enable_perfdata)
       {
-        stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
-            static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
+        for (int i = 0; i < stats.num_gpus; i++)
+        {
+          stats.gpus [i/*adapterPerfData.PhysicalAdapterIndex*/].temps_c.gpu =
+              static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f;
 
-        stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-        stats.gpus [i].fans_rpm.gpu       =
-          std::max (0UL, (               3 * rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 4UL);
+          stats.gpus [i].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
+          stats.gpus [i].fans_rpm.gpu       =
+            std::max (0UL, (               3 * rb.adapter.perf.data.FanRPM + stats0.gpus [i].fans_rpm.gpu) / 4UL);
 
-        stats0.gpus [i].fans_rpm.gpu =
-         stats.gpus [i].fans_rpm.gpu;
+          stats0.gpus [i].fans_rpm.gpu =
+           stats.gpus [i].fans_rpm.gpu;
 
-        stats.gpus [i].clocks_kHz.ram     =
-          static_cast <uint32_t> (
-            rb.adapter.perf.data.MemoryFrequency / 1000
-          );
+          stats.gpus [i].clocks_kHz.ram     =
+            static_cast <uint32_t> (
+              rb.adapter.perf.data.MemoryFrequency / 1000
+            );
 
-        stats0.gpus [i].clocks_kHz.ram =
-         stats.gpus [i].clocks_kHz.ram;
+          stats0.gpus [i].clocks_kHz.ram =
+           stats.gpus [i].clocks_kHz.ram;
 
-        stats.gpus [i].clocks_kHz.gpu     =
-          static_cast <uint32_t> (
-            rb.adapter.perf.engine_3d.Frequency / 1000
-          );
+          stats.gpus [i].clocks_kHz.gpu     =
+            static_cast <uint32_t> (
+              rb.adapter.perf.engine_3d.Frequency / 1000
+            );
 
-        stats0.gpus [i].clocks_kHz.gpu =
-         stats.gpus [i].clocks_kHz.gpu;
+          stats0.gpus [i].clocks_kHz.gpu =
+           stats.gpus [i].clocks_kHz.gpu;
 
-        stats.gpus [i].volts_mV.core      =
-                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
-        stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
+          stats.gpus [i].volts_mV.core      =
+                         static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
+          stats.gpus [i].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
+        }
       }
     }
 
@@ -1006,21 +1009,24 @@ SK_GPUPollingThread (LPVOID user)
     // Add data that might be missing from NVAPI
     //
 
-    if (! bHadFanRPM)
-    {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
-        stats.gpus [0].fans_rpm.gpu       = (rb.adapter.perf.data.FanRPM * 3 + stats0.gpus [0].fans_rpm.gpu) / 4;
-    }
-    if (! bHadVoltage)
-    {   stats.gpus [0].volts_mV.core      =
-                       static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
-        stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
-    }
-
-    // Favor D3DKMT Temperature Measurement if it is providing non-zero data
-    if ((rb.adapter.perf.data.Temperature) / 10.0f > 0.1f)
+    if (config.apis.D3DKMT.enable_perfdata)
     {
-      stats.gpus [0].temps_c.gpu =
-        ((static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f) * 3.0f + stats0.gpus [0].temps_c.gpu) / 4.0f;
+      if (! bHadFanRPM)
+      {   stats.gpus [0].fans_rpm.supported = (rb.adapter.perf.data.FanRPM != 0);
+          stats.gpus [0].fans_rpm.gpu       = (rb.adapter.perf.data.FanRPM * 3 + stats0.gpus [0].fans_rpm.gpu) / 4;
+      }
+      if (! bHadVoltage)
+      {   stats.gpus [0].volts_mV.core      =
+                         static_cast <float> (rb.adapter.perf.engine_3d.Voltage);
+          stats.gpus [0].volts_mV.supported = rb.adapter.perf.engine_3d.Voltage != 0;
+      }
+
+      // Favor D3DKMT Temperature Measurement if it is providing non-zero data
+      if ((rb.adapter.perf.data.Temperature) / 10.0f > 0.1f)
+      {
+        stats.gpus [0].temps_c.gpu =
+          ((static_cast <float> (rb.adapter.perf.data.Temperature) / 10.0f) * 3.0f + stats0.gpus [0].temps_c.gpu) / 4.0f;
+      }
     }
 
     InterlockedExchangePointer (
