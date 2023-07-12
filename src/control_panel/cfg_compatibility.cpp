@@ -242,12 +242,13 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Checkbox ("ADL   ",   &config.apis.ADL.enable);
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("AMD's hardware monitoring API, needed for the GPU stats on the OSD. Turn off only if your driver is buggy.");
-      ImGui::TreePop  ();
 
       ImGui::SameLine ();
       ImGui::Checkbox ("D3DKMT",   &config.apis.D3DKMT.enable_perfdata);
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Microsofts's hardware monitoring API, needed for the GPU stats on the OSD to supplement missing data from NvAPI or ADL. On some drivers, this may cause performance issues.");
+
+      ImGui::TreePop  ();
     }
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
