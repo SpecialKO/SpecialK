@@ -869,9 +869,6 @@ SK_GPUPollingThread (LPVOID user)
       }
     }
 
-    bHadPercentage =
-      (stats.gpus [0].loads_percent.gpu > 0);
-
     // Fallback to Performance Data Helper because ADL or NVAPI were no help
     if (! bHadPercentage)
     {
