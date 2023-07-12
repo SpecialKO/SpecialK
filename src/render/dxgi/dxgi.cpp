@@ -8846,9 +8846,6 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 
     if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {
-      // We're going to Release this interface after thread spawnning, but
-      //   the running thread still needs a reference counted.
-      pAdapter3->AddRef ();
 
       SecureZeroMemory ( budget_thread.getPtr (),
                      sizeof budget_thread_params_t );
@@ -9358,6 +9355,83 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
     dxgi_mem_info [0].buffer =
                       buffer;
+
+
+    static auto &rb =
+      SK_GetCurrentRenderBackend ();
+
+    //
+    // Consistency check, re-initialize the budget thread if
+    //   we are not monitoring the correct DXGI adapter.
+    //
+    if (rb.adapter.luid.LowPart != 0x0)
+    {
+      auto pAdapter =
+        params->pAdapter;
+
+      DXGI_ADAPTER_DESC   adapterDesc = {};
+      pAdapter->GetDesc (&adapterDesc);
+
+      if ( adapterDesc.AdapterLuid.HighPart != rb.adapter.luid.HighPart ||
+           adapterDesc.AdapterLuid.LowPart  != rb.adapter.luid.LowPart )
+      {
+        auto silent =
+          std::exchange (budget_log->silent, false);
+
+        budget_log->Log (
+          L"DXGI Budget Thread Monitoring Wrong Adapter (%08X:%08X)!\r\n",
+                            adapterDesc.AdapterLuid.HighPart,
+                            adapterDesc.AdapterLuid.LowPart );
+
+        SK_ComPtr <IDXGIFactory4>           pFactory4 = nullptr;
+        pAdapter->GetParent (IID_PPV_ARGS (&pFactory4.p));
+
+        if (pFactory4 != nullptr)
+        {
+          SK_ComPtr <IDXGIAdapter3>         pNewAdapter = nullptr;
+          pFactory4->EnumAdapterByLuid (
+            rb.adapter.luid, IID_PPV_ARGS (&pNewAdapter.p) );
+
+          if (pNewAdapter != nullptr)
+          {
+            DXGI_ADAPTER_DESC      newAdapterDesc = {};
+            pNewAdapter->GetDesc (&newAdapterDesc);
+
+            budget_log->Log (
+              L"Transitioning To Another Adapter:" );
+            
+            budget_log->Log (
+              L"  Original: (%08X:%08X, %ws)",
+                  adapterDesc.AdapterLuid.HighPart,
+                  adapterDesc.AdapterLuid.LowPart,
+                  adapterDesc.Description );
+
+            budget_log->Log (
+              L"  Current:  (%08X:%08X, %ws)\r\n",
+                  newAdapterDesc.AdapterLuid.HighPart,
+                  newAdapterDesc.AdapterLuid.LowPart,
+                  newAdapterDesc.Description );
+
+            SK_ComPtr <IDXGIAdapter3>
+              pOldAdapter (pAdapter);
+
+            pOldAdapter->UnregisterVideoMemoryBudgetChangeNotification (
+              params->cookie );
+
+            pNewAdapter->RegisterVideoMemoryBudgetChangeNotificationEvent (
+               params->event,
+              &params->cookie );
+
+            params->pAdapter =
+              pNewAdapter.Detach ();
+
+            pOldAdapter.p->Release ();
+          }
+        }
+
+        budget_log->silent = silent;
+      }
+    }
   }
 
 

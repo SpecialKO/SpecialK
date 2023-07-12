@@ -1,4 +1,10 @@
-﻿23.7.12
+﻿23.7.12.1
+=========
+ + Add system to move SK's DXGI Memory Budget Monitoring thread to a different
+     DXGI adapter if the game is running on a different adapter than expected,
+       (i.e. NVIDIA Optimus moves game from iGPU to dGPU).
+
+23.7.12
 =======
  + Reduced D3DKMT overhead on GPU stats thread if nothing is currently
      displaying GPU clock rate / temperature / fan speed.
