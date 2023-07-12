@@ -156,6 +156,11 @@ SK_GPUPollingThread (LPVOID user)
     gpu_sensors_t& stats =
                gpu_stats_buffers [idx];
 
+    static bool bHasNVPeriodic = false;
+    static bool bHadFanRPM     = false;
+    static bool bHadVoltage    = false;
+           bool bHadPercentage = false;
+
     if (sk::NVAPI::nv_hardware)
     {
       static auto Callback = [](NvPhysicalGpuHandle, NV_GPU_CLIENT_CALLBACK_UTILIZATION_DATA_V1 *pData)->void
@@ -221,7 +226,9 @@ SK_GPUPollingThread (LPVOID user)
         auto &display =
           rb.displays [rb.active_display];
 
-        NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates (display.nvapi.gpu_handle, &cbSettings);
+        bHasNVPeriodic =
+          ( NVAPI_OK ==
+              NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates (display.nvapi.gpu_handle, &cbSettings) );
       });
     }
 
@@ -229,10 +236,6 @@ SK_GPUPollingThread (LPVOID user)
     {
       SK_DXGI_SignalBudgetThread ();
     }
-
-    static bool bHadFanRPM     = false;
-    static bool bHadVoltage    = false;
-           bool bHadPercentage = false;
 
     if (nvapi_init && gpu_count != 0)
     {
@@ -286,7 +289,8 @@ SK_GPUPollingThread (LPVOID user)
         NvAPI_Status
               status = NVAPI_OK;
 
-        if (stats.gpus [i].amortization.phase0 % 4 == 0)
+        // Run this more frequently if periodic callback-based sampling is not active
+        if (stats.gpus [i].amortization.phase0 % (bHasNVPeriodic ? 4 : 2) == 0)
         {
           NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
 
@@ -303,7 +307,7 @@ SK_GPUPollingThread (LPVOID user)
             auto &bus_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS];
 
             // We have a driver-managed callback getting this stuff for GPU0
-            if (i != 0)
+            if (i != 0 || (! bHasNVPeriodic))
             {
               stats.gpus [i].loads_percent.gpu =
                 (3 * gpu_.percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
@@ -322,7 +326,7 @@ SK_GPUPollingThread (LPVOID user)
           else
           {
             // We have a driver-managed callback getting this stuff for GPU0
-            if (i != 0)
+            if (i != 0 || (! bHasNVPeriodic))
             {
               stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
               stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
@@ -375,7 +379,7 @@ SK_GPUPollingThread (LPVOID user)
         //
         else
         {
-          if (i != 0)
+          if (i != 0 || (! bHasNVPeriodic))
           {
             stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
             stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
@@ -864,6 +868,9 @@ SK_GPUPollingThread (LPVOID user)
         }
       }
     }
+
+    bHadPercentage =
+      (stats.gpus [0].loads_percent.gpu > 0);
 
     // Fallback to Performance Data Helper because ADL or NVAPI were no help
     if (! bHadPercentage)
