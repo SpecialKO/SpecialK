@@ -625,7 +625,8 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       }
       else
       {
-        config.nvidia.reflex.low_latency_boost     = false;
+        // No need to turn this off, just turn off latency marker optimization
+      //config.nvidia.reflex.low_latency_boost     = false;
         config.nvidia.reflex.marker_optimization   = false;
         config.render.framerate.enforcement_policy = 4;
       }

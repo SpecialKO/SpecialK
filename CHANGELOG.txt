@@ -1,4 +1,11 @@
-﻿23.7.12.3
+﻿23.7.12.4
+========= 
+ + Added fallback if NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates fails
+ + Added D3DKMT option to SK's Control Panel under Compatibility | HW Monitoring
+ + AutoVRR mode's non-Ultra Low Latency option will not turn off Reflex Boost
+     mode when it activates if a user already had Boost mode configured on
+
+23.7.12.3
 =========
  + Add option to disable D3DKMT perfdata, since on some systems it causes driver
      performance issues.
