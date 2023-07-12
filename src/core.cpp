@@ -3646,6 +3646,10 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     if ( SK::ControlPanel::current_time - dwLastBudgetPoll >
                                                _BudgetPollingIntervalMs )
     {
+      // If not using the GPU monitoring services, initialize it manually
+      extern void SK_GPU_InitSensorData (void);
+      SK_RunOnce (SK_GPU_InitSensorData ());
+
       dwLastBudgetPoll = SK::ControlPanel::current_time;
 
       SK_DXGI_SignalBudgetThread ();

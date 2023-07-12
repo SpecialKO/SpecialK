@@ -48,18 +48,22 @@ SK_LazyGlobal <SK_AutoHandle> hPollThread;
 void
 SK_GPU_InitSensorData (void)
 {
-  if (gpu_stats_buffers == nullptr)
-      gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
-
-  for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
+  static bool        once = false;
+  if (std::exchange (once, true) == false)
   {
-    gpu_stats_buffers [i].num_gpus = 1;
-  }
+    if (gpu_stats_buffers == nullptr)
+        gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
 
-  InterlockedExchangePointer (
-    (void **)&gpu_stats,
-             &gpu_stats_buffers [0]
-  );
+    for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
+    {
+      gpu_stats_buffers [i].num_gpus = 1;
+    }
+
+    InterlockedExchangePointer (
+      (void **)&gpu_stats,
+               &gpu_stats_buffers [0]
+    );
+  }
 }
 
 

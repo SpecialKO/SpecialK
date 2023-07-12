@@ -1,4 +1,9 @@
-﻿23.7.12.1
+﻿23.7.12.2
+=========
+ + Init sensor data storage for DXGI memory budget tracking if GPU monitoring is
+     not enabled. (Fixes 0 values on VRAM gauge if CPU/GPU Load% is not enabled)
+
+23.7.12.1
 =========
  + Add system to move SK's DXGI Memory Budget Monitoring thread to a different
      DXGI adapter if the game is running on a different adapter than expected,
