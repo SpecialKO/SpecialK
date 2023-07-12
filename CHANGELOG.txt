@@ -1,4 +1,15 @@
-﻿23.7.11
+﻿23.7.12
+=======
+ + Reduced D3DKMT overhead on GPU stats thread if nothing is currently
+     displaying GPU clock rate / temperature / fan speed.
+ + Added NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates-based
+     method for collecting GPU utilization % data on NVIDIA GPUs.
+
+   >> This is lower-latency and higher precision than the traditional
+        NvAPI_GPU_GetDynamicPstatesInfoEx-based load %, so it is more
+          suitable for the GPU load % meter on the framepacing graph.
+
+23.7.11
 =======
  + Optimized VRR checks; redundant NvAPI_DISP_GetMonitorCapabilities calls
  + Removed scoped thread priority boost on framerate limiter wait, because

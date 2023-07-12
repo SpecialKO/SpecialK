@@ -96,7 +96,7 @@ SK_GPUPollingThread (LPVOID user)
     static int iters = 0;
 
     if ((iters++ % 13) == 0)
-      SK_Sleep (1);
+      SK_Sleep (2);
 
     else if ((iters % 9) != 0)
       SwitchToThread ();
@@ -152,7 +152,79 @@ SK_GPUPollingThread (LPVOID user)
     gpu_sensors_t& stats =
                gpu_stats_buffers [idx];
 
-    SK_DXGI_SignalBudgetThread ();
+    if (sk::NVAPI::nv_hardware)
+    {
+      static auto Callback = [](NvPhysicalGpuHandle, NV_GPU_CLIENT_CALLBACK_UTILIZATION_DATA_V1 *pData)->void
+      {
+        SK_RunOnce (
+          SK_SetThreadDescription (GetCurrentThread (), L"[SK] NvAPI Utilization Callback")
+        );
+
+        auto stat_idx_raw =
+          ReadAcquire (&gpu_sensor_frame);
+
+        auto stat_idx  = (stat_idx_raw      % GPU_SENSOR_BUFFERS),
+             stat0_idx = (stat_idx_raw - 1) % GPU_SENSOR_BUFFERS,
+             stat1_idx = (stat_idx_raw + 1) % GPU_SENSOR_BUFFERS;
+
+        auto &stats  = gpu_stats_buffers [stat_idx],
+             &stats0 = gpu_stats_buffers [stat0_idx],
+             &stats1 = gpu_stats_buffers [stat1_idx];
+
+        if (pData != nullptr)
+        {
+          for ( auto util = 0UL ; util < pData->numUtils ; ++util )
+          {
+            auto percent =
+              pData->utils [util].utilizationPercent * 10;
+
+            switch (pData->utils [util].utilId)
+            {
+              case NV_GPU_CLIENT_UTIL_DOMAIN_GRAPHICS:
+                stats. gpus [0].loads_percent.gpu = percent;
+                stats0.gpus [0].loads_percent.gpu = percent;
+                stats1.gpus [0].loads_percent.gpu = percent;
+                break;
+              case NV_GPU_CLIENT_UTIL_DOMAIN_FRAME_BUFFER:
+                stats. gpus [0].loads_percent.fb  = percent;
+                stats0.gpus [0].loads_percent.fb  = percent;
+                stats1.gpus [0].loads_percent.fb  = percent;
+                break;
+              case NV_GPU_CLIENT_UTIL_DOMAIN_VIDEO:
+                stats. gpus [0].loads_percent.vid = percent;
+                stats0.gpus [0].loads_percent.vid = percent;
+                stats1.gpus [0].loads_percent.vid = percent;
+                break;
+            }
+          }
+        }
+
+        SK_DXGI_SignalBudgetThread ();
+      };
+
+      SK_RunOnce ({
+        NV_GPU_CLIENT_UTILIZATION_PERIODIC_CALLBACK_SETTINGS
+          cbSettings = { NV_GPU_CLIENT_UTILIZATION_PERIODIC_CALLBACK_SETTINGS_VER };
+
+          cbSettings.super.callbackPeriodms     = 150UL;
+          cbSettings.super.super.pCallbackParam = nullptr;
+
+          cbSettings.callback = Callback;
+
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        auto &display =
+          rb.displays [rb.active_display];
+
+        NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates (display.nvapi.gpu_handle, &cbSettings);
+      });
+    }
+
+    else
+    {
+      SK_DXGI_SignalBudgetThread ();
+    }
 
     static bool bHadFanRPM     = false;
     static bool bHadVoltage    = false;
@@ -210,7 +282,7 @@ SK_GPUPollingThread (LPVOID user)
         NvAPI_Status
               status = NVAPI_OK;
 
-        if (stats.gpus [i].amortization.phase0 % 2 == 0)
+        if (stats.gpus [i].amortization.phase0 % 4 == 0)
         {
           NvAPI_GPU_GetDynamicPstatesInfoEx (gpu, &psinfoex);
 
@@ -226,12 +298,17 @@ SK_GPUPollingThread (LPVOID user)
             auto &vid_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_VID];
             auto &bus_ = psinfoex.utilization [NVAPI_GPU_UTILIZATION_DOMAIN_BUS];
 
-            stats.gpus [i].loads_percent.gpu =
-              (3 * gpu_.percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
-            stats.gpus [i].loads_percent.fb =
-              (3 *  fb_.percentage * 1000 + stats0.gpus [i].loads_percent.fb)  / 4;
-            stats.gpus [i].loads_percent.vid =
-              (3 * vid_.percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 4;
+            // We have a driver-managed callback getting this stuff for GPU0
+            if (i != 0)
+            {
+              stats.gpus [i].loads_percent.gpu =
+                (3 * gpu_.percentage * 1000 + stats0.gpus [i].loads_percent.gpu) / 4;
+              stats.gpus [i].loads_percent.fb =
+                (3 *  fb_.percentage * 1000 + stats0.gpus [i].loads_percent.fb)  / 4;
+              stats.gpus [i].loads_percent.vid =
+                (3 * vid_.percentage * 1000 + stats0.gpus [i].loads_percent.vid) / 4;
+            }
+
             stats.gpus [i].loads_percent.bus =
               (3 * bus_.percentage * 1000 + stats0.gpus [i].loads_percent.bus) / 4;
 
@@ -240,9 +317,13 @@ SK_GPUPollingThread (LPVOID user)
 
           else
           {
-            stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
-            stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
-            stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+            // We have a driver-managed callback getting this stuff for GPU0
+            if (i != 0)
+            {
+              stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
+              stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
+              stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+            }
             stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
           }
 
@@ -290,9 +371,12 @@ SK_GPUPollingThread (LPVOID user)
         //
         else
         {
-          stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
-          stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
-          stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+          if (i != 0)
+          {
+            stats.gpus [i].loads_percent.gpu = stats0.gpus [i].loads_percent.gpu;
+            stats.gpus [i].loads_percent.fb  = stats0.gpus [i].loads_percent.fb;
+            stats.gpus [i].loads_percent.vid = stats0.gpus [i].loads_percent.vid;
+          }
           stats.gpus [i].loads_percent.bus = stats0.gpus [i].loads_percent.bus;
 
           stats.gpus [i].temps_c.gpu = stats0.gpus [i].temps_c.gpu;
@@ -304,7 +388,7 @@ SK_GPUPollingThread (LPVOID user)
         }
 
 
-        if (stats.gpus [i].amortization.phase0 % 3 == 0)
+        if (stats.gpus [i].amortization.phase0 % 4 == 0)
         {
           NvU32                                                          pcie_lanes = 0;
           if (NVAPI_OK == NvAPI_GPU_GetCurrentPCIEDownstreamWidth (gpu, &pcie_lanes))
@@ -397,7 +481,7 @@ SK_GPUPollingThread (LPVOID user)
           stats.gpus [i].memory_B.nonlocal         = stats0.gpus [i].memory_B.nonlocal;
         }
 
-      //SwitchToThreadMinPageFaults ();
+        SwitchToThreadMinPageFaults ();
 
         if (stats.gpus [i].amortization.phase0++ % 3 == 0)
         {
@@ -592,7 +676,7 @@ SK_GPUPollingThread (LPVOID user)
 
         else stats.gpus [i].has_nv_pstates = false;
 
-      //SwitchToThreadMinPageFaults ();
+        SwitchToThreadMinPageFaults ();
       }
     }
 
@@ -688,10 +772,14 @@ SK_GPUPollingThread (LPVOID user)
     static D3DKMT_ADAPTER_PERFDATA
                    adapterPerfData = { };
 
-    if (rb.adapter.d3dkmt != 0)
+    // There's some weird D3DKMT overhead occasionally, so if nothing is using these stats,
+    //   don't collect them.
+    if (rb.adapter.d3dkmt != 0 && (config.gpu.show || SK_ImGui_Widgets->gpu_monitor->isActive ()))
     {
       if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 1)
       {
+        SwitchToThreadMinPageFaults ();
+
         D3DKMT_ADAPTER_PERFDATA perf_data = { };
         D3DKMT_NODE_PERFDATA    node_data = { };
 
@@ -744,6 +832,8 @@ SK_GPUPollingThread (LPVOID user)
           }
         });
 
+        SwitchToThreadMinPageFaults ();
+
         // Update this less frequently
         static UINT64
                numEngineQueries = 0;
@@ -765,6 +855,8 @@ SK_GPUPollingThread (LPVOID user)
                      std::min ((size_t)queryAdapterInfo.PrivateDriverDataSize,
                                      sizeof (D3DKMT_NODE_PERFDATA)) );
           }
+
+          SwitchToThreadMinPageFaults ();
         }
       }
     }
@@ -827,7 +919,7 @@ SK_GPUPollingThread (LPVOID user)
         SK_timeGetTime ();
 
       static DWORD              dwLastSampled = current_time;
-      if (counter != nullptr && dwLastSampled < current_time - 50UL)
+      if (counter != nullptr && dwLastSampled < current_time - 150UL)
       {
         status =
           PdhCollectQueryData (query);

@@ -202,23 +202,26 @@ public:
       );
     }
 
-    if (last_update < SK::ControlPanel::current_time - update_freq)
+    if (active)
     {
-      SK_PollGPU ();
-
-      static bool        once = false;
-      if (std::exchange (once, true))
+      if (last_update < SK::ControlPanel::current_time - update_freq)
       {
-        core_clock_ghz.addValue ( SK_GPU_GetClockRateInkHz    (0) / 0.001_GHz);
-        vram_clock_ghz.addValue ( SK_GPU_GetMemClockRateInkHz (0) / 0.001_GHz);
-        gpu_load.addValue       ( SK_GPU_GetGPULoad           (0)    );
-        gpu_temp_c.addValue     ( SK_GPU_GetTempInC           (0)    );
-        vram_used_mib.addValue  ( SK_GPU_GetVRAMUsed          (0) / 1.0_MiB);
-    //vram_shared.addValue    (        SK_GPU_GetVRAMShared (0));
-        fan_rpm.addValue        ( (float)SK_GPU_GetFanSpeedRPM(0));
-      }
+        SK_PollGPU ();
 
-      last_update = SK::ControlPanel::current_time;
+        static bool        once = false;
+        if (std::exchange (once, true))
+        {
+          core_clock_ghz.addValue ( SK_GPU_GetClockRateInkHz    (0) / 0.001_GHz);
+          vram_clock_ghz.addValue ( SK_GPU_GetMemClockRateInkHz (0) / 0.001_GHz);
+          gpu_load.addValue       ( SK_GPU_GetGPULoad           (0)    );
+          gpu_temp_c.addValue     ( SK_GPU_GetTempInC           (0)    );
+          vram_used_mib.addValue  ( SK_GPU_GetVRAMUsed          (0) / 1.0_MiB);
+      //vram_shared.addValue    (        SK_GPU_GetVRAMShared (0));
+          fan_rpm.addValue        ( (float)SK_GPU_GetFanSpeedRPM(0));
+        }
+
+        last_update = SK::ControlPanel::current_time;
+      }
     }
   }
 
