@@ -3199,7 +3199,7 @@ auto DeclKeybind =
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
 
-  if (microsoft.d3dkmt.disable_perfdata->load (config.apis.D3DKMT.enable_perfdata));
+  if (microsoft.d3dkmt.disable_perfdata->load (config.apis.D3DKMT.enable_perfdata))
      config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
 

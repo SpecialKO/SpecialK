@@ -6,6 +6,9 @@
       [Microsoft.D3DKMT]
       DisablePerfData={true|false}
 
+        ( This may cause loss of fan speed, temperature, and voltage statistics
+            depending on hardware vendor... Intel and AMD especially )
+
  + Only run GPU stats code for the text OSD if the text OSD is actually visible
 
 23.7.12.2

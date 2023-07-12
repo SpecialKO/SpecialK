@@ -939,9 +939,12 @@ if (gpu_stats != nullptr)
       OSD_G_PRINTF ",              " OSD_END
     }
 
-    OSD_G_PRINTF " %#4u MHz",
-          gpu_stats->gpus [i].clocks_kHz.gpu / 1000UL
-    OSD_END
+    if (gpu_stats->gpus [i].clocks_kHz.gpu >= 1000)
+    {
+      OSD_G_PRINTF " %#4u MHz",
+            gpu_stats->gpus [i].clocks_kHz.gpu / 1000UL
+      OSD_END
+    }
 
     if (gpu_stats->gpus [i].volts_mV.supported)
     {
