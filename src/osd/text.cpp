@@ -646,6 +646,9 @@ SK_DrawOSD (void)
   if (ReadAcquire (&osd_init) == FALSE)
     SK_InstallOSD ();
 
+  if (! config.osd.show)
+    return FALSE;
+
 #if 0
   // Automatically free VRAM cache when it is a bit on the excessive side
   if ((process_stats.memory.page_file_bytes >> 30ULL) > 28) {
@@ -901,7 +904,7 @@ SK_DrawOSD (void)
   }
 
   // Poll GPU stats...
-  if (config.gpu.show || config.mem.show)
+  if (config.gpu.show)
     SK_PollGPU ();
 
   gpu_sensors_t* gpu_stats =

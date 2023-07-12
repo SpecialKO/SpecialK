@@ -1,4 +1,8 @@
-﻿23.7.12.2
+﻿23.7.12.3
+=========
+ + Only run GPU stats code for the text OSD if the text OSD is actually visible
+
+23.7.12.2
 =========
  + Init sensor data storage for DXGI memory budget tracking if GPU monitoring is
      not enabled. (Fixes 0 values on VRAM gauge if CPU/GPU Load% is not enabled)

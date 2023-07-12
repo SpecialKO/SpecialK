@@ -778,7 +778,7 @@ SK_GPUPollingThread (LPVOID user)
 
     // There's some weird D3DKMT overhead occasionally, so if nothing is using these stats,
     //   don't collect them.
-    if (rb.adapter.d3dkmt != 0 && (config.gpu.show || SK_ImGui_Widgets->gpu_monitor->isActive ()))
+    if (rb.adapter.d3dkmt != 0 && ((config.gpu.show && config.osd.show) || SK_ImGui_Widgets->gpu_monitor->isActive ()))
     {
       if (rb.adapter.perf.sampled_frame < SK_GetFramesDrawn () - 1)
       {
