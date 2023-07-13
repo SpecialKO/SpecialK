@@ -2555,7 +2555,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
         else
         {
           const auto qpcResidualInner =
-            SK_QueryPerf ().QuadPart + ( llQPC - SK_QueryPerf ().QuadPart );
+            llQPC;
 
           wait_time.beginBusy ();
 
@@ -2573,8 +2573,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   }
 
   const auto qpcResidualOuter =
-    /*SK_QueryPerf ().QuadPart +*/ (llQPC - SK_QueryPerf ().QuadPart);
-    // V1065 [CWE-682] Expression can be simplified, check 'SK_QueryPerf().QuadPart' and similar operands. SpecialK framerate.cpp 2486
+    llQPC;
 
   wait_time.beginBusy ();
 
