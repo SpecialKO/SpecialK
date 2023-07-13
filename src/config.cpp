@@ -681,6 +681,7 @@ struct {
     sk::ParameterInt*     enforcement_policy      = nullptr;
     sk::ParameterBool*    drop_late_frames        = nullptr;
     sk::ParameterBool*    auto_low_latency        = nullptr;
+    sk::ParameterBool*    auto_vrr_triggered      = nullptr;
     sk::ParameterBool*    auto_low_latency_ex     = nullptr;
     sk::ParameterBool*    auto_low_latency_optin  = nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
@@ -1493,6 +1494,7 @@ auto DeclKeybind =
                                                          L"refresh rate with VSYNC enabled (similar to NV Fast Sync).",dll_ini,         L"Render.DXGI",           L"DropLateFrames"),
     ConfigEntry (render.framerate.auto_low_latency,      L"If G-Sync is seen supported, automatically optimize the"
                                                          L"limiter for low-latency.",                                  dll_ini,         L"Render.DXGI",           L"AutoLowLatency"),
+    ConfigEntry (render.framerate.auto_vrr_triggered,    L"Indicates that Auto VRR activated and has turned off",      dll_ini,         L"Render.DXGI",           L"AutoLowLatencyTriggered"),
     ConfigEntry (render.framerate.auto_low_latency_ex,   L"Auto Low-Latency Mode may add stutter to get lower latency",input_ini,       L"Input.AutoLowLatency",  L"UltraLowLatency"),
     ConfigEntry (render.framerate.auto_low_latency_optin,L"Global policy applied when starting a game the first time", input_ini,       L"Input.AutoLowLatency",  L"DefaultPolicy"),
 
@@ -3356,15 +3358,17 @@ auto DeclKeybind =
 
   render.framerate.drop_late_frames->load  (config.render.framerate.drop_late_flips);
   render.framerate.auto_low_latency_optin->
-                                     load  (config.render.framerate.auto_low_latency_opt);
+                                     load  (config.render.framerate.auto_low_latency.policy.global_opt);
 
   bool auto_low_latency_preset =
-  render.framerate.auto_low_latency->load  (config.render.framerate.auto_low_latency);
+  render.framerate.auto_low_latency->load  (config.render.framerate.auto_low_latency.waiting);
   render.framerate.auto_low_latency_ex->
-                                     load  (config.render.framerate.auto_low_latency_ex);
+                                     load  (config.render.framerate.auto_low_latency.policy.ultra_low_latency);
 
   if (! auto_low_latency_preset)
-    config.render.framerate.auto_low_latency = config.render.framerate.auto_low_latency_opt;
+    config.render.framerate.auto_low_latency.waiting = config.render.framerate.auto_low_latency.policy.global_opt;
+
+  render.framerate.auto_vrr_triggered->load(config.render.framerate.auto_low_latency.triggered);
 
   if (render.framerate.disable_flip_model->load (config.render.framerate.disable_flip))
   {
@@ -4990,9 +4994,10 @@ SK_SaveConfig ( std::wstring name,
       nvidia.sli.override->store                    (config.nvidia.sli.override);
     }
 
-    render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency);
-    render.framerate.auto_low_latency_ex->store   (config.render.framerate.auto_low_latency_ex);
-    render.framerate.auto_low_latency_optin->store(config.render.framerate.auto_low_latency_opt);
+    render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency.waiting);
+    render.framerate.auto_vrr_triggered->store    (config.render.framerate.auto_low_latency.triggered);
+    render.framerate.auto_low_latency_ex->store   (config.render.framerate.auto_low_latency.policy.ultra_low_latency);
+    render.framerate.auto_low_latency_optin->store(config.render.framerate.auto_low_latency.policy.global_opt);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||

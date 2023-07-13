@@ -1,4 +1,14 @@
-﻿23.7.12.4
+﻿23.7.13
+=======
+ + Added experimental AMD Ryzen power saving feature to Latent Sync config,
+     settings are not saved anywhere and the feature only activatesd when
+       opening the Latent Sync config in its current experimental state.
+
+ + AutoVRR Mode turns green and unchecks itself after it activates
+     >> Users with previous config files who activated AutoVRR will not
+          see it in green until they click the checkbox one time.
+
+23.7.12.4
 ========= 
  + Added fallback if NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates fails
  + Added D3DKMT option to SK's Control Panel under Compatibility | HW Monitoring

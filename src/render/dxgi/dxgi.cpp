@@ -1885,7 +1885,7 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     UINT currentBuffer = 0;
 
     bool __WantGSyncUpdate =
-      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible || (SK_GetFramesDrawn () < 120 && config.render.framerate.auto_low_latency) )
+      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible || (SK_GetFramesDrawn () < 120 && config.render.framerate.auto_low_latency.waiting) )
                          && ReadAcquire (&__SK_NVAPI_UpdateGSync) != 0;
 
     if (__WantGSyncUpdate)

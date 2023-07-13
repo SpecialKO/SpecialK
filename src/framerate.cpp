@@ -86,8 +86,26 @@ LONGLONG __SK_LatentSync_FrameInterval =   0LL;
 float    __SK_LatentSync_SwapSecs      =  3.3f;
 int      __SK_LatentSync_Adaptive      =    15;
 
-#define SK_YieldProcessor YieldProcessor
-//#define SK_YieldProcessor (void)
+static unsigned int _AMD_WaitCycles = 0UL;
+
+__forceinline
+static void
+SK_AMD_MWAITX (void)
+{
+  static alignas(64) uint64_t monitor = 0ULL;
+
+  _mm_monitorx (&monitor, 0, 0);
+  _mm_mwaitx   (1U << 1,  0, _AMD_WaitCycles);
+}
+
+__forceinline
+static void
+SK_YieldProcessor (void)
+{
+  if (_AMD_WaitCycles > 0)
+    SK_AMD_MWAITX ();
+  else YieldProcessor ();
+}
 
 struct {
 #define _MAX_WAIT_SAMPLES 120
@@ -424,6 +442,15 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
         ImGui::EndTooltip   ();
+      }
+
+      extern bool
+          SK_CPU_IsZen (bool retest = false);
+      if (SK_CPU_IsZen ()) {              SK_RunOnce (_AMD_WaitCycles = 20000UL);
+        ImGui::InputInt ("AMD MWAITX Cycles", (int *)&_AMD_WaitCycles);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Experimental Power Saving Feature For AMD CPUs; Set to 0 to Disable.");
       }
 
       ImGui::Separator ();
@@ -1776,16 +1803,16 @@ SK::Framerate::Limiter::wait (void)
           SK_SleepEx (1, FALSE);
       }
 
-      if (++time_ % 5 < 3)
-        SK_YieldProcessor ();
-      else  time_ =
-          SK_QueryPerf ().QuadPart;
+      SK_YieldProcessor ();
+
+      time_ =
+        SK_QueryPerf ().QuadPart;
     }
 
     wait_time.endBusy ();
   }
 
-  else
+  else [[unlikely]]
   {
     SK_LOG0 ( ( L"Framerate limiter lost time?! (non-monotonic clock)" ),
                 L"FrameLimit" );

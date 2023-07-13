@@ -607,17 +607,20 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
   auto _EvaluateAutoLowLatency = [&]()
   {
     // Opt-in to Auto-Low Latency the first time this is seen
-    if (capable && active && config.render.framerate.auto_low_latency &&
+    if (capable && active && config.render.framerate.auto_low_latency.waiting &&
                              config.render.framerate.present_interval != 0)
     {
       config.nvidia.reflex.enable                 = true;
       config.nvidia.reflex.low_latency            = true;
       config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
-      config.render.framerate.auto_low_latency    = false;
+      config.render.framerate.auto_low_latency.
+                                          waiting = false;
+      config.render.framerate.auto_low_latency.
+                                        triggered = true;
       // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
 
       // Use the Low-Latency Limiter mode, even though it might cause stutter.
-      if (config.render.framerate.auto_low_latency_ex)
+      if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
       {
         config.nvidia.reflex.low_latency_boost     = true;
         config.nvidia.reflex.marker_optimization   = true;
