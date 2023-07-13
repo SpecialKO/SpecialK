@@ -95,7 +95,7 @@ SK_AMD_MWAITX (void)
   static alignas(64) uint64_t monitor = 0ULL;
 
   _mm_monitorx (&monitor, 0, 0);
-  _mm_mwaitx   (1U << 1,  0, _AMD_WaitCycles);
+  _mm_mwaitx   (0x2, 0, _AMD_WaitCycles);
 }
 
 __forceinline
@@ -470,15 +470,6 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
         ImGui::EndTooltip   ();
-      }
-
-      extern bool
-          SK_CPU_IsZen (bool retest = false);
-      if (SK_CPU_IsZen ()) {              SK_RunOnce (_AMD_WaitCycles = 20000UL);
-        ImGui::InputInt ("AMD MWAITX Cycles", (int *)&_AMD_WaitCycles);
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Experimental Power Saving Feature For AMD CPUs; Set to 0 to Disable.");
       }
 
       ImGui::Separator ();
@@ -1603,7 +1594,7 @@ SK::Framerate::Limiter::wait (void)
 
     // First use a kernel-waitable timer to scrub off most of the
     //   wait time without completely gobbling up a CPU core.
-    if ( timer_wait.isValid () && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875/* && ( config.render.framerate.present_interval != 0 || (! __scanline.locked) )*/ ) )
+    if ( timer_wait.isValid () && (to_next_in_secs * 1000.0 >= timer_res_ms * 2.875) )
     {
       // Schedule the wait period just shy of the timer resolution determined
       //   by NtQueryTimerResolution (...). Excess wait time will be handled by
@@ -1699,7 +1690,6 @@ SK::Framerate::Limiter::wait (void)
 
           if (hSwapWait.isValid ())
               hSwapWait.Close   ();
-
 
           wait_time.endSleep ();
 
@@ -2520,64 +2510,40 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
          : SetWaitableTimer   ( hTimer, &liDelay,
                                           0, nullptr, nullptr,
                                              FALSE ) )
-    {
-      DWORD  dwWait  = WAIT_FAILED;
-      while (dwWait != WAIT_OBJECT_0)
+    { 
+      if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 2.0)
       {
-        if (static_cast <double> (-liDelay.QuadPart) / 10000.0 > SK::Framerate::Limiter::timer_res_ms * 2.0)
+        to_next_in_secs =
+          static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
+          static_cast <double> (SK_QpcFreq);
+
+        liDelay.QuadPart =
+          -(static_cast <LONGLONG> (to_next_in_secs * duS));
+
+        wait_time.beginSleep ();
+
+        DWORD dwWait =
+          SK_WaitForSingleObject_Micro (hTimer, &liDelay);
+
+        wait_time.endSleep ();
+
+        if ( dwWait != WAIT_OBJECT_0     &&
+             dwWait != WAIT_OBJECT_0 + 1 &&
+             dwWait != WAIT_TIMEOUT ) [[unlikely]]
         {
-          to_next_in_secs =
-            static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
-            static_cast <double> (SK_QpcFreq);
+          const DWORD dwLastError =
+            GetLastError ();
 
-          liDelay.QuadPart =
-            -(static_cast <LONGLONG> (to_next_in_secs * duS));
-
-          wait_time.beginSleep ();
-
-          dwWait =
-            SK_WaitForSingleObject_Micro (hTimer, &liDelay);
-
-          wait_time.endSleep ();
-
-          if ( dwWait != WAIT_OBJECT_0     &&
-               dwWait != WAIT_OBJECT_0 + 1 &&
-               dwWait != WAIT_TIMEOUT )
-          {
-            const DWORD dwLastError =
-              GetLastError ();
-
-            dll_log->Log (L"[SK_Framerate_WaitUntilQPC] Result of WaitForSingleObject:"
-                          L" %x (GetLastError: %x)", dwWait, dwLastError);
-          }
+          dll_log->Log (L"[SK_Framerate_WaitUntilQPC] Result of WaitForSingleObject:"
+                        L" %x (GetLastError: %x)", dwWait, dwLastError);
         }
-
-        else
-        {
-          const auto qpcResidualInner =
-            llQPC;
-
-          wait_time.beginBusy ();
-
-          while ( SK_QueryPerf ().QuadPart < qpcResidualInner )
-            SK_YieldProcessor ();
-
-          wait_time.endBusy ();
-
-          return;
-        }
-
-        break;
       }
     }
   }
 
-  const auto qpcResidualOuter =
-    llQPC;
-
   wait_time.beginBusy ();
 
-  while ( SK_QueryPerf ().QuadPart < qpcResidualOuter )
+  while (SK_QueryPerf ().QuadPart < llQPC)
     SK_YieldProcessor ();
 
   wait_time.endBusy ();
@@ -2592,4 +2558,58 @@ SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
                  static_cast <double> (SK_QpcTicksPerMs) +
                 (static_cast <double> (ticks_per_frame) /
                  static_cast <double> (SK_QpcTicksPerMs)) * (std::max (1.0f, ticks) - 1.0f) );
+}
+
+
+
+void
+SK_Framerate_EnergyControlPanel (void)
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  ImGui::Separator  ();
+
+  if (ImGui::TreeNode ("Energy Efficiency"))
+  {
+    extern bool SK_CPU_IsZen (bool retest = false);
+
+    if (ImGui::Button ("Traditional Tuning"))
+    {
+      fSwapWaitRatio = 3.33f;
+      fSwapWaitFract = 0.66f;
+
+      _AMD_WaitCycles = 0UL;
+    }
+
+    ImGui::SameLine ();
+
+    if (ImGui::Button ("Efficiency Tuning"))
+    {
+      fSwapWaitRatio = 0.32f;
+      fSwapWaitFract = 0.91f;
+
+      if (SK_CPU_IsZen ())
+        _AMD_WaitCycles = 75000UL;
+    }
+
+    if (SK_CPU_IsZen ()) {
+      ImGui::SliderInt ("AMD MWAITX Cycles", (int *)&_AMD_WaitCycles, 0, 500000UL);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Experimental Power Saving Feature For AMD CPUs; Set to 0 to Disable.");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
+        ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);
+    ImGui::SliderFloat ("Sleep Threshold",       &fSwapWaitFract, 0.0f, 1.0f);
+
+    ImGui::TreePop    ();
+  }
 }

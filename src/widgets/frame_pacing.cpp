@@ -1045,7 +1045,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     else
     {
       ImGui::TextUnformatted (
-        "Presentation Model Tracking Unvailable"
+        "Presentation Model Tracking Unavailable"
       );
     }
 

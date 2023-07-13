@@ -4539,6 +4539,12 @@ SK_DXGI_CreateSwapChain_PreInit (
   DXGI_SWAP_CHAIN_DESC stub_desc  = {   };
   bool                 translated = false;
 
+  // If forcing flip-model, kill multisampling (of primary framebuffer)
+  if (config.render.framerate.flip_discard)
+  {
+    bFlipMode =
+      dxgi_caps.present.flip_sequential;
+  }
 
   auto _DescribeSwapChain = [&](const wchar_t* wszLabel) noexcept -> void
   {
@@ -4598,14 +4604,6 @@ SK_DXGI_CreateSwapChain_PreInit (
               L"<Unknown>" );
   };
 
-
-  // If forcing flip-model, kill multisampling (of primary framebuffer)
-  if (config.render.framerate.flip_discard)
-  {
-    bFlipMode =
-      dxgi_caps.present.flip_sequential;
-  }
-
   if (pDesc1 != nullptr)
   {
     if (pDesc == nullptr)
@@ -4657,6 +4655,16 @@ SK_DXGI_CreateSwapChain_PreInit (
     {
       // Elex 2 needs this or its fullscreen options don't work
       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    }
+
+    // Turn off SK's Waitable SwapChain override, the game's already using it!
+    if (pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    {
+      config.render.framerate.swapchain_wait = 0;
+
+      SK_LOGi0 (
+        L"* Disabling Latency Waitable SwapChain Override; game is already using one!"
+      );
     }
 
 

@@ -1,4 +1,9 @@
-﻿23.7.13.1
+﻿23.7.13.2
+=========
+ + Prevent users from forcing a waitable SwapChain in games that already use it
+ + Added Efficiency section to Framerate Limiter | Advanced
+
+23.7.13.1
 =========
  + Added tooltips to framepacing widget's Presentation Model status line
 

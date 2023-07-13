@@ -2598,6 +2598,8 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 extern void SK_ImGui_DrawGraph_Latency     (void);
 extern void SK_ImGui_DrawConfig_Latency    (void);
 
+extern void SK_Framerate_EnergyControlPanel (void);
+
 void
 SK_NV_LatencyControlPanel (void)
 {
@@ -5266,6 +5268,8 @@ SK_ImGui_ControlPanel (void)
               }
             }
           }
+
+          SK_Framerate_EnergyControlPanel ();
 
           SK_NV_LatencyControlPanel ();
         }
