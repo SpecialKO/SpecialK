@@ -29,6 +29,7 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 #include <imgui/font_awesome.h>
 
 #include <SpecialK/adl.h>
+#include <SpecialK/render/present_mon/PresentMon.hpp>
 
 #include <Pdh.h>
 #include <PdhMsg.h>
@@ -322,9 +323,6 @@ extern bool StopTraceSession   (void);
 
 HANDLE __SK_ETW_PresentMon_Thread = INVALID_HANDLE_VALUE;
 
-char          SK_PresentDebugStr [2][256] = { "", "" };
-volatile LONG SK_PresentIdx               =          0;
-
 void
 SK_SpawnPresentMonWorker (void)
 {
@@ -335,10 +333,6 @@ SK_SpawnPresentMonWorker (void)
   // User Permissions do not permit PresentMon
   if (! config.render.framerate.supports_etw_trace)
   {
-    strcpy ( SK_PresentDebugStr [0],
-               "Presentation Model Unknown  (Full SK Install is Required)"
-    );
-
     return;
   }
 
@@ -949,16 +943,111 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   SK_SpawnPresentMonWorker ();
 
-  auto presentStrIdx =
-    ReadAcquire (&SK_PresentIdx);
-
-  if (*SK_PresentDebugStr [presentStrIdx] != '\0')
+  if (rb.presentation.mode != SK_PresentMode::Unknown)
   {
     extra_status_line = 1;
 
-    ImGui::TextUnformatted (
-      SK_PresentDebugStr [presentStrIdx]
+    const bool fast_path =
+      ( rb.presentation.mode == PresentMode::Hardware_Legacy_Flip                 ) ||
+      ( rb.presentation.mode == PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ) ||
+      ( rb.presentation.mode == PresentMode::Hardware_Independent_Flip            ) ||
+      ( rb.presentation.mode == PresentMode::Hardware_Composed_Independent_Flip   );
+
+    static constexpr char* pszHourglasses [] = {
+      ICON_FA_HOURGLASS_START,
+      ICON_FA_HOURGLASS_HALF,
+      ICON_FA_HOURGLASS_END,
+      ICON_FA_HOURGLASS_HALF,
+    };
+
+    const char* szHourglass =
+      pszHourglasses [
+        (SK::ControlPanel::current_time % 4000) / 1000
+      ];
+
+    ImGui::Text (
+      " " ICON_FA_LINK "  %8ws    ", rb.name
     );
+
+    ImGui::SameLine ();
+
+    ImGui::Text (
+      "%s%s    ", fast_path ? ICON_FA_TACHOMETER_ALT       " "
+                            : ICON_FA_EXCLAMATION_TRIANGLE " ",
+        PresentModeToString (rb.presentation.mode)
+    );
+
+    ImGui::SameLine ();
+
+    ImGui::Text (
+      "%hs %5.2f ms    ",
+        szHourglass, rb.presentation.avg_stats.latency * 1000.0
+    );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::BeginGroup      ();
+      ImGui::TextUnformatted ("Present Latency:      ");
+      ImGui::TextUnformatted ("GPU Idle Time:        ");
+      ImGui::TextUnformatted ("Frame Time (Display): ");
+      ImGui::TextUnformatted ("Frame Time (CPU):     ");
+      ImGui::EndGroup        ();
+      ImGui::SameLine        ();
+      ImGui::BeginGroup      ();
+      ImGui::Text            ("%5.2f ms", rb.presentation.avg_stats.latency * 1000.0);
+      ImGui::Text            ("%5.2f ms", rb.presentation.avg_stats.idle    * 1000.0);
+      ImGui::Text            ("%5.2f ms", rb.presentation.avg_stats.display * 1000.0);
+      ImGui::Text            ("%5.2f ms", rb.presentation.avg_stats.cpu     * 1000.0);
+      ImGui::EndGroup        ();
+      ImGui::EndTooltip      ();
+    }
+
+    ImGui::SameLine ();
+
+    extern float
+        SK_Framerate_GetBusyWaitPercent (void);
+    if (SK_Framerate_GetBusyWaitPercent () > 0.0 && SK_Framerate_GetBusyWaitPercent () <= 100.0)
+    {
+      extern float SK_Framerate_GetBusyWaitMs (void);
+      extern float SK_Framerate_GetSleepWaitMs (void);
+
+      ImGui::Text (
+        ICON_FA_MICROCHIP " %3.1f%%", SK_Framerate_GetBusyWaitPercent ()
+      );
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text ("Framerate Limiter CPU busy-wait; lower values are more energy efficient.");
+        ImGui::Separator ();
+        ImGui::Text ("Average Wait Time: %5.2f ms", SK_Framerate_GetBusyWaitMs  () +
+                                                               SK_Framerate_GetSleepWaitMs ());
+        ImGui::BulletText ("Sleep-Wait:\t%5.2f ms", SK_Framerate_GetSleepWaitMs ());
+        ImGui::BulletText ("Busy-Wait: \t%5.2f ms", SK_Framerate_GetBusyWaitMs  ());
+        ImGui::EndTooltip ();
+      }
+
+      ImGui::SameLine ();
+    }
+  }
+
+  else
+  {
+    // User Permissions do not permit PresentMon
+    if (! config.render.framerate.supports_etw_trace)
+    {
+      ImGui::TextUnformatted (
+        "Presentation Model Unknown  (Full SK Install is Required)"
+      );
+    }
+
+    else
+    {
+      ImGui::TextUnformatted (
+        "Presentation Model Tracking Unvailable"
+      );
+    }
 
     ImGui::SameLine ();
   }

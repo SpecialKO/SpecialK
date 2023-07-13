@@ -1,4 +1,8 @@
-﻿23.7.13
+﻿23.7.13.1
+=========
+ + Added tooltips to framepacing widget's Presentation Model status line
+
+23.7.13
 =======
  + Added experimental AMD Ryzen power saving feature to Latent Sync config,
      settings are not saved anywhere and the feature only activatesd when

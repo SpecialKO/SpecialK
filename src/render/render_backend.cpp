@@ -696,24 +696,24 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
           if (rb.gsync_state.capable)
           {
-            if (rb.present_mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
-                rb.present_mode == SK_PresentMode::Hardware_Independent_Flip            ||
-                rb.present_mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
-                rb.present_mode == SK_PresentMode::Hardware_Legacy_Flip)
+            if (rb.presentation.mode == SK_PresentMode::Hardware_Composed_Independent_Flip   ||
+                rb.presentation.mode == SK_PresentMode::Hardware_Independent_Flip            ||
+                rb.presentation.mode == SK_PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ||
+                rb.presentation.mode == SK_PresentMode::Hardware_Legacy_Flip)
             {
               rb.gsync_state.active =
                 (rb.present_interval < 2);
             }
             else
             {
-              if (rb.present_mode == SK_PresentMode::Composed_Flip         ||
-                  rb.present_mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
-                  rb.present_mode == SK_PresentMode::Composed_Copy_CPU_GDI)
+              if (rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
+                  rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI ||
+                  rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI)
               {
                 rb.gsync_state.active = false;
               }
 
-              if (rb.present_mode == SK_PresentMode::Unknown)
+              if (rb.presentation.mode == SK_PresentMode::Unknown)
                 rb.gsync_state.maybe_active = true;
             }
           }

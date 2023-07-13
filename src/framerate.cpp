@@ -162,12 +162,40 @@ struct {
            static_cast <double> (busy  +
                                  sleep) ) );
   }
+
+  float getBusyMs (void) noexcept
+  {
+    return static_cast < float> (1000.0 *
+         ( static_cast <double> (busy) /
+           static_cast <double> (SK_QpcFreq) ) ) /
+           static_cast < float> (SK_GetFramesDrawn () - last_rollover);
+  }
+
+  float getSleepMs (void) noexcept
+  {
+    return static_cast < float> (1000.0 *
+         ( static_cast <double> (sleep) /
+           static_cast <double> (SK_QpcFreq) ) ) /
+           static_cast < float> (SK_GetFramesDrawn () - last_rollover);
+  }
 } wait_time;
 
 float SK_Framerate_GetBusyWaitPercent (void) noexcept
 {
   return
     wait_time.getBusyPercent ();
+}
+
+float SK_Framerate_GetBusyWaitMs (void) noexcept
+{
+  return
+    wait_time.getBusyMs ();
+}
+
+float SK_Framerate_GetSleepWaitMs (void) noexcept
+{
+  return
+    wait_time.getSleepMs ();
 }
 
 void SK_LatentSync_BeginSwap (void) noexcept

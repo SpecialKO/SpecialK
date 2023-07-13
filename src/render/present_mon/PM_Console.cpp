@@ -22,10 +22,6 @@ SOFTWARE.
 
 #include <SpecialK/render/present_mon/PresentMon.hpp>
 #include <SpecialK/utility.h>
-#include <imgui/font_awesome.h>
-
-extern char          SK_PresentDebugStr [2][256];
-extern volatile LONG SK_PresentIdx;
 
 #include <SpecialK/render/backend.h>
 
@@ -42,10 +38,6 @@ UpdateConsole ( uint32_t           processId,
     return;
   }
 
-  auto empty = true;
-
-  static char szRuntime [16] = { };
-
   for ( auto const& pair : processInfo.mSwapChain )
   {
   //auto        address = pair.first;
@@ -56,144 +48,101 @@ UpdateConsole ( uint32_t           processId,
     if (chain.mPresentHistoryCount < 2)
       continue;
 
-    //auto const& present0 =
-    //  *chain.mPresentHistory [
-    //  (chain.mNextPresentIndex - chain.mPresentHistoryCount) %
-    //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
-    //                         ];
-    //auto const& presentN =
-    //  *chain.mPresentHistory [
-    //  (chain.mNextPresentIndex - 1)                          %
-    //                         SwapChainData::PRESENT_HISTORY_MAX_COUNT
-    //                         ];
+    auto const& present0 =
+      *chain.mPresentHistory [
+      (chain.mNextPresentIndex - chain.mPresentHistoryCount) %
+                             SwapChainData::PRESENT_HISTORY_MAX_COUNT
+                             ];
+    auto const& presentN =
+      *chain.mPresentHistory [
+      (chain.mNextPresentIndex - 1)                          %
+                             SwapChainData::PRESENT_HISTORY_MAX_COUNT
+                             ];
 
-  //auto cpuAvg =
-  //  QpcDeltaToSeconds (presentN.QpcTime - present0.QpcTime) /
-  //                           (chain.mPresentHistoryCount - 1);
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    auto cpuAvg  =
+      QpcDeltaToSeconds (presentN.QpcTime - present0.QpcTime) /
+                               (chain.mPresentHistoryCount - 1);
     auto dspAvg  = 0.0;
     auto latAvg  = 0.0;
     auto idleAvg = 0.0;
 
     PresentEvent* displayN = nullptr;
 
-    ///if (args.mTrackDisplay)
-    ///if (true)
+    uint64_t display0ScreenTime = 0;
+    uint64_t latSum             = 0;
+    uint64_t idleSum            = 0;
+    uint32_t displayCount       = 0;
+
+    for ( uint32_t i = 0                          ;
+                   i < chain.mPresentHistoryCount ;
+                 ++i )
     {
-      uint64_t display0ScreenTime = 0;
-      uint64_t latSum             = 0;
-      uint64_t idleSum            = 0;
-      uint32_t displayCount       = 0;
+      auto const& p =
+        chain.mPresentHistory [
+          (chain.mNextPresentIndex - chain.mPresentHistoryCount + i) %
+                                 SwapChainData::PRESENT_HISTORY_MAX_COUNT
+                              ];
 
-      for ( uint32_t i = 0                          ;
-                     i < chain.mPresentHistoryCount ;
-                   ++i )
+      static auto *pLast = p.get ();
+
+      if (p->FinalState == PresentResult::Presented)
       {
-        auto const& p =
-          chain.mPresentHistory [
-            (chain.mNextPresentIndex - chain.mPresentHistoryCount + i) %
-                                   SwapChainData::PRESENT_HISTORY_MAX_COUNT
-                                ];
-
-        if (p->FinalState == PresentResult::Presented)
+        if (displayCount == 0)
         {
-          if (displayCount == 0)
-          {
-            display0ScreenTime = p->ScreenTime;
-          }
-
-          displayN  = p.get ();
-           latSum  += p->ScreenTime - p->QpcTime;
-           idleSum += p->ScreenTime - p->ReadyTime;
-
-          displayCount++;
+          display0ScreenTime = p->ScreenTime;
         }
-      }
 
-      if (displayCount >= 2)
-      {
-        dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
-                                                            (displayCount - 1);
-      }
+        displayN  = p.get ();
+         latSum  += p->ScreenTime - p->QpcTime;
+         idleSum += p->ScreenTime - p->ReadyTime;
 
-      if (displayCount >= 1)
-      {
-        latAvg  = QpcDeltaToSeconds (latSum)                / displayCount;
-        idleAvg = QpcDeltaToSeconds (idleSum)               / displayCount;
-      }
+        displayCount++;
 
-      if (displayCount >  0)
-        std::exchange (empty, false);
+        auto frame_id =
+          ( ++rb.presentation.frames_presented % ARRAYSIZE (rb.presentation.history) );
+
+        auto &frame_record =
+          rb.presentation.history [frame_id];
+
+        frame_record.mode                          = p->PresentMode;
+        frame_record.timestamps.qpcPresented       = p->QpcTime;
+        frame_record.timestamps.qpcGPUFinished     = p->ReadyTime;
+        frame_record.timestamps.qpcScannedOut      = p->ScreenTime;
+        frame_record.timestamps.qpcPresentOverhead = p->TimeTaken;
+
+        frame_record.stats.display = QpcDeltaToSeconds (p->ScreenTime - pLast->ScreenTime);
+        frame_record.stats.cpu     = QpcDeltaToSeconds (p->QpcTime    -    pLast->QpcTime);
+        frame_record.stats.idle    = QpcDeltaToSeconds (p->ScreenTime -      p->ReadyTime);
+        frame_record.stats.latency = QpcDeltaToSeconds (p->ScreenTime -        p->QpcTime);
+
+        pLast = p.get ();
+      }
     }
 
-    int idx =
-      (ReadAcquire (&SK_PresentIdx) + 1) % 2;
+    if (displayCount >= 2)
+    {
+      dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
+                                                          (displayCount - 1);
+    }
 
-    std::string_view
-      present_debug_view (
-        SK_PresentDebugStr [idx], 256);
-
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
-
-    std::chrono::time_point <std::chrono::system_clock> now =
-      std::chrono::system_clock::now ();
-
-    static constexpr char* pszHourglasses [] = {
-      ICON_FA_HOURGLASS_START,
-      ICON_FA_HOURGLASS_HALF,
-      ICON_FA_HOURGLASS_END,
-      ICON_FA_HOURGLASS_HALF,
-    };
-
-    const char* szHourglass =
-      pszHourglasses [
-        (std::chrono::duration_cast <std::chrono::milliseconds> (
-          now.time_since_epoch ()).count () % 4000) / 1000
-      ];
+    if (displayCount >= 1)
+    {
+      latAvg  = QpcDeltaToSeconds (latSum)                / displayCount;
+      idleAvg = QpcDeltaToSeconds (idleSum)               / displayCount;
+    }
 
     if (displayN != nullptr)
     {
-      const bool fast_path =
-        ( displayN->PresentMode == PresentMode::Hardware_Legacy_Flip                 ) ||
-        ( displayN->PresentMode == PresentMode::Hardware_Legacy_Copy_To_Front_Buffer ) ||
-        ( displayN->PresentMode == PresentMode::Hardware_Independent_Flip            ) ||
-        ( displayN->PresentMode == PresentMode::Hardware_Composed_Independent_Flip   );
+      rb.presentation.mode              = displayN->PresentMode;
 
-      rb.present_mode = displayN->PresentMode;
-
-      SK_FormatStringView (
-          present_debug_view,
-            " " ICON_FA_LINK "  %8ws    %s%s    ",
-              rb.name, fast_path ? ICON_FA_TACHOMETER_ALT       " "
-                                 : ICON_FA_EXCLAMATION_TRIANGLE " ",
-                PresentModeToString (displayN->PresentMode)
-                          );
-
-      SK_FormatStringView (
-          present_debug_view, "%hs%s %5.2f ms    ",
-          present_debug_view.data (),  szHourglass,
-                latAvg * 1000.0
-                          );
-
-      extern float
-          SK_Framerate_GetBusyWaitPercent (void);
-      if (SK_Framerate_GetBusyWaitPercent () > 0.0 && SK_Framerate_GetBusyWaitPercent () <= 100.0)
-      {
-        SK_FormatStringView (
-          present_debug_view, "%hs" //ICON_FA_STOPWATCH " %5.2f ms",
-                                      ICON_FA_MICROCHIP " %3.1f%%",
-          present_debug_view.data (),
-                SK_Framerate_GetBusyWaitPercent ()//idleAvg * 1000.0//1.0 / dspAvg
-                            );
-      }
+      rb.presentation.avg_stats.cpu     = cpuAvg;
+      rb.presentation.avg_stats.latency = latAvg;
+      rb.presentation.avg_stats.display = dspAvg;
+      rb.presentation.avg_stats.idle    = idleAvg;
     }
-  }
-
-  if (! empty)
-  {
-    WriteRelease (&SK_PresentIdx, (
-     ReadAcquire (&SK_PresentIdx) + 1
-                                  ) % 2);
   }
 }
 

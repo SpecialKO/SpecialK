@@ -211,7 +211,32 @@ public:
   bool                    driver_based_hdr     = false;
   SK_ColorSpace           display_gamut;       // EDID
   SK_ColorSpace           working_gamut;       // Metadata range
-  SK_PresentMode          present_mode         = SK_PresentMode::Unknown;
+
+  struct {
+    SK_PresentMode        mode                 = SK_PresentMode::Unknown;
+
+    struct stats_s {
+      double              latency              = 0.0L;
+      double              display              = 0.0L;
+      double              idle                 = 0.0L;
+      double              cpu                  = 0.0L;
+    } avg_stats;
+
+    struct {
+      SK_PresentMode      mode                 = SK_PresentMode::Unknown;
+
+      struct {
+        LONG64            qpcPresented         = 0LL;
+        LONG64            qpcGPUFinished       = 0LL;
+        LONG64            qpcScannedOut        = 0LL;
+        LONG64            qpcPresentOverhead   = 0LL;
+      } timestamps;
+
+      stats_s             stats                = { 0.0L };
+    } history [360];
+
+    ULONG64               frames_presented     = 0ULL;
+  } presentation;
 
   struct output_s {
     UINT                  idx                  =   0;
