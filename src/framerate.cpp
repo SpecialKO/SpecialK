@@ -86,24 +86,32 @@ LONGLONG __SK_LatentSync_FrameInterval =   0LL;
 float    __SK_LatentSync_SwapSecs      =  3.3f;
 int      __SK_LatentSync_Adaptive      =    15;
 
+extern bool SK_CPU_IsZen (void);
+
 static unsigned int _AMD_WaitCycles = 0UL;
 
 __forceinline
 static void
-SK_AMD_MWAITX (void)
+SK_AMD_MWAITX (INT64 qpcTarget = 0)
 {
+  if (_AMD_WaitCycles == 0)
+    return YieldProcessor ();
+
   static alignas(64) uint64_t monitor = 0ULL;
 
   _mm_monitorx (&monitor, 0, 0);
-  _mm_mwaitx   (0x2, 0, _AMD_WaitCycles);
+  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * 300 : _AMD_WaitCycles);
 }
 
 __forceinline
 static void
-SK_YieldProcessor (void)
+SK_YieldProcessor (INT64 qpcTarget = 0)
 {
-  if (_AMD_WaitCycles > 0)
-    SK_AMD_MWAITX ();
+  static const bool bIsZen =
+    SK_CPU_IsZen ();
+
+  if (bIsZen)
+    SK_AMD_MWAITX (qpcTarget);
   else YieldProcessor ();
 }
 
@@ -1180,7 +1188,7 @@ struct qpc_interval_s {
       getNextBegin (qpcNow);
 
     while (SK_QueryPerf ().QuadPart < qpcNext)
-      SK_YieldProcessor ();
+      SK_YieldProcessor (qpcNext - SK_QueryPerf ().QuadPart);
   }
 
   void waitForEnd (void) noexcept
@@ -1192,7 +1200,7 @@ struct qpc_interval_s {
       getNextEnd (qpcNow);
 
     while (SK_QueryPerf ().QuadPart < qpcNext)
-      SK_YieldProcessor ();
+      SK_YieldProcessor (qpcNext - SK_QueryPerf ().QuadPart);
   }
 } __VBlank;
 
@@ -1821,7 +1829,7 @@ SK::Framerate::Limiter::wait (void)
           SK_SleepEx (1, FALSE);
       }
 
-      SK_YieldProcessor ();
+      SK_YieldProcessor (next_ - SK_QueryPerf ().QuadPart);
 
       time_ =
         SK_QueryPerf ().QuadPart;
@@ -2544,7 +2552,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   wait_time.beginBusy ();
 
   while (SK_QueryPerf ().QuadPart < llQPC)
-    SK_YieldProcessor ();
+    SK_YieldProcessor (llQPC - SK_QueryPerf ().QuadPart);
 
   wait_time.endBusy ();
 }
@@ -2570,11 +2578,48 @@ SK_Framerate_EnergyControlPanel (void)
 
   ImGui::Separator  ();
 
-  if (ImGui::TreeNode ("Energy Efficiency"))
-  {
-    extern bool SK_CPU_IsZen (bool retest = false);
+  bool bNodeOpen =
+    ImGui::TreeNode ("Energy Efficiency");
 
-    if (ImGui::Button ("Traditional Tuning"))
+  if (ImGui::IsItemHovered ())
+    ImGui::SetTooltip ("None of these settings are saved, they are all for temporary testing.");
+
+  if (bNodeOpen)
+  {
+    if (SK_CPU_IsZen ())
+    {
+      bool bUseAMDWAITX =
+        _AMD_WaitCycles != 0;
+
+      if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
+      {
+        _AMD_WaitCycles = bUseAMDWAITX ? 1 : 0;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Experimental Power Saving Feature For AMD CPUs");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
+        ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
+        ImGui::Separator    ();
+        ImGui::Text         (ICON_FA_INFO_CIRCLE " For best results, install Special K's Sensor Driver using SKIF.");
+        ImGui::EndTooltip   ();
+      }
+
+      // Run the CPU statistics
+      SK_ImGui_Widgets->cpu_monitor->setActive (true);
+      SK_RunOnce (SK_ImGui_Widgets->cpu_monitor->draw ());
+
+      extern void SK_ImGui_DrawCPUTemperature (void);
+      extern void SK_ImGui_DrawCPUPower       (void);
+
+      SK_ImGui_DrawCPUTemperature ();
+      SK_ImGui_DrawCPUPower       ();
+    }
+
+    if (ImGui::Button ("Traditional Busy-Wait"))
     {
       fSwapWaitRatio = 3.33f;
       fSwapWaitFract = 0.66f;
@@ -2584,27 +2629,13 @@ SK_Framerate_EnergyControlPanel (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Button ("Efficiency Tuning"))
+    if (ImGui::Button ("Relaxed Busy-Wait"))
     {
       fSwapWaitRatio = 0.32f;
       fSwapWaitFract = 0.91f;
 
       if (SK_CPU_IsZen ())
-        _AMD_WaitCycles = 75000UL;
-    }
-
-    if (SK_CPU_IsZen ()) {
-      ImGui::SliderInt ("AMD MWAITX Cycles", (int *)&_AMD_WaitCycles, 0, 500000UL);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Experimental Power Saving Feature For AMD CPUs; Set to 0 to Disable.");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
-        ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
-        ImGui::EndTooltip   ();
-      }
+        _AMD_WaitCycles = 1UL;
     }
 
     ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);

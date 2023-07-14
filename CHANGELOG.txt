@@ -1,4 +1,12 @@
-﻿23.7.13.2
+﻿23.7.14
+=======
+ + AMD Ryzen power-saving features are completely automated now, and simply on/off
+ + AMD Ryzen power-saving features do not require WinRing0 anymore, but it still
+     helps if you intend to monitor the impact of the option in real-time
+ + Added CPU temperature and power consumption to Framerate Limiter | Efficiency
+     section for Ryzen users w/ WinRing0 instealled
+
+23.7.13.2
 =========
  + Prevent users from forcing a waitable SwapChain in games that already use it
  + Added Efficiency section to Framerate Limiter | Advanced
