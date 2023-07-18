@@ -24,6 +24,7 @@
 #include <Unknwnbase.h>
 
 #include <Windows.h>
+#include <powerbase.h>
 #include <string>
 #include <set>
 #include <unordered_set>
@@ -99,6 +100,36 @@ struct sk_config_t
 
     SK_QpcFreq       = liQpcFreq.QuadPart;
     SK_QpcTicksPerMs = SK_QpcFreq / 1000LL;
+    SK_PerfFreq      = SK_QpcFreq;
+
+    PROCESSOR_POWER_INFORMATION pwi [64] = { };
+
+    // Setup TSC-based timing instead of QPC when applicable
+    //   (i.e. CPU has invariant timestamps)
+    if ( 0x0 == 
+           CallNtPowerInformation (ProcessorInformation, nullptr, 0, pwi, sizeof (pwi)) )
+    {
+      int      cpuid [4] = { };
+      __cpuid (cpuid, 0x80000007);
+
+      SK_TscFreq =
+        (1000ULL * 1000ULL * pwi [0].MaxMhz);
+
+      SK_QpcFreqInTsc = (DWORD)(SK_TscFreq / SK_QpcFreq);
+
+      SK_TscInvariant =
+        (cpuid [3] & (1 << 8)) != 0;
+
+      SK_PerfFreqInTsc = 1;
+
+      if (SK_TscInvariant)
+        SK_PerfFreq = SK_TscFreq;
+
+      else
+        SK_PerfFreqInTsc = SK_QpcFreqInTsc;
+    }
+
+    SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
   }
   struct whats_new_s {
     float  duration       = 20.0F;
@@ -532,6 +563,7 @@ struct sk_config_t
         bool flush_after_present   = false;
         bool finish_after_present  = true;
       } latent_sync;
+      bool    use_amd_mwaitx       = true;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;
