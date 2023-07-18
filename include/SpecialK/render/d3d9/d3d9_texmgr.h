@@ -1103,7 +1103,7 @@ public:
       {
         lock_lvl0 = *pLockedRect;
         dirty     = true;
-        SK_QueryPerformanceCounter (&begin_map);
+        begin_map = SK_QueryPerf ();
       }
     }
 

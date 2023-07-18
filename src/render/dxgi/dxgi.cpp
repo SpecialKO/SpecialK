@@ -4657,14 +4657,17 @@ SK_DXGI_CreateSwapChain_PreInit (
       pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     }
 
-    // Turn off SK's Waitable SwapChain override, the game's already using it!
-    if (pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+    if (config.render.framerate.swapchain_wait != 0)
     {
-      config.render.framerate.swapchain_wait = 0;
+      // Turn off SK's Waitable SwapChain override, the game's already using it!
+      if (pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+      {
+        config.render.framerate.swapchain_wait = 0;
 
-      SK_LOGi0 (
-        L"* Disabling Latency Waitable SwapChain Override; game is already using one!"
-      );
+        SK_LOGi0 (
+          L"* Disabling Latency Waitable SwapChain Override; game is already using one!"
+        );
+      }
     }
 
 

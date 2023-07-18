@@ -2078,7 +2078,7 @@ SK_D3D11_TexMgr::reset (void)
   {
     // Throttle to at most one potentially unnecessary purge attempt per-ten seconds
     if ( LastModified_2D <=  LastPurge_2D &&
-         time_now        < ( LastPurge_2D + ( SK_QpcFreq * 10LL ) ) )
+         time_now        < ( LastPurge_2D + ( SK_PerfFreq * 10LL ) ) )
     {
       SK_D3D11_try_tex_reset = true;
       return;
@@ -2341,7 +2341,7 @@ SK_D3D11_TexMgr::getTexture2D ( uint32_t               tag,
 
       const size_t  size = desc2d.mem_size;
       const float  fTime = static_cast <float> (desc2d.load_time ) * 1000.0f /
-                           static_cast <float> (SK_QpcFreq);
+                           static_cast <float> (SK_PerfFreq);
 
       if (pMemSize   != nullptr) *pMemSize   = size;
       if (pTimeSaved != nullptr) *pTimeSaved = fTime;

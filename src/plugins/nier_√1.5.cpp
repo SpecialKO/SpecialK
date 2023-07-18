@@ -465,7 +465,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
 
             gamepad_stats.addSample ( 1000.0 *
               static_cast <double> (times [0] - oldTime) /
-              static_cast <double> (SK_QpcFreq),
+              static_cast <double> (SK_PerfFreq),
                 nowTime
             );
           }

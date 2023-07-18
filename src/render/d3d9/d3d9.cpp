@@ -3618,8 +3618,7 @@ D3D9UpdateTexture_Override ( IDirect3DDevice9      *This,
 
     extern
     LARGE_INTEGER                liLastReset;
-    LARGE_INTEGER                liNow;
-    SK_QueryPerformanceCounter (&liNow);
+    LARGE_INTEGER                liNow = SK_QueryPerf ();
 
                                // Rudimentary protection against video textures
     if (pDestinationTexture && pDst->tex_crc32c == 0x0)

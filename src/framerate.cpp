@@ -55,6 +55,12 @@ extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
 // Set these clocks to non-zero before init. to prevent division by zero races
 int64_t                     SK_QpcFreq        = 1;
 int64_t                     SK_QpcTicksPerMs  = 1;
+uint32_t                    SK_QpcFreqInTsc   = 1UL;
+int64_t                     SK_TscFreq        = 1;
+int64_t                     SK_PerfFreq       = 1;
+int64_t                     SK_PerfTicksPerMs = 1;
+uint32_t                    SK_PerfFreqInTsc  = 1UL;
+bool                        SK_TscInvariant   = false;
 SK::Framerate::EventCounter SK::Framerate::events;
 
 float __target_fps    = 0.0;
@@ -88,19 +94,17 @@ int      __SK_LatentSync_Adaptive      =    15;
 
 extern bool SK_CPU_IsZen (void);
 
-static unsigned int _AMD_WaitCycles = 0UL;
-
 __forceinline
 static void
 SK_AMD_MWAITX (INT64 qpcTarget = 0)
 {
-  if (_AMD_WaitCycles == 0)
+  if (! config.render.framerate.use_amd_mwaitx)
     return YieldProcessor ();
 
   static alignas(64) uint64_t monitor = 0ULL;
 
   _mm_monitorx (&monitor, 0, 0);
-  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * 300 : _AMD_WaitCycles);
+  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * SK_PerfFreqInTsc : 0);
 }
 
 __forceinline
@@ -175,7 +179,7 @@ struct {
   {
     return static_cast < float> (1000.0 *
          ( static_cast <double> (busy) /
-           static_cast <double> (SK_QpcFreq) ) ) /
+           static_cast <double> (SK_PerfFreq) ) ) /
            static_cast < float> (SK_GetFramesDrawn () - last_rollover);
   }
 
@@ -183,7 +187,7 @@ struct {
   {
     return static_cast < float> (1000.0 *
          ( static_cast <double> (sleep) /
-           static_cast <double> (SK_QpcFreq) ) ) /
+           static_cast <double> (SK_PerfFreq) ) ) /
            static_cast < float> (SK_GetFramesDrawn () - last_rollover);
   }
 } wait_time;
@@ -234,7 +238,7 @@ void SK_LatentSync_EndSwap (void) noexcept
 
   const LONGLONG maxAge =
     static_cast <LONGLONG> (
-      __SK_LatentSync_SwapSecs * static_cast <float> (SK_QpcFreq)
+      __SK_LatentSync_SwapSecs * static_cast <float> (SK_PerfFreq)
     );
 
   history.records [history.total++ % _MAX_SWAPS] = {
@@ -290,9 +294,9 @@ struct scanline_target_s {
       if (pDisplay->signal.timing.vsync_freq.Numerator > 0)
       {
         __scanline.qpc_tL.QuadPart =
-          (((SK_QpcFreq * pDisplay->signal.timing.vsync_freq.Denominator) /
-                         (pDisplay->signal.timing.vsync_freq.Numerator) ) /
-                          pDisplay->signal.timing.total_size.cy) *
+          (((SK_PerfFreq * pDisplay->signal.timing.vsync_freq.Denominator) /
+                          (pDisplay->signal.timing.vsync_freq.Numerator) ) /
+                           pDisplay->signal.timing.total_size.cy) *
               config.render.framerate.latent_sync.scanline_offset;
       }
 
@@ -576,11 +580,11 @@ SK_ImGui_LatentSyncConfig (void)
 
         const LONGLONG llVSync0 = static_cast <LONGLONG> (
           ( 1.0 / ( static_cast <double> (pDisplay->signal.timing.vsync_freq.Numerator) /
-                    static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) ) * static_cast <double> (SK_QpcFreq)
+                    static_cast <double> (pDisplay->signal.timing.vsync_freq.Denominator) ) ) * static_cast <double> (SK_PerfFreq)
         );
 
         const LONGLONG llVSync1 =
-          (pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq) /
+          (pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq) /
            pDisplay->signal.timing.vsync_freq.Numerator;
 
         SK_ReleaseAssert (llVSync0 == llVSync1);
@@ -654,16 +658,16 @@ SK_ImGui_LatentSyncConfig (void)
     {
       ImGui::Text       ((const char *)u8"%5.2f μs",
                                 (static_cast <double> (__SK_LatentSyncSwapTime) /
-                                 static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
+                                 static_cast <double> (SK_PerfTicksPerMs)) * 10000.0);
       ImGui::Text       ("%3.1f%%", wait_time.getBusyPercent ());
       ImGui::Text       ("");
       ImGui::Text       ((const char *)u8"%5.2f μs",
                                 (static_cast <double> (config.render.framerate.latent_sync.scanline_error) /
-                                 static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
+                                 static_cast <double> (SK_PerfTicksPerMs)) * 10000.0);
       if (config.render.framerate.latent_sync.delay_bias != 0.0f)
         ImGui::Text     ("-%5.2f ms",
                                 (static_cast <double> (__SK_LatentSyncPostDelay) /
-                                 static_cast <double> (SK_QpcTicksPerMs)));
+                                 static_cast <double> (SK_PerfTicksPerMs)));
     }
 
     ImGui::Text       ("");
@@ -672,14 +676,14 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::Text     ("Scanline %d",  __scanline.lock.target);
       ImGui::Text     ((const char *)u8"± %5.2f μs",
                               (static_cast <double> (__scanline.lock.margin) /
-                               static_cast <double> (SK_QpcTicksPerMs)) * 10000.0);
+                               static_cast <double> (SK_PerfTicksPerMs)) * 10000.0);
       ImGui::Text     (" (%5.2f scanlines)",
                                static_cast <double> (__scanline.lock.margin) /
-                       ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator * SK_QpcFreq) /
+                       ( static_cast <double> (pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq) /
                          static_cast <double> (pDisplay->signal.timing.hsync_freq.Numerator) ));
       if (bAdvanced)
         ImGui::Text   ("%5.2f ms", static_cast <double> (__scanline.lock.scan_time) /
-                                   static_cast <double> (SK_QpcTicksPerMs));
+                                   static_cast <double> (SK_PerfTicksPerMs));
     }
     else
     {
@@ -688,7 +692,7 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::Text     (" (N/A)");
       if (bAdvanced)
         ImGui::Text   ("%5.2f ms", static_cast <double> (__scanline.lock.scan_time) /
-                                   static_cast <double> (SK_QpcTicksPerMs));
+                                   static_cast <double> (SK_PerfTicksPerMs));
     }
     ImGui::EndGroup   ( );
     ImGui::EndGroup   ( );
@@ -779,6 +783,22 @@ SK::Framerate::Init (void)
 
   if (pCommandProc == nullptr)
     return; // Uh oh?! Something tells me we've been here before...
+
+  PROCESSOR_POWER_INFORMATION pwi [64] = { };
+
+  if ( STATUS_SUCCESS == 
+         CallNtPowerInformation (ProcessorInformation, nullptr, 0, pwi, sizeof (pwi)) )
+  {
+    SK_LOGi0 (
+      L"Nominal Clock Frequency (p0): %d Hz; RDTSC ticks per-QPC tick: %d",
+        pwi [0].MaxMhz, SK_QpcFreqInTsc
+    );
+
+    if (! SK_CPU_IsZen ())
+    {
+      config.render.framerate.use_amd_mwaitx = false;
+    }
+  }
 
   SK_FPU_LogPrecision ();
 
@@ -1213,7 +1233,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
   double dTicksPerFrame = 0.0;
 
   accum_per_frame =
-          modf ( static_cast <double> (SK_QpcFreq) /
+          modf ( static_cast <double> (SK_PerfFreq) /
                  static_cast <double> (target), &dTicksPerFrame );
   ticks_per_frame = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
 
@@ -1241,7 +1261,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 
     if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
     {
-      next_vsync = dwmTiming.qpcVBlank;
+      next_vsync = dwmTiming.qpcVBlank * SK_TscInvariant ? SK_QpcFreqInTsc : 1;
     }
 
     auto const pDisplay =
@@ -1250,12 +1270,12 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
     if (pDisplay->signal.timing.vsync_freq.Numerator > 0)
     {
       ticks_per_frame +=
-        ( ticks_per_frame / ( ( pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq ) /
+        ( ticks_per_frame / ( ( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
                                 pDisplay->signal.timing.vsync_freq.Numerator ) ) * config.render.framerate.latent_sync.scanline_error;
     }
 
     if (pDisplay->signal.timing.vsync_freq.Numerator > 0 &&
-        next_vsync > now - (pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq * 120) /
+        next_vsync > now - (pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq * 120) /
                            (pDisplay->signal.timing.vsync_freq.Numerator))
     {
 #if 0
@@ -1269,8 +1289,8 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
       while (next_vsync < now)
       {
         next_vsync +=
-          ( pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq ) /
-          ( pDisplay->signal.timing.vsync_freq.Numerator                );
+          ( pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq ) /
+          ( pDisplay->signal.timing.vsync_freq.Numerator                 );
       }
     }
 
@@ -1436,11 +1456,11 @@ SK::Framerate::Limiter::wait (void)
 
 
   LONGLONG ticks_per_scanline = (pDisplay->signal.timing.hsync_freq.Numerator > 0) ?
-    (pDisplay->signal.timing.hsync_freq.Denominator * SK_QpcFreq) /
+    (pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq) /
     (pDisplay->signal.timing.hsync_freq.Numerator)                                 : 1;
 
   LONGLONG ticks_per_refresh  = (pDisplay->signal.timing.vsync_freq.Numerator > 0) ?
-    (pDisplay->signal.timing.vsync_freq.Denominator * SK_QpcFreq) /
+    (pDisplay->signal.timing.vsync_freq.Denominator * SK_PerfFreq) /
     (pDisplay->signal.timing.vsync_freq.Numerator)                                 : 1;
 
 
@@ -1487,7 +1507,7 @@ SK::Framerate::Limiter::wait (void)
   // Actual frametime before we forced a delay
   effective_ms =
     1000.0 * ( static_cast <double> (time_ - last_) /
-               static_cast <double> ( SK_QpcFreq  ) );
+               static_cast <double> ( SK_PerfFreq ) );
 
   WriteRelease64 (&next, next_);
 
@@ -1561,7 +1581,7 @@ SK::Framerate::Limiter::wait (void)
       return
         std::max (
           ( static_cast <double> ( next_ - SK_QueryPerf ().QuadPart ) /
-            static_cast <double> ( SK_QpcFreq )                     ),
+            static_cast <double> ( SK_PerfFreq )                    ),
             0.0  );
     };
 
@@ -1751,7 +1771,7 @@ SK::Framerate::Limiter::wait (void)
           double dTicksPerFrame = 0.0;
 
           accum_per_frame =
-                  modf ( static_cast <double> (SK_QpcFreq) /
+                  modf ( static_cast <double> (SK_PerfFreq) /
                          static_cast <double> (fps),     &dTicksPerFrame );
           ticks_per_frame  = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
           ticks_per_frame +=
@@ -1912,7 +1932,7 @@ SK::Framerate::Limiter::wait (void)
               if (pDisplay->signal.timing.hsync_freq.Numerator > 0)
               {
                 ticks_per_scanline =
-                  ( pDisplay->signal.timing.hsync_freq.Denominator * SK_QpcFreq ) /
+                  ( pDisplay->signal.timing.hsync_freq.Denominator * SK_PerfFreq ) /
                     pDisplay->signal.timing.hsync_freq.Numerator;
               }
 
@@ -1990,7 +2010,7 @@ SK::Framerate::Limiter::wait (void)
                   if (llFractionOfRemainingTime > 0)
                   {
                     DWORD         dwRemainingTimeInMs = sk::narrow_cast <DWORD>
-                      ( llFractionOfRemainingTime / SK_QpcTicksPerMs );
+                      ( llFractionOfRemainingTime / SK_PerfTicksPerMs );
 
                     if (          dwRemainingTimeInMs > 1 && dwRemainingTimeInMs < 50)
                       SK_SleepEx (dwRemainingTimeInMs - 1, FALSE);
@@ -2160,7 +2180,7 @@ SK::Framerate::Tick ( bool          wait,
       dt =
     static_cast <double> (now.QuadPart -
                   pLimiter->amortization._last_frame.QuadPart) /
-    static_cast <double> (SK_QpcFreq);
+    static_cast <double> (SK_PerfFreq);
 
 
   // Prevent inserting infinity into the dataset
@@ -2288,42 +2308,42 @@ double
 SK::Framerate::Stats::calcMean (double seconds) noexcept
 {
   return
-    calcMean (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcMean (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
 SK::Framerate::Stats::calcSqStdDev (double mean, double seconds) noexcept
 {
   return
-    calcSqStdDev (mean, SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcSqStdDev (mean, SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
 SK::Framerate::Stats::calcMin (double seconds) noexcept
 {
   return
-    calcMin (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcMin (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
 SK::Framerate::Stats::calcMax (double seconds) noexcept
 {
   return
-    calcMax (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcMax (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
 SK::Framerate::Stats::calcOnePercentLow (double seconds)
 {
   return
-    calcOnePercentLow (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcOnePercentLow (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 double
 SK::Framerate::Stats::calcPointOnePercentLow (double seconds)
 {
   return
-    calcPointOnePercentLow (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcPointOnePercentLow (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 int
@@ -2332,14 +2352,14 @@ SK::Framerate::Stats::calcHitches ( double tolerance,
                                     double seconds ) noexcept
 {
   return
-    calcHitches (tolerance, mean, SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcHitches (tolerance, mean, SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 int
 SK::Framerate::Stats::calcNumSamples (double seconds)
 {
   return
-    calcNumSamples (SK_DeltaPerf (seconds, SK_QpcFreq));
+    calcNumSamples (SK_DeltaPerf (seconds, SK_PerfFreq));
 }
 
 void
@@ -2481,7 +2501,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
   double
     to_next_in_secs =
       static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
-      static_cast <double> (SK_QpcFreq);
+      static_cast <double> (SK_PerfFreq);
 
   constexpr
     double duS = (1000.0 * 10000.0);
@@ -2523,7 +2543,7 @@ SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer)
       {
         to_next_in_secs =
           static_cast <double> (llQPC - SK_QueryPerf ().QuadPart) /
-          static_cast <double> (SK_QpcFreq);
+          static_cast <double> (SK_PerfFreq);
 
         liDelay.QuadPart =
           -(static_cast <LONGLONG> (to_next_in_secs * duS));
@@ -2563,9 +2583,9 @@ SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
   return
     std::max ( 0.0,
                  static_cast <double> (next - SK_QueryPerf ().QuadPart) /
-                 static_cast <double> (SK_QpcTicksPerMs) +
+                 static_cast <double> (SK_PerfTicksPerMs) +
                 (static_cast <double> (ticks_per_frame) /
-                 static_cast <double> (SK_QpcTicksPerMs)) * (std::max (1.0f, ticks) - 1.0f) );
+                 static_cast <double> (SK_PerfTicksPerMs)) * (std::max (1.0f, ticks) - 1.0f) );
 }
 
 
@@ -2589,11 +2609,11 @@ SK_Framerate_EnergyControlPanel (void)
     if (SK_CPU_IsZen ())
     {
       bool bUseAMDWAITX =
-        _AMD_WaitCycles != 0;
+        config.render.framerate.use_amd_mwaitx;
 
       if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
       {
-        _AMD_WaitCycles = bUseAMDWAITX ? 1 : 0;
+        config.render.framerate.use_amd_mwaitx = bUseAMDWAITX;
       }
 
       if (ImGui::IsItemHovered ())
@@ -2623,8 +2643,6 @@ SK_Framerate_EnergyControlPanel (void)
     {
       fSwapWaitRatio = 3.33f;
       fSwapWaitFract = 0.66f;
-
-      _AMD_WaitCycles = 0UL;
     }
 
     ImGui::SameLine ();
@@ -2633,9 +2651,6 @@ SK_Framerate_EnergyControlPanel (void)
     {
       fSwapWaitRatio = 0.32f;
       fSwapWaitFract = 0.91f;
-
-      if (SK_CPU_IsZen ())
-        _AMD_WaitCycles = 1UL;
     }
 
     ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);

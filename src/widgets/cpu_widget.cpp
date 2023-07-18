@@ -1548,20 +1548,6 @@ SK_ImGui_DrawCPUPower (void)
   ImGui::PopStyleColor   (2);
 }
 
-#pragma pack (push,8)
-// Used only if more accurate MSR-based data cannot be
-//   sensed.
-typedef struct _PROCESSOR_POWER_INFORMATION {
-  ULONG Number;
-  ULONG MaxMhz;
-  ULONG CurrentMhz;
-  ULONG MhzLimit;
-  ULONG MaxIdleState;
-  ULONG CurrentIdleState;
-} PROCESSOR_POWER_INFORMATION,
- *PPROCESSOR_POWER_INFORMATION;
-#pragma pack(pop)
-
 class SKWG_CPU_Monitor : public SK_Widget
 {
 public:

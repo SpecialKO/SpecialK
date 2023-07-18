@@ -968,7 +968,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
                     gamepad_stats_filtered->addSample ( 1000.0 *
                       static_cast <double> (times_ [0] - oldTime) /
-                      static_cast <double> (SK_QpcFreq),
+                      static_cast <double> (SK_PerfFreq),
                         nowTime
                     );
                   }
@@ -979,7 +979,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
                   gamepad_stats->addSample ( 1000.0 *
                     static_cast <double> (times [0] - oldTime) /
-                    static_cast <double> (SK_QpcFreq),
+                    static_cast <double> (SK_PerfFreq),
                       nowTime
                   );
                 }

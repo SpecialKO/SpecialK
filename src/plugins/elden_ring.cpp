@@ -119,7 +119,7 @@ SK_ER_EndFrame (void)
         std::min (  2.00000,
          std::max ( 0.00005,
            static_cast <double> (SK_GetCurrentRenderBackend ().frame_delta.getDeltaTime ()) /
-           static_cast <double> (SK_QpcFreq) ) ) );
+           static_cast <double> (SK_PerfFreq) ) ) );
   }
 }
 

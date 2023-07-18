@@ -33,7 +33,7 @@
 #include <assert.h>
 
 extern LARGE_INTEGER SK_QueryPerf (void) noexcept;
-extern int64_t       SK_QpcFreq;
+extern int64_t       SK_PerfFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
@@ -167,15 +167,15 @@ struct sk_input_api_context_s
                                                 type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
   void markViewed (sk_input_dev_type type) noexcept
   {
-    const auto qpcNow =
+    const auto perfNow =
       sk::narrow_cast <uint64_t> (SK_QueryPerf ().QuadPart);
 
     switch (type)
     {
-      case sk_input_dev_type::Mouse:    WriteULong64Release (&viewed.mouse,    qpcNow); break;
-      case sk_input_dev_type::Keyboard: WriteULong64Release (&viewed.keyboard, qpcNow); break;
-      case sk_input_dev_type::Gamepad:  WriteULong64Release (&viewed.gamepad,  qpcNow); break;
-      case sk_input_dev_type::Other:    WriteULong64Release (&viewed.other,    qpcNow); break;
+      case sk_input_dev_type::Mouse:    WriteULong64Release (&viewed.mouse,    perfNow); break;
+      case sk_input_dev_type::Keyboard: WriteULong64Release (&viewed.keyboard, perfNow); break;
+      case sk_input_dev_type::Gamepad:  WriteULong64Release (&viewed.gamepad,  perfNow); break;
+      case sk_input_dev_type::Other:    WriteULong64Release (&viewed.other,    perfNow); break;
     }
   }
 
@@ -267,19 +267,19 @@ struct sk_input_api_context_s
   // Age in seconds since the game last saw input for this class of device
   float getInputAge (sk_input_dev_type devType)
   {
-    uint64_t qpcSample = 0ULL;
+    uint64_t perfSample = 0ULL;
 
     switch (devType)
     {
-      case sk_input_dev_type::Mouse:    qpcSample = ReadULong64Acquire (&viewed.mouse);    break;
-      case sk_input_dev_type::Keyboard: qpcSample = ReadULong64Acquire (&viewed.keyboard); break;
-      case sk_input_dev_type::Gamepad:  qpcSample = ReadULong64Acquire (&viewed.gamepad);  break;
-      case sk_input_dev_type::Other:    qpcSample = ReadULong64Acquire (&viewed.other);    break;
+      case sk_input_dev_type::Mouse:    perfSample = ReadULong64Acquire (&viewed.mouse);    break;
+      case sk_input_dev_type::Keyboard: perfSample = ReadULong64Acquire (&viewed.keyboard); break;
+      case sk_input_dev_type::Gamepad:  perfSample = ReadULong64Acquire (&viewed.gamepad);  break;
+      case sk_input_dev_type::Other:    perfSample = ReadULong64Acquire (&viewed.other);    break;
     }
 
     return static_cast <float> (
-      static_cast <double> (SK_QueryPerf ().QuadPart - qpcSample) /
-      static_cast <double> (SK_QpcFreq)
+      static_cast <double> (SK_QueryPerf ().QuadPart - perfSample) /
+      static_cast <double> (SK_PerfFreq)
                                );
   }
 
@@ -288,14 +288,14 @@ struct sk_input_api_context_s
   {
     assert (devSlot <= 4UL);
 
-    uint64_t qpcSample = 0ULL;
+    uint64_t perfSample = 0ULL;
 
     switch (devSlot)
     {
-      case 0: qpcSample = ReadULong64Acquire (&viewed.mouse);    break;
-      case 1: qpcSample = ReadULong64Acquire (&viewed.keyboard); break;
-      case 2: qpcSample = ReadULong64Acquire (&viewed.gamepad);  break;
-      case 3: qpcSample = ReadULong64Acquire (&viewed.other);    break;
+      case 0: perfSample = ReadULong64Acquire (&viewed.mouse);    break;
+      case 1: perfSample = ReadULong64Acquire (&viewed.keyboard); break;
+      case 2: perfSample = ReadULong64Acquire (&viewed.gamepad);  break;
+      case 3: perfSample = ReadULong64Acquire (&viewed.other);    break;
 
       // Returns the newest input on any slot
       case 4:
@@ -310,8 +310,8 @@ struct sk_input_api_context_s
     }
 
     return static_cast <float> (
-      static_cast <double> (SK_QueryPerf ().QuadPart - qpcSample) /
-      static_cast <double> (SK_QpcFreq)
+      static_cast <double> (SK_QueryPerf ().QuadPart - perfSample) /
+      static_cast <double> (SK_PerfFreq)
                                );
   }
 };

@@ -452,7 +452,7 @@ SteamAPI_RunCallbacks_throttled (void)
 {
   static UINT64 ullLastCallback = 0;
 
-  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > sk::narrow_cast <UINT64>((double)SK_QpcFreq * 0.025))
+  if ((SK_QueryPerf ().QuadPart - ullLastCallback) > sk::narrow_cast <UINT64>((double)SK_PerfFreq * 0.025))
   {
     ullLastCallback =
       SK_QueryPerf ().QuadPart;

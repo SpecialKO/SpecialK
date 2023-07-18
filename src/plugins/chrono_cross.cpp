@@ -178,7 +178,7 @@ SK_CC_EndFrame (void)
     //{
     //  *(uint32_t *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x511448) =
     //      (59.94005994005994005994005994006
-    //             / (static_cast <double> (SK_QpcFreq) /
+    //             / (static_cast <double> (SK_PerfFreq) /
     //                static_cast <double> (SK_GetCurrentRenderBackend ().frame_delta.getDeltaTime ()))) *
     //        564398;
     //}

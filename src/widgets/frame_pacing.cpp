@@ -632,7 +632,7 @@ public:
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.start));
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.next));
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.last));
-      ImGui::Text ("%llu", SK_QpcFreq);
+      ImGui::Text ("%llu", SK_PerfFreq);
       ImGui::Separator ();
       ImGui::Text ("%llu", ReadAcquire64 (&snapshot.frames));
       //ImGui::SameLine  ();

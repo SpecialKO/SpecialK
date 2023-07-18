@@ -46,25 +46,65 @@ BOOL
 WINAPI
 SK_QueryPerformanceCounter (_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept;
 
-extern int64_t SK_QpcFreq;
-extern int64_t SK_QpcTicksPerMs;
+#pragma pack (push,8)
+// Used only if more accurate MSR-based data cannot be
+//   sensed.
+typedef struct _PROCESSOR_POWER_INFORMATION {
+  ULONG Number;
+  ULONG MaxMhz;
+  ULONG CurrentMhz;
+  ULONG MhzLimit;
+  ULONG MaxIdleState;
+  ULONG CurrentIdleState;
+} PROCESSOR_POWER_INFORMATION,
+ *PPROCESSOR_POWER_INFORMATION;
+#pragma pack(pop)
+
+extern int64_t  SK_QpcFreq;
+extern int64_t  SK_QpcTicksPerMs;
+extern uint32_t SK_QpcFreqInTsc;
+extern int64_t  SK_TscFreq;
+extern bool     SK_TscInvariant;
+extern int64_t  SK_PerfFreq;
+extern uint32_t SK_PerfFreqInTsc;
+extern int64_t  SK_PerfTicksPerMs;
 
 __forceinline
 LARGE_INTEGER
 SK_CurrentPerf (void) noexcept
  {
-   LARGE_INTEGER                time;
-   SK_QueryPerformanceCounter (&time);
-   return                       time;
+   LARGE_INTEGER time;
+
+   if (SK_TscInvariant)
+   {
+     time.QuadPart =
+       __rdtsc ();
+   }
+   else
+   {
+     SK_QueryPerformanceCounter (&time);
+   }
+
+   return time;
  };
 
 __forceinline
 LARGE_INTEGER
 SK_QueryPerf (void) noexcept
  {
-   LARGE_INTEGER                time;
-   SK_QueryPerformanceCounter (&time);
-   return                       time;
+   LARGE_INTEGER time;
+
+   if (SK_TscInvariant)
+   {
+     time.QuadPart =
+       __rdtsc ();
+   }
+   else
+   {
+     SK_QueryPerformanceCounter (&time);
+   }
+
+   return time;
  };
 
 static auto SK_DeltaPerf =
@@ -89,7 +129,7 @@ static auto SK_DeltaPerfMS =
    {
      return
        1000.0 * (double)(SK_DeltaPerf (delta, freq).QuadPart) /
-                (double)(SK_QpcFreq);
+                (double)(SK_PerfFreq);
    };
 
 
@@ -444,7 +484,7 @@ namespace SK
 
         return
           static_cast <double> (max_time.QuadPart - min_time.QuadPart) /
-          static_cast <double> (SK_QpcFreq);
+          static_cast <double> (SK_PerfFreq);
       }
 
          int calcNumSamples         (double seconds  = 1.0);

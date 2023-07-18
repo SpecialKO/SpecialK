@@ -858,7 +858,7 @@ SK_FAR_EndFrameEx (BOOL bWaitOnFail)
 
         static const
           LONGLONG llClockFreq =
-                   (SK_QpcFreq / NIER_INTERNAL_FPS);
+                   (SK_PerfFreq / NIER_INTERNAL_FPS);
 
         static auto& rb =
           SK_GetCurrentRenderBackend ();

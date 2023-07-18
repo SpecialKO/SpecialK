@@ -1521,7 +1521,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
                          load->checksum,
                            (double)load->SrcDataSize / (1024.0 * 1024.0),
                              1000.0 * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                      (double)SK_QpcFreq );
+                                      (double)SK_PerfFreq );
     }
 
     Texture* pTex =
@@ -1530,7 +1530,7 @@ SK::D3D9::TextureManager::loadQueuedTextures (void)
     if (pTex != nullptr)
     {
       pTex->load_time = (float)(1000.0 * (double)(load->end.QuadPart - load->start.QuadPart) /
-                                         (double)SK_QpcFreq);
+                                         (double)SK_PerfFreq);
 
       auto* pSKTex =
         static_cast <ISKTextureD3D9 *> (load->pDest);
@@ -2018,7 +2018,7 @@ D3DXCreateTextureFromFileInMemoryEx_Detour (
 
       pTex->load_time = (float)( 1000.0 *
                           (double)(end.QuadPart - start.QuadPart) /
-                          (double)SK_QpcFreq );
+                          (double)SK_PerfFreq );
 
       tex_mgr.addTexture (checksum, pTex, SrcDataSize);
     }
@@ -4544,7 +4544,7 @@ ISKTextureD3D9::UnlockRect (UINT Level)
 
       pCacheTex->load_time = (float)( 1000.0 *
                                (double)( end_map.QuadPart - begin_map.QuadPart ) /
-                               (double)(   SK_QpcFreq       ) );
+                               (double)(   SK_PerfFreq      ) );
 
       tex_mgr.addTexture (this->tex_crc32c, pCacheTex, this->tex_size);
 

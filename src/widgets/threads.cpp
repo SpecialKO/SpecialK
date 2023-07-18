@@ -1056,7 +1056,7 @@ public:
                     std::min ( 100UL,
                       static_cast <DWORD> (
                               ( 2ULL * rb.frame_delta.getDeltaTime () ) /
-                                                   ( SK_QpcTicksPerMs )
+                                                  ( SK_PerfTicksPerMs )
                              )            );
 
                   if ( WAIT_TIMEOUT !=

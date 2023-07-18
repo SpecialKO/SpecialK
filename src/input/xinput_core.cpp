@@ -520,7 +520,7 @@ XInputGetStateEx1_4_Detour (
 
       if (++call_count > 1)
       {
-        if ((qpcTime - _timing.tCache) / (SK_QpcTicksPerMs) < 1)
+        if ((qpcTime - _timing.tCache) / (SK_PerfTicksPerMs) < 1)
           ++_timing._observed.ulSubMillisecondReqs;
         if (_timing.ulCacheFrame == SK_GetFramesDrawn ())
           ++_timing._observed.ulSubFrameReqs;
@@ -2451,9 +2451,7 @@ SK_XInput_UpdateSlotForUI ( BOOL  success,
 
       if (! config.input.gamepad.disabled_to_game)
       {
-        SK_QueryPerformanceCounter (
-          (LARGE_INTEGER *)&SK_XInput_Backend->viewed.gamepad
-        );
+        SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
       }
     }
   }

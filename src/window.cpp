@@ -6297,7 +6297,7 @@ SK_InstallWindowHook (HWND hWnd)
     SK_CreateDLLHook2 ( L"user32", "GetSystemDpiForProcess",        GetSystemDpiForProcess_Detour,        static_cast_p2p <void> (&GetSystemDpiForProcess_Original)        );
     SK_CreateDLLHook2 ( L"user32", "GetSystemMetricsForDpi",        GetSystemMetricsForDpi_Detour,        static_cast_p2p <void> (&GetSystemMetricsForDpi_Original)        );
     SK_CreateDLLHook2 ( L"user32", "AdjustWindowRectExForDpi",      AdjustWindowRectExForDpi_Detour,      static_cast_p2p <void> (&AdjustWindowRectExForDpi_Original)      );
-    SK_CreateDLLHook2 ( L"user32", "EnableNonClientDpiScaling",     EnableNonClientDpiScaling_Detour,     static_cast_p2p <void> (&EnableNonClientDpiScaling_Original)     );
+  //SK_CreateDLLHook2 ( L"user32", "EnableNonClientDpiScaling",     EnableNonClientDpiScaling_Detour,     static_cast_p2p <void> (&EnableNonClientDpiScaling_Original)     );
     SK_CreateDLLHook2 ( L"user32", "SystemParametersInfoForDpi",    SystemParametersInfoForDpi_Detour,    static_cast_p2p <void> (&SystemParametersInfoForDpi_Original)    );
     SK_CreateDLLHook2 ( L"user32", "SetThreadDpiHostingBehavior",   SetThreadDpiHostingBehavior_Detour,   static_cast_p2p <void> (&SetThreadDpiHostingBehavior_Original)   );
     SK_CreateDLLHook2 ( L"user32", "SetThreadDpiAwarenessContext",  SetThreadDpiAwarenessContext_Detour,  static_cast_p2p <void> (&SetThreadDpiAwarenessContext_Original)  );

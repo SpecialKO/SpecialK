@@ -482,7 +482,7 @@ SK_NV_AdaptiveSyncControl (void)
               double dFlipRate  =
                 static_cast <double> (SK_GetFramesDrawn () - lastFlipFrame) *
               ( static_cast <double> (deltaFlipTime) /
-                static_cast <double> (SK_QpcFreq) );
+                static_cast <double> (SK_PerfFreq) );
 
                  dFlipPrint = dFlipRate;
               lastFlipFrame = SK_GetFramesDrawn ();

@@ -283,7 +283,7 @@ struct resample_dispatch_s
 
           size_t   uploaded   = 0;
     const uint64_t start_tick = SK::ControlPanel::current_tick;//SK_QueryPerf ().QuadPart;
-    const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * SK_QpcTicksPerMs;
+    const uint64_t deadline   = start_tick + MAX_UPLOAD_TIME_PER_FRAME_IN_MS * SK_PerfTicksPerMs;
 
     SK_ScopedBool auto_bool_mem (&pTLS->imgui->drawing);
                                   pTLS->imgui->drawing = true;
@@ -350,11 +350,11 @@ struct resample_dispatch_s
                            ReadAcquire (&stats.textures_finished), finished.crc32c,
                            finished.data->GetMetadata ().width,    finished.data->GetMetadata ().height,
                          ( (long double)SK_CurrentPerf ().QuadPart - (long double)finished.time.received +
-                           (long double)finished.time.preprocess ) / (long double)SK_QpcTicksPerMs,
-                           (long double)finished.time.preprocess   / (long double)SK_QpcTicksPerMs,
-                           (long double)wait_in_queue              / (long double)SK_QpcTicksPerMs,
-                           (long double)work_time                  / (long double)SK_QpcTicksPerMs,
-                           (long double)wait_finished              / (long double)SK_QpcTicksPerMs ),
+                           (long double)finished.time.preprocess ) / (long double)SK_PerfTicksPerMs,
+                           (long double)finished.time.preprocess   / (long double)SK_PerfTicksPerMs,
+                           (long double)wait_in_queue              / (long double)SK_PerfTicksPerMs,
+                           (long double)work_time                  / (long double)SK_PerfTicksPerMs,
+                           (long double)wait_finished              / (long double)SK_PerfTicksPerMs ),
                        L"DX11TexMgr"  );
             }
 

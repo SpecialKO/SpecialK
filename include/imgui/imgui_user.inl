@@ -320,7 +320,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                   (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
-              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.mouse);
+
+              SK_RawInput_Backend->viewed.mouse = SK_QueryPerf ().QuadPart;
             }
           } break;
 
@@ -388,7 +389,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            && (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
-              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.keyboard);
+
+              SK_RawInput_Backend->viewed.keyboard = SK_QueryPerf ().QuadPart;
             }
 
         //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
@@ -427,7 +429,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            && (! filter) )
             {
               SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
-              SK_QueryPerformanceCounter ((LARGE_INTEGER *)&SK_RawInput_Backend->viewed.gamepad);
+
+              SK_RawInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
             }
           } break;
         }
@@ -2469,7 +2472,7 @@ SK_ImGui_User_NewFrame (void)
   static bool        first = true;
   if (std::exchange (first, false))
   {
-    g_TicksPerSecond = SK_QpcFreq;
+    g_TicksPerSecond = SK_PerfFreq;
     g_Time           = current_time;
 
     delta = 0.0;
