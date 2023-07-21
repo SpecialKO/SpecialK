@@ -2847,10 +2847,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         _last_priority = priority;
       }
 
-      static bool
-            bSoundInit = false;
-      if (! bSoundInit)
-            bSoundInit = SK_WASAPI_Init ();
+      // This is going to fail on Steam Deck, so do it once and that's it.
+      //
+      SK_RunOnce (SK_WASAPI_Init ());
 
       if (game_window.WndProc_Original != nullptr)
       {
