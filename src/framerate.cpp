@@ -790,14 +790,14 @@ SK::Framerate::Init (void)
          CallNtPowerInformation (ProcessorInformation, nullptr, 0, pwi, sizeof (pwi)) )
   {
     SK_LOGi0 (
-      L"Nominal Clock Frequency (p0): %d Hz; RDTSC ticks per-QPC tick: %d",
+      L"Nominal Clock Frequency (P0): %d MHz; RDTSC ticks per-QPC tick: %d",
         pwi [0].MaxMhz, SK_QpcFreqInTsc
     );
+  }
 
-    if (! SK_CPU_IsZen ())
-    {
-      config.render.framerate.use_amd_mwaitx = false;
-    }
+  if (! SK_CPU_IsZen ())
+  {
+    config.render.framerate.use_amd_mwaitx = false;
   }
 
   SK_FPU_LogPrecision ();
@@ -2599,10 +2599,7 @@ SK_Framerate_EnergyControlPanel (void)
   ImGui::Separator  ();
 
   bool bNodeOpen =
-    ImGui::TreeNode ("Energy Efficiency");
-
-  if (ImGui::IsItemHovered ())
-    ImGui::SetTooltip ("None of these settings are saved, they are all for temporary testing.");
+    ImGui::TreeNodeEx ("Energy Efficiency", ImGuiTreeNodeFlags_DefaultOpen);
 
   if (bNodeOpen)
   {
@@ -2619,7 +2616,7 @@ SK_Framerate_EnergyControlPanel (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Experimental Power Saving Feature For AMD CPUs");
+        ImGui::Text         ("Power Saving Feature For AMD CPUs");
         ImGui::Separator    ();
         ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
         ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
@@ -2639,22 +2636,31 @@ SK_Framerate_EnergyControlPanel (void)
       SK_ImGui_DrawCPUPower       ();
     }
 
-    if (ImGui::Button ("Traditional Busy-Wait"))
+    bool bAdvanced =
+      ImGui::CollapsingHeader ("Advanced");
+
+    if (ImGui::IsItemHovered ())
+      ImGui::SetTooltip ("None of these settings are saved, they are all for temporary testing.");
+
+    if (bAdvanced)
     {
-      fSwapWaitRatio = 3.33f;
-      fSwapWaitFract = 0.66f;
+      if (ImGui::Button ("Traditional Busy-Wait"))
+      {
+        fSwapWaitRatio = 3.33f;
+        fSwapWaitFract = 0.66f;
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::Button ("Relaxed Busy-Wait"))
+      {
+        fSwapWaitRatio = 0.32f;
+        fSwapWaitFract = 0.91f;
+      }
+
+      ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);
+      ImGui::SliderFloat ("Sleep Threshold",       &fSwapWaitFract, 0.0f, 1.0f);
     }
-
-    ImGui::SameLine ();
-
-    if (ImGui::Button ("Relaxed Busy-Wait"))
-    {
-      fSwapWaitRatio = 0.32f;
-      fSwapWaitFract = 0.91f;
-    }
-
-    ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);
-    ImGui::SliderFloat ("Sleep Threshold",       &fSwapWaitFract, 0.0f, 1.0f);
 
     ImGui::TreePop    ();
   }

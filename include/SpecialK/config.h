@@ -118,7 +118,8 @@ struct sk_config_t
       SK_QpcFreqInTsc = (DWORD)(SK_TscFreq / SK_QpcFreq);
 
       SK_TscInvariant =
-        (cpuid [3] & (1 << 8)) != 0;
+        false;
+      //(cpuid [3] & (1 << 8)) != 0;
 
       SK_PerfFreqInTsc = 1;
 
