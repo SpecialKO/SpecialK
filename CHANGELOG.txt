@@ -1,4 +1,9 @@
-﻿23.7.18
+﻿23.7.20
+=======
+ + If a user already has ReShade.ini in a game's directory when loading ReShade as
+     a plug-in, SK will use ReShade's default config path instead of rebasing it.
+
+23.7.18
 =======
  + Transitioned codebase to support QPC or TSC-based timestamps for framerate
      limiting depending on CPU capabilities (namely CPU supports invariant rdtsc?)

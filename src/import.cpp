@@ -131,8 +131,13 @@ SK_LoadImportModule (import_s& import)
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
   SK_RunOnce (
   {
-    SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE",    SK_GetConfigPath ());
-    SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
+    // If user already has a local ReShade.ini file, prefer the default ReShade behavior
+    if (! PathFileExistsW (L"ReShade.ini"))
+    {
+      // Otherwise, use SK's per-game config path
+      SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE",    SK_GetConfigPath ());
+      SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
+    }
   });
 
   if (config.system.central_repository)
