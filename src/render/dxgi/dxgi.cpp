@@ -9455,10 +9455,6 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   HRESULT hr =
     E_NOTIMPL;
 
-  // WINE doesn't implement DXGI Budgets
-  if (config.compatibility.using_wine)
-    return hr;
-
   SK_AutoCOMInit auto_com;
 
   static HMODULE

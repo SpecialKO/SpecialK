@@ -1,4 +1,11 @@
-﻿23.7.20
+﻿23.7.21
+=======
+ + Enable DXGI Budget tracking in WINE because it is implemented by DXVK now
+ + Disable WASAPI-related features in WINE because it would spam logs otherwise
+ + Change status line for Frame Pacing widget's Presentation Model to "Steam Deck"
+     instead of telling users to install Special K
+
+23.7.20
 =======
  + If a user already has ReShade.ini in a game's directory when loading ReShade as
      a plug-in, SK will use ReShade's default config path instead of rebasing it.
