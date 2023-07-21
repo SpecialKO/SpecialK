@@ -1037,9 +1037,19 @@ SK_ImGui_DrawGraph_FramePacing (void)
     // User Permissions do not permit PresentMon
     if (! config.render.framerate.supports_etw_trace)
     {
-      ImGui::TextUnformatted (
-        "Presentation Model Unknown  (Full SK Install is Required)"
-      );
+      if (! config.compatibility.using_wine)
+      {
+        ImGui::TextUnformatted (
+          "Presentation Model Unknown  (Full SK Install is Required)"
+        );
+      }
+
+      else
+      {
+        ImGui::TextUnformatted (
+          "Steam Deck"
+        );
+      }
     }
 
     else
