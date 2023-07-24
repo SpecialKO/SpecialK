@@ -7963,11 +7963,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
     // HDR
-    if (
-      ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
-      ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
-      ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
-      ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
+    if ( ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+         ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709    ||
+         ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020 )
     {
       // scRGB (Gamma 1.0 & Primaries 709) requires 16-bpc FP color
       if ( ColorSpace                 != DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||

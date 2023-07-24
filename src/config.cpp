@@ -320,7 +320,8 @@ SK_GetCurrentGameID (void)
         current_game =
           SK_GAME_ID::Launcher;
 
-        config.system.silent = true;
+        if (! config.compatibility.using_wine)
+          config.system.silent = true;
       }
     }
 

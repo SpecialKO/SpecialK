@@ -1,4 +1,12 @@
-﻿23.7.21
+﻿23.7.23
+=======
+ + Add error message if user attempts to use Special K as dxgi.dll in 32-bit games
+     on SteamOS; rename DLL to d3d11.dll or Wine will crash in an endless loop.
+
+     >> There is currently a bug in DXVK that makes this impossible because it
+          will attempt to load CreateDXGIFactory1@8 instead of CreateDXGIFactory1
+
+23.7.21
 =======
  + Enable DXGI Budget tracking in WINE because it is implemented by DXVK now
  + Disable WASAPI-related features in WINE because it would spam logs otherwise
