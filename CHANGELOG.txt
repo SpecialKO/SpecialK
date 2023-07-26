@@ -1,4 +1,12 @@
-﻿23.7.26.1
+﻿23.7.26.2
+=========
+ + Add CreateDXGIFactory1@8 hack to workaround DXVK bug and support 32-bit versions
+     of dxgi.dll on Wine.
+     
+    This symbol is not supposed to be DLL exported, but to ensure compatibility
+      with buggy versions of Proton, SK will alias this symbol to CreateDXGIFactory1.
+
+23.7.26.1
 =========
  + Add hack to fix SteamInput problems on Steam Deck.
 

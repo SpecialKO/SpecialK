@@ -1616,20 +1616,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                             "wine_get_version" ) != nullptr )
   {
     config.compatibility.using_wine = true;
-
-    if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
-    {
-      if (SK_GetDLLRole () == DXGI)
-      {
-        SK_MessageBox (
-          L"You must name Special K's DLL d3d11.dll on Linux to workaround a bug in DXVK's MinGW compiled DLLs.",
-          L"Rename Special K's DLL: d3d11.dll",
-            MB_ICONERROR | MB_OK
-        );
-
-        ExitProcess (0xDEADC0DE);
-      }
-    }
   }
 
   InstructionSet::deferredInit ();

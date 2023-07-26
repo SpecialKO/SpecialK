@@ -7282,6 +7282,10 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   return ret;
 }
 
+#ifdef _M_IX86
+#pragma comment (linker, "/export:CreateDXGIFactory1@8=_CreateDXGIFactory1@8")
+#endif
+
 HRESULT
 WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
