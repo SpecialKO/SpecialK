@@ -1,4 +1,9 @@
-﻿23.7.23
+﻿23.7.26
+=======
+ + Restore validation code lost during a refactor that ensures Proxy DLL plug-ins
+     have matching CPU architectures and will not prevent a game from launching.
+
+23.7.23
 =======
  + Add error message if user attempts to use Special K as dxgi.dll in 32-bit games
      on SteamOS; rename DLL to d3d11.dll or Wine will crash in an endless loop.
