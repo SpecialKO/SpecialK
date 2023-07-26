@@ -1978,10 +1978,16 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! SK_IsInjected ())
   {
+    static constexpr auto architecture =
+      SK_RunLHIfBitness (64, L"x64", L"Win32");
+
     for (auto& import : imports->imports)
     {
-      if (            import.role != nullptr &&
-           backend == import.role->get_value () )
+      if (                         import.role != nullptr &&
+           0 == _wcsicmp (backend, import.role->get_value ().c_str ()) &&
+                           import.architecture != nullptr &&
+           0 == _wcsicmp (architecture,
+                           import.architecture->get_value ().c_str ()) )
       {
         dll_log->LogEx (true, L" Loading proxy %s.dll:    ", backend);
         wcsncpy_s ( dll_name,                                MAX_PATH,
