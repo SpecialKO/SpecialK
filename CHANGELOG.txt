@@ -1,4 +1,11 @@
-﻿23.7.26
+﻿23.7.26.1
+=========
+ + Add hack to fix SteamInput problems on Steam Deck.
+
+     >> Using SK's control panel in SteamInput-native games will cause undefined
+          behavior on Linux, but the Steam client will be less broken.
+
+23.7.26
 =======
  + Restore validation code lost during a refactor that ensures Proxy DLL plug-ins
      have matching CPU architectures and will not prevent a game from launching.

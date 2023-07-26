@@ -5262,6 +5262,16 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   if (config.platform.silent)
     return;
 
+  //
+  // SteamOS has a ton of input problems to begin with, let's just let the platform
+  //   stay broken.
+  // 
+  //   Using control panel in SteamInput-native games will cause undefined
+  //     behavior on Linux, but the Steam client will be less broken.
+  //
+  if (config.compatibility.using_wine)
+    return;
+
   if (config.steam.appid > 0)
   {
     static volatile LONG changes = 0;
