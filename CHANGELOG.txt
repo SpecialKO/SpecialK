@@ -1,10 +1,15 @@
-﻿23.7.26.2
+﻿23.7.27
+=======
+ + Add support for AMD Ryzen Model 04h chips to SK's CPU sensor driver, these are
+     certain new laptop chips.
+
+23.7.26.2
 =========
  + Add CreateDXGIFactory1@8 hack to workaround DXVK bug and support 32-bit versions
      of dxgi.dll on Wine.
      
     This symbol is not supposed to be DLL exported, but to ensure compatibility
-      with buggy versions of Proton, SK will alias this symbol to CreateDXGIFactory1.
+      with buggy versions of Proton, SK will alias it to CreateDXGIFactory1.
 
 23.7.26.1
 =========

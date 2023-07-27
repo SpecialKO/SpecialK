@@ -1029,6 +1029,7 @@ SK_CPU_IsZen (void)
   if ( InstructionSet::Family () == 0x0f &&
       (InstructionSet::Model  () == 0x00 || // Mainstream
        InstructionSet::Model  () == 0x01 || // HEDT
+       InstructionSet::Model  () == 0x04 || // Laptop
        InstructionSet::Model  () == 0x07 || // Xbox Series X
        InstructionSet::Model  () == 0x08)   // Mobile APU
      )
