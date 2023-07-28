@@ -1,4 +1,13 @@
-﻿23.7.28
+﻿23.7.28.1
+=========
+ + Added experimental DirectStorage overrides for D3D12/DStorage games
+
+    >> All settings require a full game restart to take effect, current overrides:
+
+     * Telemetry, BypassIO, GPU Decompression
+     * File Buffering (cache disk I/O)
+
+23.7.28
 =======
  + Changed GPU voltage units from mV to V on text OSD to save space.
 

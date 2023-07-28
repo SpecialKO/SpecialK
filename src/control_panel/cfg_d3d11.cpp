@@ -29,6 +29,7 @@
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+#include <SpecialK/render/dstorage/dstorage.h>
 
 #include <imgui/font_awesome.h>
 
@@ -419,6 +420,37 @@ SK::ControlPanel::D3D11::Draw (void)
     // D3D12
     else if (! indirect)
     {
+      if (SK_DStorage_IsLoaded ())
+      {
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+        ImGui::TreePush       ("");
+
+        if (ImGui::CollapsingHeader ("DirectStorage", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+          bool changed = false;
+
+          changed |=
+            ImGui::Checkbox ("Disable BypassIO", &config.render.dstorage.disable_bypass_io);
+
+          changed |=
+            ImGui::Checkbox ("Disable GPU Decompression", &config.render.dstorage.disable_gpu_decomp);
+
+          changed |=
+            ImGui::Checkbox ("Force File Buffering", &config.render.dstorage.force_file_buffering);
+
+          changed |=
+            ImGui::Checkbox ("Disable Telemetry", &config.render.dstorage.disable_telemetry);
+
+          if (changed)
+            SK_SaveConfig ();
+        }
+
+        ImGui::TreePop       ( );
+        ImGui::PopStyleColor (3);
+      }
+
       auto currentFrame =
         SK_GetFramesDrawn ();
 

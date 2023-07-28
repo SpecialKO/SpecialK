@@ -624,6 +624,13 @@ struct sk_config_t
     } dxgi;
 
     struct {
+      bool    disable_bypass_io    = false;
+      bool    disable_telemetry    = false;
+      bool    disable_gpu_decomp   = false;
+      bool    force_file_buffering = false;
+    } dstorage;
+
+    struct {
       bool    disable_fullscreen   = true;
       bool    enable_16bit_hdr     = false;
       bool    enable_10bit_hdr     = false;

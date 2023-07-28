@@ -516,6 +516,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
                 StrStrIW (wszModName,        L"libScePad") )
       SK_RunOnce (SK_Input_HookScePad ())
+    else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
+                StrStrIW (wszModName,        L"dstorage.dll") )
+    {
+      extern void SK_DStorage_Init (void);
+      SK_RunOnce (SK_DStorage_Init ())
+    }
 
 #if 0
     if (! config.platform.silent) {

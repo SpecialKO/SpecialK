@@ -732,6 +732,13 @@ struct {
   } dxgi;
 
   struct {
+    sk::ParameterBool*    disable_bypass_io       = nullptr;
+    sk::ParameterBool*    disable_telemetry       = nullptr;
+    sk::ParameterBool*    disable_gpu_decomp      = nullptr;
+    sk::ParameterBool*    force_file_buffering    = nullptr;
+  } dstorage;
+
+  struct {
     sk::ParameterBool*    force_d3d9ex            = nullptr;
     sk::ParameterBool*    impure                  = nullptr;
     sk::ParameterBool*    enable_texture_mods     = nullptr;
@@ -1567,6 +1574,11 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.disable_virtual_vbi,        L"Disable Dynamic Refresh Rate (VBLANK Virtualization)",      dll_ini,         L"Render.DXGI",           L"DisableVirtualizedBlanking"),
     ConfigEntry (render.dxgi.clear_buffers_after_flip,   L"Clear the SwapChain Backbuffer every frame",                dll_ini,         L"Render.DXGI",           L"ClearFlipModelBackbuffers"),
     ConfigEntry (render.dxgi.warn_if_vram_exceeds,       L"Warn if VRAM used exceeds this % of available VRAM",        dll_ini,         L"Render.DXGI",           L"WarnIfUsedVRAMPercentExceeds"),
+
+    ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
+    ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
+    ConfigEntry (render.dstorage.disable_gpu_decomp,     L"Disable DirectStorage (1.2) GPU Decompression",             dll_ini,         L"Render.DStorage",       L"DisableGPUDecompression"),
+    ConfigEntry (render.dstorage.force_file_buffering,   L"Force DirectStorage File Buffering",                        dll_ini,         L"Render.DStorage",       L"ForceFileBuffering"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -3540,6 +3552,13 @@ auto DeclKeybind =
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
   render.dxgi.warn_if_vram_exceeds->load (config.render.dxgi.warn_if_vram_exceeds);
 
+  render.dstorage.disable_bypass_io->load(config.render.dstorage.disable_bypass_io);
+  render.dstorage.disable_telemetry->load(config.render.dstorage.disable_telemetry);
+  render.dstorage.disable_gpu_decomp->
+                                    load (config.render.dstorage.disable_gpu_decomp);
+  render.dstorage.force_file_buffering->
+                                    load (config.render.dstorage.force_file_buffering);
+
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
   texture.d3d11.precise_hash->load       (config.textures.d3d11.precise_hash);
   texture.d3d11.inject->load             (config.textures.d3d11.inject);
@@ -5116,6 +5135,13 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
       render.dxgi.warn_if_vram_exceeds->store (config.render.dxgi.warn_if_vram_exceeds);
+
+      render.dstorage.disable_bypass_io->store(config.render.dstorage.disable_bypass_io);
+      render.dstorage.disable_telemetry->store(config.render.dstorage.disable_telemetry);
+      render.dstorage.disable_gpu_decomp->
+                                        store (config.render.dstorage.disable_gpu_decomp);
+      render.dstorage.force_file_buffering->
+                                        store (config.render.dstorage.force_file_buffering);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

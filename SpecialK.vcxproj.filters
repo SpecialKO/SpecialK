@@ -346,6 +346,12 @@
     <Filter Include="Source Files\Backends\Render\D3DKMT">
       <UniqueIdentifier>{49b30fc4-7397-4336-be2d-8b4e4a8bc8da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Backends\Render\DStorage">
+      <UniqueIdentifier>{b0655b54-1597-4d69-8108-f8956b16a2eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DStorage">
+      <UniqueIdentifier>{d657f1f5-6303-493e-9c61-1efea5ec7b88}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2928,6 +2934,9 @@
     <ClInclude Include="include\SpecialK\render\d3dkmt\d3dkmt.h">
       <Filter>Header Files\Backends\Render\D3DKMT</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dstorage\dstorage.h">
+      <Filter>Header Files\Backends\Render\DStorage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3463,6 +3472,9 @@
     </ClCompile>
     <ClCompile Include="src\render\d3dkmt\d3dkmt.cpp">
       <Filter>Source Files\Backends\Render\D3DKMT</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dstorage\dstorage.cpp">
+      <Filter>Source Files\Backends\Render\DStorage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
