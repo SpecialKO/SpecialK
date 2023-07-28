@@ -25,6 +25,7 @@
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
+#include <SpecialK/render/dstorage/dstorage.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <imgui/font_awesome.h>
 #include <reflex/pclstats.h>
@@ -941,6 +942,7 @@ void BasicInit (void)
   SK_CPU_InstallHooks       ();
   SK_NvAPI_PreInitHDR       ();
   SK_NvAPI_InitializeHDR    ();
+  SK_DStorage_Init          ();
 
   ////// For the global injector, when not started by SKIM, check its version
   ////if ( (SK_IsInjected () && (! SK_IsSuperSpecialK ())) )
