@@ -1,4 +1,8 @@
-﻿23.7.27
+﻿23.7.28
+=======
+ + Changed GPU voltage units from mV to V on text OSD to save space.
+
+23.7.27
 =======
  + Add support for AMD Ryzen Model 04h chips to SK's CPU sensor driver, these are
      certain new laptop chips.

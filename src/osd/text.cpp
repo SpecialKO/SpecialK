@@ -951,15 +951,15 @@ if (gpu_stats != nullptr)
       // Over (or under) voltage limit!
       if (false)//gpu_stats->gpus [i].volts_mV.over)
       {
-        OSD_G_PRINTF ", %#6.1fmV (%+#6.1fmV)",
-          gpu_stats->gpus [i].volts_mV.core, gpu_stats->gpus [i].volts_mV.ov
+        OSD_G_PRINTF ", %#4.3fV (%+#4.3fV)",
+          gpu_stats->gpus [i].volts_mV.core / 1000.0, gpu_stats->gpus [i].volts_mV.ov / 1000.0
         OSD_END
       }
 
       else
       {
-        OSD_G_PRINTF ", %#6.1fmV",
-          gpu_stats->gpus [i].volts_mV.core
+        OSD_G_PRINTF ", %#4.3fV",
+          gpu_stats->gpus [i].volts_mV.core / 1000.0
         OSD_END
       }
     }
