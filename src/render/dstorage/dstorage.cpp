@@ -219,24 +219,36 @@ public:
 
         if (0 == _stricmp (desc->Name, "Bulk"))
         {
+          if (! dstorage.contains_key  (L"BulkPriority"))
+                dstorage.add_key_value (L"BulkPriority", L"Normal");
+
           override_desc.Priority =
             SK_DStorage_PriorityFromStr (dstorage.get_value (L"BulkPriority").c_str ());
         }
 
         else if (0 == _stricmp (desc->Name, "Loose reads"))
         {
+          if (! dstorage.contains_key  (L"LooseReadPriority"))
+                dstorage.add_key_value (L"LooseReadPriority", L"High");
+
           override_desc.Priority =
             SK_DStorage_PriorityFromStr (dstorage.get_value (L"LooseReadPriority").c_str ());
         }
 
         else if (0 == _stricmp (desc->Name, "Texture"))
         {
+          if (! dstorage.contains_key  (L"TexturePriority"))
+                dstorage.add_key_value (L"TexturePriority", L"Low");
+
           override_desc.Priority =
             SK_DStorage_PriorityFromStr (dstorage.get_value (L"TexturePriority").c_str ());
         }
 
         else if (0 == _stricmp (desc->Name, "NxStorage Index"))
         {
+          if (! dstorage.contains_key  (L"NxStorageIndexPriority"))
+                dstorage.add_key_value (L"NxStorageIndexPriority", L"Realtime");
+
           override_desc.Priority =
             SK_DStorage_PriorityFromStr (dstorage.get_value (L"NxStorageIndexPriority").c_str ());
         }
