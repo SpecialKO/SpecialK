@@ -497,8 +497,8 @@ void WaitForInitDXGI (void)
 
 DWORD __stdcall HookDXGI (LPVOID user);
 
-#define D3D_FEATURE_LEVEL_12_0 0xc000
-#define D3D_FEATURE_LEVEL_12_1 0xc100
+#define D3D_FEATURE_LEVEL_12_0 (D3D_FEATURE_LEVEL)0xc000
+#define D3D_FEATURE_LEVEL_12_1 (D3D_FEATURE_LEVEL)0xc100
 
 const char*
 SK_DXGI_DescribeScalingMode (DXGI_MODE_SCALING mode) noexcept
@@ -8178,8 +8178,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
   if (! first_frame)
     return;
 
-  static volatile LONG hooked = FALSE;
-
+  static volatile LONG                      hooked    =   FALSE;
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
@@ -8603,10 +8602,11 @@ HookDXGI (LPVOID user)
 
     dll_log->Log (L"[   DXGI   ]   Installing Deferred DXGI / D3D11 / D3D12 Hooks");
 
+    D3D_FEATURE_LEVEL streamline_levels [] = { D3D_FEATURE_LEVEL_11_1 };
     D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
                                                D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
 
-    D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_1_0_CORE;
+    D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_11_1;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
     SK_ComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 //    ID3D11DeviceContext           *pDeferredContext  = nullptr;
@@ -8650,6 +8650,9 @@ HookDXGI (LPVOID user)
     if (! D3D11CreateDeviceAndSwapChain_Import)
       return 0;
 
+    bool bStreamline =
+      SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+
     HRESULT hr =
       D3D11CreateDeviceAndSwapChain_Import (
         nullptr,
@@ -8657,8 +8660,8 @@ HookDXGI (LPVOID user)
             nullptr,
               config.render.dxgi.debug_layer ?
                    D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                levels,
-                  _ARRAYSIZE (levels),
+                              bStreamline ? streamline_levels : levels,
+                  _ARRAYSIZE (bStreamline ? streamline_levels : levels),
                     D3D11_SDK_VERSION, &desc,
                       &pSwapChain.p,
                         &pDevice.p,

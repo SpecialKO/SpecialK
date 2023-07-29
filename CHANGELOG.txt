@@ -1,4 +1,11 @@
-﻿23.7.28.3
+﻿23.7.29
+=======
+ + Added NVIDIA Streamline warning back to codebase, since new versions of Streamline
+     are even less stable than the old ones!
+ + Users on SteamOS will not be shown Streamline warnings, since Streamline does not
+     break SteamOS (lucky!)
+
+23.7.28.3
 =========
  + Added even more experimental DirectStorage queue priority overrides for
      Ratchet and Clank Rift Apart. Lowering priority may help to slow streaming
