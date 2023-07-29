@@ -8518,6 +8518,11 @@ SK_DXGI_InitHooksBeforePlugIn (void)
   }
 }
 
+//! Dummy interface allowing us to extract the underlying base interface
+struct DECLSPEC_UUID("ADEC44E2-61F0-45C3-AD9F-1B37379284FF") StreamlineRetrieveBaseInterface : IUnknown
+{
+};
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -8602,14 +8607,12 @@ HookDXGI (LPVOID user)
 
     dll_log->Log (L"[   DXGI   ]   Installing Deferred DXGI / D3D11 / D3D12 Hooks");
 
-    D3D_FEATURE_LEVEL streamline_levels [] = { D3D_FEATURE_LEVEL_11_1 };
     D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
                                                D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
 
     D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_11_1;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
     SK_ComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
-//    ID3D11DeviceContext           *pDeferredContext  = nullptr;
 
     // DXGI stuff is ready at this point, we'll hook the swapchain stuff
     //   after this call.
@@ -8617,7 +8620,7 @@ HookDXGI (LPVOID user)
     SK_ComPtr <IDXGISwapChain> pSwapChain = nullptr;
     DXGI_SWAP_CHAIN_DESC       desc       = { };
 
-    desc.BufferDesc.Format           = DXGI_FORMAT_B8G8R8A8_UNORM;
+    desc.BufferDesc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     desc.BufferDesc.Scaling          = DXGI_MODE_SCALING_UNSPECIFIED;
     desc.SampleDesc.Count            = 1;
@@ -8650,43 +8653,57 @@ HookDXGI (LPVOID user)
     if (! D3D11CreateDeviceAndSwapChain_Import)
       return 0;
 
-    bool bStreamline =
-      SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+    SK_ComPtr <IDXGIAdapter>
+                   pAdapter0;
+
+    const auto factory_flags =
+      config.render.dxgi.debug_layer ?
+           DXGI_CREATE_FACTORY_DEBUG : 0x0;
+
+    SK_ComPtr <IDXGIFactory>                 pFactory;
+    CreateDXGIFactory2 ( factory_flags,
+          __uuidof (IDXGIFactory), (void **)&pFactory.p);
+    SK_ComQIPtr    <IDXGIFactory7>           pFactory7
+                                            (pFactory);
+
+    if (pFactory7 != nullptr)
+        pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
+    else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
     HRESULT hr =
       D3D11CreateDeviceAndSwapChain_Import (
-        nullptr,
-          D3D_DRIVER_TYPE_HARDWARE,
-            nullptr,
+        pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
+          nullptr,
               config.render.dxgi.debug_layer ?
                    D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                              bStreamline ? streamline_levels : levels,
-                  _ARRAYSIZE (bStreamline ? streamline_levels : levels),
-                    D3D11_SDK_VERSION, &desc,
-                      &pSwapChain.p,
-                        &pDevice.p,
-                          &featureLevel,
-                            &pImmediateContext.p );
+                              levels,
+                  _ARRAYSIZE (levels),
+                    D3D11_SDK_VERSION, nullptr, nullptr,
+                      &pDevice.p,
+                        &featureLevel,
+                          &pImmediateContext.p );
 
     sk_hook_d3d11_t d3d11_hook_ctx = { };
 
     d3d11_hook_ctx.ppDevice           = &pDevice.p;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
-    SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-    SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
-    SK_ComPtr <IDXGIFactory> pFactory = nullptr;
-
-    if ( SUCCEEDED (hr)                                                &&
-                    pDevice != nullptr                                 &&
-         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+    if ( SUCCEEDED (hr)
+                 && pDevice != nullptr )
     {
+      // Now we get the underlying factory, free from Streamline's bad stuff if it's present
+      SK_ComPtr <IDXGIFactory>
+        pFactory1;
+        pFactory->QueryInterface (__uuidof (StreamlineRetrieveBaseInterface), (void **)&pFactory1.p);
+      
+      if (pFactory1 != nullptr)
+          pFactory = pFactory1.Detach ();
+
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
-      //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
-      SK_DXGI_HookSwapChain (pSwapChain);
+
+      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+        SK_DXGI_HookSwapChain (                                  pSwapChain);
 
       // This won't catch Present1 (...), but no games use that
       //   and we can deal with it later if it happens.

@@ -295,6 +295,23 @@ _In_   const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc_,
              REFIID                              riid,
 _COM_Outptr_ void                              **ppPipelineState )
 {
+  if (riid != __uuidof (ID3D12PipelineState))
+  {
+    wchar_t                wszGUID [41] = { };
+    StringFromGUID2 (riid, wszGUID, 40);
+
+    SK_LOGi0 (
+      L"ID3D12Device::CreateGraphicsPipelineState (...) for unknown riid=%ws",
+        wszGUID
+    );
+
+    return
+      D3D12Device_CreateGraphicsPipelineState_Original (
+        This, pDesc_,
+        riid, ppPipelineState
+      );
+  }
+
   D3D12_GRAPHICS_PIPELINE_STATE_DESC
     desc_ = *pDesc_;
        auto *pDesc =

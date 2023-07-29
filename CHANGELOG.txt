@@ -1,4 +1,13 @@
-﻿23.7.29
+﻿23.7.29.1
+=========
+ + More Streamline crap -- if you delete sl.dlss_g.dll (framegen), you won't have to
+     deal with Interposer warnings and global injection will be very reliable.
+ + Added default DirectStorage tuning values for Ratchet and Clank:
+
+     BulkPriority:    Normal   LooseReadPriority:      High
+     TexturePriority: Low      NxStorageIndexPriority: Realtime
+
+23.7.29
 =======
  + Added NVIDIA Streamline warning back to codebase, since new versions of Streamline
      are even less stable than the old ones!
