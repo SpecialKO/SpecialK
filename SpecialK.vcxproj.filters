@@ -2937,6 +2937,9 @@
     <ClInclude Include="include\SpecialK\render\dstorage\dstorage.h">
       <Filter>Header Files\Backends\Render\DStorage</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dstorage\dstorageerr.h">
+      <Filter>Header Files\Backends\Render\DStorage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">

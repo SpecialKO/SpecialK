@@ -1,4 +1,10 @@
-﻿23.7.28.2
+﻿23.7.28.3
+=========
+ + Added even more experimental DirectStorage queue priority overrides for
+     Ratchet and Clank Rift Apart. Lowering priority may help to slow streaming
+       down and reduce texture streaming hysteresis issues.
+
+23.7.28.2
 =========
  + Changed DirectStorage detection code to make it compatible with DirectStorage
      SDK sample applications (i.e. BulkLoadDemo)

@@ -227,7 +227,8 @@ SK_GetCurrentGameID (void)
           { L"NMS.exe",                                SK_GAME_ID::NoMansSky                    },
           { L"Diablo IV.exe",                          SK_GAME_ID::DiabloIV                     },
           { L"CoDSP.exe",                              SK_GAME_ID::CallOfDuty                   },
-          { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   }
+          { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   },
+          { L"RiftApart.exe",                          SK_GAME_ID::RatchetAndClank_RiftApart    },
         };
 
     first_check  = false;

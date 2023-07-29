@@ -427,24 +427,90 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
         ImGui::TreePush       ("");
 
-        if (ImGui::CollapsingHeader ("DirectStorage", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader ("Direct Storage", ImGuiTreeNodeFlags_DefaultOpen))
         {
-          bool changed = false;
+#if 0
+          ImGui::BeginGroup ();
+          ImGui::
+            TextUnformatted ("IO Request Submit Threads: ");
+          ImGui::
+            TextUnformatted ("CPU Decompression Threads: ");
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          ImGui::Text       ("%lu", SK_DStorage_GetNumSubmitThreads                  ());
+          ImGui::Text       ("%li", SK_DStorage_GetNumBuiltInCpuDecompressionThreads ());
+          ImGui::EndGroup   ();
+#endif
 
-          changed |=
-            ImGui::Checkbox ("Disable BypassIO", &config.render.dstorage.disable_bypass_io);
+          if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
+          {
+            ImGui::Text ("Priorities (Ratchet and Clank):");
 
-          changed |=
-            ImGui::Checkbox ("Disable GPU Decompression", &config.render.dstorage.disable_gpu_decomp);
+            ImGui::TreePush ("");
 
-          changed |=
-            ImGui::Checkbox ("Force File Buffering", &config.render.dstorage.force_file_buffering);
+            auto &dstorage =
+              SK_GetDLLConfig ()->get_section (L"RatchetAndClank.DStorage");
 
-          changed |=
-            ImGui::Checkbox ("Disable Telemetry", &config.render.dstorage.disable_telemetry);
+            bool changed = false;
 
-          if (changed)
-            SK_SaveConfig ();
+            auto PriorityComboBox = [&](const char *szName, const wchar_t *wszKey)->bool
+            {
+              int prio =
+                SK_DStorage_PriorityFromStr (dstorage.get_cvalue (wszKey).c_str ()) + 1;
+
+              bool changed =
+                ImGui::Combo (szName, &prio, "Low\0Normal\0High\0Realtime\0\0");
+
+              if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("A game restart is required to change this...");
+
+              if (changed)
+              {\
+                dstorage.add_key_value (wszKey,
+                  SK_DStorage_PriorityToStr ((DSTORAGE_PRIORITY)(prio - 1))
+                );
+              }
+
+              return changed;
+            };
+
+            changed |=
+              PriorityComboBox (      "Bulk Load",           L"BulkPriority");
+            changed |=
+              PriorityComboBox (    "Loose reads",      L"LooseReadPriority");
+            changed |=
+              PriorityComboBox (        "Texture",        L"TexturePriority");
+            changed |=
+              PriorityComboBox ("NxStorage Index", L"NxStorageIndexPriority");
+
+            if (changed)
+              SK_SaveConfig ();
+
+            ImGui::TreePop  ();
+          }
+
+          if (ImGui::TreeNode ("Overrides"))
+          {
+            bool changed = false;
+
+            changed |=
+              ImGui::Checkbox ("Disable BypassIO", &config.render.dstorage.disable_bypass_io);
+
+            changed |=
+              ImGui::Checkbox ("Disable GPU Decompression", &config.render.dstorage.disable_gpu_decomp);
+
+            changed |=
+              ImGui::Checkbox ("Force File Buffering", &config.render.dstorage.force_file_buffering);
+
+            changed |=
+              ImGui::Checkbox ("Disable Telemetry", &config.render.dstorage.disable_telemetry);
+
+            if (changed)
+              SK_SaveConfig ();
+
+            ImGui::TreePop ();
+          }
         }
 
         ImGui::TreePop       ( );

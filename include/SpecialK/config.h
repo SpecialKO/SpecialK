@@ -1321,6 +1321,7 @@ enum class SK_GAME_ID
   NoMansSky,                    // NMS.exe
   DiabloIV,                     // Diablo IV.exe
   CallOfDuty,                   // CoDSP.exe, CoDMP.exe (???)
+  RatchetAndClank_RiftApart,    // RiftApart.exe
 
   UNKNOWN_GAME               = 0xffff
 };

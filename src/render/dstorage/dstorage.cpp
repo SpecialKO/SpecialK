@@ -36,6 +36,8 @@ DStorageSetConfiguration1_pfn      DStorageSetConfiguration1_Original      = nul
 bool SK_DStorage_UsingDLL      = false;
 bool SK_DStorage_UsingGDeflate = false;
 
+DSTORAGE_CONFIGURATION SK_DStorage_LastConfig = { };
+
 void
 SK_DStorage_ApplyConfigOverrides (DSTORAGE_CONFIGURATION *pConfig)
 {
@@ -70,8 +72,15 @@ DStorageSetConfiguration_Detour (DSTORAGE_CONFIGURATION const *configuration)
   auto                               cfg = *configuration;
   SK_DStorage_ApplyConfigOverrides (&cfg);
 
-  return
+  HRESULT hr =
     DStorageSetConfiguration_Original (&cfg);
+
+  if (SUCCEEDED (hr))
+  {
+    SK_DStorage_LastConfig = cfg;
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -86,8 +95,24 @@ DStorageSetConfiguration1_Detour (DSTORAGE_CONFIGURATION1 const *configuration1)
   auto                                cfg1 = *configuration1;
   SK_DStorage_ApplyConfigOverrides1 (&cfg1);
 
-  return
+  static DSTORAGE_CONFIGURATION1                   defaults = { };
+  SK_RunOnce (DStorageSetConfiguration1_Original (&defaults));
+
+  HRESULT hr =
     DStorageSetConfiguration1_Original (&cfg1);
+
+  if (SUCCEEDED (hr))
+  {
+    SK_DStorage_LastConfig = cfg1;
+
+    if (SK_DStorage_LastConfig.NumSubmitThreads == 0)
+        SK_DStorage_LastConfig.NumSubmitThreads = defaults.NumSubmitThreads;
+
+    if (SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads == -1)
+        SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads = defaults.NumBuiltInCpuDecompressionThreads;
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -116,12 +141,168 @@ DStorageCreateCompressionCodec_Detour (
   return hr;
 }
 
+const wchar_t*
+SK_DStorage_PriorityToStr (DSTORAGE_PRIORITY prio)
+{
+  switch (prio)
+  {
+    case DSTORAGE_PRIORITY_LOW:      return L"Low";
+    case DSTORAGE_PRIORITY_NORMAL:   return L"Normal";
+    case DSTORAGE_PRIORITY_HIGH:     return L"High";
+    case DSTORAGE_PRIORITY_REALTIME: return L"Realtime";
+    default:
+      SK_LOGi0 (L"Unknown DStorage Priority: %d", prio);
+      return    L"Unknown";
+  }
+}
+
+DSTORAGE_PRIORITY
+SK_DStorage_PriorityFromStr (const wchar_t *wszPrio)
+{
+  if (! _wcsicmp (wszPrio, L"Low"))
+    return DSTORAGE_PRIORITY_LOW;
+
+  if (! _wcsicmp (wszPrio, L"Normal"))
+    return DSTORAGE_PRIORITY_NORMAL;
+
+  if (! _wcsicmp (wszPrio, L"High"))
+    return DSTORAGE_PRIORITY_HIGH;
+
+  if (! _wcsicmp (wszPrio, L"Realtime"))
+    return DSTORAGE_PRIORITY_REALTIME;
+
+  return DSTORAGE_PRIORITY_NORMAL;
+}
+
+class SK_IWrapDStorageFactory : IDStorageFactory
+{
+public:
+  SK_IWrapDStorageFactory (IDStorageFactory *pFactory)
+  {
+    pReal = pFactory;
+  }
+
+  HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject) override
+  {
+    return
+      pReal->QueryInterface (riid, ppvObject);
+  }
+
+  ULONG STDMETHODCALLTYPE AddRef (void) override
+  {
+    return
+      pReal->AddRef ();
+  }
+  
+  ULONG STDMETHODCALLTYPE Release (void) override
+  {
+    return
+      pReal->Release ();
+  }
+
+  HRESULT STDMETHODCALLTYPE CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID riid, _COM_Outptr_ void **ppv) override
+  {
+    DSTORAGE_QUEUE_DESC override_desc = *desc;
+
+    SK_LOGi0 (
+      L"SK_IWrapDStorageFactory::CreateQueue (Priority=%ws, Name=%hs)",
+        SK_DStorage_PriorityToStr (desc->Priority),
+                                   desc->Name != nullptr ?
+                                   desc->Name : "Unnamed" );
+
+    if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
+    {
+      if (desc->Name != nullptr)
+      {
+        auto &dstorage =
+          SK_GetDLLConfig ()->get_section (L"RatchetAndClank.DStorage");
+
+        if (0 == _stricmp (desc->Name, "Bulk"))
+        {
+          override_desc.Priority =
+            SK_DStorage_PriorityFromStr (dstorage.get_value (L"BulkPriority").c_str ());
+        }
+
+        else if (0 == _stricmp (desc->Name, "Loose reads"))
+        {
+          override_desc.Priority =
+            SK_DStorage_PriorityFromStr (dstorage.get_value (L"LooseReadPriority").c_str ());
+        }
+
+        else if (0 == _stricmp (desc->Name, "Texture"))
+        {
+          override_desc.Priority =
+            SK_DStorage_PriorityFromStr (dstorage.get_value (L"TexturePriority").c_str ());
+        }
+
+        else if (0 == _stricmp (desc->Name, "NxStorage Index"))
+        {
+          override_desc.Priority =
+            SK_DStorage_PriorityFromStr (dstorage.get_value (L"NxStorageIndexPriority").c_str ());
+        }
+      }
+    }
+
+    return
+      pReal->CreateQueue (&override_desc, riid, ppv);
+  }
+
+  HRESULT STDMETHODCALLTYPE OpenFile (_In_z_ const WCHAR *path, REFIID riid, _COM_Outptr_ void **ppv) override
+  {
+    return
+      pReal->OpenFile (path, riid, ppv);
+  }
+
+  HRESULT STDMETHODCALLTYPE CreateStatusArray (UINT32 capacity, _In_opt_ PCSTR name, REFIID riid, _COM_Outptr_ void **ppv) override
+  {
+    return
+      pReal->CreateStatusArray (capacity, name, riid, ppv);
+  }
+
+  void STDMETHODCALLTYPE SetDebugFlags (UINT32 flags) override
+  {
+    return
+      pReal->SetDebugFlags (flags);
+  }
+  
+  HRESULT STDMETHODCALLTYPE SetStagingBufferSize (UINT32 size) override
+  {
+    return
+      pReal->SetStagingBufferSize (size);
+  }
+
+private:
+  IDStorageFactory *pReal = nullptr;
+};
+
 HRESULT
 WINAPI
 DStorageGetFactory_Detour ( REFIID riid,
                             void **ppv )
 {
   SK_LOG_FIRST_CALL
+
+  if (riid == __uuidof (IDStorageFactory))
+  {
+    void *pv2 = nullptr;
+
+    HRESULT hr =
+      DStorageGetFactory_Original (riid, &pv2);
+
+    if (SUCCEEDED (hr) && ppv != nullptr)
+    {
+      static SK_IWrapDStorageFactory
+              wrapped_factory ((IDStorageFactory *)pv2);
+      *ppv = &wrapped_factory;
+
+      return hr;
+    }
+  }
+
+  wchar_t                wszGUID [41] = { };
+  StringFromGUID2 (riid, wszGUID, 40);
+
+  SK_LOGi0 (L"Unsupported Factory IID: %ws", wszGUID);
 
   return
     DStorageGetFactory_Original (riid, ppv);
@@ -167,4 +348,16 @@ bool SK_DStorage_IsUsingGDeflate (void)
 {
   return
     SK_DStorage_UsingGDeflate;
+}
+
+UINT32 SK_DStorage_GetNumSubmitThreads (void)
+{
+  return
+    SK_DStorage_LastConfig.NumSubmitThreads;
+}
+
+INT32 SK_DStorage_GetNumBuiltInCpuDecompressionThreads (void)
+{
+  return
+    SK_DStorage_LastConfig.NumBuiltInCpuDecompressionThreads;
 }
