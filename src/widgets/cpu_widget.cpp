@@ -1080,6 +1080,13 @@ SK_CPU_IsZenEx (bool retest/* = false*/)
     {
       if (SK_CPU_IsZen ())
         is_zen = 1;
+
+      if (is_zen/*&& StrStrIA (InstructionSet::Brand ().c_str (), "x")*/)
+      {
+        // TODO: List of known CPUs that do NOT need this offset...?
+        cpu.offsets.temperature =
+          20.0;
+      }
     }
 
     if (is_zen)
