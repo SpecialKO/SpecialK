@@ -1079,6 +1079,7 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
+  // Global without DLSS_G is good, we can skip this
   if (SK_IsInjected () && GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
     return true;
 
@@ -1098,8 +1099,33 @@ SK_COMPAT_CheckStreamlineSupport (void)
   static int  iTestCount  = 0;
   static bool bCompatible = true;
 
+  if (GetModuleHandle (L"sl.dlss_g.dll"))
+  {
+    SK_RunOnce (
+    {
+      SK_MessageBox (
+        L"Special K cannot be used unless you remove sl.dlss_g.dll",
+        L"DLSS 3 Frame Generation Is Incompatible With Special K",
+        MB_ICONERROR | MB_OK
+      );
+
+      auto path_to_dlss_g =
+        SK_GetModuleFullName (GetModuleHandle (L"sl.dlss_g.dll"));
+
+      PathRemoveFileSpecW (path_to_dlss_g.data  ());
+      SK_Util_ExplorePath (path_to_dlss_g.c_str ());
+
+      Sleep (250UL);
+
+      ExitProcess (0xdeadc0de);
+    });
+  }
+
+  bool bPotentiallyIncompatible =
+    SK_IsInjected () || SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart;
+
   // Handle possible late injection
-  if (SK_IsInjected () && iTestCount++ < _MaxTestCount)
+  if (bPotentiallyIncompatible && iTestCount++ < _MaxTestCount)
   {
     HMODULE hModSLInterposer =
       SK_GetModuleHandleW (L"sl.interposer.dll");

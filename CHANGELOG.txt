@@ -1,4 +1,24 @@
-﻿23.7.29.1
+﻿23.7.30
+=======
+ + Special K is no longer compatible with DLSS3 Frame Generation in any way.
+
+     >> Previously, you could use DLSS3 Frame Gen with local injection provided you
+          did not use HDR (since it is incompatible with scRGB).
+
+        However, because of many Nixxes games unusual implementations, even if you
+          run games with DLSS3 turned off (or your hardware does not support it),
+            NVIDIA Streamline will still crash.
+
+     * Users will be told to remove sl.dlss_g.dll if it is detected, and there are
+         no plans to make Special K compatible with DLSS3, NVIDIA needs to fix this.
+
+ + 20C AMD Zen temperature offset now applied to ALL AMD models, not just X
+
+23.7.29.2
+=========
+ + Added 20C to various AMD Ryzen MSR thermal sensors that previously had no offset
+
+23.7.29.1
 =========
  + More Streamline crap -- if you delete sl.dlss_g.dll (framegen), you won't have to
      deal with Interposer warnings and global injection will be very reliable.

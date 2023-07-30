@@ -8678,7 +8678,7 @@ HookDXGI (LPVOID user)
                    D3D11_CREATE_DEVICE_DEBUG : 0x0,
                               levels,
                   _ARRAYSIZE (levels),
-                    D3D11_SDK_VERSION, nullptr, nullptr,
+                    D3D11_SDK_VERSION, &desc, &pSwapChain.p,
                       &pDevice.p,
                         &featureLevel,
                           &pImmediateContext.p );
@@ -8691,19 +8691,22 @@ HookDXGI (LPVOID user)
     if ( SUCCEEDED (hr)
                  && pDevice != nullptr )
     {
-      // Now we get the underlying factory, free from Streamline's bad stuff if it's present
-      SK_ComPtr <IDXGIFactory>
-        pFactory1;
-        pFactory->QueryInterface (__uuidof (StreamlineRetrieveBaseInterface), (void **)&pFactory1.p);
-      
-      if (pFactory1 != nullptr)
-          pFactory = pFactory1.Detach ();
-
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
 
-      if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
-        SK_DXGI_HookSwapChain (                                  pSwapChain);
+      ////// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
+      //SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
+      //pSwapChain->QueryInterface (
+      //  __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
+      //);
+      //
+      //if (pStreamlineFreeSwapChain != nullptr) {
+      //  pSwapChain.p->AddRef ();
+      //  pSwapChain = pStreamlineFreeSwapChain;
+      //  pSwapChain.p->Release ();
+      //}
+
+      SK_DXGI_HookSwapChain (pSwapChain);
 
       // This won't catch Present1 (...), but no games use that
       //   and we can deal with it later if it happens.
