@@ -1079,6 +1079,8 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
+  return true;
+
   // Global without DLSS_G is good, we can skip this
   if (SK_IsInjected () && GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
     return true;

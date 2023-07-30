@@ -5585,8 +5585,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =                       SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
              config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
@@ -5667,8 +5667,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
-  bool bDontWrap =                       SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr &&
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
              config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
@@ -8670,18 +8670,76 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
-    HRESULT hr =
-      D3D11CreateDeviceAndSwapChain_Import (
-        pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
-          nullptr,
+    using D3D11CoreCreateDevice_pfn =
+      HRESULT (__fastcall *)(
+        __m128i           *pUnknown,
+        IDXGIAdapter      *pAdapter,
+        D3D_DRIVER_TYPE    DriverType,
+        HINSTANCE          Software,
+        UINT               Flags,
+  const D3D_FEATURE_LEVEL *pFeatureLevels,
+        UINT               FeatureLevels,
+        INT                SDKVersion,
+        ID3D11Device     **ppDevice,
+        D3D_FEATURE_LEVEL *pFeatureLevel
+      );
+
+    D3D11CoreCreateDevice_pfn
+    D3D11CoreCreateDevice =                           (D3D11CoreCreateDevice_pfn)
+      SK_GetProcAddress (LoadLibraryW (L"d3d11.dll"), "D3D11CoreCreateDevice");
+
+    // Now we get the underlying Factory, free from Streamline's bad stuff if it's present
+    SK_ComPtr <IDXGISwapChain> pStreamlineFreeFactory;
+    pFactory->QueryInterface (
+      __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeFactory.p
+    );
+    
+    if (pStreamlineFreeFactory != nullptr) {
+      pFactory.p->AddRef ();
+      pFactory = pStreamlineFreeFactory;
+      pFactory.p->Release ();
+    }
+
+    HRESULT hr = E_NOTIMPL;
+
+    // Check for DLSS3 Frame Gen; if not present, we can initialize the normal way
+    if (GetModuleHandleW (L"sl.dlss_g.dll") == nullptr || D3D11CoreCreateDevice == nullptr)
+    {
+      hr =
+        D3D11CreateDeviceAndSwapChain_Import (
+          pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
+            nullptr,
+                config.render.dxgi.debug_layer ?
+                     D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                                levels,
+                    _ARRAYSIZE (levels),
+                      D3D11_SDK_VERSION, nullptr, nullptr,
+                        &pDevice.p,
+                          &featureLevel,
+                            nullptr );
+    }
+
+    // DLSS3 required hack: create device using an API it doesn't hook
+    else
+    {
+      hr =
+        D3D11CoreCreateDevice (
+          nullptr, pAdapter0,
+            D3D_DRIVER_TYPE_UNKNOWN, nullptr,
               config.render.dxgi.debug_layer ?
                    D3D11_CREATE_DEVICE_DEBUG : 0x0,
                               levels,
                   _ARRAYSIZE (levels),
-                    D3D11_SDK_VERSION, &desc, &pSwapChain.p,
+                    D3D11_SDK_VERSION,
                       &pDevice.p,
-                        &featureLevel,
-                          &pImmediateContext.p );
+                        &featureLevel );
+    }
+
+    if (SUCCEEDED (hr))
+    {
+      pDevice->GetImmediateContext (&pImmediateContext.p);
+      pFactory->CreateSwapChain    (pDevice.p, &desc, &pSwapChain.p);
+    }
 
     sk_hook_d3d11_t d3d11_hook_ctx = { };
 
@@ -8691,21 +8749,21 @@ HookDXGI (LPVOID user)
     if ( SUCCEEDED (hr)
                  && pDevice != nullptr )
     {
+      
+      //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
+      SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
+      pSwapChain->QueryInterface (
+        __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
+      );
+      
+      if (pStreamlineFreeSwapChain != nullptr) {
+        pSwapChain.p->AddRef ();
+        pSwapChain = pStreamlineFreeSwapChain;
+        pSwapChain.p->Release ();
+      }
+
       HookD3D11             (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
-
-      ////// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
-      //SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
-      //pSwapChain->QueryInterface (
-      //  __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
-      //);
-      //
-      //if (pStreamlineFreeSwapChain != nullptr) {
-      //  pSwapChain.p->AddRef ();
-      //  pSwapChain = pStreamlineFreeSwapChain;
-      //  pSwapChain.p->Release ();
-      //}
-
       SK_DXGI_HookSwapChain (pSwapChain);
 
       // This won't catch Present1 (...), but no games use that

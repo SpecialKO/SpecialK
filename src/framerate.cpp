@@ -104,7 +104,7 @@ SK_AMD_MWAITX (INT64 qpcTarget = 0)
   static alignas(64) uint64_t monitor = 0ULL;
 
   _mm_monitorx (&monitor, 0, 0);
-  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * SK_PerfFreqInTsc : 0);
+  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * SK_PerfFreqInTsc + 1 : SK_PerfFreqInTsc);
 }
 
 __forceinline

@@ -1,4 +1,8 @@
-﻿23.7.30
+﻿23.7.31
+=======
+ + Fixed potential stutter when framerate limiter uses AMD MWAITX on high-end CPUs
+
+23.7.30
 =======
  + Special K is no longer compatible with DLSS3 Frame Generation in any way.
 

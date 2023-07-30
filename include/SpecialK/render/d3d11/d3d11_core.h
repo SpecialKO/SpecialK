@@ -1384,12 +1384,16 @@ typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
   _Out_opt_                            ID3D11DeviceContext**);
 
 typedef HRESULT (WINAPI *D3D11CoreCreateDevice_pfn)(
-          IDXGIFactory*       pFactory,
-          IDXGIAdapter*       pAdapter,
+          __m128i            *pUnknown,
+          IDXGIAdapter       *pAdapter,
+          D3D_DRIVER_TYPE     DriverType,
+          HINSTANCE           Software,
           UINT                Flags,
-    const D3D_FEATURE_LEVEL*  pFeatureLevels,
+    const D3D_FEATURE_LEVEL  *pFeatureLevels,
           UINT                FeatureLevels,
-          ID3D11Device**      ppDevice);
+          INT                 SDKVersion,
+          ID3D11Device      **ppDevice,
+          D3D_FEATURE_LEVEL  *pFeatureLevel);
 
 extern D3D11CreateDevice_pfn             D3D11CreateDevice_Import;
 extern D3D11CoreCreateDevice_pfn         D3D11CoreCreateDevice_Import;
