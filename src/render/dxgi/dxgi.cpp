@@ -8670,20 +8670,6 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
-    using D3D11CoreCreateDevice_pfn =
-      HRESULT (__fastcall *)(
-        __m128i           *pUnknown,
-        IDXGIAdapter      *pAdapter,
-        D3D_DRIVER_TYPE    DriverType,
-        HINSTANCE          Software,
-        UINT               Flags,
-  const D3D_FEATURE_LEVEL *pFeatureLevels,
-        UINT               FeatureLevels,
-        INT                SDKVersion,
-        ID3D11Device     **ppDevice,
-        D3D_FEATURE_LEVEL *pFeatureLevel
-      );
-
     D3D11CoreCreateDevice_pfn
     D3D11CoreCreateDevice =                           (D3D11CoreCreateDevice_pfn)
       SK_GetProcAddress (LoadLibraryW (L"d3d11.dll"), "D3D11CoreCreateDevice");
