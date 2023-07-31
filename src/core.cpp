@@ -2201,6 +2201,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       SK_D3D9_QuickHook ();
     }
 
+    void SK_Streamline_InitBypass (void);
+         SK_Streamline_InitBypass ();
+
     InterlockedExchangePointer (
       const_cast <void **> (&hInitThread),
       SK_Thread_CreateEx ( DllThread, nullptr,

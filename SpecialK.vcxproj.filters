@@ -352,6 +352,9 @@
     <Filter Include="Source Files\Backends\Render\DStorage">
       <UniqueIdentifier>{d657f1f5-6303-493e-9c61-1efea5ec7b88}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Render\Streamline">
+      <UniqueIdentifier>{a52ad23c-8116-4485-9d33-f0ac42975013}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3478,6 +3481,9 @@
     </ClCompile>
     <ClCompile Include="src\render\dstorage\dstorage.cpp">
       <Filter>Source Files\Backends\Render\DStorage</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\streamline\streamline.cpp">
+      <Filter>Source Files\Backends\Render\Streamline</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
