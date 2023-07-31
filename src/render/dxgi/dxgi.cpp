@@ -8670,12 +8670,8 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
-    D3D11CoreCreateDevice_pfn
-    D3D11CoreCreateDevice =                           (D3D11CoreCreateDevice_pfn)
-      SK_GetProcAddress (LoadLibraryW (L"d3d11.dll"), "D3D11CoreCreateDevice");
-
     // Now we get the underlying Factory, free from Streamline's bad stuff if it's present
-    SK_ComPtr <IDXGISwapChain> pStreamlineFreeFactory;
+    SK_ComPtr <IDXGIFactory> pStreamlineFreeFactory;
     pFactory->QueryInterface (
       __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeFactory.p
     );
@@ -8689,7 +8685,7 @@ HookDXGI (LPVOID user)
     HRESULT hr = E_NOTIMPL;
 
     // Check for DLSS3 Frame Gen; if not present, we can initialize the normal way
-    if (GetModuleHandleW (L"sl.dlss_g.dll") == nullptr || D3D11CoreCreateDevice == nullptr)
+    if (/*GetModuleHandleW (L"sl.dlss_g.dll") == nullptr ||*/ D3D11CoreCreateDevice_Import == nullptr)
     {
       hr =
         D3D11CreateDeviceAndSwapChain_Import (
@@ -8709,7 +8705,7 @@ HookDXGI (LPVOID user)
     else
     {
       hr =
-        D3D11CoreCreateDevice (
+        D3D11CoreCreateDevice_Import (
           nullptr, pAdapter0,
             D3D_DRIVER_TYPE_UNKNOWN, nullptr,
               config.render.dxgi.debug_layer ?

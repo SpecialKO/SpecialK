@@ -1,4 +1,18 @@
-﻿23.7.31
+﻿23.7.31.1
+=========
+ + Hooked D3D11CoreCreateDevice and routed all calls to D3D11CreateDevice and
+     D3D11CreateDeviceAndSwapChain through it to maximize code reuse
+ + Initialize SK's D3D11 render hooks using D3D11CoreCreateDevice because it
+     is not hooked by ReShade and this allows SK's UI and HDR image processing
+       to reliably run -after- ReShade's post-processing.
+
+    >> Some games may no longer work with ReShade loaded as a plug-in, or may
+         require changing the load order (i.e. from PlugIn to Lazy).
+
+    Traditional ReShade installs using dxgi.dll should work, however, installing
+      as d3d11.dll will not work; ReShade does not export D3D11CoreCreateDevice
+
+23.7.31
 =======
  + Fixed potential stutter when framerate limiter uses AMD MWAITX on high-end CPUs
 
