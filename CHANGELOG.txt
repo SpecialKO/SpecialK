@@ -1,4 +1,16 @@
-﻿23.7.31.2
+﻿23.7.31.4
+=========
+ + Added option to bypass DLSS3 Frame Generation DLL check so that if NVIDIA
+     ever fixes their crap, users can turn it on and hopefully not crash.
+
+     [NVIDIA.Bugs]
+     AllowDLSSG={true|false}
+
+23.7.31.3
+=========
+ + More DXVK fixes, should be the final fix needed :)
+
+23.7.31.2
 =========
  + Fix potential DXVK incompatibility introduced in 23.7.31.1, given that
      DXVK exports D3D11CoreCreateDevice but has the wrong interface.

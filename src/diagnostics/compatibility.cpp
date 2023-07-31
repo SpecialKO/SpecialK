@@ -1079,8 +1079,6 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
-  return true;
-
   // Global without DLSS_G is good, we can skip this
   if (SK_IsInjected () && GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
     return true;
@@ -1095,6 +1093,12 @@ SK_COMPAT_CheckStreamlineSupport (void)
   // We're compatible
   if (SK_GetCurrentGameID () == SK_GAME_ID::DiabloIV)
     return true;
+
+  if (config.nvidia.bugs.allow_dlss_g)
+  {
+    if (GetModuleHandleW (L"sl.dlss_g.dll"))
+      return true;
+  }
 
   static const int _MaxTestCount = 5;
 

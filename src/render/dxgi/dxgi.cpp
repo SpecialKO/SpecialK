@@ -8682,10 +8682,10 @@ HookDXGI (LPVOID user)
       pFactory.p->Release ();
     }
 
-    HRESULT hr = E_NOTIMPL;
+    HRESULT hr = S_OK;
 
     bool bDXVK =
-      SK_DXVK_CheckForInterop ();
+      SK_DXVK_CheckForInterop () || config.compatibility.using_wine;
 
     // DXVK must use this function because it doesn't implement D3D11CoreCreateDevice correctly
     if (bDXVK || D3D11CoreCreateDevice_Import == nullptr)
@@ -8720,21 +8720,14 @@ HookDXGI (LPVOID user)
                         &featureLevel );
     }
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && pDevice != nullptr)
     {
       pDevice->GetImmediateContext (&pImmediateContext.p);
       pFactory->CreateSwapChain    (pDevice.p, &desc, &pSwapChain.p);
     }
 
-    sk_hook_d3d11_t d3d11_hook_ctx = { };
-
-    d3d11_hook_ctx.ppDevice           = &pDevice.p;
-    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
-
-    if ( SUCCEEDED (hr)
-                 && pDevice != nullptr )
+    if (pSwapChain != nullptr)
     {
-      
       //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
       SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
       pSwapChain->QueryInterface (
@@ -8746,9 +8739,12 @@ HookDXGI (LPVOID user)
         pSwapChain = pStreamlineFreeSwapChain;
         pSwapChain.p->Release ();
       }
+    }
 
-      HookD3D11             (&d3d11_hook_ctx);
-      SK_DXGI_HookFactory   (pFactory);
+    SK_DXGI_HookFactory (pFactory);
+
+    if (pSwapChain != nullptr)
+    {
       SK_DXGI_HookSwapChain (pSwapChain);
 
       // This won't catch Present1 (...), but no games use that
@@ -8759,6 +8755,17 @@ HookDXGI (LPVOID user)
 
       if (pSwapChain1 != nullptr)
         SK_DXGI_HookPresent1 (pSwapChain1);
+    }
+
+    sk_hook_d3d11_t d3d11_hook_ctx = { };
+
+    d3d11_hook_ctx.ppDevice           = &pDevice.p;
+    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+
+    if (SUCCEEDED (hr))
+    {
+      if (pDevice != nullptr)
+        HookD3D11 (&d3d11_hook_ctx);
 
       bool  bEnable = SK_EnableApplyQueuedHooks  ();
       {
@@ -8766,11 +8773,13 @@ HookDXGI (LPVOID user)
       }
       if (! bEnable)  SK_DisableApplyQueuedHooks ();
 
+      if (pDevice != nullptr)
+      {
+        extern volatile LONG          SK_D3D11_initialized;
+        InterlockedIncrementRelease (&SK_D3D11_initialized);
 
-      extern volatile LONG          SK_D3D11_initialized;
-      InterlockedIncrementRelease (&SK_D3D11_initialized);
-
-      if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+        if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
+      }
 
 /////#ifdef _WIN64
 /////      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();

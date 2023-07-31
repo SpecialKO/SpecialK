@@ -6347,6 +6347,9 @@ SK_D3D11_Init (void)
     D3DPerformance_SetMarker               = SK_GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_SetMarker");
 
 
+    bool bDXVK =
+      SK_DXVK_CheckForInterop ();
+
     if (! config.apis.dxgi.d3d11.hook)
       return false;
 
@@ -6365,7 +6368,7 @@ SK_D3D11_Init (void)
            SK_GetProcAddress (hBackend, "D3D11CreateDevice");
       }
 
-      if (LocalHook_D3D11CoreCreateDevice.active == FALSE)
+      if (LocalHook_D3D11CoreCreateDevice.active == FALSE && (! (bDXVK || config.compatibility.using_wine)))
       {
         D3D11CoreCreateDevice_Import            =  \
          (D3D11CoreCreateDevice_pfn)               \
@@ -6383,15 +6386,19 @@ SK_D3D11_Init (void)
                      SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () );
       SK_LogSymbolName                    (D3D11CreateDevice_Import);
 
-      SK_LOGi0 ( L"  D3D11CoreCreateDevice:         %s",
-                     SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () );
-      SK_LogSymbolName                    (D3D11CoreCreateDevice_Import);
+      if (! (bDXVK || config.compatibility.using_wine))
+      {
+        SK_LOGi0 ( L"  D3D11CoreCreateDevice:         %s",
+                       SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () );
+        SK_LogSymbolName                    (D3D11CoreCreateDevice_Import);
+      }
 
       SK_LOGi0 ( L"  D3D11CreateDeviceAndSwapChain: %s",
                       SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () );
       SK_LogSymbolName                     (D3D11CreateDeviceAndSwapChain_Import);
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
+      if (! (bDXVK || config.compatibility.using_wine))
       pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
 
@@ -6417,21 +6424,24 @@ SK_D3D11_Init (void)
                                                      L"{ Cached }" );
       }
 
-      if ( LocalHook_D3D11CoreCreateDevice.active == TRUE ||
-          ( MH_OK ==
-             SK_CreateDLLHook2 (      L"d3d11.dll",
-                                       "D3D11CoreCreateDevice",
-                                        D3D11CoreCreateDevice_Detour,
-               static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
-                                    &pfnD3D11CoreCreateDevice )
-          )
-         )
+      if (! (bDXVK || config.compatibility.using_wine))
       {
-              SK_LOGi0 ( L"  D3D11CoreCreateDevice:          %s  %s",
-        SK_MakePrettyAddress (pfnD3D11CoreCreateDevice ? pfnD3D11CoreCreateDevice :
-                                                            D3D11CoreCreateDevice_Import).c_str (),
-                              pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
-                                                         L"{ Cached }" );
+        if ( LocalHook_D3D11CoreCreateDevice.active == TRUE ||
+            ( MH_OK ==
+               SK_CreateDLLHook2 (      L"d3d11.dll",
+                                         "D3D11CoreCreateDevice",
+                                          D3D11CoreCreateDevice_Detour,
+                 static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
+                                      &pfnD3D11CoreCreateDevice )
+            )
+           )
+        {
+                SK_LOGi0 ( L"  D3D11CoreCreateDevice:          %s  %s",
+          SK_MakePrettyAddress (pfnD3D11CoreCreateDevice ? pfnD3D11CoreCreateDevice :
+                                                              D3D11CoreCreateDevice_Import).c_str (),
+                                pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
+                                                           L"{ Cached }" );
+        }
       }
 
       if ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE ||
@@ -6487,11 +6497,14 @@ SK_D3D11_Init (void)
               D3D11CreateDeviceAndSwapChain_Import;
     LocalHook_D3D11CreateDeviceAndSwapChain.active      = TRUE;
 
-    LocalHook_D3D11CoreCreateDevice.target.addr =
-           pfnD3D11CoreCreateDevice ?
-           pfnD3D11CoreCreateDevice :
-              D3D11CoreCreateDevice_Import;
-    LocalHook_D3D11CoreCreateDevice.active      = TRUE;
+    if (! (bDXVK || config.compatibility.using_wine))
+    {
+      LocalHook_D3D11CoreCreateDevice.target.addr =
+             pfnD3D11CoreCreateDevice ?
+             pfnD3D11CoreCreateDevice :
+                D3D11CoreCreateDevice_Import;
+      LocalHook_D3D11CoreCreateDevice.active      = TRUE;
+    }
 
     LocalHook_D3D11CreateDevice.target.addr =
            pfnD3D11CreateDevice ?
@@ -7397,8 +7410,13 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
   SK_D3D11_InitShaderMods ();
 
   LocalHook_D3D11CreateDevice.active             = TRUE;
-  LocalHook_D3D11CoreCreateDevice.active         = TRUE;
   LocalHook_D3D11CreateDeviceAndSwapChain.active = TRUE;
+
+  bool bDXVK =
+    SK_DXVK_CheckForInterop ();
+
+  if (! (bDXVK || config.compatibility.using_wine))
+  LocalHook_D3D11CoreCreateDevice.active         = TRUE;
 
   for ( auto& it : local_d3d11_records )
   {
@@ -8069,7 +8087,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     SK_DXVK_CheckForInterop ();
 
   // DXVK cannot use this function because it doesn't implement D3D11CoreCreateDevice correctly
-  if (D3D11CoreCreateDevice_Import != nullptr && (! bDXVK))
+  if (D3D11CoreCreateDevice_Import != nullptr && (! (bDXVK || config.compatibility.using_wine)))
   {
     const auto factory_flags =
       config.render.dxgi.debug_layer ?

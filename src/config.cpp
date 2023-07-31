@@ -617,6 +617,7 @@ struct {
   {
     sk::ParameterBool*    snuffed_ansel           = nullptr;
     sk::ParameterBool*    bypass_ansel            = nullptr;
+    sk::ParameterBool*    allow_dlss_g            = nullptr;
   } bugs;
 
   struct
@@ -1610,6 +1611,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
+    ConfigEntry (nvidia.bugs.allow_dlss_g,               L"Allow NV DLSS3 Frame Generation? (99+% chance of crash!)",  dll_ini,         L"NVIDIA.Bugs",           L"AllowDLSSG"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -3213,6 +3215,7 @@ auto DeclKeybind =
   nvidia.api.vulkan_bridge->load  (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
+  nvidia.bugs.allow_dlss_g->load  (config.nvidia.bugs.allow_dlss_g);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -4768,6 +4771,7 @@ SK_SaveConfig ( std::wstring name,
   nvidia.api.vulkan_bridge->store             (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
+  nvidia.bugs.allow_dlss_g->store             (config.nvidia.bugs.allow_dlss_g);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);
