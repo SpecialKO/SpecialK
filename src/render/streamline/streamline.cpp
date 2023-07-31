@@ -28,10 +28,12 @@
 
 #include <WinTrust.h>
 
+#ifndef _M_IX86
 #pragma comment(linker, "/EXPORT:WinVerifyTrust=WinVerifyTrust_Detour")
 #pragma comment(linker, "/EXPORT:CryptQueryObject=CryptQueryObject_Detour")
 #pragma comment(linker, "/EXPORT:CryptMsgClose=CryptMsgClose_Detour")
 #pragma comment(linker, "/EXPORT:CryptMsgGetParam=CryptMsgGetParam_Detour")
+#endif
 
 using WinVerifyTrust_pfn   = LONG (WINAPI *)(HWND hwnd, GUID *pgActionID, LPVOID pWVTData);
 using CryptQueryObject_pfn = BOOL (WINAPI *)( DWORD  dwObjectType,

@@ -1109,14 +1109,26 @@ SK_COMPAT_CheckStreamlineSupport (void)
   {
     SK_RunOnce (
     {
+      auto path_to_dlss_g =
+        SK_GetModuleFullName (GetModuleHandle (L"sl.dlss_g.dll"));
+
+      if (config.nvidia.bugs.auto_delete_dlss_g)
+      {
+        SK_File_MoveNoFail ( path_to_dlss_g.c_str (),
+                            L"sl.dlss_g.dll-bak" );
+
+        if (! PathFileExistsW (path_to_dlss_g.c_str  ()))
+        {
+          SK_RestartGame ();
+          ExitProcess    (0xdead0cde);
+        }
+      }
+
       SK_MessageBox (
         L"Special K cannot be used unless you remove sl.dlss_g.dll",
         L"DLSS 3 Frame Generation Is Incompatible With Special K",
         MB_ICONERROR | MB_OK
       );
-
-      auto path_to_dlss_g =
-        SK_GetModuleFullName (GetModuleHandle (L"sl.dlss_g.dll"));
 
       PathRemoveFileSpecW (path_to_dlss_g.data  ());
       SK_Util_ExplorePath (path_to_dlss_g.c_str ());

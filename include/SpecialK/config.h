@@ -762,6 +762,7 @@ struct sk_config_t
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
       bool    allow_dlss_g        = false;
+      bool    auto_delete_dlss_g  = false;
     } bugs;
     struct reflex_s {
       UINT    frame_interval_us   =      0;

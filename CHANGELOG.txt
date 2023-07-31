@@ -1,4 +1,16 @@
-﻿23.7.31.4
+﻿23.8.1
+======
+ + Added Streamline DRM bypass for "slSecureLoadLibrary"
+ + Added option to automatically delete DLSS3 Frame Generation DLL from games
+
+     [NVIDIA.Bugs]
+     AutoDeleteDLSSG={true|false}
+
+    * Default is false; recommended is to set true in Global\master_SpecialK.ini
+
+     >> When "deleted", sl.dlss_g.dll will be renamed sl.dlss_g.dll-bak
+
+23.7.31.4
 =========
  + Added option to bypass DLSS3 Frame Generation DLL check so that if NVIDIA
      ever fixes their crap, users can turn it on and hopefully not crash.
