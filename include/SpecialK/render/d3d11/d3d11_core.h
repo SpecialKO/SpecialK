@@ -193,12 +193,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 __declspec (noinline)
 HRESULT
 WINAPI
-D3D11CoreCreateDevice_Detour ( IDXGIFactory*       pFactory,
-                               IDXGIAdapter*       pAdapter,
-                               UINT                Flags,
-                         const D3D_FEATURE_LEVEL*  pFeatureLevels,
-                               UINT                FeatureLevels,
-                               ID3D11Device**      ppDevice );
+D3D11CoreCreateDevice_Detour (
+          IDXGIFactory       *pFactory,
+          IDXGIAdapter       *pAdapter,
+          D3D_DRIVER_TYPE     DriverType,
+          HINSTANCE           Software,
+          UINT                Flags,
+    const D3D_FEATURE_LEVEL  *pFeatureLevels,
+          UINT                FeatureLevels,
+          INT                 SDKVersion,
+          ID3D11Device      **ppDevice,
+          D3D_FEATURE_LEVEL  *pFeatureLevel );
 
 extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader;
 extern std::unique_ptr <SK_Thread_HybridSpinlock> cs_shader_vs;
@@ -1384,7 +1389,7 @@ typedef HRESULT (WINAPI *D3D11CreateDeviceAndSwapChain_pfn)(
   _Out_opt_                            ID3D11DeviceContext**);
 
 typedef HRESULT (WINAPI *D3D11CoreCreateDevice_pfn)(
-          __m128i            *pUnknown,
+          IDXGIFactory       *pFactory,
           IDXGIAdapter       *pAdapter,
           D3D_DRIVER_TYPE     DriverType,
           HINSTANCE           Software,
