@@ -793,6 +793,9 @@ SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain);
 // Disables Vulkan layers (i.e. if using DXGI interop, prefer software hook the D3D11 SwapChain and not Vulkan)
 void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during application startup
 
+// Returns true if d3d9.dll or d3d11.dll are DXVK, because some workarounds are required
+bool __stdcall SK_DXVK_CheckForInterop (void);
+
 // Move this to a more formal presentation manager
 extern bool SK_GL_OnD3D11;
 extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal

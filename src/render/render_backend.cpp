@@ -189,6 +189,35 @@ SK_DXVK_CheckForInterop (void)
     }
   }
 
+  HMODULE hModD3D11 =
+    SK_GetModuleHandle (L"d3d11.dll");
+
+  if (hModD3D9 == 0)
+  {
+    wchar_t     wszDllPath [MAX_PATH] = { };
+    PathAppend (wszDllPath, SK_GetHostPath ());
+    PathAppend (wszDllPath, L"d3d11.dll");
+
+    if (PathFileExistsW (wszDllPath))
+    {
+      hModD3D9 =
+        SK_LoadLibraryW (wszDllPath);
+    }
+  }
+
+  if (hModD3D9 != 0)
+  {
+    std::wstring str_d3d9ver =
+      SK_GetDLLProductName (
+        SK_GetModuleFullName (hModD3D9).c_str ()
+                          );
+
+    if (str_d3d9ver.find (L"DXVK") != std::wstring::npos)
+    {
+      return true;
+    }
+  }
+
   return false;
 }
 

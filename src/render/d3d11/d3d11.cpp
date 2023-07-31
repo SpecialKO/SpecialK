@@ -8065,7 +8065,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res = E_UNEXPECTED;
 
-  if (D3D11CoreCreateDevice_Import != nullptr)
+  bool bDXVK =
+    SK_DXVK_CheckForInterop ();
+
+  // DXVK cannot use this function because it doesn't implement D3D11CoreCreateDevice correctly
+  if (D3D11CoreCreateDevice_Import != nullptr && (! bDXVK))
   {
     const auto factory_flags =
       config.render.dxgi.debug_layer ?

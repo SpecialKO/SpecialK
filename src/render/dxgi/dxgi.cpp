@@ -8684,8 +8684,11 @@ HookDXGI (LPVOID user)
 
     HRESULT hr = E_NOTIMPL;
 
-    // Check for DLSS3 Frame Gen; if not present, we can initialize the normal way
-    if (/*GetModuleHandleW (L"sl.dlss_g.dll") == nullptr ||*/ D3D11CoreCreateDevice_Import == nullptr)
+    bool bDXVK =
+      SK_DXVK_CheckForInterop ();
+
+    // DXVK must use this function because it doesn't implement D3D11CoreCreateDevice correctly
+    if (bDXVK || D3D11CoreCreateDevice_Import == nullptr)
     {
       hr =
         D3D11CreateDeviceAndSwapChain_Import (

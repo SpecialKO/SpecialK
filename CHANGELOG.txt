@@ -1,4 +1,11 @@
-﻿23.7.31.1
+﻿23.7.31.2
+=========
+ + Fix potential DXVK incompatibility introduced in 23.7.31.1, given that
+     DXVK exports D3D11CoreCreateDevice but has the wrong interface.
+
+    * D3D11CoreCreateDevice will be skipped if DXVK is detected.
+
+23.7.31.1
 =========
  + Hooked D3D11CoreCreateDevice and routed all calls to D3D11CreateDevice and
      D3D11CreateDeviceAndSwapChain through it to maximize code reuse
