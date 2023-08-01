@@ -817,6 +817,7 @@ struct sk_config_t
         int   assignment [4]      = { 0, 1, 2, 3 };
         bool  hook_setstate       =  true; // Some software causes feedback loops
         bool  auto_slot_assign    = false;
+        bool  blackout_api        = false;
       } xinput;
 
       struct scepad_s {

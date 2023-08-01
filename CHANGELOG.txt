@@ -1,7 +1,18 @@
-﻿23.8.1.1
+﻿23.8.1.2
+========
+ + Disabled 11-bit HDR remastering in all Yakuza games because it causes crashing
+ + Added an option to disable XInput (and only XInput) devices to the current game
+
+     [Input.XInput]
+     HideAllDevices={true|false}
+
+   >> Intended use-case is games with native DualShock / DualSense + XInput that
+        break if they see both controllers at once (i.e. Nixxes games)
+
+23.8.1.1
 ========
  + Re-enabled memory management workaround code for Yakuza games, I thought by
-     now the bugs had been fixed... I was wrong :)
+     now the bugs had been fixed... I was wrong
 
 23.8.1
 ======
@@ -25,7 +36,7 @@
 
 23.7.31.3
 =========
- + More DXVK fixes, should be the final fix needed :)
+ + More DXVK fixes, should be the final fix needed
 
 23.7.31.2
 =========

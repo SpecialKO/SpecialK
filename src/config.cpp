@@ -847,6 +847,7 @@ struct {
         ParameterStringW* assignment              = nullptr;
       sk::ParameterBool*  hook_setstate           = nullptr;
       sk::ParameterBool*  auto_slot_assign        = nullptr;
+      sk::ParameterBool*  blackout_api            = nullptr;
     } xinput;
 
     struct {
@@ -1370,6 +1371,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
+    ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
+                                                         L"supports native SONY input and XInput.",                    dll_ini,         L"Input.XInput",          L"HideAllDevices"),
 
     ConfigEntry (input.gamepad.hook_scepad,              L"Install hooks for libScePad",                               dll_ini,         L"Input.libScePad",       L"Enable"),
     ConfigEntry (input.gamepad.scepad.disable_touchpad,  L"Disable Touchpad Input",                                    dll_ini,         L"Input.libScePad",       L"DisableTouchpad"),
@@ -2604,10 +2607,9 @@ auto DeclKeybind =
         config.textures.d3d11.cache               =  false;
         config.window.background_render           =   true;
         config.window.always_on_top               =      0;
-        config.render.dxgi.deferred_isolation     =   true;
+        config.render.dxgi.deferred_isolation     =  false;
         config.render.framerate.flip_discard      =   true;
         config.platform.reuse_overlay_pause       =  false;
-        config.render.framerate.swapchain_wait    =      1;
         config.window.borderless                  =   true;
         config.window.fullscreen                  =   true;
         config.input.keyboard.override_alt_f4     =   true;
@@ -3642,6 +3644,7 @@ auto DeclKeybind =
   input.gamepad.disable_rumble->load          (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->load    (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->load (config.input.gamepad.xinput.auto_slot_assign);
+  input.gamepad.xinput.blackout_api->load     (config.input.gamepad.xinput.blackout_api);
 
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
   {
@@ -4830,6 +4833,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
+  input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);
 
   input.gamepad.hook_scepad->store                 (config.input.gamepad.hook_scepad);
   input.gamepad.scepad.disable_touchpad->store     (config.input.gamepad.scepad.disable_touch);

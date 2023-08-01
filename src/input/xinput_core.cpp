@@ -415,6 +415,11 @@ XInputGetState1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   SK_LOG_FIRST_CALL
+
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
@@ -565,6 +570,11 @@ XInputGetStateEx1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   SK_LOG_FIRST_CALL
+
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   SK_XINPUT_READ (dwUserIndex)
 
   if (pState      == nullptr)         return ERROR_SUCCESS;
@@ -626,6 +636,9 @@ XInputGetCapabilities1_4_Detour (
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -670,6 +683,9 @@ XInputGetBatteryInformation1_4_Detour (
   _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation )
 {
   HMODULE hModCaller = SK_GetCallingDLL ();
+
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
@@ -732,6 +748,11 @@ XInputSetState1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   SK_LOG_FIRST_CALL
+  
+  // TODO: Indicate a write attempt, but distinguish it from SK_XINPUT_READ below
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   if (xinput_ctx.preventHapticRecursion (dwUserIndex, true))
@@ -762,7 +783,8 @@ XInputSetState1_4_Detour (
   bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
                  /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
                    config.input.gamepad.haptic_ui ) ||
-               config.input.gamepad.disable_rumble;
+               config.input.gamepad.disable_rumble  ||
+               config.input.gamepad.xinput.blackout_api;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
@@ -1117,9 +1139,13 @@ XInputPowerOff1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
+  // TODO: Indicate a write attempt, but distinguish it from SK_XINPUT_READ below
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
-  bool nop = ( SK_ImGui_WantGamepadCapture () );
+  bool nop = ( SK_ImGui_WantGamepadCapture () ) || config.input.gamepad.xinput.blackout_api;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
@@ -1190,6 +1216,11 @@ XInputGetKeystroke1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   SK_LOG_FIRST_CALL
+
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if (config.input.gamepad.xinput.blackout_api)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
   SK_XINPUT_READ (dwUserIndex)
 
   if (pKeystroke == nullptr)

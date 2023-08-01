@@ -3090,7 +3090,8 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
   if ( config.render.framerate.enforcement_policy == 4 ||
        config.render.framerate.enforcement_policy <  0 )
   {
-    SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
+    if (rb.swapchain.p != nullptr)
+      SK::Framerate::Tick ( bWaitOnFail, 0.0, { 0,0 }, rb.swapchain.p );
   }
 }
 
