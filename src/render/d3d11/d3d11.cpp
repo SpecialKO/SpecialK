@@ -4580,39 +4580,6 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  //------
-
-  // Render-state tracking needs to be forced-on for the
-  //   ReShade Overlay HDR fix to work.
-//  if ( rb.isHDRCapable ()  &&
-//       rb.isHDRActive  () )
-//  {
-//#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
-//
-//    if (dev_idx == UINT_MAX)
-//    {
-//      dev_idx =
-//        SK_D3D11_GetDeviceContextHandle (pDevCtx);
-//    }
-//
-//    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
-//    {
-//      case RESHADE_OVERLAY_VS_CRC32C:
-//        if ( SUCCEEDED (
-//               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
-//                                              InstanceCount, StartIndexLocation,
-//                                                BaseVertexLocation, StartInstanceLocation,
-//                                                  D3D11_DrawIndexedInstanced_Original )
-//             )
-//           )
-//        {
-//          return;
-//        }
-//        break;
-//      default:
-//        break;
-//    }
-//  }
 
   if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))
   {
