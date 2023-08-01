@@ -99,14 +99,11 @@ CryptQueryObject_Detour ( DWORD  dwObjectType,
 										  HCRYPTMSG *phMsg,
 										const void **ppvContext )
 {
-	if ( CERT_QUERY_OBJECT_FILE == dwObjectType )
-	{
-		SK_LOGi0 (L"CryptQueryObject (%ws)", static_cast <const wchar_t *> (pvObject));
-	}
-
 	if (              CERT_QUERY_OBJECT_FILE == dwObjectType &&
 			 wcsstr (static_cast <const wchar_t *> (pvObject), L"sl.") != nullptr )
 	{
+		SK_LOGi0 (L"CryptQueryObject (%ws)", static_cast <const wchar_t *> (pvObject));
+
 		*phMsg =
 			reinterpret_cast <HCERTSTORE> (0x1337);
 
@@ -1135,6 +1132,7 @@ CryptMsgGetParam_Detour ( HCRYPTMSG   hCryptMsg,
 void
 SK_Streamline_InitBypass (void)
 {
+#if 0
 	static bool        once     =     false;
 	if (std::exchange (once, true) == false)
 	{
@@ -1169,4 +1167,5 @@ SK_Streamline_InitBypass (void)
 		if (! enabled_state)
 			SK_DisableApplyQueuedHooks ();
 	}
+#endif
 }

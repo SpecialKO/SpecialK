@@ -284,6 +284,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
+  return E_NOINTERFACE;
+
   SK_ReleaseAssert (pDev.p != nullptr);
 
   if (pDev.p == nullptr && pReal != nullptr)

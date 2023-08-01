@@ -1,4 +1,9 @@
-﻿23.8.1
+﻿23.8.1.1
+========
+ + Re-enabled memory management workaround code for Yakuza games, I thought by
+     now the bugs had been fixed... I was wrong :)
+
+23.8.1
 ======
  + Added Streamline DRM bypass for "slSecureLoadLibrary"
  + Added option to automatically delete DLSS3 Frame Generation DLL from games

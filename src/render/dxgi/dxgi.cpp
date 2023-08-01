@@ -5585,9 +5585,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =                   false;//SK_IsInjected () &&
+    //SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+    //         config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5667,9 +5667,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =                   false;//SK_IsInjected () &&
+    //SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+    //         config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -8670,19 +8670,28 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
-    // Now we get the underlying Factory, free from Streamline's bad stuff if it's present
-    SK_ComPtr <IDXGIFactory> pStreamlineFreeFactory;
-    pFactory->QueryInterface (
-      __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeFactory.p
-    );
-    
-    if (pStreamlineFreeFactory != nullptr) {
-      pFactory.p->AddRef ();
-      pFactory = pStreamlineFreeFactory;
-      pFactory.p->Release ();
-    }
+    //// Now we get the underlying Factory, free from Streamline's bad stuff if it's present
+    //SK_ComPtr <IDXGIFactory> pStreamlineFreeFactory;
+    //pFactory->QueryInterface (
+    //  __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeFactory.p
+    //);
+    //
+    //if (pStreamlineFreeFactory != nullptr) {
+    //  pFactory.p->AddRef ();
+    //  pFactory = pStreamlineFreeFactory;
+    //  pFactory.p->Release ();
+    //}
 
     HRESULT hr = E_NOTIMPL;
+
+    using D3D12CreateDevice_pfn =
+      HRESULT (WINAPI *)( IUnknown         *pAdapter,
+                          D3D_FEATURE_LEVEL MinimumFeatureLevel,
+                          REFIID            riid,
+                          void            **ppDevice );
+
+    SK_ComPtr <ID3D12Device>       pDevice12;
+    SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
 
     bool bDXVK =
       SK_DXVK_CheckForInterop () || config.compatibility.using_wine;
@@ -8719,11 +8728,36 @@ HookDXGI (LPVOID user)
                       &pDevice.p,
                         &featureLevel );
     }
+    
+    if (GetModuleHandleW (L"d3d12core.dll"))
+    {
+      static D3D12CreateDevice_pfn
+        D3D12CreateDevice = (D3D12CreateDevice_pfn)
+          GetProcAddress (
+            LoadLibraryExW (L"d3d12.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+                            "D3D12CreateDevice" );
+
+      D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p));
+
+      D3D12_COMMAND_QUEUE_DESC
+        queue_desc       = { };
+        queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+        queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+      pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+    }
 
     if (SUCCEEDED (hr))
     {
       pDevice->GetImmediateContext (&pImmediateContext.p);
-      pFactory->CreateSwapChain    (pDevice.p, &desc, &pSwapChain.p);
+
+      if (! pDevice12)
+        pFactory->CreateSwapChain  (pDevice.p, &desc, &pSwapChain.p);
+    }
+
+    if (pDevice12 != nullptr)
+    {
+      pFactory->CreateSwapChain    (pCmdQueue.p, &desc, &pSwapChain.p);
     }
 
     sk_hook_d3d11_t d3d11_hook_ctx = { };
@@ -8732,7 +8766,7 @@ HookDXGI (LPVOID user)
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
     if ( SUCCEEDED (hr)
-                 && pDevice != nullptr )
+                 || pDevice12 != nullptr )
     {
       //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
       SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
@@ -8746,7 +8780,9 @@ HookDXGI (LPVOID user)
         pSwapChain.p->Release ();
       }
 
-      HookD3D11             (&d3d11_hook_ctx);
+      if (SUCCEEDED (hr))
+        HookD3D11           (&d3d11_hook_ctx);
+
       SK_DXGI_HookFactory   (pFactory);
       SK_DXGI_HookSwapChain (pSwapChain);
 
@@ -8904,11 +8940,12 @@ SK_DXGI_IsTrackingBudget (void) noexcept
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 {
-  ////if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
-  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
-  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-  ////     SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
-  ////  return E_ACCESSDENIED;
+  // Yakuza's engine is b0rked hardcore, we can't do this.
+  if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
+       SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+    return E_ACCESSDENIED;
 
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring

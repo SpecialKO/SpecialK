@@ -1159,12 +1159,19 @@ SK_COMPAT_CheckStreamlineSupport (void)
         iTestCount  = _MaxTestCount;
 
         std::wstring msg =
-          L"Special K may not be compatible with this game because it uses "
-          L"NVIDIA Streamline Interposer."
-          L"\r\n\r\n   "
+          SK_IsInjected () ? // Global Injection: General Warning
+            L"Special K may not be compatible with this game because it uses "
+            L"NVIDIA Streamline Interposer."
+            L"\r\n\r\n   "
 
-          L">> Try Local Injection (dxgi.dll) or replace the Interposer."
-          L"\r\n\r\n---------------------\r\n\r\n";
+            L">> Try Local Injection (dxgi.dll) or replace the Interposer."
+                           : // Local Injection: Known incompatible game
+            L"Special K may not be compatible with this game because it uses "
+            L"NVIDIA Streamline Interposer."
+            L"\r\n\r\n   "
+
+            L">> You must replace the Interposer in this game."
+            L"\r\n\r\n---------------------\r\n\r\n";
 
         msg += module_path;
         msg += L"\r\n\r\n @ ";

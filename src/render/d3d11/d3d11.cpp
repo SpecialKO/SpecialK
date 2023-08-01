@@ -4584,35 +4584,35 @@ SK_D3D11_DrawIndexedInstanced_Impl (
 
   // Render-state tracking needs to be forced-on for the
   //   ReShade Overlay HDR fix to work.
-  if ( rb.isHDRCapable ()  &&
-       rb.isHDRActive  () )
-  {
-#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
-
-    if (dev_idx == UINT_MAX)
-    {
-      dev_idx =
-        SK_D3D11_GetDeviceContextHandle (pDevCtx);
-    }
-
-    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
-    {
-      case RESHADE_OVERLAY_VS_CRC32C:
-        if ( SUCCEEDED (
-               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
-                                              InstanceCount, StartIndexLocation,
-                                                BaseVertexLocation, StartInstanceLocation,
-                                                  D3D11_DrawIndexedInstanced_Original )
-             )
-           )
-        {
-          return;
-        }
-        break;
-      default:
-        break;
-    }
-  }
+//  if ( rb.isHDRCapable ()  &&
+//       rb.isHDRActive  () )
+//  {
+//#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
+//
+//    if (dev_idx == UINT_MAX)
+//    {
+//      dev_idx =
+//        SK_D3D11_GetDeviceContextHandle (pDevCtx);
+//    }
+//
+//    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
+//    {
+//      case RESHADE_OVERLAY_VS_CRC32C:
+//        if ( SUCCEEDED (
+//               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
+//                                              InstanceCount, StartIndexLocation,
+//                                                BaseVertexLocation, StartInstanceLocation,
+//                                                  D3D11_DrawIndexedInstanced_Original )
+//             )
+//           )
+//        {
+//          return;
+//        }
+//        break;
+//      default:
+//        break;
+//    }
+//  }
 
   if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))
   {
@@ -8083,11 +8083,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res = E_UNEXPECTED;
 
-  bool bDXVK =
+  const bool bDXVK =
     SK_DXVK_CheckForInterop ();
 
+  const bool bIsD3D10 =
+    ( FeatureLevels == 1 && *pFeatureLevels == D3D_FEATURE_LEVEL_10_0 );
+
+  const bool bCanUseD3D11CoreCreateDevice =
+    ((! (bDXVK || config.compatibility.using_wine)) && (! bIsD3D10));
+
   // DXVK cannot use this function because it doesn't implement D3D11CoreCreateDevice correctly
-  if (D3D11CoreCreateDevice_Import != nullptr && (! (bDXVK || config.compatibility.using_wine)))
+  if (D3D11CoreCreateDevice_Import != nullptr && bCanUseD3D11CoreCreateDevice)
   {
     const auto factory_flags =
       config.render.dxgi.debug_layer ?
@@ -8139,7 +8145,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   }
 
 
-  if (SUCCEEDED (res) && ppDevice != nullptr)
+  if (SUCCEEDED (res) && ppDevice != nullptr && (! bIsD3D10))
   {
     // Stash the pointer to this device so that we can test equality on wrapped devices
     ret_device->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), ret_device);
@@ -8243,6 +8249,11 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                               ret_device );
                                                               ret_device->AddRef ();
     }
+  }
+
+  if (bIsD3D10)
+  {
+    SK_LOGi0 (L" * Ignoring device because it is actually D3D10!");
   }
 
   if (ppDevice != nullptr)
