@@ -900,6 +900,14 @@ public:
                                    L"Promote11BitRTsTo16",  SK_HDR_RenderTargets_11bpc->PromoteTo16Bit,
                                    L"11-Bit Precision Increase" );
 
+    // Games where 11-bit remastering is a known stability issue
+    //
+    if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+      SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = false;
+
     _SK_HDR_FullRange =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                    L"AllowFullLuminance",  __SK_HDR_FullRange,
