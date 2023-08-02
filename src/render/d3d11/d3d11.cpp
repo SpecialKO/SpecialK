@@ -296,7 +296,6 @@ extern HRESULT
 extern bool SK_D3D11_ShowShaderModDlg (void);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
-LPVOID pfnD3D11CoreCreateDevice         = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
 
 HMODULE SK::DXGI::hModD3D11 = nullptr;
@@ -320,7 +319,6 @@ extern "C"
 {
   // Global DLL's cache
 __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDevice)
-__declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CoreCreateDevice)
 __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 };
 #pragma data_seg ()
@@ -330,21 +328,16 @@ __declspec (dllexport) SK_HookCacheEntryGlobal (D3D11CreateDeviceAndSwapChain)
 SK_HookCacheEntryLocal ( D3D11CreateDevice,             L"d3d11.dll",
                          D3D11CreateDevice_Detour,
                          nullptr )
-SK_HookCacheEntryLocal ( D3D11CoreCreateDevice,         L"d3d11.dll",
-                         D3D11CoreCreateDevice_Detour,
-                         nullptr )
 SK_HookCacheEntryLocal ( D3D11CreateDeviceAndSwapChain, L"d3d11.dll",
                          D3D11CreateDeviceAndSwapChain_Detour,
                          nullptr )
 
 static sk_hook_cache_array global_d3d11_records =
   { &GlobalHook_D3D11CreateDevice,
-    &GlobalHook_D3D11CoreCreateDevice,
     &GlobalHook_D3D11CreateDeviceAndSwapChain };
 
 static sk_hook_cache_array local_d3d11_records =
   { &LocalHook_D3D11CreateDevice,
-    &LocalHook_D3D11CoreCreateDevice,
     &LocalHook_D3D11CreateDeviceAndSwapChain };
 
 
@@ -363,7 +356,6 @@ SK_D3D11_InitMutexes (void)
     return;
 
   LocalHook_D3D11CreateDevice.trampoline             = static_cast_p2p <void> (&D3D11CreateDevice_Import);
-  LocalHook_D3D11CoreCreateDevice.trampoline         = static_cast_p2p <void> (&D3D11CoreCreateDevice_Import);
   LocalHook_D3D11CreateDeviceAndSwapChain.trampoline = static_cast_p2p <void> (&D3D11CreateDeviceAndSwapChain_Import);
 
   if (0 == InterlockedCompareExchange (&_mutex_init, 1, 0))
@@ -957,7 +949,6 @@ struct d3d11_caps_t {
 } d3d11_caps;
 
 D3D11CreateDeviceAndSwapChain_pfn D3D11CreateDeviceAndSwapChain_Import = nullptr;
-D3D11CoreCreateDevice_pfn         D3D11CoreCreateDevice_Import         = nullptr;
 D3D11CreateDevice_pfn             D3D11CreateDevice_Import             = nullptr;
 
 void
@@ -1358,15 +1349,15 @@ SK_D3D11_UpdateSubresource_Impl (
 {
   SK_WRAP_AND_HOOK
 
-  const auto _Finish = [&](ID3D11DeviceContext *_pDevCtx) ->
+  const auto _Finish = [&](void) ->
   void
   {
     bWrapped ?
-      _pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
-                                      pDstBox, pSrcData, SrcRowPitch,
-                                        SrcDepthPitch )
+      pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
+                                     pDstBox, pSrcData, SrcRowPitch,
+                                       SrcDepthPitch )
            :
-    D3D11_UpdateSubresource_Original ( _pDevCtx, pDstResource, DstSubresource,
+    D3D11_UpdateSubresource_Original ( pDevCtx, pDstResource, DstSubresource,
                                          pDstBox, pSrcData, SrcRowPitch,
                                            SrcDepthPitch );
   };
@@ -1386,9 +1377,8 @@ SK_D3D11_UpdateSubresource_Impl (
       {
         if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
         {
-          SK_ComPtr <ID3D11DeviceContext>        pResDevCtx;
-          pResourceDevice->GetImmediateContext (&pResDevCtx.p);
-          _Finish (                              pResDevCtx);
+          pResourceDevice->GetImmediateContext (&pDevCtx);
+          _Finish ();                            pDevCtx->Release ();
 
           return;
         }
@@ -1397,7 +1387,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
   //return
-  //  _Finish (pDevCtx);
+  //  _Finish ();
 
   bool early_out =
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
@@ -1449,7 +1439,7 @@ SK_D3D11_UpdateSubresource_Impl (
   if (early_out)
   {
     return
-      _Finish (pDevCtx);
+      _Finish ();
   }
 
   if ( __attempt_to_cache && (    (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
@@ -1478,7 +1468,7 @@ SK_D3D11_UpdateSubresource_Impl (
         if (skip)
         {
           return
-            _Finish (pDevCtx);
+            _Finish ();
         }
       }
 
@@ -1552,7 +1542,7 @@ SK_D3D11_UpdateSubresource_Impl (
         }
 
         else
-          _Finish (pDevCtx);
+          _Finish ();
 
         textures->recordCacheHit (pCachedTex);
 
@@ -1584,7 +1574,7 @@ SK_D3D11_UpdateSubresource_Impl (
         }
 
         if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
-          _Finish (pDevCtx);
+          _Finish ();
 
         const auto end     = SK_QueryPerf ().QuadPart;
               auto elapsed = end - start;
@@ -1630,7 +1620,7 @@ SK_D3D11_UpdateSubresource_Impl (
             bool injected = false;
 
             // -----------------------------
-            if (! SK_D3D11_res_root->empty ())
+            if (SK_D3D11_res_root->length ())
             {
               wchar_t     wszTex [MAX_PATH + 2] = { };
               wcsncpy_s ( wszTex, MAX_PATH,
@@ -1740,7 +1730,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
   return
-    _Finish (pDevCtx);
+    _Finish ();
 }
 
 bool
@@ -4581,6 +4571,39 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  //------
+
+  // Render-state tracking needs to be forced-on for the
+  //   ReShade Overlay HDR fix to work.
+  if ( rb.isHDRCapable ()  &&
+       rb.isHDRActive  () )
+  {
+#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
+
+    if (dev_idx == UINT_MAX)
+    {
+      dev_idx =
+        SK_D3D11_GetDeviceContextHandle (pDevCtx);
+    }
+
+    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
+    {
+      case RESHADE_OVERLAY_VS_CRC32C:
+        if ( SUCCEEDED (
+               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
+                                              InstanceCount, StartIndexLocation,
+                                                BaseVertexLocation, StartInstanceLocation,
+                                                  D3D11_DrawIndexedInstanced_Original )
+             )
+           )
+        {
+          return;
+        }
+        break;
+      default:
+        break;
+    }
+  }
 
   if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))
   {
@@ -6315,9 +6338,6 @@ SK_D3D11_Init (void)
     D3DPerformance_SetMarker               = SK_GetProcAddress (SK::DXGI::hModD3D11, "D3DPerformance_SetMarker");
 
 
-    bool bDXVK =
-      SK_DXVK_CheckForInterop ();
-
     if (! config.apis.dxgi.d3d11.hook)
       return false;
 
@@ -6336,13 +6356,6 @@ SK_D3D11_Init (void)
            SK_GetProcAddress (hBackend, "D3D11CreateDevice");
       }
 
-      if (LocalHook_D3D11CoreCreateDevice.active == FALSE && (! (bDXVK || config.compatibility.using_wine)))
-      {
-        D3D11CoreCreateDevice_Import            =  \
-         (D3D11CoreCreateDevice_pfn)               \
-           SK_GetProcAddress (hBackend, "D3D11CoreCreateDevice");
-      }
-
       if (LocalHook_D3D11CreateDeviceAndSwapChain.active == FALSE)
       {
         D3D11CreateDeviceAndSwapChain_Import            =  \
@@ -6354,20 +6367,11 @@ SK_D3D11_Init (void)
                      SK_MakePrettyAddress (D3D11CreateDevice_Import).c_str () );
       SK_LogSymbolName                    (D3D11CreateDevice_Import);
 
-      if (! (bDXVK || config.compatibility.using_wine))
-      {
-        SK_LOGi0 ( L"  D3D11CoreCreateDevice:         %s",
-                       SK_MakePrettyAddress (D3D11CoreCreateDevice_Import).c_str () );
-        SK_LogSymbolName                    (D3D11CoreCreateDevice_Import);
-      }
-
       SK_LOGi0 ( L"  D3D11CreateDeviceAndSwapChain: %s",
                       SK_MakePrettyAddress (D3D11CreateDeviceAndSwapChain_Import).c_str () );
       SK_LogSymbolName                     (D3D11CreateDeviceAndSwapChain_Import);
 
       pfnD3D11CreateDeviceAndSwapChain = D3D11CreateDeviceAndSwapChain_Import;
-      if (! (bDXVK || config.compatibility.using_wine))
-      pfnD3D11CoreCreateDevice         = D3D11CoreCreateDevice_Import;
       pfnD3D11CreateDevice             = D3D11CreateDevice_Import;
 
       InterlockedIncrementRelease (&SK_D3D11_initialized);
@@ -6390,26 +6394,6 @@ SK_D3D11_Init (void)
                                                         D3D11CreateDevice_Import).c_str (),
                               pfnD3D11CreateDevice ? L"{ Hooked }" :
                                                      L"{ Cached }" );
-      }
-
-      if (! (bDXVK || config.compatibility.using_wine))
-      {
-        if ( LocalHook_D3D11CoreCreateDevice.active == TRUE ||
-            ( MH_OK ==
-               SK_CreateDLLHook2 (      L"d3d11.dll",
-                                         "D3D11CoreCreateDevice",
-                                          D3D11CoreCreateDevice_Detour,
-                 static_cast_p2p <void> (&D3D11CoreCreateDevice_Import),
-                                      &pfnD3D11CoreCreateDevice )
-            )
-           )
-        {
-                SK_LOGi0 ( L"  D3D11CoreCreateDevice:          %s  %s",
-          SK_MakePrettyAddress (pfnD3D11CoreCreateDevice ? pfnD3D11CoreCreateDevice :
-                                                              D3D11CoreCreateDevice_Import).c_str (),
-                                pfnD3D11CoreCreateDevice ? L"{ Hooked }" :
-                                                           L"{ Cached }" );
-        }
       }
 
       if ( LocalHook_D3D11CreateDeviceAndSwapChain.active == TRUE ||
@@ -6464,15 +6448,6 @@ SK_D3D11_Init (void)
            pfnD3D11CreateDeviceAndSwapChain :
               D3D11CreateDeviceAndSwapChain_Import;
     LocalHook_D3D11CreateDeviceAndSwapChain.active      = TRUE;
-
-    if (! (bDXVK || config.compatibility.using_wine))
-    {
-      LocalHook_D3D11CoreCreateDevice.target.addr =
-             pfnD3D11CoreCreateDevice ?
-             pfnD3D11CoreCreateDevice :
-                D3D11CoreCreateDevice_Import;
-      LocalHook_D3D11CoreCreateDevice.active      = TRUE;
-    }
 
     LocalHook_D3D11CreateDevice.target.addr =
            pfnD3D11CreateDevice ?
@@ -7380,12 +7355,6 @@ SK_D3D11_PresentFirstFrame (IDXGISwapChain* pSwapChain)
   LocalHook_D3D11CreateDevice.active             = TRUE;
   LocalHook_D3D11CreateDeviceAndSwapChain.active = TRUE;
 
-  bool bDXVK =
-    SK_DXVK_CheckForInterop ();
-
-  if (! (bDXVK || config.compatibility.using_wine))
-  LocalHook_D3D11CoreCreateDevice.active         = TRUE;
-
   for ( auto& it : local_d3d11_records )
   {
     if (it->active)
@@ -7604,10 +7573,6 @@ SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
     }
   }
 
-  // Prevent ReShade from causing device removal
-  if (PathFileExistsW (L"dxgi.dll"))
-    uiOrigFlags |= D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
-
   //UINT Flags =  (D3D11_CREATE_DEVICE_DEBUG | uiOrigFlags);
   //     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;
 
@@ -7680,154 +7645,6 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
 
 extern bool
 SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
-
-__declspec (noinline)
-HRESULT
-WINAPI
-D3D11CoreCreateDevice_Detour (
-          IDXGIFactory       *pFactory,
-          IDXGIAdapter       *pAdapter,
-          D3D_DRIVER_TYPE     DriverType,
-          HINSTANCE           Software,
-          UINT                Flags,
-    const D3D_FEATURE_LEVEL  *pFeatureLevels,
-          UINT                FeatureLevels,
-          INT                 SDKVersion,
-          ID3D11Device      **ppDevice,
-          D3D_FEATURE_LEVEL  *pFeatureLevel )
-{
-  SK_LOG_FIRST_CALL
-
-  std::ignore = pFactory;
-
-  std::ignore = DriverType;
-  std::ignore = SDKVersion;
-  std::ignore = Software;
-
-  bool bEOSOverlay =
-    SK_COMPAT_IgnoreEOSOVHCall ();
-
-  if ((! bEOSOverlay) || config.system.log_level > 0)
-  {
-    DXGI_LOG_CALL_1 (L"D3D11CoreCreateDevice", L"Flags=0x%x", Flags );
-  }
-
-  if (SK_COMPAT_IgnoreNvCameraCall ())
-    return E_NOTIMPL;
-
-  Flags =
-    SK_D3D11_MakeDebugFlags (Flags);
-
-  static SK_RenderBackend_V2& rb =
-    SK_GetCurrentRenderBackend ();
-
-  // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_10_0;
-  ID3D11Device*     ret_device = nullptr;
-
-  SK_D3D11_Init ();
-
-  WaitForInitD3D11 ();
-
-  dll_log->LogEx ( true,
-                     L"[  D3D 11  ]  <~> Preferred Feature Level(s): <%u> - %hs\n",
-                       FeatureLevels,
-                         SK_DXGI_FeatureLevelsToStr (
-                           FeatureLevels,
-                             reinterpret_cast <const DWORD *> (pFeatureLevels)
-                         ).c_str ()
-                 );
-
-  // Optionally Enable Debug Layer
-//if (ReadAcquire (&__d3d11_ready) != 0)
-  {
-    if (config.render.dxgi.debug_layer && ((Flags & D3D11_CREATE_DEVICE_DEBUG)
-                                                 != D3D11_CREATE_DEVICE_DEBUG))
-    {
-      SK_LOG0 ( ( L" ==> Enabling D3D11 Debug layer" ),
-                  __SK_SUBSYSTEM__ );
-
-      Flags |= D3D11_CREATE_DEVICE_DEBUG;
-    }
-  }
-
-
-  SK_D3D11_RemoveUndesirableFlags (&Flags);
-
-
-  //
-  // DXGI Adapter Override (for performance)
-  //
-
-  SK_DXGI_AdapterOverride ( &pAdapter, &DriverType );
-
-  HRESULT res = E_UNEXPECTED;
-
-  DXGI_CALL (res,
-    D3D11CoreCreateDevice_Import ( pFactory, pAdapter,
-                                             pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
-                                                                 : DriverType,
-                                               pAdapter == nullptr ? nullptr
-                                                                   : Software,
-                                                 Flags,
-                                                   pFeatureLevels,
-                                                     FeatureLevels,
-                                                       SDKVersion,
-                                                         &ret_device,
-                                                           &ret_level )
-            );
-
-
-  if (SUCCEEDED (res) && ppDevice != nullptr)
-  {
-    // Stash the pointer to this device so that we can test equality on wrapped devices
-    ret_device->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), ret_device);
-
-    // Assume the first thing to create a D3D11 render device is
-    //   the game and that devices never migrate threads; for most games
-    //     this assumption holds.
-    if ( ReadULongAcquire (&rb.thread) == 0x00 ||
-         ReadULongAcquire (&rb.thread) == SK_Thread_GetCurrentId () )
-    {
-      WriteULongRelease (&rb.thread, SK_Thread_GetCurrentId ());
-    }
-
-    SK_D3D11_SetDevice ( &ret_device, ret_level );
-  }
-
-  if (ppDevice != nullptr)
-    *ppDevice   = ret_device;
-
-  if (pFeatureLevel != nullptr)
-    *pFeatureLevel   = ret_level;
-
-  if (ppDevice != nullptr && SUCCEEDED (res))
-  {
-    SK_ComQIPtr <ID3D11Debug>
-        pDebug (*ppDevice);
-    if (pDebug != nullptr)
-    {
-      SK_ComQIPtr <ID3D11InfoQueue>
-          pInfoQueue (pDebug);
-      if (pInfoQueue != nullptr)
-      {
-        pInfoQueue->SetMuteDebugOutput (                                   FALSE);
-        pInfoQueue->SetBreakOnSeverity (D3D11_MESSAGE_SEVERITY_CORRUPTION, FALSE);
-
-        pInfoQueue.Detach ();
-      }
-    }
-
-    D3D11_FEATURE_DATA_D3D11_OPTIONS options;
-    (*ppDevice)->CheckFeatureSupport ( D3D11_FEATURE_D3D11_OPTIONS,
-                                         &options, sizeof (options) );
-
-    d3d11_caps.MapNoOverwriteOnDynamicConstantBuffer =
-      (options.MapNoOverwriteOnDynamicConstantBuffer != FALSE);
-  }
-
-  return res;
-}
 
 __declspec (noinline)
 HRESULT
@@ -8055,51 +7872,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res = E_UNEXPECTED;
 
-  const bool bDXVK =
-    SK_DXVK_CheckForInterop ();
-
-  const bool bIsD3D10 =
-    ( FeatureLevels == 1 && *pFeatureLevels == D3D_FEATURE_LEVEL_10_0 );
-
-  const bool bCanUseD3D11CoreCreateDevice =
-    ((! (bDXVK || config.compatibility.using_wine)) && (! bIsD3D10));
-
-  // DXVK cannot use this function because it doesn't implement D3D11CoreCreateDevice correctly
-  if (D3D11CoreCreateDevice_Import != nullptr && bCanUseD3D11CoreCreateDevice)
-  {
-    const auto factory_flags =
-      config.render.dxgi.debug_layer ?
-           DXGI_CREATE_FACTORY_DEBUG : 0x0;
-
-    SK_ComPtr <IDXGIFactory>                 pFactory;
-    CreateDXGIFactory2 ( factory_flags,
-          __uuidof (IDXGIFactory), (void **)&pFactory.p);
-
-    DXGI_CALL (res,
-      D3D11CoreCreateDevice_Import ( nullptr, pAdapter,
-                                              pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
-                                                                  : DriverType,
-                                              pAdapter == nullptr ? nullptr
-                                                                  : Software,
-                                                Flags,
-                                                  pFeatureLevels,
-                                                    FeatureLevels,
-                                                      SDKVersion,
-                                                        &ret_device,
-                                                          &ret_level )
-              );
-
-    if (SUCCEEDED (res))
-    {
-      pFactory->CreateSwapChain       (ret_device, swap_chain_desc, ppSwapChain);
-      ret_device->GetImmediateContext (ppImmediateContext);
-    }
-  }
-
-  if (FAILED (res))
-  {
-    DXGI_CALL (res,
-      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+  DXGI_CALL (res,
+    D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
                                              pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
                                                                  : DriverType,
                                                pAdapter == nullptr ? nullptr
@@ -8113,11 +7887,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                              &ret_device,
                                                                &ret_level,
                                                                  ppImmediateContext )
-              );
-  }
+            );
 
 
-  if (SUCCEEDED (res) && ppDevice != nullptr && (! bIsD3D10))
+  if (SUCCEEDED (res) && ppDevice != nullptr)
   {
     // Stash the pointer to this device so that we can test equality on wrapped devices
     ret_device->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), ret_device);
@@ -8223,16 +7996,36 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
-  if (bIsD3D10)
-  {
-    SK_LOGi0 (L" * Ignoring device because it is actually D3D10!");
-  }
-
   if (ppDevice != nullptr)
     *ppDevice   = ret_device;
 
   if (pFeatureLevel != nullptr)
     *pFeatureLevel   = ret_level;
+
+  if (ppDevice != nullptr && SUCCEEDED (res))
+  {
+    SK_ComQIPtr <ID3D11Debug>
+        pDebug (*ppDevice);
+    if (pDebug != nullptr)
+    {
+      SK_ComQIPtr <ID3D11InfoQueue>
+          pInfoQueue (pDebug);
+      if (pInfoQueue != nullptr)
+      {
+        pInfoQueue->SetMuteDebugOutput (                                   FALSE);
+        pInfoQueue->SetBreakOnSeverity (D3D11_MESSAGE_SEVERITY_CORRUPTION, FALSE);
+
+        pInfoQueue.Detach ();
+      }
+    }
+
+    D3D11_FEATURE_DATA_D3D11_OPTIONS options;
+    (*ppDevice)->CheckFeatureSupport ( D3D11_FEATURE_D3D11_OPTIONS,
+                                         &options, sizeof (options) );
+
+    d3d11_caps.MapNoOverwriteOnDynamicConstantBuffer =
+      (options.MapNoOverwriteOnDynamicConstantBuffer != FALSE);
+  }
 
   return res;
 }

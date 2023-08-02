@@ -8670,18 +8670,6 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
-    //// Now we get the underlying Factory, free from Streamline's bad stuff if it's present
-    //SK_ComPtr <IDXGIFactory> pStreamlineFreeFactory;
-    //pFactory->QueryInterface (
-    //  __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeFactory.p
-    //);
-    //
-    //if (pStreamlineFreeFactory != nullptr) {
-    //  pFactory.p->AddRef ();
-    //  pFactory = pStreamlineFreeFactory;
-    //  pFactory.p->Release ();
-    //}
-
     HRESULT hr = E_NOTIMPL;
 
     using D3D12CreateDevice_pfn =
@@ -8693,11 +8681,29 @@ HookDXGI (LPVOID user)
     SK_ComPtr <ID3D12Device>       pDevice12;
     SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
 
-    bool bDXVK =
-      SK_DXVK_CheckForInterop () || config.compatibility.using_wine;
+    D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
+      SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
 
-    // DXVK must use this function because it doesn't implement D3D11CoreCreateDevice correctly
-    if (bDXVK || D3D11CoreCreateDevice_Import == nullptr)
+    // Favor this codepath because it bypasses many things like ReShade, but
+    //   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
+    if (D3D11CoreCreateDevice != nullptr && (! SK_GetModuleHandle (L"vulkan-1.dll")))
+    {
+      SK_D3D11_Init ();
+
+      hr =
+        D3D11CoreCreateDevice (
+          nullptr, pAdapter0,
+            D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+              config.render.dxgi.debug_layer ?
+                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                              levels,
+                  _ARRAYSIZE (levels),
+                    D3D11_SDK_VERSION,
+                      &pDevice.p,
+                        &featureLevel );
+    }
+
+    else
     {
       hr =
         D3D11CreateDeviceAndSwapChain_Import (
@@ -8711,22 +8717,6 @@ HookDXGI (LPVOID user)
                         &pDevice.p,
                           &featureLevel,
                             nullptr );
-    }
-
-    // DLSS3 required hack: create device using an API it doesn't hook
-    else
-    {
-      hr =
-        D3D11CoreCreateDevice_Import (
-          nullptr, pAdapter0,
-            D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-              config.render.dxgi.debug_layer ?
-                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                              levels,
-                  _ARRAYSIZE (levels),
-                    D3D11_SDK_VERSION,
-                      &pDevice.p,
-                        &featureLevel );
     }
     
     // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.

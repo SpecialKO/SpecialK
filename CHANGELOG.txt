@@ -1,6 +1,11 @@
-﻿23.8.1.4
+﻿23.8.2
+======
+ + Restore compatibility with NVIDIA's Vulkan / DXGI interop layer, broken by
+     various code changes to try and make Streamline work :sigh:
+
+23.8.1.4
 ========
- + Partial workaround for ID3D11Resource reference count underflow in ReShad 5.9.0
+ + Partial workaround for ID3D11Resource reference count underflow in ReShade 5.9.0
      >> Please do not use 5.9.0, SK cannot fix it and will crash eventually.
  + Delay load comctl32.dll to reduce likelihood of SK's injected DLL becoming
      stuck in UWP processes such as Widgets.exe
