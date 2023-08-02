@@ -6271,19 +6271,6 @@ SK_InstallWindowHook (HWND hWnd)
   static volatile LONG               __installed =      FALSE;
   if (! InterlockedCompareExchange (&__installed, TRUE, FALSE))
   {
-    // Win32u is faster on systems that dispatch system calls through it
-    //
-    static sk_import_test_s win32u_test [] = { { "win32u.dll", false } };
-    static bool             tested         =                   false;
-
-    if (! tested)
-    {
-      SK_TestImports (hModUser32, win32u_test,
-                          sizeof (win32u_test) /
-                          sizeof (sk_import_test_s));
-      tested = true;
-    }
-
     GetThreadDpiAwarenessContext = (GetThreadDpiAwarenessContext_pfn)
       SK_GetProcAddress ( hModUser32,
                          "GetThreadDpiAwarenessContext" );

@@ -8729,6 +8729,9 @@ HookDXGI (LPVOID user)
                         &featureLevel );
     }
     
+    // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
+    //   Therfore, just it may be better to leave Streamline unsupported.
+#if 1
     if (GetModuleHandleW (L"d3d12core.dll"))
     {
       static D3D12CreateDevice_pfn
@@ -8746,6 +8749,7 @@ HookDXGI (LPVOID user)
 
       pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
     }
+#endif
 
     if (SUCCEEDED (hr))
     {

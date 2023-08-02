@@ -1,4 +1,13 @@
-﻿23.8.1.2
+﻿23.8.1.3
+========
+ + Replaced forum link in control panel's Help menu with a Discord link
+ + Removed option to restart NVIDIA driver from Help menu; SKIF can do it now
+ + Fixed Yakuza 0 crashing at startup
+
+     >> Using Special K in Yakuza 0 is not recommended because it will not work
+          unless forcefully disabling flip model.
+
+23.8.1.2
 ========
  + Disabled 11-bit HDR remastering in all Yakuza games because it causes crashing
  + Added an option to disable XInput (and only XInput) devices to the current game

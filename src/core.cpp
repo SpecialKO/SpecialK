@@ -2866,9 +2866,16 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       {
         if (game_window.hWnd != 0)
         {
-          // Activate the game window one time
-          //   (workaround wonkiness from splash screens, etc.)
-          SK_RunOnce (SetForegroundWindow (game_window.hWnd));
+          // This crashes Yakuza 0, possibly other games...
+          //
+          //   If something only works prior to 23.5.28.2, this may be why.
+          if (SK_GetCurrentGameID () != SK_GAME_ID::Yakuza0 &&
+              SK_GetCurrentGameID () != SK_GAME_ID::YakuzaUnderflow)
+          {
+            // Activate the game window one time
+            //   (workaround wonkiness from splash screens, etc.)
+            SK_RunOnce (SetForegroundWindow (game_window.hWnd));
+          }
 
           // If user wants position / style overrides, kick them off on the first
           //   frame after a window procedure has been established.
