@@ -820,6 +820,12 @@ struct sk_config_t
         bool  blackout_api        = false;
       } xinput;
 
+      struct dinput_s {
+        bool  blackout_gamepads   = false;
+        bool  blackout_keyboards  = false;
+        bool  blackout_mice       = false;
+      } dinput;
+
       struct scepad_s {
         bool disable_touch        = false;
         bool share_clicks_touch   =  true;
