@@ -1358,15 +1358,15 @@ SK_D3D11_UpdateSubresource_Impl (
 {
   SK_WRAP_AND_HOOK
 
-  const auto _Finish = [&](void) ->
+  const auto _Finish = [&](ID3D11DeviceContext *_pDevCtx) ->
   void
   {
     bWrapped ?
-      pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
-                                     pDstBox, pSrcData, SrcRowPitch,
-                                       SrcDepthPitch )
+      _pDevCtx->UpdateSubresource ( pDstResource, DstSubresource,
+                                      pDstBox, pSrcData, SrcRowPitch,
+                                        SrcDepthPitch )
            :
-    D3D11_UpdateSubresource_Original ( pDevCtx, pDstResource, DstSubresource,
+    D3D11_UpdateSubresource_Original ( _pDevCtx, pDstResource, DstSubresource,
                                          pDstBox, pSrcData, SrcRowPitch,
                                            SrcDepthPitch );
   };
@@ -1386,8 +1386,9 @@ SK_D3D11_UpdateSubresource_Impl (
       {
         if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
         {
-          pResourceDevice->GetImmediateContext (&pDevCtx);
-          _Finish ();                            pDevCtx->Release ();
+          SK_ComPtr <ID3D11DeviceContext>        pResDevCtx;
+          pResourceDevice->GetImmediateContext (&pResDevCtx.p);
+          _Finish (                              pResDevCtx);
 
           return;
         }
@@ -1396,7 +1397,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
   //return
-  //  _Finish ();
+  //  _Finish (pDevCtx);
 
   bool early_out =
     ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
@@ -1448,7 +1449,7 @@ SK_D3D11_UpdateSubresource_Impl (
   if (early_out)
   {
     return
-      _Finish ();
+      _Finish (pDevCtx);
   }
 
   if ( __attempt_to_cache && (    (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
@@ -1477,7 +1478,7 @@ SK_D3D11_UpdateSubresource_Impl (
         if (skip)
         {
           return
-            _Finish ();
+            _Finish (pDevCtx);
         }
       }
 
@@ -1551,7 +1552,7 @@ SK_D3D11_UpdateSubresource_Impl (
         }
 
         else
-          _Finish ();
+          _Finish (pDevCtx);
 
         textures->recordCacheHit (pCachedTex);
 
@@ -1583,7 +1584,7 @@ SK_D3D11_UpdateSubresource_Impl (
         }
 
         if (desc.Usage == D3D11_USAGE_STAGING || desc.Usage == D3D11_USAGE_DEFAULT)
-          _Finish ();
+          _Finish (pDevCtx);
 
         const auto end     = SK_QueryPerf ().QuadPart;
               auto elapsed = end - start;
@@ -1629,7 +1630,7 @@ SK_D3D11_UpdateSubresource_Impl (
             bool injected = false;
 
             // -----------------------------
-            if (SK_D3D11_res_root->length ())
+            if (! SK_D3D11_res_root->empty ())
             {
               wchar_t     wszTex [MAX_PATH + 2] = { };
               wcsncpy_s ( wszTex, MAX_PATH,
@@ -1739,7 +1740,7 @@ SK_D3D11_UpdateSubresource_Impl (
   }
 
   return
-    _Finish ();
+    _Finish (pDevCtx);
 }
 
 bool
@@ -7602,6 +7603,10 @@ SK_D3D11_MakeDebugFlags (UINT uiOrigFlags)
       SK_LOGi0 (L">> Removing Singlethreaded Device Flags");
     }
   }
+
+  // Prevent ReShade from causing device removal
+  if (PathFileExistsW (L"dxgi.dll"))
+    uiOrigFlags |= D3D11_CREATE_DEVICE_DISABLE_GPU_TIMEOUT;
 
   //UINT Flags =  (D3D11_CREATE_DEVICE_DEBUG | uiOrigFlags);
   //     Flags &= ~D3D11_CREATE_DEVICE_PREVENT_ALTERING_LAYER_SETTINGS_FROM_REGISTRY;

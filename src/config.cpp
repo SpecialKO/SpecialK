@@ -2564,23 +2564,13 @@ auto DeclKeybind =
         config.textures.d3d11.cache               = false;
         config.textures.cache.allow_unsafe_refs   =  true;
         config.render.dxgi.deferred_isolation     = false;
-        config.textures.cache.residency_managemnt = false;
-        config.render.framerate.disable_flip      = false;
-        config.render.framerate.swapchain_wait    =     1;
         config.window.borderless                  =  true;
         config.window.fullscreen                  =  true;
         config.input.keyboard.override_alt_f4     =  true;
+        config.input.keyboard.catch_alt_f4        =  true;
 
-        HMONITOR hMonitor =
-          MonitorFromWindow ( HWND_DESKTOP,
-                                MONITOR_DEFAULTTOPRIMARY );
-
-        MONITORINFO mi   = {         };
-        mi.cbSize        = sizeof (mi);
-        GetMonitorInfo (hMonitor, &mi);
-
-        config.window.res.override.x = mi.rcMonitor.right  - mi.rcMonitor.left;
-        config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
+        // Game's busted without this
+        config.display.force_windowed             =  true;
       }
       break;
 
@@ -2617,7 +2607,6 @@ auto DeclKeybind =
         config.window.background_render           =   true;
         config.window.always_on_top               =      0;
         config.render.dxgi.deferred_isolation     =  false;
-        config.render.framerate.flip_discard      =   true;
         config.platform.reuse_overlay_pause       =  false;
         config.window.borderless                  =   true;
         config.window.fullscreen                  =   true;
