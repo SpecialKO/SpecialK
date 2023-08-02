@@ -30,6 +30,8 @@ SK_TaskDialogIndirect ( _In_      const TASKDIALOGCONFIG* pTaskConfig,
                         _Out_opt_       int*              pnRadioButton,
                         _Out_opt_       BOOL*             pfVerificationFlagChecked )
 {
+  InitMUILanguage (LANG_USER_DEFAULT);
+
   using TaskDialogIndirect_pfn   = HRESULT (WINAPI*)(_In_ const TASKDIALOGCONFIG* pTaskConfig, _Out_opt_ int* pnButton, _Out_opt_ int* pnRadioButton, _Out_opt_ BOOL* pfVerificationFlagChecked);
   using InitCommonControlsEx_pfn = BOOL    (WINAPI*)(_In_ const INITCOMMONCONTROLSEX * picce);
 
