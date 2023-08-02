@@ -122,7 +122,7 @@
       <AssemblerOutput>All</AssemblerOutput>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
@@ -181,7 +181,7 @@
       <AssemblerOutput>All</AssemblerOutput>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <UndefinePreprocessorDefinitions>__midl</UndefinePreprocessorDefinitions>
       <AdditionalOptions>/Zo /Gw /Gm- /O0 /GR /cgthreads8 /Zf %(AdditionalOptions)</AdditionalOptions>
@@ -250,7 +250,7 @@
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <IntelJCCErratum>true</IntelJCCErratum>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib />
     <ProjectReference />
@@ -304,7 +304,7 @@
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntelJCCErratum>true</IntelJCCErratum>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Lib />
     <Lib />

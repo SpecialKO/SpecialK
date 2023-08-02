@@ -190,7 +190,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LargeAddressAware>true</LargeAddressAware>
       <DataExecutionPrevention>false</DataExecutionPrevention>
-      <DelayLoadDLLs>gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk32.dll;comctl32.dll</DelayLoadDLLs>
       <EntryPointSymbol>
       </EntryPointSymbol>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
@@ -299,7 +299,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <OutputFile>C:\Users\amcol\Documents\My Mods\SpecialK\SpecialK64.dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>gdi32.dll;D3DCOMPILER_47.dll;d3dx9_43.dll;comctl32.dll;tobii_stream_engine_sk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk64.dll;comctl32.dll</DelayLoadDLLs>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <EntryPointSymbol>
@@ -416,7 +416,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>tobii_stream_engine_sk32.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk32.dll;comctl32.dll</DelayLoadDLLs>
       <FullProgramDatabaseFile>true</FullProgramDatabaseFile>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
@@ -537,7 +537,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <OutputFile>$(OutDir)$(TargetName).dll</OutputFile>
       <AssemblyDebug>true</AssemblyDebug>
       <ModuleDefinitionFile>SpecialK.def</ModuleDefinitionFile>
-      <DelayLoadDLLs>tobii_stream_engine_sk64.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>tobii_stream_engine_sk64.dll;comctl32.dll</DelayLoadDLLs>
       <LargeAddressAware>true</LargeAddressAware>
       <EntryPointSymbol>
       </EntryPointSymbol>
