@@ -3560,8 +3560,13 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::TreePush ("");
         {
+#if 0
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discourse Forums", &selected, true))
             SK_SteamOverlay_GoToURL ("https://discourse.differentk.fyi/", true);
+#else
+          if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discord Server", &selected, true))
+            SK_SteamOverlay_GoToURL ("https://discord.gg/SpecialK", true);
+#endif
         }
         ImGui::TreePop ();
 
@@ -3656,29 +3661,6 @@ SK_ImGui_ControlPanel (void)
 
           static INT enablement =
             SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
-
-#ifndef _WIN64
-          static HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi.dll");
-#else
-          static HMODULE hLib = SK_Modules->LoadLibraryLL (L"nvapi64.dll");
-#endif
-#define __NvAPI_RestartDisplayDriver                      0xB4B26B65
-          typedef void* (*NvAPI_QueryInterface_pfn)(unsigned int offset);
-          typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
-          static NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
-            (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
-          static NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver = NvAPI_QueryInterface == nullptr ?
-                                                                                                     nullptr :
-            (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
-
-          if (NvAPI_RestartDisplayDriver != nullptr)
-          {
-            if (ImGui::MenuItem ("Restart NVIDIA Display Driver", "No Reboot Required", nullptr))
-              NvAPI_RestartDisplayDriver ();
-
-            if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("NVIDIA display buggers can be restarted on-the-fly; may take a few seconds.");
-          }
 
           if (enablement >= 0)
           {
