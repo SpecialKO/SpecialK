@@ -107,13 +107,6 @@ SK_Log_AsyncFlushThreadPump (LPVOID)
     hFlushReq, __SK_DLL_TeardownEvent
   };
 
-  // TODO:  Consider an interlocked singly-linked list instead
-  //
-  //         ( The only drawback is Windows 7 does not support
-  //             these in 64-bit code ... but what's new? )
-  //
-  //    _Have I remembered to mention how much Windows 7 sucks recently?_
-  //
   while (! ReadAcquire (&__SK_DLL_Ending))
   {
     if (! flush_set->empty ())
