@@ -1,4 +1,13 @@
-﻿23.8.2
+﻿23.8.2.1
+========
+ + Changed VRR optimized framerate formula from 95% of Refresh to:
+
+     dVRROptimalFPS =
+       dRefreshRate - (dRefreshRate * dRefreshRate) / (60.0 * 60.0) - 0.1
+
+ + Filter out Exceptions from logs if they originate in NVIDIA MessageBus.dll
+
+23.8.2
 ======
  + Restore compatibility with NVIDIA's Vulkan / DXGI interop layer, broken by
      various code changes to try and make Streamline work :sigh:

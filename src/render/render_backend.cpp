@@ -663,12 +663,12 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         config.render.framerate.enforcement_policy = 4;
       }
     
-      double dRefreshRate =
+      const double dRefreshRate =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
         static_cast <double> (display.signal.timing.vsync_freq.Denominator);
     
-      double dVRROptimalFPS =
-        dRefreshRate * 0.95;
+      const double dVRROptimalFPS =
+        dRefreshRate - (dRefreshRate * dRefreshRate) / (60.0 * 60.0) - 0.1;
     
       extern float __target_fps;
       if (__target_fps == 0.0f || __target_fps > dVRROptimalFPS)

@@ -4599,7 +4599,6 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
           {
-            static double dVRRBias = 5.0;
             static bool   bVRRBias = false;
 
             static auto lastRefresh = 0.0;
@@ -4628,7 +4627,7 @@ SK_ImGui_ControlPanel (void)
               {
                 double dBiasedRefresh =
                              dRefresh - (!bVRRBias ? 0.0f :
-                             dRefresh *   dVRRBias * 0.01f );
+                            (dRefresh * dRefresh) / (60.0 * 60.0) + 0.1);
 
                 strFractList +=
                     ( std::to_string (dBiasedRefresh) + '\0' );
@@ -4807,7 +4806,7 @@ SK_ImGui_ControlPanel (void)
               if (bVRRBias)
               {
                 ImGui::SameLine ();
-                ImGui::Text ("\t(-%.2f%% Range)", dVRRBias);
+                ImGui::TextUnformatted ("\t(Reflex - 0.1 FPS)");
               }
             }
             //if (                                   bVRRBias &&
