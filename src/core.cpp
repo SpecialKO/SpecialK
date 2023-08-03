@@ -2866,15 +2866,12 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       {
         if (game_window.hWnd != 0)
         {
-          // This crashes Yakuza 0, possibly other games...
-          //
-          //   If something only works prior to 23.5.28.2, this may be why.
-          if (SK_GetCurrentGameID () != SK_GAME_ID::Yakuza0 &&
-              SK_GetCurrentGameID () != SK_GAME_ID::YakuzaUnderflow)
+          if (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Zestiria)
           {
             // Activate the game window one time
             //   (workaround wonkiness from splash screens, etc.)
-            SK_RunOnce (SetForegroundWindow (game_window.hWnd));
+            SK_RunOnce (if (GetForegroundWindow () != game_window.hWnd)
+                            SetForegroundWindow (     game_window.hWnd));
           }
 
           // If user wants position / style overrides, kick them off on the first
