@@ -613,8 +613,9 @@ using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
                                                   _In_     DWORD   SizeOfDll );
 
 
-std::wstring& SK_Thread_GetName (DWORD  dwTid);
-std::wstring& SK_Thread_GetName (HANDLE hThread);
+std::wstring& SK_Thread_GetName    (DWORD  dwTid);
+std::wstring& SK_Thread_GetName    (HANDLE hThread);
+DWORD         SK_Thread_FindByName (std::wstring name);
 
 
 #include <cassert>

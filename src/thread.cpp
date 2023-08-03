@@ -105,6 +105,21 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
     _noname;
 }
 
+DWORD
+SK_Thread_FindByName (std::wstring name)
+{
+  auto& threads =
+    _SK_ThreadNames.get ();
+
+  for (auto &thread : threads)
+  {
+    if (thread.second._Equal (name.c_str ()))
+      return thread.first;
+  }
+
+  return 0;
+}
+
 std::wstring&
 SK_Thread_GetName (DWORD dwTid)
 {
