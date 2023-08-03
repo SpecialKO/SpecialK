@@ -5377,7 +5377,16 @@ D3D11Dev_CreateTexture2D_Impl (
                pDesc->Height == swapDesc.BufferDesc.Height//&&
              /*pDesc->Format == swapDesc.BufferDesc.Format*/) && 
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) ) &&
+
+           //
+           // Disabled for Baldur's Gate 3 -
+           //
+           //   TODO:  Determine exact conditions in which promoting UAVs to
+           //            FP16 is problematic (i.e. when they are writeable)
+           //
+           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  !=
+                               D3D11_BIND_UNORDERED_ACCESS
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||

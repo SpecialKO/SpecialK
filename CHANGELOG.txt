@@ -1,4 +1,8 @@
-﻿23.8.2.2
+﻿23.8.2.3
+========
+ + Add support for 8-bit HDR remastering in Baldur's Gate 3 (D3D11)
+
+23.8.2.2
 ========
  + Fixed attempting to copy DXGI_FORMAT_R16_UNORM to DXGI_FORMAT_D16_UNORM using
      BltSurfaceCopy in Baldur's Gate 3 -- formats are direct copy compatible
