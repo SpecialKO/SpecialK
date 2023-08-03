@@ -1,4 +1,13 @@
-﻿23.8.2.3
+﻿23.8.3
+======
+ + Turned default HDR Saturation on Preset 0 down to 95%, since Perceptual Boost
+     massively increases saturation to begin with.
+
+    >> If the new desaturated values are not to your liking, it is suggested you
+         try the gamut expansion slider before the adjusting saturation. Gamut
+           expansion is more subtle and less "deep fried" color.
+
+23.8.2.3
 ========
  + Add support for 8-bit HDR remastering in Baldur's Gate 3 (D3D11)
 
