@@ -3909,6 +3909,31 @@ SK_Input_SetLatencyMarker (void) noexcept
   }
 }
 
+
+// SK doesn't use SDL, but many games crash on exit due to polling
+//   joystick after XInput is unloaded... so we'll just terminate
+//     the thread manually so it doesn't crash.
+void
+SK_SDL_ShutdownInput (void)
+{
+  auto tidSDL =
+    SK_Thread_FindByName (L"SDL_joystick");
+
+  if (tidSDL != 0)
+  {
+    SK_AutoHandle hThread (
+      OpenThread (THREAD_ALL_ACCESS, FALSE, tidSDL)
+    );
+
+    if (hThread.isValid ())
+    {
+      SuspendThread      (hThread);
+      SK_TerminateThread (hThread, 0xDEADC0DE);
+    }
+  }
+}
+
+
 #include <imgui/font_awesome.h>
 
 extern bool

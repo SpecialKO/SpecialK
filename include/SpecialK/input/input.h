@@ -59,6 +59,11 @@ void SK_Input_Init    (void);
 
 void SK_Input_SetLatencyMarker (void) noexcept;
 
+// SK doesn't use SDL, but many games crash on exit due to polling
+//   joystick after XInput is unloaded... so we'll just terminate
+//     the thread manually so it doesn't crash.
+void SK_SDL_ShutdownInput (void);
+
 
 SHORT WINAPI SK_GetAsyncKeyState (int vKey);
 
