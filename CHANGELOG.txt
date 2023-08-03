@@ -1,4 +1,9 @@
-﻿23.8.2.1
+﻿23.8.2.2
+========
+ + Fixed attempting to copy DXGI_FORMAT_R16_UNORM to DXGI_FORMAT_D16_UNORM using
+     BltSurfaceCopy in Baldur's Gate 3 -- formats are direct copy compatible
+
+23.8.2.1
 ========
  + Changed VRR optimized framerate formula from 95% of Refresh to:
 

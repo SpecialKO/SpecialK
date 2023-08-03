@@ -1740,8 +1740,8 @@ SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst)
                                   DirectX::MakeSRGB (src) == dst ||
                                   DirectX::MakeSRGB (dst) == src ||
       (DirectX::MakeTypeless (src) == DirectX::MakeTypeless (dst)
-                                   &&
-      (DirectX::IsTypeless   (src) || DirectX::IsTypeless   (dst)))
+                               /*&&
+      (DirectX::IsTypeless (src) || DirectX::IsTypeless (dst))*/)
      )
   {
     return true;
