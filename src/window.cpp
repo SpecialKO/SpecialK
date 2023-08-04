@@ -3981,7 +3981,7 @@ BOOL
 WINAPI
 TranslateMessage_Detour (_In_ const MSG *lpMsg)
 {
-  if (SK_ImGui_WantTextCapture ())
+  if (SK_ImGui_WantTextCapture () && lpMsg != nullptr)
   {
     switch (lpMsg->message)
     {
@@ -4088,7 +4088,7 @@ PeekMessageA_Detour (
     PeekFunc =
       early_PeekMessageA;
 
-    if (PeekFunc != nullptr)
+    if (PeekFunc != nullptr && lpMsg != nullptr)
     {
       return
         PeekFunc ( lpMsg,
@@ -4105,7 +4105,8 @@ PeekMessageA_Detour (
   if (config.render.dxgi.safe_fullscreen)
     wRemoveMsg |= PM_REMOVE;
 
-  if ( PeekFunc ( lpMsg,
+  if (            lpMsg != nullptr &&
+       PeekFunc ( lpMsg,
                        hWnd,
                             wMsgFilterMin,
                             wMsgFilterMax,
@@ -4113,6 +4114,7 @@ PeekMessageA_Detour (
      )
   { // ---- RAW Input Background Hack ----
     if (      SK_WantBackgroundRender () &&
+              lpMsg          != nullptr  &&
               lpMsg->message == WM_INPUT &&
               lpMsg->wParam  == RIM_INPUTSINK )
     {
@@ -4178,7 +4180,7 @@ PeekMessageW_Detour (
                early : PeekFunc;
 
 
-    if (PeekFunc != nullptr)
+    if (PeekFunc != nullptr && lpMsg != nullptr)
     {
       return
         PeekFunc ( lpMsg,
@@ -4195,7 +4197,8 @@ PeekMessageW_Detour (
   if (config.render.dxgi.safe_fullscreen)
     wRemoveMsg |= PM_REMOVE;
 
-  if ( PeekFunc ( lpMsg,
+  if (            lpMsg != nullptr &&
+       PeekFunc ( lpMsg,
                        hWnd,
                             wMsgFilterMin,
                             wMsgFilterMax,
@@ -4203,6 +4206,7 @@ PeekMessageW_Detour (
      )
   { // ---- RAW Input Background Hack ----
     if ( SK_WantBackgroundRender () &&
+         lpMsg          != nullptr  &&
          lpMsg->message == WM_INPUT &&
          lpMsg->wParam  == RIM_INPUTSINK )
     {
@@ -4241,6 +4245,14 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
+#if 1
+  while (! PeekMessageA (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
+		if (WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT))
+      break;
+
+  return
+    lpMsg != nullptr && lpMsg->message != WM_QUIT;
+#else
   auto GetFunc = NtUserGetMessage != nullptr ?
                  NtUserGetMessage :
                        GetMessageA_Original;
@@ -4288,6 +4300,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 
   return
     bRet;
+#endif
 }
 
 BOOL
@@ -4316,6 +4329,14 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
+#if 1
+  while (! PeekMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
+		if (WAIT_OBJECT_0 == MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT))
+      break;
+
+  return
+    lpMsg != nullptr && lpMsg->message != WM_QUIT;
+#else
   auto GetFunc = NtUserGetMessage != nullptr ?
                  NtUserGetMessage :
                        GetMessageW_Original;
@@ -4364,6 +4385,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 
   return
     bRet;
+#endif
 }
 
 
@@ -4373,20 +4395,26 @@ DispatchMessageA_Detour (_In_ const MSG* lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  MSG orig_msg = *lpMsg; //-V821
-  MSG      msg = *lpMsg;
-
-  if ( SK_EarlyDispatchMessage ( &msg, true ) )
+  if (lpMsg != nullptr)
   {
-    auto DefWindowProc = DefWindowProcA;
+    MSG orig_msg = *lpMsg;
+    MSG      msg = *lpMsg;
+
+    if ( SK_EarlyDispatchMessage ( &msg, true ) )
+    {
+      auto DefWindowProc = DefWindowProcA;
+
+      return
+        DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
+                        orig_msg.wParam, orig_msg.lParam  );
+    }
 
     return
-      DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
-                      orig_msg.wParam, orig_msg.lParam  );
+      DispatchMessageA_Original (&msg);
   }
 
   return
-    DispatchMessageA_Original (&msg);
+    DispatchMessageA_Original (lpMsg);
 }
 
 LRESULT
@@ -4395,20 +4423,26 @@ DispatchMessageW_Detour (_In_ const MSG* lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  MSG orig_msg = *lpMsg; //-V821
-  MSG      msg = *lpMsg;
-
-  if ( SK_EarlyDispatchMessage ( &msg, true ) )
+  if (lpMsg != nullptr)
   {
-    auto DefWindowProc = DefWindowProcW;
+    MSG orig_msg = *lpMsg;
+    MSG      msg = *lpMsg;
+
+    if ( SK_EarlyDispatchMessage ( &msg, true ) )
+    {
+      auto DefWindowProc = DefWindowProcW;
+
+      return
+        DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
+                        orig_msg.wParam, orig_msg.lParam  );
+    }
 
     return
-      DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
-                      orig_msg.wParam, orig_msg.lParam  );
+      DispatchMessageW_Original (&msg);
   }
 
   return
-    DispatchMessageW_Original (&msg);
+    DispatchMessageW_Original (lpMsg);
 }
 
 

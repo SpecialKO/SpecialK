@@ -1,5 +1,7 @@
 ﻿23.8.3
 ======
+ + Add code to prevent dereferencing a NULL lpMsg when Baldur's Gate 3 calls
+     GetMessageW (...) on its SDL_joystick thread.
  + Turned default HDR Saturation on Preset 0 down to 95%, since Perceptual Boost
      massively increases saturation to begin with.
 
