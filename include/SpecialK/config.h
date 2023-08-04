@@ -917,6 +917,7 @@ struct sk_config_t
     bool    disable_screensaver = false;
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
+    bool    activate_at_start   = false;
     struct resolution_s {
       struct dim_override_s {
         unsigned int x          = 0;

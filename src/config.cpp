@@ -901,6 +901,7 @@ struct {
   sk::ParameterStringW*   preferred_monitor_exact = nullptr;
   sk::ParameterBool*      disable_screensaver     = nullptr;
   sk::ParameterBool*      dont_hook_wndproc       = nullptr;
+  sk::ParameterBool*      activate_at_start       = nullptr;
 } window;
 
 struct {
@@ -1424,6 +1425,8 @@ auto DeclKeybind =
     ConfigEntry (window.preferred_monitor_id,            L"GDI Monitor ID of Preferred Monitor",                       dll_ini,         L"Window.System",         L"PreferredMonitor"),
     ConfigEntry (window.preferred_monitor_exact,         L"CCD Display Path (invariant) of Preferred Monitor",         dll_ini,         L"Window.System",         L"PreferredMonitorExact"),
     ConfigEntry (window.dont_hook_wndproc,               L"Disable WndProc / ClassProc hooks (wrap instead of hook)",  dll_ini,         L"Window.System",         L"DontHookWndProc"),
+    ConfigEntry (window.activate_at_start,               L"Activate window after 15 frames (fixes games that think"
+                                                         L" they are running in the background)",                      dll_ini,         L"Window.System",         L"ActivateAtStart"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -2411,16 +2414,20 @@ auto DeclKeybind =
         apis.OpenGL.hook->store (config.apis.OpenGL.hook);
         break;
 
-
       case SK_GAME_ID::SonicMania:
       {
         config.apis.d3d9ex.hook = false;
       } break;
 
+      case SK_GAME_ID::Tales_of_Zesteria:
+        config.window.activate_at_start = true;
+        break;
+
       case SK_GAME_ID::BaldursGate3:
         config.compatibility.impersonate_debugger      = true;
         config.apis.NvAPI.vulkan_bridge                = 1;
         config.input.gamepad.dinput.block_enum_devices = true;
+        config.window.activate_at_start                = true;
         break;
 
       case SK_GAME_ID::Persona4:
@@ -3745,6 +3752,7 @@ auto DeclKeybind =
   window.always_on_top->load       (config.window.always_on_top);
   window.disable_screensaver->load (config.window.disable_screensaver);
   window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
+  window.activate_at_start->load   (config.window.activate_at_start);
 
 
   // Oh boy, let the fun begin :)
@@ -4903,6 +4911,7 @@ SK_SaveConfig ( std::wstring name,
   window.always_on_top->store                 (config.window.always_on_top);
   window.disable_screensaver->store           (config.window.disable_screensaver);
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
+  window.activate_at_start->store             (config.window.activate_at_start);
 
 #ifdef _VALIDATE_MONITOR_IDX
   if (config.display.monitor_handle != 0)

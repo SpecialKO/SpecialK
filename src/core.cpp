@@ -2869,8 +2869,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
-            if (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Zestiria ||
-                SK_GetCurrentGameID () == SK_GAME_ID::BaldursGate3)
+            if (config.window.activate_at_start)
             {
               // Activate the game window one time
               //   (workaround wonkiness from splash screens, etc.)
