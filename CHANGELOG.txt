@@ -1,4 +1,8 @@
-﻿23.8.3.3
+﻿23.8.3.4
+========
+ + Fixed potential black screen in some multi-window applications such as VLC
+
+23.8.3.3
 ========
  + Enable PreventEnumDevices by default in Baldur's Gate 3; it does not prevent
      Steam Input from working, only disables the part of it that hurts perf.

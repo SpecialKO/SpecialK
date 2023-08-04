@@ -2304,15 +2304,17 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
                           L"Special K Dummy Window Class",
                             &wc_existing ) )
   {
-    RECT                              rect = { };
-    GetWindowRect (game_window.hWnd, &rect);
+    RECT                          rect = { };
+    if (IsWindow (hWndParent))
+      GetWindowRect (hWndParent, &rect);
 
     HWND hWnd =
       CreateWindowExW ( WS_EX_NOACTIVATE | WS_EX_NOPARENTNOTIFY,
                             L"Special K Dummy Window Class",
                             L"Special K Dummy Window",
                             //IsWindow (hWndParent) ? WS_CHILD : WS_CLIPSIBLINGS,
-                                      WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                                      WS_POPUP        | WS_DISABLED |
+                                      WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
                                               rect.left,               rect.top,
                                  rect.right - rect.left, rect.bottom - rect.top,
                         HWND_DESKTOP/*hWndParent*/, nullptr,
@@ -2338,10 +2340,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
           {
             HWND hWnd = (HWND)user;
 
-          //SetForegroundWindow (hWnd);
-          //SetFocus            (hWnd);
-          //SetActiveWindow     (hWnd);
-            ShowWindow          (hWnd, SW_HIDE);
+            ShowWindow (hWnd, SW_HIDE);
 
             MSG                 msg = { };
             while (GetMessage (&msg, 0, 0, 0))
