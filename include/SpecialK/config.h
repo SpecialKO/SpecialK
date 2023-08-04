@@ -815,6 +815,7 @@ struct sk_config_t
         bool  placehold  [4]      = { false };
         unsigned
         int   assignment [4]      = { 0, 1, 2, 3 };
+        bool  disable    [4]      = { false };
         bool  hook_setstate       =  true; // Some software causes feedback loops
         bool  auto_slot_assign    = false;
         bool  blackout_api        = false;

@@ -1,4 +1,14 @@
-﻿23.8.3.6
+﻿23.8.3.7
+========
+ + Added XInput Slot Disable option to fix Baldur's Gate 3 thinking that multiple
+     controllers are connected and forcing you to restart the game.
+
+     [Input.XInput]
+     DisableSlots=1,2,3 (Comma separated from 0 to 4) - Blank: Nothing Disabled
+
+   >> BG3 suggested setting: 1,2,3 assuming you are not using local multiplayer
+
+23.8.3.6
 ========
  + Cleanup various window message pump code in SK so that only the game's
      message pump(s) go through SK's hooked functions and not SK's own messages.

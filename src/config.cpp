@@ -845,6 +845,8 @@ struct {
       sk::ParameterInt*   placeholders            = nullptr;
       sk::
         ParameterStringW* assignment              = nullptr;
+      sk::
+        ParameterStringW* disable                 = nullptr;
       sk::ParameterBool*  hook_setstate           = nullptr;
       sk::ParameterBool*  auto_slot_assign        = nullptr;
       sk::ParameterBool*  blackout_api            = nullptr;
@@ -1377,6 +1379,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.ui_slot,           L"XInput Controller that owns the config UI",                 dll_ini,         L"Input.XInput",          L"UISlot"),
     ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
+    ConfigEntry (input.gamepad.xinput.disable,           L"Disable XInput Slots",                                      dll_ini,         L"Input.XInput",          L"DisableSlots"),
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
     ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
@@ -3690,6 +3693,35 @@ auto DeclKeybind =
     free (wszAssign);
   }
 
+  if (((sk::iParameter *)input.gamepad.xinput.disable)->load ())
+  {
+    wchar_t* wszAssign =
+      _wcsdup (input.gamepad.xinput.disable->get_value ().c_str ());
+
+    wchar_t* wszBuf = nullptr;
+    wchar_t* wszTok =
+      std::wcstok (wszAssign, L",", &wszBuf);
+
+    if (wszTok == nullptr)
+    {
+      config.input.gamepad.xinput.disable [0] = false;
+      config.input.gamepad.xinput.disable [1] = false;
+      config.input.gamepad.xinput.disable [2] = false;
+      config.input.gamepad.xinput.disable [3] = false;
+    }
+
+    while (wszTok != nullptr)
+    {
+      config.input.gamepad.xinput.disable [std::clamp (_wtoi (wszTok), 0, 3)] =
+        true;
+
+      wszTok =
+        std::wcstok (nullptr, L",", &wszBuf);
+    }
+
+    free (wszAssign);
+  }
+
   input.gamepad.hook_scepad->load                 (config.input.gamepad.hook_scepad);
   input.gamepad.scepad.disable_touchpad->load     (config.input.gamepad.scepad.disable_touch);
   input.gamepad.scepad.share_clicks_touch->load   (config.input.gamepad.scepad.share_clicks_touch);
@@ -4832,6 +4864,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.steam.disable->store          (config.input.gamepad.steam.disabled_to_game);
 
   std::wstring xinput_assign;
+  std::wstring xinput_disable;
 
   for (int i = 0; i < 4; i++)
   {
@@ -4843,7 +4876,20 @@ SK_SaveConfig ( std::wstring name,
       xinput_assign += L",";
   }
 
+  for (int i = 0; i < 4; i++)
+  {
+    if (config.input.gamepad.xinput.disable [i])
+    {
+      xinput_disable += std::to_wstring (i);
+      xinput_disable += L",";
+    }
+  }
+
+  if (xinput_disable.data ()[xinput_disable.length () - 1] == L',')
+      xinput_disable.resize (xinput_disable.length () - 1);
+
   input.gamepad.xinput.assignment->store           (xinput_assign);
+  input.gamepad.xinput.disable->store              (xinput_disable);
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
