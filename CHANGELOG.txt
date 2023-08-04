@@ -1,4 +1,9 @@
-﻿23.8.3.4
+﻿23.8.3.5
+========
+ + Fixed ActivateAtStart option not working correctly when used with SK's
+     "Continue Rendering" window management feature
+
+23.8.3.4
 ========
  + Fixed potential black screen in some multi-window applications such as VLC
 

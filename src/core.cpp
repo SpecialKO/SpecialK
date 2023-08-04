@@ -1614,6 +1614,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 {
  try
  {
+   AllowSetForegroundWindow (GetCurrentProcessId ());
+
   if ( SK_GetProcAddress ( L"NtDll",
                             "wine_get_version" ) != nullptr )
   {
@@ -2868,11 +2870,17 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
-            if (config.window.activate_at_start)
+            if (config.window.activate_at_start || config.window.background_render)
             {
               // Activate the game window one time
               //   (workaround wonkiness from splash screens, etc.)
-              SK_RunOnce (SetForegroundWindow (game_window.hWnd));
+              SK_RunOnce (
+              {
+                game_window.CallProc (game_window.hWnd, WM_ACTIVATEAPP, TRUE,                      0);
+                game_window.CallProc (game_window.hWnd, WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
+                game_window.CallProc (game_window.hWnd, WM_SETFOCUS,    0,                         0);
+                SetForegroundWindow ( game_window.hWnd );
+              });
             }
 
             // If user wants position / style overrides, kick them off on the first
