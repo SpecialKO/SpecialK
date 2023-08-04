@@ -2419,7 +2419,7 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook = false;
       } break;
 
-      case SK_GAME_ID::Tales_of_Zesteria:
+      case SK_GAME_ID::Tales_of_Zestiria:
         config.window.activate_at_start = true;
         break;
 
