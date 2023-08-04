@@ -1,4 +1,19 @@
-﻿23.8.3
+﻿23.8.3.2
+========
+ + Added INI option to keep Steam Input from murdering performance by
+     enumerating devices every frame
+
+    [Input.DInput]
+    PreventEnumDevices={true|false}
+
+   * Fixes most of Steam Input's performance issues in Baldur's Gate 3 and
+       NieR: Replicant. Sure would be nice if Valve would fix this... :-\
+
+23.8.3.1
+========
+ + Yet more fixes for Baldur's Gate 3's screwed up gamepad code, yikes!
+
+23.8.3
 ======
  + Add code to prevent dereferencing a NULL lpMsg when Baldur's Gate 3 calls
      GetMessageW (...) on its SDL_joystick thread.

@@ -824,6 +824,7 @@ struct sk_config_t
         bool  blackout_gamepads   = false;
         bool  blackout_keyboards  = false;
         bool  blackout_mice       = false;
+        bool  block_enum_devices  = false;
       } dinput;
 
       struct scepad_s {

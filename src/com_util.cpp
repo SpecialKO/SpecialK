@@ -91,14 +91,15 @@ CoCreateInstance_Detour (
       return CoCreateInstance_DI8 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
     if (riid == IID_IDirectInput8W)
       return CoCreateInstance_DI8 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+    
   }
 
   if (rclsid == CLSID_DirectInput)
   {
     if (riid == IID_IDirectInputA)
-      return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+     return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
     if (riid == IID_IDirectInputW)
-      return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
+     return CoCreateInstance_DI7 (pUnkOuter, dwClsContext, riid, ppv, _ReturnAddress ());
   }
 
   if (rclsid == CLSID_DirectDraw)

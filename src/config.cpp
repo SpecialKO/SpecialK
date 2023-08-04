@@ -854,6 +854,7 @@ struct {
       sk::ParameterBool*  blackout_gamepads       = nullptr;
       sk::ParameterBool*  blackout_mice           = nullptr;
       sk::ParameterBool*  blackout_keyboards      = nullptr;
+      sk::ParameterBool*  block_enum_devices      = nullptr;
     } dinput;
 
     struct {
@@ -1382,6 +1383,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.dinput.blackout_gamepads, L"Prevent game from seeing DirectInput gamepads",             dll_ini,         L"Input.DInput",          L"HideGamepads"),
     ConfigEntry (input.gamepad.dinput.blackout_mice,     L"Prevent game from seeing DirectInput mice",                 dll_ini,         L"Input.DInput",          L"HideMice"),
     ConfigEntry (input.gamepad.dinput.blackout_keyboards,L"Prevent game from seeing DirectInput keyboards",            dll_ini,         L"Input.DInput",          L"HideKeyboards"),
+    ConfigEntry (input.gamepad.dinput.block_enum_devices,L"Prevent Steam Input from utterly destroying performance",   dll_ini,         L"Input.DInput",          L"PreventEnumDevices"),
 
     ConfigEntry (input.gamepad.hook_scepad,              L"Install hooks for libScePad",                               dll_ini,         L"Input.libScePad",       L"Enable"),
     ConfigEntry (input.gamepad.scepad.disable_touchpad,  L"Disable Touchpad Input",                                    dll_ini,         L"Input.libScePad",       L"DisableTouchpad"),
@@ -3646,6 +3648,7 @@ auto DeclKeybind =
   input.gamepad.dinput.blackout_gamepads->load (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->load     (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
+  input.gamepad.dinput.block_enum_devices->load(config.input.gamepad.dinput.block_enum_devices);
 
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
   {
@@ -4838,6 +4841,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.dinput.blackout_gamepads->store    (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->store        (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->store   (config.input.gamepad.dinput.blackout_keyboards);
+  input.gamepad.dinput.block_enum_devices->store   (config.input.gamepad.dinput.block_enum_devices);
 
   input.gamepad.hook_scepad->store                 (config.input.gamepad.hook_scepad);
   input.gamepad.scepad.disable_touchpad->store     (config.input.gamepad.scepad.disable_touch);

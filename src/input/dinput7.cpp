@@ -483,7 +483,7 @@ CoCreateInstance_DI7 (
            (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
                                                dwClsContext, riid, ppv )
            )
-         )
+         ) && config.input.gamepad.hook_dinput7
        )
     {
       if (! IDirectInput7A_CreateDevice_Original)
@@ -506,7 +506,7 @@ CoCreateInstance_DI7 (
            (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
                                                dwClsContext, riid, ppv )
            )
-         )
+         ) && config.input.gamepad.hook_dinput7
        )
     {
       if (! IDirectInput7W_CreateDevice_Original)
@@ -562,7 +562,7 @@ CoCreateInstanceEx_DI7 (
                                                  dwClsCtx, pServerInfo,
                                                    dwCount, pResults )
            )
-         )
+         ) && config.input.gamepad.hook_dinput7
        )
     {
       if (SUCCEEDED (pResults->hr))

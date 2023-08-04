@@ -420,7 +420,7 @@ CoCreateInstance_DI8 (
                     CLSID_DirectInput8, pUnkOuter, dwClsContext,
                                         riid, ppv )
            )
-         )
+         ) && config.input.gamepad.hook_dinput8
        )
     {
       if (! IDirectInput8A_CreateDevice_Original)
@@ -478,7 +478,7 @@ CoCreateInstance_DI8 (
       //SK_EnableHook (vftable [3]);
       }
 
-      if (! IDirectInput8A_EnumDevices_Original)
+      if (! IDirectInput8W_EnumDevices_Original)
       {
         void** vftable = *(void***)*ppv;
 
@@ -529,7 +529,7 @@ CoCreateInstanceEx_DI8 (
                     CLSID_DirectInput8, pUnkOuter, dwClsCtx,
                                         pServerInfo, dwCount, pResults )
            )
-         )
+         ) && config.input.gamepad.hook_dinput8
        )
     {
       if (SUCCEEDED (pResults->hr))
@@ -1671,6 +1671,9 @@ IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
                                     LPVOID                   pvRef,
                                     DWORD                    dwFlags )
 {
+  if (config.input.gamepad.dinput.block_enum_devices)
+    return E_NOTIMPL;
+
   return
     IDirectInput8A_EnumDevices_Original ( This, dwDevType,
                                             lpCallback, pvRef,
@@ -1685,6 +1688,9 @@ IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
                                     LPVOID                   pvRef,
                                     DWORD                    dwFlags )
 {
+  if (config.input.gamepad.dinput.block_enum_devices)
+    return E_NOTIMPL;
+
   return
     IDirectInput8W_EnumDevices_Original ( This, dwDevType,
                                             lpCallback, pvRef,
