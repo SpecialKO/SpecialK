@@ -288,11 +288,11 @@ SK_XInput_NotifyDeviceArrival (void)
             auto MessagePump = [&] (void) ->
             void
             {
-              MSG                 msg = { };
-              while (PeekMessage (&msg, hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+              MSG                      msg = { };
+              while (SK_PeekMessageW (&msg, hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
               {
-                TranslateMessage (&msg);
-                DispatchMessage  (&msg);
+                SK_TranslateMessage (&msg);
+                SK_DispatchMessageW (&msg);
               }
             };
 

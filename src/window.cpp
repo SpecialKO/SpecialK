@@ -4067,9 +4067,17 @@ PeekMessageA_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
-#if _DEBUG
   SK_LOG_FIRST_CALL
-#endif
+
+  MSG msg = { };
+
+  auto _Return = [&](BOOL bRet) -> BOOL
+  {
+    if (lpMsg != nullptr)
+       *lpMsg = msg;
+
+    return bRet;
+  };
 
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
@@ -4090,59 +4098,67 @@ PeekMessageA_Detour (
 
     if (PeekFunc != nullptr)
     {
-      return
-        PeekFunc ( lpMsg,
-                        hWnd,
-                             wMsgFilterMin,
-                             wMsgFilterMax,
-                                           wRemoveMsg );
+      if ( PeekFunc ( &msg,
+                           hWnd,
+                                wMsgFilterMin,
+                                wMsgFilterMax,
+                                              wRemoveMsg )
+         )
+      {
+        return
+          _Return (TRUE);
+      }
     }
 
-    return 0;
+    return
+      _Return (FALSE);
   }
 
 
   if (config.render.dxgi.safe_fullscreen)
     wRemoveMsg |= PM_REMOVE;
 
-  if ( PeekFunc ( lpMsg,
+  if ( PeekFunc ( &msg,
                        hWnd,
                             wMsgFilterMin,
                             wMsgFilterMax,
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if (      SK_WantBackgroundRender () &&
-              lpMsg          != nullptr  &&
-              lpMsg->message == WM_INPUT &&
-              lpMsg->wParam  == RIM_INPUTSINK )
+    if ( SK_WantBackgroundRender () &&
+            msg.message == WM_INPUT &&
+            msg.wParam  == RIM_INPUTSINK )
     {
       bool keyboard = false;
       bool mouse    = false;
       bool gamepad  = false;
 
       SK_Input_ClassifyRawInput (
-        reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
+        reinterpret_cast <HRAWINPUT> (msg.lParam),
           mouse, keyboard, gamepad
       );
 
       if (gamepad)
       {
-        lpMsg->wParam = RIM_INPUT;
-        return TRUE;
+        msg.wParam = RIM_INPUT;
+
+        return
+          _Return (TRUE);
       }
     } // ---- RAW Input Background Hack ----
 
     if ( (wRemoveMsg & PM_REMOVE) ==
                        PM_REMOVE )
     {
-      SK_EarlyDispatchMessage (lpMsg, true, true);
+      SK_EarlyDispatchMessage (&msg, true, true);
     }
 
-    return TRUE;
+    return
+      _Return (TRUE);
   }
 
-  return FALSE;
+  return
+    _Return (FALSE);
 }
 
 BOOL
@@ -4154,9 +4170,17 @@ PeekMessageW_Detour (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
-#if _DEBUG
   SK_LOG_FIRST_CALL
-#endif
+
+  MSG msg = { };
+
+  auto _Return = [&](BOOL bRet) -> BOOL
+  {
+    if (lpMsg != nullptr)
+       *lpMsg = msg;
+
+    return bRet;
+  };
 
   auto PeekFunc = NtUserPeekMessage != nullptr ?
                   NtUserPeekMessage :
@@ -4178,25 +4202,29 @@ PeekMessageW_Detour (
     PeekFunc = early != nullptr ?
                early : PeekFunc;
 
-
     if (PeekFunc != nullptr)
     {
-      return
-        PeekFunc ( lpMsg,
-                        hWnd,
-                             wMsgFilterMin,
-                             wMsgFilterMax,
-                                           wRemoveMsg );
+      if ( PeekFunc ( &msg,
+                           hWnd,
+                                wMsgFilterMin,
+                                wMsgFilterMax,
+                                              wRemoveMsg )
+         )
+      {
+        return 
+          _Return (TRUE);
+      }
     }
 
-    return 0;
+    return 
+      _Return (FALSE);
   }
 
 
   if (config.render.dxgi.safe_fullscreen)
     wRemoveMsg |= PM_REMOVE;
 
-  if ( PeekFunc ( lpMsg,
+  if ( PeekFunc ( &msg,
                        hWnd,
                             wMsgFilterMin,
                             wMsgFilterMax,
@@ -4204,36 +4232,54 @@ PeekMessageW_Detour (
      )
   { // ---- RAW Input Background Hack ----
     if ( SK_WantBackgroundRender () &&
-         lpMsg          != nullptr  &&
-         lpMsg->message == WM_INPUT &&
-         lpMsg->wParam  == RIM_INPUTSINK )
+            msg.message == WM_INPUT &&
+            msg.wParam  == RIM_INPUTSINK )
     {
       bool keyboard = false;
       bool mouse    = false;
       bool gamepad  = false;
 
       SK_Input_ClassifyRawInput (
-        reinterpret_cast <HRAWINPUT> (lpMsg->lParam),
+        reinterpret_cast <HRAWINPUT> (msg.lParam),
           mouse, keyboard, gamepad
       );
 
       if (gamepad)
       {
-        lpMsg->wParam = RIM_INPUT;
-        return TRUE;
+        msg.wParam = RIM_INPUT;
+
+        return
+          _Return (TRUE);
       }
     } // ---- RAW Input Background Hack ----
 
     if ( (wRemoveMsg & PM_REMOVE) ==
                        PM_REMOVE )
     {
-      SK_EarlyDispatchMessage (lpMsg, true, true);
+      SK_EarlyDispatchMessage (&msg, true, true);
     }
 
-    return TRUE;
+    return
+      _Return (TRUE);
   }
 
-  return FALSE;
+  return
+    _Return (FALSE);
+}
+
+BOOL
+WINAPI
+SK_PeekMessageW (
+  _Out_    LPMSG lpMsg,
+  _In_opt_ HWND  hWnd,
+  _In_     UINT  wMsgFilterMin,
+  _In_     UINT  wMsgFilterMax,
+  _In_     UINT  wRemoveMsg )
+{
+  if (PeekMessageW_Original != nullptr)
+    return PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+
+  return PeekMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 }
 
 
@@ -4243,53 +4289,27 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
-  auto GetFunc = NtUserGetMessage != nullptr ?
-                 NtUserGetMessage :
-                       GetMessageA_Original;
+  DWORD dwWait = WAIT_TIMEOUT;
+  MSG      msg = { };
 
-  if ( GetFunc == nullptr )
+  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
-    // A nasty kludge to fix the Steam overlay
-    static auto         early_GetMessageA =
-      reinterpret_cast <NtUserGetMessage_pfn> (
-             SK_GetProcAddress      (
-               SK_GetModuleHandle (   L"user32"  ),
-                                       "GetMessageA"
-                                    )          );
+    dwWait =
+      MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT);
 
-    SK_ReleaseAssert ( early_GetMessageA != nullptr );
-
-    GetFunc =
-      early_GetMessageA;
-
-    if (GetFunc != nullptr)
-    {
-      return
-        GetFunc ( lpMsg,
-                    hWnd,
-                      wMsgFilterMin,
-                      wMsgFilterMax );
-    }
-
-    return 0;
+    if (dwWait == WAIT_OBJECT_0)
+      break;
   }
 
-  const BOOL bRet =
-    GetFunc ( lpMsg,
-                hWnd,
-                  wMsgFilterMin,
-                  wMsgFilterMax );
+  if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
+    std::memset (&msg, 0, sizeof (MSG));
 
-  if ( bRet != FALSE )
-  {
-    if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
-    {
-      lpMsg->message = WM_NULL;
-    }
-  }
+  if (lpMsg != nullptr)
+     *lpMsg  = msg;
 
   return
-    bRet;
+    ( dwWait == WAIT_OBJECT_0 ) ? -1
+                                : ( msg.message != WM_QUIT );
 }
 
 BOOL
@@ -4314,58 +4334,41 @@ SK_DispatchMessageW (_In_ const MSG *lpMsg)
 
 BOOL
 WINAPI
+SK_TranslateMessage (_In_ const MSG *lpMsg)
+{
+  if (TranslateMessage_Original != nullptr)
+    return TranslateMessage_Original (lpMsg);
+
+  return TranslateMessage (lpMsg);
+}
+
+BOOL
+WINAPI
 GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
 {
   SK_LOG_FIRST_CALL
 
-  auto GetFunc = NtUserGetMessage != nullptr ?
-                 NtUserGetMessage :
-                       GetMessageW_Original;
+  DWORD dwWait = WAIT_TIMEOUT;
+  MSG      msg = { };
 
-  if ( GetFunc == nullptr )
+  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
-    // A nasty kludge to fix the Steam overlay
-    static auto         early_GetMessageW =
-      reinterpret_cast <NtUserGetMessage_pfn> (
-             SK_GetProcAddress      (
-               SK_GetModuleHandle (   L"user32"  ),
-                                       "GetMessageW"
-                                    )          );
+    dwWait =
+      MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT);
 
-    SK_ReleaseAssert ( early_GetMessageW != nullptr );
-
-    GetFunc =
-      early_GetMessageW;
-
-    if (GetFunc != nullptr)
-    {
-      return
-        GetFunc ( lpMsg,
-                    hWnd,
-                      wMsgFilterMin,
-                      wMsgFilterMax );
-    }
-
-    return 0;
+    if (dwWait == WAIT_OBJECT_0)
+      break;
   }
 
-  const BOOL bRet =
-    GetFunc ( lpMsg,
-                hWnd,
-                  wMsgFilterMin,
-                  wMsgFilterMax );
+  if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
+    std::memset (&msg, 0, sizeof (MSG));
 
-  if ( bRet )
-  {
-    if ( SK_EarlyDispatchMessage ( lpMsg, false, false ) )
-    {
-
-      lpMsg->message = WM_NULL;
-    }
-  }
+  if (lpMsg != nullptr)
+     *lpMsg  = msg;
 
   return
-    bRet;
+    ( dwWait == WAIT_OBJECT_0 ) ? -1
+                                : ( msg.message != WM_QUIT );
 }
 
 
@@ -4375,20 +4378,23 @@ DispatchMessageA_Detour (_In_ const MSG* lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  MSG orig_msg = *lpMsg; //-V821
-  MSG      msg = *lpMsg;
-
-  if ( SK_EarlyDispatchMessage ( &msg, true ) )
+  if (lpMsg != nullptr)
   {
-    auto DefWindowProc = DefWindowProcA;
+    MSG orig_msg = *lpMsg,
+             msg = *lpMsg;
 
-    return
-      DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
-                      orig_msg.wParam, orig_msg.lParam  );
+    if ( SK_EarlyDispatchMessage ( &msg, true ) )
+    {
+      auto DefWindowProc = DefWindowProcA;
+
+      return
+        DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
+                        orig_msg.wParam, orig_msg.lParam  );
+    }
   }
 
   return
-    DispatchMessageA_Original (&msg);
+    DispatchMessageA_Original (lpMsg);
 }
 
 LRESULT
@@ -4397,20 +4403,23 @@ DispatchMessageW_Detour (_In_ const MSG* lpMsg)
 {
   SK_LOG_FIRST_CALL
 
-  MSG orig_msg = *lpMsg; //-V821
-  MSG      msg = *lpMsg;
-
-  if ( SK_EarlyDispatchMessage ( &msg, true ) )
+  if (lpMsg != nullptr)
   {
-    auto DefWindowProc = DefWindowProcW;
+    MSG orig_msg = *lpMsg,
+             msg = *lpMsg;
 
-    return
-      DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
-                      orig_msg.wParam, orig_msg.lParam  );
+    if ( SK_EarlyDispatchMessage ( &msg, true ) )
+    {
+      auto DefWindowProc = DefWindowProcW;
+
+      return
+        DefWindowProc ( orig_msg.hwnd,   orig_msg.message,
+                        orig_msg.wParam, orig_msg.lParam  );
+    }
   }
 
   return
-    DispatchMessageW_Original (&msg);
+    DispatchMessageW_Original (lpMsg);
 }
 
 
@@ -7370,11 +7379,11 @@ SK_Win32_CreateBackgroundWindow (void)
       if ( WAIT_OBJECT_0 ==
              MsgWaitForMultipleObjects (0, nullptr, FALSE, 250UL, QS_ALLINPUT) )
       {
-        MSG                   msg = { };
-        while (PeekMessageW (&msg, nullptr, 0, 0, PM_REMOVE) != 0)
+        MSG                      msg = { };
+        while (SK_PeekMessageW (&msg, nullptr, 0, 0, PM_REMOVE) != 0)
         {
-          TranslateMessage (&msg);
-          DispatchMessageW (&msg);
+          SK_TranslateMessage (&msg);
+          SK_DispatchMessageW (&msg);
         }
       }
 

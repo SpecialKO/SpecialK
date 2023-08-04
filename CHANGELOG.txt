@@ -1,7 +1,12 @@
-﻿23.8.3.5
+﻿23.8.3.6
+========
+ + Cleanup various window message pump code in SK so that only the game's
+     message pump(s) go through SK's hooked functions and not SK's own messages.
+
+23.8.3.5
 ========
  + Fixed ActivateAtStart option not working correctly when used with SK's
-     "Continue Rendering" window management feature
+     "Continue Rendering" window management feature.
 
 23.8.3.4
 ========

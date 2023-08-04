@@ -630,7 +630,15 @@ SK_DispatchMessageW (_In_ const MSG *lpMsg);
 
 BOOL
 WINAPI
+SK_TranslateMessage (_In_ const MSG *lpMsg);
+
+BOOL
+WINAPI
 SK_GetMessageW (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
+
+BOOL
+WINAPI
+SK_PeekMessageW (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 
 HWND
 WINAPI

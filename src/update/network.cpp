@@ -1108,7 +1108,7 @@ UpdateDlg_Thread (LPVOID user)
       return 0;
     }
 
-    TranslateMessage    (&msg);
+    SK_TranslateMessage (&msg);
     SK_DispatchMessageW (&msg);
 
     if ((! started) && msg.hwnd == hWndDlg)

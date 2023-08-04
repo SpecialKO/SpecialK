@@ -181,7 +181,7 @@ SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
           bool ping             = false;
           MSG  msg              = { };
 
-    while (PeekMessage (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
+    while (SK_PeekMessageW (&msg, kCurrentThreadId, g_PCLStatsWindowMessage, g_PCLStatsWindowMessage, PM_REMOVE))
       ping = true;
 
     if (ping)

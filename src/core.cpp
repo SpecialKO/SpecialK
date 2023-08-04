@@ -2344,11 +2344,11 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
 
             ShowWindow (hWnd, SW_HIDE);
 
-            MSG                 msg = { };
-            while (GetMessage (&msg, 0, 0, 0))
+            MSG                     msg = { };
+            while (SK_GetMessageW (&msg, 0, 0, 0))
             {
-              TranslateMessage (&msg);
-              DispatchMessage  (&msg);
+              SK_TranslateMessage (&msg);
+              SK_DispatchMessageW (&msg);
 
               if (msg.message == WM_DESTROY && msg.hwnd == hWnd)
               {
