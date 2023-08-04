@@ -1,4 +1,11 @@
-﻿23.8.3.2
+﻿23.8.3.3
+========
+ + Enable PreventEnumDevices by default in Baldur's Gate 3; it does not prevent
+     Steam Input from working, only disables the part of it that hurts perf.
+ + Activate Baldur's Gate 3's window after 15 frames are drawn so that it does
+     not think the game is in the background and draw at 30 FPS constantly.
+
+23.8.3.2
 ========
  + Added INI option to keep Steam Input from murdering performance by
      enumerating devices every frame

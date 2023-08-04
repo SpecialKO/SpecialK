@@ -2418,8 +2418,9 @@ auto DeclKeybind =
       } break;
 
       case SK_GAME_ID::BaldursGate3:
-        config.compatibility.impersonate_debugger = true;
-        config.apis.NvAPI.vulkan_bridge           = 1;
+        config.compatibility.impersonate_debugger      = true;
+        config.apis.NvAPI.vulkan_bridge                = 1;
+        config.input.gamepad.dinput.block_enum_devices = true;
         break;
 
       case SK_GAME_ID::Persona4:
@@ -2816,50 +2817,51 @@ auto DeclKeybind =
       case SK_GAME_ID::NieR_Sqrt_1_5:
       {
         // Prevent VRR disable when game plays cutscenes
-        config.render.framerate.sync_interval_clamp  =     1;
+        config.render.framerate.sync_interval_clamp    =     1;
+                                                       
+        config.textures.d3d11.cache                    =  true;
+        config.textures.cache.allow_staging            =  true;
+        config.textures.cache.max_size                 =    64; // SmaLL cache; engine's leaky
+        config.apis.OpenGL.hook                        = false;
+        config.apis.d3d9.hook                          = false;
+        config.apis.d3d9ex.hook                        = false;
+        config.input.cursor.keys_activate              = false;
+        config.input.cursor.manage                     = false; // Automagic
+        config.input.cursor.timeout                    =   750;
+        config.input.ui.use_hw_cursor                  = false;
+        config.input.ui.capture_hidden                 = false;
+        config.input.ui.capture_mouse                  = false;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open          =  true;
+        config.render.framerate.sleepless_window       =  true;
+        config.render.framerate.sleepless_render       = false; // Reshade Problems
+        config.render.framerate.max_delta_time         =     1;
+        config.render.framerate.buffer_count           =     4;
+        config.render.framerate.swapchain_wait         =     0;
+        config.render.framerate.pre_render_limit       =     3;
+        config.render.framerate.target_fps             =    60;
+        config.render.framerate.drop_late_flips        =  true;
+        config.render.framerate.flip_discard           =  true;
+        config.input.gamepad.disable_ps4_hid           = false; // Automagic
+        config.input.gamepad.xinput.auto_slot_assign   =  true;
+        config.threads.enable_file_io_trace            =  true;
+        config.steam.preload_overlay                   = false; // Set to false because of loss of rumble
+        config.window.background_render                = false;
+                                                       
+        SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);       
+                                                       
+        config.render.dxgi.deferred_isolation          =  true; // Enable render mods
+        config.render.dxgi.low_spec_mode               =  true; // Reduce state tracking overhead
+                                                       
+        config.input.keyboard.catch_alt_f4             =  true;
+        config.input.keyboard.override_alt_f4          =  true;
 
-        config.textures.d3d11.cache                  =  true;
-        config.textures.cache.allow_staging          =  true;
-        config.textures.cache.max_size               =    64; // SmaLL cache; engine's leaky
-        config.apis.OpenGL.hook                      = false;
-        config.apis.d3d9.hook                        = false;
-        config.apis.d3d9ex.hook                      = false;
-        config.input.cursor.keys_activate            = false;
-        config.input.cursor.manage                   = false; // Automagic
-        config.input.cursor.timeout                  =   750;
-        config.input.ui.use_hw_cursor                = false;
-        config.input.ui.capture_hidden               = false;
-        config.input.ui.capture_mouse                = false;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open        =  true;
-        config.render.framerate.sleepless_window     =  true;
-        config.render.framerate.sleepless_render     = false; // Reshade Problems
-        config.render.framerate.max_delta_time       =     1;
-        config.render.framerate.buffer_count         =     4;
-        config.render.framerate.swapchain_wait       =     0;
-        config.render.framerate.pre_render_limit     =     3;
-        config.render.framerate.target_fps           =    60;
-        config.render.framerate.drop_late_flips      =  true;
-        config.render.framerate.flip_discard         =  true;
-        config.input.gamepad.disable_ps4_hid         = false; // Automagic
-        config.input.gamepad.xinput.auto_slot_assign =  true;
-        config.threads.enable_file_io_trace          =  true;
-        config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
-        config.window.background_render              = false;
+        config.nvidia.reflex.enable                    =  true;
+        config.nvidia.reflex.enforcement_site          =     2;
+        config.nvidia.reflex.low_latency               =  true;
+        config.nvidia.reflex.low_latency_boost         =  true;
 
-        SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);
-
-        config.render.dxgi.deferred_isolation        =  true; // Enable render mods
-        config.render.dxgi.low_spec_mode             =  true; // Reduce state tracking overhead
-
-        config.input.keyboard.catch_alt_f4           =  true;
-        config.input.keyboard.override_alt_f4        =  true;
-
-        config.nvidia.reflex.enable                   =  true;
-        config.nvidia.reflex.enforcement_site         =     2;
-        config.nvidia.reflex.low_latency              =  true;
-        config.nvidia.reflex.low_latency_boost        =  true;
-
-        config.system.suppress_crashes               =  true;
+        config.system.suppress_crashes                 =  true;
+        config.input.gamepad.dinput.block_enum_devices =  true;
 
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
