@@ -362,7 +362,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        Clamp_scRGB (hdr_color.rgb);
+        Clamp_scRGBtoRec2020 (hdr_color.rgb);
 
       if (input.color.y != 1.0)
       {
@@ -720,7 +720,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       if (input.color.x > 1.0)
         hdr_color.rgb =
-          Clamp_scRGB (hdr_color.rgb);
+          Clamp_scRGBtoRec2020 (hdr_color.rgb);
 
       float4 result;
 
@@ -852,8 +852,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     
   float4 color_out =
     float4 (
-      Clamp_scRGB (hdr_color.rgb),
-         saturate (hdr_color.a)
+      Clamp_scRGBtoRec2020 (hdr_color.rgb),
+                  saturate (hdr_color.a)
            );
 
   // Extra clipping and gamut expansion logic for regular display output
@@ -868,7 +868,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (hdrGamutExpansion > 0.0f)
     {
       color_out.rgb =
-        Clamp_scRGB (
+        Clamp_scRGBtoRec2020 (
           expandGamut (color_out.rgb, hdrGamutExpansion)
         );
     }

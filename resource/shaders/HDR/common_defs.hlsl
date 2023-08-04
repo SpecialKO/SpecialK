@@ -143,27 +143,6 @@ float4 SafeHDR (float4 c)
     min (c, float_MAX);
 }
 
-float3 Clamp_scRGB (float3 c)
-{
-  c =
-    float3 ( (! IsNan (c.x)) ?
-                       c.x   : 0.0,
-             (! IsNan (c.y)) ?
-                       c.y   : 0.0,
-             (! IsNan (c.z)) ?
-                       c.z   : 0.0 );
-  return
-    clamp (c, 0.0f,
-            125.0f - FLT_EPSILON);
-}
-
-float Clamp_scRGB (float c)
-{
-  c = (!IsNan(c)) ? 
-              c   : 0.0f;
-  return min (c, 125.0f);
-}
-
 // Using pow often result to a warning like this
 // "pow(f, e) will not work for negative f, use abs(f) or conditionally handle negative values if you expect them"
 // PositivePow remove this warning when you know the value is positive and avoid inf/NAN.
@@ -382,6 +361,17 @@ ApplySRGBCurve (float3 x)
 {
   return ( x < 0.0031308f ? 12.92f * x :
                             1.055f * PositivePow ( x, 1.0 / 2.4f ) - 0.55f );
+}
+
+float3 REC2020toREC709 (float3 RGB2020)
+{
+  static const float3x3 ConvMat =
+  {
+     1.66049621914783,   -0.587656444131135, -0.0728397750166941,
+    -0.124547095586012,   1.1328951092473,   -0.00834801366128445,
+    -0.0181536813870718, -0.100597371685743,  1.11875105307281
+  };
+  return mul (ConvMat, RGB2020);
 }
 
 //
@@ -634,6 +624,38 @@ static const ParamsLogC LogC =
   0.092819  // f
 };
 
+float3 Clamp_scRGBtoRec2020 (float3 c)
+{
+  c =
+    float3 ( (! IsNan (c.x)) ?
+                       c.x   : 0.0,
+             (! IsNan (c.y)) ?
+                       c.y   : 0.0,
+             (! IsNan (c.z)) ?
+                       c.z   : 0.0 );
+
+  // Transform scRGB to Rec2020, anything outside of Rec2020 is
+  //   technically valid in scRGB but will produce black pixels
+  //     if any attempt to display those colors is made.
+  float  norm     = length (c);
+  float3 cRec2020 =
+    clamp ( REC709toREC2020 (c / norm), 0.0, 1.0 );
+
+  return
+    clamp ( norm * REC2020toREC709 (cRec2020),
+              -125.0f + FLT_EPSILON,
+               125.0f - FLT_EPSILON );
+}
+
+float Clamp_scRGB (float c)
+{
+  c =  (! IsNan(c)) ?
+                c   : 0.0f;
+  return clamp (c, -125.0f + FLT_EPSILON,
+                    125.0f - FLT_EPSILON);
+}
+
+
 float LinearToLogC_Precise (float x)
 {
   float o;
@@ -656,7 +678,7 @@ float3 LinearToLogC (float3 x)
   );
 #else
   return
-    Clamp_scRGB ((LogC.c * log10(LogC.a * x + LogC.b) + LogC.d));
+    Clamp_scRGBtoRec2020 ((LogC.c * log10(LogC.a * x + LogC.b) + LogC.d));
 #endif
 }
 
@@ -682,7 +704,7 @@ float3 LogCToLinear (float3 x)
       LogCToLinear_Precise(x.z)
   );
 #else
-  return Clamp_scRGB (
+  return Clamp_scRGBtoRec2020 (
      (pow (10.0, (x - LogC.d) / LogC.c) -
                       LogC.b) / LogC.a);
 #endif
@@ -718,7 +740,7 @@ float3 LinearToPQ (float3 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    Clamp_scRGB (PositivePow (nd, PQ.M));
+    Clamp_scRGBtoRec2020 (PositivePow (nd, PQ.M));
 }
 
 float3 LinearToPQ (float3 x)
@@ -737,7 +759,7 @@ float3 PQToLinear (float3 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
+    Clamp_scRGBtoRec2020 (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
 }
 
 float3 PQToLinear (float3 x)
@@ -776,7 +798,7 @@ float3 SRGBToLinear (float3 c)
   float3 linearRGBHi = PositivePow ((c  + 0.055) / 1.055, float3 (2.4, 2.4, 2.4));
   float3 linearRGB   =              (c <= 0.04045) ?
                                        linearRGBLo : linearRGBHi;
-  return                  Clamp_scRGB (linearRGB);
+  return         Clamp_scRGBtoRec2020 (linearRGB);
 #endif
 }
 
@@ -813,9 +835,9 @@ float3 LinearToSRGB (float3 c)
 #else
   float3 sRGBLo =  c * 12.92;
   float3 sRGBHi = (PositivePow (c, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-  float3 sRGB   = (c <= 0.0031308) ?
-                            sRGBLo : sRGBHi;
-  return       Clamp_scRGB (sRGB);
+  float3 sRGB   = (c <= 0.0031308000) ?
+                               sRGBLo : sRGBHi;
+  return Clamp_scRGBtoRec2020 (sRGB);
 #endif
 }
 
@@ -1746,17 +1768,6 @@ float4 colormap (float x)
     );
 }
 
-
-float3 REC2020toREC709 (float3 RGB2020)
-{
-  static const float3x3 ConvMat =
-  {
-     1.66049621914783,   -0.587656444131135, -0.0728397750166941,
-    -0.124547095586012,   1.1328951092473,   -0.00834801366128445,
-    -0.0181536813870718, -0.100597371685743,  1.11875105307281
-  };
-  return mul (ConvMat, RGB2020);
-}
 
 float3 RemoveREC2084Curve (float3 N)
 {

@@ -1,4 +1,11 @@
-﻿23.8.3.7
+﻿23.8.4
+======
+ + Removed internal Rec 709 gamut clamp from SK's HDR color processing (scRGB).
+
+     >> Colors are now clamped to Rec 2020; anything beyond Rec 2020 cannot be
+          displayed on Windows or for that matter on actual displays :)
+
+23.8.3.7
 ========
  + Added XInput Slot Disable option to fix Baldur's Gate 3 thinking that multiple
      controllers are connected and forcing you to restart the game.
