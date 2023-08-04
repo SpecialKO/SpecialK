@@ -1514,11 +1514,6 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                        .no_alpha    =
                          (! DirectX::HasAlpha (srcTexDesc.Format)) };
 
-    if (! DirectX::HasAlpha (srcTexDesc.Format))
-    {
-      SK_LOGi0 (L"Source Of Blt Has No Alpha Channel");
-    }
-
     _ReadWriteBarrier ();
 
     memcpy (    static_cast <SK_DXGI_sRGBCoDec::params_cbuffer_s *> (mapped_resource.pData),
