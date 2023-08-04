@@ -657,6 +657,12 @@ DllMain ( HMODULE hModule,
 
       extern void SK_Inject_CleanupSharedMemory (void);
                   SK_Inject_CleanupSharedMemory ();
+
+      // Give time for any threads waiting on something such as a message pump
+      //   to wake up before we unload the DLL, because our hook procedures are
+      //     about to be unloaded from the process.
+      if (SK_GetFramesDrawn () > 1)
+        Sleep (1000UL);
     } break;
 
 
