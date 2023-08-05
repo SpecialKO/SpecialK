@@ -643,7 +643,7 @@ float3 Clamp_scRGBtoRec2020 (float3 c)
 
 // This is needed to prevent some artifacting that happens at very small
 //   negative values (at the border between Rec 709 and DCI-P3 gamuts)
-#define PRECISION_FIX 1.0 + FLT_EPSILON
+#define PRECISION_FIX 1.0000333
 
   // Transform scRGB to Rec2020, anything outside of Rec2020 is
   //   technically valid in scRGB but will produce black pixels
