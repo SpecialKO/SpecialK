@@ -4289,20 +4289,23 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
+#if 1
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT);
+      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
+                                      INFINITE, QS_ALLINPUT,
+                                            MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    std::memset (&msg, 0, sizeof (MSG));
+    ZeroMemory (&msg, sizeof (MSG));
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
@@ -4310,6 +4313,66 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   return
     ( dwWait == WAIT_OBJECT_0 ) ? -1
                                 : ( msg.message != WM_QUIT );
+#else
+  auto GetFunc = NtUserGetMessage != nullptr ?
+                 NtUserGetMessage :
+                       GetMessageA_Original;
+
+  MSG msg = { };
+
+  if ( GetFunc == nullptr )
+  {
+    // A nasty kludge to fix the Steam overlay
+    static auto         early_GetMessageA =
+      reinterpret_cast <NtUserGetMessage_pfn> (
+             SK_GetProcAddress      (
+               SK_GetModuleHandle (   L"user32"  ),
+                                       "GetMessageA"
+                                    )          );
+
+    SK_ReleaseAssert ( early_GetMessageA != nullptr );
+
+    GetFunc =
+      early_GetMessageA;
+
+    if (GetFunc != nullptr)
+    {
+      if ( GetFunc ( &msg,
+                          hWnd,
+                               wMsgFilterMin,
+                               wMsgFilterMax )
+         )
+      {
+        if (lpMsg != nullptr)
+           *lpMsg = msg;
+
+        return TRUE;
+      }
+    }
+
+    return 0;
+  }
+
+  const BOOL bRet =
+    GetFunc ( &msg,
+                   hWnd,
+                        wMsgFilterMin,
+                        wMsgFilterMax );
+
+  if ( bRet != FALSE )
+  {
+    if ( SK_EarlyDispatchMessage ( &msg, false, false ) )
+    {
+      msg.message = WM_NULL;
+    }
+  }
+
+  if (lpMsg != nullptr)
+     *lpMsg = msg;
+
+  return
+    bRet;
+#endif
 }
 
 BOOL
@@ -4348,20 +4411,23 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
+#if 1
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjects (1, &__SK_DLL_TeardownEvent, FALSE, 500, QS_ALLINPUT);
+      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
+                                      INFINITE, QS_ALLINPUT,
+                                            MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    std::memset (&msg, 0, sizeof (MSG));
+    ZeroMemory (&msg, sizeof (MSG));
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
@@ -4369,6 +4435,66 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   return
     ( dwWait == WAIT_OBJECT_0 ) ? -1
                                 : ( msg.message != WM_QUIT );
+#else
+  auto GetFunc = NtUserGetMessage != nullptr ?
+                 NtUserGetMessage :
+                       GetMessageW_Original;
+
+  MSG msg = { };
+
+  if ( GetFunc == nullptr )
+  {
+    // A nasty kludge to fix the Steam overlay
+    static auto         early_GetMessageW =
+      reinterpret_cast <NtUserGetMessage_pfn> (
+             SK_GetProcAddress      (
+               SK_GetModuleHandle (   L"user32"  ),
+                                       "GetMessageW"
+                                    )          );
+
+    SK_ReleaseAssert ( early_GetMessageW != nullptr );
+
+    GetFunc =
+      early_GetMessageW;
+
+    if (GetFunc != nullptr)
+    {
+      if ( GetFunc ( &msg,
+                          hWnd,
+                               wMsgFilterMin,
+                               wMsgFilterMax )
+         )
+      {
+        if (lpMsg != nullptr)
+           *lpMsg = msg;
+
+        return TRUE;
+      }
+    }
+
+    return 0;
+  }
+
+  const BOOL bRet =
+    GetFunc ( &msg,
+                   hWnd,
+                        wMsgFilterMin,
+                        wMsgFilterMax );
+
+  if ( bRet != FALSE )
+  {
+    if ( SK_EarlyDispatchMessage ( &msg, false, false ) )
+    {
+      msg.message = WM_NULL;
+    }
+  }
+
+  if (lpMsg != nullptr)
+     *lpMsg = msg;
+
+  return
+    bRet;
+#endif
 }
 
 
