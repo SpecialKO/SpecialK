@@ -268,7 +268,7 @@ std::wstring   SK_GetModuleFullName         (HMODULE hDll);
 std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
 std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
 std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
-bool           SK_ValidatePointer           (LPCVOID addr, bool silent = false);
+bool           SK_ValidatePointer           (LPCVOID addr, bool silent = false, MEMORY_BASIC_INFORMATION *pmi = nullptr);
 bool           SK_IsAddressExecutable       (LPCVOID addr, bool silent = false);
 void           SK_LogSymbolName             (LPCVOID addr);
 

@@ -895,7 +895,7 @@ struct SK_MemScan_Params__v0
 
 
 bool
-SK_ValidatePointer (LPCVOID addr, bool silent)
+SK_ValidatePointer (LPCVOID addr, bool silent, MEMORY_BASIC_INFORMATION *pmi)
 {
   MEMORY_BASIC_INFORMATION minfo = { };
 
@@ -920,28 +920,27 @@ SK_ValidatePointer (LPCVOID addr, bool silent)
                 L" SK Debug " );
   }
 
+  if (pmi != nullptr)
+     *pmi = minfo;
+
   return (! bFail);
 }
 
 bool
 SK_IsAddressExecutable (LPCVOID addr, bool silent)
 {
-  MEMORY_BASIC_INFORMATION minfo = { };
-
-  if (VirtualQuery (addr, &minfo, sizeof (minfo)))
+  MEMORY_BASIC_INFORMATION               minfo = { };
+  if (SK_ValidatePointer (addr, silent, &minfo))
   {
-    if (SK_ValidatePointer (addr, silent))
+    static SK_MemScan_Params__v0 test_exec;
+
+    SK_RunOnce(
+      test_exec.privileges.execute = SK_MemScan_Params__v0::Allowed
+    );
+
+    if (test_exec.testPrivs (minfo))
     {
-      static SK_MemScan_Params__v0 test_exec;
-
-      SK_RunOnce(
-        test_exec.privileges.execute = SK_MemScan_Params__v0::Allowed
-      );
-
-      if (test_exec.testPrivs (minfo))
-      {
-        return true;
-      }
+      return true;
     }
   }
 
