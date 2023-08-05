@@ -652,7 +652,7 @@ float3 Clamp_scRGBtoRec2020 (float3 c)
     REC2020toREC709 (
       max (
         REC709toREC2020 (c * PRECISION_FIX), 0.0
-          )         )      / PRECISION_FIX;
+          )         )      * PRECISION_FIX;
 
   // Clamp to 10k nits in scRGB
   return
