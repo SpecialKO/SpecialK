@@ -634,7 +634,7 @@ float3 Clamp_scRGBtoRec2020 (float3 c)
              (! IsNan (c.z)) ?
                        c.z   : 0.0 );
 
-  // This is needed to prevent some artifacting that happens at very small
+// This is needed to prevent some artifacting that happens at very small
 //   negative values (at the border between Rec 709 and DCI-P3 gamuts)
 #define PRECISION_FIX 1.0001
 
@@ -642,22 +642,24 @@ float3 Clamp_scRGBtoRec2020 (float3 c)
   //   technically valid in scRGB but will produce black pixels
   //     if any attempt to display those colors is made.
   float  norm     = length (c);
-  float3 cRec2020 =        norm != 0.0f ?
+  float3 cRec2020 = norm > 0.0f ?
            saturate (REC709toREC2020 ((c * PRECISION_FIX) / norm))
-                                        : float3 (0.0, 0.0, 0.0);
+                                :
+                  float3 (0.0, 0.0, 0.0);
+
+  float3 cClamped =
+    norm * REC2020toREC709 (cRec2020) * PRECISION_FIX;
 
   return
-    clamp (
-      norm * REC2020toREC709 (cRec2020) * PRECISION_FIX, -125.0f, 125.0f
-    );
+    clamp (cClamped, -125.0f, 125.0f);
 }
 
 float Clamp_scRGB (float c)
 {
   c =  (! IsNan(c)) ?
                 c   : 0.0f;
-  return clamp (c, -125.0f + FLT_EPSILON,
-                    125.0f - FLT_EPSILON);
+  return clamp (c, -125.0f,
+                    125.0f);
 }
 
 

@@ -1,4 +1,9 @@
-﻿23.8.4.1
+﻿23.8.4.2
+========
+ + Raised default HDR Preset 0 saturation to 98% since increased saturation
+     is less of a problem when there's left over space in the output gamut.
+
+23.8.4.1
 ========
  + Fix artifacts on colors with very small negative values at the edge
      between Rec 709 and DCI-P3 that were turned completely black by

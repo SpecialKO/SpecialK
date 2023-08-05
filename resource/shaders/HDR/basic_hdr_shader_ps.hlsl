@@ -850,11 +850,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
     
-  float4 color_out =
-    float4 (
-      Clamp_scRGBtoRec2020 (hdr_color.rgb),
-                  saturate (hdr_color.a)
-           );
+  float4 color_out;
 
   // Extra clipping and gamut expansion logic for regular display output
 #ifdef INCLUDE_TEST_PATTERNS
@@ -864,15 +860,29 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (hdrGamutExpansion > 0.0f)
     {
       color_out.rgb =
-        Clamp_scRGBtoRec2020 (
-          expandGamut (color_out.rgb, hdrGamutExpansion)
-        );
+        expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
+
+    color_out =
+      float4 (
+        Clamp_scRGBtoRec2020 (color_out.rgb),
+                    saturate (hdr_color.a)
+             );
 
     color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
     color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
     color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
   }
+#ifdef INCLUDE_TEST_PATTERNS
+  else
+  {
+    color_out =
+      float4 (
+        Clamp_scRGBtoRec2020 (hdr_color.rgb),
+                    saturate (hdr_color.a)
+             );
+  }
+#endif
 
   return color_out;
 }
