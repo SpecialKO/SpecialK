@@ -4031,13 +4031,8 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
                     dwMsgMax >= lpMsg->message   &&
        SK_ImGui_HandlesMessage (lpMsg, remove, peek)                       )
   {
-    if ( lpMsg->message == WM_INPUT )
-    {
-      DefWindowProcW ( lpMsg->hwnd,   lpMsg->message,
-                       lpMsg->wParam, lpMsg->lParam );
-
+    if (lpMsg->message == WM_INPUT)
       remove = true;
-    }
 
     if (remove)
     {
@@ -4125,25 +4120,24 @@ PeekMessageA_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender () &&
-            msg.message == WM_INPUT &&
-            msg.wParam  == RIM_INPUTSINK )
+    if ( SK_WantBackgroundRender ()      &&
+            msg.message == WM_INPUT      &&
+            msg.wParam  == RIM_INPUTSINK &&
+            config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled )
     {
       bool keyboard = false;
       bool mouse    = false;
       bool gamepad  = false;
-
+    
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (msg.lParam),
           mouse, keyboard, gamepad
       );
-
+    
       if (gamepad)
       {
+        // Re-write the type from background to foreground
         msg.wParam = RIM_INPUT;
-
-        return
-          _Return (TRUE);
       }
     } // ---- RAW Input Background Hack ----
 
@@ -4231,25 +4225,24 @@ PeekMessageW_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender () &&
-            msg.message == WM_INPUT &&
-            msg.wParam  == RIM_INPUTSINK )
+    if ( SK_WantBackgroundRender ()      &&
+            msg.message == WM_INPUT      &&
+            msg.wParam  == RIM_INPUTSINK &&
+            config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled )
     {
       bool keyboard = false;
       bool mouse    = false;
       bool gamepad  = false;
-
+    
       SK_Input_ClassifyRawInput (
         reinterpret_cast <HRAWINPUT> (msg.lParam),
           mouse, keyboard, gamepad
       );
-
+    
       if (gamepad)
       {
+        // Re-write the type from background to foreground
         msg.wParam = RIM_INPUT;
-
-        return
-          _Return (TRUE);
       }
     } // ---- RAW Input Background Hack ----
 
@@ -4296,16 +4289,15 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, QS_ALLINPUT,
-                                            MWMO_INPUTAVAILABLE );
+      MsgWaitForMultipleObjects ( 1, &__SK_DLL_TeardownEvent, FALSE,
+                                    INFINITE, QS_ALLINPUT );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    ZeroMemory (&msg, sizeof (MSG));
+    std::memset (&msg, 0, sizeof (MSG));
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
@@ -4418,16 +4410,15 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, QS_ALLINPUT,
-                                            MWMO_INPUTAVAILABLE );
+      MsgWaitForMultipleObjects ( 1, &__SK_DLL_TeardownEvent, FALSE,
+                                    INFINITE, QS_ALLINPUT );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    ZeroMemory (&msg, sizeof (MSG));
+    std::memset (&msg, 0, sizeof (MSG));
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;

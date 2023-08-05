@@ -1,4 +1,12 @@
-﻿23.8.4.3
+﻿23.8.4.4
+========
+ + Fixed potential crashes in SDL-based games if they read gamepad input
+     using Raw Input and "Continue Rendering" is enabled.
+ + Disabled gamepad input to SK while games are in the background unless
+     "Continue Rendering" is enabled and Gamepad Input is not set to
+       "Disabled in Background".
+
+23.8.4.3
 ========
  + Fixed potential crash when launching Elden Ring
  + Optimized HDR processing shader slightly for NaN / Infinity color stripping

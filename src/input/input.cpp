@@ -2732,48 +2732,48 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_INPUT:
       {
+        bool should_handle = false;
+
         auto& hWnd   = lpMsg->hwnd;
         auto& uMsg   = lpMsg->message;
         auto& wParam = lpMsg->wParam;
         auto& lParam = lpMsg->lParam;
-
-        if (RIM_INPUTSINK ==
-            GET_RAWINPUT_CODE_WPARAM (lpMsg->wParam))
+        
+        bool mouse = false,
+          keyboard = false,
+           gamepad = false;
+        
+        SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+        
+        if (mouse && SK_ImGui_WantMouseCapture ())
         {
-          handled = true;
-
-          game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+          should_handle = true;
         }
-
-        else
+        
+        if (keyboard && SK_ImGui_WantKeyboardCapture ())
         {
-          bool mouse = false,
-            keyboard = false,
-             gamepad = false;
-
-          SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
-
-          if (mouse && SK_ImGui_WantMouseCapture ())
-          {
-            handled = true;
-          }
-
-          if (keyboard && SK_ImGui_WantKeyboardCapture ())
-          {
-            handled = true;
-          }
-
-          if (gamepad && SK_ImGui_WantGamepadCapture ())
-          {
-            handled = true;
-          }
-
-          if (handled)
-          {   handled =
-              (    0 !=
-               ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                     lpMsg->wParam, lpMsg->lParam));
-          }
+          should_handle = true;
+        }
+        
+        if (gamepad && SK_ImGui_WantGamepadCapture ())
+        {
+          should_handle = true;
+        }
+        
+        if (should_handle)
+        {
+          handled =
+            (  0 !=
+             ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                   lpMsg->wParam, lpMsg->lParam));
+        }
+        
+        // Cleanup the message, we'll re-write the message to WM_NULL later
+        if (handled)
+        {
+          IsWindowUnicode (lpMsg->hwnd) ?
+            DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+            DefWindowProcA (hWnd, uMsg, wParam, lParam);
         }
       } break;
 

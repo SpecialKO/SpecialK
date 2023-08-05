@@ -552,36 +552,43 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
                                                     mouse ? RIM_TYPEMOUSE :
                                                             RIM_TYPEHID;
-
-    if (! keyboard)
-    {
-      RtlSecureZeroMemory (pData, *pcbSize);
-    }
-
+  
     // Tell the game this event happened in the background, most will
     //   throw it out quick and easy. Even easier if we tell it the event came
     //     from the keyboard.
     if (filter)
     {
-      DefRawInputProc ((RAWINPUT **)&pData, 1, sizeof (RAWINPUTHEADER));
-
       ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
-
+  
       if (keyboard)
       {
         ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
-
+  
         if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
                ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
-
+  
         // Fake key release
         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
       }
-    }
 
+      // Block mouse input in The Witness by zeroing-out the memory; most other
+      //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
+      else if (mouse)
+      {
+        RtlZeroMemory (pData, *pcbSize);
+      }
+
+      else
+      {
+        // Rewrite generic HID events (i.e. Gamepad) to Keyboard, and hope the
+        //   game ignores them.
+        ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+      }
+    }
+  
     if (! keyboard)
       *pcbSize = 0;
-
+  
     size = *pcbSize;
   }
 
@@ -1169,24 +1176,6 @@ MessageProc ( const HWND&   hWnd,
         }
       }
 
-      if (bRet)
-      {
-        if (game_window.DefWindowProc != nullptr)
-        {
-          game_window.DefWindowProc (
-            hWnd, msg,
-                  wParam, lParam
-          );
-        }
-
-        else
-        {
-          IsWindowUnicode  (hWnd) ?
-            DefWindowProcW (hWnd, msg, wParam, lParam) :
-            DefWindowProcA (hWnd, msg, wParam, lParam);
-        }
-      }
-
       return bRet;
     } break;
   }
@@ -1739,112 +1728,119 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
          io.KeysDownDuration [VK_BACK] == 0.0f );
   }
 
-  static XINPUT_STATE last_state = { 1, 0 };
-
-  const bool api_bridge =
-    config.input.gamepad.native_ps4;
-
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-  api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
-#endif
-
-if (api_bridge)
-{
-  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-  //   for no good reason.
-  JOYINFOEX joy_ex   { };
-  JOYCAPSW  joy_caps { };
-
-  joy_ex.dwSize  = sizeof (JOYINFOEX);
-  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
-
-  SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
-  SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
-
-  SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
-}
-
-#if 1
-  state = joy_to_xi;
-#else
-  state = di8_to_xi;
-#endif
-
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-  if (ControllerPresent (config.input.gamepad.steam.ui_slot))
-  {
-    state =
-      *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
-  }
-#endif
-
-
-  //extern void SK_ScePad_PaceMaker (void);
-  //            SK_ScePad_PaceMaker ();
-
+  bool bUseGamepad =
+    SK_IsGameWindowActive () ||
+      ( config.window.background_render &&
+        config.input.gamepad.disabled_to_game != SK_InputEnablement::DisabledInBackground );
 
   bool bRet = false;
 
-  if ( api_bridge ||
-       SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
+  static XINPUT_STATE last_state = { 1, 0 };
+
+  if (bUseGamepad)
   {
-    bRet = true;
+    const bool api_bridge =
+      config.input.gamepad.native_ps4;
 
-    if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
-         state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
-         last_state.dwPacketNumber != state.dwPacketNumber )
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
+    api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
+#endif
+
+    if (api_bridge)
     {
-      if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
-              last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
-      {
-        // Additional condition for Final Fantasy X so as not to interfere with soft reset
-        if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
-                state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
-        {
-          bToggleNav |= (! nav_usable);
-          bToggleVis |= true;
-        }
-      }
+      // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+      //   for no good reason.
+      JOYINFOEX joy_ex   { };
+      JOYCAPSW  joy_caps { };
+    
+      joy_ex.dwSize  = sizeof (JOYINFOEX);
+      joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                       JOY_RETURNCENTERED | JOY_USEDEADZONE;
+    
+      SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+      SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
+    
+      SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
     }
 
-     const DWORD LONG_PRESS  = 400UL;
-    static DWORD dwLastPress = MAXDWORD;
+#if 1
+    state = joy_to_xi;
+#else
+    state = di8_to_xi;
+#endif
 
-    if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
-         (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+#ifdef SK_STEAM_CONTROLLER_SUPPORT
+    if (ControllerPresent (config.input.gamepad.steam.ui_slot))
     {
-      if (dwLastPress < SK::ControlPanel::current_time - LONG_PRESS)
-      {
-        if (SK_ImGui_Active ())
-        {
-          bToggleVis |= false; // nop
-          bToggleNav |= true;
-        }
+      state =
+        *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
+    }
+#endif
 
+
+    //extern void SK_ScePad_PaceMaker (void);
+    //            SK_ScePad_PaceMaker ();
+
+
+    if ( api_bridge ||
+         SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
+    {
+      bRet = true;
+
+      if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&
+           state.Gamepad.wButtons & XINPUT_GAMEPAD_START &&
+           last_state.dwPacketNumber != state.dwPacketNumber )
+      {
+        if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK &&
+                last_state.Gamepad.wButtons & XINPUT_GAMEPAD_START ) )
+        {
+          // Additional condition for Final Fantasy X so as not to interfere with soft reset
+          if (! ( state.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
+                  state.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) )
+          {
+            bToggleNav |= (! nav_usable);
+            bToggleVis |= true;
+          }
+        }
+      }
+
+       const DWORD LONG_PRESS  = 400UL;
+      static DWORD dwLastPress = MAXDWORD;
+
+      if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
+           (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )
+      {
+        if (dwLastPress < SK::ControlPanel::current_time - LONG_PRESS)
+        {
+          if (SK_ImGui_Active ())
+          {
+            bToggleVis |= false; // nop
+            bToggleNav |= true;
+          }
+
+          dwLastPress = MAXDWORD;
+        }
+      }
+
+      else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
+        dwLastPress = SK::ControlPanel::current_time;
+
+      else
         dwLastPress = MAXDWORD;
-      }
     }
-
-    else if (state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)
-      dwLastPress = SK::ControlPanel::current_time;
 
     else
-      dwLastPress = MAXDWORD;
+      RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
+
+
+
+    if (                 bToggleVis|bToggleNav)
+      SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
   }
-
-  else
-    RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
-
-
-
-  if (                 bToggleVis|bToggleNav)
-    SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
-
 
   static bool last_haptic = false;
 
-  if (SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
+  if (bUseGamepad && SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
   {
     ImGuiContext& g =
       *GImGui;
