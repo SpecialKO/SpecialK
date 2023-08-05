@@ -37,7 +37,7 @@ static constexpr int GPU_SENSOR_BUFFERS = 3;
 //
 volatile LONG           gpu_sensor_frame  =  0;
          // Double-buffered updates
-         gpu_sensors_t* gpu_stats_buffers = nullptr;
+         gpu_sensors_t  gpu_stats_buffers [GPU_SENSOR_BUFFERS] = { };
 volatile gpu_sensors_t* gpu_stats         = nullptr;
          // ^^^ ptr to front
 
@@ -51,9 +51,6 @@ SK_GPU_InitSensorData (void)
   static bool        once = false;
   if (std::exchange (once, true) == false)
   {
-    if (gpu_stats_buffers == nullptr)
-        gpu_stats_buffers = new gpu_sensors_t [GPU_SENSOR_BUFFERS] { };
-
     for ( int i = 0 ; i < GPU_SENSOR_BUFFERS ; ++i )
     {
       gpu_stats_buffers [i].num_gpus = 1;
@@ -1066,12 +1063,6 @@ SK_EndGPUPolling (void)
     hPollEvent->Close     ();
     hShutdownEvent->Close ();
     hPollThread->Close    ();
-  }
-
-  if (ReadAcquire (&__SK_DLL_Ending))
-  {
-    delete
-      std::exchange (gpu_stats_buffers, nullptr);
   }
 }
 
