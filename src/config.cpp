@@ -2431,6 +2431,7 @@ auto DeclKeybind =
         config.apis.NvAPI.vulkan_bridge                = 1;
         config.input.gamepad.dinput.block_enum_devices = true;
         config.window.activate_at_start                = true;
+        config.display.force_windowed                  = true;
         break;
 
       case SK_GAME_ID::Persona4:
