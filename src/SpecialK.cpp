@@ -662,7 +662,7 @@ DllMain ( HMODULE hModule,
       //   to wake up before we unload the DLL, because our hook procedures are
       //     about to be unloaded from the process.
       if (SK_GetFramesDrawn () > 1)
-        Sleep (1000UL);
+          SK_Sleep (250UL);
     } break;
 
 
