@@ -1990,7 +1990,7 @@ public:
 #if 1
     for (auto& it : *UserStatsReceived_callbacks)
     {
-      if (it.second && SK_IsAddressExecutable (it.first, true))
+      if (it.second)
       {
         auto override_params =
           *pParam;
