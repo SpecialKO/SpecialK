@@ -737,11 +737,6 @@ SK_D3D11_CreateShader_Impl (
 
         desc.crc32c = checksum;
 
-        desc.bytecode.insert ( desc.bytecode.cend  (),
-          &((const uint8_t *) pShaderBytecode) [0],
-          &((const uint8_t *) pShaderBytecode) [BytecodeLength]
-        );
-
         // Concurrent shader creation resulted in the same shader twice,
         //   release this one and use the one currently in cache.
         //
@@ -757,6 +752,11 @@ SK_D3D11_CreateShader_Impl (
 
         else
         {
+          desc.bytecode.insert ( desc.bytecode.cend  (),
+            &((const uint8_t *) pShaderBytecode) [0],
+            &((const uint8_t *) pShaderBytecode) [BytecodeLength]
+          );
+
              *ppShader =
           desc.pShader;
 
