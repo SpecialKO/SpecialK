@@ -67,8 +67,15 @@ cbuffer colorSpaceTransform : register (b0)
 bool IsFinite (float x)
 {
   return
-    (! isinf (x));
+    (asuint (x) & 0x7F800000) != 0x7F800000;
 }
+
+bool IsInf (float x)
+{
+  return
+    (asuint (x) & 0x7FFFFFFF) == 0x7F800000;
+}
+
 bool IsNegative (float x)
 {
   return
@@ -97,16 +104,16 @@ bool AnyIsNegative (float4 x)
 }
 
 // NaN checker
-// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
 bool IsNan (float x)
 {
+// Re-write any code that depends on this
+#if 0
   if (! IsFinite (x))
     return true;
+#endif
 
   return
-    (   x <= 0.0 ||
-      0.0 <= x ) ?
-           false : true;
+    (asuint (x) & 0x7fffffff) > 0x7f800000;
 }
 
 bool AnyIsNan (float2 x)
@@ -626,38 +633,35 @@ static const ParamsLogC LogC =
 
 float3 Clamp_scRGBtoRec2020 (float3 c)
 {
+  // Remove special floating-point bit patterns, clamping is the
+  //   final step before output and outputting NaN or Infinity would
+  //     break color blending!
   c =
-    float3 ( (! IsNan (c.x)) ?
-                       c.x   : 0.0,
-             (! IsNan (c.y)) ?
-                       c.y   : 0.0,
-             (! IsNan (c.z)) ?
-                       c.z   : 0.0 );
+    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
+             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
+             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
 
 // This is needed to prevent some artifacting that happens at very small
 //   negative values (at the border between Rec 709 and DCI-P3 gamuts)
-#define PRECISION_FIX 1.0001
+#define PRECISION_FIX 1.0 + FLT_EPSILON
 
   // Transform scRGB to Rec2020, anything outside of Rec2020 is
   //   technically valid in scRGB but will produce black pixels
   //     if any attempt to display those colors is made.
-  float  norm     = length (c);
-  float3 cRec2020 = norm > 0.0f ?
-           saturate (REC709toREC2020 ((c * PRECISION_FIX) / norm))
-                                :
-                  float3 (0.0, 0.0, 0.0);
+  float3 cClampedToRec2020 =
+    REC2020toREC709 (
+      max (
+        REC709toREC2020 (c * PRECISION_FIX), 0.0
+          )         )      / PRECISION_FIX;
 
-  float3 cClamped =
-    norm * REC2020toREC709 (cRec2020) * PRECISION_FIX;
-
+  // Clamp to 10k nits in scRGB
   return
-    clamp (cClamped, -125.0f, 125.0f);
+    clamp (cClampedToRec2020, -125.0f, 125.0f);
 }
 
 float Clamp_scRGB (float c)
 {
-  c =  (! IsNan(c)) ?
-                c   : 0.0f;
+  c = (! IsNan (c)) * (! IsInf (c)) * c;
   return clamp (c, -125.0f,
                     125.0f);
 }
