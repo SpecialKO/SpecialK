@@ -1,4 +1,9 @@
-﻿23.8.4.2
+﻿23.8.4.3
+========
+ + Fixed potential crash when launching Elden Ring
+ + Optimized HDR processing shader slightly for NaN / Infinity color stripping
+
+23.8.4.2
 ========
  + Raised default HDR Preset 0 saturation to 98% since increased saturation
      is less of a problem when there's left over space in the output gamut.

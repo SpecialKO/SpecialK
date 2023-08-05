@@ -8747,12 +8747,13 @@ HookDXGI (LPVOID user)
       pDevice->GetImmediateContext (&pImmediateContext.p);
 
       if (! pDevice12)
-        pFactory->CreateSwapChain  (pDevice.p, &desc, &pSwapChain.p);
+        pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
     }
 
     if (pDevice12 != nullptr)
     {
-      pFactory->CreateSwapChain    (pCmdQueue.p, &desc, &pSwapChain.p);
+      if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
+                  pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
     }
 
     sk_hook_d3d11_t d3d11_hook_ctx = { };
@@ -8760,35 +8761,37 @@ HookDXGI (LPVOID user)
     d3d11_hook_ctx.ppDevice           = &pDevice.p;
     d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
-    if ( SUCCEEDED (hr)
-                 || pDevice12 != nullptr )
+    if ( SUCCEEDED (hr) || pDevice12 != nullptr )
     {
-      //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
-      SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
-      pSwapChain->QueryInterface (
-        __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
-      );
-      
-      if (pStreamlineFreeSwapChain != nullptr) {
-        pSwapChain.p->AddRef ();
-        pSwapChain = pStreamlineFreeSwapChain;
-        pSwapChain.p->Release ();
-      }
-
       if (SUCCEEDED (hr))
         HookD3D11           (&d3d11_hook_ctx);
-
       SK_DXGI_HookFactory   (pFactory);
-      SK_DXGI_HookSwapChain (pSwapChain);
 
-      // This won't catch Present1 (...), but no games use that
-      //   and we can deal with it later if it happens.
-      SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain);
+      if (pSwapChain != nullptr)
+      {
+        //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
+        SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
+        pSwapChain->QueryInterface (
+          __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
+        );
+        
+        if (pStreamlineFreeSwapChain != nullptr) {
+          pSwapChain.p->AddRef ();
+          pSwapChain = pStreamlineFreeSwapChain;
+          pSwapChain.p->Release ();
+        }
 
-      SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+        SK_DXGI_HookSwapChain (pSwapChain);
 
-      if (pSwapChain1 != nullptr)
-        SK_DXGI_HookPresent1 (pSwapChain1);
+        // This won't catch Present1 (...), but no games use that
+        //   and we can deal with it later if it happens.
+        SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain);
+
+        SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+        if (pSwapChain1 != nullptr)
+          SK_DXGI_HookPresent1 (pSwapChain1);
+      }
 
       bool  bEnable = SK_EnableApplyQueuedHooks  ();
       {
