@@ -861,10 +861,6 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (visualFunc.x == VISUALIZE_NONE)
 #endif
   {
-    color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
-    color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
-    color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
-
     if (hdrGamutExpansion > 0.0f)
     {
       color_out.rgb =
@@ -872,6 +868,10 @@ float4 main (PS_INPUT input) : SV_TARGET
           expandGamut (color_out.rgb, hdrGamutExpansion)
         );
     }
+
+    color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
+    color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
+    color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
   }
 
   return color_out;

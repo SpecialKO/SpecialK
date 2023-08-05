@@ -1,4 +1,10 @@
-﻿23.8.4
+﻿23.8.4.1
+========
+ + Fix artifacts on colors with very small negative values at the edge
+     between Rec 709 and DCI-P3 that were turned completely black by
+       the original attempt to unclamp HDR color.
+
+23.8.4
 ======
  + Removed internal Rec 709 gamut clamp from SK's HDR color processing (scRGB).
 

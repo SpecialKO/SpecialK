@@ -63,8 +63,6 @@ struct SK_HDR_FIXUP
   ID3D11RasterizerState*    pRasterizerState = nullptr;
   ID3D11DepthStencilState*          pDSState = nullptr;
 
-  ID3D11BlendState*              pBlendState = nullptr;
-
   ID3D11Texture2D*             pLuminanceTex = nullptr;
   ID3D11UnorderedAccessView*   pLuminanceUAV = nullptr;
   ID3D11ShaderResourceView*    pLuminanceSRV = nullptr;
@@ -136,8 +134,6 @@ struct SK_HDR_FIXUP
 
     if (pRasterizerState  != nullptr)  { pRasterizerState->Release  ();   pRasterizerState = nullptr; }
     if (pDSState          != nullptr)  { pDSState->Release          ();           pDSState = nullptr; }
-
-    if (pBlendState       != nullptr)  { pBlendState->Release       ();       pBlendState  = nullptr; }
 
     if (pInputLayout      != nullptr)  { pInputLayout->Release      ();       pInputLayout = nullptr; }
 
@@ -223,8 +219,6 @@ struct SK_HDR_FIXUP
 
     if (pRasterizerState != nullptr)  { pRasterizerState->Release ();  pRasterizerState = nullptr; }
     if (pDSState         != nullptr)  { pDSState->Release         ();          pDSState = nullptr; }
-
-    if (pBlendState      != nullptr)  { pBlendState->Release      ();       pBlendState = nullptr; }
 
     if (pInputLayout     != nullptr)  { pInputLayout->Release     ();      pInputLayout = nullptr; }
 
@@ -326,9 +320,9 @@ struct SK_HDR_FIXUP
         sampler_desc.AddressW        = D3D11_TEXTURE_ADDRESS_CLAMP;
         sampler_desc.MipLODBias      = 0.f;
         sampler_desc.MaxAnisotropy   =   1;
-        sampler_desc.ComparisonFunc  =  D3D11_COMPARISON_ALWAYS;
-        sampler_desc.MinLOD          = -D3D11_FLOAT32_MAX;
-        sampler_desc.MaxLOD          =  D3D11_FLOAT32_MAX;
+        sampler_desc.ComparisonFunc  = D3D11_COMPARISON_ALWAYS;
+        sampler_desc.MinLOD          = 0.0f;
+        sampler_desc.MaxLOD          = 0.0f;
         sampler_desc.BorderColor [0] = 1.0f;
         sampler_desc.BorderColor [1] = 1.0f;
         sampler_desc.BorderColor [2] = 1.0f;
@@ -336,19 +330,6 @@ struct SK_HDR_FIXUP
 
       pDev->CreateSamplerState ( &sampler_desc,
                                             &pSampler0 );
-
-      D3D11_BLEND_DESC
-        blend                                        = {  };
-
-      for ( int i = 0 ; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ; ++i )
-      {
-        blend.RenderTarget [i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
-                                                       D3D11_COLOR_WRITE_ENABLE_GREEN |
-                                                       D3D11_COLOR_WRITE_ENABLE_BLUE;
-      }
-
-      pDev->CreateBlendState ( &blend,
-                                   &pBlendState );
 
       D3D11_DEPTH_STENCIL_DESC
         depth                          = {  };
@@ -371,7 +352,7 @@ struct SK_HDR_FIXUP
 
         raster.FillMode              = D3D11_FILL_SOLID;
         raster.CullMode              = D3D11_CULL_NONE;
-        raster.DepthClipEnable       = TRUE;
+        raster.DepthClipEnable       = FALSE;
         raster.DepthBiasClamp        = 0.0F;
         raster.SlopeScaledDepthBias  = 0.0F;
 
@@ -423,7 +404,6 @@ struct SK_HDR_FIXUP
 
       SK_D3D11_SetDebugName (pSampler0,        L"SK HDR SamplerState");
       SK_D3D11_SetDebugName (pInputLayout,     L"SK HDR InputLayout");
-      SK_D3D11_SetDebugName (pBlendState,      L"SK HDR BlendState");
       SK_D3D11_SetDebugName (pDSState,         L"SK HDR Depth/Stencil State");
       SK_D3D11_SetDebugName (pRasterizerState, L"SK HDR Rasterizer State");
 
@@ -689,8 +669,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
       pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
       pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-      pDevCtx->OMSetBlendState        (hdr_base->pBlendState, std::array <const FLOAT, 4> { 0.0f, 0.0f, 0.0f, 0.0f }.data (),
-                                         0xFFFFFFFFUL);
+      pDevCtx->OMSetBlendState        (nullptr, nullptr, 0xFFFFFFFFUL);
 
       pDevCtx->VSSetShader            (       hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
       pDevCtx->VSSetConstantBuffers   (0, 1, &hdr_base->mainSceneCBuffer);
@@ -967,7 +946,7 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
       pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-      pDevCtx->OMSetBlendState        (hdr_base->pBlendState, nullptr, 0xFFFFFFFFUL);
+      pDevCtx->OMSetBlendState        (nullptr, nullptr, 0xFFFFFFFFUL);
 
       pDevCtx->VSSetShader            (       hdr_base->VertexShaderHDR_Util.shader, nullptr, 0);
       pDevCtx->VSSetConstantBuffers   (0, 1, &hdr_base->mainSceneCBuffer);

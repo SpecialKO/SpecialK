@@ -8686,7 +8686,8 @@ HookDXGI (LPVOID user)
 
     // Favor this codepath because it bypasses many things like ReShade, but
     //   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
-    if (D3D11CoreCreateDevice != nullptr && (! SK_GetModuleHandle (L"vulkan-1.dll")))
+    if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
+                                                 SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
     {
       SK_D3D11_Init ();
 
