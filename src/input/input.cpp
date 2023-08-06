@@ -2732,62 +2732,65 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_INPUT:
       {
-        bool should_handle = false;
-
-        auto& hWnd   = lpMsg->hwnd;
-        auto& uMsg   = lpMsg->message;
-        auto& wParam = lpMsg->wParam;
-        auto& lParam = lpMsg->lParam;
-        
-        bool        bWantMouseCapture    =
-            SK_ImGui_WantMouseCapture    (),
-                    bWantKeyboardCapture =
-            SK_ImGui_WantKeyboardCapture (),
-                    bWantGamepadCapture  =
-            SK_ImGui_WantGamepadCapture  ();
-        
-        bool bWantAnyCapture = bWantMouseCapture    ||
-                               bWantKeyboardCapture ||
-                               bWantGamepadCapture;
-
-        if (bWantAnyCapture)
+        if (config.input.gamepad.hook_raw_input)
         {
-          bool mouse = false,
-            keyboard = false,
-             gamepad = false;
+          bool should_handle = false;
 
-          SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+          auto& hWnd   = lpMsg->hwnd;
+          auto& uMsg   = lpMsg->message;
+          auto& wParam = lpMsg->wParam;
+          auto& lParam = lpMsg->lParam;
           
-          if (mouse && SK_ImGui_WantMouseCapture ())
+          bool        bWantMouseCapture    =
+              SK_ImGui_WantMouseCapture    (),
+                      bWantKeyboardCapture =
+              SK_ImGui_WantKeyboardCapture (),
+                      bWantGamepadCapture  =
+              SK_ImGui_WantGamepadCapture  ();
+          
+          bool bWantAnyCapture = bWantMouseCapture    ||
+                                 bWantKeyboardCapture ||
+                                 bWantGamepadCapture;
+
+          if (bWantAnyCapture)
           {
-            should_handle = true;
+            bool mouse = false,
+              keyboard = false,
+               gamepad = false;
+
+            SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+            
+            if (mouse && SK_ImGui_WantMouseCapture ())
+            {
+              should_handle = true;
+            }
+            
+            if (keyboard && SK_ImGui_WantKeyboardCapture ())
+            {
+              should_handle = true;
+            }
+            
+            if (gamepad && SK_ImGui_WantGamepadCapture ())
+            {
+              should_handle = true;
+            }
+            
+            if (should_handle)
+            {
+              handled =
+                (  0 !=
+                 ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                       lpMsg->wParam, lpMsg->lParam));
+            }
           }
           
-          if (keyboard && SK_ImGui_WantKeyboardCapture ())
+          // Cleanup the message, we'll re-write the message to WM_NULL later
+          if (handled)
           {
-            should_handle = true;
+            IsWindowUnicode (lpMsg->hwnd) ?
+              DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+              DefWindowProcA (hWnd, uMsg, wParam, lParam);
           }
-          
-          if (gamepad && SK_ImGui_WantGamepadCapture ())
-          {
-            should_handle = true;
-          }
-          
-          if (should_handle)
-          {
-            handled =
-              (  0 !=
-               ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                     lpMsg->wParam, lpMsg->lParam));
-          }
-        }
-        
-        // Cleanup the message, we'll re-write the message to WM_NULL later
-        if (handled)
-        {
-          IsWindowUnicode (lpMsg->hwnd) ?
-            DefWindowProcW (hWnd, uMsg, wParam, lParam) :
-            DefWindowProcA (hWnd, uMsg, wParam, lParam);
         }
       } break;
 
@@ -3564,26 +3567,6 @@ void SK_Input_PreInit (void)
                              UnhookWindowsHookEx_Detour,
     static_cast_p2p <void> (&UnhookWindowsHookEx_Original) );
 
-
-  //bool bHasWin32u =
-  //    ( SK_GetProcAddress (L"win32u", "NtUserGetCursorInfo") != nullptr );
-
-  //if (SK_GetProcAddress (L"Win32U", "NtUserGetRawInputData") != nullptr)
-  //{
-  //  SK_CreateDLLHook2 (       L"Win32U",
-  //                      "NtUserGetRawInputData",
-  //                       NtUserGetRawInputData_Detour,
-  //    static_cast_p2p <void> (&GetRawInputData_Original) );
-  //}
-  //
-  //else
-  {
-    SK_CreateDLLHook2 (       L"user32",
-                               "GetRawInputData",
-                          NtUserGetRawInputData_Detour,
-       static_cast_p2p <void> (&GetRawInputData_Original) );
-  }
-
 #if 0
   SK_CreateUser32Hook (      "NtUserGetAsyncKeyState",
                               NtUserGetAsyncKeyState_Detour,
@@ -3697,27 +3680,34 @@ void SK_Input_PreInit (void)
 
 
 
+  if (config.input.gamepad.hook_raw_input)
+  {
 #define __MANAGE_RAW_INPUT_REGISTRATION
 #ifdef  __MANAGE_RAW_INPUT_REGISTRATION
-  //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
-  SK_CreateDLLHook2 (       L"user32",
-                             "RegisterRawInputDevices",
-                        NtUserRegisterRawInputDevices_Detour,
-     static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
+    //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
+    SK_CreateDLLHook2 (       L"user32",
+                               "RegisterRawInputDevices",
+                          NtUserRegisterRawInputDevices_Detour,
+       static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
-  //SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
-  SK_CreateDLLHook2 (       L"user32",
-                             "GetRegisteredRawInputDevices",
-                        NtUserGetRegisteredRawInputDevices_Detour,
-     static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
+    //SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetRegisteredRawInputDevices",
+                          NtUserGetRegisteredRawInputDevices_Detour,
+       static_cast_p2p <void> (&GetRegisteredRawInputDevices_Original) );
 #endif
 
-
 #if 1
-  SK_CreateDLLHook2 (       L"user32",
-                             "GetRawInputBuffer",
-                              GetRawInputBuffer_Detour,
-     static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetRawInputData",
+                          NtUserGetRawInputData_Detour,
+       static_cast_p2p <void> (&GetRawInputData_Original) );
+
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetRawInputBuffer",
+                                GetRawInputBuffer_Detour,
+       static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+  }
 #endif
 
 

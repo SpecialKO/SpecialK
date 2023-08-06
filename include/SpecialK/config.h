@@ -807,6 +807,7 @@ struct sk_config_t
       bool    hook_hid            = true;
       bool    hook_xinput         = true; // Kind of important ;)
       bool    hook_scepad         = true;
+      bool    hook_raw_input      = true;
       bool    native_ps4          = false;
 
       struct xinput_s {

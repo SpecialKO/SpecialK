@@ -1,4 +1,15 @@
-﻿23.8.4.4
+﻿23.8.4.5
+========
+ + Optimized Raw Input hooks for better performance when SK's UI is NOT
+     blocking input to the game.
+ + Added (hidden) INI option to turn off RawInput hooks:
+
+     [Input.Gamepad]
+     EnableRawInput={true|false}
+
+   * You may manually add this to INI files for debugging; discouraged
+
+23.8.4.4
 ========
  + Fixed potential crashes in SDL-based games if they read gamepad input
      using Raw Input and "Continue Rendering" is enabled.

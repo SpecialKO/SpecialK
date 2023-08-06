@@ -4031,7 +4031,7 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
                     dwMsgMax >= lpMsg->message   &&
        SK_ImGui_HandlesMessage (lpMsg, remove, peek)                       )
   {
-    if (lpMsg->message == WM_INPUT)
+    if (lpMsg->message == WM_INPUT && config.input.gamepad.hook_raw_input)
       remove = true;
 
     if (remove)
@@ -4120,9 +4120,10 @@ PeekMessageA_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender ()      &&
-            msg.message == WM_INPUT      &&
-            msg.wParam  == RIM_INPUTSINK &&
+    if ( SK_WantBackgroundRender ()             &&
+            msg.message == WM_INPUT             &&
+            msg.wParam  == RIM_INPUTSINK        &&
+            config.input.gamepad.hook_raw_input &&
             config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled )
     {
       bool keyboard = false;
@@ -4225,9 +4226,10 @@ PeekMessageW_Detour (
                                           wRemoveMsg )
      )
   { // ---- RAW Input Background Hack ----
-    if ( SK_WantBackgroundRender ()      &&
-            msg.message == WM_INPUT      &&
-            msg.wParam  == RIM_INPUTSINK &&
+    if ( SK_WantBackgroundRender ()             &&
+            msg.message == WM_INPUT             &&
+            msg.wParam  == RIM_INPUTSINK        &&
+            config.input.gamepad.hook_raw_input &&
             config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled )
     {
       bool keyboard = false;
@@ -4289,8 +4291,9 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjects ( 1, &__SK_DLL_TeardownEvent, FALSE,
-                                    INFINITE, QS_ALLINPUT );
+      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
+                                      INFINITE, (QS_ALLINPUT & ~QS_PAINT),
+                                        MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -4410,8 +4413,9 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
-      MsgWaitForMultipleObjects ( 1, &__SK_DLL_TeardownEvent, FALSE,
-                                    INFINITE, QS_ALLINPUT );
+      MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
+                                      INFINITE, (QS_ALLINPUT & ~QS_PAINT),
+                                        MWMO_INPUTAVAILABLE );
 
     if (dwWait == WAIT_OBJECT_0)
       break;

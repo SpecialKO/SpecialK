@@ -1126,6 +1126,9 @@ MessageProc ( const HWND&   hWnd,
 
     case WM_INPUT:
     {
+      if (! config.input.gamepad.hook_raw_input)
+        return false;
+
       bool bRet = false;
 
       bool mouse    = false,
@@ -1436,7 +1439,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   UNREFERENCED_PARAMETER (lParam);
 
   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
-  bool filter_raw_input = (msg == WM_INPUT && handled);
+  bool filter_raw_input = (msg == WM_INPUT && handled && config.input.gamepad.hook_raw_input);
 
   bool filter_warps     = SK_ImGui_WantMouseWarpFiltering ();
 
