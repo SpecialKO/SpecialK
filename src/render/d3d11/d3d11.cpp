@@ -5359,6 +5359,8 @@ D3D11Dev_CreateTexture2D_Impl (
                    ( pInitialData          == nullptr ||
                      pInitialData->pSysMem == nullptr ) )
   {
+    extern bool SK_HDR_PromoteUAVsTo16Bit;
+
     static constexpr UINT _UnwantedFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
@@ -5377,16 +5379,7 @@ D3D11Dev_CreateTexture2D_Impl (
                pDesc->Height == swapDesc.BufferDesc.Height//&&
              /*pDesc->Format == swapDesc.BufferDesc.Format*/) && 
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) ) &&
-
-           //
-           // Disabled for Baldur's Gate 3 -
-           //
-           //   TODO:  Determine exact conditions in which promoting UAVs to
-           //            FP16 is problematic (i.e. when they are writeable)
-           //
-           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  !=
-                               D3D11_BIND_UNORDERED_ACCESS
+           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -5395,6 +5388,20 @@ D3D11Dev_CreateTexture2D_Impl (
                 SK_DXGI_IsFormatInteger (pDesc->Format) ) )
          )
       {
+        bool is_uav =
+          (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS) ==
+                              D3D11_BIND_UNORDERED_ACCESS;
+
+        SK_HDR_RenderTargetManager *p11BitTargetManager =
+          is_uav ? SK_HDR_UnorderedViews_11bpc.getPtr ()
+                 : SK_HDR_RenderTargets_11bpc. getPtr (),
+                                   *p10BitTargetManager =
+          is_uav ? SK_HDR_UnorderedViews_10bpc.getPtr ()
+                 : SK_HDR_RenderTargets_10bpc. getPtr (),
+                                   *p8BitTargetManager =
+          is_uav ? SK_HDR_UnorderedViews_8bpc.getPtr ()
+                 : SK_HDR_RenderTargets_8bpc. getPtr ();
+
         static const bool bTalesOfArise =
           SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
 
@@ -5428,26 +5435,26 @@ D3D11Dev_CreateTexture2D_Impl (
             DirectX::BitsPerColor (pDesc->Format);
 
           if (     bpc == 11)
-            InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->CandidatesSeen);
+            InterlockedIncrement (&p11BitTargetManager->CandidatesSeen);
           else if (bpc == 10)
-            InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->CandidatesSeen);
+            InterlockedIncrement (&p10BitTargetManager->CandidatesSeen);
 
           // 11-bit FP (or 10-bit fixed?) -> 16-bit FP
-          if ( (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit && bpc == 11) ||
-               (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit && bpc == 10) )
+          if ( (p10BitTargetManager->PromoteTo16Bit && bpc == 10) ||
+               (p11BitTargetManager->PromoteTo16Bit && bpc == 11) )
           {
             // 32-bit total -> 64-bit
             SK_ReleaseAssert (bpp == 32);
 
             if (bpc == 11)
             {
-              InterlockedAdd64     (&SK_HDR_RenderTargets_11bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
-              InterlockedIncrement (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded);
+              InterlockedAdd64     (&p11BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
+              InterlockedIncrement (&p11BitTargetManager->TargetsUpgraded);
             }
             else if (bpc == 10)
             {
-              InterlockedAdd64     (&SK_HDR_RenderTargets_10bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
-              InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded);
+              InterlockedAdd64     (&p10BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
+              InterlockedIncrement (&p10BitTargetManager->TargetsUpgraded);
             }
 
             if (config.system.log_level > 4)
@@ -5488,7 +5495,7 @@ D3D11Dev_CreateTexture2D_Impl (
                     pDesc->Height == swapDesc.BufferDesc.Height )
                  )
               {
-                if (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit)
+                if (p8BitTargetManager->PromoteTo16Bit)
                 {
                   if (config.system.log_level > 4)
                   {
@@ -5498,19 +5505,19 @@ D3D11Dev_CreateTexture2D_Impl (
                   }
 
                   // 32-bit total -> 64-bit
-                  InterlockedAdd64     (&SK_HDR_RenderTargets_8bpc->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
-                  InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded);
+                  InterlockedAdd64     (&p8BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
+                  InterlockedIncrement (&p8BitTargetManager->TargetsUpgraded);
 
                   //if (     _typeless == DXGI_FORMAT_R8G8_TYPELESS)
                   //  pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
                   //else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
                   //  pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
                   //else
-                    pDesc->Format = hdr_fmt_override;
+                  pDesc->Format = hdr_fmt_override;
                   bManipulated  = true;
                 }
 
-                InterlockedIncrement (&SK_HDR_RenderTargets_8bpc->CandidatesSeen);
+                InterlockedIncrement (&p8BitTargetManager->CandidatesSeen);
               }
             }
           }

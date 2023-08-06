@@ -88,6 +88,9 @@ sk::ParameterBool*  _SK_HDR_16BitSwapChain            = nullptr;
 sk::ParameterBool*  _SK_HDR_Promote10BitRGBATo16BitFP = nullptr;
 sk::ParameterBool*  _SK_HDR_Promote11BitRGBTo16BitFP  = nullptr;
 sk::ParameterBool*  _SK_HDR_Promote8BitRGBxTo16BitFP  = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote10BitUAVsTo16BitFP = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote11BitUAVsTo16BitFP = nullptr;
+sk::ParameterBool*  _SK_HDR_Promote8BitUAVsTo16BitFP  = nullptr;
 sk::ParameterInt*   _SK_HDR_ActivePreset              = nullptr;
 sk::ParameterBool*  _SK_HDR_FullRange                 = nullptr;
 sk::ParameterInt*   _SK_HDR_sRGBBypassBehavior        = nullptr;
@@ -101,6 +104,12 @@ bool  __SK_HDR_16BitSwap        = false;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_8bpc;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_10bpc;
 SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_RenderTargets_11bpc;
+
+SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_UnorderedViews_8bpc;
+SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_UnorderedViews_10bpc;
+SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_UnorderedViews_11bpc;
+
+bool SK_HDR_PromoteUAVsTo16Bit = false;
 
 float __SK_HDR_Luma            = 80.0_Nits;
 float __SK_HDR_Exp             =  1.0f;
@@ -888,9 +897,8 @@ public:
 
     _SK_HDR_Promote8BitRGBxTo16BitFP =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
-                                   L"Promote8BitRTsTo16",  SK_HDR_RenderTargets_8bpc->PromoteTo16Bit,
+                                   L"Promote8BitRTsTo16",   SK_HDR_RenderTargets_8bpc->PromoteTo16Bit,
                                    L"8-Bit Precision Increase" );
-
     _SK_HDR_Promote10BitRGBATo16BitFP =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                    L"Promote10BitRTsTo16",  SK_HDR_RenderTargets_10bpc->PromoteTo16Bit,
@@ -899,6 +907,19 @@ public:
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                    L"Promote11BitRTsTo16",  SK_HDR_RenderTargets_11bpc->PromoteTo16Bit,
                                    L"11-Bit Precision Increase" );
+
+    _SK_HDR_Promote8BitUAVsTo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote8BitUAVsTo16",  SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit,
+                                   L"8-Bit Precision Increase (UAV)" );
+    _SK_HDR_Promote10BitUAVsTo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote10BitUAVsTo16", SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit,
+                                   L"10-Bit Precision Increase (UAV)" );
+    _SK_HDR_Promote11BitUAVsTo16BitFP =
+      _CreateConfigParameterBool ( SK_HDR_SECTION,
+                                   L"Promote11BitUAVsTo16", SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit,
+                                   L"11-Bit Precision Increase (UAV)" );
 
     // Games where 11-bit remastering is a known stability issue
     //
@@ -1840,6 +1861,8 @@ public:
             ImGui::CollapsingHeader ( "Performance / Quality",
                                         ImGuiTreeNodeFlags_DefaultOpen );
 
+          static bool bExperimental = false;
+
           if (rb.api != SK_RenderAPI::D3D12)
           {
             if (ImGui::IsItemHovered ())
@@ -1899,6 +1922,8 @@ public:
 
               };
 
+              ImGui::BeginGroup        ();
+
               changed |= ImGui::Checkbox ("Remaster 8-bit Render Passes",  &SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
 
               if (ImGui::IsItemHovered ())
@@ -1912,7 +1937,24 @@ public:
                 ImGui::EndTooltip      ();
               }
 
-                         ImGui::SameLine ();
+              if (bExperimental)
+              {
+                changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip  ();
+                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_UnorderedViews_8bpc->BytesAllocated));
+                  ImGui::EndTooltip    ();
+                }
+              }
+
+              ImGui::EndGroup          ();
+              ImGui::SameLine          ();
+              ImGui::BeginGroup        ();
+
               changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
 
               if (ImGui::IsItemHovered ())
@@ -1926,7 +1968,24 @@ public:
                 ImGui::EndTooltip      ();
               }
 
-                         ImGui::SameLine ();
+              if (bExperimental)
+              {
+                changed |= ImGui::Checkbox ("Remaster 10-bit Compute Passes", &SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip  ();
+                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_UnorderedViews_10bpc->BytesAllocated));
+                  ImGui::EndTooltip    ();
+                }
+              }
+
+              ImGui::EndGroup          ();
+              ImGui::SameLine          ();
+              ImGui::BeginGroup        ();
+
               changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
               if (ImGui::IsItemHovered ())
@@ -1939,6 +1998,21 @@ public:
                                         ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
                 ImGui::EndTooltip      ();
               }
+
+              if (bExperimental)
+              {
+                changed |= ImGui::Checkbox ("Remaster 11-bit Compute Passes", &SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip  ();
+                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->TargetsUpgraded),
+                                        ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->CandidatesSeen),
+                                        ReadAcquire64    (&SK_HDR_UnorderedViews_11bpc->BytesAllocated));
+                  ImGui::EndTooltip    ();
+                }
+              }
+              ImGui::EndGroup          ();
             }
 
             ImGui::PopStyleColor ();
@@ -1955,7 +2029,7 @@ public:
                   ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Once);
               }
 
-              bool bExperimental =
+              bExperimental =
                 ImGui::TreeNode ("Experimental");
 
               if (ImGui::IsItemHovered ())
@@ -2083,9 +2157,13 @@ public:
 
             if (changed)
             {
-              _SK_HDR_Promote8BitRGBxTo16BitFP->store  (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
+              _SK_HDR_Promote8BitRGBxTo16BitFP ->store (SK_HDR_RenderTargets_8bpc ->PromoteTo16Bit);
               _SK_HDR_Promote10BitRGBATo16BitFP->store (SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
-              _SK_HDR_Promote11BitRGBTo16BitFP->store  (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+              _SK_HDR_Promote11BitRGBTo16BitFP ->store (SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+
+              _SK_HDR_Promote8BitUAVsTo16BitFP ->store (SK_HDR_UnorderedViews_8bpc ->PromoteTo16Bit);
+              _SK_HDR_Promote10BitUAVsTo16BitFP->store (SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
+              _SK_HDR_Promote11BitUAVsTo16BitFP->store (SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
 
               dll_ini->write ();
             }

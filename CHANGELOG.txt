@@ -1,4 +1,14 @@
-﻿23.8.4.5
+﻿23.8.6
+======
+ + Added separate options for HDR Render Pass and HDR Compute Pass remastering,
+     use the "Experimental" tab to access the new setting.
+
+    >> Previous versions included Compute Passes under the Render Pass setting.
+       
+    Since compute shaders are the most likely cause of glitches when using HDR
+      remastering, the settings are stored separately now.
+
+23.8.4.5
 ========
  + Optimized Raw Input hooks for better performance when SK's UI is NOT
      blocking input to the game.
