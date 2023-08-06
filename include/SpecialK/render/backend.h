@@ -136,6 +136,9 @@ struct SK_ColorSpace {
 const char*
 HDRModeToStr (NV_HDR_MODE mode);
 
+void __stdcall
+SK_D3D11_ResetTexCache (void);
+
 enum class PresentMode
 {
   Unknown,
@@ -554,6 +557,10 @@ public:
     // during SwapChain cleanup.
     void clearState (void)
     {
+      // We may have cached textures preventing the destruction of the original
+      //   D3D11 device associated with this SwapChain, so clear those now.
+      SK_D3D11_ResetTexCache ();
+
       if (immediate_ctx != nullptr)
       {
         immediate_ctx->Flush      ();

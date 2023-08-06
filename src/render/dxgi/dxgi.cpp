@@ -230,8 +230,6 @@ sk_hook_cache_array local_dxgi_records =
 
 extern volatile LONG __SK_TaskDialogActive;
 
-void __stdcall SK_D3D11_ResetTexCache (void);
-
 void SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain);
 
 void
@@ -5970,6 +5968,11 @@ DXGIFactory_CreateSwapChain_Override (
     _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
     _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
 
+    // Release our reference to the SwapChain, and hope that other overlays
+    //   notice this so that clearState () flushes deferred object destruction
+    if (rb.swapchain.p != nullptr)
+        rb.swapchain.Release ();
+
     rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
@@ -5977,6 +5980,14 @@ DXGIFactory_CreateSwapChain_Override (
     ret =
       CreateSwapChain_Original ( This, pDevice,
                                    pDesc, &pTemp );
+
+    if (FAILED (ret))
+    {
+      SK_DXGI_OutputDebugString ( "IDXGIFactory::CreateSwapChain (...) failed, look alive...",
+                                    DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR );
+
+      SK_DXGI_ReportLiveObjects (pDevice);
+    }
   }
 
   DXGI_CALL ( ret, ret );
@@ -6463,6 +6474,11 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
     _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
 
+    // Release our reference to the SwapChain, and hope that other overlays
+    //   notice this so that clearState () flushes deferred object destruction
+    if (rb.swapchain.p != nullptr)
+        rb.swapchain.Release ();
+
     rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
@@ -6470,6 +6486,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     ret =
       CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
                                           pRestrictToOutput, &pTemp );
+
+    if (FAILED (ret))
+    {
+      SK_DXGI_OutputDebugString ( "IDXGIFactory::CreateSwapChainForHwnd (...) failed, look alive...",
+                                    DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR );
+
+      SK_DXGI_ReportLiveObjects (pDevice);
+    }
   }
 
   DXGI_CALL ( ret, ret );
@@ -8653,6 +8677,9 @@ HookDXGI (LPVOID user)
     if (! D3D11CreateDeviceAndSwapChain_Import)
       return 0;
 
+    // This has benefits, but may prove unreliable with software
+    //   that requires NVIDIA's DXGI/Vulkan interop layer
+#if 1
     SK_ComPtr <IDXGIAdapter>
                    pAdapter0;
 
@@ -8766,6 +8793,45 @@ HookDXGI (LPVOID user)
       if (SUCCEEDED (hr))
         HookD3D11           (&d3d11_hook_ctx);
       SK_DXGI_HookFactory   (pFactory);
+
+      //
+#else // Old initializtion procedure
+      //
+
+    HRESULT hr =
+      D3D11CreateDeviceAndSwapChain_Import (
+        nullptr,
+          D3D_DRIVER_TYPE_HARDWARE,
+            nullptr,
+              config.render.dxgi.debug_layer ?
+                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                levels,
+                  _ARRAYSIZE (levels),
+                    D3D11_SDK_VERSION, &desc,
+                      &pSwapChain.p,
+                        &pDevice.p,
+                          &featureLevel,
+                            &pImmediateContext.p );
+
+    sk_hook_d3d11_t d3d11_hook_ctx = { };
+
+    d3d11_hook_ctx.ppDevice           = &pDevice.p;
+    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+
+    SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+    SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
+    SK_ComPtr <IDXGIFactory> pFactory = nullptr;
+
+    if ( SUCCEEDED (hr)                                                &&
+                    pDevice != nullptr                                 &&
+         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+    {
+      HookD3D11             (&d3d11_hook_ctx);
+      SK_DXGI_HookFactory   (pFactory);
+      //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+#endif
 
       if (pSwapChain != nullptr)
       {

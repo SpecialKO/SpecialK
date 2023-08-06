@@ -1,4 +1,12 @@
-﻿23.8.6.2
+﻿23.8.6.3
+========
+ + Improved compatibility with Vulkan/DXGI interop when the Steam overlay
+     is not disabled (D3D11 texture cache needs to be cleared if enabled)
+
+   >> It is still HIGHLY recommended that you disable the Steam overlay when
+        using Special K in Vk games, because it hooks both Vulkan and D3D11!
+
+23.8.6.2
 ========
  + Add locks back around shader cache management code to fix God of War
 
