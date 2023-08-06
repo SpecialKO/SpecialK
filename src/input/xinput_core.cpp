@@ -386,11 +386,19 @@ XInputEnable1_4_Detour (
   if (config.window.background_render)
   {
     xinput_enabled             = TRUE;
+
+    if (pCtx->XInputEnable_Original == nullptr)
+      return;
+
     pCtx->XInputEnable_Original (TRUE);
   }
   else
   {
     xinput_enabled             = enable;
+
+    if (pCtx->XInputEnable_Original == nullptr)
+      return;
+
     pCtx->XInputEnable_Original (enable);
   }
 
@@ -436,6 +444,9 @@ XInputGetState1_4_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (pCtx->XInputGetState_Original == nullptr)
+    return ERROR_SUCCESS;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -595,6 +606,9 @@ XInputGetStateEx1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  if (pCtx->XInputGetStateEx_Original == nullptr)
+    return ERROR_SUCCESS;
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
@@ -667,6 +681,9 @@ XInputGetCapabilities1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  if (pCtx->XInputGetCapabilities_Original == nullptr)
+    return ERROR_SUCCESS;
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
@@ -718,6 +735,9 @@ XInputGetBatteryInformation1_4_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (pCtx->XInputGetBatteryInformation_Original == nullptr)
+    return ERROR_SUCCESS;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -777,6 +797,9 @@ XInputSetState1_4_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (pCtx->XInputSetState_Original == nullptr)
+    return ERROR_SUCCESS;
 
   if (! config.input.gamepad.xinput.hook_setstate)
     return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
@@ -1149,6 +1172,9 @@ XInputPowerOff1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  if (pCtx->XInputPowerOff_Original == nullptr)
+    return ERROR_SUCCESS;
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -1255,6 +1281,9 @@ XInputGetKeystroke1_4_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (pCtx->XInputGetKeystroke_Original == nullptr)
+    return ERROR_SUCCESS;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
