@@ -239,9 +239,13 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
      *pDesc    = nullptr;
   if (pShader != nullptr)
   {
+    pCritical->lock ();
+
     auto& rev_map     = pShaderRepo->rev [pDevice];
     auto  shader_desc =
       rev_map.find (pShader);
+
+    pCritical->unlock ();
 
     if (shader_desc != rev_map.end ())
     {
@@ -261,8 +265,12 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       {
         dll_log->Log (L"Shader not in cache, so adding it!");
 
+        pCritical->lock ();
+
         rev_map [pShader] =
           (pDesc = &pShaderRepo->descs [pDevice][crc32c]);
+
+        pCritical->unlock ();
       }
 
       // We need a way to get the bytecode after the shader was created...

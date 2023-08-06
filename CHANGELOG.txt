@@ -1,4 +1,14 @@
-﻿23.8.6
+﻿23.8.6.2
+========
+ + Add locks back around shader cache management code to fix God of War
+
+23.8.6.1
+========
+ + Fixed rare XInput crash if game calls on XInput during initialization
+ + Raised minimum HDR light level (above pure black) to fix artifacts on
+     colors outside of Rec 709
+
+23.8.6
 ======
  + Added separate options for HDR Render Pass and HDR Compute Pass remastering,
      use the "Experimental" tab to access the new setting.
