@@ -2739,33 +2739,47 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         auto& wParam = lpMsg->wParam;
         auto& lParam = lpMsg->lParam;
         
-        bool mouse = false,
-          keyboard = false,
-           gamepad = false;
+        bool        bWantMouseCapture    =
+            SK_ImGui_WantMouseCapture    (),
+                    bWantKeyboardCapture =
+            SK_ImGui_WantKeyboardCapture (),
+                    bWantGamepadCapture  =
+            SK_ImGui_WantGamepadCapture  ();
         
-        SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
-        
-        if (mouse && SK_ImGui_WantMouseCapture ())
+        bool bWantAnyCapture = bWantMouseCapture    ||
+                               bWantKeyboardCapture ||
+                               bWantGamepadCapture;
+
+        if (bWantAnyCapture)
         {
-          should_handle = true;
-        }
-        
-        if (keyboard && SK_ImGui_WantKeyboardCapture ())
-        {
-          should_handle = true;
-        }
-        
-        if (gamepad && SK_ImGui_WantGamepadCapture ())
-        {
-          should_handle = true;
-        }
-        
-        if (should_handle)
-        {
-          handled =
-            (  0 !=
-             ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                   lpMsg->wParam, lpMsg->lParam));
+          bool mouse = false,
+            keyboard = false,
+             gamepad = false;
+
+          SK_Input_ClassifyRawInput ((HRAWINPUT)lParam, mouse, keyboard, gamepad);
+          
+          if (mouse && SK_ImGui_WantMouseCapture ())
+          {
+            should_handle = true;
+          }
+          
+          if (keyboard && SK_ImGui_WantKeyboardCapture ())
+          {
+            should_handle = true;
+          }
+          
+          if (gamepad && SK_ImGui_WantGamepadCapture ())
+          {
+            should_handle = true;
+          }
+          
+          if (should_handle)
+          {
+            handled =
+              (  0 !=
+               ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                     lpMsg->wParam, lpMsg->lParam));
+          }
         }
         
         // Cleanup the message, we'll re-write the message to WM_NULL later

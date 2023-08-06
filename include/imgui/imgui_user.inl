@@ -702,6 +702,11 @@ SK_ImGui_InputLanguage_s SK_ImGui_InputLanguage;
 
 
 
+extern UINT
+SK_Input_ClassifyRawInput ( HRAWINPUT lParam, bool& mouse,
+                                              bool& keyboard,
+                                              bool& gamepad );
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
@@ -1123,29 +1128,40 @@ MessageProc ( const HWND&   hWnd,
     {
       bool bRet = false;
 
-      extern UINT
-      SK_Input_ClassifyRawInput ( HRAWINPUT lParam, bool& mouse,
-                                                    bool& keyboard,
-                                                    bool& gamepad );
-
       bool mouse    = false,
            keyboard = false,
            gamepad  = false;
 
       //GET_RAWINPUT_CODE_WPARAM
 
-      UINT dwSize =
-        SK_Input_ClassifyRawInput ( (HRAWINPUT)lParam,
-                                             mouse,
-                                               keyboard,
-                                                 gamepad );
+      UINT dwSize = 0;
+
+      bool        bWantMouseCapture    =
+          SK_ImGui_WantMouseCapture    (),
+                  bWantKeyboardCapture =
+          SK_ImGui_WantKeyboardCapture (),
+                  bWantGamepadCapture  =
+          SK_ImGui_WantGamepadCapture  ();
+
+      bool bWantAnyCapture = bWantMouseCapture    ||
+                             bWantKeyboardCapture ||
+                             bWantGamepadCapture;
+
+      if (bWantAnyCapture)
+      {
+        dwSize =
+          SK_Input_ClassifyRawInput ( (HRAWINPUT)lParam,
+                                               mouse,
+                                                 keyboard,
+                                                   gamepad );
+      }
 
       if (dwSize > 0)
       {
-        if (mouse || keyboard ||
-            //(mouse    && SK_ImGui_WantMouseCapture    ()) ||
-            //(keyboard && SK_ImGui_WantKeyboardCapture ()) ||
-            (gamepad  && SK_ImGui_WantGamepadCapture  ()))
+        if ( //mouse || keyboard ||
+             (mouse    && bWantMouseCapture)    ||
+             (keyboard && bWantKeyboardCapture) ||
+             (gamepad  && bWantGamepadCapture) )
         {
           LPBYTE lpb =
             SK_TLS_Bottom ()->raw_input->allocData (dwSize);
@@ -1164,15 +1180,6 @@ MessageProc ( const HWND&   hWnd,
               bRet = true;
             }
           }
-
-          else
-          {
-            SK_RunOnce (
-              SK_ImGui_Warning (
-                L"Out Of Memory in SK_ImGui_ProcessRawInput (...)"
-              )
-            );
-          }
         }
       }
 
@@ -1182,6 +1189,9 @@ MessageProc ( const HWND&   hWnd,
 
   return false;
 };
+
+extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+extern bool SK_Window_IsCursorActive         (void);
 
 LRESULT
 WINAPI
@@ -1199,8 +1209,6 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   if (msg == WM_TIMER)
   {
-    extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
-
     MSG
       msg_ = { };
       msg_.message = msg;
@@ -1216,8 +1224,6 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   if (msg == WM_SETCURSOR)
   {
-    extern bool SK_Window_IsCursorActive (void);
-
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
     if ( LOWORD (lParam) == HTCLIENT ||
@@ -1456,8 +1462,8 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     {
       // Some games use Virtual Key Codes 1-6 (mouse button 0-4)
       //   instead of WM_LBUTTONDOWN, etc.
-      if ( ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYDOWN ) ||
-           ( SK_ImGui_WantMouseCapture () && uMsg == WM_KEYUP   ) )
+      if ( ( uMsg == WM_KEYDOWN ||
+             uMsg == WM_KEYUP ) && SK_ImGui_WantMouseCapture () ) 
       {
         // Block Mouse Input
         mouse_capture    = true;
