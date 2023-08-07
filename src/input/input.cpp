@@ -2823,7 +2823,8 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       {
         if (lpMsg->message == WM_MOUSEMOVE && lpMsg->hwnd == game_window.hWnd)
         {
-          game_window.mouse.inside = true;
+          game_window.mouse.last_move_msg = SK::ControlPanel::current_time;
+          game_window.mouse.inside        = true;
 
           if (! game_window.mouse.tracking)
           {
@@ -2969,7 +2970,9 @@ SK_Proxy_MouseProc   (
           case WM_MOUSEMOVE:
           {
             // No TrackMouseEvent available, gotta do this manually
-            if (! game_window.mouse.can_track)
+            if ( (! game_window.mouse.can_track) ||
+                ((! game_window.mouse.tracking)  &&
+                    game_window.mouse.last_move_msg < SK::ControlPanel::current_time - 250UL) )
             {
               POINT                                          pt (mhs->pt);
               ScreenToClient             (game_window.child != nullptr ?

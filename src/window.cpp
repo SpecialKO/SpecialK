@@ -4292,8 +4292,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, (QS_ALLINPUT & ~QS_PAINT),
-                                        MWMO_INPUTAVAILABLE );
+                                      INFINITE, QS_ALLINPUT, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
@@ -4414,8 +4413,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, (QS_ALLINPUT & ~QS_PAINT),
-                                        MWMO_INPUTAVAILABLE );
+                                      INFINITE, QS_ALLINPUT, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;

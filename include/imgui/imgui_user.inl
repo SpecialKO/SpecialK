@@ -556,6 +556,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
                                                     mouse ? RIM_TYPEMOUSE :
                                                             RIM_TYPEHID;
+
+    // Supplying an invalid device will early-out SDL before it calls HID APIs to try
+    //   and get an input report that we don't want it to see...
+    ((RAWINPUT *)pData)->header.hDevice = nullptr;
   
     // Tell the game this event happened in the background, most will
     //   throw it out quick and easy. Even easier if we tell it the event came
@@ -2615,9 +2619,14 @@ SK_ImGui_User_NewFrame (void)
   SK_GetCursorPos (&cursor_pos);
 
 
-  if (! game_window.mouse.can_track)
+  if (new_input)
   {
-    SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
+    if ( (! game_window.mouse.can_track) || // No Tracking
+        ((! game_window.mouse.tracking)  && /// ... Broken Tracking?
+            game_window.mouse.last_move_msg < SK::ControlPanel::current_time - 250UL) )
+    {
+      SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
+    }
   }
 
 

@@ -359,6 +359,7 @@ struct sk_window_s {
     bool     inside           = true;
     bool     tracking         = false;
     bool     can_track        = false; // Able to use TrackMouseEvent?
+    DWORD    last_move_msg    = 0UL;
   } mouse;
 
   struct {
