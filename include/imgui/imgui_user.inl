@@ -290,6 +290,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   int size =
     SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
+  // On error, simply return immediately...
+  if (size == -1)
+    return size;
+
   bool filter   = false;
   bool mouse    = false;
   bool keyboard = false;
@@ -558,7 +562,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     //     from the keyboard.
     if (filter)
     {
-      SK_ReleaseAssert (*pcbSize == static_cast <UINT> (size));
+      SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size));
 
       ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
     
