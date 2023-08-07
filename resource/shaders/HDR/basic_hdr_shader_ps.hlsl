@@ -170,13 +170,11 @@ float4 main (PS_INPUT input) : SV_TARGET
         texMainScene.Sample ( sampler0,
                                 input.uv );
 
-      color.r *= (! IsNan (color.r)) * (! IsInf (color.r));
-      color.g *= (! IsNan (color.g)) * (! IsInf (color.g));
-      color.b *= (! IsNan (color.b)) * (! IsInf (color.b));
-      color.a *= (! IsNan (color.a)) * (! IsInf (color.a));
-
       return
-        color;
+        float4 ( (! IsNan (color.r)) * (! IsInf (color.r)) * color.r,
+                 (! IsNan (color.g)) * (! IsInf (color.g)) * color.g,
+                 (! IsNan (color.b)) * (! IsInf (color.b)) * color.b,
+                 (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
     } break;
 #endif
   }
@@ -231,8 +229,10 @@ float4 main (PS_INPUT input) : SV_TARGET
   // On the other hand, it's almost certainly the case that
   //   negative input colors are a mistake in logic rather
   //     than HDR color.
+#if 0 // This breaks scRGB passthrough in scRGB native games
   hdr_color =
     max (hdr_color, 0.0f);
+#endif
 #endif
 #endif
 
@@ -257,15 +257,14 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-  hdr_color.rgb = max ( 0.0f,
+  hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
       REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb
-                      );
+                             sdrIsImplicitlysRGB ).rgb;
 
   ///hdr_color.rgb =
   ///  sRGB_to_ACES (hdr_color.rgb);
@@ -354,7 +353,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        Clamp_scRGBtoRec2020 (hdr_color.rgb);
+        Clamp_scRGB (hdr_color.rgb);
 
       if (input.color.y != 1.0)
       {
@@ -398,10 +397,11 @@ float4 main (PS_INPUT input) : SV_TARGET
       };
 
     float3 new_color =
+      REC2020toREC709 (
       PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+        LinearToPQ ( REC709toREC2020 (hdr_color.rgb), pb_params [0] ) *
                      pb_params [2], pb_params [1]
-                 ) / pb_params [3];
+                 ) / pb_params [3] );
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
@@ -712,7 +712,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       if (input.color.x > 1.0)
         hdr_color.rgb =
-          Clamp_scRGBtoRec2020 (hdr_color.rgb);
+          Clamp_scRGB (hdr_color.rgb);
 
       float4 result;
 
@@ -857,8 +857,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     color_out =
       float4 (
-        Clamp_scRGBtoRec2020 (color_out.rgb),
-                    saturate (hdr_color.a)
+        Clamp_scRGB (color_out.rgb),
+           saturate (hdr_color.a)
              );
 
     color_out.r *= (orig_color.r >= FLT_EPSILON);
@@ -870,8 +870,8 @@ float4 main (PS_INPUT input) : SV_TARGET
   {
     color_out =
       float4 (
-        Clamp_scRGBtoRec2020 (hdr_color.rgb),
-                    saturate (hdr_color.a)
+        Clamp_scRGB (hdr_color.rgb),
+           saturate (hdr_color.a)
              );
   }
 #endif

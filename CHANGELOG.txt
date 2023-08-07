@@ -1,4 +1,10 @@
-﻿23.8.6.3
+﻿23.8.7
+======
+ + Fix potential black screen issues in Yuzu using Vulkan
+ + Changed HDR Perceptual Boost to run in Rec 2020 colorspace, the final
+     image should have less aggressive red saturation.
+
+23.8.6.3
 ========
  + Improved compatibility with Vulkan/DXGI interop when the Steam overlay
      is not disabled (D3D11 texture cache needs to be cleared if enabled)

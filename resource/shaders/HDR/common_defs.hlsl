@@ -631,7 +631,7 @@ static const ParamsLogC LogC =
   0.092819  // f
 };
 
-float3 Clamp_scRGBtoRec2020 (float3 c)
+float3 Clamp_scRGB (float3 c)
 {
   // Remove special floating-point bit patterns, clamping is the
   //   final step before output and outputting NaN or Infinity would
@@ -641,25 +641,17 @@ float3 Clamp_scRGBtoRec2020 (float3 c)
              (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
              (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
 
-  // Transform scRGB to Rec2020, anything outside of Rec2020 is
-  //   technically valid in scRGB but will produce black pixels
-  //     if any attempt to display those colors is made.
-  float3 cClampedToRec2020 =
-    REC2020toREC709 (
-      max (
-        REC709toREC2020 (c), 0.0
-          )         );
-
   // Clamp to 10k nits in scRGB
   return
-    clamp (cClampedToRec2020 + sign (cClampedToRec2020) * EPSILON, -125.0f, 125.0f);
+    clamp (c + FastSign (c) * EPSILON, -125.0f,
+                                        125.0f);
 }
 
 float Clamp_scRGB (float c)
 {
   c = (! IsNan (c)) * (! IsInf (c)) * c;
-  return clamp (c + sign (c) * EPSILON, -125.0f,
-                                         125.0f);
+  return clamp (c + FastSign (c) * EPSILON, -125.0f,
+                                             125.0f);
 }
 
 
@@ -672,7 +664,7 @@ float LinearToLogC_Precise (float x)
       o = LogC.e * x + LogC.f;
 
   return
-    Clamp_scRGB (o);
+    o;
 }
 
 float3 LinearToLogC (float3 x)
@@ -685,7 +677,7 @@ float3 LinearToLogC (float3 x)
   );
 #else
   return
-    Clamp_scRGBtoRec2020 ((LogC.c * log10(LogC.a * x + LogC.b) + LogC.d));
+    (LogC.c * log10(LogC.a * x + LogC.b) + LogC.d);
 #endif
 }
 
@@ -699,7 +691,7 @@ float LogCToLinear_Precise (float x)
       o = (x - LogC.f) / LogC.e;
 
   return
-    Clamp_scRGB (o);
+    o;
 }
 
 float3 LogCToLinear (float3 x)
@@ -711,9 +703,9 @@ float3 LogCToLinear (float3 x)
       LogCToLinear_Precise(x.z)
   );
 #else
-  return Clamp_scRGBtoRec2020 (
+  return
      (pow (10.0, (x - LogC.d) / LogC.c) -
-                      LogC.b) / LogC.a);
+                      LogC.b) / LogC.a;
 #endif
 }
 
@@ -747,7 +739,7 @@ float3 LinearToPQ (float3 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    Clamp_scRGBtoRec2020 (PositivePow (nd, PQ.M));
+    PositivePow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x)
@@ -766,7 +758,7 @@ float3 PQToLinear (float3 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    Clamp_scRGBtoRec2020 (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
+    PositivePow (nd, rcp (PQ.N)) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)
@@ -790,7 +782,7 @@ float SRGBToLinear (float c)
   float linearRGBHi = PositivePow ((c  + 0.055) / 1.055, 2.4);
   float linearRGB   =              (c <= 0.04045) ?
                                       linearRGBLo : linearRGBHi;
-  return                 Clamp_scRGB (linearRGB);
+  return                              linearRGB;
 #endif
 }
 
@@ -805,7 +797,7 @@ float3 SRGBToLinear (float3 c)
   float3 linearRGBHi = PositivePow ((c  + 0.055) / 1.055, float3 (2.4, 2.4, 2.4));
   float3 linearRGB   =              (c <= 0.04045) ?
                                        linearRGBLo : linearRGBHi;
-  return         Clamp_scRGBtoRec2020 (linearRGB);
+  return                               linearRGB;
 #endif
 }
 
@@ -829,7 +821,7 @@ float LinearToSRGB (float c)
   float sRGBHi = (PositivePow (c, 1.0 / 2.4) * 1.055) - 0.055;
   float sRGB   =              (c <= 0.0031308) ?
                                         sRGBLo : sRGBHi;
-  return                   Clamp_scRGB (sRGB);
+  return                                sRGB;
 #endif
 }
 
@@ -844,7 +836,7 @@ float3 LinearToSRGB (float3 c)
   float3 sRGBHi = (PositivePow (c, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
   float3 sRGB   = (c <= 0.0031308000) ?
                                sRGBLo : sRGBHi;
-  return Clamp_scRGBtoRec2020 (sRGB);
+  return                       sRGB;
 #endif
 }
 
