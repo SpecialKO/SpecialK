@@ -562,7 +562,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     //     from the keyboard.
     if (filter)
     {
-      SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size));
+      SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
+                        *pcbSize >= sizeof (RAWINPUTHEADER));
 
       ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
     
@@ -579,18 +580,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
       else
       {
-        size_t data_size =
-          mouse ? sizeof (RAWMOUSE)
-                : sizeof (RAWHID);
-
         // Handle Mouse -and- Generic HID the same way
-        RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, data_size);
-
-        *pcbSize = 0;
+        RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
       }
     }
-  
-    size = *pcbSize;
   }
 
   return
