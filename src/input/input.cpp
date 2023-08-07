@@ -2629,6 +2629,15 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
   {
     switch (lpMsg->message)
     {
+      case WM_MOUSELEAVE:
+        game_window.mouse.inside   = false;
+        game_window.mouse.tracking = false;
+
+        // We're no longer inside the game window, move the cursor off-screen
+        ImGui::GetIO ().MousePos =
+          ImVec2 (-FLT_MAX, -FLT_MAX);
+        break;
+
       case WM_CHAR:
       case WM_MENUCHAR:
       {
@@ -2812,6 +2821,25 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_MOUSEWHEEL:
       case WM_MOUSEHWHEEL:
       {
+        if (lpMsg->message == WM_MOUSEMOVE && lpMsg->hwnd == game_window.hWnd)
+        {
+          game_window.mouse.inside = true;
+
+          if (! game_window.mouse.tracking)
+          {
+            TRACKMOUSEEVENT tme = { .cbSize      = sizeof (TRACKMOUSEEVENT),
+                                    .dwFlags     = TME_LEAVE,
+                                    .hwndTrack   = game_window.hWnd,
+                                    .dwHoverTime = HOVER_DEFAULT };
+
+            if (TrackMouseEvent (&tme))
+            {
+              game_window.mouse.can_track = true;
+              game_window.mouse.tracking  = true;
+            }
+          }
+        }
+
         handled =
           (0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
                                       lpMsg->wParam, lpMsg->lParam)) &&
@@ -2940,21 +2968,28 @@ SK_Proxy_MouseProc   (
         {
           case WM_MOUSEMOVE:
           {
-            POINT                                          pt (mhs->pt);
-            ScreenToClient             (game_window.child != nullptr ?
-                                        game_window.child            :
-                                        game_window.hWnd, &pt);
-            if (ChildWindowFromPointEx (game_window.child != nullptr ?
-                                        game_window.child            :
-                                        game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
-                                                                                     game_window.child            :
-                                                                                     game_window.hWnd))
+            // No TrackMouseEvent available, gotta do this manually
+            if (! game_window.mouse.can_track)
             {
-              SK_ImGui_Cursor.ClientToLocal (&pt);
-              SK_ImGui_Cursor.pos =           pt;
+              POINT                                          pt (mhs->pt);
+              ScreenToClient             (game_window.child != nullptr ?
+                                          game_window.child            :
+                                          game_window.hWnd, &pt);
+              if (ChildWindowFromPointEx (game_window.child != nullptr ?
+                                          game_window.child            :
+                                          game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
+                                                                                       game_window.child            :
+                                                                                       game_window.hWnd))
+              {
+                SK_ImGui_Cursor.ClientToLocal (&pt);
+                SK_ImGui_Cursor.pos =           pt;
 
-              io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-              io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+                io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+                io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+              }
+
+              else
+                io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
             }
           } break;
 
