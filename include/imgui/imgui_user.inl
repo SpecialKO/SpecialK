@@ -2454,6 +2454,70 @@ ImGui::PlotLinesC ( const char*  label,         const float* values,
 static int64_t g_Time           = { };
 static int64_t g_TicksPerSecond = { };
 
+// Fallback mechanism if we do not have a working window message pump to
+//   receive WM_MOUSEMOVE and WM_MOUSELEAVE messages on
+void
+SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
+{
+  game_window.mouse.inside = false;
+
+  if (PtInRect (&game_window.actual.window,
+                         cursor_pos))
+  {
+    struct {
+      HWND  hWndTop;
+      POINT cursor_pos;
+    } static last;
+  
+    HWND hWndTop = last.hWndTop;
+  
+    if (cursor_pos.x != last.cursor_pos.x ||
+        cursor_pos.y != last.cursor_pos.y)
+    {
+      if (SK_GetForegroundWindow () != game_window.hWnd)
+      {
+        last.hWndTop =
+          WindowFromPoint (cursor_pos);
+      }
+      else
+        last.hWndTop    = game_window.hWnd;
+        last.cursor_pos =  cursor_pos;
+    }
+  
+    hWndTop =
+      last.hWndTop;
+  
+    game_window.mouse.inside = true;
+  
+    if ( hWndTop != game_window.hWnd )
+    {
+      game_window.mouse.inside =
+        IsChild (game_window.hWnd, hWndTop);
+  
+      if (! game_window.mouse.inside)
+      {
+        POINT                     client_pos = cursor_pos;
+        ScreenToClient (hWndTop, &client_pos);
+  
+        HWND hWndChild =
+          ChildWindowFromPointEx (
+                        hWndTop,  client_pos, CWP_SKIPINVISIBLE |
+                                              CWP_SKIPTRANSPARENT
+                                 );
+  
+        if (hWndChild == game_window.hWnd)
+        {
+          game_window.mouse.inside = true;
+        }
+      }
+    }
+  }
+
+  if (! game_window.mouse.inside)
+    ImGui::GetIO ().MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+}
+
+
 void
 SK_ImGui_User_NewFrame (void)
 {
@@ -2547,65 +2611,17 @@ SK_ImGui_User_NewFrame (void)
 
   // Hacky solution for missed messages causing no change in cursor pos
   //
-  POINT                  cursor_pos = { };
-  SK_GetCursorPos      (&cursor_pos);
+  POINT             cursor_pos = { };
+  SK_GetCursorPos (&cursor_pos);
 
-  bool bHitTest = false;
 
-  if (PtInRect (&game_window.actual.window,
-                         cursor_pos))
+  if (! game_window.mouse.can_track)
   {
-    struct {
-      HWND  hWndTop;
-      POINT cursor_pos;
-    } static last;
-
-    HWND hWndTop = last.hWndTop;
-
-    if (cursor_pos.x != last.cursor_pos.x ||
-        cursor_pos.y != last.cursor_pos.y)
-    {
-      if (SK_GetForegroundWindow () != game_window.hWnd)
-      {
-        last.hWndTop =
-          WindowFromPoint (cursor_pos);
-      }
-      else
-        last.hWndTop    = game_window.hWnd;
-        last.cursor_pos =  cursor_pos;
-    }
-
-    hWndTop =
-      last.hWndTop;
-
-    bHitTest = true;
-
-    if ( hWndTop != game_window.hWnd )
-    {
-      bHitTest =
-        IsChild (game_window.hWnd, hWndTop);
-
-      if (! bHitTest)
-      {
-        POINT                     client_pos = cursor_pos;
-        ScreenToClient (hWndTop, &client_pos);
-
-        HWND hWndChild =
-          ChildWindowFromPointEx (
-                        hWndTop,  client_pos, CWP_SKIPINVISIBLE |
-                                              CWP_SKIPTRANSPARENT
-                                 );
-
-        if (hWndChild == game_window.hWnd)
-        {
-           bHitTest = true;
-
-        }
-      }
-    }
+    SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
   }
 
-  if (bHitTest)
+
+  if (game_window.mouse.inside)
   {
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 
@@ -2643,7 +2659,7 @@ SK_ImGui_User_NewFrame (void)
        bActive  =
     SK_IsGameWindowActive  ();
 
-  if (bActive || bHitTest)
+  if (bActive || game_window.mouse.inside)
   { if (new_input && bActive) for ( UINT                 i = 7 ; i < 255 ; ++i )
                                     io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
     io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) < 0);
@@ -2677,19 +2693,23 @@ SK_ImGui_User_NewFrame (void)
     io.BackendFlags &= ~ImGuiBackendFlags_HasGamepad;
   }
 
+  
+  // Mouse input should be swallowed because it interacts with ImGui;
+  //   regular mouse capture includes swallowing input for "Disabled to Game".
+  bool bWantMouseCaptureForUI =
+    SK_ImGui_WantMouseCaptureEx (0x0);
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
        abs (last_y - SK_ImGui_Cursor.pos.y) > 3 ||
-          SK_ImGui_WantMouseCaptureEx (0x0) )
+          bWantMouseCaptureForUI )
   {
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
                     last_x    = SK_ImGui_Cursor.pos.x;
                     last_y    = SK_ImGui_Cursor.pos.y;
   }
 
-//bool was_idle = SK_ImGui_Cursor.idle;
 
-  if (SK_ImGui_IsMouseRelevant () && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500)
+  if ((bWantMouseCaptureForUI || SK_ImGui_Active ()) && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500)
     SK_ImGui_Cursor.idle = false;
 
   else
@@ -2706,7 +2726,7 @@ SK_ImGui_User_NewFrame (void)
     {
       if (! SK_InputUtil_IsHWCursorVisible ())
       {
-        int recursion = 4;
+        int recursion = 8;
 
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
           while ( recursion > 0 && ShowCursor (TRUE) < 0 ) --recursion;
@@ -2717,7 +2737,7 @@ SK_ImGui_User_NewFrame (void)
     {
       if (SK_InputUtil_IsHWCursorVisible ())
       {
-        int recursion = 4;
+        int recursion = 8;
 
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
           while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
@@ -2788,7 +2808,7 @@ SK_ImGui_User_NewFrame (void)
 
     // Certain features (i.e. Render in Background) would swallow mouse events
     //   involved in window activation, so we need to activate the window.
-    if (bHitTest && io.MouseDown [0] && SK_ImGui_WantMouseCapture ())
+    if (game_window.mouse.inside && io.MouseDown [0] && SK_ImGui_WantMouseCapture ())
     {
       if (! game_window.active)
       {

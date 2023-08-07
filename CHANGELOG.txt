@@ -1,4 +1,9 @@
-﻿23.8.7.1
+﻿23.8.7.2
+========
+ + Cursor auto-hide works when mouse input is set to "Disabled to Game"
+ + ImGui cursor is removed from screen when other windows have focus
+
+23.8.7.1
 ========
  + Fixed potential crash in Baldur's Gate 3 due to mouse Raw Input data
  + Fixed mouse cursor not centering on control panel when first opening it
