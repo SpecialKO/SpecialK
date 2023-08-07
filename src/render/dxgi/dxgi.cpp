@@ -8679,7 +8679,7 @@ HookDXGI (LPVOID user)
 
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-#if 1
+#if 0
     SK_ComPtr <IDXGIAdapter>
                    pAdapter0;
 
