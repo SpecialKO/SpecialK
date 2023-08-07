@@ -576,14 +576,18 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
       }
     
-      // Block mouse input in The Witness by zeroing-out the memory; most other
+      // Block mouse input in The Witness by zeroing-out the memory; most other 
       //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
       else
       {
-        // Handle Mouse -and- Generic HID the same way
         RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
       }
     }
+
+    if (! keyboard)
+      *pcbSize = 0;
+  
+    size = *pcbSize;
   }
 
   return
