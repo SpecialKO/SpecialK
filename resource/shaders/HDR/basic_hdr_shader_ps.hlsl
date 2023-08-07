@@ -156,11 +156,10 @@ float4 main (PS_INPUT input) : SV_TARGET
       // A UNORM RenderTarget would return this instead of NaN,
       //   and the game is expecting UNORM render targets :)
       return
-        float4 ( isnan (ret.r) ? 0.0f : max (isinf (ret.r) ? 0.0f : ret.r, 0.0f),
-                 isnan (ret.g) ? 0.0f : max (isinf (ret.g) ? 0.0f : ret.g, 0.0f),
-                 isnan (ret.b) ? 0.0f : max (isinf (ret.b) ? 0.0f : ret.b, 0.0f),
-                 isnan (ret.a) ? 0.0f : max (isinf (ret.a) ? 0.0f : ret.a, 0.0f) );
-      
+        float4 ( (! IsNan (ret.r)) * (! IsInf (ret.r)) * ret.r,
+                 (! IsNan (ret.g)) * (! IsInf (ret.g)) * ret.g,
+                 (! IsNan (ret.b)) * (! IsInf (ret.b)) * ret.b,
+                 (! IsNan (ret.a)) * (! IsInf (ret.a)) * ret.a );
 #endif
     } break;
 
@@ -171,13 +170,11 @@ float4 main (PS_INPUT input) : SV_TARGET
         texMainScene.Sample ( sampler0,
                                 input.uv );
 
-      color.r = isnan (color.r) ? 0.0f : max (isinf (color.r) ? 0.0f : color.r, 0.0f);
-      color.g = isnan (color.g) ? 0.0f : max (isinf (color.g) ? 0.0f : color.g, 0.0f);
-      color.b = isnan (color.b) ? 0.0f : max (isinf (color.b) ? 0.0f : color.b, 0.0f);
-      color.a = isnan (color.a) ? 0.0f : max (isinf (color.a) ? 0.0f : color.a, 0.0f);
-
       return
-        color;
+        float4 ( (! IsNan (color.r)) * (! IsInf (color.r)) * color.r,
+                 (! IsNan (color.g)) * (! IsInf (color.g)) * color.g,
+                 (! IsNan (color.b)) * (! IsInf (color.b)) * color.b,
+                 (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
     } break;
 #endif
   }
@@ -222,25 +219,18 @@ float4 main (PS_INPUT input) : SV_TARGET
     }
   }
 #else
+  // If the input were strictly SDR, we could eliminate NaN
+  //   using saturate (...), but we want to keep potential
+  //     HDR input pixels.
   if ( AnyIsNan (hdr_color) )
     hdr_color =
       getNonNanSample (hdr_color, input.uv);
 
-  if (hdr_color.r < 0.0f||
-      hdr_color.g < 0.0f||
-      hdr_color.b < 0.0f||
-      hdr_color.a < 0.0f )
-  {if(hdr_color.r < 0.0f )
-      hdr_color.r = 0.0f;
-   if(hdr_color.g < 0.0f )
-      hdr_color.g = 0.0f;
-   if(hdr_color.b < 0.0f )
-      hdr_color.b = 0.0f;
-   if(hdr_color.a < 0.0f )
-      hdr_color.a = 0.0f;}
-
- ///if (! any (hdr_color))
- ///  return float4 (0.0f, 0.0f, 0.0f, 0.0f);
+  // On the other hand, it's almost certainly the case that
+  //   negative input colors are a mistake in logic rather
+  //     than HDR color.
+  hdr_color.rgb =
+    max (hdr_color.rgb, FLT_MIN);
 #endif
 #endif
 
@@ -265,15 +255,14 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-  hdr_color.rgb = max ( 0.0f,
+  hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
       REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb
-                      );
+                             sdrIsImplicitlysRGB ).rgb;
 
   ///hdr_color.rgb =
   ///  sRGB_to_ACES (hdr_color.rgb);
@@ -330,11 +319,11 @@ float4 main (PS_INPUT input) : SV_TARGET
     if ( input.color.x < 0.0125f - FLT_MIN ||
          input.color.x > 0.0125f + FLT_MIN )
     {
-      hdr_color.rgb = LinearToLogC (hdr_color.rgb);
-      hdr_color.rgb = Contrast     (hdr_color.rgb,
+      hdr_color.rgb = saturate (LinearToLogC (hdr_color.rgb));
+      hdr_color.rgb = saturate (Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
-                       (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-      hdr_color.rgb = LogCToLinear (hdr_color.rgb);
+                       (sdrLuminance_NonStd / 0.0125f) / 100.0f));
+      hdr_color.rgb = saturate (LogCToLinear (hdr_color.rgb));
     }
   }
 
@@ -506,9 +495,9 @@ float4 main (PS_INPUT input) : SV_TARGET
         distance ( b, vColor_xyY )
       );
 
-      fDistField.x = isnan (fDistField.x) ? 0 : fDistField.x;
-      fDistField.y = isnan (fDistField.y) ? 0 : fDistField.y;
-      fDistField.z = isnan (fDistField.z) ? 0 : fDistField.z;
+      fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
+      fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
+      fDistField.z = IsNan(fDistField.z) ? 0 : fDistField.z;
 #else
     sqrt ( max ( vEpsilon3, float3 (
       dot ( PositivePow ( (r - vColor_xyY), 2.0 ), vIdent3 ),
@@ -850,29 +839,39 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
     
-  float4 color_out =
-    float4 (
-      Clamp_scRGB (hdr_color.rgb),
-         saturate (hdr_color.a)
-           );
+  float4 color_out;
 
   // Extra clipping and gamut expansion logic for regular display output
 #ifdef INCLUDE_TEST_PATTERNS
   if (visualFunc.x == VISUALIZE_NONE)
 #endif
   {
-    color_out.r = (orig_color.r < FLT_EPSILON) ? 0.0f : color_out.r;
-    color_out.g = (orig_color.g < FLT_EPSILON) ? 0.0f : color_out.g;
-    color_out.b = (orig_color.b < FLT_EPSILON) ? 0.0f : color_out.b;
-
     if (hdrGamutExpansion > 0.0f)
     {
       color_out.rgb =
-        Clamp_scRGB (
-          expandGamut (color_out.rgb, hdrGamutExpansion)
-        );
+        expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
+
+    color_out =
+      float4 (
+        Clamp_scRGB (color_out.rgb),
+           saturate (hdr_color.a)
+             );
+
+    color_out.r *= (orig_color.r >= FLT_EPSILON);
+    color_out.g *= (orig_color.g >= FLT_EPSILON);
+    color_out.b *= (orig_color.b >= FLT_EPSILON);
   }
+#ifdef INCLUDE_TEST_PATTERNS
+  else
+  {
+    color_out =
+      float4 (
+        Clamp_scRGB (hdr_color.rgb),
+           saturate (hdr_color.a)
+             );
+  }
+#endif
 
   return color_out;
 }

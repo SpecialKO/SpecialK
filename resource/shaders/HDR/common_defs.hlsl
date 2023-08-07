@@ -67,8 +67,15 @@ cbuffer colorSpaceTransform : register (b0)
 bool IsFinite (float x)
 {
   return
-    (! isinf (x));
+    (asuint (x) & 0x7F800000) != 0x7F800000;
 }
+
+bool IsInf (float x)
+{
+  return
+    (asuint (x) & 0x7FFFFFFF) == 0x7F800000;
+}
+
 bool IsNegative (float x)
 {
   return
@@ -97,16 +104,16 @@ bool AnyIsNegative (float4 x)
 }
 
 // NaN checker
-// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
 bool IsNan (float x)
 {
+// Re-write any code that depends on this
+#if 0
   if (! IsFinite (x))
     return true;
+#endif
 
   return
-    (   x <= 0.0 ||
-      0.0 <= x ) ?
-           false : true;
+    (asuint (x) & 0x7fffffff) > 0x7f800000;
 }
 
 bool AnyIsNan (float2 x)
@@ -143,25 +150,53 @@ float4 SafeHDR (float4 c)
     min (c, float_MAX);
 }
 
+// https://twitter.com/SebAaltonen/status/878250919879639040
+// madd_sat + madd
+float FastSign (float x)
+{
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
+}
+
+float2 FastSign (float2 x)
+{
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
+}
+
+float3 FastSign (float3 x)
+{
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
+}
+
+float4 FastSign (float4 x)
+{
+  return
+    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
+}
+
 float3 Clamp_scRGB (float3 c)
 {
+  // Remove special floating-point bit patterns, clamping is the
+  //   final step before output and outputting NaN or Infinity would
+  //     break color blending!
   c =
-    float3 ( (! IsNan (c.x)) ?
-                       c.x   : 0.0,
-             (! IsNan (c.y)) ?
-                       c.y   : 0.0,
-             (! IsNan (c.z)) ?
-                       c.z   : 0.0 );
+    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
+             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
+             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
+
+  // Clamp to 10k nits in scRGB
   return
-    clamp (c, 0.0f,
-            125.0f - FLT_EPSILON);
+    clamp (c + FastSign (c) * EPSILON, -125.0f,
+                                        125.0f);
 }
 
 float Clamp_scRGB (float c)
 {
-  c = (!IsNan(c)) ? 
-              c   : 0.0f;
-  return min (c, 125.0f);
+  c = (! IsNan (c)) * (! IsInf (c)) * c;
+  return clamp (c + FastSign (c) * EPSILON, -125.0f,
+                                             125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -431,32 +466,6 @@ float3 Contrast (float3 c, float midpoint, float contrast)
   return
     (c - midpoint) * contrast
        + midpoint;
-}
-
-// https://twitter.com/SebAaltonen/status/878250919879639040
-// madd_sat + madd
-float FastSign (float x)
-{
-  return
-    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-float2 FastSign (float2 x)
-{
-  return
-    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-float3 FastSign (float3 x)
-{
-  return
-    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-float4 FastSign (float4 x)
-{
-  return
-    saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
 

@@ -1,4 +1,11 @@
-﻿23.8.7.2
+﻿23.8.7.4
+========
+ + Fixed Middle Gray Slider to work in unclamped color.
+
+    >> Any existing HDR profiles that used a non-zero middle gray value
+         will need to be re-calibrated.
+
+23.8.7.2
 ========
  + Cursor auto-hide works when mouse input is set to "Disabled to Game"
  + ImGui cursor is removed from screen when other windows have focus
