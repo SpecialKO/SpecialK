@@ -67,15 +67,8 @@ cbuffer colorSpaceTransform : register (b0)
 bool IsFinite (float x)
 {
   return
-    (asuint (x) & 0x7F800000) != 0x7F800000;
+    (! isinf (x));
 }
-
-bool IsInf (float x)
-{
-  return
-    (asuint (x) & 0x7FFFFFFF) == 0x7F800000;
-}
-
 bool IsNegative (float x)
 {
   return
@@ -104,16 +97,16 @@ bool AnyIsNegative (float4 x)
 }
 
 // NaN checker
+// /Gic isn't enabled on fxc so we can't rely on isnan() anymore
 bool IsNan (float x)
 {
-// Re-write any code that depends on this
-#if 0
   if (! IsFinite (x))
     return true;
-#endif
 
   return
-    (asuint (x) & 0x7fffffff) > 0x7f800000;
+    (   x <= 0.0 ||
+      0.0 <= x ) ?
+           false : true;
 }
 
 bool AnyIsNan (float2 x)
@@ -148,6 +141,27 @@ float4 SafeHDR (float4 c)
 {
   return
     min (c, float_MAX);
+}
+
+float3 Clamp_scRGB (float3 c)
+{
+  c =
+    float3 ( (! IsNan (c.x)) ?
+                       c.x   : 0.0,
+             (! IsNan (c.y)) ?
+                       c.y   : 0.0,
+             (! IsNan (c.z)) ?
+                       c.z   : 0.0 );
+  return
+    clamp (c, 0.0f,
+            125.0f - FLT_EPSILON);
+}
+
+float Clamp_scRGB (float c)
+{
+  c = (!IsNan(c)) ? 
+              c   : 0.0f;
+  return min (c, 125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -368,17 +382,6 @@ ApplySRGBCurve (float3 x)
 {
   return ( x < 0.0031308f ? 12.92f * x :
                             1.055f * PositivePow ( x, 1.0 / 2.4f ) - 0.55f );
-}
-
-float3 REC2020toREC709 (float3 RGB2020)
-{
-  static const float3x3 ConvMat =
-  {
-     1.66049621914783,   -0.587656444131135, -0.0728397750166941,
-    -0.124547095586012,   1.1328951092473,   -0.00834801366128445,
-    -0.0181536813870718, -0.100597371685743,  1.11875105307281
-  };
-  return mul (ConvMat, RGB2020);
 }
 
 //
@@ -631,30 +634,6 @@ static const ParamsLogC LogC =
   0.092819  // f
 };
 
-float3 Clamp_scRGB (float3 c)
-{
-  // Remove special floating-point bit patterns, clamping is the
-  //   final step before output and outputting NaN or Infinity would
-  //     break color blending!
-  c =
-    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
-             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
-             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
-
-  // Clamp to 10k nits in scRGB
-  return
-    clamp (c + FastSign (c) * EPSILON, -125.0f,
-                                        125.0f);
-}
-
-float Clamp_scRGB (float c)
-{
-  c = (! IsNan (c)) * (! IsInf (c)) * c;
-  return clamp (c + FastSign (c) * EPSILON, -125.0f,
-                                             125.0f);
-}
-
-
 float LinearToLogC_Precise (float x)
 {
   float o;
@@ -664,7 +643,7 @@ float LinearToLogC_Precise (float x)
       o = LogC.e * x + LogC.f;
 
   return
-    o;
+    Clamp_scRGB (o);
 }
 
 float3 LinearToLogC (float3 x)
@@ -677,7 +656,7 @@ float3 LinearToLogC (float3 x)
   );
 #else
   return
-    (LogC.c * log10(LogC.a * x + LogC.b) + LogC.d);
+    Clamp_scRGB ((LogC.c * log10(LogC.a * x + LogC.b) + LogC.d));
 #endif
 }
 
@@ -691,7 +670,7 @@ float LogCToLinear_Precise (float x)
       o = (x - LogC.f) / LogC.e;
 
   return
-    o;
+    Clamp_scRGB (o);
 }
 
 float3 LogCToLinear (float3 x)
@@ -703,9 +682,9 @@ float3 LogCToLinear (float3 x)
       LogCToLinear_Precise(x.z)
   );
 #else
-  return
+  return Clamp_scRGB (
      (pow (10.0, (x - LogC.d) / LogC.c) -
-                      LogC.b) / LogC.a;
+                      LogC.b) / LogC.a);
 #endif
 }
 
@@ -739,7 +718,7 @@ float3 LinearToPQ (float3 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    PositivePow (nd, PQ.M);
+    Clamp_scRGB (PositivePow (nd, PQ.M));
 }
 
 float3 LinearToPQ (float3 x)
@@ -758,7 +737,7 @@ float3 PQToLinear (float3 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    PositivePow (nd, rcp (PQ.N)) * maxPQValue;
+    Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
 }
 
 float3 PQToLinear (float3 x)
@@ -782,7 +761,7 @@ float SRGBToLinear (float c)
   float linearRGBHi = PositivePow ((c  + 0.055) / 1.055, 2.4);
   float linearRGB   =              (c <= 0.04045) ?
                                       linearRGBLo : linearRGBHi;
-  return                              linearRGB;
+  return                 Clamp_scRGB (linearRGB);
 #endif
 }
 
@@ -797,7 +776,7 @@ float3 SRGBToLinear (float3 c)
   float3 linearRGBHi = PositivePow ((c  + 0.055) / 1.055, float3 (2.4, 2.4, 2.4));
   float3 linearRGB   =              (c <= 0.04045) ?
                                        linearRGBLo : linearRGBHi;
-  return                               linearRGB;
+  return                  Clamp_scRGB (linearRGB);
 #endif
 }
 
@@ -821,7 +800,7 @@ float LinearToSRGB (float c)
   float sRGBHi = (PositivePow (c, 1.0 / 2.4) * 1.055) - 0.055;
   float sRGB   =              (c <= 0.0031308) ?
                                         sRGBLo : sRGBHi;
-  return                                sRGB;
+  return                   Clamp_scRGB (sRGB);
 #endif
 }
 
@@ -834,9 +813,9 @@ float3 LinearToSRGB (float3 c)
 #else
   float3 sRGBLo =  c * 12.92;
   float3 sRGBHi = (PositivePow (c, float3(1.0 / 2.4, 1.0 / 2.4, 1.0 / 2.4)) * 1.055) - 0.055;
-  float3 sRGB   = (c <= 0.0031308000) ?
-                               sRGBLo : sRGBHi;
-  return                       sRGB;
+  float3 sRGB   = (c <= 0.0031308) ?
+                            sRGBLo : sRGBHi;
+  return       Clamp_scRGB (sRGB);
 #endif
 }
 
@@ -1767,6 +1746,17 @@ float4 colormap (float x)
     );
 }
 
+
+float3 REC2020toREC709 (float3 RGB2020)
+{
+  static const float3x3 ConvMat =
+  {
+     1.66049621914783,   -0.587656444131135, -0.0728397750166941,
+    -0.124547095586012,   1.1328951092473,   -0.00834801366128445,
+    -0.0181536813870718, -0.100597371685743,  1.11875105307281
+  };
+  return mul (ConvMat, RGB2020);
+}
 
 float3 RemoveREC2084Curve (float3 N)
 {
