@@ -60,7 +60,7 @@ extern ImVec2& __SK_ImGui_LastWindowCenter (void);
 #define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 
 void
-SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
+SK_ImGui_CenterCursorAtPos (ImVec2& center = SK_ImGui_LastWindowCenter)
 {
   auto& io =
     ImGui::GetIO ();
@@ -90,8 +90,6 @@ SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter)
       SK_ImGui_Cursor.LocalToScreen (&screen_pos);
       SK_SetCursorPos               ( screen_pos.x,
                                       screen_pos.y );
-
-      SK_ImGui_UpdateCursor ();
     }
   }
 }

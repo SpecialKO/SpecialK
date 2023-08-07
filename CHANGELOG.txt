@@ -1,4 +1,12 @@
-﻿23.8.7
+﻿23.8.7.1
+========
+ + Fixed potential crash in Baldur's Gate 3 due to mouse Raw Input data
+ + Fixed mouse cursor not centering on control panel when first opening it
+ + Fixed mouse anti-warp settings related to control panel state applying
+     even when control panel is not open
+ + Set default preference for anti-warp when windows cursor is visible to off
+
+23.8.7
 ======
  + Fix potential black screen issues in Yuzu using Vulkan
  + Changed HDR Perceptual Boost to run in Rec 2020 colorspace, the final

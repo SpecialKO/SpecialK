@@ -597,7 +597,7 @@ __SK_ImGui_LastWindowCenter (void)
 
 #define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 
-void SK_ImGui_CenterCursorAtPos (ImVec2 center = SK_ImGui_LastWindowCenter);
+void SK_ImGui_CenterCursorAtPos (ImVec2& center = SK_ImGui_LastWindowCenter);
 void SK_ImGui_UpdateCursor      (void);
 
 const char*
@@ -5555,14 +5555,14 @@ SK_ImGui_ControlPanel (void)
 
   SK_ImGui::BatteryMeter ();
 
+  if (recenter)
+    SK_ImGui_CenterCursorAtPos ();
+
   ImVec2 pos  = ImGui::GetWindowPos  ();
   ImVec2 size = ImGui::GetWindowSize ();
 
   SK_ImGui_LastWindowCenter.x = ( pos.x + size.x / 2.0f );
   SK_ImGui_LastWindowCenter.y = ( pos.y + size.y / 2.0f );
-
-  if (recenter)
-    SK_ImGui_CenterCursorAtPos ();
   }
 
   ImGui::End           ();
@@ -6279,7 +6279,10 @@ SK_ImGui_StageNextFrame (void)
 
         if (pWin)
         {
-          SK_ImGui_CenterCursorAtPos (pWin->Rect ().GetCenter ());
+          ImVec2 center =
+            pWin->Rect ().GetCenter ();
+
+          SK_ImGui_CenterCursorAtPos (center);
           ImGui::SetWindowFocus      (pWin->Name);
         }
       }

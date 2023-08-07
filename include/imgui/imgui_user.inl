@@ -558,36 +558,33 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     //     from the keyboard.
     if (filter)
     {
+      SK_ReleaseAssert (*pcbSize == static_cast <UINT> (size));
+
       ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
-  
+    
       if (keyboard)
       {
-        ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
-  
         if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
                ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
-  
+    
         // Fake key release
         ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
       }
-
+    
       // Block mouse input in The Witness by zeroing-out the memory; most other
       //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
-      else if (mouse)
-      {
-        RtlZeroMemory (pData, *pcbSize);
-      }
-
       else
       {
-        // Rewrite generic HID events (i.e. Gamepad) to Keyboard, and hope the
-        //   game ignores them.
-        ((RAWINPUT *)pData)->header.dwType = RIM_TYPEKEYBOARD;
+        size_t data_size =
+          mouse ? sizeof (RAWMOUSE)
+                : sizeof (RAWHID);
+
+        // Handle Mouse -and- Generic HID the same way
+        RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, data_size);
+
+        *pcbSize = 0;
       }
     }
-  
-    if (! keyboard)
-      *pcbSize = 0;
   
     size = *pcbSize;
   }
