@@ -1650,7 +1650,7 @@ GetMouseMovePointsEx_Detour(
 
     // Depending on warp prefs, we may not allow the game to know about mouse movement
     //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active                () ) ||
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
     {
       implicit_capture = true;
@@ -1811,7 +1811,7 @@ NtUserGetCursorInfo_Detour (PCURSORINFO pci)
 
     // Depending on warp prefs, we may not allow the game to know about mouse movement
     //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active                () ) ||
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
       implicit_capture = true;
 
@@ -1873,7 +1873,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
     // Depending on warp prefs, we may not allow the game to know about mouse movement
     //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active                () ) ||
+    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
          ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
     {
       implicit_capture = true;
@@ -1985,7 +1985,7 @@ GetMessagePos_Detour (void)
 
   // Depending on warp prefs, we may not allow the game to know about mouse movement
   //   (even if ImGui doesn't want mouse capture)
-  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active                () ) ||
+  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
                                       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
   {
     implicit_capture = true;
@@ -2027,7 +2027,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   if (config.window.drag_lock)
     return TRUE;
 
-  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active                () ) ||
+  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
                                       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
   {
     //game_mouselook = SK_GetFramesDrawn ();

@@ -616,60 +616,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
-#if 0
-  BOOL                    bFullscreen = FALSE;
-  SK_ComPtr <IDXGIOutput>                pOriginalTarget;
-  GetFullscreenState    (&bFullscreen, &pOriginalTarget.p);
-
-  HRESULT hr = S_OK;
-
-  DXGI_SWAP_CHAIN_DESC
-                   swapDesc = { };
-  pReal->GetDesc (&swapDesc);
-
-  // XXX: There's duplicate logic in the hooked SwapChain functions
-  //  * Please unify...
-  if (swapDesc.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-  {
-    notFaking_      = false;
-    fakeFullscreen_ = bFullscreen;
-
-    return S_OK;
-  }
-
-//if (    bFullscreen    != Fullscreen ||
-//    (pOriginalTarget.p != pTarget    && pTarget != nullptr) )
-  {
-    hr =
-      pReal->SetFullscreenState (Fullscreen, pTarget);
-
-    if (SUCCEEDED (hr))
-    {
-      // After SetFullscreenState, a buffer resize is non-optional
-      if (flip_model.active)
-        _stalebuffers = true;
-
-      SK_DeferCommand ("Window.TopMost true");
-      if (config.window.always_on_top < 1)
-        SK_DeferCommand ("Window.TopMost false");
-
-      notFaking_ = true;
-    }
-
-    else
-    {
-      notFaking_      = false;
-      fakeFullscreen_ = bFullscreen;
-      return S_OK;
-    }
-  }
-#else
   HRESULT hr =
     pReal->SetFullscreenState (Fullscreen, pTarget);
-    //SK_DXGI_SwapChain_SetFullscreenState_Impl (
-    //  pReal, Fullscreen, pTarget, TRUE
-    //);
-#endif
 
   return hr;
 }
@@ -678,23 +626,6 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
-#if 0
-  // Fix for Unreal Engine craziness
-  if (! notFaking_)
-  {
-    if (pFullscreen != nullptr)
-       *pFullscreen  = ( fakeFullscreen_ ?
-                                    TRUE : FALSE );
-
-    BOOL                        bFullscreen = FALSE;
-    pReal->GetFullscreenState (&bFullscreen, ppTarget);
-
-    if (bFullscreen == fakeFullscreen_)
-      notFaking_ = true;
-
-    return S_OK;
-  }
-#endif
 
   return
     pReal->GetFullscreenState (pFullscreen, ppTarget);
@@ -721,11 +652,6 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
 
       pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
       pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
-
-#if 0
-      if (! notFaking_)
-        pDesc->Windowed = (fakeFullscreen_ != TRUE);
-#endif
     }
   }
 
@@ -903,20 +829,6 @@ IWrapDXGISwapChain::GetFullscreenDesc (DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pDesc)
 
   HRESULT hr =
     static_cast <IDXGISwapChain1 *>(pReal)->GetFullscreenDesc (pDesc);
-
-#if 0
-  // Fix for Unreal Engine craziness
-  if ((! notFaking_) && SUCCEEDED (hr))
-  {
-    if (  pDesc != nullptr)
-    { if (pDesc->Windowed != fakeFullscreen_)
-        notFaking_ = true;
-
-      pDesc->Windowed =
-        (! fakeFullscreen_);
-    }
-  }
-#endif
 
   return hr;
 }
@@ -1198,8 +1110,6 @@ bool bRecycledSwapChains   = false;
 static LONG lLastRefreshDenom = 0;
 static LONG lLastRefreshNum   = 0;
 
-BOOL                  fakeFullscreen_ = FALSE;
-bool                  notFaking_      = true;
 DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
 DXGI_FORMAT           lastNonHDRFormat= DXGI_FORMAT_UNKNOWN;
 DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
@@ -2254,17 +2164,3 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   return
     _Return (ret);
 }
-
-
-
-/*
-    UINT                  lastWidth       = 0;
-  UINT                  lastHeight      = 0;
-  DXGI_FORMAT           lastFormat      = DXGI_FORMAT_UNKNOWN;
-  UINT                  lastBufferCount = 0;
-
-  std::recursive_mutex  _backbufferLock;
-  std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
-                        _backbuffers;
-  bool                  _stalebuffers   = false;
-*/

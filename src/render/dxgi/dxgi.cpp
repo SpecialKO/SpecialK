@@ -5583,9 +5583,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =                   false;//SK_IsInjected () &&
-    //SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-    //         config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5665,9 +5665,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
-  bool bDontWrap =                   false;//SK_IsInjected () &&
-    //SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-    //         config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -6937,7 +6937,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
   // Logic to skip Intel and Microsoft adapters and return only AMD / NV
   if (*desc.Description == L'\0')//! wcsnlen (desc.Description, 128))
-    dll_log->LogEx (false, L" >> Assertion filed: Zero-length adapter name!\n");
+    dll_log->LogEx (false, L" >> Assertion failed: Zero-length adapter name!\n");
 
 #ifdef SKIP_INTEL
   if ((desc.VendorId == Microsoft || desc.VendorId == Intel) && Adapter == 0) {
