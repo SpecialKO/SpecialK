@@ -226,11 +226,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color =
       getNonNanSample (hdr_color, input.uv);
 
-  // On the other hand, it's almost certainly the case that
-  //   negative input colors are a mistake in logic rather
-  //     than HDR color.
-  hdr_color.rgb =
-    max (hdr_color.rgb, FLT_MIN);
+  hdr_color =
+    clamp (hdr_color, -125.0, 125.0);
 #endif
 #endif
 
@@ -255,14 +252,15 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-  hdr_color.rgb =
+  hdr_color.rgb = Clamp_scRGB (
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
       REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb;
+                             sdrIsImplicitlysRGB ).rgb
+                      );
 
   ///hdr_color.rgb =
   ///  sRGB_to_ACES (hdr_color.rgb);
@@ -319,11 +317,11 @@ float4 main (PS_INPUT input) : SV_TARGET
     if ( input.color.x < 0.0125f - FLT_MIN ||
          input.color.x > 0.0125f + FLT_MIN )
     {
-      hdr_color.rgb = saturate (LinearToLogC (hdr_color.rgb));
-      hdr_color.rgb = saturate (Contrast     (hdr_color.rgb,
+      hdr_color.rgb = clamp (LinearToLogC (hdr_color.rgb), 0.0, 125.0);
+      hdr_color.rgb = Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
-                       (sdrLuminance_NonStd / 0.0125f) / 100.0f));
-      hdr_color.rgb = saturate (LogCToLinear (hdr_color.rgb));
+                       (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+      hdr_color.rgb = clamp (LogCToLinear (hdr_color.rgb), 0.0, 125.0);
     }
   }
 
@@ -394,11 +392,11 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float3 new_color =
+    float3 new_color = mul (LMS_2_LIN_MAT,
       PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+        LinearToPQ ( mul (LIN_2_LMS_MAT, hdr_color.rgb), pb_params [0] ) *
                      pb_params [2], pb_params [1]
-                 ) / pb_params [3];
+                 ) / pb_params [3]);
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
@@ -497,7 +495,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 
       fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
       fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
-      fDistField.z = IsNan(fDistField.z) ? 0 : fDistField.z;
+      fDistField.z = IsNan (fDistField.z) ? 0 : fDistField.z;
 #else
     sqrt ( max ( vEpsilon3, float3 (
       dot ( PositivePow ( (r - vColor_xyY), 2.0 ), vIdent3 ),

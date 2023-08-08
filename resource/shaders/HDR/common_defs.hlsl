@@ -176,6 +176,11 @@ float4 FastSign (float4 x)
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
+#define FP16_MIN 0.00000009
+
+float3 REC2020toREC709 (float3 c);
+float3 REC709toREC2020 (float3 c);
+
 float3 Clamp_scRGB (float3 c)
 {
   // Remove special floating-point bit patterns, clamping is the
@@ -186,16 +191,18 @@ float3 Clamp_scRGB (float3 c)
              (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
              (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
 
-  // Clamp to 10k nits in scRGB
+  // Clamp to Rec 2020
   return
-    clamp (c + FastSign (c) * EPSILON, -125.0f,
-                                        125.0f);
+    REC2020toREC709 (
+      max (REC709toREC2020 (c), FP16_MIN)
+    );
 }
 
 float Clamp_scRGB (float c)
 {
+  // No colorspace clamp here, just keep it away from 0.0
   c = (! IsNan (c)) * (! IsInf (c)) * c;
-  return clamp (c + FastSign (c) * EPSILON, -125.0f,
+  return clamp (c + sign (c) * FLT_EPSILON, -125.0f,
                                              125.0f);
 }
 
@@ -547,9 +554,9 @@ REC709toREC2020 (float3 RGB709)
 {
   static const float3x3 ConvMat =
   {
-    0.627402, 0.329292, 0.043306,
-    0.069095, 0.919544, 0.011360,
-    0.016394, 0.088028, 0.895578
+    0.627225305694944,  0.329476882715808,  0.0432978115892484,
+    0.0690418812810714, 0.919605681354755,  0.0113524373641739,
+    0.0163911702607078, 0.0880887513437058, 0.895520078395586
   };
 
   return mul (ConvMat, RGB709);
@@ -1154,6 +1161,16 @@ static const float3x3 D60_2_D65_CAT = {
    0.00307257, -0.00509595, 1.0816800
 };
 
+float3 sRGB_to_DCIP3 (float3 x)
+{
+  x =
+    mul ( XYZ_2_DCIP3_MAT,
+      mul ( AP1_2_XYZ_MAT,
+        mul ( sRGB_2_AP1, x)
+          )
+        );
+}
+
 // sRGB to ACES
 //
 // Converts sRGB primaries to
@@ -1536,9 +1553,9 @@ float3 SRGBToLinearEst (float3 srgb)
 // Color rotation matrix to rotate Rec.709 color primaries into Rec.2020
 static const float3x3 from709to2020 =
 {
-  { 0.627401924722236,  0.329291971755002,  0.0433061035227622 },
-  { 0.0690954897392608, 0.919544281267395,  0.0113602289933443 },
-  { 0.0163937090881632, 0.0880281623979006, 0.895578128513936  }
+  { 0.627225305694944,  0.329476882715808,  0.0432978115892484, },
+  { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, },
+  { 0.0163911702607078, 0.0880887513437058, 0.895520078395586   }
 };
 
 
@@ -1760,9 +1777,9 @@ float3 REC2020toREC709 (float3 RGB2020)
 {
   static const float3x3 ConvMat =
   {
-     1.66049621914783,   -0.587656444131135, -0.0728397750166941,
-    -0.124547095586012,   1.1328951092473,   -0.00834801366128445,
-    -0.0181536813870718, -0.100597371685743,  1.11875105307281
+     1.66096379471340,   -0.588112737547978, -0.0728510571654192,
+    -0.124477196529907,   1.13281946828499,  -0.00834227175508652,
+    -0.0181571579858552, -0.100666415661988,  1.11882357364784
   };
   return mul (ConvMat, RGB2020);
 }
