@@ -1,4 +1,11 @@
-﻿23.8.7.4
+﻿23.8.8
+======
+ + Perceptual Boost is now performed in LMS color space
+ + Changed handling of NaN/Infinity in sRGB <--> Linear conversion shader
+ + Updated HDR screenshot tonemapping code to work with wide gamut colors,
+     it's not great but at least produces sensible colors now.
+
+23.8.7.4
 ========
  + Fixed Middle Gray Slider to work in unclamped color.
 

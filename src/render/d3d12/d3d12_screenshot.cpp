@@ -1797,14 +1797,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR value = inPixels [j];
+                        XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
                         XMVECTOR scale =
                           XMVectorDivide (
                             XMVectorAdd (
                               g_XMOne,
                                 XMVectorDivide (
                                   value,
-                                    colLum
+                                    maxLum
                                 )
                             ),
                             XMVectorAdd ( g_XMOne,
