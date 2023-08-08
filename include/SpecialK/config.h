@@ -786,7 +786,7 @@ struct sk_config_t
     struct ui_s {
       union {
         bool  capture             = false;
-        bool  capture_mouse;
+        bool  capture_mouse;      // Unconditionally capture the mouse (i.e. block it)
       };
       bool    capture_hidden      = false; // Capture mouse if HW cursor is not visible
       bool    capture_keyboard    = false;

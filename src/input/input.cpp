@@ -87,6 +87,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
     {
       case HID_USAGE_GENERIC_GAMEPAD:
       case HID_USAGE_GENERIC_JOYSTICK:
+      case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
       {
         SK_HID_READ (sk_input_dev_type::Gamepad)
 
@@ -1037,7 +1038,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
     GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
 }
 
-UINT
+INT
 WINAPI
 SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
                           _In_      UINT      uiCommand,
@@ -1057,7 +1058,7 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
   SK_LOG_FIRST_CALL
 
   return
-    SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, FALSE);
+    (UINT)SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, FALSE);
 }
 
 
@@ -2433,6 +2434,27 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
   return (last_mouse.cursor != was_active);
 };
 
+void
+SK_ImGui_UpdateMouseTracker (void)
+{
+  game_window.mouse.last_move_msg = SK::ControlPanel::current_time;
+  game_window.mouse.inside        = true;
+  
+  if ((! game_window.mouse.tracking) && game_window.hWnd != 0)
+  {
+    TRACKMOUSEEVENT tme = { .cbSize      = sizeof (TRACKMOUSEEVENT),
+                            .dwFlags     = TME_LEAVE,
+                            .hwndTrack   = game_window.hWnd,
+                            .dwHoverTime = HOVER_DEFAULT };
+  
+    if (TrackMouseEvent (&tme))
+    {
+      game_window.mouse.can_track = true;
+      game_window.mouse.tracking  = true;
+    }
+  }
+}
+
 bool
 SK_Input_DetermineMouseIdleState (MSG* lpMsg)
 {
@@ -2583,20 +2605,6 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
 bool
 SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 {
-  #if 0
-  if ((uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST) && game_window.needsCoordTransform ())
-  {
-    POINT pt;
-
-    pt.x = GET_X_LPARAM (lParam);
-    pt.y = GET_Y_LPARAM (lParam);
-
-    SK_CalcCursorPos (&pt);
-
-    lParam = MAKELPARAM ((SHORT)pt.x, (SHORT)pt.y);
-  }
-#endif
-
   bool handled = false;
 
   if ((! lpMsg) || (lpMsg->hwnd != game_window.hWnd && lpMsg->hwnd != game_window.child) || lpMsg->message >= WM_USER)
@@ -2647,14 +2655,6 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
             SK_ImGui_WantTextCapture ();
         }
       } break;
-
-
-      //case WM_SYSCOMMAND:
-      //  if (ImGui_WndProcHandler (lpMsg->hwnd, lpMsg->message, lpMsg->wParam, lpMsg->lParam))
-      //  {
-      //    //handled = true;
-      //  } break;
-
 
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
@@ -2823,22 +2823,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       {
         if (lpMsg->message == WM_MOUSEMOVE && lpMsg->hwnd == game_window.hWnd)
         {
-          game_window.mouse.last_move_msg = SK::ControlPanel::current_time;
-          game_window.mouse.inside        = true;
-
-          if (! game_window.mouse.tracking)
-          {
-            TRACKMOUSEEVENT tme = { .cbSize      = sizeof (TRACKMOUSEEVENT),
-                                    .dwFlags     = TME_LEAVE,
-                                    .hwndTrack   = game_window.hWnd,
-                                    .dwHoverTime = HOVER_DEFAULT };
-
-            if (TrackMouseEvent (&tme))
-            {
-              game_window.mouse.can_track = true;
-              game_window.mouse.tracking  = true;
-            }
-          }
+          SK_ImGui_UpdateMouseTracker ();
         }
 
         handled =
@@ -2864,30 +2849,24 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_DPICHANGED:
       {
-        //if (config.dpi.per_monitor.aware)
+        if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
         {
-          //const int dpi = HIWORD(wParam);
-          //printf("WM_DPICHANGED to %d (%.0f%%)\n", dpi, (float)dpi / 96.0f * 100.0f);
+          const RECT* suggested_rect =
+              (RECT *)lpMsg->lParam;
 
-          if (SK_GetThreadDpiAwareness () != DPI_AWARENESS_UNAWARE)
-          {
-            const RECT* suggested_rect =
-                (RECT *)lpMsg->lParam;
+          SK_LOG0 ( ( L"DPI Scaling Changed: %lu (%.0f%%)",
+                        HIWORD (lpMsg->wParam),
+                ((float)HIWORD (lpMsg->wParam) / (float)USER_DEFAULT_SCREEN_DPI) * 100.0f ),
+                      L"Window Mgr" );
 
-            SK_LOG0 ( ( L"DPI Scaling Changed: %lu (%.0f%%)",
-                          HIWORD (lpMsg->wParam),
-                  ((float)HIWORD (lpMsg->wParam) / (float)USER_DEFAULT_SCREEN_DPI) * 100.0f ),
-                        L"Window Mgr" );
+          ::SetWindowPos (
+            lpMsg->hwnd, HWND_TOP,
+              suggested_rect->left,                         suggested_rect->top,
+              suggested_rect->right - suggested_rect->left, suggested_rect->bottom - suggested_rect->top,
+                SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS
+          );
 
-            ::SetWindowPos (
-              lpMsg->hwnd, HWND_TOP,
-                suggested_rect->left,                         suggested_rect->top,
-                suggested_rect->right - suggested_rect->left, suggested_rect->bottom - suggested_rect->top,
-                  SWP_NOZORDER | SWP_NOACTIVATE | SWP_ASYNCWINDOWPOS
-            );
-
-            SK_Window_RepositionIfNeeded ();
-          }
+          SK_Window_RepositionIfNeeded ();
         }
 
         ////extern void
@@ -2993,6 +2972,8 @@ SK_Proxy_MouseProc   (
 
               else
                 io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+
+              SK_ImGui_UpdateMouseTracker ();
             }
           } break;
 
@@ -3109,23 +3090,6 @@ SK_Proxy_LLMouseProc   (
 
         switch (wParam)
         {
-          // These are per-monitor DPI aware, which causes problems...
-          //   ignore and just read the cursor pos from ImGui each frame
-          //
-          ////case WM_MOUSEMOVE:
-          ////{
-          ////  POINT                           pt (mhs->pt);
-          ////  SK_ImGui_Cursor.ScreenToLocal (&pt);
-          ////
-          ////  if (ChildWindowFromPointEx (game_window.hWnd, pt, CWP_SKIPDISABLED) == game_window.hWnd)
-          ////  {
-          ////    SK_ImGui_Cursor.pos = pt;
-          ////
-          ////    io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-          ////    io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-          ////  }
-          ////} break;
-
           case WM_LBUTTONDOWN:
           case WM_LBUTTONDBLCLK:
             io.MouseDown [0] = true;

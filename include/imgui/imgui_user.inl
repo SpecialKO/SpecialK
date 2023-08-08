@@ -219,7 +219,7 @@ extern bool SK_WantBackgroundRender (void);
 
 SK_LazyGlobal <SK_Thread_HybridSpinlock> raw_input_lock;
 
-UINT
+INT
 WINAPI
 SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _In_      UINT      uiCommand,
@@ -265,27 +265,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   //     usually to ignore the event.
   bool foreground =
     GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
-  /////////if (foreground)
-  /////////{
-  /////////  if (self && (! already_processed))
-  /////////    SK_RawInput_EnableLegacyMouse  (true);
-  /////////  else
-  /////////    SK_RawInput_RestoreLegacyMouse ();
-  /////////
-  /////////  //SK_RawInput_EnableLegacyMouse  (true);
-  /////////  //
-  /////////  //// Keep this on ALWAYS to fix Steam Overlay in Skyrim SE
-  /////////  ////
-  /////////  if (self && (! already_processed))
-  /////////  {
-  /////////    if (SK_ImGui_WantTextCapture ())
-  /////////        SK_RawInput_EnableLegacyKeyboard (true);
-  /////////  }
-  /////////  else
-  /////////    SK_RawInput_RestoreLegacyKeyboard ();
-  /////////}
-
 
   int size =
     SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
@@ -597,27 +576,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   return
     size;
 }
-
-#if  0
-LRESULT
-WINAPI
-ImGui_UniversalMouseDispatch ( UINT msg, WPARAM wParam, LPARAM lParam )
-{
-  switch (msg)
-  {
-    case WM_MOUSEMOVE:
-      break;
-
-    case WM_LBUTTONDOWN:
-      break;
-
-    case WM_LBUTTONUP:
-      break;
-  }
-
-  return 0;
-}
-#endif
 
 bool
 SK_ImGui_WantMouseWarpFiltering (void)
@@ -1061,6 +1019,8 @@ MessageProc ( const HWND&   hWnd,
     {
       if ((hWnd == game_window.hWnd && (! game_window.child)) || hWnd == game_window.child)
       {
+        SK_ImGui_UpdateMouseTracker ();
+
         POINTS     xyPos = MAKEPOINTS (lParam);
         LONG   lDeltaRet =
           SK_ImGui_DeltaTestMouse (
@@ -1137,8 +1097,6 @@ MessageProc ( const HWND&   hWnd,
            keyboard = false,
            gamepad  = false;
 
-      //GET_RAWINPUT_CODE_WPARAM
-
       UINT dwSize = 0;
 
       bool        bWantMouseCapture    =
@@ -1203,12 +1161,6 @@ WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
                        WPARAM wParam, LPARAM lParam )
 {
-  // Handle this message, but don't remove it.
-  if (msg == WM_DISPLAYCHANGE)
-  {
-    SK_LOG0 ( (L"ImGui Witnessed WM_DISPLAYCHANGE"), L"Window Mgr" );
-  }
-
   static auto& io =
     ImGui::GetIO ();
 
@@ -1261,6 +1213,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         }
       }
     }
+  }
+
+  if (msg == WM_MOUSEMOVE)
+  {
+    SK_ImGui_UpdateMouseTracker ();
   }
 
   extern bool
@@ -1447,7 +1404,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
   UINT uMsg = msg;
 
-  if (/*SK_ImGui_Visible && */handled)
+  if (handled)
   {
     bool keyboard_capture =
       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
@@ -1482,7 +1439,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     {
       // Only handle key-down if the game window is active,
       //   otherwise treat it as key release.
-      io.KeysDown [wParam & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+      io.KeysDown [wParam & 0xFF] = SK_IsGameWindowActive ();
     }
 
     else if ( uMsg == WM_KEYUP ||
@@ -1509,7 +1466,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 }
 
 
-float analog_sensitivity = 0.00333f;// 0.001f;
+float analog_sensitivity = 0.00333f;
 bool  nav_usable         = false;
 
 bool

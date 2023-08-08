@@ -42,6 +42,7 @@ bool SK_ImGui_WantMouseCapture    (void);
 bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF);
 bool SK_ImGui_WantKeyboardCapture (void);
 bool SK_ImGui_WantTextCapture     (void);
+void SK_ImGui_UpdateMouseTracker  (void);
 
 void SK_Input_HookDI8         (void);
 void SK_Input_HookHID         (void);
