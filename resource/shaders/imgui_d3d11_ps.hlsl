@@ -61,7 +61,8 @@ float4 main (PS_INPUT input) : SV_Target
       float4 (   ( hdr10 ?
         LinearToST2084 (
           REC709toREC2020 ( saturate (out_col.rgb) ) * hdr_scale
-                       ) :  saturate (out_col.rgb)   * hdr_scale
+                       ) :
+              Clamp_scRGB ( saturate (out_col.rgb)   * hdr_scale )
                  )                                   + hdr_offset,
                             saturate (out_col.a  ) );
   }
