@@ -448,7 +448,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     }
   }
 
-  if (hCallingMod != SK_GetDLL ()/* && SK_IsInjected ()*/)
+  if (hCallingMod != SK_GetDLL ())
   {
     if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D9)) && config.apis.d3d9.hook &&
          ( StrStrI  (lpFileName, SK_TEXT("d3d9.dll"))  ||
@@ -521,6 +521,16 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       extern void SK_DStorage_Init (void);
       SK_RunOnce (SK_DStorage_Init ())
+    }
+    else if (   StrStrI ( lpFileName, SK_TEXT("sl.interposer.dll")) ||
+                StrStrIW (wszModName,        L"sl.interposer.dll") )
+    {
+      SK_COMPAT_CheckStreamlineSupport ();
+    }
+    else if (   StrStrI ( lpFileName, SK_TEXT("sl.dlss_g.dll")) ||
+                StrStrIW (wszModName,        L"sl.dlss_g.dll") )
+    {
+      SK_COMPAT_CheckStreamlineSupport ();
     }
 
 #if 0

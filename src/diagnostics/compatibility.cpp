@@ -1080,7 +1080,7 @@ bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
   // Global without DLSS_G is good, we can skip this
-  if (SK_IsInjected () && GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
+  if (SK_IsInjected () && SK_GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
     return true;
 
   if (config.compatibility.using_wine)
@@ -1105,12 +1105,12 @@ SK_COMPAT_CheckStreamlineSupport (void)
   static int  iTestCount  = 0;
   static bool bCompatible = true;
 
-  if (GetModuleHandle (L"sl.dlss_g.dll"))
+  if (SK_GetModuleHandleW (L"sl.dlss_g.dll"))
   {
     SK_RunOnce (
     {
       auto path_to_dlss_g =
-        SK_GetModuleFullName (GetModuleHandle (L"sl.dlss_g.dll"));
+        SK_GetModuleFullName (SK_GetModuleHandleW (L"sl.dlss_g.dll"));
 
       if (config.nvidia.bugs.auto_delete_dlss_g)
       {
