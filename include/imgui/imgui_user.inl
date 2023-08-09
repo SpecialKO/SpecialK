@@ -2686,7 +2686,7 @@ SK_ImGui_User_NewFrame (void)
   const bool bManageCursor =
     (config.input.cursor.manage || SK_ImGui_Cursor.force != sk_cursor_state::None);
 
-  if (bManageCursor)
+  if (bManageCursor && game_window.mouse.inside)
   {
     if (SK_Window_IsCursorActive () && SK_ImGui_Cursor.force != sk_cursor_state::Hidden)
     {

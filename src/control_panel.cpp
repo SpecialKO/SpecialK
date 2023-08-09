@@ -77,6 +77,37 @@ SK_GetCurrentMS (void) noexcept
     SK::ControlPanel::current_time;
 }
 
+static const auto Keybinding =
+[] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  if (! (binding != nullptr && param != nullptr))
+    return false;
+
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable);
+
+  ImGui::PushID (binding->bind_name);
+
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+    ImGui::OpenPopup (        binding->bind_name);
+
+  std::wstring original_binding = binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  ImGui::PopID ();
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    return true;
+  }
+
+  return false;
+};
+
 void
 SK_Display_UpdateOutputTopology (void);
 
@@ -1861,26 +1892,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (ImGui::BeginMenu ("Display Management Keybinds###MonitorMenu"))
   {
-    const auto Keybinding =
-    [] (SK_ConfigSerializedKeybind *binding) ->
-    auto
-    {
-      if (binding == nullptr)
-        return false;
-
-      std::string label =
-        SK_WideCharToUTF8      (binding->human_readable);
-
-      ImGui::PushID            (binding->bind_name);
-
-      binding->assigning =
-        SK_ImGui_KeybindSelect (binding, label.c_str ());
-
-      ImGui::PopID             ();
-
-      return true;
-    };
-
     ImGui::BeginGroup ();
     for ( auto& keybind : keybinds )
     {
@@ -1892,7 +1903,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     ImGui::BeginGroup ();
     for ( auto& keybind : keybinds )
     {
-      Keybinding  (   keybind );
+      Keybinding  (   keybind, keybind->param );
     }
     ImGui::EndGroup   ();
     ImGui::EndMenu    ();
@@ -5405,6 +5416,25 @@ SK_ImGui_ControlPanel (void)
                                          setActive  (threads);
     }
 
+    static std::set <SK_ConfigSerializedKeybind *>
+      keybinds = {
+        &config.widgets.hide_all_widgets_keybind
+      };
+
+    ImGui::BeginGroup ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {
+      ImGui::Text
+      ( "%s:  ",keybind->bind_name );
+    }
+    ImGui::EndGroup   ();
+    ImGui::SameLine   ();
+    ImGui::BeginGroup ();
+    for ( auto& keybind : keybinds )
+    {Keybinding(keybind,  keybind->param);}
+    ImGui::EndGroup   ();
+
     ImGui::TreePop  ();
   }
 
@@ -5450,37 +5480,6 @@ SK_ImGui_ControlPanel (void)
                       );
 
     ImGui::EndGroup ();
-
-    const auto Keybinding =
-    [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
-    auto
-    {
-      if (! (binding != nullptr && param != nullptr))
-        return false;
-
-      std::string label =
-        SK_WideCharToUTF8 (binding->human_readable);
-
-      ImGui::PushID (binding->bind_name);
-
-      if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
-        ImGui::OpenPopup (        binding->bind_name);
-
-      std::wstring original_binding = binding->human_readable;
-
-      SK_ImGui_KeybindDialog (binding);
-
-      ImGui::PopID ();
-
-      if (original_binding != binding->human_readable)
-      {
-        param->store (binding->human_readable);
-
-        return true;
-      }
-
-      return false;
-    };
 
     static std::set <SK_ConfigSerializedKeybind *>
       keybinds = {

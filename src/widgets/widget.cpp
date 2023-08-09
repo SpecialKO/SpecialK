@@ -912,6 +912,10 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       {
         widget->setVisible (! widget->isVisible ());
 
+        // Turn off global widget hiding if user tries to toggle any individual widget
+        if (SK_ImGui_Widgets->hide_all)
+            SK_ImGui_Widgets->hide_all = false;
+
         dispatched = TRUE;
       }
 
@@ -938,7 +942,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 14>
+    std::array <SK_ConfigSerializedKeybind *, 15>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
@@ -957,6 +961,8 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           &config.sound.game_mute_keybind,
           &config.sound.game_volume_up_keybind,
           &config.sound.game_volume_down_keybind,
+
+          &config.widgets.hide_all_widgets_keybind
         };
 
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
@@ -1134,6 +1140,11 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
         cp->ProcessCommandLine ("Sound.Volume --"); cp->ProcessCommandLine ("Sound.Volume --");
         cp->ProcessCommandLine ("Sound.Volume --"); cp->ProcessCommandLine ("Sound.Volume --");
         cp->ProcessCommandLine ("Sound.Volume --"); cp->ProcessCommandLine ("Sound.Volume --");
+      }
+
+      else if ( keybind == &config.widgets.hide_all_widgets_keybind )
+      {
+        SK_ImGui_Widgets->hide_all = !SK_ImGui_Widgets->hide_all;
       }
 
       dispatched = TRUE;

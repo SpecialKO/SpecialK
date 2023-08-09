@@ -484,6 +484,16 @@ struct sk_config_t
     };
   } monitors;
 
+  struct widget_s {
+    SK_ConfigSerializedKeybind
+         hide_all_widgets_keybind = {
+      SK_Keybind {
+        "Hide All Widgets", L"Ctrl+Alt+Shift+H",
+        true, true, true, 'H'
+      }, L"HideAllWidgets"
+    };
+  } widgets;
+
   struct render_s {
     struct framerate_s {
       float   target_fps          =  0.0F;

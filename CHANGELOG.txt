@@ -1,4 +1,12 @@
-﻿23.8.8
+﻿23.8.9
+======
+ + Added keybinding to use the previously gamepad-only "hide all widgets"
+     >> Refer to the Widgets section of the control panel
+ + If users has "hide all widgets" (LT+RT while control panel is open)
+     active and then uses a widget toggle keybind, "hide all widgets" will
+       now disengage to make things less confusing.
+
+23.8.8
 ======
  + Perceptual Boost is now performed in LMS color space
  + Changed handling of NaN/Infinity in sRGB <--> Linear conversion shader
