@@ -1497,10 +1497,12 @@ SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
   bool ret = false;
 
   ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.667f, 0.667f, 0.667f, 1.0f));
+  ImGui::PushItemWidth  (ImGui::GetContentRegionAvailWidth ());
 
   ret =
     ImGui::Selectable (szLabel, false);
 
+  ImGui::PopItemWidth  ();
   ImGui::PopStyleColor ();
 
   return ret;

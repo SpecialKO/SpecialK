@@ -1,7 +1,12 @@
 ﻿23.8.9
 ======
  + Added keybinding to use the previously gamepad-only "hide all widgets"
+
      >> Refer to the Widgets section of the control panel
+
+    * NOTE: This is actually a toggle and hidden widgets will be restored
+              by pressing the keybind a second time.
+
  + If users has "hide all widgets" (LT+RT while control panel is open)
      active and then uses a widget toggle keybind, "hide all widgets" will
        now disengage to make things less confusing.

@@ -5434,6 +5434,7 @@ SK_ImGui_ControlPanel (void)
     for ( auto& keybind : keybinds )
     {Keybinding(keybind,  keybind->param);}
     ImGui::EndGroup   ();
+    ImGui::EndGroup   ();
 
     ImGui::TreePop  ();
   }
