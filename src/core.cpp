@@ -27,7 +27,6 @@
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
 #include <SpecialK/render/dstorage/dstorage.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
-#include <imgui/font_awesome.h>
 #include <reflex/pclstats.h>
 
 #include <SpecialK/storefront/epic.h>
@@ -40,8 +39,6 @@
 #include <SpecialK/commands/update.inl>
 
 #include <filesystem>
-
-#include <Aux_ulib.h>
 
 
 #ifdef _WIN64

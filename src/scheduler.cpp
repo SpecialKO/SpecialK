@@ -499,7 +499,8 @@ NtWaitForMultipleObjects_Detour (
            WaitType, Alertable,
              TimeOut                  );
 
-  SK_MMCS_ApplyPendingTaskPriority ();
+  if (ntStatus != STATUS_TIMEOUT)
+    SK_MMCS_ApplyPendingTaskPriority ();
 
   return
     ntStatus;
@@ -744,7 +745,8 @@ NtWaitForSingleObject_Detour (
       Handle, Alertable, Timeout
     );
 
-  SK_MMCS_ApplyPendingTaskPriority ();
+  if (ret != STATUS_TIMEOUT)
+    SK_MMCS_ApplyPendingTaskPriority ();
 
   return
     ret;
@@ -761,15 +763,17 @@ SwitchToThread_Detour (void)
     bool is_mhw   = SK_GetCurrentGameID () == SK_GAME_ID::MonsterHunterWorld;
     bool is_aco   = SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey;
     bool is_elex2 = SK_GetCurrentGameID () == SK_GAME_ID::Elex2;
+    bool is_generic = !(is_mhw || is_aco || is_elex2);
   } static game;
 
-  if (! (game.is_mhw || game.is_aco || game.is_elex2))
+  if (game.is_generic) [[likely]]
   {
 #endif
     BOOL bRet =
       SwitchToThread_Original ();
 
-    SK_MMCS_ApplyPendingTaskPriority ();
+    if (bRet)
+      SK_MMCS_ApplyPendingTaskPriority ();
 
     return bRet;
 #ifdef _M_AMD64

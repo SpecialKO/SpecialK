@@ -30,8 +30,6 @@
 
 #include <SpecialK/storefront/epic.h>
 #include <filesystem>
-#include <optional>
-#include <valarray>
 
 #ifndef __cpp_lib_format
 #define __cpp_lib_format
