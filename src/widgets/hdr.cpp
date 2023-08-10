@@ -304,14 +304,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.92f, 0.97f, 0.01f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.92f, 0.97f, 0.01f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,  200.0_Nits, 100.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,  0.01f, { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits,  0.92f, 0.97f,  0.01f,  { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   94.8_Nits,  80.0_Nits,  96.5_Nits, 0.875f, 0.975f, 0.015f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits,  0.92f, 0.975f, 0.015f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   94.8_Nits,  80.0_Nits,  96.5_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -1245,13 +1245,34 @@ public:
         if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
         {
         //bHDRActive = true;
-          _PrintHDRModeChangeWarning ();
+          _PrintHDRModeChangeWarning (); 
         }
       }
     }
 
     if ( bHDRActive )
     {
+      if (SK_API_IsLayeredOnD3D11 (rb.api))
+      {
+        ImGui::SameLine ();
+
+        extern double SK_D3D11_HDR_RuntimeMs;
+
+        static char szProcessingText [128] = { };
+        snprintf (  szProcessingText, 127, "HDR Processing:\t%5.4f ms", SK_D3D11_HDR_RuntimeMs);
+
+        auto vTextSize =
+          ImGui::CalcTextSize (szProcessingText);
+
+        float fx = ImGui::GetCursorPosX              (),
+              fw = ImGui::GetContentRegionAvailWidth ();
+
+        ImGui::SetCursorPosX (fx - ImGui::GetStyle ().ItemInnerSpacing.x +
+                              fw -                           vTextSize.x);
+
+        ImGui::TextUnformatted (szProcessingText);
+      }
+
       SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
 
       if (pSwap4 != nullptr)

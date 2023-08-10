@@ -8775,6 +8775,10 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
     disjoint_done = false;
   }
 
+  // Basically the same as above, only for HDR processing timers
+  SK_D3D11_EndFrameHDR ();
+
+
   vertex.tracked.clear   ();
   pixel.tracked.clear    ();
   geometry.tracked.clear ();

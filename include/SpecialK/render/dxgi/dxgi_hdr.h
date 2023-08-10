@@ -155,4 +155,7 @@ bool
 SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
                                      UINT                 dev_idx );
 
+void
+SK_D3D11_EndFrameHDR (void);
+
 #endif /*__SK__DXGI_HDR_H__*/

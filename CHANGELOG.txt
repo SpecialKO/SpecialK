@@ -1,4 +1,16 @@
-﻿23.8.10.1
+﻿23.8.11
+=======
+ + Added HDR processing time (GPU execution) to HDR widget in D3D11-based modes
+ + Added new Profile 1 default values, this profile has less black crush and
+     improves UI/midtone visibility BUT the value on the luminance slider is
+       not accurate.
+       
+    >> If you want to adjust Profile 1, familiarize yourself with using the
+         tonemap visualization mode (after profiling display).
+         
+      * The luminance slider can't calculate the light output for this profile.
+
+23.8.10.1
 =========
  + Allow games to use dxdiagn.dll at startup as default policy, the ones that
      do (mostly Ubisoft) will take a good minute or two to start because they're

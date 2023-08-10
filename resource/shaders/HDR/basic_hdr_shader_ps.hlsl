@@ -67,10 +67,11 @@ SK_ProcessColor4 ( float4 color,
                       int strip_srgb = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
-  if (AnyIsNan      (color) ||
-      AnyIsNegative (color))
-                color =
-    float4 (0.0f, 0.0f, 0.0f, 0.0f);
+  color = float4
+    ( (! IsNan (color.r)) * (! IsInf (color.r)) * color.r,
+      (! IsNan (color.g)) * (! IsInf (color.g)) * color.g,
+      (! IsNan (color.b)) * (! IsInf (color.b)) * color.b,
+      (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
 #endif
 
   float4 out_color =
@@ -89,7 +90,6 @@ SK_ProcessColor4 ( float4 color,
     float4 (0.0f, 0.0f, 0.0f, 0.0f) : out_color;
 #endif
                                 
-
   return
     float4 (0.0f, 0.0f, 0.0f, 0.0f);
 }
@@ -116,24 +116,20 @@ float4 getNonNanSample (float4 color, float2 uv)
   color =
     texLastFrame0.Sample ( sampler0, uv );
 
-  if ( (! AnyIsNan      (color)) &&
-       (! AnyIsNegative (color)) )
+  if ( (! AnyIsNan   (color)) )
     return color;
 
   for ( uint i = 0 ; i < 8 ; ++i )
   {
-    if ( AnyIsNan      (color) ||
-         AnyIsNegative (color) )
+    if ( AnyIsNan    (color) )
       color =
         texMainScene.Sample  ( sampler0, uv + uv_offset [i] );
 
-    if ( AnyIsNan      (color) ||
-         AnyIsNegative (color) )
+    if ( AnyIsNan    (color) )
       color =
         texLastFrame0.Sample ( sampler0, uv + uv_offset [i] );
 
-    if ( (! AnyIsNan      (color)) &&
-         (! AnyIsNegative (color)) )
+    if ( (! AnyIsNan (color)) )
       return color;
   }
 
@@ -194,8 +190,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
-  if ( AnyIsNan      (hdr_color) ||
-       AnyIsNegative (hdr_color) )
+  if ( AnyIsNan      (hdr_color)/*||
+       AnyIsNegative (hdr_color) */)
   {
     hdr_color.rgba =
       getNonNanSample ( hdr_color, input.uv );
@@ -227,7 +223,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       getNonNanSample (hdr_color, input.uv);
 
   hdr_color =
-    clamp (hdr_color, -125.0, 125.0);
+    clamp (hdr_color, 0.0, 125.0);
 #endif
 #endif
 
@@ -392,9 +388,9 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float3 new_color = mul (LMS_2_LIN_MAT,
+    float3 new_color = XYZtosRGB (
       PQToLinear (
-        LinearToPQ ( mul (LIN_2_LMS_MAT, hdr_color.rgb), pb_params [0] ) *
+        LinearToPQ ( sRGBtoXYZ (hdr_color.rgb), pb_params [0] ) *
                      pb_params [2], pb_params [1]
                  ) / pb_params [3]);
 
@@ -414,14 +410,9 @@ float4 main (PS_INPUT input) : SV_TARGET
       float saturation =
         hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
 
-      // sRGB primaries <--> ACEScg  (* not sRGB gamma)
       hdr_color.rgb =
-        ACEScg_to_sRGB (
-          Saturation (
-            sRGB_to_ACEScg (hdr_color.rgb),
-              saturation
-          )
-        );
+        Saturation ( hdr_color.rgb,
+                     saturation );
     }
   }
 

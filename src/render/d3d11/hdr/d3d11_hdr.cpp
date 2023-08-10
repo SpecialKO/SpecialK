@@ -40,6 +40,12 @@
 
 bool __SK_HDR_v2_0 = false;
 
+SK_DisjointTimerQueryD3D11                        SK_D3D11_HDRDisjointQuery;
+std::vector <d3d11_shader_tracking_s::duration_s> SK_D3D11_HDRTimers;
+std::atomic_uint64_t                              SK_D3D11_HDR_RuntimeTicks  = 0ULL;
+double                                            SK_D3D11_HDR_RuntimeMs     = 0.0;
+double                                            SK_D3D11_HDR_LastRuntimeMs = 0.0;
+
 struct SK_HDR_FIXUP
 {
   static std::string
@@ -771,6 +777,42 @@ SK_HDR_SnapshotSwapchain (void)
       return;
     }
 
+    if ( nullptr == SK_D3D11_HDRDisjointQuery.async )
+    {
+      D3D11_QUERY_DESC query_desc {
+        D3D11_QUERY_TIMESTAMP_DISJOINT, 0x00
+      };
+
+      SK_ComPtr <ID3D11Query>                         pQuery;
+      if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery.p)))
+      {
+        SK_D3D11_HDRDisjointQuery.async = pQuery;
+                          pDevCtx->Begin (pQuery);
+
+        SK_D3D11_HDRDisjointQuery.active = true;
+      }
+    }
+
+    if (SK_D3D11_HDRDisjointQuery.active)
+    {
+      // Start a new query
+      D3D11_QUERY_DESC query_desc {
+        D3D11_QUERY_TIMESTAMP, 0x00
+      };
+
+      d3d11_shader_tracking_s::duration_s duration;
+
+      SK_ComPtr <ID3D11Query>                         pQuery;
+      if (SUCCEEDED (pDev->CreateQuery (&query_desc, &pQuery)))
+      {
+        duration.start.dev_ctx = pDevCtx;
+        duration.start.async   = pQuery;
+                  pDevCtx->End ( pQuery);
+
+        SK_D3D11_HDRTimers.emplace_back (duration);
+      }
+    }
+
     SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
     SK_ComPtr <ID3D11Resource>  pDst = nullptr;
 
@@ -1039,6 +1081,25 @@ SK_HDR_SnapshotSwapchain (void)
       ApplyStateblock (pDevCtx, &stateBlock);
 #endif
     }
+
+    if ( pDev    != nullptr &&
+         pDevCtx != nullptr && SK_D3D11_HDRDisjointQuery.active )
+    {
+      D3D11_QUERY_DESC query_desc {
+        D3D11_QUERY_TIMESTAMP, 0x00
+      };
+
+      d3d11_shader_tracking_s::duration_s& duration =
+        SK_D3D11_HDRTimers.back ();
+
+      SK_ComPtr <ID3D11Query>                           pQuery;
+      if ( SUCCEEDED ( pDev->CreateQuery (&query_desc, &pQuery.p ) ) )
+      {
+        duration.end.dev_ctx = pDevCtx;
+        duration.end.async   = pQuery;
+        pDevCtx->End (         pQuery);
+      }
+    }
   }
 }
 
@@ -1061,6 +1122,214 @@ SK_HDR_GetUnderlayResourceView (void)
     hdr_base->pMainSrv;
 }
 
+
+void
+SK_D3D11_EndFrameHDR (void)
+{
+  static bool hdr_done = false;
+
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComPtr <ID3D11DeviceContext> pDevCtx =
+    rb.d3d11.immediate_ctx;
+  
+  // End the Query and probe results (when the pipeline has drained)
+  if ( pDevCtx != nullptr && (! hdr_done) &&
+       SK_D3D11_HDRDisjointQuery.async
+     )
+  {
+    if (SK_D3D11_HDRDisjointQuery.active)
+    {
+      pDevCtx->End (SK_D3D11_HDRDisjointQuery.async);
+                    SK_D3D11_HDRDisjointQuery.active = false;
+    }
+  
+    else
+    {
+      HRESULT const hr =
+        pDevCtx->GetData (SK_D3D11_HDRDisjointQuery.async,
+                         &SK_D3D11_HDRDisjointQuery.last_results,
+                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
+                          D3D11_ASYNC_GETDATA_DONOTFLUSH);
+  
+      if (hr == S_OK)
+      {
+        SK_D3D11_HDRDisjointQuery.async = nullptr;
+  
+        // Check for failure, if so, toss out the results.
+        if (FALSE == SK_D3D11_HDRDisjointQuery.last_results.Disjoint)
+          hdr_done = true;
+  
+        else
+        {
+          auto ClearTimer =
+          [](void)
+          {
+            for (auto& it : SK_D3D11_HDRTimers)
+            {
+              it.start.async = nullptr;
+              it.end.async   = nullptr;
+  
+              it.start.dev_ctx = nullptr;
+              it.end.dev_ctx   = nullptr;
+            }
+  
+            SK_D3D11_HDRTimers.clear ();
+          };
+  
+          ClearTimer ();
+  
+          hdr_done = true;
+        }
+      }
+    }
+  }
+  
+  if (pDevCtx != nullptr && hdr_done)
+  {
+   const
+    auto
+     GetTimerDataStart =
+     []( d3d11_shader_tracking_s::duration_s *duration,
+         bool                                &success   ) ->
+      UINT64
+      {
+        auto& dev_ctx =
+          duration->start.dev_ctx;
+  
+        if (             dev_ctx != nullptr &&
+             SUCCEEDED ( dev_ctx->GetData (duration->start.async,
+                                          &duration->start.last_results,
+                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH) )
+           )
+        {
+          duration->start.async   = nullptr;
+          duration->start.dev_ctx = nullptr;
+  
+          success = true;
+  
+          return duration->start.last_results;
+        }
+  
+        success = false;
+  
+        return 0;
+      };
+  
+   const
+    auto
+     GetTimerDataEnd =
+     []( d3d11_shader_tracking_s::duration_s *duration,
+         bool                                &success ) ->
+      UINT64
+      {
+        if (duration->end.async == nullptr)
+        {
+          return duration->start.last_results;
+        }
+  
+        auto& dev_ctx =
+          duration->end.dev_ctx;
+  
+        if (             dev_ctx != nullptr &&
+             SUCCEEDED ( dev_ctx->GetData (duration->end.async,
+                                          &duration->end.last_results,
+                                           sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH)
+                       )
+           )
+        {
+          duration->end.async   = nullptr;
+          duration->end.dev_ctx = nullptr;
+  
+          success = true;
+  
+          return duration->end.last_results;
+        }
+  
+        success = false;
+  
+        return 0;
+      };
+  
+    extern std::atomic_uint64_t SK_D3D11_HDR_RuntimeTicks;
+    extern double               SK_D3D11_HDR_RuntimeMs;
+    extern double               SK_D3D11_HDR_LastRuntimeMs;
+  
+    auto CalcRuntimeMS =
+    [ ](void) noexcept
+     {
+      if (SK_D3D11_HDR_RuntimeTicks != 0ULL)
+      {
+        SK_D3D11_HDR_RuntimeMs =
+          1000.0 * sk::narrow_cast <double>
+          (        static_cast <long double>    (
+              SK_D3D11_HDR_RuntimeTicks.load () ) /
+                   static_cast <long double>     (
+                 SK_D3D11_HDRDisjointQuery.last_results.Frequency)
+          );
+  
+         // Way too long to be valid, just re-use the last known good value
+         if ( SK_D3D11_HDR_RuntimeMs > 12.0 )
+              SK_D3D11_HDR_RuntimeMs = SK_D3D11_HDR_LastRuntimeMs;
+  
+         SK_D3D11_HDR_LastRuntimeMs =
+             SK_D3D11_HDR_RuntimeMs;
+       }
+  
+       else
+       {
+         SK_D3D11_HDR_RuntimeMs = 0.0;
+       }
+     };
+  
+    const
+     auto
+      AccumulateRuntimeTicks =
+      [&](void)
+      {
+        SK_D3D11_HDR_RuntimeTicks = 0ULL;
+  
+        for ( auto& it : SK_D3D11_HDRTimers )
+        {
+          bool success0 = false,
+               success1 = false;
+  
+          const UINT64
+            time1 = GetTimerDataStart (&it, success0);
+  
+          const UINT64 time0 =
+                 ( success0 == false ) ? 0ULL :
+                      GetTimerDataEnd (&it, success1);
+  
+          if ( success0 != false &&
+               success1 != false )
+          {
+            SK_D3D11_HDR_RuntimeTicks +=
+              ( time0 - time1 );
+          }
+  
+          // Data's no good, we need to release the queries manually or
+          //   we're going to leak!
+          else
+          {
+            it.end.async   = nullptr;
+            it.end.dev_ctx = nullptr;
+  
+            it.start.async   = nullptr;
+            it.start.dev_ctx = nullptr;
+          }
+        }
+  
+        SK_D3D11_HDRTimers.clear ();
+      };
+  
+    AccumulateRuntimeTicks ();
+    CalcRuntimeMS          ();
+  
+    hdr_done = false;
+  }
+}
 
 
 std::string SK_HDR_FIXUP::_SpecialNowhere;
