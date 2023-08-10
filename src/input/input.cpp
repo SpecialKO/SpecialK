@@ -690,8 +690,8 @@ NtUserGetRegisteredRawInputDevices_Detour (
   _In_      UINT            cbSize )
 {
   // OOPS?!
-  if (puiNumDevices == 0)
-    return 0;
+  if (puiNumDevices == nullptr)
+    return static_cast <UINT> (-1);
 
   UNREFERENCED_PARAMETER (cbSize);
 
@@ -714,7 +714,7 @@ NtUserGetRegisteredRawInputDevices_Detour (
 
     SK_SetLastError (ERROR_INSUFFICIENT_BUFFER);
 
-    return std::numeric_limits <UINT>::max ();
+    return static_cast <UINT> (-1);
   }
 
   unsigned int idx = 0;
@@ -935,10 +935,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
   if (pData != nullptr)
   {
-    const int max_items = ((*pcbSize * 8) / sizeof (RAWINPUT));
+    const int max_items = ((*pcbSize * 16) / sizeof (RAWINPUT));
           int count     =                              0;
         auto *pTemp     =
-          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData (*pcbSize * 8);
+          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData (*pcbSize * 16);
     RAWINPUT *pInput    =                          pTemp;
     RAWINPUT *pOutput   =                          pData;
     UINT     cbSize     =                       *pcbSize;
@@ -946,6 +946,11 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
     int       temp_ret  =
       GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
+
+    // Common usage involves calling this with a wrong sized buffer, then calling it again...
+    //   early-out if it returns -1.
+    if (static_cast <INT> (temp_ret) < 0 || max_items == 0)
+      return temp_ret;
 
     auto* pItem =
           pInput;
@@ -1022,14 +1027,59 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
       if (! remove)
       {
         memcpy (pOutput, pItem, pItem->header.dwSize);
-                pOutput = (RAWINPUT *)((uintptr_t)pOutput + pItem->header.dwSize);
+                pOutput = NEXTRAWINPUTBLOCK (pOutput);
 
-                    ++count;
-        *pcbSize += pItem->header.dwSize;
+        ++count;
+      }
+
+      else
+      {
+        bool keyboard = pItem->header.dwType == RIM_TYPEKEYBOARD;
+        bool mouse    = pItem->header.dwType == RIM_TYPEMOUSE;
+
+        // Clearing all bytes above would have set the type to mouse, and some games
+        //   will actually read data coming from RawInput even when the size returned is 0!
+        pItem->header.dwType = keyboard ? RIM_TYPEKEYBOARD :
+                                  mouse ? RIM_TYPEMOUSE    :
+                                          RIM_TYPEHID;
+
+        // Supplying an invalid device will early-out SDL before it calls HID APIs to try
+        //   and get an input report that we don't want it to see...
+        pItem->header.hDevice = nullptr;
+  
+        //SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
+        //                  *pcbSize >= sizeof (RAWINPUTHEADER));
+  
+        pItem->header.wParam = RIM_INPUTSINK;
+    
+        if (keyboard)
+        {
+          if (! (pItem->data.keyboard.Flags & RI_KEY_BREAK))
+                 pItem->data.keyboard.VKey  = 0;
+    
+          // Fake key release
+          pItem->data.keyboard.Flags |= RI_KEY_BREAK;
+        }
+    
+        // Block mouse input in The Witness by zeroing-out the memory; most other 
+        //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
+        else
+        {
+          RtlZeroMemory ( &pItem->data.mouse,
+                           pItem->header.dwSize - sizeof (RAWINPUTHEADER) );
+        }
+
+        memcpy (pOutput, pItem, pItem->header.dwSize);
+                pOutput = NEXTRAWINPUTBLOCK (pOutput);
+
+        ++count;
       }
 
       pItem = NEXTRAWINPUTBLOCK (pItem);
     }
+
+    *pcbSize =
+      (UINT)((uintptr_t)pOutput - (uintptr_t)pData);
 
     return count;
   }
@@ -3714,10 +3764,13 @@ void SK_Input_PreInit (void)
                           NtUserGetRawInputData_Detour,
        static_cast_p2p <void> (&GetRawInputData_Original) );
 
+#define __HOOK_BUFFERED_RAW_INPUT
+#ifdef __HOOK_BUFFERED_RAW_INPUT
     SK_CreateDLLHook2 (       L"user32",
                                "GetRawInputBuffer",
                                 GetRawInputBuffer_Detour,
        static_cast_p2p <void> (&GetRawInputBuffer_Original) );
+#endif
   }
 #endif
 

@@ -1,4 +1,9 @@
-﻿23.8.9.2
+﻿23.8.10
+=======
+ + Fixed potential crashes in newer Unity engine games that use
+     Buffered Raw Input.
+
+23.8.9.2
 ========
  + Fixed mouse input not working in control panel when Disabled to Game.
 
