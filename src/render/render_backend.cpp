@@ -1249,6 +1249,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
   {
     focus.update        (hWndRoot);
     game_window.hWnd   = hWndRoot;
+    game_window.top    = GetTopWindow (hWndRoot);
     game_window.active = true;
 
     SK_LOG1 (( __FUNCTIONW__ L" (%p)", hWnd ), L"  DEBUG!  ");

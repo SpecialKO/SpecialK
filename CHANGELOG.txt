@@ -1,8 +1,10 @@
-﻿23.8.9
+﻿23.8.9.1
+========
+ + Fixed mouse input not working in control panel in emulators like Yuzu
+
+23.8.9
 ======
  + Added keybinding to use the previously gamepad-only "hide all widgets"
-
-     >> Refer to the Widgets section of the control panel
 
     * NOTE: This is actually a toggle and hidden widgets will be restored
               by pressing the keybind a second time.

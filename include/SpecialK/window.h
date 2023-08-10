@@ -348,6 +348,7 @@ struct sk_window_s {
   HWND       hWnd             = nullptr;
   HWND       parent           = nullptr;
   HWND       child            = nullptr; // Render viewport
+  HWND       top              = nullptr;
   WNDPROC    WndProc_Original = nullptr;
   WNDPROC    RawProc_Original = nullptr;
 

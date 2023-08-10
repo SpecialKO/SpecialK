@@ -5311,8 +5311,19 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
+    case WM_MOUSELEAVE:
+    {
+      //if (hWnd == game_window.hWnd || hWnd == game_window.child)
+      {
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+        {
+          return 0;
+        }
+      }
+    } break;
+
     case WM_MOUSEMOVE:
-      if (hWnd == game_window.hWnd || hWnd == game_window.child)
+      //if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
         if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
         {

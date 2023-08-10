@@ -1215,9 +1215,25 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
     }
   }
 
+  if (msg == WM_MOUSELEAVE)
+  {
+    if (hWnd == game_window.hWnd)
+    {
+      game_window.mouse.inside   = false;
+      game_window.mouse.tracking = false;
+
+      // We're no longer inside the game window, move the cursor off-screen
+      ImGui::GetIO ().MousePos =
+        ImVec2 (-FLT_MAX, -FLT_MAX);
+    }
+  }
+
   if (msg == WM_MOUSEMOVE)
   {
-    SK_ImGui_UpdateMouseTracker ();
+    if (hWnd == game_window.hWnd)
+    {
+      SK_ImGui_UpdateMouseTracker ();
+    }
   }
 
   extern bool
@@ -2420,8 +2436,6 @@ static int64_t g_TicksPerSecond = { };
 void
 SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
 {
-  game_window.mouse.inside = false;
-
   if (PtInRect (&game_window.actual.window,
                          cursor_pos))
   {
@@ -2447,8 +2461,9 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
   
     hWndTop =
       last.hWndTop;
-  
-    game_window.mouse.inside = true;
+
+    game_window.mouse.inside =
+      ( hWndTop == game_window.hWnd );
   
     if ( hWndTop != game_window.hWnd )
     {
@@ -2473,6 +2488,10 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
       }
     }
   }
+
+  else
+    game_window.mouse.inside = false;
+
 
   if (! game_window.mouse.inside)
     ImGui::GetIO ().MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
@@ -2576,13 +2595,15 @@ SK_ImGui_User_NewFrame (void)
   SK_GetCursorPos (&cursor_pos);
 
 
-  if (new_input)
+  // While inside, we get WM_MOUSEMOVE, while outside we get ... nothing.
+  if (new_input || game_window.mouse.inside)
   {
-    if ( (! game_window.mouse.can_track) || // No Tracking
-        ((! game_window.mouse.tracking)  && /// ... Broken Tracking?
-            game_window.mouse.last_move_msg < SK::ControlPanel::current_time - 250UL) )
+    if (! game_window.mouse.can_track) // No Tracking
     {
       SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
+
+      if (! game_window.mouse.inside)
+            game_window.mouse.tracking = true;
     }
   }
 

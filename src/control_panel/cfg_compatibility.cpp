@@ -543,6 +543,11 @@ SK::ControlPanel::Compatibility::Draw (void)
                             SK_ImGui_Cursor.idle ? "Idle" :
                                                    "Not Idle",
                               SK_ImGui_Cursor.last_move);
+      ImGui::Text        (" Mouse: In Window=%s, Tracking=%s%s Last WM_MOUSEMOVE=%d",
+                               game_window.mouse.inside ? "Yes"       : "No",
+                             game_window.mouse.tracking ? "Yes"       : "No",
+                            game_window.mouse.can_track ? "," : " (Unsupported),",
+                            game_window.mouse.last_move_msg);
       ImGui::EndGroup    ( );
       ImGui::TreePop     ( );
     }
