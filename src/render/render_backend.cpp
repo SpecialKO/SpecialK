@@ -29,7 +29,9 @@
 #include <SpecialK/render/dxgi/dxgi_backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d9/d3d9_texmgr.h>
+#include <SpecialK/render/d3d8/d3d8_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
+#include <SpecialK/render/ddraw/ddraw_backend.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <SpecialK/nvapi.h>
