@@ -5802,7 +5802,13 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       if (! bPassthrough)
       {
         if (SK_ImGui_WantMouseCapture ())
+        {
+          // Install a mouse tracker to get WM_MOUSELEAVE
+          if (! (game_window.mouse.tracking && game_window.mouse.inside))
+            SK_ImGui_UpdateMouseTracker ();
+
           return 1;
+        }
       }
 
     //SK_ImGui_Cursor.last_move = current_time;

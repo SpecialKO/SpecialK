@@ -1,4 +1,8 @@
-﻿23.8.9.1
+﻿23.8.9.2
+========
+ + Fixed mouse input not working in control panel when Disabled to Game.
+
+23.8.9.1
 ========
  + Fixed mouse input not working in control panel in emulators like Yuzu
 

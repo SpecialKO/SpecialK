@@ -2975,7 +2975,15 @@ SK_Proxy_MouseProc   (
               else
                 io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
             }
-            SK_ImGui_UpdateMouseTracker ();
+
+            // Install a mouse tracker to get WM_MOUSELEAVE
+            if (! (game_window.mouse.tracking && game_window.mouse.inside))
+            {
+              if (SK_ImGui_WantMouseCapture ())
+              {
+                SK_ImGui_UpdateMouseTracker ();
+              }
+            }
           } break;
 
           case WM_LBUTTONDOWN:

@@ -2595,15 +2595,12 @@ SK_ImGui_User_NewFrame (void)
   SK_GetCursorPos (&cursor_pos);
 
 
-  // While inside, we get WM_MOUSEMOVE, while outside we get ... nothing.
-  if (new_input || game_window.mouse.inside)
+  if (! game_window.mouse.can_track) // No Hover / Leave Tracking
   {
-    if (! game_window.mouse.can_track) // No Tracking
+    // While inside, we get WM_MOUSEMOVE, while outside we get ... nothing.
+    if (new_input || game_window.mouse.inside)
     {
       SK_ImGui_FallbackTrackMouseEvent (cursor_pos);
-
-      if (! game_window.mouse.inside)
-            game_window.mouse.tracking = true;
     }
   }
 
