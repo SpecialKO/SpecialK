@@ -1,4 +1,10 @@
-﻿23.8.10
+﻿23.8.10.1
+=========
+ + Allow games to use dxdiagn.dll at startup as default policy, the ones that
+     do (mostly Ubisoft) will take a good minute or two to start because they're
+       collecting your hardware info using dxdiag EVERY TIME you start the game.
+
+23.8.10
 =======
  + Fixed potential crashes in newer Unity engine games that use
      Buffered Raw Input.

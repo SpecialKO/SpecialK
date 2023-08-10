@@ -955,7 +955,7 @@ struct sk_config_t
     bool     impersonate_debugger     = false; // Can disable games' crash handlers
     bool     disable_debug_features   = false;
     bool     using_wine               = false;
-    bool     allow_dxdiagn            = false;
+    bool     allow_dxdiagn            =  true; // Slows game launches way down
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
     bool     shutdown_on_window_close = false;
