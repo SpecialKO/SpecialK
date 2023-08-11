@@ -1008,7 +1008,7 @@ ActivateWindow ( HWND hWnd,
   if (state_changed)
   {
     HWND hWndFocus =
-      GetFocus ();
+      SK_GetFocus ();
 
     if (game_window.active)
     {
@@ -1043,11 +1043,11 @@ ActivateWindow ( HWND hWnd,
     BYTE              newKeyboardState [256] = { };
     SetKeyboardState (newKeyboardState);
 
-    if (hWndFocus != game_window.hWnd && (is_game_window && (! game_window.active)))
+    if (hWndFocus != game_window.hWnd && (is_game_window && game_window.active))
     {
       BringWindowToTop    (hWndFocus);
       SetForegroundWindow (hWndFocus);
-      SetActiveWindow     (hWndFocus);
+      SK_SetActiveWindow  (hWndFocus);
     }
 
     struct {
@@ -5175,28 +5175,28 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       rb.queueUpdateOutputs ();
     }
 
-    if (! SK_IsGameWindowActive ())//game_window.active)
-    {
-      // Using a static kinda prevents us from supporting multiple windows,
-      //   but it's good enough for now.
-      static ULONG64 ulLastReset = 0;
-
-      if (ulLastReset < SK_GetFramesDrawn () - 2)
-      {
-        auto *pLimiter =             rb.swapchain.p != nullptr
-        ? SK::Framerate::GetLimiter (rb.swapchain.p) : nullptr;
-
-        if (pLimiter != nullptr)
-        {
-          // Since this may have been the result of an output device change,
-          //   it is best to take this opportunity to re-sync the limiter's
-          //     clock versus VBLANK and flush the render queue.
-          pLimiter->reset (true);
-
-          ulLastReset = SK_GetFramesDrawn ();
-        }
-      }
-    }
+    ////if (! SK_IsGameWindowActive ())
+    ////{
+    ////  // Using a static kinda prevents us from supporting multiple windows,
+    ////  //   but it's good enough for now.
+    ////  static ULONG64 ulLastReset = 0;
+    ////
+    ////  if (ulLastReset < SK_GetFramesDrawn () - 2)
+    ////  {
+    ////    auto *pLimiter =             rb.swapchain.p != nullptr
+    ////    ? SK::Framerate::GetLimiter (rb.swapchain.p) : nullptr;
+    ////
+    ////    if (pLimiter != nullptr)
+    ////    {
+    ////      // Since this may have been the result of an output device change,
+    ////      //   it is best to take this opportunity to re-sync the limiter's
+    ////      //     clock versus VBLANK and flush the render queue.
+    ////      pLimiter->reset (true);
+    ////
+    ////      ulLastReset = SK_GetFramesDrawn ();
+    ////    }
+    ////  }
+    ////}
   }
 
 

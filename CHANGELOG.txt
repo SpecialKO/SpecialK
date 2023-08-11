@@ -1,4 +1,9 @@
-﻿23.8.11.1
+﻿23.8.11.2
+=========
+ + Fix Alt-Tab problem in Baldur's Gate 3 and any other game that ignores
+     WM_SETFOCUS when alt-tabbing back in.
+
+23.8.11.1
 =========
  + Optimized HDR shader slightly by skipping NaN / Infinity removal on the input
      image, and only performing it before clamping the output to Rec 2020.
