@@ -1,4 +1,9 @@
-﻿23.8.11.2
+﻿23.8.11.3
+=========
+ + Optimized D3D11 HDR processing pipeline by eliminating an extra texture copy
+     when previous frame images are not needed to mitigate NaN (99% of games).
+
+23.8.11.2
 =========
  + Fix Alt-Tab problem in Baldur's Gate 3 and any other game that ignores
      WM_SETFOCUS when alt-tabbing back in.

@@ -1921,6 +1921,10 @@ extern volatile LONG __SK_NVAPI_UpdateGSync;
 
 //extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
 
+void  SK_HDR_SnapshotSwapchain (void);
+bool  ImGui_DX11Startup        (IDXGISwapChain* pSwapChain);
+DWORD SK_ImGui_DrawFrame       (DWORD dwFlags, void* user);
+
 void
 SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 {
@@ -1965,10 +1969,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   _pDeviceCtx->RSSetViewports (1, &vp);
   {
-    bool hudless  =
-      SK_Screenshot_IsCapturingHUDless (),
-
-    hdr_mode =
+    bool hdr_mode =
      ( rb.isHDRCapable () &&
        rb.isHDRActive  () );
 
@@ -1992,36 +1993,18 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
         SK_DXGI_LinearizeSRGB (_pSwapChain);
     }
 
-
-    if (hdr_mode || (! hudless))
-    {
-      ////          cegD3D11->beginRendering ();
-      ////SK_TextOverlayManager::getInstance ()->drawAllOverlays     (0.0f, 0.0f);
-      ////    CEGUI::System::getDllSingleton ().renderAllGUIContexts ();
-      ////            cegD3D11->endRendering ();
-    }
-
-
     if (hdr_mode)
     {
-      //if (! hudless)
-      //{
-        // Last-ditch effort to get the HDR post-process done before the UI.
-        void SK_HDR_SnapshotSwapchain (void);
-             SK_HDR_SnapshotSwapchain (    );
-      //}
+      // Last-ditch effort to get the HDR post-process done before the UI.
+      SK_HDR_SnapshotSwapchain ();
     }
 
-    extern bool
-    ImGui_DX11Startup ( IDXGISwapChain* pSwapChain );
-
-    if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain ))
+    if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain))
     {
       // Queue-up Pre-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
-
-      extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-                   SK_ImGui_DrawFrame (       0x00,          nullptr );
+      
+      SK_ImGui_DrawFrame (0x00, nullptr);
     }
   }
 

@@ -352,7 +352,17 @@ IWrapDXGISwapChain::PresentBase (void)
               if (texDesc.SampleDesc.Count > 1)
                 pDevCtx->ResolveSubresource (pBackbuffer, 0, _backbuffers [0].p, 0, typed_format);
               else
-                pDevCtx->CopyResource       (pBackbuffer,    _backbuffers [0].p);
+              {
+                if (_d3d11_feature_opts.DiscardAPIsSeenByDriver)
+                {
+                  SK_ComQIPtr <ID3D11DeviceContext1>
+                      pDevCtx1 (pDevCtx);
+                  if (pDevCtx1.p != nullptr)
+                      pDevCtx1->DiscardResource (pBackbuffer);
+                }
+
+                pDevCtx->CopyResource (pBackbuffer, _backbuffers [0].p);
+              }
             }
 
             else
@@ -363,25 +373,12 @@ IWrapDXGISwapChain::PresentBase (void)
               );
             }
 
-            if (config.render.framerate.flip_discard)
+            if (config.render.framerate.flip_discard && _d3d11_feature_opts.DiscardAPIsSeenByDriver)
             {
               SK_ComQIPtr <ID3D11DeviceContext1>
                   pDevCtx1 (pDevCtx);
               if (pDevCtx1.p != nullptr)
-              {
-                D3D11_FEATURE_DATA_D3D11_OPTIONS FeatureOpts = { };
-
-                if (pD3D11Dev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
-                {
-                  pD3D11Dev->CheckFeatureSupport (
-                     D3D11_FEATURE_D3D11_OPTIONS, &FeatureOpts, 
-                       sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
-                  );
-                }
-
-                //if (FeatureOpts.DiscardAPIsSeenByDriver)
-                //  pDevCtx1->DiscardResource (_backbuffers [0].p);
-              }
+                  pDevCtx1->DiscardResource (_backbuffers [0].p);
             }
           }
 

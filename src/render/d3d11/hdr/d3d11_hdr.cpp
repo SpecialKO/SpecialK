@@ -77,6 +77,8 @@ struct SK_HDR_FIXUP
   ID3D11UnorderedAccessView*   pGamutUAV     = nullptr;
   ID3D11ShaderResourceView*    pGamutSRV     = nullptr;
 
+  bool               driver_supports_discard = false;
+
   enum SK_HDR_Type {
     None        = 0x000ul,
     HDR10       = 0x010ul,
@@ -256,6 +258,24 @@ struct SK_HDR_FIXUP
       if (! recompileShaders ())
         return;
 
+      D3D11_FEATURE_DATA_D3D11_OPTIONS FeatureOpts = { };
+
+      SK_ComQIPtr <ID3D11DeviceContext1>
+          pDevCtx1 (pDevCtx);
+      if (pDevCtx1.p != nullptr)
+      {
+        if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
+        {
+          pDev->CheckFeatureSupport (
+             D3D11_FEATURE_D3D11_OPTIONS, &FeatureOpts, 
+               sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
+          );
+        }
+      }
+
+      if (FeatureOpts.DiscardAPIsSeenByDriver)
+        driver_supports_discard = true;
+
       D3D11_BUFFER_DESC desc = { };
 
       desc.ByteWidth         = sizeof (HDR_LUMINANCE);
@@ -301,7 +321,7 @@ struct SK_HDR_FIXUP
       pDev->CreateTexture2D          (&desc,       nullptr, &pHDRTexture);
       pDev->CreateShaderResourceView (pHDRTexture, nullptr, &pMainSrv);
 
-#define SK_HDR_NAN_MITIGATION
+//#define SK_HDR_NAN_MITIGATION
 #ifdef SK_HDR_NAN_MITIGATION
       pDev->CreateTexture2D          (&desc,        nullptr, &pCopyTexture);
       pDev->CreateShaderResourceView (pCopyTexture, nullptr, &pCopySrv);
@@ -457,6 +477,8 @@ SK_HDR_InitResources (void)
   hdr_base->reloadResources ();
 }
 
+bool bUseFP16Sanitization = false;
+
 //
 // Remove negative numbers, infinity and NAN from floating-point
 // RenderTargets because non-HDR shaders may operate assuming that
@@ -477,7 +499,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
   if (! __SK_HDR_16BitSwap)
     return;
 
-    static auto& rb =
+  static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -828,22 +850,29 @@ SK_HDR_SnapshotSwapchain (void)
                      )
          )
       {
-        hdr_base->pMainSrv->GetResource      (&pDst.p);
+        hdr_base->pMainSrv->GetResource (&pDst.p);
 
         D3D11_TEXTURE2D_DESC texDesc = { };
         pSrc->GetDesc      (&texDesc);
 
         if (texDesc.SampleDesc.Count > 1)
-          pDevCtx->ResolveSubresource        (pDst, 0, pSrc, 0, texDesc.Format);
+          pDevCtx->ResolveSubresource (pDst, 0, pSrc, 0, texDesc.Format);
         else
         {
           SK_ComQIPtr <ID3D11DeviceContext1>
-              pDevCtx1 (pDevCtx);
-          if (pDevCtx1.p != nullptr)
-            pDevCtx1->CopySubresourceRegion1 (pDst, 0, 0, 0, 0,
-                                              pSrc, 0, nullptr, D3D11_COPY_DISCARD);
-          else
-            pDevCtx->CopyResource            (pDst,    pSrc);
+            pDevCtx1 (pDevCtx);
+
+          if (hdr_base->driver_supports_discard && pDevCtx1.p != nullptr)
+          {
+            pDevCtx1->DiscardResource (pDst);
+          }
+
+          pDevCtx->CopyResource       (pDst, pSrc);
+
+          if (hdr_base->driver_supports_discard && pDevCtx1.p != nullptr)
+          {
+            pDevCtx1->DiscardResource (pSrc);
+          }
         }
       }
     }
@@ -1015,6 +1044,7 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->Draw                   (3,       0);
 
 #ifdef SK_HDR_NAN_MITIGATION
+      // Only certain games need this, skip it normally
       SK_ComPtr <ID3D11Resource>        pHDRTexture;
       SK_ComPtr <ID3D11Resource>        pCopyTexture;
       hdr_base->pMainSrv->GetResource (&pHDRTexture.p);

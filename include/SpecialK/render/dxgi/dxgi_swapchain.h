@@ -118,6 +118,25 @@ IWrapDXGISwapChain : IDXGISwapChain4
     flip_model.native = bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
+
+    if (! d3d12_)
+    {
+      SK_ComPtr <ID3D11DeviceContext> pDevCtx;
+      pDevice->GetImmediateContext  (&pDevCtx);
+
+      SK_ComQIPtr <ID3D11DeviceContext1>
+        pDevCtx1 (pDevCtx);
+      if (pDevCtx1.p != nullptr)
+      {
+        if (pDevice->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
+        {
+          pDevice->CheckFeatureSupport (
+             D3D11_FEATURE_D3D11_OPTIONS, &_d3d11_feature_opts, 
+               sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
+          );
+        }
+      }
+    }
   }
 
   IWrapDXGISwapChain ( ID3D11Device         *pDevice,
@@ -190,6 +209,25 @@ IWrapDXGISwapChain : IDXGISwapChain4
     flip_model.native = bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
+
+    if (! d3d12_)
+    {
+      SK_ComPtr <ID3D11DeviceContext> pDevCtx;
+      pDevice->GetImmediateContext  (&pDevCtx);
+
+      SK_ComQIPtr <ID3D11DeviceContext1>
+        pDevCtx1 (pDevCtx);
+      if (pDevCtx1.p != nullptr)
+      {
+        if (pDevice->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
+        {
+          pDevice->CheckFeatureSupport (
+             D3D11_FEATURE_D3D11_OPTIONS, &_d3d11_feature_opts, 
+               sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
+          );
+        }
+      }
+    }
   }
 
 
@@ -312,6 +350,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
   std::recursive_mutex  _backbufferLock;
   std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
                         _backbuffers;
+
+  D3D11_FEATURE_DATA_D3D11_OPTIONS _d3d11_feature_opts = { };
 
   // Shared logic between Present (...) and Present1 (...)
   int                     PresentBase (void);
