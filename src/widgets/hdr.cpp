@@ -304,14 +304,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits,  0.92f, 0.97f,  0.01f,  { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   94.8_Nits,  80.0_Nits,  96.5_Nits, 0.875f, 0.975f, 0.015f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits,  0.92f, 0.975f, 0.015f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   94.8_Nits,  80.0_Nits,  96.5_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,   1.0f, 1.0f,   0.01f,  { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.92f, 0.97f,  0.01f,   { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   87.2_Nits,  80.0_Nits,  97.5_Nits, 0.88f, 0.98f,  0.0125f, { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,   0.01f,   { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,   0.01f,   { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.92f, 0.975f, 0.0125f, { SK_HDR_TONEMAP_NONE   },            -__SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   87.2_Nits,  80.0_Nits,  97.5_Nits, 0.88f, 0.98f,  0.01f,   { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,   0.01f,   { SK_HDR_TONEMAP_NONE   },             __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits,  1.0f, 1.0f,   0.01f,   { SK_HDR_TONEMAP_HDR10_PASSTHROUGH },  __SK_HDR_PQBoost0, __SK_HDR_PQBoost1, __SK_HDR_PQBoost2, __SK_HDR_PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
