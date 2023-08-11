@@ -2726,7 +2726,7 @@ SK_ImGui_User_NewFrame (void)
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
           while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
 
-        SK_SetCursor (0);
+        SK_SetCursor (nullptr);
       }
     }
   }

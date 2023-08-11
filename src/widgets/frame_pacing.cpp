@@ -1236,8 +1236,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
   {
     fGaugeSizes = fCPUSize;
 
-    static const DWORD _UpdateFrequencyInMsec = 75;
-    static       DWORD dwLastUpdatedGPU =
+    static constexpr DWORD _UpdateFrequencyInMsec = 75;
+    static           DWORD dwLastUpdatedGPU =
       SK::ControlPanel::current_time;
 
     if (dwLastUpdatedGPU < SK::ControlPanel::current_time - _UpdateFrequencyInMsec)

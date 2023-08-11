@@ -2620,7 +2620,8 @@ public:
         it.second->runtimes.snapshot.user   = it.second->runtimes.user;
       }
 
-      LARGE_INTEGER liThreadKernel, liThreadUser;
+      LARGE_INTEGER liThreadKernel,
+                    liThreadUser;
 
       liThreadKernel.HighPart = it.second->runtimes.kernel.dwHighDateTime;
       liThreadKernel.LowPart  = it.second->runtimes.kernel.dwLowDateTime;

@@ -4561,11 +4561,11 @@ SymGetSearchPathW (
   _Out_opt_ PWSTR  SearchPath,
   _In_      DWORD  SearchPathLength)
 {
+  if (SearchPath != nullptr)
+  {  *SearchPath = L'\0';  }
+
   if (SymGetSearchPathW_Imp != nullptr)
   {
-    if (SearchPath != nullptr)
-    {  *SearchPath = L'\0';  }
-
     BOOL bRet =
       SymGetSearchPathW_Imp (hProcess, SearchPath, SearchPathLength);
 

@@ -2724,9 +2724,9 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
 #if 1
     if (sk::NVAPI::nv_hardware != false)
     {
-      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = { };
-      NvU32               nvGpuCount                             =   0;
-      NvDisplayHandle     nvDisplayHandle;
+      NvPhysicalGpuHandle nvGpuHandles [NVAPI_MAX_PHYSICAL_GPUS] = {     };
+      NvU32               nvGpuCount                             =       0;
+      NvDisplayHandle     nvDisplayHandle                        = nullptr;
       NvU32               nvOutputId  = std::numeric_limits <NvU32>::max ();
       NvU32               nvDisplayId = std::numeric_limits <NvU32>::max ();
 

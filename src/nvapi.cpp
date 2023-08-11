@@ -2807,7 +2807,7 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
   UNREFERENCED_PARAMETER (hwnd);
   UNREFERENCED_PARAMETER (nCmdShow);
 
-  char  szExecutable [MAX_PATH + 1] = { };
+  char  szExecutable [MAX_PATH + 2] = { };
   DWORD dwSettingID                 = 0x0,
         dwSettingVal                = 0x0;
 

@@ -7610,10 +7610,10 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
               RECT                  rcWindow = { };
               GetWindowRect (hWnd, &rcWindow);
 
-              POINT pt;
-
-              pt.x = rcWindow.left + (rcWindow.right  - rcWindow.left) / 2;
-              pt.y = rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2;
+              POINT pt = {
+                rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
+                rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
+              };
 
               if (MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
               //if (MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST) == hMonitorGame)

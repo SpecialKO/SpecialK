@@ -1254,7 +1254,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         SK_TestImports (GetModuleHandle (nullptr), steam_tests, 2);
 
         is_steamworks_game =
-          ( steam_tests [0].used |
+          ( steam_tests [0].used ||
             steam_tests [1].used );
       }
 

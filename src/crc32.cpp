@@ -432,7 +432,7 @@ int
 __cdecl
 crc32c_hw_available (void)
 {
-  int      info [4];
+  int      info [4] = { 0 };
   __cpuid (info, 1);
   return ( info [2] & (1 << 20)) != 0;
 
