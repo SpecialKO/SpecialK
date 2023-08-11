@@ -122,7 +122,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
 
   bool early_out =
     (! bMustNotIgnore) || rb.api == SK_RenderAPI::D3D12 || // Ignore D3D11On12 overlays
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx);
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, SK_D3D11_IsDevCtxDeferred (pDevCtx), pDevCtx);
     
 
   bool implicit_track = false;
@@ -742,7 +742,8 @@ SK_D3D11_SetShaderResources_Impl (
   };
 
   bool early_out =                      shader_base == nullptr ||
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevContext) ||
+    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, SK_D3D11_IsDevCtxDeferred (pDevContext),
+                                                  pDevContext) ||
     (! bMustNotIgnore) );
 
   if (early_out)

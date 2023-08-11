@@ -824,6 +824,7 @@ SK_D3D11_CreateShader_Impl (
 bool
 SK_D3D11_IgnoreWrappedOrDeferred (
   bool                 bWrapped,
+  bool                 bDeferred,
   ID3D11DeviceContext* pDevCtx
 );
 

@@ -1390,8 +1390,8 @@ SK_D3D11_UpdateSubresource_Impl (
   //  _Finish ();
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   SK_TLS *pTLS = nullptr;
 
@@ -1900,8 +1900,8 @@ SK_D3D11_CopySubresourceRegion_Impl (
   };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -2372,8 +2372,8 @@ SK_D3D11_CopyResource_Impl (
   };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -3880,18 +3880,22 @@ DEFINE_GUID(IID_ID3D11On12Device,0x85611e73,0x70a9,0x490e,0x96,0x14,0xa9,0xe3,0x
 
 bool
 SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
+                                   bool                 bDeferred,
                                    ID3D11DeviceContext* pDevCtx )
 {
-  if (! config.render.dxgi.deferred_isolation)
+  if (!config.render.dxgi.deferred_isolation) [[likely]]
   {
-    if (bWrapped || SK_D3D11_IsDevCtxDeferred (pDevCtx))
+    if (bWrapped) [[likely]]
+      return true;
+
+    if (bDeferred) [[unlikely]]
       return true;
   }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ((! bWrapped) && pDevCtx != rb.d3d11.immediate_ctx)
+  if ((! bWrapped) && pDevCtx != rb.d3d11.immediate_ctx) [[unlikely]]
   {
     if ( rb.d3d11.immediate_ctx == nullptr ||
          rb.device.p            == nullptr )
@@ -3983,8 +3987,8 @@ SK_D3D11_Dispatch_Impl (
     };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4040,8 +4044,8 @@ SK_D3D11_DispatchIndirect_Impl (
    };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4084,8 +4088,9 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
    };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    
 
   if (early_out)
   {
@@ -4237,8 +4242,9 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+    
 
   if (early_out)
   {
@@ -4417,8 +4423,8 @@ SK_D3D11_DrawIndexed_Impl (
     };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4559,8 +4565,8 @@ SK_D3D11_DrawIndexedInstanced_Impl (
     };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4649,8 +4655,8 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
    };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4706,8 +4712,8 @@ SK_D3D11_DrawInstanced_Impl (
    };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4758,8 +4764,8 @@ SK_D3D11_DrawInstancedIndirect_Impl (
    };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4835,8 +4841,8 @@ SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
   };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -4973,8 +4979,8 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
   };
 
   bool early_out =
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) ||
-    (! bMustNotIgnore) );
+    (! bMustNotIgnore) ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {

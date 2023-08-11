@@ -332,7 +332,7 @@ D3D11_VSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -383,7 +383,7 @@ D3D11_PSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -434,7 +434,7 @@ D3D11_GSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -485,7 +485,7 @@ D3D11_HSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -538,7 +538,7 @@ D3D11_DSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -588,7 +588,7 @@ D3D11_CSSetShader_Override (
     SK_ReleaseAssert (!"Too many class instances, is hook corrupted?");
   }
 
-  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  else if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     if (ppClassInstances == nullptr)
        NumClassInstances = 0;
@@ -910,7 +910,7 @@ D3D11_VSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -938,7 +938,7 @@ D3D11_PSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -966,7 +966,7 @@ D3D11_GSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -994,7 +994,7 @@ D3D11_HSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -1022,7 +1022,7 @@ D3D11_DSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl(
@@ -1050,7 +1050,7 @@ D3D11_CSSetShaderResources_Override (
   _In_           UINT                             NumViews,
   _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_SetShaderResources_Impl (
@@ -1336,7 +1336,7 @@ D3D11_UpdateSubresource_Override (
   // Hack for Martha is Dead
   __try
   {
-    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+    if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
     {
       return
         SK_D3D11_UpdateSubresource_Impl ( This,
@@ -1394,7 +1394,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
   }
 #endif
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, This))//(SK_D3D11_IsDevCtxDeferred (This)))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_Map_Impl ( This,
@@ -1438,7 +1438,7 @@ D3D11_Unmap_Override (
   }
 #endif
 
-  if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, This)))
+  if (! (SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (This), This)))
   {
     return
       SK_D3D11_Unmap_Impl (This, pResource, Subresource, FALSE);
@@ -1481,7 +1481,7 @@ D3D11_CopyResource_Override (
   }
 #endif
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_CopyResource_Impl ( This,
@@ -1847,7 +1847,7 @@ D3D11_CopySubresourceRegion_Override (
         SrcSubresource, pSrcBox
   );
 #else
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_CopySubresourceRegion_Impl (
@@ -1899,7 +1899,7 @@ D3D11_ResolveSubresource_Override (
   }
 #endif
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_ResolveSubresource_Impl ( This,
@@ -1924,7 +1924,7 @@ D3D11_DrawAuto_Override (_In_ ID3D11DeviceContext *This)
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawAuto_Impl ( This, FALSE );
@@ -1946,7 +1946,7 @@ D3D11_DrawIndexed_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexed_Impl ( This,
@@ -1973,7 +1973,7 @@ D3D11_Draw_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_Draw_Impl ( This,
@@ -2003,7 +2003,7 @@ D3D11_DrawIndexedInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexedInstanced_Impl ( This,
@@ -2034,7 +2034,7 @@ D3D11_DrawIndexedInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawIndexedInstancedIndirect_Impl (
@@ -2061,7 +2061,7 @@ D3D11_DrawInstanced_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawInstanced_Impl (
@@ -2092,7 +2092,7 @@ D3D11_DrawInstancedIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_DrawInstancedIndirect_Impl ( This,
@@ -2118,7 +2118,7 @@ D3D11_Dispatch_Override ( _In_ ID3D11DeviceContext *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
@@ -2149,7 +2149,7 @@ D3D11_DispatchIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     const UINT dev_idx =
       SK_D3D11_GetDeviceContextHandle (This);
@@ -2177,7 +2177,7 @@ _In_     UINT                           NumViews,
 _In_opt_ ID3D11RenderTargetView *const *ppRenderTargetViews,
 _In_opt_ ID3D11DepthStencilView        *pDepthStencilView )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_OMSetRenderTargets_Impl ( This,
@@ -2208,7 +2208,7 @@ D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Override (
   _In_opt_       ID3D11UnorderedAccessView *const *ppUnorderedAccessViews,
   _In_opt_ const UINT                             *pUAVInitialCounts )
 {
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, This))
+  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl ( This,

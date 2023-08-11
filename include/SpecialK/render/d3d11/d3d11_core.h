@@ -123,18 +123,21 @@ protected:
    //   device context's private data or getting TLS on every draw call.
 
 
-#define SK_WRAP_AND_HOOK                     \
-  static SK_D3D11_HookTallyWhacker           \
-                 call_tally;                 \
-                                             \
-  if ((pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED ))\
-  {                                          \
-    call_tally.hooked  ( bWrapped ? 0 : 1 ); \
-    call_tally.wrapped ( bWrapped ? 1 : 0 ); \
-  }                                          \
-                                             \
-  const bool bMustNotIgnore =                \
-    ( call_tally.is_whack () ||              \
+#define SK_WRAP_AND_HOOK                                  \
+  static SK_D3D11_HookTallyWhacker                        \
+                 call_tally;                              \
+                                                          \
+  const bool bIsDevCtxDeferred =                          \
+    pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED; \
+                                                          \
+  if (! bIsDevCtxDeferred)                                \
+  {                                                       \
+    call_tally.hooked  ( bWrapped ? 0 : 1 );              \
+    call_tally.wrapped ( bWrapped ? 1 : 0 );              \
+  }                                                       \
+                                                          \
+  const bool bMustNotIgnore =                             \
+    ( call_tally.is_whack () ||                           \
               (! bWrapped) );
 
 extern const GUID IID_ID3D11Device2;
@@ -1723,8 +1726,8 @@ struct SK_D3D11_KnownShaders
       tracked.current_ = &current;
     }
 
-    concurrency::concurrent_unordered_map <ID3D11Device*, std::unordered_map <_T*,      SK_D3D11_ShaderDesc*>>  rev;
-    concurrency::concurrent_unordered_map <ID3D11Device*, std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>>   descs;
+    std::unordered_map <ID3D11Device*, std::unordered_map <_T*,      SK_D3D11_ShaderDesc*>>  rev;
+    std::unordered_map <ID3D11Device*, std::unordered_map <uint32_t, SK_D3D11_ShaderDesc>>   descs;
 
     std::unordered_map <uint32_t, LONG>                  blacklist;
     std::unordered_map <uint32_t, std::string>           names;

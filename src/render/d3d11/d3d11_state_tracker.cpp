@@ -131,7 +131,7 @@ SK_D3D11_ShouldTrackSetShaderResources ( ID3D11DeviceContext* pDevCtx,
   if (! SK::ControlPanel::D3D11::show_shader_mod_dlg)
     return false;
 
-  if (SK_D3D11_IgnoreWrappedOrDeferred (false, pDevCtx))
+  if (SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (pDevCtx), pDevCtx))
   {
     return false;
   }

@@ -77,7 +77,7 @@ SK_D3D11_Map_Impl (
 
   bool early_out =
     (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx);
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
   if (early_out)
   {
@@ -87,7 +87,7 @@ SK_D3D11_Map_Impl (
 
 
   // UB: If it's happening, pretend we never saw this...
-  if (pResource == nullptr || SK_D3D11_IsDevCtxDeferred (pDevCtx) )
+  if (pResource == nullptr || bIsDevCtxDeferred )
   {
     assert (pResource != nullptr);
 
@@ -291,7 +291,7 @@ SK_D3D11_Unmap_Impl (
 
   bool early_out =
     ( (! bMustNotIgnore) ||
-      SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, pDevCtx) );
+      SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx) );
 
   if (early_out)
   {
@@ -300,7 +300,7 @@ SK_D3D11_Unmap_Impl (
   }
 
   // UB: If it's happening, pretend we never saw this...
-  if (pResource == nullptr || SK_D3D11_IsDevCtxDeferred (pDevCtx))
+  if (pResource == nullptr || bIsDevCtxDeferred)
   {
     assert (pResource != nullptr);
 
