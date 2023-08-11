@@ -183,14 +183,6 @@ float3 REC709toREC2020 (float3 c);
 
 float3 Clamp_scRGB (float3 c)
 {
-  // Remove special floating-point bit patterns, clamping is the
-  //   final step before output and outputting NaN or Infinity would
-  //     break color blending!
-  c =
-    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
-             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
-             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
-
   // Clamp to Rec 2020
   return
     REC2020toREC709 (
@@ -198,10 +190,25 @@ float3 Clamp_scRGB (float3 c)
     );
 }
 
-float Clamp_scRGB (float c)
+float3 Clamp_scRGB_StripNaN (float3 c)
+{
+  // Remove special floating-point bit patterns, clamping is the
+  //   final step before output and outputting NaN or Infinity would
+  //     break color blending!
+  c =
+    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
+             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
+             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
+   
+  return Clamp_scRGB (c);
+}
+
+float Clamp_scRGB (float c, bool strip_nan = false)
 {
   // No colorspace clamp here, just keep it away from 0.0
-  c = (! IsNan (c)) * (! IsInf (c)) * c;
+  if (strip_nan)
+    c = (! IsNan (c)) * (! IsInf (c)) * c;
+    
   return clamp (c + sign (c) * FLT_EPSILON, -125.0f,
                                              125.0f);
 }

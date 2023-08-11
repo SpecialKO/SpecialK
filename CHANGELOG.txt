@@ -1,4 +1,9 @@
-﻿23.8.11
+﻿23.8.11.1
+=========
+ + Optimized HDR shader slightly by skipping NaN / Infinity removal on the input
+     image, and only performing it before clamping the output to Rec 2020.
+
+23.8.11
 =======
  + Added HDR processing time (GPU execution) to HDR widget in D3D11-based modes
  + Added new Profile 1 default values, this profile has less black crush and

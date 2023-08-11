@@ -5,7 +5,7 @@
 //#define INCLUDE_VISUALIZATIONS
 //#define INCLUDE_ACES
 //#define INCLUDE_HDR10
-#define INCLUDE_NAN_MITIGATION
+//#define INCLUDE_NAN_MITIGATION
 //#define DEBUG_NAN
 //#define UTIL_STRIP_NAN
 
@@ -314,7 +314,7 @@ float4 main (PS_INPUT input) : SV_TARGET
          input.color.x > 0.0125f + FLT_MIN )
     {
       hdr_color.rgb = clamp (LinearToLogC (hdr_color.rgb), 0.0, 125.0);
-      hdr_color.rgb = Contrast     (hdr_color.rgb,
+      hdr_color.rgb =        Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
                        (sdrLuminance_NonStd / 0.0125f) / 100.0f);
       hdr_color.rgb = clamp (LogCToLinear (hdr_color.rgb), 0.0, 125.0);
@@ -843,8 +843,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     color_out =
       float4 (
-        Clamp_scRGB (color_out.rgb),
-           saturate (hdr_color.a)
+        Clamp_scRGB_StripNaN (color_out.rgb),
+                    saturate (hdr_color.a)
              );
 
     color_out.r *= (orig_color.r >= FLT_EPSILON);
