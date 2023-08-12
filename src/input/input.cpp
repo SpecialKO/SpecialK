@@ -1604,11 +1604,14 @@ SK_IsGameWindowActive (void)
 
       BringWindowToTop    (game_window.hWnd);
 
-      SetWindowPos ( SK_Win32_BackgroundHWND, game_window.hWnd,
-                           0, 0,
-                           0, 0,
-                             SWP_NOMOVE     | SWP_NOSIZE |
-                             SWP_NOACTIVATE );
+      if (SK_Win32_BackgroundHWND != 0)
+      {
+        SetWindowPos ( SK_Win32_BackgroundHWND, game_window.hWnd,
+                             0, 0,
+                             0, 0,
+                               SWP_NOMOVE     | SWP_NOSIZE |
+                               SWP_NOACTIVATE );
+      }
 
       SetForegroundWindow (game_window.hWnd);
       SetFocus            (game_window.hWnd);
