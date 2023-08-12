@@ -1549,8 +1549,17 @@ SK_IsGameWindowActive (void)
   extern HWND SK_Win32_BackgroundHWND;
 
   bool bActive =
-    game_window.active || (                        0 != SK_Win32_BackgroundHWND &&
-                           SK_GetForegroundWindow () == SK_Win32_BackgroundHWND );
+    game_window.active;
+
+  if (! bActive)
+  {
+    HWND hWndForeground = SK_GetForegroundWindow ();
+
+    bActive =
+      (   game_window.hWnd        == hWndForeground ||
+        ( SK_Win32_BackgroundHWND == hWndForeground &&
+          SK_Win32_BackgroundHWND != 0 ) );
+  }
 
 #if 0
   if (! bActive)

@@ -1,4 +1,13 @@
-﻿23.8.11.3
+﻿23.8.12.1
+=========
+ + Minor tweak to implicit window focus on foreground status
+
+23.8.12
+=======
+ + Optimized D3D11 render state tracker code for wrapped/hooked D3D11 device
+     interfaces.
+
+23.8.11.3
 =========
  + Optimized D3D11 HDR processing pipeline by eliminating an extra texture copy
      when previous frame images are not needed to mitigate NaN (99% of games).
