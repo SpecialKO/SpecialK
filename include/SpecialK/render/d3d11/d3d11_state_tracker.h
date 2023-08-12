@@ -49,6 +49,13 @@ static constexpr GUID SKID_ReShade_D3D11Device =
 // {72299288-2C68-4AD8-945D-2BFB5AA9C609}
   { 0x72299288, 0x2C68,  0x4AD8, { 0x94, 0x5D, 0x2B, 0xFB, 0x5A, 0xA9, 0xC6, 0x09 } };
 
+// Stash wrapped ID3D11DeviceContext* pointers inside the underlying device so that
+//   GetImmediateContext will return the wrapped interface always
+static constexpr GUID SKID_D3D11WrappedImmediateContext =
+// {F87115E6-A0F9-4E62-97F7-1487A2E34A47}
+{ 0xf87115e6, 0xa0f9, 0x4e62, { 0x97, 0xf7, 0x14, 0x87, 0xa2, 0xe3, 0x4a, 0x47 } };
+
+
 enum class SK_D3D11DispatchType
 {
   Standard,

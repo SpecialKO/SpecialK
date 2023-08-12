@@ -309,11 +309,6 @@ Concurrency::concurrent_unordered_map
 <                  ID3D11DeviceContext *,
   SK_ComPtr       <ID3D11DeviceContext4> > > wrapped_contexts;
 
-static SK_LazyGlobal <
-Concurrency::concurrent_unordered_map
-<                  ID3D11Device         *,
-  SK_ComPtr       <ID3D11DeviceContext4> > > wrapped_immediates;
-
 #pragma data_seg (".SK_D3D11_Hooks")
 extern "C"
 {
@@ -707,6 +702,42 @@ SK_D3D11_DispatchContextResetQueue (UINT dev_ctx)
   }
 
   return false;
+}
+
+BOOL
+SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
+                                      ID3D11DeviceContext *pDevCtx )
+{
+  if ( FAILED (
+         pDev->SetPrivateDataInterface ( SKID_D3D11WrappedImmediateContext,
+                                           pDevCtx )
+       )
+     )
+  {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+ID3D11DeviceContext*
+SK_D3D11_GetWrappedImmediateContext ( ID3D11Device *pDev )
+{
+  if (pDev == nullptr) return nullptr;
+
+  ID3D11DeviceContext *pDevCtx = nullptr;
+  UINT                    size = sizeof (ID3D11DeviceContext *);
+
+  if ( SUCCEEDED (
+         pDev->GetPrivateData ( SKID_D3D11WrappedImmediateContext, &size,
+                                  (void **)&pDevCtx )
+       )
+     )
+  {
+    return pDevCtx;
+  }
+
+  return nullptr;
 }
 
 int SK_D3D11_AllocatedDevContexts = 0;
@@ -7728,8 +7759,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     SK_GetCurrentRenderBackend ();
 
   // Even if the game doesn't care about the feature level, we do.
-  D3D_FEATURE_LEVEL ret_level  = D3D_FEATURE_LEVEL_10_0;
-  ID3D11Device*     ret_device = nullptr;
+  D3D_FEATURE_LEVEL    ret_level  = D3D_FEATURE_LEVEL_10_0;
+  ID3D11Device*        ret_device = nullptr;
+  ID3D11DeviceContext* ret_ctx    = nullptr;
 
   // Allow override of swapchain parameters
   auto swap_chain_override =
@@ -7908,7 +7940,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                            ppSwapChain,
                                                              &ret_device,
                                                                &ret_level,
-                                                                 ppImmediateContext )
+                                                                 &ret_ctx )
             );
 
 
@@ -7965,38 +7997,29 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       }
     }
 
-    ////if (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia)
-    {
+    bool bEnableImmediateWrap =
+      (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
+
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
+    if (bEnableImmediateWrap && ret_device != nullptr && ret_ctx != nullptr)
+    {
+      ret_ctx =
+        SK_D3D11_WrapperFactory->wrapDeviceContext (ret_ctx);
+
+      SK_D3D11_SetWrappedImmediateContext (ret_device, ret_ctx);
+
       if (ppImmediateContext != nullptr)
-      {
-        ID3D11DeviceContext *pImmediate =
-          *ppImmediateContext;
-
-        if ( wrapped_contexts->find (pImmediate) ==
-             wrapped_contexts->cend (          )  )
-        {
-          (*wrapped_contexts)[pImmediate] =
-            SK_ComPtr <ID3D11DeviceContext4> (
-              SK_D3D11_WrapperFactory->wrapDeviceContext (pImmediate)
-            );
-        }
-
-        (*wrapped_contexts)[pImmediate].
-          QueryInterface <ID3D11DeviceContext> (
-                           ppImmediateContext
-          );
-
-        (*wrapped_immediates)[*ppDevice] =
-        (*wrapped_contexts)[pImmediate];
-      }
-
+         *ppImmediateContext = ret_ctx;
       else
       {
         SK_LOGi0 (L"Game Did Not Request Immediate Context...?!");
       }
-#endif
     }
+
+    else
+#endif
+    if (ppImmediateContext != nullptr)
+       *ppImmediateContext = ret_ctx;
 
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games
@@ -8340,6 +8363,19 @@ D3D11Dev_CreateDeferredContext3_Override (
   return D3D11Dev_CreateDeferredContext3_Original (This, ContextFlags, nullptr);
 }
 
+void
+SK_D3D11_WrapAndStashImmediateContext ( ID3D11Device        *pDev,
+                                        ID3D11DeviceContext *pDevCtx )
+{
+  if (pDevCtx == nullptr)
+    return;
+
+  SK_ComPtr <ID3D11DeviceContext> pWrappedImmediate =
+    SK_D3D11_WrapperFactory->wrapDeviceContext (pDevCtx);
+
+  SK_D3D11_SetWrappedImmediateContext (pDev, pWrappedImmediate);
+}
+
 _declspec (noinline)
 void
 STDMETHODCALLTYPE
@@ -8353,26 +8389,35 @@ D3D11Dev_GetImmediateContext_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (config.render.dxgi.deferred_isolation)
+  const bool bEnableImmediateWrap =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
+
+  if (bEnableImmediateWrap && ppImmediateContext != nullptr)
   {
-    if (ppImmediateContext != nullptr && wrapped_immediates->find (This) !=
-                                         wrapped_immediates->cend (    ))
+    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+      SK_D3D11_GetWrappedImmediateContext (This);
+
+    if (pWrappedContext.p != nullptr)
     {
-      (*wrapped_immediates) [This].
-        QueryInterface <ID3D11DeviceContext> (
-                         ppImmediateContext
-        );
+      pWrappedContext->QueryInterface <ID3D11DeviceContext> (
+        ppImmediateContext
+      );
+      return;
+    }
+
+    else
+    {
+      *ppImmediateContext = nullptr;
+
+      D3D11Dev_GetImmediateContext_Original (This,  ppImmediateContext);
+      SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext);
+
       return;
     }
   }
 #endif
 
-  ID3D11DeviceContext* pCtx = nullptr;
-
-  D3D11Dev_GetImmediateContext_Original (This, &pCtx);
-
-  if (ppImmediateContext != nullptr)
-     *ppImmediateContext = pCtx;
+  D3D11Dev_GetImmediateContext_Original (This, ppImmediateContext);
 }
 
 _declspec (noinline)
@@ -8382,17 +8427,46 @@ D3D11Dev_GetImmediateContext1_Override (
   _In_            ID3D11Device1         *This,
   _Out_           ID3D11DeviceContext1 **ppImmediateContext1 )
 {
+  // These versioned APIs didn't initially handle wrapped contexts, so log
+  //   if a game uses it so we can identify potentially breaking behavior
+  //     post-23.8.12.
+  SK_LOG_FIRST_CALL
+
   if (config.system.log_level > 1)
   {
     DXGI_LOG_CALL_0 (L"ID3D11Device1::GetImmediateContext1");
   }
 
-  ID3D11DeviceContext1* pCtx1 = nullptr;
+#ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
+  const bool bEnableImmediateWrap =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
 
-  D3D11Dev_GetImmediateContext1_Original (This, &pCtx1);
+  if (bEnableImmediateWrap && ppImmediateContext1 != nullptr)
+  {
+    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+      SK_D3D11_GetWrappedImmediateContext (This);
 
-  if (ppImmediateContext1 != nullptr)
-     *ppImmediateContext1 = pCtx1;
+    if (pWrappedContext.p != nullptr)
+    {
+      pWrappedContext->QueryInterface <ID3D11DeviceContext1> (
+        ppImmediateContext1
+      );
+      return;
+    }
+
+    else
+    {
+      *ppImmediateContext1 = nullptr;
+
+      D3D11Dev_GetImmediateContext1_Original (This,  ppImmediateContext1);
+      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext1);
+
+      return;
+    }
+  }
+#endif
+
+  D3D11Dev_GetImmediateContext1_Original (This, ppImmediateContext1);
 }
 
 _declspec (noinline)
@@ -8402,17 +8476,46 @@ D3D11Dev_GetImmediateContext2_Override (
   _In_            ID3D11Device2         *This,
   _Out_           ID3D11DeviceContext2 **ppImmediateContext2 )
 {
+  // These versioned APIs didn't initially handle wrapped contexts, so log
+  //   if a game uses it so we can identify potentially breaking behavior
+  //     post-23.8.12.
+  SK_LOG_FIRST_CALL
+
   if (config.system.log_level > 1)
   {
     DXGI_LOG_CALL_0 (L"ID3D11Device2::GetImmediateContext2");
   }
 
-  ID3D11DeviceContext2* pCtx2 = nullptr;
+  const bool bEnableImmediateWrap =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
 
-  D3D11Dev_GetImmediateContext2_Original (This, &pCtx2);
+#ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
+  if (bEnableImmediateWrap && ppImmediateContext2 != nullptr)
+  {
+    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+      SK_D3D11_GetWrappedImmediateContext (This);
 
-  if (ppImmediateContext2 != nullptr)
-     *ppImmediateContext2 = pCtx2;
+    if (pWrappedContext.p != nullptr)
+    {
+      pWrappedContext->QueryInterface <ID3D11DeviceContext2> (
+        ppImmediateContext2
+      );
+      return;
+    }
+
+    else
+    {
+      *ppImmediateContext2 = nullptr;
+
+      D3D11Dev_GetImmediateContext2_Original (This,  ppImmediateContext2);
+      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext2);
+
+      return;
+    }
+  }
+#endif
+
+  D3D11Dev_GetImmediateContext2_Original (This, ppImmediateContext2);
 }
 
 _declspec (noinline)
@@ -8422,17 +8525,46 @@ D3D11Dev_GetImmediateContext3_Override (
   _In_            ID3D11Device3         *This,
   _Out_           ID3D11DeviceContext3 **ppImmediateContext3 )
 {
+  // These versioned APIs didn't initially handle wrapped contexts, so log
+  //   if a game uses it so we can identify potentially breaking behavior
+  //     post-23.8.12.
+  SK_LOG_FIRST_CALL
+
   if (config.system.log_level > 1)
   {
     DXGI_LOG_CALL_0 (L"ID3D11Device3::GetImmediateContext3");
   }
 
-  ID3D11DeviceContext3* pCtx3 = nullptr;
+#ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
+  const bool bEnableImmediateWrap =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
 
-  D3D11Dev_GetImmediateContext3_Original (This, &pCtx3);
+  if (bEnableImmediateWrap && ppImmediateContext3 != nullptr)
+  {
+    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+      SK_D3D11_GetWrappedImmediateContext (This);
 
-  if (ppImmediateContext3 != nullptr)
-     *ppImmediateContext3 = pCtx3;
+    if (pWrappedContext.p != nullptr)
+    {
+      pWrappedContext->QueryInterface <ID3D11DeviceContext3> (
+        ppImmediateContext3
+      );
+      return;
+    }
+
+    else
+    {
+      *ppImmediateContext3 = nullptr;
+
+      D3D11Dev_GetImmediateContext3_Original (This,  ppImmediateContext3);
+      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext3);
+
+      return;
+    }
+  }
+#endif
+
+  D3D11Dev_GetImmediateContext3_Original (This, ppImmediateContext3);
 }
 
 

@@ -1,4 +1,8 @@
-﻿23.8.12.3
+﻿23.8.13
+=======
+ + Tales of Vesperia no longer requires D3D11 Deferred Mode for DoF disable
+
+23.8.12.3
 =========
  + Added HDR "Import" button to HDR widget and changed behavior of "Reset"
  + Reload Global\hdr.ini whenever "Import" is used to allow manual changes

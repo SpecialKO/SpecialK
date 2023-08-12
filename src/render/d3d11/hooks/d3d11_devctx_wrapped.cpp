@@ -246,8 +246,7 @@ public:
     InterlockedExchange (
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
-    AddRef ();
-
+    
     ver_ = 0;
 
     IUnknown *pPromotion = nullptr;
@@ -259,6 +258,11 @@ public:
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
+    }
+
+    else
+    {
+      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -278,7 +282,6 @@ public:
     InterlockedExchange (
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
-    AddRef ();
 
     ver_ = 1;
 
@@ -290,6 +293,11 @@ public:
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext1 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
+    }
+
+    else
+    {
+      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -310,7 +318,6 @@ public:
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
     AddRef ();
-
 
     ver_ = 2;
 
@@ -340,7 +347,6 @@ public:
     InterlockedExchange (
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
-    AddRef ();
 
     ver_ = 3;
 
@@ -350,6 +356,11 @@ public:
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext3 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
+    }
+
+    else
+    {
+      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -417,7 +428,8 @@ public:
       riid == __uuidof (ID3D11DeviceContext1) ||
       riid == __uuidof (ID3D11DeviceContext2) ||
       riid == __uuidof (ID3D11DeviceContext3) ||
-      riid == __uuidof (ID3D11DeviceContext4))
+      riid == __uuidof (ID3D11DeviceContext4) ||
+      riid == SKID_D3D11WrappedImmediateContext )
     {
       auto _GetVersion = [](REFIID riid) ->
         UINT
@@ -434,7 +446,7 @@ public:
       UINT required_ver =
         _GetVersion (riid);
 
-      if (ver_ < required_ver)
+      if (riid != SKID_D3D11WrappedImmediateContext && ver_ < required_ver)
       {
         IUnknown *pPromoted = nullptr;
 

@@ -125,7 +125,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
       pDevice->GetImmediateContext  (&pDevCtx);
 
       SK_ComQIPtr <ID3D11DeviceContext1>
-        pDevCtx1 (pDevCtx);
+          pDevCtx1 (pDevCtx);
       if (pDevCtx1.p != nullptr)
       {
         if (pDevice->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)

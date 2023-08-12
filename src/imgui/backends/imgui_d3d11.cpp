@@ -1302,8 +1302,10 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
     if (_P->pBackBuffer == nullptr)
     {
+      UINT size = sizeof (LPVOID);
+
       SK_ComPtr <IDXGISwapChain>           pUnwrappedSwapChain;
-      pSwapChain->QueryInterface ( IID_IUnwrappedDXGISwapChain,
+      pSwapChain->GetPrivateData ( IID_IUnwrappedDXGISwapChain, &size,
                                  (void **)&pUnwrappedSwapChain.p );
 
       if (pUnwrappedSwapChain.p == nullptr)
