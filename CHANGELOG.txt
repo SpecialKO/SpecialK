@@ -1,6 +1,7 @@
 ﻿23.8.12.1
 =========
  + Minor tweak to implicit window focus on foreground status
+ + Fixed Perceptual Boost not being enabled by default in HDR Profile 1
 
 23.8.12
 =======
