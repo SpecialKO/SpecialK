@@ -466,7 +466,7 @@ SK::ControlPanel::D3D11::Draw (void)
                   ImGui::SetTooltip ("A game restart is required to change this...");
 
               if (changed)
-              {\
+              {
                 dstorage.add_key_value (wszKey,
                   SK_DStorage_PriorityToStr ((DSTORAGE_PRIORITY)(prio - 1))
                 );

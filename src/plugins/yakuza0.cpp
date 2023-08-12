@@ -602,16 +602,22 @@ SK_Yakuza0_PlugInInit (void)
       shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x170885b9);
       shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x4d2973a3);
       shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x5256777a);
-      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x69b8ef91); }
+      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x69b8ef91);
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    }
 
     if (_SK_Y0_Cfg.no_dof)
     { shaders.vertex.addTrackingRef (shaders.vertex.blacklist, SK_Y0_DOF_VS_CRC32C);
       shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS0_CRC32C);
-      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS1_CRC32C); }
+      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS1_CRC32C);
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    }
 
     if (_SK_Y0_Cfg.no_fp_blur)
     { shaders.vertex.addTrackingRef (shaders.vertex.blacklist, 0xb008686a);
-      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7); }
+      shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7);
+      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+    }
   }
 
   else if (! yakuza_dragon)
@@ -1273,7 +1279,9 @@ SK_Yakuza0_PlugInCfg (void)
           shaders.pixel.addTrackingRef  (shaders.vertex.blacklist, 0x170885b9);
           shaders.pixel.addTrackingRef  (shaders.vertex.blacklist, 0x4d2973a3);
           shaders.pixel.addTrackingRef  (shaders.vertex.blacklist, 0x5256777a);
-          shaders.pixel.addTrackingRef  (shaders.vertex.blacklist, 0x69b8ef91); }
+          shaders.pixel.addTrackingRef  (shaders.vertex.blacklist, 0x69b8ef91);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
         else
         { shaders.vertex.releaseTrackingRef (shaders.vertex.blacklist, 0x97837269);
           shaders.vertex.releaseTrackingRef (shaders.vertex.blacklist, 0x7cc07f78);
@@ -1283,27 +1291,35 @@ SK_Yakuza0_PlugInCfg (void)
           shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x170885b9);
           shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x4d2973a3);
           shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x5256777a);
-          shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x69b8ef91); }
+          shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x69b8ef91);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
 
         // DOF
         if (_SK_Y0_Cfg.no_dof)
         { shaders.vertex.addTrackingRef (shaders.vertex.blacklist, SK_Y0_DOF_VS_CRC32C);
           shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS0_CRC32C);
           shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS1_CRC32C);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
         }
         else
         { shaders.vertex.releaseTrackingRef (shaders.vertex.blacklist, SK_Y0_DOF_VS_CRC32C);
           shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS0_CRC32C);
           shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  SK_Y0_DOF_PS1_CRC32C);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
         // First Person Blur
         if (_SK_Y0_Cfg.no_fp_blur)
         { shaders.vertex.addTrackingRef (shaders.vertex.blacklist, 0xb008686a);
-          shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7); }
+          shaders.pixel.addTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+        }
         else
         { shaders.vertex.releaseTrackingRef (shaders.vertex.blacklist, 0xb008686a);
-          shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7); }
+          shaders.pixel.releaseTrackingRef  (shaders.pixel.blacklist,  0x1c599fa7);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+        }
 
         _SK_Y0_NoDOF->store    (_SK_Y0_Cfg.no_dof);
         _SK_Y0_NoSSAO->store   (_SK_Y0_Cfg.no_ssao);

@@ -36,6 +36,8 @@ bool                      SK_TVFix_PlugInCfg         (void);
 HRESULT STDMETHODCALLTYPE SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 void                      SK_TVFix_BeginFrame        (void);
 
+extern volatile LONG SK_D3D11_DrawTrackingReqs;
+
 struct tv_mem_addr_s
 {
   const char*    pattern        = nullptr;
@@ -523,12 +525,14 @@ SK_TVFix_PlugInCfg (void)
         {
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
           SK_D3D11_Shaders->pixel.releaseTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
+          InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
         }
 
         else
         {
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
           SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
+          InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
         }
 
         plugin_ctx.__SK_TVFix_DisableDepthOfField = (! enable);
@@ -850,6 +854,7 @@ SK_TVFix_BeginFrame (void)
         ////instn__depth_of_field.disable ();
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x27fbcdeb);
         SK_D3D11_Shaders->pixel.addTrackingRef (SK_D3D11_Shaders->pixel.blacklist, 0x8dfd78fd);
+        InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
       }
 
       if (plugin_ctx.__SK_TVFix_DisableBloom)
