@@ -1,4 +1,9 @@
-﻿23.8.12.1
+﻿23.8.12.2
+========= 
+ + Fixed various D3D11 render state tracking related features not working in
+     Tales of Vesperia and Yakuza 0
+
+23.8.12.1
 =========
  + Minor tweak to implicit window focus on foreground status
  + Fixed Perceptual Boost not being enabled by default in HDR Profile 1

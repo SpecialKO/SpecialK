@@ -2578,7 +2578,7 @@ auto DeclKeybind =
         /////   makes texture caching / modding impossible.
         config.textures.d3d11.cache               = false;
         config.textures.cache.allow_unsafe_refs   =  true;
-        config.render.dxgi.deferred_isolation     = false;
+        config.render.dxgi.deferred_isolation     =  true; // Needed for DoF disable
         config.window.borderless                  =  true;
         config.window.fullscreen                  =  true;
         config.input.keyboard.override_alt_f4     =  true;
