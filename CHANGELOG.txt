@@ -1,6 +1,6 @@
 ﻿23.8.13
 =======
- + Tales of Vesperia no longer requires D3D11 Deferred Mode for DoF disable
+ + Tales of Vesperia defaults to D3D11 Deferred Mode for DoF disable to work
 
 23.8.12.3
 =========

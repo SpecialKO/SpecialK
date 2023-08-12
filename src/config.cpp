@@ -2701,6 +2701,7 @@ auto DeclKeybind =
         SK_ImGui_Cursor.prefs.no_warp.visible   = false;
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = true;
+        config.render.dxgi.deferred_isolation   = true; // For texture mods / HUD tracking
       } break;
 
       case SK_GAME_ID::Tales_of_Arise:
