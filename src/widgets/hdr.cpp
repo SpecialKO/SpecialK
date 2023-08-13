@@ -2421,9 +2421,10 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace& cs, glm::highp_vec3 RGB )
     SK_Color_XYZ_from_RGB ( cs, RGB );
 
   return
-    glm::highp_vec3 ( XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
-                      XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
-                                       XYZ.y );
+    glm::highp_vec3 ( XYZ.x / (           XYZ.x + XYZ.y + XYZ.z ),
+                      XYZ.y / (           XYZ.x + XYZ.y + XYZ.z ),
+                        1.0 - ( XYZ.x / ( XYZ.x + XYZ.y + XYZ.z ) )
+                            - ( XYZ.y / ( XYZ.x + XYZ.y + XYZ.z ) ) );
 }
 
 void

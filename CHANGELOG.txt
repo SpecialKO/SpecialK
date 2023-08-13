@@ -1,5 +1,7 @@
 ﻿23.8.13.3
 =========
+ + Fixed incorrect HDR gamut overshoot visualization due to missing Y component in xyY
+ + Changed Perceptual Boost back to Rec709; accidentally left in 2020 in .2
  + Fixed potential crash in PresentMon if presentation stalls long enough and
      pLast is nullptr
 

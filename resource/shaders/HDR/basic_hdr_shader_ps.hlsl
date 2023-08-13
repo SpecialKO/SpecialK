@@ -404,11 +404,11 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float3 new_color = REC2020toREC709 (
+    float3 new_color =
       PQToLinear (
-        LinearToPQ ( REC709toREC2020 (hdr_color.rgb), pb_params[0]) *
+        LinearToPQ ( hdr_color.rgb, pb_params [0]) *
                      pb_params [2], pb_params [1]
-                 ) / pb_params [3] );
+                 ) / pb_params [3];
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
@@ -446,7 +446,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (hdrGamutExpansion > 0.0f)
     {
       hdr_color.rgb =
-        expandGamut (hdr_color.rgb * 2.0f, hdrGamutExpansion) * 0.5f;
+        expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
   }
 
@@ -464,36 +464,25 @@ float4 main (PS_INPUT input) : SV_TARGET
            w = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (D65,             hdrLuminance_MaxLocal / 80.0) );
 
     float3 vColor_xyY =
-        SK_Color_xyY_from_RGB ( _ColorSpaces [cs], hdr_color.rgb / fLuma );
+         SK_Color_xyY_from_RGB ( _ColorSpaces [cs], hdr_color.rgb );
 
     float3 vTriangle [] = {
       r, g, b
     };
 
     // For time-based glow
-    float fScale    = 1.0f;
-
-    static const float3 vIdent3   = float3 ( 1.0f,    1.0f,    1.0f    );
-    static const float3 vEpsilon3 = float3 ( FLT_MIN, FLT_MIN, FLT_MIN );
+    float fScale = 1.0f;
 
     float3 fDistField =
-#if 0
       float3 (
         distance ( r, vColor_xyY ),
         distance ( g, vColor_xyY ),
         distance ( b, vColor_xyY )
       );
 
-      fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
-      fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
-      fDistField.z = IsNan (fDistField.z) ? 0 : fDistField.z;
-#else
-    sqrt ( max ( vEpsilon3, float3 (
-      dot ( PositivePow ( (r - vColor_xyY), 2.0 ), vIdent3 ),
-      dot ( PositivePow ( (g - vColor_xyY), 2.0 ), vIdent3 ),
-      dot ( PositivePow ( (b - vColor_xyY), 2.0 ), vIdent3 )
-         )     )                   );
-#endif
+    fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
+    fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
+    fDistField.z = IsNan (fDistField.z) ? 0 : fDistField.z;
 
     bool bContained =
       SK_Triangle_ContainsPoint ( vColor_xyY,
@@ -511,7 +500,7 @@ float4 main (PS_INPUT input) : SV_TARGET
         b = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (0.f, 0.f, 1.f) );
 
         fColorXYZ =
-            SK_Color_xyY_from_RGB ( _ColorSpaces [0], hdr_color.rgb / input.color.xxx );
+          SK_Color_xyY_from_RGB ( _ColorSpaces [0], hdr_color.rgb );
 
         float3 vTriangle2 [] = {
           r, g, b
