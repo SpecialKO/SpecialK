@@ -86,7 +86,7 @@ UpdateConsole ( uint32_t           processId,
                                  SwapChainData::PRESENT_HISTORY_MAX_COUNT
                               ];
 
-      static auto *pLast = p.get ();
+      static std::shared_ptr <PresentEvent> pLast = p;
 
       if (p->FinalState == PresentResult::Presented)
       {
@@ -113,12 +113,16 @@ UpdateConsole ( uint32_t           processId,
         frame_record.timestamps.qpcScannedOut      = p->ScreenTime;
         frame_record.timestamps.qpcPresentOverhead = p->TimeTaken;
 
-        frame_record.stats.display = QpcDeltaToSeconds (p->ScreenTime - pLast->ScreenTime);
-        frame_record.stats.cpu     = QpcDeltaToSeconds (p->QpcTime    -    pLast->QpcTime);
-        frame_record.stats.idle    = QpcDeltaToSeconds (p->ScreenTime -      p->ReadyTime);
-        frame_record.stats.latency = QpcDeltaToSeconds (p->ScreenTime -        p->QpcTime);
+        if (pLast != nullptr)
+        {
+          frame_record.stats.display = QpcDeltaToSeconds (p->ScreenTime - pLast->ScreenTime);
+          frame_record.stats.cpu     = QpcDeltaToSeconds (p->QpcTime    -    pLast->QpcTime);
+        }
 
-        pLast = p.get ();
+        frame_record.stats.idle      = QpcDeltaToSeconds (p->ScreenTime -      p->ReadyTime);
+        frame_record.stats.latency   = QpcDeltaToSeconds (p->ScreenTime -        p->QpcTime);
+
+        pLast = p;
       }
     }
 

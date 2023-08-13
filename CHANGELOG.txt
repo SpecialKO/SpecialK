@@ -1,4 +1,9 @@
-﻿23.8.13.2
+﻿23.8.13.3
+=========
+ + Fixed potential crash in PresentMon if presentation stalls long enough and
+     pLast is nullptr
+
+23.8.13.2
 =========
  + Added GDeflate support and usage tracking for DirectStorage titles
 
