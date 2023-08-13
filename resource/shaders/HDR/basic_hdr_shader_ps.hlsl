@@ -368,7 +368,23 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color =
       SK_ProcessColor4 (hdr_color, uiToneMapper);
   }
+    
+#ifdef INCLUDE_HDR10
+  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
+#endif
+  {
+    if ( hdrSaturation >= 1.0f + FLT_MIN ||
+         hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
+    {
+      float saturation =
+        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
 
+      hdr_color.rgb =
+        Saturation ( hdr_color.rgb,
+                     saturation );
+    }
+  }
+    
 #ifdef INCLUDE_HDR10
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
@@ -388,34 +404,18 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float3 new_color = XYZtosRGB (
+    float3 new_color =
       PQToLinear (
-        LinearToPQ ( sRGBtoXYZ (hdr_color.rgb), pb_params [0] ) *
+        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
                      pb_params [2], pb_params [1]
-                 ) / pb_params [3]);
+                 ) / pb_params [3];
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
 #endif
       hdr_color.rgb = new_color;
   }
-
-#ifdef INCLUDE_HDR10
-  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
-#endif
-  {
-    if ( hdrSaturation >= 1.0f + FLT_MIN ||
-         hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
-    {
-      float saturation =
-        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-
-      hdr_color.rgb =
-        Saturation ( hdr_color.rgb,
-                     saturation );
-    }
-  }
-
+    
 #if 0
   float3 vNormalColor =
     normalize (hdr_color.rgb);

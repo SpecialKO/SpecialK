@@ -1,4 +1,11 @@
-﻿23.8.13
+﻿23.8.13.1
+=========
+ + Apply saturation and gamma before Perceptual Boost
+
+     >> Default presets have been changed to 100% saturation to compensate for
+          MASSIVE loss in color gamut
+
+23.8.13
 =======
  + Tales of Vesperia defaults to D3D11 Deferred Mode for DoF disable to work
 
