@@ -310,8 +310,8 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
   {
-    if ( input.color.x < 0.0125f - FLT_MIN ||
-         input.color.x > 0.0125f + FLT_MIN )
+    if ( input.color.x < 0.0125f - FLT_EPSILON ||
+         input.color.x > 0.0125f + FLT_EPSILON )
     {
       hdr_color.rgb = clamp (LinearToLogC (hdr_color.rgb), 0.0, 125.0);
       hdr_color.rgb =        Contrast     (hdr_color.rgb,
@@ -373,22 +373,6 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
   {
-    if ( hdrSaturation >= 1.0f + FLT_MIN ||
-         hdrSaturation <= 1.0f - FLT_MIN || uiToneMapper == TONEMAP_ACES_FILMIC )
-    {
-      float saturation =
-        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-
-      hdr_color.rgb =
-        Saturation ( hdr_color.rgb,
-                     saturation );
-    }
-  }
-    
-#ifdef INCLUDE_HDR10
-  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
-#endif
-  {
     hdr_color.rgb =
       PositivePow ( hdr_color.rgb,
                   input.color.yyy );
@@ -414,6 +398,22 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (! AnyIsNan (  new_color))
 #endif
       hdr_color.rgb = new_color;
+  }
+    
+#ifdef INCLUDE_HDR10
+  if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
+#endif
+  {
+    if ( hdrSaturation >= 1.0f + FLT_EPSILON ||
+         hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
+    {
+      float saturation =
+        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
+
+      hdr_color.rgb =
+        Saturation ( hdr_color.rgb,
+                     saturation );
+    }
   }
     
 #if 0
@@ -464,7 +464,7 @@ float4 main (PS_INPUT input) : SV_TARGET
            w = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (D65,             hdrLuminance_MaxLocal / 80.0) );
 
     float3 vColor_xyY =
-         SK_Color_xyY_from_RGB ( _ColorSpaces [cs], hdr_color.rgb );
+         SK_Color_xyY_from_RGB ( _ColorSpaces [cs], normalize (hdr_color.rgb) );
 
     float3 vTriangle [] = {
       r, g, b

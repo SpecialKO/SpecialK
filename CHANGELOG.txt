@@ -1,6 +1,10 @@
-﻿23.8.13.3
+﻿23.8.14
+=======
+ + Moved saturation back to applying after Perceptual Boost to fix hue shift
+ + Fixed incorrect HDR gamut overshoot visualization due to unnormalized xyY color
+
+23.8.13.3
 =========
- + Fixed incorrect HDR gamut overshoot visualization due to missing Y component in xyY
  + Changed Perceptual Boost back to Rec709; accidentally left in 2020 in .2
  + Fixed potential crash in PresentMon if presentation stalls long enough and
      pLast is nullptr
