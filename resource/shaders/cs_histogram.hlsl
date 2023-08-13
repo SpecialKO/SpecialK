@@ -3,6 +3,7 @@
 #pragma warning (disable: 3205)
 
 #define ANALYZE_GAMUT
+//#define DISPLAY_GAMUT_ON_SCREEN
 //#define GENERATE_HISTOGRAM
 
 RWTexture2D<float4>           texBackbufferHDR  : register (u0);
@@ -146,23 +147,20 @@ LocalHistogramWorker ( uint3 globalIdx : SV_DispatchThreadID,
           }
         
 #ifdef  ANALYZE_GAMUT
-          float3 xyY =
-            SK_Color_xyY_from_RGB (
-                            _sRGB,
-               color / dot (
-                 color, float3 ( 0.2126729,
-                                 0.7151522,
-                                 0.0721750 )
-                           )      );
+          float3 XYZ = sRGBtoXYZ (color.rgb);
+          float  xyz = XYZ.x + XYZ.y + XYZ.z;
+                        
+          float4 normalized_color =
+            float4 (color.rgb / xyz, 1.0);
         
-          texGamutCoverage [ uint2 ( 1024 * xyY.z,
-                                     1024 -  1024 * xyY.y ) ].rgba =
-            float4 (color.rgb, 1.0);
-        
+          texGamutCoverage [ uint2 (        1024 * XYZ.x / xyz,
+                                     1024 - 1024 * XYZ.y / xyz ) ].rgba =
+            normalized_color;
+
 #ifdef DISPLAY_GAMUT_ON_SCREEN
-          texBackbufferHDR [ uint2 ( image.width  * xyY.z,
-                      image.height - image.height * xyY.y ) ].rgba =
-            float4 (color.rgb, 1.0);
+          texBackbufferHDR [ uint2 ( image.width  * XYZ.x / xyz,
+                      image.height - image.height * XYZ.y / xyz ) ].rgba =
+            normalized_color;
 #endif
 #endif  
         }
