@@ -404,11 +404,11 @@ float4 main (PS_INPUT input) : SV_TARGET
         pqBoostParams.w
       };
 
-    float3 new_color =
+    float3 new_color = REC2020toREC709 (
       PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
+        LinearToPQ ( REC709toREC2020 (hdr_color.rgb), pb_params[0]) *
                      pb_params [2], pb_params [1]
-                 ) / pb_params [3];
+                 ) / pb_params [3] );
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))

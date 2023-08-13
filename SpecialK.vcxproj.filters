@@ -2943,6 +2943,12 @@
     <ClInclude Include="include\SpecialK\render\dstorage\dstorageerr.h">
       <Filter>Header Files\Backends\Render\DStorage</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dstorage\dstorage_factory.h">
+      <Filter>Header Files\Backends\Render\DStorage</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\dstorage\dstorage_queue.h">
+      <Filter>Header Files\Backends\Render\DStorage</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3484,6 +3490,12 @@
     </ClCompile>
     <ClCompile Include="src\render\streamline\streamline.cpp">
       <Filter>Source Files\Backends\Render\Streamline</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dstorage\dstorage_factory.cpp">
+      <Filter>Source Files\Backends\Render\DStorage</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\dstorage\dstorage_queue.cpp">
+      <Filter>Source Files\Backends\Render\DStorage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

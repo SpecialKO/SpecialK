@@ -1189,8 +1189,9 @@ void SK_DStorage_Init            (void);
 bool SK_DStorage_IsLoaded        (void);
 bool SK_DStorage_IsUsingGDeflate (void);
 
-UINT32 SK_DStorage_GetNumSubmitThreads                  (void);
-INT32  SK_DStorage_GetNumBuiltInCpuDecompressionThreads (void);
+UINT32                       SK_DStorage_GetNumSubmitThreads                  (void);
+INT32                        SK_DStorage_GetNumBuiltInCpuDecompressionThreads (void);
+DSTORAGE_COMPRESSION_SUPPORT SK_DStorage_GetGDeflateSupport                   (void);
 
 const wchar_t*    SK_DStorage_PriorityToStr   (DSTORAGE_PRIORITY prio);
 DSTORAGE_PRIORITY SK_DStorage_PriorityFromStr (const wchar_t *wszPrio);

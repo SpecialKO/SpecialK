@@ -1,4 +1,8 @@
-﻿23.8.13.1
+﻿23.8.13.2
+=========
+ + Added GDeflate support and usage tracking for DirectStorage titles
+
+23.8.13.1
 =========
  + Apply saturation and gamma before Perceptual Boost
 

@@ -429,6 +429,42 @@ SK::ControlPanel::D3D11::Draw (void)
 
         if (ImGui::CollapsingHeader ("Direct Storage", ImGuiTreeNodeFlags_DefaultOpen))
         {
+          ImGui::BeginGroup ();
+          ImGui::
+            TextUnformatted ("GDeflate Support: ");
+          ImGui::
+            TextUnformatted ("GDeflate Usage: ");
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          DSTORAGE_COMPRESSION_SUPPORT gdeflate_support =
+            SK_DStorage_GetGDeflateSupport ();
+          if (gdeflate_support == DSTORAGE_COMPRESSION_SUPPORT::DSTORAGE_COMPRESSION_SUPPORT_NONE)
+          {
+            ImGui::Text     ("N/A");
+          }
+          else
+          {
+            const bool gdeflate_cpu_fallback =
+              (gdeflate_support & DSTORAGE_COMPRESSION_SUPPORT_CPU_FALLBACK) != 0;
+            const bool gdeflate_gpu_fallback =
+              (gdeflate_support & DSTORAGE_COMPRESSION_SUPPORT_GPU_FALLBACK) != 0;
+            ImGui::Text     (
+              "%hs, using %hs",
+                ( gdeflate_cpu_fallback ? "CPU Fallback"
+                                        :
+                  gdeflate_gpu_fallback ? "GPU Fallback"
+                                        : "GPU Optimized" ),
+                    (gdeflate_support & DSTORAGE_COMPRESSION_SUPPORT_USES_COMPUTE_QUEUE) != 0 ?
+                                          "Compute Queue"
+                                        : "Copy Queue"
+            );
+          }
+          ImGui::
+            TextUnformatted ( SK_DStorage_IsUsingGDeflate () ? "Yes"
+                                                             : "No" );
+          ImGui::EndGroup   ();
+
 #if 0
           ImGui::BeginGroup ();
           ImGui::
@@ -445,49 +481,48 @@ SK::ControlPanel::D3D11::Draw (void)
 
           if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
           {
-            ImGui::Text ("Priorities (Ratchet and Clank):");
-
-            ImGui::TreePush ("");
-
-            auto &dstorage =
-              SK_GetDLLConfig ()->get_section (L"RatchetAndClank.DStorage");
-
-            bool changed = false;
-
-            auto PriorityComboBox = [&](const char *szName, const wchar_t *wszKey)->bool
+            if (ImGui::TreeNode ("Priorities (Ratchet and Clank)"))
             {
-              int prio =
-                SK_DStorage_PriorityFromStr (dstorage.get_cvalue (wszKey).c_str ()) + 1;
+              auto &dstorage =
+                SK_GetDLLConfig ()->get_section (L"RatchetAndClank.DStorage");
 
-              bool changed =
-                ImGui::Combo (szName, &prio, "Low\0Normal\0High\0Realtime\0\0");
+              bool changed = false;
 
-              if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("A game restart is required to change this...");
+              auto PriorityComboBox = [&](const char *szName, const wchar_t *wszKey)->bool
+              {
+                int prio =
+                  SK_DStorage_PriorityFromStr (dstorage.get_cvalue (wszKey).c_str ()) + 1;
+
+                bool changed =
+                  ImGui::Combo (szName, &prio, "Low\0Normal\0High\0Realtime\0\0");
+
+                if (ImGui::IsItemHovered ())
+                    ImGui::SetTooltip ("A game restart is required to change this...");
+
+                if (changed)
+                {
+                  dstorage.add_key_value (wszKey,
+                    SK_DStorage_PriorityToStr ((DSTORAGE_PRIORITY)(prio - 1))
+                  );
+                }
+
+                return changed;
+              };
+
+              changed |=
+                PriorityComboBox (      "Bulk Load",           L"BulkPriority");
+              changed |=
+                PriorityComboBox (    "Loose reads",      L"LooseReadPriority");
+              changed |=
+                PriorityComboBox (        "Texture",        L"TexturePriority");
+              changed |=
+                PriorityComboBox ("NxStorage Index", L"NxStorageIndexPriority");
 
               if (changed)
-              {
-                dstorage.add_key_value (wszKey,
-                  SK_DStorage_PriorityToStr ((DSTORAGE_PRIORITY)(prio - 1))
-                );
-              }
+                SK_SaveConfig ();
 
-              return changed;
-            };
-
-            changed |=
-              PriorityComboBox (      "Bulk Load",           L"BulkPriority");
-            changed |=
-              PriorityComboBox (    "Loose reads",      L"LooseReadPriority");
-            changed |=
-              PriorityComboBox (        "Texture",        L"TexturePriority");
-            changed |=
-              PriorityComboBox ("NxStorage Index", L"NxStorageIndexPriority");
-
-            if (changed)
-              SK_SaveConfig ();
-
-            ImGui::TreePop  ();
+              ImGui::TreePop  ();
+            }
           }
 
           if (ImGui::TreeNode ("Overrides"))

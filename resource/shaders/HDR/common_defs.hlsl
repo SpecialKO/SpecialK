@@ -64,6 +64,8 @@ cbuffer colorSpaceTransform : register (b0)
 #define FLT_MIN         1.175494351e-38 // Minimum representable positive floating-point number
 #define FLT_MAX         3.402823466e+38 // Maximum representable floating-point number
 
+#define USE_PRECISE_LOGC 1
+
 bool IsFinite (float x)
 {
   return

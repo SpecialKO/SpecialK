@@ -27,6 +27,7 @@
 #define __SK_SUBSYSTEM__ L" DStorage "
 
 #include <SpecialK/render/dstorage/dstorage.h>
+#include <SpecialK/render/dstorage/dstorage_factory.h>
 
 DStorageCreateCompressionCodec_pfn DStorageCreateCompressionCodec_Original = nullptr;
 DStorageGetFactory_pfn             DStorageGetFactory_Original             = nullptr;
@@ -36,7 +37,14 @@ DStorageSetConfiguration1_pfn      DStorageSetConfiguration1_Original      = nul
 bool SK_DStorage_UsingDLL      = false;
 bool SK_DStorage_UsingGDeflate = false;
 
-DSTORAGE_CONFIGURATION SK_DStorage_LastConfig = { };
+DSTORAGE_CONFIGURATION       SK_DStorage_LastConfig      = { };
+DSTORAGE_COMPRESSION_SUPPORT SK_DStorage_GDeflateSupport = { };
+//
+// Compression support is technically per-queue, but for the time being they all have
+//   the same capabilities.
+// 
+// * This may change if different queue types are added...
+//
 
 void
 SK_DStorage_ApplyConfigOverrides (DSTORAGE_CONFIGURATION *pConfig)
@@ -173,119 +181,6 @@ SK_DStorage_PriorityFromStr (const wchar_t *wszPrio)
 
   return DSTORAGE_PRIORITY_NORMAL;
 }
-
-class SK_IWrapDStorageFactory : IDStorageFactory
-{
-public:
-  SK_IWrapDStorageFactory (IDStorageFactory *pFactory)
-  {
-    pReal = pFactory;
-  }
-
-  HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject) override
-  {
-    return
-      pReal->QueryInterface (riid, ppvObject);
-  }
-
-  ULONG STDMETHODCALLTYPE AddRef (void) override
-  {
-    return
-      pReal->AddRef ();
-  }
-  
-  ULONG STDMETHODCALLTYPE Release (void) override
-  {
-    return
-      pReal->Release ();
-  }
-
-  HRESULT STDMETHODCALLTYPE CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID riid, _COM_Outptr_ void **ppv) override
-  {
-    DSTORAGE_QUEUE_DESC override_desc = *desc;
-
-    SK_LOGi0 (
-      L"SK_IWrapDStorageFactory::CreateQueue (Priority=%ws, Name=%hs)",
-        SK_DStorage_PriorityToStr (desc->Priority),
-                                   desc->Name != nullptr ?
-                                   desc->Name : "Unnamed" );
-
-    if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
-    {
-      if (desc->Name != nullptr)
-      {
-        auto &dstorage =
-          SK_GetDLLConfig ()->get_section (L"RatchetAndClank.DStorage");
-
-        if (0 == _stricmp (desc->Name, "Bulk"))
-        {
-          if (! dstorage.contains_key  (L"BulkPriority"))
-                dstorage.add_key_value (L"BulkPriority", L"Normal");
-
-          override_desc.Priority =
-            SK_DStorage_PriorityFromStr (dstorage.get_value (L"BulkPriority").c_str ());
-        }
-
-        else if (0 == _stricmp (desc->Name, "Loose reads"))
-        {
-          if (! dstorage.contains_key  (L"LooseReadPriority"))
-                dstorage.add_key_value (L"LooseReadPriority", L"High");
-
-          override_desc.Priority =
-            SK_DStorage_PriorityFromStr (dstorage.get_value (L"LooseReadPriority").c_str ());
-        }
-
-        else if (0 == _stricmp (desc->Name, "Texture"))
-        {
-          if (! dstorage.contains_key  (L"TexturePriority"))
-                dstorage.add_key_value (L"TexturePriority", L"Low");
-
-          override_desc.Priority =
-            SK_DStorage_PriorityFromStr (dstorage.get_value (L"TexturePriority").c_str ());
-        }
-
-        else if (0 == _stricmp (desc->Name, "NxStorage Index"))
-        {
-          if (! dstorage.contains_key  (L"NxStorageIndexPriority"))
-                dstorage.add_key_value (L"NxStorageIndexPriority", L"Realtime");
-
-          override_desc.Priority =
-            SK_DStorage_PriorityFromStr (dstorage.get_value (L"NxStorageIndexPriority").c_str ());
-        }
-      }
-    }
-
-    return
-      pReal->CreateQueue (&override_desc, riid, ppv);
-  }
-
-  HRESULT STDMETHODCALLTYPE OpenFile (_In_z_ const WCHAR *path, REFIID riid, _COM_Outptr_ void **ppv) override
-  {
-    return
-      pReal->OpenFile (path, riid, ppv);
-  }
-
-  HRESULT STDMETHODCALLTYPE CreateStatusArray (UINT32 capacity, _In_opt_ PCSTR name, REFIID riid, _COM_Outptr_ void **ppv) override
-  {
-    return
-      pReal->CreateStatusArray (capacity, name, riid, ppv);
-  }
-
-  void STDMETHODCALLTYPE SetDebugFlags (UINT32 flags) override
-  {
-    return
-      pReal->SetDebugFlags (flags);
-  }
-  
-  HRESULT STDMETHODCALLTYPE SetStagingBufferSize (UINT32 size) override
-  {
-    return
-      pReal->SetStagingBufferSize (size);
-  }
-
-private:
-  IDStorageFactory *pReal = nullptr;
-};
 
 HRESULT
 WINAPI
