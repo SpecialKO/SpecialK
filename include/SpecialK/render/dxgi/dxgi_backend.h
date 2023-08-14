@@ -351,6 +351,10 @@ SK_D3D11_CopyContextHandle ( ID3D11DeviceContext *pSrcCtx,
 extern std::string
 SK_WideCharToUTF8 (const std::wstring& in);
 
+bool SK_DXGI_HasDebugName (       IDXGIObject* pDXGIObject );
+void SK_DXGI_SetDebugName (       IDXGIObject* pDXGIObject,
+                           const std::wstring& kName );
+
 bool SK_D3D11_HasDebugName (       ID3D11DeviceChild* pDevChild );
 void SK_D3D11_SetDebugName (       ID3D11DeviceChild* pDevChild,
                              const std::wstring&      kName );
