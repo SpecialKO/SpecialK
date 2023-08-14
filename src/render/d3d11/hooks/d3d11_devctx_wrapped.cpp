@@ -551,7 +551,34 @@ public:
     {
       SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
 
-      SK_ImGui_Warning (L"Destroying Immediate Context");
+      SK_LOGi0 (L"IWrapDeviceContext Destroyed");
+    }
+
+    if (refs == 1 && !deferred_) // Immediate contexts are a singleton
+    {
+      SK_LOGi0 (
+        L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
+      );
+
+      //
+      // Force any pending object destruction to happen immediately,
+      //   the parent device may have a circular dependency on the wrapped
+      //     device context and we need to cleanup device resources.
+      //
+      // * This deferred object destruction is only problematic in 32-bit.
+      //
+      pReal->ClearState ();
+      pReal->Flush      ();
+
+      SK_ComPtr <ID3D11Device> pDevice;
+      pReal->GetDevice       (&pDevice.p);
+
+      extern BOOL
+      SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
+                                            ID3D11DeviceContext *pDevCtx );
+
+      SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
+      SK_DXGI_ReportLiveObjects           (pDevice);
     }
 
     return refs;

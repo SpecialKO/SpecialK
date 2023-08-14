@@ -7808,15 +7808,20 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
     if (ret_device != nullptr && ret_ctx != nullptr)
     {
+    // Do Not Use: D3D11 itself will call GetImmediateContext (...)
+    //   during device creation, which SK already has a hook on and will
+    //     return a wrapped interface to.
+#if 0
       ret_ctx =
         SK_D3D11_WrapperFactory->wrapDeviceContext (ret_ctx);
-
       SK_D3D11_SetWrappedImmediateContext (ret_device, ret_ctx);
+#endif
 
       if (ppImmediateContext != nullptr)
          *ppImmediateContext = ret_ctx;
       else
       {
+        ret_ctx->Release (); // Release the reference we added...
         SK_LOGi0 (L"Game Did Not Request Immediate Context...?!");
       }
     }
@@ -7825,6 +7830,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 #endif
     if (ppImmediateContext != nullptr)
        *ppImmediateContext = ret_ctx;
+    else if (ret_ctx != nullptr)
+      ret_ctx->Release (); // Release the reference we added...
 
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games
@@ -8168,17 +8175,19 @@ D3D11Dev_CreateDeferredContext3_Override (
   return D3D11Dev_CreateDeferredContext3_Original (This, ContextFlags, nullptr);
 }
 
-void
+ID3D11DeviceContext*
 SK_D3D11_WrapAndStashImmediateContext ( ID3D11Device        *pDev,
                                         ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr)
-    return;
+    return nullptr;
 
-  SK_ComPtr <ID3D11DeviceContext> pWrappedImmediate =
+  ID3D11DeviceContext *pWrappedImmediate =
     SK_D3D11_WrapperFactory->wrapDeviceContext (pDevCtx);
 
   SK_D3D11_SetWrappedImmediateContext (pDev, pWrappedImmediate);
+
+  return pWrappedImmediate;
 }
 
 _declspec (noinline)
@@ -8196,23 +8205,21 @@ D3D11Dev_GetImmediateContext_Override (
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
   if (ppImmediateContext != nullptr)
   {
-    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+    ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
 
-    if (pWrappedContext.p != nullptr)
+    if (pWrappedContext != nullptr)
     {
-      pWrappedContext->QueryInterface <ID3D11DeviceContext> (
-        ppImmediateContext
-      );
+      *ppImmediateContext = pWrappedContext;
       return;
     }
 
     else
     {
-      *ppImmediateContext = nullptr;
+      D3D11Dev_GetImmediateContext_Original (This, ppImmediateContext);
 
-      D3D11Dev_GetImmediateContext_Original (This,  ppImmediateContext);
-      SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext);
+      *ppImmediateContext =
+        SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext);
 
       return;
     }
@@ -8242,23 +8249,21 @@ D3D11Dev_GetImmediateContext1_Override (
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
   if (ppImmediateContext1 != nullptr)
   {
-    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+    ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
 
-    if (pWrappedContext.p != nullptr)
+    if (pWrappedContext != nullptr)
     {
-      pWrappedContext->QueryInterface <ID3D11DeviceContext1> (
-        ppImmediateContext1
-      );
+      *ppImmediateContext1 = (ID3D11DeviceContext1 *)pWrappedContext;
       return;
     }
 
     else
     {
-      *ppImmediateContext1 = nullptr;
+      D3D11Dev_GetImmediateContext1_Original (This, ppImmediateContext1);
 
-      D3D11Dev_GetImmediateContext1_Original (This,  ppImmediateContext1);
-      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext1);
+      *ppImmediateContext1 = (ID3D11DeviceContext1 *)
+        SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext1);
 
       return;
     }
@@ -8288,23 +8293,21 @@ D3D11Dev_GetImmediateContext2_Override (
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
   if (ppImmediateContext2 != nullptr)
   {
-    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+    ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
 
-    if (pWrappedContext.p != nullptr)
+    if (pWrappedContext != nullptr)
     {
-      pWrappedContext->QueryInterface <ID3D11DeviceContext2> (
-        ppImmediateContext2
-      );
+      *ppImmediateContext2 = (ID3D11DeviceContext2 *)pWrappedContext;
       return;
     }
 
     else
     {
-      *ppImmediateContext2 = nullptr;
+      D3D11Dev_GetImmediateContext2_Original (This, ppImmediateContext2);
 
-      D3D11Dev_GetImmediateContext2_Original (This,  ppImmediateContext2);
-      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext2);
+      *ppImmediateContext2 = (ID3D11DeviceContext2 *)
+        SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext2);
 
       return;
     }
@@ -8334,23 +8337,21 @@ D3D11Dev_GetImmediateContext3_Override (
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
   if (ppImmediateContext3 != nullptr)
   {
-    SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
+    ID3D11DeviceContext *pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
 
-    if (pWrappedContext.p != nullptr)
+    if (pWrappedContext != nullptr)
     {
-      pWrappedContext->QueryInterface <ID3D11DeviceContext3> (
-        ppImmediateContext3
-      );
+      *ppImmediateContext3 = (ID3D11DeviceContext3 *)pWrappedContext;
       return;
     }
 
     else
     {
-      *ppImmediateContext3 = nullptr;
+      D3D11Dev_GetImmediateContext3_Original (This, ppImmediateContext3);
 
-      D3D11Dev_GetImmediateContext3_Original (This,  ppImmediateContext3);
-      SK_D3D11_WrapAndStashImmediateContext  (This, *ppImmediateContext3);
+      *ppImmediateContext3 = (ID3D11DeviceContext3 *)
+        SK_D3D11_WrapAndStashImmediateContext (This, *ppImmediateContext3);
 
       return;
     }
