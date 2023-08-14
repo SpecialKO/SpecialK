@@ -6526,6 +6526,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     {
       if (pDev11.p != nullptr)
       {
+        bool bNvInterop = false;
+
         //
         // Detect NVIDIA's Interop SwapChain
         //
@@ -6538,10 +6540,16 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
           );
 
           SK_LOGi0 (L"Detected a Vulkan/DXGI Interop SwapChain");
+
+          bNvInterop = true;
         }
 
-        SK_DXGI_MakeCachedSwapChainForHwnd
-             ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
+        // Don't cache SwapChains, NVIDIA always creates a new device
+        if (! bNvInterop)
+        {
+          SK_DXGI_MakeCachedSwapChainForHwnd
+               ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
+        }
       }
 
       // D3D12
