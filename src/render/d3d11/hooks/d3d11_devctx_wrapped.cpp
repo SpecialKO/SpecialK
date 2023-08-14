@@ -148,7 +148,7 @@ public:
          riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4
     {
       static
-        conmcurrency::concurrent_unordered_set <std::wstring> reported_guids;
+        concurrency::concurrent_unordered_set <std::wstring> reported_guids;
 
       wchar_t                wszGUID [41] = { };
       StringFromGUID2 (riid, wszGUID, 40);

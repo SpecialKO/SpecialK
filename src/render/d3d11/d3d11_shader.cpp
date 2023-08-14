@@ -4627,8 +4627,8 @@ struct SK_D3D11_CommandBase
 
         else
         {
-              loaded_configs->emplace (args);
-          SK_D3D11_LoadShaderStateEx  (args, false);
+              loaded_configs->insert (args);
+          SK_D3D11_LoadShaderStateEx (args, false);
         }
 
         return SK_ICommandResult ("D3D11.ShaderMods.ToggleConfig", szArgs, "done", 1, nullptr, this);
