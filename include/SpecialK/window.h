@@ -343,51 +343,49 @@ extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 struct sk_window_s {
        sk_window_s (void) noexcept { };
 
-  bool       unicode          = false;
+  bool        unicode          = false;
 
-  HWND       hWnd             = nullptr;
-  HWND       parent           = nullptr;
-  HWND       child            = nullptr; // Render viewport
-  HWND       top              = nullptr;
-  WNDPROC    WndProc_Original = nullptr;
-  WNDPROC    RawProc_Original = nullptr;
+  HWND        hWnd             = nullptr;
+  HWND        parent           = nullptr;
+  HWND        child            = nullptr; // Render viewport
+  HWND        top              = nullptr;
+  WNDPROC     WndProc_Original = nullptr;
+  WNDPROC     RawProc_Original = nullptr;
 
-  bool       exclusive_full   = false; //D3D only
+  bool        exclusive_full   = false; //D3D only
 
-  bool       active           = true;
+  bool        active           = false;
 
   struct {
-    bool     inside           = true;
-    bool     tracking         = false;
-    bool     can_track        = false; // Able to use TrackMouseEvent?
-    DWORD    last_move_msg    = 0UL;
+    bool      inside           = true;
+    bool      tracking         = false;
+    bool      can_track        = false; // Able to use TrackMouseEvent?
+    DWORD     last_move_msg    = 0UL;
   } mouse;
 
   struct {
-    int width  = 0;
-    int height = 0;
+    int       width            = 0;
+    int       height           = 0;
   } border;
 
   struct {
     struct {
-      LONG   width            = 640;
-      LONG   height           = 480;
+      LONG    width            = 640;
+      LONG    height           = 480;
     } framebuffer;
 
-    //struct {
-    RECT   client { 0, 0, 640, 480 };
-    RECT   window { 0, 0, 640, 480 };
-    //};
+    RECT      client { 0, 0, 640, 480 };
+    RECT      window { 0, 0, 640, 480 };
 
-    ULONG_PTR style           = 0x0;//WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-    ULONG_PTR style_ex        = 0x0;//WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
+    ULONG_PTR style            = 0x0;//WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+    ULONG_PTR style_ex         = 0x0;//WS_EX_APPWINDOW     | WS_EX_WINDOWEDGE;
   } game, actual;
 
-  ULONG_PTR   border_style    = WS_CAPTION      | WS_SYSMENU | WS_POPUP |
-                                WS_MINIMIZEBOX  | WS_VISIBLE |
-                                WS_CLIPSIBLINGS |
-                                WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW;
-  ULONG_PTR   border_style_ex = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+  ULONG_PTR   border_style     = WS_CAPTION      | WS_SYSMENU | WS_POPUP |
+                                 WS_MINIMIZEBOX  | WS_VISIBLE |
+                                 WS_CLIPSIBLINGS |
+                                 WS_CLIPCHILDREN | WS_OVERLAPPEDWINDOW;
+  ULONG_PTR   border_style_ex  = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 
 //  RECT      rect        { 0, 0,
 //                          0, 0 };
@@ -396,37 +394,37 @@ struct sk_window_s {
 
   struct {
     // Will be false if remapping is necessary
-    bool     identical        = true;
+    bool      identical        = true;
 
     struct {
-      float  x                = 1.0F;
-      float  y                = 1.0F;
+      float   x                = 1.0F;
+      float   y                = 1.0F;
     } scale;
 
     struct {
-      float  x                = 0.0F;
-      float  y                = 0.0F;
+      float   x                = 0.0F;
+      float   y                = 0.0F;
     } offset;
   } coord_remap;
 
-  LONG      render_x         = 640;
-  LONG      render_y         = 480;
+  LONG        render_x         = 640;
+  LONG        render_y         = 480;
 
-  LONG      game_x           = 640; // Resolution game thinks it's running at
-  LONG      game_y           = 480; // Resolution game thinks it's running at
+  LONG        game_x           = 640; // Resolution game thinks it's running at
+  LONG        game_y           = 480; // Resolution game thinks it's running at
 
-  RECT      cursor_clip { LONG_MIN, LONG_MIN,
-                          LONG_MAX, LONG_MAX };
+  RECT        cursor_clip { LONG_MIN, LONG_MIN,
+                            LONG_MAX, LONG_MAX };
 
   // Cursor position when window activation changed
-  POINT     cursor_pos  { 0, 0 };
+  POINT       cursor_pos  { 0, 0 };
 
   // State to restore the cursor to
   //  (TODO: Should probably be a reference count to return to)
-  bool      cursor_visible   = true;
+  bool        cursor_visible   = true;
 
   // Next call to AdjustBorder will add a border if one does not exist
-  bool      attach_border    = false;
+  bool        attach_border    = false;
 
   void    getRenderDims (LONG& x, LONG& y) noexcept {
     x = (actual.client.right  - actual.client.left);

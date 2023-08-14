@@ -528,7 +528,7 @@ public:
               if (! config.window.unconfine_cursor)
               {
               //if (! wm_dispatch->moving_windows.count (game_window.hWnd))
-                if (config.window.confine_cursor)
+                if (config.window.confine_cursor && game_window.active)
                 {
                   const RECT clip =
                     game_window.actual.window;
@@ -572,7 +572,7 @@ public:
               config.window.res.override.y = 0;
             }
 
-            if (config.window.confine_cursor)
+            if (config.window.confine_cursor && game_window.active)
               SK_ClipCursor (&game_window.actual.window);
 
             return true;
