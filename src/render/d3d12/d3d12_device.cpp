@@ -1130,7 +1130,7 @@ SK_ITrackD3D12Resource::QueryInterface (REFIID riid, void **ppvObj)
        riid != IID_ID3DUserDefinedAnnotation )
   {
     static
-      std::unordered_set <std::wstring> reported_guids;
+      concurrency::concurrent_unordered_set <std::wstring> reported_guids;
 
     wchar_t                wszGUID [41] = { };
     StringFromGUID2 (riid, wszGUID, 40);
@@ -1140,7 +1140,7 @@ SK_ITrackD3D12Resource::QueryInterface (REFIID riid, void **ppvObj)
 
     if (! once)
     {
-      reported_guids.emplace (wszGUID);
+      reported_guids.insert (wszGUID);
 
       SK_LOG0 ( ( L"QueryInterface on tracked D3D12 Resource for Mystery UUID: %s",
                       wszGUID ), L"   DXGI   " );

@@ -288,7 +288,7 @@ SK_XInput_GetPrimaryHookName (void)
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend->markWrite  (type);
 #define SK_XINPUT_VIEW(slot)  SK_XInput_Backend->markViewed ((sk_input_dev_type)(1 << slot));
 
-static SK_LazyGlobal <std::unordered_set <HMODULE>> warned_modules;
+static SK_LazyGlobal <concurrency::concurrent_unordered_set <HMODULE>> warned_modules;
 
 void
 SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,

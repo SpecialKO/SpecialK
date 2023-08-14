@@ -30,6 +30,8 @@
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 
+#include <concurrent_unordered_set.h>
+
 #define FRAME_TRACE
 #ifdef  FRAME_TRACE
 # define TraceAPI SK_LOG_FIRST_CALL
@@ -146,7 +148,7 @@ public:
          riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4
     {
       static
-        std::unordered_set <std::wstring> reported_guids;
+        conmcurrency::concurrent_unordered_set <std::wstring> reported_guids;
 
       wchar_t                wszGUID [41] = { };
       StringFromGUID2 (riid, wszGUID, 40);
@@ -156,7 +158,7 @@ public:
 
       if (! once)
       {
-        reported_guids.emplace (wszGUID);
+        reported_guids.insert (wszGUID);
 
         SK_LOG0 ( ( L"QueryInterface on wrapped D3D11Multithread thingy for Mystery UUID: %s",
                         wszGUID ), L"  D3D 11  " );
@@ -528,7 +530,7 @@ public:
          riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4)
     {
       static
-        std::unordered_set <std::wstring> reported_guids;
+        concurrency::concurrent_unordered_set <std::wstring> reported_guids;
 
       wchar_t                wszGUID [41] = { };
       StringFromGUID2 (riid, wszGUID, 40);
@@ -538,7 +540,7 @@ public:
 
       if (! once)
       {
-        reported_guids.emplace (wszGUID);
+        reported_guids.insert (wszGUID);
 
         SK_LOG0 ( ( L"QueryInterface on wrapped D3D11 Device Context for Mystery UUID: %s",
                         wszGUID ), L"  D3D 11  " );
