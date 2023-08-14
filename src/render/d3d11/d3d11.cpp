@@ -7997,11 +7997,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       }
     }
 
-    bool bEnableImmediateWrap =
-      (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
-
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-    if (bEnableImmediateWrap && ret_device != nullptr && ret_ctx != nullptr)
+    if (ret_device != nullptr && ret_ctx != nullptr)
     {
       ret_ctx =
         SK_D3D11_WrapperFactory->wrapDeviceContext (ret_ctx);
@@ -8389,10 +8386,7 @@ D3D11Dev_GetImmediateContext_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  const bool bEnableImmediateWrap =
-    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
-
-  if (bEnableImmediateWrap && ppImmediateContext != nullptr)
+  if (ppImmediateContext != nullptr)
   {
     SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -8438,10 +8432,7 @@ D3D11Dev_GetImmediateContext1_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  const bool bEnableImmediateWrap =
-    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
-
-  if (bEnableImmediateWrap && ppImmediateContext1 != nullptr)
+  if (ppImmediateContext1 != nullptr)
   {
     SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -8486,11 +8477,8 @@ D3D11Dev_GetImmediateContext2_Override (
     DXGI_LOG_CALL_0 (L"ID3D11Device2::GetImmediateContext2");
   }
 
-  const bool bEnableImmediateWrap =
-    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
-
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  if (bEnableImmediateWrap && ppImmediateContext2 != nullptr)
+  if (ppImmediateContext2 != nullptr)
   {
     SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);
@@ -8536,10 +8524,7 @@ D3D11Dev_GetImmediateContext3_Override (
   }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-  const bool bEnableImmediateWrap =
-    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Vesperia) || config.render.dxgi.deferred_isolation;
-
-  if (bEnableImmediateWrap && ppImmediateContext3 != nullptr)
+  if (ppImmediateContext3 != nullptr)
   {
     SK_ComPtr <ID3D11DeviceContext> pWrappedContext =
       SK_D3D11_GetWrappedImmediateContext (This);

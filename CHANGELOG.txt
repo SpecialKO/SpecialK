@@ -1,4 +1,10 @@
-﻿23.8.14
+﻿23.8.14.1
+=========
+ + Always wrap D3D11 Immediate Device Contexts, because NV's DXGI/Vk interop
+     breaks during window resize if there is no immediate context to flush
+ + Improved thread safety when reporting unexpected COM QueryInterface IIDs
+
+23.8.14
 =======
  + Moved saturation back to applying after Perceptual Boost to fix hue shift
  + Fixed incorrect HDR gamut overshoot visualization due to unnormalized xyY color
