@@ -237,6 +237,7 @@ private:
     SK_ComPtr <ID3D11Multithread>   pReal          = nullptr;
 };
 
+
 bool SK_D3D11_QueueContextReset (ID3D11DeviceContext* pDevCtx, UINT dev_ctx);
 bool SK_D3D11_DispatchContextResetQueue                       (UINT dev_ctx);
 
@@ -251,20 +252,15 @@ public:
     
     ver_ = 0;
 
-    IUnknown *pPromotion = nullptr;
+    SK_ComPtr <IUnknown> pPromotion = nullptr;
 
-    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext1, (void **)&pPromotion)) )
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext1, (void **)&pPromotion.p)) )
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
-    }
-
-    else
-    {
-      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -287,19 +283,14 @@ public:
 
     ver_ = 1;
 
-    IUnknown *pPromotion = nullptr;
+    SK_ComPtr <IUnknown> pPromotion = nullptr;
 
-    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion)) )
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext2, (void **)&pPromotion.p)) )
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext1 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
-    }
-
-    else
-    {
-      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -319,14 +310,13 @@ public:
     InterlockedExchange (
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
-    AddRef ();
 
     ver_ = 2;
 
-    IUnknown *pPromotion = nullptr;
+    SK_ComPtr <IUnknown> pPromotion = nullptr;
 
-    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)) ||
-         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion)) )
+    if ( SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion.p)) ||
+         SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext3, (void **)&pPromotion.p)) )
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext2 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
@@ -352,17 +342,12 @@ public:
 
     ver_ = 3;
 
-    IUnknown *pPromotion = nullptr;
+    SK_ComPtr <IUnknown> pPromotion = nullptr;
 
-    if (SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion)))
+    if (SUCCEEDED (QueryInterface (IID_ID3D11DeviceContext4, (void **)&pPromotion.p)))
     {
       SK_LOG0 ( ( L"Promoted ID3D11DeviceContext3 to ID3D11DeviceContext%li", ver_),
                   __SK_SUBSYSTEM__ );
-    }
-
-    else
-    {
-      AddRef ();
     }
 
     dev_ctx_handle_ =
@@ -382,7 +367,6 @@ public:
     InterlockedExchange (
       &refs_, pReal->AddRef  () - 1
     );        pReal->Release ();
-    AddRef ();
 
     ver_ = 4;
 
@@ -468,12 +452,7 @@ public:
                                          required_ver : ver_;
       }
 
-      else
-      {
-        AddRef ();
-      }
-
-      InterlockedIncrement (&refs_);
+      AddRef ();
 
       *ppvObj   = this;
              hr = S_OK;
@@ -517,9 +496,6 @@ public:
 
     hr =
       pReal->QueryInterface (riid, ppvObj);
-
-    //if (SUCCEEDED (hr))
-    //  InterlockedIncrement (&refs_);
 
     if ( riid == IID_ID3D11VideoContext )
       SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
@@ -574,6 +550,8 @@ public:
     if (refs == 0)
     {
       SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
+
+      SK_ImGui_Warning (L"Destroying Immediate Context");
     }
 
     return refs;
@@ -2922,6 +2900,16 @@ private:
 ID3D11DeviceContext4*
 SK_D3D11_Wrapper_Factory::wrapDeviceContext (ID3D11DeviceContext* dev_ctx)
 {
+  if (! dev_ctx)
+    return nullptr;
+
+  SK_ComPtr <ID3D11Device> pDevice;
+  dev_ctx->GetDevice     (&pDevice.p);
+
+  SK_D3D11_SetDebugName ( dev_ctx, 
+       SK_FormatStringW ( L"SK_IWrapD3D11DeviceContext: Ctx=%p Device=%p",
+                          dev_ctx, pDevice.p ) );
+
   return
     new SK_IWrapD3D11DeviceContext (dev_ctx);
 }

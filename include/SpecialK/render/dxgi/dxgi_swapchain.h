@@ -119,6 +119,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
 
+    SK_DXGI_SetDebugName ( pReal,
+        SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
+
     if (! d3d12_)
     {
       SK_ComPtr <ID3D11DeviceContext> pDevCtx;
@@ -209,6 +212,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
     flip_model.native = bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
+
+    SK_DXGI_SetDebugName ( pReal,
+        SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
 
     if (! d3d12_)
     {

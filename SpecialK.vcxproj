@@ -1657,6 +1657,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_debug.cpp" />
     <ClCompile Include="src\render\d3d11\d3d11_screenshot.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -1709,6 +1710,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_command_queue.cpp" />
+    <ClCompile Include="src\render\d3d12\d3d12_debug.cpp" />
     <ClCompile Include="src\render\d3d12\d3d12_device.cpp" />
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp" />
     <ClCompile Include="src\render\d3d12\d3d12_screenshot.cpp">
@@ -1724,6 +1726,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\dstorage\dstorage.cpp" />
     <ClCompile Include="src\render\dstorage\dstorage_factory.cpp" />
     <ClCompile Include="src\render\dstorage\dstorage_queue.cpp" />
+    <ClCompile Include="src\render\dxgi\dxgi_debug.cpp" />
     <ClCompile Include="src\render\dxgi\dxgi_util.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

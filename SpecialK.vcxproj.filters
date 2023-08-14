@@ -3497,6 +3497,15 @@
     <ClCompile Include="src\render\dstorage\dstorage_queue.cpp">
       <Filter>Source Files\Backends\Render\DStorage</Filter>
     </ClCompile>
+    <ClCompile Include="src\render\dxgi\dxgi_debug.cpp">
+      <Filter>Source Files\Backends\Render\DXGI</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d11\d3d11_debug.cpp">
+      <Filter>Source Files\Backends\Render\D3D11</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\d3d12\d3d12_debug.cpp">
+      <Filter>Source Files\Backends\Render\D3D12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
