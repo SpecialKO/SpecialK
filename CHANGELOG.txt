@@ -1,4 +1,9 @@
-﻿23.8.14.2
+﻿23.8.14.3
+=========
+ + Game window is back to being considered active by default, because otherwise
+     SDL2 thinks no input devices are attached
+
+23.8.14.2
 =========
  + Game window is initially considered inactive to prevent things like
      confining the mouse cursor to the game window from applying at startup

@@ -354,7 +354,7 @@ struct sk_window_s {
 
   bool        exclusive_full   = false; //D3D only
 
-  bool        active           = false;
+  bool        active           = true;
 
   struct {
     bool      inside           = true;
