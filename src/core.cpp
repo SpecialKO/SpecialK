@@ -3285,14 +3285,20 @@ SK_BackgroundRender_EndFrame (void)
   {
     static bool last_foreground = false;
 
-    DWORD                           dwForegroundPid = 0x0;
-    DWORD                           dwForegroundTid =
-      GetWindowThreadProcessId (
-        SK_GetForegroundWindow (), &dwForegroundPid);
+    DWORD dwForegroundPid = 0x0;
+    DWORD dwForegroundTid = 0x0;
+    HWND   hForegroundWnd = SK_GetForegroundWindow ();
 
-  if (//dwForegroundTid!= GetCurrentThreadId  () &&
-       dwForegroundPid != GetCurrentProcessId () )
-  {
+    if (hForegroundWnd != game_window.hWnd)
+    { // This is an expensive call, only do it if GetForegroundWindow
+      //   suggest its necessary
+      GetWindowThreadProcessId (hForegroundWnd, &dwForegroundPid);
+    }
+
+    else dwForegroundPid = GetCurrentProcessId ();
+
+    if (dwForegroundPid != GetCurrentProcessId ())
+    {
       GUITHREADINFO gti        = {                    };
                     gti.cbSize = sizeof (GUITHREADINFO);
       if ( GetGUIThreadInfo (       dwForegroundTid,
@@ -3310,11 +3316,11 @@ SK_BackgroundRender_EndFrame (void)
         SK_DeferCommand ("Window.TopMost false");
     }
 
-  else
-  {
-    if (! std::exchange (last_foreground, true))
-      SK_DeferCommand ("Window.TopMost true");
-  }
+    else
+    {
+      if (! std::exchange (last_foreground, true) && config.window.always_on_top >= 1)
+        SK_DeferCommand ("Window.TopMost true");
+    }
   }
 }
 
