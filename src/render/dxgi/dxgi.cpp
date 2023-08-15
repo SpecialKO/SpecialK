@@ -298,6 +298,9 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
   //assert (pSwapChain == rb.swapchain ||
   //                      rb.swapchain.IsEqualObject (pSwapChain));
 
+  if (pSwapChain == nullptr)
+    return false;
+
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev.p))) )
   {
     SK_LOGi1 (L" -> GetDevice (D3D11) = %p", pD3D11Dev.p);
