@@ -1,4 +1,8 @@
-﻿23.8.15
+﻿23.8.15.1
+=========
+ + Disable SwapDeviceContextState because it causes the Steam Overlay to crash
+
+23.8.15
 =======
  + Fixed handling of WM_NCACTIVATE when borderless is enabled causing WatchDogs2
      to think its window is always in the background

@@ -28,7 +28,9 @@
 #define __SK_SUBSYSTEM__ L"D3D11State"
 
 
-#define SK_USE_D3D11_DEVICE_CTX_STATE
+// This causes The Witness and possibly other games to crash when the
+//   Steam Overlay is enabled
+//#define SK_USE_D3D11_DEVICE_CTX_STATE
 
 static const UINT
   minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
