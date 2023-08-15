@@ -1043,7 +1043,9 @@ ActivateWindow ( HWND hWnd,
     BYTE              newKeyboardState [256] = { };
     SetKeyboardState (newKeyboardState);
 
-    if (hWndFocus != game_window.hWnd && (is_game_window && game_window.active))
+    if (      hWndFocus != 0                &&
+              hWndFocus != game_window.hWnd &&
+        (is_game_window && game_window.active) )
     {
       BringWindowToTop    (hWndFocus);
       SetForegroundWindow (hWndFocus);
@@ -5547,12 +5549,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     case WM_ACTIVATE:
     case WM_NCACTIVATE:
     {
-      if (uMsg == WM_NCACTIVATE && config.window.borderless)
-      {
-        return
-          DefWindowProcW (hWnd, uMsg, wParam, -1);
-      }
-
       if (  uMsg == WM_NCACTIVATE ||
             uMsg == WM_ACTIVATEAPP   )
       {
@@ -5712,10 +5708,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (wParam == TRUE)
       {
         if ( config.window.borderless ||
-             rb.fullscreen_exclusive )
-        {
-          return 0;
-        }
+             rb.fullscreen_exclusive ) return 0;
       }
       break;
 
