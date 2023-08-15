@@ -766,13 +766,16 @@ public:
   }
 
   HRESULT STDMETHODCALLTYPE Map (
-    _In_   ID3D11Resource           *pResource,
-    _In_   UINT                      Subresource,
-    _In_   D3D11_MAP                 MapType,
-    _In_   UINT                      MapFlags,
-    _Out_  D3D11_MAPPED_SUBRESOURCE *pMappedResource ) override
+    _In_      ID3D11Resource           *pResource,
+    _In_      UINT                      Subresource,
+    _In_      D3D11_MAP                 MapType,
+    _In_      UINT                      MapFlags,
+    _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource ) override
   {
     TraceAPI
+
+    if (pResource == nullptr)
+      return E_POINTER;
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
@@ -800,6 +803,9 @@ public:
     _In_ UINT          Subresource ) override
   {
     TraceAPI
+
+    if (pResource == nullptr)
+      return;
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
@@ -1011,6 +1017,9 @@ public:
   {
     TraceAPI
 
+    if (pAsync == nullptr)
+      return E_POINTER;
+
     return
       pReal->GetData ( pAsync,
                pData,
@@ -1191,6 +1200,9 @@ public:
   {
     TraceAPI
 
+    if (pBufferForArgs == nullptr)
+      return;
+
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
         SK_D3D11_DrawInstancedIndirect_Impl (pReal,
@@ -1231,6 +1243,9 @@ public:
     _In_ UINT          AlignedByteOffsetForArgs ) override
   {
     TraceAPI
+
+    if (pBufferForArgs == nullptr)
+      return;
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
@@ -1357,6 +1372,9 @@ public:
   {
     TraceAPI
 
+    if (pDstResource == nullptr || pSrcResource == nullptr)
+      return;
+
 #ifndef _M_AMD64
     static const auto game_id =
           SK_GetCurrentGameID ();
@@ -1444,6 +1462,10 @@ public:
   {
     TraceAPI
 
+    if ( pDstResource == nullptr ||
+         pSrcResource == nullptr )
+      return;
+
 #ifndef SK_D3D11_LAZY_WRAP
 //if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
         SK_D3D11_CopyResource_Impl (pReal,
@@ -1464,6 +1486,9 @@ public:
     _In_           UINT            SrcDepthPitch ) override
   {
     TraceAPI
+
+    if (pDstResource == nullptr || pSrcData == nullptr)
+      return;
 
 #ifndef SK_D3D11_LAZY_WRAP
   if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
@@ -1577,6 +1602,9 @@ public:
     _In_ DXGI_FORMAT     Format ) override
   {
     TraceAPI
+
+    if (pDstResource == nullptr || pSrcResource == nullptr)
+      return;
 
 #ifndef SK_D3D11_LAZY_WRAP
 //if (! SK_D3D11_IgnoreWrappedOrDeferred (true, pReal))
