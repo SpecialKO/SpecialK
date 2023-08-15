@@ -1,4 +1,12 @@
-﻿23.8.14.3
+﻿23.8.15
+=======
+ + Fixed handling of WM_NCACTIVATE when borderless is enabled causing WatchDogs2
+     to think its window is always in the background
+ + Added nullptr checks to various ID3D11DeviceContext hooks
+ + Switched D3D11 stateblock code to use SwapDeviceContextState (...) for
+     immediate contexts when supported by the driver
+
+23.8.14.3
 =========
  + Game window is back to being considered active by default, because otherwise
      SDL2 thinks no input devices are attached
