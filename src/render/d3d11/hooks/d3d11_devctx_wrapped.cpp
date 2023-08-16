@@ -1498,7 +1498,8 @@ public:
                       pDstBox,
                       pSrcData,
                        SrcRowPitch,
-                       SrcDepthPitch, TRUE
+                       SrcDepthPitch, TRUE,
+                       _ReturnAddress ()
         );
       else
 #endif

@@ -448,7 +448,8 @@ SK_D3D11_UpdateSubresource_Impl (
   _In_     const void                *pSrcData,
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch,
-                 BOOL                 bWrapped );
+                 BOOL                 bWrapped,
+                 LPCVOID              pCallerAddr );
 
 void
 STDMETHODCALLTYPE

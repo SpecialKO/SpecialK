@@ -1184,7 +1184,8 @@ SK_D3D11_UpdateSubresource_Impl (
   _In_     const void                *pSrcData,
   _In_           UINT                 SrcRowPitch,
   _In_           UINT                 SrcDepthPitch,
-                 BOOL                 bWrapped )
+                 BOOL                 bWrapped,
+                 LPCVOID              pCallerAddr )
 {
   SK_WRAP_AND_HOOK
 
@@ -1398,7 +1399,7 @@ SK_D3D11_UpdateSubresource_Impl (
           if (! SK_D3D11_IsTextureUncacheable (pTex))
           {
             SK_LOG0 ( (L"Cached texture was updated (UpdateSubresource)... removing from cache! - <%s>",
-                           SK_GetCallerName ().c_str ()), L"DX11TexMgr" );
+                           SK_GetCallerName (pCallerAddr).c_str ()), L"DX11TexMgr" );
             SK_D3D11_MarkTextureUncacheable (pTex);
             SK_D3D11_RemoveTexFromCache     (pTex, true);
 

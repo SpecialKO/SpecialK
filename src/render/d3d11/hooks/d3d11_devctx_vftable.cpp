@@ -1356,7 +1356,7 @@ D3D11_UpdateSubresource_Override (
                                             pDstBox,
                                             pSrcData, SrcRowPitch,
                                                       SrcDepthPitch,
-                                            FALSE );
+                                            FALSE, _ReturnAddress () );
     }
 
     D3D11_UpdateSubresource_Original (
