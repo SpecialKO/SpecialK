@@ -62,6 +62,14 @@ enum ZBID
   ZBID_IMMERSIVE_RESTRICTED     = 15, // Above Volume Overlay + Game Bar + Alt-Tab
 };
 
+enum WindowTopPreference
+{
+   NoPreferenceOnTop = -1,
+  PreventAlwaysOnTop =  0,
+         AlwaysOnTop =  1,
+    SmartAlwaysOnTop =  2
+};
+
 
 void SK_HookWinAPI        (void);
 void SK_InstallWindowHook (HWND hWnd);

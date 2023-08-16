@@ -55,10 +55,6 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
 extern bool SK_WantBackgroundRender ();
 
-#define PreventAlwaysOnTop 0
-#define        AlwaysOnTop 1
-#define   SmartAlwaysOnTop 2
-
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
 
 BOOL
