@@ -573,12 +573,26 @@ public:
       SK_ComPtr <ID3D11Device> pDevice;
       pReal->GetDevice       (&pDevice.p);
 
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Vertex);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Pixel);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Geometry);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Domain);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Hull);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Compute);
+
       extern BOOL
       SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
                                             ID3D11DeviceContext *pDevCtx );
 
       SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
       SK_DXGI_ReportLiveObjects           (pDevice);
+
+      SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+      
+      // Release DXTex memory pools
+      if (pTLS != nullptr)
+          pTLS->dxtex.Cleanup (Periodic);
     }
 
     return refs;

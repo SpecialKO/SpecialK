@@ -40,6 +40,113 @@ SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_b
 SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_after;
 
 void
+SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type)
+{
+  const auto GetResources =
+  [&]( gsl::not_null <SK_Thread_CriticalSection**>                        ppCritical,
+       gsl::not_null <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>**> ppShaderDomain ) noexcept
+  {
+    auto& shaders =
+      SK_D3D11_Shaders;
+
+    switch (type)
+    {
+      default:
+      case sk_shader_class::Vertex:
+        *ppCritical     = cs_shader_vs.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->vertex);
+         break;
+      case sk_shader_class::Pixel:
+        *ppCritical     = cs_shader_ps.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->pixel);
+         break;
+      case sk_shader_class::Geometry:
+        *ppCritical     = cs_shader_gs.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->geometry);
+         break;
+      case sk_shader_class::Domain:
+        *ppCritical     = cs_shader_ds.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->domain);
+         break;
+      case sk_shader_class::Hull:
+        *ppCritical     = cs_shader_hs.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->hull);
+         break;
+      case sk_shader_class::Compute:
+        *ppCritical     = cs_shader_cs.get ();
+        *ppShaderDomain =
+          reinterpret_cast <
+            SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+                           > (&shaders->compute);
+         break;
+    }
+  };
+
+  SK_Thread_CriticalSection*                        pCritical   = nullptr;
+  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* pShaderRepo = nullptr;
+
+  GetResources (
+    &pCritical, &pShaderRepo
+  );
+
+  if (pCritical != nullptr)
+  {
+    pCritical->lock ();     // Lock during cache check
+
+    static volatile ULONG ulDeviceCheck = 1;
+
+    ULONG ulSetValue =
+      InterlockedIncrement (&ulDeviceCheck);
+
+    // {AC67C1F9-F795-4DCC-BBC5-97F539BD43D1}
+    static const GUID GUID_TestDeviceEquality = 
+      { 0xac67c1f9, 0xf795, 0x4dcc, { 0xbb, 0xc5, 0x97, 0xf5, 0x39, 0xbd, 0x43, 0xd1 } };
+    
+    if (SUCCEEDED (This->SetPrivateData (GUID_TestDeviceEquality, sizeof (ULONG), &ulSetValue)))
+    {
+      for ( auto& pDevice : pShaderRepo->descs )
+      {
+        if (! pDevice.second.empty ())
+        {
+          UINT  ulTestSize = sizeof (ULONG);
+          ULONG ulTestValue = 0;
+
+          pDevice.first->GetPrivateData (GUID_TestDeviceEquality, &ulTestSize, &ulTestValue);
+
+          if (ulTestValue == ulSetValue)
+          {
+            for ( auto& pShader : pDevice.second )
+            {
+              pShader.second.pShader->Release ();
+            }
+
+            pShaderRepo->descs [pDevice.first].clear ();
+            pShaderRepo->rev   [pDevice.first].clear ();
+          }
+        }
+      }
+    }
+
+    pCritical->unlock ();
+  }
+}
+
+void
 SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
                           IUnknown                   *pShader,
                           sk_shader_class             type,
@@ -266,6 +373,11 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
         dll_log->Log (L"Shader not in cache, so adding it!");
 
         pCritical->lock ();
+
+        pShaderRepo->descs [pDevice][crc32c].pShader = pShader;
+        pShaderRepo->descs [pDevice][crc32c].crc32c  = crc32c;
+        pShaderRepo->descs [pDevice][crc32c].type    = pShaderRepo->type_;
+        pShader->AddRef ();
 
         rev_map [pShader] =
           (pDesc = &pShaderRepo->descs [pDevice][crc32c]);

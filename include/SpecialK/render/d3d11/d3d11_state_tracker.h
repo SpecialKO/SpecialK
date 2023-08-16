@@ -458,6 +458,9 @@ extern
                               bool  scRGB,
                               float max_luma );
 
+void
+SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type);
+
 static
 __declspec (noinline)
 HRESULT
@@ -742,6 +745,8 @@ SK_D3D11_CreateShader_Impl (
            SK_D3D11_ShaderType::Compute; break;
         }
 
+        desc.pShader->Release ();
+
         desc.crc32c = checksum;
 
         // Concurrent shader creation resulted in the same shader twice,
@@ -751,8 +756,6 @@ SK_D3D11_CreateShader_Impl (
         //
         if (pShaderRepo->descs [This].count (checksum) != 0)
         {
-          ((IUnknown *)*ppShader)->Release ();
-
           SK_LOG0 ( (L"Discarding Concurrent Shader Cache Collision for %x",
                        checksum ), L"DX11Shader" );
         }
