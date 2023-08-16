@@ -1566,6 +1566,28 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
             wcsncpy (name, L"D3D12 ", 8);
             break;
         }
+
+        // Handle AMD interop
+        //
+        auto uiVkLayerType =
+          SK_Render_GetVulkanInteropSwapChainType (swapchain);
+
+        if (uiVkLayerType != SK_DXGI_VK_INTEROP_TYPE_NONE)
+        {
+          switch (uiVkLayerType)
+          {
+            case SK_DXGI_VK_INTEROP_TYPE_IK:
+              wcsncpy (name, L"Vulkan-IK", 10);
+              break;
+            case SK_DXGI_VK_INTEROP_TYPE_NV:
+            case SK_DXGI_VK_INTEROP_TYPE_AMD:
+              wcsncpy (name, L"Vulkan", 8);
+              break;
+            default:
+              wcsncpy (name, L"Interop??", 10);
+              break;
+          }
+        }
       }
 
       else if (SUCCEEDED (device->QueryInterface <ID3D11Device> (&pDev11)))
