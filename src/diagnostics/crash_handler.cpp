@@ -205,6 +205,9 @@ SetUnhandledExceptionFilter_Detour (_In_opt_ LPTOP_LEVEL_EXCEPTION_FILTER lpTopL
 void
 CrashHandler::Reinstall (void)
 {
+  if (! config.system.handle_crashes)
+    return;
+
   static volatile LPVOID   pOldHook   = nullptr;
   if ((uintptr_t)InterlockedCompareExchangePointer (&pOldHook, (PVOID)1, nullptr) > (uintptr_t)1)
   {
@@ -390,24 +393,24 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr)
 
 enum BasicType  // Stolen from CVCONST.H in the DIA 2.0 SDK
 {
-    btNoType = 0,
-    btVoid = 1,
-    btChar = 2,
-    btWChar = 3,
-    btInt = 6,
-    btUInt = 7,
-    btFloat = 8,
-    btBCD = 9,
-    btBool = 10,
-    btLong = 13,
-    btULong = 14,
-    btCurrency = 25,
-    btDate = 26,
-    btVariant = 27,
-    btComplex = 28,
-    btBit = 29,
-    btBSTR = 30,
-    btHresult = 31,
+  btNoType = 0,
+  btVoid = 1,
+  btChar = 2,
+  btWChar = 3,
+  btInt = 6,
+  btUInt = 7,
+  btFloat = 8,
+  btBCD = 9,
+  btBool = 10,
+  btLong = 13,
+  btULong = 14,
+  btCurrency = 25,
+  btDate = 26,
+  btVariant = 27,
+  btComplex = 28,
+  btBit = 29,
+  btBSTR = 30,
+  btHresult = 31,
 };
 
 enum SymbolType
@@ -419,37 +422,37 @@ enum SymbolType
 
 enum SymTagEnum // Stolen from DIA SDK
 {
-   SymTagNull,
-   SymTagExe,
-   SymTagCompiland,
-   SymTagCompilandDetails,
-   SymTagCompilandEnv,
-   SymTagFunction,
-   SymTagBlock,
-   SymTagData,
-   SymTagAnnotation,
-   SymTagLabel,
-   SymTagPublicSymbol,
-   SymTagUDT,
-   SymTagEnum,
-   SymTagFunctionType,
-   SymTagPointerType,
-   SymTagArrayType,
-   SymTagBaseType,
-   SymTagTypedef,
-   SymTagBaseClass,
-   SymTagFriend,
-   SymTagFunctionArgType,
-   SymTagFuncDebugStart,
-   SymTagFuncDebugEnd,
-   SymTagUsingNamespace,
-   SymTagVTableShape,
-   SymTagVTable,
-   SymTagCustom,
-   SymTagThunk,
-   SymTagCustomType,
-   SymTagManagedType,
-   SymTagDimension
+  SymTagNull,
+  SymTagExe,
+  SymTagCompiland,
+  SymTagCompilandDetails,
+  SymTagCompilandEnv,
+  SymTagFunction,
+  SymTagBlock,
+  SymTagData,
+  SymTagAnnotation,
+  SymTagLabel,
+  SymTagPublicSymbol,
+  SymTagUDT,
+  SymTagEnum,
+  SymTagFunctionType,
+  SymTagPointerType,
+  SymTagArrayType,
+  SymTagBaseType,
+  SymTagTypedef,
+  SymTagBaseClass,
+  SymTagFriend,
+  SymTagFunctionArgType,
+  SymTagFuncDebugStart,
+  SymTagFuncDebugEnd,
+  SymTagUsingNamespace,
+  SymTagVTableShape,
+  SymTagVTable,
+  SymTagCustom,
+  SymTagThunk,
+  SymTagCustomType,
+  SymTagManagedType,
+  SymTagDimension
 };
 
 BasicType

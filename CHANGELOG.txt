@@ -1,4 +1,9 @@
-﻿23.8.15.3
+﻿23.8.16
+=======
+ + SK::Diagnostics::CrashHandler::InitSyms (...) no longer implicitly installs
+     SK's unhandled exception filter if handle_crashes is set to false
+
+23.8.15.3
 =========
  + Properly handle API name change on AMD Vk interop (D3D12 SwapChain)
 
