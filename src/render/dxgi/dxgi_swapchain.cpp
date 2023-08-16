@@ -1398,7 +1398,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
         {
           //SK_DeferCommand ("Window.TopMost true");
           //
-          //if (config.window.always_on_top < 1)
+          //if (config.window.always_on_top < AlwaysOnTop)
           //  SK_DeferCommand ("Window.TopMost false");
         }
       }
@@ -1569,11 +1569,11 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     }
   }
 
-  if (       config.render.framerate.buffer_count != -1           &&
-       (UINT)config.render.framerate.buffer_count !=  BufferCount &&
-       BufferCount                                !=  0           &&
+  if (       config.render.framerate.buffer_count != SK_NoPreference &&
+       (UINT)config.render.framerate.buffer_count !=  BufferCount    &&
+       BufferCount                                !=  0              &&
 
-           config.render.framerate.buffer_count   >   0           &&
+           config.render.framerate.buffer_count   >   0              &&
            config.render.framerate.buffer_count   <   16 )
   {
     BufferCount =
@@ -1888,7 +1888,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
         {
           //SK_DeferCommand ("Window.TopMost true");
           //
-          //if (config.window.always_on_top < 1)
+          //if (config.window.always_on_top < AlwaysOnTop)
           //  SK_DeferCommand ("Window.TopMost false");
         }
       }
@@ -1954,7 +1954,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
 
   // I don't remember why borderless is included here :)
   if ( config.window.borderless ||
-       ( config.render.dxgi.scaling_mode != -1 &&
+       ( config.render.dxgi.scaling_mode != SK_NoPreference &&
           pNewTargetParameters->Scaling  !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
                                 ||
@@ -2000,7 +2000,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
       }
     }
 
-    if ( config.render.dxgi.scanline_order        != -1 &&
+    if ( config.render.dxgi.scanline_order        != SK_NoPreference &&
           pNewTargetParameters->ScanlineOrdering  !=
             (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
     {
@@ -2019,7 +2019,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
         (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
     }
 
-    if ( config.render.dxgi.scaling_mode != -1 &&
+    if ( config.render.dxgi.scaling_mode != SK_NoPreference &&
           pNewTargetParameters->Scaling  !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
     {

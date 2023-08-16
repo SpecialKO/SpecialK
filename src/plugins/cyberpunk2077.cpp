@@ -42,7 +42,7 @@ bool SK_CP2077_PlugInCfg (void)
     static bool changed = false;
 
     bool spoof =
-      config.render.framerate.override_num_cpus != -1;
+      config.render.framerate.override_num_cpus != SK_NoPreference;
 
     extern size_t SK_CPU_CountPhysicalCores (void);
     extern size_t SK_CPU_CountLogicalCores  (void);
@@ -50,7 +50,7 @@ bool SK_CP2077_PlugInCfg (void)
     if (ImGui::Checkbox ("Override Render Thread Count", &spoof))
     { changed = true;
 
-      if (config.render.framerate.override_num_cpus == -1)
+      if (config.render.framerate.override_num_cpus == SK_NoPreference)
       {
         if (spoof)
         {
@@ -61,7 +61,7 @@ bool SK_CP2077_PlugInCfg (void)
 
       else if (! spoof)
       {
-        config.render.framerate.override_num_cpus = -1;
+        config.render.framerate.override_num_cpus = SK_NoPreference;
       }
 
       SK_SaveConfig ();

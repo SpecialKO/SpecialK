@@ -1354,7 +1354,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
 
   if (pPresentationParameters != nullptr)
   {
-    if (       config.render.framerate.buffer_count != -1 &&
+    if (       config.render.framerate.buffer_count != SK_NoPreference &&
          (UINT)config.render.framerate.buffer_count !=
            pPresentationParameters->BackBufferCount )
     {
@@ -1395,7 +1395,7 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
         }
       };
 
-    if (       config.render.framerate.present_interval != -1 &&
+    if (       config.render.framerate.present_interval != SK_NoPreference &&
          (! _SK_D3D9_IsPresentIntervalEquivalent (
                config.render.framerate.present_interval,
           pPresentationParameters->PresentationInterval) ) )
@@ -2577,7 +2577,7 @@ D3D9Reset_Override ( IDirect3DDevice9      *This,
       if (pPresentationParameters->Windowed)
           pPresentationParameters->FullScreen_RefreshRateInHz = 0;
 
-      if (config.render.framerate.present_interval != -1)
+      if (config.render.framerate.present_interval != SK_NoPreference)
       {
         pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
       }
@@ -2710,7 +2710,7 @@ D3D9ResetEx ( IDirect3DDevice9Ex    *This,
       if (pPresentationParameters->Windowed)
           pPresentationParameters->FullScreen_RefreshRateInHz = 0;
 
-      if (config.render.framerate.present_interval != -1)
+      if (config.render.framerate.present_interval != SK_NoPreference)
       {
         pPresentationParameters->PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
       }
@@ -4000,7 +4000,7 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
           // This must be non-zero to go fullscreen
           if (pparams->FullScreen_RefreshRateInHz == 0)
           {
-            if (config.render.framerate.refresh_rate == -1)
+            if (config.render.framerate.refresh_rate == SK_NoPreference)
             {
               if (*ppFullscreenDisplayMode != nullptr)
                 pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;

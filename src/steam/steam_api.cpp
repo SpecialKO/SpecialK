@@ -5843,7 +5843,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   //
   //  * Refer to the non-standard interface definition above for more.
   //
-  if (config.steam.online_status != -1)
+  if (config.steam.online_status != SK_NoPreference)
     SK_Steam_ConnectUserIfNeeded (user_->GetSteamID ());
 
 
@@ -6676,7 +6676,7 @@ SK_Steam_ConnectUserIfNeeded (CSteamID user)
       SK_Steam_LogOn (user);
   }
 
-  if (config.steam.online_status != -1)
+  if (config.steam.online_status != SK_NoPreference)
     SK::SteamAPI::SetPersonaState ((EPersonaState)config.steam.online_status);
 
   return bRet;

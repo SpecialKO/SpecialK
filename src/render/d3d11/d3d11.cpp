@@ -813,7 +813,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
       g_pD3D11Dev = *ppDevice;
     }
 
-    if (config.render.dxgi.exception_mode != -1)
+    if (config.render.dxgi.exception_mode != SK_NoPreference)
       (*ppDevice)->SetExceptionMode (config.render.dxgi.exception_mode);
 
     SK_ComQIPtr <IDXGIDevice>  pDXGIDev (ppDevice != nullptr ? *ppDevice : nullptr);
@@ -7679,7 +7679,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     ///swap_chain_override = *swap_chain_desc;
     ///swap_chain_desc     = &swap_chain_override;
 
-    if ( config.render.dxgi.scaling_mode      != -1 &&
+    if ( config.render.dxgi.scaling_mode      != SK_NoPreference &&
           swap_chain_desc->BufferDesc.Scaling !=
             static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode) )
     {

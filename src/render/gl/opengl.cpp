@@ -2611,7 +2611,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         int present_interval =
           SK_GL_GetSwapInterval ();
 
-        if (config.render.framerate.present_interval != -1)
+        if (config.render.framerate.present_interval != SK_NoPreference)
           present_interval = config.render.framerate.present_interval;
 
         present_interval =
@@ -2810,13 +2810,13 @@ wglSwapBuffers (HDC hDC)
 
   // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
   //
-  if ( config.render.framerate.sync_interval_clamp != -1 &&
+  if ( config.render.framerate.sync_interval_clamp != SK_NoPreference &&
        config.render.framerate.sync_interval_clamp < SK_GL_GetSwapInterval () )
   {
     SK_GL_SwapInterval (config.render.framerate.sync_interval_clamp);
   }
 
-  if (                  config.render.framerate.present_interval != -1)
+  if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
   if (! config.render.osd.draw_in_vidcap)
@@ -2853,7 +2853,7 @@ SwapBuffers (HDC hDC)
   int orig_swap_interval =
     SK_GL_GetSwapInterval ();
 
-  if (                  config.render.framerate.present_interval != -1)
+  if (                  config.render.framerate.present_interval != SK_NoPreference)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
   if (config.render.osd.draw_in_vidcap)

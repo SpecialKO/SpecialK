@@ -1868,9 +1868,9 @@ SK_TextOverlay::update (const char* szText)
   float green = static_cast <float> (config.osd.green) / 255.0f;
   float blue  = static_cast <float> (config.osd.blue)  / 255.0f;
 
-  if ( config.osd.red   == -1 ||
-       config.osd.green == -1 ||
-       config.osd.blue  == -1 )
+  if ( config.osd.red   == SK_NoPreference ||
+       config.osd.green == SK_NoPreference ||
+       config.osd.blue  == SK_NoPreference )
   {
     SK_OSD_GetDefaultColor (red, green, blue);
   }

@@ -1173,7 +1173,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     int idx = 0;
 
-    if (      config.render.framerate.present_interval == -1)
+    if (      config.render.framerate.present_interval == SK_NoPreference)
         idx = VSYNC_NoOverride;
     else if ( config.render.framerate.present_interval ==  0)
         idx = VSYNC_ForceOff;
@@ -1229,7 +1229,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
           break;
         case VSYNC_NoOverride:
         default:
-          config.render.framerate.present_interval = -1;
+          config.render.framerate.present_interval = SK_NoPreference;
           break;
       }
 
@@ -1259,7 +1259,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       if (SK_API_IsGDIBased (rb.api))
       {
-        if (config.render.framerate.present_interval != -1)
+        if (config.render.framerate.present_interval != SK_NoPreference)
           SK_GL_SwapInterval (config.render.framerate.present_interval);
       }
     }
@@ -1271,7 +1271,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                           " VSYNC -OFF-" );
     }
 
-    if (SK_API_IsGDIBased (rb.api) && config.render.framerate.present_interval == -1)
+    if (SK_API_IsGDIBased (rb.api) && config.render.framerate.present_interval == SK_NoPreference)
     {
       ImGui::SameLine ();
       ImGui::Text     ("-%s-", SK_GL_GetSwapInterval () > 0 ?
@@ -2087,7 +2087,7 @@ DisplayModeMenu (bool windowed)
         {
           default:
           case 0:
-            config.render.dxgi.scaling_mode = -1;
+            config.render.dxgi.scaling_mode = SK_NoPreference;
             break;
 
           case 1:
@@ -2350,7 +2350,7 @@ DisplayModeMenu (bool windowed)
           _MakeColorEncodingComboList ();
 
         // -1 == Don't Care
-        current_item = -1;
+        current_item = SK_NoPreference;
 
         SK_ComPtr <IDXGIOutput> pContainer;
 
@@ -5177,7 +5177,7 @@ SK_ImGui_ControlPanel (void)
 #endif
 
           bool spoof =
-            ( config.render.framerate.override_num_cpus != -1 );
+            ( config.render.framerate.override_num_cpus != SK_NoPreference );
 
           static SYSTEM_INFO             si = { };
           SK_RunOnce (SK_GetSystemInfo (&si));

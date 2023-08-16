@@ -349,10 +349,10 @@ SK::ControlPanel::Window::Draw (void)
 
       bool changed = false;
 
-      changed |= ImGui::RadioButton ("No Preference",         &config.window.always_on_top, -1); ImGui::SameLine ();
-      changed |= ImGui::RadioButton ("Prevent Always-On-Top", &config.window.always_on_top,  0); ImGui::SameLine ();
-      changed |= ImGui::RadioButton ("Force Always-On-Top",   &config.window.always_on_top,  1); ImGui::SameLine ();
-      changed |= ImGui::RadioButton ("Multitasking-On-Top",   &config.window.always_on_top,  2);
+      changed |= ImGui::RadioButton ("No Preference",         &config.window.always_on_top,  NoPreferenceOnTop); ImGui::SameLine ();
+      changed |= ImGui::RadioButton ("Prevent Always-On-Top", &config.window.always_on_top, PreventAlwaysOnTop); ImGui::SameLine ();
+      changed |= ImGui::RadioButton ("Force Always-On-Top",   &config.window.always_on_top,        AlwaysOnTop); ImGui::SameLine ();
+      changed |= ImGui::RadioButton ("Multitasking-On-Top",   &config.window.always_on_top,   SmartAlwaysOnTop);
 
       if (ImGui::IsItemHovered ())
       {
@@ -370,12 +370,18 @@ SK::ControlPanel::Window::Draw (void)
 
       if (changed)
       {
-        if (config.window.always_on_top == 1)
-          SK_DeferCommand ("Window.TopMost true");
-        else if (config.window.always_on_top == 0)
-          SK_DeferCommand ("Window.TopMost false");
-        else if (config.window.always_on_top == 2)
-          SK_DeferCommand ("Window.TopMost true");
+        switch (config.window.always_on_top)
+        {
+          case AlwaysOnTop:
+          case SmartAlwaysOnTop: // Window is in foreground if user is interacting with it
+            SK_DeferCommand ("Window.TopMost true");
+            break;
+          case PreventAlwaysOnTop:
+            SK_DeferCommand ("Window.TopMost false");
+            break;
+          default:
+            break;
+        }
       }
 
       ImGui::TreePop ();

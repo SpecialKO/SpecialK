@@ -266,7 +266,7 @@ SK_LoadGPUVendorAPIs (void)
 
   if (nvapi_init)
   {
-    if (config.apis.NvAPI.vulkan_bridge != -1)
+    if (config.apis.NvAPI.vulkan_bridge != SK_NoPreference)
     {
       SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
     }
@@ -3673,7 +3673,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   // Catch sneaky games that change their TopMost status unrelated to window
   //   activation state...
-  if ( config.window.always_on_top == 0 &&
+  if ( config.window.always_on_top == PreventAlwaysOnTop &&
                    SK_Window_IsTopMost (game_window.hWnd) )
   {
     SK_LOG0 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );

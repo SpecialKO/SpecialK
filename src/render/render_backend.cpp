@@ -153,7 +153,7 @@ SK_DXVK_CheckForInterop (void)
 
     if (str_d3d9ver.find (L"DXVK") != std::wstring::npos)
     {
-      if ( config.apis.d3d9.native_dxvk == -1                &&
+      if ( config.apis.d3d9.native_dxvk == SK_NoPreference   &&
              sk::NVAPI::InitializeLibrary (SK_GetHostApp ()) &&
              sk::NVAPI::nv_hardware
          )

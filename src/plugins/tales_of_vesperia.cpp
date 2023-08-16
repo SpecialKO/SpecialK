@@ -437,7 +437,7 @@ SK_TVFix_PlugInCfg (void)
       ImGui::SetTooltip ("Render the Entire Scene Using MSAA Instead of Only a Handful of Geometry.");
     }
 
-    if (plugin_ctx.__SK_TVFix_FixMSAA || config.render.dxgi.msaa_samples != -1)
+    if (plugin_ctx.__SK_TVFix_FixMSAA || config.render.dxgi.msaa_samples != SK_NoPreference)
     {
       ImGui::SameLine ();
 
@@ -476,7 +476,7 @@ SK_TVFix_PlugInCfg (void)
 
         else
         {
-          config.render.dxgi.msaa_samples = -1;
+          config.render.dxgi.msaa_samples = SK_NoPreference;
         }
       }
 
@@ -905,7 +905,7 @@ SK_TVFix_CreateTexture2D (
   if (pDesc->SampleDesc.Count > 1)
   {
     pDesc->SampleDesc.Count =
-      ( config.render.dxgi.msaa_samples != -1 ?
+      ( config.render.dxgi.msaa_samples != SK_NoPreference ?
         config.render.dxgi.msaa_samples : pDesc->SampleDesc.Count );
   }
 }

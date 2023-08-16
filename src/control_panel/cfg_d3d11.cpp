@@ -828,7 +828,7 @@ SK::ControlPanel::D3D11::Draw (void)
             if (waitable_)
             {
               // Setup default values when first turned on
-              if (config.render.framerate.pre_render_limit == -1)
+              if (config.render.framerate.pre_render_limit == SK_NoPreference)
               {
                 config.render.framerate.pre_render_limit =
                   std::min (
@@ -837,7 +837,7 @@ SK::ControlPanel::D3D11::Draw (void)
               }
 
               else
-                config.render.framerate.pre_render_limit = -1;
+                config.render.framerate.pre_render_limit = SK_NoPreference;
             }
 
             _ResetLimiter ();
@@ -952,14 +952,14 @@ SK::ControlPanel::D3D11::Draw (void)
 
       // Clamp to [-1,oo)
       if (config.render.framerate.buffer_count <  0)
-          config.render.framerate.buffer_count = -1;
+          config.render.framerate.buffer_count = SK_NoPreference;
 
       if (! (d3d12 || indirect))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {
           if (config.render.framerate.pre_render_limit <  0)
-              config.render.framerate.pre_render_limit = -1;
+              config.render.framerate.pre_render_limit = SK_NoPreference;
 
           else
           {

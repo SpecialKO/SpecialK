@@ -1111,8 +1111,8 @@ SK_Framerate_WaitForVBlank (void)
         d3d9ex->WaitForVBlank (0);//static_cast <UINT> (i));
       //}
       d3d9ex->SetMaximumFrameLatency (
-        config.render.framerate.pre_render_limit == -1 ?
-                                          orig_latency :
+        config.render.framerate.pre_render_limit == SK_NoPreference ?
+                                                       orig_latency :
         config.render.framerate.pre_render_limit
       );
 

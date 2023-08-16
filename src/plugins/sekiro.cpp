@@ -747,7 +747,7 @@ SK_Sekiro_PlugInCfg (void)
 
         if (orig_item != current_item)
         {
-          if ( config.render.framerate.refresh_rate != -1 )
+          if ( config.render.framerate.refresh_rate != SK_NoPreference )
           {
             rb.requestFullscreenMode ();
 

@@ -228,7 +228,7 @@ public:
                   }
                 }
 
-                else if (config.display.monitor_idx == -1)
+                else if (config.display.monitor_idx == SK_NoPreference)
                 {
                   if (mi.dwFlags & MONITORINFOF_PRIMARY)
                   {
@@ -1206,7 +1206,7 @@ ActivateWindow ( HWND hWnd,
 
     //if (SK_IsGameWindowActive ())//hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
     {
-      if (config.window.always_on_top != -1)
+      if (config.window.always_on_top != NoPreferenceOnTop)
       {
         SK_Window_SetTopMost (game_window.active &&
           config.window.always_on_top != PreventAlwaysOnTop,

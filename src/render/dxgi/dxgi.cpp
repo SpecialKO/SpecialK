@@ -662,7 +662,7 @@ bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of
 UINT uiOriginalBltSampleCount = 0UL;
 
 // Used for integrated GPU override
-int              SK_DXGI_preferred_adapter = -1;
+int              SK_DXGI_preferred_adapter = SK_NoPreference;
 
 
 void
@@ -2670,7 +2670,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
   //
-  if ( config.render.framerate.sync_interval_clamp != -1 &&
+  if ( config.render.framerate.sync_interval_clamp != SK_NoPreference &&
        config.render.framerate.sync_interval_clamp < static_cast <int> (SyncInterval) )
   {
     SyncInterval = config.render.framerate.sync_interval_clamp;
@@ -2971,7 +2971,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
           }
 
           // No user preference, game using 0 --> opportunity to enable DWM tearing
-          else if (interval == -1 && SyncInterval == 0)
+          else if (interval == SK_NoPreference && SyncInterval == 0)
           {
             if (config.render.dxgi.allow_tearing)   Flags |=  DXGI_PRESENT_ALLOW_TEARING;
           }
@@ -2992,7 +2992,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
     // Application preference
-    if (interval == -1)
+    if (interval == SK_NoPreference)
         interval = SyncInterval;
 
     rb.present_interval = interval;
@@ -3627,13 +3627,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 
   if (     config.render.dxgi.scaling_mode ==  0)
     Flags &= ~DXGI_ENUM_MODES_SCALING;
-  else if (config.render.dxgi.scaling_mode != -1)
+  else if (config.render.dxgi.scaling_mode != SK_NoPreference)
     Flags |=  DXGI_ENUM_MODES_SCALING;
 
   if (     config.render.dxgi.scanline_order ==
                 DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE )
     Flags &= ~DXGI_ENUM_MODES_INTERLACED;
-  else if (config.render.dxgi.scanline_order != -1)
+  else if (config.render.dxgi.scanline_order != SK_NoPreference)
     Flags |=  DXGI_ENUM_MODES_INTERLACED;
 
   // Game would be missing resolutions
@@ -3722,7 +3722,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
         }
       }
 
-      if (config.render.dxgi.scaling_mode != -1)
+      if (config.render.dxgi.scaling_mode != SK_NoPreference)
       {
         if ( config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_UNSPECIFIED &&
              config.render.dxgi.scaling_mode != DXGI_MODE_SCALING_CENTERED )
@@ -3877,7 +3877,7 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
         mode_to_match.RefreshRate.Denominator = 1;
       }
 
-      if ( config.render.dxgi.scaling_mode != -1                         &&
+      if ( config.render.dxgi.scaling_mode != SK_NoPreference            &&
                 mode_to_match.Scaling != config.render.dxgi.scaling_mode/*&&
                       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
                        DXGI_MODE_SCALING_CENTERED*/ )
@@ -3945,7 +3945,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
   if (bApplyOverrides)
   {
     if ( config.window.borderless ||
-         ( config.render.dxgi.scaling_mode != -1 &&
+         ( config.render.dxgi.scaling_mode != SK_NoPreference &&
             pNewTargetParameters->Scaling  !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
                                   ||
@@ -3999,7 +3999,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
         }
       }
 
-      if ( config.render.dxgi.scanline_order        != -1 &&
+      if ( config.render.dxgi.scanline_order        != SK_NoPreference &&
             pNewTargetParameters->ScanlineOrdering  !=
               (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
       {
@@ -4007,7 +4007,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
       }
 
-      if ( config.render.dxgi.scaling_mode != -1 &&
+      if ( config.render.dxgi.scaling_mode != SK_NoPreference &&
             pNewTargetParameters->Scaling  !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
       {
@@ -4154,7 +4154,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
     }
   }
 
-  if ( config.render.dxgi.scaling_mode != -1 &&
+  if ( config.render.dxgi.scaling_mode != SK_NoPreference &&
        mode_to_match.Scaling           != config.render.dxgi.scaling_mode /*&&
                        (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode !=
                         DXGI_MODE_SCALING_CENTERED*/ )
@@ -4286,11 +4286,11 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
     SK_DXGI_PickHDRFormat ( NewFormat, swap_desc.Windowed,
         SK_DXGI_IsFlipModelSwapEffect (swap_desc.SwapEffect) );
 
-  if (       config.render.framerate.buffer_count != -1           &&
-       (UINT)config.render.framerate.buffer_count !=  BufferCount &&
-       BufferCount                                !=  0           &&
+  if (       config.render.framerate.buffer_count != SK_NoPreference &&
+       (UINT)config.render.framerate.buffer_count !=  BufferCount    &&
+       BufferCount                                !=  0              &&
 
-           config.render.framerate.buffer_count   >   0           &&
+           config.render.framerate.buffer_count   >   0              &&
            config.render.framerate.buffer_count   <   16 )
   {
     BufferCount =
@@ -4917,7 +4917,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         }
       }
 
-      if (       config.render.framerate.buffer_count != -1                  &&
+      if (       config.render.framerate.buffer_count != SK_NoPreference     &&
            (UINT)config.render.framerate.buffer_count !=  pDesc->BufferCount &&
            pDesc->BufferCount                         !=  0                  &&
 
@@ -4938,7 +4938,7 @@ SK_DXGI_CreateSwapChain_PreInit (
                    L" >> Tearing Option : Enable" );
       }
 
-      if ( config.render.dxgi.scaling_mode != -1 &&
+      if ( config.render.dxgi.scaling_mode != SK_NoPreference &&
             pDesc->BufferDesc.Scaling      !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
       {
@@ -4956,7 +4956,7 @@ SK_DXGI_CreateSwapChain_PreInit (
           (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
       }
 
-      if ( config.render.dxgi.scanline_order   != -1 &&
+      if ( config.render.dxgi.scanline_order   != SK_NoPreference &&
             pDesc->BufferDesc.ScanlineOrdering !=
               (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
       {
@@ -5277,7 +5277,7 @@ SK_DXGI_CreateSwapChain_PostInit (
 
     if (pDesc->Windowed != FALSE)
     {
-      //if (config.window.always_on_top >= 1)
+      //if (config.window.always_on_top >= AlwaysOnTop)
       //  SK_DeferCommand ("Window.TopMost true");
     }
 
@@ -5824,7 +5824,7 @@ DXGIFactory_CreateSwapChain_Override (
       SK_LOGs0 ( L"Direct3D12",
                  L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
-      config.render.framerate.buffer_count = -1;
+      config.render.framerate.buffer_count = SK_NoPreference;
     }
   }
 
@@ -6406,7 +6406,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       SK_LOGs0 ( L"Direct3D12",
                  L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
-      config.render.framerate.buffer_count = -1;
+      config.render.framerate.buffer_count = SK_NoPreference;
     }
   }
 
@@ -6687,7 +6687,7 @@ WINAPI
 SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
                           D3D_DRIVER_TYPE* DriverType )
 {
-  if (SK_DXGI_preferred_adapter == -1)
+  if (SK_DXGI_preferred_adapter == SK_NoPreference)
     return;
 
   if (EnumAdapters_Original == nullptr)
@@ -6737,7 +6737,7 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
         GetDesc_Original (pGameAdapter, &game_desc);
       }
 
-      if ( SK_DXGI_preferred_adapter != -1 &&
+      if ( SK_DXGI_preferred_adapter != SK_NoPreference &&
            SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
       {
         DXGI_ADAPTER_DESC override_desc;
@@ -6760,7 +6760,7 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
         {
           dll_log->Log ( L"[   DXGI   ] !!! DXGI Adapter Override: (Tried '%s' instead of '%s') !!!",
                         override_desc.Description, game_desc.Description );
-          //SK_DXGI_preferred_adapter = -1;
+          //SK_DXGI_preferred_adapter = SK_NoPreference;
           pOverrideAdapter->Release ();
         }
       }
@@ -7085,7 +7085,7 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
   // For games that try to enumerate all adapters until the API returns failure,
   //   only override valid adapters...
   if ( SUCCEEDED (ret) &&
-       SK_DXGI_preferred_adapter != -1 &&
+       SK_DXGI_preferred_adapter != SK_NoPreference &&
        SK_DXGI_preferred_adapter != Adapter )
   {
     IDXGIAdapter1* pAdapter1 = nullptr;
@@ -7130,7 +7130,7 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
   // For games that try to enumerate all adapters until the API returns failure,
   //   only override valid adapters...
   if ( SUCCEEDED (ret) &&
-       SK_DXGI_preferred_adapter != -1 &&
+       SK_DXGI_preferred_adapter != SK_NoPreference &&
        SK_DXGI_preferred_adapter != Adapter )
   {
     IDXGIAdapter* pAdapter = nullptr;

@@ -756,7 +756,7 @@ SK_POE2_PlugInCfg (void)
     static int orig =
       config.render.framerate.override_num_cpus;
 
-    bool spoof = (config.render.framerate.override_num_cpus != -1);
+    bool spoof = (config.render.framerate.override_num_cpus != SK_NoPreference);
 
     static SYSTEM_INFO             si = { };
     SK_RunOnce (SK_GetSystemInfo (&si));

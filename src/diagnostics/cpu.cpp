@@ -65,7 +65,7 @@ GetLogicalProcessorInformation_Detour (
       int logical  = 0;
     } cores;
 
-    if (config.render.framerate.override_num_cpus != -1)
+    if (config.render.framerate.override_num_cpus != SK_NoPreference)
     {
       PSYSTEM_LOGICAL_PROCESSOR_INFORMATION ptr        = Buffer;
       DWORD                                 byteOffset = 0;
@@ -113,10 +113,10 @@ GetLogicalProcessorInformationEx_Detour (
       static_cast <int> (SK_CPU_CountPhysicalCores ());
 
   int extra_cores =
-    config.render.framerate.override_num_cpus == -1 ? 0 :
+    config.render.framerate.override_num_cpus == SK_NoPreference ? 0 :
     config.render.framerate.override_num_cpus - core_count;
 
-  if (config.render.framerate.override_num_cpus != -1)
+  if (config.render.framerate.override_num_cpus != SK_NoPreference)
     dll_log->Log (L"Allocating %lu extra CPU cores", extra_cores);
 
   if (extra_cores > 0 && RelationshipType == RelationAll)
@@ -274,7 +274,7 @@ GetSystemInfo_Detour (
 {
   GetSystemInfo_Original (lpSystemInfo);
 
-  if (config.render.framerate.override_num_cpus == -1)
+  if (config.render.framerate.override_num_cpus == SK_NoPreference)
     return;
 
   lpSystemInfo->dwActiveProcessorMask = 0x0;

@@ -37,6 +37,8 @@
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
 
+#define SK_NoPreference -1
+
 struct SK_Keybind
 {
   const char*  bind_name      = nullptr;
@@ -311,9 +313,10 @@ struct sk_config_t
                 dll_path              = L"";
 
     int64_t     appid                 = 0LL;
-    int         online_status         = -1;  // Force a certain online status at all times
+    int         online_status         = SK_NoPreference;
+                                             // Force a certain online status at all times
     int         init_delay            = 0UL; // Disable to prevent crashing in many games
-    int         callback_throttle     = -1;
+    int         callback_throttle     = SK_NoPreference;
     bool        preload_client        = false;
     bool        preload_overlay       = false;  // For input processing, this is important
     bool        force_load_steamapi   = false;  // Load steam_api{64}.dll even in games
@@ -498,11 +501,11 @@ struct sk_config_t
     struct framerate_s {
       float   target_fps          =  0.0F;
       float   target_fps_bg       =  0.0F;
-      int     override_num_cpus   = -1;
-      int     pre_render_limit    = -1;
-      int     present_interval    = -1;
-      int     sync_interval_clamp = -1;
-      int     buffer_count        = -1;
+      int     override_num_cpus   = SK_NoPreference;
+      int     pre_render_limit    = SK_NoPreference;
+      int     present_interval    = SK_NoPreference;
+      int     sync_interval_clamp = SK_NoPreference;
+      int     buffer_count        = SK_NoPreference;
       int     max_delta_time      =  0; // Bad old setting; needs to be phased
       int     swapchain_wait      =  0;
       float   refresh_rate        = -1.0F;
@@ -510,10 +513,10 @@ struct sk_config_t
       struct rescan_s {
         UINT Denom                =  1;
         UINT Numerator            =
-               static_cast <UINT> (-1);
+               static_cast <UINT> (SK_NoPreference);
       } rescan_;
       int     refresh_denom       =     1;
-      int     pin_render_thread   =    -1;
+      int     pin_render_thread   = SK_NoPreference;
       bool    flip_discard        =  true; // Enabled by default (7/6/21)
       bool    flip_sequential     = false;
       bool    disable_flip        = false;
@@ -583,7 +586,7 @@ struct sk_config_t
       bool    use_d3d9on12         = false;
     } d3d9;
     struct dxgi_s {
-      int     adapter_override     = -1;
+      int     adapter_override     = SK_NoPreference;
       struct resolution_s {
         struct minimum_s {
           unsigned int x           =  0;
@@ -600,12 +603,12 @@ struct sk_config_t
         float min = 0.0f;
         float max = 0.0f;
       } refresh;
-      int     exception_mode       =    -1; // -1 = Don't Care
-      int     scaling_mode         =    -1; // -1 = Don't Care
-      int     scanline_order       =    -1; // -1 = Don't Care
-      int     msaa_samples         =    -1;
+      int     exception_mode       = SK_NoPreference; // -1 = Don't Care
+      int     scaling_mode         = SK_NoPreference; // -1 = Don't Care
+      int     scanline_order       = SK_NoPreference; // -1 = Don't Care
+      int     msaa_samples         = SK_NoPreference;
       // DXGI 1.1 (Ignored for now)
-      int     rotation             =    -1; // -1 = Don't Care
+      int     rotation             = SK_NoPreference; // -1 = Don't Care
       int     srgb_behavior        =    -2; // -2 = sRGB Not Encountered Yet
                                             // -1 = Passthrough,
                                             //  0 = Strip,
@@ -918,7 +921,7 @@ struct sk_config_t
                      x.percent  > -0.00001F && x.percent   < 0.00001F &&
                      y.percent  > -0.00001F && y.percent   < 0.00001F; }
     } offset;
-    int     always_on_top       =    -1;
+    int     always_on_top       = NoPreferenceOnTop;
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;
@@ -976,7 +979,7 @@ struct sk_config_t
     struct d3d9_s {
       bool   hook        =  true;
       bool   translated  = false;
-      int    native_dxvk =    -1;
+      int    native_dxvk = SK_NoPreference;
     } d3d9,
       d3d9ex;
 
@@ -997,7 +1000,7 @@ struct sk_config_t
       bool         enable        = true;
       bool         gsync_status  = true;
       bool         disable_hdr   = false;
-      int          vulkan_bridge = -1;
+      int          vulkan_bridge = SK_NoPreference;
       std::wstring bpc_enum      = L"NV_BPC_DEFAULT";
       std::wstring col_fmt_enum  = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;

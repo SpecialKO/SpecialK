@@ -1985,8 +1985,8 @@ auto DeclKeybind =
                                             //
 
   // Default = Don't Care
-  config.render.dxgi.exception_mode = -1;
-  config.render.dxgi.scaling_mode   = -1;
+  config.render.dxgi.exception_mode = SK_NoPreference;
+  config.render.dxgi.scaling_mode   = SK_NoPreference;
 
 
   //
@@ -2255,8 +2255,8 @@ auto DeclKeybind =
       {
         config.window.borderless                 = true;
         config.window.fullscreen                 = true;
-        config.window.offset.x.absolute          = -1;
-        config.window.offset.y.absolute          = -1;
+        config.window.offset.x.absolute          = SK_NoPreference;
+        config.window.offset.y.absolute          = SK_NoPreference;
         config.window.center                     = false;
         config.render.framerate.buffer_count     =  3;
         config.render.framerate.target_fps       = -30.0f;
@@ -2281,7 +2281,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::StarOcean4:
         // Prevent the game from layering windows always on top.
-        config.window.always_on_top             = 0;
+        config.window.always_on_top             = PreventAlwaysOnTop;
         config.window.disable_screensaver       = true;
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = false;
@@ -2505,7 +2505,7 @@ auto DeclKeybind =
         config.window.borderless                 =  true;
         config.window.fullscreen                 =  true;
         config.display.force_windowed            =  true;
-        config.window.always_on_top              =     0;
+        config.window.always_on_top              =  PreventAlwaysOnTop;
 
         // 1.00: 0x2C3201
         // 1.01: 0x2C37B1, File Location: 0x2C2801
@@ -2620,7 +2620,7 @@ auto DeclKeybind =
 
         config.textures.d3d11.cache               =  false;
         config.window.background_render           =   true;
-        config.window.always_on_top               =      0;
+        config.window.always_on_top               =  PreventAlwaysOnTop;
         config.render.dxgi.deferred_isolation     =  false;
         config.platform.reuse_overlay_pause       =  false;
         config.window.borderless                  =   true;
@@ -2932,8 +2932,8 @@ auto DeclKeybind =
         apis.Vulkan.hook->store (config.apis.Vulkan.    hook);
         apis.last_known->store  ((int)config.apis.last_known);
 
-        config.window.always_on_top                  = 0;
-        config.apis.NvAPI.vulkan_bridge              = 1;
+        config.window.always_on_top       = PreventAlwaysOnTop;
+        config.apis.NvAPI.vulkan_bridge   = 1;
 
         SK_Vulkan_DisableThirdPartyLayers ();
 
@@ -3554,7 +3554,7 @@ auto DeclKeybind =
       config.render.dxgi.exception_mode = 0;
     }
     else
-      config.render.dxgi.exception_mode = -1;
+      config.render.dxgi.exception_mode = SK_NoPreference;
   }
 
   render.dxgi.test_present->load         (config.render.dxgi.test_present);
@@ -3607,7 +3607,7 @@ auto DeclKeybind =
   texture.cache.allow_unsafe_refs->load  (config.textures.cache.allow_unsafe_refs);
   texture.cache.manage_residency->load   (config.textures.cache.residency_managemnt);
 
-  if (config.render.dxgi.adapter_override != -1)
+  if (config.render.dxgi.adapter_override != SK_NoPreference)
     SK_DXGI_SetPreferredAdapter (config.render.dxgi.adapter_override);
 
   input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
@@ -3976,7 +3976,7 @@ auto DeclKeybind =
             }
           }
 
-          else if (config.display.monitor_idx == -1)
+          else if (config.display.monitor_idx == SK_NoPreference)
           {
             if (mi.dwFlags & MONITORINFOF_PRIMARY)
             {
@@ -4268,7 +4268,7 @@ auto DeclKeybind =
   steam.system.force_load->load               (config.steam.force_load_steamapi);
   steam.system.auto_inject->load              (config.steam.auto_inject);
 
-  int                                 throttle = -1;
+  int                                 throttle = SK_NoPreference;
   if (steam.callbacks.throttle->load (throttle))
   {
     InterlockedExchange ( &SK_SteamAPI_CallbackRateLimit,
