@@ -6262,7 +6262,6 @@ SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnk
 #ifdef __PAIR_DEVICE_TO_CHAIN
   if      (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
   else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
-  else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
 #else
   _recyclables [hWnd] = pSwapChain;
 #endif
@@ -6558,8 +6557,30 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       // D3D12
       else if (pCmdQueue.p != nullptr)
       {
-        SK_DXGI_MakeCachedSwapChainForHwnd
-             ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev12.p) );
+        bool bAmdInterop = false;
+
+        //
+        // Detect AMD's Interop SwapChain
+        //
+        if ( SK_GetModuleHandle (L"vulkan-1.dll") &&
+             SK_GetCallerName ().find (L"amdxc") != std::wstring::npos )
+        {
+          UINT                                 uiFlagAsInterop = SK_DXGI_VK_INTEROP_TYPE_AMD;
+          (*ppSwapChain)->SetPrivateData (
+            SKID_DXGI_VK_InteropSwapChain, 4, &uiFlagAsInterop
+          );
+
+          SK_LOGi0 (L"Detected a Vulkan/DXGI Interop SwapChain");
+
+          bAmdInterop = true;
+        }
+
+        // Don't cache SwapChains, AMD always creates a new device
+        if (! bAmdInterop)
+        {
+          SK_DXGI_MakeCachedSwapChainForHwnd
+               ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev12.p) );
+        }
       }
     }
 

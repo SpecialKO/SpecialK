@@ -1,4 +1,9 @@
-﻿23.8.15.1
+﻿23.8.15.2
+=========
+ + Do not cache D3D12 SwapChains when AMD's Vulkan interop is detected
+ + Change API name to Vulkan instead of D3D12 when using AMD's Vulkan interop
+
+23.8.15.1
 =========
  + Disable SwapDeviceContextState because it causes the Steam Overlay to crash
 
