@@ -316,6 +316,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     if (pDevice->CreateBuffer (&desc, nullptr, &_P->pVB) < 0 ||
                                              (! _P->pVB))
       return;
+    SK_D3D11_SetDebugName (                     _P->pVB,
+                           L"ImGui D3D11 VertexBuffer");
   }
 
   if ((! _P->pIB            ) ||
@@ -337,6 +339,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     if (pDevice->CreateBuffer (&desc, nullptr, &_P->pIB) < 0 ||
                                              (! _P->pIB))
       return;
+    SK_D3D11_SetDebugName (                     _P->pIB,
+                           L"ImGui D3D11 IndexBuffer");
   }
 
   // Copy and convert all vertices into a single contiguous buffer
@@ -615,17 +619,17 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
 #include <SpecialK/config.h>
 
-static void
+static bool
 ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
                                     ID3D11Device*   pDev )
 {
   if (! pDev) // Try again later
-    return;
+    return false;
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
-  if (! pTLS) return;
+  if (! pTLS) return false;
 
   auto _BuildForSlot = [&](UINT slot) -> void
   {
@@ -776,7 +780,11 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
     SK_LOGi0 (
       L"ImGui Font: %hs",       e.what ()
     );
+
+    return false;
   }
+
+  return true;
 }
 
 HRESULT
@@ -1434,19 +1442,26 @@ ImGui_ImplDX11_CreateDeviceObjects (IDXGISwapChain*      pSwapChain,
   g_numFramesInSwapChain =
     _MAX_BACKBUFFERS;
 
-  ImGui_ImplDX11_CreateFontsTexture (pSwapChain, pDevice);
+  bool bSuccess = true;
 
-  for ( UINT i = 0 ; i < g_numFramesInSwapChain ; ++i )
+  if (ImGui_ImplDX11_CreateFontsTexture (pSwapChain, pDevice))
   {
-    if (! ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (pSwapChain, pDevice, pDevCtx, i))
+    for (UINT i = 0 ; i < g_numFramesInSwapChain ; ++i)
     {
-      ImGui_ImplDX11_InvalidateDeviceObjects ();
-
-      return false;
+      if (!ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer (pSwapChain, pDevice, pDevCtx, i))
+      {
+        bSuccess = false;
+        break;
+      }
     }
   }
 
-  return true;
+  else bSuccess = false;
+
+  if (! bSuccess)
+    ImGui_ImplDX11_InvalidateDeviceObjects ();
+
+  return bSuccess;
 }
 
 
@@ -1562,6 +1577,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pVertexShaderDiscordHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderDiscordHDR); assert (refs == 0); }
     if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
     if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
+    if (_P->pVertexShaderEpicHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderEpicHDR);    assert (refs == 0); }
     if (_P->pVertexShaderReShadeHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderReShadeHDR); assert (refs == 0); }
 #endif
 
