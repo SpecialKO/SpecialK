@@ -57,7 +57,7 @@ SK_D3D11_Map_Impl (
   D3D11_RESOURCE_DIMENSION rdim =
   D3D11_RESOURCE_DIMENSION_UNKNOWN;
 
-  if (Subresource == 0)
+  if (Subresource == 0 && pResource != nullptr)
   {
     pResource->GetType (&rdim);
 
