@@ -1,4 +1,10 @@
-﻿23.8.16
+﻿23.8.16.1
+=========
+ + Avoid calling ID3D11DeviceContext::UpdateSubresource (...) twice sometimes
+ + Forward the return address to SK_D3D11_UpdateSubresource_Impl so that texture
+     cache invalidation is attributed to the correct DLL in log files
+
+23.8.16
 =======
  + SK::Diagnostics::CrashHandler::InitSyms (...) no longer implicitly installs
      SK's unhandled exception filter if handle_crashes is set to false

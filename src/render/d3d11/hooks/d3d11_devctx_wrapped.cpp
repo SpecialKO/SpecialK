@@ -1451,9 +1451,10 @@ public:
                  pSrcResource, SrcSubresource, pSrcBox, TRUE
         );
 //  else
+#else
+      pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
+                                     pSrcResource, SrcSubresource, pSrcBox );
 #endif
-//    pReal->CopySubresourceRegion ( pDstResource, DstSubresource, DstX, DstY, DstZ,
-//                                   pSrcResource, SrcSubresource, pSrcBox );
   }
 
   void STDMETHODCALLTYPE CopyResource (
@@ -1473,8 +1474,9 @@ public:
                  pSrcResource, TRUE
         );
     //else
+#else
+      pReal->CopyResource (pDstResource, pSrcResource);
 #endif
-      //pReal->CopyResource (pDstResource, pSrcResource);
   }
 
   void STDMETHODCALLTYPE UpdateSubresource (
@@ -1491,7 +1493,7 @@ public:
       return;
 
 #ifndef SK_D3D11_LAZY_WRAP
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
+//if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
         SK_D3D11_UpdateSubresource_Impl (pReal,
                       pDstResource,
                        DstSubresource,
@@ -1501,9 +1503,10 @@ public:
                        SrcDepthPitch, TRUE,
                        _ReturnAddress ()
         );
-      else
+    //else
+#else
+      pReal->UpdateSubresource (pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
 #endif
-        pReal->UpdateSubresource (pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch);
   }
 
   void STDMETHODCALLTYPE CopyStructureCount (
@@ -1615,9 +1618,10 @@ public:
                             Format, TRUE
         );
 //else
-  #endif
-//pReal->ResolveSubresource ( pDstResource, DstSubresource,
-//                            pSrcResource, SrcSubresource, Format );
+#else
+    pReal->ResolveSubresource ( pDstResource, DstSubresource,
+                                pSrcResource, SrcSubresource, Format );
+#endif
   }
 
   void STDMETHODCALLTYPE ExecuteCommandList (
