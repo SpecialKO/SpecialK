@@ -3285,40 +3285,60 @@ SK_BackgroundRender_EndFrame (void)
   {
     static bool last_foreground = false;
 
+    DWORD     dwProcessId = GetCurrentProcessId ();
     DWORD dwForegroundPid = 0x0;
     DWORD dwForegroundTid = 0x0;
     HWND   hForegroundWnd = SK_GetForegroundWindow ();
 
+    struct {
+      HWND   hWnd = 0;
+      DWORD dwPid = 0;
+      DWORD dwTid = 0;
+    } static cached_window;
+
     if (hForegroundWnd != game_window.hWnd)
     { // This is an expensive call, only do it if GetForegroundWindow
       //   suggest its necessary
-      GetWindowThreadProcessId (hForegroundWnd, &dwForegroundPid);
-    }
-
-    else dwForegroundPid = GetCurrentProcessId ();
-
-    if (dwForegroundPid != GetCurrentProcessId ())
-    {
-      GUITHREADINFO gti        = {                    };
-                    gti.cbSize = sizeof (GUITHREADINFO);
-      if ( GetGUIThreadInfo (       dwForegroundTid,
-                                           &gti ) )
+      if (cached_window.hWnd != hForegroundWnd)
       {
-        static HWND        hWndLastFocus  = 0;
-        if (               hWndLastFocus != gti.hwndFocus) {
-          SK_Window_OnFocusChange (         gti.hwndFocus,
-            std::exchange (hWndLastFocus,   gti.hwndFocus)
-          );
-        }
+        cached_window.dwTid =
+          GetWindowThreadProcessId (hForegroundWnd, &dwForegroundPid);
+        cached_window.dwPid = dwForegroundPid;
+        cached_window.hWnd  = hForegroundWnd;
       }
+      else
+      {
+        dwForegroundPid = cached_window.dwPid;
+        dwForegroundTid = cached_window.dwTid;
+      }
+    }
+    else dwForegroundPid = dwProcessId;
 
-      if (std::exchange (last_foreground, false) && config.window.always_on_top < 1)
-        SK_DeferCommand ("Window.TopMost false");
+    if (dwForegroundPid != dwProcessId)
+    {
+      if (std::exchange (last_foreground, false))
+      {
+        GUITHREADINFO gti        = {                    };
+                      gti.cbSize = sizeof (GUITHREADINFO);
+        if ( GetGUIThreadInfo (       dwForegroundTid,
+                                             &gti ) )
+        {
+          static HWND        hWndLastFocus  = 0;
+          if (               hWndLastFocus != gti.hwndFocus) {
+            SK_Window_OnFocusChange (         gti.hwndFocus,
+              std::exchange (hWndLastFocus,   gti.hwndFocus)
+            );
+          }
+        }
+
+        if (config.window.always_on_top == PreventAlwaysOnTop)
+          SK_DeferCommand ("Window.TopMost false");
+      }
     }
 
     else
     {
-      if (! std::exchange (last_foreground, true) && config.window.always_on_top >= 1)
+      if (! std::exchange (last_foreground, true) && config.window.always_on_top >= AlwaysOnTop)
         SK_DeferCommand ("Window.TopMost true");
     }
   }
