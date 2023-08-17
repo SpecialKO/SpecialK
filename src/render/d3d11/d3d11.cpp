@@ -7558,6 +7558,17 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
+  bool bNvInterop =
+    (Flags == 0xFFFFFFFFUL);
+
+  if (bNvInterop)
+  {
+    Flags = 0x9;
+
+    // NV's DXGI interop is always featureless and without a SwapChain
+    SK_ReleaseAssert (FeatureLevels == 0 && ppSwapChain == nullptr);
+  }
+
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
 
@@ -7732,26 +7743,53 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   HRESULT res = E_UNEXPECTED;
 
-  DXGI_CALL (res,
-    D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
-                                             pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
-                                                                 : DriverType,
-                                               pAdapter == nullptr ? nullptr
-                                                                   : Software,
-                                                 Flags,
-                                                   pFeatureLevels,
-                                                     FeatureLevels,
-                                                       SDKVersion,
-                                                         swap_chain_desc,
-                                                           ppSwapChain,
-                                                             &ret_device,
-                                                               &ret_level,
-                                                                 &ret_ctx )
-            );
+
+  static ID3D11Device
+     *pNvInteropSingleton  = nullptr;
+  if (pNvInteropSingleton != nullptr && bNvInterop)
+  {
+    ret_device = pNvInteropSingleton;
+    ret_device->AddRef ();
+    ret_device->GetImmediateContext (&ret_ctx);
+
+    ret_level =
+      ret_device->GetFeatureLevel ();
+
+    res = S_OK;
+
+    SK_LOGi0 (L"[@] Returning NVIDIA Vk/DXGI Interop Singleton Device");
+  }
+
+  else
+  {
+    DXGI_CALL (res,
+      D3D11CreateDeviceAndSwapChain_Import ( pAdapter,
+                                               pAdapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE
+                                                                   : DriverType,
+                                                 pAdapter == nullptr ? nullptr
+                                                                     : Software,
+                                                   Flags,
+                                                     pFeatureLevels,
+                                                       FeatureLevels,
+                                                         SDKVersion,
+                                                           swap_chain_desc,
+                                                             ppSwapChain,
+                                                               &ret_device,
+                                                                 &ret_level,
+                                                                   &ret_ctx )
+              );
+  }
 
 
   if (SUCCEEDED (res) && ppDevice != nullptr)
   {
+    // Use a single device for NVIDIA interop, it saves a ton of memory in 32-bit games.
+    if (bNvInterop)
+    {
+      pNvInteropSingleton = ret_device;
+                            ret_device->AddRef (); // Keep-Alive
+    }
+
     // Stash the pointer to this device so that we can test equality on wrapped devices
     ret_device->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), ret_device);
 
@@ -7934,6 +7972,12 @@ D3D11CreateDevice_Detour (
   SK_RunOnce ({
     SK_D3D11_Init ();
   });
+
+  // Detect NVIDIA Vk/DXGI Interop
+  if (Flags == 0x9 && SK_GetCallerName ().find (L"nvoglv") != std::wstring::npos)
+  {
+    Flags = 0xFFFFFFFFUL;
+  }
 
   HRESULT hr =
     D3D11CreateDeviceAndSwapChain_Detour ( pAdapter,

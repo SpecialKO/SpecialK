@@ -1,4 +1,15 @@
-﻿23.8.17
+﻿23.8.17.1
+=========
+ + Optimized NVIDIA's Vulkan/DXGI interop to use a single ID3D11Device rather
+     than destroying it and creating a new one every time a window is resized.
+
+    >> This is _necessary_ in 32-bit Vulkan games (i.e. DXVK) to prevent running
+         out of memory during resolution changes.
+
+     * It also ensures that switching games in Yuzu works without having to
+         completely restart the emulator when using NVIDIA's interop.
+
+23.8.17
 =======
  + Implicitly force windowed mode if "Render in Background" is configured, to
      prevent Fullscreen Exclusive games from not responding when Alt-Tabbing
