@@ -762,11 +762,6 @@ SK_D3D11_CreateShader_Impl (
 
         else
         {
-          desc.bytecode.insert ( desc.bytecode.cend  (),
-            &((const uint8_t *) pShaderBytecode) [0],
-            &((const uint8_t *) pShaderBytecode) [BytecodeLength]
-          );
-
              *ppShader =
           desc.pShader;
 
@@ -774,9 +769,11 @@ SK_D3D11_CreateShader_Impl (
             SKID_D3D11KnownShaderCrc32c, sizeof (uint32_t), &checksum
           );
 
-          pShaderRepo->descs [This].emplace (
-            std::make_pair (checksum, desc)
-          );
+          pShaderRepo->descs [This][checksum] = desc;
+          ////pShaderRepo->descs [This][checksum].bytecode.resize (BytecodeLength);
+          ////
+          ////std::copy ( &((const uint8_t *) pShaderBytecode) [0],
+          ////            &((const uint8_t *) pShaderBytecode) [BytecodeLength], pShaderRepo->descs [This][checksum].bytecode.begin () );
         }
 
         pCachedDesc
@@ -942,10 +939,18 @@ extern bool&          SK_D3D11_DontTrackUnlessModToolsAreOpen;
 //   references prior to a buffer resize
 extern SK_LazyGlobal <std::vector <SK_ComPtr <ID3D11View>>> SK_D3D11_TempResources;
 
-extern SK_LazyGlobal <
-      std::array < shader_stage_s,
-                   SK_D3D11_MAX_DEV_CONTEXTS + 1 >
-                 >    d3d11_shader_stages [6];
+struct SK_D3D11_ShaderStageArray
+{
+  using array_s =
+    std::array < shader_stage_s,
+                   SK_D3D11_MAX_DEV_CONTEXTS + 1 >;
+
+  array_s stage [6];
+
+  inline array_s& operator [] (int idx) { return stage [idx]; }
+};
+
+extern SK_LazyGlobal <SK_D3D11_ShaderStageArray> d3d11_shader_stages;
 
 extern SK_LazyGlobal <
       std::array < SK_D3D11_ContextResources,

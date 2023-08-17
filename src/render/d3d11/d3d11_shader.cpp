@@ -31,10 +31,7 @@
 #include <SpecialK/render/d3d11/d3d11_shader.h>
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 
-SK_LazyGlobal <
-     std::array < shader_stage_s,
-                  SK_D3D11_MAX_DEV_CONTEXTS + 1 >
-                >    d3d11_shader_stages [6];
+SK_LazyGlobal <SK_D3D11_ShaderStageArray> d3d11_shader_stages;
 
 SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_before;
 SK_LazyGlobal <std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1>> reshade_trigger_after;
@@ -133,6 +130,8 @@ SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type)
             for ( auto& pShader : pDevice.second )
             {
               pShader.second.pShader->Release ();
+              pShader.second.bytecode.clear   ();
+              pShader.second.name.clear       ();
             }
 
             pShaderRepo->descs [pDevice.first].clear ();
