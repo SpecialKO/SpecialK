@@ -78,6 +78,50 @@ SK_DXGI_ReleaseSwapChainOnHWnd (
 );
 
 
+void
+__stdcall
+SK_DXGI_SwapChainDestructionCallback (void *pData)
+{
+  auto pSwapChain =
+    (IWrapDXGISwapChain *)pData;
+
+  if ( SK::Framerate::HasLimiter  (pSwapChain) &&
+       SK::Framerate::FreeLimiter (pSwapChain) )
+  {
+    SK_LOGi0 (
+      L"SwapChain (%ph) and Framerate Limiter Destroyed",
+       pSwapChain );
+  }
+
+  if ( SK::Framerate::HasLimiter  (pSwapChain->pReal) &&
+       SK::Framerate::FreeLimiter (pSwapChain->pReal) )
+  {
+    SK_LOGi0 (
+      L"SwapChain (%ph) and Framerate Limiter Destroyed",
+       pSwapChain->pReal );
+  }
+}
+
+HRESULT
+IWrapDXGISwapChain::RegisterDestructionCallback (void)
+{
+  UINT uiDontCare = 0;
+
+  SK_ComQIPtr <ID3DDestructionNotifier>
+                  pDestructomatic (pReal);
+  
+  if (pDestructomatic != nullptr)
+  {
+    return
+      pDestructomatic->RegisterDestructionCallback (
+                SK_DXGI_SwapChainDestructionCallback,
+                                 this, &uiDontCare );
+  }
+
+  return
+    E_NOTIMPL;
+}
+
 // IDXGISwapChain
 HRESULT
 STDMETHODCALLTYPE

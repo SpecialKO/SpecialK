@@ -37,6 +37,8 @@
 #include <limits>
 #include <forward_list>
 
+#include <concurrent_unordered_map.h>
+
 float SK_Framerate_GetPercentileByIdx (int idx);
 
 using QueryPerformanceCounter_pfn   = BOOL (WINAPI *)(_Out_ LARGE_INTEGER *lpPerformanceCount) noexcept;
@@ -697,6 +699,12 @@ namespace SK
                   bool          HasLimiter (IUnknown *pSwapChain          = nullptr);
                   Limiter*      GetLimiter (IUnknown *pSwapChain          = nullptr,
                                             bool      bCreateIfNoneExists = true   );
+                  bool         FreeLimiter (IUnknown *pSwapChain                   );
+
+    extern SK_LazyGlobal <
+           concurrency::concurrent_unordered_map < IUnknown *,
+                   std::unique_ptr <SK::Framerate::Limiter> >
+                         > limiters_;
   };
 };
 

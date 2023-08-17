@@ -45,6 +45,10 @@ const GUID IID_IWrapDXGISwapChain =
 
 extern bool bOriginallyFlip;
 
+void
+__stdcall
+SK_DXGI_SwapChainDestructionCallback (void *pSwapChain);
+
 struct DECLSPEC_UUID("24430A12-6E3C-4706-AFFA-B3EEF2DF4102")
 IWrapDXGISwapChain : IDXGISwapChain4
 {
@@ -121,6 +125,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
+
+    RegisterDestructionCallback ();
 
     if (! d3d12_)
     {
@@ -215,6 +221,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
+
+    RegisterDestructionCallback ();
 
     if (! d3d12_)
     {
@@ -361,6 +369,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   // Shared logic between Present (...) and Present1 (...)
   int                     PresentBase (void);
+
+  HRESULT                 RegisterDestructionCallback (void);
 };
 
 

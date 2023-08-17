@@ -2069,6 +2069,11 @@ SK::Framerate::Limiter::effective_frametime (void)
   return effective_ms;
 }
 
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map < IUnknown *,
+           std::unique_ptr <SK::Framerate::Limiter> >
+              > SK::Framerate::limiters_;
+
 SK::Framerate::Limiter*
 SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
                             bool      bCreate = true )
@@ -2086,20 +2091,18 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
        pUnwrap != pSwapChain_ )
      pSwapChain_ = pUnwrap;
 
-  static concurrency::concurrent_unordered_map < IUnknown *,
-      std::unique_ptr <SK::Framerate::Limiter> > limiters_;
-
   SK_RunOnce (
     SK_GetCommandProcessor ()->AddCommand (
       "SK::Framerate::ResetLimit", new skLimitResetCmd ()
     )
   );
 
-  if (! limiters_.count (pSwapChain_))
+  if ((! SK::Framerate::limiters_->count (pSwapChain_)) ||
+         SK::Framerate::limiters_->at    (pSwapChain_).get () == nullptr)
   {
     if (bCreate)
     {
-      limiters_ [pSwapChain_] =
+      SK::Framerate::limiters_.get()[pSwapChain_] =
         std::make_unique <SK::Framerate::Limiter> (
           config.render.framerate.target_fps
         );
@@ -2115,7 +2118,7 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
   }
 
   return
-    limiters_.at (pSwapChain_).get ();
+    SK::Framerate::limiters_->at (pSwapChain_).get ();
 }
 
 bool
@@ -2133,6 +2136,18 @@ SK::Framerate::GetLimiter ( IUnknown *pSwapChain,
   return
     SK_FramerateLimit_Factory ( pSwapChain,
                                 bCreateIfNoneExists );
+}
+
+bool
+SK::Framerate::FreeLimiter (IUnknown *pSwapChain)
+{
+  if (SK::Framerate::limiters_->count (pSwapChain))
+  {   SK::Framerate::limiters_->at    (pSwapChain).reset ();
+
+    return true;
+  }
+
+  return false;
 }
 
 class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
