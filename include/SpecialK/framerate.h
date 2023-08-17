@@ -152,248 +152,6 @@ namespace SK
 
     #define MAX_SAMPLES 1000
 
-    class Stats;
-
-    struct DeepFrameState
-    {
-      using
-        SK_LazyStats =
-          SK_LazyGlobal <
-            SK::Framerate::Stats
-          >;
-
-      SK_LazyStats mean;
-      SK_LazyStats min;
-      SK_LazyStats max;
-      SK_LazyStats percentile0;
-      SK_LazyStats percentile1;
-
-      void reset (void);
-    };
-
-    class Limiter {
-    public:
-      Limiter (double target = 60.0, bool tracks_game_window = true);
-     ~Limiter (void) = default;
-
-      void            init            (double target, bool tracks_window = true); // Todo, use an opaque handle to denote which window
-      void            wait            (void);
-      bool        try_wait            (void); // No actual wait, just return
-                                              //  whether a wait would have occurred.
-
-      void        set_limit           (double target);
-      double      get_limit           (void) noexcept { return fps;  };
-
-      LONG64      get_next_tick       (void) noexcept { return next; };
-      double      get_ms_to_next_tick (float ticks = 1.0f) noexcept;
-
-      double      effective_frametime (void);
-
-      void        set_undershoot      (float percent) noexcept { undershoot_percent = percent; };
-      float       get_undershoot      (void)          noexcept {    return undershoot_percent; };
-
-      int32_t     suspend             (void) noexcept { return ++limit_behavior;     }
-      int32_t     resume              (void) noexcept { return --limit_behavior;     }
-      bool        frozen              (void) noexcept { return   limit_behavior > 0; }
-
-      void        reset (bool full = false) noexcept {
-        if (full) full_restart = true;
-        else           restart = true;
-      }
-
-      struct present_stats_s {
-      //DXGI_FRAME_STATISTICS sequence_start = { };
-        UINT                  queue_depth    =  0;
-        std::vector <UINT>    frame_ids;
-      };
-
-      struct snapshot_s {
-        bool        *pRestart     = nullptr;
-        bool        *pFullRestart = nullptr;
-        bool        *pBackground  = nullptr;
-
-        double       ms              = 0.0;
-        double       fps             = 0.0;
-        double       effective_ms    = 0.0;
-
-        uint64_t     ticks_per_frame =   0;
-
-        volatile
-          LONG64     time  = { },
-                     start = { },
-                     next  = { },
-                     last  = { };
-
-        volatile
-          LONG64     frames = 0;
-      } rate_shot;
-
-      snapshot_s getSnapshot (void)
-      {
-        rate_shot.pRestart        = &restart;
-        rate_shot.pFullRestart    = &full_restart;
-        rate_shot.pBackground     = &background;
-        rate_shot.ms              = ms;
-        rate_shot.fps             = fps;
-        rate_shot.effective_ms    = effective_ms;
-        rate_shot.ticks_per_frame = ticks_per_frame;
-
-        InterlockedExchange64 (&rate_shot.time,  ReadAcquire64 (&time));
-        InterlockedExchange64 (&rate_shot.start, ReadAcquire64 (&start));
-        InterlockedExchange64 (&rate_shot.next,  ReadAcquire64 (&next));
-        InterlockedExchange64 (&rate_shot.last,  ReadAcquire64 (&last));
-
-        WriteRelease64 (&rate_shot.frames,
-                   ReadAcquire64 (&frames));
-
-        return rate_shot;
-      }
-
-      // Record keeping data pertaining to all frames SK has seen
-      //   for the entire application runtime, irrespective of user-
-      //     defined preferences for limiting / skipping.
-      struct frame_journal_s
-      {
-        struct dataspread_s
-        {
-          struct
-          {
-            LONG64 frame_idx = -1;
-            LONG64 clock_val =  0;
-
-            void initFrame (LONG64 lvi) noexcept { frame_idx =
-             ( frame_idx == -1 ) ? lvi           : frame_idx;};
-            void initClock (LONG64 lvc) noexcept { clock_val =
-             ( clock_val ==  0 ) ? lvc           : clock_val;};
-          } first, last;
-
-          LONG64
-            count (void) const noexcept
-            { return
-               last.frame_idx -
-              first.frame_idx;
-            }
-          LONG64
-            duration (void) const noexcept
-            { return
-                 last.clock_val -
-                first.clock_val;
-            }
-        } frames_measured;
-
-        struct {
-          dataspread_s span = { { -1, 0 },
-                                { -1, 0 } };
-        } limiter_resets;
-
-      //LONG64 time_waited = 0; // TODO
-      } frames_of_fame;
-
-      struct amortized_stats_s {
-        int            phase      =  0;
-        LARGE_INTEGER _last_frame = { };
-      } amortization;
-
-      SK_LazyGlobal <Stats>        frame_history;
-      SK_LazyGlobal <Stats>        frame_history2;
-                    DeepFrameState frame_history_snapshots;
-
-      static
-      float         undershoot_percent;
-
-      static
-      double        timer_res_ms;
-
-    private:
-
-      bool          restart      = false;
-      bool          full_restart = false;
-      bool          background   = false;
-
-      double        ms           = 0.0,
-                    fps          = 0.0,
-                    effective_ms = 0.0;
-
-      ULONGLONG     ticks_per_frame     = 0ULL;
-      double        accum_per_frame     =  0.0;
-      ULONGLONG     ticks_to_undershoot = 0ULL;
-
-      // Don't align timing perfectly on a VBlank interval, because DWM composition is
-      //   asynchronous to our present queue and we want to arrive with a frame to flip
-      //     before VBlank begins, not _after_.
-
-      volatile
-        LONG64      time   = { },
-                    start  = { },
-                    next   = { },
-                    last   = { };
-
-      volatile
-        LONG64      frames = 0;
-      volatile
-        LONG64      last_frame = 0; // Never apply a limit twice in one frame
-
-#define LIMIT_APPLY     0
-#define LIMIT_UNDERFLOW (limit_behavvior < 0)
-#define LIMIT_SUSPENDED (limit_behavivor > 0)
-
-      // 0 = Limiter runs, < 0 = Reference Counting Bug (dumbass)
-      //                   > 0 = Temporarily Ignore Limits
-      int32_t        limit_behavior =
-                     LIMIT_APPLY;
-
-      SK_AutoHandle  timer_wait;
-      bool           tracks_window = true;
-      bool           lazy_init     = false;
-
-      // Two limits applied on the same frame would cause problems, don't allow it.
-      std::unordered_map <DWORD, ULONG64> _frame_shame;
-    };
-
-    using EventCounter = class EventCounter_V1;
-
-    class EventCounter_V1
-    {
-    public:
-      class SleepStats
-      {
-      public:
-        volatile ULONG attempts   = 0UL,
-                       rejections = 0UL;
-
-        struct
-        {
-          volatile LONG deprived = 0ULL,
-                        allowed  = 0ULL;
-        } time;
-
-
-        void sleep (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
-                                            InterlockedAdd       (&time.allowed,  dwMilliseconds); }
-        void wake  (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
-                                            InterlockedIncrement (&rejections);
-                                            InterlockedAdd       (&time.deprived, dwMilliseconds); }
-      };
-
-      SleepStats& getMessagePumpStats  (void) noexcept { return message_pump;  }
-      SleepStats& getRenderThreadStats (void) noexcept { return render_thread; }
-      SleepStats& getMicroStats        (void) noexcept { return micro_sleep;   }
-      SleepStats& getMacroStats        (void) noexcept { return macro_sleep;   }
-
-    protected:
-      SleepStats message_pump, render_thread,
-                 micro_sleep,  macro_sleep;
-    };
-
-    extern        EventCounter                                       events;
-    static inline EventCounter* GetEvents  (void) noexcept { return &events; }
-
-    // The identifying SwapChain is an opaque handle, we have no reason to hold a reference to this
-    //   and you can cast any value you want to this pointer (e.g. an OpenGL HGLRC). Prototype uses
-    //     IUnknown because it's straightforward in DXGI / D3D9 to use these as handles :)
-                  bool          HasLimiter (IUnknown *pSwapChain          = nullptr);
-                  Limiter*      GetLimiter (IUnknown *pSwapChain          = nullptr,
-                                            bool      bCreateIfNoneExists = true   );
     class Stats {
     public:
       Stats (void) noexcept {
@@ -697,6 +455,248 @@ namespace SK
         return samples_used;
       }
     };
+
+    struct DeepFrameState
+    {
+      using
+        SK_LazyStats =
+          SK_LazyGlobal <
+            SK::Framerate::Stats
+          >;
+
+      SK::Framerate::Stats mean;
+      SK::Framerate::Stats min;
+      SK::Framerate::Stats max;
+      SK::Framerate::Stats percentile0;
+      SK::Framerate::Stats percentile1;
+
+      SK::Framerate::Stats frame_history;
+      SK::Framerate::Stats frame_history2;
+
+      void reset (void);
+    };
+
+    class Limiter {
+    public:
+      Limiter (double target = 60.0, bool tracks_game_window = true);
+     ~Limiter (void) = default;
+
+      void            init            (double target, bool tracks_window = true); // Todo, use an opaque handle to denote which window
+      void            wait            (void);
+      bool        try_wait            (void); // No actual wait, just return
+                                              //  whether a wait would have occurred.
+
+      void        set_limit           (double target);
+      double      get_limit           (void) noexcept { return fps;  };
+
+      LONG64      get_next_tick       (void) noexcept { return next; };
+      double      get_ms_to_next_tick (float ticks = 1.0f) noexcept;
+
+      double      effective_frametime (void);
+
+      void        set_undershoot      (float percent) noexcept { undershoot_percent = percent; };
+      float       get_undershoot      (void)          noexcept {    return undershoot_percent; };
+
+      int32_t     suspend             (void) noexcept { return ++limit_behavior;     }
+      int32_t     resume              (void) noexcept { return --limit_behavior;     }
+      bool        frozen              (void) noexcept { return   limit_behavior > 0; }
+
+      void        reset (bool full = false) noexcept {
+        if (full) full_restart = true;
+        else           restart = true;
+      }
+
+      struct present_stats_s {
+      //DXGI_FRAME_STATISTICS sequence_start = { };
+        UINT                  queue_depth    =  0;
+        std::vector <UINT>    frame_ids;
+      };
+
+      struct snapshot_s {
+        bool        *pRestart     = nullptr;
+        bool        *pFullRestart = nullptr;
+        bool        *pBackground  = nullptr;
+
+        double       ms              = 0.0;
+        double       fps             = 0.0;
+        double       effective_ms    = 0.0;
+
+        uint64_t     ticks_per_frame =   0;
+
+        volatile
+          LONG64     time  = { },
+                     start = { },
+                     next  = { },
+                     last  = { };
+
+        volatile
+          LONG64     frames = 0;
+      } rate_shot;
+
+      snapshot_s getSnapshot (void)
+      {
+        rate_shot.pRestart        = &restart;
+        rate_shot.pFullRestart    = &full_restart;
+        rate_shot.pBackground     = &background;
+        rate_shot.ms              = ms;
+        rate_shot.fps             = fps;
+        rate_shot.effective_ms    = effective_ms;
+        rate_shot.ticks_per_frame = ticks_per_frame;
+
+        InterlockedExchange64 (&rate_shot.time,  ReadAcquire64 (&time));
+        InterlockedExchange64 (&rate_shot.start, ReadAcquire64 (&start));
+        InterlockedExchange64 (&rate_shot.next,  ReadAcquire64 (&next));
+        InterlockedExchange64 (&rate_shot.last,  ReadAcquire64 (&last));
+
+        WriteRelease64 (&rate_shot.frames,
+                   ReadAcquire64 (&frames));
+
+        return rate_shot;
+      }
+
+      // Record keeping data pertaining to all frames SK has seen
+      //   for the entire application runtime, irrespective of user-
+      //     defined preferences for limiting / skipping.
+      struct frame_journal_s
+      {
+        struct dataspread_s
+        {
+          struct
+          {
+            LONG64 frame_idx = -1;
+            LONG64 clock_val =  0;
+
+            void initFrame (LONG64 lvi) noexcept { frame_idx =
+             ( frame_idx == -1 ) ? lvi           : frame_idx;};
+            void initClock (LONG64 lvc) noexcept { clock_val =
+             ( clock_val ==  0 ) ? lvc           : clock_val;};
+          } first, last;
+
+          LONG64
+            count (void) const noexcept
+            { return
+               last.frame_idx -
+              first.frame_idx;
+            }
+          LONG64
+            duration (void) const noexcept
+            { return
+                 last.clock_val -
+                first.clock_val;
+            }
+        } frames_measured;
+
+        struct {
+          dataspread_s span = { { -1, 0 },
+                                { -1, 0 } };
+        } limiter_resets;
+
+      //LONG64 time_waited = 0; // TODO
+      } frames_of_fame;
+
+      struct amortized_stats_s {
+        int            phase      =  0;
+        LARGE_INTEGER _last_frame = { };
+      } amortization;
+
+      SK_LazyGlobal <DeepFrameState> frame_history_snapshots;
+
+      static
+      float         undershoot_percent;
+
+      static
+      double        timer_res_ms;
+
+    private:
+
+      bool          restart      = false;
+      bool          full_restart = false;
+      bool          background   = false;
+
+      double        ms           = 0.0,
+                    fps          = 0.0,
+                    effective_ms = 0.0;
+
+      ULONGLONG     ticks_per_frame     = 0ULL;
+      double        accum_per_frame     =  0.0;
+      ULONGLONG     ticks_to_undershoot = 0ULL;
+
+      // Don't align timing perfectly on a VBlank interval, because DWM composition is
+      //   asynchronous to our present queue and we want to arrive with a frame to flip
+      //     before VBlank begins, not _after_.
+
+      volatile
+        LONG64      time   = { },
+                    start  = { },
+                    next   = { },
+                    last   = { };
+
+      volatile
+        LONG64      frames = 0;
+      volatile
+        LONG64      last_frame = 0; // Never apply a limit twice in one frame
+
+#define LIMIT_APPLY     0
+#define LIMIT_UNDERFLOW (limit_behavvior < 0)
+#define LIMIT_SUSPENDED (limit_behavivor > 0)
+
+      // 0 = Limiter runs, < 0 = Reference Counting Bug (dumbass)
+      //                   > 0 = Temporarily Ignore Limits
+      int32_t        limit_behavior =
+                     LIMIT_APPLY;
+
+      SK_AutoHandle  timer_wait;
+      bool           tracks_window = true;
+      bool           lazy_init     = false;
+
+      // Two limits applied on the same frame would cause problems, don't allow it.
+      std::unordered_map <DWORD, ULONG64> _frame_shame;
+    };
+
+    using EventCounter = class EventCounter_V1;
+
+    class EventCounter_V1
+    {
+    public:
+      class SleepStats
+      {
+      public:
+        volatile ULONG attempts   = 0UL,
+                       rejections = 0UL;
+
+        struct
+        {
+          volatile LONG deprived = 0ULL,
+                        allowed  = 0ULL;
+        } time;
+
+
+        void sleep (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
+                                            InterlockedAdd       (&time.allowed,  dwMilliseconds); }
+        void wake  (ULONG dwMilliseconds) { InterlockedIncrement (&attempts);
+                                            InterlockedIncrement (&rejections);
+                                            InterlockedAdd       (&time.deprived, dwMilliseconds); }
+      };
+
+      SleepStats& getMessagePumpStats  (void) noexcept { return message_pump;  }
+      SleepStats& getRenderThreadStats (void) noexcept { return render_thread; }
+      SleepStats& getMicroStats        (void) noexcept { return micro_sleep;   }
+      SleepStats& getMacroStats        (void) noexcept { return macro_sleep;   }
+
+    protected:
+      SleepStats message_pump, render_thread,
+                 micro_sleep,  macro_sleep;
+    };
+
+    extern        EventCounter                                       events;
+    static inline EventCounter* GetEvents  (void) noexcept { return &events; }
+
+    // The identifying SwapChain is an opaque handle, we have no reason to hold a reference to this
+    //   and you can cast any value you want to this pointer (e.g. an OpenGL HGLRC). Prototype uses
+    //     IUnknown because it's straightforward in DXGI / D3D9 to use these as handles :)
+                  bool          HasLimiter (IUnknown *pSwapChain          = nullptr);
+                  Limiter*      GetLimiter (IUnknown *pSwapChain          = nullptr,
+                                            bool      bCreateIfNoneExists = true   );
   };
 };
 

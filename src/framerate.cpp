@@ -2156,6 +2156,9 @@ SK::Framerate::Tick ( bool          wait,
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
+  auto& snapshots =
+    pLimiter->frame_history_snapshots;
+
   SK_ReleaseAssert (pLimiter != nullptr);
 
   // Should never happen, but better safe.
@@ -2165,8 +2168,7 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (! ( pLimiter->frame_history.isAllocated  () &&
-          pLimiter->frame_history2.isAllocated () ) )
+  if (! snapshots.isAllocated () )
   {
     // Late initialization
     Init ();
@@ -2186,12 +2188,12 @@ SK::Framerate::Tick ( bool          wait,
   // Prevent inserting infinity into the dataset
   if ( std::isnormal (dt) )
   {
-    if (pLimiter->frame_history->addSample (1000.0 * dt, now))
+    if (snapshots->frame_history.addSample (1000.0 * dt, now))
     {
       pLimiter->amortization.phase = 0;
     }
 
-    pLimiter->frame_history2->addSample (
+    snapshots->frame_history2.addSample (
       pLimiter->effective_frametime (),
         now
     );
@@ -2231,11 +2233,11 @@ SK::Framerate::Tick ( bool          wait,
     SK::Framerate::Stats*
       pContainers [] =
       {
-        pLimiter->frame_history_snapshots.mean.getPtr        (),
-        pLimiter->frame_history_snapshots.min.getPtr         (),
-        pLimiter->frame_history_snapshots.max.getPtr         (),
-        pLimiter->frame_history_snapshots.percentile0.getPtr (),
-        pLimiter->frame_history_snapshots.percentile1.getPtr ()
+        &snapshots->mean,
+        &snapshots->min,
+        &snapshots->max,
+        &snapshots->percentile0,
+        &snapshots->percentile1
       };
 
     auto stat_idx =
@@ -2257,7 +2259,7 @@ SK::Framerate::Tick ( bool          wait,
                                                     1 : 0;
 
         sample =
-          pLimiter->frame_history->calcPercentile (
+          snapshots->frame_history.calcPercentile (
             SK_Framerate_GetPercentileByIdx (idx),
               all_samples
           );
@@ -2283,7 +2285,7 @@ SK::Framerate::Tick ( bool          wait,
         auto calcSample =
           std::bind (
             FrameHistoryCalcSample_FnTbl [stat_idx],
-              pLimiter->frame_history.getPtr (),
+              &snapshots->frame_history,
                 std::placeholders::_1
           );
 
@@ -2375,18 +2377,18 @@ SK::Framerate::DeepFrameState::reset (void)
 
   for ( auto i = 0 ; i < MAX_SAMPLES ; ++i )
   {
-    _clear (mean.getPtr        (), i);
-    _clear (min.getPtr         (), i);
-    _clear (max.getPtr         (), i);
-    _clear (percentile0.getPtr (), i);
-    _clear (percentile1.getPtr (), i);
+    _clear (&mean,        i);
+    _clear (&min,         i);
+    _clear (&max,         i);
+    _clear (&percentile0, i);
+    _clear (&percentile1, i);
   }
 
-  mean->samples        = 0;
-  min->samples         = 0;
-  max->samples         = 0;
-  percentile0->samples = 0;
-  percentile1->samples = 0;
+  mean.samples        = 0;
+  min.samples         = 0;
+  max.samples         = 0;
+  percentile0.samples = 0;
+  percentile1.samples = 0;
 }
 
 

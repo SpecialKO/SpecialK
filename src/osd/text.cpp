@@ -773,13 +773,18 @@ SK_DrawOSD (void)
 
   if (pLimiter != nullptr)
   {
-    const double mean    = pLimiter->frame_history->calcMean     ();
-    const double sd      = pLimiter->frame_history->calcSqStdDev (mean);
-    const double min     = pLimiter->frame_history->calcMin      ();
-    const double max     = pLimiter->frame_history->calcMax      ();
-    const int    hitches = pLimiter->frame_history->calcHitches  (1.2, mean);
+    auto &history =
+      pLimiter->frame_history_snapshots->frame_history,
+         &history2 =
+      pLimiter->frame_history_snapshots->frame_history2;
 
-    const double effective_mean = pLimiter->frame_history2->calcMean  ();
+    const double mean    = history.calcMean     ();
+    const double sd      = history.calcSqStdDev (mean);
+    const double min     = history.calcMin      ();
+    const double max     = history.calcMax      ();
+    const int    hitches = history.calcHitches  (1.2, mean);
+
+    const double effective_mean = history2.calcMean ();
 
     static double fps           = 0.0;
     static DWORD  last_fps_time = SK_timeGetTime ();
@@ -804,7 +809,7 @@ SK_DrawOSD (void)
       const bool has_cpu_frametime =
              pLimiter->get_limit () > 0.0 &&
         (! plugin_mgr->isTalesOfZestiria) &&
-             pLimiter->frame_history2->calcNumSamples () > 0;
+             history2.calcNumSamples () > 0;
 
       if (! config.fps.compact)
       {

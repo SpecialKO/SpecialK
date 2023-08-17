@@ -749,7 +749,7 @@ public:
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
-        snapshots.reset (); changed = true;
+        snapshots->reset (); changed = true;
       }
 
       if ( ImGui::SliderFloat (
@@ -758,7 +758,7 @@ public:
                  0.1f, 99.99f, "%3.1f%%" )
          )
       {
-        snapshots.reset (); changed = true;
+        snapshots->reset (); changed = true;
       }
 
       ImGui::TreePop ();
@@ -1437,7 +1437,7 @@ SK_ImGui_DrawFramePercentiles (void)
   static constexpr LARGE_INTEGER all_samples = { 0ULL };
 
   auto frame_history =
-    pLimiter->frame_history.getPtr ();
+    &pLimiter->frame_history_snapshots->frame_history;
 
   static ULONG64    ullResetFrame = 0;
   static SK::Framerate::Limiter
@@ -1451,13 +1451,13 @@ SK_ImGui_DrawFramePercentiles (void)
     {
       // (re)Initialize our counters if the underlying framerate limiter changes
       frame_history->reset ();
-           snapshots.reset ();
+          snapshots->reset ();
     }
   }
 
   long double data_timespan = ( show_immediate ?
             frame_history->calcDataTimespan () :
-           snapshots.mean->calcDataTimespan () );
+           snapshots->mean.calcDataTimespan () );
 
   ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
   ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
@@ -1466,15 +1466,15 @@ SK_ImGui_DrawFramePercentiles (void)
 
   percentile0.computeFPS (                             show_immediate ?
     frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
-      snapshots.percentile0->calcMean                   (all_samples) );
+      snapshots->percentile0.calcMean                   (all_samples) );
 
   percentile1.computeFPS (                             show_immediate ?
     frame_history->calcPercentile   (percentile1.cutoff, all_samples) :
-      snapshots.percentile1->calcMean                   (all_samples) );
+      snapshots->percentile1.calcMean                   (all_samples) );
 
   mean.computeFPS ( show_immediate          ?
       frame_history->calcMean (all_samples) :
-     snapshots.mean->calcMean (all_samples) );
+     snapshots->mean.calcMean (all_samples) );
 
   if ( std::isnormal (percentile0.computed_fps) ||
         (! show_immediate)
@@ -1571,7 +1571,7 @@ SK_ImGui_DrawFramePercentiles (void)
         SK_FramePercentiles->store_percentile_cfg ();
       }
 
-      else snapshots.reset ();
+      else snapshots->reset ();
     }
 
     unsigned int     p0_color  (
