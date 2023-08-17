@@ -2254,12 +2254,25 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 {
 #define OGL_DX_PRESENT_DEBUG_ID       0x20324987
 #define DISABLE_FULLSCREEN_OPT        0x00000001
-#define ENABLE_RTX_REMIX              0x00080000
+#define ENABLE_DFLIP_ALWAYS           0x00000004
+#define FORCE_PRESENT_RESTARTS        0x00000010
+#define SIGNAL_PRESENT_END_FROM_CPU   0x00000020
+#define DISABLE_MSHYBRID_SEQUENTIAL   0x00000040
+#define ENABLE_DX_SYNC_INTERVAL       0x00000080
+#define DISABLE_INTEROP_GPU_SYNC      0x00000100
+#define FORCE_INTEROP_GPU_SYNC        0x00000200
+#define ENABLE_WITH_NON_NV            0x00020000
+#define ENABLE_DXVK                   0x00080000
 
 #define OGL_DX_LAYERED_PRESENT_ID     0x20D690F8
 #define OGL_DX_LAYERED_PRESENT_AUTO   0x00000000
 #define OGL_DX_LAYERED_PRESENT_DXGI   0x00000001
 #define OGL_DX_LAYERED_PRESENT_NATIVE 0x00000002
+
+  static constexpr int uiOptimalInteropFlags =
+    ( DISABLE_FULLSCREEN_OPT      | ENABLE_DFLIP_ALWAYS     |
+      SIGNAL_PRESENT_END_FROM_CPU | ENABLE_DX_SYNC_INTERVAL |
+      FORCE_INTEROP_GPU_SYNC      | ENABLE_DXVK );
 
   if (! nv_hardware)
     return -2;
@@ -2382,8 +2395,8 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
   {
     if (bEnable)
     {
-      if ((ogl_dx_present_debug_val.u32CurrentValue & (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
-                                                   != (DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX))
+      if ((ogl_dx_present_debug_val.u32CurrentValue & (uiOptimalInteropFlags))
+                                                   != (uiOptimalInteropFlags))
       {
         NVAPI_CALL (DRS_SaveSettings   (hSession));
         NVAPI_CALL (DRS_DestroySession (hSession));
@@ -2392,7 +2405,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
           SK_FormatStringW (
             L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
               SK_GetModuleFullName (SK_GetDLL ()).c_str (),
-                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue | DISABLE_FULLSCREEN_OPT | ENABLE_RTX_REMIX,
+                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue | uiOptimalInteropFlags,
                   app_name.c_str ()
                   
           );
@@ -2413,8 +2426,8 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 
     else
     {
-      if ((ogl_dx_present_debug_val.u32CurrentValue & ENABLE_RTX_REMIX)
-                                                   == ENABLE_RTX_REMIX)
+      if ((ogl_dx_present_debug_val.u32CurrentValue & ENABLE_DXVK)
+                                                   == ENABLE_DXVK)
       {
         NVAPI_CALL (DRS_SaveSettings   (hSession));
         NVAPI_CALL (DRS_DestroySession (hSession));
@@ -2423,7 +2436,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
           SK_FormatStringW (
             L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %x %ws",
               SK_GetModuleFullName (SK_GetDLL ()).c_str (),
-                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue & ~ENABLE_RTX_REMIX,
+                OGL_DX_PRESENT_DEBUG_ID, ogl_dx_present_debug_val.u32CurrentValue & ~ENABLE_DXVK,
                   app_name.c_str ()
                   
           );
@@ -2448,10 +2461,9 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
   {
     NVAPI_SET_DWORD (ogl_dx_present_debug_val,         OGL_DX_PRESENT_DEBUG_ID,
                                              bEnable ? ogl_dx_present_debug_val.u32CurrentValue |
-                                                        DISABLE_FULLSCREEN_OPT |
-                                                        ENABLE_RTX_REMIX
+                                                        uiOptimalInteropFlags
                                                      : ogl_dx_present_debug_val.u32CurrentValue &
-                                                      (~ENABLE_RTX_REMIX));
+                                                      (~ENABLE_DXVK));
     NVAPI_CALL   (DRS_SetSetting (hSession, hProfile, &ogl_dx_present_debug_val));
   }
   NVAPI_VERBOSE ();
