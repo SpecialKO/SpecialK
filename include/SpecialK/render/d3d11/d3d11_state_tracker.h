@@ -770,10 +770,17 @@ SK_D3D11_CreateShader_Impl (
           );
 
           pShaderRepo->descs [This][checksum] = desc;
-          ////pShaderRepo->descs [This][checksum].bytecode.resize (BytecodeLength);
-          ////
-          ////std::copy ( &((const uint8_t *) pShaderBytecode) [0],
-          ////            &((const uint8_t *) pShaderBytecode) [BytecodeLength], pShaderRepo->descs [This][checksum].bytecode.begin () );
+
+          // Only store this data if there's a chance render mod tools could access it,
+          //   otherwise it's wasting memory in 32-bit games.
+          if (SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE)
+          {
+            pShaderRepo->descs [This][checksum].bytecode.resize (BytecodeLength);
+            
+            std::copy ( &((const uint8_t *) pShaderBytecode) [0],
+                        &((const uint8_t *) pShaderBytecode) [BytecodeLength],
+                          pShaderRepo->descs [This][checksum].bytecode.begin () );
+          }
         }
 
         pCachedDesc
