@@ -2431,13 +2431,13 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       auto pWorker =
         static_cast <worker_context_s *> (lpUser);
 
-      HANDLE events [] = {
+      HANDLE worker_events [] = {
         pWorker->hSignalProduce.m_h,
         pWorker->hSignalShutdown.m_h
       };
 
       while ( WAIT_OBJECT_0 ==
-                WaitForMultipleObjects ( 2, events, FALSE, INFINITE ) )
+                WaitForMultipleObjects ( 2, worker_events, FALSE, INFINITE ) )
       {
         LONG work_idx =
           ReadAcquire (&pWorker->work_idx);
@@ -2464,7 +2464,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     }, L"[SK] Framepacing Statistics", (LPVOID)&worker);
   }
 
-  HANDLE events [] = {
+  HANDLE worker_events [] = {
     worker.hSignalConsume.m_h,
     worker.hSignalShutdown.m_h
   };
@@ -2475,7 +2475,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     ];
 
   if ( WAIT_OBJECT_0 ==
-         WaitForMultipleObjects ( 2, events, FALSE, 0 ) )
+         WaitForMultipleObjects ( 2, worker_events, FALSE, 0 ) )
   {
     LONG idx =
       ReadAcquire (&worker.work_idx);

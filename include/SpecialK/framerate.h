@@ -467,12 +467,6 @@ namespace SK
 
     struct DeepFrameState
     {
-      using
-        SK_LazyStats =
-          SK_LazyGlobal <
-            SK::Framerate::Stats
-          >;
-
       SK::Framerate::Stats mean;
       SK::Framerate::Stats min;
       SK::Framerate::Stats max;
