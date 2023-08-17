@@ -161,7 +161,8 @@ namespace SK
 
       virtual ~Stats ()
       {
-        SetEvent (worker.hSignalShutdown);
+        if (        worker.hSignalShutdown.isValid () )
+          SetEvent (worker.hSignalShutdown);
       }
 
       std::vector <double>&

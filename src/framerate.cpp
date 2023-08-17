@@ -2097,6 +2097,7 @@ SK_FramerateLimit_Factory ( IUnknown *pSwapChain_,
     )
   );
 
+  // This is a concurrent map, items cannot be removed, only set to nullptr
   if ((! SK::Framerate::limiters_->count (pSwapChain_)) ||
          SK::Framerate::limiters_->at    (pSwapChain_).get () == nullptr)
   {
