@@ -542,21 +542,19 @@ public:
 
     if (refs == 0 && xrefs != 0)
     {
-      // Assertion always fails, we just want to be vocal about
-      //   any code that causes this.
-      SK_ReleaseAssert (xrefs == 0);
+      SK_LOGi0 (
+        L"D3D11 Device Context Has Unexpected External Reference Count: %d, Expected: %d",
+          xrefs, refs );
     }
 
     if (refs == 0)
     {
-      SK_ReleaseAssert (ReadAcquire (&refs_) == 0);
-
       SK_LOGi0 (L"IWrapDeviceContext Destroyed");
     }
 
     if (refs == 1 && !deferred_) // Immediate contexts are a singleton
     {
-      SK_LOGi0 (
+      SK_LOGi1 (
         L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
       );
 
@@ -593,6 +591,11 @@ public:
       // Release DXTex memory pools
       if (pTLS != nullptr)
           pTLS->dxtex.Cleanup (Periodic);
+
+      SK_ComQIPtr <IDXGIDevice3>
+          pDXGIDevice3 (pDevice);
+      if (pDXGIDevice3 != nullptr)
+          pDXGIDevice3->Trim ();
     }
 
     return refs;

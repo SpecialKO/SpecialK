@@ -1204,24 +1204,21 @@ SK_D3D11_UpdateSubresource_Impl (
 
   if (pDstResource != nullptr)
   {
-    SK_ComPtr <ID3D11Device>  pResourceDevice;
-    pDstResource->GetDevice (&pResourceDevice.p);
-    if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, pResourceDevice))
+    if (bWrapped && !bIsDevCtxDeferred)
     {
-      SK_RunOnce (
-        SK_LOGi0 (L"UpdateSubresource (...) called on a resource belonging "
-                  L"to a different device")
-      );
-
-      if (bWrapped)
+      SK_ComPtr <ID3D11Device>  pResourceDevice;
+      pDstResource->GetDevice (&pResourceDevice.p);
+      if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, pResourceDevice))
       {
-        if (pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_IMMEDIATE)
-        {
-          pResourceDevice->GetImmediateContext (&pDevCtx);
-          _Finish ();                            pDevCtx->Release ();
+        SK_RunOnce (
+          SK_LOGi0 (L"UpdateSubresource (...) called on a resource belonging "
+                    L"to a different device")
+        );
 
-          return;
-        }
+        pResourceDevice->GetImmediateContext (&pDevCtx);
+        _Finish ();                            pDevCtx->Release ();
+
+        return;
       }
     }
   }
