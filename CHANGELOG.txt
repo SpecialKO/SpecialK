@@ -1,4 +1,9 @@
-﻿23.8.16.1
+﻿23.8.16.2
+=========
+ + Fixed mouse input not tracking in Yuzu's multi-window mode and in some
+     Fullscreen Exclusive games
+
+23.8.16.1
 =========
  + Avoid calling ID3D11DeviceContext::UpdateSubresource (...) twice sometimes
  + Forward the return address to SK_D3D11_UpdateSubresource_Impl so that texture

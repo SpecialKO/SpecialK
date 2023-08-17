@@ -2595,7 +2595,7 @@ SK_ImGui_User_NewFrame (void)
   SK_GetCursorPos (&cursor_pos);
 
 
-  if (! game_window.mouse.can_track) // No Hover / Leave Tracking
+  if ((! game_window.mouse.can_track) || game_window.mouse.last_move_msg < SK::ControlPanel::current_time - 500UL) // No Hover / Leave Tracking
   {
     // While inside, we get WM_MOUSEMOVE, while outside we get ... nothing.
     if (new_input || game_window.mouse.inside)
