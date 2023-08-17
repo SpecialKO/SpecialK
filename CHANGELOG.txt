@@ -1,4 +1,10 @@
-﻿23.8.16.2
+﻿23.8.17
+=======
+ + Implicitly force windowed mode if "Render in Background" is configured, to
+     prevent Fullscreen Exclusive games from not responding when Alt-Tabbing
+       back in.
+
+23.8.16.2
 =========
  + Fixed mouse input not tracking in Yuzu's multi-window mode and in some
      Fullscreen Exclusive games
