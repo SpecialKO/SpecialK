@@ -1,4 +1,10 @@
-﻿23.8.17.1
+﻿23.8.17.2
+=========
+ + Disable PreventEnumDevices option by default in NieR Replicant
+ + Destroy framerate limiter and stats when a tracked SwapChain is destroyed
+ + Shutdown framepacing statistics thread when framerate limiter is destroyed
+
+23.8.17.1
 =========
  + Optimized NVIDIA's Vulkan/DXGI interop to use a single ID3D11Device rather
      than destroying it and creating a new one every time a window is resized.
