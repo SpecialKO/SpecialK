@@ -4821,7 +4821,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         pDesc->Windowed = FALSE;
       }
 
-      if (config.display.force_fullscreen && pDesc->Windowed)
+      if ((! config.window.background_render) && config.display.force_fullscreen && pDesc->Windowed)
       {
         SK_LOGi0 ( L" >> Display Override "
                    L"(Requested: Windowed, Using: Fullscreen)" );
@@ -4829,7 +4829,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         pDesc->Windowed = FALSE;
       }
 
-      else if (config.display.force_windowed && pDesc->Windowed == FALSE)
+      else if ((config.window.background_render || config.display.force_windowed) && pDesc->Windowed == FALSE)
       {
         // If the chain desc is setup for Windowed, we need an
         //   OutputWindow or we cannot override this...

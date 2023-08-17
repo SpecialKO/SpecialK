@@ -1187,14 +1187,14 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 
   if (! no_override)
   {
-    if (config.display.force_fullscreen && Fullscreen == FALSE)
+    if ((! config.window.background_render) && config.display.force_fullscreen && Fullscreen == FALSE)
     {
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Windowed, Using: Fullscreen)" );
       Fullscreen = TRUE;
     }
 
-    else if (config.display.force_windowed && Fullscreen != FALSE)
+    else if ((config.window.background_render || config.display.force_windowed) && Fullscreen != FALSE)
     {
       Fullscreen = FALSE;
       pTarget    = nullptr;
@@ -1228,10 +1228,10 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
   BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
-  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed)
+  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render)
   {
     // Does not work correctly when recycling swapchains
-    if ((! bRecycledSwapChains) || config.display.force_windowed)
+    if ((! bRecycledSwapChains) || config.display.force_windowed || config.window.background_render)
     {
       SK_ComPtr <IDXGIOutput>                                                  pOutput;
       BOOL                                            _OriginalFullscreen;

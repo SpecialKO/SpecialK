@@ -30,11 +30,8 @@
 
 bool SK_WantBackgroundRender (void)
 {
-  static auto &rb =
-    SK_GetCurrentRenderBackend ();
-
   return
-    config.window.background_render && rb.fullscreen_exclusive == false;
+    config.window.background_render;
 }
 
 bool
