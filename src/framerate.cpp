@@ -2420,6 +2420,9 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     worker.hSignalConsume.m_h =
       SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
 
+    worker.hSignalShutdown.m_h =
+      SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
     SK_Thread_CreateEx ([](LPVOID lpUser)->DWORD
     {
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
@@ -2427,9 +2430,13 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
       auto pWorker =
         static_cast <worker_context_s *> (lpUser);
 
+      HANDLE events [] = {
+        pWorker->hSignalProduce.m_h,
+        pWorker->hSignalShutdown.m_h
+      };
+
       while ( WAIT_OBJECT_0 ==
-                SK_WaitForSingleObject ( pWorker->hSignalProduce.m_h,
-                                           INFINITE ) )
+                WaitForMultipleObjects ( 2, events, FALSE, INFINITE ) )
       {
         LONG work_idx =
           ReadAcquire (&pWorker->work_idx);
@@ -2450,9 +2457,16 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         SetEvent (pWorker->hSignalConsume.m_h);
       }
 
+      SK_Thread_CloseSelf ();
+
       return 0;
     }, L"[SK] Framepacing Statistics", (LPVOID)&worker);
   }
+
+  HANDLE events [] = {
+    worker.hSignalConsume.m_h,
+    worker.hSignalShutdown.m_h
+  };
 
   auto& kReadBuffer =
     worker.sorted_frame_history [
@@ -2460,7 +2474,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
     ];
 
   if ( WAIT_OBJECT_0 ==
-         SK_WaitForSingleObject (worker.hSignalConsume.m_h, 0) )
+         WaitForMultipleObjects ( 2, events, FALSE, 0 ) )
   {
     LONG idx =
       ReadAcquire (&worker.work_idx);

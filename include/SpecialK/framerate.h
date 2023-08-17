@@ -159,6 +159,11 @@ namespace SK
       Stats (void) noexcept {
       }
 
+      virtual ~Stats ()
+      {
+        SetEvent (worker.hSignalShutdown);
+      }
+
       std::vector <double>&
         sortAndCacheFrametimeHistory (void);
 
@@ -171,6 +176,7 @@ namespace SK
       {
         SK_AutoHandle hSignalProduce;
         SK_AutoHandle hSignalConsume;
+        SK_AutoHandle hSignalShutdown;
                 ULONG ulLastFrame    = 0;
         volatile LONG work_idx       = 0;
         volatile LONG _init          = 0;
