@@ -3238,6 +3238,9 @@ SK_BackgroundRender_EndFrame (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (rb.fullscreen_exclusive)
+    return;
+
   static bool background_last_frame = false;
   static bool fullscreen_last_frame = false;
   static bool first_frame           = true;
