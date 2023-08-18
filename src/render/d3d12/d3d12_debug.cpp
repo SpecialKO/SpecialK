@@ -138,7 +138,7 @@ SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                                         (utf8_copy).data ()
                             );
 
-    SK_LOGi0 (
+    SK_LOGi1 (
       L"Created D3D12 Object: %ws", kName.c_str ()
     );
 #else
