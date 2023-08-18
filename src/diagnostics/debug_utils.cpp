@@ -3361,6 +3361,21 @@ RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )
   { };
 }
 
+
+struct SK_SEH_CallRecord
+{
+  // Number of times before we stop logging the same exception at log level 0
+  static constexpr auto LogSilenceThreshold = 3;
+
+  volatile ULONG count = 0;
+};
+
+// Counter for the number of times a memory address has raised an exception
+static SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <LPCVOID, SK_SEH_CallRecord>
+> SK_SEH_ReportedCallSites;
+
+
 //// Detoured so we can get thread names
 //[[noreturn]]
 void
@@ -3513,6 +3528,30 @@ RaiseException_Detour (
         // NVIDIA, just STFU please :)
         if (StrStrIW (wszCallerName, L"MessageBus.dll"))
           print = false;
+
+        if (print)
+        {
+          ULONG num_times_reported =
+            InterlockedIncrement (
+              &SK_SEH_ReportedCallSites.get ()[_ReturnAddress ()].count
+            );
+
+          if (config.system.log_level < 1 &&
+                num_times_reported >= SK_SEH_CallRecord::LogSilenceThreshold)
+          {
+            print = false;
+
+            if (num_times_reported == SK_SEH_CallRecord::LogSilenceThreshold)
+            {
+              SK_LOG0 (
+                ( L"Exception raised from %ws [%p] multiple times; exceptions"
+                  L" are being silenced because LogLevel=0", wszCallerName,
+                                                       _ReturnAddress () ),
+                  L"SEH-Except"
+              );
+            }
+          }
+        }
 
         if (print)
         {

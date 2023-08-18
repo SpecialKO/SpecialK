@@ -1,4 +1,13 @@
-﻿23.8.18.2
+﻿23.8.18.3
+=========
+ + Handle D3D11 implementations where ID3D11Device1::GetImmediateContext1 is
+     not a vftable alias to ID3D11Device::GetImmediateContext
+ + If a game raises multiple exceptions from the same address more than 3 times,
+     it will stop being logged unless log level is >= 1.
+ + Removed log spam for shader cache collisions due to games compiling the same
+     shader on multiple threads unless log level is >= 1.
+
+23.8.18.2
 =========
  + Decreased color gamut on SK's HDR UI slightly
 
