@@ -756,7 +756,7 @@ SK_D3D11_CreateShader_Impl (
         //
         if (pShaderRepo->descs [This].count (checksum) != 0)
         {
-          SK_LOG0 ( (L"Discarding Concurrent Shader Cache Collision for %x",
+          SK_LOG1 ( (L"Discarding Concurrent Shader Cache Collision for %x",
                        checksum ), L"DX11Shader" );
         }
 
@@ -812,11 +812,6 @@ SK_D3D11_CreateShader_Impl (
          pCachedDesc->pShader->AddRef ();
        *ppShader =
          pCachedDesc->pShader;
-
-      // XXX: Creation does not imply usage
-      //
-      //InterlockedExchange (&pCachedDesc->usage.last_frame, SK_GetFramesDrawn ());
-      //            _time64 (&pCachedDesc->usage.last_time);
 
       // Update cache mapping (see note about aliasing above)
       ///if ( pShaderRepo->rev.count (*ppShader) &&

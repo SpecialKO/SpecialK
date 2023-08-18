@@ -7685,9 +7685,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                     L"Flip Discard" :
                     L"<Unknown>" );
 
-    ///swap_chain_override = *swap_chain_desc;
-    ///swap_chain_desc     = &swap_chain_override;
-
     if ( config.render.dxgi.scaling_mode      != SK_NoPreference &&
           swap_chain_desc->BufferDesc.Scaling !=
             static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode) )
