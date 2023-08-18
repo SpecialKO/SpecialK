@@ -65,7 +65,7 @@ float4 main (PS_INPUT input) : SV_Target
         LinearToST2084 (
           REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale
                        ) :
-     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.20) )
+     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.15) )
                  )                                   + hdr_offset,
                                          saturate (out_col.a  ) );
         

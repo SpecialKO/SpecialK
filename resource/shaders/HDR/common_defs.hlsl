@@ -108,12 +108,6 @@ bool AnyIsNegative (float4 x)
 // NaN checker
 bool IsNan (float x)
 {
-// Re-write any code that depends on this
-#if 0
-  if (! IsFinite (x))
-    return true;
-#endif
-
   return
     (asuint (x) & 0x7fffffff) > 0x7f800000;
 }
@@ -434,6 +428,13 @@ ApplySRGBCurve (float3 x)
 {
   return ( x < 0.0031308f ? 12.92f * x :
                             1.055f * PositivePow ( x, 1.0 / 2.4f ) - 0.55f );
+}
+
+float
+ApplySRGBAlpha (float a)
+{
+    return ( a < 0.0031308f ? 12.92f * a :
+                              1.055f * PositivePow ( a, 1.0 / 2.4f ) - 0.55f );
 }
 
 //
