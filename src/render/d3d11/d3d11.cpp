@@ -6742,270 +6742,289 @@ HookD3D11 (LPVOID user)
     auto* pHooks =
       static_cast <sk_hook_d3d11_t *> (user);
 
-  //  3 CreateBuffer
-  //  4 CreateTexture1D
-  //  5 CreateTexture2D
-  //  6 CreateTexture3D
-  //  7 CreateShaderResourceView
-  //  8 CreateUnorderedAccessView
-  //  9 CreateRenderTargetView
-  // 10 CreateDepthStencilView
-  // 11 CreateInputLayout
-  // 12 CreateVertexShader
-  // 13 CreateGeometryShader
-  // 14 CreateGeometryShaderWithStreamOutput
-  // 15 CreatePixelShader
-  // 16 CreateHullShader
-  // 17 CreateDomainShader
-  // 18 CreateComputeShader
-  // 19 CreateClassLinkage
-  // 20 CreateBlendState
-  // 21 CreateDepthStencilState
-  // 22 CreateRasterizerState
-  // 23 CreateSamplerState
-  // 24 CreateQuery
-  // 25 CreatePredicate
-  // 26 CreateCounter
-  // 27 CreateDeferredContext
-  // 28 OpenSharedResource
-  // 29 CheckFormatSupport
-  // 30 CheckMultisampleQualityLevels
-  // 31 CheckCounterInfo
-  // 32 CheckCounter
-  // 33 CheckFeatureSupport
-  // 34 GetPrivateData
-  // 35 SetPrivateData
-  // 36 SetPrivateDataInterface
-  // 37 GetFeatureLevel
-  // 38 GetCreationFlags
-  // 39 GetDeviceRemovedReason
-  // 40 GetImmediateContext
-  // 41 SetExceptionMode
-  // 42 GetExceptionMode
+    //  3 CreateBuffer
+    //  4 CreateTexture1D
+    //  5 CreateTexture2D
+    //  6 CreateTexture3D
+    //  7 CreateShaderResourceView
+    //  8 CreateUnorderedAccessView
+    //  9 CreateRenderTargetView
+    // 10 CreateDepthStencilView
+    // 11 CreateInputLayout
+    // 12 CreateVertexShader
+    // 13 CreateGeometryShader
+    // 14 CreateGeometryShaderWithStreamOutput
+    // 15 CreatePixelShader
+    // 16 CreateHullShader
+    // 17 CreateDomainShader
+    // 18 CreateComputeShader
+    // 19 CreateClassLinkage
+    // 20 CreateBlendState
+    // 21 CreateDepthStencilState
+    // 22 CreateRasterizerState
+    // 23 CreateSamplerState
+    // 24 CreateQuery
+    // 25 CreatePredicate
+    // 26 CreateCounter
+    // 27 CreateDeferredContext
+    // 28 OpenSharedResource
+    // 29 CheckFormatSupport
+    // 30 CheckMultisampleQualityLevels
+    // 31 CheckCounterInfo
+    // 32 CheckCounter
+    // 33 CheckFeatureSupport
+    // 34 GetPrivateData
+    // 35 SetPrivateData
+    // 36 SetPrivateDataInterface
+    // 37 GetFeatureLevel
+    // 38 GetCreationFlags
+    // 39 GetDeviceRemovedReason
+    // 40 GetImmediateContext
+    // 41 SetExceptionMode
+    // 42 GetExceptionMode
 
-  // 43 GetImmediateContext1
-  // 44 CreateDeferredContext1
+    // 43 GetImmediateContext1
+    // 44 CreateDeferredContext1
 
-  // 45 CreateBlendState1
-  // 46 CreateRasterizerState1
-  // 47 CreateDeviceContextState
-  // 48 OpenSharedResource1
-  // 49 OpenSharedResourceByName
+    // 45 CreateBlendState1
+    // 46 CreateRasterizerState1
+    // 47 CreateDeviceContextState
+    // 48 OpenSharedResource1
+    // 49 OpenSharedResourceByName
 
-  // 50 GetImmediateContext2
-  // 51 CreateDeferredContext2
+    // 50 GetImmediateContext2
+    // 51 CreateDeferredContext2
 
-  // 52 GetResourceTiling
-  // 53 CheckMultisampleQualityLevels1
-  // 54 CreateTexture2D1
-  // 55 CreateTexture3D1
-  // 56 CreateRasterizerState2
-  // 57 CreateShaderResourceView1
-  // 58 CreateUnorderedAccessView1
-  // 59 CreateRenderTargetView1
-  // 60 CreateQuery1
+    // 52 GetResourceTiling
+    // 53 CheckMultisampleQualityLevels1
+    // 54 CreateTexture2D1
+    // 55 CreateTexture3D1
+    // 56 CreateRasterizerState2
+    // 57 CreateShaderResourceView1
+    // 58 CreateUnorderedAccessView1
+    // 59 CreateRenderTargetView1
+    // 60 CreateQuery1
 
-  // 61 GetImmediateContext3
-  // 62 CreateDeferredContext3
+    // 61 GetImmediateContext3
+    // 62 CreateDeferredContext3
 
-#if 1
-  if ( pHooks->ppDevice           != nullptr &&
-       pHooks->ppImmediateContext != nullptr )
-  {
-    ////// Minimum functionality mode in order to prevent chaos caused by D3D11On12
-    ////if (config.apis.last_known == SK_RenderAPI::D3D12)
-    ////{
-    ////  DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
-    ////                    "ID3D11Device::CreatePixelShader",
-    ////                          D3D11Dev_CreatePixelShader_Override,
-    ////                          D3D11Dev_CreatePixelShader_Original,
-    ////                          D3D11Dev_CreatePixelShader_pfn );
-    ////
-    ////  SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 hook level to avoid D3D11On12 insanity." ),
-    ////              L"*D3D11On12" );
-    ////  return true;
-    ////}
-
-
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    3,
-                          "ID3D11Device::CreateBuffer",
-                                D3D11Dev_CreateBuffer_Override,
-                                D3D11Dev_CreateBuffer_Original,
-                                D3D11Dev_CreateBuffer_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    5,
-                          "ID3D11Device::CreateTexture2D",
-                                D3D11Dev_CreateTexture2D_Override,
-                                D3D11Dev_CreateTexture2D_Original,
-                                D3D11Dev_CreateTexture2D_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    7,
-                          "ID3D11Device::CreateShaderResourceView",
-                                D3D11Dev_CreateShaderResourceView_Override,
-                                D3D11Dev_CreateShaderResourceView_Original,
-                                D3D11Dev_CreateShaderResourceView_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    8,
-                          "ID3D11Device::CreateUnorderedAccessView",
-                                D3D11Dev_CreateUnorderedAccessView_Override,
-                                D3D11Dev_CreateUnorderedAccessView_Original,
-                                D3D11Dev_CreateUnorderedAccessView_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    9,
-                          "ID3D11Device::CreateRenderTargetView",
-                                D3D11Dev_CreateRenderTargetView_Override,
-                                D3D11Dev_CreateRenderTargetView_Original,
-                                D3D11Dev_CreateRenderTargetView_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   10,
-                          "ID3D11Device::CreateDepthStencilView",
-                                D3D11Dev_CreateDepthStencilView_Override,
-                                D3D11Dev_CreateDepthStencilView_Original,
-                                D3D11Dev_CreateDepthStencilView_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   12,
-                          "ID3D11Device::CreateVertexShader",
-                                D3D11Dev_CreateVertexShader_Override,
-                                D3D11Dev_CreateVertexShader_Original,
-                                D3D11Dev_CreateVertexShader_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   13,
-                          "ID3D11Device::CreateGeometryShader",
-                                D3D11Dev_CreateGeometryShader_Override,
-                                D3D11Dev_CreateGeometryShader_Original,
-                                D3D11Dev_CreateGeometryShader_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   14,
-                          "ID3D11Device::CreateGeometryShaderWithStreamOutput",
-                                D3D11Dev_CreateGeometryShaderWithStreamOutput_Override,
-                                D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
-                                D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
-                          "ID3D11Device::CreatePixelShader",
-                                D3D11Dev_CreatePixelShader_Override,
-                                D3D11Dev_CreatePixelShader_Original,
-                                D3D11Dev_CreatePixelShader_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   16,
-                          "ID3D11Device::CreateHullShader",
-                                D3D11Dev_CreateHullShader_Override,
-                                D3D11Dev_CreateHullShader_Original,
-                                D3D11Dev_CreateHullShader_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   17,
-                          "ID3D11Device::CreateDomainShader",
-                                D3D11Dev_CreateDomainShader_Override,
-                                D3D11Dev_CreateDomainShader_Original,
-                                D3D11Dev_CreateDomainShader_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   18,
-                          "ID3D11Device::CreateComputeShader",
-                                D3D11Dev_CreateComputeShader_Override,
-                                D3D11Dev_CreateComputeShader_Original,
-                                D3D11Dev_CreateComputeShader_pfn );
-
-    //DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 19, "ID3D11Device::CreateClassLinkage",
-    //                       D3D11Dev_CreateClassLinkage_Override, D3D11Dev_CreateClassLinkage_Original,
-    //                       D3D11Dev_CreateClassLinkage_pfn);
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    22,
-                    "ID3D11Device::CreateRasterizerState",
-                          D3D11Dev_CreateRasterizerState_Override,
-                          D3D11Dev_CreateRasterizerState_Original,
-                          D3D11Dev_CreateRasterizerState_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    23,
-                          "ID3D11Device::CreateSamplerState",
-                                D3D11Dev_CreateSamplerState_Override,
-                                D3D11Dev_CreateSamplerState_Original,
-                                D3D11Dev_CreateSamplerState_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     27,
-                          "ID3D11Device::CreateDeferredContext",
-                                D3D11Dev_CreateDeferredContext_Override,
-                                D3D11Dev_CreateDeferredContext_Original,
-                                D3D11Dev_CreateDeferredContext_pfn );
-
-    DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     40,
-                          "ID3D11Device::GetImmediateContext",
-                                D3D11Dev_GetImmediateContext_Override,
-                                D3D11Dev_GetImmediateContext_Original,
-                                D3D11Dev_GetImmediateContext_pfn );
-
-#if 0
-    IUnknown *pDev1 = nullptr;
-    IUnknown *pDev2 = nullptr;
-    IUnknown *pDev3 = nullptr;
-
-    (*pHooks->ppDevice)->QueryInterface (IID_ID3D11Device1, (void **)&pDev1);
-    (*pHooks->ppDevice)->QueryInterface (IID_ID3D11Device2, (void **)&pDev2);
-    (*pHooks->ppDevice)->QueryInterface (IID_ID3D11Device3, (void **)&pDev3);
-
-    if (pDev1 != nullptr)
+    if ( pHooks->ppDevice           != nullptr &&
+         pHooks->ppImmediateContext != nullptr )
     {
-      DXGI_VIRTUAL_HOOK ( &pDev1, 43,
-                            "ID3D11Device1::GetImmediateContext1",
-                                             D3D11Dev_GetImmediateContext1_Override,
-                                             D3D11Dev_GetImmediateContext1_Original,
-                                             D3D11Dev_GetImmediateContext1_pfn );
-      DXGI_VIRTUAL_HOOK ( &pDev1, 44,
-                            "ID3D11Device1::CreateDeferredContext1",
-                                             D3D11Dev_CreateDeferredContext1_Override,
-                                             D3D11Dev_CreateDeferredContext1_Original,
-                                             D3D11Dev_CreateDeferredContext1_pfn );
+      ////// Minimum functionality mode in order to prevent chaos caused by D3D11On12
+      ////if (config.apis.last_known == SK_RenderAPI::D3D12)
+      ////{
+      ////  DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
+      ////                    "ID3D11Device::CreatePixelShader",
+      ////                          D3D11Dev_CreatePixelShader_Override,
+      ////                          D3D11Dev_CreatePixelShader_Original,
+      ////                          D3D11Dev_CreatePixelShader_pfn );
+      ////
+      ////  SK_LOG0 ( ( L" Last known render API was D3D12, reducing D3D11 hook level to avoid D3D11On12 insanity." ),
+      ////              L"*D3D11On12" );
+      ////  return true;
+      ////}
+
+      SK_ComQIPtr <ID3D11DeviceContext1>
+          pDevCtx1 (*pHooks->ppImmediateContext);
+      if (pDevCtx1 != nullptr)
+      {
+        DXGI_VIRTUAL_HOOK ( &pDevCtx1,  116,
+                              "ID3D11DeviceContext1::UpdateSubresource1",
+                                               D3D11_UpdateSubresource1_Override,
+                                               D3D11_UpdateSubresource1_Original,
+                                               D3D11_UpdateSubresource1_pfn );
+      }
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    3,
+                            "ID3D11Device::CreateBuffer",
+                                  D3D11Dev_CreateBuffer_Override,
+                                  D3D11Dev_CreateBuffer_Original,
+                                  D3D11Dev_CreateBuffer_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    5,
+                            "ID3D11Device::CreateTexture2D",
+                                  D3D11Dev_CreateTexture2D_Override,
+                                  D3D11Dev_CreateTexture2D_Original,
+                                  D3D11Dev_CreateTexture2D_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    7,
+                            "ID3D11Device::CreateShaderResourceView",
+                                  D3D11Dev_CreateShaderResourceView_Override,
+                                  D3D11Dev_CreateShaderResourceView_Original,
+                                  D3D11Dev_CreateShaderResourceView_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    8,
+                            "ID3D11Device::CreateUnorderedAccessView",
+                                  D3D11Dev_CreateUnorderedAccessView_Override,
+                                  D3D11Dev_CreateUnorderedAccessView_Original,
+                                  D3D11Dev_CreateUnorderedAccessView_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    9,
+                            "ID3D11Device::CreateRenderTargetView",
+                                  D3D11Dev_CreateRenderTargetView_Override,
+                                  D3D11Dev_CreateRenderTargetView_Original,
+                                  D3D11Dev_CreateRenderTargetView_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   10,
+                            "ID3D11Device::CreateDepthStencilView",
+                                  D3D11Dev_CreateDepthStencilView_Override,
+                                  D3D11Dev_CreateDepthStencilView_Original,
+                                  D3D11Dev_CreateDepthStencilView_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   12,
+                            "ID3D11Device::CreateVertexShader",
+                                  D3D11Dev_CreateVertexShader_Override,
+                                  D3D11Dev_CreateVertexShader_Original,
+                                  D3D11Dev_CreateVertexShader_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   13,
+                            "ID3D11Device::CreateGeometryShader",
+                                  D3D11Dev_CreateGeometryShader_Override,
+                                  D3D11Dev_CreateGeometryShader_Original,
+                                  D3D11Dev_CreateGeometryShader_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   14,
+                            "ID3D11Device::CreateGeometryShaderWithStreamOutput",
+
+                         D3D11Dev_CreateGeometryShaderWithStreamOutput_Override,
+                                  D3D11Dev_CreateGeometryShaderWithStreamOutput_Original,
+                                  D3D11Dev_CreateGeometryShaderWithStreamOutput_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   15,
+                            "ID3D11Device::CreatePixelShader",
+                                  D3D11Dev_CreatePixelShader_Override,
+                                  D3D11Dev_CreatePixelShader_Original,
+                                  D3D11Dev_CreatePixelShader_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   16,
+                            "ID3D11Device::CreateHullShader",
+                                  D3D11Dev_CreateHullShader_Override,
+                                  D3D11Dev_CreateHullShader_Original,
+                                  D3D11Dev_CreateHullShader_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   17,
+                            "ID3D11Device::CreateDomainShader",
+                                  D3D11Dev_CreateDomainShader_Override,
+                                  D3D11Dev_CreateDomainShader_Original,
+                                  D3D11Dev_CreateDomainShader_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,   18,
+                            "ID3D11Device::CreateComputeShader",
+                                  D3D11Dev_CreateComputeShader_Override,
+                                  D3D11Dev_CreateComputeShader_Original,
+                                  D3D11Dev_CreateComputeShader_pfn );
+
+      //DXGI_VIRTUAL_HOOK (pHooks->ppDevice, 19, "ID3D11Device::CreateClassLinkage",
+      //                       D3D11Dev_CreateClassLinkage_Override, D3D11Dev_CreateClassLinkage_Original,
+      //                       D3D11Dev_CreateClassLinkage_pfn);
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    22,
+                            "ID3D11Device::CreateRasterizerState",
+                                  D3D11Dev_CreateRasterizerState_Override,
+                                  D3D11Dev_CreateRasterizerState_Original,
+                                  D3D11Dev_CreateRasterizerState_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,    23,
+                            "ID3D11Device::CreateSamplerState",
+                                  D3D11Dev_CreateSamplerState_Override,
+                                  D3D11Dev_CreateSamplerState_Original,
+                                  D3D11Dev_CreateSamplerState_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     27,
+                            "ID3D11Device::CreateDeferredContext",
+                                  D3D11Dev_CreateDeferredContext_Override,
+                                  D3D11Dev_CreateDeferredContext_Original,
+                                  D3D11Dev_CreateDeferredContext_pfn );
+
+      DXGI_VIRTUAL_HOOK ( pHooks->ppDevice,     40,
+                            "ID3D11Device::GetImmediateContext",
+                                  D3D11Dev_GetImmediateContext_Override,
+                                  D3D11Dev_GetImmediateContext_Original,
+                                  D3D11Dev_GetImmediateContext_pfn );
+
+      SK_ComQIPtr <ID3D11Device1> pDev1 (*pHooks->ppDevice);
+      SK_ComQIPtr <ID3D11Device2> pDev2 (*pHooks->ppDevice);
+      SK_ComQIPtr <ID3D11Device3> pDev3 (*pHooks->ppDevice);
+
+      // Versioned functions may or may not actually exist discretely depending on
+      //   the implementation... so it's necessary to check if the vftable entries
+      //     for GetImmediateContext<n> are the same as GetImmediateContext.
+      auto _AreVFtablePtrsSame = [](void **ppInterface0, int idx0,
+                                    void **ppInterface1, int idx1) -> bool
+      {
+        return
+          (*(void***)*ppInterface0)[idx0] ==
+          (*(void***)*ppInterface1)[idx1];
+      };
+
+      if (pDev1 != nullptr)
+      {
+        if (! _AreVFtablePtrsSame ((void **)&pDev1.p, 43, (void **)pHooks->ppDevice, 40))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev1, 43,
+                                "ID3D11Device1::GetImmediateContext1",
+                                                 D3D11Dev_GetImmediateContext1_Override,
+                                                 D3D11Dev_GetImmediateContext1_Original,
+                                                 D3D11Dev_GetImmediateContext1_pfn );
+        }
+
+        if (! _AreVFtablePtrsSame ((void **)&pDev1.p, 44, (void **)pHooks->ppDevice, 27))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev1, 44,
+                                "ID3D11Device1::CreateDeferredContext1",
+                                                 D3D11Dev_CreateDeferredContext1_Override,
+                                                 D3D11Dev_CreateDeferredContext1_Original,
+                                                 D3D11Dev_CreateDeferredContext1_pfn );
+        }
+      }
+
+      if (pDev2 != nullptr)
+      {
+        if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 50, (void **)pHooks->ppDevice, 40))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev2, 50,
+                                "ID3D11Device2::GetImmediateContext2",
+                                                 D3D11Dev_GetImmediateContext2_Override,
+                                                 D3D11Dev_GetImmediateContext2_Original,
+                                                 D3D11Dev_GetImmediateContext2_pfn );
+        }
+
+        if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 51, (void **)pHooks->ppDevice, 27))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev2, 51,
+                                "ID3D11Device2::CreateDeferredContext2",
+                                                 D3D11Dev_CreateDeferredContext2_Override,
+                                                 D3D11Dev_CreateDeferredContext2_Original,
+                                                 D3D11Dev_CreateDeferredContext2_pfn );
+        }
+      }
+
+      if (pDev3 != nullptr)
+      {
+        if (! _AreVFtablePtrsSame ((void **)&pDev3.p, 61, (void **)pHooks->ppDevice, 40))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev3, 61,
+                                "ID3D11Device3::GetImmediateContext3",
+                                                 D3D11Dev_GetImmediateContext3_Override,
+                                                 D3D11Dev_GetImmediateContext3_Original,
+                                                 D3D11Dev_GetImmediateContext3_pfn );
+        }
+
+        if (! _AreVFtablePtrsSame ((void **)&pDev3.p, 62, (void **)pHooks->ppDevice, 27))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev3, 62,
+                                "ID3D11Device3::CreateDeferredContext3",
+                                                 D3D11Dev_CreateDeferredContext3_Override,
+                                                 D3D11Dev_CreateDeferredContext3_Original,
+                                                 D3D11Dev_CreateDeferredContext3_pfn );
+        }
+      }
+
+      SK_D3D11_HookDevCtx (pHooks);
     }
 
-    if (pDev2 != nullptr)
-    {
-      DXGI_VIRTUAL_HOOK ( &pDev2, 50,
-                            "ID3D11Device2::GetImmediateContext2",
-                                             D3D11Dev_GetImmediateContext2_Override,
-                                             D3D11Dev_GetImmediateContext2_Original,
-                                             D3D11Dev_GetImmediateContext2_pfn );
-      DXGI_VIRTUAL_HOOK ( &pDev2, 51,
-                            "ID3D11Device2::CreateDeferredContext2",
-                                             D3D11Dev_CreateDeferredContext2_Override,
-                                             D3D11Dev_CreateDeferredContext2_Original,
-                                             D3D11Dev_CreateDeferredContext2_pfn );
-    }
-
-    if (pDev3 != nullptr)
-    {
-      DXGI_VIRTUAL_HOOK ( &pDev3, 61,
-                            "ID3D11Device3::GetImmediateContext3",
-                                             D3D11Dev_GetImmediateContext3_Override,
-                                             D3D11Dev_GetImmediateContext3_Original,
-                                             D3D11Dev_GetImmediateContext3_pfn );
-      DXGI_VIRTUAL_HOOK ( &pDev3, 62,
-                            "ID3D11Device3::CreateDeferredContext3",
-                                             D3D11Dev_CreateDeferredContext3_Override,
-                                             D3D11Dev_CreateDeferredContext3_Original,
-                                             D3D11Dev_CreateDeferredContext3_pfn );
-    }
-
-    if (pDev3 != nullptr) pDev3->Release ();
-    if (pDev2 != nullptr) pDev2->Release ();
-    if (pDev1 != nullptr) pDev1->Release ();
-#endif
-
-    SK_D3D11_HookDevCtx (pHooks);
-
-    //SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (*pHooks->ppImmediateContext);
-    //
-    //if (pDevCtx1 != nullptr)
-    //{
-    //  DXGI_VIRTUAL_HOOK ( &pDevCtx1,  116,
-    //                        "ID3D11DeviceContext1::UpdateSubresource1",
-    //                                         D3D11_UpdateSubresource1_Override,
-    //                                         D3D11_UpdateSubresource1_Original,
-    //                                         D3D11_UpdateSubresource1_pfn );
-    //}
-  }
-#endif
-
-  InterlockedIncrement (&__d3d11_hooked);
+    InterlockedIncrement (&__d3d11_hooked);
   }
 
   else
