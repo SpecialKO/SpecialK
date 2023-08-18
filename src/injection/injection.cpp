@@ -87,6 +87,9 @@ extern "C"
   //   in any process that has become suspended since hook install.
   volatile LONG  num_hooked_pids                =  0;
   volatile DWORD hooked_pids [MAX_HOOKED_PROCS] = { };
+
+  DWORD dwPidShell     = 0x0;
+  HWND  hWndTaskSwitch = 0;
 };
 #pragma data_seg ()
 #pragma comment  (linker, "/SECTION:.SK_Hooks,RWS")
@@ -752,14 +755,13 @@ SK_Inject_WinEventHookProc (
     {
       if (SK_Window_TestOverlap (game_window.hWnd, hwnd, FALSE, 25))
       {
-        static DWORD dwPidShell = 0x0;
-        static HWND  hWndTaskSwitch =
-          FindWindow (nullptr, L"Task Switching");
-
-        if (dwPidShell == 0)
+        if (dwPidShell == 0 &&      hWndTaskSwitch == 0)
+        {                           hWndTaskSwitch =
+                FindWindow (nullptr, L"Task Switching");
           GetWindowThreadProcessId (hWndTaskSwitch, &dwPidShell);
+        }
 
-        DWORD dwPidNewTarget;
+        DWORD                            dwPidNewTarget;
         GetWindowThreadProcessId (hwnd, &dwPidNewTarget);
 
         if (dwPidNewTarget == dwPidShell)
