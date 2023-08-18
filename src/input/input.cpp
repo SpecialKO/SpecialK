@@ -1108,6 +1108,9 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
+  if (uiCommand != RID_INPUT && uiCommand != RID_HEADER)
+    return ~0U;
+
   auto GetRawInputDataImpl = [&](void) ->
   UINT
   {
@@ -1152,42 +1155,51 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       lastRawInput.SizeHeader = cbSizeHeader;
       lastRawInput.Size       = sizeof (lastRawInput.Data);
 
-      if ( SK_ImGui_ProcessRawInput (
-             lastRawInput.hRawInput, lastRawInput.uiCommand,
-             lastRawInput.Data,     &lastRawInput.Size,
-                                     lastRawInput.SizeHeader,
-                                                       FALSE, -1 )
-         )
+      INT size =
+        SK_ImGui_ProcessRawInput (
+          lastRawInput.hRawInput, lastRawInput.uiCommand,
+          lastRawInput.Data,     &lastRawInput.Size,
+                                  lastRawInput.SizeHeader,
+                                                    FALSE, -1 );
+
+      if (size >= 0)
       {
-        *pcbSize =
-          std::min (lastRawInput.Size, *pcbSize);
+        lastRawInput.Size = size;
 
         if (pData == nullptr)
-          return 0;
-
-        else if (*pcbSize >= cbSizeHeader && uiCommand == RID_HEADER)
         {
           *pcbSize =
-            cbSizeHeader;
+            lastRawInput.Size;
 
-          std::memcpy (pData, lastRawInput.Data, *pcbSize);
-        
+          return 0;
+        }
+
+        else if (uiCommand == RID_HEADER)
+        {
+          if (*pcbSize < cbSizeHeader)
+            return ~0U;
+
+          std::memcpy (pData, lastRawInput.Data, cbSizeHeader);
+
           return
-            *pcbSize;
+            cbSizeHeader;
         }
       }
+
+      return size;
     }
 
     else if (hRawInput == lastRawInput.hRawInput)
     {
       //SK_LOGi0 (L"RawInput Cache Hit: %p", lastRawInput.hRawInput);
 
-      *pcbSize =
-         std::min (       lastRawInput.Size, *pcbSize);
-      std::memcpy (pData, lastRawInput.Data, *pcbSize);
+      if (*pcbSize < lastRawInput.Size)
+        return ~0U;
+
+      std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
 
       return
-        *pcbSize;
+        lastRawInput.Size;
     }
 
     else
@@ -1197,23 +1209,30 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       lastRawInput.SizeHeader = cbSizeHeader;
       lastRawInput.Size       = sizeof (lastRawInput.Data);
 
-      if ( SK_ImGui_ProcessRawInput (
-             lastRawInput.hRawInput, lastRawInput.uiCommand,
-             lastRawInput.Data,     &lastRawInput.Size,
-                                     lastRawInput.SizeHeader,
-                                                       FALSE, -2 )
-         )
+      INT size =
+        SK_ImGui_ProcessRawInput (
+          lastRawInput.hRawInput, lastRawInput.uiCommand,
+          lastRawInput.Data,     &lastRawInput.Size,
+                                  lastRawInput.SizeHeader,
+                                                    FALSE, -2 );
+
+      if (size >= 0)
       {
+        lastRawInput.Size = size;
+
         //SK_LOGi0 ( L"RawInput Cache Miss [GetData]: %p (tid=%x)",
         //            hRawInput, GetCurrentThreadId () );
 
-        *pcbSize =
-           std::min (       lastRawInput.Size, *pcbSize);
-        std::memcpy (pData, lastRawInput.Data, *pcbSize);
+        if (*pcbSize < lastRawInput.Size)
+          return ~0U;
+
+        std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
 
         return
-          *pcbSize;
+          lastRawInput.Size;
       }
+
+      return size;
     }
   }
 
