@@ -56,7 +56,7 @@ float4 main (PS_INPUT input) : SV_Target
     float hdr_scale  = hdr10 ? ( -input.uv3.x / 10000.0 )
                              :    input.uv3.x;
 
-    float hdr_offset = hdr10 ? 0.0f : input.uv3.z;
+    float hdr_offset = 0.0f;//hdr10 ? 0.0f : input.uv3.z;
 
     hdr_scale -= hdr_offset;
 
@@ -65,14 +65,14 @@ float4 main (PS_INPUT input) : SV_Target
         LinearToST2084 (
           REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale
                        ) :
-     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.25) )
+     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.20) )
                  )                                   + hdr_offset,
                                          saturate (out_col.a  ) );
         
-    hdr_out.r = (orig_col.r <= 0.00015 && orig_col.r >= -0.00015) ? 0.0f : hdr_out.r;
-    hdr_out.g = (orig_col.g <= 0.00015 && orig_col.g >= -0.00015) ? 0.0f : hdr_out.g;
-    hdr_out.b = (orig_col.b <= 0.00015 && orig_col.b >= -0.00015) ? 0.0f : hdr_out.b;
-    hdr_out.a = (orig_col.a <= 0.00015 && orig_col.a >= -0.00015) ? 0.0f : hdr_out.a;
+    hdr_out.r *= (orig_col.r >= FLT_EPSILON);
+    hdr_out.g *= (orig_col.g >= FLT_EPSILON);
+    hdr_out.b *= (orig_col.b >= FLT_EPSILON);
+    hdr_out.a *= (orig_col.a >= FLT_EPSILON);
         
     return hdr_out;
   }

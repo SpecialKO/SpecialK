@@ -1,4 +1,10 @@
-﻿23.8.17.2
+﻿23.8.18
+=======
+ + Optimized Unreal Engine's use of Raw Input (2 calls per-data polled)
+ + Removed black point compensation from SK's HDR UI since EDID info is wrong
+ + Increased color gamut on SK's HDR UI
+
+23.8.17.2
 =========
  + Disable PreventEnumDevices option by default in NieR Replicant
  + Destroy framerate limiter and stats when a tracked SwapChain is destroyed
