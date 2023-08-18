@@ -509,6 +509,14 @@ public:
 
   HRAWINPUT       last_input  = nullptr;
 
+  struct {
+    HRAWINPUT hRawInput  =   0;
+    UINT      uiCommand  =   0;
+    RAWINPUT  Data [32]  = { };
+    UINT      Size       =   0;
+    UINT      SizeHeader =   0;
+  }               cached_input;
+
   size_t Cleanup (SK_TLS_CleanupReason_e reason = Unload) override;
 };
 

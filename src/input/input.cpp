@@ -1095,7 +1095,8 @@ SK_ImGui_ProcessRawInput (_In_      HRAWINPUT hRawInput,
                           _Out_opt_ LPVOID    pData,
                           _Inout_   PUINT     pcbSize,
                           _In_      UINT      cbSizeHeader,
-                                    BOOL      self);
+                                    BOOL      self,
+                                    INT       precache_size = 0);
 
 UINT
 WINAPI
@@ -1106,6 +1107,60 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
                               _In_      UINT      cbSizeHeader)
 {
   SK_LOG_FIRST_CALL
+
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+  //
+  // Optimization for Unreal Engine games; it calls GetRawInputData (...) twice
+  // 
+  //   * First call has nullptr for pData and ridiculous size, second call has
+  //       an actual pData pointer.
+  // 
+  //  >> The problem with this approach is BOTH calls have the same overhead!
+  //       
+  //   We will pre-read the input and hand that to Unreal Engine on its second
+  //     call rather than going through the full API.
+  //
+  if (pTLS != nullptr)
+  {
+    auto& lastRawInput =
+      pTLS->raw_input->cached_input;
+
+    if ( pcbSize != nullptr &&
+           pData == nullptr && cbSizeHeader == sizeof (RAWINPUTHEADER) )
+    {
+      lastRawInput.hRawInput  = hRawInput;
+      lastRawInput.uiCommand  = uiCommand;
+      lastRawInput.SizeHeader = cbSizeHeader;
+      lastRawInput.Size       = sizeof (RAWINPUT) * 32;
+
+      if ( SK_ImGui_ProcessRawInput (
+             hRawInput, uiCommand,
+               lastRawInput.Data,
+              &lastRawInput.Size,
+                    cbSizeHeader, FALSE, -1
+           )
+         )
+      {
+        *pcbSize = lastRawInput.Size;
+
+        return 0;
+      }
+    }
+
+    else if ( pcbSize != nullptr && cbSizeHeader == sizeof (RAWINPUTHEADER)
+                                 && uiCommand    == lastRawInput.uiCommand
+                                 && hRawInput    == lastRawInput.hRawInput )
+    {
+      UINT size =
+        std::min (lastRawInput.Size, *pcbSize);
+
+      memcpy (pData, lastRawInput.Data, size);
+
+      return size;
+    }
+  }
 
   return
     (UINT)SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, FALSE);

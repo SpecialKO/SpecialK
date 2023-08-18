@@ -226,7 +226,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                            _Out_opt_ LPVOID    pData,
                            _Inout_   PUINT     pcbSize,
                            _In_      UINT      cbSizeHeader,
-                                     BOOL      self )
+                                     BOOL      self,
+                                     INT       precache_size = 0 )
 {
   if (pData == nullptr)
   {
@@ -567,10 +568,13 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       }
     }
 
-    if (! keyboard)
-      *pcbSize = 0;
+    if (precache_size == 0)
+    {
+      if (! keyboard)
+        *pcbSize = 0;
   
-    size = *pcbSize;
+      size = *pcbSize;
+    }
   }
 
   return
