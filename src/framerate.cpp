@@ -2628,6 +2628,9 @@ SK_Framerate_EnergyControlPanel (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+  if (! SK_CPU_IsZen ())
+    return;
+
   ImGui::Separator  ();
 
   bool bNodeOpen =
@@ -2635,39 +2638,37 @@ SK_Framerate_EnergyControlPanel (void)
 
   if (bNodeOpen)
   {
-    if (SK_CPU_IsZen ())
+    bool bUseAMDWAITX =
+      config.render.framerate.use_amd_mwaitx;
+
+    if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
     {
-      bool bUseAMDWAITX =
-        config.render.framerate.use_amd_mwaitx;
-
-      if (ImGui::Checkbox ("Use AMD MWAITX Instructions", &bUseAMDWAITX))
-      {
-        config.render.framerate.use_amd_mwaitx = bUseAMDWAITX;
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Power Saving Feature For AMD CPUs");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
-        ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
-        ImGui::Separator    ();
-        ImGui::Text         (ICON_FA_INFO_CIRCLE " For best results, install Special K's Sensor Driver using SKIF.");
-        ImGui::EndTooltip   ();
-      }
-
-      // Run the CPU statistics
-      SK_ImGui_Widgets->cpu_monitor->setActive (true);
-      SK_RunOnce (SK_ImGui_Widgets->cpu_monitor->draw ());
-
-      extern void SK_ImGui_DrawCPUTemperature (void);
-      extern void SK_ImGui_DrawCPUPower       (void);
-
-      SK_ImGui_DrawCPUTemperature ();
-      SK_ImGui_DrawCPUPower       ();
+      config.render.framerate.use_amd_mwaitx = bUseAMDWAITX;
     }
 
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip ();
+      ImGui::Text         ("Power Saving Feature For AMD CPUs");
+      ImGui::Separator    ();
+      ImGui::BulletText   ("Uses a more efficient busy-wait that increases frametime variance but reduces power.");
+      ImGui::BulletText   ("Only affects busy-wait power consumption and has neglibile impact on CPU load%.");
+      ImGui::Separator    ();
+      ImGui::Text         (ICON_FA_INFO_CIRCLE " For best results, install Special K's Sensor Driver using SKIF.");
+      ImGui::EndTooltip   ();
+    }
+
+    // Run the CPU statistics
+    SK_ImGui_Widgets->cpu_monitor->setActive (true);
+    SK_RunOnce (SK_ImGui_Widgets->cpu_monitor->draw ());
+
+    extern void SK_ImGui_DrawCPUTemperature (void);
+    extern void SK_ImGui_DrawCPUPower       (void);
+
+    SK_ImGui_DrawCPUTemperature ();
+    SK_ImGui_DrawCPUPower       ();
+
+#if 0
     bool bAdvanced =
       ImGui::CollapsingHeader ("Advanced");
 
@@ -2693,6 +2694,7 @@ SK_Framerate_EnergyControlPanel (void)
       ImGui::SliderFloat ("Timer Resolution Bias", &fSwapWaitRatio, 0.0f, 5.0f);
       ImGui::SliderFloat ("Sleep Threshold",       &fSwapWaitFract, 0.0f, 1.0f);
     }
+#endif
 
     ImGui::TreePop    ();
   }

@@ -1,4 +1,12 @@
-﻿23.8.18.3
+﻿23.8.19 [Release Candidate]
+=======
+ + Removed the Energy Efficiency section from the Framerate Limiter / Advanced
+     control panel, unless the user has an AMD CPU.
+ + Removed the experimental tuning knobs for busy-wait ratio; they are not
+     needed on AMD CPUs and will be brought back in the future if Intel's
+       equivalent MWAITX instruction is integrated into SK.
+
+23.8.18.3
 =========
  + Handle D3D11 implementations where ID3D11Device1::GetImmediateContext1 is
      not a vftable alias to ID3D11Device::GetImmediateContext
