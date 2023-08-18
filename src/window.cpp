@@ -4275,6 +4275,10 @@ SK_PeekMessageW (
   return PeekMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
 }
 
+#define WM_NCMOUSEFIRST  WM_NCMOUSEMOVE
+#define WM_NCMOUSELAST  (WM_NCMOUSEFIRST + (WM_MOUSELAST - WM_MOUSEFIRST))
+#define WM_SYSTIMER      0x0118
+#define QS_SMRESULT      0x8000
 
 BOOL
 WINAPI
@@ -4286,18 +4290,35 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
-  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
+  UINT uiMask =
+    ( QS_POSTMESSAGE | QS_SENDMESSAGE );
+
+  if (wMsgFilterMin != 0 || wMsgFilterMax != 0)
+  {
+    if ( (wMsgFilterMin <= WM_KEYLAST)     && (wMsgFilterMax >= WM_KEYFIRST))      uiMask |= QS_KEY;
+    if (((wMsgFilterMin <= WM_MOUSELAST)   && (wMsgFilterMax >= WM_MOUSEFIRST)) ||
+        ((wMsgFilterMin <= WM_NCMOUSELAST) && (wMsgFilterMax >= WM_NCMOUSEFIRST))) uiMask |= QS_MOUSE;
+    if ( (wMsgFilterMin <= WM_TIMER)       && (wMsgFilterMax >= WM_TIMER))         uiMask |= QS_TIMER;
+    if ( (wMsgFilterMin <= WM_SYSTIMER)    && (wMsgFilterMax >= WM_SYSTIMER))      uiMask |= QS_TIMER;
+    if ( (wMsgFilterMin <= WM_PAINT)       && (wMsgFilterMax >= WM_PAINT))         uiMask |= QS_PAINT;
+    if ( (wMsgFilterMin <= WM_INPUT)       && (wMsgFilterMax >= WM_INPUT))         uiMask |= QS_RAWINPUT;
+  }
+
+  else
+    uiMask = QS_ALLINPUT;
+
+  while (! PeekMessageA (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE | (uiMask << 16)))
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, QS_ALLINPUT, 0x0 );
+                                      INFINITE, uiMask, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    std::memset (&msg, 0, sizeof (MSG));
+    msg.message = WM_NULL;
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
@@ -4407,18 +4428,35 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
-  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
+  UINT uiMask =
+    ( QS_POSTMESSAGE | QS_SENDMESSAGE );
+
+  if (wMsgFilterMin != 0 || wMsgFilterMax != 0)
+  {
+    if ( (wMsgFilterMin <= WM_KEYLAST)     && (wMsgFilterMax >= WM_KEYFIRST))      uiMask |= QS_KEY;
+    if (((wMsgFilterMin <= WM_MOUSELAST)   && (wMsgFilterMax >= WM_MOUSEFIRST)) ||
+        ((wMsgFilterMin <= WM_NCMOUSELAST) && (wMsgFilterMax >= WM_NCMOUSEFIRST))) uiMask |= QS_MOUSE;
+    if ( (wMsgFilterMin <= WM_TIMER)       && (wMsgFilterMax >= WM_TIMER))         uiMask |= QS_TIMER;
+    if ( (wMsgFilterMin <= WM_SYSTIMER)    && (wMsgFilterMax >= WM_SYSTIMER))      uiMask |= QS_TIMER;
+    if ( (wMsgFilterMin <= WM_PAINT)       && (wMsgFilterMax >= WM_PAINT))         uiMask |= QS_PAINT;
+    if ( (wMsgFilterMin <= WM_INPUT)       && (wMsgFilterMax >= WM_INPUT))         uiMask |= QS_RAWINPUT;
+  }
+
+  else
+    uiMask = QS_ALLINPUT;
+
+  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE | (uiMask << 16)))
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
-                                      INFINITE, QS_ALLINPUT, 0x0 );
+                                      INFINITE, uiMask, 0x0 );
 
     if (dwWait == WAIT_OBJECT_0)
       break;
   }
 
   if (dwWait == WAIT_OBJECT_0 && msg.message != WM_QUIT)
-    std::memset (&msg, 0, sizeof (MSG));
+    msg.message = WM_NULL;
 
   if (lpMsg != nullptr)
      *lpMsg  = msg;
@@ -5688,25 +5726,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     }
     break;
-
-    case WM_NCUAHDRAWCAPTION:
-	  case WM_NCUAHDRAWFRAME:
-      if ( config.window.borderless ||
-           rb.fullscreen_exclusive ) return 0;
-      break;
-
-    case WM_NCPAINT:
-      if ( config.window.borderless ||
-           rb.fullscreen_exclusive ) return 0;
-      break;
-
-    case WM_NCCALCSIZE:
-      if (wParam == TRUE)
-      {
-        if ( config.window.borderless ||
-             rb.fullscreen_exclusive ) return 0;
-      }
-      break;
 
     case WM_SHOWWINDOW:
     {
