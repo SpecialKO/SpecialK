@@ -1,4 +1,8 @@
-﻿23.8.18
+﻿23.8.18.1
+=========
+ + Assign *pcbSize the same value as GetRawInputData returns to fix Fallout 4
+
+23.8.18
 =======
  + Optimized Unreal Engine's use of Raw Input (2 calls per-data polled)
  + Removed black point compensation from SK's HDR UI since EDID info is wrong

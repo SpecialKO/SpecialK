@@ -935,10 +935,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
   if (pData != nullptr)
   {
-    const int max_items = ((*pcbSize * 16) / sizeof (RAWINPUT));
+    const int max_items = (((size_t)*pcbSize * 16) / sizeof (RAWINPUT));
           int count     =                              0;
         auto *pTemp     =
-          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData (*pcbSize * 16);
+          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData ((size_t)*pcbSize * 16);
     RAWINPUT *pInput    =                          pTemp;
     RAWINPUT *pOutput   =                          pData;
     UINT     cbSize     =                       *pcbSize;
@@ -1108,8 +1108,14 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
+  auto GetRawInputDataImpl = [&](void) ->
+  UINT
+  {
+    return 
+      (UINT)SK_ImGui_ProcessRawInput ( hRawInput, uiCommand,
+                                           pData, pcbSize,
+                                    cbSizeHeader, FALSE );
+  };
 
   //
   // Optimization for Unreal Engine games; it calls GetRawInputData (...) twice
@@ -1122,48 +1128,97 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
   //   We will pre-read the input and hand that to Unreal Engine on its second
   //     call rather than going through the full API.
   //
-  if (pTLS != nullptr)
+  if (pcbSize != nullptr && cbSizeHeader == sizeof (RAWINPUTHEADER))
   {
+    SK_TLS *pTLS =
+      SK_TLS_Bottom ();
+
+    if (! pTLS)
+    {
+      return
+        GetRawInputDataImpl ();
+    }
+
     auto& lastRawInput =
       pTLS->raw_input->cached_input;
 
-    if ( pcbSize != nullptr &&
-           pData == nullptr && cbSizeHeader == sizeof (RAWINPUTHEADER) )
+    if (pData == nullptr || uiCommand == RID_HEADER)
     {
+      //SK_LOGi0 ( L"RawInput Cache Miss [GetSize or Header]: %p (tid=%x)",
+      //            hRawInput, GetCurrentThreadId () );
+
       lastRawInput.hRawInput  = hRawInput;
-      lastRawInput.uiCommand  = uiCommand;
+      lastRawInput.uiCommand  = RID_INPUT;
       lastRawInput.SizeHeader = cbSizeHeader;
-      lastRawInput.Size       = sizeof (RAWINPUT) * 32;
+      lastRawInput.Size       = sizeof (lastRawInput.Data);
 
       if ( SK_ImGui_ProcessRawInput (
-             hRawInput, uiCommand,
-               lastRawInput.Data,
-              &lastRawInput.Size,
-                    cbSizeHeader, FALSE, -1
-           )
+             lastRawInput.hRawInput, lastRawInput.uiCommand,
+             lastRawInput.Data,     &lastRawInput.Size,
+                                     lastRawInput.SizeHeader,
+                                                       FALSE, -1 )
          )
       {
-        *pcbSize = lastRawInput.Size;
+        *pcbSize =
+          std::min (lastRawInput.Size, *pcbSize);
 
-        return 0;
+        if (pData == nullptr)
+          return 0;
+
+        else if (*pcbSize >= cbSizeHeader && uiCommand == RID_HEADER)
+        {
+          *pcbSize =
+            cbSizeHeader;
+
+          std::memcpy (pData, lastRawInput.Data, *pcbSize);
+        
+          return
+            *pcbSize;
+        }
       }
     }
 
-    else if ( pcbSize != nullptr && cbSizeHeader == sizeof (RAWINPUTHEADER)
-                                 && uiCommand    == lastRawInput.uiCommand
-                                 && hRawInput    == lastRawInput.hRawInput )
+    else if (hRawInput == lastRawInput.hRawInput)
     {
-      UINT size =
-        std::min (lastRawInput.Size, *pcbSize);
+      //SK_LOGi0 (L"RawInput Cache Hit: %p", lastRawInput.hRawInput);
 
-      memcpy (pData, lastRawInput.Data, size);
+      *pcbSize =
+         std::min (       lastRawInput.Size, *pcbSize);
+      std::memcpy (pData, lastRawInput.Data, *pcbSize);
 
-      return size;
+      return
+        *pcbSize;
+    }
+
+    else
+    {
+      lastRawInput.hRawInput  = hRawInput;
+      lastRawInput.uiCommand  = RID_INPUT;
+      lastRawInput.SizeHeader = cbSizeHeader;
+      lastRawInput.Size       = sizeof (lastRawInput.Data);
+
+      if ( SK_ImGui_ProcessRawInput (
+             lastRawInput.hRawInput, lastRawInput.uiCommand,
+             lastRawInput.Data,     &lastRawInput.Size,
+                                     lastRawInput.SizeHeader,
+                                                       FALSE, -2 )
+         )
+      {
+        //SK_LOGi0 ( L"RawInput Cache Miss [GetData]: %p (tid=%x)",
+        //            hRawInput, GetCurrentThreadId () );
+
+        *pcbSize =
+           std::min (       lastRawInput.Size, *pcbSize);
+        std::memcpy (pData, lastRawInput.Data, *pcbSize);
+
+        return
+          *pcbSize;
+      }
     }
   }
 
   return
-    (UINT)SK_ImGui_ProcessRawInput (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader, FALSE);
+    GetRawInputDataImpl ();
 }
 
 
@@ -2689,7 +2744,7 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
         RAWINPUTHEADER header = { };
         UINT           size   = sizeof (RAWINPUTHEADER);
   const UINT           ret    =
-    SK_GetRawInputData ( (HRAWINPUT)lParam,
+       GetRawInputData ( (HRAWINPUT)lParam,
                            RID_HEADER,
                              &header, &size,
                                sizeof (RAWINPUTHEADER) );
