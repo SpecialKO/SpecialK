@@ -704,10 +704,10 @@ DllMain ( HMODULE hModule,
           {
             if (bHoldingLock)
               return TRUE;
-          }
 
-          // Kick-off data collection on external thread creation
-          SK_Widget_InvokeThreadProfiler ();
+            // Kick-off data collection on external thread creation
+            SK_Widget_InvokeThreadProfiler ();
+          }
         }
       }
     }

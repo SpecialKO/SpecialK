@@ -292,7 +292,7 @@ public:
     const bool bEmpty =
       _known_module_names.empty ();
 
-    if (bEmpty && (! force_load))
+    if (wszLibrary == nullptr || (bEmpty && (! force_load)))
       return INVALID_MODULE;
 
     HMODULE hMod =
@@ -328,7 +328,7 @@ public:
   HMODULE
     getLoadedLibrary ( const wchar_t *wszLibrary, bool add_ref = false )
   {
-    if (_known_module_names.empty ())
+    if (wszLibrary == nullptr || _known_module_names.empty ())
       return INVALID_MODULE;
 
     HMODULE hMod =
@@ -363,6 +363,9 @@ private:
   // Don't forget to free anything you find!
   HMODULE _FindLibraryByName (const wchar_t *wszLibrary)
   {
+    if (wszLibrary == nullptr)
+      return INVALID_MODULE;
+
     std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (
                      *SK_DLL_LoaderLockGuard ()
     );
@@ -384,6 +387,9 @@ private:
 
   bool _RegisterLibrary (HMODULE hMod, const wchar_t *wszLibrary)
   {
+    if (wszLibrary == nullptr)
+      return false;
+
     MODULEINFO mod_info = { };
 
     //BOOL bHasValidInfo =
@@ -536,6 +542,9 @@ public:
   HMODULE
   FreeLibrary (const wchar_t *wszLibrary)
   {
+    if (wszLibrary == nullptr)
+      return INVALID_MODULE;
+
     const auto it =
       _known_module_names.find ( std::wstring (wszLibrary) );
 

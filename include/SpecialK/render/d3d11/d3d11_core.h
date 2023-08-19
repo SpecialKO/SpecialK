@@ -2677,6 +2677,9 @@ struct SK_IMGUI_D3D11StateBlock {
   void Capture ( ID3D11DeviceContext* pDevCtx,
                  DWORD                iStateMask = _StateMask_All )
   {
+    if (pDevCtx == nullptr)
+      return;
+
     pDevCtx->GetDevice (&Device.p);
 
     FeatureLevel =
@@ -2801,6 +2804,9 @@ struct SK_IMGUI_D3D11StateBlock {
   void Apply ( ID3D11DeviceContext* pDevCtx,
                DWORD                iStateMask = _StateMask_All )
   {
+    if (pDevCtx == nullptr)
+      return;
+
     if ( (iStateMask & RenderTargetState) ||
          (iStateMask & UnorderedAccessState) )
     {

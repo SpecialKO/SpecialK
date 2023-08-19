@@ -245,7 +245,7 @@ D3D11_GetData_Override (
  _In_  UINT                 GetDataFlags )
 {
   if (pAsync == nullptr)
-    return E_POINTER;
+    return E_INVALIDARG;
 
   HRESULT hr =
     D3D11_GetData_Original (
@@ -365,6 +365,9 @@ D3D11_VSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
+  if (ppVertexShader == nullptr)
+    return;
+
   return
     D3D11_VSGetShader_Original ( This,
       ppVertexShader, ppClassInstances,
@@ -416,6 +419,9 @@ D3D11_PSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
+  if (ppPixelShader == nullptr)
+    return;
+
   return
     D3D11_PSGetShader_Original ( This,
       ppPixelShader, ppClassInstances,
@@ -467,6 +473,9 @@ D3D11_GSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance  **ppClassInstances,
  _Inout_opt_ UINT                  *pNumClassInstances )
 {
+  if (ppGeometryShader == nullptr)
+    return;
+
   return
     D3D11_GSGetShader_Original ( This,
       ppGeometryShader, ppClassInstances,
@@ -519,6 +528,9 @@ D3D11_HSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
+  if (ppHullShader == nullptr)
+    return;
+
   return
     D3D11_HSGetShader_Original ( This,
          ppHullShader,
@@ -571,6 +583,9 @@ D3D11_DSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
+  if (ppDomainShader == nullptr)
+    return;
+
   return D3D11_DSGetShader_Original ( This,
     ppDomainShader, ppClassInstances,
                   pNumClassInstances
@@ -621,6 +636,9 @@ D3D11_CSGetShader_Override (
  _Out_opt_   ID3D11ClassInstance **ppClassInstances,
  _Inout_opt_ UINT                 *pNumClassInstances )
 {
+  if (ppComputeShader == nullptr)
+    return;
+
   return
     D3D11_CSGetShader_Original ( This, ppComputeShader,
                                    ppClassInstances, pNumClassInstances );
@@ -637,7 +655,8 @@ D3D11_ClearState_Override (ID3D11DeviceContext* This)
 }
 
 __declspec (noinline)
-void STDMETHODCALLTYPE
+void
+STDMETHODCALLTYPE
 D3D11_ExecuteCommandList_Override (
     _In_  ID3D11DeviceContext *This,
     _In_  ID3D11CommandList   *pCommandList,
@@ -760,9 +779,9 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_RSSetScissorRects_Override (
-        ID3D11DeviceContext *This,
-        UINT                 NumRects,
-  const D3D11_RECT          *pRects )
+                 ID3D11DeviceContext *This,
+  _In_           UINT                 NumRects,
+  _In_opt_ const D3D11_RECT          *pRects )
 {
   if (pRects == nullptr)
     return D3D11_RSSetScissorRects_Original (This, NumRects, pRects);
@@ -879,10 +898,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSSetConstantBuffers_Override (
-  ID3D11DeviceContext*  This,
-  UINT                  StartSlot,
-  UINT                  NumBuffers,
-  ID3D11Buffer *const  *ppConstantBuffers )
+           ID3D11DeviceContext*  This,
+  _In_     UINT                  StartSlot,
+  _In_     UINT                  NumBuffers,
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
 {
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
@@ -897,10 +916,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_PSSetConstantBuffers_Override (
-  ID3D11DeviceContext*  This,
-  UINT                  StartSlot,
-  UINT                  NumBuffers,
-  ID3D11Buffer *const  *ppConstantBuffers )
+           ID3D11DeviceContext*  This,
+  _In_     UINT                  StartSlot,
+  _In_     UINT                  NumBuffers,
+  _In_opt_ ID3D11Buffer *const  *ppConstantBuffers )
 {
   //dll_log->Log (L"[   DXGI   ] [!]D3D11_VSSetConstantBuffers (%lu, %lu, ...)", StartSlot, NumBuffers);
   return
@@ -911,10 +930,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_VSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -939,10 +958,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_PSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -967,10 +986,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_GSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -995,10 +1014,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_HSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -1023,10 +1042,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_DSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -1051,10 +1070,10 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_CSSetShaderResources_Override (
-  _In_           ID3D11DeviceContext             *This,
-  _In_           UINT                             StartSlot,
-  _In_           UINT                             NumViews,
-  _In_opt_       ID3D11ShaderResourceView* const *ppShaderResourceViews )
+  _In_     ID3D11DeviceContext             *This,
+  _In_     UINT                             StartSlot,
+  _In_     UINT                             NumViews,
+  _In_opt_ ID3D11ShaderResourceView* const *ppShaderResourceViews )
 {
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -1172,7 +1191,7 @@ D3D11_UpdateSubresource1_Override (
   }
 
 
-  dll_log->Log (L"UpdateSubresource1 ({%s}",
+  dll_log->Log (L"UpdateSubresource1 ({%hs}",
     SK_D3D11_DescribeResource (pDstResource).c_str ());
 
 
@@ -1406,7 +1425,7 @@ _Out_opt_ D3D11_MAPPED_SUBRESOURCE *pMappedResource )
 #endif
 
   if (pResource == nullptr)
-    return E_POINTER;
+    return E_INVALIDARG;
 
   if (! SK_D3D11_IgnoreWrappedOrDeferred (false, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -1865,8 +1884,8 @@ D3D11_DispatchIndirect_Override (
 {
   SK_LOG_FIRST_CALL
 
-    if (pBufferForArgs == nullptr)
-      return;
+  if (pBufferForArgs == nullptr)
+    return;
 
   if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
@@ -1953,8 +1972,8 @@ void
 STDMETHODCALLTYPE
 D3D11_OMGetRenderTargets_Override (ID3D11DeviceContext     *This,
                               _In_ UINT                     NumViews,
-                             _Out_ ID3D11RenderTargetView **ppRenderTargetViews,
-                             _Out_ ID3D11DepthStencilView **ppDepthStencilView)
+                         _Out_opt_ ID3D11RenderTargetView **ppRenderTargetViews,
+                         _Out_opt_ ID3D11DepthStencilView **ppDepthStencilView)
 {
   D3D11_OMGetRenderTargets_Original (
     This,        NumViews,
@@ -1966,13 +1985,13 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Override (
-        ID3D11DeviceContext        *This,
-  _In_  UINT                        NumRTVs,
-  _Out_ ID3D11RenderTargetView    **ppRenderTargetViews,
-  _Out_ ID3D11DepthStencilView    **ppDepthStencilView,
-  _In_  UINT                        UAVStartSlot,
-  _In_  UINT                        NumUAVs,
-  _Out_ ID3D11UnorderedAccessView **ppUnorderedAccessViews)
+            ID3D11DeviceContext        *This,
+  _In_      UINT                        NumRTVs,
+  _Out_opt_ ID3D11RenderTargetView    **ppRenderTargetViews,
+  _Out_opt_ ID3D11DepthStencilView    **ppDepthStencilView,
+  _In_      UINT                        UAVStartSlot,
+  _In_      UINT                        NumUAVs,
+  _Out_opt_ ID3D11UnorderedAccessView **ppUnorderedAccessViews)
 {
   D3D11_OMGetRenderTargetsAndUnorderedAccessViews_Original (
     This, NumRTVs, ppRenderTargetViews, ppDepthStencilView,
@@ -1999,9 +2018,9 @@ __declspec (noinline)
 void
 STDMETHODCALLTYPE
 D3D11_RSSetViewports_Override (
-        ID3D11DeviceContext* This,
-        UINT                 NumViewports,
-  const D3D11_VIEWPORT*      pViewports )
+                 ID3D11DeviceContext* This,
+  _In_           UINT                 NumViewports,
+  _In_opt_ const D3D11_VIEWPORT*      pViewports )
 {
   if (pViewports == nullptr)
     return D3D11_RSSetViewports_Original (
@@ -2315,15 +2334,7 @@ D3D11_PSSetSamplers_Override
       }
     }
 #endif
-
-    return
-      D3D11_PSSetSamplers_Original (
-        This, StartSlot,
-          NumSamplers,
-           ppSamplers
-      );
   }
-
 
   D3D11_PSSetSamplers_Original (
     This, StartSlot,

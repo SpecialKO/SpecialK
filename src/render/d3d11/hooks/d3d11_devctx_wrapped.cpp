@@ -792,7 +792,7 @@ public:
     TraceAPI
 
     if (pResource == nullptr)
-      return E_POINTER;
+      return E_INVALIDARG;
 
 #ifndef SK_D3D11_LAZY_WRAP
     if (! SK_D3D11_IgnoreWrappedOrDeferred (true, deferred_, pReal))
@@ -1035,7 +1035,7 @@ public:
     TraceAPI
 
     if (pAsync == nullptr)
-      return E_POINTER;
+      return E_INVALIDARG;
 
     return
       pReal->GetData ( pAsync,
