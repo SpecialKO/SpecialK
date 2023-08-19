@@ -1145,10 +1145,10 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
     auto& lastRawInput =
       pTLS->raw_input->cached_input;
 
-    if (pData == nullptr || uiCommand == RID_HEADER)
+    if (lastRawInput.hRawInput != hRawInput && (pData == nullptr || uiCommand == RID_HEADER))
     {
-      //SK_LOGi0 ( L"RawInput Cache Miss [GetSize or Header]: %p (tid=%x)",
-      //            hRawInput, GetCurrentThreadId () );
+      SK_LOGi3 ( L"RawInput Cache Miss [GetSize or Header]: %p (tid=%x)",
+                  hRawInput, GetCurrentThreadId () );
 
       lastRawInput.hRawInput  = hRawInput;
       lastRawInput.uiCommand  = RID_INPUT;
@@ -1168,6 +1168,8 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 
         if (pData == nullptr)
         {
+          SK_ReleaseAssert (uiCommand != RID_HEADER);
+
           *pcbSize =
             lastRawInput.Size;
 
@@ -1191,15 +1193,20 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 
     else if (hRawInput == lastRawInput.hRawInput)
     {
-      //SK_LOGi0 (L"RawInput Cache Hit: %p", lastRawInput.hRawInput);
+      SK_LOGi3 (L"RawInput Cache Hit: %p", lastRawInput.hRawInput);
 
-      if (*pcbSize < lastRawInput.Size)
+      UINT uiRequiredSize =
+        ( uiCommand == RID_HEADER ? sizeof (RAWINPUTHEADER)
+                                  : lastRawInput.Size );
+
+      if (*pcbSize < uiRequiredSize)
         return ~0U;
 
-      std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
+      if (pData != nullptr)
+        std::memcpy (pData, lastRawInput.Data, uiRequiredSize);
 
       return
-        lastRawInput.Size;
+        uiRequiredSize;
     }
 
     else
@@ -1220,13 +1227,14 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       {
         lastRawInput.Size = size;
 
-        //SK_LOGi0 ( L"RawInput Cache Miss [GetData]: %p (tid=%x)",
-        //            hRawInput, GetCurrentThreadId () );
+        SK_LOGi3 ( L"RawInput Cache Miss [GetData]: %p (tid=%x)",
+                    hRawInput, GetCurrentThreadId () );
 
         if (*pcbSize < lastRawInput.Size)
           return ~0U;
 
-        std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
+        if (pData != nullptr)
+          std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
 
         return
           lastRawInput.Size;
