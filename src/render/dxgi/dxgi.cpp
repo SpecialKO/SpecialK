@@ -3362,6 +3362,9 @@ struct {
 
   HRESULT addRef (void** ppFactory, REFIID riid)
   {
+    if (ppFactory == nullptr)
+      return E_INVALIDARG;
+
     std::scoped_lock <std::recursive_mutex>
                 lock             (getMutex ());
 
@@ -3394,6 +3397,9 @@ struct {
 
   void addFactory (void** ppFactory, REFIID riid)
   {
+    if (ppFactory == nullptr)
+      return;
+
     std::scoped_lock <std::recursive_mutex>
                 lock             (getMutex ());
 
@@ -3555,7 +3561,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc)
 {
   // For sanity sake, clear the number of modes rather than leaving it undefined in log calls :)
-  if (pDesc == nullptr)
+  if (pDesc == nullptr && pNumModes != nullptr)
     *pNumModes = 0;
 
   auto _LogCall = [&](void)
@@ -3565,12 +3571,13 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
             (uintptr_t)This,
                        SK_DXGI_FormatToStr (EnumFormat).data  (),
                            _EnumFlagsToStr (     Flags).c_str (),
-                             *pNumModes,
+                             pNumModes != nullptr ?
+                            *pNumModes            : -1,
                                 (uintptr_t)pDesc ); };
 
   uint32_t tag = 0;
 
-  if (config.render.dxgi.use_factory_cache)
+  if (config.render.dxgi.use_factory_cache && pNumModes != nullptr)
   {
     struct callframe_s {
       DXGI_OUTPUT_DESC   desc;
@@ -3624,6 +3631,9 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   }
 
   _LogCall ();
+
+  if (pNumModes == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   if (     config.render.dxgi.scaling_mode ==  0)
     Flags &= ~DXGI_ENUM_MODES_SCALING;
@@ -3836,6 +3846,9 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
                 _In_opt_  IUnknown       *pConcernedDevice,
                           BOOL            bApplyOverrides )
 {
+  if (pSwapChain == nullptr || pModeToMatch == nullptr || pClosestMatch == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   if (! FindClosestMatchingMode_Original)
   {
     SK_LOGi0 ( L"SK_DXGI_FindClosestMode (...) called without a hooked IDXGIOutput" );
@@ -3920,6 +3933,11 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
                   _In_ DXGI_MODE_DESC *pNewTargetParameters,
                        BOOL            bApplyOverrides )
 {
+  assert (pNewTargetParameters != nullptr);
+
+  if (pNewTargetParameters == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -3930,8 +3948,6 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
     if (       nullptr != pSwap3) SK_DXGI_UpdateColorSpace
                          (pSwap3);
   }
-
-  assert (pNewTargetParameters != nullptr);
 
   HRESULT ret =
     E_UNEXPECTED;
@@ -4245,7 +4261,7 @@ HRESULT
 STDMETHODCALLTYPE
 DXGISwap_SetFullscreenState_Override ( IDXGISwapChain *This,
                                        BOOL            Fullscreen,
-                                       IDXGIOutput    *pTarget )
+                              _In_opt_ IDXGIOutput    *pTarget )
 {
   DXGI_LOG_CALL_I2 ( L"    IDXGISwapChain", L"SetFullscreenState         ",
                    L"%s, %08" _L(PRIxPTR) L"h",
@@ -4262,13 +4278,13 @@ __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
 DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
-  _In_       UINT             BufferCount,
-  _In_       UINT             Width,
-  _In_       UINT             Height,
-  _In_       DXGI_FORMAT      NewFormat,
-  _In_       UINT             SwapChainFlags,
-  _In_ const UINT            *pCreationNodeMask,
-  _In_       IUnknown* const *ppPresentQueue)
+  _In_           UINT             BufferCount,
+  _In_           UINT             Width,
+  _In_           UINT             Height,
+  _In_           DXGI_FORMAT      NewFormat,
+  _In_           UINT             SwapChainFlags,
+  _In_opt_ const UINT            *pCreationNodeMask,
+  _In_           IUnknown* const *ppPresentQueue)
 {
   DXGI_SWAP_CHAIN_DESC swap_desc = { };
   This->GetDesc      (&swap_desc);
@@ -4279,6 +4295,9 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
                        Width, Height,
     SK_DXGI_FormatToStr (NewFormat).data (),
                            SwapChainFlags );
+
+  if (BufferCount != 0 && ppPresentQueue == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   SwapChainFlags =
     SK_DXGI_FixUpLatencyWaitFlag (This, SwapChainFlags);
@@ -5668,6 +5687,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
                          IDXGISwapChain1 **ppDest,
                          DXGI_FORMAT       original_format )
 {
+  if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
+    return nullptr;
+
   bool bDontWrap =                   SK_IsInjected () &&
     SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
              config.system.global_inject_delay == 0.0f;
@@ -5758,10 +5780,6 @@ DXGIFactory_CreateSwapChain_Override (
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC *)pDesc;
 
-  // WTF? Just ignore ReShade, it's insane.
-  if (! ppSwapChain)
-    return S_OK;
-
   std::wstring iname =
     SK_UTF8ToWideChar (
       SK_GetDXGIFactoryInterface (This)
@@ -5786,9 +5804,14 @@ DXGIFactory_CreateSwapChain_Override (
     HRESULT         hr    =
       CreateSwapChain_Original (This, pDevice, pDesc, &pTemp);
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && ppSwapChain != nullptr)
     {
       *ppSwapChain = pTemp;
+    }
+
+    else if (pTemp != nullptr)
+    {
+      pTemp->Release ();
     }
 
     return hr;
@@ -5799,6 +5822,9 @@ DXGIFactory_CreateSwapChain_Override (
                               _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)pDesc,
                          (uintptr_t)ppSwapChain );
+
+  if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   HRESULT ret = E_FAIL;
 
@@ -6076,6 +6102,10 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
                      L"%08" _L(PRIxPTR) L"h", (uintptr_t)pDevice,
                                               (uintptr_t)pDesc,
                                               (uintptr_t)ppSwapChain );
+
+  if ( pDevice == nullptr || pWindow     == nullptr ||
+       pDesc   == nullptr || ppSwapChain == nullptr )
+    return DXGI_ERROR_INVALID_CALL;
 
   if (iname == L"{Invalid-Factory-UUID}")
   {
@@ -6359,6 +6389,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                               _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)hWnd, (uintptr_t)pDesc );
 
+  if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   if ((! pDesc) || ! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
   {
     return
@@ -6423,7 +6456,11 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   // We got something that was neither D3D11 nor D3D12, uh oh!
   SK_ReleaseAssert (pDev11.p != nullptr || pDev12.p != nullptr);
 
-  SK_TLS_Bottom ()->render->d3d11->ctx_init_thread = true;
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS != nullptr)
+      pTLS->render->d3d11->ctx_init_thread = true;
 
   SK_DXGI_CreateSwapChain_PreInit (
     nullptr, &new_desc1, hWnd, pFullscreenDesc, pDevice, pDev12.p != nullptr
@@ -6635,6 +6672,9 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
 
   assert (pDesc != nullptr);
 
+  if (ppSwapChain == nullptr || pDesc == nullptr || pDevice == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   DXGI_SWAP_CHAIN_DESC1           new_desc1           = {    };
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
 
@@ -6687,6 +6727,9 @@ WINAPI
 SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
                           D3D_DRIVER_TYPE* DriverType )
 {
+  if (ppAdapter == nullptr || DriverType == nullptr)
+    return;
+
   if (SK_DXGI_preferred_adapter == SK_NoPreference)
     return;
 
@@ -7058,11 +7101,14 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
                          L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                            (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
+    if (ppAdapter == nullptr)
+      return DXGI_ERROR_INVALID_CALL;
+
     DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
   }
 
   // RE8 has a performance death wish
-  else
+  else if (ppAdapter != nullptr)
   {
     if (Adapter == 0)
     {
@@ -7122,6 +7168,9 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"EnumAdapters         ",
                        L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                          (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
+
+  if (ppAdapter == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   HRESULT ret;
   DXGI_CALL (ret, EnumAdapters_Original (This, Adapter, ppAdapter));
@@ -7256,9 +7305,12 @@ HRESULT
 WINAPI
 DXGIGetDebugInterface1 ( UINT     Flags,
                          REFIID   riid,
-                         void   **pDebug )
+                   _Out_ void   **pDebug )
 {
   SK_LOG_FIRST_CALL
+
+  if (pDebug == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   if (DXGIGetDebugInterface1_Import == nullptr)
   {
@@ -7311,6 +7363,9 @@ WINAPI CreateDXGIFactory (REFIID   riid,
                     L"%hs, %08" _L(PRIxPTR) L"h",
                       iname.c_str (), (uintptr_t)ppFactory );
 
+  if (ppFactory == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   if (CreateDXGIFactory_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ())
@@ -7358,7 +7413,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
 
 
-  if (config.render.dxgi.use_factory_cache)
+  if (config.render.dxgi.use_factory_cache && ppFactory != nullptr)
   {
     bool current =
       __SK_DXGI_FactoryCache.isCurrent ();
@@ -7391,6 +7446,9 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   //{
   //  SK_LOG_ONCE (L"[Res Enum 8] STFU Capcom, one factory is enough!");
   //}
+
+  if (ppFactory == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   if (CreateDXGIFactory1_Import == nullptr)
   {
@@ -7450,7 +7508,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   if (config.render.dxgi.debug_layer)
     Flags |= 0x1;
 
-  if (config.render.dxgi.use_factory_cache && Flags != 0x1) // 0x1 == Debug Factory
+                                                    // 0x1 == Debug Factory
+  if (config.render.dxgi.use_factory_cache && Flags != 0x1 && ppFactory != nullptr)
   {
     bool current =
       __SK_DXGI_FactoryCache.isCurrent ();
@@ -7474,6 +7533,9 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
                     L"0x%04X, %hs, %08" _L(PRIxPTR) L"h",
                       Flags, iname.c_str (), (uintptr_t)ppFactory );
+
+  if (ppFactory == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   if (CreateDXGIFactory2_Import == nullptr)
   {
@@ -7757,6 +7819,9 @@ void
 WINAPI
 dxgi_init_callback (finish_pfn finish)
 {
+  if (finish == nullptr)
+    return;
+
   if (! SK_IsHostAppSKIM ())
   {
     SK_BootDXGI     ();
@@ -7783,6 +7848,9 @@ extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
 void
 SK_DXGI_HookPresentBase (IDXGISwapChain* pSwapChain)
 {
+  if (pSwapChain == nullptr)
+    return;
+
   if (! LocalHook_IDXGISwapChain_Present.active)
   {
     DXGI_VIRTUAL_HOOK ( &pSwapChain, 8,
@@ -7911,12 +7979,15 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept
 HRESULT
 WINAPI
 IDXGISwapChain3_CheckColorSpaceSupport_Override (
-  IDXGISwapChain3       *This,
-  DXGI_COLOR_SPACE_TYPE  ColorSpace,
-  UINT                  *pColorSpaceSupported )
+        IDXGISwapChain3       *This,
+  _In_  DXGI_COLOR_SPACE_TYPE  ColorSpace,
+  _Out_ UINT                  *pColorSpaceSupported )
 {
   SK_LOGi0 ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
                    DXGIColorSpaceToStr (ColorSpace) );
+
+  if (pColorSpaceSupported == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
 
   // SK has a trick where it can override PQ to scRGB, but often when that
   //   mode is active, the game's going to fail this call. We need to lie (!)
@@ -8071,6 +8142,9 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
 {
   SK_LOG_FIRST_CALL
 
+  if (pDesc == nullptr)
+     return DXGI_ERROR_INVALID_CALL;
+
   HRESULT hr =
     IDXGIOutput6_GetDesc1_Original (This, pDesc);
 
@@ -8193,6 +8267,9 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
 void
 SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1)
 {
+  if (pSwapChain1 == nullptr)
+    return;
+
   if (! LocalHook_IDXGISwapChain1_Present1.active)
   {
     DXGI_VIRTUAL_HOOK ( &pSwapChain1, 22,
@@ -8210,6 +8287,9 @@ SK_DXGI_HookPresent1 (IDXGISwapChain1* pSwapChain1)
 void
 SK_DXGI_HookPresent (IDXGISwapChain* pSwapChain)
 {
+  if (pSwapChain == nullptr)
+    return;
+
   SK_DXGI_HookPresentBase (pSwapChain);
 
   SK_ComQIPtr <IDXGISwapChain1>
@@ -8231,6 +8311,9 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 void
 SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 {
+  if (pSwapChain == nullptr)
+    return;
+
   if (! first_frame)
     return;
 
@@ -8406,6 +8489,9 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 void
 SK_DXGI_HookFactory (IDXGIFactory* pFactory)
 {
+  if (pFactory == nullptr)
+    return;
+
   static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
@@ -9036,6 +9122,9 @@ SK_DXGI_IsTrackingBudget (void) noexcept
 HRESULT
 SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
 {
+  if (ppAdapter == nullptr)
+    return DXGI_ERROR_INVALID_CALL;
+
   //
   // If the adapter implements DXGI 1.4, then create a budget monitoring
   //  thread...
@@ -9905,7 +9994,7 @@ SK_DXGI_IsScalingPreventingRequestedResolution ( DXGI_MODE_DESC *pDesc,
                                                  IDXGIOutput    *pOutput,
                                                  IUnknown       *pDevice )
 {
-  if (pOutput == nullptr, pDesc)
+  if (pOutput == nullptr || pDesc == nullptr)
     return false; // Hell if I know, pass valid parameters next time!
 
   if (pDesc->Scaling == DXGI_MODE_SCALING_UNSPECIFIED)
