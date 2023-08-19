@@ -232,12 +232,9 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   if (pData == nullptr)
   {
     return      // Invoke the hook so that we cache this
-      self ?    GetRawInputData ( hRawInput, uiCommand,
-                          pData, pcbSize,
-                                  cbSizeHeader )
-           : SK_GetRawInputData ( hRawInput, uiCommand,
-                          pData, pcbSize,
-                                  cbSizeHeader );
+      GetRawInputData ( hRawInput, uiCommand,
+                pData, pcbSize,
+                        cbSizeHeader );
   }
 
   static auto& io =
@@ -271,8 +268,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
 
   int size =    // Invoke the hook so that we cache this
-      self ?    GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader)
-           : SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+      (self && foreground) ?    GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader)
+                           : SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
 
   // On error, simply return immediately...
   if (size == -1)
@@ -557,7 +554,11 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     
       if (keyboard)
       {
-        RtlZeroMemory (&((RAWINPUT *)pData)->data.keyboard, *pcbSize - sizeof (RAWINPUTHEADER));
+        if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+               ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
+    
+        // Fake key release
+        ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
       }
     
       // Block mouse input in The Witness by zeroing-out the memory; most other 

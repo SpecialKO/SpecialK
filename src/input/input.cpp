@@ -1196,7 +1196,7 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       SK_LOGi3 (L"RawInput Cache Hit: %p", lastRawInput.hRawInput);
 
       UINT uiRequiredSize =
-        ( uiCommand == RID_HEADER ? sizeof (RAWINPUTHEADER)
+        ( uiCommand == RID_HEADER ? cbSizeHeader
                                   : lastRawInput.Size );
 
       if (*pcbSize < uiRequiredSize)
@@ -1227,17 +1227,21 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
       {
         lastRawInput.Size = size;
 
+        UINT uiRequiredSize =
+          ( uiCommand == RID_HEADER ? cbSizeHeader
+                                    : lastRawInput.Size );
+
         SK_LOGi3 ( L"RawInput Cache Miss [GetData]: %p (tid=%x)",
                     hRawInput, GetCurrentThreadId () );
 
-        if (*pcbSize < lastRawInput.Size)
+        if (*pcbSize < uiRequiredSize)
           return ~0U;
 
         if (pData != nullptr)
-          std::memcpy (pData, lastRawInput.Data, lastRawInput.Size);
+          std::memcpy (pData, lastRawInput.Data, uiRequiredSize);
 
         return
-          lastRawInput.Size;
+          uiRequiredSize;
       }
 
       return size;
