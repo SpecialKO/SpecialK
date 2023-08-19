@@ -1,4 +1,9 @@
-﻿23.8.19 [Release Candidate]
+﻿23.8.19.1
+=========
+ + Fixed Baldur's Gate 3 game detection only testing the Vulkan executable
+ + Fixed Baldur's Gate 3 alt-tab flakiness (do not use Multitasking On Top)
+
+23.8.19
 =======
  + Removed the Energy Efficiency section from the Framerate Limiter / Advanced
      control panel, unless the user has an AMD CPU.
