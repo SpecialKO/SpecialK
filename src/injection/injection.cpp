@@ -751,7 +751,12 @@ SK_Inject_WinEventHookProc (
 
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
-    if (game_window.hWnd != hwnd && game_window.hWnd != nullptr && IsWindow (game_window.hWnd))
+    // Processing this will cause Baldur's Gate 3 to react funny;
+    //   consider it incompatible with "Smart Always on Top"
+    if ( config.window.always_on_top == SmartAlwaysOnTop &&
+                    game_window.hWnd != hwnd             &&
+                    game_window.hWnd != nullptr          &&
+          IsWindow (game_window.hWnd) )
     {
       if (SK_Window_TestOverlap (game_window.hWnd, hwnd, FALSE, 25))
       {
@@ -764,6 +769,8 @@ SK_Inject_WinEventHookProc (
         DWORD                            dwPidNewTarget;
         GetWindowThreadProcessId (hwnd, &dwPidNewTarget);
 
+        // Do not remove Smart Always On Top for the task switcher,
+        //   it runs in a window band above this application...
         if (dwPidNewTarget == dwPidShell)
         {
           return;
