@@ -36,7 +36,7 @@ float4 main (PS_INPUT input) : SV_Target
          input.uv2.y > 0.0f )
     {
       out_col.rgb =
-        PositivePow (
+        pow (
           RemoveSRGBCurve (out_col.rgb),
                 input.uv2.yyy
             ) * input.uv2.xxx;
@@ -48,7 +48,7 @@ float4 main (PS_INPUT input) : SV_Target
       out_col =
         float4 ( RemoveSRGBCurve (          input.col.rgb) *
                  RemoveSRGBCurve (            out_col.rgb),
-                     PositivePow (saturate (  out_col.a) *
+                             pow (saturate (  out_col.a) *
                                   saturate (input.col.a), 0.8)
                );
     }
@@ -68,12 +68,12 @@ float4 main (PS_INPUT input) : SV_Target
      Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.12) )
                  )                                   + hdr_offset,
                                          saturate (out_col.a  ) );
-        
-    hdr_out.r *= (orig_col.r >= FLT_EPSILON);
-    hdr_out.g *= (orig_col.g >= FLT_EPSILON);
-    hdr_out.b *= (orig_col.b >= FLT_EPSILON);
-    hdr_out.a *= (orig_col.a >= FLT_EPSILON);
-        
+
+    hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;
+    hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
+    hdr_out.b = (orig_col.b <= 0.00013 && orig_col.b >= -0.00013) ? 0.0f : hdr_out.b;
+    hdr_out.a = (orig_col.a <= 0.00013 && orig_col.a >= -0.00013) ? 0.0f : hdr_out.a;
+
     return hdr_out;
   }
 
