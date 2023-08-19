@@ -190,6 +190,7 @@ SK_GetCurrentGameID (void)
           { L"P5R.exe",                                SK_GAME_ID::Persona5                     },
           { L"HorizonZeroDawn.exe",                    SK_GAME_ID::HorizonZeroDawn              },
           { L"bg3.exe",                                SK_GAME_ID::BaldursGate3                 },
+          { L"bg3_dx11.exe",                           SK_GAME_ID::BaldursGate3                 },
           { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
           { L"Atelier_Ryza_2.exe",                     SK_GAME_ID::AtelierRyza2                 },
           { L"nioh2.exe",                              SK_GAME_ID::Nioh2                        },
@@ -2429,10 +2430,11 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::BaldursGate3:
+      {
         config.apis.NvAPI.vulkan_bridge = 1;
         config.window.activate_at_start = true;
         config.display.force_windowed   = true;
-        break;
+      } break;
 
       case SK_GAME_ID::Persona4:
       {
