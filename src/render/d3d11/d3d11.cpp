@@ -7540,10 +7540,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
-  std::ignore = DriverType;
-  std::ignore = SDKVersion;
-  std::ignore = Software;
-
   bool bEOSOverlay =
     SK_COMPAT_IgnoreEOSOVHCall ();
 
@@ -7600,14 +7596,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   ID3D11DeviceContext* ret_ctx    = nullptr;
 
   // Allow override of swapchain parameters
-  auto swap_chain_override =
-    std::make_unique <DXGI_SWAP_CHAIN_DESC> ( pSwapChainDesc != nullptr ?
-                                                *pSwapChainDesc :
-                                                DXGI_SWAP_CHAIN_DESC { }
-                                            );
-
-  auto swap_chain_desc =
-    swap_chain_override.get ();
+  DXGI_SWAP_CHAIN_DESC swap_chain_desc =
+        pSwapChainDesc != nullptr ?
+       *pSwapChainDesc : DXGI_SWAP_CHAIN_DESC { };
 
   SK_D3D11_Init ();
 
@@ -7649,12 +7640,14 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   if ( pSwapChainDesc != nullptr &&
           ppSwapChain != nullptr )
   {
+    SK_ReleaseAssert (swap_chain_desc.OutputWindow != 0);
+
     wchar_t wszMSAA [128] = { };
 
-    swprintf ( wszMSAA, swap_chain_desc->SampleDesc.Count > 1 ?
+    swprintf ( wszMSAA, swap_chain_desc.SampleDesc.Count > 1 ?
                           L"%u Samples" :
                           L"Not Used (or Offscreen)",
-                 swap_chain_desc->SampleDesc.Count );
+                 swap_chain_desc.SampleDesc.Count );
 
     dll_log->LogEx ( true,
       L"[Swap Chain]\n"
@@ -7669,75 +7662,75 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       L"  | Flags...... |  0x%04x%-65ws|\n"
       L"  | SwapEffect. |  %-71ws|\n"
       L"  +-------------+-------------------------------------------------------------------------+\n",
-          swap_chain_desc->BufferDesc.Width,
-          swap_chain_desc->BufferDesc.Height,
-          swap_chain_desc->BufferDesc.RefreshRate.Denominator != 0 ?
-            static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Numerator) /
-            static_cast <float> (swap_chain_desc->BufferDesc.RefreshRate.Denominator) :
+          swap_chain_desc.BufferDesc.Width,
+          swap_chain_desc.BufferDesc.Height,
+          swap_chain_desc.BufferDesc.RefreshRate.Denominator != 0 ?
+            static_cast <float> (swap_chain_desc.BufferDesc.RefreshRate.Numerator) /
+            static_cast <float> (swap_chain_desc.BufferDesc.RefreshRate.Denominator) :
               std::numeric_limits <float>::quiet_NaN (), L" ",
-    SK_DXGI_FormatToStr (swap_chain_desc->BufferDesc.Format).data (),
-          swap_chain_desc->BufferCount, L" ",
+    SK_DXGI_FormatToStr (swap_chain_desc.BufferDesc.Format).data (),
+          swap_chain_desc.BufferCount, L" ",
           wszMSAA,
-          swap_chain_desc->Windowed ? L"Windowed" : L"Fullscreen",
-          swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
+          swap_chain_desc.Windowed ? L"Windowed" : L"Fullscreen",
+          swap_chain_desc.BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
             L"Unspecified" :
-            swap_chain_desc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
+            swap_chain_desc.BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
               L"Centered" :
               L"Stretched",
-          swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
+          swap_chain_desc.BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
             L"Unspecified" :
-            swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+            swap_chain_desc.BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
               L"Progressive" :
-              swap_chain_desc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+              swap_chain_desc.BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
                 L"Interlaced Even" :
                 L"Interlaced Odd",
-          swap_chain_desc->Flags, L" ",
-          swap_chain_desc->SwapEffect         == 0 ?
+          swap_chain_desc.Flags, L" ",
+          swap_chain_desc.SwapEffect         == 0 ?
             L"Discard" :
-            swap_chain_desc->SwapEffect       == 1 ?
+            swap_chain_desc.SwapEffect       == 1 ?
               L"Sequential" :
-              swap_chain_desc->SwapEffect     == 2 ?
+              swap_chain_desc.SwapEffect     == 2 ?
                 L"<Unknown>" :
-                swap_chain_desc->SwapEffect   == 3 ?
+                swap_chain_desc.SwapEffect   == 3 ?
                   L"Flip Sequential" :
-                  swap_chain_desc->SwapEffect == 4 ?
+                  swap_chain_desc.SwapEffect == 4 ?
                     L"Flip Discard" :
                     L"<Unknown>" );
 
-    if ( config.render.dxgi.scaling_mode      != SK_NoPreference &&
-          swap_chain_desc->BufferDesc.Scaling !=
+    if ( config.render.dxgi.scaling_mode     != SK_NoPreference &&
+          swap_chain_desc.BufferDesc.Scaling !=
             static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode) )
     {
       SK_LOG0 ( ( L" >> Scaling Override "
                   L"(Requested: %hs, Using: %hs)",
                       SK_DXGI_DescribeScalingMode (
-                        swap_chain_desc->BufferDesc.Scaling
+                        swap_chain_desc.BufferDesc.Scaling
                       ),
                         SK_DXGI_DescribeScalingMode (
             static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode)
                                                     ) ), __SK_SUBSYSTEM__ );
 
-      swap_chain_desc->BufferDesc.Scaling =
+      swap_chain_desc.BufferDesc.Scaling =
         static_cast <DXGI_MODE_SCALING> (config.render.dxgi.scaling_mode);
     }
 
     if (! config.window.res.override.isZero ())
     {
-      swap_chain_desc->BufferDesc.Width  = config.window.res.override.x;
-      swap_chain_desc->BufferDesc.Height = config.window.res.override.y;
+      swap_chain_desc.BufferDesc.Width  = config.window.res.override.x;
+      swap_chain_desc.BufferDesc.Height = config.window.res.override.y;
     }
 
     else
     {
       SK_DXGI_BorderCompensation (
-        swap_chain_desc->BufferDesc.Width,
-          swap_chain_desc->BufferDesc.Height
+        swap_chain_desc.BufferDesc.Width,
+          swap_chain_desc.BufferDesc.Height
       );
     }
   }
 
   auto pDevCache =
-    SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (swap_chain_desc->OutputWindow);
+    SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (swap_chain_desc.OutputWindow);
 
   if (pDevCache.first != nullptr)
   {
@@ -7762,7 +7755,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   static ID3D11Device
      *pNvInteropSingleton  = nullptr;
-  if (pNvInteropSingleton != nullptr && bNvInterop)
+  if (pNvInteropSingleton != nullptr && bNvInterop && ppDevice != nullptr)
   {
     ret_device = pNvInteropSingleton;
     ret_device->AddRef ();
@@ -7788,11 +7781,13 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
                                                      pFeatureLevels,
                                                        FeatureLevels,
                                                          SDKVersion,
-                                                           swap_chain_desc,
+                               pSwapChainDesc != nullptr ? &swap_chain_desc : nullptr,
                                                              ppSwapChain,
-                                                               &ret_device,
+                                         // Handle case where game is calling with null ppDevice
+                                         //   to check feature level support
+                                         ppDevice != nullptr ? &ret_device  : nullptr,
                                                                  &ret_level,
-                                                                   &ret_ctx )
+                                         ppDevice != nullptr ?     &ret_ctx : nullptr )
               );
   }
 
@@ -7813,7 +7808,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
          pSwapChainDesc != nullptr    )
     {
       const bool dummy_window =
-        SK_Win32_IsDummyWindowClass (swap_chain_desc->OutputWindow);
+        SK_Win32_IsDummyWindowClass (swap_chain_desc.OutputWindow);
 
       if (! dummy_window)
       {
@@ -7823,29 +7818,29 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         if ( ReadULongAcquire (&rb.thread) == 0x00 ||
              ReadULongAcquire (&rb.thread) == SK_Thread_GetCurrentId () )
         {
-          if (                windows.device != nullptr    &&
-               swap_chain_desc->OutputWindow != nullptr    &&
-               swap_chain_desc->OutputWindow != windows.device )
+          if (               windows.device != nullptr    &&
+               swap_chain_desc.OutputWindow != nullptr    &&
+               swap_chain_desc.OutputWindow != windows.device )
             SK_LOG0 ( (L"Game created a new window?!"), __SK_SUBSYSTEM__ );
         }
 
         else
         {
-          wchar_t                          wszClass [128] = { };
+          wchar_t                         wszClass [128] = { };
           RealGetWindowClassW (
-            swap_chain_desc->OutputWindow, wszClass, 127 );
+            swap_chain_desc.OutputWindow, wszClass, 127 );
 
           SK_LOG0 ( ( L"Installing Window Hooks for Window Class: '%ws'", wszClass ),
                       __SK_SUBSYSTEM__ );
 
           static HWND hWndLast =
-            swap_chain_desc->OutputWindow;
+            swap_chain_desc.OutputWindow;
 
-          if ((! IsWindow (windows.getDevice ())) || hWndLast != swap_chain_desc->OutputWindow)
+          if ((! IsWindow (windows.getDevice ())) || hWndLast != swap_chain_desc.OutputWindow)
           {
-            hWndLast            = swap_chain_desc->OutputWindow;
-            windows.setDevice    (swap_chain_desc->OutputWindow);
-            SK_InstallWindowHook (swap_chain_desc->OutputWindow);
+            hWndLast            = swap_chain_desc.OutputWindow;
+            windows.setDevice    (swap_chain_desc.OutputWindow);
+            SK_InstallWindowHook (swap_chain_desc.OutputWindow);
           }
 
           else
@@ -7896,23 +7891,16 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
     SK_D3D11_SetDevice ( &ret_device, ret_level );
 
-    if (swap_chain_desc != nullptr && swap_chain_desc->OutputWindow != 0) {
+    if (swap_chain_desc.OutputWindow != 0) {
       SK_D3D11_MakeCachedDeviceAndSwapChainForHwnd ( ppSwapChain != nullptr ?
                                                                *ppSwapChain : nullptr,
-                                                       swap_chain_desc->OutputWindow,
+                                                       swap_chain_desc.OutputWindow,
                                                               ret_device );
                                                               ret_device->AddRef ();
     }
-  }
 
-  if (ppDevice != nullptr)
-    *ppDevice   = ret_device;
+    *ppDevice = ret_device;
 
-  if (pFeatureLevel != nullptr)
-    *pFeatureLevel   = ret_level;
-
-  if (ppDevice != nullptr && SUCCEEDED (res))
-  {
     SK_ComQIPtr <ID3D11Debug>
         pDebug (*ppDevice);
     if (pDebug != nullptr)
@@ -7935,6 +7923,18 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     d3d11_caps.MapNoOverwriteOnDynamicConstantBuffer =
       (options.MapNoOverwriteOnDynamicConstantBuffer != FALSE);
   }
+
+  else if (ret_device != nullptr)
+           ret_device->Release (); // Release the reference we added
+
+  // If no device was requested, these are meaningless and should be null
+  SK_ReleaseAssert ( ppDevice != nullptr ||
+                       ( ppSwapChain        == nullptr &&
+                         ppImmediateContext == nullptr ) );
+
+  // If all that stuff is null, this is probably why the function was called
+  if (pFeatureLevel != nullptr)
+    *pFeatureLevel   = ret_level;
 
   return res;
 }

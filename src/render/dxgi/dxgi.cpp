@@ -5775,7 +5775,7 @@ DXGIFactory_CreateSwapChain_Override (
   _Out_       IDXGISwapChain       **ppSwapChain )
 {
   SK_ReleaseAssert (pDesc       != nullptr);
-//SK_ReleaseAssert (ppSwapChain != nullptr);
+//SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
 
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC *)pDesc;
@@ -5817,22 +5817,25 @@ DXGIFactory_CreateSwapChain_Override (
     return hr;
   }
 
+  HRESULT ret = E_FAIL;
+
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChain         ",
                        L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
                               _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)pDesc,
                          (uintptr_t)ppSwapChain );
 
-  if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
-
-  HRESULT ret = E_FAIL;
-
-  if (! SK_DXGI_IsSwapChainReal (*pDesc))
+  // This makes no sense, so ignore it...
+  if (     pDevice == nullptr ||
+             pDesc == nullptr ||
+       ppSwapChain == nullptr || (! SK_DXGI_IsSwapChainReal (*pDesc))
+     )
   {
-    return
-      CreateSwapChain_Original ( This, pDevice,
-                                       pDesc, ppSwapChain );
+    DXGI_CALL ( ret,
+                  CreateSwapChain_Original ( This, pDevice,
+                                            pDesc, ppSwapChain ) );
+
+    return ret;
   }
 
   SK_ComQIPtr <ID3D11Device>       pD3D11Dev (pDevice);
@@ -6103,20 +6106,19 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
                                               (uintptr_t)pDesc,
                                               (uintptr_t)ppSwapChain );
 
-  if ( pDevice == nullptr || pWindow     == nullptr ||
-       pDesc   == nullptr || ppSwapChain == nullptr )
-    return DXGI_ERROR_INVALID_CALL;
-
-  if (iname == L"{Invalid-Factory-UUID}")
-  {
-    return
-      CreateSwapChainForCoreWindow_Original (
-        This, pDevice, pWindow,
-              pDesc,   pRestrictToOutput, ppSwapChain
-      );
-  }
-
   HRESULT ret = E_FAIL;
+
+  if ( pDevice == nullptr || pWindow     == nullptr ||
+       pDesc   == nullptr || ppSwapChain == nullptr ||
+         iname == L"{Invalid-Factory-UUID}" )
+  {
+    DXGI_CALL ( ret,
+                  CreateSwapChainForCoreWindow_Original (
+                    This, pDevice, pWindow,
+                          pDesc,   pRestrictToOutput, ppSwapChain ) );
+
+    return ret;
+  }
 
   auto                   orig_desc = pDesc;
   DXGI_SWAP_CHAIN_DESC1  new_desc1 =
@@ -6374,6 +6376,8 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
+  SK_ReleaseAssert (pDesc != nullptr);
+
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC1 *)pDesc;
 
@@ -6384,28 +6388,29 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     SK_GetDXGIFactoryInterface (This)
    );
 
+  HRESULT ret = DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
+
   DXGI_LOG_CALL_I3 ( iname.c_str (), L"CreateSwapChainForHwnd         ",
                        L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
                               _L(PRIxPTR) L"h",
                          (uintptr_t)pDevice, (uintptr_t)hWnd, (uintptr_t)pDesc );
 
-  if (pDevice == nullptr || pDesc == nullptr || ppSwapChain == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
-
-  if ((! pDesc) || ! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
+  // This makes no sense, so ignore it...
+  if (     pDevice == nullptr ||
+             pDesc == nullptr ||
+       ppSwapChain == nullptr || (! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
+     )
   {
-    return
-      CreateSwapChainForHwnd_Original ( This, pDevice, hWnd,
-                                          pDesc, pFullscreenDesc,
-                                            pRestrictToOutput, ppSwapChain );
+    DXGI_CALL ( ret,
+                  CreateSwapChainForHwnd_Original ( This, pDevice, hWnd,
+                                                      pDesc, pFullscreenDesc,
+                                                        pRestrictToOutput, ppSwapChain ) );
+
+    return ret;
   }
 
 //  if (iname == L"{Invalid-Factory-UUID}")
 //    return CreateSwapChainForHwnd_Original (This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
-
-  HRESULT ret = DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
-
-  SK_ReleaseAssert (pDesc != nullptr);
 
   auto orig_desc1           = *pDesc;
   auto orig_fullscreen_desc =  pFullscreenDesc != nullptr ?
@@ -6650,6 +6655,8 @@ _In_     const DXGI_SWAP_CHAIN_DESC1  *pDesc,
 _In_opt_       IDXGIOutput            *pRestrictToOutput,
 _Outptr_       IDXGISwapChain1       **ppSwapChain )
 {
+  SK_ReleaseAssert (pDesc != nullptr);
+
   //
   // This code is out of date, but SK is not expected to handle Composition SwapChains anyway
   //
@@ -6670,10 +6677,17 @@ _Outptr_       IDXGISwapChain1       **ppSwapChain )
 
   HRESULT ret = DXGI_ERROR_NOT_CURRENTLY_AVAILABLE;
 
-  assert (pDesc != nullptr);
+  if ( ppSwapChain == nullptr ||
+             pDesc == nullptr ||
+           pDevice == nullptr )
+  {
+    DXGI_CALL ( ret,
+                  CreateSwapChainForComposition_Original (
+                    This, pDevice, pDesc,
+                      pRestrictToOutput, ppSwapChain ) );
 
-  if (ppSwapChain == nullptr || pDesc == nullptr || pDevice == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
+    return ret;
+  }
 
   DXGI_SWAP_CHAIN_DESC1           new_desc1           = {    };
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc = {    };
@@ -7101,9 +7115,6 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
                          L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                            (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
-    if (ppAdapter == nullptr)
-      return DXGI_ERROR_INVALID_CALL;
-
     DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
   }
 
@@ -7169,10 +7180,7 @@ STDMETHODCALLTYPE EnumAdapters_Override (IDXGIFactory  *This,
                        L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                          (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
-  if (ppAdapter == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
-
-  HRESULT ret;
+  HRESULT    ret;
   DXGI_CALL (ret, EnumAdapters_Original (This, Adapter, ppAdapter));
 
 #if 0
@@ -8143,7 +8151,7 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
   SK_LOG_FIRST_CALL
 
   if (pDesc == nullptr)
-     return DXGI_ERROR_INVALID_CALL;
+    return DXGI_ERROR_INVALID_CALL;
 
   HRESULT hr =
     IDXGIOutput6_GetDesc1_Original (This, pDesc);
