@@ -3673,12 +3673,33 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
   // Catch sneaky games that change their TopMost status unrelated to window
   //   activation state...
-  if ( config.window.always_on_top == PreventAlwaysOnTop &&
-                   SK_Window_IsTopMost (game_window.hWnd) )
+  if (config.window.always_on_top != NoPreferenceOnTop &&
+      config.window.always_on_top != SmartAlwaysOnTop) // It really is smart
   {
-    SK_LOG0 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
+    bool bTopMost =
+      SK_Window_IsTopMost (game_window.hWnd);
 
-    SK_DeferCommand ("Window.TopMost 0");
+    switch (config.window.always_on_top)
+    {
+      case PreventAlwaysOnTop:
+        if (bTopMost)
+        {
+          SK_LOG1 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
+
+          SK_DeferCommand ("Window.TopMost 0");
+        }
+        break;
+      case AlwaysOnTop:
+        if (! bTopMost)
+        {
+          SK_LOG1 ( ( L"Game Window was not TopMost, applying..." ), L"Window Mgr" );
+
+          SK_DeferCommand ("Window.TopMost 1");
+        }
+        break;
+      default:
+        break;
+    }
   }
 
 
