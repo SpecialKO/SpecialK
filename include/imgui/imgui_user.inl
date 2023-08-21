@@ -231,10 +231,10 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 {
   if (pData == nullptr)
   {
-    return      // Invoke the hook so that we cache this
-      GetRawInputData ( hRawInput, uiCommand,
-                pData, pcbSize,
-                        cbSizeHeader );
+    return
+      SK_GetRawInputData ( hRawInput, uiCommand,
+                   pData, pcbSize,
+                           cbSizeHeader );
   }
 
   static auto& io =
@@ -261,19 +261,18 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     ( (! self) && uiCommand == RID_INPUT ) ?
                      hRawInput : pRawCtx->last_input );
 
+  int size =
+    SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+
+  // On error, simply return immediately...
+  if (size == -1)
+    return size;
+
   // Input event happened while the window had focus if true, otherwise another
   //   window is currently capturing input and the most appropriate response is
   //     usually to ignore the event.
   bool foreground =
     GET_RAWINPUT_CODE_WPARAM (((RAWINPUT *)pData)->header.wParam) == RIM_INPUT;
-
-  int size =    // Invoke the hook so that we cache this
-      (self && foreground) ?    GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader)
-                           : SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
-
-  // On error, simply return immediately...
-  if (size == -1)
-    return size;
 
   bool filter   = false;
   bool mouse    = false;
@@ -383,14 +382,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         ////if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
         ////{
         ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-        ////        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+        ////        io.KeysDown [VKey & 0xFF] = focus;
         ////}
 
             switch (((RAWINPUT *) pData)->data.keyboard.Message)
             {
               case WM_KEYDOWN:
               case WM_SYSKEYDOWN:
-                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+                      io.KeysDown [VKey & 0xFF] = focus;
                 pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
                 break;
 
@@ -494,14 +493,14 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           ////if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
           ////{
           ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-          ////        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+          ////        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
           ////}
 
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
               {
                 case WM_KEYDOWN:
                 case WM_SYSKEYDOWN:
-                  io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();//game_window.active;
+                  io.KeysDown [VKey & 0xFF] = focus;
                   break;
 
                 case WM_KEYUP:
@@ -530,51 +529,43 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   }
 
 
-  if (filter || keyboard)
+
+  if (filter)
   {
-    // Clearing all bytes above would have set the type to mouse, and some games
-    //   will actually read data coming from RawInput even when the size returned is 0!
-    ((RAWINPUT *)pData)->header.dwType = keyboard ? RIM_TYPEKEYBOARD      :
-                                                    mouse ? RIM_TYPEMOUSE :
-                                                            RIM_TYPEHID;
+    // Tell the game this event happened in the background, most will
+    //   throw it out quick and easy.
+    ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
 
     // Supplying an invalid device will early-out SDL before it calls HID APIs to try
     //   and get an input report that we don't want it to see...
     ((RAWINPUT *)pData)->header.hDevice = nullptr;
-  
-    // Tell the game this event happened in the background, most will
-    //   throw it out quick and easy. Even easier if we tell it the event came
-    //     from the keyboard.
-    if (filter)
-    {
-      SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
-                        *pcbSize >= sizeof (RAWINPUTHEADER));
 
-      ((RAWINPUT *)pData)->header.wParam = RIM_INPUTSINK;
+    SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
+                      *pcbSize >= sizeof (RAWINPUTHEADER));
     
-      if (keyboard)
-      {
-        if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
-               ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
+    if (keyboard)
+    {
+      if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
+             ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
     
-        // Fake key release
-        ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
-      }
+      // Fake key release
+      ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
+    }
     
-      // Block mouse input in The Witness by zeroing-out the memory; most other 
-      //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
-      else
-      {
-        RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
-      }
+    // Block mouse input in The Witness by zeroing-out the memory; most other 
+    //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
+    else
+    {
+      RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
     }
 
     if (precache_size == 0)
     {
       if (! keyboard)
+      {
         *pcbSize = 0;
-  
-      size = *pcbSize;
+            size = ~0U;
+      }
     }
   }
 
