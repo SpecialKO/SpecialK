@@ -1,4 +1,11 @@
-﻿23.8.19.1
+﻿23.8.21
+=======
+ + Updated HDR Profile 0 for new gamut unclamped HDR processing
+     >> This profile targets 534 nits
+ + Moved the old HDR Profile 0 defaults to Profile 1 (570 nits)
+ + Disabled Raw Input caching because it breaks keyboard input in some games
+
+23.8.19.1
 =========
  + Fixed Baldur's Gate 3 game detection only testing the Vulkan executable
  + Fixed Baldur's Gate 3 alt-tab flakiness (do not use Multitasking On Top)
