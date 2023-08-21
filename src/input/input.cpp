@@ -1108,9 +1108,6 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 {
   SK_LOG_FIRST_CALL
 
-  if (uiCommand != RID_INPUT && uiCommand != RID_HEADER)
-    return ~0U;
-
   auto GetRawInputDataImpl = [&](void) ->
   UINT
   {
@@ -1119,6 +1116,18 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
                                            pData, pcbSize,
                                     cbSizeHeader, FALSE );
   };
+
+#if 1
+  return
+    GetRawInputDataImpl ();
+
+  // The optimization below breaks a game called Run 8, it is not possible to
+  //   debug the game without buying it and the performance increase in Unreal
+  //     is negligible in most games.
+#else
+  // Something we don't know how to process
+  if ((uiCommand & (RID_INPUT | RID_HEADER)) == 0)
+    return ~0U;
 
   //
   // Optimization for Unreal Engine games; it calls GetRawInputData (...) twice
@@ -1168,7 +1177,7 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 
         if (pData == nullptr)
         {
-          SK_ReleaseAssert (uiCommand != RID_HEADER);
+          SK_ReleaseAssert ((uiCommand & RID_HEADER) == 0);
 
           *pcbSize =
             lastRawInput.Size;
@@ -1176,7 +1185,7 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
           return 0;
         }
 
-        else if (uiCommand == RID_HEADER)
+        else if (uiCommand & RID_HEADER)
         {
           if (*pcbSize < cbSizeHeader)
             return ~0U;
@@ -1250,6 +1259,7 @@ NtUserGetRawInputData_Detour (_In_      HRAWINPUT hRawInput,
 
   return
     GetRawInputDataImpl ();
+#endif
 }
 
 
