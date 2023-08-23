@@ -1925,67 +1925,40 @@ XYZtosRGB (float3 color)
 float3
 expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
 {
-  // Some similar constants are defined above
-  const float3x3 XYZ_2_sRGB_MAT =
+  //AP1 with D65 white point instead of the custom white point from ACES which is around 6000K
+  const float3x3 sRGB_2_AP1_D65_MAT =
   {
-     3.2409699419, -1.5373831776, -0.4986107603,
-    -0.9692436363,  1.8759675015,  0.0415550574,
-     0.0556300797, -0.2039769589,  1.0569715142,
+    0.6168509940091290, 0.334062934274955, 0.0490860717159169,
+    0.0698663939791712, 0.917416678964894, 0.0127169270559354,
+    0.0205490668158849, 0.107642210710817, 0.8718087224732980
   };
-  const float3x3 sRGB_2_XYZ_MAT =
+  const float3x3 AP1_D65_2_sRGB_MAT =
   {
-    0.4124564, 0.3575761, 0.1804375,
-    0.2126729, 0.7151522, 0.0721750,
-    0.0193339, 0.1191920, 0.9503041,
+     1.6926793984921500, -0.606218057156000, -0.08646134133615040,
+    -0.1285739800722680,  1.137933633392290, -0.00935965332001697,
+    -0.0240224650921189, -0.126211717940702,  1.15023418303282000
   };
-  const float3x3 XYZ_2_AP1_MAT =
+  const float3x3 AP1_D65_2_XYZ_MAT =
   {
-     1.6410233797, -0.3248032942, -0.2364246952,
-    -0.6636628587,  1.6153315917,  0.0167563477,
-     0.0117218943, -0.0082844420,  0.9883948585,
-  };
-  const float3x3 D65_2_D60_CAT =
-  {
-     1.01303,    0.00610531, -0.014971,
-     0.00769823, 0.998165,   -0.00503203,
-    -0.00284131, 0.00468516,  0.924507,
-  };
-  const float3x3 D60_2_D65_CAT =
-  {
-     0.987224,   -0.00611327, 0.0159533,
-    -0.00759836,  1.00186,    0.00533002,
-     0.00307257, -0.00509595, 1.08168,
-  };
-  const float3x3 AP1_2_XYZ_MAT =
-  {
-     0.6624541811, 0.1340042065, 0.1561876870,
-     0.2722287168, 0.6740817658, 0.0536895174,
-    -0.0055746495, 0.0040607335, 1.0103391003,
-  };  
-  const float3 AP1_RGB2Y =
-  {
-    0.2722287168, //AP1_2_XYZ_MAT[0][1],
-    0.6740817658, //AP1_2_XYZ_MAT[1][1],
-    0.0536895174, //AP1_2_XYZ_MAT[2][1]
+     0.64729265784680500, 0.13440339917805700, 0.1684710654303190,
+     0.26599824508992100, 0.67608982616840700, 0.0579119287416720,
+    -0.00544706303938401, 0.00407283027812294, 1.0897972045023700
   };
   // Bizarre matrix but this expands sRGB to between P3 and AP1
-  // CIE 1931 chromaticities:    x        y
+  // CIE 1931 chromaticities:   x         y
   //                Red:        0.6965    0.3065
-  //                Green:        0.245    0.718
-  //                Blue:        0.1302    0.0456
-  //                White:        0.3127    0.329
-  const float3x3 Wide_2_XYZ_MAT =
+  //                Green:      0.245     0.718
+  //                Blue:       0.1302    0.0456
+  //                White:      0.3127    0.3291 (=D65)
+  const float3x3 Wide_2_AP1_D65_MAT = 
   {
-     0.5441691, 0.2395926, 0.1666943,
-     0.2394656, 0.7021530, 0.0583814,
-    -0.0023439, 0.0361834, 1.0552183,
+    0.83451690546233900, 0.1602595895494930, 0.00522350498816804,
+    0.02554519357785500, 0.9731015318660700, 0.00135327455607548,
+    0.00192582885428273, 0.0303727970124423, 0.96770137413327500
   };
-  const float3x3 sRGB_2_AP1 = mul (XYZ_2_AP1_MAT,  mul (D65_2_D60_CAT, sRGB_2_XYZ_MAT));
-  const float3x3 AP1_2_sRGB = mul (XYZ_2_sRGB_MAT, mul (D60_2_D65_CAT, AP1_2_XYZ_MAT));
-  const float3x3 Wide_2_AP1 = mul (XYZ_2_AP1_MAT, Wide_2_XYZ_MAT);
-  const float3x3 ExpandMat  = mul (Wide_2_AP1,    AP1_2_sRGB);
-
-  float3 ColorAP1  = mul (sRGB_2_AP1, vHDRColor);
+  const float3x3
+         ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);   
+  float3 ColorAP1  = mul (sRGB_2_AP1_D65_MAT, vHDRColor);
 
   float  LumaAP1   = dot (ColorAP1, AP1_RGB2Y);
   float3 ChromaAP1 =      ColorAP1 / LumaAP1;
@@ -1993,9 +1966,11 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
   float ChromaDistSqr = dot (ChromaAP1 - 1, ChromaAP1 - 1);
   float ExpandAmount  = (1 - exp2 (-4 * ChromaDistSqr)) * (1 - exp2 (-4 * fExpandGamut * LumaAP1 * LumaAP1));
 
-  float3 ColorExpand = mul (ExpandMat, ColorAP1);
+  float3 ColorExpand =
+    mul (ExpandMat, ColorAP1);
   
-  ColorAP1 = lerp (ColorAP1, ColorExpand, ExpandAmount);
+  ColorAP1 =
+    lerp (ColorAP1, ColorExpand, ExpandAmount);
 
   vHDRColor =
     mul (AP1_2_sRGB, ColorAP1);

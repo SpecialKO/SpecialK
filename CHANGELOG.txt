@@ -1,4 +1,9 @@
-﻿23.8.21
+﻿23.8.22
+=======
+ + Updated HDR Profile 0 to use .96 gamma by default
+ + Changed HDR Gamut Expansion to use D65 white instead of D60
+
+23.8.21
 =======
  + Updated HDR Profile 0 for new gamut unclamped HDR processing
      >> This profile targets 534 nits
