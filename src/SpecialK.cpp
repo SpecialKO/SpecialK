@@ -1030,12 +1030,18 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
   }
 
   else if (0 == SK_Path_wcsicmp (wszShort, L"dxgi.dll"))
+  {
     SK_SetDLLRole (DLL_ROLE::DXGI);
+
+    SK_dgVoodoo_CheckForInterop ();
+  }
 
   else if (0 == SK_Path_wcsicmp (wszShort, L"d3d11.dll"))
   {
     SK_SetDLLRole ( static_cast <DLL_ROLE> ( (int)DLL_ROLE::DXGI |
                                              (int)DLL_ROLE::D3D11 ) );
+
+    SK_dgVoodoo_CheckForInterop ();
   }
 
 #ifndef _M_AMD64
@@ -1322,6 +1328,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
           d3d9  = false;
           d3d11 = true;
+          d3d12 = true;
         }
 
 #ifndef _M_AMD64
