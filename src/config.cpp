@@ -329,14 +329,21 @@ SK_GetCurrentGameID (void)
     {
       if (current_game == SK_GAME_ID::EasyAntiCheat)
       {
-        std::error_code                               ec;
-        if (std::filesystem::exists (L"eldenring.exe",ec))
+        std::error_code                                          ec;
+        if (! std::filesystem::exists (L"SpecialK.AllowEAC",     ec))
         {
-          if (! std::filesystem::exists (L"SpecialK.AllowEAC",ec))
+          if (std::filesystem::exists (L"eldenring.exe",         ec))
           {
             extern void
             SK_SEH_LaunchEldenRing (void);
             SK_SEH_LaunchEldenRing (    );
+          }
+
+          else if (std::filesystem::exists (L"armoredcore6.exe", ec))
+          {
+            extern void
+            SK_SEH_LaunchArmoredCoreIV (void);
+            SK_SEH_LaunchArmoredCoreIV (    );
           }
         }
       }

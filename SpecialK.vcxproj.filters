@@ -3506,6 +3506,9 @@
     <ClCompile Include="src\render\d3d12\d3d12_debug.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\armoredcore6.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
