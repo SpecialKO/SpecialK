@@ -1,4 +1,11 @@
-﻿23.8.22
+﻿23.8.26
+=======
+ + Merge pull request #80 from Aemony/main
+    * Bypass EAC for Armored Core VI
+ + Merge pull request #72 from Nustat0/dgvoodoo-d3d12
+    * Fixed GUI not showing up when bootstrapping dgVoodoo (D3D12)
+
+23.8.22
 =======
  + Updated HDR Profile 0 to use .96 gamma by default
  + Changed HDR Gamut Expansion to use D65 white instead of D60
