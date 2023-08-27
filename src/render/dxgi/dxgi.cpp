@@ -249,6 +249,9 @@ static bool __d3d12 = false;
 bool
 ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
 {
+  if (pSwapChain == nullptr)
+    return false;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2673,7 +2676,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   // Sync Interval Clamp  (NOTE: SyncInterval > 1 Disables VRR)
   //
   if ( config.render.framerate.sync_interval_clamp != SK_NoPreference &&
-       config.render.framerate.sync_interval_clamp < static_cast <int> (SyncInterval) )
+       config.render.framerate.sync_interval_clamp < sk::narrow_cast <int> (SyncInterval) )
   {
     SyncInterval = config.render.framerate.sync_interval_clamp;
   }
@@ -3565,6 +3568,8 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
   // For sanity sake, clear the number of modes rather than leaving it undefined in log calls :)
   if (pDesc == nullptr && pNumModes != nullptr)
     *pNumModes = 0;
+  else if (pDesc != nullptr)
+          *pDesc = { };
 
   auto _LogCall = [&](void)
   { DXGI_LOG_CALL_I5 ( L"     IDXGIOutput", L"GetDisplayModeList       ",
@@ -3829,7 +3834,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
             cache.push_back (it);
 
         *pNumModes =
-          static_cast <UINT> (cache.size ());
+          sk::narrow_cast <UINT> (cache.size ());
 
         dll_log->Log ( L"[   DXGI   ]      (!) Final Mode Cache: %lu entries",
                          *pNumModes );
@@ -4964,7 +4969,7 @@ SK_DXGI_CreateSwapChain_PreInit (
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
       {
         SK_LOGi0 ( L" >> Scaling Override "
-                   L"(Requested: %s, Using: %s)",
+                   L"(Requested: %hs, Using: %hs)",
                      SK_DXGI_DescribeScalingMode (
                        pDesc->BufferDesc.Scaling
                      ),
@@ -4982,7 +4987,7 @@ SK_DXGI_CreateSwapChain_PreInit (
               (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order )
       {
         SK_LOGi0 ( L" >> Scanline Override "
-                   L"(Requested: %s, Using: %s)",
+                   L"(Requested: %hs, Using: %hs)",
                      SK_DXGI_DescribeScanlineOrder (
                        pDesc->BufferDesc.ScanlineOrdering
                      ),
@@ -6974,7 +6979,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
 
 {
-  if (ppAdapter == nullptr)
+  if (ppAdapter == nullptr || *ppAdapter == nullptr)
     return E_POINTER;
 
   int iver =
@@ -6987,7 +6992,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     default:
     case 2:
     {
-      if ((! GetDesc2_Original) &&  *ppAdapter != nullptr)
+      if (! GetDesc2_Original)
       {
         SK_ComQIPtr <IDXGIAdapter2>
             pAdapter2 (*ppAdapter);
@@ -7001,7 +7006,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
     case 1:
     {
-      if ((! GetDesc1_Original) && *ppAdapter != nullptr)
+      if (! GetDesc1_Original)
       {
         SK_ComQIPtr <IDXGIAdapter1>
             pAdapter1 (*ppAdapter);
@@ -7015,14 +7020,14 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
     case 0:
     {
-      if ((! GetDesc_Original) && *ppAdapter != nullptr)
+      if (! GetDesc_Original)
       {
         DXGI_VIRTUAL_HOOK (ppAdapter, 8, "(*ppAdapter)->GetDesc",
           GetDesc_Override, GetDesc_Original, GetDesc_pfn);
       }
 
-      if (GetDesc_Original && *ppAdapter != nullptr)
-          GetDesc_Original (  *ppAdapter, &desc );
+      if (GetDesc_Original)
+          GetDesc_Original ( *ppAdapter, &desc );
     } break;
   }
 
@@ -7117,7 +7122,15 @@ STDMETHODCALLTYPE EnumAdapters1_Override (IDXGIFactory1  *This,
                          L"%08" _L(PRIxPTR) L"h, %u, %08" _L(PRIxPTR) L"h",
                            (uintptr_t)This, Adapter, (uintptr_t)ppAdapter );
 
-    DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
+    if (ppAdapter == nullptr)
+    {
+      DXGI_CALL (ret, DXGI_ERROR_INVALID_CALL);
+    }
+
+    else
+    {
+      DXGI_CALL (ret, EnumAdapters1_Original (This,Adapter,ppAdapter));
+    }
   }
 
   // RE8 has a performance death wish
@@ -7322,6 +7335,8 @@ DXGIGetDebugInterface1 ( UINT     Flags,
   if (pDebug == nullptr)
     return DXGI_ERROR_INVALID_CALL;
 
+  *pDebug = nullptr;
+
   if (DXGIGetDebugInterface1_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ())
@@ -7375,6 +7390,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
 
   if (ppFactory == nullptr)
     return DXGI_ERROR_INVALID_CALL;
+
+  *ppFactory = nullptr;
 
   if (CreateDXGIFactory_Import == nullptr)
   {
@@ -7459,6 +7476,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
   if (ppFactory == nullptr)
     return DXGI_ERROR_INVALID_CALL;
+
+  *ppFactory = nullptr;
 
   if (CreateDXGIFactory1_Import == nullptr)
   {
@@ -7546,6 +7565,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   if (ppFactory == nullptr)
     return DXGI_ERROR_INVALID_CALL;
+
+  *ppFactory = nullptr;
 
   if (CreateDXGIFactory2_Import == nullptr)
   {
