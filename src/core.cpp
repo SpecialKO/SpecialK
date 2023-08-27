@@ -2048,8 +2048,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_D3D9_QuickHook ();
       }
 
-      auto* params =
-        static_cast <init_params_s *> (&init_);
+      auto *params = &init_;
 
       SK_InitCore ( params->backend,
                     params->callback );

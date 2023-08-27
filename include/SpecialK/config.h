@@ -69,8 +69,11 @@ struct SK_ConfigSerializedKeybind : public SK_Keybind
                              const wchar_t* cfg_name) :
                                SK_Keybind  (bind)
   {
-    wcsncpy_s ( short_name, 32,
-                  cfg_name, _TRUNCATE );
+    if (cfg_name != nullptr)
+    {
+      wcsncpy_s ( short_name, 32,
+                    cfg_name, _TRUNCATE );
+    }
   }
 
   bool                  assigning       = false;
@@ -513,7 +516,7 @@ struct sk_config_t
       struct rescan_s {
         UINT Denom                =  1;
         UINT Numerator            =
-               static_cast <UINT> (SK_NoPreference);
+            sk::narrow_cast <UINT> (SK_NoPreference);
       } rescan_;
       int     refresh_denom       =     1;
       int     pin_render_thread   = SK_NoPreference;
