@@ -785,17 +785,6 @@ MessageProc ( const HWND&   hWnd,
 
   switch (msg)
   {
-    case WM_HOTKEY:
-    {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
-      {
-        if (SK_ImGui_WantGamepadCapture ())
-        {
-          return 1;
-        }
-      }
-    } break;
-
     // TODO: Take the bazillion different sources of input and translate them all into
     //          a standard window message format for sanity's sake during filter evaluation.
     case WM_APPCOMMAND:
@@ -1552,7 +1541,9 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   {
     bool keyboard_capture =
       ( ( (uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST) ||
-           uMsg == WM_HOTKEY     ||
+         //uMsg == WM_HOTKEY     ||
+         // *** Presumably, games do not use `WM_HOTKEY`... the Steam Overlay does
+         //       => Generally we don't want to block keyboard input to Steam.
          ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam)  == FAPPCOMMAND_KEY   ) ) &&
           SK_ImGui_WantKeyboardCapture () );
 
@@ -1946,8 +1937,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
 
 
-    if (                 bToggleVis|bToggleNav)
-      SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
+    if (                 bToggleVis||bToggleNav)
+      SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
   }
 
   static bool last_haptic = false;

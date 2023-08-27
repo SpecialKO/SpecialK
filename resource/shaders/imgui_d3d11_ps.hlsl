@@ -28,17 +28,16 @@ float4 main (PS_INPUT input) : SV_Target
         orig_col =
          out_col;
 
-  bool hdr10 = ( input.uv3.x < 0.0 );
+  float  ui_alpha = saturate (input.col.a ) * saturate (out_col.a);
+  float3 ui_color =           input.col.rgb *           out_col.rgb;
 
-  float  ui_alpha =
-    ( saturate (input.col.a) * saturate (out_col.a) );
-    
-  float3 ui_color =
-    (           input.col.rgb *          out_col.rgb );
-    
-    
+  //
+  // HDR (HDR10 or scRGB)
+  //
   if (viewport.z > 0.f)
   {
+    bool hdr10 = (input.uv3.x < 0.0);
+        
     if ( input.uv2.x > 0.0f &&
          input.uv2.y > 0.0f )
     {
@@ -61,16 +60,14 @@ float4 main (PS_INPUT input) : SV_Target
                              :    input.uv3.x;
 
     float hdr_offset = 0.0f;//hdr10 ? 0.0f : input.uv3.z;
-
-    hdr_scale -= hdr_offset;
+                            //hdr_scale -= hdr_offset;
 
     float4 hdr_out =
       float4 (   ( hdr10 ?
         LinearToST2084 (
-          REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale
-                       ) :
-     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.0333) )
-                 )                                   + hdr_offset,
+          REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale          ) :
+     Clamp_scRGB_StripNaN ( expandGamut (          out_col.rgb    * hdr_scale, 0.0333) )
+                 )                                                + hdr_offset,
                                                    out_col.a );
 
     hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;
@@ -87,6 +84,9 @@ float4 main (PS_INPUT input) : SV_Target
                hdr_out.a );
   }
 
+  //
+  // SDR (sRGB/Rec 709)
+  //
   return
     float4 ( ui_color * ui_alpha,
                         ui_alpha );

@@ -75,7 +75,7 @@ __forceinline
 LARGE_INTEGER
 SK_CurrentPerf (void) noexcept
  {
-   LARGE_INTEGER time;
+   LARGE_INTEGER time = { };
 
    if (SK_TscInvariant)
    {
@@ -94,7 +94,7 @@ __forceinline
 LARGE_INTEGER
 SK_QueryPerf (void) noexcept
  {
-   LARGE_INTEGER time;
+   LARGE_INTEGER time = { };
 
    if (SK_TscInvariant)
    {
