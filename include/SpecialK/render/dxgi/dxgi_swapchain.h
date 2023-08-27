@@ -57,7 +57,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
                                                       pDev  (pDevice),
                                                       ver_  (0)
   {
-    if (! pSwapChain)
+    if (pSwapChain == nullptr || pDevice == nullptr)
       return;
 
     DXGI_SWAP_CHAIN_DESC            sd = { };
@@ -156,7 +156,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     pDev  (pDevice),
     ver_  (1)
   {
-    if (! pSwapChain)
+    if (pSwapChain == nullptr || pDevice == nullptr)
       return;
 
     ///creation_desc.actual    = *pOverrideDesc;
