@@ -3106,12 +3106,15 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
                     FALSE,   CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
 
-    // Save config prior to comitting suicide
-    SK_SelfDestruct ();
+    if (pinfo.hProcess != 0)
+    {
+      // Save config prior to committing suicide
+      SK_SelfDestruct ();
 
-    ResumeThread   (pinfo.hThread);
-    SK_CloseHandle (pinfo.hThread);
-    SK_CloseHandle (pinfo.hProcess);
+      ResumeThread   (pinfo.hThread);
+      SK_CloseHandle (pinfo.hThread);
+      SK_CloseHandle (pinfo.hProcess);
+    }
   }
 
   SK_TerminateProcess (0x00);
@@ -3751,11 +3754,16 @@ SK_ElevateToAdmin (const wchar_t *wszCommand)
                     FALSE,   CREATE_NEW_PROCESS_GROUP, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
 
-    SK_CloseHandle (pinfo.hThread);
-    SK_CloseHandle (pinfo.hProcess);
+    if (pinfo.hProcess != 0)
+    {
+      WaitForInputIdle (pinfo.hProcess, 150UL);
+
+      SK_CloseHandle (pinfo.hThread);
+      SK_CloseHandle (pinfo.hProcess);
+    }
   }
 
-  // Save config prior to comitting suicide
+  // Save config prior to committing suicide
   SK_SelfDestruct     (    );
   SK_TerminateProcess (0x00);
 }
