@@ -31,7 +31,11 @@ float4 main (PS_INPUT input) : SV_Target
   bool hdr10 = ( input.uv3.x < 0.0 );
 
   float fAlpha =
-    ( input.col.a * out_col.a );
+    ( saturate (input.col.a) * saturate (out_col.a) );
+    
+  float3 vRGB =
+    (           input.col.rgb *          out_col.rgb );
+    
     
   if (viewport.z > 0.f)
   {
@@ -49,9 +53,8 @@ float4 main (PS_INPUT input) : SV_Target
     else
     {
       out_col =
-        float4 ( RemoveSRGBCurve ( input.col.rgb   *
-                                     out_col.rgb ) * fAlpha,
-           1.0 - RemoveSRGBAlpha ( 1.0             - fAlpha )
+        float4 ( RemoveSRGBCurve (     vRGB     ),
+           1.0 - RemoveSRGBAlpha ( 1.0 - fAlpha )
                );
     }
 
@@ -67,19 +70,23 @@ float4 main (PS_INPUT input) : SV_Target
         LinearToST2084 (
           REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale
                        ) :
-     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.05) )
+     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.0333) )
                  )                                   + hdr_offset,
-                                         saturate (out_col.a  ) );
+                                                   out_col.a );
 
     hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;
     hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
     hdr_out.b = (orig_col.b <= 0.00013 && orig_col.b >= -0.00013) ? 0.0f : hdr_out.b;
     hdr_out.a = (orig_col.a <= 0.00013 && orig_col.a >= -0.00013) ? 0.0f : hdr_out.a;
+        
+    hdr_out.rgb *=
+      ( hdr10 ? hdr_out.a
+              : fAlpha ); // Use linear alpha in scRGB
 
     return hdr_out;
   }
 
   return
-    float4 ( float3 ( input.col.rgb * out_col.rgb ) * fAlpha,
-                                                      fAlpha );
+    float4 ( float3 ( vRGB ) * fAlpha,
+                               fAlpha );
 };

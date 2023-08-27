@@ -1,10 +1,10 @@
-﻿23.8.26[.1]
-===========
+﻿23.8.26
+=======
+ + Post-multiply alpha in sRGB gamma for HDR10
+ + Changed UI alpha -output- while in scRGB HDR mode to use sRGB gamma
+ + Improved support for rendering widgets while global UI scale is > 1.0
  + Switched to pre-multiplied alpha for ImGui rendering in D3D11/12/Vulkan/GL
  + Reverted FCAT bars back to all vertical and wider
-
-23.8.26
-=======
  + Merge pull request #80 from Aemony/main
     * Bypass EAC for Armored Core VI
  + Merge pull request #72 from Nustat0/dgvoodoo-d3d12
