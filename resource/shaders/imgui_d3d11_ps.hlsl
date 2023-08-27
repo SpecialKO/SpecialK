@@ -48,12 +48,10 @@ float4 main (PS_INPUT input) : SV_Target
 
     else
     {
-      // Make things less transparent in HDR to control bleed-through from
-      //   a bright under-scene (ideally the hdrUnderlay sampler would be used)
       out_col =
-        float4 ( RemoveSRGBCurve ( input.col.rgb *
-                                     out_col.rgb) * pow ( fAlpha, 0.8f ),
-                                                    pow ( fAlpha, 0.8f )
+        float4 ( RemoveSRGBCurve ( input.col.rgb   *
+                                     out_col.rgb ) * fAlpha,
+           1.0 - RemoveSRGBAlpha ( 1.0             - fAlpha )
                );
     }
 
