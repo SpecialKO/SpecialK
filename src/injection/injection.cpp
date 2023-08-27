@@ -2592,7 +2592,7 @@ void SK_Inject_WakeUpSKIF (void)
          dwPid != GetCurrentProcessId () )
     {
       AllowSetForegroundWindow (dwPid);
-      PostMessage              (hWndExisting, WM_SKIF_EVENT_SIGNAL, 0x0, 0x0);
+      PostMessage              (hWndExisting, WM_SKIF_EVENT_SIGNAL, (WPARAM)game_window.hWnd, 0x0);
     }
   }
 }
