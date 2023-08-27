@@ -229,6 +229,73 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                                      BOOL      self,
                                      INT       precache_size = 0 )
 {
+  if (! hRawInput)
+  {
+    SetLastError (ERROR_INVALID_HANDLE);
+    return ~0U;
+  }
+
+  if (cbSizeHeader != sizeof (RAWINPUTHEADER))
+  {
+    SetLastError (ERROR_INVALID_PARAMETER);
+    return ~0U;
+  }
+
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+  {
+    SetLastError (ERROR_OUTOFMEMORY);
+    return ~0U;
+  }
+
+  auto pRawCtx =
+    pTLS->raw_input.getPtr ();
+
+  UINT size       = 0U;
+  bool from_cache = false;
+
+  if ( pRawCtx->cached_input.hRawInput == hRawInput &&
+                               pcbSize != nullptr )
+  {
+    SK_LOGs1 (     L" RawInput ",
+      L"Cache Hit for RawInput Handle %p (on tid=%x)",
+                     hRawInput, GetCurrentThreadId () );
+
+    switch (uiCommand)
+    {
+      case RID_INPUT:
+        size =
+          pRawCtx->cached_input.Data->header.dwSize;
+        break;
+
+      case RID_HEADER:
+        size = sizeof (RAWINPUTHEADER);
+        break;
+
+      default:
+        SetLastError (ERROR_INVALID_PARAMETER);
+        return ~0U; 
+    }
+
+    if (pData == nullptr)
+    {
+      *pcbSize = size;
+      return 0;
+    }
+
+    if (*pcbSize < size)
+    {
+      SetLastError (ERROR_INSUFFICIENT_BUFFER);
+      return ~0U;
+    }
+
+    memcpy (pData, pRawCtx->cached_input.Data, size);
+
+    from_cache = true;
+  }
+
   if (pData == nullptr)
   {
     return
@@ -243,15 +310,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   static auto* pConsole =
     SK_Console::getInstance ();
 
-  SK_TLS* pTLS =
-    SK_TLS_Bottom ();
-
-  if (pTLS == nullptr)
-    return 0;
-
-  auto pRawCtx =
-    pTLS->raw_input.getPtr ();
-
   bool focus             = SK_IsGameWindowActive (    );
   bool already_processed =
     ( pRawCtx->last_input == hRawInput &&
@@ -261,8 +319,41 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     ( (! self) && uiCommand == RID_INPUT ) ?
                      hRawInput : pRawCtx->last_input );
 
-  int size =
-    SK_GetRawInputData (hRawInput, uiCommand, pData, pcbSize, cbSizeHeader);
+  if (! from_cache)
+  {
+    pRawCtx->cached_input.Size =
+      sizeof (pRawCtx->cached_input.Data);
+
+    size =
+      SK_GetRawInputData ( hRawInput, RID_INPUT,
+           pRawCtx->cached_input.Data,
+          &pRawCtx->cached_input.Size, cbSizeHeader );
+
+    if (size != ~0U)
+    {
+      pRawCtx->cached_input.hRawInput  = hRawInput;
+      pRawCtx->cached_input.SizeHeader = sizeof (RAWINPUTHEADER);
+      pRawCtx->cached_input.uiCommand  = RID_INPUT;
+
+      if (uiCommand == RID_HEADER)
+        size = sizeof (RAWINPUTHEADER);
+
+      if (pData != nullptr)
+      {
+        if (*pcbSize >= size)
+          memcpy (pData, pRawCtx->cached_input.Data, size);
+        else
+        {
+          SetLastError (ERROR_INSUFFICIENT_BUFFER);
+          return ~0U;
+        }
+      }
+
+      SK_LOGs1 (      L" RawInput ",
+        L"Cache Miss for RawInput Handle %p (on tid=%x)",
+                        hRawInput, GetCurrentThreadId () );
+    }
+  }
 
   // On error, simply return immediately...
   if (size == -1)
@@ -422,7 +513,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         return filter;
       };
 
-  filter =
+  filter = (! self) &&
     FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
 
 
@@ -1176,36 +1267,77 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
   }
 
   if (msg == WM_SETCURSOR)
-  {
+  {     
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
     if ( LOWORD (lParam) == HTCLIENT ||
          LOWORD (lParam) == HTTRANSPARENT )
     {
-      if (hWnd == game_window.hWnd || hWnd == game_window.child)
+      static POINTS lastMouse =
+        { SHORT_MAX, SHORT_MAX };
+
+      auto messagePos  = GetMessagePos  ();
+      auto messageTime = GetMessageTime ();
+
+      POINTS mousePos =
+        MAKEPOINTS (messagePos);
+
+      if ( ( hWnd == game_window.hWnd ||
+             hWnd == game_window.child ) && HIWORD (lParam) == WM_MOUSEMOVE && ( mousePos.x != lastMouse.x ||
+                                                                                 mousePos.y != lastMouse.y ) )
       {
-        if ( SK_ImGui_WantMouseCapture () &&
-                ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
+        static LONG        lastTime = 0;
+        if (std::exchange (lastTime, messageTime) != messageTime)
         {
-          return TRUE;
-        }
+          static HCURSOR hLastClassCursor = (HCURSOR)(-1);
 
-        if (config.input.cursor.manage)
-        {
-          extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
-
-          MSG
-            msg_ = { };
-            msg_.message = msg;
-            msg_.lParam  = lParam;
-            msg_.wParam  = wParam;
-
-          SK_Input_DetermineMouseIdleState (&msg_);
-
-          if (! SK_Window_IsCursorActive ())
+          if ( SK_ImGui_WantMouseCapture () &&
+                  ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
           {
+            if (hLastClassCursor == (HCURSOR)(-1))
+                hLastClassCursor  = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
+
+            HCURSOR ImGui_DesiredCursor (void);
+
+            if (config.input.ui.use_hw_cursor)
+            {
+              SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)ImGui_DesiredCursor ());
+            }
+
+            lastMouse = mousePos;
+
             return TRUE;
           }
+
+          else
+          {
+            if (hLastClassCursor != (HCURSOR)(-1))
+                  SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)std::exchange (hLastClassCursor, (HCURSOR)(-1)));
+
+            if (config.input.cursor.manage)
+            {
+              extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+
+              MSG
+                msg_ = { };
+                msg_.message = msg;
+                msg_.lParam  = lParam;
+                msg_.wParam  = wParam;
+
+              SK_Input_DetermineMouseIdleState (&msg_);
+
+              if (! SK_Window_IsCursorActive ())
+              {
+                lastMouse = mousePos;
+
+                SK_SetCursor (0);
+
+                return TRUE;
+              }
+            }
+          }
+
+          lastMouse = mousePos;
         }
       }
     }

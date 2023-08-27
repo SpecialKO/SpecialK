@@ -2782,17 +2782,17 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
                             bool&     keyboard,
                             bool&     gamepad )
 {
-        RAWINPUTHEADER header = { };
-        UINT           size   = sizeof (RAWINPUTHEADER);
-  const UINT           ret    =
-       GetRawInputData ( (HRAWINPUT)lParam,
-                           RID_HEADER,
-                             &header, &size,
-                               sizeof (RAWINPUTHEADER) );
+        RAWINPUT data = { };
+        UINT     size = sizeof (RAWINPUT);
+  const UINT     ret  =
+    SK_ImGui_ProcessRawInput ( (HRAWINPUT)lParam,
+                                 RID_INPUT,
+                                   &data, &size,
+                                     sizeof (RAWINPUTHEADER), TRUE );
 
   if (ret == size)
   {
-    switch (header.dwType)
+    switch (data.header.dwType)
     {
       case RIM_TYPEMOUSE:
         mouse = true;
@@ -2811,7 +2811,7 @@ SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
     }
 
     return
-      header.dwSize;
+      data.header.dwSize;
   }
 
   return 0;
@@ -2919,42 +2919,9 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
 
       case WM_SETCURSOR:
       {
-        if ((lpMsg->hwnd == game_window.hWnd || lpMsg->hwnd == game_window.child) && HIWORD (lpMsg->lParam) == WM_MOUSEMOVE)
-        {
-          if (LOWORD (lpMsg->lParam) == HTCLIENT || LOWORD (lpMsg->lParam) == HTTRANSPARENT)
-          {
-            static HCURSOR hLastClassCursor = (HCURSOR)(-1);
-
-            if (SK_ImGui_WantMouseCapture () &&
-                ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow))
-            {
-              if (hLastClassCursor == (HCURSOR)(-1))
-                  hLastClassCursor = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
-
-              if (config.input.ui.use_hw_cursor)
-              {
-                SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)ImGui_DesiredCursor ());
-              }
-
-              handled = true;
-            }
-
-            else
-            {
-              if (hLastClassCursor != (HCURSOR)(-1))
-                SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)std::exchange (hLastClassCursor, (HCURSOR)(-1)));
-
-              if (config.input.cursor.manage)
-              {
-                if (! SK_Window_IsCursorActive ())
-                {
-                  SK_SetCursor (0);
-                  handled = true;
-                }
-              }
-            }
-          }
-        }
+        handled =
+          ( 0 != ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                       lpMsg->wParam, lpMsg->lParam) );
       } break;
 
 
