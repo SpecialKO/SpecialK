@@ -1,4 +1,8 @@
-﻿23.8.26.1
+﻿23.8.26.2
+=========
+ + Removed unnecessary call to AllowSetForegroundWindow (...) during init.
+
+23.8.26.1
 =========
  + Added Baldur's Gate HUD shaders to internal list for HUD toggle / HUDless
      screenshots

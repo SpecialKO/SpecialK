@@ -2584,8 +2584,8 @@ void SK_Inject_WakeUpSKIF (void)
     if ( dwPid != 0x0 &&
          dwPid != GetCurrentProcessId () )
     {
-      PostMessage              (hWndExisting, WM_NULL, 0x0, 0x0);
       AllowSetForegroundWindow (dwPid);
+      PostMessage              (hWndExisting, WM_NULL, 0x0, 0x0);
     }
   }
 }
