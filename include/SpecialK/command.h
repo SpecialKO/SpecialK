@@ -151,10 +151,10 @@ interface SK_IVarStub : public SK_IVariable
     if (              dwLen == nullptr) return;
 
     if (         szOut != nullptr    && *dwLen >= 7)
-      strncpy_s (szOut, 7, "(null)",    *dwLen);
+      strncpy_s (szOut, 6, "(null)",    *dwLen);
 
     *dwLen = std::min (
-    *dwLen, static_cast <uint32_t> (strlen ("(null)"))
+    *dwLen, static_cast <uint32_t> (strlen ("(null)") + 1)
                       );
   }
 

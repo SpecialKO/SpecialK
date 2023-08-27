@@ -724,7 +724,9 @@ NtUserGetRegisteredRawInputDevices_Detour (
     for (auto& it : raw_devices)
     {
       if (idx < *puiNumDevices)
-        pRawInputDevices [idx++] = it;
+        pRawInputDevices [idx] = it;
+
+      idx++;
     }
   }
 

@@ -462,7 +462,7 @@ SK_WMI_Shutdown (void)
       InterlockedExchangePointer (&COM::base.wmi.hServerThread, nullptr);
     }
 
-    const auto _SpinMax = 250;
+    static constexpr auto _SpinMax = 250;
 
     while (ReadAcquire (&COM::base.wmi.init))
     {

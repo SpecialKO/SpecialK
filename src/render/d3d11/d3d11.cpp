@@ -579,7 +579,7 @@ SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
-  const LONG RESOLVE_MAX = 16;
+  static constexpr LONG RESOLVE_MAX = 16;
 
   static std::pair <ID3D11DeviceContext*, LONG>
     last_resolve [RESOLVE_MAX];

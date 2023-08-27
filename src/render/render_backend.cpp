@@ -2467,7 +2467,7 @@ DXGIColorSpaceToStr (DXGI_COLOR_SPACE_TYPE space) noexcept;
 #define DETAILED_TIMING_DESCRIPTION_SIZE     18
 #define NUM_DETAILED_TIMING_DESCRIPTIONS      4
 
-const uint8_t MONITOR_NAME                = 0xfc;
+static constexpr uint8_t MONITOR_NAME    = 0xfc;
 
 static uint8_t
 blockType (uint8_t* block) noexcept

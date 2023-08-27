@@ -1907,8 +1907,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
         }
       }
 
-       const DWORD LONG_PRESS  = 400UL;
-      static DWORD dwLastPress = MAXDWORD;
+      static constexpr DWORD LONG_PRESS  = 400UL;
+      static           DWORD dwLastPress = MAXDWORD;
 
       if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) &&
            (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK) )

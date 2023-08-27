@@ -813,7 +813,7 @@ SK_GPUPollingThread (LPVOID user)
 
         SK_RunOnce (
         {
-          const UINT NodeCount = 64;
+          static constexpr UINT NodeCount = 64;
 
           // NOTE: The proper way to get the node count is using
           //         D3DKMT_QUERYSTATISTICS_PROCESS_ADAPTER_INFORMATION
