@@ -127,8 +127,11 @@ public:
      base_ =                       info.lpBaseOfDll;
      size_ = static_cast <size_t> (info.SizeOfImage);
 
-     wcsncpy_s ( name_, MAX_PATH,
-                 name, _TRUNCATE );
+     if (name != nullptr)
+     {
+       wcsncpy_s ( name_, MAX_PATH,
+                   name, _TRUNCATE );
+     }
 
      AddRef ();
    };
