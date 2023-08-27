@@ -238,7 +238,8 @@ void SK_LatentSync_EndSwap (void) noexcept
 
   const LONGLONG maxAge =
     static_cast <LONGLONG> (
-      __SK_LatentSync_SwapSecs * static_cast <float> (SK_PerfFreq)
+      static_cast <double> (__SK_LatentSync_SwapSecs) *
+      static_cast <double> (SK_PerfFreq)
     );
 
   history.records [history.total++ % _MAX_SWAPS] = {
@@ -1261,7 +1262,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
 
     if ( SUCCEEDED ( SK_DWM_GetCompositionTimingInfo (&dwmTiming) ) )
     {
-      next_vsync = dwmTiming.qpcVBlank * SK_TscInvariant ? SK_QpcFreqInTsc : 1;
+      next_vsync = dwmTiming.qpcVBlank * (SK_TscInvariant ? SK_QpcFreqInTsc : 1);
     }
 
     auto const pDisplay =
@@ -1427,7 +1428,8 @@ SK::Framerate::Limiter::wait (void)
         else
         {
           // This will fail repeatedly, only log it once.
-          SK_RunOnce (
+          static bool        log_once         = false;
+          if (std::exchange (log_once, true) == false)
           {
             SK_ReleaseAssert (status == STATUS_SUCCESS || max == cur);
             SK_LOGi0         (
@@ -2617,7 +2619,7 @@ SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
                  static_cast <double> (next - SK_QueryPerf ().QuadPart) /
                  static_cast <double> (SK_PerfTicksPerMs) +
                 (static_cast <double> (ticks_per_frame) /
-                 static_cast <double> (SK_PerfTicksPerMs)) * (std::max (1.0f, ticks) - 1.0f) );
+                 static_cast <double> (SK_PerfTicksPerMs)) * (std::max (1.0, static_cast <double> (ticks)) - 1.0) );
 }
 
 
