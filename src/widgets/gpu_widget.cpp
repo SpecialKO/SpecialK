@@ -294,7 +294,8 @@ public:
   {
     if (ImGui::GetFont () == nullptr) return;
 
-    const  float font_size = ImGui::GetFont ()->FontSize;//* scale;
+    const float ui_scale  = ImGui::GetIO ().FontGlobalScale;
+    const float font_size = ImGui::GetFont ()->FontSize * ui_scale;
 
 
     auto _MinVal = [&]( float              auto_val,

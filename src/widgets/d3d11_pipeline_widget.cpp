@@ -103,7 +103,8 @@ public:
 
     if (! ImGui::GetFont ()) return;
 
-    const  float font_size           =             ImGui::GetFont  ()->FontSize;//                        * scale;
+    const  float ui_scale            =             ImGui::GetIO ().FontGlobalScale;
+    const  float font_size           =             ImGui::GetFont  ()->FontSize * ui_scale;
 #ifdef _ProperSpacing
     const  float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 #endif

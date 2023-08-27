@@ -371,6 +371,8 @@ SK_Widget::draw_base (void)
   auto& io =
     ImGui::GetIO ();
 
+  float ui_scale = io.FontGlobalScale;
+
   //extern volatile LONG __SK_ScreenShot_CapturingHUDless;
   //if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
   //    return;
@@ -395,8 +397,8 @@ SK_Widget::draw_base (void)
 
     if (visible)
     {
-      ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x, std::max ( size.x, min_size.x ) ),
-                                         std::min ( max_size.y, std::max ( size.y, min_size.y ) ) ) );
+      ImGui::SetNextWindowSize (ImVec2 ( std::min ( max_size.x * ui_scale, std::max ( size.x, min_size.x * ui_scale ) ),
+                                         std::min ( max_size.y * ui_scale, std::max ( size.y, min_size.y * ui_scale ) ) ) );
       ImGui::SetNextWindowPos  (pos);
     }
 
@@ -434,8 +436,8 @@ SK_Widget::draw_base (void)
                 ImGuiWindowFlags_AlwaysAutoResize );
 
     ImGui::SetNextWindowSize (
-      ImVec2 ( std::max ( size.x, 420.0f ),
-               std::max ( size.y, 190.0f )
+      ImVec2 ( std::max ( size.x, 420.0f * ui_scale ),
+               std::max ( size.y, 190.0f * ui_scale )
              )               );
 
     if (! SK_ImGui_Active ())
@@ -451,15 +453,15 @@ SK_Widget::draw_base (void)
          (! resizable) )
     {
       ImGui::SetNextWindowSize (
-        ImVec2 ( std::min (         max_size.x,
-                 std::max ( size.x, min_size.x ) ),
-                 std::min (         max_size.y,
-                 std::max ( size.y, min_size.y ) )
+        ImVec2 ( std::min (         max_size.x * ui_scale,
+                 std::max ( size.x, min_size.x * ui_scale ) ),
+                 std::min (         max_size.y * ui_scale,
+                 std::max ( size.y, min_size.y * ui_scale ) )
                )               );
     }
 
     ImGui::SetNextWindowSizeConstraints (
-      min_size, max_size
+      min_size * ui_scale, max_size * ui_scale
     );
   }
 

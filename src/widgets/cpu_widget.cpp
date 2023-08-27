@@ -1791,7 +1791,8 @@ public:
     SK_TLS *pTLS =
           SK_TLS_Bottom ();
 
-    const  float font_size    = ImGui::GetFont ()->FontSize;
+    const  float ui_scale     = ImGui::GetIO ().FontGlobalScale;
+    const  float font_size    = ImGui::GetFont ()->FontSize * ui_scale;
     static char  szAvg [1024] = { };
     static bool  detailed     = true;
     static bool  show_parked  = true;
@@ -2396,7 +2397,7 @@ public:
     ImGui::EndGroup      ();
     ImGui::PopItemWidth  ();
                           last_longest_line =
-                               std::max (longest_line, 450.0f);
+                               std::max (longest_line, 450.0f * ui_scale);
 
     if ( (show_mode_buttons || show_install_button) &&
          (EastWest & static_cast <int> (DockAnchor::West)) )

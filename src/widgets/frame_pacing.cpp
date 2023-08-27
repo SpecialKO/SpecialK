@@ -384,7 +384,7 @@ SK_ETW_EndTracing (void)
 }
 
 float fMinimumHeight = 0.0f;
-float fExtraData = 0.0f;
+float fExtraData     = 0.0f;
 
 class SKWG_FramePacing : public SK_Widget
 {
@@ -506,21 +506,24 @@ public:
     if (ImGui::GetFont () == nullptr)
       return;
 
-    const float font_size           =             ImGui::GetFont  ()->FontSize                        ;//* scale;
+    const float ui_scale            =             ImGui::GetIO    ().FontGlobalScale;
+    const float font_size           =             ImGui::GetFont  ()->FontSize * ui_scale;
+    auto&       style               =             ImGui::GetStyle ();
   //const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y + ImGui::GetStyle ().ItemInnerSpacing.y;
 
     float extra_line_space = 0.0F;
 
     // If configuring ...
-    if (state__ != 0) extra_line_space += 300.0F;
+    if (state__ != 0) extra_line_space += 300.0F * ui_scale;
 
     // Make room for control panel's title bar
     if (SK_ImGui_Visible)
-      extra_line_space += font_size + ImGui::GetStyle ().ItemSpacing.y +
-                                      ImGui::GetStyle ().ItemInnerSpacing.y;
+      extra_line_space += font_size + style.ItemSpacing.y +
+                                      style.ItemInnerSpacing.y;
 
-    ImVec2   new_size (font_size * 35.0F, fMinimumHeight + ImGui::GetStyle ().ItemSpacing.y      * 2.0F +
-                                                           ImGui::GetStyle ().ItemInnerSpacing.y * 2.0F + extra_line_space);
+    ImVec2   new_size (font_size * 35.0F, fMinimumHeight + style.ItemSpacing.y      * 2.0F +
+                                                           style.ItemInnerSpacing.y * 2.0F +
+                                                                           extra_line_space);
              new_size.y += fExtraData;
 
     setSize (new_size);
@@ -1226,15 +1229,16 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   float fGPULoadPercent = 0.0f;
 
-  static const float fCPUSize  = ImGui::CalcTextSize ("CPU.").x;
-  static const float fGPUSize  = ImGui::CalcTextSize ("GPU.").x;
-  static const float fDISKSize = ImGui::CalcTextSize ("DISK.").x;
-
+  float fUIScale    = ImGui::GetIO ().FontGlobalScale;
   float fGaugeSizes = 0.0f;
+
+  static const float fCPUSize  = ImGui::CalcTextSize ("CPU.").x  / fUIScale;
+  static const float fGPUSize  = ImGui::CalcTextSize ("GPU.").x  / fUIScale;
+  static const float fDISKSize = ImGui::CalcTextSize ("DISK.").x / fUIScale;
 
   if (bDrawProcessorLoad)
   {
-    fGaugeSizes = fCPUSize;
+    fGaugeSizes = fCPUSize * fUIScale;
 
     static constexpr DWORD _UpdateFrequencyInMsec = 75;
     static           DWORD dwLastUpdatedGPU =
@@ -1249,14 +1253,14 @@ SK_ImGui_DrawGraph_FramePacing (void)
       SK_GPU_GetGPULoad (0);
 
     if (fGPULoadPercent > 0.0f)
-      fGaugeSizes += fGPUSize;
+      fGaugeSizes += fGPUSize * fUIScale;
   }
 
   if (bDrawDisk)
-    fGaugeSizes += fDISKSize;
+    fGaugeSizes += fDISKSize * fUIScale;
 
   const ImVec2 border_dims (
-    std::max (                               500.0f - fGaugeSizes,
+    std::max (                  (500.0f * fUIScale) - fGaugeSizes,
                ImGui::GetContentRegionAvailWidth () - fGaugeSizes ),
       font_size * 7.0f
   );
@@ -1287,6 +1291,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::SameLine ();
   ImGui::SetCursorPosX (fX);
 
+  // We don't want a second background dimming things even more...
+  ImGui::PushStyleColor (ImGuiCol_FrameBg, ImVec4 (0.0f, 0.0f, 0.0f, 0.0f));
   ImGui::PlotLines ( SK_ImGui_Visible ? "###ControlPanel_FramePacing" :
                                         "###Floating_FramePacing",
                        SK_ImGui_Frames->getValues     ().data (),
@@ -1297,7 +1303,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                  2.0f * target_frametime + 0.1f,
                                    border_dims );
 
-  ImGui::PopStyleColor ();
+  ImGui::PopStyleColor (2);
 
 
   // Only toggle when clicking the graph and percentiles are off,
@@ -1309,7 +1315,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (bDrawProcessorLoad || bDrawDisk)
   {
-    ImGui::SameLine     (0.0f, 0.0f);
+    ImGui::SameLine (0.0f, 0.0f);
 
     auto window_pos = ImGui::GetWindowPos (),
          cursor_pos = ImGui::GetCursorPos ();
@@ -1346,7 +1352,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
     ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph
     ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
-    ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
     ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
     ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
@@ -1354,13 +1359,13 @@ SK_ImGui_DrawGraph_FramePacing (void)
     {
       if (               fGPULoadPercent > 0.0f)
       {
-        ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
-        ImGui::SetCursorPos (ImVec2 (GetCursorPosX () + fGPUSize, fY));
+        ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+        ImGui::SetCursorPos (ImVec2 (GetCursorPosX () + fGPUSize * fUIScale, fY));
       }
       ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
-      ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+      ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
       ImGui::PopStyleColor  ();
-      ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fCPUSize, fY));
+      ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fCPUSize * fUIScale, fY));
     }
 
     if (bDrawDisk)
@@ -1389,14 +1394,14 @@ SK_ImGui_DrawGraph_FramePacing (void)
             fLastDisk = fDisk;
 
       ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fDisk) / 100.0f * 0.278f, .88f, .75f));
-      ValueBar ("DISK", fDisk, ImVec2 (5.0f, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
+      ValueBar ("DISK", fDisk, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
       ImGui::PopStyleColor  ();
     }
 
     ImGui::PopStyleColor  (3);
     ImGui::EndGroup       ();
 
-    ImGui::SetCursorPos   (ImVec2 (fX, fY + font_size * 7.0f + ImGui::GetStyle ().ItemSpacing.y));
+    ImGui::SetCursorPos   (ImVec2 (fX, fY + font_size * 7.0f + ImGui::GetStyle ().ItemSpacing.y * fUIScale));
   }
 
   ImGui::PopStyleVar ();
