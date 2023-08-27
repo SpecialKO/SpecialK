@@ -423,6 +423,9 @@ public:
   // Prevent recursion during hook installation
   BOOL                               skip_d3d11_create_device = FALSE;
 
+  // For ImGui, mostly
+  SK_LazyGlobal <std::vector <BYTE>> state_block;
+
   struct {
     uint8_t* buffer  = nullptr;
     size_t   reserve = 0UL;

@@ -1958,12 +1958,25 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (!SK_D3D11_EnsureMatchingDevices (pSwapChain, _d3d11_rbk->_pDevice))
+  if (! SK_D3D11_EnsureMatchingDevices (pSwapChain, _d3d11_rbk->_pDevice))
     return;
 
-  D3DX11_STATE_BLOCK
-              sblock = { };
-  auto* sb = &sblock;
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (! pTLS)
+    return;
+
+  // This is about 22 KiB worth of device context state, it is not a good
+  //   idea to allocate this on the stack... use SK's TLS storage.
+  auto* state_block_storage =
+    pTLS->render->d3d11->state_block.getPtr ();
+
+  if (state_block_storage->empty ())
+      state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+
+  auto *sb =
+    (D3DX11_STATE_BLOCK *)state_block_storage->data ();
 
   CreateStateblock (_pDeviceCtx, sb);
 
@@ -2030,6 +2043,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame, rb);
 
   ApplyStateblock (_pDeviceCtx, sb);
+
+  ZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
 
   //
   // Update G-Sync; doing this here prevents trying to do this on frames where

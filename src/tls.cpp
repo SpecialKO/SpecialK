@@ -839,6 +839,14 @@ SK_D3D11_ThreadContext::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
 {
   size_t freed = 0;
 
+  if ( state_block.isAllocated () &&
+         0 < state_block->size () )
+  {
+    freed += state_block->size  ();
+             state_block->clear ();
+             state_block.Deinit ();
+  }
+
   if (screenshot.reserve > 0)
   {
     if (screenshot.buffer != nullptr)
