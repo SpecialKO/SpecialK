@@ -1,4 +1,10 @@
-﻿23.8.26
+﻿23.8.26.1
+=========
+ + Added Baldur's Gate HUD shaders to internal list for HUD toggle / HUDless
+     screenshots
+ + Only ask to enable Vulkan Bridge when launching the -Vulkan- version of BG3
+
+23.8.26
 =======
  + Post-multiply alpha in sRGB gamma for HDR10
  + Changed UI alpha -output- while in scRGB HDR mode to use sRGB gamma

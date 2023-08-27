@@ -2438,9 +2438,26 @@ auto DeclKeybind =
 
       case SK_GAME_ID::BaldursGate3:
       {
-        config.apis.NvAPI.vulkan_bridge = 1;
+        // The Vulkan executable is simply bg3.exe,
+        //   D3D11 is bg3_dx11.exe
+        bool bVulkan =
+          StrStrIW (SK_GetHostPath (), L"bg3.exe");
+
+        if (bVulkan)
+        {
+          config.apis.NvAPI.vulkan_bridge = 1;
+        }
+
+        else
+        {
+          SK_D3D11_DeclHUDShader_Vtx (0x5dcbb1c5);
+          SK_D3D11_DeclHUDShader_Vtx (0x73199e2e);
+          SK_D3D11_DeclHUDShader_Vtx (0xa8226121);
+          SK_D3D11_DeclHUDShader_Vtx (0xc9ce2d35);
+          SK_D3D11_DeclHUDShader_Vtx (0xd2650529);
+        }
+
         config.window.activate_at_start = true;
-        config.display.force_windowed   = true;
       } break;
 
       case SK_GAME_ID::Persona4:
