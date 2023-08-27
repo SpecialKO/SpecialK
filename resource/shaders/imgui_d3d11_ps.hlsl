@@ -30,6 +30,9 @@ float4 main (PS_INPUT input) : SV_Target
 
   bool hdr10 = ( input.uv3.x < 0.0 );
 
+  float fAlpha =
+    ( input.col.a * out_col.a );
+    
   if (viewport.z > 0.f)
   {
     if ( input.uv2.x > 0.0f &&
@@ -45,11 +48,12 @@ float4 main (PS_INPUT input) : SV_Target
 
     else
     {
+      // Make things less transparent in HDR to control bleed-through from
+      //   a bright under-scene (ideally the hdrUnderlay sampler would be used)
       out_col =
-        float4 ( RemoveSRGBCurve (          input.col.rgb) *
-                 RemoveSRGBCurve (            out_col.rgb),
-                             pow (saturate (  out_col.a) *
-                                  saturate (input.col.a), 0.8)
+        float4 ( RemoveSRGBCurve ( input.col.rgb *
+                                     out_col.rgb) * pow ( fAlpha, 0.8f ),
+                                                    pow ( fAlpha, 0.8f )
                );
     }
 
@@ -65,7 +69,7 @@ float4 main (PS_INPUT input) : SV_Target
         LinearToST2084 (
           REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale
                        ) :
-     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.12) )
+     Clamp_scRGB_StripNaN ( expandGamut (saturate (out_col.rgb)   * hdr_scale, 0.05) )
                  )                                   + hdr_offset,
                                          saturate (out_col.a  ) );
 
@@ -78,5 +82,6 @@ float4 main (PS_INPUT input) : SV_Target
   }
 
   return
-    ( input.col * out_col );
+    float4 ( float3 ( input.col.rgb * out_col.rgb ) * fAlpha,
+                                                      fAlpha );
 };

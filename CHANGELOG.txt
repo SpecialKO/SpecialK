@@ -1,4 +1,9 @@
-﻿23.8.26
+﻿23.8.26[.1]
+===========
+ + Switched to pre-multiplied alpha for ImGui rendering in D3D11/12/Vulkan/GL
+ + Reverted FCAT bars back to all vertical and wider
+
+23.8.26
 =======
  + Merge pull request #80 from Aemony/main
     * Bypass EAC for Armored Core VI

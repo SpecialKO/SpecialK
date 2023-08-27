@@ -1246,7 +1246,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
       for ( UINT i = 0 ; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ; ++i )
       {
         desc.RenderTarget [i].BlendEnable           = FALSE;
-        desc.RenderTarget [i].SrcBlend              = D3D11_BLEND_SRC_ALPHA;
+        desc.RenderTarget [i].SrcBlend              = D3D11_BLEND_ONE;
         desc.RenderTarget [i].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
         desc.RenderTarget [i].BlendOp               = D3D11_BLEND_OP_ADD;
         desc.RenderTarget [i].SrcBlendAlpha         = D3D11_BLEND_ONE;
