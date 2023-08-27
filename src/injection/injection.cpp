@@ -2576,8 +2576,12 @@ constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
 
 void SK_Inject_WakeUpSKIF (void)
 {
-  HWND hWndExisting =
-        FindWindow (L"SK_Injection_Frontend", nullptr);
+  HWND hWndExisting = FindWindow (L"SK_Injection_Frontend", nullptr);
+
+  // Try the notification icon if the traditional window is not present
+  if (! hWndExisting)
+        hWndExisting = FindWindow (L"SKIF_NotificationIcon", nullptr);
+          
 
   if (hWndExisting != nullptr && IsWindow (hWndExisting))
   {
