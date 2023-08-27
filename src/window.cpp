@@ -303,7 +303,7 @@ public:
         for ( int i = 0; i < SK_RenderBackend_V2::_MAX_DISPLAYS ; ++i )
         {
           if ( rb.displays [i].attached &&
-               rb.displays [i].idx      == static_cast <UINT> (set) )
+               rb.displays [i].idx      == sk::narrow_cast <UINT> (set) )
           {
             config.display.monitor_handle =
                rb.displays [i].monitor;
@@ -1542,7 +1542,7 @@ ClipCursor_Detour (const RECT *lpRect)
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi4 (L"ClipCursor (...) - Frame=%d", SK_GetFramesDrawn ());
+  SK_LOGi4 (L"ClipCursor (...) - Frame=%d", sk::narrow_cast <int> (SK_GetFramesDrawn ()));
 
   RECT _rect = { };
 
@@ -2117,8 +2117,8 @@ SK_Window_RemoveBorders (void)
 {
   if (SK_Window_HasBorder (game_window.hWnd))
   {
-    dwBorderStyle   = static_cast <DWORD> (game_window.actual.style);
-    dwBorderStyleEx = static_cast <DWORD> (game_window.actual.style_ex);
+    dwBorderStyle   = sk::narrow_cast <DWORD> (game_window.actual.style);
+    dwBorderStyleEx = sk::narrow_cast <DWORD> (game_window.actual.style_ex);
 
     SK_SetWindowStyle   ( SK_BORDERLESS    );
     SK_SetWindowStyleEx ( SK_BORDERLESS_EX );
@@ -2272,7 +2272,7 @@ SetWindowLong_Marshall (
                           );
 
         return
-          static_cast <LONG> (game_window.actual.style);
+          sk::narrow_cast <LONG> (game_window.actual.style);
       }
 
       case GWL_EXSTYLE:
@@ -2336,7 +2336,7 @@ SK_SetWindowLongA (
   _In_ LONG dwNewLong )
 {
   return
-    static_cast <LONG> (
+    sk::narrow_cast <LONG> (
       SK_SetWindowLongPtrA (hWnd, nIndex, dwNewLong)
     );
 }
@@ -2369,7 +2369,7 @@ SK_SetWindowLongW (
   _In_ LONG dwNewLong )
 {
   return
-    static_cast <LONG> (
+    sk::narrow_cast <LONG> (
       SK_SetWindowLongPtrW (hWnd, nIndex, dwNewLong)
     );
 }
@@ -2410,9 +2410,9 @@ GetWindowLong_Marshall (
     switch (nIndex)
     {
       case GWL_STYLE:
-        return static_cast <LONG> (game_window.game.style);
+        return sk::narrow_cast <LONG> (game_window.game.style);
       case GWL_EXSTYLE:
-        return static_cast <LONG> (game_window.game.style_ex);
+        return sk::narrow_cast <LONG> (game_window.game.style_ex);
     }
   }
 
@@ -2566,8 +2566,8 @@ SetWindowLongPtr_Marshall (
             game_window.game.style_ex;
         }
 
-        SK_SetWindowStyleEx (                                          game_window.actual.style_ex,
-                              reinterpret_cast <SetWindowLongPtr_pfn> (pOrigFunc) );
+        SK_SetWindowStyleEx ( game_window.actual.style_ex,
+                                pOrigFunc );
 
         return
           sk::narrow_cast <ULONG> (
@@ -3757,10 +3757,9 @@ SK_AdjustWindow (void)
     if ( (full_height < mon_height ) ||
          (full_width  < mon_width  ) )
     {
-      SK_AdjustWindowRect (
-                           &game_window.actual.window,
-        static_cast <LONG> (game_window.actual.style),
-                            FALSE
+      SK_AdjustWindowRect (    &game_window.actual.window,
+        sk::narrow_cast <LONG> (game_window.actual.style),
+                                FALSE
       );
 
       //
@@ -5448,7 +5447,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               bIgnore = false;
             }
           }
-        }
+        } break;
 
         default:
           bIgnore = false;
