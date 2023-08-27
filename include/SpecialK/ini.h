@@ -42,7 +42,8 @@ interface iSK_INISection : public IUnknown
 public:
   iSK_INISection (void) = default;
 
-  iSK_INISection (const wchar_t* section_name) : name   (section_name),
+  iSK_INISection (const wchar_t* section_name) : name   (section_name != nullptr ?
+                                                         section_name            : L""),
                                                  parent (nullptr) {
   }
 
@@ -51,7 +52,8 @@ public:
   }
 
   iSK_INISection ( const wchar_t* section_name,
-                         iSK_INI* _parent )     : name   (section_name),
+                         iSK_INI* _parent )     : name   (section_name != nullptr ?
+                                                          section_name            : L""),
                                                   parent (_parent) {
   }
 
