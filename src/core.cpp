@@ -1611,8 +1611,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 {
  try
  {
-   AllowSetForegroundWindow (GetCurrentProcessId ());
-
   if ( SK_GetProcAddress ( L"NtDll",
                             "wine_get_version" ) != nullptr )
   {
