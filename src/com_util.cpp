@@ -85,6 +85,9 @@ CoCreateInstance_Detour (
   _In_  REFIID    riid,
   _Out_ LPVOID   *ppv )
 {
+  if (ppv == nullptr)
+    return E_POINTER;
+
   if (rclsid == CLSID_DirectInput8)
   {
     if (riid == IID_IDirectInput8A)
