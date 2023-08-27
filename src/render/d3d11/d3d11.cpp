@@ -797,9 +797,9 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
   static SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( ppDevice != nullptr )
+  if (ppDevice != nullptr)
   {
-    if ( *ppDevice != g_pD3D11Dev )
+    if (*ppDevice != g_pD3D11Dev)
     {
       SK_LOG0 ( (L" >> Device = %08" _L(PRIxPTR) L"h (Feature Level:%hs)",
                       (uintptr_t)*ppDevice,
@@ -813,27 +813,24 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
       g_pD3D11Dev = *ppDevice;
     }
 
-    if (config.render.dxgi.exception_mode != SK_NoPreference)
+    if (config.render.dxgi.exception_mode != SK_NoPreference && (*ppDevice != nullptr))
       (*ppDevice)->SetExceptionMode (config.render.dxgi.exception_mode);
 
     SK_ComQIPtr <IDXGIDevice>  pDXGIDev (ppDevice != nullptr ? *ppDevice : nullptr);
     SK_ComPtr   <IDXGIAdapter> pAdapter;
 
-    if ( pDXGIDev != nullptr )
+    if (pDXGIDev != nullptr)
     {
       const HRESULT hr =
-        pDXGIDev->GetParent ( IID_PPV_ARGS (&pAdapter.p) );
+        pDXGIDev->GetParent (IID_PPV_ARGS (&pAdapter.p));
 
-      if ( SUCCEEDED ( hr ) )
+      if (SUCCEEDED (hr) && pAdapter.p != nullptr)
       {
-        if ( pAdapter == nullptr )
-          return;
-
         const int iver =
-          SK_GetDXGIAdapterInterfaceVer ( pAdapter );
+          SK_GetDXGIAdapterInterfaceVer (pAdapter);
 
         // IDXGIAdapter3 = DXGI 1.4 (Windows 10+)
-        if ( iver >= 3 )
+        if (iver >= 3)
         {
           SK::DXGI::StartBudgetThread_NoAdapter ();
         //SK::DXGI::StartBudgetThread ( &pAdapter.p );
@@ -1669,6 +1666,12 @@ SK_D3D11_CopySubresourceRegion_Impl (
 {
   SK_WRAP_AND_HOOK
 
+    // UB: If it's happening, pretend we never saw this...
+  if (pDstResource == nullptr || pSrcResource == nullptr)
+  {
+    return;
+  }
+
   D3D11_RESOURCE_DIMENSION res_dim = { };
   pSrcResource->GetType  (&res_dim);
 
@@ -1744,12 +1747,6 @@ SK_D3D11_CopySubresourceRegion_Impl (
   {
     return
       _Finish ();
-  }
-
-  // UB: If it's happening, pretend we never saw this...
-  if (pDstResource == nullptr || pSrcResource == nullptr)
-  {
-    return;
   }
 
   if ( (! config.render.dxgi.deferred_isolation) &&
@@ -7524,6 +7521,26 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
 extern bool
 SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
 
+bool
+SK_D3D11_IsFeatureLevelSufficient ( D3D_FEATURE_LEVEL   FeatureLevelSupported,
+                              const D3D_FEATURE_LEVEL *pFeatureLevels,
+                                    UINT                FeatureLevels )
+{
+  if (FeatureLevels == 0 || pFeatureLevels == nullptr)
+    return true;
+
+  D3D_FEATURE_LEVEL maxLevel = D3D_FEATURE_LEVEL_1_0_CORE;
+
+  for ( UINT i = 0 ; i < FeatureLevels ; ++i )
+  {
+    maxLevel =
+      std::max (maxLevel, pFeatureLevels [i]);
+  }
+
+  return
+    ( FeatureLevelSupported >= maxLevel );
+}
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -7540,6 +7557,12 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
  _Out_opt_                            D3D_FEATURE_LEVEL     *pFeatureLevel,
  _Out_opt_                            ID3D11DeviceContext  **ppImmediateContext)
 {
+  // Pre-initialize any non-null pointers-to-pointers to nullptr, so that
+  //   static analysis is happy
+  if (          ppDevice != nullptr) *ppDevice           = nullptr;
+  if (       ppSwapChain != nullptr) *ppSwapChain        = nullptr;
+  if (ppImmediateContext != nullptr) *ppImmediateContext = nullptr;
+
   bool bEOSOverlay =
     SK_COMPAT_IgnoreEOSOVHCall ();
 
@@ -7729,24 +7752,57 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
   }
 
+
   auto pDevCache =
     SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (swap_chain_desc.OutputWindow);
 
+  // Check for a cached match, if one exists we'll further scrutinize it...
   if (pDevCache.first != nullptr)
   {
-    if (ppDevice != nullptr) {
-       *ppDevice = pDevCache.first;
-      (*ppDevice)->AddRef ();
+    if ( SK_D3D11_IsFeatureLevelSufficient (pDevCache.first->GetFeatureLevel (),
+                                                               pFeatureLevels,
+                                                                FeatureLevels) )
+    {
+      if (ppDevice != nullptr) {
+         *ppDevice = pDevCache.first;
+        (*ppDevice)->AddRef ();
+      }
+
+      if (ppSwapChain != nullptr && pDevCache.second != nullptr) {
+        *ppSwapChain = pDevCache.second;
+       (*ppSwapChain)->AddRef ();
+      }
+
+      if (ppImmediateContext != nullptr)
+        pDevCache.first->GetImmediateContext (ppImmediateContext);
+
+      DWORD dwFeatureLevel =
+        static_cast <DWORD> (pDevCache.first->GetFeatureLevel ());
+
+      if (pFeatureLevel != nullptr)
+         *pFeatureLevel = pDevCache.first->GetFeatureLevel ();
+
+      dll_log->Log (
+        L" ### Returned Cached D3D11 Device (Feature Level: %hs)",
+          SK_DXGI_FeatureLevelsToStr ( 1, &dwFeatureLevel ).c_str ()
+      );
+
+      return S_OK;
     }
 
-    if (ppSwapChain != nullptr) {
-      *ppSwapChain = pDevCache.second;
-     (*ppSwapChain)->AddRef ();
-    }
+    if (pDevCache.second != nullptr)
+        pDevCache.second->Release ();
+    
+    pDevCache.first->Release ();
+    
+    SK_D3D11_ReleaseDeviceOnHWnd (
+      (IDXGISwapChain1 *)pDevCache.second, swap_chain_desc.OutputWindow,
+                         pDevCache.first
+    );
 
-    dll_log->Log (L" ### Returned Cached D3D11 Device");
-
-    return S_OK;
+    dll_log->Log (
+      L" ### Cached D3D11 Device Was Wrong Feature Level"
+    );
   }
 
 
@@ -7757,6 +7813,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
      *pNvInteropSingleton  = nullptr;
   if (pNvInteropSingleton != nullptr && bNvInterop && ppDevice != nullptr)
   {
+    // Current behavior from NVIDIA's interop layer is to never request a specific Feature Level
+    SK_ReleaseAssert (FeatureLevels == 0);
+
     ret_device = pNvInteropSingleton;
     ret_device->AddRef ();
     ret_device->GetImmediateContext (&ret_ctx);
@@ -7792,7 +7851,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   }
 
 
-  if (SUCCEEDED (res) && ppDevice != nullptr)
+  if (SUCCEEDED (res) && ppDevice != nullptr && ret_device != nullptr)
   {
     // Use a single device for NVIDIA interop, it saves a ton of memory in 32-bit games.
     if (bNvInterop)
@@ -7807,7 +7866,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     if ( ppSwapChain    != nullptr &&
          pSwapChainDesc != nullptr    )
     {
-      const bool dummy_window =
+      const bool dummy_window =      swap_chain_desc.OutputWindow == 0 ||
         SK_Win32_IsDummyWindowClass (swap_chain_desc.OutputWindow);
 
       if (! dummy_window)
@@ -7853,7 +7912,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     }
 
 #ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
-    if (ret_device != nullptr && ret_ctx != nullptr)
+    if (ret_ctx != nullptr)
     {
     // Do Not Use: D3D11 itself will call GetImmediateContext (...)
     //   during device creation, which SK already has a hook on and will

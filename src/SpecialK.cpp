@@ -225,8 +225,8 @@ SK_KeepAway (void)
     return Unlisted;
   }
 
-  wchar_t  wszAppShortName                 [MAX_PATH + 2] = { };
-  wcsncpy (wszAppShortName, wszAppFullName, MAX_PATH);
+  wchar_t    wszAppShortName                 [MAX_PATH + 2] = { };
+  wcsncpy_s (wszAppShortName, wszAppFullName, MAX_PATH);
 
   PathStripPath (wszAppShortName);
 

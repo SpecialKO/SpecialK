@@ -785,7 +785,7 @@ D3D11Dev_CreateSamplerState_Override
 
       if (pSamplerDesc->Filter != new_desc.Filter)
       {
-        SK_LOG0 ( ( L"Changing Shadow Filter from '%s' to '%s'",
+        SK_LOG0 ( ( L"Changing Shadow Filter from '%hs' to '%hs'",
                       SK_D3D11_DescribeFilter (pSamplerDesc->Filter),
                            SK_D3D11_DescribeFilter (new_desc.Filter) ),
                     L" TexCache " );
