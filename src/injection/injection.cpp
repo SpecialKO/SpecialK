@@ -1310,8 +1310,8 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement  (&injected_procs);
 
-          const DWORD dwTimeout   = INFINITE;
-          const DWORD dwWaitState =
+          constexpr DWORD dwTimeout   = INFINITE;
+          const     DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
                                  FALSE, dwTimeout );
 
@@ -2571,6 +2571,9 @@ void SK_Inject_SuppressExitNotify (void)
   __SKIF_SuppressExitNotify = true;
 }
 
+// Posted when SK signals one of the various acknowledgement events
+constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
+
 void SK_Inject_WakeUpSKIF (void)
 {
   HWND hWndExisting =
@@ -2585,7 +2588,7 @@ void SK_Inject_WakeUpSKIF (void)
          dwPid != GetCurrentProcessId () )
     {
       AllowSetForegroundWindow (dwPid);
-      PostMessage              (hWndExisting, WM_NULL, 0x0, 0x0);
+      PostMessage              (hWndExisting, WM_SKIF_EVENT_SIGNAL, 0x0, 0x0);
     }
   }
 }
