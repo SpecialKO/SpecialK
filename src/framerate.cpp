@@ -1436,7 +1436,7 @@ SK::Framerate::Limiter::wait (void)
               L"NtSetTimerResolution (...) unexpected behavior -- NtStatus=%x, "
               L"max=%d, cur=%d", status, max, cur
             );
-          });
+          }
         }
       }
     }
