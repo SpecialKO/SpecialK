@@ -30,10 +30,10 @@ float4 main (PS_INPUT input) : SV_Target
 
   bool hdr10 = ( input.uv3.x < 0.0 );
 
-  float fAlpha =
+  float  ui_alpha =
     ( saturate (input.col.a) * saturate (out_col.a) );
     
-  float3 vRGB =
+  float3 ui_color =
     (           input.col.rgb *          out_col.rgb );
     
     
@@ -53,9 +53,8 @@ float4 main (PS_INPUT input) : SV_Target
     else
     {
       out_col =
-        float4 ( RemoveSRGBCurve (     vRGB     ),
-           1.0 - RemoveSRGBAlpha ( 1.0 - fAlpha )
-               );
+        float4 ( RemoveSRGBCurve (        ui_color ),
+          1.0f - RemoveSRGBAlpha ( 1.0f - ui_alpha ) );
     }
 
     float hdr_scale  = hdr10 ? ( -input.uv3.x / 10000.0 )
@@ -78,15 +77,17 @@ float4 main (PS_INPUT input) : SV_Target
     hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
     hdr_out.b = (orig_col.b <= 0.00013 && orig_col.b >= -0.00013) ? 0.0f : hdr_out.b;
     hdr_out.a = (orig_col.a <= 0.00013 && orig_col.a >= -0.00013) ? 0.0f : hdr_out.a;
-        
-    hdr_out.rgb *=
-      ( hdr10 ? hdr_out.a
-              : fAlpha ); // Use linear alpha in scRGB
 
-    return hdr_out;
+    float alpha_mul =
+      ( hdr10 ? hdr_out.a
+              : ui_alpha ); // Use linear alpha in scRGB
+        
+    return
+      float4 ( hdr_out.rgb * alpha_mul,
+               hdr_out.a );
   }
 
   return
-    float4 ( float3 ( vRGB ) * fAlpha,
-                               fAlpha );
+    float4 ( ui_color * ui_alpha,
+                        ui_alpha );
 };
