@@ -37,7 +37,7 @@ bool SK_WantBackgroundRender (void)
 bool
 SK_InputUtil_IsHWCursorVisible (void)
 {
-  if (SK_GetCursor () != 0)
+  if (SK_GetCursor () != nullptr)
   {
     CURSORINFO cursor_info        = { };
                cursor_info.cbSize = sizeof (CURSORINFO);
@@ -45,7 +45,7 @@ SK_InputUtil_IsHWCursorVisible (void)
     SK_GetCursorInfo (&cursor_info);
 
     return
-      ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != 0) );
+      ( (cursor_info.flags & CURSOR_SHOWING) && (cursor_info.hCursor != nullptr) );
   }
 
   return false;
@@ -3517,8 +3517,8 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 
   if (hhk == __hooks._RealMouseHook)
   {
-    __hooks._RealMouseProc = 0;
-    __hooks._RealMouseHook = 0;
+    __hooks._RealMouseProc = nullptr;
+    __hooks._RealMouseHook = nullptr;
 
     return
       UnhookWindowsHookEx_Original (hhk);
@@ -3538,8 +3538,8 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
 
   if (hhk == __hooks._RealKeyboardHook)
   {
-    __hooks._RealKeyboardProc = 0;
-    __hooks._RealKeyboardHook = 0;
+    __hooks._RealKeyboardProc = nullptr;
+    __hooks._RealKeyboardHook = nullptr;
 
     return
       UnhookWindowsHookEx_Original (hhk);
