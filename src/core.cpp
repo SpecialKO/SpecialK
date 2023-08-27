@@ -2435,6 +2435,76 @@ SK_Log_CleanupLogs (void)
   steam_log->close  ();
 }
 
+extern HWND SK_Inject_GetFocusWindow (void);
+extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+
+void
+SK_Inject_ReturnToSKIF (void)
+{
+  static HWND hWndExisting =
+    FindWindow (L"SK_Injection_Frontend", nullptr);
+
+  if (hWndExisting == nullptr)
+  {
+    // This isn't the correct window since SKIF was overhauled, but
+    //   it at least gives us the process that owns the window we need...
+    hWndExisting =
+      FindWindow (L"SKIF_ImGuiWindow", nullptr);
+  
+    DWORD                                    dwPidOfSKIF = 0;
+    GetWindowThreadProcessId (hWndExisting, &dwPidOfSKIF);
+  
+    EnumWindows ( []( HWND   hWnd,
+                      LPARAM lParam ) -> BOOL
+    {
+      DWORD                                dwPID = 0;
+      if (GetWindowThreadProcessId (hWnd, &dwPID))
+      {
+        if (dwPID != (DWORD)lParam)
+          return TRUE;
+  
+        if (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
+        {
+          // Success, we found the app window!
+          hWndExisting = hWnd;
+  
+          SK_SetWindowLongPtrW (   hWnd, GWL_EXSTYLE,
+            SK_GetWindowLongPtrW ( hWnd, GWL_EXSTYLE ) & ~WS_EX_NOACTIVATE );
+  
+          return FALSE;
+        }
+      }
+  
+      return TRUE;
+    }, (LPARAM)dwPidOfSKIF);
+  }
+  
+  if (hWndExisting != nullptr && IsWindow (hWndExisting))
+  {
+    DWORD                                    dwPid = 0x0;
+    GetWindowThreadProcessId (hWndExisting, &dwPid);
+  
+    if ( dwPid != 0x0 &&
+         dwPid != GetCurrentProcessId () )
+    {
+#define        WM_SKIF_REPOSITION     WM_USER + 0x4096
+constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
+
+      AllowSetForegroundWindow     (dwPid);
+      PostMessage                  (hWndExisting, WM_SKIF_EVENT_SIGNAL, (WPARAM)hWndExisting, 0x0);
+      PostMessage                  (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
+
+      if (!    SetForegroundWindow (hWndExisting))
+        SK_RealizeForegroundWindow (hWndExisting);
+
+      if (SK_Inject_GetFocusWindow (            ) == nullptr)
+          SK_Inject_SetFocusWindow (hWndExisting);
+
+      ShowWindow                   (hWndExisting, SW_SHOW);
+    }
+  }
+}
+
 bool
 __stdcall
 SK_ShutdownCore (const wchar_t* backend)
@@ -2574,67 +2644,12 @@ SK_ShutdownCore (const wchar_t* backend)
     // If an override was applied at runtime, reset it
     SK_Steam_ForceInputAppId (0);
 
-    extern HWND SK_Inject_GetFocusWindow (void);
-    extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
     if (SK_Inject_GetFocusWindow (       ) == game_window.hWnd)
         SK_Inject_SetFocusWindow (nullptr);
 
     if (config.system.return_to_skif)
     {
-      static HWND hWndExisting =
-        FindWindow (L"SK_Injection_Frontend", nullptr);
-
-      if (hWndExisting == nullptr)
-      {
-        // This isn't the correct window since SKIF was overhauled, but
-        //   it at least gives us the process that owns the window we need...
-        hWndExisting =
-          FindWindow (L"SKIF_NotificationIcon", nullptr);
-
-        DWORD                                    dwPidOfSKIF = 0;
-        GetWindowThreadProcessId (hWndExisting, &dwPidOfSKIF);
-
-        EnumWindows ( []( HWND   hWnd,
-                          LPARAM lParam ) -> BOOL
-        {
-          DWORD                                dwPID = 0;
-          if (GetWindowThreadProcessId (hWnd, &dwPID))
-          {
-            if (dwPID != (DWORD)lParam)
-              return TRUE;
-
-            if (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
-            {
-              // Success, we found the app window!
-              hWndExisting = hWnd;
-
-              return FALSE;
-            }
-          }
-
-          return TRUE;
-        }, (LPARAM)dwPidOfSKIF);
-      }
-
-      if (hWndExisting != nullptr && IsWindow (hWndExisting))
-      {
-        DWORD                                    dwPid = 0x0;
-        GetWindowThreadProcessId (hWndExisting, &dwPid);
-
-        if ( dwPid != 0x0 &&
-             dwPid != GetCurrentProcessId () )
-        {
-#define WM_SKIF_REPOSITION WM_USER + 0x4096
-
-          PostMessage              (hWndExisting, WM_SKIF_REPOSITION, 0x0, 0x0);
-          SetForegroundWindow      (hWndExisting);
-
-          if (SK_Inject_GetFocusWindow (            ) == nullptr)
-              SK_Inject_SetFocusWindow (hWndExisting);
-
-          ShowWindow                   (hWndExisting, SW_NORMAL);
-        }
-      }
+      SK_Inject_ReturnToSKIF ();
     }
   }
 
@@ -2905,7 +2920,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 game_window.CallProc (game_window.hWnd, WM_ACTIVATEAPP, TRUE,                      0);
                 game_window.CallProc (game_window.hWnd, WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
                 game_window.CallProc (game_window.hWnd, WM_SETFOCUS,    0,                         0);
-                SetForegroundWindow ( game_window.hWnd );
+
+                if (!    SetForegroundWindow (game_window.hWnd))
+                  SK_RealizeForegroundWindow (game_window.hWnd);
               });
             }
 
