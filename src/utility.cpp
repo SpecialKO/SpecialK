@@ -927,6 +927,21 @@ SK_ValidatePointer (LPCVOID addr, bool silent, MEMORY_BASIC_INFORMATION *pmi)
 }
 
 bool
+SK_SAFE_ValidatePointer (LPCVOID addr, bool silent, MEMORY_BASIC_INFORMATION *pmi) noexcept
+{
+  __try
+  {
+    return
+      SK_ValidatePointer (addr, silent, pmi);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+}
+
+bool
 SK_IsAddressExecutable (LPCVOID addr, bool silent)
 {
   MEMORY_BASIC_INFORMATION               minfo = { };
@@ -5209,7 +5224,7 @@ SK_IsHandleValid (HANDLE hHandle)
 }
 
 BOOL
-SK_SafeCloseHandle (HANDLE hHandle)
+SK_SafeCloseHandle (HANDLE hHandle) noexcept
 {
 	__try
 	{

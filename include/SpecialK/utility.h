@@ -25,7 +25,7 @@
 #define __SK__UTILITY_H__
 
 BOOL SK_IsHandleValid   (HANDLE hHandle);
-BOOL SK_SafeCloseHandle (HANDLE hHandle);
+BOOL SK_SafeCloseHandle (HANDLE hHandle) noexcept;
 
 #define SK_CloseHandle SK_SafeCloseHandle
 
@@ -269,6 +269,7 @@ std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
 std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
 std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
 bool           SK_ValidatePointer           (LPCVOID addr, bool silent = false, MEMORY_BASIC_INFORMATION *pmi = nullptr);
+bool           SK_SAFE_ValidatePointer      (LPCVOID addr, bool silent = false, MEMORY_BASIC_INFORMATION *pmi = nullptr) noexcept;
 bool           SK_IsAddressExecutable       (LPCVOID addr, bool silent = false);
 void           SK_LogSymbolName             (LPCVOID addr);
 

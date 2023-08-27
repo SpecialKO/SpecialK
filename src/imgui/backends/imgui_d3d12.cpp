@@ -54,7 +54,7 @@ struct SK_ImGui_D3D12Ctx
   D3D12_CPU_DESCRIPTOR_HANDLE     hFontSrvCpuDescHandle = { };
   D3D12_GPU_DESCRIPTOR_HANDLE     hFontSrvGpuDescHandle = { };
 
-  HWND                            hWndSwapChain         =   0;
+  HWND                            hWndSwapChain         = SK_HWND_DESKTOP;
 
   struct FrameHeap
   {
@@ -122,7 +122,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   SK_ImGui_D3D12Ctx::FrameHeap* pHeap =
     &_imgui_d3d12.frame_heaps [pFrame->iBufferIdx];
 
-  auto descriptorHeaps =
+  auto& descriptorHeaps =
     pFrame->pRoot->descriptorHeaps;
 
   SK_ComPtr <ID3D12GraphicsCommandList> ctx =
@@ -780,9 +780,9 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
 
     // Create the input layout
     static D3D12_INPUT_ELEMENT_DESC local_layout [] = {
-      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->pos)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->uv)),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, static_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+      { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->pos)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->uv)),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+      { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
 
       psoDesc.InputLayout = {       local_layout, 3   };
@@ -1395,9 +1395,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
            typelessFootprintDst == DXGI_FORMAT_R16G16B16A16_TYPELESS )
       {
         const UINT src_row_pitch =      pSrc->PlacedFootprint.Footprint.Width *
-          (static_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintSrc) / 8));
+          (sk::narrow_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintSrc) / 8));
         const UINT dst_row_pitch =      pDst->PlacedFootprint.Footprint.Width *
-          (static_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintDst) / 8));
+          (sk::narrow_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintDst) / 8));
 
         if ( pSrc->PlacedFootprint.Footprint.RowPitch < src_row_pitch ||
              pDst->PlacedFootprint.Footprint.RowPitch < dst_row_pitch )
@@ -1826,7 +1826,7 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 }
 
 bool
-SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
+SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
@@ -1866,33 +1866,47 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void)
   return true;
 }
 
+void
+SK_SEH_FrameCtxDtor (SK_D3D12_RenderCtx::FrameCtx *pFrameCtx) noexcept
+{
+  __try {
+    pFrameCtx->pCmdList.Release           ();
+    pFrameCtx->pCmdAllocator.Release      ();
+    pFrameCtx->bCmdListRecording     = false;
+
+    pFrameCtx->pRenderOutput.Release      ();
+    pFrameCtx->hdr.pSwapChainCopy.Release ();
+
+    pFrameCtx->fence.Release ();
+    pFrameCtx->fence.value  = 0;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_LOGi0 (
+      L"COM Exception Raised during SK_D3D12_RenderCtx::FrameCtx dtor"
+    );
+  }
+}
+
 SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 {
   // Execute and wait for any cmds on the current pending swap,
   //   everything else can be destroyed with no sync.
-  if (                       this->pRoot          == nullptr ||
-       ! SK_ValidatePointer (this->pRoot->_pSwapChain, true) ||
-                             this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx )
+  if (                            this->pRoot          == nullptr ||
+       ! SK_SAFE_ValidatePointer (this->pRoot->_pSwapChain, true) ||
+                                  this->pRoot->_pSwapChain->GetCurrentBackBufferIndex () != iBufferIdx )
   {
     bCmdListRecording = false;
   }
 
-  wait_for_gpu               ();
+  wait_for_gpu        (    );
+  SK_SEH_FrameCtxDtor (this);
 
-  pCmdList.Release           ();
-  pCmdAllocator.Release      ();
-  bCmdListRecording     = false;
-
-  pRenderOutput.Release      ();
-  hdr.pSwapChainCopy.Release ();
-
-  fence.Release ();
-  fence.value  = 0;
-
-  if (fence.event != 0)
+  if (fence.event != nullptr)
   {
     SK_CloseHandle (fence.event);
-                    fence.event = 0;
+                    fence.event = nullptr;
   }
 }
 

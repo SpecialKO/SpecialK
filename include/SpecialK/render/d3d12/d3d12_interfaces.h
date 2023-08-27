@@ -523,7 +523,7 @@ struct SK_D3D12_RenderCtx {
       } barriers;
     } hdr;
 
-    bool wait_for_gpu   (void);
+    bool wait_for_gpu   (void) noexcept;
     bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
 	  void exec_cmd_list  (void);
 
