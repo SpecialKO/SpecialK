@@ -349,11 +349,12 @@ SK_Input_PreHookHID (void)
 // Raw Input
 //
 //////////////////////////////////////////////////////////////////////////////////
-std::vector <RAWINPUTDEVICE> raw_devices;   // ALL devices, this is the list as Windows would give it to the game
+SK_LazyGlobal <std::mutex>                   raw_device_view;
+SK_LazyGlobal <std::vector <RAWINPUTDEVICE>> raw_devices;   // ALL devices, this is the list as Windows would give it to the game
 
-std::vector <RAWINPUTDEVICE> raw_mice;      // View of only mice
-std::vector <RAWINPUTDEVICE> raw_keyboards; // View of only keyboards
-std::vector <RAWINPUTDEVICE> raw_gamepads;  // View of only game pads
+SK_LazyGlobal <std::vector <RAWINPUTDEVICE>> raw_mice;      // View of only mice
+SK_LazyGlobal <std::vector <RAWINPUTDEVICE>> raw_keyboards; // View of only keyboards
+SK_LazyGlobal <std::vector <RAWINPUTDEVICE>> raw_gamepads;  // View of only game pads
 
 struct
 {
@@ -380,18 +381,18 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any mice -- let's fix that.
-    if (raw_mice.empty ())
+    if (raw_mice->empty ())
     {
-      raw_devices.emplace_back (
+      raw_devices->emplace_back (
         RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
                          HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
-      raw_mice.emplace_back    (
+      raw_mice->emplace_back    (
         RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
                          HID_USAGE_GENERIC_MOUSE, 0x00, nullptr } );
       raw_overrides.mouse.legacy_messages = true;
     }
 
-    for (auto& it : raw_mice)
+    for (auto& it : raw_mice.get ())
     {
       if (raw_overrides.mouse.legacy_messages)
       {
@@ -422,7 +423,7 @@ SK_RawInput_GetMice (bool* pDifferent = nullptr)
     if (pDifferent != nullptr)
        *pDifferent  = false;
 
-    return raw_mice;
+    return raw_mice.get ();
   }
 }
 
@@ -437,18 +438,18 @@ SK_RawInput_GetKeyboards (bool* pDifferent = nullptr)
     std::vector <RAWINPUTDEVICE> overrides;
 
     // Aw, the game doesn't have any keyboards -- let's fix that.
-    if (raw_keyboards.empty ())
+    if (raw_keyboards->empty ())
     {
-      raw_devices.push_back   (
+      raw_devices->push_back   (
         RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
                          HID_USAGE_GENERIC_KEYBOARD, 0x00, nullptr } );
-      raw_keyboards.push_back (
+      raw_keyboards->push_back (
         RAWINPUTDEVICE { HID_USAGE_PAGE_GENERIC,
                          HID_USAGE_GENERIC_KEYBOARD, 0x00, nullptr } );
       raw_overrides.keyboard.legacy_messages = true;
     }
 
-    for (auto& it : raw_keyboards)
+    for (auto& it : raw_keyboards.get ())
     {
       if (raw_overrides.keyboard.legacy_messages)
       {
@@ -501,9 +502,9 @@ SK_RawInput_EnableLegacyMouse (bool enable)
     std::vector <RAWINPUTDEVICE> mice =
       SK_RawInput_GetMice (&different);
 
-    for (auto& it : raw_keyboards) device_override.push_back (it);
-    for (auto& it : raw_gamepads)  device_override.push_back (it);
-    for (auto& it : mice)          device_override.push_back (it);
+    for (auto& it : raw_keyboards.get ()) device_override.push_back (it);
+    for (auto& it : raw_gamepads. get ()) device_override.push_back (it);
+    for (auto& it : mice)                 device_override.push_back (it);
 
 //    dll_log.Log (L"%lu mice are now legacy...", mice.size ());
 
@@ -527,8 +528,8 @@ SK_RawInput_RestoreLegacyMouse (void)
     raw_overrides.mouse.active = false;
 
     SK_RegisterRawInputDevices (
-      raw_devices.data (),
-        static_cast <UINT> (raw_devices.size ()),
+      raw_devices->data (),
+        static_cast <UINT> (raw_devices->size ()),
           sizeof (RAWINPUTDEVICE)
     );
   }
@@ -549,9 +550,9 @@ SK_RawInput_EnableLegacyKeyboard (bool enable)
     std::vector <RAWINPUTDEVICE> keyboards =
       SK_RawInput_GetKeyboards (&different);
 
-    for (auto& it : keyboards)    device_override.push_back (it);
-    for (auto& it : raw_gamepads) device_override.push_back (it);
-    for (auto& it : raw_mice)     device_override.push_back (it);
+    for (auto& it : keyboards)           device_override.push_back (it);
+    for (auto& it : raw_gamepads.get ()) device_override.push_back (it);
+    for (auto& it : raw_mice.    get ()) device_override.push_back (it);
 
     SK_RegisterRawInputDevices ( device_override.data (),
              static_cast <UINT> (device_override.size ()),
@@ -571,8 +572,8 @@ SK_RawInput_RestoreLegacyKeyboard (void)
   if (raw_overrides.keyboard.active)
   {   raw_overrides.keyboard.active = false;
 
-    SK_RegisterRawInputDevices ( raw_devices.data (),
-             static_cast <UINT> (raw_devices.size ()),
+    SK_RegisterRawInputDevices ( raw_devices->data (),
+             static_cast <UINT> (raw_devices->size ()),
                    sizeof (RAWINPUTDEVICE)
     );
   }
@@ -582,7 +583,7 @@ std::vector <RAWINPUTDEVICE>&
 SK_RawInput_GetRegisteredGamepads (void)
 {
   return
-    raw_gamepads;
+    raw_gamepads.get ();
 }
 
 
@@ -591,11 +592,11 @@ SK_RawInput_GetRegisteredGamepads (void)
 void
 SK_RawInput_ClassifyDevices (void)
 {
-  raw_mice.clear      ();
-  raw_keyboards.clear ();
-  raw_gamepads.clear  ();
+  raw_mice->clear      ();
+  raw_keyboards->clear ();
+  raw_gamepads->clear  ();
 
-  for (auto& it : raw_devices)
+  for (auto& it : raw_devices.get ())
   {
     if ((it).usUsagePage == HID_USAGE_PAGE_GENERIC)
     {
@@ -606,7 +607,7 @@ SK_RawInput_ClassifyDevices (void)
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
-          raw_mice.push_back       (it);
+          raw_mice->push_back       (it);
           break;
 
         case HID_USAGE_GENERIC_KEYBOARD:
@@ -614,7 +615,7 @@ SK_RawInput_ClassifyDevices (void)
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
-          raw_keyboards.push_back  (it);
+          raw_keyboards->push_back  (it);
           break;
 
         case HID_USAGE_GENERIC_JOYSTICK: // Joystick
@@ -623,7 +624,7 @@ SK_RawInput_ClassifyDevices (void)
                        it.hwndTarget, it.dwFlags ),
                      L" RawInput " );
 
-          raw_gamepads.push_back   (it);
+          raw_gamepads->push_back   (it);
           break;
 
         default:
@@ -640,17 +641,17 @@ SK_RawInput_ClassifyDevices (void)
 UINT
 SK_RawInput_PopulateDeviceList (void)
 {
-  raw_devices.clear   ( );
-  raw_mice.clear      ( );
-  raw_keyboards.clear ( );
-  raw_gamepads.clear  ( );
+  raw_devices->clear   ( );
+  raw_mice->clear      ( );
+  raw_keyboards->clear ( );
+  raw_gamepads->clear  ( );
 
   DWORD            dwLastError = GetLastError ();
   RAWINPUTDEVICE*  pDevices    = nullptr;
-  UINT            uiNumDevices = 0;
+  UINT            uiNumDevices = 512;
 
   UINT ret =
-    SK_GetRegisteredRawInputDevices ( pDevices,
+    SK_GetRegisteredRawInputDevices ( nullptr,
                                         &uiNumDevices,
                                           sizeof (RAWINPUTDEVICE) );
 
@@ -670,10 +671,11 @@ SK_RawInput_PopulateDeviceList (void)
                                      &uiNumDevices,
                                        sizeof (RAWINPUTDEVICE) );
 
-    raw_devices.clear ();
+    raw_devices->clear ();
+    raw_devices->reserve (uiNumDevices);
 
     for (UINT i = 0; i < uiNumDevices; i++)
-      raw_devices.push_back (pDevices [i]);
+      raw_devices->push_back (pDevices [i]);
 
     SK_RawInput_ClassifyDevices ();
   }
@@ -689,54 +691,52 @@ NtUserGetRegisteredRawInputDevices_Detour (
   _Inout_   PUINT           puiNumDevices,
   _In_      UINT            cbSize )
 {
-  // OOPS?!
-  if (puiNumDevices == nullptr)
-    return static_cast <UINT> (-1);
-
-  UNREFERENCED_PARAMETER (cbSize);
-
   SK_LOG_FIRST_CALL
 
-  assert (cbSize == sizeof (RAWINPUTDEVICE));
+  static std::mutex getDevicesMutex;
 
-  // On the first call to this function, we will need to query this stuff.
-  //static bool init = false;
+  std::scoped_lock <std::mutex>
+          get_lock (getDevicesMutex);
 
-  //if (! init)
-  //{
-    SK_RawInput_PopulateDeviceList ();
-    //init = true;
-  //}
+  std::scoped_lock <std::mutex>
+         view_lock (raw_device_view);
 
+  // OOPS?!
+  if ( cbSize != sizeof (RAWINPUTDEVICE) || puiNumDevices == nullptr ||
+                     (pRawInputDevices &&  *puiNumDevices == 0) )
+  {
+    SetLastError (ERROR_INVALID_PARAMETER);
 
-  if (*puiNumDevices < sk::narrow_cast <UINT> (raw_devices.size ()))
-  {   *puiNumDevices = sk::narrow_cast <UINT> (raw_devices.size ());
-
-    SK_SetLastError (ERROR_INSUFFICIENT_BUFFER);
-
-    return static_cast <UINT> (-1);
+    return ~0U;
   }
 
-  unsigned int idx = 0;
+  // On the first call to this function, we will need to query this stuff.
+  static bool        init         = false;
+  if (std::exchange (init, true) == false)
+  {
+    SK_RawInput_PopulateDeviceList ();
+  }
+
+  if (*puiNumDevices < sk::narrow_cast <UINT> (raw_devices->size ()))
+  {   *puiNumDevices = sk::narrow_cast <UINT> (raw_devices->size ());
+
+    SetLastError (ERROR_INSUFFICIENT_BUFFER);
+
+    return ~0U;
+  }
+
+  unsigned int idx      = 0;
+  unsigned int num_devs = sk::narrow_cast <UINT> (raw_devices->size ());
 
   if (pRawInputDevices != nullptr)
   {
-    for (auto& it : raw_devices)
+    for (idx = 0 ; idx < num_devs ; ++idx)
     {
-      if (idx < *puiNumDevices)
-        pRawInputDevices [idx] = it;
-
-      idx++;
+      pRawInputDevices [idx] = raw_devices.get ()[idx];
     }
   }
 
-  else
-  {
-    idx +=
-      sk::narrow_cast <unsigned int> (raw_devices.size ());
-  }
-
-  return idx;
+  return num_devs;
 }
 
 BOOL
@@ -761,7 +761,15 @@ NtUserRegisterRawInputDevices_Detour (
                                     cbSize );
   }
 
-  raw_devices.clear ();
+  static std::mutex registerDevicesMutex;
+
+  std::scoped_lock <std::mutex>
+     register_lock (registerDevicesMutex);
+
+  std::scoped_lock <std::mutex>
+         view_lock (raw_device_view);
+
+  raw_devices->clear ();
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -818,7 +826,7 @@ NtUserRegisterRawInputDevices_Detour (
           pDevices [i].dwFlags     &= ~RIDEV_CAPTUREMOUSE; }
 #endif
 
-      raw_devices.push_back (pDevices [i]);
+      raw_devices->push_back (pDevices [i]);
 
       if ( pDevices [i].hwndTarget != nullptr          &&
            pDevices [i].hwndTarget != game_window.hWnd &&
@@ -951,7 +959,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
     // Common usage involves calling this with a wrong sized buffer, then calling it again...
     //   early-out if it returns -1.
-    if (static_cast <INT> (temp_ret) < 0 || max_items == 0)
+    if (sk::narrow_cast <INT> (temp_ret) < 0 || max_items == 0)
       return temp_ret;
 
     auto* pItem =
