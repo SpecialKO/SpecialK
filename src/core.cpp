@@ -2581,8 +2581,40 @@ SK_ShutdownCore (const wchar_t* backend)
 
     if (config.system.return_to_skif)
     {
-      HWND hWndExisting =
+      static HWND hWndExisting =
         FindWindow (L"SK_Injection_Frontend", nullptr);
+
+      if (hWndExisting == nullptr)
+      {
+        // This isn't the correct window since SKIF was overhauled, but
+        //   it at least gives us the process that owns the window we need...
+        hWndExisting =
+          FindWindow (L"SKIF_NotificationIcon", nullptr);
+
+        DWORD                                    dwPidOfSKIF = 0;
+        GetWindowThreadProcessId (hWndExisting, &dwPidOfSKIF);
+
+        EnumWindows ( []( HWND   hWnd,
+                          LPARAM lParam ) -> BOOL
+        {
+          DWORD                                dwPID = 0;
+          if (GetWindowThreadProcessId (hWnd, &dwPID))
+          {
+            if (dwPID != (DWORD)lParam)
+              return TRUE;
+
+            if (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
+            {
+              // Success, we found the app window!
+              hWndExisting = hWnd;
+
+              return FALSE;
+            }
+          }
+
+          return TRUE;
+        }, (LPARAM)dwPidOfSKIF);
+      }
 
       if (hWndExisting != nullptr && IsWindow (hWndExisting))
       {
