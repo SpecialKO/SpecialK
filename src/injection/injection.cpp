@@ -2606,10 +2606,10 @@ void SK_Inject_BroadcastExitNotify (bool force)
 
   if (hInjectExitAckEx.isValid ())
   {
+    SK_Inject_WakeUpSKIF ();
+
     SetEvent (hInjectExitAckEx.m_h);
   }
-
-  SK_Inject_WakeUpSKIF ();
 
   if (! force)
   {
@@ -2625,6 +2625,8 @@ void SK_Inject_BroadcastExitNotify (bool force)
 
   if (hInjectExitAck.isValid ())
   {
+    SK_Inject_WakeUpSKIF ();
+
     SetEvent (hInjectExitAck.m_h);
   }
 }
@@ -2639,10 +2641,10 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
 
   if (hInjectAckEx.isValid ())
   {
+    SK_Inject_WakeUpSKIF ();
+
     SetEvent (hInjectAckEx.m_h);
   }
-
-  SK_Inject_WakeUpSKIF ();
 
   if (! force)
   {
@@ -2658,6 +2660,8 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
 
   if (hInjectAck.isValid ())
   {
+    SK_Inject_WakeUpSKIF ();
+
     SetEvent (hInjectAck.m_h);
   }
 }
