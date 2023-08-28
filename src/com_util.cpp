@@ -252,6 +252,8 @@ DWORD
 WINAPI
 SK_WMI_ServerThread (LPVOID lpUser)
 {
+  std::ignore = lpUser;
+
   if (ReadAcquire (&COM::base.wmi.init))
   {
     SK_Thread_CloseSelf ();
@@ -259,14 +261,37 @@ SK_WMI_ServerThread (LPVOID lpUser)
     return 0;
   }
 
-
   SetCurrentThreadDescription (L"[SK] WMI Server");
 
+  auto WMI_CLEANUP = [&](void) -> DWORD
+  {
+    if (COM::base.wmi.pNameSpace != nullptr)
+    {
+      COM::base.wmi.pNameSpace->Release ();
+      COM::base.wmi.pNameSpace   = nullptr;
+    }
+
+    if (COM::base.wmi.pWbemLocator != nullptr)
+    {
+      COM::base.wmi.pWbemLocator->Release ();
+      COM::base.wmi.pWbemLocator   = nullptr;
+    }
+
+    if (COM::base.wmi.bstrNameSpace != nullptr)
+    {
+      SysFreeString (COM::base.wmi.bstrNameSpace);
+      COM::base.wmi.bstrNameSpace = nullptr;
+    }
+
+    InterlockedExchange (&COM::base.wmi.init, 0);
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  };
+
   SK_AutoCOMInit auto_com;
-
-  UNREFERENCED_PARAMETER (lpUser);
-
-  HRESULT hr;
+  HRESULT        hr;
 
   if (FAILED (hr = CoCreateInstance (
                      CLSID_WbemLocator,
@@ -281,7 +306,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
                   __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
                 L" WMI Wbem " );
 
-    goto WMI_CLEANUP;
+    return WMI_CLEANUP ();
   }
 
   // Connect to the desired namespace.
@@ -294,7 +319,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
                 L" WMI Wbem " );
 
     hr = E_OUTOFMEMORY;
-    goto WMI_CLEANUP;
+
+    return WMI_CLEANUP ();
   }
 
   if (FAILED (hr = COM::base.wmi.pWbemLocator->ConnectServer (
@@ -313,7 +339,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
                   __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
                 L" WMI Wbem " );
 
-    goto WMI_CLEANUP;
+    return WMI_CLEANUP ();
   }
 
   // Set the proxy so that impersonation of the client occurs.
@@ -332,7 +358,8 @@ SK_WMI_ServerThread (LPVOID lpUser)
     SK_LOG0 ( ( L"Failure to set proxy impersonation (%s:%d) -- %s",
                   __FILEW__, __LINE__, _com_error (hr).ErrorMessage () ),
                 L" WMI Wbem " );
-    goto WMI_CLEANUP;
+
+    return WMI_CLEANUP ();
   }
 
   SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
@@ -344,30 +371,7 @@ SK_WMI_ServerThread (LPVOID lpUser)
                                       FALSE, INFINITE, QS_ALLEVENTS ) != WAIT_OBJECT_0 )
     ;
 
-WMI_CLEANUP:
-  if (COM::base.wmi.pNameSpace != nullptr)
-  {
-    COM::base.wmi.pNameSpace->Release ();
-    COM::base.wmi.pNameSpace   = nullptr;
-  }
-
-  if (COM::base.wmi.pWbemLocator != nullptr)
-  {
-    COM::base.wmi.pWbemLocator->Release ();
-    COM::base.wmi.pWbemLocator   = nullptr;
-  }
-
-  if (COM::base.wmi.bstrNameSpace != nullptr)
-  {
-    SysFreeString (COM::base.wmi.bstrNameSpace);
-    COM::base.wmi.bstrNameSpace = nullptr;
-  }
-
-  InterlockedExchange (&COM::base.wmi.init, 0);
-
-  SK_Thread_CloseSelf ();
-
-  return 0;
+  return WMI_CLEANUP ();
 }
 
 static HMODULE hModCOMBase = nullptr;

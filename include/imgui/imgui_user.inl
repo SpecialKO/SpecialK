@@ -785,7 +785,7 @@ MessageProc ( const HWND&   hWnd,
 
   auto ActivateWindow = [&](bool active = false)
   {
-    (void)active;
+    std::ignore = active;
   };
 
   switch (msg)
