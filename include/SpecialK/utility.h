@@ -341,11 +341,9 @@ static inline auto
 #define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b)           ? (l) : (r)
 
 
-#define SK_LOG_FIRST_CALL { bool called = false;                                       \
-                     SK_RunOnce (called = true);                                       \
-                             if (called) {                                             \
+#define SK_LOG_FIRST_CALL { SK_RunOnce ({                                             \
         SK_LOG0 ( (L"[!] > First Call: %34s", __FUNCTIONW__),      __SK_SUBSYSTEM__); \
-        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); } }
+        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); }); }
 
 
 void SK_ImGui_Warning          (const wchar_t* wszMessage);
