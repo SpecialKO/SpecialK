@@ -1,5 +1,5 @@
 //
-// Copyright 2021-2022 Andon "Kaldaien" Coleman
+// Copyright 2021-2023 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -28,7 +28,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2.1"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2.2"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -1088,7 +1088,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
             if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "wb");
                       fLastKnownController != nullptr)
             {
-              fwrite (&__DInput8.last_good, sizeof (di8.last_good), 1,
+              fwrite (&di8.last_good, sizeof (di8.last_good), 1,
                       fLastKnownController);
               fclose (fLastKnownController);
             }
