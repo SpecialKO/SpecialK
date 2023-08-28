@@ -235,7 +235,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     return ~0U;
   }
 
-  if (cbSizeHeader != sizeof (RAWINPUTHEADER))
+  if (cbSizeHeader != sizeof (RAWINPUTHEADER) || pcbSize == nullptr)
   {
     SetLastError (ERROR_INVALID_PARAMETER);
     return ~0U;
@@ -253,11 +253,16 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   auto pRawCtx =
     pTLS->raw_input.getPtr ();
 
+  if (pRawCtx == nullptr)
+  {
+    SetLastError (ERROR_OUTOFMEMORY);
+    return ~0U;
+  }
+
   UINT size       = 0U;
   bool from_cache = false;
 
-  if ( pRawCtx->cached_input.hRawInput == hRawInput &&
-                               pcbSize != nullptr )
+  if ( pRawCtx->cached_input.hRawInput == hRawInput )
   {
     SK_LOGs1 (     L" RawInput ",
       L"Cache Hit for RawInput Handle %p (on tid=%x)",
