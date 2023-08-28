@@ -2184,6 +2184,7 @@ auto DeclKeybind =
       case SK_GAME_ID::Sacred2:
         config.display.force_windowed      = true; // Fullscreen is not particularly well
                                                    //   supported in this game
+        [[fallthrough]];
       case SK_GAME_ID::Sacred:
         config.render.dxgi.safe_fullscreen = true; // dgVoodoo compat
         config.steam.force_load_steamapi   = true; // Not safe in all games, but it is here.
@@ -2631,8 +2632,9 @@ auto DeclKeybind =
         SK_D3D11_DeclHUDShader_Vtx (0x48dd4bc3);
         SK_D3D11_DeclHUDShader_Vtx (0x54c0d366);
         SK_D3D11_DeclHUDShader_Vtx (0xb943178b);
+                                                 [[fallthrough]];
 
-      case SK_GAME_ID::YakuzaKiwami:
+      case SK_GAME_ID::YakuzaKiwami:             [[fallthrough]];
       case SK_GAME_ID::YakuzaUnderflow:
       {
         if (! IsProcessDPIAware ())
@@ -3874,7 +3876,8 @@ auto DeclKeybind =
         mi        = {         };
         mi.cbSize = sizeof (mi);
 
-      if (GetMonitorInfoW (hMonitor, &mi))
+      if ( GetMonitorInfoW (hMonitor, &mi) && pathArray != nullptr &&
+                                              modeArray != nullptr )
       {
         float bestIntersectArea = -1.0f;
 
@@ -3890,7 +3893,8 @@ auto DeclKeybind =
           auto *path =
             &pathArray [pathIdx];
 
-          if (path->flags & DISPLAYCONFIG_PATH_ACTIVE)
+          if ( path != nullptr &&
+              (path->flags & DISPLAYCONFIG_PATH_ACTIVE) )
           {
             DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
               &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
@@ -3947,7 +3951,8 @@ auto DeclKeybind =
     HMONITOR hMonitor =
       _PathDeviceToHMONITOR [config.display.monitor_path_ccd];
 
-    if (GetMonitorInfoW (hMonitor, &mi))
+    if (                  hMonitor != nullptr &&
+         GetMonitorInfoW (hMonitor, &mi) )
     {
       int monitor_idx = 0;
 
@@ -5494,6 +5499,9 @@ SK_MakeKeyMask ( const SHORT vKey,
 void
 SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
 {
+  if (wszNameToFormalize == nullptr)
+    return;
+
   wchar_t*                pwszName = wszNameToFormalize;
               CharUpperW (pwszName);
    pwszName = CharNextW  (pwszName);
@@ -5571,6 +5579,9 @@ SK_Keybind::parse (void)
   static const auto _PushVirtualToHuman =
   [] (BYTE vKey_, const wchar_t* wszHumanName)
   {
+    if (! wszHumanName)
+      return;
+
     auto& pair_builder =
       virtualToHuman [vKey_];
 
@@ -5581,6 +5592,9 @@ SK_Keybind::parse (void)
   static const auto _PushVirtualToLocal =
   [] (BYTE vKey_, const wchar_t* wszHumanName)
   {
+    if (! wszHumanName)
+      return;
+
     auto& pair_builder =
       virtualToLocal [vKey_];
 
@@ -5591,6 +5605,9 @@ SK_Keybind::parse (void)
   static const auto _PushHumanToVirtual =
   [] (const wchar_t* wszHumanName, BYTE vKey_)
   {
+    if (! wszHumanName)
+      return;
+
     humanToVirtual.emplace (
       hash_string (wszHumanName),
         vKey_
@@ -5996,6 +6013,9 @@ SK_AppCache_Manager::getAppNameFromID (AppId64_t uiAppID) const
 std::wstring
 SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
 {
+  if (wszPath == nullptr)
+    return L"";
+
   const AppId64_t uiAppID =
     getAppIDFromPath (wszPath);
 
@@ -6013,6 +6033,10 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
                                      const wchar_t* wszAppName,
                                           AppId64_t uiAppID )
 {
+  if ( wszFullPath == nullptr ||
+       wszAppName  == nullptr )
+    return false;
+
   if (app_cache_db == nullptr)
     return false;
 
@@ -6197,17 +6221,20 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
 std::wstring
 SK_AppCache_Manager::getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const
 {
-  if (const wchar_t *wszEpicAppSwitch  = StrStrIW (wszCmdLine, L"-epicapp=");
-                     wszEpicAppSwitch != nullptr)
+  if (wszCmdLine != nullptr)
   {
-    wchar_t wszEpicApp [65] = { };
-
-    if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
+    if (const wchar_t *wszEpicAppSwitch  = StrStrIW (wszCmdLine, L"-epicapp=");
+                       wszEpicAppSwitch != nullptr)
     {
-      return
-        getConfigPathForEpicApp (
-          SK_WideCharToUTF8 (wszEpicApp).c_str ()
-        );
+      wchar_t wszEpicApp [65] = { };
+
+      if (1 == swscanf (wszEpicAppSwitch, L"-epicapp=%ws ", wszEpicApp))
+      {
+        return
+          getConfigPathForEpicApp (
+            SK_WideCharToUTF8 (wszEpicApp).c_str ()
+          );
+      }
     }
   }
 
@@ -6237,7 +6264,7 @@ static const
 std::wstring
 SK_AppCache_Manager::getAppNameFromEpicApp (const char* szEpicApp) const
 {
-  if (app_cache_db == nullptr)
+  if (app_cache_db == nullptr || szEpicApp == nullptr)
     return L"";
 
   const iSK_INISection&
