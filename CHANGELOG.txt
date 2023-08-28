@@ -1,4 +1,8 @@
-﻿23.8.28
+﻿23.8.28.1
+=========
+ + Fixed GitHub Issue #81, imported .ini file parse failure on pre-mature EOF
+
+23.8.28
 =======
  + Added 3rd level of cache hierarchy for textures (L3Hash) to reduce D3D11
      texture caching overhead in games that load textures multi-threaded.
@@ -7,6 +11,10 @@
     CacheUsingL3Hash={true|false}, Default: true
 
      * This potentially uses more CPU memory, but it should be negligible.
+
+23.8.27.3
+=========
+ + Changed default HDR Profile 0 gamma from 0.965 to 0.95
 
 23.8.27.2
 =========

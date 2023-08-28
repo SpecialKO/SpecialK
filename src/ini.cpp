@@ -83,6 +83,12 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 bool
 iSK_INI::reload (const wchar_t *fname)
 {
+  SK_TLS* pTLS =
+    SK_TLS_Bottom ();
+  
+  if (pTLS == nullptr)
+    return false; // Out of Memory
+
   if (fname == nullptr)
   {
     SK_ReleaseAssert (name.size  () > 0)
@@ -211,24 +217,19 @@ iSK_INI::reload (const wchar_t *fname)
       char*           start_addr =
       (reinterpret_cast <char *> (data.data ())) + offset;
 
-      auto*           string =
-        new (std::nothrow) char [real_size + 3] { };
+      char*           string =
+        pTLS->scratch_memory->ini.utf8_string.alloc (real_size + 3, true);
 
       SK_ReleaseAssert (string != nullptr)
-
-      if (string != nullptr)
-      {
-        memcpy (string, start_addr, real_size);
-      }
-
-      data.clear ();
 
       if (string == nullptr)
       {
         return false;
       }
 
-      unsigned int converted_size =
+      memcpy (string, start_addr, real_size);
+
+      const size_t converted_size =
         std::max ( 0,
                      MultiByteToWideChar ( CP_UTF8, 0, string,
                                              real_size, nullptr, 0 )
@@ -241,9 +242,6 @@ iSK_INI::reload (const wchar_t *fname)
                                                      fname ),
                     L"INI Parser" );
 
-        delete [] string;
-                  string = nullptr;
-
         return false;
       }
 
@@ -254,15 +252,12 @@ iSK_INI::reload (const wchar_t *fname)
 
       if (data.size () > 0)
       {
-        MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
-                             data.data (),   converted_size );
+        MultiByteToWideChar ( CP_UTF8, 0, string,  real_size,
+                                data.data (), converted_size );
 
         //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
                         //fname ), L"INI Parser" );
       }
-
-      delete [] string;
-                string = nullptr;
 
       // No Byte-Order Marker
       bom_size  = 0;
@@ -270,17 +265,12 @@ iSK_INI::reload (const wchar_t *fname)
       encoding_ = INI_UTF8;
     }
 
-    parse  ();
+    parse ();
 
     return true;
   }
 
-  else
-  {
-    data.clear ();
-
-    return false;
-  }
+  return false;
 }
 
 iSK_INI::iSK_INI (const wchar_t* filename)
@@ -530,153 +520,142 @@ iSK_INI::parse (void)
   // TODO: Re-write to fallback to heap allocated memory
   //         if TLS is not working.
   if (pTLS == nullptr)
-    return;
+    return; // Out of Memory
 
-  size_t len = 0;
+  if (sk::narrow_cast <size_t> (bom_size) >= data.size ())
+    return; // Invalid Data
 
-  
-  if ( data.size () > 0 &&
-        ( len =
-      wcsnlen (&data [bom_size], data.size ()) ) > 0 )
+  if (data.at (0) == L'\0')
+    return; // Empty String
+
+  size_t len =
+    wcsnlen_s (&data [bom_size], data.size () - bom_size);
+
+  if (len == 0)
+    return; // Empty String (except the BOM...?)
+
+  wchar_t* pStart = &data [bom_size];
+  wchar_t* pEnd   = pStart;
+
+  // We don't want CrLf, just Lf
+  bool strip_cr = false;
+
+  // Find if the file has any Cr's
+  for (size_t i = 0; i < len && (! strip_cr); i++)
   {
-    std::wstring temp_name;
-                 temp_name.reserve (32);
+    strip_cr =
+     ( *pEnd == L'\r' );
 
-    // We don't want CrLf, just Lf
-    bool strip_cr = false;
+    pEnd =
+      CharNextW (pEnd);
+  }
 
-    wchar_t* wszStrip =
-      &data [bom_size];
+  pEnd = pStart;
 
-    // Find if the file has any Cr's
+  if (strip_cr)
+  {
+    wchar_t* pNext = pStart;
+    wchar_t  wc    = *pNext;
+
     for (size_t i = 0; i < len; i++)
     {
-      if (*wszStrip == L'\r')
+      if (wc != L'\r')
       {
-        strip_cr = true;
-        break;
-      }
+        *pEnd = wc;
+         pEnd = CharNextW (pEnd);
+      } pNext = CharNextW (pNext);
 
-      wszStrip = CharNextW (wszStrip);
+      wc = *pNext;
     }
 
-    wchar_t* wszDataEnd =
-      &data [bom_size];
+    ZeroMemory (pEnd, (CharNextW (pNext) - pEnd) *
+                                  sizeof (*pEnd));
 
-    if (strip_cr)
+    len =
+      wcsnlen_s (pStart, (pEnd - pStart) /
+                        sizeof (*pStart));
+  }
+
+  else
+  {
+    for (size_t i = 0; i < len; i++)
     {
-      wchar_t* wszDataNext =
-        &data [bom_size];
+      pEnd = CharNextW (pEnd);
+    }
+  }
 
-      for (size_t i = 0; i < len; i++)
-      {
-        if (*wszDataNext != L'\r')
-        {
-          *wszDataEnd = *wszDataNext;
-           wszDataEnd = CharNextW (wszDataEnd);
-        }
+  wchar_t* wszSecondToLast =
+    CharPrevW (pStart, pEnd);
 
-        wszDataNext = CharNextW (wszDataNext);
-      }
+  wchar_t* begin           = nullptr;
+  wchar_t* end             = nullptr;
 
-      const wchar_t* wszNext =
-        CharNextW (wszDataNext);
-
-      RtlSecureZeroMemory ( wszDataEnd,
-                        reinterpret_cast <uintptr_t> (wszNext) -
-                        reinterpret_cast <uintptr_t> (wszDataEnd) );
-
-      len =
-        wcsnlen (&data [bom_size], data.size ());
+  for ( wchar_t* i = pStart;
+                 i < pEnd &&
+                 i != nullptr; i = CharNextW (i) )
+  {
+    if ( *i == L'[' &&
+         (i == pStart || *CharPrevW (pStart, i) == L'\n') )
+    {
+      begin =
+        CharNextW (i);
     }
 
-    else
+    if (   *i == L']' &&
+           (i == wszSecondToLast || *CharNextW (i) == L'\n') )
+    { end = i; }
+
+    if ( begin != nullptr &&
+         end   != nullptr && begin < end )
     {
-      for (size_t i = 0; i < len; i++)
-      {
-        wszDataEnd = CharNextW (wszDataEnd);
-      }
-    }
-
-    wchar_t* wszSecondToLast =
-      CharPrevW (&data [bom_size], wszDataEnd);
-
-    wchar_t* begin           = nullptr;
-    wchar_t* end             = nullptr;
-    wchar_t* wszDataCur      = &data [bom_size];
-
-    for ( wchar_t* i = wszDataCur;
-                   i < wszDataEnd &&
-                   i != nullptr;     i = CharNextW (i) )
-    {
-      if ( *i == L'[' &&
-           (i == &data [bom_size] || *CharPrevW (&data [bom_size], i) == L'\n') )
-      {
-        begin =
-          CharNextW (i);
-      }
-
-      if (   *i == L']' &&
-             (i == wszSecondToLast || *CharNextW (i) == L'\n') )
-      { end = i; }
-
-      if ( begin != nullptr  &&
-           end   != nullptr  &&  begin < end )
-      {
-        size_t   sec_len =        wcrlen (begin, end);
-        auto*    sec_name =
+      size_t     sec_len  = wcrlen (begin, end);
+      auto*      sec_name =
                  pTLS->scratch_memory->ini.sec.alloc
                                        (   sec_len + 2, true);
       wcsncpy_s (sec_name,                 sec_len + 1,
                                            begin, _TRUNCATE);
 
-        wchar_t* start  = CharNextW (CharNextW (end));
-        wchar_t* finish = start;
+      wchar_t* start  = CharNextW (CharNextW (end));
+      wchar_t* finish = start;
+      bool     eof    = false;
 
-        bool eof = false;
-        for (wchar_t* j = start; j <= wszDataEnd; j = CharNextW (j))
+      for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
+      {
+        if (j == pEnd)
         {
-          if (j == wszDataEnd)
-          {
-            finish = j;
-            eof    = true;
-            break;
-          }
-
-          wchar_t *wszPrev = nullptr;
-
-          if (*j == L'[' && (*(wszPrev = CharPrevW (start, j)) == L'\n'))
-          {
-            finish = wszPrev;
-            break;
-          }
+          finish = j;
+          eof    = true;
+          break;
         }
 
-        temp_name.assign (sec_name);
-
-        iSK_INISection
-                section ( temp_name );
-        Process_Section ( section,
-                            start, finish,
-                              &pTLS );
-
-        ordered_sections.emplace_back (
-               &sections.emplace      (section.name,
-                                       section).first->second
-                                      );
-
-        if (eof)
+        if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
+                    *(wszPrev = CharPrevW (start, j)) == L'\n' )
+        {
+          finish = wszPrev;
           break;
-
-        i = finish;
-
-        end   = nullptr;
-        begin = nullptr;
+        }
       }
+
+      iSK_INISection
+              section ( sec_name );
+      Process_Section ( section,
+                          start, finish,
+                            &pTLS );
+
+      ordered_sections.emplace_back (
+             &sections.emplace      (section.name,
+                                     section).first->second
+                                    );
+
+      if (eof)
+        break;
+
+      i = finish;
+
+      end   = nullptr;
+      begin = nullptr;
     }
   }
-
-
 
   //if (crc32_ == 0x0)
   {
@@ -730,169 +709,162 @@ iSK_INI::import (const wchar_t* import_data)
     SK_TLS_Bottom ();
 
   if (pTLS == nullptr)
-    return;
+    return; // Out of Memory
 
-  wchar_t* wszImport =
-    _wcsdup (import_data);
+  if (import_data == nullptr)
+    return; // Invalid Pointer
 
-  if (wszImport != nullptr)
+  if (*import_data == L'\0')
+    return; // Empty String
+
+  std::wstring      import_wstr (import_data);
+  wchar_t* pStart = import_wstr.data ();
+  wchar_t* pEnd   = pStart;
+
+  if (pStart == nullptr)
+    return; // Out of Memory
+
+  size_t len =
+    import_wstr.length ();
+
+  // We don't want CrLf, just Lf
+  bool strip_cr = false;
+
+  // Find if the file has any Cr's
+  for (size_t i = 0; i < len && (! strip_cr); i++)
   {
-    std::wstring temp_name;
-                 temp_name.reserve (32);
+    strip_cr =
+     ( *pEnd == L'\r' );
 
-    int len =
-      lstrlenW (wszImport);
+    pEnd =
+      CharNextW (pEnd);
+  }
 
-    // We don't want CrLf, just Lf
-    bool strip_cr = false;
+  pEnd = pStart;
 
-    wchar_t* wszStrip =
-      &wszImport [0];
+  if (strip_cr)
+  {
+    wchar_t* pNext = pStart;
+    wchar_t  wc    = *pNext;
 
-    // Find if the file has any Cr's
-    for (int i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
     {
-      if (*wszStrip == L'\r')
+      if (wc != L'\r')
       {
-        strip_cr = true;
-        break;
-      }
+        *pEnd = wc;
+         pEnd = CharNextW (pEnd);
+      } pNext = CharNextW (pNext);
 
-      wszStrip =
-        CharNextW (wszStrip);
+      wc = *pNext;
     }
 
-    wchar_t* wszImportEnd =
-      &wszImport [0];
+    ZeroMemory (pEnd, (CharNextW (pNext) - pEnd) *
+                                  sizeof (*pEnd));
 
-    if (strip_cr)
+    len =
+      wcsnlen_s (pStart, (pEnd - pStart) /
+                        sizeof (*pStart));
+  }
+
+  else
+  {
+    for (size_t i = 0; i < len; i++)
     {
-      wchar_t* wszImportNext =
-        &wszImport [0];
-
-      for (int i = 0; i < len; i++)
-      {
-        if (*wszImportNext != L'\r')
-        {
-          *wszImportEnd = *wszImportNext;
-           wszImportEnd = CharNextW (wszImportEnd);
-        }
-
-        wszImportNext   = CharNextW (wszImportNext);
-      }
-
-      const wchar_t* wszNext =
-        CharNextW (wszImportNext);
-
-      RtlSecureZeroMemory ( wszImportEnd,
-                        reinterpret_cast <uintptr_t> (wszNext) -
-                        reinterpret_cast <uintptr_t> (wszImportEnd) );
-
-      len =
-        lstrlenW (wszImport);
-    }
-
-    else
-    {
-      for (int i = 0; i < (len - 1); i++)
-      {
-        wszImportEnd = CharNextW (wszImportEnd);
-      }
-    }
-
-    wchar_t* wszSecondToLast =
-      CharPrevW (wszImport, wszImportEnd);
-
-    wchar_t* begin           = nullptr;
-    wchar_t* end             = nullptr;
-
-    wchar_t* wszImportCur    = &wszImport [0];
-
-    for (wchar_t* i = wszImportCur; i < wszImportEnd && i != nullptr; i = CharNextW (i))
-    {
-      if (*i == L'[' && (i == wszImport || *CharPrevW (&wszImport [0], i) == L'\n'))
-      {
-        begin = CharNextW (i);
-      }
-
-      if (*i == L']' && (i == wszSecondToLast || *CharNextW (i) == L'\n'))
-        end = i;
-
-      if (begin != nullptr && end != nullptr)
-      {
-        size_t   sec_len =        wcrlen (begin, end);
-        auto*    sec_name =
-                 pTLS->scratch_memory->ini.sec.alloc
-                                       (   sec_len + 2, true);
-      wcsncpy_s (sec_name,                 sec_len + 1,
-                                           begin, _TRUNCATE);
-
-        //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
-
-        wchar_t* start  = CharNextW (CharNextW (end));
-        wchar_t* finish = start;
-        bool     eof    = false;
-
-        for (wchar_t* j = start; j <= wszImportEnd; j = CharNextW (j))
-        {
-          if (j == wszImportEnd)
-          {
-            finish = j;
-            eof    = true;
-            break;
-          }
-
-          wchar_t *wszPrev = nullptr;
-
-          if (*j == L'[' && (*(wszPrev = CharPrevW (start, j)) == L'\n'))
-          {
-            finish = wszPrev;
-            break;
-          }
-        }
-
-        temp_name.assign (sec_name);
-
-        // Import if the section already exists
-        if (contains_section (temp_name))
-        {
-          iSK_INISection& section =
-            get_section  (temp_name);
-
-          section.parent = this;
-
-          Import_Section (section, start, finish, &pTLS);
-        }
-
-        // Insert otherwise
-        else
-        {
-          iSK_INISection
-                  section ( temp_name );
-          Process_Section ( section,
-                              start, finish,
-                                &pTLS ).parent = this;
-
-          ordered_sections.emplace_back (
-                 &sections.emplace      (
-                                          section.name,
-                               std::move (section)
-                                        ).first->second
-                                        );
-        }
-
-        if (eof)
-          break;
-
-        i = finish;
-
-        end   = nullptr;
-        begin = nullptr;
-      }
+      pEnd = CharNextW (pEnd);
     }
   }
 
-  free (wszImport);
+  wchar_t* wszSecondToLast =
+    CharPrevW (pStart, pEnd);
+
+  wchar_t* begin           = nullptr;
+  wchar_t* end             = nullptr;
+
+  for ( wchar_t* i = pStart;
+                 i < pEnd &&
+                 i != nullptr; i = CharNextW (i) )
+  {
+    if ( *i == L'[' &&
+         (i == pStart || *CharPrevW (pStart, i) == L'\n'))
+    {
+      begin =
+        CharNextW (i);
+    }
+
+    if (   *i == L']' &&
+           (i == wszSecondToLast || *CharNextW (i) == L'\n') )
+    { end = i; }
+
+    if ( begin != nullptr &&
+         end   != nullptr && begin < end )
+    {
+      size_t   sec_len  = wcrlen (begin, end);
+      auto*    sec_name =
+               pTLS->scratch_memory->ini.sec.alloc
+                                     (   sec_len + 2, true);
+    wcsncpy_s (sec_name,                 sec_len + 1,
+                                         begin, _TRUNCATE);
+
+      //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
+
+      wchar_t* start  = CharNextW (CharNextW (end));
+      wchar_t* finish = start;
+      bool     eof    = false;
+
+      for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
+      {
+        if (j == pEnd)
+        {
+          finish = j;
+          eof    = true;
+          break;
+        }
+
+        if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
+                    *(wszPrev = CharPrevW (start, j)) == L'\n' )
+        {
+          finish = wszPrev;
+          break;
+        }
+      }
+
+      // Import if the section already exists
+      if (contains_section (sec_name))
+      {
+        iSK_INISection& section =
+          get_section  (sec_name);
+
+        section.parent = this;
+
+        Import_Section (section, start, finish, &pTLS);
+      }
+
+      // Insert otherwise
+      else
+      {
+        iSK_INISection
+                section ( sec_name );
+        Process_Section ( section,
+                            start, finish,
+                              &pTLS ).parent = this;
+
+        ordered_sections.emplace_back (
+               &sections.emplace      (
+                                        section.name,
+                             std::move (section)
+                                      ).first->second
+                                      );
+      }
+
+      if (eof)
+        break;
+
+      i = finish;
+
+      end   = nullptr;
+      begin = nullptr;
+    }
+  }
 }
 
 __declspec(nothrow)
@@ -1579,17 +1551,18 @@ __declspec(nothrow)
 bool
 iSK_INI::import_file (const wchar_t* fname)
 {
-  size_t len =
-    wcslen (fname);
-
-  if (len == 0)
+  // Invalid filename
+  if (fname == nullptr || *fname == L'\0')
     return false;
 
-  // We skip a few bytes (Unicode BOM) in certain circumstances, so this is
-  //   the actual pointer we need to free...
-  wchar_t  *wszImportData = nullptr;
-  wchar_t  *alloc         = wszImportData;
-  FILE*     fImportINI    = nullptr;
+  SK_TLS *pTLS =
+    SK_TLS_Bottom ();
+
+  if (pTLS == nullptr)
+    return false;
+
+  wchar_t* wszImportData = nullptr;
+  FILE*    fImportINI    = nullptr;
 
   TRY_FILE_IO (_wfsopen (fname, L"rbS", _SH_DENYNO),
                          fname, fImportINI);
@@ -1597,18 +1570,19 @@ iSK_INI::import_file (const wchar_t* fname)
   if (fImportINI != nullptr)
   {
     auto size =
-      sk::narrow_cast <long> (
+      sk::narrow_cast <size_t> (
         SK_File_GetSize (fname)
       );
 
-        wszImportData  = new (std::nothrow) wchar_t [size + 3] { };
+    wszImportData =
+      pTLS->scratch_memory->ini.file_buffer.alloc (size + 3, true);
+
     if (wszImportData == nullptr)
     {
       fclose (fImportINI);
       return false;
     }
 
-    alloc = wszImportData;
     fread  (wszImportData, size, 1, fImportINI);
 
     fflush (fImportINI);
@@ -1632,7 +1606,7 @@ iSK_INI::import_file (const wchar_t* fname)
 
       wchar_t* wszSwapMe = wszImportData;
 
-      for (int i = 0; i < size; i += 2)
+      for (size_t i = 0; i < size; i += 2)
       {
         unsigned short swapped =
           _byteswap_ushort (*wszSwapMe);
@@ -1664,27 +1638,17 @@ iSK_INI::import_file (const wchar_t* fname)
       char*          start_addr =
       (reinterpret_cast <char *> (wszImportData)) + offset;
 
-      auto*          string =
-        new (std::nothrow) char [real_size + 2] { };
-
-      if (string != nullptr)
-      {
-        memcpy (string, start_addr, real_size);
-      }
-
-      if (        wszImportData != nullptr)
-      {
-        delete [] wszImportData;
-                  wszImportData = nullptr;
-                          alloc = nullptr;
-      }
+      char* string =
+        pTLS->scratch_memory->ini.utf8_string.alloc (real_size + 2, true);
 
       if (string == nullptr)
       {
-        return false;
+        return false; // Out of Memory
       }
 
-      unsigned int converted_size =
+      memcpy (string, start_addr, real_size);
+
+      const size_t converted_size =
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                               nullptr, 0 );
 
@@ -1698,47 +1662,32 @@ iSK_INI::import_file (const wchar_t* fname)
                       L"INI Parser" );
         }
 
-        if (        string != nullptr) {
-          delete [] string;
-                    string = nullptr;  }
-
         return false;
       }
 
-      wszImportData =
-        new (std::nothrow) wchar_t [converted_size + 2] { };
+      if (converted_size + 2 > size + 3)
+      {
+        wszImportData =
+          pTLS->scratch_memory->ini.file_buffer.alloc (converted_size + 2, true);
+      }
 
       SK_ReleaseAssert (
           wszImportData != nullptr)
       if (wszImportData != nullptr)
       {
-        if (string != nullptr)
-        {
-          MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
-                               wszImportData, converted_size );
+        MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
+                              wszImportData, converted_size );
 
-          //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
-                                        //wszImportName ), L"INI Parser" );
-
-          delete [] string;
-                    string = nullptr;
-        }
-
-        // No Byte-Order Marker
-        alloc = wszImportData;
+        //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
+                                      //wszImportName ), L"INI Parser" );
       }
 
       else
         return false;
     }
 
+    // Don't ever recursively call this, wszImportData is thread-local
     import (wszImportData);
-
-    if (alloc != nullptr)
-    {
-      delete [] alloc;
-                alloc = nullptr;
-    }
 
     return true;
   }
