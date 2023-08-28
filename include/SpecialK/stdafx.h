@@ -40,8 +40,6 @@
 
 #define UNICODE 1
 
-//#define _SK_D3D11_BIN_TEXTURES_BY_FORMAT
-
 #include <Windows.h>
 #include <windowsx.h>
 #include <excpt.h>

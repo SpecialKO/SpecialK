@@ -104,7 +104,7 @@ SK_AMD_MWAITX (INT64 qpcTarget = 0)
   static alignas(64) uint64_t monitor = 0ULL;
 
   _mm_monitorx (&monitor, 0, 0);
-  _mm_mwaitx   (0x2, 0, qpcTarget > 0 ? (DWORD)qpcTarget * SK_PerfFreqInTsc + 1 : SK_PerfFreqInTsc);
+  _mm_mwaitx   (0x2, 0, (qpcTarget > 0) ? ((DWORD)qpcTarget * SK_PerfFreqInTsc + 1) : SK_PerfFreqInTsc);
 }
 
 __forceinline
@@ -551,7 +551,7 @@ SK_ImGui_LatentSyncConfig (void)
 
         if ( ImGui::SliderInt ( "Anti-Roll",
                                   &config.render.framerate.latent_sync.scanline_error,
-                                    0, 2, config.render.framerate.latent_sync.scanline_error != 1 ?
+                                    0, 2, (config.render.framerate.latent_sync.scanline_error != 1) ?
                                                                                  "%d Clock Ticks" :
                                                                                  "%d Clock Tick" )
            )
@@ -1179,14 +1179,14 @@ struct qpc_interval_s {
 
   int64_t getNextBegin (int64_t tNow) noexcept
   {
-    return tEnd != 0 ?
+    return (tEnd != 0) ?
       tNow + ((tNow - t0) / tEnd) * tBegin
                      : 0LL;
   }
 
   int64_t getNextEnd (int64_t tNow) noexcept
   {
-    return tEnd != 0 ?
+    return (tEnd != 0) ?
       tNow + ((tNow - t0) / tEnd) * tEnd
                      : 0LL;
   }
@@ -1386,9 +1386,9 @@ SK::Framerate::Limiter::wait (void)
 
   else if (tracks_window)
   {
-    set_limit ( __target_fps_bg > 0.0f ?
-                __target_fps_bg        :
-                __target_fps          );
+    set_limit ( (__target_fps_bg > 0.0f) ?
+                 __target_fps_bg         :
+                 __target_fps           );
   }
 
 
@@ -1529,9 +1529,9 @@ SK::Framerate::Limiter::wait (void)
     {
       dMissingTimeBoundary =
         std::max (1.0,
-          std::round (            ticks_per_refresh > 1 ?
+          std::round (           (ticks_per_refresh > 1) ?
             static_cast <double> (ticks_per_refresh) /
-            static_cast <double> (ticks_per_frame)      : 1.0)
+            static_cast <double> (ticks_per_frame)       : 1.0)
         );
     }
 
@@ -1696,7 +1696,7 @@ SK::Framerate::Limiter::wait (void)
             -(static_cast <LONGLONG> (to_next_in_secs * duS));
 
           dwWait = iWaitObjs < 2  &&
-                   hWaitObjs  [0] != hSwapWait.m_h ?
+                  (hWaitObjs  [0] != hSwapWait.m_h) ?
             SK_WaitForSingleObject_Micro ( timer_wait.m_h, &liDelay )
           :  WaitForMultipleObjects      ( iWaitObjs,
                                            hWaitObjs,
@@ -1814,8 +1814,8 @@ SK::Framerate::Limiter::wait (void)
 
 
           __SK_LatentSyncPostDelay =
-            config.render.framerate.latent_sync.delay_bias == 0.0f ? 0
-                                                                   :
+            (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
+                                                                     :
             static_cast <LONGLONG> (
               static_cast <double> (ticks_per_frame) *
                            config.render.framerate.latent_sync.delay_bias );

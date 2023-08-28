@@ -784,6 +784,7 @@ struct {
   } d3d9;
 
   struct {
+    sk::ParameterBool*    use_l3_hash             = nullptr;
     sk::ParameterBool*    precise_hash            = nullptr;
     sk::ParameterBool*    inject                  = nullptr;
     sk::ParameterBool*    injection_keeps_format  = nullptr;
@@ -1615,6 +1616,7 @@ auto DeclKeybind =
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
+    ConfigEntry (texture.d3d11.use_l3_hash,              L"Adds L3 to Hierarchical Cache;  L3=Fmt,  L2=Mips,  L1=Res", dll_ini,         L"Textures.D3D11",        L"CacheUsingL3Hash"),
     ConfigEntry (texture.d3d11.precise_hash,             L"Precise Hash Generation",                                   dll_ini,         L"Textures.D3D11",        L"PreciseHash"),
 
     ConfigEntry (texture.d3d11.inject,                   L"Inject Textures",                                           dll_ini,         L"Textures.D3D11",        L"Inject"),
@@ -3611,6 +3613,7 @@ auto DeclKeybind =
                                     load (config.render.dstorage.force_file_buffering);
 
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
+  texture.d3d11.use_l3_hash->load        (config.textures.d3d11.use_l3_hash);
   texture.d3d11.precise_hash->load       (config.textures.d3d11.precise_hash);
   texture.d3d11.inject->load             (config.textures.d3d11.inject);
         texture.res_root->load           (config.textures.d3d11.res_root);
@@ -5160,6 +5163,7 @@ SK_SaveConfig ( std::wstring name,
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
+      texture.d3d11.use_l3_hash->store            (config.textures.d3d11.use_l3_hash);
       texture.d3d11.precise_hash->store           (config.textures.d3d11.precise_hash);
       texture.d3d11.inject->store                 (config.textures.d3d11.inject);
       texture.d3d11.injection_keeps_format->store (config.textures.d3d11.injection_keeps_fmt);

@@ -715,6 +715,7 @@ struct sk_config_t
       std::wstring
         res_root                   = L"SK_Res";
       bool    precise_hash         = false;
+      bool    use_l3_hash          = true;
       bool    dump                 = false;
       bool    inject               = true;
       bool    cache                = true;

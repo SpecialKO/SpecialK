@@ -1,4 +1,14 @@
-﻿23.8.27.2
+﻿23.8.28
+=======
+ + Added 3rd level of cache hierarchy for textures (L3Hash) to reduce D3D11
+     texture caching overhead in games that load textures multi-threaded.
+
+    [Textures.D3D11]
+    CacheUsingL3Hash={true|false}, Default: true
+
+     * This potentially uses more CPU memory, but it should be negligible.
+
+23.8.27.2
 =========
  + Defer initialization of WASAPI (volume widget) for games using Dolby Atmos
  + Removed assertion for D3D11 Immediate Device Context equivalency during

@@ -278,25 +278,38 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
     {
       texture_map.reserve (textures->HashMap_2D.size ());
-
-#ifdef _SK_D3D11_BIN_TEXTURES_BY_FORMAT
-      if (! textures->HashMap_Fmt.empty ())
-            textures->updateDebugNames  ();
-
-      for (auto& it0 : textures->HashMap_Fmt){
-      // Relatively immutable textures
-      for (auto& it  : it0.map)
-#else
-      if (! textures->HashMap_2D.empty ())
-            textures->updateDebugNames ();
       
-      // Relatively immutable textures
-      for (auto& it : textures->HashMap_2D){
-#endif
-      {
-        std::scoped_lock <SK_Thread_HybridSpinlock> _lock (*(it.mutex));
+      std::vector <lod_hash_table_s*>
+                       hash_tables;
 
-        for (auto& it2 : it.entries)
+      if (config.textures.d3d11.use_l3_hash)
+      {
+        if (! textures->HashMap_Fmt.empty ())
+              textures->updateDebugNames  ();
+
+        for (auto& it0  : textures->HashMap_Fmt)
+        { // Relatively immutable textures
+          for (auto& it : it0.map)
+            hash_tables.emplace_back (&it);
+        }
+      }
+
+      else
+      {
+        if (! textures->HashMap_2D.empty ())
+              textures->updateDebugNames ();
+      
+        // Relatively immutable textures
+        for (auto& it : textures->HashMap_2D)
+          hash_tables.emplace_back (&it);
+      }
+
+      for (auto *it : hash_tables)
+      {
+        std::scoped_lock <SK_Thread_HybridSpinlock>
+                   _lock (*(it->mutex));
+
+        for (auto& it2 : it->entries)
         {
           if (it2.second == nullptr)
             continue;
@@ -343,7 +356,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               texture_map [entry.crc32c] = entry;
           }
         }
-      }}
+      }
 
       if ( pHDRGamut.p != nullptr )
       {
