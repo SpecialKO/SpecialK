@@ -1,4 +1,9 @@
-﻿23.8.27.1
+﻿23.8.27.2
+=========
+ + Removed assertion for D3D11 Immediate Device Context equivalency during
+     ImGui rendering, some mods will break this assumption without crashing.
+
+23.8.27.1
 =========
  + Fixed "Bad Format" warning that may appear in some D3D11 games that use
      DirectX Video for decoding their FMV cutscenes (i.e. NieR: Replicant).

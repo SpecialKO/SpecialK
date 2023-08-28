@@ -2129,8 +2129,13 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
       {
         // Either rb.d3d11.immediate_ctx is not initialized yet,
         //   or something has gone very wrong.
-        SK_ReleaseAssert ( pImmediateContext.p == nullptr ||
-                           pImmediateContext.IsEqualObject (_d3d11_rbk->_pDeviceCtx) );
+        if (   pImmediateContext.p != nullptr &&
+             ! pImmediateContext.IsEqualObject (_d3d11_rbk->_pDeviceCtx) )
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"Immediate Context Unsafely Wrapped By Other Software")
+          )
+        }
 
         D3D11_TEXTURE2D_DESC          tex2d_desc = { };
         D3D11_RENDER_TARGET_VIEW_DESC rtdesc     = { };
