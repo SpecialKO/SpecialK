@@ -229,7 +229,7 @@ iSK_INI::reload (const wchar_t *fname)
 
       memcpy (string, start_addr, real_size);
 
-      const size_t converted_size =
+      const int converted_size =
         std::max ( 0,
                      MultiByteToWideChar ( CP_UTF8, 0, string,
                                              real_size, nullptr, 0 )
@@ -1570,7 +1570,7 @@ iSK_INI::import_file (const wchar_t* fname)
   if (fImportINI != nullptr)
   {
     auto size =
-      sk::narrow_cast <size_t> (
+      sk::narrow_cast <int> (
         SK_File_GetSize (fname)
       );
 
@@ -1648,7 +1648,7 @@ iSK_INI::import_file (const wchar_t* fname)
 
       memcpy (string, start_addr, real_size);
 
-      const size_t converted_size =
+      const int converted_size =
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
                               nullptr, 0 );
 
