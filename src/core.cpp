@@ -2915,10 +2915,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         _last_priority = priority;
       }
 
-      // This is going to fail on Steam Deck, so do it once and that's it.
-      //
-      SK_RunOnce (SK_WASAPI_Init ());
-
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
       if (frames_drawn > 15)
       {
@@ -2926,6 +2922,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
+            // This is going to fail on Steam Deck, so do it once and that's it.
+            //
+            SK_RunOnce (SK_WASAPI_Init ());
+
             if (config.window.activate_at_start || config.window.background_render)
             {
               // Activate the game window one time

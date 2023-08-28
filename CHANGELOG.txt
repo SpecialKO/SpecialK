@@ -1,5 +1,6 @@
 ﻿23.8.27.2
 =========
+ + Defer initialization of WASAPI (volume widget) for games using Dolby Atmos
  + Removed assertion for D3D11 Immediate Device Context equivalency during
      ImGui rendering, some mods will break this assumption without crashing.
 
