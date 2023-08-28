@@ -1,8 +1,9 @@
 ﻿23.8.27.1
 =========
  + Fixed "Bad Format" warning that may appear in some D3D11 games that use
-     DirectX Video for decoding their FMV cutscenes.
-
+     DirectX Video for decoding their FMV cutscenes (i.e. NieR: Replicant).
+ + Low-Spec Mode is automatically disabled if a user has texture mods installed.
+ 
 23.8.27
 =======
  + Optimized stack memory usage for D3D11 state block recording

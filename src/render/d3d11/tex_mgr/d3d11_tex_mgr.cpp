@@ -3078,6 +3078,17 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
     dll_log->LogEx ( false, L" %lu files (%3.1f MiB)\n",
                        files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
+
+    if (files > 0)
+    {
+      if (config.render.dxgi.low_spec_mode)
+      {   config.render.dxgi.low_spec_mode = false;
+
+        dll_log->Log (
+          L"[DX11TexMgr] Low-Spec Mode (reduced D3D11 State Tracking) has "
+          L"disabled because end-user has texture mods installed." );
+      }
+    }
   }
 
   wchar_t wszTexInjectDir_FFX_RAW [ MAX_PATH + 2 ] = { };
