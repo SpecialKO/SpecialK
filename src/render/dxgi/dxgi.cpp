@@ -1953,6 +1953,9 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
+  if (This == nullptr)
+    return;
+
   static auto & rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1961,8 +1964,11 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   SK_ComQIPtr <IDXGISwapChain3>
                    pSwapChain3 (This);
 
-  DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };
-  pSwapChain3->GetDesc1 (&swapDesc1);
+  DXGI_SWAP_CHAIN_DESC1
+              swapDesc1 = { };
+
+  if (pSwapChain3 != nullptr)
+      pSwapChain3->GetDesc1 (&swapDesc1);
 
   static bool init_once  = false;
   if (        init_once == false)
@@ -2054,6 +2060,9 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
+
+  if (! pTLS)
+    return;
 
 #define _SetupThreadContext()                                                   \
                              pTLS->imgui->drawing                      = FALSE; \
@@ -2418,6 +2427,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
        const DXGI_PRESENT_PARAMETERS         *pPresentParameters      = nullptr
 )
 {
+  if (This == nullptr) // This can't happen, just humor static analysis
+    return DXGI_ERROR_INVALID_CALL;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 

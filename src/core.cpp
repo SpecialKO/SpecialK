@@ -115,6 +115,8 @@ const wchar_t*
 __stdcall
 SK_SetBackend (const wchar_t* wszBackend)
 {
+  SK_ReleaseAssert (wszBackend != nullptr);
+
   wcsncpy_s ( SKX_GetBackend (), 127,
                 wszBackend,      _TRUNCATE );
 
@@ -177,8 +179,13 @@ void
 __stdcall
 SK_SetConfigPath (const wchar_t* path)
 {
-  wcsncpy_s ( SKX_GetNaiveConfigPath (), MAX_PATH,
-                path,                    _TRUNCATE );
+  if (path != nullptr)
+  {
+    wcsncpy_s ( SKX_GetNaiveConfigPath (), MAX_PATH,
+                  path,                    _TRUNCATE );
+  }
+
+  SK_ReleaseAssert (path != nullptr);
 }
 
 void
@@ -1609,6 +1616,11 @@ bool
 __stdcall
 SK_StartupCore (const wchar_t* backend, void* callback)
 {
+  if ( backend == nullptr || callback == nullptr )
+  {
+    return false;
+  }
+
  try
  {
   if ( SK_GetProcAddress ( L"NtDll",
@@ -2672,8 +2684,9 @@ SK_ShutdownCore (const wchar_t* backend)
       volatile HANDLE&  hThread,
         const wchar_t* wszName )
   {
-    if ( ReadPointerAcquire (&hSignal) == INVALID_HANDLE_VALUE &&
-         ReadPointerAcquire (&hThread) == INVALID_HANDLE_VALUE )
+    if ( wszName == nullptr ||
+         ( ReadPointerAcquire (&hSignal) == INVALID_HANDLE_VALUE &&
+           ReadPointerAcquire (&hThread) == INVALID_HANDLE_VALUE ) )
     {
       return;
     }
@@ -2819,8 +2832,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
       wchar_t *wszDescription = nullptr;
 
-      if ( SUCCEEDED ( GetCurrentThreadDescription (&wszDescription)) &&
-                                            wcslen ( wszDescription))
+      if ( SUCCEEDED ( GetCurrentThreadDescription (&wszDescription) )         &&
+                                                     wszDescription != nullptr &&
+                                            wcslen ( wszDescription )
+         )
       {
         if (StrStrIW (wszDescription, L"[GAME] Primary Render Thread") == nullptr)
         {
@@ -3961,6 +3976,9 @@ CALLBACK
 RunDLL_RestartGame ( HWND  hwnd,        HINSTANCE hInst,
                      LPSTR lpszCmdLine, int       nCmdShow )
 {
+  if (! lpszCmdLine)
+    return;
+
   UNREFERENCED_PARAMETER (hInst);
 
   hwnd     = HWND_DESKTOP;
