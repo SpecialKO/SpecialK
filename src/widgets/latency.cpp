@@ -58,6 +58,17 @@ SK_ImGui_DrawGraph_Latency ()
     NvU64 start = 0;
     NvU64   end = 0;
     ImColor color;
+
+    void reset (void)
+    {
+      min     = std::numeric_limits <NvU64>::max (),
+      max     = std::numeric_limits <NvU64>::min (),
+      sum     = 0;
+      avg     = 0.0;
+      samples = 0;
+      start   = 0;
+      end     = 0;
+    }
   };
   
   static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render  { "Render Submit"   };
@@ -66,6 +77,9 @@ SK_ImGui_DrawGraph_Latency ()
   static stage_timing_s gpu      { "GPU Render"       };
   static stage_timing_s total    { "Total Frame Time" };
   static stage_timing_s input    { "Input Age"        };
+
+  total.reset ();
+  input.reset ();
 
   stage_timing_s* stages [] = {
     &sim,     &render, &specialk,
@@ -86,6 +100,8 @@ SK_ImGui_DrawGraph_Latency ()
              sizeof ( stages) /
              sizeof (*stages) ), 0.5f,
                                  1.0f );
+
+    stage->reset ();
   }
 
   if (rb.getLatencyReportNV (&latencyResults))
