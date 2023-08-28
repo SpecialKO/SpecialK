@@ -2050,6 +2050,9 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   if (ReadAcquire (&__SK_DLL_Ending) != 0)
     return;
 
+  if (! This)
+    return;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2124,7 +2127,10 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 
       else
       {
-        SK_ReleaseAssert (pImmediateContext.IsEqualObject (_d3d11_rbk->_pDeviceCtx));
+        // Either rb.d3d11.immediate_ctx is not initialized yet,
+        //   or something has gone very wrong.
+        SK_ReleaseAssert ( pImmediateContext.p == nullptr ||
+                           pImmediateContext.IsEqualObject (_d3d11_rbk->_pDeviceCtx) );
 
         D3D11_TEXTURE2D_DESC          tex2d_desc = { };
         D3D11_RENDER_TARGET_VIEW_DESC rtdesc     = { };
