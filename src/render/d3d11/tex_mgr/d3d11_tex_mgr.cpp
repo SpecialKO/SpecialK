@@ -3574,13 +3574,21 @@ SK_D3D11_IsStagingCacheable ( D3D11_RESOURCE_DIMENSION  rdim,
 
     if (pTex != nullptr)
     {
-      if (SK_D3D11_IsTextureUncacheable (pTex))
-        return false;
-
       D3D11_TEXTURE2D_DESC tex_desc = { };
            pTex->GetDesc (&tex_desc);
 
       const SK_D3D11_TEXTURE2D_DESC desc (tex_desc);
+
+      // Immediately ignore video textures and depth/stencil surfaces
+      if ( DirectX::IsVideo        (desc.Format) ||
+           DirectX::IsPlanar       (desc.Format) ||
+           DirectX::IsDepthStencil (desc.Format) )
+      {
+        return false;
+      }
+
+      if (SK_D3D11_IsTextureUncacheable (pTex))
+        return false;
 
       if ( (desc.Usage         == D3D11_USAGE_STAGING  ) &&
            (desc.CPUAccessFlags & D3D11_CPU_ACCESS_READ) ==

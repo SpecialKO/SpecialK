@@ -1,4 +1,14 @@
-﻿23.8.26.2
+﻿23.8.27.1
+=========
+ + Fixed "Bad Format" warning that may appear in some D3D11 games that use
+     DirectX Video for decoding their FMV cutscenes.
+
+23.8.27
+=======
+ + Optimized stack memory usage for D3D11 state block recording
+ + Removed a few applications from the strictest level of injection blacklist
+
+23.8.26.2
 =========
  + Removed unnecessary call to AllowSetForegroundWindow (...) during init.
 

@@ -5462,6 +5462,12 @@ D3D11Dev_CreateTexture2D_Impl (
                    //((pDesc->ArraySize  % 6 == 0) && ( pDesc->MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE ))
                    );
 
+  // Immediately ignore video textures and depth/stencil surfaces
+  cacheable =
+    cacheable && (! DirectX::IsVideo        (pDesc->Format))
+              && (! DirectX::IsPlanar       (pDesc->Format))
+              && (! DirectX::IsDepthStencil (pDesc->Format));
+
   ///if ( cacheable && pDesc->MipLevels == 0 &&
   ///                  pDesc->MiscFlags == D3D11_RESOURCE_MISC_GENERATE_MIPS )
   ///{
