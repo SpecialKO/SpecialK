@@ -55,13 +55,15 @@ sk::ParameterInt64* __SK_NIER_RAD_LastKnownTSOffset      = nullptr;
 HANDLE __SK_NIER_RAD_DeviceArrivalEvent = INVALID_HANDLE_VALUE;
 HANDLE __SK_NIER_RAD_DeviceRemovalEvent = INVALID_HANDLE_VALUE;
 
-struct {
+struct SK_NIER_RAD_DInput8Ctx {
   HRESULT                         hr;
   std::vector <DIDEVICEINSTANCEW> devices;
   std::vector <DIDEVICEINSTANCEW> attached;
   std::recursive_mutex            lock;
   DIDEVICEINSTANCEW               last_good = { };
-} __DInput8;
+};
+
+SK_LazyGlobal <SK_NIER_RAD_DInput8Ctx> __DInput8;
 
 struct {
   bool enabled = false;
@@ -791,6 +793,9 @@ bool SK_NIER_RAD_PlugInCfg (void)
     {
       ImGui::TreePush ("");
 
+      auto& di8 =
+        __DInput8.get ();
+
       if (ImGui::Checkbox ("Automatic Cursor Management", &_SK_NIER_RAD_AutoCursorHide))
       {
         changed = true;
@@ -863,10 +868,10 @@ bool SK_NIER_RAD_PlugInCfg (void)
       if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Cache the last used controller so gamepads do not need to be turned on / plugged in before starting the game.");
 
-      if (_SK_NIER_RAD_CacheLastGamepad || __DInput8.last_good.wUsage == 0x05)
+      if (_SK_NIER_RAD_CacheLastGamepad || di8.last_good.wUsage == 0x05)
       {
         ImGui::SameLine      ();
-        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %hs\t", SK_WideCharToUTF8 (__DInput8.last_good.tszProductName).c_str ());
+        ImGui::Text          ("\t" ICON_FA_GAMEPAD " Hot-Plug Device:  %hs\t", SK_WideCharToUTF8 (di8.last_good.tszProductName).c_str ());
         ImGui::SameLine      ();
 
         if (ImGui::Button ("Clear Cache"))
@@ -876,8 +881,8 @@ bool SK_NIER_RAD_PlugInCfg (void)
 
           changed = true;
 
-          ZeroMemory ( &__DInput8.last_good,
-                sizeof (__DInput8.last_good) );
+          ZeroMemory ( &di8.last_good,
+                sizeof (di8.last_good) );
 
           DeleteFileW (L"dinput8.devcache");
         }
@@ -1010,7 +1015,7 @@ BOOL DIEnumDevicesCallback_ ( LPCDIDEVICEINSTANCE lpddi,
   }
 
   else
-    __DInput8.devices.push_back (*lpddi);
+    __DInput8->devices.push_back (*lpddi);
 
   return
     DIENUM_CONTINUE;
@@ -1024,10 +1029,13 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                                     LPVOID                   pvRef,
                                     DWORD                    dwFlags )
 {
+  auto& di8 =
+    __DInput8.get ();
+
   if (dwDevType == DI8DEVCLASS_GAMECTRL && _SK_NIER_RAD_FixDInput8EnumDevices)
   {
     std::scoped_lock <std::recursive_mutex> lock
-                                    (__DInput8.lock);
+                                       (di8.lock);
 
     static bool          once = false;
     if (! std::exchange (once, true))
@@ -1036,7 +1044,7 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
                                              dwDevType,  dwFlags),
                   L"RadicalRep" );
 
-      __DInput8.hr =
+      di8.hr =
         _IDirectInput8W_EnumDevices ( This, dwDevType,
                                         DIEnumDevicesCallback_, pvRef,
                                           _SK_NIER_RAD_EnumOnlyForceFeedback ? DIEDFL_FORCEFEEDBACK
@@ -1065,22 +1073,22 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
         events [dwWait - WAIT_OBJECT_0]
       );
 
-      __DInput8.attached.clear ();
+      di8.attached.clear ();
 
-      for ( auto& device : __DInput8.devices )
+      for ( auto& device : di8.devices )
       {
         if ( DI_OK == This->GetDeviceStatus (device.guidInstance) )
         {
-          __DInput8.attached.push_back (device);
+          di8.attached.push_back (device);
 
           if (_SK_NIER_RAD_CacheLastGamepad && device.wUsage == 0x05)
           {
-            __DInput8.last_good = device;
+            di8.last_good = device;
 
             if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "wb");
                       fLastKnownController != nullptr)
             {
-              fwrite (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+              fwrite (&__DInput8.last_good, sizeof (di8.last_good), 1,
                       fLastKnownController);
               fclose (fLastKnownController);
             }
@@ -1089,14 +1097,14 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
       }
     }
 
-    for ( auto& attached : __DInput8.attached )
+    for ( auto& attached : di8.attached )
     {
       if ( lpCallback (&attached, pvRef) == DIENUM_STOP )
         break;
     }
 
-    if (__DInput8.attached.empty () && __DInput8.last_good.wUsage == 0x05)
-      lpCallback (&__DInput8.last_good, pvRef);
+    if (di8.attached.empty () && di8.last_good.wUsage == 0x05)
+      lpCallback (&di8.last_good, pvRef);
 
     return S_OK;
   }
@@ -1112,6 +1120,9 @@ void SK_NIER_RAD_InitPlugin (void)
   plugin_mgr->begin_frame_fns.emplace (SK_NIER_RAD_BeginFrame);
 
   SK_SetPluginName (L"Special K Plug-In :: (" RADICAL_REPLICANT_VERSION_STR ")");
+
+  auto& di8 =
+    __DInput8.get ();
 
   __SK_NIER_RAD_InputPollingPeriod =
     _CreateConfigParameterInt ( L"Radical.Replicant",
@@ -1294,7 +1305,7 @@ void SK_NIER_RAD_InitPlugin (void)
     if (FILE* fLastKnownController  = fopen ("dinput8.devcache", "rb");
               fLastKnownController != nullptr)
     {
-      fread  (&__DInput8.last_good, sizeof (__DInput8.last_good), 1,
+      fread  (&di8.last_good, sizeof (di8.last_good), 1,
               fLastKnownController);
       fclose (fLastKnownController);
     }
