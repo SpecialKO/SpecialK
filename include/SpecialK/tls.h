@@ -283,6 +283,8 @@ public:
     SK_TLS_HeapDataStore <wchar_t> val;
     SK_TLS_HeapDataStore <wchar_t> key;
     SK_TLS_HeapDataStore <wchar_t> sec;
+    SK_TLS_HeapDataStore <wchar_t> file_buffer;
+    SK_TLS_HeapDataStore <char>    utf8_string;
   } ini;
 
   struct

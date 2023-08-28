@@ -584,12 +584,17 @@ SK_TLS_ScratchMemory::Cleanup (SK_TLS_CleanupReason_e /*reason*/)
   freed += ccd.display_paths.reclaim    ();
   freed += ccd.display_modes.reclaim    ();
 
-  for ( auto* segment : { &ini.key, &ini.val, &ini.sec } )
+  for ( auto* segment : { &ini.key, &ini.val, &ini.sec, &ini.file_buffer } )
   {
     if (segment != nullptr)
     {
       freed += segment->reclaim ();
     }
+  }
+
+  if (ini.utf8_string.data != nullptr)
+  {
+    freed += ini.utf8_string.reclaim ();
   }
 
   return freed;
