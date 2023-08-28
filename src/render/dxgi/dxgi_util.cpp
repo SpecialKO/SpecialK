@@ -1067,8 +1067,21 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
       sb;
       sb.Capture (pDevCtx);
 #else
-    D3DX11_STATE_BLOCK stateBlock = { };
-    CreateStateblock (pDevCtx, &stateBlock);
+    SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+
+    // This is about 22 KiB worth of device context state, it is not a good
+    //   idea to allocate this on the stack... use SK's TLS storage.
+    auto* state_block_storage =
+      pTLS->render->d3d11->state_block.getPtr ();
+
+    if (state_block_storage->empty ())
+        state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+    
+    auto *sb =
+      (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+
+    CreateStateblock (pDevCtx, sb);
 #endif
 
     const D3D11_VIEWPORT vp = {                    0.0f, 0.0f,
@@ -1115,7 +1128,7 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 
     pDevCtx->Draw                   (3, 0);
 
-    ApplyStateblock (pDevCtx, &stateBlock);
+    ApplyStateblock (pDevCtx, sb);
     //sb.Apply (pDevCtx.p);
 
     return true;
@@ -1526,12 +1539,25 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     return false;
 
 #if 0
-    SK_IMGUI_D3D11StateBlock
-      sb;
-      sb.Capture (pDevCtx);
+  SK_IMGUI_D3D11StateBlock
+    sb;
+    sb.Capture (pDevCtx);
 #else
-    D3DX11_STATE_BLOCK stateBlock = { };
-    CreateStateblock (pDevCtx, &stateBlock);
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+  // This is about 22 KiB worth of device context state, it is not a good
+  //   idea to allocate this on the stack... use SK's TLS storage.
+  auto* state_block_storage =
+    pTLS->render->d3d11->state_block.getPtr ();
+  
+  if (state_block_storage->empty ())
+      state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+  
+  auto *sb =
+    (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+
+  CreateStateblock (pDevCtx, sb);
 #endif
 
   const D3D11_VIEWPORT vp = {         0.0f, 0.0f,
@@ -1671,7 +1697,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   if (pDevCtx1 != nullptr && bUseDiscard)
       pDevCtx1->DiscardResource (pNewSrcTex);
   
-  ApplyStateblock (pDevCtx, &stateBlock);
+  ApplyStateblock (pDevCtx, sb);
   //sb.Apply (pDevCtx.p);
 
   return true;

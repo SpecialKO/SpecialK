@@ -407,11 +407,21 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
               if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
               {
-                SK_IMGUI_D3D11StateBlock
-                  sblock = { };
-                auto* sb = &sblock;
+                SK_TLS *pTLS =
+                      SK_TLS_Bottom ();
 
-                sb->Capture (pImmediateCtx);
+                // This is about 22 KiB worth of device context state, it is not a good
+                //   idea to allocate this on the stack... use SK's TLS storage.
+                auto* state_block_storage =
+                  pTLS->render->d3d11->state_block.getPtr ();
+
+                if (state_block_storage->empty ())
+                    state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+
+                auto *sb =
+                  (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+
+                CreateStateblock (pImmediateCtx, sb);
 
                 DXGI_SWAP_CHAIN_DESC swapDesc = { };
                 D3D11_TEXTURE2D_DESC desc     = { };
@@ -628,7 +638,9 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   hdr10_to_scRGB           = true;
                   framebuffer.NativeFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-                  sb->Apply (pImmediateCtx);
+                  ApplyStateblock (pImmediateCtx, sb);
+
+                  ZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
                 }
               }
             }

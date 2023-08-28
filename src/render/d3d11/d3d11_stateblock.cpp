@@ -65,8 +65,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   const D3D11_DEVICE_CONTEXT_TYPE ctx_type =   dc->GetType         ();
 #endif
 
-  *sb = { };
-
+  ZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
 
 #ifdef SK_USE_D3D11_DEVICE_CTX_STATE
   // Use Device Context State if available

@@ -58,12 +58,14 @@ SK_ImGui_DrawGraph_Latency ()
     NvU64 start = 0;
     NvU64   end = 0;
     ImColor color;
-  } sim      { "Simulation"       }, render  { "Render Submit"   },
-    specialk { "Special K"        }, present { "Present"         },
-    driver   { "Driver"           }, os      { "OS Render Queue" },
-    gpu      { "GPU Render"       },
-    total    { "Total Frame Time" },
-    input    { "Input Age"        };
+  };
+  
+  static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render  { "Render Submit"   };
+  static stage_timing_s specialk { "Special K"        }; static stage_timing_s present { "Present"         };
+  static stage_timing_s driver   { "Driver"           }; static stage_timing_s os      { "OS Render Queue" };
+  static stage_timing_s gpu      { "GPU Render"       };
+  static stage_timing_s total    { "Total Frame Time" };
+  static stage_timing_s input    { "Input Age"        };
 
   stage_timing_s* stages [] = {
     &sim,     &render, &specialk,

@@ -3278,7 +3278,7 @@ D3D9CreateVertexBuffer_Override
     }
   }
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) && ppVertexBuffer != nullptr)
   {
     static auto& _known_objs = known_objs.get ();
 
@@ -4002,7 +4002,8 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
           {
             if (config.render.framerate.refresh_rate == SK_NoPreference)
             {
-              if (*ppFullscreenDisplayMode != nullptr)
+              if (ppFullscreenDisplayMode != nullptr &&
+                 *ppFullscreenDisplayMode != nullptr)
                 pparams->FullScreen_RefreshRateInHz = (*ppFullscreenDisplayMode)->RefreshRate;
 
               if (pparams->FullScreen_RefreshRateInHz == 0)
@@ -4042,16 +4043,19 @@ SK_SetPresentParamsD3D9Ex ( IDirect3DDevice9       *pDevice,
                  pparams->BackBufferHeight = monitor_height;
 
 
-            if (*ppFullscreenDisplayMode == nullptr)
-              *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->render->d3d9->allocTempFullscreenStorage ();
-
-            if (*ppFullscreenDisplayMode != nullptr)
+            if (ppFullscreenDisplayMode != nullptr)
             {
-              (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
-              (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
-              (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
-              (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
-              (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+              if (*ppFullscreenDisplayMode == nullptr)
+                  *ppFullscreenDisplayMode = (D3DDISPLAYMODEEX *)SK_TLS_Bottom ()->render->d3d9->allocTempFullscreenStorage ();
+
+              if (*ppFullscreenDisplayMode != nullptr)
+              {
+                (*ppFullscreenDisplayMode)->Height           = pparams->BackBufferHeight;
+                (*ppFullscreenDisplayMode)->Width            = pparams->BackBufferWidth;
+                (*ppFullscreenDisplayMode)->RefreshRate      = pparams->FullScreen_RefreshRateInHz;
+                (*ppFullscreenDisplayMode)->Format           = pparams->BackBufferFormat;
+                (*ppFullscreenDisplayMode)->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+              }
             }
           }
 
