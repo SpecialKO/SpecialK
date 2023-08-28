@@ -1520,7 +1520,7 @@ NtSetTimerResolution_Detour
   {
     SK_LOGs0 ( L"Scheduler ",
                L"NtSetTimerResolution (%f ms : %s) issued by %s ... %lu times",
-                (float)(DesiredResolution * 100) / 1000000.0,
+                (double)(DesiredResolution * 100.0) / 1000000.0,
                             SetResolution ? L"Set" : L"Get",
                                   SK_GetCallerName ().c_str (),
                                   pSetCount != nullptr ? *pSetCount

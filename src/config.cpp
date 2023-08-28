@@ -3972,6 +3972,10 @@ auto DeclKeybind =
     }
   }
 
+  // Prefer to use an exact VidPn path name, because they are persistent.
+  //
+  //  * However, if all the user has is a monitor index preference, give that a shot.
+  //
   if (! found_exact)
   {
     window.preferred_monitor_id->load (config.display.monitor_idx);
