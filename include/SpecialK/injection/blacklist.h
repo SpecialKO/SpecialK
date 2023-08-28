@@ -65,15 +65,8 @@ static constexpr constexpr_module_s::list_type __bluelist = {
 
 static constexpr constexpr_module_s::list_type __graylist = {
   L"setup.exe",
-  L"cl.exe",
-  L"gamebarft.exe",
-  L"gamebarftserver.exe",
-  L"msbuild.exe",
   L"vrserver.exe",
   L"jusched.exe",
-  L"systemsettings.exe",
-  L"systemsettingsbroker.exe",
-  L"nvcplui.exe",
   L"perfwatson2.exe",
   L"dataexchangehost.exe",
   L"oalinst.exe",
@@ -95,23 +88,8 @@ static constexpr constexpr_module_s::list_type __graylist = {
   L"googlecrashhandler.exe",
   L"crashsender1400.exe",
   L"crashsender1402.exe",
-
-  L"diagnostics32.exe",
-  L"edgewallpaper32.exe",
-  L"wallpaper32.exe",
-  L"wallpaperservice32.exe",
-  L"webwallpaper32.exe",
-  L"winrtutil32.exe",
-  L"applicationwallpaperinject32.exe",
-  L"apputil32.exe",
-  L"ui32.exe",               // Wallpaper Engine's stpid UI app
 #else
   L"googlecrashhandler64.exe",
-  L"wallpaper64.exe",
-  L"winrtutil64.exe",
-  L"diagnostics64.exe",
-  L"applicationwallpaperinject64.exe",
-
 #endif
 
   L"xvasynth.exe",
@@ -129,6 +107,14 @@ static constexpr constexpr_module_s::list_type __graylist = {
 
 static constexpr constexpr_module_s::list_type __blacklist = {
 #ifdef _M_AMD64
+  L"cl.exe",
+  L"msbuild.exe",
+  L"systemsettings.exe",
+  L"systemsettingsbroker.exe",
+  L"nvcplui.exe",
+  L"gamebarft.exe",
+  L"gamebarftserver.exe",
+
   L"vhui64.exe",
   L"x64launcher.exe",
   L"ff9_launcher.exe",
@@ -137,6 +123,11 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"vc2010redist_x64.exe",
   L"ubisoftgamelauncher64.exe",
   L"sen3launcher.exe",
+
+  L"wallpaper64.exe",
+  L"winrtutil64.exe",
+  L"diagnostics64.exe",
+  L"applicationwallpaperinject64.exe", // Wallpaper Engine's stpid UI app
 #else
   L"vacodeinspectionsserver.exe",
 
@@ -149,6 +140,16 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"ffx&x-2_launcher.exe",
   L"ubisoftgamelauncher.exe",
   L"uplayinstaller.exe",
+
+  L"diagnostics32.exe",
+  L"edgewallpaper32.exe",
+  L"wallpaper32.exe",
+  L"wallpaperservice32.exe",
+  L"webwallpaper32.exe",
+  L"winrtutil32.exe",
+  L"applicationwallpaperinject32.exe",
+  L"apputil32.exe",
+  L"ui32.exe",               // Wallpaper Engine's stpid UI app
 
   L"akibauu_config.exe",
   L"gameserver.exe",// Sacred   game server
