@@ -1,5 +1,11 @@
 ﻿23.8.29
 =======
+ + Added INI setting to raise process priority to High instead of Above Normal
+     for settings that conditionally raise priority based on window state.
+
+     [Scheduler.Boost]
+     RaisePriorityToHigh={true|false}, Default: false => (Uses Above Normal)
+
  + Fixed D3D11 Render State Tracking remaining on -after- a HUDless screenshot
 
 23.8.28.1

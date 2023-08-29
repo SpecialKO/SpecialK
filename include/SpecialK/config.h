@@ -1048,6 +1048,7 @@ struct sk_config_t
     bool    raise_always        = false;
     bool    raise_bg            = false;
     bool    raise_fg            =  true;
+    bool    highest_priority    = false;
     bool    deny_foreign_change =  true;
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
   } priority;

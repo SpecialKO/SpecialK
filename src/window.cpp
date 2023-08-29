@@ -1096,9 +1096,11 @@ ActivateWindow ( HWND hWnd,
 
         if ( config.priority.raise_always || bBackgroundBoost ||
              config.window.always_on_top  == SmartAlwaysOnTop )
-             prio.proposeChange (3, ABOVE_NORMAL_PRIORITY_CLASS);
-        else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
-      } else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
+             prio.proposeChange (3, config.priority.highest_priority ?
+                                                 HIGH_PRIORITY_CLASS :
+                                         ABOVE_NORMAL_PRIORITY_CLASS);
+        else prio.proposeChange (0,            NORMAL_PRIORITY_CLASS);
+      } else prio.proposeChange (0,            NORMAL_PRIORITY_CLASS);
     }
 
     SK_XInput_Enable (TRUE);
@@ -1108,8 +1110,10 @@ ActivateWindow ( HWND hWnd,
       if ( config.priority.raise_fg     ||
            config.priority.raise_always ||
            config.window.always_on_top  == SmartAlwaysOnTop )
-           prio.proposeChange (3, ABOVE_NORMAL_PRIORITY_CLASS);
-      else prio.proposeChange (0,       NORMAL_PRIORITY_CLASS);
+           prio.proposeChange (3, config.priority.highest_priority ?
+                                               HIGH_PRIORITY_CLASS :
+                                       ABOVE_NORMAL_PRIORITY_CLASS);
+      else prio.proposeChange (0,            NORMAL_PRIORITY_CLASS);
     }
     SK_Console::getInstance ()->reset ();
 
@@ -5456,7 +5460,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       if (bIgnore)
       {
-        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-gamepad device, "
+        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-input device, "
                     L"hiding it from the game..." ), __SK_SUBSYSTEM__ );
 
         return IsWindowUnicode (hWnd) ?

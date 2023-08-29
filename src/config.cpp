@@ -919,6 +919,7 @@ struct {
     sk::ParameterBool*    raise_always            = nullptr;
     sk::ParameterBool*    raise_in_fg             = nullptr;
     sk::ParameterBool*    raise_in_bg             = nullptr;
+    sk::ParameterBool*    highest_priority        = nullptr;
     sk::ParameterBool*    deny_foreign_change     = nullptr;
     sk::ParameterInt*     min_render_priority     = nullptr;
   } priority;
@@ -1670,9 +1671,10 @@ auto DeclKeybind =
 
     ConfigEntry (cpu.power_scheme_guid,                  L"Power Policy (GUID) to Apply At Application Start",         dll_ini,         L"CPU.Power",             L"PowerSchemeGUID"),
 
-    ConfigEntry (scheduling.priority.raise_always,       L"Always boost process priority to Highest",                  dll_ini,         L"Scheduler.Boost",       L"AlwaysRaisePriority"),
-    ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Highest in Background",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
-    ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Highest in Foreground",           dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
+    ConfigEntry (scheduling.priority.raise_always,       L"Always boost process priority to Above Normal",             dll_ini,         L"Scheduler.Boost",       L"AlwaysRaisePriority"),
+    ConfigEntry (scheduling.priority.raise_in_bg,        L"Boost process priority to Above Normal in Background",      dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInBackground"),
+    ConfigEntry (scheduling.priority.raise_in_fg,        L"Boost process priority to Above Normal in Foreground",      dll_ini,         L"Scheduler.Boost",       L"RaisePriorityInForeground"),
+    ConfigEntry (scheduling.priority.highest_priority,   L"Boost process priority to High instead of Above Normal",    dll_ini,         L"Scheduler.Boost",       L"RaisePriorityToHigh"),
     ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
 
@@ -3380,6 +3382,7 @@ auto DeclKeybind =
   scheduling.priority.raise_always->load        (config.priority.raise_always);
   scheduling.priority.raise_in_bg->load         (config.priority.raise_bg);
   scheduling.priority.raise_in_fg->load         (config.priority.raise_fg);
+  scheduling.priority.highest_priority->load    (config.priority.highest_priority);
   scheduling.priority.deny_foreign_change->load (config.priority.deny_foreign_change);
   scheduling.priority.min_render_priority->load (config.priority.minimum_render_prio);
 
@@ -5091,6 +5094,7 @@ SK_SaveConfig ( std::wstring name,
     scheduling.priority.raise_always->store        (config.priority.raise_always);
     scheduling.priority.raise_in_bg->store         (config.priority.raise_bg);
     scheduling.priority.raise_in_fg->store         (config.priority.raise_fg);
+    scheduling.priority.highest_priority->store    (config.priority.highest_priority);
     scheduling.priority.deny_foreign_change->store (config.priority.deny_foreign_change);
     scheduling.priority.min_render_priority->store (config.priority.minimum_render_prio);
 
