@@ -397,24 +397,20 @@ SK_ScreenshotManager::getRepoStats (bool refresh)
 void
 SK_TriggerHudFreeScreenshot (void) noexcept
 {
-  if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D11)
+  if (SK_API_IsLayeredOnD3D11 (SK_GetCurrentRenderBackend ().api))
   {
-    extern volatile LONG SK_D3D11_DrawTrackingReqs;
-    extern volatile LONG __SK_D3D11_QueuedShots;
-
     if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
     {
-      InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      extern volatile LONG   __SK_D3D11_QueuedShots;
       InterlockedIncrement (&__SK_D3D11_QueuedShots);
     }
   }
 
   else if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
   {
-    extern volatile LONG __SK_D3D12_QueuedShots;
     //if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
     //{
-      //InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      extern volatile LONG   __SK_D3D12_QueuedShots;
       InterlockedIncrement (&__SK_D3D12_QueuedShots);
     //}
   }
