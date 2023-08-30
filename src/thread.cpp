@@ -78,7 +78,8 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
                                 dwTid ) );
 
     wchar_t                                          *wszThreadName = nullptr;
-    if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
+    if (nullptr != SK_GetThreadDescription &&
+        SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
     {
       if ( wszThreadName != nullptr &&
           *wszThreadName != L'\0' ) // Empty strings are not useful :)
