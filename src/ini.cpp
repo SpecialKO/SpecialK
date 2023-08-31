@@ -229,7 +229,7 @@ iSK_INI::reload (const wchar_t *fname)
 
       memcpy (string, start_addr, real_size);
 
-      const int converted_size =
+      const UINT converted_size =
         std::max ( 0,
                      MultiByteToWideChar ( CP_UTF8, 0, string,
                                              real_size, nullptr, 0 )
@@ -1606,7 +1606,7 @@ iSK_INI::import_file (const wchar_t* fname)
 
       wchar_t* wszSwapMe = wszImportData;
 
-      for (size_t i = 0; i < size; i += 2)
+      for (int i = 0; i < size; i += 2)
       {
         unsigned short swapped =
           _byteswap_ushort (*wszSwapMe);
