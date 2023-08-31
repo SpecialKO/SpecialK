@@ -259,6 +259,11 @@ SK_GetCurrentGameID (void)
         current_game = SK_GAME_ID::FinalFantasy7Remake;
       }
 
+      else if ( StrStrIW ( SK_GetHostApp (), L"Sam2017" ) )
+      {
+        current_game = SK_GAME_ID::SeriousSamFusion2017;
+      }
+
       else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
       {
         current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
@@ -2989,6 +2994,11 @@ auto DeclKeybind =
       case SK_GAME_ID::HaloInfinite:
         // Prevent VRR disable when using game's framerate limiter
         config.render.framerate.sync_interval_clamp = 1;
+        break;
+
+      case SK_GAME_ID::SeriousSamFusion2017:
+        // Prevent crash on launch due to 'Signature verification of executable failed.'
+        config.window.dont_hook_wndproc = true;
         break;
 
       case SK_GAME_ID::ForzaHorizon5:
