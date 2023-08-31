@@ -4280,8 +4280,6 @@ SK_PeekMessageW (
 
 #define WM_NCMOUSEFIRST  WM_NCMOUSEMOVE
 #define WM_NCMOUSELAST  (WM_NCMOUSEFIRST + (WM_MOUSELAST - WM_MOUSEFIRST))
-#define WM_SYSTIMER      0x0118
-#define QS_SMRESULT      0x8000
 
 BOOL
 WINAPI
@@ -4289,7 +4287,6 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
-#if 1
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
@@ -4302,7 +4299,6 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
     if (((wMsgFilterMin <= WM_MOUSELAST)   && (wMsgFilterMax >= WM_MOUSEFIRST)) ||
         ((wMsgFilterMin <= WM_NCMOUSELAST) && (wMsgFilterMax >= WM_NCMOUSEFIRST))) uiMask |= QS_MOUSE;
     if ( (wMsgFilterMin <= WM_TIMER)       && (wMsgFilterMax >= WM_TIMER))         uiMask |= QS_TIMER;
-    if ( (wMsgFilterMin <= WM_SYSTIMER)    && (wMsgFilterMax >= WM_SYSTIMER))      uiMask |= QS_TIMER;
     if ( (wMsgFilterMin <= WM_PAINT)       && (wMsgFilterMax >= WM_PAINT))         uiMask |= QS_PAINT;
     if ( (wMsgFilterMin <= WM_INPUT)       && (wMsgFilterMax >= WM_INPUT))         uiMask |= QS_RAWINPUT;
   }
@@ -4329,66 +4325,6 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   return
     ( dwWait == WAIT_OBJECT_0 ) ? -1
                                 : ( msg.message != WM_QUIT );
-#else
-  auto GetFunc = NtUserGetMessage != nullptr ?
-                 NtUserGetMessage :
-                       GetMessageA_Original;
-
-  MSG msg = { };
-
-  if ( GetFunc == nullptr )
-  {
-    // A nasty kludge to fix the Steam overlay
-    static auto         early_GetMessageA =
-      reinterpret_cast <NtUserGetMessage_pfn> (
-             SK_GetProcAddress      (
-               SK_GetModuleHandle (   L"user32"  ),
-                                       "GetMessageA"
-                                    )          );
-
-    SK_ReleaseAssert ( early_GetMessageA != nullptr );
-
-    GetFunc =
-      early_GetMessageA;
-
-    if (GetFunc != nullptr)
-    {
-      if ( GetFunc ( &msg,
-                          hWnd,
-                               wMsgFilterMin,
-                               wMsgFilterMax )
-         )
-      {
-        if (lpMsg != nullptr)
-           *lpMsg = msg;
-
-        return TRUE;
-      }
-    }
-
-    return 0;
-  }
-
-  const BOOL bRet =
-    GetFunc ( &msg,
-                   hWnd,
-                        wMsgFilterMin,
-                        wMsgFilterMax );
-
-  if ( bRet != FALSE )
-  {
-    if ( SK_EarlyDispatchMessage ( &msg, false, false ) )
-    {
-      msg.message = WM_NULL;
-    }
-  }
-
-  if (lpMsg != nullptr)
-     *lpMsg = msg;
-
-  return
-    bRet;
-#endif
 }
 
 BOOL
@@ -4427,7 +4363,6 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 {
   SK_LOG_FIRST_CALL
 
-#if 1
   DWORD dwWait = WAIT_TIMEOUT;
   MSG      msg = { };
 
@@ -4440,7 +4375,6 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
     if (((wMsgFilterMin <= WM_MOUSELAST)   && (wMsgFilterMax >= WM_MOUSEFIRST)) ||
         ((wMsgFilterMin <= WM_NCMOUSELAST) && (wMsgFilterMax >= WM_NCMOUSEFIRST))) uiMask |= QS_MOUSE;
     if ( (wMsgFilterMin <= WM_TIMER)       && (wMsgFilterMax >= WM_TIMER))         uiMask |= QS_TIMER;
-    if ( (wMsgFilterMin <= WM_SYSTIMER)    && (wMsgFilterMax >= WM_SYSTIMER))      uiMask |= QS_TIMER;
     if ( (wMsgFilterMin <= WM_PAINT)       && (wMsgFilterMax >= WM_PAINT))         uiMask |= QS_PAINT;
     if ( (wMsgFilterMin <= WM_INPUT)       && (wMsgFilterMax >= WM_INPUT))         uiMask |= QS_RAWINPUT;
   }
@@ -4467,66 +4401,6 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   return
     ( dwWait == WAIT_OBJECT_0 ) ? -1
                                 : ( msg.message != WM_QUIT );
-#else
-  auto GetFunc = NtUserGetMessage != nullptr ?
-                 NtUserGetMessage :
-                       GetMessageW_Original;
-
-  MSG msg = { };
-
-  if ( GetFunc == nullptr )
-  {
-    // A nasty kludge to fix the Steam overlay
-    static auto         early_GetMessageW =
-      reinterpret_cast <NtUserGetMessage_pfn> (
-             SK_GetProcAddress      (
-               SK_GetModuleHandle (   L"user32"  ),
-                                       "GetMessageW"
-                                    )          );
-
-    SK_ReleaseAssert ( early_GetMessageW != nullptr );
-
-    GetFunc =
-      early_GetMessageW;
-
-    if (GetFunc != nullptr)
-    {
-      if ( GetFunc ( &msg,
-                          hWnd,
-                               wMsgFilterMin,
-                               wMsgFilterMax )
-         )
-      {
-        if (lpMsg != nullptr)
-           *lpMsg = msg;
-
-        return TRUE;
-      }
-    }
-
-    return 0;
-  }
-
-  const BOOL bRet =
-    GetFunc ( &msg,
-                   hWnd,
-                        wMsgFilterMin,
-                        wMsgFilterMax );
-
-  if ( bRet != FALSE )
-  {
-    if ( SK_EarlyDispatchMessage ( &msg, false, false ) )
-    {
-      msg.message = WM_NULL;
-    }
-  }
-
-  if (lpMsg != nullptr)
-     *lpMsg = msg;
-
-  return
-    bRet;
-#endif
 }
 
 
