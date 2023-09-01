@@ -35,13 +35,11 @@
 //      in this codebase and the truly useless name mangling that causes.
 //
 ///////////////////////////////////////////////////////////////////////////
-HRESULT WINAPI SetThreadDescription_NOP (HANDLE, PCWSTR) { return E_NOTIMPL; }
-HRESULT WINAPI GetThreadDescription_NOP (HANDLE, PWSTR*) { return E_NOTIMPL; }
+GetThreadDescription_pfn GetThreadDescription_Impl = nullptr;
+SetThreadDescription_pfn SetThreadDescription_Impl = nullptr;
 
-
-using SetThreadDescription_pfn = HRESULT (WINAPI *)(HANDLE, PCWSTR);
-      SetThreadDescription_pfn
-      SetThreadDescription_Original = nullptr;
+// Hooked function
+SetThreadDescription_pfn SetThreadDescription_Original = nullptr;
 
 static constexpr DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
@@ -62,8 +60,39 @@ SK_Thread_HasCustomName (DWORD dwTid)
            SelfTitled.cend (     ) );
 }
 
-SetThreadDescription_pfn SK_SetThreadDescription = &SetThreadDescription_NOP;
-GetThreadDescription_pfn SK_GetThreadDescription = &GetThreadDescription_NOP;
+HRESULT
+WINAPI
+SK_SetThreadDescription ( _In_ HANDLE hThread,
+                          _In_ PCWSTR lpThreadDescription )
+{
+  SK_RunOnce (   SetThreadDescription_Impl =
+      (decltype (SetThreadDescription_Impl)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
+                "SetThreadDescription")
+  );
+
+  if (SetThreadDescription_Impl != nullptr)
+    return SetThreadDescription_Impl (hThread, lpThreadDescription);
+
+  return
+    E_NOTIMPL;
+}
+
+HRESULT
+WINAPI
+SK_GetThreadDescription ( _In_              HANDLE hThread,
+                          _Outptr_result_z_ PWSTR* ppszThreadDescription )
+{
+  SK_RunOnce (   GetThreadDescription_Impl =
+      (decltype (GetThreadDescription_Impl)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
+                "GetThreadDescription")
+  );
+
+  if (GetThreadDescription_Impl != nullptr)
+    return GetThreadDescription_Impl (hThread, ppszThreadDescription);
+
+  return
+    E_NOTIMPL;
+}
 
 static std::wstring _noname = L"";
 
@@ -163,7 +192,7 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
 {
   bool bRet = false;
 
-  if (SK_SetThreadDescription != nullptr && pTni->szName != nullptr)
+  if (pTni->szName != nullptr)
   {
     DWORD dwTid =
       ( pTni->dwThreadID == -1 ) ?
@@ -277,22 +306,6 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
     SK_Thread_RaiseNameException (&info);
 
-
-    SK_RunOnce (
-      SK_SetThreadDescription = (decltype (SK_SetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
-        "SetThreadDescription")
-    );
-
-    // Windows 7 / 8 can go no further, they will have to be happy with the
-    //   TLS-backed name or a debugger must catch the exception above.
-    //
-    if ( SK_SetThreadDescription == &SetThreadDescription_NOP ||
-         SK_SetThreadDescription == nullptr ) // Will be nullptr in SKIM64
-    {
-      return S_OK;
-    }
-
-
     // Finally, use the new API added in Windows 10...
     return
       SK_SetThreadDescription ( GetCurrentThread (),
@@ -323,19 +336,6 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
     );
 
     return S_OK;
-  }
-
-  SK_RunOnce (
-    SK_GetThreadDescription = (decltype (SK_GetThreadDescription)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
-      "GetThreadDescription")
-  );
-
-  // No TLS, no GetThreadDescription (...) -- we are boned :-\
-  //
-  if ( SK_GetThreadDescription == &GetThreadDescription_NOP ||
-       SK_GetThreadDescription ==  nullptr )
-  {
-    return E_NOTIMPL;
   }
 
   return
@@ -524,21 +524,6 @@ SK_Thread_InitDebugExtras (void)
 
     // Only available in Windows 10
     //
-    SK_SetThreadDescription =
-      (SetThreadDescription_pfn)
-        SK_GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
-                                                    "SetThreadDescription" );
-    SK_GetThreadDescription =
-      (GetThreadDescription_pfn)
-        SK_GetProcAddress ( SK_Modules->getLibrary (L"kernel32", true, true),
-                                                    "GetThreadDescription" );
-
-    if (SK_SetThreadDescription == nullptr)
-      SK_SetThreadDescription = &SetThreadDescription_NOP;
-
-    if (SK_GetThreadDescription == nullptr)
-      SK_GetThreadDescription = &GetThreadDescription_NOP;
-
     if (SetThreadDescription_Original == nullptr)
     {
       if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
@@ -566,7 +551,7 @@ SK_Thread_InitDebugExtras (void)
     SK_Thread_SpinUntilAtomicMin (&_InitDebugExtrasOnce, 2);
 
   return
-    (SK_GetThreadDescription != &GetThreadDescription_NOP);
+    (SetThreadDescription_Original != nullptr);
 }
 
 // Returns TRUE if the call required a change to priority level
