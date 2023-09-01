@@ -269,13 +269,11 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
     {
       if (swap_desc.OutputWindow != nullptr)
       {
-        HWND hWndRoot = GetAncestor (swap_desc.OutputWindow, GA_ROOT);
-
-        if (rb.windows.focus.hwnd != hWndRoot)
-          rb.windows.setFocus (hWndRoot);
+        if (rb.windows.focus.hwnd != swap_desc.OutputWindow)
+            rb.windows.setFocus (swap_desc.OutputWindow);
 
         if (rb.windows.device.hwnd == nullptr)
-          rb.windows.setDevice (swap_desc.OutputWindow);
+            rb.windows.setDevice (swap_desc.OutputWindow);
       }
     }
 
