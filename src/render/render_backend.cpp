@@ -492,7 +492,7 @@ SK_BootOpenGL (void)
       return;
   }
 
-  if (! config.compatibility.init_on_separate_thread)
+  if (SK_GetDLLRole () == DLL_ROLE::OpenGL && (! config.compatibility.init_on_separate_thread))
   {
     config.compatibility.init_on_separate_thread = true;
     return;
