@@ -403,7 +403,13 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
                         0 != _stricmp (cmd_args.c_str (), "prev")) )
           {
             int_val = original_val - 1;
-          } else
+          }
+          /* Negate */
+          else if (0 == _stricmp (cmd_args.c_str (), "~"))
+          {
+            int_val = -original_val;
+          }
+          else
             int_val = strtol (cmd_args.c_str (), nullptr, 0);
 
           pVar->setValue (int_val);
@@ -443,7 +449,13 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
                         0 != _stricmp (cmd_args.c_str (), "prev")) )
           {
             short_val = original_val - 1;
-          } else
+          }
+          /* Negate */
+          else if (0 == _stricmp (cmd_args.c_str (), "~"))
+          {
+            short_val = -original_val;
+          }
+          else
             short_val = (short)strtol (cmd_args.c_str (), nullptr, 0);
 
           pVar->setValue (short_val);
@@ -464,6 +476,9 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           /* Decrement */
           else if (0 == _stricmp (cmd_args.c_str (), "--"))
             float_val = original_val - 1.0f;
+          /* Negate */
+          else if (0 == _stricmp (cmd_args.c_str (), "~"))
+            float_val = -original_val;
           /* Assign */
           else
             float_val = (float)strtof (cmd_args.c_str (), nullptr);

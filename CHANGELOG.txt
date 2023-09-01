@@ -1,4 +1,12 @@
-﻿23.9.1
+﻿23.9.1.1
+========
+ + Added ~ operator to Float / Int / Short command console variables to negate
+     the existing value.
+
+    * Due to the way TargetFPS works with negative values, this allows you to
+        toggle the framerate limit without losing your preference.
+
+23.9.1
 ======
  + Fixed instability in Starfield's D3D12 SwapChain when changing window modes
  + Fixed potential uninitialized pointers in SK_GetThreadDescription on Win 8
