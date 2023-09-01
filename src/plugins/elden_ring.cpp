@@ -479,6 +479,9 @@ SK_ER_PlugInCfg (void)
       static std::error_code                    ec = { };
       static std::filesystem::path pathPlayStation =
         SK_Resource_GetRoot () / LR"(inject/textures)"
+          /  L"d3d12_sk0_crc32c_b42f89d4.dds", // Current hash being used as of 2023-09-01
+                                   pathPlayStation_Old2 =
+        SK_Resource_GetRoot () / LR"(inject/textures)"
           /  L"d3d12_sk0_crc32c_ae7c1bb2.dds",
                                    pathPlayStation_Old =
         SK_Resource_GetRoot () / LR"(inject/textures)"
@@ -486,8 +489,10 @@ SK_ER_PlugInCfg (void)
 
       // Remove the old texture mod, since there's extra overhead until they all load
       static bool had_old =
-        std::filesystem::exists (pathPlayStation_Old, ec) ?
-        std::filesystem::remove (pathPlayStation_Old, ec) : false;
+        (std::filesystem::exists (pathPlayStation_Old2, ec) ?
+         std::filesystem::remove (pathPlayStation_Old2, ec) : false) &&
+        (std::filesystem::exists (pathPlayStation_Old,  ec) ?
+         std::filesystem::remove (pathPlayStation_Old,  ec) : false);
 
       static bool                   bPlayStation_AtStart =
         std::filesystem::exists (pathPlayStation, ec),
@@ -512,7 +517,7 @@ SK_ER_PlugInCfg (void)
                  sk_download_request_s (
                    pathPlayStation.wstring (),
                      R"(https://sk-data.special-k.info/addon/EldenRing/)"
-                               R"(buttons/d3d12_sk0_crc32c_ae7c1bb2.dds)",
+                               R"(buttons/d3d12_sk0_crc32c_b42f89d4.dds)",
             []( const std::vector <uint8_t>&&,
                 const std::wstring_view )
              -> bool
