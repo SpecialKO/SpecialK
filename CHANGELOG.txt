@@ -1,4 +1,14 @@
-﻿23.8.29
+﻿23.9.1
+======
+ + Fixed instability in Starfield's D3D12 SwapChain when changing window modes
+ + Fixed potential uninitialized pointers in SK_GetThreadDescription on Win 8
+
+ + Merge pull request #83 from Nustat0/unity-asyncinit
+    * Prevent AsyncInit from re-enabling itself in Non-OGL Unity games
+ + Merge pull request #86 from Aemony/eldenring_ps
+    * Elden Ring: Updated to use current PS texture hash
+
+23.8.29
 =======
  + Added INI setting to raise process priority to High instead of Above Normal
      for settings that conditionally raise priority based on window state.
