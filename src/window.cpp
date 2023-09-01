@@ -5349,8 +5349,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         SK_LOG0 ( ( L"(?) Active window destroyed, our chicken has no head!" ),
                     __SK_SUBSYSTEM__ );
-        game_window.hWnd   =    0;
-        game_window.active = true; // The headless chicken appears very active...
 
         if (GetAncestor (hWnd, GA_ROOT) == game_window.hWnd)
         {
@@ -5359,7 +5357,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
                       SK_Inject_SetFocusWindow (0);
 
-          SK_ImGui_WantExit = true;
+          // It's not clear why this was here, WM_QUIT should be where this is handled...
+          //   of course that message is never dispatched.
+          //SK_ImGui_WantExit = true;
 
           // Even if we don't exit SK in response to this message, resetting
           //   temporary display mode changes would be a good idea.
@@ -5368,6 +5368,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (config.compatibility.shutdown_on_window_close)
             SK_SelfDestruct ();
         }
+
+        rb.windows.focus.update  (0);
+        rb.windows.device.update (0);
+
+        game_window.hWnd   =    0;
+        game_window.active = true; // The headless chicken appears very active...
       }
       break;
 

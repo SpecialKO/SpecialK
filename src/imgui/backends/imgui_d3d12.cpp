@@ -1996,24 +1996,48 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   if (_pDevice.p == nullptr)
   {
-    if ( _pCommandQueue.p != nullptr && SUCCEEDED (
+    if ( _pCommandQueue.p != nullptr && FAILED (
            _pCommandQueue->GetDevice ( IID_PPV_ARGS (&_pDevice.p) )
-                                                  )
+                                               )
        )
     {
-      _pSwapChain =
-       pSwapChain;
+      return false;
+    }
+  }
 
-      static auto& rb =
-        SK_GetCurrentRenderBackend ();
+  if (_pDevice.p != nullptr)
+  {
+    _pSwapChain =
+     pSwapChain;
 
-      if (rb.swapchain == nullptr)
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    if (rb.swapchain == nullptr || rb.swapchain != pSwapChain)
+    {
+      // This is unexpected, but may happen if a game destroys its original window
+      //   and then creates a new SwapChain
+      if (rb.swapchain != nullptr)
       {
-        rb.swapchain           = pSwapChain;
-        rb.device              = _pDevice.p;
-        rb.d3d12.command_queue = _pCommandQueue.p;
-        rb.api                 = SK_RenderAPI::D3D12;
+        SK_LOGi0 (
+          L"# Transitioning active ImGui SwapChain from %p to %p",
+            rb.swapchain.p, pSwapChain );
+
+#if 1   // Likley the device is always the same due to D3D12 adapters being singletons
+        _pDevice       = nullptr;
+        _pCommandQueue = pCommandQueue;
+
+        if (_pCommandQueue != nullptr)
+        {
+          _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+        }
+#endif
       }
+
+      rb.swapchain           = pSwapChain;
+      rb.device              = _pDevice.p;
+      rb.d3d12.command_queue = _pCommandQueue.p;
+      rb.api                 = SK_RenderAPI::D3D12;
     }
   }
 

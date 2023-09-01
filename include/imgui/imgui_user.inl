@@ -361,7 +361,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   }
 
   // On error, simply return immediately...
-  if (size == -1)
+  if (size == ~0U)
     return size;
 
   // Input event happened while the window had focus if true, otherwise another
@@ -1487,14 +1487,18 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           static constexpr GUID GUID_DEVINTERFACE_HID =
             { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
 
-          if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID))
+          static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
+            { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
+
+          if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
+              IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
           {
-            bool xinput = false;
+            bool xinput = IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS);
 
             if (     pDevW->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_W))
-              xinput = wcsstr (pDevW->dbcc_name, L"IG_") != nullptr;
+              xinput |= wcsstr (pDevW->dbcc_name, L"IG_") != nullptr;
             else if (pDevA->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_A))
-              xinput = strstr (pDevA->dbcc_name,  "IG_") != nullptr;
+              xinput |= strstr (pDevA->dbcc_name,  "IG_") != nullptr;
 
             if (xinput)
             {
