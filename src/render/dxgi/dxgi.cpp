@@ -6264,7 +6264,6 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
 #define __PAIR_DEVICE_TO_CHAIN
 #ifdef  __PAIR_DEVICE_TO_CHAIN
 static concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>> _recyclable_d3d11;
-static concurrency::concurrent_unordered_map <HWND, concurrency::concurrent_unordered_map <IUnknown*, IDXGISwapChain1*>> _recyclable_d3d12;
 #else
 static concurrency::concurrent_unordered_map <HWND, IDXGISwapChain1*> _discarded;
 static concurrency::concurrent_unordered_map <HWND, IDXGISwapChain1*> _recyclables;
@@ -6292,18 +6291,6 @@ SK_DXGI_GetCachedSwapChainForHwnd (HWND hWnd, IUnknown* pDevice)
     if (pChain != nullptr)
         pChain->AddRef ();
   }
-
-  else if ( pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) )
-  {
-    // This one is -VERY- unexpected, since D3D12 games should handle
-    //   cleanup for Flip Model correctly...
-    SK_ReleaseAssert (_recyclable_d3d12 [hWnd].count (pDevice) > 0);
-
-    pChain = (IDXGISwapChain1 *)_recyclable_d3d12 [hWnd][pDevice];
-
-    if (pChain != nullptr)
-        pChain->AddRef ();
-  }
 #else
   if ( _recyclables.count (hWnd) != 0 )
   {
@@ -6322,8 +6309,7 @@ SK_DXGI_MakeCachedSwapChainForHwnd (IDXGISwapChain1* pSwapChain, HWND hWnd, IUnk
   SK_ComQIPtr <ID3D12Device> pDev12 (pDevice);
 
 #ifdef __PAIR_DEVICE_TO_CHAIN
-  if      (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
-  else if (pDev12.p != nullptr) _recyclable_d3d12 [hWnd][pDevice] = pSwapChain;
+  if (pDev11.p != nullptr) _recyclable_d3d11 [hWnd][pDevice] = pSwapChain;
 #else
   _recyclables [hWnd] = pSwapChain;
 #endif
@@ -6362,21 +6348,6 @@ SK_DXGI_ReleaseSwapChainOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pD
     _recyclable_d3d11 [hWnd][pDevice] = nullptr;
 
     _d3d11_rbk->release (swapchain);
-  }
-
-  // D3D12 can never have more than one swapchain on an HWND, so ...
-  //   this is silly
-  else if (pDev12.p != nullptr && _recyclable_d3d12.count (hWnd) > 0)
-  {
-    auto swapchain =
-      _recyclable_d3d12 [hWnd][pDevice];
-
-    SK_ReleaseAssert (swapchain != nullptr)
-
-    ret = 0;
-    _recyclable_d3d12 [hWnd][pDevice] = nullptr;
-
-    _d3d12_rbk->release (swapchain);
   }
 #else
   if (_recyclables.count (hWnd))
@@ -6504,12 +6475,10 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   IDXGISwapChain1 *pTemp (nullptr);
   IDXGISwapChain1 *pCache = nullptr;
 
-  // Cache Flip Model Chains
-  if (/*(! bFlipOriginal) && */SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect)) pCache =
+  // Cache (D3D11) Flip Model Chains
+  if (pDev11.p != nullptr && SK_DXGI_IsFlipModelSwapEffect (new_desc1.SwapEffect)) pCache =
     SK_DXGI_GetCachedSwapChainForHwnd (
-                                 hWnd,
-      pDev12.p != nullptr ? static_cast <IUnknown *> (pDev12.p)
-                          : static_cast <IUnknown *> (pDev11.p)
+                                 hWnd, static_cast <IUnknown *> (pDev11.p)
                                       );
   if (pCache != nullptr)
   {
@@ -6629,8 +6598,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       // D3D12
       else if (pCmdQueue.p != nullptr)
       {
-        bool bAmdInterop = false;
-
         //
         // Detect AMD's Interop SwapChain
         //
@@ -6643,15 +6610,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
           );
 
           SK_LOGi0 (L"Detected a Vulkan/DXGI Interop SwapChain");
-
-          bAmdInterop = true;
-        }
-
-        // Don't cache SwapChains, AMD always creates a new device
-        if (! bAmdInterop)
-        {
-          SK_DXGI_MakeCachedSwapChainForHwnd
-               ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev12.p) );
         }
       }
     }
