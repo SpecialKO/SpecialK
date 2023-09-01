@@ -1,4 +1,9 @@
-﻿23.9.1.1
+﻿23.9.1.2
+========
+ + Fixed Display Management Keybindings not opening keybind edit dialog when
+     selected from the control panel's Display menu
+
+23.9.1.1
 ========
  + Added ~ operator to Float / Int / Short command console variables to negate
      the existing value.

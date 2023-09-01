@@ -78,7 +78,7 @@ SK_GetCurrentMS (void) noexcept
 }
 
 static const auto Keybinding =
-[] (SK_Keybind* binding, sk::ParameterStringW* param) ->
+[] (SK_ConfigSerializedKeybind* binding, sk::ParameterStringW* param) ->
 auto
 {
   if (! (binding != nullptr && param != nullptr))
@@ -90,7 +90,10 @@ auto
   ImGui::PushID (binding->bind_name);
 
   if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+  {
     ImGui::OpenPopup (        binding->bind_name);
+                              binding->assigning = true;
+  }
 
   std::wstring original_binding = binding->human_readable;
 
