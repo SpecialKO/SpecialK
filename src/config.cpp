@@ -229,7 +229,8 @@ SK_GetCurrentGameID (void)
           { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   },
           { L"RiftApart.exe",                          SK_GAME_ID::RatchetAndClank_RiftApart    },
           { L"Sam2017.exe",                            SK_GAME_ID::SeriousSamFusion2017         },
-          { L"Sam2017_Unrestricted.exe",               SK_GAME_ID::SeriousSamFusion2017         }
+          { L"Sam2017_Unrestricted.exe",               SK_GAME_ID::SeriousSamFusion2017         },
+          { L"Starfield.exe",                          SK_GAME_ID::Starfield                    }
         };
 
     first_check  = false;

@@ -1355,6 +1355,7 @@ enum class SK_GAME_ID
   CallOfDuty,                   // CoDSP.exe, CoDMP.exe (???)
   RatchetAndClank_RiftApart,    // RiftApart.exe
   SeriousSamFusion2017,         // Sam2017.exe / Sam2017_Unrestricted.exe
+  Starfield,                    // Starfield.exe
 
   UNKNOWN_GAME               = 0xffff
 };

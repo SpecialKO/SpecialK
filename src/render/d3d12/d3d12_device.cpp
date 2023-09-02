@@ -461,6 +461,206 @@ _COM_Outptr_ void                              **ppPipelineState )
     hrPipelineCreate;
 }
 
+
+//------------------------------------------------------------------------------------------------
+// Stream Parser Helpers
+
+struct ID3DX12PipelineParserCallbacks_SK
+{
+    // Subobject Callbacks
+    virtual void FlagsCb(D3D12_PIPELINE_STATE_FLAGS) {}
+    virtual void NodeMaskCb(UINT) {}
+    virtual void RootSignatureCb(ID3D12RootSignature*) {}
+    virtual void InputLayoutCb(const D3D12_INPUT_LAYOUT_DESC&) {}
+    virtual void IBStripCutValueCb(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE) {}
+    virtual void PrimitiveTopologyTypeCb(D3D12_PRIMITIVE_TOPOLOGY_TYPE) {}
+    virtual void VSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void GSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void StreamOutputCb(const D3D12_STREAM_OUTPUT_DESC&) {}
+    virtual void HSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void DSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void PSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void CSCb(const D3D12_SHADER_BYTECODE&) {}
+    virtual void BlendStateCb(const D3D12_BLEND_DESC&) {}
+    virtual void DepthStencilStateCb(const D3D12_DEPTH_STENCIL_DESC&) {}
+    virtual void DepthStencilState1Cb(const D3D12_DEPTH_STENCIL_DESC1&) {}
+    virtual void DSVFormatCb(DXGI_FORMAT&) {}
+    virtual void RasterizerStateCb(const D3D12_RASTERIZER_DESC&) {}
+    virtual void RTVFormatsCb(D3D12_RT_FORMAT_ARRAY&) {}
+    virtual void SampleDescCb(const DXGI_SAMPLE_DESC&) {}
+    virtual void SampleMaskCb(UINT) {}
+    virtual void CachedPSOCb(const D3D12_CACHED_PIPELINE_STATE&) {}
+
+    // Error Callbacks
+    virtual void ErrorBadInputParameter(UINT /*ParameterIndex*/) {}
+    virtual void ErrorDuplicateSubobject(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE /*DuplicateType*/) {}
+    virtual void ErrorUnknownSubobject(UINT /*UnknownTypeValue*/) {}
+
+};
+
+struct CD3DX12_PIPELINE_STATE_STREAM_PARSE_HELPER_SK : public ID3DX12PipelineParserCallbacks_SK
+{
+    CD3DX12_PIPELINE_STATE_STREAM PipelineStream;
+
+    // ID3DX12PipelineParserCallbacks
+    void FlagsCb(D3D12_PIPELINE_STATE_FLAGS Flags) {PipelineStream.Flags = Flags;}
+    void NodeMaskCb(UINT NodeMask) {PipelineStream.NodeMask = NodeMask;}
+    void RootSignatureCb(ID3D12RootSignature* pRootSignature) {PipelineStream.pRootSignature = pRootSignature;}
+    void InputLayoutCb(const D3D12_INPUT_LAYOUT_DESC& InputLayout) {PipelineStream.InputLayout = InputLayout;}
+    void IBStripCutValueCb(D3D12_INDEX_BUFFER_STRIP_CUT_VALUE IBStripCutValue) {PipelineStream.IBStripCutValue = IBStripCutValue;}
+    void PrimitiveTopologyTypeCb(D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType) {PipelineStream.PrimitiveTopologyType = PrimitiveTopologyType;}
+    void VSCb(const D3D12_SHADER_BYTECODE& VS) {PipelineStream.VS = VS;}
+    void GSCb(const D3D12_SHADER_BYTECODE& GS) {PipelineStream.GS = GS;}
+    void StreamOutputCb(const D3D12_STREAM_OUTPUT_DESC& StreamOutput) {PipelineStream.StreamOutput = StreamOutput;}
+    void HSCb(const D3D12_SHADER_BYTECODE& HS) {PipelineStream.HS = HS;}
+    void DSCb(const D3D12_SHADER_BYTECODE& DS) {PipelineStream.DS = DS;}
+    void PSCb(const D3D12_SHADER_BYTECODE& PS) {PipelineStream.PS = PS;}
+    void CSCb(const D3D12_SHADER_BYTECODE& CS) {PipelineStream.CS = CS;}
+    void BlendStateCb(const D3D12_BLEND_DESC& BlendState) {PipelineStream.BlendState = CD3DX12_BLEND_DESC(BlendState);}
+    void DepthStencilStateCb(const D3D12_DEPTH_STENCIL_DESC& DepthStencilState) {PipelineStream.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(DepthStencilState);}
+    void DepthStencilState1Cb(const D3D12_DEPTH_STENCIL_DESC1& DepthStencilState) {PipelineStream.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(DepthStencilState);}
+    void DSVFormatCb(DXGI_FORMAT& DSVFormat) {PipelineStream.DSVFormat = DSVFormat;}
+    void RasterizerStateCb(const D3D12_RASTERIZER_DESC& RasterizerState) {PipelineStream.RasterizerState = CD3DX12_RASTERIZER_DESC(RasterizerState);}
+    void RTVFormatsCb(D3D12_RT_FORMAT_ARRAY& RTVFormats) {PipelineStream.RTVFormats = RTVFormats;}
+    void SampleDescCb(const DXGI_SAMPLE_DESC& SampleDesc) {PipelineStream.SampleDesc = SampleDesc;}
+    void SampleMaskCb(UINT SampleMask) {PipelineStream.SampleMask = SampleMask;}
+    void CachedPSOCb(const D3D12_CACHED_PIPELINE_STATE& CachedPSO) {PipelineStream.CachedPSO = CachedPSO;}
+    void ErrorBadInputParameter(UINT) {}
+    void ErrorDuplicateSubobject(D3D12_PIPELINE_STATE_SUBOBJECT_TYPE) {}
+    void ErrorUnknownSubobject(UINT) {}
+};
+
+inline HRESULT D3DX12ParsePipelineStream_SK(D3D12_PIPELINE_STATE_STREAM_DESC& Desc, ID3DX12PipelineParserCallbacks_SK* pCallbacks)
+{
+    if (Desc.SizeInBytes == 0 || Desc.pPipelineStateSubobjectStream == nullptr)
+    {
+        pCallbacks->ErrorBadInputParameter(1); // first parameter issue
+        return E_INVALIDARG;
+    }
+
+    if (pCallbacks == nullptr)
+    {
+        pCallbacks->ErrorBadInputParameter(2); // second parameter issue
+        return E_INVALIDARG;
+    }
+
+    bool SubobjectSeen[D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MAX_VALID] = {0};
+    for (SIZE_T CurOffset = 0, SizeOfSubobject = 0; CurOffset < Desc.SizeInBytes; CurOffset += SizeOfSubobject)
+    {
+        BYTE* pStream = static_cast<BYTE*>(Desc.pPipelineStateSubobjectStream)+CurOffset;
+        auto SubobjectType = *reinterpret_cast<D3D12_PIPELINE_STATE_SUBOBJECT_TYPE*>(pStream);
+        if (SubobjectType >= D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_MAX_VALID)
+        {
+            pCallbacks->ErrorUnknownSubobject(SubobjectType);
+            return E_INVALIDARG;
+        }
+        if (SubobjectSeen[D3DX12GetBaseSubobjectType(SubobjectType)])
+        {
+            pCallbacks->ErrorDuplicateSubobject(SubobjectType);
+            return E_INVALIDARG; // disallow subobject duplicates in a stream
+        }
+        SubobjectSeen[SubobjectType] = true;
+        switch (SubobjectType)
+        {
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_ROOT_SIGNATURE: 
+            pCallbacks->RootSignatureCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::pRootSignature)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::pRootSignature);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_VS:
+            pCallbacks->VSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::VS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::VS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PS: 
+            pCallbacks->PSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::PS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::PS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DS: 
+            pCallbacks->DSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::DS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::DS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_HS: 
+            pCallbacks->HSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::HS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::HS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_GS: 
+            pCallbacks->GSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::GS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::GS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CS:
+            pCallbacks->CSCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::CS)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::CS);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_STREAM_OUTPUT: 
+            pCallbacks->StreamOutputCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::StreamOutput)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::StreamOutput);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_BLEND: 
+            pCallbacks->BlendStateCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::BlendState)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::BlendState);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_MASK: 
+            pCallbacks->SampleMaskCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::SampleMask)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::SampleMask);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RASTERIZER: 
+            pCallbacks->RasterizerStateCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::RasterizerState)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::RasterizerState);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL: 
+            pCallbacks->DepthStencilStateCb(*reinterpret_cast<CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL1: 
+            pCallbacks->DepthStencilState1Cb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::DepthStencilState)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::DepthStencilState);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_INPUT_LAYOUT: 
+            pCallbacks->InputLayoutCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::InputLayout)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::InputLayout);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_IB_STRIP_CUT_VALUE: 
+            pCallbacks->IBStripCutValueCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::IBStripCutValue)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::IBStripCutValue);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_PRIMITIVE_TOPOLOGY: 
+            pCallbacks->PrimitiveTopologyTypeCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::PrimitiveTopologyType)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::PrimitiveTopologyType);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_RENDER_TARGET_FORMATS: 
+            pCallbacks->RTVFormatsCb(*reinterpret_cast<D3D12_RT_FORMAT_ARRAY*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::RTVFormats);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_DEPTH_STENCIL_FORMAT: 
+            pCallbacks->DSVFormatCb(*reinterpret_cast<DXGI_FORMAT*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::DSVFormat);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_SAMPLE_DESC: 
+            pCallbacks->SampleDescCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::SampleDesc)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::SampleDesc);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_NODE_MASK: 
+            pCallbacks->NodeMaskCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::NodeMask)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::NodeMask);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_CACHED_PSO: 
+            pCallbacks->CachedPSOCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::CachedPSO)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::CachedPSO);
+            break;
+        case D3D12_PIPELINE_STATE_SUBOBJECT_TYPE_FLAGS:
+            pCallbacks->FlagsCb(*reinterpret_cast<decltype(CD3DX12_PIPELINE_STATE_STREAM::Flags)*>(pStream));
+            SizeOfSubobject = sizeof(CD3DX12_PIPELINE_STATE_STREAM::Flags);
+            break;
+        default:
+            pCallbacks->ErrorUnknownSubobject(SubobjectType);
+            return E_INVALIDARG;
+            break;
+        }
+    }
+
+    return S_OK;
+}
+
+
 struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
 {
            SK_D3D12_PipelineParser (void) = default;
@@ -568,15 +768,42 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
   ID3D12PipelineState* pPipelineState = nullptr;
 };
 
+struct SK_D3D12_PipelineParser_HDR : ID3DX12PipelineParserCallbacks_SK
+{
+           SK_D3D12_PipelineParser_HDR (void) = default;
+  virtual ~SK_D3D12_PipelineParser_HDR (void) = default;
+
+  void RTVFormatsCb (D3D12_RT_FORMAT_ARRAY& RTVFormats) override
+  {
+    for (UINT i = 0 ; i < 8 ; i++)
+    {
+      if (RTVFormats.RTFormats [i] == DXGI_FORMAT_B8G8R8A8_UNORM)
+          RTVFormats.RTFormats [i]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    }
+  }
+
+  ID3D12PipelineState* pPipelineState = nullptr;
+};
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device2_CreatePipelineState_Detour (
               ID3D12Device2                    *This,
-        const D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
+     /*const*/D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
               REFIID                            riid,
 _COM_Outptr_  void                            **ppPipelineState )
 {
   SK_LOG_FIRST_CALL
+
+  // HDR Fix-Ups
+  if (__SK_HDR_16BitSwap && SK_GetCurrentGameID () == SK_GAME_ID::Starfield)
+  {
+    SK_D3D12_PipelineParser_HDR
+     SK_D3D12_PipelineParse_HDR;
+
+    // Change B8G8R8A8_UNORM RTs to R16G16B16A16_FLOAT
+    D3DX12ParsePipelineStream_SK (*pDesc, &SK_D3D12_PipelineParse_HDR);
+  }
 
   HRESULT hr =
     D3D12Device2_CreatePipelineState_Original (
@@ -589,32 +816,32 @@ _COM_Outptr_  void                            **ppPipelineState )
 
   if (bEldenRing)
   {
-  if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
-  {
-    UINT uiDontCare = 0;
+    if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
+    {
+      UINT uiDontCare = 0;
 
-    SK_ComQIPtr <ID3DDestructionNotifier>
-                    pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
+      SK_ComQIPtr <ID3DDestructionNotifier>
+                      pDestructomatic (*(ID3D12PipelineState **)ppPipelineState);
 
-    if (pDestructomatic != nullptr)
-    {   pDestructomatic->RegisterDestructionCallback (
-                   SK_D3D12_PipelineDrainPlug,
-                   *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
+      if (pDestructomatic != nullptr)
+      {   pDestructomatic->RegisterDestructionCallback (
+                     SK_D3D12_PipelineDrainPlug,
+                     *(ID3D12PipelineState **)ppPipelineState, &uiDontCare );
 
-      SK_D3D12_PipelineParser
-        SK_D3D12_PipelineParse;
-        SK_D3D12_PipelineParse.pPipelineState =
-        *(ID3D12PipelineState **)ppPipelineState;
+        SK_D3D12_PipelineParser
+          SK_D3D12_PipelineParse;
+          SK_D3D12_PipelineParse.pPipelineState =
+          *(ID3D12PipelineState **)ppPipelineState;
 
-      if ( SUCCEEDED (
-             D3DX12ParsePipelineStream (*pDesc, &SK_D3D12_PipelineParse)
-                     )
-         )
-      {
-        return hr;
+        if ( SUCCEEDED (
+               D3DX12ParsePipelineStream (*pDesc, &SK_D3D12_PipelineParse)
+                       )
+           )
+        {
+          return hr;
+        }
       }
     }
-  }
   }
 
   return hr;
@@ -849,7 +1076,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 
     if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
         (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS))
+         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
     {
       //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
       //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
@@ -872,7 +1099,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
          desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
         pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format) ) )
       {
         SK_LOG_FIRST_CALL
 
@@ -904,20 +1131,6 @@ _In_opt_        ID3D12Resource                   *pCounterResource,
 _In_opt_  const D3D12_UNORDERED_ACCESS_VIEW_DESC *pDesc,
 _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 {
-  if (pDesc != nullptr && pDesc->Format == DXGI_FORMAT_R16G16B16A16_TYPELESS)
-  {
-    auto desc = *pDesc;
-
-    desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-    return
-      D3D12Device_CreateUnorderedAccessView_Original ( This,
-        pResource, pCounterResource, &desc,
-          DestDescriptor
-      );
-  }
-
-
   // HDR Fix-Ups
   if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
@@ -929,10 +1142,11 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
       pResource->GetDesc ();
 
     if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-         desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT )
+        (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
     {
-      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-           DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
+      //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+      //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
       {
         SK_LOG_FIRST_CALL
 
@@ -952,7 +1166,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
          desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
         pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
       {
         SK_LOG_FIRST_CALL
 
