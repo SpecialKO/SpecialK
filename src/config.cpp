@@ -228,6 +228,8 @@ SK_GetCurrentGameID (void)
           { L"CoDSP.exe",                              SK_GAME_ID::CallOfDuty                   },
           { L"CoDMP.exe",                              SK_GAME_ID::CallOfDuty                   },
           { L"RiftApart.exe",                          SK_GAME_ID::RatchetAndClank_RiftApart    },
+          { L"Sam2017.exe",                            SK_GAME_ID::SeriousSamFusion2017         },
+          { L"Sam2017_Unrestricted.exe",               SK_GAME_ID::SeriousSamFusion2017         }
         };
 
     first_check  = false;
@@ -257,11 +259,6 @@ SK_GetCurrentGameID (void)
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
       {
         current_game = SK_GAME_ID::FinalFantasy7Remake;
-      }
-
-      else if ( StrStrIW ( SK_GetHostApp (), L"Sam2017" ) )
-      {
-        current_game = SK_GAME_ID::SeriousSamFusion2017;
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
