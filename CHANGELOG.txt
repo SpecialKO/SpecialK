@@ -1,4 +1,13 @@
-﻿23.9.2
+﻿23.9.2.2
+========
+ + Fixed mistracking window dimensions when Starfield re-creates its window
+
+23.9.2.1
+========
+ + Fixed HDR support in Starfield and changed its internal RTVs from
+     B8G8R8A8_UNORM to R16G16B16A16_FLOAT for compatibility with Steam overlay
+
+23.9.2
 ======
  + Added Multi-Monitor Mode to Window Management Settings
 

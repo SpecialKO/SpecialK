@@ -1275,6 +1275,11 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
     SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
                L"Window Mgr");
     setDevice (hWnd);
+
+    focus.update        (hWnd);
+    game_window.hWnd   = hWnd;
+    game_window.top    = GetTopWindow (hWnd);
+    game_window.active = true;
   }
 }
 
