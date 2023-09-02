@@ -4670,19 +4670,10 @@ SK_DXGI_CreateSwapChain_PreInit (
                pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_SEQUENTIAL;
     }
 
-
     if (! config.window.res.override.isZero ())
     {
       pDesc->BufferDesc.Width  = config.window.res.override.x;
       pDesc->BufferDesc.Height = config.window.res.override.y;
-    }
-
-    else if (pDesc->Windowed && config.window.borderless && (! config.window.fullscreen))
-    {
-      SK_DXGI_BorderCompensation (
-        pDesc->BufferDesc.Width,
-          pDesc->BufferDesc.Height
-      );
     }
 
 
