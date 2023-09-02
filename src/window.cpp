@@ -6732,84 +6732,6 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   }
 }
 
-using RegisterClassExA_pfn = ATOM (WINAPI *)(CONST WNDCLASSEXA *);
-using RegisterClassExW_pfn = ATOM (WINAPI *)(CONST WNDCLASSEXW *);
-using RegisterClassA_pfn   = ATOM (WINAPI *)(CONST WNDCLASSA *);
-using RegisterClassW_pfn   = ATOM (WINAPI *)(CONST WNDCLASSW *);
-
-RegisterClassExA_pfn RegisterClassExA_Original = nullptr;
-RegisterClassExW_pfn RegisterClassExW_Original = nullptr;
-RegisterClassA_pfn   RegisterClassA_Original   = nullptr;
-RegisterClassW_pfn   RegisterClassW_Original   = nullptr;
-
-ATOM
-WINAPI
-RegisterClassExA_Detour (
-  _In_ CONST WNDCLASSEXA *lpWndClassEx)
-{
-  SK_LOGi0 (L"RegisterClassExA (%hs)", lpWndClassEx->lpszClassName);
-
-  return
-    RegisterClassExA_Original (lpWndClassEx);
-}
-
-ATOM
-WINAPI
-RegisterClassA_Detour (
-  _In_ CONST WNDCLASSA *lpWndClass)
-{
-  WNDCLASSEXA
-    wndClassExA = { sizeof (WNDCLASSEXA),
-                    lpWndClass->style,
-                    lpWndClass->lpfnWndProc,
-                    lpWndClass->cbClsExtra,
-                    lpWndClass->cbWndExtra,
-                    lpWndClass->hInstance,
-                    lpWndClass->hIcon,
-                    lpWndClass->hCursor,
-                    lpWndClass->hbrBackground,
-                    lpWndClass->lpszMenuName,
-                    lpWndClass->lpszClassName,
-                    NULL };
-
-  return
-    RegisterClassExA (&wndClassExA);
-}
-
-ATOM
-WINAPI
-RegisterClassExW_Detour (
-  _In_ CONST WNDCLASSEXW *lpWndClassEx)
-{
-  SK_LOGi0 (L"RegisterClassExW (%ws)", lpWndClassEx->lpszClassName);
-
-  return
-    RegisterClassExW_Original (lpWndClassEx);
-}
-
-ATOM
-WINAPI
-RegisterClassW_Detour (
-  _In_ CONST WNDCLASSW *lpWndClass)
-{
-  WNDCLASSEXW
-    wndClassExW = { sizeof (WNDCLASSEXW),
-                    lpWndClass->style,
-                    lpWndClass->lpfnWndProc,
-                    lpWndClass->cbClsExtra,
-                    lpWndClass->cbWndExtra,
-                    lpWndClass->hInstance,
-                    lpWndClass->hIcon,
-                    lpWndClass->hCursor,
-                    lpWndClass->hbrBackground,
-                    lpWndClass->lpszMenuName,
-                    lpWndClass->lpszClassName,
-                    NULL };
-
-  return
-    RegisterClassExW (&wndClassExW);
-}
-
 void
 SK_HookWinAPI (void)
 {
@@ -6839,27 +6761,6 @@ SK_HookWinAPI (void)
 #endif
 
 #if 1
-    SK_CreateDLLHook2 (      L"user32",
-                              "RegisterClassA",
-                               RegisterClassA_Detour,
-      static_cast_p2p <void> (&RegisterClassA_Original) );
-
-    SK_CreateDLLHook2 (      L"user32",
-                              "RegisterClassExA",
-                               RegisterClassExA_Detour,
-      static_cast_p2p <void> (&RegisterClassExA_Original) );
-
-    SK_CreateDLLHook2 (      L"user32",
-                              "RegisterClassW",
-                               RegisterClassW_Detour,
-      static_cast_p2p <void> (&RegisterClassW_Original) );
-
-    SK_CreateDLLHook2 (      L"user32",
-                              "RegisterClassExW",
-                               RegisterClassExW_Detour,
-      static_cast_p2p <void> (&RegisterClassExW_Original) );
-
-
     SK_CreateDLLHook2 (      L"user32",
                               "SetWindowPos",
                                SetWindowPos_Detour,
