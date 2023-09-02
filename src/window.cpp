@@ -113,6 +113,7 @@ SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek = false);
 BOOL
 SK_Window_IsUnicode (HWND hWnd)
 {
+#if 0
   struct cache_entry_s {
     explicit cache_entry_s (HWND hWnd) : hwnd (hWnd)
     {
@@ -138,11 +139,16 @@ SK_Window_IsUnicode (HWND hWnd)
 
   return
     cache.test_and_set (hWnd);
+#else
+  return
+    IsWindowUnicode (hWnd);
+#endif
 }
 
 BOOL
 SK_IsChild (HWND hWndParent, HWND hWnd)
 {
+#if 0
   static Concurrency::concurrent_unordered_map
     < HWND, HWND > parents_;
 
@@ -158,6 +164,10 @@ SK_IsChild (HWND hWndParent, HWND hWnd)
     GetParent (hWnd);
 
   return FALSE;
+#else
+  return
+    IsChild (hWndParent, hWnd);
+#endif
 }
 
 
@@ -5034,58 +5044,66 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  static bool        first_run = true;
-  if (std::exchange (first_run, false))
+  if (hWnd != 0)
   {
-    if (SK_GetFocus () == game_window.hWnd || SK_GetForegroundWindow () == game_window.hWnd)
-      ActivateWindow  (game_window.hWnd, true);
-
-    // Start unmuted (in case the game crashed in the background)
-    if (config.window.background_mute != false)
-      SK_SetGameMute (false);
-
-    rb.windows.setFocus     (hWnd);
-    rb.updateOutputTopology (    );
-
-    // ResolutionSelectUI will use the name here for matching purposes,
-    //   so update the name immediately.
-    rb.assignOutputFromHWND (game_window.hWnd);
-
-    DWORD dwFocus        = 0x0;
-    DWORD dwForeground   = 0x0;
-
-    HWND  hWndFocus      = SK_GetFocus            ();
-    HWND  hWndForeground = SK_GetForegroundWindow ();
-
-    if (! ( game_window.hWnd == hWndFocus   ||
-            game_window.hWnd == hWndForeground ) )
+    static HWND        hWndLast= game_window.hWnd;
+    if (std::exchange (hWndLast, game_window.hWnd) != game_window.hWnd)
     {
-      GetWindowThreadProcessId (hWndFocus,      &dwFocus);
-      GetWindowThreadProcessId (hWndForeground, &dwForeground);
-
-      game_window.active       = ( dwFocus      == GetCurrentProcessId () ||
-                                   dwForeground == GetCurrentProcessId () );
+      game_window.changed = true;
     }
 
-    else
-      game_window.active = true;
+    if (std::exchange (game_window.changed, false))
+    {
+      if (SK_GetFocus () == game_window.hWnd || SK_GetForegroundWindow () == game_window.hWnd)
+        ActivateWindow  (game_window.hWnd, true);
 
-    SK_Window_OnFocusChange (game_window.hWnd, hWndFocus);
+      // Start unmuted (in case the game crashed in the background)
+      if (config.window.background_mute != false)
+        SK_SetGameMute (false);
 
-    // Make sure any pending changes are finished before querying the
-    //   actual value
-    SK_Window_WaitForAsyncSetWindowLong ();
+      rb.windows.setFocus     (game_window.hWnd);
+      rb.updateOutputTopology (                );
 
-    game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
-    game_window.unicode      =          SK_Window_IsUnicode (game_window.hWnd)   != FALSE;
+      // ResolutionSelectUI will use the name here for matching purposes,
+      //   so update the name immediately.
+      rb.assignOutputFromHWND (game_window.hWnd);
 
-    SK_GetWindowRect (game_window.hWnd, &game_window.game.window  );
-    SK_GetClientRect (game_window.hWnd, &game_window.game.client  );
-    SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
-    SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
+      DWORD dwFocus        = 0x0;
+      DWORD dwForeground   = 0x0;
 
-    SK_InitWindow (hWnd, false);
+      HWND  hWndFocus      = SK_GetFocus            ();
+      HWND  hWndForeground = SK_GetForegroundWindow ();
+
+      if (! ( game_window.hWnd == hWndFocus   ||
+              game_window.hWnd == hWndForeground ) )
+      {
+        GetWindowThreadProcessId (hWndFocus,      &dwFocus);
+        GetWindowThreadProcessId (hWndForeground, &dwForeground);
+
+        game_window.active = ( dwFocus      == GetCurrentProcessId () ||
+                               dwForeground == GetCurrentProcessId () );
+      }
+
+      else
+        game_window.active = true;
+
+      SK_Window_OnFocusChange (game_window.hWnd, hWndFocus);
+
+      // Make sure any pending changes are finished before querying the
+      //   actual value
+      SK_Window_WaitForAsyncSetWindowLong ();
+
+      game_window.game.style   = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+      game_window.actual.style = game_window.GetWindowLongPtr (game_window.hWnd, GWL_STYLE);
+      game_window.unicode      =          SK_Window_IsUnicode (game_window.hWnd)   != FALSE;
+
+      SK_GetWindowRect (game_window.hWnd, &game_window.game.window  );
+      SK_GetClientRect (game_window.hWnd, &game_window.game.client  );
+      SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
+      SK_GetClientRect (game_window.hWnd, &game_window.actual.client);
+
+      SK_InitWindow (game_window.hWnd, false);
+    }
   }
 
 
@@ -6429,11 +6447,16 @@ SK_InstallWindowHook (HWND hWnd)
                                     "CallWindowProcA" );
   }
 
-
-
-  WNDPROC class_proc = game_window.unicode   ? (WNDPROC)
-    GetClassLongPtrW  ( hWnd, GCLP_WNDPROC ) : (WNDPROC)
-    GetClassLongPtrA  ( hWnd, GCLP_WNDPROC );
+  WNDPROC class_proc_A = (WNDPROC)GetClassLongPtrA ( hWnd, GCLP_WNDPROC );
+  WNDPROC class_proc_W = (WNDPROC)GetClassLongPtrW ( hWnd, GCLP_WNDPROC );
+  
+  WNDPROC class_proc = // First check if we can get a function pointer in the .exe's module,
+                       //   use that as the class pointer even if it mismatches the Unicode type.
+    SK_GetModuleFromAddr (class_proc_A) == SK_GetModuleHandle (nullptr) ?
+                          class_proc_A :
+    SK_GetModuleFromAddr (class_proc_W) == SK_GetModuleHandle (nullptr) ? // No, so fallback to ANSI / Unicode class proc
+                          class_proc_W :  game_window.unicode ? (class_proc_W != nullptr ? class_proc_W : class_proc_A)
+                                                              : (class_proc_A != nullptr ? class_proc_A : class_proc_W);
 
   auto wnd_proc =
     (WNDPROC)(game_window.GetWindowLongPtr (hWnd, GWLP_WNDPROC));
@@ -6709,6 +6732,84 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   }
 }
 
+using RegisterClassExA_pfn = ATOM (WINAPI *)(CONST WNDCLASSEXA *);
+using RegisterClassExW_pfn = ATOM (WINAPI *)(CONST WNDCLASSEXW *);
+using RegisterClassA_pfn   = ATOM (WINAPI *)(CONST WNDCLASSA *);
+using RegisterClassW_pfn   = ATOM (WINAPI *)(CONST WNDCLASSW *);
+
+RegisterClassExA_pfn RegisterClassExA_Original = nullptr;
+RegisterClassExW_pfn RegisterClassExW_Original = nullptr;
+RegisterClassA_pfn   RegisterClassA_Original   = nullptr;
+RegisterClassW_pfn   RegisterClassW_Original   = nullptr;
+
+ATOM
+WINAPI
+RegisterClassExA_Detour (
+  _In_ CONST WNDCLASSEXA *lpWndClassEx)
+{
+  SK_LOGi0 (L"RegisterClassExA (%hs)", lpWndClassEx->lpszClassName);
+
+  return
+    RegisterClassExA_Original (lpWndClassEx);
+}
+
+ATOM
+WINAPI
+RegisterClassA_Detour (
+  _In_ CONST WNDCLASSA *lpWndClass)
+{
+  WNDCLASSEXA
+    wndClassExA = { sizeof (WNDCLASSEXA),
+                    lpWndClass->style,
+                    lpWndClass->lpfnWndProc,
+                    lpWndClass->cbClsExtra,
+                    lpWndClass->cbWndExtra,
+                    lpWndClass->hInstance,
+                    lpWndClass->hIcon,
+                    lpWndClass->hCursor,
+                    lpWndClass->hbrBackground,
+                    lpWndClass->lpszMenuName,
+                    lpWndClass->lpszClassName,
+                    NULL };
+
+  return
+    RegisterClassExA (&wndClassExA);
+}
+
+ATOM
+WINAPI
+RegisterClassExW_Detour (
+  _In_ CONST WNDCLASSEXW *lpWndClassEx)
+{
+  SK_LOGi0 (L"RegisterClassExW (%ws)", lpWndClassEx->lpszClassName);
+
+  return
+    RegisterClassExW_Original (lpWndClassEx);
+}
+
+ATOM
+WINAPI
+RegisterClassW_Detour (
+  _In_ CONST WNDCLASSW *lpWndClass)
+{
+  WNDCLASSEXW
+    wndClassExW = { sizeof (WNDCLASSEXW),
+                    lpWndClass->style,
+                    lpWndClass->lpfnWndProc,
+                    lpWndClass->cbClsExtra,
+                    lpWndClass->cbWndExtra,
+                    lpWndClass->hInstance,
+                    lpWndClass->hIcon,
+                    lpWndClass->hCursor,
+                    lpWndClass->hbrBackground,
+                    lpWndClass->lpszMenuName,
+                    lpWndClass->lpszClassName,
+                    NULL };
+
+  return
+    RegisterClassExW (&wndClassExW);
+}
+
 void
 SK_HookWinAPI (void)
 {
@@ -6738,7 +6839,28 @@ SK_HookWinAPI (void)
 #endif
 
 #if 1
-        SK_CreateDLLHook2 (  L"user32",
+    SK_CreateDLLHook2 (      L"user32",
+                              "RegisterClassA",
+                               RegisterClassA_Detour,
+      static_cast_p2p <void> (&RegisterClassA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "RegisterClassExA",
+                               RegisterClassExA_Detour,
+      static_cast_p2p <void> (&RegisterClassExA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "RegisterClassW",
+                               RegisterClassW_Detour,
+      static_cast_p2p <void> (&RegisterClassW_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "RegisterClassExW",
+                               RegisterClassExW_Detour,
+      static_cast_p2p <void> (&RegisterClassExW_Original) );
+
+
+    SK_CreateDLLHook2 (      L"user32",
                               "SetWindowPos",
                                SetWindowPos_Detour,
       static_cast_p2p <void> (&SetWindowPos_Original) );
@@ -6754,10 +6876,10 @@ SK_HookWinAPI (void)
                                MoveWindow_Detour,
       static_cast_p2p <void> (&MoveWindow_Original) );
 
-    SK_CreateDLLHook2 ( L"user32",
-                         "GetWindowInfo",
-                          GetWindowInfo_Detour,
- static_cast_p2p <void> (&GetWindowInfo_Original) );
+    SK_CreateDLLHook2 (      L"user32",
+                              "GetWindowInfo",
+                               GetWindowInfo_Detour,
+      static_cast_p2p <void> (&GetWindowInfo_Original) );
 
 #else
     SetWindowPos_Original =

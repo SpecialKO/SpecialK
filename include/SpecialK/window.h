@@ -352,6 +352,7 @@ struct sk_window_s {
        sk_window_s (void) noexcept { };
 
   bool        unicode          = false;
+  bool        changed          = true;
 
   HWND        hWnd             = nullptr;
   HWND        parent           = nullptr;

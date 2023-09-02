@@ -1,4 +1,9 @@
-﻿23.9.2.2
+﻿23.9.2.3
+========
+ + Added detection for mismatched Unicode / ANSI Window Classes, so that window
+     procedure hooks persist correctly when windows are recreated (Starfield)
+
+23.9.2.2
 ========
  + Fixed mistracking window dimensions when Starfield re-creates its window
 
