@@ -775,11 +775,8 @@ struct SK_D3D12_PipelineParser_HDR : ID3DX12PipelineParserCallbacks_SK
 
   void RTVFormatsCb (D3D12_RT_FORMAT_ARRAY& RTVFormats) override
   {
-    for (UINT i = 0 ; i < 8 ; i++)
-    {
-      if (RTVFormats.RTFormats [i] == DXGI_FORMAT_B8G8R8A8_UNORM)
-          RTVFormats.RTFormats [i]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    }
+    if (RTVFormats.RTFormats [1] == DXGI_FORMAT_B8G8R8A8_UNORM)
+        RTVFormats.RTFormats [1]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
   }
 
   ID3D12PipelineState* pPipelineState = nullptr;
@@ -789,7 +786,7 @@ HRESULT
 STDMETHODCALLTYPE
 D3D12Device2_CreatePipelineState_Detour (
               ID3D12Device2                    *This,
-     /*const*/D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
+       const  D3D12_PIPELINE_STATE_STREAM_DESC *pDesc,
               REFIID                            riid,
 _COM_Outptr_  void                            **ppPipelineState )
 {
@@ -801,8 +798,14 @@ _COM_Outptr_  void                            **ppPipelineState )
     SK_D3D12_PipelineParser_HDR
      SK_D3D12_PipelineParse_HDR;
 
+    auto fixed_desc = *pDesc;
+
     // Change B8G8R8A8_UNORM RTs to R16G16B16A16_FLOAT
-    D3DX12ParsePipelineStream_SK (*pDesc, &SK_D3D12_PipelineParse_HDR);
+    D3DX12ParsePipelineStream_SK (fixed_desc, &SK_D3D12_PipelineParse_HDR);
+
+    return
+      D3D12Device2_CreatePipelineState_Original (
+       This, &fixed_desc, riid, ppPipelineState );
   }
 
   HRESULT hr =
@@ -989,27 +992,16 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
                                  pDesc->ViewDimension ==
                                    D3D12_SRV_DIMENSION_TEXTURE2DARRAY ) )
   {
+    auto desc =
+      pResource->GetDesc ();
+
     // Handle explicitly defined SRVs, they might expect the SwapChain to be RGBA8
-    if (pDesc->Format != DXGI_FORMAT_UNKNOWN)
+    if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
-      auto desc =
-        pResource->GetDesc ();
-
-      if (pDesc->Format == DXGI_FORMAT_R16G16B16A16_TYPELESS)
-      {
-        auto fixed_desc = *pDesc;
-             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-        return
-          D3D12Device_CreateShaderResourceView_Original ( This,
-             pResource, &fixed_desc,
-               DestDescriptor
-          );
-      }
-
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
           (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-           desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS))
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
+            desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
@@ -1028,7 +1020,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
            desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
           pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
       {
-        if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
+        if (! DirectX::IsTypeless (desc.Format))
         {
           SK_LOG_FIRST_CALL
 
@@ -1070,39 +1062,43 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
     auto desc =
       pResource->GetDesc ();
 
-    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-        (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
+    if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
-      SK_LOG_FIRST_CALL
-
-      auto fixed_desc = *pDesc;
-           fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-      return
-        D3D12Device_CreateRenderTargetView_Original ( This,
-          pResource, &fixed_desc,
-            DestDescriptor
-        );
-    }
-
-    // Spider-Man needs the opposite of the fix above.
-    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-         desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
-        pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
-    {
-      if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format) ) )
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
+            desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
-          auto fixed_desc = *pDesc;
-               fixed_desc.Format = desc.Format;
+        auto fixed_desc = *pDesc;
+             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
         return
           D3D12Device_CreateRenderTargetView_Original ( This,
-             pResource, &fixed_desc,
-               DestDescriptor
+            pResource, &fixed_desc,
+              DestDescriptor
           );
+      }
+
+      // Spider-Man needs the opposite of the fix above.
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
+          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      {
+        if (! DirectX::IsTypeless (desc.Format))
+        {
+          SK_LOG_FIRST_CALL
+
+            auto fixed_desc = *pDesc;
+                 fixed_desc.Format = desc.Format;
+
+          return
+            D3D12Device_CreateRenderTargetView_Original ( This,
+               pResource, &fixed_desc,
+                 DestDescriptor
+            );
+        }
       }
     }
   }
@@ -1133,39 +1129,43 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
     auto desc =
       pResource->GetDesc ();
 
-    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-        (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-         desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
+    if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
-      SK_LOG_FIRST_CALL
-
-      auto fixed_desc = *pDesc;
-           fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-      return
-        D3D12Device_CreateUnorderedAccessView_Original ( This,
-          pResource, pCounterResource, &fixed_desc,
-            DestDescriptor
-        );
-    }
-
-    // Spider-Man needs the opposite of the fix above.
-    if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-         desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
-        pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
-    {
-      if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
+            desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
-          auto fixed_desc = *pDesc;
-               fixed_desc.Format = desc.Format;
+        auto fixed_desc = *pDesc;
+             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
         return
           D3D12Device_CreateUnorderedAccessView_Original ( This,
             pResource, pCounterResource, &fixed_desc,
               DestDescriptor
           );
+      }
+
+      // Spider-Man needs the opposite of the fix above.
+      if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
+          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+      {
+        if (! DirectX::IsTypeless (desc.Format))
+        {
+          SK_LOG_FIRST_CALL
+
+            auto fixed_desc = *pDesc;
+                 fixed_desc.Format = desc.Format;
+
+          return
+            D3D12Device_CreateUnorderedAccessView_Original ( This,
+              pResource, pCounterResource, &fixed_desc,
+                DestDescriptor
+            );
+        }
       }
     }
   }
