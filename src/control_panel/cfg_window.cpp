@@ -109,23 +109,6 @@ SK::ControlPanel::Window::Draw (void)
 
       if (! (config.window.borderless && config.window.fullscreen))
       {
-        if (ImGui::Checkbox ("Multi-Monitor Mode", &config.window.multi_monitor_mode))
-        {
-          config.window.center = false;
-          SK_ImGui_AdjustCursor ();
-        }
-
-        if (ImGui::IsItemHovered ()) {
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Allows Resolution Overrides that Span Multiple Monitors");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Fullscreen and Center Modes cannot be used in Multi-Monitor Mode");
-          ImGui::BulletText   ("This may introduce performance penalties, pay attention to Presentation Mode");
-          ImGui::EndTooltip   ();
-        }
-
-        ImGui::SameLine ();
-
         if ( ImGui::Checkbox ( "Center", &center ) ) {
           config.window.center = center;
           SK_ImGui_AdjustCursor ();
@@ -138,6 +121,23 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::Separator    ();
           ImGui::BulletText   ( "The Drag-Lock feature cannot be used while Window "
                                 "Centering is turned on." );
+          ImGui::EndTooltip   ();
+        }
+
+        ImGui::SameLine ();
+
+        if (ImGui::Checkbox ("Multi-Monitor Mode", &config.window.multi_monitor_mode))
+        {
+          config.window.center = false;
+          SK_ImGui_AdjustCursor ();
+        }
+
+        if (ImGui::IsItemHovered ()) {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Allows Resolution Overrides that Span Multiple Monitors");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Fullscreen and Center Modes cannot be used in Multi-Monitor Mode");
+          ImGui::BulletText   ("This may introduce performance penalties, pay attention to Presentation Mode");
           ImGui::EndTooltip   ();
         }
 

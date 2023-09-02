@@ -1,22 +1,6 @@
 // dear imgui: Renderer for DirectX12
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
-// Implemented features:
-//  [X] Renderer: User texture binding. Use 'D3D12_GPU_DESCRIPTOR_HANDLE' as ImTextureID. Read the FAQ about ImTextureID in imgui.cpp.
-// Issues:
-//  [ ] 64-bit only for now! (Because sizeof(ImTextureId) == sizeof(void*)). See github.com/ocornut/imgui/pull/301
-
-// You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
-// If you are new to dear imgui, read examples/README.txt and read the documentation at the top of imgui.cpp.
-// https://github.com/ocornut/imgui
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2018-06-12: DirectX12: Moved the ID3D12GraphicsCommandList* parameter from NewFrame() to RenderDrawData().
-//  2018-06-08: Misc: Extracted imgui_impl_dx12.cpp/.h away from the old combined DX12+Win32 example.
-//  2018-06-08: DirectX12: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle (to ease support for future multi-viewport).
-//  2018-02-22: Merged into master with all Win32 code synchronized to other examples.
-
 #include <SpecialK/stdafx.h>
 
 #include <imgui/imgui.h>
@@ -30,17 +14,10 @@
 #include <shaders/imgui_d3d11_vs.h>
 #include <shaders/imgui_d3d11_ps.h>
 
-#include <shaders/ps_gl_dx_interop.h>
-
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <shaders/vs_colorutil.h>
 #include <shaders/uber_hdr_shader_ps.h>
-
-#include <DirectXTex/d3dx12.h>
-
-// DirectX
-//#include <dxgi1_4.h>
 
 struct SK_ImGui_D3D12Ctx
 {
@@ -392,7 +369,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   ctx->IASetIndexBuffer (
     std::array <D3D12_INDEX_BUFFER_VIEW, 1> (
     { pHeap->Ib->GetGPUVirtualAddress (),
-      pHeap->Ib.size * sizeof (ImDrawIdx), // C:\Users\amcol\source\repos\SpecialK\src\imgui\backends\imgui_d3d12.cpp(361): error: non-constant-expression cannot be narrowed from type 'unsigned long long' to 'UINT' (aka 'unsigned int') in initializer list [clang-diagnostic-c++11-narrowing]
+      pHeap->Ib.size * sizeof (ImDrawIdx),
                        sizeof (ImDrawIdx) == 2 ?
                           DXGI_FORMAT_R16_UINT :
                           DXGI_FORMAT_R32_UINT
