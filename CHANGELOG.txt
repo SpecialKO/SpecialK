@@ -1,4 +1,9 @@
-﻿23.9.2.3
+﻿23.9.2.6
+========
+ + Fixed black terrain textures in Starfield while HDR is active
+ + Fixed potential crash during screenshots introduced in 23.9.2.3
+
+23.9.2.3
 ========
  + Added detection for mismatched Unicode / ANSI Window Classes, so that window
      procedure hooks persist correctly when windows are recreated (Starfield)
