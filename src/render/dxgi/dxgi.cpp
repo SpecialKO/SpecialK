@@ -288,7 +288,7 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
 bool
 ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
-  SK_LOGi1 (L"ImGui_DX11Startup (%p)", pSwapChain);
+  SK_LOGi2 (L"ImGui_DX11Startup (%p)", pSwapChain);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -304,7 +304,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
   if ( SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pD3D11Dev.p))) )
   {
-    SK_LOGi1 (L" -> GetDevice (D3D11) = %p", pD3D11Dev.p);
+    SK_LOGi2 (L" -> GetDevice (D3D11) = %p", pD3D11Dev.p);
 
     assert ( pD3D11Dev.IsEqualObject ()   ||
          rb.getDevice <ID3D11Device> ().p == nullptr );
@@ -330,7 +330,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
     if ( pImmediateContext != nullptr )
     {
-      SK_LOGi1 (L" # D3D11 Immediate Context = %p", pImmediateContext.p);
+      SK_LOGi2 (L" # D3D11 Immediate Context = %p", pImmediateContext.p);
 
       if (! (( rb.device    == nullptr || rb.device   == pD3D11Dev  ) ||
              ( rb.swapchain == nullptr || rb.swapchain== (IUnknown *)pSwapChain )) )
@@ -352,7 +352,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 
       if (_d3d11_rbk->init ( pSwapChain, pD3D11Dev, pImmediateContext))
       {
-        SK_LOGi1 (L" _d3d11_rbk->init (SwapChain, %p, %p) Succeeded",
+        SK_LOGi2 (L" _d3d11_rbk->init (SwapChain, %p, %p) Succeeded",
                                          pD3D11Dev.p,  pImmediateContext.p);
 
         SK_DXGI_UpdateSwapChain (pSwapChain);
@@ -383,7 +383,7 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
 
   // Hack to prevent NV's Vulkan/DXGI Interop SwapChain from destroying itself
   //   if HDR is not enabled.
-  if (GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
+  if (config.apis.NvAPI.vulkan_bridge == 1 && GetModuleHandle (L"vulkan-1.dll"))
   {
     TenBitSwap                       = true;
     config.render.output.force_10bpc = true;
@@ -484,15 +484,6 @@ static volatile LONG  __dxgi_ready  = FALSE;
 
 void WaitForInitDXGI (void)
 {
-  //if (SK_IsInjected ())
-  //{
-  //  SK_TLS* pTLS =
-  //    SK_TLS_Bottom ();
-  //
-  //  if (pTLS && pTLS->render->d3d11->ctx_init_thread)
-  //    return
-  //};
-
   // This is a hybrid spin; it will spin for up to 250 iterations before sleeping
   SK_Thread_SpinUntilFlagged (&__dxgi_ready);
 }
@@ -663,7 +654,7 @@ bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of
 UINT uiOriginalBltSampleCount = 0UL;
 
 // Used for integrated GPU override
-int              SK_DXGI_preferred_adapter = SK_NoPreference;
+int SK_DXGI_preferred_adapter = SK_NoPreference;
 
 
 void
@@ -673,8 +664,6 @@ SKX_D3D11_EnableFullscreen (bool bFullscreen)
   bAlwaysAllowFullscreen = bFullscreen;
 }
 
-//extern
-//DWORD __stdcall HookD3D11                   (LPVOID user);
 
 void            SK_DXGI_HookPresent         (IDXGISwapChain* pSwapChain);
 void  WINAPI    SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
@@ -685,101 +674,6 @@ enum SK_DXGI_ResType {
   HEIGHT = 1
 };
 
-#if 0
-inline bool
-SK_DXGI_RestrictResMax ( SK_DXGI_ResType dim,
-                                   int&  last,
-                                   int   idx,
-                         std::set <int>& covered,
-             gsl::not_null <DXGI_MODE_DESC*> pDescRaw )
- {
-  auto pDesc =
-       pDescRaw.get ();
-
-   UNREFERENCED_PARAMETER (last);
-
-   auto& val = dim == WIDTH ? pDesc [idx].Width :
-                              pDesc [idx].Height;
-
-   auto  max = dim == WIDTH ? config.render.dxgi.res.max.x :
-                              config.render.dxgi.res.max.y;
-
-   bool covered_already = covered.count (idx) > 0;
-
-   if ( (max > 0 &&
-         val > max) || covered_already )
-   {
-     for ( int i = idx ; i > 0 ; --i )
-     {
-       if ( config.render.dxgi.res.max.x >= pDesc [i].Width  &&
-            config.render.dxgi.res.max.y >= pDesc [i].Height &&
-            covered.count (i) == 0 )
-       {
-         pDesc [idx] = pDesc [i];
-         covered.insert (idx);
-         covered.insert (i);
-         return false;
-       }
-     }
-
-     pDesc [idx].Width  = config.render.dxgi.res.max.x;
-     pDesc [idx].Height = config.render.dxgi.res.max.y;
-
-     return (covered.emplace (idx).second);
-   }
-
-   covered.insert (idx);
-
-   return false;
- };
-
-inline bool
-SK_DXGI_RestrictResMin ( SK_DXGI_ResType dim,
-                                    int& first,
-                                    int  idx,
-                         std::set <int>& covered,
-                         DXGI_MODE_DESC* pDesc )
- {
-  if (pDesc == nullptr)
-    return false;
-
-   UNREFERENCED_PARAMETER (first);
-
-   auto& val = dim == WIDTH ? pDesc [idx].Width :
-                              pDesc [idx].Height;
-
-   auto  min = dim == WIDTH ? config.render.dxgi.res.min.x :
-                              config.render.dxgi.res.min.y;
-
-   bool covered_already = covered.count (idx) > 0;
-
-   if ( (min > 0 &&
-         val < min) || covered_already )
-   {
-     for ( int i = 0 ; i < idx ; ++i )
-     {
-       if ( config.render.dxgi.res.min.x <= pDesc [i].Width  &&
-            config.render.dxgi.res.min.y <= pDesc [i].Height &&
-            covered.count (i) == 0 )
-       {
-         pDesc [idx] = pDesc [i];
-         covered.insert (idx);
-         covered.insert (i);
-         return false;
-       }
-     }
-
-     pDesc [idx].Width  = config.render.dxgi.res.min.x;
-     pDesc [idx].Height = config.render.dxgi.res.min.y;
-
-     return (covered.emplace (idx).second);
-   }
-
-   covered.insert (idx);
-
-   return false;
- };
-#else
 auto constexpr
 SK_DXGI_RestrictResMax = []( SK_DXGI_ResType dim,
                              auto&           last,
@@ -879,7 +773,6 @@ bool
 
    return false;
  };
-#endif
 
 bool
 SK_DXGI_RemoveDynamicRangeFromModes ( int&             first,
@@ -1430,9 +1323,8 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
       }
 
       else if (
-        outDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020     ||
-        outDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709        ||
-        outDesc->ColorSpace == DXGI_COLOR_SPACE_YCBCR_FULL_G22_NONE_P709_X601 ||
+        outDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+        outDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709    ||
         outDesc->ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P2020)
       {
         rb.setHDRCapable (true);
@@ -1619,8 +1511,10 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
     return E_NOINTERFACE;
   }
 
+  // XXX: For D3D11, simply use currentBuffer = 0 always
   UINT currentBuffer =
     0;// pSwap3->GetCurrentBackBufferIndex ();
+      
 
   if ( SUCCEEDED ( pSwap3->GetBuffer (
                      currentBuffer,
@@ -2213,46 +2107,6 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
       }
     }
   }
-}
-
-void
-SK_DXGI_BorderCompensation (UINT& x, UINT& y)
-{
-  UNREFERENCED_PARAMETER (x);
-  UNREFERENCED_PARAMETER (y);
-
-#if 0
-  if (! config.window.borderless)
-    return;
-
-  RECT game_rect = *SK_GetGameRect ();
-
-  int x_dlg = SK_GetSystemMetrics (SM_CXDLGFRAME);
-  int y_dlg = SK_GetSystemMetrics (SM_CYDLGFRAME);
-  int title = SK_GetSystemMetrics (SM_CYCAPTION);
-
-  if ( SK_DiscontEpsilon (
-          x,
-            (game_rect.right - game_rect.left),
-              2 * x_dlg + 1
-       )
-
-      ||
-
-       SK_DiscontEpsilon (
-          y,
-            (game_rect.bottom - game_rect.top),
-              2 * y_dlg + title + 1
-       )
-     )
-  {
-    x = game_rect.right  - game_rect.left;
-    y = game_rect.bottom - game_rect.top;
-
-    dll_log->Log ( L"[Window Mgr] Border Compensated Resolution ==> (%lu x %lu)",
-                    x, y );
-  }
-#endif
 }
 
 volatile LONG
@@ -4063,13 +3917,6 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
       {
         new_new_params.Width  = config.window.res.override.x;
         new_new_params.Height = config.window.res.override.y;
-      }
-
-      else if ( (! config.window.fullscreen) &&
-                   config.window.borderless )
-      {
-        SK_DXGI_BorderCompensation ( new_new_params.Width,
-                                     new_new_params.Height );
       }
 
       // Clamp the buffer dimensions if the user has a min/max preference

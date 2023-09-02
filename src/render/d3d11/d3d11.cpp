@@ -7748,16 +7748,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       swap_chain_desc.BufferDesc.Width  = config.window.res.override.x;
       swap_chain_desc.BufferDesc.Height = config.window.res.override.y;
     }
-
-    else
-    {
-      SK_DXGI_BorderCompensation (
-        swap_chain_desc.BufferDesc.Width,
-          swap_chain_desc.BufferDesc.Height
-      );
-    }
   }
-
 
   auto pDevCache =
     SK_D3D11_GetCachedDeviceAndSwapChainForHwnd (swap_chain_desc.OutputWindow);

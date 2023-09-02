@@ -495,8 +495,6 @@ SK_GetDXGIAdapterInterface    (gsl::not_null <IUnknown *> pAdapter);
 void        SK_DXGI_QuickHook (void);
 void WINAPI SK_HookDXGI       (void);
 
-void SK_DXGI_BorderCompensation (UINT& x, UINT& y);
-
 void WINAPI SK_DXGI_SetPreferredAdapter (int override_id) noexcept;
 
 void SK_DXGI_UpdateSwapChain (IDXGISwapChain* This);
