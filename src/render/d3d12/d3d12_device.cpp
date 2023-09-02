@@ -990,7 +990,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
                                    D3D12_SRV_DIMENSION_TEXTURE2DARRAY ) )
   {
     // Handle explicitly defined SRVs, they might expect the SwapChain to be RGBA8
-    if (pDesc->Format != 0x0)
+    if (pDesc->Format != DXGI_FORMAT_UNKNOWN)
     {
       auto desc =
         pResource->GetDesc ();
@@ -1011,20 +1011,16 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
           (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
            desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS))
       {
-        //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-        //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
-        {
-          SK_LOG_FIRST_CALL
+        SK_LOG_FIRST_CALL
 
-            auto fixed_desc = *pDesc;
-                 fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+          auto fixed_desc = *pDesc;
+               fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-          return
-            D3D12Device_CreateShaderResourceView_Original ( This,
-               pResource, &fixed_desc,
-                 DestDescriptor
-            );
-        }
+        return
+          D3D12Device_CreateShaderResourceView_Original ( This,
+             pResource, &fixed_desc,
+               DestDescriptor
+          );
       }
 
       // Spider-Man needs the opposite of the fix above.
@@ -1032,7 +1028,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
            desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
           pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
       {
-        if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN )
+        if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
         {
           SK_LOG_FIRST_CALL
 
@@ -1078,20 +1074,16 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
         (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
          desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
     {
-      //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-      //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
-      {
-        SK_LOG_FIRST_CALL
+      SK_LOG_FIRST_CALL
 
-        auto fixed_desc = *pDesc;
-             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      auto fixed_desc = *pDesc;
+           fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-        return
-          D3D12Device_CreateRenderTargetView_Original ( This,
-            pResource, &fixed_desc,
-              DestDescriptor
-          );
-      }
+      return
+        D3D12Device_CreateRenderTargetView_Original ( This,
+          pResource, &fixed_desc,
+            DestDescriptor
+        );
     }
 
     // Spider-Man needs the opposite of the fix above.
@@ -1099,7 +1091,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
          desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
         pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format) ) )
+      if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format) ) )
       {
         SK_LOG_FIRST_CALL
 
@@ -1145,20 +1137,16 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
         (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
          desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS) )
     {
-      //if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-      //     DirectX::MakeTypeless (pDesc->Format) != DXGI_FORMAT_R16G16B16A16_TYPELESS )
-      {
-        SK_LOG_FIRST_CALL
+      SK_LOG_FIRST_CALL
 
-        auto fixed_desc = *pDesc;
-             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      auto fixed_desc = *pDesc;
+           fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-        return
-          D3D12Device_CreateUnorderedAccessView_Original ( This,
-            pResource, pCounterResource, &fixed_desc,
-              DestDescriptor
-          );
-      }
+      return
+        D3D12Device_CreateUnorderedAccessView_Original ( This,
+          pResource, pCounterResource, &fixed_desc,
+            DestDescriptor
+        );
     }
 
     // Spider-Man needs the opposite of the fix above.
@@ -1166,7 +1154,7 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
          desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
         pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
     {
-      if ( pDesc->Format  != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
+      if ( pDesc->Format != DXGI_FORMAT_UNKNOWN && (! DirectX::IsTypeless (desc.Format)) )
       {
         SK_LOG_FIRST_CALL
 
