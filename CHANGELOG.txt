@@ -1,4 +1,23 @@
-﻿23.9.1.2
+﻿23.9.2
+======
+ + Added Multi-Monitor Mode to Window Management Settings
+
+    This is an experimental mode that allows specifying Override Resolutions
+      that span multiple monitors.
+      
+    Traditionally SK has imposed several measures to keep window dimensions
+      within the confines of a single monitor because rendering into a window
+        that spans more than one monitor incurs major DWM overhead.
+
+    Windows 11's DWM is changing to better support multi-monitor rendering,
+      so spanning monitors in windowed-mode is now viable in some situations.
+      
+    For sensible frame pacing, your displays should use the same refresh rate.
+    
+ + Merge pull request #85 from Aemony/sam2017
+    * Don't hook Serious Sam Fusion 2017's window procedure
+
+23.9.1.2
 ========
  + Fixed Display Management Keybindings not opening keybind edit dialog when
      selected from the control panel's Display menu

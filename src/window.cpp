@@ -3534,6 +3534,12 @@ SK_AdjustWindow (void)
 {
   SK_WINDOW_LOG_CALL3 ();
 
+  // Multi-Monitor Mode makes "Center" and "Fullscreen" options meaningless, but
+  //   allows users to specify window dimensions that span more than a single monitor.
+  const bool bMultiMonitorMode =
+       config.window.multi_monitor_mode &&
+    (! config.window.res.override.isZero ());
+
   HMONITOR hMonitor =   config.display.monitor_handle != 0 ?
                         config.display.monitor_handle      :
     MonitorFromWindow ( game_window.hWnd,
@@ -3543,7 +3549,7 @@ SK_AdjustWindow (void)
   mi.cbSize        = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
-  if (config.window.borderless && config.window.fullscreen)
+  if (bMultiMonitorMode == false && config.window.borderless && config.window.fullscreen)
   {
     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
              L"Window Mgr" );
@@ -3644,8 +3650,8 @@ SK_AdjustWindow (void)
       mi.rcWork.bottom = mi.rcMonitor.bottom;
     }
 
-    const LONG win_width  = std::min (mon_width,  render_width);
-    const LONG win_height = std::min (mon_height, render_height);
+    const LONG win_width  = bMultiMonitorMode ? render_width  : std::min (mon_width,  render_width);
+    const LONG win_height = bMultiMonitorMode ? render_height : std::min (mon_height, render_height);
 
     // Eliminate relative epsilon from screen percentage offset coords;
     //   otherwise we may accidentally move the window.
@@ -3655,45 +3661,48 @@ SK_AdjustWindow (void)
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    // We will offset coordinates later; move the window to the top-left
-    //   origin first.
-    if (config.window.center && (! rb.fullscreen_exclusive))
+    if (! bMultiMonitorMode)
     {
-      // If centering changes monitors, ignore.
-      ////if ( MonitorFromRect   (&mi.rcMonitor,    MONITOR_DEFAULTTONEAREST) ==
-      ////     MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
-      ////{
-        game_window.actual.window.left   = mi.rcMonitor.left;
-        game_window.actual.window.top    = mi.rcMonitor.top;
-        game_window.actual.window.right  = mi.rcMonitor.left + win_width;
-        game_window.actual.window.bottom = mi.rcMonitor.top  + win_height;
-
-        nomove                           = false; // Centering requires moving ;)
-      ////}
-    }
-
-    else
-    {
-      HMONITOR hMonGame =
-           MonitorFromRect (&game_window.game.window, MONITOR_DEFAULTTONEAREST);
-      if ( MonitorFromRect (&mi.rcMonitor,            MONITOR_DEFAULTTONEAREST) ==
-                                 hMonGame)
+      // We will offset coordinates later; move the window to the top-left
+      //   origin first.
+      if (config.window.center && (! rb.fullscreen_exclusive))
       {
-        game_window.actual.window.left   = game_window.game.window.left;
-        game_window.actual.window.top    = game_window.game.window.top;
+        // If centering changes monitors, ignore.
+        ////if ( MonitorFromRect   (&mi.rcMonitor,    MONITOR_DEFAULTTONEAREST) ==
+        ////     MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
+        ////{
+          game_window.actual.window.left   = mi.rcMonitor.left;
+          game_window.actual.window.top    = mi.rcMonitor.top;
+          game_window.actual.window.right  = mi.rcMonitor.left + win_width;
+          game_window.actual.window.bottom = mi.rcMonitor.top  + win_height;
+
+          nomove                           = false; // Centering requires moving ;)
+        ////}
       }
 
-      // Apply the game's offset from monitor edge to the monitor SK is moving
-      //   the window to
       else
       {
-        MONITORINFO
-          mi_game        = {                  };
-          mi_game.cbSize = sizeof (MONITORINFO);
-        if (GetMonitorInfo (hMonGame, &mi_game))
+        HMONITOR hMonGame =
+             MonitorFromRect (&game_window.game.window, MONITOR_DEFAULTTONEAREST);
+        if ( MonitorFromRect (&mi.rcMonitor,            MONITOR_DEFAULTTONEAREST) ==
+                                   hMonGame)
         {
-          game_window.actual.window.left = (game_window.game.window.left - mi_game.rcMonitor.left) + mi.rcMonitor.left;
-          game_window.actual.window.top  = (game_window.game.window.top  - mi_game.rcMonitor.top)  + mi.rcMonitor.top;
+          game_window.actual.window.left   = game_window.game.window.left;
+          game_window.actual.window.top    = game_window.game.window.top;
+        }
+
+        // Apply the game's offset from monitor edge to the monitor SK is moving
+        //   the window to
+        else
+        {
+          MONITORINFO
+            mi_game        = {                  };
+            mi_game.cbSize = sizeof (MONITORINFO);
+          if (GetMonitorInfo (hMonGame, &mi_game))
+          {
+            game_window.actual.window.left = (game_window.game.window.left - mi_game.rcMonitor.left) + mi.rcMonitor.left;
+            game_window.actual.window.top  = (game_window.game.window.top  - mi_game.rcMonitor.top)  + mi.rcMonitor.top;
+          }
         }
       }
     }
@@ -3719,29 +3728,33 @@ SK_AdjustWindow (void)
     else if (y_offset < 0)
       game_window.actual.window.bottom = mi.rcWork.bottom + y_offset + 1;
 
-    if (config.window.center && (! ( (config.window.fullscreen &&
-        config.window.borderless)||
-        rb.fullscreen_exclusive  ) ) )
+
+    if (! bMultiMonitorMode)
     {
-      SK_LOG4 ( ( L"Center --> (%li,%li)",
-               mi.rcWork.right - mi.rcWork.left,
-               mi.rcWork.bottom - mi.rcWork.top ),
-               L"Window Mgr" );
-
-      if (x_offset < 0)
+      if (config.window.center && (! ( (config.window.fullscreen &&
+          config.window.borderless)||
+          rb.fullscreen_exclusive  ) ) )
       {
-        game_window.actual.window.left  -= (win_width / 2);
-        game_window.actual.window.right -= (win_width / 2);
-      }
+        SK_LOG4 ( ( L"Center --> (%li,%li)",
+                 mi.rcWork.right - mi.rcWork.left,
+                 mi.rcWork.bottom - mi.rcWork.top ),
+                 L"Window Mgr" );
 
-      if (y_offset < 0)
-      {
-        game_window.actual.window.top    -= (win_height / 2);
-        game_window.actual.window.bottom -= (win_height / 2);
-      }
+        if (x_offset < 0)
+        {
+          game_window.actual.window.left  -= (win_width / 2);
+          game_window.actual.window.right -= (win_width / 2);
+        }
 
-      game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
-      game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
+        if (y_offset < 0)
+        {
+          game_window.actual.window.top    -= (win_height / 2);
+          game_window.actual.window.bottom -= (win_height / 2);
+        }
+
+        game_window.actual.window.left += std::max (0L, (mon_width  - win_width)  / 2);
+        game_window.actual.window.top  += std::max (0L, (mon_height - win_height) / 2);
+      }
     }
 
 
@@ -3769,25 +3782,28 @@ SK_AdjustWindow (void)
       //
       // Compensate for scenarios where the window is partially offscreen
       //
-      int push_right = 0;
+      if (! bMultiMonitorMode)
+      {
+        int push_right = 0;
 
-      if (game_window.actual.window.left < mi.rcWork.left)
-        push_right = mi.rcWork.left - game_window.actual.window.left;
-      else if (game_window.actual.window.right > mi.rcWork.right)
-        push_right = (mi.rcWork.right - game_window.actual.window.right);
+        if (game_window.actual.window.left < mi.rcWork.left)
+          push_right = mi.rcWork.left - game_window.actual.window.left;
+        else if (game_window.actual.window.right > mi.rcWork.right)
+          push_right = (mi.rcWork.right - game_window.actual.window.right);
 
-      game_window.actual.window.left  += push_right;
-      game_window.actual.window.right += push_right;
+        game_window.actual.window.left  += push_right;
+        game_window.actual.window.right += push_right;
 
-      int push_down = 0;
+        int push_down = 0;
 
-      if ((game_window.actual.window.top - game_window.actual.client.top) < 0)
-        push_down = 0 - (game_window.actual.window.top - game_window.actual.client.top);
-      else if (game_window.actual.window.bottom + game_window.actual.client.top > mi.rcWork.bottom)
-        push_down = mi.rcWork.bottom - (game_window.actual.window.bottom + game_window.actual.client.top);
+        if ((game_window.actual.window.top - game_window.actual.client.top) < 0)
+          push_down = 0 - (game_window.actual.window.top - game_window.actual.client.top);
+        else if (game_window.actual.window.bottom + game_window.actual.client.top > mi.rcWork.bottom)
+          push_down = mi.rcWork.bottom - (game_window.actual.window.bottom + game_window.actual.client.top);
 
-      game_window.actual.window.top    += push_down;
-      game_window.actual.window.bottom += push_down;
+        game_window.actual.window.top    += push_down;
+        game_window.actual.window.bottom += push_down;
+      }
     }
 
     else
@@ -3809,9 +3825,11 @@ SK_AdjustWindow (void)
     }
 
 
+    // Is the final window size valid...?
     if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
         game_window.actual.window.bottom - game_window.actual.window.top  > 0 )
     {
+      // Yes, so apply the new dimensions
       SK_SetWindowPos ( game_window.hWnd,
                         SK_HWND_TOP,
                         game_window.actual.window.left,

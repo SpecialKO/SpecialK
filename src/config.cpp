@@ -907,6 +907,7 @@ struct {
   sk::ParameterBool*      persistent_drag         = nullptr;
   sk::ParameterBool*      fullscreen              = nullptr;
   sk::ParameterStringW*   override                = nullptr;
+  sk::ParameterBool*      multi_monitor_mode      = nullptr;
   sk::ParameterBool*      fix_mouse_coords        = nullptr;
   sk::ParameterInt*       always_on_top           = nullptr;
   sk::ParameterInt*       preferred_monitor_id    = nullptr; // Used if exact match cannot be found
@@ -1436,6 +1437,7 @@ auto DeclKeybind =
     ConfigEntry (window.persistent_drag,                 L"Remember where the window is dragged to",                   dll_ini,         L"Window.System",         L"PersistentDragPos"),
     ConfigEntry (window.fullscreen,                      L"Make the Game Window Fill the Screen (scale to fit)",       dll_ini,         L"Window.System",         L"Fullscreen"),
     ConfigEntry (window.override,                        L"Force the Client Region to this Size in Windowed Mode",     dll_ini,         L"Window.System",         L"OverrideRes"),
+    ConfigEntry (window.multi_monitor_mode,              L"Allow Resolution Overrides that Span Multiple Monitors",    dll_ini,         L"Window.System",         L"MultiMonitorMode"),
     ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
     ConfigEntry (window.always_on_top,                   L"Prevent (0) or Force (1) a game's window Always-On-Top",    dll_ini,         L"Window.System",         L"AlwaysOnTop"),
     ConfigEntry (window.disable_screensaver,             L"Prevent the Windows Screensaver from activating",           dll_ini,         L"Window.System",         L"DisableScreensaver"),
@@ -4135,6 +4137,7 @@ auto DeclKeybind =
                 &config.window.res.override.x,
                   &config.window.res.override.y );
   }
+  window.multi_monitor_mode->load (config.window.multi_monitor_mode);
 
 
   reverse_engineering.file.trace_reads->load  (config.file_io.trace_reads);
@@ -5053,6 +5056,7 @@ SK_SaveConfig ( std::wstring name,
   window.override->store (
                        std::format ( L"{}x{}", config.window.res.override.x,
                                                config.window.res.override.y ) );
+  window.multi_monitor_mode->store            (config.window.multi_monitor_mode);
 
   display.force_fullscreen->store             (config.display.force_fullscreen);
   display.force_windowed->store               (config.display.force_windowed);
