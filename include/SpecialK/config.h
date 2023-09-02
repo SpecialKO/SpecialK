@@ -1353,6 +1353,7 @@ enum class SK_GAME_ID
   DiabloIV,                     // Diablo IV.exe
   CallOfDuty,                   // CoDSP.exe, CoDMP.exe (???)
   RatchetAndClank_RiftApart,    // RiftApart.exe
+  SeriousSamFusion2017,         // Sam2017.exe / Sam2017_Unrestricted.exe
 
   UNKNOWN_GAME               = 0xffff
 };
