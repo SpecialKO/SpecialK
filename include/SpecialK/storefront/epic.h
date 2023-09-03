@@ -108,13 +108,6 @@ struct SK_EpicAchievement
   const char* human_name_;    // UTF-8
   const char* desc_;          // UTF-8
 
-  // Raw pixel data (RGB8) for achievement icons
-  struct
-  {
-    uint8_t*  achieved;
-    uint8_t*  unachieved;
-  } icons_;
-
   // If we were to call ISteamStats::GetAchievementName (...),
   //   this is the index we could use.
   int         idx_;

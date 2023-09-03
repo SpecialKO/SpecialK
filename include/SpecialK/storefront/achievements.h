@@ -50,13 +50,6 @@ struct SK_Achievement
       locked;
   } text_;
 
-  // Raw pixel data (RGB8) for achievement icons
-  struct
-  {
-    uint8_t*  achieved        = nullptr;
-    uint8_t*  unachieved      = nullptr;
-  } icons_;
-
   // If we were to call ISteamStats::GetAchievementName (...),
   //   this is the index we could use.
   int         idx_            = -1;
@@ -105,19 +98,6 @@ public:
 
     ~Achievement (void)
     {
-      if (icons_.unachieved != nullptr)
-      {
-        free (std::exchange (
-          icons_.unachieved, nullptr)
-        );
-      }
-
-      if (icons_.achieved != nullptr)
-      {
-        free (
-          std::exchange (icons_.achieved, nullptr)
-        );
-      }
     }
 
     void update (ISteamUserStats* stats)
