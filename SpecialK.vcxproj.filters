@@ -2981,9 +2981,6 @@
     <ClCompile Include="src\osd\text.cpp">
       <Filter>Source Files\OSD</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\fo4.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\update\version.cpp">
       <Filter>Source Files\Update</Filter>
     </ClCompile>
@@ -3484,6 +3481,9 @@
     </ClCompile>
     <ClCompile Include="src\render\d3dkmt\d3dkmt.cpp">
       <Filter>Source Files\Backends\Render\D3DKMT</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\bethesda.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\render\dstorage\dstorage.cpp">
       <Filter>Source Files\Backends\Render\DStorage</Filter>

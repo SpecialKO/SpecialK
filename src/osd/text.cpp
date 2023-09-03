@@ -709,19 +709,10 @@ SK_DrawOSD (void)
         plugin_mgr->isArkhamKnight = true;
       else if (StrStrIW (wszGameName, L"Tales of Zestiria.exe"))
         plugin_mgr->isTalesOfZestiria = true;
-      else if (StrStrIW (wszGameName, L"Fallout4.exe"))
-        plugin_mgr->isFallout4 = true;
       else if (StrStrIW (wszGameName, L"NieRAutomata"))
         plugin_mgr->isNieRAutomata = true;
       else if (StrStrIW (wszGameName, L"DarkSoulsIII.exe"))
         plugin_mgr->isDarkSouls3 = true;
-    }
-
-    if (plugin_mgr->isFallout4)
-    {
-      OSD_PRINTF "Fallout 4 \"Works\" v 0.3.5   %ws\n\n",
-                 time
-      OSD_END
     }
 
     else if (plugin_mgr->isNieRAutomata)

@@ -28,7 +28,6 @@ struct IUnknown;
 
 extern bool isArkhamKnight;
 extern bool isTalesOfZestiria;
-extern bool isFallout4;
 extern bool isNieRAutomata;
 extern bool isDarkSouls3;
 extern bool isDivinityOrigSin;
@@ -72,7 +71,6 @@ struct SK_PluginRegistry
   //Stupid Hack, rewrite me... (IN PROGRESS - see isPlugin below)
   bool isArkhamKnight    = false;
   bool isTalesOfZestiria = false;
-  bool isFallout4        = false;
   bool isNieRAutomata    = false;
   bool isDarkSouls3      = false;
   bool isDivinityOrigSin = false;
@@ -107,14 +105,6 @@ SK_NNK2_InitPlugin (void);
 
 void
 SK_TVFix_InitPlugin (void);
-
-bool SK_FO4_UseFlipMode        (void);
-bool SK_FO4_IsFullscreen       (void);
-bool SK_FO4_IsBorderlessWindow (void);
-
-HRESULT __stdcall
-     SK_FO4_PresentFirstFrame  (IUnknown *, UINT, UINT);
-
 
 // TODO: Get this stuff out of here, it's breaking what little design work there is.
 void SK_DS3_InitPlugin         (void);
@@ -152,6 +142,8 @@ void SK_ELEX2_InitPlugin    (void);
 
 void __stdcall
      SK_HatsuneMiku_BeginFrame (void);
+
+void SK_BGS_InitPlugin(void);
 
 #else
 HRESULT __stdcall

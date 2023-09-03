@@ -230,7 +230,13 @@ SK_GetCurrentGameID (void)
           { L"RiftApart.exe",                          SK_GAME_ID::RatchetAndClank_RiftApart    },
           { L"Sam2017.exe",                            SK_GAME_ID::SeriousSamFusion2017         },
           { L"Sam2017_Unrestricted.exe",               SK_GAME_ID::SeriousSamFusion2017         },
-          { L"Starfield.exe",                          SK_GAME_ID::Starfield                    }
+          { L"Starfield.exe",                          SK_GAME_ID::Starfield                    },
+          { L"Oblivion.exe",                           SK_GAME_ID::Oblivion                     },
+          { L"FalloutNV.exe",                          SK_GAME_ID::FalloutNewVegas              },
+          { L"Fallout3.exe",                           SK_GAME_ID::Fallout3                     },
+          { L"GECK.exe",                               SK_GAME_ID::GECK                         },
+          { L"CreationKit.exe",                        SK_GAME_ID::CreationKit                  },
+          { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              }
         };
 
     first_check  = false;
