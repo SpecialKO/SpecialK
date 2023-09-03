@@ -317,6 +317,30 @@ _COM_Outptr_ void                              **ppPipelineState )
        auto *pDesc =
              &desc_;
 
+  // HDR Fix-Ups
+  if (__SK_HDR_16BitSwap)
+  {
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::PathOfExile:
+      {
+        // Change R8G8B8A8_UNORM_SRGB RTs to R16G16B16A16_FLOAT (when applicable)
+        if ( desc_.NumRenderTargets == 1 &&
+             desc_.RTVFormats   [0] == DXGI_FORMAT_R8G8B8A8_UNORM_SRGB )
+        {
+          // This is only a partially working solution...
+          if (desc_.InputLayout.NumElements == 1)
+          {
+            desc_.RTVFormats [0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+          }
+        }
+      } break;
+
+      default:
+        break;
+    }
+  }
+
 //if (pDesc->NumRenderTargets == 1 &&
 //    pDesc->RTVFormats   [0] != DXGI_FORMAT_UNKNOWN )
 //{
@@ -773,10 +797,19 @@ struct SK_D3D12_PipelineParser_HDR : ID3DX12PipelineParserCallbacks_SK
            SK_D3D12_PipelineParser_HDR (void) = default;
   virtual ~SK_D3D12_PipelineParser_HDR (void) = default;
 
-  void RTVFormatsCb (D3D12_RT_FORMAT_ARRAY& RTVFormats) override
+  void RTVFormatsCb (D3D12_RT_FORMAT_ARRAY &RTVFormats) override
   {
-    if (RTVFormats.RTFormats [1] == DXGI_FORMAT_B8G8R8A8_UNORM)
-        RTVFormats.RTFormats [1]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Starfield:
+      {
+        if (RTVFormats.RTFormats [1] == DXGI_FORMAT_B8G8R8A8_UNORM)
+            RTVFormats.RTFormats [1]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      } break;
+
+      default:
+        break;
+    }
   }
 
   ID3D12PipelineState* pPipelineState = nullptr;
@@ -793,19 +826,28 @@ _COM_Outptr_  void                            **ppPipelineState )
   SK_LOG_FIRST_CALL
 
   // HDR Fix-Ups
-  if (__SK_HDR_16BitSwap && SK_GetCurrentGameID () == SK_GAME_ID::Starfield)
+  if (__SK_HDR_16BitSwap)
   {
-    SK_D3D12_PipelineParser_HDR
-     SK_D3D12_PipelineParse_HDR;
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Starfield:
+      {
+        SK_D3D12_PipelineParser_HDR
+          SK_D3D12_PipelineParse_HDR;
 
-    auto fixed_desc = *pDesc;
+        auto fixed_desc = *pDesc;
 
-    // Change B8G8R8A8_UNORM RTs to R16G16B16A16_FLOAT
-    D3DX12ParsePipelineStream_SK (fixed_desc, &SK_D3D12_PipelineParse_HDR);
+        // Change B8G8R8A8_UNORM and RTs to R16G16B16A16_FLOAT
+        D3DX12ParsePipelineStream_SK (fixed_desc, &SK_D3D12_PipelineParse_HDR);
 
-    return
-      D3D12Device2_CreatePipelineState_Original (
-       This, &fixed_desc, riid, ppPipelineState );
+        return
+          D3D12Device2_CreatePipelineState_Original (
+           This, &fixed_desc, riid, ppPipelineState );
+      } break;
+
+      default:
+        break;
+    }
   }
 
   HRESULT hr =
