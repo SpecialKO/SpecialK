@@ -1,4 +1,14 @@
-﻿23.9.3.1
+﻿23.9.3.2
+========
+ + Fixed potential window management problems in non-Yuzu games added in 23.9.3
+ + Merge pull request #88 from WallSoGB/Bethesda
+    * Add global Bethesda games plugin:
+
+     - Memory patch for FNV, FO3, TESIV for compatibility with SK's texture tools.
+        (Injection doesn't work, but cache + debug visibility do)
+     - FOV sliders for Starfield.
+
+23.9.3.1
 ========
  + Reorganized thread and debug-related hook initialization for faster startup
      and re-enabled hook on SetThreadAffinityMask (...).
