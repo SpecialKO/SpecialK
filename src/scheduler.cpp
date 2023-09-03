@@ -1059,10 +1059,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
                      : FALSE;
 #endif
 
+  if (sleepless_render && pTLS == nullptr)
+                          pTLS = SK_TLS_Bottom ();
+
   BOOL bRenderThread =
     sleepless_render ?
-      (ReadULongAcquire (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
-       ReadULongAcquire (&SK_GetCurrentRenderBackend ().thread)      == dwTid)
+      (ReadULongAcquire   (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
+       ReadULongAcquire   (&SK_GetCurrentRenderBackend ().thread)      == dwTid ||
+       ReadULong64Acquire (&pTLS->render->frames_presented))
                      : FALSE;
 
   // Steam doesn't init correctly without sleeping for 25 ms
@@ -1088,7 +1092,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 #pragma endregion
 #endif
 
-    if (sleepless_render && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
+    if ( sleepless_render && dwMilliseconds != INFINITE &&
+                             dwMilliseconds != STEAM_THRESHOLD )
     {
       if (config.system.log_level > 0)
       {
@@ -1128,7 +1133,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if ((bGUIThread || (game_id == SK_GAME_ID::NieR_Sqrt_1_5 && dwMilliseconds < 3)) && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
-    if (sleepless_window && dwMilliseconds != INFINITE && dwMilliseconds != STEAM_THRESHOLD)
+    if ( sleepless_window && dwMilliseconds != INFINITE &&
+                             dwMilliseconds != STEAM_THRESHOLD )
     {
       if (config.system.log_level > 0)
       {
@@ -1194,9 +1200,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
 
       if (pTLS->scheduler->last_frame < ulFrames)
-      {
-        pTLS->scheduler->switch_count = 0;
-      }
+          pTLS->scheduler->switch_count = 0;
 
       pTLS->scheduler->last_frame =
         ulFrames;

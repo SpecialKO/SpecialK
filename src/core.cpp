@@ -3828,6 +3828,31 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   }
 
 
+#pragma region Yuzu Window Management Hacks
+  if (! game_window.active)
+  {
+    void
+    ActivateWindow ( HWND hWnd,
+                     bool active          = false,
+                     HWND hWndDeactivated = 0 );
+
+    HWND hWndForeground =
+      SK_GetForegroundWindow ();
+
+    if (hWndForeground      == rb.windows.device.parent && rb.windows.device.parent != 0) {
+       game_window.hWnd      = rb.windows.device.parent;
+       game_window.changed   = true;
+       ActivateWindow (game_window.hWnd, true);
+    }
+    else if (hWndForeground == rb.windows.focus.hwnd    && rb.windows.focus.hwnd    != 0) {
+       game_window.hWnd      = rb.windows.focus.hwnd;
+       game_window.changed   = true;
+       ActivateWindow (game_window.hWnd, true);
+    }
+  }
+#pragma endregion
+
+
   return hr;
 }
 
