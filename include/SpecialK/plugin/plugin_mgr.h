@@ -143,9 +143,10 @@ void SK_ELEX2_InitPlugin    (void);
 void __stdcall
      SK_HatsuneMiku_BeginFrame (void);
 
+#else
+
 void SK_BGS_InitPlugin(void);
 
-#else
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
 
