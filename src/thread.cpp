@@ -65,17 +65,12 @@ WINAPI
 SK_SetThreadDescription ( _In_ HANDLE hThread,
                           _In_ PCWSTR lpThreadDescription )
 {
-  // Unlike GetThreadDescription, Special K has a hook on this function...
-  //   calling our own hook is harmless, but redundant.
-  if (     SetThreadDescription_Original != nullptr)
-    return SetThreadDescription_Original (hThread, lpThreadDescription);
-
   SK_RunOnce (   SetThreadDescription_Impl =
-      (decltype (SetThreadDescription_Impl)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
+      (decltype (SetThreadDescription_Impl)) SK_GetProcAddress (L"kernel32",
                 "SetThreadDescription")
   );
 
-  if (     SetThreadDescription_Impl != nullptr)
+  if (SetThreadDescription_Impl != nullptr)
     return SetThreadDescription_Impl (hThread, lpThreadDescription);
 
   return
@@ -88,7 +83,7 @@ SK_GetThreadDescription ( _In_              HANDLE hThread,
                           _Outptr_result_z_ PWSTR* ppszThreadDescription )
 {
   SK_RunOnce (   GetThreadDescription_Impl =
-      (decltype (GetThreadDescription_Impl)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
+      (decltype (GetThreadDescription_Impl)) SK_GetProcAddress (L"kernel32",
                 "GetThreadDescription")
   );
 
@@ -410,37 +405,36 @@ HRESULT
 WINAPI
 SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
 {
-  if ( reinterpret_cast <intptr_t> (hThread) > 0 && lpThreadDescription != nullptr)
-  {
-    SK_TLS *pTLS =
-          SK_TLS_Bottom ();
+  SK_LOG_FIRST_CALL
 
-    if (    pTLS != nullptr     &&
-         (! pTLS->debug.naming) &&
-         SK_ValidatePointer ((void *)lpThreadDescription, true)
-       )
-    {
-      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
-    
-      THREADNAME_INFO info = {       };
-      info.dwType          =      4096;
-      info.szName          =    szDesc;
-      info.dwThreadID      = (DWORD)GetThreadId (hThread);
-      info.dwFlags         =       0x0;
-    
-      constexpr DWORD argc = sizeof (info) /
-                             sizeof (ULONG_PTR);
-    
-      pTLS->debug.naming = true;
-    
-      RaiseException ( MAGIC_THREAD_EXCEPTION,
-                         SK_EXCEPTION_CONTINUABLE,
-                           argc,
-          (const ULONG_PTR *)&info );
-    
-      pTLS->debug.naming = false;
-    }
+  SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+  if (    pTLS != nullptr     &&
+       (! pTLS->debug.naming) &&
+       SK_ValidatePointer ((void *)lpThreadDescription, true)
+     )
+  {
+    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+
+    THREADNAME_INFO info = {       };
+    info.dwType          =      4096;
+    info.szName          =    szDesc;
+    info.dwThreadID      = (DWORD)GetThreadId (hThread);
+    info.dwFlags         =       0x0;
+
+    constexpr DWORD argc = sizeof (info) /
+                           sizeof (ULONG_PTR);
+
+    pTLS->debug.naming = true;
+
+    RaiseException ( MAGIC_THREAD_EXCEPTION,
+                       SK_EXCEPTION_CONTINUABLE,
+                         argc,
+        (const ULONG_PTR *)&info );
+
+    pTLS->debug.naming = false;
   }
 
   return
@@ -504,6 +498,8 @@ DWORD
 WINAPI
 SetThreadIdealProcessor_Detour (HANDLE hThread, DWORD dwIdealProcessor)
 {
+  SK_LOG_FIRST_CALL
+
   if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
   {
     return
@@ -514,81 +510,27 @@ SetThreadIdealProcessor_Detour (HANDLE hThread, DWORD dwIdealProcessor)
     SetThreadIdealProcessor_Original (hThread, dwIdealProcessor);
 }
 
-bool
-SK_Thread_InitDebugExtras (void)
-{
-  if (! InterlockedCompareExchangeAcquire (&_InitDebugExtrasOnce, 1, 0))
-  {
-    // Hook QPC and Sleep
-    SK_Scheduler_Init ();
+      SetThreadAffinityMask_pfn
+      SetThreadAffinityMask_Original = nullptr;
 
-    // Epic Online Services has code that doesn't work correctly if
-    //   a spinlock is used
-    if (config.threads.enable_dynamic_spinlocks)
-    { // Extremely helpful in Chrono Cross, but potentially breaking in
-      //   other games...
-      SK_HookCriticalSections ();
-    }
+using SetThreadPriority_pfn = BOOL (WINAPI *)(HANDLE, int);
+      SetThreadPriority_pfn
+      SetThreadPriority_Original = nullptr;
 
-    // Only available in Windows 10
-    //
-    if (SetThreadDescription_Original == nullptr)
-    {
-      if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
-      {
-        SK_CreateDLLHook2 (L"kernel32", "SetThreadDescription",
-                                         SetThreadDescription_Detour,
-                static_cast_p2p <void> (&SetThreadDescription_Original)
-        );
-      }
-    }
-
-    SK_CreateDLLHook2 ( L"kernel32", "SetThreadIdealProcessor",
-                                      SetThreadIdealProcessor_Detour,
-             static_cast_p2p <void> (&SetThreadIdealProcessor_Original) );
-
-    InterlockedIncrementRelease (&_InitDebugExtrasOnce);
-
-//    if (ReadAcquire (&__SK_Init) > 0)
-    {
-      SK_ApplyQueuedHooks ();
-    }
-  }
-
-  else
-    SK_Thread_SpinUntilAtomicMin (&_InitDebugExtrasOnce, 2);
-
-  return
-    (SetThreadDescription_Original != nullptr);
-}
-
-// Returns TRUE if the call required a change to priority level
 BOOL
-__stdcall
-SK_Thread_SetCurrentPriority (int prio)
+WINAPI
+SetThreadPriority_Detour ( HANDLE hThread,
+                           int    nPriority )
 {
-  if (SK_Thread_GetCurrentPriority () != prio)
-  {
-    return
-      SetThreadPriority (SK_GetCurrentThread (), prio);
-  }
+  SK_LOG_FIRST_CALL
 
-  return FALSE;
-}
+  SK_ReleaseAssert (hThread != nullptr);
 
-
-int
-__stdcall
-SK_Thread_GetCurrentPriority (void)
-{
   return
-    GetThreadPriority (SK_GetCurrentThread ());
+    SetThreadPriority_Original (
+      hThread, nPriority
+    );
 }
-
-extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original = nullptr;
-
-static SYSTEM_INFO
-           sysinfo = {   };
 
 DWORD_PTR
 WINAPI
@@ -596,6 +538,11 @@ SetThreadAffinityMask_Detour (
   _In_ HANDLE    hThread,
   _In_ DWORD_PTR dwThreadAffinityMask )
 {
+  SK_LOG_FIRST_CALL
+
+  static SYSTEM_INFO
+             sysinfo = {   };
+
   if (sysinfo.dwNumberOfProcessors == 0)
   {
     SK_GetSystemInfo (&sysinfo);
@@ -647,8 +594,93 @@ SetThreadAffinityMask_Detour (
   return dwRet;
 }
 
+DWORD_PTR
+WINAPI
+SK_SetThreadAffinityMask (HANDLE hThread, DWORD_PTR mask)
+{
+  return
+    ( SetThreadAffinityMask_Original != nullptr      ?
+      SetThreadAffinityMask_Original (hThread, mask) :
+      SetThreadAffinityMask          (hThread, mask) );
+}
 
+bool
+SK_Thread_InitDebugExtras (void)
+{
+  if (! InterlockedCompareExchangeAcquire (&_InitDebugExtrasOnce, 1, 0))
+  {
+    // Hook QPC and Sleep
+    SK_Scheduler_Init ();
 
+    // Epic Online Services has code that doesn't work correctly if
+    //   a spinlock is used
+    if (config.threads.enable_dynamic_spinlocks)
+    { // Extremely helpful in Chrono Cross, but potentially breaking in
+      //   other games...
+      SK_HookCriticalSections ();
+    }
+
+    // Only available in Windows 10
+    //
+    if (SetThreadDescription_Original == nullptr)
+    {
+      if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
+      {
+        SK_CreateDLLHook2 (L"kernel32", "SetThreadDescription",
+                                         SetThreadDescription_Detour,
+                static_cast_p2p <void> (&SetThreadDescription_Original)
+        );
+      }
+    }
+
+    SK_CreateDLLHook2 ( L"kernel32", "SetThreadPriority",
+                                      SetThreadPriority_Detour,
+             static_cast_p2p <void> (&SetThreadPriority_Original) );
+
+    SK_CreateDLLHook2 ( L"kernel32", "SetThreadAffinityMask",
+                                      SetThreadAffinityMask_Detour,
+             static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
+
+    SK_CreateDLLHook2 ( L"kernel32", "SetThreadIdealProcessor",
+                                      SetThreadIdealProcessor_Detour,
+             static_cast_p2p <void> (&SetThreadIdealProcessor_Original) );
+
+    InterlockedIncrementRelease (&_InitDebugExtrasOnce);
+
+//    if (ReadAcquire (&__SK_Init) > 0)
+    {
+      SK_ApplyQueuedHooks ();
+    }
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&_InitDebugExtrasOnce, 2);
+
+  return
+    (SetThreadDescription_Original != nullptr);
+}
+
+// Returns TRUE if the call required a change to priority level
+BOOL
+__stdcall
+SK_Thread_SetCurrentPriority (int prio)
+{
+  if (SK_Thread_GetCurrentPriority () != prio)
+  {
+    return
+      SetThreadPriority (SK_GetCurrentThread (), prio);
+  }
+
+  return FALSE;
+}
+
+int
+__stdcall
+SK_Thread_GetCurrentPriority (void)
+{
+  return
+    GetThreadPriority (SK_GetCurrentThread ());
+}
 
 
 #define MAX_THREAD_NAME_LEN MAX_PATH

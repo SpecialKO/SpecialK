@@ -922,8 +922,7 @@ extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 void BasicInit (void)
 {
   // Setup unhooked function pointers
-  SK_PreInitLoadLibrary            (    );
-  SK::Diagnostics::Debugger::Allow (true);
+  SK_PreInitLoadLibrary ();
 
   if (config.system.handle_crashes)
     SK::Diagnostics::CrashHandler::Init   ();
@@ -2555,6 +2554,8 @@ SK_ShutdownCore (const wchar_t* backend)
   dll_log->Log (L"[ SpecialK ] *** Initiating DLL Shutdown ***");
 
   SK_Win32_DestroyBackgroundWindow (); // Destroy the aspect ratio stretch window
+
+  SK::Diagnostics::Debugger::CloseConsole ();
 
   auto &rb =
     SK_GetCurrentRenderBackend ();

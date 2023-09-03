@@ -92,21 +92,17 @@ typedef struct tagTHREADNAME_INFO
 
 
 static inline
-const HANDLE
+constexpr HANDLE
   SK_GetCurrentThread (void) noexcept
   {
-      static const   HANDLE
-           _caller ((HANDLE)-2);
-    return _caller;
+    return (HANDLE)-2;
   };
 
 static inline
-const HANDLE
+constexpr HANDLE
   SK_GetCurrentProcess (void) noexcept
   {
-    static const   HANDLE
-           _host ((HANDLE)-1);
-    return _host;
+    return (HANDLE)-1;
   };
 
 
@@ -251,8 +247,6 @@ SK_Thread_CloseSelf (void);
 
 
 
-
-
 // Returns TRUE if the call required a change to priority level
 extern "C" BOOL WINAPI SK_Thread_SetCurrentPriority (int prio);
 extern "C" int  WINAPI SK_Thread_GetCurrentPriority (void);
@@ -278,9 +272,10 @@ extern "C" HRESULT WINAPI SK_GetThreadDescription (HANDLE, PWSTR*);
 extern "C" HRESULT WINAPI SetCurrentThreadDescription (_In_  PCWSTR lpThreadDescription);
 extern "C" HRESULT WINAPI GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription);
 
-extern "C" bool SK_Thread_InitDebugExtras (void);
+DWORD_PTR WINAPI
+SK_SetThreadAffinityMask (HANDLE hThread, DWORD_PTR mask);
 
-extern "C" SetThreadAffinityMask_pfn SetThreadAffinityMask_Original;
+extern "C" bool SK_Thread_InitDebugExtras (void);
 
 HMODULE SK_AVRT_LoadLibrary (void);
 

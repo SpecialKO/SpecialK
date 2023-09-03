@@ -1117,17 +1117,6 @@ SK_CPU_IsZenEx (bool retest/* = false*/)
 //  };
 //} RAPL_POWER_UNIT;
 
-
-DWORD_PTR
-WINAPI
-SK_SetThreadAffinityMask (HANDLE hThread, DWORD_PTR mask)
-{
-  return
-    ( SetThreadAffinityMask_Original != nullptr      ?
-      SetThreadAffinityMask_Original (hThread, mask) :
-      SetThreadAffinityMask          (hThread, mask) );
-}
-
 void
 SK_CPU_AssertPowerUnit_Zen (int64_t core)
 {

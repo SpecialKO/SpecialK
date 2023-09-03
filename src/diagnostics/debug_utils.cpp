@@ -185,10 +185,6 @@ using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
       GetProcAddress_pfn
       GetProcAddress_Original = nullptr;
 
-using SetThreadPriority_pfn = BOOL (WINAPI *)(HANDLE, int);
-      SetThreadPriority_pfn
-      SetThreadPriority_Original = nullptr;
-
 #define LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID           0
 #define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED     1
 #define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_NOT_ACQUIRED 2
@@ -3625,22 +3621,6 @@ RaiseException_Detour (
   }
 }
 
-BOOL
-WINAPI SetThreadPriority_Detour ( HANDLE hThread,
-                                  int    nPriority )
-{
-  if (hThread == nullptr)
-  {
-    hThread = GetCurrentThread ();
-  }
-
-  return
-    SetThreadPriority_Original (
-      hThread, nPriority
-    );
-}
-
-
 ///
 /// Anti-debug workaround, avoid CloseHandle (...) exception handler boobytraps
 BOOL
@@ -3688,13 +3668,13 @@ CloseHandle_Detour ( HANDLE hObject )
 void
 SK_HookEngine_HookGetProcAddress (void)
 {
-  ///////// Our GetProcAddress hook relies on SetLastError, which we also hook.
-  ///////SK_RunOnce (
-  ///////  SK_CreateDLLHook2 (      L"kernel32",
-  ///////                          "SetLastError",
-  ///////                           SetLastError_Detour,
-  ///////  static_cast_p2p <void> (&SetLastError_Original) )
-  ///////);
+  // Our GetProcAddress hook relies on SetLastError, which we also hook.
+  SK_RunOnce (
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "SetLastError",
+                               SetLastError_Detour,
+      static_cast_p2p <void> (&SetLastError_Original) )
+  );
 
   SK_RunOnce (
     SK_CreateDLLHook2 (      L"kernel32",
@@ -3707,26 +3687,74 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
-  if (config.compatibility.disable_debug_features)
+  struct LocalInitOnce_s
   {
-    SK_MinHook_Init ();
-  }
+    LocalInitOnce_s (void) noexcept
+    {
+      SK_RunOnce (
+      {
+        SK_InitUnicodeString =
+       (RtlInitUnicodeString_pfn)SK_GetProcAddress ( L"NtDll",
+       "RtlInitUnicodeString"                      );
 
-  // This is hooked so that we can catch and cleanly unload
-  //   if a game crashes during exit.
-  SK_CreateDLLHook2 (    L"kernel32",
-                          "ExitProcess",
-                           ExitProcess_Detour,
-  static_cast_p2p <void> (&ExitProcess_Original) );
+        SK_MinHook_Init ();
 
-  SK_CreateDLLHook2 (      L"kernel32",
-                          "TerminateProcess",
-                           TerminateProcess_Detour,
-  static_cast_p2p <void> (&TerminateProcess_Original) );
-  
+        extern void SK_DbgHlp_Init (void);
+                    SK_DbgHlp_Init ();
+
+        void SK_SymSetOpts (void);
+             SK_SymSetOpts (    );
+
+        void SK_HookEngine_HookGetProcAddress (void);
+             SK_HookEngine_HookGetProcAddress ();
+
+        SK_InitCompatBlacklist    ();
+      });
+    }
+
+    ~LocalInitOnce_s (void)
+    {
+      SK_RunOnce (
+      {
+        // This is hooked so that we can catch and cleanly unload
+        //   if a game crashes during exit.
+        SK_CreateDLLHook2 (    L"kernel32",
+                                "ExitProcess",
+                                 ExitProcess_Detour,
+        static_cast_p2p <void> (&ExitProcess_Original) );
+
+        SK_CreateDLLHook2 (    L"kernel32",
+                                "TerminateProcess",
+                                 TerminateProcess_Detour,
+        static_cast_p2p <void> (&TerminateProcess_Original) );
+
+        SK_Thread_InitDebugExtras ();
+      });
+    }
+  } finish_init_on_return;
+
   if (config.compatibility.disable_debug_features)
   {
     return false;
+  }
+
+  static bool          basic_init = false;
+  if (! std::exchange (basic_init, true))
+  {
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "OutputDebugStringA",
+                               OutputDebugStringA_Detour,
+      static_cast_p2p <void> (&OutputDebugStringA_Original) );
+  
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "OutputDebugStringW",
+                               OutputDebugStringW_Detour,
+      static_cast_p2p <void> (&OutputDebugStringW_Original) );
+  
+    SK_CreateDLLHook2 (      L"kernel32",
+                              "IsDebuggerPresent",
+                               IsDebuggerPresent_Detour,
+      static_cast_p2p <void> (&IsDebuggerPresent_Original) );
   }
 
   if (SK_IsHostAppSKIM ())
@@ -3734,50 +3762,9 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     return true;
   }
 
-  static volatile LONG __init = 0;
-
+  static volatile LONG                      __init = 0;
   if (! InterlockedCompareExchangeAcquire (&__init, 1, 0))
   {
-    SK_MinHook_Init ();
-
-    static bool          basic_init = false;
-    if (! std::exchange (basic_init, true))
-    {
-      SK_CreateDLLHook2 (       L"kernel32",
-                                "SetThreadPriority",
-                                 SetThreadPriority_Detour,
-        static_cast_p2p <void> (&SetThreadPriority_Original) );
-
-      // Hooking this causes Death Stranding to Explode
-      //
-//////SK_CreateDLLHook2 (      L"kernel32",
-//////                          "SetThreadAffinityMask",
-//////                           SetThreadAffinityMask_Detour,
-//////  static_cast_p2p <void> (&SetThreadAffinityMask_Original) );
-
-
-
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "OutputDebugStringA",
-                                 OutputDebugStringA_Detour,
-        static_cast_p2p <void> (&OutputDebugStringA_Original) );
-
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "OutputDebugStringW",
-                                 OutputDebugStringW_Detour,
-        static_cast_p2p <void> (&OutputDebugStringW_Original) );
-
-      SK_CreateDLLHook2 (      L"kernel32",
-                                "IsDebuggerPresent",
-                                 IsDebuggerPresent_Detour,
-        static_cast_p2p <void> (&IsDebuggerPresent_Original) );
-    }
-
-     SK_InitUnicodeString =
-    (RtlInitUnicodeString_pfn)SK_GetProcAddress (
-                           L"NtDll",
-                            "RtlInitUnicodeString" );
-
     // Workaround Steamworks Anti-Debug
     //
 #ifdef _EXTENDED_DEBUG
@@ -3946,8 +3933,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
       static_cast_p2p <void> (&CloseHandle_Original) );
     }
 
-    SK_Thread_InitDebugExtras ();
-
 #ifdef _EXTENDED_DEBUG
     if (true)//config.advanced_debug)
     {
@@ -3969,29 +3954,12 @@ FILE* SK::Diagnostics::Debugger::fStdErr = nullptr;
 FILE* SK::Diagnostics::Debugger::fStdIn  = nullptr;
 FILE* SK::Diagnostics::Debugger::fStdOut = nullptr;
 
-class SK_DebuggerCleanup
-{
-public:
-  ~SK_DebuggerCleanup (void)
-  {
-    if (SK::Diagnostics::Debugger::fStdErr != nullptr)
-      fclose (SK::Diagnostics::Debugger::fStdErr);
-
-    if (SK::Diagnostics::Debugger::fStdIn != nullptr)
-      fclose (SK::Diagnostics::Debugger::fStdIn);
-
-    if (SK::Diagnostics::Debugger::fStdOut != nullptr)
-      fclose (SK::Diagnostics::Debugger::fStdOut);
-  }
-} _DebuggerCleanup;
-
 void
 SK::Diagnostics::Debugger::SpawnConsole (void)
 {
   AllocConsole ();
 
-  static volatile LONG init = FALSE;
-
+  static volatile LONG               init = FALSE;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
     fStdIn  = _wfreopen (L"CONIN$",  L"r", stdin);
@@ -4003,6 +3971,15 @@ SK::Diagnostics::Debugger::SpawnConsole (void)
 BOOL
 SK::Diagnostics::Debugger::CloseConsole (void)
 {
+  if (                     SK::Diagnostics::Debugger::fStdErr != nullptr)
+    fclose (std::exchange (SK::Diagnostics::Debugger::fStdErr,   nullptr));
+
+  if (                     SK::Diagnostics::Debugger::fStdIn != nullptr)
+    fclose (std::exchange (SK::Diagnostics::Debugger::fStdIn,   nullptr));
+
+  if (                     SK::Diagnostics::Debugger::fStdOut != nullptr)
+    fclose (std::exchange (SK::Diagnostics::Debugger::fStdOut,   nullptr));
+
   return
     FreeConsole ();
 }
