@@ -6433,7 +6433,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         if (! bNvInterop)
         {
           SK_DXGI_MakeCachedSwapChainForHwnd
-               ( *ppSwapChain, hWnd, static_cast <IUnknown *> (pDev11.p) );
+               ( *ppSwapChain, hWnd, pDev11.p );
         }
       }
 
@@ -7230,7 +7230,7 @@ WINAPI CreateDXGIFactory (REFIID   riid,
     DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
   }
 
-  if (SUCCEEDED (ret))
+  if (SUCCEEDED (ret) && *ppFactory != nullptr)
   {
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
 
@@ -7323,7 +7323,7 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   HRESULT    ret;
   DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, &pFactory_));
 
-  if (SUCCEEDED (ret))
+  if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {
 #if 0
     auto newFactory =
@@ -7412,7 +7412,7 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   HRESULT    ret;
   DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, &pFactory_));
 
-  if (SUCCEEDED (ret))
+  if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {
 #if 0
     auto newFactory =
