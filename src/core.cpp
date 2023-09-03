@@ -639,6 +639,13 @@ extern void BasicInit (void);
     case SK_GAME_ID::Elex2:
       SK_ELEX2_InitPlugin ();
       break;
+    case SK_GAME_ID::Starfield:
+    case SK_GAME_ID::Oblivion:
+    case SK_GAME_ID::Fallout3:
+    case SK_GAME_ID::FalloutNewVegas: {
+        SK_BGS_InitPlugin();
+        break;
+    }
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();

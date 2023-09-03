@@ -1357,6 +1357,12 @@ enum class SK_GAME_ID
   RatchetAndClank_RiftApart,    // RiftApart.exe
   SeriousSamFusion2017,         // Sam2017.exe / Sam2017_Unrestricted.exe
   Starfield,                    // Starfield.exe
+  FalloutNewVegas,              // FalloutNV.exe
+  Fallout3,                     // Fallout3.exe
+  Oblivion,                     // Oblivion.exe
+  GECK,                         // GECK.exe
+  ConstructionSet,              // TESConstructionSet.exe
+  CreationKit,                  // ConstructionKit.exe
 
   UNKNOWN_GAME               = 0xffff
 };
