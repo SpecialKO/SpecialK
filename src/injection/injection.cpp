@@ -1328,34 +1328,6 @@ SK_Inject_SpawnUnloadListener (void)
             );
           }
 
-          if (! SK_GetHostAppUtil ()->isInjectionTool ())
-          {
-            // This might crash Windows Explorer since it's the thing that
-            //   is actually injecting our DLL in the first place.
-            if (! GetModuleHandle (L"explorer.exe"))
-            {
-              // List of processes that acquire multiple DLL references
-              for ( auto& dll : { L"notepad.exe",
-                                  L"mspaint.exe",
-                                  L"msedgewebview2.exe",
-                                  L"epicwebhelper.exe",
-                                  L"steamwebhelper.exe" } )
-              {
-                if (GetModuleHandle (dll))
-                {
-                  // Executables with child processes might inherit
-                  if (GetModuleReferenceCount (g_hModule_CBT) == 1 &&
-                           GetModuleLoadCount (g_hModule_CBT) > 1)
-                  {
-                    SK_FreeLibrary (g_hModule_CBT);
-                  }
-
-                  break;
-                }
-              }
-            }
-          }
-
           hHookTeardown.Close ();
 
           // All clear, one less process to worry about
