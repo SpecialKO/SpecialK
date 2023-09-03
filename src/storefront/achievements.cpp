@@ -472,13 +472,13 @@ SK_HTTP_BundleArgs =
 
    for ( auto& entry : list_ )
    {
-     bundle.push_back (
-       std::move (entry)
+     bundle.emplace_back (
+       entry
      );
    }
 
    return
-     std::move (bundle);
+     bundle;
  };
 
 kvpair_s
