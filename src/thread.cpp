@@ -65,12 +65,17 @@ WINAPI
 SK_SetThreadDescription ( _In_ HANDLE hThread,
                           _In_ PCWSTR lpThreadDescription )
 {
+  // Unlike GetThreadDescription, Special K has a hook on this function...
+  //   calling our own hook is harmless, but redundant.
+  if (     SetThreadDescription_Original != nullptr)
+    return SetThreadDescription_Original (hThread, lpThreadDescription);
+
   SK_RunOnce (   SetThreadDescription_Impl =
       (decltype (SetThreadDescription_Impl)) GetProcAddress (GetModuleHandleW (L"Kernel32"),
                 "SetThreadDescription")
   );
 
-  if (SetThreadDescription_Impl != nullptr)
+  if (     SetThreadDescription_Impl != nullptr)
     return SetThreadDescription_Impl (hThread, lpThreadDescription);
 
   return
@@ -405,34 +410,37 @@ HRESULT
 WINAPI
 SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
 {
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
-
-  if (SK_ValidatePointer ((void *)lpThreadDescription, true) &&
-          pTLS != nullptr                                    &&
-       (! pTLS->debug.naming)
-     )
+  if ( reinterpret_cast <intptr_t> (hThread) > 0 && lpThreadDescription != nullptr)
   {
-    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+    SK_TLS *pTLS =
+          SK_TLS_Bottom ();
 
-    THREADNAME_INFO info = {       };
-    info.dwType          =      4096;
-    info.szName          =    szDesc;
-    info.dwThreadID      = (DWORD)GetThreadId (hThread);
-    info.dwFlags         =       0x0;
-
-    constexpr DWORD argc = sizeof (info) /
-                           sizeof (ULONG_PTR);
-
-    pTLS->debug.naming = true;
-
-    RaiseException ( MAGIC_THREAD_EXCEPTION,
-                       SK_EXCEPTION_CONTINUABLE,
-                         argc,
-        (const ULONG_PTR *)&info );
-
-    pTLS->debug.naming = false;
+    if (    pTLS != nullptr     &&
+         (! pTLS->debug.naming) &&
+         SK_ValidatePointer ((void *)lpThreadDescription, true)
+       )
+    {
+      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+    
+      THREADNAME_INFO info = {       };
+      info.dwType          =      4096;
+      info.szName          =    szDesc;
+      info.dwThreadID      = (DWORD)GetThreadId (hThread);
+      info.dwFlags         =       0x0;
+    
+      constexpr DWORD argc = sizeof (info) /
+                             sizeof (ULONG_PTR);
+    
+      pTLS->debug.naming = true;
+    
+      RaiseException ( MAGIC_THREAD_EXCEPTION,
+                         SK_EXCEPTION_CONTINUABLE,
+                           argc,
+          (const ULONG_PTR *)&info );
+    
+      pTLS->debug.naming = false;
+    }
   }
 
   return
