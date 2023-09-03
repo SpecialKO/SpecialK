@@ -1782,7 +1782,6 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
             if (bRealDebug)
             {
               pRealPeb->BeingDebugged                  =  TRUE;
-              pRealPeb->NtGlobalFlag                  |=  0x70;
 
               SK_InitUnicodeString (
                 (PUNICODE_STRING)
@@ -2618,15 +2617,41 @@ VOID
 NTAPI
 DbgUiRemoteBreakin_Detour (PVOID Context)
 {
+  // If we have this hooked, it's for some serious anti-debug purposes,
+  //   so go ahead and start faking Debugger-Not-Attached state.
   UNREFERENCED_PARAMETER (Context);
 
+  auto pPeb =
+    (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
+
+  BOOL bDebugging = std::exchange (pPeb->BeingDebugged, (BOOLEAN)FALSE);
+                                   pPeb->NtGlobalFlag      &= ~0x70;
+                                   pPeb->CrossProcessFlags &= ~0x4;
+
+#if 1
+  if (bDebugging)
+  {
+    __try
+    {
+      DbgBreakPoint_Detour ();
+    }
+
+    __except (EXCEPTION_CONTINUE_EXECUTION)
+    {
+    }
+  }
+
+#else
   if (! SK_GetFramesDrawn ())
     DbgBreakPoint_Detour  ();
 
   while (true)//RtlExitUserProcess_Original == nullptr)
     SK_Sleep (125);
+#endif
 
-  //RtlExitUserThread_Original (STATUS_SUCCESS);
+  // Anti-debug measure in Starfield uses a TLS callback that
+  //   will raise STATUS_USER_CALLBACK when this thread exits...
+  RtlExitUserThread_Original (STATUS_SUCCESS);
 }
 
 extern "C" RaiseException_pfn
@@ -3849,18 +3874,15 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                RtlRaiseException_Detour,
       static_cast_p2p <void> (&RtlRaiseException_Original) );
 
-      if (config.compatibility.rehook_loadlibrary)
-      {
-        SK_CreateDLLHook2 (      L"NtDll",
-                                  "RtlExitUserProcess",
-                                   RtlExitUserProcess_Detour,
-          static_cast_p2p <void> (&RtlExitUserProcess_Original) );
+      SK_CreateDLLHook2 (      L"NtDll",
+                                "RtlExitUserProcess",
+                                 RtlExitUserProcess_Detour,
+        static_cast_p2p <void> (&RtlExitUserProcess_Original) );
 
-            SK_CreateDLLHook2 (      L"NtDll",
-                                  "RtlExitUserThread",
-                                   RtlExitUserThread_Detour,
-          static_cast_p2p <void> (&RtlExitUserThread_Original) );
-      }
+          SK_CreateDLLHook2 (      L"NtDll",
+                                "RtlExitUserThread",
+                                 RtlExitUserThread_Detour,
+        static_cast_p2p <void> (&RtlExitUserThread_Original) );
 
       SK_CreateDLLHook2 (      L"kernel32",
                                 "DebugBreak",
