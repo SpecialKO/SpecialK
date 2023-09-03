@@ -1,5 +1,14 @@
-﻿23.9.3
+﻿23.9.3.1
+========
+ + Reorganized thread and debug-related hook initialization for faster startup
+     and re-enabled hook on SetThreadAffinityMask (...).
+ + Upgraded Halo Infinite to XInput 1.4 instead of UAP so that background
+     input processing and gamepad blocking hooks work correctly.
+
+23.9.3
 ======
+ + Added window management hacks to change what SK considers the game's
+     primary window in Yuzu when switching between Single and Multi-Window
  + Added D3D12FootGun mode, if you have to ask, you don't need/want it
  + Allow "Sleepless Render Thread" option to be selected in D3D12
 
