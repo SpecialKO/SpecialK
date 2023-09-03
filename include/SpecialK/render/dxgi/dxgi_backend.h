@@ -85,10 +85,10 @@
   // Interface-based DXGI call
 #define DXGI_LOG_CALL_I(_Interface,_Name,_Format)                            \
   {                                                                          \
-    std::unique_ptr    <wchar_t[]> pwszBuffer =                              \
-      std::make_unique <wchar_t[]> (4096);                                   \
-    wchar_t*  wszPreFormatted  = pwszBuffer.get ();                          \
-    wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
+    wchar_t* pwszBuffer        = SK_TLS_Bottom ()->scratch_memory->log.      \
+                                  formatted_output.alloc (4096, true);       \
+    wchar_t*  wszPreFormatted  =  pwszBuffer;                                 \
+    wchar_t*  wszPostFormatted = &pwszBuffer [1024];                          \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
       swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );         \
@@ -97,10 +97,10 @@
   // Global DXGI call
 #define DXGI_LOG_CALL(_Name,_Format)                                         \
   {                                                                          \
-    std::unique_ptr    <wchar_t[]>  pwszBuffer =                             \
-      std::make_unique <wchar_t[]> (4096);                                   \
-    wchar_t*  wszPreFormatted  = pwszBuffer.get ();                          \
-    wchar_t*  wszPostFormatted = pwszBuffer.get () + 1024;                   \
+    wchar_t* pwszBuffer        = SK_TLS_Bottom ()->scratch_memory->log.      \
+                                  formatted_output.alloc (4096, true);       \
+    wchar_t*  wszPreFormatted  =  pwszBuffer;                                 \
+    wchar_t*  wszPostFormatted = &pwszBuffer [1024];                          \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
       swprintf (wszPreFormatted,  L"%s (", _Name);                           \
