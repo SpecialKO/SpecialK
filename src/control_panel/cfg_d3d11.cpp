@@ -818,7 +818,7 @@ SK::ControlPanel::D3D11::Draw (void)
       {
         bool waitable_ = config.render.framerate.swapchain_wait > 0;
 
-        if (! (d3d12 || indirect))
+        if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
         {
           if (ImGui::Checkbox ("Waitable SwapChain", &waitable_))
           {
@@ -927,7 +927,7 @@ SK::ControlPanel::D3D11::Draw (void)
       config.render.framerate.present_interval =
         std::max (-1, std::min (4, config.render.framerate.present_interval));
 
-      if (! (d3d12 || indirect))
+      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
       {
         if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
@@ -954,7 +954,7 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = SK_NoPreference;
 
-      if (! (d3d12 || indirect))
+      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {

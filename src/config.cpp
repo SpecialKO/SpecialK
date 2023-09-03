@@ -741,6 +741,7 @@ struct {
     sk::ParameterBool*    disable_virtual_vbi     = nullptr;
     sk::ParameterBool*    clear_buffers_after_flip= nullptr;
     sk::ParameterFloat*   warn_if_vram_exceeds    = nullptr;
+    sk::ParameterBool*    allow_d3d12_footguns    = nullptr;
   } dxgi;
 
   struct {
@@ -1614,6 +1615,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.disable_virtual_vbi,        L"Disable Dynamic Refresh Rate (VBLANK Virtualization)",      dll_ini,         L"Render.DXGI",           L"DisableVirtualizedBlanking"),
     ConfigEntry (render.dxgi.clear_buffers_after_flip,   L"Clear the SwapChain Backbuffer every frame",                dll_ini,         L"Render.DXGI",           L"ClearFlipModelBackbuffers"),
     ConfigEntry (render.dxgi.warn_if_vram_exceeds,       L"Warn if VRAM used exceeds this % of available VRAM",        dll_ini,         L"Render.DXGI",           L"WarnIfUsedVRAMPercentExceeds"),
+    ConfigEntry (render.dxgi.allow_d3d12_footguns,       L"Feel like shooting your foot with unsafe d3d12 settings..?",dll_ini,         L"Render.DXGI",           L"AllowD3D12FootGuns"),
 
     ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
@@ -3577,7 +3579,8 @@ auto DeclKeybind =
     }
   }
 
-  render.dxgi.debug_layer->load (config.render.dxgi.debug_layer);
+  render.dxgi.allow_d3d12_footguns->load (config.render.dxgi.allow_d3d12_footguns);
+  render.dxgi.debug_layer->load          (config.render.dxgi.debug_layer);
 
   if (((sk::iParameter *)render.dxgi.exception_mode)->load ())
   {
@@ -5258,6 +5261,7 @@ SK_SaveConfig ( std::wstring name,
       }
 
       render.dxgi.debug_layer->store          (config.render.dxgi.debug_layer);
+      render.dxgi.allow_d3d12_footguns->store (config.render.dxgi.allow_d3d12_footguns);
       render.dxgi.safe_fullscreen->store      (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store       (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);

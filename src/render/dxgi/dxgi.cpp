@@ -5713,13 +5713,16 @@ DXGIFactory_CreateSwapChain_Override (
 
     SK_LOGs0 ( L"Direct3D12", L" <*> Native D3D12 SwapChain Captured" );
 
-    if ( config.render.framerate.buffer_count >= 0 &&
-         config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+    if (! config.render.dxgi.allow_d3d12_footguns)
     {
-      SK_LOGs0 ( L"Direct3D12",
-                 L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
+      if ( config.render.framerate.buffer_count >= 0 &&
+           config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+      {
+        SK_LOGs0 ( L"Direct3D12",
+                   L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
-      config.render.framerate.buffer_count = SK_NoPreference;
+        config.render.framerate.buffer_count = SK_NoPreference;
+      }
     }
   }
 
@@ -6275,13 +6278,16 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     SK_LOGs0 ( L"Direct3D12",
                L" <*> Native D3D12 SwapChain Captured" );
 
-    if ( config.render.framerate.buffer_count >= 0 &&
-         config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+    if (! config.render.dxgi.allow_d3d12_footguns)
     {
-      SK_LOGs0 ( L"Direct3D12",
-                 L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
+      if ( config.render.framerate.buffer_count >= 0 &&
+           config.render.framerate.buffer_count != sk::narrow_cast <int> (pDesc->BufferCount) )
+      {
+        SK_LOGs0 ( L"Direct3D12",
+                   L" [-] SwapChain Buffer Count Override Disabled (due to D3D12)" );
 
-      config.render.framerate.buffer_count = SK_NoPreference;
+        config.render.framerate.buffer_count = SK_NoPreference;
+      }
     }
   }
 

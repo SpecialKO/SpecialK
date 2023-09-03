@@ -637,6 +637,7 @@ struct sk_config_t
       bool    suppress_rtv_mismatch= false; // Hide SwapChain RTV format warnings for buggy games
       float   warn_if_vram_exceeds =  95.f; // Warn if VRAM usage exceeds % of available
       bool    warned_low_vram      = false; // NOT SAVED: State of warn_if_vram_exceeds
+      bool    allow_d3d12_footguns = false; // Allow overrides that are unsafe in D3D12
     } dxgi;
 
     struct {

@@ -5091,23 +5091,20 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::BeginGroup ();
 
-          if (rb.api != SK_RenderAPI::D3D12)
+          changed |=
+            ImGui::Checkbox ( "Sleepless Render Thread(s)",
+                                &config.render.framerate.sleepless_render );
+
+          if (ImGui::IsItemHovered ())
           {
-            changed |=
-              ImGui::Checkbox ( "Sleepless Render Thread",
-                                  &config.render.framerate.sleepless_render );
+            SK::Framerate::EventCounter::SleepStats& stats =
+              SK::Framerate::GetEvents ()->getRenderThreadStats ();
 
-            if (ImGui::IsItemHovered ())
-            {
-              SK::Framerate::EventCounter::SleepStats& stats =
-                SK::Framerate::GetEvents ()->getRenderThreadStats ();
-
-              ImGui::SetTooltip
-                             ( "(%li ms asleep, %li ms awake)",
-                                 /*(stats.attempts - stats.rejections), stats.attempts,*/
-                                   ReadAcquire (&stats.time.allowed),
-                                   ReadAcquire (&stats.time.deprived) );
-            }
+            ImGui::SetTooltip
+                           ( "(%li ms asleep, %li ms awake)",
+                               /*(stats.attempts - stats.rejections), stats.attempts,*/
+                                 ReadAcquire (&stats.time.allowed),
+                                 ReadAcquire (&stats.time.deprived) );
           }
 
           changed |=

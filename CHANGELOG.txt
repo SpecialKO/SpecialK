@@ -1,4 +1,9 @@
-﻿23.9.2.6
+﻿23.9.3
+======
+ + Added D3D12FootGun mode, if you have to ask, you don't need/want it
+ + Allow "Sleepless Render Thread" option to be selected in D3D12
+
+23.9.2.6
 ========
  + Fixed black terrain textures in Starfield while HDR is active
  + Fixed potential crash during screenshots introduced in 23.9.2.3
