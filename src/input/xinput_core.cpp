@@ -2702,17 +2702,15 @@ SK_Input_PreHookXInput (void)
   if (! config.input.gamepad.hook_xinput)
     return;
 
-  xinput_ctx.XInput_SK.wszModuleName =
-#ifdef _WIN64
-    L"XInput_SK64.dll";
-#else
-    L"XInput_SK32.dll";
-#endif
-
-  static std::filesystem::path path_to_driver =
+  static std::filesystem::path path_to_driver_base =
         (std::filesystem::path (SK_GetInstallPath ()) /
-                                LR"(Drivers\XInput)") /
-                                 xinput_ctx.XInput_SK.wszModuleName;
+                                 LR"(Drivers\XInput)"),
+                                       driver_name =
+                    SK_RunLHIfBitness (64, L"XInput_SK64.dll",
+                                           L"XInput_SK32.dll"),
+                               path_to_driver = 
+                               path_to_driver_base /
+                                       driver_name;
 
   std::filesystem::path
     path_to_highest_xinput_ver = L"";
@@ -2728,7 +2726,8 @@ SK_Input_PreHookXInput (void)
             ( std::filesystem::path (pSystemDirectory) / L"XInput1_3.dll"   ),
             ( std::filesystem::path (pSystemDirectory) / L"XInput1_2.dll"   ),
             ( std::filesystem::path (pSystemDirectory) / L"XInput1_1.dll"   ),
-            ( std::filesystem::path (pSystemDirectory) / L"XInput9_1_0.dll" )
+            ( std::filesystem::path (pSystemDirectory) / L"XInput9_1_0.dll" ),
+            ( std::filesystem::path (pSystemDirectory) / L"XInputUap.dll" )
           } )
   {
     if (std::filesystem::exists (version, ec))
@@ -2748,8 +2747,8 @@ SK_Input_PreHookXInput (void)
       if (! std::filesystem::remove (path_to_driver.c_str (),    ec))
       {
         SK_File_MoveNoFail (         path_to_driver.c_str (),
-          ( std::filesystem::current_path () /
-                            L"XInput_Old.tmp" ).    c_str () );
+                                   ( path_to_driver_base /
+                                L"XInput_Old.tmp" ).c_str () );
       }
 
       // Done (re)moving out-of-date XInput DLL
@@ -2761,14 +2760,14 @@ SK_Input_PreHookXInput (void)
       }
 
       // Cleanup any temporary XInput DLLs
-      SK_DeleteTemporaryFiles (
-        std::filesystem::current_path ().c_str ()
-      );
+      SK_DeleteTemporaryFiles (path_to_driver_base.c_str ());
     }
   }
 
   xinput_ctx.XInput_SK.hMod =
-    SK_LoadLibraryW (path_to_driver.c_str ());
+    SK_LoadLibraryW (path_to_driver.c_str ()),
+  xinput_ctx.XInput_SK.wszModuleName =
+                     path_to_driver.c_str ();
 
   std::scoped_lock < std::recursive_mutex, std::recursive_mutex,
                      std::recursive_mutex, std::recursive_mutex >
@@ -2816,23 +2815,31 @@ SK_Input_PreHookXInput (void)
 #endif
     }
 
-    if (SK_GetModuleHandleW (L"XInputUap.dll"))
+    HMODULE hModPinned;
+
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInputUap.dll",   &hModPinned))
       SK_Input_HookXInputUap ();
 
-    if (SK_GetModuleHandleW (L"XInput9_1_0.dll"))
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInput9_1_0.dll", &hModPinned))
       SK_Input_HookXInput9_1_0 ();
 
-    if (SK_GetModuleHandleW (L"XInput1_1.dll"))
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInput1_1.dll",   &hModPinned))
       SK_Input_HookXInput1_1 ();
 
-    if (SK_GetModuleHandleW (L"XInput1_2.dll"))
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInput1_2.dll",   &hModPinned))
       SK_Input_HookXInput1_2 ();
 
-    if (SK_GetModuleHandleW (L"XInput1_3.dll"))
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInput1_3.dll",   &hModPinned))
       SK_Input_HookXInput1_3 ();
 
-    if (SK_GetModuleHandleW (L"XInput1_4.dll"))
+    if (GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, L"XInput1_4.dll",   &hModPinned))
       SK_Input_HookXInput1_4 ();
+
+    if (! hModPinned)
+    {
+      SK_LoadLibraryW (L"XInput1_4.dll");
+            SK_Input_HookXInput1_4 ();
+    }
   }
 
   SK_RunOnce (SK_XInput_NotifyDeviceArrival ());

@@ -1068,6 +1068,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
                     compliant_path =
                          (wchar_t *)lpFileName;
   }
+
+  // Give Microsoft Store games a copy of XInput1_4 instead of XInputUap,
+  //   since it's impossible to install hooks on XInputUap...
+  if (StrStrIW (compliant_path, L"XInputUap.dll"))
+                compliant_path= L"XInput1_4.dll";
   
   bool bVulkanLayerDisabled = false;
 
@@ -2140,16 +2145,7 @@ void
 __stdcall
 SK_PreInitLoadLibrary (void)
 {
-  extern void SK_DbgHlp_Init (void);
-              SK_DbgHlp_Init ();
-
-  void SK_SymSetOpts (void);
-       SK_SymSetOpts (    );
-
-  void SK_HookEngine_HookGetProcAddress (void);
-       SK_HookEngine_HookGetProcAddress ();
-
-  SK_InitCompatBlacklist    ();
+  SK::Diagnostics::Debugger::Allow (true);
 
   LoadPackagedLibrary_Original = nullptr; // Windows 8 feature
 }
