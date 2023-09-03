@@ -1272,7 +1272,7 @@ SK_RenderBackend_V2::window_registry_s::setFocus (HWND hWnd)
 
   if (! IsWindow (device))
   {
-    SK_LOG0 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
+    SK_LOG1 ( (L"Treating focus HWND as device HWND because device HWND was invalid."),
                L"Window Mgr");
     setDevice (hWnd);
 
