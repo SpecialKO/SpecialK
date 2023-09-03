@@ -438,6 +438,23 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::BulletText   ("See \"Input Management | Enable / Disable Devices\" to Configure Background Behavior");
           ImGui::EndTooltip   ();
         }
+
+        ImGui::SameLine          ();
+        ImGui::VerticalSeparator ();
+        ImGui::SameLine          ();
+
+        ImGui::Checkbox ("Treat Foreground as Active", &config.window.treat_fg_as_active);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Game Considers the Foreground Window as Active");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Try this if \"Continue Rendering\" does not behave as expected");
+          ImGui::BulletText   ("Some games check the Foreground Window to determine if they are Active");
+          ImGui::BulletText   ("Normal games will track Keyboard Focus and Activation Events instead");
+          ImGui::EndTooltip   ();
+        }
       }
 
       ImGui::TreePop ();

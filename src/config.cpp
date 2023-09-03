@@ -923,6 +923,7 @@ struct {
   sk::ParameterBool*      disable_screensaver     = nullptr;
   sk::ParameterBool*      dont_hook_wndproc       = nullptr;
   sk::ParameterBool*      activate_at_start       = nullptr;
+  sk::ParameterBool*      treat_fg_as_active      = nullptr;
 } window;
 
 struct {
@@ -1454,6 +1455,8 @@ auto DeclKeybind =
     ConfigEntry (window.dont_hook_wndproc,               L"Disable WndProc / ClassProc hooks (wrap instead of hook)",  dll_ini,         L"Window.System",         L"DontHookWndProc"),
     ConfigEntry (window.activate_at_start,               L"Activate window after 15 frames (fixes games that think"
                                                          L" they are running in the background)",                      dll_ini,         L"Window.System",         L"ActivateAtStart"),
+    ConfigEntry (window.treat_fg_as_active,              L"The game treats the foreground window (rather than focus),"
+                                                         L" as the active application [for background render feature]",dll_ini,         L"Window.System",         L"TreatForegroundAsActive"),
 
     // Compatibility
     //////////////////////////////////////////////////////////////////////////
@@ -2508,6 +2511,11 @@ auto DeclKeybind =
       {
         config.compatibility.allow_dxdiagn            = false;
         config.compatibility.auto_large_address_patch = false;
+      } break;
+
+      case SK_GAME_ID::FalloutNewVegas:
+      {
+        config.window.treat_fg_as_active      = true;
       } break;
 
 #ifdef _M_AMD64
@@ -3840,6 +3848,7 @@ auto DeclKeybind =
   window.disable_screensaver->load (config.window.disable_screensaver);
   window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
   window.activate_at_start->load   (config.window.activate_at_start);
+  window.treat_fg_as_active->load  (config.window.treat_fg_as_active);
 
 
   // Oh boy, let the fun begin :)
@@ -5023,6 +5032,7 @@ SK_SaveConfig ( std::wstring name,
   window.disable_screensaver->store           (config.window.disable_screensaver);
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
   window.activate_at_start->store             (config.window.activate_at_start);
+  window.treat_fg_as_active->store            (config.window.treat_fg_as_active);
 
 #ifdef _VALIDATE_MONITOR_IDX
   if (config.display.monitor_handle != 0)
