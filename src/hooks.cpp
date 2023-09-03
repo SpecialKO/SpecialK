@@ -1515,7 +1515,7 @@ SK_ApplyQueuedHooks (void)
 
   if (status != MH_OK)
   {
-    SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!", 0 );
+    SK_LOG_MINHOOK ( status, L"Failed to Enable Deferred Hooks!" );
   }
 
   const int lvl =
@@ -1547,7 +1547,7 @@ SK_EnableHook (void *pTarget)
 
     else
     {
-      SK_LOG_MINHOOK ( status, L"Failed to Enable All Hooks!", 0 );
+      SK_LOG_MINHOOK ( status, L"Failed to Enable All Hooks!" );
     }
   }
 
@@ -1618,7 +1618,7 @@ SK_DisableHook (void *pTarget)
 
     else
     {
-      SK_LOG_MINHOOK ( status, L"Failed to Disable All Hooks!", 0 );
+      SK_LOG_MINHOOK ( status, L"Failed to Disable All Hooks!" );
     }
   }
 
@@ -1686,7 +1686,7 @@ SK_MinHook_UnInit (void)
 
   if (status != MH_OK)
   {
-    SK_LOG_MINHOOK ( status, L"Failed to Uninitialize MinHook Library!",0);
+    SK_LOG_MINHOOK ( status, L"Failed to Uninitialize MinHook Library!" );
   }
 
   return status;
