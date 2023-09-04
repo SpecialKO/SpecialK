@@ -1,4 +1,8 @@
-﻿23.9.4.1
+﻿23.9.4.2
+========
+ + More fixes for Honkai Star Rail's anti-cheat
+
+23.9.4.1
 ========
  + Fixed Honkai Star Rail's SetThreadDescription (...) calls crashing its launcher
  + Hooked GetGUIThreadInfo (...) to improve odds of background rendering working

@@ -401,6 +401,52 @@ SK_HookCriticalSections (void)
   SK_RunOnce (SK_ApplyQueuedHooks ());
 }
 
+HRESULT
+WINAPI
+SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
+{
+  SK_LOG_FIRST_CALL
+
+  // Only do this if we have a hook on RaiseException
+  extern RaiseException_pfn
+         RaiseException_Original;
+  if (   RaiseException_Original != nullptr)
+  {
+    SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+
+    if (    pTLS != nullptr     &&
+         (! pTLS->debug.naming) &&
+         SK_ValidatePointer ((void *)lpThreadDescription, true)
+       )
+    {
+      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
+      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+
+      THREADNAME_INFO info = {       };
+      info.dwType          =      4096;
+      info.szName          =    szDesc;
+      info.dwThreadID      = (DWORD)GetThreadId (hThread);
+      info.dwFlags         =       0x0;
+
+      constexpr DWORD argc = sizeof (info) /
+                             sizeof (ULONG_PTR);
+
+      pTLS->debug.naming = true;
+
+      RaiseException ( MAGIC_THREAD_EXCEPTION,
+                         SK_EXCEPTION_CONTINUABLE,
+                           argc,
+          (const ULONG_PTR *)&info );
+
+      pTLS->debug.naming = false;
+    }
+  }
+
+  return
+    SetThreadDescription_Original (hThread, lpThreadDescription);
+}
+
 static volatile LONG _InitDebugExtrasOnce = FALSE;
 
 DWORD
@@ -578,6 +624,19 @@ SK_Thread_InitDebugExtras (void)
     { // Extremely helpful in Chrono Cross, but potentially breaking in
       //   other games...
       SK_HookCriticalSections ();
+    }
+
+    // Only available in Windows 10
+    //
+    if (SetThreadDescription_Original == nullptr)
+    {
+      if (SK_GetProcAddress (L"kernel32", "SetThreadDescription") != nullptr)
+      {
+        SK_CreateDLLHook2 (L"kernel32", "SetThreadDescription",
+                                         SetThreadDescription_Detour,
+                static_cast_p2p <void> (&SetThreadDescription_Original)
+        );
+      }
     }
 
     SK_CreateDLLHook2 ( L"kernel32", "SetThreadPriority",

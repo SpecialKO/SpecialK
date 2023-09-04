@@ -1272,7 +1272,7 @@ SK_Inject_SpawnUnloadListener (void)
           // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
            SetThreadDescription_pfn
           _SetThreadDescriptionWin10 =
-          (SetThreadDescription_pfn)GetProcAddress (hModKernel32, "SetThreadDescription");
+          (SetThreadDescription_pfn)SK_GetProcAddress (hModKernel32, "SetThreadDescription");
 
           if (_SetThreadDescriptionWin10 != nullptr) {
               _SetThreadDescriptionWin10 (

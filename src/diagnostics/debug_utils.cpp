@@ -3394,6 +3394,24 @@ RaiseException_Detour (
   {
     switch (dwExceptionCode)
     {
+      case 0x00000087A:
+      case 0x00000087B:
+      case 0x00000087C:
+      case 0x00000087D:
+        if (SK_IsDebuggerPresent ()) // DirectX Debug Layer
+          RaiseException_Original (dwExceptionCode, dwExceptionFlags, nNumberOfArguments, lpArguments);
+
+        else
+        {
+          //SK_ReleaseAssert (ExceptionRecord->NumberParameters >= 3);
+
+          SK_LOG0 ( ( L"Debug Layer Text: %hs", (char *)lpArguments [2] ),
+                  L" D3DDebug " );
+
+          skip = true;
+        }
+        break;
+
       case DBG_PRINTEXCEPTION_C:
       case DBG_PRINTEXCEPTION_WIDE_C:
       {
@@ -3438,132 +3456,143 @@ RaiseException_Detour (
 
   }
 
-  SK_TLS* pTlsThis =
-    SK_TLS_Bottom ();
 
-  if ( SK_Exception_HandleThreadName (
-         dwExceptionCode, dwExceptionFlags,
-         nNumberOfArguments,
-           lpArguments )
-     )
+
+  if (dwExceptionCode == 0x1)
   {
-    THREADNAME_INFO *pTni =
-      ((THREADNAME_INFO *)&(lpArguments [0]));
-
-    THREADNAME_INFO tni = {               };
-    tni.dwThreadID      = pTni->dwThreadID;
-    tni.dwFlags         = pTni->dwFlags;
-    tni.dwType          = pTni->dwType;
-    tni.szName          = pTni->szName;
-
-    SK_Thread_RaiseNameException (&tni);
-
     skip = true;
   }
 
-  if (pTlsThis != nullptr)
+  else
   {
-    InterlockedIncrement (&pTlsThis->debug.exceptions);
-  }
+    SK_TLS* pTlsThis =
+      SK_TLS_Bottom ();
 
 
-  if (! skip)
-  {
-    if (pTlsThis == nullptr || (! pTlsThis->debug.silent_exceptions))
+    if ( SK_Exception_HandleThreadName (
+           dwExceptionCode, dwExceptionFlags,
+           nNumberOfArguments,
+             lpArguments )
+       )
     {
-      const auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) ->
-      const char*
+      THREADNAME_INFO *pTni =
+        ((THREADNAME_INFO *)&(lpArguments [0]));
+
+      THREADNAME_INFO tni = {               };
+      tni.dwThreadID      = pTni->dwThreadID;
+      tni.dwFlags         = pTni->dwFlags;
+      tni.dwType          = pTni->dwType;
+      tni.szName          = pTni->szName;
+
+      SK_Thread_RaiseNameException (&tni);
+
+      skip = true;
+    }
+
+    if (pTlsThis != nullptr)
+    {
+      InterlockedIncrement (&pTlsThis->debug.exceptions);
+    }
+
+
+    if (! skip)
+    {
+      if (pTlsThis == nullptr || (! pTlsThis->debug.silent_exceptions))
       {
-        if (dwFlags & EXCEPTION_NONCONTINUABLE)
-          return "Non-Continuable";
-        if (dwFlags & EXCEPTION_UNWINDING)
-          return "Unwind In Progress";
-        if (dwFlags & EXCEPTION_EXIT_UNWIND)
-          return "Exit Unwind In Progress";
-        if (dwFlags & EXCEPTION_STACK_INVALID)
-          return "Misaligned or Overflowed Stack";
-        if (dwFlags & EXCEPTION_NESTED_CALL)
-          return "Nested Exception Handler";
-        if (dwFlags & EXCEPTION_TARGET_UNWIND)
-          return "Target Unwind In Progress";
-        if (dwFlags & EXCEPTION_COLLIDED_UNWIND)
-          return "Collided Exception Handler";
-        return "Unknown";
-      };
-
-      wchar_t wszCallerName [MAX_PATH + 2] = { };
-
-      SK_SEH_CompatibleCallerName (
-        _ReturnAddress (), wszCallerName
-      );
-
-      bool print = true;
-
-      // NVIDIA, just STFU please :)
-      if (StrStrIW (wszCallerName, L"MessageBus.dll"))
-        print = false;
-
-      if (print)
-      {
-        ULONG num_times_reported =
-          InterlockedIncrement (
-            &SK_SEH_ReportedCallSites.get ()[_ReturnAddress ()].count
-          );
-
-        if (config.system.log_level < 1 &&
-              num_times_reported >= SK_SEH_CallRecord::LogSilenceThreshold)
+        const auto SK_ExceptionFlagsToStr = [](DWORD dwFlags) ->
+        const char*
         {
+          if (dwFlags & EXCEPTION_NONCONTINUABLE)
+            return "Non-Continuable";
+          if (dwFlags & EXCEPTION_UNWINDING)
+            return "Unwind In Progress";
+          if (dwFlags & EXCEPTION_EXIT_UNWIND)
+            return "Exit Unwind In Progress";
+          if (dwFlags & EXCEPTION_STACK_INVALID)
+            return "Misaligned or Overflowed Stack";
+          if (dwFlags & EXCEPTION_NESTED_CALL)
+            return "Nested Exception Handler";
+          if (dwFlags & EXCEPTION_TARGET_UNWIND)
+            return "Target Unwind In Progress";
+          if (dwFlags & EXCEPTION_COLLIDED_UNWIND)
+            return "Collided Exception Handler";
+          return "Unknown";
+        };
+
+        wchar_t wszCallerName [MAX_PATH + 2] = { };
+
+        SK_SEH_CompatibleCallerName (
+          _ReturnAddress (), wszCallerName
+        );
+
+        bool print = true;
+
+        // NVIDIA, just STFU please :)
+        if (StrStrIW (wszCallerName, L"MessageBus.dll"))
           print = false;
 
-          if (num_times_reported == SK_SEH_CallRecord::LogSilenceThreshold)
-          {
-            SK_LOG0 (
-              ( L"Exception raised from %ws [%p] multiple times; exceptions"
-                L" are being silenced because LogLevel=0", wszCallerName,
-                                                     _ReturnAddress () ),
-                L"SEH-Except"
+        if (print)
+        {
+          ULONG num_times_reported =
+            InterlockedIncrement (
+              &SK_SEH_ReportedCallSites.get ()[_ReturnAddress ()].count
             );
+
+          if (config.system.log_level < 1 &&
+                num_times_reported >= SK_SEH_CallRecord::LogSilenceThreshold)
+          {
+            print = false;
+
+            if (num_times_reported == SK_SEH_CallRecord::LogSilenceThreshold)
+            {
+              SK_LOG0 (
+                ( L"Exception raised from %ws [%p] multiple times; exceptions"
+                  L" are being silenced because LogLevel=0", wszCallerName,
+                                                       _ReturnAddress () ),
+                  L"SEH-Except"
+              );
+            }
           }
         }
-      }
 
-      if (print)
-      {
-        SK_StripUserNameFromPathW (wszCallerName);
+        if (print)
+        {
+          SK_StripUserNameFromPathW (wszCallerName);
 
-        SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   "
-                    L"[ Calling Module:  %s ]", dwExceptionCode,
-                        SK_ExceptionFlagsToStr (dwExceptionFlags),
-                          nNumberOfArguments,      wszCallerName),
-                    L"SEH-Except"
-        );
+          SK_LOG0 ( ( L"Exception Code: %x  - Flags: (%hs) -  Arg Count: %u   "
+                      L"[ Calling Module:  %s ]", dwExceptionCode,
+                          SK_ExceptionFlagsToStr (dwExceptionFlags),
+                            nNumberOfArguments,      wszCallerName),
+                      L"SEH-Except"
+          );
 
-        char szSymbol [512] = { };
+          char szSymbol [512] = { };
 
-        SK_GetSymbolNameFromModuleAddr (
-                             SK_GetCallingDLL (),
-                    (uintptr_t)_ReturnAddress (),
-                                        szSymbol, 511 );
+          SK_GetSymbolNameFromModuleAddr (
+                               SK_GetCallingDLL (),
+                      (uintptr_t)_ReturnAddress (),
+                                          szSymbol, 511 );
 
-        SK_LOG0 ( ( L"  >> Best-Guess For Source of Exception:  %hs",
-                    szSymbol ),
-                    L"SEH-Except"
-        );
+          SK_LOG0 ( ( L"  >> Best-Guess For Source of Exception:  %hs",
+                      szSymbol ),
+                      L"SEH-Except"
+          );
+        }
       }
     }
   }
 
   if (! skip)
   {
-    //// TODO: Add config setting for interactive debug
-    //if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
-    //{
-    //  __debugbreak ();
-    //}
-    //
-    //SK::Diagnostics::CrashHandler::Reinstall ();
+    // TODO: Add config setting for interactive debug
+    if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
+    {
+      __debugbreak ();
+    }
 
-    if (dwExceptionCode != EXCEPTION_BREAKPOINT)// || SK_IsDebuggerPresent ())
+    SK::Diagnostics::CrashHandler::Reinstall ();
+
+    if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
       SK_RaiseException (
         dwExceptionCode,    dwExceptionFlags,
