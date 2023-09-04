@@ -145,8 +145,6 @@ void __stdcall
 
 #else
 
-void SK_BGS_InitPlugin(void);
-
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
 
@@ -168,7 +166,7 @@ void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
                           uint32_t             current_ps );
 #endif
 
-
+void SK_BGS_InitPlugin(void);
 
 enum class SK_PlugIn_Type
 {
