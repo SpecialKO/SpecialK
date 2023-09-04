@@ -1,4 +1,8 @@
-﻿23.9.3.3
+﻿23.9.3.4
+========
+ + Reverted a change in 23.9.3.2 that broke Path of Exile
+
+23.9.3.3
 ========
  + Fixed D3D9 games not tracking focus window correctly after 23.9.3
  + Added config setting to fake foreground status instead of window activation
@@ -7,7 +11,6 @@
 
     [Window.System]
     TreatForegroundAsActive={true|false}, Default: False => (Input Focus == Active)
-
 
 23.9.3.2
 ========
