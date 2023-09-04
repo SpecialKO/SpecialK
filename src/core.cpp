@@ -3302,6 +3302,9 @@ extern bool
   SK_Window_OnFocusChange ( HWND hWndNewTarget,
                             HWND hWndOld );
 
+extern BOOL WINAPI
+SK_GetGUIThreadInfo (DWORD, PGUITHREADINFO);
+
 void
 SK_BackgroundRender_EndFrame (void)
 {
@@ -3390,7 +3393,7 @@ SK_BackgroundRender_EndFrame (void)
       {
         GUITHREADINFO gti        = {                    };
                       gti.cbSize = sizeof (GUITHREADINFO);
-        if ( GetGUIThreadInfo (       dwForegroundTid,
+        if ( SK_GetGUIThreadInfo (    dwForegroundTid,
                                              &gti ) )
         {
           static HWND        hWndLastFocus  = 0;

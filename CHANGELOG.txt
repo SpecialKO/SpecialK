@@ -1,4 +1,9 @@
-﻿23.9.4
+﻿23.9.4.1
+========
+ + Fixed Honkai Star Rail's SetThreadDescription (...) calls crashing its launcher
+ + Hooked GetGUIThreadInfo (...) to improve odds of background rendering working
+
+23.9.4
 ======
  + Disabled hook on SetLastError (...) unless Special K was built in debug mode
 
