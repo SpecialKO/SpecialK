@@ -646,11 +646,6 @@ SK_Thread_InitDebugExtras (void)
              static_cast_p2p <void> (&SetThreadIdealProcessor_Original) );
 
     InterlockedIncrementRelease (&_InitDebugExtrasOnce);
-
-//    if (ReadAcquire (&__SK_Init) > 0)
-    {
-      SK_ApplyQueuedHooks ();
-    }
   }
 
   else

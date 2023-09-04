@@ -1652,13 +1652,6 @@ SK_AntiAntiDebug_GetNormalWindowTitle (void)
     __normal_window_title.c_str ();
 }
 
-typedef VOID (NTAPI *RtlInitUnicodeString_pfn)
-  ( PUNICODE_STRING DestinationString,
-    PCWSTR          SourceString );
-
-static RtlInitUnicodeString_pfn
-       SK_InitUnicodeString = nullptr;
-
 static bool bRealDebug = false;
 
 LPVOID SK_Debug_GetImageBaseAddr (void)
@@ -1748,7 +1741,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
       pPeb->ProcessParameters->DebugFlags  =  0x00;
 
       SK_InitUnicodeString (
-        (PUNICODE_STRING)
+        (PUNICODE_STRING_SK)
         &pPeb->ProcessParameters->WindowTitle,
                               wszFakeWinTitle );
     }
@@ -1780,7 +1773,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
               pRealPeb->BeingDebugged                  =  TRUE;
 
               SK_InitUnicodeString (
-                (PUNICODE_STRING)
+                (PUNICODE_STRING_SK)
                 &pRealPeb->ProcessParameters->WindowTitle,
                                            wszWindowTitle );
             }
@@ -1807,7 +1800,7 @@ SK_AntiAntiDebug_CleanupPEB (SK_PEB *pPeb)
         pRealPeb->ProcessParameters->DebugFlags  =    DebugFlags;
 
         SK_InitUnicodeString (
-            (PUNICODE_STRING)
+            (PUNICODE_STRING_SK)
             &pRealPeb->ProcessParameters->WindowTitle,
                                        wszWindowTitle );
 
@@ -3627,20 +3620,23 @@ CloseHandle_Detour ( HANDLE hObject )
 void
 SK_HookEngine_HookGetProcAddress (void)
 {
+#ifdef _EXTENDED_DEBUG
   // Our GetProcAddress hook relies on SetLastError, which we also hook.
-  SK_RunOnce (
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "SetLastError",
-                               SetLastError_Detour,
-      static_cast_p2p <void> (&SetLastError_Original) )
-  );
-
-  SK_RunOnce (
-    SK_CreateDLLHook2 (      L"kernel32",
-                              "GetProcAddress",
-                               GetProcAddress_Detour,
-      static_cast_p2p <void> (&GetProcAddress_Original) )
-  );
+  //
+  //   Only do this when extended debug is turned on, it has a tendency
+  //     to break things...
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "SetLastError",
+                             SetLastError_Detour,
+    static_cast_p2p <void> (&SetLastError_Original) );
+#endif
+  
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "GetProcAddress",
+                             GetProcAddress_Detour,
+    static_cast_p2p <void> (&GetProcAddress_Original) );
+  
+  SK_ApplyQueuedHooks ();
 }
 
 bool
@@ -3652,22 +3648,13 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     {
       SK_RunOnce (
       {
-        SK_InitUnicodeString =
-       (RtlInitUnicodeString_pfn)SK_GetProcAddress ( L"NtDll",
-       "RtlInitUnicodeString"                      );
-
-        SK_MinHook_Init ();
-
         extern void SK_DbgHlp_Init (void);
                     SK_DbgHlp_Init ();
 
         void SK_SymSetOpts (void);
              SK_SymSetOpts (    );
 
-        void SK_HookEngine_HookGetProcAddress (void);
-             SK_HookEngine_HookGetProcAddress ();
-
-        SK_InitCompatBlacklist    ();
+        SK_MinHook_Init ();
       });
     }
 
@@ -3688,6 +3675,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
         static_cast_p2p <void> (&TerminateProcess_Original) );
 
         SK_Thread_InitDebugExtras ();
+
+        SK_InitCompatBlacklist ();
+
+        void SK_HookEngine_HookGetProcAddress (void);
+             SK_HookEngine_HookGetProcAddress ();
       });
     }
   } finish_init_on_return;

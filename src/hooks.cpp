@@ -33,64 +33,65 @@
 #define  _L(w) _L2(w)
 
 
-typedef void (WINAPI *RtlInitUnicodeString_pfn)
-( PUNICODE_STRING DestinationString,
-  PCWSTR          SourceString                );
+void
+WINAPI
+SK_InitUnicodeString ( PUNICODE_STRING_SK DestinationString,
+                       PCWSTR             SourceString )
+{
+  typedef void (WINAPI *RtlInitUnicodeString_pfn)
+  ( PUNICODE_STRING_SK DestinationString,
+    PCWSTR             SourceString                );
 
-typedef NTSTATUS (WINAPI *LdrGetDllHandle_pfn)
-(       ULONG,           ULONG,
-  const UNICODE_STRING*, HMODULE*            );
+  static RtlInitUnicodeString_pfn
+        _RtlInitUnicodeString =
+        (RtlInitUnicodeString_pfn)SK_GetProcAddress ( L"NtDll",
+        "RtlInitUnicodeString"                   );
 
-RtlInitUnicodeString_pfn _RtlInitUnicodeString = nullptr;
-LdrGetDllHandle_pfn       LdrGetDllHandle      = nullptr;
+  if (_RtlInitUnicodeString != nullptr)
+      _RtlInitUnicodeString (DestinationString, SourceString);
+}
 
+void
+WINAPI
+SK_FreeUnicodeString ( PUNICODE_STRING_SK UnicodeString )
+{
+  typedef void (WINAPI *RtlFreeUnicodeString_pfn)
+  ( PUNICODE_STRING_SK UnicodeString );
+
+  static RtlFreeUnicodeString_pfn
+        _RtlFreeUnicodeString =
+        (RtlFreeUnicodeString_pfn)SK_GetProcAddress ( L"NtDll",
+        "RtlFreeUnicodeString"                   );
+
+  if (_RtlFreeUnicodeString != nullptr)
+      _RtlFreeUnicodeString (UnicodeString);
+}
+
+NTSTATUS
+NTAPI
+LdrGetDllHandle ( _In_opt_  PWSTR              DllPath,
+                  _In_opt_  PULONG             DllCharacteristics,
+                  _In_      PUNICODE_STRING_SK DllName,
+                  _Out_     HMODULE           *DllHandle )
+{
+  static LdrGetDllHandle_pfn
+        _LdrGetDllHandle =
+        (LdrGetDllHandle_pfn)SK_GetProcAddress ( L"NtDll",
+        "LdrGetDllHandle"                   );
+
+  if (     _LdrGetDllHandle != nullptr)
+    return _LdrGetDllHandle ( DllPath, DllCharacteristics,
+                              DllName, DllHandle );
+
+  return
+    E_NOTIMPL;
+}
 
 HMODULE
 SK_GetModuleHandleW (PCWSTR lpModuleName)
 {
-  HMODULE hModRet = nullptr;
-
-  if (lpModuleName == nullptr)
-    return GetModuleHandleW (nullptr);
-
-  static HMODULE hModNtDll =
-    GetModuleHandleW (L"NtDll");
-
-  if (! hModNtDll)
-    return nullptr;
-
-  HMODULE hMod = nullptr;
-
-  if (_RtlInitUnicodeString == nullptr)
-      _RtlInitUnicodeString =
-      (RtlInitUnicodeString_pfn) SK_GetProcAddress ( hModNtDll,
-                                                       "RtlInitUnicodeString" );
-
-  if (LdrGetDllHandle == nullptr)
-      LdrGetDllHandle =
-     (LdrGetDllHandle_pfn) SK_GetProcAddress ( hModNtDll,
-                                                 "LdrGetDllHandle" );
-
-   UNICODE_STRING         ucsModuleName          = { };
-  _RtlInitUnicodeString (&ucsModuleName, lpModuleName);
-
-  {
-    if ( NT_SUCCESS ( LdrGetDllHandle (
-                        0, 0,
-                          &ucsModuleName,
-                            &hMod )
-                    )
-       )
-    {
-      if (hMod != nullptr)
-        hModRet = hMod;
-    }
-  }
-
-  if (hModRet == nullptr)
-      hModRet = GetModuleHandleW (lpModuleName);
-
-  return hModRet;
+  return
+    GetModuleHandleW (lpModuleName);
 }
 
 

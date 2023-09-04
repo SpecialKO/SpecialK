@@ -1,4 +1,8 @@
-﻿23.9.3.4
+﻿23.9.4
+======
+ + Disabled hook on SetLastError (...) unless Special K was built in debug mode
+
+23.9.3.4
 ========
  + Reverted a change in 23.9.3.2 that broke Path of Exile
 

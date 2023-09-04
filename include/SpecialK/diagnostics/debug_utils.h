@@ -58,6 +58,21 @@ typedef _UNICODE_STRING_SK* PUNICODE_STRING_SK;
 #endif
 #pragma pack (pop)
 
+void
+WINAPI
+SK_InitUnicodeString ( PUNICODE_STRING_SK DestinationString,
+                       PCWSTR             SourceString );
+
+void
+WINAPI
+SK_FreeUnicodeString ( PUNICODE_STRING_SK UnicodeString );
+
+typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(
+  IN  PWSTR              DllPath OPTIONAL,
+  IN  PULONG             DllCharacteristics OPTIONAL,
+  IN  PUNICODE_STRING_SK DllName,
+  OUT HMODULE           *DllHandle);
+
 typedef struct _PEB_LDR_DATA_SK {
   ULONG      Length;
   BOOLEAN    Initialized;

@@ -38,13 +38,6 @@ struct constexpr_module_s
 
 #define SK_MakeUnicode(str) RTL_CONSTANT_STRING(str)
 
-typedef NTSTATUS (NTAPI* LdrGetDllHandle_pfn)(
-  _In_opt_    PWORD           pwPath,
-  _In_opt_    PVOID           Unused,
-  _In_  const UNICODE_STRING *ModuleFileName,
-  _Out_       PHANDLE         pHModule
-);
-
 typedef NTSTATUS (NTAPI *LdrGetDllHandleByName_pfn)(
   const PUNICODE_STRING  BaseDllName,
   const PUNICODE_STRING  FullDllName,

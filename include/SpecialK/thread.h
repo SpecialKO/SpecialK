@@ -530,6 +530,8 @@ typedef struct _UNICODE_STRING_SK {
   USHORT           MaximumLength;
   PWSTR            Buffer;
 } UNICODE_STRING_SK;
+
+typedef _UNICODE_STRING_SK* PUNICODE_STRING_SK;
 #endif
 
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;

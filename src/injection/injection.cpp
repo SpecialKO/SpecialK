@@ -1027,46 +1027,33 @@ SK_Etw_UnregisterSession (const char* szPrefix)
     unregistered_count != 0;
 }
 
-typedef VOID (NTAPI *RtlInitUnicodeString_pfn)
-      ( PUNICODE_STRING DestinationString,
-        PCWSTR          SourceString );
-
 void
 SK_Inject_RenameProcess (void)
 {
-  static RtlInitUnicodeString_pfn
-         SK_InitUnicodeString =
-        (RtlInitUnicodeString_pfn)SK_GetProcAddress (
-                           L"NtDll",
-                            "RtlInitUnicodeString"  );
-
   auto pPeb =
     (SK_PPEB)NtCurrentTeb ()->ProcessEnvironmentBlock;
 
   //RtlAcquirePebLock ();
   //EnterCriticalSection (pPeb->FastPebLock);
 
-  if (SK_InitUnicodeString != nullptr)
-  {
-    //SK_InitUnicodeString (
-    //  (PUNICODE_STRING)&pPeb->ProcessParameters->ImagePathName,
-    //  L"Special K Backend Service Host"
-    //);
+  //SK_InitUnicodeString (
+  //  (PUNICODE_STRING_SK)&pPeb->ProcessParameters->ImagePathName,
+  //  L"Special K Backend Service Host"
+  //);
 
-    SK_InitUnicodeString (
-      (PUNICODE_STRING)&pPeb->ProcessParameters->CommandLine,
-      SK_RunLHIfBitness ( 32, L"32-bit Special K Backend Service Host",
-                              L"64-bit Special K Backend Service Host" )
-    );
+  SK_InitUnicodeString (
+    (PUNICODE_STRING_SK)&pPeb->ProcessParameters->CommandLine,
+    SK_RunLHIfBitness ( 32, L"32-bit Special K Backend Service Host",
+                            L"64-bit Special K Backend Service Host" )
+  );
 
-    pPeb->ProcessParameters->DllPath.Length       = pPeb->ProcessParameters->CommandLine.Length;
-    pPeb->ProcessParameters->ImagePathName.Length = pPeb->ProcessParameters->CommandLine.Length;
-    pPeb->ProcessParameters->WindowTitle.Length   = pPeb->ProcessParameters->CommandLine.Length;
+  pPeb->ProcessParameters->DllPath.Length       = pPeb->ProcessParameters->CommandLine.Length;
+  pPeb->ProcessParameters->ImagePathName.Length = pPeb->ProcessParameters->CommandLine.Length;
+  pPeb->ProcessParameters->WindowTitle.Length   = pPeb->ProcessParameters->CommandLine.Length;
 
-    pPeb->ProcessParameters->DllPath.Buffer       = pPeb->ProcessParameters->CommandLine.Buffer;
-    pPeb->ProcessParameters->ImagePathName.Buffer = pPeb->ProcessParameters->CommandLine.Buffer;
-    pPeb->ProcessParameters->WindowTitle.Buffer   = pPeb->ProcessParameters->CommandLine.Buffer;
-  }
+  pPeb->ProcessParameters->DllPath.Buffer       = pPeb->ProcessParameters->CommandLine.Buffer;
+  pPeb->ProcessParameters->ImagePathName.Buffer = pPeb->ProcessParameters->CommandLine.Buffer;
+  pPeb->ProcessParameters->WindowTitle.Buffer   = pPeb->ProcessParameters->CommandLine.Buffer;
 
   //LeaveCriticalSection (pPeb->FastPebLock);
   //RtlReleasePebLock ();
