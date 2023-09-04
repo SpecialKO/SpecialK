@@ -91,7 +91,7 @@ public:
     return (*this);
   }
 
-	operator HANDLE (void) const noexcept
+  operator HANDLE (void) const noexcept
   {
     return m_h;
   };

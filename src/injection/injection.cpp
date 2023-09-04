@@ -46,8 +46,6 @@ HMODULE hModHookInstance = nullptr;
 //
 SK_InjectionRecord_s __SK_InjectionHistory [MAX_INJECTED_PROC_HISTORY] = { };
 
-static auto constexpr x = sizeof (SK_InjectionRecord_s);
-
 #pragma data_seg (".SK_Hooks")
 extern "C"
 {
@@ -1237,6 +1235,8 @@ SK_FreeLibraryAndExitThread (HMODULE hModToFree, DWORD dwExitCode)
     if (IsDebuggerPresent ())
       __debugbreak ();
   }
+
+  ExitThread (dwExitCode);
 }
 
          HANDLE   g_hPacifierThread = SK_INVALID_HANDLE;
@@ -1334,8 +1334,8 @@ SK_Inject_SpawnUnloadListener (void)
           InterlockedDecrement  (&injected_procs);
         }
 
-        auto this_module =
-          g_hModule_CBT;
+        HMODULE this_module = (HMODULE)
+          ReadPointerAcquire ((void **)&g_hModule_CBT);
 
         InterlockedExchangePointer ((void **)&g_hModule_CBT, nullptr);
 
@@ -2295,7 +2295,7 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
         {
           SK_AutoHandle hProc (
             OpenProcess ( PROCESS_QUERY_INFORMATION, FALSE,
-                            ReadAcquire (&pid) )
+                          pid )
                         );
 
           if (hProc.isValid ())

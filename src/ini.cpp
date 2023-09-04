@@ -619,33 +619,36 @@ iSK_INI::parse (void)
       wchar_t* finish = start;
       bool     eof    = false;
 
-      for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
+      if (start != nullptr)
       {
-        if (j == pEnd)
+        for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
         {
-          finish = j;
-          eof    = true;
-          break;
+          if (j == pEnd)
+          {
+            finish = j;
+            eof    = true;
+            break;
+          }
+
+          if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
+                      *(wszPrev = CharPrevW (start, j)) == L'\n' )
+          {
+            finish = wszPrev;
+            break;
+          }
         }
 
-        if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
-                    *(wszPrev = CharPrevW (start, j)) == L'\n' )
-        {
-          finish = wszPrev;
-          break;
-        }
+        iSK_INISection
+                section ( sec_name );
+        Process_Section ( section,
+                            start, finish,
+                              &pTLS );
+
+        ordered_sections.emplace_back (
+               &sections.emplace      (section.name,
+                                       section).first->second
+                                      );
       }
-
-      iSK_INISection
-              section ( sec_name );
-      Process_Section ( section,
-                          start, finish,
-                            &pTLS );
-
-      ordered_sections.emplace_back (
-             &sections.emplace      (section.name,
-                                     section).first->second
-                                    );
 
       if (eof)
         break;

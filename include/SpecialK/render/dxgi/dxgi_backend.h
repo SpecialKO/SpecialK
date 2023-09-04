@@ -87,10 +87,10 @@
   {                                                                          \
     wchar_t* pwszBuffer        = SK_TLS_Bottom ()->scratch_memory->log.      \
                                   formatted_output.alloc (4096, true);       \
-    wchar_t*  wszPreFormatted  =  pwszBuffer;                                \
-    wchar_t*  wszPostFormatted = &pwszBuffer [1024];                         \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
+      wchar_t*  wszPreFormatted  =  pwszBuffer;                              \
+      wchar_t*  wszPostFormatted = &pwszBuffer [1024];                       \
       swprintf ( wszPreFormatted,  L"%s::%s (", _Interface, _Name );         \
       swprintf (wszPostFormatted, _Format
 
@@ -99,10 +99,10 @@
   {                                                                          \
     wchar_t* pwszBuffer        = SK_TLS_Bottom ()->scratch_memory->log.      \
                                   formatted_output.alloc (4096, true);       \
-    wchar_t*  wszPreFormatted  =  pwszBuffer;                                \
-    wchar_t*  wszPostFormatted = &pwszBuffer [1024];                         \
     if (pwszBuffer != nullptr)                                               \
     {                                                                        \
+      wchar_t*  wszPreFormatted  =  pwszBuffer;                              \
+      wchar_t*  wszPostFormatted = &pwszBuffer [1024];                       \
       swprintf (wszPreFormatted,  L"%s (", _Name);                           \
       swprintf (wszPostFormatted, _Format
 

@@ -1164,8 +1164,9 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
         const wchar_t* wszNext =
           CharNextW (fd.cFileName);
 
-        if ( (*wszNext == L'.'  ) ||
-             (*wszNext == L'\0' )    )
+        if (    wszNext != nullptr &&
+             ((*wszNext == L'.'  ) ||
+              (*wszNext == L'\0' ))   )
         {
         //dll_log.Log (L"%ws\\%ws is a special directory", wszDir, fd.cFileName);
           continue;
@@ -3949,6 +3950,9 @@ RunDLL_ElevateMe ( HWND  hwnd,        HINSTANCE hInst,
                    LPSTR lpszCmdLine, int       nCmdShow )
 {
   UNREFERENCED_PARAMETER (hInst);
+
+  if (lpszCmdLine == nullptr)
+    return;
 
   hwnd     = HWND_DESKTOP;
   nCmdShow = SW_SHOWNORMAL;
