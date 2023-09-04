@@ -132,9 +132,16 @@ SK_BGS_InitPlugin(void) {
 
     // Forces D3DPOOL_DEFAULT pool in order to allow texture debugging and caching
     if (config.textures.d3d9_mod) {
-        BGS_CreateCube      = reinterpret_cast<D3DXCreateCubeTextureFromFileInMemoryEx_pfn>(SK_GetProcAddress(L"D3DX9_43.dll", "D3DXCreateCubeTextureFromFileInMemoryEx"));
-        BGS_CreateTexture   = reinterpret_cast<D3DXCreateTextureFromFileInMemoryEx_pfn>(SK_GetProcAddress(L"D3DX9_43.dll", "D3DXCreateTextureFromFileInMemoryEx"));
-        BGS_CreateVolume    = reinterpret_cast<D3DXCreateVolumeTextureFromFileInMemoryEx_pfn>(SK_GetProcAddress(L"D3DX9_43.dll", "D3DXCreateVolumeTextureFromFileInMemoryEx"));
+
+        HMODULE hMod = SK_GetModuleHandle(L"D3DX9_43.DLL");
+        if (!hMod)
+            hMod = LoadLibraryEx(L"D3DX9_43.DLL", NULL, 0);
+
+        if (hMod != nullptr) {
+            BGS_CreateCube = reinterpret_cast<D3DXCreateCubeTextureFromFileInMemoryEx_pfn>(GetProcAddress(hMod, "D3DXCreateCubeTextureFromFileInMemoryEx"));
+            BGS_CreateTexture = reinterpret_cast<D3DXCreateTextureFromFileInMemoryEx_pfn>(GetProcAddress(hMod, "D3DXCreateTextureFromFileInMemoryEx"));
+            BGS_CreateVolume = reinterpret_cast<D3DXCreateVolumeTextureFromFileInMemoryEx_pfn>(GetProcAddress(hMod, "D3DXCreateVolumeTextureFromFileInMemoryEx"));
+        }
 
         if (BGS_CreateCube && BGS_CreateTexture && BGS_CreateVolume) {
             uintptr_t baseTexture = 0;

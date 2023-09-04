@@ -2916,7 +2916,11 @@ SK::D3D9::TextureManager::Hook (void)
   //                     &D3D9SetDepthStencilSurface);
   //MH_QueueEnableHook (  D3D9SetDepthStencilSurface_Detour);
 
-  if (GetModuleHandle (      L"D3DX9_43.DLL") != nullptr )
+  HMODULE hMod = SK_GetModuleHandle(L"D3DX9_43.DLL");
+  if (!hMod)
+      hMod = LoadLibraryEx(L"D3DX9_43.DLL", NULL, 0);
+
+  if (hMod != nullptr )
   { SK_CreateDLLHook2 (      L"D3DX9_43.DLL",
                               "D3DXCreateTextureFromFileInMemoryEx",
                                D3DXCreateTextureFromFileInMemoryEx_Detour,
