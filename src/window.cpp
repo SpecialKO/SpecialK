@@ -4503,6 +4503,18 @@ GetFocus_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
+  if (config.window.background_render)
+  {
+    DWORD dwPid = 0x0;
+    DWORD dwTid =
+      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+
+    if (GetCurrentThreadId () == dwTid)
+    {
+      return game_window.hWnd;
+    }
+  }
+
   ///// Overriding this is not a great idea,
   /////   it will enable input to slip through during Alt-Tab.
   ///if (config.window.background_render)
@@ -4527,6 +4539,51 @@ GetFocus_Detour (void)
 
   return
     SK_GetFocus ();
+}
+
+using GetGUIThreadInfo_pfn = BOOL (WINAPI *)(DWORD,PGUITHREADINFO);
+      GetGUIThreadInfo_pfn
+      GetGUIThreadInfo_Original = nullptr;
+
+BOOL
+WINAPI
+SK_GetGUIThreadInfo ( _In_    DWORD          idThread,
+                      _Inout_ PGUITHREADINFO pgui )
+{
+  return
+    GetGUIThreadInfo_Original (idThread, pgui);
+}
+
+BOOL
+WINAPI
+GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
+                          _Inout_ PGUITHREADINFO pgui )
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.window.background_render)
+  {
+    DWORD dwPid = 0x0;
+    DWORD dwTid =
+      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+
+    if (idThread == dwTid)
+    {
+      BOOL bRet =
+        SK_GetGUIThreadInfo (idThread, pgui);
+
+      if (bRet)
+      {
+        pgui->hwndActive = game_window.hWnd;
+        pgui->hwndFocus  = game_window.hWnd;
+
+        return bRet;
+      }
+    }
+  }
+
+  return
+    SK_GetGUIThreadInfo (idThread, pgui);
 }
 
 typedef HWND (WINAPI *GetActiveWindow_pfn)(void);
@@ -4584,6 +4641,18 @@ WINAPI
 GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
+
+  if (config.window.background_render)
+  {
+    DWORD dwPid = 0x0;
+    DWORD dwTid =
+      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+
+    if (GetCurrentThreadId () == dwTid)
+    {
+      return game_window.hWnd;
+    }
+  }
 
   ////SK_TLS
   //// *pTLS =
@@ -6923,6 +6992,11 @@ SK_HookWinAPI (void)
                                 GetFocus_Detour,
        static_cast_p2p <void> (&GetFocus_Original) );
 
+    SK_CreateDLLHook2 (       L"user32",
+                               "GetGUIThreadInfo",
+                                GetGUIThreadInfo_Detour,
+       static_cast_p2p <void> (&GetGUIThreadInfo_Original) );
+
      GetWindowBand =
     (GetWindowBand_pfn)SK_GetProcAddress (L"user32.dll",
     "GetWindowBand");
@@ -7114,7 +7188,7 @@ SK_Win32_IsGUIThread ( DWORD    dwTid,
       gti.cbSize = sizeof (GUITHREADINFO);
 
     bGUI =
-      GetGUIThreadInfo (dwTid, &gti);
+      SK_GetGUIThreadInfo (dwTid, &gti);
   }
 
   auto idx =
