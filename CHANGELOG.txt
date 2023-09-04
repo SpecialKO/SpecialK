@@ -1,4 +1,21 @@
-﻿23.9.4.2
+﻿23.9.5
+======
+ + Initial implementation of Windows.Gaming.Input gamepad hooks...
+
+    Allows gamepad input in Starfield while you alt-tab to a different app if
+      "Continue Rendering" is enabled. If you use this feature, you need to
+        disable keyboard input to the game or it will think Alt is stuck down.
+
+    Windows.Gaming.Input usually stops reporting input while the game window
+      does not have focus, so SK polls XInput while the window is out of focus
+        and uses that to generate Windows::Gaming::Input::GamepadReading values.
+
+    This experimental WGI integration can be disabled w/ a hidden INI setting:
+
+      [Input.Gamepad]
+      EnableWindowsGamingInput=false
+
+23.9.4.2
 ========
  + More fixes for Honkai Star Rail's anti-cheat
 

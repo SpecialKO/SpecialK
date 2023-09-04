@@ -857,6 +857,7 @@ struct {
     sk::ParameterBool*    hook_xinput             = nullptr;
     sk::ParameterBool*    hook_scepad             = nullptr;
     sk::ParameterBool*    hook_raw_input          = nullptr;
+    sk::ParameterBool*    hook_windows_gaming     = nullptr;
 
     struct {
       sk::ParameterInt*   ui_slot                 = nullptr;
@@ -1391,6 +1392,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.disabled_to_game,         L"Disable ALL Gamepad Input (across all APIs)",               dll_ini,         L"Input.Gamepad",         L"DisabledToGame"),
     ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
     ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
+    ConfigEntry (input.gamepad.hook_windows_gaming,      L"Install hooks for Windows.Gaming.Input",                    dll_ini,         L"Input.Gamepad",         L"EnableWindowsGamingInput"),
     ConfigEntry (input.gamepad.hook_raw_input,           L"Install hooks for RawInput and process WM_INPUT messages",  dll_ini,         L"Input.Gamepad",         L"EnableRawInput"),
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
     ConfigEntry (input.gamepad.hook_dinput7,             L"Install hooks for DirectInput 7",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput7"),
@@ -3698,6 +3700,7 @@ auto DeclKeybind =
   input.gamepad.hook_scepad->load        (config.input.gamepad.hook_scepad);
 
   // Hidden INI values; they're loaded, but never written
+  input.gamepad.hook_windows_gaming->load(config.input.gamepad.hook_windows_gaming);
   input.gamepad.hook_raw_input->load     (config.input.gamepad.hook_raw_input);
   input.gamepad.hook_dinput8->load       (config.input.gamepad.hook_dinput8);
   input.gamepad.hook_dinput7->load       (config.input.gamepad.hook_dinput7);
