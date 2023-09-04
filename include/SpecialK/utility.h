@@ -56,9 +56,15 @@ public:
     //   such as -2 = Current Thread, -1 = Current Process
     if (m_h != nullptr)
     {
-      CloseHandle (
-        std::exchange (m_h, nullptr)
-      );
+      __try {
+        CloseHandle (
+          std::exchange (m_h, nullptr)
+        );
+      }
+      
+      __except (EXCEPTION_EXECUTE_HANDLER)
+      {
+      }
     }
   }
 
@@ -68,7 +74,13 @@ public:
     {
       if (m_h != nullptr)
       {
-        Close ();
+        __try {
+          Close ();
+        }
+
+        __except (EXCEPTION_EXECUTE_HANDLER)
+        {
+        }
       }
 
       Attach (
@@ -100,12 +112,19 @@ public:
   }
 
   // Close the handle.
-  void Close (void) noexcept
+  void Close (void)
   {
     __try
     {
-      CloseHandle (m_h);
-                   m_h = nullptr;
+      __try
+      {
+        CloseHandle (m_h);
+      }
+
+      __finally
+      {
+        m_h = nullptr;
+      }
     }
 
     // Anti-debug does stuff here...

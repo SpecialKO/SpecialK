@@ -234,7 +234,7 @@ SK_SAFE_memcpy ( _Out_writes_bytes_all_ (_Size) void*       _Dst,
     memcpy (_Dst, _Src, _Size);
   }
 
-  __finally
+  __except (EXCEPTION_EXECUTE_HANDLER)
   {
     return false;
   }

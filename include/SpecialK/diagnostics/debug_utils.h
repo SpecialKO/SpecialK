@@ -719,30 +719,12 @@ using RaiseException_pfn =
                          DWORD      nNumberOfArguments,
                    const ULONG_PTR *lpArguments );
 
-extern "C" RaiseException_pfn
-           RaiseException_Original;
-
-static
-__forceinline
 void
 SK_RaiseException
 (       DWORD      dwExceptionCode,
         DWORD      dwExceptionFlags,
         DWORD      nNumberOfArguments,
-  const ULONG_PTR *lpArguments )
-{
-  if (RaiseException_Original != nullptr)
-  {
-    RaiseException_Original ( dwExceptionCode,    dwExceptionFlags,
-                              nNumberOfArguments, lpArguments );
-  }
-
-  else
-  {
-    RaiseException ( dwExceptionCode,    dwExceptionFlags,
-                     nNumberOfArguments, lpArguments );
-  }
-}
+  const ULONG_PTR *lpArguments );
 
 
 #define SK_BasicStructuredExceptionTranslator         \

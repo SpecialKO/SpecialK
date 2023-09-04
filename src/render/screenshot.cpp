@@ -128,7 +128,7 @@ SK_ScreenshotManager::init (void) noexcept
     std::ignore = repo;
   }
 
-  __finally {
+  __except (EXCEPTION_EXECUTE_HANDLER) {
     // Don't care
   };
 }
