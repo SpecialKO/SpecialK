@@ -4334,7 +4334,7 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   else
     uiMask = QS_ALLINPUT;
 
-  while (! PeekMessageA (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE | (uiMask << 16)))
+  while (! PeekMessageA (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
@@ -4410,7 +4410,7 @@ GetMessageW_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
   else
     uiMask = QS_ALLINPUT;
 
-  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE | (uiMask << 16)))
+  while (! PeekMessageW (&msg, hWnd, wMsgFilterMin, wMsgFilterMax, PM_REMOVE))
   {
     dwWait =
       MsgWaitForMultipleObjectsEx ( 1, &__SK_DLL_TeardownEvent,
