@@ -3747,198 +3747,6 @@ SetWindowsHookExA_Detour (
 }
 
 
-#include <roapi.h>
-#include <wrl.h>
-#include "windows.gaming.input.h"
-
-using namespace ABI::Windows::Foundation::Collections;
-using namespace ABI::Windows::Gaming::Input;
-using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
-
-#pragma comment (lib, "runtimeobject.lib")
-
-using RoGetActivationFactory_pfn = HRESULT (WINAPI *)(HSTRING, REFIID, void **);
-      RoGetActivationFactory_pfn
-      RoGetActivationFactory_Original = nullptr;
-
-using WGI_Gamepad_GetCurrentReading_pfn =  HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad       *This,
-                                                                         ABI::Windows::Gaming::Input::GamepadReading *value);
-      WGI_Gamepad_GetCurrentReading_pfn
-      WGI_Gamepad_GetCurrentReading_Original = nullptr;
-
-HRESULT
-STDMETHODCALLTYPE
-WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad       *This,
-                                        ABI::Windows::Gaming::Input::GamepadReading *value)
-{
-  if (SK_ImGui_WantGamepadCapture ())
-  {
-    HRESULT hr =
-      WGI_Gamepad_GetCurrentReading_Original (This, value);
-
-    if (SUCCEEDED (hr))
-    {
-      value->Buttons          = GamepadButtons::GamepadButtons_None;
-      value->LeftThumbstickX  = 0.0;
-      value->LeftThumbstickY  = 0.0;
-      value->RightThumbstickX = 0.0;
-      value->RightThumbstickY = 0.0;
-      value->LeftTrigger      = 0.0;
-      value->RightTrigger     = 0.0;
-    }
-
-    return hr;
-  }
-
-  else if (SK_WantBackgroundRender () && (! game_window.active) && config.input.gamepad.disabled_to_game == 0)
-  {
-    HRESULT hr =
-      WGI_Gamepad_GetCurrentReading_Original (This, value);
-
-    if (SUCCEEDED (hr))
-    {
-      XINPUT_STATE                  xi_state = { };
-      SK_XInput_PollController (0, &xi_state);
-
-      value->Buttons = GamepadButtons::GamepadButtons_None;
-
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
-                      value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN))
-                      value->Buttons |= GamepadButtons::GamepadButtons_DPadDown;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT))
-                      value->Buttons |= GamepadButtons::GamepadButtons_DPadLeft;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT))
-                      value->Buttons |= GamepadButtons::GamepadButtons_DPadRight;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER))
-                      value->Buttons |= GamepadButtons::GamepadButtons_LeftShoulder;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER))
-                      value->Buttons |= GamepadButtons::GamepadButtons_RightShoulder;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB))
-                      value->Buttons |= GamepadButtons::GamepadButtons_LeftThumbstick;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB))
-                      value->Buttons |= GamepadButtons::GamepadButtons_RightThumbstick;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_A))
-                      value->Buttons |= GamepadButtons::GamepadButtons_A;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_B))
-                      value->Buttons |= GamepadButtons::GamepadButtons_B;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_X))
-                      value->Buttons |= GamepadButtons::GamepadButtons_X;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
-                      value->Buttons |= GamepadButtons::GamepadButtons_Y;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_START))
-                      value->Buttons |= GamepadButtons::GamepadButtons_Menu;
-      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
-                      value->Buttons |= GamepadButtons::GamepadButtons_View;
-
-      value->LeftThumbstickX = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLX / 32767);
-      value->LeftThumbstickY = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLY / 32767);
-
-      value->RightThumbstickX = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRX / 32767);
-      value->RightThumbstickY = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRY / 32767);
-
-      value->LeftTrigger  = (double)xi_state.Gamepad.bLeftTrigger  / 255;
-      value->RightTrigger = (double)xi_state.Gamepad.bRightTrigger / 255;
-    }
-
-    return hr;
-  }
-
-  return
-    WGI_Gamepad_GetCurrentReading_Original (This, value);
-}
-
-HRESULT
-WINAPI
-RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
-                                _In_  REFIID  iid,
-                                _Out_ void**  factory )
-{
-  SK_LOG_FIRST_CALL
-
-  if (iid == IID_IGamepad)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad)");
-
-  if (iid == IID_IGamepad2)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad2)");
-
-  if (iid == IID_IGamepadStatics)
-  {
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
-
-    ABI::Windows::Gaming::Input::IGamepadStatics *pGamepadStatsFactory;
-
-    HRESULT hr =
-      RoGetActivationFactory_Original ( activatableClassId,
-                                          iid,
-                                            (void **)&pGamepadStatsFactory );
-
-    if (SUCCEEDED (hr))
-    {
-      IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
-
-      if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)))
-      {
-        uint32_t num_pads = 0;
-
-        if (SUCCEEDED (pGamepads->get_Size (&num_pads)) && num_pads > 0)
-        {
-          ABI::Windows::Gaming::Input::IGamepad* pGamepad;
-
-          if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)))
-          {
-#define WGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {      \
-  void** _vftable = *(void***)*(_Base);                                       \
-                                                                              \
-  if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              _vftable,                                       \
-                                (_Index),                                     \
-                                  (_Override),                                \
-                                    (LPVOID *)&(_Original));                  \
-  }                                                                           \
-}
-
-            // 0 QueryInterface
-            // 1 AddRef
-            // 2 Release
-            // 3 GetIids
-            // 4 GetRuntimeClassName
-            // 5 GetTrustLevel
-            // 6 get_Vibration
-            // 7 put_Vibration
-            // 8 GetCurrentReading
-
-            SK_RunOnce ({
-              WGI_VIRTUAL_HOOK ( &pGamepad, 8,
-                        "ABI::Windows::Gaming::Input::IGamepad::GetCurrentReading",
-                         WGI_Gamepad_GetCurrentReading_Override,
-                         WGI_Gamepad_GetCurrentReading_Original,
-                         WGI_Gamepad_GetCurrentReading_pfn );
-            });
-
-            pGamepad->Release ();
-          }
-        }
-
-        pGamepads->Release ();
-      }
-
-      pGamepadStatsFactory->Release ();
-    }
-  }
-
-  if (iid == IID_IGamepadStatics2)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics2)");
-
-  return
-    RoGetActivationFactory_Original ( activatableClassId,
-                                        iid,
-                                          factory );
-}
-
-
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
@@ -4069,17 +3877,6 @@ void SK_Input_PreInit (void)
      static_cast_p2p <void> (&keybd_event_Original) );
 
 
-
-  if (config.input.gamepad.hook_windows_gaming)
-  {
-    SK_CreateDLLHook2 (      L"Combase.dll",
-                              "RoGetActivationFactory",
-                               RoGetActivationFactory_Detour,
-      static_cast_p2p <void> (&RoGetActivationFactory_Original) );
-  }
-
-
-
   if (config.input.gamepad.hook_raw_input)
   {
 #define __MANAGE_RAW_INPUT_REGISTRATION
@@ -4113,6 +3910,8 @@ void SK_Input_PreInit (void)
   }
 #endif
 
+  if (config.input.gamepad.hook_windows_gaming)
+    SK_Input_HookWGI ();
 
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );
@@ -4123,10 +3922,6 @@ void SK_Input_PreInit (void)
       SK_Input_HookScePad ();
   }
 }
-
-
-
-
 
 typedef HKL (WINAPI *GetKeyboardLayout_pfn)(_In_ DWORD idThread);
                      GetKeyboardLayout_pfn
@@ -4526,6 +4321,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
 
 SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_WGI_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
@@ -4534,59 +4330,3 @@ SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;
 
 bool SK_ImGui_InputLanguage_s::changed      = true; // ^^^^ Default = true
 HKL  SK_ImGui_InputLanguage_s::keybd_layout;
-
-
-
-
-
-
-
-
-#if 0
-#include <assert.h>
-#include <cstdint>
-#include <iostream>
-#include <roapi.h>
-#include <wrl.h>
-#include "windows.gaming.input.h"
-
-using namespace ABI::Windows::Foundation::Collections;
-using namespace ABI::Windows::Gaming::Input;
-using namespace Microsoft::WRL;
-using namespace Microsoft::WRL::Wrappers;
-
-#pragma comment(lib, "runtimeobject.lib")
-
-int main()
-{
-    auto hr = RoInitialize(RO_INIT_MULTITHREADED);
-    assert(SUCCEEDED(hr));
-
-    ComPtr<IGamepadStatics> gamepadStatics;
-    hr = RoGetActivationFactory(HStringReference(L"Windows.Gaming.Input.Gamepad").Get(), __uuidof(IGamepadStatics), &gamepadStatics);
-    assert(SUCCEEDED(hr));
-
-    ComPtr<IVectorView<Gamepad*>> gamepads;
-    hr = gamepadStatics->get_Gamepads(&gamepads);
-    assert(SUCCEEDED(hr));
-
-    uint32_t gamepadCount;
-    hr = gamepads->get_Size(&gamepadCount);
-    assert(SUCCEEDED(hr));
-
-    for (uint32_t i = 0; i < gamepadCount; i++)
-    {
-        ComPtr<IGamepad> gamepad;
-        hr = gamepads->GetAt(i, &gamepad);
-        assert(SUCCEEDED(hr));
-
-        GamepadReading gamepadReading;
-        hr = gamepad->GetCurrentReading(&gamepadReading);
-        assert(SUCCEEDED(hr));
-
-        std::cout << "Gamepad " << i + 1 << " buttons value is: " << gamepadReading.Buttons << std::endl;
-    }
-
-    return 0;
-}
-#endif

@@ -1390,6 +1390,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\input\dinput7_backend.h" />
     <ClInclude Include="include\SpecialK\input\sce_pad.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
+    <ClInclude Include="include\SpecialK\input\windows.gaming.input.h" />
     <ClInclude Include="include\SpecialK\plugin\nier.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h" />
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h" />
@@ -1573,6 +1574,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ClCompile Include="src\input\sce_pad.cpp" />
+    <ClCompile Include="src\input\windows.gaming.input.cpp" />
     <ClCompile Include="src\lazy_global.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>

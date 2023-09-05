@@ -355,6 +355,12 @@
     <Filter Include="Source Files\Backends\Render\Streamline">
       <UniqueIdentifier>{a52ad23c-8116-4485-9d33-f0ac42975013}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Input\Windows.Gaming.Input">
+      <UniqueIdentifier>{035ee16a-9bf0-4261-9646-06c08e5192ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\Windows.Gaming.Input">
+      <UniqueIdentifier>{63a1ff22-b864-493b-a0f3-bea7fd3feb4a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2949,6 +2955,9 @@
     <ClInclude Include="include\SpecialK\render\dstorage\dstorage_queue.h">
       <Filter>Header Files\Backends\Render\DStorage</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\input\windows.gaming.input.h">
+      <Filter>Header Files\Backends\Input\Windows.Gaming.Input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3508,6 +3517,9 @@
     </ClCompile>
     <ClCompile Include="src\plugins\armoredcore6.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\windows.gaming.input.cpp">
+      <Filter>Source Files\Backends\Input\Windows.Gaming.Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

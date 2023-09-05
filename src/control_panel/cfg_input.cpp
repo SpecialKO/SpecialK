@@ -103,6 +103,7 @@ SK_ImGui_CenterCursorOnWindow (void)
 
 static DWORD last_xinput   = 0;
 static DWORD last_scepad   = 0;
+static DWORD last_wgi      = 0;
 static DWORD last_hid      = 0;
 static DWORD last_di7      = 0;
 static DWORD last_di8      = 0;
@@ -124,6 +125,7 @@ SK::ControlPanel::Input::Draw (void)
   {
     struct { ULONG reads [XUSER_MAX_COUNT]; } xinput  { };
     struct { ULONG reads;                   } sce_pad { };
+    struct { ULONG reads;                   } wgi     { };
     struct { ULONG reads;                   } steam   { };
 
     struct { ULONG kbd_reads, mouse_reads; } winhook  { };
@@ -142,6 +144,7 @@ SK::ControlPanel::Input::Draw (void)
     xinput.reads [3]        = SK_XInput_Backend->reads   [3];
 
     sce_pad.reads           = SK_ScePad_Backend->reads   [2/*sk_input_dev_type::Gamepad*/];
+    wgi.reads               = SK_WGI_Backend->reads      [2/*sk_input_dev_type::Gamepad*/];
 
     winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
     winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
@@ -175,6 +178,9 @@ SK::ControlPanel::Input::Draw (void)
 
     if (SK_ScePad_Backend->nextFrame ())
       last_scepad   = current_time;
+
+    if (SK_WGI_Backend->nextFrame ())
+      last_wgi      = current_time;
 
     if (SK_Steam_Backend->nextFrame ())
       last_steam    = current_time;
@@ -231,6 +237,22 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::Text     ("Gamepad %d     %lu", i, xinput.reads [i]);
         }
         ImGui::EndTooltip   ();
+      }
+    }
+
+    if (last_wgi > current_time - 500UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float) last_wgi ) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::SameLine       ();
+      ImGui::Text           ("       Windows.Gaming.Input");
+      ImGui::PopStyleColor  ();
+
+      if (ImGui::IsItemHovered ( ))
+      {
+        ImGui::BeginTooltip ( );
+        ImGui::Text ("Gamepad     %lu", wgi.reads);
+        ImGui::EndTooltip ( );
       }
     }
 

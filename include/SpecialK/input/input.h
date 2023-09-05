@@ -44,6 +44,8 @@ bool SK_ImGui_WantKeyboardCapture (void);
 bool SK_ImGui_WantTextCapture     (void);
 void SK_ImGui_UpdateMouseTracker  (void);
 
+bool SK_WantBackgroundRender (void);
+
 void SK_Input_HookDI8         (void);
 void SK_Input_HookHID         (void);
 
@@ -51,6 +53,7 @@ void SK_Input_HookXInput1_3   (void);
 void SK_Input_HookXInput1_4   (void);
 void SK_Input_HookXInput9_1_0 (void);
 void SK_Input_HookScePad      (void);
+void SK_Input_HookWGI         (void);
 
 void SK_Input_PreHookXInput   (void);
 void SK_Input_PreHookScePad   (void);
@@ -324,6 +327,7 @@ struct sk_input_api_context_s
 
 extern SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_WGI_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
