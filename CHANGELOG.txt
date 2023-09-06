@@ -1,4 +1,9 @@
-﻿23.9.5
+﻿23.9.6
+======
+ + Added Windows.Gaming.Input input counter to Input Management tab
+ + Fixed missing Raw Input issue in Serious Sam Fusion 2017
+
+23.9.5
 ======
  + Initial implementation of Windows.Gaming.Input gamepad hooks...
 
