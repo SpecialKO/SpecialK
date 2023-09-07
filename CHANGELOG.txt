@@ -1,4 +1,15 @@
-﻿23.9.6
+﻿23.9.7
+======
+ + Added HDR Pipeline Remastering to Starfield
+
+     8-bpc Render targets with resolution > 1024 W or > 1024 H are now
+       promoted to 16-bpc for higher precision and unclipped HDR luminance
+
+    This makes the NativeHDR plug-in unnecessary, as it only remastered UI RTs.
+    
+     * Won't work with DLSS Framegen; turn that off if you want the best HDR.
+
+23.9.6
 ======
  + Added Windows.Gaming.Input input counter to Input Management tab
  + Fixed missing Raw Input issue in Serious Sam Fusion 2017

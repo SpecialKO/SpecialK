@@ -64,6 +64,20 @@ D3D12Device_CreateCommittedResource_pfn = HRESULT
                                     const D3D12_CLEAR_VALUE*,REFIID,void**);
 
 using
+D3D12Device4_CreateCommittedResource1_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device4*,const D3D12_HEAP_PROPERTIES*,D3D12_HEAP_FLAGS,
+                                     const D3D12_RESOURCE_DESC1*,D3D12_RESOURCE_STATES,
+                                     const D3D12_CLEAR_VALUE*,ID3D12ProtectedResourceSession*,
+                                     REFIID,void**);
+
+using
+D3D12Device8_CreateCommittedResource2_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device8*,const D3D12_HEAP_PROPERTIES*,D3D12_HEAP_FLAGS,
+                                     const D3D12_RESOURCE_DESC1*,D3D12_RESOURCE_STATES,
+                                     const D3D12_CLEAR_VALUE*,ID3D12ProtectedResourceSession*,
+                                     REFIID,void**);
+
+using
 D3D12Device_CreatePlacedResource_pfn = HRESULT
 (STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Heap*,
                        UINT64,const D3D12_RESOURCE_DESC*,
@@ -98,6 +112,12 @@ extern D3D12Device_CreateCommandAllocator_pfn
        D3D12Device_CreateCommandAllocator_Original;
 extern D3D12Device_CheckFeatureSupport_pfn
        D3D12Device_CheckFeatureSupport_Original;
+
+extern D3D12Device4_CreateCommittedResource1_pfn
+       D3D12Device4_CreateCommittedResource1_Original;
+
+extern D3D12Device8_CreateCommittedResource2_pfn
+       D3D12Device8_CreateCommittedResource2_Original;
 
 bool SK_D3D12_HookDeviceCreation (void);
 void SK_D3D12_InstallDeviceHooks (ID3D12Device* pDev12);

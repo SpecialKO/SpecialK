@@ -65,6 +65,12 @@ D3D12Device_CreateCommandAllocator_Original      = nullptr;
 D3D12Device_CheckFeatureSupport_pfn
 D3D12Device_CheckFeatureSupport_Original         = nullptr;
 
+D3D12Device4_CreateCommittedResource1_pfn
+D3D12Device4_CreateCommittedResource1_Original   = nullptr;
+
+D3D12Device8_CreateCommittedResource2_pfn
+D3D12Device8_CreateCommittedResource2_Original   = nullptr;
+
 concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _pixelShaders;
@@ -333,6 +339,14 @@ _COM_Outptr_ void                              **ppPipelineState )
           {
             desc_.RTVFormats [0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
           }
+        }
+      } break;
+
+      case SK_GAME_ID::Starfield:
+      {
+        if (desc_.RTVFormats [0] == DXGI_FORMAT_R8G8B8A8_UNORM)
+        {
+          desc_.RTVFormats [0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
         }
       } break;
 
@@ -803,8 +817,11 @@ struct SK_D3D12_PipelineParser_HDR : ID3DX12PipelineParserCallbacks_SK
     {
       case SK_GAME_ID::Starfield:
       {
-        if (RTVFormats.RTFormats [1] == DXGI_FORMAT_B8G8R8A8_UNORM)
-            RTVFormats.RTFormats [1]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        for (UINT i = 0 ; i < 8 ; i++)
+        {
+          if (RTVFormats.RTFormats [1] == DXGI_FORMAT_B8G8R8A8_UNORM || RTVFormats.RTFormats [1] == DXGI_FORMAT_R8G8B8A8_UNORM)
+              RTVFormats.RTFormats [1]  = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        }
       } break;
 
       default:
@@ -1094,6 +1111,26 @@ _In_opt_        ID3D12Resource                *pResource,
 _In_opt_  const D3D12_RENDER_TARGET_VIEW_DESC *pDesc,
 _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 {
+  if (pResource != nullptr)
+  {
+    auto res_desc =
+      pResource->GetDesc ();
+
+    if (res_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      switch (SK_GetCurrentGameID ())
+      {
+        case SK_GAME_ID::Starfield:
+          SK_LOGi0 (L"D3D12Device_CreateRTV: %hs (%dx%d)", SK_DXGI_FormatToStr (res_desc.Format).data (), res_desc.Width, res_desc.Height);
+
+          break;
+
+        default:
+          break;
+      }
+    }
+  }
+
   // HDR Fix-Ups
   if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
@@ -1956,11 +1993,49 @@ SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList)
 
 HRESULT
 STDMETHODCALLTYPE
+D3D12Device4_CreateCommittedResource1_Detour (
+                  ID3D12Device4                  *This,
+  _In_            const D3D12_HEAP_PROPERTIES    *pHeapProperties,
+  _In_            D3D12_HEAP_FLAGS               HeapFlags,
+  _In_            const D3D12_RESOURCE_DESC1     *pDesc,
+  _In_            D3D12_RESOURCE_STATES          InitialResourceState,
+  _In_opt_        const D3D12_CLEAR_VALUE        *pOptimizedClearValue,
+  _In_opt_        ID3D12ProtectedResourceSession *pProtectedSession,
+  _In_            REFIID                         riidResource,
+  _Out_opt_       void                           **ppvResource )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    D3D12Device4_CreateCommittedResource1_Original (This, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, pProtectedSession, riidResource, ppvResource);
+}
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device8_CreateCommittedResource2_Detour (
+                  ID3D12Device8                  *This,
+  _In_            const D3D12_HEAP_PROPERTIES    *pHeapProperties,
+  _In_            D3D12_HEAP_FLAGS               HeapFlags,
+  _In_            const D3D12_RESOURCE_DESC1     *pDesc,
+  _In_            D3D12_RESOURCE_STATES          InitialResourceState,
+  _In_opt_        const D3D12_CLEAR_VALUE        *pOptimizedClearValue,
+  _In_opt_        ID3D12ProtectedResourceSession *pProtectedSession,
+  _In_            REFIID                         riidResource,
+  _Out_opt_       void                           **ppvResource )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    D3D12Device8_CreateCommittedResource2_Original (This, pHeapProperties, HeapFlags, pDesc, InitialResourceState, pOptimizedClearValue, pProtectedSession, riidResource, ppvResource);
+}
+
+HRESULT
+STDMETHODCALLTYPE
 D3D12Device_CreateCommittedResource_Detour (
                  ID3D12Device           *This,
 _In_       const D3D12_HEAP_PROPERTIES  *pHeapProperties,
                  D3D12_HEAP_FLAGS        HeapFlags,
-_In_       const D3D12_RESOURCE_DESC    *pDesc,
+_In_    /*const*/D3D12_RESOURCE_DESC    *pDesc,
                  D3D12_RESOURCE_STATES   InitialResourceState,
 _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riidResource,
@@ -1968,6 +2043,28 @@ _COM_Outptr_opt_ void                  **ppvResource )
 {
   if (pDesc != nullptr) // Not optional, but some games try it anyway :)
   {
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Starfield:
+      {
+        if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+        {  
+          SK_LOGi0 (L"D3D12Device_CreateCommittedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
+
+          auto desc = *pDesc;
+               desc.Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
+
+          HRESULT hr =
+            D3D12Device_CreateCommittedResource_Original ( This,
+             pHeapProperties, HeapFlags, &desc, InitialResourceState,
+               pOptimizedClearValue, riidResource, ppvResource );
+
+          if (SUCCEEDED (hr))
+            return hr;
+        }
+      } break;
+    }
+
     if (     ppvResource      != nullptr            &&
             riidResource      == IID_ID3D12Resource &&
         pDesc->Dimension      == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
@@ -1977,6 +2074,12 @@ _COM_Outptr_opt_ void                  **ppvResource )
                         D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS /*|
                           D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE*/ ) ) == 0x0 ) )
     {
+      //if (pDesc->Width == 3440 && pDesc->Height == 1440)
+      {
+        if (pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+            pDesc->Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
+      }
+
       ID3D12Resource *pResource = nullptr;
       HRESULT hrCreateCommitted =
         D3D12Device_CreateCommittedResource_Original ( This,
@@ -2051,6 +2154,29 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riid,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
+  switch (SK_GetCurrentGameID ())
+  {
+    case SK_GAME_ID::Starfield:
+    {
+      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS && (pDesc->Width > 1024 || pDesc->Height > 1024) && ( ( pDesc->Flags & ( D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET |
+                                                                                                                                                                                                                  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS ) ) ) )
+      {  
+        SK_LOGi0 (L"D3D12Device_CreatePlacedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
+
+        auto desc = *pDesc;
+             desc.Format = DXGI_FORMAT_R16G16B16A16_TYPELESS;
+
+        HRESULT hr =
+          D3D12Device_CreatePlacedResource_Original ( This,
+            pHeap, HeapOffset, &desc, InitialState,
+              pOptimizedClearValue, riid, ppvResource );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    } break;
+  }
+
   return
     D3D12Device_CreatePlacedResource_Original ( This,
       pHeap, HeapOffset, pDesc, InitialState,
@@ -2234,6 +2360,16 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // 55 CreateReservedResource1
   // 56 GetResourceAllocationInfo1
 
+  SK_ComQIPtr <ID3D12Device4>
+      pDevice4 (pDev12);
+  if (pDevice4.p != nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12Device4::CreateCommittedResource1",
+                           *(void ***)*(&pDevice4.p), 53,
+                            D3D12Device4_CreateCommittedResource1_Detour,
+                  (void **)&D3D12Device4_CreateCommittedResource1_Original );
+  }
+
   // ID3D12Device5
   //---------------
   // 57 CreateLifetimeTracker
@@ -2261,6 +2397,16 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
   // 70 CreatePlacedResource1
   // 71 CreateSamplerFeedbackUnorderedAccessView
   // 72 GetCopyableFootprints1
+
+  SK_ComQIPtr <ID3D12Device8>
+      pDevice8 (pDev12);
+  if (pDevice8.p != nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12Device8::CreateCommittedResource2",
+                           *(void ***)*(&pDevice8.p), 69,
+                            D3D12Device8_CreateCommittedResource2_Detour,
+                  (void **)&D3D12Device8_CreateCommittedResource2_Original );
+  }
 
   // ID3D12Device9
   //---------------
