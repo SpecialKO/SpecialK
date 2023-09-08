@@ -1,4 +1,11 @@
-﻿23.9.7
+﻿23.9.7.1
+========
+ + Fixed a few visual glitches in Starfield HDR remastering, by restricting the feature
+     to render-passes only and ignoring compute-only resources.
+
+   The resolution restrictions are not necessary when ignoring compute, and have been removed.
+
+23.9.7
 ======
  + Added HDR Pipeline Remastering to Starfield
 

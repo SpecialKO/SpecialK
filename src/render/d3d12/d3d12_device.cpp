@@ -2043,27 +2043,27 @@ _COM_Outptr_opt_ void                  **ppvResource )
 {
   if (pDesc != nullptr) // Not optional, but some games try it anyway :)
   {
-    switch (SK_GetCurrentGameID ())
-    {
-      case SK_GAME_ID::Starfield:
-      {
-        if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
-        {  
-          SK_LOGi0 (L"D3D12Device_CreateCommittedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
-
-          auto desc = *pDesc;
-               desc.Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
-
-          HRESULT hr =
-            D3D12Device_CreateCommittedResource_Original ( This,
-             pHeapProperties, HeapFlags, &desc, InitialResourceState,
-               pOptimizedClearValue, riidResource, ppvResource );
-
-          if (SUCCEEDED (hr))
-            return hr;
-        }
-      } break;
-    }
+    //switch (SK_GetCurrentGameID ())
+    //{
+    //  case SK_GAME_ID::Starfield:
+    //  {
+    //    if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
+    //    {  
+    //      SK_LOGi0 (L"D3D12Device_CreateCommittedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
+    //
+    //      auto desc = *pDesc;
+    //           desc.Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
+    //
+    //      HRESULT hr =
+    //        D3D12Device_CreateCommittedResource_Original ( This,
+    //         pHeapProperties, HeapFlags, &desc, InitialResourceState,
+    //           pOptimizedClearValue, riidResource, ppvResource );
+    //
+    //      if (SUCCEEDED (hr))
+    //        return hr;
+    //    }
+    //  } break;
+    //}
 
     if (     ppvResource      != nullptr            &&
             riidResource      == IID_ID3D12Resource &&
@@ -2158,8 +2158,17 @@ _COM_Outptr_opt_ void                  **ppvResource )
   {
     case SK_GAME_ID::Starfield:
     {
-      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS && (pDesc->Width > 1024 || pDesc->Height > 1024) && ( ( pDesc->Flags & ( D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET |
-                                                                                                                                                                                                                  D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS ) ) ) )
+      auto &rb = SK_GetCurrentRenderBackend ();
+
+      SK_ComQIPtr <IDXGISwapChain>
+                       pSwapChain (rb.swapchain);
+
+      DXGI_SWAP_CHAIN_DESC swapDesc = { };
+      
+      if (pSwapChain.p != nullptr)
+          pSwapChain->GetDesc (&swapDesc);
+
+      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS &&  /*pDesc->Height == swapDesc.BufferDesc.Height && */((pDesc->Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET))))
       {  
         SK_LOGi0 (L"D3D12Device_CreatePlacedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
 
