@@ -180,8 +180,9 @@ private:
   enum CharacterEncoding {
     INI_INVALID = 0x00,
     INI_UTF8    = 0x01,
-    INI_UTF16LE = 0x02,
-    INI_UTF16BE = 0x04 // Not natively supported, but can be converted
+    INI_UTF8BOM = 0x02,
+    INI_UTF16LE = 0x04,
+    INI_UTF16BE = 0x08 // Not natively supported, but can be converted
   } encoding_;
 
   ULONG    refs_      =    0;
