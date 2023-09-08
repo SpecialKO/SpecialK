@@ -29,9 +29,11 @@ static iSK_INI* gameCustom_ini = nullptr;
 
 static sk::ParameterFloat* sf_1stFOV = nullptr;
 static sk::ParameterFloat* sf_3rdFOV = nullptr;
+static sk::ParameterFloat* sf_MipBias = nullptr;
 
 static float* pf1stFOV = nullptr;
 static float* pf3rdFOV = nullptr;
+static float* pfMipBias = nullptr;
 
 static uintptr_t pBaseAddr = 0;
 
@@ -51,7 +53,7 @@ bool SK_SF_PlugInCfg() {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.87f, 0.53f, 0.53f, 0.80f));
         ImGui::TreePush("");
 
-        if (ImGui::CollapsingHeader("Field of View")) {
+        if (ImGui::CollapsingHeader("Field of View", ImGuiTreeNodeFlags_DefaultOpen)) {
             ImGui::TreePush("");
             ImGui::SliderFloat("1st Person FOV", pf1stFOV, 1, 120, "%.0f");
             ImGui::SliderFloat("3rd Person FOV", pf3rdFOV, 1, 120, "%.0f");
@@ -59,9 +61,17 @@ bool SK_SF_PlugInCfg() {
             ImGui::TreePop();
         }
 
-        if (ImGui::Button("Save Settings", ImVec2(100.0f, 0))) {
+        if (ImGui::CollapsingHeader("Visuals", ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::TreePush("");
+            ImGui::SliderFloat("Mipmap Bias", pfMipBias, -5.f, 5.f, "%.1f", 0.1f);
+
+            ImGui::TreePop();
+        }
+
+        if (ImGui::Button("Save Settings", ImVec2(120.0f, 0))) {
             sf_1stFOV->store(*pf1stFOV);
             sf_3rdFOV->store(*pf3rdFOV);
+            sf_MipBias->store(*pfMipBias);
 
             gameCustom_ini->write();
         }
@@ -168,12 +178,15 @@ SK_BGS_InitPlugin(void)
 
         sf_1stFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"First Person FOV"));
         sf_3rdFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Third Person FOV"));
+        sf_MipBias = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Mipmap Bias"));
         
         sf_1stFOV->register_to_ini(gameCustom_ini, L"Camera", L"fFPWorldFOV");
         sf_3rdFOV->register_to_ini(gameCustom_ini, L"Camera", L"fTPWorldFOV");
+        sf_MipBias->register_to_ini(gameCustom_ini, L"Display", L"fMipBiasOffset");
 
         pf1stFOV = reinterpret_cast<float*>(CalculateOffset(0x14557B930) + 8);
         pf3rdFOV = reinterpret_cast<float*>(CalculateOffset(0x14557B910) + 8);
+        pfMipBias = reinterpret_cast<float*>(CalculateOffset(0x1455FDE70) + 8);
 
         plugin_mgr->config_fns.emplace(SK_SF_PlugInCfg);
       }
