@@ -335,7 +335,7 @@ SK::ControlPanel::PlugIns::Draw (void)
     }
 
     fileDialog.SetTitle       ("Select a Plug-In DLL");
-    fileDialog.SetTypeFilters (      { ".dll" }      );
+    fileDialog.SetTypeFilters (  { ".dll", ".asi" }  );
 
     fileDialog.Display ();
 
