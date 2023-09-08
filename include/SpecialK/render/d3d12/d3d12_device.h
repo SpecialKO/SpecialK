@@ -78,6 +78,10 @@ D3D12Device8_CreateCommittedResource2_pfn = HRESULT
                                      REFIID,void**);
 
 using
+D3D12Device_CreateHeap_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_HEAP_DESC*,REFIID,_COM_Outptr_opt_ void**);
+
+using
 D3D12Device_CreatePlacedResource_pfn = HRESULT
 (STDMETHODCALLTYPE *)(ID3D12Device*,ID3D12Heap*,
                        UINT64,const D3D12_RESOURCE_DESC*,

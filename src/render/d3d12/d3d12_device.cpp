@@ -60,6 +60,8 @@ D3D12Device_CreateCommittedResource_pfn
 D3D12Device_CreateCommittedResource_Original     = nullptr;
 D3D12Device_CreatePlacedResource_pfn
 D3D12Device_CreatePlacedResource_Original        = nullptr;
+D3D12Device_CreateHeap_pfn
+D3D12Device_CreateHeap_Original                  = nullptr;
 D3D12Device_CreateCommandAllocator_pfn
 D3D12Device_CreateCommandAllocator_Original      = nullptr;
 D3D12Device_CheckFeatureSupport_pfn
@@ -339,14 +341,6 @@ _COM_Outptr_ void                              **ppPipelineState )
           {
             desc_.RTVFormats [0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
           }
-        }
-      } break;
-
-      case SK_GAME_ID::Starfield:
-      {
-        if (desc_.RTVFormats [0] == DXGI_FORMAT_R8G8B8A8_UNORM)
-        {
-          desc_.RTVFormats [0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
         }
       } break;
 
@@ -1121,7 +1115,9 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
       switch (SK_GetCurrentGameID ())
       {
         case SK_GAME_ID::Starfield:
+#if 0
           SK_LOGi0 (L"D3D12Device_CreateRTV: %hs (%dx%d)", SK_DXGI_FormatToStr (res_desc.Format).data (), res_desc.Width, res_desc.Height);
+#endif
 
           break;
 
@@ -2031,11 +2027,47 @@ D3D12Device8_CreateCommittedResource2_Detour (
 
 HRESULT
 STDMETHODCALLTYPE
+D3D12Device_CreateHeap_Detour (
+                 ID3D12Device    *This,
+_In_       const D3D12_HEAP_DESC *pDesc,
+                 REFIID           riid,
+_COM_Outptr_opt_ void           **ppvHeap)
+{
+  if (pDesc != nullptr) // Not optional, but some games try it anyway :)
+  {
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Starfield:
+        if (pDesc->SizeInBytes < 70778880)
+        {
+          auto desc = *pDesc;
+
+          desc.SizeInBytes = 70778880;
+
+          HRESULT hr =
+            D3D12Device_CreateHeap_Original (This, &desc, riid, ppvHeap);
+
+          if (SUCCEEDED (hr))
+            return hr;
+        }
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  return
+    D3D12Device_CreateHeap_Original (This, pDesc, riid, ppvHeap);
+}
+
+HRESULT
+STDMETHODCALLTYPE
 D3D12Device_CreateCommittedResource_Detour (
                  ID3D12Device           *This,
 _In_       const D3D12_HEAP_PROPERTIES  *pHeapProperties,
                  D3D12_HEAP_FLAGS        HeapFlags,
-_In_    /*const*/D3D12_RESOURCE_DESC    *pDesc,
+_In_      const  D3D12_RESOURCE_DESC    *pDesc,
                  D3D12_RESOURCE_STATES   InitialResourceState,
 _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riidResource,
@@ -2043,27 +2075,42 @@ _COM_Outptr_opt_ void                  **ppvResource )
 {
   if (pDesc != nullptr) // Not optional, but some games try it anyway :)
   {
-    //switch (SK_GetCurrentGameID ())
-    //{
-    //  case SK_GAME_ID::Starfield:
-    //  {
-    //    if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
-    //    {  
-    //      SK_LOGi0 (L"D3D12Device_CreateCommittedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
-    //
-    //      auto desc = *pDesc;
-    //           desc.Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
-    //
-    //      HRESULT hr =
-    //        D3D12Device_CreateCommittedResource_Original ( This,
-    //         pHeapProperties, HeapFlags, &desc, InitialResourceState,
-    //           pOptimizedClearValue, riidResource, ppvResource );
-    //
-    //      if (SUCCEEDED (hr))
-    //        return hr;
-    //    }
-    //  } break;
-    //}
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Starfield:
+      {
+        if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && (pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS || pDesc->Format == DXGI_FORMAT_R10G10B10A2_TYPELESS) && ((pDesc->Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS))))
+        {  
+          SK_LOGi0 (L"D3D12Device_CreateCommittedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
+        
+          auto desc = *pDesc;
+               desc.Format = DXGI_FORMAT_R16G16B16A16_TYPELESS;
+        
+          D3D12_CLEAR_VALUE  _optimized_clear_value = { };
+          D3D12_CLEAR_VALUE *_pOptimizedClearValue  = nullptr;
+          
+          if (pOptimizedClearValue != nullptr)
+          {
+            _optimized_clear_value              = *pOptimizedClearValue;
+            _optimized_clear_value.Format       = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            _optimized_clear_value.DepthStencil = pOptimizedClearValue->DepthStencil;
+            _optimized_clear_value.Color[0]     = pOptimizedClearValue->Color [0]/255.0f;
+            _optimized_clear_value.Color[1]     = pOptimizedClearValue->Color [1]/255.0f;
+            _optimized_clear_value.Color[2]     = pOptimizedClearValue->Color [2]/255.0f;
+            _optimized_clear_value.Color[3]     = pOptimizedClearValue->Color [3]/255.0f;
+            _pOptimizedClearValue               = &_optimized_clear_value;
+          }
+        
+          HRESULT hr =
+            D3D12Device_CreateCommittedResource_Original ( This,
+             pHeapProperties, HeapFlags, &desc, InitialResourceState,
+               _pOptimizedClearValue, riidResource, ppvResource );
+        
+          if (SUCCEEDED (hr))
+            return hr;
+        }
+      } break;
+    }
 
     if (     ppvResource      != nullptr            &&
             riidResource      == IID_ID3D12Resource &&
@@ -2074,12 +2121,6 @@ _COM_Outptr_opt_ void                  **ppvResource )
                         D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS /*|
                           D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE*/ ) ) == 0x0 ) )
     {
-      //if (pDesc->Width == 3440 && pDesc->Height == 1440)
-      {
-        if (pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS)
-            pDesc->Format =  DXGI_FORMAT_R16G16B16A16_TYPELESS;
-      }
-
       ID3D12Resource *pResource = nullptr;
       HRESULT hrCreateCommitted =
         D3D12Device_CreateCommittedResource_Original ( This,
@@ -2154,6 +2195,7 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riid,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
+#if 0
   switch (SK_GetCurrentGameID ())
   {
     case SK_GAME_ID::Starfield:
@@ -2168,23 +2210,45 @@ _COM_Outptr_opt_ void                  **ppvResource )
       if (pSwapChain.p != nullptr)
           pSwapChain->GetDesc (&swapDesc);
 
-      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS &&  /*pDesc->Height == swapDesc.BufferDesc.Height && */((pDesc->Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET))))
-      {  
+      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS && ((pDesc->Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET))) && pDesc->Width > 1 && (pDesc->Width != 1024 || pDesc->Height != 1024))
+      {
+        D3D12_HEAP_DESC heapDesc =
+          pHeap->GetDesc ();
+
         SK_LOGi0 (L"D3D12Device_CreatePlacedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
 
-        auto desc = *pDesc;
-             desc.Format = DXGI_FORMAT_R16G16B16A16_TYPELESS;
+        if (heapDesc.SizeInBytes >= (pDesc->Width * pDesc->Height * 8))
+        {
+          auto desc = *pDesc;
+               desc.Format = DXGI_FORMAT_R16G16B16A16_TYPELESS;
 
-        HRESULT hr =
-          D3D12Device_CreatePlacedResource_Original ( This,
-            pHeap, HeapOffset, &desc, InitialState,
-              pOptimizedClearValue, riid, ppvResource );
+          D3D12_CLEAR_VALUE  _optimized_clear_value = { };
+          D3D12_CLEAR_VALUE *_pOptimizedClearValue  = nullptr;
+          
+          if (pOptimizedClearValue != nullptr)
+          {
+            _optimized_clear_value              = *pOptimizedClearValue;
+            _optimized_clear_value.Format       = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            _optimized_clear_value.DepthStencil = pOptimizedClearValue->DepthStencil;
+            _optimized_clear_value.Color[0]     = pOptimizedClearValue->Color [0]/255.0f;
+            _optimized_clear_value.Color[1]     = pOptimizedClearValue->Color [1]/255.0f;
+            _optimized_clear_value.Color[2]     = pOptimizedClearValue->Color [2]/255.0f;
+            _optimized_clear_value.Color[3]     = pOptimizedClearValue->Color [3]/255.0f;
+            _pOptimizedClearValue               = &_optimized_clear_value;
+          }
 
-        if (SUCCEEDED (hr))
-          return hr;
+          HRESULT hr =
+            D3D12Device_CreatePlacedResource_Original ( This,
+              pHeap, HeapOffset, &desc, InitialState,
+                _pOptimizedClearValue, riid, ppvResource );
+
+          if (SUCCEEDED (hr))
+            return hr;
+        }
       }
     } break;
   }
+#endif
 
   return
     D3D12Device_CreatePlacedResource_Original ( This,
@@ -2287,6 +2351,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDev12)
                            *(void ***)*(&pDev12), 27,
                             D3D12Device_CreateCommittedResource_Detour,
                   (void **)&D3D12Device_CreateCommittedResource_Original );
+
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateHeap",
+                           *(void ***)*(&pDev12), 28,
+                            D3D12Device_CreateHeap_Detour,
+                  (void **)&D3D12Device_CreateHeap_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreatePlacedResource",
                            *(void ***)*(&pDev12), 29,

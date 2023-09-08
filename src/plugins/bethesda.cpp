@@ -102,12 +102,61 @@ HRESULT __stdcall CreateVolumeTextureFromFileInMemoryHookForD3D9(LPDIRECT3DDEVIC
 }
 #endif
 
+void SK_SEH_InitStarfieldHDR (void)
+{
+  __try
+  {
+    void *scan =
+      SK_ScanAlignedEx ("\xC6\x45\x68\x01\x8B\x05", 7, "\xff\xff\xff\xff\xff\xff", nullptr, 8);
+
+    SK_LOGs0 (L"Starfield ", L"Scanned Address 0: %p", scan);
+
+    auto      offset         = *reinterpret_cast < int32_t *>((uintptr_t)scan + 6);
+	  uint32_t* frameBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 10 + offset);  // 507A290
+
+    *frameBufferPtr = 77;
+
+    scan =
+      SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", scan, 8);
+
+    SK_LOGs0 (L"Starfield ", L"Scanned Address 1: %p", scan);
+
+    offset                                = *reinterpret_cast < int32_t *>((uintptr_t)scan + 3);
+    uint32_t *imageSpaceBufferPtr         =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 7 + offset);            // 5079A70
+    uint32_t *scaleformCompositeBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)imageSpaceBufferPtr + 0x280);  // 5079CF0
+
+    *imageSpaceBufferPtr         = 77;
+    *scaleformCompositeBufferPtr = 77;
+  }
+  
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    SK_LOGs0 (L"Starfield ", L"Structured Exception During HDR Init");
+  };
+}
+
 void
-SK_BGS_InitPlugin(void) {
+SK_BGS_InitPlugin(void)
+{
     SK_GAME_ID gameID = SK_GetCurrentGameID();
 
 #ifdef _WIN64
-    if (gameID == SK_GAME_ID::Starfield && SK_GetModuleHandle(L"steam_api64.dll")) {
+    if (gameID == SK_GAME_ID::Starfield)
+    {
+      extern bool __SK_HDR_16BitSwap;
+
+      if (__SK_HDR_16BitSwap)
+      {
+        //auto threads =
+        //  SK_SuspendAllOtherThreads ();
+
+        SK_SEH_InitStarfieldHDR ();
+
+        //SK_ResumeThreads (threads);
+      }
+
+      if (SK_GetModuleHandle (L"steam_api64.dll"))
+      {
         if (game_ini == nullptr) {
             game_ini = SK_CreateINI(LR"(.\Starfield.ini)");
         }
@@ -127,6 +176,7 @@ SK_BGS_InitPlugin(void) {
         pf3rdFOV = reinterpret_cast<float*>(CalculateOffset(0x14557B910) + 8);
 
         plugin_mgr->config_fns.emplace(SK_SF_PlugInCfg);
+      }
     }
 #else
 
