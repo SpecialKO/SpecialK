@@ -331,11 +331,10 @@ SK::ControlPanel::PlugIns::Draw (void)
 
     if (ImGui::Button ("Add Plug-In"))
     {
+      fileDialog.SetTitle       ("Select a Plug-In DLL");
+      fileDialog.SetTypeFilters (  { ".dll", ".asi" }  );
       fileDialog.Open ();
     }
-
-    fileDialog.SetTitle       ("Select a Plug-In DLL");
-    fileDialog.SetTypeFilters (      { ".dll" }      );
 
     fileDialog.Display ();
 
