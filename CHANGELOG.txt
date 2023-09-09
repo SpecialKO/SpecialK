@@ -1,4 +1,8 @@
-﻿23.9.9.4
+﻿23.9.9.5
+========
+ + Fixed reversal of meaning for INI_UTF8 and INI_UTF8NOBOM
+
+23.9.9.4
 ========
  + Fixed 16-bpc SwapChain being enabled for non-HDR users in Starfield
 

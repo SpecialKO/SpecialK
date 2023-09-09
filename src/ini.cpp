@@ -1348,7 +1348,7 @@ iSK_INI::write (const wchar_t* fname)
   }
 
   // Erase the Byte-Order-Marker that Windows adds
-  if (encoding_ == INI_UTF8)
+  if (encoding_ == INI_UTF8NOBOM)
     fseek (fOut, 0L, SEEK_SET);
 
   fputws (outbuf.c_str (), fOut);
