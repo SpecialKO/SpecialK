@@ -43,10 +43,12 @@ static bool bRemasterExtendedRTs = false;
 
 static uintptr_t pBaseAddr = 0;
 
-uintptr_t CalculateOffset(uintptr_t uAddr) {
-    if (pBaseAddr == 0)
-        pBaseAddr = reinterpret_cast<uintptr_t>(SK_Debug_GetImageBaseAddr());
-    return pBaseAddr + uAddr - 0x140000000;
+static uintptr_t CalculateOffset (uintptr_t uAddr)
+{
+  if (pBaseAddr == 0)
+      pBaseAddr = reinterpret_cast <uintptr_t>(SK_Debug_GetImageBaseAddr ());
+
+  return pBaseAddr + uAddr - 0x140000000;
 }
 
 bool SK_SF_PlugInCfg (void)
@@ -59,7 +61,7 @@ bool SK_SF_PlugInCfg (void)
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
-    ImGui::TreePus h("");
+    ImGui::TreePush       ("");
 
     if (ImGui::CollapsingHeader ("Render Quality", ImGuiTreeNodeFlags_DefaultOpen))
     {
@@ -84,7 +86,7 @@ bool SK_SF_PlugInCfg (void)
       if (pfMipBias != nullptr)
       {
         changed_no_restart_needed |=
-          ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -5.f, 5.f, "%.1f", 0.1f);
+          ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -3.f, 3.f, "%.1f");
 
         if (ImGui::IsItemHovered ())
         {
@@ -126,14 +128,14 @@ bool SK_SF_PlugInCfg (void)
     {
       bool changed = false;
 
-      if (ImGui::CollapsingHeader("Field of View"))
+      if (ImGui::CollapsingHeader ("Field of View"))
       {
         ImGui::TreePush("");
 
         changed |= ImGui::SliderFloat ("1st Person FOV", pf1stFOV, 1, 120, "%.0f");
         changed |= ImGui::SliderFloat ("3rd Person FOV", pf3rdFOV, 1, 120, "%.0f");
 
-        ImGui::TreePop();
+        ImGui::TreePop ();
       }
 
       if (changed)
@@ -448,7 +450,7 @@ HRESULT __stdcall CreateVolumeTextureFromFileInMemoryHookForD3D9(LPDIRECT3DDEVIC
 void
 SK_BGS_InitPlugin(void)
 {
-  SK_GAME_ID gameID = SK_GetCurrentGameID();
+  SK_GAME_ID gameID = SK_GetCurrentGameID ();
   
 #ifdef _WIN64
   if (gameID == SK_GAME_ID::Starfield)
@@ -456,7 +458,7 @@ SK_BGS_InitPlugin(void)
     __SK_SF_BasicRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"BasicRTUpgrades", bRemasterBasicRTs,
-                                                        L"Promote Simple RTs to FP16" );
+                                                       L"Promote Simple RTs to FP16" );
   
     __SK_SF_ExtendedRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
@@ -468,33 +470,43 @@ SK_BGS_InitPlugin(void)
       SK_SEH_InitStarfieldRTs ();
     }
   
-    if (SK_GetModuleHandle (L"steam_api64.dll"))
-    {
-      if (game_ini == nullptr) {
-          game_ini = SK_CreateINI(LR"(.\Starfield.ini)");
-      }
-  
-      if (gameCustom_ini == nullptr) {
-          gameCustom_ini = SK_CreateINI((SK_GetDocumentsDir() + LR"(\My Games\Starfield\StarfieldCustom.ini)").c_str());
-      }
-  
-      game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
-      gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
-  
-      sf_1stFOV  = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"First Person FOV"));
-      sf_3rdFOV  = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Third Person FOV"));
-      sf_MipBias = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Mipmap Bias"));
-      
-      sf_1stFOV->register_to_ini (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
-      sf_3rdFOV->register_to_ini (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
-      sf_MipBias->register_to_ini(gameCustom_ini, L"Display", L"fMipBiasOffset");
-  
-      pf1stFOV  = reinterpret_cast<float*>(CalculateOffset(0x14557B930) + 8);
-      pf3rdFOV  = reinterpret_cast<float*>(CalculateOffset(0x14557B910) + 8);
-      pfMipBias = reinterpret_cast<float*>(CalculateOffset(0x1455FDE70) + 8);
+    if (game_ini == nullptr) {
+        game_ini = SK_CreateINI (LR"(.\Starfield.ini)");
     }
   
-    plugin_mgr->config_fns.emplace(SK_SF_PlugInCfg);
+    if (gameCustom_ini == nullptr) {
+        gameCustom_ini = SK_CreateINI ((SK_GetDocumentsDir () + LR"(\My Games\Starfield\StarfieldCustom.ini)").c_str ());
+    }
+  
+    game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
+    gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
+  
+    sf_1stFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
+    sf_3rdFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
+    sf_MipBias = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
+    
+    sf_1stFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
+    sf_3rdFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
+    sf_MipBias->register_to_ini (gameCustom_ini, L"Display", L"fMipBiasOffset");
+  
+    // TODO: Proper version checks if we're just going to use hard-coded addresses.
+    //
+
+    if (SK_GetModuleHandle (L"steam_api64.dll")) // Steam
+    {
+      pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B930) + 8);
+      pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B910) + 8);
+      pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x1455FDE70) + 8);
+    }
+
+    else // Microsoft Store
+    {
+      pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7F0) + 8);
+      pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7D0) + 8);
+      pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x145620ED0) + 8);
+    }
+  
+    plugin_mgr->config_fns.emplace (SK_SF_PlugInCfg);
   }
 #else
 
