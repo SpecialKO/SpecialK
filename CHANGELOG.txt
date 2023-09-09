@@ -1,4 +1,8 @@
-﻿23.9.9.5
+﻿23.9.9.6
+========
+ + Added support for extended remastering to non-Steam version of Starfield
+
+23.9.9.5
 ========
  + Fixed reversal of meaning for INI_UTF8 and INI_UTF8NOBOM
 
