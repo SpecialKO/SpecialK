@@ -1,8 +1,4 @@
-﻿23.9.9.4
-========
- + Fixed 16-bpc SwapChain being enabled for non-HDR users in Starfield
-
-23.9.9.3
+﻿23.9.9.3
 ========
  + Added support for upgrading RTs to 16-bpc even for non-HDR users
  + Added options to upgrade Render Targets to 16-bpc in Starfield to control panel
