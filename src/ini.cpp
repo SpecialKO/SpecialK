@@ -204,12 +204,12 @@ iSK_INI::reload (const wchar_t *fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
-                  (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
-                  (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
+      bool utf8bom = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
+                     (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
+                     (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
 
       const uintptr_t offset =
-        utf8 ? 3 : 0;
+           utf8bom ? 3 : 0;
 
       const int       real_size =
         size - sk::narrow_cast <int> (offset);
@@ -259,10 +259,9 @@ iSK_INI::reload (const wchar_t *fname)
                         //fname ), L"INI Parser" );
       }
 
-      // No Byte-Order Marker
-      bom_size  = 0;
-
-      encoding_ = INI_UTF8;
+      // Conditional Byte-Order Marker
+      bom_size  = utf8bom ?           2 : 0;
+      encoding_ = utf8bom ? INI_UTF8BOM : INI_UTF8;
     }
 
     parse ();
@@ -275,7 +274,7 @@ iSK_INI::reload (const wchar_t *fname)
 
 iSK_INI::iSK_INI (const wchar_t* filename)
 {
-  encoding_ = INI_UTF8;
+  encoding_ = INI_UTF8BOM;
 
   AddRef ();
 
@@ -1326,6 +1325,7 @@ iSK_INI::write (const wchar_t* fname)
   switch (encoding_)
   {
     case INI_UTF8:
+    case INI_UTF8BOM:
       TRY_FILE_IO (_wfsopen (fname, L"wc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
       break;
 
@@ -1346,6 +1346,10 @@ iSK_INI::write (const wchar_t* fname)
     //               L"read-only?", fname, MB_OK | MB_ICONSTOP);
     return;
   }
+
+  // Erase the Byte-Order-Marker that Windows adds
+  if (encoding_ == INI_UTF8)
+    fseek (fOut, 0L, SEEK_SET);
 
   fputws (outbuf.c_str (), fOut);
   fclose (fOut);
@@ -1627,13 +1631,13 @@ iSK_INI::import_file (const wchar_t* fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 =
+      bool utf8_bom =
         (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
         (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
         (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
 
       const uintptr_t offset =
-        utf8 ? 3 : 0;
+           utf8_bom ? 3 : 0;
 
       const int      real_size  =
         size - sk::narrow_cast <int> (offset);
@@ -1711,6 +1715,25 @@ iSK_INI::rename (const wchar_t* fname)
     flushed_   = { 0 };
     file_stamp = { 0 };
 
+    return true;
+  }
+
+  return false;
+}
+
+iSK_INI::CharacterEncoding
+iSK_INI::get_encoding (void) const
+{
+  return encoding_;
+}
+
+bool
+iSK_INI::set_encoding (CharacterEncoding encoding)
+{
+  if ( encoding >= INI_UTF8 &&
+       encoding <= INI_UTF8BOM )
+  {
+    encoding_ = encoding;
     return true;
   }
 

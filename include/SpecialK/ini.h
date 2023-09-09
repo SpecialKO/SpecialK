@@ -120,6 +120,14 @@ interface iSK_INI : public IUnknown
   using _TSectionMap =
     std::unordered_map <std::wstring, iSK_INISection>;
 
+  enum CharacterEncoding {
+    INI_INVALID = 0x00,
+    INI_UTF8    = 0x01,
+    INI_UTF16LE = 0x02,
+    INI_UTF16BE = 0x04, // Not natively supported, but can be converted
+    INI_UTF8BOM = 0x08
+  };
+
            iSK_INI (const wchar_t* filename);
   virtual ~iSK_INI (void);
 
@@ -132,28 +140,31 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (void, import) (THIS_ const wchar_t* import_data);
   STDMETHOD_ (void, write)  (THIS_ const wchar_t* fname = nullptr);
 
-  STDMETHOD_ (_TSectionMap&,   get_sections)    (THIS);
-  STDMETHOD_ (iSK_INISection&, get_section)     (const wchar_t* section);
-  STDMETHOD_ (bool,            contains_section)(const wchar_t* section);
-  STDMETHOD_ (bool,            remove_section)  (const wchar_t* section);
+  STDMETHOD_ (_TSectionMap&,     get_sections)    (THIS);
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const wchar_t* section);
+  STDMETHOD_ (bool,              contains_section)(const wchar_t* section);
+  STDMETHOD_ (bool,              remove_section)  (const wchar_t* section);
 
-  STDMETHOD_ (iSK_INISection&, get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
-                                                  wchar_t const* const _Format,
+  STDMETHOD_ (iSK_INISection&,   get_section_f)   ( THIS_ _In_z_ _Printf_format_string_
+                                                    wchar_t const* const _Format,
                                                                        ... );
-  STDMETHOD_ (const wchar_t*,  get_filename)    (THIS) const;
-  STDMETHOD_ (bool,            import_file)     (const wchar_t* fname);
-  STDMETHOD_ (bool,            rename)          (const wchar_t* fname);
-  STDMETHOD_ (bool,            reload)          (const wchar_t* fname = nullptr);
+  STDMETHOD_ (const wchar_t*,    get_filename)    (THIS) const;
+  STDMETHOD_ (bool,              import_file)     (const wchar_t* fname);
+  STDMETHOD_ (bool,              rename)          (const wchar_t* fname);
+  STDMETHOD_ (bool,              reload)          (const wchar_t* fname = nullptr);
+
+  STDMETHOD_ (CharacterEncoding, get_encoding)    (void) const;
+  STDMETHOD_ (bool,              set_encoding)    (CharacterEncoding encoding);
 
 
   // Private to DLL
-  STDMETHOD_ (iSK_INISection&, get_section)     (const std::wstring_view section);
-  STDMETHOD_ (bool,            contains_section)(const std::wstring_view section);
-  STDMETHOD_ (bool,            remove_section)  (const std::wstring_view section);
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const std::wstring_view section);
+  STDMETHOD_ (bool,              contains_section)(const std::wstring_view section);
+  STDMETHOD_ (bool,              remove_section)  (const std::wstring_view section);
 
-  STDMETHOD_ (iSK_INISection&, get_section)     (const std::wstring& section);
-  STDMETHOD_ (iSK_INISection*, contains_section)(const std::wstring& section);
-  STDMETHOD_ (bool,            remove_section)  (const std::wstring& section);
+  STDMETHOD_ (iSK_INISection&,   get_section)     (const std::wstring& section);
+  STDMETHOD_ (iSK_INISection*,   contains_section)(const std::wstring& section);
+  STDMETHOD_ (bool,              remove_section)  (const std::wstring& section);
 
 protected:
   std::recursive_mutex  lock;
@@ -177,12 +188,7 @@ private:
               ordered_sections;
 
   // Preserve File Encoding
-  enum CharacterEncoding {
-    INI_INVALID = 0x00,
-    INI_UTF8    = 0x01,
-    INI_UTF16LE = 0x02,
-    INI_UTF16BE = 0x04 // Not natively supported, but can be converted
-  } encoding_;
+  CharacterEncoding encoding_;
 
   ULONG    refs_      =    0;
   uint32_t crc32_     =    0; // Skip writing config files that haven't changed
