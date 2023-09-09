@@ -2037,20 +2037,30 @@ _COM_Outptr_opt_ void           **ppvHeap)
   {
     switch (SK_GetCurrentGameID ())
     {
+      // Reallocate heaps too small for remastering the SwapChain
       case SK_GAME_ID::Starfield:
-        if (pDesc->SizeInBytes < 70778880)
+      {
+        SK_ComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+
+        if (pSwapChain.p != nullptr)
         {
-          auto desc = *pDesc;
+          DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+          pSwapChain->GetDesc (&swapDesc);
 
-          desc.SizeInBytes = 70778880;
+          if (pDesc->SizeInBytes == swapDesc.BufferDesc.Width * swapDesc.BufferDesc.Height * 2)
+          {
+            auto desc = *pDesc;
 
-          HRESULT hr =
-            D3D12Device_CreateHeap_Original (This, &desc, riid, ppvHeap);
+            desc.SizeInBytes *= 2;
 
-          if (SUCCEEDED (hr))
-            return hr;
+            HRESULT hr =
+              D3D12Device_CreateHeap_Original (This, &desc, riid, ppvHeap);
+
+            if (SUCCEEDED (hr))
+              return hr;
+          }
         }
-        break;
+      } break;
 
       default:
         break;

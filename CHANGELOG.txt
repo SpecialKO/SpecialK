@@ -1,4 +1,13 @@
-﻿23.9.8
+﻿23.9.8.2
+========
+ + Only reallocate D3D12 heaps too small to store the remastered SwapChain for Starfield
+
+23.9.8.1
+========
+ + Merge pull request #91 from Aemony/asi_support
+    * Added ASI files to the plugin file dialog
+
+23.9.8
 ======
  + Integrated Ersh's solution for isolating remastering to certain rendertargets,
      if SK remasters all RTs allocated using D3D12Device_CreatePlacedResource, it will
