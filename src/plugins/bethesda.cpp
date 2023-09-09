@@ -25,7 +25,7 @@
 static iSK_INI* game_ini       = nullptr;
 static iSK_INI* gameCustom_ini = nullptr;
 
-#ifdef _WIN64
+#if 1
 
 static sk::ParameterFloat* sf_1stFOV = nullptr;
 static sk::ParameterFloat* sf_3rdFOV = nullptr;
@@ -57,12 +57,12 @@ bool SK_SF_PlugInCfg() {
         ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.87f, 0.53f, 0.53f, 0.80f));
         ImGui::TreePush("");
 
-        if (ImGui::CollapsingHeader ("Render Quality"))
+        if (ImGui::CollapsingHeader ("Render Quality", ImGuiTreeNodeFlags_DefaultOpen))
         {
           bool changed = false;
 
           ImGui::TreePush ("");
-          changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bit color",       &bRemasterBasicRTs);
+          changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bpc color",       &bRemasterBasicRTs);
 
           if (ImGui::IsItemHovered ())
             ImGui::SetTooltip ("Eliminates banding on UI at the cost of (negligible) extra VRAM");
@@ -72,7 +72,7 @@ bool SK_SF_PlugInCfg() {
           {
             ImGui::SameLine ();
 
-            changed |= ImGui::Checkbox ("Upgrade Most 8-bit RTs to 16-bit color", &bRemasterExtendedRTs);
+            changed |= ImGui::Checkbox ("Upgrade Most 8-bit RTs to 16-bpc color", &bRemasterExtendedRTs);
 
             if (ImGui::IsItemHovered ())
             {
