@@ -1,4 +1,8 @@
-﻿23.9.9.1
+﻿23.9.9.2
+========
+ + Fixed Bethesda games plug-in to create INI files in ANSI mode
+
+23.9.9.1
 ========
  + Fixed problem in 23.9.9 that could cause INI data loss
 
