@@ -1,4 +1,8 @@
-﻿23.9.9
+﻿23.9.9.1
+========
+ + Fixed problem in 23.9.9 that could cause INI data loss
+
+23.9.9
 ======
  + Added support for encoding UTF-8 INI files without a Byte-Order-Marker
  + When loading existing INIs, UTF-8 Byte-Order-Marker beahvior is preserved

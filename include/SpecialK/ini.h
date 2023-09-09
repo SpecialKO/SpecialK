@@ -125,7 +125,7 @@ interface iSK_INI : public IUnknown
     INI_UTF8    = 0x01,
     INI_UTF16LE = 0x02,
     INI_UTF16BE = 0x04, // Not natively supported, but can be converted
-    INI_UTF8BOM = 0x08
+    INI_ANSI    = 0x08
   };
 
            iSK_INI (const wchar_t* filename);
