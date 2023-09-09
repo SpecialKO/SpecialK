@@ -27,11 +27,13 @@ static iSK_INI* gameCustom_ini = nullptr;
 
 #ifdef _WIN64
 
-static sk::ParameterFloat* sf_1stFOV = nullptr;
-static sk::ParameterFloat* sf_3rdFOV = nullptr;
+static sk::ParameterFloat* sf_1stFOV  = nullptr;
+static sk::ParameterFloat* sf_3rdFOV  = nullptr;
+static sk::ParameterFloat* sf_MipBias = nullptr;
 
-static float* pf1stFOV = nullptr;
-static float* pf3rdFOV = nullptr;
+static float* pf1stFOV  = nullptr;
+static float* pf3rdFOV  = nullptr;
+static float* pfMipBias = nullptr;
 
 static sk::ParameterBool* __SK_SF_BasicRemastering    = nullptr;
 static sk::ParameterBool* __SK_SF_ExtendedRemastering = nullptr;
@@ -78,6 +80,12 @@ bool SK_SF_PlugInCfg (void)
         ImGui::SetTooltip ("May further reduce banding and improve HDR, but at high memory cost");
       }
 
+      if (pfMipBias != nullptr)
+      {
+        changed |=
+          ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -5.f, 5.f, "%.1f", 0.1f);
+      }
+
       ImGui::TreePop ();
 
       static bool restart_needed = false;
@@ -117,10 +125,11 @@ bool SK_SF_PlugInCfg (void)
 
       if (changed)
       {
-        sf_1stFOV->store(*pf1stFOV);
-        sf_3rdFOV->store(*pf3rdFOV);
+        sf_1stFOV->store  (*pf1stFOV);
+        sf_3rdFOV->store  (*pf3rdFOV);
+        sf_MipBias->store (*pfMipBias);
 
-        gameCustom_ini->write();
+        gameCustom_ini->write ();
       }
     }
 
@@ -460,14 +469,17 @@ SK_BGS_InitPlugin(void)
       game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
       gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
   
-      sf_1stFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"First Person FOV"));
-      sf_3rdFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Third Person FOV"));
+      sf_1stFOV  = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"First Person FOV"));
+      sf_3rdFOV  = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Third Person FOV"));
+      sf_MipBias = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Mipmap Bias"));
       
-      sf_1stFOV->register_to_ini(gameCustom_ini, L"Camera", L"fFPWorldFOV");
-      sf_3rdFOV->register_to_ini(gameCustom_ini, L"Camera", L"fTPWorldFOV");
+      sf_1stFOV->register_to_ini (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
+      sf_3rdFOV->register_to_ini (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
+      sf_MipBias->register_to_ini(gameCustom_ini, L"Display", L"fMipBiasOffset");
   
-      pf1stFOV = reinterpret_cast<float*>(CalculateOffset(0x14557B930) + 8);
-      pf3rdFOV = reinterpret_cast<float*>(CalculateOffset(0x14557B910) + 8);
+      pf1stFOV  = reinterpret_cast<float*>(CalculateOffset(0x14557B930) + 8);
+      pf3rdFOV  = reinterpret_cast<float*>(CalculateOffset(0x14557B910) + 8);
+      pfMipBias = reinterpret_cast<float*>(CalculateOffset(0x1455FDE70) + 8);
     }
   
     plugin_mgr->config_fns.emplace(SK_SF_PlugInCfg);

@@ -1,28 +1,13 @@
-﻿23.9.9.6
+﻿23.9.9.x
 ========
- + Added support for extended remastering to non-Steam version of Starfield
-
-23.9.9.5
-========
- + Fixed reversal of meaning for INI_UTF8 and INI_UTF8NOBOM
-
-23.9.9.4
-========
- + Fixed 16-bpc SwapChain being enabled for non-HDR users in Starfield
-
-23.9.9.3
-========
- + Added support for upgrading RTs to 16-bpc even for non-HDR users
- + Added options to upgrade Render Targets to 16-bpc in Starfield to control panel
-    >> Steam users have additional options available
-
-23.9.9.2
-========
- + Fixed Bethesda games plug-in to create INI files in ANSI mode
-
-23.9.9.1
-========
- + Fixed problem in 23.9.9 that could cause INI data loss
+ [.6] + Added support for extended remastering to non-Steam version of Starfield
+ [.5] + Fixed reversal of meaning for INI_UTF8 and INI_UTF8NOBOM
+ [.4] + Fixed 16-bpc SwapChain being enabled for non-HDR users in Starfield
+ [.3] + Added support for upgrading RTs to 16-bpc even for non-HDR users
+ [.3] + Added options to upgrade Render Targets to 16-bpc in Starfield to control panel
+          >> Steam users have additional options available
+ [.2] + Fixed Bethesda games plug-in to create INI files in ANSI mode
+ [.1] + Fixed problem in 23.9.9 that could cause INI data loss
 
 23.9.9
 ======
