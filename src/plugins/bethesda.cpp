@@ -35,11 +35,13 @@ static float* pf1stFOV  = nullptr;
 static float* pf3rdFOV  = nullptr;
 static float* pfMipBias = nullptr;
 
-static sk::ParameterBool* __SK_SF_BasicRemastering    = nullptr;
-static sk::ParameterBool* __SK_SF_ExtendedRemastering = nullptr;
+static sk::ParameterBool* __SK_SF_BasicRemastering       = nullptr;
+static sk::ParameterBool* __SK_SF_ExtendedRemastering    = nullptr;
+static sk::ParameterBool* __SK_SF_PhotoModeCompatibility = nullptr;
 
-static bool bRemasterBasicRTs    = true;
-static bool bRemasterExtendedRTs = false;
+static bool sf_bRemasterBasicRTs       = true;
+static bool sf_bRemasterExtendedRTs    = false;
+static bool sf_bPhotoModeCompatibility = false;
 
 static uintptr_t pBaseAddr = 0;
 
@@ -69,18 +71,30 @@ bool SK_SF_PlugInCfg (void)
       bool changed_no_restart_needed = false;
 
       ImGui::TreePush ("");
-      changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bpc color",       &bRemasterBasicRTs);
+      changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bpc color",       &sf_bRemasterBasicRTs);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Eliminates banding on UI at the cost of (negligible) extra VRAM");
 
       ImGui::SameLine ();
 
-      changed |= ImGui::Checkbox ("Upgrade Most 8-bit RTs to 16-bpc color", &bRemasterExtendedRTs);
+      changed |= ImGui::Checkbox ("Upgrade Most 8-bit RTs to 16-bpc color", &sf_bRemasterExtendedRTs);
 
       if (ImGui::IsItemHovered ())
       {
         ImGui::SetTooltip ("May further reduce banding and improve HDR, but at high memory cost");
+      }
+
+      if (sf_bRemasterBasicRTs)
+      {
+        changed |= ImGui::Checkbox ("PhotoMode Compatibility", &sf_bPhotoModeCompatibility);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Reduce dynamic range to 8-bpc on Image Space Buffers so that Photo Mode does not crash.");
+
+        ImGui::SameLine          ();
+        ImGui::VerticalSeparator ();
+        ImGui::SameLine          ();
       }
 
       if (pfMipBias != nullptr)
@@ -103,8 +117,9 @@ bool SK_SF_PlugInCfg (void)
         if (changed)
           restart_needed = true;
 
-        __SK_SF_BasicRemastering->store    (bRemasterBasicRTs);
-        __SK_SF_ExtendedRemastering->store (bRemasterExtendedRTs);
+        __SK_SF_BasicRemastering->store       (sf_bRemasterBasicRTs);
+        __SK_SF_ExtendedRemastering->store    (sf_bRemasterExtendedRTs);
+        __SK_SF_PhotoModeCompatibility->store (sf_bPhotoModeCompatibility);
 
         if (pfMipBias != nullptr)
         {
@@ -159,7 +174,7 @@ void SK_SEH_InitStarfieldRTs (void)
 {
   __try
   {
-    if (bRemasterBasicRTs)
+    if (sf_bRemasterBasicRTs)
     {
       void *scan =
         SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8);
@@ -170,11 +185,13 @@ void SK_SEH_InitStarfieldRTs (void)
       uint32_t  *imageSpaceBufferPtr         =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 7 + offset);            // 5079A70
       uint32_t  *scaleformCompositeBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)imageSpaceBufferPtr + 0x280);  // 5079CF0
 
-      *imageSpaceBufferPtr         = 77;
+      if (! sf_bPhotoModeCompatibility)
+        *imageSpaceBufferPtr       = 77;
+
       *scaleformCompositeBufferPtr = 77;
     }
 
-    if (bRemasterExtendedRTs)
+    if (sf_bRemasterExtendedRTs)
     {
       void *scan =
         SK_ScanAlignedEx ("\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00");
@@ -342,7 +359,7 @@ void SK_SEH_InitStarfieldRTs (void)
       const char *buffers_to_remaster [] =
       {
         "NativeResolutionColorBuffer01",
-        "ImageSpaceBuffer",
+      //"ImageSpaceBuffer",
         "HDRImagespaceBuffer",
         "ImageSpaceBufferR10G10B10A2",
         "ImageSpaceBufferB10G11R11",
@@ -457,15 +474,20 @@ SK_BGS_InitPlugin(void)
   {
     __SK_SF_BasicRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
-                                   L"BasicRTUpgrades", bRemasterBasicRTs,
+                                   L"BasicRTUpgrades", sf_bRemasterBasicRTs,
                                                        L"Promote Simple RTs to FP16" );
   
     __SK_SF_ExtendedRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
-                                   L"ExtendedRTUpgrades", bRemasterExtendedRTs,
-                                                          L"Promote All 8-bit RTs to FP16" );
+                                   L"ExtendedRTUpgrades", sf_bRemasterExtendedRTs,
+                                                          L"Promote Most 8-bit RTs to FP16" );
+
+    __SK_SF_PhotoModeCompatibility =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"PhotoModeCompatibility", sf_bPhotoModeCompatibility,
+                                                              L"Ignore Image Space Buffer When Promotion RTs to FP16" );
   
-    if (bRemasterBasicRTs || bRemasterExtendedRTs)
+    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs)
     {
       SK_SEH_InitStarfieldRTs ();
     }
