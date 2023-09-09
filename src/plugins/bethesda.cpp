@@ -312,48 +312,59 @@ void SK_SEH_InitStarfieldRTs (void)
 
       const char *buffers_to_remaster [] =
       {
-      "NativeResolutionColorBuffer01",
-      "ImageSpaceBuffer",
-      "HDRImagespaceBuffer",
-      "ImageSpaceBufferR10G10B10A2",
-      "ImageSpaceBufferB10G11R11",
-      "ImageSpaceBufferE5B9G9R9",
-      "GBuffer_Normal_EmissiveIntensity",
+        "NativeResolutionColorBuffer01",
+        "ImageSpaceBuffer",
+        "HDRImagespaceBuffer",
+        "ImageSpaceBufferR10G10B10A2",
+        "ImageSpaceBufferB10G11R11",
+        "ImageSpaceBufferE5B9G9R9",
+        "GBuffer_Normal_EmissiveIntensity",
 
-      "FrameBuffer",
-      "SF_ColorBuffer",
+        //"FrameBuffer",
+        "SF_ColorBuffer",
 
-      "TAA_idTech7HistoryColorTarget",
+        "TAA_idTech7HistoryColorTarget",
 
-      "EnvBRDF",
+        "EnvBRDF",
 
-      "GBuffer_AlbedoMisc",
-      "GBuffer_AO_Rough_Metal",
-      "GBuffer_Optional",
-      "LightingBufferUV",
-      "SAORawAO",
-      "DownsampleOutputPrevFrame",
-      "DownsampleOutput",
-      "SobelOutput",
-      "SpaceGlareBlur",
-      "SeparableSSSBufferUV",
+        "GBuffer_AlbedoMisc",
+        "GBuffer_AO_Rough_Metal",
+        "GBuffer_Optional",
+        "LightingBufferUV",
+        "SAORawAO",
+        "DownsampleOutputPrevFrame",
+        "DownsampleOutput",
+        "SobelOutput",
+        "SpaceGlareBlur",
+        "SeparableSSSBufferUV",
 //FSR2_RESAMPLED_LUMA_HISTORY' (113) using FP16
-      "ThinGBuffer_Albedo",
-      "ThinGBuffer_Optional",
-      "ThinGBuffer_AlbedoArray",
-      "ThinGBuffer_OptionalArray",
-      "SkyCubemapThinGBuffer_Albedo",
-      "SkyCubemapThinGBuffer_Optional",
-      "CelestialBodyThinGBuffer_Albedo",
-      "CelestialBodyThinGBuffer_Optional",
-      "EpipolarExtinction",
-      "ImageProcessColorTarget"
+        "ThinGBuffer_Albedo",
+        "ThinGBuffer_Optional",
+        "ThinGBuffer_AlbedoArray",
+        "ThinGBuffer_OptionalArray",
+        "SkyCubemapThinGBuffer_Albedo",
+        "SkyCubemapThinGBuffer_Optional",
+        "CelestialBodyThinGBuffer_Albedo",
+        "CelestialBodyThinGBuffer_Optional",
+        "EpipolarExtinction",
+        "ImageProcessColorTarget"
       };
 
       for (UINT i = 0 ; i < 200 ; ++i)
       {
         __try
         {
+          extern bool __SK_HDR_16BitSwap;
+          if (StrStrA (buffer_defs [i]->bufferName, "FrameBuffer"))
+          {
+            if (__SK_HDR_16BitSwap)
+            {
+              buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+            }
+
+            continue;
+          }
+
           for (auto remaster : buffers_to_remaster)
           {
             if (StrStrIA (buffer_defs [i]->bufferName, remaster) != 0)
