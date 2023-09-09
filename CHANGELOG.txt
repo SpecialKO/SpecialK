@@ -1,4 +1,9 @@
-﻿23.9.8.2
+﻿23.9.9
+======
+ + Added support for encoding UTF-8 INI files without a Byte-Order-Marker
+ + When loading existing INIs, UTF-8 Byte-Order-Marker beahvior is preserved
+
+23.9.8.2
 ========
  + Only reallocate D3D12 heaps too small to store the remastered SwapChain for Starfield
 
@@ -19,7 +24,8 @@
  + Fixed a few visual glitches in Starfield HDR remastering, by restricting the feature
      to render-passes only and ignoring compute-only resources.
 
-   The resolution restrictions are not necessary when ignoring compute, and have been removed.
+   The resolution restrictions are not necessary when ignoring compute,
+     and have been removed.
 
 23.9.7
 ======

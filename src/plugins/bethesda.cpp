@@ -22,7 +22,7 @@
 #include <SpecialK/stdafx.h>
 #include <string>
 
-static iSK_INI* game_ini = nullptr;
+static iSK_INI* game_ini       = nullptr;
 static iSK_INI* gameCustom_ini = nullptr;
 
 #ifdef _WIN64
@@ -165,6 +165,8 @@ SK_BGS_InitPlugin(void)
             gameCustom_ini = SK_CreateINI((SK_GetDocumentsDir() + LR"(\My Games\Starfield\StarfieldCustom.ini)").c_str());
         }
 
+        game_ini->set_encoding       (iSK_INI::INI_UTF8);
+        gameCustom_ini->set_encoding (iSK_INI::INI_UTF8);
 
         sf_1stFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"First Person FOV"));
         sf_3rdFOV = dynamic_cast <sk::ParameterFloat*> (g_ParameterFactory->create_parameter <float>(L"Third Person FOV"));
