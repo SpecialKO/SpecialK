@@ -177,7 +177,8 @@ void SK_SEH_InitStarfieldRTs (void)
     if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs)
     {
       void *scan =
-        SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8);
+        SK_ScanAlignedEx ( "\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10,
+                           "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8 );
 
       SK_LOGs0 (L"Starfield ", L"Scanned Address 0: %p", scan);
 
@@ -196,7 +197,8 @@ void SK_SEH_InitStarfieldRTs (void)
       if (sf_bRemasterExtendedRTs)
       {
         scan =
-          SK_ScanAlignedEx ("\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00");
+          SK_ScanAlignedEx ( "\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12,
+                             "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00", scan );
 
         SK_LOGs0 (L"Starfield ", L"Scanned Buffer Array: %p", scan);
 
