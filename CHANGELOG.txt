@@ -1,4 +1,10 @@
-﻿23.9.9.2
+﻿23.9.9.3
+========
+ + Added support for upgrading RTs to 16-bpc even for non-HDR users
+ + Added options to upgrade Render Targets to 16-bpc in Starfield to control panel
+    >> Steam users have additional options available
+
+23.9.9.2
 ========
  + Fixed Bethesda games plug-in to create INI files in ANSI mode
 
