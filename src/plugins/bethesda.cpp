@@ -174,258 +174,261 @@ void SK_SEH_InitStarfieldRTs (void)
 {
   __try
   {
-    if (sf_bRemasterBasicRTs)
+    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs)
     {
       void *scan =
         SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8);
 
       SK_LOGs0 (L"Starfield ", L"Scanned Address 0: %p", scan);
 
-      const auto offset                      = *reinterpret_cast < int32_t *>((uintptr_t)scan + 3);
-      uint32_t  *imageSpaceBufferPtr         =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 7 + offset);            // 5079A70
-      uint32_t  *scaleformCompositeBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)imageSpaceBufferPtr + 0x280);  // 5079CF0
-
-      if (! sf_bPhotoModeCompatibility)
-        *imageSpaceBufferPtr       = 77;
-
-      *scaleformCompositeBufferPtr = 77;
-    }
-
-    if (sf_bRemasterExtendedRTs)
-    {
-      void *scan =
-        SK_ScanAlignedEx ("\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00");
-
-      SK_LOGs0 (L"Starfield ", L"Scanned Buffer Array: %p", scan);
-
-			const auto offset  = *reinterpret_cast < int32_t *>((uintptr_t)scan  + 3);
-			const auto address =  reinterpret_cast < uintptr_t>(           scan) + 7 + offset;
-
-      enum class BS_DXGI_FORMAT
+      if (sf_bRemasterBasicRTs)
       {
-        BS_DXGI_FORMAT_UNKNOWN0 = 0,
-        BS_DXGI_FORMAT_R8_UNORM1 = 1,
-        BS_DXGI_FORMAT_R8_SNORM2 = 2,
-        BS_DXGI_FORMAT_R8_UINT3,
-        BS_DXGI_FORMAT_R8_SINT4,
-        BS_DXGI_FORMAT_UNKNOWN5,
-        BS_DXGI_FORMAT_UNKNOWN6,
-        BS_DXGI_FORMAT_B4G4R4A4_UNORM7,
-        BS_DXGI_FORMAT_UNKNOWN8,
-        BS_DXGI_FORMAT_UNKNOWN9,
-        BS_DXGI_FORMAT_B5G6R5_UNORM10,
-        BS_DXGI_FORMAT_B5G6R5_UNORM11,
-        BS_DXGI_FORMAT_UNKNOWN12,
-        BS_DXGI_FORMAT_B5G5R5A1_UNORM13,
-        BS_DXGI_FORMAT_R8G8_UNORM14,
-        BS_DXGI_FORMAT_R8G8_SNORM15,
-        BS_DXGI_FORMAT_UNKNOWN16,
-        BS_DXGI_FORMAT_UNKNOWN17,
-        BS_DXGI_FORMAT_R8G8_UINT18,
-        BS_DXGI_FORMAT_R8G8_SINT19,
-        BS_DXGI_FORMAT_UNKNOWN20,
-        BS_DXGI_FORMAT_R16_UNORM21,
-        BS_DXGI_FORMAT_R16_SNORM22,
-        BS_DXGI_FORMAT_R16_UINT23,
-        BS_DXGI_FORMAT_R16_SINT24,
-        BS_DXGI_FORMAT_R16_FLOAT25,
-        BS_DXGI_FORMAT_UNKNOWN26,
-        BS_DXGI_FORMAT_UNKNOWN27,
-        BS_DXGI_FORMAT_UNKNOWN28,
-        BS_DXGI_FORMAT_UNKNOWN29,
-        BS_DXGI_FORMAT_UNKNOWN30,
-        BS_DXGI_FORMAT_UNKNOWN31,
-        BS_DXGI_FORMAT_UNKNOWN32,
-        BS_DXGI_FORMAT_UNKNOWN33,
-        BS_DXGI_FORMAT_UNKNOWN34,
-        BS_DXGI_FORMAT_UNKNOWN35,
-        BS_DXGI_FORMAT_R8G8B8A8_UNORM36,
-        BS_DXGI_FORMAT_R8G8B8A8_SNORM37,
-        BS_DXGI_FORMAT_R8G8B8A8_UINT38,
-        BS_DXGI_FORMAT_R8G8B8A8_SINT39,
-        BS_DXGI_FORMAT_R8G8B8A8_UNORM_SRGB40,
-        BS_DXGI_FORMAT_B8G8R8A8_UNORM41,
-        BS_DXGI_FORMAT_UNKNOWN42,
-        BS_DXGI_FORMAT_UNKNOWN43,
-        BS_DXGI_FORMAT_UNKNOWN44,
-        BS_DXGI_FORMAT_B8G8R8A8_UNORM_SRGB45,
-        BS_DXGI_FORMAT_UNKNOWN46,
-        BS_DXGI_FORMAT_B8G8R8X8_UNORM47,
-        BS_DXGI_FORMAT_R16G16_UNORM48,
-        BS_DXGI_FORMAT_UNKNOWN49,
-        BS_DXGI_FORMAT_R16G16_SNORM50,
-        BS_DXGI_FORMAT_UNKNOWN51,
-        BS_DXGI_FORMAT_R16G16_UINT52,
-        BS_DXGI_FORMAT_R16G16_SINT53,
-        BS_DXGI_FORMAT_R16G16_FLOAT54,
-        BS_DXGI_FORMAT_R32_UINT55,
-        BS_DXGI_FORMAT_R32_SINT56,
-        BS_DXGI_FORMAT_R32_FLOAT57,
-        BS_DXGI_FORMAT_UNKNOWN58,
-        BS_DXGI_FORMAT_UNKNOWN59,
-        BS_DXGI_FORMAT_UNKNOWN60,
-        BS_DXGI_FORMAT_UNKNOWN61,
-        BS_DXGI_FORMAT_R10G10B10A2_UNORM62,
-        BS_DXGI_FORMAT_R10G10B10A2_UINT63,
-        BS_DXGI_FORMAT_UNKNOWN64,
-        BS_DXGI_FORMAT_UNKNOWN65,
-        BS_DXGI_FORMAT_R11G11B10_FLOAT66,
-        BS_DXGI_FORMAT_R9G9B9E5_SHAREDEXP67,
-        BS_DXGI_FORMAT_UNKNOWN68,
-        BS_DXGI_FORMAT_UNKNOWN69,
-        BS_DXGI_FORMAT_UNKNOWN70,
-        BS_DXGI_FORMAT_UNKNOWN71,
-        BS_DXGI_FORMAT_UNKNOWN72,
-        BS_DXGI_FORMAT_R16G16B16A16_UNORM73,
-        BS_DXGI_FORMAT_R16G16B16A16_SNORM74,
-        BS_DXGI_FORMAT_R16G16B16A16_UINT75,
-        BS_DXGI_FORMAT_R16G16B16A16_SINT76,
-        BS_DXGI_FORMAT_R16G16B16A16_FLOAT77,
-        BS_DXGI_FORMAT_R32G32_UINT78,
-        BS_DXGI_FORMAT_R32G32_SINT79,
-        BS_DXGI_FORMAT_R32G32_FLOAT80,
-        BS_DXGI_FORMAT_R32G32B32_UINT81,
-        BS_DXGI_FORMAT_R32G32B32_SINT82,
-        BS_DXGI_FORMAT_R32G32B32_FLOAT83,
-        BS_DXGI_FORMAT_R32G32B32A32_UINT84,
-        BS_DXGI_FORMAT_R32G32B32A32_SINT85,
-        BS_DXGI_FORMAT_R32G32B32A32_FLOAT86,
-        BS_DXGI_FORMAT_UNKNOWN87,
-        BS_DXGI_FORMAT_UNKNOWN88,
-        BS_DXGI_FORMAT_UNKNOWN89,
-        BS_DXGI_FORMAT_UNKNOWN90,
-        BS_DXGI_FORMAT_UNKNOWN91,
-        BS_DXGI_FORMAT_UNKNOWN92,
-        BS_DXGI_FORMAT_UNKNOWN93,
-        BS_DXGI_FORMAT_UNKNOWN94,
-        BS_DXGI_FORMAT_UNKNOWN95,
-        BS_DXGI_FORMAT_UNKNOWN96,
-        BS_DXGI_FORMAT_UNKNOWN97,
-        BS_DXGI_FORMAT_UNKNOWN98,
-        BS_DXGI_FORMAT_D16_UNORM99,
-        BS_DXGI_FORMAT_D24_UNORM_S8_UINT100,
-        BS_DXGI_FORMAT_D32_FLOAT101,
-        BS_DXGI_FORMAT_D24_UNORM_S8_UINT102,
-        BS_DXGI_FORMAT_D24_UNORM_S8_UINT103,
-        BS_DXGI_FORMAT_D32_FLOAT_S8X24_UINT104,
-        BS_DXGI_FORMAT_BC1_UNORM105,
-        BS_DXGI_FORMAT_BC1_UNORM_SRGB106,
-        BS_DXGI_FORMAT_BC1_UNORM107,
-        BS_DXGI_FORMAT_BC1_UNORM_SRGB108,
-        BS_DXGI_FORMAT_BC2_UNORM109,
-        BS_DXGI_FORMAT_BC2_UNORM_SRGB110,
-        BS_DXGI_FORMAT_BC3_UNORM111,
-        BS_DXGI_FORMAT_BC3_UNORM_SRGB112,
-        BS_DXGI_FORMAT_BC4_UNORM113,
-        BS_DXGI_FORMAT_BC4_SNORM114,
-        BS_DXGI_FORMAT_BC5_UNORM115,
-        BS_DXGI_FORMAT_BC5_SNORM116,
-        BS_DXGI_FORMAT_BC6H_UF16_117,
-        BS_DXGI_FORMAT_BC6H_SF16_118,
-        BS_DXGI_FORMAT_BC7_UNORM119,
-        BS_DXGI_FORMAT_BC7_UNORM_SRGB120
-      };
+        const auto offset                      = *reinterpret_cast < int32_t *>((uintptr_t)scan + 3);
+        uint32_t  *imageSpaceBufferPtr         =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 7 + offset);            // 5079A70
+        uint32_t  *scaleformCompositeBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)imageSpaceBufferPtr + 0x280);  // 5079CF0
 
-      struct BufferDefinition
+        if (! sf_bPhotoModeCompatibility)
+          *imageSpaceBufferPtr       = 77;
+
+        *scaleformCompositeBufferPtr = 77;
+      }
+
+      if (sf_bRemasterExtendedRTs)
       {
-        BS_DXGI_FORMAT format;
-        uint32_t       unk04;
-        const char*    bufferName;
-        uint16_t       unk10;
-        uint16_t       unk12;
-        uint32_t       unk14;
-        uint16_t       unk18;
-        uint16_t       unk1A;
-        uint32_t       unk1C;
-        uint16_t       unk20;
-        uint16_t       unk22;
-        uint32_t       unk24;
-        uint16_t       unk28;
-        uint16_t       unk2A;
-        uint32_t       unk2C;
-        uint32_t       unk30;
-        float          unk34;
-        float          unk38;
-        float          unk3C;
-        uint32_t       unk40;
-        uint32_t       unk44;
-        uint32_t       unk48;
-        uint32_t       unk4C;
-      };
+        scan =
+          SK_ScanAlignedEx ("\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00");
 
-      BufferDefinition **buffer_defs =
-        reinterpret_cast <BufferDefinition **>(address);  // 4718E40
+        SK_LOGs0 (L"Starfield ", L"Scanned Buffer Array: %p", scan);
 
-      const char *buffers_to_remaster [] =
-      {
-        "NativeResolutionColorBuffer01",
-      //"ImageSpaceBuffer",
-        "HDRImagespaceBuffer",
-        "ImageSpaceBufferR10G10B10A2",
-        "ImageSpaceBufferB10G11R11",
-        "ImageSpaceBufferE5B9G9R9",
-        "GBuffer_Normal_EmissiveIntensity",
-        "SF_ColorBuffer",
+			  const auto offset  = *reinterpret_cast < int32_t *>((uintptr_t)scan  + 3);
+			  const auto address =  reinterpret_cast < uintptr_t>(           scan) + 7 + offset;
 
-        "TAA_idTech7HistoryColorTarget",
+        enum class BS_DXGI_FORMAT
+        {
+          BS_DXGI_FORMAT_UNKNOWN0  = 0,
+          BS_DXGI_FORMAT_R8_UNORM1 = 1,
+          BS_DXGI_FORMAT_R8_SNORM2 = 2,
+          BS_DXGI_FORMAT_R8_UINT3,
+          BS_DXGI_FORMAT_R8_SINT4,
+          BS_DXGI_FORMAT_UNKNOWN5,
+          BS_DXGI_FORMAT_UNKNOWN6,
+          BS_DXGI_FORMAT_B4G4R4A4_UNORM7,
+          BS_DXGI_FORMAT_UNKNOWN8,
+          BS_DXGI_FORMAT_UNKNOWN9,
+          BS_DXGI_FORMAT_B5G6R5_UNORM10,
+          BS_DXGI_FORMAT_B5G6R5_UNORM11,
+          BS_DXGI_FORMAT_UNKNOWN12,
+          BS_DXGI_FORMAT_B5G5R5A1_UNORM13,
+          BS_DXGI_FORMAT_R8G8_UNORM14,
+          BS_DXGI_FORMAT_R8G8_SNORM15,
+          BS_DXGI_FORMAT_UNKNOWN16,
+          BS_DXGI_FORMAT_UNKNOWN17,
+          BS_DXGI_FORMAT_R8G8_UINT18,
+          BS_DXGI_FORMAT_R8G8_SINT19,
+          BS_DXGI_FORMAT_UNKNOWN20,
+          BS_DXGI_FORMAT_R16_UNORM21,
+          BS_DXGI_FORMAT_R16_SNORM22,
+          BS_DXGI_FORMAT_R16_UINT23,
+          BS_DXGI_FORMAT_R16_SINT24,
+          BS_DXGI_FORMAT_R16_FLOAT25,
+          BS_DXGI_FORMAT_UNKNOWN26,
+          BS_DXGI_FORMAT_UNKNOWN27,
+          BS_DXGI_FORMAT_UNKNOWN28,
+          BS_DXGI_FORMAT_UNKNOWN29,
+          BS_DXGI_FORMAT_UNKNOWN30,
+          BS_DXGI_FORMAT_UNKNOWN31,
+          BS_DXGI_FORMAT_UNKNOWN32,
+          BS_DXGI_FORMAT_UNKNOWN33,
+          BS_DXGI_FORMAT_UNKNOWN34,
+          BS_DXGI_FORMAT_UNKNOWN35,
+          BS_DXGI_FORMAT_R8G8B8A8_UNORM36,
+          BS_DXGI_FORMAT_R8G8B8A8_SNORM37,
+          BS_DXGI_FORMAT_R8G8B8A8_UINT38,
+          BS_DXGI_FORMAT_R8G8B8A8_SINT39,
+          BS_DXGI_FORMAT_R8G8B8A8_UNORM_SRGB40,
+          BS_DXGI_FORMAT_B8G8R8A8_UNORM41,
+          BS_DXGI_FORMAT_UNKNOWN42,
+          BS_DXGI_FORMAT_UNKNOWN43,
+          BS_DXGI_FORMAT_UNKNOWN44,
+          BS_DXGI_FORMAT_B8G8R8A8_UNORM_SRGB45,
+          BS_DXGI_FORMAT_UNKNOWN46,
+          BS_DXGI_FORMAT_B8G8R8X8_UNORM47,
+          BS_DXGI_FORMAT_R16G16_UNORM48,
+          BS_DXGI_FORMAT_UNKNOWN49,
+          BS_DXGI_FORMAT_R16G16_SNORM50,
+          BS_DXGI_FORMAT_UNKNOWN51,
+          BS_DXGI_FORMAT_R16G16_UINT52,
+          BS_DXGI_FORMAT_R16G16_SINT53,
+          BS_DXGI_FORMAT_R16G16_FLOAT54,
+          BS_DXGI_FORMAT_R32_UINT55,
+          BS_DXGI_FORMAT_R32_SINT56,
+          BS_DXGI_FORMAT_R32_FLOAT57,
+          BS_DXGI_FORMAT_UNKNOWN58,
+          BS_DXGI_FORMAT_UNKNOWN59,
+          BS_DXGI_FORMAT_UNKNOWN60,
+          BS_DXGI_FORMAT_UNKNOWN61,
+          BS_DXGI_FORMAT_R10G10B10A2_UNORM62,
+          BS_DXGI_FORMAT_R10G10B10A2_UINT63,
+          BS_DXGI_FORMAT_UNKNOWN64,
+          BS_DXGI_FORMAT_UNKNOWN65,
+          BS_DXGI_FORMAT_R11G11B10_FLOAT66,
+          BS_DXGI_FORMAT_R9G9B9E5_SHAREDEXP67,
+          BS_DXGI_FORMAT_UNKNOWN68,
+          BS_DXGI_FORMAT_UNKNOWN69,
+          BS_DXGI_FORMAT_UNKNOWN70,
+          BS_DXGI_FORMAT_UNKNOWN71,
+          BS_DXGI_FORMAT_UNKNOWN72,
+          BS_DXGI_FORMAT_R16G16B16A16_UNORM73,
+          BS_DXGI_FORMAT_R16G16B16A16_SNORM74,
+          BS_DXGI_FORMAT_R16G16B16A16_UINT75,
+          BS_DXGI_FORMAT_R16G16B16A16_SINT76,
+          BS_DXGI_FORMAT_R16G16B16A16_FLOAT77,
+          BS_DXGI_FORMAT_R32G32_UINT78,
+          BS_DXGI_FORMAT_R32G32_SINT79,
+          BS_DXGI_FORMAT_R32G32_FLOAT80,
+          BS_DXGI_FORMAT_R32G32B32_UINT81,
+          BS_DXGI_FORMAT_R32G32B32_SINT82,
+          BS_DXGI_FORMAT_R32G32B32_FLOAT83,
+          BS_DXGI_FORMAT_R32G32B32A32_UINT84,
+          BS_DXGI_FORMAT_R32G32B32A32_SINT85,
+          BS_DXGI_FORMAT_R32G32B32A32_FLOAT86,
+          BS_DXGI_FORMAT_UNKNOWN87,
+          BS_DXGI_FORMAT_UNKNOWN88,
+          BS_DXGI_FORMAT_UNKNOWN89,
+          BS_DXGI_FORMAT_UNKNOWN90,
+          BS_DXGI_FORMAT_UNKNOWN91,
+          BS_DXGI_FORMAT_UNKNOWN92,
+          BS_DXGI_FORMAT_UNKNOWN93,
+          BS_DXGI_FORMAT_UNKNOWN94,
+          BS_DXGI_FORMAT_UNKNOWN95,
+          BS_DXGI_FORMAT_UNKNOWN96,
+          BS_DXGI_FORMAT_UNKNOWN97,
+          BS_DXGI_FORMAT_UNKNOWN98,
+          BS_DXGI_FORMAT_D16_UNORM99,
+          BS_DXGI_FORMAT_D24_UNORM_S8_UINT100,
+          BS_DXGI_FORMAT_D32_FLOAT101,
+          BS_DXGI_FORMAT_D24_UNORM_S8_UINT102,
+          BS_DXGI_FORMAT_D24_UNORM_S8_UINT103,
+          BS_DXGI_FORMAT_D32_FLOAT_S8X24_UINT104,
+          BS_DXGI_FORMAT_BC1_UNORM105,
+          BS_DXGI_FORMAT_BC1_UNORM_SRGB106,
+          BS_DXGI_FORMAT_BC1_UNORM107,
+          BS_DXGI_FORMAT_BC1_UNORM_SRGB108,
+          BS_DXGI_FORMAT_BC2_UNORM109,
+          BS_DXGI_FORMAT_BC2_UNORM_SRGB110,
+          BS_DXGI_FORMAT_BC3_UNORM111,
+          BS_DXGI_FORMAT_BC3_UNORM_SRGB112,
+          BS_DXGI_FORMAT_BC4_UNORM113,
+          BS_DXGI_FORMAT_BC4_SNORM114,
+          BS_DXGI_FORMAT_BC5_UNORM115,
+          BS_DXGI_FORMAT_BC5_SNORM116,
+          BS_DXGI_FORMAT_BC6H_UF16_117,
+          BS_DXGI_FORMAT_BC6H_SF16_118,
+          BS_DXGI_FORMAT_BC7_UNORM119,
+          BS_DXGI_FORMAT_BC7_UNORM_SRGB120
+        };
 
-        "EnvBRDF",
+        struct BufferDefinition
+        {
+          BS_DXGI_FORMAT format;
+          uint32_t       unk04;
+          const char*    bufferName;
+          uint16_t       unk10;
+          uint16_t       unk12;
+          uint32_t       unk14;
+          uint16_t       unk18;
+          uint16_t       unk1A;
+          uint32_t       unk1C;
+          uint16_t       unk20;
+          uint16_t       unk22;
+          uint32_t       unk24;
+          uint16_t       unk28;
+          uint16_t       unk2A;
+          uint32_t       unk2C;
+          uint32_t       unk30;
+          float          unk34;
+          float          unk38;
+          float          unk3C;
+          uint32_t       unk40;
+          uint32_t       unk44;
+          uint32_t       unk48;
+          uint32_t       unk4C;
+        };
 
-        "GBuffer_AlbedoMisc",
-        "GBuffer_AO_Rough_Metal",
-        "GBuffer_Optional",
-        "LightingBufferUV",
-        "SAORawAO",
-        "DownsampleOutputPrevFrame",
-        "DownsampleOutput",
-        "SobelOutput",
-        "SpaceGlareBlur",
-        "SeparableSSSBufferUV",
+        BufferDefinition **buffer_defs =
+          reinterpret_cast <BufferDefinition **>(address);  // 4718E40
+
+        const char *buffers_to_remaster [] =
+        {
+          "NativeResolutionColorBuffer01",
+        //"ImageSpaceBuffer",
+          "HDRImagespaceBuffer",
+          "ImageSpaceBufferR10G10B10A2",
+          "ImageSpaceBufferB10G11R11",
+          "ImageSpaceBufferE5B9G9R9",
+          "GBuffer_Normal_EmissiveIntensity",
+          "SF_ColorBuffer",
+
+          "TAA_idTech7HistoryColorTarget",
+
+          "EnvBRDF",
+
+          "GBuffer_AlbedoMisc",
+          "GBuffer_AO_Rough_Metal",
+          "GBuffer_Optional",
+          "LightingBufferUV",
+          "SAORawAO",
+          "DownsampleOutputPrevFrame",
+          "DownsampleOutput",
+          "SobelOutput",
+          "SpaceGlareBlur",
+          "SeparableSSSBufferUV",
 
 //FSR2_RESAMPLED_LUMA_HISTORY' (113) using FP16
 
-        "ThinGBuffer_Albedo",
-        "ThinGBuffer_Optional",
-        "ThinGBuffer_AlbedoArray",
-        "ThinGBuffer_OptionalArray",
-        "SkyCubemapThinGBuffer_Albedo",
-        "SkyCubemapThinGBuffer_Optional",
-        "CelestialBodyThinGBuffer_Albedo",
-        "CelestialBodyThinGBuffer_Optional",
-        "EpipolarExtinction",
-        "ImageProcessColorTarget"
-      };
-
-      for (UINT i = 0 ; i < 200 ; ++i)
-      {
-        __try
-        {
-          extern bool __SK_HDR_16BitSwap;
-          if (0 == strcmp (buffer_defs [i]->bufferName, "FrameBuffer"))
-          {
-            if (__SK_HDR_16BitSwap)
-            {
-              buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
-            }
-
-            continue;
-          }
-
-          for (auto remaster : buffers_to_remaster)
-          {
-            if (0 == strcmp (buffer_defs [i]->bufferName, remaster))
-            {
-              buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
-
-              SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
-              break;
-            }
-          }
-        }
-
-        __except (EXCEPTION_EXECUTE_HANDLER)
-        {
+          "ThinGBuffer_Albedo",
+          "ThinGBuffer_Optional",
+          "ThinGBuffer_AlbedoArray",
+          "ThinGBuffer_OptionalArray",
+          "SkyCubemapThinGBuffer_Albedo",
+          "SkyCubemapThinGBuffer_Optional",
+          "CelestialBodyThinGBuffer_Albedo",
+          "CelestialBodyThinGBuffer_Optional",
+          "EpipolarExtinction",
+          "ImageProcessColorTarget"
         };
+
+        for (UINT i = 0 ; i < 200 ; ++i)
+        {
+          __try
+          {
+            extern bool __SK_HDR_16BitSwap;
+            if (0 == strcmp (buffer_defs [i]->bufferName, "FrameBuffer"))
+            {
+              if (__SK_HDR_16BitSwap)
+              {
+                buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+              }
+
+              continue;
+            }
+
+            for (auto remaster : buffers_to_remaster)
+            {
+              if (0 == strcmp (buffer_defs [i]->bufferName, remaster))
+              {
+                buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+
+                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+                break;
+              }
+            }
+          }
+
+          __except (EXCEPTION_EXECUTE_HANDLER)
+          {
+          };
+        }
       }
     }
   }
