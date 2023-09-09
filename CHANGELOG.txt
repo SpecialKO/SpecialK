@@ -1,4 +1,8 @@
-﻿23.9.9.x
+﻿23.9.10
+=======
+ + Added Mipmap LOD Bias control to Starfield for Steam users
+
+23.9.9.x
 ========
  [.6] + Added support for extended remastering to non-Steam version of Starfield
  [.5] + Fixed reversal of meaning for INI_UTF8 and INI_UTF8NOBOM

@@ -54,16 +54,17 @@ bool SK_SF_PlugInCfg (void)
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
 
-  if (ImGui::CollapsingHeader(utf8VersionString.data(), ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader (utf8VersionString.data (), ImGuiTreeNodeFlags_DefaultOpen))
   {
-    ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.90f, 0.40f, 0.40f, 0.45f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.90f, 0.45f, 0.45f, 0.80f));
-    ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.87f, 0.53f, 0.53f, 0.80f));
-    ImGui::TreePush("");
+    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+    ImGui::TreePus h("");
 
     if (ImGui::CollapsingHeader ("Render Quality", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      bool changed = false;
+      bool changed                   = false;
+      bool changed_no_restart_needed = false;
 
       ImGui::TreePush ("");
       changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bpc color",       &bRemasterBasicRTs);
@@ -82,20 +83,32 @@ bool SK_SF_PlugInCfg (void)
 
       if (pfMipBias != nullptr)
       {
-        changed |=
+        changed_no_restart_needed |=
           ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -5.f, 5.f, "%.1f", 0.1f);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("A negative bias is potentially required when using FSR/DLSS");
+        }
       }
 
       ImGui::TreePop ();
 
       static bool restart_needed = false;
 
-      if (changed)
+      if (changed || changed_no_restart_needed)
       {
-        restart_needed = true;
+        if (changed)
+          restart_needed = true;
 
         __SK_SF_BasicRemastering->store    (bRemasterBasicRTs);
         __SK_SF_ExtendedRemastering->store (bRemasterExtendedRTs);
+
+        if (pfMipBias != nullptr)
+        {
+           sf_MipBias->store (*pfMipBias);
+           gameCustom_ini->write ();
+        }
 
         extern iSK_INI *dll_ini;
         dll_ini->write ();
@@ -117,25 +130,24 @@ bool SK_SF_PlugInCfg (void)
       {
         ImGui::TreePush("");
 
-        changed |= ImGui::SliderFloat("1st Person FOV", pf1stFOV, 1, 120, "%.0f");
-        changed |= ImGui::SliderFloat("3rd Person FOV", pf3rdFOV, 1, 120, "%.0f");
+        changed |= ImGui::SliderFloat ("1st Person FOV", pf1stFOV, 1, 120, "%.0f");
+        changed |= ImGui::SliderFloat ("3rd Person FOV", pf3rdFOV, 1, 120, "%.0f");
 
         ImGui::TreePop();
       }
 
       if (changed)
       {
-        sf_1stFOV->store  (*pf1stFOV);
-        sf_3rdFOV->store  (*pf3rdFOV);
-        sf_MipBias->store (*pfMipBias);
+        sf_1stFOV->store (*pf1stFOV);
+        sf_3rdFOV->store (*pf3rdFOV);
 
         gameCustom_ini->write ();
       }
     }
 
-    ImGui::Separator();
-    ImGui::PopStyleColor(3);
-    ImGui::TreePop();
+    ImGui::Separator     ( );
+    ImGui::PopStyleColor (3);
+    ImGui::TreePop       ( );
   }
 
   return true;
