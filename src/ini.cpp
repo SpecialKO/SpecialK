@@ -204,12 +204,12 @@ iSK_INI::reload (const wchar_t *fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
-                  (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
-                  (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
+      bool utf8_bom = (reinterpret_cast <unsigned char *> (data.data ())) [0] == 0xEF &&
+                      (reinterpret_cast <unsigned char *> (data.data ())) [1] == 0xBB &&
+                      (reinterpret_cast <unsigned char *> (data.data ())) [2] == 0xBF;
 
       const uintptr_t offset =
-           utf8 ? 3 : 0;
+           utf8_bom ? 3 : 0;
 
       const int       real_size =
         size - sk::narrow_cast <int> (offset);
@@ -261,7 +261,7 @@ iSK_INI::reload (const wchar_t *fname)
 
       // No Byte-Order-Marker
       bom_size  = 0;
-      encoding_ = utf8 ? INI_UTF8 : INI_ANSI;
+      encoding_ = utf8_bom ? INI_UTF8 : INI_UTF8NOBOM;
     }
 
     parse ();
@@ -1325,7 +1325,7 @@ iSK_INI::write (const wchar_t* fname)
   switch (encoding_)
   {
     case INI_UTF8:
-    case INI_ANSI:
+    case INI_UTF8NOBOM:
       TRY_FILE_IO (_wfsopen (fname, L"wc,ccs=UTF-8",    _SH_DENYNO), fname, fOut);
       break;
 
@@ -1631,13 +1631,13 @@ iSK_INI::import_file (const wchar_t* fname)
     else
     {
       // Skip the silly UTF8 BOM if it is present
-      bool utf8 =
+      bool utf8_bom =
         (reinterpret_cast <unsigned char *> (wszImportData)) [0] == 0xEF &&
         (reinterpret_cast <unsigned char *> (wszImportData)) [1] == 0xBB &&
         (reinterpret_cast <unsigned char *> (wszImportData)) [2] == 0xBF;
 
       const uintptr_t offset =
-           utf8 ? 3 : 0;
+           utf8_bom ? 3 : 0;
 
       const int      real_size  =
         size - sk::narrow_cast <int> (offset);
@@ -1706,7 +1706,7 @@ __declspec(nothrow)
 bool
 iSK_INI::rename (const wchar_t* fname)
 {
-  if (  fname  != nullptr &&
+  if (  fname != nullptr &&
        *fname == L'\0' )
   {
     name = fname;
@@ -1731,7 +1731,7 @@ bool
 iSK_INI::set_encoding (CharacterEncoding encoding)
 {
   if ( encoding >= INI_UTF8 &&
-       encoding <= INI_ANSI )
+       encoding <= INI_UTF8NOBOM )
   {
     encoding_ = encoding;
     return true;

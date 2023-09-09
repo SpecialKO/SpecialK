@@ -121,11 +121,11 @@ interface iSK_INI : public IUnknown
     std::unordered_map <std::wstring, iSK_INISection>;
 
   enum CharacterEncoding {
-    INI_INVALID = 0x00,
-    INI_UTF8    = 0x01,
-    INI_UTF16LE = 0x02,
-    INI_UTF16BE = 0x04, // Not natively supported, but can be converted
-    INI_ANSI    = 0x08
+    INI_INVALID   = 0x00,
+    INI_UTF8      = 0x01,
+    INI_UTF16LE   = 0x02,
+    INI_UTF16BE   = 0x04, // Not natively supported, but can be converted
+    INI_UTF8NOBOM = 0x08
   };
 
            iSK_INI (const wchar_t* filename);
