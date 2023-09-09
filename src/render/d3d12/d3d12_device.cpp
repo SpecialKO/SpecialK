@@ -2033,40 +2033,6 @@ _In_       const D3D12_HEAP_DESC *pDesc,
                  REFIID           riid,
 _COM_Outptr_opt_ void           **ppvHeap)
 {
-  if (pDesc != nullptr) // Not optional, but some games try it anyway :)
-  {
-    switch (SK_GetCurrentGameID ())
-    {
-      // Reallocate heaps too small for remastering the SwapChain
-      case SK_GAME_ID::Starfield:
-      {
-        SK_ComQIPtr <IDXGISwapChain> pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
-
-        if (pSwapChain.p != nullptr)
-        {
-          DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-          pSwapChain->GetDesc (&swapDesc);
-
-          if (pDesc->SizeInBytes == swapDesc.BufferDesc.Width * swapDesc.BufferDesc.Height * 2)
-          {
-            auto desc = *pDesc;
-
-            desc.SizeInBytes *= 2;
-
-            HRESULT hr =
-              D3D12Device_CreateHeap_Original (This, &desc, riid, ppvHeap);
-
-            if (SUCCEEDED (hr))
-              return hr;
-          }
-        }
-      } break;
-
-      default:
-        break;
-    }
-  }
-
   return
     D3D12Device_CreateHeap_Original (This, pDesc, riid, ppvHeap);
 }
@@ -2085,6 +2051,7 @@ _COM_Outptr_opt_ void                  **ppvResource )
 {
   if (pDesc != nullptr) // Not optional, but some games try it anyway :)
   {
+#if 0
     switch (SK_GetCurrentGameID ())
     {
       case SK_GAME_ID::Starfield:
@@ -2121,6 +2088,7 @@ _COM_Outptr_opt_ void                  **ppvResource )
         }
       } break;
     }
+#endif
 
     if (     ppvResource      != nullptr            &&
             riidResource      == IID_ID3D12Resource &&
@@ -2205,61 +2173,6 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riid,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
-#if 0
-  switch (SK_GetCurrentGameID ())
-  {
-    case SK_GAME_ID::Starfield:
-    {
-      auto &rb = SK_GetCurrentRenderBackend ();
-
-      SK_ComQIPtr <IDXGISwapChain>
-                       pSwapChain (rb.swapchain);
-
-      DXGI_SWAP_CHAIN_DESC swapDesc = { };
-      
-      if (pSwapChain.p != nullptr)
-          pSwapChain->GetDesc (&swapDesc);
-
-      if (__SK_HDR_16BitSwap && pDesc->Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D && pDesc->Format == DXGI_FORMAT_R8G8B8A8_TYPELESS && ((pDesc->Flags & (D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET))) && pDesc->Width > 1 && (pDesc->Width != 1024 || pDesc->Height != 1024))
-      {
-        D3D12_HEAP_DESC heapDesc =
-          pHeap->GetDesc ();
-
-        SK_LOGi0 (L"D3D12Device_CreatePlacedResource: %hs (%dx%d)", SK_DXGI_FormatToStr (pDesc->Format).data (), pDesc->Width, pDesc->Height);
-
-        if (heapDesc.SizeInBytes >= (pDesc->Width * pDesc->Height * 8))
-        {
-          auto desc = *pDesc;
-               desc.Format = DXGI_FORMAT_R16G16B16A16_TYPELESS;
-
-          D3D12_CLEAR_VALUE  _optimized_clear_value = { };
-          D3D12_CLEAR_VALUE *_pOptimizedClearValue  = nullptr;
-          
-          if (pOptimizedClearValue != nullptr)
-          {
-            _optimized_clear_value              = *pOptimizedClearValue;
-            _optimized_clear_value.Format       = DXGI_FORMAT_R16G16B16A16_FLOAT;
-            _optimized_clear_value.DepthStencil = pOptimizedClearValue->DepthStencil;
-            _optimized_clear_value.Color[0]     = pOptimizedClearValue->Color [0]/255.0f;
-            _optimized_clear_value.Color[1]     = pOptimizedClearValue->Color [1]/255.0f;
-            _optimized_clear_value.Color[2]     = pOptimizedClearValue->Color [2]/255.0f;
-            _optimized_clear_value.Color[3]     = pOptimizedClearValue->Color [3]/255.0f;
-            _pOptimizedClearValue               = &_optimized_clear_value;
-          }
-
-          HRESULT hr =
-            D3D12Device_CreatePlacedResource_Original ( This,
-              pHeap, HeapOffset, &desc, InitialState,
-                _pOptimizedClearValue, riid, ppvResource );
-
-          if (SUCCEEDED (hr))
-            return hr;
-        }
-      }
-    } break;
-  }
-#endif
-
   return
     D3D12Device_CreatePlacedResource_Original ( This,
       pHeap, HeapOffset, pDesc, InitialState,

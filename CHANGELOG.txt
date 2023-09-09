@@ -1,11 +1,10 @@
-﻿23.9.10.2
+﻿23.9.10.x
 =========
- + Added PhotoMode Compatibility setting for Starfield
-
-23.9.10.1
-=========
- + Added Mipmap LOD Bias and FOV control for Microsoft Store version of Starfield
- + Fixed range and power on LOD Bias control slider in Starfield
+ [.3] + Sped up Starfield plug-in init
+ [.3] + Fixed instances of "Removing Corrupted Hook for 'DirectInput8Create'..."
+ [.2] + Added PhotoMode Compatibility setting for Starfield
+ [.1] + Added Mipmap LOD Bias and FOV control for Microsoft Store version of Starfield
+ [.1] + Fixed range and power on LOD Bias control slider in Starfield
 
 23.9.10
 =======

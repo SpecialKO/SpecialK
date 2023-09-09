@@ -330,7 +330,7 @@ void SK_SEH_InitStarfieldRTs (void)
       {
         BS_DXGI_FORMAT format;
         uint32_t       unk04;
-        const char *bufferName;
+        const char*    bufferName;
         uint16_t       unk10;
         uint16_t       unk12;
         uint32_t       unk14;
@@ -401,7 +401,7 @@ void SK_SEH_InitStarfieldRTs (void)
         __try
         {
           extern bool __SK_HDR_16BitSwap;
-          if (StrStrA (buffer_defs [i]->bufferName, "FrameBuffer"))
+          if (0 == strcmp (buffer_defs [i]->bufferName, "FrameBuffer"))
           {
             if (__SK_HDR_16BitSwap)
             {
@@ -413,7 +413,7 @@ void SK_SEH_InitStarfieldRTs (void)
 
           for (auto remaster : buffers_to_remaster)
           {
-            if (StrStrIA (buffer_defs [i]->bufferName, remaster) != 0)
+            if (0 == strcmp (buffer_defs [i]->bufferName, remaster))
             {
               buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
 
