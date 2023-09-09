@@ -141,21 +141,11 @@ void SK_SEH_InitStarfieldRTs (void)
     if (bRemasterBasicRTs)
     {
       void *scan =
-        SK_ScanAlignedEx ("\xC6\x45\x68\x01\x8B\x05", 7, "\xff\xff\xff\xff\xff\xff", nullptr, 8);
+        SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8);
 
       SK_LOGs0 (L"Starfield ", L"Scanned Address 0: %p", scan);
 
-      auto      offset         = *reinterpret_cast < int32_t *>((uintptr_t)scan + 6);
-	    uint32_t* frameBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 10 + offset);  // 507A290
-
-      *frameBufferPtr = 77;
-
-      scan =
-        SK_ScanAlignedEx ("\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10, "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", scan, 8);
-
-      SK_LOGs0 (L"Starfield ", L"Scanned Address 1: %p", scan);
-
-      offset                                = *reinterpret_cast < int32_t *>((uintptr_t)scan + 3);
+      auto offset                           = *reinterpret_cast < int32_t *>((uintptr_t)scan + 3);
       uint32_t *imageSpaceBufferPtr         =  reinterpret_cast <uint32_t *>((uintptr_t)scan + 7 + offset);            // 5079A70
       uint32_t *scaleformCompositeBufferPtr =  reinterpret_cast <uint32_t *>((uintptr_t)imageSpaceBufferPtr + 0x280);  // 5079CF0
 
