@@ -1097,9 +1097,12 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                          DirectX::MakeTypeless (DirectX::MakeSRGB (tex_desc.Format))
                            &&  DXGI_FORMAT_R10G10B10A2_TYPELESS == tex_desc.Format )
                     {
-                      SK_RunOnce (
-                        SK_ImGui_Warning (L"10-bit SDR is not possible in this game because it uses sRGB gamma.")
-                      );
+                      if (! __SK_HDR_10BitSwap)
+                      {
+                        SK_RunOnce (
+                          SK_ImGui_Warning (L"10-bit SDR is not possible in this game because it uses sRGB gamma.")
+                        );
+                      }
                     }
 
                     else

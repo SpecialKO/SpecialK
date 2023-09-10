@@ -96,6 +96,7 @@ sk::ParameterBool*  _SK_HDR_FullRange                 = nullptr;
 sk::ParameterInt*   _SK_HDR_sRGBBypassBehavior        = nullptr;
 sk::ParameterBool*  _SK_HDR_AdaptiveToneMap           = nullptr;
 
+bool  __SK_HDR_AnyKind          = false;
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
 
@@ -794,16 +795,20 @@ public:
       SK_GetCommandProcessor ();
 
     try {
-      SK_IVarStub <int>*   preset      = new SK_IVarStub <int>   (&__SK_HDR_Preset, this);
-      SK_IVarStub <int>*   tonemap     = new SK_IVarStub <int>   (&__SK_HDR_tonemap);
-      SK_IVarStub <int>*   vis         = new SK_IVarStub <int>   (&__SK_HDR_visualization);
-      SK_IVarStub <float>* horz        = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
-      SK_IVarStub <float>* vert        = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
-      SK_IVarStub <bool>*  adaptive    = new SK_IVarStub <bool>  (&__SK_HDR_AdaptiveToneMap);
-      SK_IVarStub <int>*   bypass_srgb = new SK_IVarStub <int>   (&__SK_HDR_Bypass_sRGB);
-      SK_IVarStub <bool>*  enable      = new SK_IVarStub <bool>  (&__SK_HDR_16BitSwap, this);
+      SK_IVarStub <int>*   preset       = new SK_IVarStub <int>   (&__SK_HDR_Preset, this);
+      SK_IVarStub <int>*   tonemap      = new SK_IVarStub <int>   (&__SK_HDR_tonemap);
+      SK_IVarStub <int>*   vis          = new SK_IVarStub <int>   (&__SK_HDR_visualization);
+      SK_IVarStub <float>* horz         = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
+      SK_IVarStub <float>* vert         = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
+      SK_IVarStub <bool>*  adaptive     = new SK_IVarStub <bool>  (&__SK_HDR_AdaptiveToneMap);
+      SK_IVarStub <int>*   bypass_srgb  = new SK_IVarStub <int>   (&__SK_HDR_Bypass_sRGB);
+      SK_IVarStub <bool>*  enable       = new SK_IVarStub <bool>  (&__SK_HDR_AnyKind,   this);
+      SK_IVarStub <bool>*  enable_scrgb = new SK_IVarStub <bool>  (&__SK_HDR_16BitSwap, this);
+      SK_IVarStub <bool>*  enable_hdr10 = new SK_IVarStub <bool>  (&__SK_HDR_10BitSwap, this);
 
       pCommandProc->AddVariable ( "HDR.Enable",          enable                                );
+      pCommandProc->AddVariable ( "HDR.EnableSCRGB",     enable_scrgb                          );
+      pCommandProc->AddVariable ( "HDR.EnableHDR10",     enable_hdr10                          );
       pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange      (0, 3)         );
       pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange         (0, 11)        );
       pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange     (0, 2)         );
@@ -831,6 +836,35 @@ public:
         hdr_presets [__SK_HDR_Preset].activate ();
       }
 
+      if ( var->getValuePointer () == &__SK_HDR_AnyKind )
+      {
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        if (! *(bool *)val)
+        {
+          __SK_HDR_16BitSwap = false;
+          __SK_HDR_10BitSwap = false;
+
+          rb.scanout.colorspace_override = DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+          run ();
+        }
+
+        else
+        {
+          if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+          {
+            // Do Nothing
+          }
+
+          else
+          {
+            SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
+          }
+        }
+      }
+
       if ( var->getValuePointer () == &__SK_HDR_16BitSwap )
       {
         __SK_HDR_16BitSwap = *(bool *)val;
@@ -838,8 +872,31 @@ public:
         static auto& rb =
           SK_GetCurrentRenderBackend ();
 
-        rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+        rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                         __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
                                                             : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        if (__SK_HDR_16BitSwap)
+            __SK_HDR_10BitSwap = false;
+
+        run ();
+      }
+
+      if ( var->getValuePointer () == &__SK_HDR_10BitSwap )
+      {
+        __SK_HDR_10BitSwap = *(bool *)val;
+
+        static auto& rb =
+          SK_GetCurrentRenderBackend ();
+
+        rb.scanout.colorspace_override = __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
+                                         __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+                                                            : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
+
+        if (__SK_HDR_10BitSwap)
+            __SK_HDR_16BitSwap = false;
+
+        run ();
       }
     }
 
@@ -875,14 +932,27 @@ public:
           DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
 
-      SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
-
+      SK_ComQIPtr <IDXGISwapChain3>
+          pSwap3 (rb.swapchain);
       if (pSwap3 != nullptr)
       {
-        SK_RunOnce (pSwap3->SetColorSpace1 (
-          (DXGI_COLOR_SPACE_TYPE)
-          rb.scanout.colorspace_override )
-        );
+        // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
+        static constexpr GUID SKID_SwapChainColorSpace =
+        { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
+
+        UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
+        DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
+
+        // Since SwapChains don't have a Get method, we'll just have the SwapChain remember the last one
+        //   we set and check it for consistency each frame... set a colorspace override if necessary.
+        if (FAILED (pSwap3->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)) || csp != rb.scanout.colorspace_override)
+        {
+          if (SUCCEEDED (pSwap3->SetColorSpace1 (rb.scanout.colorspace_override)))
+          {
+                                                              uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
+            pSwap3->SetPrivateData (SKID_SwapChainColorSpace, uiColorSpaceSize, &rb.scanout.colorspace_override);
+          }
+        }
       }
 
       SK_HDR_DisplayProfilerDialog (false);
@@ -1107,11 +1177,6 @@ public:
         if (rb.api != SK_RenderAPI::D3D12)
         {
           config.render.framerate.flip_discard = true;
-
-          //// Should be able to handle this without an explicit override set now
-          //config.render.framerate.buffer_count =
-          //  std::max ( 2,
-          //               config.render.framerate.buffer_count );
         }
       }
 
@@ -1122,7 +1187,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR###SK_HDR_scRGB", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
       {
         // Insert games that need specific settings here...
         if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
@@ -1143,11 +1208,6 @@ public:
         if (rb.api != SK_RenderAPI::D3D12)
         {
           config.render.framerate.flip_discard = true;
-
-          //// Should be able to handle this without an explicit override set now
-          //config.render.framerate.buffer_count =
-          //  std::max ( 2,
-          //               config.render.framerate.buffer_count );
         }
       }
 
@@ -1239,6 +1299,13 @@ public:
     ///  }
     ///}
 
+
+    static bool bManualHDRUsed =
+      (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
+
+    bManualHDRUsed |= __SK_HDR_16BitSwap;
+    bManualHDRUsed |= __SK_HDR_10BitSwap;
+
     bool bHDRActive = false;
 
     SK_ComQIPtr <IDXGISwapChain>
@@ -1256,7 +1323,8 @@ public:
         ImGui::TextColored    (ImVec4 (1.f, 1.f, 0.0f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
         ImGui::SameLine       ();
         ImGui::TextColored    (ImColor::HSV (.17f,1.f, .9f), "HDR %s Active",
-                                                __SK_HDR_16BitSwap ?
+                                            ( __SK_HDR_16BitSwap ||
+                                              __SK_HDR_10BitSwap ) ?
                                                              "Not" : "Still");
         ImGui::TextColored    (ImColor::HSV (.30f, .8f, .9f), "  Try pressing Alt + Enter a few times to fix this");
         ImGui::TextColored    (ImColor::HSV (.30f, .8f, .9f), "  ");
@@ -1267,10 +1335,10 @@ public:
         ImGui::EndGroup       ();
       };
 
-      if (__SK_HDR_16BitSwap)
+      if (__SK_HDR_16BitSwap && bManualHDRUsed)
       {
         if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT ||
-             rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+             rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::scRGB )
         {
           _PrintHDRModeChangeWarning ();
         }
@@ -1281,19 +1349,27 @@ public:
         }
       }
 
-      // The 10-bit case isn't handled by SK anymore, only scRGB (16-bit HDR)
-      else if (! __SK_HDR_10BitSwap)
-      { // HDR is still active
-        if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+      else if (__SK_HDR_10BitSwap && bManualHDRUsed)
+      {
+        if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM ||
+             rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 )
         {
-        //bHDRActive = true;
-          _PrintHDRModeChangeWarning (); 
+          _PrintHDRModeChangeWarning ();
+        }
+
+        else
+        {
+          bHDRActive = true;
         }
       }
 
-      else
-      {
-        bHDRActive = true;
+      else if (bManualHDRUsed)
+      { // HDR is still active, but we can't process the image
+        if ( swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+                  rb.isHDRActive () )
+        {
+          _PrintHDRModeChangeWarning ();
+        }
       }
     }
 

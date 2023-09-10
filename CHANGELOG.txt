@@ -1,4 +1,18 @@
-﻿23.9.11.2
+﻿23.9.11.3
+=========
+ + Various changes to HDR10/scRGB Colorspace Management:
+
+     * Added command console variables HDR.EnableSRGB, HDR.EnableHDR10,
+        - HDR.Enable false can turn HDR off regardless which mode is active
+        - HDR.Enable true defaults to scRGB
+
+     * Added warnings and better tracking for partial HDR10 state enable
+         (i.e. prompt to restart game or press Alt+Enter)
+
+     * Load HDR config files before game-specific plug-ins, so that user
+         preferences can be used by plug-ins during startup.
+
+23.9.11.2
 =========
  + Fixed a problem where some Starfield mods put the game into Windows 7
      compatibility mode, causing SK not to initialize correctly because

@@ -7903,7 +7903,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     // HDR10 requires additional checks
     if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM)
     {
-      ColorSpace = rb.scanout.colorspace_override;
+      if (__SK_HDR_16BitSwap)
+      {
+        ColorSpace = rb.scanout.colorspace_override;
+      }
     }
 
     else
@@ -7912,7 +7915,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       if (rb.scanout.colorspace_override !=
             DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
       {
-        ColorSpace = rb.scanout.colorspace_override;
+        if (__SK_HDR_10BitSwap)
+        {
+          ColorSpace = rb.scanout.colorspace_override;
+        }
       }
     }
 
@@ -7935,6 +7941,14 @@ SK_DXGISwap3_SetColorSpace1_Impl (
                L"Game tried to use the wrong color space (HDR10), using scRGB instead." );
   }
 
+  if ( __SK_HDR_10BitSwap &&
+         swapDesc.BufferDesc.Format != DXGI_FORMAT_R16G16B16A16_FLOAT
+                    && ( ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709) )
+  {                      ColorSpace  = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+    SK_LOGs0 ( L" DXGI HDR ",
+               L"Game tried to use the wrong color space (scRGB), using HDR10 instead." );
+  }
+
   HRESULT hr =                      bWrapped ?
     pSwapChain3->SetColorSpace1 (ColorSpace) :
               IDXGISwapChain3_SetColorSpace1_Original
@@ -7942,6 +7956,15 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if (SUCCEEDED (hr))
   {
+    // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
+    static constexpr GUID SKID_SwapChainColorSpace =
+    { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
+
+    UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
+    DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
+    
+    pSwapChain3->SetPrivateData (SKID_SwapChainColorSpace, uiColorSpaceSize, &ColorSpace);
+
     rb.scanout.dxgi_colorspace = ColorSpace;
 
     // Assume SDR (sRGB)
@@ -7963,7 +7986,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   }
 
   // In the failure case, just hide it from the game...
-  if (__SK_HDR_16BitSwap)
+  if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+
     hr = S_OK;
 
   return hr;

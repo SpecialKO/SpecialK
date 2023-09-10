@@ -1091,6 +1091,10 @@ IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
   if (        __SK_HDR_16BitSwap)
     ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
 
+  extern bool __SK_HDR_10BitSwap;
+  if (        __SK_HDR_10BitSwap)
+    ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+
   return
     SK_DXGISwap3_SetColorSpace1_Impl (
       static_cast <IDXGISwapChain3 *>(pReal),
