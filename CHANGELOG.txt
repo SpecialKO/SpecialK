@@ -1,4 +1,13 @@
-﻿23.9.11.1
+﻿23.9.11.2
+=========
+ + Fixed a problem where some Starfield mods put the game into Windows 7
+     compatibility mode, causing SK not to initialize correctly because
+       IsWindows8Point1OrGreater (...) and IsWindows10OrGreater (...) both
+         fail.
+
+      * SK would try Windows 7 fallback codepaths... for a D3D12 game, and crash.
+
+23.9.11.1
 =========
  + Additional improvements to HDR screenshot tonemapping
 

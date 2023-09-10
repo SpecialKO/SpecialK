@@ -8623,14 +8623,14 @@ HookDXGI (LPVOID user)
     desc.SampleDesc.Quality          = 0;
     desc.BufferDesc.Width            = 2;
     desc.BufferDesc.Height           = 2;
-    desc.BufferUsage                 = DXGI_USAGE_BACK_BUFFER | DXGI_USAGE_RENDER_TARGET_OUTPUT;
-    desc.BufferCount                 = IsWindows8Point1OrGreater () ? 2 : 1;
-    desc.OutputWindow                = SK_Win32_CreateDummyWindow ();
+    desc.BufferUsage                 = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    desc.BufferCount                 = SK_IsWindows8Point1OrGreater () ? 2 : 1;
+    desc.OutputWindow                = SK_Win32_CreateDummyWindow   ();
     desc.Windowed                    = TRUE;
-    desc.SwapEffect                  = IsWindows10OrGreater () ? DXGI_SWAP_EFFECT_FLIP_DISCARD
-                                                               : IsWindows8Point1OrGreater ()
-                                                               ? DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
-                                                               : DXGI_SWAP_EFFECT_DISCARD;
+    desc.SwapEffect                  = SK_IsWindows10OrGreater () ? DXGI_SWAP_EFFECT_FLIP_DISCARD
+                                                                  : SK_IsWindows8Point1OrGreater ()
+                                                                  ? DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL
+                                                                  : DXGI_SWAP_EFFECT_DISCARD;
 
     extern LPVOID pfnD3D11CreateDeviceAndSwapChain;
 
@@ -8721,25 +8721,23 @@ HookDXGI (LPVOID user)
     
     // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
     //   Therfore, just it may be better to leave Streamline unsupported.
-#if 1
-    if (GetModuleHandleW (L"d3d12core.dll"))
+    if (SK_GetModuleHandleW (L"d3d12.dll"))
     {
       static D3D12CreateDevice_pfn
         D3D12CreateDevice = (D3D12CreateDevice_pfn)
-          GetProcAddress (
-            LoadLibraryExW (L"d3d12.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
-                            "D3D12CreateDevice" );
+          SK_GetProcAddress (L"d3d12.dll",
+                            "D3D12CreateDevice");
 
-      D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p));
+      if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
+      {
+        D3D12_COMMAND_QUEUE_DESC
+          queue_desc       = { };
+          queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+          queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-      D3D12_COMMAND_QUEUE_DESC
-        queue_desc       = { };
-        queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-        queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-      pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+        pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+      }
     }
-#endif
 
     if (SUCCEEDED (hr))
     {

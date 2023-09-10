@@ -1219,4 +1219,8 @@ namespace SK
 #define SK_MakeRegKeyWS SK::WindowsRegistry::KeyValue <std::wstring>::MakeKeyValue
 };
 
+extern BOOL SK_IsWindows8Point1OrGreater (void);
+extern BOOL SK_IsWindows10OrGreater      (void);
+
 #endif /* __SK__UTILITY_H__ */
+

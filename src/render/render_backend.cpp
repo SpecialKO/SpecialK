@@ -1991,10 +1991,6 @@ SK_Display_SetThreadDpiAwarenessContext (DPI_AWARENESS_CONTEXT dpi_ctx)
   return nullptr;
 }
 
-extern BOOL SK_IsWindows8Point1OrGreater (void);
-extern BOOL SK_IsWindows10OrGreater      (void);
-
-
 BOOL
 SK_Display_IsProcessDPIAware (void)
 {
