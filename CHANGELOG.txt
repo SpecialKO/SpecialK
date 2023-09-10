@@ -1,4 +1,9 @@
-﻿23.9.10.13
+﻿23.9.10.14
+==========
+ + Upgraded FSR2_RESAMPLED_LUMA_HISTORY to FP16 in Starfield for better HDR, if
+     "Upgrade most 8-bit RTs to 16-bpc" is enabled.
+
+23.9.10.13
 ==========
  + Fixed HDR10 screenshots in D3D12; tonemapping and .jxr
 

@@ -465,6 +465,13 @@ void SK_SEH_InitStarfieldRTs (void)
             if (! sf_bRemasterExtendedRTs)
               continue;
 
+            if (0 == strcmp (buffer_defs [i]->bufferName, "FSR2_RESAMPLED_LUMA_HISTORY"))
+            {
+              buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+
+              SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+            }
+
             for (auto remaster : buffers_to_remaster)
             {
               if (0 == strcmp (buffer_defs [i]->bufferName, remaster))
