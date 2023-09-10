@@ -1122,7 +1122,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR###SK_HDR_scRGB", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
       {
         // Insert games that need specific settings here...
         if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
