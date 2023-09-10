@@ -530,7 +530,17 @@ SetThreadPriority_Detour ( HANDLE hThread,
 {
   SK_LOG_FIRST_CALL
 
-  SK_ReleaseAssert (hThread != nullptr);
+  if (hThread == nullptr)
+  {
+    SK_LOGi0 (
+      L"Game called SetThreadPriority (...) with an invalid handle [%ws]",
+        SK_GetCallerName ().c_str ()
+    );
+
+    SetLastError (ERROR_INVALID_HANDLE);
+
+    return FALSE;
+  }
 
   return
     SetThreadPriority_Original (
