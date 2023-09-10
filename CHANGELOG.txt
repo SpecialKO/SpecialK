@@ -1,5 +1,7 @@
 ﻿23.9.10.x
 =========
+ [.5] + Changed ImGui's D3D12 command execution code so that graphics crashes reach
+          a game's GPU crash handler rather than triggering SK's CPU crash handler
  [.4] + Fixed rare framepacing graph and CPU widget initialization race
  [.4] + Added memory address caching to Starfield plug-in
  [.3] + Sped up Starfield plug-in init

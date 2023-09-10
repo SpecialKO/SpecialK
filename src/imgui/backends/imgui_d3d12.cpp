@@ -1732,17 +1732,18 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                                   D3D12_RESOURCE_STATE_PRESENT,
                                                                   D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-  stagingFrame.exec_cmd_list ();
-
-  if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
-         SUCCEEDED ( _pCommandQueue->Signal (
-                                 stagingFrame.fence.p,
-                    sync_value              )
-                   )
-     )
+  if (stagingFrame.exec_cmd_list ())
   {
-    stagingFrame.fence.value =
-      sync_value;
+    if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
+           SUCCEEDED ( _pCommandQueue->Signal (
+                                   stagingFrame.fence.p,
+                      sync_value              )
+                     )
+       )
+    {
+      stagingFrame.fence.value =
+        sync_value;
+    }
   }
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
@@ -1751,10 +1752,15 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 bool
 SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineState>& state)
 {
+  if (pCmdList == nullptr)
+    return false;
+
   if (bCmdListRecording)
   {
     if (state != nullptr) // Update pipeline state if requested
+    {
       pCmdList->SetPipelineState (state.p);
+    }
 
     return true;
   }
@@ -1770,13 +1776,16 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
     bCmdListRecording;
 }
 
-void
+bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
   assert (bCmdListRecording);
 
+  if (pCmdList == nullptr)
+    return false;
+
   if (FAILED (pCmdList->Close ()))
-    return;
+    return false;
 
   bCmdListRecording = false;
 
@@ -1794,11 +1803,15 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
       ARRAYSIZE (cmd_lists),
                  cmd_lists
     );
+
+    return true;
   }
 
   else
   {
     _d3d12_rbk->release (pRoot->_pSwapChain.p);
+
+    return false;
   }
 }
 
@@ -1808,7 +1821,8 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
   {
-    exec_cmd_list ();
+    if (! exec_cmd_list ())
+      return false;
   }
 
   // Increment fence value to ensure it has not been signaled before

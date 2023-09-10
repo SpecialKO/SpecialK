@@ -525,7 +525,7 @@ struct SK_D3D12_RenderCtx {
 
     bool wait_for_gpu   (void) noexcept;
     bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
-	  void exec_cmd_list  (void);
+	  bool exec_cmd_list  (void);
 
               ~FrameCtx (void);
 	};
