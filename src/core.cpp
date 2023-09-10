@@ -935,6 +935,10 @@ void BasicInit (void)
     SK::Diagnostics::CrashHandler::Init   ();
   SK::Diagnostics::CrashHandler::InitSyms ();
 
+  // Setup widgets now, some of them do non-trivial things
+  //   such as load INI settings for HDR...
+  SK_Widget_InitEverything ();
+
   // This installs hooks for COM's CoCreateInstance, used for various old DirectX
   //   features in addition to Special K's WMI monitoring services
   SK_WMI_Init ();
@@ -2176,11 +2180,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         break;
 #endif
     }
-
-    extern void SK_Widget_InitHDR (void);
-    SK_RunOnce (SK_Widget_InitHDR ());
-
-    SK_ImGui_Widgets->hdr_control->run ();
 
     if (config.steam.preload_overlay)
     {

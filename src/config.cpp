@@ -57,12 +57,6 @@ extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam
 extern float __target_fps;
 extern float __target_fps_bg;
 
-class SKWG_D3D11_Pipeline : public SK_Widget { };
-class SKWG_CPU_Monitor    : public SK_Widget { };
-
-extern SKWG_D3D11_Pipeline*  SK_Widget_GetD3D11Pipeline (void);
-extern SKWG_CPU_Monitor*     SK_Widget_GetCPU           (void);
-
 void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
 void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
@@ -4811,9 +4805,6 @@ SK_SaveConfig ( std::wstring name,
   if ( dll_ini == nullptr ||
        osd_ini == nullptr    )
     return;
-
-  SK_RunOnce (SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ());
-  SK_RunOnce (SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ());
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

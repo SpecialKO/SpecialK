@@ -1180,3 +1180,56 @@ SK_ImGui_WidgetRegistry::SaveConfig (void)
 }
 
 SK_LazyGlobal <sk::ParameterFactory> SK_Widget_ParameterFactory;
+
+
+class  SKWG_D3D11_Pipeline : public SK_Widget { };
+extern SKWG_D3D11_Pipeline*         SK_Widget_GetD3D11Pipeline (void);
+
+class  SKWG_CPU_Monitor : public SK_Widget { };
+extern SKWG_CPU_Monitor*         SK_Widget_GetCPU (void);
+
+
+extern void SK_Widget_InitLatency        (void);
+extern void SK_Widget_InitFramePacing    (void);
+extern void SK_Widget_InitThreadProfiler (void);
+extern void SK_Widget_InitVolumeControl  (void);
+extern void SK_Widget_InitGPUMonitor     (void);
+extern void SK_Widget_InitTobii          (void);
+extern void SK_Widget_InitHDR            (void);
+
+bool
+SK_Widget_InitEverything (void)
+{
+  static bool        init = false;
+  if (std::exchange (init,  true))
+    return true;
+
+  SK_ImGui_Widgets->d3d11_pipeline = SK_Widget_GetD3D11Pipeline ();
+  SK_ImGui_Widgets->cpu_monitor    = SK_Widget_GetCPU           ();
+
+  SK_Widget_InitHDR            ();
+  SK_Widget_InitThreadProfiler ();
+  SK_Widget_InitFramePacing    ();
+  SK_Widget_InitLatency        ();
+  SK_Widget_InitVolumeControl  ();
+  SK_Widget_InitTobii          ();
+  SK_Widget_InitGPUMonitor     ();
+
+  // Run each widget once to complete their setup
+  for ( auto& widget : { SK_ImGui_Widgets->frame_pacing,
+                                        SK_ImGui_Widgets->volume_control,
+                                        SK_ImGui_Widgets->gpu_monitor,
+                                        SK_ImGui_Widgets->cpu_monitor,
+                                        SK_ImGui_Widgets->d3d11_pipeline,
+                                        SK_ImGui_Widgets->thread_profiler,
+                                        SK_ImGui_Widgets->hdr_control,
+                                        SK_ImGui_Widgets->tobii,
+                                        SK_ImGui_Widgets->latency } )
+  {
+    if (widget != nullptr)
+        widget->run_base ();
+  }
+
+  return
+    init;
+}

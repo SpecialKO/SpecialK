@@ -5979,25 +5979,6 @@ SK_ImGui_StageNextFrame (void)
                 SK_ImGui_DrawFCAT ();
   }
 
-
-
-  extern void SK_Widget_InitLatency        (void);
-  extern void SK_Widget_InitFramePacing    (void);
-  extern void SK_Widget_InitThreadProfiler (void);
-  extern void SK_Widget_InitVolumeControl  (void);
-  extern void SK_Widget_InitGPUMonitor     (void);
-  extern void SK_Widget_InitTobii          (void);
-  SK_RunOnce (
-  {
-    SK_Widget_InitThreadProfiler ();
-    SK_Widget_InitFramePacing    ();
-    SK_Widget_InitLatency        ();
-    SK_Widget_InitVolumeControl  ();
-    SK_Widget_InitTobii          ();
-    SK_Widget_InitGPUMonitor     ();
-  });
-
-  static bool init_widgets = true;
   static auto widgets =
   {
     SK_ImGui_Widgets->frame_pacing,
@@ -6010,18 +5991,6 @@ SK_ImGui_StageNextFrame (void)
                   SK_ImGui_Widgets->tobii,
                     SK_ImGui_Widgets->latency
   };
-
-  if (init_widgets)
-  {
-    init_widgets = false;
-
-    for (auto& widget : widgets)
-    {
-      if (widget != nullptr)
-          widget->run_base ();
-    }
-  }
-
 
   // Default action is to draw the Special K Control panel,
   //   but if you hook this function you can do anything you

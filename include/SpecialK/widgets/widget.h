@@ -582,6 +582,6 @@ protected:
   } cached_stats;
 };
 
-
+bool SK_Widget_InitEverything (void);
 
 #endif /* __SK__WIDGET_H__ */
