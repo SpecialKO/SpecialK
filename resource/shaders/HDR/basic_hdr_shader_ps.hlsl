@@ -138,6 +138,19 @@ float4 getNonNanSample (float4 color, float2 uv)
 }
 #endif
 
+float4
+FinalOutput (float4 vColor)
+{
+  // HDR10 -Output-, transform scRGB to HDR10
+  if (visualFunc.y == 1)
+  {
+    vColor.rgb =
+      LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f);
+  }
+    
+  return vColor;
+}
+
 float4 main (PS_INPUT input) : SV_TARGET
 {
   switch (uiToneMapper)
@@ -211,7 +224,7 @@ float4 main (PS_INPUT input) : SV_TARGET
         ( hdrLuminance_MaxLocal / 80.0 );
 
       return
-        vDist;
+        FinalOutput (vDist);
     }
   }
 #else
@@ -266,7 +279,7 @@ float4 main (PS_INPUT input) : SV_TARGET
        input.coverage.y < input.uv.y )
   {
     return
-      float4 (hdr_color.rgb * 3.75, 1.0f);
+      FinalOutput (float4 (hdr_color.rgb * 3.75, 1.0f));
   }
 #endif
 
@@ -275,7 +288,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (visualFunc.x == VISUALIZE_HIGHLIGHTS)
   {
     if (length (over_range.rgb) > 0.0)
-      return (float4 (float3 (normalize (over_range.rgb) * input.color.x), 1.0f));
+      return FinalOutput (float4 (float3 (normalize (over_range.rgb) * input.color.x), 1.0f));
 
     hdr_color.rgb =
       max (hdr_color.r, max (hdr_color.g, hdr_color.b));
@@ -537,7 +550,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
     return
-      float4 (vDist, 1.0f);
+      FinalOutput (float4 (vDist, 1.0f));
   }
 #endif
 
@@ -670,7 +683,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (fLuma * 80.0 <= _fSDRTarget)
     {
       return
-        float4 (saturate ((fLuma * 80.0) / _fSDRTarget) * input.color.xxx, 1.0f);
+        FinalOutput (float4 (saturate ((fLuma * 80.0) / _fSDRTarget) * input.color.xxx, 1.0f));
     }
 
     float fDivisor = 0.0f;
@@ -783,7 +796,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
       result.a = 1;
       
-      return result;
+      return
+        FinalOutput (result);
     }
 
     if (((fLuma - (_fSDRTarget / 80.0)) / fDivisor) >= 1.0f)
@@ -799,21 +813,22 @@ float4 main (PS_INPUT input) : SV_TARGET
 
       vDist *= ( hdrLuminance_MaxLocal / 80.0 );
 
-      return float4 (vDist.rgb, 1.0f);
+      return FinalOutput (float4 (vDist.rgb, 1.0f));
     }
 
     const float fLumaMaxAvg =
       hdrLuminance_MaxAvg   / 80.0;
 
-    return
+    return FinalOutput (
       float4 (
         colormap (
           (fLuma - (_fSDRTarget / 80.0)) / fDivisor).rgb * ( hdrLuminance_MaxAvg   / 80.0 ),
         1.0
-      );
+      )
+    );
 
     return
-      float4 (hdr_color.rgb, 1.0f);
+      FinalOutput (float4 (hdr_color.rgb, 1.0f));
   }
 #endif
     
@@ -851,13 +866,7 @@ float4 main (PS_INPUT input) : SV_TARGET
              );
   }
 #endif
-  
-  // HDR10 -Output-, transform scRGB to HDR10
-  if (visualFunc.y == 1)
-  {
-    color_out.rgb =
-      LinearToPQ (REC709toREC2020 (color_out.rgb), 125.0f);
-  }
 
-  return color_out;
+  return
+    FinalOutput (color_out);
 }
