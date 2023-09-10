@@ -1394,19 +1394,18 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                    un_srgb.GetImageCount (),
                                    un_srgb.GetMetadata   (),
                     [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                  {
-                    UNREFERENCED_PARAMETER(y);
-
-                    for (size_t j = 0; j < width; ++j)
                     {
-                      XMVECTOR value  = inPixels [j];
-                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-                                value = XMColorRGBToSRGB   (value);
-
-                      outPixels [j]   =                     value;
-                    }
-                  }, un_scrgb);
+                      UNREFERENCED_PARAMETER(y);
+                    
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value  = inPixels [j];
+                        XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                  value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+                        outPixels [j]   =                     value;
+                      }
+                    }, un_scrgb
+                  );
 
                   std::swap (un_scrgb, un_srgb);
                 }
@@ -1451,7 +1450,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           logf ( std::max (0.000001f, 0.000001f + v.m128_f32 [0]) ),
                         ++N;
                       }
-                    })                                       : E_POINTER;
+                    }
+                  ) : E_POINTER;
 
                   colLum = XMVectorZero ();
 
@@ -1498,16 +1498,17 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         colLum =
                           XMVectorMax (outPixels [j], colLum);
                       }
-                    }, un_scrgb)                             : E_POINTER;
+                    }, un_scrgb
+                  ) : E_POINTER;
 
                   static const XMVECTORF32 c_SdrPower =
-                  { 0.68f, 0.68f, 0.68f, 1.f };
+                  { 0.7f, 0.7f, 0.7f, 1.f };
 
                   const auto xmColMax =
-                    XMVectorReplicate (
+                    XMVectorReplicate ( 7.0f *
                        std::max (   colLum.m128_f32 [0],
                          std::max ( colLum.m128_f32 [1],
-                                    colLum.m128_f32 [2] ) )
+                                    colLum.m128_f32 [2] ) ) / 8.0f
                       );
 
                   hr =               un_scrgb.GetImageCount () == 1 ?
@@ -1521,10 +1522,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       for (size_t j = 0; j < width; ++j)
                       {
                         outPixels [j] =
-                          XMVectorPow (
-                            XMVectorDivide ( inPixels [j], xmColMax ), c_SdrPower );
+                          XMVectorClamp ( XMVectorPow ( XMVectorDivide ( inPixels [j], xmColMax ), c_SdrPower ),
+                                        g_XMZero,     g_XMOne );
                       }
-                    }, final_sdr)                             : E_POINTER;
+                    }, final_sdr
+                  ) : E_POINTER;
 
                   if (         final_sdr.GetImageCount () == 1) {
                     Convert ( *final_sdr.GetImages     (),

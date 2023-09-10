@@ -1,7 +1,11 @@
-﻿23.9.11
+﻿23.9.11.1
+=========
+ + Additional improvements to HDR screenshot tonemapping
+
+23.9.11
 =======
  + Fixed all HDR visualization modes when HDR10 is active
- + Improved HDR -> SDR tonemap results by applying Reinhard separately on luma and chroma
+ + Improved HDR -> SDR tonemap (screenshots) by applying Reinhard on luma and chroma
 
 23.9.10.x
 =========
