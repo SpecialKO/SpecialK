@@ -1060,29 +1060,6 @@ SK_Inject_RenameProcess (void)
 }
 
 #include <winternl.h>                   //PROCESS_BASIC_INFORMATION
-
-// warning C4996: 'GetVersionExW': was declared deprecated
-#pragma warning (disable : 4996)
-bool
-IsWindows8OrGreater (void)
-{
-  OSVERSIONINFO
-    ovi                     = {                    };
-    ovi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-
-  GetVersionEx (&ovi);
-
-  if ( (ovi.dwMajorVersion == 6 &&
-        ovi.dwMinorVersion >= 2) ||
-         ovi.dwMajorVersion > 6
-     ) return true;
-
-  return false;
-} //IsWindows8OrGreater
-#pragma warning (default : 4996)
-
-
-
 bool
 ReadMem (void *addr, void *buf, int size)
 {
@@ -1133,7 +1110,7 @@ int
 GetModuleLoadCount (HMODULE hDll)
 {
   // Not supported by earlier versions of windows.
-  if (! IsWindows8OrGreater ())
+  if (! SK_IsWindows8Point1OrGreater ())
     return 0;
 
   PROCESS_BASIC_INFORMATION pbi = { };

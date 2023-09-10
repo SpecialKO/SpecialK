@@ -38,7 +38,7 @@ bool StartTraceSession()
     auto const& args = GetCommandLineArgs();
     auto expectFilteredEvents =
         args.mEtlFileName == nullptr && // Scope filtering based on event ID only works for realtime collection
-        IsWindows8Point1OrGreater();    // and requires Win8.1+
+        SK_IsWindows8Point1OrGreater ();    // and requires Win8.1+
     auto filterProcessIds = args.mTargetPid != 0; // Does not support process names at this point
 
     // Create consumers
