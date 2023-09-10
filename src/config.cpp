@@ -628,6 +628,7 @@ struct {
     sk::ParameterBool*    bypass_ansel            = nullptr;
     sk::ParameterBool*    allow_dlss_g            = nullptr;
     sk::ParameterBool*    auto_delete_dlss_g      = nullptr;
+    sk::ParameterBool*    streamline_compat       = nullptr;
   } bugs;
 
   struct
@@ -1659,6 +1660,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
     ConfigEntry (nvidia.bugs.allow_dlss_g,               L"Allow NV DLSS3 Frame Generation? (99+% chance of crash!)",  dll_ini,         L"NVIDIA.Bugs",           L"AllowDLSSG"),
     ConfigEntry (nvidia.bugs.auto_delete_dlss_g,         L"Automatically delete DLSS3 Frame Generation DLL",           dll_ini,         L"NVIDIA.Bugs",           L"AutoDeleteDLSSG"),
+    ConfigEntry (nvidia.bugs.streamline_compat,          L"Alternate DXGI/D3D11/D3D12 Hook Implementation for NV BUG", dll_ini,         L"NVIDIA.Bugs",           L"StreamlineCompatibilityMode"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
     ConfigEntry (nvidia.sli.mode,                        L"SLI Mode",                                                  dll_ini,         L"NVIDIA.SLI",            L"Mode"),
@@ -3153,7 +3155,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Starfield:
-        config.nvidia.bugs.allow_dlss_g = true;
+        config.nvidia.bugs.allow_dlss_g      = true;
+        config.nvidia.bugs.streamline_compat = true;
         break;
     }
   }
@@ -3293,6 +3296,8 @@ auto DeclKeybind =
   nvidia.bugs.allow_dlss_g->load  (config.nvidia.bugs.allow_dlss_g);
   nvidia.bugs.auto_delete_dlss_g
                           ->load  (config.nvidia.bugs.auto_delete_dlss_g);
+  nvidia.bugs.streamline_compat
+                           ->load (config.nvidia.bugs.streamline_compat);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -4898,6 +4903,7 @@ SK_SaveConfig ( std::wstring name,
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
   nvidia.bugs.allow_dlss_g->store             (config.nvidia.bugs.allow_dlss_g);
   nvidia.bugs.auto_delete_dlss_g->store       (config.nvidia.bugs.auto_delete_dlss_g);
+  nvidia.bugs.streamline_compat->store        (config.nvidia.bugs.streamline_compat);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);

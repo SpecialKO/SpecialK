@@ -1,8 +1,15 @@
-﻿23.9.11.3
+﻿23.9.11.4
+=========
+ + Added Streamline Hook Compatibility Mode; breaks normal games
+
+     [NVIDIA.Bugs]
+     StreamlineCompatibilityMode={true|false}  Default: False
+
+23.9.11.3
 =========
  + Various changes to HDR10/scRGB Colorspace Management:
 
-     * Added command console variables HDR.EnableSRGB, HDR.EnableHDR10,
+     * Added command console variables HDR.EnableSCRGB, HDR.EnableHDR10,
         - HDR.Enable false can turn HDR off regardless which mode is active
         - HDR.Enable true defaults to scRGB
 

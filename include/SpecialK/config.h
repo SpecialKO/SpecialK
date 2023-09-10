@@ -781,6 +781,7 @@ struct sk_config_t
       bool    bypass_ansel        =  true;
       bool    allow_dlss_g        = false;
       bool    auto_delete_dlss_g  = false;
+      bool    streamline_compat   = false;
     } bugs;
     struct reflex_s {
       UINT    frame_interval_us   =      0;

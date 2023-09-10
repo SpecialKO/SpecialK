@@ -8672,160 +8672,172 @@ HookDXGI (LPVOID user)
     if (! D3D11CreateDeviceAndSwapChain_Import)
       return 0;
 
+
+    bool    bHookSuccess = false;
+    HRESULT hr           = E_NOTIMPL;
+
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-#if 1
-    SK_ComPtr <IDXGIAdapter>
-                   pAdapter0;
-
-    const auto factory_flags =
-      config.render.dxgi.debug_layer ?
-           DXGI_CREATE_FACTORY_DEBUG : 0x0;
-
-    SK_ComPtr <IDXGIFactory>                 pFactory;
-    CreateDXGIFactory2_Import ( factory_flags,
-          __uuidof (IDXGIFactory), (void **)&pFactory.p);
-    SK_ComQIPtr    <IDXGIFactory7>           pFactory7
-                                            (pFactory);
-
-    if (pFactory7 != nullptr)
-        pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
-    else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
-
-    HRESULT hr = E_NOTIMPL;
-
-    using D3D12CreateDevice_pfn =
-      HRESULT (WINAPI *)( IUnknown         *pAdapter,
-                          D3D_FEATURE_LEVEL MinimumFeatureLevel,
-                          REFIID            riid,
-                          void            **ppDevice );
-
-    SK_ComPtr <ID3D12Device>       pDevice12;
-    SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
-
-    D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
-      SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
-
-    // Favor this codepath because it bypasses many things like ReShade, but
-    //   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
-    if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
-                                                 SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
+    if (config.nvidia.bugs.streamline_compat)
     {
-      SK_D3D11_Init ();
-    
-      hr =
-        D3D11CoreCreateDevice (
-          nullptr, pAdapter0,
-            D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-              config.render.dxgi.debug_layer ?
-                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                              levels,
-                  _ARRAYSIZE (levels),
-                    D3D11_SDK_VERSION,
-                      &pDevice.p,
-                        &featureLevel );
-    }
-    
-    else
-    {
-      hr =
-        D3D11CreateDeviceAndSwapChain_Import (
-          pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
-            nullptr,
+      SK_ComPtr <IDXGIAdapter>
+                     pAdapter0;
+
+      const auto factory_flags =
+        config.render.dxgi.debug_layer ?
+             DXGI_CREATE_FACTORY_DEBUG : 0x0;
+
+      SK_ComPtr <IDXGIFactory>                 pFactory;
+      CreateDXGIFactory2_Import ( factory_flags,
+            __uuidof (IDXGIFactory), (void **)&pFactory.p);
+      SK_ComQIPtr    <IDXGIFactory7>           pFactory7
+                                              (pFactory);
+
+      if (pFactory7 != nullptr)
+          pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
+      else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
+
+      using D3D12CreateDevice_pfn =
+        HRESULT (WINAPI *)( IUnknown         *pAdapter,
+                            D3D_FEATURE_LEVEL MinimumFeatureLevel,
+                            REFIID            riid,
+                            void            **ppDevice );
+
+      SK_ComPtr <ID3D12Device>       pDevice12;
+      SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+
+      D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
+        SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
+
+      // Favor this codepath because it bypasses many things like ReShade, but
+      //   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
+      if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
+                                                   SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
+      {
+        SK_D3D11_Init ();
+      
+        hr =
+          D3D11CoreCreateDevice (
+            nullptr, pAdapter0,
+              D3D_DRIVER_TYPE_UNKNOWN, nullptr,
                 config.render.dxgi.debug_layer ?
                      D3D11_CREATE_DEVICE_DEBUG : 0x0,
                                 levels,
                     _ARRAYSIZE (levels),
-                      D3D11_SDK_VERSION, nullptr, nullptr,
+                      D3D11_SDK_VERSION,
                         &pDevice.p,
-                          &featureLevel,
-                            nullptr );
-    }
-    
-    // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
-    //   Therfore, just it may be better to leave Streamline unsupported.
-    if (SK_GetModuleHandleW (L"d3d12.dll"))
-    {
-      static D3D12CreateDevice_pfn
-        D3D12CreateDevice = (D3D12CreateDevice_pfn)
-          SK_GetProcAddress (L"d3d12.dll",
-                            "D3D12CreateDevice");
-
-      if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
+                          &featureLevel );
+      }
+      
+      else
       {
-        D3D12_COMMAND_QUEUE_DESC
-          queue_desc       = { };
-          queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-          queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
+        hr =
+          D3D11CreateDeviceAndSwapChain_Import (
+            pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
+              nullptr,
+                  config.render.dxgi.debug_layer ?
+                       D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                                  levels,
+                      _ARRAYSIZE (levels),
+                        D3D11_SDK_VERSION, nullptr, nullptr,
+                          &pDevice.p,
+                            &featureLevel,
+                              nullptr );
+      }
+      
+      // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
+      //   Therfore, just it may be better to leave Streamline unsupported.
+      if (SK_GetModuleHandleW (L"d3d12.dll"))
+      {
+        static D3D12CreateDevice_pfn
+          D3D12CreateDevice = (D3D12CreateDevice_pfn)
+            SK_GetProcAddress (L"d3d12.dll",
+                              "D3D12CreateDevice");
 
-        pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+        if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
+        {
+          D3D12_COMMAND_QUEUE_DESC
+            queue_desc       = { };
+            queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+            queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+          pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+        }
+      }
+
+      if (SUCCEEDED (hr))
+      {
+        pDevice->GetImmediateContext (&pImmediateContext.p);
+
+        if (! pDevice12)
+          pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
+      }
+
+      if (pDevice12 != nullptr)
+      {
+        if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
+                    pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
+      }
+
+      sk_hook_d3d11_t d3d11_hook_ctx = { };
+
+      d3d11_hook_ctx.ppDevice           = &pDevice.p;
+      d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+
+      if ( SUCCEEDED (hr) || pDevice12 != nullptr )
+      {
+        if (SUCCEEDED (hr))
+          HookD3D11           (&d3d11_hook_ctx);
+        SK_DXGI_HookFactory   (pFactory);
+
+        bHookSuccess = true;
       }
     }
 
-    if (SUCCEEDED (hr))
+    //
+    // Old initializtion procedure
+    //
+    else
     {
-      pDevice->GetImmediateContext (&pImmediateContext.p);
+      hr =
+        D3D11CreateDeviceAndSwapChain_Import (
+          nullptr,
+            D3D_DRIVER_TYPE_HARDWARE,
+              nullptr,
+                config.render.dxgi.debug_layer ?
+                     D3D11_CREATE_DEVICE_DEBUG : 0x0,
+                  levels,
+                    _ARRAYSIZE (levels),
+                      D3D11_SDK_VERSION, &desc,
+                        &pSwapChain.p,
+                          &pDevice.p,
+                            &featureLevel,
+                              &pImmediateContext.p );
 
-      if (! pDevice12)
-        pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
+      sk_hook_d3d11_t d3d11_hook_ctx = { };
+
+      d3d11_hook_ctx.ppDevice           = &pDevice.p;
+      d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+
+      SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
+      SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
+      SK_ComPtr <IDXGIFactory> pFactory = nullptr;
+
+      if ( SUCCEEDED (hr)                                                &&
+                      pDevice != nullptr                                 &&
+           SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
+           SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
+           SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+      {
+        HookD3D11             (&d3d11_hook_ctx);
+        SK_DXGI_HookFactory   (pFactory);
+        //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
+        bHookSuccess = true;
+      }
     }
 
-    if (pDevice12 != nullptr)
+    if (bHookSuccess)
     {
-      if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
-                  pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
-    }
-
-    sk_hook_d3d11_t d3d11_hook_ctx = { };
-
-    d3d11_hook_ctx.ppDevice           = &pDevice.p;
-    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
-
-    if ( SUCCEEDED (hr) || pDevice12 != nullptr )
-    {
-      if (SUCCEEDED (hr))
-        HookD3D11           (&d3d11_hook_ctx);
-      SK_DXGI_HookFactory   (pFactory);
-
-      //
-#else // Old initializtion procedure
-      //
-
-    HRESULT hr =
-      D3D11CreateDeviceAndSwapChain_Import (
-        nullptr,
-          D3D_DRIVER_TYPE_HARDWARE,
-            nullptr,
-              config.render.dxgi.debug_layer ?
-                   D3D11_CREATE_DEVICE_DEBUG : 0x0,
-                levels,
-                  _ARRAYSIZE (levels),
-                    D3D11_SDK_VERSION, &desc,
-                      &pSwapChain.p,
-                        &pDevice.p,
-                          &featureLevel,
-                            &pImmediateContext.p );
-
-    sk_hook_d3d11_t d3d11_hook_ctx = { };
-
-    d3d11_hook_ctx.ppDevice           = &pDevice.p;
-    d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
-
-    SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-    SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
-    SK_ComPtr <IDXGIFactory> pFactory = nullptr;
-
-    if ( SUCCEEDED (hr)                                                &&
-                    pDevice != nullptr                                 &&
-         SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-         SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-         SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
-    {
-      HookD3D11             (&d3d11_hook_ctx);
-      SK_DXGI_HookFactory   (pFactory);
-      //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
-#endif
-
       if (pSwapChain != nullptr)
       {
         //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
