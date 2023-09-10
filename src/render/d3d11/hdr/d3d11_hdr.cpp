@@ -768,11 +768,15 @@ SK_HDR_SnapshotSwapchain (void)
     rb.scanout.getEOTF ();
 
   // Restriction to scRGB-only does not apply anymore
-#if 0
+#if 1
   bool bEOTF_is_PQ =
     (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
 
-  if (bEOTF_is_PQ)
+  if (bEOTF_is_PQ && (! __SK_HDR_10BitSwap))
+    return;
+
+  // None of SK's HDR processing is turned on, so do nothing.
+  if (! (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
     return;
 #endif
 

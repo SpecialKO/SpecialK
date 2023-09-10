@@ -1,4 +1,9 @@
-﻿23.9.10.11
+﻿23.9.10.12
+==========
+ + Don't do any HDR image processing unless SK's 10BitSwapChain option is enabled
+    >> Fixes games with native HDR10 being altered by SK without opting-in
+
+23.9.10.11
 ==========
  + Improved compatibility with Streamline/DLSSG for Starfield
 
