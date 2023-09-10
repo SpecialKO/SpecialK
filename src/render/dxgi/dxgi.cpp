@@ -8651,7 +8651,7 @@ HookDXGI (LPVOID user)
 
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-#if 0
+#if 1
     SK_ComPtr <IDXGIAdapter>
                    pAdapter0;
 
@@ -8660,7 +8660,7 @@ HookDXGI (LPVOID user)
            DXGI_CREATE_FACTORY_DEBUG : 0x0;
 
     SK_ComPtr <IDXGIFactory>                 pFactory;
-    CreateDXGIFactory2 ( factory_flags,
+    CreateDXGIFactory2_Import ( factory_flags,
           __uuidof (IDXGIFactory), (void **)&pFactory.p);
     SK_ComQIPtr    <IDXGIFactory7>           pFactory7
                                             (pFactory);
@@ -8689,7 +8689,7 @@ HookDXGI (LPVOID user)
                                                  SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
     {
       SK_D3D11_Init ();
-
+    
       hr =
         D3D11CoreCreateDevice (
           nullptr, pAdapter0,
@@ -8702,7 +8702,7 @@ HookDXGI (LPVOID user)
                       &pDevice.p,
                         &featureLevel );
     }
-
+    
     else
     {
       hr =
@@ -9599,7 +9599,8 @@ SK::DXGI::StartBudgetThread_NoAdapter (void)
   if (hDXGI)
   {
     static auto
-      CreateDXGIFactory2 =
+      CreateDXGIFactory2 = CreateDXGIFactory2_Import != nullptr ?
+                           CreateDXGIFactory2_Import            :
         (CreateDXGIFactory2_pfn) SK_GetProcAddress ( hDXGI,
                                                        "CreateDXGIFactory2" );
 

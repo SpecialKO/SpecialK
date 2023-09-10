@@ -1,4 +1,16 @@
-﻿23.9.HDR10
+﻿23.9.10.11
+==========
+ + Improved compatibility with Streamline/DLSSG for Starfield
+
+     [Import.FSR2Streamline]
+     Architecture=x64
+     Role=ThirdParty
+     When=PlugIn
+     Filename=C:\Program Files (x86)\Steam\steamapps\common\Starfield\FSR2Streamline.asi
+
+   >> Load the plug-in directly, delete winmm.dll and use PlugIn load-order
+
+23.9.HDR10
 ==========
  + Added experimental HDR10 support
 
