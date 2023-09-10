@@ -1321,7 +1321,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
          cursor_pos = ImGui::GetCursorPos ();
     auto scroll_y   = ImGui::GetScrollY ();
 
-    if (bDrawProcessorLoad)
+    if (bDrawProcessorLoad && SK_ImGui_Widgets->cpu_monitor != nullptr)
     {
       SK_RunOnce ({
         SK_ImGui_Widgets->cpu_monitor->setActive (true);
