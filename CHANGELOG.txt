@@ -1,5 +1,7 @@
 ﻿23.9.10.x
 =========
+ [.4] + Fixed rare framepacing graph and CPU widget initialization race
+ [.4] + Added memory address caching to Starfield plug-in
  [.3] + Sped up Starfield plug-in init
  [.3] + Fixed instances of "Removing Corrupted Hook for 'DirectInput8Create'..."
  [.2] + Added PhotoMode Compatibility setting for Starfield
