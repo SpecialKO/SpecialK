@@ -7960,8 +7960,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     static constexpr GUID SKID_SwapChainColorSpace =
     { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
 
-    UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
-    DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
+    UINT uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
     
     pSwapChain3->SetPrivateData (SKID_SwapChainColorSpace, uiColorSpaceSize, &ColorSpace);
 
