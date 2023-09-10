@@ -3157,6 +3157,10 @@ auto DeclKeybind =
         config.apis.d3d9ex.hook     = false;
         config.apis.dxgi.d3d12.hook = false;
         break;
+
+      case SK_GAME_ID::Starfield:
+        config.nvidia.bugs.allow_dlss_g = true;
+        break;
     }
   }
 

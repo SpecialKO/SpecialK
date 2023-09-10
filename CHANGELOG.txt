@@ -1,4 +1,12 @@
-﻿23.9.10.x
+﻿23.9.HDR10
+==========
+ + Added experimental HDR10 support
+
+     * Visualizations are known to not work (other than Grayscale / Tonemap Curve)
+     * SK's UI will be rather ugly compared to scRGB
+     * Expect crashing, especially in D3D12 games
+
+23.9.10.x
 =========
  [.5] + Changed ImGui's D3D12 command execution code so that graphics crashes reach
           a game's GPU crash handler rather than triggering SK's CPU crash handler

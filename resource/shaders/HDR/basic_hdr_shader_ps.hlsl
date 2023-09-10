@@ -830,6 +830,7 @@ float4 main (PS_INPUT input) : SV_TARGET
         expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
 
+    
     color_out =
       float4 (
         Clamp_scRGB_StripNaN (color_out.rgb),
@@ -850,6 +851,13 @@ float4 main (PS_INPUT input) : SV_TARGET
              );
   }
 #endif
+  
+  // HDR10 -Output-, transform scRGB to HDR10
+  if (visualFunc.y == 1)
+  {
+    color_out.rgb =
+      LinearToPQ (REC709toREC2020 (color_out.rgb), 125.0f);
+  }
 
   return color_out;
 }

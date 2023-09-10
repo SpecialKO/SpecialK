@@ -767,11 +767,14 @@ SK_HDR_SnapshotSwapchain (void)
   SK_RenderBackend::scan_out_s::SK_HDR_TRANSFER_FUNC eotf =
     rb.scanout.getEOTF ();
 
+  // Restriction to scRGB-only does not apply anymore
+#if 0
   bool bEOTF_is_PQ =
     (eotf == SK_RenderBackend::scan_out_s::SMPTE_2084);
 
   if (bEOTF_is_PQ)
     return;
+#endif
 
   auto& vs_hdr_util  = hdr_base->VertexShaderHDR_Util;
   auto& ps_hdr_uber  = hdr_base->PixelShaderHDR_Uber;
@@ -935,7 +938,7 @@ SK_HDR_SnapshotSwapchain (void)
     cbuffer_cspace.sdrLuminance_NonStd    =   __SK_HDR_user_sdr_Y * 1.0_Nits;
     cbuffer_cspace.sdrIsImplicitlysRGB    =   __SK_HDR_Bypass_sRGB != 1;
     cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;
-    cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_visualization;
+    cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_10BitSwap ? 1 : 0;
     cbuffer_cspace.visualFunc [2]         = (uint32_t)__SK_HDR_visualization;
 
     cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?
@@ -980,10 +983,14 @@ SK_HDR_SnapshotSwapchain (void)
           _d3d11_rbk->frames_ [0].hdr.pRTV;
 
     if (              pRenderTargetView.p != nullptr                                 &&
-               swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          &&
+             ((swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          &&
          ( rb.scanout.dxgi_colorspace     == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
            rb.scanout.dwm_colorspace      == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
-           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) )
+           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))||
+              (swapDesc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM           &&
+         ( rb.scanout.dxgi_colorspace     == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+           rb.scanout.dwm_colorspace      == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ||
+           rb.scanout.colorspace_override == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020))))
     {
       SK_ComQIPtr <ID3D11DeviceContext3> pDevCtx3 (pDevCtx);
 

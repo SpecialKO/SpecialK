@@ -307,8 +307,9 @@ void SK_SEH_InitStarfieldRTs (void)
   __try
   {
     extern bool __SK_HDR_16BitSwap;
+    extern bool __SK_HDR_10BitSwap;
 
-    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap)
+    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
     {
       void *scan = nullptr;
 
@@ -344,7 +345,7 @@ void SK_SEH_InitStarfieldRTs (void)
       if (scan != nullptr)
         pImageAddr0 = (int64_t)scan;
 
-      if (sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap)
+      if (sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
       {
         scan = nullptr;
 
@@ -451,6 +452,11 @@ void SK_SEH_InitStarfieldRTs (void)
               if (__SK_HDR_16BitSwap)
               {
                 buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+              }
+
+              if (__SK_HDR_10BitSwap)
+              {
+                buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R10G10B10A2_UNORM62;
               }
 
               continue;

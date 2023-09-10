@@ -1629,6 +1629,11 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
        stagingFrame.hdr.pSwapChainCopy.p->GetDesc ().Format == DXGI_FORMAT_R16G16B16A16_FLOAT &&
                         pHDRPipeline.p   != nullptr &&
+                        pHDRSignature.p  != nullptr )  ||
+    ( __SK_HDR_10BitSwap &&
+       stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
+       stagingFrame.hdr.pSwapChainCopy.p->GetDesc ().Format == DXGI_FORMAT_R10G10B10A2_UNORM &&
+                        pHDRPipeline.p   != nullptr &&
                         pHDRSignature.p  != nullptr );
 
   if (bHDR)
@@ -1661,7 +1666,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.sdrLuminance_NonStd   =   __SK_HDR_user_sdr_Y * 1.0_Nits;
       cbuffer_cspace.sdrIsImplicitlysRGB   =   __SK_HDR_Bypass_sRGB != 1;
       cbuffer_cspace.visualFunc [0]        = (uint32_t)__SK_HDR_visualization;
-      cbuffer_cspace.visualFunc [1]        = (uint32_t)__SK_HDR_visualization;
+      cbuffer_cspace.visualFunc [1]        = (uint32_t)__SK_HDR_10BitSwap ? 1 : 0;
       cbuffer_cspace.visualFunc [2]        = (uint32_t)__SK_HDR_visualization;
 
       cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?

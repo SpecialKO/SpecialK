@@ -1010,7 +1010,7 @@ public:
                     u8"HDR10 Passthrough (Native HDR)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
-    if ((! rb.isHDRCapable ()) && (! __SK_HDR_16BitSwap))
+    if ((! rb.isHDRCapable ()) && (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)))
     {
       setVisible (false); // Stop showing the widget
       return;
@@ -1093,6 +1093,35 @@ public:
 
       ImGui::SameLine ();
 
+      if (ImGui::RadioButton ("HDR10 (Experimental)###SK_HDR_PQ10", &sel, 1))
+      {
+        changed = true;
+
+        __SK_HDR_10BitSwap = true;
+        __SK_HDR_16BitSwap = false;
+
+        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+
+        // D3D12 is already Flip Model, so we're golden (!!)
+        if (rb.api != SK_RenderAPI::D3D12)
+        {
+          config.render.framerate.flip_discard = true;
+
+          //// Should be able to handle this without an explicit override set now
+          //config.render.framerate.buffer_count =
+          //  std::max ( 2,
+          //               config.render.framerate.buffer_count );
+        }
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("This is still experimental, many of the compatibility problems solved for scRGB are unsolved for HDR10.");
+      }
+
+      ImGui::SameLine ();
+
       if (ImGui::RadioButton ("scRGB HDR###SK_HDR_scRGB", &sel, 2))
       {
         // Insert games that need specific settings here...
@@ -1130,11 +1159,13 @@ public:
 
         if (pSwapChain)
         {
-          rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709
+          rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                           __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
                                                               : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709;
 
-          pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
-                                                           DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+          pSwapChain->SetColorSpace1 ( __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                       __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
+                                                          : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 );
 
           // Trigger the game to resize the SwapChain so we can change its format and colorspace
           //
@@ -1149,8 +1180,9 @@ public:
                                                           game_window.actual.client.top )
                       );
 
-          pSwapChain->SetColorSpace1 (__SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
-                                                           DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+          pSwapChain->SetColorSpace1 ( __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709    :
+                                       __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
+                                                            DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 );
         //rb.scanout.dxgi_colorspace = rb.scanout.colorspace_override;
         }
       }
@@ -1257,6 +1289,11 @@ public:
         //bHDRActive = true;
           _PrintHDRModeChangeWarning (); 
         }
+      }
+
+      else
+      {
+        bHDRActive = true;
       }
     }
 
@@ -2367,8 +2404,8 @@ public:
           }
 
           if ( (! rb.fullscreen_exclusive) && (
-                 swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM ||
-                 rb.scanout.getEOTF () == SK_RenderBackend::scan_out_s::SMPTE_2084 ) )
+                 swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM &&
+                 rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 ) )
           {
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f));
             ImGui::BulletText     ("HDR May Not be Working Correctly Until you Restart the Game...");
