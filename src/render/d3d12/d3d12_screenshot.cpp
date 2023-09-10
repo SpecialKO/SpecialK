@@ -1710,29 +1710,91 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 HRESULT hr = S_OK;
 
-                if ( un_srgb.GetImageCount () == 1 &&
-                     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-                     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
-                  TransformImage ( un_srgb.GetImages     (),
-                                   un_srgb.GetImageCount (),
-                                   un_srgb.GetMetadata   (),
-                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
+                {
+                  auto hdr10_metadata        = un_srgb.GetMetadata ();
+                       hdr10_metadata.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+                       hdr10_metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                  ScratchImage
+                    un_hdr10;
+                    un_hdr10.Initialize (hdr10_metadata);
+
+                  DirectX::Convert (raw_img, DXGI_FORMAT_R16G16B16A16_FLOAT, 0x0, 0.0f, un_srgb);
+
+                  struct ParamsPQ
                   {
-                    UNREFERENCED_PARAMETER(y);
+                    float N, M;
+                    float C1, C2, C3;
+                  };
+                  
+                  static const ParamsPQ PQ =
+                  {
+                    2610.0 / 4096.0 / 4.0,   // N
+                    2523.0 / 4096.0 * 128.0, // M
+                    3424.0 / 4096.0,         // C1
+                    2413.0 / 4096.0 * 32.0,  // C2
+                    2392.0 / 4096.0 * 32.0,  // C3
+                  };
 
-                    for (size_t j = 0; j < width; ++j)
-                    {
-                      XMVECTOR value  = inPixels [j];
-                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-                                value = XMColorRGBToSRGB   (value);
+                  auto PQToLinear = [](XMVECTOR N)
+                  {
+                    XMVECTOR ret;
 
-                      outPixels [j]   =                     value;
-                    }
-                  }, un_scrgb);
+                    ret.m128_f32 [0] =
+                      std::pow (N.m128_f32 [0], 1.0f / PQ.M);
+                    ret.m128_f32 [1] =
+                      std::pow (N.m128_f32 [1], 1.0f / PQ.M);
+                    ret.m128_f32 [2] =
+                      std::pow (N.m128_f32 [2], 1.0f / PQ.M);
 
-                  std::swap (un_scrgb, un_srgb);
+                    XMVECTOR nd;
+
+                    nd.m128_f32 [0] = std::max (ret.m128_f32 [0] - PQ.C1, 0.0f) /
+                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [0]));
+                    nd.m128_f32 [1] = std::max (ret.m128_f32 [1] - PQ.C1, 0.0f) /
+                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [1]));
+                    nd.m128_f32 [2] = std::max (ret.m128_f32 [2] - PQ.C1, 0.0f) /
+                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [2]));
+
+                    ret.m128_f32 [0] = std::pow (nd.m128_f32 [0], 1.0f / PQ.N) * 125.0f;
+                    ret.m128_f32 [1] = std::pow (nd.m128_f32 [1], 1.0f / PQ.N) * 125.0f;
+                    ret.m128_f32 [2] = std::pow (nd.m128_f32 [2], 1.0f / PQ.N) * 125.0f;
+
+                    return ret;
+                  };
+
+                  auto metadata =
+                    un_srgb.GetMetadata ();
+
+                  metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
+
+                  if (
+                    SUCCEEDED (
+                      TransformImage ( un_srgb.GetImages     (),
+                                       un_srgb.GetImageCount (),
+                                       metadata,
+                      [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                      {
+                        UNREFERENCED_PARAMETER(y);
+
+                        for (size_t j = 0; j < width; ++j)
+                        {
+                          XMVECTOR value  = PQToLinear (inPixels [j]);
+                          XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
+                                    value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+
+                          outPixels [j] = value;
+                          outPixels [j].m128_f32 [3] = 1.0f;
+                        }
+                      }, un_hdr10    )
+                     )        )
+                  {
+                    std::swap (un_srgb, un_hdr10);
+                  }
+
+                  else
+                    hdr = false; // Couldn't undo HDR10, don't store a .jxr
                 }
 
                 if ( un_srgb.GetImageCount () == 1 &&
@@ -2137,6 +2199,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           un_hdr10;
                           un_hdr10.Initialize (hdr10_metadata);
 
+                        DirectX::Convert (raw_img, DXGI_FORMAT_R16G16B16A16_FLOAT, 0x0, 0.0f, un_srgb);
+
                         static const XMMATRIX c_from2020to709 =
                         {
                           { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
@@ -2145,30 +2209,47 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           { 0.f,          0.f,         0.f,        1.f }
                         };
 
-                        auto RemoveREC2084Curve = [](XMVECTOR N)
+                        struct ParamsPQ
                         {
-                          static constexpr float m1 = 2610.0 / 4096.0 / 4;
-                          static constexpr float m2 = 2523.0 / 4096.0 * 128;
-                          static constexpr float c1 = 3424.0 / 4096.0;
-                          static constexpr float c2 = 2413.0 / 4096.0 * 32;
-                          static constexpr float c3 = 2392.0 / 4096.0 * 32;
-
-                          float Np [3] = { pow (N.m128_f32 [0], 1.0f / m2),
-                                           pow (N.m128_f32 [1], 1.0f / m2),
-                                           pow (N.m128_f32 [2], 1.0f / m2) };
-
+                          float N, M;
+                          float C1, C2, C3;
+                        };
+                        
+                        static const ParamsPQ PQ =
+                        {
+                          2610.0 / 4096.0 / 4.0,   // N
+                          2523.0 / 4096.0 * 128.0, // M
+                          3424.0 / 4096.0,         // C1
+                          2413.0 / 4096.0 * 32.0,  // C2
+                          2392.0 / 4096.0 * 32.0,  // C3
+                        };
+                        
+                        auto PQToLinear = [](XMVECTOR N)
+                        {
                           XMVECTOR ret;
-
-                          ret.m128_f32 [0] = pow (std::max (Np [0] - c1, 0.0f) / (c2 - c3 * Np [0]), 1.0f / m1);
-                          ret.m128_f32 [1] = pow (std::max (Np [1] - c1, 0.0f) / (c2 - c3 * Np [1]), 1.0f / m1);
-                          ret.m128_f32 [2] = pow (std::max (Np [2] - c1, 0.0f) / (c2 - c3 * Np [2]), 1.0f / m1);
-
+                        
+                          ret.m128_f32 [0] =
+                            std::pow (N.m128_f32 [0], 1.0f / PQ.M);
+                          ret.m128_f32 [1] =
+                            std::pow (N.m128_f32 [1], 1.0f / PQ.M);
+                          ret.m128_f32 [2] =
+                            std::pow (N.m128_f32 [2], 1.0f / PQ.M);
+                        
+                          XMVECTOR nd;
+                        
+                          nd.m128_f32 [0] = std::max (ret.m128_f32 [0] - PQ.C1, 0.0f) /
+                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [0]));
+                          nd.m128_f32 [1] = std::max (ret.m128_f32 [1] - PQ.C1, 0.0f) /
+                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [1]));
+                          nd.m128_f32 [2] = std::max (ret.m128_f32 [2] - PQ.C1, 0.0f) /
+                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [2]));
+                        
+                          ret.m128_f32 [0] = std::pow (nd.m128_f32 [0], 1.0f / PQ.N) * 125.0f;
+                          ret.m128_f32 [1] = std::pow (nd.m128_f32 [1], 1.0f / PQ.N) * 125.0f;
+                          ret.m128_f32 [2] = std::pow (nd.m128_f32 [2], 1.0f / PQ.N) * 125.0f;
+                        
                           return ret;
                         };
-
-                        const XMVECTOR
-                          Normalize_scRGB =
-                            XMVectorReplicate ((rb.display_gamut.maxY / 10000.0f) * 125.0f);
 
                         auto metadata =
                           un_srgb.GetMetadata ();
@@ -2186,12 +2267,11 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                               for (size_t j = 0; j < width; ++j)
                               {
-                                XMVECTOR value  = RemoveREC2084Curve (inPixels [j]);
+                                XMVECTOR value  = PQToLinear (inPixels [j]);
                                 XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
                                           value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
 
-                                outPixels [j]   =
-                                  XMVectorMultiply (value, Normalize_scRGB);
+                                outPixels [j] = value;
                                 outPixels [j].m128_f32 [3] = 1.0f;
                               }
                             }, un_hdr10    )

@@ -1,4 +1,8 @@
-﻿23.9.10.12
+﻿23.9.10.13
+==========
+ + Fixed HDR10 screenshots in D3D12; tonemapping and .jxr
+
+23.9.10.12
 ==========
  + Don't do any HDR image processing unless SK's 10BitSwapChain option is enabled
     >> Fixes games with native HDR10 being altered by SK without opting-in
