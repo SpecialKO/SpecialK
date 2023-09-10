@@ -1,20 +1,16 @@
-﻿23.9.10.14
-==========
- + Upgraded FSR2_RESAMPLED_LUMA_HISTORY to FP16 in Starfield for better HDR, if
-     "Upgrade most 8-bit RTs to 16-bpc" is enabled.
+﻿23.9.11
+=======
+ + Fixed all HDR visualization modes when HDR10 is active
+ + Improved HDR -> SDR tonemap results by applying Reinhard separately on luma and chroma
 
-23.9.10.13
-==========
- + Fixed HDR10 screenshots in D3D12; tonemapping and .jxr
-
-23.9.10.12
-==========
- + Don't do any HDR image processing unless SK's 10BitSwapChain option is enabled
-    >> Fixes games with native HDR10 being altered by SK without opting-in
-
-23.9.10.11
-==========
- + Improved compatibility with Streamline/DLSSG for Starfield
+23.9.10.x
+=========
+ [.14] + Upgraded FSR2_RESAMPLED_LUMA_HISTORY to FP16 in Starfield for better HDR, if
+           "Upgrade most 8-bit RTs to 16-bpc" is enabled.
+ [.13] + Fixed HDR10 screenshots in D3D12; tonemapping and .jxr
+ [.12] + Don't do any HDR image processing unless SK's 10BitSwapChain option is enabled
+           >> Fixes games with native HDR10 being altered by SK without opting-in
+ [.11] + Improved compatibility with Streamline/DLSSG for Starfield
 
      [Import.FSR2Streamline]
      Architecture=x64

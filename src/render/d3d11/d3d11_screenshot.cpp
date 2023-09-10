@@ -26,7 +26,6 @@
 #include <ranges>
 #include <valarray>
 
-
 extern void SK_Screenshot_PlaySound            (void);
 extern void SK_Steam_CatastropicScreenshotFail (void);
 
@@ -1370,6 +1369,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   un_scrgb;
                   un_scrgb.Initialize (meta);
 
+                ScratchImage
+                  final_sdr;
+                  final_sdr.Initialize (meta);
+
                 static const XMVECTORF32 c_MaxNitsFor2084 =
                   { 10000.0f, 10000.0f, 10000.0f, 1.f };
 
@@ -1427,9 +1430,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       UNREFERENCED_PARAMETER(y);
 
                       for (size_t j = 0; j < width; ++j)
-                      {                      
+                      {
                         static const XMVECTORF32 s_luminance =
-                          { 0.3f, 0.59f, 0.11f, 0.f };
+                          { 0.2126729, 0.7151522, 0.0721750, 0.f };
 
                         XMVECTOR v = *pixels++;
 
@@ -1450,15 +1453,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       }
                     })                                       : E_POINTER;
 
+                  colLum = XMVectorZero ();
+
                   SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
                                                                       maxLum.m128_f32 [0] * 80.0f), L"D3D11SShot" );
 
                   SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
                                                                                           minLum.m128_f32 [0] ) / 2.0f,
                                                                                   80.0f * expf ( (1.0f / N) * lumTotal ) ), L"D3D11SShot");
-
-                  static const XMVECTORF32 c_SdrPower =
-                  { 0.725f, 0.725f, 0.725f, 1.f };
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1484,19 +1486,48 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                             value
                                         )
                           );
-
+                        
                         XMVECTOR nvalue =
                           XMVectorMultiply (value, scale);
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
-
+                        
                         outPixels [j] =
-                          XMVectorPow (value, c_SdrPower);
+                          value;
+
+                        colLum =
+                          XMVectorMax (outPixels [j], colLum);
                       }
                     }, un_scrgb)                             : E_POINTER;
 
-                  if (         un_scrgb.GetImageCount () == 1) {
-                    Convert ( *un_scrgb.GetImages     (),
+                  static const XMVECTORF32 c_SdrPower =
+                  { 0.68f, 0.68f, 0.68f, 1.f };
+
+                  const auto xmColMax =
+                    XMVectorReplicate (
+                       std::max (   colLum.m128_f32 [0],
+                         std::max ( colLum.m128_f32 [1],
+                                    colLum.m128_f32 [2] ) )
+                      );
+
+                  hr =               un_scrgb.GetImageCount () == 1 ?
+                    TransformImage ( un_scrgb.GetImages     (),
+                                     un_scrgb.GetImageCount (),
+                                     un_scrgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        outPixels [j] =
+                          XMVectorPow (
+                            XMVectorDivide ( inPixels [j], xmColMax ), c_SdrPower );
+                      }
+                    }, final_sdr)                             : E_POINTER;
+
+                  if (         final_sdr.GetImageCount () == 1) {
+                    Convert ( *final_sdr.GetImages     (),
                                 DXGI_FORMAT_B8G8R8X8_UNORM,
                                   filterFlags,
                                     TEX_THRESHOLD_DEFAULT,
