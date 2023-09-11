@@ -1293,7 +1293,8 @@ public:
     bManualHDRUsed |= __SK_HDR_16BitSwap;
     bManualHDRUsed |= __SK_HDR_10BitSwap;
 
-    bool bHDRActive = false;
+    bool bHDRActive  = false;
+    bool bHDROptimal = true; // Set to false if colorspace is HDR, but framebuffer is not a good match
 
     SK_ComQIPtr <IDXGISwapChain>
       pSwap (rb.swapchain);
@@ -1338,7 +1339,10 @@ public:
 
       else if (__SK_HDR_10BitSwap && bManualHDRUsed)
       {
-        if ( swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM ||
+        if ( (swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM &&
+              // 8-Bit SwapChain formats support HDR10, as little sense as that makes.
+              swapDesc.BufferDesc.Format != DXGI_FORMAT_R8G8B8A8_UNORM    &&
+              swapDesc.BufferDesc.Format != DXGI_FORMAT_B8G8R8A8_UNORM) ||
              rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 )
         {
           _PrintHDRModeChangeWarning ();
@@ -1347,6 +1351,9 @@ public:
         else
         {
           bHDRActive = true;
+
+          if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM)
+            bHDROptimal = false;
         }
       }
 
@@ -1578,9 +1585,11 @@ public:
               static std::string slider_desc =
                 (const char *)u8"Brightness Scale: %.2fx";
 
+              float fPQBoostScale = 160.0f;
+
               if (bDefaultPB)
               {
-                float fPQBoostScale =
+                fPQBoostScale =
                   bDefaultPB_v0 ? SK_HDR_PQBoost_v0.EstimatedMaxCLLScale
                                 : SK_HDR_PQBoost_v1.EstimatedMaxCLLScale;
 
@@ -1598,9 +1607,9 @@ public:
               }
 
               bSliderChanged =
-                ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 0.5f, 3.5f,
-                                          //__SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY   / 80.0f
-                                                              //:  rb.display_gamut.maxAverageY / 80.0f,
+                ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f               / fPQBoostScale,
+                                      (__SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
+                                                           :  rb.display_gamut.maxAverageY) / fPQBoostScale,
                                      slider_desc.c_str () );
 
               if (ImGui::IsItemHovered ())
@@ -2466,9 +2475,10 @@ public:
           //ImGui::PlotHistogram ("Luminance", histogram.buckets, 16384);
           }
 
-          if ( (! rb.fullscreen_exclusive) && (
-                 swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM &&
-                 rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 ) )
+          if ( (! bHDROptimal) ||
+                 ( (! rb.fullscreen_exclusive) && (
+                     swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM &&
+                     rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 ) ) )
           {
             ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f));
             ImGui::BulletText     ("HDR May Not be Working Correctly Until you Restart the Game...");

@@ -1,46 +1,40 @@
-﻿23.9.11.6
+﻿23.9.11.7
 =========
- + Screenshots taken using SK's keybind (F8) will now be taken -AFTER-
-     third-party software (i.e. ReShade) performs end-of-frame rendering
+ + Allow HDR10 colorspaces to be set even if framebuffer is 8-bpc
+     (undocumented feature?/bug in DXGI)
+ + Restrict range of HDR luminance slider to display limits when using one of
+     the preset Perceptual Boost profiles
 
-23.9.11.5
+23.9.11.x
 =========
- + Apply DXGI Colorspace changes as many times as needed when changing HDR
- + Prevent games from setting HDR metadata while HDR10 override is active
+ [.6] + Screenshots taken using SK's keybind (F8) will now be taken -AFTER-
+          third-party software (i.e. ReShade) performs end-of-frame rendering
+ [.5] + Apply DXGI Colorspace changes as many times as needed when changing HDR
+ [.5] + Prevent games from setting HDR metadata while HDR10 override is active
+ [.4] + Added Streamline Hook Compatibility Mode; breaks normal games
 
-23.9.11.4
-=========
- + Added Streamline Hook Compatibility Mode; breaks normal games
+         [NVIDIA.Bugs]
+         StreamlineCompatibilityMode={true|false}  Default: False
 
-     [NVIDIA.Bugs]
-     StreamlineCompatibilityMode={true|false}  Default: False
+ [.3] + Various changes to HDR10/scRGB Colorspace Management:
 
-23.9.11.3
-=========
- + Various changes to HDR10/scRGB Colorspace Management:
+          * Added command console variables HDR.EnableSCRGB, HDR.EnableHDR10,
+             - HDR.Enable false can turn HDR off regardless which mode is active
+             - HDR.Enable true defaults to scRGB
+          
+          * Added warnings and better tracking for partial HDR10 state enable
+              (i.e. prompt to restart game or press Alt+Enter)
+          
+          * Load HDR config files before game-specific plug-ins, so that user
+              preferences can be used by plug-ins during startup.
 
-     * Added command console variables HDR.EnableSCRGB, HDR.EnableHDR10,
-        - HDR.Enable false can turn HDR off regardless which mode is active
-        - HDR.Enable true defaults to scRGB
-
-     * Added warnings and better tracking for partial HDR10 state enable
-         (i.e. prompt to restart game or press Alt+Enter)
-
-     * Load HDR config files before game-specific plug-ins, so that user
-         preferences can be used by plug-ins during startup.
-
-23.9.11.2
-=========
- + Fixed a problem where some Starfield mods put the game into Windows 7
-     compatibility mode, causing SK not to initialize correctly because
-       IsWindows8Point1OrGreater (...) and IsWindows10OrGreater (...) both
-         fail.
-
-      * SK would try Windows 7 fallback codepaths... for a D3D12 game, and crash.
-
-23.9.11.1
-=========
- + Additional improvements to HDR screenshot tonemapping
+ [.2] + Fixed a problem where some Starfield mods put the game into Windows 7
+          compatibility mode, causing SK not to initialize correctly because
+            IsWindows8Point1OrGreater (...) and IsWindows10OrGreater (...) both
+              fail.
+          
+           * SK would try Windows 7 fallback codepaths... for a D3D12 game, and crash.
+ [.1] + Additional improvements to HDR screenshot tonemapping
 
 23.9.11
 =======
