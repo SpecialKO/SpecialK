@@ -7907,8 +7907,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
                            ColorSpace != rb.scanout.colorspace_override )
   {
-    // HDR10 requires additional checks
-    if (swapDesc.BufferDesc.Format != DXGI_FORMAT_R10G10B10A2_UNORM)
+    // Only do scRGB colorspace overrides if we're actually in FP16
+    if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
     {
       if (__SK_HDR_16BitSwap)
       {
@@ -7916,6 +7916,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       }
     }
 
+    // HDR10 Colorspace actually works on 8-bit SwapChains.
+    // 
+    //  * It's undocumented, but if we ever encounter this scenario, allow it.
+    //
     else
     {
       // Do not apply scRGB in HDR10
