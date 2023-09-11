@@ -1,4 +1,9 @@
-﻿23.9.11.4
+﻿23.9.11.5
+=========
+ + Apply DXGI Colorspace changes as many times as needed when changing HDR
+ + Prevent games from setting HDR metadata while HDR10 override is active
+
+23.9.11.4
 =========
  + Added Streamline Hook Compatibility Mode; breaks normal games
 

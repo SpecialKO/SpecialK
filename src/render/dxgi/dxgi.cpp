@@ -7728,6 +7728,9 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 {
   SK_LOG_FIRST_CALL
 
+  if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+    return S_OK;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -7986,7 +7989,6 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   // In the failure case, just hide it from the game...
   if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
-
     hr = S_OK;
 
   return hr;

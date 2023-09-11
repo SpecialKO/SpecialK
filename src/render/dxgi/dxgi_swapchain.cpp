@@ -1132,6 +1132,12 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 
   dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata");
 
+  extern bool __SK_HDR_10BitSwap;
+  extern bool __SK_HDR_16BitSwap;
+
+  if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+    return S_OK;
+
   //SK_LOG_FIRST_CALL
 
   const HRESULT hr =

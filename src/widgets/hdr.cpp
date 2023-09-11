@@ -947,11 +947,7 @@ public:
         //   we set and check it for consistency each frame... set a colorspace override if necessary.
         if (FAILED (pSwap3->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)) || csp != rb.scanout.colorspace_override)
         {
-          if (SUCCEEDED (pSwap3->SetColorSpace1 (rb.scanout.colorspace_override)))
-          {
-                                                              uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
-            pSwap3->SetPrivateData (SKID_SwapChainColorSpace, uiColorSpaceSize, &rb.scanout.colorspace_override);
-          }
+          pSwap3->SetColorSpace1 (rb.scanout.colorspace_override);
         }
       }
 
@@ -1155,10 +1151,6 @@ public:
 
         __SK_HDR_10BitSwap = false;
         __SK_HDR_16BitSwap = false;
-
-        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
-
       }
 
       ImGui::SameLine ();
@@ -1169,15 +1161,6 @@ public:
 
         __SK_HDR_10BitSwap = true;
         __SK_HDR_16BitSwap = false;
-
-        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
-
-        // D3D12 is already Flip Model, so we're golden (!!)
-        if (rb.api != SK_RenderAPI::D3D12)
-        {
-          config.render.framerate.flip_discard = true;
-        }
       }
 
       if (ImGui::IsItemHovered ())
@@ -1200,19 +1183,22 @@ public:
 
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
-
-        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
-        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
-
-        // D3D12 is already Flip Model, so we're golden (!!)
-        if (rb.api != SK_RenderAPI::D3D12)
-        {
-          config.render.framerate.flip_discard = true;
-        }
       }
 
       if (changed)
       {
+        _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+        _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+
+        if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+        {
+          // D3D12 is already Flip Model, so we're golden (!!)
+          if (rb.api != SK_RenderAPI::D3D12)
+          {
+            config.render.framerate.flip_discard = true;
+          }
+        }
+
         dll_ini->write ();
 
         SK_ComQIPtr <IDXGISwapChain3> pSwapChain (rb.swapchain);
@@ -1240,9 +1226,10 @@ public:
                                                           game_window.actual.client.top )
                       );
 
-          pSwapChain->SetColorSpace1 ( __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709    :
-                                       __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
-                                                            DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 );
+          pSwapChain->SetColorSpace1 ( __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                       __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
+                                                          : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 );
+
         //rb.scanout.dxgi_colorspace = rb.scanout.colorspace_override;
         }
       }
