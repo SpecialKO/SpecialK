@@ -1808,6 +1808,11 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
       }
     }
 
+    // Queue-up Post-SK OSD Screenshots
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,  rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
+    SK_D3D11_TexCacheCheckpoint (                                   );
+
     extern bool
         __SK_BFI;
     if (__SK_BFI)
@@ -1818,9 +1823,6 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 
     else
       SK_D3D11_ClearSwapchainBackbuffer (pSwap);
-
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
-    SK_D3D11_TexCacheCheckpoint (                                   );
   }
 }
 
@@ -1835,6 +1837,8 @@ SK_D3D12_PostPresent (ID3D12Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 
   if (SUCCEEDED (hr))
   {
+    // Queue-up Post-SK OSD Screenshots
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,  rb);
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
   }
 }

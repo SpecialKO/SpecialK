@@ -1,4 +1,9 @@
-﻿23.9.11.5
+﻿23.9.11.6
+=========
+ + Screenshots taken using SK's keybind (F8) will now be taken -AFTER-
+     third-party software (i.e. ReShade) performs end-of-frame rendering
+
+23.9.11.5
 =========
  + Apply DXGI Colorspace changes as many times as needed when changing HDR
  + Prevent games from setting HDR metadata while HDR10 override is active

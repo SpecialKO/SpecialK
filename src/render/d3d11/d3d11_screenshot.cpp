@@ -1077,7 +1077,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
         __stage_map = {
           { SK_ScreenshotStage::BeforeGameHUD, 0 },
           { SK_ScreenshotStage::BeforeOSD,     1 },
-          { SK_ScreenshotStage::EndOfFrame,    2 }
+          { SK_ScreenshotStage::PrePresent,    2 },
+          { SK_ScreenshotStage::EndOfFrame,    3 }
         };
 
     const auto it =
@@ -1129,7 +1130,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  constexpr int __MaxStage = 2;
+  constexpr int __MaxStage = 3;
   const     int      stage =
     sk::narrow_cast <int> (stage_);
 

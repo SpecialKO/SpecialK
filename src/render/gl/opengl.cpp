@@ -1674,8 +1674,8 @@ SK_Overlay_DrawGL (void)
   glPopAttrib ();
 
 
-  // Queue-up Post-SK OSD Screenshots
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame, rb);
+  // Queue-up Post-SK OSD Screenshots (Does not include ReShade)
+  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
 }
 
 
@@ -2715,6 +2715,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         }
       }
 
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame,  SK_GetCurrentRenderBackend ());
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
     }
   }

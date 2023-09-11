@@ -1784,8 +1784,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
       SK_ImGui_DrawD3D9 ( pDev,
                             pSwapChain );
 
-      // Queue-up Post-SK OSD Screenshots
-      SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::EndOfFrame);
+      // Queue-up Post-SK OSD Screenshots (Does not include ReShade)
+      SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::PrePresent);
 
       //
       // Update G-Sync; doing this here prevents trying to do this on frames where
@@ -1855,6 +1855,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
         hr = D3DERR_DEVICELOST;
     }
 
+    // Queue-up End of Frame Screenshots
+    SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::EndOfFrame);
 
     SK_D3D9_EndFrame ();
 

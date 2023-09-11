@@ -2039,8 +2039,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     }
   }
 
-  // Queue-up Post-SK OSD Screenshots
-  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame, rb);
+  // Queue-up Post-SK OSD Screenshots  (If done here, will not include ReShade)
+  SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
 
   ApplyStateblock (_pDeviceCtx, sb);
 

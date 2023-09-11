@@ -1729,8 +1729,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );
 
-  // Queue-up Post-SK OSD Screenshots
-  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame, rb);
+  // Queue-up Post-SK OSD Screenshots  (If done here, will not include ReShade)
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::PrePresent, rb);
 
   //if (! bHDR)
     transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,

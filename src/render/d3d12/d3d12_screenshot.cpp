@@ -876,7 +876,8 @@ SK_D3D12_CaptureScreenshot (
 
   if (! bRecording)
   {
-    SK_ReleaseAssert (!"D3D12 Screenshot Initiated While SK Was Not Recording A Command List!");
+    // This can now happen if post-Present screenshots are taken
+    //SK_ReleaseAssert (!"D3D12 Screenshot Initiated While SK Was Not Recording A Command List!");
 
     d3d12_rbk.frames_ [d3d12_rbk._pSwapChain->GetCurrentBackBufferIndex ()].begin_cmd_list ();
 
@@ -1403,7 +1404,8 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
         __stage_map = {
           { SK_ScreenshotStage::BeforeGameHUD, 0 },
           { SK_ScreenshotStage::BeforeOSD,     1 },
-          { SK_ScreenshotStage::EndOfFrame,    2 }
+          { SK_ScreenshotStage::PrePresent,    2 },
+          { SK_ScreenshotStage::EndOfFrame,    3 }
         };
 
     const auto it =
@@ -1451,7 +1453,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  constexpr int __MaxStage = 2;
+  constexpr int __MaxStage = 3;
   const     int      stage =
     sk::narrow_cast <int> (stage_);
 

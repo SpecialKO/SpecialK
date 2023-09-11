@@ -448,6 +448,14 @@ struct sk_config_t
     };
 
     SK_ConfigSerializedKeybind
+      sk_no_3rd_party_keybind = {
+      SK_Keybind {
+        "Take Screenshot without Third-Party Overlays", L"",
+         false, false, false, 0
+      }, L"Without3rdParty"
+    };
+
+    SK_ConfigSerializedKeybind
       sk_osd_insertion_keybind = {
       SK_Keybind {
         "Take Screenshot and insert Special K's OSD", L"F8",

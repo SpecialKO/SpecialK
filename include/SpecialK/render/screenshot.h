@@ -27,9 +27,10 @@ enum class SK_ScreenshotStage
   BeforeGameHUD = 0,    // Requires a game profile indicating trigger shader
   BeforeOSD     = 1,    // Before SK draws its OSD
 
-  EndOfFrame    = 2,    // Generally captures all add-on overlays (including the Steam overlay)
+  PrePresent    = 2,    // Before third-party overlays draw, but after SK is done
+  EndOfFrame    = 3,    // Generally captures all add-on overlays (including the Steam overlay)
 
-  _FlushQueue   = 3     // Causes any screenshots in progress to complete before the next frame,
+  _FlushQueue   = 4     // Causes any screenshots in progress to complete before the next frame,
                         //   typically needed when Alt+Tabbing or resizing the swapchain.
 };
 
@@ -38,7 +39,7 @@ struct SK_ScreenshotQueue
   union
   {
     // Queue Array
-    volatile LONG stages [3];
+    volatile LONG stages [4];
 
     struct
     {
@@ -46,6 +47,7 @@ struct SK_ScreenshotQueue
 
       volatile LONG without_sk_osd;
       volatile LONG with_sk_osd;
+      volatile LONG with_everything;
     };
   };
 

@@ -38,8 +38,8 @@
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
 
-SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0 };
-SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0 };
+SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0, 0 };
+SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0, 0 };
 
 void SK_Screenshot_PlaySound (void)
 {
@@ -115,7 +115,8 @@ SK_Screenshot_IsCapturing (void)
   return
     ( ReadAcquire (&enqueued_screenshots.stages [0]) > 0 ||
       ReadAcquire (&enqueued_screenshots.stages [1]) > 0 ||
-      ReadAcquire (&enqueued_screenshots.stages [2]) > 0   );
+      ReadAcquire (&enqueued_screenshots.stages [2]) > 0 ||
+      ReadAcquire (&enqueued_screenshots.stages [3]) );
 }
 
 void
