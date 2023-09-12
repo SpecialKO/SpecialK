@@ -242,10 +242,6 @@ bool SK_SF_PlugInCfg (void)
         ImGui::EndTooltip   ();
       }
 
-      ImGui::SameLine          ();
-      ImGui::VerticalSeparator ();
-      ImGui::SameLine          ();
-
       if (pfMipBias != nullptr)
       {
         changed_no_restart_needed |=
@@ -326,7 +322,7 @@ void SK_SEH_InitStarfieldRTs (void)
     extern bool __SK_HDR_16BitSwap;
     extern bool __SK_HDR_10BitSwap;
 
-    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
     {
       void *scan = nullptr;
 
@@ -362,7 +358,7 @@ void SK_SEH_InitStarfieldRTs (void)
       if (scan != nullptr)
         pImageAddr0 = (int64_t)scan;
 
-      if (sf_bRemasterExtendedRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+      if (sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
       {
         scan = nullptr;
 
@@ -569,7 +565,7 @@ SK_BGS_InitPlugin(void)
                                    L"ExtendedRTUpgrades", sf_bRemasterExtendedRTs,
                                                           L"Promote Most 8-bit RTs to FP16" );
 
-    __SK_SF_ExtendedRemastering =
+    __SK_SF_HDRRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"HDRRTUpgrades", sf_bRemasterHDRRTs,
                                                      L"Promote 11-bit HDR RTs to FP16" );
