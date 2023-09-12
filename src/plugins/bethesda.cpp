@@ -206,19 +206,12 @@ bool SK_SF_PlugInCfg (void)
       bool changed_no_restart_needed = false;
 
       ImGui::TreePush ("");
+
+      ImGui::BeginGroup ();
       changed |= ImGui::Checkbox ("Upgrade Base 8-bpc RTs to 16-bpc",       &sf_bRemasterBasicRTs);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Eliminates banding on UI at the cost of (negligible) extra VRAM");
-
-      ImGui::SameLine ();
-
-      changed |= ImGui::Checkbox ("Upgrade Most 8-bpc RTs to 16-bpc", &sf_bRemasterExtendedRTs);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ("May further reduce banding and improve HDR, but at high memory cost");
-      }
 
       if (sf_bRemasterBasicRTs)
       {
@@ -226,8 +219,17 @@ bool SK_SF_PlugInCfg (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Reduce dynamic range to 8-bpc on Image Space Buffers so that Photo Mode does not crash.");
+      }
 
-        ImGui::SameLine ();
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+
+      changed |= ImGui::Checkbox ("Upgrade Most 8-bpc RTs to 16-bpc", &sf_bRemasterExtendedRTs);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("May further reduce banding and improve HDR, but at high memory cost");
       }
 
       changed |= ImGui::Checkbox ("Upgrade HDR (11-bpc) RTs to 16-bpc", &sf_bRemasterHDRRTs);
@@ -242,10 +244,12 @@ bool SK_SF_PlugInCfg (void)
         ImGui::EndTooltip   ();
       }
 
+      ImGui::EndGroup ();
+
       if (pfMipBias != nullptr)
       {
         changed_no_restart_needed |=
-          ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -3.f, 3.f, "%.1f");
+          ImGui::SliderFloat ("Mipmap Bias", pfMipBias, -2.f, 2.f, "%.1f");
 
         if (ImGui::IsItemHovered ())
         {
@@ -614,18 +618,26 @@ SK_BGS_InitPlugin(void)
     // TODO: Proper version checks if we're just going to use hard-coded addresses.
     //
 
-    if (SK_GetModuleHandle (L"steam_api64.dll")) // Steam
+    if (SK_GetDLLVersionStr (SK_GetHostApp ()).find (L"1.7.23.0") != std::wstring::npos)
     {
-      pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B930) + 8);
-      pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B910) + 8);
-      pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x1455FDE70) + 8);
+      if (SK_GetModuleHandle (L"steam_api64.dll")) // Steam
+      {
+        pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B930) + 8);
+        pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557B910) + 8);
+        pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x1455FDE70) + 8);
+      }
+
+      else // Microsoft Store
+      {
+        pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7F0) + 8);
+        pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7D0) + 8);
+        pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x145620ED0) + 8);
+      }
     }
 
-    else // Microsoft Store
+    else
     {
-      pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7F0) + 8);
-      pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14559E7D0) + 8);
-      pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x145620ED0) + 8);
+      SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
     }
   
     plugin_mgr->config_fns.emplace (SK_SF_PlugInCfg);
