@@ -370,20 +370,15 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
   if (site == config.nvidia.reflex.enforcement_site)
   {
+    config.nvidia.reflex.frame_interval_us = 0;
+
     static bool
       valid = true;
 
     if (! valid)
-      return;
-
-    if (config.nvidia.reflex.frame_interval_us != 0)
     {
-      ////extern float __target_fps;
-      ////
-      ////if (__target_fps > 0.0)
-      ////  config.nvidia.reflex.frame_interval_us = static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);
-      ////else
-      config.nvidia.reflex.frame_interval_us = 0;
+      config.nvidia.reflex.use_limiter = false;
+      return;
     }
 
     if (config.nvidia.reflex.use_limiter)
@@ -393,11 +388,6 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       {
         config.nvidia.reflex.frame_interval_us =
           (UINT)(1000000.0 / __target_fps);
-      }
-
-      else
-      {
-        config.nvidia.reflex.frame_interval_us = 0;
       }
     }
 
@@ -411,6 +401,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
     static NV_SET_SLEEP_MODE_PARAMS
       lastParams = { 1, true, true, 69, 0, { 0 } };
+
+    static bool
+      lastEnable = config.nvidia.reflex.enable;
 
     static IUnknown
       *lastSwapChain = nullptr,
@@ -433,6 +426,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     if ( lastParams.version               != sleepParams.version               ||
          lastSwapChain                    != swapchain.p                       ||
          lastDevice                       != device.p                          ||
+         lastEnable                       != config.nvidia.reflex.enable       ||
          lastParams.bLowLatencyBoost      != sleepParams.bLowLatencyBoost      ||
          lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode       ||
          lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs     ||
@@ -453,6 +447,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
         lastParams    = sleepParams;
         lastSwapChain = swapchain.p;
         lastDevice    = device.p;
+        lastEnable    = config.nvidia.reflex.enable;
 
         WriteULong64Release (&_frames_drawn,
           ReadULong64Acquire (&frames_drawn));

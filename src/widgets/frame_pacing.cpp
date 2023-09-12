@@ -1286,10 +1286,11 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                    0,
                            SK_RenderBackend_V2::latency.stats.ScaleMs,
                                       border_dims );
-  ImGui::PopStyleColor  ();
+  ImGui::PopStyleColor (  );
 
-  ImGui::SameLine ();
+  ImGui::SameLine      (  );
   ImGui::SetCursorPosX (fX);
+  ImGui::BeginGroup    (  );
 
   // We don't want a second background dimming things even more...
   ImGui::PushStyleColor (ImGuiCol_FrameBg, ImVec4 (0.0f, 0.0f, 0.0f, 0.0f));
@@ -1303,8 +1304,18 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                  2.0f * target_frametime + 0.1f,
                                    border_dims );
 
+  if ( game_window.active             && __target_fps > 0.0f              &&
+         config.nvidia.reflex.enable  && config.nvidia.reflex.use_limiter &&
+     ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
+                                      && rb.isReflexSupported () )
+  {
+    ImGui::SameLine      (  );
+    ImGui::SetCursorPosX (fX);
+    ImGui::TextColored   (ImVec4 (0.463f, 0.726f, 0.0f, 1.0f), "NV");
+  }
+  
   ImGui::PopStyleColor (2);
-
+  ImGui::EndGroup      ( );
 
   // Only toggle when clicking the graph and percentiles are off,
   //   to turn them back off, click the progress bars.

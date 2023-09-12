@@ -4912,7 +4912,8 @@ SK_ImGui_ControlPanel (void)
             enum class limiter_mode_e {
               Normal     = 0,
               LowLatency = 1,
-              LatentSync = 2
+              LatentSync = 2,
+              Reflex     = 3
             };
 
             // Present Interval 0 = Latent Sync; Low Latency mode unsupported
@@ -4923,13 +4924,42 @@ SK_ImGui_ControlPanel (void)
                                                 bLowLatency ? limiter_mode_e::LowLatency
                                                             : limiter_mode_e::Normal);
 
-            if (
+            const bool bReflexSupported =
+              rb.isReflexSupported ();
+
+            if (bReflexSupported)
+            {
+              if (config.nvidia.reflex.use_limiter)
+              {
+                if (config.nvidia.reflex.enable)
+                  mode = 3;
+                else // Turn Reflex Limiter off if user disabled Reflex
+                  config.nvidia.reflex.use_limiter = false;
+              }
+            }
+
+            if ( ( (! bReflexSupported) &&
               ImGui::Combo ( "Mode",
                              &mode, "Normal\0"
                                     "Low-Latency\t(VRR Optimized)\0"
-                                    "Latent Sync\t (VSYNC -Off-)\0\0" )
+                                    "Latent Sync\t (VSYNC -Off-)\0\0" ) ) ||
+              ImGui::Combo ( "Mode",
+                             &mode, "Normal\0"
+                                    "Low-Latency\t  (VRR Optimized)\0"
+                                    "Latent Sync\t   (VSYNC -Off-)\0"
+                                    "NVIDIA Reflex\t(DLSS3 Pacing)\0\0" )
+               
                )
             {
+              struct reflex_prefs_s {
+                bool use_limiter      = config.nvidia.reflex.use_limiter;
+                bool low_latency      = config.nvidia.reflex.low_latency;
+                bool override         = config.nvidia.reflex.override;
+                bool enable           = config.nvidia.reflex.enable;
+                int  present_interval = config.render.framerate.present_interval;
+                bool changed          = false;
+              } static original_reflex_settings;
+
               switch ((limiter_mode_e)mode)
               {
                 default:
@@ -4951,6 +4981,35 @@ SK_ImGui_ControlPanel (void)
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
                   break;
+
+                case limiter_mode_e::Reflex:
+                  if (! std::exchange (original_reflex_settings.changed, true))
+                  {
+                    original_reflex_settings.low_latency      = config.nvidia.reflex.low_latency;
+                    original_reflex_settings.override         = config.nvidia.reflex.override;
+                    original_reflex_settings.enable           = config.nvidia.reflex.enable;
+                    original_reflex_settings.present_interval = config.render.framerate.present_interval;
+                  }
+
+                  config.nvidia.reflex.use_limiter         = true;
+                  config.nvidia.reflex.low_latency         = true;
+                  config.nvidia.reflex.override            = true;
+                  config.nvidia.reflex.enable              = true;
+                  config.render.framerate.present_interval =    0; // Since this is for FG, turn VSYNC off
+                  break;
+              }
+
+              if (mode != (int)limiter_mode_e::Reflex)
+              {
+                config.nvidia.reflex.use_limiter = false;
+
+                if (std::exchange (original_reflex_settings.changed, false))
+                {
+                  config.nvidia.reflex.low_latency         = original_reflex_settings.low_latency;
+                  config.nvidia.reflex.override            = original_reflex_settings.override;
+                  config.nvidia.reflex.enable              = original_reflex_settings.enable;
+                  config.render.framerate.present_interval = original_reflex_settings.present_interval;
+                }
               }
 
               _ResetLimiter ();
@@ -4965,6 +5024,8 @@ SK_ImGui_ControlPanel (void)
               ImGui::BulletText   ("Normal Mode:\t");
               ImGui::BulletText   ("Low-Latency:\t");
               ImGui::BulletText   ("Latent Sync:\t");
+              if (rb.isReflexSupported ())
+              ImGui::BulletText   ("NVIDIA Reflex:\t");
               ImGui::EndGroup     ();
               ImGui::SameLine     ();
               ImGui::BeginGroup   ();
@@ -4974,6 +5035,9 @@ SK_ImGui_ControlPanel (void)
                                   ("Ideal for VRR displays; VRR should compensate for potential stutter");
               ImGui::TextUnformatted
                                   ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
+              if (rb.isReflexSupported ())
+                ImGui::TextUnformatted
+                                  ("Ideal for DLSS3 Frame Generation; higher latency than SK in non-DLSS3 scenarios");
               ImGui::EndGroup     ();
               if (config.render.framerate.present_interval == 0)
               {

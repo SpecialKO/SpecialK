@@ -1450,21 +1450,22 @@ SK::Framerate::Limiter::wait (void)
     return;
   }
 
+  
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
 
   // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
   //   while the game is in the background
-  if (! background)
+  if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
   {
-    if ( config.nvidia.reflex.use_limiter &&
+    if ( config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
          ((! config.nvidia.reflex.native) || config.nvidia.reflex.override) )
     {
       return;
     }
   }
 
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   auto pDisplay =
       &rb.displays [rb.active_display];

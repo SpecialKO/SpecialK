@@ -482,23 +482,6 @@ SK_ImGui_DrawConfig_Latency ()
     show_mode_select = config.nvidia.reflex.override;
   }
 
-  if (config.nvidia.reflex.native) ImGui::SameLine ();
-
-  ImGui::Checkbox ("Use Reflex Framerate Limiter", &config.nvidia.reflex.use_limiter);
-
-  if (ImGui::IsItemHovered ())
-    ImGui::SetTooltip ("Intended primarily for use with DLSS Frame Generation");
-
-  // Native override is required for this to work
-  if (config.nvidia.reflex.use_limiter)
-  {
-    config.nvidia.reflex.override = true;
-
-    // Reflex Low Latency + Boost must be enabled
-    reflex_mode =
-      std::max (reflex_mode, 2);
-  }
-
   if (show_mode_select)
   {
     // We can actually use "Nothing But Boost" in

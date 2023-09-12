@@ -1,23 +1,20 @@
-﻿23.9.12.4
+﻿23.9.12.5
 =========
- + Remove assertion message on NvAPI_Disp_HdrColorControl hook execution if
-     called using a struct version SK doesn't know about; NV's DXGI/Vk interop
-       uses NV_HDR_COLOR_DATA_VER3, but this NVAPI version is not released yet.
+ + Moved Reflex-based FPS limit to Framerate Limiter Mode option (on qualifying HW)
+ + Added green NV text to top-left of framepacing graph when Reflex limit is active
+ + VSYNC is turned off by default when selecting Reflex limiter; intended for DLSS-G
 
-23.9.12.3
+23.9.12.x
 =========
- + Added option to use NVIDIA Reflex framerate limiter instead of SK's limiter
-     >> Intended for use with DLSS Frame Generation, see the Advanced section.
-
-23.9.12.2
-=========
- + Added option (enabled by default) to disable Starfield's built-in FPS limiter
-     >> Potentially fixes Frame Generation deadlocks during load screens
-
-23.9.12.1
-=========
- + Added version check to Starfield plug-in so that hard-coded memory addresses
-     do not cause problems on first game patch
+ [.4] + Remove assertion message on NvAPI_Disp_HdrColorControl hook execution if
+          called using a struct version SK doesn't know about; NV's DXGI/Vk interop
+            uses NV_HDR_COLOR_DATA_VER3, but this NVAPI version is not released yet.
+ [.3] + Added option to use NVIDIA Reflex framerate limiter instead of SK's limiter
+          >> Intended for use with DLSS Frame Generation, see the Advanced section.
+ [.2] + Added option (enabled by default) to disable Starfield's built-in FPS limiter
+          >> Potentially fixes Frame Generation deadlocks during load screens
+ [.1] + Added version check to Starfield plug-in so that hard-coded memory addresses
+          do not cause problems on first game patch
 
 23.9.12
 =======
