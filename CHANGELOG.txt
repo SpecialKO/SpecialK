@@ -1,4 +1,10 @@
-﻿23.9.12.3
+﻿23.9.12.4
+=========
+ + Remove assertion message on NvAPI_Disp_HdrColorControl hook execution if
+     called using a struct version SK doesn't know about; NV's DXGI/Vk interop
+       uses NV_HDR_COLOR_DATA_VER3, but this NVAPI version is not released yet.
+
+23.9.12.3
 =========
  + Added option to use NVIDIA Reflex framerate limiter instead of SK's limiter
      >> Intended for use with DLSS Frame Generation, see the Advanced section.

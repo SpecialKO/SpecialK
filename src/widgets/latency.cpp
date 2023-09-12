@@ -494,9 +494,9 @@ SK_ImGui_DrawConfig_Latency ()
   {
     config.nvidia.reflex.override = true;
 
-    // Reflex Low Latency must be enabled
+    // Reflex Low Latency + Boost must be enabled
     reflex_mode =
-      std::max (reflex_mode, 1);
+      std::max (reflex_mode, 2);
   }
 
   if (show_mode_select)

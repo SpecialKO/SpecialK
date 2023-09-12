@@ -1451,13 +1451,16 @@ SK::Framerate::Limiter::wait (void)
   }
 
 
-
+  // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
+  //   while the game is in the background
   if (! background)
   {
-    if (config.nvidia.reflex.use_limiter && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override))
+    if ( config.nvidia.reflex.use_limiter &&
+         ((! config.nvidia.reflex.native) || config.nvidia.reflex.override) )
+    {
       return;
+    }
   }
-
 
 
   static auto& rb =

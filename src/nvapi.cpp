@@ -436,7 +436,7 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
     return NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
   SK_ReleaseAssert (
-    pHdrCapabilities->version <= NV_HDR_CAPABILITIES_VER
+    pHdrCapabilities->version <= NV_HDR_CAPABILITIES_VER3
   );
 
   std::lock_guard
@@ -603,16 +603,30 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
 
+  if (pHdrColorData->version > NV_HDR_COLOR_DATA_VER2)
+  {
+    SK_LOGi0 (
+      L"HDR: NvAPI_Disp_HdrColorControl (...) called using a struct version (%d) SK does not understand",
+                pHdrColorData->version );
+
+    if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+    {
+      SK_LOG0 ( ( L"HDR:  << Ignoring NvAPI HDR because user is forcing DXGI HDR (which is better!)"
+                ), __SK_SUBSYSTEM__ );
+
+      return NVAPI_OK;
+    }
+
+    return
+      NvAPI_Disp_HdrColorControl_Original (displayId, pHdrColorData);
+  }
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
   static NV_HDR_COLOR_DATA_V2  expandedData = { };
          NV_HDR_COLOR_DATA_V1   *inputData    =
         (NV_HDR_COLOR_DATA_V1   *)pHdrColorData;
-
-  SK_ReleaseAssert (
-    pHdrColorData->version <= NV_HDR_COLOR_DATA_VER2
-  );
 
   if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {
