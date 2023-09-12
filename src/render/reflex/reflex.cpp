@@ -51,22 +51,28 @@ NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 //       same one as SK's Render Backend is using.
 //
 
+static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
+static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
+
 NVAPI_INTERFACE
-NvAPI_D3D_SetLatencyMarker_Stub ( __in IUnknown*,
-                                  __in NV_LATENCY_MARKER_PARAMS* )
+SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
+                                __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
+  if (     NvAPI_D3D_SetLatencyMarker_Original != nullptr)
+    return NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
+
   return NVAPI_NOT_SUPPORTED;
 }
 
 NVAPI_INTERFACE
-NvAPI_D3D_SetSleepMode_Stub ( __in IUnknown*,
-                              __in NV_SET_SLEEP_MODE_PARAMS* )
+SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
+                            __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
+  if (     NvAPI_D3D_SetSleepMode_Original != nullptr)
+    return NvAPI_D3D_SetSleepMode_Original (pDev, pSetSleepModeParams);
+
   return NVAPI_NOT_SUPPORTED;
 }
-
-static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = NvAPI_D3D_SetLatencyMarker_Stub;
-static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = NvAPI_D3D_SetSleepMode_Stub;
 
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
@@ -86,11 +92,18 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                 L"  Reflex  " );
   }
 
-  if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
-    SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
+  if (pSetLatencyMarkerParams != nullptr)
+  {
+    SK_ReleaseAssert (
+      pSetLatencyMarkerParams->version <= NV_LATENCY_MARKER_PARAMS_VER
+    );
+
+    if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
+      SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
+  }
 
   return
-    NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
+    SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
 }
 
 NVAPI_INTERFACE
@@ -98,13 +111,19 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
                                 __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
   if (pSetSleepModeParams != nullptr)
+  {
+    SK_ReleaseAssert (
+      pSetSleepModeParams->version <= NV_SET_SLEEP_MODE_PARAMS_VER
+    );
+
     SK_Reflex_NativeSleepModeParams = *pSetSleepModeParams;
+  }
 
   if (config.nvidia.reflex.override)
     return NVAPI_OK;
 
   return
-    NvAPI_D3D_SetSleepMode_Original (pDev, pSetSleepModeParams);
+    SK_NvAPI_D3D_SetSleepMode (pDev, pSetSleepModeParams);
 }
 
 void
@@ -265,7 +284,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
       // SetLatencyMarker is hooked on the simulation marker of the first frame,
       //   we may have gotten here out-of-order.
       ret = NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
-            NvAPI_D3D_SetLatencyMarker_Original (device.p, &markerParams);
+         SK_NvAPI_D3D_SetLatencyMarker (device.p, &markerParams);
     }
 
     if (marker == RENDERSUBMIT_END)
@@ -339,7 +358,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
         }
       }
 
-      NvAPI_D3D_SetSleepMode_Original (
+      SK_NvAPI_D3D_SetSleepMode (
                device.p, &SK_Reflex_NativeSleepModeParams );
     }
 
@@ -406,7 +425,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          lastOverride                     != config.nvidia.reflex.override )
     {
       if ( NVAPI_OK !=
-             NvAPI_D3D_SetSleepMode_Original (
+             SK_NvAPI_D3D_SetSleepMode (
                device.p, &sleepParams
              )
          ) valid = false;

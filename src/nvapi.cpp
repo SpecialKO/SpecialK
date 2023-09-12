@@ -426,13 +426,21 @@ __cdecl
 NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                          NV_HDR_CAPABILITIES *pHdrCapabilities )
 {
-  std::lock_guard
-       lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
+  SK_LOG_FIRST_CALL
 
   if (config.apis.NvAPI.disable_hdr)
-    return NVAPI_LIBRARY_NOT_FOUND;
+    return NVAPI_NO_IMPLEMENTATION;
 
-  SK_LOG_FIRST_CALL
+  // We don't want it, pass it straight to NvAPI
+  if (pHdrCapabilities == nullptr)
+    return NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
+
+  SK_ReleaseAssert (
+    pHdrCapabilities->version <= NV_HDR_CAPABILITIES_VER
+  );
+
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
 
   SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
               __SK_SUBSYSTEM__ );
@@ -583,20 +591,28 @@ __cdecl
 NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                       NV_HDR_COLOR_DATA *pHdrColorData )
 {
-  std::lock_guard
-       lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
+  SK_LOG_FIRST_CALL
 
   if (config.apis.NvAPI.disable_hdr)
-    return NVAPI_LIBRARY_NOT_FOUND;
+    return NVAPI_NO_IMPLEMENTATION;
+
+  // We don't want it, pass it straight to NvAPI
+  if (pHdrColorData == nullptr)
+    return NvAPI_Disp_HdrColorControl_Original (displayId, pHdrColorData);
+
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  SK_LOG_FIRST_CALL
-
-    static NV_HDR_COLOR_DATA_V2  expandedData = { };
+  static NV_HDR_COLOR_DATA_V2  expandedData = { };
          NV_HDR_COLOR_DATA_V1   *inputData    =
         (NV_HDR_COLOR_DATA_V1   *)pHdrColorData;
+
+  SK_ReleaseAssert (
+    pHdrColorData->version <= NV_HDR_COLOR_DATA_VER2
+  );
 
   if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {
