@@ -86,14 +86,13 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   if (once)
   {
-    if ( ReadULong64Acquire (&SK_Reflex_LastFrameMarked) <
-         ReadULong64Acquire (&SK_RenderBackend::frames_drawn) )
-    {
-      WriteULong64Release (
-        &SK_Reflex_LastFrameMarked,
-         ReadULong64Acquire (&SK_RenderBackend::frames_drawn)
-      );
+    const auto frame_id =
+      SK_GetFramesDrawn ();
 
+    if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
+                                                          frame_id )
+    {
+      rb.setLatencyMarkerNV (SIMULATION_END);
       rb.setLatencyMarkerNV (RENDERSUBMIT_START);
     }
   }

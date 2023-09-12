@@ -2633,8 +2633,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
   if (process)
   {
-    rb.setLatencyMarkerNV (SIMULATION_END);
-
     if (_IsBackendD3D11 (rb.api))
     {
       // Start / End / Readback Pipeline Stats
@@ -2646,6 +2644,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         ReadULong64Acquire (&SK_RenderBackend::frames_drawn) - 1)
     {
       // D3D11 Draw Call / D3D12 Command List Exec hooks did not catch any rendering commands
+      rb.setLatencyMarkerNV (SIMULATION_END);
       rb.setLatencyMarkerNV (RENDERSUBMIT_START);
     }
 

@@ -1450,6 +1450,16 @@ SK::Framerate::Limiter::wait (void)
     return;
   }
 
+
+
+  if (! background)
+  {
+    if (config.nvidia.reflex.use_limiter && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override))
+      return;
+  }
+
+
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 

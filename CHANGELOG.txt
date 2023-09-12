@@ -1,4 +1,9 @@
-﻿23.9.12.2
+﻿23.9.12.3
+=========
+ + Added option to use NVIDIA Reflex framerate limiter instead of SK's limiter
+     >> Intended for use with DLSS Frame Generation, see the Advanced section.
+
+23.9.12.2
 =========
  + Added option (enabled by default) to disable Starfield's built-in FPS limiter
      >> Potentially fixes Frame Generation deadlocks during load screens

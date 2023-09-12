@@ -792,6 +792,7 @@ struct sk_config_t
       bool    streamline_compat   = false;
     } bugs;
     struct reflex_s {
+      bool    use_limiter         =  false;
       UINT    frame_interval_us   =      0;
       int     enforcement_site    =      1;
       bool    low_latency         =  false;

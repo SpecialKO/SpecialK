@@ -531,19 +531,19 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
                          const SK_D3D11DrawType     draw_type,
                                UINT                 dev_idx )
 {
-  if (ReadULong64Acquire (&SK_Reflex_LastFrameMarked) < SK_GetFramesDrawn ())
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  // Don't let D3D11On12 confuse things
+  if (rb.api == SK_RenderAPI::D3D11)
   {
-    static auto& rb =
-      SK_GetCurrentRenderBackend ();
+    const auto frame_id =
+      SK_GetFramesDrawn ();
 
-    // Don't let D3D11On12 confuse things
-    if (rb.api == SK_RenderAPI::D3D11)
+    if ( InterlockedExchange (&SK_Reflex_LastFrameMarked, frame_id) <
+                                                          frame_id )
     {
-      WriteULong64Release (
-        &SK_Reflex_LastFrameMarked,
-         SK_GetFramesDrawn ()
-      );
-
+      rb.setLatencyMarkerNV (SIMULATION_END);
       rb.setLatencyMarkerNV (RENDERSUBMIT_START);
     }
   }

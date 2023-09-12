@@ -482,6 +482,23 @@ SK_ImGui_DrawConfig_Latency ()
     show_mode_select = config.nvidia.reflex.override;
   }
 
+  if (config.nvidia.reflex.native) ImGui::SameLine ();
+
+  ImGui::Checkbox ("Use Reflex Framerate Limiter", &config.nvidia.reflex.use_limiter);
+
+  if (ImGui::IsItemHovered ())
+    ImGui::SetTooltip ("Intended primarily for use with DLSS Frame Generation");
+
+  // Native override is required for this to work
+  if (config.nvidia.reflex.use_limiter)
+  {
+    config.nvidia.reflex.override = true;
+
+    // Reflex Low Latency must be enabled
+    reflex_mode =
+      std::max (reflex_mode, 1);
+  }
+
   if (show_mode_select)
   {
     // We can actually use "Nothing But Boost" in
@@ -566,10 +583,19 @@ SK_ImGui_DrawConfig_Latency ()
   }
   
   if ( config.nvidia.reflex.enable            &&
+       config.nvidia.reflex.low_latency       &&
        config.nvidia.reflex.low_latency_boost && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
                                               && rb.isReflexSupported () )
   {
     ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip (
+        "Uses timing data collected by SK (i.e. game's first draw call) to aggressively reduce latency"
+        " at the expense of frame pacing."
+      );
+    }
   }
   ImGui::EndGroup   ();
   ImGui::Separator  ();
