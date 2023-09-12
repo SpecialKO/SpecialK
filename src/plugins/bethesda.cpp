@@ -53,6 +53,9 @@ static bool sf_bRemasterExtendedRTs    = false;
 static bool sf_bRemasterHDRRTs         = false;
 static bool sf_bPhotoModeCompatibility = false;
 
+extern bool __SK_HDR_16BitSwap;
+extern bool __SK_HDR_10BitSwap;
+
 enum class BS_DXGI_FORMAT
 {
   BS_DXGI_FORMAT_UNKNOWN0  = 0,
@@ -323,9 +326,6 @@ void SK_SEH_InitStarfieldRTs (void)
 {
   __try
   {
-    extern bool __SK_HDR_16BitSwap;
-    extern bool __SK_HDR_10BitSwap;
-
     if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
     {
       void *scan = nullptr;
@@ -559,6 +559,10 @@ SK_BGS_InitPlugin(void)
 #ifdef _WIN64
   if (gameID == SK_GAME_ID::Starfield)
   {
+    // Default these to on if user is using HDR
+    sf_bRemasterHDRRTs      = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
+    sf_bRemasterExtendedRTs = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
+
     __SK_SF_BasicRemastering =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"BasicRTUpgrades", sf_bRemasterBasicRTs,

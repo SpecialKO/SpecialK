@@ -1,4 +1,9 @@
-﻿23.9.12
+﻿23.9.12.1
+=========
+ + Added version check to Starfield plug-in so that hard-coded memory addresses
+     do not cause problems on first game patch
+
+23.9.12
 =======
  + Added option to upgrade 11-bpc HDR render targets to 16-bpc in Starfield
     * Less likely to reduce banding; more likely to keep white things white
