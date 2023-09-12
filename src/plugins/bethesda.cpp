@@ -39,6 +39,7 @@ static float* pfMipBias = nullptr;
 
 static sk::ParameterBool* __SK_SF_BasicRemastering       = nullptr;
 static sk::ParameterBool* __SK_SF_ExtendedRemastering    = nullptr;
+static sk::ParameterBool* __SK_SF_HDRRemastering         = nullptr;
 static sk::ParameterBool* __SK_SF_PhotoModeCompatibility = nullptr;
 
 static sk::ParameterInt64 *__SK_SF_ImageAddr0    = nullptr;
@@ -49,6 +50,7 @@ static int64_t pBufferDefAddr = 0;
 
 static bool sf_bRemasterBasicRTs       = true;
 static bool sf_bRemasterExtendedRTs    = false;
+static bool sf_bRemasterHDRRTs         = false;
 static bool sf_bPhotoModeCompatibility = false;
 
 enum class BS_DXGI_FORMAT
@@ -204,14 +206,14 @@ bool SK_SF_PlugInCfg (void)
       bool changed_no_restart_needed = false;
 
       ImGui::TreePush ("");
-      changed |= ImGui::Checkbox ("Upgrade Base RTs to 16-bpc color",       &sf_bRemasterBasicRTs);
+      changed |= ImGui::Checkbox ("Upgrade Base 8-bpc RTs to 16-bpc",       &sf_bRemasterBasicRTs);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Eliminates banding on UI at the cost of (negligible) extra VRAM");
 
       ImGui::SameLine ();
 
-      changed |= ImGui::Checkbox ("Upgrade Most 8-bit RTs to 16-bpc color", &sf_bRemasterExtendedRTs);
+      changed |= ImGui::Checkbox ("Upgrade Most 8-bpc RTs to 16-bpc", &sf_bRemasterExtendedRTs);
 
       if (ImGui::IsItemHovered ())
       {
@@ -225,10 +227,24 @@ bool SK_SF_PlugInCfg (void)
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Reduce dynamic range to 8-bpc on Image Space Buffers so that Photo Mode does not crash.");
 
-        ImGui::SameLine          ();
-        ImGui::VerticalSeparator ();
-        ImGui::SameLine          ();
+        ImGui::SameLine ();
       }
+
+      changed |= ImGui::Checkbox ("Upgrade HDR (11-bpc) RTs to 16-bpc", &sf_bRemasterHDRRTs);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::Text         ("Improves quality of HDR effects such as Atmospheric Bloom");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Unlikely to reduce banding, but will produce richer color than 11-bpc");
+        ImGui::BulletText   ("The format replaced uses 11-bit Red, 11-bit Green, 10-bit Blue and has trouble with pure white");
+        ImGui::EndTooltip   ();
+      }
+
+      ImGui::SameLine          ();
+      ImGui::VerticalSeparator ();
+      ImGui::SameLine          ();
 
       if (pfMipBias != nullptr)
       {
@@ -252,6 +268,7 @@ bool SK_SF_PlugInCfg (void)
 
         __SK_SF_BasicRemastering->store       (sf_bRemasterBasicRTs);
         __SK_SF_ExtendedRemastering->store    (sf_bRemasterExtendedRTs);
+        __SK_SF_HDRRemastering->store         (sf_bRemasterHDRRTs);
         __SK_SF_PhotoModeCompatibility->store (sf_bPhotoModeCompatibility);
 
         if (pfMipBias != nullptr)
@@ -429,8 +446,6 @@ void SK_SEH_InitStarfieldRTs (void)
           "SpaceGlareBlur",
           "SeparableSSSBufferUV",
 
-//FSR2_RESAMPLED_LUMA_HISTORY' (113) using FP16
-
           "ThinGBuffer_Albedo",
           "ThinGBuffer_Optional",
           "ThinGBuffer_AlbedoArray",
@@ -460,6 +475,16 @@ void SK_SEH_InitStarfieldRTs (void)
               }
 
               continue;
+            }
+
+            if (sf_bRemasterHDRRTs)
+            {
+              if (buffer_defs [i]->format == BS_DXGI_FORMAT::BS_DXGI_FORMAT_R11G11B10_FLOAT66)
+              {   buffer_defs [i]->format  = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+              
+                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+                continue;
+              }
             }
 
             if (! sf_bRemasterExtendedRTs)
@@ -543,6 +568,11 @@ SK_BGS_InitPlugin(void)
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"ExtendedRTUpgrades", sf_bRemasterExtendedRTs,
                                                           L"Promote Most 8-bit RTs to FP16" );
+
+    __SK_SF_ExtendedRemastering =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"HDRRTUpgrades", sf_bRemasterHDRRTs,
+                                                     L"Promote 11-bit HDR RTs to FP16" );
 
     __SK_SF_PhotoModeCompatibility =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",

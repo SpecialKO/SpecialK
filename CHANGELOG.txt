@@ -1,4 +1,9 @@
-﻿23.9.11.7
+﻿23.9.12
+=======
+ + Added option to upgrade 11-bpc HDR render targets to 16-bpc in Starfield
+    * Less likely to reduce banding; more likely to keep white things white
+
+23.9.11.7
 =========
  + Allow HDR10 colorspaces to be set even if framebuffer is 8-bpc
      (undocumented feature?/bug in DXGI)
