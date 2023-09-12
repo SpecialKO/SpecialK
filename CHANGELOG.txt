@@ -1,4 +1,9 @@
-﻿23.9.12.1
+﻿23.9.12.2
+=========
+ + Added option (enabled by default) to disable Starfield's built-in FPS limiter
+     >> Potentially fixes Frame Generation deadlocks during load screens
+
+23.9.12.1
 =========
  + Added version check to Starfield plug-in so that hard-coded memory addresses
      do not cause problems on first game patch

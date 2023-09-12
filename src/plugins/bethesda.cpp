@@ -41,12 +41,18 @@ static sk::ParameterBool* __SK_SF_BasicRemastering       = nullptr;
 static sk::ParameterBool* __SK_SF_ExtendedRemastering    = nullptr;
 static sk::ParameterBool* __SK_SF_HDRRemastering         = nullptr;
 static sk::ParameterBool* __SK_SF_PhotoModeCompatibility = nullptr;
+static sk::ParameterBool* __SK_SF_DisableFPSLimit        = nullptr;
 
 static sk::ParameterInt64 *__SK_SF_ImageAddr0    = nullptr;
 static sk::ParameterInt64 *__SK_SF_BufferDefAddr = nullptr;
+static sk::ParameterInt64 *__SK_SF_FPSLimitAddr  = nullptr;
 
 static int64_t pImageAddr0    = 0;
 static int64_t pBufferDefAddr = 0;
+static int64_t pFPSLimitAddr  = 0;
+
+static uint8_t sf_cOriginalFPSLimitInsts [5] = { 0x0 };
+static bool    sf_bDisableFPSLimit           =    true;
 
 static bool sf_bRemasterBasicRTs       = true;
 static bool sf_bRemasterExtendedRTs    = false;
@@ -191,6 +197,39 @@ static uintptr_t CalculateOffset (uintptr_t uAddr)
   return pBaseAddr + uAddr - 0x140000000;
 }
 
+void SK_SEH_EnableStarfieldFPSLimit (bool bEnable, void *pAddr)
+{
+  __try
+  {
+    DWORD                                              dwOrigProtect = 0x0;
+    VirtualProtect (pAddr, 5, PAGE_EXECUTE_READWRITE, &dwOrigProtect);
+
+    if (! bEnable) std::memset (pAddr,                      0x90, 5);
+    else           std::memcpy (pAddr, sf_cOriginalFPSLimitInsts, 5);
+
+    VirtualProtect (pAddr, 5, dwOrigProtect,          &dwOrigProtect);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+}
+
+void SK_SF_EnableFPSLimiter (bool bEnable)
+{
+  void* pFPSLimit =
+    (void *)(pFPSLimitAddr);
+
+  if (pFPSLimit == nullptr)
+    return;
+
+  auto threads = SK_SuspendAllOtherThreads ();
+  {
+    SK_SEH_EnableStarfieldFPSLimit (bEnable, pFPSLimit);
+  }
+  SK_ResumeThreads (threads);
+}
+
 bool SK_SF_PlugInCfg (void)
 {
   static std::string  utf8VersionString =
@@ -297,7 +336,7 @@ bool SK_SF_PlugInCfg (void)
 
       if (ImGui::CollapsingHeader ("Field of View"))
       {
-        ImGui::TreePush("");
+        ImGui::TreePush ("");
 
         changed |= ImGui::SliderFloat ("1st Person FOV", pf1stFOV, 1, 120, "%.0f");
         changed |= ImGui::SliderFloat ("3rd Person FOV", pf3rdFOV, 1, 120, "%.0f");
@@ -314,6 +353,25 @@ bool SK_SF_PlugInCfg (void)
       }
     }
 
+    if (pFPSLimitAddr != 0)
+    {
+      if (ImGui::CollapsingHeader ("Performance"))
+      {
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Disable In-Game Framerate Limit", &sf_bDisableFPSLimit))
+        {
+          SK_SF_EnableFPSLimiter (! sf_bDisableFPSLimit);
+
+          __SK_SF_DisableFPSLimit->store (sf_bDisableFPSLimit);
+
+          dll_ini->write ();
+        }
+
+        ImGui::TreePop ();
+      }
+    }
+
     ImGui::Separator     ( );
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
@@ -322,11 +380,62 @@ bool SK_SF_PlugInCfg (void)
   return true;
 }
 
+void SK_SEH_InitStarfieldFPS (void)
+{
+  __try
+  {
+    void *scan = nullptr;
+
+    static const char *szFPSLimitPattern =
+      "\xC6\x00\x00\x00\xE8\x00\x00\x00\x00\x48\x8D\x00\x00\xE8\x00\x00\x00\x00\x33\x00\xE8";
+    static const char *szFPSLimitMask    =
+      "\xFF\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\x00\x00\xFF\x00\x00\x00\x00\xFF\x00\xFF";
+
+    // Try previously cached address first
+    if (pFPSLimitAddr != 0)
+    {
+      scan =
+        SK_ScanAlignedEx (
+          szFPSLimitPattern, 21,
+          szFPSLimitMask, (void *)((uintptr_t)pFPSLimitAddr - 0xD - 1)
+        );
+    }
+
+    if (scan == nullptr)
+    {
+      scan =
+        SK_ScanAlignedEx (
+          szFPSLimitPattern, 21,
+          szFPSLimitMask );
+    }
+
+    SK_LOGs0 (L"Starfield ", L"Scanned FPS Limit Address: %p", scan);
+
+    if (scan != nullptr)
+    {
+      pFPSLimitAddr = (uintptr_t)scan + 0xD;
+
+      memcpy (sf_cOriginalFPSLimitInsts, (void *)(pFPSLimitAddr), 5);
+
+      SK_SF_EnableFPSLimiter (! sf_bDisableFPSLimit);
+
+      return;
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  }
+
+  pFPSLimitAddr = 0;
+}
+
 void SK_SEH_InitStarfieldRTs (void)
 {
   __try
   {
-    if (sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+    if ( sf_bRemasterBasicRTs || sf_bRemasterExtendedRTs ||
+         sf_bRemasterHDRRTs   ||      __SK_HDR_16BitSwap || __SK_HDR_10BitSwap )
     {
       void *scan = nullptr;
 
@@ -362,7 +471,8 @@ void SK_SEH_InitStarfieldRTs (void)
       if (scan != nullptr)
         pImageAddr0 = (int64_t)scan;
 
-      if (sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+      if ( sf_bRemasterExtendedRTs || sf_bRemasterHDRRTs ||
+                __SK_HDR_16BitSwap || __SK_HDR_10BitSwap )
       {
         scan = nullptr;
 
@@ -583,6 +693,11 @@ SK_BGS_InitPlugin(void)
                                    L"PhotoModeCompatibility", sf_bPhotoModeCompatibility,
                                                               L"Ignore Image Space Buffer When Promotion RTs to FP16" );
 
+    __SK_SF_DisableFPSLimit =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"DisableFPSLimit", sf_bDisableFPSLimit,
+                                                       L"Disable the game's framerate limiter" );
+
     __SK_SF_ImageAddr0 =
       _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
                                     L"ImageAddr0",
@@ -592,11 +707,18 @@ SK_BGS_InitPlugin(void)
       _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
                                     L"BufferDefAddr",
                                      pBufferDefAddr );
+
+    __SK_SF_FPSLimitAddr =
+      _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
+                                    L"FPSLimitAddr",
+                                     pFPSLimitAddr );
   
+    SK_SEH_InitStarfieldFPS ();
     SK_SEH_InitStarfieldRTs ();
 
     __SK_SF_ImageAddr0->store    (pImageAddr0);
     __SK_SF_BufferDefAddr->store (pBufferDefAddr);
+    __SK_SF_FPSLimitAddr->store  (pFPSLimitAddr);
 
     dll_ini->write ();
   
