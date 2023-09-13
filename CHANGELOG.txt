@@ -1,4 +1,11 @@
-﻿23.9.13.1
+﻿23.9.13.2
+=========
+ + Disable framerate limiter bypass functionality if sl.interposer.dll is loaded;
+     assume that DLSS-G mod has already disabled this game code in Starfield.
+ + Turn framerate limiter bypass off by default to prevent compatibility issues
+     with other Starfield mods doing the same thing.
+
+23.9.13.1
 =========
  + Accidentally set AutoDeleteDLSSG instead of AllowDLSSG in 23.9.13
 

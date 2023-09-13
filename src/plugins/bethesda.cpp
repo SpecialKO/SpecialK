@@ -47,12 +47,12 @@ static sk::ParameterInt64 *__SK_SF_ImageAddr0    = nullptr;
 static sk::ParameterInt64 *__SK_SF_BufferDefAddr = nullptr;
 static sk::ParameterInt64 *__SK_SF_FPSLimitAddr  = nullptr;
 
-static int64_t pImageAddr0    = 0;
-static int64_t pBufferDefAddr = 0;
-static int64_t pFPSLimitAddr  = 0;
+static int64_t pImageAddr0    = -1;
+static int64_t pBufferDefAddr = -1;
+static int64_t pFPSLimitAddr  = -1;
 
 static uint8_t sf_cOriginalFPSLimitInsts [5] = { 0x0 };
-static bool    sf_bDisableFPSLimit           =    true;
+static bool    sf_bDisableFPSLimit           =   false; // Assume DLSS-G mods already do this
 
 static bool sf_bRemasterBasicRTs       = true;
 static bool sf_bRemasterExtendedRTs    = false;
@@ -223,11 +223,7 @@ void SK_SF_EnableFPSLimiter (bool bEnable)
   if (pFPSLimit == nullptr)
     return;
 
-  auto threads = SK_SuspendAllOtherThreads ();
-  {
-    SK_SEH_EnableStarfieldFPSLimit (bEnable, pFPSLimit);
-  }
-  SK_ResumeThreads (threads);
+  SK_SEH_EnableStarfieldFPSLimit (bEnable, pFPSLimit);
 }
 
 bool SK_SF_PlugInCfg (void)
@@ -353,7 +349,7 @@ bool SK_SF_PlugInCfg (void)
       }
     }
 
-    if (pFPSLimitAddr != 0)
+    if (pFPSLimitAddr > 0)
     {
       if (ImGui::CollapsingHeader ("Performance"))
       {
@@ -382,6 +378,10 @@ bool SK_SF_PlugInCfg (void)
 
 void SK_SEH_InitStarfieldFPS (void)
 {
+  // Assume that DLSS-G mods are going to turn the framerate limiter off always
+  if (SK_GetModuleHandle (L"sl.interposer.dll"))
+    return;
+
   __try
   {
     void *scan = nullptr;
@@ -392,7 +392,7 @@ void SK_SEH_InitStarfieldFPS (void)
       "\xFF\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\x00\x00\xFF\x00\x00\x00\x00\xFF\x00\xFF";
 
     // Try previously cached address first
-    if (pFPSLimitAddr != 0)
+    if (pFPSLimitAddr > 0)
     {
       scan =
         SK_ScanAlignedEx (
@@ -440,7 +440,7 @@ void SK_SEH_InitStarfieldRTs (void)
       void *scan = nullptr;
 
       // Try previously cached address first
-      if (pImageAddr0 != 0)
+      if (pImageAddr0 > 0)
       {
         scan =
           SK_ScanAlignedEx ( "\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10,
@@ -451,10 +451,10 @@ void SK_SEH_InitStarfieldRTs (void)
       {
         scan =
           SK_ScanAlignedEx ( "\x44\x8B\x05\x00\x00\x00\x00\x89\x55\xFB", 10,
-                             "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF" );
+                             "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF", nullptr, 8 );
       }
 
-      SK_LOGs0 (L"Starfield ", L"Scanned Address 0: %p", scan);
+      SK_LOGs0 (L"Starfield ", L"Scanned Image Address:     %p", scan);
 
       if (sf_bRemasterBasicRTs)
       {
@@ -477,7 +477,7 @@ void SK_SEH_InitStarfieldRTs (void)
         scan = nullptr;
 
         // Try previously cached address first
-        if (pBufferDefAddr != 0)
+        if (pBufferDefAddr > 0)
         {
           scan =
             SK_ScanAlignedEx ( "\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12,
@@ -488,10 +488,10 @@ void SK_SEH_InitStarfieldRTs (void)
         {
           scan =
             SK_ScanAlignedEx ( "\x4C\x8D\x15\x00\x00\x00\x00\xBE\x00\x00\x00\x00", 12,
-                               "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00" );
+                               "\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00", (void *)pImageAddr0 );
         }
 
-        SK_LOGs0 (L"Starfield ", L"Scanned Buffer Array: %p", scan);
+        SK_LOGs0 (L"Starfield ", L"Scanned Buffer Array:      %p", scan);
 
         if (scan != nullptr)
           pBufferDefAddr = (int64_t)scan;
@@ -574,15 +574,8 @@ void SK_SEH_InitStarfieldRTs (void)
           {
             if (0 == strcmp (buffer_defs [i]->bufferName, "FrameBuffer"))
             {
-              if (__SK_HDR_16BitSwap)
-              {
-                buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
-              }
-
-              if (__SK_HDR_10BitSwap)
-              {
-                buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R10G10B10A2_UNORM62;
-              }
+              if (__SK_HDR_16BitSwap) buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
+              if (__SK_HDR_10BitSwap) buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R10G10B10A2_UNORM62;
 
               continue;
             }
@@ -592,7 +585,7 @@ void SK_SEH_InitStarfieldRTs (void)
               if (buffer_defs [i]->format == BS_DXGI_FORMAT::BS_DXGI_FORMAT_R11G11B10_FLOAT66)
               {   buffer_defs [i]->format  = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
               
-                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: %36hs (%3d) using FP16", buffer_defs [i]->bufferName, i);
                 continue;
               }
             }
@@ -604,7 +597,7 @@ void SK_SEH_InitStarfieldRTs (void)
             {
               buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
 
-              SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+              SK_LOGs0 (L"Starfield ", L"Remastered Buffer: %36hs (%3d) using FP16", buffer_defs [i]->bufferName, i);
             }
 
             for (auto remaster : buffers_to_remaster)
@@ -613,7 +606,7 @@ void SK_SEH_InitStarfieldRTs (void)
               {
                 buffer_defs [i]->format = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
 
-                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: '%hs' (%d) using FP16", buffer_defs [i]->bufferName, i);
+                SK_LOGs0 (L"Starfield ", L"Remastered Buffer: %36hs (%3d) using FP16", buffer_defs [i]->bufferName, i);
                 break;
               }
             }
@@ -713,8 +706,13 @@ SK_BGS_InitPlugin(void)
                                     L"FPSLimitAddr",
                                      pFPSLimitAddr );
   
-    SK_SEH_InitStarfieldFPS ();
+    std::queue <DWORD> threads;
+
+    if (pImageAddr0 == -1)
+      threads = SK_SuspendAllOtherThreads ();
+
     SK_SEH_InitStarfieldRTs ();
+    SK_SEH_InitStarfieldFPS ();
 
     __SK_SF_ImageAddr0->store    (pImageAddr0);
     __SK_SF_BufferDefAddr->store (pBufferDefAddr);
@@ -767,6 +765,8 @@ SK_BGS_InitPlugin(void)
     }
   
     plugin_mgr->config_fns.emplace (SK_SF_PlugInCfg);
+
+    SK_ResumeThreads (threads);
   }
 #else
 
