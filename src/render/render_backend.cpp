@@ -3684,6 +3684,9 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
       if (pModeInfo->infoType == DISPLAYCONFIG_MODE_INFO_TYPE_TARGET)
       {
+        auto orig_signal =
+          display.signal;
+
         display.signal.timing.pixel_clock            =
           pModeInfo->targetMode.targetVideoSignalInfo.pixelRate;
         display.signal.timing.hsync_freq.Numerator   =
@@ -3706,30 +3709,35 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                                        videoStandard = (UINT32)
           pModeInfo->targetMode.targetVideoSignalInfo.videoStandard;
 
-        char szVSyncFreq [16] = { },
-             szHSyncFreq [16] = { };
+        if ( 0 != std::memcmp ( &orig_signal,
+                             &display.signal,
+            sizeof (decltype (display.signal))) )
+        {
+          char szVSyncFreq [16] = { },
+               szHSyncFreq [16] = { };
 
-        std::string_view str_view_vsync (szVSyncFreq, 16),
-                         str_view_hsync (szHSyncFreq, 16);
+          std::string_view str_view_vsync (szVSyncFreq, 16),
+                           str_view_hsync (szHSyncFreq, 16);
 
-        SK_FormatStringView ( str_view_vsync, "%7.3f",
-                            static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-                            static_cast <double> (display.signal.timing.vsync_freq.Denominator) ),
-        SK_FormatStringView ( str_view_hsync, "%7.3f",
-                            static_cast <double> (display.signal.timing.hsync_freq.Numerator) /
-                            static_cast <double> (display.signal.timing.hsync_freq.Denominator) / 1000.0 );
+          SK_FormatStringView ( str_view_vsync, "%7.3f",
+                              static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+                              static_cast <double> (display.signal.timing.vsync_freq.Denominator) ),
+          SK_FormatStringView ( str_view_hsync, "%7.3f",
+                              static_cast <double> (display.signal.timing.hsync_freq.Numerator) /
+                              static_cast <double> (display.signal.timing.hsync_freq.Denominator) / 1000.0 );
 
-        SK_RemoveTrailingDecimalZeros (szVSyncFreq, 16);
-        SK_RemoveTrailingDecimalZeros (szHSyncFreq, 16);
+          SK_RemoveTrailingDecimalZeros (szVSyncFreq, 16);
+          SK_RemoveTrailingDecimalZeros (szHSyncFreq, 16);
 
-        SK_LOG0 (
-           (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%hs",
-                                  display.name,
-            static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
-                                                           szVSyncFreq, szHSyncFreq,
-                                  display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
-                                  display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
-                                  display.signal.timing.videoStandard.toStr ()), __SK_SUBSYSTEM__ );
+          SK_LOG0 (
+             (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%hs",
+                                    display.name,
+              static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
+                                                             szVSyncFreq, szHSyncFreq,
+                                    display.signal.timing.active_size.cx, display.signal.timing.active_size.cy,
+                                    display.signal.timing.total_size.cx,  display.signal.timing.total_size.cy,
+                                    display.signal.timing.videoStandard.toStr ()), __SK_SUBSYSTEM__ );
+        }
       }
 
       DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO
@@ -3964,7 +3972,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
     for ( UINT i = 0 ; i < enum_count; ++i )
     {
-      SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] \"%ws\" :: %s",
+      SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] %16ws :: %s",
                     displays [i].primary ? L"*" : L" ",
                     displays [i].idx,
                     displays [i].rect.right  - displays [i].rect.left,

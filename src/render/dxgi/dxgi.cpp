@@ -7894,8 +7894,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   BOOL                   bWrapped = FALSE
 )
 {
+  const auto RequestedColorSpace = ColorSpace;
+
   SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
-                 DXGIColorSpaceToStr (ColorSpace) );
+                  DXGIColorSpaceToStr (ColorSpace) );
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -7936,7 +7938,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     {
       SK_LOGi0 (
         L" >> HDR: Overriding Original Color Space: '%hs' with '%hs'",
-          DXGIColorSpaceToStr (      ColorSpace),
+          DXGIColorSpaceToStr (RequestedColorSpace),
           DXGIColorSpaceToStr ((DXGI_COLOR_SPACE_TYPE)rb.scanout.colorspace_override)
       );
     }
