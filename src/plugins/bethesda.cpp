@@ -738,9 +738,7 @@ SK_BGS_InitPlugin(void)
     sf_1stFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
     sf_3rdFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
     sf_MipBias->register_to_ini (gameCustom_ini, L"Display", L"fMipBiasOffset");
-  
-    // TODO: Proper version checks if we're just going to use hard-coded addresses.
-    //
+
 
     if (SK_GetDLLVersionStr (SK_GetHostApp ()).find (L"1.7.23.0") != std::wstring::npos)
     {
@@ -759,10 +757,21 @@ SK_BGS_InitPlugin(void)
       }
     }
 
-    else
+    else if (SK_GetDLLVersionStr (SK_GetHostApp ()).find (L"1.7.29.0") != std::wstring::npos)
     {
-      SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
+      if (SK_GetModuleHandle (L"steam_api64.dll")) // Steam
+      {
+        pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557C7B0) + 8);
+        pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557C790) + 8);
+        pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x1455FECF0) + 8);
+      }
+
+      else
+        SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
     }
+
+    else
+      SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
   
     plugin_mgr->config_fns.emplace (SK_SF_PlugInCfg);
 
