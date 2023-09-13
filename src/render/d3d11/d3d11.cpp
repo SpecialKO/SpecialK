@@ -1073,10 +1073,15 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
               //  //desc.Format = DirectX::MakeSRGB (tex_desc.Format);
               //} // Game expects sRGB
 
-              if (                 __SK_HDR_16BitSwap) {
+              if (__SK_HDR_16BitSwap) {
                 desc.Format =                                DXGI_FORMAT_R16G16B16A16_FLOAT;
                 SK_ReleaseAssert (internalSwapChainFormat == DXGI_FORMAT_R16G16B16A16_FLOAT);
               } // Who cares what game expects, SK is going 16bpc HDR(!!)
+
+              else if (__SK_HDR_10BitSwap) {
+                desc.Format =                                DXGI_FORMAT_R10G10B10A2_UNORM;
+                SK_ReleaseAssert (internalSwapChainFormat == DXGI_FORMAT_R10G10B10A2_UNORM);
+              } // Who cares what game expects, SK is going 10bpc HDR(!!)
 
               else
               {
@@ -5194,7 +5199,11 @@ D3D11Dev_CreateTexture2D_Impl (
   if (pSwapChain != nullptr)
       pSwapChain->GetDesc (&swapDesc);
 
-  if (                           __SK_HDR_16BitSwap &&
+  const bool bHDROverride =
+    ( __SK_HDR_16BitSwap ||
+      __SK_HDR_10BitSwap );
+
+  if (                                 bHDROverride &&
                          bIgnoreThisUpload == false &&
        pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&

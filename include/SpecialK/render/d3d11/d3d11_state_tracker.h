@@ -543,6 +543,7 @@ SK_D3D11_CreateShader_Impl (
     if (type == sk_shader_class::Pixel && checksum == 0x9aefe985)
     {
       extern bool __SK_HDR_16BitSwap;
+      extern bool __SK_HDR_10BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
                                           rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
       {
@@ -563,10 +564,8 @@ SK_D3D11_CreateShader_Impl (
 
       }
 
-      else if (
-        ( rb.hdr_capable &&
-          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
-              )
+      else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
       {
         static std::string steam_ps_PQ =
           __SK_MakeSteamPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);

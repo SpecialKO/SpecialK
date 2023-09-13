@@ -5451,7 +5451,7 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-    if (rb.isHDRCapable () || __SK_HDR_16BitSwap)
+    if (rb.isHDRCapable () || __SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
     {
       ImGui::SameLine ();
       if (ImGui::Checkbox ("HDR Display", &hdr))

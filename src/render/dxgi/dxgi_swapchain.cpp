@@ -1408,6 +1408,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 }
 
 extern bool __SK_HDR_16BitSwap;
+extern bool __SK_HDR_10BitSwap;
 extern bool  bAlwaysAllowFullscreen;
 extern bool  bFlipMode;
 extern bool  bWait;
@@ -1514,8 +1515,10 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
 
     extern bool
-          __SK_HDR_16BitSwap;
-    if (! __SK_HDR_16BitSwap)
+           __SK_HDR_16BitSwap;
+    extern bool
+           __SK_HDR_10BitSwap;
+    if (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
     {
       if (state_cache.lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
         NewFormat = state_cache.lastNonHDRFormat;
@@ -1523,7 +1526,10 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
     else
     {
-      NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      if (     __SK_HDR_16BitSwap)
+        NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      else if (__SK_HDR_10BitSwap)
+        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
     }
   }
 
@@ -1808,7 +1814,18 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
       }
     }
 
-    if (!__SK_HDR_16BitSwap && NewFormat != DXGI_FORMAT_R16G16B16A16_FLOAT)
+    if (__SK_HDR_10BitSwap && NewFormat == DXGI_FORMAT_R10G10B10A2_UNORM)
+    {
+      SK_ComQIPtr <IDXGISwapChain4>
+          pSwap4 (pSwapChain);
+      if (pSwap4 != nullptr) {
+          pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+          was_hdr = true;
+      }
+    }
+
+    if ((!__SK_HDR_16BitSwap && NewFormat != DXGI_FORMAT_R16G16B16A16_FLOAT) &&
+        (!__SK_HDR_10BitSwap && NewFormat != DXGI_FORMAT_R10G10B10A2_UNORM))
     {
       if (std::exchange (was_hdr, false))
       {
