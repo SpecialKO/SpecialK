@@ -1,4 +1,8 @@
-﻿23.9.13
+﻿23.9.13.1
+=========
+ + Accidentally set AutoDeleteDLSSG instead of AllowDLSSG in 23.9.13
+
+23.9.13
 =======
  + Improved Streamline/DLSS-G support
 
@@ -7,6 +11,8 @@
 
     An updated Streamline Interposer (Streamline 2.2.0) is available on Discord,
       use it for maximum compatibility with Starfield [HDR10 ONLY].
+
+ + AllowDLSSG is now enabled by defaultrr
 
 23.9.12.5
 =========
