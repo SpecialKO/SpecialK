@@ -966,10 +966,6 @@ public:
                                   L"Use16BitSwapChain",  __SK_HDR_16BitSwap,
                                   L"16-bit SwapChain" );
 
-    // Must start OFF, user can turn on later.
-    if (SK_GetCurrentGameID () == SK_GAME_ID::DiabloIV)
-      __SK_HDR_16BitSwap = false;
-
 
     _SK_HDR_Promote8BitRGBxTo16BitFP =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
