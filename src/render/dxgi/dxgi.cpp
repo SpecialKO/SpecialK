@@ -8197,15 +8197,43 @@ SK_DXGI_FormatToString (DXGI_FORMAT fmt)
 
 
 void
-SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
+SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
 {
+  assert (pProxySwapChain != nullptr);
+  if (    pProxySwapChain == nullptr)
+    return;
+
+  static volatile
+               LONG hooked   = FALSE;
+  if (ReadAcquire (&hooked) != FALSE)
+    return;
+
+  bool bHasStreamline =
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+
+  SK_ComPtr <IDXGISwapChain> pSwapChain;
+
+  if (bHasStreamline)
+  {
+    SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGISwapChain...");
+    
+    if (SK_slGetNativeInterface (pProxySwapChain, (void **)&pSwapChain.p) != sl::Result::eOk)
+    {
+      SK_LOGi0 (L"Failed to Get Native Interface for DXGI SwapChain!");
+
+      pSwapChain = pProxySwapChain;
+    }
+  }
+
+  else
+    pSwapChain = pProxySwapChain;
+
   if (pSwapChain == nullptr)
     return;
 
   if (! first_frame)
     return;
 
-  static volatile LONG                      hooked    =   FALSE;
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
@@ -8375,12 +8403,36 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pSwapChain)
 
 
 void
-SK_DXGI_HookFactory (IDXGIFactory* pFactory)
+SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
 {
-  if (pFactory == nullptr)
+  assert (pProxyFactory != nullptr);
+  if (    pProxyFactory == nullptr)
     return;
 
-  static volatile LONG hooked = FALSE;
+  static volatile
+               LONG hooked   = FALSE;
+  if (ReadAcquire (&hooked) != FALSE)
+    return;
+
+  bool bHasStreamline =
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+
+  SK_ComPtr <IDXGIFactory> pFactory;
+
+  if (bHasStreamline)
+  {
+    SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGIFactory...");
+    
+    if (SK_slGetNativeInterface (pProxyFactory, (void **)&pFactory.p) != sl::Result::eOk)
+    {
+      SK_LOGi0 (L"Failed to Get Native Interface for DXGI Factory!");
+
+      pFactory = pProxyFactory;
+    }
+  }
+
+  else
+    pFactory = pProxyFactory;
 
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
@@ -8816,6 +8868,24 @@ HookDXGI (LPVOID user)
             pFactory.p->AddRef ();
             pFactory = pNativeFactory;
           }
+
+          SK_ComPtr <ID3D11Device>                          pNativeDevice;
+          if (SK_slGetNativeInterface (pDevice.p, (void **)&pNativeDevice.p) == sl::Result::eOk)
+          {
+            SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Device...");
+
+            pDevice.p->AddRef ();
+            pDevice = pNativeDevice;
+          }
+
+          SK_ComPtr <ID3D11DeviceContext>                             pNativeImmediateContext;
+          if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
+          {
+            SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Immediate Context...");
+
+            pImmediateContext.p->AddRef ();
+            pImmediateContext = pNativeImmediateContext;
+          }
         }
       }
 
@@ -8883,11 +8953,10 @@ HookDXGI (LPVOID user)
         //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
         bHookSuccess = true;
 
-        SK_ComPtr <IDXGISwapChain> pNativeSwapChain;
-
+        SK_ComPtr <IDXGISwapChain>                                             pNativeSwapChain;
         if (bHasStreamline && SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
         {
-          SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGISwapChain...");
+          SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
 
           pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;

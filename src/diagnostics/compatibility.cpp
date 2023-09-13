@@ -1079,6 +1079,13 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
+  return true;
+
+  //
+  // As of 23.9.13, compatibility in all known games is perfect!
+  //
+
+#if 0
   // Global without DLSS_G is good, we can skip this
   if (SK_IsInjected () && SK_GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
     return true;
@@ -1198,6 +1205,7 @@ SK_COMPAT_CheckStreamlineSupport (void)
   }
 
   return bCompatible;
+#endif
 }
 
 using PFun_slGetNativeInterface = sl::Result(void* proxyInterface, void** baseInterface);

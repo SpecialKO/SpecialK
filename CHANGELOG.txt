@@ -1,4 +1,25 @@
-﻿23.9.13.2
+﻿23.9.13.4
+=========
+ + Special K is compatible with all known Streamline games now, no interposer
+     replacement required.
+
+    * A handful of games support scRGB HDR through SK with DLSS-G, however,
+        the game's render pipeline up until final outpuit is 10-bpc, so this
+          doesn't really bring any benefits.
+
+      >> Use HDR10 for Frame Generation games
+
+23.9.13.3
+=========
+ + Reduced log spam on multi-monitor systems when moving windows between monitors
+ + Added support for D3D11 HDR pipeline remastering when forcing HDR10, or when
+     running an HDR10-native game with HDR10 selected in the HDR widget.
+
+   >> For the HDR10-native case, remember to select HDR10 Passthrough (Preset 3)
+
+ + Updated FOV / Mip Bias memory addresses for Starfield 1.7.29.0 (Steam-only)
+
+23.9.13.2
 =========
  + Disable framerate limiter bypass functionality if sl.interposer.dll is loaded;
      assume that DLSS-G mod has already disabled this game code in Starfield.

@@ -109,13 +109,12 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 void
 _InstallCommandQueueHooksImpl (ID3D12Device* pDevice12)
 {
-  static bool bHasStreamline =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
-
   assert (pDevice12 != nullptr);
-
-  if (pDevice12 == nullptr)
+  if (    pDevice12 == nullptr)
     return;
+
+  bool bHasStreamline =
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
 
   SK_ComPtr <ID3D12Device> pDev12;
 
@@ -125,7 +124,7 @@ _InstallCommandQueueHooksImpl (ID3D12Device* pDevice12)
     
     if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) != sl::Result::eOk)
     {
-      SK_LOGi0 (L"Failed to get native interface for D3D12 Device!");
+      SK_LOGi0 (L"Failed to Get Native Interface for D3D12 Device!");
 
       pDev12 = pDevice12;
     }
