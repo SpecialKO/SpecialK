@@ -1660,7 +1660,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
-    ConfigEntry (nvidia.bugs.allow_dlss_g,               L"Allow NV DLSS3 Frame Generation? (99+% chance of crash!)",  dll_ini,         L"NVIDIA.Bugs",           L"AllowDLSSG"),
+    ConfigEntry (nvidia.bugs.allow_dlss_g,               L"Allow NV DLSS3 Frame Generation? (50+% chance of crash!)",  dll_ini,         L"NVIDIA.Bugs",           L"AllowDLSSG"),
     ConfigEntry (nvidia.bugs.auto_delete_dlss_g,         L"Automatically delete DLSS3 Frame Generation DLL",           dll_ini,         L"NVIDIA.Bugs",           L"AutoDeleteDLSSG"),
     ConfigEntry (nvidia.bugs.streamline_compat,          L"Alternate DXGI/D3D11/D3D12 Hook Implementation for NV BUG", dll_ini,         L"NVIDIA.Bugs",           L"StreamlineCompatibilityMode"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),

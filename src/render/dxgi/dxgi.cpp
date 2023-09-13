@@ -8682,8 +8682,9 @@ HookDXGI (LPVOID user)
       return 0;
 
 
-    bool    bHookSuccess = false;
-    HRESULT hr           = E_NOTIMPL;
+    bool    bHookSuccess   = false;
+    bool    bHasStreamline = SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+    HRESULT hr             = E_NOTIMPL;
 
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
@@ -8699,6 +8700,7 @@ HookDXGI (LPVOID user)
       SK_ComPtr <IDXGIFactory>                 pFactory;
       CreateDXGIFactory2_Import ( factory_flags,
             __uuidof (IDXGIFactory), (void **)&pFactory.p);
+      SK_slUpgradeInterface (        (void **)&pFactory.p);
       SK_ComQIPtr    <IDXGIFactory7>           pFactory7
                                               (pFactory);
 
@@ -8718,8 +8720,8 @@ HookDXGI (LPVOID user)
       D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
         SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
 
-      // Favor this codepath because it bypasses many things like ReShade, but
-      //   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
+      //// Favor this codepath because it bypasses many things like ReShade, but
+      ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
       if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
                                                    SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
       {
@@ -8765,12 +8767,18 @@ HookDXGI (LPVOID user)
 
         if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
         {
+          if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pDevice12.p))
+            SK_LOGi0 (L"Upgraded D3D12 Device to Streamline Proxy...");
+
           D3D12_COMMAND_QUEUE_DESC
             queue_desc       = { };
             queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
             queue_desc.Type  = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
           pDevice12->CreateCommandQueue (&queue_desc, IID_PPV_ARGS (&pCmdQueue.p));
+
+          if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pCmdQueue.p))
+            SK_LOGi0 (L"Upgraded D3D12 Command Queue to Streamline Proxy...");
         }
       }
 
@@ -8786,6 +8794,27 @@ HookDXGI (LPVOID user)
       {
         if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
                     pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
+      }
+
+      if (bHasStreamline)
+      {
+        SK_ComPtr <IDXGISwapChain>                           pNativeSwapChain;
+        if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+        {
+          SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
+
+          pSwapChain.p->AddRef ();
+          pSwapChain = pNativeSwapChain;
+
+          SK_ComPtr <IDXGIFactory>                           pNativeFactory;
+          if (SK_slGetNativeInterface (pFactory.p, (void **)&pNativeFactory.p) == sl::Result::eOk)
+          {
+            SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI Factory...");
+
+            pFactory.p->AddRef ();
+            pFactory = pNativeFactory;
+          }
+        }
       }
 
       sk_hook_d3d11_t d3d11_hook_ctx = { };
@@ -8823,6 +8852,15 @@ HookDXGI (LPVOID user)
                             &featureLevel,
                               &pImmediateContext.p );
 
+      if (bHasStreamline)
+      {
+        SK_LOGi0 (L"Upgrading D3D11 Device(Context) and SwapChains to Streamline...");
+
+        SK_slUpgradeInterface ((void **)&pDevice.p);
+        SK_slUpgradeInterface ((void **)&pSwapChain.p);
+        SK_slUpgradeInterface ((void **)&pImmediateContext.p);
+      }
+
       sk_hook_d3d11_t d3d11_hook_ctx = { };
 
       d3d11_hook_ctx.ppDevice           = &pDevice.p;
@@ -8842,6 +8880,16 @@ HookDXGI (LPVOID user)
         SK_DXGI_HookFactory   (pFactory);
         //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
         bHookSuccess = true;
+
+        SK_ComPtr <IDXGISwapChain> pNativeSwapChain;
+
+        if (bHasStreamline && SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+        {
+          SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGISwapChain...");
+
+          pSwapChain.p->AddRef ();
+          pSwapChain = pNativeSwapChain;
+        }
       }
     }
 
@@ -8849,18 +8897,6 @@ HookDXGI (LPVOID user)
     {
       if (pSwapChain != nullptr)
       {
-        //// Now we get the underlying SwapChain, free from Streamline's bad stuff if it's present
-        SK_ComPtr <IDXGISwapChain> pStreamlineFreeSwapChain;
-        pSwapChain->QueryInterface (
-          __uuidof (StreamlineRetrieveBaseInterface), (void **)&pStreamlineFreeSwapChain.p
-        );
-        
-        if (pStreamlineFreeSwapChain != nullptr) {
-          pSwapChain.p->AddRef ();
-          pSwapChain = pStreamlineFreeSwapChain;
-          pSwapChain.p->Release ();
-        }
-
         SK_DXGI_HookSwapChain (pSwapChain);
 
         // This won't catch Present1 (...), but no games use that

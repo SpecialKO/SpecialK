@@ -2173,12 +2173,32 @@ D3D12Device_CheckFeatureSupport_Detour (
 }
 
 void
-_InstallDeviceHooksImpl (ID3D12Device* pDev12)
+_InstallDeviceHooksImpl (ID3D12Device* pDevice12)
 {
-  assert (pDev12 != nullptr);
+  static bool bHasStreamline =
+    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
 
-  if (pDev12 == nullptr)
+  assert (pDevice12 != nullptr);
+
+  if (pDevice12 == nullptr)
     return;
+
+  SK_ComPtr <ID3D12Device> pDev12;
+
+  if (bHasStreamline)
+  {
+    SK_LOGi0 (L"Hooking Streamline Native Interface for ID3D12Device...");
+    
+    if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) != sl::Result::eOk)
+    {
+      SK_LOGi0 (L"Failed to get native interface for D3D12 Device!");
+
+      pDev12 = pDevice12;
+    }
+  }
+
+  else
+    pDev12 = pDevice12;
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandAllocator",
                             *(void ***)*(&pDev12), 9,

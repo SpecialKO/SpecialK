@@ -4947,7 +4947,7 @@ SK_ImGui_ControlPanel (void)
                              &mode, "Normal\0"
                                     "Low-Latency\t  (VRR Optimized)\0"
                                     "Latent Sync\t   (VSYNC -Off-)\0"
-                                    "NVIDIA Reflex\t(DLSS3 Pacing)\0\0" )
+                                    "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" )
                
                )
             {
@@ -5037,7 +5037,7 @@ SK_ImGui_ControlPanel (void)
                                   ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
               if (rb.isReflexSupported ())
                 ImGui::TextUnformatted
-                                  ("Ideal for DLSS3 Frame Generation; higher latency than SK in non-DLSS3 scenarios");
+                                  ("Ideal for DLSS3 Frame Generation; higher latency than SK in non DLSS-G scenarios");
               ImGui::EndGroup     ();
               if (config.render.framerate.present_interval == 0)
               {

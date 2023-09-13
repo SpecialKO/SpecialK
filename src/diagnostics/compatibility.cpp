@@ -1199,3 +1199,30 @@ SK_COMPAT_CheckStreamlineSupport (void)
 
   return bCompatible;
 }
+
+using PFun_slGetNativeInterface = sl::Result(void* proxyInterface, void** baseInterface);
+using PFun_slUpgradeInterface   = sl::Result(                      void** baseInterface);
+
+sl::Result
+SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
+{
+  static PFun_slGetNativeInterface * slGetNativeInterface =
+        (PFun_slGetNativeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slGetNativeInterface");
+
+  if (     slGetNativeInterface != nullptr)
+    return slGetNativeInterface (proxyInterface, baseInterface);
+
+  return sl::Result::eErrorNotInitialized;
+}
+
+sl::Result
+SK_slUpgradeInterface (void **baseInterface)
+{
+  static PFun_slUpgradeInterface * slUpgradeInterface =
+        (PFun_slUpgradeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slUpgradeInterface");
+
+  if (     slUpgradeInterface != nullptr)
+    return slUpgradeInterface (baseInterface);
+
+  return sl::Result::eErrorNotInitialized;
+}

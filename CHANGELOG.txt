@@ -1,4 +1,14 @@
-﻿23.9.12.5
+﻿23.9.13
+=======
+ + Improved Streamline/DLSS-G support
+
+    * Some games (i.e. Ratchet and Clank) now support DLSS Frame Generation while
+        scRGB HDR is active in SK.
+
+    An updated Streamline Interposer (Streamline 2.2.0) is available on Discord,
+      use it for maximum compatibility with Starfield [HDR10 ONLY].
+
+23.9.12.5
 =========
  + Moved Reflex-based FPS limit to Framerate Limiter Mode option (on qualifying HW)
  + Added green NV text to top-left of framepacing graph when Reflex limit is active

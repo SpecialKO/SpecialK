@@ -783,12 +783,11 @@ struct sk_config_t
       bool    override            = false;
     } sli;
     struct bugs_s {
-    //bool    fix_10bit_gsync     = false;
       bool    kill_hdr            = false;
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
       bool    allow_dlss_g        = false;
-      bool    auto_delete_dlss_g  = false;
+      bool    auto_delete_dlss_g  =  true;
       bool    streamline_compat   = false;
     } bugs;
     struct reflex_s {
