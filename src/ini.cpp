@@ -237,9 +237,14 @@ iSK_INI::reload (const wchar_t *fname)
 
       if (0 == converted_size)
       {
+        std::string utf8_fname =
+          SK_StripUserNameFromPathA (
+            SK_WideCharToUTF8 (fname).data ()
+          );
+
         SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI Encoded "
-                    L".ini file ('%s') to UTF-16, aborting!",
-                                                     fname ),
+                    L".ini file ('%hs') to UTF-16, aborting!",
+                                        utf8_fname.c_str () ),
                     L"INI Parser" );
 
         return false;
