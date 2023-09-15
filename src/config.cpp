@@ -944,6 +944,7 @@ struct {
   sk::ParameterBool*      allow_dxdiagn           = nullptr;
   sk::ParameterBool*      auto_large_address      = nullptr; // 32-bit only
   sk::ParameterBool*      async_init              = nullptr;
+  sk::ParameterBool*      reshade_mode            = nullptr;
 } compatibility;
 
 struct {
@@ -1465,6 +1466,7 @@ auto DeclKeybind =
     ConfigEntry (compatibility.auto_large_address,       L"Opt-in for Automatic Large Address Aware Patch on Crash",   dll_ini,         L"Compatibility.General", L"AutoLargeAddressPatch"),
 #endif
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
+    ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -3153,7 +3155,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Starfield:
-        config.nvidia.bugs.streamline_compat = true;
+        // Name is misleading, this also helps with Streamline
+        config.compatibility.reshade_mode = true;
         break;
     }
   }
@@ -3205,6 +3208,7 @@ auto DeclKeybind =
   //
   // Load Parameters
   //
+  compatibility.reshade_mode->load       (config.compatibility.reshade_mode);
   compatibility.async_init->load         (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
@@ -3291,7 +3295,7 @@ auto DeclKeybind =
   nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
   nvidia.bugs.streamline_compat
-                           ->load (config.nvidia.bugs.streamline_compat);
+                           ->load (config.compatibility.reshade_mode);
 
   if (amd.adl.disable->load (config.apis.ADL.enable))
      config.apis.ADL.enable = (! amd.adl.disable->get_value ());
@@ -4814,6 +4818,7 @@ SK_SaveConfig ( std::wstring name,
     config.apis.last_known = SK_RenderAPI::OpenGL;
 
 
+  compatibility.reshade_mode->store           (config.compatibility.reshade_mode);
   compatibility.async_init->store             (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
@@ -4896,7 +4901,6 @@ SK_SaveConfig ( std::wstring name,
   nvidia.api.vulkan_bridge->store             (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
-  nvidia.bugs.streamline_compat->store        (config.nvidia.bugs.streamline_compat);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);

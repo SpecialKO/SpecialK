@@ -5037,7 +5037,7 @@ SK_ImGui_ControlPanel (void)
                                   ("Ideal for Fixed-Refresh Displays; tearing possible, but location is controlled");
               if (rb.isReflexSupported ())
                 ImGui::TextUnformatted
-                                  ("Ideal for DLSS3 Frame Generation; higher latency than SK in non DLSS-G scenarios");
+                                  ("Ideal for DLSS3 Frame Generation; worse consistency than SK in non DLSS-G scenarios");
               ImGui::EndGroup     ();
               if (config.render.framerate.present_interval == 0)
               {

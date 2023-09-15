@@ -786,7 +786,6 @@ struct sk_config_t
       bool    kill_hdr            = false;
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
-      bool    streamline_compat   = false;
     } bugs;
     struct reflex_s {
       bool    use_limiter         =  false;
@@ -976,6 +975,7 @@ struct sk_config_t
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
     bool     shutdown_on_window_close = false;
+    bool     reshade_mode             = false;
   } compatibility;
 
   struct apis_s {

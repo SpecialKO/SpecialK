@@ -8759,7 +8759,7 @@ HookDXGI (LPVOID user)
 
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-    if (config.nvidia.bugs.streamline_compat)
+    if (config.compatibility.reshade_mode && (! config.compatibility.using_wine))
     {
       SK_slUpgradeInterface ((void **)&pFactory.p);
 
@@ -8772,8 +8772,10 @@ HookDXGI (LPVOID user)
       SK_ComPtr <ID3D12Device>       pDevice12;
       SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
 
-      D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
-        SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
+      D3D11CoreCreateDevice_pfn
+      D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)SK_GetProcAddress (
+             LoadLibraryExW (L"d3d11.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
+                              "D3D11CoreCreateDevice" );
 
       SK_D3D11_Init ();
 

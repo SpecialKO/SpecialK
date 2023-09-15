@@ -1,9 +1,29 @@
-﻿23.9.14.1
+﻿23.9.15
+=======
+ + Added ReShade Mode to Compatibility Settings
+
+     [Compatibility.General]
+     ReShadeMode={true|false}, Default: false
+
+    * Enabling this allows, in most D3D11 and D3D12 games, to change when ReShade
+        post-processes the scene by using the "Show OSD In Video Capture" option
+          in SK's control panel.
+
+       When "Show OSD in Video Capture" is turned off, you can use ReShade
+         to post-process the pre-HDR retrofitted image, producing better HDR and
+           not screwing up SK's UI :)
+
+       Turn the option ON if to use HDR analysis shaders on SK's HDR output.
+
+     >> If it is working as expected, toggling On/Off should cause ReShade's own
+          UI to switch between drawing above or below SK's UI.
+
+23.9.14.1
 =========
  + Revert framerate limiter change in 23.9.14, because it only works as intended
      in some games Reflex implementations.
  + Fixed various issues with forcing HDR10 on in D3D12 games that
-     aren't already 10-bpc (...wtf?)
+     aren't already 10-bpc
 
 23.9.14
 =======
