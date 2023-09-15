@@ -35,11 +35,14 @@
 #endif
 #define __SK_SUBSYSTEM__ L"Screenshot"
 
+SK_Screenshot::framebuffer_s::PinnedBuffer
+SK_Screenshot::framebuffer_s::root_;
+
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
 
-SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0, 0 };
-SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0, 0 };
+SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0, 0, 0 };
+SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0, 0, 0 };
 
 void SK_Screenshot_PlaySound (void)
 {
@@ -113,10 +116,11 @@ bool
 SK_Screenshot_IsCapturing (void)
 {
   return
-    ( ReadAcquire (&enqueued_screenshots.stages [0]) > 0 ||
-      ReadAcquire (&enqueued_screenshots.stages [1]) > 0 ||
-      ReadAcquire (&enqueued_screenshots.stages [2]) > 0 ||
-      ReadAcquire (&enqueued_screenshots.stages [3]) );
+    ( ReadAcquire (&enqueued_screenshots.stages [0]) +
+      ReadAcquire (&enqueued_screenshots.stages [1]) +
+      ReadAcquire (&enqueued_screenshots.stages [2]) +
+      ReadAcquire (&enqueued_screenshots.stages [3]) +
+      ReadAcquire (&enqueued_screenshots.stages [4]) ) > 0;
 }
 
 void
@@ -415,4 +419,22 @@ SK_TriggerHudFreeScreenshot (void) noexcept
       InterlockedIncrement (&__SK_D3D12_QueuedShots);
     //}
   }
+}
+
+SK_Screenshot::SK_Screenshot (bool clipboard_only)
+{
+  bPlaySound       = config.screenshots.play_sound;
+  bCopyToClipboard = config.screenshots.copy_to_clipboard;
+
+  if (clipboard_only)
+  {
+    bCopyToClipboard = true;
+    bSaveToDisk      = false;
+  }
+
+  else
+    bSaveToDisk = true;
+
+  framebuffer.AllowCopyToClipboard = bCopyToClipboard;
+  framebuffer.AllowSaveToDisk      = bSaveToDisk;
 }

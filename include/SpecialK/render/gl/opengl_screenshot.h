@@ -34,12 +34,13 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/screenshot.h>
 
-class SK_GL_Screenshot
+class SK_GL_Screenshot : public SK_Screenshot
 {
 public:
-  explicit SK_GL_Screenshot (SK_GL_Screenshot&& moveFrom) noexcept { *this = std::move (moveFrom); }
+  explicit SK_GL_Screenshot (SK_GL_Screenshot&& moveFrom) noexcept : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
   explicit SK_GL_Screenshot (const HGLRC        hDevice,
-                                   bool         allow_sound);
+                                   bool         allow_sound,
+                                   bool         clipboard_only = false);
 
           ~SK_GL_Screenshot (void) {
             dispose ();
@@ -72,76 +73,25 @@ public:
   SK_GL_Screenshot                    (const SK_GL_Screenshot&          ) = delete;
   SK_GL_Screenshot&          operator=(const SK_GL_Screenshot&          ) = delete;
 
-  void dispose (void);
+  void dispose (void) noexcept final;
   bool getData ( UINT* const pWidth,
                  UINT* const pHeight,
                  uint8_t   **ppData,
-                 bool        Wait = false );
+                 bool        Wait = false ) final;
 
   __inline
   DXGI_FORMAT
   getInternalFormat (void) noexcept
   {
     return
-      framebuffer.NativeFormat;
-  }
-
-  struct framebuffer_s
-  {
-    // One-time alloc, prevents allocating and freeing memory on the thread
-    //   that memory-maps the GPU for perfect wait-free capture.
-    struct PinnedBuffer {
-      std::atomic_size_t           size    = 0L;
-      std::unique_ptr <uint8_t []> bytes   = nullptr;
-    } static root_;
-
-    ~framebuffer_s (void)
-    {
-      if (PixelBuffer == root_.bytes)
-        PixelBuffer.release (); // Does not free
-
-      PixelBuffer.reset ();
-    }
-
-    UINT               Width               = 0,
-                       Height              = 0;
-    DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
-    DXGI_ALPHA_MODE    AlphaMode           = DXGI_ALPHA_MODE_IGNORE;
-
-    size_t             PBufferSize         = 0L;
-    size_t             PackedDstPitch      = 0L,
-                       PackedDstSlicePitch = 0L;
-
-    std::unique_ptr
-      <uint8_t []>     PixelBuffer         = nullptr;
-  };
-
-  __inline
-  framebuffer_s*
-  getFinishedData (void) noexcept
-  {
-    return
-      ( framebuffer.PixelBuffer.get () != nullptr ) ?
-       &framebuffer :                     nullptr;
-  }
-
-  __inline
-    ULONG64
-  getStartFrame (void) const noexcept
-  {
-    return
-      ulCommandIssuedOnFrame;
+      framebuffer.opengl.NativeFormat;
   }
 
 protected:
-  HGLRC                           hglrc                  = nullptr;
+  HGLRC  hglrc               = nullptr;
 
-  GLuint                          pixel_buffer_object    = 0;
-  GLsync                          pixel_buffer_fence     = nullptr;
-  ULONG64                         ulCommandIssuedOnFrame = 0;
-
-  bool                            bPlaySound             =    true;
-  framebuffer_s                   framebuffer            = {     };
+  GLuint pixel_buffer_object = 0;
+  GLsync pixel_buffer_fence  = nullptr;
 };
 
 void SK_GL_WaitOnAllScreenshots   (void);

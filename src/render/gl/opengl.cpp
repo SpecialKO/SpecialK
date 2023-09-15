@@ -2715,8 +2715,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         }
       }
 
-      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame,  SK_GetCurrentRenderBackend ());
-      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue, SK_GetCurrentRenderBackend ());
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::EndOfFrame,    SK_GetCurrentRenderBackend ());
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::ClipboardOnly, SK_GetCurrentRenderBackend ());
+      SK_Screenshot_ProcessQueue (SK_ScreenshotStage::_FlushQueue,   SK_GetCurrentRenderBackend ());
     }
   }
 

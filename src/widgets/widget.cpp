@@ -944,11 +944,13 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 15>
+    std::array <SK_ConfigSerializedKeybind *, 17>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
           &config.screenshots.sk_osd_insertion_keybind,
+          &config.screenshots.no_3rd_party_keybind,
+          &config.screenshots.clipboard_only_keybind,
 
           &config.monitors.monitor_primary_keybind,
           &config.monitors.monitor_next_keybind,
@@ -1016,6 +1018,20 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       {
         SK::SteamAPI::TakeScreenshot (
           SK_ScreenshotStage::EndOfFrame
+        );
+      }
+
+      else if (  keybind == &config.screenshots.no_3rd_party_keybind )
+      {
+        SK::SteamAPI::TakeScreenshot (
+          SK_ScreenshotStage::PrePresent
+        );
+      }
+
+      else if (  keybind == &config.screenshots.clipboard_only_keybind )
+      {
+        SK::SteamAPI::TakeScreenshot (
+          SK_ScreenshotStage::ClipboardOnly
         );
       }
 

@@ -36,9 +36,6 @@ volatile LONG
 volatile LONG
      SK_D3D12_CBufferTrackingReqs = 0L;
 
-
-extern void SK_Screenshot_PlaySound (void);
-
 HRESULT
 SK_D3D12_CaptureScreenshot (
   SK_D3D12_Screenshot   *pScreenshot,
@@ -57,51 +54,45 @@ SK_D3D12_Screenshot& SK_D3D12_Screenshot::operator= (SK_D3D12_Screenshot&& moveF
       auto &&rFrom = moveFrom.readback_ctx;
       auto &&rTo   =          readback_ctx;
 
-      rTo.pBackbufferSurface.p       = rFrom.pBackbufferSurface.p;
-      rTo.pStagingBackbufferCopy.p   = rFrom.pStagingBackbufferCopy.p;
+      rTo.pBackbufferSurface.p       = std::exchange (rFrom.pBackbufferSurface.p,     nullptr);
+      rTo.pStagingBackbufferCopy.p   = std::exchange (rFrom.pStagingBackbufferCopy.p, nullptr);
 
-      rTo.pCmdQueue.p                = rFrom.pCmdQueue.p;
-      rTo.pCmdAlloc.p                = rFrom.pCmdAlloc.p;
-      rTo.pCmdList.p                 = rFrom.pCmdList.p;
+      rTo.pCmdQueue.p                = std::exchange (rFrom.pCmdQueue.p,              nullptr);
+      rTo.pCmdAlloc.p                = std::exchange (rFrom.pCmdAlloc.p,              nullptr);
+      rTo.pCmdList.p                 = std::exchange (rFrom.pCmdList.p,               nullptr);
 
-      rTo.pFence.p                   = rFrom.pFence.p;
-      rTo.uiFenceVal                 = rFrom.uiFenceVal;
+      rTo.pFence.p                   = std::exchange (rFrom.pFence.p,                 nullptr);
+      rTo.uiFenceVal                 = std::exchange (rFrom.uiFenceVal,               0);
 
-      rTo.pBackingStore              = rFrom.pBackingStore;
-
-      rFrom.pBackbufferSurface.p     = nullptr;
-      rFrom.pStagingBackbufferCopy.p = nullptr;
-
-      rFrom.pCmdQueue.p              = nullptr;
-      rFrom.pCmdAlloc.p              = nullptr;
-      rFrom.pCmdList.p               = nullptr;
-
-      rFrom.pFence.p                 = nullptr;
-      rFrom.uiFenceVal               =       0;
-
-      rFrom.pBackingStore            = nullptr;
+      rTo.pBackingStore              = std::exchange (rFrom.pBackingStore,            nullptr);
     }
 
     auto&& fromBuffer =
-       moveFrom.framebuffer;
+      moveFrom.framebuffer;
+    
+    framebuffer.Width                = std::exchange (fromBuffer.Width,                    0);
+    framebuffer.Height               = std::exchange (fromBuffer.Height,                   0);
+    framebuffer.PackedDstPitch       = std::exchange (fromBuffer.PackedDstPitch,           0);
+    framebuffer.PackedDstSlicePitch  = std::exchange (fromBuffer.PackedDstSlicePitch,      0);
+    framebuffer.PBufferSize          = std::exchange (fromBuffer.PBufferSize,              0);
 
-    bPlaySound                      = moveFrom.bPlaySound;
-    ulCommandIssuedOnFrame          = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
-
-    framebuffer.Width               = std::exchange (fromBuffer.Width,                0);
-    framebuffer.Height              = std::exchange (fromBuffer.Height,               0);
-    framebuffer.PackedDstPitch      = std::exchange (fromBuffer.PackedDstPitch,       0);
-    framebuffer.PackedDstSlicePitch = std::exchange (fromBuffer.PackedDstSlicePitch,  0);
-    framebuffer.PBufferSize         = std::exchange (fromBuffer.PBufferSize,          0);
+    framebuffer.AllowCopyToClipboard = moveFrom.bCopyToClipboard;
+    framebuffer.AllowSaveToDisk      = moveFrom.bSaveToDisk;
+                                       std::exchange (fromBuffer.AllowCopyToClipboard, false);
+                                       std::exchange (fromBuffer.AllowSaveToDisk,      false);
 
     framebuffer.PixelBuffer.reset (
-      moveFrom.framebuffer.PixelBuffer.get () // XXX: Shouldn't this be release?
+     fromBuffer.PixelBuffer.get ()
     );
 
-    //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
+    framebuffer.dxgi.AlphaMode       = std::exchange (fromBuffer.dxgi.AlphaMode,    DXGI_ALPHA_MODE_UNSPECIFIED);
+    framebuffer.dxgi.NativeFormat    = std::exchange (fromBuffer.dxgi.NativeFormat, DXGI_FORMAT_UNKNOWN);
 
-    framebuffer.AlphaMode           = std::exchange (fromBuffer.AlphaMode,    DXGI_ALPHA_MODE_UNSPECIFIED);
-    framebuffer.NativeFormat        = std::exchange (fromBuffer.NativeFormat, DXGI_FORMAT_UNKNOWN);
+    bPlaySound                       = moveFrom.bPlaySound;
+    bSaveToDisk                      = moveFrom.bSaveToDisk;
+    bCopyToClipboard                 = moveFrom.bCopyToClipboard;
+
+    ulCommandIssuedOnFrame           = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
   }
 
   return *this;
@@ -315,7 +306,8 @@ struct ShaderBase
 SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
                                            const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
                                            const SK_ComPtr <IDXGISwapChain3>&    pSwapChain,
-                                                 bool                            allow_sound )
+                                                 bool                            allow_sound,
+                                                 bool                            clipboard_only ) : SK_Screenshot (clipboard_only)
 {
   bPlaySound = allow_sound;
 
@@ -344,8 +336,8 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
       DXGI_SWAP_CHAIN_DESC1 sd1 = {};
       pSwap4->GetDesc1    (&sd1);
 
-      framebuffer.AlphaMode =
-              sd1.AlphaMode;
+      framebuffer.dxgi.AlphaMode =
+                   sd1.AlphaMode;
     }
     ulCommandIssuedOnFrame = SK_GetFramesDrawn ();
 
@@ -358,9 +350,9 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
     readback_ctx.pBackbufferSurface            = pBackbuffer;
     D3D12_RESOURCE_DESC        backbuffer_desc = pBackbuffer->GetDesc ();
 
-    framebuffer.Width        = backbuffer_desc.Width;
-    framebuffer.Height       = backbuffer_desc.Height;
-    framebuffer.NativeFormat = backbuffer_desc.Format;
+    framebuffer.Width             = sk::narrow_cast <UINT> (backbuffer_desc.Width);
+    framebuffer.Height            = sk::narrow_cast <UINT> (backbuffer_desc.Height);
+    framebuffer.dxgi.NativeFormat = backbuffer_desc.Format;
 
 #ifdef HDR_CONVERT
     SK_ComPtr <ID3D12Resource> pHDRConvertTex;
@@ -681,11 +673,8 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
   dispose ();
 }
 
-SK_D3D12_Screenshot::framebuffer_s::PinnedBuffer
-SK_D3D12_Screenshot::framebuffer_s::root_;
-
 void
-SK_D3D12_Screenshot::dispose (void)
+SK_D3D12_Screenshot::dispose (void) noexcept
 {
   readback_ctx.pFence                 = nullptr;
   readback_ctx.uiFenceVal             =       0;
@@ -808,8 +797,8 @@ SK_D3D12_CaptureScreenshot (
                  &totalResourceSize
   );
 
-  auto& pBackingStore =
-    pStagingCtx->pBackingStore;
+  SK_Screenshot::framebuffer_s *pBackingStore =
+                   pStagingCtx->pBackingStore;
 
   pBackingStore->PixelBuffer.reset (
     new (std::nothrow) uint8_t [static_cast <SIZE_T> (totalResourceSize)]
@@ -840,7 +829,7 @@ SK_D3D12_CaptureScreenshot (
     bufferDesc.SampleDesc.Quality = 0;
 
   DirectX::ComputePitch (
-    pBackingStore->NativeFormat,
+    pBackingStore->dxgi.NativeFormat,
       static_cast <size_t> (pBackingStore->Width),
       static_cast <size_t> (pBackingStore->Height),
         pBackingStore->PackedDstPitch,
@@ -898,8 +887,8 @@ SK_D3D12_CaptureScreenshot (
   CD3DX12_TEXTURE_COPY_LOCATION copyDest (pStagingCtx->pStagingBackbufferCopy, layout);
   CD3DX12_TEXTURE_COPY_LOCATION copySrc  (pSource,                                  0);
 
-  copyDest.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
-   copySrc.PlacedFootprint.Footprint.Format = pBackingStore->NativeFormat;
+  copyDest.PlacedFootprint.Footprint.Format = pBackingStore->dxgi.NativeFormat;
+   copySrc.PlacedFootprint.Footprint.Format = pBackingStore->dxgi.NativeFormat;
 
   // NOTE: This will pass through SK's hook, the aligned data size may be different than expected
   pStagingCtx->pCmdList->CopyTextureRegion ( &copyDest, 0, 0,
@@ -1046,7 +1035,7 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     uint8_t* pDst = *ppData;
     
     auto bitsPerPixel  =
-      DirectX::BitsPerPixel (framebuffer.NativeFormat);
+      DirectX::BitsPerPixel (framebuffer.dxgi.NativeFormat);
     auto bytesPerPixel = bitsPerPixel / 8;
 
     // We can only deal with 10:10:10:2, 8:8:8:8, or 16:16:16:16
@@ -1056,9 +1045,9 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
 
     size_t src_row_pitch =
-      ( layout.Footprint.RowPitch / (size_t)std::max (1ui64, framebuffer.Height) ) +
-      ( layout.Footprint.RowPitch / (size_t)std::max (1ui64, framebuffer.Height) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
-           dst_row_pitch = ( bytesPerPixel * (size_t)framebuffer.Width );
+      ( layout.Footprint.RowPitch / std::max (1u, framebuffer.Height) ) +
+      ( layout.Footprint.RowPitch / std::max (1u, framebuffer.Height) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+           dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
 
     SK_ReleaseAssert ( src_row_pitch >=
                        dst_row_pitch );
@@ -1405,7 +1394,8 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
           { SK_ScreenshotStage::BeforeGameHUD, 0 },
           { SK_ScreenshotStage::BeforeOSD,     1 },
           { SK_ScreenshotStage::PrePresent,    2 },
-          { SK_ScreenshotStage::EndOfFrame,    3 }
+          { SK_ScreenshotStage::EndOfFrame,    3 },
+          { SK_ScreenshotStage::ClipboardOnly, 4 }
         };
 
     const auto it =
@@ -1453,7 +1443,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  constexpr int __MaxStage = 3;
+  constexpr int __MaxStage = ARRAYSIZE (SK_ScreenshotQueue::stages) - 1;
   const     int      stage =
     sk::narrow_cast <int> (stage_);
 
@@ -1506,9 +1496,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             {
               SK_ReleaseAssert (rb.d3d12.command_queue.p != nullptr);
 
-              if (SK_GetCurrentRenderBackend ().screenshot_mgr->checkDiskSpace (20ULL * 1024ULL * 1024ULL))
+              const bool clipboard_only =
+                ( stage == __MaxStage );
+
+              if (clipboard_only || SK_GetCurrentRenderBackend ().screenshot_mgr->checkDiskSpace (20ULL * 1024ULL * 1024ULL))
               {
-                bool allow_sound =
+                const bool allow_sound =
                   ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
 
                 if ( allow_sound )
@@ -1518,7 +1511,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   new SK_D3D12_Screenshot (
                     pDev, rb.d3d12.command_queue, (IDXGISwapChain3 *)
                           rb.swapchain.p,
-                            allow_sound
+                            allow_sound, clipboard_only
                   )
                 );
               }
@@ -1595,10 +1588,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               continue;
             }
 
-            if (config.screenshots.png_compress)
-              to_write.emplace_back (pop_off);
-
-            SK_D3D12_Screenshot::framebuffer_s* pFrameData =
+            SK_Screenshot::framebuffer_s* pFrameData =
               pop_off->getFinishedData ();
 
             // Why's it on the wait-queue if it's not finished?!
@@ -1606,13 +1596,16 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (pFrameData != nullptr)
             {
+              if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress)
+                to_write.emplace_back (pop_off);
+
               using namespace DirectX;
 
               bool  skip_me = false;
               Image raw_img = {   };
 
               ComputePitch (
-                pFrameData->NativeFormat,
+                pFrameData->dxgi.NativeFormat,
                   static_cast <size_t> (pFrameData->Width),
                   static_cast <size_t> (pFrameData->Height),
                     raw_img.rowPitch, raw_img.slicePitch
@@ -1677,7 +1670,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 meta.arraySize = 1;
                 meta.mipLevels = 1;
 
-                switch (pFrameData->AlphaMode)
+                switch (pFrameData->dxgi.AlphaMode)
                 {
                   case DXGI_ALPHA_MODE_UNSPECIFIED:
                     meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
@@ -1947,12 +1940,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   }
                 }
 
-                if (un_scrgb.GetImageCount () == 1)
+                if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)))
                 {
                   rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages ());
                 }
 
-                if (               un_scrgb.GetImageCount () == 1 &&
+                if (               pFrameData->AllowSaveToDisk    &&
+                                   un_scrgb.GetImageCount () == 1 &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_DITHER_DIFFUSION,
                                      GetWICCodec         (codec),
@@ -2014,7 +2008,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 }
               }
 
-              if (! config.screenshots.png_compress)
+              if (! (config.screenshots.png_compress && pFrameData->AllowSaveToDisk))
               {
                 delete pop_off;
                        pop_off = nullptr;
@@ -2033,7 +2027,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
           SetEvent   (signal.abort.finished); // Abort is complete
         }
 
-        if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
+        //if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
         {
           int enqueued_lossless = 0;
 
@@ -2052,26 +2046,28 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               continue;
             }
 
-            static concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s*>
+            static concurrency::concurrent_queue <SK_Screenshot::framebuffer_s*>
               raw_images_;
 
-            SK_D3D12_Screenshot::framebuffer_s* fb_orig =
+            SK_Screenshot::framebuffer_s* fb_orig =
               it->getFinishedData ();
 
             SK_ReleaseAssert (fb_orig != nullptr);
 
             if (fb_orig != nullptr)
             {
-              SK_D3D12_Screenshot::framebuffer_s* fb_copy =
-                new SK_D3D12_Screenshot::framebuffer_s ();
+              SK_Screenshot::framebuffer_s* fb_copy =
+                new SK_Screenshot::framebuffer_s ();
 
-              fb_copy->Height              = fb_orig->Height; //-V522
-              fb_copy->Width               = fb_orig->Width;
-              fb_copy->NativeFormat        = fb_orig->NativeFormat;
-              fb_copy->AlphaMode           = fb_orig->AlphaMode;
-              fb_copy->PBufferSize         = fb_orig->PBufferSize;
-              fb_copy->PackedDstPitch      = fb_orig->PackedDstPitch;
-              fb_copy->PackedDstSlicePitch = fb_orig->PackedDstSlicePitch;
+              fb_copy->Height               = fb_orig->Height;
+              fb_copy->Width                = fb_orig->Width;
+              fb_copy->dxgi.NativeFormat    = fb_orig->dxgi.NativeFormat;
+              fb_copy->dxgi.AlphaMode       = fb_orig->dxgi.AlphaMode;
+              fb_copy->PBufferSize          = fb_orig->PBufferSize;
+              fb_copy->PackedDstPitch       = fb_orig->PackedDstPitch;
+              fb_copy->PackedDstSlicePitch  = fb_orig->PackedDstSlicePitch;
+              fb_copy->AllowCopyToClipboard = fb_orig->AllowCopyToClipboard;
+              fb_copy->AllowSaveToDisk      = fb_orig->AllowSaveToDisk;
 
               fb_copy->PixelBuffer =
                 std::move (fb_orig->PixelBuffer);
@@ -2088,16 +2084,16 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
-              concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*
+              concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*
                 images_to_write =
-                  (concurrency::concurrent_queue <SK_D3D12_Screenshot::framebuffer_s *>*)pUser;
+                  (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)pUser;
 
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
 
               while (! ReadAcquire (&__SK_DLL_Ending))
               {
-                SK_D3D12_Screenshot::framebuffer_s *pFrameData =
+                SK_Screenshot::framebuffer_s *pFrameData =
                   nullptr;
 
                 SK_WaitForSingleObject  (
@@ -2153,7 +2149,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     for (UINT i = 0; i < pFrameData->Height; ++i)
                     {
                       // Eliminate pre-multiplied alpha problems (the stupid way)
-                      switch (pFrameData->NativeFormat)
+                      switch (pFrameData->dxgi.NativeFormat)
                       {
                         case DXGI_FORMAT_B8G8R8A8_UNORM:
                         case DXGI_FORMAT_R8G8B8A8_UNORM:
@@ -2192,19 +2188,19 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       pDst += pFrameData->PackedDstPitch;
                     }
 
-                    ComputePitch ( pFrameData->NativeFormat,
+                    ComputePitch ( pFrameData->dxgi.NativeFormat,
              static_cast <size_t> (pFrameData->Width),
              static_cast <size_t> (pFrameData->Height),
                                        raw_img.rowPitch,
                                        raw_img.slicePitch
                     );
 
-                    raw_img.format = pFrameData->NativeFormat;
+                    raw_img.format = pFrameData->dxgi.NativeFormat;
                     raw_img.width  = static_cast <size_t> (pFrameData->Width);
                     raw_img.height = static_cast <size_t> (pFrameData->Height);
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-                    if (config.screenshots.copy_to_clipboard && (! hdr))
+                    if (pFrameData->AllowCopyToClipboard && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)) && (! hdr))
                     {
                       ScratchImage
                         clipboard;
@@ -2220,7 +2216,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       }
                     }
 
-                    if (config.screenshots.png_compress)
+                    if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress)
                     {
                       SK_CreateDirectories (wszAbsolutePathToLossless);
 
@@ -2328,11 +2324,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                       GetWICCodec (hdr ? WIC_CODEC_WMP :
                                                          WIC_CODEC_PNG),
                                            wszAbsolutePathToLossless,
-                                             hdr ?
-                                               &GUID_WICPixelFormat64bppRGBAHalf :
-                                             pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
-                                                                            &GUID_WICPixelFormat48bppRGB :
-                                                                            &GUID_WICPixelFormat24bppBGR)
+                                             hdr ? &GUID_WICPixelFormat64bppRGBAHalf :
+                                                     pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                                       &GUID_WICPixelFormat48bppRGB :
+                                                                                       &GUID_WICPixelFormat24bppBGR)
                                                                    : E_POINTER;
 
                       if (SUCCEEDED (hrSaveToWIC))

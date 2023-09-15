@@ -38,15 +38,21 @@ interface ID3D11Device;
 interface ID3D11DeviceContext;
 interface ID3D11Query;
 
-class SK_D3D11_Screenshot
+class SK_D3D11_Screenshot : public SK_Screenshot
 {
 public:
-  explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
-  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound);
+  explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
+  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound, bool clipboard_only = false);
 
           ~SK_D3D11_Screenshot (void) {
             dispose ();
           }
+
+           void dispose (void) noexcept final;
+           bool getData ( UINT* const pWidth,
+                          UINT* const pHeight,
+                          uint8_t   **ppData,
+                          bool        Wait ) final;
 
   __inline bool isValid (void) noexcept { return pImmediateCtx     != nullptr &&
                                                  pPixelBufferFence != nullptr; }
@@ -71,65 +77,12 @@ public:
   SK_D3D11_Screenshot                    (const SK_D3D11_Screenshot&          ) = delete;
   SK_D3D11_Screenshot&          operator=(const SK_D3D11_Screenshot&          ) = delete;
 
-  void dispose (void);
-  bool getData ( UINT* const pWidth,
-                 UINT* const pHeight,
-                 uint8_t   **ppData,
-                 bool        Wait = false );
-
   __inline
   DXGI_FORMAT
   getInternalFormat (void) noexcept
   {
     return
-      framebuffer.NativeFormat;
-  }
-
-  struct framebuffer_s
-  {
-    // One-time alloc, prevents allocating and freeing memory on the thread
-    //   that memory-maps the GPU for perfect wait-free capture.
-    struct PinnedBuffer {
-      std::atomic_size_t           size    = 0L;
-      std::unique_ptr <uint8_t []> bytes   = nullptr;
-    } static root_;
-
-    ~framebuffer_s (void) noexcept
-    {
-      if (PixelBuffer.get () == root_.bytes.get ())
-        PixelBuffer.release (); // Does not free
-
-      PixelBuffer.reset ();
-    }
-
-    UINT               Width               = 0,
-                       Height              = 0;
-    DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
-    DXGI_ALPHA_MODE    AlphaMode           = DXGI_ALPHA_MODE_IGNORE;
-
-    size_t             PBufferSize         = 0L;
-    size_t             PackedDstPitch      = 0L,
-                       PackedDstSlicePitch = 0L;
-
-    std::unique_ptr
-      <uint8_t []>     PixelBuffer         = nullptr;
-  };
-
-  __inline
-  framebuffer_s*
-  getFinishedData (void) noexcept
-  {
-    return
-      ( framebuffer.PixelBuffer.get () != nullptr ) ?
-       &framebuffer :                     nullptr;
-  }
-
-  __inline
-    ULONG64
-  getStartFrame (void) const noexcept
-  {
-    return
-      ulCommandIssuedOnFrame;
+      framebuffer.dxgi.NativeFormat;
   }
 
 protected:
@@ -141,10 +94,6 @@ protected:
   SK_ComPtr <ID3D11Texture2D>     pStagingBackbufferCopy = nullptr;
 
   SK_ComPtr <ID3D11Query>         pPixelBufferFence      = nullptr;
-  ULONG64                         ulCommandIssuedOnFrame = 0;
-
-  bool                            bPlaySound             =    true;
-  framebuffer_s                   framebuffer            = {     };
 };
 
 void SK_D3D11_WaitOnAllScreenshots   (void);

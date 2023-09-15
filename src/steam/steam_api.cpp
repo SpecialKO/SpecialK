@@ -3628,18 +3628,21 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when, bool allow_sound)
     return true;
   }
 
-  ISteamScreenshots* pScreenshots =
-    steam_ctx.Screenshots ();
-
-  if (pScreenshots)
-  {   pScreenshots->TriggerScreenshot ();
-      steam_log->LogEx (false, L"EndOfFrame (Steam Overlay)\n");
-  }
-
-  if ( when != SK_ScreenshotStage::EndOfFrame )
+  if (when != SK_ScreenshotStage::ClipboardOnly)
   {
-    steam_log->Log (L" >> WARNING: Smart Capture disabled or unsupported"
-                    L"; screenshot taken at end-of-frame.");
+    ISteamScreenshots* pScreenshots =
+      steam_ctx.Screenshots ();
+
+    if (pScreenshots)
+    {   pScreenshots->TriggerScreenshot ();
+        steam_log->LogEx (false, L"EndOfFrame (Steam Overlay)\n");
+    }
+
+    if ( when != SK_ScreenshotStage::EndOfFrame )
+    {
+      steam_log->Log (L" >> WARNING: Smart Capture disabled or unsupported"
+                      L"; screenshot taken at end-of-frame.");
+    }
   }
 
   return true;

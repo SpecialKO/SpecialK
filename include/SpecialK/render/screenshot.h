@@ -29,8 +29,9 @@ enum class SK_ScreenshotStage
 
   PrePresent    = 2,    // Before third-party overlays draw, but after SK is done
   EndOfFrame    = 3,    // Generally captures all add-on overlays (including the Steam overlay)
+  ClipboardOnly = 4,    // EndOfFrame (Behavior: Not Saved to Disk, Always Copied to Clipboard)
 
-  _FlushQueue   = 4     // Causes any screenshots in progress to complete before the next frame,
+  _FlushQueue   = 5     // Causes any screenshots in progress to complete before the next frame,
                         //   typically needed when Alt+Tabbing or resizing the swapchain.
 };
 
@@ -39,7 +40,7 @@ struct SK_ScreenshotQueue
   union
   {
     // Queue Array
-    volatile LONG stages [4];
+    volatile LONG stages [5];
 
     struct
     {
@@ -48,6 +49,7 @@ struct SK_ScreenshotQueue
       volatile LONG without_sk_osd;
       volatile LONG with_sk_osd;
       volatile LONG with_everything;
+      volatile LONG only_clipboard;
     };
   };
 
@@ -127,3 +129,96 @@ protected:
 
 private:
 };
+
+class SK_Screenshot
+{
+public:
+  SK_Screenshot (bool clipboard_only);
+
+  virtual void dispose (void) noexcept              = 0;
+  virtual bool getData ( UINT* const pWidth,
+                         UINT* const pHeight,
+                         uint8_t   **ppData,
+                         bool        Wait = false ) = 0;
+
+  struct framebuffer_s
+  {
+    // One-time alloc, prevents allocating and freeing memory on the thread
+    //   that memory-maps the GPU for perfect wait-free capture.
+    struct PinnedBuffer {
+      std::atomic_size_t           size  = 0L;
+      std::unique_ptr <uint8_t []> bytes = nullptr;
+    } static root_;
+
+    ~framebuffer_s (void) noexcept
+    {
+      if (PixelBuffer.get () == root_.bytes.get ())
+        PixelBuffer.release (); // Does not free
+
+      PixelBuffer.reset ();
+    }
+
+    UINT            Width                = 0UL,
+                    Height               = 0UL;
+    size_t          PBufferSize          = 0L;
+    size_t          PackedDstPitch       = 0L,
+                    PackedDstSlicePitch  = 0L;
+
+    std::unique_ptr
+      <uint8_t []>  PixelBuffer          = nullptr;
+
+    union {
+      struct { D3DFORMAT       NativeFormat; } d3d9;
+      struct { DXGI_FORMAT     NativeFormat;
+               DXGI_ALPHA_MODE AlphaMode;    } dxgi, opengl;
+    };
+
+    bool            AllowSaveToDisk      = false;
+    bool            AllowCopyToClipboard = false;
+  };
+
+  __inline
+  framebuffer_s*
+  getFinishedData (void) noexcept
+  {
+    framebuffer.AllowCopyToClipboard = wantClipboardCopy ();
+    framebuffer.AllowSaveToDisk      = wantDiskCopy      ();
+
+    return
+      ( framebuffer.PixelBuffer.get () != nullptr ) ?
+       &framebuffer :                     nullptr;
+  }
+
+  __inline
+    ULONG64
+  getStartFrame (void) const noexcept
+  {
+    return
+      ulCommandIssuedOnFrame;
+  }
+
+  __inline bool
+  wantClipboardCopy (void) const noexcept
+  {
+    return bCopyToClipboard;
+  }
+
+  __inline bool
+  wantDiskCopy (void) const noexcept
+  {
+    return bSaveToDisk;
+  }
+
+protected:
+  framebuffer_s
+          framebuffer            = { };
+
+  ULONG64 ulCommandIssuedOnFrame = 0;
+
+  bool    bSaveToDisk;
+  bool    bPlaySound;
+  bool    bCopyToClipboard;
+};
+
+void SK_Steam_CatastropicScreenshotFail (void);
+void SK_Screenshot_PlaySound            (void);

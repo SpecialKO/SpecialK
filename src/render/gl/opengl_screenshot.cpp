@@ -23,56 +23,51 @@
 
 #include <SpecialK/render/gl/opengl_screenshot.h>
 
-
-extern void SK_Screenshot_PlaySound            (void);
-extern void SK_Steam_CatastropicScreenshotFail (void);
-
 SK_GL_Screenshot& SK_GL_Screenshot::operator= (SK_GL_Screenshot&& moveFrom)
 {
   if (this != &moveFrom)
   {
     dispose ();
 
-    hglrc                           = moveFrom.hglrc;
+    if (moveFrom.hglrc != nullptr)
+    {
+      hglrc                          = std::exchange (moveFrom.hglrc,               nullptr);
+      pixel_buffer_object            = std::exchange (moveFrom.pixel_buffer_object,       0);
+      pixel_buffer_fence             = std::exchange (moveFrom.pixel_buffer_fence,  nullptr);
+    }
 
-    pixel_buffer_object             = moveFrom.pixel_buffer_object;
-    pixel_buffer_fence              = moveFrom.pixel_buffer_fence;
+    auto&& fromBuffer =
+      moveFrom.framebuffer;
+    
+    framebuffer.Width                = std::exchange (fromBuffer.Width,                    0);
+    framebuffer.Height               = std::exchange (fromBuffer.Height,                   0);
+    framebuffer.PackedDstPitch       = std::exchange (fromBuffer.PackedDstPitch,           0);
+    framebuffer.PackedDstSlicePitch  = std::exchange (fromBuffer.PackedDstSlicePitch,      0);
+    framebuffer.PBufferSize          = std::exchange (fromBuffer.PBufferSize,              0);
 
-    ulCommandIssuedOnFrame          = moveFrom.ulCommandIssuedOnFrame;
-    bPlaySound                      = moveFrom.bPlaySound;
-
-    framebuffer.Width               = moveFrom.framebuffer.Width;
-    framebuffer.Height              = moveFrom.framebuffer.Height;
-    framebuffer.NativeFormat        = moveFrom.framebuffer.NativeFormat;
-    framebuffer.PackedDstPitch      = moveFrom.framebuffer.PackedDstPitch;
-    framebuffer.PackedDstSlicePitch = moveFrom.framebuffer.PackedDstSlicePitch;
-    framebuffer.AlphaMode           = moveFrom.framebuffer.AlphaMode;
-    framebuffer.PBufferSize         = moveFrom.framebuffer.PBufferSize;
+    framebuffer.AllowCopyToClipboard = moveFrom.bCopyToClipboard;
+    framebuffer.AllowSaveToDisk      = moveFrom.bSaveToDisk;
+                                       std::exchange (fromBuffer.AllowCopyToClipboard, false);
+                                       std::exchange (fromBuffer.AllowSaveToDisk,      false);
 
     framebuffer.PixelBuffer.reset (
-      moveFrom.framebuffer.PixelBuffer.get () // XXX: Shouldn't this be release?
+     fromBuffer.PixelBuffer.get ()
     );
 
-    //framebuffer.PixelBuffer.reset   ( moveFrom.framebuffer.PixelBuffer.release () );
+    framebuffer.opengl.AlphaMode    = std::exchange (fromBuffer.opengl.AlphaMode,    DXGI_ALPHA_MODE_UNSPECIFIED);
+    framebuffer.opengl.NativeFormat = std::exchange (fromBuffer.opengl.NativeFormat, DXGI_FORMAT_UNKNOWN);
 
-    moveFrom.hglrc                           = nullptr;
-    moveFrom.pixel_buffer_object             = 0;
-    moveFrom.pixel_buffer_fence              = nullptr;
+    bPlaySound                      = moveFrom.bPlaySound;
+    bSaveToDisk                     = moveFrom.bSaveToDisk;
+    bCopyToClipboard                = moveFrom.bCopyToClipboard;
 
-    moveFrom.ulCommandIssuedOnFrame          = 0;
-
-    moveFrom.framebuffer.Width               = 0;
-    moveFrom.framebuffer.Height              = 0;
-    moveFrom.framebuffer.NativeFormat        = DXGI_FORMAT_UNKNOWN;
-    moveFrom.framebuffer.PackedDstPitch      = 0;
-    moveFrom.framebuffer.PackedDstSlicePitch = 0;
-    moveFrom.framebuffer.AlphaMode           = DXGI_ALPHA_MODE_UNSPECIFIED;
-    moveFrom.framebuffer.PBufferSize         = 0;
+    ulCommandIssuedOnFrame          = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
   }
+
   return *this;
 }
 
-SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound) : hglrc (hDevice)
+SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound, bool clipboard_only) : hglrc (hDevice), SK_Screenshot (clipboard_only)
 {
   bPlaySound = allow_sound;
 
@@ -111,12 +106,12 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound) : hgl
     static SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    framebuffer.Width        = static_cast <UINT> (io.DisplaySize.x);
-    framebuffer.Height       = static_cast <UINT> (io.DisplaySize.y);
-    framebuffer.NativeFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    framebuffer.Width               = static_cast <UINT> (io.DisplaySize.x);
+    framebuffer.Height              = static_cast <UINT> (io.DisplaySize.y);
+    framebuffer.opengl.NativeFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     DirectX::ComputePitch (
-      framebuffer.NativeFormat,
+      framebuffer.opengl.NativeFormat,
         framebuffer.Width, framebuffer.Height,
           framebuffer.PackedDstPitch, framebuffer.PackedDstSlicePitch
      );
@@ -193,11 +188,8 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound) : hgl
   dispose ();
 }
 
-SK_GL_Screenshot::framebuffer_s::PinnedBuffer
-SK_GL_Screenshot::framebuffer_s::root_;
-
 void
-SK_GL_Screenshot::dispose (void)
+SK_GL_Screenshot::dispose (void) noexcept
 {
   hglrc = nullptr;
 
@@ -432,7 +424,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  constexpr int __MaxStage = 3;
+  constexpr int __MaxStage = ARRAYSIZE (SK_ScreenshotQueue::stages) - 1;
   const     int      stage =
     sk::narrow_cast <int> (stage_);
 
@@ -479,9 +471,12 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           if ( SK_ScreenshotQueue::pooled.capture_bytes.load  () <
                SK_ScreenshotQueue::maximum.capture_bytes.load () )
           {
-            if (SK_GetCurrentRenderBackend ().screenshot_mgr->checkDiskSpace (20ULL * 1024ULL * 1024ULL))
+            bool clipboard_only =
+              ( stage == __MaxStage );
+
+            if (clipboard_only || SK_GetCurrentRenderBackend ().screenshot_mgr->checkDiskSpace (20ULL * 1024ULL * 1024ULL))
             {
-              bool allow_sound =
+              const bool allow_sound =
                 ReadAcquire (&enqueued_sounds.stages [stage]) > 0;
 
               if ( allow_sound )
@@ -489,7 +484,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
               screenshot_queue->push (
                 new SK_GL_Screenshot (
-                  hglrc, allow_sound
+                  hglrc, allow_sound, clipboard_only
                 )
               );
             }
@@ -565,10 +560,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
               continue;
             }
 
-            if (config.screenshots.png_compress)
-              to_write.emplace_back (pop_off);
-
-            SK_GL_Screenshot::framebuffer_s* pFrameData =
+            SK_Screenshot::framebuffer_s* pFrameData =
               pop_off->getFinishedData ();
 
             // Why's it on the wait-queue if it's not finished?!
@@ -576,13 +568,16 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
             if (pFrameData != nullptr)
             {
+              if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress)
+                to_write.emplace_back (pop_off);
+
               using namespace DirectX;
 
               bool  skip_me = false;
               Image raw_img = {   };
 
               ComputePitch (
-                pFrameData->NativeFormat,
+                pFrameData->opengl.NativeFormat,
                   pFrameData->Width, pFrameData->Height,
                     raw_img.rowPitch, raw_img.slicePitch
               );
@@ -646,7 +641,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                 meta.arraySize = 1;
                 meta.mipLevels = 1;
 
-                switch (pFrameData->AlphaMode)
+                switch (pFrameData->opengl.AlphaMode)
                 {
                   case DXGI_ALPHA_MODE_UNSPECIFIED:
                     meta.SetAlphaMode (TEX_ALPHA_MODE_UNKNOWN);
@@ -814,12 +809,13 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                                     un_scrgb );
                 }
 
-                if (un_scrgb.GetImages ())
+                if (un_scrgb.GetImages () && (config.screenshots.copy_to_clipboard || (pFrameData->AllowCopyToClipboard && (! pFrameData->AllowSaveToDisk))))
                 {
                   rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages ());
                 }
 
-                if (               un_scrgb.GetImages () &&
+                if (         pFrameData->AllowSaveToDisk &&
+                                   un_scrgb.GetImages () &&
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
                                      GetWICCodec         (codec),
@@ -880,7 +876,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                 }
               }
 
-              if (! config.screenshots.png_compress)
+              if (! (config.screenshots.png_compress && pFrameData->AllowSaveToDisk))
               {
                 delete pop_off;
                        pop_off = nullptr;
@@ -899,7 +895,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
           SetEvent   (signal.abort.finished); // Abort is complete
         }
 
-        if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
+        //if (config.screenshots.png_compress || config.screenshots.copy_to_clipboard)
         {
           int enqueued_lossless = 0;
 
@@ -928,16 +924,18 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
             if (fb_orig != nullptr)
             {
-              SK_GL_Screenshot::framebuffer_s* fb_copy =
-                new SK_GL_Screenshot::framebuffer_s ();
+              SK_Screenshot::framebuffer_s* fb_copy =
+                new SK_Screenshot::framebuffer_s ();
 
-              fb_copy->Height              = fb_orig->Height; //-V522
-              fb_copy->Width               = fb_orig->Width;
-              fb_copy->NativeFormat        = fb_orig->NativeFormat;
-              fb_copy->AlphaMode           = fb_orig->AlphaMode;
-              fb_copy->PBufferSize         = fb_orig->PBufferSize;
-              fb_copy->PackedDstPitch      = fb_orig->PackedDstPitch;
-              fb_copy->PackedDstSlicePitch = fb_orig->PackedDstSlicePitch;
+              fb_copy->Height               = fb_orig->Height; //-V522
+              fb_copy->Width                = fb_orig->Width;
+              fb_copy->opengl.NativeFormat  = fb_orig->opengl.NativeFormat;
+              fb_copy->opengl.AlphaMode     = fb_orig->opengl.AlphaMode;
+              fb_copy->PBufferSize          = fb_orig->PBufferSize;
+              fb_copy->PackedDstPitch       = fb_orig->PackedDstPitch;
+              fb_copy->PackedDstSlicePitch  = fb_orig->PackedDstSlicePitch;
+              fb_copy->AllowCopyToClipboard = fb_orig->AllowCopyToClipboard;
+              fb_copy->AllowSaveToDisk      = fb_orig->AllowSaveToDisk;
 
               fb_copy->PixelBuffer =
                 std::move (fb_orig->PixelBuffer);
@@ -954,9 +952,9 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
-              concurrency::concurrent_queue <SK_GL_Screenshot::framebuffer_s *>*
+              concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*
                 images_to_write =
-                  (concurrency::concurrent_queue <SK_GL_Screenshot::framebuffer_s *>*)pUser;
+                  (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)pUser;
 
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
@@ -1019,7 +1017,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                     for (UINT i = 0; i < pFrameData->Height; ++i)
                     {
                       // Eliminate pre-multiplied alpha problems (the stupid way)
-                      switch (pFrameData->NativeFormat)
+                      switch (pFrameData->opengl.NativeFormat)
                       {
                         case DXGI_FORMAT_B8G8R8A8_UNORM:
                         case DXGI_FORMAT_R8G8B8A8_UNORM:
@@ -1058,19 +1056,19 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                       pDst += pFrameData->PackedDstPitch;
                     }
 
-                    ComputePitch ( pFrameData->NativeFormat,
+                    ComputePitch ( pFrameData->opengl.NativeFormat,
                                      pFrameData->Width,
                                      pFrameData->Height,
                                        raw_img.rowPitch,
                                        raw_img.slicePitch
                     );
 
-                    raw_img.format = pFrameData->NativeFormat;
+                    raw_img.format = pFrameData->opengl.NativeFormat;
                     raw_img.width  = pFrameData->Width;
                     raw_img.height = pFrameData->Height;
                     raw_img.pixels = pFrameData->PixelBuffer.get ();
 
-                    if (config.screenshots.copy_to_clipboard)
+                    if (pFrameData->AllowCopyToClipboard && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)))
                     {
                       ScratchImage
                         clipboard;
@@ -1087,7 +1085,7 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                       }
                     }
 
-                    if (config.screenshots.png_compress)
+                    if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress)
                     {
                       SK_CreateDirectories (wszAbsolutePathToLossless);
 
@@ -1102,9 +1100,9 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                                              wszAbsolutePathToLossless,
                                                hdr ?
                                                  &GUID_WICPixelFormat64bppRGBAHalf :
-                                                 pFrameData->NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
-                                                                              &GUID_WICPixelFormat48bppRGB :
-                                                                              &GUID_WICPixelFormat24bppBGR)
+                                                 pFrameData->opengl.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                                     &GUID_WICPixelFormat48bppRGB :
+                                                                                     &GUID_WICPixelFormat24bppBGR)
                                                                      : E_POINTER;
 
                       if (SUCCEEDED (hrSaveToWIC))

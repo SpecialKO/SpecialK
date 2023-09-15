@@ -32,12 +32,13 @@
 
 #include <tuple>
 
-class SK_D3D9_Screenshot
+class SK_D3D9_Screenshot : public SK_Screenshot
 {
 public:
-  explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
+  explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
   explicit SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice,
-                                     bool                          allow_sound);
+                                     bool                          allow_sound,
+                                     bool                          clipboard_only = false);
           ~SK_D3D9_Screenshot (void) {
             dispose ();
           }
@@ -46,6 +47,12 @@ public:
 
   SK_D3D9_Screenshot                    (const SK_D3D9_Screenshot&          ) = delete;
   SK_D3D9_Screenshot&          operator=(const SK_D3D9_Screenshot&          ) = delete;
+
+           void dispose (void) noexcept final;
+           bool getData ( UINT* const pWidth,
+                          UINT* const pHeight,
+                          uint8_t   **ppData,
+                          bool        Wait ) final;
 
   __inline bool isValid (void) noexcept { return true; }
   __inline bool isReady (void) noexcept
@@ -59,72 +66,15 @@ public:
     return true;
   }
 
-  void dispose (void);
-
-
-  bool getData ( UINT     *pWidth,
-                 UINT     *pHeight,
-                 uint8_t **ppData,
-                 bool      Wait = false );
-
   __inline D3DFORMAT getInternalFormat (void) noexcept {
-    return framebuffer.NativeFormat;
-  }
-
-  struct framebuffer_s
-  {
-    // One-time alloc, prevents allocating and freeing memory on the thread
-    //   that memory-maps the GPU for perfect wait-free capture.
-    struct PinnedBuffer {
-      std::atomic_size_t           size    = 0L;
-      std::unique_ptr <uint8_t []> bytes   = nullptr;
-    } static root_;
-
-    ~framebuffer_s (void) noexcept
-    {
-      if (PixelBuffer.get () == root_.bytes.get ())
-        PixelBuffer.release (); // Does not free
-
-      PixelBuffer.reset ();
-    }
-
-    UINT               Width               = 0,
-                       Height              = 0;
-    D3DFORMAT          NativeFormat        = D3DFMT_UNKNOWN;
-
-    size_t             PBufferSize         = 0L;
-    size_t             PackedDstPitch      = 0L,
-                       PackedDstSlicePitch = 0L;
-
-    std::unique_ptr
-      <uint8_t []>     PixelBuffer         = nullptr;
-  };
-
-  __inline
-  framebuffer_s*
-  getFinishedData (void) noexcept
-  {
-    return
-      ( framebuffer.PixelBuffer.get () != nullptr ) ?
-       &framebuffer :                     nullptr;
-  }
-
-  __inline
-    ULONG64
-  getStartFrame (void) const noexcept
-  {
-    return
-      ulCommandIssuedOnFrame;
+    return framebuffer.d3d9.NativeFormat;
   }
 
 protected:
-  SK_ComPtr <IDirect3DDevice9>    pDev                   = nullptr;
-  SK_ComPtr <IDirect3DSwapChain9> pSwapChain             = nullptr;
-  SK_ComPtr <IDirect3DSurface9>   pBackbufferSurface     = nullptr;
-  SK_ComPtr <IDirect3DSurface9>   pSurfScreenshot        = nullptr;
-  ULONG64                         ulCommandIssuedOnFrame = 0;
-  bool                            bPlaySound             =    true;
-  framebuffer_s                   framebuffer            = {     };
+  SK_ComPtr <IDirect3DDevice9>    pDev               = nullptr;
+  SK_ComPtr <IDirect3DSwapChain9> pSwapChain         = nullptr;
+  SK_ComPtr <IDirect3DSurface9>   pBackbufferSurface = nullptr;
+  SK_ComPtr <IDirect3DSurface9>   pSurfScreenshot    = nullptr;
 };
 
 bool SK_D3D9_CaptureSteamScreenshot (SK_ScreenshotStage when  = SK_ScreenshotStage::EndOfFrame);

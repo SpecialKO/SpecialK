@@ -5555,7 +5555,9 @@ SK_ImGui_ControlPanel (void)
     static std::set <SK_ConfigSerializedKeybind *>
       keybinds = {
         &config.screenshots.sk_osd_free_keybind,
-        &config.screenshots.sk_osd_insertion_keybind
+        &config.screenshots.sk_osd_insertion_keybind,
+        &config.screenshots.no_3rd_party_keybind,
+        &config.screenshots.clipboard_only_keybind,
       };
 
     // Add a HUD Free Screenshot keybind option if HUD shaders are present

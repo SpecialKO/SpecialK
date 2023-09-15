@@ -440,7 +440,7 @@ struct sk_config_t
     };
 
     SK_ConfigSerializedKeybind
-           sk_osd_free_keybind = {
+         sk_osd_free_keybind = {
       SK_Keybind {
         "Take Screenshot without Special K's OSD", L"F9",
          false, false, false, VK_F9
@@ -448,7 +448,7 @@ struct sk_config_t
     };
 
     SK_ConfigSerializedKeybind
-      sk_no_3rd_party_keybind = {
+         no_3rd_party_keybind = {
       SK_Keybind {
         "Take Screenshot without Third-Party Overlays", L"",
          false, false, false, 0
@@ -456,11 +456,19 @@ struct sk_config_t
     };
 
     SK_ConfigSerializedKeybind
-      sk_osd_insertion_keybind = {
+         sk_osd_insertion_keybind = {
       SK_Keybind {
         "Take Screenshot and insert Special K's OSD", L"F8",
          false, false, false, VK_F8
       }, L"InsertOSD"
+    };
+
+    SK_ConfigSerializedKeybind
+         clipboard_only_keybind = {
+      SK_Keybind {
+        "Copy a Normal Screenshot to Clipboard Only", L"",
+         false, false, false, VK_PRINT
+      }, L"ClipboardOnly"
     };
   } screenshots;
 

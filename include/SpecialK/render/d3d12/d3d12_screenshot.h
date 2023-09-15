@@ -34,11 +34,9 @@
 #include <SpecialK/render/backend.h>
 #include <SpecialK/render/screenshot.h>
 
-class SK_D3D12_Screenshot
+class SK_D3D12_Screenshot : public SK_Screenshot
 {
 public:
-  struct framebuffer_s;
-
   struct readback_ctx_s {
     SK_ComPtr <ID3D12CommandQueue>        pCmdQueue              = nullptr;
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList               = nullptr;
@@ -53,15 +51,22 @@ public:
     framebuffer_s*                        pBackingStore          = nullptr;
   };
 
-  explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) { *this = std::move (moveFrom); }
+  explicit SK_D3D12_Screenshot (           SK_D3D12_Screenshot&& moveFrom) : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
   explicit SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&       pDevice,
                                  const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
                                  const SK_ComPtr <IDXGISwapChain3>&    pSwapChain,
-                                       bool                            allow_sound );
+                                       bool                            allow_sound,
+                                       bool                            clipboard_only = false );
 
           ~SK_D3D12_Screenshot (void) {
             dispose ();
           }
+
+           void dispose (void) noexcept final;
+           bool getData ( UINT* const pWidth,
+                          UINT* const pHeight,
+                          uint8_t   **ppData,
+                          bool        Wait ) final;
 
   __inline bool isValid (void) noexcept { return readback_ctx.pFence.p != nullptr; }
   __inline bool isReady (void) noexcept
@@ -83,65 +88,12 @@ public:
   SK_D3D12_Screenshot                    (const SK_D3D12_Screenshot&          ) = delete;
   SK_D3D12_Screenshot&          operator=(const SK_D3D12_Screenshot&          ) = delete;
 
-  void dispose (void);
-  bool getData ( UINT* const pWidth,
-                 UINT* const pHeight,
-                 uint8_t   **ppData,
-                 bool        Wait = false );
-
   __inline
   DXGI_FORMAT
   getInternalFormat (void) noexcept
   {
     return
-      framebuffer.NativeFormat;
-  }
-
-  struct framebuffer_s
-  {
-    // One-time alloc, prevents allocating and freeing memory on the thread
-    //   that memory-maps the GPU for perfect wait-free capture.
-    struct PinnedBuffer {
-      std::atomic_size_t           size    = 0L;
-      std::unique_ptr <uint8_t []> bytes   = nullptr;
-    } static root_;
-
-    ~framebuffer_s (void) noexcept
-    {
-      if (PixelBuffer.get () == root_.bytes.get ())
-          PixelBuffer.release ();
-
-      PixelBuffer.reset ();
-    }
-
-    UINT64             Width               = 0ULL,
-                       Height              = 0ULL;
-    DXGI_FORMAT        NativeFormat        = DXGI_FORMAT_UNKNOWN;
-    DXGI_ALPHA_MODE    AlphaMode           = DXGI_ALPHA_MODE_IGNORE;
-
-    size_t             PBufferSize         = 0UL;
-    size_t             PackedDstPitch      = 0UL,
-                       PackedDstSlicePitch = 0UL;
-
-    std::unique_ptr
-      <uint8_t []>     PixelBuffer         = nullptr;
-  };
-
-  __inline
-  framebuffer_s*
-  getFinishedData (void) noexcept
-  {
-    return
-      ( framebuffer.PixelBuffer.get () != nullptr ) ?
-       &framebuffer :                     nullptr;
-  }
-
-  __inline
-    ULONG64
-  getStartFrame (void) const noexcept
-  {
-    return
-      ulCommandIssuedOnFrame;
+      framebuffer.dxgi.NativeFormat;
   }
 
   readback_ctx_s*
@@ -151,11 +103,7 @@ public:
   }
 
 protected:
-  ULONG64                                 ulCommandIssuedOnFrame = 0;
-
-  bool                                    bPlaySound             =    true;
-  readback_ctx_s                          readback_ctx           = {     };
-  framebuffer_s                           framebuffer            = {     };
+  readback_ctx_s readback_ctx = { };
 
   using readback_ptr = std::shared_ptr <readback_ctx_s>&;
 };

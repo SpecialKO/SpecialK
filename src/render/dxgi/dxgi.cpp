@@ -1809,9 +1809,10 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     }
 
     // Queue-up Post-SK OSD Screenshots
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,  rb);
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
-    SK_D3D11_TexCacheCheckpoint (                                   );
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,    rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue,   rb);
+    SK_D3D11_TexCacheCheckpoint (                                     );
 
     extern bool
         __SK_BFI;

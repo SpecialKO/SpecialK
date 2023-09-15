@@ -1,4 +1,9 @@
-﻿23.9.15
+﻿23.9.15.1
+=========
+ + Added keybinds for capturing screenshots without third-party overlays and
+     without saving anything to disk (clipboard-only).
+
+23.9.15
 =======
  + Added ReShade Mode to Compatibility Settings
 
@@ -15,8 +20,8 @@
 
        Turn the option ON if to use HDR analysis shaders on SK's HDR output.
 
-     >> If it is working as expected, toggling On/Off should cause ReShade's own
-          UI to switch between drawing above or below SK's UI.
+     - If it is working as intended, toggling "Show OSD..." On/Off should cause
+         ReShade's own UI to switch between drawing above or below SK's UI.
 
 23.9.14.1
 =========

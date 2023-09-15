@@ -9592,7 +9592,11 @@ SK_D3D9_EndFrame (void)
     }
   }
 
-  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb);
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeOSD,     rb);
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,    rb);
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);
+  SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue,   rb);
 
   if (tex_mgr.init)
       tex_mgr.resetUsedTextures ();
