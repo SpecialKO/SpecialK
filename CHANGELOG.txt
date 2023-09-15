@@ -1,13 +1,28 @@
-﻿23.9.13.4
+﻿23.9.14
+=======
+ + Combined Reflex (DLSS-G Pacing Mode) with the SK's last framerate
+     limiter mode selected, to provide slightly better frametime consistency
+       on -REAL- frames when using DLSS-G Frame Generaiton.
+
+    >> Latency should be unaffected, making this the only known third-party
+         limiter that works correctly in DLSS-G games.
+   
+ + Re-worded Streamline warning when enabling scRGB HDR to mention DLSS3
+     and HDR10 and remove the mention of a custom Streamline Interposer
+ + Changed INI parser error message (UTF-8 to UTF-16 conversion) to removed
+     user identifiable paths from logs
+ + Removed AutoDeleteDLSSG and AllowDLSSG options from INI
+
+23.9.13.4
 =========
- + Special K is compatible with all known Streamline games now, no interposer
+ + Special K is compatible with all Streamline games tested, no interposer
      replacement required.
 
     * A handful of games support scRGB HDR through SK with DLSS-G, however,
         the game's render pipeline up until final outpuit is 10-bpc, so this
           doesn't really bring any benefits.
 
-      >> Use HDR10 for Frame Generation games
+      >> Use HDR10 for Frame Generation games, less of a headache :)
 
 23.9.13.3
 =========
