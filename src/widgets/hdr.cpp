@@ -1242,13 +1242,13 @@ public:
                                    ICON_FA_EXCLAMATION_TRIANGLE " WARNING: " );
         ImGui::SameLine        ( );
         ImGui::TextColored     ( ImColor::HSV (.15f, .8f, .9f), "%s",
-                                   "This game uses NVIDIA Streamline, and HDR may not work!" );
+                                   "This game uses NVIDIA Streamline, and scRGB HDR may not work!" );
         ImGui::Separator       ( );
         ImGui::BulletText      ( "If HDR causes the game to freeze or crash, "
-                                 "you may need to replace or delete sl.interposer.dll" );
-        ImGui::BulletText      ( "DLSS 3 Frame Generation is NOT compatible with scRGB HDR" );
-        ImGui::Separator       ( );
-        ImGui::TextUnformatted ( "See the Streamline section of Special K's Wiki for more details." );
+                                 "you may need to select HDR10" );
+        ImGui::BulletText      ( "DLSS 3 Frame Generation is generally NOT compatible with scRGB HDR" );
+        //ImGui::Separator       ( );
+        //ImGui::TextUnformatted ( "See the Streamline section of Special K's Wiki for more details." );
       }
       ImGui::EndTooltip        ( );
     }

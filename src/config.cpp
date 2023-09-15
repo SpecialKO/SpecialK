@@ -626,8 +626,6 @@ struct {
   {
     sk::ParameterBool*    snuffed_ansel           = nullptr;
     sk::ParameterBool*    bypass_ansel            = nullptr;
-    sk::ParameterBool*    allow_dlss_g            = nullptr;
-    sk::ParameterBool*    auto_delete_dlss_g      = nullptr;
     sk::ParameterBool*    streamline_compat       = nullptr;
   } bugs;
 
@@ -1660,8 +1658,6 @@ auto DeclKeybind =
     ConfigEntry (nvidia.bugs.snuffed_ansel,              L"By default, Special K disables Ansel at first launch, but"
                                                          L" users have an option under 'Help|..' to turn it back on.", dll_ini,         L"NVIDIA.Bugs",           L"AnselSleepsWithFishes"),
     ConfigEntry (nvidia.bugs.bypass_ansel,               L"Forcefully block nvcamera{64}.dll",                         dll_ini,         L"NVIDIA.Bugs",           L"DisableAnselShimLoader"),
-    ConfigEntry (nvidia.bugs.allow_dlss_g,               L"Allow NV DLSS3 Frame Generation? (50+% chance of crash!)",  dll_ini,         L"NVIDIA.Bugs",           L"AllowDLSSG"),
-    ConfigEntry (nvidia.bugs.auto_delete_dlss_g,         L"Automatically delete DLSS3 Frame Generation DLL",           dll_ini,         L"NVIDIA.Bugs",           L"AutoDeleteDLSSG"),
     ConfigEntry (nvidia.bugs.streamline_compat,          L"Alternate DXGI/D3D11/D3D12 Hook Implementation for NV BUG", dll_ini,         L"NVIDIA.Bugs",           L"StreamlineCompatibilityMode"),
     ConfigEntry (nvidia.sli.compatibility,               L"SLI Compatibility Bits",                                    dll_ini,         L"NVIDIA.SLI",            L"CompatibilityBits"),
     ConfigEntry (nvidia.sli.num_gpus,                    L"SLI GPU Count",                                             dll_ini,         L"NVIDIA.SLI",            L"NumberOfGPUs"),
@@ -3157,7 +3153,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Starfield:
-        config.nvidia.bugs.allow_dlss_g      = true;
         config.nvidia.bugs.streamline_compat = true;
         break;
     }
@@ -3295,9 +3290,6 @@ auto DeclKeybind =
   nvidia.api.vulkan_bridge->load  (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->load (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->load  (config.nvidia.bugs.bypass_ansel);
-  nvidia.bugs.allow_dlss_g->load  (config.nvidia.bugs.allow_dlss_g);
-  nvidia.bugs.auto_delete_dlss_g
-                          ->load  (config.nvidia.bugs.auto_delete_dlss_g);
   nvidia.bugs.streamline_compat
                            ->load (config.nvidia.bugs.streamline_compat);
 
@@ -4904,8 +4896,6 @@ SK_SaveConfig ( std::wstring name,
   nvidia.api.vulkan_bridge->store             (config.apis.NvAPI.vulkan_bridge);
   nvidia.bugs.snuffed_ansel->store            (config.nvidia.bugs.snuffed_ansel);
   nvidia.bugs.bypass_ansel->store             (config.nvidia.bugs.bypass_ansel);
-  nvidia.bugs.allow_dlss_g->store             (config.nvidia.bugs.allow_dlss_g);
-  nvidia.bugs.auto_delete_dlss_g->store       (config.nvidia.bugs.auto_delete_dlss_g);
   nvidia.bugs.streamline_compat->store        (config.nvidia.bugs.streamline_compat);
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);

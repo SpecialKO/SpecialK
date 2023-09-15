@@ -116,7 +116,7 @@ SK_Hook_RemoveTarget (       sk_hook_cache_record_s &cache,
                        const wchar_t                *wszSectionName,
                              iSK_INI                *ini = SK_GetDLLConfig () );
 
-static __forceinline
+static
 void
 SK_Hook_TargetFromVFTable ( sk_hook_cache_record_s  &cache,
                             void                   **base,

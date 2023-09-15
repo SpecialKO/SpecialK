@@ -601,7 +601,6 @@ SK_D3D11_ActivateSRVOnSlot (
   return true;
 }
 #else
-__forceinline
 //__declspec (noinline)
 bool
 SK_D3D11_ActivateSRVOnSlot ( shader_stage_s&            stage,

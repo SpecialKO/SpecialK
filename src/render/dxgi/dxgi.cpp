@@ -8740,27 +8740,27 @@ HookDXGI (LPVOID user)
     bool    bHasStreamline = SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
     HRESULT hr             = E_NOTIMPL;
 
+    SK_ComPtr <IDXGIAdapter>
+               pAdapter0;
+
+    const auto factory_flags =
+      config.render.dxgi.debug_layer ?
+           DXGI_CREATE_FACTORY_DEBUG : 0x0;
+
+    SK_ComPtr <IDXGIFactory>                 pFactory;
+    CreateDXGIFactory2_Import ( factory_flags,
+          __uuidof (IDXGIFactory), (void **)&pFactory.p);
+    SK_ComQIPtr    <IDXGIFactory7>           pFactory7
+                                            (pFactory);
+    if (pFactory7 != nullptr)
+        pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
+    else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
+
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
     if (config.nvidia.bugs.streamline_compat)
     {
-      SK_ComPtr <IDXGIAdapter>
-                     pAdapter0;
-
-      const auto factory_flags =
-        config.render.dxgi.debug_layer ?
-             DXGI_CREATE_FACTORY_DEBUG : 0x0;
-
-      SK_ComPtr <IDXGIFactory>                 pFactory;
-      CreateDXGIFactory2_Import ( factory_flags,
-            __uuidof (IDXGIFactory), (void **)&pFactory.p);
-      SK_slUpgradeInterface (        (void **)&pFactory.p);
-      SK_ComQIPtr    <IDXGIFactory7>           pFactory7
-                                              (pFactory);
-
-      if (pFactory7 != nullptr)
-          pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
-      else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
+      SK_slUpgradeInterface ((void **)&pFactory.p);
 
       using D3D12CreateDevice_pfn =
         HRESULT (WINAPI *)( IUnknown         *pAdapter,
@@ -8774,13 +8774,13 @@ HookDXGI (LPVOID user)
       D3D11CoreCreateDevice_pfn D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)
         SK_GetProcAddress (SK_GetModuleHandle (L"d3d11.dll"), "D3D11CoreCreateDevice");
 
+      SK_D3D11_Init ();
+
       //// Favor this codepath because it bypasses many things like ReShade, but
       ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
       if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
                                                    SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
       {
-        SK_D3D11_Init ();
-      
         hr =
           D3D11CoreCreateDevice (
             nullptr, pAdapter0,
@@ -8797,14 +8797,14 @@ HookDXGI (LPVOID user)
       else
       {
         hr =
-          D3D11CreateDeviceAndSwapChain_Import (
+          D3D11CreateDevice_Import (
             pAdapter0, D3D_DRIVER_TYPE_UNKNOWN,
               nullptr,
                   config.render.dxgi.debug_layer ?
                        D3D11_CREATE_DEVICE_DEBUG : 0x0,
                                   levels,
                       _ARRAYSIZE (levels),
-                        D3D11_SDK_VERSION, nullptr, nullptr,
+                        D3D11_SDK_VERSION,
                           &pDevice.p,
                             &featureLevel,
                               nullptr );
@@ -8909,8 +8909,10 @@ HookDXGI (LPVOID user)
     //
     else
     {
+      SK_D3D11_Init ();
+
       hr =
-        D3D11CreateDeviceAndSwapChain_Import (
+        D3D11CreateDevice_Import (
           nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
               nullptr,
@@ -8918,11 +8920,15 @@ HookDXGI (LPVOID user)
                      D3D11_CREATE_DEVICE_DEBUG : 0x0,
                   levels,
                     _ARRAYSIZE (levels),
-                      D3D11_SDK_VERSION, &desc,
-                        &pSwapChain.p,
+                      D3D11_SDK_VERSION,
                           &pDevice.p,
                             &featureLevel,
                               &pImmediateContext.p );
+
+      if (SUCCEEDED (hr))
+      {
+        pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
+      }
 
       if (bHasStreamline)
       {
@@ -8938,15 +8944,7 @@ HookDXGI (LPVOID user)
       d3d11_hook_ctx.ppDevice           = &pDevice.p;
       d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
-      SK_ComPtr <IDXGIDevice>  pDevDXGI = nullptr;
-      SK_ComPtr <IDXGIAdapter> pAdapter = nullptr;
-      SK_ComPtr <IDXGIFactory> pFactory = nullptr;
-
-      if ( SUCCEEDED (hr)                                                &&
-                      pDevice != nullptr                                 &&
-           SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI)) &&
-           SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter)) &&
-           SUCCEEDED (pAdapter->GetParent     (IID_PPV_ARGS (&pFactory))) )
+      if (SUCCEEDED (hr))
       {
         HookD3D11             (&d3d11_hook_ctx);
         SK_DXGI_HookFactory   (pFactory);

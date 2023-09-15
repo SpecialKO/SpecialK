@@ -786,8 +786,6 @@ struct sk_config_t
       bool    kill_hdr            = false;
       bool    snuffed_ansel       = false;
       bool    bypass_ansel        =  true;
-      bool    allow_dlss_g        =  true;
-      bool    auto_delete_dlss_g  = false;
       bool    streamline_compat   = false;
     } bugs;
     struct reflex_s {

@@ -410,6 +410,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ErrorReporting>Send</ErrorReporting>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <IntelJCCErratum>false</IntelJCCErratum>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

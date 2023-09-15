@@ -126,7 +126,7 @@ struct SK_EpicAchievement
     int current;
     int max;
 
-    __forceinline float getPercent (void) noexcept
+    float getPercent (void) noexcept
     {
       return 100.0F * sk::narrow_cast <float> (current) /
                       sk::narrow_cast <float> (max);

@@ -4995,7 +4995,7 @@ SK_ImGui_ControlPanel (void)
                   config.nvidia.reflex.low_latency         = true;
                   config.nvidia.reflex.override            = true;
                   config.nvidia.reflex.enable              = true;
-                  config.render.framerate.present_interval =    0; // Since this is for FG, turn VSYNC off
+                  config.render.framerate.present_interval =    1;   // Turn VSYNC -on- and hope DLSS-G works
                   break;
               }
 

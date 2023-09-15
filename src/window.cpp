@@ -2239,7 +2239,6 @@ AdjustWindowRectEx_Detour (
 
 // Convenience function since there are so damn many
 //   variants of these functions that need to be hooked.
-__forceinline
 LONG
 WINAPI
 SetWindowLong_Marshall (
@@ -2410,7 +2409,6 @@ SetWindowLongW_Detour (
 
 // Convenience function since there are so damn many
 //   variants of these functions that need to be hooked.
-__forceinline
 LONG
 WINAPI
 GetWindowLong_Marshall (
@@ -2502,7 +2500,6 @@ GetWindowLongW_Detour (
 
 // Convenience function since there are so damn many
 //   variants of these functions that need to be hooked.
-__forceinline
 LONG_PTR
 WINAPI
 SetWindowLongPtr_Marshall (
@@ -2851,7 +2848,6 @@ SetWindowLongPtrW_Detour (
 
 // Convenience function since there are so damn many
 //   variants of these functions that need to be hooked.
-__forceinline
 LONG_PTR
 WINAPI
 GetWindowLongPtr_Marshall (

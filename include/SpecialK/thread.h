@@ -197,7 +197,6 @@ SK_WaitForSingleObject_Micro ( _In_ HANDLE         hHandle,
                                _In_ PLARGE_INTEGER liMicroseconds );
 
 
-__forceinline
 static void
 SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
                                                         LONG                 _SpinMax = 75L ) noexcept
@@ -214,7 +213,6 @@ SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFl
   }
 }
 
-__forceinline
 static void
 SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *pVar,
                                                           LONG                 count,
