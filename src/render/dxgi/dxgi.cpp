@@ -1839,8 +1839,9 @@ SK_D3D12_PostPresent (ID3D12Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
   if (SUCCEEDED (hr))
   {
     // Queue-up Post-SK OSD Screenshots
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,  rb);
-    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue, rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,    rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);
+    SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue,   rb);
   }
 }
 

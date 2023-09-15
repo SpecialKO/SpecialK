@@ -1,4 +1,8 @@
-﻿23.9.15.1
+﻿23.9.15.2
+=========
+ + Hooked up clipboard-only screenshot feature to D3D12 render backend
+
+23.9.15.1
 =========
  + Added keybinds for capturing screenshots without third-party overlays and
      without saving anything to disk (clipboard-only).
