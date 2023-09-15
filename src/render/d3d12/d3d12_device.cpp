@@ -349,14 +349,6 @@ _COM_Outptr_ void                              **ppPipelineState )
     }
   }
 
-//if (pDesc->NumRenderTargets == 1 &&
-//    pDesc->RTVFormats   [0] != DXGI_FORMAT_UNKNOWN )
-//{
-//  if ( DirectX::MakeTypeless (pDesc->RTVFormats [0]) == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
-//       DirectX::MakeTypeless (pDesc->RTVFormats [0]) == DXGI_FORMAT_R10G10B10A2_TYPELESS )
-//                              pDesc->RTVFormats [0]   = DXGI_FORMAT_UNKNOWN;
-//}
-
   HRESULT hrPipelineCreate =
     D3D12Device_CreateGraphicsPipelineState_Original (
       This, pDesc,
@@ -988,7 +980,8 @@ _In_opt_  const D3D12_SHADER_RESOURCE_VIEW_DESC *pDesc,
 _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 {
   // HDR Fix-Ups
-  if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
+  if ( pResource != nullptr && ( __SK_HDR_16BitSwap ||
+                                 __SK_HDR_10BitSwap ) &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
                                    D3D12_SRV_DIMENSION_TEXTURE2D ||
                                  pDesc->ViewDimension ==
@@ -1000,15 +993,22 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
     // Handle explicitly defined SRVs, they might expect the SwapChain to be RGBA8
     if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
+      auto expectedTyplessFormat =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_TYPELESS // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_TYPELESS; // HDR10
+      auto expectedTypedFormat   =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_FLOAT    // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_UNORM;    // HDR10
+
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
+          (desc.Format    == expectedTypedFormat   ||
+          (desc.Format    == expectedTyplessFormat &&
             desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
           auto fixed_desc = *pDesc;
-               fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+               fixed_desc.Format = expectedTypedFormat;
 
         return
           D3D12Device_CreateShaderResourceView_Original ( This,
@@ -1019,8 +1019,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 
       // Spider-Man needs the opposite of the fix above.
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
-          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+           desc.Format    != expectedTypedFormat                &&
+          pDesc->Format   == expectedTypedFormat )
       {
         if (! DirectX::IsTypeless (desc.Format))
         {
@@ -1077,7 +1077,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
   }
 
   // HDR Fix-Ups
-  if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
+  if ( pResource != nullptr && ( __SK_HDR_16BitSwap ||
+                                 __SK_HDR_10BitSwap ) &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
                                    D3D12_RTV_DIMENSION_TEXTURE2D ||
                                  pDesc->ViewDimension ==
@@ -1088,15 +1089,22 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 
     if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
+      auto expectedTyplessFormat =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_TYPELESS // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_TYPELESS; // HDR10
+      auto expectedTypedFormat   =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_FLOAT    // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_UNORM;    // HDR10
+
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
-            desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
+          (desc.Format    == expectedTypedFormat ||
+          (desc.Format    == expectedTyplessFormat &&
+           desc.Format    != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
         auto fixed_desc = *pDesc;
-             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+             fixed_desc.Format = expectedTypedFormat;
 
         return
           D3D12Device_CreateRenderTargetView_Original ( This,
@@ -1107,8 +1115,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE    DestDescriptor )
 
       // Spider-Man needs the opposite of the fix above.
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
-          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+           desc.Format    != expectedTypedFormat                &&
+          pDesc->Format   == expectedTypedFormat )
       {
         if (! DirectX::IsTypeless (desc.Format))
         {
@@ -1144,7 +1152,8 @@ _In_opt_  const D3D12_UNORDERED_ACCESS_VIEW_DESC *pDesc,
 _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 {
   // HDR Fix-Ups
-  if ( pResource != nullptr && __SK_HDR_16BitSwap   &&
+  if ( pResource != nullptr && ( __SK_HDR_16BitSwap ||
+                                 __SK_HDR_10BitSwap ) &&
        pDesc     != nullptr && ( pDesc->ViewDimension ==
                                    D3D12_UAV_DIMENSION_TEXTURE2D ||
                                  pDesc->ViewDimension ==
@@ -1155,15 +1164,22 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 
     if (pDesc->Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (desc.Format))
     {
+      auto expectedTyplessFormat =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_TYPELESS // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_TYPELESS; // HDR10
+      auto expectedTypedFormat   =
+        __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_FLOAT    // scRGB
+                           : DXGI_FORMAT_R10G10B10A2_UNORM;    // HDR10
+
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT ||
-          (desc.Format    == DXGI_FORMAT_R16G16B16A16_TYPELESS &&
-            desc.Format   != DirectX::MakeTypeless (pDesc->Format))) )
+          (desc.Format    == expectedTypedFormat ||
+          (desc.Format    == expectedTyplessFormat &&
+           desc.Format    != DirectX::MakeTypeless (pDesc->Format))) )
       {
         SK_LOG_FIRST_CALL
 
         auto fixed_desc = *pDesc;
-             fixed_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+             fixed_desc.Format = expectedTypedFormat;
 
         return
           D3D12Device_CreateUnorderedAccessView_Original ( This,
@@ -1174,8 +1190,8 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
 
       // Spider-Man needs the opposite of the fix above.
       if ( desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-           desc.Format    != DXGI_FORMAT_R16G16B16A16_FLOAT     &&
-          pDesc->Format   == DXGI_FORMAT_R16G16B16A16_FLOAT )
+           desc.Format    != expectedTypedFormat     &&
+          pDesc->Format   == expectedTypedFormat )
       {
         if (! DirectX::IsTypeless (desc.Format))
         {
@@ -2388,7 +2404,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   // Extra hooks are needed to handle SwapChain backbuffer copies between
   //   mismatched formats when using HDR override.
   //
-  //if (__SK_HDR_16BitSwap)
+  //if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
   {
     SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator;
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList;

@@ -3122,7 +3122,8 @@ sizeof (output_s));
         SK_RunOnce (SK_Display_EnableHDR (pOutput));
       }
 
-      if ((! isHDRCapable ()) && __SK_HDR_16BitSwap)
+      if ((! isHDRCapable ()) && ( __SK_HDR_16BitSwap ||
+                                   __SK_HDR_10BitSwap ))
       {
         SK_Display_EnableHDR (pOutput);
 

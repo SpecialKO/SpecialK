@@ -4968,7 +4968,8 @@ SK_DXGI_CreateSwapChain_PreInit (
     if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
     {
       // UAV binding of D3D12 SwapChains is not allowed
-      if (__SK_HDR_16BitSwap && (! bIsD3D12))
+      if (( __SK_HDR_16BitSwap ||
+            __SK_HDR_10BitSwap ) && (! bIsD3D12))
       {
         SK_LOGs0 ( L"  SK HDR  ",
                    L"  >> Adding Unordered Access View to SwapChain for"

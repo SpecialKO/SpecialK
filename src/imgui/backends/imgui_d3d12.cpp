@@ -1289,7 +1289,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   }
 #endif
 
-  if (__SK_HDR_16BitSwap)
+  if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
   {
     // Format override siliness in D3D12
     static volatile LONG lSizeSkips   = 0;
@@ -1305,6 +1305,10 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       DXGI_SWAP_CHAIN_DESC swapDesc = { };
       if (pSwap)
           pSwap->GetDesc (&swapDesc);
+
+      auto expectedTyplessSrc =
+           __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_TYPELESS
+                              : DXGI_FORMAT_R10G10B10A2_TYPELESS;
 
       //
       // SwapChain Copies:   Potentially fixable using shader-based copy
@@ -1339,7 +1343,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
                DirectX::BitsPerPixel (dst_desc.Format) )
           {
             // We're copying -to- the SwapChain, so we can use SK's Blitter to copy an incompatible format
-            if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT && typelessSrc != DXGI_FORMAT_R16G16B16A16_TYPELESS)
+            if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT && typelessSrc != expectedTyplessSrc)
             {
               extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
                           SK_D3D12_HDR_CopyBuffer (This, pSrc->pResource);
@@ -1368,8 +1372,8 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       // 
       //  (e.g. knows the format is different, but computes size using the original format)
       //
-      if ( typelessFootprintSrc == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
-           typelessFootprintDst == DXGI_FORMAT_R16G16B16A16_TYPELESS )
+      if ( typelessFootprintSrc == expectedTyplessSrc ||
+           typelessFootprintDst == expectedTyplessSrc )
       {
         const UINT src_row_pitch =      pSrc->PlacedFootprint.Footprint.Width *
           (sk::narrow_cast <UINT> (DirectX::BitsPerPixel (typelessFootprintSrc) / 8));

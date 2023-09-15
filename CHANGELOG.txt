@@ -1,4 +1,11 @@
-﻿23.9.14
+﻿23.9.14.1
+=========
+ + Revert framerate limiter change in 23.9.14, because it only works as intended
+     in some games Reflex implementations.
+ + Fixed various issues with forcing HDR10 on in D3D12 games that
+     aren't already 10-bpc (...wtf?)
+
+23.9.14
 =======
  + Combined Reflex (DLSS-G Pacing Mode) with the SK's last framerate
      limiter mode selected, to provide slightly better frametime consistency
