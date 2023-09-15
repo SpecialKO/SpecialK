@@ -1455,7 +1455,7 @@ SK::Framerate::Limiter::wait (void)
     SK_GetCurrentRenderBackend ();
 
 
-#if 0
+#if 1
   // SK's framerate limiter is more energy efficient, prefer it over NVIDIA Reflex
   //   while the game is in the background
   if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
