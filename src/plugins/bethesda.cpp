@@ -23,6 +23,10 @@
 #include <string>
 #include <json/json.hpp>
 
+bool __SK_HasDLSSGStatusSupport = false;
+bool __SK_IsDLSSGActive         = false;
+bool __SK_DoubleUpOnReflex      = false;
+
 extern iSK_INI *dll_ini;
 
 static iSK_INI* game_ini       = nullptr;
@@ -311,31 +315,10 @@ using  f2sSetDLSSGEnabled_pfn = bool (*)(const bool);
 static f2sSetDLSSGEnabled_pfn
        f2sSetDLSSGEnabled = nullptr;
 
+static DLSSGInfo dlssg_state;
+
 bool SK_SF_PlugInCfg (void)
 {
-  static DLSSGInfo dlssg_state;
-
-  SK_RunOnce (
-  {
-    HMODULE hMod =
-      SK_GetModuleHandleW (L"FSR2Streamline.asi");
-
-    if (hMod != 0)
-    {
-      f2sGetDLSSGInfo =
-     (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sGetDLSSGInfo" );
-
-      f2sLoadConfig =
-     (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-      "f2sLoadConfig" );
-
-      f2sSetDLSSGEnabled =
-     (f2sSetDLSSGEnabled_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sSetDLSSGEnabled" );
-    }
-  });
-
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
 
@@ -620,6 +603,11 @@ bool SK_SF_PlugInCfg (void)
           if (ImGui::Checkbox ("Use DLSS Frame Generation", &dlssg_state.dlssgEnabled))
           {
             f2sSetDLSSGEnabled (dlssg_state.dlssgEnabled);
+          }
+
+          if (dlssg_state.dlssgEnabled)
+          {
+            ImGui::Checkbox ("Enable SK + Reflex Limiter", &__SK_DoubleUpOnReflex);
           }
         }
 
@@ -973,6 +961,41 @@ HRESULT __stdcall CreateVolumeTextureFromFileInMemoryHookForD3D9(LPDIRECT3DDEVIC
 #endif
 
 void
+__stdcall
+SK_SF_EndOfFrame (void)
+{
+  SK_RunOnce (
+  {
+    HMODULE hMod =
+      SK_GetModuleHandleW (L"FSR2Streamline.asi");
+  
+    if (hMod != 0)
+    {
+      f2sGetDLSSGInfo =
+     (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sGetDLSSGInfo" );
+  
+      f2sLoadConfig =
+     (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+      "f2sLoadConfig" );
+  
+      f2sSetDLSSGEnabled =
+     (f2sSetDLSSGEnabled_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sSetDLSSGEnabled" );
+    }
+  });
+
+  if (f2sGetDLSSGInfo != nullptr)
+  {
+    if (f2sGetDLSSGInfo (&dlssg_state))
+    {
+      __SK_HasDLSSGStatusSupport = dlssg_state.dlssgSupported;
+      __SK_IsDLSSGActive         = dlssg_state.dlssgEnabled && dlssg_state.currentMode == DLSSGMode::eOn;
+    }
+  }
+}
+
+void
 SK_BGS_InitPlugin(void)
 {
   SK_GAME_ID gameID = SK_GetCurrentGameID ();
@@ -1091,7 +1114,8 @@ SK_BGS_InitPlugin(void)
     else
       SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
   
-    plugin_mgr->config_fns.emplace (SK_SF_PlugInCfg);
+    plugin_mgr->config_fns.emplace    (SK_SF_PlugInCfg);
+    plugin_mgr->end_frame_fns.emplace (SK_SF_EndOfFrame);
 
     SK_ResumeThreads (threads);
   }

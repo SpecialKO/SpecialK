@@ -782,5 +782,8 @@ SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
 
 extern volatile LONG64 lD3DKMTPresentCalls;
 
+  extern bool __SK_HasDLSSGStatusSupport;
+  extern bool __SK_IsDLSSGActive;
+
 
 #endif /* __SK__FRAMERATE_H__ */
