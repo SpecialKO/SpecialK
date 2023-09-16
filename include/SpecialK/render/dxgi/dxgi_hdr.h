@@ -141,9 +141,10 @@ extern float __SK_HDR_user_sdr_Y;
 
 enum {
   SK_HDR_TONEMAP_NONE              = 0,
-  SK_HDR_TONEMAP_FILMIC            = 1,
+  SK_HDR_TONEMAP_FILMIC            = 1, // N/A
   SK_HDR_TONEMAP_HDR10_PASSTHROUGH = 2,
-  SK_HDR_TONEMAP_HDR10_FILMIC      = 3,
+  SK_HDR_TONEMAP_HDR10_FILMIC      = 3, // N/A
+  SK_HDR_TONEMAP_RAW_IMAGE         = 255
 };
 
 

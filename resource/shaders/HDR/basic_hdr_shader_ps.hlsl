@@ -170,6 +170,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                  (! IsNan (ret.b)) * (! IsInf (ret.b)) * ret.b,
                  (! IsNan (ret.a)) * (! IsInf (ret.a)) * ret.a );
 #endif
+      return ret;
     } break;
 
 #ifdef UTIL_STRIP_NAN

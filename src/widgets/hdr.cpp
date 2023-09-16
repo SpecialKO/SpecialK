@@ -158,7 +158,7 @@ struct SK_HDR_Preset_s {
   float        gamut            = 0.01f;
 
   struct {
-    int tonemap = SK_HDR_TONEMAP_FILMIC;
+    int tonemap = SK_HDR_TONEMAP_NONE;
   } colorspace;
 
   float        pq_boost0       = SK_HDR_PQBoost_v1.PQBoost0;
@@ -1060,16 +1060,18 @@ public:
       SK_GetCurrentRenderBackend ();
 
 
-    static SKTL_BidirectionalHashMap <int, std::wstring>
+    static SKTL_BidirectionalHashMap <unsigned char, int>
       __SK_HDR_ColorSpaceMap =
       {
-        { 0, L"      Passthrough (SDR -> HDR or scRGB) " }, { 1, L"      ACES Filmic (SDR -> HDR)\t\t[Broken, Do Not Use]"       },
-        { 2, L"HDR10 Passthrough (Native HDR)"           }
+        {   0ui8, 0 }, //L"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) "
+        {   2ui8, 1 }, //L"HDR10 Passthrough\t(Native HDR)" },
+        { 255ui8, 2 }, //L"  Raw Framebuffer\t(Requires ReShade to Process)" }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      (const char *)u8"      Passthrough (SDR -> HDR or scRGB) \0      ACES Filmic (SDR -> HDR)\t\t[Broken, Do Not Use]\0"
-                    u8"HDR10 Passthrough (Native HDR)\0\0";
+      (const char *)u8"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) \0"
+                    u8"HDR10 Passthrough\t(Native HDR10)\0"
+                    u8"     Raw Framebuffer\t(Requires ReShade to Process)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)))
@@ -1081,7 +1083,6 @@ public:
     const auto& io =
       ImGui::GetIO ();
 
-    
     const ImVec2 v2Min (
       rb.isHDRActive () ? 1340.0f : 150.0f,
       rb.isHDRActive () ?  140.0f :  50.0f
@@ -1446,19 +1447,36 @@ public:
 
           ImGui::Separator ();
 
-          ImGui::BeginGroup ();
-          if (ImGui::Checkbox ("Enable FULL HDR Luminance###SK_HDR_ShowFullRange", &__SK_HDR_FullRange))
-          {
-            _SK_HDR_FullRange->store (__SK_HDR_FullRange);
-          }
+          bool bRawImageMode =
+            (__SK_HDR_tonemap == SK_HDR_TONEMAP_RAW_IMAGE),
+               bHDR10Passthrough = 
+            (__SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_PASSTHROUGH);
 
-          if (ImGui::IsItemHovered ())
+          auto& preset =
+            hdr_presets [__SK_HDR_Preset];
+
+          auto& pINI = dll_ini;
+
+          ImGui::BeginGroup ();
+          if (! bRawImageMode)
           {
-            ImGui::BeginTooltip    (  );
-            ImGui::TextUnformatted ((const char *)u8"Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
-            ImGui::Separator       (  );
-            ImGui::BulletText      ("Local contrast behavior may be more consistent with fewer crushed shadow details / highlights when this range is limited.");
-            ImGui::EndTooltip      (  );
+          if (! bHDR10Passthrough)
+          {
+            if (ImGui::Checkbox ("Enable FULL HDR Luminance###SK_HDR_ShowFullRange", &__SK_HDR_FullRange))
+            {
+              _SK_HDR_FullRange->store (__SK_HDR_FullRange);
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    (  );
+              ImGui::TextUnformatted ((const char *)u8"Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
+              ImGui::Separator       (  );
+              ImGui::BulletText      ("Local contrast behavior may be more consistent with fewer crushed shadow details / highlights when this range is limited.");
+              ImGui::EndTooltip      (  );
+            }
+
+            ImGui::SameLine ();
           }
 
           static float fSliderWidth = 0.0f;
@@ -1467,11 +1485,6 @@ public:
             ImGui::GetItemRectSize ().x;
 
           //float fCursorX = ImGui::GetCursorPosX ();
-
-          ImGui::SameLine ();
-
-          auto& preset =
-            hdr_presets [__SK_HDR_Preset];
 
           bool pboost = (preset.pq_boost0 > 0.0f);
 
@@ -1501,37 +1514,37 @@ public:
           fWidth1     =
             fWidth1 + ImGui::GetItemRectSize ().x;
 
-          bool bypass =
-            ( __SK_HDR_Bypass_sRGB == 1 );
-
-          ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
-                                  fSliderWidth - fWidth0 - fWidth1 - ImGui::GetStyle ().ItemSpacing.x
-                                                         : -1.0f );
-
-          if (ImGui::Checkbox ("Bypass sRGB Gamma", &bypass))
+          if (! bHDR10Passthrough)
           {
-            __SK_HDR_Bypass_sRGB =
-              ( bypass ? 1 : 0 );
+            bool bypass =
+              ( __SK_HDR_Bypass_sRGB == 1 );
 
-            _SK_HDR_sRGBBypassBehavior->store (__SK_HDR_Bypass_sRGB);
+            ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
+                                    fSliderWidth - fWidth0 - fWidth1 - ImGui::GetStyle ().ItemSpacing.x
+                                                           : -1.0f );
+
+            if (ImGui::Checkbox ("Bypass sRGB Gamma", &bypass))
+            {
+              __SK_HDR_Bypass_sRGB =
+                ( bypass ? 1 : 0 );
+
+              _SK_HDR_sRGBBypassBehavior->store (__SK_HDR_Bypass_sRGB);
+            }
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("If the game appears absurdly dark, you probably need to turn this on.");
           }
 
           fWidth0 = ImGui::GetItemRectSize ().x;
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("If the game appears absurdly dark, you probably need to turn this on.");
-
-
-          auto& pINI = dll_ini;
-
           float peak_nits =
             __SK_HDR_Luma / 1.0_Nits;
 
-          if ( __SK_HDR_tonemap != SK_HDR_TONEMAP_HDR10_PASSTHROUGH )
+          if (! bHDR10Passthrough)
           {
             bool bSliderChanged = false;
 
-            if ( ! pboost )
+            if (! pboost)
               bSliderChanged =
                 ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
                                           __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
@@ -1679,8 +1692,8 @@ public:
                __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
                __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
           {
-            if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, (__SK_HDR_tonemap == 2) ? -2.5f : -5.0f,
-                                                                        (__SK_HDR_tonemap == 2) ?  2.5f :  5.0f,
+            if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, bHDR10Passthrough ? -2.5f : -5.0f,
+                                                                        bHDR10Passthrough ?  2.5f :  5.0f,
                               (const char *)u8"Middle Gray Contrast: %+.3f%%"))// %.3f cd/m²"))
             {
               __SK_HDR_user_sdr_Y =
@@ -1724,7 +1737,11 @@ public:
             ImGui::BulletText      ("Effect is subtle and should be preferable to the traditional Saturation adjustment");
             ImGui::EndTooltip      (  );
           }
-
+          }
+          else
+          {
+            ImGui::BulletText ("No Image Processing is Implemented by the Current Tonemap");
+          }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
           ImGui::VerticalSeparator ();
@@ -2058,24 +2075,27 @@ public:
 
             if (SK_API_IsLayeredOnD3D11 (rb.api))
             {
-              if (ImGui::Checkbox ("Adaptive Tone Mapping",
-                                               &__SK_HDR_AdaptiveToneMap))
-              { _SK_HDR_AdaptiveToneMap->store (__SK_HDR_AdaptiveToneMap);
-                 SK_SaveConfig ();
-              }
+              if (! bRawImageMode)
+              {
+                if (ImGui::Checkbox ("Adaptive Tone Mapping",
+                                                 &__SK_HDR_AdaptiveToneMap))
+                { _SK_HDR_AdaptiveToneMap->store (__SK_HDR_AdaptiveToneMap);
+                   SK_SaveConfig ();
+                }
 
-              if (ImGui::IsItemHovered ())
-              {   ImGui::BeginTooltip  ();
-                  ImGui::Text          ("Adhere to HGIG Design Guidelines");
-                  ImGui::Separator     ();
-                  ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 'Paper White'");
-                  ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
-                  ImGui::EndTooltip    ();
-              }
+                if (ImGui::IsItemHovered ())
+                {   ImGui::BeginTooltip  ();
+                    ImGui::Text          ("Adhere to HGIG Design Guidelines");
+                    ImGui::Separator     ();
+                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 'Paper White'");
+                    ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
+                    ImGui::EndTooltip    ();
+                }
 
-              ImGui::SameLine          ();
-              ImGui::VerticalSeparator ();
-              ImGui::SameLine          ();
+                ImGui::SameLine          ();
+                ImGui::VerticalSeparator ();
+                ImGui::SameLine          ();
+              }
 
               const auto _SummarizeTargets =
               [](DWORD dwPromoted, DWORD dwCandidates, ULONG64 ullBytesExtra)
@@ -2212,7 +2232,7 @@ public:
                 ImGui::Separator  ();
                 ImGui::BeginGroup ();
 
-                if (preset.pq_boost0 > 0.1f)
+                if ((! bRawImageMode) && preset.pq_boost0 > 0.1f)
                 {
                   bool boost_changed = false;
 
@@ -2272,7 +2292,7 @@ public:
 
                 ImGui::EndGroup ();
                 
-                if (SK_API_IsLayeredOnD3D11 (rb.api))
+                if ((! bRawImageMode) && SK_API_IsLayeredOnD3D11 (rb.api))
                 {
                   ImGui::SameLine          ();
                   ImGui::VerticalSeparator ();
@@ -2349,13 +2369,19 @@ public:
             ImGui::BeginGroup  ();
             ImGui::BeginGroup  ();
 
+            int tonemap_idx =
+              __SK_HDR_ColorSpaceMap.count ((unsigned char&)preset.colorspace.tonemap) ? 
+              __SK_HDR_ColorSpaceMap [      (unsigned char&)preset.colorspace.tonemap] :
+                          0;;
+
             if ( ImGui::Combo ( "Tonemap Mode##SK_HDR_GAMUT_IN",
-                                               &preset.colorspace.tonemap,
+                                               &tonemap_idx,
                   __SK_HDR_ColorSpaceComboStr)                        )
-            {
-              if (__SK_HDR_ColorSpaceMap.count (preset.colorspace.tonemap))
+            { if (__SK_HDR_ColorSpaceMap.count (tonemap_idx))
               {
-                __SK_HDR_tonemap       =        preset.colorspace.tonemap;
+                preset.colorspace.tonemap =
+                        __SK_HDR_ColorSpaceMap [tonemap_idx];
+                __SK_HDR_tonemap          =     preset.colorspace.tonemap;
                 preset.cfg_tonemap->store      (preset.colorspace.tonemap);
 
                 pINI->write ();
@@ -2367,76 +2393,83 @@ public:
               }
             }
 
-            if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC       ||
-                 __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
-                 __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
+            if (! bRawImageMode)
             {
-              float fSat =
-                __SK_HDR_Saturation * 100.0f;
-
-              if (ImGui::SliderFloat ("Saturation", &fSat, 0.0f, 125.0f, "%.3f%%"))
+              if ( __SK_HDR_tonemap == SK_HDR_TONEMAP_FILMIC       ||
+                   __SK_HDR_tonemap == SK_HDR_TONEMAP_HDR10_FILMIC ||
+                   __SK_HDR_tonemap == SK_HDR_TONEMAP_NONE )
               {
-                __SK_HDR_Saturation =
-                  std::max (0.0f, std::min (2.0f, fSat / 100.0f));
+                float fSat =
+                  __SK_HDR_Saturation * 100.0f;
 
-                preset.saturation           = __SK_HDR_Saturation;
-                preset.cfg_saturation->store (__SK_HDR_Saturation);
+                if (ImGui::SliderFloat ("Saturation", &fSat, 0.0f, 125.0f, "%.3f%%"))
+                {
+                  __SK_HDR_Saturation =
+                    std::max (0.0f, std::min (2.0f, fSat / 100.0f));
+
+                  preset.saturation           = __SK_HDR_Saturation;
+                  preset.cfg_saturation->store (__SK_HDR_Saturation);
+                }
               }
-            }
-            else
-              ImGui::BulletText ("Color Saturation Unsupported for Current Tonemap");
-
-            ImGui::EndGroup    ();
-
-            if ( __SK_HDR_tonemap != SK_HDR_TONEMAP_HDR10_PASSTHROUGH )
-            {
-              if (ImGui::SliderFloat ("SDR Gamma Boost###SK_HDR_GAMMA", &__SK_HDR_Exp,
-                              0.476f, 1.524f, "SDR -> HDR Gamma: %.3f"))
-              {
-                preset.eotf =
-                  __SK_HDR_Exp;
-                preset.cfg_eotf->store (preset.eotf);
-              }
-            }
-            else
-            {
-              bool bKill22 =
-                ( __SK_HDR_Exp != 1.0 );
-
-              if (ImGui::Checkbox ("Fix SDR/HDR Black Level Mismatch", &bKill22))
-              {
-                  __SK_HDR_Exp = ( bKill22 ?
-                                       2.2f : 1.0f );
-                preset.eotf    =
-                  __SK_HDR_Exp;
-                preset.cfg_eotf->store (preset.eotf);
-              }
-              if (ImGui::IsItemHovered ())
-                ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 nits as SDR black for video and UI, which is gray in HDR...");
-              //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
+              else
+                ImGui::BulletText ("Color Saturation Unsupported for Current Tonemap");
             }
 
-            //ImGui::SameLine    ();
-            ImGui::BeginGroup  ();
-            ImGui::SliderFloat ("X-Axis HDR/SDR Splitter", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
-            ImGui::SliderFloat ("Y-Axis HDR/SDR Splitter", &__SK_HDR_VertCoverage,  0.0f, 100.f);
-            ImGui::EndGroup    ();
+            ImGui::EndGroup ();
 
-            ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0Luminance (vs EDID Max-Avg-Y)\0"
-                                                                                                 "Luminance (vs EDID Max-Local-Y)\0"
-                                                                                                 "Luminance (Exposure)\0"
-                                                                                                 "HDR Overbright Bits\0"
-                                                                                                 "8-Bit Quantization\0"
-                                                                                                 "10-Bit Quantization\0"
-                                                                                                 "12-Bit Quantization\0"
-                                                                                                 "16-Bit Quantization\0"
-                                                                                                 "Gamut Overshoot (vs Rec.709)\0"
-                                                                                                 "Gamut Overshoot (vs DCI-P3)\0"
-                                                                                                 "Tonemap Curve and Grayscale\0\0", 13);
-                                                                                                  //"Maximum Local Clip Point v0\0"
-                                                                                                  //"Maximum Local Clip Point v1\0"
-                                                                                                  //"Maximum Local Clip Point v2\0\0");
-                                                                                                 //"Gamut Overshoot (vs Rec.2020)\0\0");
+            if (! bRawImageMode)
+            {
+              if (! bHDR10Passthrough)
+              {
+                if (ImGui::SliderFloat ("SDR Gamma Boost###SK_HDR_GAMMA", &__SK_HDR_Exp,
+                                0.476f, 1.524f, "SDR -> HDR Gamma: %.3f"))
+                {
+                  preset.eotf =
+                    __SK_HDR_Exp;
+                  preset.cfg_eotf->store (preset.eotf);
+                }
+              }
+              else
+              {
+                bool bKill22 =
+                  ( __SK_HDR_Exp != 1.0 );
+
+                if (ImGui::Checkbox ("Fix SDR/HDR Black Level Mismatch", &bKill22))
+                {
+                    __SK_HDR_Exp = ( bKill22 ?
+                                         2.2f : 1.0f );
+                  preset.eotf    =
+                    __SK_HDR_Exp;
+                  preset.cfg_eotf->store (preset.eotf);
+                }
+                if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 nits as SDR black for video and UI, which is gray in HDR...");
+                //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
+              }
+
+              //ImGui::SameLine    ();
+              ImGui::BeginGroup  ();
+              ImGui::SliderFloat ("X-Axis HDR/SDR Splitter", &__SK_HDR_HorizCoverage, 0.0f, 100.f);
+              ImGui::SliderFloat ("Y-Axis HDR/SDR Splitter", &__SK_HDR_VertCoverage,  0.0f, 100.f);
+              ImGui::EndGroup    ();
+
+              ImGui::Combo       ("HDR Visualization##SK_HDR_VIZ",  &__SK_HDR_visualization, "None\0Luminance (vs EDID Max-Avg-Y)\0"
+                                                                                                   "Luminance (vs EDID Max-Local-Y)\0"
+                                                                                                   "Luminance (Exposure)\0"
+                                                                                                   "HDR Overbright Bits\0"
+                                                                                                   "8-Bit Quantization\0"
+                                                                                                   "10-Bit Quantization\0"
+                                                                                                   "12-Bit Quantization\0"
+                                                                                                   "16-Bit Quantization\0"
+                                                                                                   "Gamut Overshoot (vs Rec.709)\0"
+                                                                                                   "Gamut Overshoot (vs DCI-P3)\0"
+                                                                                                   "Tonemap Curve and Grayscale\0\0", 13);
+                                                                                                    //"Maximum Local Clip Point v0\0"
+                                                                                                    //"Maximum Local Clip Point v1\0"
+                                                                                                    //"Maximum Local Clip Point v2\0\0");
+                                                                                                   //"Gamut Overshoot (vs Rec.2020)\0\0");
+
+            }
             ImGui::EndGroup    ();
 
             ImGui::SameLine    ();
