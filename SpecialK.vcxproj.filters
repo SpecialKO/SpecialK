@@ -361,6 +361,12 @@
     <Filter Include="Header Files\Backends\Input\Windows.Gaming.Input">
       <UniqueIdentifier>{63a1ff22-b864-493b-a0f3-bea7fd3feb4a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Render\NGX">
+      <UniqueIdentifier>{8d7f8cc8-71d7-4efd-a0a8-3879386f0c49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Render\ngx">
+      <UniqueIdentifier>{a4df6929-d3cc-4bbe-926a-71d3ac795da0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2958,6 +2964,9 @@
     <ClInclude Include="include\SpecialK\input\windows.gaming.input.h">
       <Filter>Header Files\Backends\Input\Windows.Gaming.Input</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\ngx\ngx_defs.h">
+      <Filter>Header Files\Backends\Render\ngx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3520,6 +3529,12 @@
     </ClCompile>
     <ClCompile Include="src\input\windows.gaming.input.cpp">
       <Filter>Source Files\Backends\Input\Windows.Gaming.Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\ngx\ngx_d3d12.cpp">
+      <Filter>Source Files\Backends\Render\NGX</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\ngx\ngx_d3d11.cpp">
+      <Filter>Source Files\Backends\Render\NGX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

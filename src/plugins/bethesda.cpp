@@ -303,6 +303,42 @@ struct DLSSGInfo
 
 };
 
+enum ConfigOption
+{
+	OPTION_ENABLED = 0,
+	OPTION_REFLEX_SLEEP,
+	OPTION_FRAME_GENERATION_ENABLED,
+	OPTION_DLSS_MODE,
+	OPTION_REFLEX_MODE,
+	OPTION_REFLEX_FPS_CAP,
+	OPTION_NIS_SHARPENING,
+	OPTION_DLSS_PRESET,
+	OPTION_DYNAMIC_RESOLUTION,
+	OPTION_STREAMLINE_OTA,
+	OPTION_CRASH_DELAY_WORKAROUND,
+	OPTION_COUNT
+};
+
+enum ConfigValueType
+{
+	OPTION_TYPE_BOOL = 0,
+	OPTION_TYPE_UINT,
+	OPTION_TYPE_COUNT
+};
+
+#define VERSION_CONFIGVALUE_1 1
+#define VERSION_CONFIGVALUE_MAX VERSION_CONFIGVALUE_1
+
+struct ConfigValue
+{
+	uint32_t        version = VERSION_CONFIGVALUE_MAX;
+#pragma region Version 1
+  ConfigValueType type;
+  ConfigOption    option;
+  void* const     value;
+#pragma endregion
+};
+
 using  f2sGetDLSSGInfo_pfn = bool (*)(DLSSGInfo *info);
 static f2sGetDLSSGInfo_pfn
        f2sGetDLSSGInfo = nullptr;
@@ -311,9 +347,13 @@ using  f2sLoadConfig_pfn = bool (*)(const char *config);
 static f2sLoadConfig_pfn
        f2sLoadConfig = nullptr;
 
-using  f2sSetDLSSGEnabled_pfn = bool (*)(const bool);
-static f2sSetDLSSGEnabled_pfn
-       f2sSetDLSSGEnabled = nullptr;
+using  f2sSetConfigValue_pfn = bool (*)(const ConfigValue* value);
+using  f2sGetConfigValue_pfn = bool (*)(const ConfigValue* value);
+
+static f2sSetConfigValue_pfn
+       f2sSetConfigValue = nullptr;
+static f2sGetConfigValue_pfn
+       f2sGetConfigValue = nullptr;
 
 static DLSSGInfo dlssg_state;
 
@@ -598,11 +638,16 @@ bool SK_SF_PlugInCfg (void)
         if (changed)
           restart_required = true;
 
-        if (dlssg_state.dlssgSupported && f2sSetDLSSGEnabled != nullptr)
+        if (dlssg_state.dlssgSupported && f2sSetConfigValue != nullptr)
         {
           if (ImGui::Checkbox ("Use DLSS Frame Generation", &dlssg_state.dlssgEnabled))
           {
-            f2sSetDLSSGEnabled (dlssg_state.dlssgEnabled);
+            ConfigValue cfg_val = { .version = VERSION_CONFIGVALUE_MAX,
+                                       .type = OPTION_TYPE_BOOL,
+                                     .option = OPTION_FRAME_GENERATION_ENABLED,
+                                      .value = &dlssg_state.dlssgEnabled };
+
+            f2sSetConfigValue (&cfg_val);
           }
 
           if (dlssg_state.dlssgEnabled)
@@ -980,9 +1025,13 @@ SK_SF_EndOfFrame (void)
      (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
       "f2sLoadConfig" );
   
-      f2sSetDLSSGEnabled =
-     (f2sSetDLSSGEnabled_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sSetDLSSGEnabled" );
+      f2sSetConfigValue =
+     (f2sSetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sSetConfigValue" );
+
+      f2sGetConfigValue =
+     (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sGetConfigValue" );
     }
   });
 

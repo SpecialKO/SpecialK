@@ -1,4 +1,8 @@
-﻿23.9.16
+﻿23.9.16.1
+=========
+ + Updated to work correctly with new version of FSR2Streamline
+
+23.9.16
 =======
  + Removed SwapChain override from SK's log unless user settings actually
      resulted in an override being applied
