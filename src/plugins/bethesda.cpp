@@ -960,6 +960,7 @@ HRESULT __stdcall CreateVolumeTextureFromFileInMemoryHookForD3D9(LPDIRECT3DDEVIC
 }
 #endif
 
+#ifdef _WIN64
 void
 __stdcall
 SK_SF_EndOfFrame (void)
@@ -994,6 +995,7 @@ SK_SF_EndOfFrame (void)
     }
   }
 }
+#endif
 
 void
 SK_BGS_InitPlugin(void)
