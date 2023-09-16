@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <string>
+#include <json/json.hpp>
 
 extern iSK_INI *dll_ini;
 
@@ -226,8 +227,115 @@ void SK_SF_EnableFPSLimiter (bool bEnable)
   SK_SEH_EnableStarfieldFPSLimit (bEnable, pFPSLimit);
 }
 
+enum class DLSSGMode : uint32_t
+{
+  eOff,
+  eOn,
+  eCount
+};
+
+enum class DLSSMode : uint32_t
+{
+  eOff,
+  eMaxPerformance,
+  eBalanced,
+  eMaxQuality,
+  eUltraPerformance,
+//eUltraQuality,
+  eDLAA,
+  eCount,
+};
+
+enum class DLSSPreset : uint32_t
+{
+  //! Default behavior, may or may not change after an OTA
+  eDefault,
+  //! Fixed DL models
+  ePresetA,
+  ePresetB,
+  ePresetC,
+  ePresetD,
+  ePresetE,
+  ePresetF,
+  ePresetG,
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM (
+   DLSSMode, {
+ { DLSSMode::eOff,              "Off"              },
+ { DLSSMode::eMaxPerformance,   "MaxPerformance"   },
+ { DLSSMode::eBalanced,         "Balanced"         },
+ { DLSSMode::eMaxQuality,       "MaxQuality"       },
+ { DLSSMode::eUltraPerformance, "UltraPerformance" },
+ { DLSSMode::eDLAA,             "DLAA"             },
+ { DLSSMode::eDLAA,             "UltraQuality"     }, // Does not exist, just alias to DLAA
+             }               );
+
+NLOHMANN_JSON_SERIALIZE_ENUM (
+  DLSSPreset, {
+ { DLSSPreset::eDefault, "Default" },
+ { DLSSPreset::ePresetA, "A"       },
+ { DLSSPreset::ePresetB, "B"       },
+ { DLSSPreset::ePresetC, "C"       },
+ { DLSSPreset::ePresetD, "D"       },
+ { DLSSPreset::ePresetE, "E"       },
+ { DLSSPreset::ePresetF, "F"       },
+ { DLSSPreset::ePresetG, "G"       },
+ 		          }             );
+
+#define VERSION_DLSSGINFO_1 1
+#define VERSION_DLSSGINFO_MAX VERSION_DLSSGINFO_1
+
+struct DLSSGInfo
+{
+  uint32_t  version                    = VERSION_DLSSGINFO_MAX;
+
+#pragma region Version 1
+	uint32_t  numFramesActuallyPresented = { };
+	DLSSGMode currentMode                = DLSSGMode::eCount;
+	bool      dlssgSupported             = { };
+	bool      dlssgEnabled               = { };
+#pragma endregion
+
+};
+
+using  f2sGetDLSSGInfo_pfn = bool (*)(DLSSGInfo *info);
+static f2sGetDLSSGInfo_pfn
+       f2sGetDLSSGInfo = nullptr;
+
+using  f2sLoadConfig_pfn = bool (*)(const char *config);
+static f2sLoadConfig_pfn
+       f2sLoadConfig = nullptr;
+
+using  f2sSetDLSSGEnabled_pfn = bool (*)(const bool);
+static f2sSetDLSSGEnabled_pfn
+       f2sSetDLSSGEnabled = nullptr;
+
 bool SK_SF_PlugInCfg (void)
 {
+  static DLSSGInfo dlssg_state;
+
+  SK_RunOnce (
+  {
+    HMODULE hMod =
+      SK_GetModuleHandleW (L"FSR2Streamline.asi");
+
+    if (hMod != 0)
+    {
+      f2sGetDLSSGInfo =
+     (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sGetDLSSGInfo" );
+
+      f2sLoadConfig =
+     (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+      "f2sLoadConfig" );
+
+      f2sSetDLSSGEnabled =
+     (f2sSetDLSSGEnabled_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sSetDLSSGEnabled" );
+    }
+  });
+
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
 
@@ -366,6 +474,216 @@ bool SK_SF_PlugInCfg (void)
 
         ImGui::TreePop ();
       }
+    }
+
+    if (f2sGetDLSSGInfo != nullptr && ImGui::CollapsingHeader ( dlssg_state.dlssgSupported ? "FSR2Streamline DLSS-G"
+                                                                                           : "FSR2Streamline DLSS", ImGuiTreeNodeFlags_DefaultOpen ))
+    {
+      ImGui::TreePush ("");
+
+      if (f2sGetDLSSGInfo (&dlssg_state))
+      {
+        ImGui::TextUnformatted ("DLSS-G State: ");
+        ImGui::SameLine        ();
+
+        if (! dlssg_state.dlssgSupported)
+          ImGui::TextColored             (ImVec4 (.666f, .666f, 0.f, 1.f), "Unsupported");
+        else
+        {
+          if (      dlssg_state.dlssgEnabled)
+            switch (dlssg_state.currentMode)
+            {
+              case DLSSGMode::eOn:
+                ImGui::TextColored       (ImVec4 (0.f, 1.f, 0.f, 1.f), "Active");
+                ImGui::SameLine          ();
+                ImGui::VerticalSeparator ();
+                ImGui::SameLine          ();
+                ImGui::Text              ("Frame Generation Rate: %dx", dlssg_state.numFramesActuallyPresented);
+                break;
+              case DLSSGMode::eOff:
+                ImGui::TextColored       (ImVec4 (1.f, 1.f, 0.f, 1.f), "Inactive");
+                break;
+              case DLSSGMode::eCount:
+              default:
+                ImGui::TextColored       (ImVec4 (1.f, 0.f, 0.f, 1.f), "Unknown?!");
+                break;
+            }
+          else  ImGui::TextColored       (ImColor::HSV (0.1f, 1.f, 1.f), "Disabled by User");
+        }
+      } else    ImGui::Text              ("Unknown Malfunction");
+
+      static nlohmann::json f2s_config;
+
+                                       std::error_code                                                  ec;
+      static bool    new_config_file = std::filesystem::is_regular_file (L"FSR2Streamline_config.json", ec);
+      static bool    old_config_file = std::filesystem::is_regular_file (L"config.json",                ec);
+      static const char* config_file = new_config_file ? "FSR2Streamline_config.json" :
+                                       old_config_file ? "config.json"                : nullptr;
+
+      struct {
+        DLSSMode   mode               = DLSSMode::eOff;
+        DLSSPreset preset             = DLSSPreset::eDefault;
+        bool       enable_frame_gen   = false;
+        bool       enable_nis         = false;
+        bool       enable_ota_updates = false;
+        bool       enable_dynamic_res = false;
+      } static dlss_prefs;
+
+      if (config_file != nullptr)
+      {
+        static bool   config_file_dirty = true;
+        static HANDLE config_file_watch = nullptr;
+
+        SK_RunOnce (
+        {
+          std::filesystem::path config_path =
+            std::filesystem::current_path (ec);
+
+          config_file_watch =
+            FindFirstChangeNotificationW (config_path.c_str (), FALSE, FILE_NOTIFY_CHANGE_LAST_WRITE);
+        });
+
+        if (                     config_file_watch     != 0 &&
+            WaitForSingleObject (config_file_watch, 0) != WAIT_TIMEOUT)
+        {
+                                      config_file_dirty = true;
+          FindNextChangeNotification (config_file_watch);
+        }
+
+        if (config_file_dirty)
+        {
+          try {
+            std::ifstream config_json (config_file);
+
+            f2s_config =
+              nlohmann::json::parse (config_json);
+
+            f2s_config ["dlssMode"].get_to   (dlss_prefs.mode);
+            f2s_config ["dlssPreset"].get_to (dlss_prefs.preset);
+
+            if (! f2s_config ["enabled"])
+              dlss_prefs.mode = DLSSMode::eOff;
+
+            f2s_config ["enableNisSharpening"].get_to      <bool> (dlss_prefs.enable_nis);
+            f2s_config ["enableFrameGeneration"].get_to    <bool> (dlss_prefs.enable_frame_gen);
+            f2s_config ["enableStreamlineOta"].get_to      <bool> (dlss_prefs.enable_ota_updates);
+            f2s_config ["dynamicResolutionEnabled"].get_to <bool> (dlss_prefs.enable_dynamic_res);
+
+            config_file_dirty = false;
+          }
+        
+          catch (const std::exception& e)
+          {
+            if (config.system.log_level > 0)
+            {
+#ifdef __CPP20
+              const auto&& src_loc =
+                std::source_location::current ();
+              
+              steam_log->Log ( L"%hs (%d;%d): json parse failure: %hs",
+                                           src_loc.file_name     (),
+                                           src_loc.line          (),
+                                           src_loc.column        (), e.what ());
+              steam_log->Log (L"%hs",      src_loc.function_name ());
+              steam_log->Log (L"%hs",
+                std::format ( std::string ("{:*>") +
+                           std::to_string (src_loc.column        ()), 'x').c_str ());
+#else
+              std::ignore = e;
+#endif
+            }
+          }
+        }
+      }
+
+      try
+      {
+        bool changed = false;
+
+        ImGui::BeginGroup ();
+
+        static bool restart_required = false;
+        if (! dlssg_state.dlssgSupported)
+        {
+          changed |=
+            ImGui::Checkbox ("DLSS Frame Generation Support", &dlss_prefs.enable_frame_gen);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("This will not toggle DLSS-G, in the current release use it to enable DLSS-G support pending a game restart.");
+        }
+
+        if (changed)
+          restart_required = true;
+
+        if (dlssg_state.dlssgSupported && f2sSetDLSSGEnabled != nullptr)
+        {
+          if (ImGui::Checkbox ("Use DLSS Frame Generation", &dlssg_state.dlssgEnabled))
+          {
+            f2sSetDLSSGEnabled (dlssg_state.dlssgEnabled);
+          }
+        }
+
+        changed |=
+          ImGui::Combo ("DLSS Mode", (int *)&dlss_prefs.mode, "Off\0"
+                                                              "MaxPerformance\0"
+                                                              "Balanced\0"
+                                                              "MaxQuality\0"
+                                                              "UltraPerformance\0"
+                                                              "DLAA\0\0");
+
+        changed |=
+          ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\0"
+                                                                  "A\0"
+                                                                  "B\0"
+                                                                  "C\0"
+                                                                  "D\0"
+                                                                  "E\0"
+                                                                  "F\0"
+                                                                  "G\0\0");
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        changed |=
+          ImGui::Checkbox ("Dynamic Resolution", &dlss_prefs.enable_dynamic_res);
+
+        changed |=
+          ImGui::Checkbox ("NIS Sharpening", &dlss_prefs.enable_nis);
+
+        changed |=
+          ImGui::Checkbox ("DLSS OTA Updates", &dlss_prefs.enable_ota_updates);
+        ImGui::EndGroup   ();
+
+        if (restart_required)
+          ImGui::BulletText ("Game Restart Required");
+
+        if (changed)
+        {
+          f2s_config ["enabled"]                  = dlss_prefs.mode != DLSSMode::eOff;
+          if (dlss_prefs.mode == DLSSMode::eOff)
+              dlss_prefs.mode = DLSSMode::eBalanced; // Set a safe default value to prevent crashing
+          f2s_config ["dlssMode"]                 = dlss_prefs.mode;
+          f2s_config ["dlssPreset"]               = dlss_prefs.preset;
+          f2s_config ["enableFrameGeneration"]    = dlss_prefs.enable_frame_gen;
+          f2s_config ["dynamicResolutionEnabled"] = dlss_prefs.enable_dynamic_res;
+          f2s_config ["enableStreamlineOta"]      = dlss_prefs.enable_ota_updates;
+          f2s_config ["enableNisSharpening"]      = dlss_prefs.enable_nis;
+
+          // Write the config manually if this doesn't exist
+          if ( nullptr == f2sLoadConfig ||
+               false   == f2sLoadConfig (f2s_config.dump ().c_str ()) )
+          {
+            if (std::ofstream of (config_file); of)
+              of << std::setw (4) << f2s_config;
+          }
+        }
+      }
+
+      catch (const std::exception &e)
+      {
+        std::ignore = e;
+      }
+
+      ImGui::TreePop  (  );
     }
 
     ImGui::Separator     ( );
