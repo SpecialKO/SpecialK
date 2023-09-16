@@ -2754,7 +2754,6 @@ SK_ShutdownCore (const wchar_t* backend)
 
   if (! SK_Debug_IsCrashing ())
   {
-    SK_UnloadImports        ();
     SK::Framerate::Shutdown ();
 
     dll_log->LogEx             (true, L"[ WMI Perf ] Shutting down WMI WbemLocator...             ");
@@ -2801,6 +2800,7 @@ SK_ShutdownCore (const wchar_t* backend)
     dwTime = SK_timeGetTime    ();
     SK_Log_CleanupLogs         ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    SK_UnloadImports           ();
   }
 
 

@@ -4462,6 +4462,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     L"  | Buffers.... |  %-2lu%-69ws|\n"
     L"  | MSAA....... |  %-71ws|\n"
     L"  | Mode....... |  %-71ws|\n"
+    L"  | Window..... |  0x%08x%-61ws|\n"
     L"  | Scaling.... |  %-71ws|\n"
     L"  | Scanlines.. |  %-71ws|\n"
     L"  | Flags...... |  0x%04x%-65ws|\n"
@@ -4478,6 +4479,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     pDesc->BufferCount, L" ",
     wszMSAA,
     pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+    sk::narrow_cast <UINT> ((uintptr_t)pDesc->OutputWindow), L" ",
     pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
       L"Unspecified" :
       pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
@@ -4549,8 +4551,12 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
   }
 
+  DXGI_SWAP_CHAIN_DESC orig_desc = { };
+
   if (pDesc != nullptr)
   {
+    orig_desc = *pDesc;
+
     if (SK_GetCurrentGameID () == SK_GAME_ID::Elex2)
     {
       // Elex 2 needs this or its fullscreen options don't work
@@ -4822,10 +4828,13 @@ SK_DXGI_CreateSwapChain_PreInit (
                                       bFlipMode ) &&
               dxgi_caps.swapchain.allow_tearing )
       {
-        pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        if ((pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) == 0)
+        {
+          SK_LOGs0 (L" DXGI 1.5 ",
+                    L" >> Tearing Option : Enable  (Override)");
 
-        SK_LOGs0 ( L" DXGI 1.5 ",
-                   L" >> Tearing Option : Enable" );
+          pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+        }
       }
 
       if ( config.render.dxgi.scaling_mode != SK_NoPreference &&
@@ -4954,7 +4963,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
         pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
-    SK_LOGs0 ( L" DXGI 1.2 ",
+    SK_LOGs1 ( L" DXGI 1.2 ",
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                  (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
                    L"Flip" : L"Traditional",
@@ -5056,7 +5065,10 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
   }
 
-  _DescribeSwapChain (L"SPECIAL K OVERRIDES APPLIED");
+  if (memcmp (&orig_desc, pDesc, sizeof (DXGI_SWAP_CHAIN_DESC)) != 0)
+  {
+    _DescribeSwapChain (L"SPECIAL K OVERRIDES APPLIED");
+  }
 }
 
 void
@@ -8862,7 +8874,6 @@ HookDXGI (LPVOID user)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
 
-          pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;
 
           SK_ComPtr <IDXGIFactory>                           pNativeFactory;
@@ -8870,7 +8881,6 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI Factory...");
 
-            pFactory.p->AddRef ();
             pFactory = pNativeFactory;
           }
 
@@ -8879,7 +8889,6 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Device...");
 
-            pDevice.p->AddRef ();
             pDevice = pNativeDevice;
           }
 
@@ -8888,7 +8897,6 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Immediate Context...");
 
-            pImmediateContext.p->AddRef ();
             pImmediateContext = pNativeImmediateContext;
           }
         }
@@ -8961,7 +8969,6 @@ HookDXGI (LPVOID user)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
 
-          pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;
         }
       }

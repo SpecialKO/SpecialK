@@ -1,4 +1,13 @@
-﻿23.9.15.2
+﻿23.9.16
+=======
+ + Removed SwapChain override from SK's log unless user settings actually
+     resulted in an override being applied
+ + Added support for changing FSR2Streamline parameters in real-time with
+     newer releases of the mod
+ + Added Raw Image tonemap mode to passthrough SDR image in an HDR container
+     for third-party (i.e. ReShade) image processing instead of SK's own
+
+23.9.15.2
 =========
  + Hooked up clipboard-only screenshot feature to D3D12 render backend
 

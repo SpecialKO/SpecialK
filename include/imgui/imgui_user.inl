@@ -2743,12 +2743,14 @@ SK_ImGui_User_NewFrame (void)
       if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
            abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
       {
+#if 0
 #define SK_LOG_ONCE_N(lvl,expr,src) { static bool _once = false; if ((! std::exchange (_once, true))) SK_LOG##lvl (expr,src); }
 #define SK_LOG_ONCE(expr,src) \
           SK_LOG_ONCE_N(0,expr,src);
 
         SK_LOG_ONCE ( ( L"Mouse input appears to be inconsistent..." ),
                         L"Win32Input" );
+#endif
 
         SK_ImGui_Cursor.pos = cursor_pos;
       }
