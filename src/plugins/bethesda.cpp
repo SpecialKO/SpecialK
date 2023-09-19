@@ -1097,7 +1097,7 @@ SK_BGS_InitPlugin(void)
     SK_RunOnce (
     {
       HMODULE hMod =
-        SK_GetModuleHandleW (L"FSR2Streamline.asi");
+        SK_LoadLibraryW (L"FSR2Streamline.asi");
     
       if (hMod != 0)
       {
