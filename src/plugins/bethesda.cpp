@@ -691,6 +691,11 @@ bool SK_SF_PlugInCfg (void)
                                                               "Ultra Performance\t(12% Scale)\0"
                                                               "DLAA\t\t\t\t\t\t(100% Scale)\0\0");
 
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip (
+            "The % scale numbers indiate the setting you must use in the game's "
+            "resolution scaling for these DLSS modes to work." );
+
         changed |=
           ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\0"
                                                                   "A\0"
@@ -1070,42 +1075,6 @@ void
 __stdcall
 SK_SF_EndOfFrame (void)
 {
-  SK_RunOnce (
-  {
-    HMODULE hMod =
-      SK_GetModuleHandleW (L"FSR2Streamline.asi");
-  
-    if (hMod != 0)
-    {
-      f2sGetDLSSGInfo =
-     (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sGetDLSSGInfo" );
-  
-      f2sLoadConfig =
-     (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-      "f2sLoadConfig" );
-  
-      f2sSetConfigValue =
-     (f2sSetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sSetConfigValue" );
-
-      f2sGetConfigValue =
-     (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sGetConfigValue" );
-
-      f2sRegisterResolutionErrorCallback =
-     (f2sRegisterResolutionErrorCallback_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-     "f2sRegisterResolutionErrorCallback" );
-
-      if (f2sRegisterResolutionErrorCallback != nullptr)
-      {
-        static uint32_t callback_id = 0;
-
-        f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
-      }
-    }
-  });
-
   if (f2sGetDLSSGInfo != nullptr)
   {
     if (f2sGetDLSSGInfo (&dlssg_state))
@@ -1125,6 +1094,42 @@ SK_BGS_InitPlugin(void)
 #ifdef _WIN64
   if (gameID == SK_GAME_ID::Starfield)
   {
+    SK_RunOnce (
+    {
+      HMODULE hMod =
+        SK_GetModuleHandleW (L"FSR2Streamline.asi");
+    
+      if (hMod != 0)
+      {
+        f2sGetDLSSGInfo =
+       (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+       "f2sGetDLSSGInfo" );
+    
+        f2sLoadConfig =
+       (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+        "f2sLoadConfig" );
+    
+        f2sSetConfigValue =
+       (f2sSetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+       "f2sSetConfigValue" );
+
+        f2sGetConfigValue =
+       (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+       "f2sGetConfigValue" );
+
+        f2sRegisterResolutionErrorCallback =
+       (f2sRegisterResolutionErrorCallback_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+       "f2sRegisterResolutionErrorCallback" );
+
+        if (f2sRegisterResolutionErrorCallback != nullptr)
+        {
+          static uint32_t callback_id = 0;
+
+          f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
+        }
+      }
+    });
+
     // Default these to on if user is using HDR
     sf_bRemasterHDRRTs      = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
     sf_bRemasterExtendedRTs = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);

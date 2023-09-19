@@ -1,4 +1,10 @@
-﻿23.9.18
+﻿23.9.18.1
+=========
+ + Added better tooltips to FSR2Streamline DLSS mode selection
+ + Initialize FSR2Streamline earlier to enable warnings for mismatched
+     resolution scaling -before- the engine initializes.
+
+23.9.18
 =======
  + Added resolution scale warning if using FSR2Streamline with invalid
      resolution scale for the selected DLSS profile.
