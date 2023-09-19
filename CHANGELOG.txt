@@ -1,4 +1,9 @@
-﻿23.9.18.1
+﻿23.9.18.2
+=========
+ + Fixed crash in FSR2Streamline tooltips because of % rather than %% in
+     a formatted string function
+
+23.9.18.1
 =========
  + Added better tooltips to FSR2Streamline DLSS mode selection
  + Initialize FSR2Streamline earlier to enable warnings for mismatched

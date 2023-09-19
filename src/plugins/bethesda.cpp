@@ -693,7 +693,7 @@ bool SK_SF_PlugInCfg (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip (
-            "The % scale numbers indiate the setting you must use in the game's "
+            "The %% scale numbers indiate the setting you must use in the game's "
             "resolution scaling for these DLSS modes to work." );
 
         changed |=
