@@ -331,13 +331,40 @@ enum ConfigValueType
 
 struct ConfigValue
 {
-	uint32_t        version = VERSION_CONFIGVALUE_MAX;
+	uint32_t        version = VERSION_CONFIGVALUE_1;
 #pragma region Version 1
   ConfigValueType type;
   ConfigOption    option;
   void* const     value;
 #pragma endregion
 };
+
+#define VERSION_RESOLUTIONINFO_1 1
+#define VERSION_RESOLUTIONINFO_MAX VERSION_RESOLUTIONINFO_1
+
+	struct Resolution
+	{
+		uint32_t width;
+		uint32_t height;
+	};
+
+	struct ResolutionInfo
+	{
+		uint32_t version = VERSION_RESOLUTIONINFO_1;
+#pragma region Version 1
+		Resolution optimal;
+		Resolution min;
+		Resolution max;
+		Resolution current;
+#pragma endregion
+	};
+
+
+typedef void (__stdcall* PFN_RESOLUTION_ERROR_CALLBACK)(ResolutionInfo* info, void* data);
+
+using  f2sRegisterResolutionErrorCallback_pfn = bool (*)(PFN_RESOLUTION_ERROR_CALLBACK callback, void* data, uint32_t* outCallbackId);
+static f2sRegisterResolutionErrorCallback_pfn
+       f2sRegisterResolutionErrorCallback = nullptr;
 
 using  f2sGetDLSSGInfo_pfn = bool (*)(DLSSGInfo *info);
 static f2sGetDLSSGInfo_pfn
@@ -658,11 +685,11 @@ bool SK_SF_PlugInCfg (void)
 
         changed |=
           ImGui::Combo ("DLSS Mode", (int *)&dlss_prefs.mode, "Off\0"
-                                                              "MaxPerformance\0"
-                                                              "Balanced\0"
-                                                              "MaxQuality\0"
-                                                              "UltraPerformance\0"
-                                                              "DLAA\0\0");
+                                                              "Max Performance\t(50% Scale)\0"
+                                                              "Balanced\t\t\t\t  (58% Scale)\0"
+                                                              "Max Quality\t\t\t  (66% Scale)\0"
+                                                              "Ultra Performance\t(12% Scale)\0"
+                                                              "DLAA\t\t\t\t\t\t(100% Scale)\0\0");
 
         changed |=
           ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\0"
@@ -1008,6 +1035,39 @@ HRESULT __stdcall CreateVolumeTextureFromFileInMemoryHookForD3D9(LPDIRECT3DDEVIC
 #ifdef _WIN64
 void
 __stdcall
+SK_SF_ResolutionCallback (ResolutionInfo *info, void*)
+{
+  RECT rcMonitor =
+    SK_GetCurrentRenderBackend ().displays [SK_GetCurrentRenderBackend ().active_display].rect;
+
+  SK_ComQIPtr <IDXGISwapChain>
+      pSwapChain (SK_GetCurrentRenderBackend ().swapchain);
+  if (pSwapChain != nullptr)
+  {
+    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    pSwapChain->GetDesc (&swapDesc);
+
+    rcMonitor.left = 0;
+    rcMonitor.right = swapDesc.BufferDesc.Width;
+
+    rcMonitor.top    = 0;
+    rcMonitor.bottom = swapDesc.BufferDesc.Height;
+  }
+
+  SK_ImGui_WarningWithTitle (
+    SK_FormatStringW ( L"Current Resolution: %dx%d\r\n"
+                       L"\tIdeal Resolution:\t%dx%d\t\t(%4.2f%% Scale)\r\n\r\n"
+                       L" * Please Use a Different In-Game Resolution Scale...",
+                         info->current.width,  info->current.height,
+                         info->optimal.width,  info->optimal.height, 100.0f *
+                (double)(info->optimal.width * info->optimal.height) / ((double)(rcMonitor.right  - rcMonitor.left) *
+                                                                        (double)(rcMonitor.bottom - rcMonitor.top)) ).c_str (),
+                       L"Unsupported Resolution Scale for DLSS Mode"
+  );
+}
+
+void
+__stdcall
 SK_SF_EndOfFrame (void)
 {
   SK_RunOnce (
@@ -1032,6 +1092,17 @@ SK_SF_EndOfFrame (void)
       f2sGetConfigValue =
      (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
      "f2sGetConfigValue" );
+
+      f2sRegisterResolutionErrorCallback =
+     (f2sRegisterResolutionErrorCallback_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sRegisterResolutionErrorCallback" );
+
+      if (f2sRegisterResolutionErrorCallback != nullptr)
+      {
+        static uint32_t callback_id = 0;
+
+        f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
+      }
     }
   });
 

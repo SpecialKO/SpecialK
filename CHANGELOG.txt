@@ -1,4 +1,9 @@
-﻿23.9.16.1
+﻿23.9.18
+=======
+ + Added resolution scale warning if using FSR2Streamline with invalid
+     resolution scale for the selected DLSS profile.
+
+23.9.16.1
 =========
  + Updated to work correctly with new version of FSR2Streamline
 

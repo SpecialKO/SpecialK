@@ -5489,10 +5489,6 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -5514,8 +5510,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     ret =
-      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
-               new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+      new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
     rb.swapchain           = ret;
     rb.setDevice            (pDev12.p);
@@ -5530,8 +5525,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   else if ( pDev11 != nullptr )
   {
     ret =
-      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
-               new IWrapDXGISwapChain (pDev11.p, pSwapChain);
+      new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
@@ -5574,10 +5568,6 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
-
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -5599,8 +5589,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     ret = // TODO: Put these in a list somewhere for proper destruction
-      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
-               new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+      new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
@@ -5614,8 +5603,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   else if ( pDev11 != nullptr )
   {
     ret =
-      bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
-               new IWrapDXGISwapChain (pDev11.p, pSwapChain);
+      new IWrapDXGISwapChain (pDev11.p, pSwapChain);
 
     SK_LOGi0 (
       L" + SwapChain <IDXGISwapChain1> (%08" _L(PRIxPTR) L"h) wrapped using D3D11 Device",
@@ -8874,6 +8862,7 @@ HookDXGI (LPVOID user)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
 
+          pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;
 
           SK_ComPtr <IDXGIFactory>                           pNativeFactory;
@@ -8881,6 +8870,7 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI Factory...");
 
+            pFactory.p->AddRef ();
             pFactory = pNativeFactory;
           }
 
@@ -8889,6 +8879,7 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Device...");
 
+            pDevice.p->AddRef ();
             pDevice = pNativeDevice;
           }
 
@@ -8897,6 +8888,7 @@ HookDXGI (LPVOID user)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Immediate Context...");
 
+            pImmediateContext.p->AddRef ();
             pImmediateContext = pNativeImmediateContext;
           }
         }
@@ -8940,25 +8932,35 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
+        SK_ComPtr <IDXGIFactory> pNativeFactory;
+
+        if (bHasStreamline)
+        { 
+          if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
+          {
+            SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI Factory...");
+
+            pFactory.p->AddRef ();
+            pFactory = pNativeFactory;
+          }
+        }
+
         pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
-      }
 
-      if (bHasStreamline)
-      {
-        SK_LOGi0 (L"Upgrading D3D11 Device(Context) and SwapChains to Streamline...");
+        if (bHasStreamline)
+        {
+          SK_LOGi0 (L"Upgrading D3D11 Device(Context) and SwapChains to Streamline...");
 
-        SK_slUpgradeInterface ((void **)&pDevice.p);
-        SK_slUpgradeInterface ((void **)&pSwapChain.p);
-        SK_slUpgradeInterface ((void **)&pImmediateContext.p);
-      }
+          SK_slUpgradeInterface ((void **)&pDevice.p);
+          SK_slUpgradeInterface ((void **)&pSwapChain.p);
+          SK_slUpgradeInterface ((void **)&pImmediateContext.p);
+        }
 
-      sk_hook_d3d11_t d3d11_hook_ctx = { };
+        sk_hook_d3d11_t d3d11_hook_ctx = { };
 
-      d3d11_hook_ctx.ppDevice           = &pDevice.p;
-      d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
+        d3d11_hook_ctx.ppDevice           = &pDevice.p;
+        d3d11_hook_ctx.ppImmediateContext = &pImmediateContext.p;
 
-      if (SUCCEEDED (hr))
-      {
         HookD3D11             (&d3d11_hook_ctx);
         SK_DXGI_HookFactory   (pFactory);
         //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
@@ -8969,6 +8971,7 @@ HookDXGI (LPVOID user)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
 
+          pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;
         }
       }

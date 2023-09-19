@@ -189,3 +189,4 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
   // Need more debug time with D3D12
   return;
 }
+
