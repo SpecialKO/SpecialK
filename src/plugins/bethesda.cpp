@@ -244,7 +244,7 @@ enum class DLSSMode : uint32_t
   eMaxPerformance,
   eBalanced,
   eMaxQuality,
-  eUltraPerformance,
+//eUltraPerformance,
 //eUltraQuality,
   eDLAA,
   eCount,
@@ -270,7 +270,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM (
  { DLSSMode::eMaxPerformance,   "MaxPerformance"   },
  { DLSSMode::eBalanced,         "Balanced"         },
  { DLSSMode::eMaxQuality,       "MaxQuality"       },
- { DLSSMode::eUltraPerformance, "UltraPerformance" },
+ { DLSSMode::eOff,              "UltraPerformance" },
  { DLSSMode::eDLAA,             "DLAA"             },
  { DLSSMode::eDLAA,             "UltraQuality"     }, // Does not exist, just alias to DLAA
              }               );
@@ -384,10 +384,54 @@ static f2sGetConfigValue_pfn
 
 static DLSSGInfo dlssg_state;
 
+void __stdcall SK_SF_ResolutionCallback (ResolutionInfo *info, void *);
+
+void
+SK_SF_InitFSR2Streamline (void)
+{
+  if (f2sRegisterResolutionErrorCallback == nullptr)
+  {
+    HMODULE hMod =
+      GetModuleHandleW (L"FSR2Streamline.asi");
+    
+    if (hMod != 0)
+    {
+      f2sGetDLSSGInfo =
+     (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sGetDLSSGInfo" );
+    
+      f2sLoadConfig =
+     (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+      "f2sLoadConfig" );
+    
+      f2sSetConfigValue =
+     (f2sSetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sSetConfigValue" );
+
+      f2sGetConfigValue =
+     (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sGetConfigValue" );
+
+      f2sRegisterResolutionErrorCallback =
+     (f2sRegisterResolutionErrorCallback_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
+     "f2sRegisterResolutionErrorCallback" );
+
+      if (f2sRegisterResolutionErrorCallback != nullptr)
+      {
+        static uint32_t callback_id = 0;
+
+        f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
+      }
+    }
+  }
+}
+
 bool SK_SF_PlugInCfg (void)
 {
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
+
+  SK_RunOnce (SK_SF_InitFSR2Streamline ());
 
   if (ImGui::CollapsingHeader (utf8VersionString.data (), ImGuiTreeNodeFlags_DefaultOpen))
   {
@@ -688,7 +732,6 @@ bool SK_SF_PlugInCfg (void)
                                                               "Max Performance\t(50% Scale)\0"
                                                               "Balanced\t\t\t\t  (58% Scale)\0"
                                                               "Max Quality\t\t\t  (66% Scale)\0"
-                                                              "Ultra Performance\t(12% Scale)\0"
                                                               "DLAA\t\t\t\t\t\t(100% Scale)\0\0");
 
         if (ImGui::IsItemHovered ())
@@ -1094,41 +1137,7 @@ SK_BGS_InitPlugin(void)
 #ifdef _WIN64
   if (gameID == SK_GAME_ID::Starfield)
   {
-    SK_RunOnce (
-    {
-      HMODULE hMod =
-        SK_LoadLibraryW (L"FSR2Streamline.asi");
-    
-      if (hMod != 0)
-      {
-        f2sGetDLSSGInfo =
-       (f2sGetDLSSGInfo_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-       "f2sGetDLSSGInfo" );
-    
-        f2sLoadConfig =
-       (f2sLoadConfig_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-        "f2sLoadConfig" );
-    
-        f2sSetConfigValue =
-       (f2sSetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-       "f2sSetConfigValue" );
-
-        f2sGetConfigValue =
-       (f2sGetConfigValue_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-       "f2sGetConfigValue" );
-
-        f2sRegisterResolutionErrorCallback =
-       (f2sRegisterResolutionErrorCallback_pfn) SK_GetProcAddress ( L"FSR2Streamline.asi",
-       "f2sRegisterResolutionErrorCallback" );
-
-        if (f2sRegisterResolutionErrorCallback != nullptr)
-        {
-          static uint32_t callback_id = 0;
-
-          f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
-        }
-      }
-    });
+    SK_RunOnce (SK_SF_InitFSR2Streamline ());
 
     // Default these to on if user is using HDR
     sf_bRemasterHDRRTs      = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);

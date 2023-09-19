@@ -1,4 +1,12 @@
-﻿23.9.18.2
+﻿23.9.18.3
+=========
+ + Added workaround for SFSE not loading plug-ins early enough...
+     please do not load render plug-ins using SFSE, they will be loaded
+       too late to work reliably.
+ + Removed Ultra Performance option, since Starfield's minimum
+     render scale is 50% and it requires 10%.
+
+23.9.18.2
 =========
  + Fixed crash in FSR2Streamline tooltips because of % rather than %% in
      a formatted string function
