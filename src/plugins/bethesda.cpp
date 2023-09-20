@@ -722,10 +722,10 @@ bool SK_SF_PlugInCfg (void)
             f2sSetConfigValue (&cfg_val);
           }
 
-          if (dlssg_state.dlssgEnabled)
-          {
-            ImGui::Checkbox ("Enable SK + Reflex Limiter", &__SK_DoubleUpOnReflex);
-          }
+          //if (dlssg_state.dlssgEnabled)
+          //{
+          //  ImGui::Checkbox ("Enable SK + Reflex Limiter", &__SK_DoubleUpOnReflex);
+          //}
         }
 
         changed |=
@@ -1108,7 +1108,7 @@ SK_SF_ResolutionCallback (ResolutionInfo *info, void*)
                        L"\tIdeal Resolution:\t%dx%d\t\t(%4.2f%% Scale)\r\n\r\n"
                        L" * Please Use a Different In-Game Resolution Scale...",
                          info->current.width,  info->current.height,
-                         info->optimal.width,  info->optimal.height, 100.0f * std::sqrtf (
+                         info->optimal.width,  info->optimal.height, 100.0f * std::sqrt (
                 (double)(info->optimal.width * info->optimal.height) / ((double)(rcMonitor.right  - rcMonitor.left) *
                                                                         (double)(rcMonitor.bottom - rcMonitor.top)) ) ).c_str (),
                        L"Unsupported Resolution Scale for DLSS Mode"
