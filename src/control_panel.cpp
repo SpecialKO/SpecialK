@@ -4910,10 +4910,10 @@ SK_ImGui_ControlPanel (void)
                 ( config.render.framerate.enforcement_policy == 2);
 
             enum class limiter_mode_e {
-              Normal     = 0,
-              LowLatency = 1,
-              LatentSync = 2,
-              Reflex     = 3
+              Normal      = 0,
+              LowLatency  = 1,
+              LatentSync  = 2,
+              Reflex      = 3
             };
 
             // Present Interval 0 = Latent Sync; Low Latency mode unsupported
@@ -4938,16 +4938,27 @@ SK_ImGui_ControlPanel (void)
               }
             }
 
+            extern bool
+                __SK_ForceDLSSGPacing;
+            if (__SK_ForceDLSSGPacing)
+            {
+              if (mode != 0)
+                  mode  = 0;
+            }
+
             if ( ( (! bReflexSupported) &&
               ImGui::Combo ( "Mode",
                              &mode, "Normal\0"
                                     "Low-Latency\t(VRR Optimized)\0"
-                                    "Latent Sync\t (VSYNC -Off-)\0\0" ) ) ||
+                                    "Latent Sync\t (VSYNC -Off-)\0\0" ) ) || (! __SK_ForceDLSSGPacing) &&
               ImGui::Combo ( "Mode",
                              &mode, "Normal\0"
                                     "Low-Latency\t  (VRR Optimized)\0"
                                     "Latent Sync\t   (VSYNC -Off-)\0"
-                                    "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" )
+                                    "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" ) || ( __SK_ForceDLSSGPacing ) &&
+              ImGui::Combo ( "Mode",
+                             &mode, "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" )
+
                
                )
             {
@@ -4964,13 +4975,27 @@ SK_ImGui_ControlPanel (void)
               {
                 default:
                 case limiter_mode_e::Normal:
-                  config.render.framerate.enforcement_policy = 4;
+                  if (__SK_ForceDLSSGPacing)
+                  {
+                    if (config.render.framerate.target_fps > 0.0f)
+                        config.render.framerate.target_fps = -config.render.framerate.target_fps;
+                  }
+                  else
+                  {
+                    if (config.render.framerate.target_fps > 0.0f)
+                        config.render.framerate.target_fps = -config.render.framerate.target_fps;
 
-                  if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = 1;
+                    config.render.framerate.enforcement_policy = 4;
+
+                    if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
+                        config.render.framerate.present_interval  = 1;
+                  }
                   break;
 
                 case limiter_mode_e::LowLatency:
+                  if (config.render.framerate.target_fps > 0.0f)
+                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
+
                   config.render.framerate.enforcement_policy = 2;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
@@ -4978,6 +5003,9 @@ SK_ImGui_ControlPanel (void)
                   break;
 
                 case limiter_mode_e::LatentSync:
+                  if (config.render.framerate.target_fps > 0.0f)
+                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
+
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
                   break;
@@ -4990,6 +5018,9 @@ SK_ImGui_ControlPanel (void)
                     original_reflex_settings.enable           = config.nvidia.reflex.enable;
                     original_reflex_settings.present_interval = config.render.framerate.present_interval;
                   }
+
+                  if (config.render.framerate.target_fps > 0.0f)
+                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
 
                   config.nvidia.reflex.use_limiter         = true;
                   config.nvidia.reflex.low_latency         = true;

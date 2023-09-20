@@ -1,4 +1,11 @@
-﻿23.9.18.3
+﻿23.9.19.1
+=========
+ + DLSS-G Frame Pacing Limiter Mode is FORCED on while using DLSS-G,
+     when DLSS-G deactivates (i.e. in menus, SK will revert to its more
+       efficient framerrate limiter options.
+ + Changed Starfield resolution scale warning to report % in 1 dimension
+
+23.9.18.3
 =========
  + Added workaround for SFSE not loading plug-ins early enough...
      please do not load render plug-ins using SFSE, they will be loaded

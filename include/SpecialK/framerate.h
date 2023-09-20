@@ -784,6 +784,7 @@ extern volatile LONG64 lD3DKMTPresentCalls;
 
   extern bool __SK_HasDLSSGStatusSupport;
   extern bool __SK_IsDLSSGActive;
+  extern bool __SK_ForceDLSSGPacing;
 
 
 #endif /* __SK__FRAMERATE_H__ */

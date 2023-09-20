@@ -381,11 +381,12 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       return;
     }
 
-    if (config.nvidia.reflex.use_limiter)
+    if (config.nvidia.reflex.use_limiter || __SK_ForceDLSSGPacing)
     {
-      if ((__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive))
+      if ((__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive || __SK_ForceDLSSGPacing))
       {
-        extern float __target_fps;
+        extern float
+            __target_fps;
         if (__target_fps > 10.0f)
         {
           config.nvidia.reflex.frame_interval_us =

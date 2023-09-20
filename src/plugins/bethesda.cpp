@@ -26,6 +26,7 @@
 bool __SK_HasDLSSGStatusSupport = false;
 bool __SK_IsDLSSGActive         = false;
 bool __SK_DoubleUpOnReflex      = false;
+bool __SK_ForceDLSSGPacing      = false;
 
 extern iSK_INI *dll_ini;
 
@@ -736,7 +737,7 @@ bool SK_SF_PlugInCfg (void)
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip (
-            "The %% scale numbers indiate the setting you must use in the game's "
+            "The %% scale numbers indicate the setting you must use in the game's "
             "resolution scaling for these DLSS modes to work." );
 
         changed |=
@@ -1107,9 +1108,9 @@ SK_SF_ResolutionCallback (ResolutionInfo *info, void*)
                        L"\tIdeal Resolution:\t%dx%d\t\t(%4.2f%% Scale)\r\n\r\n"
                        L" * Please Use a Different In-Game Resolution Scale...",
                          info->current.width,  info->current.height,
-                         info->optimal.width,  info->optimal.height, 100.0f *
+                         info->optimal.width,  info->optimal.height, 100.0f * std::sqrtf (
                 (double)(info->optimal.width * info->optimal.height) / ((double)(rcMonitor.right  - rcMonitor.left) *
-                                                                        (double)(rcMonitor.bottom - rcMonitor.top)) ).c_str (),
+                                                                        (double)(rcMonitor.bottom - rcMonitor.top)) ) ).c_str (),
                        L"Unsupported Resolution Scale for DLSS Mode"
   );
 }
@@ -1124,6 +1125,7 @@ SK_SF_EndOfFrame (void)
     {
       __SK_HasDLSSGStatusSupport = dlssg_state.dlssgSupported;
       __SK_IsDLSSGActive         = dlssg_state.dlssgEnabled && dlssg_state.currentMode == DLSSGMode::eOn;
+      __SK_ForceDLSSGPacing      = __SK_IsDLSSGActive;
     }
   }
 }
