@@ -1249,6 +1249,19 @@ SK_BGS_InitPlugin(void)
         SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
     }
 
+    else if (SK_GetDLLVersionStr (SK_GetHostApp ()).find (L"1.7.33.0") != std::wstring::npos)
+    {
+      if (SK_GetModuleHandle (L"steam_api64.dll")) // Steam
+      {
+        pf1stFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557F6B0) + 8);
+        pf3rdFOV  = reinterpret_cast<float *>(CalculateOffset (0x14557F690) + 8);
+        pfMipBias = reinterpret_cast<float *>(CalculateOffset (0x145601EB0) + 8);
+      }
+
+      else
+        SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
+    }
+
     else
       SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
   
