@@ -1165,8 +1165,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if ( SK_API_IsDXGIBased (rb.api) || SK_API_IsGDIBased (rb.api) ||
       (SK_API_IsDirect3D9 (rb.api) && rb.fullscreen_exclusive) )
   {
-    extern float __target_fps;
-
     static constexpr int VSYNC_NoOverride      = 0;
     static constexpr int VSYNC_ForceOn         = 1;
     static constexpr int VSYNC_ForceOn_Half    = 2;
@@ -1227,14 +1225,17 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
 
       static bool bWarnOnce = false;
-             bool bNeedWarn = ( __target_fps                             > 0.0f &&
-                                config.render.framerate.present_interval > 1 );
+             bool bNeedWarn = config.render.framerate.present_interval    > 1 &&
+                              config.render.framerate.sync_interval_clamp > 0;
 
       if ( bNeedWarn && std::exchange (bWarnOnce, true) == false )
       {
         SK_ImGui_Warning (
-          L"Fractional VSYNC Rates Will Prevent VRR From Working"
+          L"Fractional VSYNC Rates Will Prevent VRR From Working\r\n\r\n\t>>"
+          L"SyncIntervalClamp Has Been Disabled (required to use 1/n Refresh VSYNC)"
         );
+
+        config.render.framerate.sync_interval_clamp = 0;
       }
 
       // Device reset is needed to change VSYNC mode in D3D9...

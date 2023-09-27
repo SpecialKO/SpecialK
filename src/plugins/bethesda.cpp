@@ -995,6 +995,14 @@ void SK_SEH_InitStarfieldRTs (void)
           "ImageProcessColorTarget"
         };
 
+        const char *r8_unorm_buffers_to_remaster [] =
+        {
+          "SAOFinalAO",
+          "ProcGenDensityMap",
+          "AlphaBuffer",
+          "RT_ColorGradeMask",
+        };
+
         for (UINT i = 0 ; i < 200 ; ++i)
         {
           __try
@@ -1009,6 +1017,26 @@ void SK_SEH_InitStarfieldRTs (void)
 
             if (sf_bRemasterHDRRTs)
             {
+              if (buffer_defs [i]->format == BS_DXGI_FORMAT::BS_DXGI_FORMAT_R8_UNORM1)
+              {
+                if (0 == strcmp (buffer_defs [i]->bufferName, "ImageProcessR8Target"))
+                {
+                  buffer_defs [i]->format  = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16_FLOAT25;
+                  SK_LOGs0 (L"Starfield ", L"Remastered Buffer: %36hs (%3d) using R16_FLOAT", buffer_defs [i]->bufferName, i);
+                  continue;
+                }
+
+                for (auto remaster_r8 : r8_unorm_buffers_to_remaster)
+                {
+                  if (0 == strcmp (buffer_defs [i]->bufferName, remaster_r8))
+                  {
+                    buffer_defs [i]->format  = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16_FLOAT25;
+                    SK_LOGs0 (L"Starfield ", L"Remastered Buffer: %36hs (%3d) using R16_FLOAT", buffer_defs [i]->bufferName, i);
+                    break;
+                  }
+                }
+              }
+
               if (buffer_defs [i]->format == BS_DXGI_FORMAT::BS_DXGI_FORMAT_R11G11B10_FLOAT66)
               {   buffer_defs [i]->format  = BS_DXGI_FORMAT::BS_DXGI_FORMAT_R16G16B16A16_FLOAT77;
               
@@ -1187,7 +1215,7 @@ SK_BGS_InitPlugin(void)
   
     std::queue <DWORD> threads;
 
-    if (pImageAddr0 == -1)
+    //if (pImageAddr0 == -1)
       threads = SK_SuspendAllOtherThreads ();
 
     SK_SEH_InitStarfieldRTs ();

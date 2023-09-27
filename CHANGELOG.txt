@@ -1,4 +1,11 @@
-﻿23.9.27
+﻿23.9.27.1
+=========
+ + Initialize Starfield plug-in while all threads are suspended in order to
+     prevent races with other mods.
+ + Added additonal HDR rendertarget upgrades for Starfield's single-channel
+     8-bpc RTs.
+
+23.9.27
 =======
  + Reworded forced 1/n VSYNC mode options to indicate they disable VRR
  + Fixed multiple framerate limiter mode combo boxes in control panel for
