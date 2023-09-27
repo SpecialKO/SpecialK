@@ -1077,6 +1077,9 @@ DllThread (LPVOID user)
       // Implicitly load ReShade (ReShade{32|64}.dll) if it exists
       SK_ReShade_LoadIfPresent  ();
 
+      if (PathFileExistsW (L"fsr2streamline.asi"))
+          SK_LoadLibraryW (L"fsr2streamline.asi");
+
       // Load user-defined DLLs (Lazy)
       SK_RunLHIfBitness ( 64, SK_LoadLazyImports64 (),
                               SK_LoadLazyImports32 () );

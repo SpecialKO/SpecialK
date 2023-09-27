@@ -1,4 +1,10 @@
-﻿23.9.27.2
+﻿23.9.28
+=======
+ + Automatically load FSR2Streamline.asi w/ lazy load order if it is present
+     in a game's directory
+ + Acquire DLL loader lock before suspending threads to prevent deadlock
+
+23.9.27.2
 =========
  + Added support for FoV and mipmap LOD bias control to Microsoft Store
      versions of Starfield, and removed reliance on hard-coded addresses.
