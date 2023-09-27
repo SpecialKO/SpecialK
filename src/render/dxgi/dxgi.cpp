@@ -8211,8 +8211,8 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (ReadAcquire (&hooked) != FALSE)
     return;
 
-  bool bHasStreamline =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
@@ -8417,8 +8417,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
   if (ReadAcquire (&hooked) != FALSE)
     return;
 
-  bool bHasStreamline =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
 
@@ -8740,7 +8740,7 @@ HookDXGI (LPVOID user)
 
 
     bool    bHookSuccess   = false;
-    bool    bHasStreamline = SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
     HRESULT hr             = E_NOTIMPL;
 
     SK_ComPtr <IDXGIAdapter>
@@ -8817,7 +8817,7 @@ HookDXGI (LPVOID user)
       
       // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
       //   Therfore, just it may be better to leave Streamline unsupported.
-      if (SK_GetModuleHandleW (L"d3d12.dll"))
+      if (SK_IsModuleLoaded (L"d3d12.dll"))
       {
         static D3D12CreateDevice_pfn
           D3D12CreateDevice = (D3D12CreateDevice_pfn)

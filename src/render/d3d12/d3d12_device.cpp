@@ -450,7 +450,7 @@ _COM_Outptr_ void                              **ppPipelineState )
     static bool bEldenRing =
       (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
 
-    if (bEldenRing)
+    if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
     {
       UINT uiDontCare = 0;
 
@@ -739,7 +739,7 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
             (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
           // Do not enable in other games for now, needs more testing
           //
-          if (bEldenRing)
+          if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
           {
             if (     type == SK_D3D12_ShaderType::Pixel)
               _pixelShaders  [pPipelineState] = true;
@@ -811,7 +811,7 @@ _COM_Outptr_  void                            **ppPipelineState )
   static bool bEldenRing =
     (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
 
-  if (bEldenRing)
+  if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
   {
     if (riid == IID_ID3D12PipelineState && SUCCEEDED (hr) && ppPipelineState != nullptr)
     {
@@ -2195,8 +2195,8 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   if (    pDevice12 == nullptr)
     return;
 
-  bool bHasStreamline =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <ID3D12Device> pDev12;
 
@@ -2206,7 +2206,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
     
     if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) != sl::Result::eOk)
     {
-      SK_LOGi0 (L"Failed to Gget Native Interface for D3D12 Device!");
+      SK_LOGi0 (L"Failed to Get Native Interface for D3D12 Device!");
 
       pDev12 = pDevice12;
     }

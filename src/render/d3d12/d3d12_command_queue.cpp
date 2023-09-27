@@ -113,8 +113,8 @@ _InstallCommandQueueHooksImpl (ID3D12Device* pDevice12)
   if (    pDevice12 == nullptr)
     return;
 
-  bool bHasStreamline =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
 
   SK_ComPtr <ID3D12Device> pDev12;
 

@@ -218,7 +218,7 @@ DStorageGetFactory_Detour ( REFIID riid,
 void SK_DStorage_Init (void)
 {
   SK_DStorage_UsingDLL =
-    GetModuleHandleW (L"dstorage.dll") != nullptr;
+    SK_IsModuleLoaded (L"dstorage.dll");
 
   if (SK_DStorage_IsLoaded ())
   {
