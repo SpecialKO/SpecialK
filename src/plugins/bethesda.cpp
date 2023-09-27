@@ -1391,7 +1391,6 @@ SK_SF_EndOfFrame (void)
     }
   }
 }
-#endif
 
 bool
 SK_SEH_InitStarfieldUntrusted (void)
@@ -1414,6 +1413,7 @@ SK_SEH_InitStarfieldUntrusted (void)
 
   return true;
 }
+#endif
 
 void
 SK_BGS_InitPlugin(void)
