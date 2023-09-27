@@ -2225,7 +2225,7 @@ SK_ScanAlignedEx2 ( const void* pattern, size_t len,   const void* mask,
 
 void*
 __stdcall
-SKX_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after, int align)
+SK_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after, int align)
 {
   auto* base_addr =
     reinterpret_cast <uint8_t *> (SK_GetModuleHandle (nullptr));

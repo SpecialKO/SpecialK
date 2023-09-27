@@ -1,4 +1,11 @@
-﻿23.9.27.1
+﻿23.9.27.2
+=========
+ + Added support for FoV and mipmap LOD bias control to Microsoft Store
+     versions of Starfield, and removed reliance on hard-coded addresses.
+ + Added internal cache of Starfield addresses per-version to speed init
+     up and reduce timing conflicts with other mods.
+
+23.9.27.1
 =========
  + Initialize Starfield plug-in while all threads are suspended in order to
      prevent races with other mods.

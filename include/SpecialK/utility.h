@@ -500,6 +500,10 @@ void*
 __stdcall
 SK_ScanAlignedEx (const void* pattern, size_t len, const void* mask, void* after = nullptr, int align = 1);
 
+void*
+__stdcall
+SK_ScanAlignedExec (const void* pattern, size_t len, const void* mask, void* after = nullptr, int align = 1);
+
 BOOL
 __stdcall
 SK_InjectMemory ( LPVOID  base_addr,

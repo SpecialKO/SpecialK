@@ -306,6 +306,11 @@
 #include <SpecialK/performance/io_monitor.h>
 #include <SpecialK/performance/gpu_monitor.h>
 
+extern iSK_INI *dll_ini;
+
+extern bool __SK_HDR_16BitSwap;
+extern bool __SK_HDR_10BitSwap;
+
 #include <dxgi1_3.h>
 #include <d3d11_2.h>
 
