@@ -1192,25 +1192,15 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    static const char
-     *szVSYNC_Limited = "  No Override\0  Forced ON\0"
-                                       "< Forced 1/2 >: FPS Limiter => 1.0\0"
-                                       "< Forced 1/3 >: FPS Limiter => 1.0\0"
-                                       "< Forced 1/4 >: FPS Limiter => 1.0\0"
-                                       "  Forced OFF\0\0",
-     *szVSYNC         = "  No Override\0  Forced ON\0"
-                                       "  Forced 1/2\0"
-                                       "  Forced 1/3\0"
-                                       "  Forced 1/4\0"
-                                       "  Forced OFF\0\0";
+    static const char *szVSYNC = "  No Override\0  Forced ON\0"
+                               "  Forced 1/2 (No VRR)\0"
+                               "  Forced 1/3 (No VRR)\0"
+                               "  Forced 1/4 (No VRR)\0"
+                               "  Forced OFF\0\0";
 
     static bool changed = false;
 
-    if (ImGui::Combo ("VSYNC", &idx,
-                          (__target_fps > 0.0f) ?
-                                szVSYNC_Limited :
-                                szVSYNC)
-       )
+    if (ImGui::Combo ("VSYNC", &idx, szVSYNC))
     {
       switch (idx)
       {
@@ -1243,7 +1233,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       if ( bNeedWarn && std::exchange (bWarnOnce, true) == false )
       {
         SK_ImGui_Warning (
-          L"Fractional VSYNC Rates Require Disabling Special K's Framerate Limiter"
+          L"Fractional VSYNC Rates Will Prevent VRR From Working"
         );
       }
 
@@ -4946,21 +4936,30 @@ SK_ImGui_ControlPanel (void)
                   mode  = 0;
             }
 
-            if ( ( (! bReflexSupported) &&
-              ImGui::Combo ( "Mode",
-                             &mode, "Normal\0"
-                                    "Low-Latency\t(VRR Optimized)\0"
-                                    "Latent Sync\t (VSYNC -Off-)\0\0" ) ) || (! __SK_ForceDLSSGPacing) &&
-              ImGui::Combo ( "Mode",
-                             &mode, "Normal\0"
-                                    "Low-Latency\t  (VRR Optimized)\0"
-                                    "Latent Sync\t   (VSYNC -Off-)\0"
-                                    "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" ) || ( __SK_ForceDLSSGPacing ) &&
-              ImGui::Combo ( "Mode",
-                             &mode, "NVIDIA Reflex\t(DLSS-G Pacing)\0\0" )
+            static const char *szModesWithoutReflex = "Normal\0"
+                                "Low-Latency\t(VRR Optimized)\0"
+                               "Latent Sync\t (VSYNC -Off-)\0\0";
 
-               
-               )
+            static const char *szNormalModesWithReflex =  "Normal\0"
+                                  "Low-Latency\t  (VRR Optimized)\0"
+                                   "Latent Sync\t   (VSYNC -Off-)\0"
+                                "NVIDIA Reflex\t(DLSS-G Pacing)\0\0";
+
+            static const char *szDLSSGOnly =
+                                "NVIDIA Reflex\t(DLSS-G Pacing)\0\0";
+
+            const char *szModeList =
+                        szModesWithoutReflex;
+
+            if (bReflexSupported)
+            {
+              if (! __SK_ForceDLSSGPacing)
+                szModeList = szNormalModesWithReflex;
+              else
+                szModeList = szDLSSGOnly;
+            }
+
+            if (ImGui::Combo ("Mode", &mode, szModeList))
             {
               struct reflex_prefs_s {
                 bool use_limiter      = config.nvidia.reflex.use_limiter;

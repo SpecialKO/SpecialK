@@ -1,8 +1,12 @@
-﻿23.9.25
+﻿23.9.27
+=======
+ + Reworded forced 1/n VSYNC mode options to indicate they disable VRR
+ + Fixed multiple framerate limiter mode combo boxes in control panel for
+     non-Reflex capable users.
+
+23.9.25
 =======
  + Added hard-coded memory addresses for Steam version 1.7.33.0 of Starfield
-
-    >> Addresses not maintained by Kaldaien, or they wouldn't be hard-coded.
 
 23.9.19.1
 =========
