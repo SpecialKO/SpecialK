@@ -435,7 +435,7 @@ SK_SF_InitFSR2Streamline (void)
   if (f2sRegisterResolutionErrorCallback == nullptr)
   {
     HMODULE hMod =
-      GetModuleHandleW (L"FSR2Streamline.asi");
+      SK_GetModuleHandleW (L"FSR2Streamline.asi");
     
     if (hMod != 0)
     {
@@ -854,11 +854,11 @@ void SK_SF_InitFPS (void)
     SK_SF_PlugIn;
 
   // Assume that DLSS-G mods are going to turn the framerate limiter off always
-  if (SK_GetModuleHandle (L"sl.interposer.dll"))
+  if (SK_IsModuleLoaded (L"sl.interposer.dll"))
     return;
 
   const bool bIsSteam =
-    SK_GetModuleHandle (L"steam_api64.dll") != nullptr;
+    SK_IsModuleLoaded (L"steam_api64.dll");
 
   if (plugin.addresses.contains (plugin.game_ver_str))
   {
@@ -917,7 +917,7 @@ void SK_SF_InitRTs (void)
     SK_SF_PlugIn;
 
   const bool bIsSteam =
-    SK_GetModuleHandle (L"steam_api64.dll") != nullptr;
+    SK_IsModuleLoaded (L"steam_api64.dll");
 
   if (plugin.addresses.contains (plugin.game_ver_str))
   {
@@ -1145,7 +1145,7 @@ void SK_SF_InitFOV (void)
     SK_SF_PlugIn;
 
   const bool bIsSteam =
-    SK_GetModuleHandle (L"steam_api64.dll") != nullptr;
+    SK_IsModuleLoaded (L"steam_api64.dll");
 
   if (plugin.addresses.contains (plugin.game_ver_str))
   {
@@ -1501,9 +1501,9 @@ SK_BGS_InitPlugin(void)
     if (plugin.cached3rdFOVAddr    > 0) plugin.cached3rdFOVAddr    += iBaseAddr;
     if (plugin.cachedMipBiasAddr   > 0) plugin.cachedMipBiasAddr   += iBaseAddr;
   
-    std::queue <DWORD> threads;
+    SK_ThreadSuspension_Ctx threads;
 
-    //if (pImageAddr0 == -1)
+    //if (plugin.cachedImageAddr0 == -1)
       threads = SK_SuspendAllOtherThreads ();
 
     SK_SF_PlugIn.addresses [L"Starfield  1.7.23.0"].steam =

@@ -165,15 +165,13 @@ void SK_DPI_Update (void)
 {
   using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
   static
-    auto GetDpiForSystem = (GetDpiForSystem_pfn)
-    SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
-                                    "GetDpiForSystem" );
+    auto GetDpiForSystem =         (GetDpiForSystem_pfn)
+    SK_GetProcAddress ( L"user32", "GetDpiForSystem" );
 
   using  GetDpiForWindow_pfn = UINT (WINAPI *)(HWND);
   static
-    auto GetDpiForWindow = (GetDpiForWindow_pfn)
-    SK_GetProcAddress ( SK_GetModuleHandleW (L"user32"),
-                                    "GetDpiForWindow" );
+    auto GetDpiForWindow =         (GetDpiForWindow_pfn)
+    SK_GetProcAddress ( L"user32", "GetDpiForWindow" );
 
   if (GetDpiForSystem != nullptr)
   {

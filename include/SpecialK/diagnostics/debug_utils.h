@@ -507,6 +507,36 @@ SK_PRTL_USER_PROCESS_PARAMETERS
 } SK_PEB,
 *SK_PPEB;
 
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID           0
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED     1
+#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_NOT_ACQUIRED 2
+
+#define LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS   0x00000001
+#define LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY          0x00000002
+ 
+#define LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS 0x00000001
+
+NTSTATUS
+WINAPI
+SK_Module_LockLoader ( ULONG_PTR *pCookie,
+                       ULONG       Flags = 0x0,
+                       ULONG     *pState = nullptr );
+
+NTSTATUS
+WINAPI
+SK_Module_UnlockLoader ( ULONG     Flags,
+                         ULONG_PTR Cookie );
+
+extern "C"
+NTSTATUS
+WINAPI
+SK_NtLdr_LockLoaderLock (ULONG Flags, ULONG* State, ULONG_PTR* Cookie);
+
+extern "C"
+NTSTATUS
+WINAPI
+SK_NtLdr_UnlockLoaderLock (ULONG Flags, ULONG_PTR Cookie);
+
 using LdrFindEntryForAddress_pfn    = NTSTATUS (NTAPI *)(HMODULE,PLDR_DATA_TABLE_ENTRY__SK*);
 
 // Returns true if the host executable is Large Address Aware

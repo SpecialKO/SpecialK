@@ -175,7 +175,7 @@ SK_Okami_PlugInCfg (void)
 
       if (ImGui::Checkbox ("60 FPS", &enabled))
       {
-        std::queue <DWORD> tids =
+        auto suspension_ctx =
           SK_SuspendAllOtherThreads ();
 
         int idx = 0;
@@ -227,7 +227,7 @@ SK_Okami_PlugInCfg (void)
         if (enabled) { cp->ProcessCommandLine ("TargetFPS 60.0"); cp->ProcessCommandLine ("PresentationInterval 1"); }
         else         { cp->ProcessCommandLine ("TargetFPS 30.0"); cp->ProcessCommandLine ("PresentationInterval 2"); }
 
-        SK_ResumeThreads (tids);
+        SK_ResumeThreads (suspension_ctx);
       }
 
       if (enabled)

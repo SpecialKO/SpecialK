@@ -3221,13 +3221,6 @@ auto DeclKeybind =
   compatibility.auto_large_address->load (config.compatibility.auto_large_address_patch);
 #endif
 
-  // Automagicly flag as using WINE in certain scenarios (e.g. DxVk on Windows)
-  SK_RunOnce (
-    config.compatibility.using_wine |=
-      (SK_GetModuleHandleW (L"wined3d.dll") != nullptr)
-  );
-
-
   // D3D9Ex cannot exist without D3D9...
   if (config.apis.d3d9ex.hook)
       config.apis.d3d9.hook = true;

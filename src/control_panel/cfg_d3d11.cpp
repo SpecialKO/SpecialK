@@ -556,8 +556,8 @@ SK::ControlPanel::D3D11::Draw (void)
         SK_GetFramesDrawn ();
 
       #pragma region "Advanced"
-      if ( //config.system.log_level > 0
-           false//ImGui::TreeNode ("Recently Used Shaders")
+      if ( config.render.dxgi.allow_d3d12_footguns &&
+           ImGui::TreeNode ("Recently Used Shaders")
          )
       {
         static auto constexpr _RECENT_USE_THRESHOLD = 30;

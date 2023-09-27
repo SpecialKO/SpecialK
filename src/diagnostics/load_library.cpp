@@ -1940,7 +1940,7 @@ SK_PrintUnloadedDLLs (iSK_Logger* pLogger)
 #pragma pack (pop)
 
     static HMODULE hModNtDLL =
-    SK_GetModuleHandleW   (L"NtDll") != 0 ?
+      SK_IsModuleLoaded   (L"NtDll") != 0 ?
       SK_GetModuleHandleW (L"NtDll")      :
           SK_LoadLibraryW (L"NtDll");
 

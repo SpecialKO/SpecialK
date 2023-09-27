@@ -546,7 +546,7 @@ SK_Steam_GetDLLPath ( wchar_t* wszDestBuf,
   if (*dll_file != L'\0')
   {
     // Already have a working DLL
-    if (GetModuleHandleW (dll_file))
+    if (SK_IsModuleLoaded (dll_file))
     {
       wcsncpy_s (
         wszDestBuf,
@@ -2968,10 +2968,10 @@ SteamAPI_PumpThread (LPVOID user)
        game_id == SK_GAME_ID::JustCause3         ||
        game_id == SK_GAME_ID::YakuzaKiwami2      ||
        game_id == SK_GAME_ID::YakuzaUnderflow    ||
-       GetModuleHandleW (
+       SK_IsModuleLoaded (
          SK_RunLHIfBitness (64, L"kaldaien_api64.dll",
                                 L"kaldaien_api.dll" )
-       ) != nullptr
+       )
      )
   {
     start_immediately = true;

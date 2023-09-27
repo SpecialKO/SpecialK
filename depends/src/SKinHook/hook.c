@@ -50,6 +50,15 @@
 # define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
 # define STATUS_ALERTED                ((NTSTATUS)0x00000101L)
 # define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
+
+# define LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID           0
+# define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED     1
+# define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_NOT_ACQUIRED 2
+
+# define LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS   0x00000001
+# define LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY          0x00000002
+
+# define LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS 0x00000001
 #endif
 #define SystemProcessAndThreadInformation       5
 
@@ -656,6 +665,9 @@ EnumerateThreads (PFROZEN_THREADS pThreads)
 #include <stdio.h>
 
 //-------------------------------------------------------------------------
+extern NTSTATUS WINAPI SK_NtLdr_LockLoaderLock   (ULONG Flags, ULONG* State, ULONG_PTR* Cookie);
+extern NTSTATUS WINAPI SK_NtLdr_UnlockLoaderLock (ULONG Flags,               ULONG_PTR  Cookie);
+
 static
 VOID
 FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
@@ -676,6 +688,11 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
                                               pThreads->boost = -1;
   else  SetThreadPriorityBoost (hThreadSelf, FALSE);
 
+
+  ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+  ULONG_PTR ldrCookie = 0x0;
+  
+  SK_NtLdr_LockLoaderLock (0x0, &ldrState, &ldrCookie);
 
   EnumerateThreads (pThreads);
 
@@ -873,6 +890,9 @@ FreezeEx (PFROZEN_THREADS pThreads, UINT pos, UINT action, UINT idx)
       }
     }
   }
+
+  if (ldrState == LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED)
+    SK_NtLdr_UnlockLoaderLock (0x0, ldrCookie);
 }
 
 static

@@ -259,8 +259,10 @@ struct _framerate_ctx_s {
     if (tids.empty ())
       return;
 
+#ifdef SAFE_PATCH
     if (std::exchange (_suspended, false))
       SK_ResumeThreads (tids);
+#endif
   }
 
   struct patch_s

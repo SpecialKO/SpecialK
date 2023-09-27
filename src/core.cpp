@@ -1649,7 +1649,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     _NeedImplicitDelay =
      [&]()
       { return (! config.system.wait_for_debugger) &&
-              SK_GetModuleHandleW (L"MSCOREE.dll") != nullptr; };
+                SK_IsModuleLoaded (L"MSCOREE.dll"); };
 
   // If Global Injection Delay, block initialization thread until the delay period ends
   if (SK_IsInjected () && (config.system.global_inject_delay > 0.0f || _NeedImplicitDelay ()))

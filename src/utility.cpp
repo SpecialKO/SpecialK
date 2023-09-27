@@ -1078,120 +1078,135 @@ SK_GetCallerName (LPCVOID pReturn)
     SK_GetModuleName (SK_GetCallingDLL (pReturn));
 }
 
-
-std::queue <DWORD>
+SK_ThreadSuspension_Ctx
 SK_SuspendAllOtherThreads (void)
 {
-  std::queue <DWORD> threads;
+  SK_ThreadSuspension_Ctx suspension_ctx;
 
-  SK_AutoHandle hSnap (
-    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
-  );
-
-  if ((intptr_t)hSnap.m_h > 0)// != INVALID_HANDLE_VALUE)
+  suspension_ctx.ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+  suspension_ctx.ldrCookie = 0x0;
+  
+  if ( STATUS_SUCCESS ==
+         SK_NtLdr_LockLoaderLock ( 0x0,
+           &suspension_ctx.ldrState, &suspension_ctx.ldrCookie ) )
   {
-    THREADENTRY32 tent        = {                    };
-                  tent.dwSize = sizeof (THREADENTRY32);
+    SK_AutoHandle hSnap (
+      CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+    );
 
-    if (Thread32First (hSnap.m_h, &tent))
+    if ((intptr_t)hSnap.m_h > 0)// != INVALID_HANDLE_VALUE)
     {
-      //bool locked =
-      //  dll_log.lock ();
+      THREADENTRY32 tent        = {                    };
+                    tent.dwSize = sizeof (THREADENTRY32);
 
-      do
+      if (Thread32First (hSnap.m_h, &tent))
       {
-        if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
-                                  sizeof (tent.th32OwnerProcessID) )
+        //bool locked =
+        //  dll_log.lock ();
+
+        do
         {
-          if ( tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
-               tent.th32OwnerProcessID == GetCurrentProcessId    () )
+          if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+                                    sizeof (tent.th32OwnerProcessID) )
           {
-            SK_AutoHandle hThread (
-              OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
-            );
-
-            if ((intptr_t)hThread.m_h > 0)
+            if ( tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
+                 tent.th32OwnerProcessID == GetCurrentProcessId    () )
             {
-              threads.push  (tent.th32ThreadID);
+              SK_AutoHandle hThread (
+                OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
+              );
 
-              CONTEXT                         threadContext = { };
-              SuspendThread    (hThread.m_h);
-              GetThreadContext (hThread.m_h, &threadContext);
+              if ((intptr_t)hThread.m_h > 0)
+              {
+                suspension_ctx.tids.push (tent.th32ThreadID);
+
+                CONTEXT                         threadContext = { };
+                SuspendThread    (hThread.m_h);
+                GetThreadContext (hThread.m_h, &threadContext);
+              }
             }
           }
-        }
 
-        tent.dwSize = sizeof (tent);
-      } while (Thread32Next (hSnap.m_h, &tent));
+          tent.dwSize = sizeof (tent);
+        } while (Thread32Next (hSnap.m_h, &tent));
 
-      //if (locked)
-      //  dll_log.unlock ();
+        //if (locked)
+        //  dll_log.unlock ();
+      }
     }
   }
 
-  return threads;
+  return suspension_ctx;
 }
 
-std::queue <DWORD>
+SK_ThreadSuspension_Ctx
 SK_SuspendAllThreadsExcept (std::set <DWORD>& exempt_tids)
 {
-  std::queue <DWORD> threads;
+  SK_ThreadSuspension_Ctx suspension_ctx;
 
-  SK_AutoHandle hSnap (
-    CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
-  );
-
-  if ((intptr_t)hSnap.m_h > 0)//!= INVALID_HANDLE_VALUE)
+  suspension_ctx.ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+  suspension_ctx.ldrCookie = 0x0;
+  
+  if ( STATUS_SUCCESS ==
+         SK_NtLdr_LockLoaderLock ( 0x0,
+           &suspension_ctx.ldrState, &suspension_ctx.ldrCookie ) )
   {
-    THREADENTRY32 tent        = {                    };
-                  tent.dwSize = sizeof (THREADENTRY32);
+    SK_AutoHandle hSnap (
+      CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
+    );
 
-    if (Thread32First (hSnap.m_h, &tent))
+    if ((intptr_t)hSnap.m_h > 0)//!= INVALID_HANDLE_VALUE)
     {
-      //bool locked =
-      //  dll_log.lock ();
+      THREADENTRY32 tent = {                    };
+      tent.dwSize = sizeof (THREADENTRY32);
 
-      do
+      if (Thread32First (hSnap.m_h, &tent))
       {
-        if ( tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
-                                  sizeof (tent.th32OwnerProcessID) )
+        //bool locked =
+        //  dll_log.lock ();
+
+        do
         {
-          if ( (! exempt_tids.count (tent.th32ThreadID)) &&
-                                     tent.th32ThreadID       != SK_Thread_GetCurrentId () &&
-                                     tent.th32OwnerProcessID == GetCurrentProcessId    () )
+          if (tent.dwSize >= FIELD_OFFSET (THREADENTRY32, th32OwnerProcessID) +
+              sizeof (tent.th32OwnerProcessID))
           {
-            SK_AutoHandle hThread (
-              OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
-            );
-
-            if ((intptr_t)hThread.m_h > 0)
+            if ((!exempt_tids.count (tent.th32ThreadID)) &&
+                tent.th32ThreadID != SK_Thread_GetCurrentId () &&
+                tent.th32OwnerProcessID == GetCurrentProcessId ())
             {
-              threads.push  (tent.th32ThreadID);
+              SK_AutoHandle hThread (
+                OpenThread (THREAD_SUSPEND_RESUME, FALSE, tent.th32ThreadID)
+              );
 
-              CONTEXT                         threadContext = { };
-              SuspendThread    (hThread.m_h);
-              GetThreadContext (hThread.m_h, &threadContext);
+              if ((intptr_t)hThread.m_h > 0)
+              {
+                suspension_ctx.tids.push (tent.th32ThreadID);
+
+                CONTEXT                         threadContext = { };
+                SuspendThread (hThread.m_h);
+                GetThreadContext (hThread.m_h, &threadContext);
+              }
             }
           }
-        }
 
-        tent.dwSize = sizeof (tent);
-      } while (Thread32Next (hSnap.m_h, &tent));
+          tent.dwSize = sizeof (tent);
+        } while (Thread32Next (hSnap.m_h, &tent));
 
-      //if (locked)
-      //  dll_log.unlock ();
+        //if (locked)
+        //  dll_log.unlock ();
+      }
     }
   }
 
-  return threads;
+  return suspension_ctx;
 }
 
 void
-SK_ResumeThreads (std::queue <DWORD> threads)
+SK_ResumeThreads (SK_ThreadSuspension_Ctx suspension_ctx)
 {
-  while (! threads.empty ())
+  while (! suspension_ctx.tids.empty ())
   {
-    DWORD tid = threads.front ();
+    DWORD tid = suspension_ctx.tids.front ();
 
     SK_AutoHandle hThread (
       OpenThread (THREAD_SUSPEND_RESUME, FALSE, tid)
@@ -1202,8 +1217,11 @@ SK_ResumeThreads (std::queue <DWORD> threads)
       ResumeThread (hThread);
     }
 
-    threads.pop ();
+    suspension_ctx.tids.pop ();
   }
+
+  if (suspension_ctx.ldrState == LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED)
+    SK_NtLdr_UnlockLoaderLock (0x0, suspension_ctx.ldrCookie);
 }
 
 class SK_PreHashed_String

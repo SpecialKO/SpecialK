@@ -287,6 +287,7 @@ std::wstring   SK_GetModuleFullName         (HMODULE hDll);
 std::wstring   SK_GetModuleNameFromAddr     (LPCVOID addr);
 std::wstring   SK_GetModuleFullNameFromAddr (LPCVOID addr);
 std::wstring   SK_MakePrettyAddress         (LPCVOID addr, DWORD dwFlags = 0x0);
+bool           SK_IsModuleLoaded            (const wchar_t* wszModule); // Avoids GetModuleHandle and the loader-lock
 bool           SK_ValidatePointer           (LPCVOID addr, bool silent = false, MEMORY_BASIC_INFORMATION *pmi = nullptr);
 bool           SK_SAFE_ValidatePointer      (LPCVOID addr, bool silent = false, MEMORY_BASIC_INFORMATION *pmi = nullptr) noexcept;
 bool           SK_IsAddressExecutable       (LPCVOID addr, bool silent = false);
@@ -399,10 +400,17 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                                     __FUNCSIG__ ) }
 
 
-std::queue <DWORD>
+struct SK_ThreadSuspension_Ctx {
+  std::queue <DWORD> tids;
+
+  ULONG              ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+  ULONG_PTR          ldrCookie = 0x0;
+};
+
+SK_ThreadSuspension_Ctx
                SK_SuspendAllOtherThreads (void);
 void
-               SK_ResumeThreads          (std::queue <DWORD> threads);
+               SK_ResumeThreads          (SK_ThreadSuspension_Ctx threads);
 
 
 bool __cdecl   SK_IsServiceHost          (void);

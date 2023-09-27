@@ -1232,8 +1232,8 @@ public:
       }
     }
 
-    static bool bStreamline =
-      SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+    static const bool bStreamline =
+      SK_IsModuleLoaded (L"sl.interposer.dll");
 
     if (bStreamline && ImGui::IsItemHovered ())
     {

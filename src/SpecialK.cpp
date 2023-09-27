@@ -1224,12 +1224,12 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
              SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
 
       bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
-           GetModuleHandleW (L"AppXDeploymentClient.dll") != nullptr;
+           SK_IsModuleLoaded (L"AppXDeploymentClient.dll");
 
       bool is_ubisoft_game =
         (! is_steamworks_game) && (! is_epic_game) &&
-        (! is_microsoft_game ) && ( GetModuleHandleW (L"uplay_aux_r164.dll") != nullptr ||
-                                    GetModuleHandleW (L"uplay_aux_r264.dll") != nullptr );
+        (! is_microsoft_game ) && ( SK_IsModuleLoaded (L"uplay_aux_r164.dll") ||
+                                    SK_IsModuleLoaded (L"uplay_aux_r264.dll") );
 
       bool is_gog_game =
         (! is_steamworks_game) && (! is_epic_game)    &&

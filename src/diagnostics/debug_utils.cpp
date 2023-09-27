@@ -185,15 +185,6 @@ using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
       GetProcAddress_pfn
       GetProcAddress_Original = nullptr;
 
-#define LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID           0
-#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED     1
-#define LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_NOT_ACQUIRED 2
-
-#define LDR_LOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS   0x00000001
-#define LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY          0x00000002
- 
-#define LDR_UNLOCK_LOADER_LOCK_FLAG_RAISE_ON_ERRORS 0x00000001
-
 using LdrLockLoaderLock_pfn   = NTSTATUS (WINAPI *)(ULONG Flags, ULONG *State, ULONG_PTR *Cookie);
 using LdrUnlockLoaderLock_pfn = NTSTATUS (WINAPI *)(ULONG Flags,               ULONG_PTR  Cookie);
 
@@ -202,8 +193,8 @@ using LdrUnlockLoaderLock_pfn = NTSTATUS (WINAPI *)(ULONG Flags,               U
 NTSTATUS
 WINAPI
 SK_Module_LockLoader ( ULONG_PTR *pCookie,
-                       ULONG       Flags = 0x0,
-                       ULONG     *pState = nullptr )
+                       ULONG        Flags,
+                       ULONG     *pState )
 {
   // The lock must not be acquired until DllMain (...) returns!
   if (ReadAcquire (&__SK_DLL_Refs) < 1)
@@ -217,11 +208,8 @@ SK_Module_LockLoader ( ULONG_PTR *pCookie,
 #else
   static LdrLockLoaderLock_pfn
          LdrLockLoaderLock =
-        (LdrLockLoaderLock_pfn)
-  ( SK_GetProcAddress   (
-    SK_GetModuleHandleW ( L"NtDll.dll" ),
-                           "LdrLockLoaderLock"
-                        ) );
+        (LdrLockLoaderLock_pfn)SK_GetProcAddress (L"NtDll.dll",
+        "LdrLockLoaderLock");
 
   if (LdrLockLoaderLock == nullptr)
     return (NTSTATUS)-1;
@@ -252,11 +240,8 @@ SK_Module_UnlockLoader ( ULONG     Flags,
 #else
   static LdrUnlockLoaderLock_pfn
          LdrUnlockLoaderLock =
-        (LdrUnlockLoaderLock_pfn)
-  ( SK_GetProcAddress   (
-    SK_GetModuleHandleW ( L"NtDll.dll" ),
-                           "LdrUnlockLoaderLock"
-                        ) );
+        (LdrUnlockLoaderLock_pfn)SK_GetProcAddress (L"NtDll.dll",
+        "LdrUnlockLoaderLock");
 
   if (LdrUnlockLoaderLock == nullptr)
     return (NTSTATUS)-1;
@@ -276,11 +261,8 @@ SK_Module_IsProcAddrLocal ( HMODULE                    hModExpected,
 {
   static LdrFindEntryForAddress_pfn
          LdrFindEntryForAddress =
-        (LdrFindEntryForAddress_pfn)
-  ( SK_GetProcAddress     (
-      SK_GetModuleHandleW ( L"NtDll.dll" ),
-                             "LdrFindEntryForAddress"
-                          ) );
+        (LdrFindEntryForAddress_pfn)SK_GetProcAddress (L"NtDll.dll",
+        "LdrFindEntryForAddress");
 
   // Indeterminate, so ... I guess no?
   if (! LdrFindEntryForAddress)
@@ -4358,6 +4340,7 @@ SK_LazyGlobal <
   concurrency::concurrent_unordered_set <DWORD64>
 > _SK_DbgHelp_FailedModules;
 
+extern "C"
 NTSTATUS
 WINAPI
 SK_NtLdr_LockLoaderLock (ULONG Flags, ULONG* State, ULONG_PTR* Cookie)
@@ -4377,6 +4360,7 @@ SK_NtLdr_LockLoaderLock (ULONG Flags, ULONG* State, ULONG_PTR* Cookie)
     LdrLockLoaderLock (Flags, State, Cookie);
 }
 
+extern "C"
 NTSTATUS
 WINAPI
 SK_NtLdr_UnlockLoaderLock (ULONG Flags, ULONG_PTR Cookie)
@@ -4909,4 +4893,71 @@ SK_RaiseException
     RaiseException ( dwExceptionCode,    dwExceptionFlags,
                      nNumberOfArguments, lpArguments );
   }
+}
+
+
+using LdrGetDllHandleEx_pfn =
+  NTSTATUS (NTAPI *)( IN  ULONG               Flags,
+                      IN  PWSTR               DllPath            OPTIONAL,
+                      IN  PULONG              DllCharacteristics OPTIONAL,
+                      IN  PUNICODE_STRING_SK  DllName,
+                      OUT PVOID              *DllHandle          OPTIONAL );
+
+bool
+SK_IsModuleLoaded (const wchar_t* wszModule)
+{
+  static LdrGetDllHandleEx_pfn
+         LdrGetDllHandleEx =
+        (LdrGetDllHandleEx_pfn)SK_GetProcAddress (L"NtDll.dll",
+        "LdrGetDllHandleEx");
+
+  // Indeterminate, so ... I guess no?
+  if (! LdrGetDllHandleEx)
+    return FALSE;
+
+  ULONG                      ldrLockState = 0x0;
+//PLDR_DATA_TABLE_ENTRY__SK pLdrEntry  = { };
+  ULONG_PTR                  ldrCookie = 0;
+  SK_Module_LockLoader     (&ldrCookie, LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY, &ldrLockState);
+
+  HMODULE hMods [256] = { };
+  DWORD  cbNeeded     =   0;
+
+  SK_AutoHandle hProcess
+           ( OpenProcess ( PROCESS_QUERY_INFORMATION |
+                           PROCESS_VM_READ,
+                             FALSE,
+                               GetCurrentProcessId ()
+           )             );
+
+  if (! hProcess.isValid ())
+  {
+    SK_Module_UnlockLoader (0x0, ldrCookie);
+    return false; // ... what?!
+  }
+
+  if ( EnumProcessModules ( hProcess, hMods,
+                              sizeof (hMods), &cbNeeded ) )
+  {
+    for ( UINT i = 0; i < (cbNeeded / sizeof (HMODULE)); ++i )
+    {
+      wchar_t                     wszModName [MAX_PATH + 2] = { };
+      if ( GetModuleFileNameEx (
+             hProcess, hMods [i], wszModName,
+                          sizeof (wszModName) / sizeof (wchar_t)) )
+      {
+        PathStripPathW (wszModName);
+        if (StrStrIW (  wszModName, wszModule ) == wszModName )
+        {
+          SK_Module_UnlockLoader (0x0, ldrCookie);
+
+          return true;
+        }
+      }
+    }
+  }
+
+  SK_Module_UnlockLoader (0x0, ldrCookie);
+
+  return false;
 }
