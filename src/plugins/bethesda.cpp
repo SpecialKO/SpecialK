@@ -23,10 +23,10 @@
 #include <string>
 #include <json/json.hpp>
 
-bool __SK_HasDLSSGStatusSupport = false;
-bool __SK_IsDLSSGActive         = false;
-bool __SK_DoubleUpOnReflex      =  true;
-bool __SK_ForceDLSSGPacing      = false;
+extern bool __SK_HasDLSSGStatusSupport;
+extern bool __SK_IsDLSSGActive;
+extern bool __SK_DoubleUpOnReflex;
+extern bool __SK_ForceDLSSGPacing;
 
 static iSK_INI* game_ini       = nullptr;
 static iSK_INI* gameCustom_ini = nullptr;
@@ -1517,6 +1517,9 @@ SK_SEH_InitStarfieldUntrusted (void)
 void
 SK_BGS_InitPlugin(void)
 {
+  if (PathFileExistsW (L"SpecialK.NoPlugIns"))
+    return;
+
   SK_GAME_ID gameID =
     SK_GetCurrentGameID ();
   

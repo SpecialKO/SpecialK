@@ -805,7 +805,6 @@ struct sk_config_t
       bool    enable              =  false;
       bool    native              =  false;
       bool    override            =  false;
-      bool    sporadic_native     =  false;
     } reflex;
   } nvidia;
 

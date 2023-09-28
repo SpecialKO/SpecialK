@@ -278,6 +278,12 @@ SK_LoadGPUVendorAPIs (void)
       SK_NvAPI_EnableVulkanBridge (config.apis.NvAPI.vulkan_bridge);
     }
 
+    if (SK_GetModuleHandleW (L"_nvngx.dll") != nullptr)
+    {
+      extern void SK_NGX_InitD3D12 (void);
+                  SK_NGX_InitD3D12 ();
+    }
+
     const int num_sli_gpus =
       sk::NVAPI::CountSLIGPUs ();
 
@@ -3434,6 +3440,8 @@ SK_SLI_UpdateStatus (IUnknown *device)
   }
 }
 
+extern void SK_NGX_UpdateDLSSGStatus (void);
+
 __declspec (noinline) // lol
 HRESULT
 __stdcall
@@ -3493,6 +3501,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   if ( static_cast <int> (rb.api)  &
        static_cast <int> (SK_RenderAPI::D3D11) )
   {
+    SK_NGX_UpdateDLSSGStatus ();
+
     // Clear any resources we were tracking for the shader mod subsystem
     SK_D3D11_EndFrame (pTLS);
   }
@@ -3500,6 +3510,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   else if ( static_cast <int> (rb.api) &
             static_cast <int> (SK_RenderAPI::D3D12) )
   {
+    SK_NGX_UpdateDLSSGStatus ();
+
     SK_D3D12_EndFrame (pTLS);
   }
 

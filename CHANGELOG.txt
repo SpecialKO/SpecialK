@@ -1,4 +1,9 @@
-﻿23.9.28.5
+﻿23.9.29
+=======
+ + Added DLSS-G detection for all D3D12 games; false positives may happen
+     when using menus in some games that switch DLSS-G off in menus.
+
+23.9.28.5
 =========
  + Fixed potential initialization issues in Nixxes games that use
      Streamline + DLSS-G

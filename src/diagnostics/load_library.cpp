@@ -533,6 +533,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       SK_COMPAT_CheckStreamlineSupport ();
     }
+    else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
+                StrStrIW (wszModName,        L"_nvngx.dll") )
+    {
+      extern void SK_NGX_InitD3D12 (void);
+                  SK_NGX_InitD3D12 ();
+    }
 
 #if 0
     if (! config.platform.silent) {

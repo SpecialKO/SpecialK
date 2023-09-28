@@ -1460,16 +1460,12 @@ SK::Framerate::Limiter::wait (void)
   //   while the game is in the background
   if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
   {
-    const bool
-      bReflexNative = config.nvidia.reflex.         native ||
-                      config.nvidia.reflex.sporadic_native;
-
     if ((__SK_ForceDLSSGPacing) || (config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
-         ((! bReflexNative) || config.nvidia.reflex.override) && (__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive) ))
+         ((! config.nvidia.reflex.native) || config.nvidia.reflex.override) && (__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive) ))
     {
       extern bool
-            __SK_DoubleUpOnReflex;
-      if (! __SK_DoubleUpOnReflex)
+             __SK_DoubleUpOnReflex;
+      if ((! __SK_DoubleUpOnReflex) || SK_GetCurrentGameID () != SK_GAME_ID::Starfield)
         return;
     }
   }
