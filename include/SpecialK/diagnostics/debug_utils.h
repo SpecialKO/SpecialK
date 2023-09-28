@@ -848,6 +848,16 @@ SK_SetLastError (DWORD dwErrCode) noexcept;
 LPVOID
 SK_Debug_GetImageBaseAddr (void);
 
+BOOL
+WINAPI
+SK_SetThreadPriorityBoost ( HANDLE hThread,
+                            BOOL   bDisableBoost );
+
+BOOL
+WINAPI
+SK_SetThreadPriority ( HANDLE hThread,
+                       int    nPriority );
+
 
 extern SK_LazyGlobal <
   concurrency::concurrent_unordered_map <DWORD, std::wstring>

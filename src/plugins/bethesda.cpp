@@ -77,6 +77,7 @@ struct {
   bool bRemasterExtendedRTs    = false;
   bool bRemasterHDRRTs         = false;
   bool bPhotoModeCompatibility = false;
+  bool bAlternateThreadSched   = true;
 
   struct {
     sk::ParameterBool* basic_remastering        = nullptr;
@@ -84,6 +85,7 @@ struct {
     sk::ParameterBool* hdr_remastering          = nullptr;
     sk::ParameterBool* photo_mode_compatibility = nullptr;
     sk::ParameterBool* disable_fps_limit        = nullptr;
+    sk::ParameterBool* alternate_thread_sched   = nullptr;
 
     sk::ParameterInt64* image_addr      = nullptr;
     sk::ParameterInt64* buffer_def_addr = nullptr;
@@ -612,6 +614,29 @@ bool SK_SF_PlugInCfg (void)
           dll_ini->write ();
         }
 
+        static bool game_restart_required = false;
+
+        if (ImGui::Checkbox ("Use Alternate Thread Scheduling", &plugin.bAlternateThreadSched))
+        {
+          game_restart_required = true;
+
+          plugin.ini.alternate_thread_sched->store (plugin.bAlternateThreadSched);
+
+          dll_ini->write ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("May improve disk throughput and general CPU efficiency.");
+        }
+
+        if (game_restart_required)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
+        }
+
         ImGui::TreePop ();
       }
     }
@@ -846,6 +871,55 @@ bool SK_SF_PlugInCfg (void)
   }
 
   return true;
+}
+
+static SetThreadPriority_pfn
+       SetThreadPriority_Original      = nullptr;
+static SetThreadPriorityBoost_pfn
+       SetThreadPriorityBoost_Original = nullptr;
+
+BOOL
+WINAPI
+SK_SF_SetThreadPriorityHook ( HANDLE hThread,
+                              int    nPriority )
+{
+  SK_SetThreadPriorityBoost (hThread, FALSE);
+
+  if (SK_Thread_GetCurrentPriority () > nPriority)
+    return TRUE;
+
+  return
+    SetThreadPriority_Original (hThread, nPriority);
+}
+
+BOOL
+WINAPI
+SK_SF_SetThreadPriorityBoostHook ( HANDLE hThread,
+                                   BOOL   bDisableBoost )
+{
+  wchar_t                                          *wszThreadName = nullptr;
+  if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
+  {
+    if (StrStrW (wszThreadName, L"FileStreamerControl"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+    }
+
+    else if (StrStrW (wszThreadName, L"IOManager"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_HIGHEST);
+    }
+
+    else if (StrStrW (wszThreadName, L"SaveLoad thread"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_TIME_CRITICAL);
+    }
+  }
+
+  std::ignore = bDisableBoost;
+
+  return
+    SetThreadPriorityBoost_Original (hThread, FALSE);
 }
 
 void SK_SF_InitFPS (void)
@@ -1491,6 +1565,37 @@ SK_BGS_InitPlugin(void)
                                     L"MipBiasAddr",
                          plugin.cachedMipBiasAddr );
 
+    plugin.ini.alternate_thread_sched =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"AlternateThreadScheduling",
+                         plugin.bAlternateThreadSched );
+
+    if (plugin.bAlternateThreadSched)
+    {
+      extern BOOL WINAPI
+      SetThreadPriority_Detour ( HANDLE hThread,
+                                 int    nPriority );
+      extern DWORD WINAPI
+      SetThreadPriorityBoost_Detour ( HANDLE hThread,
+                                      BOOL   bDisableBoost );
+
+      SK_CreateFuncHook ( L"SetThreadPriorityBoost_Detour",
+                            SetThreadPriorityBoost_Detour,
+                      SK_SF_SetThreadPriorityBoostHook,
+                  (void **)&SetThreadPriorityBoost_Original );
+
+      SK_CreateFuncHook ( L"SetThreadPriority_Detour",
+                            SetThreadPriority_Detour,
+                      SK_SF_SetThreadPriorityHook,
+                  (void **)&SetThreadPriority_Original );
+
+      MH_QueueEnableHook (SetThreadPriorityBoost_Detour);
+      MH_QueueEnableHook (SetThreadPriority_Detour);
+
+      SK_ApplyQueuedHooks ();
+    }
+
+
     auto iBaseAddr =
       (int64_t)SK_Debug_GetImageBaseAddr ();
 
@@ -1506,28 +1611,28 @@ SK_BGS_InitPlugin(void)
     //if (plugin.cachedImageAddr0 == -1)
       threads = SK_SuspendAllOtherThreads ();
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.23.0"].steam =
+    plugin.addresses [L"Starfield  1.7.23.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
       { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
       { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.29.0"].steam =
+    plugin.addresses [L"Starfield  1.7.29.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
       { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
       { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.33.0"].steam =
+    plugin.addresses [L"Starfield  1.7.33.0"].steam =
     {
       { "image_def_addr",  0x3287B88 }, { "buffer_def_addr", 0x33516FA },
       { "fps_limit_addr",  0x23FA5E9 }, { "fov_1st_addr",    0x1F82668 },
       { "fov_3rd_addr",    0x1F838C1 }, { "mip_bias_addr",   0x32D6ED2 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.33.0"].microsoft =
+    plugin.addresses [L"Starfield  1.7.33.0"].microsoft =
     {
       { "image_def_addr",  0x32A79E8 }, { "buffer_def_addr", 0x337155A },
       { "fps_limit_addr",  0x23F7F61 }, { "fov_1st_addr",    0x1F806E8 },
@@ -1536,12 +1641,13 @@ SK_BGS_InitPlugin(void)
 
     SK_SEH_InitStarfieldUntrusted ();
 
-    plugin.ini.image_addr->store      (plugin.cachedImageAddr0    - iBaseAddr);
-    plugin.ini.buffer_def_addr->store (plugin.cachedBufferDefAddr - iBaseAddr);
-    plugin.ini.fps_limit_addr->store  (plugin.cachedFPSLimitAddr  - iBaseAddr);
-    plugin.ini.fov_1st_addr->store    (plugin.cached1stFOVAddr    - iBaseAddr);
-    plugin.ini.fov_3rd_addr->store    (plugin.cached3rdFOVAddr    - iBaseAddr);
-    plugin.ini.mip_bias_addr->store   (plugin.cachedMipBiasAddr   - iBaseAddr);
+    plugin.ini.image_addr->store             (plugin.cachedImageAddr0    - iBaseAddr);
+    plugin.ini.buffer_def_addr->store        (plugin.cachedBufferDefAddr - iBaseAddr);
+    plugin.ini.fps_limit_addr->store         (plugin.cachedFPSLimitAddr  - iBaseAddr);
+    plugin.ini.fov_1st_addr->store           (plugin.cached1stFOVAddr    - iBaseAddr);
+    plugin.ini.fov_3rd_addr->store           (plugin.cached3rdFOVAddr    - iBaseAddr);
+    plugin.ini.mip_bias_addr->store          (plugin.cachedMipBiasAddr   - iBaseAddr);
+    plugin.ini.alternate_thread_sched->store (plugin.bAlternateThreadSched);
 
     dll_ini->write ();
   

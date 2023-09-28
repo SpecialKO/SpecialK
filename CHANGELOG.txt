@@ -1,4 +1,14 @@
-﻿23.9.28
+﻿23.9.28.1
+=========
+ + Added alternate thread scheduling mode for Starfield:
+
+    * Prevents CreationRender threads from rapidly raising and lowering priority
+    * Disables likely errant SetThreadPriorityBoost (..., TRUE) on I/O threads
+    * Raises priority on game save thread to reduce hitching
+
+   Enabled by default, see the Performance section of Starfield's control panel
+
+23.9.28
 =======
  + Automatically load FSR2Streamline.asi w/ lazy load order if it is present
      in a game's directory

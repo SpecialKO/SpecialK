@@ -208,7 +208,10 @@ SK_GPUPollingThread (LPVOID user)
         SK_DXGI_SignalBudgetThread ();
       };
 
-      SK_RunOnce ({
+      static NvAPI_Status
+          callback_registration_status  = NVAPI_TIMEOUT;
+      if (callback_registration_status == NVAPI_TIMEOUT)
+      {
         NV_GPU_CLIENT_UTILIZATION_PERIODIC_CALLBACK_SETTINGS
           cbSettings = { NV_GPU_CLIENT_UTILIZATION_PERIODIC_CALLBACK_SETTINGS_VER };
 
@@ -223,10 +226,12 @@ SK_GPUPollingThread (LPVOID user)
         auto &display =
           rb.displays [rb.active_display];
 
+        callback_registration_status =
+          NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates (display.nvapi.gpu_handle, &cbSettings);
+
         bHasNVPeriodic =
-          ( NVAPI_OK ==
-              NvAPI_GPU_ClientRegisterForUtilizationSampleUpdates (display.nvapi.gpu_handle, &cbSettings) );
-      });
+          ( NVAPI_OK == callback_registration_status );
+      }
     }
 
     else

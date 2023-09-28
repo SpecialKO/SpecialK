@@ -264,6 +264,10 @@ typedef DWORD_PTR (WINAPI *SetThreadAffinityMask_pfn)(
   _In_ DWORD_PTR dwThreadAffinityMask
 );
 
+using SetThreadIdealProcessor_pfn = DWORD (WINAPI *)(HANDLE,DWORD);
+using SetThreadPriorityBoost_pfn  = BOOL  (WINAPI *)(HANDLE, BOOL);
+using SetThreadPriority_pfn       = BOOL  (WINAPI *)(HANDLE, int);
+
 extern "C" HRESULT WINAPI SK_SetThreadDescription (HANDLE, PCWSTR);
 extern "C" HRESULT WINAPI SK_GetThreadDescription (HANDLE, PWSTR*);
 
