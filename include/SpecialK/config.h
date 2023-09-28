@@ -1387,6 +1387,10 @@ SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void);
 
+bool
+__stdcall
+SK_IsCurrentGame (SK_GAME_ID game_id);
+
 const wchar_t*
 __stdcall
 SK_GetConfigPath (void);

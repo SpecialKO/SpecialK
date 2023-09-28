@@ -64,6 +64,14 @@ UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
 
+bool
+__stdcall
+SK_IsCurrentGame (SK_GAME_ID game_id)
+{
+  return
+    SK_GetCurrentGameID () == game_id;
+}
+
 SK_GAME_ID
 __stdcall
 SK_GetCurrentGameID (void)

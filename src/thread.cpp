@@ -1127,6 +1127,11 @@ SK_GetRenderThreadID (void)
 DWORD
 SK_GetMainThreadID (void)
 {
+  static DWORD tid = 0;
+
+  if (tid != 0)
+    return tid;
+
   SK_AutoHandle hThreadSnapshot (
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
@@ -1141,7 +1146,6 @@ SK_GetMainThreadID (void)
     tent        = { };
     tent.dwSize = sizeof (THREADENTRY32);
 
-  DWORD tid = 0;
   DWORD pid = GetCurrentProcessId ();
 
   if (Thread32First (hThreadSnapshot, &tent))

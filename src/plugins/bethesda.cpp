@@ -908,8 +908,8 @@ SK_SF_SetThreadPriorityHook ( HANDLE hThread,
 {
   SK_SetThreadPriorityBoost (hThread, FALSE);
 
-  if (SK_Thread_GetCurrentPriority () > nPriority)
-    return TRUE;
+  //if (SK_Thread_GetCurrentPriority () > nPriority)
+  //  return TRUE;
 
   return
     SetThreadPriority_Original (hThread, nPriority);

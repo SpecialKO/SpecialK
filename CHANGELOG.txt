@@ -1,4 +1,8 @@
-﻿23.9.29
+﻿23.9.29.1
+=========
+ + Run all of Starfield's Steam callbacks on its main thread
+
+23.9.29
 =======
  + Added DLSS-G detection for all D3D12 games; false positives may happen
      when using menus in some games that switch DLSS-G off in menus.
