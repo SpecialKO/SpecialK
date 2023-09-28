@@ -8759,6 +8759,11 @@ HookDXGI (LPVOID user)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
 
+    SK_ComPtr <IDXGISwapChain>      pNativeSwapChain;
+    SK_ComPtr <IDXGIFactory>        pNativeFactory;
+    SK_ComPtr <ID3D11Device>        pNativeDevice;
+    SK_ComPtr <ID3D11DeviceContext> pNativeImmediateContext;
+
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
     if (config.compatibility.reshade_mode && (! config.compatibility.using_wine))
@@ -8857,7 +8862,6 @@ HookDXGI (LPVOID user)
 
       if (bHasStreamline)
       {
-        SK_ComPtr <IDXGISwapChain>                           pNativeSwapChain;
         if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");
@@ -8865,7 +8869,6 @@ HookDXGI (LPVOID user)
           pSwapChain.p->AddRef ();
           pSwapChain = pNativeSwapChain;
 
-          SK_ComPtr <IDXGIFactory>                           pNativeFactory;
           if (SK_slGetNativeInterface (pFactory.p, (void **)&pNativeFactory.p) == sl::Result::eOk)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI Factory...");
@@ -8874,7 +8877,6 @@ HookDXGI (LPVOID user)
             pFactory = pNativeFactory;
           }
 
-          SK_ComPtr <ID3D11Device>                          pNativeDevice;
           if (SK_slGetNativeInterface (pDevice.p, (void **)&pNativeDevice.p) == sl::Result::eOk)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Device...");
@@ -8883,7 +8885,6 @@ HookDXGI (LPVOID user)
             pDevice = pNativeDevice;
           }
 
-          SK_ComPtr <ID3D11DeviceContext>                             pNativeImmediateContext;
           if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
           {
             SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D11 Immediate Context...");
@@ -8932,8 +8933,6 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
-        SK_ComPtr <IDXGIFactory> pNativeFactory;
-
         if (bHasStreamline)
         { 
           if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
@@ -8966,7 +8965,6 @@ HookDXGI (LPVOID user)
         //if (SUCCEEDED (pFactory->CreateSwapChain (pDevice, &desc, &pSwapChain)))
         bHookSuccess = true;
 
-        SK_ComPtr <IDXGISwapChain>                                             pNativeSwapChain;
         if (bHasStreamline && SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
         {
           SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd DXGI SwapChain...");

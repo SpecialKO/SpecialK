@@ -1,4 +1,9 @@
-﻿23.9.28.4
+﻿23.9.28.5
+=========
+ + Fixed potential initialization issues in Nixxes games that use
+     Streamline + DLSS-G
+
+23.9.28.4
 =========
  + Added Reflex + SK Framerate Limiter back to FSR2Streamline's DLSS-G
      control panel.
