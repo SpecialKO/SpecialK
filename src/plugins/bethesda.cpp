@@ -431,9 +431,17 @@ static DLSSGInfo dlssg_state;
 
 void __stdcall SK_SF_ResolutionCallback (ResolutionInfo *info, void *);
 
-void
+bool
 SK_SF_InitFSR2Streamline (void)
 {
+  if (f2sRegisterResolutionErrorCallback != nullptr)
+    return true;
+
+  static constexpr int _MAX_INIT_ATTEMPTS = 30;
+  static int tries = 0;
+  if (     ++tries >   _MAX_INIT_ATTEMPTS )
+    return false;
+
   if (f2sRegisterResolutionErrorCallback == nullptr)
   {
     HMODULE hMod =
@@ -467,8 +475,12 @@ SK_SF_InitFSR2Streamline (void)
 
         f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
       }
+
+      return true;
     }
   }
+
+  return true;
 }
 
 bool SK_SF_PlugInCfg (void)
@@ -479,7 +491,7 @@ bool SK_SF_PlugInCfg (void)
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
 
-  SK_RunOnce (SK_SF_InitFSR2Streamline ());
+  SK_SF_InitFSR2Streamline ();
 
   if (ImGui::CollapsingHeader (utf8VersionString.data (), ImGuiTreeNodeFlags_DefaultOpen))
   {
@@ -1455,6 +1467,8 @@ void
 __stdcall
 SK_SF_EndOfFrame (void)
 {
+  SK_SF_InitFSR2Streamline ();
+
   if (f2sGetDLSSGInfo != nullptr)
   {
     if (f2sGetDLSSGInfo (&dlssg_state))
@@ -1504,7 +1518,7 @@ SK_BGS_InitPlugin(void)
     plugin.game_ver_str =
       SK_GetDLLVersionStr (SK_GetHostApp ());
 
-    SK_RunOnce (SK_SF_InitFSR2Streamline ());
+    SK_SF_InitFSR2Streamline ();
 
     // Default these to on if user is using HDR
     plugin.bRemasterHDRRTs      = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);

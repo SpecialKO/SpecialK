@@ -60,8 +60,6 @@ static constexpr constexpr_module_s::list_type __graylist = {
   L"setup.exe",
   L"vrserver.exe",
   L"jusched.exe",
-  L"perfwatson2.exe",
-  L"dataexchangehost.exe",
   L"oalinst.exe",
   L"dxsetup.exe",
   L"uninstall.exe",
@@ -71,8 +69,6 @@ static constexpr constexpr_module_s::list_type __graylist = {
   L"dotnetfx40_full_x86_x64.exe",
   L"dotnetfx40_client_x86_x64.exe",
   L"ndp451-kb2872776-x86-x64-allos-enu.exe",
-  L"identity_helper.exe",
-  L"yourphoneserver.exe", // Injects into UWP app that later suspends itself
   L"razer synapse service.exe",
 
 #ifdef _M_IX86
@@ -100,14 +96,6 @@ static constexpr constexpr_module_s::list_type __graylist = {
 
 static constexpr constexpr_module_s::list_type __blacklist = {
 #ifdef _M_AMD64
-  L"cl.exe",
-  L"msbuild.exe",
-  L"systemsettings.exe",
-  L"systemsettingsbroker.exe",
-  L"nvcplui.exe",
-  L"gamebarft.exe",
-  L"gamebarftserver.exe",
-
   L"vhui64.exe",
   L"x64launcher.exe",
   L"ff9_launcher.exe",
@@ -208,7 +196,6 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"activationui.exe",
   L"zossteamstarter.exe",
   L"eac.exe",
-  L"ealink.exe",
 
   L"dock.exe",
   L"dock_64.exe",
@@ -216,52 +203,23 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"dockmod64.exe",
 
   L"crashpad_handler.exe",
-  L"clang-tidy.exe",
   L"clupdater.exe",
   L"activate.exe",
   L"werfault.exe",
-  L"x64dbg.exe",
-  L"locationnotificationwindows.exe",
-  L"servicehub.datawarehousehost.exe",
   L"launchtm.exe",
   L"displayhdrcompliancetests.exe",
   L"scriptedsandbox64.exe",
   L"crashreportclient.exe",
+  L"blizzarderror.exe",
   L"crs-handler.exe",
 
-  L"gamebar.exe",
-  L"gamingservicesui.exe",
   L"pwahelper.exe",
 
-  // Does not reply to DLL unload requests
-  L"mspaint.exe",
-  L"notepad.exe",
-  L"explorer.exe",
-  L"prevhost.exe",
-
-  L"windowsterminal.exe",
-  L"cmd.exe",
-  L"steam.exe",
-  L"powershell.exe",
-  L"openconsole.exe",
   L"epicwebhelper.exe",
   L"steamwebhelper.exe",
-  L"epicgameslauncher.exe",
   L"galaxyclient helper.exe",
 
-
-  L"applicationframehost.exe",
-  L"servicehub.host.clr.x86.exe",
-  L"servicehub.settingshost.exe",
-  L"servicehub.identityhost.exe",
-  L"servicehub.threadedwaitdialog.exe",
-  L"nvidia web helper.exe",
   L"tobii.eyex.engine.exe",
-  L"esrv.exe",
   L"ipoint.exe",
   L"itype.exe",
-  L"devenv.exe",
-  L"msedge.exe",
-  L"vsgraphics.exe",
-  L"msedgewebview2.exe"
 };

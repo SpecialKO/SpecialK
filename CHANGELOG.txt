@@ -1,4 +1,11 @@
-﻿23.9.28.1
+﻿23.9.28.2
+=========
+ + Handle Auto-DLSS-G pacing mode better when using FSR2Streamline
+
+    >> Previous implementation did not auto-activate DLSS-G Pacing mode
+         without first opening the control panel...
+
+23.9.28.1
 =========
  + Added alternate thread scheduling mode for Starfield:
 
