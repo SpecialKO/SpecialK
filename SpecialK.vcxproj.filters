@@ -3536,6 +3536,9 @@
     <ClCompile Include="src\render\ngx\ngx_d3d11.cpp">
       <Filter>Source Files\Backends\Render\NGX</Filter>
     </ClCompile>
+    <ClCompile Include="src\imgui\imgui_tables.cpp">
+      <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

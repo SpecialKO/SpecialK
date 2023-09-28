@@ -215,11 +215,11 @@ SK_ImGui_DrawGraph_Latency ()
       ImColor (1.f, 1.f, 1.f), "Input Age"
     );
     }
-    ImGui::EndGroup          ();
-    ImGui::SameLine          ();
-    ImGui::VerticalSeparator ();
-    ImGui::SameLine          (0.0f, 10.0f);
-    ImGui::BeginGroup        ();
+    ImGui::EndGroup    ();
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine    (0.0f, 10.0f);
+    ImGui::BeginGroup  ();
     ////for (auto* pStage : stages)
     ////{
     ////  ImGui::TextColored (
@@ -288,10 +288,10 @@ SK_ImGui_DrawGraph_Latency ()
       fLegendY +=
         ImGui::GetTextLineHeightWithSpacing () / 2.0f;
     }
-    ImGui::EndGroup   ();
+    ImGui::EndGroup    ();
 
-    ImGui::SameLine          ();
-    ImGui::VerticalSeparator ();
+    ImGui::SameLine    ();
+    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   }
 
   ImGui::SameLine   (0, 10.0f);
@@ -663,12 +663,12 @@ public:
   {
     SK_Widget::config_base ();
 
-    ImGui::Separator ();
-    ImGui::TreePush  ();
+    ImGui::Separator (  );
+    ImGui::TreePush  ("");
 
     SK_ImGui_DrawConfig_Latency ();
 
-    ImGui::TreePop   ();
+    ImGui::TreePop   (  );
   }
 
   void OnConfig (ConfigEvent event) noexcept override

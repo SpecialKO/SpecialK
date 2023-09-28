@@ -71,7 +71,7 @@ SK_OPT_PlugInCfg (void)
 
     if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ImGui::TreePush ();
+      ImGui::TreePush ("");
 
       bool changed = false;
 
@@ -174,8 +174,8 @@ SK_OPT_PlugInCfg (void)
     {
       bool changed = false;
 
-      ImGui::TreePush   ();
-      ImGui::BeginGroup ();
+      ImGui::TreePush   ("");
+      ImGui::BeginGroup (  );
 
       if (ImGui::Checkbox ("Continue Rendering in Background",        &config.window.background_render))
         changed = true;

@@ -744,7 +744,7 @@ public:
       changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles->display_most_recent);
 
       ImGui::Separator ();
-      ImGui::TreePush  ();
+      ImGui::TreePush  ("");
 
       if ( ImGui::SliderFloat (
              "Percentile Class 0 Cutoff",
@@ -1260,8 +1260,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
     fGaugeSizes += fDISKSize * fUIScale;
 
   const ImVec2 border_dims (
-    std::max (                  (500.0f * fUIScale) - fGaugeSizes,
-               ImGui::GetContentRegionAvailWidth () - fGaugeSizes ),
+    std::max (               (500.0f * fUIScale) - fGaugeSizes,
+               ImGui::GetContentRegionAvail ().x - fGaugeSizes ),
       font_size * 7.0f
   );
 
@@ -1363,7 +1363,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
     ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph
     ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
-    ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
+    ImGui::PushStyleColor (ImGuiCol_FrameBg,     ImGui::GetStyleColorVec4 (ImGuiCol_ChildBg));
     ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
     ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
     if (bDrawProcessorLoad)
@@ -1475,10 +1475,10 @@ SK_ImGui_DrawFramePercentiles (void)
             frame_history->calcDataTimespan () :
            snapshots->mean.calcDataTimespan () );
 
-  ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
-  ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-  ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-  ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+  ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255));
+  ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
+  ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
+  ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
 
   percentile0.computeFPS (                             show_immediate ?
     frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
@@ -1590,7 +1590,7 @@ SK_ImGui_DrawFramePercentiles (void)
       else snapshots->reset ();
     }
 
-    unsigned int     p0_color  (
+    ImVec4           p0_color  (
       ImColor::HSV ( p0_ratio * 0.278f,
               0.88f, luminance )
                    );
@@ -1622,7 +1622,7 @@ SK_ImGui_DrawFramePercentiles (void)
       float p1_ratio =
           percentile1.computed_fps / mean.computed_fps;
 
-      unsigned       p1_color  (
+      ImVec4         p1_color  (
       ImColor::HSV ( p1_ratio * 0.278f,
               0.88f, luminance )
                    );

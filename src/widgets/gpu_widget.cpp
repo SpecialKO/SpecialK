@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <imgui/imgui_user.inl>
 
 extern iSK_INI* osd_ini;
 
@@ -339,7 +340,7 @@ public:
                    (float)gpu_load.getCapacity () );
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_LoadPercent",
                            gpu_load.getValues     ().data (),
@@ -381,7 +382,7 @@ public:
                    (float)gpu_temp_c.getCapacity () );
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_TempC",
                            gpu_temp_c.getValues     ().data (),
@@ -432,7 +433,7 @@ public:
         std::max ( max_rpm, fan_rpm.getMax () > 0 ? fan_rpm.getMax () : max_rpm );
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_FanSpeed_Hz",
                            fan_rpm.getValues     ().data (),
@@ -481,7 +482,7 @@ public:
                                        core_clock_ghz.getMin ()     : min_clock);
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_CoreClock",
                            core_clock_ghz.getValues ().data (),
@@ -530,7 +531,7 @@ public:
                                                  vram_clock_ghz.getMin ()     : min_vram_clock);
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_VRAMClock",
                            vram_clock_ghz.getValues ().data (),
@@ -583,7 +584,7 @@ public:
         capacity_in_mib = 4096.0f; // Just take a wild guess, lol
 
       float fx = ImGui::GetCursorPosX ();
-      float fw = ImGui::GetContentRegionAvailWidth ();
+      float fw = ImGui::GetContentRegionAvail ().x;
 
       ImGui::PlotLinesC ( "###GPU_VRAMUsage",
                            vram_used_mib.getValues ().data (),

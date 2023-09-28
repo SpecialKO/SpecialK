@@ -4367,11 +4367,11 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
           SK_D3D11_ShaderColors ();
 
         ImGui::PushStyleColor ( std::get <0> (colors [shader_type]).first,
-                                std::get <0> (colors [shader_type]).second );
+                        (ImVec4)std::get <0> (colors [shader_type]).second );
         ImGui::PushStyleColor ( std::get <1> (colors [shader_type]).first,
-                                std::get <1> (colors [shader_type]).second );
+                        (ImVec4)std::get <1> (colors [shader_type]).second );
         ImGui::PushStyleColor ( std::get <2> (colors [shader_type]).first,
-                                std::get <2> (colors [shader_type]).second );
+                        (ImVec4)std::get <2> (colors [shader_type]).second );
 
         if (ImGui::CollapsingHeader (label))
         {

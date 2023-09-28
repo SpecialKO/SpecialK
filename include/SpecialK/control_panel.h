@@ -74,14 +74,14 @@ namespace SK_ImGui
   static inline bool
   SliderFloatDeferred (
     const char* label, float* v, float* temp, float v_min, float v_max,
-    const char* format = "%.3f", float power = 1.0F
+    const char* format = "%.3f"
   )
   {
     if (v == nullptr || temp == nullptr)
       return false;
   
     bool ret =
-      ImGui::SliderFloat (label, temp, v_min, v_max, format, power);
+      ImGui::SliderFloat (label, temp, v_min, v_max, format);
   
     if (! (ImGui::IsItemFocused () || ImGui::IsItemActive ()))
     {

@@ -1,4 +1,5 @@
-﻿/**
+﻿
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1052,7 +1053,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   display_list += '\0';
 
-  ImGui::TreePush ();
+  ImGui::TreePush ("");
 
   int active_display = rb.active_display;
 
@@ -1616,7 +1617,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImGui::EndGroup    ();
   ImGui::SameLine    ();
-  ImGui::VerticalSeparator ();
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
 
@@ -2632,12 +2633,12 @@ SK_NV_LatencyControlPanel (void)
         ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
   }
 
-  ImGui::TreePush   ();
+  ImGui::TreePush ("");
 
   SK_ImGui_DrawConfig_Latency ();
   SK_ImGui_DrawGraph_Latency  ();
 
-  ImGui::TreePop    ();
+  ImGui::TreePop  (  );
 }
 
 void
@@ -2654,7 +2655,7 @@ SK_NV_GSYNCControlPanel ()
     {
       ImGui::Text ("NVIDIA G-Sync Configuration");
 
-      ImGui::TreePush   ();
+      ImGui::TreePush ("");
 
       static bool bEnableFastSync =
              SK_NvAPI_GetFastSync ();
@@ -3901,12 +3902,12 @@ SK_ImGui_ControlPanel (void)
       {
         if (effective_power_mode != EffectivePowerModeNone)
         {
-          ImGui::SameLine          ();
-          ImGui::VerticalSeparator ();
-          ImGui::SameLine          ();
-          ImGui::BeginGroup        ();
-          ImGui::Text              ("\tEffective Power Mode:\t %hs",
-                                    SK_Power_GetEffectiveModeStr (effective_power_mode));
+          ImGui::SameLine    ();
+          ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine    ();
+          ImGui::BeginGroup  ();
+          ImGui::Text        ("\tEffective Power Mode:\t %hs",
+                              SK_Power_GetEffectiveModeStr (effective_power_mode));
 
           if (effective_power_mode != EffectivePowerModeGameMode)
           {
@@ -5094,9 +5095,9 @@ SK_ImGui_ControlPanel (void)
                 ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
               }
 
-              ImGui::SameLine          ();
-              ImGui::VerticalSeparator ();
-              ImGui::SameLine          ();
+              ImGui::SameLine    ();
+              ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+              ImGui::SameLine    ();
             }
 
             if (sk::NVAPI::nv_hardware)
@@ -5178,7 +5179,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::EndGroup     ();
             ImGui::PopItemWidth ();
             ImGui::SameLine     (0.0f, 20.0f);
-            ImGui::VerticalSeparator ();
+            ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
             ImGui::SameLine     (0.0f, 20.0f);
           }
 
@@ -5233,7 +5234,7 @@ SK_ImGui_ControlPanel (void)
             case THREAD_PRIORITY_TIME_CRITICAL: min_render_prio = 6; break;
           }
 
-          ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth ());
+          ImGui::PushItemWidth (ImGui::GetContentRegionAvail ().x);
 
           if (ImGui::Combo ( "###Render Thread Priority", &min_render_prio,
                                 "Render Priority:\tIdle\0"
@@ -6327,9 +6328,9 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextUnformatted (  "to open Special K's configuration menu. " );
 
-    ImGui::SameLine (); ImGui::Spacing           ();
-    ImGui::SameLine (); ImGui::VerticalSeparator ();
-    ImGui::SameLine (); ImGui::Spacing           ();
+    ImGui::SameLine (); ImGui::Spacing     ();
+    ImGui::SameLine (); ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine (); ImGui::Spacing     ();
     ImGui::SameLine ();
     ImGui::TextColored  (ImVec4 (0.999f, 0.666f, 0.333f, 1.f), ICON_FA_INFO_CIRCLE);
     ImGui::SameLine ();

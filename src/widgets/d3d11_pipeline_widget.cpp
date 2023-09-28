@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <imgui/imgui_user.inl>
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
@@ -138,7 +139,7 @@ public:
                                  pipeline.vertex.verts_invoked.getMin    () / 2.0f,
                static_cast <float> (max_invoke)                             * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_invoke) );
 
       static uint64_t max_verts = (                     static_cast <uint64_t>    (pipeline.vertex.verts_input.getMax ()));
@@ -166,7 +167,7 @@ public:
                                  pipeline.vertex.verts_input.getMin    () / 2.0f,
                static_cast <float> (max_verts)                            * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_verts) );
 
       static uint64_t max_prims = (                     static_cast <uint64_t>    (pipeline.vertex.prims_input.getMax ()));
@@ -194,7 +195,7 @@ public:
                                  pipeline.vertex.prims_input.getMin    () / 2.0f,
                static_cast <float> (max_prims)                            * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_prims) );
     }
 
@@ -230,7 +231,7 @@ public:
                                  0.0f,//pipeline.raster.fill_ratio.getMin    () / 2.0f,
                                    100.0f,//max_ratio                             * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f), sizeof (float),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f), sizeof (float),
                                          0.0, 100.0, 0.0, true );
 
       static uint64_t max_fill = (   static_cast <uint64_t> (pipeline.raster.pixels_filled.getMax ()) );
@@ -262,7 +263,7 @@ public:
                                  pipeline.raster.pixels_filled.getMin    () / 2.0f,
                static_cast <float> (max_fill)                               * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_fill) );
     }
 
@@ -296,7 +297,7 @@ public:
                                  pipeline.compute.dispatches.getMin    () / 2.0f,
                static_cast <float> (max_dispatch)                         * 1.05f,
                                      ImVec2 (
-                                       ImGui::GetContentRegionAvailWidth (), font_size * 4.5f),
+                                       ImGui::GetContentRegionAvail ().x, font_size * 4.5f),
                                          sizeof (float), 0.0f, static_cast <float> (max_dispatch) );
     }
   }

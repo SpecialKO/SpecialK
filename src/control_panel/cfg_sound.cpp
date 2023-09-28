@@ -152,7 +152,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
           volume *= 100.0f;
 
-          ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth () - 37.0f);
+          ImGui::PushItemWidth (ImGui::GetContentRegionAvail ().x - 37.0f);
           {
             if (ImGui::SliderFloat (szLabel, &volume, 0.0f, 100.0f, "Volume: %03.1f%%"))
               volume_ctl->SetMasterVolume (volume / 100.0f, nullptr);
@@ -612,9 +612,9 @@ SK_ImGui_VolumeManager (void)
         }
       }
 
-      ImGui::VerticalSeparator ();
-      ImGui::SameLine          ();
-      ImGui::BeginGroup        ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+      ImGui::BeginGroup  ();
 
       static auto cur_lat = SK_WASAPI_GetCurrentLatency ();
       static auto min_lat = SK_WASAPI_GetMinimumLatency ();
@@ -892,7 +892,7 @@ SK_ImGui_VolumeManager (void)
                                          "",
                                               history [i].vu_peaks.disp_min,
                                               1.0f,
-                                               ImVec2 (ImGui::GetContentRegionAvailWidth (), ht) );
+                                               ImVec2 (ImGui::GetContentRegionAvail ().x, ht) );
           ImGui::PopStyleColor  ();
 
           ImGui::PushStyleColor (ImGuiCol_PlotHistogram,        ImVec4 (0.9f, 0.1f, 0.1f, 0.15f));

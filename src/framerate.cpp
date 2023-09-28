@@ -468,8 +468,7 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::SameLine ();
       ImGui::Spacing  ();
       ImGui::SameLine ();
-      ImGui::VerticalSeparator 
-                      ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
       ImGui::SameLine ();
       ImGui::Spacing  ();
       ImGui::SameLine ();
@@ -591,17 +590,17 @@ SK_ImGui_LatentSyncConfig (void)
         SK_ReleaseAssert (llVSync0 == llVSync1);
       }
 
-      ImGui::TreePop  ( );
+      ImGui::TreePop  (  );
     }
 
-    ImGui::Separator  ( );
-    ImGui::TreePush   ( );
+    ImGui::Separator  (  );
+    ImGui::TreePush   ("");
 
     ImGui::Text       ("");
     ImGui::Text       ("Status: ");
 
-    ImGui::SameLine   ( );
-    ImGui::BeginGroup ( );
+    ImGui::SameLine   (  );
+    ImGui::BeginGroup (  );
 
     const bool locked =
       config.render.framerate.target_fps > 0.0f &&

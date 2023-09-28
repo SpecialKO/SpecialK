@@ -131,6 +131,12 @@ public:
   bool             unlock   (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
 };
 
+namespace sk {
+  namespace logs {
+    extern int base_log_lvl;
+  };
+};
+
 interface iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
@@ -165,8 +171,8 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 #define SK_STRIP_PARENTHESIS(X) X
 #define SK_VARIADIC(X)          SK_STRIP_PARENTHESIS( SK_ARGS X )
 
-#define SK_LOG_EX(level,first,expr)       \
-  if (config.system.log_level >= (level)) \
+#define SK_LOG_EX(level,first,expr)      \
+  if (sk::logs::base_log_lvl >= (level)) \
     dll_log->LogEx (first, SK_VARIADIC (expr))
 
 #define SK_LOG0_EX(first,expr) SK_LOG_EX(0,first,expr)
@@ -175,9 +181,9 @@ SK_SummarizeCaller (LPVOID lpReturnAddr = _ReturnAddress ());
 #define SK_LOG3_EX(first,expr) SK_LOG_EX(3,first,expr)
 #define SK_LOG4_EX(first,expr) SK_LOG_EX(4,first,expr)
 
-#define SK_LOG(expr,level,source)       \
-  if (config.system.log_level >= level) \
-    dll_log->Log (L"[" source L"] "     \
+#define SK_LOG(expr,level,source)      \
+  if (sk::logs::base_log_lvl >= level) \
+    dll_log->Log (L"[" source L"] "    \
           SK_VARIADIC (expr))
 
 #define SK_LOG0(expr,src) SK_LOG(expr,0,src)

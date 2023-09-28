@@ -509,9 +509,9 @@ SK_TVFix_PlugInCfg (void)
 
     ImGui::BeginGroup ();
     if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                    ImGuiTreeNodeFlags_AllowItemOverlap))
+                                                    ImGuiTreeNodeFlags_AllowOverlap))
     {
-      ImGui::TreePush ();
+      ImGui::TreePush ("");
 
       bool enable = (! plugin_ctx.__SK_TVFix_DisableDepthOfField);
 

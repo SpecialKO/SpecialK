@@ -436,7 +436,7 @@ SK::ControlPanel::Input::Draw (void)
       auto _CursorBoundaryWidget = [&]()
       {
         ImGui::BeginGroup             ();
-        ImGui::VerticalSeparator      ();
+        ImGui::SeparatorEx            (ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine               ();
         SK_ImGui_CursorBoundaryConfig ();
         ImGui::EndGroup               ();
@@ -553,7 +553,7 @@ SK::ControlPanel::Input::Draw (void)
     }
 
     bool uncollapsed_gamepads =
-      ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowItemOverlap);
+      ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowOverlap);
 
   //SK_ImGui_DrawGamepadStatusBar ();
 
@@ -1148,9 +1148,9 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop       ();
       ImGui::EndGroup      ();
 
-      ImGui::SameLine          ();
-      ImGui::VerticalSeparator ();
-      ImGui::SameLine          ();
+      ImGui::SameLine      ();
+      ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine      ();
 
       ImGui::BeginGroup    ();
       ImGui::Text          ("Mouse Input Capture");
@@ -1306,11 +1306,9 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::SetTooltip ("Does not apply to Steam Input; Steam tracks the game window itself.");
       }
       ImGui::EndGroup     (  );
-
-      ImGui::SameLine          ();
-      ImGui::VerticalSeparator ();
-      ImGui::SameLine          ();
-
+      ImGui::SameLine     (  );
+      ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine     (  );
       ImGui::BeginGroup   (  );
       ImGui::PushStyleColor
                           (ImGuiCol_Text, ImVec4 (0.75f, 0.75f, 0.75f, 1.f));
@@ -1519,7 +1517,7 @@ SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
   bool ret = false;
 
   ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (0.667f, 0.667f, 0.667f, 1.0f));
-  ImGui::PushItemWidth  (ImGui::GetContentRegionAvailWidth ());
+  ImGui::PushItemWidth  (ImGui::GetContentRegionAvail ().x);
 
   ret =
     ImGui::Selectable (szLabel, false);
