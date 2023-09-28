@@ -25,7 +25,7 @@
 
 bool __SK_HasDLSSGStatusSupport = false;
 bool __SK_IsDLSSGActive         = false;
-bool __SK_DoubleUpOnReflex      = false;
+bool __SK_DoubleUpOnReflex      =  true;
 bool __SK_ForceDLSSGPacing      = false;
 
 static iSK_INI* game_ini       = nullptr;
@@ -86,6 +86,7 @@ struct {
     sk::ParameterBool* photo_mode_compatibility = nullptr;
     sk::ParameterBool* disable_fps_limit        = nullptr;
     sk::ParameterBool* alternate_thread_sched   = nullptr;
+    sk::ParameterBool* combined_reflex_sk_limit = nullptr;
 
     sk::ParameterInt64* image_addr      = nullptr;
     sk::ParameterInt64* buffer_def_addr = nullptr;
@@ -804,10 +805,20 @@ bool SK_SF_PlugInCfg (void)
             f2sSetConfigValue (&cfg_val);
           }
 
-          //if (dlssg_state.dlssgEnabled)
-          //{
-          //  ImGui::Checkbox ("Enable SK + Reflex Limiter", &__SK_DoubleUpOnReflex);
-          //}
+          if (dlssg_state.dlssgEnabled)
+          {
+            if (ImGui::Checkbox ("Combine SK + Reflex Limiter", &__SK_DoubleUpOnReflex))
+            {
+              plugin.ini.combined_reflex_sk_limit->store (__SK_DoubleUpOnReflex);
+
+              dll_ini->write ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip ("May improve frame pacing, for marginal increase in latency.");
+            }
+          }
         }
 
         changed |=
@@ -1583,6 +1594,11 @@ SK_BGS_InitPlugin(void)
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"AlternateThreadScheduling",
                          plugin.bAlternateThreadSched );
+
+    plugin.ini.combined_reflex_sk_limit =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"CombineReflexAndSKLimiters",
+                         __SK_DoubleUpOnReflex );
 
     if (plugin.bAlternateThreadSched)
     {

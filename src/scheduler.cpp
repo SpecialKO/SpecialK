@@ -1024,6 +1024,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     }
   }
 
+  if (game_id == SK_GAME_ID::Starfield)
+  {
+    if (dwMilliseconds == 0)
+    {
+      return
+        SwitchToThread ();
+    }
+  }
+
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
 

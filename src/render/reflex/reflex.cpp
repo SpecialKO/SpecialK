@@ -390,7 +390,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
         if (__target_fps > 10.0f)
         {
           config.nvidia.reflex.frame_interval_us =
-            (UINT)(1000000.0 / __target_fps);
+            (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 3
+                                                                       : 0 );
         }
       }
     }
