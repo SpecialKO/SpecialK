@@ -3157,8 +3157,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Starfield:
-        // Name is misleading, this also helps with Streamline
-        config.compatibility.reshade_mode = true;
+        config.compatibility.reshade_mode = false;
         break;
     }
   }

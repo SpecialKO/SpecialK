@@ -1,4 +1,9 @@
-﻿23.9.28.2
+﻿23.9.28.3
+=========
+ + Disabled Streamline compatibility mode for FSR2Streamline in Starfield,
+     reset SK's config file if using an updated version of FSR2Streamline.
+
+23.9.28.2
 =========
  + Handle Auto-DLSS-G pacing mode better when using FSR2Streamline
 

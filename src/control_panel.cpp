@@ -4664,7 +4664,8 @@ SK_ImGui_ControlPanel (void)
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
-              config.render.framerate.target_fps        > 0.0f;
+             (config.render.framerate.target_fps        > 0.0f ||
+                                           __target_fps > 0.0f);
 
             if (ImGui::Checkbox ("Latent Sync", &bLatentSync))
             {
@@ -4975,14 +4976,11 @@ SK_ImGui_ControlPanel (void)
                 case limiter_mode_e::Normal:
                   if (__SK_ForceDLSSGPacing)
                   {
-                    if (config.render.framerate.target_fps > 0.0f)
+                    if (config.render.framerate.target_fps < 0.0f)
                         config.render.framerate.target_fps = -config.render.framerate.target_fps;
                   }
                   else
                   {
-                    if (config.render.framerate.target_fps > 0.0f)
-                        config.render.framerate.target_fps = -config.render.framerate.target_fps;
-
                     config.render.framerate.enforcement_policy = 4;
 
                     if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
@@ -4991,9 +4989,6 @@ SK_ImGui_ControlPanel (void)
                   break;
 
                 case limiter_mode_e::LowLatency:
-                  if (config.render.framerate.target_fps > 0.0f)
-                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
-
                   config.render.framerate.enforcement_policy = 2;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
@@ -5001,11 +4996,12 @@ SK_ImGui_ControlPanel (void)
                   break;
 
                 case limiter_mode_e::LatentSync:
-                  if (config.render.framerate.target_fps > 0.0f)
-                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
-
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
+
+                  // Trigger a re-sync
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync + 1);
                   break;
 
                 case limiter_mode_e::Reflex:
@@ -5016,9 +5012,6 @@ SK_ImGui_ControlPanel (void)
                     original_reflex_settings.enable           = config.nvidia.reflex.enable;
                     original_reflex_settings.present_interval = config.render.framerate.present_interval;
                   }
-
-                  if (config.render.framerate.target_fps > 0.0f)
-                      config.render.framerate.target_fps = -config.render.framerate.target_fps;
 
                   config.nvidia.reflex.use_limiter         = true;
                   config.nvidia.reflex.low_latency         = true;
