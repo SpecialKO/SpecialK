@@ -638,6 +638,7 @@ struct {
     sk::ParameterInt*     engagement_policy       = nullptr;
     sk::ParameterBool*    override_native         = nullptr;
     sk::ParameterBool*    use_limiter             = nullptr;
+    sk::ParameterBool*    sporadic_native         = nullptr;
   } reflex;
 } nvidia;
 
@@ -1565,6 +1566,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
     ConfigEntry (nvidia.reflex.override_native,          L"Use SK's Reflex Mode options instead of the game's",        dll_ini,         L"NVIDIA.Reflex",         L"OverrideNativeMode"),
     ConfigEntry (nvidia.reflex.use_limiter,              L"Use Reflex's framerate limiter (SK's target) instead of SK",dll_ini,         L"NVIDIA.Reflex",         L"UseFramerateLimiter"),
+    ConfigEntry (nvidia.reflex.sporadic_native,          L"Game DOES use Reflex, but may only use it during gameplay", dll_ini,         L"NVIDIA.Reflex",         L"GameIsSporadicNative"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3149,6 +3151,10 @@ auto DeclKeybind =
         config.window.dont_hook_wndproc = true;
         break;
 
+      case SK_GAME_ID::RatchetAndClank_RiftApart:
+        config.nvidia.reflex.sporadic_native = true;
+        break;
+
       case SK_GAME_ID::CallOfDuty:
         // Disable D3D9 and D3D12 for OpenGL-IK to take precedence
         config.apis.d3d9.hook       = false;
@@ -3370,6 +3376,7 @@ auto DeclKeybind =
   nvidia.reflex.engagement_policy->load      (config.nvidia.reflex.enforcement_site);
   nvidia.reflex.override_native->load        (config.nvidia.reflex.override);
   nvidia.reflex.use_limiter->load            (config.nvidia.reflex.use_limiter);
+  nvidia.reflex.sporadic_native->load        (config.nvidia.reflex.sporadic_native);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -5187,6 +5194,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.marker_optimization->store    (config.nvidia.reflex.marker_optimization);
       nvidia.reflex.override_native->store        (config.nvidia.reflex.override);
       nvidia.reflex.use_limiter->store            (config.nvidia.reflex.use_limiter);
+      nvidia.reflex.sporadic_native->store        (config.nvidia.reflex.sporadic_native);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

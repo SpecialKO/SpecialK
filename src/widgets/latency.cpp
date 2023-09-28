@@ -460,7 +460,11 @@ SK_ImGui_DrawConfig_Latency ()
 
   bool show_mode_select = true;
 
-  if (config.nvidia.reflex.native)
+  const bool
+    bReflexNative = config.nvidia.reflex.         native ||
+                    config.nvidia.reflex.sporadic_native;
+
+  if (bReflexNative)
   {
     ImGui::Bullet   ();
     ImGui::SameLine ();
@@ -544,7 +548,7 @@ SK_ImGui_DrawConfig_Latency ()
       ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
   }
 
-  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency && (! config.nvidia.reflex.native) && bFullReflexSupport)
+  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency && (! bReflexNative) && bFullReflexSupport)
   {
     config.nvidia.reflex.enforcement_site =
       std::clamp (config.nvidia.reflex.enforcement_site, 0, 1);
@@ -567,7 +571,7 @@ SK_ImGui_DrawConfig_Latency ()
   
   if ( config.nvidia.reflex.enable            &&
        config.nvidia.reflex.low_latency       &&
-       config.nvidia.reflex.low_latency_boost && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
+       config.nvidia.reflex.low_latency_boost && ((! bReflexNative) || config.nvidia.reflex.override)
                                               && rb.isReflexSupported () )
   {
     ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);

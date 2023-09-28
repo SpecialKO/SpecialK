@@ -1304,10 +1304,14 @@ SK_ImGui_DrawGraph_FramePacing (void)
                                  2.0f * target_frametime + 0.1f,
                                    border_dims );
 
-  if ( game_window.active             && __target_fps > 0.0f               &&
-         config.nvidia.reflex.enable  && (config.nvidia.reflex.use_limiter || __SK_ForceDLSSGPacing) &&
-     ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
-                                      && rb.isReflexSupported () )
+  const bool
+    bReflexNative = config.nvidia.reflex.         native ||
+                    config.nvidia.reflex.sporadic_native;
+
+  if ( game_window.active            && __target_fps > 0.0f               &&
+         config.nvidia.reflex.enable && (config.nvidia.reflex.use_limiter || __SK_ForceDLSSGPacing) &&
+     (             (! bReflexNative) ||  config.nvidia.reflex.override)
+                                     && rb.isReflexSupported () )
   {
     ImGui::SameLine      (  );
     ImGui::SetCursorPosX (fX);

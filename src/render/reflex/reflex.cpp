@@ -43,7 +43,7 @@ using  NvAPI_D3D_SetSleepMode_pfn     =
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
-static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
+static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 100;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
 //
@@ -175,7 +175,11 @@ SK_NvAPI_HookReflex (void)
 void
 SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
 {
-  if (config.nvidia.reflex.native)
+  const bool
+      native = config.nvidia.reflex.sporadic_native ||
+               config.nvidia.reflex.         native;
+
+  if (native)
     return;
 
   static bool init = false;
@@ -262,8 +266,12 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
       }
     }
 
+    const bool
+      native = config.nvidia.reflex.sporadic_native ||
+               config.nvidia.reflex.         native;
+
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
+    if (sk::NVAPI::nv_hardware && ((! native) || marker == TRIGGER_FLASH))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -273,7 +281,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
              ReadULong64Acquire (&frames_drawn)       );
 
       // Triggered input flash, in a Reflex-native game
-      if (config.nvidia.reflex.native && marker == TRIGGER_FLASH)
+      if ( native && marker == TRIGGER_FLASH )
       {
         markerParams.frameID =
           SK_Reflex_LastInputFrameId;
@@ -333,8 +341,11 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   static bool
     lastOverride = true;
 
-  // Game has native Reflex, we should bail out (unles overriding it).
-  if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
+  bool native = config.nvidia.reflex.sporadic_native ||
+                config.nvidia.reflex.         native;
+
+  // Game has native Reflex, we should bail out (unless overriding it).
+  if (native && (! config.nvidia.reflex.override))
   {
     // Restore game's original Sleep mode when turning override off...
     if (std::exchange (lastOverride, config.nvidia.reflex.override) !=
@@ -365,7 +376,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
   }
 
-  if (site == 2 && (! config.nvidia.reflex.native))
+  if (site == 2 && (! native))
     setLatencyMarkerNV (INPUT_SAMPLE);
 
   if (site == config.nvidia.reflex.enforcement_site)
@@ -461,7 +472,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
     // Our own implementation
     //
-    if (! config.nvidia.reflex.native)
+    if (! native)
     {
       if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
         valid = false;
@@ -469,6 +480,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
                          api == SK_RenderAPI::D3D12 ))
       {
+        config.nvidia.reflex.sporadic_native = true;
+
         SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State" ),
                     __SK_SUBSYSTEM__ );
       }
