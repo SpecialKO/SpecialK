@@ -3448,6 +3448,107 @@ SK_SLI_UpdateStatus (IUnknown *device)
 
 extern void SK_NGX_UpdateDLSSGStatus (void);
 
+void SK_RandomCrapThatShouldBeInPlugIns (void)
+{
+  // TODO: Add a per-frame callback for plug-ins, because this is stupid
+  //
+#ifdef _M_AMD64
+  static const auto
+          game_id = SK_GetCurrentGameID ();
+  switch (game_id)
+  {
+    case SK_GAME_ID::Shenmue:
+      extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
+      WriteRelease        (&__SK_SHENMUE_FinishedButNotPresented, 0L);
+      break;
+    case SK_GAME_ID::FinalFantasyXV:
+      void SK_FFXV_SetupThreadPriorities (void);
+           SK_FFXV_SetupThreadPriorities ();
+      break;
+    case SK_GAME_ID::FinalFantasy7Remake:
+    {
+      uintptr_t pBase =
+        (uintptr_t)SK_Debug_GetImageBaseAddr ();
+
+      static uint8_t orig_bytes_3304DC8 [6] = { 0x0 };
+      static uint8_t orig_bytes_3304DD0 [6] = { 0x0 };
+      static uint8_t orig_bytes_3304E03 [2] = { 0x0 };
+      static uint8_t orig_bytes_1C0C42A [5] = { 0x0 };
+      static uint8_t orig_bytes_1C0C425 [5] = { 0x0 };
+
+      std::queue <DWORD> suspended;
+
+      auto orig_se =
+        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
+      try
+      {
+        static bool        bPatchable    = false;
+        static bool        bInit         = false;
+        if (std::exchange (bInit, true) == false)
+        {
+          DWORD dwOldProtect = 0x0;
+
+          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+          bPatchable = ( 0 == memcmp (
+                          (LPVOID)(pBase + 0x3304DC6), "\x73\x3d", 2) );
+          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, dwOldProtect,           &dwOldProtect);
+
+          if (bPatchable)
+          {
+            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304DC8,
+                            (LPVOID)(pBase + 0x3304DC8),                                        6);
+            memcpy (        (LPVOID)(pBase + 0x3304DC8), "\x90\x90\x90\x90\x90\x90",            6);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, dwOldProtect,           &dwOldProtect);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304DD0,
+                            (LPVOID)(pBase + 0x3304DD0),                                        6);
+            memcpy (        (LPVOID)(pBase + 0x3304DD0), "\x90\x90\x90\x90\x90\x90",            6);
+            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, dwOldProtect,           &dwOldProtect);
+
+            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_3304E03,
+                            (LPVOID)(pBase + 0x3304E03),                                        2);
+            memcpy (        (LPVOID)(pBase + 0x3304E03), "\x90\x90",                            2);
+            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, dwOldProtect,           &dwOldProtect);
+
+#if 0
+#if 1
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_1C0C42A,
+                            (LPVOID)(pBase + 0x1C0C42A),                                        5);
+            memcpy (        (LPVOID)(pBase + 0x1C0C42A), "\x90\x90\x90\x90\x90",                5);
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, dwOldProtect,           &dwOldProtect);
+#endif
+#if 1
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
+            memcpy (                orig_bytes_1C0C425,
+                            (LPVOID)(pBase + 0x1C0C425),                                        5);
+            memcpy (        (LPVOID)(pBase + 0x1C0C425), "\x90\x90\x90\x90\x90",                5);
+            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, dwOldProtect,           &dwOldProtect);
+#endif
+#endif
+          }
+        }
+
+        if (bPatchable && __target_fps > 0.0f)
+        {
+          **(float **)(pBase + 0x0590C750) =
+                          __target_fps;
+        }
+      }
+
+      catch (...)
+      {
+      }
+      SK_SEH_RemoveTranslator (orig_se);
+    } break;
+    default:
+      break;
+  }
+#endif
+}
+
 __declspec (noinline) // lol
 HRESULT
 __stdcall
@@ -3521,109 +3622,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_D3D12_EndFrame (pTLS);
   }
 
-  // TODO: Add a per-frame callback for plug-ins, because this is stupid
-  //
-#ifdef _M_AMD64
-  static const auto
-          game_id = SK_GetCurrentGameID ();
-  switch (game_id)
-  {
-    case SK_GAME_ID::Shenmue:
-      extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
-      WriteRelease        (&__SK_SHENMUE_FinishedButNotPresented, 0L);
-      break;
-    case SK_GAME_ID::FinalFantasyXV:
-      void SK_FFXV_SetupThreadPriorities (void);
-           SK_FFXV_SetupThreadPriorities ();
-      break;
-    case SK_GAME_ID::FinalFantasy7Remake:
-    {
-      uintptr_t pBase =
-        (uintptr_t)SK_Debug_GetImageBaseAddr ();
-
-      static uint8_t orig_bytes_3304DC8 [6] = { 0x0 };
-      static uint8_t orig_bytes_3304DD0 [6] = { 0x0 };
-      static uint8_t orig_bytes_3304E03 [2] = { 0x0 };
-      static uint8_t orig_bytes_1C0C42A [5] = { 0x0 };
-      static uint8_t orig_bytes_1C0C425 [5] = { 0x0 };
-
-      std::queue <DWORD> suspended;
-
-      auto orig_se =
-        SK_SEH_ApplyTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-      try
-      {
-        static bool        bPatchable    = false;
-        static bool        bInit         = false;
-        if (std::exchange (bInit, true) == false)
-        {
-          DWORD dwOldProtect = 0x0;
-
-          //suspended =
-          //  SK_SuspendAllOtherThreads ();
-
-          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-          bPatchable = ( 0 == memcmp (
-                          (LPVOID)(pBase + 0x3304DC6), "\x73\x3d", 2) );
-          VirtualProtect ((LPVOID)(pBase + 0x3304DC6), 2, dwOldProtect,           &dwOldProtect);
-
-          if (bPatchable)
-          {
-            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-            memcpy (                orig_bytes_3304DC8,
-                            (LPVOID)(pBase + 0x3304DC8),                                        6);
-            memcpy (        (LPVOID)(pBase + 0x3304DC8), "\x90\x90\x90\x90\x90\x90",            6);
-            VirtualProtect ((LPVOID)(pBase + 0x3304DC8), 6, dwOldProtect,           &dwOldProtect);
-            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-            memcpy (                orig_bytes_3304DD0,
-                            (LPVOID)(pBase + 0x3304DD0),                                        6);
-            memcpy (        (LPVOID)(pBase + 0x3304DD0), "\x90\x90\x90\x90\x90\x90",            6);
-            VirtualProtect ((LPVOID)(pBase + 0x3304DD0), 6, dwOldProtect,           &dwOldProtect);
-
-            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-            memcpy (                orig_bytes_3304E03,
-                            (LPVOID)(pBase + 0x3304E03),                                        2);
-            memcpy (        (LPVOID)(pBase + 0x3304E03), "\x90\x90",                            2);
-            VirtualProtect ((LPVOID)(pBase + 0x3304E03), 2, dwOldProtect,           &dwOldProtect);
-
-#if 0
-#if 1
-            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-            memcpy (                orig_bytes_1C0C42A,
-                            (LPVOID)(pBase + 0x1C0C42A),                                        5);
-            memcpy (        (LPVOID)(pBase + 0x1C0C42A), "\x90\x90\x90\x90\x90",                5);
-            VirtualProtect ((LPVOID)(pBase + 0x1C0C42A), 5, dwOldProtect,           &dwOldProtect);
-#endif
-#if 1
-            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, PAGE_EXECUTE_READWRITE, &dwOldProtect);
-            memcpy (                orig_bytes_1C0C425,
-                            (LPVOID)(pBase + 0x1C0C425),                                        5);
-            memcpy (        (LPVOID)(pBase + 0x1C0C425), "\x90\x90\x90\x90\x90",                5);
-            VirtualProtect ((LPVOID)(pBase + 0x1C0C425), 5, dwOldProtect,           &dwOldProtect);
-#endif
-#endif
-          }
-        }
-
-        if (bPatchable && __target_fps > 0.0f)
-        {
-          **(float **)(pBase + 0x0590C750) =
-                          __target_fps;
-        }
-      }
-
-      catch (...)
-      {
-      }
-      SK_SEH_RemoveTranslator (orig_se);
-
-      //if (! suspended.empty ())
-      //  SK_ResumeThreads (suspended);
-    } break;
-    default:
-      break;
-  }
-#endif
+  SK_RandomCrapThatShouldBeInPlugIns ();
 
   rb.updateActiveAPI (
     config.apis.last_known =

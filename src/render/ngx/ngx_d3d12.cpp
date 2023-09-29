@@ -38,7 +38,7 @@ SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
 bool __SK_HasDLSSGStatusSupport = false;
 bool __SK_IsDLSSGActive         = false;
-bool __SK_DoubleUpOnReflex      =  true;
+bool __SK_DoubleUpOnReflex      = false;
 bool __SK_ForceDLSSGPacing      = false;
 
 NVSDK_NGX_Handle*    SK_NGX_DLSSG_Handle     = nullptr;
@@ -220,17 +220,15 @@ SK_NGX_UpdateDLSSGStatus (void)
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
 
-  UINT uiNotRenderingGameFrames = 1;
-  UINT uiNumberOfFrames         = 0;
-  UINT uiEnableOFA              = 0;
-  UINT uiEnableDLSSGInterp      = 0;
+  UINT uiNumberOfFrames    = 0;
+  UINT uiEnableOFA         = 0;
+  UINT uiEnableDLSSGInterp = 0;
 
   if (SK_NGX_DLSSG_Parameters != nullptr)
   {
     SK_NGX_DLSSG_Parameters->Get ("Enable.OFA",                   &uiEnableOFA);
     SK_NGX_DLSSG_Parameters->Get ("DLSSG.EnableInterp",           &uiEnableDLSSGInterp);
     SK_NGX_DLSSG_Parameters->Get ("DLSSG.NumFrames",              &uiNumberOfFrames);
-    SK_NGX_DLSSG_Parameters->Get ("DLSSG.NotRenderingGameFrames", &uiNotRenderingGameFrames);
 
     //{
     //  SK_LOGi0 (L"Failure to get DLSS-G Parameters During SK_NGX_UpdateDLSSGStatus (...)");
@@ -238,9 +236,8 @@ SK_NGX_UpdateDLSSGStatus (void)
     //
   }
 
-  __SK_IsDLSSGActive =
-    (! uiNotRenderingGameFrames) && uiNumberOfFrames >= 1 &&
-       uiEnableDLSSGInterp       && uiEnableOFA;
+  __SK_IsDLSSGActive = uiNumberOfFrames >= 1 &&
+                       uiEnableDLSSGInterp   && uiEnableOFA;
 
   static UINT        uiLastDLSSGState = UINT_MAX;
   if (std::exchange (uiLastDLSSGState, (UINT)__SK_IsDLSSGActive) != (UINT)__SK_IsDLSSGActive)

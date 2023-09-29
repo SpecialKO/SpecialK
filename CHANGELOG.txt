@@ -1,4 +1,9 @@
-﻿23.9.29.2
+﻿23.9.29.3
+=========
+ + Framepacing graph now displays the dim "NV" text whenever Reflex's framerate
+     limiter is active, even if the user is not manually using DLSS-G Pacing.
+
+23.9.29.2
 =========
  + Implicitly override a game's Reflex settings if DLSS-G is active and
      a framerate limit is set, but user has not requested Reflex override.

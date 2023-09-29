@@ -1461,7 +1461,7 @@ SK::Framerate::Limiter::wait (void)
   if ((! background) && rb.isReflexSupported () && __target_fps > 0.0f)
   {
     if ((__SK_ForceDLSSGPacing) || (config.nvidia.reflex.use_limiter && config.nvidia.reflex.enable &&
-         ((! config.nvidia.reflex.native) || config.nvidia.reflex.override) && (__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive) ))
+         ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)))
     {
       extern bool
              __SK_DoubleUpOnReflex;
