@@ -97,9 +97,10 @@ struct {
   } ini;
 
   struct {
-    sk::ParameterFloat* sf_1stFOV  = nullptr;
-    sk::ParameterFloat* sf_3rdFOV  = nullptr;
-    sk::ParameterFloat* sf_MipBias = nullptr;
+    sk::ParameterFloat* sf_1stFOV   = nullptr;
+    sk::ParameterFloat* sf_3rdFOV   = nullptr;
+    sk::ParameterFloat* sf_MipBias  = nullptr;
+    sk::ParameterFloat* sf_ResScale = nullptr;
   } game_ini;
 
   std::unordered_map < std::wstring,
@@ -821,20 +822,28 @@ bool SK_SF_PlugInCfg (void)
           }
         }
 
-        changed |=
+        bool changed_scale =
           ImGui::Combo ("DLSS Mode", (int *)&dlss_prefs.mode, "Off\0"
                                                               "Max Performance\t(50% Scale)\0"
                                                               "Balanced\t\t\t\t  (58% Scale)\0"
                                                               "Max Quality\t\t\t  (66% Scale)\0"
                                                               "DLAA\t\t\t\t\t\t(100% Scale)\0\0");
 
+        changed |= changed_scale;
+
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip (
-            "The %% scale numbers indicate the setting you must use in the game's "
-            "resolution scaling for these DLSS modes to work." );
+        {
+          ImGui::BeginTooltip ();
+          ImGui::TextUnformatted (
+            "The % indicates the DLSS Mode's ideal resolution scale." );
+          ImGui::Separator ();
+          ImGui::BulletText ("The game's settings will be changed, but may not apply immediately.");
+          ImGui::BulletText ("To apply changes, move the resolution slider in the settings menu.");
+          ImGui::EndTooltip ();
+        }
 
         changed |=
-          ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\0"
+          ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\t(For Current DLSS Mode)\0"
                                                                   "A\0"
                                                                   "B\0"
                                                                   "C\0"
@@ -860,9 +869,9 @@ bool SK_SF_PlugInCfg (void)
 
         if (changed)
         {
-          f2s_config ["enabled"]                  = dlss_prefs.mode != DLSSMode::eOff;
+        //f2s_config ["enabled"]                  = dlss_prefs.mode != DLSSMode::eOff;
           if (dlss_prefs.mode == DLSSMode::eOff)
-              dlss_prefs.mode = DLSSMode::eBalanced; // Set a safe default value to prevent crashing
+              dlss_prefs.mode = DLSSMode::eDLAA; // Set a safe default value to prevent crashing
           f2s_config ["dlssMode"]                 = dlss_prefs.mode;
           f2s_config ["dlssPreset"]               = dlss_prefs.preset;
           f2s_config ["enableFrameGeneration"]    = dlss_prefs.enable_frame_gen;
@@ -876,6 +885,27 @@ bool SK_SF_PlugInCfg (void)
           {
             if (std::ofstream of (config_file); of)
               of << std::setw (4) << f2s_config;
+          }
+
+          if (changed_scale)
+          {
+            switch (dlss_prefs.mode)
+            {
+              case DLSSMode::eMaxPerformance:
+                plugin.game_ini.sf_ResScale->store (0.5f);
+                break;
+              case DLSSMode::eBalanced:
+                plugin.game_ini.sf_ResScale->store (0.58f);
+                break;
+              case DLSSMode::eMaxQuality:
+                plugin.game_ini.sf_ResScale->store (0.66f);
+                break;
+              case DLSSMode::eDLAA:
+                plugin.game_ini.sf_ResScale->store (1.0f);
+                break;
+            }
+
+            game_ini->write ();
           }
         }
       }
@@ -1455,7 +1485,7 @@ SK_SF_ResolutionCallback (ResolutionInfo *info, void*)
     DXGI_SWAP_CHAIN_DESC  swapDesc = { };
     pSwapChain->GetDesc (&swapDesc);
 
-    rcMonitor.left = 0;
+    rcMonitor.left  = 0;
     rcMonitor.right = swapDesc.BufferDesc.Width;
 
     rcMonitor.top    = 0;
@@ -1515,7 +1545,7 @@ SK_SEH_InitStarfieldUntrusted (void)
 #endif
 
 void
-SK_BGS_InitPlugin(void)
+SK_BGS_InitPlugin (void)
 {
   if (PathFileExistsW (L"SpecialK.NoPlugIns"))
     return;
@@ -1598,6 +1628,9 @@ SK_BGS_InitPlugin(void)
                                    L"AlternateThreadScheduling",
                          plugin.bAlternateThreadSched );
 
+    // Default this to on, it works well in Starfield.
+    __SK_DoubleUpOnReflex = true;
+
     plugin.ini.combined_reflex_sk_limit =
       _CreateConfigParameterBool ( L"Starfield.PlugIn",
                                    L"CombineReflexAndSKLimiters",
@@ -1674,18 +1707,19 @@ SK_BGS_InitPlugin(void)
 
     SK_SEH_InitStarfieldUntrusted ();
 
-    plugin.ini.image_addr->store             (plugin.cachedImageAddr0    - iBaseAddr);
-    plugin.ini.buffer_def_addr->store        (plugin.cachedBufferDefAddr - iBaseAddr);
-    plugin.ini.fps_limit_addr->store         (plugin.cachedFPSLimitAddr  - iBaseAddr);
-    plugin.ini.fov_1st_addr->store           (plugin.cached1stFOVAddr    - iBaseAddr);
-    plugin.ini.fov_3rd_addr->store           (plugin.cached3rdFOVAddr    - iBaseAddr);
-    plugin.ini.mip_bias_addr->store          (plugin.cachedMipBiasAddr   - iBaseAddr);
-    plugin.ini.alternate_thread_sched->store (plugin.bAlternateThreadSched);
+    plugin.ini.image_addr->store               (plugin.cachedImageAddr0    - iBaseAddr);
+    plugin.ini.buffer_def_addr->store          (plugin.cachedBufferDefAddr - iBaseAddr);
+    plugin.ini.fps_limit_addr->store           (plugin.cachedFPSLimitAddr  - iBaseAddr);
+    plugin.ini.fov_1st_addr->store             (plugin.cached1stFOVAddr    - iBaseAddr);
+    plugin.ini.fov_3rd_addr->store             (plugin.cached3rdFOVAddr    - iBaseAddr);
+    plugin.ini.mip_bias_addr->store            (plugin.cachedMipBiasAddr   - iBaseAddr);
+    plugin.ini.alternate_thread_sched->store   (plugin.bAlternateThreadSched);
+    plugin.ini.combined_reflex_sk_limit->store (__SK_DoubleUpOnReflex);
 
     dll_ini->write ();
   
     if (game_ini == nullptr) {
-        game_ini = SK_CreateINI (LR"(.\Starfield.ini)");
+        game_ini = SK_CreateINI ((SK_GetDocumentsDir () + LR"(\My Games\Starfield\StarfieldPrefs.ini)").c_str ());
     }
   
     if (gameCustom_ini == nullptr) {
@@ -1695,13 +1729,15 @@ SK_BGS_InitPlugin(void)
     game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
     gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
   
-    plugin.game_ini.sf_1stFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
-    plugin.game_ini.sf_3rdFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
-    plugin.game_ini.sf_MipBias = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
+    plugin.game_ini.sf_1stFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
+    plugin.game_ini.sf_3rdFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
+    plugin.game_ini.sf_MipBias  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
+    plugin.game_ini.sf_ResScale = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Resolution Scale"));
     
-    plugin.game_ini.sf_1stFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
-    plugin.game_ini.sf_3rdFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
-    plugin.game_ini.sf_MipBias->register_to_ini (gameCustom_ini, L"Display", L"fMipBiasOffset");
+    plugin.game_ini.sf_1stFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
+    plugin.game_ini.sf_3rdFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
+    plugin.game_ini.sf_MipBias->register_to_ini  (gameCustom_ini, L"Display", L"fMipBiasOffset");
+    plugin.game_ini.sf_ResScale->register_to_ini (game_ini,       L"Display", L"fRenderResolutionScaleFactor");
 
     //else
     //  SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");
