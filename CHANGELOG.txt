@@ -1,4 +1,11 @@
-﻿23.9.29.1
+﻿23.9.29.2
+=========
+ + Implicitly override a game's Reflex settings if DLSS-G is active and
+     a framerate limit is set, but user has not requested Reflex override.
+ + Correctly handle Reflex overrides in games (i.e. The Witcher 3) that set
+     NvSleep parameters EVERY frame despite documented performance penalties.
+
+23.9.29.1
 =========
  + Run all of Starfield's Steam callbacks on its main thread
 

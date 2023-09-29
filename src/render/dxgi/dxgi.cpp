@@ -5489,11 +5489,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
-    return nullptr;
-
-  const bool bDontWrap =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5576,8 +5574,9 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  bool bDontWrap =
-    SK_GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  bool bDontWrap =                   SK_IsInjected () &&
+    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
+             config.system.global_inject_delay == 0.0f;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -7654,7 +7653,7 @@ SK_HookDXGI (void)
       SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
     }
 
-    SK_ApplyQueuedHooks   ();
+    SK_ApplyQueuedHooks ();
 
     if (config.apis.dxgi.d3d11.hook)
     {
@@ -8797,8 +8796,6 @@ HookDXGI (LPVOID user)
              LoadLibraryExW (L"d3d11.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
                               "D3D11CoreCreateDevice" );
 
-      SK_D3D11_Init ();
-
       //// Favor this codepath because it bypasses many things like ReShade, but
       ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
       if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
@@ -8856,6 +8853,8 @@ HookDXGI (LPVOID user)
 
           if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pCmdQueue.p))
             SK_LOGi0 (L"Upgraded D3D12 Command Queue to Streamline Proxy...");
+
+          pDevice12.p->AddRef ();
         }
       }
 
@@ -8928,8 +8927,6 @@ HookDXGI (LPVOID user)
     //
     else
     {
-      SK_D3D11_Init ();
-
       hr =
         D3D11CreateDevice_Import (
           nullptr,
