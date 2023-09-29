@@ -29,6 +29,8 @@
 
 #include <reflex/pclstats.h>
 
+extern float __target_fps;
+
 volatile ULONG64 SK_Reflex_LastFrameMarked   = 0;
 volatile LONG    SK_RenderBackend::flip_skip = 0;
 
@@ -119,7 +121,10 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     SK_Reflex_NativeSleepModeParams = *pSetSleepModeParams;
   }
 
-  if (config.nvidia.reflex.override)
+  bool applyOverride =
+    (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
+
+  if (applyOverride)
     return NVAPI_OK;
 
   return
@@ -333,12 +338,15 @@ SK_RenderBackend_V2::driverSleepNV (int site)
   static bool
     lastOverride = true;
 
+  bool applyOverride =
+    (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
+
   // Game has native Reflex, we should bail out (unles overriding it).
-  if (config.nvidia.reflex.native && (! config.nvidia.reflex.override))
+  if (config.nvidia.reflex.native && (! applyOverride))
   {
     // Restore game's original Sleep mode when turning override off...
-    if (std::exchange (lastOverride, config.nvidia.reflex.override) !=
-                                     config.nvidia.reflex.override)
+    if (std::exchange (lastOverride, applyOverride) !=
+                                     applyOverride)
     {
       // Uninitialized? => Game may have done this before we had a hook
       if (SK_Reflex_NativeSleepModeParams.version == 0)
@@ -385,8 +393,6 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     {
       if ((__SK_HasDLSSGStatusSupport == false || __SK_IsDLSSGActive || __SK_ForceDLSSGPacing))
       {
-        extern float
-            __target_fps;
         if (__target_fps > 10.0f)
         {
           config.nvidia.reflex.frame_interval_us =
@@ -414,7 +420,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       *lastSwapChain = nullptr,
       *lastDevice    = nullptr;
 
-    if (! config.nvidia.reflex.enable)
+    if ((! config.nvidia.reflex.enable) && (! applyOverride))
     {
       sleepParams.bLowLatencyBoost      = false;
       sleepParams.bLowLatencyMode       = false;
@@ -422,6 +428,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       sleepParams.minimumIntervalUs     = 0;
     }
 
+    // Despite what NvAPI says about overhead from changing
+    //   sleep parameters every frame, many Streamline games do...
     static volatile ULONG64 _frames_drawn =
       std::numeric_limits <ULONG64>::max ();
     if ( ReadULong64Acquire (&_frames_drawn) ==
@@ -436,7 +444,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          lastParams.bLowLatencyMode       != sleepParams.bLowLatencyMode       ||
          lastParams.minimumIntervalUs     != sleepParams.minimumIntervalUs     ||
          lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize ||
-         lastOverride                     != config.nvidia.reflex.override )
+         lastOverride                     != applyOverride )
     {
       if ( NVAPI_OK !=
              SK_NvAPI_D3D_SetSleepMode (
@@ -448,7 +456,7 @@ SK_RenderBackend_V2::driverSleepNV (int site)
       {
         SK_LOGi1 (L"Reflex Sleep Mode Set...");
 
-        lastOverride  = config.nvidia.reflex.override;
+        lastOverride  = applyOverride;
         lastParams    = sleepParams;
         lastSwapChain = swapchain.p;
         lastDevice    = device.p;
