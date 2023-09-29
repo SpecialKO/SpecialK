@@ -1,4 +1,9 @@
-﻿23.9.29.4
+﻿23.9.30
+=======
+ + Added OBS executables to SK's internal injection blacklist to prevent
+     SK from injecting into the Steam version w/o users whitelisting it.
+
+23.9.29.4
 =========
  + Set Starfield's Resolution Scale setting accordingly when selecting a
      DLSS Mode in FSR2Streamline.
