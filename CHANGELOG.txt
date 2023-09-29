@@ -1,4 +1,9 @@
-﻿23.9.29.3
+﻿23.9.29.4
+=========
+ + Set Starfield's Resolution Scale setting accordingly when selecting a
+     DLSS Mode in FSR2Streamline.
+
+23.9.29.3
 =========
  + Framepacing graph now displays the dim "NV" text whenever Reflex's framerate
      limiter is active, even if the user is not manually using DLSS-G Pacing.
